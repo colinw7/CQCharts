@@ -1,0 +1,2 @@
+# CQCharts
+Qt Plotting
