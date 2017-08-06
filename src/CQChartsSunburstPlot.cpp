@@ -61,6 +61,8 @@ CQChartsSunburstPlot(QAbstractItemModel *model) :
 {
   range_.setWindowRange(-1, 1, 1, -1);
 
+  addProperty("", this, "fontHeight");
+
   init();
 }
 
@@ -131,9 +133,11 @@ loadChildren(HierNode *hier, const QModelIndex &index, int depth, int colorId)
 
 void
 CQChartsSunburstPlot::
-resizeEvent(QResizeEvent *)
+resizeEvent(QResizeEvent *e)
 {
   range_.setPixelRange(0, 0, width() - 1, height() - 1);
+
+  CQChartsPlot::resizeEvent(e);
 }
 
 void
@@ -144,13 +148,13 @@ paintEvent(QPaintEvent *)
 
   QFont font = this->font();
 
-  font.setPointSizeF(6.0);
+  font.setPointSizeF(fontHeight());
 
   p.setFont(font);
 
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  p.fillRect(rect(), QBrush(QColor(255,255,255)));
+  p.fillRect(rect(), QBrush(background()));
 
   //---
 
@@ -217,8 +221,10 @@ drawNode(QPainter *p, Node *node)
 
   path.closeSubpath();
 
-  p->setPen  (QColor(0,0,0));
-  p->setBrush(node->color());
+  QColor nodeColor = node->color();
+
+  p->setPen  (textColor(nodeColor));
+  p->setBrush(nodeColor);
 
   p->drawPath(path);
 
@@ -241,4 +247,13 @@ drawNode(QPainter *p, Node *node)
   else
     CQRotatedText::drawRotatedText(p, px, py, str, 180.0 + ta,
                                    Qt::AlignRight | Qt::AlignVCenter);
+}
+
+QColor
+CQChartsSunburstPlot::
+textColor(const QColor &bg) const
+{
+  int g = qGray(bg.red(), bg.green(), bg.blue());
+
+  return (g > 128 ? QColor(0,0,0) : QColor(255, 255, 255));
 }

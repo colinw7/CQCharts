@@ -7,7 +7,7 @@
 
 class QPainter;
 class CQChartsPlot;
-//class CQPropertyTree;
+class CQPropertyTree;
 
 class CQChartsAxisBase : public QObject {
   Q_OBJECT
@@ -82,7 +82,7 @@ class CQChartsAxisBase : public QObject {
 
   virtual void draw(CQChartsPlot *, QPainter *) = 0;
 
-  //void addProperties(CQPropertyTree *tree, const QString &path);
+  void addProperties(CQPropertyTree *tree, const QString &path);
 
  protected:
   virtual void calc() { }

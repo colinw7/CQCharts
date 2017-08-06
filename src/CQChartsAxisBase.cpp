@@ -1,5 +1,5 @@
 #include <CQChartsAxisBase.h>
-//#include <CQPropertyTree.h>
+#include <CQPropertyTree.h>
 
 CQChartsAxisBase::
 CQChartsAxisBase(CQChartsPlot *plot, Direction direction, double start, double end) :
@@ -19,7 +19,6 @@ setRange(double start, double end)
   calc();
 }
 
-#if 0
 void
 CQChartsAxisBase::
 addProperties(CQPropertyTree *tree, const QString &path)
@@ -34,4 +33,3 @@ addProperties(CQPropertyTree *tree, const QString &path)
   tree->addProperty(path, this, "gridColor"     );
   tree->addProperty(path, this, "gridDisplayed" );
 }
-#endif

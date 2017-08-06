@@ -1,26 +1,20 @@
-#ifndef CQChartsModel_H
-#define CQChartsModel_H
+#ifndef CQTsvModel_H
+#define CQTsvModel_H
 
-#include <CQChartsColumn.h>
 #include <QAbstractItemModel>
 
-class CQChartsModel : public QAbstractItemModel {
+class CQTsvModel : public QAbstractItemModel {
   Q_OBJECT
 
   Q_PROPERTY(bool columnHeaders READ hasColumnHeaders WRITE setColumnHeaders)
 
  public:
-  CQChartsModel();
-
-  virtual ~CQChartsModel() { }
+  CQTsvModel();
 
   bool hasColumnHeaders() const { return columnHeaders_; }
   void setColumnHeaders(bool b) { columnHeaders_ = b; }
 
-  void addColumn(const QString &name);
-
-  virtual QString columnType(int col) const;
-  virtual void setColumnType(int col, const QString &type);
+  bool load(const QString &filename);
 
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
@@ -36,12 +30,13 @@ class CQChartsModel : public QAbstractItemModel {
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
 
  protected:
-  typedef std::vector<QString>        Cells;
-  typedef std::vector<Cells>          Data;
-  typedef std::vector<CQChartsColumn> Columns;
+  typedef std::vector<QString> Cells;
+  typedef std::vector<Cells>   Data;
 
+  QString filename_;
   bool    columnHeaders_ { false };
-  Columns columns_;
+  int     numColumns_ { 0 };
+  Cells   header_;
   Data    data_;
 };
 

@@ -4,3 +4,6 @@
 . Adjacency Data
 . Geometry
 . Stacked XY Plot
+. Stacked/Grouped Histogram
+. Stacked Pie
+. Probe

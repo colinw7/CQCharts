@@ -3,16 +3,25 @@
 #include <CQChartsTable.h>
 #include <CQChartsTree.h>
 #include <CQChartsCsv.h>
+#include <CQChartsTsv.h>
 #include <CQChartsJson.h>
 #include <CQChartsData.h>
-#include <CQChartsPiePlot.h>
-#include <CQChartsXYPlot.h>
-#include <CQChartsSunburstPlot.h>
+
 #include <CQChartsBarChartPlot.h>
+#include <CQChartsBoxPlot.h>
+#include <CQChartsParallelPlot.h>
+#include <CQChartsPiePlot.h>
+#include <CQChartsSunburstPlot.h>
+#include <CQChartsXYPlot.h>
+
+#include <CQChartsLoader.h>
 #include <CQGradientPalette.h>
 #include <CQGradientPaletteControl.h>
 #include <CQApp.h>
 
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QTabWidget>
@@ -30,8 +39,15 @@ main(int argc, char **argv)
   CQApp app(argc, argv);
 
   bool csv  = false;
+  bool tsv  = false;
   bool json = false;
   bool data = false;
+
+  QString plot;
+  QString xarg;
+  QString yarg;
+  QString zarg;
+  QString format;
 
   std::vector<QString> filenames;
 
@@ -41,10 +57,42 @@ main(int argc, char **argv)
 
       if      (arg == "csv")
         csv  = true;
+      else if (arg == "tsv")
+        tsv  = true;
       else if (arg == "json")
         json = true;
       else if (arg == "data")
         data = true;
+      else if (arg == "plot") {
+        ++i;
+
+        if (i < argc)
+          plot = argv[i];
+      }
+      else if (arg == "x") {
+        ++i;
+
+        if (i < argc)
+          xarg = argv[i];
+      }
+      else if (arg == "y") {
+        ++i;
+
+        if (i < argc)
+          yarg = argv[i];
+      }
+      else if (arg == "z") {
+        ++i;
+
+        if (i < argc)
+          zarg = argv[i];
+      }
+      else if (arg == "format") {
+        ++i;
+
+        if (i < argc)
+          format = argv[i];
+      }
     }
     else
       filenames.push_back(argv[i]);
@@ -52,15 +100,13 @@ main(int argc, char **argv)
 
   //---
 
-  CQCharts charts;
-
-  charts.init();
-
   CQChartsTest test;
 
   if (filenames.size() > 0) {
     if      (csv)
       test.loadCsv(filenames[0]);
+    else if (tsv)
+      test.loadTsv(filenames[0]);
     else if (json)
       test.loadJson(filenames[0]);
     else if (data)
@@ -69,7 +115,15 @@ main(int argc, char **argv)
       std::cerr << "No plot type specified" << std::endl;
   }
 
+  //---
+
   test.show();
+
+  //---
+
+  test.init(plot, xarg, yarg, zarg, format);
+
+  //---
 
   app.exec();
 
@@ -79,11 +133,25 @@ main(int argc, char **argv)
 //-----
 
 CQChartsTest::
-CQChartsTest()
+CQChartsTest() :
+ CQAppWindow()
 {
-  QHBoxLayout *layout = new QHBoxLayout(this);
+  charts_ = new CQCharts;
+
+  charts_->init();
+
+  //---
+
+  addMenus();
+
+  //---
+
+  QHBoxLayout *layout = new QHBoxLayout(centralWidget());
+  layout->setMargin(0); layout->setSpacing(0);
 
   QSplitter *splitter = new QSplitter;
+
+  splitter->setObjectName("splitter");
 
   layout->addWidget(splitter);
 
@@ -91,28 +159,37 @@ CQChartsTest()
 
   QFrame *plotFrame = new QFrame;
 
+  plotFrame->setObjectName("plotFrame");
+
   QVBoxLayout *plotLayout = new QVBoxLayout(plotFrame);
+  plotLayout->setMargin(0); plotLayout->setSpacing(2);
 
   splitter->addWidget(plotFrame);
 
   //---
 
   // plots (one per tab)
-  QTabWidget *plotTab = new QTabWidget;
+  plotTab_ = new QTabWidget;
 
-  plotLayout->addWidget(plotTab);
+  plotTab_->setObjectName("plotTab");
 
-  plotTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  plotLayout->addWidget(plotTab_);
 
-  addPieTab     (plotTab);
-  addXYTab      (plotTab);
-  addSunburstTab(plotTab);
-  addBarChartTab(plotTab);
+  plotTab_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  addPieTab     (plotTab_);
+  addXYTab      (plotTab_);
+  addSunburstTab(plotTab_);
+  addBarChartTab(plotTab_);
+  addBoxTab     (plotTab_);
+  addParallelTab(plotTab_);
 
   //---
 
   // table/tree widgets
   stack_ = new QStackedWidget;
+
+  stack_->setObjectName("stack");
 
   table_ = new CQChartsTable;
   tree_  = new CQChartsTree;
@@ -128,6 +205,7 @@ CQChartsTest()
 
   typeGroup_ = new QGroupBox;
 
+  typeGroup_->setObjectName("typeGroup");
   typeGroup_->setTitle("Column Type");
 
   plotLayout->addWidget(typeGroup_);
@@ -136,15 +214,19 @@ CQChartsTest()
 
   QFrame *columnFrame = new QFrame;
 
+  columnFrame->setObjectName("columnFrame");
+
   typeGroupLayout->addWidget(columnFrame);
 
   QGridLayout *columnLayout = new QGridLayout(columnFrame);
 
   int row = 0;
 
-  columnTypeEdit_ = addLineEdit(columnLayout, row, "Type");
+  columnTypeEdit_ = addLineEdit(columnLayout, row, "Type", "type");
 
   QPushButton *typeOKButton = new QPushButton("Set");
+
+  typeOKButton->setObjectName("typeOK");
 
   connect(typeOKButton, SIGNAL(clicked()), this, SLOT(typeOKSlot()));
 
@@ -154,7 +236,10 @@ CQChartsTest()
 
   QFrame *gradientFrame = new QFrame;
 
+  gradientFrame->setObjectName("gradientFrame");
+
   QVBoxLayout *gradientLayout = new QVBoxLayout(gradientFrame);
+  gradientLayout->setMargin(0); gradientLayout->setSpacing(0);
 
   palettePlot_    = new CQGradientPalette(this, nullptr);
   paletteControl_ = new CQGradientPaletteControl(palettePlot_);
@@ -163,6 +248,54 @@ CQChartsTest()
   gradientLayout->addWidget(paletteControl_);
 
   splitter->addWidget(gradientFrame);
+}
+
+void
+CQChartsTest::
+addMenus()
+{
+  QMenuBar *menuBar = addMenuBar();
+
+  QMenu *fileMenu = menuBar->addMenu("&File");
+  QMenu *helpMenu = menuBar->addMenu("&Help");
+
+  QAction *loadAction = new QAction("Load", menuBar);
+  QAction *helpAction = new QAction("Help", menuBar);
+
+  connect(loadAction, SIGNAL(triggered()), this, SLOT(loadSlot()));
+
+  fileMenu->addAction(loadAction);
+  helpMenu->addAction(helpAction);
+}
+
+void
+CQChartsTest::
+loadSlot()
+{
+  if (! loader_) {
+    loader_ = new CQChartsLoader(charts_);
+
+    connect(loader_, SIGNAL(loadFile(const QString &, const QString &)),
+            this, SLOT(loadFileSlot(const QString &, const QString &)));
+  }
+
+  loader_->show();
+}
+
+void
+CQChartsTest::
+loadFileSlot(const QString &type, const QString &filename)
+{
+  if      (type == "CSV")
+    loadCsv(filename);
+  else if (type == "TSV")
+    loadTsv(filename);
+  else if (type == "Json")
+    loadJson(filename);
+  else if (type == "Data")
+    loadData(filename);
+  else
+    std::cerr << "Base type specified '" << type.toStdString() << "'" << std::endl;
 }
 
 void
@@ -193,11 +326,15 @@ typeOKSlot()
   }
 }
 
+//------
+
 void
 CQChartsTest::
 addPieTab(QTabWidget *plotTab)
 {
   QFrame *pieFrame = new QFrame;
+
+  pieFrame->setObjectName("pieFrame");
 
   QVBoxLayout *pieFrameLayout = new QVBoxLayout(pieFrame);
 
@@ -209,17 +346,21 @@ addPieTab(QTabWidget *plotTab)
 
   int row = 0;
 
-  pieLabelEdit_ = addLineEdit(pieEditLayout, row, "Label");
-  pieDataEdit_  = addLineEdit(pieEditLayout, row, "Data" );
+  pieChartData_.labelEdit = addLineEdit(pieEditLayout, row, "Label", "label");
+  pieChartData_.dataEdit  = addLineEdit(pieEditLayout, row, "Data" , "data" );
 
   //---
 
   QHBoxLayout *pieButtonLayout = new QHBoxLayout;
 
-  pieButtonLayout->addWidget (pieOKButton_ = new QPushButton("OK"));
+  pieChartData_.okButton = new QPushButton("OK");
+
+  pieChartData_.okButton->setObjectName("ok");
+
+  pieButtonLayout->addWidget (pieChartData_.okButton);
   pieButtonLayout->addStretch(1);
 
-  connect(pieOKButton_, SIGNAL(clicked()), this, SLOT(pieOKSlot()));
+  connect(pieChartData_.okButton, SIGNAL(clicked()), this, SLOT(pieOKSlot()));
 
   pieFrameLayout->addLayout(pieButtonLayout);
 
@@ -234,6 +375,8 @@ addXYTab(QTabWidget *plotTab)
 {
   QFrame *xyFrame = new QFrame;
 
+  xyFrame->setObjectName("xyFrame");
+
   QVBoxLayout *xyFrameLayout = new QVBoxLayout(xyFrame);
 
   //---
@@ -244,19 +387,28 @@ addXYTab(QTabWidget *plotTab)
 
   int row = 0;
 
-  xyXEdit_ = addLineEdit(xyEditLayout, row, "X");
-  xyYEdit_ = addLineEdit(xyEditLayout, row, "Y" );
+  xyPlotData_.xEdit    = addLineEdit(xyEditLayout, row, "X"   , "x");
+  xyPlotData_.yEdit    = addLineEdit(xyEditLayout, row, "Y"   , "y");
+  xyPlotData_.nameEdit = addLineEdit(xyEditLayout, row, "Name", "name");
 
-  xyEditLayout->addWidget(xyBivariateCheck_ = new QCheckBox("Bivariate"), row, 0, 1, 2);
+  xyPlotData_.bivariateCheck = new QCheckBox("Bivariate");
+
+  xyPlotData_.bivariateCheck->setObjectName("bivariateCheck");
+
+  xyEditLayout->addWidget(xyPlotData_.bivariateCheck, row, 0, 1, 2);
 
   //---
 
   QHBoxLayout *xyButtonLayout = new QHBoxLayout;
 
-  xyButtonLayout->addWidget (xyOKButton_ = new QPushButton("OK"));
+  xyPlotData_.okButton = new QPushButton("OK");
+
+  xyPlotData_.okButton->setObjectName("ok");
+
+  xyButtonLayout->addWidget (xyPlotData_.okButton);
   xyButtonLayout->addStretch(1);
 
-  connect(xyOKButton_, SIGNAL(clicked()), this, SLOT(xyOKSlot()));
+  connect(xyPlotData_.okButton, SIGNAL(clicked()), this, SLOT(xyOKSlot()));
 
   xyFrameLayout->addLayout(xyButtonLayout);
 
@@ -271,6 +423,8 @@ addSunburstTab(QTabWidget *plotTab)
 {
   QFrame *sunburstFrame = new QFrame;
 
+  sunburstFrame->setObjectName("sunburstFrame");
+
   QVBoxLayout *sunburstFrameLayout = new QVBoxLayout(sunburstFrame);
 
   //---
@@ -281,17 +435,21 @@ addSunburstTab(QTabWidget *plotTab)
 
   int row = 0;
 
-  sunburstNameEdit_  = addLineEdit(sunburstEditLayout, row, "Name" );
-  sunburstValueEdit_ = addLineEdit(sunburstEditLayout, row, "Value");
+  sunburstData_.nameEdit  = addLineEdit(sunburstEditLayout, row, "Name" , "name" );
+  sunburstData_.valueEdit = addLineEdit(sunburstEditLayout, row, "Value", "value");
 
   //---
 
   QHBoxLayout *sunburstButtonLayout = new QHBoxLayout;
 
-  sunburstButtonLayout->addWidget (sunburstOKButton_ = new QPushButton("OK"));
+  sunburstData_.okButton = new QPushButton("OK");
+
+  sunburstData_.okButton->setObjectName("ok");
+
+  sunburstButtonLayout->addWidget (sunburstData_.okButton);
   sunburstButtonLayout->addStretch(1);
 
-  connect(sunburstOKButton_, SIGNAL(clicked()), this, SLOT(sunburstOKSlot()));
+  connect(sunburstData_.okButton, SIGNAL(clicked()), this, SLOT(sunburstOKSlot()));
 
   sunburstFrameLayout->addLayout(sunburstButtonLayout);
 
@@ -306,6 +464,8 @@ addBarChartTab(QTabWidget *plotTab)
 {
   QFrame *barChartFrame = new QFrame;
 
+  barChartFrame->setObjectName("barChartFrame");
+
   QVBoxLayout *barChartFrameLayout = new QVBoxLayout(barChartFrame);
 
   //---
@@ -316,17 +476,21 @@ addBarChartTab(QTabWidget *plotTab)
 
   int row = 0;
 
-  barChartNameEdit_  = addLineEdit(barChartEditLayout, row, "Name" );
-  barChartValueEdit_ = addLineEdit(barChartEditLayout, row, "Value");
+  barChartData_.nameEdit  = addLineEdit(barChartEditLayout, row, "Name" , "name" );
+  barChartData_.valueEdit = addLineEdit(barChartEditLayout, row, "Value", "value");
 
   //---
 
   QHBoxLayout *barChartButtonLayout = new QHBoxLayout;
 
-  barChartButtonLayout->addWidget (barChartOKButton_ = new QPushButton("OK"));
+  barChartData_.okButton = new QPushButton("OK");
+
+  barChartData_.okButton->setObjectName("ok");
+
+  barChartButtonLayout->addWidget (barChartData_.okButton);
   barChartButtonLayout->addStretch(1);
 
-  connect(barChartOKButton_, SIGNAL(clicked()), this, SLOT(barChartOKSlot()));
+  connect(barChartData_.okButton, SIGNAL(clicked()), this, SLOT(barChartOKSlot()));
 
   barChartFrameLayout->addLayout(barChartButtonLayout);
 
@@ -337,12 +501,167 @@ addBarChartTab(QTabWidget *plotTab)
 
 void
 CQChartsTest::
+addBoxTab(QTabWidget *plotTab)
+{
+  QFrame *boxFrame = new QFrame;
+
+  boxFrame->setObjectName("boxFrame");
+
+  QVBoxLayout *boxFrameLayout = new QVBoxLayout(boxFrame);
+
+  //---
+
+  QGridLayout *boxEditLayout = new QGridLayout;
+
+  boxFrameLayout->addLayout(boxEditLayout);
+
+  int row = 0;
+
+  boxPlotData_.xEdit = addLineEdit(boxEditLayout, row, "X" , "x");
+  boxPlotData_.yEdit = addLineEdit(boxEditLayout, row, "Y" , "y");
+
+  //---
+
+  QHBoxLayout *boxButtonLayout = new QHBoxLayout;
+
+  boxPlotData_.okButton = new QPushButton("OK");
+
+  boxPlotData_.okButton->setObjectName("ok");
+
+  boxButtonLayout->addWidget (boxPlotData_.okButton);
+  boxButtonLayout->addStretch(1);
+
+  connect(boxPlotData_.okButton, SIGNAL(clicked()), this, SLOT(boxOKSlot()));
+
+  boxFrameLayout->addLayout(boxButtonLayout);
+
+  //---
+
+  plotTab->addTab(boxFrame, "Box");
+}
+
+void
+CQChartsTest::
+addParallelTab(QTabWidget *plotTab)
+{
+  QFrame *parallelFrame = new QFrame;
+
+  parallelFrame->setObjectName("parallelFrame");
+
+  QVBoxLayout *parallelFrameLayout = new QVBoxLayout(parallelFrame);
+
+  //---
+
+  QGridLayout *parallelEditLayout = new QGridLayout;
+
+  parallelFrameLayout->addLayout(parallelEditLayout);
+
+  int row = 0;
+
+  parallelPlotData_.xEdit = addLineEdit(parallelEditLayout, row, "X" , "x");
+  parallelPlotData_.yEdit = addLineEdit(parallelEditLayout, row, "Y" , "y");
+
+  //---
+
+  QHBoxLayout *parallelButtonLayout = new QHBoxLayout;
+
+  parallelPlotData_.okButton = new QPushButton("OK");
+
+  parallelPlotData_.okButton->setObjectName("ok");
+
+  parallelButtonLayout->addWidget (parallelPlotData_.okButton);
+  parallelButtonLayout->addStretch(1);
+
+  connect(parallelPlotData_.okButton, SIGNAL(clicked()), this, SLOT(parallelOKSlot()));
+
+  parallelFrameLayout->addLayout(parallelButtonLayout);
+
+  //---
+
+  plotTab->addTab(parallelFrame, "Parallel");
+}
+
+//------
+
+void
+CQChartsTest::
+init(const QString &plot, const QString &xarg, const QString &yarg,
+     const QString &zarg, const QString &format)
+{
+  CQChartsModel *model = qobject_cast<CQChartsModel *>(model_);
+
+  QStringList fstrs = format.split(";", QString::SkipEmptyParts);
+
+  for (int i = 0; i < fstrs.length(); ++i) {
+    QString type = fstrs[i];
+
+    if (model)
+      model->setColumnType(i, type);
+  }
+
+  //---
+
+  if      (plot == "pie" || plot == "piechart") {
+    plotTab_->setCurrentIndex(0);
+
+    pieChartData_.labelEdit->setText(xarg);
+    pieChartData_.dataEdit ->setText(yarg);
+
+    pieOKSlot();
+  }
+  else if (plot == "xy" || plot == "xy") {
+    plotTab_->setCurrentIndex(1);
+
+    xyPlotData_.xEdit   ->setText(xarg);
+    xyPlotData_.yEdit   ->setText(yarg);
+    xyPlotData_.nameEdit->setText(zarg);
+
+    xyOKSlot();
+  }
+  else if (plot == "sunburst") {
+    plotTab_->setCurrentIndex(2);
+
+    sunburstData_.nameEdit ->setText(xarg);
+    sunburstData_.valueEdit->setText(yarg);
+
+    sunburstOKSlot();
+  }
+  else if (plot == "bar" || plot == "barchart") {
+    plotTab_->setCurrentIndex(3);
+
+    barChartData_.nameEdit ->setText(xarg);
+    barChartData_.valueEdit->setText(yarg);
+
+    barChartOKSlot();
+  }
+  else if (plot == "box" || plot == "boxplot") {
+    plotTab_->setCurrentIndex(4);
+
+    boxPlotData_.xEdit->setText(xarg);
+    boxPlotData_.yEdit->setText(yarg);
+
+    boxOKSlot();
+  }
+  else if (plot == "parallel" || plot == "parallelplot") {
+    plotTab_->setCurrentIndex(5);
+
+    parallelPlotData_.xEdit->setText(xarg);
+    parallelPlotData_.yEdit->setText(yarg);
+
+    parallelOKSlot();
+  }
+}
+
+//------
+
+void
+CQChartsTest::
 pieOKSlot()
 {
   int col1, col2;
 
-  (void) lineEditValue(pieLabelEdit_, col1, 0);
-  (void) lineEditValue(pieDataEdit_ , col2, 1);
+  (void) lineEditValue(pieChartData_.labelEdit, col1, 0);
+  (void) lineEditValue(pieChartData_.dataEdit , col2, 1);
 
   //---
 
@@ -350,6 +669,8 @@ pieOKSlot()
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
+
+  //---
 
   plot->setPalette(palettePlot_->gradientPalette());
 
@@ -362,13 +683,83 @@ xyOKSlot()
 {
   int col1, col2;
 
-  (void)     lineEditValue(xyXEdit_, col1, 0);
-  bool ok2 = lineEditValue(xyYEdit_, col2, 1);
+  (void)     lineEditValue(xyPlotData_.xEdit, col1, 0);
+  bool ok2 = lineEditValue(xyPlotData_.yEdit, col2, 1);
 
-  CQChartsXYPlot::Columns columns;
+  CQChartsPlot::Columns columns;
 
   if (! ok2) {
-    QStringList strs = xyYEdit_->text().split(" ", QString::SkipEmptyParts);
+    QStringList strs = xyPlotData_.yEdit->text().split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i) {
+      bool ok;
+
+      int col = strs[i].toInt(&ok);
+
+      if (ok)
+        columns.push_back(col);
+    }
+  }
+
+  int ncol;
+
+  lineEditValue(xyPlotData_.nameEdit, ncol, -1);
+
+  //---
+
+  CQChartsXYPlot *plot = new CQChartsXYPlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  plot->setYColumns(columns);
+
+  plot->setNameColumn(ncol);
+
+  plot->setBivariate(xyPlotData_.bivariateCheck->isChecked());
+
+  plot->updateRange();
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+void
+CQChartsTest::
+sunburstOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(sunburstData_.nameEdit , col1, 0);
+  (void) lineEditValue(sunburstData_.valueEdit, col2, 1);
+
+  //---
+
+  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(model_);
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+void
+CQChartsTest::
+barChartOKSlot()
+{
+  int col1, col2;
+
+  (void)     lineEditValue(barChartData_.nameEdit , col1, 0);
+  bool ok2 = lineEditValue(barChartData_.valueEdit, col2, 1);
+
+  CQChartsPlot::Columns columns;
+
+  if (! ok2) {
+    QStringList strs = barChartData_.valueEdit->text().split(" ", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i) {
       bool ok;
@@ -382,56 +773,90 @@ xyOKSlot()
 
   //---
 
-  CQChartsXYPlot *plot = new CQChartsXYPlot(model_);
+  CQChartsBarChartPlot *plot = new CQChartsBarChartPlot(model_);
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
 
   plot->setYColumns(columns);
 
-  plot->setBivariate(xyBivariateCheck_->isChecked());
-
   plot->updateRange();
 
-  plot->show();
-}
-
-void
-CQChartsTest::
-sunburstOKSlot()
-{
-  int col1, col2;
-
-  (void) lineEditValue(sunburstNameEdit_ , col1, 0);
-  (void) lineEditValue(sunburstValueEdit_, col2, 1);
-
   //---
 
-  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(model_);
+  plot->setPalette(palettePlot_->gradientPalette());
 
   plot->show();
 }
 
 void
 CQChartsTest::
-barChartOKSlot()
+boxOKSlot()
 {
   int col1, col2;
 
-  (void) lineEditValue(barChartNameEdit_ , col1, 0);
-  (void) lineEditValue(barChartValueEdit_, col2, 1);
+  (void) lineEditValue(boxPlotData_.xEdit, col1, 0);
+  (void) lineEditValue(boxPlotData_.yEdit, col2, 1);
 
   //---
 
-  CQChartsPlotBarChart *plot = new CQChartsPlotBarChart(model_);
+  CQChartsBoxPlot *plot = new CQChartsBoxPlot(model_);
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
 
-  plot->updateRange();
+  plot->init();
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
 
   plot->show();
 }
+
+void
+CQChartsTest::
+parallelOKSlot()
+{
+  int col1, col2;
+
+  (void)     lineEditValue(parallelPlotData_.xEdit, col1, 0);
+  bool ok2 = lineEditValue(parallelPlotData_.yEdit, col2, 1);
+
+  CQChartsPlot::Columns columns;
+
+  if (! ok2) {
+    QStringList strs = parallelPlotData_.yEdit->text().split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i) {
+      bool ok;
+
+      int col = strs[i].toInt(&ok);
+
+      if (ok)
+        columns.push_back(col);
+    }
+  }
+
+  //---
+
+  CQChartsParallelPlot *plot = new CQChartsParallelPlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  plot->setYColumns(columns);
+
+  plot->updateRange();
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
 
 void
 CQChartsTest::
@@ -442,6 +867,17 @@ loadCsv(const QString &filename)
   csv->load(filename);
 
   setTableModel(csv);
+}
+
+void
+CQChartsTest::
+loadTsv(const QString &filename)
+{
+  CQChartsTsv *tsv = new CQChartsTsv;
+
+  tsv->load(filename);
+
+  setTableModel(tsv);
 }
 
 void
@@ -469,6 +905,8 @@ loadData(const QString &filename)
   setTableModel(data);
 }
 
+//------
+
 void
 CQChartsTest::
 setTableModel(QAbstractItemModel *model)
@@ -491,12 +929,17 @@ setTreeModel(QAbstractItemModel *model)
   stack_->setCurrentIndex(1);
 }
 
+//------
+
 QLineEdit *
 CQChartsTest::
-addLineEdit(QGridLayout *grid, int &row, const QString &name) const
+addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
   QLabel    *label = new QLabel(name);
   QLineEdit *edit  = new QLineEdit;
+
+  label->setObjectName(objName + "Label");
+  label->setObjectName(objName + "Edit" );
 
   grid->addWidget(label, row, 0);
   grid->addWidget(edit , row, 1);
@@ -518,4 +961,13 @@ lineEditValue(QLineEdit *le, int &i, int defi) const
     i = defi;
 
   return ok;
+}
+
+//------
+
+QSize
+CQChartsTest::
+sizeHint() const
+{
+  return QSize(1600, 1200);
 }

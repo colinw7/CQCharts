@@ -27,7 +27,9 @@ void
 CQChartsModel::
 setColumnType(int col, const QString &type)
 {
-  if (col < 0 || col >= int(columns_.size()))
+  int n = columns_.size();
+
+  if (col < 0 || col >= n)
     return;
 
   columns_[col].setType(type);

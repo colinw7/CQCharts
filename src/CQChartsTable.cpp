@@ -30,3 +30,12 @@ headerClickSlot(int section)
 {
   emit columnClicked(section);
 }
+
+QSize
+CQChartsTable::
+sizeHint() const
+{
+  QFontMetrics fm(font());
+
+  return QSize(fm.width("X")*40, 20*fm.height());
+}

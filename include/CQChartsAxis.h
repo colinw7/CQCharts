@@ -2,6 +2,7 @@
 #define CQChartsAxis_H
 
 #include <CQChartsAxisBase.h>
+#include <COptVal.h>
 
 #include <sys/types.h>
 
@@ -29,33 +30,48 @@ class CQChartsAxis : public CQChartsAxisBase {
   uint getNumMinorTicks() const { return numTicks2_; }
   void setNumMinorTicks(uint n) { numTicks2_ = n; }
 
-  double getMajorIncrement() const;
-  void setMajorIncrement(double i);
-
-  double getMinorIncrement() const;
-
   uint getTickIncrement() const { return tickIncrement_; }
   void setTickIncrement(uint tickIncrement);
+
+  double getMajorIncrement() const;
+  void setMajorIncrement(double i);
 
   const double *getTickSpaces   () const { return &tickSpaces_[0]; }
   uint          getNumTickSpaces() const { return tickSpaces_.size(); }
 
+  bool getMinorTicksDisplayed() const { return minorTicksDisplayed_; }
+  void setMinorTicksDisplayed(bool b) { minorTicksDisplayed_ = b; }
+
+  bool isIntegral() const { return integral_; }
+  void setIntegral(bool b);
+
+  bool isDataLabels() const { return dataLabels_; }
+  void setDataLabels(bool b) { dataLabels_ = b; }
+
+  double getMinorIncrement() const;
+
   double getTickSpace(int i) const { return tickSpaces_[i]; }
   void setTickSpaces(double *tickSpaces, uint numTickSpaces);
 
-  QString getValueStr(double pos) const;
+  void setPos(double r) { pos_ = r; }
 
-  bool getMinorTicksDisplayed() const { return minorTicksDisplayed_; }
-  void setMinorTicksDisplayed(bool b) { minorTicksDisplayed_ = b; }
+  QString getValueStr(double pos) const;
 
   void draw(CQChartsPlot *plot, QPainter *p);
 
  private:
+  struct AxisGapData {
+    double start       { 0.0 };
+    double end         { 0.0 };
+    double increment   { 0.0 };
+    uint   numGaps     { 0 };
+    uint   numGapTicks { 0 };
+  };
+
   void calc();
 
-  bool testAxisGaps(double start, double end, double testIncrement,
-                    uint testNumGapTicks, double *start1, double *end1,
-                    double *increment, uint *numGaps, uint *numGapTicks);
+  bool testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
+                    AxisGapData &axisGapData);
 
  private:
   typedef std::vector<double> TickSpaces;
@@ -68,7 +84,10 @@ class CQChartsAxis : public CQChartsAxisBase {
   double     majorIncrement_      { 0 };
   TickSpaces tickSpaces_;
   bool       minorTicksDisplayed_ { true };
+  bool       integral_            { false };
+  bool       dataLabels_          { false };
   int        column_              { -1 };
+  COptReal   pos_;
 };
 
 #endif

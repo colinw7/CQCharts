@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="450.52805"
+   height="446.48743"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r"
+   sodipodi:docname="file_dialog.svg">
+  <defs
+     id="defs4">
+    <style
+       id="style4146"
+       type="text/css">
+   
+    .fil0 {fill:#4D4D4D}
+    .fil1 {fill:url(#id0)}
+   
+  </style>
+    <linearGradient
+       y2="5416.43"
+       x2="4433.08"
+       y1="1971.33"
+       x1="4433.08"
+       gradientUnits="userSpaceOnUse"
+       id="id0">
+      <stop
+         id="stop4149"
+         style="stop-color:#B3B3B3"
+         offset="0" />
+      <stop
+         id="stop4151"
+         style="stop-color:#999999"
+         offset="1" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.5057524"
+     inkscape:cx="238.396"
+     inkscape:cy="177.78685"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1845"
+     inkscape:window-height="1446"
+     inkscape:window-x="523"
+     inkscape:window-y="153"
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(4.7866896,7.5336323)">
+    <g
+       style="clip-rule:evenodd;fill-rule:evenodd;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision"
+       id="g4167"
+       transform="matrix(0.04740869,0,0,0.04740869,29.018324,90.882349)">
+      <g
+         id="Layer_x0020_1">
+        <metadata
+           id="CorelCorpID_0Corel-Layer" />
+        <path
+           id="path4155"
+           d="m 2709,347 0,-147 C 2709,90 2619,0 2509,0 L 669,0 C 559,0 469,90 469,200 l 0,347 0,617 0,4016 c 0,110 90,200 200,200 l 6973,0 c 110,0 200,-90 200,-200 l 0,-4433 c 0,-110 -90,-200 -200,-200 l -4733,0 c -110,0 -200,-90 -200,-200 z"
+           class="fil0"
+           inkscape:connector-curvature="0"
+           style="fill:#4d4d4d" />
+        <path
+           id="path4157"
+           d="m 222,1233 c 1311,0 2621,0 3932,0 1311,0 2621,0 3933,0 125,0 228,77 222,172 -39,634 -128,1268 -233,1902 -104,634 -193,1268 -232,1902 -6,94 -94,171 -205,171 -1163,0 -2325,0 -3486,0 -1162,0 -2324,0 -3486,0 -111,0 -198,-77 -204,-171 C 424,4575 335,3941 231,3307 127,2673 41,2039 -1,1405 -3,1310 96,1233 221,1233 Z"
+           class="fil1"
+           inkscape:connector-curvature="0"
+           style="fill:url(#id0)" />
+      </g>
+    </g>
+  </g>
+</svg>

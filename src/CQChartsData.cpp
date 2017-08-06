@@ -184,10 +184,10 @@ load(const QString &filename)
     const FieldsSet &fieldsSet = set_[0][0];
 
     // add fields to model
-    numColumns_ = columnHeaderFields_.size();
+    int numColumns = columnHeaderFields_.size();
 
     for (const auto &fields : fieldsSet)
-      numColumns_ = std::max(numColumns_, int(fields.size()));
+      numColumns = std::max(numColumns, int(fields.size()));
 
     for (const auto &columnHeader : columnHeaderFields_)
       addColumn(columnHeader.c_str());

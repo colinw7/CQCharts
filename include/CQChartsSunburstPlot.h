@@ -3,10 +3,10 @@
 
 #include <CQChartsPlot.h>
 
-class CQChartsAxis;
-
 class CQChartsSunburstPlot : public CQChartsPlot {
   Q_OBJECT
+
+  Q_PROPERTY(double fontHeight READ fontHeight WRITE setFontHeight)
 
  public:
   enum class Order {
@@ -313,6 +313,9 @@ class CQChartsSunburstPlot : public CQChartsPlot {
  public:
   CQChartsSunburstPlot(QAbstractItemModel *model);
 
+  double fontHeight() const { return fontHeight_; }
+  void setFontHeight(double r) { fontHeight_ = r; update(); }
+
   void init();
 
   void resizeEvent(QResizeEvent *) override;
@@ -326,11 +329,14 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void drawNode(QPainter *p, Node *node);
 
+  QColor textColor(const QColor &bg) const;
+
  private:
   typedef std::vector<RootNode *> RootNodes;
 
   CDisplayRange2D range_;
   RootNodes       roots_;
+  double          fontHeight_ { 6.0 };
 };
 
 #endif

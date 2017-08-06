@@ -9,35 +9,57 @@
 #include <cstring>
 #include <algorithm>
 
-#define MIN_GOOD_TICKS 4
-#define MAX_GOOD_TICKS 12
-#define OPTIMUM_TICKS  10
+namespace {
 
-#define MAX_GAP_TESTS 14
+bool isInteger(double r) {
+  return fabs(r - int(r)) < 1E-3;
+}
+
+}
+
+//------
+
+struct AxisGoodTicks {
+  uint min {  4 };
+  uint max { 12 };
+  uint opt { 10 };
+};
 
 struct AxisIncrementTest {
-  double factor;
-  uint   numTicks;
-  double incFactor;
+  double factor    { 1.0 };
+  uint   numTicks  { 5   };
+  double incFactor { 0.0 };
+  bool   integral  { false };
+
+  AxisIncrementTest(double factor, uint numTicks) :
+   factor(factor), numTicks(numTicks) {
+    integral = isInteger(factor);
+  }
 };
 
 static AxisIncrementTest
-axesIncrementTests[MAX_GAP_TESTS] = {
-  {  1.0, 5, 0 },
-  {  1.2, 3, 0 },
-  {  2.0, 4, 0 },
-  {  2.5, 5, 0 },
-  {  4.0, 4, 0 },
-  {  5.0, 5, 0 },
-  {  6.0, 3, 0 },
-  {  8.0, 4, 0 },
-  { 10.0, 5, 0 },
-  { 12.0, 3, 0 },
-  { 20.0, 4, 0 },
-  { 25.0, 5, 0 },
-  { 40.0, 4, 0 },
-  { 50.0, 5, 0 }
+axesIncrementTests[] = {
+  {  1.0, 5 },
+  {  1.2, 3 },
+  {  2.0, 4 },
+  {  2.5, 5 },
+  {  4.0, 4 },
+  {  5.0, 5 },
+  {  6.0, 3 },
+  {  8.0, 4 },
+  { 10.0, 5 },
+  { 12.0, 3 },
+  { 20.0, 4 },
+  { 25.0, 5 },
+  { 40.0, 4 },
+  { 50.0, 5 }
 };
+
+static uint numAxesIncrementTests = sizeof(axesIncrementTests)/sizeof(axesIncrementTests[0]);
+
+AxisGoodTicks axisGoodTicks;
+
+//---
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
@@ -75,6 +97,15 @@ setTickSpaces(double *tickSpaces, uint numTickSpaces)
 
 void
 CQChartsAxis::
+setIntegral(bool b)
+{
+  integral_ = b;
+
+  calc();
+}
+
+void
+CQChartsAxis::
 calc()
 {
   numTicks1_ = 1;
@@ -87,6 +118,11 @@ calc()
   double minAxis = std::min(start_, end_);
   double maxAxis = std::max(start_, end_);
 
+  if (isIntegral()) {
+    minAxis = std::floor(minAxis);
+    maxAxis = std::ceil (maxAxis);
+  }
+
   //------
 
   /* Calculate Length */
@@ -96,24 +132,42 @@ calc()
   if (length == 0.0)
     return;
 
+  if (isIntegral())
+    length = std::ceil(length);
+
   //------
 
   // Calculate nearest Power of Ten to Length
 
   int power = CMathGen::RoundDown(log10(length));
 
+  if (isIntegral()) {
+    if (power < 0)
+      power = 1;
+  }
+
   //------
 
   if (majorIncrement_ <= 0.0) {
     // Set Default Increment to 0.1 * Power of Ten
-    double increment = 0.1;
+    double increment;
 
-    if      (power < 0) {
-      for (int i = 0; i < -power; i++)
-        increment /= 10.0;
+    if (! isIntegral()) {
+      increment = 0.1;
+
+      if      (power < 0) {
+        for (int i = 0; i < -power; i++)
+          increment /= 10.0;
+      }
+      else if (power > 0) {
+        for (int i = 0; i <  power; i++)
+          increment *= 10.0;
+      }
     }
-    else if (power > 0) {
-      for (int i = 0; i <  power; i++)
+    else {
+      increment = 1;
+
+      for (int i = 1; i < power; i++)
         increment *= 10.0;
     }
 
@@ -121,28 +175,31 @@ calc()
 
     // Calculate other test Increments
 
-    for (int i = 0; i < MAX_GAP_TESTS; i++)
+    for (uint i = 0; i < numAxesIncrementTests; i++) {
+      if (isIntegral() && ! isInteger(axesIncrementTests[i].factor)) {
+        axesIncrementTests[i].incFactor = 0.0;
+        continue;
+      }
+
       axesIncrementTests[i].incFactor = increment*axesIncrementTests[i].factor;
-
-    //------
-
-    // Set Default Start/End to Force Update
-
-    start1_ = 0.0;
-    end1_   = 0.0;
+    }
 
     //------
 
     // Test each Increment in turn
+    // (Set Default Start/End to Force Update)
 
-    uint numGaps, numGapTicks;
+    AxisGapData axisGapData;
 
-    for (int i = 0; i < MAX_GAP_TESTS; i++) {
+    for (uint i = 0; i < numAxesIncrementTests; i++) {
+      if (axesIncrementTests[i].incFactor <= 0)
+        continue;
+
       if (tickIncrement_ > 0) {
-        int incFactor1 = (int) axesIncrementTests[i].incFactor;
-
-        if (((double) incFactor1) != axesIncrementTests[i].incFactor)
+        if (! isInteger(axesIncrementTests[i].incFactor))
           continue;
+
+        int incFactor1 = int(axesIncrementTests[i].incFactor);
 
         if (incFactor1 % tickIncrement_ != 0)
           continue;
@@ -151,9 +208,14 @@ calc()
       testAxisGaps(minAxis, maxAxis,
                    axesIncrementTests[i].incFactor,
                    axesIncrementTests[i].numTicks,
-                   &start1_, &end1_, &increment,
-                   &numGaps, &numGapTicks);
+                   axisGapData);
     }
+
+    start1_   = axisGapData.start;
+    end1_     = axisGapData.end;
+    increment = axisGapData.increment;
+
+    int numGapTicks = axisGapData.numGapTicks;
 
     //------
 
@@ -173,7 +235,7 @@ calc()
 bool
 CQChartsAxis::
 testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
-             double *start1, double *end1, double *increment, uint *numGaps, uint *numGapTicks)
+             AxisGapData &axisGapData)
 {
   // Calculate New Start and End implied by the Test Increment
 
@@ -192,13 +254,13 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 
   // If nothing set yet just update values and return
 
-  if (*start1 == 0.0 && *end1 == 0.0) {
-    *start1 = newStart;
-    *end1   = newEnd;
+  if (axisGapData.start == 0.0 && axisGapData.end == 0.0) {
+    axisGapData.start = newStart;
+    axisGapData.end   = newEnd;
 
-    *increment   = testIncrement;
-    *numGaps     = testNumGaps;
-    *numGapTicks = testNumGapTicks;
+    axisGapData.increment   = testIncrement;
+    axisGapData.numGaps     = testNumGaps;
+    axisGapData.numGapTicks = testNumGapTicks;
 
     return true;
   }
@@ -209,14 +271,14 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   // and the new number of gaps is within the acceptable range then
   // update current
 
-  if ((   *numGaps <  MIN_GOOD_TICKS ||    *numGaps >  MAX_GOOD_TICKS) &&
-      (testNumGaps >= MIN_GOOD_TICKS && testNumGaps <= MAX_GOOD_TICKS)) {
-    *start1 = newStart;
-    *end1   = newEnd;
+  if ((axisGapData.numGaps <  axisGoodTicks.min || axisGapData.numGaps >  axisGoodTicks.max) &&
+      (testNumGaps         >= axisGoodTicks.min && testNumGaps         <= axisGoodTicks.max)) {
+    axisGapData.start = newStart;
+    axisGapData.end   = newEnd;
 
-    *increment   = testIncrement;
-    *numGaps     = testNumGaps;
-    *numGapTicks = testNumGapTicks;
+    axisGapData.increment   = testIncrement;
+    axisGapData.numGaps     = testNumGaps;
+    axisGapData.numGapTicks = testNumGapTicks;
 
     return true;
   }
@@ -227,8 +289,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   // and the new number of gaps is not within the acceptable range then
   // consider it for update of current if better fit
 
-  if ((   *numGaps < MIN_GOOD_TICKS ||    *numGaps > MAX_GOOD_TICKS) &&
-      (testNumGaps < MIN_GOOD_TICKS || testNumGaps > MAX_GOOD_TICKS)) {
+  if ((axisGapData.numGaps < axisGoodTicks.min || axisGapData.numGaps > axisGoodTicks.max) &&
+      (testNumGaps         < axisGoodTicks.min || testNumGaps         > axisGoodTicks.max)) {
     // Calculate how close fit is to required range
 
     double delta1 = fabs(newStart - start) + fabs(newEnd - end);
@@ -236,20 +298,21 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     //------
 
     // If better fit than current fit or equally good fit and
-    // number of gaps is nearer to optimum (OPTIMUM_TICKS) then
+    // number of gaps is nearer to optimum (axisGoodTicks.opt) then
     // update current
 
-    double delta2 = fabs(*start1 - start) + fabs(*end1 - end);
+    double delta2 = fabs(axisGapData.start - start) + fabs(axisGapData.end - end);
 
     if (((fabs(delta1 - delta2) < 1E-6) &&
-         (abs(testNumGaps - OPTIMUM_TICKS) < abs(*numGaps - OPTIMUM_TICKS))) ||
+         (abs(testNumGaps         - axisGoodTicks.opt) <
+          abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
         delta1 < delta2) {
-      *start1 = newStart;
-      *end1   = newEnd;
+      axisGapData.start = newStart;
+      axisGapData.end   = newEnd;
 
-      *increment   = testIncrement;
-      *numGaps     = testNumGaps;
-      *numGapTicks = testNumGapTicks;
+      axisGapData.increment   = testIncrement;
+      axisGapData.numGaps     = testNumGaps;
+      axisGapData.numGapTicks = testNumGapTicks;
 
       return true;
     }
@@ -261,8 +324,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   // and the new number of gaps is within the acceptable range then
   // consider it for update of current if better fit
 
-  if ((   *numGaps >= MIN_GOOD_TICKS &&    *numGaps <= MAX_GOOD_TICKS) &&
-      (testNumGaps >= MIN_GOOD_TICKS && testNumGaps <= MAX_GOOD_TICKS)) {
+  if ((axisGapData.numGaps >= axisGoodTicks.min && axisGapData.numGaps <= axisGoodTicks.max) &&
+      (testNumGaps         >= axisGoodTicks.min && testNumGaps         <= axisGoodTicks.max)) {
     // Calculate how close fit is to required range
 
     double delta1 = fabs(newStart - start) + fabs(newEnd - end);
@@ -270,20 +333,21 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     //------
 
     // If better fit than current fit or equally good fit and
-    // number of gaps is nearer to optimum (OPTIMUM_TICKS) then
+    // number of gaps is nearer to optimum (axisGoodTicks.opt) then
     // update current
 
-    double delta2 = fabs(*start1 - start) + fabs(*end1 - end);
+    double delta2 = fabs(axisGapData.start - start) + fabs(axisGapData.end - end);
 
     if (((fabs(delta1 - delta2) < 1E-6) &&
-         (abs(testNumGaps - OPTIMUM_TICKS) < abs(*numGaps - OPTIMUM_TICKS))) ||
+         (abs(testNumGaps         - axisGoodTicks.opt) <
+          abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
         delta1 < delta2) {
-      *start1 = newStart;
-      *end1   = newEnd;
+      axisGapData.start = newStart;
+      axisGapData.end   = newEnd;
 
-      *increment   = testIncrement;
-      *numGaps     = testNumGaps;
-      *numGapTicks = testNumGapTicks;
+      axisGapData.increment   = testIncrement;
+      axisGapData.numGaps     = testNumGaps;
+      axisGapData.numGapTicks = testNumGapTicks;
 
       return true;
     }
@@ -323,7 +387,7 @@ getValueStr(double pos) const
   if (column_ >= 0) {
     CQChartsModel *model = qobject_cast<CQChartsModel *>(plot_->model());
 
-    if (model) {
+    if      (model) {
       QString type = model->columnType(column_);
 
       QString            baseType;
@@ -339,8 +403,21 @@ getValueStr(double pos) const
       else
         return CStrUtil::toString(pos).c_str();
     }
-    else
+    else if (isDataLabels()) {
+      int row = int(pos);
+
+      QModelIndex ind = plot_->model()->index(row, column_);
+
+      QVariant header = plot_->model()->data(ind, Qt::DisplayRole);
+
+      if (header.isValid())
+        return header.toString();
+
       return CStrUtil::toString(pos).c_str();
+    }
+    else {
+      return CStrUtil::toString(pos).c_str();
+    }
   }
   else
     return CStrUtil::toString(pos).c_str();
@@ -350,7 +427,7 @@ void
 CQChartsAxis::
 draw(CQChartsPlot *plot, QPainter *p)
 {
-  double ax1, ay1, ax2, ay2;
+  double ax1, ay1, ax2, ay2, ax3, ay3;
 
   if (direction_ == DIR_HORIZONTAL) {
     double xmin = getStart();
@@ -361,6 +438,8 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     plot->windowToPixel(xmin, ymin, ax1, ay1);
     plot->windowToPixel(xmax, ymax, ax2, ay2);
+
+    plot->windowToPixel(xmin, pos_.getValue(ymin), ax3, ay3);
   }
   else {
     double ymin = getStart();
@@ -371,6 +450,8 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     plot->windowToPixel(xmin, ymin, ax1, ay1);
     plot->windowToPixel(xmax, ymax, ax2, ay2);
+
+    plot->windowToPixel(pos_.getValue(xmin), ymin, ax3, ay3);
   }
 
   //------
@@ -383,83 +464,96 @@ draw(CQChartsPlot *plot, QPainter *p)
     p->setPen(getLineColor());
 
     if (direction_ == DIR_HORIZONTAL)
-      p->drawLine(ax1, ay1, ax2, ay1);
+      p->drawLine(ax1, ay3, ax2, ay3);
     else
-      p->drawLine(ax1, ay1, ax1, ay2);
+      p->drawLine(ax3, ay1, ax3, ay2);
   }
 
   double inc  = getMajorIncrement();
   double inc1 = inc/getNumMinorTicks();
 
-  double pos1 = getStart();
+  double pos1 = start1_;
 
   for (uint i = 0; i < getNumMajorTicks() + 1; i++) {
-    if (pos1 > end1_) continue;
+    // draw major line (grid and tick)
+    if (pos1 >= getStart() && pos1 <= getEnd()) {
+      double ppx, ppy;
 
-    double ppx, ppy;
+      plot->windowToPixel(pos1, pos1, ppx, ppy);
 
-    plot->windowToPixel(pos1, pos1, ppx, ppy);
+      int dt1 = (getSide() == SIDE_BOTTOM_LEFT ? 8 : -8);
 
-    int dt1 = (getSide() == SIDE_BOTTOM_LEFT ? 8 : -8);
+      if (getGridDisplayed()) {
+        p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
 
-    if (getGridDisplayed()) {
-      p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
+        if (direction_ == DIR_HORIZONTAL)
+          p->drawLine(ppx, ay1, ppx, ay2);
+        else
+          p->drawLine(ax1, ppy, ax2, ppy);
+      }
+
+      p->setPen(getLineColor());
 
       if (direction_ == DIR_HORIZONTAL)
-        p->drawLine(ppx, ay1, ppx, ay2);
+        p->drawLine(ppx, ay3, ppx, ay3 + dt1);
       else
-        p->drawLine(ax1, ppy, ax2, ppy);
+        p->drawLine(ax3, ppy, ax3 - dt1, ppy);
     }
-
-    p->setPen(getLineColor());
-
-    if (direction_ == DIR_HORIZONTAL)
-      p->drawLine(ppx, ay1, ppx, ay1 + dt1);
-    else
-      p->drawLine(ax1, ppy, ax1 - dt1, ppy);
 
     if (getMinorTicksDisplayed() && i < getNumMajorTicks()) {
       for (uint j = 1; j < getNumMinorTicks(); j++) {
         double pos2 = pos1 + j*inc1;
 
-        if (pos2 > end1_) continue;
+        // draw minor tick line
+        if (pos2 >= getStart() && pos2 <= getEnd()) {
+          double ppx, ppy;
 
-        double ppx, ppy;
+          plot->windowToPixel(pos2, pos2, ppx, ppy);
 
-        plot->windowToPixel(pos2, pos2, ppx, ppy);
+          int dt2 = (getSide() == SIDE_BOTTOM_LEFT ? 4 : -4);
 
-        int dt2 = (getSide() == SIDE_BOTTOM_LEFT ? 4 : -4);
-
-        if (direction_ == DIR_HORIZONTAL)
-          p->drawLine(ppx, ay1, ppx, ay1 + dt2);
-        else
-          p->drawLine(ax1, ppy, ax1 - dt2, ppy);
+          if (direction_ == DIR_HORIZONTAL)
+            p->drawLine(ppx, ay3, ppx, ay3 + dt2);
+          else
+            p->drawLine(ax3, ppy, ax3 - dt2, ppy);
+        }
       }
     }
+
+    //---
 
     if (getLabelDisplayed()) {
-      QString text = getValueStr(pos1);
+      // draw major tick label
+      if (pos1 >= getStart() && pos1 <= getEnd()) {
+        double ppx, ppy;
 
-      int tw = fm.width(text);
-      int ta = fm.ascent();
-      int td = fm.descent();
+        plot->windowToPixel(pos1, pos1, ppx, ppy);
 
-      p->setPen (getLabelColor());
-      p->setFont(getLabelFont ());
+        QString text = getValueStr(pos1);
 
-      if (direction_ == DIR_HORIZONTAL) {
-        if (getSide() == SIDE_BOTTOM_LEFT)
-          p->drawText(ppx - tw/2, ay1 + 10 + ta, text);
-        else
-          p->drawText(ppx - tw/2, ay1 - 10 - td, text);
-      }
-      else {
-        if (getSide() == SIDE_BOTTOM_LEFT)
-          p->drawText(ax1 - tw - 10, ppy + ta/2, text);
-        else
-          p->drawText(ax1 + tw + 10, ppy + ta/2, text);
+        int tw = fm.width(text);
+        int ta = fm.ascent();
+        int td = fm.descent();
+
+        p->setPen (getLabelColor());
+        p->setFont(getLabelFont ());
+
+        if (direction_ == DIR_HORIZONTAL) {
+          if (getSide() == SIDE_BOTTOM_LEFT)
+            p->drawText(ppx - tw/2, ay3 + 10 + ta, text);
+          else
+            p->drawText(ppx - tw/2, ay3 - 10 - td, text);
+        }
+        else {
+          if (getSide() == SIDE_BOTTOM_LEFT)
+            p->drawText(ax3 - tw - 10, ppy + ta/2, text);
+          else
+            p->drawText(ax3 + tw + 10, ppy + ta/2, text);
+        }
       }
     }
+
+    //---
 
     pos1 += inc;
   }

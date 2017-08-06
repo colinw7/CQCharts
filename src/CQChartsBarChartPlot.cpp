@@ -1,20 +1,28 @@
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
+#include <CQUtil.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
-CQChartsPlotBarChart::
-CQChartsPlotBarChart(QAbstractItemModel *model) :
+CQChartsBarChartPlot::
+CQChartsBarChartPlot(QAbstractItemModel *model) :
  CQChartsPlot(nullptr, model)
 {
-  xAxis_ = new CQChartsAxis(this, CQChartsAxis::DIR_HORIZONTAL, 0, 1);
-  yAxis_ = new CQChartsAxis(this, CQChartsAxis::DIR_VERTICAL  , 0, 1);
+  addAxes();
+
+  xAxis_->setColumn(xColumn_);
+  yAxis_->setColumn(yColumn_);
+
+  xAxis_->setIntegral(true);
+  xAxis_->setDataLabels(true);
+
+  addProperty("", this, "barColor");
 }
 
 void
-CQChartsPlotBarChart::
+CQChartsBarChartPlot::
 updateRange()
 {
   QModelIndex ind;
@@ -23,34 +31,40 @@ updateRange()
 
   dataRange_.reset();
 
-  for (int i = 0; i < n; ++i) {
-    QModelIndex xind = model_->index(i, xColumn_);
+  dataRange_.updateRange(-0.5, 0);
 
-    QString name = model_->data(xind).toString();
+  if (! yColumns_.empty()) {
+    int ny = yColumns_.size();
 
-    double value = modelReal(i, yColumn_);
+    for (int i = 0; i < n; ++i) {
+      QString name = CQChartsUtil::modelString(model_, i, xColumn_);
 
-    ValueSet *valueSet = 0;
+      ValueSet *valueSet = getValueSet(name);
 
-    for (size_t j = 0; j < valueSets_.size(); ++j) {
-      if (valueSets_[j].name == name) {
-        valueSet = &valueSets_[j];
-        break;
+      for (int j = 0; j < ny; ++j) {
+        double value = CQChartsUtil::modelReal(model_, i, yColumns_[j]);
+
+        valueSet->values.push_back(value);
+
+        dataRange_.updateRange(0, value);
       }
     }
+  }
+  else {
+    for (int i = 0; i < n; ++i) {
+      QString name = CQChartsUtil::modelString(model_, i, xColumn_);
 
-    if (! valueSet) {
-      valueSets_.emplace_back(name);
+      ValueSet *valueSet = getValueSet(name);
 
-      valueSet = &valueSets_.back();
+      double value = CQChartsUtil::modelReal(model_, i, yColumn_);
+
+      valueSet->values.push_back(value);
+
+      dataRange_.updateRange(0, value);
     }
-
-    valueSet->values.push_back(value);
-
-    dataRange_.updateRange(0, value);
   }
 
-  dataRange_.updateRange(valueSets_.size(), dataRange_.ymin());
+  dataRange_.updateRange(valueSets_.size() - 0.5, dataRange_.ymin());
 
   displayRange_.setWindowRange(dataRange_.xmin(), dataRange_.ymin(),
                                dataRange_.xmax(), dataRange_.ymax());
@@ -61,17 +75,119 @@ updateRange()
   }
 }
 
+CQChartsBarChartPlot::ValueSet *
+CQChartsBarChartPlot::
+getValueSet(const QString &name)
+{
+  for (size_t j = 0; j < valueSets_.size(); ++j) {
+    if (valueSets_[j].name == name)
+      return &valueSets_[j];
+  }
+
+  valueSets_.emplace_back(name);
+
+  return &valueSets_.back();
+}
+
 void
-CQChartsPlotBarChart::
+CQChartsBarChartPlot::
+initObjs()
+{
+  if (! plotObjs_.empty())
+    return;
+
+  //---
+
+  // calc bar width in pixels
+  double px1, py1, px2, py2;
+
+  windowToPixel(0.0, 0.0, px1, py1);
+  windowToPixel(1.0, 0.0, px2, py2);
+
+  double bw = px2 - px1; // bar width
+
+  //---
+
+  // start at px1 - bar width
+  double bx = px1 - bw/2.0;
+
+  int nv = valueSets_.size();
+
+  for (int j = 0; j < nv; ++j) {
+    const ValueSet &valueSet = valueSets_[j];
+
+    QString setName = valueSet.name;
+
+    double bx1 = bx;
+    double bw1 = bw/valueSet.values.size();
+
+    double mbw1 = std::max(1.0, bw1 - 2.0);
+
+    int nv1 = valueSet.values.size();
+
+    for (int i = 0; i < nv1; ++i) {
+      // calc bar height in pixel
+      double value = valueSet.values[i];
+
+      windowToPixel(0, 0.0  , px1, py2);
+      windowToPixel(0, value, px2, py1);
+
+      double bh = py2 - py1; // bar height
+
+      //---
+
+      // create bar rect
+      CBBox2D prect(CPoint2D(bx1 + (bw1 - mbw1)/2, py1), CSize2D(mbw1, bh));
+
+      CBBox2D wrect;
+
+      pixelToWindow(prect, wrect);
+
+      CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, wrect, i, j);
+
+      barObj->setId(QString("%1:%2").arg(i).arg(j));
+
+      addPlotObject(barObj);
+
+      //---
+
+      bx1 += bw1;
+    }
+
+    bx += bw;
+  }
+}
+
+int
+CQChartsBarChartPlot::
+numSets() const
+{
+  return valueSets_.size();
+}
+
+int
+CQChartsBarChartPlot::
+numSetValues() const
+{
+  if (! valueSets_.empty())
+    return valueSets_[0].values.size();
+  else
+    return 0;
+}
+
+void
+CQChartsBarChartPlot::
 paintEvent(QPaintEvent *)
 {
+  initObjs();
+
+  //---
+
   QPainter p(this);
 
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  QFontMetrics fm(font());
-
-  p.fillRect(rect(), QBrush(QColor(255,255,255)));
+  p.fillRect(rect(), QBrush(background()));
 
   //---
 
@@ -84,49 +200,10 @@ paintEvent(QPaintEvent *)
   p->fillRect(QRect(pxmin, pymin, pxmax - pxmin - 1, pymax - pymin - 1), QBrush(background()));
 #endif
 
-  double px1, py1, px2, py2;
+  for (const auto &plotObj : plotObjs_)
+    plotObj->draw(&p);
 
-  windowToPixel(0, 0.0, px1, py1);
-  windowToPixel(1, 0.0, px2, py2);
-
-  double pw = px2 - px1;
-  double bw = std::max(1.0, pw - 2.0);
-
-  //bars_.clear();
-
-  QColor barColor = QColor(100,100,200);
-
-  for (int j = 0; j <  int(valueSets_.size()); ++j) {
-    const ValueSet &valueSet = valueSets_[j];
-
-    QString setName = valueSet.name;
-
-    windowToPixel(1, 0.0, px1, py1);
-
-    double bx = px1 + 1 + j*(bw + 1);
-
-    for (size_t i = 0; i < valueSet.values.size(); ++i) {
-      double value = valueSet.values[i];
-
-      windowToPixel(0.0, 0.0  , px1, py1);
-      windowToPixel(0.0, value, px2, py2);
-
-      QRectF rect(bx, py1, bw, py2 - py1);
-
-      QBrush fill = barColor;
-
-      p.fillRect(rect, fill);
-
-      //QString tip = QString("%1: %2")..arg(setName).arg(value);
-
-      //bars_[BarKey(i, j)] = Bar(rect, fill, tip);
-
-      bx += pw;
-    }
-  }
-
-  xAxis_->draw(this, &p);
-  yAxis_->draw(this, &p);
+  drawAxes(&p);
 
 #if 0
   for (auto legend : legends_)
@@ -134,11 +211,29 @@ paintEvent(QPaintEvent *)
 #endif
 }
 
-double
-CQChartsPlotBarChart::
-modelReal(int row, int col) const
-{
-  QModelIndex ind = model_->index(row, col);
+//------
 
-  return CQChartsUtil::toReal(model_->data(ind));
+CQChartsBarChartObj::
+CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect, int iset, int ival) :
+ CQChartsPlotObj(rect), plot_(plot), iset_(iset), ival_(ival)
+{
+}
+
+void
+CQChartsBarChartObj::
+draw(QPainter *p)
+{
+  CBBox2D prect;
+
+  plot_->windowToPixel(rect(), prect);
+
+  p->setPen(stroke());
+
+  QColor barColor = plot_->objectColor(this, iset_, plot_->numSetValues(), plot_->barColor());
+
+  p->setBrush(barColor);
+
+  QRectF qrect = CQUtil::toQRect(prect);
+
+  p->drawRect(qrect);
 }
