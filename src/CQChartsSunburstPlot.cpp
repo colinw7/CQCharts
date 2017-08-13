@@ -152,9 +152,11 @@ paintEvent(QPaintEvent *)
 
   p.setFont(font);
 
+  //---
+
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  p.fillRect(rect(), QBrush(background()));
+  drawBackground(&p);
 
   //---
 

@@ -11,12 +11,17 @@ class CQChartsTsv : public CQChartsModel {
  public:
   CQChartsTsv();
 
+  void setCommentHeader(bool b);
+  void setFirstLineHeader(bool b);
+
   bool load(const QString &filename);
 
   QString columnType(int col) const override;
   void setColumnType(int col, const QString &type) override;
 
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
+
+  int rowCount(const QModelIndex &parent=QModelIndex()) const override;
 
   QVariant headerData(int section, Qt::Orientation orientation=Qt::Horizontal,
                       int role=Qt::DisplayRole) const override;
@@ -27,7 +32,7 @@ class CQChartsTsv : public CQChartsModel {
 
   QModelIndex parent(const QModelIndex &index) const override;
 
-  int rowCount(const QModelIndex &parent=QModelIndex()) const override;
+  Qt::ItemFlags flags(const QModelIndex &index) const;
 
  private:
   typedef std::map<int,QString> ColumnTypes;

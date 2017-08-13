@@ -12,9 +12,6 @@ CQChartsBoxPlot(QAbstractItemModel *model) :
 {
   addAxes();
 
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
-
   xAxis_->setIntegral(true);
 
   addProperty("", this, "boxColor");
@@ -40,16 +37,20 @@ init()
     dataRange_.updateRange(set + 0.5, value);
   }
 
-  if (! dataRange_.isSet()) {
-    dataRange_.updateRange(0, 0);
-    dataRange_.updateRange(1, 1);
-  }
+  //---
 
-  displayRange_.setWindowRange(dataRange_.xmin(), dataRange_.ymin(),
-                               dataRange_.xmax(), dataRange_.ymax());
+  xAxis_->setColumn(xColumn_);
+  yAxis_->setColumn(yColumn_);
 
-  xAxis_->setRange(dataRange_.xmin(), dataRange_.xmax());
-  yAxis_->setRange(dataRange_.ymin(), dataRange_.ymax());
+  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
+  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+
+  xAxis_->setLabel(xname);
+  yAxis_->setLabel(yname);
+
+  //---
+
+  applyDataRange();
 }
 
 void
@@ -72,7 +73,7 @@ initObjs()
 
     CQChartsBoxObj *boxObj = new CQChartsBoxObj(this, rect, pos, whisker, i);
 
-    boxObj->setId(QString("%1").arg(i));
+    boxObj->setId(QString("%1:%2:%3").arg(pos).arg(whisker.lower()).arg(whisker.upper()));
 
     addPlotObject(boxObj);
 
@@ -99,7 +100,7 @@ paintEvent(QPaintEvent *)
 
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  p.fillRect(rect(), background());
+  drawBackground(&p);
 
   //---
 

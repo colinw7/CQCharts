@@ -21,6 +21,8 @@ class CQChartsAxisBase : public QObject {
   Q_PROPERTY(QColor  lineColor      READ getLineColor      WRITE setLineColor     )
   Q_PROPERTY(QColor  gridColor      READ getGridColor      WRITE setGridColor     )
   Q_PROPERTY(bool    gridDisplayed  READ getGridDisplayed  WRITE setGridDisplayed )
+  Q_PROPERTY(int     minorTickLen   READ getMinorTickLen   WRITE setMinorTickLen )
+  Q_PROPERTY(int     majorTickLen   READ getMajorTickLen   WRITE setMajorTickLen )
 
  public:
   enum Direction {
@@ -80,6 +82,12 @@ class CQChartsAxisBase : public QObject {
   const QColor &getGridColor() const { return gridColor_; }
   void setGridColor(const QColor &c) { gridColor_ = c; }
 
+  int getMinorTickLen() const { return minorTickLen_; }
+  void setMinorTickLen(int i) { minorTickLen_ = i; }
+
+  int getMajorTickLen() const { return majorTickLen_; }
+  void setMajorTickLen(int i) { majorTickLen_ = i; }
+
   virtual void draw(CQChartsPlot *, QPainter *) = 0;
 
   void addProperties(CQPropertyTree *tree, const QString &path);
@@ -98,10 +106,12 @@ class CQChartsAxisBase : public QObject {
   QFont         labelFont_;
   QColor        labelColor_     { 0, 0, 0 };
   bool          lineDisplayed_  { true };
-  QColor        lineColor_      { 0, 0, 0 };
+  QColor        lineColor_      { 128, 128, 128 };
   bool          labelDisplayed_ { true };
   QColor        gridColor_      { 0, 0, 0 };
   bool          gridDisplayed_  { false };
+  int           minorTickLen_   { 4 };
+  int           majorTickLen_   { 8 };
 };
 
 #endif

@@ -10,12 +10,14 @@
 
 class CQChartsXYPlot;
 
-class CQChartsXYLineObj : public CQChartsPlotObj {
+class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x,
-                    double y1, double y2, double s, int ind);
+  CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x,
+                      double y1, double y2, int ind);
+
+  bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
 
@@ -26,16 +28,19 @@ class CQChartsXYLineObj : public CQChartsPlotObj {
   double          x_    { 0.0 };
   double          y1_   { 0.0 };
   double          y2_   { 0.0 };
-  double          s_    { 0.0 };
   int             ind_  { -1 };
 };
+
+//---
 
 class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x,
-                     double y, double s, int ind);
+  CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y,
+                     int iset, int ind);
+
+  bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
 
@@ -45,15 +50,19 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   CQChartsXYPlot *plot_ { nullptr };
   double          x_    { 0.0 };
   double          y_    { 0.0 };
-  double          s_    { 0.0 };
+  int             iset_ { -1 };
   int             ind_  { -1 };
 };
 
-class CQChartsXYPolygonObj : public CQChartsPlotObj {
+//---
+
+class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CBBox2D &rect, const QPolygonF &poly, int ind);
+  CQChartsXYPolylineObj(CQChartsXYPlot *plot, const CBBox2D &rect, const QPolygonF &poly, int ind);
+
+  bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
 
@@ -67,60 +76,101 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsXYPolygonObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CBBox2D &rect, const QPolygonF &poly, int ind);
+
+  bool visible() const override;
+
+  bool inside(const CPoint2D &p) const override;
+
+  void draw(QPainter *p) override;
+
+ private:
+  CQChartsXYPlot *plot_ { nullptr };
+  QPolygonF       poly_;
+  int             ind_  { -1 };
+};
+
+//---
+
+#include <CQChartsKey.h>
+
+class CQChartsXYKeyColor : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsXYKeyColor(CQChartsXYPlot *plot, bool valueColor, int ind);
+
+  QSizeF size() const override;
+
+  void draw(QPainter *p, const CBBox2D &rect) override;
+
+ private:
+  CQChartsXYPlot *plot_       { nullptr };
+  int             valueColor_ { false };
+  int             ind_        { 0 };
+};
+
+//---
+
 class CQChartsXYPlot : public CQChartsPlot {
   Q_OBJECT
 
   // properties
   //  display
   //   bivariate
+  //   stacked
+  //  point
+  //   display, color, symbol, size
   //  line
   //   display, stroke
   //  fill under
   //   display, brush
-  //  symbol
-  //   display, color, shape. ...
   //  margin
   //  key
 
-  Q_PROPERTY(int    xColumn        READ xColumn        WRITE setXColumn       )
-  Q_PROPERTY(int    yColumn        READ yColumn        WRITE setYColumn       )
-  Q_PROPERTY(int    nameColumn     READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(bool   bivariate      READ isBivariate    WRITE setBivariate     )
-  Q_PROPERTY(bool   points         READ isPoints       WRITE setPoints        )
-  Q_PROPERTY(QColor pointsColor    READ pointsColor    WRITE setPointsColor   )
-  Q_PROPERTY(bool   lines          READ isLines        WRITE setLines         )
-  Q_PROPERTY(QColor linesColor     READ linesColor     WRITE setLinesColor    )
-  Q_PROPERTY(bool   fillUnder      READ isFillUnder    WRITE setFillUnder     )
-  Q_PROPERTY(QColor fillUnderColor READ fillUnderColor WRITE setFillUnderColor)
+  Q_PROPERTY(int     xColumn        READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(int     yColumn        READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(int     nameColumn     READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(bool    bivariate      READ isBivariate       WRITE setBivariate        )
+  Q_PROPERTY(bool    stacked        READ isStacked         WRITE setStacked          )
+  Q_PROPERTY(bool    points         READ isPoints          WRITE setPoints           )
+  Q_PROPERTY(QString pointsColor    READ pointsColorStr    WRITE setPointsColorStr   )
+  Q_PROPERTY(bool    lines          READ isLines           WRITE setLines            )
+  Q_PROPERTY(QString linesColor     READ linesColorStr     WRITE setLinesColorStr    )
+  Q_PROPERTY(bool    fillUnder      READ isFillUnder       WRITE setFillUnder        )
+  Q_PROPERTY(QString fillUnderColor READ fillUnderColorStr WRITE setFillUnderColorStr)
+  Q_PROPERTY(QString symbolName     READ symbolName        WRITE setSymbolName       )
+  Q_PROPERTY(double  symbolSize     READ symbolSize        WRITE setSymbolSize       )
 
  private:
   struct PointData {
-    bool        shown  { true };
-    CSymbolType symbol { CSYMBOL_CROSS };
-    CPen        pen;
+    bool            shown   { true };
+    CSymbol2D::Type symbol  { CSymbol2D::Type::CROSS };
+    QColor          color   { 0, 0, 0 };
+    bool            palette { true };
+    double          size    { 4 };
 
-    PointData() {
-      pen.setColor(CRGBA(0.5, 0.5, 0.5));
-    }
+    PointData() { }
   };
 
   struct LineData {
-    bool shown { true };
-    CPen pen;
+    bool   shown   { true };
+    QColor color   { 0, 0, 0 };
+    bool   palette { true };
 
-    LineData() {
-      pen.setColor(CRGBA(0, 0, 0));
-    }
+    LineData() { }
   };
 
   struct FillUnderData {
-    bool   shown { false };
-    CBrush brush;
+    bool   shown   { false };
+    QColor color   { 128, 128, 200 };
+    bool   palette { false };
 
-    FillUnderData() {
-     brush.setStyle(CBRUSH_STYLE_SOLID);
-     brush.setColor(CRGBA(0.5, 0.5, .8));
-    }
+    FillUnderData() { }
   };
 
  public:
@@ -139,38 +189,61 @@ class CQChartsXYPlot : public CQChartsPlot {
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
   bool isBivariate() const { return bivariate_; }
-  void setBivariate(bool b) { bivariate_ = b; update(); }
+  void setBivariate(bool b) { bivariate_ = b; initObjs(/*force*/true); update(); }
+
+  bool isStacked() const { return stacked_; }
+  void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
+
+  //---
 
   bool isPoints() const { return pointData_.shown; }
   void setPoints(bool b) { pointData_.shown = b; update(); }
 
-  const CPen &pointsPen() const { return pointData_.pen; }
+  QString pointsColorStr() const;
+  void setPointsColorStr(const QString &str);
 
-  QColor pointsColor() const { return CQUtil::toQColor(pointsPen().getColor()); }
-  void setPointsColor(const QColor &c) {
-    pointData_.pen.setColor(CQUtil::fromQColor(c)); update(); }
+  //---
 
   bool isLines() const { return lineData_.shown; }
   void setLines(bool b) { lineData_.shown = b; update(); }
 
-  QColor linesColor() const { return CQUtil::toQColor(lineData_.pen.getColor()); }
-  void setLinesColor(const QColor &c) {
-    lineData_.pen.setColor(CQUtil::fromQColor(c)); update(); }
+  QString linesColorStr() const;
+  void setLinesColorStr(const QString &str);
+
+  //---
 
   bool isFillUnder() const { return fillUnderData_.shown; }
   void setFillUnder(bool b) { fillUnderData_.shown = b; update(); }
 
-  const CBrush &fillUnderBrush() const { return fillUnderData_.brush; }
+  QString fillUnderColorStr() const;
+  void setFillUnderColorStr(const QString &str);
 
-  QColor fillUnderColor() const { return CQUtil::toQColor(fillUnderBrush().getColor()); }
-  void setFillUnderColor(const QColor &c) {
-    fillUnderData_.brush.setColor(CQUtil::fromQColor(c)); update(); }
+  //---
+
+  double symbolSize() const { return pointData_.size; }
+  void setSymbolSize(double r) { pointData_.size = r; update(); }
+
+  CSymbol2D::Type symbolType() const { return pointData_.symbol; }
+  void setSymbolType(CSymbol2D::Type t) { pointData_.symbol = t; update(); }
+
+  QString symbolName() const;
+  void setSymbolName(const QString &s);
+
+  //---
+
+  QColor pointColor    (int i, int n) const;
+  QColor lineColor     (int i, int n) const;
+  QColor fillUnderColor(int i, int n) const;
+
+  //---
 
   void updateRange();
 
-  void initObjs();
+  void initObjs(bool force=false);
 
   int numSets() const;
+
+  int getSetColumn(int i) const;
 
   void paintEvent(QPaintEvent *) override;
 
@@ -180,6 +253,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   Columns       yColumns_;
   int           nameColumn_ { -1 };
   bool          bivariate_  { false };
+  bool          stacked_    { false };
   PointData     pointData_;
   LineData      lineData_;
   FillUnderData fillUnderData_;

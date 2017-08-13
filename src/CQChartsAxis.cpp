@@ -2,6 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsModel.h>
 
+#include <CQRotatedText.h>
 #include <CMathGen.h>
 #include <CStrUtil.h>
 #include <QPainter>
@@ -12,7 +13,7 @@
 namespace {
 
 bool isInteger(double r) {
-  return fabs(r - int(r)) < 1E-3;
+  return std::abs(r - int(r)) < 1E-3;
 }
 
 }
@@ -127,7 +128,7 @@ calc()
 
   /* Calculate Length */
 
-  double length = fabs(maxAxis - minAxis);
+  double length = std::abs(maxAxis - minAxis);
 
   if (length == 0.0)
     return;
@@ -293,7 +294,7 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
       (testNumGaps         < axisGoodTicks.min || testNumGaps         > axisGoodTicks.max)) {
     // Calculate how close fit is to required range
 
-    double delta1 = fabs(newStart - start) + fabs(newEnd - end);
+    double delta1 = std::abs(newStart - start) + std::abs(newEnd - end);
 
     //------
 
@@ -301,11 +302,11 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     // number of gaps is nearer to optimum (axisGoodTicks.opt) then
     // update current
 
-    double delta2 = fabs(axisGapData.start - start) + fabs(axisGapData.end - end);
+    double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
 
-    if (((fabs(delta1 - delta2) < 1E-6) &&
-         (abs(testNumGaps         - axisGoodTicks.opt) <
-          abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
+    if (((std::abs(delta1 - delta2) < 1E-6) &&
+         (std::abs(testNumGaps         - axisGoodTicks.opt) <
+          std::abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
         delta1 < delta2) {
       axisGapData.start = newStart;
       axisGapData.end   = newEnd;
@@ -328,7 +329,7 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
       (testNumGaps         >= axisGoodTicks.min && testNumGaps         <= axisGoodTicks.max)) {
     // Calculate how close fit is to required range
 
-    double delta1 = fabs(newStart - start) + fabs(newEnd - end);
+    double delta1 = std::abs(newStart - start) + std::abs(newEnd - end);
 
     //------
 
@@ -336,11 +337,11 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     // number of gaps is nearer to optimum (axisGoodTicks.opt) then
     // update current
 
-    double delta2 = fabs(axisGapData.start - start) + fabs(axisGapData.end - end);
+    double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
 
-    if (((fabs(delta1 - delta2) < 1E-6) &&
-         (abs(testNumGaps         - axisGoodTicks.opt) <
-          abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
+    if (((std::abs(delta1 - delta2) < 1E-6) &&
+         (std::abs(testNumGaps         - axisGoodTicks.opt) <
+          std::abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
         delta1 < delta2) {
       axisGapData.start = newStart;
       axisGapData.end   = newEnd;
@@ -474,6 +475,12 @@ draw(CQChartsPlot *plot, QPainter *p)
 
   double pos1 = start1_;
 
+  int tlen1 = getMinorTickLen();
+  int tlen2 = getMajorTickLen();
+  int tgap  = 2;
+
+  double lmin = INT_MAX, lmax = INT_MIN;
+
   for (uint i = 0; i < getNumMajorTicks() + 1; i++) {
     // draw major line (grid and tick)
     if (pos1 >= getStart() && pos1 <= getEnd()) {
@@ -481,7 +488,7 @@ draw(CQChartsPlot *plot, QPainter *p)
 
       plot->windowToPixel(pos1, pos1, ppx, ppy);
 
-      int dt1 = (getSide() == SIDE_BOTTOM_LEFT ? 8 : -8);
+      int dt1 = (getSide() == SIDE_BOTTOM_LEFT ? tlen2 : -tlen2);
 
       if (getGridDisplayed()) {
         p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
@@ -510,7 +517,7 @@ draw(CQChartsPlot *plot, QPainter *p)
 
           plot->windowToPixel(pos2, pos2, ppx, ppy);
 
-          int dt2 = (getSide() == SIDE_BOTTOM_LEFT ? 4 : -4);
+          int dt2 = (getSide() == SIDE_BOTTOM_LEFT ? tlen1 : -tlen1);
 
           if (direction_ == DIR_HORIZONTAL)
             p->drawLine(ppx, ay3, ppx, ay3 + dt2);
@@ -539,16 +546,28 @@ draw(CQChartsPlot *plot, QPainter *p)
         p->setFont(getLabelFont ());
 
         if (direction_ == DIR_HORIZONTAL) {
-          if (getSide() == SIDE_BOTTOM_LEFT)
-            p->drawText(ppx - tw/2, ay3 + 10 + ta, text);
-          else
-            p->drawText(ppx - tw/2, ay3 - 10 - td, text);
+          if (getSide() == SIDE_BOTTOM_LEFT) {
+            lmax = std::max(lmax, ay3 + tlen2 + tgap + ta);
+
+            p->drawText(ppx - tw/2, ay3 + tlen2 + tgap + ta, text);
+          }
+          else {
+            lmin = std::min(lmin, ay3 - tlen2 + tgap - td);
+
+            p->drawText(ppx - tw/2, ay3 - tlen2 + tgap - td, text);
+          }
         }
         else {
-          if (getSide() == SIDE_BOTTOM_LEFT)
-            p->drawText(ax3 - tw - 10, ppy + ta/2, text);
-          else
-            p->drawText(ax3 + tw + 10, ppy + ta/2, text);
+          if (getSide() == SIDE_BOTTOM_LEFT) {
+            lmin = std::min(lmin, ax3 - tw - tlen2);
+
+            p->drawText(ax3 - tw - tlen2 + tgap, ppy + ta/2, text);
+          }
+          else {
+            lmax = std::max(lmax, ax3 + tw + tlen2);
+
+            p->drawText(ax3 + tw + tlen2 + tgap, ppy + ta/2, text);
+          }
         }
       }
     }
@@ -557,6 +576,36 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     pos1 += inc;
   }
+
+  //---
+
+  if (getLabelDisplayed()) {
+    QString text = getLabel();
+
+    int tw = fm.width(text);
+    int ta = fm.ascent();
+    int td = fm.descent();
+
+    // draw label
+    if (direction_ == DIR_HORIZONTAL) {
+      double axm = (ax1 + ax2)/2;
+
+      if (getSide() == SIDE_BOTTOM_LEFT)
+        p->drawText(axm - tw/2, lmax + ta + td + tgap, text);
+      else
+        p->drawText(axm - tw/2, lmin - ta - td - tgap, text);
+    }
+    else {
+      double aym = (ay2 + ay1)/2;
+
+      if (getSide() == SIDE_BOTTOM_LEFT)
+        CQRotatedText::drawRotatedText(p, lmin - ta, aym, text, -90);
+      else
+        CQRotatedText::drawRotatedText(p, lmax + ta, aym, text, -90);
+    }
+  }
+
+  //---
 
   p->restore();
 }

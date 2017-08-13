@@ -66,6 +66,8 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   int numSets() const;
 
+  int getSetColumn(int i) const;
+
   int numValues() const;
 
   void paintEvent(QPaintEvent *) override;

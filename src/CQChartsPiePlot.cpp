@@ -60,7 +60,7 @@ initObjs()
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, i, rect);
 
-    obj->setId(QString("%1").arg(i));
+    obj->setId(QString("%1:%2").arg(name).arg(value));
 
     obj->setCenter(CPoint2D(xc, yc));
     obj->setRadius(r);
@@ -93,9 +93,7 @@ paintEvent(QPaintEvent *)
 
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  QFontMetrics fm(font());
-
-  p.fillRect(rect(), QBrush(background()));
+  drawBackground(&p);
 
   //---
 

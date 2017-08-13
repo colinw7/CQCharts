@@ -4,6 +4,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -22,6 +23,7 @@ CQChartsLoader(CQCharts *charts) :
   typeCombo_ = new QComboBox;
 
   typeCombo_->addItem("CSV");
+  typeCombo_->addItem("TSV");
   typeCombo_->addItem("Json");
   typeCombo_->addItem("Data");
 
@@ -32,6 +34,14 @@ CQChartsLoader(CQCharts *charts) :
 
   promptGrid->addWidget(new QLabel("File"), 1, 0);
   promptGrid->addWidget(fileEdit_         , 1, 1);
+
+  commentHeaderCheck_ = new QCheckBox("Comment Header");
+
+  promptGrid->addWidget(commentHeaderCheck_);
+
+  firstLineHeaderCheck_ = new QCheckBox("First Line Header");
+
+  promptGrid->addWidget(firstLineHeaderCheck_);
 
   //---
 
@@ -54,6 +64,20 @@ CQChartsLoader(CQCharts *charts) :
 CQChartsLoader::
 ~CQChartsLoader()
 {
+}
+
+bool
+CQChartsLoader::
+isCommentHeader() const
+{
+  return commentHeaderCheck_->isChecked();
+}
+
+bool
+CQChartsLoader::
+isFirstLineHeader() const
+{
+  return firstLineHeaderCheck_->isChecked();
 }
 
 void

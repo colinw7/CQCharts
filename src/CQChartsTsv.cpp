@@ -10,6 +10,20 @@ CQChartsTsv() :
   model_ = new CQTsvModel;
 }
 
+void
+CQChartsTsv::
+setCommentHeader(bool b)
+{
+  model_->setCommentHeader(b);
+}
+
+void
+CQChartsTsv::
+setFirstLineHeader(bool b)
+{
+  model_->setFirstLineHeader(b);
+}
+
 bool
 CQChartsTsv::
 load(const QString &filename)
@@ -41,6 +55,13 @@ CQChartsTsv::
 columnCount(const QModelIndex &parent) const
 {
   return model_->columnCount(parent);
+}
+
+int
+CQChartsTsv::
+rowCount(const QModelIndex &parent) const
+{
+  return model_->rowCount(parent);
 }
 
 QVariant
@@ -90,9 +111,12 @@ parent(const QModelIndex &index) const
   return model_->parent(index);
 }
 
-int
+Qt::ItemFlags
 CQChartsTsv::
-rowCount(const QModelIndex &parent) const
+flags(const QModelIndex &index) const
 {
-  return model_->rowCount(parent);
+  if (! index.isValid())
+    return 0;
+
+  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }

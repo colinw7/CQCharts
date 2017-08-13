@@ -4,3 +4,8 @@
  + Parallel Plot
  + Add TSV support
  + Stacked XY Plot
+## 8/13/2017 ##
+ + Add Key
+ + Add Axis Labels
+ + Add ToolTip
+ + Add Zoom/Pan

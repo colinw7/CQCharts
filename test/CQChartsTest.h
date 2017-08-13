@@ -23,21 +23,32 @@ class CQChartsTest : public CQAppWindow {
   Q_OBJECT
 
  public:
+  struct InitData {
+    QString plot;
+    QString xarg;
+    QString yarg;
+    QString zarg;
+    QString format;
+    bool    bivariate { false };
+    bool    stacked   { false };
+  };
+
+ public:
   CQChartsTest();
 
   void loadCsv (const QString &filename);
-  void loadTsv (const QString &filename);
+  void loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   void loadJson(const QString &filename);
   void loadData(const QString &filename);
 
-  void init(const QString &plot, const QString &xarg, const QString &yarg,
-            const QString &zarg, const QString &format);
+  void init(const InitData &initData);
 
  private:
   void addMenus();
 
   void addPieTab     (QTabWidget *plotTab);
   void addXYTab      (QTabWidget *plotTab);
+  void addScatterTab (QTabWidget *plotTab);
   void addSunburstTab(QTabWidget *plotTab);
   void addBarChartTab(QTabWidget *plotTab);
   void addBoxTab     (QTabWidget *plotTab);
@@ -63,6 +74,7 @@ class CQChartsTest : public CQAppWindow {
 
   void pieOKSlot();
   void xyOKSlot();
+  void scatterOKSlot();
   void sunburstOKSlot();
   void barChartOKSlot();
   void boxOKSlot();
@@ -80,7 +92,15 @@ class CQChartsTest : public CQAppWindow {
     QLineEdit*   yEdit          { nullptr };
     QLineEdit*   nameEdit       { nullptr };
     QCheckBox*   bivariateCheck { nullptr };
+    QCheckBox*   stackedCheck   { nullptr };
     QPushButton* okButton       { nullptr };
+  };
+
+  struct ScatterPlotData {
+    QLineEdit*   nameEdit { nullptr };
+    QLineEdit*   xEdit    { nullptr };
+    QLineEdit*   yEdit    { nullptr };
+    QPushButton* okButton { nullptr };
   };
 
   struct SunburstData {
@@ -90,9 +110,10 @@ class CQChartsTest : public CQAppWindow {
   };
 
   struct BarChartData {
-    QLineEdit*   nameEdit  { nullptr };
-    QLineEdit*   valueEdit { nullptr };
-    QPushButton* okButton  { nullptr };
+    QLineEdit*   nameEdit     { nullptr };
+    QLineEdit*   valueEdit    { nullptr };
+    QCheckBox*   stackedCheck { nullptr };
+    QPushButton* okButton     { nullptr };
   };
 
   struct BoxPlotData {
@@ -111,6 +132,7 @@ class CQChartsTest : public CQAppWindow {
   QAbstractItemModel*       model_             { nullptr };
   PieChartData              pieChartData_;
   XYPlotData                xyPlotData_;
+  ScatterPlotData           scatterPlotData_;
   SunburstData              sunburstData_;
   BarChartData              barChartData_;
   BoxPlotData               boxPlotData_;

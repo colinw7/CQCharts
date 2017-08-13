@@ -11,6 +11,7 @@
 #include <CQChartsBoxPlot.h>
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
+#include <CQChartsScatterPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsXYPlot.h>
 
@@ -43,11 +44,10 @@ main(int argc, char **argv)
   bool json = false;
   bool data = false;
 
-  QString plot;
-  QString xarg;
-  QString yarg;
-  QString zarg;
-  QString format;
+  CQChartsTest::InitData initData;
+
+  bool commentHeader   = false;
+  bool firstLineHeader = false;
 
   std::vector<QString> filenames;
 
@@ -67,31 +67,43 @@ main(int argc, char **argv)
         ++i;
 
         if (i < argc)
-          plot = argv[i];
+          initData.plot = argv[i];
       }
       else if (arg == "x") {
         ++i;
 
         if (i < argc)
-          xarg = argv[i];
+          initData.xarg = argv[i];
       }
       else if (arg == "y") {
         ++i;
 
         if (i < argc)
-          yarg = argv[i];
+          initData.yarg = argv[i];
       }
       else if (arg == "z") {
         ++i;
 
         if (i < argc)
-          zarg = argv[i];
+          initData.zarg = argv[i];
       }
       else if (arg == "format") {
         ++i;
 
         if (i < argc)
-          format = argv[i];
+          initData.format = argv[i];
+      }
+      else if (arg == "bivariate") {
+        initData.bivariate = true;
+      }
+      else if (arg == "stacked") {
+        initData.stacked = true;
+      }
+      else if (arg == "comment_header") {
+        commentHeader = true;
+      }
+      else if (arg == "first_line_header") {
+        firstLineHeader = true;
       }
     }
     else
@@ -106,7 +118,7 @@ main(int argc, char **argv)
     if      (csv)
       test.loadCsv(filenames[0]);
     else if (tsv)
-      test.loadTsv(filenames[0]);
+      test.loadTsv(filenames[0], commentHeader, firstLineHeader);
     else if (json)
       test.loadJson(filenames[0]);
     else if (data)
@@ -121,7 +133,7 @@ main(int argc, char **argv)
 
   //---
 
-  test.init(plot, xarg, yarg, zarg, format);
+  test.init(initData);
 
   //---
 
@@ -179,6 +191,7 @@ CQChartsTest() :
 
   addPieTab     (plotTab_);
   addXYTab      (plotTab_);
+  addScatterTab (plotTab_);
   addSunburstTab(plotTab_);
   addBarChartTab(plotTab_);
   addBoxTab     (plotTab_);
@@ -250,6 +263,8 @@ CQChartsTest() :
   splitter->addWidget(gradientFrame);
 }
 
+//------
+
 void
 CQChartsTest::
 addMenus()
@@ -286,10 +301,13 @@ void
 CQChartsTest::
 loadFileSlot(const QString &type, const QString &filename)
 {
+  bool commentHeader   = loader_->isCommentHeader();
+  bool firstLineHeader = loader_->isFirstLineHeader();
+
   if      (type == "CSV")
     loadCsv(filename);
   else if (type == "TSV")
-    loadTsv(filename);
+    loadTsv(filename, commentHeader, firstLineHeader);
   else if (type == "Json")
     loadJson(filename);
   else if (type == "Data")
@@ -297,6 +315,8 @@ loadFileSlot(const QString &type, const QString &filename)
   else
     std::cerr << "Base type specified '" << type.toStdString() << "'" << std::endl;
 }
+
+//------
 
 void
 CQChartsTest::
@@ -312,6 +332,8 @@ tableColumnClicked(int column)
     columnTypeEdit_->setText(type);
   }
 }
+
+//------
 
 void
 CQChartsTest::
@@ -371,6 +393,31 @@ addPieTab(QTabWidget *plotTab)
 
 void
 CQChartsTest::
+pieOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(pieChartData_.labelEdit, col1, 0);
+  (void) lineEditValue(pieChartData_.dataEdit , col2, 1);
+
+  //---
+
+  CQChartsPiePlot *plot = new CQChartsPiePlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
+
+void
+CQChartsTest::
 addXYTab(QTabWidget *plotTab)
 {
   QFrame *xyFrame = new QFrame;
@@ -392,10 +439,14 @@ addXYTab(QTabWidget *plotTab)
   xyPlotData_.nameEdit = addLineEdit(xyEditLayout, row, "Name", "name");
 
   xyPlotData_.bivariateCheck = new QCheckBox("Bivariate");
-
   xyPlotData_.bivariateCheck->setObjectName("bivariateCheck");
 
-  xyEditLayout->addWidget(xyPlotData_.bivariateCheck, row, 0, 1, 2);
+  xyEditLayout->addWidget(xyPlotData_.bivariateCheck, row, 0, 1, 2); ++row;
+
+  xyPlotData_.stackedCheck = new QCheckBox("Stacked");
+  xyPlotData_.stackedCheck->setObjectName("stackedCheck");
+
+  xyEditLayout->addWidget(xyPlotData_.stackedCheck, row, 0, 1, 2);
 
   //---
 
@@ -416,6 +467,129 @@ addXYTab(QTabWidget *plotTab)
 
   plotTab->addTab(xyFrame, "XY");
 }
+
+void
+CQChartsTest::
+xyOKSlot()
+{
+  int col1, col2;
+
+  (void)     lineEditValue(xyPlotData_.xEdit, col1, 0);
+  bool ok2 = lineEditValue(xyPlotData_.yEdit, col2, 1);
+
+  CQChartsPlot::Columns columns;
+
+  if (! ok2) {
+    QStringList strs = xyPlotData_.yEdit->text().split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i) {
+      bool ok;
+
+      int col = strs[i].toInt(&ok);
+
+      if (ok)
+        columns.push_back(col);
+    }
+  }
+
+  int ncol;
+
+  lineEditValue(xyPlotData_.nameEdit, ncol, -1);
+
+  //---
+
+  CQChartsXYPlot *plot = new CQChartsXYPlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  plot->setYColumns(columns);
+
+  plot->setNameColumn(ncol);
+
+  plot->setBivariate(xyPlotData_.bivariateCheck->isChecked());
+  plot->setStacked  (xyPlotData_.stackedCheck  ->isChecked());
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
+
+void
+CQChartsTest::
+addScatterTab(QTabWidget *plotTab)
+{
+  QFrame *scatterFrame = new QFrame;
+
+  scatterFrame->setObjectName("scatterFrame");
+
+  QVBoxLayout *scatterFrameLayout = new QVBoxLayout(scatterFrame);
+
+  //---
+
+  QGridLayout *scatterEditLayout = new QGridLayout;
+
+  scatterFrameLayout->addLayout(scatterEditLayout);
+
+  int row = 0;
+
+  scatterPlotData_.nameEdit = addLineEdit(scatterEditLayout, row, "Name", "name");
+  scatterPlotData_.xEdit    = addLineEdit(scatterEditLayout, row, "X"   , "x");
+  scatterPlotData_.yEdit    = addLineEdit(scatterEditLayout, row, "Y"   , "y");
+
+  //---
+
+  QHBoxLayout *scatterButtonLayout = new QHBoxLayout;
+
+  scatterPlotData_.okButton = new QPushButton("OK");
+
+  scatterPlotData_.okButton->setObjectName("ok");
+
+  scatterButtonLayout->addWidget (scatterPlotData_.okButton);
+  scatterButtonLayout->addStretch(1);
+
+  connect(scatterPlotData_.okButton, SIGNAL(clicked()), this, SLOT(scatterOKSlot()));
+
+  scatterFrameLayout->addLayout(scatterButtonLayout);
+
+  //---
+
+  plotTab->addTab(scatterFrame, "Scatter");
+}
+
+void
+CQChartsTest::
+scatterOKSlot()
+{
+  int ncol, col1, col2;
+
+  (void) lineEditValue(scatterPlotData_.nameEdit, ncol, -1);
+  (void) lineEditValue(scatterPlotData_.xEdit   , col1, 0);
+  (void) lineEditValue(scatterPlotData_.yEdit   , col2, 1);
+
+
+  //---
+
+  CQChartsScatterPlot *plot = new CQChartsScatterPlot(model_);
+
+  plot->setNameColumn(ncol);
+  plot->setXColumn   (col1);
+  plot->setYColumn   (col2);
+
+  plot->updateRange();
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
 
 void
 CQChartsTest::
@@ -460,6 +634,28 @@ addSunburstTab(QTabWidget *plotTab)
 
 void
 CQChartsTest::
+sunburstOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(sunburstData_.nameEdit , col1, 0);
+  (void) lineEditValue(sunburstData_.valueEdit, col2, 1);
+
+  //---
+
+  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(model_);
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
+
+void
+CQChartsTest::
 addBarChartTab(QTabWidget *plotTab)
 {
   QFrame *barChartFrame = new QFrame;
@@ -478,6 +674,11 @@ addBarChartTab(QTabWidget *plotTab)
 
   barChartData_.nameEdit  = addLineEdit(barChartEditLayout, row, "Name" , "name" );
   barChartData_.valueEdit = addLineEdit(barChartEditLayout, row, "Value", "value");
+
+  barChartData_.stackedCheck = new QCheckBox("Stacked");
+  barChartData_.stackedCheck->setObjectName("stackedCheck");
+
+  barChartEditLayout->addWidget(barChartData_.stackedCheck, row, 0, 1, 2);
 
   //---
 
@@ -498,6 +699,50 @@ addBarChartTab(QTabWidget *plotTab)
 
   plotTab->addTab(barChartFrame, "Bar Chart");
 }
+
+void
+CQChartsTest::
+barChartOKSlot()
+{
+  int col1, col2;
+
+  (void)     lineEditValue(barChartData_.nameEdit , col1, 0);
+  bool ok2 = lineEditValue(barChartData_.valueEdit, col2, 1);
+
+  CQChartsPlot::Columns columns;
+
+  if (! ok2) {
+    QStringList strs = barChartData_.valueEdit->text().split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i) {
+      bool ok;
+
+      int col = strs[i].toInt(&ok);
+
+      if (ok)
+        columns.push_back(col);
+    }
+  }
+
+  //---
+
+  CQChartsBarChartPlot *plot = new CQChartsBarChartPlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  plot->setYColumns(columns);
+
+  plot->setStacked(barChartData_.stackedCheck->isChecked());
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
 
 void
 CQChartsTest::
@@ -539,6 +784,33 @@ addBoxTab(QTabWidget *plotTab)
 
   plotTab->addTab(boxFrame, "Box");
 }
+
+void
+CQChartsTest::
+boxOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(boxPlotData_.xEdit, col1, 0);
+  (void) lineEditValue(boxPlotData_.yEdit, col2, 1);
+
+  //---
+
+  CQChartsBoxPlot *plot = new CQChartsBoxPlot(model_);
+
+  plot->setXColumn(col1);
+  plot->setYColumn(col2);
+
+  plot->init();
+
+  //---
+
+  plot->setPalette(palettePlot_->gradientPalette());
+
+  plot->show();
+}
+
+//------
 
 void
 CQChartsTest::
@@ -585,12 +857,11 @@ addParallelTab(QTabWidget *plotTab)
 
 void
 CQChartsTest::
-init(const QString &plot, const QString &xarg, const QString &yarg,
-     const QString &zarg, const QString &format)
+init(const InitData &initData)
 {
   CQChartsModel *model = qobject_cast<CQChartsModel *>(model_);
 
-  QStringList fstrs = format.split(";", QString::SkipEmptyParts);
+  QStringList fstrs = initData.format.split(";", QString::SkipEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
     QString type = fstrs[i];
@@ -601,217 +872,69 @@ init(const QString &plot, const QString &xarg, const QString &yarg,
 
   //---
 
-  if      (plot == "pie" || plot == "piechart") {
+  if      (initData.plot == "pie" || initData.plot == "piechart") {
     plotTab_->setCurrentIndex(0);
 
-    pieChartData_.labelEdit->setText(xarg);
-    pieChartData_.dataEdit ->setText(yarg);
+    pieChartData_.labelEdit->setText(initData.xarg);
+    pieChartData_.dataEdit ->setText(initData.yarg);
 
     pieOKSlot();
   }
-  else if (plot == "xy" || plot == "xy") {
+  else if (initData.plot == "xy" || initData.plot == "xyplot") {
     plotTab_->setCurrentIndex(1);
 
-    xyPlotData_.xEdit   ->setText(xarg);
-    xyPlotData_.yEdit   ->setText(yarg);
-    xyPlotData_.nameEdit->setText(zarg);
+    xyPlotData_.xEdit   ->setText(initData.xarg);
+    xyPlotData_.yEdit   ->setText(initData.yarg);
+    xyPlotData_.nameEdit->setText(initData.zarg);
+
+    xyPlotData_.bivariateCheck->setChecked(initData.bivariate);
+    xyPlotData_.stackedCheck  ->setChecked(initData.stacked);
 
     xyOKSlot();
   }
-  else if (plot == "sunburst") {
+  else if (initData.plot == "scatter" || initData.plot == "scatterplot") {
     plotTab_->setCurrentIndex(2);
 
-    sunburstData_.nameEdit ->setText(xarg);
-    sunburstData_.valueEdit->setText(yarg);
+    scatterPlotData_.nameEdit->setText(initData.zarg);
+    scatterPlotData_.xEdit   ->setText(initData.xarg);
+    scatterPlotData_.yEdit   ->setText(initData.yarg);
+
+    scatterOKSlot();
+  }
+  else if (initData.plot == "sunburst") {
+    plotTab_->setCurrentIndex(3);
+
+    sunburstData_.nameEdit ->setText(initData.xarg);
+    sunburstData_.valueEdit->setText(initData.yarg);
 
     sunburstOKSlot();
   }
-  else if (plot == "bar" || plot == "barchart") {
-    plotTab_->setCurrentIndex(3);
+  else if (initData.plot == "bar" || initData.plot == "barchart") {
+    plotTab_->setCurrentIndex(4);
 
-    barChartData_.nameEdit ->setText(xarg);
-    barChartData_.valueEdit->setText(yarg);
+    barChartData_.nameEdit ->setText(initData.xarg);
+    barChartData_.valueEdit->setText(initData.yarg);
+
+    barChartData_.stackedCheck->setChecked(initData.stacked);
 
     barChartOKSlot();
   }
-  else if (plot == "box" || plot == "boxplot") {
-    plotTab_->setCurrentIndex(4);
+  else if (initData.plot == "box" || initData.plot == "boxplot") {
+    plotTab_->setCurrentIndex(5);
 
-    boxPlotData_.xEdit->setText(xarg);
-    boxPlotData_.yEdit->setText(yarg);
+    boxPlotData_.xEdit->setText(initData.xarg);
+    boxPlotData_.yEdit->setText(initData.yarg);
 
     boxOKSlot();
   }
-  else if (plot == "parallel" || plot == "parallelplot") {
-    plotTab_->setCurrentIndex(5);
+  else if (initData.plot == "parallel" || initData.plot == "parallelplot") {
+    plotTab_->setCurrentIndex(6);
 
-    parallelPlotData_.xEdit->setText(xarg);
-    parallelPlotData_.yEdit->setText(yarg);
+    parallelPlotData_.xEdit->setText(initData.xarg);
+    parallelPlotData_.yEdit->setText(initData.yarg);
 
     parallelOKSlot();
   }
-}
-
-//------
-
-void
-CQChartsTest::
-pieOKSlot()
-{
-  int col1, col2;
-
-  (void) lineEditValue(pieChartData_.labelEdit, col1, 0);
-  (void) lineEditValue(pieChartData_.dataEdit , col2, 1);
-
-  //---
-
-  CQChartsPiePlot *plot = new CQChartsPiePlot(model_);
-
-  plot->setXColumn(col1);
-  plot->setYColumn(col2);
-
-  //---
-
-  plot->setPalette(palettePlot_->gradientPalette());
-
-  plot->show();
-}
-
-void
-CQChartsTest::
-xyOKSlot()
-{
-  int col1, col2;
-
-  (void)     lineEditValue(xyPlotData_.xEdit, col1, 0);
-  bool ok2 = lineEditValue(xyPlotData_.yEdit, col2, 1);
-
-  CQChartsPlot::Columns columns;
-
-  if (! ok2) {
-    QStringList strs = xyPlotData_.yEdit->text().split(" ", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.size(); ++i) {
-      bool ok;
-
-      int col = strs[i].toInt(&ok);
-
-      if (ok)
-        columns.push_back(col);
-    }
-  }
-
-  int ncol;
-
-  lineEditValue(xyPlotData_.nameEdit, ncol, -1);
-
-  //---
-
-  CQChartsXYPlot *plot = new CQChartsXYPlot(model_);
-
-  plot->setXColumn(col1);
-  plot->setYColumn(col2);
-
-  plot->setYColumns(columns);
-
-  plot->setNameColumn(ncol);
-
-  plot->setBivariate(xyPlotData_.bivariateCheck->isChecked());
-
-  plot->updateRange();
-
-  //---
-
-  plot->setPalette(palettePlot_->gradientPalette());
-
-  plot->show();
-}
-
-void
-CQChartsTest::
-sunburstOKSlot()
-{
-  int col1, col2;
-
-  (void) lineEditValue(sunburstData_.nameEdit , col1, 0);
-  (void) lineEditValue(sunburstData_.valueEdit, col2, 1);
-
-  //---
-
-  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(model_);
-
-  //---
-
-  plot->setPalette(palettePlot_->gradientPalette());
-
-  plot->show();
-}
-
-void
-CQChartsTest::
-barChartOKSlot()
-{
-  int col1, col2;
-
-  (void)     lineEditValue(barChartData_.nameEdit , col1, 0);
-  bool ok2 = lineEditValue(barChartData_.valueEdit, col2, 1);
-
-  CQChartsPlot::Columns columns;
-
-  if (! ok2) {
-    QStringList strs = barChartData_.valueEdit->text().split(" ", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.size(); ++i) {
-      bool ok;
-
-      int col = strs[i].toInt(&ok);
-
-      if (ok)
-        columns.push_back(col);
-    }
-  }
-
-  //---
-
-  CQChartsBarChartPlot *plot = new CQChartsBarChartPlot(model_);
-
-  plot->setXColumn(col1);
-  plot->setYColumn(col2);
-
-  plot->setYColumns(columns);
-
-  plot->updateRange();
-
-  //---
-
-  plot->setPalette(palettePlot_->gradientPalette());
-
-  plot->show();
-}
-
-void
-CQChartsTest::
-boxOKSlot()
-{
-  int col1, col2;
-
-  (void) lineEditValue(boxPlotData_.xEdit, col1, 0);
-  (void) lineEditValue(boxPlotData_.yEdit, col2, 1);
-
-  //---
-
-  CQChartsBoxPlot *plot = new CQChartsBoxPlot(model_);
-
-  plot->setXColumn(col1);
-  plot->setYColumn(col2);
-
-  plot->init();
-
-  //---
-
-  plot->setPalette(palettePlot_->gradientPalette());
-
-  plot->show();
 }
 
 void
@@ -871,9 +994,12 @@ loadCsv(const QString &filename)
 
 void
 CQChartsTest::
-loadTsv(const QString &filename)
+loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
   CQChartsTsv *tsv = new CQChartsTsv;
+
+  tsv->setCommentHeader  (commentHeader);
+  tsv->setFirstLineHeader(firstLineHeader);
 
   tsv->load(filename);
 

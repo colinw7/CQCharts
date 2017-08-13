@@ -6,6 +6,7 @@
 class CQCharts;
 class CQFilename;
 class QComboBox;
+class QCheckBox;
 
 class CQChartsLoader : public QFrame {
   Q_OBJECT
@@ -13,6 +14,9 @@ class CQChartsLoader : public QFrame {
  public:
   CQChartsLoader(CQCharts *charts);
  ~CQChartsLoader();
+
+  bool isCommentHeader() const;
+  bool isFirstLineHeader() const;
 
  signals:
   void loadFile(const QString &type, const QString &filename);
@@ -22,9 +26,11 @@ class CQChartsLoader : public QFrame {
   void cancelSlot();
 
  private:
-  CQCharts*   charts_    { nullptr };
-  QComboBox*  typeCombo_ { nullptr };
-  CQFilename* fileEdit_  { nullptr };
+  CQCharts*   charts_               { nullptr };
+  QComboBox*  typeCombo_            { nullptr };
+  CQFilename* fileEdit_             { nullptr };
+  QCheckBox*  commentHeaderCheck_   { nullptr };
+  QCheckBox*  firstLineHeaderCheck_ { nullptr };
 };
 
 #endif

@@ -11,8 +11,6 @@ CQChartsParallelPlot::
 CQChartsParallelPlot(QAbstractItemModel *model) :
  CQChartsPlot(nullptr, model)
 {
-  addAxes();
-
   addProperty("columns", this, "xColumn", "x");
   addProperty("columns", this, "yColumn", "y");
 }
@@ -30,7 +28,7 @@ updateRange()
   }
 
   for (int j = 0; j < numSets(); ++j) {
-    int yColumn = (! yColumns_.empty() ? yColumns_[j] : yColumn_);
+    int yColumn = getSetColumn(j);
 
     for (int i = 0; i < n; ++i) {
       double x = 0;
@@ -47,7 +45,7 @@ updateRange()
   dataRange_.updateRange(numSets() - 0.5, 1);
 
   for (int j = 0; j < numSets(); ++j) {
-    int yColumn = (! yColumns_.empty() ? yColumns_[j] : yColumn_);
+    int yColumn = getSetColumn(j);
 
     QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
@@ -78,7 +76,7 @@ initObjs()
     QPolygonF &poly = polys[i];
 
     for (int j = 0; j < numSets(); ++j) {
-      int yColumn = (! yColumns_.empty() ? yColumns_[j] : yColumn_);
+      int yColumn = getSetColumn(j);
 
       double x = j;
       double y = CQChartsUtil::modelReal(model_, i, yColumn);
@@ -90,13 +88,27 @@ initObjs()
   //---
 
   for (int i = 0; i < n; ++i) {
+    QString xname = CQChartsUtil::modelString(model_, i, xColumn_);
+
     QPolygonF &poly = polys[i];
 
     CBBox2D bbox(-0.5, 0, numSets() - 0.5, 1);
 
     CQChartsParallelLineObj *lineObj = new CQChartsParallelLineObj(this, bbox, poly, i);
 
-    lineObj->setId(QString("%1").arg(i));
+    int nl = poly.length();
+
+    QString id = xname + "\n";
+
+    for (int j = 0; j < nl; ++j) {
+      int yColumn = getSetColumn(j);
+
+      QString yname = model_->headerData(yColumn, Qt::Horizontal).toString();
+
+      id += QString("  %1\t%2\n").arg(yname).arg(poly[j].y());
+    }
+
+    lineObj->setId(id);
 
     addPlotObject(lineObj);
   }
@@ -110,6 +122,16 @@ numSets() const
     return 1;
 
   return yColumns_.size();
+}
+
+int
+CQChartsParallelPlot::
+getSetColumn(int i) const
+{
+  if (! yColumns_.empty())
+    return yColumns_[i];
+  else
+    return yColumn_;
 }
 
 int
@@ -131,7 +153,7 @@ paintEvent(QPaintEvent *)
 
   p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-  p.fillRect(rect(), background());
+  drawBackground(&p);
 
   //---
 

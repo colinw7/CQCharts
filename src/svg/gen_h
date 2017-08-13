@@ -1,0 +1,27 @@
+#!/bin/csh -f
+
+foreach file (*.svg)
+  CBinArr -class $file > $file:r_svg.h.1
+
+  set copy = 0
+
+  if (! -e $file:r_svg.h) then
+    set copy = 1
+  else
+    cmp -s $file:r_svg.h.1 $file:r_svg.h
+
+    if ($status != 0) then
+      set copy = 1
+    endif
+  endif
+
+  if ($copy == 1) then
+    echo "Update $file:r_svg.h"
+
+    cp $file:r_svg.h.1 $file:r_svg.h
+  endif
+
+  rm $file:r_svg.h.1
+end
+
+exit 0

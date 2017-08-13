@@ -22,15 +22,36 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
 //---
 
+#include <CQChartsKey.h>
+
+class CQChartsBarKeyColor : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsBarKeyColor(CQChartsBarChartPlot *plot, bool valueColor, int ind);
+
+  QSizeF size() const override;
+
+  void draw(QPainter *p, const CBBox2D &rect) override;
+
+ private:
+  CQChartsBarChartPlot *plot_       { nullptr };
+  int                   valueColor_ { false };
+  int                   ind_        { 0 };
+};
+
+//---
+
 class CQChartsBarChartPlot : public CQChartsPlot {
   Q_OBJECT
 
   // properties
   //  bar color
 
-  Q_PROPERTY(int    xColumn  READ xColumn  WRITE setXColumn )
-  Q_PROPERTY(int    yColumn  READ yColumn  WRITE setYColumn )
-  Q_PROPERTY(QColor barColor READ barColor WRITE setBarColor)
+  Q_PROPERTY(int    xColumn  READ xColumn   WRITE setXColumn )
+  Q_PROPERTY(int    yColumn  READ yColumn   WRITE setYColumn )
+  Q_PROPERTY(QColor barColor READ barColor  WRITE setBarColor)
+  Q_PROPERTY(bool   stacked  READ isStacked WRITE setStacked )
 
  public:
   CQChartsBarChartPlot(QAbstractItemModel *model);
@@ -42,16 +63,23 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setYColumn(int i) { yColumn_ = i; }
 
   const Columns &yColumns() const { return yColumns_; }
-  void setYColumns(const Columns &yColumns) { yColumns_ = yColumns; update(); }
+  void setYColumns(const Columns &yColumns) { yColumns_ = yColumns; }
 
   const QColor &barColor() const { return barColor_; }
   void setBarColor(const QColor &c) { barColor_ = c; update(); }
 
+  bool isStacked() const { return stacked_; }
+  void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
+
   void updateRange();
 
-  void initObjs();
+  void initObjs(bool force=false);
 
   int numSets() const;
+
+  int getSetColumn(int i) const;
+
+  int numValueSets() const;
 
   int numSetValues() const;
 
@@ -70,16 +98,19 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   };
 
   typedef std::vector<ValueSet> ValueSets;
+  typedef std::vector<QString>  ValueNames;
 
  private:
   ValueSet *getValueSet(const QString &name);
 
  private:
-  int       xColumn_ { 0 };
-  int       yColumn_ { 1 };
-  Columns   yColumns_;
-  QColor    barColor_ { 100, 100, 200 };
-  ValueSets valueSets_;
+  int        xColumn_  { 0 };
+  int        yColumn_  { 1 };
+  Columns    yColumns_;
+  QColor     barColor_ { 100, 100, 200 };
+  bool       stacked_  { false };
+  ValueSets  valueSets_;
+  ValueNames valueNames_;
 };
 
 #endif

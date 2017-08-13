@@ -12,6 +12,7 @@
 class CQChartsPlot;
 class QPainter;
 
+// Basic Axis Data
 class CQChartsAxis : public CQChartsAxisBase {
   Q_OBJECT
 
