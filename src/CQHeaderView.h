@@ -10,9 +10,12 @@ class CQHeaderView : public QHeaderView {
   Q_OBJECT
 
  public:
-  CQHeaderView(QWidget *parent=0);
+  CQHeaderView(QWidget *parent=nullptr);
 
   void setWidgetFactory(CQHeaderViewWidgetFactory *factory);
+
+  void setSectionsMovable(bool movable);
+  void setSectionsClickable(bool clickable);
 
   QWidget *widget(int i) const;
 
@@ -21,6 +24,8 @@ class CQHeaderView : public QHeaderView {
   void fixWidgetPositions();
 
  private:
+  void contextMenuEvent(QContextMenuEvent *event);
+
   void showEvent(QShowEvent *e);
 
  private slots:
@@ -28,12 +33,18 @@ class CQHeaderView : public QHeaderView {
 
   void handleSectionMoved(int logical, int oldVisualIndex, int newVisualIndex);
 
+  void fitColumnSlot();
+  void fitAllSlot();
+
  private:
   typedef QList<QWidget *> Widgets;
 
-  CQHeaderViewWidgetFactory *factory_ { 0 };
+  CQHeaderViewWidgetFactory *factory_ { nullptr };
   Widgets                    widgets_;
+  int                        menuSection_ { -1 };
 };
+
+//---
 
 class CQHeaderViewWidgetFactory {
  public:

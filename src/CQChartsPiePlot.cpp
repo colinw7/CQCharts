@@ -1,4 +1,5 @@
 #include <CQChartsPiePlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -7,16 +8,36 @@
 #include <QPainter>
 
 CQChartsPiePlot::
-CQChartsPiePlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsPiePlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
-  addProperty("", this, "donut");
+  addKey();
+
+  dataRange_.updateRange(-1, -1);
+  dataRange_.updateRange( 1,  1);
+
+  displayRange_.setEqualScale(true);
 }
 
 void
 CQChartsPiePlot::
-initObjs()
+addProperties()
 {
+  CQChartsPlot::addProperties();
+
+  addProperty(id_, this, "donut");
+}
+
+void
+CQChartsPiePlot::
+initObjs(bool force)
+{
+  if (force) {
+    clearPlotObjects();
+  }
+
+  //---
+
   if (! plotObjs_.empty())
     return;
 
@@ -34,9 +55,18 @@ initObjs()
 
   int n = model_->rowCount(ind);
 
+  //---
+
   double total = 0.0;
 
   for (int i = 0; i < n; ++i) {
+    bool hidden = isSetHidden(i);
+
+    if (hidden)
+      continue;
+
+    //---
+
     QModelIndex yind = model_->index(i, yColumn_);
 
     double value = CQChartsUtil::toReal(model_->data(yind));
@@ -44,7 +74,16 @@ initObjs()
     total += value;
   }
 
+  //---
+
   for (int i = 0; i < n; ++i) {
+    bool hidden = isSetHidden(i);
+
+    if (hidden)
+      continue;
+
+    //---
+
     QModelIndex xind = model_->index(i, xColumn_);
     QModelIndex yind = model_->index(i, yColumn_);
 
@@ -58,7 +97,7 @@ initObjs()
 
     CBBox2D rect(xc - r, yc - r, xc + r, yc + r);
 
-    CQChartsPieObj *obj = new CQChartsPieObj(this, i, rect);
+    CQChartsPieObj *obj = new CQChartsPieObj(this, rect, i, n);
 
     obj->setId(QString("%1:%2").arg(name).arg(value));
 
@@ -79,26 +118,42 @@ initObjs()
 
     angle1 = angle2;
   }
+
+  //---
+
+  key_->clearItems();
+
+  for (int i = 0; i < n; ++i) {
+    QModelIndex xind = model_->index(i, xColumn_);
+
+    QString name = model_->data(xind).toString();
+
+    CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, i, n);
+    CQChartsKeyText     *text  = new CQChartsKeyText    (this, name);
+
+    key_->addItem(color, i, 0);
+    key_->addItem(text , i, 1);
+  }
 }
 
 void
 CQChartsPiePlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
+
+  //---
+
+  drawKey(p);
 }
 
 QColor
@@ -134,8 +189,8 @@ textColor(const QColor &bg) const
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(CQChartsPiePlot *plot, int ind, const CBBox2D &rect) :
- CQChartsPlotObj(rect), plot_(plot), ind_(ind)
+CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), i_(i), n_(n)
 {
 }
 
@@ -270,9 +325,7 @@ draw(QPainter *p)
 
   //---
 
-  int n = plot_->numPlotObjects();
-
-  QColor bg = plot_->objectColor(this, ind(), n, plot_->segmentColor(ind(), n));
+  QColor bg = plot_->objectColor(this, i_, n_, plot_->segmentColor(i_, n_));
   QColor fg = plot_->textColor(bg);
 
   p->setBrush(bg);
@@ -309,7 +362,7 @@ draw(QPainter *p)
 
     //---
 
-    QFontMetrics fm(plot_->font());
+    QFontMetrics fm(plot_->window()->font());
 
     int tw = fm.width(name());
 
@@ -345,4 +398,25 @@ draw(QPainter *p)
   //CPoint2D pr(radius(), radius());
 
   //bbox_ = CBBox2D(c - pr, c + pr);
+}
+
+//------
+
+CQChartsPieKeyColor::
+CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
+{
+}
+
+void
+CQChartsPieKeyColor::
+mousePress(const CPoint2D &)
+{
+  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+
+  plot->initObjs(/*force*/true);
+
+  plot->update();
 }

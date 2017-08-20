@@ -14,12 +14,15 @@ CONFIG += staticlib
 
 SOURCES += \
 CQCharts.cpp \
+CQChartsAdjacencyPlot.cpp \
 CQChartsAxisBase.cpp \
 CQChartsAxis.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
 CQChartsCsv.cpp \
 CQChartsData.cpp \
+CQChartsDelaunayPlot.cpp \
+CQChartsGeometryPlot.cpp \
 CQChartsHeader.cpp \
 CQChartsKey.cpp \
 CQChartsJson.cpp \
@@ -33,15 +36,19 @@ CQChartsSunburstPlot.cpp \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
 CQChartsTsv.cpp \
+CQChartsWindow.cpp \
 CQChartsXYPlot.cpp \
 \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
 CQFilename.cpp \
 CSymbol2D.cpp \
+CDelaunay.cpp \
+CHull3D.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
+../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsAxisBase.h \
 ../include/CQChartsAxis.h \
 ../include/CQChartsBarChartPlot.h \
@@ -49,6 +56,8 @@ HEADERS += \
 ../include/CQChartsColumn.h \
 ../include/CQChartsCsv.h \
 ../include/CQChartsData.h \
+../include/CQChartsDelaunayPlot.h \
+../include/CQChartsGeometryPlot.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsHeader.h \
 ../include/CQChartsJson.h \
@@ -65,6 +74,7 @@ HEADERS += \
 ../include/CQChartsTree.h \
 ../include/CQChartsTsv.h \
 ../include/CQChartsUtil.h \
+../include/CQChartsWindow.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CSymbolType.h \
@@ -75,6 +85,8 @@ CParseLine.h \
 CQHeaderView.h \
 CQRotatedText.h \
 CQFilename.h \
+CDelaunay.h \
+CHull3D.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

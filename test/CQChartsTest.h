@@ -2,11 +2,14 @@
 #define CQChartsTest_H
 
 #include <CQAppWindow.h>
+#include <CBBox2D.h>
 
 class CQCharts;
 class CQChartsTable;
 class CQChartsTree;
 class CQChartsLoader;
+class CQChartsWindow;
+
 class CQGradientPalette;
 class CQGradientPaletteControl;
 
@@ -24,17 +27,42 @@ class CQChartsTest : public CQAppWindow {
 
  public:
   struct InitData {
-    QString plot;
-    QString xarg;
-    QString yarg;
-    QString zarg;
-    QString format;
-    bool    bivariate { false };
-    bool    stacked   { false };
+    typedef std::map<int,QString> ArgMap;
+
+    bool                 csv  { false };
+    bool                 tsv  { false };
+    bool                 json { false };
+    bool                 data { false };
+    QString              plot;
+    ArgMap               argMap;
+    QString              format;
+    bool                 bivariate { false };
+    bool                 stacked   { false };
+    std::vector<QString> filenames;
+    bool                 commentHeader   { false };
+    bool                 firstLineHeader { false };
+
+    QString arg(int i) const {
+      auto p = argMap.find(i);
+
+      return (p != argMap.end() ? (*p).second : QString());
+    }
+
+    void setArg(int i, const QString &arg) {
+      argMap[i] = arg;
+    }
   };
 
  public:
   CQChartsTest();
+
+  const QString &id() const { return id_; }
+  void setId(const QString &v) { id_ = v; }
+
+  const CBBox2D &bbox() const { return bbox_; }
+  void setBBox(const CBBox2D &v) { bbox_ = v; }
+
+  CQChartsWindow *window() const { return window_; }
 
   void loadCsv (const QString &filename);
   void loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
@@ -46,13 +74,16 @@ class CQChartsTest : public CQAppWindow {
  private:
   void addMenus();
 
-  void addPieTab     (QTabWidget *plotTab);
-  void addXYTab      (QTabWidget *plotTab);
-  void addScatterTab (QTabWidget *plotTab);
-  void addSunburstTab(QTabWidget *plotTab);
-  void addBarChartTab(QTabWidget *plotTab);
-  void addBoxTab     (QTabWidget *plotTab);
-  void addParallelTab(QTabWidget *plotTab);
+  void addPieTab      (QTabWidget *plotTab);
+  void addXYTab       (QTabWidget *plotTab);
+  void addScatterTab  (QTabWidget *plotTab);
+  void addSunburstTab (QTabWidget *plotTab);
+  void addBarChartTab (QTabWidget *plotTab);
+  void addBoxTab      (QTabWidget *plotTab);
+  void addParallelTab (QTabWidget *plotTab);
+  void addGeometryTab (QTabWidget *plotTab);
+  void addDelaunayTab (QTabWidget *plotTab);
+  void addAdjacencyTab(QTabWidget *plotTab);
 
   void setTableModel(QAbstractItemModel *model);
   void setTreeModel (QAbstractItemModel *model);
@@ -62,6 +93,8 @@ class CQChartsTest : public CQAppWindow {
 
   bool lineEditValue(QLineEdit *le, int &i, int defi=0) const;
 
+  CQChartsWindow *getWindow();
+
   QSize sizeHint() const;
 
  private slots:
@@ -69,6 +102,7 @@ class CQChartsTest : public CQAppWindow {
 
   void loadFileSlot(const QString &type, const QString &filename);
 
+  void filterSlot();
   void tableColumnClicked(int column);
   void typeOKSlot();
 
@@ -79,53 +113,72 @@ class CQChartsTest : public CQAppWindow {
   void barChartOKSlot();
   void boxOKSlot();
   void parallelOKSlot();
+  void geometryOKSlot();
+  void delaunayOKSlot();
+  void adjacencyOKSlot();
 
  private:
-  struct PieChartData {
-    QLineEdit*   labelEdit { nullptr };
-    QLineEdit*   dataEdit  { nullptr };
-    QPushButton* okButton  { nullptr };
-  };
-
-  struct XYPlotData {
-    QLineEdit*   xEdit          { nullptr };
-    QLineEdit*   yEdit          { nullptr };
-    QLineEdit*   nameEdit       { nullptr };
-    QCheckBox*   bivariateCheck { nullptr };
-    QCheckBox*   stackedCheck   { nullptr };
-    QPushButton* okButton       { nullptr };
-  };
-
-  struct ScatterPlotData {
-    QLineEdit*   nameEdit { nullptr };
-    QLineEdit*   xEdit    { nullptr };
-    QLineEdit*   yEdit    { nullptr };
+  struct PlotData {
     QPushButton* okButton { nullptr };
   };
 
-  struct SunburstData {
-    QLineEdit*   nameEdit  { nullptr };
-    QLineEdit*   valueEdit { nullptr };
-    QPushButton* okButton  { nullptr };
+  struct PieChartData : public PlotData {
+    QLineEdit* labelEdit { nullptr };
+    QLineEdit* dataEdit  { nullptr };
   };
 
-  struct BarChartData {
-    QLineEdit*   nameEdit     { nullptr };
-    QLineEdit*   valueEdit    { nullptr };
-    QCheckBox*   stackedCheck { nullptr };
-    QPushButton* okButton     { nullptr };
+  struct XYPlotData : public PlotData {
+    QLineEdit* xEdit          { nullptr };
+    QLineEdit* yEdit          { nullptr };
+    QLineEdit* nameEdit       { nullptr };
+    QCheckBox* bivariateCheck { nullptr };
+    QCheckBox* stackedCheck   { nullptr };
   };
 
-  struct BoxPlotData {
-    QLineEdit*   xEdit    { nullptr };
-    QLineEdit*   yEdit    { nullptr };
-    QPushButton* okButton { nullptr };
+  struct ScatterPlotData : public PlotData {
+    QLineEdit* nameEdit { nullptr };
+    QLineEdit* xEdit    { nullptr };
+    QLineEdit* yEdit    { nullptr };
   };
 
-  struct ParallelPlotData {
-    QLineEdit*   xEdit    { nullptr };
-    QLineEdit*   yEdit    { nullptr };
-    QPushButton* okButton { nullptr };
+  struct SunburstData : public PlotData {
+    QLineEdit* nameEdit  { nullptr };
+    QLineEdit* valueEdit { nullptr };
+  };
+
+  struct BarChartData : public PlotData {
+    QLineEdit* nameEdit     { nullptr };
+    QLineEdit* valueEdit    { nullptr };
+    QCheckBox* stackedCheck { nullptr };
+  };
+
+  struct BoxPlotData : public PlotData {
+    QLineEdit* xEdit { nullptr };
+    QLineEdit* yEdit { nullptr };
+  };
+
+  struct ParallelPlotData : public PlotData {
+    QLineEdit* xEdit { nullptr };
+    QLineEdit* yEdit { nullptr };
+  };
+
+  struct GeometryPlotData : public PlotData {
+    QLineEdit* nameEdit     { nullptr };
+    QLineEdit* geometryEdit { nullptr };
+    QLineEdit* valueEdit    { nullptr };
+  };
+
+  struct DelaunayPlotData : public PlotData {
+    QLineEdit* xEdit    { nullptr };
+    QLineEdit* yEdit    { nullptr };
+    QLineEdit* nameEdit { nullptr };
+  };
+
+  struct AdjacencyPlotData : public PlotData {
+    QLineEdit* nodeEdit        { nullptr };
+    QLineEdit* connectionsEdit { nullptr };
+    QLineEdit* nameEdit        { nullptr };
+    QLineEdit* groupEdit       { nullptr };
   };
 
   CQCharts*                 charts_            { nullptr };
@@ -137,9 +190,13 @@ class CQChartsTest : public CQAppWindow {
   BarChartData              barChartData_;
   BoxPlotData               boxPlotData_;
   ParallelPlotData          parallelPlotData_;
+  GeometryPlotData          geometryPlotData_;
+  DelaunayPlotData          delaunayPlotData_;
+  AdjacencyPlotData         adjacencyPlotData_;
   QTabWidget*               plotTab_           { nullptr };
   QLineEdit*                columnTypeEdit_    { nullptr };
   QStackedWidget*           stack_             { nullptr };
+  QLineEdit*                filterEdit_        { nullptr };
   CQChartsTable*            table_             { nullptr };
   CQChartsTree*             tree_              { nullptr };
   CQGradientPalette*        palettePlot_       { nullptr };
@@ -147,6 +204,9 @@ class CQChartsTest : public CQAppWindow {
   QGroupBox*                typeGroup_         { nullptr };
   int                       tableColumn_       { 0 };
   CQChartsLoader*           loader_            { nullptr };
+  CQChartsWindow*           window_            { nullptr };
+  QString                   id_;
+  CBBox2D                   bbox_;
 };
 
 #endif

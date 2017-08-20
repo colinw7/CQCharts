@@ -13,6 +13,8 @@ class CQChartsTable : public QTableView {
 
   void setModel(QAbstractItemModel *model);
 
+  void setFilter(const QString &filter);
+
   QSize sizeHint() const;
 
  signals:

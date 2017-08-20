@@ -98,20 +98,13 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
 #include <CQChartsKey.h>
 
-class CQChartsXYKeyColor : public CQChartsKeyItem {
+class CQChartsXYKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyColor(CQChartsXYPlot *plot, bool valueColor, int ind);
+  CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n);
 
-  QSizeF size() const override;
-
-  void draw(QPainter *p, const CBBox2D &rect) override;
-
- private:
-  CQChartsXYPlot *plot_       { nullptr };
-  int             valueColor_ { false };
-  int             ind_        { 0 };
+  void mousePress(const CPoint2D &p) override;
 };
 
 //---
@@ -174,7 +167,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   };
 
  public:
-  CQChartsXYPlot(QAbstractItemModel *model);
+  CQChartsXYPlot(CQChartsWindow *window, QAbstractItemModel *model);
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
@@ -237,6 +230,8 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
+  void addProperties();
+
   void updateRange();
 
   void initObjs(bool force=false);
@@ -245,9 +240,26 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   int getSetColumn(int i) const;
 
-  void paintEvent(QPaintEvent *) override;
+  //---
+
+  bool isSetHidden(int i) const {
+    auto p = idHidden_.find(i);
+
+    if (p == idHidden_.end())
+      return false;
+
+    return (*p).second;
+  }
+
+  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
+
+  //---
+
+  void draw(QPainter *) override;
 
  private:
+  typedef std::map<int,bool> IdHidden;
+
   int           xColumn_    { 0 };
   int           yColumn_    { 1 };
   Columns       yColumns_;
@@ -257,6 +269,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   PointData     pointData_;
   LineData      lineData_;
   FillUnderData fillUnderData_;
+  IdHidden      idHidden_;
 };
 
 #endif

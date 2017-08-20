@@ -1,5 +1,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
+#include <CQChartsWindow.h>
 #include <CQPropertyTree.h>
 #include <QPainter>
 #include <QRectF>
@@ -235,6 +236,31 @@ calcSize()
   return size_;
 }
 
+bool
+CQChartsKey::
+contains(const CPoint2D &p) const
+{
+  if (! isDisplayed())
+    return false;
+
+  return bbox().inside(p);
+}
+
+CQChartsKeyItem *
+CQChartsKey::
+getItemAt(const CPoint2D &p) const
+{
+  if (! isDisplayed())
+    return nullptr;
+
+  for (auto &item : items_) {
+    if (item->bbox().inside(p))
+      return item;
+  }
+
+  return nullptr;
+}
+
 void
 CQChartsKey::
 draw(QPainter *p)
@@ -248,11 +274,13 @@ draw(QPainter *p)
 
   //---
 
-  double x = position_.x();
-  double y = position_.y();
+  double x = position_.x(); // left
+  double y = position_.y(); // top
 
   double w = size_.width ();
   double h = size_.height();
+
+  bbox_ = CBBox2D(x, y - h, x + w, y);
 
   //---
 
@@ -300,6 +328,8 @@ draw(QPainter *p)
 
     CBBox2D bbox(x1 + x, y1 + y - h1, x1 + x + w1, y1 + y);
 
+    item->setBBox(bbox);
+
     item->draw(p, bbox);
   }
 }
@@ -324,7 +354,7 @@ QSizeF
 CQChartsKeyText::
 size() const
 {
-  QFontMetrics fm(plot_->font());
+  QFontMetrics fm(plot_->window()->font());
 
   double w = fm.width(text_);
   double h = fm.height();
@@ -339,7 +369,7 @@ void
 CQChartsKeyText::
 draw(QPainter *p, const CBBox2D &rect)
 {
-  QFontMetrics fm(plot_->font());
+  QFontMetrics fm(plot_->window()->font());
 
   p->setPen(Qt::black);
 
@@ -362,7 +392,7 @@ QSizeF
 CQChartsKeyColorBox::
 size() const
 {
-  QFontMetrics fm(plot_->font());
+  QFontMetrics fm(plot_->window()->font());
 
   double h = fm.height();
 
@@ -376,8 +406,6 @@ void
 CQChartsKeyColorBox::
 draw(QPainter *p, const CBBox2D &rect)
 {
-  p->setPen(Qt::black);
-
   CBBox2D prect;
 
   plot_->windowToPixel(rect, prect);

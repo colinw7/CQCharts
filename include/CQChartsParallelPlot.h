@@ -45,7 +45,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
   Q_PROPERTY(int yColumn READ yColumn WRITE setYColumn)
 
  public:
-  CQChartsParallelPlot(QAbstractItemModel *model);
+  CQChartsParallelPlot(CQChartsWindow *window, QAbstractItemModel *model);
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
@@ -60,6 +60,10 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   CQChartsAxis *yAxis(int i) { return yAxes_[i]; }
 
+  //---
+
+  void addProperties();
+
   void updateRange();
 
   void initObjs();
@@ -70,7 +74,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   int numValues() const;
 
-  void paintEvent(QPaintEvent *) override;
+  void draw(QPainter *) override;
 
  private:
   typedef std::vector<CRange2D>       Ranges;

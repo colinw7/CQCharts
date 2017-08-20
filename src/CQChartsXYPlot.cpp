@@ -1,4 +1,5 @@
 #include <CQChartsXYPlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -8,8 +9,8 @@
 #include <QPainter>
 
 CQChartsXYPlot::
-CQChartsXYPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsXYPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
   addAxes();
 
@@ -17,6 +18,13 @@ CQChartsXYPlot(QAbstractItemModel *model) :
 
   xAxis_->setColumn(xColumn_);
   yAxis_->setColumn(yColumn_);
+}
+
+void
+CQChartsXYPlot::
+addProperties()
+{
+  CQChartsPlot::addProperties();
 
   addProperty("columns"  , this, "xColumn"       , "x"     );
   addProperty("columns"  , this, "yColumn"       , "y"     );
@@ -226,14 +234,9 @@ CQChartsXYPlot::
 initObjs(bool force)
 {
   if (force) {
-    for (auto &plotObj : plotObjs_)
-      delete plotObj;
-
-    plotObjs_.clear();
+    clearPlotObjects();
 
     dataRange_.reset();
-
-    plotObjTree_.reset();
   }
 
   //--
@@ -298,13 +301,22 @@ initObjs(bool force)
     }
   }
   else if (isStacked()) {
+    int ns = numSets();
+
     typedef std::vector<double> Reals;
 
     Reals sum, lastSum;
 
     sum.resize(n);
 
-    for (int j = 0; j < numSets(); ++j) {
+    for (int j = 0; j < ns; ++j) {
+      bool hidden = isSetHidden(j);
+
+      if (hidden)
+        continue;
+
+      //---
+
       int yColumn = getSetColumn(j);
 
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
@@ -383,7 +395,16 @@ initObjs(bool force)
     }
   }
   else {
-    for (int j = 0; j < numSets(); ++j) {
+    int ns = numSets();
+
+    for (int j = 0; j < ns; ++j) {
+      bool hidden = isSetHidden(j);
+
+      if (hidden)
+        continue;
+
+      //---
+
       int yColumn = getSetColumn(j);
 
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
@@ -462,7 +483,7 @@ initObjs(bool force)
 
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
-      CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, true, i);
+      CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, i, ns);
       CQChartsKeyText    *text  = new CQChartsKeyText   (this, name);
 
       key_->addItem(color, i, 0);
@@ -477,7 +498,7 @@ initObjs(bool force)
 
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
-      CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, true, i);
+      CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, i, ns);
       CQChartsKeyText    *text  = new CQChartsKeyText   (this, name);
 
       key_->addItem(color, i, 0);
@@ -508,28 +529,24 @@ getSetColumn(int i) const
 
 void
 CQChartsXYPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
 
-  drawAxes(&p);
+  drawAxes(p);
 
   //---
 
-  drawKey(&p);
+  drawKey(p);
 }
 
 //------
@@ -686,7 +703,7 @@ inside(const CPoint2D &p) const
 
   plot_->windowToPixel(p.x, p.y, px, py);
 
-  for (int i = 1; i < poly_.length(); ++i) {
+  for (int i = 1; i < poly_.count(); ++i) {
     double x1 = poly_[i - 1].x();
     double y1 = poly_[i - 1].y();
     double x2 = poly_[i    ].x();
@@ -737,7 +754,7 @@ draw(QPainter *p)
 
   p->setPen(pen);
 
-  for (int i = 1; i < poly_.length(); ++i) {
+  for (int i = 1; i < poly_.count(); ++i) {
     double px1, py1, px2, py2;
 
     plot_->windowToPixel(poly_[i - 1].x(), poly_[i - 1].y(), px1, py1);
@@ -791,7 +808,7 @@ draw(QPainter *p)
 
   QPolygonF poly;
 
-  for (int i = 0; i < poly_.length(); ++i) {
+  for (int i = 0; i < poly_.count(); ++i) {
     double px, py;
 
     plot_->windowToPixel(poly_[i].x(), poly_[i].y(), px, py);
@@ -805,45 +822,20 @@ draw(QPainter *p)
 //------
 
 CQChartsXYKeyColor::
-CQChartsXYKeyColor(CQChartsXYPlot *plot, bool valueColor, int ind) :
- CQChartsKeyItem(plot->key()), plot_(plot), valueColor_(valueColor), ind_(ind)
+CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
 {
-}
-
-QSizeF
-CQChartsXYKeyColor::
-size() const
-{
-  QFontMetrics fm(plot_->font());
-
-  double h = fm.height();
-
-  double ww = plot_->pixelToWindowWidth (h + 2);
-  double wh = plot_->pixelToWindowHeight(h + 2);
-
-  return QSizeF(ww, wh);
 }
 
 void
 CQChartsXYKeyColor::
-draw(QPainter *p, const CBBox2D &rect)
+mousePress(const CPoint2D &)
 {
-  p->setPen(Qt::black);
+  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
-  CBBox2D prect;
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot_->windowToPixel(rect, prect);
-  plot_->windowToPixel(rect, prect);
+  plot->initObjs(/*force*/true);
 
-  QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
-                QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
-
-  int ns = plot_->numSets();
-
-  QColor c = plot_->lineColor(ind_, ns);
-
-  p->setPen  (Qt::black);
-  p->setBrush(c);
-
-  p->drawRect(prect1);
+  plot->update();
 }

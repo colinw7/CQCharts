@@ -16,8 +16,8 @@ HEADERS += \
 CQChartsTest.h \
 CQAppWindow.h \
 
-DESTDIR     = .
-OBJECTS_DIR = .
+DESTDIR     = ../bin
+OBJECTS_DIR = ../obj
 
 INCLUDEPATH += \
 ../include \

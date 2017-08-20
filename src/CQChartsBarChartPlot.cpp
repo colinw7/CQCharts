@@ -1,4 +1,5 @@
 #include <CQChartsBarChartPlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -7,8 +8,8 @@
 #include <QPainter>
 
 CQChartsBarChartPlot::
-CQChartsBarChartPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsBarChartPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
   addAxes();
 
@@ -23,9 +24,50 @@ CQChartsBarChartPlot(QAbstractItemModel *model) :
   QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
 
   xAxis_->setLabel(xname);
+}
 
-  addProperty("", this, "barColor");
-  addProperty("", this, "stacked" );
+void
+CQChartsBarChartPlot::
+addProperties()
+{
+  CQChartsPlot::addProperties();
+
+  addProperty(id_, this, "stacked"    );
+  addProperty(id_, this, "barColor"   );
+  addProperty(id_, this, "borderColor");
+}
+
+QString
+CQChartsBarChartPlot::
+barColorStr() const
+{
+  if (barColorPalette_)
+    return "palette";
+
+  return barColor_.name();
+}
+
+void
+CQChartsBarChartPlot::
+setBarColorStr(const QString &str)
+{
+  if (str == "palette") {
+    barColorPalette_ = true;
+  }
+  else {
+    barColorPalette_ = false;
+    barColor_        = QColor(str);
+  }
+}
+
+QColor
+CQChartsBarChartPlot::
+barColor(int i, int n) const
+{
+  if (barColorPalette_)
+    return paletteColor(i, n);
+
+  return barColor_;
 }
 
 void
@@ -129,14 +171,9 @@ CQChartsBarChartPlot::
 initObjs(bool force)
 {
   if (force) {
-    for (auto &plotObj : plotObjs_)
-      delete plotObj;
-
-    plotObjs_.clear();
+    clearPlotObjects();
 
     dataRange_.reset();
-
-    plotObjTree_.reset();
   }
 
   //--
@@ -165,14 +202,39 @@ initObjs(bool force)
 
     QString setName = valueSet.name;
 
-    double bx1 = bx;
-    double bw1 = (isStacked() ? 1.0 : 1.0/valueSet.values.size());
-
-    double sum = 0.0;
+    //---
 
     int nv1 = valueSet.values.size();
 
+    int numVisible = 0;
+
     for (int i = 0; i < nv1; ++i) {
+      bool hidden = (nv1 > 1 ? isSetHidden(i) : isSetHidden(j));
+
+      if (hidden)
+        continue;
+
+      ++numVisible;
+    }
+
+    if (! numVisible)
+      continue;
+
+    //---
+
+    double bx1 = bx;
+    double bw1 = (isStacked() ? 1.0 : 1.0/numVisible);
+
+    double sum = 0.0;
+
+    for (int i = 0; i < nv1; ++i) {
+      bool hidden = (nv1 > 1 ? isSetHidden(i) : isSetHidden(j));
+
+      if (hidden)
+        continue;
+
+      //---
+
       double value = valueSet.values[i];
 
       double value1 = value + sum;
@@ -187,7 +249,7 @@ initObjs(bool force)
       else
         brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
 
-      CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, j);
+      CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, nv1, j, nv);
 
       QString valueName = valueNames_[i];
 
@@ -212,7 +274,7 @@ initObjs(bool force)
 
   if (nv1 > 1) {
     for (int i = 0; i < nv1; ++i) {
-      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, true, i);
+      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, nv1);
       CQChartsKeyText     *text  = new CQChartsKeyText    (this, valueNames_[i]);
 
       key_->addItem(color, i, 0);
@@ -223,7 +285,7 @@ initObjs(bool force)
     for (int i = 0; i < nv; ++i) {
       const ValueSet &valueSet = valueSets_[i];
 
-      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, false, i);
+      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, nv);
       CQChartsKeyText     *text  = new CQChartsKeyText    (this, valueSet.name);
 
       key_->addItem(color, i, 0);
@@ -251,35 +313,30 @@ numSetValues() const
 
 void
 CQChartsBarChartPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  //---
-
-  drawBackground(&p);
+  drawBackground(p);
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
 
-  drawAxes(&p);
+  drawAxes(p);
 
   //---
 
-  drawKey(&p);
+  drawKey(p);
 }
 
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect, int iset, int ival) :
- CQChartsPlotObj(rect), plot_(plot), iset_(iset), ival_(ival)
+CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
+                    int iset, int nset, int ival, int nval) :
+ CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval)
 {
 }
 
@@ -287,6 +344,13 @@ void
 CQChartsBarChartObj::
 draw(QPainter *p)
 {
+  bool hidden = (nset_ > 1 ? plot_->isSetHidden(iset_) : plot_->isSetHidden(ival_));
+
+  if (hidden)
+    return;
+
+  //---
+
   CBBox2D prect;
 
   plot_->windowToPixel(rect(), prect);
@@ -298,17 +362,14 @@ draw(QPainter *p)
     prect.setXMax(prect.getXMax() - m);
   }
 
-  p->setPen(stroke());
+  p->setPen(plot_->borderColor());
 
-  int nv  = plot_->numValueSets();
-  int nv1 = plot_->numSetValues();
+  QColor barColor;
 
-  QColor barColor = plot_->barColor();
-
-  if (nv1 > 1)
-    barColor = plot_->objectColor(this, iset_, nv1, barColor);
+  if (nset_ > 1)
+    barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
   else
-    barColor = plot_->objectColor(this, ival_, nv , barColor);
+    barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
 
   p->setBrush(barColor);
 
@@ -320,45 +381,20 @@ draw(QPainter *p)
 //------
 
 CQChartsBarKeyColor::
-CQChartsBarKeyColor(CQChartsBarChartPlot *plot, bool valueColor, int ind) :
- CQChartsKeyItem(plot->key()), plot_(plot), valueColor_(valueColor), ind_(ind)
+CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
 {
-}
-
-QSizeF
-CQChartsBarKeyColor::
-size() const
-{
-  QFontMetrics fm(plot_->font());
-
-  double h = fm.height();
-
-  double ww = plot_->pixelToWindowWidth (h + 2);
-  double wh = plot_->pixelToWindowHeight(h + 2);
-
-  return QSizeF(ww, wh);
 }
 
 void
 CQChartsBarKeyColor::
-draw(QPainter *p, const CBBox2D &rect)
+mousePress(const CPoint2D &)
 {
-  p->setPen(Qt::black);
+  CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
 
-  CBBox2D prect;
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot_->windowToPixel(rect, prect);
-  plot_->windowToPixel(rect, prect);
+  plot->initObjs(/*force*/true);
 
-  QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
-                QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
-
-  int nv = (valueColor_ ? plot_->numSetValues() : plot_->numValueSets());
-
-  QColor c = plot_->paletteColor(ind_, nv, plot_->barColor());
-
-  p->setPen  (Qt::black);
-  p->setBrush(c);
-
-  p->drawRect(prect1);
+  plot->update();
 }

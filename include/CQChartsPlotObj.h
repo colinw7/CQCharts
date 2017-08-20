@@ -24,6 +24,9 @@ class CQChartsPlotObj : public QObject {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
 
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; }
+
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
@@ -37,13 +40,16 @@ class CQChartsPlotObj : public QObject {
 
   virtual bool inside(const CPoint2D &p) const { return rect_.inside(p); }
 
+  virtual void handleResize() { }
+
   virtual void draw(QPainter *) = 0;
 
  protected:
   CBBox2D rect_;
   QString id_;
-  bool    visible_ { true };
-  bool    inside_  { false };
+  bool    visible_  { true };
+  bool    selected_ { false };
+  bool    inside_   { false };
   QBrush  fill_;
   QPen    stroke_;
 };

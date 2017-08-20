@@ -8,8 +8,8 @@
 #include <QPainter>
 
 CQChartsScatterPlot::
-CQChartsScatterPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsScatterPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
   addAxes();
 
@@ -23,10 +23,16 @@ CQChartsScatterPlot(QAbstractItemModel *model) :
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
+}
 
+void
+CQChartsScatterPlot::
+addProperties()
+{
   addProperty("columns", this, "nameColumn", "name");
   addProperty("columns", this, "xColumn"   , "x"   );
   addProperty("columns", this, "yColumn"   , "y"   );
+  addProperty(""       , this, "symbolSize"        );
 }
 
 void
@@ -72,50 +78,78 @@ nameIndex(const QString &name) const
 
 void
 CQChartsScatterPlot::
-initObjs()
+initObjs(bool force)
 {
+  if (force) {
+    clearPlotObjects();
+  }
+
+  //---
+
   if (! plotObjs_.empty())
     return;
+
+  //---
+
+  // init name values
+  if (nameValues_.empty()) {
+    int n = numRows();
+
+    for (int i = 0; i < n; ++i) {
+      QString name = CQChartsUtil::modelString(model_, i, nameColumn_);
+      double  x    = CQChartsUtil::modelReal  (model_, i, xColumn_   );
+      double  y    = CQChartsUtil::modelReal  (model_, i, yColumn_   );
+
+      nameValues_[name].push_back(QPointF(x, y));
+    }
+  }
+
+  //---
 
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  double s = 4;
+  int nv = nameValues_.size();
 
-  int n = numRows();
+  int i = 0;
 
-  for (int i = 0; i < n; ++i) {
-    QString name = CQChartsUtil::modelString(model_, i, nameColumn_);
-    double  x    = CQChartsUtil::modelReal  (model_, i, xColumn_   );
-    double  y    = CQChartsUtil::modelReal  (model_, i, yColumn_   );
+  for (const auto &nameValues : nameValues_) {
+    bool hidden = isSetHidden(i);
 
-    nameValues_[name].push_back(QPointF(x, y));
+    if (! hidden) {
+      const QString &name   = nameValues.first;
+      const Values  &values = nameValues.second;
 
-    int ni = nameValues_[name].size() - 1;
+      int nv1 = values.size();
 
-    CBBox2D bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+      for (int j = 0; j < nv1; ++j) {
+        const QPointF &p = values[j];
 
-    CQChartsScatterPointObj *pointObj =
-      new CQChartsScatterPointObj(this, bbox, x, y, s, name, ni);
+        CBBox2D bbox(p.x() - sw/2, p.y() - sh/2, p.x() + sw/2, p.y() + sh/2);
 
-    pointObj->setId(QString("%1:%2:%3").arg(name).arg(x).arg(y));
+        CQChartsScatterPointObj *pointObj =
+          new CQChartsScatterPointObj(this, bbox, p, i, nv);
 
-    addPlotObject(pointObj);
+        pointObj->setId(QString("%1:%2:%3").arg(name).arg(p.x()).arg(p.y()));
+
+        addPlotObject(pointObj);
+      }
+    }
+
+    ++i;
   }
 
   //---
 
   key_->clearItems();
 
-  int nv = nameValues_.size();
-
-  int i = 0;
+  i = 0;
 
   for (const auto &nameValue: nameValues_) {
     const QString &name = nameValue.first;
 
-    CQChartsKeyColorBox *color = new CQChartsKeyColorBox(this, i, nv);
-    CQChartsKeyText     *text  = new CQChartsKeyText    (this, name);
+    CQChartsScatterKeyColor *color = new CQChartsScatterKeyColor(this, i, nv);
+    CQChartsKeyText         *text  = new CQChartsKeyText        (this, name);
 
     key_->addItem(color, i, 0);
     key_->addItem(text , i, 1);
@@ -126,36 +160,32 @@ initObjs()
 
 void
 CQChartsScatterPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
 
-  drawAxes(&p);
+  drawAxes(p);
 
   //---
 
-  drawKey(&p);
+  drawKey(p);
 }
 
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, double x,
-                        double y, double s, const QString &name, int ind) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), s_(s), name_(name), ind_(ind)
+CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
+                        int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), p_(p), i_(i), n_(n)
 {
 }
 
@@ -163,11 +193,13 @@ bool
 CQChartsScatterPointObj::
 inside(const CPoint2D &p) const
 {
+  int s = plot_->symbolSize();
+
   double px, py;
 
-  plot_->windowToPixel(x_, y_, px, py);
+  plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  CBBox2D pbbox(px - s_, py - s_, px + s_, py + s_);
+  CBBox2D pbbox(px - s, py - s, px + s, py + s);
 
   CPoint2D pp;
 
@@ -180,19 +212,39 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *p)
 {
+  int s = plot_->symbolSize();
+
   double px, py;
 
-  plot_->windowToPixel(x_, y_, px, py);
+  plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  int i = plot_->nameIndex(name_);
-  int n = plot_->nameValues().size();
-
-  QColor color = plot_->objectColor(this, i, n, Qt::blue);
+  QColor color = plot_->objectColor(this, i_, n_, Qt::blue);
 
   p->setPen  (Qt::black);
   p->setBrush(color);
 
-  QRectF erect(px - s_, py - s_, 2*s_, 2*s_);
+  QRectF erect(px - s, py - s, 2*s, 2*s);
 
   p->drawEllipse(erect);
+}
+
+//------
+
+CQChartsScatterKeyColor::
+CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
+{
+}
+
+void
+CQChartsScatterKeyColor::
+mousePress(const CPoint2D &)
+{
+  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+
+  plot->initObjs(/*force*/true);
+
+  plot->update();
 }

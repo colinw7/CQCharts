@@ -1,107 +1,21 @@
 #include <CQChartsPlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsPlotObj.h>
 #include <CQPropertyTree.h>
-#include <CQToolTip.h>
 #include <CQUtil.h>
 #include <CGradientPalette.h>
 
-#include <svg/select_svg.h>
-#include <svg/zoom_svg.h>
-
-#include <QToolButton>
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QRubberBand>
 #include <QPainter>
-#include <QMouseEvent>
-
-class CQChartsPlotToolTip : public CQToolTipIFace {
- public:
-  CQChartsPlotToolTip(CQChartsPlot *plot) :
-   plot_(plot) {
-  }
-
- ~CQChartsPlotToolTip() {
-    delete widget_;
-  }
-
-  QWidget *showWidget(const QPoint &gpos) override {
-    if (! widget_)
-      widget_ = new QLabel;
-
-    if (! updateWidget(gpos))
-      return nullptr;
-
-    return widget_;
-  }
-
-  void hideWidget() override {
-    delete widget_;
-
-    widget_ = 0;
-  }
-
-  bool trackMouse() const override { return true; }
-
-  bool updateWidget(const QPoint &gpos) override {
-    if (! widget_) return false;
-
-    QPoint p = plot_->mapFromGlobal(gpos);
-
-    double wx, wy;
-
-    plot_->pixelToWindow(p.x(), p.y(), wx, wy);
-
-    QString tip;
-
-    if (! plot_->tipText(CPoint2D(wx, wy), tip))
-      return false;
-
-    widget_->setText(tip);
-
-    return true;
-  }
-
- private:
-  CQChartsPlot* plot_   { nullptr };
-  QLabel*       widget_ { nullptr };
-};
-
-//------
 
 CQChartsPlot::
-CQChartsPlot(QWidget *parent, QAbstractItemModel *model) :
- parent_(parent), model_(model), displayTransform_(&displayRange_)
+CQChartsPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ window_(window), model_(model), displayTransform_(&displayRange_)
 {
-  setMouseTracking(true);
-
-  setFocusPolicy(Qt::StrongFocus);
-
-  //---
+  displayRange_.setPixelRange(200, 800, 800, 200);
 
   displayRange_.setWindowRange(0, 0, 1, 1);
-
-  //---
-
-  expander_ = new CQChartsPlotExpander(this);
-
-  propertyTree_ = new CQPropertyTree(this);
-
-  addProperty("", this, "background");
-
-  //---
-
-  status_ = new CQChartsPlotStatus(this);
-
-  toolbar_ = new CQChartsPlotToolBar(this);
-
-  //---
-
-  updateMargins();
-
-  CQToolTip::setToolTip(this, new CQChartsPlotToolTip(this));
 }
 
 CQChartsPlot::
@@ -111,14 +25,67 @@ CQChartsPlot::
 
 void
 CQChartsPlot::
-updateMargins()
+setBBox(const CBBox2D &bbox)
 {
-  QFontMetrics fm(font());
+  bbox_ = bbox;
 
-  statusHeight_  = fm.height() + 4;
-  toolBarHeight_ = fm.height() + 4;
+  updateMargin();
+}
 
-  setContentsMargins(/*l*/0, /*t*/toolBarHeight_, /*r*/expander_->width(), /*b*/statusHeight_);
+void
+CQChartsPlot::
+updateMargin()
+{
+  double xml = bbox_.getWidth ()*marginLeft  ()/100.0;
+  double ymt = bbox_.getHeight()*marginTop   ()/100.0;
+  double xmr = bbox_.getWidth ()*marginRight ()/100.0;
+  double ymb = bbox_.getHeight()*marginBottom()/100.0;
+
+  displayRange_.setPixelRange(bbox_.getXMin() + xml, bbox_.getYMax() - ymt,
+                              bbox_.getXMax() - xmr, bbox_.getYMin() + ymb);
+}
+
+QRectF
+CQChartsPlot::
+rect() const
+{
+  return CQUtil::toQRect(bbox());
+}
+
+void
+CQChartsPlot::
+setRect(const QRectF &r)
+{
+  setBBox(CQUtil::fromQRect(r));
+}
+
+void
+CQChartsPlot::
+addProperties()
+{
+  addProperty("", this, "background");
+  addProperty("", this, "rect"      );
+
+  addProperty("margin", this, "marginLeft"  , "left"  );
+  addProperty("margin", this, "marginTop"   , "top"   );
+  addProperty("margin", this, "marginRight" , "right" );
+  addProperty("margin", this, "marginBottom", "bottom");
+
+  if (xAxis_)
+    xAxis_->addProperties(window_->propertyTree(), id() + "/" + "X Axis");
+
+  if (yAxis_)
+    yAxis_->addProperties(window_->propertyTree(), id() + "/" + "Y Axis");
+
+  if (key_)
+    key_->addProperties(window_->propertyTree(), id() + "/" + "Key");
+}
+
+void
+CQChartsPlot::
+addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
+{
+  window_->addProperty(id() + "/" + path, object, name, alias);
 }
 
 void
@@ -127,9 +94,6 @@ addAxes()
 {
   xAxis_ = new CQChartsAxis(this, CQChartsAxis::DIR_HORIZONTAL, 0, 1);
   yAxis_ = new CQChartsAxis(this, CQChartsAxis::DIR_VERTICAL  , 0, 1);
-
-  xAxis_->addProperties(propertyTree_, "X Axis");
-  yAxis_->addProperties(propertyTree_, "Y Axis");
 }
 
 void
@@ -137,8 +101,6 @@ CQChartsPlot::
 addKey()
 {
   key_ = new CQChartsKey(this);
-
-  key_->addProperties(propertyTree_, "Key");
 }
 
 void
@@ -161,15 +123,11 @@ applyDataRange()
 
 void
 CQChartsPlot::
-addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
-{
-  propertyTree_->addProperty(path, object, name, alias);
-}
-
-void
-CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
+  if (! obj->rect().isSet())
+    return;
+
   plotObjTree_.add(obj);
 
   plotObjs_.push_back(obj);
@@ -177,156 +135,138 @@ addPlotObject(CQChartsPlotObj *obj)
 
 void
 CQChartsPlot::
-mousePressEvent(QMouseEvent *me)
+clearPlotObjects()
 {
-  if      (mode_ == Mode::SELECT) {
-    CPoint2D p = CQUtil::fromQPoint(QPointF(me->pos()));
+  for (auto &plotObj : plotObjs_)
+    delete plotObj;
 
-    CPoint2D w;
+  plotObjs_.clear();
 
-    pixelToWindow(p, w);
-
-    PlotObjTree::DataList dataList;
-
-    objsAtPoint(w, dataList);
-
-    for (auto obj : dataList) {
-      std::cerr << obj->id().toStdString() << std::endl;
-    }
-  }
-  else if (mode_ == Mode::ZOOM) {
-    mouseData_.pressPoint = me->pos();
-    mouseData_.pressed    = true;
-
-    if (! zoomBand_)
-      zoomBand_ = new QRubberBand(QRubberBand::Rectangle, this);
-
-    zoomBand_->setGeometry(QRect(mouseData_.pressPoint, QSize()));
-    zoomBand_->show();
-  }
+  plotObjTree_.reset();
 }
 
 void
 CQChartsPlot::
-mouseMoveEvent(QMouseEvent *me)
+mousePress(const CPoint2D &w)
 {
-  if      (mode_ == Mode::SELECT) {
-    CPoint2D p = CQUtil::fromQPoint(QPointF(me->pos()));
+  if (key_ && key_->contains(w)) {
+    CQChartsKeyItem *item = key_->getItemAt(w);
 
-    CPoint2D w;
-
-    pixelToWindow(p, w);
-
-    QString posText = QString("%1 %2").arg(w.x).arg(w.y);
-
-    PlotObjTree::DataList dataList;
-
-    objsAtPoint(w, dataList);
-
-    QString objText;
-
-    for (auto obj : dataList) {
-      if (objText != "")
-        objText += " ";
-
-      objText += obj->id();
-    }
-
-    if (objText != "")
-      status_->setText(objText + " : " + posText);
+    if (item)
+      item->mousePress(w);
     else
-      status_->setText(posText);
+      key_->mousePress(w);
+  }
 
-    //--
+  PlotObjTree::DataList dataList;
 
-    bool changed = false;
+  objsAtPoint(w, dataList);
 
-    auto resetInside = [&] (CQChartsPlotObj *obj) -> void {
-      for (const auto &obj1 : dataList) {
-        if (obj1 == obj) {
-          if (! obj->isInside()) {
-            obj->setInside(true);
+  for (auto obj : dataList) {
+    std::cerr << obj->id().toStdString() << std::endl;
+  }
+}
 
-            changed = true;
-          }
+void
+CQChartsPlot::
+mouseMove(const CPoint2D &w)
+{
+  QString posText = QString("%1 %2").arg(w.x).arg(w.y);
 
-          return;
+  PlotObjTree::DataList dataList;
+
+  objsAtPoint(w, dataList);
+
+  QString objText;
+
+  for (auto obj : dataList) {
+    if (objText != "")
+      objText += " ";
+
+    objText += obj->id();
+  }
+
+  if (objText != "")
+    window_->setStatusText(objText + " : " + posText);
+  else
+    window_->setStatusText(posText);
+
+  //--
+
+  bool changed = false;
+
+  auto resetInside = [&] (CQChartsPlotObj *obj) -> void {
+    for (const auto &obj1 : dataList) {
+      if (obj1 == obj) {
+        if (! obj->isInside()) {
+          obj->setInside(true);
+
+          changed = true;
         }
+
+        return;
       }
-
-      if (obj->isInside()) {
-        obj->setInside(false);
-
-        changed = true;
-      }
-    };
-
-    plotObjTree_.process(resetInside);
-
-    if (changed)
-      update();
-  }
-  else if (mode_ == Mode::ZOOM) {
-    if (mouseData_.pressed) {
-      mouseData_.movePoint = me->pos();
-
-      zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
     }
-  }
+
+    if (obj->isInside()) {
+      obj->setInside(false);
+
+      changed = true;
+    }
+  };
+
+  plotObjTree_.process(resetInside);
+
+  if (changed)
+    update();
 }
 
 void
 CQChartsPlot::
-mouseReleaseEvent(QMouseEvent *me)
+mouseRelease(const CPoint2D &)
 {
-  if      (mode_ == Mode::SELECT) {
-  }
-  else if (mode_ == Mode::ZOOM) {
-    if (mouseData_.pressed) {
-      mouseData_.pressed   = false;
-      mouseData_.movePoint = me->pos();
-
-      zoomBand_->hide();
-
-      CPoint2D w1, w2;
-
-      pixelToWindow(CQUtil::fromQPointF(mouseData_.pressPoint), w1);
-      pixelToWindow(CQUtil::fromQPointF(mouseData_.movePoint ), w2);
-
-      displayTransform_.zoomTo(CBBox2D(w1, w2));
-
-      update();
-    }
-  }
 }
 
 void
 CQChartsPlot::
-keyPressEvent(QKeyEvent *ke)
+keyPress(int key)
 {
-  if      (ke->key() == Qt::Key_Left || ke->key() == Qt::Key_Right) {
-    if (ke->key() == Qt::Key_Right)
+  if      (key == Qt::Key_Left || key == Qt::Key_Right) {
+    if (key == Qt::Key_Right)
       displayTransform_.panLeft();
     else
       displayTransform_.panRight();
   }
-  else if (ke->key() == Qt::Key_Up || ke->key() == Qt::Key_Down) {
-    if (ke->key() == Qt::Key_Up)
+  else if (key == Qt::Key_Up || key == Qt::Key_Down) {
+    if (key == Qt::Key_Up)
       displayTransform_.panDown();
     else
       displayTransform_.panUp();
   }
-  else if (ke->key() == Qt::Key_Plus) {
+  else if (key == Qt::Key_Plus) {
     displayTransform_.zoomIn();
   }
-  else if (ke->key() == Qt::Key_Minus) {
+  else if (key == Qt::Key_Minus) {
     displayTransform_.zoomOut();
   }
-  else if (ke->key() == Qt::Key_Home) {
+  else if (key == Qt::Key_Home) {
     displayTransform_.reset();
   }
   else
     return;
+
+  handleResize();
+
+  update();
+}
+
+void
+CQChartsPlot::
+zoomTo(const CBBox2D &bbox)
+{
+  displayTransform_.zoomTo(bbox);
+
+  handleResize();
 
   update();
 }
@@ -369,23 +309,26 @@ objsAtPoint(const CPoint2D &p, PlotObjTree::DataList &dataList1) const
   }
 }
 
+#if 0
 void
 CQChartsPlot::
 resizeEvent(QResizeEvent *)
 {
-  updateGeometry();
-
   if (key_)
     key_->invalidateLayout();
 
   handleResize();
 }
+#endif
 
 void
 CQChartsPlot::
 handleResize()
 {
   updateKeyPosition();
+
+  for (auto &obj : plotObjs_)
+    obj->handleResize();
 }
 
 void
@@ -447,62 +390,20 @@ updateKeyPosition()
 
 void
 CQChartsPlot::
-updateGeometry()
-{
-  double m = std::min(width(), height())/10;
-
-  displayRange_.setPixelRange(m, m, width() - m, height() - m);
-
-  propertyTree_->setVisible(expander_->isExpanded());
-
-  if (expander_->isExpanded()) {
-    propertyTree_->move  (width() - propertyTree_->width(), 0);
-    propertyTree_->resize(propertyTree_->width(), height());
-  }
-
-  //---
-
-  expander_->setVisible(true);
-
-  if (expander_->isExpanded())
-    expander_->move(width() - propertyTree_->width() - expander_->width(), 0);
-  else
-    expander_->move(width() - expander_->width(), 0);
-
-  expander_->resize(expander_->width(), height());
-
-  //---
-
-  toolbar_->move(0, 0);
-
-  //---
-
-  status_->move(0, height() - statusHeight_);
-  status_->resize(width(), statusHeight_);
-}
-
-void
-CQChartsPlot::
-moveExpander(int dx)
-{
-  expander_->move(expander_->x() - dx, expander_->y());
-
-  propertyTree_->resize(propertyTree_->width() + dx, propertyTree_->height());
-
-  propertyTree_->move(propertyTree_->x() - dx, propertyTree_->y());
-}
-
-void
-CQChartsPlot::
 drawBackground(QPainter *painter)
 {
-  painter->fillRect(rect(), QBrush(Qt::white));
+  //painter->fillRect(rect(), QBrush(Qt::white));
 
   //---
 
   double pxmin, pymin, pxmax, pymax;
 
-  displayRange_.getPixelRange(&pxmin, &pymin, &pxmax, &pymax);
+  double xmin, ymin, xmax, ymax;
+
+  displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+
+  windowToPixel(xmin, ymin, pxmin, pymax);
+  windowToPixel(xmax, ymax, pxmax, pymin);
 
   painter->fillRect(QRect(pxmin, pymin, pxmax - pxmin - 1, pymax - pymin - 1),
                     QBrush(background()));
@@ -592,6 +493,13 @@ objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
   return c1;
 }
 
+void
+CQChartsPlot::
+update()
+{
+  window_->update();
+}
+
 QColor
 CQChartsPlot::
 paletteColor(int i, int n, const QColor &def) const
@@ -615,7 +523,11 @@ windowToPixel(double wx, double wy, double &px, double &py) const
 
   displayTransform_.getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
 
-  displayRange_.windowToPixel(wx1, wy1, &px, &py);
+  double wx2, wy2;
+
+  displayRange_.windowToPixel(wx1, wy1, &wx2, &wy2);
+
+  window_->windowToPixel(wx2, wy2, px, py);
 }
 
 void
@@ -624,9 +536,13 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
 {
   double wx1, wy1;
 
-  displayRange_.pixelToWindow(px, py, &wx1, &wy1);
+  window_->pixelToWindow(px, py, wx1, wy1);
 
-  displayTransform_.getIMatrix().multiplyPoint(wx1, wy1, &wx, &wy);
+  double wx2, wy2;
+
+  displayRange_.pixelToWindow(wx1, wy1, &wx2, &wy2);
+
+  displayTransform_.getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
 }
 
 void
@@ -691,176 +607,26 @@ pixelToWindowHeight(double ph) const
   return std::abs(wy2 - wy1);
 }
 
-QSize
+double
 CQChartsPlot::
-sizeHint() const
+windowToPixelWidth(double ww) const
 {
-  return QSize(1000, 1000);
+  double px1, py1, px2, py2;
+
+  windowToPixel( 0, 0, px1, py1);
+  windowToPixel(ww, 0, px2, py2);
+
+  return std::abs(px2 - px1);
 }
 
-//---
-
-CQChartsPlotExpander::
-CQChartsPlotExpander(CQChartsPlot *plot) :
- QFrame(plot), plot_(plot)
+double
+CQChartsPlot::
+windowToPixelHeight(double wh) const
 {
-  setObjectName("expander");
+  double px1, py1, px2, py2;
 
-  setAutoFillBackground(true);
+  windowToPixel(0, 0 , px1, py1);
+  windowToPixel(0, wh, px2, py2);
 
-  setFixedWidth(8);
-}
-
-void
-CQChartsPlotExpander::
-mousePressEvent(QMouseEvent *e)
-{
-  int s  = width();
-  int ym = height()/2;
-
-  QRect handleRect(0, ym - s, width(), 2*s);
-
-  if (handleRect.contains(e->pos())) {
-    setExpanded(! isExpanded());
-
-    plot_->updateGeometry();
-
-    return;
-  }
-
-  if (! isExpanded())
-    return;
-
-  pressed_  = true;
-  pressPos_ = e->pos();
-}
-
-void
-CQChartsPlotExpander::
-mouseMoveEvent(QMouseEvent *e)
-{
-  if (pressed_) {
-    movePos_ = e->pos();
-
-    int dx = pressPos_.x() - movePos_.x();
-
-    plot_->moveExpander(dx);
-
-    movePos_ = pressPos_;
-  }
-}
-
-void
-CQChartsPlotExpander::
-mouseReleaseEvent(QMouseEvent *e)
-{
-  mouseMoveEvent(e);
-
-  pressed_ = false;
-}
-
-void
-CQChartsPlotExpander::
-paintEvent(QPaintEvent *)
-{
-  QPainter p(this);
-
-  int s  = width();
-  int ym = height()/2;
-
-  p.setBrush(QColor(0,0,0));
-
-  QPolygonF poly;
-
-  if (! expanded_) {
-    poly << QPoint(0, ym    );
-    poly << QPoint(s, ym - s);
-    poly << QPoint(s, ym + s);
-  }
-  else {
-    poly << QPoint(s, ym    );
-    poly << QPoint(0, ym - s);
-    poly << QPoint(0, ym + s);
-  }
-
-  p.drawPolygon(poly);
-}
-
-//---
-
-CQChartsPlotStatus::
-CQChartsPlotStatus(CQChartsPlot *plot) :
- QFrame(plot), plot_(plot)
-{
-  setObjectName("status");
-}
-
-void
-CQChartsPlotStatus::
-setText(const QString &s)
-{
-  text_ = s;
-
-  update();
-}
-
-void
-CQChartsPlotStatus::
-paintEvent(QPaintEvent *)
-{
-  QPainter p(this);
-
-  QFontMetrics fm(font());
-
-  p.drawText(2, 2 + fm.ascent(), text());
-}
-
-//---
-
-CQChartsPlotToolBar::
-CQChartsPlotToolBar(CQChartsPlot *plot) :
- QFrame(plot), plot_(plot)
-{
-  setObjectName("toolbar");
-
-  QHBoxLayout *layout = new QHBoxLayout(this);
-
-  selectButton_ = new QToolButton(this);
-
-  selectButton_->setIcon(CQPixmapCacheInst->getIcon("SELECT"));
-  selectButton_->setCheckable(true);
-  selectButton_->setChecked(true);
-
-  connect(selectButton_, SIGNAL(clicked(bool)), this, SLOT(selectSlot(bool)));
-
-  zoomButton_ = new QToolButton(this);
-
-  zoomButton_->setIcon(CQPixmapCacheInst->getIcon("ZOOM"));
-  zoomButton_->setCheckable(true);
-
-  connect(zoomButton_, SIGNAL(clicked(bool)), this, SLOT(zoomSlot(bool)));
-
-  layout->addWidget(selectButton_);
-  layout->addWidget(zoomButton_);
-  layout->addStretch(1);
-}
-
-void
-CQChartsPlotToolBar::
-selectSlot(bool)
-{
-  plot_->setMode(CQChartsPlot::Mode::SELECT);
-
-  zoomButton_  ->setChecked(false);
-  selectButton_->setChecked(true);
-}
-
-void
-CQChartsPlotToolBar::
-zoomSlot(bool)
-{
-  plot_->setMode(CQChartsPlot::Mode::ZOOM);
-
-  selectButton_->setChecked(false);
-  zoomButton_  ->setChecked(true);
+  return std::abs(py2 - py1);
 }

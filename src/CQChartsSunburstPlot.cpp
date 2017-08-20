@@ -1,4 +1,5 @@
 #include <CQChartsSunburstPlot.h>
+#include <CQChartsWindow.h>
 #include <CQRotatedText.h>
 
 #include <QAbstractItemModel>
@@ -56,14 +57,21 @@ int nextColorId() {
 //---
 
 CQChartsSunburstPlot::
-CQChartsSunburstPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsSunburstPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
   range_.setWindowRange(-1, 1, 1, -1);
 
-  addProperty("", this, "fontHeight");
-
   init();
+}
+
+void
+CQChartsSunburstPlot::
+addProperties()
+{
+  CQChartsPlot::addProperties();
+
+  addProperty("", this, "fontHeight");
 }
 
 void
@@ -131,6 +139,7 @@ loadChildren(HierNode *hier, const QModelIndex &index, int depth, int colorId)
   hier->setColor(c.lighter(110));
 }
 
+#if 0
 void
 CQChartsSunburstPlot::
 resizeEvent(QResizeEvent *e)
@@ -139,29 +148,26 @@ resizeEvent(QResizeEvent *e)
 
   CQChartsPlot::resizeEvent(e);
 }
+#endif
 
 void
 CQChartsSunburstPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
-  QPainter p(this);
-
-  QFont font = this->font();
+  QFont font = window_->font();
 
   font.setPointSizeF(fontHeight());
 
-  p.setFont(font);
+  p->setFont(font);
 
   //---
 
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
   for (uint i = 0; i < roots_.size(); ++i)
-    drawNodes(&p, roots_[i]);
+    drawNodes(p, roots_[i]);
 }
 
 void

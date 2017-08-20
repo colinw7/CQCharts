@@ -64,6 +64,9 @@ class CQChartsKey : public QObject {
   QString locationStr() const;
   void setLocationStr(const QString &s);
 
+  const CBBox2D &bbox() const { return bbox_; }
+  void setBBox(const CBBox2D &v) { bbox_ = v; }
+
   void addProperties(CQPropertyTree *tree, const QString &path);
 
   void clearItems();
@@ -78,6 +81,12 @@ class CQChartsKey : public QObject {
   QSizeF calcSize();
 
   void redraw(bool layout=false);
+
+  bool contains(const CPoint2D &p) const;
+
+  CQChartsKeyItem *getItemAt(const CPoint2D &p) const;
+
+  virtual void mousePress(const CPoint2D &) { }
 
   void draw(QPainter *p);
 
@@ -96,21 +105,22 @@ class CQChartsKey : public QObject {
   typedef std::map<int,Cell>             ColCell;
   typedef std::map<int,ColCell>          RowColCell;
 
-  CQChartsPlot *plot_        { nullptr };
-  bool          displayed_   { true };
-  bool          border_      { true };
-  QColor        background_  { 255, 255, 255 };
-  QColor        borderColor_ { 0, 0, 0 };
-  Location      location_    { Location::TOP_RIGHT };
-  int           margin_      { 2 };
-  int           spacing_     { 2 };
-  Items         items_;
-  bool          needsLayout_ { false };
-  QPointF       position_    { 0, 0 };
-  QSizeF        size_;
-  int           numRows_     { 0 };
-  int           numCols_     { 0 };
-  RowColCell    rowColCell_;
+  CQChartsPlot*   plot_        { nullptr };
+  bool            displayed_   { true };
+  bool            border_      { true };
+  QColor          background_  { 255, 255, 255 };
+  QColor          borderColor_ { 0, 0, 0 };
+  Location        location_    { Location::TOP_RIGHT };
+  int             margin_      { 2 };
+  int             spacing_     { 2 };
+  Items           items_;
+  bool            needsLayout_ { false };
+  QPointF         position_    { 0, 0 };
+  QSizeF          size_;
+  int             numRows_     { 0 };
+  int             numCols_     { 0 };
+  RowColCell      rowColCell_;
+  mutable CBBox2D bbox_;
 };
 
 //------
@@ -137,19 +147,27 @@ class CQChartsKeyItem : public QObject {
   int colSpan() const { return colSpan_; }
   void setColSpan(int i) { colSpan_ = i; }
 
+  const CBBox2D &bbox() const { return bbox_; }
+  void setBBox(const CBBox2D &v) { bbox_ = v; }
+
+  virtual void mousePress(const CPoint2D &) { }
+
   virtual void draw(QPainter *p, const CBBox2D &rect) = 0;
 
  private:
-  CQChartsKey *key_     { nullptr };
-  int          row_     { 0 };
-  int          col_     { 0 };
-  int          rowSpan_ { 1 };
-  int          colSpan_ { 1 };
+  CQChartsKey*    key_     { nullptr };
+  int             row_     { 0 };
+  int             col_     { 0 };
+  int             rowSpan_ { 1 };
+  int             colSpan_ { 1 };
+  mutable CBBox2D bbox_;
 };
 
 //---
 
 class CQChartsPlot;
+
+//---
 
 class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
@@ -161,10 +179,12 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
- private:
+ protected:
   CQChartsPlot *plot_ { nullptr };
   QString       text_;
 };
+
+//---
 
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
@@ -176,7 +196,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
- private:
+ protected:
   CQChartsPlot *plot_ { nullptr };
   int           i_    { 0 };
   int           n_    { 0 };

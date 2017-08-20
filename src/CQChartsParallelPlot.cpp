@@ -1,4 +1,5 @@
 #include <CQChartsParallelPlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -8,8 +9,14 @@
 #include <QPainter>
 
 CQChartsParallelPlot::
-CQChartsParallelPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsParallelPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
+{
+}
+
+void
+CQChartsParallelPlot::
+addProperties()
 {
   addProperty("columns", this, "xColumn", "x");
   addProperty("columns", this, "yColumn", "y");
@@ -96,7 +103,7 @@ initObjs()
 
     CQChartsParallelLineObj *lineObj = new CQChartsParallelLineObj(this, bbox, poly, i);
 
-    int nl = poly.length();
+    int nl = poly.count();
 
     QString id = xname + "\n";
 
@@ -143,26 +150,22 @@ numValues() const
 
 void
 CQChartsParallelPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
-  QFontMetrics fm(font());
+  QFontMetrics fm(window()->font());
 
   displayRange_.setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
 
   for (int j = 0; j < numSets(); ++j) {
     setDataRange(yRanges_[j]);
@@ -171,7 +174,7 @@ paintEvent(QPaintEvent *)
 
     yAxes_[j]->setPos(j);
 
-    yAxes_[j]->draw(this, &p);
+    yAxes_[j]->draw(this, p);
 
     QString label = yAxes_[j]->getLabel();
 
@@ -179,9 +182,9 @@ paintEvent(QPaintEvent *)
 
     windowToPixel(j, dataRange_.ymax(), px, py);
 
-    p.setPen(Qt::black);
+    p->setPen(Qt::black);
 
-    p.drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
+    p->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }
 
   displayRange_.setWindowRange(-0.5, 0, numSets() - 0.5, 1);
@@ -202,7 +205,7 @@ inside(const CPoint2D &p) const
 {
   QPolygonF poly;
 
-  for (int i = 0; i < poly_.length(); ++i) {
+  for (int i = 0; i < poly_.count(); ++i) {
     const CRange2D &range = plot_->yRange(i);
 
     double x = poly_[i].x();
@@ -211,7 +214,7 @@ inside(const CPoint2D &p) const
     poly << QPointF(x, y);
   }
 
-  for (int i = 1; i < poly.length(); ++i) {
+  for (int i = 1; i < poly.count(); ++i) {
     double x1 = poly[i - 1].x();
     double y1 = poly[i - 1].y();
     double x2 = poly[i    ].x();
@@ -236,7 +239,7 @@ draw(QPainter *p)
 
   QPolygonF poly;
 
-  for (int i = 0; i < poly_.length(); ++i) {
+  for (int i = 0; i < poly_.count(); ++i) {
     const CRange2D &range = plot_->yRange(i);
 
     double x = poly_[i].x();
@@ -254,7 +257,7 @@ draw(QPainter *p)
 
   p->setPen(pen);
 
-  for (int i = 1; i < poly.length(); ++i) {
+  for (int i = 1; i < poly.count(); ++i) {
     double x1 = poly[i - 1].x();
     double y1 = poly[i - 1].y();
     double x2 = poly[i    ].x();

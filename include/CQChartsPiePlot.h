@@ -17,10 +17,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   typedef std::pair<CVAlignType,double> VAlignPos;
 
  public:
-  CQChartsPieObj(CQChartsPiePlot *plot, int ind, const CBBox2D &rect);
-
-  int ind() const { return ind_; }
-  void setInd(int i) { ind_ = i; }
+  CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n);
 
   const CPoint2D &center() const { return center_; }
   void setCenter(const CPoint2D &c) { center_ = c; }
@@ -64,7 +61,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
  protected:
   CQChartsPiePlot* plot_            { nullptr };
-  int              ind_             { -1 };
+  int              i_               { -1 };
+  int              n_               { -1 };
   CPoint2D         center_          { 0, 0 };
   double           r_               { 1 };
   double           angle1_          { 0 };
@@ -79,7 +77,20 @@ class CQChartsPieObj : public CQChartsPlotObj {
   bool             explodeSelected_ { true };
 };
 
-//----
+//---
+
+#include <CQChartsKey.h>
+
+class CQChartsPieKeyColor : public CQChartsKeyColorBox {
+  Q_OBJECT
+
+ public:
+  CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n);
+
+  void mousePress(const CPoint2D &p) override;
+};
+
+//---
 
 class CQChartsPiePlot : public CQChartsPlot {
   Q_OBJECT
@@ -92,7 +103,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   //   donut
 
  public:
-  CQChartsPiePlot(QAbstractItemModel *model);
+  CQChartsPiePlot(CQChartsWindow *window, QAbstractItemModel *model);
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; update(); }
@@ -103,18 +114,38 @@ class CQChartsPiePlot : public CQChartsPlot {
   int yColumn() const { return yColumn_; }
   void setYColumn(int i) { yColumn_ = i; }
 
-  void initObjs();
+  void addProperties();
 
-  void paintEvent(QPaintEvent *) override;
+  void initObjs(bool force=false);
+
+  //---
+
+  bool isSetHidden(int i) const {
+    auto p = idHidden_.find(i);
+
+    if (p == idHidden_.end())
+      return false;
+
+    return (*p).second;
+  }
+
+  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
+
+  //---
+
+  void draw(QPainter *) override;
 
   QColor segmentColor(int i, int n) const;
 
   QColor textColor(const QColor &bg) const;
 
  private:
-  bool donut_   { false };
-  int  xColumn_ { 0 };
-  int  yColumn_ { 1 };
+  typedef std::map<int,bool> IdHidden;
+
+  bool     donut_   { false };
+  int      xColumn_ { 0 };
+  int      yColumn_ { 1 };
+  IdHidden idHidden_;
 };
 
 #endif

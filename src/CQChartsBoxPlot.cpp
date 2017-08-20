@@ -1,4 +1,5 @@
 #include <CQChartsBoxPlot.h>
+#include <CQChartsWindow.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -7,12 +8,19 @@
 #include <QPainter>
 
 CQChartsBoxPlot::
-CQChartsBoxPlot(QAbstractItemModel *model) :
- CQChartsPlot(nullptr, model)
+CQChartsBoxPlot(CQChartsWindow *window, QAbstractItemModel *model) :
+ CQChartsPlot(window, model)
 {
   addAxes();
 
   xAxis_->setIntegral(true);
+}
+
+void
+CQChartsBoxPlot::
+addProperties()
+{
+  CQChartsPlot::addProperties();
 
   addProperty("", this, "boxColor");
 }
@@ -90,24 +98,20 @@ numObjs() const
 
 void
 CQChartsBoxPlot::
-paintEvent(QPaintEvent *)
+draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  QPainter p(this);
-
-  p.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
-
-  drawBackground(&p);
+  drawBackground(p);
 
   //---
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(&p);
+    plotObj->draw(p);
 
-  drawAxes(&p);
+  drawAxes(p);
 }
 
 //------
@@ -122,7 +126,7 @@ CQChartsBoxObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
 void
 CQChartsBoxObj::draw(QPainter *p)
 {
-  QFontMetrics fm(plot_->font());
+  QFontMetrics fm(plot_->window()->font());
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 

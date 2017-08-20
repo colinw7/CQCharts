@@ -1,11 +1,14 @@
 #include <CQChartsTable.h>
 #include <CQChartsHeader.h>
+#include <QSortFilterProxyModel>
 
 CQChartsTable::
 CQChartsTable(QWidget *parent) :
  QTableView(parent)
 {
   setObjectName("table");
+
+  setAlternatingRowColors(true);
 
   header_ = new CQChartsHeader(this);
 
@@ -22,6 +25,16 @@ CQChartsTable::
 setModel(QAbstractItemModel *model)
 {
   QTableView::setModel(model);
+}
+
+void
+CQChartsTable::
+setFilter(const QString &filter)
+{
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_);
+
+  if (proxyModel)
+    proxyModel->setFilterWildcard(filter);
 }
 
 void

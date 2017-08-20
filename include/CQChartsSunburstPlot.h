@@ -311,16 +311,16 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   //---
 
  public:
-  CQChartsSunburstPlot(QAbstractItemModel *model);
+  CQChartsSunburstPlot(CQChartsWindow *window, QAbstractItemModel *model);
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
 
+  void addProperties();
+
   void init();
 
-  void resizeEvent(QResizeEvent *) override;
-
-  void paintEvent(QPaintEvent *) override;
+  void draw(QPainter *) override;
 
  private:
   void loadChildren(HierNode *hier, const QModelIndex &index, int depth, int colorId=-1);
