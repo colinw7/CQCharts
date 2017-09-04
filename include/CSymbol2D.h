@@ -20,19 +20,31 @@ struct CSymbol2D {
     DIAMOND,
     STAR,
     STAR1,
-    PENTAGON
+    CIRCLE,
+    PENTAGON,
+    IPENTAGON
   };
 
   enum class Connect {
     NONE,
     LINE,
     CLOSE,
-    STROKE
+    STROKE,
+    FILL
+  };
+
+  struct Point {
+    Point(double x=0.0, double y=0.0) :
+     x(x), y(y) {
+    }
+
+    double x { 0.0 };
+    double y { 0.0 };
   };
 
   struct Line {
-    double  x1      { 0 }, y1 { 0 };
-    double  x2      { 0 }, y2 { 0 };
+    double  x1      { 0.0 }, y1 { 0.0 };
+    double  x2      { 0.0 }, y2 { 0.0 };
     Connect connect { Connect::NONE };
 
     Line(double x11, double y11, double x21, double y21, Connect connect1=Connect::NONE) :
@@ -44,9 +56,10 @@ struct CSymbol2D {
 
   Type  type { Type::NONE };
   Lines lines;
+  Lines fillLines;
 
-  CSymbol2D(Type type1, std::initializer_list<Line> lines1) :
-   type(type1), lines(lines1) {
+  CSymbol2D(Type type, std::initializer_list<Line> lines, std::initializer_list<Line> fillLines) :
+   type(type), lines(lines), fillLines(fillLines) {
   }
 };
 
@@ -57,7 +70,9 @@ namespace CSymbol2DMgr {
 
   const CSymbol2D &getSymbol(CSymbol2D::Type type);
 
-  void drawSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer);
+  void drawSymbol  (CSymbol2D::Type type, CSymbol2DRenderer *renderer);
+  void strokeSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer);
+  void fillSymbol  (CSymbol2D::Type type, CSymbol2DRenderer *renderer);
 
   std::string typeToName(CSymbol2D::Type type);
 
@@ -77,7 +92,16 @@ class CSymbol2DRenderer {
 
   virtual void stroke() = 0;
 
-  void drawSymbol(CSymbol2D::Type type);
+  virtual void fill() = 0;
+
+  virtual void strokeCircle(double x, double y, double r) = 0;
+  virtual void fillCircle  (double x, double y, double r) = 0;
+
+  virtual double lineWidth() const { return 0.0; }
+
+  void drawSymbol  (CSymbol2D::Type type);
+  void strokeSymbol(CSymbol2D::Type type);
+  void fillSymbol  (CSymbol2D::Type type);
 };
 
 #endif

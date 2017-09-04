@@ -33,7 +33,21 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n);
 
-  void mousePress(const CPoint2D &p) override;
+  bool mousePress(const CPoint2D &p) override;
+
+  QColor fillColor() const override;
+};
+
+class CQChartsBarKeyText : public CQChartsKeyText {
+  Q_OBJECT
+
+ public:
+  CQChartsBarKeyText(CQChartsBarChartPlot *plot, int i, const QString &text);
+
+  QColor textColor() const override;
+
+ private:
+  int i_ { 0 };
 };
 
 //---
@@ -51,7 +65,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(QColor  borderColor READ borderColor WRITE setBorderColor)
 
  public:
-  CQChartsBarChartPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "BarChart"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; }
@@ -78,6 +94,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void addProperties();
 
   void initObjs(bool force=false);
+
+  void addKeyItems(CQChartsKey *key) override;
 
   int numSets() const;
 

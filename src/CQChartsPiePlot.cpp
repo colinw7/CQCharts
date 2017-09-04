@@ -1,5 +1,5 @@
 #include <CQChartsPiePlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -8,15 +8,12 @@
 #include <QPainter>
 
 CQChartsPiePlot::
-CQChartsPiePlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
   addKey();
 
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
-
-  displayRange_.setEqualScale(true);
+  addTitle();
 }
 
 void
@@ -25,7 +22,24 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty(id_, this, "donut");
+  addProperty("", this, "donut"          );
+  addProperty("", this, "innerRadius"    );
+  addProperty("", this, "labelRadius"    );
+  addProperty("", this, "explodeSelected");
+  addProperty("", this, "xColumn"        );
+  addProperty("", this, "yColumn"        );
+}
+
+void
+CQChartsPiePlot::
+updateRange()
+{
+  dataRange_.updateRange(-1, -1);
+  dataRange_.updateRange( 1,  1);
+
+  applyDataRange();
+
+  displayRange_.setEqualScale(true);
 }
 
 void
@@ -34,6 +48,17 @@ initObjs(bool force)
 {
   if (force) {
     clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //---
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
   }
 
   //---
@@ -43,17 +68,17 @@ initObjs(bool force)
 
   //---
 
-  double xc = 0.5;
-  double yc = 0.5;
-  double r  = 0.45;
+  double xc = 0.0;
+  double yc = 0.0;
+  double r  = 0.90;
+
+  setInnerRadius(0.6*r);
 
   //---
 
   double angle1 = 90.0;
 
-  QModelIndex ind;
-
-  int n = model_->rowCount(ind);
+  int n = model_->rowCount(QModelIndex());
 
   //---
 
@@ -69,7 +94,12 @@ initObjs(bool force)
 
     QModelIndex yind = model_->index(i, yColumn_);
 
-    double value = CQChartsUtil::toReal(model_->data(yind));
+    bool ok;
+
+    double value = CQChartsUtil::modelReal(model_, yind, ok);
+
+    if (! ok)
+      value = i;
 
     total += value;
   }
@@ -87,8 +117,12 @@ initObjs(bool force)
     QModelIndex xind = model_->index(i, xColumn_);
     QModelIndex yind = model_->index(i, yColumn_);
 
-    QString name  = model_->data(xind).toString();
-    double  value = CQChartsUtil::toReal(model_->data(yind));
+    bool ok1, ok2;
+
+    QString name  = CQChartsUtil::modelString(model_, xind, ok1);
+    double  value = CQChartsUtil::modelReal  (model_, yind, ok2);
+
+    if (! ok2) value = i;
 
     double angle  = 360.0*value/total;
     double angle2 = angle1 - angle;
@@ -108,10 +142,6 @@ initObjs(bool force)
     obj->setName  (name);
     obj->setValue (value);
 
-    obj->setInnerRadius(0.6*r);
-
-    obj->setLabelRadius(0.5);
-
     addPlotObject(obj);
 
     //---
@@ -121,19 +151,32 @@ initObjs(bool force)
 
   //---
 
-  key_->clearItems();
+  keyObj_->clearItems();
+
+  addKeyItems(keyObj_);
+}
+
+void
+CQChartsPiePlot::
+addKeyItems(CQChartsKey *key)
+{
+  int n = model_->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i) {
     QModelIndex xind = model_->index(i, xColumn_);
 
-    QString name = model_->data(xind).toString();
+    bool ok;
+
+    QString name = CQChartsUtil::modelString(model_, xind, ok);
 
     CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, i, n);
-    CQChartsKeyText     *text  = new CQChartsKeyText    (this, name);
+    CQChartsKeyText     *text  = new CQChartsPieKeyText (this, i, name);
 
-    key_->addItem(color, i, 0);
-    key_->addItem(text , i, 1);
+    key->addItem(color, i, 0);
+    key->addItem(text , i, 1);
   }
+
+  key->plot()->updateKeyPosition(/*force*/true);
 }
 
 void
@@ -148,42 +191,13 @@ draw(QPainter *p)
 
   //---
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 
   //---
+
+  drawTitle(p);
 
   drawKey(p);
-}
-
-QColor
-CQChartsPiePlot::
-segmentColor(int i, int n) const
-{
-  static QColor colors[] = {
-    QColor(0x98,0xAB,0xC5),
-    QColor(0x8A,0x89,0xA6),
-    QColor(0x7B,0x68,0x88),
-    QColor(0x6B,0x48,0x6B),
-    QColor(0xA0,0x5D,0x56),
-    QColor(0xD0,0x74,0x3C),
-    QColor(0xFF,0x8C,0x00),
-  };
-
-  static uint num_colors = 7;
-
-  //---
-
-  return paletteColor(i, n, colors[i % num_colors]);
-}
-
-QColor
-CQChartsPiePlot::
-textColor(const QColor &bg) const
-{
-  int g = qGray(bg.red(), bg.green(), bg.blue());
-
-  return (g > 128 ? QColor(0,0,0) : QColor(255, 255, 255));
 }
 
 //------
@@ -200,7 +214,10 @@ inside(const CPoint2D &p) const
 {
   double r = p.distanceTo(center());
 
-  double ir = innerRadius()*radius();
+  double ir = 0.0;
+
+  if (plot_->isDonut())
+    ir = plot_->innerRadius()*radius();
 
   if (r < ir || r > radius())
     return false;
@@ -240,8 +257,8 @@ draw(QPainter *p)
 
   bool exploded = isExploded();
 
-  //if (isSelected() && isExplodeSelected())
-  //  exploded = true;
+  if (isSelected() && plot_->isExplodeSelected())
+    exploded = true;
 
   if (exploded) {
     double angle = CAngle::Deg2Rad((a1 + a2)/2.0);
@@ -255,7 +272,7 @@ draw(QPainter *p)
 
   //---
 
-  //double ir = innerRadius()*radius();
+  //double ir = plot_->innerRadius()*radius();
 
   QPainterPath path;
 
@@ -272,7 +289,7 @@ draw(QPainter *p)
   plot_->windowToPixel(bbox, pbbox);
 
   if (plot_->isDonut()) {
-    double ir = innerRadius();
+    double ir = plot_->innerRadius();
 
     CBBox2D bbox1(c.x - ir, c.y - ir, c.x + ir, c.y + ir);
 
@@ -313,9 +330,16 @@ draw(QPainter *p)
     path.arcTo(CQUtil::toQRect(pbbox1), a2, a1 - a2);
   }
   else {
-    path.moveTo(QPointF(pc.x, pc.y));
+    double a21 = a2 - a1;
 
-    path.arcTo(CQUtil::toQRect(pbbox), a1, a2 - a1);
+    if (std::abs(a21) < 360.0) {
+      path.moveTo(QPointF(pc.x, pc.y));
+
+      path.arcTo(CQUtil::toQRect(pbbox), a1, a2 - a1);
+    }
+    else {
+      path.addEllipse(CQUtil::toQRect(pbbox));
+    }
   }
 
   //fillPieSlice  (c, ir, radius(), a1, a2, *fill  );
@@ -325,7 +349,7 @@ draw(QPainter *p)
 
   //---
 
-  QColor bg = plot_->objectColor(this, i_, n_, plot_->segmentColor(i_, n_));
+  QColor bg = plot_->objectColor(this, i_, n_);
   QColor fg = plot_->textColor(bg);
 
   p->setBrush(bg);
@@ -336,61 +360,75 @@ draw(QPainter *p)
   //---
 
   if (name() != "") {
-    double ta = (a1 + a2)/2.0;
+    double a21 = a2 - a1;
 
-    double tangle = CAngle::Deg2Rad(ta);
+    if (std::abs(a21) < 360.0) {
+      double ta = (a1 + a2)/2.0;
 
-    double lr;
+      double tangle = CAngle::Deg2Rad(ta);
 
-    if (plot_->isDonut())
-      lr = innerRadius() + labelRadius()*(radius() - innerRadius());
-    else
-      lr = labelRadius()*radius();
+      double lr;
 
-    if (lr < 0.01)
-      lr = 0.01;
+      if (plot_->isDonut())
+        lr = plot_->innerRadius() + plot_->labelRadius()*(radius() - plot_->innerRadius());
+      else
+        lr = plot_->labelRadius()*radius();
 
-    double tc = cos(tangle);
-    double ts = sin(tangle);
+      if (lr < 0.01)
+        lr = 0.01;
 
-    double tx = c.x + lr*tc;
-    double ty = c.y + lr*ts;
+      double tc = cos(tangle);
+      double ts = sin(tangle);
 
-    double ptx, pty;
+      double tx = c.x + lr*tc;
+      double ty = c.y + lr*ts;
 
-    plot_->windowToPixel(tx, ty, ptx, pty);
+      double ptx, pty;
 
-    //---
+      plot_->windowToPixel(tx, ty, ptx, pty);
 
-    QFontMetrics fm(plot_->window()->font());
+      //---
 
-    int tw = fm.width(name());
+      QFontMetrics fm(plot_->view()->font());
 
-    p->setPen(fg);
+      int tw = fm.width(name());
 
-    p->drawText(ptx - tw/2, pty + fm.ascent(), name());
+      p->setPen(fg);
+
+      p->drawText(ptx - tw/2, pty + fm.ascent(), name());
 
 #if 0
-    // aligned ?
-    CPoint2D tp(tx, ty);
+      // aligned ?
+      CPoint2D tp(tx, ty);
 
-    CRGBA tc1(0,0,0);
+      QColor tc1;
 
-    if (fill->type() == CGnuPlotTypes::FillType::SOLID)
-      tc1 = fill->color().bwContrast();
+      if (fill->type() == CGnuPlotTypes::FillType::SOLID)
+        tc1 = fill->color().bwContrast();
 
-    if (isRotatedText()) {
-      if (tc >= 0)
-        p->drawRotatedText(tp, name(), ta, HAlignPos(CHALIGN_TYPE_LEFT, 0),
-                           VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
-      else
-        p->drawRotatedText(tp, name(), 180.0 + ta, HAlignPos(CHALIGN_TYPE_RIGHT, 0),
-                           VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
-    }
-    else
-      p->drawHAlignedText(tp, HAlignPos(CHALIGN_TYPE_CENTER, 0),
-                          VAlignPos(CVALIGN_TYPE_CENTER, 0), name(), tc1);
+      if (isRotatedText()) {
+        if (tc >= 0)
+          p->drawRotatedText(tp, name(), ta, HAlignPos(CHALIGN_TYPE_LEFT, 0),
+                             VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
+        else
+          p->drawRotatedText(tp, name(), 180.0 + ta, HAlignPos(CHALIGN_TYPE_RIGHT, 0),
+                             VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
+      }
+      else {
+        p->drawHAlignedText(tp, HAlignPos(CHALIGN_TYPE_CENTER, 0),
+                            VAlignPos(CVALIGN_TYPE_CENTER, 0), name(), tc1);
+      }
 #endif
+    }
+    else {
+      QFontMetrics fm(plot_->view()->font());
+
+      int tw = fm.width(name());
+
+      p->setPen(fg);
+
+      p->drawText(pc.x - tw/2, pc.y + (fm.ascent() - fm.descent())/2, name());
+    }
   }
 
   //---
@@ -408,7 +446,7 @@ CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n) :
 {
 }
 
-void
+bool
 CQChartsPieKeyColor::
 mousePress(const CPoint2D &)
 {
@@ -419,4 +457,42 @@ mousePress(const CPoint2D &)
   plot->initObjs(/*force*/true);
 
   plot->update();
+
+  return true;
+}
+
+QColor
+CQChartsPieKeyColor::
+fillColor() const
+{
+  QColor c = CQChartsKeyColorBox::fillColor();
+
+  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, Qt::white, 0.5);
+
+  return c;
+}
+
+//------
+
+CQChartsPieKeyText::
+CQChartsPieKeyText(CQChartsPiePlot *plot, int i, const QString &text) :
+ CQChartsKeyText(plot, text), i_(i)
+{
+}
+
+QColor
+CQChartsPieKeyText::
+textColor() const
+{
+  QColor c = CQChartsKeyText::textColor();
+
+  CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, Qt::white, 0.5);
+
+  return c;
 }

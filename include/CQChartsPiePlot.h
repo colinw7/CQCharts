@@ -13,10 +13,6 @@ class CQChartsPiePlot;
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
-  typedef std::pair<CHAlignType,double> HAlignPos;
-  typedef std::pair<CVAlignType,double> VAlignPos;
-
- public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n);
 
   const CPoint2D &center() const { return center_; }
@@ -31,12 +27,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double angle2() const { return angle2_; }
   void setAngle2(double a) { angle2_ = a; }
 
-  double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; }
-
-  double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; }
-
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
@@ -45,9 +35,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool isExploded() const { return exploded_; }
   void setExploded(bool b) { exploded_ = b; }
-
-  bool isExplodeSelected() const { return explodeSelected_; }
-  void setExplodeSelected(bool b) { explodeSelected_ = b; }
 
   bool isRotatedText() const { return rotatedText_; }
   void setRotatedText(bool b) { rotatedText_ = b; }
@@ -60,21 +47,18 @@ class CQChartsPieObj : public CQChartsPlotObj {
   void draw(QPainter *p) override;
 
  protected:
-  CQChartsPiePlot* plot_            { nullptr };
-  int              i_               { -1 };
-  int              n_               { -1 };
-  CPoint2D         center_          { 0, 0 };
-  double           r_               { 1 };
-  double           angle1_          { 0 };
-  double           angle2_          { 360 };
-  double           innerRadius_     { 0.0 };
-  double           labelRadius_     { 0.5 };
-  QString          name_            { "" };
-  double           value_           { 0 };
-  bool             rotatedText_     { false };
-  bool             wedge_           { true };
-  bool             exploded_        { false };
-  bool             explodeSelected_ { true };
+  CQChartsPiePlot* plot_        { nullptr };
+  int              i_           { -1 };
+  int              n_           { -1 };
+  CPoint2D         center_      { 0, 0 };
+  double           r_           { 1 };
+  double           angle1_      { 0 };
+  double           angle2_      { 360 };
+  QString          name_        { "" };
+  double           value_       { 0 };
+  bool             rotatedText_ { false };
+  bool             wedge_       { true };
+  bool             exploded_    { false };
 };
 
 //---
@@ -87,7 +71,21 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n);
 
-  void mousePress(const CPoint2D &p) override;
+  bool mousePress(const CPoint2D &p) override;
+
+  QColor fillColor() const override;
+};
+
+class CQChartsPieKeyText : public CQChartsKeyText {
+  Q_OBJECT
+
+ public:
+  CQChartsPieKeyText(CQChartsPiePlot *plot, int i, const QString &text);
+
+  QColor textColor() const override;
+
+ private:
+  int i_ { 0 };
 };
 
 //---
@@ -95,18 +93,32 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
 class CQChartsPiePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(bool donut   READ isDonut WRITE setDonut  )
-  Q_PROPERTY(int  xColumn READ xColumn WRITE setXColumn)
-  Q_PROPERTY(int  yColumn READ yColumn WRITE setYColumn)
-
   // propeties
   //   donut
 
+  Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
+  Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
+  Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
+  Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(int    xColumn         READ xColumn           WRITE setXColumn        )
+  Q_PROPERTY(int    yColumn         READ yColumn           WRITE setYColumn        )
+
  public:
-  CQChartsPiePlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Pie"; }
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; update(); }
+
+  double innerRadius() const { return innerRadius_; }
+  void setInnerRadius(double r) { innerRadius_ = r; }
+
+  double labelRadius() const { return labelRadius_; }
+  void setLabelRadius(double r) { labelRadius_ = r; }
+
+  bool isExplodeSelected() const { return explodeSelected_; }
+  void setExplodeSelected(bool b) { explodeSelected_ = b; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; }
@@ -116,7 +128,11 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void addProperties();
 
+  void updateRange();
+
   void initObjs(bool force=false);
+
+  void addKeyItems(CQChartsKey *key) override;
 
   //---
 
@@ -135,16 +151,15 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
-  QColor segmentColor(int i, int n) const;
-
-  QColor textColor(const QColor &bg) const;
-
  private:
   typedef std::map<int,bool> IdHidden;
 
-  bool     donut_   { false };
-  int      xColumn_ { 0 };
-  int      yColumn_ { 1 };
+  bool     donut_           { false };
+  double   innerRadius_     { 0.0 };
+  double   labelRadius_     { 0.5 };
+  bool     explodeSelected_ { true };
+  int      xColumn_         { 0 };
+  int      yColumn_         { 1 };
   IdHidden idHidden_;
 };
 

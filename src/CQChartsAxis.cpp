@@ -1,10 +1,11 @@
 #include <CQChartsAxis.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModel.h>
+#include <CQPropertyTree.h>
+#include <CQUtil.h>
 
 #include <CQRotatedText.h>
-#include <CMathGen.h>
-#include <CStrUtil.h>
+#include <CMathRound.h>
 #include <QPainter>
 
 #include <cstring>
@@ -64,8 +65,42 @@ AxisGoodTicks axisGoodTicks;
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
- CQChartsAxisBase(plot, direction, start, end), start1_(start), end1_(end)
+ plot_(plot), direction_(direction), start_(std::min(start, end)), end_(std::max(start, end)),
+ start1_(start), end1_(end)
 {
+  calc();
+}
+
+void
+CQChartsAxis::
+addProperties(CQPropertyTree *tree, const QString &path)
+{
+  tree->addProperty(path, this, "visible"            );
+  tree->addProperty(path, this, "direction"          );
+  tree->addProperty(path, this, "side"               );
+  tree->addProperty(path, this, "label"              );
+  tree->addProperty(path, this, "labelFont"          );
+  tree->addProperty(path, this, "labelColor"         );
+  tree->addProperty(path, this, "lineDisplayed"      );
+  tree->addProperty(path, this, "lineColor"          );
+  tree->addProperty(path, this, "labelDisplayed"     );
+  tree->addProperty(path, this, "gridColor"          );
+  tree->addProperty(path, this, "gridDisplayed"      );
+  tree->addProperty(path, this, "minorTicksDisplayed");
+  tree->addProperty(path, this, "majorTicksDisplayed");
+  tree->addProperty(path, this, "minorTickLen"       );
+  tree->addProperty(path, this, "majorTickLen"       );
+  tree->addProperty(path, this, "integral"           );
+  tree->addProperty(path, this, "format"             );
+}
+
+void
+CQChartsAxis::
+setRange(double start, double end)
+{
+  start_ = std::min(start, end);
+  end_   = std::max(start, end);
+
   calc();
 }
 
@@ -85,6 +120,30 @@ setTickIncrement(uint tickIncrement)
   tickIncrement_ = tickIncrement;
 
   calc();
+}
+
+QString
+CQChartsAxis::
+format() const
+{
+  CQChartsModel *model = plot_->chartsModel();
+
+  if (! model)
+    return "";
+
+  return model->columnType(column_);
+}
+
+void
+CQChartsAxis::
+setFormat(const QString &s)
+{
+  CQChartsModel *model = plot_->chartsModel();
+
+  if (! model)
+    return;
+
+  return model->setColumnType(column_, s);
 }
 
 void
@@ -140,7 +199,7 @@ calc()
 
   // Calculate nearest Power of Ten to Length
 
-  int power = CMathGen::RoundDown(log10(length));
+  int power = CMathRound::RoundDown(log10(length));
 
   if (isIntegral()) {
     if (power < 0)
@@ -222,13 +281,13 @@ calc()
 
     // Set the Gap Positions
 
-    numTicks1_ = CMathGen::RoundDown((end1_ - start1_)/increment + 0.5);
+    numTicks1_ = CMathRound::RoundDown((end1_ - start1_)/increment + 0.5);
     numTicks2_ = numGapTicks;
   }
   else {
     start1_    = start_;
     end1_      = end_;
-    numTicks1_ = CMathGen::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
+    numTicks1_ = CMathRound::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
     numTicks2_ = 5;
   }
 }
@@ -240,8 +299,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 {
   // Calculate New Start and End implied by the Test Increment
 
-  double newStart = CMathGen::RoundDown(start/testIncrement)*testIncrement;
-  double newEnd   = CMathGen::RoundUp  (end  /testIncrement)*testIncrement;
+  double newStart = CMathRound::RoundDown(start/testIncrement)*testIncrement;
+  double newEnd   = CMathRound::RoundUp  (end  /testIncrement)*testIncrement;
 
   while (newStart > start)
     newStart -= testIncrement;
@@ -249,7 +308,7 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   while (newEnd < end)
     newEnd += testIncrement;
 
-  uint testNumGaps = CMathGen::RoundUp((newEnd - newStart)/testIncrement);
+  uint testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
 
   //------
 
@@ -386,23 +445,31 @@ CQChartsAxis::
 getValueStr(double pos) const
 {
   if (column_ >= 0) {
-    CQChartsModel *model = qobject_cast<CQChartsModel *>(plot_->model());
+    CQChartsModel *model = plot_->chartsModel();
 
     if      (model) {
-      QString type = model->columnType(column_);
-
-      QString            baseType;
       CQChartsNameValues nameValues;
 
-      CQChartsColumn::decodeType(type, baseType, nameValues);
+      CQChartsColumnType *typeData = model->columnTypeData(column_, nameValues);
 
-      CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
-
-      if (typeData) {
+      if (typeData)
         return typeData->dataName(pos, nameValues);
+
+      if (isIntegral()) {
+        int ipos = int(pos);
+
+        if (hasTickLabel(ipos))
+          return getTickLabel(ipos);
+
+        bool ok;
+
+        QString label = CQChartsUtil::modelString(model, int(pos), column_, ok);
+
+        if (ok)
+          return label;
       }
-      else
-        return CStrUtil::toString(pos).c_str();
+
+      return CQChartsUtil::toString(pos);
     }
     else if (isDataLabels()) {
       int row = int(pos);
@@ -414,61 +481,80 @@ getValueStr(double pos) const
       if (header.isValid())
         return header.toString();
 
-      return CStrUtil::toString(pos).c_str();
+      return CQChartsUtil::toString(pos);
     }
     else {
-      return CStrUtil::toString(pos).c_str();
+      return CQChartsUtil::toString(pos);
     }
   }
   else
-    return CStrUtil::toString(pos).c_str();
+    return CQChartsUtil::toString(pos);
 }
 
 void
 CQChartsAxis::
 draw(CQChartsPlot *plot, QPainter *p)
 {
+  bbox_ = CBBox2D();
+
+  //---
+
+  double amin, amax, apos;
+
   double ax1, ay1, ax2, ay2, ax3, ay3;
 
-  if (direction_ == DIR_HORIZONTAL) {
-    double xmin = getStart();
-    double xmax = getEnd  ();
+  if (direction_ == Direction::HORIZONTAL) {
+    amin = getStart();
+    amax = getEnd  ();
 
     double ymin = plot->dataRange().ymin();
     double ymax = plot->dataRange().ymax();
 
-    plot->windowToPixel(xmin, ymin, ax1, ay1);
-    plot->windowToPixel(xmax, ymax, ax2, ay2);
+    apos = pos_.getValue(getSide() == Side::BOTTOM_LEFT ? ymin : ymax);
 
-    plot->windowToPixel(xmin, pos_.getValue(ymin), ax3, ay3);
+    plot->windowToPixel(amin, ymin, ax1, ay1);
+    plot->windowToPixel(amax, ymax, ax2, ay2);
+    plot->windowToPixel(amin, apos, ax3, ay3);
+
+    bbox_ += CPoint2D(amin, apos);
+    bbox_ += CPoint2D(amax, apos);
   }
   else {
-    double ymin = getStart();
-    double ymax = getEnd  ();
+    amin = getStart();
+    amax = getEnd  ();
 
     double xmin = plot->dataRange().xmin();
     double xmax = plot->dataRange().xmax();
 
-    plot->windowToPixel(xmin, ymin, ax1, ay1);
-    plot->windowToPixel(xmax, ymax, ax2, ay2);
+    apos = pos_.getValue(getSide() == Side::BOTTOM_LEFT ? xmin : xmax);
 
-    plot->windowToPixel(pos_.getValue(xmin), ymin, ax3, ay3);
+    plot->windowToPixel(xmin, amin, ax1, ay1);
+    plot->windowToPixel(xmax, amax, ax2, ay2);
+    plot->windowToPixel(apos, amin, ax3, ay3);
+
+    bbox_ += CPoint2D(apos, amin);
+    bbox_ += CPoint2D(apos, amax);
   }
 
-  //------
+  //---
 
-  QFontMetrics fm(getLabelFont());
+  QFontMetricsF fm(getLabelFont());
 
   p->save();
 
+  //---
+
+  // axis line
   if (getLineDisplayed()) {
     p->setPen(getLineColor());
 
-    if (direction_ == DIR_HORIZONTAL)
+    if (direction_ == Direction::HORIZONTAL)
       p->drawLine(ax1, ay3, ax2, ay3);
     else
       p->drawLine(ax3, ay1, ax3, ay2);
   }
+
+  //---
 
   double inc  = getMajorIncrement();
   double inc1 = inc/getNumMinorTicks();
@@ -488,23 +574,58 @@ draw(CQChartsPlot *plot, QPainter *p)
 
       plot->windowToPixel(pos1, pos1, ppx, ppy);
 
-      int dt1 = (getSide() == SIDE_BOTTOM_LEFT ? tlen2 : -tlen2);
-
       if (getGridDisplayed()) {
         p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
 
-        if (direction_ == DIR_HORIZONTAL)
+        if (direction_ == Direction::HORIZONTAL)
           p->drawLine(ppx, ay1, ppx, ay2);
         else
           p->drawLine(ax1, ppy, ax2, ppy);
       }
 
-      p->setPen(getLineColor());
+      //---
 
-      if (direction_ == DIR_HORIZONTAL)
-        p->drawLine(ppx, ay3, ppx, ay3 + dt1);
-      else
-        p->drawLine(ax3, ppy, ax3 - dt1, ppy);
+      // draw major tick (or minor tick if major ticks off and minor ones on)
+      if      (getMajorTicksDisplayed()) {
+        int dt1 = (getSide() == Side::BOTTOM_LEFT ? tlen2 : -tlen2);
+
+        p->setPen(getLineColor());
+
+        if (direction_ == Direction::HORIZONTAL) {
+          double adt1 = plot->pixelToWindowHeight(dt1);
+
+          p->drawLine(ppx, ay3, ppx, ay3 + dt1);
+
+          bbox_ += CPoint2D(pos1, apos - adt1);
+        }
+        else {
+          double adt1 = plot->pixelToWindowWidth(dt1);
+
+          p->drawLine(ax3, ppy, ax3 - dt1, ppy);
+
+          bbox_ += CPoint2D(apos - adt1, pos1);
+        }
+      }
+      else if (getMinorTicksDisplayed()) {
+        int dt1 = (getSide() == Side::BOTTOM_LEFT ? tlen1 : -tlen1);
+
+        p->setPen(getLineColor());
+
+        if (direction_ == Direction::HORIZONTAL) {
+          double adt1 = plot->pixelToWindowHeight(dt1);
+
+          p->drawLine(ppx, ay3, ppx, ay3 + dt1);
+
+          bbox_ += CPoint2D(pos1, apos - adt1);
+        }
+        else {
+          double adt1 = plot->pixelToWindowWidth(dt1);
+
+          p->drawLine(ax3, ppy, ax3 - dt1, ppy);
+
+          bbox_ += CPoint2D(apos - adt1, pos1);
+        }
+      }
     }
 
     if (getMinorTicksDisplayed() && i < getNumMajorTicks()) {
@@ -517,12 +638,22 @@ draw(CQChartsPlot *plot, QPainter *p)
 
           plot->windowToPixel(pos2, pos2, ppx, ppy);
 
-          int dt2 = (getSide() == SIDE_BOTTOM_LEFT ? tlen1 : -tlen1);
+          int dt2 = (getSide() == Side::BOTTOM_LEFT ? tlen1 : -tlen1);
 
-          if (direction_ == DIR_HORIZONTAL)
+          if (direction_ == Direction::HORIZONTAL) {
+            double adt2 = plot->pixelToWindowHeight(dt2);
+
             p->drawLine(ppx, ay3, ppx, ay3 + dt2);
-          else
+
+            bbox_ += CPoint2D(pos2, apos - adt2);
+          }
+          else {
+            double adt2 = plot->pixelToWindowWidth(dt2);
+
             p->drawLine(ax3, ppy, ax3 - dt2, ppy);
+
+            bbox_ += CPoint2D(apos - adt2, pos2);
+          }
         }
       }
     }
@@ -538,35 +669,63 @@ draw(CQChartsPlot *plot, QPainter *p)
 
         QString text = getValueStr(pos1);
 
-        int tw = fm.width(text);
-        int ta = fm.ascent();
-        int td = fm.descent();
+        double tw = fm.width(text);
+        double ta = fm.ascent();
+        double td = fm.descent();
 
         p->setPen (getLabelColor());
         p->setFont(getLabelFont ());
 
-        if (direction_ == DIR_HORIZONTAL) {
-          if (getSide() == SIDE_BOTTOM_LEFT) {
+        if (direction_ == Direction::HORIZONTAL) {
+          if (getSide() == Side::BOTTOM_LEFT) {
             lmax = std::max(lmax, ay3 + tlen2 + tgap + ta);
 
+            double atw = plot->pixelToWindowWidth (tw/2);
+            double ath = plot->pixelToWindowHeight(tlen2 + tgap + ta + td);
+
             p->drawText(ppx - tw/2, ay3 + tlen2 + tgap + ta, text);
+
+            bbox_ += CPoint2D(pos1 - atw, apos - ath);
+            bbox_ += CPoint2D(pos1 + atw, apos - ath);
           }
           else {
             lmin = std::min(lmin, ay3 - tlen2 + tgap - td);
 
+            double atw = plot->pixelToWindowWidth (tw/2);
+            double ath = plot->pixelToWindowHeight(tlen2 + tgap + ta + td);
+
             p->drawText(ppx - tw/2, ay3 - tlen2 + tgap - td, text);
+
+            bbox_ += CPoint2D(pos1 - atw, apos + ath);
+            bbox_ += CPoint2D(pos1 + atw, apos + ath);
           }
         }
         else {
-          if (getSide() == SIDE_BOTTOM_LEFT) {
-            lmin = std::min(lmin, ax3 - tw - tlen2);
+          if (getSide() == Side::BOTTOM_LEFT) {
+            double xt = ax3 - tw - tlen2 - tgap;
 
-            p->drawText(ax3 - tw - tlen2 + tgap, ppy + ta/2, text);
+            lmin = std::min(lmin, xt);
+
+            double atw = plot->pixelToWindowWidth (tw + tlen2 + tgap);
+            double ath = plot->pixelToWindowHeight(ta + td);
+
+            p->drawText(xt, ppy + ta/2, text);
+
+            bbox_ += CPoint2D(apos - atw, pos1 - ath/2);
+            bbox_ += CPoint2D(apos - atw, pos1 + ath/2);
           }
           else {
-            lmax = std::max(lmax, ax3 + tw + tlen2);
+            double xt = ax3 + tlen2 + tgap;
 
-            p->drawText(ax3 + tw + tlen2 + tgap, ppy + ta/2, text);
+            lmax = std::max(lmax, xt + tw);
+
+            double atw = plot->pixelToWindowWidth (tw + tlen2 + tgap);
+            double ath = plot->pixelToWindowHeight(ta + td);
+
+            p->drawText(xt, ppy + ta/2, text);
+
+            bbox_ += CPoint2D(apos + atw, pos1 - ath/2);
+            bbox_ += CPoint2D(apos + atw, pos1 + ath/2);
           }
         }
       }
@@ -582,27 +741,72 @@ draw(CQChartsPlot *plot, QPainter *p)
   if (getLabelDisplayed()) {
     QString text = getLabel();
 
-    int tw = fm.width(text);
-    int ta = fm.ascent();
-    int td = fm.descent();
+    if (text.length()) {
+      double tw = fm.width(text);
+      double ta = fm.ascent();
+      double td = fm.descent();
 
-    // draw label
-    if (direction_ == DIR_HORIZONTAL) {
-      double axm = (ax1 + ax2)/2;
+      // draw label
+      if (direction_ == Direction::HORIZONTAL) {
+        double axm = (ax1 + ax2)/2 - tw/2;
 
-      if (getSide() == SIDE_BOTTOM_LEFT)
-        p->drawText(axm - tw/2, lmax + ta + td + tgap, text);
-      else
-        p->drawText(axm - tw/2, lmin - ta - td - tgap, text);
+        if (getSide() == Side::BOTTOM_LEFT) {
+          double atw = plot->pixelToWindowWidth (tw/2);
+          double ath = plot->pixelToWindowHeight((lmax - ay3) + tgap + ta + td);
+
+          p->drawText(axm, lmax + ta + td + tgap, text);
+
+          bbox_ += CPoint2D((amin + amax)/2 - atw, apos - ath);
+          bbox_ += CPoint2D((amin + amax)/2 + atw, apos - ath);
+        }
+        else {
+          double atw = plot->pixelToWindowWidth (tw/2);
+          double ath = plot->pixelToWindowHeight((ay3 - lmin) + tgap + ta + td);
+
+          p->drawText(axm, lmin - ta - td - tgap, text);
+
+          bbox_ += CPoint2D((amin + amax)/2 - atw, apos + ath);
+          bbox_ += CPoint2D((amin + amax)/2 + atw, apos + ath);
+        }
+      }
+      else {
+        if (getSide() == Side::BOTTOM_LEFT) {
+          double aym = (ay2 + ay1)/2 + tw/2;
+
+          double atw = plot->pixelToWindowWidth ((ax3 - lmin) + ta + td);
+          double ath = plot->pixelToWindowHeight(tw/2);
+
+          CQRotatedText::drawRotatedText(p, lmin - ta, aym, text, -90);
+
+          bbox_ += CPoint2D(apos - atw, (amin + amax)/2 - ath);
+          bbox_ += CPoint2D(apos - atw, (amin + amax)/2 + ath);
+        }
+        else {
+          double aym = (ay2 + ay1)/2 - tw/2;
+
+          double atw = plot->pixelToWindowWidth ((lmax - ax3) + ta + td);
+          double ath = plot->pixelToWindowHeight(tw/2);
+
+          CQRotatedText::drawRotatedText(p, lmax + ta, aym, text,  90);
+
+          bbox_ += CPoint2D(apos + atw, (amin + amax)/2 - ath);
+          bbox_ += CPoint2D(apos + atw, (amin + amax)/2 + ath);
+        }
+      }
     }
-    else {
-      double aym = (ay2 + ay1)/2;
+  }
 
-      if (getSide() == SIDE_BOTTOM_LEFT)
-        CQRotatedText::drawRotatedText(p, lmin - ta, aym, text, -90);
-      else
-        CQRotatedText::drawRotatedText(p, lmax + ta, aym, text, -90);
-    }
+  //---
+
+  if (plot_->showBoxes()) {
+    CBBox2D prect;
+
+    plot_->windowToPixel(bbox_, prect);
+
+    p->setPen(Qt::red);
+    p->setBrush(Qt::NoBrush);
+
+    p->drawRect(CQUtil::toQRect(prect));
   }
 
   //---

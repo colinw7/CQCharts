@@ -4,8 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQUtil.h>
-#include <CPen.h>
-#include <CBrush.h>
 
 class CQChartsGeometryPlot;
 
@@ -62,7 +60,9 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   };
 
  public:
-  CQChartsGeometryPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsGeometryPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Geometry"; }
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

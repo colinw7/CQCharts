@@ -4,6 +4,8 @@
 #include <CQChartsColumn.h>
 #include <QAbstractItemModel>
 
+class CQChartsColumnType;
+
 class CQChartsModel : public QAbstractItemModel {
   Q_OBJECT
 
@@ -34,6 +36,8 @@ class CQChartsModel : public QAbstractItemModel {
   QModelIndex parent(const QModelIndex &index) const override;
 
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
+
+  CQChartsColumnType *columnTypeData(int column, CQChartsNameValues &nameValues) const;
 
  protected:
   typedef std::vector<QString>        Cells;

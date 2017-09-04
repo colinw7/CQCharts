@@ -1,7 +1,8 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQPropertyTree.h>
+#include <CQUtil.h>
 #include <QPainter>
 #include <QRectF>
 
@@ -9,17 +10,26 @@ CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
  plot_(plot)
 {
+  setBackground(Qt::white);
+  setBorder    (true);
+
   clearItems();
 }
 
 void
 CQChartsKey::
-redraw(bool layout)
+redraw()
 {
-  if (layout)
-    invalidateLayout();
-
   plot_->update();
+}
+
+void
+CQChartsKey::
+updateLayout()
+{
+  invalidateLayout();
+
+  redraw();
 }
 
 QString
@@ -56,6 +66,13 @@ setLocationStr(const QString &str)
   else if (lstr == "bc") location_ = Location::BOTTOM_CENTER;
   else if (lstr == "br") location_ = Location::BOTTOM_RIGHT;
 
+  updatePosition();
+}
+
+void
+CQChartsKey::
+updatePosition()
+{
   plot_->updateKeyPosition();
 
   plot_->update();
@@ -65,13 +82,14 @@ void
 CQChartsKey::
 addProperties(CQPropertyTree *tree, const QString &path)
 {
-  tree->addProperty(path, this, "displayed"  );
-  tree->addProperty(path, this, "border"     );
-  tree->addProperty(path, this, "location"   );
-  tree->addProperty(path, this, "background" );
-  tree->addProperty(path, this, "borderColor");
-  tree->addProperty(path, this, "margin"     );
-  tree->addProperty(path, this, "spacing"    );
+  tree->addProperty(path, this, "visible" );
+  tree->addProperty(path, this, "location");
+  tree->addProperty(path, this, "insideX" );
+  tree->addProperty(path, this, "insideY" );
+  tree->addProperty(path, this, "spacing" );
+  tree->addProperty(path, this, "font"    );
+
+  CQChartsBoxObj::addProperties(tree, path);
 }
 
 void
@@ -89,12 +107,19 @@ clearItems()
     delete item;
 
   items_.clear();
+
+  invalidateLayout();
+
+  maxRow_ = 0;
+  maxCol_ = 0;
 }
 
 void
 CQChartsKey::
 addItem(CQChartsKeyItem *item, int row, int col, int nrows, int ncols)
 {
+  item->setKey(this);
+
   item->setRow(row);
   item->setCol(col);
 
@@ -104,6 +129,9 @@ addItem(CQChartsKeyItem *item, int row, int col, int nrows, int ncols)
   items_.push_back(item);
 
   invalidateLayout();
+
+  maxRow_ = std::max(maxRow_, row + nrows);
+  maxCol_ = std::max(maxCol_, col + ncols);
 }
 
 void
@@ -240,7 +268,7 @@ bool
 CQChartsKey::
 contains(const CPoint2D &p) const
 {
-  if (! isDisplayed())
+  if (! isVisible())
     return false;
 
   return bbox().inside(p);
@@ -250,7 +278,7 @@ CQChartsKeyItem *
 CQChartsKey::
 getItemAt(const CPoint2D &p) const
 {
-  if (! isDisplayed())
+  if (! isVisible())
     return nullptr;
 
   for (auto &item : items_) {
@@ -265,7 +293,7 @@ void
 CQChartsKey::
 draw(QPainter *p)
 {
-  if (! isDisplayed())
+  if (! isVisible())
     return;
 
   //---
@@ -293,12 +321,22 @@ draw(QPainter *p)
 
   //---
 
+  p->save();
+
+  p->setClipRect(CQUtil::toQRect(plot_->calcPixelRect()), Qt::ReplaceClip);
+
+  //---
+
   p->fillRect(rect, background());
 
   //---
 
   if (isBorder()) {
-    p->setPen(borderColor());
+    QPen pen(borderColor());
+
+    pen.setWidth(borderWidth());
+
+    p->setPen  (pen);
     p->setBrush(Qt::NoBrush);
 
     p->drawRect(rect);
@@ -332,6 +370,23 @@ draw(QPainter *p)
 
     item->draw(p, bbox);
   }
+
+  //---
+
+  if (plot_->showBoxes()) {
+    CBBox2D prect;
+
+    plot_->windowToPixel(bbox_, prect);
+
+    p->setPen(Qt::red);
+    p->setBrush(Qt::NoBrush);
+
+    p->drawRect(CQUtil::toQRect(prect));
+  }
+
+  //---
+
+  p->restore();
 }
 
 //------
@@ -354,13 +409,15 @@ QSizeF
 CQChartsKeyText::
 size() const
 {
-  QFontMetrics fm(plot_->window()->font());
+  CQChartsPlot *plot = key_->plot();
+
+  QFontMetrics fm(key_->font());
 
   double w = fm.width(text_);
   double h = fm.height();
 
-  double ww = plot_->pixelToWindowWidth (w + 4);
-  double wh = plot_->pixelToWindowHeight(h + 4);
+  double ww = plot->pixelToWindowWidth (w + 4);
+  double wh = plot->pixelToWindowHeight(h + 4);
 
   return QSizeF(ww, wh);
 }
@@ -369,15 +426,26 @@ void
 CQChartsKeyText::
 draw(QPainter *p, const CBBox2D &rect)
 {
-  QFontMetrics fm(plot_->window()->font());
+  CQChartsPlot *plot = key_->plot();
 
-  p->setPen(Qt::black);
+  p->setFont(key_->font());
+
+  QFontMetrics fm(p->font());
+
+  p->setPen(textColor());
 
   double px, py;
 
-  plot_->windowToPixel(rect.getXMin(), rect.getYMin(), px, py);
+  plot->windowToPixel(rect.getXMin(), rect.getYMin(), px, py);
 
   p->drawText(px + 2, py - fm.descent() - 2, text_);
+}
+
+QColor
+CQChartsKeyText::
+textColor() const
+{
+  return Qt::black;
 }
 
 //------
@@ -392,12 +460,14 @@ QSizeF
 CQChartsKeyColorBox::
 size() const
 {
-  QFontMetrics fm(plot_->window()->font());
+  CQChartsPlot *plot = key_->plot();
+
+  QFontMetrics fm(key_->font());
 
   double h = fm.height();
 
-  double ww = plot_->pixelToWindowWidth (h + 2);
-  double wh = plot_->pixelToWindowHeight(h + 2);
+  double ww = plot->pixelToWindowWidth (h + 2);
+  double wh = plot->pixelToWindowHeight(h + 2);
 
   return QSizeF(ww, wh);
 }
@@ -406,17 +476,33 @@ void
 CQChartsKeyColorBox::
 draw(QPainter *p, const CBBox2D &rect)
 {
+  CQChartsPlot *plot = key_->plot();
+
   CBBox2D prect;
 
-  plot_->windowToPixel(rect, prect);
+  plot->windowToPixel(rect, prect);
 
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  QColor c = plot_->paletteColor(i_, n_);
-
-  p->setPen  (Qt::black);
-  p->setBrush(c);
+  p->setPen  (borderColor());
+  p->setBrush(fillColor  ());
 
   p->drawRect(prect1);
+}
+
+QColor
+CQChartsKeyColorBox::
+fillColor() const
+{
+  CQChartsPlot *plot = key_->plot();
+
+  return plot->paletteColor(i_, n_);
+}
+
+QColor
+CQChartsKeyColorBox::
+borderColor() const
+{
+  return Qt::black;
 }

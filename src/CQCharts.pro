@@ -18,12 +18,15 @@ CQChartsAdjacencyPlot.cpp \
 CQChartsAxisBase.cpp \
 CQChartsAxis.cpp \
 CQChartsBarChartPlot.cpp \
+CQChartsBoxObj.cpp \
 CQChartsBoxPlot.cpp \
+CQChartsBubblePlot.cpp \
 CQChartsCsv.cpp \
 CQChartsData.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHeader.cpp \
+CQChartsHierBubblePlot.cpp \
 CQChartsKey.cpp \
 CQChartsJson.cpp \
 CQChartsLoader.cpp \
@@ -34,9 +37,11 @@ CQChartsPlot.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTable.cpp \
+CQChartsTitle.cpp \
 CQChartsTree.cpp \
+CQChartsTreeMapPlot.cpp \
 CQChartsTsv.cpp \
-CQChartsWindow.cpp \
+CQChartsView.cpp \
 CQChartsXYPlot.cpp \
 \
 CQHeaderView.cpp \
@@ -52,7 +57,9 @@ HEADERS += \
 ../include/CQChartsAxisBase.h \
 ../include/CQChartsAxis.h \
 ../include/CQChartsBarChartPlot.h \
+../include/CQChartsBoxObj.h \
 ../include/CQChartsBoxPlot.h \
+../include/CQChartsBubblePlot.h \
 ../include/CQChartsColumn.h \
 ../include/CQChartsCsv.h \
 ../include/CQChartsData.h \
@@ -60,6 +67,7 @@ HEADERS += \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsHeader.h \
+../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsLoader.h \
 ../include/CQChartsModel.h \
@@ -71,10 +79,12 @@ HEADERS += \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTable.h \
+../include/CQChartsTitle.h \
 ../include/CQChartsTree.h \
+../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsTsv.h \
 ../include/CQChartsUtil.h \
-../include/CQChartsWindow.h \
+../include/CQChartsView.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CSymbolType.h \

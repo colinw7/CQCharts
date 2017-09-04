@@ -4,9 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQUtil.h>
-#include <CPen.h>
-#include <CBrush.h>
-#include <CSymbolType.h>
 
 class CQChartsScatterPlot;
 
@@ -38,7 +35,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
 
-  void mousePress(const CPoint2D &p) override;
+  bool mousePress(const CPoint2D &p) override;
 };
 
 //---
@@ -56,7 +53,9 @@ class CQChartsScatterPlot : public CQChartsPlot {
   typedef std::map<QString,Values> NameValues;
 
  public:
-  CQChartsScatterPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Scatter"; }
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
@@ -83,6 +82,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int nameIndex(const QString &name) const;
 
   void initObjs(bool force=false);
+
+  void addKeyItems(CQChartsKey *key) override;
 
   //---
 

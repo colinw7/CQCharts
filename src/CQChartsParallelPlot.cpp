@@ -1,5 +1,5 @@
 #include <CQChartsParallelPlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -9,8 +9,8 @@
 #include <QPainter>
 
 CQChartsParallelPlot::
-CQChartsParallelPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
 }
 
@@ -18,6 +18,8 @@ void
 CQChartsParallelPlot::
 addProperties()
 {
+  CQChartsPlot::addProperties();
+
   addProperty("columns", this, "xColumn", "x");
   addProperty("columns", this, "yColumn", "y");
 }
@@ -31,15 +33,20 @@ updateRange()
   for (int j = 0; j < numSets(); ++j) {
     yRanges_.push_back(CRange2D());
 
-    yAxes_.push_back(new CQChartsAxis(this, CQChartsAxis::DIR_VERTICAL, 0, 1));
+    yAxes_.push_back(new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1));
   }
 
   for (int j = 0; j < numSets(); ++j) {
     int yColumn = getSetColumn(j);
 
     for (int i = 0; i < n; ++i) {
+      bool ok;
+
       double x = 0;
-      double y = CQChartsUtil::modelReal(model_, i, yColumn);
+      double y = CQChartsUtil::modelReal(model_, i, yColumn, ok);
+
+      if (! ok)
+        y = i;
 
       yRanges_[j].updateRange(x, y);
     }
@@ -85,8 +92,13 @@ initObjs()
     for (int j = 0; j < numSets(); ++j) {
       int yColumn = getSetColumn(j);
 
+      bool ok;
+
       double x = j;
-      double y = CQChartsUtil::modelReal(model_, i, yColumn);
+      double y = CQChartsUtil::modelReal(model_, i, yColumn, ok);
+
+      if (! ok)
+        y = i;
 
       poly << QPointF(x, y);
     }
@@ -95,7 +107,9 @@ initObjs()
   //---
 
   for (int i = 0; i < n; ++i) {
-    QString xname = CQChartsUtil::modelString(model_, i, xColumn_);
+    bool ok;
+
+    QString xname = CQChartsUtil::modelString(model_, i, xColumn_, ok);
 
     QPolygonF &poly = polys[i];
 
@@ -160,12 +174,11 @@ draw(QPainter *p)
 
   //---
 
-  QFontMetrics fm(window()->font());
+  QFontMetrics fm(view()->font());
 
   displayRange_.setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 
   for (int j = 0; j < numSets(); ++j) {
     setDataRange(yRanges_[j]);

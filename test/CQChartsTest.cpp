@@ -6,22 +6,24 @@
 #include <CQChartsTsv.h>
 #include <CQChartsJson.h>
 #include <CQChartsData.h>
+#include <CQChartsAxis.h>
 
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsBoxPlot.h>
+#include <CQChartsBubblePlot.h>
 #include <CQChartsDelaunayPlot.h>
 #include <CQChartsGeometryPlot.h>
+#include <CQChartsHierBubblePlot.h>
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
 #include <CQChartsScatterPlot.h>
 #include <CQChartsSunburstPlot.h>
+#include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
 
 #include <CQChartsLoader.h>
-#include <CQGradientPalette.h>
-#include <CQGradientPaletteControl.h>
 #include <CQApp.h>
 
 #include <QSortFilterProxyModel>
@@ -45,6 +47,12 @@ main(int argc, char **argv)
   CQApp app(argc, argv);
 
   std::vector<CQChartsTest::InitData> initDatas;
+
+  bool overlay = false;
+  bool y1y2    = false;
+
+  COptReal xmin1, xmax1, xmin2, xmax2;
+  COptReal ymin1, ymax1, ymin2, ymax2;
 
   CQChartsTest::InitData initData;
 
@@ -108,10 +116,82 @@ main(int argc, char **argv)
       else if (arg == "first_line_header") {
         initData.firstLineHeader = true;
       }
+      else if (arg == "cumulative") {
+        initData.cumulative = true;
+      }
+      else if (arg == "xintegral") {
+        initData.xintegral = true;
+      }
+      else if (arg == "yintegral") {
+        initData.yintegral = true;
+      }
+      else if (arg == "plot_title") {
+        ++i;
+
+        if (i < argc)
+          initData.title = argv[i];
+      }
+      else if (arg == "overlay") {
+        overlay = true;
+      }
+      else if (arg == "y1y2") {
+        y1y2 = true;
+      }
       else if (arg == "and") {
         initDatas.push_back(initData);
 
         initData = CQChartsTest::InitData();
+      }
+      else if (arg == "xmin" || arg == "xmin1") {
+        ++i;
+
+        if (i < argc)
+          xmin1 = std::stod(argv[i]);
+      }
+      else if (arg == "xmin2") {
+        ++i;
+
+        if (i < argc)
+          xmin2 = std::stod(argv[i]);
+      }
+      else if (arg == "xmax" || arg == "xmax1") {
+        ++i;
+
+        if (i < argc)
+          xmax1 = std::stod(argv[i]);
+      }
+      else if (arg == "xmax2") {
+        ++i;
+
+        if (i < argc)
+          xmax2 = std::stod(argv[i]);
+      }
+      else if (arg == "ymin" || arg == "ymin1") {
+        ++i;
+
+        if (i < argc)
+          ymin1 = std::stod(argv[i]);
+      }
+      else if (arg == "ymin2") {
+        ++i;
+
+        if (i < argc)
+          ymin2 = std::stod(argv[i]);
+      }
+      else if (arg == "ymax" || arg == "ymax1") {
+        ++i;
+
+        if (i < argc)
+          ymax1 = std::stod(argv[i]);
+      }
+      else if (arg == "ymax2") {
+        ++i;
+
+        if (i < argc)
+          ymax2 = std::stod(argv[i]);
+      }
+      else {
+        std::cerr << "Invalid option '" << argv[i] << "'" << std::endl;
       }
     }
     else {
@@ -128,19 +208,51 @@ main(int argc, char **argv)
   int i  = 0;
   int nd = initDatas.size();
 
-  int x  = 0;
-  int y  = 0;
-  int dx = 1000;
-  int dy = 1000/nd;
+  int nr = std::max(int(sqrt(nd)), 1);
+  int nc = (nd + nr - 1)/nr;
 
-  for (const auto &initData : initDatas) {
-    test.setId(QString("Plot%1").arg(i + 1));
+  int dx = 1000/nc;
+  int dy = 1000/nr;
 
-    test.setBBox(CBBox2D(x, y, x + dx, y + dy));
+  CQChartsPlot *rootPlot = nullptr;
+
+  for (auto &initData : initDatas) {
+    initData.overlay = overlay;
+    initData.y1y2    = y1y2;
+
+    initData.xmin = xmin1;
+    initData.xmax = xmax1;
+
+    if (initData.overlay || initData.y1y2) {
+      if      (i == 0) {
+        initData.ymin = ymin1;
+        initData.ymax = ymax1;
+      }
+      else if (i == 1) {
+        initData.ymin = ymin2;
+        initData.ymax = ymax2;
+      }
+    }
+    else {
+      initData.ymin = ymin1;
+      initData.ymax = ymax1;
+    }
+
+    //---
+
+    int r = i / nc;
+    int c = i % nc;
+
+    test.setId(QString("%1").arg(i + 1));
+
+    if (initData.overlay || initData.y1y2)
+      test.setBBox(CBBox2D(0, 0, 1000, 1000));
+    else
+      test.setBBox(CBBox2D(c*dx, r*dy, (c + 1)*dx, (r + 1)*dy));
 
     if (initData.filenames.size() > 0) {
       if      (initData.csv)
-        test.loadCsv(initData.filenames[0]);
+        test.loadCsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
       else if (initData.tsv)
         test.loadTsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
       else if (initData.json)
@@ -151,9 +263,41 @@ main(int argc, char **argv)
         std::cerr << "No plot type specified" << std::endl;
     }
 
-    test.init(initData);
+    CQChartsPlot *plot = test.init(initData, i);
 
-    y += dy;
+    if (! plot)
+      continue;
+
+    if (i == 0)
+      rootPlot = plot;
+
+    if      (overlay) {
+      if (i > 0) {
+        plot->setRootPlot(rootPlot);
+
+        rootPlot->addRefPlot(plot);
+
+        plot->setDataRange(rootPlot->dataRange());
+
+        rootPlot->applyDataRange();
+      }
+    }
+    else if (y1y2) {
+      if      (i == 0) {
+      }
+      else if (i == 1) {
+        plot    ->setOtherPlot(rootPlot, 0);
+        rootPlot->setOtherPlot(plot    , 1);
+
+        plot->xAxis()->setVisible(false);
+        plot->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+
+        plot->key()->setVisible(false);
+      }
+      else {
+        std::cerr << "Too many plots" << std::endl;
+      }
+    }
 
     ++i;
   }
@@ -162,8 +306,8 @@ main(int argc, char **argv)
 
   test.show();
 
-  if (test.window())
-    test.window()->raise();
+  if (test.view())
+    test.view()->raise();
 
   //---
 
@@ -214,16 +358,19 @@ CQChartsTest() :
 
   plotTab_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
-  addPieTab      (plotTab_);
-  addXYTab       (plotTab_);
-  addScatterTab  (plotTab_);
-  addSunburstTab (plotTab_);
-  addBarChartTab (plotTab_);
-  addBoxTab      (plotTab_);
-  addParallelTab (plotTab_);
-  addGeometryTab (plotTab_);
-  addDelaunayTab (plotTab_);
-  addAdjacencyTab(plotTab_);
+  addPieTab       (plotTab_);
+  addXYTab        (plotTab_);
+  addScatterTab   (plotTab_);
+  addSunburstTab  (plotTab_);
+  addBarChartTab  (plotTab_);
+  addBoxTab       (plotTab_);
+  addParallelTab  (plotTab_);
+  addGeometryTab  (plotTab_);
+  addDelaunayTab  (plotTab_);
+  addAdjacencyTab (plotTab_);
+  addBubbleTab    (plotTab_);
+  addHierBubbleTab(plotTab_);
+  addTreeMapTab   (plotTab_);
 
   //---
 
@@ -280,23 +427,6 @@ CQChartsTest() :
   connect(typeOKButton, SIGNAL(clicked()), this, SLOT(typeOKSlot()));
 
   columnLayout->addWidget(typeOKButton);
-
-  //---
-
-  QFrame *gradientFrame = new QFrame;
-
-  gradientFrame->setObjectName("gradientFrame");
-
-  QVBoxLayout *gradientLayout = new QVBoxLayout(gradientFrame);
-  gradientLayout->setMargin(0); gradientLayout->setSpacing(0);
-
-  palettePlot_    = new CQGradientPalette(this, nullptr);
-  paletteControl_ = new CQGradientPaletteControl(palettePlot_);
-
-  gradientLayout->addWidget(palettePlot_);
-  gradientLayout->addWidget(paletteControl_);
-
-  splitter->addWidget(gradientFrame);
 }
 
 //------
@@ -341,7 +471,7 @@ loadFileSlot(const QString &type, const QString &filename)
   bool firstLineHeader = loader_->isFirstLineHeader();
 
   if      (type == "CSV")
-    loadCsv(filename);
+    loadCsv(filename, commentHeader, firstLineHeader);
   else if (type == "TSV")
     loadTsv(filename, commentHeader, firstLineHeader);
   else if (type == "Json")
@@ -437,7 +567,7 @@ addPieTab(QTabWidget *plotTab)
   plotTab->addTab(pieFrame, "Pie");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 pieOKSlot()
 {
@@ -448,11 +578,11 @@ pieOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsPiePlot *plot = new CQChartsPiePlot(window, model_);
+  CQChartsPiePlot *plot = new CQChartsPiePlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
@@ -461,11 +591,13 @@ pieOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -500,7 +632,12 @@ addXYTab(QTabWidget *plotTab)
   xyPlotData_.stackedCheck = new QCheckBox("Stacked");
   xyPlotData_.stackedCheck->setObjectName("stackedCheck");
 
-  xyEditLayout->addWidget(xyPlotData_.stackedCheck, row, 0, 1, 2);
+  xyEditLayout->addWidget(xyPlotData_.stackedCheck, row, 0, 1, 2); ++row;
+
+  xyPlotData_.cumulativeCheck = new QCheckBox("Cumulative");
+  xyPlotData_.cumulativeCheck->setObjectName("cumulativeCheck");
+
+  xyEditLayout->addWidget(xyPlotData_.cumulativeCheck, row, 0, 1, 2);
 
   //---
 
@@ -522,9 +659,9 @@ addXYTab(QTabWidget *plotTab)
   plotTab->addTab(xyFrame, "XY");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
-xyOKSlot()
+xyOKSlot(bool reuse)
 {
   int col1, col2;
 
@@ -552,11 +689,11 @@ xyOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView(reuse);
 
-  CQChartsXYPlot *plot = new CQChartsXYPlot(window, model_);
+  CQChartsXYPlot *plot = new CQChartsXYPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
@@ -565,18 +702,31 @@ xyOKSlot()
 
   plot->setNameColumn(ncol);
 
-  plot->setBivariate(xyPlotData_.bivariateCheck->isChecked());
-  plot->setStacked  (xyPlotData_.stackedCheck  ->isChecked());
+  if      (xyPlotData_.bivariateCheck->isChecked()) {
+    plot->setBivariate(true);
+    plot->setFillUnder(true);
+    plot->setPoints   (false);
+  }
+  else if (xyPlotData_.stackedCheck->isChecked()) {
+    plot->setStacked  (true);
+    plot->setFillUnder(true);
+    plot->setPoints   (false);
+  }
+
+  if (xyPlotData_.cumulativeCheck->isChecked())
+    plot->setCumulative(true);
 
   plot->addProperties();
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -623,7 +773,7 @@ addScatterTab(QTabWidget *plotTab)
   plotTab->addTab(scatterFrame, "Scatter");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 scatterOKSlot()
 {
@@ -633,30 +783,29 @@ scatterOKSlot()
   (void) lineEditValue(scatterPlotData_.xEdit   , col1, 0);
   (void) lineEditValue(scatterPlotData_.yEdit   , col2, 1);
 
-
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsScatterPlot *plot = new CQChartsScatterPlot(window, model_);
+  CQChartsScatterPlot *plot = new CQChartsScatterPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn   (col1);
   plot->setYColumn   (col2);
   plot->setNameColumn(ncol);
 
-  plot->updateRange();
-
   plot->addProperties();
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -702,7 +851,7 @@ addSunburstTab(QTabWidget *plotTab)
   plotTab->addTab(sunburstFrame, "Sunburst");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 sunburstOKSlot()
 {
@@ -713,21 +862,23 @@ sunburstOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(window, model_);
+  CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->addProperties();
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -778,7 +929,7 @@ addBarChartTab(QTabWidget *plotTab)
   plotTab->addTab(barChartFrame, "Bar Chart");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 barChartOKSlot()
 {
@@ -804,11 +955,11 @@ barChartOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsBarChartPlot *plot = new CQChartsBarChartPlot(window, model_);
+  CQChartsBarChartPlot *plot = new CQChartsBarChartPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
@@ -821,11 +972,13 @@ barChartOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -871,7 +1024,7 @@ addBoxTab(QTabWidget *plotTab)
   plotTab->addTab(boxFrame, "Box");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 boxOKSlot()
 {
@@ -882,11 +1035,11 @@ boxOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsBoxPlot *plot = new CQChartsBoxPlot(window, model_);
+  CQChartsBoxPlot *plot = new CQChartsBoxPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
@@ -897,11 +1050,13 @@ boxOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -947,7 +1102,7 @@ addParallelTab(QTabWidget *plotTab)
   plotTab->addTab(parallelFrame, "Parallel");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 parallelOKSlot()
 {
@@ -973,11 +1128,11 @@ parallelOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsParallelPlot *plot = new CQChartsParallelPlot(window, model_);
+  CQChartsParallelPlot *plot = new CQChartsParallelPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
@@ -990,11 +1145,13 @@ parallelOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -1041,7 +1198,7 @@ addGeometryTab(QTabWidget *plotTab)
   plotTab->addTab(geometryFrame, "Geometry");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 geometryOKSlot()
 {
@@ -1053,11 +1210,11 @@ geometryOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsGeometryPlot *plot = new CQChartsGeometryPlot(window, model_);
+  CQChartsGeometryPlot *plot = new CQChartsGeometryPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setNameColumn    (col1);
   plot->setGeometryColumn(col2);
@@ -1069,11 +1226,13 @@ geometryOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -1120,7 +1279,7 @@ addDelaunayTab(QTabWidget *plotTab)
   plotTab->addTab(delaunayFrame, "Delaunay");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 delaunayOKSlot()
 {
@@ -1135,11 +1294,11 @@ delaunayOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsDelaunayPlot *plot = new CQChartsDelaunayPlot(window, model_);
+  CQChartsDelaunayPlot *plot = new CQChartsDelaunayPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setXColumn   (col1);
   plot->setYColumn   (col2);
@@ -1151,11 +1310,13 @@ delaunayOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
@@ -1207,7 +1368,7 @@ addAdjacencyTab(QTabWidget *plotTab)
   plotTab->addTab(adjacencyFrame, "Adjacency");
 }
 
-void
+CQChartsPlot *
 CQChartsTest::
 adjacencyOKSlot()
 {
@@ -1223,11 +1384,11 @@ adjacencyOKSlot()
 
   //---
 
-  CQChartsWindow *window = getWindow();
+  CQChartsView *view = getView();
 
-  CQChartsAdjacencyPlot *plot = new CQChartsAdjacencyPlot(window, model_);
+  CQChartsAdjacencyPlot *plot = new CQChartsAdjacencyPlot(view, model_);
 
-  plot->setId(id_);
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   plot->setNodeColumn       (col1);
   plot->setConnectionsColumn(col2);
@@ -1240,18 +1401,239 @@ adjacencyOKSlot()
 
   //---
 
-  plot->setPalette(palettePlot_->gradientPalette());
+  view->addPlot(plot, bbox_);
 
-  window->addPlot(plot, bbox_);
+  view->show();
 
-  window->show();
+  //---
+
+  return plot;
 }
 
 //------
 
 void
 CQChartsTest::
-init(const InitData &initData)
+addBubbleTab(QTabWidget *plotTab)
+{
+  QFrame *bubbleFrame = new QFrame;
+
+  bubbleFrame->setObjectName("bubbleFrame");
+
+  QVBoxLayout *bubbleFrameLayout = new QVBoxLayout(bubbleFrame);
+
+  //---
+
+  QGridLayout *bubbleEditLayout = new QGridLayout;
+
+  bubbleFrameLayout->addLayout(bubbleEditLayout);
+
+  int row = 0;
+
+  bubbleData_.nameEdit  = addLineEdit(bubbleEditLayout, row, "Name" , "name" );
+  bubbleData_.valueEdit = addLineEdit(bubbleEditLayout, row, "Value", "value");
+
+  //---
+
+  QHBoxLayout *bubbleButtonLayout = new QHBoxLayout;
+
+  bubbleData_.okButton = new QPushButton("OK");
+
+  bubbleData_.okButton->setObjectName("ok");
+
+  bubbleButtonLayout->addWidget (bubbleData_.okButton);
+  bubbleButtonLayout->addStretch(1);
+
+  connect(bubbleData_.okButton, SIGNAL(clicked()), this, SLOT(bubbleOKSlot()));
+
+  bubbleFrameLayout->addLayout(bubbleButtonLayout);
+
+  //---
+
+  plotTab->addTab(bubbleFrame, "Bubble");
+}
+
+CQChartsPlot *
+CQChartsTest::
+bubbleOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(bubbleData_.nameEdit , col1, 0);
+  (void) lineEditValue(bubbleData_.valueEdit, col2, 1);
+
+  //---
+
+  CQChartsView *view = getView();
+
+  CQChartsBubblePlot *plot = new CQChartsBubblePlot(view, model_);
+
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
+
+  plot->addProperties();
+
+  //---
+
+  view->addPlot(plot, bbox_);
+
+  view->show();
+
+  //---
+
+  return plot;
+}
+
+//------
+
+void
+CQChartsTest::
+addHierBubbleTab(QTabWidget *plotTab)
+{
+  QFrame *hierBubbleFrame = new QFrame;
+
+  hierBubbleFrame->setObjectName("hierBubbleFrame");
+
+  QVBoxLayout *hierBubbleFrameLayout = new QVBoxLayout(hierBubbleFrame);
+
+  //---
+
+  QGridLayout *hierBubbleEditLayout = new QGridLayout;
+
+  hierBubbleFrameLayout->addLayout(hierBubbleEditLayout);
+
+  int row = 0;
+
+  hierBubbleData_.nameEdit  = addLineEdit(hierBubbleEditLayout, row, "Name" , "name" );
+  hierBubbleData_.valueEdit = addLineEdit(hierBubbleEditLayout, row, "Value", "value");
+
+  //---
+
+  QHBoxLayout *hierBubbleButtonLayout = new QHBoxLayout;
+
+  hierBubbleData_.okButton = new QPushButton("OK");
+
+  hierBubbleData_.okButton->setObjectName("ok");
+
+  hierBubbleButtonLayout->addWidget (hierBubbleData_.okButton);
+  hierBubbleButtonLayout->addStretch(1);
+
+  connect(hierBubbleData_.okButton, SIGNAL(clicked()), this, SLOT(hierBubbleOKSlot()));
+
+  hierBubbleFrameLayout->addLayout(hierBubbleButtonLayout);
+
+  //---
+
+  plotTab->addTab(hierBubbleFrame, "Hier Bubble");
+}
+
+CQChartsPlot *
+CQChartsTest::
+hierBubbleOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(hierBubbleData_.nameEdit , col1, 0);
+  (void) lineEditValue(hierBubbleData_.valueEdit, col2, 1);
+
+  //---
+
+  CQChartsView *view = getView();
+
+  CQChartsHierBubblePlot *plot = new CQChartsHierBubblePlot(view, model_);
+
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
+
+  plot->addProperties();
+
+  //---
+
+  view->addPlot(plot, bbox_);
+
+  view->show();
+
+  //---
+
+  return plot;
+}
+
+//------
+
+void
+CQChartsTest::
+addTreeMapTab(QTabWidget *plotTab)
+{
+  QFrame *treeMapFrame = new QFrame;
+
+  treeMapFrame->setObjectName("treeMapFrame");
+
+  QVBoxLayout *treeMapFrameLayout = new QVBoxLayout(treeMapFrame);
+
+  //---
+
+  QGridLayout *treeMapEditLayout = new QGridLayout;
+
+  treeMapFrameLayout->addLayout(treeMapEditLayout);
+
+  int row = 0;
+
+  treeMapData_.nameEdit  = addLineEdit(treeMapEditLayout, row, "Name" , "name" );
+  treeMapData_.valueEdit = addLineEdit(treeMapEditLayout, row, "Value", "value");
+
+  //---
+
+  QHBoxLayout *treeMapButtonLayout = new QHBoxLayout;
+
+  treeMapData_.okButton = new QPushButton("OK");
+
+  treeMapData_.okButton->setObjectName("ok");
+
+  treeMapButtonLayout->addWidget (treeMapData_.okButton);
+  treeMapButtonLayout->addStretch(1);
+
+  connect(treeMapData_.okButton, SIGNAL(clicked()), this, SLOT(treeMapOKSlot()));
+
+  treeMapFrameLayout->addLayout(treeMapButtonLayout);
+
+  //---
+
+  plotTab->addTab(treeMapFrame, "Tree Map");
+}
+
+CQChartsPlot *
+CQChartsTest::
+treeMapOKSlot()
+{
+  int col1, col2;
+
+  (void) lineEditValue(treeMapData_.nameEdit , col1, 0);
+  (void) lineEditValue(treeMapData_.valueEdit, col2, 1);
+
+  //---
+
+  CQChartsView *view = getView();
+
+  CQChartsTreeMapPlot *plot = new CQChartsTreeMapPlot(view, model_);
+
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
+
+  plot->addProperties();
+
+  //---
+
+  view->addPlot(plot, bbox_);
+
+  view->show();
+
+  //---
+
+  return plot;
+}
+
+//------
+
+CQChartsPlot *
+CQChartsTest::
+init(const InitData &initData, int i)
 {
   CQChartsModel *model = qobject_cast<CQChartsModel *>(model_);
 
@@ -1273,13 +1655,15 @@ init(const InitData &initData)
 
   //---
 
+  CQChartsPlot *plot = nullptr;
+
   if      (initData.plot == "pie" || initData.plot == "piechart") {
     plotTab_->setCurrentIndex(0);
 
     pieChartData_.labelEdit->setText(initData.arg(0));
     pieChartData_.dataEdit ->setText(initData.arg(1));
 
-    pieOKSlot();
+    plot = pieOKSlot();
   }
   else if (initData.plot == "xy" || initData.plot == "xyplot") {
     plotTab_->setCurrentIndex(1);
@@ -1288,10 +1672,11 @@ init(const InitData &initData)
     xyPlotData_.yEdit   ->setText(initData.arg(1));
     xyPlotData_.nameEdit->setText(initData.arg(2));
 
-    xyPlotData_.bivariateCheck->setChecked(initData.bivariate);
-    xyPlotData_.stackedCheck  ->setChecked(initData.stacked);
+    xyPlotData_.bivariateCheck ->setChecked(initData.bivariate);
+    xyPlotData_.stackedCheck   ->setChecked(initData.stacked);
+    xyPlotData_.cumulativeCheck->setChecked(initData.cumulative);
 
-    xyOKSlot();
+    plot = xyOKSlot(/*reuse*/ true);
   }
   else if (initData.plot == "scatter" || initData.plot == "scatterplot") {
     plotTab_->setCurrentIndex(2);
@@ -1300,7 +1685,7 @@ init(const InitData &initData)
     scatterPlotData_.xEdit   ->setText(initData.arg(0));
     scatterPlotData_.yEdit   ->setText(initData.arg(1));
 
-    scatterOKSlot();
+    plot = scatterOKSlot();
   }
   else if (initData.plot == "sunburst") {
     plotTab_->setCurrentIndex(3);
@@ -1308,7 +1693,7 @@ init(const InitData &initData)
     sunburstData_.nameEdit ->setText(initData.arg(0));
     sunburstData_.valueEdit->setText(initData.arg(1));
 
-    sunburstOKSlot();
+    plot = sunburstOKSlot();
   }
   else if (initData.plot == "bar" || initData.plot == "barchart") {
     plotTab_->setCurrentIndex(4);
@@ -1318,7 +1703,7 @@ init(const InitData &initData)
 
     barChartData_.stackedCheck->setChecked(initData.stacked);
 
-    barChartOKSlot();
+    plot = barChartOKSlot();
   }
   else if (initData.plot == "box" || initData.plot == "boxplot") {
     plotTab_->setCurrentIndex(5);
@@ -1326,7 +1711,7 @@ init(const InitData &initData)
     boxPlotData_.xEdit->setText(initData.arg(0));
     boxPlotData_.yEdit->setText(initData.arg(1));
 
-    boxOKSlot();
+    plot = boxOKSlot();
   }
   else if (initData.plot == "parallel" || initData.plot == "parallelplot") {
     plotTab_->setCurrentIndex(6);
@@ -1334,7 +1719,7 @@ init(const InitData &initData)
     parallelPlotData_.xEdit->setText(initData.arg(0));
     parallelPlotData_.yEdit->setText(initData.arg(1));
 
-    parallelOKSlot();
+    plot = parallelOKSlot();
   }
   else if (initData.plot == "geometry" || initData.plot == "geometryplot") {
     plotTab_->setCurrentIndex(7);
@@ -1343,7 +1728,7 @@ init(const InitData &initData)
     geometryPlotData_.geometryEdit->setText(initData.arg(1));
     geometryPlotData_.valueEdit   ->setText(initData.arg(2));
 
-    geometryOKSlot();
+    plot = geometryOKSlot();
   }
   else if (initData.plot == "delaunay" || initData.plot == "delaunayplot") {
     plotTab_->setCurrentIndex(8);
@@ -1352,7 +1737,7 @@ init(const InitData &initData)
     delaunayPlotData_.yEdit   ->setText(initData.arg(1));
     delaunayPlotData_.nameEdit->setText(initData.arg(2));
 
-    delaunayOKSlot();
+    plot = delaunayOKSlot();
   }
   else if (initData.plot == "adjacency" || initData.plot == "adjacencyplot") {
     plotTab_->setCurrentIndex(9);
@@ -1362,17 +1747,68 @@ init(const InitData &initData)
     adjacencyPlotData_.nameEdit       ->setText(initData.arg(2));
     adjacencyPlotData_.groupEdit      ->setText(initData.arg(3));
 
-    adjacencyOKSlot();
+    plot = adjacencyOKSlot();
   }
+  else if (initData.plot == "bubble") {
+    plotTab_->setCurrentIndex(10);
+
+    bubbleData_.nameEdit ->setText(initData.arg(0));
+    bubbleData_.valueEdit->setText(initData.arg(1));
+
+    plot = bubbleOKSlot();
+  }
+  else if (initData.plot == "hierbubble") {
+    plotTab_->setCurrentIndex(11);
+
+    hierBubbleData_.nameEdit ->setText(initData.arg(0));
+    hierBubbleData_.valueEdit->setText(initData.arg(1));
+
+    plot = hierBubbleOKSlot();
+  }
+  else if (initData.plot == "treemap") {
+    plotTab_->setCurrentIndex(12);
+
+    treeMapData_.nameEdit ->setText(initData.arg(0));
+    treeMapData_.valueEdit->setText(initData.arg(1));
+
+    plot = treeMapOKSlot();
+  }
+  else {
+    return nullptr;
+  }
+
+  //---
+
+  if (initData.overlay || initData.y1y2) {
+    if (i > 0)
+      plot->setBackground(QColor("#00000000"));
+  }
+
+  if (initData.title != "")
+    plot->setTitle(initData.title);
+
+  if (initData.xintegral)
+    plot->xAxis()->setIntegral(true);
+
+  if (initData.yintegral)
+    plot->yAxis()->setIntegral(true);
+
+  plot->setXMin(initData.xmin); plot->setYMin(initData.ymin);
+  plot->setXMax(initData.xmax); plot->setYMax(initData.ymax);
+
+  return plot;
 }
 
 //------
 
 void
 CQChartsTest::
-loadCsv(const QString &filename)
+loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
   CQChartsCsv *csv = new CQChartsCsv;
+
+  csv->setCommentHeader  (commentHeader);
+  csv->setFirstLineHeader(firstLineHeader);
 
   csv->load(filename);
 
@@ -1486,14 +1922,19 @@ lineEditValue(QLineEdit *le, int &i, int defi) const
 
 //------
 
-CQChartsWindow *
+CQChartsView *
 CQChartsTest::
-getWindow()
+getView(bool reuse)
 {
-  if (! window_)
-    window_ = new CQChartsWindow;
+  if (reuse) {
+    if (! view_)
+      view_ = new CQChartsView;
+  }
+  else {
+    view_ = new CQChartsView;
+  }
 
-  return window_;
+  return view_;
 }
 
 //------

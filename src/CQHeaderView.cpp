@@ -128,6 +128,8 @@ void
 CQHeaderView::
 fitAllSlot()
 {
+  QFontMetrics fm(font());
+
   QTreeView  *tree  = qobject_cast<QTreeView  *>(parentWidget());
   QTableView *table = qobject_cast<QTableView *>(parentWidget());
 
@@ -137,6 +139,16 @@ fitAllSlot()
 
     std::map<int,int> w;
 
+    for (int c = 0; c < nc; ++c) {
+      QSize s = tree->model()->headerData(c, Qt::Horizontal, Qt::SizeHintRole).toSize();
+
+      if (! s.isValid())
+        s = QSize(tree->header()->sectionSizeHint(c), 0);
+
+      if (s.isValid())
+        w[c] = std::max(w[c], s.width());
+    }
+
     for (int r = 0; r < nr; ++r) {
       for (int c = 0; c < nc; ++c) {
         QModelIndex ind = tree->model()->index(r, c);
@@ -144,7 +156,13 @@ fitAllSlot()
         QSize s = tree->model()->data(ind, Qt::SizeHintRole).toSize();
 
         if (! s.isValid())
-          s = table->sizeHintForIndex(ind);
+          s = tree->sizeHintForIndex(ind);
+
+        if (! s.isValid()) {
+          QString str = tree->model()->data(ind, Qt::DisplayRole).toString();
+
+          s = QSize(fm.width(str) + 8, fm.height() + 4);
+        }
 
         w[c] = std::max(w[c], s.width());
       }
@@ -157,8 +175,6 @@ fitAllSlot()
     }
   }
   else if (table) {
-    QFontMetrics fm(font());
-
     int nr = table->model()->rowCount();
     int nc = table->model()->columnCount();
 

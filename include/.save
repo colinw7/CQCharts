@@ -12,6 +12,7 @@ class CQChartsWindowToolBar;
 class CQPropertyTree;
 class QToolButton;
 class QRubberBand;
+class QLabel;
 
 class CQChartsWindow : public QFrame {
   Q_OBJECT
@@ -21,8 +22,12 @@ class CQChartsWindow : public QFrame {
  public:
   enum class Mode {
     SELECT,
-    ZOOM
+    ZOOM,
+    PROBE
   };
+
+ public:
+  typedef std::vector<CQChartsPlot *> Plots;
 
  public:
   CQChartsWindow(QWidget *parent=nullptr);
@@ -44,7 +49,7 @@ class CQChartsWindow : public QFrame {
 
   void addPlot(CQChartsPlot *plot, const CBBox2D &bbox=CBBox2D(0, 0, 1, 1));
 
-  int numPlots() const { return plots_.size(); }
+  int numPlots() const { return plotDatas_.size(); }
 
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
@@ -61,6 +66,8 @@ class CQChartsWindow : public QFrame {
   void paintEvent(QPaintEvent *) override;
 
   CQChartsPlot *plotAt(const CPoint2D &p) const;
+
+  bool plotsAt(const CPoint2D &p, Plots &plots) const;
 
   void setStatusText(const QString &text);
 
@@ -82,21 +89,38 @@ class CQChartsWindow : public QFrame {
     }
   };
 
-  typedef std::vector<PlotData> Plots;
+  typedef std::vector<PlotData> PlotDatas;
 
   struct MouseData {
-    CQChartsPlot *plot { nullptr };
-    QPoint        pressPoint;
-    QPoint        movePoint;
-    bool          pressed { false };
+    Plots  plots;
+    QPoint pressPoint;
+    QPoint movePoint;
+    bool   pressed { false };
   };
+
+  class ProbeBand {
+   public:
+    ProbeBand(CQChartsWindow *window);
+   ~ProbeBand();
+
+    void show(const QString &text, double px, double py1, double py2);
+    void hide();
+
+   private:
+    CQChartsWindow* window_ { nullptr };
+    QRubberBand*    vband_  { nullptr };
+    QRubberBand*    hband_  { nullptr };
+    QLabel*         tip_    { nullptr };
+  };
+
+  typedef std::vector<ProbeBand *> ProbeBands;
 
   QWidget*                parent_        { nullptr };
   CDisplayRange2D         displayRange_;
   CQChartsWindowExpander* expander_      { nullptr };
   CQPropertyTree*         propertyTree_  { nullptr };
   QColor                  background_    { 255, 255, 255 };
-  Plots                   plots_;
+  PlotDatas               plotDatas_;
   Mode                    mode_          { Mode::SELECT };
   CQChartsWindowStatus*   status_        { nullptr };
   CQChartsWindowToolBar*  toolbar_       { nullptr };
@@ -104,6 +128,7 @@ class CQChartsWindow : public QFrame {
   int                     statusHeight_  { 8 };
   MouseData               mouseData_;
   QRubberBand*            zoomBand_      { nullptr };
+  ProbeBands              probeBands_;
 };
 
 //---
@@ -164,11 +189,13 @@ class CQChartsWindowToolBar : public QFrame {
  private slots:
   void selectSlot(bool b);
   void zoomSlot(bool b);
+  void probeSlot(bool b);
 
  private:
   CQChartsWindow* window_       { nullptr };
   QToolButton*    selectButton_ { nullptr };
   QToolButton*    zoomButton_   { nullptr };
+  QToolButton*    probeButton_  { nullptr };
 };
 
 #endif

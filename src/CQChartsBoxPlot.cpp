@@ -1,5 +1,5 @@
 #include <CQChartsBoxPlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -8,8 +8,8 @@
 #include <QPainter>
 
 CQChartsBoxPlot::
-CQChartsBoxPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
   addAxes();
 
@@ -36,8 +36,13 @@ init()
   int n = model_->rowCount(ind);
 
   for (int i = 0; i < n; ++i) {
-    int    set   = CQChartsUtil::modelInteger(model_, i, xColumn_);
-    double value = CQChartsUtil::modelReal   (model_, i, yColumn_);
+    bool ok1, ok2;
+
+    int    set   = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
+    double value = CQChartsUtil::modelReal   (model_, i, yColumn_, ok2);
+
+    if (! ok1) set   = i;
+    if (! ok2) value = i;
 
     whiskers_[set].addValue(value);
 
@@ -79,7 +84,7 @@ initObjs()
 
     CBBox2D rect(pos - 0.10, whisker.lower(), pos + 0.10, whisker.upper());
 
-    CQChartsBoxObj *boxObj = new CQChartsBoxObj(this, rect, pos, whisker, i);
+    CQChartsBoxPlotObj *boxObj = new CQChartsBoxPlotObj(this, rect, pos, whisker, i);
 
     boxObj->setId(QString("%1:%2:%3").arg(pos).arg(whisker.lower()).arg(whisker.upper()));
 
@@ -108,25 +113,25 @@ draw(QPainter *p)
 
   //---
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 
   drawAxes(p);
 }
 
 //------
 
-CQChartsBoxObj::
-CQChartsBoxObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
-               const CBoxWhisker &whisker, int ind) :
+CQChartsBoxPlotObj::
+CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
+                   const CBoxWhisker &whisker, int ind) :
  CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), ind_(ind)
 {
 }
 
 void
-CQChartsBoxObj::draw(QPainter *p)
+CQChartsBoxPlotObj::
+draw(QPainter *p)
 {
-  QFontMetrics fm(plot_->window()->font());
+  QFontMetrics fm(plot_->view()->font());
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 

@@ -8,8 +8,8 @@
 #include <QPainter>
 
 CQChartsGeometryPlot::
-CQChartsGeometryPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsGeometryPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
 }
 
@@ -43,11 +43,15 @@ updateRange()
   for (int i = 0; i < n; ++i) {
     Geometry geometry;
 
-    geometry.name = CQChartsUtil::modelString(model_, i, nameColumn_);
+    bool ok1;
+
+    geometry.name = CQChartsUtil::modelString(model_, i, nameColumn_, ok1);
 
     //--
 
-    QString geomStr = CQChartsUtil::modelString(model_, i, geometryColumn_);
+    bool ok2;
+
+    QString geomStr = CQChartsUtil::modelString(model_, i, geometryColumn_, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
       std::cerr << "Invalid state geom : " << geometry.name.toStdString() << " : " <<
@@ -67,7 +71,12 @@ updateRange()
 
     //---
 
-    geometry.value = CQChartsUtil::modelReal(model_, i, valueColumn_);
+    bool ok;
+
+    geometry.value = CQChartsUtil::modelReal(model_, i, valueColumn_, ok);
+
+    if (! ok)
+      geometry.value = i;
 
     if (i == 0) {
       minValue_ = geometry.value;
@@ -228,10 +237,10 @@ decodePoint(const QString &pointStr, QPointF &point)
 
   double x, y;
 
-  if (! CStrUtil::toReal(xstr, &x))
+  if (! CQChartsUtil::toReal(xstr.c_str(), x))
     return false;
 
-  if (! CStrUtil::toReal(ystr, &y))
+  if (! CQChartsUtil::toReal(ystr.c_str(), y))
     return false;
 
   point = QPointF(x, y);
@@ -282,8 +291,7 @@ draw(QPainter *p)
 
   //---
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 }
 
 //------

@@ -135,9 +135,10 @@ load(const QString &filename)
         }
         else {
           if (pline.isChars(comment)) {
-            line1 = CStrUtil::stripSpaces(pline.substr(0, pline.pos())).c_str();
+            line1 = QString(pline.substr(0, pline.pos()).c_str()).simplified();
 
-            std::string cstr = CStrUtil::stripSpaces(pline.substr(pline.pos() + comment.length()));
+            std::string cstr = QString(pline.substr(pline.pos() + comment.length()).c_str()).
+                                simplified().toStdString();
 
             commentStrs_[setNum][subSetNum][lineNum] = cstr;
 

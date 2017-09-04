@@ -52,8 +52,8 @@ class CQChartsSunburstPlot : public CQChartsPlot {
     double dr() const { return dr_; }
     double da() const { return da_; }
 
-    const QColor &color() const { return color_; }
-    virtual void setColor(const QColor &color) { color_ = color; }
+    const int &colorId() const { return colorId_; }
+    virtual void setColorId(int colorId) { colorId_ = colorId; }
 
     virtual void setPosition(double r, double a, double dr, double da) {
       r_  = r ; a_  = a ;
@@ -109,16 +109,16 @@ class CQChartsSunburstPlot : public CQChartsPlot {
     }
 
    protected:
-    HierNode* parent_ { nullptr };
-    uint      id_     { 0 };
+    HierNode* parent_  { nullptr };
+    uint      id_      { 0 };
     QString   name_;
-    double    size_   { 1.0 };
-    double    r_      { 0.0 };
-    double    a_      { 0.0 };
-    double    dr_     { 0.0 };
-    double    da_     { 0.0 };
-    QColor    color_  { 100, 100, 100 };
-    bool      placed_ { false };
+    double    size_    { 1.0 };
+    double    r_       { 0.0 };
+    double    a_       { 0.0 };
+    double    dr_      { 0.0 };
+    double    da_      { 0.0 };
+    int       colorId_ { 0 };
+    bool      placed_  { false };
   };
 
   typedef std::vector<Node *> Nodes;
@@ -311,7 +311,9 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   //---
 
  public:
-  CQChartsSunburstPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Sunburst"; }
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
@@ -329,7 +331,9 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void drawNode(QPainter *p, Node *node);
 
-  QColor textColor(const QColor &bg) const;
+  QColor nodeColor(Node *node) const;
+
+  QColor nodeColor(int colorId) const;
 
  private:
   typedef std::vector<RootNode *> RootNodes;

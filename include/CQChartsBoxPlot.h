@@ -8,12 +8,12 @@
 
 class CQChartsBoxPlot;
 
-class CQChartsBoxObj : public CQChartsPlotObj {
+class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxObj(CQChartsBoxPlot *plot, const CBBox2D &rect,
-                 double pos, const CBoxWhisker &whisker, int ind);
+  CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect,
+                     double pos, const CBoxWhisker &whisker, int ind);
 
   void draw(QPainter *p) override;
 
@@ -34,7 +34,9 @@ class CQChartsBoxPlot : public CQChartsPlot {
   Q_PROPERTY(QColor boxColor READ boxColor WRITE setBoxColor)
 
  public:
-  CQChartsBoxPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "BoxPlot"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }

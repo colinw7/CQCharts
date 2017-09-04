@@ -4,9 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQUtil.h>
-#include <CPen.h>
-#include <CBrush.h>
-#include <CSymbolType.h>
 
 class CQChartsDelaunayPlot;
 class CDelaunay;
@@ -76,7 +73,9 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   };
 
  public:
-  CQChartsDelaunayPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Delaunay"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }

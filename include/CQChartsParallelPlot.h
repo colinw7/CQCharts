@@ -4,8 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQUtil.h>
-#include <CPen.h>
-#include <CBrush.h>
 
 class CQChartsParallelPlot;
 
@@ -45,7 +43,9 @@ class CQChartsParallelPlot : public CQChartsPlot {
   Q_PROPERTY(int yColumn READ yColumn WRITE setYColumn)
 
  public:
-  CQChartsParallelPlot(CQChartsWindow *window, QAbstractItemModel *model);
+  CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model);
+
+  const char *typeName() const override { return "Parallel"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }

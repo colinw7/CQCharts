@@ -31,25 +31,6 @@ load(const QString &filename)
   return model_->load(filename);
 }
 
-QString
-CQChartsTsv::
-columnType(int col) const
-{
-  auto p = columnTypes_.find(col);
-
-  if (p == columnTypes_.end())
-    return QString();
-
-  return (*p).second;
-}
-
-void
-CQChartsTsv::
-setColumnType(int col, const QString &type)
-{
-  columnTypes_[col] = type;
-}
-
 int
 CQChartsTsv::
 columnCount(const QModelIndex &parent) const
@@ -81,14 +62,9 @@ data(const QModelIndex &index, int role) const
   QVariant var = model_->data(index, role);
 
   if      (role == Qt::DisplayRole) {
-    QString type = columnType(index.column());
-
-    QString            baseType;
     CQChartsNameValues nameValues;
 
-    CQChartsColumn::decodeType(type, baseType, nameValues);
-
-    CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
+    CQChartsColumnType *typeData = columnTypeData(index.column(), nameValues);
 
     if (typeData)
       return typeData->userData(var.toString(), nameValues);

@@ -1,9 +1,9 @@
 #ifndef CQChartsKey_H
 #define CQChartsKey_H
 
+#include <CQChartsBoxObj.h>
 #include <CBBox2D.h>
-#include <QObject>
-#include <QColor>
+#include <QFont>
 #include <QPointF>
 #include <QSizeF>
 #include <vector>
@@ -13,16 +13,15 @@ class CQChartsKeyItem;
 class CQPropertyTree;
 class QPainter;
 
-class CQChartsKey : public QObject {
+class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    displayed   READ isDisplayed WRITE setDisplayed  )
-  Q_PROPERTY(bool    border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(QColor  background  READ background  WRITE setBackground )
-  Q_PROPERTY(QColor  borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(QString location    READ locationStr WRITE setLocationStr)
-  Q_PROPERTY(int     margin      READ margin      WRITE setMargin     )
-  Q_PROPERTY(int     spacing     READ spacing     WRITE setSpacing    )
+  Q_PROPERTY(bool    visible  READ isVisible   WRITE setVisible    )
+  Q_PROPERTY(QString location READ locationStr WRITE setLocationStr)
+  Q_PROPERTY(bool    insideX  READ isInsideX   WRITE setInsideX    )
+  Q_PROPERTY(bool    insideY  READ isInsideY   WRITE setInsideY    )
+  Q_PROPERTY(int     spacing  READ spacing     WRITE setSpacing    )
+  Q_PROPERTY(QFont   font     READ font        WRITE setFont       )
 
  public:
   enum Location {
@@ -40,26 +39,25 @@ class CQChartsKey : public QObject {
  public:
   CQChartsKey(CQChartsPlot *plot);
 
-  bool isDisplayed() const { return displayed_; }
-  void setDisplayed(bool b) { displayed_ = b; redraw(); }
+  CQChartsPlot *plot() const { return plot_; }
 
-  bool isBorder() const { return border_; }
-  void setBorder(bool b) { border_ = b; redraw(); }
-
-  const QColor &background() const { return background_; }
-  void setBackground(const QColor &v) { background_ = v; redraw(); }
-
-  const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &v) { borderColor_ = v; redraw(); }
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; redraw(); }
 
   const Location &location() const { return location_; }
-  void setLocation(const Location &l) { location_ = l; redraw(); }
+  void setLocation(const Location &l) { location_ = l; updatePosition(); }
 
-  int margin() const { return margin_; }
-  void setMargin(int i) { margin_ = i; redraw(true); }
+  bool isInsideX() const { return insideX_; }
+  void setInsideX(bool b) { insideX_ = b; updatePosition(); }
+
+  bool isInsideY() const { return insideY_; }
+  void setInsideY(bool b) { insideY_ = b; updatePosition(); }
 
   int spacing() const { return spacing_; }
-  void setSpacing(int i) { spacing_ = i; redraw(true); }
+  void setSpacing(int i) { spacing_ = i; updateLayout(); }
+
+  const QFont &font() const { return font_; }
+  void setFont(const QFont &v) { font_ = v; updateLayout(); }
 
   QString locationStr() const;
   void setLocationStr(const QString &s);
@@ -73,6 +71,11 @@ class CQChartsKey : public QObject {
 
   void addItem(CQChartsKeyItem *item, int row, int col, int nrows=1, int ncols=1);
 
+  int maxRow() const { return maxRow_; }
+  int maxCol() const { return maxCol_; }
+
+  void updatePosition();
+
   void invalidateLayout();
 
   const QPointF &position() const { return position_; }
@@ -80,13 +83,15 @@ class CQChartsKey : public QObject {
 
   QSizeF calcSize();
 
-  void redraw(bool layout=false);
+  void redraw() override;
+
+  void updateLayout();
 
   bool contains(const CPoint2D &p) const;
 
   CQChartsKeyItem *getItemAt(const CPoint2D &p) const;
 
-  virtual void mousePress(const CPoint2D &) { }
+  virtual bool mousePress(const CPoint2D &) { return false; }
 
   void draw(QPainter *p);
 
@@ -106,14 +111,15 @@ class CQChartsKey : public QObject {
   typedef std::map<int,ColCell>          RowColCell;
 
   CQChartsPlot*   plot_        { nullptr };
-  bool            displayed_   { true };
-  bool            border_      { true };
-  QColor          background_  { 255, 255, 255 };
-  QColor          borderColor_ { 0, 0, 0 };
+  bool            visible_     { true };
   Location        location_    { Location::TOP_RIGHT };
-  int             margin_      { 2 };
+  bool            insideX_     { true };
+  bool            insideY_     { true };
   int             spacing_     { 2 };
+  QFont           font_;
   Items           items_;
+  int             maxRow_      { 0 };
+  int             maxCol_      { 0 };
   bool            needsLayout_ { false };
   QPointF         position_    { 0, 0 };
   QSizeF          size_;
@@ -135,6 +141,9 @@ class CQChartsKeyItem : public QObject {
 
   virtual QSizeF size() const = 0;
 
+  const CQChartsKey *key() const { return key_; }
+  void setKey(CQChartsKey *p) { key_ = p; }
+
   int row() const { return row_; }
   void setRow(int i) { row_ = i; }
 
@@ -150,11 +159,11 @@ class CQChartsKeyItem : public QObject {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &v) { bbox_ = v; }
 
-  virtual void mousePress(const CPoint2D &) { }
+  virtual bool mousePress(const CPoint2D &) { return false; }
 
   virtual void draw(QPainter *p, const CBBox2D &rect) = 0;
 
- private:
+ protected:
   CQChartsKey*    key_     { nullptr };
   int             row_     { 0 };
   int             col_     { 0 };
@@ -179,6 +188,8 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
+  virtual QColor textColor() const;
+
  protected:
   CQChartsPlot *plot_ { nullptr };
   QString       text_;
@@ -195,6 +206,9 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   QSizeF size() const override;
 
   void draw(QPainter *p, const CBBox2D &rect) override;
+
+  virtual QColor fillColor  () const;
+  virtual QColor borderColor() const;
 
  protected:
   CQChartsPlot *plot_ { nullptr };

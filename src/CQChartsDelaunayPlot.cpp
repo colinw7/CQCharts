@@ -1,5 +1,5 @@
 #include <CQChartsDelaunayPlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -10,8 +10,8 @@
 #include <QPainter>
 
 CQChartsDelaunayPlot::
-CQChartsDelaunayPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
   addAxes();
 
@@ -62,8 +62,13 @@ updateRange()
   dataRange_.reset();
 
   for (int i = 0; i < n; ++i) {
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_);
+    bool ok1, ok2;
+
+    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+
+    if (! ok1) x = i;
+    if (! ok2) y = i;
 
     dataRange_.updateRange(x, y);
   }
@@ -130,15 +135,23 @@ initObjs(bool force)
     delaunay_ = new CDelaunay;
 
   for (int i = 0; i < n; ++i) {
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_);
+    bool ok1, ok2;
+
+    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+
+    if (! ok1) x = i;
+    if (! ok2) y = i;
 
     delaunay_->addVertex(x, y);
 
     QString name1;
 
-    if (nameColumn_ >= 0)
-      name1 = CQChartsUtil::modelString(model_, i, nameColumn_);
+    if (nameColumn_ >= 0) {
+      bool ok;
+
+      name1 = CQChartsUtil::modelString(model_, i, nameColumn_, ok);
+    }
     else
       name1 = name;
 
@@ -169,8 +182,7 @@ draw(QPainter *p)
 
   //---
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 
   //---
 
@@ -313,11 +325,8 @@ draw(QPainter *p)
 {
   if (plot_->isPoints()) {
     QColor c = plot_->objectStateColor(this, plot_->pointsColor());
-
-    p->setPen(c);
-
     double s = plot_->symbolSize();
 
-    plot_->drawSymbol(p, CPoint2D(x_, y_), plot_->symbolType(), s);
+    plot_->drawSymbol(p, CPoint2D(x_, y_), plot_->symbolType(), s, c);
   }
 }

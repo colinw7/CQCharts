@@ -8,12 +8,14 @@
 #include <QPainter>
 
 CQChartsScatterPlot::
-CQChartsScatterPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
   addAxes();
 
   addKey();
+
+  addTitle();
 
   xAxis_->setColumn(xColumn_);
   yAxis_->setColumn(yColumn_);
@@ -29,6 +31,8 @@ void
 CQChartsScatterPlot::
 addProperties()
 {
+  CQChartsPlot::addProperties();
+
   addProperty("columns", this, "nameColumn", "name");
   addProperty("columns", this, "xColumn"   , "x"   );
   addProperty("columns", this, "yColumn"   , "y"   );
@@ -44,8 +48,13 @@ updateRange()
   dataRange_.reset();
 
   for (int i = 0; i < n; ++i) {
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_);
+    bool ok1, ok2;
+
+    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+
+    if (! ok1) x = i;
+    if (! ok2) y = i;
 
     dataRange_.updateRange(x, y);
   }
@@ -82,6 +91,17 @@ initObjs(bool force)
 {
   if (force) {
     clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //---
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
   }
 
   //---
@@ -96,9 +116,17 @@ initObjs(bool force)
     int n = numRows();
 
     for (int i = 0; i < n; ++i) {
-      QString name = CQChartsUtil::modelString(model_, i, nameColumn_);
-      double  x    = CQChartsUtil::modelReal  (model_, i, xColumn_   );
-      double  y    = CQChartsUtil::modelReal  (model_, i, yColumn_   );
+      bool ok;
+
+      QString name = CQChartsUtil::modelString(model_, i, nameColumn_, ok);
+
+      bool ok1, ok2;
+
+      double x = CQChartsUtil::modelReal  (model_, i, xColumn_, ok1);
+      double y = CQChartsUtil::modelReal  (model_, i, yColumn_, ok2);
+
+      if (! ok1) x = i;
+      if (! ok2) y = i;
 
       nameValues_[name].push_back(QPointF(x, y));
     }
@@ -141,9 +169,18 @@ initObjs(bool force)
 
   //---
 
-  key_->clearItems();
+  keyObj_->clearItems();
 
-  i = 0;
+  addKeyItems(keyObj_);
+}
+
+void
+CQChartsScatterPlot::
+addKeyItems(CQChartsKey *key)
+{
+  int nv = nameValues_.size();
+
+  int i = 0;
 
   for (const auto &nameValue: nameValues_) {
     const QString &name = nameValue.first;
@@ -151,11 +188,13 @@ initObjs(bool force)
     CQChartsScatterKeyColor *color = new CQChartsScatterKeyColor(this, i, nv);
     CQChartsKeyText         *text  = new CQChartsKeyText        (this, name);
 
-    key_->addItem(color, i, 0);
-    key_->addItem(text , i, 1);
+    key->addItem(color, i, 0);
+    key->addItem(text , i, 1);
 
     ++i;
   }
+
+  key->plot()->updateKeyPosition(/*force*/true);
 }
 
 void
@@ -170,12 +209,13 @@ draw(QPainter *p)
 
   //---
 
-  for (const auto &plotObj : plotObjs_)
-    plotObj->draw(p);
+  drawObjs(p);
 
   drawAxes(p);
 
   //---
+
+  drawTitle(p);
 
   drawKey(p);
 }
@@ -236,7 +276,7 @@ CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n) :
 {
 }
 
-void
+bool
 CQChartsScatterKeyColor::
 mousePress(const CPoint2D &)
 {
@@ -247,4 +287,6 @@ mousePress(const CPoint2D &)
   plot->initObjs(/*force*/true);
 
   plot->update();
+
+  return true;
 }

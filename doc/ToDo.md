@@ -4,25 +4,36 @@ Misc
  + Display data from abstract model as plot
 
 Functions
- + Probe
  + Improved Filter
- + Double Scale Plot (x1, x2)
- + Symbol fill polygon for highlight
+ + Symbol better highlight
+   + user associated fill polygon
 
 Data
- + Assign attributes to plot symbol (size, color)
- + Expressions for Data
+ + Allow Assign attributes to plot symbol (size, color)
+ + Allow Expressions for Data/Columns
+ + Data Label for Bar Chart, X/Y
+
+Model
+ + All models derive from CQChartsModel
+ + Add extra columns for extra properties - data labels, symbol size, ....
+
+Axes
+ + Match X1/X2 ticks ?
+ + Log axis
+ + No Zoom
+ + Filled Grid (alternating rows)
+ + Handle overlapping labels
+
+Title
+ + Config
 
 Plots
  + Radar
- + Adjaceny
  + Stacked Pie
-
-Axis
- + Log axis
+ + Force Directed
 
 Mouse Over
- + Disable
+ + Allow Disable
 
 Pie
  + Radial labels
@@ -32,3 +43,12 @@ Key
  + Spacing
  + Inside/Outside
  + No Zoom
+ + Symbols in Key
+
+Overlay
+ + Share Key
+ + Share Palette
+
+Symbols
+ + Support, stroke, fill and width
+ + Support multiple symbols for multiline plot

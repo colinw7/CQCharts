@@ -16,9 +16,6 @@ class CQChartsTsv : public CQChartsModel {
 
   bool load(const QString &filename);
 
-  QString columnType(int col) const override;
-  void setColumnType(int col, const QString &type) override;
-
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -38,7 +35,6 @@ class CQChartsTsv : public CQChartsModel {
   typedef std::map<int,QString> ColumnTypes;
 
   CQTsvModel* model_ { nullptr };
-  ColumnTypes columnTypes_;
 };
 
 #endif

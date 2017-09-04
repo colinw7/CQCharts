@@ -1,52 +1,23 @@
 #include <CQChartsSunburstPlot.h>
-#include <CQChartsWindow.h>
+#include <CQChartsView.h>
+#include <CQChartsUtil.h>
 #include <CQRotatedText.h>
+#include <CQUtil.h>
+#include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
 namespace {
 
-QColor bg_colors[] = {
-  // blue
-  QColor(0x31,0x82,0xBD),
-  QColor(0x6B,0xAE,0xD6),
-  QColor(0x9E,0xCA,0xE1),
-  QColor(0xC6,0xDB,0xEF),
-
-  // orange
-  QColor(0xE6,0x55,0x0D),
-  QColor(0xFD,0x8D,0x3C),
-  QColor(0xFD,0xAE,0x6B),
-  QColor(0xFD,0xD0,0xA2),
-
-  // green
-  QColor(0x31,0xA3,0x54),
-  QColor(0x74,0xC4,0x76),
-  QColor(0xA1,0xD9,0x9B),
-  QColor(0xC7,0xE9,0xC0),
-
-  // purple
-  QColor(0x75,0x6B,0xB1),
-  QColor(0x9E,0x9A,0xC8),
-  QColor(0xBC,0xBD,0xDC),
-  QColor(0xDA,0xDA,0xEB),
-
-  // gray
-  QColor(0x63,0x63,0x63),
-  QColor(0x96,0x96,0x96),
-  QColor(0xBD,0xBD,0xBD),
-  QColor(0xD9,0xD9,0xD9),
-};
-
-int num_bg_colors = 30;
+int numColors = 30;
 
 int colorId = -1;
 
 int nextColorId() {
   ++colorId;
 
-  if (colorId >= num_bg_colors)
+  if (colorId >= numColors)
     colorId = 0;
 
   return colorId;
@@ -57,8 +28,8 @@ int nextColorId() {
 //---
 
 CQChartsSunburstPlot::
-CQChartsSunburstPlot(CQChartsWindow *window, QAbstractItemModel *model) :
- CQChartsPlot(window, model)
+CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model) :
+ CQChartsPlot(view, model)
 {
   range_.setWindowRange(-1, 1, 1, -1);
 
@@ -98,16 +69,16 @@ loadChildren(HierNode *hier, const QModelIndex &index, int depth, int colorId)
   if (depth == 2)
     colorId = nextColorId();
 
-  QColor c;
+  int colorId1 = 0;
 
   uint nc = model_->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
     QModelIndex index1 = model_->index(i, 0, index);
 
-    QVariant var1 = model_->data(index1);
+    bool ok;
 
-    QString name = var1.toString();
+    QString name = CQChartsUtil::modelString(model_, index1, ok);
 
     //---
 
@@ -116,45 +87,36 @@ loadChildren(HierNode *hier, const QModelIndex &index, int depth, int colorId)
 
       loadChildren(hier1, index1, depth + 1, colorId);
 
-      c = hier1->color();
+      colorId1 = hier1->colorId();
     }
     else {
       QModelIndex index2 = model_->index(i, 1, index);
 
-      QVariant var2 = model_->data(index2);
+      bool ok;
 
-      int size = atoi(var2.toString().toLatin1().constData());
+      int size = CQChartsUtil::modelInteger(model_, index2, ok);
+
+      if (! ok) size = 1;
 
       Node *node = new Node(hier, name);
 
       node->setSize(size);
-      node->setColor(bg_colors[colorId]);
+      node->setColorId(colorId);
 
       hier->addNode(node);
 
-      c = node->color();
+      colorId1 = node->colorId();
     }
   }
 
-  hier->setColor(c.lighter(110));
+  hier->setColorId(colorId1);
 }
-
-#if 0
-void
-CQChartsSunburstPlot::
-resizeEvent(QResizeEvent *e)
-{
-  range_.setPixelRange(0, 0, width() - 1, height() - 1);
-
-  CQChartsPlot::resizeEvent(e);
-}
-#endif
 
 void
 CQChartsSunburstPlot::
 draw(QPainter *p)
 {
-  QFont font = window_->font();
+  QFont font = view_->font();
 
   font.setPointSizeF(fontHeight());
 
@@ -229,10 +191,10 @@ drawNode(QPainter *p, Node *node)
 
   path.closeSubpath();
 
-  QColor nodeColor = node->color();
+  QColor color = nodeColor(node);
 
-  p->setPen  (textColor(nodeColor));
-  p->setBrush(nodeColor);
+  p->setPen  (textColor(color));
+  p->setBrush(color);
 
   p->drawPath(path);
 
@@ -250,18 +212,23 @@ drawNode(QPainter *p, Node *node)
   QString str = node->name();
 
   if (c >= 0)
-    CQRotatedText::drawRotatedText(p, px, py, str, ta,
-                                   Qt::AlignLeft | Qt::AlignVCenter);
+    CQRotatedText::drawRotatedText(p, px, py, str, ta, Qt::AlignLeft | Qt::AlignVCenter);
   else
-    CQRotatedText::drawRotatedText(p, px, py, str, 180.0 + ta,
-                                   Qt::AlignRight | Qt::AlignVCenter);
+    CQRotatedText::drawRotatedText(p, px, py, str, 180.0 + ta, Qt::AlignRight | Qt::AlignVCenter);
 }
 
 QColor
 CQChartsSunburstPlot::
-textColor(const QColor &bg) const
+nodeColor(Node *node) const
 {
-  int g = qGray(bg.red(), bg.green(), bg.blue());
+  return nodeColor(node->colorId());
+}
 
-  return (g > 128 ? QColor(0,0,0) : QColor(255, 255, 255));
+QColor
+CQChartsSunburstPlot::
+nodeColor(int colorId) const
+{
+  QColor c(80,80,200);
+
+  return interpPaletteColor((1.0*colorId)/numColors, c);
 }

@@ -70,24 +70,30 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
   QString userData(const QString &data, const CQChartsNameValues &nameValues) const override {
     auto p = nameValues.find("format");
 
-    if (p == nameValues.end())
-      return data;
+    if (p != nameValues.end()) {
+      double t;
 
-    double t;
+      if (! stringToTime((*p).second, data, t))
+        return data;
 
-    if (! stringToTime((*p).second, data, t))
-      return data;
+      return QString("%1").arg(t);
+    }
 
-    return QString("%1").arg(t);
+    return data;
   }
 
   QString dataName(double pos, const CQChartsNameValues &nameValues) const override {
-    auto p = nameValues.find("format");
+    auto p = nameValues.find("oformat");
 
-    if (p == nameValues.end())
-      return CStrUtil::toString(pos).c_str();
+    if (p != nameValues.end())
+      return timeToString((*p).second, pos);
 
-    return timeToString((*p).second, pos);
+    auto p1 = nameValues.find("format");
+
+    if (p1 != nameValues.end())
+      return timeToString((*p1).second, pos);
+
+    return CStrUtil::toString(pos).c_str();
   }
 
  private:

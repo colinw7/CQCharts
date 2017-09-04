@@ -17,8 +17,17 @@ QString
 CQChartsModel::
 columnType(int col) const
 {
-  if (col < 0 || col >= int(columns_.size()))
+  int n = columnCount();
+
+  if (col < 0 || col >= n)
     return QString();
+
+  if (n > int(columns_.size())) {
+    CQChartsModel *th = const_cast<CQChartsModel *>(this);
+
+    while (n > int(th->columns_.size()))
+      th->columns_.emplace_back("");
+  }
 
   return columns_[col].type();
 }
@@ -27,10 +36,13 @@ void
 CQChartsModel::
 setColumnType(int col, const QString &type)
 {
-  int n = columns_.size();
+  int n = columnCount();
 
   if (col < 0 || col >= n)
     return;
+
+  while (n > int(columns_.size()))
+    columns_.emplace_back("");
 
   columns_[col].setType(type);
 }
@@ -46,7 +58,9 @@ QVariant
 CQChartsModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (section < 0 || section >= int(columns_.size()))
+  int n = columnCount();
+
+  if (section < 0 || section >= n)
     return QVariant();
 
   const CQChartsColumn &column = columns_[section];
@@ -83,14 +97,9 @@ data(const QModelIndex &index, int role) const
 
     //---
 
-    QString type = columnType(index.column());
-
-    QString            baseType;
     CQChartsNameValues nameValues;
 
-    CQChartsColumn::decodeType(type, baseType, nameValues);
-
-    CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
+    CQChartsColumnType *typeData = columnTypeData(index.column(), nameValues);
 
     if (typeData) {
       return typeData->userData(cell, nameValues);
@@ -111,6 +120,21 @@ data(const QModelIndex &index, int role) const
   }
 
   return QVariant();
+}
+
+CQChartsColumnType *
+CQChartsModel::
+columnTypeData(int column, CQChartsNameValues &nameValues) const
+{
+  QString type = columnType(column);
+
+  QString baseType;
+
+  CQChartsColumn::decodeType(type, baseType, nameValues);
+
+  CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
+
+  return typeData;
 }
 
 QModelIndex
