@@ -6,6 +6,8 @@
 #include <QFont>
 #include <QPointF>
 #include <QSizeF>
+
+#include <map>
 #include <vector>
 
 class CQChartsPlot;

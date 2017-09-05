@@ -481,33 +481,81 @@ keyPress(int key)
 {
   if      (key == Qt::Key_Left || key == Qt::Key_Right) {
     if (key == Qt::Key_Right)
-      displayTransform_.panLeft();
+      panLeft();
     else
-      displayTransform_.panRight();
+      panRight();
   }
   else if (key == Qt::Key_Up || key == Qt::Key_Down) {
     if (key == Qt::Key_Up)
-      displayTransform_.panDown();
+      panDown();
     else
-      displayTransform_.panUp();
+      panUp();
   }
   else if (key == Qt::Key_Plus) {
-    displayTransform_.zoomIn();
+    zoomIn();
   }
   else if (key == Qt::Key_Minus) {
-    displayTransform_.zoomOut();
+    zoomOut();
   }
   else if (key == Qt::Key_Home) {
-    displayTransform_.reset();
+    zoomFull();
   }
   else
     return;
+}
 
-  applyDisplayTransform();
+void
+CQChartsPlot::
+panLeft()
+{
+  displayTransform_.panLeft();
 
-  handleResize();
+  updateTransform();
+}
 
-  update();
+void
+CQChartsPlot::
+panRight()
+{
+  displayTransform_.panRight();
+
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+panUp()
+{
+  displayTransform_.panUp();
+
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+panDown()
+{
+  displayTransform_.panDown();
+
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+zoomIn()
+{
+  displayTransform_.zoomIn();
+
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+zoomOut()
+{
+  displayTransform_.zoomOut();
+
+  updateTransform();
 }
 
 void
@@ -519,6 +567,22 @@ zoomTo(const CBBox2D &bbox)
 
   displayTransform_.zoomTo(bbox);
 
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+zoomFull()
+{
+  displayTransform_.reset();
+
+  updateTransform();
+}
+
+void
+CQChartsPlot::
+updateTransform()
+{
   applyDisplayTransform();
 
   handleResize();
@@ -784,8 +848,27 @@ drawObjs(QPainter *painter)
 
 void
 CQChartsPlot::
-drawAxes(QPainter *painter)
+drawBgAxes(QPainter *painter)
 {
+  if (xAxis_ && xAxis_->getVisible() && ! xAxis_->isGridAbove())
+    xAxis_->drawGrid(this, painter);
+
+  if (yAxis_ && yAxis_->getVisible() && ! yAxis_->isGridAbove())
+    yAxis_->drawGrid(this, painter);
+}
+
+void
+CQChartsPlot::
+drawFgAxes(QPainter *painter)
+{
+  if (xAxis_ && xAxis_->getVisible() && xAxis_->isGridAbove())
+    xAxis_->drawGrid(this, painter);
+
+  if (yAxis_ && yAxis_->getVisible() && yAxis_->isGridAbove())
+    yAxis_->drawGrid(this, painter);
+
+  //---
+
   if (xAxis_ && xAxis_->getVisible())
     xAxis_->draw(this, painter);
 

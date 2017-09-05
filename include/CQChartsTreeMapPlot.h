@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <QModelIndex>
 
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;

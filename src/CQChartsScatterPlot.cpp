@@ -16,15 +16,6 @@ CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model) :
   addKey();
 
   addTitle();
-
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
-
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
-  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
-
-  xAxis_->setLabel(xname);
-  yAxis_->setLabel(yname);
 }
 
 void
@@ -58,6 +49,19 @@ updateRange()
 
     dataRange_.updateRange(x, y);
   }
+
+  //---
+
+  xAxis_->setColumn(xColumn_);
+  yAxis_->setColumn(yColumn_);
+
+  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
+  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+
+  xAxis_->setLabel(xname);
+  yAxis_->setLabel(yname);
+
+  //---
 
   applyDataRange();
 }
@@ -207,11 +211,13 @@ draw(QPainter *p)
 
   drawBackground(p);
 
+  drawBgAxes(p);
+
   //---
 
   drawObjs(p);
 
-  drawAxes(p);
+  drawFgAxes(p);
 
   //---
 

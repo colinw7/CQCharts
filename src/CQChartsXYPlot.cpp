@@ -708,11 +708,13 @@ draw(QPainter *p)
 
   drawBackground(p);
 
+  drawBgAxes(p);
+
   //---
 
   drawObjs(p);
 
-  drawAxes(p);
+  drawFgAxes(p);
 
   //---
 

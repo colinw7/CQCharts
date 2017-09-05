@@ -33,3 +33,8 @@
  + Add Tree Map
  + Add title object
  + Improve symbols
+## 9/5/2017 ##
+ + improve axis properties
+ + allow grid draw front/back
+ + fix axis column update
+ + split view widgets to separate files

@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CirclePack.h>
+#include <QModelIndex>
 
 class CQChartsHierBubblePlot;
 

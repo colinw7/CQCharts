@@ -4,6 +4,7 @@
 #include <CQAppWindow.h>
 #include <CBBox2D.h>
 #include <COptVal.h>
+#include <map>
 
 class CQCharts;
 class CQChartsTable;

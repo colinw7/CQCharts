@@ -1,4 +1,4 @@
-CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y 1 -first_line_header -plot_title "bar char"
+CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y 1 -first_line_header -plot_title "bar chart"
 
 CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -plot_title "multiple bar chart"
 

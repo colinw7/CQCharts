@@ -5,6 +5,7 @@
 #include <CStrUtil.h>
 #include <QAbstractItemModel>
 #include <QVariant>
+#include <QStringList>
 
 namespace CQChartsUtil {
 
@@ -64,6 +65,10 @@ inline bool toInt(const QString &str, int &i) {
 
 inline QString toString(double r) {
   return CStrUtil::toString(r).c_str();
+}
+
+inline QString toString(long i) {
+  return CStrUtil::toString(i).c_str();
 }
 
 inline bool fileToLines(const QString &filename, QStringList &lines) {

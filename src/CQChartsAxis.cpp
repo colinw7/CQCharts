@@ -75,23 +75,39 @@ void
 CQChartsAxis::
 addProperties(CQPropertyTree *tree, const QString &path)
 {
-  tree->addProperty(path, this, "visible"            );
-  tree->addProperty(path, this, "direction"          );
-  tree->addProperty(path, this, "side"               );
-  tree->addProperty(path, this, "label"              );
-  tree->addProperty(path, this, "labelFont"          );
-  tree->addProperty(path, this, "labelColor"         );
-  tree->addProperty(path, this, "lineDisplayed"      );
-  tree->addProperty(path, this, "lineColor"          );
-  tree->addProperty(path, this, "labelDisplayed"     );
-  tree->addProperty(path, this, "gridColor"          );
-  tree->addProperty(path, this, "gridDisplayed"      );
-  tree->addProperty(path, this, "minorTicksDisplayed");
-  tree->addProperty(path, this, "majorTicksDisplayed");
-  tree->addProperty(path, this, "minorTickLen"       );
-  tree->addProperty(path, this, "majorTickLen"       );
-  tree->addProperty(path, this, "integral"           );
-  tree->addProperty(path, this, "format"             );
+  tree->addProperty(path, this, "visible"  );
+  tree->addProperty(path, this, "direction");
+  tree->addProperty(path, this, "side"     );
+  tree->addProperty(path, this, "integral" );
+  tree->addProperty(path, this, "format"   );
+
+  QString linePath = path + "/line";
+
+  tree->addProperty(linePath, this, "lineDisplayed", "displayed");
+  tree->addProperty(linePath, this, "lineColor"    , "color");
+
+  QString ticksPath = path + "/ticks";
+
+  tree->addProperty(ticksPath, this, "majorTicksDisplayed", "majorDisplayed");
+  tree->addProperty(ticksPath, this, "minorTicksDisplayed", "minorDisplayed");
+  tree->addProperty(ticksPath, this, "majorTickLen"       , "minorLength");
+  tree->addProperty(ticksPath, this, "minorTickLen"       , "minorLength");
+  tree->addProperty(ticksPath, this, "tickLabelDisplayed" , "labelDisplayed");
+
+  QString labelPath = path + "/label";
+
+  tree->addProperty(labelPath, this, "labelDisplayed", "displayed");
+  tree->addProperty(labelPath, this, "label"         , "text");
+  tree->addProperty(labelPath, this, "labelFont"     , "font");
+  tree->addProperty(labelPath, this, "labelColor"    , "color");
+
+  QString gridPath = path + "/grid";
+
+  tree->addProperty(gridPath, this, "gridDisplayed", "displayed");
+  tree->addProperty(gridPath, this, "gridColor"    , "color");
+  tree->addProperty(gridPath, this, "gridDash"     , "dash");
+  tree->addProperty(gridPath, this, "gridWidth"    , "width");
+  tree->addProperty(gridPath, this, "gridAbove"    , "above");
 }
 
 void
@@ -456,20 +472,25 @@ getValueStr(double pos) const
         return typeData->dataName(pos, nameValues);
 
       if (isIntegral()) {
-        int ipos = int(pos);
+        long ipos = long(pos);
 
         if (hasTickLabel(ipos))
           return getTickLabel(ipos);
 
+#if 0
         bool ok;
 
-        QString label = CQChartsUtil::modelString(model, int(pos), column_, ok);
+        QString label = CQChartsUtil::modelString(model, ipos, column_, ok);
 
         if (ok)
           return label;
-      }
+#endif
 
-      return CQChartsUtil::toString(pos);
+        return CQChartsUtil::toString(ipos);
+      }
+      else {
+        return CQChartsUtil::toString(pos);
+      }
     }
     else if (isDataLabels()) {
       int row = int(pos);
@@ -481,14 +502,108 @@ getValueStr(double pos) const
       if (header.isValid())
         return header.toString();
 
-      return CQChartsUtil::toString(pos);
+      if (isIntegral())
+        return CQChartsUtil::toString(long(pos));
+      else
+        return CQChartsUtil::toString(pos);
     }
     else {
-      return CQChartsUtil::toString(pos);
+      if (isIntegral())
+        return CQChartsUtil::toString(long(pos));
+      else
+        return CQChartsUtil::toString(pos);
     }
   }
-  else
-    return CQChartsUtil::toString(pos);
+  else {
+    if (isIntegral())
+      return CQChartsUtil::toString(long(pos));
+    else
+      return CQChartsUtil::toString(pos);
+  }
+}
+
+void
+CQChartsAxis::
+redraw()
+{
+  plot_->update();
+}
+
+void
+CQChartsAxis::
+drawGrid(CQChartsPlot *plot, QPainter *p)
+{
+  if (! getGridDisplayed())
+    return;
+
+  //---
+
+  double amin, amax;
+
+  double ax1, ay1, ax2, ay2;
+
+  if (direction_ == Direction::HORIZONTAL) {
+    amin = getStart();
+    amax = getEnd  ();
+
+    double ymin = plot->dataRange().ymin();
+    double ymax = plot->dataRange().ymax();
+
+    plot->windowToPixel(amin, ymin, ax1, ay1);
+    plot->windowToPixel(amax, ymax, ax2, ay2);
+  }
+  else {
+    amin = getStart();
+    amax = getEnd  ();
+
+    double xmin = plot->dataRange().xmin();
+    double xmax = plot->dataRange().xmax();
+
+    plot->windowToPixel(xmin, amin, ax1, ay1);
+    plot->windowToPixel(xmax, amax, ax2, ay2);
+  }
+
+  //---
+
+  p->save();
+
+  //---
+
+  QPen pen(getGridColor());
+
+  pen.setWidth(getGridWidth());
+
+  CQUtil::penSetLineDash(pen, getGridDash());
+
+  p->setPen(pen);
+
+  double inc = getMajorIncrement();
+
+  double pos1 = start1_;
+
+  for (uint i = 0; i < getNumMajorTicks() + 1; i++) {
+    // draw major line (grid and tick)
+    if (pos1 >= getStart() && pos1 <= getEnd()) {
+      double ppx, ppy;
+
+      plot->windowToPixel(pos1, pos1, ppx, ppy);
+
+      //p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
+
+      if (direction_ == Direction::HORIZONTAL)
+        p->drawLine(ppx, ay1, ppx, ay2);
+      else
+        p->drawLine(ax1, ppy, ax2, ppy);
+    }
+
+    //---
+
+    pos1 += inc;
+  }
+
+  //---
+
+  p->restore();
 }
 
 void
@@ -574,15 +689,6 @@ draw(CQChartsPlot *plot, QPainter *p)
 
       plot->windowToPixel(pos1, pos1, ppx, ppy);
 
-      if (getGridDisplayed()) {
-        p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
-
-        if (direction_ == Direction::HORIZONTAL)
-          p->drawLine(ppx, ay1, ppx, ay2);
-        else
-          p->drawLine(ax1, ppy, ax2, ppy);
-      }
-
       //---
 
       // draw major tick (or minor tick if major ticks off and minor ones on)
@@ -660,7 +766,7 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     //---
 
-    if (getLabelDisplayed()) {
+    if (isTickLabelDisplayed()) {
       // draw major tick label
       if (pos1 >= getStart() && pos1 <= getEnd()) {
         double ppx, ppy;
@@ -736,15 +842,39 @@ draw(CQChartsPlot *plot, QPainter *p)
     pos1 += inc;
   }
 
+  if (direction_ == Direction::HORIZONTAL) {
+    if (getSide() == Side::BOTTOM_LEFT) {
+      if (lmax == INT_MIN)
+        lmax = ay3 + tlen2 + tgap;
+    }
+    else {
+      if (lmin == INT_MAX)
+        lmin = ay3 - tlen2 - tgap;
+    }
+  }
+  else {
+    if (getSide() == Side::BOTTOM_LEFT) {
+      if (lmin == INT_MAX)
+        lmin = ax3 - tlen2 - tgap;
+    }
+    else {
+     if (lmax == INT_MIN)
+        lmax = ax3 + tlen2 + tgap;
+    }
+  }
+
   //---
 
-  if (getLabelDisplayed()) {
+  if (isLabelDisplayed()) {
     QString text = getLabel();
 
     if (text.length()) {
       double tw = fm.width(text);
       double ta = fm.ascent();
       double td = fm.descent();
+
+      p->setPen (getLabelColor());
+      p->setFont(getLabelFont ());
 
       // draw label
       if (direction_ == Direction::HORIZONTAL) {

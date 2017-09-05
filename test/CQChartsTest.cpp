@@ -46,6 +46,8 @@ main(int argc, char **argv)
 {
   CQApp app(argc, argv);
 
+  CQUtil::initProperties();
+
   std::vector<CQChartsTest::InitData> initDatas;
 
   bool overlay = false;

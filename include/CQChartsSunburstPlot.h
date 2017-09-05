@@ -2,6 +2,7 @@
 #define CQChartsSunburstPlot_H
 
 #include <CQChartsPlot.h>
+#include <QModelIndex>
 
 class CQChartsSunburstPlot : public CQChartsPlot {
   Q_OBJECT

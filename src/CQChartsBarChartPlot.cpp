@@ -17,16 +17,9 @@ CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model) :
 
   addTitle();
 
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
-
   xAxis_->setIntegral(true);
   //xAxis_->setDataLabels(true);
   xAxis_->setMinorTicksDisplayed(false);
-
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
-
-  xAxis_->setLabel(xname);
 }
 
 void
@@ -189,6 +182,17 @@ updateRange()
   else {
     dataRange_.updateRange(0.5, 1.0);
   }
+
+  //---
+
+  xAxis_->setColumn(xColumn_);
+  yAxis_->setColumn(yColumn_);
+
+  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
+
+  xAxis_->setLabel(xname);
+
+  //---
 
   applyDataRange();
 }
@@ -436,9 +440,11 @@ draw(QPainter *p)
 
   drawBackground(p);
 
+  drawBgAxes(p);
+
   drawObjs(p);
 
-  drawAxes(p);
+  drawFgAxes(p);
 
   //---
 

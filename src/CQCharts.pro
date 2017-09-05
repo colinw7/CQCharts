@@ -42,6 +42,10 @@ CQChartsTree.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsTsv.cpp \
 CQChartsView.cpp \
+CQChartsViewExpander.cpp \
+CQChartsViewSettings.cpp \
+CQChartsViewStatus.cpp \
+CQChartsViewToolBar.cpp \
 CQChartsXYPlot.cpp \
 \
 CQHeaderView.cpp \
@@ -85,6 +89,10 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsView.h \
+../include/CQChartsViewExpander.h \
+../include/CQChartsViewSettings.h \
+../include/CQChartsViewStatus.h \
+../include/CQChartsViewToolBar.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CSymbolType.h \

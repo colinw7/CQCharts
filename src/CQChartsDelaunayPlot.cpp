@@ -14,9 +14,6 @@ CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
   addAxes();
-
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
 }
 
 void
@@ -180,6 +177,8 @@ draw(QPainter *p)
 
   drawBackground(p);
 
+  drawBgAxes(p);
+
   //---
 
   drawObjs(p);
@@ -193,7 +192,7 @@ draw(QPainter *p)
 
   //---
 
-  drawAxes(p);
+  drawFgAxes(p);
 }
 
 void

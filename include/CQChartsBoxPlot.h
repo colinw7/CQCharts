@@ -5,6 +5,7 @@
 #include <CBoxWhisker.h>
 
 #include <CQChartsPlotObj.h>
+#include <map>
 
 class CQChartsBoxPlot;
 

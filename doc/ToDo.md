@@ -26,11 +26,13 @@ Axes
 
 Title
  + Config
+ + Overlap with Axis/Key
 
 Plots
  + Radar
  + Stacked Pie
  + Force Directed
+ + Context Menu
 
 Mouse Over
  + Allow Disable
@@ -44,6 +46,7 @@ Key
  + Inside/Outside
  + No Zoom
  + Symbols in Key
+ + Overlap with Axis/Title
 
 Overlay
  + Share Key

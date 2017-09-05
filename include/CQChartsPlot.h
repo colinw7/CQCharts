@@ -222,7 +222,17 @@ class CQChartsPlot : public QObject {
 
   void keyPress(int key);
 
+  void panLeft ();
+  void panRight();
+  void panUp   ();
+  void panDown ();
+
   void zoomTo(const CBBox2D &bbox);
+  void zoomIn();
+  void zoomOut();
+  void zoomFull();
+
+  void updateTransform();
 
   virtual bool interpY(double /*x*/, std::vector<double> & /*y*/) const { return false; }
 
@@ -244,7 +254,8 @@ class CQChartsPlot : public QObject {
 
   void drawObjs(QPainter *painter);
 
-  void drawAxes(QPainter *painter);
+  void drawBgAxes(QPainter *painter);
+  void drawFgAxes(QPainter *painter);
 
   void drawKey(QPainter *painter);
 
