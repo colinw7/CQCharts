@@ -82,14 +82,18 @@ void
 CQChartsKey::
 addProperties(CQPropertyTree *tree, const QString &path)
 {
-  tree->addProperty(path, this, "visible" );
-  tree->addProperty(path, this, "location");
-  tree->addProperty(path, this, "insideX" );
-  tree->addProperty(path, this, "insideY" );
-  tree->addProperty(path, this, "spacing" );
-  tree->addProperty(path, this, "font"    );
+  tree->addProperty(path, this, "visible"  );
+  tree->addProperty(path, this, "location" );
+  tree->addProperty(path, this, "insideX"  );
+  tree->addProperty(path, this, "insideY"  );
+  tree->addProperty(path, this, "spacing"  );
 
   CQChartsBoxObj::addProperties(tree, path);
+
+  QString textPath = path + "/text";
+
+  tree->addProperty(textPath, this, "textColor", "color");
+  tree->addProperty(textPath, this, "textFont" , "font" );
 }
 
 void
@@ -411,7 +415,7 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetrics fm(key_->font());
+  QFontMetrics fm(key_->textFont());
 
   double w = fm.width(text_);
   double h = fm.height();
@@ -428,7 +432,7 @@ draw(QPainter *p, const CBBox2D &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
-  p->setFont(key_->font());
+  p->setFont(key_->textFont());
 
   QFontMetrics fm(p->font());
 
@@ -445,7 +449,7 @@ QColor
 CQChartsKeyText::
 textColor() const
 {
-  return Qt::black;
+  return key_->textColor();
 }
 
 //------
@@ -462,7 +466,7 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetrics fm(key_->font());
+  QFontMetrics fm(key_->textFont());
 
   double h = fm.height();
 

@@ -18,12 +18,13 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible  READ isVisible   WRITE setVisible    )
-  Q_PROPERTY(QString location READ locationStr WRITE setLocationStr)
-  Q_PROPERTY(bool    insideX  READ isInsideX   WRITE setInsideX    )
-  Q_PROPERTY(bool    insideY  READ isInsideY   WRITE setInsideY    )
-  Q_PROPERTY(int     spacing  READ spacing     WRITE setSpacing    )
-  Q_PROPERTY(QFont   font     READ font        WRITE setFont       )
+  Q_PROPERTY(bool    visible   READ isVisible   WRITE setVisible    )
+  Q_PROPERTY(QString location  READ locationStr WRITE setLocationStr)
+  Q_PROPERTY(bool    insideX   READ isInsideX   WRITE setInsideX    )
+  Q_PROPERTY(bool    insideY   READ isInsideY   WRITE setInsideY    )
+  Q_PROPERTY(int     spacing   READ spacing     WRITE setSpacing    )
+  Q_PROPERTY(QColor  textColor READ textColor   WRITE setTextColor  )
+  Q_PROPERTY(QFont   textFont  READ textFont    WRITE setTextFont   )
 
  public:
   enum Location {
@@ -58,8 +59,11 @@ class CQChartsKey : public CQChartsBoxObj {
   int spacing() const { return spacing_; }
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
 
-  const QFont &font() const { return font_; }
-  void setFont(const QFont &v) { font_ = v; updateLayout(); }
+  const QColor &textColor() const { return textColor_; }
+  void setTextColor(const QColor &v) { textColor_ = v; updateLayout(); }
+
+  const QFont &textFont() const { return textFont_; }
+  void setTextFont(const QFont &v) { textFont_ = v; updateLayout(); }
 
   QString locationStr() const;
   void setLocationStr(const QString &s);
@@ -118,7 +122,8 @@ class CQChartsKey : public CQChartsBoxObj {
   bool            insideX_     { true };
   bool            insideY_     { true };
   int             spacing_     { 2 };
-  QFont           font_;
+  QColor          textColor_;
+  QFont           textFont_;
   Items           items_;
   int             maxRow_      { 0 };
   int             maxCol_      { 0 };

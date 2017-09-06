@@ -12,7 +12,10 @@ addProperties(CQPropertyTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "margin"     );
   tree->addProperty(path, this, "background" );
-  tree->addProperty(path, this, "border"     );
-  tree->addProperty(path, this, "borderColor");
-  tree->addProperty(path, this, "borderWidth");
+
+  QString borderPath = path + "/border";
+
+  tree->addProperty(borderPath, this, "border"     , "displayed");
+  tree->addProperty(borderPath, this, "borderColor", "color"    );
+  tree->addProperty(borderPath, this, "borderWidth", "width"    );
 }

@@ -58,13 +58,16 @@ CQChartsTitle::
 addProperties(CQPropertyTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible" );
-  tree->addProperty(path, this, "text"    );
-  tree->addProperty(path, this, "font"    );
-  tree->addProperty(path, this, "color"   );
   tree->addProperty(path, this, "location");
   tree->addProperty(path, this, "inside"  );
 
   CQChartsBoxObj::addProperties(tree, path);
+
+  QString textPath = path + "/text";
+
+  tree->addProperty(textPath, this, "text" );
+  tree->addProperty(textPath, this, "font" );
+  tree->addProperty(textPath, this, "color");
 }
 
 QSizeF

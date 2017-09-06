@@ -47,6 +47,7 @@ Key
  + No Zoom
  + Symbols in Key
  + Overlap with Axis/Title
+ + Title
 
 Overlay
  + Share Key
