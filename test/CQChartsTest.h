@@ -51,6 +51,10 @@ class CQChartsTest : public CQAppWindow {
     COptReal             xmin, ymin, xmax, ymax;
     bool                 y1y2            { false };
     bool                 overlay         { false };
+    int                  nr              { 1 };
+    int                  nc              { 1 };
+    double               dx              { 1000 };
+    double               dy              { 1000 };
 
     QString arg(int i) const {
       auto p = argMap.find(i);
@@ -77,7 +81,9 @@ class CQChartsTest : public CQAppWindow {
   void loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   void loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   void loadJson(const QString &filename);
-  void loadData(const QString &filename);
+  void loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
+
+  bool initPlot(const InitData &initData);
 
   CQChartsPlot *init(const InitData &initData, int i);
 
@@ -213,6 +219,10 @@ class CQChartsTest : public CQAppWindow {
     QLineEdit* valueEdit { nullptr };
   };
 
+  typedef std::vector<CQChartsPlot *> Plots;
+
+  Plots                     plots_;
+  CQChartsPlot*             rootPlot_          { nullptr };
   CQCharts*                 charts_            { nullptr };
   QAbstractItemModel*       model_             { nullptr };
   PieChartData              pieChartData_;

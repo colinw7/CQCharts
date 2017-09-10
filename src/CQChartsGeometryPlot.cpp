@@ -78,6 +78,9 @@ updateRange()
     if (! ok)
       geometry.value = i;
 
+    if (CQChartsUtil::isNaN(geometry.value))
+      continue;
+
     if (i == 0) {
       minValue_ = geometry.value;
       maxValue_ = geometry.value;
@@ -94,7 +97,7 @@ updateRange()
 
   //---
 
-  //displayRange_.setEqualScale(true);
+  //setEqualScale(true);
 
   applyDataRange();
 }

@@ -15,7 +15,7 @@ addProperties(CQPropertyTree *tree, const QString &path)
 
   QString borderPath = path + "/border";
 
-  tree->addProperty(borderPath, this, "border"     , "displayed");
-  tree->addProperty(borderPath, this, "borderColor", "color"    );
-  tree->addProperty(borderPath, this, "borderWidth", "width"    );
+  tree->addProperty(borderPath, this, "border"     , "visible");
+  tree->addProperty(borderPath, this, "borderColor", "color"  );
+  tree->addProperty(borderPath, this, "borderWidth", "width"  );
 }

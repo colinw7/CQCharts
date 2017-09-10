@@ -23,16 +23,35 @@ class QRubberBand;
 class CQChartsPlot : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QColor  background   READ background    WRITE setBackground  )
-  Q_PROPERTY(QRectF  rect         READ rect          WRITE setRect        )
-  Q_PROPERTY(QRectF  range        READ range         WRITE setRange       )
-  Q_PROPERTY(double  marginLeft   READ marginLeft    WRITE setMarginLeft  )
-  Q_PROPERTY(double  marginTop    READ marginTop     WRITE setMarginTop   )
-  Q_PROPERTY(double  marginRight  READ marginRight   WRITE setMarginRight )
-  Q_PROPERTY(double  marginBottom READ marginBottom  WRITE setMarginBottom)
-  Q_PROPERTY(QString title        READ title         WRITE setTitle       )
-  Q_PROPERTY(bool    followMouse  READ isFollowMouse WRITE setFollowMouse )
-  Q_PROPERTY(bool    showBoxes    READ showBoxes     WRITE setShowBoxes   )
+  Q_PROPERTY(QRectF  rect                READ rect                WRITE setRect               )
+  Q_PROPERTY(QRectF  range               READ range               WRITE setRange              )
+  Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
+  Q_PROPERTY(double  marginTop           READ marginTop           WRITE setMarginTop          )
+  Q_PROPERTY(double  marginRight         READ marginRight         WRITE setMarginRight        )
+  Q_PROPERTY(double  marginBottom        READ marginBottom        WRITE setMarginBottom       )
+  Q_PROPERTY(QString title               READ title               WRITE setTitle              )
+
+  // plot area
+  Q_PROPERTY(bool    background          READ isBackground        WRITE setBackground         )
+  Q_PROPERTY(QColor  backgroundColor     READ backgroundColor     WRITE setBackgroundColor    )
+  Q_PROPERTY(bool    border              READ isBorder            WRITE setBorder             )
+  Q_PROPERTY(QColor  borderColor         READ borderColor         WRITE setBorderColor        )
+  Q_PROPERTY(double  borderWidth         READ borderWidth         WRITE setBorderWidth        )
+  Q_PROPERTY(QString borderSides         READ borderSides         WRITE setBorderSides        )
+  Q_PROPERTY(bool    clip                READ isClip              WRITE setClip               )
+
+  // data area
+  Q_PROPERTY(bool    dataBackground      READ isDataBackground    WRITE setDataBackground     )
+  Q_PROPERTY(QColor  dataBackgroundColor READ dataBackgroundColor WRITE setDataBackgroundColor)
+  Q_PROPERTY(bool    dataBorder          READ isDataBorder        WRITE setDataBorder         )
+  Q_PROPERTY(QColor  dataBorderColor     READ dataBorderColor     WRITE setDataBorderColor    )
+  Q_PROPERTY(double  dataBorderWidth     READ dataBorderWidth     WRITE setDataBorderWidth    )
+  Q_PROPERTY(QString dataBorderSides     READ dataBorderSides     WRITE setDataBorderSides    )
+  Q_PROPERTY(bool    dataClip            READ isDataClip          WRITE setDataClip           )
+
+  Q_PROPERTY(bool    equalScale          READ isEqualScale        WRITE setEqualScale         )
+  Q_PROPERTY(bool    followMouse         READ isFollowMouse       WRITE setFollowMouse        )
+  Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
 
  public:
   typedef std::vector<int> Columns;
@@ -46,12 +65,10 @@ class CQChartsPlot : public QObject {
   };
 
   struct OtherPlot {
-    CQChartsPlot *plot { nullptr };
-    int           ind  { -1 };
+    CQChartsPlot *next { nullptr };
+    CQChartsPlot *prev { nullptr };
 
-    OtherPlot(CQChartsPlot *plot=nullptr, int ind=-1) :
-     plot(plot), ind(ind) {
-    }
+    OtherPlot() { }
   };
 
  public:
@@ -70,6 +87,8 @@ class CQChartsPlot : public QObject {
   const QString &id() const { return id_; }
   void setId(const QString &v) { id_ = v; }
 
+  //---
+
   const CDisplayRange2D &displayRange() const { return displayRange_; }
   void setDisplayRange(const CDisplayRange2D &v) { displayRange_ = v; }
 
@@ -78,6 +97,14 @@ class CQChartsPlot : public QObject {
 
   const CRange2D &dataRange() const { return dataRange_; }
   void setDataRange(const CRange2D &r) { dataRange_ = r; }
+
+  double dataScale() const { return dataScale_; }
+  void setDataScale(double r) { dataScale_ = r; }
+
+  const CPoint2D &dataOffset() const { return dataOffset_; }
+  void setDataOffset(const CPoint2D &v) { dataOffset_ = v; }
+
+  //---
 
   CGradientPalette *palette() const { return palette_; }
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
@@ -94,11 +121,59 @@ class CQChartsPlot : public QObject {
   const COptReal &ymax() const { return ymax_; }
   void setYMax(const COptReal &r) { ymax_ = r; }
 
-  const QColor &background() const { return background_; }
-  void setBackground(const QColor &v) { background_ = v; update(); }
-
   const QString &title() const { return title_; }
   void setTitle(const QString &v);
+
+  //---
+
+  bool isBackground() const { return background_; }
+  void setBackground(bool b) { background_ = b; update(); }
+
+  const QColor &backgroundColor() const { return backgroundColor_; }
+  void setBackgroundColor(const QColor &v) { backgroundColor_ = v; update(); }
+
+  bool isBorder() const { return border_; }
+  void setBorder(bool b) { border_ = b; update(); }
+
+  const QColor &borderColor() const { return borderColor_; }
+  void setBorderColor(const QColor &v) { borderColor_ = v; update(); }
+
+  double borderWidth() const { return borderWidth_; }
+  void setBorderWidth(double r) { borderWidth_ = r; update(); }
+
+  const QString &borderSides() const { return borderSides_; }
+  void setBorderSides(const QString &v) { borderSides_ = v; update(); }
+
+  bool isClip() const { return clip_; }
+  void setClip(bool b) { clip_ = b; update(); }
+
+  //---
+
+  bool isDataBackground() const { return dataBackground_; }
+  void setDataBackground(bool b) { dataBackground_ = b; update(); }
+
+  const QColor &dataBackgroundColor() const { return dataBackgroundColor_; }
+  void setDataBackgroundColor(const QColor &c) { dataBackgroundColor_ = c; update(); }
+
+  bool isDataBorder() const { return dataBorder_; }
+  void setDataBorder(bool b) { dataBorder_ = b; update(); }
+
+  const QColor &dataBorderColor() const { return dataBorderColor_; }
+  void setDataBorderColor(const QColor &c) { dataBorderColor_ = c; update(); }
+
+  double dataBorderWidth() const { return dataBorderWidth_; }
+  void setDataBorderWidth(double r) { dataBorderWidth_ = r; update(); }
+
+  const QString &dataBorderSides() const { return dataBorderSides_; }
+  void setDataBorderSides(const QString &s) { dataBorderSides_ = s; update(); }
+
+  bool isDataClip() const { return dataClip_; }
+  void setDataClip(bool b) { dataClip_ = b; update(); }
+
+  //---
+
+  bool isEqualScale() const { return equalScale_; }
+  void setEqualScale(bool b);
 
   bool isFollowMouse() const { return followMouse_; }
   void setFollowMouse(bool b) { followMouse_ = b; }
@@ -143,6 +218,8 @@ class CQChartsPlot : public QObject {
 
   CQChartsTitle *titleObj() const { return titleObj_; }
 
+  //---
+
   CQChartsPlot *rootPlot() const { return rootPlot_; }
 
   void setRootPlot(CQChartsPlot *plot) {
@@ -157,15 +234,36 @@ class CQChartsPlot : public QObject {
     refPlots_.push_back(plot);
   }
 
-  CQChartsPlot *otherPlot() const { return otherPlot_.plot; }
+  CQChartsPlot *prevPlot() const { return otherPlot_.prev; }
+  CQChartsPlot *nextPlot() const { return otherPlot_.next; }
 
-  int otherPlotInd() const { return otherPlot_.ind; }
+  void setNextPlot(CQChartsPlot *plot) {
+    assert(! otherPlot_.next);
 
-  void setOtherPlot(CQChartsPlot *plot, int ind) {
-    assert(! otherPlot_.plot);
-
-    otherPlot_ = OtherPlot(plot, ind);
+    otherPlot_.next = plot;
   }
+
+  void setPrevPlot(CQChartsPlot *plot) {
+    assert(! otherPlot_.prev);
+
+    otherPlot_.prev = plot;
+  }
+
+  CQChartsPlot *firstPlot() {
+    if (otherPlot_.prev)
+      return otherPlot_.prev->firstPlot();
+
+    return this;
+  }
+
+  CQChartsPlot *lastPlot() {
+    if (otherPlot_.next)
+      return otherPlot_.next->lastPlot();
+
+    return this;
+  }
+
+  //---
 
   virtual void addProperties();
 
@@ -197,6 +295,8 @@ class CQChartsPlot : public QObject {
 
   void addTitle();
 
+  CBBox2D calcDataRange() const;
+
   void applyDataRange(bool propagate=true);
 
   void applyDisplayTransform(bool propagate=true);
@@ -217,7 +317,7 @@ class CQChartsPlot : public QObject {
   QString yStr(double x) const;
 
   bool mousePress  (const CPoint2D &p);
-  void mouseMove   (const CPoint2D &p);
+  bool mouseMove   (const CPoint2D &p);
   void mouseRelease(const CPoint2D &p);
 
   void keyPress(int key);
@@ -228,8 +328,8 @@ class CQChartsPlot : public QObject {
   void panDown ();
 
   void zoomTo(const CBBox2D &bbox);
-  void zoomIn();
-  void zoomOut();
+  void zoomIn(double f=1.5);
+  void zoomOut(double f=1.5);
   void zoomFull();
 
   void updateTransform();
@@ -246,11 +346,18 @@ class CQChartsPlot : public QObject {
 
   void drawBackground(QPainter *painter);
 
+  void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
+                 double width, const QColor &color);
+
   QRectF calcRect() const;
 
   CBBox2D calcPixelRect() const;
 
   void autoFit();
+
+  void setFixBBox(const CBBox2D &bbox);
+
+  CBBox2D fitBBox() const;
 
   void drawObjs(QPainter *painter);
 
@@ -297,27 +404,46 @@ class CQChartsPlot : public QObject {
     bool   pressed { false };
   };
 
-  CQChartsView*         view_          { nullptr };
-  QAbstractItemModel*   model_         { nullptr };
+  CQChartsView*         view_                { nullptr };
+  QAbstractItemModel*   model_               { nullptr };
   QString               id_;
-  CBBox2D               bbox_          { 0, 0, 1000, 1000 };
+  CBBox2D               bbox_                { 0, 0, 1000, 1000 };
   Margin                margin_;
   CDisplayRange2D       displayRange_;
   CDisplayTransform2D   displayTransform_;
   CRange2D              dataRange_;
-  COptReal              xmin_, ymin_, xmax_, ymax_;
-  CGradientPalette*     palette_       { nullptr };
-  QColor                background_    { 255, 255, 255 };
+  double                dataScale_           { 1.0 };
+  CPoint2D              dataOffset_          { 0.0, 0.0 };
+  COptReal              xmin_;
+  COptReal              ymin_;
+  COptReal              xmax_;
+  COptReal              ymax_;
+  CGradientPalette*     palette_             { nullptr };
+  bool                  background_          { true };
+  QColor                backgroundColor_     { 255, 255, 255 };
+  bool                  border_              { false };
+  QColor                borderColor_         { 0, 0, 0 };
+  double                borderWidth_         { 0.0 };
+  QString               borderSides_         { "tlbr" };
+  bool                  clip_                { true };
+  bool                  dataBackground_      { true };
+  QColor                dataBackgroundColor_ { 255, 255, 255 };
+  bool                  dataBorder_          { false };
+  QColor                dataBorderColor_     { 0, 0, 0 };
+  double                dataBorderWidth_     { 0.0 };
+  QString               dataBorderSides_     { "tlbr" };
+  bool                  dataClip_            { false };
   QString               title_;
-  CQChartsAxis*         xAxis_         { nullptr };
-  CQChartsAxis*         yAxis_         { nullptr };
-  CQChartsKey*          keyObj_        { nullptr };
-  CQChartsTitle*        titleObj_      { nullptr };
-  int                   xValueColumn_  { -1 };
-  int                   yValueColumn_  { -1 };
-  bool                  followMouse_   { true };
-  bool                  showBoxes_     { false };
-  CQChartsPlot*         rootPlot_      { nullptr };
+  CQChartsAxis*         xAxis_               { nullptr };
+  CQChartsAxis*         yAxis_               { nullptr };
+  CQChartsKey*          keyObj_              { nullptr };
+  CQChartsTitle*        titleObj_            { nullptr };
+  int                   xValueColumn_        { -1 };
+  int                   yValueColumn_        { -1 };
+  bool                  equalScale_          { false };
+  bool                  followMouse_         { true };
+  bool                  showBoxes_           { false };
+  CQChartsPlot*         rootPlot_            { nullptr };
   OtherPlot             otherPlot_;
   RefPlots              refPlots_;
   PlotObjs              plotObjs_;

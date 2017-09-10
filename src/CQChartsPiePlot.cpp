@@ -39,7 +39,7 @@ updateRange()
 
   applyDataRange();
 
-  displayRange_.setEqualScale(true);
+  setEqualScale(true);
 }
 
 void
@@ -101,6 +101,9 @@ initObjs(bool force)
     if (! ok)
       value = i;
 
+    if (CQChartsUtil::isNaN(value))
+      continue;
+
     total += value;
   }
 
@@ -123,6 +126,9 @@ initObjs(bool force)
     double  value = CQChartsUtil::modelReal  (model_, yind, ok2);
 
     if (! ok2) value = i;
+
+    if (CQChartsUtil::isNaN(value))
+      continue;
 
     double angle  = 360.0*value/total;
     double angle2 = angle1 - angle;

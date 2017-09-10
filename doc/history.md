@@ -38,3 +38,12 @@
  + allow grid draw front/back
  + fix axis column update
  + split view widgets to separate files
+## 9/12/2017
+ + Add types for real, integer, string
+ + Key above/below
+ + Support zoom on data (with overlay plot)
+ + Add plot/data background border/color
+ + Add plot/data clip
+ + Add border individual side drawing
+ + Support NaN values
+ + Add objects for Sunburst plot

@@ -34,6 +34,8 @@ CQChartsModel.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
 CQChartsPlot.cpp \
+CQChartsPlotSymbol2DRenderer.cpp \
+CQChartsProbeBand.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTable.cpp \
@@ -46,6 +48,7 @@ CQChartsViewExpander.cpp \
 CQChartsViewSettings.cpp \
 CQChartsViewStatus.cpp \
 CQChartsViewToolBar.cpp \
+CQChartsViewToolTip.cpp \
 CQChartsXYPlot.cpp \
 \
 CQHeaderView.cpp \
@@ -79,6 +82,8 @@ HEADERS += \
 ../include/CQChartsPiePlot.h \
 ../include/CQChartsPlot.h \
 ../include/CQChartsPlotObj.h \
+../include/CQChartsPlotSymbol2DRenderer.h \
+../include/CQChartsProbeBand.h \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
@@ -93,6 +98,7 @@ HEADERS += \
 ../include/CQChartsViewSettings.h \
 ../include/CQChartsViewStatus.h \
 ../include/CQChartsViewToolBar.h \
+../include/CQChartsViewToolTip.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CSymbolType.h \

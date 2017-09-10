@@ -9,6 +9,7 @@ class CQChartsViewExpander;
 class CQChartsViewStatus;
 class CQChartsViewSettings;
 class CQChartsViewToolBar;
+class CQChartsProbeBand;
 
 class CQPropertyTree;
 class CQGradientPalette;
@@ -22,6 +23,10 @@ class CQChartsView : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(QColor background READ background WRITE setBackground)
+  Q_PROPERTY(Mode   mode       READ mode       WRITE setMode      )
+  Q_PROPERTY(bool   zoomData   READ isZoomData WRITE setZoomData  )
+
+  Q_ENUMS(Mode)
 
  public:
   enum class Mode {
@@ -44,7 +49,10 @@ class CQChartsView : public QFrame {
   void setBackground(const QColor &v) { background_ = v; update(); }
 
   const Mode &mode() const { return mode_; }
-  void setMode(const Mode &v) { mode_ = v; }
+  void setMode(const Mode &v);
+
+  bool isZoomData() const { return zoomData_; }
+  void setZoomData(bool b) { zoomData_ = b; }
 
   void updateMargins();
 
@@ -73,6 +81,8 @@ class CQChartsView : public QFrame {
   CQChartsPlot *plotAt(const CPoint2D &p) const;
 
   bool plotsAt(const CPoint2D &p, Plots &plots) const;
+
+  CBBox2D plotBBox(CQChartsPlot *plot) const;
 
   void setStatusText(const QString &text);
 
@@ -106,24 +116,10 @@ class CQChartsView : public QFrame {
     QPoint pressPoint;
     QPoint movePoint;
     bool   pressed { false };
+    bool   escape  { false };
   };
 
-  class ProbeBand {
-   public:
-    ProbeBand(CQChartsView *view);
-   ~ProbeBand();
-
-    void show(const QString &text, double px, double py1, double py2);
-    void hide();
-
-   private:
-    CQChartsView* view_  { nullptr };
-    QRubberBand*  vband_ { nullptr };
-    QRubberBand*  hband_ { nullptr };
-    QLabel*       tip_   { nullptr };
-  };
-
-  typedef std::vector<ProbeBand *> ProbeBands;
+  typedef std::vector<CQChartsProbeBand *> ProbeBands;
 
   QWidget*              parent_        { nullptr };
   CDisplayRange2D       displayRange_;
@@ -132,6 +128,7 @@ class CQChartsView : public QFrame {
   QColor                background_    { 255, 255, 255 };
   PlotDatas             plotDatas_;
   Mode                  mode_          { Mode::SELECT };
+  bool                  zoomData_      { true };
   CQChartsViewStatus*   status_        { nullptr };
   CQChartsViewToolBar*  toolbar_       { nullptr };
   CBBox2D               prect_         { 0, 0, 100, 100 };

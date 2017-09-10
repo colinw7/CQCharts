@@ -3,11 +3,12 @@
 #include <CQChartsViewSettings.h>
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
+#include <CQChartsViewToolTip.h>
+#include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
 #include <CQPropertyTree.h>
 #include <CQGradientPalette.h>
 #include <CQGradientPaletteControl.h>
-#include <CQToolTip.h>
 #include <CQUtil.h>
 
 #include <svg/select_svg.h>
@@ -16,97 +17,18 @@
 #include <svg/zoom_fit_svg.h>
 
 #include <QToolButton>
-#include <QLabel>
 #include <QHBoxLayout>
 #include <QRubberBand>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPainter>
 
-class CQChartsViewToolTip : public CQToolTipIFace {
- public:
-  CQChartsViewToolTip(CQChartsView *view) :
-   view_(view) {
-  }
-
- ~CQChartsViewToolTip() {
-    delete widget_;
-  }
-
-  QWidget *showWidget(const QPoint &gpos) override {
-    if (! widget_)
-      widget_ = new QLabel;
-
-    if (! updateWidget(gpos))
-      return nullptr;
-
-    return widget_;
-  }
-
-  void hideWidget() override {
-    delete widget_;
-
-    widget_ = 0;
-  }
-
-  bool trackMouse() const override { return true; }
-
-  bool updateWidget(const QPoint &gpos) override {
-    if (! widget_) return false;
-
-    QPoint p = view_->mapFromGlobal(gpos);
-
-    double wx, wy;
-
-    view_->pixelToWindow(p.x(), p.y(), wx, wy);
-
-    CQChartsView::Plots plots;
-
-    view_->plotsAt(CPoint2D(wx, wy), plots);
-
-    if (plots.empty())
-      return false;
-
-    QString tip;
-
-    for (const auto &plot : plots) {
-      CPoint2D w;
-
-      plot->pixelToWindow(CQUtil::fromQPoint(QPointF(p)), w);
-
-      QString tip1;
-
-      if (plot->tipText(w, tip1)) {
-        if (tip.length())
-          tip += "\n";
-
-        tip += tip1;
-      }
-    }
-
-    if (! tip.length())
-      return false;
-
-    widget_->setText(tip);
-
-    return true;
-  }
-
-  QSize sizeHint() const override {
-    return widget_->sizeHint();
-  }
-
- private:
-  CQChartsView* view_   { nullptr };
-  QLabel*       widget_ { nullptr };
-};
-
-//------
-
 CQChartsView::
 CQChartsView(QWidget *parent) :
  parent_(parent)
 {
+  setObjectName("view");
+
   setMouseTracking(true);
 
   setFocusPolicy(Qt::StrongFocus);
@@ -125,6 +47,8 @@ CQChartsView(QWidget *parent) :
   //---
 
   addProperty("", this, "background");
+  addProperty("", this, "mode"      );
+  addProperty("", this, "zoomData"  );
 
   //---
 
@@ -136,6 +60,10 @@ CQChartsView(QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
+  delete expander_;
+  delete settings_;
+  delete status_;
+  delete toolbar_;
 }
 
 CQPropertyTree *
@@ -143,6 +71,26 @@ CQChartsView::
 propertyTree() const
 {
   return settings_->propertyTree();
+}
+
+void
+CQChartsView::
+setMode(const Mode &mode)
+{
+  if (mode != mode_) {
+    if      (mode_ == Mode::PROBE) {
+      for (int i = 0; i < int(probeBands_.size()); ++i)
+        probeBands_[i]->hide();
+    }
+    else if (mode_ == Mode::ZOOM) {
+      if (zoomBand_)
+        zoomBand_->hide();
+    }
+
+    mode_ = mode;
+
+    toolbar_->updateMode();
+  }
 }
 
 void
@@ -178,6 +126,7 @@ mousePressEvent(QMouseEvent *me)
   if (me->button() == Qt::LeftButton) {
     mouseData_.pressPoint = me->pos();
     mouseData_.pressed    = true;
+    mouseData_.escape     = false;
 
     if      (mode_ == Mode::SELECT) {
       CPoint2D w = pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())));
@@ -225,26 +174,30 @@ mouseMoveEvent(QMouseEvent *me)
 
       plot->pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())), w);
 
-      plot->mouseMove(w);
+      if (plot->mouseMove(w))
+        break;
     }
   }
   else if (mode_ == Mode::ZOOM) {
     if (mouseData_.pressed) {
       mouseData_.movePoint = me->pos();
 
-      zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
+      if (mouseData_.escape)
+        zoomBand_->hide();
+      else
+        zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
     }
   }
   else if (mode_ == Mode::PROBE) {
-    auto addProbeBand = [&](int &ind, const QString &tip, double px,
+    auto addProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip, double px,
                             double py1, double py2) -> void {
       while (ind >= int(probeBands_.size())) {
-        ProbeBand *probeBand = new ProbeBand(this);
+        CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
 
         probeBands_.push_back(probeBand);
       }
 
-      probeBands_[ind]->show(tip, px, py1, py2);
+      probeBands_[ind]->show(plot, tip, px, py1, py2);
 
       ++ind;
     };
@@ -269,9 +222,11 @@ mouseMoveEvent(QMouseEvent *me)
       if (! plot->interpY(w.x, yvals1))
         continue;
 
+      CBBox2D dataRange = plot->calcDataRange();
+
       CPoint2D p1;
 
-      plot->windowToPixel(CPoint2D(w.x, plot->dataRange().ymin()), p1);
+      plot->windowToPixel(CPoint2D(w.x, dataRange.getYMin()), p1);
 
       for (const auto &y1 : yvals1) {
         CPoint2D p2;
@@ -280,7 +235,7 @@ mouseMoveEvent(QMouseEvent *me)
 
         QString tip = QString("%1").arg(y1);
 
-        addProbeBand(probeInd, tip, px, p1.y, p2.y);
+        addProbeBand(probeInd, plot, tip, px, p1.y, p2.y);
       }
     }
 
@@ -310,15 +265,19 @@ mouseReleaseEvent(QMouseEvent *me)
 
       zoomBand_->hide();
 
-      for (auto &plot : mouseData_.plots) {
-        CPoint2D w1, w2;
+      if (! mouseData_.escape) {
+        if (! mouseData_.plots.empty()) {
+          CQChartsPlot *plot = mouseData_.plots[0]->firstPlot();
 
-        plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.pressPoint), w1);
-        plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.movePoint ), w2);
+          CPoint2D w1, w2;
 
-        CBBox2D bbox(w1, w2);
+          plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.pressPoint), w1);
+          plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.movePoint ), w2);
 
-        plot->zoomTo(bbox);
+          CBBox2D bbox(w1, w2);
+
+          plot->zoomTo(bbox);
+        }
       }
     }
   }
@@ -332,19 +291,31 @@ void
 CQChartsView::
 keyPressEvent(QKeyEvent *ke)
 {
+  if (ke->key() == Qt::Key_Escape) {
+     mouseData_.escape = true;
+
+    if      (mode() == Mode::ZOOM) {
+      if (mouseData_.pressed)
+        zoomBand_->hide();
+      else
+        setMode(Mode::SELECT);
+    }
+    else if (mode() == Mode::PROBE)
+      setMode(Mode::SELECT);
+
+    return;
+  }
+
   QPoint gpos = QCursor::pos();
 
   QPointF pos = mapFromGlobal(gpos);
 
   CPoint2D w = pixelToWindow(CQUtil::fromQPoint(pos));
 
-  Plots plots;
+  CQChartsPlot *plot = plotAt(w);
 
-  if (plotsAt(w, plots)) {
-    CQChartsPlot *plot = plots[0];
-
+  if (plot)
     plot->keyPress(ke->key());
-  }
 }
 
 void
@@ -393,6 +364,7 @@ updateGeometry()
   //---
 
   toolbar_->move(0, 0);
+  toolbar_->resize(width(), toolBarHeight_);
 
   //---
 
@@ -438,7 +410,9 @@ plotAt(const CPoint2D &p) const
   if (! plotsAt(p, plots))
     return nullptr;
 
-  return plots[0];
+  CQChartsPlot *plot = plots[0];
+
+  return plot->firstPlot();
 }
 
 bool
@@ -450,6 +424,17 @@ plotsAt(const CPoint2D &p, Plots &plots) const
       plots.push_back(plot.plot);
 
   return ! plots.empty();
+}
+
+CBBox2D
+CQChartsView::
+plotBBox(CQChartsPlot *plot) const
+{
+  for (const auto &plotData : plotDatas_)
+    if (plotData.plot == plot)
+      return plotData.bbox;
+
+  return CBBox2D();
 }
 
 void
@@ -524,60 +509,4 @@ CQChartsView::
 sizeHint() const
 {
   return QSize(1280, 1024);
-}
-
-//---
-
-CQChartsView::ProbeBand::
-ProbeBand(CQChartsView *view) :
- view_(view)
-{
-  vband_ = new QRubberBand(QRubberBand::Line, view);
-  hband_ = new QRubberBand(QRubberBand::Line, view);
-  tip_   = new QLabel;
-
-  tip_->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint);
-}
-
-CQChartsView::ProbeBand::
-~ProbeBand()
-{
-  delete vband_;
-  delete hband_;
-  delete tip_;
-}
-
-void
-CQChartsView::ProbeBand::
-show(const QString &text, double px, double py1, double py2)
-{
-  int tickLen = 8;
-
-  CPoint2D p1(px          , py1);
-  CPoint2D p2(px          , py2);
-  CPoint2D p3(px + tickLen, py2);
-
-  vband_->setGeometry(CQUtil::toQRectI(CBBox2D(p1, p2)));
-  hband_->setGeometry(CQUtil::toQRectI(CBBox2D(p2, p3)));
-
-  vband_->show();
-  hband_->show();
-
-  tip_->setText(text);
-
-  CPoint2D p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
-
-  QPoint pos = view_->mapToGlobal(CQUtil::toQPointI(p4));
-
-  tip_->move(pos);
-  tip_->show();
-}
-
-void
-CQChartsView::ProbeBand::
-hide()
-{
-  vband_->hide();
-  hband_->hide();
-  tip_  ->hide();
 }

@@ -67,6 +67,9 @@ updateRange()
     if (! ok1) x = i;
     if (! ok2) y = i;
 
+    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      continue;
+
     dataRange_.updateRange(x, y);
   }
 
@@ -139,6 +142,9 @@ initObjs(bool force)
 
     if (! ok1) x = i;
     if (! ok2) y = i;
+
+    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      continue;
 
     delaunay_->addVertex(x, y);
 

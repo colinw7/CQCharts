@@ -81,7 +81,7 @@ class CQChartsAxis : public QObject {
   void setDirection(Direction dir) { direction_ = dir; }
 
   Side getSide() const { return side_; }
-  void setSide(Side side) { side_ = side; }
+  void setSide(Side side) { side_ = side; updatePlotPosition(); }
 
   double getStart() const { return start_; }
   void setStart(double start) { setRange(start, end_); }
@@ -101,7 +101,7 @@ class CQChartsAxis : public QObject {
   void setDataLabels(bool b) { dataLabels_ = b; }
 
   QString format() const;
-  void setFormat(const QString &v);
+  bool setFormat(const QString &v);
 
   //---
 
@@ -222,6 +222,8 @@ class CQChartsAxis : public QObject {
   void setBBox(const CBBox2D &v) { bbox_ = v; }
 
   void addProperties(CQPropertyTree *tree, const QString &path);
+
+  void updatePlotPosition();
 
   void redraw();
 

@@ -7,7 +7,6 @@ CQChartsData::
 CQChartsData() :
  CQChartsModel()
 {
-  setColumnHeaders(true);
 }
 
 bool
@@ -31,7 +30,8 @@ load(const QString &filename)
   // TODO: skip comments and blank lines at start of file
 
   // process each line in file
-  bool columnHeaders = hasColumnHeaders();
+  bool commentHeader   = isCommentHeader  ();
+  bool firstLineHeader = isFirstLineHeader();
 
   SubSet    subSet;
   FieldsSet fieldsSet;
@@ -45,9 +45,14 @@ load(const QString &filename)
   auto comment = commentChars_.getValue("#");
 
   for (const auto &line : lines_) {
-    if (columnHeaders && setNum == 0 && subSetNum == 0 && lineNum == 0) {
+    if ((commentHeader || firstLineHeader) &&
+        setNum == 0 && subSetNum == 0 && lineNum == 0) {
       if (! line.length())
         continue;
+
+      //---
+
+      bool setHeader = false;
 
       auto line1 = line;
 
@@ -57,17 +62,27 @@ load(const QString &filename)
         cpos += comment.length();
 
         line1 = line1.mid(cpos).simplified();
+
+        setHeader = commentHeader;
+      }
+      else {
+        setHeader = firstLineHeader;
       }
 
-      Fields fields;
+      //---
 
-      parseFileLine(line1, fields);
+      if (setHeader) {
+        Fields fields;
 
-      columnHeaderFields_ = fields;
+        parseFileLine(line1, fields);
 
-      columnHeaders = false;
+        columnHeaderFields_ = fields;
 
-      continue;
+        firstLineHeader = false;
+        commentHeader   = false;
+
+        continue;
+      }
     }
 
     //---
@@ -190,8 +205,12 @@ load(const QString &filename)
     for (const auto &fields : fieldsSet)
       numColumns = std::max(numColumns, int(fields.size()));
 
-    for (const auto &columnHeader : columnHeaderFields_)
-      addColumn(columnHeader.c_str());
+    for (int i = 0; i < numColumns; ++i) {
+      if (i < int(columnHeaderFields_.size()))
+        addColumn(columnHeaderFields_[i].c_str());
+      else
+        addColumn(QString("%1").arg(i + 1));
+    }
 
     for (const auto &fields : fieldsSet) {
       Cells cells;

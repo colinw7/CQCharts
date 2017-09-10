@@ -48,6 +48,9 @@ updateRange()
       if (! ok)
         y = i;
 
+      if (CQChartsUtil::isNaN(y))
+        continue;
+
       yRanges_[j].updateRange(x, y);
     }
 
@@ -99,6 +102,9 @@ initObjs()
 
       if (! ok)
         y = i;
+
+      if (CQChartsUtil::isNaN(y))
+        continue;
 
       poly << QPointF(x, y);
     }

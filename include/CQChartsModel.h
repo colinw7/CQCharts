@@ -22,7 +22,7 @@ class CQChartsModel : public QAbstractItemModel {
   void addColumn(const QString &name);
 
   virtual QString columnType(int col) const;
-  virtual void setColumnType(int col, const QString &type);
+  virtual bool setColumnType(int col, const QString &type);
 
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
@@ -38,6 +38,8 @@ class CQChartsModel : public QAbstractItemModel {
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
 
   CQChartsColumnType *columnTypeData(int column, CQChartsNameValues &nameValues) const;
+
+  bool isValidColumnType(const QString &type) const;
 
  protected:
   typedef std::vector<QString>        Cells;

@@ -87,6 +87,7 @@ addProperties(CQPropertyTree *tree, const QString &path)
   tree->addProperty(path, this, "insideX"  );
   tree->addProperty(path, this, "insideY"  );
   tree->addProperty(path, this, "spacing"  );
+  tree->addProperty(path, this, "above"    );
 
   CQChartsBoxObj::addProperties(tree, path);
 

@@ -25,10 +25,10 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
  private:
   CQChartsDelaunayPlot *plot_ { nullptr };
-  double          x_    { 0.0 };
-  double          y_    { 0.0 };
-  int             i_    { -1 };
-  int             n_    { -1 };
+  double                x_    { 0.0 };
+  double                y_    { 0.0 };
+  int                   i_    { -1 };
+  int                   n_    { -1 };
 };
 
 //---

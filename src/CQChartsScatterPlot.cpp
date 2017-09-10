@@ -47,6 +47,9 @@ updateRange()
     if (! ok1) x = i;
     if (! ok2) y = i;
 
+    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      continue;
+
     dataRange_.updateRange(x, y);
   }
 
@@ -126,11 +129,14 @@ initObjs(bool force)
 
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal  (model_, i, xColumn_, ok1);
-      double y = CQChartsUtil::modelReal  (model_, i, yColumn_, ok2);
+      double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+      double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
 
       if (! ok1) x = i;
       if (! ok2) y = i;
+
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        continue;
 
       nameValues_[name].push_back(QPointF(x, y));
     }

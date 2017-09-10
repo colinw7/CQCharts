@@ -38,7 +38,7 @@ updateRange()
   dataRange_.updateRange(0, 0);
   dataRange_.updateRange(1, 1);
 
-  //displayRange_.setEqualScale(true);
+  //setEqualScale(true);
 }
 
 void
@@ -260,12 +260,12 @@ decodeConnection(const QString &str, ConnectionData &connection)
   if (! parse.readNonSpace(str2))
     return false;
 
-  int node;
+  long node;
 
   if (! CQChartsUtil::toInt(str1.c_str(), node))
     return false;
 
-  int count;
+  long count;
 
   if (! CQChartsUtil::toInt(str2.c_str(), count))
     return false;

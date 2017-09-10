@@ -44,6 +44,9 @@ init()
     if (! ok1) set   = i;
     if (! ok2) value = i;
 
+    if (CQChartsUtil::isNaN(value))
+      continue;
+
     whiskers_[set].addValue(value);
 
     dataRange_.updateRange(set - 0.5, value);

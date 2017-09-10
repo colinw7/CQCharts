@@ -12,6 +12,7 @@ Data
  + Allow Assign attributes to plot symbol (size, color)
  + Allow Expressions for Data/Columns
  + Data Label for Bar Chart, X/Y
+ + Use Type for more data customization
 
 Model
  + All models derive from CQChartsModel
@@ -23,6 +24,7 @@ Axes
  + No Zoom
  + Filled Grid (alternating rows)
  + Handle overlapping labels
+ + Tick Inside/Outside
 
 Title
  + Config
@@ -32,10 +34,20 @@ Plots
  + Radar
  + Stacked Pie
  + Force Directed
+
+Plot
  + Context Menu
+ + Allow config overlay data
+   + connect to plot
+ + timer delay on mouse over feedback and probe
+ + auto fit with overlay/xy
+ + current plot
 
 Mouse Over
- + Allow Disable
+ + Customize
+
+Bar
+ + Allow hide sets as well as individual sub set types
 
 Pie
  + Radial labels
@@ -56,3 +68,12 @@ Overlay
 Symbols
  + Support, stroke, fill and width
  + Support multiple symbols for multiline plot
+
+ToolTip
+ + Format value depending on type
+ + Format contents (wrap, max line length, max lines, ...)
+
+Mouse Tools
+ + Zoom : Data, Region
+ + Zoom/Pan
+   + Meaning for different plot types

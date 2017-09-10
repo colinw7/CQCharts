@@ -74,18 +74,23 @@ QSizeF
 CQChartsTitle::
 calcSize()
 {
-  QFontMetrics fm(font());
+  if (text().length()) {
+    QFontMetrics fm(font());
 
-  int pw = fm.width(text());
-  int ph = fm.height();
+    int pw = fm.width(text());
+    int ph = fm.height();
 
-  double ww = plot_->pixelToWindowWidth (pw);
-  double wh = plot_->pixelToWindowHeight(ph);
+    double ww = plot_->pixelToWindowWidth (pw);
+    double wh = plot_->pixelToWindowHeight(ph);
 
-  double xm = plot_->pixelToWindowWidth (margin_);
-  double ym = plot_->pixelToWindowHeight(margin_);
+    double xm = plot_->pixelToWindowWidth (margin_);
+    double ym = plot_->pixelToWindowHeight(margin_);
 
-  size_ = QSizeF(ww + 2*xm, wh + 2*ym);
+    size_ = QSizeF(ww + 2*xm, wh + 2*ym);
+  }
+  else {
+    size_ = QSizeF();
+  }
 
   return size_;
 }
@@ -106,6 +111,11 @@ draw(QPainter *p)
 {
   if (! isVisible())
     return;
+
+  if (! text().length())
+     return;
+
+  //---
 
   p->save();
 

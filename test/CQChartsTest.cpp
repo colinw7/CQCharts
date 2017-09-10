@@ -207,7 +207,6 @@ main(int argc, char **argv)
 
   CQChartsTest test;
 
-  int i  = 0;
   int nd = initDatas.size();
 
   int nr = std::max(int(sqrt(nd)), 1);
@@ -216,11 +215,17 @@ main(int argc, char **argv)
   int dx = 1000/nc;
   int dy = 1000/nr;
 
-  CQChartsPlot *rootPlot = nullptr;
+  int i = 0;
 
   for (auto &initData : initDatas) {
     initData.overlay = overlay;
     initData.y1y2    = y1y2;
+    initData.nr      = nr;
+    initData.nc      = nc;
+    initData.dx      = dx;
+    initData.dy      = dy;
+
+    //---
 
     initData.xmin = xmin1;
     initData.xmax = xmax1;
@@ -230,7 +235,7 @@ main(int argc, char **argv)
         initData.ymin = ymin1;
         initData.ymax = ymax1;
       }
-      else if (i == 1) {
+      else if (i >= 1) {
         initData.ymin = ymin2;
         initData.ymax = ymax2;
       }
@@ -242,64 +247,8 @@ main(int argc, char **argv)
 
     //---
 
-    int r = i / nc;
-    int c = i % nc;
-
-    test.setId(QString("%1").arg(i + 1));
-
-    if (initData.overlay || initData.y1y2)
-      test.setBBox(CBBox2D(0, 0, 1000, 1000));
-    else
-      test.setBBox(CBBox2D(c*dx, r*dy, (c + 1)*dx, (r + 1)*dy));
-
-    if (initData.filenames.size() > 0) {
-      if      (initData.csv)
-        test.loadCsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
-      else if (initData.tsv)
-        test.loadTsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
-      else if (initData.json)
-        test.loadJson(initData.filenames[0]);
-      else if (initData.data)
-        test.loadData(initData.filenames[0]);
-      else
-        std::cerr << "No plot type specified" << std::endl;
-    }
-
-    CQChartsPlot *plot = test.init(initData, i);
-
-    if (! plot)
+    if (! test.initPlot(initData))
       continue;
-
-    if (i == 0)
-      rootPlot = plot;
-
-    if      (overlay) {
-      if (i > 0) {
-        plot->setRootPlot(rootPlot);
-
-        rootPlot->addRefPlot(plot);
-
-        plot->setDataRange(rootPlot->dataRange());
-
-        rootPlot->applyDataRange();
-      }
-    }
-    else if (y1y2) {
-      if      (i == 0) {
-      }
-      else if (i == 1) {
-        plot    ->setOtherPlot(rootPlot, 0);
-        rootPlot->setOtherPlot(plot    , 1);
-
-        plot->xAxis()->setVisible(false);
-        plot->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
-
-        plot->key()->setVisible(false);
-      }
-      else {
-        std::cerr << "Too many plots" << std::endl;
-      }
-    }
 
     ++i;
   }
@@ -451,6 +400,86 @@ addMenus()
   helpMenu->addAction(helpAction);
 }
 
+//------
+
+bool
+CQChartsTest::
+initPlot(const InitData &initData)
+{
+  int i = plots_.size();
+
+  //---
+
+  int r = i / initData.nc;
+  int c = i % initData.nc;
+
+  setId(QString("%1").arg(i + 1));
+
+  if (initData.overlay || initData.y1y2)
+    setBBox(CBBox2D(0, 0, 1000, 1000));
+  else
+    setBBox(CBBox2D( c     *initData.dx,  r     *initData.dy,
+                    (c + 1)*initData.dx, (r + 1)*initData.dy));
+
+  if (initData.filenames.size() > 0) {
+    if      (initData.csv)
+      loadCsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
+    else if (initData.tsv)
+      loadTsv(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
+    else if (initData.json)
+      loadJson(initData.filenames[0]);
+    else if (initData.data)
+      loadData(initData.filenames[0], initData.commentHeader, initData.firstLineHeader);
+    else
+      std::cerr << "No plot type specified" << std::endl;
+  }
+
+  CQChartsPlot *plot = init(initData, i);
+
+  if (! plot)
+    return false;
+
+  //---
+
+  if (plots_.empty())
+    rootPlot_ = plot;
+
+  if      (initData.overlay) {
+    if (i > 0) {
+      plot->setRootPlot(rootPlot_);
+
+      rootPlot_->addRefPlot(plot);
+
+      plot->setDataRange(rootPlot_->dataRange());
+
+      rootPlot_->applyDataRange();
+    }
+  }
+  else if (initData.y1y2) {
+    if      (i == 0) {
+    }
+    else if (i >= 1) {
+      CQChartsPlot *prevPlot = plots_.back();
+
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
+
+      plot->xAxis()->setVisible(false);
+      plot->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+
+      plot->key()->setVisible(false);
+    }
+  }
+
+  //---
+
+  plots_.push_back(plot);
+
+  return true;
+}
+
+//------
+
 void
 CQChartsTest::
 loadSlot()
@@ -479,7 +508,7 @@ loadFileSlot(const QString &type, const QString &filename)
   else if (type == "Json")
     loadJson(filename);
   else if (type == "Data")
-    loadData(filename);
+    loadData(filename, commentHeader, firstLineHeader);
   else
     std::cerr << "Base type specified '" << type.toStdString() << "'" << std::endl;
 }
@@ -1646,13 +1675,23 @@ init(const InitData &initData, int i)
       model = qobject_cast<CQChartsModel *>(proxyModel->sourceModel());
   }
 
-  QStringList fstrs = initData.format.split(";", QString::SkipEmptyParts);
+  QStringList fstrs = initData.format.split(";", QString::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
-    QString type = fstrs[i];
+    QString type = fstrs[i].simplified();
 
-    if (model)
-      model->setColumnType(i, type);
+    if (! type.length())
+      continue;
+
+    if (! model) {
+      std::cerr << "No model for column type : " << type.toStdString() << std::endl;
+      continue;
+    }
+
+    if (! model->setColumnType(i, type)) {
+      std::cerr << "Invalid column type : " << type.toStdString() << std::endl;
+      continue;
+    }
   }
 
   //---
@@ -1782,8 +1821,10 @@ init(const InitData &initData, int i)
   //---
 
   if (initData.overlay || initData.y1y2) {
-    if (i > 0)
-      plot->setBackground(QColor("#00000000"));
+    if (i > 0) {
+      plot->setBackground    (false);
+      plot->setDataBackground(false);
+   }
   }
 
   if (initData.title != "")
@@ -1847,9 +1888,12 @@ loadJson(const QString &filename)
 
 void
 CQChartsTest::
-loadData(const QString &filename)
+loadData(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
   CQChartsData *data = new CQChartsData;
+
+  data->setCommentHeader  (commentHeader);
+  data->setFirstLineHeader(firstLineHeader);
 
   data->load(filename);
 

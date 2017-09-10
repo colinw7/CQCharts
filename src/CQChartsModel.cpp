@@ -32,19 +32,24 @@ columnType(int col) const
   return columns_[col].type();
 }
 
-void
+bool
 CQChartsModel::
 setColumnType(int col, const QString &type)
 {
   int n = columnCount();
 
   if (col < 0 || col >= n)
-    return;
+    return false;
+
+  if (! isValidColumnType(type))
+    return false;
 
   while (n > int(columns_.size()))
     columns_.emplace_back("");
 
   columns_[col].setType(type);
+
+  return true;
 }
 
 int
@@ -129,6 +134,20 @@ columnTypeData(int column, CQChartsNameValues &nameValues) const
   QString type = columnType(column);
 
   QString baseType;
+
+  CQChartsColumn::decodeType(type, baseType, nameValues);
+
+  CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
+
+  return typeData;
+}
+
+bool
+CQChartsModel::
+isValidColumnType(const QString &type) const
+{
+  QString            baseType;
+  CQChartsNameValues nameValues;
 
   CQChartsColumn::decodeType(type, baseType, nameValues);
 

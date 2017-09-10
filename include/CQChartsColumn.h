@@ -2,6 +2,7 @@
 #define CQChartsColumn_H
 
 #include <CQChartsUtil.h>
+#include <CMathRound.h>
 #include <QString>
 #include <CStrUtil.h>
 
@@ -17,8 +18,10 @@ class CQChartsColumnType {
 
   virtual ~CQChartsColumnType() { }
 
-  virtual QString userData(const QString &data, const CQChartsNameValues &nameValues) const = 0;
+  // input variant to data variant
+  virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
+  // data string to output data
   virtual QString dataName(double pos, const CQChartsNameValues &nameValues) const = 0;
 
  private:
@@ -33,8 +36,8 @@ class CQChartsColumnStringType : public CQChartsColumnType {
    CQChartsColumnType("string") {
   }
 
-  QString userData(const QString &data, const CQChartsNameValues &) const override {
-    return data;
+  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    return var;
   }
 
   QString dataName(double pos, const CQChartsNameValues &) const override {
@@ -50,12 +53,41 @@ class CQChartsColumnRealType : public CQChartsColumnType {
    CQChartsColumnType("real") {
   }
 
-  QString userData(const QString &data, const CQChartsNameValues &) const override {
-    return data;
+  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    return var;
   }
 
   QString dataName(double pos, const CQChartsNameValues &) const override {
     return CStrUtil::toString(pos).c_str();
+  }
+};
+
+//---
+
+class CQChartsColumnIntegerType : public CQChartsColumnType {
+ public:
+  CQChartsColumnIntegerType() :
+   CQChartsColumnType("integer") {
+  }
+
+  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.type() == QVariant::Int)
+      return var;
+
+    bool ok;
+
+    long l = CQChartsUtil::toInt(var, ok);
+
+    if (! ok)
+      return var;
+
+    return QVariant::fromValue<long>(l);
+  }
+
+  QString dataName(double pos, const CQChartsNameValues &) const override {
+    long l = CMathRound::Round(pos);
+
+    return CStrUtil::toString(l).c_str();
   }
 };
 
@@ -67,19 +99,19 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
    CQChartsColumnType("time") {
   }
 
-  QString userData(const QString &data, const CQChartsNameValues &nameValues) const override {
+  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
     auto p = nameValues.find("format");
 
     if (p != nameValues.end()) {
       double t;
 
-      if (! stringToTime((*p).second, data, t))
-        return data;
+      if (! stringToTime((*p).second, var.toString(), t))
+        return var;
 
       return QString("%1").arg(t);
     }
 
-    return data;
+    return var;
   }
 
   QString dataName(double pos, const CQChartsNameValues &nameValues) const override {

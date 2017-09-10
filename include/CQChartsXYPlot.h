@@ -112,6 +112,8 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 
   bool mousePress(const CPoint2D &p) override;
 
+  bool mouseMove(const CPoint2D &) override { return true; }
+
   QColor fillColor() const override;
 };
 
@@ -124,6 +126,8 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
   QSizeF size() const override;
 
   bool mousePress(const CPoint2D &p) override;
+
+  bool mouseMove(const CPoint2D &) override { return true; }
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
@@ -155,6 +159,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(int     yColumn        READ yColumn           WRITE setYColumn          )
   Q_PROPERTY(int     nameColumn     READ nameColumn        WRITE setNameColumn       )
   Q_PROPERTY(bool    bivariate      READ isBivariate       WRITE setBivariate        )
+  Q_PROPERTY(double  bivariateWidth READ bivariateWidth    WRITE setBivariateWidth   )
   Q_PROPERTY(bool    stacked        READ isStacked         WRITE setStacked          )
   Q_PROPERTY(bool    cumulative     READ isCumulative      WRITE setCumulative       )
   Q_PROPERTY(bool    points         READ isPoints          WRITE setPoints           )
@@ -217,11 +222,14 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool isBivariate() const { return bivariate_; }
   void setBivariate(bool b) { bivariate_ = b; initObjs(/*force*/true); update(); }
 
+  double bivariateWidth() const { return bivariateWidth_; }
+  void setBivariateWidth(double r) { bivariateWidth_ = r; update(); }
+
   bool isStacked() const { return stacked_; }
   void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
 
   bool isCumulative() const { return cumulative_; }
-  void setCumulative(bool b) { cumulative_ = b; }
+  void setCumulative(bool b) { cumulative_ = b; initObjs(/*force*/true); update(); }
 
   //---
 
@@ -280,6 +288,10 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   void initObjs(bool force=false);
 
+  void addPolyLine(const QPolygonF &polyLine, int i, int n, const QString &name);
+
+  void addPolygon(const QPolygonF &poly, int i, int n, const QString &name);
+
   void addKeyItems(CQChartsKey *key) override;
 
   int numSets() const;
@@ -308,13 +320,14 @@ class CQChartsXYPlot : public CQChartsPlot {
  private:
   typedef std::map<int,bool> IdHidden;
 
-  int           xColumn_    { 0 };
-  int           yColumn_    { 1 };
+  int           xColumn_        { 0 };
+  int           yColumn_        { 1 };
   Columns       yColumns_;
-  int           nameColumn_ { -1 };
-  bool          bivariate_  { false };
-  bool          stacked_    { false };
-  bool          cumulative_ { false };
+  int           nameColumn_     { -1 };
+  bool          bivariate_      { false };
+  double        bivariateWidth_ { 0.0 };
+  bool          stacked_        { false };
+  bool          cumulative_     { false };
   PointData     pointData_;
   LineData      lineData_;
   FillUnderData fillUnderData_;

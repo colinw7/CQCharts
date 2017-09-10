@@ -1,6 +1,6 @@
-CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y 1 -first_line_header -plot_title "bar chart"
+CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y 1 -first_line_header -plot_title "bar chart" -format ";integer"
 
-CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -plot_title "multiple bar chart"
+CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -plot_title "multiple bar chart" -format ";integer"
 
 CQChartsTest -csv ages.csv -plot pie -x 0 -y 1 -first_line_header -plot_title "pie chart"
 
@@ -30,7 +30,7 @@ CQChartsTest -json flare.json -plot hierbubble -x 0 -y 1 -plot_title "hierarchic
 
 CQChartsTest -tsv states.tsv -plot geometry -x 0 -y 1 -comment_header "geometry"
 
-CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -and -csv ages.csv -plot pie -x 0 -y 1 -plot_title "bar chart and pie"
+CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -format ";integer" -and -csv ages.csv -plot pie -x 0 -y 1 -plot_title "bar chart and pie"
 
 CQChartsTest -tsv states.tsv -plot geometry -x 0 -y 1 -comment_header -and -csv airports.csv -plot delaunay -x 6 -y 5 -z 1 -plot_title "states and airports"
 
@@ -47,3 +47,5 @@ CQChartsTest -y1y2 -tsv multi_series.tsv -plot xy -x 0 -y 1 -format "time:format
 CQChartsTest -json flare.json -plot treemap -x 0 -y 1 -plot_title "tree map"
 
 CQChartsTest -y1y2 -csv pareto.csv -plot bar -and -csv pareto.csv -plot xy -cumulative -xmin -0.5 -xmax 5.5 -ymin2 0 -xintegral -plot_title "pareto"
+
+CQChartsTest -data missing.data -x 0 -y -1 -plot xy

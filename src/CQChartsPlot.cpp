@@ -5,6 +5,7 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsModel.h>
+#include <CQChartsPlotSymbol2DRenderer.h>
 #include <CQPropertyTree.h>
 #include <CQUtil.h>
 #include <CGradientPalette.h>
@@ -54,6 +55,17 @@ setTitle(const QString &s)
 
 void
 CQChartsPlot::
+setEqualScale(bool b)
+{
+  equalScale_ = b;
+
+  displayRange_.setEqualScale(equalScale_);
+
+  updateMargin();
+}
+
+void
+CQChartsPlot::
 setBBox(const CBBox2D &bbox)
 {
   bbox_ = bbox;
@@ -98,20 +110,17 @@ QRectF
 CQChartsPlot::
 range() const
 {
-  CBBox2D bbox;
+  CBBox2D dataRange = calcDataRange();
 
-  if (dataRange_.isSet())
-    bbox = CBBox2D(dataRange_.xmin(), dataRange_.ymin(), dataRange_.xmax(), dataRange_.ymax());
-  else
-    bbox = CBBox2D(0, 0, 1, 1);
-
-  return CQUtil::toQRect(bbox);
+  return CQUtil::toQRect(dataRange);
 }
 
 void
 CQChartsPlot::
 setRange(const QRectF &r)
 {
+  assert(dataScale_ == 1.0);
+
   CBBox2D bbox = CQUtil::fromQRect(r);
 
   dataRange_.set(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
@@ -123,11 +132,35 @@ void
 CQChartsPlot::
 addProperties()
 {
-  addProperty("", this, "background" );
   addProperty("", this, "rect"       );
   addProperty("", this, "range"      );
+  addProperty("", this, "equalScale" );
   addProperty("", this, "followMouse");
   addProperty("", this, "showBoxes"  );
+
+  QString plotStyleStr       = "plotStyle";
+  QString plotStyleFillStr   = plotStyleStr + "/fill";
+  QString plotStyleStrokeStr = plotStyleStr + "/stroke";
+
+  addProperty(plotStyleFillStr  , this, "background"     , "visible");
+  addProperty(plotStyleFillStr  , this, "backgroundColor", "color");
+  addProperty(plotStyleStrokeStr, this, "border"         , "visible");
+  addProperty(plotStyleStrokeStr, this, "borderColor"    , "color");
+  addProperty(plotStyleStrokeStr, this, "borderWidth"    , "width");
+  addProperty(plotStyleStrokeStr, this, "borderSides"    , "sides");
+  addProperty(plotStyleStr      , this, "clip"           , "clip");
+
+  QString dataStyleStr       = "dataStyle";
+  QString dataStyleFillStr   = dataStyleStr + "/fill";
+  QString dataStyleStrokeStr = dataStyleStr + "/stroke";
+
+  addProperty(dataStyleFillStr  , this, "dataBackground"     , "visible");
+  addProperty(dataStyleFillStr  , this, "dataBackgroundColor", "color");
+  addProperty(dataStyleStrokeStr, this, "dataBorder"         , "visible");
+  addProperty(dataStyleStrokeStr, this, "dataBorderColor"    , "color");
+  addProperty(dataStyleStrokeStr, this, "dataBorderWidth"    , "width");
+  addProperty(dataStyleStrokeStr, this, "dataBorderSides"    , "sides");
+  addProperty(dataStyleStr      , this, "dataClip"           , "clip");
 
   addProperty("margin", this, "marginLeft"  , "left"  );
   addProperty("margin", this, "marginTop"   , "top"   );
@@ -151,7 +184,12 @@ void
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
-  view_->addProperty(id() + "/" + path, object, name, alias);
+  QString path1 = id();
+
+  if (path.length())
+    path1 += "/" + path;
+
+  view_->addProperty(path1, object, name, alias);
 }
 
 void
@@ -192,34 +230,92 @@ addTitle()
   titleObj_->setText(title_);
 }
 
+CBBox2D
+CQChartsPlot::
+calcDataRange() const
+{
+  CBBox2D bbox;
+
+  if (dataRange_.isSet())
+    bbox = CBBox2D(dataRange_.xmin(), dataRange_.ymin(), dataRange_.xmax(), dataRange_.ymax());
+  else
+    bbox = CBBox2D(0, 0, 1, 1);
+
+  CPoint2D c = bbox.getCenter();
+  double   w = 0.5*bbox.getWidth ()/dataScale_;
+  double   h = 0.5*bbox.getHeight()/dataScale_;
+
+  double x = c.x + dataOffset_.x;
+  double y = c.y + dataOffset_.y;
+
+  return CBBox2D(x - w, y - h, x + w, y + h);
+}
+
 void
 CQChartsPlot::
 applyDataRange(bool propagate)
 {
-  if (! dataRange_.isSet()) {
-    dataRange_.updateRange(0, 0);
-    dataRange_.updateRange(1, 1);
-  }
+  CBBox2D dataRange = calcDataRange();
 
-  displayRange_.setWindowRange(dataRange_.xmin(), dataRange_.ymin(),
-                               dataRange_.xmax(), dataRange_.ymax());
+  displayRange_.setWindowRange(dataRange.getXMin(), dataRange.getYMin(),
+                               dataRange.getXMax(), dataRange.getYMax());
 
   if (xAxis_) {
-    xAxis_->setRange(dataRange_.xmin(), dataRange_.xmax());
-    yAxis_->setRange(dataRange_.ymin(), dataRange_.ymax());
+    xAxis_->setRange(dataRange.getXMin(), dataRange.getXMax());
+    yAxis_->setRange(dataRange.getYMin(), dataRange.getYMax());
   }
 
   if (propagate) {
     if (rootPlot_) {
-      rootPlot_->setDataRange(dataRange_);
+      rootPlot_->setDataRange (dataRange_ );
+      rootPlot_->setDataScale (dataScale_ );
+      rootPlot_->setDataOffset(dataOffset_);
 
       applyDataRange(/*propagate*/false);
     }
     else {
-      for (const auto &plot : refPlots_) {
-        plot->setDataRange(dataRange_);
+      CQChartsPlot *plot1 = firstPlot();
 
-        applyDataRange(/*propagate*/false);
+      if (plot1) {
+#if 0
+        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(),
+                      dataRange_.xmax(), dataRange_.ymax());
+#endif
+
+        while (plot1) {
+          if (plot1 != this) {
+
+#if 0
+            CBBox2D bbox2;
+
+            windowToPixel(bbox1, bbox2);
+
+            CBBox2D bbox3;
+
+            plot1->pixelToWindow(bbox2, bbox3);
+
+            CRange2D dataRange(bbox3.getXMin(), bbox3.getYMin(), bbox3.getXMax(), bbox3.getYMax());
+
+            plot1->setDataRange (dataRange  );
+#endif
+
+            plot1->setDataScale (dataScale_ );
+            plot1->setDataOffset(dataOffset_);
+
+            plot1->applyDataRange(/*propagate*/false);
+          }
+
+          plot1 = plot1->nextPlot();
+        }
+      }
+      else {
+        for (const auto &plot : refPlots_) {
+          plot->setDataRange (dataRange_ );
+          plot->setDataScale (dataScale_ );
+          plot->setDataOffset(dataOffset_);
+
+          applyDataRange(/*propagate*/false);
+        }
       }
     }
   }
@@ -343,10 +439,27 @@ mousePress(const CPoint2D &w)
   return ! dataList.empty();
 }
 
-void
+bool
 CQChartsPlot::
 mouseMove(const CPoint2D &w)
 {
+  if (keyObj_ && keyObj_->contains(w)) {
+    CQChartsKeyItem *item = keyObj_->getItemAt(w);
+
+    bool handled = false;
+
+    if (item)
+      handled = item->mouseMove(w);
+
+    if (! handled)
+      handled = keyObj_->mouseMove(w);
+
+    if (handled)
+      return true;
+  }
+
+  //---
+
   QString posText = xStr(w.x) + " " + yStr(w.y);
 
   //---
@@ -360,7 +473,7 @@ mouseMove(const CPoint2D &w)
 
     for (auto obj : dataList) {
       if (objText != "")
-      objText += " ";
+        objText += " ";
 
       objText += obj->id();
     }
@@ -373,7 +486,7 @@ mouseMove(const CPoint2D &w)
   else
     view_->setStatusText(posText);
 
-  //--
+  //---
 
   if (isFollowMouse()) {
     bool changed = false;
@@ -403,6 +516,10 @@ mouseMove(const CPoint2D &w)
     if (changed)
       update();
   }
+
+  //---
+
+  return false;
 }
 
 void
@@ -508,54 +625,116 @@ void
 CQChartsPlot::
 panLeft()
 {
-  displayTransform_.panLeft();
+  if (view_->isZoomData()) {
+    CBBox2D dataRange = calcDataRange();
 
-  updateTransform();
+    dataOffset_.setX(dataOffset_.x - dataRange.getWidth()/8);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.panLeft();
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
 panRight()
 {
-  displayTransform_.panRight();
+  if (view_->isZoomData()) {
+    CBBox2D dataRange = calcDataRange();
 
-  updateTransform();
+    dataOffset_.setX(dataOffset_.x + dataRange.getWidth()/8);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.panRight();
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
 panUp()
 {
-  displayTransform_.panUp();
+  if (view_->isZoomData()) {
+    CBBox2D dataRange = calcDataRange();
 
-  updateTransform();
+    dataOffset_.setY(dataOffset_.y + dataRange.getHeight()/8);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.panUp();
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
 panDown()
 {
-  displayTransform_.panDown();
+  if (view_->isZoomData()) {
+    CBBox2D dataRange = calcDataRange();
 
-  updateTransform();
+    dataOffset_.setY(dataOffset_.y - dataRange.getHeight()/8);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.panDown();
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
-zoomIn()
+zoomIn(double f)
 {
-  displayTransform_.zoomIn();
+  if (view_->isZoomData()) {
+    dataScale_ *= 1.5;
 
-  updateTransform();
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.zoomIn(f);
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
-zoomOut()
+zoomOut(double f)
 {
-  displayTransform_.zoomOut();
+  if (view_->isZoomData()) {
+    dataScale_ /= 1.5;
 
-  updateTransform();
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.zoomOut(f);
+
+    updateTransform();
+  }
 }
 
 void
@@ -565,18 +744,55 @@ zoomTo(const CBBox2D &bbox)
   if (bbox.getWidth() < 1E-50 || bbox.getHeight() < 1E-50)
     return;
 
-  displayTransform_.zoomTo(bbox);
+  if (view_->isZoomData()) {
+    if (! dataRange_.isSet())
+      return;
 
-  updateTransform();
+    double w = bbox.getWidth ();
+    double h = bbox.getHeight();
+
+    CPoint2D c = bbox.getCenter();
+
+    double w1 = dataRange_.xsize();
+    double h1 = dataRange_.ysize();
+
+    double xscale = w1/w;
+    double yscale = h1/h;
+
+    dataScale_ = std::min(xscale, yscale);
+
+    CPoint2D c1 = CPoint2D(dataRange_.xmid(), dataRange_.ymid());
+
+    dataOffset_ = CPoint2D(c.x - c1.x, c.y - c1.y);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.zoomTo(bbox);
+
+    updateTransform();
+  }
 }
 
 void
 CQChartsPlot::
 zoomFull()
 {
-  displayTransform_.reset();
+  if (view_->isZoomData()) {
+    dataScale_  = 1.0;
+    dataOffset_ = CPoint2D(0.0, 0.0);
 
-  updateTransform();
+    applyDataRange();
+
+    update();
+  }
+  else {
+    displayTransform_.reset();
+
+    updateTransform();
+  }
 }
 
 void
@@ -653,6 +869,8 @@ updateKeyPosition(bool force)
   if (! dataRange_.isSet())
     return;
 
+  CBBox2D dataRange = calcDataRange();
+
   QSizeF ks = keyObj_->calcSize();
 
   CQChartsKey::Location location = keyObj_->location();
@@ -666,44 +884,44 @@ updateKeyPosition(bool force)
            location == CQChartsKey::Location::CENTER_LEFT ||
            location == CQChartsKey::Location::BOTTOM_LEFT) {
     if (keyObj_->isInsideX())
-      kx = dataRange_.xmin() + xm;
+      kx = dataRange.getXMin() + xm;
     else
-      kx = dataRange_.xmin() - ks.width() - xm;
+      kx = dataRange.getXMin() - ks.width() - xm;
   }
   else if (location == CQChartsKey::Location::TOP_CENTER ||
            location == CQChartsKey::Location::CENTER_CENTER ||
            location == CQChartsKey::Location::BOTTOM_CENTER) {
-    kx = dataRange_.xmid() - ks.width()/2;
+    kx = dataRange.getXMid() - ks.width()/2;
   }
   else if (location == CQChartsKey::Location::TOP_RIGHT ||
            location == CQChartsKey::Location::CENTER_RIGHT ||
            location == CQChartsKey::Location::BOTTOM_RIGHT) {
     if (keyObj_->isInsideX())
-      kx = dataRange_.xmax() - ks.width() - xm;
+      kx = dataRange.getXMax() - ks.width() - xm;
     else
-      kx = dataRange_.xmax() + xm;
+      kx = dataRange.getXMax() + xm;
   }
 
   if      (location == CQChartsKey::Location::TOP_LEFT ||
            location == CQChartsKey::Location::TOP_CENTER ||
            location == CQChartsKey::Location::TOP_RIGHT) {
     if (keyObj_->isInsideY())
-      ky = dataRange_.ymax() - ym;
+      ky = dataRange.getYMax() - ym;
     else
-      ky = dataRange_.ymax() + ks.height() + ym;
+      ky = dataRange.getYMax() + ks.height() + ym;
   }
   else if (location == CQChartsKey::Location::CENTER_LEFT ||
            location == CQChartsKey::Location::CENTER_CENTER ||
            location == CQChartsKey::Location::CENTER_RIGHT) {
-    ky = dataRange_.ymid() - ks.height()/2;
+    ky = dataRange.getYMid() - ks.height()/2;
   }
   else if (location == CQChartsKey::Location::BOTTOM_LEFT ||
            location == CQChartsKey::Location::BOTTOM_CENTER ||
            location == CQChartsKey::Location::BOTTOM_RIGHT) {
     if (keyObj_->isInsideY())
-      ky = dataRange_.ymin() + ks.height() + ym;
+      ky = dataRange.getYMin() + ks.height() + ym;
     else
-      ky = dataRange_.ymin() - ym;
+      ky = dataRange.getYMin() - ym;
   }
 
   keyObj_->setPosition(QPointF(kx, ky));
@@ -719,6 +937,8 @@ updateTitlePosition()
   if (! dataRange_.isSet())
     return;
 
+  CBBox2D dataRange = calcDataRange();
+
   QSizeF ts = titleObj_->calcSize();
 
   CQChartsTitle::Location location = titleObj_->location();
@@ -726,27 +946,35 @@ updateTitlePosition()
 //double xm = pixelToWindowWidth (8);
   double ym = pixelToWindowHeight(8);
 
-  double kx = dataRange_.xmid() - ts.width()/2;
+  double kx = dataRange.getXMid() - ts.width()/2;
 
   double ky = 0.0;
 
   if      (location == CQChartsTitle::Location::TOP) {
-    if (! titleObj_->isInside())
-      ky = dataRange_.ymax() + ym;
+    if (! titleObj_->isInside()) {
+      ky = dataRange.getYMax() + ym;
+
+      if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::TOP_RIGHT)
+        ky += xAxis_->bbox().getHeight();
+    }
     else
-      ky = dataRange_.ymax() - ts.height() - ym;
+      ky = dataRange.getYMax() - ts.height() - ym;
   }
   else if (location == CQChartsTitle::Location::CENTER) {
-    ky = dataRange_.ymid() - ts.height()/2;
+    ky = dataRange.getYMid() - ts.height()/2;
   }
   else if (location == CQChartsTitle::Location::BOTTOM) {
-    if (! titleObj_->isInside())
-      ky = dataRange_.ymin() - ts.height() - ym;
+    if (! titleObj_->isInside()) {
+      ky = dataRange.getYMin() - ts.height() - ym;
+
+      if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::BOTTOM_LEFT)
+        ky -= xAxis_->bbox().getHeight();
+    }
     else
-      ky = dataRange_.ymin() + ym;
+      ky = dataRange.getYMin() + ym;
   }
   else {
-    ky = dataRange_.ymid() - ts.height()/2;
+    ky = dataRange.getYMid() - ts.height()/2;
   }
 
   titleObj_->setPosition(QPointF(kx, ky));
@@ -756,20 +984,40 @@ void
 CQChartsPlot::
 drawBackground(QPainter *painter)
 {
-  //painter->fillRect(rect(), QBrush(Qt::white));
+  QRectF plotRect = CQUtil::toQRect(calcPixelRect());
+  QRectF dataRect = calcRect();
 
-  //---
+  if (isBackground())
+    painter->fillRect(plotRect, QBrush(backgroundColor()));
 
-  //double pxmin, pymin, pxmax, pymax;
+  if (isBorder()) {
+    drawSides(painter, plotRect, borderSides(), borderWidth(), borderColor());
+  }
 
-  //double xmin, ymin, xmax, ymax;
+  if (isDataBackground())
+    painter->fillRect(dataRect, QBrush(dataBackgroundColor()));
 
-  //displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+  if (isDataBorder()) {
+    drawSides(painter, dataRect, dataBorderSides(), dataBorderWidth(), dataBorderColor());
+  }
+}
 
-  //windowToPixel(xmin, ymin, pxmin, pymax);
-  //windowToPixel(xmax, ymax, pxmax, pymin);
+void
+CQChartsPlot::
+drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
+          double width, const QColor &color)
+{
+  QPen pen(color);
 
-  painter->fillRect(CQUtil::toQRect(calcPixelRect()), QBrush(background()));
+  pen.setWidth(width);
+
+  painter->setPen(pen);
+  painter->setBrush(Qt::NoBrush);
+
+  if (sides.indexOf('t') >= 0) painter->drawLine(rect.topLeft   (), rect.topRight   ());
+  if (sides.indexOf('l') >= 0) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
+  if (sides.indexOf('b') >= 0) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+  if (sides.indexOf('r') >= 0) painter->drawLine(rect.topRight  (), rect.bottomRight());
 }
 
 QRectF
@@ -810,6 +1058,76 @@ void
 CQChartsPlot::
 autoFit()
 {
+  if (prevPlot())
+    return;
+
+  //---
+
+  CBBox2D bbox = fitBBox();
+
+  //---
+
+  CQChartsPlot *plot1 = nextPlot();
+
+  while (plot1) {
+    CBBox2D bbox1 = plot1->fitBBox();
+
+    CBBox2D bbox2;
+
+    plot1->windowToPixel(bbox1, bbox2);
+
+    pixelToWindow(bbox2, bbox1);
+
+    bbox += bbox1;
+
+    plot1 = plot1->nextPlot();
+  }
+
+  //---
+
+  plot1 = nextPlot();
+
+  while (plot1) {
+    CBBox2D bbox1;
+
+    windowToPixel(bbox, bbox1);
+
+    CBBox2D bbox2;
+
+    plot1->pixelToWindow(bbox1, bbox2);
+
+    plot1->setFixBBox(bbox2);
+
+    plot1 = plot1->nextPlot();
+  }
+
+  //---
+
+  setFixBBox(bbox);
+}
+
+void
+CQChartsPlot::
+setFixBBox(const CBBox2D &bbox)
+{
+  double xmin, ymin, xmax, ymax;
+
+  displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+
+  CBBox2D pbbox(xmin, ymin, xmax, ymax);
+
+  margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
+  margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
+  margin_.right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
+  margin_.top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
+
+  updateMargin();
+}
+
+CBBox2D
+CQChartsPlot::
+fitBBox() const
+{
   double xmin, ymin, xmax, ymax;
 
   displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
@@ -830,20 +1148,37 @@ autoFit()
   if (titleObj_)
     bbox += titleObj_->bbox();
 
-  margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
-  margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
-  margin_.right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
-  margin_.top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
+  double xm = pixelToWindowWidth (8);
+  double ym = pixelToWindowHeight(8);
 
-  updateMargin();
+  bbox.expand(-xm, -ym, xm, ym);
+
+  return bbox;
 }
 
 void
 CQChartsPlot::
 drawObjs(QPainter *painter)
 {
+  painter->save();
+
+  CQChartsPlot *plot1 = firstPlot();
+
+  if      (plot1->isDataClip()) {
+    QRectF dataRect = calcRect();
+
+    painter->setClipRect(dataRect, Qt::ReplaceClip);
+  }
+  else if (plot1->isClip()) {
+    QRectF plotRect = CQUtil::toQRect(calcPixelRect());
+
+    painter->setClipRect(plotRect, Qt::ReplaceClip);
+  }
+
   for (const auto &plotObj : plotObjs_)
     plotObj->draw(painter);
+
+  painter->restore();
 }
 
 void
@@ -880,8 +1215,21 @@ void
 CQChartsPlot::
 drawKey(QPainter *painter)
 {
-  if (keyObj_)
-    keyObj_->draw(painter);
+  CQChartsPlot *plot1 = firstPlot();
+
+  if (! plot1->keyObj_)
+    return;
+
+  // draw key under first plot
+  if (! plot1->keyObj_->isAbove()) {
+    if (plot1 == this)
+      plot1->keyObj_->draw(painter);
+  }
+  // draw key above last plot
+  else {
+    if (lastPlot() == this)
+      plot1->keyObj_->draw(painter);
+  }
 }
 
 void
@@ -897,81 +1245,6 @@ CQChartsPlot::
 drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type, double s,
            const QColor &c, bool filled)
 {
-  class CQChartsPlotSymbol2DRenderer : public CSymbol2DRenderer {
-   public:
-    CQChartsPlotSymbol2DRenderer(CQChartsPlot *plot, QPainter *painter,
-                                 const CPoint2D &p, double s) :
-     plot_(plot), painter_(painter), p_(p), s_(s) {
-      pc_ = painter_->pen  ().color();
-      fc_ = painter_->brush().color();
-
-      plot_->windowToPixel(p_, px_);
-    }
-
-    void moveTo(double x, double y) override {
-      path_.moveTo(px_.x + x*s_, px_.y - y*s_);
-    }
-
-    void lineTo(double x, double y) override {
-      path_.lineTo(px_.x + x*s_, px_.y - y*s_);
-    }
-
-    void closePath() override {
-      path_.closeSubpath();
-    }
-
-    void stroke() override {
-      painter_->strokePath(path_, QPen(pc_));
-    }
-
-    void fill() override {
-      painter_->fillPath(path_, QBrush(fc_));
-    }
-
-    void strokeCircle(double x, double y, double r) override {
-      QRectF rect(px_.x + (x - r)*s_, px_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
-
-      painter_->save();
-
-      painter_->setBrush(Qt::NoBrush);
-      painter_->setPen  (pc_);
-
-      painter_->drawEllipse(rect);
-
-      painter_->restore();
-    }
-
-    void fillCircle(double x, double y, double r) override {
-      QRectF rect(px_.x + (x - r)*s_, px_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
-
-      painter_->save();
-
-      painter_->setBrush(fc_);
-      painter_->setPen  (Qt::NoPen);
-
-      painter_->drawEllipse(rect);
-
-      painter_->restore();
-    }
-
-    double lineWidth() const override {
-      return w_;
-    }
-
-   private:
-    CQChartsPlot *plot_    { nullptr };
-    QPainter     *painter_ { nullptr };
-    CPoint2D      p_       { 0, 0 };
-    CPoint2D      px_      { 0, 0 };
-    double        s_       { 2.0 };
-    double        w_       { 0.0 };
-    QPainterPath  path_;
-    QColor        pc_;
-    QColor        fc_;
-  };
-
-  //---
-
   painter->setPen  (c);
   painter->setBrush(c);
 

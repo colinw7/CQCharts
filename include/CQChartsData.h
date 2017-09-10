@@ -16,6 +16,12 @@ class CQChartsData : public CQChartsModel {
  public:
   CQChartsData();
 
+  bool isCommentHeader() const { return commentHeader_; }
+  void setCommentHeader(bool b) { commentHeader_ = b; }
+
+  bool isFirstLineHeader() const { return firstLineHeader_; }
+  void setFirstLineHeader(bool b) { firstLineHeader_ = b; }
+
   std::string commentChars() const { return commentChars_.getValue("#"); }
   void setCommentChars(const std::string &chars) { commentChars_ = chars; }
 
@@ -44,6 +50,8 @@ class CQChartsData : public CQChartsModel {
   typedef std::map<int,LineString>   SubSetString;
   typedef std::map<int,SubSetString> SetString;
 
+  bool        commentHeader_   { true };
+  bool        firstLineHeader_ { false };
   COptString  commentChars_;
   std::string missingStr_;
   char        separator_    { '\0' };

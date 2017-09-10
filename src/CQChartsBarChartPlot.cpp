@@ -110,6 +110,9 @@ updateRange()
 
         if (! ok2) value = i;
 
+        if (CQChartsUtil::isNaN(value))
+          continue;
+
         valueSet->values.push_back(value);
 
         if (isStacked())
@@ -142,6 +145,9 @@ updateRange()
       double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
 
       if (! ok2) value = i;
+
+      if (CQChartsUtil::isNaN(value))
+        continue;
 
       valueSet->values.push_back(value);
 
@@ -327,7 +333,9 @@ initObjs(bool force)
 
         QString valueName = valueNames_[i];
 
-        barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(value));
+        QString valueStr = yAxis_->getValueStr(value);
+
+        barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
 
         addPlotObject(barObj);
 
@@ -341,6 +349,9 @@ initObjs(bool force)
     }
     else {
       if (isSetHidden(j))
+        continue;
+
+      if (valueSet.values.empty())
         continue;
 
       double value = valueSet.values[0];
@@ -361,7 +372,9 @@ initObjs(bool force)
 
       QString valueName = valueSet.name;
 
-      barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(value));
+      QString valueStr = yAxis_->getValueStr(value);
+
+      barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
 
       addPlotObject(barObj);
 

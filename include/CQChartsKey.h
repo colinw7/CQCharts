@@ -25,6 +25,7 @@ class CQChartsKey : public CQChartsBoxObj {
   Q_PROPERTY(int     spacing   READ spacing     WRITE setSpacing    )
   Q_PROPERTY(QColor  textColor READ textColor   WRITE setTextColor  )
   Q_PROPERTY(QFont   textFont  READ textFont    WRITE setTextFont   )
+  Q_PROPERTY(bool    above     READ isAbove     WRITE setAbove      )
 
  public:
   enum Location {
@@ -65,6 +66,9 @@ class CQChartsKey : public CQChartsBoxObj {
   const QFont &textFont() const { return textFont_; }
   void setTextFont(const QFont &v) { textFont_ = v; updateLayout(); }
 
+  bool isAbove() const { return above_; }
+  void setAbove(bool b) { above_ = b; }
+
   QString locationStr() const;
   void setLocationStr(const QString &s);
 
@@ -98,6 +102,7 @@ class CQChartsKey : public CQChartsBoxObj {
   CQChartsKeyItem *getItemAt(const CPoint2D &p) const;
 
   virtual bool mousePress(const CPoint2D &) { return false; }
+  virtual bool mouseMove (const CPoint2D &) { return true; }
 
   void draw(QPainter *p);
 
@@ -124,6 +129,7 @@ class CQChartsKey : public CQChartsBoxObj {
   int             spacing_     { 2 };
   QColor          textColor_;
   QFont           textFont_;
+  bool            above_       { true };
   Items           items_;
   int             maxRow_      { 0 };
   int             maxCol_      { 0 };
@@ -167,6 +173,7 @@ class CQChartsKeyItem : public QObject {
   void setBBox(const CBBox2D &v) { bbox_ = v; }
 
   virtual bool mousePress(const CPoint2D &) { return false; }
+  virtual bool mouseMove (const CPoint2D &) { return false; }
 
   virtual void draw(QPainter *p, const CBBox2D &rect) = 0;
 

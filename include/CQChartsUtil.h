@@ -3,6 +3,7 @@
 
 #include <CUnixFile.h>
 #include <CStrUtil.h>
+#include <COSNaN.h>
 #include <QAbstractItemModel>
 #include <QVariant>
 #include <QStringList>
@@ -36,13 +37,13 @@ inline bool toReal(const QString &str, double &r) {
   return ok;
 }
 
-inline int toInt(const QString &str, bool &ok) {
+inline long toInt(const QString &str, bool &ok) {
   ok = true;
 
-  int i = 0.0;
+  long i = 0.0;
 
   try {
-    i = std::stoi(str.toStdString());
+    i = std::stol(str.toStdString());
   }
   catch (...) {
     ok = false;
@@ -51,11 +52,11 @@ inline int toInt(const QString &str, bool &ok) {
   return i;
 }
 
-inline int toInt(const QVariant &var, bool &ok) {
+inline long toInt(const QVariant &var, bool &ok) {
   return toInt(var.toString(), ok);
 }
 
-inline bool toInt(const QString &str, int &i) {
+inline bool toInt(const QString &str, long &i) {
   bool ok;
 
   i = toInt(str, ok);
@@ -70,6 +71,14 @@ inline QString toString(double r) {
 inline QString toString(long i) {
   return CStrUtil::toString(i).c_str();
 }
+
+//------
+
+inline bool isNaN(double r) {
+  return COSNaN::is_nan(r) && ! COSNaN::is_inf(r);
+}
+
+//------
 
 inline bool fileToLines(const QString &filename, QStringList &lines) {
   // open file
@@ -126,7 +135,7 @@ inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
   return modelReal(model, ind, ok);
 }
 
-inline int modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   ok = true;
 
   QVariant var = model->data(ind, Qt::UserRole);
@@ -140,7 +149,7 @@ inline int modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool 
   return toInt(var, ok);
 }
 
-inline int modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
+inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
   ok = true;
 
   QModelIndex ind = model->index(row, col);

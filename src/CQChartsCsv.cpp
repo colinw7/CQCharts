@@ -67,7 +67,7 @@ data(const QModelIndex &index, int role) const
     CQChartsColumnType *typeData = columnTypeData(index.column(), nameValues);
 
     if (typeData)
-      return typeData->userData(var.toString(), nameValues);
+      return typeData->userData(var, nameValues);
   }
 
   return var;
