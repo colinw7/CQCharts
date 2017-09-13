@@ -24,13 +24,13 @@ class CQChartsBoxObj : public QObject {
   void setMargin(int i) { margin_ = i; redraw(); }
 
   const QColor &background() const { return background_; }
-  void setBackground(const QColor &v) { background_ = v; redraw(); }
+  void setBackground(const QColor &c) { background_ = c; redraw(); }
 
   bool isBorder() const { return border_; }
   void setBorder(bool b) { border_ = b; redraw(); }
 
   const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &v) { borderColor_ = v; redraw(); }
+  void setBorderColor(const QColor &c) { borderColor_ = c; redraw(); }
 
   double borderWidth() const { return borderWidth_; }
   void setBorderWidth(double r) { borderWidth_ = r; redraw(); }

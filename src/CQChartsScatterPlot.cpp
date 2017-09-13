@@ -218,18 +218,16 @@ draw(QPainter *p)
   drawBackground(p);
 
   drawBgAxes(p);
-
-  //---
+  drawBgKey (p);
 
   drawObjs(p);
 
   drawFgAxes(p);
+  drawFgKey (p);
 
   //---
 
   drawTitle(p);
-
-  drawKey(p);
 }
 
 //------

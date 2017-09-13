@@ -19,7 +19,7 @@ class CQChartsPlotObj : public QObject {
   void setRect(const CBBox2D &r) { rect_ = r; }
 
   const QString &id() const { return id_; }
-  void setId(const QString &v) { id_ = v; }
+  void setId(const QString &s) { id_ = s; }
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }

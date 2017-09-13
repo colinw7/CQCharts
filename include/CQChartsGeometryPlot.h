@@ -77,10 +77,10 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   double maxValue() const { return maxValue_; }
 
   const QColor &lineColor() const { return lineColor_; }
-  void setLineColor(const QColor &v) { lineColor_ = v; }
+  void setLineColor(const QColor &c) { lineColor_ = c; }
 
   const QColor &fillColor() const { return fillColor_; }
-  void setFillColor(const QColor &v) { fillColor_ = v; }
+  void setFillColor(const QColor &c) { fillColor_ = c; }
 
   void addProperties();
 

@@ -28,9 +28,23 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "stacked"    );
-  addProperty("", this, "barColor"   );
-  addProperty("", this, "borderColor");
+  QString strokeStr = "stroke";
+  QString fillStr   = "fill";
+  QString dataStr   = "data";
+
+  addProperty(""       , this, "xColumn"    );
+  addProperty(""       , this, "yColumn"    );
+  addProperty(""       , this, "stacked"    );
+  addProperty(""       , this, "margin"     );
+  addProperty(""       , this, "keySets"    );
+  addProperty(strokeStr, this, "border"     , "visible");
+  addProperty(strokeStr, this, "borderColor", "color"  );
+  addProperty(strokeStr, this, "borderWidth", "width"  );
+  addProperty(fillStr  , this, "fill"       , "visible");
+  addProperty(fillStr  , this, "barColor"   , "color"  );
+  addProperty(dataStr  , this, "dataLabel"  , "visible");
+  addProperty(dataStr  , this, "dataFont"   , "font"   );
+  addProperty(dataStr  , this, "dataColor"  , "color"  );
 }
 
 QString
@@ -96,43 +110,84 @@ updateRange()
     ValueSet *valueSet = getValueSet(name);
 
     if (ns > 1) {
-      int numVisible1 = 0;
-
-      for (int j = 0; j < ns; ++j) {
-        if (isSetHidden(j))
+      if (isKeySets()) {
+        if (isSetHidden(i))
           continue;
 
-        int yColumn = getSetColumn(j);
+        int numVisible1 = 0;
 
-        bool ok2;
+        for (int j = 0; j < ns; ++j) {
+          int yColumn = getSetColumn(j);
 
-        double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
+          bool ok2;
 
-        if (! ok2) value = i;
+          double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
 
-        if (CQChartsUtil::isNaN(value))
+          if (! ok2) value = i;
+
+          if (CQChartsUtil::isNaN(value))
+            continue;
+
+          valueSet->values.push_back(value);
+
+          if (isStacked())
+            dataRange_.updateRange(0, sum + value);
+          else
+            dataRange_.updateRange(0, value);
+
+          sum += value;
+
+          ++numVisible1;
+        }
+
+        if (numVisible1 == 0)
           continue;
 
-        valueSet->values.push_back(value);
+        //---
 
-        if (isStacked())
-          dataRange_.updateRange(0, sum + value);
-        else
-          dataRange_.updateRange(0, value);
+        xAxis_->setTickLabel(numVisible, name);
 
-        sum += value;
-
-        ++numVisible1;
+        ++numVisible;
       }
+      else {
+        int numVisible1 = 0;
 
-      if (numVisible1 == 0)
-        continue;
+        for (int j = 0; j < ns; ++j) {
+          if (isSetHidden(j))
+            continue;
 
-      //---
+          int yColumn = getSetColumn(j);
 
-      xAxis_->setTickLabel(numVisible, name);
+          bool ok2;
 
-      ++numVisible;
+          double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
+
+          if (! ok2) value = i;
+
+          if (CQChartsUtil::isNaN(value))
+            continue;
+
+          valueSet->values.push_back(value);
+
+          if (isStacked())
+            dataRange_.updateRange(0, sum + value);
+          else
+            dataRange_.updateRange(0, value);
+
+          sum += value;
+
+          ++numVisible1;
+        }
+
+        if (numVisible1 == 0)
+          continue;
+
+        //---
+
+        xAxis_->setTickLabel(numVisible, name);
+
+        ++numVisible;
+      }
     }
     else {
       if (isSetHidden(i))
@@ -282,15 +337,23 @@ initObjs(bool force)
     int numVisible = 0;
 
     if (ns > 1) {
-      for (int i = 0; i < ns; ++i) {
-        if (isSetHidden(i))
+      if (isKeySets()) {
+        if (isSetHidden(j))
           continue;
 
-        ++numVisible;
+        numVisible = ns;
       }
+      else {
+        for (int i = 0; i < ns; ++i) {
+          if (isSetHidden(i))
+            continue;
 
-      if (! numVisible)
-        continue;
+          ++numVisible;
+        }
+
+        if (! numVisible)
+          continue;
+      }
     }
     else {
       if (isSetHidden(j))
@@ -307,44 +370,85 @@ initObjs(bool force)
     double sum = 0.0;
 
     if (ns > 1) {
-      int numVisible1 = 0;
-
-      for (int i = 0; i < ns; ++i) {
-        if (isSetHidden(i))
+      if (isKeySets()) {
+        if (isSetHidden(j))
           continue;
 
-        //---
+        int numVisible1 = 0;
 
-        double value = valueSet.values[numVisible1];
+        for (int i = 0; i < ns; ++i) {
+          double value = valueSet.values[numVisible1];
 
-        double value1 = value + sum;
+          double value1 = value + sum;
 
-        //---
+          //---
 
-        // create bar rect
-        CBBox2D brect;
+          // create bar rect
+          CBBox2D brect;
 
-        if (isStacked())
-          brect = CBBox2D(bx, sum, bx + 1.0, value1);
-        else
-          brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+          if (isStacked())
+            brect = CBBox2D(bx, sum, bx + 1.0, value1);
+          else
+            brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
 
-        CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv);
+          CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv, value);
 
-        QString valueName = valueNames_[i];
+          QString valueName = valueNames_[i];
 
-        QString valueStr = yAxis_->getValueStr(value);
+          QString valueStr = this->valueStr(value);
 
-        barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
+          barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
 
-        addPlotObject(barObj);
+          addPlotObject(barObj);
 
-        //---
+          //---
 
-        bx1 += bw1;
-        sum += value;
+          bx1 += bw1;
+          sum += value;
 
-        ++numVisible1;
+          ++numVisible1;
+        }
+      }
+      else {
+        int numVisible1 = 0;
+
+        for (int i = 0; i < ns; ++i) {
+          if (isSetHidden(i))
+            continue;
+
+          //---
+
+          double value = valueSet.values[numVisible1];
+
+          double value1 = value + sum;
+
+          //---
+
+          // create bar rect
+          CBBox2D brect;
+
+          if (isStacked())
+            brect = CBBox2D(bx, sum, bx + 1.0, value1);
+          else
+            brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+
+          CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv, value);
+
+          QString valueName = valueNames_[i];
+
+          QString valueStr = this->valueStr(value);
+
+          barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
+
+          addPlotObject(barObj);
+
+          //---
+
+          bx1 += bw1;
+          sum += value;
+
+          ++numVisible1;
+        }
       }
     }
     else {
@@ -368,11 +472,11 @@ initObjs(bool force)
       else
         brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
 
-      CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, 0, ns, j, nv);
+      CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, 0, ns, j, nv, value);
 
       QString valueName = valueSet.name;
 
-      QString valueStr = yAxis_->getValueStr(value);
+      QString valueStr = this->valueStr(value);
 
       barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
 
@@ -394,6 +498,13 @@ initObjs(bool force)
   addKeyItems(keyObj_);
 }
 
+QString
+CQChartsBarChartPlot::
+valueStr(double v) const
+{
+  return yAxis_->getValueStr(v);
+}
+
 void
 CQChartsBarChartPlot::
 addKeyItems(CQChartsKey *key)
@@ -401,12 +512,27 @@ addKeyItems(CQChartsKey *key)
   int ns = numSets();
 
   if (ns > 1) {
-    for (int i = 0; i < ns; ++i) {
-      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, ns);
-      CQChartsBarKeyText  *text  = new CQChartsBarKeyText (this, i, valueNames_[i]);
+    if (isKeySets()) {
+      int nv = numValueSets();
 
-      key->addItem(color, i, 0);
-      key->addItem(text , i, 1);
+      for (int i = 0; i < nv; ++i) {
+        const ValueSet &valueSet = valueSets_[i];
+
+        CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, nv);
+        CQChartsBarKeyText  *text  = new CQChartsBarKeyText (this, i, valueSet.name);
+
+        key->addItem(color, i, 0);
+        key->addItem(text , i, 1);
+      }
+    }
+    else {
+      for (int i = 0; i < ns; ++i) {
+        CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, ns);
+        CQChartsBarKeyText  *text  = new CQChartsBarKeyText (this, i, valueNames_[i]);
+
+        key->addItem(color, i, 0);
+        key->addItem(text , i, 1);
+      }
     }
   }
   else {
@@ -454,24 +580,25 @@ draw(QPainter *p)
   drawBackground(p);
 
   drawBgAxes(p);
+  drawBgKey (p);
 
   drawObjs(p);
 
   drawFgAxes(p);
+  drawFgKey (p);
 
   //---
 
   drawTitle(p);
-
-  drawKey(p);
 }
 
 //------
 
 CQChartsBarChartObj::
 CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
-                    int iset, int nset, int ival, int nval) :
- CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval)
+                    int iset, int nset, int ival, int nval, double value) :
+ CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
+ value_(value)
 {
 }
 
@@ -479,38 +606,96 @@ void
 CQChartsBarChartObj::
 draw(QPainter *p)
 {
-  bool hidden = (nset_ > 1 ? plot_->isSetHidden(iset_) : plot_->isSetHidden(ival_));
+  bool hidden = false;
+
+  if (nset_ > 1) {
+    if (plot_->isKeySets())
+      hidden = plot_->isSetHidden(ival_);
+    else
+      hidden = plot_->isSetHidden(iset_);
+  }
+  else
+    hidden = plot_->isSetHidden(ival_);
 
   if (hidden)
     return;
 
   //---
 
+  p->save();
+
   CBBox2D prect;
 
   plot_->windowToPixel(rect(), prect);
 
-  int m = 2;
+  int m = plot_->margin();
 
   if (prect.getWidth() > 3*m) {
     prect.setXMin(prect.getXMin() + m);
     prect.setXMax(prect.getXMax() - m);
   }
 
-  p->setPen(plot_->borderColor());
+  // set pen
+  if (plot_->isBorder()) {
+    QPen pen(plot_->borderColor());
 
-  QColor barColor;
+    pen.setWidth(plot_->borderWidth());
 
-  if (nset_ > 1)
-    barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
+    p->setPen(pen);
+  }
   else
-    barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+    p->setPen(Qt::NoPen);
 
-  p->setBrush(barColor);
+  // set fill
+  if (plot_->isFill()) {
+    QColor barColor;
+
+    if (nset_ > 1) {
+      if (plot_->isKeySets())
+        barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+      else
+        barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
+    }
+    else
+      barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+
+    p->setBrush(barColor);
+  }
+  else
+    p->setBrush(Qt::NoBrush);
+
+  //---
 
   QRectF qrect = CQUtil::toQRect(prect);
 
   p->drawRect(qrect);
+
+  //---
+
+  if (plot_->isDataLabel()) {
+    p->setClipRect(qrect, Qt::ReplaceClip);
+
+    p->setPen(plot_->dataColor());
+
+    p->setFont(plot_->dataFont());
+
+    QFontMetrics fm(p->font());
+
+    QString ystr = plot_->valueStr(value_);
+
+    int tw = fm.width(ystr);
+
+    if (tw < qrect.width()) {
+      double x = qrect.center().x();
+      double y = qrect.top();
+
+      p->drawText(x - tw/2, y + fm.ascent() + 2, ystr);
+    }
+  }
+
+  //---
+
+  p->restore();
 }
 
 //------

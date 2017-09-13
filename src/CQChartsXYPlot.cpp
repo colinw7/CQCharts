@@ -770,20 +770,12 @@ draw(QPainter *p)
   drawBackground(p);
 
   drawBgAxes(p);
-
-  if (! keyObj_->isAbove())
-    drawKey(p);
-
-  //---
+  drawBgKey (p);
 
   drawObjs(p);
 
-  //---
-
   drawFgAxes(p);
-
-  if (keyObj_->isAbove())
-    drawKey(p);
+  drawFgKey (p);
 
   //---
 

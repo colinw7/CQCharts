@@ -10,7 +10,7 @@ CQChartsTest -csv airports.csv -plot delaunay -x 6 -y 5 -z 1 -plot_title "delaun
 
 CQChartsTest -data bivariate.tsv -plot xy -x 0 -y "1 2" -format "time:format=%Y%m%d" -bivariate -plot_title "bivariate"
 
-CQChartsTest -csv boxplot.csv -plot box -x 0 -y 2 -plot_title "boxplot"
+CQChartsTest -csv boxplot.csv -plot box -x 0 -y 2 -plot_title "boxplot" -first_line_header
 
 CQChartsTest -tsv multi_series.tsv -plot xy -x 0 -y 1 -format "time:format=%Y%m%d" -comment_header -plot_title "xy plot"
 
@@ -32,7 +32,7 @@ CQChartsTest -tsv states.tsv -plot geometry -x 0 -y 1 -comment_header "geometry"
 
 CQChartsTest -csv multi_bar.csv -plot bar -x 0 -y "1 2 3 4 5 6" -first_line_header -format ";integer" -and -csv ages.csv -plot pie -x 0 -y 1 -plot_title "bar chart and pie"
 
-CQChartsTest -tsv states.tsv -plot geometry -x 0 -y 1 -comment_header -and -csv airports.csv -plot delaunay -x 6 -y 5 -z 1 -plot_title "states and airports"
+CQChartsTest -overlay -tsv states.tsv -plot geometry -x 0 -y 1 -comment_header -and -csv airports.csv -plot delaunay -x 6 -y 5 -z 1 -plot_title "states and airports"
 
 CQChartsTest -tsv choropeth.tsv -plot geometry -x 0 -y 1 -z 2 -plot_title "choropeth"
 

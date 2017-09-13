@@ -106,13 +106,13 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
   const QColor &bgColor() const { return bgColor_; }
-  void setBgColor(const QColor &v) { bgColor_ = v; }
+  void setBgColor(const QColor &c) { bgColor_ = c; }
 
   const QColor &textColor() const { return textColor_; }
-  void setTextColor(const QColor &v) { textColor_ = v; }
+  void setTextColor(const QColor &c) { textColor_ = c; }
 
   const QColor &emptyCellColor() const { return emptyCellColor_; }
-  void setEmptyCellColor(const QColor &v) { emptyCellColor_ = v; }
+  void setEmptyCellColor(const QColor &c) { emptyCellColor_ = c; }
 
   int maxValue() const { return maxValue_; }
 

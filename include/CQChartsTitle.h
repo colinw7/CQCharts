@@ -56,12 +56,12 @@ class CQChartsTitle : public CQChartsBoxObj {
   void setInside(bool b) { inside_ = b; updatePosition(); }
 
   const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &v) { bbox_ = v; }
+  void setBBox(const CBBox2D &b) { bbox_ = b; }
 
   void addProperties(CQPropertyTree *tree, const QString &path);
 
   const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &v) { position_ = v; }
+  void setPosition(const QPointF &p) { position_ = p; }
 
   QSizeF calcSize();
 

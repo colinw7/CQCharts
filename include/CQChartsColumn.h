@@ -222,10 +222,10 @@ class CQChartsColumn {
   }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   const QString &type() const { return type_; }
-  void setType(const QString &v) { type_ = v; }
+  void setType(const QString &s) { type_ = s; }
 
   bool decodeType(QString &baseType, CQChartsNameValues &nameValues) const {
     return decodeType(type_, baseType, nameValues);

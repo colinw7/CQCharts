@@ -328,7 +328,20 @@ draw(QPainter *p)
 
   p->save();
 
-  p->setClipRect(CQUtil::toQRect(plot_->calcPixelRect()), Qt::ReplaceClip);
+  QRectF dataRect = plot_->calcRect();
+  QRectF clipRect = CQUtil::toQRect(plot_->calcPixelRect());
+
+  if (isInsideX()) {
+    clipRect.setLeft (dataRect.left ());
+    clipRect.setRight(dataRect.right());
+  }
+
+  if (isInsideY()) {
+    clipRect.setTop   (dataRect.top   ());
+    clipRect.setBottom(dataRect.bottom());
+  }
+
+  p->setClipRect(clipRect, Qt::ReplaceClip);
 
   //---
 

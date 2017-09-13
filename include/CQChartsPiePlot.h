@@ -6,7 +6,6 @@
 
 #include <COptVal.h>
 #include <CPoint2D.h>
-#include <CRGBA.h>
 #include <string>
 
 class CQChartsPiePlot;

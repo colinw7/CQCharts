@@ -38,7 +38,7 @@
  + allow grid draw front/back
  + fix axis column update
  + split view widgets to separate files
-## 9/12/2017
+## 9/10/2017
  + Add types for real, integer, string
  + Key above/below
  + Support zoom on data (with overlay plot)
@@ -47,3 +47,9 @@
  + Add border individual side drawing
  + Support NaN values
  + Add objects for Sunburst plot
+## 9/12/2017
+ + Add more bar chart customization : fill/stroke/data label
+ + Allow key of multiple bar chart sets to show sets or values
+ + Clip title
+ + Draw key above or below
+ + Improve handling of overlapped/linked plots

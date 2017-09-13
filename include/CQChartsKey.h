@@ -61,19 +61,19 @@ class CQChartsKey : public CQChartsBoxObj {
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
 
   const QColor &textColor() const { return textColor_; }
-  void setTextColor(const QColor &v) { textColor_ = v; updateLayout(); }
+  void setTextColor(const QColor &c) { textColor_ = c; updateLayout(); }
 
   const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &v) { textFont_ = v; updateLayout(); }
+  void setTextFont(const QFont &f) { textFont_ = f; updateLayout(); }
 
   bool isAbove() const { return above_; }
-  void setAbove(bool b) { above_ = b; }
+  void setAbove(bool b) { above_ = b; redraw(); }
 
   QString locationStr() const;
   void setLocationStr(const QString &s);
 
   const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &v) { bbox_ = v; }
+  void setBBox(const CBBox2D &b) { bbox_ = b; }
 
   void addProperties(CQPropertyTree *tree, const QString &path);
 
@@ -89,7 +89,7 @@ class CQChartsKey : public CQChartsBoxObj {
   void invalidateLayout();
 
   const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &v) { position_ = v; }
+  void setPosition(const QPointF &p) { position_ = p; }
 
   QSizeF calcSize();
 
@@ -170,7 +170,7 @@ class CQChartsKeyItem : public QObject {
   void setColSpan(int i) { colSpan_ = i; }
 
   const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &v) { bbox_ = v; }
+  void setBBox(const CBBox2D &b) { bbox_ = b; }
 
   virtual bool mousePress(const CPoint2D &) { return false; }
   virtual bool mouseMove (const CPoint2D &) { return false; }

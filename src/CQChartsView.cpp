@@ -19,7 +19,6 @@
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QRubberBand>
-#include <QPainter>
 #include <QMouseEvent>
 #include <QPainter>
 
@@ -291,7 +290,7 @@ void
 CQChartsView::
 keyPressEvent(QKeyEvent *ke)
 {
-  if (ke->key() == Qt::Key_Escape) {
+  if      (ke->key() == Qt::Key_Escape) {
      mouseData_.escape = true;
 
     if      (mode() == Mode::ZOOM) {
@@ -305,6 +304,13 @@ keyPressEvent(QKeyEvent *ke)
 
     return;
   }
+  else if (ke->key() == Qt::Key_Bar) {
+    setMode(Mode::PROBE);
+
+    return;
+  }
+
+  //---
 
   QPoint gpos = QCursor::pos();
 
@@ -397,8 +403,10 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  for (const auto &plot : plotDatas_)
-    plot.plot->draw(&painter);
+  for (const auto &plot : plotDatas_) {
+    if (plot.plot->isVisible())
+      plot.plot->draw(&painter);
+  }
 }
 
 CQChartsPlot *
@@ -435,6 +443,18 @@ plotBBox(CQChartsPlot *plot) const
       return plotData.bbox;
 
   return CBBox2D();
+}
+
+CQChartsPlot *
+CQChartsView::
+currentPlot() const
+{
+  if (plotDatas_.empty())
+    return nullptr;
+
+  CQChartsPlot *plot = plotDatas_[0].plot;
+
+  return plot->firstPlot();
 }
 
 void

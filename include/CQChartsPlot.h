@@ -23,6 +23,7 @@ class QRubberBand;
 class CQChartsPlot : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(bool    visible             READ isVisible           WRITE setVisible            )
   Q_PROPERTY(QRectF  rect                READ rect                WRITE setRect               )
   Q_PROPERTY(QRectF  range               READ range               WRITE setRange              )
   Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
@@ -51,6 +52,7 @@ class CQChartsPlot : public QObject {
 
   Q_PROPERTY(bool    equalScale          READ isEqualScale        WRITE setEqualScale         )
   Q_PROPERTY(bool    followMouse         READ isFollowMouse       WRITE setFollowMouse        )
+  Q_PROPERTY(bool    overlay             READ isOverlay           WRITE setOverlay            )
   Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
 
  public:
@@ -85,15 +87,18 @@ class CQChartsPlot : public QObject {
   virtual const char *typeName() const = 0;
 
   const QString &id() const { return id_; }
-  void setId(const QString &v) { id_ = v; }
+  void setId(const QString &s) { id_ = s; }
+
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; update(); }
 
   //---
 
   const CDisplayRange2D &displayRange() const { return displayRange_; }
-  void setDisplayRange(const CDisplayRange2D &v) { displayRange_ = v; }
+  void setDisplayRange(const CDisplayRange2D &r) { displayRange_ = r; }
 
   const CDisplayTransform2D &displayTransform() const { return displayTransform_; }
-  void setDisplayTransform(const CDisplayTransform2D &v) { displayTransform_ = v; }
+  void setDisplayTransform(const CDisplayTransform2D &t) { displayTransform_ = t; }
 
   const CRange2D &dataRange() const { return dataRange_; }
   void setDataRange(const CRange2D &r) { dataRange_ = r; }
@@ -102,7 +107,7 @@ class CQChartsPlot : public QObject {
   void setDataScale(double r) { dataScale_ = r; }
 
   const CPoint2D &dataOffset() const { return dataOffset_; }
-  void setDataOffset(const CPoint2D &v) { dataOffset_ = v; }
+  void setDataOffset(const CPoint2D &o) { dataOffset_ = o; }
 
   //---
 
@@ -122,7 +127,7 @@ class CQChartsPlot : public QObject {
   void setYMax(const COptReal &r) { ymax_ = r; }
 
   const QString &title() const { return title_; }
-  void setTitle(const QString &v);
+  void setTitle(const QString &s);
 
   //---
 
@@ -130,19 +135,19 @@ class CQChartsPlot : public QObject {
   void setBackground(bool b) { background_ = b; update(); }
 
   const QColor &backgroundColor() const { return backgroundColor_; }
-  void setBackgroundColor(const QColor &v) { backgroundColor_ = v; update(); }
+  void setBackgroundColor(const QColor &c) { backgroundColor_ = c; update(); }
 
   bool isBorder() const { return border_; }
   void setBorder(bool b) { border_ = b; update(); }
 
   const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &v) { borderColor_ = v; update(); }
+  void setBorderColor(const QColor &c) { borderColor_ = c; update(); }
 
   double borderWidth() const { return borderWidth_; }
   void setBorderWidth(double r) { borderWidth_ = r; update(); }
 
   const QString &borderSides() const { return borderSides_; }
-  void setBorderSides(const QString &v) { borderSides_ = v; update(); }
+  void setBorderSides(const QString &s) { borderSides_ = s; update(); }
 
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
@@ -220,19 +225,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsPlot *rootPlot() const { return rootPlot_; }
-
-  void setRootPlot(CQChartsPlot *plot) {
-    assert(! rootPlot_);
-
-    rootPlot_ = plot;
-  }
-
-  void addRefPlot(CQChartsPlot *plot) {
-    assert(plot != this);
-
-    refPlots_.push_back(plot);
-  }
+  bool isOverlay() const { return overlay_; }
+  void setOverlay(bool b) { overlay_ = b; }
 
   CQChartsPlot *prevPlot() const { return otherPlot_.prev; }
   CQChartsPlot *nextPlot() const { return otherPlot_.next; }
@@ -364,6 +358,9 @@ class CQChartsPlot : public QObject {
   void drawBgAxes(QPainter *painter);
   void drawFgAxes(QPainter *painter);
 
+  void drawBgKey(QPainter *painter);
+  void drawFgKey(QPainter *painter);
+
   void drawKey(QPainter *painter);
 
   void drawTitle(QPainter *painter);
@@ -407,6 +404,7 @@ class CQChartsPlot : public QObject {
   CQChartsView*         view_                { nullptr };
   QAbstractItemModel*   model_               { nullptr };
   QString               id_;
+  bool                  visible_             { true };
   CBBox2D               bbox_                { 0, 0, 1000, 1000 };
   Margin                margin_;
   CDisplayRange2D       displayRange_;
@@ -443,9 +441,8 @@ class CQChartsPlot : public QObject {
   bool                  equalScale_          { false };
   bool                  followMouse_         { true };
   bool                  showBoxes_           { false };
-  CQChartsPlot*         rootPlot_            { nullptr };
+  bool                  overlay_             { false };
   OtherPlot             otherPlot_;
-  RefPlots              refPlots_;
   PlotObjs              plotObjs_;
   PlotObjTree           plotObjTree_;
   MouseData             mouseData_;

@@ -46,10 +46,10 @@ class CQChartsView : public QFrame {
   CQPropertyTree *propertyTree() const;
 
   const QColor &background() const { return background_; }
-  void setBackground(const QColor &v) { background_ = v; update(); }
+  void setBackground(const QColor &c) { background_ = c; update(); }
 
   const Mode &mode() const { return mode_; }
-  void setMode(const Mode &v);
+  void setMode(const Mode &m);
 
   bool isZoomData() const { return zoomData_; }
   void setZoomData(bool b) { zoomData_ = b; }
@@ -83,6 +83,8 @@ class CQChartsView : public QFrame {
   bool plotsAt(const CPoint2D &p, Plots &plots) const;
 
   CBBox2D plotBBox(CQChartsPlot *plot) const;
+
+  CQChartsPlot *currentPlot() const;
 
   void setStatusText(const QString &text);
 

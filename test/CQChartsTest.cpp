@@ -445,10 +445,15 @@ initPlot(const InitData &initData)
     rootPlot_ = plot;
 
   if      (initData.overlay) {
-    if (i > 0) {
-      plot->setRootPlot(rootPlot_);
+    plot->setOverlay(true);
 
-      rootPlot_->addRefPlot(plot);
+    if      (i == 0) {
+    }
+    else if (i >= 1) {
+      CQChartsPlot *prevPlot = plots_.back();
+
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
 
       plot->setDataRange(rootPlot_->dataRange());
 

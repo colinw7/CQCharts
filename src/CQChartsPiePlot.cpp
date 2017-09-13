@@ -195,15 +195,15 @@ draw(QPainter *p)
 
   drawBackground(p);
 
-  //---
+  drawBgKey(p);
 
   drawObjs(p);
+
+  drawFgKey(p);
 
   //---
 
   drawTitle(p);
-
-  drawKey(p);
 }
 
 //------

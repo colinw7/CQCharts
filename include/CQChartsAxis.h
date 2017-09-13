@@ -101,7 +101,7 @@ class CQChartsAxis : public QObject {
   void setDataLabels(bool b) { dataLabels_ = b; }
 
   QString format() const;
-  bool setFormat(const QString &v);
+  bool setFormat(const QString &s);
 
   //---
 
@@ -219,7 +219,7 @@ class CQChartsAxis : public QObject {
   QString getValueStr(double pos) const;
 
   const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &v) { bbox_ = v; }
+  void setBBox(const CBBox2D &b) { bbox_ = b; }
 
   void addProperties(CQPropertyTree *tree, const QString &path);
 

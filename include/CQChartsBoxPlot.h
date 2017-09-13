@@ -46,7 +46,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void setYColumn(int i) { yColumn_ = i; update(); }
 
   const QColor &boxColor() const { return boxColor_; }
-  void setBoxColor(const QColor &v) { boxColor_ = v; }
+  void setBoxColor(const QColor &c) { boxColor_ = c; }
 
   void addProperties();
 

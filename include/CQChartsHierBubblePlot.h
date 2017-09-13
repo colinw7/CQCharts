@@ -224,7 +224,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   void setFontHeight(double r) { fontHeight_ = r; update(); }
 
   const CPoint2D &offset() const { return offset_; }
-  void setOffset(const CPoint2D &v) { offset_ = v; }
+  void setOffset(const CPoint2D &o) { offset_ = o; }
 
   double scale() const { return scale_; }
   void setScale(double r) { scale_ = r; }

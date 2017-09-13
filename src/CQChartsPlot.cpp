@@ -132,10 +132,12 @@ void
 CQChartsPlot::
 addProperties()
 {
+  addProperty("", this, "visible"    );
   addProperty("", this, "rect"       );
   addProperty("", this, "range"      );
   addProperty("", this, "equalScale" );
   addProperty("", this, "followMouse");
+  addProperty("", this, "overlay"    );
   addProperty("", this, "showBoxes"  );
 
   QString plotStyleStr       = "plotStyle";
@@ -266,20 +268,31 @@ applyDataRange(bool propagate)
   }
 
   if (propagate) {
-    if (rootPlot_) {
-      rootPlot_->setDataRange (dataRange_ );
-      rootPlot_->setDataScale (dataScale_ );
-      rootPlot_->setDataOffset(dataOffset_);
+    CQChartsPlot *plot1 = firstPlot();
 
-      applyDataRange(/*propagate*/false);
+    if (isOverlay()) {
+      if (plot1) {
+        plot1->setDataRange (dataRange_ );
+        plot1->setDataScale (dataScale_ );
+        plot1->setDataOffset(dataOffset_);
+
+        plot1->applyDataRange(/*propagate*/false);
+
+        while (plot1) {
+          plot1->setDataRange (dataRange_ );
+          plot1->setDataScale (dataScale_ );
+          plot1->setDataOffset(dataOffset_);
+
+          plot1->applyDataRange(/*propagate*/false);
+
+          plot1 = plot1->nextPlot();
+        }
+      }
     }
     else {
-      CQChartsPlot *plot1 = firstPlot();
-
       if (plot1) {
 #if 0
-        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(),
-                      dataRange_.xmax(), dataRange_.ymax());
+        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(), dataRange_.xmax(), dataRange_.ymax());
 #endif
 
         while (plot1) {
@@ -308,15 +321,6 @@ applyDataRange(bool propagate)
           plot1 = plot1->nextPlot();
         }
       }
-      else {
-        for (const auto &plot : refPlots_) {
-          plot->setDataRange (dataRange_ );
-          plot->setDataScale (dataScale_ );
-          plot->setDataOffset(dataOffset_);
-
-          applyDataRange(/*propagate*/false);
-        }
-      }
     }
   }
 
@@ -330,16 +334,21 @@ CQChartsPlot::
 applyDisplayTransform(bool propagate)
 {
   if (propagate) {
-    if (rootPlot_) {
-      rootPlot_->setDisplayTransform(displayTransform_);
+    if (isOverlay()) {
+      CQChartsPlot *plot1 = firstPlot();
 
-      applyDisplayTransform(/*propagate*/false);
-    }
-    else {
-      for (const auto &plot : refPlots_) {
-        plot->setDisplayTransform(displayTransform_);
+      if (plot1) {
+        plot1->setDisplayTransform(displayTransform_);
 
-        applyDisplayTransform(/*propagate*/false);
+        plot1->applyDisplayTransform(/*propagate*/false);
+
+        while (plot1) {
+          plot1->setDisplayTransform(displayTransform_);
+
+          plot1->applyDisplayTransform(/*propagate*/false);
+
+          plot1 = plot1->nextPlot();
+        }
       }
     }
   }
@@ -1209,6 +1218,22 @@ drawFgAxes(QPainter *painter)
 
   if (yAxis_ && yAxis_->getVisible())
     yAxis_->draw(this, painter);
+}
+
+void
+CQChartsPlot::
+drawBgKey(QPainter *painter)
+{
+  if (keyObj_ && ! keyObj_->isAbove())
+    drawKey(painter);
+}
+
+void
+CQChartsPlot::
+drawFgKey(QPainter *painter)
+{
+  if (keyObj_ && keyObj_->isAbove())
+    drawKey(painter);
 }
 
 void

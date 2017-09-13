@@ -119,6 +119,10 @@ draw(QPainter *p)
 
   p->save();
 
+  QRectF clipRect = CQUtil::toQRect(plot_->calcPixelRect());
+
+  p->setClipRect(clipRect, Qt::ReplaceClip);
+
   //---
 
   double x = position_.x(); // bottom
