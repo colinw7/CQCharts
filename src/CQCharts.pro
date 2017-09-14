@@ -15,7 +15,6 @@ CONFIG += staticlib
 SOURCES += \
 CQCharts.cpp \
 CQChartsAdjacencyPlot.cpp \
-CQChartsAxisBase.cpp \
 CQChartsAxis.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxObj.cpp \
@@ -61,7 +60,6 @@ CHull3D.cpp \
 HEADERS += \
 ../include/CQCharts.h \
 ../include/CQChartsAdjacencyPlot.h \
-../include/CQChartsAxisBase.h \
 ../include/CQChartsAxis.h \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxObj.h \

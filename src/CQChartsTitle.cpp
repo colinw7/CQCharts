@@ -83,10 +83,13 @@ calcSize()
     double ww = plot_->pixelToWindowWidth (pw);
     double wh = plot_->pixelToWindowHeight(ph);
 
-    double xm = plot_->pixelToWindowWidth (margin_);
-    double ym = plot_->pixelToWindowHeight(margin_);
+    double xp = plot_->pixelToWindowWidth (padding());
+    double yp = plot_->pixelToWindowHeight(padding());
 
-    size_ = QSizeF(ww + 2*xm, wh + 2*ym);
+    double xm = plot_->pixelToWindowWidth (margin());
+    double ym = plot_->pixelToWindowHeight(margin());
+
+    size_ = QSizeF(ww + 2*xp + 2*xm, wh + 2*yp + 2*ym);
   }
   else {
     size_ = QSizeF();
@@ -130,31 +133,23 @@ draw(QPainter *p)
   double w = size_.width ();
   double h = size_.height();
 
-  //double xm = plot_->pixelToWindowWidth (margin_);
-  //double ym = plot_->pixelToWindowHeight(margin_);
-
   bbox_ = CBBox2D(x, y, x + w, y + h);
 
+  double xp = plot_->pixelToWindowWidth (padding());
+  double yp = plot_->pixelToWindowHeight(padding());
+
+  CBBox2D ibbox = CBBox2D(x + xp, y + yp, x + w - xp, y + h - yp);
+
   //---
 
-  CBBox2D prect;
+  CBBox2D prect, pirect;
 
   plot_->windowToPixel(bbox_, prect);
+  plot_->windowToPixel(ibbox, pirect);
 
   //---
 
-  p->fillRect(CQUtil::toQRect(prect), QBrush(background()));
-
-  if (isBorder()) {
-    QPen pen(borderColor());
-
-    pen.setWidth(borderWidth());
-
-    p->setPen  (pen);
-    p->setBrush(Qt::NoBrush);
-
-    p->drawRect(CQUtil::toQRect(prect));
-  }
+  CQChartsBoxObj::draw(p, CQUtil::toQRect(pirect));
 
   //---
 
@@ -163,7 +158,7 @@ draw(QPainter *p)
   p->setPen (color());
   p->setFont(font());
 
-  p->drawText(prect.getXMin() + margin_, prect.getYMax() - margin_ - fm.descent(), text());
+  p->drawText(pirect.getXMin() + margin(), pirect.getYMax() - margin() - fm.descent(), text());
 
   //---
 

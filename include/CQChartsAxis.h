@@ -53,6 +53,9 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(CLineDash gridDash      READ getGridDash      WRITE setGridDash     )
   Q_PROPERTY(double    gridWidth     READ getGridWidth     WRITE setGridWidth    )
   Q_PROPERTY(bool      gridAbove     READ isGridAbove      WRITE setGridAbove    )
+  Q_PROPERTY(bool      gridFill      READ isGridFill       WRITE setGridFill     )
+  Q_PROPERTY(QColor    gridFillColor READ gridFillColor    WRITE setGridFillColor)
+  Q_PROPERTY(double    gridFillAlpha READ gridFillAlpha    WRITE setGridFillAlpha)
 
   Q_ENUMS(Direction)
   Q_ENUMS(Side)
@@ -147,6 +150,15 @@ class CQChartsAxis : public QObject {
 
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b) { gridAbove_ = b; redraw(); }
+
+  bool isGridFill() const { return gridFill_; }
+  void setGridFill(bool b) { gridFill_ = b; redraw(); }
+
+  const QColor &gridFillColor() const { return gridFillColor_; }
+  void setGridFillColor(const QColor &c) { gridFillColor_ = c; redraw(); }
+
+  double gridFillAlpha() const { return gridFillAlpha_; }
+  void setGridFillAlpha(double r) { gridFillAlpha_ = r; redraw(); }
 
   //---
 
@@ -279,6 +291,9 @@ class CQChartsAxis : public QObject {
   CLineDash       gridDash_            { 2, 2 };
   double          gridWidth_           { 0 };
   bool            gridAbove_           { false };
+  bool            gridFill_            { false };
+  QColor          gridFillColor_       { 128, 128, 128 };
+  double          gridFillAlpha_       { 0.5 };
 
   // ticks
   bool            minorTicksDisplayed_ { true };

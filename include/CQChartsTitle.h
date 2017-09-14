@@ -37,6 +37,10 @@ class CQChartsTitle : public CQChartsBoxObj {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; redraw(); }
 
+  void setMargin(int i) override { CQChartsBoxObj::setMargin(i); updatePosition(); }
+
+  void setPadding(int i) override { CQChartsBoxObj::setPadding(i); updatePosition(); }
+
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; updatePosition(); }
 

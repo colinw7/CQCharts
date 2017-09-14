@@ -137,6 +137,18 @@ protected:
   int           n_    { 0 };
 };
 
+class CQChartsXYKeyText : public CQChartsKeyText {
+  Q_OBJECT
+
+ public:
+  CQChartsXYKeyText(CQChartsXYPlot *plot, int i, const QString &text);
+
+  QColor textColor() const override;
+
+ private:
+  int i_ { 0 };
+};
+
 //---
 
 class CQChartsXYPlot : public CQChartsPlot {

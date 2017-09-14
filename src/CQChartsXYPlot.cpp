@@ -675,7 +675,7 @@ addKeyItems(CQChartsKey *key)
     QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
     CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, 0, 1);
-    CQChartsKeyText    *text  = new CQChartsKeyText   (this, name);
+    CQChartsXYKeyText  *text  = new CQChartsXYKeyText (this, 0, name);
 
     key->addItem(color, row, 0);
     key->addItem(text , row, 1);
@@ -689,7 +689,7 @@ addKeyItems(CQChartsKey *key)
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
-      CQChartsKeyText   *text = new CQChartsKeyText  (this, name);
+      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
 
       key->addItem(line, row + i, 0);
       key->addItem(text, row + i, 1);
@@ -704,7 +704,7 @@ addKeyItems(CQChartsKey *key)
       QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
-      CQChartsKeyText   *text = new CQChartsKeyText  (this, name);
+      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
 
       key->addItem(line, row + i, 0);
       key->addItem(text, row + i, 1);
@@ -1079,20 +1079,6 @@ CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n) :
 {
 }
 
-QColor
-CQChartsXYKeyColor::
-fillColor() const
-{
-  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
-
-  if      (plot->isBivariate())
-    return plot->fillUnderColor(i_, n_);
-  else if (plot->prevPlot() || plot->nextPlot())
-    return plot->lineColor(i_, n_);
-  else
-    return CQChartsKeyColorBox::fillColor();
-}
-
 bool
 CQChartsXYKeyColor::
 mousePress(const CPoint2D &)
@@ -1106,6 +1092,27 @@ mousePress(const CPoint2D &)
   plot->update();
 
   return true;
+}
+
+QColor
+CQChartsXYKeyColor::
+fillColor() const
+{
+  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
+
+  QColor c;
+
+  if      (plot->isBivariate())
+    c = plot->fillUnderColor(i_, n_);
+  else if (plot->prevPlot() || plot->nextPlot())
+    c = plot->lineColor(i_, n_);
+  else
+    c = CQChartsKeyColorBox::fillColor();
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+
+  return c;
 }
 
 //------
@@ -1167,6 +1174,9 @@ draw(QPainter *p, const CBBox2D &rect)
 
   QColor c = plot->pointColor(i_, n_);
 
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+
   p->setPen(c);
 
   double x1 = prect.getXMin() + 4;
@@ -1185,4 +1195,26 @@ draw(QPainter *p, const CBBox2D &rect)
 
   keyPlot->drawSymbol(p, CPoint2D(x1, y), plot->symbolType(), s, c, plot->isSymbolFilled());
   keyPlot->drawSymbol(p, CPoint2D(x2, y), plot->symbolType(), s, c, plot->isSymbolFilled());
+}
+
+//------
+
+CQChartsXYKeyText::
+CQChartsXYKeyText(CQChartsXYPlot *plot, int i, const QString &text) :
+ CQChartsKeyText(plot, text), i_(i)
+{
+}
+
+QColor
+CQChartsXYKeyText::
+textColor() const
+{
+  QColor c = CQChartsKeyText::textColor();
+
+  CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, Qt::white, 0.5);
+
+  return c;
 }

@@ -300,3 +300,17 @@ mousePress(const CPoint2D &)
 
   return true;
 }
+
+QColor
+CQChartsScatterKeyColor::
+fillColor() const
+{
+  QColor c = CQChartsKeyColorBox::fillColor();
+
+  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+
+  return c;
+}

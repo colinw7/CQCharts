@@ -476,7 +476,7 @@ fillColor() const
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, Qt::white, 0.5);
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }
@@ -498,7 +498,7 @@ textColor() const
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, Qt::white, 0.5);
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }

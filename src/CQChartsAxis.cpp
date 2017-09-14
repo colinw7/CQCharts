@@ -108,6 +108,9 @@ addProperties(CQPropertyTree *tree, const QString &path)
   tree->addProperty(gridPath, this, "gridDash"     , "dash");
   tree->addProperty(gridPath, this, "gridWidth"    , "width");
   tree->addProperty(gridPath, this, "gridAbove"    , "above");
+  tree->addProperty(gridPath, this, "gridFill"     , "fill");
+  tree->addProperty(gridPath, this, "gridFillColor", "fillColor");
+  tree->addProperty(gridPath, this, "gridFillAlpha", "fillAlpha");
 }
 
 void
@@ -575,6 +578,53 @@ drawGrid(CQChartsPlot *plot, QPainter *p)
 
   //---
 
+  double inc = getMajorIncrement();
+
+  //---
+
+  if (isGridFill()) {
+    QColor fillColor = gridFillColor();
+
+    fillColor.setAlpha(255*gridFillAlpha());
+
+    QBrush brush(fillColor);
+
+    //---
+
+    double pos1 = start1_;
+    double pos2 = pos1;
+
+    for (uint i = 0; i < getNumMajorTicks() + 1; i++) {
+      if (i & 1) {
+        if (pos2 >= getStart() || pos1 <= getEnd()) {
+          double pos3 = std::max(pos1, getStart());
+          double pos4 = std::min(pos2, getEnd  ());
+
+          double ppx1, ppy1, ppx2, ppy2;
+
+          plot->windowToPixel(pos3, pos1, ppx1, ppy1);
+          plot->windowToPixel(pos4, pos2, ppx2, ppy2);
+
+          CBBox2D bbox;
+
+          if (direction_ == Direction::HORIZONTAL)
+            bbox = CBBox2D(ppx1, ay1, ppx2, ay2);
+          else
+            bbox = CBBox2D(ax1, ppy1, ax2, ppy2);
+
+          p->fillRect(CQUtil::toQRect(bbox), brush);
+        }
+      }
+
+      //---
+
+      pos1 = pos2;
+      pos2 = pos1 + inc;
+    }
+  }
+
+  //---
+
   QPen pen(getGridColor());
 
   pen.setWidth(getGridWidth());
@@ -582,8 +632,6 @@ drawGrid(CQChartsPlot *plot, QPainter *p)
   CQUtil::penSetLineDash(pen, getGridDash());
 
   p->setPen(pen);
-
-  double inc = getMajorIncrement();
 
   double pos1 = start1_;
 
@@ -593,8 +641,6 @@ drawGrid(CQChartsPlot *plot, QPainter *p)
       double ppx, ppy;
 
       plot->windowToPixel(pos1, pos1, ppx, ppy);
-
-      //p->setPen(QPen(getGridColor(), 0.0, Qt::DotLine));
 
       if (direction_ == Direction::HORIZONTAL)
         p->drawLine(ppx, ay1, ppx, ay2);

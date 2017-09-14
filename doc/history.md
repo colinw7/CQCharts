@@ -53,3 +53,8 @@
  + Clip title
  + Draw key above or below
  + Improve handling of overlapped/linked plots
+## 9/13/2107
+ + Add more border properties
+ + Add grid fill
+ + Use key background for disabled fade
+ + draw faded key in xy plot

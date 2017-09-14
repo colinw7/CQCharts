@@ -36,6 +36,8 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
 
   bool mousePress(const CPoint2D &p) override;
+
+  QColor fillColor() const override;
 };
 
 //---

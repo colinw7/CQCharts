@@ -345,20 +345,7 @@ draw(QPainter *p)
 
   //---
 
-  p->fillRect(rect, background());
-
-  //---
-
-  if (isBorder()) {
-    QPen pen(borderColor());
-
-    pen.setWidth(borderWidth());
-
-    p->setPen  (pen);
-    p->setBrush(Qt::NoBrush);
-
-    p->drawRect(rect);
-  }
+  CQChartsBoxObj::draw(p, rect);
 
   //---
 
@@ -405,6 +392,36 @@ draw(QPainter *p)
   //---
 
   p->restore();
+}
+
+QColor
+CQChartsKey::
+bgColor() const
+{
+  if (isBackground())
+    return backgroundColor();
+
+  if      (isInsideX() && isInsideY()) {
+    if (plot_->isDataBackground())
+      return plot_->dataBackgroundColor();
+  }
+  else if (isInsideX()) {
+    if (location_ == CENTER_LEFT || location_ == CENTER_CENTER || location_ == CENTER_RIGHT) {
+      if (plot_->isDataBackground())
+        return plot_->dataBackgroundColor();
+    }
+  }
+  else if (isInsideY()) {
+    if (location_ == TOP_CENTER || location_ == CENTER_CENTER || location_ == BOTTOM_CENTER) {
+      if (plot_->isDataBackground())
+        return plot_->dataBackgroundColor();
+    }
+  }
+
+  if (plot_->isBackground())
+    return plot_->backgroundColor();
+
+  return Qt::white;
 }
 
 //------

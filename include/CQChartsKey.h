@@ -106,6 +106,8 @@ class CQChartsKey : public CQChartsBoxObj {
 
   void draw(QPainter *p);
 
+  QColor bgColor() const;
+
  private:
   void doLayout();
 

@@ -128,7 +128,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setMargin(int i) { margin_ = i; update(); }
 
   bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; initObjs(true); }
+  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); initObjs(true); }
 
   //---
 
@@ -164,6 +164,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   }
 
   void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
+
+  void resetSetHidden() { idHidden_.clear(); }
 
   //---
 
