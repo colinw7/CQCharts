@@ -14,6 +14,8 @@ CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
   addAxes();
+
+  addTitle();
 }
 
 void
@@ -189,8 +191,6 @@ draw(QPainter *p)
 
   drawObjs(p);
 
-  //---
-
   if (! isVoronoi())
     drawDelaunay(p);
   else
@@ -199,6 +199,10 @@ draw(QPainter *p)
   //---
 
   drawFgAxes(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 void

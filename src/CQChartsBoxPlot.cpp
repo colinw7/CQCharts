@@ -13,6 +13,10 @@ CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model) :
 {
   addAxes();
 
+  addKey();
+
+  addTitle();
+
   xAxis_->setIntegral(true);
 }
 
@@ -27,30 +31,50 @@ addProperties()
 
 void
 CQChartsBoxPlot::
-init()
+updateRange()
 {
-  whiskers_.clear();
+  if (whiskers_.empty()) {
+    int n = model_->rowCount(QModelIndex());
 
-  QModelIndex ind;
+    for (int i = 0; i < n; ++i) {
+      bool ok1, ok2;
 
-  int n = model_->rowCount(ind);
+      int    set   = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
+      double value = CQChartsUtil::modelReal   (model_, i, yColumn_, ok2);
 
-  for (int i = 0; i < n; ++i) {
-    bool ok1, ok2;
+      if (! ok1) set   = i;
+      if (! ok2) value = i;
 
-    int    set   = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
-    double value = CQChartsUtil::modelReal   (model_, i, yColumn_, ok2);
+      if (CQChartsUtil::isNaN(value))
+        continue;
 
-    if (! ok1) set   = i;
-    if (! ok2) value = i;
+      whiskers_[set].addValue(value);
+    }
 
-    if (CQChartsUtil::isNaN(value))
-      continue;
+    for (auto &iwhisker : whiskers_)
+      iwhisker.second.init();
+  }
 
-    whiskers_[set].addValue(value);
+  //---
 
-    dataRange_.updateRange(set - 0.5, value);
-    dataRange_.updateRange(set + 0.5, value);
+  int i = 0;
+
+  for (const auto &iwhisker : whiskers_) {
+    bool hidden = isSetHidden(i);
+
+    if (! hidden) {
+      double pos = iwhisker.first;
+
+      const CBoxWhisker &whisker = iwhisker.second;
+
+      double min = whisker.value(0);
+      double max = whisker.value(whisker.numValues() - 1);
+
+      dataRange_.updateRange(pos - 0.5, min);
+      dataRange_.updateRange(pos + 0.5, max);
+    }
+
+    ++i;
   }
 
   //---
@@ -71,37 +95,84 @@ init()
 
 void
 CQChartsBoxPlot::
-initObjs()
+initObjs(bool force)
 {
+  if (force) {
+    clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //---
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
+  }
+
+  //---
+
   if (! plotObjs_.empty())
     return;
 
+  //---
+
   int i = 0;
+  int n = whiskers_.size();
+
+  for (const auto &iwhisker : whiskers_) {
+    bool hidden = isSetHidden(i);
+
+    if (! hidden) {
+      double pos = iwhisker.first;
+
+      const CBoxWhisker &whisker = iwhisker.second;
+
+      //----
+
+      CBBox2D rect(pos - 0.10, whisker.lower(), pos + 0.10, whisker.upper());
+
+      CQChartsBoxPlotObj *boxObj = new CQChartsBoxPlotObj(this, rect, pos, whisker, i, n);
+
+      boxObj->setId(QString("%1:%2:%3").arg(pos).arg(whisker.lower()).arg(whisker.upper()));
+
+      addPlotObject(boxObj);
+    }
+
+    ++i;
+  }
+
+  //---
+
+  keyObj_->clearItems();
+
+  addKeyItems(keyObj_);
+}
+
+void
+CQChartsBoxPlot::
+addKeyItems(CQChartsKey *key)
+{
+  int i = 0;
+  int n = whiskers_.size();
 
   for (const auto &iwhisker : whiskers_) {
     double pos = iwhisker.first;
 
-    const CBoxWhisker &whisker = iwhisker.second;
+    QString name = QString("%1").arg(pos);
 
-    //----
+    CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, i, n);
+    CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, i, name);
 
-    CBBox2D rect(pos - 0.10, whisker.lower(), pos + 0.10, whisker.upper());
-
-    CQChartsBoxPlotObj *boxObj = new CQChartsBoxPlotObj(this, rect, pos, whisker, i);
-
-    boxObj->setId(QString("%1:%2:%3").arg(pos).arg(whisker.lower()).arg(whisker.upper()));
-
-    addPlotObject(boxObj);
+    key->addItem(color, i, 0);
+    key->addItem(text , i, 1);
 
     ++i;
   }
-}
 
-int
-CQChartsBoxPlot::
-numObjs() const
-{
-  return whiskers_.size();
+  key->plot()->updateKeyPosition(/*force*/true);
 }
 
 void
@@ -112,23 +183,15 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  //---
-
-  drawBgAxes(p);
-
-  drawObjs(p);
-
-  drawFgAxes(p);
+  drawParts(p);
 }
 
 //------
 
 CQChartsBoxPlotObj::
 CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
-                   const CBoxWhisker &whisker, int ind) :
- CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), ind_(ind)
+                   const CBoxWhisker &whisker, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), i_(i), n_(n)
 {
 }
 
@@ -161,7 +224,7 @@ draw(QPainter *p)
 
   QRectF rect(px2, py2, px4 - px2, py4 - py2);
 
-  QColor boxColor = plot_->objectColor(this, ind_, plot_->numObjs(), plot_->boxColor());
+  QColor boxColor = plot_->objectColor(this, i_, n_, plot_->boxColor());
 
   p->fillRect(rect, QBrush(boxColor));
 
@@ -190,4 +253,63 @@ draw(QPainter *p)
 
     p->drawEllipse(rect);
   }
+}
+
+//------
+
+CQChartsBoxKeyColor::
+CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
+{
+}
+
+bool
+CQChartsBoxKeyColor::
+mousePress(const CPoint2D &)
+{
+  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+
+  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+
+  plot->initObjs(/*force*/true);
+
+  plot->update();
+
+  return true;
+}
+
+QColor
+CQChartsBoxKeyColor::
+fillColor() const
+{
+  QColor c = CQChartsKeyColorBox::fillColor();
+
+  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+
+  return c;
+}
+
+//------
+
+CQChartsBoxKeyText::
+CQChartsBoxKeyText(CQChartsBoxPlot *plot, int i, const QString &text) :
+ CQChartsKeyText(plot, text), i_(i)
+{
+}
+
+QColor
+CQChartsBoxKeyText::
+textColor() const
+{
+  QColor c = CQChartsKeyText::textColor();
+
+  CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
+
+  if (plot->isSetHidden(i_))
+    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+
+  return c;
 }

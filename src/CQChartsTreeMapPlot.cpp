@@ -23,12 +23,9 @@ CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
-
-  applyDataRange();
-
   setMargins(1, 1, 1, 1);
+
+  addTitle();
 }
 
 void
@@ -42,10 +39,31 @@ addProperties()
 
 void
 CQChartsTreeMapPlot::
+updateRange()
+{
+  dataRange_.updateRange(-1, -1);
+  dataRange_.updateRange( 1,  1);
+
+  applyDataRange();
+}
+
+void
+CQChartsTreeMapPlot::
 initObjs(bool force)
 {
   if (force) {
     clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //--
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
   }
 
   //---
@@ -195,6 +213,10 @@ draw(QPainter *p)
   //---
 
   drawObjs(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 QColor

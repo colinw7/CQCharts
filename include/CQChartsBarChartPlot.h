@@ -53,6 +53,69 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 
 //---
 
+class CQChartsBarDataLabel : public CQChartsBoxObj {
+  Q_OBJECT
+
+  Q_PROPERTY(bool     visible  READ isVisible WRITE setVisible )
+  Q_PROPERTY(Position position READ position  WRITE setPosition)
+  Q_PROPERTY(bool     clip     READ isClip    WRITE setClip    )
+  Q_PROPERTY(double   angle    READ angle     WRITE setAngle   )
+  Q_PROPERTY(QFont    font     READ font      WRITE setFont    )
+  Q_PROPERTY(QColor   color    READ color     WRITE setColor   )
+  Q_PROPERTY(double   margin   READ margin    WRITE setMargin  )
+
+  Q_ENUMS(Position)
+
+ public:
+  enum Position {
+    TOP_INSIDE,
+    TOP_OUTSIDE,
+    BOTTOM_INSIDE,
+    BOTTOM_OUTSIDE,
+  };
+
+ public:
+  CQChartsBarDataLabel(CQChartsBarChartPlot *plot);
+
+  // data label
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; update(); }
+
+  const Position &position() const { return position_; }
+  void setPosition(const Position &p) { position_ = p; update(); }
+
+  bool isClip() const { return clip_; }
+  void setClip(bool b) { clip_ = b; update(); }
+
+  double angle() const { return angle_; }
+  void setAngle(double r) { angle_ = r; update(); }
+
+  const QFont &font() const { return font_; }
+  void setFont(const QFont &f) { font_ = f; update(); }
+
+  const QColor &color() const { return color_; }
+  void setColor(const QColor &c) { color_ = c; update(); }
+
+  void addProperties(const QString &path);
+
+  void redraw() { }
+
+  void update();
+
+  void draw(QPainter *p, const QRectF &qrect, const QString &ystr);
+
+ private:
+  CQChartsBarChartPlot* plot_     { nullptr };
+  bool                  visible_  { false };
+  Position              position_ { Position::TOP_INSIDE };
+  bool                  clip_     { true };
+  double                angle_    { 0.0 };
+  QFont                 font_;
+  QColor                color_    { 0, 0, 0 };
+};
+
+//---
+
 class CQChartsBarChartPlot : public CQChartsPlot {
   Q_OBJECT
 
@@ -68,9 +131,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(bool    fill        READ isFill      WRITE setFill       )
   Q_PROPERTY(QString barColor    READ barColorStr WRITE setBarColorStr)
   Q_PROPERTY(int     margin      READ margin      WRITE setMargin     )
-  Q_PROPERTY(bool    dataLabel   READ isDataLabel WRITE setDataLabel  )
-  Q_PROPERTY(QFont   dataFont    READ dataFont    WRITE setDataFont   )
-  Q_PROPERTY(QColor  dataColor   READ dataColor   WRITE setDataColor  )
   Q_PROPERTY(bool    keySets     READ isKeySets   WRITE setKeySets    )
 
  public:
@@ -93,7 +153,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   // fill
-
   bool isFill() const { return fill_; }
   void setFill(bool b) { fill_ = b; update(); }
 
@@ -101,7 +160,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setBarColorStr(const QString &str);
 
   // stroke
-
   bool isBorder() const { return border_; }
   void setBorder(bool b) { border_ = b; update(); }
 
@@ -113,22 +171,15 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
-  bool isDataLabel() const { return dataLabel_; }
-  void setDataLabel(bool b) { dataLabel_ = b; update(); }
-
-  const QFont &dataFont() const { return dataFont_; }
-  void setDataFont(const QFont &f) { dataFont_ = f; update(); }
-
-  const QColor &dataColor() const { return dataColor_; }
-  void setDataColor(const QColor &c) { dataColor_ = c; update(); }
-
-  //---
-
   int margin() const { return margin_; }
   void setMargin(int i) { margin_ = i; update(); }
 
   bool isKeySets() const { return keySets_; }
   void setKeySets(bool b) { keySets_ = b; resetSetHidden(); initObjs(true); }
+
+  //---
+
+  const CQChartsBarDataLabel &dataLabel() const { return dataLabel_; }
 
   //---
 
@@ -171,6 +222,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
+
  private:
   typedef std::vector<double> Values;
 
@@ -191,24 +244,22 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   ValueSet *getValueSet(const QString &name);
 
  private:
-  int        xColumn_         { 0 };
-  int        yColumn_         { 1 };
-  Columns    yColumns_;
-  bool       stacked_         { false };
-  bool       barColorPalette_ { true };
-  bool       fill_            { true };
-  QColor     barColor_        { 100, 100, 200 };
-  bool       border_          { true };
-  QColor     borderColor_     { 0, 0, 0 };
-  double     borderWidth_     { 0 };
-  int        margin_          { 2 };
-  bool       dataLabel_       { false };
-  QFont      dataFont_;
-  QColor     dataColor_       { 0, 0, 0 };
-  bool       keySets_         { false };
-  ValueSets  valueSets_;
-  ValueNames valueNames_;
-  IdHidden   idHidden_;
+  int                  xColumn_           { 0 };
+  int                  yColumn_           { 1 };
+  Columns              yColumns_;
+  bool                 stacked_           { false };
+  bool                 barColorPalette_   { true };
+  bool                 fill_              { true };
+  QColor               barColor_          { 100, 100, 200 };
+  bool                 border_            { true };
+  QColor               borderColor_       { 0, 0, 0 };
+  double               borderWidth_       { 0 };
+  int                  margin_            { 2 };
+  CQChartsBarDataLabel dataLabel_;
+  bool                 keySets_           { false };
+  ValueSets            valueSets_;
+  ValueNames           valueNames_;
+  IdHidden             idHidden_;
 };
 
 #endif

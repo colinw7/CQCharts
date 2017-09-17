@@ -11,6 +11,7 @@ CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
+  addTitle();
 }
 
 void
@@ -253,10 +254,29 @@ decodePoint(const QString &pointStr, QPointF &point)
 
 void
 CQChartsGeometryPlot::
-initObjs()
+initObjs(bool force)
 {
+  if (force) {
+    clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //---
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
+  }
+
+  //---
+
   if (! plotObjs_.empty())
     return;
+
+  //---
 
   int n = geometries_.size();
 
@@ -295,6 +315,10 @@ draw(QPainter *p)
   //---
 
   drawObjs(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 //------

@@ -28,12 +28,19 @@ CQChartsBubblePlot::
 CQChartsBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
+  setMargins(1, 1, 1, 1);
+
+  addTitle();
+}
+
+void
+CQChartsBubblePlot::
+updateRange()
+{
   dataRange_.updateRange(-1, -1);
   dataRange_.updateRange( 1,  1);
 
   applyDataRange();
-
-  setMargins(1, 1, 1, 1);
 }
 
 void
@@ -51,6 +58,17 @@ initObjs(bool force)
 {
   if (force) {
     clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //--
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
   }
 
   //---
@@ -161,21 +179,16 @@ draw(QPainter *p)
 
   //---
 
-  QFont font = view_->font();
-
-  font.setPointSizeF(fontHeight());
-
-  p->setFont(font);
-
-  //---
-
   drawBackground(p);
 
   //---
 
   drawObjs(p);
-
   drawBounds(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 void
@@ -223,6 +236,14 @@ void
 CQChartsBubbleObj::
 draw(QPainter *p)
 {
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  p->setFont(font);
+
+  //---
+
   QFontMetrics fm(p->font());
 
   QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));

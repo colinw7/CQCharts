@@ -11,7 +11,7 @@ class CQChartsViewSettings;
 class CQChartsViewToolBar;
 class CQChartsProbeBand;
 
-class CQPropertyTree;
+class CQPropertyView;
 class CQGradientPalette;
 class CQGradientPaletteControl;
 class QToolButton;
@@ -43,7 +43,7 @@ class CQChartsView : public QFrame {
 
   virtual ~CQChartsView();
 
-  CQPropertyTree *propertyTree() const;
+  CQPropertyView *propertyView() const;
 
   const QColor &background() const { return background_; }
   void setBackground(const QColor &c) { background_ = c; update(); }

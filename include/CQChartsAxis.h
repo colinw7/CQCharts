@@ -16,7 +16,7 @@
 
 class CQChartsPlot;
 class CQChartsPlot;
-class CQPropertyTree;
+class CQPropertyView;
 class QPainter;
 
 // Axis Data
@@ -233,7 +233,7 @@ class CQChartsAxis : public QObject {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
-  void addProperties(CQPropertyTree *tree, const QString &path);
+  void addProperties(CQPropertyView *tree, const QString &path);
 
   void updatePlotPosition();
 

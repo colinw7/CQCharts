@@ -38,6 +38,16 @@ CQChartsHierBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
 
 void
 CQChartsHierBubblePlot::
+updateRange()
+{
+  dataRange_.updateRange(-1, -1);
+  dataRange_.updateRange( 1,  1);
+
+  applyDataRange();
+}
+
+void
+CQChartsHierBubblePlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
@@ -51,6 +61,17 @@ initObjs(bool force)
 {
   if (force) {
     clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //--
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
   }
 
   //---
@@ -212,21 +233,16 @@ draw(QPainter *p)
 
   //---
 
-  QFont font = view_->font();
-
-  font.setPointSizeF(fontHeight());
-
-  p->setFont(font);
-
-  //---
-
   drawBackground(p);
 
   //---
 
   drawObjs(p);
-
   drawBounds(p, root_);
+
+  //---
+
+  drawTitle(p);
 }
 
 void
@@ -329,6 +345,14 @@ void
 CQChartsHierBubbleObj::
 draw(QPainter *p)
 {
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  p->setFont(font);
+
+  //---
+
   QFontMetrics fm(p->font());
 
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);

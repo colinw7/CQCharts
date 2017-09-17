@@ -176,7 +176,7 @@ addKeyItems(CQChartsKey *key)
     QString name = CQChartsUtil::modelString(model_, xind, ok);
 
     CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, i, n);
-    CQChartsKeyText     *text  = new CQChartsPieKeyText (this, i, name);
+    CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, i, name);
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);

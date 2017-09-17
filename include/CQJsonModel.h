@@ -3,6 +3,7 @@
 
 #include <QAbstractItemModel>
 #include <CJson.h>
+#include <QStringList>
 
 class CQJsonModel : public QAbstractItemModel {
   Q_OBJECT

@@ -6,7 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsModel.h>
 #include <CQChartsPlotSymbol2DRenderer.h>
-#include <CQPropertyTree.h>
+#include <CQPropertyView.h>
 #include <CQUtil.h>
 #include <CGradientPalette.h>
 
@@ -128,6 +128,13 @@ setRange(const QRectF &r)
   applyDataRange();
 }
 
+CQPropertyView *
+CQChartsPlot::
+propertyView() const
+{
+  return view_->propertyView();
+}
+
 void
 CQChartsPlot::
 addProperties()
@@ -170,16 +177,16 @@ addProperties()
   addProperty("margin", this, "marginBottom", "bottom");
 
   if (xAxis_)
-    xAxis_->addProperties(view_->propertyTree(), id() + "/" + "X Axis");
+    xAxis_->addProperties(propertyView(), id() + "/" + "X Axis");
 
   if (yAxis_)
-    yAxis_->addProperties(view_->propertyTree(), id() + "/" + "Y Axis");
+    yAxis_->addProperties(propertyView(), id() + "/" + "Y Axis");
 
   if (keyObj_)
-    keyObj_->addProperties(view_->propertyTree(), id() + "/" + "Key");
+    keyObj_->addProperties(propertyView(), id() + "/" + "Key");
 
   if (titleObj_)
-    titleObj_->addProperties(view_->propertyTree(), id() + "/" + "Title");
+    titleObj_->addProperties(propertyView(), id() + "/" + "Title");
 }
 
 void
@@ -1163,6 +1170,27 @@ fitBBox() const
   bbox.expand(-xm, -ym, xm, ym);
 
   return bbox;
+}
+
+void
+CQChartsPlot::
+drawParts(QPainter *p)
+{
+  drawBackground(p);
+
+  //---
+
+  drawBgAxes(p);
+  drawBgKey(p);
+
+  drawObjs(p);
+
+  drawFgAxes(p);
+  drawFgKey(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 void

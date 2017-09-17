@@ -1,5 +1,5 @@
 #include <CQChartsBoxObj.h>
-#include <CQPropertyTree.h>
+#include <CQPropertyView.h>
 #include <QPainter>
 
 CQChartsBoxObj::
@@ -9,7 +9,7 @@ CQChartsBoxObj()
 
 void
 CQChartsBoxObj::
-addProperties(CQPropertyTree *tree, const QString &path)
+addProperties(CQPropertyView *tree, const QString &path)
 {
   tree->addProperty(path, this, "margin" );
   tree->addProperty(path, this, "padding");

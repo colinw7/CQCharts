@@ -1,7 +1,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsPlot.h>
 #include <CQChartsModel.h>
-#include <CQPropertyTree.h>
+#include <CQPropertyView.h>
 #include <CQUtil.h>
 
 #include <CQRotatedText.h>
@@ -73,7 +73,7 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
 
 void
 CQChartsAxis::
-addProperties(CQPropertyTree *tree, const QString &path)
+addProperties(CQPropertyView *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible"  );
   tree->addProperty(path, this, "direction");

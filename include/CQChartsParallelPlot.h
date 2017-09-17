@@ -66,7 +66,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   void updateRange();
 
-  void initObjs();
+  void initObjs(bool force=false);
 
   int numSets() const;
 

@@ -1,7 +1,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
-#include <CQPropertyTree.h>
+#include <CQPropertyView.h>
 #include <CQUtil.h>
 #include <QPainter>
 #include <QRectF>
@@ -80,7 +80,7 @@ updatePosition()
 
 void
 CQChartsKey::
-addProperties(CQPropertyTree *tree, const QString &path)
+addProperties(CQPropertyView *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible"  );
   tree->addProperty(path, this, "location" );

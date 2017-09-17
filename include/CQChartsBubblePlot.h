@@ -101,6 +101,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void addProperties();
 
+  void updateRange();
+
   void initObjs(bool force=false);
 
   void draw(QPainter *) override;

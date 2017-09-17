@@ -12,6 +12,9 @@ CQChartsParallelPlot::
 CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
+  //addKey(); TODO
+
+  addTitle();
 }
 
 void
@@ -77,10 +80,29 @@ updateRange()
 
 void
 CQChartsParallelPlot::
-initObjs()
+initObjs(bool force)
 {
+  if (force) {
+    clearPlotObjects();
+
+    dataRange_.reset();
+  }
+
+  //---
+
+  if (! dataRange_.isSet()) {
+    updateRange();
+
+    if (! dataRange_.isSet())
+      return;
+  }
+
+  //---
+
   if (! plotObjs_.empty())
     return;
+
+  //---
 
   std::vector<QPolygonF> polys;
 
@@ -207,6 +229,10 @@ draw(QPainter *p)
   }
 
   displayRange_.setWindowRange(-0.5, 0, numSets() - 0.5, 1);
+
+  //---
+
+  drawTitle(p);
 }
 
 //------

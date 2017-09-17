@@ -30,6 +30,9 @@ CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
+  // addKey() // TODO
+
+  addTitle();
 }
 
 void
@@ -205,6 +208,10 @@ draw(QPainter *p)
 #endif
 
   drawObjs(p);
+
+  //---
+
+  drawTitle(p);
 }
 
 void

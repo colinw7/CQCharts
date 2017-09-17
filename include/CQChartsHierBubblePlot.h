@@ -233,6 +233,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void addProperties();
 
+  void updateRange();
+
   void initObjs(bool force=false);
 
   void initObjs(CQChartsHierBubbleHierNode *hier, int depth);

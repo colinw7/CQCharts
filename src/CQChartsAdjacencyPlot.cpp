@@ -14,6 +14,8 @@ CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model) :
  CQChartsPlot(view, model)
 {
   setMargins(0, 0, 0, 0);
+
+  addTitle();
 }
 
 void
@@ -288,10 +290,11 @@ draw(QPainter *p)
   //---
 
   drawNodes(p);
+  drawObjs(p);
 
   //---
 
-  drawObjs(p);
+  drawTitle(p);
 }
 
 void

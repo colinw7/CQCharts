@@ -86,7 +86,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   void updateRange();
 
-  void initObjs();
+  void initObjs(bool force=false);
 
   void draw(QPainter *) override;
 

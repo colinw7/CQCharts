@@ -50,6 +50,13 @@ CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
 CQChartsXYPlot.cpp \
 \
+CQPropertyDelegate.cpp \
+CQPropertyEditor.cpp \
+CQPropertyItem.cpp \
+CQPropertyModel.cpp \
+CQPropertyView.cpp \
+CQPropertyViewFilter.cpp \
+\
 CQHeaderView.cpp \
 CQRotatedText.cpp \
 CQFilename.cpp \
@@ -103,6 +110,13 @@ HEADERS += \
 ../include/CUnixFile.h \
 ../include/CSymbol2D.h \
 \
+CQPropertyDelegate.h \
+CQPropertyEditor.h \
+CQPropertyItem.h \
+CQPropertyModel.h \
+CQPropertyViewFilter.h \
+CQPropertyView.h \
+\
 CParseLine.h \
 CQHeaderView.h \
 CQRotatedText.h \
@@ -120,7 +134,6 @@ INCLUDEPATH += \
 ../../CJson/qinclude \
 ../../CCsv/qinclude \
 ../../CTsv/qinclude \
-../../CQPropertyTree/include \
 ../../CQGradientPalette/include \
 ../../CExpr/include \
 ../../CJson/include \

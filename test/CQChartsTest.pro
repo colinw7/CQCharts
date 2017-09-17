@@ -40,7 +40,6 @@ unix:LIBS += \
 -L../../CJson/lib \
 -L../../CCsv/lib \
 -L../../CTsv/lib \
--L../../CQPropertyTree/lib \
 -L../../CQUtil/lib \
 -L../../CJson/lib \
 -L../../CImageLib/lib \
@@ -54,7 +53,7 @@ unix:LIBS += \
 -L../../COS/lib \
 -L../../CRegExp/lib \
 -L../../CStrUtil/lib \
--lCQCharts -lCQJson -lCQCsv -lCQTsv -lCQGradientPalette -lCQPropertyTree -lCQUtil \
+-lCQCharts -lCQJson -lCQCsv -lCQTsv -lCQGradientPalette -lCQUtil \
 -lCJson -lCExpr -lCImageLib -lCFont \
 -lCConfig -lCFile -lCFileUtil -lCMath -lCUtil \
 -lCOS -lCRegExp -lCStrUtil \

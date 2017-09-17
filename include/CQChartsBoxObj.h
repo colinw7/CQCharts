@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QColor>
 
-class CQPropertyTree;
+class CQPropertyView;
 class QPainter;
 
 class CQChartsBoxObj : public QObject {
@@ -60,15 +60,15 @@ class CQChartsBoxObj : public QObject {
 
   //---
 
-  virtual void addProperties(CQPropertyTree *tree, const QString &path);
+  virtual void addProperties(CQPropertyView *tree, const QString &path);
 
   void draw(QPainter *p, const QRectF &rect);
 
   virtual void redraw() = 0;
 
  protected:
-  int    margin_          { 4 };
-  int    padding_         { 0 };
+  int    margin_          { 4 }; // inside margin
+  int    padding_         { 0 }; // outside margin
   bool   background_      { false };
   QColor backgroundColor_ { 255, 255, 255 };
   bool   border_          { false };

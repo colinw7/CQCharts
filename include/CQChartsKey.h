@@ -12,7 +12,7 @@
 
 class CQChartsPlot;
 class CQChartsKeyItem;
-class CQPropertyTree;
+class CQPropertyView;
 class QPainter;
 
 class CQChartsKey : public CQChartsBoxObj {
@@ -75,7 +75,7 @@ class CQChartsKey : public CQChartsBoxObj {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
-  void addProperties(CQPropertyTree *tree, const QString &path);
+  void addProperties(CQPropertyView *tree, const QString &path);
 
   void clearItems();
 

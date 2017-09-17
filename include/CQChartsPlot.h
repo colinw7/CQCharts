@@ -15,6 +15,7 @@ class CQChartsKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsModel;
+class CQPropertyView;
 
 class CGradientPalette;
 class QAbstractItemModel;
@@ -259,6 +260,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  CQPropertyView *propertyView() const;
+
   virtual void addProperties();
 
   virtual void addKeyItems(CQChartsKey *) { }
@@ -353,7 +356,9 @@ class CQChartsPlot : public QObject {
 
   CBBox2D fitBBox() const;
 
-  void drawObjs(QPainter *painter);
+  void drawParts(QPainter *painter);
+
+  virtual void drawObjs(QPainter *painter);
 
   void drawBgAxes(QPainter *painter);
   void drawFgAxes(QPainter *painter);

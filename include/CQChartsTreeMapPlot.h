@@ -264,6 +264,8 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   void addProperties();
 
+  void updateRange();
+
   void initObjs(bool force=false);
 
   void initObjs(CQChartsTreeMapHierNode *hier, int depth);

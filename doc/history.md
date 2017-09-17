@@ -53,8 +53,13 @@
  + Clip title
  + Draw key above or below
  + Improve handling of overlapped/linked plots
-## 9/13/2107
+## 9/13/2017
  + Add more border properties
  + Add grid fill
  + Use key background for disabled fade
  + draw faded key in xy plot
+## 9/17/2017
+ + Extra data label customization
+ + new CQPropertyView with search/filter support
+ + Add key to box plot
+ + Title on all plots

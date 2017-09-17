@@ -41,9 +41,39 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+  QByteArray localMsg = msg.toLocal8Bit();
+
+  switch (type) {
+    case QtDebugMsg:
+      fprintf(stderr, "Debug: %s (%s:%u, %s)\n",
+              localMsg.constData(), context.file, context.line, context.function);
+      break;
+    case QtInfoMsg:
+      fprintf(stderr, "Info: %s (%s:%u, %s)\n",
+              localMsg.constData(), context.file, context.line, context.function);
+      break;
+    case QtWarningMsg:
+      fprintf(stderr, "Warning: %s (%s:%u, %s)\n",
+              localMsg.constData(), context.file, context.line, context.function);
+      break;
+    case QtCriticalMsg:
+      fprintf(stderr, "Critical: %s (%s:%u, %s)\n",
+              localMsg.constData(), context.file, context.line, context.function);
+      break;
+    case QtFatalMsg:
+      fprintf(stderr, "Fatal: %s (%s:%u, %s)\n",
+              localMsg.constData(), context.file, context.line, context.function);
+      abort();
+  }
+}
+
 int
 main(int argc, char **argv)
 {
+  qInstallMessageHandler(myMessageOutput);
+
   CQApp app(argc, argv);
 
   CQUtil::initProperties();
@@ -623,8 +653,6 @@ pieOKSlot()
   plot->setXColumn(col1);
   plot->setYColumn(col2);
 
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -752,8 +780,6 @@ xyOKSlot(bool reuse)
   if (xyPlotData_.cumulativeCheck->isChecked())
     plot->setCumulative(true);
 
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -831,8 +857,6 @@ scatterOKSlot()
   plot->setYColumn   (col2);
   plot->setNameColumn(ncol);
 
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -903,8 +927,6 @@ sunburstOKSlot()
   CQChartsSunburstPlot *plot = new CQChartsSunburstPlot(view, model_);
 
   plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
-
-  plot->addProperties();
 
   //---
 
@@ -1004,8 +1026,6 @@ barChartOKSlot()
 
   plot->setStacked(barChartData_.stackedCheck->isChecked());
 
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -1079,10 +1099,6 @@ boxOKSlot()
 
   plot->setXColumn(col1);
   plot->setYColumn(col2);
-
-  plot->addProperties();
-
-  plot->init();
 
   //---
 
@@ -1175,10 +1191,6 @@ parallelOKSlot()
 
   plot->setYColumns(columns);
 
-  plot->updateRange();
-
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -1255,10 +1267,6 @@ geometryOKSlot()
   plot->setNameColumn    (col1);
   plot->setGeometryColumn(col2);
   plot->setValueColumn   (col3);
-
-  plot->updateRange();
-
-  plot->addProperties();
 
   //---
 
@@ -1339,10 +1347,6 @@ delaunayOKSlot()
   plot->setXColumn   (col1);
   plot->setYColumn   (col2);
   plot->setNameColumn(ncol);
-
-  plot->updateRange();
-
-  plot->addProperties();
 
   //---
 
@@ -1431,10 +1435,6 @@ adjacencyOKSlot()
   plot->setGroupColumn      (col3);
   plot->setNameColumn       (ncol);
 
-  plot->updateRange();
-
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -1505,8 +1505,6 @@ bubbleOKSlot()
   CQChartsBubblePlot *plot = new CQChartsBubblePlot(view, model_);
 
   plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
-
-  plot->addProperties();
 
   //---
 
@@ -1579,8 +1577,6 @@ hierBubbleOKSlot()
 
   plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
-  plot->addProperties();
-
   //---
 
   view->addPlot(plot, bbox_);
@@ -1651,8 +1647,6 @@ treeMapOKSlot()
   CQChartsTreeMapPlot *plot = new CQChartsTreeMapPlot(view, model_);
 
   plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
-
-  plot->addProperties();
 
   //---
 

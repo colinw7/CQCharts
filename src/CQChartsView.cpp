@@ -6,7 +6,7 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
-#include <CQPropertyTree.h>
+#include <CQPropertyView.h>
 #include <CQGradientPalette.h>
 #include <CQGradientPaletteControl.h>
 #include <CQUtil.h>
@@ -65,11 +65,11 @@ CQChartsView::
   delete toolbar_;
 }
 
-CQPropertyTree *
+CQPropertyView *
 CQChartsView::
-propertyTree() const
+propertyView() const
 {
-  return settings_->propertyTree();
+  return settings_->propertyView();
 }
 
 void
@@ -104,7 +104,7 @@ void
 CQChartsView::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
-  propertyTree()->addProperty(path, object, name, alias);
+  propertyView()->addProperty(path, object, name, alias);
 }
 
 void
@@ -116,6 +116,8 @@ addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
   plot->setBBox(bbox);
 
   plotDatas_.push_back(PlotData(plot, bbox));
+
+  plot->addProperties();
 }
 
 void

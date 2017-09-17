@@ -9,7 +9,7 @@
 #include <vector>
 
 class CQChartsPlot;
-class CQPropertyTree;
+class CQPropertyView;
 class QPainter;
 
 class CQChartsTitle : public CQChartsBoxObj {
@@ -62,7 +62,7 @@ class CQChartsTitle : public CQChartsBoxObj {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
-  void addProperties(CQPropertyTree *tree, const QString &path);
+  void addProperties(CQPropertyView *tree, const QString &path);
 
   const QPointF &position() const { return position_; }
   void setPosition(const QPointF &p) { position_ = p; }

@@ -113,6 +113,8 @@ setFillUnderColorStr(const QString &str)
     fillUnderData_.palette = false;
     fillUnderData_.color   = QColor(str);
   }
+
+  update();
 }
 
 QString
@@ -322,7 +324,7 @@ initObjs(bool force)
     dataRange_.reset();
   }
 
-  //--
+  //---
 
   if (! dataRange_.isSet()) {
     updateRange();
@@ -336,7 +338,7 @@ initObjs(bool force)
   if (! plotObjs_.empty())
     return;
 
-  //--
+  //---
 
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
@@ -767,19 +769,7 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  drawBgAxes(p);
-  drawBgKey (p);
-
-  drawObjs(p);
-
-  drawFgAxes(p);
-  drawFgKey (p);
-
-  //---
-
-  drawTitle(p);
+  drawParts(p);
 }
 
 //------
@@ -1050,7 +1040,7 @@ draw(QPainter *p)
   QColor fillColor;
 
   if (plot_->isStacked())
-    fillColor = plot_->objectStateColor(this, plot_->lineColor(i_, n_));
+    fillColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
   else
     fillColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
 
