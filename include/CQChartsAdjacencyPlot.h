@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQUtil.h>
 
 //------
 
@@ -66,13 +65,23 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsAdjacencyPlot *plot_  { nullptr };
   CQChartsAdjacencyNode *node1_ { nullptr };
   CQChartsAdjacencyNode *node2_ { nullptr };
   int                    value_ { 0 };
+};
+
+//---
+
+class CQChartsAdjacencyPlotType : public CQChartsPlotType {
+ public:
+  CQChartsAdjacencyPlotType();
+
+  QString name() const override { return "adjacency"; }
+  QString desc() const override { return "Adjacency"; }
 };
 
 //---
@@ -90,8 +99,6 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
  public:
   CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model);
-
-  const char *typeName() const override { return "Adjacency"; }
 
   int nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(int i) { nodeColumn_ = i; update(); }
@@ -132,6 +139,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  void drawBackground(QPainter *) override;
+
  private:
   struct ConnectionData {
     int node;
@@ -158,8 +167,6 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   bool decodeConnection(const QString &pointStr, ConnectionData &connection);
 
   void sortNodes();
-
-  void drawNodes(QPainter *);
 
  private:
   typedef std::map<int,CQChartsAdjacencyNode *> NodeMap;

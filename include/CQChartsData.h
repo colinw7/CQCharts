@@ -2,7 +2,7 @@
 #define CQChartsData_H
 
 #include <CQChartsModel.h>
-#include <COptVal.h>
+#include <boost/optional.hpp>
 
 class CQChartsData : public CQChartsModel {
   Q_OBJECT
@@ -14,7 +14,7 @@ class CQChartsData : public CQChartsModel {
   typedef std::vector<SubSet>      Set;
 
  public:
-  CQChartsData();
+  CQChartsData(CQCharts *charts);
 
   bool isCommentHeader() const { return commentHeader_; }
   void setCommentHeader(bool b) { commentHeader_ = b; }
@@ -22,7 +22,7 @@ class CQChartsData : public CQChartsModel {
   bool isFirstLineHeader() const { return firstLineHeader_; }
   void setFirstLineHeader(bool b) { firstLineHeader_ = b; }
 
-  std::string commentChars() const { return commentChars_.getValue("#"); }
+  std::string commentChars() const { return commentChars_.get_value_or("#"); }
   void setCommentChars(const std::string &chars) { commentChars_ = chars; }
 
   const std::string &missingStr() const { return missingStr_; }
@@ -46,13 +46,14 @@ class CQChartsData : public CQChartsModel {
   void parseFileLine(const QString &str, Fields &fields);
 
  private:
-  typedef std::map<int,std::string>  LineString;
-  typedef std::map<int,LineString>   SubSetString;
-  typedef std::map<int,SubSetString> SetString;
+  typedef std::map<int,std::string>    LineString;
+  typedef std::map<int,LineString>     SubSetString;
+  typedef std::map<int,SubSetString>   SetString;
+  typedef boost::optional<std::string> OptString;
 
   bool        commentHeader_   { true };
   bool        firstLineHeader_ { false };
-  COptString  commentChars_;
+  OptString   commentChars_;
   std::string missingStr_;
   char        separator_    { '\0' };
   bool        parseStrings_ { true };

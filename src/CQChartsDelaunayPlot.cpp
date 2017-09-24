@@ -2,16 +2,26 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
-#include <CMathGeom2D.h>
+#include <CQCharts.h>
 #include <CDelaunay.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsDelaunayPlotType::
+CQChartsDelaunayPlotType()
+{
+  addColumnParameter("x", "X", "xColumn", "", 0);
+  addColumnParameter("y", "Y", "yColumn", "", 1);
+
+  addColumnParameter("name", "Name", "nameColumn", "optional");
+}
+
+//------
+
 CQChartsDelaunayPlot::
 CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("delaunay"), model)
 {
   addAxes();
 
@@ -39,14 +49,14 @@ QString
 CQChartsDelaunayPlot::
 symbolName() const
 {
-  return CSymbol2DMgr::typeToName(symbolType()).c_str();
+  return CSymbol2DMgr::typeToName(symbolType());
 }
 
 void
 CQChartsDelaunayPlot::
 setSymbolName(const QString &s)
 {
-  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s.toStdString());
+  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s);
 
   if (type != CSymbol2D::Type::NONE)
     setSymbolType(type);
@@ -183,26 +193,17 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
+  drawParts(p);
+}
 
-  drawBgAxes(p);
-
-  //---
-
-  drawObjs(p);
-
+void
+CQChartsDelaunayPlot::
+drawForeground(QPainter *p)
+{
   if (! isVoronoi())
     drawDelaunay(p);
   else
     drawVoronoi(p);
-
-  //---
-
-  drawFgAxes(p);
-
-  //---
-
-  drawTitle(p);
 }
 
 void
@@ -330,7 +331,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsDelaunayPointObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (plot_->isPoints()) {
     QColor c = plot_->objectStateColor(this, plot_->pointsColor());

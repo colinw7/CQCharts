@@ -4,8 +4,9 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 
-#include <COptVal.h>
 #include <CPoint2D.h>
+
+#include <boost/optional.hpp>
 #include <string>
 
 class CQChartsPiePlot;
@@ -43,7 +44,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  protected:
   CQChartsPiePlot* plot_        { nullptr };
@@ -89,23 +90,37 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
 //---
 
+class CQChartsPiePlotType : public CQChartsPlotType {
+ public:
+  CQChartsPiePlotType();
+
+  QString name() const override { return "pie"; }
+  QString desc() const override { return "Pie"; }
+};
+
+//---
+
 class CQChartsPiePlot : public CQChartsPlot {
   Q_OBJECT
 
   // propeties
   //   donut
 
+  Q_PROPERTY(int    labelColumn     READ labelColumn       WRITE setLabelColumn    )
+  Q_PROPERTY(int    dataColumn      READ dataColumn        WRITE setDataColumn     )
   Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
   Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
-  Q_PROPERTY(int    xColumn         READ xColumn           WRITE setXColumn        )
-  Q_PROPERTY(int    yColumn         READ yColumn           WRITE setYColumn        )
 
  public:
   CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "Pie"; }
+  int labelColumn() const { return labelColumn_; }
+  void setLabelColumn(int i) { labelColumn_ = i; }
+
+  int dataColumn() const { return dataColumn_; }
+  void setDataColumn(int i) { dataColumn_ = i; }
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; update(); }
@@ -118,12 +133,6 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   bool isExplodeSelected() const { return explodeSelected_; }
   void setExplodeSelected(bool b) { explodeSelected_ = b; }
-
-  int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; }
-
-  int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; }
 
   void addProperties();
 
@@ -153,12 +162,12 @@ class CQChartsPiePlot : public CQChartsPlot {
  private:
   typedef std::map<int,bool> IdHidden;
 
+  int      labelColumn_     { 0 };
+  int      dataColumn_      { 1 };
   bool     donut_           { false };
   double   innerRadius_     { 0.0 };
   double   labelRadius_     { 0.5 };
   bool     explodeSelected_ { true };
-  int      xColumn_         { 0 };
-  int      yColumn_         { 1 };
   IdHidden idHidden_;
 };
 

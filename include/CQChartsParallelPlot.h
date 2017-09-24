@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQUtil.h>
 
 class CQChartsParallelPlot;
 
@@ -16,12 +15,22 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot *plot_ { nullptr };
   QPolygonF             poly_;
   int                   ind_  { -1 };
+};
+
+//---
+
+class CQChartsParallelPlotType : public CQChartsPlotType {
+ public:
+  CQChartsParallelPlotType();
+
+  QString name() const override { return "parallel"; }
+  QString desc() const override { return "Parallel"; }
 };
 
 //---
@@ -39,22 +48,46 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //  margin
   //  key
 
-  Q_PROPERTY(int xColumn READ xColumn WRITE setXColumn)
-  Q_PROPERTY(int yColumn READ yColumn WRITE setYColumn)
+  Q_PROPERTY(int     xColumn  READ xColumn     WRITE setXColumn    )
+  Q_PROPERTY(int     yColumn  READ yColumn     WRITE setYColumn    )
+  Q_PROPERTY(QString yColumns READ yColumnsStr WRITE setYColumnsStr)
 
  public:
   CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model);
-
-  const char *typeName() const override { return "Parallel"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
 
   int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; update(); }
+
+  void setYColumn(int i) {
+    yColumn_ = i;
+
+    yColumns_.clear();
+
+    if (yColumn_ >= 0)
+      yColumns_.push_back(yColumn_);
+
+    update();
+  }
 
   const Columns &yColumns() const { return yColumns_; }
-  void setYColumns(const Columns &yColumns) { yColumns_ = yColumns; update(); }
+
+  void setYColumns(const Columns &yColumns) {
+    yColumns_ = yColumns;
+
+    if (! yColumns_.empty())
+      yColumn_ = yColumns_[0];
+    else
+      yColumn_ = -1;
+
+    update();
+  }
+
+  QString yColumnsStr() const;
+  bool setYColumnsStr(const QString &s);
+
+  //---
 
   const CRange2D &yRange(int i) { return yRanges_[i]; }
 

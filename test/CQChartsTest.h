@@ -3,8 +3,9 @@
 
 #include <CQAppWindow.h>
 #include <CBBox2D.h>
-#include <COptVal.h>
 #include <map>
+
+#include <boost/optional.hpp>
 
 class CQCharts;
 class CQChartsTable;
@@ -12,9 +13,8 @@ class CQChartsTree;
 class CQChartsLoader;
 class CQChartsView;
 class CQChartsPlot;
-
-class CQGradientPalette;
-class CQGradientPaletteControl;
+class CQChartsPlotType;
+class CQChartsPlotParameter;
 
 class QAbstractItemModel;
 class QStackedWidget;
@@ -29,42 +29,67 @@ class CQChartsTest : public CQAppWindow {
   Q_OBJECT
 
  public:
+  typedef boost::optional<double> OptReal;
+
+ public:
   struct InitData {
-    typedef std::map<int,QString> ArgMap;
+    typedef std::map<QString,QString> NameValues;
+    typedef std::map<QString,bool>    NameBools;
+    typedef std::vector<QString>      FileNames;
 
-    bool                 csv             { false };
-    bool                 tsv             { false };
-    bool                 json            { false };
-    bool                 data            { false };
-    QString              plot;
-    ArgMap               argMap;
-    QString              format;
-    bool                 bivariate       { false };
-    bool                 stacked         { false };
-    std::vector<QString> filenames;
-    bool                 commentHeader   { false };
-    bool                 firstLineHeader { false };
-    bool                 cumulative      { false };
-    bool                 xintegral       { false };
-    bool                 yintegral       { false };
-    QString              title;
-    COptReal             xmin, ymin, xmax, ymax;
-    bool                 y1y2            { false };
-    bool                 overlay         { false };
-    int                  nr              { 1 };
-    int                  nc              { 1 };
-    double               dx              { 1000 };
-    double               dy              { 1000 };
+    bool       csv             { false };
+    bool       tsv             { false };
+    bool       json            { false };
+    bool       data            { false };
+    QString    plot;
+    NameValues nameValues;
+    NameBools  nameBools;
+    QString    format;
+    FileNames  filenames;
+    bool       commentHeader   { false };
+    bool       firstLineHeader { false };
+    bool       xintegral       { false };
+    bool       yintegral       { false };
+    QString    title;
+    OptReal    xmin, ymin, xmax, ymax;
+    bool       y1y2            { false };
+    bool       overlay         { false };
+    int        nr              { 1 };
+    int        nc              { 1 };
+    double     dx              { 1000 };
+    double     dy              { 1000 };
 
-    QString arg(int i) const {
-      auto p = argMap.find(i);
+    QString nameValue(const QString &name) const {
+      auto p = nameValues.find(name);
 
-      return (p != argMap.end() ? (*p).second : QString());
+      return (p != nameValues.end() ? (*p).second : QString());
     }
 
-    void setArg(int i, const QString &arg) {
-      argMap[i] = arg;
+    void setNameValue(const QString &name, const QString &value) {
+      nameValues[name] = value;
     }
+
+    bool nameBool(const QString &name) const {
+      auto p = nameBools.find(name);
+
+      return (p != nameBools.end() ? (*p).second : false);
+    }
+
+    void setNameBool(const QString &name, bool value) {
+      nameBools[name] = value;
+    }
+  };
+
+ private:
+  struct PlotData {
+    typedef std::map<QString, QLineEdit *> LineEdits;
+    typedef std::map<QString, QCheckBox *> CheckBoxes;
+
+    LineEdits    columnEdits;
+    LineEdits    columnsEdits;
+    CheckBoxes   boolEdits;
+    QPushButton* okButton { nullptr };
+    int          tabInd { -1 };
   };
 
  public:
@@ -90,8 +115,7 @@ class CQChartsTest : public CQAppWindow {
  private:
   void addMenus();
 
-  void addPieTab       (QTabWidget *plotTab);
-  void addXYTab        (QTabWidget *plotTab);
+  void addPlotTab      (QTabWidget *plotTab, const QString &typeName);
   void addScatterTab   (QTabWidget *plotTab);
   void addSunburstTab  (QTabWidget *plotTab);
   void addBarChartTab  (QTabWidget *plotTab);
@@ -107,10 +131,31 @@ class CQChartsTest : public CQAppWindow {
   void setTableModel(QAbstractItemModel *model);
   void setTreeModel (QAbstractItemModel *model);
 
+  void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
+                         QGridLayout *layout, int &row);
+
+  void addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                              const CQChartsPlotParameter &parameter);
+  void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                               const CQChartsPlotParameter &parameter);
+  void addParameterBoolEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                            const CQChartsPlotParameter &parameter);
+
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
+  bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter,
+                                const PlotData &plotData, int &column);
+  bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
+                                 const PlotData &plotData, std::vector<int> &columns);
+  bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
+                              const PlotData &plotData, bool &b);
+
   bool lineEditValue(QLineEdit *le, int &i, int defi=0) const;
+
+  bool lineEditValues(QLineEdit *le, std::vector<int> &ivals) const;
+
+  void setEditsFromInitData(const PlotData &plotData, const InitData &initData);
 
   CQChartsView *getView(bool reuse=true);
 
@@ -125,133 +170,31 @@ class CQChartsTest : public CQAppWindow {
   void tableColumnClicked(int column);
   void typeOKSlot();
 
-  CQChartsPlot *pieOKSlot();
-  CQChartsPlot *xyOKSlot(bool reuse=false);
-  CQChartsPlot *scatterOKSlot();
-  CQChartsPlot *sunburstOKSlot();
-  CQChartsPlot *barChartOKSlot();
-  CQChartsPlot *boxOKSlot();
-  CQChartsPlot *parallelOKSlot();
-  CQChartsPlot *geometryOKSlot();
-  CQChartsPlot *delaunayOKSlot();
-  CQChartsPlot *adjacencyOKSlot();
-  CQChartsPlot *bubbleOKSlot();
-  CQChartsPlot *hierBubbleOKSlot();
-  CQChartsPlot *treeMapOKSlot();
+  CQChartsPlot *tabOKSlot(bool reuse=false);
 
  private:
-  struct PlotData {
-    QPushButton* okButton { nullptr };
-  };
-
-  struct PieChartData : public PlotData {
-    QLineEdit* labelEdit { nullptr };
-    QLineEdit* dataEdit  { nullptr };
-  };
-
-  struct XYPlotData : public PlotData {
-    QLineEdit* xEdit           { nullptr };
-    QLineEdit* yEdit           { nullptr };
-    QLineEdit* nameEdit        { nullptr };
-    QCheckBox* bivariateCheck  { nullptr };
-    QCheckBox* stackedCheck    { nullptr };
-    QCheckBox* cumulativeCheck { nullptr };
-  };
-
-  struct ScatterPlotData : public PlotData {
-    QLineEdit* nameEdit { nullptr };
-    QLineEdit* xEdit    { nullptr };
-    QLineEdit* yEdit    { nullptr };
-  };
-
-  struct SunburstData : public PlotData {
-    QLineEdit* nameEdit  { nullptr };
-    QLineEdit* valueEdit { nullptr };
-  };
-
-  struct BarChartData : public PlotData {
-    QLineEdit* nameEdit     { nullptr };
-    QLineEdit* valueEdit    { nullptr };
-    QCheckBox* stackedCheck { nullptr };
-  };
-
-  struct BoxPlotData : public PlotData {
-    QLineEdit* xEdit { nullptr };
-    QLineEdit* yEdit { nullptr };
-  };
-
-  struct ParallelPlotData : public PlotData {
-    QLineEdit* xEdit { nullptr };
-    QLineEdit* yEdit { nullptr };
-  };
-
-  struct GeometryPlotData : public PlotData {
-    QLineEdit* nameEdit     { nullptr };
-    QLineEdit* geometryEdit { nullptr };
-    QLineEdit* valueEdit    { nullptr };
-  };
-
-  struct DelaunayPlotData : public PlotData {
-    QLineEdit* xEdit    { nullptr };
-    QLineEdit* yEdit    { nullptr };
-    QLineEdit* nameEdit { nullptr };
-  };
-
-  struct AdjacencyPlotData : public PlotData {
-    QLineEdit* nodeEdit        { nullptr };
-    QLineEdit* connectionsEdit { nullptr };
-    QLineEdit* nameEdit        { nullptr };
-    QLineEdit* groupEdit       { nullptr };
-  };
-
-  struct BubbleData : public PlotData {
-    QLineEdit* nameEdit  { nullptr };
-    QLineEdit* valueEdit { nullptr };
-  };
-
-  struct HierBubbleData : public PlotData {
-    QLineEdit* nameEdit  { nullptr };
-    QLineEdit* valueEdit { nullptr };
-  };
-
-  struct TreeMapData : public PlotData {
-    QLineEdit* nameEdit  { nullptr };
-    QLineEdit* valueEdit { nullptr };
-  };
-
   typedef std::vector<CQChartsPlot *> Plots;
+  typedef std::map<QString,PlotData>  TypePlotData;
+  typedef std::map<int,QString>       TabTypeName;
 
-  Plots                     plots_;
-  CQChartsPlot*             rootPlot_          { nullptr };
-  CQCharts*                 charts_            { nullptr };
-  QAbstractItemModel*       model_             { nullptr };
-  PieChartData              pieChartData_;
-  XYPlotData                xyPlotData_;
-  ScatterPlotData           scatterPlotData_;
-  SunburstData              sunburstData_;
-  BarChartData              barChartData_;
-  BoxPlotData               boxPlotData_;
-  ParallelPlotData          parallelPlotData_;
-  GeometryPlotData          geometryPlotData_;
-  DelaunayPlotData          delaunayPlotData_;
-  AdjacencyPlotData         adjacencyPlotData_;
-  BubbleData                bubbleData_;
-  HierBubbleData            hierBubbleData_;
-  TreeMapData               treeMapData_;
-  QTabWidget*               plotTab_           { nullptr };
-  QLineEdit*                columnTypeEdit_    { nullptr };
-  QStackedWidget*           stack_             { nullptr };
-  QLineEdit*                filterEdit_        { nullptr };
-  CQChartsTable*            table_             { nullptr };
-  CQChartsTree*             tree_              { nullptr };
-  CQGradientPalette*        palettePlot_       { nullptr };
-  CQGradientPaletteControl* paletteControl_    { nullptr };
-  QGroupBox*                typeGroup_         { nullptr };
-  int                       tableColumn_       { 0 };
-  CQChartsLoader*           loader_            { nullptr };
-  CQChartsView*             view_              { nullptr };
-  QString                   id_;
-  CBBox2D                   bbox_;
+  Plots               plots_;
+  CQChartsPlot*       rootPlot_          { nullptr };
+  CQCharts*           charts_            { nullptr };
+  QAbstractItemModel* model_             { nullptr };
+  TypePlotData        typePlotData_;
+  TabTypeName         tabTypeName_;
+  QTabWidget*         plotTab_           { nullptr };
+  QLineEdit*          columnTypeEdit_    { nullptr };
+  QStackedWidget*     stack_             { nullptr };
+  QLineEdit*          filterEdit_        { nullptr };
+  CQChartsTable*      table_             { nullptr };
+  CQChartsTree*       tree_              { nullptr };
+  QGroupBox*          typeGroup_         { nullptr };
+  int                 tableColumn_       { 0 };
+  CQChartsLoader*     loader_            { nullptr };
+  CQChartsView*       view_              { nullptr };
+  QString             id_;
+  CBBox2D             bbox_;
 };
 
 #endif

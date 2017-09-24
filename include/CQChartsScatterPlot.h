@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQUtil.h>
 
 class CQChartsScatterPlot;
 
@@ -12,15 +11,16 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
-                          int i, int n);
+                          double size, int i, int n);
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsScatterPlot *plot_ { nullptr };
   QPointF              p_;
+  double               size_ { -1 };
   int                  i_    { -1 };
   int                  n_    { -1 };
 };
@@ -42,22 +42,40 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 
 //---
 
+class CQChartsScatterPlotType : public CQChartsPlotType {
+ public:
+  CQChartsScatterPlotType();
+
+  QString name() const override { return "scatter"; }
+  QString desc() const override { return "Scatter"; }
+};
+
+//---
+
 class CQChartsScatterPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int nameColumn READ nameColumn WRITE setNameColumn)
-  Q_PROPERTY(int xColumn    READ xColumn    WRITE setXColumn   )
-  Q_PROPERTY(int yColumn    READ yColumn    WRITE setYColumn   )
-  Q_PROPERTY(int symbolSize READ symbolSize WRITE setSymbolSize)
+  Q_PROPERTY(int    nameColumn READ nameColumn WRITE setNameColumn)
+  Q_PROPERTY(int    xColumn    READ xColumn    WRITE setXColumn   )
+  Q_PROPERTY(int    yColumn    READ yColumn    WRITE setYColumn   )
+  Q_PROPERTY(int    sizeColumn READ sizeColumn WRITE setSizeColumn)
+  Q_PROPERTY(double symbolSize READ symbolSize WRITE setSymbolSize)
 
  public:
-  typedef std::vector<QPointF>     Values;
+  struct Point {
+    QPointF p;
+    double  size;
+
+    Point(double x, double y, double size=-1) :
+     p(x, y), size(size) {
+    }
+  };
+
+  typedef std::vector<Point>       Values;
   typedef std::map<QString,Values> NameValues;
 
  public:
   CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model);
-
-  const char *typeName() const override { return "Scatter"; }
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
@@ -68,8 +86,11 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int yColumn() const { return yColumn_; }
   void setYColumn(int i) { yColumn_ = i; update(); }
 
-  int symbolSize() const { return symbolSize_; }
-  void setSymbolSize(int i) { symbolSize_ = i; }
+  int sizeColumn() const { return sizeColumn_; }
+  void setSizeColumn(int i) { sizeColumn_ = i; update(); }
+
+  double symbolSize() const { return symbolSize_; }
+  void setSymbolSize(double s) { symbolSize_ = s; update(); }
 
   const NameValues &nameValues() const { return nameValues_; }
 
@@ -110,7 +131,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int        nameColumn_ { -1 };
   int        xColumn_    { 0 };
   int        yColumn_    { 1 };
-  int        symbolSize_ { 4 };
+  int        sizeColumn_ { -1 };
+  double     symbolSize_ { 4 };
   NameValues nameValues_;
   IdHidden   idHidden_;
 };

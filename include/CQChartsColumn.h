@@ -2,9 +2,7 @@
 #define CQChartsColumn_H
 
 #include <CQChartsUtil.h>
-#include <CMathRound.h>
 #include <QString>
-#include <CStrUtil.h>
 
 typedef std::map<QString,QString> CQChartsNameValues;
 
@@ -41,7 +39,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
   }
 
   QString dataName(double pos, const CQChartsNameValues &) const override {
-    return CStrUtil::toString(pos).c_str();
+    return CQChartsUtil::toString(pos);
   }
 };
 
@@ -58,7 +56,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   }
 
   QString dataName(double pos, const CQChartsNameValues &) const override {
-    return CStrUtil::toString(pos).c_str();
+    return CQChartsUtil::toString(pos);
   }
 };
 
@@ -85,9 +83,9 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   }
 
   QString dataName(double pos, const CQChartsNameValues &) const override {
-    long l = CMathRound::Round(pos);
+    long l = CQChartsUtil::Round(pos);
 
-    return CStrUtil::toString(l).c_str();
+    return CQChartsUtil::toString(l);
   }
 };
 
@@ -125,7 +123,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
     if (p1 != nameValues.end())
       return timeToString((*p1).second, pos);
 
-    return CStrUtil::toString(pos).c_str();
+    return CQChartsUtil::toString(pos);
   }
 
  private:
@@ -166,36 +164,16 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
 //---
 
-#define CQChartsColumnTypeMgrInst CQChartsColumnTypeMgr::instance()
-
 class CQChartsColumnTypeMgr {
  public:
-  static CQChartsColumnTypeMgr *instance() {
-    static CQChartsColumnTypeMgr *inst;
+  CQChartsColumnTypeMgr();
+ ~CQChartsColumnTypeMgr();
 
-    if (! inst)
-      inst = new CQChartsColumnTypeMgr;
+  void addType(const QString &name, CQChartsColumnType *type);
 
-    return inst;
-  }
+  CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
 
-  ~CQChartsColumnTypeMgr() { }
-
-  void addType(const QString &name, CQChartsColumnType *type) {
-    nameType_[name] = type;
-  }
-
-  CQChartsColumnType *getType(const QString &name) const {
-    auto p = nameType_.find(name);
-
-    if (p == nameType_.end())
-      return nullptr;
-
-    return (*p).second;
-  }
-
- private:
-  CQChartsColumnTypeMgr() { }
+  CQChartsColumnType *getType(const QString &name) const;
 
  private:
   typedef std::map<QString,CQChartsColumnType *> NameType;

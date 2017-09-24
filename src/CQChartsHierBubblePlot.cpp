@@ -1,7 +1,7 @@
 #include <CQChartsHierBubblePlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -24,9 +24,20 @@ int nextColorId() {
 
 }
 
+//------
+
+CQChartsHierBubblePlotType::
+CQChartsHierBubblePlotType()
+{
+  addColumnParameter("name" , "Name"  , "nameColumn" , "", 0);
+  addColumnParameter("value", "Value" , "valueColumn", "", 1);
+}
+
+//------
+
 CQChartsHierBubblePlot::
 CQChartsHierBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
   dataRange_.updateRange(-1, -1);
   dataRange_.updateRange( 1,  1);
@@ -193,7 +204,7 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
   uint nc = model_->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, 0, index);
+    QModelIndex index1 = model_->index(i, nameColumn_, index);
 
     bool ok;
 
@@ -210,7 +221,7 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, 1, index);
+      QModelIndex index2 = model_->index(i, valueColumn_, index);
 
       bool ok;
 
@@ -233,16 +244,14 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
+  drawParts(p);
+}
 
-  //---
-
-  drawObjs(p);
+void
+CQChartsHierBubblePlot::
+drawForeground(QPainter *p)
+{
   drawBounds(p, root_);
-
-  //---
-
-  drawTitle(p);
 }
 
 void
@@ -294,14 +303,14 @@ CQChartsHierBubbleHierObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNo
 
 void
 CQChartsHierBubbleHierObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   QFontMetrics fm(p->font());
 
   //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
 
-  QColor c1 = CQUtil::blendColors(c, Qt::white, 0.8);
+  QColor c1 = CQChartsUtil::blendColors(c, Qt::white, 0.8);
 
   QColor tc = plot_->textColor(c1);
 
@@ -326,7 +335,7 @@ bool
 CQChartsHierBubbleHierObj::
 inside(const CPoint2D &p) const
 {
-  if (CMathGeom2D::PointPointDistance(p, CPoint2D(hier_->x(), hier_->y())) < hier_->radius())
+  if (CQChartsUtil::PointPointDistance(p, CPoint2D(hier_->x(), hier_->y())) < hier_->radius())
     return true;
 
   return false;
@@ -343,7 +352,7 @@ CQChartsHierBubbleObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node
 
 void
 CQChartsHierBubbleObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   QFont font = plot_->view()->font();
 
@@ -401,7 +410,7 @@ bool
 CQChartsHierBubbleObj::
 inside(const CPoint2D &p) const
 {
-  if (CMathGeom2D::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
+  if (CQChartsUtil::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
     return true;
 
   return false;

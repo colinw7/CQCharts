@@ -1,6 +1,7 @@
 #ifndef CQChartsPlotObj_H
 #define CQChartsPlotObj_H
 
+#include <CQChartsPlot.h>
 #include <QObject>
 #include <QPainter>
 #include <CBBox2D.h>
@@ -42,7 +43,7 @@ class CQChartsPlotObj : public QObject {
 
   virtual void handleResize() { }
 
-  virtual void draw(QPainter *) = 0;
+  virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 
  protected:
   CBBox2D rect_;

@@ -3,11 +3,13 @@
 
 #include <CQJsonModel.h>
 
+class CQCharts;
+
 class CQChartsJson : public CQJsonModel {
   Q_OBJECT
 
  public:
-  CQChartsJson();
+  CQChartsJson(CQCharts *charts);
 };
 
 #endif

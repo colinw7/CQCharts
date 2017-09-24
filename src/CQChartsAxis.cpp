@@ -1,23 +1,15 @@
 #include <CQChartsAxis.h>
 #include <CQChartsPlot.h>
-#include <CQChartsModel.h>
-#include <CQPropertyView.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
+#include <CQCharts.h>
+#include <CQChartsColumn.h>
+#include <CQPropertyViewTree.h>
 
 #include <CQRotatedText.h>
-#include <CMathRound.h>
 #include <QPainter>
 
 #include <cstring>
 #include <algorithm>
-
-namespace {
-
-bool isInteger(double r) {
-  return std::abs(r - int(r)) < 1E-3;
-}
-
-}
 
 //------
 
@@ -35,7 +27,7 @@ struct AxisIncrementTest {
 
   AxisIncrementTest(double factor, uint numTicks) :
    factor(factor), numTicks(numTicks) {
-    integral = isInteger(factor);
+    integral = CQChartsUtil::isInteger(factor);
   }
 };
 
@@ -68,12 +60,20 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
  plot_(plot), direction_(direction), start_(std::min(start, end)), end_(std::max(start, end)),
  start1_(start), end1_(end)
 {
+  label_ = new CQChartsAxisLabel(this);
+
   calc();
+}
+
+CQChartsAxis::
+~CQChartsAxis()
+{
+  delete label_;
 }
 
 void
 CQChartsAxis::
-addProperties(CQPropertyView *tree, const QString &path)
+addProperties(CQPropertyViewTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible"  );
   tree->addProperty(path, this, "direction");
@@ -145,25 +145,86 @@ QString
 CQChartsAxis::
 format() const
 {
-  CQChartsModel *model = plot_->chartsModel();
+  QVariant columnTypeVar =
+    plot_->model()->headerData(column_, Qt::Horizontal, CQCharts::Role::ColumnType);
 
-  if (! model)
-    return "";
-
-  return model->columnType(column_);
+  return columnTypeVar.toString();
 }
 
 bool
 CQChartsAxis::
 setFormat(const QString &s)
 {
-  CQChartsModel *model = plot_->chartsModel();
-
-  if (! model)
-    return false;
-
-  return model->setColumnType(column_, s);
+  return plot_->model()->setHeaderData(column_, Qt::Horizontal, s, CQCharts::Role::ColumnType);
 }
+
+//---
+
+bool
+CQChartsAxis::
+isLabelDisplayed() const
+{
+  return labelDisplayed_;
+}
+
+void
+CQChartsAxis::
+setLabelDisplayed(bool b)
+{
+  labelDisplayed_ = b;
+
+  redraw();
+}
+
+const QString &
+CQChartsAxis::
+getLabel() const
+{
+  return label_->text();
+}
+
+void
+CQChartsAxis::
+setLabel(const QString &str)
+{
+  label_->setText(str);
+
+  redraw();
+}
+
+const QFont &
+CQChartsAxis::
+getLabelFont() const
+{
+  return label_->font();
+}
+
+void
+CQChartsAxis::
+setLabelFont(const QFont &font)
+{
+  label_->setFont(font);
+
+  redraw();
+}
+
+const QColor &
+CQChartsAxis::
+getLabelColor() const
+{
+  return label_->color();
+}
+
+void
+CQChartsAxis::
+setLabelColor(const QColor &color)
+{
+  label_->setColor(color);
+
+  redraw();
+}
+
+//---
 
 void
 CQChartsAxis::
@@ -218,7 +279,7 @@ calc()
 
   // Calculate nearest Power of Ten to Length
 
-  int power = CMathRound::RoundDown(log10(length));
+  int power = CQChartsUtil::RoundDown(log10(length));
 
   if (isIntegral()) {
     if (power < 0)
@@ -255,7 +316,7 @@ calc()
     // Calculate other test Increments
 
     for (uint i = 0; i < numAxesIncrementTests; i++) {
-      if (isIntegral() && ! isInteger(axesIncrementTests[i].factor)) {
+      if (isIntegral() && ! CQChartsUtil::isInteger(axesIncrementTests[i].factor)) {
         axesIncrementTests[i].incFactor = 0.0;
         continue;
       }
@@ -275,7 +336,7 @@ calc()
         continue;
 
       if (tickIncrement_ > 0) {
-        if (! isInteger(axesIncrementTests[i].incFactor))
+        if (! CQChartsUtil::isInteger(axesIncrementTests[i].incFactor))
           continue;
 
         int incFactor1 = int(axesIncrementTests[i].incFactor);
@@ -300,13 +361,13 @@ calc()
 
     // Set the Gap Positions
 
-    numTicks1_ = CMathRound::RoundDown((end1_ - start1_)/increment + 0.5);
+    numTicks1_ = CQChartsUtil::RoundDown((end1_ - start1_)/increment + 0.5);
     numTicks2_ = numGapTicks;
   }
   else {
     start1_    = start_;
     end1_      = end_;
-    numTicks1_ = CMathRound::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
+    numTicks1_ = CQChartsUtil::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
     numTicks2_ = 5;
   }
 }
@@ -318,8 +379,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 {
   // Calculate New Start and End implied by the Test Increment
 
-  double newStart = CMathRound::RoundDown(start/testIncrement)*testIncrement;
-  double newEnd   = CMathRound::RoundUp  (end  /testIncrement)*testIncrement;
+  double newStart = CQChartsUtil::RoundDown(start/testIncrement)*testIncrement;
+  double newEnd   = CQChartsUtil::RoundUp  (end  /testIncrement)*testIncrement;
 
   while (newStart > start)
     newStart -= testIncrement;
@@ -327,7 +388,7 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   while (newEnd < end)
     newEnd += testIncrement;
 
-  uint testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
+  uint testNumGaps = CQChartsUtil::RoundUp((newEnd - newStart)/testIncrement);
 
   //------
 
@@ -463,34 +524,27 @@ QString
 CQChartsAxis::
 getValueStr(double pos) const
 {
+  if (isIntegral()) {
+    long ipos = long(pos);
+
+    if (hasTickLabel(ipos))
+      return getTickLabel(ipos);
+  }
+
   if (column_ >= 0) {
-    CQChartsModel *model = plot_->chartsModel();
+    QVariant columnTypeVar =
+      plot_->model()->headerData(column_, Qt::Horizontal, CQCharts::Role::ColumnType);
 
-    if      (model) {
-      if (isIntegral()) {
-        long ipos = long(pos);
-
-        if (hasTickLabel(ipos))
-          return getTickLabel(ipos);
-      }
-
-      //---
+    if (columnTypeVar.isValid()) {
+      QString columnType = columnTypeVar.toString();
 
       CQChartsNameValues nameValues;
 
-      CQChartsColumnType *typeData = model->columnTypeData(column_, nameValues);
+      CQChartsColumnType *typeData =
+        plot_->charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
 
       if (typeData)
         return typeData->dataName(pos, nameValues);
-
-      if (isIntegral()) {
-        long ipos = long(pos);
-
-        return CQChartsUtil::toString(ipos);
-      }
-      else {
-        return CQChartsUtil::toString(pos);
-      }
     }
     else if (isDataLabels()) {
       int row = int(pos);
@@ -501,25 +555,13 @@ getValueStr(double pos) const
 
       if (header.isValid())
         return header.toString();
+    }
+  }
 
-      if (isIntegral())
-        return CQChartsUtil::toString(long(pos));
-      else
-        return CQChartsUtil::toString(pos);
-    }
-    else {
-      if (isIntegral())
-        return CQChartsUtil::toString(long(pos));
-      else
-        return CQChartsUtil::toString(pos);
-    }
-  }
-  else {
-    if (isIntegral())
-      return CQChartsUtil::toString(long(pos));
-    else
-      return CQChartsUtil::toString(pos);
-  }
+  if (isIntegral())
+    return CQChartsUtil::toString(long(pos));
+
+  return CQChartsUtil::toString(pos);
 }
 
 void
@@ -612,7 +654,7 @@ drawGrid(CQChartsPlot *plot, QPainter *p)
           else
             bbox = CBBox2D(ax1, ppy1, ax2, ppy2);
 
-          p->fillRect(CQUtil::toQRect(bbox), brush);
+          p->fillRect(CQChartsUtil::toQRect(bbox), brush);
         }
       }
 
@@ -629,7 +671,7 @@ drawGrid(CQChartsPlot *plot, QPainter *p)
 
   pen.setWidth(getGridWidth());
 
-  CQUtil::penSetLineDash(pen, getGridDash());
+  CQChartsUtil::penSetLineDash(pen, getGridDash());
 
   p->setPen(pen);
 
@@ -679,7 +721,7 @@ draw(CQChartsPlot *plot, QPainter *p)
     double ymin = dataRange.getYMin();
     double ymax = dataRange.getYMax();
 
-    apos = pos_.getValue(getSide() == Side::BOTTOM_LEFT ? ymin : ymax);
+    apos = pos_.get_value_or(getSide() == Side::BOTTOM_LEFT ? ymin : ymax);
 
     plot->windowToPixel(amin, ymin, ax1, ay1);
     plot->windowToPixel(amax, ymax, ax2, ay2);
@@ -695,7 +737,7 @@ draw(CQChartsPlot *plot, QPainter *p)
     double xmin = dataRange.getXMin();
     double xmax = dataRange.getXMax();
 
-    apos = pos_.getValue(getSide() == Side::BOTTOM_LEFT ? xmin : xmax);
+    apos = pos_.get_value_or(getSide() == Side::BOTTOM_LEFT ? xmin : xmax);
 
     plot->windowToPixel(xmin, amin, ax1, ay1);
     plot->windowToPixel(xmax, amax, ax2, ay2);
@@ -1010,10 +1052,25 @@ draw(CQChartsPlot *plot, QPainter *p)
     p->setPen(Qt::red);
     p->setBrush(Qt::NoBrush);
 
-    p->drawRect(CQUtil::toQRect(prect));
+    p->drawRect(CQChartsUtil::toQRect(prect));
   }
 
   //---
 
   p->restore();
+}
+
+//------
+
+CQChartsAxisLabel::
+CQChartsAxisLabel(CQChartsAxis *axis) :
+ axis_(axis)
+{
+}
+
+void
+CQChartsAxisLabel::
+redrawBoxObj()
+{
+  axis_->redraw();
 }

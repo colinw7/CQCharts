@@ -4,6 +4,7 @@
 #include <QFrame>
 #include <CDisplayRange2D.h>
 
+class CQCharts;
 class CQChartsPlot;
 class CQChartsViewExpander;
 class CQChartsViewStatus;
@@ -11,9 +12,9 @@ class CQChartsViewSettings;
 class CQChartsViewToolBar;
 class CQChartsProbeBand;
 
-class CQPropertyView;
-class CQGradientPalette;
-class CQGradientPaletteControl;
+class CQPropertyViewTree;
+class CQGradientControlPlot;
+class CQGradientControlIFace;
 class QToolButton;
 class QRubberBand;
 class QTabWidget;
@@ -22,9 +23,10 @@ class QLabel;
 class CQChartsView : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QColor background READ background WRITE setBackground)
-  Q_PROPERTY(Mode   mode       READ mode       WRITE setMode      )
-  Q_PROPERTY(bool   zoomData   READ isZoomData WRITE setZoomData  )
+  Q_PROPERTY(QColor background     READ background     WRITE setBackground    )
+  Q_PROPERTY(int    currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(Mode   mode           READ mode           WRITE setMode          )
+  Q_PROPERTY(bool   zoomData       READ isZoomData     WRITE setZoomData      )
 
   Q_ENUMS(Mode)
 
@@ -39,14 +41,19 @@ class CQChartsView : public QFrame {
   typedef std::vector<CQChartsPlot *> Plots;
 
  public:
-  CQChartsView(QWidget *parent=nullptr);
+  CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
 
   virtual ~CQChartsView();
 
-  CQPropertyView *propertyView() const;
+  CQCharts *charts() const { return charts_; }
+
+  CQPropertyViewTree *propertyView() const;
 
   const QColor &background() const { return background_; }
   void setBackground(const QColor &c) { background_ = c; update(); }
+
+  int currentPlotInd() const { return currentPlotInd_; }
+  void setCurrentPlotInd(int i) { currentPlotInd_ = i; }
 
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
@@ -84,7 +91,7 @@ class CQChartsView : public QFrame {
 
   CBBox2D plotBBox(CQChartsPlot *plot) const;
 
-  CQChartsPlot *currentPlot() const;
+  CQChartsPlot *currentPlot(bool remap=true) const;
 
   void setStatusText(const QString &text);
 
@@ -123,21 +130,23 @@ class CQChartsView : public QFrame {
 
   typedef std::vector<CQChartsProbeBand *> ProbeBands;
 
-  QWidget*              parent_        { nullptr };
+  CQCharts*             charts_         { nullptr };
+  QWidget*              parent_         { nullptr };
   CDisplayRange2D       displayRange_;
-  CQChartsViewExpander* expander_      { nullptr };
-  CQChartsViewSettings* settings_      { nullptr };
-  QColor                background_    { 255, 255, 255 };
+  CQChartsViewExpander* expander_       { nullptr };
+  CQChartsViewSettings* settings_       { nullptr };
+  QColor                background_     { 255, 255, 255 };
   PlotDatas             plotDatas_;
-  Mode                  mode_          { Mode::SELECT };
-  bool                  zoomData_      { true };
-  CQChartsViewStatus*   status_        { nullptr };
-  CQChartsViewToolBar*  toolbar_       { nullptr };
-  CBBox2D               prect_         { 0, 0, 100, 100 };
-  int                   toolBarHeight_ { 8 };
-  int                   statusHeight_  { 8 };
+  int                   currentPlotInd_ { 0 };
+  Mode                  mode_           { Mode::SELECT };
+  bool                  zoomData_       { true };
+  CQChartsViewStatus*   status_         { nullptr };
+  CQChartsViewToolBar*  toolbar_        { nullptr };
+  CBBox2D               prect_          { 0, 0, 100, 100 };
+  int                   toolBarHeight_  { 8 };
+  int                   statusHeight_   { 8 };
   MouseData             mouseData_;
-  QRubberBand*          zoomBand_      { nullptr };
+  QRubberBand*          zoomBand_       { nullptr };
   ProbeBands            probeBands_;
 };
 

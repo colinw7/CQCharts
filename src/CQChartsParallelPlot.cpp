@@ -2,19 +2,48 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
-#include <CMathGeom2D.h>
+#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsParallelPlotType::
+CQChartsParallelPlotType()
+{
+  addColumnParameter ("x", "X", "xColumn" , "", 0);
+  addColumnsParameter("y", "Y", "yColumns", "", "1");
+}
+
+//---
+
 CQChartsParallelPlot::
 CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("parallel"), model)
 {
   //addKey(); TODO
 
   addTitle();
+}
+
+QString
+CQChartsParallelPlot::
+yColumnsStr() const
+{
+  return CQChartsUtil::toString(yColumns_);
+}
+
+bool
+CQChartsParallelPlot::
+setYColumnsStr(const QString &s)
+{
+  std::vector<int> yColumns;
+
+  if (! CQChartsUtil::fromString(s, yColumns))
+    return false;
+
+  setYColumns(yColumns);
+
+  return true;
 }
 
 void
@@ -23,8 +52,9 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn", "x");
-  addProperty("columns", this, "yColumn", "y");
+  addProperty("columns", this, "xColumn" , "x"   );
+  addProperty("columns", this, "yColumn" , "y"   );
+  addProperty("columns", this, "yColumns", "yset");
 }
 
 void
@@ -206,7 +236,7 @@ draw(QPainter *p)
 
   displayRange_.setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 
-  drawObjs(p);
+  drawObjs(p, Layer::MID);
 
   for (int j = 0; j < numSets(); ++j) {
     setDataRange(yRanges_[j]);
@@ -265,11 +295,12 @@ inside(const CPoint2D &p) const
     double x2 = poly[i    ].x();
     double y2 = poly[i    ].y();
 
-    CLine2D line(CPoint2D(x1, y1), CPoint2D(x2, y2));
-
     double d;
 
-    if (CMathGeom2D::PointLineDistance(p, line, &d) && d < 1E-3)
+    CPoint2D pl1(x1, y1);
+    CPoint2D pl2(x2, y2);
+
+    if (CQChartsUtil::PointLineDistance(p, pl1, pl2, &d) && d < 1E-3)
       return true;
   }
 
@@ -278,7 +309,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsParallelLineObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   p->setPen(Qt::black);
 

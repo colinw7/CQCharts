@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQUtil.h>
 
 class CQChartsXYPlot;
 
@@ -18,7 +17,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -35,19 +34,20 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y,
+  CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
                      int iset, int nset, int i, int n);
 
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
   double          x_    { 0.0 };
   double          y_    { 0.0 };
+  double          size_ { -1 };
   int             iset_ { -1 };
   int             nset_ { -1 };
   int             i_    { -1 };
@@ -69,7 +69,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -91,7 +91,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -151,6 +151,16 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
+class CQChartsXYPlotType : public CQChartsPlotType {
+ public:
+  CQChartsXYPlotType();
+
+  QString name() const override { return "xy"; }
+  QString desc() const override { return "XY"; }
+};
+
+//---
+
 class CQChartsXYPlot : public CQChartsPlot {
   Q_OBJECT
 
@@ -169,7 +179,9 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   Q_PROPERTY(int     xColumn        READ xColumn           WRITE setXColumn          )
   Q_PROPERTY(int     yColumn        READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(QString yColumns       READ yColumnsStr       WRITE setYColumnsStr      )
   Q_PROPERTY(int     nameColumn     READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(int     sizeColumn     READ sizeColumn        WRITE setSizeColumn       )
   Q_PROPERTY(bool    bivariate      READ isBivariate       WRITE setBivariate        )
   Q_PROPERTY(double  bivariateWidth READ bivariateWidth    WRITE setBivariateWidth   )
   Q_PROPERTY(bool    stacked        READ isStacked         WRITE setStacked          )
@@ -217,19 +229,43 @@ class CQChartsXYPlot : public CQChartsPlot {
  public:
   CQChartsXYPlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "XY"; }
-
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
 
   int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; update(); }
+
+  void setYColumn(int i) {
+    yColumn_ = i;
+
+    yColumns_.clear();
+
+    if (yColumn_ >= 0)
+      yColumns_.push_back(yColumn_);
+
+    update();
+  }
 
   const Columns &yColumns() const { return yColumns_; }
-  void setYColumns(const Columns &yColumns) { yColumns_ = yColumns; update(); }
+
+  void setYColumns(const Columns &yColumns) {
+    yColumns_ = yColumns;
+
+    if (! yColumns_.empty())
+      yColumn_ = yColumns_[0];
+    else
+      yColumn_ = -1;
+
+    update();
+  }
+
+  QString yColumnsStr() const;
+  bool setYColumnsStr(const QString &s);
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int sizeColumn() const { return sizeColumn_; }
+  void setSizeColumn(int i) { sizeColumn_ = i; update(); }
 
   bool isBivariate() const { return bivariate_; }
   void setBivariate(bool b) { bivariate_ = b; initObjs(/*force*/true); update(); }
@@ -336,6 +372,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   int           yColumn_        { 1 };
   Columns       yColumns_;
   int           nameColumn_     { -1 };
+  int           sizeColumn_     { -1 };
   bool          bivariate_      { false };
   double        bivariateWidth_ { 0.0 };
   bool          stacked_        { false };

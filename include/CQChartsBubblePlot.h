@@ -65,7 +65,7 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBubblePlot *plot_ { nullptr };
@@ -76,10 +76,22 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsBubblePlotType : public CQChartsPlotType {
+ public:
+  CQChartsBubblePlotType();
+
+  QString name() const override { return "bubble"; }
+  QString desc() const override { return "Bubble"; }
+};
+
+//---
+
 class CQChartsBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double fontHeight READ fontHeight WRITE setFontHeight)
+  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(int    valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
   typedef CirclePack<CQChartsBubbleNode>    Pack;
@@ -88,7 +100,11 @@ class CQChartsBubblePlot : public CQChartsPlot {
  public:
   CQChartsBubblePlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "Bubble"; }
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i) { valueColumn_ = i; update(); }
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
@@ -107,6 +123,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  void drawForeground(QPainter *p) override;
+
   QColor nodeColor(CQChartsBubbleNode *node) const;
 
  private:
@@ -114,15 +132,15 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void loadChildren(const QModelIndex &index);
 
-  void drawBounds(QPainter *p);
-
  private:
+  int             nameColumn_  { 0 };
+  int             valueColumn_ { 1 };
   CDisplayRange2D range_;
   Nodes           nodes_;
   Pack            pack_;
-  double          fontHeight_ { 6.0 };
-  CPoint2D        offset_     { 0, 0 };
-  double          scale_      { 1.0 };
+  double          fontHeight_  { 6.0 };
+  CPoint2D        offset_      { 0, 0 };
+  double          scale_       { 1.0 };
 };
 
 #endif

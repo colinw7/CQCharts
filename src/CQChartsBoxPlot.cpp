@@ -2,14 +2,23 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsBoxPlotType::
+CQChartsBoxPlotType()
+{
+  addColumnParameter("x", "X", "xColumn", "", 0);
+  addColumnParameter("y", "Y", "yColumn", "", 1);
+}
+
+//---
+
 CQChartsBoxPlot::
 CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("box"), model)
 {
   addAxes();
 
@@ -197,7 +206,7 @@ CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
 
 void
 CQChartsBoxPlotObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   QFontMetrics fm(plot_->view()->font());
 
@@ -287,7 +296,7 @@ fillColor() const
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }
@@ -309,7 +318,7 @@ textColor() const
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }

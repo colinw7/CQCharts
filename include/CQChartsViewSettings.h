@@ -4,9 +4,9 @@
 #include <QFrame>
 
 class CQChartsView;
-class CQPropertyView;
-class CQGradientPalette;
-class CQGradientPaletteControl;
+class CQPropertyViewTree;
+class CQGradientControlPlot;
+class CQGradientControlIFace;
 class QTabWidget;
 class QLineEdit;
 class QComboBox;
@@ -17,23 +17,23 @@ class CQChartsViewSettings : public QFrame {
  public:
   CQChartsViewSettings(CQChartsView *view);
 
-  CQPropertyView *propertyView() const { return propertyView_; }
+  CQPropertyViewTree *propertyView() const { return propertyView_; }
 
-  CQGradientPalette *palettePlot() const { return palettePlot_; }
+  CQGradientControlPlot *palettePlot() const { return palettePlot_; }
 
-  CQGradientPaletteControl *paletteControl() const { return paletteControl_; }
+  CQGradientControlIFace *paletteControl() const { return paletteControl_; }
 
  private slots:
   void filterSlot();
 
  private:
-  CQChartsView*             view_           { nullptr };
-  QTabWidget*               tab_            { nullptr };
-  QLineEdit*                filterEdit_     { nullptr };
-  QComboBox*                filterCombo_    { nullptr };
-  CQPropertyView*           propertyView_   { nullptr };
-  CQGradientPalette*        palettePlot_    { nullptr };
-  CQGradientPaletteControl* paletteControl_ { nullptr };
+  CQChartsView*           view_           { nullptr };
+  QTabWidget*             tab_            { nullptr };
+  QLineEdit*              filterEdit_     { nullptr };
+  QComboBox*              filterCombo_    { nullptr };
+  CQPropertyViewTree*     propertyView_   { nullptr };
+  CQGradientControlPlot*  palettePlot_    { nullptr };
+  CQGradientControlIFace* paletteControl_ { nullptr };
 };
 
 #endif

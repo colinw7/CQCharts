@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QColor>
 
-class CQPropertyView;
+class CQPropertyViewTree;
 class QPainter;
 
 class CQChartsBoxObj : public QObject {
@@ -28,43 +28,44 @@ class CQChartsBoxObj : public QObject {
 
   // inside margin
   int margin() const { return margin_; }
-  virtual void setMargin(int i) { margin_ = i; redraw(); }
+  virtual void setMargin(int i) { margin_ = i; redrawBoxObj(); }
 
   // outside padding
   int padding() const { return padding_; }
-  virtual void setPadding(int i) { padding_ = i; redraw(); }
+  virtual void setPadding(int i) { padding_ = i; redrawBoxObj(); }
 
   //---
 
   // background
   bool isBackground() const { return background_; }
-  virtual void setBackground(bool b) { background_ = b; redraw(); }
+  virtual void setBackground(bool b) { background_ = b; redrawBoxObj(); }
 
   const QColor &backgroundColor() const { return backgroundColor_; }
-  virtual void setBackgroundColor(const QColor &c) { backgroundColor_ = c; redraw(); }
+  virtual void setBackgroundColor(const QColor &c) { backgroundColor_ = c; redrawBoxObj(); }
 
   //---
 
   // border
   bool isBorder() const { return border_; }
-  virtual void setBorder(bool b) { border_ = b; redraw(); }
+  virtual void setBorder(bool b) { border_ = b; redrawBoxObj(); }
 
   const QColor &borderColor() const { return borderColor_; }
-  virtual void setBorderColor(const QColor &c) { borderColor_ = c; redraw(); }
+  virtual void setBorderColor(const QColor &c) { borderColor_ = c; redrawBoxObj(); }
 
   double borderWidth() const { return borderWidth_; }
-  virtual void setBorderWidth(double r) { borderWidth_ = r; redraw(); }
+  virtual void setBorderWidth(double r) { borderWidth_ = r; redrawBoxObj(); }
 
   double borderRadius() const { return borderRadius_; }
-  virtual void setBorderRadius(double r) { borderRadius_ = r; redraw(); }
+  virtual void setBorderRadius(double r) { borderRadius_ = r; redrawBoxObj(); }
 
   //---
 
-  virtual void addProperties(CQPropertyView *tree, const QString &path);
+  virtual void addProperties(CQPropertyViewTree *tree, const QString &path);
 
   void draw(QPainter *p, const QRectF &rect);
+  void draw(QPainter *p, const QPolygonF &poly);
 
-  virtual void redraw() = 0;
+  virtual void redrawBoxObj() = 0;
 
  protected:
   int    margin_          { 4 }; // inside margin

@@ -1,5 +1,5 @@
 #include <CQChartsBoxObj.h>
-#include <CQPropertyView.h>
+#include <CQPropertyViewTree.h>
 #include <QPainter>
 
 CQChartsBoxObj::
@@ -9,7 +9,7 @@ CQChartsBoxObj()
 
 void
 CQChartsBoxObj::
-addProperties(CQPropertyView *tree, const QString &path)
+addProperties(CQPropertyViewTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "margin" );
   tree->addProperty(path, this, "padding");
@@ -47,5 +47,28 @@ draw(QPainter *p, const QRectF &rect)
       p->drawRoundedRect(rect, borderRadius(), borderRadius());
     else
       p->drawRect(rect);
+  }
+}
+
+void
+CQChartsBoxObj::
+draw(QPainter *p, const QPolygonF &poly)
+{
+  if (isBackground()) {
+    p->setPen  (Qt::NoPen);
+    p->setBrush(backgroundColor());
+
+    p->drawPolygon(poly);
+  }
+
+  if (isBorder()) {
+    QPen pen(borderColor());
+
+    pen.setWidth(borderWidth());
+
+    p->setPen  (pen);
+    p->setBrush(Qt::NoBrush);
+
+    p->drawPolygon(poly);
   }
 }

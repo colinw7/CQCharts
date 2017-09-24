@@ -1,15 +1,29 @@
 #include <CQChartsScatterPlot.h>
+#include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
+#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsScatterPlotType::
+CQChartsScatterPlotType()
+{
+  addColumnParameter("x", "X", "xColumn", "", 0);
+  addColumnParameter("y", "Y", "yColumn", "", 1);
+
+  addColumnParameter("name", "Name", "nameColumn", "optional");
+  addColumnParameter("size", "Size", "sizeColumn", "optional");
+}
+
+//---
+
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("scatter"), model)
 {
   addAxes();
 
@@ -27,6 +41,7 @@ addProperties()
   addProperty("columns", this, "nameColumn", "name");
   addProperty("columns", this, "xColumn"   , "x"   );
   addProperty("columns", this, "yColumn"   , "y"   );
+  addProperty("columns", this, "sizeColumn", "y"   );
   addProperty(""       , this, "symbolSize"        );
 }
 
@@ -138,7 +153,14 @@ initObjs(bool force)
       if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
         continue;
 
-      nameValues_[name].push_back(QPointF(x, y));
+      bool ok3;
+
+      double size = CQChartsUtil::modelReal(model_, i, sizeColumn_, ok3);
+
+      if (! ok3)
+        size = -1;
+
+      nameValues_[name].push_back(Point(x, y, size));
     }
   }
 
@@ -161,14 +183,21 @@ initObjs(bool force)
       int nv1 = values.size();
 
       for (int j = 0; j < nv1; ++j) {
-        const QPointF &p = values[j];
+        const QPointF &p = values[j].p;
 
         CBBox2D bbox(p.x() - sw/2, p.y() - sh/2, p.x() + sw/2, p.y() + sh/2);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, i, nv);
+          new CQChartsScatterPointObj(this, bbox, p, values[j].size, i, nv);
 
-        pointObj->setId(QString("%1:%2:%3").arg(name).arg(p.x()).arg(p.y()));
+        QString id;
+
+        if (values[j].size > 0)
+          id = QString("%1:x=%2:y=%3").arg(name).arg(p.x()).arg(p.y());
+        else
+          id = QString("%1:x=%2:y=%3:size=%4").arg(name).arg(p.x()).arg(p.y()).arg(values[j].size);
+
+        pointObj->setId(id);
 
         addPlotObject(pointObj);
       }
@@ -222,8 +251,8 @@ draw(QPainter *p)
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
-                        int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), p_(p), i_(i), n_(n)
+                        double size, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), p_(p), size_(size), i_(i), n_(n)
 {
 }
 
@@ -231,7 +260,7 @@ bool
 CQChartsScatterPointObj::
 inside(const CPoint2D &p) const
 {
-  int s = plot_->symbolSize();
+  double s = (size_ > 0 ? size_ : plot_->symbolSize());
 
   double px, py;
 
@@ -248,9 +277,9 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsScatterPointObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  int s = plot_->symbolSize();
+  double s = (size_ > 0 ? size_ : plot_->symbolSize());
 
   double px, py;
 
@@ -298,7 +327,7 @@ fillColor() const
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }

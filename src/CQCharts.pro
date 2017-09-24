@@ -20,8 +20,10 @@ CQChartsBarChartPlot.cpp \
 CQChartsBoxObj.cpp \
 CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
+CQChartsColumn.cpp \
 CQChartsCsv.cpp \
 CQChartsData.cpp \
+CQChartsDataLabel.cpp \
 CQChartsDelaunayPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHeader.cpp \
@@ -33,11 +35,12 @@ CQChartsModel.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
 CQChartsPlot.cpp \
-CQChartsPlotSymbol2DRenderer.cpp \
+CQChartsPlotSymbol.cpp \
 CQChartsProbeBand.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTable.cpp \
+CQChartsTextBoxObj.cpp \
 CQChartsTitle.cpp \
 CQChartsTree.cpp \
 CQChartsTreeMapPlot.cpp \
@@ -50,19 +53,40 @@ CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
 CQChartsXYPlot.cpp \
 \
-CQPropertyDelegate.cpp \
-CQPropertyEditor.cpp \
-CQPropertyItem.cpp \
-CQPropertyModel.cpp \
-CQPropertyView.cpp \
+CQPropertyViewDelegate.cpp \
+CQPropertyViewEditor.cpp \
 CQPropertyViewFilter.cpp \
+CQPropertyViewItem.cpp \
+CQPropertyViewModel.cpp \
+CQPropertyViewTree.cpp \
+\
+CQGradientControlIFace.cpp \
+CQGradientControlPlot.cpp \
+CGradientPalette.cpp \
+\
+CQCsvModel.cpp \
+CQTsvModel.cpp \
+CQJsonModel.cpp \
+CJson.cpp \
+\
+CQColorChooser.cpp \
+CQAlphaButton.cpp \
+CQFontChooser.cpp \
+CQBBox2DEdit.cpp \
+CQPoint2DEdit.cpp \
+CQRealSpin.cpp \
+CQToolTip.cpp \
+CQPixmapCache.cpp \
+CQUtil.cpp \
 \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
 CQFilename.cpp \
-CSymbol2D.cpp \
+CQStrParse.cpp \
+\
 CDelaunay.cpp \
 CHull3D.cpp \
+COSNaN.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -75,6 +99,7 @@ HEADERS += \
 ../include/CQChartsColumn.h \
 ../include/CQChartsCsv.h \
 ../include/CQChartsData.h \
+../include/CQChartsDataLabel.h \
 ../include/CQChartsDelaunayPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsKey.h \
@@ -87,12 +112,13 @@ HEADERS += \
 ../include/CQChartsPiePlot.h \
 ../include/CQChartsPlot.h \
 ../include/CQChartsPlotObj.h \
-../include/CQChartsPlotSymbol2DRenderer.h \
+../include/CQChartsPlotSymbol.h \
 ../include/CQChartsProbeBand.h \
 ../include/CQChartsQuadTree.h \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTable.h \
+../include/CQChartsTextBoxObj.h \
 ../include/CQChartsTitle.h \
 ../include/CQChartsTree.h \
 ../include/CQChartsTreeMapPlot.h \
@@ -106,23 +132,43 @@ HEADERS += \
 ../include/CQChartsViewToolTip.h \
 ../include/CQChartsXYPlot.h \
 \
-../include/CSymbolType.h \
-../include/CUnixFile.h \
-../include/CSymbol2D.h \
-\
-CQPropertyDelegate.h \
-CQPropertyEditor.h \
-CQPropertyItem.h \
-CQPropertyModel.h \
+CQPropertyViewDelegate.h \
+CQPropertyViewEditor.h \
 CQPropertyViewFilter.h \
-CQPropertyView.h \
+CQPropertyViewItem.h \
+CQPropertyViewModel.h \
+CQPropertyViewTree.h \
 \
-CParseLine.h \
-CQHeaderView.h \
-CQRotatedText.h \
+CQGradientControlIFace.h \
+CQGradientControlPlot.h \
+CGradientPalette.h \
+\
+CQCsvModel.h \
+CQTsvModel.h \
+CQJsonModel.h \
+../include/CJson.h \
+\
+CQAlphaButton.h \
+CQBBox2DEdit.h \
+CQColorChooser.h \
 CQFilename.h \
+CQFontChooser.h \
+CQHeaderView.h \
+CQPixmapCache.h \
+CQPoint2DEdit.h \
+CQRealSpin.h \
+CQRotatedText.h \
+CQStrParse.h \
+CQToolTip.h \
+../include/CQUtil.h \
+\
 CDelaunay.h \
 CHull3D.h \
+CListLink.h \
+CStateIterator.h \
+CUnixFile.h \
+../include/CUnixFile.h \
+../include/COSNaN.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj
@@ -131,18 +177,3 @@ LIB_DIR     = ../lib
 INCLUDEPATH += \
 . \
 ../include \
-../../CJson/qinclude \
-../../CCsv/qinclude \
-../../CTsv/qinclude \
-../../CQGradientPalette/include \
-../../CExpr/include \
-../../CJson/include \
-../../CCsv/include \
-../../CQUtil/include \
-../../CFont/include \
-../../CImageLib/include \
-../../CMath/include \
-../../CFile/include \
-../../CStrUtil/include \
-../../CUtil/include \
-../../COS/include \

@@ -4,18 +4,19 @@
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsModel.h>
-#include <CQChartsPlotSymbol2DRenderer.h>
-#include <CQPropertyView.h>
-#include <CQUtil.h>
+#include <CQChartsPlotSymbol.h>
+#include <CQChartsColumn.h>
+#include <CQChartsUtil.h>
+#include <CQCharts.h>
+#include <CQPropertyViewTree.h>
 #include <CGradientPalette.h>
 
 #include <QSortFilterProxyModel>
 #include <QPainter>
 
 CQChartsPlot::
-CQChartsPlot(CQChartsView *view, QAbstractItemModel *model) :
- view_(view), model_(model), displayTransform_(&displayRange_)
+CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *model) :
+ view_(view), type_(type), model_(model), displayTransform_(&displayRange_)
 {
   displayRange_.setPixelRange(0, 1000, 1000, 0);
 
@@ -27,6 +28,14 @@ CQChartsPlot::
 {
 }
 
+CQCharts *
+CQChartsPlot::
+charts() const
+{
+  return view_->charts();
+}
+
+#if 0
 CQChartsModel *
 CQChartsPlot::
 chartsModel() const
@@ -42,6 +51,7 @@ chartsModel() const
 
   return model;
 }
+#endif
 
 void
 CQChartsPlot::
@@ -96,14 +106,14 @@ QRectF
 CQChartsPlot::
 rect() const
 {
-  return CQUtil::toQRect(bbox());
+  return CQChartsUtil::toQRect(bbox());
 }
 
 void
 CQChartsPlot::
 setRect(const QRectF &r)
 {
-  setBBox(CQUtil::fromQRect(r));
+  setBBox(CQChartsUtil::fromQRect(r));
 }
 
 QRectF
@@ -112,7 +122,7 @@ range() const
 {
   CBBox2D dataRange = calcDataRange();
 
-  return CQUtil::toQRect(dataRange);
+  return CQChartsUtil::toQRect(dataRange);
 }
 
 void
@@ -121,14 +131,14 @@ setRange(const QRectF &r)
 {
   assert(dataScale_ == 1.0);
 
-  CBBox2D bbox = CQUtil::fromQRect(r);
+  CBBox2D bbox = CQChartsUtil::fromQRect(r);
 
   dataRange_.set(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 
   applyDataRange();
 }
 
-CQPropertyView *
+CQPropertyViewTree *
 CQChartsPlot::
 propertyView() const
 {
@@ -457,7 +467,7 @@ mousePress(const CPoint2D &w)
 
 bool
 CQChartsPlot::
-mouseMove(const CPoint2D &w)
+mouseMove(const CPoint2D &w, bool first)
 {
   if (keyObj_ && keyObj_->contains(w)) {
     CQChartsKeyItem *item = keyObj_->getItemAt(w);
@@ -497,10 +507,12 @@ mouseMove(const CPoint2D &w)
 
   //---
 
-  if (objText != "")
-    view_->setStatusText(objText + " : " + posText);
-  else
-    view_->setStatusText(posText);
+  if (first) {
+    if (objText != "")
+      view_->setStatusText(objText + " : " + posText);
+    else
+      view_->setStatusText(posText);
+  }
 
   //---
 
@@ -571,14 +583,18 @@ xStr(double x) const
   if (xValueColumn_ < 0)
     return CQChartsUtil::toString(x);
 
-  CQChartsModel *model = chartsModel();
+  QVariant columnTypeVar =
+    model()->headerData(xValueColumn_, Qt::Horizontal, CQCharts::Role::ColumnType);
 
-  if (! model)
+  if (! columnTypeVar.isValid())
     return CQChartsUtil::toString(x);
+
+  QString columnType = columnTypeVar.toString();
 
   CQChartsNameValues nameValues;
 
-  CQChartsColumnType *typeData = model->columnTypeData(xValueColumn_, nameValues);
+  CQChartsColumnType *typeData =
+    charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
 
   if (! typeData)
     return CQChartsUtil::toString(x);
@@ -593,14 +609,18 @@ yStr(double y) const
   if (yValueColumn_ < 0)
     return CQChartsUtil::toString(y);
 
-  CQChartsModel *model = chartsModel();
+  QVariant columnTypeVar =
+    model()->headerData(yValueColumn_, Qt::Horizontal, CQCharts::Role::ColumnType);
 
-  if (! model)
+  if (! columnTypeVar.isValid())
     return CQChartsUtil::toString(y);
+
+  QString columnType = columnTypeVar.toString();
 
   CQChartsNameValues nameValues;
 
-  CQChartsColumnType *typeData = model->columnTypeData(yValueColumn_, nameValues);
+  CQChartsColumnType *typeData =
+    charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
 
   if (! typeData)
     return CQChartsUtil::toString(y);
@@ -1000,7 +1020,7 @@ void
 CQChartsPlot::
 drawBackground(QPainter *painter)
 {
-  QRectF plotRect = CQUtil::toQRect(calcPixelRect());
+  QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
   QRectF dataRect = calcRect();
 
   if (isBackground())
@@ -1183,7 +1203,9 @@ drawParts(QPainter *p)
   drawBgAxes(p);
   drawBgKey(p);
 
-  drawObjs(p);
+  drawObjs(p, Layer::BG );
+  drawObjs(p, Layer::MID);
+  drawObjs(p, Layer::FG );
 
   drawFgAxes(p);
   drawFgKey(p);
@@ -1191,12 +1213,41 @@ drawParts(QPainter *p)
   //---
 
   drawTitle(p);
+
+  //---
+
+  drawForeground(p);
 }
 
 void
 CQChartsPlot::
-drawObjs(QPainter *painter)
+setLayerActive(const Layer &layer, bool b)
 {
+  layerActive_[layer] = b;
+}
+
+bool
+CQChartsPlot::
+isLayerActive(const Layer &layer) const
+{
+  if (layer == CQChartsPlot::Layer::MID)
+    return true;
+
+  auto p = layerActive_.find(layer);
+
+  if (p == layerActive_.end())
+    return false;
+
+  return (*p).second;
+}
+
+void
+CQChartsPlot::
+drawObjs(QPainter *painter, const Layer &layer)
+{
+  if (! isLayerActive(layer))
+    return;
+
   painter->save();
 
   CQChartsPlot *plot1 = firstPlot();
@@ -1207,13 +1258,13 @@ drawObjs(QPainter *painter)
     painter->setClipRect(dataRect, Qt::ReplaceClip);
   }
   else if (plot1->isClip()) {
-    QRectF plotRect = CQUtil::toQRect(calcPixelRect());
+    QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
 
     painter->setClipRect(plotRect, Qt::ReplaceClip);
   }
 
   for (const auto &plotObj : plotObjs_)
-    plotObj->draw(painter);
+    plotObj->draw(painter, layer);
 
   painter->restore();
 }
@@ -1325,7 +1376,7 @@ objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
   QColor c1 = c;
 
   if (obj->isInside())
-    c1 = CQUtil::blendColors(c1, Qt::white, 0.8);
+    c1 = CQChartsUtil::blendColors(c1, Qt::white, 0.8);
 
   return c1;
 }
@@ -1350,11 +1401,8 @@ interpPaletteColor(double r, const QColor &def) const
 {
   QColor c = def;
 
-  if (palette()) {
-    CRGBA rgba = palette()->getColor(r).rgba();
-
-    c = CQUtil::toQColor(rgba);
-  }
+  if (palette())
+    c = palette()->getColor(r);
 
   return c;
 }

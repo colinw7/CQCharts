@@ -2,6 +2,8 @@ Misc
  + Read Data from CSV into model
  + Add Abstract model to access model
  + Display data from abstract model as plot
+ + Access Data via header data roles
+ + Cache plot pixmaps
 
 Functions
  + Improved Filter
@@ -34,6 +36,7 @@ Plots
  + Radar
  + Stacked Pie
  + Force Directed
+ + Parallel needs x axis labels
 
 Plot
  + Context Menu

@@ -1,11 +1,10 @@
 #include <CQChartsData.h>
 #include <CQChartsUtil.h>
-#include <CParseLine.h>
-#include <CStrUtil.h>
+#include <CQStrParse.h>
 
 CQChartsData::
-CQChartsData() :
- CQChartsModel()
+CQChartsData(CQCharts *charts) :
+ CQChartsModel(charts)
 {
 }
 
@@ -42,7 +41,7 @@ load(const QString &filename)
   int subSetNum = 0;
   int lineNum   = 0;
 
-  auto comment = commentChars_.getValue("#");
+  auto comment = commentChars_.get_value_or("#");
 
   for (const auto &line : lines_) {
     if ((commentHeader || firstLineHeader) &&
@@ -130,17 +129,17 @@ load(const QString &filename)
     auto line1 = line;
 
     if (line1.indexOf(comment.c_str()) != -1) {
-      CParseLine pline(line1.toStdString());
+      CQStrParse pline(line1);
 
-      while (pline.isValid()) {
+      while (! pline.eof()) {
         if (isParseStrings() && pline.isChar('\"')) {
           pline.skipChar();
 
-          while (pline.isValid() && ! pline.isChar('"')) {
-            char c = pline.getChar();
+          while (! pline.eof() && ! pline.isChar('"')) {
+            QChar c = pline.getChar();
 
             if (c == '\\') {
-              if (pline.isValid())
+              if (! pline.eof())
                 pline.skipChar();
             }
           }
@@ -149,11 +148,11 @@ load(const QString &filename)
             pline.skipChar();
         }
         else {
-          if (pline.isChars(comment)) {
-            line1 = QString(pline.substr(0, pline.pos()).c_str()).simplified();
+          if (pline.isString(comment.c_str())) {
+            line1 = pline.getAt(0, pline.getPos()).simplified();
 
-            std::string cstr = QString(pline.substr(pline.pos() + comment.length()).c_str()).
-                                simplified().toStdString();
+            std::string cstr =
+              pline.getAt(pline.getPos() + comment.length()).simplified().toStdString();
 
             commentStrs_[setNum][subSetNum][lineNum] = cstr;
 
@@ -278,22 +277,22 @@ parseFileLine(const QString &str, Fields &fields)
 
   Words words(strs);
 
-  CParseLine line(str.toStdString());
+  CQStrParse line(str);
 
-  while (line.isValid()) {
+  while (! line.eof()) {
     if (isParseStrings() && line.isChar('\"')) {
       line.skipChar();
 
-      std::string word;
+      QString word;
 
-      while (line.isValid() && ! line.isChar('"')) {
-        char c = line.getChar();
+      while (! line.eof() && ! line.isChar('"')) {
+        QChar c = line.getChar();
 
         if (c == '\\') {
-          if (line.isValid()) {
+          if (! line.eof()) {
             c = line.getChar();
 
-            switch (c) {
+            switch (c.toLatin1()) {
               case 't' : word += '\t'; break;
               case 'n' : word += '\n'; break;
               default  : word += '?' ; break;
@@ -309,7 +308,9 @@ parseFileLine(const QString &str, Fields &fields)
       if (line.isChar('"'))
         line.skipChar();
 
-      words.addWord("\"" + word + "\"");
+      QString word1 = "\"" + word + "\"";
+
+      words.addWord(word1.toStdString());
 
       isSeparator = false;
     }
@@ -324,13 +325,13 @@ parseFileLine(const QString &str, Fields &fields)
       words.flush(isSeparator);
 
       // TODO: skip all generic separators ?
-      while (line.isValid() && line.isChar(separator()))
+      while (! line.eof() && line.isChar(separator()))
         line.skipChar();
 
       isSeparator = true;
     }
     else {
-      words.addChar(line.getChar());
+      words.addChar(line.getChar().toLatin1());
 
       isSeparator = false;
     }

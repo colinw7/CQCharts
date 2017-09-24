@@ -6,10 +6,10 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
-#include <CQPropertyView.h>
-#include <CQGradientPalette.h>
-#include <CQGradientPaletteControl.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
+#include <CQPropertyViewTree.h>
+#include <CQGradientControlPlot.h>
+#include <CQGradientControlIFace.h>
 
 #include <svg/select_svg.h>
 #include <svg/zoom_svg.h>
@@ -23,8 +23,8 @@
 #include <QPainter>
 
 CQChartsView::
-CQChartsView(QWidget *parent) :
- parent_(parent)
+CQChartsView(CQCharts *charts, QWidget *parent) :
+ charts_(charts), parent_(parent)
 {
   setObjectName("view");
 
@@ -45,9 +45,10 @@ CQChartsView(QWidget *parent) :
 
   //---
 
-  addProperty("", this, "background");
-  addProperty("", this, "mode"      );
-  addProperty("", this, "zoomData"  );
+  addProperty("", this, "background"    );
+  addProperty("", this, "currentPlotInd");
+  addProperty("", this, "mode"          );
+  addProperty("", this, "zoomData"      );
 
   //---
 
@@ -65,7 +66,7 @@ CQChartsView::
   delete toolbar_;
 }
 
-CQPropertyView *
+CQPropertyViewTree *
 CQChartsView::
 propertyView() const
 {
@@ -130,7 +131,7 @@ mousePressEvent(QMouseEvent *me)
     mouseData_.escape     = false;
 
     if      (mode_ == Mode::SELECT) {
-      CPoint2D w = pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())));
+      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
       mouseData_.plots.clear();
 
@@ -139,7 +140,7 @@ mousePressEvent(QMouseEvent *me)
       for (auto &plot : mouseData_.plots) {
         CPoint2D w;
 
-        plot->pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())), w);
+        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
         if (plot->mousePress(w))
           break;
@@ -162,7 +163,7 @@ CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
   if      (mode_ == Mode::SELECT) {
-    CPoint2D w = pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())));
+    CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
     if (! mouseData_.pressed) {
       mouseData_.plots.clear();
@@ -170,13 +171,42 @@ mouseMoveEvent(QMouseEvent *me)
       plotsAt(w, mouseData_.plots);
     }
 
+    bool found = false;
+
+    CQChartsPlot *plot1 = currentPlot(/*remap*/ false);
+
     for (auto &plot : mouseData_.plots) {
+      if (plot == plot1) {
+        found = true;
+        break;
+      }
+    }
+
+    bool first = true;
+
+    if (found) {
       CPoint2D w;
 
-      plot->pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())), w);
+      plot1->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
-      if (plot->mouseMove(w))
-        break;
+      if (plot1->mouseMove(w, true))
+        return;
+
+      first = false;
+    }
+
+    for (auto &plot : mouseData_.plots) {
+      if (plot1 == plot)
+        continue;
+
+      CPoint2D w;
+
+      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+      if (plot->mouseMove(w, first))
+        return;
+
+      first = false;
     }
   }
   else if (mode_ == Mode::ZOOM) {
@@ -187,6 +217,22 @@ mouseMoveEvent(QMouseEvent *me)
         zoomBand_->hide();
       else
         zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
+    }
+    else {
+      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+
+      mouseData_.plots.clear();
+
+      plotsAt(w, mouseData_.plots);
+
+      for (auto &plot : mouseData_.plots) {
+        CPoint2D w;
+
+        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+        if (plot->mouseMove(w))
+          break;
+      }
     }
   }
   else if (mode_ == Mode::PROBE) {
@@ -205,7 +251,7 @@ mouseMoveEvent(QMouseEvent *me)
 
     int px = me->pos().x();
 
-    CPoint2D w = pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())));
+    CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
     mouseData_.plots.clear();
 
@@ -216,7 +262,7 @@ mouseMoveEvent(QMouseEvent *me)
     for (auto &plot : mouseData_.plots) {
       CPoint2D w;
 
-      plot->pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())), w);
+      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
       std::vector<double> yvals1;
 
@@ -254,7 +300,7 @@ mouseReleaseEvent(QMouseEvent *me)
       for (auto &plot : mouseData_.plots) {
         CPoint2D w;
 
-        plot->pixelToWindow(CQUtil::fromQPoint(QPointF(me->pos())), w);
+        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
         plot->mouseRelease(w);
       }
@@ -272,8 +318,8 @@ mouseReleaseEvent(QMouseEvent *me)
 
           CPoint2D w1, w2;
 
-          plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.pressPoint), w1);
-          plot->pixelToWindow(CQUtil::fromQPointF(mouseData_.movePoint ), w2);
+          plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint), w1);
+          plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ), w2);
 
           CBBox2D bbox(w1, w2);
 
@@ -318,7 +364,7 @@ keyPressEvent(QKeyEvent *ke)
 
   QPointF pos = mapFromGlobal(gpos);
 
-  CPoint2D w = pixelToWindow(CQUtil::fromQPoint(pos));
+  CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
   CQChartsPlot *plot = plotAt(w);
 
@@ -378,6 +424,10 @@ updateGeometry()
 
   status_->move(0, height() - statusHeight_);
   status_->resize(width(), statusHeight_);
+
+  //---
+
+  settings_->raise();
 }
 
 void
@@ -389,6 +439,8 @@ moveExpander(int dx)
   settings_->resize(settings_->width() + dx, settings_->height());
 
   settings_->move(settings_->x() - dx, settings_->y());
+
+  settings_->raise();
 }
 
 void
@@ -401,7 +453,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  painter.fillRect(CQUtil::toQRect(prect_), QBrush(background()));
+  painter.fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
 
   //---
 
@@ -449,14 +501,22 @@ plotBBox(CQChartsPlot *plot) const
 
 CQChartsPlot *
 CQChartsView::
-currentPlot() const
+currentPlot(bool remap) const
 {
   if (plotDatas_.empty())
     return nullptr;
 
-  CQChartsPlot *plot = plotDatas_[0].plot;
+  int ind = currentPlotInd();
 
-  return plot->firstPlot();
+  if (ind < 0 || ind >= int(plotDatas_.size()))
+    ind = 0;
+
+  CQChartsPlot *plot = plotDatas_[ind].plot;
+
+  if (remap)
+    plot = plot->firstPlot();
+
+  return plot;
 }
 
 void

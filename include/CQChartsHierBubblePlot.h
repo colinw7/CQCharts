@@ -178,7 +178,7 @@ class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot     *plot_ { nullptr };
@@ -196,7 +196,7 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot *plot_ { nullptr };
@@ -207,10 +207,22 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsHierBubblePlotType : public CQChartsPlotType {
+ public:
+  CQChartsHierBubblePlotType();
+
+  QString name() const override { return "hierbubble"; }
+  QString desc() const override { return "HierBubble"; }
+};
+
+//---
+
 class CQChartsHierBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double fontHeight READ fontHeight WRITE setFontHeight)
+  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(int    valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
   typedef std::vector<CQChartsHierBubbleNode *> Nodes;
@@ -218,7 +230,11 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
  public:
   CQChartsHierBubblePlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "HierBubble"; }
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i) { valueColumn_ = i; update(); }
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
@@ -241,6 +257,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  void drawForeground(QPainter *) override;
+
   QColor nodeColor(CQChartsHierBubbleNode *node) const;
 
  private:
@@ -253,12 +271,14 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   void drawBounds(QPainter *p, CQChartsHierBubbleHierNode *hier);
 
  private:
+  int                         nameColumn_  { 0 };
+  int                         valueColumn_ { 1 };
   CDisplayRange2D             range_;
-  CQChartsHierBubbleHierNode* root_       { nullptr };
-  double                      fontHeight_ { 6.0 };
-  CPoint2D                    offset_     { 0, 0 };
-  double                      scale_      { 1.0 };
-  int                         maxDepth_   { 1 };
+  CQChartsHierBubbleHierNode* root_        { nullptr };
+  double                      fontHeight_  { 6.0 };
+  CPoint2D                    offset_      { 0, 0 };
+  double                      scale_       { 1.0 };
+  int                         maxDepth_    { 1 };
 };
 
 #endif

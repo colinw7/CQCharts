@@ -2,24 +2,57 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
-#include <CMathGeom2D.h>
+#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsXYPlotType::
+CQChartsXYPlotType()
+{
+  addColumnParameter ("x", "X", "xColumn" , "", 0);
+  addColumnsParameter("y", "Y", "yColumns", "", "1");
+
+  addColumnParameter("name", "Name", "nameColumn", "optional");
+  addColumnParameter("size", "Size", "sizeColumn", "optional");
+
+  addBoolParameter("bivariate" , "Bivariate" , "bivariate" , "optional");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
+  addBoolParameter("cumulative", "Cumulative", "cumulative", "optional");
+}
+
+//---
+
 CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("xy"), model)
 {
   addAxes();
 
   addKey();
 
   addTitle();
+}
 
-  setXValueColumn(xColumn_);
-  setYValueColumn(yColumn_);
+QString
+CQChartsXYPlot::
+yColumnsStr() const
+{
+  return CQChartsUtil::toString(yColumns_);
+}
+
+bool
+CQChartsXYPlot::
+setYColumnsStr(const QString &s)
+{
+  std::vector<int> yColumns;
+
+  if (! CQChartsUtil::fromString(s, yColumns))
+    return false;
+
+  setYColumns(yColumns);
+
+  return true;
 }
 
 void
@@ -30,7 +63,9 @@ addProperties()
 
   addProperty("columns"  , this, "xColumn"       , "x"      );
   addProperty("columns"  , this, "yColumn"       , "y"      );
+  addProperty("columns"  , this, "yColumns"      , "yset"   );
   addProperty("columns"  , this, "nameColumn"    , "name"   );
+  addProperty("columns"  , this, "sizeColumn"    , "size"   );
   addProperty("bivariate", this, "bivariate"     , "enabled");
   addProperty("bivariate", this, "bivariateWidth", "width"  );
   addProperty("stacked"  , this, "stacked"       , "enabled");
@@ -67,6 +102,8 @@ setPointsColorStr(const QString &str)
     pointData_.palette = false;
     pointData_.color   = QColor(str);
   }
+
+  update();
 }
 
 QString
@@ -90,6 +127,8 @@ setLinesColorStr(const QString &str)
     lineData_.palette = false;
     lineData_.color   = QColor(str);
   }
+
+  update();
 }
 
 QString
@@ -121,14 +160,14 @@ QString
 CQChartsXYPlot::
 symbolName() const
 {
-  return CSymbol2DMgr::typeToName(symbolType()).c_str();
+  return CSymbol2DMgr::typeToName(symbolType());
 }
 
 void
 CQChartsXYPlot::
 setSymbolName(const QString &s)
 {
-  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s.toStdString());
+  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s);
 
   if (type != CSymbol2D::Type::NONE)
     setSymbolType(type);
@@ -282,12 +321,15 @@ updateRange()
     }
   }
 
-  if (xmin_.isValid()) dataRange_.setLeft  (xmin_.getValue());
-  if (ymin_.isValid()) dataRange_.setBottom(ymin_.getValue());
-  if (xmax_.isValid()) dataRange_.setRight (xmax_.getValue());
-  if (ymax_.isValid()) dataRange_.setTop   (ymax_.getValue());
+  if (xmin_) dataRange_.setLeft  (*xmin_);
+  if (ymin_) dataRange_.setBottom(*ymin_);
+  if (xmax_) dataRange_.setRight (*xmax_);
+  if (ymax_) dataRange_.setTop   (*ymax_);
 
   //---
+
+  //setXValueColumn(xColumn_);
+  //setYValueColumn(yColumn_);
 
   xAxis_->setColumn(xColumn_);
 
@@ -300,13 +342,13 @@ updateRange()
   else if (isStacked()) {
   }
   else {
-    if (yColumns_.empty()) {
-      yAxis_->setColumn(yColumn_);
+    int yColumn = getSetColumn(0);
 
-      QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+    yAxis_->setColumn(yColumn);
 
-      yAxis_->setLabel(yname);
-    }
+    QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+
+    yAxis_->setLabel(yname);
   }
 
   //---
@@ -455,6 +497,8 @@ initObjs(bool force)
 
         double y1 = y + lastSum[i];
 
+        //---
+
         QString name1;
 
         if (nameColumn_ >= 0) {
@@ -465,13 +509,28 @@ initObjs(bool force)
         else
           name1 = name;
 
+        //---
+
+        double size = -1;
+
+        if (sizeColumn_ >= 0) {
+          bool ok;
+
+          size = CQChartsUtil::modelReal(model_, i, sizeColumn_, ok);
+
+          if (! ok)
+            size = -1;
+        }
+
+        //---
+
         CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, j, ns, i, n);
 
         QString xstr = xStr(x);
-        QString ystr = yStr(y);
+        QString ystr = yStr(y1);
 
         if (name1.length())
           pointObj->setId(QString("%1:%2:%3").arg(name1).arg(xstr).arg(ystr));
@@ -482,9 +541,8 @@ initObjs(bool force)
 
         //---
 
-        if (i == 0) {
+        if (i == 0)
           poly << QPointF(x, lastSum[i]);
-        }
 
         poly     << QPointF(x, y1);
         polyLine << QPointF(x, y1);
@@ -572,6 +630,8 @@ initObjs(bool force)
           y1 = y + lastSum;
         }
 
+        //---
+
         QString name1;
 
         if (nameColumn_ >= 0) {
@@ -582,10 +642,25 @@ initObjs(bool force)
         else
           name1 = name;
 
+        //---
+
+        double size = -1;
+
+        if (sizeColumn_ >= 0) {
+          bool ok;
+
+          size = CQChartsUtil::modelReal(model_, i, sizeColumn_, ok);
+
+          if (! ok)
+            size = -1;
+        }
+
+        //---
+
         CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, j, ns, i, n);
 
         QString xstr = xStr(x);
         QString ystr = yStr(y1);
@@ -643,7 +718,7 @@ void
 CQChartsXYPlot::
 addPolyLine(const QPolygonF &polyLine, int i, int n, const QString &name)
 {
-  CBBox2D bbox = CQUtil::fromQRect(polyLine.boundingRect());
+  CBBox2D bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
 
   CQChartsXYPolylineObj *lineObj = new CQChartsXYPolylineObj(this, bbox, polyLine, i, n);
 
@@ -656,7 +731,7 @@ void
 CQChartsXYPlot::
 addPolygon(const QPolygonF &poly, int i, int n, const QString &name)
 {
-  CBBox2D bbox = CQUtil::fromQRect(poly.boundingRect());
+  CBBox2D bbox = CQChartsUtil::fromQRect(poly.boundingRect());
 
   CQChartsXYPolygonObj *polyObj = new CQChartsXYPolygonObj(this, bbox, poly, i, n);
 
@@ -732,8 +807,8 @@ getSetColumn(int i) const
 {
   if (! yColumns_.empty())
     return yColumns_[i];
-  else
-    return yColumn_;
+
+  return yColumn_;
 }
 
 bool
@@ -813,7 +888,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYBiLineObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (plot_->isFillUnder()) {
     QColor lineColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
@@ -845,9 +920,10 @@ draw(QPainter *p)
 //------
 
 CQChartsXYPointObj::
-CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y,
+CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
                    int iset, int nset, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), iset_(iset), nset_(nset), i_(i), n_(n)
+ CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), size_(size),
+ iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -869,7 +945,7 @@ inside(const CPoint2D &p) const
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  double s = plot_->symbolSize();
+  double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
   CBBox2D pbbox(px - s, py - s, px + s, py + s);
 
@@ -882,11 +958,12 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYPointObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (plot_->isPoints()) {
     QColor c = plot_->objectStateColor(this, plot_->pointColor(iset_, nset_));
-    double s = plot_->symbolSize();
+
+    double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
     plot_->drawSymbol(p, CPoint2D(x_, y_), plot_->symbolType(), s, c, plot_->isSymbolFilled());
   }
@@ -922,6 +999,8 @@ inside(const CPoint2D &p) const
 
   plot_->windowToPixel(p.x, p.y, px, py);
 
+  CPoint2D pp(px, py);
+
   for (int i = 1; i < poly_.count(); ++i) {
     double x1 = poly_[i - 1].x();
     double y1 = poly_[i - 1].y();
@@ -933,11 +1012,12 @@ inside(const CPoint2D &p) const
     plot_->windowToPixel(x1, y1, px1, py1);
     plot_->windowToPixel(x2, y2, px2, py2);
 
-    CLine2D line(CPoint2D(px1, py1), CPoint2D(px2, py2));
+    CPoint2D pl1(px1, py1);
+    CPoint2D pl2(px2, py2);
 
     double d;
 
-    if (CMathGeom2D::PointLineDistance(CPoint2D(px, py), line, &d) && d < 1)
+    if (CQChartsUtil::PointLineDistance(pp, pl1, pl2, &d) && d < 1)
       return true;
   }
 
@@ -969,7 +1049,7 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsXYPolylineObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (! plot_->isLines())
     return;
@@ -1025,12 +1105,12 @@ bool
 CQChartsXYPolygonObj::
 inside(const CPoint2D &p) const
 {
-  return poly_.containsPoint(CQUtil::toQPoint(p), Qt::OddEvenFill);
+  return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
 }
 
 void
 CQChartsXYPolygonObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (! plot_->isFillUnder())
     return;
@@ -1100,7 +1180,7 @@ fillColor() const
     c = CQChartsKeyColorBox::fillColor();
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }
@@ -1165,7 +1245,7 @@ draw(QPainter *p, const CBBox2D &rect)
   QColor c = plot->pointColor(i_, n_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   p->setPen(c);
 
@@ -1204,7 +1284,7 @@ textColor() const
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, Qt::white, 0.5);
+    c = CQChartsUtil::blendColors(c, Qt::white, 0.5);
 
   return c;
 }

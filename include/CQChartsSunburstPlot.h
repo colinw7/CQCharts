@@ -21,7 +21,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsSunburstPlot *plot_ { nullptr };
@@ -328,15 +328,31 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 
 //---
 
+class CQChartsSunburstPlotType : public CQChartsPlotType {
+ public:
+  CQChartsSunburstPlotType();
+
+  QString name() const override { return "sunburst"; }
+  QString desc() const override { return "Sunburst"; }
+};
+
+//---
+
 class CQChartsSunburstPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double fontHeight READ fontHeight WRITE setFontHeight)
+  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(int    valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
   CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "Sunburst"; }
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i) { valueColumn_ = i; update(); }
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
@@ -368,8 +384,10 @@ class CQChartsSunburstPlot : public CQChartsPlot {
  private:
   typedef std::vector<CQChartsSunburstRootNode *> RootNodes;
 
+  int       nameColumn_  { 0 };
+  int       valueColumn_ { 1 };
   RootNodes roots_;
-  double    fontHeight_ { 6.0 };
+  double    fontHeight_  { 6.0 };
 };
 
 #endif

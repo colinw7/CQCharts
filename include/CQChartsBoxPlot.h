@@ -16,7 +16,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
                      const CBoxWhisker &whisker, int i, int n);
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBoxPlot *plot_ { nullptr };
@@ -55,6 +55,16 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
 //---
 
+class CQChartsBoxPlotType : public CQChartsPlotType {
+ public:
+  CQChartsBoxPlotType();
+
+  QString name() const override { return "box"; }
+  QString desc() const override { return "BoxPlot"; }
+};
+
+//---
+
 class CQChartsBoxPlot : public CQChartsPlot {
   Q_OBJECT
 
@@ -64,8 +74,6 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
  public:
   CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model);
-
-  const char *typeName() const override { return "BoxPlot"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }

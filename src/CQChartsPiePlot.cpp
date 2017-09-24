@@ -2,14 +2,23 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsPiePlotType::
+CQChartsPiePlotType()
+{
+  addColumnParameter("label", "Label", "labelColumn", "", 0);
+  addColumnParameter("data" , "Data" , "dataColumn" , "", 1);
+}
+
+//---
+
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("pie"), model)
 {
   addKey();
 
@@ -22,12 +31,12 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "donut"          );
-  addProperty("", this, "innerRadius"    );
-  addProperty("", this, "labelRadius"    );
-  addProperty("", this, "explodeSelected");
-  addProperty("", this, "xColumn"        );
-  addProperty("", this, "yColumn"        );
+  addProperty(""       , this, "donut"          );
+  addProperty(""       , this, "innerRadius"    );
+  addProperty(""       , this, "labelRadius"    );
+  addProperty(""       , this, "explodeSelected");
+  addProperty("columns", this, "labelColumn"    , "label");
+  addProperty("columns", this, "dataColumn"     , "data" );
 }
 
 void
@@ -92,7 +101,7 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex yind = model_->index(i, yColumn_);
+    QModelIndex yind = model_->index(i, dataColumn_);
 
     bool ok;
 
@@ -117,8 +126,8 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex xind = model_->index(i, xColumn_);
-    QModelIndex yind = model_->index(i, yColumn_);
+    QModelIndex xind = model_->index(i, labelColumn_);
+    QModelIndex yind = model_->index(i, dataColumn_);
 
     bool ok1, ok2;
 
@@ -169,7 +178,7 @@ addKeyItems(CQChartsKey *key)
   int n = model_->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i) {
-    QModelIndex xind = model_->index(i, xColumn_);
+    QModelIndex xind = model_->index(i, labelColumn_);
 
     bool ok;
 
@@ -193,17 +202,7 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  drawBgKey(p);
-
-  drawObjs(p);
-
-  drawFgKey(p);
-
-  //---
-
-  drawTitle(p);
+  drawParts(p);
 }
 
 //------
@@ -231,7 +230,9 @@ inside(const CPoint2D &p) const
   //---
 
   // check angle
-  double a = CAngle::Rad2Deg(atan2(p.y - center().y, p.x - center().x)); while (a < 0) a += 360.0;
+  double a = CQChartsUtil::Rad2Deg(atan2(p.y - center().y, p.x - center().x));
+
+  while (a < 0) a += 360.0;
 
   double a1 = angle1(); while (a1 < 0) a1 += 360.0;
   double a2 = angle2(); while (a2 < 0) a2 += 360.0;
@@ -254,7 +255,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsPieObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   CPoint2D c  = center();
   double   r  = radius();
@@ -267,7 +268,7 @@ draw(QPainter *p)
     exploded = true;
 
   if (exploded) {
-    double angle = CAngle::Deg2Rad((a1 + a2)/2.0);
+    double angle = CQChartsUtil::Deg2Rad((a1 + a2)/2.0);
 
     double dx = 0.1*radius()*cos(angle);
     double dy = 0.1*radius()*sin(angle);
@@ -328,12 +329,12 @@ draw(QPainter *p)
     path.moveTo(px1, py1);
     path.lineTo(px2, py2);
 
-    path.arcTo(CQUtil::toQRect(pbbox), a1, a2 - a1);
+    path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
 
     path.lineTo(px4, py4);
     path.lineTo(px3, py3);
 
-    path.arcTo(CQUtil::toQRect(pbbox1), a2, a1 - a2);
+    path.arcTo(CQChartsUtil::toQRect(pbbox1), a2, a1 - a2);
   }
   else {
     double a21 = a2 - a1;
@@ -341,10 +342,10 @@ draw(QPainter *p)
     if (std::abs(a21) < 360.0) {
       path.moveTo(QPointF(pc.x, pc.y));
 
-      path.arcTo(CQUtil::toQRect(pbbox), a1, a2 - a1);
+      path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
     }
     else {
-      path.addEllipse(CQUtil::toQRect(pbbox));
+      path.addEllipse(CQChartsUtil::toQRect(pbbox));
     }
   }
 
@@ -371,7 +372,7 @@ draw(QPainter *p)
     if (std::abs(a21) < 360.0) {
       double ta = (a1 + a2)/2.0;
 
-      double tangle = CAngle::Deg2Rad(ta);
+      double tangle = CQChartsUtil::Deg2Rad(ta);
 
       double lr;
 
@@ -476,7 +477,7 @@ fillColor() const
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }
@@ -498,7 +499,7 @@ textColor() const
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }

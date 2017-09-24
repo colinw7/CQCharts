@@ -213,7 +213,7 @@ class CQChartsTreeMapHierObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsTreeMapPlot     *plot_ { nullptr };
@@ -231,7 +231,7 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsTreeMapPlot *plot_ { nullptr };
@@ -242,10 +242,22 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsTreeMapPlotType : public CQChartsPlotType {
+ public:
+  CQChartsTreeMapPlotType();
+
+  QString name() const override { return "treemap"; }
+  QString desc() const override { return "TreeMap"; }
+};
+
+//---
+
 class CQChartsTreeMapPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double fontHeight READ fontHeight WRITE setFontHeight)
+  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(int    valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
   typedef std::vector<CQChartsTreeMapNode *> Nodes;
@@ -253,7 +265,11 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
  public:
   CQChartsTreeMapPlot(CQChartsView *view, QAbstractItemModel *model);
 
-  const char *typeName() const override { return "TreeMap"; }
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i) { valueColumn_ = i; update(); }
 
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
@@ -283,11 +299,13 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   void transformNodes(CQChartsTreeMapHierNode *hier);
 
  private:
+  int                      nameColumn_  { 0 };
+  int                      valueColumn_ { 1 };
   CDisplayRange2D          range_;
-  CQChartsTreeMapHierNode* root_       { nullptr };
-  double                   fontHeight_ { 6.0 };
-  int                      maxDepth_   { 1 };
-  int                      maxColorId_ { 0 };
+  CQChartsTreeMapHierNode* root_        { nullptr };
+  double                   fontHeight_  { 6.0 };
+  int                      maxDepth_    { 1 };
+  int                      maxColorId_  { 0 };
 };
 
 #endif

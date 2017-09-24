@@ -1,17 +1,28 @@
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <CQRotatedText.h>
-#include <CQUtil.h>
-#include <CGradientPalette.h>
-#include <CStrParse.h>
+#include <CQStrParse.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsAdjacencyPlotType::
+CQChartsAdjacencyPlotType()
+{
+  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "", 0);
+  addColumnParameter("connections", "Connections", "connectionsColumn", "", 1);
+
+  addColumnParameter("group", "Group", "groupColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
+}
+
+//---
+
 CQChartsAdjacencyPlot::
 CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
 {
   setMargins(0, 0, 0, 0);
 
@@ -209,7 +220,7 @@ bool
 CQChartsAdjacencyPlot::
 decodeConnections(const QString &str, ConnectionDataArray &connections)
 {
-  CStrParse parse(str.toStdString());
+  CQStrParse parse(str);
 
   parse.skipSpace();
 
@@ -221,14 +232,14 @@ decodeConnections(const QString &str, ConnectionDataArray &connections)
   while (! parse.isChar('}')) {
     parse.skipSpace();
 
-    std::string str1;
+    QString str1;
 
     if (! parse.readBracedString(str1, /*includeBraces*/false))
       return false;
 
     ConnectionData connection;
 
-    if (! decodeConnection(str1.c_str(), connection))
+    if (! decodeConnection(str1, connection))
       return false;
 
     connections.push_back(connection);
@@ -246,30 +257,30 @@ bool
 CQChartsAdjacencyPlot::
 decodeConnection(const QString &str, ConnectionData &connection)
 {
-  CStrParse parse(str.toStdString());
+  CQStrParse parse(str);
 
   parse.skipSpace();
 
-  std::string str1;
+  QString str1;
 
   if (! parse.readNonSpace(str1))
     return false;
 
   parse.skipSpace();
 
-  std::string str2;
+  QString str2;
 
   if (! parse.readNonSpace(str2))
     return false;
 
   long node;
 
-  if (! CQChartsUtil::toInt(str1.c_str(), node))
+  if (! CQChartsUtil::toInt(str1, node))
     return false;
 
   long count;
 
-  if (! CQChartsUtil::toInt(str2.c_str(), count))
+  if (! CQChartsUtil::toInt(str2, count))
     return false;
 
   connection = ConnectionData(node, count);
@@ -285,22 +296,17 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  //---
-
-  drawNodes(p);
-  drawObjs(p);
-
-  //---
-
-  drawTitle(p);
+  drawParts(p);
 }
 
 void
 CQChartsAdjacencyPlot::
-drawNodes(QPainter *p)
+drawBackground(QPainter *p)
 {
+  CQChartsPlot::drawBackground(p);
+
+  //---
+
   double pxo, pyo;
 
   windowToPixel(0.0, 1.0, pxo, pyo);
@@ -405,7 +411,7 @@ CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
 
 void
 CQChartsAdjacencyObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   //int nn = plot_->numNodes();
 
@@ -436,7 +442,7 @@ draw(QPainter *p)
 
   plot_->windowToPixel(rect(), prect);
 
-  p->drawRect(CQUtil::toQRect(prect));
+  p->drawRect(CQChartsUtil::toQRect(prect));
 }
 
 bool

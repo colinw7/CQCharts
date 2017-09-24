@@ -1,7 +1,7 @@
 #include <CQChartsBubblePlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -24,9 +24,20 @@ int nextColorId() {
 
 }
 
+//------
+
+CQChartsBubblePlotType::
+CQChartsBubblePlotType()
+{
+  addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
+  addColumnParameter("value", "Value", "valueColumn", "", 1);
+}
+
+//---
+
 CQChartsBubblePlot::
 CQChartsBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
   setMargins(1, 1, 1, 1);
 
@@ -139,7 +150,7 @@ loadChildren(const QModelIndex &index)
   uint nc = model_->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, 0, index);
+    QModelIndex index1 = model_->index(i, nameColumn_, index);
 
     bool ok1;
 
@@ -154,7 +165,7 @@ loadChildren(const QModelIndex &index)
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, 1, index);
+      QModelIndex index2 = model_->index(i, valueColumn_, index);
 
       bool ok2;
 
@@ -179,21 +190,12 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  //---
-
-  drawObjs(p);
-  drawBounds(p);
-
-  //---
-
-  drawTitle(p);
+  drawParts(p);
 }
 
 void
 CQChartsBubblePlot::
-drawBounds(QPainter *p)
+drawForeground(QPainter *p)
 {
   double xc, yc, r;
 
@@ -234,7 +236,7 @@ CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
 
 void
 CQChartsBubbleObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   QFont font = plot_->view()->font();
 
@@ -291,7 +293,7 @@ bool
 CQChartsBubbleObj::
 inside(const CPoint2D &p) const
 {
-  if (CMathGeom2D::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
+  if (CQChartsUtil::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
     return true;
 
   return false;

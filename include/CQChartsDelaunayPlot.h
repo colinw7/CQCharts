@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQUtil.h>
 
 class CQChartsDelaunayPlot;
 class CDelaunay;
@@ -21,7 +20,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void draw(QPainter *p) override;
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsDelaunayPlot *plot_ { nullptr };
@@ -29,6 +28,16 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   double                y_    { 0.0 };
   int                   i_    { -1 };
   int                   n_    { -1 };
+};
+
+//---
+
+class CQChartsDelaunayPlotType : public CQChartsPlotType {
+ public:
+  CQChartsDelaunayPlotType();
+
+  QString name() const override { return "delaunay"; }
+  QString desc() const override { return "Delaunay"; }
 };
 
 //---
@@ -74,8 +83,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
  public:
   CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model);
-
-  const char *typeName() const override { return "Delaunay"; }
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
@@ -130,6 +137,9 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  void drawForeground(QPainter *p);
+
+ private:
   void drawDelaunay(QPainter *p);
   void drawVoronoi (QPainter *p);
 

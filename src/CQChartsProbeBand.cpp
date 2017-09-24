@@ -1,6 +1,6 @@
 #include <CQChartsProbeBand.h>
 #include <CQChartsView.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
 #include <QRubberBand>
 
 #include <QLabel>
@@ -34,8 +34,8 @@ show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2)
   CPoint2D p2(px          , py2);
   CPoint2D p3(px + tickLen, py2);
 
-  vband_->setGeometry(CQUtil::toQRectI(CBBox2D(p1, p2)));
-  hband_->setGeometry(CQUtil::toQRectI(CBBox2D(p2, p3)));
+  vband_->setGeometry(CQChartsUtil::toQRectI(CBBox2D(p1, p2)));
+  hband_->setGeometry(CQChartsUtil::toQRectI(CBBox2D(p2, p3)));
 
   vband_->show();
   hband_->show();
@@ -44,7 +44,7 @@ show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2)
 
   CPoint2D p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
 
-  QPoint pos = CQUtil::toQPointI(p4);
+  QPoint pos = CQChartsUtil::toQPointI(p4);
 
   QPoint gpos = view_->mapToGlobal(pos);
 

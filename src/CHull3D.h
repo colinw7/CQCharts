@@ -323,16 +323,16 @@ class CHull3D {
   typedef Face::iterator   FaceIterator;
 
   VertexIterator verticesBegin() { return vertices_->beginIterator(); }
-  VertexIterator verticesEnd  () { return vertices_->endIterator(); }
+  VertexIterator verticesEnd  () { return vertices_->endIterator  (); }
 
   EdgeIterator edgesBegin() { return edges_->beginIterator(); }
-  EdgeIterator edgesEnd  () { return edges_->endIterator(); }
+  EdgeIterator edgesEnd  () { return edges_->endIterator  (); }
 
   FaceIterator facesBegin() { return faces_->begin(); }
-  FaceIterator facesEnd  () { return faces_->end(); }
+  FaceIterator facesEnd  () { return faces_->end  (); }
 
   EdgeIterator voronoiEdgesBegin() { return vedges_->beginIterator(); }
-  EdgeIterator voronoiEdgesEnd  () { return vedges_->endIterator(); }
+  EdgeIterator voronoiEdgesEnd  () { return vedges_->endIterator  (); }
 
  protected:
   /* Function declarations */

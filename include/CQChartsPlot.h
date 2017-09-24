@@ -1,25 +1,93 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
+#include <CQChartsPlotParameter.h>
+#include <CQChartsPlotSymbol.h>
 #include <CQChartsQuadTree.h>
-#include <QFrame>
 #include <CDisplayRange2D.h>
 #include <CDisplayTransform2D.h>
-#include <CSymbol2D.h>
 #include <CRange2D.h>
-#include <COptVal.h>
 
+#include <QFrame>
+
+#include <boost/optional.hpp>
+
+class CQCharts;
 class CQChartsView;
 class CQChartsAxis;
 class CQChartsKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
-class CQChartsModel;
-class CQPropertyView;
+class CQPropertyViewTree;
 
 class CGradientPalette;
 class QAbstractItemModel;
 class QRubberBand;
+
+//----
+
+class CQChartsPlotType;
+
+class CQChartsPlotTypeMgr {
+ public:
+  CQChartsPlotTypeMgr() { }
+ ~CQChartsPlotTypeMgr() { }
+
+  void addType(const QString &name, CQChartsPlotType *type) {
+    types_[name] = type;
+  }
+
+  CQChartsPlotType *type(const QString &name) {
+    auto p = types_.find(name);
+    assert(p != types_.end());
+
+    return (*p).second;
+  }
+
+ private:
+  typedef std::map<QString, CQChartsPlotType *> Types;
+
+  Types types_;
+};
+
+//----
+
+class CQChartsPlotType {
+ public:
+  typedef std::vector<CQChartsPlotParameter> Parameters;
+
+ public:
+  CQChartsPlotType() { }
+
+  virtual QString name() const = 0;
+  virtual QString desc() const = 0;
+
+  const Parameters &parameters() const { return parameters_; }
+
+  void addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                          const QString &attributes="", int defValue=-1) {
+    addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
+  }
+
+  void addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
+                           const QString &attributes="", const QString &defValue="") {
+    addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
+  }
+
+  void addBoolParameter(const QString &name, const QString &desc, const QString &propName,
+                        const QString &attributes="", bool defValue=false) {
+    addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
+  }
+
+  void addParameter(const CQChartsPlotParameter &parameter) {
+    parameters_.push_back(parameter);
+  }
+
+ protected:
+  Parameters parameters_;
+};
+
+//----
 
 class CQChartsPlot : public QObject {
   Q_OBJECT
@@ -57,6 +125,12 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
 
  public:
+  enum Layer {
+    BG,
+    MID,
+    FG
+  };
+
   typedef std::vector<int> Columns;
 
   // margin (percent)
@@ -74,8 +148,10 @@ class CQChartsPlot : public QObject {
     OtherPlot() { }
   };
 
+  typedef boost::optional<double> OptReal;
+
  public:
-  CQChartsPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *model);
 
   virtual ~CQChartsPlot();
 
@@ -83,9 +159,11 @@ class CQChartsPlot : public QObject {
 
   QAbstractItemModel *model() const { return model_; }
 
-  CQChartsModel *chartsModel() const;
+  CQCharts *charts() const;
 
-  virtual const char *typeName() const = 0;
+  //CQChartsModel *chartsModel() const;
+
+  QString typeName() const { return type_->name(); }
 
   const QString &id() const { return id_; }
   void setId(const QString &s) { id_ = s; }
@@ -115,17 +193,17 @@ class CQChartsPlot : public QObject {
   CGradientPalette *palette() const { return palette_; }
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
 
-  const COptReal &xmin() const { return xmin_; }
-  void setXMin(const COptReal &r) { xmin_ = r; }
+  const OptReal &xmin() const { return xmin_; }
+  void setXMin(const OptReal &r) { xmin_ = r; }
 
-  const COptReal &xmax() const { return xmax_; }
-  void setXMax(const COptReal &r) { xmax_ = r; }
+  const OptReal &xmax() const { return xmax_; }
+  void setXMax(const OptReal &r) { xmax_ = r; }
 
-  const COptReal &ymin() const { return ymin_; }
-  void setYMin(const COptReal &r) { ymin_ = r; }
+  const OptReal &ymin() const { return ymin_; }
+  void setYMin(const OptReal &r) { ymin_ = r; }
 
-  const COptReal &ymax() const { return ymax_; }
-  void setYMax(const COptReal &r) { ymax_ = r; }
+  const OptReal &ymax() const { return ymax_; }
+  void setYMax(const OptReal &r) { ymax_ = r; }
 
   const QString &title() const { return title_; }
   void setTitle(const QString &s);
@@ -260,9 +338,11 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQPropertyView *propertyView() const;
+  CQPropertyViewTree *propertyView() const;
 
   virtual void addProperties();
+
+  //---
 
   virtual void addKeyItems(CQChartsKey *) { }
 
@@ -314,7 +394,7 @@ class CQChartsPlot : public QObject {
   QString yStr(double x) const;
 
   bool mousePress  (const CPoint2D &p);
-  bool mouseMove   (const CPoint2D &p);
+  bool mouseMove   (const CPoint2D &p, bool first=false);
   void mouseRelease(const CPoint2D &p);
 
   void keyPress(int key);
@@ -341,8 +421,6 @@ class CQChartsPlot : public QObject {
 
   bool tipText(const CPoint2D &p, QString &tip) const;
 
-  void drawBackground(QPainter *painter);
-
   void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
                  double width, const QColor &color);
 
@@ -356,22 +434,35 @@ class CQChartsPlot : public QObject {
 
   CBBox2D fitBBox() const;
 
+  //---
+
+  void setLayerActive(const Layer &layer, bool b);
+  bool isLayerActive(const Layer &layer) const;
+
+  //---
+
   void drawParts(QPainter *painter);
 
-  virtual void drawObjs(QPainter *painter);
+  virtual void drawBackground(QPainter *painter);
 
-  void drawBgAxes(QPainter *painter);
-  void drawFgAxes(QPainter *painter);
+  virtual void drawObjs(QPainter *painter, const Layer &layer);
 
-  void drawBgKey(QPainter *painter);
-  void drawFgKey(QPainter *painter);
+  virtual void drawBgAxes(QPainter *painter);
+  virtual void drawFgAxes(QPainter *painter);
 
-  void drawKey(QPainter *painter);
+  virtual void drawBgKey(QPainter *painter);
+  virtual void drawFgKey(QPainter *painter);
 
-  void drawTitle(QPainter *painter);
+  virtual void drawKey(QPainter *painter);
 
-  void drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type,
-                  double s, const QColor &c, bool filled=false);
+  virtual void drawTitle(QPainter *painter);
+
+  virtual void drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type,
+                          double s, const QColor &c, bool filled=false);
+
+  virtual void drawForeground(QPainter *) { }
+
+  //---
 
   QColor objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def=QColor(0,0,0)) const;
 
@@ -399,6 +490,7 @@ class CQChartsPlot : public QObject {
 
  protected:
   typedef std::vector<CQChartsPlot *> RefPlots;
+  typedef std::map<Layer,bool>        LayerActive;
 
   struct MouseData {
     QPoint pressPoint;
@@ -407,6 +499,7 @@ class CQChartsPlot : public QObject {
   };
 
   CQChartsView*         view_                { nullptr };
+  CQChartsPlotType*     type_                { nullptr };
   QAbstractItemModel*   model_               { nullptr };
   QString               id_;
   bool                  visible_             { true };
@@ -417,10 +510,10 @@ class CQChartsPlot : public QObject {
   CRange2D              dataRange_;
   double                dataScale_           { 1.0 };
   CPoint2D              dataOffset_          { 0.0, 0.0 };
-  COptReal              xmin_;
-  COptReal              ymin_;
-  COptReal              xmax_;
-  COptReal              ymax_;
+  OptReal               xmin_;
+  OptReal               ymin_;
+  OptReal               xmax_;
+  OptReal               ymax_;
   CGradientPalette*     palette_             { nullptr };
   bool                  background_          { true };
   QColor                backgroundColor_     { 255, 255, 255 };
@@ -451,6 +544,7 @@ class CQChartsPlot : public QObject {
   PlotObjs              plotObjs_;
   PlotObjTree           plotObjTree_;
   MouseData             mouseData_;
+  LayerActive           layerActive_;
 };
 
 #endif

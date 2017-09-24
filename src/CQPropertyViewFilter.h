@@ -4,12 +4,12 @@
 #include <QSortFilterProxyModel>
 #include <set>
 
-class CQPropertyView;
+class CQPropertyViewTree;
 
 class CQPropertyViewFilter : public QSortFilterProxyModel {
   // model indices are from source mode (propertyModel)
  public:
-  CQPropertyViewFilter(CQPropertyView *view);
+  CQPropertyViewFilter(CQPropertyViewTree *view);
 
   bool filterAcceptsRow(int row, const QModelIndex &parent) const override;
 
@@ -27,7 +27,7 @@ class CQPropertyViewFilter : public QSortFilterProxyModel {
   typedef std::map<QModelIndex,bool> IndexMatches;
   typedef std::set<QModelIndex>      ExpandInds;
 
-  CQPropertyView*      view_ { nullptr };
+  CQPropertyViewTree*  view_ { nullptr };
   QString              filter_;
   QRegExp              regexp_;
   mutable IndexMatches matches_;

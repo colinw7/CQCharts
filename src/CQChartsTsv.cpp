@@ -1,9 +1,10 @@
 #include <CQChartsTsv.h>
+#include <CQCharts.h>
 #include <CQTsvModel.h>
 
 CQChartsTsv::
-CQChartsTsv() :
- CQChartsModel()
+CQChartsTsv(CQCharts *charts) :
+ CQChartsModel(charts)
 {
   setColumnHeaders(true);
 
@@ -49,6 +50,9 @@ QVariant
 CQChartsTsv::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if (role == CQCharts::Role::ColumnType)
+    return CQChartsModel::headerData(section, orientation, role);
+
   return model_->headerData(section, orientation, role);
 }
 

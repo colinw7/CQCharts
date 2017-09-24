@@ -1,7 +1,7 @@
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <CQUtil.h>
+#include <CQCharts.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -19,9 +19,20 @@ int nextColorId() {
 
 }
 
+//------
+
+CQChartsTreeMapPlotType::
+CQChartsTreeMapPlotType()
+{
+  addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
+  addColumnParameter("value", "Value", "valueColumn", "", 1);
+}
+
+//------
+
 CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("treemap"), model)
 {
   setMargins(1, 1, 1, 1);
 
@@ -149,7 +160,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
   uint nc = model_->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, 0, index);
+    QModelIndex index1 = model_->index(i, nameColumn_, index);
 
     bool ok;
 
@@ -173,7 +184,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, 1, index);
+      QModelIndex index2 = model_->index(i, valueColumn_, index);
 
       bool ok;
 
@@ -200,23 +211,7 @@ draw(QPainter *p)
 
   //---
 
-  QFont font = view_->font();
-
-  font.setPointSizeF(fontHeight());
-
-  p->setFont(font);
-
-  //---
-
-  drawBackground(p);
-
-  //---
-
-  drawObjs(p);
-
-  //---
-
-  drawTitle(p);
+  drawParts(p);
 }
 
 QColor
@@ -239,14 +234,22 @@ CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
 
 void
 CQChartsTreeMapHierObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  p->setFont(font);
+
+  //---
+
   QFontMetrics fm(p->font());
 
   //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
 
-  QColor c1 = CQUtil::blendColors(c, Qt::white, 0.8);
+  QColor c1 = CQChartsUtil::blendColors(c, Qt::white, 0.8);
 
   QColor tc = plot_->textColor(c1);
 
@@ -258,7 +261,7 @@ draw(QPainter *p)
   p->setPen  (tc);
   p->setBrush(c1);
 
-  p->drawRect(CQUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
+  p->drawRect(CQChartsUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
 }
 
 bool
@@ -284,8 +287,16 @@ CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
 
 void
 CQChartsTreeMapObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  p->setFont(font);
+
+  //---
+
   QFontMetrics fm(p->font());
 
 //QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
@@ -301,7 +312,7 @@ draw(QPainter *p)
   p->setPen  (tc);
   p->setBrush(c);
 
-  p->drawRect(CQUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
+  p->drawRect(CQChartsUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
 
   //---
 

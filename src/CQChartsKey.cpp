@@ -1,8 +1,8 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
-#include <CQPropertyView.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
+#include <CQPropertyViewTree.h>
 #include <QPainter>
 #include <QRectF>
 
@@ -14,6 +14,13 @@ CQChartsKey(CQChartsPlot *plot) :
   setBorder    (true);
 
   clearItems();
+}
+
+void
+CQChartsKey::
+redrawBoxObj()
+{
+  redraw();
 }
 
 void
@@ -80,7 +87,7 @@ updatePosition()
 
 void
 CQChartsKey::
-addProperties(CQPropertyView *tree, const QString &path)
+addProperties(CQPropertyViewTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible"  );
   tree->addProperty(path, this, "location" );
@@ -329,7 +336,7 @@ draw(QPainter *p)
   p->save();
 
   QRectF dataRect = plot_->calcRect();
-  QRectF clipRect = CQUtil::toQRect(plot_->calcPixelRect());
+  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
   if (isInsideX()) {
     clipRect.setLeft (dataRect.left ());
@@ -386,7 +393,7 @@ draw(QPainter *p)
     p->setPen(Qt::red);
     p->setBrush(Qt::NoBrush);
 
-    p->drawRect(CQUtil::toQRect(prect));
+    p->drawRect(CQChartsUtil::toQRect(prect));
   }
 
   //---

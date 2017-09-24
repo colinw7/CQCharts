@@ -1,15 +1,23 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
-#include <CQPropertyView.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
+#include <CQPropertyViewTree.h>
 #include <QPainter>
 #include <QRectF>
 
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
- plot_(plot), text_("Title")
+ plot_(plot)
 {
+  setText("Title");
+}
+
+void
+CQChartsTitle::
+redrawBoxObj()
+{
+  redraw();
 }
 
 void
@@ -55,19 +63,13 @@ updatePosition()
 
 void
 CQChartsTitle::
-addProperties(CQPropertyView *tree, const QString &path)
+addProperties(CQPropertyViewTree *tree, const QString &path)
 {
   tree->addProperty(path, this, "visible" );
   tree->addProperty(path, this, "location");
   tree->addProperty(path, this, "inside"  );
 
-  CQChartsBoxObj::addProperties(tree, path);
-
-  QString textPath = path + "/text";
-
-  tree->addProperty(textPath, this, "text" );
-  tree->addProperty(textPath, this, "font" );
-  tree->addProperty(textPath, this, "color");
+  CQChartsTextBoxObj::addProperties(tree, path);
 }
 
 QSizeF
@@ -122,7 +124,7 @@ draw(QPainter *p)
 
   p->save();
 
-  QRectF clipRect = CQUtil::toQRect(plot_->calcPixelRect());
+  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
   p->setClipRect(clipRect, Qt::ReplaceClip);
 
@@ -149,7 +151,7 @@ draw(QPainter *p)
 
   //---
 
-  CQChartsBoxObj::draw(p, CQUtil::toQRect(pirect));
+  CQChartsBoxObj::draw(p, CQChartsUtil::toQRect(pirect));
 
   //---
 
@@ -170,7 +172,7 @@ draw(QPainter *p)
     p->setPen(Qt::red);
     p->setBrush(Qt::NoBrush);
 
-    p->drawRect(CQUtil::toQRect(prect));
+    p->drawRect(CQChartsUtil::toQRect(prect));
   }
 
   //---

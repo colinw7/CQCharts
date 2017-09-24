@@ -1,8 +1,8 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <CQRotatedText.h>
-#include <CQUtil.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -26,9 +26,18 @@ int nextColorId() {
 
 //---
 
+CQChartsSunburstPlotType::
+CQChartsSunburstPlotType()
+{
+  addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
+  addColumnParameter("value", "Value", "valueColumn", "", 1);
+}
+
+//---
+
 CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model)
+ CQChartsPlot(view, view->charts()->plotType("sunburst"), model)
 {
   // addKey() // TODO
 
@@ -113,7 +122,7 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
   uint nc = model_->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, 0, index);
+    QModelIndex index1 = model_->index(i, nameColumn_, index);
 
     bool ok;
 
@@ -129,7 +138,7 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
       colorId1 = hier1->colorId();
     }
     else {
-      QModelIndex index2 = model_->index(i, 1, index);
+      QModelIndex index2 = model_->index(i, valueColumn_, index);
 
       bool ok;
 
@@ -190,6 +199,13 @@ draw(QPainter *p)
 
   //---
 
+  drawParts(p);
+}
+
+void
+CQChartsSunburstPlot::
+drawNodes(QPainter *p, CQChartsSunburstHierNode *hier)
+{
   QFont font = view_->font();
 
   font.setPointSizeF(fontHeight());
@@ -198,26 +214,6 @@ draw(QPainter *p)
 
   //---
 
-  drawBackground(p);
-
-  //---
-
-#if 0
-  for (uint i = 0; i < roots_.size(); ++i)
-    drawNodes(p, roots_[i]);
-#endif
-
-  drawObjs(p);
-
-  //---
-
-  drawTitle(p);
-}
-
-void
-CQChartsSunburstPlot::
-drawNodes(QPainter *p, CQChartsSunburstHierNode *hier)
-{
   for (auto node : hier->getNodes())
     drawNode(p, node);
 
@@ -339,7 +335,7 @@ inside(const CPoint2D &p) const
   //---
 
   // check angle
-  double a = CAngle::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
+  double a = CQChartsUtil::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
 
   double a1 = node_->a();
   double a2 = a1 + node_->da();
@@ -365,7 +361,15 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsSunburstNodeObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  p->setFont(font);
+
+  //---
+
   plot_->drawNode(p, node_);
 }

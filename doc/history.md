@@ -63,3 +63,8 @@
  + new CQPropertyView with search/filter support
  + Add key to box plot
  + Title on all plots
+## 9/24/2017
+ + Add plot type manager
+ + Add plot type parameters
+ + Reduce dependencies
+ + Add data labels for geometry plot

@@ -2,16 +2,29 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <CQRotatedText.h>
-#include <CQUtil.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
 
+CQChartsBarChartPlotType::
+CQChartsBarChartPlotType()
+{
+  addColumnParameter ("name" , "Name" , "nameColumn"  , "", 0);
+  addColumnsParameter("value", "Value", "valueColumns", "", "1");
+
+  addBoolParameter("stacked", "Stacked", "stacked", "optional");
+}
+
+//---
+
 CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, model), dataLabel_(this)
+ CQChartsPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
 {
+  setLayerActive(Layer::FG, true);
+
   addAxes();
 
   addKey();
@@ -23,28 +36,49 @@ CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model) :
   xAxis_->setMinorTicksDisplayed(false);
 }
 
+QString
+CQChartsBarChartPlot::
+valueColumnsStr() const
+{
+  return CQChartsUtil::toString(valueColumns_);
+}
+
+bool
+CQChartsBarChartPlot::
+setValueColumnsStr(const QString &s)
+{
+  std::vector<int> valueColumns;
+
+  if (! CQChartsUtil::fromString(s, valueColumns))
+    return false;
+
+  setValueColumns(valueColumns);
+
+  return true;
+}
+
 void
 CQChartsBarChartPlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
 
-  QString strokeStr    = "stroke";
-  QString fillStr      = "fill";
-  QString dataLabelStr = "dataLabel";
+  QString strokeStr = "stroke";
+  QString fillStr   = "fill";
 
-  addProperty(""          , this       , "xColumn"                );
-  addProperty(""          , this       , "yColumn"                );
-  addProperty(""          , this       , "stacked"                );
-  addProperty(""          , this       , "margin"                 );
-  addProperty(""          , this       , "keySets"                );
-  addProperty(strokeStr   , this       , "border"     , "visible" );
-  addProperty(strokeStr   , this       , "borderColor", "color"   );
-  addProperty(strokeStr   , this       , "borderWidth", "width"   );
-  addProperty(fillStr     , this       , "fill"       , "visible" );
-  addProperty(fillStr     , this       , "barColor"   , "color"   );
+  addProperty("columns", this, "nameColumn"  , "name"     );
+  addProperty("columns", this, "valueColumn" , "value"    );
+  addProperty("columns", this, "valueColumns", "valuesSet");
+  addProperty(""       , this, "stacked"                  );
+  addProperty(""       , this, "margin"                   );
+  addProperty(""       , this, "keySets"                  );
+  addProperty(strokeStr, this, "border"      , "visible"  );
+  addProperty(strokeStr, this, "borderColor" , "color"    );
+  addProperty(strokeStr, this, "borderWidth" , "width"    );
+  addProperty(fillStr  , this, "fill"        , "visible"  );
+  addProperty(fillStr  , this, "barColor"    , "color"    );
 
-  dataLabel_.addProperties(dataLabelStr);
+  dataLabel_.addProperties("dataLabel");
 }
 
 QString
@@ -103,7 +137,7 @@ updateRange()
   for (int i = 0; i < n; ++i) {
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model_, i, xColumn_, ok1);
+    QString name = CQChartsUtil::modelString(model_, i, nameColumn_, ok1);
 
     double sum = 0.0;
 
@@ -117,11 +151,11 @@ updateRange()
         int numVisible1 = 0;
 
         for (int j = 0; j < ns; ++j) {
-          int yColumn = getSetColumn(j);
+          int valueColumn = getSetColumn(j);
 
           bool ok2;
 
-          double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
+          double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
 
           if (! ok2) value = i;
 
@@ -156,11 +190,11 @@ updateRange()
           if (isSetHidden(j))
             continue;
 
-          int yColumn = getSetColumn(j);
+          int valueColumn = getSetColumn(j);
 
           bool ok2;
 
-          double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
+          double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
 
           if (! ok2) value = i;
 
@@ -193,11 +227,11 @@ updateRange()
       if (isSetHidden(i))
         continue;
 
-      int yColumn = getSetColumn(0);
+      int valueColumn = getSetColumn(0);
 
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model_, i, yColumn, ok2);
+      double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
 
       if (! ok2) value = i;
 
@@ -227,9 +261,9 @@ updateRange()
 
   if (ns > 1) {
     for (int j = 0; j < ns; ++j) {
-      int yColumn = getSetColumn(j);
+      int valueColumn = getSetColumn(j);
 
-      QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
+      QString name = model_->headerData(valueColumn, Qt::Horizontal).toString();
 
       valueNames_.push_back(name);
     }
@@ -246,12 +280,14 @@ updateRange()
 
   //---
 
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
+  xAxis_->setColumn(nameColumn_);
+  yAxis_->setColumn(valueColumn_);
 
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
+  QString xname = model_->headerData(nameColumn_ , Qt::Horizontal).toString();
+  QString yname = model_->headerData(valueColumn_, Qt::Horizontal).toString();
 
   xAxis_->setLabel(xname);
+  yAxis_->setLabel(yname);
 
   //---
 
@@ -262,20 +298,20 @@ int
 CQChartsBarChartPlot::
 numSets() const
 {
-  if (yColumns_.empty())
+  if (valueColumns_.empty())
     return 1;
 
-  return yColumns_.size();
+  return valueColumns_.size();
 }
 
 int
 CQChartsBarChartPlot::
 getSetColumn(int i) const
 {
-  if (! yColumns_.empty())
-    return yColumns_[i];
+  if (! valueColumns_.empty())
+    return valueColumns_[i];
   else
-    return yColumn_;
+    return valueColumn_;
 }
 
 CQChartsBarChartPlot::ValueSet *
@@ -478,7 +514,7 @@ initObjs(bool force)
 
       QString valueStr = this->valueStr(value);
 
-      barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
+      barObj->setId(QString("%1:%2").arg(valueName).arg(valueStr));
 
       addPlotObject(barObj);
 
@@ -599,7 +635,7 @@ CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
 
 void
 CQChartsBarChartObj::
-draw(QPainter *p)
+draw(QPainter *p, const CQChartsPlot::Layer &layer)
 {
   bool hidden = false;
 
@@ -623,55 +659,54 @@ draw(QPainter *p)
 
   plot_->windowToPixel(rect(), prect);
 
-  int m = plot_->margin();
+  QRectF qrect = CQChartsUtil::toQRect(prect);
 
-  if (prect.getWidth() > 3*m) {
-    prect.setXMin(prect.getXMin() + m);
-    prect.setXMax(prect.getXMax() - m);
-  }
+  if (layer == CQChartsPlot::Layer::MID) {
+    int m = plot_->margin();
 
-  // set pen
-  if (plot_->isBorder()) {
-    QPen pen(plot_->borderColor());
+    if (prect.getWidth() > 3*m) {
+      prect.setXMin(prect.getXMin() + m);
+      prect.setXMax(prect.getXMax() - m);
+    }
 
-    pen.setWidth(plot_->borderWidth());
+    // set pen
+    if (plot_->isBorder()) {
+      QPen pen(plot_->borderColor());
 
-    p->setPen(pen);
-  }
-  else
-    p->setPen(Qt::NoPen);
+      pen.setWidth(plot_->borderWidth());
 
-  // set fill
-  if (plot_->isFill()) {
-    QColor barColor;
-
-    if (nset_ > 1) {
-      if (plot_->isKeySets())
-        barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
-      else
-        barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
+      p->setPen(pen);
     }
     else
-      barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+      p->setPen(Qt::NoPen);
 
-    p->setBrush(barColor);
+    // set fill
+    if (plot_->isFill()) {
+      QColor barColor;
+
+      if (nset_ > 1) {
+        if (plot_->isKeySets())
+          barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+        else
+          barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
+      }
+      else
+        barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+
+      p->setBrush(barColor);
+    }
+    else
+      p->setBrush(Qt::NoBrush);
+
+    //---
+
+    p->drawRect(qrect);
   }
-  else
-    p->setBrush(Qt::NoBrush);
+  else {
+    QString ystr = plot_->valueStr(value_);
 
-  //---
-
-  QRectF qrect = CQUtil::toQRect(prect);
-
-  p->drawRect(qrect);
-
-  //---
-
-  QString ystr = plot_->valueStr(value_);
-
-  plot_->drawDataLabel(p, qrect, ystr);
-
-  //---
+    plot_->drawDataLabel(p, qrect, ystr);
+  }
 
   p->restore();
 }
@@ -708,7 +743,7 @@ fillColor() const
   CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
 }
@@ -730,160 +765,7 @@ textColor() const
   CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQUtil::blendColors(c, Qt::white, 0.5);
+    c = CQChartsUtil::blendColors(c, Qt::white, 0.5);
 
   return c;
-}
-
-//------
-
-CQChartsBarDataLabel::
-CQChartsBarDataLabel(CQChartsBarChartPlot *plot) :
- plot_(plot)
-{
-}
-
-void
-CQChartsBarDataLabel::
-addProperties(const QString &path)
-{
-  plot_->addProperty(path, this, "visible" );
-  plot_->addProperty(path, this, "position");
-  plot_->addProperty(path, this, "clip"    );
-  plot_->addProperty(path, this, "angle"   );
-  plot_->addProperty(path, this, "font"    );
-  plot_->addProperty(path, this, "color"   );
-
-  QString boxPath = plot_->id() + "/" + path + "/box";
-
-  CQChartsBoxObj::addProperties(plot_->propertyView(), boxPath);
-}
-
-void
-CQChartsBarDataLabel::
-update()
-{
-  plot_->update();
-}
-
-void
-CQChartsBarDataLabel::
-draw(QPainter *p, const QRectF &qrect, const QString &ystr)
-{
-  if (! isVisible())
-    return;
-
-  p->save();
-
-  p->setFont(font());
-
-  QFontMetrics fm(p->font());
-
-  double ym = 2;
-
-  if (fabs(angle()) <= 1E-3) {
-    int tw = fm.width(ystr);
-
-    double x = 0.0, y = 0.0;
-
-    if      (position() == Position::TOP_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.top() + fm.ascent() + ym;
-    }
-    else if (position() == Position::TOP_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.top() - fm.descent() - ym;
-    }
-    else if (position() == Position::BOTTOM_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom() - fm.descent() - ym;
-    }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom() + fm.ascent() + ym;
-    }
-
-    bool clipped = false;
-
-    if (isClip()) {
-      if (tw >= qrect.width())
-        clipped = true;
-    }
-
-    if (isClip()) {
-      if (position() == Position::TOP_INSIDE ||
-          position() == Position::BOTTOM_INSIDE) {
-        p->setClipRect(qrect, Qt::ReplaceClip);
-      }
-    }
-
-    int b1 = CQChartsBoxObj::margin();
-    int b2 = CQChartsBoxObj::padding();
-
-    int b = b1 + b2;
-
-    QRectF brect(x - tw/2 - b, y - fm.ascent() - b, tw + 2*b, fm.ascent() + fm.descent() + 2*b);
-
-    CQChartsBoxObj::draw(p, brect);
-
-    if (! clipped) {
-      p->setPen(color());
-
-      p->drawText(x - tw/2, y, ystr);
-    }
-  }
-  else {
-    double x = 0.0, y = 0.0;
-
-    if      (position() == Position::TOP_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.top();
-    }
-    else if (position() == Position::TOP_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.top();
-    }
-    else if (position() == Position::BOTTOM_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom();
-    }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom();
-    }
-
-    QRectF bbox = CQRotatedText::bbox(x, y, ystr, p->font(), angle());
-
-    double dx = (bbox.center().x() - x);
-    double dy = 0.0;
-
-    if      (position() == Position::TOP_INSIDE) {
-      dy = (bbox.top() - y) + ym;
-    }
-    else if (position() == Position::TOP_OUTSIDE) {
-      dy = (bbox.bottom() - y) - ym;
-    }
-    else if (position() == Position::BOTTOM_INSIDE) {
-      dy = (bbox.bottom() - y) - ym;
-    }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
-      dy = (bbox.top() - y) + ym;
-    }
-
-    x -= dx;
-    y -= dy;
-
-    p->setPen(color());
-
-    CQChartsBoxObj::draw(p, bbox);
-
-    CQRotatedText::drawRotatedText(p, x, y, ystr, -angle());
-
-    //p->setPen(Qt::red);
-    //p->setBrush(Qt::NoBrush);
-
-    //p->drawRect(bbox);
-  }
-
-  p->restore();
 }

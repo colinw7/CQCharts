@@ -1,12 +1,11 @@
 #ifndef CQChartsAxis_H
 #define CQChartsAxis_H
 
-#include <QObject>
+#include <CQChartsTextBoxObj.h>
 #include <QColor>
 #include <QFont>
 #include <CLineDash.h>
 #include <CBBox2D.h>
-#include <COptVal.h>
 
 #include <sys/types.h>
 
@@ -14,10 +13,26 @@
 #include <vector>
 #include <string>
 
+#include <boost/optional.hpp>
+
+class CQChartsAxis;
 class CQChartsPlot;
-class CQChartsPlot;
-class CQPropertyView;
+class CQPropertyViewTree;
 class QPainter;
+
+class CQChartsAxisLabel : public CQChartsTextBoxObj {
+  Q_OBJECT
+
+ public:
+  CQChartsAxisLabel(CQChartsAxis *axis);
+
+  void redrawBoxObj() override;
+
+ private:
+  CQChartsAxis *axis_ { nullptr };
+};
+
+//---
 
 // Axis Data
 class CQChartsAxis : public QObject {
@@ -75,7 +90,7 @@ class CQChartsAxis : public QObject {
   CQChartsAxis(CQChartsPlot *plot, Direction direction=Direction::HORIZONTAL,
                double start=0.0, double end=1.0);
 
- ~CQChartsAxis() { }
+ ~CQChartsAxis();
 
   bool getVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
@@ -110,17 +125,17 @@ class CQChartsAxis : public QObject {
 
   // label
 
-  const QString &getLabel() const { return label_; }
-  void setLabel(const QString &str) { label_ = str; redraw(); }
+  bool isLabelDisplayed() const;
+  void setLabelDisplayed(bool b);
 
-  const QFont &getLabelFont() const { return labelFont_; }
-  void setLabelFont(const QFont &font) { labelFont_ = font; redraw(); }
+  const QString &getLabel() const;
+  void setLabel(const QString &str);
 
-  const QColor &getLabelColor() const { return labelColor_; }
-  void setLabelColor(const QColor &color) { labelColor_ = color; redraw(); }
+  const QFont &getLabelFont() const;
+  void setLabelFont(const QFont &font);
 
-  bool isLabelDisplayed() const { return labelDisplayed_; }
-  void setLabelDisplayed(bool b) { labelDisplayed_ = b; redraw(); }
+  const QColor &getLabelColor() const;
+  void setLabelColor(const QColor &color);
 
   //---
 
@@ -233,9 +248,11 @@ class CQChartsAxis : public QObject {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
-  void addProperties(CQPropertyView *tree, const QString &path);
+  void addProperties(CQPropertyViewTree *tree, const QString &path);
 
   void updatePlotPosition();
+
+  //---
 
   void redraw();
 
@@ -260,56 +277,55 @@ class CQChartsAxis : public QObject {
                     AxisGapData &axisGapData);
 
  private:
-  typedef std::vector<double>   TickSpaces;
-  typedef std::map<int,QString> TickLabels;
+  typedef std::vector<double>     TickSpaces;
+  typedef std::map<int,QString>   TickLabels;
+  typedef boost::optional<double> OptReal;
 
-  CQChartsPlot*   plot_                { nullptr };
-  bool            visible_             { true };
-  Direction       direction_           { Direction::HORIZONTAL };
-  Side            side_                { Side::BOTTOM_LEFT };
-  double          start_               { 0.0 };
-  double          end_                 { 1.0 };
-  double          start1_              { 0 };
-  double          end1_                { 1 };
-  bool            integral_            { false };
-  bool            dataLabels_          { false };
-  int             column_              { -1 };
+  CQChartsPlot*      plot_                { nullptr };
+  bool               visible_             { true };
+  Direction          direction_           { Direction::HORIZONTAL };
+  Side               side_                { Side::BOTTOM_LEFT };
+  double             start_               { 0.0 };
+  double             end_                 { 1.0 };
+  double             start1_              { 0 };
+  double             end1_                { 1 };
+  bool               integral_            { false };
+  bool               dataLabels_          { false };
+  int                column_              { -1 };
 
   // label
-  QString         label_;
-  QFont           labelFont_;
-  QColor          labelColor_          { 0, 0, 0 };
-  bool            labelDisplayed_      { true };
+  bool               labelDisplayed_  { true };
+  CQChartsAxisLabel* label_           { nullptr };
 
   // line
-  bool            lineDisplayed_       { true };
-  QColor          lineColor_           { 128, 128, 128 };
+  bool               lineDisplayed_       { true };
+  QColor             lineColor_           { 128, 128, 128 };
 
   // grid
-  bool            gridDisplayed_       { false };
-  QColor          gridColor_           { 0, 0, 0 };
-  CLineDash       gridDash_            { 2, 2 };
-  double          gridWidth_           { 0 };
-  bool            gridAbove_           { false };
-  bool            gridFill_            { false };
-  QColor          gridFillColor_       { 128, 128, 128 };
-  double          gridFillAlpha_       { 0.5 };
+  bool               gridDisplayed_       { false };
+  QColor             gridColor_           { 0, 0, 0 };
+  CLineDash          gridDash_            { 2, 2 };
+  double             gridWidth_           { 0 };
+  bool               gridAbove_           { false };
+  bool               gridFill_            { false };
+  QColor             gridFillColor_       { 128, 128, 128 };
+  double             gridFillAlpha_       { 0.5 };
 
   // ticks
-  bool            minorTicksDisplayed_ { true };
-  bool            majorTicksDisplayed_ { true };
-  int             minorTickLen_        { 4 };
-  int             majorTickLen_        { 8 };
-  bool            tickLabelDisplayed_  { true };
-  uint            numTicks1_           { 1 };
-  uint            numTicks2_           { 0 };
-  uint            tickIncrement_       { 0 };
-  double          majorIncrement_      { 0 };
-  TickSpaces      tickSpaces_;
-  TickLabels      tickLabels_;
+  bool               minorTicksDisplayed_ { true };
+  bool               majorTicksDisplayed_ { true };
+  int                minorTickLen_        { 4 };
+  int                majorTickLen_        { 8 };
+  bool               tickLabelDisplayed_  { true };
+  uint               numTicks1_           { 1 };
+  uint               numTicks2_           { 0 };
+  uint               tickIncrement_       { 0 };
+  double             majorIncrement_      { 0 };
+  TickSpaces         tickSpaces_;
+  TickLabels         tickLabels_;
 
-  COptReal        pos_;
-  mutable CBBox2D bbox_;
+  OptReal            pos_;
+  mutable CBBox2D    bbox_;
 };
 
 #endif

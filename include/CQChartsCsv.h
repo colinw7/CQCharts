@@ -9,7 +9,7 @@ class CQChartsCsv : public CQChartsModel {
   Q_OBJECT
 
  public:
-  CQChartsCsv();
+  CQChartsCsv(CQCharts *charts);
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);

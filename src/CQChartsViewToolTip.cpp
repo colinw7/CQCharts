@@ -1,7 +1,7 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
-#include <CQUtil.h>
+#include <CQChartsUtil.h>
 #include <QLabel>
 
 CQChartsViewToolTip::
@@ -61,7 +61,7 @@ updateWidget(const QPoint &gpos)
   for (const auto &plot : plots) {
     CPoint2D w;
 
-    plot->pixelToWindow(CQUtil::fromQPoint(QPointF(p)), w);
+    plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)), w);
 
     QString tip1;
 

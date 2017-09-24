@@ -1,8 +1,9 @@
 #include <CQChartsModel.h>
+#include <CQCharts.h>
 
 CQChartsModel::
-CQChartsModel() :
- columnHeaders_(false)
+CQChartsModel(CQCharts *charts) :
+ charts_(charts), columnHeaders_(false)
 {
 }
 
@@ -80,9 +81,28 @@ headerData(int section, Qt::Orientation orientation, int role) const
     else if (role == Qt::ToolTipRole) {
       return QVariant(QString("%1\n%2").arg(column.name()).arg(column.type()));
     }
+    else if (role == CQCharts::Role::ColumnType) {
+      return QVariant(columnType(section));
+    }
   }
 
   return QVariant();
+}
+
+bool
+CQChartsModel::
+setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+  if (orientation != Qt::Horizontal)
+    return false;
+
+  if (role == CQCharts::Role::ColumnType) {
+    setColumnType(section, value.toString());
+
+    return true;
+  }
+
+  return false;
 }
 
 QVariant
@@ -133,13 +153,7 @@ columnTypeData(int column, CQChartsNameValues &nameValues) const
 {
   QString type = columnType(column);
 
-  QString baseType;
-
-  CQChartsColumn::decodeType(type, baseType, nameValues);
-
-  CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
-
-  return typeData;
+  return charts_->columnTypeMgr()->decodeTypeData(type, nameValues);
 }
 
 bool
@@ -151,7 +165,7 @@ isValidColumnType(const QString &type) const
 
   CQChartsColumn::decodeType(type, baseType, nameValues);
 
-  CQChartsColumnType *typeData = CQChartsColumnTypeMgrInst->getType(baseType);
+  CQChartsColumnType *typeData = charts_->columnTypeMgr()->getType(baseType);
 
   return typeData;
 }

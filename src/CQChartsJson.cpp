@@ -1,7 +1,7 @@
 #include <CQChartsJson.h>
 
 CQChartsJson::
-CQChartsJson() :
+CQChartsJson(CQCharts *) :
  CQJsonModel()
 {
 }

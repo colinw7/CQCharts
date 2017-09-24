@@ -4,6 +4,7 @@
 #include <CQChartsColumn.h>
 #include <QAbstractItemModel>
 
+class CQCharts;
 class CQChartsColumnType;
 
 class CQChartsModel : public QAbstractItemModel {
@@ -12,7 +13,7 @@ class CQChartsModel : public QAbstractItemModel {
   Q_PROPERTY(bool columnHeaders READ hasColumnHeaders WRITE setColumnHeaders)
 
  public:
-  CQChartsModel();
+  CQChartsModel(CQCharts *charts);
 
   virtual ~CQChartsModel() { }
 
@@ -28,6 +29,9 @@ class CQChartsModel : public QAbstractItemModel {
 
   QVariant headerData(int section, Qt::Orientation orientation=Qt::Horizontal,
                       int role=Qt::DisplayRole) const override;
+
+  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value,
+                     int role=Qt::DisplayRole) override;
 
   QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
 
@@ -46,9 +50,10 @@ class CQChartsModel : public QAbstractItemModel {
   typedef std::vector<Cells>          Data;
   typedef std::vector<CQChartsColumn> Columns;
 
-  bool    columnHeaders_ { false };
-  Columns columns_;
-  Data    data_;
+  CQCharts* charts_        { nullptr };
+  bool      columnHeaders_ { false };
+  Columns   columns_;
+  Data      data_;
 };
 
 #endif

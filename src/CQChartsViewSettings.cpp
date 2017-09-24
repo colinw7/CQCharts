@@ -1,8 +1,8 @@
 #include <CQChartsViewSettings.h>
 #include <CQChartsView.h>
-#include <CQPropertyView.h>
-#include <CQGradientPalette.h>
-#include <CQGradientPaletteControl.h>
+#include <CQPropertyViewTree.h>
+#include <CQGradientControlPlot.h>
+#include <CQGradientControlIFace.h>
 #include <QTabWidget>
 #include <QLineEdit>
 #include <QVBoxLayout>
@@ -60,7 +60,7 @@ CQChartsViewSettings(CQChartsView *view) :
 
   viewLayout->addWidget(filterFrame);
 
-  propertyView_ = new CQPropertyView(this);
+  propertyView_ = new CQPropertyViewTree(this);
 
   viewLayout->addWidget(propertyView_);
 
@@ -76,8 +76,8 @@ CQChartsViewSettings(CQChartsView *view) :
 
   QVBoxLayout *paletteLayout = new QVBoxLayout(paletteFrame);
 
-  palettePlot_    = new CQGradientPalette(this, nullptr);
-  paletteControl_ = new CQGradientPaletteControl(palettePlot_);
+  palettePlot_    = new CQGradientControlPlot(this);
+  paletteControl_ = new CQGradientControlIFace(palettePlot_);
 
   paletteLayout->addWidget(palettePlot_);
   paletteLayout->addWidget(paletteControl_);

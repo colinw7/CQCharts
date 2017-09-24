@@ -56,27 +56,67 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
 }
 
 QRectF
-bbox(double x, double y, const QString &text, const QFont &font, double angle)
+bbox(double x, double y, const QString &text, const QFont &font, double angle, double border)
+{
+  QRectF bbox;
+  Points points;
+
+  bboxData(x, y, text, font, angle, border, bbox, points);
+
+  return bbox;
+}
+
+Points
+bboxPoints(double x, double y, const QString &text, const QFont &font, double angle, double border)
+{
+  QRectF bbox;
+  Points points;
+
+  bboxData(x, y, text, font, angle, border, bbox, points);
+
+  return points;
+}
+
+void
+bboxData(double x, double y, const QString &text, const QFont &font, double angle,
+         double border, QRectF &bbox, Points &points)
 {
   QFontMetrics fm(font);
 
-  int th = fm.height();
-  int tw = fm.width(text);
+  int th = fm.height()    + 2*border;
+  int tw = fm.width(text) + 2*border;
 
   double a1 = M_PI*angle/180.0;
 
   double c = cos(a1);
   double s = sin(a1);
 
+  x -= c*border - s*border;
+  y += s*border + c*border;
+
   double x1 = x, x2 = x + tw*c, x3 = x + tw*c - th*s, x4 = x - th*s;
   double y1 = y, y2 = y - tw*s, y3 = y - tw*s - th*c, y4 = y - th*c;
 
-  double xmin = std::min(std::min(std::min(x1, x2), x3), x4);
-  double xmax = std::max(std::max(std::max(x1, x2), x3), x4);
-  double ymin = std::min(std::min(std::min(y1, y2), y3), y4);
-  double ymax = std::max(std::max(std::max(y1, y2), y3), y4);
+  points.clear();
 
-  return QRectF(xmin, ymin, xmax - xmin, ymax - ymin);
+  points.push_back(QPointF(x1, y1));
+  points.push_back(QPointF(x2, y2));
+  points.push_back(QPointF(x3, y3));
+  points.push_back(QPointF(x4, y4));
+
+  //---
+
+  double xmin = points[0].x(); double xmax = xmin;
+  double ymin = points[0].y(); double ymax = ymin;
+
+  for (int i = 1; i < 4; ++i) {
+    xmin = std::min(xmin, points[i].x());
+    ymin = std::min(ymin, points[i].y());
+    xmax = std::max(xmax, points[i].x());
+    ymax = std::max(ymax, points[i].y());
+  }
+
+  bbox = QRectF(xmin, ymin, xmax - xmin, ymax - ymin);
 }
 
 }
