@@ -143,9 +143,9 @@ CQGradientControlIFace.h \
 CQGradientControlPlot.h \
 CGradientPalette.h \
 \
-CQCsvModel.h \
-CQTsvModel.h \
-CQJsonModel.h \
+../include/CQCsvModel.h \
+../include/CQTsvModel.h \
+../include/CQJsonModel.h \
 ../include/CJson.h \
 \
 CQAlphaButton.h \
@@ -166,7 +166,6 @@ CDelaunay.h \
 CHull3D.h \
 CListLink.h \
 CStateIterator.h \
-CUnixFile.h \
 ../include/CUnixFile.h \
 ../include/COSNaN.h \
 

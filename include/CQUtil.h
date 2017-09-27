@@ -12,7 +12,7 @@
 #include <CEvent.h>
 #endif
 
-#ifdef CQUTIL_RGBA
+#ifdef CQUTIL_RGB
 #include <CRGBA.h>
 #endif
 
@@ -103,7 +103,7 @@ namespace CQUtil {
   CEventModifier convertModifier(Qt::KeyboardModifiers modifiers);
 #endif
 
-#ifdef CQUTIL_RGBA
+#ifdef CQUTIL_RGB
   QColor rgbToColor(const CRGB &rgb);
   QColor rgbaToColor(const CRGBA &rgba);
 
@@ -342,7 +342,7 @@ namespace CQUtil {
 
   //----
 
-#ifdef CQUTIL_RGBA
+#ifdef CQUTIL_RGB
   QColor blendColors(const QColor &c1, const QColor &c2, double f);
 #endif
 }

@@ -14,8 +14,6 @@
 #include <CEvent.h>
 #endif
 
-//#include <CRegExp.h>
-
 #ifdef CQUTIL_LINE_DASH
 #include <CLineDash.h>
 #endif
@@ -460,7 +458,7 @@ convertModifier(Qt::KeyboardModifiers modifiers)
 }
 #endif
 
-#ifdef CQUTIL_RGBA
+#ifdef CQUTIL_RGB
 QColor
 CQUtil::
 rgbToColor(const CRGB &rgb)
@@ -1682,15 +1680,11 @@ bool
 CQUtil::
 paletteFromString(QPalette &palette, const QString &paletteDef)
 {
-  CRegExp regexp("fg=\"\\(.*\\)\" bg=\"\\(.*\\)\"");
+  QRegExp regexp("fg=\"\\(.*\\)\" bg=\"\\(.*\\)\"");
 
-  if (regexp.find(paletteDef.toStdString())) {
-    std::vector<std::string> matches;
-
-    regexp.getSubMatches(matches);
-
-    palette.setColor(QPalette::WindowText, QString(matches[0].c_str()));
-    palette.setColor(QPalette::Window    , QString(matches[1].c_str()));
+  if (regexp.indexIn(paletteDef) >= 0) {
+    palette.setColor(QPalette::WindowText, regexp.cap(1));
+    palette.setColor(QPalette::Window    , regexp.cap(2));
   }
 
   return true;
@@ -2655,7 +2649,7 @@ policyToString(QSizePolicy::Policy policy)
 
 //------------
 
-#ifdef CQUTIL_RGBA
+#ifdef CQUTIL_RGB
 QColor
 CQUtil::
 blendColors(const QColor &c1, const QColor &c2, double f)
