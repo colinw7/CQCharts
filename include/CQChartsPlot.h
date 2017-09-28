@@ -468,6 +468,8 @@ class CQChartsPlot : public QObject {
 
   QColor objectStateColor(CQChartsPlotObj *obj, const QColor &c) const;
 
+  QColor insideColor(const QColor &c) const;
+
   virtual QColor paletteColor(int i, int n, const QColor &def=QColor(0,0,0)) const;
 
   QColor interpPaletteColor(double r, const QColor &def=QColor(0,0,0)) const;

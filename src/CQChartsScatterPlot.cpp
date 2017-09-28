@@ -4,7 +4,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQCharts.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -41,7 +40,7 @@ addProperties()
   addProperty("columns", this, "nameColumn", "name");
   addProperty("columns", this, "xColumn"   , "x"   );
   addProperty("columns", this, "yColumn"   , "y"   );
-  addProperty("columns", this, "sizeColumn", "y"   );
+  addProperty("columns", this, "sizeColumn", "size");
   addProperty(""       , this, "symbolSize"        );
 }
 

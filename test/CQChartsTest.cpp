@@ -1174,9 +1174,14 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
   bool ok = lineEditValue((*p).second, column, -1);
 
   if (ok) {
+    columns.clear();
+
     columns.push_back(column);
+
     return true;
   }
+
+  columns.clear();
 
   return lineEditValues((*p).second, columns);
 }

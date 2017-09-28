@@ -469,19 +469,34 @@ bool
 CQChartsPlot::
 mouseMove(const CPoint2D &w, bool first)
 {
-  if (keyObj_ && keyObj_->contains(w)) {
-    CQChartsKeyItem *item = keyObj_->getItemAt(w);
+  if (keyObj_) {
+    if (keyObj_->contains(w)) {
+      CQChartsKeyItem *item = keyObj_->getItemAt(w);
 
-    bool handled = false;
+      bool handled = false;
+      bool changed = false;
 
-    if (item)
-      handled = item->mouseMove(w);
+      if (item) {
+        changed = keyObj_->setInside(item);
 
-    if (! handled)
-      handled = keyObj_->mouseMove(w);
+        handled = item->mouseMove(w);
+      }
 
-    if (handled)
-      return true;
+      if (! handled)
+        handled = keyObj_->mouseMove(w);
+
+      if (changed)
+        update();
+
+      if (handled)
+        return true;
+    }
+    else {
+      bool changed = keyObj_->setInside(nullptr);
+
+      if (changed)
+        update();
+    }
   }
 
   //---
@@ -1376,9 +1391,16 @@ objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
   QColor c1 = c;
 
   if (obj->isInside())
-    c1 = CQChartsUtil::blendColors(c1, Qt::white, 0.8);
+    c1 = insideColor(c1);
 
   return c1;
+}
+
+QColor
+CQChartsPlot::
+insideColor(const QColor &c) const
+{
+  return CQChartsUtil::blendColors(c, Qt::white, 0.8);
 }
 
 void

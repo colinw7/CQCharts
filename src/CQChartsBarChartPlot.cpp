@@ -14,7 +14,8 @@ CQChartsBarChartPlotType()
   addColumnParameter ("name" , "Name" , "nameColumn"  , "", 0);
   addColumnsParameter("value", "Value", "valueColumns", "", "1");
 
-  addBoolParameter("stacked", "Stacked", "stacked", "optional");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"  , "optional");
+  addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
 }
 
 //---
@@ -30,10 +31,6 @@ CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model) :
   addKey();
 
   addTitle();
-
-  xAxis_->setIntegral(true);
-//xAxis_->setDataLabels(true);
-  xAxis_->setMinorTicksDisplayed(false);
 }
 
 QString
@@ -70,6 +67,7 @@ addProperties()
   addProperty("columns", this, "valueColumn" , "value"    );
   addProperty("columns", this, "valueColumns", "valuesSet");
   addProperty(""       , this, "stacked"                  );
+  addProperty(""       , this, "horizontal"               );
   addProperty(""       , this, "margin"                   );
   addProperty(""       , this, "keySets"                  );
   addProperty(strokeStr, this, "border"      , "visible"  );
@@ -122,11 +120,15 @@ updateRange()
 
   dataRange_.reset();
 
-  dataRange_.updateRange(-0.5, 0);
+  if (! isHorizontal())
+    dataRange_.updateRange(-0.5, 0);
+  else
+    dataRange_.updateRange(0, -0.5);
 
   //---
 
   xAxis_->clearTickLabels();
+  yAxis_->clearTickLabels();
 
   valueSets_.clear();
 
@@ -164,10 +166,18 @@ updateRange()
 
           valueSet->values.push_back(value);
 
-          if (isStacked())
-            dataRange_.updateRange(0, sum + value);
-          else
-            dataRange_.updateRange(0, value);
+          if (! isHorizontal()) {
+            if (isStacked())
+              dataRange_.updateRange(0, sum + value);
+            else
+              dataRange_.updateRange(0, value);
+          }
+          else {
+            if (isStacked())
+              dataRange_.updateRange(sum + value, 0);
+            else
+              dataRange_.updateRange(value, 0);
+          }
 
           sum += value;
 
@@ -179,7 +189,10 @@ updateRange()
 
         //---
 
-        xAxis_->setTickLabel(numVisible, name);
+        if (! isHorizontal())
+          xAxis_->setTickLabel(numVisible, name);
+        else
+          yAxis_->setTickLabel(numVisible, name);
 
         ++numVisible;
       }
@@ -203,10 +216,18 @@ updateRange()
 
           valueSet->values.push_back(value);
 
-          if (isStacked())
-            dataRange_.updateRange(0, sum + value);
-          else
-            dataRange_.updateRange(0, value);
+          if (! isHorizontal()) {
+            if (isStacked())
+              dataRange_.updateRange(0, sum + value);
+            else
+              dataRange_.updateRange(0, value);
+          }
+          else {
+            if (isStacked())
+              dataRange_.updateRange(sum + value, 0);
+            else
+              dataRange_.updateRange(value, 0);
+          }
 
           sum += value;
 
@@ -218,7 +239,10 @@ updateRange()
 
         //---
 
-        xAxis_->setTickLabel(numVisible, name);
+        if (! isHorizontal())
+          xAxis_->setTickLabel(numVisible, name);
+        else
+          yAxis_->setTickLabel(numVisible, name);
 
         ++numVisible;
       }
@@ -240,16 +264,27 @@ updateRange()
 
       valueSet->values.push_back(value);
 
-      if (isStacked())
-        dataRange_.updateRange(0, sum + value);
-      else
-        dataRange_.updateRange(0, value);
+      if (! isHorizontal()) {
+        if (isStacked())
+          dataRange_.updateRange(0, sum + value);
+        else
+          dataRange_.updateRange(0, value);
+      }
+      else {
+        if (isStacked())
+          dataRange_.updateRange(sum + value, 0);
+        else
+          dataRange_.updateRange(value, 0);
+      }
 
       sum += value;
 
       //---
 
-      xAxis_->setTickLabel(numVisible, name);
+      if (! isHorizontal())
+        xAxis_->setTickLabel(numVisible, name);
+      else
+        yAxis_->setTickLabel(numVisible, name);
 
       ++numVisible;
     }
@@ -271,23 +306,54 @@ updateRange()
 
   //---
 
-  if (numVisible > 0) {
-    dataRange_.updateRange(numVisible - 0.5, dataRange_.ymin());
+  if (! isHorizontal()) {
+    if (numVisible > 0)
+      dataRange_.updateRange(numVisible - 0.5, dataRange_.ymin());
+    else
+      dataRange_.updateRange(0.5, 1.0);
   }
   else {
-    dataRange_.updateRange(0.5, 1.0);
+    if (numVisible > 0)
+      dataRange_.updateRange(dataRange_.xmin(), numVisible - 0.5);
+    else
+      dataRange_.updateRange(1.0, 0.5);
   }
 
   //---
 
-  xAxis_->setColumn(nameColumn_);
-  yAxis_->setColumn(valueColumn_);
+  if (! isHorizontal())
+    xAxis_->setColumn(nameColumn_);
+  else
+    yAxis_->setColumn(nameColumn_);
 
   QString xname = model_->headerData(nameColumn_ , Qt::Horizontal).toString();
-  QString yname = model_->headerData(valueColumn_, Qt::Horizontal).toString();
 
-  xAxis_->setLabel(xname);
-  yAxis_->setLabel(yname);
+  if (! isHorizontal())
+    xAxis_->setLabel(xname);
+  else
+    yAxis_->setLabel(xname);
+
+  //---
+
+  if (! isHorizontal())
+    yAxis_->setColumn(valueColumn_);
+  else
+    xAxis_->setColumn(valueColumn_);
+
+  if (valueColumns_.size() <= 1) {
+    QString yname = model_->headerData(valueColumn_, Qt::Horizontal).toString();
+
+    if (! isHorizontal())
+      yAxis_->setLabel(yname);
+    else
+      xAxis_->setLabel(yname);
+  }
+  else {
+    if (! isHorizontal())
+      yAxis_->setLabel("");
+    else
+      xAxis_->setLabel("");
+  }
 
   //---
 
@@ -338,6 +404,16 @@ initObjs(bool force)
     clearPlotObjects();
 
     dataRange_.reset();
+
+    //---
+
+    xAxis_->setIntegral           (! isHorizontal());
+  //xAxis_->setDataLabels         (! isHorizontal());
+    xAxis_->setMinorTicksDisplayed(  isHorizontal());
+
+    yAxis_->setIntegral           (  isHorizontal());
+  //yAxis_->setDataLabels         (  isHorizontal());
+    yAxis_->setMinorTicksDisplayed(! isHorizontal());
   }
 
   //--
@@ -422,10 +498,18 @@ initObjs(bool force)
           // create bar rect
           CBBox2D brect;
 
-          if (isStacked())
-            brect = CBBox2D(bx, sum, bx + 1.0, value1);
-          else
-            brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+          if (! isHorizontal()) {
+            if (isStacked())
+              brect = CBBox2D(bx, sum, bx + 1.0, value1);
+            else
+              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+          }
+          else {
+            if (isStacked())
+              brect = CBBox2D(sum, bx, value1, bx + 1.0);
+            else
+              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+          }
 
           CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv, value);
 
@@ -463,10 +547,18 @@ initObjs(bool force)
           // create bar rect
           CBBox2D brect;
 
-          if (isStacked())
-            brect = CBBox2D(bx, sum, bx + 1.0, value1);
-          else
-            brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+          if (! isHorizontal()) {
+            if (isStacked())
+              brect = CBBox2D(bx, sum, bx + 1.0, value1);
+            else
+              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+          }
+          else {
+            if (isStacked())
+              brect = CBBox2D(sum, bx, value1, bx + 1.0);
+            else
+              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+          }
 
           CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv, value);
 
@@ -503,10 +595,18 @@ initObjs(bool force)
       // create bar rect
       CBBox2D brect;
 
-      if (isStacked())
-        brect = CBBox2D(bx, sum, bx + 1.0, value1);
-      else
-        brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+      if (! isHorizontal()) {
+        if (isStacked())
+          brect = CBBox2D(bx, sum, bx + 1.0, value1);
+        else
+          brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+      }
+      else {
+        if (isStacked())
+          brect = CBBox2D(sum, bx, value1, bx + 1.0);
+        else
+          brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+      }
 
       CQChartsBarChartObj *barObj = new CQChartsBarChartObj(this, brect, 0, ns, j, nv, value);
 
@@ -538,7 +638,10 @@ QString
 CQChartsBarChartPlot::
 valueStr(double v) const
 {
-  return yAxis_->getValueStr(v);
+  if (! isHorizontal())
+    return yAxis_->getValueStr(v);
+  else
+    return xAxis_->getValueStr(v);
 }
 
 void

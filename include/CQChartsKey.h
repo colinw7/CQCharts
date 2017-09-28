@@ -106,6 +106,8 @@ class CQChartsKey : public CQChartsBoxObj {
   virtual bool mousePress(const CPoint2D &) { return false; }
   virtual bool mouseMove (const CPoint2D &) { return true; }
 
+  bool setInside(CQChartsKeyItem *item);
+
   void draw(QPainter *p);
 
   QColor bgColor() const;
@@ -176,6 +178,9 @@ class CQChartsKeyItem : public QObject {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
+  bool isInside() const { return inside_; }
+  void setInside(bool b) { inside_ = b; }
+
   virtual bool mousePress(const CPoint2D &) { return false; }
   virtual bool mouseMove (const CPoint2D &) { return false; }
 
@@ -187,6 +192,7 @@ class CQChartsKeyItem : public QObject {
   int             col_     { 0 };
   int             rowSpan_ { 1 };
   int             colSpan_ { 1 };
+  bool            inside_  { false };
   mutable CBBox2D bbox_;
 };
 

@@ -36,7 +36,12 @@ Plots
  + Radar
  + Stacked Pie
  + Force Directed
+ + Step Line (Left/Center/Right) (Fill Under)
+ + Line Chart
+   + Allow Spline connect
  + Parallel needs x axis labels
+ + Restrict which plots cn be combined
+   + Bar/Column Chart NOT paired with Pie, Bar
 
 Plot
  + Context Menu

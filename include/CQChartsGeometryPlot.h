@@ -85,10 +85,10 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   void setValueColumn(int i) { valueColumn_ = i; update(); }
 
   double minValue() const { return minValue_; }
-  void setMinValue(double v) { minValue_ = v; update(); }
+  void setMinValue(double r) { minValue_ = r; update(); }
 
   double maxValue() const { return maxValue_; }
-  void setMaxValue(double v) { maxValue_ = v; update(); }
+  void setMaxValue(double r) { maxValue_ = r; update(); }
 
   const QColor &lineColor() const { return lineColor_; }
   void setLineColor(const QColor &c) { lineColor_ = c; update(); }

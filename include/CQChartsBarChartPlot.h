@@ -74,6 +74,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(int     valueColumn  READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(QString valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
   Q_PROPERTY(bool    stacked      READ isStacked       WRITE setStacked        )
+  Q_PROPERTY(bool    horizontal   READ isHorizontal    WRITE setHorizontal     )
   Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
   Q_PROPERTY(QColor  borderColor  READ borderColor     WRITE setBorderColor    )
   Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
@@ -119,6 +120,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   bool isStacked() const { return stacked_; }
   void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
+
+  bool isHorizontal() const { return horizontal_; }
+  void setHorizontal(bool b) { horizontal_ = b; initObjs(/*force*/true); update(); }
 
   //---
 
@@ -218,6 +222,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   int               valueColumn_       { 1 };
   Columns           valueColumns_;
   bool              stacked_           { false };
+  bool              horizontal_        { false };
   bool              barColorPalette_   { true };
   bool              fill_              { true };
   QColor            barColor_          { 100, 100, 200 };

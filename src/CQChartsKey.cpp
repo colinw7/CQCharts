@@ -301,6 +301,32 @@ getItemAt(const CPoint2D &p) const
   return nullptr;
 }
 
+bool
+CQChartsKey::
+setInside(CQChartsKeyItem *item)
+{
+  bool changed = false;
+
+  for (auto &item1 : items_) {
+    if (item1 == item) {
+      if (! item1->isInside()) {
+        item1->setInside(true);
+
+        changed = true;
+      }
+    }
+    else {
+      if (item1->isInside()) {
+        item1->setInside(false);
+
+        changed = true;
+      }
+    }
+  }
+
+  return changed;
+}
+
 void
 CQChartsKey::
 draw(QPainter *p)
@@ -527,8 +553,14 @@ draw(QPainter *p, const CBBox2D &rect)
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  p->setPen  (borderColor());
-  p->setBrush(fillColor  ());
+  QColor bc = borderColor();
+  QColor fc = fillColor();
+
+  if (isInside())
+    fc = plot->insideColor(fc);
+
+  p->setPen  (bc);
+  p->setBrush(fc);
 
   p->drawRect(prect1);
 }
