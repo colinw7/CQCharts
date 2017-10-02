@@ -83,6 +83,11 @@ CQChartsViewSettings(CQChartsView *view) :
   paletteLayout->addWidget(paletteControl_);
 }
 
+CQChartsViewSettings::
+~CQChartsViewSettings()
+{
+}
+
 void
 CQChartsViewSettings::
 filterSlot()

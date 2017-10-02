@@ -60,7 +60,8 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
  plot_(plot), direction_(direction), start_(std::min(start, end)), end_(std::max(start, end)),
  start1_(start), end1_(end)
 {
-  label_ = new CQChartsAxisLabel(this);
+  label_     = new CQChartsAxisLabel(this);
+  tickLabel_ = new CQChartsAxisTickLabel(this);
 
   calc();
 }
@@ -69,6 +70,7 @@ CQChartsAxis::
 ~CQChartsAxis()
 {
   delete label_;
+  delete tickLabel_;
 }
 
 void
@@ -90,9 +92,15 @@ addProperties(CQPropertyViewTree *tree, const QString &path)
 
   tree->addProperty(ticksPath, this, "majorTicksDisplayed", "majorDisplayed");
   tree->addProperty(ticksPath, this, "minorTicksDisplayed", "minorDisplayed");
-  tree->addProperty(ticksPath, this, "majorTickLen"       , "minorLength");
+  tree->addProperty(ticksPath, this, "majorTickLen"       , "majorLength");
   tree->addProperty(ticksPath, this, "minorTickLen"       , "minorLength");
-  tree->addProperty(ticksPath, this, "tickLabelDisplayed" , "labelDisplayed");
+
+  QString ticksLabelPath = ticksPath + "/label";
+
+  tree->addProperty(ticksLabelPath, this, "tickLabelDisplayed", "displayed");
+  tree->addProperty(ticksLabelPath, this, "tickLabelFont"     , "font");
+  tree->addProperty(ticksLabelPath, this, "tickLabelColor"    , "color");
+  tree->addProperty(ticksLabelPath, this, "tickLabelAngle"    , "angle");
 
   QString labelPath = path + "/label";
 
@@ -234,6 +242,74 @@ setTickSpaces(double *tickSpaces, uint numTickSpaces)
 
   memcpy(&tickSpaces_[0], tickSpaces, numTickSpaces*sizeof(double));
 }
+
+//---
+
+bool
+CQChartsAxis::
+isTickLabelDisplayed() const
+{
+  return tickLabelDisplayed_;
+}
+
+void
+CQChartsAxis::
+setTickLabelDisplayed(bool b)
+{
+  tickLabelDisplayed_ = b;
+
+  redraw();
+}
+
+const QFont &
+CQChartsAxis::
+getTickLabelFont() const
+{
+  return tickLabel_->font();
+}
+
+void
+CQChartsAxis::
+setTickLabelFont(const QFont &font)
+{
+  tickLabel_->setFont(font);
+
+  redraw();
+}
+
+const QColor &
+CQChartsAxis::
+getTickLabelColor() const
+{
+  return tickLabel_->color();
+}
+
+void
+CQChartsAxis::
+setTickLabelColor(const QColor &color)
+{
+  tickLabel_->setColor(color);
+
+  redraw();
+}
+
+double
+CQChartsAxis::
+getTickLabelAngle() const
+{
+  return tickLabel_->angle();
+}
+
+void
+CQChartsAxis::
+setTickLabelAngle(double angle)
+{
+  tickLabel_->setAngle(angle);
+
+  redraw();
+}
+
+//---
 
 void
 CQChartsAxis::
@@ -895,59 +971,141 @@ draw(CQChartsPlot *plot, QPainter *p)
         double ta = fm.ascent();
         double td = fm.descent();
 
-        p->setPen (getLabelColor());
-        p->setFont(getLabelFont ());
+        p->setPen (getTickLabelColor());
+        p->setFont(getTickLabelFont ());
+
+        double angle = getTickLabelAngle();
 
         if (direction_ == Direction::HORIZONTAL) {
           if (getSide() == Side::BOTTOM_LEFT) {
-            lmax = std::max(lmax, ay3 + tlen2 + tgap + ta + td);
+            Qt::Alignment align = Qt::AlignHCenter | Qt::AlignTop;
 
             double atw = plot->pixelToWindowWidth (tw/2);
             double ath = plot->pixelToWindowHeight(tlen2 + tgap + ta + td);
 
-            p->drawText(ppx - tw/2, ay3 + tlen2 + tgap + ta, text);
+            QPointF pt(ppx, ay3 + tlen2 + tgap);
 
-            bbox_ += CPoint2D(pos1 - atw, apos - ath);
-            bbox_ += CPoint2D(pos1 + atw, apos - ath);
+            if (CQChartsUtil::isZero(angle)) {
+              lmax = std::max(lmax, pt.y() + ta + td);
+
+              p->drawText(pt.x() - tw/2, pt.y() + ta, text);
+
+              bbox_ += CPoint2D(pos1 - atw, apos - ath);
+              bbox_ += CPoint2D(pos1 + atw, apos - ath);
+            }
+            else {
+              CQRotatedText::drawRotatedText(p, pt.x(), pt.y(), text,
+                                             angle, align, /*alignBox*/true);
+
+              QRectF qrect = CQRotatedText::bbox(pt.x(), pt.y(), text, p->font(), angle, 0, align);
+
+              lmax = std::max(lmax, qrect.bottom());
+
+              CBBox2D tbbox;
+
+              plot->pixelToWindow(CQChartsUtil::fromQRect(qrect), tbbox);
+
+              bbox_ += tbbox;
+            }
           }
           else {
-            lmin = std::min(lmin, ay3 - tlen2 - tgap - ta - td);
+            Qt::Alignment align = Qt::AlignHCenter | Qt::AlignBottom;
 
             double atw = plot->pixelToWindowWidth (tw/2);
             double ath = plot->pixelToWindowHeight(tlen2 + tgap + ta + td);
 
-            p->drawText(ppx - tw/2, ay3 - tlen2 + tgap - td, text);
+            QPointF pt(ppx, ay3 - tlen2 - tgap);
 
-            bbox_ += CPoint2D(pos1 - atw, apos + ath);
-            bbox_ += CPoint2D(pos1 + atw, apos + ath);
+            if (CQChartsUtil::isZero(angle)) {
+              lmin = std::min(lmin, pt.y() - ta - td);
+
+              p->drawText(pt.x() - tw/2, pt.y() - td, text);
+
+              bbox_ += CPoint2D(pos1 - atw, apos + ath);
+              bbox_ += CPoint2D(pos1 + atw, apos + ath);
+            }
+            else {
+              CQRotatedText::drawRotatedText(p, pt.x(), pt.y(), text,
+                                             angle, align, /*alignBox*/true);
+
+              QRectF qrect = CQRotatedText::bbox(pt.x(), pt.y(), text, p->font(), angle, 0, align);
+
+              lmin = std::min(lmin, qrect.top());
+
+              CBBox2D tbbox;
+
+              plot->pixelToWindow(CQChartsUtil::fromQRect(qrect), tbbox);
+
+              bbox_ += tbbox;
+            }
           }
         }
         else {
           if (getSide() == Side::BOTTOM_LEFT) {
-            double xt = ax3 - tw - tlen2 - tgap;
+            Qt::Alignment align = Qt::AlignVCenter | Qt::AlignRight;
 
-            lmin = std::min(lmin, xt);
+            double xt = ax3 - tlen2 - tgap;
 
             double atw = plot->pixelToWindowWidth (tw + tlen2 + tgap);
             double ath = plot->pixelToWindowHeight(ta + td);
 
-            p->drawText(xt, ppy + ta/2, text);
+            QPointF pt(xt, ppy);
 
-            bbox_ += CPoint2D(apos - atw, pos1 - ath/2);
-            bbox_ += CPoint2D(apos - atw, pos1 + ath/2);
+            if (CQChartsUtil::isZero(angle)) {
+              lmin = std::min(lmin, pt.x() - tw);
+
+              p->drawText(pt.x() - tw, pt.y() + ta/2, text);
+
+              bbox_ += CPoint2D(apos - atw, pos1 - ath/2);
+              bbox_ += CPoint2D(apos - atw, pos1 + ath/2);
+            }
+            else {
+              CQRotatedText::drawRotatedText(p, pt.x(), pt.y(), text,
+                                             angle, align, /*alignBox*/true);
+
+              QRectF qrect = CQRotatedText::bbox(pt.x(), pt.y(), text, p->font(), angle, 0, align);
+
+              lmin = std::min(lmin, qrect.left());
+
+              CBBox2D tbbox;
+
+              plot->pixelToWindow(CQChartsUtil::fromQRect(qrect), tbbox);
+
+              bbox_ += tbbox;
+            }
           }
           else {
-            double xt = ax3 + tlen2 + tgap;
+            Qt::Alignment align = Qt::AlignVCenter | Qt::AlignLeft;
 
-            lmax = std::max(lmax, xt + tw);
+            double xt = ax3 + tlen2 + tgap;
 
             double atw = plot->pixelToWindowWidth (tw + tlen2 + tgap);
             double ath = plot->pixelToWindowHeight(ta + td);
 
-            p->drawText(xt, ppy + ta/2, text);
+            QPointF pt(xt, ppy);
 
-            bbox_ += CPoint2D(apos + atw, pos1 - ath/2);
-            bbox_ += CPoint2D(apos + atw, pos1 + ath/2);
+            if (CQChartsUtil::isZero(angle)) {
+              lmax = std::max(lmax, xt + tw);
+
+              p->drawText(pt.x(), pt.y() + ta/2, text);
+
+              bbox_ += CPoint2D(apos + atw, pos1 - ath/2);
+              bbox_ += CPoint2D(apos + atw, pos1 + ath/2);
+            }
+            else {
+              CQRotatedText::drawRotatedText(p, pt.x(), pt.y(), text,
+                                             angle, align, /*alignBox*/true);
+
+              QRectF qrect = CQRotatedText::bbox(pt.x(), pt.y(), text, p->font(), angle, 0, align);
+
+              lmax = std::max(lmax, qrect.right());
+
+              CBBox2D tbbox;
+
+              plot->pixelToWindow(CQChartsUtil::fromQRect(qrect), tbbox);
+
+              bbox_ += tbbox;
+            }
           }
         }
       }
@@ -1022,7 +1180,7 @@ draw(CQChartsPlot *plot, QPainter *p)
           double atw = plot->pixelToWindowWidth ((ax3 - lmin) + tgap + ta + td);
           double ath = plot->pixelToWindowHeight(tw/2);
 
-          CQRotatedText::drawRotatedText(p, lmin - tgap - td, aym, text, -90);
+          CQRotatedText::drawRotatedText(p, lmin - tgap - td, aym, text, 90.0);
 
           bbox_ += CPoint2D(apos - atw, (amin + amax)/2 - ath);
           bbox_ += CPoint2D(apos - atw, (amin + amax)/2 + ath);
@@ -1033,7 +1191,7 @@ draw(CQChartsPlot *plot, QPainter *p)
           double atw = plot->pixelToWindowWidth ((lmax - ax3) + tgap + ta + td);
           double ath = plot->pixelToWindowHeight(tw/2);
 
-          CQRotatedText::drawRotatedText(p, lmax + tgap + td, aym, text,  90);
+          CQRotatedText::drawRotatedText(p, lmax + tgap + td, aym, text, -90.0);
 
           bbox_ += CPoint2D(apos + atw, (amin + amax)/2 - ath);
           bbox_ += CPoint2D(apos + atw, (amin + amax)/2 + ath);
@@ -1049,10 +1207,7 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     plot_->windowToPixel(bbox_, prect);
 
-    p->setPen(Qt::red);
-    p->setBrush(Qt::NoBrush);
-
-    p->drawRect(CQChartsUtil::toQRect(prect));
+    plot_->drawRedBox(p, prect);
   }
 
   //---
@@ -1070,6 +1225,21 @@ CQChartsAxisLabel(CQChartsAxis *axis) :
 
 void
 CQChartsAxisLabel::
+redrawBoxObj()
+{
+  axis_->redraw();
+}
+
+//------
+
+CQChartsAxisTickLabel::
+CQChartsAxisTickLabel(CQChartsAxis *axis) :
+ axis_(axis)
+{
+}
+
+void
+CQChartsAxisTickLabel::
 redrawBoxObj()
 {
   axis_->redraw();

@@ -11,6 +11,12 @@ CQChartsCsv(CQCharts *charts) :
   model_ = new CQCsvModel;
 }
 
+CQChartsCsv::
+~CQChartsCsv()
+{
+  delete model_;
+}
+
 void
 CQChartsCsv::
 setCommentHeader(bool b)

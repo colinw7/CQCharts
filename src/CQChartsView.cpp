@@ -28,6 +28,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("view");
 
+  setAttribute(Qt::WA_DeleteOnClose);
+
   setMouseTracking(true);
 
   setFocusPolicy(Qt::StrongFocus);
@@ -60,10 +62,15 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
+  for (const auto &plot : plotDatas_)
+    delete plot.plot;
+
   delete expander_;
   delete settings_;
   delete status_;
   delete toolbar_;
+
+  CQToolTip::unsetToolTip(this);
 }
 
 CQPropertyViewTree *

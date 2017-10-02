@@ -287,10 +287,12 @@ drawNode(QPainter *p, CQChartsSunburstNode *node)
 
   QString str = node->name();
 
+  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+
   if (c >= 0)
-    CQRotatedText::drawRotatedText(p, px, py, str, -ta, Qt::AlignHCenter | Qt::AlignVCenter);
+    CQRotatedText::drawRotatedText(p, px, py, str, ta, align);
   else
-    CQRotatedText::drawRotatedText(p, px, py, str, 180 - ta, Qt::AlignHCenter | Qt::AlignVCenter);
+    CQRotatedText::drawRotatedText(p, px, py, str, ta - 180, align);
 }
 
 QColor

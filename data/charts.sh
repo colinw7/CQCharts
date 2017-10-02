@@ -2,7 +2,7 @@ CQChartsTest -csv multi_bar.csv -plot bar -column "name=0" -column "value=1" -fi
 
 CQChartsTest -csv multi_bar.csv -plot bar -column "name=0" -column "value=1 2 3 4 5 6" -first_line_header -plot_title "multiple bar chart" -format ";integer"
 
-CQChartsTest -csv ages.csv -plot pie -column "label=0" -column "data=1" -first_line_header -plot_title "pie chart"
+CQChartsTest -csv ages.csv -plot pie -column "label=0" -column "data=1" -first_line_header -plot_title "pie chart" -format ";integer"
 
 CQChartsTest -csv airports.csv -plot xy -x 6 -y 5 -column "name=1" -plot_title "random xy"
 
@@ -38,7 +38,7 @@ CQChartsTest -tsv choropeth.tsv -plot geometry -column "name=0" -column "geometr
 
 CQChartsTest -tsv adjacency.tsv -plot adjacency -column "node=1" -column "connections=3" -column "name=0" -column "group=2" -plot_title "adjacency"
 
-CQChartsTest -csv xy_10000.csv -plot xy -x 0 -y 1 -plot_title "10000 points"
+CQChartsTest -csv xy_10000.csv -plot xy -x 0 -y 1 -plot_title "10000 points" -first_line_header
 
 CQChartsTest -y1y2 -tsv multi_series.tsv -plot xy -x 0 -y 1 -format "time:format=%Y%m%d" -comment_header -and -tsv multi_series.tsv -plot xy -x 0 -y 2 -format "time:format=%Y%m%d" -comment_header -plot_title "multiple y axis"
 

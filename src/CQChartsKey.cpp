@@ -3,6 +3,7 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewTree.h>
+#include <CQRoundedPolygon.h>
 #include <QPainter>
 #include <QRectF>
 
@@ -14,6 +15,13 @@ CQChartsKey(CQChartsPlot *plot) :
   setBorder    (true);
 
   clearItems();
+}
+
+CQChartsKey::
+~CQChartsKey()
+{
+  for (auto &item : items_)
+    delete item;
 }
 
 void
@@ -355,7 +363,7 @@ draw(QPainter *p)
   plot_->windowToPixel(x    , y    , px1, py2);
   plot_->windowToPixel(x + w, y - h, px2, py1);
 
-  QRectF rect(px1, py1, px2 - px1, py2 - py1);
+  QRectF rect(px1, py2, px2 - px1, py1 - py2);
 
   //---
 
@@ -416,10 +424,7 @@ draw(QPainter *p)
 
     plot_->windowToPixel(bbox_, prect);
 
-    p->setPen(Qt::red);
-    p->setBrush(Qt::NoBrush);
-
-    p->drawRect(CQChartsUtil::toQRect(prect));
+    plot_->drawRedBox(p, prect);
   }
 
   //---
@@ -562,7 +567,7 @@ draw(QPainter *p, const CBBox2D &rect)
   p->setPen  (bc);
   p->setBrush(fc);
 
-  p->drawRect(prect1);
+  CQRoundedPolygon::draw(p, prect1, cornerRadius());
 }
 
 QColor

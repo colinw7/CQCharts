@@ -10,6 +10,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_PROPERTY(QString text  READ text  WRITE setText )
   Q_PROPERTY(QFont   font  READ font  WRITE setFont )
   Q_PROPERTY(QColor  color READ color WRITE setColor)
+  Q_PROPERTY(double  angle READ angle WRITE setAngle)
 
  public:
   CQChartsTextBoxObj();
@@ -27,22 +28,27 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   const QColor &color() const { return color_; }
   virtual void setColor(const QColor &c) { color_ = c; redrawBoxObj(); }
 
+  double angle() const { return angle_; }
+  void setAngle(double r) { angle_ = r; redrawBoxObj(); }
+
   //---
 
   void addProperties(CQPropertyViewTree *tree, const QString &path);
 
   //---
 
-  virtual void draw(QPainter *p, const QRectF &rect);
-  virtual void draw(QPainter *p, const QPolygonF &poly);
+  virtual void draw(QPainter *p, const QRectF &rect) const;
+  virtual void draw(QPainter *p, const QPolygonF &poly) const;
 
- protected:
-  void drawText(QPainter *p, const QRectF &rect);
+  //---
+
+  void drawText(QPainter *p, const QRectF &rect, const QString &text) const;
 
  protected:
   QString text_;
   QFont   font_;
   QColor  color_ { 0, 0, 0 };
+  double  angle_ { 0.0 };
 };
 
 #endif

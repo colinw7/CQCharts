@@ -42,6 +42,7 @@ class CQChartsKey : public CQChartsBoxObj {
 
  public:
   CQChartsKey(CQChartsPlot *plot);
+ ~CQChartsKey();
 
   CQChartsPlot *plot() const { return plot_; }
 
@@ -224,8 +225,13 @@ class CQChartsKeyText : public CQChartsKeyItem {
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 
+  Q_PROPERTY(double cornerRadius READ cornerRadius WRITE setCornerRadius)
+
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
+
+  double cornerRadius() const { return cornerRadius_; }
+  void setCornerRadius(double r) { cornerRadius_ = r; }
 
   QSizeF size() const override;
 
@@ -235,9 +241,10 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   virtual QColor borderColor() const;
 
  protected:
-  CQChartsPlot *plot_ { nullptr };
-  int           i_    { 0 };
-  int           n_    { 0 };
+  CQChartsPlot *plot_         { nullptr };
+  int           i_            { 0 };
+  int           n_            { 0 };
+  double        cornerRadius_ { 0.0 };
 };
 
 #endif

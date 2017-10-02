@@ -96,6 +96,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_PROPERTY(QColor bgColor           READ bgColor           WRITE setBgColor          )
   Q_PROPERTY(QColor textColor         READ textColor         WRITE setTextColor        )
   Q_PROPERTY(QColor emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
+  Q_PROPERTY(QFont  font              READ font              WRITE setFont             )
 
  public:
   CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model);
@@ -113,13 +114,21 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
   const QColor &bgColor() const { return bgColor_; }
-  void setBgColor(const QColor &c) { bgColor_ = c; }
+  void setBgColor(const QColor &c) { bgColor_ = c; update(); }
 
   const QColor &textColor() const { return textColor_; }
-  void setTextColor(const QColor &c) { textColor_ = c; }
+  void setTextColor(const QColor &c) { textColor_ = c; update(); }
 
   const QColor &emptyCellColor() const { return emptyCellColor_; }
-  void setEmptyCellColor(const QColor &c) { emptyCellColor_ = c; }
+  void setEmptyCellColor(const QColor &c) { emptyCellColor_ = c; update(); }
+
+  const QFont &font() const { return font_; }
+  void setFont(const QFont &v) { font_ = v; update(); }
+
+  //---
+
+  CQChartsAdjacencyObj *insideObj() const { return insideObj_; }
+  void setInsideObj(CQChartsAdjacencyObj *obj) { insideObj_ = obj; }
 
   int maxValue() const { return maxValue_; }
 
@@ -137,9 +146,14 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
+  void autoFit() override;
+
+  //---
+
   void draw(QPainter *) override;
 
   void drawBackground(QPainter *) override;
+  void drawForeground(QPainter *) override;
 
  private:
   struct ConnectionData {
@@ -172,20 +186,24 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   typedef std::map<int,CQChartsAdjacencyNode *> NodeMap;
   typedef std::vector<CQChartsAdjacencyNode *>  NodeArray;
 
-  int               nodeColumn_        { 0 };
-  int               connectionsColumn_ { 1 };
-  int               nameColumn_        { -1 };
-  int               groupColumn_       { -1 };
-  QColor            bgColor_           { 200, 200, 200 };
-  QColor            textColor_         { 0, 0, 0 };
-  QColor            emptyCellColor_    { 238, 238, 238 };
-  IdConnectionsData idConnections_;
-  NodeMap           nodes_;
-  NodeArray         sortedNodes_;
-  int               maxValue_ { 0 };
-  int               maxGroup_ { 0 };
-  int               maxLen_   { 0 };
-  double            scale_    { 1 };
+  int                   nodeColumn_        { 0 };
+  int                   connectionsColumn_ { 1 };
+  int                   nameColumn_        { -1 };
+  int                   groupColumn_       { -1 };
+  QColor                bgColor_           { 200, 200, 200 };
+  QColor                textColor_         { 0, 0, 0 };
+  QColor                emptyCellColor_    { 238, 238, 238 };
+  QFont                 font_;
+  IdConnectionsData     idConnections_;
+  NodeMap               nodes_;
+  NodeArray             sortedNodes_;
+  CQChartsAdjacencyObj* insideObj_         { nullptr };
+  int                   maxValue_          { 0 };
+  int                   maxGroup_          { 0 };
+  int                   maxLen_            { 0 };
+  double                scale_             { 1.0 };
+  double                factor_            { 1.0 };
+  double                drawFactor_        { 1.0 };
 };
 
 #endif

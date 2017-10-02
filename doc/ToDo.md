@@ -42,6 +42,11 @@ Plots
  + Parallel needs x axis labels
  + Restrict which plots cn be combined
    + Bar/Column Chart NOT paired with Pie, Bar
+ + Box Plot
+   + BoxObj master for boxes
+   + Color String (palette or QColor)
+ + Adjacency Plot
+   + X Border Width
 
 Plot
  + Context Menu

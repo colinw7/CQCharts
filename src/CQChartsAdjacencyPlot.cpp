@@ -42,6 +42,7 @@ addProperties()
   addProperty(""       , this, "bgColor"          , ""          );
   addProperty(""       , this, "textColor"        , ""          );
   addProperty(""       , this, "emptyCellColor"   , ""          );
+  addProperty(""       , this, "font"             , ""          );
 }
 
 void
@@ -154,9 +155,9 @@ initObjs(bool force)
 
   int nn = numNodes();
 
-  scale_ = 1.0/(nn + maxLen_);
+  scale_ = 1.0/(nn + maxLen_*factor_);
 
-  double tsize = maxLen_*scale_;
+  double tsize = maxLen_*factor_*scale_;
 
   //---
 
@@ -290,6 +291,21 @@ decodeConnection(const QString &str, ConnectionData &connection)
 
 void
 CQChartsAdjacencyPlot::
+autoFit()
+{
+  int tries = 3;
+
+  for (int i = 0; i < tries; ++i) {
+    factor_ = drawFactor_;
+
+    initObjs(/*force*/true);
+
+    update();
+  }
+}
+
+void
+CQChartsAdjacencyPlot::
 draw(QPainter *p)
 {
   initObjs();
@@ -314,14 +330,14 @@ drawBackground(QPainter *p)
   double pxs = windowToPixelWidth (scale_);
   double pys = windowToPixelHeight(scale_);
 
-  double xts = maxLen_*pxs;
-  double yts = maxLen_*pys;
+  double xts = maxLen_*factor_*pxs;
+  double yts = maxLen_*factor_*pys;
 
   //---
 
-  int ts = std::min(pxs, pys);
+  double ts = std::min(pxs, pys);
 
-  QFont f = view()->font();
+  QFont f = this->font();
 
   f.setPixelSize(ts);
 
@@ -331,6 +347,8 @@ drawBackground(QPainter *p)
 
   //---
 
+  double twMax = 0.0;
+
   // draw row labels
   p->setPen(textColor());
 
@@ -338,18 +356,26 @@ drawBackground(QPainter *p)
   double py = pyo + yts;
 
   for (auto node : sortedNodes_) {
-    p->drawText(px, py + pys - fm.descent(), node->name().c_str());
+    QString str = node->name().c_str();
+
+    double tw = fm.width(str) + 4;
+
+    twMax = std::max(twMax, tw);
+
+    p->drawText(px + xts - tw - 2, py + pys - fm.descent(), str);
 
     py += pys;
   }
+
+  drawFactor_ = twMax/std::min(maxLen_*pxs, maxLen_*pys);
 
   // draw column labels
   px = pxo + xts;
   py = pyo + yts;
 
   for (auto node : sortedNodes_) {
-    CQRotatedText::drawRotatedText(p, px + pxs/2 + (fm.ascent() - fm.descent())/2, py - 2,
-                                   node->name().c_str(), -90, Qt::AlignLeft);
+    CQRotatedText::drawRotatedText(p, px + pxs/2, py - 2, node->name().c_str(), 90,
+                                   Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
     px += pxs;
   }
@@ -391,6 +417,16 @@ drawBackground(QPainter *p)
 
     py += pys;
   }
+
+  setInsideObj(nullptr);
+}
+
+void
+CQChartsAdjacencyPlot::
+drawForeground(QPainter *p)
+{
+  if (insideObj())
+    insideObj()->draw(p, CQChartsPlot::Layer::FG);
 }
 
 QColor
@@ -434,6 +470,13 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   }
 
   QColor pc = bc.lighter(120);
+
+  if (isInside()) {
+    bc = plot_->insideColor(bc);
+    pc = plot_->bwColor(bc);
+
+    plot_->setInsideObj(this);
+  }
 
   p->setPen  (pc);
   p->setBrush(bc);

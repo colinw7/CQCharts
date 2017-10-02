@@ -19,6 +19,13 @@ CQCharts()
 {
 }
 
+CQCharts::
+~CQCharts()
+{
+  delete plotTypeMgr_;
+  delete columnTypeMgr_;
+}
+
 void
 CQCharts::
 init()

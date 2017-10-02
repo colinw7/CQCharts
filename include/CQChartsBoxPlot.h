@@ -68,9 +68,10 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
 class CQChartsBoxPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    xColumn  READ xColumn  WRITE setXColumn )
-  Q_PROPERTY(int    yColumn  READ yColumn  WRITE setYColumn )
-  Q_PROPERTY(QColor boxColor READ boxColor WRITE setBoxColor)
+  Q_PROPERTY(int    xColumn      READ xColumn      WRITE setXColumn     )
+  Q_PROPERTY(int    yColumn      READ yColumn      WRITE setYColumn     )
+  Q_PROPERTY(QColor boxColor     READ boxColor     WRITE setBoxColor    )
+  Q_PROPERTY(double cornerRadius READ cornerRadius WRITE setCornerRadius)
 
  public:
   CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model);
@@ -82,7 +83,12 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void setYColumn(int i) { yColumn_ = i; update(); }
 
   const QColor &boxColor() const { return boxColor_; }
-  void setBoxColor(const QColor &c) { boxColor_ = c; }
+  void setBoxColor(const QColor &c) { boxColor_ = c; update(); }
+
+  double cornerRadius() const { return cornerRadius_; }
+  void setCornerRadius(double r) { cornerRadius_ = r; update(); }
+
+  //---
 
   void addProperties();
 
@@ -113,9 +119,10 @@ class CQChartsBoxPlot : public CQChartsPlot {
   typedef std::map<int,CBoxWhisker> Whiskers;
   typedef std::map<int,bool>        IdHidden;
 
-  int      xColumn_  { 0 };
-  int      yColumn_  { 1 };
-  QColor   boxColor_ { "#46A2B4" };
+  int      xColumn_      { 0 };
+  int      yColumn_      { 1 };
+  QColor   boxColor_     { "#46A2B4" };
+  double   cornerRadius_ { 0.0 };
   Whiskers whiskers_;
   IdHidden idHidden_;
 };

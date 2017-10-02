@@ -34,6 +34,20 @@ class CQChartsAxisLabel : public CQChartsTextBoxObj {
 
 //---
 
+class CQChartsAxisTickLabel : public CQChartsTextBoxObj {
+  Q_OBJECT
+
+ public:
+  CQChartsAxisTickLabel(CQChartsAxis *axis);
+
+  void redrawBoxObj() override;
+
+ private:
+  CQChartsAxis *axis_ { nullptr };
+};
+
+//---
+
 // Axis Data
 class CQChartsAxis : public QObject {
   Q_OBJECT
@@ -54,7 +68,12 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(bool majorTicksDisplayed READ getMajorTicksDisplayed WRITE setMajorTicksDisplayed)
   Q_PROPERTY(int  minorTickLen        READ getMinorTickLen        WRITE setMinorTickLen       )
   Q_PROPERTY(int  majorTickLen        READ getMajorTickLen        WRITE setMajorTickLen       )
-  Q_PROPERTY(bool tickLabelDisplayed  READ isTickLabelDisplayed   WRITE setTickLabelDisplayed )
+
+  // ticks label
+  Q_PROPERTY(bool   tickLabelDisplayed READ isTickLabelDisplayed WRITE setTickLabelDisplayed)
+  Q_PROPERTY(QFont  tickLabelFont      READ getTickLabelFont     WRITE setTickLabelFont     )
+  Q_PROPERTY(QColor tickLabelColor     READ getTickLabelColor    WRITE setTickLabelColor    )
+  Q_PROPERTY(double tickLabelAngle     READ getTickLabelAngle    WRITE setTickLabelAngle    )
 
   // label
   Q_PROPERTY(bool    labelDisplayed READ isLabelDisplayed WRITE setLabelDisplayed)
@@ -191,8 +210,21 @@ class CQChartsAxis : public QObject {
   int getMajorTickLen() const { return majorTickLen_; }
   void setMajorTickLen(int i) { majorTickLen_ = i; redraw(); }
 
-  bool isTickLabelDisplayed() const { return tickLabelDisplayed_; }
-  void setTickLabelDisplayed(bool b) { tickLabelDisplayed_ = b; redraw(); }
+  //---
+
+  // ticks label
+
+  bool isTickLabelDisplayed() const;
+  void setTickLabelDisplayed(bool b);
+
+  const QFont &getTickLabelFont() const;
+  void setTickLabelFont(const QFont &font);
+
+  const QColor &getTickLabelColor() const;
+  void setTickLabelColor(const QColor &color);
+
+  double getTickLabelAngle() const;
+  void setTickLabelAngle(double r);
 
   //---
 
@@ -281,51 +313,55 @@ class CQChartsAxis : public QObject {
   typedef std::map<int,QString>   TickLabels;
   typedef boost::optional<double> OptReal;
 
-  CQChartsPlot*      plot_                { nullptr };
-  bool               visible_             { true };
-  Direction          direction_           { Direction::HORIZONTAL };
-  Side               side_                { Side::BOTTOM_LEFT };
-  double             start_               { 0.0 };
-  double             end_                 { 1.0 };
-  double             start1_              { 0 };
-  double             end1_                { 1 };
-  bool               integral_            { false };
-  bool               dataLabels_          { false };
-  int                column_              { -1 };
+  CQChartsPlot*          plot_                { nullptr };
+  bool                   visible_             { true };
+  Direction              direction_           { Direction::HORIZONTAL };
+  Side                   side_                { Side::BOTTOM_LEFT };
+  double                 start_               { 0.0 };
+  double                 end_                 { 1.0 };
+  double                 start1_              { 0 };
+  double                 end1_                { 1 };
+  bool                   integral_            { false };
+  bool                   dataLabels_          { false };
+  int                    column_              { -1 };
 
   // label
-  bool               labelDisplayed_  { true };
-  CQChartsAxisLabel* label_           { nullptr };
+  bool                   labelDisplayed_  { true };
+  CQChartsAxisLabel*     label_           { nullptr };
 
   // line
-  bool               lineDisplayed_       { true };
-  QColor             lineColor_           { 128, 128, 128 };
+  bool                   lineDisplayed_       { true };
+  QColor                 lineColor_           { 128, 128, 128 };
 
   // grid
-  bool               gridDisplayed_       { false };
-  QColor             gridColor_           { 0, 0, 0 };
-  CLineDash          gridDash_            { 2, 2 };
-  double             gridWidth_           { 0 };
-  bool               gridAbove_           { false };
-  bool               gridFill_            { false };
-  QColor             gridFillColor_       { 128, 128, 128 };
-  double             gridFillAlpha_       { 0.5 };
+  bool                   gridDisplayed_       { false };
+  QColor                 gridColor_           { 0, 0, 0 };
+  CLineDash              gridDash_            { 2, 2 };
+  double                 gridWidth_           { 0 };
+  bool                   gridAbove_           { false };
+  bool                   gridFill_            { false };
+  QColor                 gridFillColor_       { 128, 128, 128 };
+  double                 gridFillAlpha_       { 0.5 };
 
   // ticks
-  bool               minorTicksDisplayed_ { true };
-  bool               majorTicksDisplayed_ { true };
-  int                minorTickLen_        { 4 };
-  int                majorTickLen_        { 8 };
-  bool               tickLabelDisplayed_  { true };
-  uint               numTicks1_           { 1 };
-  uint               numTicks2_           { 0 };
-  uint               tickIncrement_       { 0 };
-  double             majorIncrement_      { 0 };
-  TickSpaces         tickSpaces_;
-  TickLabels         tickLabels_;
+  bool                   minorTicksDisplayed_ { true };
+  bool                   majorTicksDisplayed_ { true };
+  int                    minorTickLen_        { 4 };
+  int                    majorTickLen_        { 8 };
 
-  OptReal            pos_;
-  mutable CBBox2D    bbox_;
+  // tick label
+  bool                   tickLabelDisplayed_ { true };
+  CQChartsAxisTickLabel *tickLabel_          { nullptr };
+
+  uint                   numTicks1_           { 1 };
+  uint                   numTicks2_           { 0 };
+  uint                   tickIncrement_       { 0 };
+  double                 majorIncrement_      { 0 };
+  TickSpaces             tickSpaces_;
+  TickLabels             tickLabels_;
+
+  OptReal                pos_;
+  mutable CBBox2D        bbox_;
 };
 
 #endif

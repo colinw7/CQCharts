@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQRotatedText.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -18,7 +19,7 @@ CQChartsPiePlotType()
 
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model) :
- CQChartsPlot(view, view->charts()->plotType("pie"), model)
+ CQChartsPlot(view, view->charts()->plotType("pie"), model), textBox_(this)
 {
   addKey();
 
@@ -31,20 +32,35 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty(""       , this, "donut"          );
-  addProperty(""       , this, "innerRadius"    );
-  addProperty(""       , this, "labelRadius"    );
-  addProperty(""       , this, "explodeSelected");
+  addProperty(""       , this, "donut"                   );
+  addProperty(""       , this, "innerRadius"             );
+  addProperty(""       , this, "labelRadius"             );
+  addProperty(""       , this, "explodeSelected"         );
+  addProperty(""       , this, "rotatedText"             );
   addProperty("columns", this, "labelColumn"    , "label");
   addProperty("columns", this, "dataColumn"     , "data" );
+
+  addProperty("label", &textBox_, "visible");
+  addProperty("label", &textBox_, "font"   );
+  addProperty("label", &textBox_, "color"  );
+
+  QString labelBoxPath = id() + "/label/box";
+
+  textBox_.CQChartsBoxObj::addProperties(propertyView(), labelBoxPath);
 }
 
 void
 CQChartsPiePlot::
 updateRange()
 {
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
+  double r = 1.0;
+
+  r = std::max(r, labelRadius());
+
+  dataRange_.reset();
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   applyDataRange();
 
@@ -127,7 +143,7 @@ initObjs(bool force)
     //---
 
     QModelIndex xind = model_->index(i, labelColumn_);
-    QModelIndex yind = model_->index(i, dataColumn_);
+    QModelIndex yind = model_->index(i, dataColumn_ );
 
     bool ok1, ok2;
 
@@ -148,7 +164,7 @@ initObjs(bool force)
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, rect, i, n);
 
-    obj->setId(QString("%1:%2").arg(name).arg(value));
+    obj->setId(QString("%1:%2").arg(name).arg(columnStr(dataColumn_, value)));
 
     obj->setCenter(CPoint2D(xc, yc));
     obj->setRadius(r);
@@ -201,6 +217,8 @@ draw(QPainter *p)
   initObjs();
 
   //---
+
+  contentsBBox_ = CBBox2D(-1, -1, 1, 1);
 
   drawParts(p);
 }
@@ -349,9 +367,6 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     }
   }
 
-  //fillPieSlice  (c, ir, radius(), a1, a2, *fill  );
-  //strokePieSlice(c, ir, radius(), a1, a2, isWedge(), *stroke);
-
   path.closeSubpath();
 
   //---
@@ -369,26 +384,34 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (name() != "") {
     double a21 = a2 - a1;
 
-    if (std::abs(a21) < 360.0) {
+    // if full circle always draw text at center
+    if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
+      plot_->textBox().draw(p, CQChartsUtil::toQPoint(pc), name(), 0.0);
+    }
+    // draw on arc center line
+    else {
+      double ir = plot_->innerRadius();
+      double lr = plot_->labelRadius();
+
       double ta = (a1 + a2)/2.0;
 
       double tangle = CQChartsUtil::Deg2Rad(ta);
 
-      double lr;
+      double lr1;
 
       if (plot_->isDonut())
-        lr = plot_->innerRadius() + plot_->labelRadius()*(radius() - plot_->innerRadius());
+        lr1 = ir + lr*(radius() - ir);
       else
-        lr = plot_->labelRadius()*radius();
+        lr1 = lr*radius();
 
-      if (lr < 0.01)
-        lr = 0.01;
+      if (lr1 < 0.01)
+        lr1 = 0.01;
 
       double tc = cos(tangle);
       double ts = sin(tangle);
 
-      double tx = c.x + lr*tc;
-      double ty = c.y + lr*ts;
+      double tx = c.x + lr1*tc;
+      double ty = c.y + lr1*ts;
 
       double ptx, pty;
 
@@ -396,53 +419,55 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
       //---
 
-      QFontMetrics fm(plot_->view()->font());
+      double        dx    = 0.0;
+      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      int tw = fm.width(name());
+      if (lr1 > radius()) {
+        double lx1 = c.x + radius()*tc;
+        double ly1 = c.y + radius()*ts;
+        double lx2 = c.x + lr1*tc;
+        double ly2 = c.y + lr1*ts;
 
-      p->setPen(fg);
+        double lpx1, lpy1, lpx2, lpy2;
 
-      p->drawText(ptx - tw/2, pty + fm.ascent(), name());
+        plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
+        plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
 
-#if 0
-      // aligned ?
-      CPoint2D tp(tx, ty);
+        int tickSize = 16;
 
-      QColor tc1;
+        if (tc >= 0) {
+          dx    = tickSize;
+          align = Qt::AlignLeft | Qt::AlignVCenter;
+        }
+        else {
+          dx    = -tickSize;
+          align = Qt::AlignRight | Qt::AlignVCenter;
+        }
 
-      if (fill->type() == CGnuPlotTypes::FillType::SOLID)
-        tc1 = fill->color().bwContrast();
+        p->setPen(bg);
 
-      if (isRotatedText()) {
-        if (tc >= 0)
-          p->drawRotatedText(tp, name(), ta, HAlignPos(CHALIGN_TYPE_LEFT, 0),
-                             VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
-        else
-          p->drawRotatedText(tp, name(), 180.0 + ta, HAlignPos(CHALIGN_TYPE_RIGHT, 0),
-                             VAlignPos(CVALIGN_TYPE_CENTER, 0), tc1);
+        p->drawLine(lpx1, lpy1, lpx2     , lpy2);
+        p->drawLine(lpx2, lpy2, lpx2 + dx, lpy2);
       }
-      else {
-        p->drawHAlignedText(tp, HAlignPos(CHALIGN_TYPE_CENTER, 0),
-                            VAlignPos(CVALIGN_TYPE_CENTER, 0), name(), tc1);
-      }
-#endif
-    }
-    else {
-      QFontMetrics fm(plot_->view()->font());
 
-      int tw = fm.width(name());
+      //---
 
-      p->setPen(fg);
+      QPointF pt = QPointF(ptx + dx, pty);
 
-      p->drawText(pc.x - tw/2, pc.y + (fm.ascent() - fm.descent())/2, name());
+      double angle = 0.0;
+
+      if (plot_->isRotatedText())
+        angle = (tc >= 0 ? ta : 180.0 + ta);
+
+      plot_->textBox().draw(p, pt, name(), angle, align);
+
+      CBBox2D tbbox;
+
+      plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
+
+      plot_->setContentsBBox(plot_->contentsBBox() + tbbox);
     }
   }
-
-  //---
-
-  //CPoint2D pr(radius(), radius());
-
-  //bbox_ = CBBox2D(c - pr, c + pr);
 }
 
 //------
@@ -502,4 +527,81 @@ textColor() const
     c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
 
   return c;
+}
+
+//------
+
+CQChartsPieTextObj::
+CQChartsPieTextObj(CQChartsPiePlot *plot) :
+ plot_(plot)
+{
+}
+
+void
+CQChartsPieTextObj::
+redrawBoxObj()
+{
+  plot_->update();
+}
+
+void
+CQChartsPieTextObj::
+draw(QPainter *p, const QPointF &c, const QString &text, double angle,
+     Qt::Alignment align) const
+{
+  p->save();
+
+  QFontMetrics fm(font());
+
+  int tw = fm.width(text);
+
+  double tw1 = tw + 2*margin();
+  double th1 = fm.height() + 2*margin();
+
+  double cx = c.x();
+  double cy = c.y() - th1/2;
+  double cd = 0.0;
+
+  if      (align & Qt::AlignHCenter) {
+    cx -= tw1/2;
+  }
+  else if (align & Qt::AlignRight) {
+    cx -= tw1;
+    cd  = -margin();
+  }
+  else {
+    cd  = margin();
+  }
+
+  rect_ = QRectF(cx, cy, tw1, th1);
+
+  //---
+
+  p->setFont(font());
+  p->setPen(color());
+
+  if (CQChartsUtil::isZero(angle)) {
+    CQChartsBoxObj::draw(p, rect_);
+  }
+  else {
+    QRectF                bbox;
+    CQRotatedText::Points points;
+
+    CQRotatedText::bboxData(c.x(), c.y(), text, font(), angle, margin(),
+                            bbox, points, align, /*alignBBox*/ true);
+
+    QPolygonF poly;
+
+    for (std::size_t i = 0; i < points.size(); ++i)
+      poly << points[i];
+
+    CQChartsBoxObj::draw(p, poly);
+  }
+
+  p->setPen(color());
+
+  CQRotatedText::drawRotatedText(p, c.x() + cd, c.y(), text, angle,
+                                 align, /*alignBBox*/ true);
+
+  p->restore();
 }

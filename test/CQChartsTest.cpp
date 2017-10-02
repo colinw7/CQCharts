@@ -100,10 +100,11 @@ main(int argc, char **argv)
 {
   qInstallMessageHandler(myMessageOutput);
 
-  //CQApp app(argc, argv);
   QApplication app(argc, argv);
 
-  //CQUtil::initProperties();
+  //CQApp app(argc, argv);
+
+  CQUtil::initProperties();
 
   std::vector<CQChartsTest::InitData> initDatas;
 
@@ -484,6 +485,14 @@ CQChartsTest() :
   connect(typeOKButton, SIGNAL(clicked()), this, SLOT(typeOKSlot()));
 
   columnLayout->addWidget(typeOKButton);
+}
+
+CQChartsTest::
+~CQChartsTest()
+{
+  delete charts_;
+  delete csv_;
+  delete tsv_;
 }
 
 //------
@@ -973,28 +982,32 @@ void
 CQChartsTest::
 loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
-  CQChartsCsv *csv = new CQChartsCsv(charts_);
+  assert(! csv_);
 
-  csv->setCommentHeader  (commentHeader);
-  csv->setFirstLineHeader(firstLineHeader);
+  csv_ = new CQChartsCsv(charts_);
 
-  csv->load(filename);
+  csv_->setCommentHeader  (commentHeader);
+  csv_->setFirstLineHeader(firstLineHeader);
 
-  setTableModel(csv);
+  csv_->load(filename);
+
+  setTableModel(csv_);
 }
 
 void
 CQChartsTest::
 loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
-  CQChartsTsv *tsv = new CQChartsTsv(charts_);
+  assert(! tsv_);
 
-  tsv->setCommentHeader  (commentHeader);
-  tsv->setFirstLineHeader(firstLineHeader);
+  tsv_ = new CQChartsTsv(charts_);
 
-  tsv->load(filename);
+  tsv_->setCommentHeader  (commentHeader);
+  tsv_->setFirstLineHeader(firstLineHeader);
 
-  setTableModel(tsv);
+  tsv_->load(filename);
+
+  setTableModel(tsv_);
 }
 
 void
@@ -1035,7 +1048,7 @@ setTableModel(QAbstractItemModel *model)
 
   //table_->setModel(model_);
 
-  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
+  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
 
   proxyModel->setSourceModel(model);
 
@@ -1214,6 +1227,9 @@ lineEditValue(QLineEdit *le, int &i, int defi) const
   for (int column = 0; column < model_->columnCount(); ++column) {
     QVariant var = model_->headerData(column, Qt::Horizontal, Qt::DisplayRole);
 
+    if (! var.isValid())
+      continue;
+
     if (var.toString() == str) {
       i = column;
       return true;
@@ -1248,6 +1264,13 @@ lineEditValues(QLineEdit *le, std::vector<int> &ivals) const
 }
 
 //------
+
+CQChartsView *
+CQChartsTest::
+view() const
+{
+  return view_;
+}
 
 CQChartsView *
 CQChartsTest::

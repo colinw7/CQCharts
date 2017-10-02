@@ -26,6 +26,12 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *mod
 CQChartsPlot::
 ~CQChartsPlot()
 {
+  clearPlotObjects();
+
+  delete titleObj_;
+  delete keyObj_;
+  delete xAxis_;
+  delete yAxis_;
 }
 
 CQCharts *
@@ -375,8 +381,7 @@ void
 CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
-  if (! obj->rect().isSet())
-    return;
+  assert(obj->rect().isSet());
 
   plotObjTree_.add(obj);
 
@@ -595,11 +600,25 @@ QString
 CQChartsPlot::
 xStr(double x) const
 {
-  if (xValueColumn_ < 0)
+  return columnStr(xValueColumn(), x);
+}
+
+QString
+CQChartsPlot::
+yStr(double y) const
+{
+  return columnStr(yValueColumn(), y);
+}
+
+QString
+CQChartsPlot::
+columnStr(int column, double x) const
+{
+  if (column < 0)
     return CQChartsUtil::toString(x);
 
   QVariant columnTypeVar =
-    model()->headerData(xValueColumn_, Qt::Horizontal, CQCharts::Role::ColumnType);
+    model()->headerData(column, Qt::Horizontal, CQCharts::Role::ColumnType);
 
   if (! columnTypeVar.isValid())
     return CQChartsUtil::toString(x);
@@ -615,32 +634,6 @@ xStr(double x) const
     return CQChartsUtil::toString(x);
 
   return typeData->dataName(x, nameValues);
-}
-
-QString
-CQChartsPlot::
-yStr(double y) const
-{
-  if (yValueColumn_ < 0)
-    return CQChartsUtil::toString(y);
-
-  QVariant columnTypeVar =
-    model()->headerData(yValueColumn_, Qt::Horizontal, CQCharts::Role::ColumnType);
-
-  if (! columnTypeVar.isValid())
-    return CQChartsUtil::toString(y);
-
-  QString columnType = columnTypeVar.toString();
-
-  CQChartsNameValues nameValues;
-
-  CQChartsColumnType *typeData =
-    charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
-
-  if (! typeData)
-    return CQChartsUtil::toString(y);
-
-  return typeData->dataName(y, nameValues);
 }
 
 void
@@ -917,10 +910,10 @@ updateKeyPosition(bool force)
   if (force)
     keyObj_->invalidateLayout();
 
-  if (! dataRange_.isSet())
-    return;
+  CBBox2D bbox = calcDataRange();
 
-  CBBox2D dataRange = calcDataRange();
+  if (! bbox.isSet())
+    return;
 
   QSizeF ks = keyObj_->calcSize();
 
@@ -935,44 +928,44 @@ updateKeyPosition(bool force)
            location == CQChartsKey::Location::CENTER_LEFT ||
            location == CQChartsKey::Location::BOTTOM_LEFT) {
     if (keyObj_->isInsideX())
-      kx = dataRange.getXMin() + xm;
+      kx = bbox.getXMin() + xm;
     else
-      kx = dataRange.getXMin() - ks.width() - xm;
+      kx = bbox.getXMin() - ks.width() - xm;
   }
   else if (location == CQChartsKey::Location::TOP_CENTER ||
            location == CQChartsKey::Location::CENTER_CENTER ||
            location == CQChartsKey::Location::BOTTOM_CENTER) {
-    kx = dataRange.getXMid() - ks.width()/2;
+    kx = bbox.getXMid() - ks.width()/2;
   }
   else if (location == CQChartsKey::Location::TOP_RIGHT ||
            location == CQChartsKey::Location::CENTER_RIGHT ||
            location == CQChartsKey::Location::BOTTOM_RIGHT) {
     if (keyObj_->isInsideX())
-      kx = dataRange.getXMax() - ks.width() - xm;
+      kx = bbox.getXMax() - ks.width() - xm;
     else
-      kx = dataRange.getXMax() + xm;
+      kx = bbox.getXMax() + xm;
   }
 
   if      (location == CQChartsKey::Location::TOP_LEFT ||
            location == CQChartsKey::Location::TOP_CENTER ||
            location == CQChartsKey::Location::TOP_RIGHT) {
     if (keyObj_->isInsideY())
-      ky = dataRange.getYMax() - ym;
+      ky = bbox.getYMax() - ym;
     else
-      ky = dataRange.getYMax() + ks.height() + ym;
+      ky = bbox.getYMax() + ks.height() + ym;
   }
   else if (location == CQChartsKey::Location::CENTER_LEFT ||
            location == CQChartsKey::Location::CENTER_CENTER ||
            location == CQChartsKey::Location::CENTER_RIGHT) {
-    ky = dataRange.getYMid() - ks.height()/2;
+    ky = bbox.getYMid() - ks.height()/2;
   }
   else if (location == CQChartsKey::Location::BOTTOM_LEFT ||
            location == CQChartsKey::Location::BOTTOM_CENTER ||
            location == CQChartsKey::Location::BOTTOM_RIGHT) {
     if (keyObj_->isInsideY())
-      ky = dataRange.getYMin() + ks.height() + ym;
+      ky = bbox.getYMin() + ks.height() + ym;
     else
-      ky = dataRange.getYMin() - ym;
+      ky = bbox.getYMin() - ym;
   }
 
   keyObj_->setPosition(QPointF(kx, ky));
@@ -985,10 +978,10 @@ updateTitlePosition()
   if (! titleObj_)
     return;
 
-  if (! dataRange_.isSet())
-    return;
+  CBBox2D bbox = calcDataRange();
 
-  CBBox2D dataRange = calcDataRange();
+  if (! bbox.isSet())
+    return;
 
   QSizeF ts = titleObj_->calcSize();
 
@@ -997,35 +990,35 @@ updateTitlePosition()
 //double xm = pixelToWindowWidth (8);
   double ym = pixelToWindowHeight(8);
 
-  double kx = dataRange.getXMid() - ts.width()/2;
+  double kx = bbox.getXMid() - ts.width()/2;
 
   double ky = 0.0;
 
   if      (location == CQChartsTitle::Location::TOP) {
     if (! titleObj_->isInside()) {
-      ky = dataRange.getYMax() + ym;
+      ky = bbox.getYMax() + ym;
 
       if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::TOP_RIGHT)
         ky += xAxis_->bbox().getHeight();
     }
     else
-      ky = dataRange.getYMax() - ts.height() - ym;
+      ky = bbox.getYMax() - ts.height() - ym;
   }
   else if (location == CQChartsTitle::Location::CENTER) {
-    ky = dataRange.getYMid() - ts.height()/2;
+    ky = bbox.getYMid() - ts.height()/2;
   }
   else if (location == CQChartsTitle::Location::BOTTOM) {
     if (! titleObj_->isInside()) {
-      ky = dataRange.getYMin() - ts.height() - ym;
+      ky = bbox.getYMin() - ts.height() - ym;
 
       if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::BOTTOM_LEFT)
         ky -= xAxis_->bbox().getHeight();
     }
     else
-      ky = dataRange.getYMin() + ym;
+      ky = bbox.getYMin() + ym;
   }
   else {
-    ky = dataRange.getYMid() - ts.height()/2;
+    ky = bbox.getYMid() - ts.height()/2;
   }
 
   titleObj_->setPosition(QPointF(kx, ky));
@@ -1075,11 +1068,11 @@ QRectF
 CQChartsPlot::
 calcRect() const
 {
-  double pxmin, pymin, pxmax, pymax;
-
   double xmin, ymin, xmax, ymax;
 
   displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+
+  double pxmin, pymin, pxmax, pymax;
 
   windowToPixel(xmin, ymin, pxmin, pymax);
   windowToPixel(xmax, ymax, pxmax, pymin);
@@ -1147,25 +1140,28 @@ autoFit()
 
     plot1->pixelToWindow(bbox1, bbox2);
 
-    plot1->setFixBBox(bbox2);
+    plot1->setFitBBox(bbox2);
 
     plot1 = plot1->nextPlot();
   }
 
   //---
 
-  setFixBBox(bbox);
+  setFitBBox(bbox);
 }
 
 void
 CQChartsPlot::
-setFixBBox(const CBBox2D &bbox)
+setFitBBox(const CBBox2D &bbox)
 {
   double xmin, ymin, xmax, ymax;
 
   displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
   CBBox2D pbbox(xmin, ymin, xmax, ymax);
+
+  //displayRange_.setWindowRange(pbbox.getXMin(), pbbox.getYMin(),
+  //                             pbbox.getXMax(), pbbox.getYMax());
 
   margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
   margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
@@ -1375,6 +1371,16 @@ drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type, double s,
     CSymbol2DMgr::fillSymbol(type, &renderer);
 }
 
+void
+CQChartsPlot::
+drawRedBox(QPainter *painter, const CBBox2D &bbox)
+{
+  painter->setPen(Qt::red);
+  painter->setBrush(Qt::NoBrush);
+
+  painter->drawRect(CQChartsUtil::toQRect(bbox));
+}
+
 QColor
 CQChartsPlot::
 objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def) const
@@ -1432,6 +1438,13 @@ interpPaletteColor(double r, const QColor &def) const
 QColor
 CQChartsPlot::
 textColor(const QColor &bg) const
+{
+  return bwColor(bg);
+}
+
+QColor
+CQChartsPlot::
+bwColor(const QColor &bg) const
 {
   int g = qGray(bg.red(), bg.green(), bg.blue());
 
@@ -1552,4 +1565,35 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
+}
+
+//------
+
+CQChartsPlotTypeMgr::
+CQChartsPlotTypeMgr()
+{
+}
+
+CQChartsPlotTypeMgr::
+~CQChartsPlotTypeMgr()
+{
+  for (auto &type : types_)
+    delete type.second;
+}
+
+void
+CQChartsPlotTypeMgr::
+addType(const QString &name, CQChartsPlotType *type)
+{
+  types_[name] = type;
+}
+
+CQChartsPlotType *
+CQChartsPlotTypeMgr::
+type(const QString &name)
+{
+  auto p = types_.find(name);
+  assert(p != types_.end());
+
+  return (*p).second;
 }

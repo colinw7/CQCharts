@@ -89,7 +89,7 @@ inline QString toString(double r) {
 inline QString toString(long i) {
   static char buffer[64];
 
-  ::sprintf(buffer, "%lu", i);
+  ::sprintf(buffer, "%ld", i);
 
   return buffer;
 }
@@ -134,6 +134,14 @@ inline bool fromString(const QString &str, std::vector<int> &columns) {
 
 inline bool isInteger(double r) {
   return std::abs(r - int(r)) < 1E-3;
+}
+
+inline bool realEq(double r1, double r2) {
+  return std::fabs(r2 - r1) < 1E-5;
+}
+
+inline bool isZero(double r) {
+  return realEq(r, 0.0);
 }
 
 //------

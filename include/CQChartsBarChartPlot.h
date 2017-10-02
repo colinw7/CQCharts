@@ -75,13 +75,14 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(QString valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
   Q_PROPERTY(bool    stacked      READ isStacked       WRITE setStacked        )
   Q_PROPERTY(bool    horizontal   READ isHorizontal    WRITE setHorizontal     )
+  Q_PROPERTY(double  margin       READ margin          WRITE setMargin         )
+  Q_PROPERTY(bool    keySets      READ isKeySets       WRITE setKeySets        )
   Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
   Q_PROPERTY(QColor  borderColor  READ borderColor     WRITE setBorderColor    )
   Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
+  Q_PROPERTY(double  cornerSize   READ cornerSize      WRITE setCornerSize     )
   Q_PROPERTY(bool    fill         READ isFill          WRITE setFill           )
   Q_PROPERTY(QString barColor     READ barColorStr     WRITE setBarColorStr    )
-  Q_PROPERTY(int     margin       READ margin          WRITE setMargin         )
-  Q_PROPERTY(bool    keySets      READ isKeySets       WRITE setKeySets        )
 
  public:
   CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model);
@@ -118,22 +119,24 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   QString valueColumnsStr() const;
   bool setValueColumnsStr(const QString &s);
 
+  //---
+
   bool isStacked() const { return stacked_; }
   void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
 
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; initObjs(/*force*/true); update(); }
 
+  // bar margin
+  int margin() const { return margin_; }
+  void setMargin(int i) { margin_ = i; update(); }
+
+  bool isKeySets() const { return keySets_; }
+  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); initObjs(true); }
+
   //---
 
-  // fill
-  bool isFill() const { return fill_; }
-  void setFill(bool b) { fill_ = b; update(); }
-
-  QString barColorStr() const;
-  void setBarColorStr(const QString &str);
-
-  // stroke
+  // bar stroke
   bool isBorder() const { return border_; }
   void setBorder(bool b) { border_ = b; update(); }
 
@@ -143,13 +146,15 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   double borderWidth() const { return borderWidth_; }
   void setBorderWidth(double r) { borderWidth_ = r; update(); }
 
-  //---
+  double cornerSize() const { return cornerSize_; }
+  void setCornerSize(double r) { cornerSize_ = r; update(); }
 
-  int margin() const { return margin_; }
-  void setMargin(int i) { margin_ = i; update(); }
+  // bar fill
+  bool isFill() const { return fill_; }
+  void setFill(bool b) { fill_ = b; update(); }
 
-  bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); initObjs(true); }
+  QString barColorStr() const;
+  void setBarColorStr(const QString &str);
 
   //---
 
@@ -223,15 +228,16 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Columns           valueColumns_;
   bool              stacked_           { false };
   bool              horizontal_        { false };
-  bool              barColorPalette_   { true };
-  bool              fill_              { true };
-  QColor            barColor_          { 100, 100, 200 };
+  double            margin_            { 2 };
+  bool              keySets_           { false };
   bool              border_            { true };
   QColor            borderColor_       { 0, 0, 0 };
   double            borderWidth_       { 0 };
-  int               margin_            { 2 };
+  double            cornerSize_        { 0 };
+  bool              fill_              { true };
+  bool              barColorPalette_   { true };
+  QColor            barColor_          { 100, 100, 200 };
   CQChartsDataLabel dataLabel_;
-  bool              keySets_           { false };
   ValueSets         valueSets_;
   ValueNames        valueNames_;
   IdHidden          idHidden_;

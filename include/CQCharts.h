@@ -16,6 +16,8 @@ class CQCharts {
  public:
   CQCharts();
 
+ ~CQCharts();
+
   void init();
 
   CQChartsPlotType *plotType(const QString &name);

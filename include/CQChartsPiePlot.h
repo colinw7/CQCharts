@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsTextBoxObj.h>
 
 #include <CPoint2D.h>
 
@@ -10,6 +11,27 @@
 #include <string>
 
 class CQChartsPiePlot;
+
+//---
+
+class CQChartsPieTextObj : public CQChartsTextBoxObj {
+ public:
+  CQChartsPieTextObj(CQChartsPiePlot *plot);
+
+  void redrawBoxObj() override;
+
+  const QRectF &rect() const { return rect_; }
+  void setRect(const QRectF &r) { rect_ = r; }
+
+  void draw(QPainter *p, const QPointF &c, const QString &text, double angle=0.0,
+            Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
+
+ private:
+  CQChartsPiePlot *plot_ { nullptr };
+  mutable QRectF   rect_;
+};
+
+//---
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
@@ -33,14 +55,13 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
+  bool isWedge() const { return wedge_; }
+  void setWedge(bool b) { wedge_ = b; }
+
   bool isExploded() const { return exploded_; }
   void setExploded(bool b) { exploded_ = b; }
 
-  bool isRotatedText() const { return rotatedText_; }
-  void setRotatedText(bool b) { rotatedText_ = b; }
-
-  bool isWedge() const { return wedge_; }
-  void setWedge(bool b) { wedge_ = b; }
+  //---
 
   bool inside(const CPoint2D &p) const override;
 
@@ -56,7 +77,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double           angle2_      { 360 };
   QString          name_        { "" };
   double           value_       { 0 };
-  bool             rotatedText_ { false };
   bool             wedge_       { true };
   bool             exploded_    { false };
 };
@@ -111,6 +131,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
   Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
+  Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
 
  public:
@@ -126,13 +147,25 @@ class CQChartsPiePlot : public CQChartsPlot {
   void setDonut(bool b) { donut_ = b; update(); }
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; }
+  void setInnerRadius(double r) { innerRadius_ = r; update(); }
 
   double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; }
+  void setLabelRadius(double r) { labelRadius_ = r; updateRange(); }
+
+  bool isRotatedText() const { return rotatedText_; }
+  void setRotatedText(bool b) { rotatedText_ = b; update(); }
 
   bool isExplodeSelected() const { return explodeSelected_; }
-  void setExplodeSelected(bool b) { explodeSelected_ = b; }
+  void setExplodeSelected(bool b) { explodeSelected_ = b; update(); }
+
+  //---
+
+  const CQChartsPieTextObj &textBox() const { return textBox_; }
+
+  const CBBox2D &contentsBBox() const { return contentsBBox_; }
+  void setContentsBBox(const CBBox2D &b) { contentsBBox_ = b; }
+
+  //---
 
   void addProperties();
 
@@ -162,13 +195,16 @@ class CQChartsPiePlot : public CQChartsPlot {
  private:
   typedef std::map<int,bool> IdHidden;
 
-  int      labelColumn_     { 0 };
-  int      dataColumn_      { 1 };
-  bool     donut_           { false };
-  double   innerRadius_     { 0.0 };
-  double   labelRadius_     { 0.5 };
-  bool     explodeSelected_ { true };
-  IdHidden idHidden_;
+  int                labelColumn_     { 0 };
+  int                dataColumn_      { 1 };
+  bool               donut_           { false };
+  double             innerRadius_     { 0.0 };
+  double             labelRadius_     { 0.5 };
+  bool               rotatedText_     { false };
+  bool               explodeSelected_ { true };
+  IdHidden           idHidden_;
+  CQChartsPieTextObj textBox_;
+  CBBox2D            contentsBBox_;
 };
 
 #endif

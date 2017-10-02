@@ -7,7 +7,7 @@ namespace CQRotatedText {
 
 void
 drawRotatedText(QPainter *painter, double x, double y, const QString &text,
-                double angle, Qt::Alignment align)
+                double angle, Qt::Alignment align, bool alignBBox)
 {
   painter->save();
 
@@ -16,37 +16,63 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
   int th = fm.height();
   int tw = fm.width(text);
 
-  double dx = 0.0;
-
-  if      (align & Qt::AlignLeft)
-    dx = 0;
-  else if (align & Qt::AlignRight)
-    dx = -tw;
-  else if (align & Qt::AlignHCenter)
-    dx = -tw/2.0;
-
-  double dy = 0.0;
-
-  if      (align & Qt::AlignBottom)
-    dy = 0;
-  else if (align & Qt::AlignTop)
-    dy = th;
-  else if (align & Qt::AlignVCenter)
-    dy = th/2.0;
-
   double a1 = M_PI*angle/180.0;
 
-  double c = cos(a1);
-  double s = sin(a1);
+  double c = cos(-a1);
+  double s = sin(-a1);
 
-  double tx = c*dx - s*dy;
-  double ty = s*dx + c*dy;
+  double tx = 0.0, ty = 0.0;
+  double ax = 0.0, ay = 0.0;
+
+  if (! alignBBox) {
+    double dx = 0.0, dy = 0.0;
+
+    if      (align & Qt::AlignLeft)
+      dx = 0.0;
+    else if (align & Qt::AlignRight)
+      dx = -tw;
+    else if (align & Qt::AlignHCenter)
+      dx = -tw/2.0;
+
+    if      (align & Qt::AlignBottom)
+      dy = 0.0;
+    else if (align & Qt::AlignTop)
+      dy = th;
+    else if (align & Qt::AlignVCenter)
+      dy = th/2.0;
+
+    tx = c*dx - s*dy;
+    ty = s*dx + c*dy;
+
+    ax = -s*fm.descent();
+    ay =  c*fm.descent();
+  }
+  else {
+    if      (align & Qt::AlignLeft)
+      tx = -th*s;
+    else if (align & Qt::AlignRight)
+      tx = -tw*c;
+    else if (align & Qt::AlignHCenter)
+      tx = -(th*s + tw*c)/2.0;
+
+    if      (align & Qt::AlignBottom)
+      ty = 0.0;
+    else if (align & Qt::AlignTop)
+      ty = -(tw*s - th*c);
+    else if (align & Qt::AlignVCenter)
+      ty = -(tw*s - th*c)/2;
+
+    ax = -s*fm.descent();
+    ay =  c*fm.descent();
+  }
+
+  //------
 
   QTransform t;
 
-  t.translate(x + tx, y + ty);
-  t.rotate(angle);
-  //t.translate(0, -fm.descent());
+  t.translate(x + tx - ax, y + ty - ay);
+  t.rotate(-angle);
+//t.translate(0, -fm.descent());
 
   painter->setTransform(t);
 
@@ -56,46 +82,94 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
 }
 
 QRectF
-bbox(double x, double y, const QString &text, const QFont &font, double angle, double border)
+bbox(double x, double y, const QString &text, const QFont &font, double angle, double border,
+     Qt::Alignment align, bool alignBBox)
 {
   QRectF bbox;
   Points points;
 
-  bboxData(x, y, text, font, angle, border, bbox, points);
+  bboxData(x, y, text, font, angle, border, bbox, points, align, alignBBox);
 
   return bbox;
 }
 
 Points
-bboxPoints(double x, double y, const QString &text, const QFont &font, double angle, double border)
+bboxPoints(double x, double y, const QString &text, const QFont &font, double angle, double border,
+           Qt::Alignment align, bool alignBBox)
 {
   QRectF bbox;
   Points points;
 
-  bboxData(x, y, text, font, angle, border, bbox, points);
+  bboxData(x, y, text, font, angle, border, bbox, points, align, alignBBox);
 
   return points;
 }
 
 void
 bboxData(double x, double y, const QString &text, const QFont &font, double angle,
-         double border, QRectF &bbox, Points &points)
+         double border, QRectF &bbox, Points &points, Qt::Alignment align, bool alignBBox)
 {
   QFontMetrics fm(font);
+
+  //------
 
   int th = fm.height()    + 2*border;
   int tw = fm.width(text) + 2*border;
 
   double a1 = M_PI*angle/180.0;
 
-  double c = cos(a1);
-  double s = sin(a1);
+  double c = cos(-a1);
+  double s = sin(-a1);
 
-  x -= c*border - s*border;
-  y += s*border + c*border;
+  //---
 
-  double x1 = x, x2 = x + tw*c, x3 = x + tw*c - th*s, x4 = x - th*s;
-  double y1 = y, y2 = y - tw*s, y3 = y - tw*s - th*c, y4 = y - th*c;
+  double tx = 0.0, ty = 0.0;
+
+  if (! alignBBox) {
+    double dx = 0.0, dy = 0.0;
+
+    if      (align & Qt::AlignLeft)
+      dx = -border;
+    else if (align & Qt::AlignRight)
+      dx = -tw + border;
+    else if (align & Qt::AlignHCenter)
+      dx = -tw/2.0;
+
+    if      (align & Qt::AlignBottom)
+      dy = border;
+    else if (align & Qt::AlignTop)
+      dy = th - border;
+    else if (align & Qt::AlignVCenter)
+      dy = th/2.0;
+
+    //---
+
+    tx = c*dx - s*dy;
+    ty = s*dx + c*dy;
+  }
+  else {
+    if      (align & Qt::AlignLeft)
+      tx = -th*s - border;
+    else if (align & Qt::AlignRight)
+      tx = -tw*c + border;
+    else if (align & Qt::AlignHCenter)
+      tx = -(th*s + tw*c)/2.0;
+
+    if      (align & Qt::AlignBottom)
+      ty = border;
+    else if (align & Qt::AlignTop)
+      ty = -(tw*s - th*c) - border;
+    else if (align & Qt::AlignVCenter)
+      ty = -(tw*s - th*c)/2.0;
+  }
+
+  //------
+
+  //x -= c*border - s*border;
+  //y -= s*border + c*border;
+
+  double x1 = x + tx, x2 = x + tw*c + tx, x3 = x + tw*c + th*s + tx, x4 = x + th*s + tx;
+  double y1 = y + ty, y2 = y + tw*s + ty, y3 = y + tw*s - th*c + ty, y4 = y - th*c + ty;
 
   points.clear();
 

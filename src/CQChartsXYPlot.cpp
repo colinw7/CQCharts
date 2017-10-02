@@ -328,8 +328,10 @@ updateRange()
 
   //---
 
-  //setXValueColumn(xColumn_);
-  //setYValueColumn(yColumn_);
+  setXValueColumn(xColumn_);
+  setYValueColumn(yColumn_);
+
+  //---
 
   xAxis_->setColumn(xColumn_);
 

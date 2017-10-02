@@ -169,10 +169,7 @@ draw(QPainter *p)
 
     plot_->windowToPixel(bbox_, prect);
 
-    p->setPen(Qt::red);
-    p->setBrush(Qt::NoBrush);
-
-    p->drawRect(CQChartsUtil::toQRect(prect));
+    plot_->drawRedBox(p, prect);
   }
 
   //---

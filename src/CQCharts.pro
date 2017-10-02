@@ -81,6 +81,7 @@ CQUtil.cpp \
 \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
+CQRoundedPolygon.cpp \
 CQFilename.cpp \
 CQStrParse.cpp \
 \
@@ -158,6 +159,7 @@ CQPixmapCache.h \
 CQPoint2DEdit.h \
 CQRealSpin.h \
 CQRotatedText.h \
+CQRoundedPolygon.h \
 CQStrParse.h \
 CQToolTip.h \
 ../include/CQUtil.h \

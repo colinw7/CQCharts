@@ -11,7 +11,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_PROPERTY(bool     visible  READ isVisible WRITE setVisible )
   Q_PROPERTY(Position position READ position  WRITE setPosition)
   Q_PROPERTY(bool     clip     READ isClip    WRITE setClip    )
-  Q_PROPERTY(double   angle    READ angle     WRITE setAngle   )
   Q_PROPERTY(double   margin   READ margin    WRITE setMargin  )
 
   Q_ENUMS(Position)
@@ -38,9 +37,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
 
-  double angle() const { return angle_; }
-  void setAngle(double r) { angle_ = r; update(); }
-
   ///--
 
   void addProperties(const QString &path);
@@ -55,8 +51,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   CQChartsPlot* plot_     { nullptr };
   bool          visible_  { false };
   Position      position_ { Position::TOP_INSIDE };
-  bool          clip_     { true };
-  double        angle_    { 0.0 };
+  bool          clip_     { false };
 };
 
 #endif

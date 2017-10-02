@@ -30,19 +30,12 @@ class CQChartsPlotType;
 
 class CQChartsPlotTypeMgr {
  public:
-  CQChartsPlotTypeMgr() { }
- ~CQChartsPlotTypeMgr() { }
+  CQChartsPlotTypeMgr();
+ ~CQChartsPlotTypeMgr();
 
-  void addType(const QString &name, CQChartsPlotType *type) {
-    types_[name] = type;
-  }
+  void addType(const QString &name, CQChartsPlotType *type);
 
-  CQChartsPlotType *type(const QString &name) {
-    auto p = types_.find(name);
-    assert(p != types_.end());
-
-    return (*p).second;
-  }
+  CQChartsPlotType *type(const QString &name);
 
  private:
   typedef std::map<QString, CQChartsPlotType *> Types;
@@ -58,6 +51,8 @@ class CQChartsPlotType {
 
  public:
   CQChartsPlotType() { }
+
+  virtual ~CQChartsPlotType() { }
 
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
@@ -387,11 +382,20 @@ class CQChartsPlot : public QObject {
 
   int numPlotObjects() const { return plotObjs_.size(); }
 
+  //---
+
+  int xValueColumn() const { return xValueColumn_; }
   void setXValueColumn(int column);
+
+  int yValueColumn() const { return yValueColumn_; }
   void setYValueColumn(int column);
 
   QString xStr(double x) const;
   QString yStr(double x) const;
+
+  QString columnStr(int column, double x) const;
+
+  //---
 
   bool mousePress  (const CPoint2D &p);
   bool mouseMove   (const CPoint2D &p, bool first=false);
@@ -428,9 +432,11 @@ class CQChartsPlot : public QObject {
 
   CBBox2D calcPixelRect() const;
 
-  void autoFit();
+  //---
 
-  void setFixBBox(const CBBox2D &bbox);
+  virtual void autoFit();
+
+  void setFitBBox(const CBBox2D &bbox);
 
   CBBox2D fitBBox() const;
 
@@ -462,6 +468,8 @@ class CQChartsPlot : public QObject {
 
   virtual void drawForeground(QPainter *) { }
 
+  void drawRedBox(QPainter *painter, const CBBox2D &bbox);
+
   //---
 
   QColor objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def=QColor(0,0,0)) const;
@@ -475,6 +483,8 @@ class CQChartsPlot : public QObject {
   QColor interpPaletteColor(double r, const QColor &def=QColor(0,0,0)) const;
 
   QColor textColor(const QColor &bg) const;
+
+  QColor bwColor(const QColor &bg) const;
 
   void update();
 

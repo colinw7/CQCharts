@@ -60,7 +60,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
 
   double b = b1 + b2;
 
-  if (fabs(angle()) <= 1E-3) {
+  if (CQChartsUtil::isZero(angle())) {
     int tw = fm.width(ystr);
 
     double x = 0.0, y = 0.0;
@@ -114,95 +114,52 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
   else {
     double x = 0.0, y = 0.0;
 
+    Qt::Alignment align;
+
     if      (position() == Position::TOP_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.top();
+      x     = qrect.center().x();
+      y     = qrect.top() + 2*b1;
+      align = Qt::AlignHCenter | Qt::AlignTop;
     }
     else if (position() == Position::TOP_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.top();
+      x     = qrect.center().x();
+      y     = qrect.top() - 2*b1;
+      align = Qt::AlignHCenter | Qt::AlignBottom;
     }
     else if (position() == Position::BOTTOM_INSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom();
+      x     = qrect.center().x();
+      y     = qrect.bottom() - 2*b1;
+      align = Qt::AlignHCenter | Qt::AlignBottom;
     }
     else if (position() == Position::BOTTOM_OUTSIDE) {
-      x = qrect.center().x();
-      y = qrect.bottom();
+      x     = qrect.center().x();
+      y     = qrect.bottom() + 2*b1;
+      align = Qt::AlignHCenter | Qt::AlignTop;
     }
     else if (position() == Position::CENTER) {
-      x = qrect.center().x();
-      y = qrect.center().y();
+      x     = qrect.center().x();
+      y     = qrect.center().y();
+      align = Qt::AlignHCenter | Qt::AlignVCenter;
     }
 
     QRectF                bbox;
     CQRotatedText::Points points;
 
-    CQRotatedText::bboxData(x, y, ystr, p->font(), angle(), b1, bbox, points);
-
-    double dx = (bbox.center().x() - x);
-    double dy = 0.0;
-
-    if      (position() == Position::TOP_INSIDE) {
-      dy = (bbox.top() - y) + ym;
-    }
-    else if (position() == Position::TOP_OUTSIDE) {
-      dy = (bbox.bottom() - y) - ym;
-    }
-    else if (position() == Position::BOTTOM_INSIDE) {
-      dy = (bbox.bottom() - y) - ym;
-    }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
-      dy = (bbox.top() - y) + ym;
-    }
-    else if (position() == Position::CENTER) {
-      dy = (bbox.center().y() - y);
-    }
-
-    x -= dx;
-    y -= dy;
-
-    double a1 = CQChartsUtil::Deg2Rad(angle());
-
-    double c = cos(a1);
-    double s = sin(a1);
-
-    double b1x = b1;
-    double b1y = b1 + fm.descent();
-
-    double b1xc = c*b1x;
-    double b1xs = s*b1x;
-    double b1yc = c*b1y;
-    double b1ys = s*b1y;
-
-    double b1dx = b1xc - b1ys;
-    double b1dy = b1xs + b1yc;
-
-    x += b1dx;
-    y -= b1dy;
+    CQRotatedText::bboxData(x, y, ystr, p->font(), angle(), b1,
+                            bbox, points, align, /*alignBBox*/ true);
 
     p->setPen(color());
 
-    if (CQChartsUtil::isInteger(angle()/90)) {
-      bbox.translate(-dx, -dy);
+    QPolygonF poly;
 
-      CQChartsBoxObj::draw(p, bbox);
-    }
-    else {
-      QPolygonF poly;
+    for (std::size_t i = 0; i < points.size(); ++i)
+      poly << points[i];
 
-      for (std::size_t i = 0; i < points.size(); ++i)
-        poly << points[i] + QPointF(-dx, -dy);
+    CQChartsBoxObj::draw(p, poly);
 
-      CQChartsBoxObj::draw(p, poly);
-    }
+    p->setPen(color());
 
-    CQRotatedText::drawRotatedText(p, x, y, ystr, -angle());
-
-    //p->setPen(Qt::red);
-    //p->setBrush(Qt::NoBrush);
-
-    //p->drawRect(bbox);
+    CQRotatedText::drawRotatedText(p, x, y, ystr, angle(), align, /*alignBBox*/ true);
   }
 
   p->restore();

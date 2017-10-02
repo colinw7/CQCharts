@@ -3,7 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQRotatedText.h>
+#include <CQRoundedPolygon.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -63,18 +63,19 @@ addProperties()
   QString strokeStr = "stroke";
   QString fillStr   = "fill";
 
-  addProperty("columns", this, "nameColumn"  , "name"     );
-  addProperty("columns", this, "valueColumn" , "value"    );
-  addProperty("columns", this, "valueColumns", "valuesSet");
-  addProperty(""       , this, "stacked"                  );
-  addProperty(""       , this, "horizontal"               );
-  addProperty(""       , this, "margin"                   );
-  addProperty(""       , this, "keySets"                  );
-  addProperty(strokeStr, this, "border"      , "visible"  );
-  addProperty(strokeStr, this, "borderColor" , "color"    );
-  addProperty(strokeStr, this, "borderWidth" , "width"    );
-  addProperty(fillStr  , this, "fill"        , "visible"  );
-  addProperty(fillStr  , this, "barColor"    , "color"    );
+  addProperty("columns", this, "nameColumn"  , "name"      );
+  addProperty("columns", this, "valueColumn" , "value"     );
+  addProperty("columns", this, "valueColumns", "valuesSet" );
+  addProperty(""       , this, "stacked"                   );
+  addProperty(""       , this, "horizontal"                );
+  addProperty(""       , this, "margin"                    );
+  addProperty(""       , this, "keySets"                   );
+  addProperty(strokeStr, this, "border"      , "visible"   );
+  addProperty(strokeStr, this, "borderColor" , "color"     );
+  addProperty(strokeStr, this, "borderWidth" , "width"     );
+  addProperty(strokeStr, this, "cornerSize"  , "cornerSize");
+  addProperty(fillStr  , this, "fill"        , "visible"   );
+  addProperty(fillStr  , this, "barColor"    , "color"     );
 
   dataLabel_.addProperties("dataLabel");
 }
@@ -321,6 +322,11 @@ updateRange()
 
   //---
 
+  setXValueColumn(nameColumn_);
+  setYValueColumn(valueColumn_);
+
+  //---
+
   if (! isHorizontal())
     xAxis_->setColumn(nameColumn_);
   else
@@ -404,9 +410,11 @@ initObjs(bool force)
     clearPlotObjects();
 
     dataRange_.reset();
+  }
 
-    //---
+  //---
 
+  if (! dataRange_.isSet()) {
     xAxis_->setIntegral           (! isHorizontal());
   //xAxis_->setDataLabels         (! isHorizontal());
     xAxis_->setMinorTicksDisplayed(  isHorizontal());
@@ -414,11 +422,9 @@ initObjs(bool force)
     yAxis_->setIntegral           (  isHorizontal());
   //yAxis_->setDataLabels         (  isHorizontal());
     yAxis_->setMinorTicksDisplayed(! isHorizontal());
-  }
 
-  //--
+    //---
 
-  if (! dataRange_.isSet()) {
     updateRange();
 
     if (! dataRange_.isSet())
@@ -765,7 +771,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
   if (layer == CQChartsPlot::Layer::MID) {
-    int m = plot_->margin();
+    double m = plot_->margin();
 
     if (prect.getWidth() > 3*m) {
       prect.setXMin(prect.getXMin() + m);
@@ -803,7 +809,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    p->drawRect(qrect);
+    CQRoundedPolygon::draw(p, qrect, plot_->cornerSize());
   }
   else {
     QString ystr = plot_->valueStr(value_);

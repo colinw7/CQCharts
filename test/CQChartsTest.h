@@ -3,6 +3,7 @@
 
 #include <CQAppWindow.h>
 #include <CBBox2D.h>
+#include <QPointer>
 #include <map>
 
 #include <boost/optional.hpp>
@@ -15,6 +16,8 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotParameter;
+class CQChartsCsv;
+class CQChartsTsv;
 
 class QAbstractItemModel;
 class QStackedWidget;
@@ -95,13 +98,15 @@ class CQChartsTest : public CQAppWindow {
  public:
   CQChartsTest();
 
+ ~CQChartsTest();
+
   const QString &id() const { return id_; }
   void setId(const QString &v) { id_ = v; }
 
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &v) { bbox_ = v; }
 
-  CQChartsView *view() const { return view_; }
+  CQChartsView *view() const;
 
   void loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   void loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
@@ -176,10 +181,13 @@ class CQChartsTest : public CQAppWindow {
   typedef std::vector<CQChartsPlot *> Plots;
   typedef std::map<QString,PlotData>  TypePlotData;
   typedef std::map<int,QString>       TabTypeName;
+  typedef QPointer<CQChartsView>      ViewP;
 
   Plots               plots_;
   CQChartsPlot*       rootPlot_          { nullptr };
   CQCharts*           charts_            { nullptr };
+  CQChartsCsv*        csv_               { nullptr };
+  CQChartsTsv*        tsv_               { nullptr };
   QAbstractItemModel* model_             { nullptr };
   TypePlotData        typePlotData_;
   TabTypeName         tabTypeName_;
@@ -192,7 +200,7 @@ class CQChartsTest : public CQAppWindow {
   QGroupBox*          typeGroup_         { nullptr };
   int                 tableColumn_       { 0 };
   CQChartsLoader*     loader_            { nullptr };
-  CQChartsView*       view_              { nullptr };
+  ViewP               view_;
   QString             id_;
   CBBox2D             bbox_;
 };

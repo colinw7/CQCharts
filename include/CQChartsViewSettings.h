@@ -16,6 +16,7 @@ class CQChartsViewSettings : public QFrame {
 
  public:
   CQChartsViewSettings(CQChartsView *view);
+ ~CQChartsViewSettings();
 
   CQPropertyViewTree *propertyView() const { return propertyView_; }
 

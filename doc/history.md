@@ -68,3 +68,10 @@
  + Add plot type parameters
  + Reduce dependencies
  + Add data labels for geometry plot
+## 9/27/2017
+ + horizontal bar chart
+## 10/01/2017
+ + fix memory leaks
+ + improve adjacency fit
+ + support rotated axis tick labels
+ + support pie labels outside plot (> 1.0)

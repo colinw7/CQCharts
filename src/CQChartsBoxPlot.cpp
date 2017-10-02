@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQRoundedPolygon.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -35,7 +36,8 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "boxColor");
+  addProperty("", this, "boxColor"    );
+  addProperty("", this, "cornerRadius");
 }
 
 void
@@ -235,9 +237,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   QColor boxColor = plot_->objectColor(this, i_, n_, plot_->boxColor());
 
-  p->fillRect(rect, QBrush(boxColor));
+  p->setBrush(boxColor);
 
-  p->drawRect(rect);
+  CQRoundedPolygon::draw(p, rect, plot_->cornerRadius());
 
   p->drawLine(px2, py3, px4, py3);
 
