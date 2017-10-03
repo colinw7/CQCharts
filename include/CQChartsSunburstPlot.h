@@ -357,11 +357,15 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
 
-  void addProperties();
+  //---
 
-  void updateRange();
+  void addProperties() override;
 
-  void initObjs(bool force=false);
+  void updateRange() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
 
   void draw(QPainter *) override;
 

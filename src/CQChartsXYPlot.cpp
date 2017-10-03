@@ -16,9 +16,14 @@ CQChartsXYPlotType()
   addColumnParameter("name", "Name", "nameColumn", "optional");
   addColumnParameter("size", "Size", "sizeColumn", "optional");
 
+  addColumnParameter("pointLabel" , "PointLabel" , "pointLabelColumn" , "optional");
+  addColumnParameter("pointColor" , "PointColor" , "pointColorColumn" , "optional");
+  addColumnParameter("pointSymbol", "PointSymbol", "pointSymbolColumn", "optional");
+
   addBoolParameter("bivariate" , "Bivariate" , "bivariate" , "optional");
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
   addBoolParameter("cumulative", "Cumulative", "cumulative", "optional");
+  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder" , "optional");
 }
 
 //---
@@ -61,24 +66,27 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns"  , this, "xColumn"       , "x"      );
-  addProperty("columns"  , this, "yColumn"       , "y"      );
-  addProperty("columns"  , this, "yColumns"      , "yset"   );
-  addProperty("columns"  , this, "nameColumn"    , "name"   );
-  addProperty("columns"  , this, "sizeColumn"    , "size"   );
-  addProperty("bivariate", this, "bivariate"     , "enabled");
-  addProperty("bivariate", this, "bivariateWidth", "width"  );
-  addProperty("stacked"  , this, "stacked"       , "enabled");
-  addProperty("points"   , this, "points"        , "shown"  );
-  addProperty("points"   , this, "pointsColor"   , "color"  );
-  addProperty("points"   , this, "symbolName"    , "symbol" );
-  addProperty("points"   , this, "symbolSize"    , "size"   );
-  addProperty("points"   , this, "symbolFilled"  , "filled" );
-  addProperty("lines"    , this, "lines"         , "shown"  );
-  addProperty("lines"    , this, "linesColor"    , "color"  );
-  addProperty("lines"    , this, "linesWidth"    , "width"  );
-  addProperty("fillUnder", this, "fillUnder"     , "shown"  );
-  addProperty("fillUnder", this, "fillUnderColor", "color"  );
+  addProperty("columns"  , this, "xColumn"          , "x"          );
+  addProperty("columns"  , this, "yColumn"          , "y"          );
+  addProperty("columns"  , this, "yColumns"         , "yset"       );
+  addProperty("columns"  , this, "nameColumn"       , "name"       );
+  addProperty("columns"  , this, "sizeColumn"       , "size"       );
+  addProperty("columns"  , this, "pointLabelColumn" , "pointLabel" );
+  addProperty("columns"  , this, "pointColorColumn" , "pointColor" );
+  addProperty("columns"  , this, "pointSymbolColumn", "pointSymbol");
+  addProperty("bivariate", this, "bivariate"        , "enabled"    );
+  addProperty("bivariate", this, "bivariateWidth"   , "width"      );
+  addProperty("stacked"  , this, "stacked"          , "enabled"    );
+  addProperty("points"   , this, "points"           , "shown"      );
+  addProperty("points"   , this, "pointsColor"      , "color"      );
+  addProperty("points"   , this, "symbolName"       , "symbol"     );
+  addProperty("points"   , this, "symbolSize"       , "size"       );
+  addProperty("points"   , this, "symbolFilled"     , "filled"     );
+  addProperty("lines"    , this, "lines"            , "shown"      );
+  addProperty("lines"    , this, "linesColor"       , "color"      );
+  addProperty("lines"    , this, "linesWidth"       , "width"      );
+  addProperty("fillUnder", this, "fillUnder"        , "shown"      );
+  addProperty("fillUnder", this, "fillUnderColor"   , "color"      );
 }
 
 QString
@@ -672,6 +680,33 @@ initObjs(bool force)
         else
           pointObj->setId(QString("%1:%2:%3:%4").arg(i).arg(j).arg(xstr).arg(ystr));
 
+        if (pointLabelColumn() >= 0) {
+          bool ok;
+
+          QString pointLabelStr = CQChartsUtil::modelString(model_, i, pointLabelColumn(), ok);
+
+          if (ok && pointLabelStr.length())
+            pointObj->setLabel(pointLabelStr);
+        }
+
+        if (pointColorColumn() >= 0) {
+          bool ok;
+
+          QString pointColorStr = CQChartsUtil::modelString(model_, i, pointColorColumn(), ok);
+
+          if (ok && pointColorStr.length())
+            pointObj->setColor(QColor(pointColorStr));
+        }
+
+        if (pointSymbolColumn() >= 0) {
+          bool ok;
+
+          QString pointSymbolStr = CQChartsUtil::modelString(model_, i, pointSymbolColumn(), ok);
+
+          if (ok && pointSymbolStr.length())
+            pointObj->setSymbol(CSymbol2DMgr::nameToType(pointSymbolStr));
+        }
+
         addPlotObject(pointObj);
 
         //---
@@ -929,6 +964,42 @@ CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y
 {
 }
 
+CQChartsXYPointObj::
+~CQChartsXYPointObj()
+{
+  delete edata_;
+}
+
+void
+CQChartsXYPointObj::
+setLabel(const QString &label)
+{
+  if (! edata_)
+    edata_ = new ExtraData;
+
+  edata_->label = label;
+}
+
+void
+CQChartsXYPointObj::
+setColor(const QColor &c)
+{
+  if (! edata_)
+    edata_ = new ExtraData;
+
+  edata_->c = c;
+}
+
+void
+CQChartsXYPointObj::
+setSymbol(CSymbol2D::Type symbol)
+{
+  if (! edata_)
+    edata_ = new ExtraData;
+
+  edata_->symbol = symbol;
+}
+
 bool
 CQChartsXYPointObj::
 visible() const
@@ -963,11 +1034,18 @@ CQChartsXYPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (plot_->isPoints()) {
-    QColor c = plot_->objectStateColor(this, plot_->pointColor(iset_, nset_));
+    CSymbol2D::Type symbol = plot_->symbolType();
+    QColor          c      = plot_->objectStateColor(this, plot_->pointColor(iset_, nset_));
+
+    if (edata_ && edata_->symbol != CSymbol2D::Type::NONE)
+      symbol = edata_->symbol;
+
+    if (edata_ && edata_->c.isValid())
+      c = edata_->c;
 
     double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
-    plot_->drawSymbol(p, CPoint2D(x_, y_), plot_->symbolType(), s, c, plot_->isSymbolFilled());
+    plot_->drawSymbol(p, CPoint2D(x_, y_), symbol, s, c, plot_->isSymbolFilled());
   }
 }
 

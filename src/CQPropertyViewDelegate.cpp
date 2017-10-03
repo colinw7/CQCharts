@@ -119,9 +119,12 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
   bool inside = view_->isMouseInd(index);
 
   if      (index.column() == 0) {
-    QString str = item->name();
+    QString label = item->alias();
 
-    drawString(painter, option, str, index, inside);
+    if (label == "")
+      label = item->name();
+
+    drawString(painter, option, label, index, inside);
 
     //QItemDelegate::paint(painter, option1, index);
   }

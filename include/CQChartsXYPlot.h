@@ -37,6 +37,14 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
                      int iset, int nset, int i, int n);
 
+ ~CQChartsXYPointObj();
+
+  void setLabel(const QString &label);
+
+  void setColor(const QColor &c);
+
+  void setSymbol(CSymbol2D::Type type);
+
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
@@ -44,14 +52,21 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsXYPlot *plot_ { nullptr };
-  double          x_    { 0.0 };
-  double          y_    { 0.0 };
-  double          size_ { -1 };
-  int             iset_ { -1 };
-  int             nset_ { -1 };
-  int             i_    { -1 };
-  int             n_    { -1 };
+  struct ExtraData {
+    QString         label;
+    QColor          c;
+    CSymbol2D::Type symbol { CSymbol2D::Type::NONE };
+  };
+
+  CQChartsXYPlot* plot_  { nullptr };
+  double          x_     { 0.0 };
+  double          y_     { 0.0 };
+  double          size_  { -1 };
+  int             iset_  { -1 };
+  int             nset_  { -1 };
+  int             i_     { -1 };
+  int             n_     { -1 };
+  ExtraData*      edata_ { nullptr };
 };
 
 //---
@@ -177,25 +192,28 @@ class CQChartsXYPlot : public CQChartsPlot {
   //  margin
   //  key
 
-  Q_PROPERTY(int     xColumn        READ xColumn           WRITE setXColumn          )
-  Q_PROPERTY(int     yColumn        READ yColumn           WRITE setYColumn          )
-  Q_PROPERTY(QString yColumns       READ yColumnsStr       WRITE setYColumnsStr      )
-  Q_PROPERTY(int     nameColumn     READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(int     sizeColumn     READ sizeColumn        WRITE setSizeColumn       )
-  Q_PROPERTY(bool    bivariate      READ isBivariate       WRITE setBivariate        )
-  Q_PROPERTY(double  bivariateWidth READ bivariateWidth    WRITE setBivariateWidth   )
-  Q_PROPERTY(bool    stacked        READ isStacked         WRITE setStacked          )
-  Q_PROPERTY(bool    cumulative     READ isCumulative      WRITE setCumulative       )
-  Q_PROPERTY(bool    points         READ isPoints          WRITE setPoints           )
-  Q_PROPERTY(QString pointsColor    READ pointsColorStr    WRITE setPointsColorStr   )
-  Q_PROPERTY(bool    lines          READ isLines           WRITE setLines            )
-  Q_PROPERTY(QString linesColor     READ linesColorStr     WRITE setLinesColorStr    )
-  Q_PROPERTY(double  linesWidth     READ linesWidth        WRITE setLinesWidth       )
-  Q_PROPERTY(bool    fillUnder      READ isFillUnder       WRITE setFillUnder        )
-  Q_PROPERTY(QString fillUnderColor READ fillUnderColorStr WRITE setFillUnderColorStr)
-  Q_PROPERTY(QString symbolName     READ symbolName        WRITE setSymbolName       )
-  Q_PROPERTY(double  symbolSize     READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool    symbolFilled   READ isSymbolFilled    WRITE setSymbolFilled     )
+  Q_PROPERTY(int     xColumn           READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(int     yColumn           READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(QString yColumns          READ yColumnsStr       WRITE setYColumnsStr      )
+  Q_PROPERTY(int     nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(int     sizeColumn        READ sizeColumn        WRITE setSizeColumn       )
+  Q_PROPERTY(int     pointLabelColumn  READ pointLabelColumn  WRITE setPointLabelColumn )
+  Q_PROPERTY(int     pointColorColumn  READ pointColorColumn  WRITE setPointColorColumn )
+  Q_PROPERTY(int     pointSymbolColumn READ pointSymbolColumn WRITE setPointSymbolColumn)
+  Q_PROPERTY(bool    bivariate         READ isBivariate       WRITE setBivariate        )
+  Q_PROPERTY(double  bivariateWidth    READ bivariateWidth    WRITE setBivariateWidth   )
+  Q_PROPERTY(bool    stacked           READ isStacked         WRITE setStacked          )
+  Q_PROPERTY(bool    cumulative        READ isCumulative      WRITE setCumulative       )
+  Q_PROPERTY(bool    points            READ isPoints          WRITE setPoints           )
+  Q_PROPERTY(QString pointsColor       READ pointsColorStr    WRITE setPointsColorStr   )
+  Q_PROPERTY(bool    lines             READ isLines           WRITE setLines            )
+  Q_PROPERTY(QString linesColor        READ linesColorStr     WRITE setLinesColorStr    )
+  Q_PROPERTY(double  linesWidth        READ linesWidth        WRITE setLinesWidth       )
+  Q_PROPERTY(bool    fillUnder         READ isFillUnder       WRITE setFillUnder        )
+  Q_PROPERTY(QString fillUnderColor    READ fillUnderColorStr WRITE setFillUnderColorStr)
+  Q_PROPERTY(QString symbolName        READ symbolName        WRITE setSymbolName       )
+  Q_PROPERTY(double  symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(bool    symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
 
  private:
   struct PointData {
@@ -267,6 +285,15 @@ class CQChartsXYPlot : public CQChartsPlot {
   int sizeColumn() const { return sizeColumn_; }
   void setSizeColumn(int i) { sizeColumn_ = i; update(); }
 
+  int pointLabelColumn() const { return pointLabelColumn_; }
+  void setPointLabelColumn(int i) { pointLabelColumn_ = i; update(); }
+
+  int pointColorColumn() const { return pointColorColumn_; }
+  void setPointColorColumn(int i) { pointColorColumn_ = i; update(); }
+
+  int pointSymbolColumn() const { return pointSymbolColumn_; }
+  void setPointSymbolColumn(int i) { pointSymbolColumn_ = i; update(); }
+
   bool isBivariate() const { return bivariate_; }
   void setBivariate(bool b) { bivariate_ = b; initObjs(/*force*/true); update(); }
 
@@ -330,11 +357,13 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  void addProperties();
+  void addProperties() override;
 
-  void updateRange();
+  void updateRange() override;
 
-  void initObjs(bool force=false);
+  void initObjs(bool force=false) override;
+
+  //---
 
   void addPolyLine(const QPolygonF &polyLine, int i, int n, const QString &name);
 
@@ -368,15 +397,18 @@ class CQChartsXYPlot : public CQChartsPlot {
  private:
   typedef std::map<int,bool> IdHidden;
 
-  int           xColumn_        { 0 };
-  int           yColumn_        { 1 };
+  int           xColumn_           { 0 };
+  int           yColumn_           { 1 };
   Columns       yColumns_;
-  int           nameColumn_     { -1 };
-  int           sizeColumn_     { -1 };
-  bool          bivariate_      { false };
-  double        bivariateWidth_ { 0.0 };
-  bool          stacked_        { false };
-  bool          cumulative_     { false };
+  int           nameColumn_        { -1 };
+  int           sizeColumn_        { -1 };
+  int           pointLabelColumn_  { -1 };
+  int           pointColorColumn_  { -1 };
+  int           pointSymbolColumn_ { -1 };
+  bool          bivariate_         { false };
+  double        bivariateWidth_    { 0.0 };
+  bool          stacked_           { false };
+  bool          cumulative_        { false };
   PointData     pointData_;
   LineData      lineData_;
   FillUnderData fillUnderData_;

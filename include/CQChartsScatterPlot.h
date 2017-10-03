@@ -96,15 +96,17 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
-  void addProperties();
+  void addProperties() override;
 
-  void updateRange();
+  void updateRange() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
 
   int numRows() const;
 
   int nameIndex(const QString &name) const;
-
-  void initObjs(bool force=false);
 
   void addKeyItems(CQChartsKey *key) override;
 

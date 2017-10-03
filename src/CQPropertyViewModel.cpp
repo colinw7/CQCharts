@@ -8,6 +8,12 @@ CQPropertyViewModel() :
 {
 }
 
+CQPropertyViewModel::
+~CQPropertyViewModel()
+{
+  clear();
+}
+
 int
 CQPropertyViewModel::
 columnCount(const QModelIndex &) const
@@ -186,7 +192,7 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 
   QStringList pathParts = path.split('/', QString::SkipEmptyParts);
 
-  CQPropertyViewItem *parentItem = hierItem(pathParts, /*create*/true);
+  CQPropertyViewItem *parentItem = hierItem(pathParts, /*create*/true, /*alias*/false);
 
   CQPropertyViewItem *item = new CQPropertyViewItem(parentItem, object, name);
 
@@ -201,6 +207,20 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
   endResetModel();
 
   return item;
+}
+
+bool
+CQPropertyViewModel::
+setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value)
+{
+  QStringList strs = path.split(".");
+
+  CQPropertyViewItem *item1 = hierItem(item, strs, /*create*/false, /*alias*/true);
+
+  if (! item1)
+    return false;
+
+  return item1->setData(value);
 }
 
 CQPropertyViewItem *
@@ -235,14 +255,14 @@ item(const QModelIndex &index, bool &ok) const
 
 CQPropertyViewItem *
 CQPropertyViewModel::
-hierItem(const QStringList &pathParts, bool create)
+hierItem(const QStringList &pathParts, bool create, bool alias)
 {
-  return hierItem(root(), pathParts, create);
+  return hierItem(root(), pathParts, create, alias);
 }
 
 CQPropertyViewItem *
 CQPropertyViewModel::
-hierItem(CQPropertyViewItem *parentItem, const QStringList &pathParts, bool create)
+hierItem(CQPropertyViewItem *parentItem, const QStringList &pathParts, bool create, bool alias)
 {
   if (pathParts.empty())
     return parentItem;
@@ -253,11 +273,21 @@ hierItem(CQPropertyViewItem *parentItem, const QStringList &pathParts, bool crea
     return nullptr;
 
   for (const auto &child : parentItem->children()) {
-    if (! child->object() && child->name() == path) {
-      if (pathParts.size() == 1)
-        return child;
+    if (! alias) {
+      if (! child->object() && child->name() == path) {
+        if (pathParts.size() == 1)
+          return child;
 
-      return hierItem(child, pathParts.mid(1), create);
+        return hierItem(child, pathParts.mid(1), create, alias);
+      }
+    }
+    else {
+      if (child->name() == path || child->alias() == path) {
+        if (pathParts.size() == 1)
+          return child;
+
+        return hierItem(child, pathParts.mid(1), create, alias);
+      }
     }
   }
 
@@ -268,7 +298,7 @@ hierItem(CQPropertyViewItem *parentItem, const QStringList &pathParts, bool crea
 
   parentItem->addChild(item);
 
-  return hierItem(item, pathParts.mid(1), create);
+  return hierItem(item, pathParts.mid(1), create, alias);
 }
 
 CQPropertyViewItem *

@@ -115,11 +115,15 @@ class CQChartsBubblePlot : public CQChartsPlot {
   double scale() const { return scale_; }
   void setScale(double r) { scale_ = r; }
 
-  void addProperties();
+  //---
 
-  void updateRange();
+  void addProperties() override;
 
-  void initObjs(bool force=false);
+  void updateRange() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
 
   void draw(QPainter *) override;
 

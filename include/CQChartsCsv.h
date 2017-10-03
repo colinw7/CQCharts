@@ -4,6 +4,7 @@
 #include <CQChartsModel.h>
 
 class CQCsvModel;
+class QSortFilterProxyModel;
 
 class CQChartsCsv : public CQChartsModel {
   Q_OBJECT
@@ -11,6 +12,10 @@ class CQChartsCsv : public CQChartsModel {
  public:
   CQChartsCsv(CQCharts *charts);
  ~CQChartsCsv();
+
+  CQCsvModel *csvModel() const { return csvModel_; }
+
+  QSortFilterProxyModel *proxyModel() const { return proxyModel_; }
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
@@ -20,6 +25,9 @@ class CQChartsCsv : public CQChartsModel {
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
+
+  bool setHeaderData(int section, Qt::Orientation orientation,
+                     const QVariant &value, int role) override;
 
   QVariant headerData(int section, Qt::Orientation orientation=Qt::Horizontal,
                       int role=Qt::DisplayRole) const override;
@@ -35,7 +43,8 @@ class CQChartsCsv : public CQChartsModel {
  private:
   typedef std::map<int,QString> ColumnTypes;
 
-  CQCsvModel* model_ { nullptr };
+  CQCsvModel*            csvModel_   { nullptr };
+  QSortFilterProxyModel* proxyModel_ { nullptr };
 };
 
 #endif

@@ -205,6 +205,13 @@ addProperties()
     titleObj_->addProperties(propertyView(), id() + "/" + "Title");
 }
 
+bool
+CQChartsPlot::
+setProperty(const QString &name, const QString &value)
+{
+  return propertyView()->setProperty(this, name, value);
+}
+
 void
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
@@ -262,7 +269,8 @@ calcDataRange() const
   CBBox2D bbox;
 
   if (dataRange_.isSet())
-    bbox = CBBox2D(dataRange_.xmin(), dataRange_.ymin(), dataRange_.xmax(), dataRange_.ymax());
+    bbox = CBBox2D(dataRange_.xmin(), dataRange_.ymin(),
+                   dataRange_.xmax(), dataRange_.ymax());
   else
     bbox = CBBox2D(0, 0, 1, 1);
 
@@ -315,7 +323,8 @@ applyDataRange(bool propagate)
     else {
       if (plot1) {
 #if 0
-        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(), dataRange_.xmax(), dataRange_.ymax());
+        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(),
+                      dataRange_.xmax(), dataRange_.ymax());
 #endif
 
         while (plot1) {
@@ -330,7 +339,8 @@ applyDataRange(bool propagate)
 
             plot1->pixelToWindow(bbox2, bbox3);
 
-            CRange2D dataRange(bbox3.getXMin(), bbox3.getYMin(), bbox3.getXMax(), bbox3.getYMax());
+            CRange2D dataRange(bbox3.getXMin(), bbox3.getYMin(),
+                               bbox3.getXMax(), bbox3.getYMax());
 
             plot1->setDataRange (dataRange  );
 #endif

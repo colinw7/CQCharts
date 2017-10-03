@@ -228,4 +228,19 @@ class CQPropertyViewEditorMgr {
   Editors editors_;
 };
 
+//------
+
+class CQPropertyViewAlignEditor : public CQPropertyViewEditorFactory {
+ public:
+  CQPropertyViewAlignEditor();
+
+  QWidget *createEdit(QWidget *parent);
+
+  void connect(QWidget *w, QObject *obj, const char *method);
+
+  QVariant getValue(QWidget *w);
+
+  void setValue(QWidget *w, const QVariant &var);
+};
+
 #endif

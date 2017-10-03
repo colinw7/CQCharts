@@ -74,10 +74,12 @@ CQAlphaButton.cpp \
 CQFontChooser.cpp \
 CQBBox2DEdit.cpp \
 CQPoint2DEdit.cpp \
+CQAlignEdit.cpp \
 CQRealSpin.cpp \
 CQToolTip.cpp \
 CQPixmapCache.cpp \
 CQUtil.cpp \
+CQWidgetMenu.cpp \
 \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
@@ -157,12 +159,14 @@ CQFontChooser.h \
 CQHeaderView.h \
 CQPixmapCache.h \
 CQPoint2DEdit.h \
+CQAlignEdit.h \
 CQRealSpin.h \
 CQRotatedText.h \
 CQRoundedPolygon.h \
 CQStrParse.h \
 CQToolTip.h \
 ../include/CQUtil.h \
+CQWidgetMenu.h \
 \
 CDelaunay.h \
 CHull3D.h \

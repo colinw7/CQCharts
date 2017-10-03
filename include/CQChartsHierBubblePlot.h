@@ -247,11 +247,15 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   int maxDepth() const { return maxDepth_; }
 
-  void addProperties();
+  //---
 
-  void updateRange();
+  void addProperties() override;
 
-  void initObjs(bool force=false);
+  void updateRange() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
 
   void initObjs(CQChartsHierBubbleHierNode *hier, int depth);
 

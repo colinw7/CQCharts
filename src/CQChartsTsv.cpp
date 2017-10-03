@@ -1,6 +1,7 @@
 #include <CQChartsTsv.h>
 #include <CQCharts.h>
 #include <CQTsvModel.h>
+#include <QSortFilterProxyModel>
 
 CQChartsTsv::
 CQChartsTsv(CQCharts *charts) :
@@ -8,48 +9,53 @@ CQChartsTsv(CQCharts *charts) :
 {
   setColumnHeaders(true);
 
-  model_ = new CQTsvModel;
+  tsvModel_ = new CQTsvModel;
+
+  proxyModel_ = new QSortFilterProxyModel;
+
+  proxyModel_->setSourceModel(tsvModel_);
 }
 
 CQChartsTsv::
 ~CQChartsTsv()
 {
-  delete model_;
+  delete tsvModel_;
+  delete proxyModel_;
 }
 
 void
 CQChartsTsv::
 setCommentHeader(bool b)
 {
-  model_->setCommentHeader(b);
+  tsvModel_->setCommentHeader(b);
 }
 
 void
 CQChartsTsv::
 setFirstLineHeader(bool b)
 {
-  model_->setFirstLineHeader(b);
+  tsvModel_->setFirstLineHeader(b);
 }
 
 bool
 CQChartsTsv::
 load(const QString &filename)
 {
-  return model_->load(filename);
+  return tsvModel_->load(filename);
 }
 
 int
 CQChartsTsv::
 columnCount(const QModelIndex &parent) const
 {
-  return model_->columnCount(parent);
+  return proxyModel_->columnCount(parent);
 }
 
 int
 CQChartsTsv::
 rowCount(const QModelIndex &parent) const
 {
-  return model_->rowCount(parent);
+  return proxyModel_->rowCount(parent);
 }
 
 QVariant
@@ -59,7 +65,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (role == CQCharts::Role::ColumnType)
     return CQChartsModel::headerData(section, orientation, role);
 
-  return model_->headerData(section, orientation, role);
+  return proxyModel_->headerData(section, orientation, role);
 }
 
 QVariant
@@ -69,7 +75,7 @@ data(const QModelIndex &index, int role) const
   if (! index.isValid())
     return QVariant();
 
-  QVariant var = model_->data(index, role);
+  QVariant var = proxyModel_->data(index, role);
 
   if      (role == Qt::DisplayRole) {
     CQChartsNameValues nameValues;
@@ -87,14 +93,14 @@ QModelIndex
 CQChartsTsv::
 index(int row, int column, const QModelIndex &parent) const
 {
-  return model_->index(row, column, parent);
+  return proxyModel_->index(row, column, parent);
 }
 
 QModelIndex
 CQChartsTsv::
 parent(const QModelIndex &index) const
 {
-  return model_->parent(index);
+  return proxyModel_->parent(index);
 }
 
 Qt::ItemFlags

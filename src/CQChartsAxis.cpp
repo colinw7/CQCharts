@@ -922,6 +922,9 @@ draw(CQChartsPlot *plot, QPainter *p)
       for (uint j = 1; j < getNumMinorTicks(); j++) {
         double pos2 = pos1 + j*inc1;
 
+        if (isIntegral() && ! CQChartsUtil::isInteger(pos2))
+          continue;
+
         // draw minor tick line
         if (pos2 >= getStart() && pos2 <= getEnd()) {
           double ppx, ppy;

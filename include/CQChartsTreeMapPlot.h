@@ -278,11 +278,15 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   int maxColorId() const { return maxColorId_; }
 
-  void addProperties();
+  //---
 
-  void updateRange();
+  void addProperties() override;
 
-  void initObjs(bool force=false);
+  void updateRange() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
 
   void initObjs(CQChartsTreeMapHierNode *hier, int depth);
 

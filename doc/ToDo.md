@@ -1,14 +1,10 @@
 Misc
- + Read Data from CSV into model
- + Add Abstract model to access model
- + Display data from abstract model as plot
- + Access Data via header data roles
+ + Access Extra column data via header data roles
  + Cache plot pixmaps
 
 Functions
  + Improved Filter
  + Symbol better highlight
-   + user associated fill polygon
 
 Data
  + Allow Assign attributes to plot symbol (size, color)

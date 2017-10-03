@@ -128,11 +128,13 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   Q_PROPERTY(int    labelColumn     READ labelColumn       WRITE setLabelColumn    )
   Q_PROPERTY(int    dataColumn      READ dataColumn        WRITE setDataColumn     )
+  Q_PROPERTY(int    keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
   Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
   Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
   Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
 
  public:
   CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model);
@@ -142,6 +144,9 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   int dataColumn() const { return dataColumn_; }
   void setDataColumn(int i) { dataColumn_ = i; }
+
+  int keyLabelColumn() const { return keyLabelColumn_; }
+  void setKeyLabelColumn(int i) { keyLabelColumn_ = i; }
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; update(); }
@@ -158,6 +163,9 @@ class CQChartsPiePlot : public CQChartsPlot {
   bool isExplodeSelected() const { return explodeSelected_; }
   void setExplodeSelected(bool b) { explodeSelected_ = b; update(); }
 
+  double startAngle() const { return startAngle_; }
+  void setStartAngle(double r) { startAngle_ = r; }
+
   //---
 
   const CQChartsPieTextObj &textBox() const { return textBox_; }
@@ -167,11 +175,11 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
-  void addProperties();
+  void addProperties() override;
 
-  void updateRange();
+  void updateRange() override;
 
-  void initObjs(bool force=false);
+  void initObjs(bool force=false) override;
 
   void addKeyItems(CQChartsKey *key) override;
 
@@ -197,11 +205,13 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   int                labelColumn_     { 0 };
   int                dataColumn_      { 1 };
+  int                keyLabelColumn_  { -1 };
   bool               donut_           { false };
   double             innerRadius_     { 0.0 };
   double             labelRadius_     { 0.5 };
   bool               rotatedText_     { false };
   bool               explodeSelected_ { true };
+  double             startAngle_      { 90 };
   IdHidden           idHidden_;
   CQChartsPieTextObj textBox_;
   CBBox2D            contentsBBox_;

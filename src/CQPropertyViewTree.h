@@ -17,6 +17,7 @@ class CQPropertyViewTree : public QTreeView {
 
  public:
   CQPropertyViewTree(QWidget *parent=nullptr);
+ ~CQPropertyViewTree();
 
   CQPropertyViewModel *propertyModel() const { return model_; }
 
@@ -30,6 +31,8 @@ class CQPropertyViewTree : public QTreeView {
 
   void addProperty(const QString &path, QObject *obj,
                    const QString &name, const QString &alias="");
+
+  bool setProperty(QObject *object, const QString &path, const QVariant &value);
 
   void selectObject(const QObject *obj);
 
@@ -67,6 +70,10 @@ class CQPropertyViewTree : public QTreeView {
   void customContextMenuSlot(const QPoint &pos);
 
  private:
+  CQPropertyViewItem *objectItem(const QObject *obj) const;
+
+  CQPropertyViewItem *objectItem(CQPropertyViewItem *parent, const QObject *obj) const;
+
   bool selectObject(CQPropertyViewItem *item, const QObject *obj);
 
   void getItemData(CQPropertyViewItem *item, QObject* &obj, QString &path);

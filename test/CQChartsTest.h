@@ -18,6 +18,7 @@ class CQChartsPlotType;
 class CQChartsPlotParameter;
 class CQChartsCsv;
 class CQChartsTsv;
+class CQChartsModel;
 
 class QAbstractItemModel;
 class QStackedWidget;
@@ -27,6 +28,7 @@ class QLineEdit;
 class QCheckBox;
 class QPushButton;
 class QGridLayout;
+class QHBoxLayout;
 
 class CQChartsTest : public CQAppWindow {
   Q_OBJECT
@@ -47,20 +49,21 @@ class CQChartsTest : public CQAppWindow {
     QString    plot;
     NameValues nameValues;
     NameBools  nameBools;
-    QString    format;
+    QString    columnType;
     FileNames  filenames;
     bool       commentHeader   { false };
     bool       firstLineHeader { false };
     bool       xintegral       { false };
     bool       yintegral       { false };
     QString    title;
+    QString    properties;
     OptReal    xmin, ymin, xmax, ymax;
     bool       y1y2            { false };
     bool       overlay         { false };
     int        nr              { 1 };
     int        nc              { 1 };
-    double     dx              { 1000 };
-    double     dy              { 1000 };
+    double     dx              { 1000.0 };
+    double     dy              { 1000.0 };
 
     QString nameValue(const QString &name) const {
       auto p = nameValues.find(name);
@@ -108,10 +111,10 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *view() const;
 
-  void loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
-  void loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
-  void loadJson(const QString &filename);
-  void loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
+  CQChartsModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
+  CQChartsModel *loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
+  CQChartsModel *loadJson(const QString &filename);
+  CQChartsModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
 
   bool initPlot(const InitData &initData);
 
@@ -143,24 +146,27 @@ class CQChartsTest : public CQAppWindow {
                               const CQChartsPlotParameter &parameter);
   void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
                                const CQChartsPlotParameter &parameter);
-  void addParameterBoolEdit(PlotData &plotData, QGridLayout *layout, int &row,
+  void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                             const CQChartsPlotParameter &parameter);
 
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
   bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter,
-                                const PlotData &plotData, int &column);
+                                const PlotData &plotData, int &column, QString &columnType);
   bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
-                                 const PlotData &plotData, std::vector<int> &columns);
+                                 const PlotData &plotData, std::vector<int> &columns,
+                                 QString &columnType);
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
-  bool lineEditValue(QLineEdit *le, int &i, int defi=0) const;
+  bool lineEditValue(QLineEdit *le, int &i, QString &columnType, int defi=0) const;
 
-  bool lineEditValues(QLineEdit *le, std::vector<int> &ivals) const;
+  bool lineEditValues(QLineEdit *le, std::vector<int> &ivals, QString &columnType) const;
 
   void setEditsFromInitData(const PlotData &plotData, const InitData &initData);
+
+  bool stringToColumn(const QString &str, int &column) const;
 
   CQChartsView *getView(bool reuse=true);
 

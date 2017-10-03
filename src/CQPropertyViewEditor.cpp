@@ -3,6 +3,7 @@
 #include <CQFontChooser.h>
 #include <CQBBox2DEdit.h>
 #include <CQPoint2DEdit.h>
+#include <CQAlignEdit.h>
 
 #if 0
 #include <CQPaletteChooser.h>
@@ -45,6 +46,8 @@ CQPropertyViewEditorMgr()
   setEditor("QPointF"  , new CQPropertyViewPointEditor   );
   setEditor("QSizeF"   , new CQPropertyViewSizeFEditor   );
   setEditor("QRectF"   , new CQPropertyViewRectFEditor   );
+
+  setEditor("Qt::Alignment", new CQPropertyViewAlignEditor);
 }
 
 void
@@ -689,3 +692,51 @@ setValue(QWidget *w, const QVariant &var)
   edit->setAngle(angle);
 }
 #endif
+
+//------
+
+CQPropertyViewAlignEditor::
+CQPropertyViewAlignEditor()
+{
+}
+
+QWidget *
+CQPropertyViewAlignEditor::
+createEdit(QWidget *parent)
+{
+  CQAlignEdit *edit = new CQAlignEdit(parent);
+
+  return edit;
+}
+
+void
+CQPropertyViewAlignEditor::
+connect(QWidget *w, QObject *obj, const char *method)
+{
+  CQAlignEdit *edit = qobject_cast<CQAlignEdit *>(w);
+  assert(edit);
+
+  QObject::connect(edit, SIGNAL(valueChanged(Qt::Alignment)), obj, method);
+}
+
+QVariant
+CQPropertyViewAlignEditor::
+getValue(QWidget *w)
+{
+  CQAlignEdit *edit = qobject_cast<CQAlignEdit *>(w);
+  assert(edit);
+
+  return QVariant(edit->align());
+}
+
+void
+CQPropertyViewAlignEditor::
+setValue(QWidget *w, const QVariant &var)
+{
+  CQAlignEdit *edit = qobject_cast<CQAlignEdit *>(w);
+  assert(edit);
+
+  int i = var.toInt();
+
+  edit->setAlign((Qt::Alignment) i);
+}

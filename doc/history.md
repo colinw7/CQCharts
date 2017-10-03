@@ -75,3 +75,10 @@
  + improve adjacency fit
  + support rotated axis tick labels
  + support pie labels outside plot (> 1.0)
+## 10/02/2017
+ + add point label, symbol, color
+ + support different key label
+ + don't shown non-integer minor ticks for integer axis
+ + add pie chart start angle
+ + ensure pie chart labels are rendered on top
+ + support set of property from command line args

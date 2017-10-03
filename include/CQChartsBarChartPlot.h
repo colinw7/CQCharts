@@ -162,13 +162,15 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
+  void updateRange() override;
+
+  void addProperties() override;
+
+  void initObjs(bool force=false) override;
+
+  //---
+
   QColor barColor(int i, int n) const;
-
-  void updateRange();
-
-  void addProperties();
-
-  void initObjs(bool force=false);
 
   QString valueStr(double v) const;
 

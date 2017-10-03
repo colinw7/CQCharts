@@ -189,16 +189,16 @@ class CQChartsPlot : public QObject {
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
 
   const OptReal &xmin() const { return xmin_; }
-  void setXMin(const OptReal &r) { xmin_ = r; }
+  void setXMin(const OptReal &r) { xmin_ = r; initObjs(/*force*/ true); }
 
   const OptReal &xmax() const { return xmax_; }
-  void setXMax(const OptReal &r) { xmax_ = r; }
+  void setXMax(const OptReal &r) { xmax_ = r; initObjs(/*force*/ true); }
 
   const OptReal &ymin() const { return ymin_; }
-  void setYMin(const OptReal &r) { ymin_ = r; }
+  void setYMin(const OptReal &r) { ymin_ = r; initObjs(/*force*/ true); }
 
   const OptReal &ymax() const { return ymax_; }
-  void setYMax(const OptReal &r) { ymax_ = r; }
+  void setYMax(const OptReal &r) { ymax_ = r; initObjs(/*force*/ true); }
 
   const QString &title() const { return title_; }
   void setTitle(const QString &s);
@@ -258,7 +258,7 @@ class CQChartsPlot : public QObject {
   void setFollowMouse(bool b) { followMouse_ = b; }
 
   bool showBoxes() const { return showBoxes_; }
-  void setShowBoxes(bool b) { showBoxes_ = b; }
+  void setShowBoxes(bool b) { showBoxes_ = b; update(); }
 
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &bbox);
@@ -337,9 +337,9 @@ class CQChartsPlot : public QObject {
 
   virtual void addProperties();
 
-  //---
+  bool setProperty(const QString &name, const QString &value);
 
-  virtual void addKeyItems(CQChartsKey *) { }
+  //---
 
   void updateMargin();
 
@@ -358,6 +358,8 @@ class CQChartsPlot : public QObject {
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
 
+  //---
+
   void addAxes();
 
   void addXAxis();
@@ -365,13 +367,25 @@ class CQChartsPlot : public QObject {
 
   void addKey();
 
+  virtual void addKeyItems(CQChartsKey *) { }
+
   void addTitle();
+
+  //---
+
+  virtual void updateRange() = 0;
+
+  virtual void initObjs(bool force=false) = 0;
+
+  //---
 
   CBBox2D calcDataRange() const;
 
   void applyDataRange(bool propagate=true);
 
   void applyDisplayTransform(bool propagate=true);
+
+  //---
 
   void addProperty(const QString &path, QObject *object,
                    const QString &name, const QString &alias="");

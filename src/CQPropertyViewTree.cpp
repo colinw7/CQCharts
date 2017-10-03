@@ -66,6 +66,13 @@ CQPropertyViewTree(QWidget *parent) :
           this, SLOT(customContextMenuSlot(const QPoint&)));
 }
 
+CQPropertyViewTree::
+~CQPropertyViewTree()
+{
+  delete filter_;
+  delete model_;
+}
+
 void
 CQPropertyViewTree::
 setMouseHighlight(bool b)
@@ -108,6 +115,50 @@ CQPropertyViewTree::
 addProperty(const QString &path, QObject *obj, const QString &name, const QString &alias)
 {
   model_->addProperty(path, obj, name, alias);
+}
+
+bool
+CQPropertyViewTree::
+setProperty(QObject *object, const QString &path, const QVariant &value)
+{
+  CQPropertyViewItem *item = objectItem(object);
+
+  if (! item)
+    return false;
+
+  return model_->setProperty(item, path, value);
+}
+
+CQPropertyViewItem *
+CQPropertyViewTree::
+objectItem(const QObject *obj) const
+{
+  CQPropertyViewItem *root = model_->root();
+
+  return objectItem(root, obj);
+}
+
+CQPropertyViewItem *
+CQPropertyViewTree::
+objectItem(CQPropertyViewItem *parent, const QObject *obj) const
+{
+  for (int i = 0; i < parent->numChildren(); ++i) {
+    CQPropertyViewItem *item = parent->child(i);
+
+    if (item->object() == obj)
+      return parent;
+  }
+
+  for (int i = 0; i < parent->numChildren(); ++i) {
+    CQPropertyViewItem *item = parent->child(i);
+
+    CQPropertyViewItem *item1 = objectItem(item, obj);
+
+    if (item1)
+      return item1;
+  }
+
+  return nullptr;
 }
 
 void

@@ -24,10 +24,15 @@
 #include <CQChartsXYPlot.h>
 
 #include <CQChartsLoader.h>
-//#include <CQApp.h>
+
+#ifdef CQ_APP_H
+#include <CQApp.h>
+#else
+#include <QApplication>
+#endif
+
 #include <CQUtil.h>
 
-#include <QApplication>
 #include <QSortFilterProxyModel>
 #include <QMenuBar>
 #include <QMenu>
@@ -41,6 +46,7 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QToolButton>
+#include <QHBoxLayout>
 #include <QVBoxLayout>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -100,9 +106,11 @@ main(int argc, char **argv)
 {
   qInstallMessageHandler(myMessageOutput);
 
+#ifdef CQ_APP_H
+  CQApp app(argc, argv);
+#else
   QApplication app(argc, argv);
-
-  //CQApp app(argc, argv);
+#endif
 
   CQUtil::initProperties();
 
@@ -216,11 +224,14 @@ main(int argc, char **argv)
       else if (arg == "cumulative") {
         initData.setNameBool("cumulative", true);
       }
-      else if (arg == "format") {
+      else if (arg == "fillunder") {
+        initData.setNameBool("fillUnder", true);
+      }
+      else if (arg == "column_type") {
         ++i;
 
         if (i < argc)
-          initData.format = argv[i];
+          initData.columnType = argv[i];
       }
       else if (arg == "comment_header") {
         initData.commentHeader = true;
@@ -240,6 +251,12 @@ main(int argc, char **argv)
         if (i < argc)
           initData.title = argv[i];
       }
+      else if (arg == "properties") {
+        ++i;
+
+        if (i < argc)
+          initData.properties = argv[i];
+      }
       else if (arg == "overlay") {
         overlay = true;
       }
@@ -248,6 +265,15 @@ main(int argc, char **argv)
       }
       else if (arg == "and") {
         initDatas.push_back(initData);
+
+        xmin1 = boost::make_optional(false, 0.0);
+        xmax1 = boost::make_optional(false, 0.0);
+        xmin2 = boost::make_optional(false, 0.0);
+        xmax2 = boost::make_optional(false, 0.0);
+        ymin1 = boost::make_optional(false, 0.0);
+        ymax1 = boost::make_optional(false, 0.0);
+        ymin2 = boost::make_optional(false, 0.0);
+        ymax2 = boost::make_optional(false, 0.0);
 
         initData = CQChartsTest::InitData();
       }
@@ -319,8 +345,8 @@ main(int argc, char **argv)
   int nr = std::max(int(sqrt(nd)), 1);
   int nc = (nd + nr - 1)/nr;
 
-  int dx = 1000/nc;
-  int dy = 1000/nr;
+  double dx = 1000.0/nc;
+  double dy = 1000.0/nr;
 
   int i = 0;
 
@@ -532,9 +558,14 @@ initPlot(const InitData &initData)
 
   if (initData.overlay || initData.y1y2)
     setBBox(CBBox2D(0, 0, 1000, 1000));
-  else
-    setBBox(CBBox2D( c     *initData.dx,  r     *initData.dy,
-                    (c + 1)*initData.dx, (r + 1)*initData.dy));
+  else {
+    double x1 =  c     *initData.dx;
+    double x2 = (c + 1)*initData.dx;
+    double y1 =  r     *initData.dy;
+    double y2 = (r + 1)*initData.dy;
+
+    setBBox(CBBox2D(x1, 1000.0 - y2, x2, 1000.0 - y1));
+  }
 
   if (initData.filenames.size() > 0) {
     if      (initData.csv)
@@ -796,10 +827,15 @@ tabOKSlot(bool reuse)
       if (! ok)
         column = -1;
 
-      parseParameterColumnEdit(parameter, plotData, column);
+      QString columnType;
+
+      parseParameterColumnEdit(parameter, plotData, column, columnType);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
-        std::cerr << "Failed to set property " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+
+      if (columnType.length())
+        model_->setHeaderData(column, Qt::Horizontal, columnType, CQCharts::Role::ColumnType);
     }
     else if (parameter.type() == "columns") {
       QString columnsStr = parameter.defValue().toString();
@@ -808,12 +844,17 @@ tabOKSlot(bool reuse)
 
       (void) CQChartsUtil::fromString(columnsStr, columns);
 
-      parseParameterColumnsEdit(parameter, plotData, columns);
+      QString columnType;
+
+      parseParameterColumnsEdit(parameter, plotData, columns, columnType);
 
       QString s = CQChartsUtil::toString(columns);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
-        std::cerr << "Failed to set property " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+
+      if (columnType.length() && ! columns.empty())
+        model_->setHeaderData(columns[0], Qt::Horizontal, columnType, CQCharts::Role::ColumnType);
     }
     else if (parameter.type() == "bool") {
       bool b = parameter.defValue().toBool();
@@ -821,7 +862,7 @@ tabOKSlot(bool reuse)
       parseParameterBoolEdit(parameter, plotData, b);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(b)))
-        std::cerr << "Failed to set property " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
     }
     else
       assert(false);
@@ -862,7 +903,7 @@ CQChartsPlot *
 CQChartsTest::
 init(const InitData &initData, int i)
 {
-  QStringList fstrs = initData.format.split(";", QString::KeepEmptyParts);
+  QStringList fstrs = initData.columnType.split(";", QString::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
     QString type = fstrs[i].simplified();
@@ -870,9 +911,24 @@ init(const InitData &initData, int i)
     if (! type.length())
       continue;
 
-    if (! model_->setHeaderData(i, Qt::Horizontal, type, CQCharts::Role::ColumnType)) {
+    int column = i;
+
+    int pos = type.indexOf("#");
+
+    if (pos >= 0) {
+      QString columnStr = type.mid(0, pos).simplified();
+
+      int column1;
+
+      if (stringToColumn(columnStr, column1))
+        column = column1;
+
+      type = type.mid(pos + 1).simplified();
+    }
+
+    if (! model_->setHeaderData(column, Qt::Horizontal, type, CQCharts::Role::ColumnType)) {
       std::cerr << "Failed to set column type '" << type.toStdString() <<
-                   "' for section '" << i << "'" << std::endl;
+                   "' for section '" << column << "'" << std::endl;
       continue;
     }
   }
@@ -917,8 +973,13 @@ init(const InitData &initData, int i)
   // result plot if needed
   bool reuse = false;
 
-  if (typeName == "xy")
+  if (initData.overlay || initData.y1y2) {
+    if (typeName == "xy")
+      reuse = true;
+  }
+  else {
     reuse = true;
+  }
 
   //---
 
@@ -942,7 +1003,7 @@ init(const InitData &initData, int i)
     if (i > 0) {
       plot->setBackground    (false);
       plot->setDataBackground(false);
-   }
+    }
   }
 
   if (initData.title != "")
@@ -958,6 +1019,24 @@ init(const InitData &initData, int i)
   if (initData.ymin) plot->setYMin(initData.ymin);
   if (initData.xmax) plot->setXMax(initData.xmax);
   if (initData.ymax) plot->setYMax(initData.ymax);
+
+  //---
+
+  if (initData.properties != "") {
+    QStringList strs = initData.properties.split(",", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i) {
+      QString str = strs[i].simplified();
+
+      int pos = str.indexOf("=");
+
+      QString name  = str.mid(0, pos).simplified();
+      QString value = str.mid(pos + 1).simplified();
+
+      if (! plot->setProperty(name, value))
+        std::cerr << "Failed to set property " << name.toStdString() << std::endl;
+    }
+  }
 
   return plot;
 }
@@ -978,11 +1057,11 @@ setEditsFromInitData(const PlotData &plotData, const InitData &initData)
 
 //------
 
-void
+CQChartsModel *
 CQChartsTest::
 loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
-  assert(! csv_);
+  //assert(! csv_);
 
   csv_ = new CQChartsCsv(charts_);
 
@@ -991,14 +1070,18 @@ loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 
   csv_->load(filename);
 
-  setTableModel(csv_);
+  setTableModel(csv_->proxyModel());
+
+  model_ = csv_;
+
+  return csv_;
 }
 
-void
+CQChartsModel *
 CQChartsTest::
 loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
-  assert(! tsv_);
+  //assert(! tsv_);
 
   tsv_ = new CQChartsTsv(charts_);
 
@@ -1007,10 +1090,14 @@ loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 
   tsv_->load(filename);
 
-  setTableModel(tsv_);
+  setTableModel(tsv_->proxyModel());
+
+  model_ = tsv_;
+
+  return tsv_;
 }
 
-void
+CQChartsModel *
 CQChartsTest::
 loadJson(const QString &filename)
 {
@@ -1022,9 +1109,14 @@ loadJson(const QString &filename)
     setTreeModel(json);
   else
     setTableModel(json);
+
+  model_ = nullptr;
+
+  //return json;
+  return nullptr;
 }
 
-void
+CQChartsModel *
 CQChartsTest::
 loadData(const QString &filename, bool commentHeader, bool firstLineHeader)
 {
@@ -1036,6 +1128,10 @@ loadData(const QString &filename, bool commentHeader, bool firstLineHeader)
   data->load(filename);
 
   setTableModel(data);
+
+  model_ = data;
+
+  return data;
 }
 
 //------
@@ -1044,17 +1140,7 @@ void
 CQChartsTest::
 setTableModel(QAbstractItemModel *model)
 {
-  //model_ = model;
-
-  //table_->setModel(model_);
-
-  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
-
-  proxyModel->setSourceModel(model);
-
-  table_->setModel(proxyModel);
-
-  model_ = proxyModel;
+  table_->setModel(model);
 
   stack_->setCurrentIndex(0);
 }
@@ -1063,9 +1149,7 @@ void
 CQChartsTest::
 setTreeModel(QAbstractItemModel *model)
 {
-  model_ = model;
-
-  tree_->setModel(model_);
+  tree_->setModel(model);
 
   stack_->setCurrentIndex(1);
 }
@@ -1076,18 +1160,30 @@ void
 CQChartsTest::
 addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layout, int &row)
 {
+  int nbool = 0;
+
   for (const auto &parameter : type->parameters()) {
-    if      (parameter.type() == "column") {
+    if      (parameter.type() == "column")
       addParameterColumnEdit(plotData, layout, row, parameter);
-    }
-    else if (parameter.type() == "columns") {
+    else if (parameter.type() == "columns")
       addParameterColumnsEdit(plotData, layout, row, parameter);
-    }
-    else if (parameter.type() == "bool") {
-      addParameterBoolEdit(plotData, layout, row, parameter);
-    }
+    else if (parameter.type() == "bool")
+      ++nbool;
     else
       assert(false);
+  }
+
+  if (nbool > 0) {
+    QHBoxLayout *boolLayout = new QHBoxLayout;
+
+    for (const auto &parameter : type->parameters()) {
+      if (parameter.type() == "bool")
+        addParameterBoolEdit(plotData, boolLayout, parameter);
+    }
+
+    boolLayout->addStretch(1);
+
+    layout->addLayout(boolLayout, row, 0, 1, 2);
   }
 }
 
@@ -1122,7 +1218,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
 void
 CQChartsTest::
-addParameterBoolEdit(PlotData &plotData, QGridLayout *layout, int &row,
+addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                      const CQChartsPlotParameter &parameter)
 {
   bool b = parameter.defValue().toBool();
@@ -1133,7 +1229,7 @@ addParameterBoolEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   checkBox->setChecked(b);
 
-  layout->addWidget(checkBox, row, 0, 1, 2); ++row;
+  layout->addWidget(checkBox);
 
   plotData.boolEdits[parameter.name()] = checkBox;
 }
@@ -1159,7 +1255,7 @@ addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &obj
 bool
 CQChartsTest::
 parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                         int &column)
+                         int &column, QString &columnType)
 {
   bool ok;
 
@@ -1171,20 +1267,23 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
   auto p = plotData.columnEdits.find(parameter.name());
   assert(p != plotData.columnEdits.end());
 
-  return lineEditValue((*p).second, column, defColumn);
+  if (! lineEditValue((*p).second, column, columnType, defColumn))
+    return false;
+
+  return true;
 }
 
 bool
 CQChartsTest::
 parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                          std::vector<int> &columns)
+                          std::vector<int> &columns, QString &columnType)
 {
   auto p = plotData.columnsEdits.find(parameter.name());
   assert(p != plotData.columnsEdits.end());
 
   int column;
 
-  bool ok = lineEditValue((*p).second, column, -1);
+  bool ok = lineEditValue((*p).second, column, columnType, -1);
 
   if (ok) {
     columns.clear();
@@ -1196,7 +1295,7 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
 
   columns.clear();
 
-  return lineEditValues((*p).second, columns);
+  return lineEditValues((*p).second, columns, columnType);
 }
 
 bool
@@ -1213,49 +1312,97 @@ parseParameterBoolEdit(const CQChartsPlotParameter &parameter, const PlotData &p
 
 bool
 CQChartsTest::
-lineEditValue(QLineEdit *le, int &i, int defi) const
+lineEditValue(QLineEdit *le, int &i, QString &columnType, int defi) const
+{
+  QString str = le->text();
+
+  //--
+
+  int pos = str.indexOf(":");
+
+  if (pos >= 0) {
+    str = str.mid(0, pos).simplified();
+
+    columnType = str.mid(pos + 1).simplified();
+  }
+  else
+    str = str.simplified();
+
+  if (! stringToColumn(str, i)) {
+    i = defi;
+
+    return false;
+  }
+
+  return true;
+}
+
+bool
+CQChartsTest::
+stringToColumn(const QString &str, int &column) const
 {
   bool ok = false;
 
-  QString str = le->text();
+  int column1 = str.toInt(&ok);
 
-  i = str.toInt(&ok);
+  if (ok) {
+    column = column1;
 
-  if (ok)
-    return ok;
+    return true;
+  }
 
-  for (int column = 0; column < model_->columnCount(); ++column) {
-    QVariant var = model_->headerData(column, Qt::Horizontal, Qt::DisplayRole);
+  //---
+
+  if (! str.length())
+    return false;
+
+  for (int column1 = 0; column1 < model_->columnCount(); ++column1) {
+    QVariant var = model_->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
 
     if (! var.isValid())
       continue;
 
     if (var.toString() == str) {
-      i = column;
+      column = column1;
       return true;
     }
   }
-
-  i = defi;
 
   return false;
 }
 
 bool
 CQChartsTest::
-lineEditValues(QLineEdit *le, std::vector<int> &ivals) const
+lineEditValues(QLineEdit *le, std::vector<int> &ivals, QString &columnType) const
 {
   bool ok = true;
 
   QStringList strs = le->text().split(" ", QString::SkipEmptyParts);
 
   for (int i = 0; i < strs.size(); ++i) {
+    int pos = strs[i].indexOf(":");
+
+    QString lhs, rhs;
+
+    if (pos > 0) {
+      lhs = strs[i].mid(0, pos).simplified();
+      rhs = strs[i].mid(pos + 1).simplified();
+    }
+    else
+      lhs = strs[i].simplified();
+
+    //---
+
     bool ok1;
 
-    int col = strs[i].toInt(&ok1);
+    int col = lhs.toInt(&ok1);
 
-    if (ok1)
+    if (ok1) {
       ivals.push_back(col);
+
+      if (rhs.length())
+        columnType = rhs;
+    }
     else
       ok = false;
   }

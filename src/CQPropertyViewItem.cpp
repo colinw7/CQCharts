@@ -1,6 +1,7 @@
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
 #include <CQPropertyViewEditor.h>
+#include <CQAlignEdit.h>
 #include <CQUtil.h>
 
 #include <QLineEdit>
@@ -15,6 +16,13 @@ CQPropertyViewItem(CQPropertyViewItem *parent, QObject *object, const QString &n
 
   if (CQUtil::getPropInfo(object_, name_, &propInfo) && propInfo.isWritable())
     editable_ = true;
+}
+
+CQPropertyViewItem::
+~CQPropertyViewItem()
+{
+  for (auto &child : children_)
+    delete child;
 }
 
 void
@@ -171,7 +179,13 @@ setEditorData(const QVariant &value)
   CQUtil::PropInfo propInfo;
 
   if (CQUtil::getPropInfo(object_, name_, &propInfo) && propInfo.isWritable()) {
-    if (propInfo.isEnumType()) {
+    QString typeName = propInfo.typeName();
+
+    if     (typeName == "Qt::Alignment") {
+      if (! this->setData(value))
+        std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+    }
+    else if (propInfo.isEnumType()) {
       QString name = CQUtil::variantToString(value);
 
       const QStringList &names = propInfo.enumNames();
@@ -289,17 +303,6 @@ paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   QVariant var = this->data();
 
-  if (propInfo.isEnumType()) {
-    int ind = var.toInt();
-
-    QString str;
-
-    if (enumIndToString(propInfo, ind, str))
-      delegate->drawString(painter, option, str, index, inside);
-
-    return true;
-  }
-
   if      (typeName == "QColor") {
     delegate->drawColor(painter, option, var.value<QColor>(), index, inside);
   }
@@ -317,6 +320,21 @@ paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
   }
   else if (typeName == "bool") {
     delegate->drawCheck(painter, option, var.toBool(), index, inside);
+  }
+  else if (typeName == "Qt::Alignment") {
+    int i = var.toInt();
+
+    QString str = CQAlignEdit::toString((Qt::Alignment) i);
+
+    delegate->drawString(painter, option, str, index, inside);
+  }
+  else if (propInfo.isEnumType()) {
+    int ind = var.toInt();
+
+    QString str;
+
+    if (enumIndToString(propInfo, ind, str))
+      delegate->drawString(painter, option, str, index, inside);
   }
   else {
     QString str;

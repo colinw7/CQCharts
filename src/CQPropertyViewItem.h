@@ -24,6 +24,8 @@ class CQPropertyViewItem : public QObject {
  public:
   CQPropertyViewItem(CQPropertyViewItem *parent, QObject *object, const QString &name);
 
+ ~CQPropertyViewItem();
+
   bool isValid() const { return id_ == 0xFEEDBEEF; }
 
   CQPropertyViewItem *parent() const { return parent_; }

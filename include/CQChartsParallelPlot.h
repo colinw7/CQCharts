@@ -95,11 +95,13 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   //---
 
-  void addProperties();
+  void addProperties() override;
 
-  void updateRange();
+  void updateRange() override;
 
-  void initObjs(bool force=false);
+  void initObjs(bool force=false) override;
+
+  //---
 
   int numSets() const;
 
