@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQRotatedText.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -24,6 +25,13 @@ CQChartsXYPlotType()
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
   addBoolParameter("cumulative", "Cumulative", "cumulative", "optional");
   addBoolParameter("fillUnder" , "FillUnder" , "fillUnder" , "optional");
+}
+
+CQChartsPlot *
+CQChartsXYPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsXYPlot(view, model);
 }
 
 //---
@@ -87,6 +95,8 @@ addProperties()
   addProperty("lines"    , this, "linesWidth"       , "width"      );
   addProperty("fillUnder", this, "fillUnder"        , "shown"      );
   addProperty("fillUnder", this, "fillUnderColor"   , "color"      );
+  addProperty("dataLabel", this, "dataLabelColor"   , "color"      );
+  addProperty("dataLabel", this, "dataLabelAngle"   , "angle"      );
 }
 
 QString
@@ -1045,7 +1055,20 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
     double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
-    plot_->drawSymbol(p, CPoint2D(x_, y_), symbol, s, c, plot_->isSymbolFilled());
+    CPoint2D pp(x_, y_);
+
+    plot_->drawSymbol(p, pp, symbol, s, c, plot_->isSymbolFilled());
+
+    if (edata_ && edata_->label != "") {
+      double px, py;
+
+      plot_->windowToPixel(pp.x, pp.y, px, py);
+
+      p->setPen(plot_->dataLabelColor());
+
+      CQRotatedText::drawRotatedText(p, px, py, edata_->label, plot_->dataLabelAngle(),
+                                     Qt::AlignHCenter | Qt::AlignBottom);
+    }
   }
 }
 

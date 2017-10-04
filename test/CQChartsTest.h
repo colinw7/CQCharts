@@ -177,6 +177,8 @@ class CQChartsTest : public CQAppWindow {
 
   void loadFileSlot(const QString &type, const QString &filename);
 
+  void createSlot();
+
   void filterSlot();
   void tableColumnClicked(int column);
   void typeOKSlot();

@@ -33,6 +33,13 @@ CQChartsBubblePlotType()
   addColumnParameter("value", "Value", "valueColumn", "", 1);
 }
 
+CQChartsPlot *
+CQChartsBubblePlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsBubblePlot(view, model);
+}
+
 //---
 
 CQChartsBubblePlot::

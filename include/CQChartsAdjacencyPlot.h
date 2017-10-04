@@ -82,6 +82,8 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 
   QString name() const override { return "adjacency"; }
   QString desc() const override { return "Adjacency"; }
+
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
 };
 
 //---
@@ -123,7 +125,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void setEmptyCellColor(const QColor &c) { emptyCellColor_ = c; update(); }
 
   const QFont &font() const { return font_; }
-  void setFont(const QFont &v) { font_ = v; update(); }
+  void setFont(const QFont &f) { font_ = f; update(); }
 
   //---
 

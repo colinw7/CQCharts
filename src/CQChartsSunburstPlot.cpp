@@ -33,6 +33,13 @@ CQChartsSunburstPlotType()
   addColumnParameter("value", "Value", "valueColumn", "", 1);
 }
 
+CQChartsPlot *
+CQChartsSunburstPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsSunburstPlot(view, model);
+}
+
 //---
 
 CQChartsSunburstPlot::

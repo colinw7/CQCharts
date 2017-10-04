@@ -17,6 +17,13 @@ CQChartsDelaunayPlotType()
   addColumnParameter("name", "Name", "nameColumn", "optional");
 }
 
+CQChartsPlot *
+CQChartsDelaunayPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsDelaunayPlot(view, model);
+}
+
 //------
 
 CQChartsDelaunayPlot::

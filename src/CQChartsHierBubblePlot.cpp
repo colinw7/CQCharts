@@ -33,6 +33,13 @@ CQChartsHierBubblePlotType()
   addColumnParameter("value", "Value" , "valueColumn", "", 1);
 }
 
+CQChartsPlot *
+CQChartsHierBubblePlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsHierBubblePlot(view, model);
+}
+
 //------
 
 CQChartsHierBubblePlot::

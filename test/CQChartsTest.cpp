@@ -6,24 +6,13 @@
 #include <CQChartsTsv.h>
 #include <CQChartsJson.h>
 #include <CQChartsData.h>
-#include <CQChartsAxis.h>
-
 #include <CQChartsView.h>
-#include <CQChartsAdjacencyPlot.h>
-#include <CQChartsBarChartPlot.h>
-#include <CQChartsBoxPlot.h>
-#include <CQChartsBubblePlot.h>
-#include <CQChartsDelaunayPlot.h>
-#include <CQChartsGeometryPlot.h>
-#include <CQChartsHierBubblePlot.h>
-#include <CQChartsParallelPlot.h>
-#include <CQChartsPiePlot.h>
-#include <CQChartsScatterPlot.h>
-#include <CQChartsSunburstPlot.h>
-#include <CQChartsTreeMapPlot.h>
+#include <CQChartsPlot.h>
+#include <CQChartsAxis.h>
 #include <CQChartsXYPlot.h>
 
 #include <CQChartsLoader.h>
+#include <CQChartsPlotDlg.h>
 
 #ifdef CQ_APP_H
 #include <CQApp.h>
@@ -530,14 +519,18 @@ addMenus()
   QMenuBar *menuBar = addMenuBar();
 
   QMenu *fileMenu = menuBar->addMenu("&File");
+  QMenu *plotMenu = menuBar->addMenu("&Plot");
   QMenu *helpMenu = menuBar->addMenu("&Help");
 
-  QAction *loadAction = new QAction("Load", menuBar);
-  QAction *helpAction = new QAction("Help", menuBar);
+  QAction *loadAction   = new QAction("Load"  , menuBar);
+  QAction *createAction = new QAction("Create", menuBar);
+  QAction *helpAction   = new QAction("Help"  , menuBar);
 
-  connect(loadAction, SIGNAL(triggered()), this, SLOT(loadSlot()));
+  connect(loadAction  , SIGNAL(triggered()), this, SLOT(loadSlot()));
+  connect(createAction, SIGNAL(triggered()), this, SLOT(createSlot()));
 
   fileMenu->addAction(loadAction);
+  plotMenu->addAction(createAction);
   helpMenu->addAction(helpAction);
 }
 
@@ -668,6 +661,40 @@ loadFileSlot(const QString &type, const QString &filename)
 
 void
 CQChartsTest::
+createSlot()
+{
+  if (! model_)
+    return;
+
+  //---
+
+  CQChartsView *view = getView(/*reuse*/false);
+
+  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(view, model_);
+
+  if (! dlg->exec())
+    return;
+
+  //---
+
+  // add plot to view and show
+  CQChartsPlot *plot = dlg->plot();
+
+  plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
+
+  view->addPlot(plot, bbox_);
+
+  view->show();
+
+  //---
+
+  delete dlg;
+}
+
+//------
+
+void
+CQChartsTest::
 filterSlot()
 {
   if (stack_->currentIndex() == 0)
@@ -763,52 +790,14 @@ tabOKSlot(bool reuse)
   //---
 
   // create plot for typename of current tab
-  CQChartsPlot *plot = nullptr;
-
   QString typeName = tabTypeName_[plotTab_->currentIndex()];
 
-  if      (typeName == "pie") {
-    plot = new CQChartsPiePlot(view, model_);
-  }
-  else if (typeName == "xy") {
-    plot = new CQChartsXYPlot(view, model_);
-  }
-  else if (typeName == "scatter") {
-    plot = new CQChartsScatterPlot(view, model_);
-  }
-  else if (typeName == "sunburst") {
-    plot = new CQChartsSunburstPlot(view, model_);
-  }
-  else if (typeName == "barchart") {
-    plot = new CQChartsBarChartPlot(view, model_);
-  }
-  else if (typeName == "box") {
-    plot = new CQChartsBoxPlot(view, model_);
-  }
-  else if (typeName == "parallel") {
-    plot = new CQChartsParallelPlot(view, model_);
-  }
-  else if (typeName == "geometry") {
-    plot = new CQChartsGeometryPlot(view, model_);
-  }
-  else if (typeName == "delaunay") {
-    plot = new CQChartsDelaunayPlot(view, model_);
-  }
-  else if (typeName == "adjacency") {
-    plot = new CQChartsAdjacencyPlot(view, model_);
-  }
-  else if (typeName == "bubble") {
-    plot = new CQChartsBubblePlot(view, model_);
-  }
-  else if (typeName == "hierbubble") {
-    plot = new CQChartsHierBubblePlot(view, model_);
-  }
-  else if (typeName == "treemap") {
-    plot = new CQChartsTreeMapPlot(view, model_);
-  }
-  else {
-    assert(false);
-  }
+  if (! view->charts()->isPlotType(typeName))
+    return nullptr;
+
+  CQChartsPlotType *plotType = view->charts()->plotType(typeName);
+
+  CQChartsPlot *plot = plotType->create(view, model_);
 
   //---
 

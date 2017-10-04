@@ -53,9 +53,23 @@ init()
   columnTypeMgr_->addType("time"   , new CQChartsColumnTimeType   );
 }
 
+bool
+CQCharts::
+isPlotType(const QString &name) const
+{
+  return plotTypeMgr_->isType(name);
+}
+
 CQChartsPlotType *
 CQCharts::
-plotType(const QString &name)
+plotType(const QString &name) const
 {
   return plotTypeMgr_->type(name);
+}
+
+void
+CQCharts::
+getPlotTypes(QStringList &names, QStringList &descs) const
+{
+ plotTypeMgr_->getTypes(names, descs);
 }

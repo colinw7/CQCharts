@@ -14,6 +14,58 @@
 #include <QSortFilterProxyModel>
 #include <QPainter>
 
+//------
+
+CQChartsPlotTypeMgr::
+CQChartsPlotTypeMgr()
+{
+}
+
+CQChartsPlotTypeMgr::
+~CQChartsPlotTypeMgr()
+{
+  for (auto &type : types_)
+    delete type.second;
+}
+
+void
+CQChartsPlotTypeMgr::
+addType(const QString &name, CQChartsPlotType *type)
+{
+  types_[name] = type;
+}
+
+bool
+CQChartsPlotTypeMgr::
+isType(const QString &name) const
+{
+  auto p = types_.find(name);
+
+  return (p != types_.end());
+}
+
+CQChartsPlotType *
+CQChartsPlotTypeMgr::
+type(const QString &name) const
+{
+  auto p = types_.find(name);
+  assert(p != types_.end());
+
+  return (*p).second;
+}
+
+void
+CQChartsPlotTypeMgr::
+getTypes(QStringList &names, QStringList &descs) const
+{
+  for (auto &type : types_) {
+    names.push_back(type.second->name());
+    descs.push_back(type.second->desc());
+  }
+}
+
+//------
+
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *model) :
  view_(view), type_(type), model_(model), displayTransform_(&displayRange_)
@@ -1575,35 +1627,4 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
-}
-
-//------
-
-CQChartsPlotTypeMgr::
-CQChartsPlotTypeMgr()
-{
-}
-
-CQChartsPlotTypeMgr::
-~CQChartsPlotTypeMgr()
-{
-  for (auto &type : types_)
-    delete type.second;
-}
-
-void
-CQChartsPlotTypeMgr::
-addType(const QString &name, CQChartsPlotType *type)
-{
-  types_[name] = type;
-}
-
-CQChartsPlotType *
-CQChartsPlotTypeMgr::
-type(const QString &name)
-{
-  auto p = types_.find(name);
-  assert(p != types_.end());
-
-  return (*p).second;
 }

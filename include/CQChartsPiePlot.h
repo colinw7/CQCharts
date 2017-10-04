@@ -116,6 +116,8 @@ class CQChartsPiePlotType : public CQChartsPlotType {
 
   QString name() const override { return "pie"; }
   QString desc() const override { return "Pie"; }
+
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
 };
 
 //---

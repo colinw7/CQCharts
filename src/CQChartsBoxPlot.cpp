@@ -15,6 +15,13 @@ CQChartsBoxPlotType()
   addColumnParameter("y", "Y", "yColumn", "", 1);
 }
 
+CQChartsPlot *
+CQChartsBoxPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsBoxPlot(view, model);
+}
+
 //---
 
 CQChartsBoxPlot::

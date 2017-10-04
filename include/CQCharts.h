@@ -20,7 +20,11 @@ class CQCharts {
 
   void init();
 
-  CQChartsPlotType *plotType(const QString &name);
+  bool isPlotType(const QString &name) const;
+
+  CQChartsPlotType *plotType(const QString &name) const;
+
+  void getPlotTypes(QStringList &names, QStringList &descs) const;
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
 

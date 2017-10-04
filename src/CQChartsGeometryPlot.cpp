@@ -17,6 +17,13 @@ CQChartsGeometryPlotType()
   addColumnParameter("name", "Name", "nameColumn", "optional");
 }
 
+CQChartsPlot *
+CQChartsGeometryPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsGeometryPlot(view, model);
+}
+
 //------
 
 CQChartsGeometryPlot::

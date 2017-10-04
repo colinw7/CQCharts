@@ -18,6 +18,13 @@ CQChartsBarChartPlotType()
   addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
 }
 
+CQChartsPlot *
+CQChartsBarChartPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsBarChartPlot(view, model);
+}
+
 //---
 
 CQChartsBarChartPlot::

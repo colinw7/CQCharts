@@ -28,6 +28,13 @@ CQChartsTreeMapPlotType()
   addColumnParameter("value", "Value", "valueColumn", "", 1);
 }
 
+CQChartsPlot *
+CQChartsTreeMapPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsTreeMapPlot(view, model);
+}
+
 //------
 
 CQChartsTreeMapPlot::

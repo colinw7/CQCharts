@@ -14,6 +14,13 @@ CQChartsParallelPlotType()
   addColumnsParameter("y", "Y", "yColumns", "", "1");
 }
 
+CQChartsPlot *
+CQChartsParallelPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsParallelPlot(view, model);
+}
+
 //---
 
 CQChartsParallelPlot::

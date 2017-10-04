@@ -82,3 +82,7 @@
  + add pie chart start angle
  + ensure pie chart labels are rendered on top
  + support set of property from command line args
+## 10/03/2017
+ + add factory to plot type
+ + add create dialog
+ + remove some name specific code to use plot type mgr

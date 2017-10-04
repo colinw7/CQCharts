@@ -18,6 +18,13 @@ CQChartsScatterPlotType()
   addColumnParameter("size", "Size", "sizeColumn", "optional");
 }
 
+CQChartsPlot *
+CQChartsScatterPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsScatterPlot(view, model);
+}
+
 //---
 
 CQChartsScatterPlot::

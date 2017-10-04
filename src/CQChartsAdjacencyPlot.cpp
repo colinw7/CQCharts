@@ -18,6 +18,13 @@ CQChartsAdjacencyPlotType()
   addColumnParameter("name" , "Name" , "nameColumn" , "optional");
 }
 
+CQChartsPlot *
+CQChartsAdjacencyPlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsAdjacencyPlot(view, model);
+}
+
 //---
 
 CQChartsAdjacencyPlot::

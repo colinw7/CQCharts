@@ -17,6 +17,13 @@ CQChartsPiePlotType()
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn", "optional");
 }
 
+CQChartsPlot *
+CQChartsPiePlotType::
+create(CQChartsView *view, QAbstractItemModel *model) const
+{
+  return new CQChartsPiePlot(view, model);
+}
+
 //---
 
 CQChartsPiePlot::

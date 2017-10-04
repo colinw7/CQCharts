@@ -35,7 +35,11 @@ class CQChartsPlotTypeMgr {
 
   void addType(const QString &name, CQChartsPlotType *type);
 
-  CQChartsPlotType *type(const QString &name);
+  bool isType(const QString &name) const;
+
+  CQChartsPlotType *type(const QString &name) const;
+
+  void getTypes(QStringList &names, QStringList &descs) const;
 
  private:
   typedef std::map<QString, CQChartsPlotType *> Types;
@@ -77,6 +81,8 @@ class CQChartsPlotType {
   void addParameter(const CQChartsPlotParameter &parameter) {
     parameters_.push_back(parameter);
   }
+
+  virtual CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const = 0;
 
  protected:
   Parameters parameters_;

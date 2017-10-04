@@ -172,6 +172,8 @@ class CQChartsXYPlotType : public CQChartsPlotType {
 
   QString name() const override { return "xy"; }
   QString desc() const override { return "XY"; }
+
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
 };
 
 //---
@@ -214,6 +216,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(QString symbolName        READ symbolName        WRITE setSymbolName       )
   Q_PROPERTY(double  symbolSize        READ symbolSize        WRITE setSymbolSize       )
   Q_PROPERTY(bool    symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
+  Q_PROPERTY(QColor  dataLabelColor    READ dataLabelColor    WRITE setDataLabelColor   )
+  Q_PROPERTY(double  dataLabelAngle    READ dataLabelAngle    WRITE setDataLabelAngle   )
 
  private:
   struct PointData {
@@ -238,10 +242,16 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   struct FillUnderData {
     bool   shown   { false };
-    QColor color   { 128, 128, 200 };
-    bool   palette { false };
+    QColor color   { 128, 128, 128 };
+    bool   palette { true };
 
     FillUnderData() { }
+  };
+
+  struct DataLabelData {
+    bool   shown { true };
+    QColor color;
+    double angle { 0.0 };
   };
 
  public:
@@ -349,6 +359,14 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
+  const QColor &dataLabelColor() const { return dataLabelData_.color; }
+  void setDataLabelColor(const QColor &c) { dataLabelData_.color = c; update(); }
+
+  double dataLabelAngle() const { return dataLabelData_.angle; }
+  void setDataLabelAngle(double r) { dataLabelData_.angle = r; }
+
+  //---
+
   QColor pointColor    (int i, int n) const;
   QColor lineColor     (int i, int n) const;
   QColor fillUnderColor(int i, int n) const;
@@ -412,6 +430,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   PointData     pointData_;
   LineData      lineData_;
   FillUnderData fillUnderData_;
+  DataLabelData dataLabelData_;
   IdHidden      idHidden_;
 };
 

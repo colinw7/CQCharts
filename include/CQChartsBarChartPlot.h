@@ -60,6 +60,8 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
 
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
+
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
 };
 
 //---

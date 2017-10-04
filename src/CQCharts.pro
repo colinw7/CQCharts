@@ -30,7 +30,6 @@ CQChartsHeader.cpp \
 CQChartsHierBubblePlot.cpp \
 CQChartsKey.cpp \
 CQChartsJson.cpp \
-CQChartsLoader.cpp \
 CQChartsModel.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
@@ -52,6 +51,9 @@ CQChartsViewStatus.cpp \
 CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
 CQChartsXYPlot.cpp \
+\
+CQChartsLoader.cpp \
+CQChartsPlotDlg.cpp \
 \
 CQPropertyViewDelegate.cpp \
 CQPropertyViewEditor.cpp \
@@ -109,7 +111,6 @@ HEADERS += \
 ../include/CQChartsHeader.h \
 ../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsJson.h \
-../include/CQChartsLoader.h \
 ../include/CQChartsModel.h \
 ../include/CQChartsParallelPlot.h \
 ../include/CQChartsPiePlot.h \
@@ -134,6 +135,9 @@ HEADERS += \
 ../include/CQChartsViewToolBar.h \
 ../include/CQChartsViewToolTip.h \
 ../include/CQChartsXYPlot.h \
+\
+../include/CQChartsLoader.h \
+../include/CQChartsPlotDlg.h \
 \
 CQPropertyViewDelegate.h \
 CQPropertyViewEditor.h \
