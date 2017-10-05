@@ -214,7 +214,7 @@ class CQChartsHierBubblePlotType : public CQChartsPlotType {
   QString name() const override { return "hierbubble"; }
   QString desc() const override { return "HierBubble"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

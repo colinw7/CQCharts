@@ -32,7 +32,7 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
   QString name() const override { return "parallel"; }
   QString desc() const override { return "Parallel"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

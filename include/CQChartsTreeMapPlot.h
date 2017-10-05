@@ -249,7 +249,7 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
   QString name() const override { return "treemap"; }
   QString desc() const override { return "TreeMap"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

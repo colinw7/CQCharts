@@ -173,7 +173,7 @@ class CQChartsXYPlotType : public CQChartsPlotType {
   QString name() const override { return "xy"; }
   QString desc() const override { return "XY"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

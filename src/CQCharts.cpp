@@ -69,7 +69,7 @@ plotType(const QString &name) const
 
 void
 CQCharts::
-getPlotTypes(QStringList &names, QStringList &descs) const
+getPlotTypeNames(QStringList &names, QStringList &descs) const
 {
- plotTypeMgr_->getTypes(names, descs);
+  plotTypeMgr_->getTypeNames(names, descs);
 }

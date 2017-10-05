@@ -12,7 +12,8 @@ class CQChartsPlot;
 class QAbstractItemModel;
 class QGridLayout;
 class QHBoxLayout;
-class QTabWidget;
+class QComboBox;
+class QStackedWidget;
 class QLineEdit;
 class QCheckBox;
 
@@ -36,15 +37,14 @@ class CQChartsPlotDlg : public QDialog {
 
     LineEdits    columnEdits;
     LineEdits    columnsEdits;
+    LineEdits    formatEdits;
     CheckBoxes   boolEdits;
     QPushButton* okButton { nullptr };
-    int          tabInd { -1 };
+    int          ind      { -1 };
   };
 
  private:
-  void createTab();
-
-  void addPlotTab(const QString &typeName);
+  void addPlotWidgets(const QString &typeName, int ind);
 
   void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
                          QGridLayout *layout, int &row);
@@ -58,8 +58,8 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                             const CQChartsPlotParameter &parameter);
 
-  QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
-                         const QString &objName) const;
+  QLineEdit *addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+                         const QString &objName, const QString &placeholderText) const;
 
   bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
                                 int &column, QString &columnType);
@@ -76,6 +76,8 @@ class CQChartsPlotDlg : public QDialog {
   bool stringToColumn(const QString &str, int &column) const;
 
  private slots:
+  void comboSlot(int ind);
+
   void okSlot();
 
  private:
@@ -84,7 +86,8 @@ class CQChartsPlotDlg : public QDialog {
 
   CQChartsView*       view_  { nullptr };
   QAbstractItemModel* model_ { nullptr };
-  QTabWidget*         tab_   { nullptr };
+  QComboBox*          combo_ { nullptr };
+  QStackedWidget*     stack_ { nullptr };
   TypePlotData        typePlotData_;
   TabTypeName         tabTypeName_;
   CQChartsPlot*       plot_  { nullptr };

@@ -24,7 +24,7 @@ class CQCharts {
 
   CQChartsPlotType *plotType(const QString &name) const;
 
-  void getPlotTypes(QStringList &names, QStringList &descs) const;
+  void getPlotTypeNames(QStringList &names, QStringList &descs) const;
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
 

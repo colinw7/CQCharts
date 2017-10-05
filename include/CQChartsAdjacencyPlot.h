@@ -83,7 +83,7 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
   QString name() const override { return "adjacency"; }
   QString desc() const override { return "Adjacency"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

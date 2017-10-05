@@ -83,7 +83,7 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
   QString name() const override { return "bubble"; }
   QString desc() const override { return "Bubble"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

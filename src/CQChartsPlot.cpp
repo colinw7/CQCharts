@@ -56,7 +56,7 @@ type(const QString &name) const
 
 void
 CQChartsPlotTypeMgr::
-getTypes(QStringList &names, QStringList &descs) const
+getTypeNames(QStringList &names, QStringList &descs) const
 {
   for (auto &type : types_) {
     names.push_back(type.second->name());

@@ -15,17 +15,13 @@ class CQChartsLoader;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
-class CQChartsPlotParameter;
 class CQChartsCsv;
 class CQChartsTsv;
 class CQChartsModel;
 
 class QAbstractItemModel;
 class QStackedWidget;
-class QTabWidget;
-class QGroupBox;
 class QLineEdit;
-class QCheckBox;
 class QPushButton;
 class QGridLayout;
 class QHBoxLayout;
@@ -46,7 +42,7 @@ class CQChartsTest : public CQAppWindow {
     bool       tsv             { false };
     bool       json            { false };
     bool       data            { false };
-    QString    plot;
+    QString    typeName;
     NameValues nameValues;
     NameBools  nameBools;
     QString    columnType;
@@ -86,18 +82,6 @@ class CQChartsTest : public CQAppWindow {
     }
   };
 
- private:
-  struct PlotData {
-    typedef std::map<QString, QLineEdit *> LineEdits;
-    typedef std::map<QString, QCheckBox *> CheckBoxes;
-
-    LineEdits    columnEdits;
-    LineEdits    columnsEdits;
-    CheckBoxes   boolEdits;
-    QPushButton* okButton { nullptr };
-    int          tabInd { -1 };
-  };
-
  public:
   CQChartsTest();
 
@@ -123,50 +107,15 @@ class CQChartsTest : public CQAppWindow {
  private:
   void addMenus();
 
-  void addPlotTab      (QTabWidget *plotTab, const QString &typeName);
-  void addScatterTab   (QTabWidget *plotTab);
-  void addSunburstTab  (QTabWidget *plotTab);
-  void addBarChartTab  (QTabWidget *plotTab);
-  void addBoxTab       (QTabWidget *plotTab);
-  void addParallelTab  (QTabWidget *plotTab);
-  void addGeometryTab  (QTabWidget *plotTab);
-  void addDelaunayTab  (QTabWidget *plotTab);
-  void addAdjacencyTab (QTabWidget *plotTab);
-  void addBubbleTab    (QTabWidget *plotTab);
-  void addHierBubbleTab(QTabWidget *plotTab);
-  void addTreeMapTab   (QTabWidget *plotTab);
-
   void setTableModel(QAbstractItemModel *model);
   void setTreeModel (QAbstractItemModel *model);
-
-  void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
-                         QGridLayout *layout, int &row);
-
-  void addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                              const CQChartsPlotParameter &parameter);
-  void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
-                               const CQChartsPlotParameter &parameter);
-  void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
-                            const CQChartsPlotParameter &parameter);
 
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
-  bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter,
-                                const PlotData &plotData, int &column, QString &columnType);
-  bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
-                                 const PlotData &plotData, std::vector<int> &columns,
-                                 QString &columnType);
-  bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
-                              const PlotData &plotData, bool &b);
-
-  bool lineEditValue(QLineEdit *le, int &i, QString &columnType, int defi=0) const;
-
-  bool lineEditValues(QLineEdit *le, std::vector<int> &ivals, QString &columnType) const;
-
-  void setEditsFromInitData(const PlotData &plotData, const InitData &initData);
-
   bool stringToColumn(const QString &str, int &column) const;
+
+  CQChartsPlot * createPlot(CQChartsPlotType *type, const InitData &initData, bool reuse);
 
   CQChartsView *getView(bool reuse=true);
 
@@ -183,12 +132,8 @@ class CQChartsTest : public CQAppWindow {
   void tableColumnClicked(int column);
   void typeOKSlot();
 
-  CQChartsPlot *tabOKSlot(bool reuse=false);
-
  private:
   typedef std::vector<CQChartsPlot *> Plots;
-  typedef std::map<QString,PlotData>  TypePlotData;
-  typedef std::map<int,QString>       TabTypeName;
   typedef QPointer<CQChartsView>      ViewP;
 
   Plots               plots_;
@@ -197,15 +142,11 @@ class CQChartsTest : public CQAppWindow {
   CQChartsCsv*        csv_               { nullptr };
   CQChartsTsv*        tsv_               { nullptr };
   QAbstractItemModel* model_             { nullptr };
-  TypePlotData        typePlotData_;
-  TabTypeName         tabTypeName_;
-  QTabWidget*         plotTab_           { nullptr };
   QLineEdit*          columnTypeEdit_    { nullptr };
   QStackedWidget*     stack_             { nullptr };
   QLineEdit*          filterEdit_        { nullptr };
   CQChartsTable*      table_             { nullptr };
   CQChartsTree*       tree_              { nullptr };
-  QGroupBox*          typeGroup_         { nullptr };
   int                 tableColumn_       { 0 };
   CQChartsLoader*     loader_            { nullptr };
   ViewP               view_;

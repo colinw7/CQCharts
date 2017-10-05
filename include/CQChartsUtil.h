@@ -5,7 +5,6 @@
 #include <CLineDash.h>
 #include <CBBox2D.h>
 #include <CPoint2D.h>
-#include <CVector2D.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -302,11 +301,17 @@ inline double PointPointDistance(const CPoint2D &point1, const CPoint2D &point2)
 // distance between point and line
 inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
                               const CPoint2D &lineEnd, double *dist) {
+  double dx1 = lineEnd.x - lineStart.x;
+  double dy1 = lineEnd.y - lineStart.y;
+
+  double dx2 = lineEnd.x - point.x;
+  double dy2 = lineEnd.y - point.y;
+
   CVector2D l (lineStart, lineEnd);
   CVector2D pl(lineStart, point  );
 
-  double u1 = pl.dotProduct(l);
-  double u2 = l .lengthSqr();
+  double u1 = dx2*dx1 + dy2*dy1;
+  double u2 = dx1*dx1 + dy1*dy1;
 
   if (u2 <= 0.0) {
     *dist = PointPointDistance(point, lineStart);
@@ -324,7 +329,7 @@ inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
     return false;
   }
   else {
-    CPoint2D intersection = lineStart + u*l;
+    CPoint2D intersection = lineStart + u*CPoint2D(dx1, dy1);
 
     *dist = PointPointDistance(point, intersection);
 

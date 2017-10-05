@@ -62,7 +62,7 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
   QString name() const override { return "box"; }
   QString desc() const override { return "BoxPlot"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

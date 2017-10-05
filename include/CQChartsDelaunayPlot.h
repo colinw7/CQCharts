@@ -39,7 +39,7 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
   QString name() const override { return "delaunay"; }
   QString desc() const override { return "Delaunay"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

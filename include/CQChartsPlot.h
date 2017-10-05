@@ -39,7 +39,7 @@ class CQChartsPlotTypeMgr {
 
   CQChartsPlotType *type(const QString &name) const;
 
-  void getTypes(QStringList &names, QStringList &descs) const;
+  void getTypeNames(QStringList &names, QStringList &descs) const;
 
  private:
   typedef std::map<QString, CQChartsPlotType *> Types;

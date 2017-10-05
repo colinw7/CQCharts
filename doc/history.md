@@ -86,3 +86,7 @@
  + add factory to plot type
  + add create dialog
  + remove some name specific code to use plot type mgr
+## 10/04/2017
+ + improve create dialog
+ + remove old create widgets
+ + cleanup argument syntax

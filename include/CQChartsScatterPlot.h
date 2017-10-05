@@ -49,7 +49,7 @@ class CQChartsScatterPlotType : public CQChartsPlotType {
   QString name() const override { return "scatter"; }
   QString desc() const override { return "Scatter"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---

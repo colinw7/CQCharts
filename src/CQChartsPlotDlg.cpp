@@ -9,7 +9,8 @@
 
 #include <QGridLayout>
 #include <QHBoxLayout>
-#include <QTabWidget>
+#include <QComboBox>
+#include <QStackedWidget>
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QPushButton>
@@ -22,44 +23,89 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 {
   setObjectName("plotDlg");
 
+  //----
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
-  createTab();
+  //----
 
-  layout->addWidget(tab_);
-}
+  QHBoxLayout *typeLayout = new QHBoxLayout;
 
-int
-CQChartsPlotDlg::
-exec()
-{
-  plot_ = nullptr;
+  layout->addLayout(typeLayout);
 
-  return QDialog::exec();
-}
+  //--
 
-void
-CQChartsPlotDlg::
-createTab()
-{
-  tab_ = new QTabWidget;
+  QLabel *typeLabel = new QLabel("Type");
 
-  tab_->setObjectName("tab");
+  typeLabel->setObjectName("typeLabel");
 
-  tab_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  typeLayout->addWidget(typeLabel);
+
+  //--
+
+  QComboBox *typeCombo = new QComboBox;
+
+  typeCombo->setObjectName("typeCombo");
+
+  typeLayout->addWidget(typeCombo);
 
   QStringList names, descs;
 
-  view_->charts()->getPlotTypes(names, descs);
+  view_->charts()->getPlotTypeNames(names, descs);
 
-  for (int i = 0; i < descs.size(); ++i) {
-    addPlotTab(names[i]);
-  }
+  typeCombo->addItems(descs);
+
+  connect(typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(comboSlot(int)));
+
+  //--
+
+  typeLayout->addStretch(1);
+
+  //----
+
+  stack_ = new QStackedWidget;
+
+  stack_->setObjectName("stack");
+
+  layout->addWidget(stack_);
+
+  for (int i = 0; i < names.size(); ++i)
+    addPlotWidgets(names[i], i);
+
+  //----
+
+  QHBoxLayout *buttonLayout = new QHBoxLayout;
+
+  layout->addLayout(buttonLayout);
+
+  //--
+
+  QPushButton *okButton = new QPushButton("OK");
+
+  okButton->setObjectName("ok");
+
+  connect(okButton, SIGNAL(clicked()), this, SLOT(okSlot()));
+
+  buttonLayout->addWidget(okButton);
+
+  //--
+
+  QPushButton *cancelButton = new QPushButton("Cancel");
+
+  cancelButton->setObjectName("cancel");
+
+  connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+
+  buttonLayout->addWidget(cancelButton);
+
+  //--
+
+  buttonLayout->addStretch(1);
 }
 
 void
 CQChartsPlotDlg::
-addPlotTab(const QString &typeName)
+addPlotWidgets(const QString &typeName, int ind)
 {
   CQChartsPlotType *type = view_->charts()->plotType(typeName);
   assert(type);
@@ -70,51 +116,25 @@ addPlotTab(const QString &typeName)
 
   frame->setObjectName("frame");
 
-  QVBoxLayout *frameLayout = new QVBoxLayout(frame);
+  stack_->addWidget(frame);
 
   //---
 
-  QGridLayout *editLayout = new QGridLayout;
-
-  frameLayout->addLayout(editLayout);
+  QGridLayout *frameLayout = new QGridLayout(frame);
 
   int row = 0;
 
   PlotData &plotData = typePlotData_[type->name()];
 
-  addParameterEdits(type, plotData, editLayout, row);
+  addParameterEdits(type, plotData, frameLayout, row);
 
-  editLayout->setRowStretch(row, 1);
-
-  //---
-
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
-
-  plotData.okButton = new QPushButton("OK");
-
-  plotData.okButton->setObjectName("ok");
-
-  connect(plotData.okButton, SIGNAL(clicked()), this, SLOT(okSlot()));
-
-  buttonLayout->addWidget(plotData.okButton);
-
-  QPushButton *cancelButton = new QPushButton("Cancel");
-
-  cancelButton->setObjectName("cancel");
-
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
-
-  buttonLayout->addWidget(cancelButton);
-
-  buttonLayout->addStretch(1);
-
-  frameLayout->addLayout(buttonLayout);
+  frameLayout->setRowStretch(row, 1);
 
   //---
 
-  plotData.tabInd = tab_->addTab(frame, type->desc());
+  plotData.ind = ind;
 
-  tabTypeName_[plotData.tabInd] = type->name();
+  tabTypeName_[plotData.ind] = type->name();
 }
 
 void
@@ -145,6 +165,8 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
     boolLayout->addStretch(1);
 
     layout->addLayout(boolLayout, row, 0, 1, 2);
+
+    ++row;
   }
 }
 
@@ -153,16 +175,31 @@ CQChartsPlotDlg::
 addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
                        const CQChartsPlotParameter &parameter)
 {
+  int column = 0;
+
   bool ok;
 
-  int column = parameter.defValue().toInt(&ok);
+  int pColumn = parameter.defValue().toInt(&ok);
 
-  QLineEdit *le = addLineEdit(layout, row, parameter.desc(), parameter.name());
+  QLineEdit *columnEdit =
+    addLineEdit(layout, row, column, parameter.desc(), parameter.name() + "Column",
+                "Column Name or Number");
 
   if (ok)
-    le->setText(QString("%1").arg(column));
+    columnEdit->setText(QString("%1").arg(pColumn));
 
-  plotData.columnEdits[parameter.name()] = le;
+  plotData.columnEdits[parameter.name()] = columnEdit;
+
+  //---
+
+  QLineEdit *formatEdit =
+    addLineEdit(layout, row, column, "", parameter.name() + "Format", "Column Format");
+
+  plotData.formatEdits[parameter.name()] = formatEdit;
+
+  //---
+
+  ++row;
 }
 
 void
@@ -170,11 +207,26 @@ CQChartsPlotDlg::
 addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
                         const CQChartsPlotParameter &parameter)
 {
-  QLineEdit *le = addLineEdit(layout, row, parameter.desc(), parameter.name());
+  int column = 0;
 
-  le->setText(parameter.defValue().toString());
+  QLineEdit *columnsEdit =
+    addLineEdit(layout, row, column, parameter.desc(), parameter.name() + "Columns",
+                "Column Names or Numbers");
 
-  plotData.columnsEdits[parameter.name()] = le;
+  columnsEdit->setText(parameter.defValue().toString());
+
+  plotData.columnsEdits[parameter.name()] = columnsEdit;
+
+  //---
+
+  QLineEdit *formatEdit =
+    addLineEdit(layout, row, column, "", parameter.name() + "Format", "Columns Format");
+
+  plotData.formatEdits[parameter.name()] = formatEdit;
+
+  //---
+
+  ++row;
 }
 
 void
@@ -197,28 +249,43 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
 
 QLineEdit *
 CQChartsPlotDlg::
-addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
+addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+            const QString &objName, const QString &placeholderText) const
 {
-  QLabel    *label = new QLabel(name);
-  QLineEdit *edit  = new QLineEdit;
+  if (name != "") {
+    QLabel *label = new QLabel(name);
 
-  label->setObjectName(objName + "Label");
-  label->setObjectName(objName + "Edit" );
+    label->setObjectName(objName + "Label");
 
-  grid->addWidget(label, row, 0);
-  grid->addWidget(edit , row, 1);
+    grid->addWidget(label, row, column); ++column;
+  }
 
-  ++row;
+  QLineEdit *edit = new QLineEdit;
+
+  edit->setObjectName(objName + "Edit" );
+
+  edit->setPlaceholderText(placeholderText);
+
+  grid->addWidget(edit , row, column); ++column;
 
   return edit;
 }
 
 void
 CQChartsPlotDlg::
+comboSlot(int ind)
+{
+  stack_->setCurrentIndex(ind);
+}
+
+void
+CQChartsPlotDlg::
 okSlot()
 {
+  int ind = stack_->currentIndex();
+
   // create plot for typename of current tab
-  QString typeName = tabTypeName_[tab_->currentIndex()];
+  QString typeName = tabTypeName_[ind];
 
   if (! view_->charts()->isPlotType(typeName))
     return;
@@ -316,6 +383,16 @@ CQChartsPlotDlg::
 parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
                          int &column, QString &columnType)
 {
+  auto pf = plotData.formatEdits.find(parameter.name());
+  assert(pf != plotData.formatEdits.end());
+
+  QString format = (*pf).second->text();
+
+  if (format != "")
+    columnType = format;
+
+  //---
+
   bool ok;
 
   int defColumn = parameter.defValue().toInt(&ok);
@@ -323,10 +400,10 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
   if (! ok)
     defColumn = -1;
 
-  auto p = plotData.columnEdits.find(parameter.name());
-  assert(p != plotData.columnEdits.end());
+  auto pe = plotData.columnEdits.find(parameter.name());
+  assert(pe != plotData.columnEdits.end());
 
-  if (! lineEditValue((*p).second, column, columnType, defColumn))
+  if (! lineEditValue((*pe).second, column, columnType, defColumn))
     return false;
 
   return true;
@@ -337,24 +414,32 @@ CQChartsPlotDlg::
 parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
                           std::vector<int> &columns, QString &columnType)
 {
-  auto p = plotData.columnsEdits.find(parameter.name());
-  assert(p != plotData.columnsEdits.end());
+  auto pf = plotData.formatEdits.find(parameter.name());
+  assert(pf != plotData.formatEdits.end());
+
+  QString format = (*pf).second->text();
+
+  if (format != "")
+    columnType = format;
+
+  //---
+
+  columns.clear();
+
+  auto pe = plotData.columnsEdits.find(parameter.name());
+  assert(pe != plotData.columnsEdits.end());
 
   int column;
 
-  bool ok = lineEditValue((*p).second, column, columnType, -1);
+  bool ok = lineEditValue((*pe).second, column, columnType, -1);
 
   if (ok) {
-    columns.clear();
-
     columns.push_back(column);
 
     return true;
   }
 
-  columns.clear();
-
-  return lineEditValues((*p).second, columns, columnType);
+  return lineEditValues((*pe).second, columns, columnType);
 }
 
 bool
@@ -467,4 +552,13 @@ lineEditValues(QLineEdit *le, std::vector<int> &ivals, QString &columnType) cons
   }
 
   return ok;
+}
+
+int
+CQChartsPlotDlg::
+exec()
+{
+  plot_ = nullptr;
+
+  return QDialog::exec();
 }

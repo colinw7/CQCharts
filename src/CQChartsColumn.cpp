@@ -8,7 +8,7 @@ CQChartsColumnTypeMgr()
 CQChartsColumnTypeMgr::
 ~CQChartsColumnTypeMgr()
 {
-  for (const auto &nameType : nameType_)
+  for (auto &nameType : nameType_)
     delete nameType.second;
 }
 

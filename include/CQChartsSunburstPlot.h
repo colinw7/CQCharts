@@ -335,7 +335,7 @@ class CQChartsSunburstPlotType : public CQChartsPlotType {
   QString name() const override { return "sunburst"; }
   QString desc() const override { return "Sunburst"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const;
+  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
 };
 
 //---
