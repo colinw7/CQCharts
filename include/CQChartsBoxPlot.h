@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsUtil.h>
 
 #include <CBoxWhisker.h>
 #include <map>
@@ -118,14 +119,31 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  typedef std::map<int,CBoxWhisker> Whiskers;
-  typedef std::map<int,bool>        IdHidden;
+  struct RealCmp {
+    bool operator()(const double &lhs, const double &rhs) const {
+      if (CQChartsUtil::realEq(lhs, rhs))
+        return false;
+
+      return lhs < rhs;
+    }
+  };
+
+  typedef std::map<int,CBoxWhisker>    Whiskers;
+  typedef std::map<int,bool>           IdHidden;
+  typedef std::map<double,int,RealCmp> ValueSet;
+  typedef std::map<int,double>         SetValue;
+  typedef std::map<QString,int>        NameSet;
+  typedef std::map<int,QString>        SetName;
 
   int      xColumn_      { 0 };
   int      yColumn_      { 1 };
   QColor   boxColor_     { "#46A2B4" };
   double   cornerRadius_ { 0.0 };
   Whiskers whiskers_;
+  ValueSet valueSet_;
+  SetValue setValue_;
+  NameSet  nameSet_;
+  SetName  setName_;
   IdHidden idHidden_;
 };
 

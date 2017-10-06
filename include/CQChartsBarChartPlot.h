@@ -12,7 +12,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
-                      int iset, int nset, int ival, int nval, double value);
+                      int iset, int nset, int ival, int nval,
+                      int isval, int nsval, double value);
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -22,6 +23,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   int                   nset_  { -1 };
   int                   ival_  { -1 };
   int                   nval_  { -1 };
+  int                   isval_ { -1 };
+  int                   nsval_ { -1 };
   double                value_ { -1 };
 };
 
@@ -212,10 +215,21 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   struct ValueSet {
     QString name;
+    int     ind;
     Values  values;
 
-    ValueSet(const QString &name) :
-     name(name) {
+    ValueSet(const QString &name, int ind) :
+     name(name), ind(ind) {
+    }
+
+    void calcSums(double &posSum, double &negSum) {
+      posSum = 0.0;
+      negSum = 0.0;
+
+      for (auto &v : values) {
+        if (v >= 0) posSum += v;
+        else        negSum += v;
+      }
     }
   };
 

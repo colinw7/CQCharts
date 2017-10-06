@@ -54,19 +54,99 @@ updateRange()
   if (whiskers_.empty()) {
     int n = model_->rowCount(QModelIndex());
 
+    // determine x data type
+
+    bool isInt = true, isReal = true;
+
     for (int i = 0; i < n; ++i) {
-      bool ok1, ok2;
+      if (isInt) {
+        bool ok1;
 
-      int    set   = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
-      double value = CQChartsUtil::modelReal   (model_, i, yColumn_, ok2);
+        (void) CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
 
-      if (! ok1) set   = i;
+        if (ok1)
+          continue;
+
+        isInt = false;
+      }
+
+      if (isReal) {
+        bool ok1;
+
+        (void) CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+
+        if (ok1)
+          continue;
+
+        isReal = false;
+      }
+
+      break;
+    }
+
+    valueSet_.clear();
+    setValue_.clear();
+    nameSet_ .clear();
+    setName_ .clear();
+
+    for (int i = 0; i < n; ++i) {
+      int setId = i;
+
+      if      (isInt) {
+        bool ok1;
+
+        setId = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
+      }
+      else if (isReal) {
+        bool ok1;
+
+        double r = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+
+        if (CQChartsUtil::isNaN(r))
+          continue;
+
+        auto p = valueSet_.find(r);
+
+        if (p == valueSet_.end()) {
+          int setId = valueSet_.size() + 1;
+
+          p = valueSet_.insert(p, ValueSet::value_type(r, setId));
+
+          setValue_[setId] = r;
+        }
+
+        setId = (*p).second;
+      }
+      else {
+        bool ok1;
+
+        QString s = CQChartsUtil::modelString(model_, i, xColumn_, ok1);
+
+        auto p = nameSet_.find(s);
+
+        if (p == nameSet_.end()) {
+          int setId = nameSet_.size() + 1;
+
+          p = nameSet_.insert(p, NameSet::value_type(s, setId));
+
+          setName_[setId] = s;
+        }
+
+        setId = (*p).second;
+      }
+
+      //---
+
+      bool ok2;
+
+      double value = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+
       if (! ok2) value = i;
 
       if (CQChartsUtil::isNaN(value))
         continue;
 
-      whiskers_[set].addValue(value);
+      whiskers_[setId].addValue(value);
     }
 
     for (auto &iwhisker : whiskers_)
@@ -75,13 +155,24 @@ updateRange()
 
   //---
 
+  xAxis_->clearTickLabels();
+
   int i = 0;
 
   for (const auto &iwhisker : whiskers_) {
     bool hidden = isSetHidden(i);
 
     if (! hidden) {
-      double pos = iwhisker.first;
+      int setId = iwhisker.first;
+
+      if      (! setValue_.empty())
+        xAxis_->setTickLabel(setId, QString("%1").arg(setValue_[setId]));
+      else if (! setName_.empty())
+        yAxis_->setTickLabel(setId, setName_[setId]);
+
+      //---
+
+      double pos = setId;
 
       const CBoxWhisker &whisker = iwhisker.second;
 

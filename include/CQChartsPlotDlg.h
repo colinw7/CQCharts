@@ -23,6 +23,8 @@ class CQChartsPlotDlg : public QDialog {
  public:
   CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model);
 
+  CQCharts *charts() const;
+
   int exec();
 
   CQChartsPlot *plot() const { return plot_; }
@@ -84,13 +86,22 @@ class CQChartsPlotDlg : public QDialog {
   typedef std::map<QString,PlotData> TypePlotData;
   typedef std::map<int,QString>      TabTypeName;
 
-  CQChartsView*       view_  { nullptr };
-  QAbstractItemModel* model_ { nullptr };
-  QComboBox*          combo_ { nullptr };
-  QStackedWidget*     stack_ { nullptr };
+  CQChartsView*       view_           { nullptr };
+  QAbstractItemModel* model_          { nullptr };
+  QComboBox*          combo_          { nullptr };
+  QStackedWidget*     stack_          { nullptr };
+  QLineEdit*          viewEdit_       { nullptr };
+  QLineEdit*          posEdit_        { nullptr };
+  QLineEdit*          titleEdit_      { nullptr };
+  QLineEdit*          xminEdit_       { nullptr };
+  QLineEdit*          yminEdit_       { nullptr };
+  QLineEdit*          xmaxEdit_       { nullptr };
+  QLineEdit*          ymaxEdit_       { nullptr };
+  QCheckBox*          xintegralCheck_ { nullptr };
+  QCheckBox*          yintegralCheck_ { nullptr };
   TypePlotData        typePlotData_;
   TabTypeName         tabTypeName_;
-  CQChartsPlot*       plot_  { nullptr };
+  CQChartsPlot*       plot_           { nullptr };
 };
 
 #endif

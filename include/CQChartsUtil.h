@@ -16,6 +16,22 @@
 
 namespace CQChartsUtil {
 
+//------
+
+inline bool isInteger(double r) {
+  return std::abs(r - int(r)) < 1E-3;
+}
+
+inline bool realEq(double r1, double r2) {
+  return std::fabs(r2 - r1) < 1E-5;
+}
+
+inline bool isZero(double r) {
+  return realEq(r, 0.0);
+}
+
+//------
+
 inline double toReal(const QString &str, bool &ok) {
   ok = true;
 
@@ -42,6 +58,8 @@ inline bool toReal(const QString &str, double &r) {
 
   return ok;
 }
+
+//------
 
 inline long toInt(const QString &str, bool &ok) {
   ok = true;
@@ -70,17 +88,20 @@ inline bool toInt(const QString &str, long &i) {
   return ok;
 }
 
-inline QString toString(double r) {
-  static char buffer[128];
+//------
 
+inline QString toString(double r) {
 #ifdef ALLOW_NAN
   if (COS::is_nan(real))
-    strcpy(buffer, "NaN");
-  else
-    ::sprintf(buffer, "%g", r);
-#else
-  ::sprintf(buffer, "%g", r);
+    return "NaN";
 #endif
+
+  if (isZero(r))
+    return "0.0";
+
+  static char buffer[128];
+
+  ::sprintf(buffer, "%g", r);
 
   return buffer;
 }
@@ -127,20 +148,6 @@ inline bool fromString(const QString &str, std::vector<int> &columns) {
   }
 
   return ok;
-}
-
-//------
-
-inline bool isInteger(double r) {
-  return std::abs(r - int(r)) < 1E-3;
-}
-
-inline bool realEq(double r1, double r2) {
-  return std::fabs(r2 - r1) < 1E-5;
-}
-
-inline bool isZero(double r) {
-  return realEq(r, 0.0);
 }
 
 //------

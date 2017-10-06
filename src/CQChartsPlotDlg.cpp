@@ -3,12 +3,14 @@
 #include <CQChartsPlot.h>
 #include <CQChartsXYPlot.h>
 #include <CQChartsPlotParameter.h>
+#include <CQChartsAxis.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
 
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QGroupBox>
 #include <QComboBox>
 #include <QStackedWidget>
 #include <QLineEdit>
@@ -29,17 +31,25 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   //----
 
-  QHBoxLayout *typeLayout = new QHBoxLayout;
+  QGroupBox *typeGroup = new QGroupBox("Type Data");
 
-  layout->addLayout(typeLayout);
+  typeGroup->setObjectName("typeGroup");
+
+  QVBoxLayout *typeLayout = new QVBoxLayout(typeGroup);
+
+  layout->addWidget(typeGroup);
 
   //--
+
+  QHBoxLayout *typeComboLayout = new QHBoxLayout;
+
+  typeLayout->addLayout(typeComboLayout);
 
   QLabel *typeLabel = new QLabel("Type");
 
   typeLabel->setObjectName("typeLabel");
 
-  typeLayout->addWidget(typeLabel);
+  typeComboLayout->addWidget(typeLabel);
 
   //--
 
@@ -47,11 +57,11 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   typeCombo->setObjectName("typeCombo");
 
-  typeLayout->addWidget(typeCombo);
+  typeComboLayout->addWidget(typeCombo);
 
   QStringList names, descs;
 
-  view_->charts()->getPlotTypeNames(names, descs);
+  charts()->getPlotTypeNames(names, descs);
 
   typeCombo->addItems(descs);
 
@@ -59,7 +69,7 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   //--
 
-  typeLayout->addStretch(1);
+  typeComboLayout->addStretch(1);
 
   //----
 
@@ -67,10 +77,85 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   stack_->setObjectName("stack");
 
-  layout->addWidget(stack_);
+  typeLayout->addWidget(stack_);
 
   for (int i = 0; i < names.size(); ++i)
     addPlotWidgets(names[i], i);
+
+  //----
+
+  QFrame *sep1 = new QFrame;
+
+  sep1->setObjectName("sep1");
+  sep1->setFixedHeight(4);
+  sep1->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
+  layout->addWidget(sep1);
+
+  //----
+
+  QGroupBox *genGroup = new QGroupBox("General Data");
+
+  genGroup->setObjectName("genGroup");
+
+  QGridLayout *genLayout = new QGridLayout(genGroup);
+
+  layout->addWidget(genGroup);
+
+  //--
+
+  int row = 0, column = 0;
+
+  viewEdit_ = addLineEdit(genLayout, row, column, "View Name", "viewEdit", "View Name");
+
+  //--
+
+  ++row; column = 0;
+
+  posEdit_ = addLineEdit(genLayout, row, column, "Position", "position", "Position");
+
+  posEdit_->setText("0 0 1 1");
+
+  //--
+
+  ++row; column = 0;
+
+  titleEdit_ = addLineEdit(genLayout, row, column, "Title", "title", "Title");
+
+  //--
+
+  ++row; column = 0;
+
+  xminEdit_ = addLineEdit(genLayout, row, column, "XMin", "xmin", "X Axis Minimum Value");
+  yminEdit_ = addLineEdit(genLayout, row, column, "YMin", "ymin", "Y Axis Minimum Value");
+
+  ++row; column = 0;
+
+  xmaxEdit_ = addLineEdit(genLayout, row, column, "XMin", "xmax", "X Axis Maximum Value");
+  ymaxEdit_ = addLineEdit(genLayout, row, column, "YMin", "ymax", "Y Axis Maximum Value");
+
+  //--
+
+  ++row; column = 0;
+
+  xintegralCheck_ = new QCheckBox("X Integral");
+  yintegralCheck_ = new QCheckBox("Y Integral");
+
+  xintegralCheck_->setObjectName("xintegralCheck");
+  yintegralCheck_->setObjectName("yintegralCheck");
+
+  genLayout->addWidget(xintegralCheck_, row, column); ++column;
+  genLayout->addWidget(yintegralCheck_, row, column);
+
+  //----
+
+  QFrame *sep2 = new QFrame;
+
+  sep2->setObjectName("sep2");
+  sep2->setFixedHeight(4);
+  sep2->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
+  layout->addWidget(sep2);
 
   //----
 
@@ -103,11 +188,18 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
   buttonLayout->addStretch(1);
 }
 
+CQCharts *
+CQChartsPlotDlg::
+charts() const
+{
+  return view_->charts();
+}
+
 void
 CQChartsPlotDlg::
 addPlotWidgets(const QString &typeName, int ind)
 {
-  CQChartsPlotType *type = view_->charts()->plotType(typeName);
+  CQChartsPlotType *type = charts()->plotType(typeName);
   assert(type);
 
   //
@@ -287,19 +379,20 @@ okSlot()
   // create plot for typename of current tab
   QString typeName = tabTypeName_[ind];
 
-  if (! view_->charts()->isPlotType(typeName))
+  if (! charts()->isPlotType(typeName))
     return;
 
-  CQChartsPlotType *plotType = view_->charts()->plotType(typeName);
+  // TODO: get view from name
+  CQChartsView *view = view_;
 
-  plot_ = plotType->create(view_, model_);
+  CQChartsPlotType *type = charts()->plotType(typeName);
+  assert(type);
+
+  plot_ = type->create(view, model_);
 
   //---
 
   // set plot property for widgets for plot parameters
-  CQChartsPlotType *type = view_->charts()->plotType(typeName);
-  assert(type);
-
   PlotData &plotData = typePlotData_[typeName];
 
   for (const auto &parameter : type->parameters()) {
@@ -370,6 +463,79 @@ okSlot()
   }
 
   //---
+
+  double xmin = 0.0, ymin = 0.0;
+  double xmax = 0.0, ymax = 0.0;
+
+  QString posStr = posEdit_->text();
+
+  QStringList strs = posStr.split(" ", QString::SkipEmptyParts);
+
+  if (strs.length() == 4) {
+    bool ok1; xmin = strs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
+    bool ok2; ymin = strs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
+    bool ok3; xmax = strs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
+    bool ok4; ymax = strs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
+
+    xmin = std::min(std::max(xmin, 0.0), 1.0);
+    ymin = std::min(std::max(ymin, 0.0), 1.0);
+    xmax = std::min(std::max(xmax, 0.0), 1.0);
+    ymax = std::min(std::max(ymax, 0.0), 1.0);
+
+    if (xmin > xmax) std::swap(xmin, xmax);
+    if (ymin > ymax) std::swap(ymin, ymax);
+
+    if (xmin == xmax) {
+      if (xmin < 0.0) xmin = 0.0;
+      else            xmax = 1.0;
+    }
+
+    if (ymin == ymax) {
+      if (ymin < 0.0) ymin = 0.0;
+      else            ymax = 1.0;
+    }
+  }
+
+  //---
+
+  if (titleEdit_->text().length())
+    plot_->setTitle(titleEdit_->text());
+
+  if (xintegralCheck_->isChecked())
+    plot_->xAxis()->setIntegral(true);
+
+  if (yintegralCheck_->isChecked())
+    plot_->yAxis()->setIntegral(true);
+
+  if (xminEdit_->text().length()) {
+    bool ok; double xmin = xminEdit_->text().toDouble(&ok);
+    if (ok) plot_->setXMin(xmin);
+  }
+
+  if (yminEdit_->text().length()) {
+    bool ok; double ymin = yminEdit_->text().toDouble(&ok);
+    if (ok) plot_->setYMin(ymin);
+  }
+
+  if (xmaxEdit_->text().length()) {
+    bool ok; double xmax = xmaxEdit_->text().toDouble(&ok);
+    if (ok) plot_->setXMax(xmax);
+  }
+
+  if (ymaxEdit_->text().length()) {
+    bool ok; double ymax = ymaxEdit_->text().toDouble(&ok);
+    if (ok) plot_->setYMax(ymax);
+  }
+
+  //---
+
+  //int n = view->numPlots();
+
+  //CBBox2D bbox(1000*xmin, 1000*ymin, 1000*xmax, 1000*ymax);
+
+  //plot->setId(QString("Chart.%1").arg(n + 1));
+
+  //view->addPlot(plot, bbox);
 
   emit plotCreated(plot_);
 

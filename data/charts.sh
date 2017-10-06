@@ -168,3 +168,7 @@ CQChartsTest \
  -csv country_wise_population.csv -comment_header \
   -type bar -columns "name=2,value=1" \
   -plot_title "Column Chart"
+
+CQChartsTest \
+ -csv group.csv -comment_header \
+ -type barchart -columns "name=1,value=2"

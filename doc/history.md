@@ -90,3 +90,6 @@
  + improve create dialog
  + remove old create widgets
  + cleanup argument syntax
+## 10/05/2017
+ + improve handling of identical x values in bar chart of box plot
+ + more options in create dialog
