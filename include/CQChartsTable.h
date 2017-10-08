@@ -2,6 +2,8 @@
 #define CQChartsTable_H
 
 #include <QTableView>
+#include <QAbstractItemModel>
+#include <QSharedPointer>
 
 class CQHeaderView;
 
@@ -9,9 +11,12 @@ class CQChartsTable : public QTableView {
   Q_OBJECT
 
  public:
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
+
+ public:
   CQChartsTable(QWidget *parent=nullptr);
 
-  void setModel(QAbstractItemModel *model);
+  void setModel(const ModelP &model);
 
   void setFilter(const QString &filter);
 
@@ -24,8 +29,8 @@ class CQChartsTable : public QTableView {
   void headerClickSlot(int section);
 
  private:
-  QAbstractItemModel* model_  { nullptr };
-  CQHeaderView*       header_ { nullptr };
+  ModelP        model_;
+  CQHeaderView* header_ { nullptr };
 };
 
 #endif

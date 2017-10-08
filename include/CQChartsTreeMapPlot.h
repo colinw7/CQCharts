@@ -249,7 +249,7 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
   QString name() const override { return "treemap"; }
   QString desc() const override { return "TreeMap"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -265,7 +265,7 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   typedef std::vector<CQChartsTreeMapNode *> Nodes;
 
  public:
-  CQChartsTreeMapPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model);
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

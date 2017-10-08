@@ -40,6 +40,12 @@ CQGradientControlPlot(QWidget *parent) :
 }
 #endif
 
+CQGradientControlPlot::
+~CQGradientControlPlot()
+{
+  delete pal_;
+}
+
 void
 CQGradientControlPlot::
 init()
@@ -131,7 +137,7 @@ paintEvent(QPaintEvent *)
     //  drawLine(&painter, x1, g1, x2, g2, greenPen);
     //  drawLine(&painter, x1, b1, x2, b2, bluePen );
     //  drawLine(&painter, x1, m1, x2, m2, blackPen);
-   // }
+    //}
 
     x1 = x2;
     r1 = r2;

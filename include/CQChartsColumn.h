@@ -20,7 +20,7 @@ class CQChartsColumnType {
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
   // data string to output data
-  virtual QString dataName(double pos, const CQChartsNameValues &nameValues) const = 0;
+  virtual QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
  private:
   QString name_;
@@ -35,11 +35,23 @@ class CQChartsColumnStringType : public CQChartsColumnType {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.type() == QVariant::Double)
+      return CQChartsUtil::toString(var.toDouble());
+
+    if (var.type() == QVariant::Int)
+      return CQChartsUtil::toString((long) var.toInt());
+
     return var;
   }
 
-  QString dataName(double pos, const CQChartsNameValues &) const override {
-    return CQChartsUtil::toString(pos);
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.type() == QVariant::Double)
+      return CQChartsUtil::toString(var.toDouble());
+
+    if (var.type() == QVariant::Int)
+      return CQChartsUtil::toString((long) var.toInt());
+
+    return var;
   }
 };
 
@@ -52,11 +64,21 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    return var;
+    if (var.type() == QVariant::Double)
+      return var;
+
+    bool ok;
+
+    double r = CQChartsUtil::toReal(var, ok);
+
+    if (! ok)
+      return var;
+
+    return QVariant::fromValue<double>(r);
   }
 
-  QString dataName(double pos, const CQChartsNameValues &) const override {
-    return CQChartsUtil::toString(pos);
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
+    return userData(var, nameValues);
   }
 };
 
@@ -82,10 +104,8 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
     return QVariant::fromValue<long>(l);
   }
 
-  QString dataName(double pos, const CQChartsNameValues &) const override {
-    long l = CQChartsUtil::Round(pos);
-
-    return CQChartsUtil::toString(l);
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
+    return userData(var, nameValues);
   }
 };
 
@@ -106,24 +126,31 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
       if (! stringToTime((*p).second, var.toString(), t))
         return var;
 
-      return QString("%1").arg(t);
+      return QVariant::fromValue<double>(t);
     }
 
     return var;
   }
 
-  QString dataName(double pos, const CQChartsNameValues &nameValues) const override {
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
+    bool ok;
+
+    double t = var.toDouble(&ok);
+
+    if (! ok)
+      return var;
+
     auto p = nameValues.find("oformat");
 
     if (p != nameValues.end())
-      return timeToString((*p).second, pos);
+      return timeToString((*p).second, t);
 
     auto p1 = nameValues.find("format");
 
     if (p1 != nameValues.end())
-      return timeToString((*p1).second, pos);
+      return timeToString((*p1).second, t);
 
-    return CQChartsUtil::toString(pos);
+    return QVariant::fromValue<double>(t);
   }
 
  private:

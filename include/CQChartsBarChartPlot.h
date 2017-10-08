@@ -64,7 +64,7 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -75,25 +75,26 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   // properties
   //  bar color
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(int     valueColumn  READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(bool    stacked      READ isStacked       WRITE setStacked        )
-  Q_PROPERTY(bool    horizontal   READ isHorizontal    WRITE setHorizontal     )
-  Q_PROPERTY(double  margin       READ margin          WRITE setMargin         )
-  Q_PROPERTY(bool    keySets      READ isKeySets       WRITE setKeySets        )
-  Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
-  Q_PROPERTY(QColor  borderColor  READ borderColor     WRITE setBorderColor    )
-  Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(double  cornerSize   READ cornerSize      WRITE setCornerSize     )
-  Q_PROPERTY(bool    fill         READ isFill          WRITE setFill           )
-  Q_PROPERTY(QString barColor     READ barColorStr     WRITE setBarColorStr    )
+  Q_PROPERTY(int     categoryColumn   READ categoryColumn   WRITE setCategoryColumn  )
+  Q_PROPERTY(int     valueColumn      READ valueColumn      WRITE setValueColumn     )
+  Q_PROPERTY(QString valueColumns     READ valueColumnsStr  WRITE setValueColumnsStr )
+  Q_PROPERTY(int     nameColumn       READ nameColumn       WRITE setNameColumn      )
+  Q_PROPERTY(bool    stacked          READ isStacked        WRITE setStacked         )
+  Q_PROPERTY(bool    horizontal       READ isHorizontal     WRITE setHorizontal      )
+  Q_PROPERTY(double  margin           READ margin           WRITE setMargin          )
+  Q_PROPERTY(bool    keySets          READ isKeySets        WRITE setKeySets         )
+  Q_PROPERTY(bool    border           READ isBorder         WRITE setBorder          )
+  Q_PROPERTY(QColor  borderColor      READ borderColor      WRITE setBorderColor     )
+  Q_PROPERTY(double  borderWidth      READ borderWidth      WRITE setBorderWidth     )
+  Q_PROPERTY(double  borderCornerSize READ borderCornerSize WRITE setBorderCornerSize)
+  Q_PROPERTY(bool    fill             READ isFill           WRITE setFill            )
+  Q_PROPERTY(QString barColor         READ barColorStr      WRITE setBarColorStr     )
 
  public:
-  CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  int categoryColumn() const { return categoryColumn_; }
+  void setCategoryColumn(int i) { categoryColumn_ = i; update(); }
 
   int valueColumn() const { return valueColumn_; }
 
@@ -124,6 +125,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   QString valueColumnsStr() const;
   bool setValueColumnsStr(const QString &s);
 
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i) { nameColumn_ = i; update(); }
+
   //---
 
   bool isStacked() const { return stacked_; }
@@ -142,17 +146,17 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   // bar stroke
-  bool isBorder() const { return border_; }
-  void setBorder(bool b) { border_ = b; update(); }
+  bool isBorder() const { return borderObj_.isBorder(); }
+  void setBorder(bool b) { borderObj_.setBorder(b); update(); }
 
-  const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &c) { borderColor_ = c; update(); }
+  const QColor &borderColor() const { return borderObj_.borderColor(); }
+  void setBorderColor(const QColor &c) { borderObj_.setBorderColor(c); update(); }
 
-  double borderWidth() const { return borderWidth_; }
-  void setBorderWidth(double r) { borderWidth_ = r; update(); }
+  double borderWidth() const { return borderObj_.borderWidth(); }
+  void setBorderWidth(double r) { borderObj_.setBorderWidth(r); update(); }
 
-  double cornerSize() const { return cornerSize_; }
-  void setCornerSize(double r) { cornerSize_ = r; update(); }
+  double borderCornerSize() const { return borderObj_.borderCornerSize(); }
+  void setBorderCornerSize(double r) { borderObj_.setBorderCornerSize(r); update(); }
 
   // bar fill
   bool isFill() const { return fill_; }
@@ -211,7 +215,16 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
 
  private:
-  typedef std::vector<double> Values;
+  struct Value {
+    double  value;
+    QString name;
+
+    Value(double value=0.0, const QString &name="") :
+     value(value), name(name) {
+    }
+  };
+
+  typedef std::vector<Value> Values;
 
   struct ValueSet {
     QString name;
@@ -227,8 +240,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
       negSum = 0.0;
 
       for (auto &v : values) {
-        if (v >= 0) posSum += v;
-        else        negSum += v;
+        if (v.value >= 0) posSum += v.value;
+        else              negSum += v.value;
       }
     }
   };
@@ -241,17 +254,15 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   ValueSet *getValueSet(const QString &name);
 
  private:
-  int               nameColumn_        { 0 };
+  int               categoryColumn_    { 0 };
   int               valueColumn_       { 1 };
   Columns           valueColumns_;
+  int               nameColumn_        { -1 };
   bool              stacked_           { false };
   bool              horizontal_        { false };
   double            margin_            { 2 };
   bool              keySets_           { false };
-  bool              border_            { true };
-  QColor            borderColor_       { 0, 0, 0 };
-  double            borderWidth_       { 0 };
-  double            cornerSize_        { 0 };
+  CQChartsBoxObj    borderObj_;
   bool              fill_              { true };
   bool              barColorPalette_   { true };
   QColor            barColor_          { 100, 100, 200 };

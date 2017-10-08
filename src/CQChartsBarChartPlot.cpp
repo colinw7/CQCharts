@@ -11,8 +11,9 @@
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn"  , "", 0);
-  addColumnsParameter("value", "Value", "valueColumns", "", "1");
+  addColumnParameter ("category", "Category", "categoryColumn", "", 0  );
+  addColumnsParameter("value"   , "Value"   , "valueColumns"  , "", "1");
+  addColumnsParameter("name"    , "Name"    , "nameColumn"    , "options");
 
   addBoolParameter("stacked"   , "Stacked"   , "stacked"  , "optional");
   addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
@@ -20,7 +21,7 @@ CQChartsBarChartPlotType()
 
 CQChartsPlot *
 CQChartsBarChartPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsBarChartPlot(view, model);
 }
@@ -28,9 +29,11 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsBarChartPlot::
-CQChartsBarChartPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
 {
+  setBorder(true);
+
   setLayerActive(Layer::FG, true);
 
   addAxes();
@@ -70,19 +73,20 @@ addProperties()
   QString strokeStr = "stroke";
   QString fillStr   = "fill";
 
-  addProperty("columns", this, "nameColumn"  , "name"      );
-  addProperty("columns", this, "valueColumn" , "value"     );
-  addProperty("columns", this, "valueColumns", "valuesSet" );
-  addProperty(""       , this, "stacked"                   );
-  addProperty(""       , this, "horizontal"                );
-  addProperty(""       , this, "margin"                    );
-  addProperty(""       , this, "keySets"                   );
-  addProperty(strokeStr, this, "border"      , "visible"   );
-  addProperty(strokeStr, this, "borderColor" , "color"     );
-  addProperty(strokeStr, this, "borderWidth" , "width"     );
-  addProperty(strokeStr, this, "cornerSize"  , "cornerSize");
-  addProperty(fillStr  , this, "fill"        , "visible"   );
-  addProperty(fillStr  , this, "barColor"    , "color"     );
+  addProperty("columns", this, "categoryColumn"  , "category"  );
+  addProperty("columns", this, "valueColumn"     , "value"     );
+  addProperty("columns", this, "valueColumns"    , "valuesSet" );
+  addProperty("columns", this, "nameColumn"      , "name"      );
+  addProperty(""       , this, "stacked"                       );
+  addProperty(""       , this, "horizontal"                    );
+  addProperty(""       , this, "margin"                        );
+  addProperty(""       , this, "keySets"                       );
+  addProperty(strokeStr, this, "border"          , "visible"   );
+  addProperty(strokeStr, this, "borderColor"     , "color"     );
+  addProperty(strokeStr, this, "borderWidth"     , "width"     );
+  addProperty(strokeStr, this, "borderCornerSize", "cornerSize");
+  addProperty(fillStr  , this, "fill"            , "visible"   );
+  addProperty(fillStr  , this, "barColor"        , "color"     );
 
   dataLabel_.addProperties("dataLabel");
 }
@@ -124,7 +128,12 @@ void
 CQChartsBarChartPlot::
 updateRange()
 {
-  int n = model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int n = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
@@ -147,7 +156,7 @@ updateRange()
   for (int i = 0; i < n; ++i) {
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model_, i, nameColumn(), ok1);
+    QString name = CQChartsUtil::modelString(model, i, categoryColumn(), ok1);
 
     double sum = 0.0;
 
@@ -165,14 +174,14 @@ updateRange()
 
           bool ok2;
 
-          double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
+          double value = CQChartsUtil::modelReal(model, i, valueColumn, ok2);
 
           if (! ok2) value = i;
 
           if (CQChartsUtil::isNaN(value))
             continue;
 
-          valueSet->values.push_back(value);
+          valueSet->values.emplace_back(value);
 
           if (! isHorizontal()) {
             if (isStacked())
@@ -215,14 +224,14 @@ updateRange()
 
           bool ok2;
 
-          double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
+          double value = CQChartsUtil::modelReal(model, i, valueColumn, ok2);
 
           if (! ok2) value = i;
 
           if (CQChartsUtil::isNaN(value))
             continue;
 
-          valueSet->values.push_back(value);
+          valueSet->values.emplace_back(value);
 
           if (! isHorizontal()) {
             if (isStacked())
@@ -263,16 +272,24 @@ updateRange()
 
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model_, i, valueColumn, ok2);
+      double value = CQChartsUtil::modelReal(model, i, valueColumn, ok2);
 
       if (! ok2) value = i;
 
       if (CQChartsUtil::isNaN(value))
         continue;
 
+      bool ok3;
+
+      QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok3);
+
+      if (! ok3) name = "";
+
+      //---
+
       bool isNew = valueSet->values.empty();
 
-      valueSet->values.push_back(value);
+      valueSet->values.emplace_back(value, name);
 
       double posSum, negSum;
 
@@ -318,7 +335,7 @@ updateRange()
     for (int j = 0; j < ns; ++j) {
       int valueColumn = getSetColumn(j);
 
-      QString name = model_->headerData(valueColumn, Qt::Horizontal).toString();
+      QString name = model->headerData(valueColumn, Qt::Horizontal).toString();
 
       valueNames_.push_back(name);
     }
@@ -341,17 +358,17 @@ updateRange()
 
   //---
 
-  setXValueColumn(nameColumn());
+  setXValueColumn(categoryColumn());
   setYValueColumn(valueColumn());
 
   //---
 
   if (! isHorizontal())
-    xAxis_->setColumn(nameColumn());
+    xAxis_->setColumn(categoryColumn());
   else
-    yAxis_->setColumn(nameColumn());
+    yAxis_->setColumn(categoryColumn());
 
-  QString xname = model_->headerData(nameColumn() , Qt::Horizontal).toString();
+  QString xname = model->headerData(categoryColumn() , Qt::Horizontal).toString();
 
   if (! isHorizontal())
     xAxis_->setLabel(xname);
@@ -366,7 +383,7 @@ updateRange()
     xAxis_->setColumn(valueColumn());
 
   if (valueColumns().size() <= 1) {
-    QString yname = model_->headerData(valueColumn(), Qt::Horizontal).toString();
+    QString yname = model->headerData(valueColumn(), Qt::Horizontal).toString();
 
     if (! isHorizontal())
       yAxis_->setLabel(yname);
@@ -514,7 +531,7 @@ initObjs(bool force)
         int numVisible1 = 0;
 
         for (int i = 0; i < ns; ++i) {
-          double value = valueSet.values[numVisible1];
+          double value = valueSet.values[numVisible1].value;
 
           double value1 = value + sum;
 
@@ -543,7 +560,7 @@ initObjs(bool force)
 
           QString valueStr = this->valueStr(value);
 
-          barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
+          barObj->setId(QString("%1:%2=%3").arg(setName).arg(valueName).arg(valueStr));
 
           addPlotObject(barObj);
 
@@ -564,7 +581,7 @@ initObjs(bool force)
 
           //---
 
-          double value = valueSet.values[numVisible1];
+          double value = valueSet.values[numVisible1].value;
 
           double value1 = value + sum;
 
@@ -593,7 +610,7 @@ initObjs(bool force)
 
           QString valueStr = this->valueStr(value);
 
-          barObj->setId(QString("%1:%2:%3").arg(setName).arg(valueName).arg(valueStr));
+          barObj->setId(QString("%1:%2=%3").arg(setName).arg(valueName).arg(valueStr));
 
           addPlotObject(barObj);
 
@@ -618,7 +635,8 @@ initObjs(bool force)
       int nvs = valueSet.values.size();
 
       for (int i = 0; i < nvs; ++i) {
-        double value = valueSet.values[i];
+        double         value = valueSet.values[i].value;
+        const QString &name  = valueSet.values[i].name;
 
         //---
 
@@ -657,11 +675,12 @@ initObjs(bool force)
         CQChartsBarChartObj *barObj =
           new CQChartsBarChartObj(this, brect, 0, 1, j, nv, i, nvs, value);
 
-        QString valueName = valueSet.name;
-
         QString valueStr = this->valueStr(value);
 
-        barObj->setId(QString("%1:%2").arg(valueName).arg(valueStr));
+        if (name.length())
+          barObj->setId(QString("%1:%2=%3").arg(setName).arg(name).arg(valueStr));
+        else
+          barObj->setId(QString("%1=%2").arg(setName).arg(valueStr));
 
         addPlotObject(barObj);
 
@@ -868,7 +887,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    CQRoundedPolygon::draw(p, qrect, plot_->cornerSize());
+    CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
   }
   else {
     QString ystr = plot_->valueStr(value_);

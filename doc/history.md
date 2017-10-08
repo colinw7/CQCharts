@@ -70,26 +70,36 @@
  + Add data labels for geometry plot
 ## 9/27/2017
  + horizontal bar chart
-## 10/01/2017
+## 10/1/2017
  + fix memory leaks
  + improve adjacency fit
  + support rotated axis tick labels
  + support pie labels outside plot (> 1.0)
-## 10/02/2017
+## 10/2/2017
  + add point label, symbol, color
  + support different key label
  + don't shown non-integer minor ticks for integer axis
  + add pie chart start angle
  + ensure pie chart labels are rendered on top
  + support set of property from command line args
-## 10/03/2017
+## 10/3/2017
  + add factory to plot type
  + add create dialog
  + remove some name specific code to use plot type mgr
-## 10/04/2017
+## 10/4/2017
  + improve create dialog
  + remove old create widgets
  + cleanup argument syntax
-## 10/05/2017
+## 10/5/2017
  + improve handling of identical x values in bar chart of box plot
  + more options in create dialog
+## 10/8/2017
+ + Track views by name
+ + Improve model ownership tracking
+ + Allow auto hide of overlapping tick labels
+ + Scatter plot support for point size (auto scale) and colors
+ + All plot models derive from QSortFilterProxyModel and have base model
+ + More line, point symbol config support (delaunay, parallel)
+ + Improve equal scale handling
+ + Improve error handling
+ + Handle click signal in test to display details

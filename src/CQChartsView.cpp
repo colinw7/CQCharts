@@ -73,6 +73,15 @@ CQChartsView::
   CQToolTip::unsetToolTip(this);
 }
 
+void
+CQChartsView::
+setId(const QString &s)
+{
+  id_ = s;
+
+  setWindowTitle(id_);
+}
+
 CQPropertyViewTree *
 CQChartsView::
 propertyView() const
@@ -123,7 +132,7 @@ addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
 
   plot->setBBox(bbox);
 
-  plotDatas_.push_back(PlotData(plot, bbox));
+  plotDatas_.emplace_back(plot, bbox);
 
   plot->addProperties();
 }
@@ -287,7 +296,7 @@ mouseMoveEvent(QMouseEvent *me)
 
         plot->windowToPixel(CPoint2D(w.x, y1), p2);
 
-        QString tip = QString("%1").arg(y1);
+        QString tip = plot->yStr(y1);
 
         addProbeBand(probeInd, plot, tip, px, p1.y, p2.y);
       }
@@ -399,6 +408,8 @@ updateGeometry()
 
   prect_ = CBBox2D(0, toolBarHeight_, width() - expander_->width(), height() - statusHeight_);
 
+  aspect_ = (1.0*prect().getWidth())/prect().getHeight();
+
   //---
 
   displayRange_.setPixelRange(prect_.getXMin(), prect_.getYMin(),
@@ -434,6 +445,8 @@ updateGeometry()
 
   //---
 
+  toolbar_ ->raise();
+  status_  ->raise();
   settings_->raise();
 }
 

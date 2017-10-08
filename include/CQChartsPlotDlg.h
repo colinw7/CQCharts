@@ -4,7 +4,6 @@
 #include <QDialog>
 
 class CQCharts;
-class CQChartsView;
 class CQChartsPlotType;
 class CQChartsPlotParameter;
 class CQChartsPlot;
@@ -21,9 +20,12 @@ class CQChartsPlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model);
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
 
-  CQCharts *charts() const;
+ public:
+  CQChartsPlotDlg(CQCharts *charts, const ModelP &model);
+
+  CQCharts *charts() const { return charts_; }
 
   int exec();
 
@@ -80,28 +82,29 @@ class CQChartsPlotDlg : public QDialog {
  private slots:
   void comboSlot(int ind);
 
+  bool applySlot();
   void okSlot();
 
  private:
   typedef std::map<QString,PlotData> TypePlotData;
   typedef std::map<int,QString>      TabTypeName;
 
-  CQChartsView*       view_           { nullptr };
-  QAbstractItemModel* model_          { nullptr };
-  QComboBox*          combo_          { nullptr };
-  QStackedWidget*     stack_          { nullptr };
-  QLineEdit*          viewEdit_       { nullptr };
-  QLineEdit*          posEdit_        { nullptr };
-  QLineEdit*          titleEdit_      { nullptr };
-  QLineEdit*          xminEdit_       { nullptr };
-  QLineEdit*          yminEdit_       { nullptr };
-  QLineEdit*          xmaxEdit_       { nullptr };
-  QLineEdit*          ymaxEdit_       { nullptr };
-  QCheckBox*          xintegralCheck_ { nullptr };
-  QCheckBox*          yintegralCheck_ { nullptr };
-  TypePlotData        typePlotData_;
-  TabTypeName         tabTypeName_;
-  CQChartsPlot*       plot_           { nullptr };
+  CQCharts*       charts_         { nullptr };
+  ModelP          model_;
+  QComboBox*      combo_          { nullptr };
+  QStackedWidget* stack_          { nullptr };
+  QLineEdit*      viewEdit_       { nullptr };
+  QLineEdit*      posEdit_        { nullptr };
+  QLineEdit*      titleEdit_      { nullptr };
+  QLineEdit*      xminEdit_       { nullptr };
+  QLineEdit*      yminEdit_       { nullptr };
+  QLineEdit*      xmaxEdit_       { nullptr };
+  QLineEdit*      ymaxEdit_       { nullptr };
+  QCheckBox*      xintegralCheck_ { nullptr };
+  QCheckBox*      yintegralCheck_ { nullptr };
+  TypePlotData    typePlotData_;
+  TabTypeName     tabTypeName_;
+  CQChartsPlot*   plot_           { nullptr };
 };
 
 #endif

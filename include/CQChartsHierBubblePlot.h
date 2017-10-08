@@ -214,7 +214,7 @@ class CQChartsHierBubblePlotType : public CQChartsPlotType {
   QString name() const override { return "hierbubble"; }
   QString desc() const override { return "HierBubble"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -230,7 +230,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   typedef std::vector<CQChartsHierBubbleNode *> Nodes;
 
  public:
-  CQChartsHierBubblePlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model);
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

@@ -15,16 +15,25 @@
 
 #include <cassert>
 
+static CQToolTip *s_instance;
+
 CQToolTip *
 CQToolTip::
-getInstance()
+instance()
 {
-  static CQToolTip *instance;
+  if (! s_instance)
+    s_instance = new CQToolTip;
 
-  if (! instance)
-    instance = new CQToolTip;
+  return s_instance;
+}
 
-  return instance;
+void
+CQToolTip::
+release()
+{
+  delete s_instance;
+
+  s_instance = nullptr;
 }
 
 // the tooltip widget
@@ -415,7 +424,7 @@ CQToolTipIFace *
 CQToolTip::
 getToolTip(QWidget *parent)
 {
-  CQToolTip *inst = CQToolTip::getInstance();
+  CQToolTip *inst = CQToolTipInst;
 
   if (! inst->tooltips_.contains(parent))
     return 0;
@@ -436,7 +445,7 @@ setToolTip(QWidget *parent, CQToolTipIFace *tooltip)
 {
   assert(parent);
 
-  CQToolTip *inst = CQToolTip::getInstance();
+  CQToolTip *inst = CQToolTipInst;
 
   if (inst->tooltips_.contains(parent)) {
     delete inst->tooltips_.value(parent);

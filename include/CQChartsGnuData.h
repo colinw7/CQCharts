@@ -1,25 +1,25 @@
-#ifndef CQChartsJson_H
-#define CQChartsJson_H
+#ifndef CQChartsGnuData_H
+#define CQChartsGnuData_H
 
-#include <CQChartsColumn.h>
+#include <CQChartsModelColumn.h>
 #include <QSortFilterProxyModel>
 
 class CQCharts;
-class CQChartsColumnType;
-class CQJsonModel;
+class CQGnuDataModel;
 
-class CQChartsJson : public QSortFilterProxyModel {
+class CQChartsGnuData : public QSortFilterProxyModel, public CQChartsModelColumn {
   Q_OBJECT
 
  public:
-  CQChartsJson(CQCharts *charts);
- ~CQChartsJson();
+  CQChartsGnuData(CQCharts *charts);
+ ~CQChartsGnuData();
 
-  CQJsonModel *jsonModel() const { return jsonModel_; }
+  CQGnuDataModel *dataModel() const { return dataModel_; }
+
+  void setCommentHeader(bool b);
+  void setFirstLineHeader(bool b);
 
   bool load(const QString &filename);
-
-  bool isHierarchical() const;
 
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
 
@@ -37,17 +37,9 @@ class CQChartsJson : public QSortFilterProxyModel {
 
   Qt::ItemFlags flags(const QModelIndex &index) const;
 
-  //---
-
-  QString columnType(int col) const;
-  bool setColumnType(int col, const QString &type);
-
  private:
-  typedef std::vector<CQChartsColumn> Columns;
-
-  CQCharts*    charts_   { nullptr };
-  CQJsonModel* jsonModel_ { nullptr };
-  Columns      columns_;
+  CQCharts*       charts_    { nullptr };
+  CQGnuDataModel* dataModel_ { nullptr };
 };
 
 #endif

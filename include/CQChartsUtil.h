@@ -311,11 +311,8 @@ inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
   double dx1 = lineEnd.x - lineStart.x;
   double dy1 = lineEnd.y - lineStart.y;
 
-  double dx2 = lineEnd.x - point.x;
-  double dy2 = lineEnd.y - point.y;
-
-  CVector2D l (lineStart, lineEnd);
-  CVector2D pl(lineStart, point  );
+  double dx2 = point.x - lineStart.x;
+  double dy2 = point.y - lineStart.y;
 
   double u1 = dx2*dx1 + dy2*dy1;
   double u2 = dx1*dx1 + dy1*dy1;
@@ -368,13 +365,27 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
   return true;
 }
 
-inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+  ok = true;
+
   QVariant var = model->data(ind, Qt::UserRole);
 
   if (! var.isValid())
     var = model->data(ind, Qt::DisplayRole);
 
   ok = var.isValid();
+
+  return var;
+}
+
+inline QVariant modelValue(QAbstractItemModel *model, int row, int col, bool &ok) {
+  QModelIndex ind = model->index(row, col);
+
+  return modelValue(model, ind, ok);
+}
+
+inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+  QVariant var = modelValue(model, ind, ok);
 
   return var.toString();
 }
@@ -386,12 +397,7 @@ inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok
 }
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  ok = true;
-
-  QVariant var = model->data(ind, Qt::UserRole);
-
-  if (! var.isValid())
-    var = model->data(ind, Qt::DisplayRole);
+  QVariant var = modelValue(model, ind, ok);
 
   if (var.type() == QVariant::Double)
     return var.toReal();
@@ -400,20 +406,13 @@ inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool 
 }
 
 inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
-  ok = true;
-
   QModelIndex ind = model->index(row, col);
 
   return modelReal(model, ind, ok);
 }
 
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  ok = true;
-
-  QVariant var = model->data(ind, Qt::UserRole);
-
-  if (! var.isValid())
-    var = model->data(ind, Qt::DisplayRole);
+  QVariant var = modelValue(model, ind, ok);
 
   if (var.type() == QVariant::Int)
     return var.toInt();
@@ -422,8 +421,6 @@ inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool
 }
 
 inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
-  ok = true;
-
   QModelIndex ind = model->index(row, col);
 
   return modelInteger(model, ind, ok);

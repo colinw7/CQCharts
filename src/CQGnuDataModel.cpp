@@ -1,15 +1,38 @@
-#include <CQChartsData.h>
-#include <CQChartsUtil.h>
+#include <CQGnuDataModel.h>
 #include <CQStrParse.h>
+#include <CUnixFile.h>
 
-CQChartsData::
-CQChartsData(CQCharts *charts) :
- CQChartsModel(charts)
+//------
+
+namespace {
+
+inline bool fileToLines(const QString &filename, QStringList &lines) {
+  // open file
+  CUnixFile file(filename.toStdString());
+
+  if (! file.open())
+    return false;
+
+  // read lines
+  std::string line;
+
+  while (file.readLine(line))
+    lines.push_back(line.c_str());
+
+  return true;
+}
+
+}
+
+//------
+
+CQGnuDataModel::
+CQGnuDataModel()
 {
 }
 
 bool
-CQChartsData::
+CQGnuDataModel::
 load(const QString &filename)
 {
   filename_ = filename;
@@ -17,7 +40,7 @@ load(const QString &filename)
   //---
 
   // open file
-  if (! CQChartsUtil::fileToLines(filename_, lines_))
+  if (! fileToLines(filename_, lines_))
     return false;
 
   //---
@@ -265,10 +288,10 @@ struct Words {
 
 }
 
-//------
+//---
 
 void
-CQChartsData::
+CQGnuDataModel::
 parseFileLine(const QString &str, Fields &fields)
 {
   bool isSeparator = false;
@@ -341,4 +364,124 @@ parseFileLine(const QString &str, Fields &fields)
 
   for (const auto &s : strs)
     fields.push_back(s);
+}
+
+//------
+
+void
+CQGnuDataModel::
+addColumn(const QString &name)
+{
+  columns_.emplace_back(name);
+}
+
+int
+CQGnuDataModel::
+columnCount(const QModelIndex &) const
+{
+  return columns_.size();
+}
+
+QVariant
+CQGnuDataModel::
+headerData(int section, Qt::Orientation orientation, int role) const
+{
+  int n = columnCount();
+
+  if (section < 0 || section >= n)
+    return QVariant();
+
+  const Column &column = columns_[section];
+
+  if (orientation == Qt::Horizontal) {
+    if (role == Qt::DisplayRole) {
+      return QVariant(column.name());
+    }
+    else if (role == Qt::EditRole) {
+      return QVariant();
+    }
+    else if (role == Qt::ToolTipRole) {
+      return QVariant(QString("%1\n%2").arg(column.name()).arg(column.type()));
+    }
+  }
+
+  return QVariant();
+}
+
+bool
+CQGnuDataModel::
+setHeaderData(int section, Qt::Orientation orientation, const QVariant &, int)
+{
+  if (section < 0 || orientation != Qt::Horizontal)
+    return false;
+
+  return false;
+}
+
+QVariant
+CQGnuDataModel::
+data(const QModelIndex &index, int role) const
+{
+  if (! index.isValid())
+    return QVariant();
+
+  if      (role == Qt::UserRole) {
+    const Cells &cells = data_[index.row()];
+
+    if (index.column() < 0 || index.column() >= int(cells.size()))
+      return QVariant();
+
+    const QString &cell = cells[index.column()];
+
+    return cell;
+  }
+  else if (role == Qt::DisplayRole) {
+    const Cells &cells = data_[index.row()];
+
+    if (index.column() < 0 || index.column() >= int(cells.size()))
+      return QVariant();
+
+    const QString &cell = cells[index.column()];
+
+    return cell;
+  }
+
+  return QVariant();
+}
+
+QModelIndex
+CQGnuDataModel::
+index(int row, int column, const QModelIndex &) const
+{
+  return createIndex(row, column, nullptr);
+}
+
+QModelIndex
+CQGnuDataModel::
+parent(const QModelIndex &index) const
+{
+  if (! index.isValid())
+    return QModelIndex();
+
+  return QModelIndex();
+}
+
+int
+CQGnuDataModel::
+rowCount(const QModelIndex &parent) const
+{
+  if (parent.isValid())
+    return 0;
+
+  return data_.size();
+}
+
+Qt::ItemFlags
+CQGnuDataModel::
+flags(const QModelIndex &index) const
+{
+  if (! index.isValid())
+    return 0;
+
+  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }

@@ -2,6 +2,8 @@
 #define CQChartsTree_H
 
 #include <QTreeView>
+#include <QAbstractItemModel>
+#include <QSharedPointer>
 
 class CQHeaderView;
 
@@ -9,13 +11,18 @@ class CQChartsTree : public QTreeView {
   Q_OBJECT
 
  public:
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
+
+ public:
   CQChartsTree(QWidget *parent=nullptr);
 
-  void setModel(QAbstractItemModel *model);
+  void setModel(const ModelP &model);
+
+  void setFilter(const QString &filter);
 
  private:
-  QAbstractItemModel* model_  { nullptr };
-  CQHeaderView*       header_ { nullptr };
+  ModelP        model_;
+  CQHeaderView* header_ { nullptr };
 };
 
 #endif

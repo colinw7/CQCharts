@@ -419,13 +419,8 @@ draw(QPainter *p)
 
   //---
 
-  if (plot_->showBoxes()) {
-    CBBox2D prect;
-
-    plot_->windowToPixel(bbox_, prect);
-
-    plot_->drawRedBox(p, prect);
-  }
+  if (plot_->showBoxes())
+    plot_->drawWindowRedBox(p, bbox_);
 
   //---
 

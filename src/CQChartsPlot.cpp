@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsColumn.h>
+#include <CQChartsPointObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQPropertyViewTree.h>
@@ -58,7 +59,7 @@ void
 CQChartsPlotTypeMgr::
 getTypeNames(QStringList &names, QStringList &descs) const
 {
-  for (auto &type : types_) {
+  for (const auto &type : types_) {
     names.push_back(type.second->name());
     descs.push_back(type.second->desc());
   }
@@ -67,9 +68,12 @@ getTypeNames(QStringList &names, QStringList &descs) const
 //------
 
 CQChartsPlot::
-CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *model) :
+CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  view_(view), type_(type), model_(model), displayTransform_(&displayRange_)
 {
+  setBackground    (true);
+  setDataBackground(true);
+
   displayRange_.setPixelRange(0, 1000, 1000, 0);
 
   displayRange_.setWindowRange(0, 0, 1, 1);
@@ -93,24 +97,6 @@ charts() const
   return view_->charts();
 }
 
-#if 0
-CQChartsModel *
-CQChartsPlot::
-chartsModel() const
-{
-  CQChartsModel *model = qobject_cast<CQChartsModel *>(model_);
-
-  if (! model) {
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_);
-
-    if (proxyModel)
-      model = qobject_cast<CQChartsModel *>(proxyModel->sourceModel());
-  }
-
-  return model;
-}
-#endif
-
 void
 CQChartsPlot::
 setTitle(const QString &s)
@@ -127,7 +113,7 @@ setEqualScale(bool b)
 {
   equalScale_ = b;
 
-  displayRange_.setEqualScale(equalScale_);
+  dataRange_.reset();
 
   updateMargin();
 }
@@ -505,11 +491,6 @@ mousePress(const CPoint2D &w)
     selectedPlots[obj] = ! obj->isSelected();
 
     emit objPressed(obj);
-
-    QString id = obj->id();
-
-    if (id.length())
-      std::cerr << id.toStdString() << std::endl;
   }
 
   //---
@@ -679,8 +660,13 @@ columnStr(int column, double x) const
   if (column < 0)
     return CQChartsUtil::toString(x);
 
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return CQChartsUtil::toString(x);
+
   QVariant columnTypeVar =
-    model()->headerData(column, Qt::Horizontal, CQCharts::Role::ColumnType);
+    model->headerData(column, Qt::Horizontal, CQCharts::Role::ColumnType);
 
   if (! columnTypeVar.isValid())
     return CQChartsUtil::toString(x);
@@ -695,7 +681,7 @@ columnStr(int column, double x) const
   if (! typeData)
     return CQChartsUtil::toString(x);
 
-  return typeData->dataName(x, nameValues);
+  return typeData->dataName(x, nameValues).toString();
 }
 
 void
@@ -1222,9 +1208,6 @@ setFitBBox(const CBBox2D &bbox)
 
   CBBox2D pbbox(xmin, ymin, xmax, ymax);
 
-  //displayRange_.setWindowRange(pbbox.getXMin(), pbbox.getYMin(),
-  //                             pbbox.getXMax(), pbbox.getYMax());
-
   margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
   margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
   margin_.right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
@@ -1419,18 +1402,13 @@ drawTitle(QPainter *painter)
 
 void
 CQChartsPlot::
-drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type, double s,
-           const QColor &c, bool filled)
+drawWindowRedBox(QPainter *painter, const CBBox2D &bbox)
 {
-  painter->setPen  (c);
-  painter->setBrush(c);
+  CBBox2D prect;
 
-  CQChartsPlotSymbol2DRenderer renderer(this, painter, p, s);
+  windowToPixel(bbox, prect);
 
-  if (! filled)
-    CSymbol2DMgr::drawSymbol(type, &renderer);
-  else
-    CSymbol2DMgr::fillSymbol(type, &renderer);
+  drawRedBox(painter, prect);
 }
 
 void

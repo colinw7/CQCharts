@@ -1,4 +1,5 @@
 #include <CQCharts.h>
+#include <CQChartsView.h>
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsBoxPlot.h>
@@ -72,4 +73,43 @@ CQCharts::
 getPlotTypeNames(QStringList &names, QStringList &descs) const
 {
   plotTypeMgr_->getTypeNames(names, descs);
+}
+
+CQChartsView *
+CQCharts::
+addView(const QString &id)
+{
+  CQChartsView *view = new CQChartsView(this);
+
+  QString id1 = id;
+
+  if (id1 == "")
+    id1 = QString("view%1").arg(views_.size() + 1);
+
+  assert(! getView(id1));
+
+  view->setId(id1);
+
+  views_[id1] = view;
+
+  return view;
+}
+
+CQChartsView *
+CQCharts::
+getView(const QString &id) const
+{
+  auto p = views_.find(id);
+
+  if (p == views_.end())
+    return nullptr;
+
+  return (*p).second;
+}
+
+void
+CQCharts::
+errorMsg(const QString &msg)
+{
+  std::cerr << msg.toStdString() << std::endl;
 }

@@ -83,7 +83,7 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
   QString name() const override { return "adjacency"; }
   QString desc() const override { return "Adjacency"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -101,7 +101,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_PROPERTY(QFont  font              READ font              WRITE setFont             )
 
  public:
-  CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model);
 
   int nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(int i) { nodeColumn_ = i; update(); }

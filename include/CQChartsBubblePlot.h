@@ -83,7 +83,7 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
   QString name() const override { return "bubble"; }
   QString desc() const override { return "Bubble"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -100,7 +100,7 @@ class CQChartsBubblePlot : public CQChartsPlot {
   typedef std::vector<CQChartsBubbleNode *> Nodes;
 
  public:
-  CQChartsBubblePlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsBubblePlot(CQChartsView *view, const ModelP &model);
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

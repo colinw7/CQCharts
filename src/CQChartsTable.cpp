@@ -22,19 +22,24 @@ CQChartsTable(QWidget *parent) :
 
 void
 CQChartsTable::
-setModel(QAbstractItemModel *model)
+setModel(const ModelP &model)
 {
-  QTableView::setModel(model);
+  model_ = model;
+
+  QTableView::setModel(model_.data());
 }
 
 void
 CQChartsTable::
 setFilter(const QString &filter)
 {
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_);
+  if (! model_)
+    return;
 
-  if (proxyModel)
-    proxyModel->setFilterWildcard(filter);
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  assert(proxyModel);
+
+  proxyModel->setFilterWildcard(filter);
 }
 
 void

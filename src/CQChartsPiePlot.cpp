@@ -19,7 +19,7 @@ CQChartsPiePlotType()
 
 CQChartsPlot *
 CQChartsPiePlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsPiePlot(view, model);
 }
@@ -27,7 +27,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsPiePlot::
-CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("pie"), model), textBox_(this)
 {
   setLayerActive(Layer::FG, true);
@@ -70,14 +70,24 @@ updateRange()
 
   r = std::max(r, labelRadius());
 
+  double xr = r;
+  double yr = r;
+
+  if (isEqualScale()) {
+    double aspect = view()->aspect();
+
+    if (aspect > 1.0)
+      xr *= aspect;
+    else
+      yr *= 1.0/aspect;
+  }
+
   dataRange_.reset();
 
-  dataRange_.updateRange(-r, -r);
-  dataRange_.updateRange( r,  r);
+  dataRange_.updateRange(-xr, -yr);
+  dataRange_.updateRange( xr,  yr);
 
   applyDataRange();
-
-  setEqualScale(true);
 }
 
 void
@@ -106,6 +116,13 @@ initObjs(bool force)
 
   //---
 
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  //---
+
   double xc = 0.0;
   double yc = 0.0;
   double r  = 0.90;
@@ -116,7 +133,7 @@ initObjs(bool force)
 
   double angle1 = startAngle();
 
-  int n = model_->rowCount(QModelIndex());
+  int n = model->rowCount(QModelIndex());
 
   //---
 
@@ -130,11 +147,11 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex yind = model_->index(i, dataColumn());
+    QModelIndex yind = model->index(i, dataColumn());
 
     bool ok;
 
-    double value = CQChartsUtil::modelReal(model_, yind, ok);
+    double value = CQChartsUtil::modelReal(model, yind, ok);
 
     if (! ok)
       value = i;
@@ -155,13 +172,13 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex xind = model_->index(i, labelColumn());
-    QModelIndex yind = model_->index(i, dataColumn ());
+    QModelIndex xind = model->index(i, labelColumn());
+    QModelIndex yind = model->index(i, dataColumn ());
 
     bool ok1, ok2;
 
-    QString name  = CQChartsUtil::modelString(model_, xind, ok1);
-    double  value = CQChartsUtil::modelReal  (model_, yind, ok2);
+    QString name  = CQChartsUtil::modelString(model, xind, ok1);
+    double  value = CQChartsUtil::modelReal  (model, yind, ok2);
 
     if (! ok2) value = i;
 
@@ -204,19 +221,24 @@ void
 CQChartsPiePlot::
 addKeyItems(CQChartsKey *key)
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   int labelColumn = keyLabelColumn();
 
   if (labelColumn < 0)
     labelColumn = this->labelColumn();
 
-  int n = model_->rowCount(QModelIndex());
+  int n = model->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i) {
-    QModelIndex xind = model_->index(i, labelColumn);
+    QModelIndex xind = model->index(i, labelColumn);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model_, xind, ok);
+    QString name = CQChartsUtil::modelString(model, xind, ok);
 
     CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, i, n);
     CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, i, name);
@@ -230,13 +252,22 @@ addKeyItems(CQChartsKey *key)
 
 void
 CQChartsPiePlot::
+handleResize()
+{
+  dataRange_.reset();
+
+  CQChartsPlot::handleResize();
+}
+
+void
+CQChartsPiePlot::
 draw(QPainter *p)
 {
   initObjs();
 
   //---
 
-  contentsBBox_ = CBBox2D(-1, -1, 1, 1);
+//contentsBBox_ = CBBox2D(-1, -1, 1, 1);
 
   drawParts(p);
 }

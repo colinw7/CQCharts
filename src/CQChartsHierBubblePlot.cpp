@@ -35,7 +35,7 @@ CQChartsHierBubblePlotType()
 
 CQChartsPlot *
 CQChartsHierBubblePlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsHierBubblePlot(view, model);
 }
@@ -43,7 +43,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //------
 
 CQChartsHierBubblePlot::
-CQChartsHierBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
   dataRange_.updateRange(-1, -1);
@@ -200,6 +200,11 @@ void
 CQChartsHierBubblePlot::
 loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int depth)
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   maxDepth_ = std::max(maxDepth_, depth + 1);
 
   //---
@@ -208,18 +213,18 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
 
   int colorId = -1;
 
-  uint nc = model_->rowCount(index);
+  uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn_, index);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model_, index1, ok);
+    QString name = CQChartsUtil::modelString(model, index1, ok);
 
     //---
 
-    if (model_->rowCount(index1) > 0) {
+    if (model->rowCount(index1) > 0) {
       CQChartsHierBubbleHierNode *hier1 = new CQChartsHierBubbleHierNode(hier, name.toStdString());
 
       loadChildren(hier1, index1, depth + 1);
@@ -228,11 +233,11 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, valueColumn_, index);
+      QModelIndex index2 = model->index(i, valueColumn_, index);
 
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model_, index2, ok);
+      int size = CQChartsUtil::modelInteger(model, index2, ok);
 
       if (! ok) size = 1;
 

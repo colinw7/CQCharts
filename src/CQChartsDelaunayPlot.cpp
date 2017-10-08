@@ -19,7 +19,7 @@ CQChartsDelaunayPlotType()
 
 CQChartsPlot *
 CQChartsDelaunayPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsDelaunayPlot(view, model);
 }
@@ -27,9 +27,12 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //------
 
 CQChartsDelaunayPlot::
-CQChartsDelaunayPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model)
 {
+  setLinesColor (QColor(40, 40, 200));
+  setPointsColor(QColor(200, 40, 40));
+
   addAxes();
 
   addTitle();
@@ -47,41 +50,31 @@ addProperties()
   addProperty("points" , this, "pointsColor"   , "color" );
   addProperty("points" , this, "symbolName"    , "symbol");
   addProperty("points" , this, "symbolSize"    , "size"  );
+  addProperty("points" , this, "symbolFilled"  , "filled");
   addProperty("lines"  , this, "lines"         , "shown" );
   addProperty("lines"  , this, "linesColor"    , "color" );
+  addProperty("lines"  , this, "linesWidth"    , "width" );
   addProperty(""       , this, "voronoi"                 );
-}
-
-QString
-CQChartsDelaunayPlot::
-symbolName() const
-{
-  return CSymbol2DMgr::typeToName(symbolType());
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolName(const QString &s)
-{
-  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s);
-
-  if (type != CSymbol2D::Type::NONE)
-    setSymbolType(type);
 }
 
 void
 CQChartsDelaunayPlot::
 updateRange()
 {
-  int n = model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int n = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
   for (int i = 0; i < n; ++i) {
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+    double x = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
+    double y = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
 
     if (! ok1) x = i;
     if (! ok2) y = i;
@@ -96,13 +89,13 @@ updateRange()
 
   xAxis_->setColumn(xColumn_);
 
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
+  QString xname = model->headerData(xColumn_, Qt::Horizontal).toString();
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn_);
 
-  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+  QString yname = model->headerData(yColumn_, Qt::Horizontal).toString();
 
   yAxis_->setLabel(yname);
 
@@ -141,12 +134,17 @@ initObjs(bool force)
 
   //--
 
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  int n = model_->rowCount(QModelIndex());
+  int n = model->rowCount(QModelIndex());
 
-  QString name = model_->headerData(yColumn_, Qt::Horizontal).toString();
+  QString name = model->headerData(yColumn_, Qt::Horizontal).toString();
 
   //---
 
@@ -156,8 +154,8 @@ initObjs(bool force)
   for (int i = 0; i < n; ++i) {
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+    double x = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
+    double y = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
 
     if (! ok1) x = i;
     if (! ok2) y = i;
@@ -172,7 +170,7 @@ initObjs(bool force)
     if (nameColumn_ >= 0) {
       bool ok;
 
-      name1 = CQChartsUtil::modelString(model_, i, nameColumn_, ok);
+      name1 = CQChartsUtil::modelString(model, i, nameColumn_, ok);
     }
     else
       name1 = name;
@@ -278,9 +276,9 @@ drawVoronoi(QPainter *p)
   //---
 
   if (isLines()) {
-    QColor lc = linesColor();
-
-    p->setPen(lc);
+    QColor    lc = linesColor();
+    double    lw = linesWidth();
+    CLineDash ld;
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CHull3D::Edge *e = *pve;
@@ -293,7 +291,7 @@ drawVoronoi(QPainter *p)
       windowToPixel(v1->x(), v1->y(), px1, py1);
       windowToPixel(v2->x(), v2->y(), px2, py2);
 
-      p->drawLine(px1, py1, px2, py2);
+      CQChartsLineObj::draw(p, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
     }
   }
 }
@@ -341,9 +339,15 @@ CQChartsDelaunayPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
   if (plot_->isPoints()) {
-    QColor c = plot_->objectStateColor(this, plot_->pointsColor());
-    double s = plot_->symbolSize();
+    QColor          c      = plot_->objectStateColor(this, plot_->pointsColor());
+    double          s      = plot_->symbolSize();
+    CSymbol2D::Type symbol = plot_->symbolType();
+    bool            filled = plot_->isSymbolFilled();
 
-    plot_->drawSymbol(p, CPoint2D(x_, y_), plot_->symbolType(), s, c);
+    double px, py;
+
+    plot_->windowToPixel(x_, y_, px, py);
+
+    CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
   }
 }

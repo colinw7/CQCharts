@@ -25,6 +25,8 @@ class CQGradientControlPlot : public QFrame {
   CQGradientControlPlot(QWidget *parent=0);
 #endif
 
+ ~CQGradientControlPlot();
+
   CGradientPalette *gradientPalette() { return pal_; }
   void setGradientPalette(CGradientPalette *pal);
 
@@ -46,9 +48,9 @@ class CQGradientControlPlot : public QFrame {
 
  private:
 #ifdef CGRADIENT_EXPR
-  CExpr*            expr_ { 0 };
+  CExpr*            expr_ { nullptr };
 #endif
-  CGradientPalette* pal_ { 0 };
+  CGradientPalette* pal_ { nullptr };
   Margin            margin_;
 };
 

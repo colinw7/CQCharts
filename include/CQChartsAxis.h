@@ -2,6 +2,7 @@
 #define CQChartsAxis_H
 
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsLineObj.h>
 #include <QColor>
 #include <QFont>
 #include <CLineDash.h>
@@ -60,8 +61,10 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(QString   format    READ format       WRITE setFormat   )
 
   // line
-  Q_PROPERTY(QColor lineColor     READ getLineColor     WRITE setLineColor    )
-  Q_PROPERTY(bool   lineDisplayed READ getLineDisplayed WRITE setLineDisplayed)
+  Q_PROPERTY(bool      lineDisplayed READ getLineDisplayed WRITE setLineDisplayed)
+  Q_PROPERTY(QColor    lineColor     READ getLineColor     WRITE setLineColor    )
+  Q_PROPERTY(double    lineWidth     READ getLineWidth     WRITE setLineWidth    )
+  Q_PROPERTY(CLineDash lineDash      READ getLineDash      WRITE setLineDash     )
 
   // ticks
   Q_PROPERTY(bool minorTicksDisplayed READ getMinorTicksDisplayed WRITE setMinorTicksDisplayed)
@@ -74,6 +77,7 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(QFont  tickLabelFont      READ getTickLabelFont     WRITE setTickLabelFont     )
   Q_PROPERTY(QColor tickLabelColor     READ getTickLabelColor    WRITE setTickLabelColor    )
   Q_PROPERTY(double tickLabelAngle     READ getTickLabelAngle    WRITE setTickLabelAngle    )
+  Q_PROPERTY(bool   tickLabelAutoHide  READ isTickLabelAutoHide  WRITE setTickLabelAutoHide )
 
   // label
   Q_PROPERTY(bool    labelDisplayed READ isLabelDisplayed WRITE setLabelDisplayed)
@@ -81,11 +85,11 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(QFont   labelFont      READ getLabelFont     WRITE setLabelFont     )
   Q_PROPERTY(QColor  labelColor     READ getLabelColor    WRITE setLabelColor    )
 
-  // grid
+  // grid line/fill
   Q_PROPERTY(bool      gridDisplayed READ getGridDisplayed WRITE setGridDisplayed)
   Q_PROPERTY(QColor    gridColor     READ getGridColor     WRITE setGridColor    )
-  Q_PROPERTY(CLineDash gridDash      READ getGridDash      WRITE setGridDash     )
   Q_PROPERTY(double    gridWidth     READ getGridWidth     WRITE setGridWidth    )
+  Q_PROPERTY(CLineDash gridDash      READ getGridDash      WRITE setGridDash     )
   Q_PROPERTY(bool      gridAbove     READ isGridAbove      WRITE setGridAbove    )
   Q_PROPERTY(bool      gridFill      READ isGridFill       WRITE setGridFill     )
   Q_PROPERTY(QColor    gridFillColor READ gridFillColor    WRITE setGridFillColor)
@@ -160,11 +164,17 @@ class CQChartsAxis : public QObject {
 
   // line
 
-  bool getLineDisplayed() const { return lineDisplayed_; }
-  void setLineDisplayed(bool b) { lineDisplayed_ = b; redraw(); }
+  bool getLineDisplayed() const { return lineObj_.isDisplayed(); }
+  void setLineDisplayed(bool b) { lineObj_.setDisplayed(b); redraw(); }
 
-  const QColor &getLineColor() const { return lineColor_; }
-  void setLineColor(const QColor &c) { lineColor_ = c; redraw(); }
+  const QColor &getLineColor() const { return lineObj_.color(); }
+  void setLineColor(const QColor &c) { lineObj_.setColor(c); redraw(); }
+
+  double getLineWidth() const { return lineObj_.width(); }
+  void setLineWidth(double r) { lineObj_.setWidth(r); redraw(); }
+
+  const CLineDash &getLineDash() const { return lineObj_.dash(); }
+  void setLineDash(const CLineDash &dash) { lineObj_.setDash(dash); redraw(); }
 
   //---
 
@@ -173,14 +183,14 @@ class CQChartsAxis : public QObject {
   bool getGridDisplayed() const { return gridDisplayed_; }
   void setGridDisplayed(bool b) { gridDisplayed_ = b; redraw(); }
 
-  const QColor &getGridColor() const { return gridColor_; }
-  void setGridColor(const QColor &c) { gridColor_ = c; redraw(); }
+  const QColor &getGridColor() const { return gridLineObj_.color(); }
+  void setGridColor(const QColor &c) { gridLineObj_.setColor(c); redraw(); }
 
-  const CLineDash &getGridDash() const { return gridDash_; }
-  void setGridDash(const CLineDash &dash) { gridDash_ = dash; redraw(); }
+  double getGridWidth() const { return gridLineObj_.width(); }
+  void setGridWidth(double r) { gridLineObj_.setWidth(r); redraw(); }
 
-  double getGridWidth() const { return gridWidth_; }
-  void setGridWidth(double r) { gridWidth_ = r; redraw(); }
+  const CLineDash &getGridDash() const { return gridLineObj_.dash(); }
+  void setGridDash(const CLineDash &dash) { gridLineObj_.setDash(dash); redraw(); }
 
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b) { gridAbove_ = b; redraw(); }
@@ -226,13 +236,16 @@ class CQChartsAxis : public QObject {
   double getTickLabelAngle() const;
   void setTickLabelAngle(double r);
 
+  bool isTickLabelAutoHide() const { return tickLabelAutoHide_; }
+  void setTickLabelAutoHide(bool b) { tickLabelAutoHide_ = b; redraw(); }
+
   //---
 
   uint getNumMajorTicks() const { return numTicks1_; }
-  void setNumMajorTicks(uint n) { numTicks1_ = n; }
+  void setNumMajorTicks(uint n) { numTicks1_ = n; redraw(); }
 
   uint getNumMinorTicks() const { return numTicks2_; }
-  void setNumMinorTicks(uint n) { numTicks2_ = n; }
+  void setNumMinorTicks(uint n) { numTicks2_ = n; redraw(); }
 
   uint getTickIncrement() const { return tickIncrement_; }
   void setTickIncrement(uint tickIncrement);
@@ -257,28 +270,25 @@ class CQChartsAxis : public QObject {
     tickLabels_.clear();
   }
 
-  void setTickLabel(long i, const QString &label) {
-    tickLabels_[i] = label;
-  }
+  void setTickLabel(long i, const QString &label) { tickLabels_[i] = label; redraw(); }
 
-  bool hasTickLabel(long i) const {
-    return (tickLabels_.find(i) != tickLabels_.end());
-  }
+  bool hasTickLabel(long i) const { return (tickLabels_.find(i) != tickLabels_.end()); }
 
   const QString &getTickLabel(long i) const {
     auto p = tickLabels_.find(i);
+    assert(p != tickLabels_.end());
 
     return (*p).second;
   }
 
   //---
 
-  void setPos(double r) { pos_ = r; }
+  void setPos(double r) { pos_ = r; redraw(); }
 
   QString getValueStr(double pos) const;
 
   const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &b) { bbox_ = b; }
+  void setBBox(const CBBox2D &b) { bbox_ = b; redraw(); }
 
   void addProperties(CQPropertyViewTree *tree, const QString &path);
 
@@ -330,14 +340,11 @@ class CQChartsAxis : public QObject {
   CQChartsAxisLabel*     label_           { nullptr };
 
   // line
-  bool                   lineDisplayed_       { true };
-  QColor                 lineColor_           { 128, 128, 128 };
+  CQChartsLineObj        lineObj_;
 
   // grid
   bool                   gridDisplayed_       { false };
-  QColor                 gridColor_           { 0, 0, 0 };
-  CLineDash              gridDash_            { 2, 2 };
-  double                 gridWidth_           { 0 };
+  CQChartsLineObj        gridLineObj_;
   bool                   gridAbove_           { false };
   bool                   gridFill_            { false };
   QColor                 gridFillColor_       { 128, 128, 128 };
@@ -352,6 +359,7 @@ class CQChartsAxis : public QObject {
   // tick label
   bool                   tickLabelDisplayed_ { true };
   CQChartsAxisTickLabel *tickLabel_          { nullptr };
+  bool                   tickLabelAutoHide_  { false };
 
   uint                   numTicks1_           { 1 };
   uint                   numTicks2_           { 0 };

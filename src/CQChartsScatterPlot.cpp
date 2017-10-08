@@ -14,13 +14,14 @@ CQChartsScatterPlotType()
   addColumnParameter("x", "X", "xColumn", "", 0);
   addColumnParameter("y", "Y", "yColumn", "", 1);
 
-  addColumnParameter("name", "Name", "nameColumn", "optional");
-  addColumnParameter("size", "Size", "sizeColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
+  addColumnParameter("size" , "Size" , "sizeColumn" , "optional");
+  addColumnParameter("color", "Color", "colorColumn", "optional");
 }
 
 CQChartsPlot *
 CQChartsScatterPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsScatterPlot(view, model);
 }
@@ -28,7 +29,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsScatterPlot::
-CQChartsScatterPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("scatter"), model)
 {
   addAxes();
@@ -44,17 +45,26 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn", "name");
-  addProperty("columns", this, "xColumn"   , "x"   );
-  addProperty("columns", this, "yColumn"   , "y"   );
-  addProperty("columns", this, "sizeColumn", "size");
-  addProperty(""       , this, "symbolSize"        );
+  addProperty("columns", this, "nameColumn"       , "name"       );
+  addProperty("columns", this, "xColumn"          , "x"          );
+  addProperty("columns", this, "yColumn"          , "y"          );
+  addProperty("columns", this, "sizeColumn"       , "size"       );
+  addProperty("columns", this, "colorColumn"      , "color"      );
+  addProperty("symbol" , this, "symbolSize"       , "size"       );
+  addProperty("symbol" , this, "symbolBorderColor", "borderColor");
+  addProperty("symbol" , this, "symbolSizeMin"    , "sizeMin"    );
+  addProperty("symbol" , this, "symbolSizeMax"    , "sizeMax"    );
 }
 
 void
 CQChartsScatterPlot::
 updateRange()
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   int n = numRows();
 
   dataRange_.reset();
@@ -62,8 +72,8 @@ updateRange()
   for (int i = 0; i < n; ++i) {
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
-    double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+    double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
+    double y = CQChartsUtil::modelReal(model, i, yColumn(), ok2);
 
     if (! ok1) x = i;
     if (! ok2) y = i;
@@ -76,11 +86,11 @@ updateRange()
 
   //---
 
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
+  xAxis_->setColumn(xColumn());
+  yAxis_->setColumn(yColumn());
 
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
-  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+  QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
+  QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -94,7 +104,12 @@ int
 CQChartsScatterPlot::
 numRows() const
 {
-  return model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return 0;
+
+  return model->rowCount(QModelIndex());
 }
 
 int
@@ -139,19 +154,38 @@ initObjs(bool force)
 
   //---
 
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   // init name values
   if (nameValues_.empty()) {
     int n = numRows();
 
+    if (sizeColumn() >= 0) {
+      bool ok;
+
+      for (int i = 0; i < n; ++i)
+        sizeSet_.addValue(CQChartsUtil::modelValue(model, i, sizeColumn(), ok));
+    }
+
+    if (colorColumn() >= 0) {
+      bool ok;
+
+      for (int i = 0; i < n; ++i)
+        colorSet_.addValue(CQChartsUtil::modelValue(model, i, colorColumn(), ok));
+    }
+
     for (int i = 0; i < n; ++i) {
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model_, i, nameColumn_, ok);
+      QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok);
 
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
-      double y = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+      double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
+      double y = CQChartsUtil::modelReal(model, i, yColumn(), ok2);
 
       if (! ok1) x = i;
       if (! ok2) y = i;
@@ -161,19 +195,30 @@ initObjs(bool force)
 
       bool ok3;
 
-      double size = CQChartsUtil::modelReal(model_, i, sizeColumn_, ok3);
+      QString sizeStr = CQChartsUtil::modelString(model, i, sizeColumn(), ok3);
+      double  rsize   = (sizeColumn () >= 0 ? sizeSet_ .imap(i) : -1);
 
-      if (! ok3)
-        size = -1;
+      QString colorStr = CQChartsUtil::modelString(model, i, colorColumn(), ok3);
+      double  rcolor   = (colorColumn() >= 0 ? colorSet_.imap(i) : -1);
 
-      nameValues_[name].push_back(Point(x, y, size));
+      nameValues_[name].emplace_back(x, y, sizeStr, rsize, colorStr, rcolor);
     }
   }
 
   //---
 
-  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+  QString xname     = model->headerData(xColumn    (), Qt::Horizontal).toString();
+  QString yname     = model->headerData(yColumn    (), Qt::Horizontal).toString();
+  QString sizeName  = model->headerData(sizeColumn (), Qt::Horizontal).toString();
+  QString colorName = model->headerData(colorColumn(), Qt::Horizontal).toString();
+
+  if (xname     == "") xname     = "x";
+  if (yname     == "") yname     = "x";
+  if (sizeName  == "") sizeName  = "size";
+  if (colorName == "") colorName = "color";
+
+  //double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
+  //double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
   int nv = nameValues_.size();
 
@@ -191,17 +236,26 @@ initObjs(bool force)
       for (int j = 0; j < nv1; ++j) {
         const QPointF &p = values[j].p;
 
-        CBBox2D bbox(p.x() - sw/2, p.y() - sh/2, p.x() + sw/2, p.y() + sh/2);
+        double ps = mapSymbolSize(values[j].size);
+
+        double sw = pixelToWindowWidth (ps);
+        double sh = pixelToWindowHeight(ps);
+
+        CBBox2D bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, values[j].size, i, nv);
+          new CQChartsScatterPointObj(this, bbox, p, values[j].size, values[j].color, i, nv);
 
-        QString id;
+        QString id = name;
 
-        if (values[j].size > 0)
-          id = QString("%1:x=%2:y=%3").arg(name).arg(p.x()).arg(p.y());
-        else
-          id = QString("%1:x=%2:y=%3:size=%4").arg(name).arg(p.x()).arg(p.y()).arg(values[j].size);
+        id += QString("\n  %1\t%2").arg(xname).arg(p.x());
+        id += QString("\n  %1\t%2").arg(yname).arg(p.y());
+
+        if (values[j].sizeStr != "")
+          id += QString("\n  %1\t%2").arg(sizeName).arg(values[j].sizeStr);
+
+        if (values[j].colorStr != "")
+          id += QString("\n  %1\t%2").arg(colorName).arg(values[j].colorStr);
 
         pointObj->setId(id);
 
@@ -253,12 +307,22 @@ draw(QPainter *p)
   drawParts(p);
 }
 
+double
+CQChartsScatterPlot::
+mapSymbolSize(double s) const
+{
+  if (s < 0)
+    return symbolSize();
+
+  return s*(symbolSizeMax() - symbolSizeMin()) + symbolSizeMin();
+}
+
 //------
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
-                        double size, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), p_(p), size_(size), i_(i), n_(n)
+                        double size, double color, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), p_(p), size_(size), color_(color), i_(i), n_(n)
 {
 }
 
@@ -266,7 +330,7 @@ bool
 CQChartsScatterPointObj::
 inside(const CPoint2D &p) const
 {
-  double s = (size_ > 0 ? size_ : plot_->symbolSize());
+  double s = plot_->mapSymbolSize(size_);
 
   double px, py;
 
@@ -285,15 +349,20 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  double s = (size_ > 0 ? size_ : plot_->symbolSize());
+  double s = plot_->mapSymbolSize(size_);
+
+  QColor color;
+
+  if (color_ >= 0)
+    color = plot_->objectStateColor(this, plot_->interpPaletteColor(color_, Qt::blue));
+  else
+    color = plot_->objectColor(this, i_, n_, Qt::blue);
 
   double px, py;
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  QColor color = plot_->objectColor(this, i_, n_, Qt::blue);
-
-  p->setPen  (Qt::black);
+  p->setPen  (plot_->symbolBorderColor());
   p->setBrush(color);
 
   QRectF erect(px - s, py - s, 2*s, 2*s);

@@ -3,7 +3,7 @@
 #include <COSNaN.h>
 
 namespace Util {
-  inline double clamp(double val, double low, double high) {
+  double clamp(double val, double low, double high) {
     if (val < low ) return low;
     if (val > high) return high;
     return val;
@@ -262,13 +262,7 @@ getColor(double x) const
     if      (colorModel() == ColorModel::RGB)
       c = QColor(255*r, 255*g, 255*b);
     else if (colorModel() == ColorModel::HSV)
-      c = QColor(CHSV (360*r, g, b));
-    else if (colorModel() == ColorModel::CMY)
-      c = QColor(CHSV (r, g, b)); // TODO
-    else if (colorModel() == ColorModel::YIQ)
-      c = QColor(CHSV (r, g, b)); // TODO
-    else if (colorModel() == ColorModel::XYZ)
-      c = QColor(CHSV (r, g, b)); // TODO
+      c = QColor().setHsv(360*r, 255*g, 255*b);
     else
       c = QColor(255*r, 255*g, 255*b);
 

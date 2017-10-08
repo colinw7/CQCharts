@@ -1,12 +1,13 @@
 #ifndef CQChartsTsv_H
 #define CQChartsTsv_H
 
-#include <CQChartsModel.h>
+#include <CQChartsModelColumn.h>
+#include <QSortFilterProxyModel>
 
+class CQCharts;
 class CQTsvModel;
-class QSortFilterProxyModel;
 
-class CQChartsTsv : public CQChartsModel {
+class CQChartsTsv : public QSortFilterProxyModel, public CQChartsModelColumn {
   Q_OBJECT
 
  public:
@@ -14,8 +15,6 @@ class CQChartsTsv : public CQChartsModel {
  ~CQChartsTsv();
 
   CQTsvModel *tsvModel() const { return tsvModel_; }
-
-  QSortFilterProxyModel *proxyModel() const { return proxyModel_; }
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
@@ -26,22 +25,21 @@ class CQChartsTsv : public CQChartsModel {
 
   int rowCount(const QModelIndex &parent=QModelIndex()) const override;
 
+  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value,
+                     int role=Qt::DisplayRole) override;
+
   QVariant headerData(int section, Qt::Orientation orientation=Qt::Horizontal,
                       int role=Qt::DisplayRole) const override;
 
   QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
-
-  QModelIndex index(int row, int column, const QModelIndex &parent=QModelIndex()) const override;
 
   QModelIndex parent(const QModelIndex &index) const override;
 
   Qt::ItemFlags flags(const QModelIndex &index) const;
 
  private:
-  typedef std::map<int,QString> ColumnTypes;
-
-  CQTsvModel*            tsvModel_   { nullptr };
-  QSortFilterProxyModel* proxyModel_ { nullptr };
+  CQCharts*   charts_   { nullptr };
+  CQTsvModel* tsvModel_ { nullptr };
 };
 
 #endif

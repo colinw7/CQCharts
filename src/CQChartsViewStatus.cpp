@@ -24,6 +24,8 @@ paintEvent(QPaintEvent *)
 {
   QPainter p(this);
 
+  p.fillRect(rect(), palette().color(QPalette::Window));
+
   QFontMetrics fm(font());
 
   p.drawText(2, 2 + fm.ascent(), text());

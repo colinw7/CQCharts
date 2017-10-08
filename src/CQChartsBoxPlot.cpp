@@ -17,7 +17,7 @@ CQChartsBoxPlotType()
 
 CQChartsPlot *
 CQChartsBoxPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsBoxPlot(view, model);
 }
@@ -25,7 +25,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsBoxPlot::
-CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("box"), model)
 {
   addAxes();
@@ -52,7 +52,12 @@ CQChartsBoxPlot::
 updateRange()
 {
   if (whiskers_.empty()) {
-    int n = model_->rowCount(QModelIndex());
+    QAbstractItemModel *model = this->model();
+
+    if (! model)
+      return;
+
+    int n = model->rowCount(QModelIndex());
 
     // determine x data type
 
@@ -62,7 +67,7 @@ updateRange()
       if (isInt) {
         bool ok1;
 
-        (void) CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
+        (void) CQChartsUtil::modelInteger(model, i, xColumn_, ok1);
 
         if (ok1)
           continue;
@@ -73,7 +78,7 @@ updateRange()
       if (isReal) {
         bool ok1;
 
-        (void) CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+        (void) CQChartsUtil::modelReal(model, i, xColumn_, ok1);
 
         if (ok1)
           continue;
@@ -95,12 +100,12 @@ updateRange()
       if      (isInt) {
         bool ok1;
 
-        setId = CQChartsUtil::modelInteger(model_, i, xColumn_, ok1);
+        setId = CQChartsUtil::modelInteger(model, i, xColumn_, ok1);
       }
       else if (isReal) {
         bool ok1;
 
-        double r = CQChartsUtil::modelReal(model_, i, xColumn_, ok1);
+        double r = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
 
         if (CQChartsUtil::isNaN(r))
           continue;
@@ -120,7 +125,7 @@ updateRange()
       else {
         bool ok1;
 
-        QString s = CQChartsUtil::modelString(model_, i, xColumn_, ok1);
+        QString s = CQChartsUtil::modelString(model, i, xColumn_, ok1);
 
         auto p = nameSet_.find(s);
 
@@ -139,7 +144,7 @@ updateRange()
 
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model_, i, yColumn_, ok2);
+      double value = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
 
       if (! ok2) value = i;
 
@@ -168,7 +173,7 @@ updateRange()
       if      (! setValue_.empty())
         xAxis_->setTickLabel(setId, QString("%1").arg(setValue_[setId]));
       else if (! setName_.empty())
-        yAxis_->setTickLabel(setId, setName_[setId]);
+        xAxis_->setTickLabel(setId, setName_[setId]);
 
       //---
 
@@ -191,11 +196,15 @@ updateRange()
   xAxis_->setColumn(xColumn_);
   yAxis_->setColumn(yColumn_);
 
-  QString xname = model_->headerData(xColumn_, Qt::Horizontal).toString();
-  QString yname = model_->headerData(yColumn_, Qt::Horizontal).toString();
+  QAbstractItemModel *model = this->model();
 
-  xAxis_->setLabel(xname);
-  yAxis_->setLabel(yname);
+  if (model) {
+    QString xname = model->headerData(xColumn_, Qt::Horizontal).toString();
+    QString yname = model->headerData(yColumn_, Qt::Horizontal).toString();
+
+    xAxis_->setLabel(xname);
+    yAxis_->setLabel(yname);
+  }
 
   //---
 

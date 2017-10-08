@@ -1,5 +1,5 @@
-#ifndef CJSON_H
-#define CJSON_H
+#ifndef CJson_H
+#define CJson_H
 
 #include <cstdio>
 #include <cassert>

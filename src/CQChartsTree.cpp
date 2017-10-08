@@ -1,5 +1,6 @@
 #include <CQChartsTree.h>
 #include <CQChartsHeader.h>
+#include <QSortFilterProxyModel>
 
 CQChartsTree::
 CQChartsTree(QWidget *parent) :
@@ -17,7 +18,22 @@ CQChartsTree(QWidget *parent) :
 
 void
 CQChartsTree::
-setModel(QAbstractItemModel *model)
+setModel(const ModelP &model)
 {
-  QTreeView::setModel(model);
+  model_ = model;
+
+  QTreeView::setModel(model_.data());
+}
+
+void
+CQChartsTree::
+setFilter(const QString &filter)
+{
+  if (! model_)
+    return;
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  assert(proxyModel);
+
+  proxyModel->setFilterWildcard(filter);
 }

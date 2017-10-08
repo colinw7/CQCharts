@@ -20,7 +20,7 @@ CQChartsAdjacencyPlotType()
 
 CQChartsPlot *
 CQChartsAdjacencyPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsAdjacencyPlot(view, model);
 }
@@ -28,7 +28,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsAdjacencyPlot::
-CQChartsAdjacencyPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
 {
   setMargins(0, 0, 0, 0);
@@ -88,24 +88,29 @@ initObjs(bool force)
 
   //---
 
-  int n = model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int n = model->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i) {
     bool ok1, ok2;
 
-    int id    = CQChartsUtil::modelInteger(model_, i, nodeColumn_ , ok1);
-    int group = CQChartsUtil::modelInteger(model_, i, groupColumn_, ok2);
+    int id    = CQChartsUtil::modelInteger(model, i, nodeColumn_ , ok1);
+    int group = CQChartsUtil::modelInteger(model, i, groupColumn_, ok2);
 
     if (! ok1) id    = i;
     if (! ok2) group = i;
 
     bool ok3;
 
-    QString connectionsStr = CQChartsUtil::modelString(model_, i, connectionsColumn_, ok3);
+    QString connectionsStr = CQChartsUtil::modelString(model, i, connectionsColumn_, ok3);
 
     bool ok4;
 
-    QString name = CQChartsUtil::modelString(model_, i, nameColumn_, ok4);
+    QString name = CQChartsUtil::modelString(model, i, nameColumn_, ok4);
 
     if (! name.length())
       name = QString("%1").arg(id);

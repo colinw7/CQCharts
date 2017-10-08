@@ -20,10 +20,12 @@
 #include <cassert>
 
 CQChartsPlotDlg::
-CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
- view_(view), model_(model)
+CQChartsPlotDlg(CQCharts *charts, const ModelP &model) :
+ charts_(charts), model_(model)
 {
   setObjectName("plotDlg");
+
+  setWindowTitle("Create Plot");
 
   //----
 
@@ -61,7 +63,7 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   QStringList names, descs;
 
-  charts()->getPlotTypeNames(names, descs);
+  this->charts()->getPlotTypeNames(names, descs);
 
   typeCombo->addItems(descs);
 
@@ -131,8 +133,8 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   ++row; column = 0;
 
-  xmaxEdit_ = addLineEdit(genLayout, row, column, "XMin", "xmax", "X Axis Maximum Value");
-  ymaxEdit_ = addLineEdit(genLayout, row, column, "YMin", "ymax", "Y Axis Maximum Value");
+  xmaxEdit_ = addLineEdit(genLayout, row, column, "XMax", "xmax", "X Axis Maximum Value");
+  ymaxEdit_ = addLineEdit(genLayout, row, column, "YMax", "ymax", "Y Axis Maximum Value");
 
   //--
 
@@ -175,6 +177,16 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
 
   //--
 
+  QPushButton *applyButton = new QPushButton("Apply");
+
+  applyButton->setObjectName("apply");
+
+  connect(applyButton, SIGNAL(clicked()), this, SLOT(applySlot()));
+
+  buttonLayout->addWidget(applyButton);
+
+  //--
+
   QPushButton *cancelButton = new QPushButton("Cancel");
 
   cancelButton->setObjectName("cancel");
@@ -186,13 +198,6 @@ CQChartsPlotDlg(CQChartsView *view, QAbstractItemModel *model) :
   //--
 
   buttonLayout->addStretch(1);
-}
-
-CQCharts *
-CQChartsPlotDlg::
-charts() const
-{
-  return view_->charts();
 }
 
 void
@@ -374,16 +379,32 @@ void
 CQChartsPlotDlg::
 okSlot()
 {
+  if (applySlot())
+    accept();
+}
+
+bool
+CQChartsPlotDlg::
+applySlot()
+{
   int ind = stack_->currentIndex();
 
   // create plot for typename of current tab
   QString typeName = tabTypeName_[ind];
 
   if (! charts()->isPlotType(typeName))
-    return;
+    return false;
 
   // TODO: get view from name
-  CQChartsView *view = view_;
+  QString viewId = viewEdit_->text();
+
+  CQChartsView *view = charts()->getView(viewId);
+
+  if (! view) {
+    view = charts()->addView();
+
+    view->show();
+  }
 
   CQChartsPlotType *type = charts()->plotType(typeName);
   assert(type);
@@ -409,7 +430,7 @@ okSlot()
       parseParameterColumnEdit(parameter, plotData, column, columnType);
 
       if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(column)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
       if (columnType.length())
         model_->setHeaderData(column, Qt::Horizontal, columnType, CQCharts::Role::ColumnType);
@@ -428,7 +449,7 @@ okSlot()
       QString s = CQChartsUtil::toString(columns);
 
       if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(s)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
       if (columnType.length() && ! columns.empty())
         model_->setHeaderData(columns[0], Qt::Horizontal, columnType, CQCharts::Role::ColumnType);
@@ -439,7 +460,7 @@ okSlot()
       parseParameterBoolEdit(parameter, plotData, b);
 
       if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(b)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        charts()->errorMsg("Failed to set parameter " + parameter.propName());
     }
     else
       assert(false);
@@ -465,7 +486,7 @@ okSlot()
   //---
 
   double xmin = 0.0, ymin = 0.0;
-  double xmax = 0.0, ymax = 0.0;
+  double xmax = 1.0, ymax = 1.0;
 
   QString posStr = posEdit_->text();
 
@@ -486,12 +507,12 @@ okSlot()
     if (ymin > ymax) std::swap(ymin, ymax);
 
     if (xmin == xmax) {
-      if (xmin < 0.0) xmin = 0.0;
+      if (xmin > 0.0) xmin = 0.0;
       else            xmax = 1.0;
     }
 
     if (ymin == ymax) {
-      if (ymin < 0.0) ymin = 0.0;
+      if (ymin > 0.0) ymin = 0.0;
       else            ymax = 1.0;
     }
   }
@@ -529,19 +550,19 @@ okSlot()
 
   //---
 
-  //int n = view->numPlots();
+  int n = view->numPlots();
 
-  //CBBox2D bbox(1000*xmin, 1000*ymin, 1000*xmax, 1000*ymax);
+  CBBox2D bbox(1000*xmin, 1000*ymin, 1000*xmax, 1000*ymax);
 
-  //plot->setId(QString("Chart.%1").arg(n + 1));
+  plot_->setId(QString("Chart.%1").arg(n + 1));
 
-  //view->addPlot(plot, bbox);
-
-  emit plotCreated(plot_);
+  view->addPlot(plot_, bbox);
 
   //---
 
-  accept();
+  emit plotCreated(plot_);
+
+  return true;
 }
 
 bool

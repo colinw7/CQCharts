@@ -16,7 +16,7 @@ CQChartsParallelPlotType()
 
 CQChartsPlot *
 CQChartsParallelPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsParallelPlot(view, model);
 }
@@ -24,7 +24,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsParallelPlot::
-CQChartsParallelPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("parallel"), model)
 {
   //addKey(); TODO
@@ -59,31 +59,48 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn" , "x"   );
-  addProperty("columns", this, "yColumn" , "y"   );
-  addProperty("columns", this, "yColumns", "yset");
+  addProperty("columns", this, "xColumn"     , "x"     );
+  addProperty("columns", this, "yColumn"     , "y"     );
+  addProperty("columns", this, "yColumns"    , "yset"  );
+  addProperty("points" , this, "points"      , "shown" );
+  addProperty("points" , this, "pointsColor" , "color" );
+  addProperty("points" , this, "symbolName"  , "symbol");
+  addProperty("points" , this, "symbolSize"  , "size"  );
+  addProperty("points" , this, "symbolFilled", "filled");
+  addProperty("lines"  , this, "lines"       , "shown" );
+  addProperty("lines"  , this, "linesColor"  , "color" );
+  addProperty("lines"  , this, "linesWidth"  , "width" );
 }
 
 void
 CQChartsParallelPlot::
 updateRange()
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   int n = numValues();
 
   for (int j = 0; j < numSets(); ++j) {
-    yRanges_.push_back(CRange2D());
+    yRanges_.emplace_back();
 
-    yAxes_.push_back(new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1));
+    CQChartsAxis *axis = new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1);
+
+    yAxes_.push_back(axis);
   }
 
   for (int j = 0; j < numSets(); ++j) {
+    CRange2D &range = yRanges_[j];
+
     int yColumn = getSetColumn(j);
 
     for (int i = 0; i < n; ++i) {
       bool ok;
 
       double x = 0;
-      double y = CQChartsUtil::modelReal(model_, i, yColumn, ok);
+      double y = CQChartsUtil::modelReal(model, i, yColumn, ok);
 
       if (! ok)
         y = i;
@@ -91,22 +108,24 @@ updateRange()
       if (CQChartsUtil::isNaN(y))
         continue;
 
-      yRanges_[j].updateRange(x, y);
+      range.updateRange(x, y);
     }
 
-    yRanges_[j].updateRange(          - 0.5, yRanges_[j].ymin());
-    yRanges_[j].updateRange(numSets() - 0.5, yRanges_[j].ymin());
+    range.updateRange(          - 0.5, range.ymin());
+    range.updateRange(numSets() - 0.5, range.ymin());
   }
 
   dataRange_.updateRange(          - 0.5, 0);
   dataRange_.updateRange(numSets() - 0.5, 1);
 
   for (int j = 0; j < numSets(); ++j) {
+    const CRange2D &range = yRange(j);
+
     int yColumn = getSetColumn(j);
 
-    QString name = model_->headerData(yColumn, Qt::Horizontal).toString();
+    QString name = model->headerData(yColumn, Qt::Horizontal).toString();
 
-    setDataRange(yRanges_[j]);
+    setDataRange(range);
 
     yAxes_[j]->setRange(dataRange_.ymin(), dataRange_.ymax());
     yAxes_[j]->setLabel(name);
@@ -141,12 +160,17 @@ initObjs(bool force)
 
   //---
 
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   std::vector<QPolygonF> polys;
 
   int n = numValues();
 
   for (int i = 0; i < n; ++i)
-    polys.push_back(QPolygonF());
+    polys.emplace_back();
 
   for (int i = 0; i < n; ++i) {
     QPolygonF &poly = polys[i];
@@ -157,7 +181,7 @@ initObjs(bool force)
       bool ok;
 
       double x = j;
-      double y = CQChartsUtil::modelReal(model_, i, yColumn, ok);
+      double y = CQChartsUtil::modelReal(model, i, yColumn, ok);
 
       if (! ok)
         y = i;
@@ -171,16 +195,20 @@ initObjs(bool force)
 
   //---
 
+  // TODO: use actual symbol size
+  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
+  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+
   for (int i = 0; i < n; ++i) {
     bool ok;
 
-    QString xname = CQChartsUtil::modelString(model_, i, xColumn_, ok);
+    QString xname = CQChartsUtil::modelString(model, i, xColumn_, ok);
 
     QPolygonF &poly = polys[i];
 
     CBBox2D bbox(-0.5, 0, numSets() - 0.5, 1);
 
-    CQChartsParallelLineObj *lineObj = new CQChartsParallelLineObj(this, bbox, poly, i);
+    CQChartsParallelLineObj *lineObj = new CQChartsParallelLineObj(this, bbox, poly, i, n);
 
     int nl = poly.count();
 
@@ -189,7 +217,7 @@ initObjs(bool force)
     for (int j = 0; j < nl; ++j) {
       int yColumn = getSetColumn(j);
 
-      QString yname = model_->headerData(yColumn, Qt::Horizontal).toString();
+      QString yname = model->headerData(yColumn, Qt::Horizontal).toString();
 
       id += QString("  %1\t%2\n").arg(yname).arg(poly[j].y());
     }
@@ -197,6 +225,31 @@ initObjs(bool force)
     lineObj->setId(id);
 
     addPlotObject(lineObj);
+
+    //---
+
+    for (int j = 0; j < nl; ++j) {
+      const CRange2D &range = yRange(j);
+
+      const QPointF &p = poly[j];
+
+      double y1 = (p.y() - range.ymin())/(range.ymax() - range.ymin());
+
+      CBBox2D bbox(j - sw/2, y1 - sh/2, j + sw/2, y1 + sh/2);
+
+      CQChartsParallelPointObj *pointObj =
+        new CQChartsParallelPointObj(this, bbox, j, y1, i, n, j, nl);
+
+      int yColumn = getSetColumn(j);
+
+      QString yname = model->headerData(yColumn, Qt::Horizontal).toString();
+
+      QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
+
+      pointObj->setId(id);
+
+      addPlotObject(pointObj);
+    }
   }
 }
 
@@ -224,7 +277,12 @@ int
 CQChartsParallelPlot::
 numValues() const
 {
-  return model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return 0;
+
+  return model->rowCount(QModelIndex());
 }
 
 void
@@ -246,7 +304,9 @@ draw(QPainter *p)
   drawObjs(p, Layer::MID);
 
   for (int j = 0; j < numSets(); ++j) {
-    setDataRange(yRanges_[j]);
+    const CRange2D &range = yRange(j);
+
+    setDataRange(range);
 
     displayRange_.setWindowRange(-0.5, dataRange_.ymin(), numSets() - 0.5, dataRange_.ymax());
 
@@ -276,15 +336,28 @@ draw(QPainter *p)
 
 CQChartsParallelLineObj::
 CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect,
-                        const QPolygonF &poly, int ind) :
- CQChartsPlotObj(rect), plot_(plot), poly_(poly), ind_(ind)
+                        const QPolygonF &poly, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), poly_(poly), i_(i), n_(n)
 {
+}
+
+bool
+CQChartsParallelLineObj::
+visible() const
+{
+  if (! plot_->isLines())
+    return false;
+
+  return isVisible();
 }
 
 bool
 CQChartsParallelLineObj::
 inside(const CPoint2D &p) const
 {
+  if (! plot_->isLines())
+    return false;
+
   QPolygonF poly;
 
   for (int i = 0; i < poly_.count(); ++i) {
@@ -314,11 +387,14 @@ inside(const CPoint2D &p) const
   return false;
 }
 
+// TODO : interpY
+
 void
 CQChartsParallelLineObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  p->setPen(Qt::black);
+  if (! plot_->isLines())
+    return;
 
   QPolygonF poly;
 
@@ -331,14 +407,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     poly << QPointF(x, y);
   }
 
-  QColor lineColor = plot_->objectColor(this, ind_, plot_->numValues(), Qt::black);
+  QColor    lc = plot_->objectColor(this, i_, n_, plot_->linesColor());
+  double    lw = plot_->linesWidth();
+  CLineDash ld;
 
-  QPen pen(lineColor);
+  if (isInside()) {
+    if (lw <= 0)
+      lw = 1;
 
-  if (isInside())
-    pen.setWidth(3);
-
-  p->setPen(pen);
+    lw *= 3;
+  }
 
   for (int i = 1; i < poly.count(); ++i) {
     double x1 = poly[i - 1].x();
@@ -351,6 +429,64 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     plot_->windowToPixel(x1, y1, px1, py1);
     plot_->windowToPixel(x2, y2, px2, py2);
 
-    p->drawLine(px1, py1, px2, py2);
+    CQChartsLineObj::draw(p, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
+  }
+}
+
+//------
+
+CQChartsParallelPointObj::
+CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CBBox2D &rect, double x, double y,
+                         int iset, int nset, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), iset_(iset), nset_(nset), i_(i), n_(n)
+{
+}
+
+bool
+CQChartsParallelPointObj::
+visible() const
+{
+  if (! plot_->isPoints())
+    return false;
+
+  return isVisible();
+}
+
+bool
+CQChartsParallelPointObj::
+inside(const CPoint2D &p) const
+{
+  double px, py;
+
+  plot_->windowToPixel(x_, y_, px, py);
+
+  double s = plot_->symbolSize();
+
+  CBBox2D pbbox(px - s, py - s, px + s, py + s);
+
+  CPoint2D pp;
+
+  plot_->windowToPixel(p, pp);
+
+  return pbbox.inside(pp);
+}
+
+void
+CQChartsParallelPointObj::
+draw(QPainter *p, const CQChartsPlot::Layer &)
+{
+  if (plot_->isPoints()) {
+    CSymbol2D::Type symbol = plot_->symbolType();
+    QColor          c      = plot_->objectColor(this, i_, n_, plot_->pointsColor());
+    bool            filled = plot_->isSymbolFilled();
+    double          s      = plot_->symbolSize();
+
+    CPoint2D pp(x_, y_);
+
+    double px, py;
+
+    plot_->windowToPixel(pp.x, pp.y, px, py);
+
+    CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
   }
 }

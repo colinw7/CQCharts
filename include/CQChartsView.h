@@ -23,10 +23,11 @@ class QLabel;
 class CQChartsView : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QColor background     READ background     WRITE setBackground    )
-  Q_PROPERTY(int    currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
-  Q_PROPERTY(Mode   mode           READ mode           WRITE setMode          )
-  Q_PROPERTY(bool   zoomData       READ isZoomData     WRITE setZoomData      )
+  Q_PROPERTY(QString id             READ id             WRITE setId            )
+  Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
+  Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(Mode    mode           READ mode           WRITE setMode          )
+  Q_PROPERTY(bool    zoomData       READ isZoomData     WRITE setZoomData      )
 
   Q_ENUMS(Mode)
 
@@ -48,6 +49,9 @@ class CQChartsView : public QFrame {
   CQCharts *charts() const { return charts_; }
 
   CQPropertyViewTree *propertyView() const;
+
+  const QString &id() const { return id_; }
+  void setId(const QString &s);
 
   const QColor &background() const { return background_; }
   void setBackground(const QColor &c) { background_ = c; update(); }
@@ -95,6 +99,8 @@ class CQChartsView : public QFrame {
 
   void setStatusText(const QString &text);
 
+  //---
+
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
@@ -105,6 +111,10 @@ class CQChartsView : public QFrame {
   CBBox2D pixelToWindow(const CBBox2D &p) const;
 
   const CBBox2D prect() const { return prect_; }
+
+  double aspect() const { return aspect_; }
+
+  //---
 
   QSize sizeHint() const;
 
@@ -135,6 +145,7 @@ class CQChartsView : public QFrame {
   CDisplayRange2D       displayRange_;
   CQChartsViewExpander* expander_       { nullptr };
   CQChartsViewSettings* settings_       { nullptr };
+  QString               id_;
   QColor                background_     { 255, 255, 255 };
   PlotDatas             plotDatas_;
   int                   currentPlotInd_ { 0 };
@@ -143,6 +154,7 @@ class CQChartsView : public QFrame {
   CQChartsViewStatus*   status_         { nullptr };
   CQChartsViewToolBar*  toolbar_        { nullptr };
   CBBox2D               prect_          { 0, 0, 100, 100 };
+  double                aspect_         { 1.0 };
   int                   toolBarHeight_  { 8 };
   int                   statusHeight_   { 8 };
   MouseData             mouseData_;

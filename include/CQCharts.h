@@ -6,6 +6,7 @@
 class CQChartsPlotTypeMgr;
 class CQChartsPlotType;
 class CQChartsColumnTypeMgr;
+class CQChartsView;
 
 class CQCharts {
  public:
@@ -28,9 +29,18 @@ class CQCharts {
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
 
+  CQChartsView *addView(const QString &id="");
+
+  CQChartsView *getView(const QString &id) const;
+
+  void errorMsg(const QString &msg);
+
  private:
+  typedef std::map<QString,CQChartsView *> Views;
+
   CQChartsPlotTypeMgr*   plotTypeMgr_   { nullptr };
   CQChartsColumnTypeMgr* columnTypeMgr_ { nullptr };
+  Views                  views_;
 };
 
 #endif

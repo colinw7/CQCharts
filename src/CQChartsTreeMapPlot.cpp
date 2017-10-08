@@ -30,7 +30,7 @@ CQChartsTreeMapPlotType()
 
 CQChartsPlot *
 CQChartsTreeMapPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsTreeMapPlot(view, model);
 }
@@ -38,7 +38,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //------
 
 CQChartsTreeMapPlot::
-CQChartsTreeMapPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("treemap"), model)
 {
   setMargins(1, 1, 1, 1);
@@ -158,24 +158,29 @@ void
 CQChartsTreeMapPlot::
 loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth, int colorId)
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   maxDepth_ = std::max(maxDepth_, depth + 1);
 
   //---
 
   Nodes nodes;
 
-  uint nc = model_->rowCount(index);
+  uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn_, index);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model_, index1, ok);
+    QString name = CQChartsUtil::modelString(model, index1, ok);
 
     //---
 
-    if (model_->rowCount(index1) > 0) {
+    if (model->rowCount(index1) > 0) {
       CQChartsTreeMapHierNode *hier1 = new CQChartsTreeMapHierNode(hier, name.toStdString());
 
       int colorId1 = colorId;
@@ -191,11 +196,11 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, valueColumn_, index);
+      QModelIndex index2 = model->index(i, valueColumn_, index);
 
       bool ok;
 
-      int value = CQChartsUtil::modelInteger(model_, index2, ok);
+      int value = CQChartsUtil::modelInteger(model, index2, ok);
 
       if (! ok) value = 1;
 

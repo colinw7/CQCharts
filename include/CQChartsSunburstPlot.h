@@ -335,7 +335,7 @@ class CQChartsSunburstPlotType : public CQChartsPlotType {
   QString name() const override { return "sunburst"; }
   QString desc() const override { return "Sunburst"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -348,7 +348,7 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
-  CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsSunburstPlot(CQChartsView *view, const ModelP &model);
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

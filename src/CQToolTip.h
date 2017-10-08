@@ -55,6 +55,8 @@ class CQToolTipWidgetIFace : public CQToolTipIFace {
 
 //---
 
+#define CQToolTipInst CQToolTip::instance()
+
 class CQToolTip : public QWidget {
   Q_OBJECT
 
@@ -66,8 +68,10 @@ class CQToolTip : public QWidget {
 
   static void unsetToolTip(QWidget *parent);
 
+  static void release();
+
  protected:
-  static CQToolTip *getInstance();
+  static CQToolTip *instance();
 
   CQToolTip();
  ~CQToolTip();

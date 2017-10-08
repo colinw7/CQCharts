@@ -113,10 +113,9 @@ class CSymbol2DRenderer {
 class CQChartsPlot;
 class QPainter;
 
-class CQChartsPlotSymbol2DRenderer : public CSymbol2DRenderer {
+class CQChartsSymbol2DRenderer : public CSymbol2DRenderer {
  public:
-  CQChartsPlotSymbol2DRenderer(CQChartsPlot *plot, QPainter *painter,
-                               const CPoint2D &p, double s);
+  CQChartsSymbol2DRenderer(QPainter *painter, const CPoint2D &p, double s);
 
   void moveTo(double x, double y) override;
 
@@ -135,15 +134,13 @@ class CQChartsPlotSymbol2DRenderer : public CSymbol2DRenderer {
   double lineWidth() const override;
 
  private:
-  CQChartsPlot *plot_    { nullptr };
-  QPainter     *painter_ { nullptr };
-  CPoint2D      p_       { 0, 0 };
-  CPoint2D      px_      { 0, 0 };
-  double        s_       { 2.0 };
-  double        w_       { 0.0 };
-  QPainterPath  path_;
-  QColor        pc_;
-  QColor        fc_;
+  QPainter*    painter_ { nullptr };
+  CPoint2D     p_       { 0.0, 0.0 };
+  double       s_       { 2.0 };
+  double       w_       { 0.0 };
+  QPainterPath path_;
+  QColor       pc_;
+  QColor       fc_;
 };
 
 #endif

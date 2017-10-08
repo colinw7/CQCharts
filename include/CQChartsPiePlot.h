@@ -117,7 +117,7 @@ class CQChartsPiePlotType : public CQChartsPlotType {
   QString name() const override { return "pie"; }
   QString desc() const override { return "Pie"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -139,7 +139,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
 
  public:
-  CQChartsPiePlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsPiePlot(CQChartsView *view, const ModelP &model);
 
   int labelColumn() const { return labelColumn_; }
   void setLabelColumn(int i) { labelColumn_ = i; }
@@ -149,6 +149,8 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   int keyLabelColumn() const { return keyLabelColumn_; }
   void setKeyLabelColumn(int i) { keyLabelColumn_ = i; }
+
+  //---
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; update(); }
@@ -199,6 +201,8 @@ class CQChartsPiePlot : public CQChartsPlot {
   void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
 
   //---
+
+  void handleResize() override;
 
   void draw(QPainter *) override;
 

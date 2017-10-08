@@ -2,8 +2,11 @@
 #define CQChartsTest_H
 
 #include <CQAppWindow.h>
-#include <CBBox2D.h>
+#include <QAbstractItemModel>
 #include <QPointer>
+#include <QSharedPointer>
+
+#include <CBBox2D.h>
 #include <map>
 
 #include <boost/optional.hpp>
@@ -15,11 +18,8 @@ class CQChartsLoader;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
-class CQChartsCsv;
-class CQChartsTsv;
-class CQChartsModel;
+class CQChartsPlotObj;
 
-class QAbstractItemModel;
 class QStackedWidget;
 class QLineEdit;
 class QPushButton;
@@ -30,7 +30,8 @@ class CQChartsTest : public CQAppWindow {
   Q_OBJECT
 
  public:
-  typedef boost::optional<double> OptReal;
+  typedef boost::optional<double>            OptReal;
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
 
  public:
   struct InitData {
@@ -95,27 +96,28 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *view() const;
 
-  CQChartsModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
-  CQChartsModel *loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
-  CQChartsModel *loadJson(const QString &filename);
-  CQChartsModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
+  QAbstractItemModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
+  QAbstractItemModel *loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
+  QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
+  QAbstractItemModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
 
   bool initPlot(const InitData &initData);
 
-  CQChartsPlot *init(const InitData &initData, int i);
+  CQChartsPlot *init(const ModelP &model, const InitData &initData, int i);
 
  private:
   void addMenus();
 
-  void setTableModel(QAbstractItemModel *model);
-  void setTreeModel (QAbstractItemModel *model);
+  void setTableModel(const ModelP &model);
+  void setTreeModel (const ModelP &model);
 
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
-  bool stringToColumn(const QString &str, int &column) const;
+  bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
 
-  CQChartsPlot * createPlot(CQChartsPlotType *type, const InitData &initData, bool reuse);
+  CQChartsPlot * createPlot(const ModelP &model, CQChartsPlotType *type,
+                            const InitData &initData, bool reuse);
 
   CQChartsView *getView(bool reuse=true);
 
@@ -132,26 +134,28 @@ class CQChartsTest : public CQAppWindow {
   void tableColumnClicked(int column);
   void typeOKSlot();
 
+  void plotDialogCreatedSlot(CQChartsPlot *plot);
+
+  void plotObjPressedSlot(CQChartsPlotObj *obj);
+
  private:
   typedef std::vector<CQChartsPlot *> Plots;
   typedef QPointer<CQChartsView>      ViewP;
 
-  Plots               plots_;
-  CQChartsPlot*       rootPlot_          { nullptr };
-  CQCharts*           charts_            { nullptr };
-  CQChartsCsv*        csv_               { nullptr };
-  CQChartsTsv*        tsv_               { nullptr };
-  QAbstractItemModel* model_             { nullptr };
-  QLineEdit*          columnTypeEdit_    { nullptr };
-  QStackedWidget*     stack_             { nullptr };
-  QLineEdit*          filterEdit_        { nullptr };
-  CQChartsTable*      table_             { nullptr };
-  CQChartsTree*       tree_              { nullptr };
-  int                 tableColumn_       { 0 };
-  CQChartsLoader*     loader_            { nullptr };
-  ViewP               view_;
-  QString             id_;
-  CBBox2D             bbox_;
+  Plots           plots_;
+  CQChartsPlot*   rootPlot_          { nullptr };
+  CQCharts*       charts_            { nullptr };
+  ModelP          model_;
+  QLineEdit*      columnTypeEdit_    { nullptr };
+  QStackedWidget* stack_             { nullptr };
+  QLineEdit*      filterEdit_        { nullptr };
+  CQChartsTable*  table_             { nullptr };
+  CQChartsTree*   tree_              { nullptr };
+  int             tableColumn_       { 0 };
+  CQChartsLoader* loader_            { nullptr };
+  ViewP           view_;
+  QString         id_;
+  CBBox2D         bbox_;
 };
 
 #endif

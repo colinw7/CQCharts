@@ -19,7 +19,7 @@ CQChartsGeometryPlotType()
 
 CQChartsPlot *
 CQChartsGeometryPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsGeometryPlot(view, model);
 }
@@ -27,7 +27,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //------
 
 CQChartsGeometryPlot::
-CQChartsGeometryPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model), dataLabel_(this)
 {
   setLayerActive(Layer::FG, true);
@@ -56,7 +56,12 @@ void
 CQChartsGeometryPlot::
 updateRange()
 {
-  int n = model_->rowCount(QModelIndex());
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int n = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
@@ -70,17 +75,16 @@ updateRange()
 
     bool ok1;
 
-    geometry.name = CQChartsUtil::modelString(model_, i, nameColumn_, ok1);
+    geometry.name = CQChartsUtil::modelString(model, i, nameColumn_, ok1);
 
     //--
 
     bool ok2;
 
-    QString geomStr = CQChartsUtil::modelString(model_, i, geometryColumn_, ok2);
+    QString geomStr = CQChartsUtil::modelString(model, i, geometryColumn_, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
-      std::cerr << "Invalid geometry '" << geomStr.toStdString() << "' for '" <<
-                   geometry.name.toStdString() << "'" << std::endl;
+      charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
       continue;
     }
 
@@ -98,7 +102,7 @@ updateRange()
 
     bool ok;
 
-    geometry.value = CQChartsUtil::modelReal(model_, i, valueColumn_, ok);
+    geometry.value = CQChartsUtil::modelReal(model, i, valueColumn_, ok);
 
     if (! ok)
       geometry.value = i;

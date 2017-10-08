@@ -63,7 +63,7 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
   QString name() const override { return "box"; }
   QString desc() const override { return "BoxPlot"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -77,7 +77,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
   Q_PROPERTY(double cornerRadius READ cornerRadius WRITE setCornerRadius)
 
  public:
-  CQChartsBoxPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsBoxPlot(CQChartsView *view, const ModelP &model);
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }

@@ -9,19 +9,20 @@ Functions
 Data
  + Allow Assign attributes to plot symbol (size, color)
  + Allow Expressions for Data/Columns
- + Data Label for Bar Chart, X/Y
  + Use Type for more data customization
 
 Model
- + All models derive from CQChartsModel
- + Add extra columns for extra properties - data labels, symbol size, ....
+ + Add extra columns/roles for extra properties
+   + data labels, symbol size, ....
+   + allow interchangeable role/column for data
+ + User sort filter to hide values
 
 Axes
  + Match X1/X2 ticks ?
  + Log axis
  + No Zoom
- + Filled Grid (alternating rows)
  + Handle overlapping labels
+   + Hide, Resize, Rotate
  + Tick Inside/Outside
 
 Title
@@ -86,3 +87,6 @@ Mouse Tools
  + Zoom : Data, Region
  + Zoom/Pan
    + Meaning for different plot types
+
+Parameters
+ + Description

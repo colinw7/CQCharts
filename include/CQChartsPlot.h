@@ -4,10 +4,14 @@
 #include <CQChartsPlotParameter.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsQuadTree.h>
+#include <CQChartsBoxObj.h>
+
 #include <CDisplayRange2D.h>
 #include <CDisplayTransform2D.h>
 #include <CRange2D.h>
 
+#include <QPointer>
+#include <QAbstractItemModel>
 #include <QFrame>
 
 #include <boost/optional.hpp>
@@ -54,6 +58,9 @@ class CQChartsPlotType {
   typedef std::vector<CQChartsPlotParameter> Parameters;
 
  public:
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
+
+ public:
   CQChartsPlotType() { }
 
   virtual ~CQChartsPlotType() { }
@@ -82,7 +89,7 @@ class CQChartsPlotType {
     parameters_.push_back(parameter);
   }
 
-  virtual CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const = 0;
+  virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
 
  protected:
   Parameters parameters_;
@@ -151,18 +158,18 @@ class CQChartsPlot : public QObject {
 
   typedef boost::optional<double> OptReal;
 
+  typedef QSharedPointer<QAbstractItemModel> ModelP;
+
  public:
-  CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, QAbstractItemModel *model);
+  CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
   virtual ~CQChartsPlot();
 
   CQChartsView *view() const { return view_; }
 
-  QAbstractItemModel *model() const { return model_; }
+  QAbstractItemModel *model() const { return model_.data(); }
 
   CQCharts *charts() const;
-
-  //CQChartsModel *chartsModel() const;
 
   QString typeName() const { return type_->name(); }
 
@@ -211,46 +218,48 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  bool isBackground() const { return background_; }
-  void setBackground(bool b) { background_ = b; update(); }
+  // plot area
+  bool isBackground() const { return borderObj_.isBackground(); }
+  void setBackground(bool b) { borderObj_.setBackground(b); update(); }
 
-  const QColor &backgroundColor() const { return backgroundColor_; }
-  void setBackgroundColor(const QColor &c) { backgroundColor_ = c; update(); }
+  const QColor &backgroundColor() const { return borderObj_.backgroundColor(); }
+  void setBackgroundColor(const QColor &c) { borderObj_.setBackgroundColor(c); update(); }
 
-  bool isBorder() const { return border_; }
-  void setBorder(bool b) { border_ = b; update(); }
+  bool isBorder() const { return borderObj_.isBorder(); }
+  void setBorder(bool b) { borderObj_.setBorder(b); update(); }
 
-  const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &c) { borderColor_ = c; update(); }
+  const QColor &borderColor() const { return borderObj_.borderColor(); }
+  void setBorderColor(const QColor &c) { borderObj_.setBorderColor(c); update(); }
 
-  double borderWidth() const { return borderWidth_; }
-  void setBorderWidth(double r) { borderWidth_ = r; update(); }
+  double borderWidth() const { return borderObj_.borderWidth(); }
+  void setBorderWidth(double r) { borderObj_.setBorderWidth(r); update(); }
 
-  const QString &borderSides() const { return borderSides_; }
-  void setBorderSides(const QString &s) { borderSides_ = s; update(); }
+  const QString &borderSides() const { return borderObj_.borderSides(); }
+  void setBorderSides(const QString &s) { borderObj_.setBorderSides(s); update(); }
 
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
 
   //---
 
-  bool isDataBackground() const { return dataBackground_; }
-  void setDataBackground(bool b) { dataBackground_ = b; update(); }
+  // data area
+  bool isDataBackground() const { return dataBorderObj_.isBackground(); }
+  void setDataBackground(bool b) { dataBorderObj_.setBackground(b); update(); }
 
-  const QColor &dataBackgroundColor() const { return dataBackgroundColor_; }
-  void setDataBackgroundColor(const QColor &c) { dataBackgroundColor_ = c; update(); }
+  const QColor &dataBackgroundColor() const { return dataBorderObj_.backgroundColor(); }
+  void setDataBackgroundColor(const QColor &c) { dataBorderObj_.setBackgroundColor(c); update(); }
 
-  bool isDataBorder() const { return dataBorder_; }
-  void setDataBorder(bool b) { dataBorder_ = b; update(); }
+  bool isDataBorder() const { return dataBorderObj_.isBorder(); }
+  void setDataBorder(bool b) { dataBorderObj_.setBorder(b); update(); }
 
-  const QColor &dataBorderColor() const { return dataBorderColor_; }
-  void setDataBorderColor(const QColor &c) { dataBorderColor_ = c; update(); }
+  const QColor &dataBorderColor() const { return dataBorderObj_.borderColor(); }
+  void setDataBorderColor(const QColor &c) { dataBorderObj_.setBorderColor(c); update(); }
 
-  double dataBorderWidth() const { return dataBorderWidth_; }
-  void setDataBorderWidth(double r) { dataBorderWidth_ = r; update(); }
+  double dataBorderWidth() const { return dataBorderObj_.borderWidth(); }
+  void setDataBorderWidth(double r) { dataBorderObj_.setBorderWidth(r); update(); }
 
-  const QString &dataBorderSides() const { return dataBorderSides_; }
-  void setDataBorderSides(const QString &s) { dataBorderSides_ = s; update(); }
+  const QString &dataBorderSides() const { return dataBorderObj_.borderSides(); }
+  void setDataBorderSides(const QString &s) { dataBorderObj_.setBorderSides(s); update(); }
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b) { dataClip_ = b; update(); }
@@ -483,10 +492,11 @@ class CQChartsPlot : public QObject {
 
   virtual void drawTitle(QPainter *painter);
 
-  virtual void drawSymbol(QPainter *painter, const CPoint2D &p, CSymbol2D::Type type,
-                          double s, const QColor &c, bool filled=false);
-
   virtual void drawForeground(QPainter *) { }
+
+  //---
+
+  void drawWindowRedBox(QPainter *painter, const CBBox2D &bbox);
 
   void drawRedBox(QPainter *painter, const CBBox2D &bbox);
 
@@ -532,7 +542,7 @@ class CQChartsPlot : public QObject {
 
   CQChartsView*         view_                { nullptr };
   CQChartsPlotType*     type_                { nullptr };
-  QAbstractItemModel*   model_               { nullptr };
+  ModelP                model_               { nullptr };
   QString               id_;
   bool                  visible_             { true };
   CBBox2D               bbox_                { 0, 0, 1000, 1000 };
@@ -547,19 +557,9 @@ class CQChartsPlot : public QObject {
   OptReal               xmax_;
   OptReal               ymax_;
   CGradientPalette*     palette_             { nullptr };
-  bool                  background_          { true };
-  QColor                backgroundColor_     { 255, 255, 255 };
-  bool                  border_              { false };
-  QColor                borderColor_         { 0, 0, 0 };
-  double                borderWidth_         { 0.0 };
-  QString               borderSides_         { "tlbr" };
+  CQChartsBoxObj        borderObj_;
   bool                  clip_                { true };
-  bool                  dataBackground_      { true };
-  QColor                dataBackgroundColor_ { 255, 255, 255 };
-  bool                  dataBorder_          { false };
-  QColor                dataBorderColor_     { 0, 0, 0 };
-  double                dataBorderWidth_     { 0.0 };
-  QString               dataBorderSides_     { "tlbr" };
+  CQChartsBoxObj        dataBorderObj_;
   bool                  dataClip_            { false };
   QString               title_;
   CQChartsAxis*         xAxis_               { nullptr };

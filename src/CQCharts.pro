@@ -14,45 +14,56 @@ CONFIG += staticlib
 
 SOURCES += \
 CQCharts.cpp \
-CQChartsAdjacencyPlot.cpp \
-CQChartsAxis.cpp \
-CQChartsBarChartPlot.cpp \
-CQChartsBoxObj.cpp \
-CQChartsBoxPlot.cpp \
-CQChartsBubblePlot.cpp \
-CQChartsColumn.cpp \
+\
 CQChartsCsv.cpp \
-CQChartsData.cpp \
-CQChartsDataLabel.cpp \
-CQChartsDelaunayPlot.cpp \
-CQChartsGeometryPlot.cpp \
-CQChartsHeader.cpp \
-CQChartsHierBubblePlot.cpp \
-CQChartsKey.cpp \
-CQChartsJson.cpp \
-CQChartsModel.cpp \
-CQChartsParallelPlot.cpp \
-CQChartsPiePlot.cpp \
-CQChartsPlot.cpp \
-CQChartsPlotSymbol.cpp \
-CQChartsProbeBand.cpp \
-CQChartsScatterPlot.cpp \
-CQChartsSunburstPlot.cpp \
-CQChartsTable.cpp \
-CQChartsTextBoxObj.cpp \
-CQChartsTitle.cpp \
-CQChartsTree.cpp \
-CQChartsTreeMapPlot.cpp \
 CQChartsTsv.cpp \
+CQChartsJson.cpp \
+CQChartsGnuData.cpp \
+CQChartsModelColumn.cpp \
+CQChartsColumn.cpp \
+\
+CQChartsTable.cpp \
+CQChartsTree.cpp \
+CQChartsHeader.cpp \
+\
 CQChartsView.cpp \
 CQChartsViewExpander.cpp \
 CQChartsViewSettings.cpp \
 CQChartsViewStatus.cpp \
 CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
+CQChartsProbeBand.cpp \
+\
+CQChartsPlot.cpp \
+CQChartsAdjacencyPlot.cpp \
+CQChartsBarChartPlot.cpp \
+CQChartsBoxPlot.cpp \
+CQChartsBubblePlot.cpp \
+CQChartsDelaunayPlot.cpp \
+CQChartsGeometryPlot.cpp \
+CQChartsHierBubblePlot.cpp \
+CQChartsParallelPlot.cpp \
+CQChartsPiePlot.cpp \
+CQChartsScatterPlot.cpp \
+CQChartsSunburstPlot.cpp \
+CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
 \
+CQChartsBoxObj.cpp \
+CQChartsTextBoxObj.cpp \
+CQChartsDataLabel.cpp \
+CQChartsLineObj.cpp \
+CQChartsPointObj.cpp \
+\
+CQChartsAxis.cpp \
+CQChartsKey.cpp \
+CQChartsTitle.cpp \
+\
+CQChartsValueSet.cpp \
+CQChartsPlotSymbol.cpp \
+\
 CQChartsLoader.cpp \
+\
 CQChartsPlotDlg.cpp \
 \
 CQPropertyViewDelegate.cpp \
@@ -70,6 +81,7 @@ CQCsvModel.cpp \
 CQTsvModel.cpp \
 CQJsonModel.cpp \
 CJson.cpp \
+CQGnuDataModel.cpp \
 \
 CQColorChooser.cpp \
 CQAlphaButton.cpp \
@@ -95,48 +107,59 @@ COSNaN.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
-../include/CQChartsAdjacencyPlot.h \
-../include/CQChartsAxis.h \
-../include/CQChartsBarChartPlot.h \
-../include/CQChartsBoxObj.h \
-../include/CQChartsBoxPlot.h \
-../include/CQChartsBubblePlot.h \
-../include/CQChartsColumn.h \
+\
 ../include/CQChartsCsv.h \
-../include/CQChartsData.h \
-../include/CQChartsDataLabel.h \
-../include/CQChartsDelaunayPlot.h \
-../include/CQChartsGeometryPlot.h \
-../include/CQChartsKey.h \
-../include/CQChartsHeader.h \
-../include/CQChartsHierBubblePlot.h \
-../include/CQChartsJson.h \
-../include/CQChartsModel.h \
-../include/CQChartsParallelPlot.h \
-../include/CQChartsPiePlot.h \
-../include/CQChartsPlot.h \
-../include/CQChartsPlotObj.h \
-../include/CQChartsPlotSymbol.h \
-../include/CQChartsProbeBand.h \
-../include/CQChartsQuadTree.h \
-../include/CQChartsScatterPlot.h \
-../include/CQChartsSunburstPlot.h \
-../include/CQChartsTable.h \
-../include/CQChartsTextBoxObj.h \
-../include/CQChartsTitle.h \
-../include/CQChartsTree.h \
-../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsTsv.h \
-../include/CQChartsUtil.h \
+../include/CQChartsJson.h \
+../include/CQChartsGnuData.h \
+../include/CQChartsModelColumn.h \
+../include/CQChartsColumn.h \
+\
+../include/CQChartsTable.h \
+../include/CQChartsTree.h \
+../include/CQChartsHeader.h \
+\
 ../include/CQChartsView.h \
 ../include/CQChartsViewExpander.h \
 ../include/CQChartsViewSettings.h \
 ../include/CQChartsViewStatus.h \
 ../include/CQChartsViewToolBar.h \
 ../include/CQChartsViewToolTip.h \
+../include/CQChartsProbeBand.h \
+\
+../include/CQChartsPlot.h \
+../include/CQChartsAdjacencyPlot.h \
+../include/CQChartsBarChartPlot.h \
+../include/CQChartsBoxPlot.h \
+../include/CQChartsBubblePlot.h \
+../include/CQChartsDelaunayPlot.h \
+../include/CQChartsGeometryPlot.h \
+../include/CQChartsHierBubblePlot.h \
+../include/CQChartsParallelPlot.h \
+../include/CQChartsPiePlot.h \
+../include/CQChartsScatterPlot.h \
+../include/CQChartsSunburstPlot.h \
+../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
 \
+../include/CQChartsPlotObj.h \
+../include/CQChartsBoxObj.h \
+../include/CQChartsTextBoxObj.h \
+../include/CQChartsDataLabel.h \
+../include/CQChartsLineObj.h \
+../include/CQChartsPointObj.h \
+\
+../include/CQChartsAxis.h \
+../include/CQChartsKey.h \
+../include/CQChartsTitle.h \
+\
+../include/CQChartsValueSet.h \
+../include/CQChartsPlotSymbol.h \
+../include/CQChartsUtil.h \
+../include/CQChartsQuadTree.h \
+\
 ../include/CQChartsLoader.h \
+\
 ../include/CQChartsPlotDlg.h \
 \
 CQPropertyViewDelegate.h \
@@ -154,6 +177,7 @@ CGradientPalette.h \
 ../include/CQTsvModel.h \
 ../include/CQJsonModel.h \
 ../include/CJson.h \
+../include/CQGnuDataModel.h \
 \
 CQAlphaButton.h \
 CQBBox2DEdit.h \

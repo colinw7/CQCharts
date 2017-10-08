@@ -420,56 +420,54 @@ fillSymbol(CSymbol2D::Type type)
 }
 //------
 
-CQChartsPlotSymbol2DRenderer::
-CQChartsPlotSymbol2DRenderer(CQChartsPlot *plot, QPainter *painter, const CPoint2D &p, double s) :
- plot_(plot), painter_(painter), p_(p), s_(s)
+CQChartsSymbol2DRenderer::
+CQChartsSymbol2DRenderer(QPainter *painter, const CPoint2D &p, double s) :
+ painter_(painter), p_(p), s_(s)
 {
   pc_ = painter_->pen  ().color();
   fc_ = painter_->brush().color();
-
-  plot_->windowToPixel(p_, px_);
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 moveTo(double x, double y)
 {
-  path_.moveTo(px_.x + x*s_, px_.y - y*s_);
+  path_.moveTo(p_.x + x*s_, p_.y - y*s_);
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 lineTo(double x, double y)
 {
-  path_.lineTo(px_.x + x*s_, px_.y - y*s_);
+  path_.lineTo(p_.x + x*s_, p_.y - y*s_);
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 closePath()
 {
   path_.closeSubpath();
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 stroke()
 {
   painter_->strokePath(path_, QPen(pc_));
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 fill()
 {
   painter_->fillPath(path_, QBrush(fc_));
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 strokeCircle(double x, double y, double r)
 {
-  QRectF rect(px_.x + (x - r)*s_, px_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
+  QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
   painter_->save();
 
@@ -482,10 +480,10 @@ strokeCircle(double x, double y, double r)
 }
 
 void
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 fillCircle(double x, double y, double r)
 {
-  QRectF rect(px_.x + (x - r)*s_, px_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
+  QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
   painter_->save();
 
@@ -498,7 +496,7 @@ fillCircle(double x, double y, double r)
 }
 
 double
-CQChartsPlotSymbol2DRenderer::
+CQChartsSymbol2DRenderer::
 lineWidth() const
 {
   return w_;

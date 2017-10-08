@@ -35,7 +35,7 @@ CQChartsSunburstPlotType()
 
 CQChartsPlot *
 CQChartsSunburstPlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsSunburstPlot(view, model);
 }
@@ -43,7 +43,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsSunburstPlot::
-CQChartsSunburstPlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("sunburst"), model)
 {
   // addKey() // TODO
@@ -121,23 +121,28 @@ void
 CQChartsSunburstPlot::
 loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth, int colorId)
 {
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
   if (depth == 3)
     colorId = nextColorId();
 
   int colorId1 = 0;
 
-  uint nc = model_->rowCount(index);
+  uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn_, index);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model_, index1, ok);
+    QString name = CQChartsUtil::modelString(model, index1, ok);
 
     //---
 
-    if (model_->rowCount(index1) > 0) {
+    if (model->rowCount(index1) > 0) {
       CQChartsSunburstHierNode *hier1 = new CQChartsSunburstHierNode(hier, name);
 
       loadChildren(hier1, index1, depth + 1, colorId);
@@ -145,11 +150,11 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
       colorId1 = hier1->colorId();
     }
     else {
-      QModelIndex index2 = model_->index(i, valueColumn_, index);
+      QModelIndex index2 = model->index(i, valueColumn_, index);
 
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model_, index2, ok);
+      int size = CQChartsUtil::modelInteger(model, index2, ok);
 
       if (! ok) size = 1;
 

@@ -35,7 +35,7 @@ CQChartsBubblePlotType()
 
 CQChartsPlot *
 CQChartsBubblePlotType::
-create(CQChartsView *view, QAbstractItemModel *model) const
+create(CQChartsView *view, const ModelP &model) const
 {
   return new CQChartsBubblePlot(view, model);
 }
@@ -43,7 +43,7 @@ create(CQChartsView *view, QAbstractItemModel *model) const
 //---
 
 CQChartsBubblePlot::
-CQChartsBubblePlot(CQChartsView *view, QAbstractItemModel *model) :
+CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
   setMargins(1, 1, 1, 1);
@@ -154,29 +154,34 @@ loadChildren(const QModelIndex &index)
 {
   int colorId = -1;
 
-  uint nc = model_->rowCount(index);
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model_->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn_, index);
 
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model_, index1, ok1);
+    QString name = CQChartsUtil::modelString(model, index1, ok1);
 
     //---
 
-    if (model_->rowCount(index1) > 0) {
+    if (model->rowCount(index1) > 0) {
       loadChildren(index1);
     }
     else {
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model_->index(i, valueColumn_, index);
+      QModelIndex index2 = model->index(i, valueColumn_, index);
 
       bool ok2;
 
-      int size = CQChartsUtil::modelInteger(model_, index2, ok2);
+      int size = CQChartsUtil::modelInteger(model, index2, ok2);
 
       if (! ok2) size = 1;
 

@@ -1,59 +1,59 @@
-#include <CQChartsCsv.h>
+#include <CQChartsGnuData.h>
 #include <CQCharts.h>
-#include <CQCsvModel.h>
+#include <CQGnuDataModel.h>
 
-CQChartsCsv::
-CQChartsCsv(CQCharts *charts) :
+CQChartsGnuData::
+CQChartsGnuData(CQCharts *charts) :
  QSortFilterProxyModel(), CQChartsModelColumn(charts), charts_(charts)
 {
-  csvModel_ = new CQCsvModel;
+  dataModel_ = new CQGnuDataModel;
 
-  setSourceModel(csvModel_);
+  setSourceModel(dataModel_);
 }
 
-CQChartsCsv::
-~CQChartsCsv()
+CQChartsGnuData::
+~CQChartsGnuData()
 {
-  delete csvModel_;
+  delete dataModel_;
 }
 
 void
-CQChartsCsv::
+CQChartsGnuData::
 setCommentHeader(bool b)
 {
-  csvModel_->setCommentHeader(b);
+  dataModel_->setCommentHeader(b);
 }
 
 void
-CQChartsCsv::
+CQChartsGnuData::
 setFirstLineHeader(bool b)
 {
-  csvModel_->setFirstLineHeader(b);
+  dataModel_->setFirstLineHeader(b);
 }
 
 bool
-CQChartsCsv::
+CQChartsGnuData::
 load(const QString &filename)
 {
-  return csvModel_->load(filename);
+  return dataModel_->load(filename);
 }
 
 int
-CQChartsCsv::
+CQChartsGnuData::
 columnCount(const QModelIndex &parent) const
 {
   return QSortFilterProxyModel::columnCount(parent);
 }
 
 int
-CQChartsCsv::
+CQChartsGnuData::
 rowCount(const QModelIndex &parent) const
 {
   return QSortFilterProxyModel::rowCount(parent);
 }
 
 bool
-CQChartsCsv::
+CQChartsGnuData::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
   if (role == CQCharts::Role::ColumnType) {
@@ -65,7 +65,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
 }
 
 QVariant
-CQChartsCsv::
+CQChartsGnuData::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (role == CQCharts::Role::ColumnType)
@@ -75,7 +75,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
 }
 
 QVariant
-CQChartsCsv::
+CQChartsGnuData::
 data(const QModelIndex &index, int role) const
 {
   QVariant var = QSortFilterProxyModel::data(index, role);
@@ -103,14 +103,14 @@ data(const QModelIndex &index, int role) const
 }
 
 QModelIndex
-CQChartsCsv::
+CQChartsGnuData::
 parent(const QModelIndex &index) const
 {
   return QSortFilterProxyModel::parent(index);
 }
 
 Qt::ItemFlags
-CQChartsCsv::
+CQChartsGnuData::
 flags(const QModelIndex &index) const
 {
   if (! index.isValid())

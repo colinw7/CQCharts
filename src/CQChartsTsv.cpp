@@ -1,26 +1,20 @@
 #include <CQChartsTsv.h>
 #include <CQCharts.h>
 #include <CQTsvModel.h>
-#include <QSortFilterProxyModel>
 
 CQChartsTsv::
 CQChartsTsv(CQCharts *charts) :
- CQChartsModel(charts)
+ QSortFilterProxyModel(), CQChartsModelColumn(charts), charts_(charts)
 {
-  setColumnHeaders(true);
-
   tsvModel_ = new CQTsvModel;
 
-  proxyModel_ = new QSortFilterProxyModel;
-
-  proxyModel_->setSourceModel(tsvModel_);
+  setSourceModel(tsvModel_);
 }
 
 CQChartsTsv::
 ~CQChartsTsv()
 {
   delete tsvModel_;
-  delete proxyModel_;
 }
 
 void
@@ -48,14 +42,26 @@ int
 CQChartsTsv::
 columnCount(const QModelIndex &parent) const
 {
-  return proxyModel_->columnCount(parent);
+  return QSortFilterProxyModel::columnCount(parent);
 }
 
 int
 CQChartsTsv::
 rowCount(const QModelIndex &parent) const
 {
-  return proxyModel_->rowCount(parent);
+  return QSortFilterProxyModel::rowCount(parent);
+}
+
+bool
+CQChartsTsv::
+setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+  if (role == CQCharts::Role::ColumnType) {
+    setColumnType(section, value.toString());
+    return true;
+  }
+
+  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
 }
 
 QVariant
@@ -63,27 +69,34 @@ CQChartsTsv::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (role == CQCharts::Role::ColumnType)
-    return CQChartsModel::headerData(section, orientation, role);
+    return QVariant(columnType(section));
 
-  return proxyModel_->headerData(section, orientation, role);
+  return QSortFilterProxyModel::headerData(section, orientation, role);
 }
 
 QVariant
 CQChartsTsv::
 data(const QModelIndex &index, int role) const
 {
-  if (! index.isValid())
-    return QVariant();
+  QVariant var = QSortFilterProxyModel::data(index, role);
 
-  QVariant var = proxyModel_->data(index, role);
+  if (role == Qt::UserRole && ! var.isValid())
+    var = QSortFilterProxyModel::data(index, Qt::DisplayRole);
 
-  if      (role == Qt::DisplayRole) {
-    CQChartsNameValues nameValues;
+  if (role == Qt::DisplayRole || role == Qt::UserRole) {
+    if (! index.isValid())
+      return QVariant();
 
-    CQChartsColumnType *typeData = columnTypeData(index.column(), nameValues);
+    assert(index.model() == this);
 
-    if (typeData)
-      return typeData->userData(var, nameValues);
+    QModelIndex index1 = QSortFilterProxyModel::mapToSource(index);
+
+    assert(index.column() == index1.column());
+
+    if (role == Qt::DisplayRole)
+      return columnDisplayData(index1.column(), var);
+    else
+      return columnUserData(index1.column(), var);
   }
 
   return var;
@@ -91,16 +104,9 @@ data(const QModelIndex &index, int role) const
 
 QModelIndex
 CQChartsTsv::
-index(int row, int column, const QModelIndex &parent) const
-{
-  return proxyModel_->index(row, column, parent);
-}
-
-QModelIndex
-CQChartsTsv::
 parent(const QModelIndex &index) const
 {
-  return proxyModel_->parent(index);
+  return QSortFilterProxyModel::parent(index);
 }
 
 Qt::ItemFlags

@@ -41,7 +41,7 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
   QString name() const override { return "geometry"; }
   QString desc() const override { return "Geometry"; }
 
-  CQChartsPlot *create(CQChartsView *view, QAbstractItemModel *model) const override;
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
@@ -73,7 +73,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   };
 
  public:
-  CQChartsGeometryPlot(CQChartsView *view, QAbstractItemModel *model);
+  CQChartsGeometryPlot(CQChartsView *view, const ModelP &model);
 
   //---
 

@@ -26,7 +26,7 @@ CQChartsTest \
 CQChartsTest \
  -tsv bivariate.tsv -comment_header \
  -type xy -columns "x=0,y=1 2" \
- -column_type "time:format=%Y%m%d" \
+ -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate"
 
@@ -37,7 +37,7 @@ CQChartsTest \
 
 CQChartsTest \
  -tsv multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d" \
+ -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d,oformat=%F" \
  -plot_title "xy plot"
 
 CQChartsTest \
@@ -46,7 +46,7 @@ CQChartsTest \
  -plot_title "multiple xy plot"
 
 CQChartsTest \
- -csv parallel_coords.csv \
+ -csv parallel_coords.csv -first_line_header \
  -type parallel -columns "x=0,y=1 2 3 4 5 6 7" \
  -plot_title "parallel"
 
@@ -171,4 +171,11 @@ CQChartsTest \
 
 CQChartsTest \
  -csv group.csv -comment_header \
- -type barchart -columns "name=1,value=2"
+ -type barchart -columns "category=1,value=2,name=0"
+
+#---
+
+CQChartsTest \
+ -csv bubble.csv -comment_header \
+ -type scatter -columns "name=0,x=1,y=2,color=3,size=4" \
+ -plot_title "scatter"
