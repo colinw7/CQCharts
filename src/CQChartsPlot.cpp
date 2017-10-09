@@ -429,7 +429,8 @@ void
 CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
-  assert(obj->rect().isSet());
+  if (! obj->rect().isSet())
+    return;
 
   plotObjTree_.add(obj);
 

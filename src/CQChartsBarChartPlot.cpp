@@ -11,11 +11,11 @@
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
 {
-  addColumnParameter ("category", "Category", "categoryColumn", "", 0  );
+  addColumnParameter ("category", "Category", "categoryColumn", "", 0);
   addColumnsParameter("value"   , "Value"   , "valueColumns"  , "", "1");
-  addColumnsParameter("name"    , "Name"    , "nameColumn"    , "options");
+  addColumnsParameter("name"    , "Name"    , "nameColumn"    , "optional");
 
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"  , "optional");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
   addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
 }
 
@@ -156,11 +156,11 @@ updateRange()
   for (int i = 0; i < n; ++i) {
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model, i, categoryColumn(), ok1);
+    QString category = CQChartsUtil::modelString(model, i, categoryColumn(), ok1);
 
     double sum = 0.0;
 
-    ValueSet *valueSet = getValueSet(name);
+    ValueSet *valueSet = getValueSet(category);
 
     if (ns > 1) {
       if (isKeySets()) {
@@ -207,9 +207,9 @@ updateRange()
         //---
 
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, name);
+          xAxis_->setTickLabel(numVisible, category);
         else
-          yAxis_->setTickLabel(numVisible, name);
+          yAxis_->setTickLabel(numVisible, category);
 
         ++numVisible;
       }
@@ -257,9 +257,9 @@ updateRange()
         //---
 
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, name);
+          xAxis_->setTickLabel(numVisible, category);
         else
-          yAxis_->setTickLabel(numVisible, name);
+          yAxis_->setTickLabel(numVisible, category);
 
         ++numVisible;
       }
@@ -318,9 +318,9 @@ updateRange()
 
       if (isNew) {
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, name);
+          xAxis_->setTickLabel(numVisible, category);
         else
-          yAxis_->setTickLabel(numVisible, name);
+          yAxis_->setTickLabel(numVisible, category);
 
         ++numVisible;
       }
@@ -335,9 +335,9 @@ updateRange()
     for (int j = 0; j < ns; ++j) {
       int valueColumn = getSetColumn(j);
 
-      QString name = model->headerData(valueColumn, Qt::Horizontal).toString();
+      QString valueName = model->headerData(valueColumn, Qt::Horizontal).toString();
 
-      valueNames_.push_back(name);
+      valueNames_.push_back(valueName);
     }
   }
 
@@ -484,7 +484,7 @@ initObjs(bool force)
   for (int j = 0; j < nv; ++j) {
     const ValueSet &valueSet = valueSets_[j];
 
-    QString setName = valueSet.name;
+    const QString &setName = valueSet.name;
 
     //---
 
@@ -635,8 +635,8 @@ initObjs(bool force)
       int nvs = valueSet.values.size();
 
       for (int i = 0; i < nvs; ++i) {
-        double         value = valueSet.values[i].value;
-        const QString &name  = valueSet.values[i].name;
+        double         value     = valueSet.values[i].value;
+        const QString &valueName = valueSet.values[i].name;
 
         //---
 
@@ -677,8 +677,8 @@ initObjs(bool force)
 
         QString valueStr = this->valueStr(value);
 
-        if (name.length())
-          barObj->setId(QString("%1:%2=%3").arg(setName).arg(name).arg(valueStr));
+        if (valueName.length())
+          barObj->setId(QString("%1:%2=%3").arg(setName).arg(valueName).arg(valueStr));
         else
           barObj->setId(QString("%1=%2").arg(setName).arg(valueStr));
 

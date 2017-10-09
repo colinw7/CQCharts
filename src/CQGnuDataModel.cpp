@@ -64,7 +64,7 @@ load(const QString &filename)
   int subSetNum = 0;
   int lineNum   = 0;
 
-  auto comment = commentChars_.get_value_or("#");
+  auto comment = commentChars_.value_or("#");
 
   for (const auto &line : lines_) {
     if ((commentHeader || firstLineHeader) &&

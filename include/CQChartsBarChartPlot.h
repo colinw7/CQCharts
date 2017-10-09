@@ -72,9 +72,6 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
 class CQChartsBarChartPlot : public CQChartsPlot {
   Q_OBJECT
 
-  // properties
-  //  bar color
-
   Q_PROPERTY(int     categoryColumn   READ categoryColumn   WRITE setCategoryColumn  )
   Q_PROPERTY(int     valueColumn      READ valueColumn      WRITE setValueColumn     )
   Q_PROPERTY(QString valueColumns     READ valueColumnsStr  WRITE setValueColumnsStr )
@@ -254,18 +251,18 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   ValueSet *getValueSet(const QString &name);
 
  private:
-  int               categoryColumn_    { 0 };
-  int               valueColumn_       { 1 };
+  int               categoryColumn_  { 0 };
+  int               valueColumn_     { 1 };
   Columns           valueColumns_;
-  int               nameColumn_        { -1 };
-  bool              stacked_           { false };
-  bool              horizontal_        { false };
-  double            margin_            { 2 };
-  bool              keySets_           { false };
+  int               nameColumn_      { -1 };
+  bool              stacked_         { false };
+  bool              horizontal_      { false };
+  double            margin_          { 2 };
+  bool              keySets_         { false };
   CQChartsBoxObj    borderObj_;
-  bool              fill_              { true };
-  bool              barColorPalette_   { true };
-  QColor            barColor_          { 100, 100, 200 };
+  bool              fill_            { true };
+  bool              barColorPalette_ { true };
+  QColor            barColor_        { 100, 100, 200 };
   CQChartsDataLabel dataLabel_;
   ValueSets         valueSets_;
   ValueNames        valueNames_;

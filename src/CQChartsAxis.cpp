@@ -798,7 +798,7 @@ draw(CQChartsPlot *plot, QPainter *p)
     double ymin = dataRange.getYMin();
     double ymax = dataRange.getYMax();
 
-    apos = pos_.get_value_or(getSide() == Side::BOTTOM_LEFT ? ymin : ymax);
+    apos = pos_.value_or(getSide() == Side::BOTTOM_LEFT ? ymin : ymax);
 
     plot->windowToPixel(amin, ymin, ax1, ay1);
     plot->windowToPixel(amax, ymax, ax2, ay2);
@@ -814,7 +814,7 @@ draw(CQChartsPlot *plot, QPainter *p)
     double xmin = dataRange.getXMin();
     double xmax = dataRange.getXMax();
 
-    apos = pos_.get_value_or(getSide() == Side::BOTTOM_LEFT ? xmin : xmax);
+    apos = pos_.value_or(getSide() == Side::BOTTOM_LEFT ? xmin : xmax);
 
     plot->windowToPixel(xmin, amin, ax1, ay1);
     plot->windowToPixel(xmax, amax, ax2, ay2);

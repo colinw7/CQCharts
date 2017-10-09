@@ -1,5 +1,5 @@
-#ifndef CQPOINT2D_EDIT_H
-#define CQPOINT2D_EDIT_H
+#ifndef CQPoint2DEdit_H
+#define CQPoint2DEdit_H
 
 #include <QLineEdit>
 #include <QDoubleSpinBox>

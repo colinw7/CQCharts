@@ -418,6 +418,7 @@ fillSymbol(CSymbol2D::Type type)
 {
   CSymbol2DMgr::fillSymbol(type, this);
 }
+
 //------
 
 CQChartsSymbol2DRenderer::
