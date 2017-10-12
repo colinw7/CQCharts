@@ -7,9 +7,9 @@ class CQChartsView;
 class CQPropertyViewTree;
 class CQGradientControlPlot;
 class CQGradientControlIFace;
+class CQIconCombo;
 class QTabWidget;
 class QLineEdit;
-class QComboBox;
 
 class CQChartsViewSettings : public QFrame {
   Q_OBJECT
@@ -31,7 +31,7 @@ class CQChartsViewSettings : public QFrame {
   CQChartsView*           view_           { nullptr };
   QTabWidget*             tab_            { nullptr };
   QLineEdit*              filterEdit_     { nullptr };
-  QComboBox*              filterCombo_    { nullptr };
+  CQIconCombo*            filterCombo_    { nullptr };
   CQPropertyViewTree*     propertyView_   { nullptr };
   CQGradientControlPlot*  palettePlot_    { nullptr };
   CQGradientControlIFace* paletteControl_ { nullptr };

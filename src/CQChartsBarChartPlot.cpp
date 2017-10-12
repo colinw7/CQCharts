@@ -13,7 +13,7 @@ CQChartsBarChartPlotType()
 {
   addColumnParameter ("category", "Category", "categoryColumn", "", 0);
   addColumnsParameter("value"   , "Value"   , "valueColumns"  , "", "1");
-  addColumnsParameter("name"    , "Name"    , "nameColumn"    , "optional");
+  addColumnParameter ("name"    , "Name"    , "nameColumn"    , "optional");
 
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
   addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");

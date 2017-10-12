@@ -118,7 +118,7 @@ addProperties(CQPropertyViewTree *tree, const QString &path)
 
   QString gridPath     = path + "/grid";
   QString gridLinePath = gridPath + "/line";
-  QString gridFillPath = gridPath + "/file";
+  QString gridFillPath = gridPath + "/fill";
 
   tree->addProperty(gridPath    , this, "gridDisplayed", "displayed");
   tree->addProperty(gridPath    , this, "gridAbove"    , "above");

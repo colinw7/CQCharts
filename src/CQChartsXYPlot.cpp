@@ -518,7 +518,7 @@ initObjs(bool force)
         if (! ok2) y = i;
 
         if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y)) {
-          if (polyLine.length()) {
+          if (polyLine.count()) {
             addPolyLine(polyLine, j, ns, name);
 
             polyLine = QPolygonF();
@@ -601,7 +601,7 @@ initObjs(bool force)
 
       //---
 
-      if (polyLine.length())
+      if (polyLine.count())
         addPolyLine(polyLine, j, ns, name);
 
       //---
@@ -645,7 +645,7 @@ initObjs(bool force)
         if (! ok2) y = i;
 
         if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y)) {
-          if (polyLine.length()) {
+          if (polyLine.count()) {
             addPolyLine(polyLine, j, ns, name);
 
             polyLine = QPolygonF();
@@ -745,7 +745,7 @@ initObjs(bool force)
 
       //---
 
-      if (polyLine.length())
+      if (polyLine.count())
         addPolyLine(polyLine, j, ns, name);
 
       //---

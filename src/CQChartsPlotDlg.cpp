@@ -490,13 +490,13 @@ applySlot()
 
   QString posStr = posEdit_->text();
 
-  QStringList strs = posStr.split(" ", QString::SkipEmptyParts);
+  QStringList posStrs = posStr.split(" ", QString::SkipEmptyParts);
 
-  if (strs.length() == 4) {
-    bool ok1; xmin = strs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
-    bool ok2; ymin = strs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
-    bool ok3; xmax = strs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
-    bool ok4; ymax = strs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
+  if (posStrs.length() == 4) {
+    bool ok1; xmin = posStrs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
+    bool ok2; ymin = posStrs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
+    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
+    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
 
     xmin = std::min(std::max(xmin, 0.0), 1.0);
     ymin = std::min(std::max(ymin, 0.0), 1.0);

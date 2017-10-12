@@ -12,6 +12,10 @@ class CQPixmapCache {
  public:
   static CQPixmapCache *instance();
 
+  static void release();
+
+  void clear();
+
   void addData(const QString &id, const uchar *data, int len);
 
   const QPixmap &getPixmap(const QString &id);
@@ -31,6 +35,10 @@ class CQPixmapCache {
 
     Data(const uchar *data1=0, int len1=0) :
      data(data1), len(len1) {
+    }
+
+   ~Data() {
+      delete pixmap;
     }
   };
 

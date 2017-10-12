@@ -325,7 +325,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  // full under
+  // fill under
   bool isFillUnder() const { return fillUnderData_.shown; }
   void setFillUnder(bool b) { fillUnderData_.shown = b; update(); }
 

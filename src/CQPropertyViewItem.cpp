@@ -1,7 +1,8 @@
 #include <CQPropertyViewItem.h>
 #include <CQPropertyViewDelegate.h>
 #include <CQPropertyViewEditor.h>
-#include <CQAlignEdit.h>
+#include <CQPropertyView.h>
+#include <CQPropertyViewType.h>
 #include <CQUtil.h>
 
 #include <QLineEdit>
@@ -30,6 +31,42 @@ CQPropertyViewItem::
 addChild(CQPropertyViewItem *row)
 {
   children_.push_back(row);
+}
+
+QString
+CQPropertyViewItem::
+aliasName() const
+{
+  QString name = this->alias();
+
+  if (name == "")
+    name = this->name();
+
+  return name;
+}
+
+QString
+CQPropertyViewItem::
+path(const QString &sep, bool alias) const
+{
+  QString path;
+
+  const CQPropertyViewItem *item = this;
+
+  while (item) {
+    QString name = (alias ? item->aliasName() : item->name());
+
+    if (name.length()) {
+      if (path.length())
+        path = name + sep + path;
+      else
+        path = name;
+    }
+
+    item = item->parent();
+  }
+
+  return path;
 }
 
 // handle click
@@ -112,7 +149,7 @@ createEditor(QWidget *parent)
   CQPropertyViewEditorFactory *editor = editor_;
 
   if (! editor)
-    editor = CQPropertyViewEditorMgr::instance()->getEditor(typeName);
+    editor = CQPropertyViewMgrInst->getEditor(typeName);
 
   if      (editor) {
     widget_ = editor->createEdit(parent);
@@ -155,6 +192,8 @@ createEditor(QWidget *parent)
   else {
     QLineEdit *edit = new QLineEdit(parent);
 
+    edit->setObjectName("edit");
+
     QString valueStr;
 
     if (! CQUtil::variantToString(var, valueStr))
@@ -181,8 +220,10 @@ setEditorData(const QVariant &value)
   if (CQUtil::getPropInfo(object_, name_, &propInfo) && propInfo.isWritable()) {
     QString typeName = propInfo.typeName();
 
-    if     (typeName == "Qt::Alignment") {
-      if (! this->setData(value))
+    CQPropertyViewType *type = CQPropertyViewMgrInst->getType(typeName);
+
+    if      (type) {
+      if (! type->setEditorData(this, value))
         std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
     }
     else if (propInfo.isEnumType()) {
@@ -224,7 +265,7 @@ updateValue()
   CQPropertyViewEditorFactory *editor = editor_;
 
   if (! editor)
-    editor = CQPropertyViewEditorMgr::instance()->getEditor(typeName);
+    editor = CQPropertyViewMgrInst->getEditor(typeName);
 
   if      (editor) {
     QVariant var = editor->getValue(widget_);
@@ -288,6 +329,38 @@ setData(const QVariant &value)
   return true;
 }
 
+QString
+CQPropertyViewItem::
+tip() const
+{
+  CQUtil::PropInfo propInfo;
+  QString          typeName;
+
+  if (CQUtil::getPropInfo(object_, name_, &propInfo))
+    typeName = propInfo.typeName();
+
+  QVariant var = this->data();
+
+  CQPropertyViewType *type = CQPropertyViewMgrInst->getType(typeName);
+
+  if (type)
+    return type->tip(var);
+
+  if (typeName == "bool")
+    return (var.toBool() ? "true" : "false");
+
+  if (propInfo.isEnumType()) {
+    int ind = var.toInt();
+
+    QString str;
+
+    if (enumIndToString(propInfo, ind, str))
+      return str;
+  }
+
+  return var.toString();
+}
+
 bool
 CQPropertyViewItem::
 paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
@@ -303,30 +376,13 @@ paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   QVariant var = this->data();
 
-  if      (typeName == "QColor") {
-    delegate->drawColor(painter, option, var.value<QColor>(), index, inside);
-  }
-  else if (typeName == "QFont") {
-    delegate->drawFont(painter, option, var.value<QFont>(), index, inside);
-  }
-  else if (typeName == "QPointF") {
-    delegate->drawPoint(painter, option, var.value<QPointF>(), index, inside);
-  }
-  else if (typeName == "QSizeF") {
-    delegate->drawSize(painter, option, var.value<QSizeF>(), index, inside);
-  }
-  else if (typeName == "QRectF") {
-    delegate->drawRect(painter, option, var.value<QRectF>(), index, inside);
+  CQPropertyViewType *type = CQPropertyViewMgrInst->getType(typeName);
+
+  if      (type) {
+    type->draw(delegate, painter, option, index, var, inside);
   }
   else if (typeName == "bool") {
     delegate->drawCheck(painter, option, var.toBool(), index, inside);
-  }
-  else if (typeName == "Qt::Alignment") {
-    int i = var.toInt();
-
-    QString str = CQAlignEdit::toString((Qt::Alignment) i);
-
-    delegate->drawString(painter, option, str, index, inside);
   }
   else if (propInfo.isEnumType()) {
     int ind = var.toInt();

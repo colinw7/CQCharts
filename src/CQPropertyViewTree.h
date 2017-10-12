@@ -10,6 +10,7 @@ class CQPropertyViewFilter;
 class CQPropertyViewTree : public QTreeView {
   Q_OBJECT
 
+  Q_PROPERTY(bool itemMenu       READ isItemMenu       WRITE setItemMenu      )
   Q_PROPERTY(bool mouseHighlight READ isMouseHighlight WRITE setMouseHighlight)
 
  public:
@@ -38,6 +39,9 @@ class CQPropertyViewTree : public QTreeView {
 
   void getSelectedObjects(std::vector<QObject *> &objs);
 
+  bool isItemMenu() const { return itemMenu_; }
+  void setItemMenu(bool b) { itemMenu_ = b; }
+
   bool isMouseHighlight() const { return mouseHighlight_; }
   void setMouseHighlight(bool b);
 
@@ -46,6 +50,9 @@ class CQPropertyViewTree : public QTreeView {
   bool isMouseInd(const QModelIndex &i);
 
   CQPropertyViewItem *getModelItem(const QModelIndex &index, bool map=true) const;
+
+  void expandAll(CQPropertyViewItem *item);
+  void collapseAll(CQPropertyViewItem *item);
 
  signals:
   void valueChanged(QObject *, const QString &);
@@ -56,6 +63,9 @@ class CQPropertyViewTree : public QTreeView {
   void menuExec(QObject *obj, const QPoint &gpos);
 
  public slots:
+  void expandAll();
+  void collapseAll();
+
   void expandSelected();
 
   void search(const QString &text);
@@ -81,6 +91,7 @@ class CQPropertyViewTree : public QTreeView {
   void searchItemTree(CQPropertyViewItem *item, const QRegExp &regexp, Items &items);
 
   void expandItemTree(CQPropertyViewItem *item);
+  void collapseItemTree(CQPropertyViewItem *item);
 
   void showContextMenu(QObject *obj, const QPoint &globalPos);
 
@@ -91,6 +102,7 @@ class CQPropertyViewTree : public QTreeView {
   void scrollToItem(CQPropertyViewItem *item);
 
   void expandItem(CQPropertyViewItem *item);
+  void collapseItem(CQPropertyViewItem *item);
 
   void selectItem(CQPropertyViewItem *item, bool selected);
 
@@ -99,6 +111,7 @@ class CQPropertyViewTree : public QTreeView {
  private:
   CQPropertyViewModel*  model_          { nullptr };
   CQPropertyViewFilter* filter_         { nullptr };
+  bool                  itemMenu_       { false };
   bool                  mouseHighlight_ { false };
   bool                  hasMouseInd_    { false };
   QModelIndex           mouseInd_;

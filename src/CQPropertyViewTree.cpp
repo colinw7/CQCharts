@@ -3,10 +3,12 @@
 #include <CQPropertyViewModel.h>
 #include <CQPropertyViewDelegate.h>
 #include <CQPropertyViewItem.h>
+#include <CQHeaderView.h>
 
 #include <QSortFilterProxyModel>
 #include <QHeaderView>
 #include <QMouseEvent>
+#include <QMenu>
 #include <set>
 
 CQPropertyViewTree::
@@ -30,11 +32,15 @@ CQPropertyViewTree(QWidget *parent) :
 
   //--
 
-  header()->setStretchLastSection(true);
+  setHeader(new CQHeaderView(this));
 
-  header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  header()->setStretchLastSection(true);
+  //header()->setSectionResizeMode(QHeaderView::Interactive);
+  //header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
   //--
+
+  setSelectionMode(ExtendedSelection);
 
   setUniformRowHeights(true);
 
@@ -198,6 +204,50 @@ selectObject(CQPropertyViewItem *item, const QObject *obj)
 
 void
 CQPropertyViewTree::
+expandAll()
+{
+  CQPropertyViewItem *root = model_->root();
+
+  expandAll(root);
+}
+
+void
+CQPropertyViewTree::
+expandAll(CQPropertyViewItem *item)
+{
+  expandItemTree(item);
+
+  for (int i = 0; i < item->numChildren(); ++i) {
+    CQPropertyViewItem *item1 = item->child(i);
+
+    expandAll(item1);
+  }
+}
+
+void
+CQPropertyViewTree::
+collapseAll()
+{
+  CQPropertyViewItem *root = model_->root();
+
+  collapseAll(root);
+}
+
+void
+CQPropertyViewTree::
+collapseAll(CQPropertyViewItem *item)
+{
+  collapseItemTree(item);
+
+  for (int i = 0; i < item->numChildren(); ++i) {
+    CQPropertyViewItem *item1 = item->child(i);
+
+    collapseAll(item1);
+  }
+}
+
+void
+CQPropertyViewTree::
 expandSelected()
 {
   QModelIndexList indices = this->selectedIndexes();
@@ -240,10 +290,19 @@ void
 CQPropertyViewTree::
 search(const QString &text)
 {
-  QRegExp regexp(text, Qt::CaseSensitive, QRegExp::Wildcard);
+  QString searchStr = text;
+
+  if (searchStr.length() && searchStr[searchStr.length() - 1] != '*')
+    searchStr += "*";
+
+  if (searchStr.length() && searchStr[0] != '*')
+    searchStr = "*" + searchStr;
+
+  QRegExp regexp(searchStr, Qt::CaseSensitive, QRegExp::Wildcard);
 
   CQPropertyViewItem *root = model_->root();
 
+  // get matching items
   Items items;
 
   for (int i = 0; i < root->numChildren(); ++i) {
@@ -252,12 +311,31 @@ search(const QString &text)
     searchItemTree(item, regexp, items);
   }
 
+
+  // ensure selection visible
+  // select matching items
+  QItemSelectionModel *sm = this->selectionModel();
+
+  sm->clear();
+
+  for (uint i = 0; i < items.size(); ++i) {
+    CQPropertyViewItem *item = items[i];
+
+    selectItem(item, true);
+  }
+
+  //---
+
+  // ensure selection expanded
   for (uint i = 0; i < items.size(); ++i) {
     CQPropertyViewItem *item = items[i];
 
     expandItemTree(item);
   }
 
+  //---
+
+  // make item visible
   resizeColumnToContents(0);
   resizeColumnToContents(1);
 
@@ -272,15 +350,10 @@ void
 CQPropertyViewTree::
 searchItemTree(CQPropertyViewItem *item, const QRegExp &regexp, Items &items)
 {
-  QString itemText = item->name();
+  QString itemText = item->aliasName();
 
-  if (regexp.exactMatch(itemText)) {
-    selectItem(item, true);
-
+  if (regexp.exactMatch(itemText))
     items.push_back(item);
-  }
-  else
-    selectItem(item, false);
 
   int n = item->numChildren();
 
@@ -297,6 +370,17 @@ expandItemTree(CQPropertyViewItem *item)
 {
   while (item) {
     expandItem(item);
+
+    item = item->parent();
+  }
+}
+
+void
+CQPropertyViewTree::
+collapseItemTree(CQPropertyViewItem *item)
+{
+  while (item) {
+    collapseItem(item);
 
     item = item->parent();
   }
@@ -377,18 +461,12 @@ void
 CQPropertyViewTree::
 getItemData(CQPropertyViewItem *item, QObject* &obj, QString &path)
 {
+  path = item->path("/");
+
+  //---
+
+  // use object from first branch child
   CQPropertyViewItem *item1 = item;
-
-  while (item1) {
-    if (path.length())
-      path = item1->name() + "/" + path;
-    else
-      path = item1->name();
-
-    item1 = item1->parent();
-  }
-
-  item1 = item;
 
   int n = item1->numChildren();
 
@@ -405,19 +483,42 @@ void
 CQPropertyViewTree::
 customContextMenuSlot(const QPoint &pos)
 {
-  CQPropertyViewItem *item = getModelItem(indexAt(pos));
-  if (! item) return;
-
-  QObject *obj;
-  QString  path;
-
-  getItemData(item, obj, path);
-
-  if (! obj)
-    return;
-
   // Map point to global from the viewport to account for the header.
-  showContextMenu(obj, viewport()->mapToGlobal(pos));
+  QPoint mpos = viewport()->mapToGlobal(pos);
+
+  if (isItemMenu()) {
+    CQPropertyViewItem *item = getModelItem(indexAt(pos));
+
+    if (item) {
+      QObject *obj;
+      QString  path;
+
+      getItemData(item, obj, path);
+
+      if (obj) {
+        showContextMenu(obj, mpos);
+
+        return;
+      }
+    }
+  }
+
+  //---
+
+  QMenu *menu = new QMenu;
+
+  QAction *expandAction   = new QAction("Expand All"  , menu);
+  QAction *collapseAction = new QAction("Collapse All", menu);
+
+  connect(expandAction  , SIGNAL(triggered()), this, SLOT(expandAll()));
+  connect(collapseAction, SIGNAL(triggered()), this, SLOT(collapseAll()));
+
+  menu->addAction(expandAction);
+  menu->addAction(collapseAction);
+
+  menu->exec(mpos);
+
+  delete menu;
 }
 
 void
@@ -486,7 +587,7 @@ selectItem(CQPropertyViewItem *item, bool selected)
   if (selected) {
     QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
-    sm->select(ind, QItemSelectionModel::SelectCurrent);
+    sm->select(ind, QItemSelectionModel::Select);
   }
 
   //sm->select(ind, QItemSelectionModel::Deselect);
@@ -499,6 +600,15 @@ expandItem(CQPropertyViewItem *item)
   QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
   setExpanded(ind, true);
+}
+
+void
+CQPropertyViewTree::
+collapseItem(CQPropertyViewItem *item)
+{
+  QModelIndex ind = indexFromItem(item, 0, /*map*/true);
+
+  setExpanded(ind, false);
 }
 
 QModelIndex

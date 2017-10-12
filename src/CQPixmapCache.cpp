@@ -2,21 +2,37 @@
 #include <cassert>
 #include <iostream>
 
+static CQPixmapCache *s_inst;
+
 CQPixmapCache *
 CQPixmapCache::
 instance()
 {
-  static CQPixmapCache *inst;
+  if (! s_inst)
+    s_inst = new CQPixmapCache;
 
-  if (! inst)
-    inst = new CQPixmapCache;
+  return s_inst;
+}
 
-  return inst;
+void
+CQPixmapCache::
+release()
+{
+  delete s_inst;
+
+  s_inst = nullptr;
 }
 
 CQPixmapCache::
 CQPixmapCache()
 {
+}
+
+void
+CQPixmapCache::
+clear()
+{
+  idData_.clear();
 }
 
 void
@@ -40,7 +56,9 @@ getPixmap(const QString &id)
   if (! (*p).second.pixmap) {
     (*p).second.pixmap = new QPixmap;
 
-    (*p).second.pixmap->loadFromData((*p).second.data, (*p).second.len);
+    bool rc = (*p).second.pixmap->loadFromData((*p).second.data, (*p).second.len);
+
+    assert(rc);
   }
 
   return *(*p).second.pixmap;

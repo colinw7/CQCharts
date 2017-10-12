@@ -61,13 +61,17 @@ data(const QModelIndex &index, int role) const
   if (! item)
     return QVariant();
 
-  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+  if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     if      (index.column() == 0)
       return item->name();
     else if (index.column() == 1)
       return item->data();
     else
       return QVariant();
+  }
+  else if (role == Qt::ToolTipRole) {
+    if (index.column() == 1)
+      return item->tip();
   }
 
   return QVariant();

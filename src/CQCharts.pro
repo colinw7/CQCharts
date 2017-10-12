@@ -66,12 +66,23 @@ CQChartsLoader.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
+CQPropertyView.cpp \
 CQPropertyViewDelegate.cpp \
 CQPropertyViewEditor.cpp \
 CQPropertyViewFilter.cpp \
 CQPropertyViewItem.cpp \
 CQPropertyViewModel.cpp \
 CQPropertyViewTree.cpp \
+\
+CQPropertyViewAlignType.cpp \
+CQPropertyViewColorType.cpp \
+CQPropertyViewFontType.cpp \
+CQPropertyViewIntegerType.cpp \
+CQPropertyViewPointFType.cpp \
+CQPropertyViewRealType.cpp \
+CQPropertyViewRectFType.cpp \
+CQPropertyViewSizeFType.cpp \
+CQPropertyViewType.cpp \
 \
 CQGradientControlIFace.cpp \
 CQGradientControlPlot.cpp \
@@ -94,6 +105,7 @@ CQToolTip.cpp \
 CQPixmapCache.cpp \
 CQUtil.cpp \
 CQWidgetMenu.cpp \
+CQIconCombo.cpp \
 \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
@@ -162,12 +174,26 @@ HEADERS += \
 \
 ../include/CQChartsPlotDlg.h \
 \
+CQPropertyView.h \
 CQPropertyViewDelegate.h \
 CQPropertyViewEditor.h \
 CQPropertyViewFilter.h \
 CQPropertyViewItem.h \
 CQPropertyViewModel.h \
 CQPropertyViewTree.h \
+\
+CQPropertyViewAlignType.h \
+CQPropertyViewAngleType.h \
+CQPropertyViewColorType.h \
+CQPropertyViewFontType.h \
+CQPropertyViewIntegerType.h \
+CQPropertyViewLineDashType.h \
+CQPropertyViewPaletteType.h \
+CQPropertyViewPointFType.h \
+CQPropertyViewRealType.h \
+CQPropertyViewRectFType.h \
+CQPropertyViewSizeFType.h \
+CQPropertyViewType.h \
 \
 CQGradientControlIFace.h \
 CQGradientControlPlot.h \
@@ -195,6 +221,7 @@ CQStrParse.h \
 CQToolTip.h \
 ../include/CQUtil.h \
 CQWidgetMenu.h \
+CQIconCombo.h \
 \
 CDelaunay.h \
 CHull3D.h \

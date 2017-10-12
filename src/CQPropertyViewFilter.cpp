@@ -55,15 +55,27 @@ acceptsItem(const QModelIndex &ind) const
 
   bool match = true;
 
-  if (item->object()) {
-    QString str = item->name();
-
-    match = regexp_.exactMatch(str);
-  }
+  if (item->object())
+    match = itemMatch(item);
+//std::cerr << "Match: " << (match ? "Y " : "N ") << item->path(".").toStdString() << std::endl;
 
   matches_[ind] = match;
 
   return match;
+}
+
+bool
+CQPropertyViewFilter::
+itemMatch(CQPropertyViewItem *item) const
+{
+  QString path;
+
+  if (isMatchPath())
+    path = item->path(".", /*alias*/true);
+  else
+    path = item->aliasName();
+
+  return regexp_.exactMatch(path);
 }
 
 bool
@@ -120,6 +132,13 @@ setFilter(const QString &filter)
   expand_ .clear();
 
   filter_ = filter;
+
+  if (filter_.length() && filter_[filter_.length() - 1] != '*')
+    filter_ += "*";
+
+  if (filter_.length() && filter_[0] != '*')
+    filter_ = "*" + filter_;
+
   regexp_ = QRegExp(filter_, Qt::CaseSensitive, QRegExp::Wildcard);
 
   invalidateFilter();

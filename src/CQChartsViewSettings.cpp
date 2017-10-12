@@ -3,6 +3,7 @@
 #include <CQPropertyViewTree.h>
 #include <CQGradientControlPlot.h>
 #include <CQGradientControlIFace.h>
+#include <CQIconCombo.h>
 #include <QTabWidget>
 #include <QLineEdit>
 #include <QVBoxLayout>
@@ -15,6 +16,8 @@ CQChartsViewSettings(CQChartsView *view) :
  QFrame(view), view_(view)
 {
   setObjectName("settings");
+
+  setAutoFillBackground(true);
 
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(0);
@@ -49,7 +52,7 @@ CQChartsViewSettings(CQChartsView *view) :
 
   filterLayout->addWidget(filterEdit_);
 
-  filterCombo_ = new QComboBox;
+  filterCombo_ = new CQIconCombo;
 
   filterCombo_->setObjectName("filterCombo");
 

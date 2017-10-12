@@ -154,13 +154,13 @@ initObjs(bool force)
 
   //---
 
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
   // init name values
   if (nameValues_.empty()) {
+    QAbstractItemModel *model = this->model();
+
+    if (! model)
+      return;
+
     int n = numRows();
 
     if (sizeColumn() >= 0) {
@@ -207,10 +207,16 @@ initObjs(bool force)
 
   //---
 
-  QString xname     = model->headerData(xColumn    (), Qt::Horizontal).toString();
-  QString yname     = model->headerData(yColumn    (), Qt::Horizontal).toString();
-  QString sizeName  = model->headerData(sizeColumn (), Qt::Horizontal).toString();
-  QString colorName = model->headerData(colorColumn(), Qt::Horizontal).toString();
+  QAbstractItemModel *model = this->model();
+
+  QString xname, yname, sizeName, colorName;
+
+  if (model) {
+    xname     = model->headerData(xColumn    (), Qt::Horizontal).toString();
+    yname     = model->headerData(yColumn    (), Qt::Horizontal).toString();
+    sizeName  = model->headerData(sizeColumn (), Qt::Horizontal).toString();
+    colorName = model->headerData(colorColumn(), Qt::Horizontal).toString();
+  }
 
   if (xname     == "") xname     = "x";
   if (yname     == "") yname     = "x";

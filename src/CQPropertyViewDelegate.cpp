@@ -119,10 +119,7 @@ paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &
   bool inside = view_->isMouseInd(index);
 
   if      (index.column() == 0) {
-    QString label = item->alias();
-
-    if (label == "")
-      label = item->name();
+    QString label = item->aliasName();
 
     drawString(painter, option, label, index, inside);
 
@@ -160,6 +157,8 @@ CQPropertyViewDelegate::
 createEdit(QWidget *parent, const QString &text) const
 {
   QLineEdit *edit = new QLineEdit(parent);
+
+  edit->setObjectName("edit");
 
   edit->setText(text);
 

@@ -56,6 +56,10 @@ class CQPropertyViewItem : public QObject {
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
+  QString aliasName() const;
+
+  QString path(const QString &sep="/", bool alias=false) const;
+
   //! set editor
   void setEditorFactory(CQPropertyViewEditorFactory *editor) { editor_ = editor; }
 
@@ -77,6 +81,9 @@ class CQPropertyViewItem : public QObject {
   //! get/set data
   QVariant data() const;
   bool setData(const QVariant &value);
+
+  //! get tip
+  QString tip() const;
 
   //! paint item
   bool paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
