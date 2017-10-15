@@ -34,15 +34,21 @@ class CQChartsTest : public CQAppWindow {
   typedef QSharedPointer<QAbstractItemModel> ModelP;
 
  public:
-  struct InitData {
-    typedef std::map<QString,QString> NameValues;
-    typedef std::map<QString,bool>    NameBools;
-    typedef std::vector<QString>      FileNames;
+  enum class FileType {
+    NONE,
+    CSV,
+    TSV,
+    JSON,
+    DATA
+  };
 
-    bool       csv             { false };
-    bool       tsv             { false };
-    bool       json            { false };
-    bool       data            { false };
+  typedef std::map<QString,QString> NameValues;
+  typedef std::map<QString,bool>    NameBools;
+
+  struct InitData {
+    typedef std::vector<QString> FileNames;
+
+    FileType   fileType        { FileType::NONE };
     QString    typeName;
     NameValues nameValues;
     NameBools  nameBools;
@@ -96,6 +102,13 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *view() const;
 
+  bool loadFileModel(const QString &filename, FileType type,
+                     bool commentHeader, bool firstLineHeader);
+
+  QAbstractItemModel *loadFile(const QString &filename, FileType type,
+                               bool commentHeader, bool firstLineHeader,
+                               bool &hierarchical);
+
   QAbstractItemModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   QAbstractItemModel *loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
   QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
@@ -104,6 +117,14 @@ class CQChartsTest : public CQAppWindow {
   bool initPlot(const InitData &initData);
 
   CQChartsPlot *init(const ModelP &model, const InitData &initData, int i);
+
+  void setColumnFormats(const ModelP &model, const QString &columnType);
+
+  QString fixTypeName(const QString &typeName) const;
+
+  void loop();
+
+  void timeout();
 
  private:
   void addMenus();
@@ -116,12 +137,29 @@ class CQChartsTest : public CQAppWindow {
 
   bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
 
-  CQChartsPlot * createPlot(const ModelP &model, CQChartsPlotType *type,
-                            const InitData &initData, bool reuse);
+  CQChartsPlot *createPlot(const ModelP &model, CQChartsPlotType *type,
+                           const NameValues &nameValues, const NameBools &nameBools,
+                           bool reuse);
+
+  void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   CQChartsView *getView(bool reuse=true);
 
   QSize sizeHint() const;
+
+  FileType stringToFileType(const QString &str) const;
+  QString fileTypeToString(FileType type) const;
+
+ private:
+  void parseLine(const std::string &line);
+
+  typedef std::vector<std::string> Args;
+
+  void setCmd   (const Args &args);
+  void getCmd   (const Args &args);
+  void plotCmd  (const Args &args);
+  void loadCmd  (const Args &args);
+  void sourceCmd(const Args &args);
 
  private slots:
   void loadSlot();

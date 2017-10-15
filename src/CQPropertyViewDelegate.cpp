@@ -63,8 +63,9 @@ setEditorData(QWidget *, const QModelIndex &index) const
 
   QVariant var = item->data();
 
-  if (var.isNull())
-    std::cerr << "Failed to get model data" << std::endl;
+  if (var.isNull()) {
+    //std::cerr << "Failed to get model data" << std::endl;
+  }
 
   item->setEditorData(var);
 }

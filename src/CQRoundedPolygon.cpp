@@ -50,16 +50,16 @@ draw(QPainter *painter, const QPolygonF &poly, double size)
 {
   QPainterPath path;
 
-  if (poly.length() < 3) {
+  if (poly.count() < 3) {
     painter->drawPolygon(poly);
     return;
   }
 
-  int i1 = poly.length() - 1;
+  int i1 = poly.count() - 1;
   int i2 = 0;
   int i3 = 1;
 
-  while (i2 < poly.length()) {
+  while (i2 < poly.count()) {
     const QPointF &p1 = poly[i1];
     const QPointF &p2 = poly[i2];
     const QPointF &p3 = poly[i3];
@@ -93,7 +93,7 @@ draw(QPainter *painter, const QPolygonF &poly, double size)
     if (i2 == 0)
       break;
 
-    if (i3 >= poly.length())
+    if (i3 >= poly.count())
       i3 = 0;
   }
 

@@ -3,6 +3,7 @@
 
 #include <CQChartsBoxObj.h>
 #include <QFont>
+#include <QRectF>
 
 class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_OBJECT
@@ -49,6 +50,21 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   QFont   font_;
   QColor  color_ { 0, 0, 0 };
   double  angle_ { 0.0 };
+};
+
+//------
+
+class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
+ public:
+  CQChartsRotatedTextBoxObj();
+
+  const QRectF &rect() const { return rect_; }
+
+  void draw(QPainter *p, const QPointF &c, const QString &text, double angle=0.0,
+            Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
+
+ private:
+  mutable QRectF rect_;
 };
 
 #endif

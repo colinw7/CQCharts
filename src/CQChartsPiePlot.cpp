@@ -3,7 +3,6 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQRotatedText.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -43,15 +42,15 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  addProperty("columns", this, "labelColumn"    , "label"   );
+  addProperty("columns", this, "dataColumn"     , "data"    );
+  addProperty("columns", this, "keyLabelColumn" , "keyLabel");
   addProperty(""       , this, "donut"                      );
   addProperty(""       , this, "innerRadius"                );
   addProperty(""       , this, "labelRadius"                );
   addProperty(""       , this, "explodeSelected"            );
   addProperty(""       , this, "startAngle"                 );
   addProperty(""       , this, "rotatedText"                );
-  addProperty("columns", this, "labelColumn"    , "label"   );
-  addProperty("columns", this, "dataColumn"     , "data"    );
-  addProperty("columns", this, "keyLabelColumn" , "keyLabel");
 
   addProperty("label", &textBox_, "visible");
   addProperty("label", &textBox_, "font"   );
@@ -267,8 +266,6 @@ draw(QPainter *p)
 
   //---
 
-//contentsBBox_ = CBBox2D(-1, -1, 1, 1);
-
   drawParts(p);
 }
 
@@ -298,11 +295,10 @@ inside(const CPoint2D &p) const
 
   // check angle
   double a = CQChartsUtil::Rad2Deg(atan2(p.y - center().y, p.x - center().x));
+  a = CQChartsUtil::normalizeAngle(a);
 
-  while (a < 0) a += 360.0;
-
-  double a1 = angle1(); while (a1 < 0) a1 += 360.0;
-  double a2 = angle2(); while (a2 < 0) a2 += 360.0;
+  double a1 = angle1(); a1 = CQChartsUtil::normalizeAngle(a1);
+  double a2 = angle2(); a2 = CQChartsUtil::normalizeAngle(a2);
 
   if (a1 < a2) {
     // crosses zero
@@ -521,8 +517,6 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       CBBox2D tbbox;
 
       plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
-
-      plot_->setContentsBBox(plot_->contentsBBox() + tbbox);
     }
   }
 }
@@ -599,66 +593,4 @@ CQChartsPieTextObj::
 redrawBoxObj()
 {
   plot_->update();
-}
-
-void
-CQChartsPieTextObj::
-draw(QPainter *p, const QPointF &c, const QString &text, double angle,
-     Qt::Alignment align) const
-{
-  p->save();
-
-  QFontMetrics fm(font());
-
-  int tw = fm.width(text);
-
-  double tw1 = tw + 2*margin();
-  double th1 = fm.height() + 2*margin();
-
-  double cx = c.x();
-  double cy = c.y() - th1/2;
-  double cd = 0.0;
-
-  if      (align & Qt::AlignHCenter) {
-    cx -= tw1/2;
-  }
-  else if (align & Qt::AlignRight) {
-    cx -= tw1;
-    cd  = -margin();
-  }
-  else {
-    cd  = margin();
-  }
-
-  rect_ = QRectF(cx, cy, tw1, th1);
-
-  //---
-
-  p->setFont(font());
-  p->setPen(color());
-
-  if (CQChartsUtil::isZero(angle)) {
-    CQChartsBoxObj::draw(p, rect_);
-  }
-  else {
-    QRectF                bbox;
-    CQRotatedText::Points points;
-
-    CQRotatedText::bboxData(c.x(), c.y(), text, font(), angle, margin(),
-                            bbox, points, align, /*alignBBox*/ true);
-
-    QPolygonF poly;
-
-    for (std::size_t i = 0; i < points.size(); ++i)
-      poly << points[i];
-
-    CQChartsBoxObj::draw(p, poly);
-  }
-
-  p->setPen(color());
-
-  CQRotatedText::drawRotatedText(p, c.x() + cd, c.y(), text, angle,
-                                 align, /*alignBBox*/ true);
-
-  p->restore();
 }

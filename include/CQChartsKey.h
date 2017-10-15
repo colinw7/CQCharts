@@ -226,6 +226,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 
   Q_PROPERTY(double cornerRadius READ cornerRadius WRITE setCornerRadius)
+  Q_PROPERTY(QColor borderColor  READ borderColor  WRITE setBorderColor )
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
@@ -237,14 +238,17 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
-  virtual QColor fillColor  () const;
-  virtual QColor borderColor() const;
+  virtual QColor fillColor() const;
+
+  virtual QColor borderColor() const { return borderColor_; }
+  virtual void setBorderColor(const QColor &c) { borderColor_ = c; }
 
  protected:
   CQChartsPlot *plot_         { nullptr };
   int           i_            { 0 };
   int           n_            { 0 };
   double        cornerRadius_ { 0.0 };
+  QColor        borderColor_  { Qt::black };
 };
 
 #endif

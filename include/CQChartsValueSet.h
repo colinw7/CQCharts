@@ -20,6 +20,8 @@ class CQChartsValueSet {
 
   void addValue(const QVariant &value);
 
+  int numValues() const { return values_.size(); }
+
   Type type() const { init(); return type_; }
 
   double imap(int i) const;

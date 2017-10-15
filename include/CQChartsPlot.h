@@ -352,7 +352,8 @@ class CQChartsPlot : public QObject {
 
   virtual void addProperties();
 
-  bool setProperty(const QString &name, const QString &value);
+  bool setProperty(const QString &name, const QVariant &value);
+  bool getProperty(const QString &name, QVariant &value);
 
   //---
 
@@ -411,6 +412,8 @@ class CQChartsPlot : public QObject {
 
   int numPlotObjects() const { return plotObjs_.size(); }
 
+  CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
+
   //---
 
   int xValueColumn() const { return xValueColumn_; }
@@ -426,21 +429,29 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  bool mousePress  (const CPoint2D &p);
-  bool mouseMove   (const CPoint2D &p, bool first=false);
-  void mouseRelease(const CPoint2D &p);
+  virtual bool mousePress  (const CPoint2D &p);
+  virtual bool mouseMove   (const CPoint2D &p, bool first=false);
+  virtual void mouseRelease(const CPoint2D &p);
 
-  void keyPress(int key);
+  virtual void keyPress(int key);
+
+  virtual bool tipText(const CPoint2D &p, QString &tip) const;
+
+  //---
 
   void panLeft ();
   void panRight();
   void panUp   ();
   void panDown ();
 
+  //---
+
   void zoomTo(const CBBox2D &bbox);
   void zoomIn(double f=1.5);
   void zoomOut(double f=1.5);
   void zoomFull();
+
+  //---
 
   void updateTransform();
 
@@ -451,8 +462,6 @@ class CQChartsPlot : public QObject {
   void updateKeyPosition(bool force=false);
 
   void updateTitlePosition();
-
-  bool tipText(const CPoint2D &p, QString &tip) const;
 
   void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
                  double width, const QColor &color);
@@ -512,9 +521,9 @@ class CQChartsPlot : public QObject {
 
   QColor interpPaletteColor(double r, const QColor &def=QColor(0,0,0)) const;
 
-  QColor textColor(const QColor &bg) const;
+  QColor groupPaletteColor(double r1, double r2, double dr, const QColor &def=QColor(0,0,0)) const;
 
-  QColor bwColor(const QColor &bg) const;
+  QColor textColor(const QColor &bg) const;
 
   void update();
 

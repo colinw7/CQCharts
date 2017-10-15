@@ -64,12 +64,24 @@ void
 CQChartsSunburstPlot::
 updateRange()
 {
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
+  double xr = 1.0;
+  double yr = 1.0;
+
+  if (isEqualScale()) {
+    double aspect = view()->aspect();
+
+    if (aspect > 1.0)
+      xr *= aspect;
+    else
+      yr *= 1.0/aspect;
+  }
+
+  dataRange_.reset();
+
+  dataRange_.updateRange(-xr, -yr);
+  dataRange_.updateRange( xr,  yr);
 
   applyDataRange();
-
-  setEqualScale(true);
 }
 
 void
@@ -198,9 +210,20 @@ addPlotObj(CQChartsSunburstNode *node)
 
   CQChartsSunburstNodeObj *obj = new CQChartsSunburstNodeObj(this, bbox, node);
 
+  node->setObj(obj);
+
   obj->setId(QString("%1:%2").arg(node->name()).arg(node->size()));
 
   addPlotObject(obj);
+}
+
+void
+CQChartsSunburstPlot::
+handleResize()
+{
+  dataRange_.reset();
+
+  CQChartsPlot::handleResize();
 }
 
 void
@@ -268,6 +291,9 @@ drawNode(QPainter *p, CQChartsSunburstNode *node)
   //a1 = 90 - a1;
   //a2 = 90 - a2;
 
+  //---
+
+  // draw node arc
   QPainterPath path;
 
   path.arcMoveTo(qr1, a1);
@@ -279,11 +305,17 @@ drawNode(QPainter *p, CQChartsSunburstNode *node)
 
   QColor color = nodeColor(node);
 
+  if (node->obj()->isInside())
+    color = insideColor(color);
+
   p->setPen  (textColor(color));
   p->setBrush(color);
 
   p->drawPath(path);
 
+  //---
+
+  // draw node label
   double ta = a1 + da/2.0;
   double c  = cos(ta*M_PI/180.0);
   double s  = sin(ta*M_PI/180.0);

@@ -48,8 +48,6 @@ class CQChartsView : public QFrame {
 
   CQCharts *charts() const { return charts_; }
 
-  CQPropertyViewTree *propertyView() const;
-
   const QString &id() const { return id_; }
   void setId(const QString &s);
 
@@ -67,13 +65,26 @@ class CQChartsView : public QFrame {
 
   void updateMargins();
 
+  //---
+
+  CQPropertyViewTree *propertyView() const;
+
+  bool setProperty(const QString &name, const QVariant &value);
+  bool getProperty(const QString &name, QVariant &value);
+
   void addProperty(const QString &path, QObject *object,
                    const QString &name, const QString &alias="");
+
+  //---
 
   void addPlot(CQChartsPlot *plot, const CBBox2D &bbox=CBBox2D(0, 0, 1, 1));
 
   int numPlots() const { return plotDatas_.size(); }
   CQChartsPlot *plot(int i) { return plotDatas_[i].plot; }
+
+  CQChartsPlot *getPlot(const QString &id) const;
+
+  //---
 
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
@@ -89,6 +100,8 @@ class CQChartsView : public QFrame {
 
   void paintEvent(QPaintEvent *) override;
 
+  //---
+
   CQChartsPlot *plotAt(const CPoint2D &p) const;
 
   bool plotsAt(const CPoint2D &p, Plots &plots) const;
@@ -96,6 +109,8 @@ class CQChartsView : public QFrame {
   CBBox2D plotBBox(CQChartsPlot *plot) const;
 
   CQChartsPlot *currentPlot(bool remap=true) const;
+
+  //---
 
   void setStatusText(const QString &text);
 

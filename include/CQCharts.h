@@ -33,6 +33,8 @@ class CQCharts {
 
   CQChartsView *getView(const QString &id) const;
 
+  void getViewIds(QStringList &names) const;
+
   void errorMsg(const QString &msg);
 
  private:

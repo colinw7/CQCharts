@@ -178,4 +178,17 @@ CQChartsTest \
 CQChartsTest \
  -csv bubble.csv -comment_header \
  -type scatter -columns "name=0,x=1,y=2,color=3,size=4" \
- -plot_title "scatter"
+ -plot_title "Scatter Plot"
+
+#---
+
+CQChartsTest \
+  -data chord-cities.data \
+  -type chord -columns "name=0,group=1" \
+  -plot_title "Chord Plot"
+
+#---
+
+CQChartsTest \
+ -tsv adjacency.tsv \
+ -type forcedirected -columns "node=1,connections=3,name=0,group=2"

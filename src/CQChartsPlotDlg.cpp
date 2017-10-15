@@ -485,37 +485,9 @@ applySlot()
 
   //---
 
-  double xmin = 0.0, ymin = 0.0;
-  double xmax = 1.0, ymax = 1.0;
+  double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
 
-  QString posStr = posEdit_->text();
-
-  QStringList posStrs = posStr.split(" ", QString::SkipEmptyParts);
-
-  if (posStrs.length() == 4) {
-    bool ok1; xmin = posStrs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
-    bool ok2; ymin = posStrs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
-    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
-    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
-
-    xmin = std::min(std::max(xmin, 0.0), 1.0);
-    ymin = std::min(std::max(ymin, 0.0), 1.0);
-    xmax = std::min(std::max(xmax, 0.0), 1.0);
-    ymax = std::min(std::max(ymax, 0.0), 1.0);
-
-    if (xmin > xmax) std::swap(xmin, xmax);
-    if (ymin > ymax) std::swap(ymin, ymax);
-
-    if (xmin == xmax) {
-      if (xmin > 0.0) xmin = 0.0;
-      else            xmax = 1.0;
-    }
-
-    if (ymin == ymax) {
-      if (ymin > 0.0) ymin = 0.0;
-      else            ymax = 1.0;
-    }
-  }
+  parsePosition(xmin, ymin, xmax, ymax);
 
   //---
 
@@ -563,6 +535,44 @@ applySlot()
   emit plotCreated(plot_);
 
   return true;
+}
+
+bool
+CQChartsPlotDlg::
+parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
+{
+  QString posStr = posEdit_->text();
+
+  QStringList posStrs = posStr.split(" ", QString::SkipEmptyParts);
+
+  if (posStrs.length() == 4) {
+    bool ok1; xmin = posStrs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
+    bool ok2; ymin = posStrs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
+    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
+    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
+
+    xmin = CQChartsUtil::clamp(xmin, 0.0, 1.0);
+    ymin = CQChartsUtil::clamp(ymin, 0.0, 1.0);
+    xmax = CQChartsUtil::clamp(xmax, 0.0, 1.0);
+    ymax = CQChartsUtil::clamp(ymax, 0.0, 1.0);
+
+    if (xmin > xmax) std::swap(xmin, xmax);
+    if (ymin > ymax) std::swap(ymin, ymax);
+
+    if (xmin == xmax) {
+      if (xmin > 0.0) xmin = 0.0;
+      else            xmax = 1.0;
+    }
+
+    if (ymin == ymax) {
+      if (ymin > 0.0) ymin = 0.0;
+      else            ymax = 1.0;
+    }
+
+    return (ok1 && ok2 && ok3 && ok4);
+  }
+
+  return false;
 }
 
 bool

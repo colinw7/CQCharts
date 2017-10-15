@@ -245,9 +245,16 @@ addProperties()
 
 bool
 CQChartsPlot::
-setProperty(const QString &name, const QString &value)
+setProperty(const QString &name, const QVariant &value)
 {
   return propertyView()->setProperty(this, name, value);
+}
+
+bool
+CQChartsPlot::
+getProperty(const QString &name, QVariant &value)
+{
+  return propertyView()->getProperty(this, name, value);
 }
 
 void
@@ -1447,7 +1454,7 @@ QColor
 CQChartsPlot::
 insideColor(const QColor &c) const
 {
-  return CQChartsUtil::blendColors(c, Qt::white, 0.8);
+  return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
 }
 
 void
@@ -1461,35 +1468,42 @@ QColor
 CQChartsPlot::
 paletteColor(int i, int n, const QColor &def) const
 {
-  return interpPaletteColor((1.0*i + 1.0)/(n + 1), def);
+  double r = CQChartsUtil::norm(i + 1, 0, n + 1);
+
+  return interpPaletteColor(r, def);
 }
 
 QColor
 CQChartsPlot::
 interpPaletteColor(double r, const QColor &def) const
 {
-  QColor c = def;
+  if (! palette())
+    return def;
 
-  if (palette())
-    c = palette()->getColor(r);
+  QColor c = palette()->getColor(r);
 
   return c;
 }
 
 QColor
 CQChartsPlot::
-textColor(const QColor &bg) const
+groupPaletteColor(double r1, double r2, double dr, const QColor &def) const
 {
-  return bwColor(bg);
+  if (! palette())
+    return def;
+
+  // r1 is parent color and r2 is child color
+  QColor c1 = palette()->getColor(r1 - dr/2.0);
+  QColor c2 = palette()->getColor(r1 + dr/2.0);
+
+  return CQChartsUtil::blendColors(c1, c2, r2);
 }
 
 QColor
 CQChartsPlot::
-bwColor(const QColor &bg) const
+textColor(const QColor &bg) const
 {
-  int g = qGray(bg.red(), bg.green(), bg.blue());
-
-  return (g > 80 ? QColor(0,0,0) : QColor(255, 255, 255));
+  return CQChartsUtil::bwColor(bg);
 }
 
 void

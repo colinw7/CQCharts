@@ -14,21 +14,14 @@ class CQChartsPiePlot;
 
 //---
 
-class CQChartsPieTextObj : public CQChartsTextBoxObj {
+class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
  public:
   CQChartsPieTextObj(CQChartsPiePlot *plot);
 
   void redrawBoxObj() override;
 
-  const QRectF &rect() const { return rect_; }
-  void setRect(const QRectF &r) { rect_ = r; }
-
-  void draw(QPainter *p, const QPointF &c, const QString &text, double angle=0.0,
-            Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
-
  private:
-  CQChartsPiePlot *plot_ { nullptr };
-  mutable QRectF   rect_;
+  CQChartsPiePlot* plot_ { nullptr };
 };
 
 //---
@@ -174,9 +167,6 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   const CQChartsPieTextObj &textBox() const { return textBox_; }
 
-  const CBBox2D &contentsBBox() const { return contentsBBox_; }
-  void setContentsBBox(const CBBox2D &b) { contentsBBox_ = b; }
-
   //---
 
   void addProperties() override;
@@ -220,7 +210,6 @@ class CQChartsPiePlot : public CQChartsPlot {
   double             startAngle_      { 90 };
   IdHidden           idHidden_;
   CQChartsPieTextObj textBox_;
-  CBBox2D            contentsBBox_;
 };
 
 #endif

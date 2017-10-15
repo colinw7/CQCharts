@@ -39,7 +39,9 @@ CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
+CQChartsChordPlot.cpp \
 CQChartsDelaunayPlot.cpp \
+CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHierBubblePlot.cpp \
 CQChartsParallelPlot.cpp \
@@ -144,7 +146,9 @@ HEADERS += \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxPlot.h \
 ../include/CQChartsBubblePlot.h \
+../include/CQChartsChordPlot.h \
 ../include/CQChartsDelaunayPlot.h \
+../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsHierBubblePlot.h \
 ../include/CQChartsParallelPlot.h \

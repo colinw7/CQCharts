@@ -87,6 +87,11 @@ addProperties(CQPropertyViewTree *tree, const QString &path)
   tree->addProperty(path, this, "integral" );
   tree->addProperty(path, this, "format"   );
 
+  QString posPath = path + "/position";
+
+  tree->addProperty(posPath, this, "hasPosition", "enabled");
+  tree->addProperty(posPath, this, "position"   , "value"  );
+
   QString linePath = path + "/line";
 
   tree->addProperty(linePath, this, "lineDisplayed", "displayed");

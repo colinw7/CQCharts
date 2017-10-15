@@ -22,7 +22,17 @@ OBJECTS_DIR = ../obj
 INCLUDEPATH += \
 . \
 ../include \
+../../CReadLine/include \
+../../CFile/include \
+../../CStrUtil/include \
 
 unix:LIBS += \
 -L../lib \
--lCQCharts
+-L../../CReadLine/lib \
+-L../../CFile/lib \
+-L../../CStrUtil/lib \
+-L../../COS/lib \
+-lCQCharts \
+-lCReadLine -lCFile -lCStrUtil \
+-lCOS \
+-lreadline

@@ -7,6 +7,8 @@ CQChartsViewStatus(CQChartsView *view) :
  QFrame(view), view_(view)
 {
   setObjectName("status");
+
+  setAutoFillBackground(true);
 }
 
 void

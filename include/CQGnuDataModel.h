@@ -42,6 +42,9 @@ class CQGnuDataModel : public QAbstractItemModel {
   int subSetBlankLines() const { return subSetBlankLines_; }
   void setSubSetBlankLines(int i) { subSetBlankLines_ = i; }
 
+  bool isKeepQuotes() const { return keepQuotes_; }
+  void setKeepQuotes(bool b) { keepQuotes_ = b; }
+
   bool load(const QString &filename);
 
   //---
@@ -111,6 +114,7 @@ class CQGnuDataModel : public QAbstractItemModel {
   int         maxNumFields_     { 0 };
   int         setBlankLines_    { 2 };
   int         subSetBlankLines_ { 1 };
+  bool        keepQuotes_       { false };
   Columns     columns_;
   Data        data_;
 };

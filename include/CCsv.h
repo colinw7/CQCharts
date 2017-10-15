@@ -1,5 +1,5 @@
-#ifndef CCSV_H
-#define CCSV_H
+#ifndef CCsv_H
+#define CCsv_H
 
 #include <cstdio>
 #include <string>
@@ -163,7 +163,7 @@ class CCsv {
 
     if (feof(fp_)) return false;
 
-    char c = fgetc(fp_);
+    int c = fgetc(fp_);
 
     if (c == EOF)
       return false;

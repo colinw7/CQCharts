@@ -14,6 +14,8 @@
 #include <CQChartsLoader.h>
 #include <CQChartsPlotDlg.h>
 
+//#define CQ_APP_H 1
+
 #ifdef CQ_APP_H
 #include <CQApp.h>
 #else
@@ -33,6 +35,9 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+
+#include <CReadLine.h>
+#include <CStrParse.h>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -103,6 +108,7 @@ main(int argc, char **argv)
 
   bool overlay = false;
   bool y1y2    = false;
+  bool loop    = false;
 
   CQChartsTest::OptReal xmin1 = boost::make_optional(false, 0.0);
   CQChartsTest::OptReal xmax1 = boost::make_optional(false, 0.0);
@@ -120,13 +126,13 @@ main(int argc, char **argv)
       std::string arg = &argv[i][1];
 
       if      (arg == "csv")
-        initData.csv  = true;
+        initData.fileType = CQChartsTest::FileType::CSV;
       else if (arg == "tsv")
-        initData.tsv  = true;
+        initData.fileType = CQChartsTest::FileType::TSV;
       else if (arg == "json")
-        initData.json = true;
+        initData.fileType = CQChartsTest::FileType::JSON;
       else if (arg == "data")
-        initData.data = true;
+        initData.fileType = CQChartsTest::FileType::DATA;
       else if (arg == "type") {
         ++i;
 
@@ -153,7 +159,7 @@ main(int argc, char **argv)
               initData.setNameValue(name, value);
             }
             else {
-              std::cerr << "Invalid " << argv[i] << " option '" << argv[i] << "'" << std::endl;
+              std::cerr << "Invalid " << arg << " option '" << argv[i] << "'" << std::endl;
             }
           }
         }
@@ -316,6 +322,9 @@ main(int argc, char **argv)
         if (i < argc)
           ymax2 = std::stod(argv[i]);
       }
+      else if (arg == "loop") {
+        loop = true;
+      }
       else {
         std::cerr << "Invalid option '" << argv[i] << "'" << std::endl;
       }
@@ -386,7 +395,10 @@ main(int argc, char **argv)
 
   //---
 
-  app.exec();
+  if (! loop)
+    app.exec();
+  else
+    test.loop();
 
   return 0;
 }
@@ -536,47 +548,10 @@ initPlot(const InitData &initData)
 
   //---
 
-  model_.clear();
-
   if (initData.filenames.size() > 0) {
-    if      (initData.csv) {
-      QAbstractItemModel *csv = loadCsv(initData.filenames[0],
-                                        initData.commentHeader,
-                                        initData.firstLineHeader);
-
-      model_ = ModelP(csv);
-
-      setTableModel(model_);
-    }
-    else if (initData.tsv) {
-      QAbstractItemModel *tsv = loadTsv(initData.filenames[0],
-                                        initData.commentHeader,
-                                        initData.firstLineHeader);
-
-      model_ = ModelP(tsv);
-
-      setTableModel(model_);
-    }
-    else if (initData.json) {
-      bool hierarchical;
-
-      QAbstractItemModel *json = loadJson(initData.filenames[0], hierarchical);
-
-      model_ = ModelP(json);
-
-      if (hierarchical)
-        setTreeModel(model_);
-      else
-        setTableModel(model_);
-    }
-    else if (initData.data) {
-      QAbstractItemModel *data = loadData(initData.filenames[0],
-                                          initData.commentHeader,
-                                          initData.firstLineHeader);
-
-      model_ = ModelP(data);
-
-      setTableModel(model_);
+    if (initData.fileType != FileType::NONE) {
+      loadFileModel(initData.filenames[0], initData.fileType,
+                    initData.commentHeader, initData.firstLineHeader);
     }
     else {
       std::cerr << "No plot type specified" << std::endl;
@@ -657,48 +632,19 @@ void
 CQChartsTest::
 loadFileSlot(const QString &type, const QString &filename)
 {
-  bool commentHeader   = loader_->isCommentHeader();
-  bool firstLineHeader = loader_->isFirstLineHeader();
+  FileType fileType = stringToFileType(type);
 
-  model_.clear();
-
-  if      (type == "CSV") {
-    QAbstractItemModel *csv = loadCsv(filename, commentHeader, firstLineHeader);
-
-    model_ = ModelP(csv);
-
-    setTableModel(model_);
-  }
-  else if (type == "TSV") {
-    QAbstractItemModel *tsv = loadTsv(filename, commentHeader, firstLineHeader);
-
-    model_ = ModelP(tsv);
-
-    setTableModel(model_);
-  }
-  else if (type == "Json") {
-    bool hierarchical;
-
-    QAbstractItemModel *json = loadJson(filename, hierarchical);
-
-    model_ = ModelP(json);
-
-    if (hierarchical)
-      setTreeModel(model_);
-    else
-      setTableModel(model_);
-  }
-  else if (type == "Data") {
-    QAbstractItemModel *data = loadData(filename, commentHeader, firstLineHeader);
-
-    model_ = ModelP(data);
-
-    setTableModel(model_);
-  }
-  else {
+  if (fileType == FileType::NONE) {
     std::cerr << "Bad type specified '" << type.toStdString() << "'" << std::endl;
     return;
   }
+
+  //---
+
+  bool commentHeader   = loader_->isCommentHeader();
+  bool firstLineHeader = loader_->isFirstLineHeader();
+
+  loadFileModel(filename, fileType, commentHeader, firstLineHeader);
 }
 
 //------
@@ -792,7 +738,79 @@ CQChartsPlot *
 CQChartsTest::
 init(const ModelP &model, const InitData &initData, int i)
 {
-  QStringList fstrs = initData.columnType.split(";", QString::KeepEmptyParts);
+  setColumnFormats(model, initData.columnType);
+
+  //---
+
+  QString typeName = fixTypeName(initData.typeName);
+
+  if (typeName == "")
+    return nullptr;
+
+  // ignore if bad type
+  CQChartsPlotType *type = charts_->plotType(typeName);
+
+  if (! type) {
+    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot" << std::endl;
+    return nullptr;
+  }
+
+  //---
+
+  // result plot if needed
+  bool reuse = false;
+
+  if (initData.overlay || initData.y1y2) {
+    if (typeName == "xy")
+      reuse = true;
+  }
+  else {
+    reuse = true;
+  }
+
+  //---
+
+  // create plot from init (argument) data
+  CQChartsPlot *plot = createPlot(model, type, initData.nameValues, initData.nameBools, reuse);
+  assert(plot);
+
+  //---
+
+  // init plot
+  if (initData.overlay || initData.y1y2) {
+    if (i > 0) {
+      plot->setBackground    (false);
+      plot->setDataBackground(false);
+    }
+  }
+
+  if (initData.title != "")
+    plot->setTitle(initData.title);
+
+  if (initData.xintegral)
+    plot->xAxis()->setIntegral(true);
+
+  if (initData.yintegral)
+    plot->yAxis()->setIntegral(true);
+
+  if (initData.xmin) plot->setXMin(initData.xmin);
+  if (initData.ymin) plot->setYMin(initData.ymin);
+  if (initData.xmax) plot->setXMax(initData.xmax);
+  if (initData.ymax) plot->setYMax(initData.ymax);
+
+  //---
+
+  if (initData.properties != "")
+    setPlotProperties(plot, initData.properties);
+
+  return plot;
+}
+
+void
+CQChartsTest::
+setColumnFormats(const ModelP &model, const QString &columnType)
+{
+  QStringList fstrs = columnType.split(";", QString::KeepEmptyParts);
 
   for (int i = 0; i < fstrs.length(); ++i) {
     QString type = fstrs[i].simplified();
@@ -823,109 +841,41 @@ init(const ModelP &model, const InitData &initData, int i)
       continue;
     }
   }
+}
 
-  //---
-
-  QString typeName = initData.typeName;
-
-  if (typeName == "")
-    return nullptr;
+QString
+CQChartsTest::
+fixTypeName(const QString &typeName) const
+{
+  QString typeName1 = typeName;
 
   // adjust typename for alias (TODO: add to typeData)
-  if      (typeName == "piechart")
-    typeName = "pie";
-  else if (typeName == "xyplot")
-    typeName = "xy";
-  else if (typeName == "scatterplot")
-    typeName = "scatter";
-  else if (typeName == "bar")
-    typeName = "barchart";
-  else if (typeName == "boxplot")
-    typeName = "box";
-  else if (typeName == "parallelplot")
-    typeName = "parallel";
-  else if (typeName == "geometryplot")
-    typeName = "geometry";
-  else if (typeName == "delaunayplot")
-    typeName = "delaunay";
-  else if (typeName == "adjacencyplot")
-    typeName = "adjacency";
+  if      (typeName1 == "piechart")
+    typeName1 = "pie";
+  else if (typeName1 == "xyplot")
+    typeName1 = "xy";
+  else if (typeName1 == "scatterplot")
+    typeName1 = "scatter";
+  else if (typeName1 == "bar")
+    typeName1 = "barchart";
+  else if (typeName1 == "boxplot")
+    typeName1 = "box";
+  else if (typeName1 == "parallelplot")
+    typeName1 = "parallel";
+  else if (typeName1 == "geometryplot")
+    typeName1 = "geometry";
+  else if (typeName1 == "delaunayplot")
+    typeName1 = "delaunay";
+  else if (typeName1 == "adjacencyplot")
+    typeName1 = "adjacency";
 
-  // ignore if bad type
-  CQChartsPlotType *type = charts_->plotType(typeName);
-
-  if (! type) {
-    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot" << std::endl;
-    return nullptr;
-  }
-
-  //---
-
-  // result plot if needed
-  bool reuse = false;
-
-  if (initData.overlay || initData.y1y2) {
-    if (typeName == "xy")
-      reuse = true;
-  }
-  else {
-    reuse = true;
-  }
-
-  //---
-
-  // create plot from init (argument) data
-  CQChartsPlot *plot = createPlot(model, type, initData, reuse);
-  assert(plot);
-
-  //---
-
-  // init plot
-  if (initData.overlay || initData.y1y2) {
-    if (i > 0) {
-      plot->setBackground    (false);
-      plot->setDataBackground(false);
-    }
-  }
-
-  if (initData.title != "")
-    plot->setTitle(initData.title);
-
-  if (initData.xintegral)
-    plot->xAxis()->setIntegral(true);
-
-  if (initData.yintegral)
-    plot->yAxis()->setIntegral(true);
-
-  if (initData.xmin) plot->setXMin(initData.xmin);
-  if (initData.ymin) plot->setYMin(initData.ymin);
-  if (initData.xmax) plot->setXMax(initData.xmax);
-  if (initData.ymax) plot->setYMax(initData.ymax);
-
-  //---
-
-  if (initData.properties != "") {
-    QStringList strs = initData.properties.split(",", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.size(); ++i) {
-      QString str = strs[i].simplified();
-
-      int pos = str.indexOf("=");
-
-      QString name  = str.mid(0, pos).simplified();
-      QString value = str.mid(pos + 1).simplified();
-
-      if (! plot->setProperty(name, value))
-        std::cerr << "Failed to set property " << name.toStdString() << std::endl;
-    }
-  }
-
-  return plot;
+  return typeName1;
 }
 
 CQChartsPlot *
 CQChartsTest::
-createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData, bool reuse)
+createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameValues,
+           const NameBools &nameBools, bool reuse)
 {
   CQChartsView *view = getView(reuse);
 
@@ -941,9 +891,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
-      auto p = initData.nameValues.find(parameter.name());
+      auto p = nameValues.find(parameter.name());
 
-      if (p == initData.nameValues.end())
+      if (p == nameValues.end())
         continue;
 
       int column;
@@ -957,9 +907,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
     }
     else if (parameter.type() == "columns") {
-      auto p = initData.nameValues.find(parameter.name());
+      auto p = nameValues.find(parameter.name());
 
-      if (p == initData.nameValues.end())
+      if (p == nameValues.end())
         continue;
 
       QStringList strs = (*p).second.split(" ", QString::SkipEmptyParts);
@@ -983,9 +933,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
     }
     else if (parameter.type() == "bool") {
-      auto p = initData.nameBools.find(parameter.name());
+      auto p = nameBools.find(parameter.name());
 
-      if (p == initData.nameBools.end())
+      if (p == nameBools.end())
         continue;
 
       bool b = (*p).second;
@@ -1000,7 +950,7 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData
   //---
 
   // init plot
-  if (initData.typeName == "xy") {
+  if (type->name() == "xy") {
     CQChartsXYPlot *xyPlot = dynamic_cast<CQChartsXYPlot *>(plot);
     assert(plot);
 
@@ -1026,7 +976,80 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const InitData &initData
   return plot;
 }
 
+void
+CQChartsTest::
+setPlotProperties(CQChartsPlot *plot, const QString &properties)
+{
+  QStringList strs = properties.split(",", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    QString str = strs[i].simplified();
+
+    int pos = str.indexOf("=");
+
+    QString name  = str.mid(0, pos).simplified();
+    QString value = str.mid(pos + 1).simplified();
+
+    if (! plot->setProperty(name, value))
+      std::cerr << "Failed to set property " << name.toStdString() << std::endl;
+  }
+}
+
 //------
+
+bool
+CQChartsTest::
+loadFileModel(const QString &filename, FileType type, bool commentHeader, bool firstLineHeader)
+{
+  model_.clear();
+
+  bool hierarchical;
+
+  QAbstractItemModel *model =
+    loadFile(filename, type, commentHeader, firstLineHeader, hierarchical);
+
+  if (! model)
+    return false;
+
+  model_ = ModelP(model);
+
+  if (hierarchical)
+    setTreeModel(model_);
+  else
+    setTableModel(model_);
+
+  return true;
+}
+
+QAbstractItemModel *
+CQChartsTest::
+loadFile(const QString &filename, FileType type, bool commentHeader, bool firstLineHeader,
+         bool &hierarchical)
+{
+  hierarchical = false;
+
+  QAbstractItemModel *model = nullptr;
+
+  if      (type == FileType::CSV) {
+    model = loadCsv(filename, commentHeader, firstLineHeader);
+  }
+  else if (type == FileType::TSV) {
+    model = loadTsv(filename, commentHeader, firstLineHeader);
+  }
+  else if (type == FileType::JSON) {
+    model = loadJson(filename, hierarchical);
+  }
+  else if (type == FileType::DATA) {
+    model = loadData(filename, commentHeader, firstLineHeader);
+  }
+  else {
+    std::cerr << "Bad file type specified '" <<
+      fileTypeToString(type).toStdString() << "'" << std::endl;
+    return nullptr;
+  }
+
+  return model;
+}
 
 QAbstractItemModel *
 CQChartsTest::
@@ -1188,4 +1211,511 @@ CQChartsTest::
 sizeHint() const
 {
   return QSize(1600, 1200);
+}
+
+//------
+
+CQChartsTest::FileType
+CQChartsTest::
+stringToFileType(const QString &str) const
+{
+  QString lstr = str.toLower();
+
+  if      (lstr == "csv" ) return FileType::CSV;
+  else if (lstr == "tsv" ) return FileType::TSV;
+  else if (lstr == "json") return FileType::JSON;
+  else if (lstr == "data") return FileType::DATA;
+  else                     return FileType::NONE;
+}
+
+QString
+CQChartsTest::
+fileTypeToString(FileType type) const
+{
+  if      (type == FileType::CSV ) return "csv";
+  else if (type == FileType::TSV ) return "tsv";
+  else if (type == FileType::JSON) return "json";
+  else if (type == FileType::DATA) return "data";
+  else                             return "";
+}
+
+//------
+
+class CQChartsReadLine : public CReadLine {
+ public:
+  CQChartsReadLine(CQChartsTest *test) :
+   test_(test) {
+  }
+
+  void timeout() {
+    test_->timeout();
+  }
+
+ private:
+  CQChartsTest *test_;
+};
+
+void
+CQChartsTest::
+loop()
+{
+  CQChartsReadLine *readLine = new CQChartsReadLine(this);
+
+  readLine->enableTimeoutHook(1);
+
+  for (;;) {
+    readLine->setPrompt("> ");
+
+    auto line = readLine->readLine();
+
+    while (line[line.size() - 1] == '\\') {
+      readLine->setPrompt("+> ");
+
+      auto line1 = readLine->readLine();
+
+      line = line.substr(0, line.size() - 1) + line1;
+    }
+
+    parseLine(line);
+
+    readLine->addHistory(line);
+  }
+}
+
+void
+CQChartsTest::
+timeout()
+{
+  if (! qApp->activeModalWidget())
+    qApp->processEvents();
+}
+
+void
+CQChartsTest::
+parseLine(const std::string &str)
+{
+  CStrParse line(str);
+
+  line.skipSpace();
+
+  std::string cmd;
+
+  line.readNonSpace(cmd);
+
+  Args args;
+
+  while (! line.eof()) {
+    line.skipSpace();
+
+    if (line.isChar('"') || line.isChar('\'')) {
+      std::string str;
+
+      if (line.readString(str, /*strip_quotes*/true))
+        args.push_back(str);
+    }
+    else {
+      std::string arg;
+
+      if (line.readNonSpace(arg))
+        args.push_back(arg);
+    }
+  }
+
+  if      (cmd == "exit") {
+    exit(0);
+  }
+  else if (cmd == "set") {
+    setCmd(args);
+  }
+  else if (cmd == "get") {
+    getCmd(args);
+  }
+  else if (cmd == "load") {
+    loadCmd(args);
+  }
+  else if (cmd == "plot") {
+    plotCmd(args);
+  }
+  else if (cmd == "source") {
+    sourceCmd(args);
+  }
+}
+
+void
+CQChartsTest::
+setCmd(const Args & args)
+{
+  QString viewName;
+  QString plotName;
+  QString name;
+  QString value;
+
+  for (std::size_t i = 0; i < args.size(); ++i) {
+    std::string arg = args[i];
+
+    if (arg[0] == '-') {
+      std::string opt = arg.substr(1);
+
+      if      (opt == "view") {
+        ++i;
+
+        if (i < args.size())
+          viewName = args[i].c_str();
+      }
+      else if (opt == "plot") {
+        ++i;
+
+        if (i < args.size())
+          plotName = args[i].c_str();
+      }
+      else if (opt == "name") {
+        ++i;
+
+        if (i < args.size())
+          name = args[i].c_str();
+      }
+      else if (opt == "value") {
+        ++i;
+
+        if (i < args.size())
+          value = args[i].c_str();
+      }
+    }
+  }
+
+  //---
+
+  CQChartsView *view = charts_->getView(viewName);
+
+  if (! view) {
+    QStringList ids;
+
+    charts_->getViewIds(ids);
+
+    if (ids.length())
+      view = charts_->getView(ids[0]);
+  }
+
+  if (! view) {
+    std::cerr << "No view '" << plotName.toStdString() << "'" << std::endl;
+    return;
+  }
+
+  //---
+
+  if (plotName != "") {
+    CQChartsPlot *plot = view->getPlot(plotName);
+
+    if (! plot) {
+      std::cerr << "No plot '" << plotName.toStdString() << "'" << std::endl;
+      return;
+    }
+
+    //---
+
+    if (! plot->setProperty(name, value)) {
+      std::cerr << "Failed to set view parameter '" << name.toStdString() << "'" << std::endl;
+      return;
+    }
+  }
+  else {
+    if (! view->setProperty(name, value)) {
+      std::cerr << "Failed to set plot parameter '" << name.toStdString() << "'" << std::endl;
+      return;
+    }
+  }
+}
+
+void
+CQChartsTest::
+getCmd(const Args &)
+{
+}
+
+void
+CQChartsTest::
+loadCmd(const Args &args)
+{
+  QString  filename;
+  FileType fileType { FileType::NONE };
+  bool     commentHeader = false;
+  bool     firstLineHeader = false;
+
+  for (std::size_t i = 0; i < args.size(); ++i) {
+    std::string arg = args[i];
+
+    if (arg[0] == '-') {
+      std::string opt = arg.substr(1);
+
+      if      (opt == "csv")
+        fileType = FileType::CSV;
+      else if (opt == "tsv")
+        fileType = FileType::TSV;
+      else if (opt == "json")
+        fileType = FileType::JSON;
+      else if (opt == "data")
+        fileType = FileType::DATA;
+      else if (opt == "comment_header")
+        commentHeader = true;
+      else if (opt == "first_line_header")
+        firstLineHeader = true;
+    }
+    else {
+      if (filename == "")
+        filename = arg.c_str();
+    }
+  }
+
+  if (filename == "") {
+    std::cerr << "No filename" << std::endl;
+    return;
+  }
+
+  if (fileType == FileType::NONE) {
+    std::cerr << "No file type" << std::endl;
+    return;
+  }
+
+  loadFileModel(filename, fileType, commentHeader, firstLineHeader);
+}
+
+void
+CQChartsTest::
+plotCmd(const Args &args)
+{
+  QString    typeName;
+  NameValues nameValues;
+  NameBools  nameBools;
+  bool       xintegral { false };
+  bool       yintegral { false };
+  QString    title;
+  QString    properties;
+  OptReal    xmin, ymin, xmax, ymax;
+  bool       y1y2      { false };
+  bool       overlay   { false };
+
+  for (std::size_t i = 0; i < args.size(); ++i) {
+    std::string arg = args[i];
+
+    if (arg[0] == '-') {
+      std::string opt = arg.substr(1);
+
+      if      (opt == "type") {
+        ++i;
+
+        if (i < args.size())
+          typeName = args[i].c_str();
+      }
+      else if (opt == "column" || opt == "columns") {
+        ++i;
+
+        if (i < args.size()) {
+          QString columnsStr = args[i].c_str();
+
+          QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
+
+          for (int j = 0; j < strs.size(); ++j) {
+            const QString &nameValue = strs[j];
+
+            auto pos = nameValue.indexOf('=');
+
+            if (pos >= 0) {
+              auto name  = nameValue.mid(0, pos).simplified();
+              auto value = nameValue.mid(pos + 1).simplified();
+
+              nameValues[name] = value;
+            }
+            else {
+              std::cerr << "Invalid " << opt << " option '" << args[i] << "'" << std::endl;
+            }
+          }
+        }
+      }
+      else if (opt == "bool") {
+        ++i;
+
+        if (i < args.size()) {
+          QString nameValue = args[i].c_str();
+
+          auto pos = nameValue.indexOf('=');
+
+          QString name, value;
+
+          if (pos >= 0) {
+            name  = nameValue.mid(0, pos).simplified();
+            value = nameValue.mid(pos + 1).simplified();
+          }
+          else {
+            name  = nameValue;
+            value = "true";
+          }
+
+          bool ok;
+
+          bool b = stringToBool(value, &ok);
+
+          if (ok)
+            nameBools[name] = b;
+          else {
+            std::cerr << "Invalid -bool option '" << args[i] << "'" << std::endl;
+          }
+        }
+      }
+      else if (opt == "xintegral") {
+        xintegral = true;
+      }
+      else if (opt == "yintegral") {
+        yintegral = true;
+      }
+      else if (opt == "title") {
+        ++i;
+
+        if (i < args.size())
+          title = args[i].c_str();
+      }
+      else if (opt == "properties") {
+        ++i;
+
+        if (i < args.size())
+          properties = args[i].c_str();
+      }
+      else if (opt == "overlay") {
+        overlay = true;
+      }
+      else if (opt == "y1y2") {
+        y1y2 = true;
+      }
+      else if (opt == "xmin") {
+        ++i;
+
+        if (i < args.size())
+          xmin = std::stod(args[i]);
+      }
+      else if (opt == "xmax") {
+        ++i;
+
+        if (i < args.size())
+          xmax = std::stod(args[i]);
+      }
+      else if (arg == "ymin") {
+        ++i;
+
+        if (i < args.size())
+          ymin = std::stod(args[i]);
+      }
+      else if (arg == "ymax") {
+        ++i;
+
+        if (i < args.size())
+          ymax = std::stod(args[i]);
+      }
+    }
+    else {
+    }
+  }
+
+  //------
+
+  if (! model_) {
+    std::cerr << "No model data" << std::endl;
+    return;
+  }
+
+  //------
+
+  typeName = fixTypeName(typeName);
+
+  if (typeName == "")
+    return;
+
+  // ignore if bad type
+  CQChartsPlotType *type = charts_->plotType(typeName);
+
+  if (! type) {
+    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot" << std::endl;
+    return;
+  }
+
+  //------
+
+  // result plot if needed
+  bool reuse = false;
+
+  if (overlay || y1y2) {
+    if (typeName == "xy")
+      reuse = true;
+  }
+  else {
+    reuse = true;
+  }
+
+  //------
+
+  // create plot from init (argument) data
+  CQChartsPlot *plot = createPlot(model_, type, nameValues, nameBools, reuse);
+  assert(plot);
+
+  //---
+
+  // init plot
+  if (overlay || y1y2) {
+    plot->setBackground    (false);
+    plot->setDataBackground(false);
+  }
+
+  if (title != "")
+    plot->setTitle(title);
+
+  if (xintegral)
+    plot->xAxis()->setIntegral(true);
+
+  if (yintegral)
+    plot->yAxis()->setIntegral(true);
+
+  if (xmin) plot->setXMin(xmin);
+  if (ymin) plot->setYMin(ymin);
+  if (xmax) plot->setXMax(xmax);
+  if (ymax) plot->setYMax(ymax);
+
+  //---
+
+  if (properties != "")
+    setPlotProperties(plot, properties);
+}
+
+void
+CQChartsTest::
+sourceCmd(const Args &args)
+{
+  QString filename;
+
+  for (std::size_t i = 0; i < args.size(); ++i) {
+    std::string arg = args[i];
+
+    if (arg[0] == '-') {
+    }
+    else {
+      if (filename == "")
+        filename = arg.c_str();
+    }
+  }
+
+  if (filename == "") {
+    std::cerr << "No filename" << std::endl;
+    return;
+  }
+
+  CUnixFile file(filename.toStdString());
+
+  if (! file.open()) {
+    std::cerr << "Failed to open file '" << filename.toStdString() << "'" << std::endl;
+    return;
+  }
+
+  // read lines
+  std::string line;
+
+  while (file.readLine(line)) {
+    parseLine(line);
+  }
 }

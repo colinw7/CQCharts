@@ -54,11 +54,13 @@ class CQChartsAxis : public QObject {
   Q_OBJECT
 
   // general
-  Q_PROPERTY(bool      visible   READ getVisible   WRITE setVisible  )
-  Q_PROPERTY(Direction direction READ getDirection WRITE setDirection)
-  Q_PROPERTY(Side      side      READ getSide      WRITE setSide     )
-  Q_PROPERTY(bool      integral  READ isIntegral   WRITE setIntegral )
-  Q_PROPERTY(QString   format    READ format       WRITE setFormat   )
+  Q_PROPERTY(bool      visible     READ getVisible   WRITE setVisible    )
+  Q_PROPERTY(Direction direction   READ getDirection WRITE setDirection  )
+  Q_PROPERTY(Side      side        READ getSide      WRITE setSide       )
+  Q_PROPERTY(bool      hasPosition READ hasPosition  WRITE setHasPosition)
+  Q_PROPERTY(double    position    READ position     WRITE setPosition   )
+  Q_PROPERTY(bool      integral    READ isIntegral   WRITE setIntegral   )
+  Q_PROPERTY(QString   format      READ format       WRITE setFormat     )
 
   // line
   Q_PROPERTY(bool      lineDisplayed READ getLineDisplayed WRITE setLineDisplayed)
@@ -108,6 +110,8 @@ class CQChartsAxis : public QObject {
     BOTTOM_LEFT,
     TOP_RIGHT
   };
+
+  typedef boost::optional<double> OptReal;
 
  public:
   CQChartsAxis(CQChartsPlot *plot, Direction direction=Direction::HORIZONTAL,
@@ -283,7 +287,22 @@ class CQChartsAxis : public QObject {
 
   //---
 
+  const OptReal &pos() const { return pos_; }
   void setPos(double r) { pos_ = r; redraw(); }
+
+  void unsetPos() { pos_.reset(); redraw(); }
+
+  bool hasPosition() const { return !!pos_; }
+
+  void setHasPosition(bool b) {
+    if (! b) { if (  hasPosition()) unsetPos(); }
+    else     { if (! hasPosition()) setPos(0.0); }
+  }
+
+  double position() const { return pos_.value_or(0.0); }
+  void setPosition(double r) { setPos(r); }
+
+  //---
 
   QString getValueStr(double pos) const;
 
@@ -319,9 +338,8 @@ class CQChartsAxis : public QObject {
                     AxisGapData &axisGapData);
 
  private:
-  typedef std::vector<double>     TickSpaces;
-  typedef std::map<int,QString>   TickLabels;
-  typedef boost::optional<double> OptReal;
+  typedef std::vector<double>   TickSpaces;
+  typedef std::map<int,QString> TickLabels;
 
   CQChartsPlot*          plot_                { nullptr };
   bool                   visible_             { true };

@@ -35,13 +35,25 @@ CQChartsLoader(CQCharts *charts) :
   promptGrid->addWidget(new QLabel("File"), 1, 0);
   promptGrid->addWidget(fileEdit_         , 1, 1);
 
+  //---
+
+  QHBoxLayout *optionLayout = new QHBoxLayout;
+
   commentHeaderCheck_ = new QCheckBox("Comment Header");
 
-  promptGrid->addWidget(commentHeaderCheck_);
+  optionLayout->addWidget(commentHeaderCheck_);
 
   firstLineHeaderCheck_ = new QCheckBox("First Line Header");
 
-  promptGrid->addWidget(firstLineHeaderCheck_);
+  optionLayout->addWidget(firstLineHeaderCheck_);
+
+  optionLayout->addStretch(1);
+
+  layout->addLayout(optionLayout);
+
+  //---
+
+  layout->addStretch(1);
 
   //---
 

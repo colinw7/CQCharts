@@ -322,7 +322,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
 
-  QColor c1 = CQChartsUtil::blendColors(c, Qt::white, 0.8);
+  QColor c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
 
   QColor tc = plot_->textColor(c1);
 

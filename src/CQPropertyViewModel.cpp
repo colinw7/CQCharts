@@ -227,6 +227,22 @@ setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value
   return item1->setData(value);
 }
 
+bool
+CQPropertyViewModel::
+getProperty(CQPropertyViewItem *item, const QString &path, QVariant &value)
+{
+  QStringList strs = path.split(".");
+
+  CQPropertyViewItem *item1 = hierItem(item, strs, /*create*/false, /*alias*/true);
+
+  if (! item1)
+    return false;
+
+  value = item1->data();
+
+  return true;
+}
+
 CQPropertyViewItem *
 CQPropertyViewModel::
 item(const QModelIndex &index) const

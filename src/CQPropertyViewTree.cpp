@@ -132,7 +132,23 @@ setProperty(QObject *object, const QString &path, const QVariant &value)
   if (! item)
     return false;
 
-  return model_->setProperty(item, path, value);
+  bool rc = model_->setProperty(item, path, value);
+
+  redraw();
+
+  return rc;
+}
+
+bool
+CQPropertyViewTree::
+getProperty(QObject *object, const QString &path, QVariant &value)
+{
+  CQPropertyViewItem *item = objectItem(object);
+
+  if (! item)
+    return false;
+
+  return model_->getProperty(item, path, value);
 }
 
 CQPropertyViewItem *

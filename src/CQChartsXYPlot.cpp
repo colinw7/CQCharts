@@ -1414,7 +1414,7 @@ textColor() const
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, Qt::white, 0.5);
+    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.5);
 
   return c;
 }

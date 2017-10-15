@@ -117,6 +117,20 @@ updateMargins()
   toolBarHeight_ = toolbar_->sizeHint().height();
 }
 
+bool
+CQChartsView::
+setProperty(const QString &name, const QVariant &value)
+{
+  return propertyView()->setProperty(this, name, value);
+}
+
+bool
+CQChartsView::
+getProperty(const QString &name, QVariant &value)
+{
+  return propertyView()->getProperty(this, name, value);
+}
+
 void
 CQChartsView::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
@@ -135,6 +149,18 @@ addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
   plotDatas_.emplace_back(plot, bbox);
 
   plot->addProperties();
+}
+
+CQChartsPlot *
+CQChartsView::
+getPlot(const QString &id) const
+{
+  for (const auto &plotData : plotDatas_) {
+    if (plotData.plot->id() == id)
+      return plotData.plot;
+  }
+
+  return nullptr;
 }
 
 void

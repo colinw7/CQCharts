@@ -4,6 +4,7 @@
 #include <CQChartsPlotSymbol.h>
 #include <QObject>
 #include <QColor>
+#include <QPointF>
 
 class CQPropertyViewTree;
 

@@ -320,7 +320,7 @@ draw(QPainter *p)
 
     windowToPixel(j, dataRange_.ymax(), px, py);
 
-    p->setPen(Qt::black);
+    p->setPen(yAxes_[j]->getTickLabelColor());
 
     p->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }

@@ -196,7 +196,7 @@ initObjs(bool force)
       bool ok3;
 
       QString sizeStr = CQChartsUtil::modelString(model, i, sizeColumn(), ok3);
-      double  rsize   = (sizeColumn () >= 0 ? sizeSet_ .imap(i) : -1);
+      double  rsize   = (sizeColumn() >= 0 ? sizeSet_.imap(i) : -1);
 
       QString colorStr = CQChartsUtil::modelString(model, i, colorColumn(), ok3);
       double  rcolor   = (colorColumn() >= 0 ? colorSet_.imap(i) : -1);

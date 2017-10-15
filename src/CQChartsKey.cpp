@@ -573,10 +573,3 @@ fillColor() const
 
   return plot->paletteColor(i_, n_);
 }
-
-QColor
-CQChartsKeyColorBox::
-borderColor() const
-{
-  return Qt::black;
-}

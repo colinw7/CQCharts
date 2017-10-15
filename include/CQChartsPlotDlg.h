@@ -65,6 +65,8 @@ class CQChartsPlotDlg : public QDialog {
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
                          const QString &objName, const QString &placeholderText) const;
 
+  bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
+
   bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
                                 int &column, QString &columnType);
   bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,

@@ -13,6 +13,8 @@ CQChartsViewToolBar(CQChartsView *view) :
 {
   setObjectName("toolbar");
 
+  setAutoFillBackground(true);
+
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 

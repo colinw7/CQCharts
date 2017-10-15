@@ -77,6 +77,11 @@ class CQChartsSunburstNode {
 
   bool placed() const { return placed_; }
 
+  CQChartsSunburstNodeObj *obj() const { return obj_; }
+  void setObj(CQChartsSunburstNodeObj *obj) { obj_ = obj; }
+
+  //---
+
   static double normalizeAngle(double a) {
     while (a <    0.0) a += 360.0;
     while (a >= 360.0) a -= 360.0;
@@ -130,6 +135,7 @@ class CQChartsSunburstNode {
   double                    da_      { 0.0 };
   int                       colorId_ { 0 };
   bool                      placed_  { false };
+  CQChartsSunburstNodeObj*  obj_     { nullptr };
 };
 
 //---
@@ -368,6 +374,8 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   void initObjs(bool force=false) override;
 
   //---
+
+  void handleResize() override;
 
   void draw(QPainter *) override;
 

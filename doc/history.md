@@ -103,3 +103,5 @@
  + Improve equal scale handling
  + Improve error handling
  + Handle click signal in test to display details
+## 10/15/2017
+ + Add chord and force directed plots

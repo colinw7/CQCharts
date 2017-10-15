@@ -331,9 +331,10 @@ parseFileLine(const QString &str, Fields &fields)
       if (line.isChar('"'))
         line.skipChar();
 
-      QString word1 = "\"" + word + "\"";
+      if (isKeepQuotes())
+        word = "\"" + word + "\"";
 
-      words.addWord(word1.toStdString());
+      words.addWord(word.toStdString());
 
       isSeparator = false;
     }
@@ -401,7 +402,10 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return QVariant();
     }
     else if (role == Qt::ToolTipRole) {
-      return QVariant(QString("%1\n%2").arg(column.name()).arg(column.type()));
+      if (column.type() != "")
+        return QVariant(QString("%1\n%2").arg(column.name()).arg(column.type()));
+      else
+        return QVariant(QString("%1").arg(column.name()));
     }
   }
 

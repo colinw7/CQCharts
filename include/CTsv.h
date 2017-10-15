@@ -125,7 +125,7 @@ class CTsv {
 
     if (feof(fp_)) return false;
 
-    char c = fgetc(fp_);
+    int c = fgetc(fp_);
 
     if (c == EOF)
       return false;

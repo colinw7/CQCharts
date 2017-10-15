@@ -34,6 +34,7 @@ class CQPropertyViewTree : public QTreeView {
                    const QString &name, const QString &alias="");
 
   bool setProperty(QObject *object, const QString &path, const QVariant &value);
+  bool getProperty(QObject *object, const QString &path, QVariant &value);
 
   void selectObject(const QObject *obj);
 

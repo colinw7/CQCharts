@@ -86,8 +86,9 @@ click()
     return false;
 
   if (typeName == "bool" && propInfo.isWritable()) {
-    if (! setData(! var.toBool()))
-      std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+    if (! setData(! var.toBool())) {
+      //std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+    }
 
     emit valueChanged(object_, name_);
 
@@ -168,8 +169,7 @@ createEditor(QWidget *parent)
     combo->addItems(names);
     combo->setCurrentIndex(combo->findText(valueStr));
 
-    connect(combo, SIGNAL(currentIndexChanged(const QString &)),
-            this, SLOT(updateValue()));
+    connect(combo, SIGNAL(currentIndexChanged(const QString &)), this, SLOT(updateValue()));
 
     widget_ = combo;
   }
@@ -196,8 +196,9 @@ createEditor(QWidget *parent)
 
     QString valueStr;
 
-    if (! CQUtil::variantToString(var, valueStr))
-      std::cerr << "Failed to convert to string" << std::endl;
+    if (! CQUtil::variantToString(var, valueStr)) {
+      //std::cerr << "Failed to convert to string" << std::endl;
+    }
 
     edit->setText(valueStr);
 
@@ -223,8 +224,9 @@ setEditorData(const QVariant &value)
     CQPropertyViewType *type = CQPropertyViewMgrInst->getType(typeName);
 
     if      (type) {
-      if (! type->setEditorData(this, value))
-        std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+      if (! type->setEditorData(this, value)) {
+        //std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+      }
     }
     else if (propInfo.isEnumType()) {
       QString name = CQUtil::variantToString(value);
@@ -235,14 +237,16 @@ setEditorData(const QVariant &value)
         if (name == names[i]) {
           QVariant v(i);
 
-          if (! this->setData(v))
-            std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+          if (! this->setData(v)) {
+            //std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+          }
         }
       }
     }
     else {
-      if (! this->setData(value))
-        std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+      if (! this->setData(value)) {
+        //std::cerr << "Failed to set property " << name_.toStdString() << std::endl;
+      }
     }
 
     emit valueChanged(object_, name_);
@@ -255,9 +259,8 @@ void
 CQPropertyViewItem::
 updateValue()
 {
-  QString typeName;
-
   CQUtil::PropInfo propInfo;
+  QString          typeName;
 
   if (CQUtil::getPropInfo(object_, name_, &propInfo))
     typeName = propInfo.typeName();

@@ -26,8 +26,7 @@ Axes
  + Tick Inside/Outside
 
 Title
- + Config
- + Overlap with Axis/Key
+ + Default to larger font
 
 Plots
  + Radar
@@ -37,13 +36,14 @@ Plots
  + Line Chart
    + Allow Spline connect
  + Parallel needs x axis labels
- + Restrict which plots cn be combined
+ + Restrict which plots can be combined
    + Bar/Column Chart NOT paired with Pie, Bar
  + Box Plot
    + BoxObj master for boxes
    + Color String (palette or QColor)
  + Adjacency Plot
    + X Border Width
+ + Vector
 
 Plot
  + Context Menu

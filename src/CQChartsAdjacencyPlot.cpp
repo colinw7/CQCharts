@@ -485,7 +485,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   if (isInside()) {
     bc = plot_->insideColor(bc);
-    pc = plot_->bwColor(bc);
+    pc = CQChartsUtil::bwColor(bc);
 
     plot_->setInsideObj(this);
   }

@@ -182,16 +182,45 @@ inline CBBox2D fromQRect(const QRectF &rect) {
 
 //------
 
+// map x in low->high to 0->1
+inline double norm(double x, double low, double high) {
+  return (x - low)/(high - low);
+}
+
+// map x in 0->1 to low->high
+inline double lerp(double x, double low, double high) {
+  return low + (high - low)*x;
+}
+
+// map value in range low1->high2 to low2->high2
+inline double map(double value, double low1, double high1, double low2, double high2) {
+  return lerp(norm(value, low1, high1), low2, high2);
+}
+
+// clamp real value to range
 inline double clamp(double val, double low, double high) {
   if (val < low ) return low;
   if (val > high) return high;
   return val;
 }
 
+// clamp integer value to range
 inline double iclamp(int val, int low, int high) {
   if (val < low ) return low;
   if (val > high) return high;
   return val;
+}
+
+//---
+
+inline QColor bwColor(const QColor &c) {
+  int g = qGray(c.red(), c.green(), c.blue());
+
+  return (g > 128 ? QColor(0,0,0) : QColor(255, 255, 255));
+}
+
+inline QColor invColor(const QColor &c) {
+  return QColor(255 - c.red(), 255 - c.green(), 255 - c.blue());
 }
 
 inline QColor blendColors(const QColor &c1, const QColor &c2, double f) {
@@ -294,6 +323,13 @@ inline int Round(double x, Rounding rounding=ROUND_NEAREST) {
 
 inline double Deg2Rad(double d) { return M_PI*d/180.0; }
 inline double Rad2Deg(double r) { return 180.0*r/M_PI; }
+
+inline double normalizeAngle(double a) {
+  while (a <    0.0) a += 360.0;
+  while (a >= 360.0) a -= 360.0;
+
+  return a;
+}
 
 //------
 

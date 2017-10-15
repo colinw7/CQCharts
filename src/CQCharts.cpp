@@ -4,7 +4,9 @@
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsBoxPlot.h>
 #include <CQChartsBubblePlot.h>
+#include <CQChartsChordPlot.h>
 #include <CQChartsDelaunayPlot.h>
+#include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsHierBubblePlot.h>
 #include <CQChartsParallelPlot.h>
@@ -34,19 +36,21 @@ init()
   plotTypeMgr_   = new CQChartsPlotTypeMgr;
   columnTypeMgr_ = new CQChartsColumnTypeMgr;
 
-  plotTypeMgr_->addType("adjacency" , new CQChartsAdjacencyPlotType );
-  plotTypeMgr_->addType("barchart"  , new CQChartsBarChartPlotType  );
-  plotTypeMgr_->addType("box"       , new CQChartsBoxPlotType       );
-  plotTypeMgr_->addType("bubble"    , new CQChartsBubblePlotType    );
-  plotTypeMgr_->addType("delaunay"  , new CQChartsDelaunayPlotType  );
-  plotTypeMgr_->addType("geometry"  , new CQChartsGeometryPlotType  );
-  plotTypeMgr_->addType("hierbubble", new CQChartsHierBubblePlotType);
-  plotTypeMgr_->addType("parallel"  , new CQChartsParallelPlotType  );
-  plotTypeMgr_->addType("pie"       , new CQChartsPiePlotType       );
-  plotTypeMgr_->addType("scatter"   , new CQChartsScatterPlotType   );
-  plotTypeMgr_->addType("sunburst"  , new CQChartsSunburstPlotType  );
-  plotTypeMgr_->addType("treemap"   , new CQChartsTreeMapPlotType   );
-  plotTypeMgr_->addType("xy"        , new CQChartsXYPlotType        );
+  plotTypeMgr_->addType("adjacency"    , new CQChartsAdjacencyPlotType    );
+  plotTypeMgr_->addType("barchart"     , new CQChartsBarChartPlotType     );
+  plotTypeMgr_->addType("box"          , new CQChartsBoxPlotType          );
+  plotTypeMgr_->addType("bubble"       , new CQChartsBubblePlotType       );
+  plotTypeMgr_->addType("chord"        , new CQChartsChordPlotType        );
+  plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
+  plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
+  plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
+  plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
+  plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
+  plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );
+  plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
+  plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
+  plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
+  plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
 
   columnTypeMgr_->addType("real"   , new CQChartsColumnRealType   );
   columnTypeMgr_->addType("integer", new CQChartsColumnIntegerType);
@@ -105,6 +109,14 @@ getView(const QString &id) const
     return nullptr;
 
   return (*p).second;
+}
+
+void
+CQCharts::
+getViewIds(QStringList &names) const
+{
+  for (const auto &view : views_)
+    names.push_back(view.second->id());
 }
 
 void
