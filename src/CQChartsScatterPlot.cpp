@@ -11,12 +11,24 @@
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsScatterPlotType::
+addParameters()
+{
   addColumnParameter("x", "X", "xColumn", "", 0);
   addColumnParameter("y", "Y", "yColumn", "", 1);
 
-  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
-  addColumnParameter("size" , "Size" , "sizeColumn" , "optional");
-  addColumnParameter("color", "Color", "colorColumn", "optional");
+  addColumnParameter("name"      , "Name"       , "nameColumn"      , "optional");
+  addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn", "optional");
+  addColumnParameter("fontSize"  , "Font Size"  , "fontSizeColumn"  , "optional");
+  addColumnParameter("color"     , "Color"      , "colorColumn"     , "optional");
+
+  addBoolParameter("textLabels", "Text Labels", "textLabels", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -30,8 +42,14 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("scatter"), model)
+ CQChartsPlot(view, view->charts()->plotType("scatter"), model), dataLabel_(this)
 {
+  symbolSizeSet_.setMapMin(16);
+  symbolSizeSet_.setMapMax(64);
+
+  fontSizeSet_.setMapMin(16);
+  fontSizeSet_.setMapMax(64);
+
   addAxes();
 
   addKey();
@@ -48,12 +66,26 @@ addProperties()
   addProperty("columns", this, "nameColumn"       , "name"       );
   addProperty("columns", this, "xColumn"          , "x"          );
   addProperty("columns", this, "yColumn"          , "y"          );
-  addProperty("columns", this, "sizeColumn"       , "size"       );
+  addProperty("columns", this, "symbolSizeColumn" , "symbolSize" );
+  addProperty("columns", this, "fontSizeColumn"   , "fontSize"   );
   addProperty("columns", this, "colorColumn"      , "color"      );
-  addProperty("symbol" , this, "symbolSize"       , "size"       );
-  addProperty("symbol" , this, "symbolBorderColor", "borderColor");
-  addProperty("symbol" , this, "symbolSizeMin"    , "sizeMin"    );
-  addProperty("symbol" , this, "symbolSizeMax"    , "sizeMax"    );
+
+  addProperty("symbol", this, "symbolBorderColor"   , "borderColor");
+  addProperty("symbol", this, "symbolSize"          , "size"       );
+  addProperty("symbol", this, "symbolSizeMapEnabled", "mapEnabled" );
+  addProperty("symbol", this, "symbolSizeMapMin"    , "mapMin"     );
+  addProperty("symbol", this, "symbolSizeMapMax"    , "mapMax"     );
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
+  addProperty("color", this, "colorMapMin"    , "mapMin"     );
+  addProperty("color", this, "colorMapMax"    , "mapMax"     );
+
+  addProperty("font", this, "fontSize"          , "font"      );
+  addProperty("font", this, "fontSizeMapEnabled", "mapEnabled");
+  addProperty("font", this, "fontSizeMapMin"    , "mapMin"    );
+  addProperty("font", this, "fontSizeMapMax"    , "mapMax"    );
+
+  dataLabel_.addProperties("dataLabel");
 }
 
 void
@@ -163,11 +195,18 @@ initObjs(bool force)
 
     int n = numRows();
 
-    if (sizeColumn() >= 0) {
+    if (symbolSizeColumn() >= 0) {
       bool ok;
 
       for (int i = 0; i < n; ++i)
-        sizeSet_.addValue(CQChartsUtil::modelValue(model, i, sizeColumn(), ok));
+        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, i, symbolSizeColumn(), ok));
+    }
+
+    if (fontSizeColumn() >= 0) {
+      bool ok;
+
+      for (int i = 0; i < n; ++i)
+        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, i, fontSizeColumn(), ok));
     }
 
     if (colorColumn() >= 0) {
@@ -195,13 +234,16 @@ initObjs(bool force)
 
       bool ok3;
 
-      QString sizeStr = CQChartsUtil::modelString(model, i, sizeColumn(), ok3);
-      double  rsize   = (sizeColumn() >= 0 ? sizeSet_.imap(i) : -1);
+      // get symbol size label (needed if not string ?)
+      QString symbolSizeStr = CQChartsUtil::modelString(model, i, symbolSizeColumn(), ok3);
 
+      // get font size label (needed if not string ?)
+      QString fontSizeStr = CQChartsUtil::modelString(model, i, fontSizeColumn(), ok3);
+
+      // get color label (needed if not string ?)
       QString colorStr = CQChartsUtil::modelString(model, i, colorColumn(), ok3);
-      double  rcolor   = (colorColumn() >= 0 ? colorSet_.imap(i) : -1);
 
-      nameValues_[name].emplace_back(x, y, sizeStr, rsize, colorStr, rcolor);
+      nameValues_[name].emplace_back(x, y, i, symbolSizeStr, fontSizeStr, colorStr);
     }
   }
 
@@ -209,19 +251,21 @@ initObjs(bool force)
 
   QAbstractItemModel *model = this->model();
 
-  QString xname, yname, sizeName, colorName;
+  QString xname, yname, symbolSizeName, fontSizeName, colorName;
 
   if (model) {
-    xname     = model->headerData(xColumn    (), Qt::Horizontal).toString();
-    yname     = model->headerData(yColumn    (), Qt::Horizontal).toString();
-    sizeName  = model->headerData(sizeColumn (), Qt::Horizontal).toString();
-    colorName = model->headerData(colorColumn(), Qt::Horizontal).toString();
+    xname          = model->headerData(xColumn         (), Qt::Horizontal).toString();
+    yname          = model->headerData(yColumn         (), Qt::Horizontal).toString();
+    symbolSizeName = model->headerData(symbolSizeColumn(), Qt::Horizontal).toString();
+    fontSizeName   = model->headerData(fontSizeColumn  (), Qt::Horizontal).toString();
+    colorName      = model->headerData(colorColumn     (), Qt::Horizontal).toString();
   }
 
-  if (xname     == "") xname     = "x";
-  if (yname     == "") yname     = "x";
-  if (sizeName  == "") sizeName  = "size";
-  if (colorName == "") colorName = "color";
+  if (xname          == "") xname          = "x";
+  if (yname          == "") yname          = "y";
+  if (symbolSizeName == "") symbolSizeName = "symbolSize";
+  if (fontSizeName   == "") fontSizeName   = "fontSize";
+  if (colorName      == "") colorName      = "color";
 
   //double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   //double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
@@ -240,30 +284,48 @@ initObjs(bool force)
       int nv1 = values.size();
 
       for (int j = 0; j < nv1; ++j) {
-        const QPointF &p = values[j].p;
+        const Point &valuePoint = values[j];
 
-        double ps = mapSymbolSize(values[j].size);
+        const QPointF &p = valuePoint.p;
 
-        double sw = pixelToWindowWidth (ps);
-        double sh = pixelToWindowHeight(ps);
+        double symbolSize = this->symbolSize();
+
+        if (symbolSizeColumn() >= 0)
+          symbolSize = symbolSizeSet_.imap(valuePoint.i);
+
+        OptReal fontSize, color;
+
+        if (fontSizeColumn() >= 0)
+          fontSize = fontSizeSet_.imap(valuePoint.i);
+
+        if (colorColumn() >= 0)
+          color = colorSet_.imap(valuePoint.i);
+
+        double sw = pixelToWindowWidth (symbolSize);
+        double sh = pixelToWindowHeight(symbolSize);
 
         CBBox2D bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, values[j].size, values[j].color, i, nv);
+          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, i, nv);
 
         QString id = name;
 
         id += QString("\n  %1\t%2").arg(xname).arg(p.x());
         id += QString("\n  %1\t%2").arg(yname).arg(p.y());
 
-        if (values[j].sizeStr != "")
-          id += QString("\n  %1\t%2").arg(sizeName).arg(values[j].sizeStr);
+        if (valuePoint.symbolSizeStr != "")
+          id += QString("\n  %1\t%2").arg(symbolSizeName).arg(valuePoint.symbolSizeStr);
 
-        if (values[j].colorStr != "")
-          id += QString("\n  %1\t%2").arg(colorName).arg(values[j].colorStr);
+        if (valuePoint.fontSizeStr != "")
+          id += QString("\n  %1\t%2").arg(fontSizeName).arg(valuePoint.fontSizeStr);
+
+        if (valuePoint.colorStr != "")
+          id += QString("\n  %1\t%2").arg(colorName).arg(valuePoint.colorStr);
 
         pointObj->setId(id);
+
+        pointObj->setName(name);
 
         addPlotObject(pointObj);
       }
@@ -313,22 +375,36 @@ draw(QPainter *p)
   drawParts(p);
 }
 
-double
+void
 CQChartsScatterPlot::
-mapSymbolSize(double s) const
+drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontSize)
 {
-  if (s < 0)
-    return symbolSize();
+  if (fontSize > 0) {
+    QFont font = dataLabel_.font();
 
-  return s*(symbolSizeMax() - symbolSizeMin()) + symbolSizeMin();
+    QFont font1 = font;
+
+    font1.setPointSizeF(fontSize);
+
+    dataLabel_.setFont(font1);
+
+    dataLabel_.draw(p, qrect, str);
+
+    dataLabel_.setFont(font);
+  }
+  else {
+    dataLabel_.draw(p, qrect, str);
+  }
 }
 
 //------
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
-                        double size, double color, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), p_(p), size_(size), color_(color), i_(i), n_(n)
+                        double symbolSize, const OptReal &fontSize, const OptReal &color,
+                        int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
+ color_(color), i_(i), n_(n)
 {
 }
 
@@ -336,7 +412,7 @@ bool
 CQChartsScatterPointObj::
 inside(const CPoint2D &p) const
 {
-  double s = plot_->mapSymbolSize(size_);
+  double s = symbolSize_; // TODO: ensure not a crazy number
 
   double px, py;
 
@@ -355,12 +431,12 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  double s = plot_->mapSymbolSize(size_);
+  double s = symbolSize_; // TODO: ensure not a crazy number
 
   QColor color;
 
-  if (color_ >= 0)
-    color = plot_->objectStateColor(this, plot_->interpPaletteColor(color_, Qt::blue));
+  if (color_)
+    color = plot_->objectStateColor(this, plot_->interpPaletteColor(*color_, Qt::blue));
   else
     color = plot_->objectColor(this, i_, n_, Qt::blue);
 
@@ -374,6 +450,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QRectF erect(px - s, py - s, 2*s, 2*s);
 
   p->drawEllipse(erect);
+
+  if (plot_->isTextLabels()) {
+    plot_->drawDataLabel(p, erect, name_, (fontSize_ ? *fontSize_ : -1));
+  }
 }
 
 //------

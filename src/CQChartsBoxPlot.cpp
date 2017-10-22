@@ -317,7 +317,7 @@ void
 CQChartsBoxPlotObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  QFontMetrics fm(plot_->view()->font());
+  QFontMetricsF fm(plot_->view()->font());
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 

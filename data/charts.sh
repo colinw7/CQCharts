@@ -192,3 +192,10 @@ CQChartsTest \
 CQChartsTest \
  -tsv adjacency.tsv \
  -type forcedirected -columns "node=1,connections=3,name=0,group=2"
+
+#---
+
+CQChartsTest \
+ -tsv cities.dat -comment_header -process "+column(2)/20000.0" \
+ -type scatter -columns "x=4,y=3,name=0,fontSize=5" -bool "textLabels=1,key=0" \
+ -properties "dataLabel.position=CENTER"

@@ -9,6 +9,7 @@ CQChartsTable(QWidget *parent) :
   setObjectName("table");
 
   setAlternatingRowColors(true);
+  setSortingEnabled(true);
 
   header_ = new CQChartsHeader(this);
 
@@ -53,7 +54,7 @@ QSize
 CQChartsTable::
 sizeHint() const
 {
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   return QSize(fm.width("X")*40, 20*fm.height());
 }

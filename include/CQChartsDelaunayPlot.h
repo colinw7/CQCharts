@@ -146,8 +146,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   void drawVoronoi (QPainter *p);
 
  private:
-  typedef std::map<int,bool> IdHidden;
-
   int              xColumn_    { 0 };
   int              yColumn_    { 1 };
   int              nameColumn_ { -1 };

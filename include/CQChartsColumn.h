@@ -2,28 +2,29 @@
 #define CQChartsColumn_H
 
 #include <CQChartsUtil.h>
+#include <CQBaseModel.h>
 #include <QString>
 
 typedef std::map<QString,QString> CQChartsNameValues;
 
 class CQChartsColumnType {
  public:
-  CQChartsColumnType(const QString &name) :
-   name_(name) {
+  CQChartsColumnType(CQBaseModel::Type type) :
+   type_(type) {
   }
 
-  const QString &name() const { return name_; }
+  CQBaseModel::Type type() const { return type_; }
 
   virtual ~CQChartsColumnType() { }
 
   // input variant to data variant
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
-  // data string to output data
+  // data variant to output variant
   virtual QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
  private:
-  QString name_;
+  CQBaseModel::Type type_;
 };
 
 //---
@@ -31,7 +32,7 @@ class CQChartsColumnType {
 class CQChartsColumnStringType : public CQChartsColumnType {
  public:
   CQChartsColumnStringType() :
-   CQChartsColumnType("string") {
+   CQChartsColumnType(CQBaseModel::Type::STRING) {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
@@ -60,7 +61,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
   CQChartsColumnRealType() :
-   CQChartsColumnType("real") {
+   CQChartsColumnType(CQBaseModel::Type::REAL) {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
@@ -78,7 +79,12 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   }
 
   QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    return userData(var, nameValues);
+    auto p1 = nameValues.find("format");
+
+    if (p1 != nameValues.end())
+      return CQChartsUtil::toString(userData(var, nameValues).toDouble(), (*p1).second);
+    else
+      return CQChartsUtil::toString(userData(var, nameValues).toDouble());
   }
 };
 
@@ -87,7 +93,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
   CQChartsColumnIntegerType() :
-   CQChartsColumnType("integer") {
+   CQChartsColumnType(CQBaseModel::Type::INTEGER) {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
@@ -105,7 +111,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
   }
 
   QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    return userData(var, nameValues);
+    return CQChartsUtil::toString((long) userData(var, nameValues).toInt());
   }
 };
 
@@ -114,7 +120,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:
   CQChartsColumnTimeType() :
-   CQChartsColumnType("time") {
+   CQChartsColumnType(CQBaseModel::Type::TIME) {
   }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
@@ -196,16 +202,28 @@ class CQChartsColumnTypeMgr {
   CQChartsColumnTypeMgr();
  ~CQChartsColumnTypeMgr();
 
-  void addType(const QString &name, CQChartsColumnType *type);
+  void addType(CQBaseModel::Type type, CQChartsColumnType *data);
 
   CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
 
-  CQChartsColumnType *getType(const QString &name) const;
+  QString encodeTypeData(CQBaseModel::Type type, const CQChartsNameValues &nameValues) const;
+
+  CQChartsColumnType *getType(CQBaseModel::Type type) const;
+
+  QVariant getUserData(const QAbstractItemModel *model, int column, const QVariant &var) const;
+
+  QVariant getDisplayData(const QAbstractItemModel *model, int column, const QVariant &var) const;
+
+  bool getModelColumnType(const QAbstractItemModel *model, int column, CQBaseModel::Type &type,
+                          CQChartsNameValues &nameValues) const;
+
+  bool setModelColumnType(QAbstractItemModel *model, int column, CQBaseModel::Type type,
+                          const CQChartsNameValues &nameValues);
 
  private:
-  typedef std::map<QString,CQChartsColumnType *> NameType;
+  typedef std::map<CQBaseModel::Type,CQChartsColumnType *> TypeData;
 
-  NameType nameType_;
+  TypeData typeData_;
 };
 
 //---
@@ -232,41 +250,13 @@ class CQChartsColumn {
   const QString &type() const { return type_; }
   void setType(const QString &s) { type_ = s; }
 
-  bool decodeType(QString &baseType, CQChartsNameValues &nameValues) const {
-    return decodeType(type_, baseType, nameValues);
-  }
+  bool decodeType(QString &baseType, CQChartsNameValues &nameValues) const;
 
-  static bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &nameValues) {
-    int pos = type.indexOf(":");
+  static bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &nameValues);
 
-    if (pos < 0) {
-      baseType = type;
+  static bool decodeNameValues(const QString &str, CQChartsNameValues &nameValues);
 
-      return true;
-    }
-
-    baseType = type.mid(0, pos);
-
-    QString rhs = type.mid(pos + 1);
-
-    QStringList strs = rhs.split(",", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.length(); ++i) {
-      int pos1 = strs[i].indexOf("=");
-
-      if (pos1 < 1) {
-        nameValues[strs[i]] = "1";
-      }
-      else {
-        QString name  = strs[i].mid(0, pos1 ).simplified();
-        QString value = strs[i].mid(pos1 + 1).simplified();
-
-        nameValues[name] = value;
-      }
-    }
-
-    return true;
-  }
+  static QString encodeNameValues(const CQChartsNameValues &nameValues);
 
  private:
   QString name_;

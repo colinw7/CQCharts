@@ -11,6 +11,13 @@
 CQChartsAdjacencyPlotType::
 CQChartsAdjacencyPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsAdjacencyPlotType::
+addParameters()
+{
   addColumnParameter("node"       , "Node"       , "nodeColumn"       , "", 0);
   addColumnParameter("connections", "Connections", "connectionsColumn", "", 1);
 

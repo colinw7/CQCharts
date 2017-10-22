@@ -1,6 +1,7 @@
 #ifndef CQCharts_H
 #define CQCharts_H
 
+#include <CQBaseModel.h>
 #include <QAbstractItemModel>
 
 class CQChartsPlotTypeMgr;
@@ -9,11 +10,6 @@ class CQChartsColumnTypeMgr;
 class CQChartsView;
 
 class CQCharts {
- public:
-  enum Role {
-    ColumnType = Qt::UserRole + 101
-  };
-
  public:
   CQCharts();
 

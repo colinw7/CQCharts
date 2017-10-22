@@ -297,7 +297,7 @@ draw(QPainter *p)
 
   //---
 
-  QFontMetrics fm(view()->font());
+  QFontMetricsF fm(view()->font());
 
   displayRange_.setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 

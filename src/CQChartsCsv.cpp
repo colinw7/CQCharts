@@ -1,19 +1,25 @@
 #include <CQChartsCsv.h>
+#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQCsvModel.h>
+#include <CQExprModel.h>
+#include <cassert>
 
 CQChartsCsv::
 CQChartsCsv(CQCharts *charts) :
- QSortFilterProxyModel(), CQChartsModelColumn(charts), charts_(charts)
+ QSortFilterProxyModel(), charts_(charts)
 {
   csvModel_ = new CQCsvModel;
 
-  setSourceModel(csvModel_);
+  exprModel_ = new CQExprModel(csvModel_);
+
+  setSourceModel(exprModel_);
 }
 
 CQChartsCsv::
 ~CQChartsCsv()
 {
+  delete exprModel_;
   delete csvModel_;
 }
 
@@ -52,26 +58,18 @@ rowCount(const QModelIndex &parent) const
   return QSortFilterProxyModel::rowCount(parent);
 }
 
-bool
-CQChartsCsv::
-setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
-{
-  if (role == CQCharts::Role::ColumnType) {
-    setColumnType(section, value.toString());
-    return true;
-  }
-
-  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
-}
-
 QVariant
 CQChartsCsv::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (role == CQCharts::Role::ColumnType)
-    return QVariant(columnType(section));
-
   return QSortFilterProxyModel::headerData(section, orientation, role);
+}
+
+bool
+CQChartsCsv::
+setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
+{
+  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
 }
 
 QVariant
@@ -93,10 +91,12 @@ data(const QModelIndex &index, int role) const
 
     assert(index.column() == index1.column());
 
+    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
     if (role == Qt::DisplayRole)
-      return columnDisplayData(index1.column(), var);
+      return columnTypeMgr->getDisplayData(this, index1.column(), var);
     else
-      return columnUserData(index1.column(), var);
+      return columnTypeMgr->getUserData(this, index1.column(), var);
   }
 
   return var;
@@ -113,8 +113,5 @@ Qt::ItemFlags
 CQChartsCsv::
 flags(const QModelIndex &index) const
 {
-  if (! index.isValid())
-    return 0;
-
-  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  return QSortFilterProxyModel::flags(index);
 }

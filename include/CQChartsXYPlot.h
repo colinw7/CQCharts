@@ -394,26 +394,11 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  bool isSetHidden(int i) const {
-    auto p = idHidden_.find(i);
-
-    if (p == idHidden_.end())
-      return false;
-
-    return (*p).second;
-  }
-
-  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
-
-  //---
-
   bool interpY(double x, std::vector<double> &yvals) const override;
 
   void draw(QPainter *) override;
 
  private:
-  typedef std::map<int,bool> IdHidden;
-
   int              xColumn_           { 0 };
   int              yColumn_           { 1 };
   Columns          yColumns_;
@@ -430,7 +415,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   FillUnderData    fillUnderData_;
   DataLabelData    dataLabelData_;
   CQChartsLineObj  bivariateLineObj_;
-  IdHidden         idHidden_;
 };
 
 #endif

@@ -82,6 +82,7 @@ Symbols
 ToolTip
  + Format value depending on type
  + Format contents (wrap, max line length, max lines, ...)
+ + Tab through multiple items
 
 Mouse Tools
  + Zoom : Data, Region

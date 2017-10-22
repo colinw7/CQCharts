@@ -16,31 +16,37 @@ class CQChartsPlotParameter {
   virtual ~CQChartsPlotParameter() { }
 
   const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  CQChartsPlotParameter &setName(const QString &s) { name_ = s; return *this; }
 
   const QString &desc() const { return desc_; }
-  void setDesc(const QString &s) { desc_ = s; }
+  CQChartsPlotParameter &setDesc(const QString &s) { desc_ = s; return *this; }
 
   const QString &type() const { return type_; }
-  void setType(const QString &s) { type_ = s; }
+  CQChartsPlotParameter &setType(const QString &s) { type_ = s; return *this; }
 
   const QString &propName() const { return propName_; }
-  void setPropName(const QString &s) { propName_ = s; }
+  CQChartsPlotParameter &setPropName(const QString &s) { propName_ = s; return *this; }
 
   const QString &attributes() const { return attributes_; }
-  void setAttributes(const QString &s) { attributes_ = s; }
+  CQChartsPlotParameter &setAttributes(const QString &s) { attributes_ = s; return *this; }
 
   const QVariant &defValue() const { return defValue_; }
-  void setDefValue(const QVariant &v) { defValue_ = v; }
+  CQChartsPlotParameter &setDefValue(const QVariant &v) { defValue_ = v; return *this; }
+
+  const QString &tip() const { return tip_; }
+  CQChartsPlotParameter &setTip(const QString &s) { tip_ = s; return *this; }
 
  private:
-  QString  name_;
-  QString  desc_;
-  QString  type_;
-  QString  propName_;
-  QString  attributes_;
-  QVariant defValue_;
+  QString  name_;       //! name
+  QString  desc_;       //! description
+  QString  type_;       //! type
+  QString  propName_;   //! property name
+  QString  attributes_; //! attributes
+  QVariant defValue_;   //! default value
+  QString  tip_;        //! tip
 };
+
+//---
 
 class CQChartsColumnParameter : public CQChartsPlotParameter {
  public:
@@ -51,6 +57,8 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
   }
 };
 
+//---
+
 class CQChartsColumnsParameter : public CQChartsPlotParameter {
  public:
   CQChartsColumnsParameter(const QString &name, const QString &desc, const QString &propName,
@@ -59,6 +67,8 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
                          (defValue != "" ? QVariant(defValue) : QVariant())) {
   }
 };
+
+//---
 
 class CQChartsBoolParameter : public CQChartsPlotParameter {
  public:

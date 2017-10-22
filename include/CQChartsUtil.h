@@ -90,26 +90,26 @@ inline bool toInt(const QString &str, long &i) {
 
 //------
 
-inline QString toString(double r) {
+inline QString toString(double r, const QString &fmt="%g") {
 #ifdef ALLOW_NAN
   if (COS::is_nan(real))
     return "NaN";
 #endif
 
-  if (isZero(r))
+  if (fmt == "%g" && isZero(r))
     return "0.0";
 
   static char buffer[128];
 
-  ::sprintf(buffer, "%g", r);
+  ::sprintf(buffer, fmt.toLatin1().constData(), r);
 
   return buffer;
 }
 
-inline QString toString(long i) {
+inline QString toString(long i, const QString &fmt="%ld") {
   static char buffer[64];
 
-  ::sprintf(buffer, "%ld", i);
+  ::sprintf(buffer, fmt.toLatin1().constData(), i);
 
   return buffer;
 }

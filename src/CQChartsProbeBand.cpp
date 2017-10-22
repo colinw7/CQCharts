@@ -55,7 +55,7 @@ show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2)
   CBBox2D bbox = view_->plotBBox(plot);
 
   if (bbox.inside(CPoint2D(wx, wy))) {
-    QFontMetrics fm(font());
+    QFontMetricsF fm(font());
 
     tip_->move(gpos);
 

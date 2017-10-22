@@ -105,3 +105,8 @@
  + Handle click signal in test to display details
 ## 10/15/2017
  + Add chord and force directed plots
+## 10/22/2017
+ + Use CQBaseModel enum for column types
+ + Add custom font size support for scatter plot
+ + Use common value set code for customization column value binning/scaling
+ + Use CQExprModel for all input file models to allow expression support for extra column

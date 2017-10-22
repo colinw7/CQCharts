@@ -103,19 +103,6 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   //---
 
-  bool isSetHidden(int i) const {
-    auto p = idHidden_.find(i);
-
-    if (p == idHidden_.end())
-      return false;
-
-    return (*p).second;
-  }
-
-  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
-
-  //---
-
   void draw(QPainter *) override;
 
  private:
@@ -129,7 +116,6 @@ class CQChartsBoxPlot : public CQChartsPlot {
   };
 
   typedef std::map<int,CBoxWhisker>    Whiskers;
-  typedef std::map<int,bool>           IdHidden;
   typedef std::map<double,int,RealCmp> ValueSet;
   typedef std::map<int,double>         SetValue;
   typedef std::map<QString,int>        NameSet;
@@ -144,7 +130,6 @@ class CQChartsBoxPlot : public CQChartsPlot {
   SetValue setValue_;
   NameSet  nameSet_;
   SetName  setName_;
-  IdHidden idHidden_;
 };
 
 #endif

@@ -12,7 +12,6 @@
 #include <CQPropertyViewTree.h>
 #include <CGradientPalette.h>
 
-#include <QSortFilterProxyModel>
 #include <QPainter>
 
 //------
@@ -63,6 +62,15 @@ getTypeNames(QStringList &names, QStringList &descs) const
     names.push_back(type.second->name());
     descs.push_back(type.second->desc());
   }
+}
+
+//------
+
+void
+CQChartsPlotType::
+addParameters()
+{
+  addBoolParameter("key", "Key", "keyVisible", "optional");
 }
 
 //------
@@ -673,18 +681,15 @@ columnStr(int column, double x) const
   if (! model)
     return CQChartsUtil::toString(x);
 
-  QVariant columnTypeVar =
-    model->headerData(column, Qt::Horizontal, CQCharts::Role::ColumnType);
+  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-  if (! columnTypeVar.isValid())
-    return CQChartsUtil::toString(x);
-
-  QString columnType = columnTypeVar.toString();
-
+  CQBaseModel::Type  columnType;
   CQChartsNameValues nameValues;
 
-  CQChartsColumnType *typeData =
-    charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
+  if (! columnTypeMgr->getModelColumnType(model, column, columnType, nameValues))
+    return CQChartsUtil::toString(x);
+
+  CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
   if (! typeData)
     return CQChartsUtil::toString(x);

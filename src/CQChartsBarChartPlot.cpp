@@ -11,9 +11,17 @@
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsBarChartPlotType::
+addParameters()
+{
   addColumnParameter ("category", "Category", "categoryColumn", "", 0);
   addColumnsParameter("value"   , "Value"   , "valueColumns"  , "", "1");
   addColumnParameter ("name"    , "Name"    , "nameColumn"    , "optional");
+  addColumnParameter ("color"   , "Color"   , "colorColumn"   , "optional");
 
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
   addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
@@ -73,22 +81,30 @@ addProperties()
   QString strokeStr = "stroke";
   QString fillStr   = "fill";
 
-  addProperty("columns", this, "categoryColumn"  , "category"  );
-  addProperty("columns", this, "valueColumn"     , "value"     );
-  addProperty("columns", this, "valueColumns"    , "valuesSet" );
-  addProperty("columns", this, "nameColumn"      , "name"      );
-  addProperty(""       , this, "stacked"                       );
-  addProperty(""       , this, "horizontal"                    );
-  addProperty(""       , this, "margin"                        );
-  addProperty(""       , this, "keySets"                       );
+  addProperty("columns", this, "categoryColumn", "category" );
+  addProperty("columns", this, "valueColumn"   , "value"    );
+  addProperty("columns", this, "valueColumns"  , "valuesSet");
+  addProperty("columns", this, "nameColumn"    , "name"     );
+  addProperty("columns", this, "colorColumn"   , "color"    );
+
+  addProperty("", this, "stacked"   );
+  addProperty("", this, "horizontal");
+  addProperty("", this, "margin"    );
+  addProperty("", this, "keySets"   );
+
   addProperty(strokeStr, this, "border"          , "visible"   );
   addProperty(strokeStr, this, "borderColor"     , "color"     );
   addProperty(strokeStr, this, "borderWidth"     , "width"     );
   addProperty(strokeStr, this, "borderCornerSize", "cornerSize");
-  addProperty(fillStr  , this, "fill"            , "visible"   );
-  addProperty(fillStr  , this, "barColor"        , "color"     );
+
+  addProperty(fillStr, this, "fill"    , "visible");
+  addProperty(fillStr, this, "barColor", "color"  );
 
   dataLabel_.addProperties("dataLabel");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
+  addProperty("color", this, "colorMapMin"    , "mapMin"     );
+  addProperty("color", this, "colorMapMax"    , "mapMax"     );
 }
 
 QString
@@ -152,6 +168,20 @@ updateRange()
   int ns = numSets();
 
   int numVisible = 0;
+
+  //---
+
+  // init value sets
+  if (colorSet_.empty()) {
+    if (colorColumn() >= 0) {
+      bool ok;
+
+      for (int i = 0; i < n; ++i)
+        colorSet_.addValue(CQChartsUtil::modelValue(model, i, colorColumn(), ok));
+    }
+  }
+
+  //---
 
   for (int i = 0; i < n; ++i) {
     bool ok1;
@@ -289,7 +319,7 @@ updateRange()
 
       bool isNew = valueSet->values.empty();
 
-      valueSet->values.emplace_back(value, name);
+      valueSet->values.emplace_back(value, name, i);
 
       double posSum, negSum;
 
@@ -635,8 +665,15 @@ initObjs(bool force)
       int nvs = valueSet.values.size();
 
       for (int i = 0; i < nvs; ++i) {
-        double         value     = valueSet.values[i].value;
-        const QString &valueName = valueSet.values[i].name;
+        const Value &ivalue = valueSet.values[i];
+
+        double         value     = ivalue.value;
+        const QString &valueName = ivalue.name;
+
+        OptReal color;
+
+        if (ivalue.i >= 0 && ! colorSet_.empty())
+          color = colorSet_.imap(ivalue.i);
 
         //---
 
@@ -674,6 +711,9 @@ initObjs(bool force)
 
         CQChartsBarChartObj *barObj =
           new CQChartsBarChartObj(this, brect, 0, 1, j, nv, i, nvs, value);
+
+        if (color)
+          barObj->setColor(*color);
 
         QString valueStr = this->valueStr(value);
 
@@ -753,11 +793,21 @@ addKeyItems(CQChartsKey *key)
     for (int i = 0; i < nv; ++i) {
       const ValueSet &valueSet = valueSets_[i];
 
-      CQChartsBarKeyColor *color = new CQChartsBarKeyColor(this, i, nv);
-      CQChartsBarKeyText  *text  = new CQChartsBarKeyText (this, i, valueSet.name);
+      CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, i, nv);
+      CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, i, valueSet.name);
 
-      key->addItem(color, i, 0);
-      key->addItem(text , i, 1);
+      if (valueSet.values.size() == 1) {
+        const Value &ivalue = valueSet.values[0];
+
+        if (ivalue.i >= 0) {
+          double color = colorSet_.imap(ivalue.i);
+
+          keyColor->setColor(color);
+        }
+      }
+
+      key->addItem(keyColor, i, 0);
+      key->addItem(keyText , i, 1);
     }
   }
 
@@ -868,16 +918,21 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
           barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
       }
       else {
-        if (nsval_ > 1) {
-          QColor barColor1 = plot_->objectStateColor(this, plot_->barColor(ival_    , nval_ + 1));
-          QColor barColor2 = plot_->objectStateColor(this, plot_->barColor(ival_ + 1, nval_ + 1));
+        if (! color_) {
+          if (nsval_ > 1) {
+            QColor barColor1 = plot_->objectStateColor(this, plot_->barColor(ival_    , nval_ + 1));
+            QColor barColor2 = plot_->objectStateColor(this, plot_->barColor(ival_ + 1, nval_ + 1));
 
-          double f = (1.0*isval_)/nsval_;
+            double f = (1.0*isval_)/nsval_;
 
-          barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
+            barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
+          }
+          else
+            barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
         }
-        else
-          barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+        else {
+          barColor = plot_->objectStateColor(this, plot_->interpPaletteColor(*color_));
+        }
       }
 
       p->setBrush(barColor);
@@ -925,9 +980,14 @@ QColor
 CQChartsBarKeyColor::
 fillColor() const
 {
-  QColor c = CQChartsKeyColorBox::fillColor();
-
   CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
+
+  QColor c;
+
+  if (color_)
+    c = plot->interpPaletteColor(*color_);
+  else
+    c = CQChartsKeyColorBox::fillColor();
 
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);

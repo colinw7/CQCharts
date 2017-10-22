@@ -1,4 +1,5 @@
 #include <CQChartsValueSet.h>
+#include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 
 #if 0
@@ -38,6 +39,15 @@ CQChartsValueSet()
 
 void
 CQChartsValueSet::
+addProperties(CQChartsPlot *plot, const QString &path)
+{
+  plot->addProperty(path, this, "mapEnabled", "mapEnabled");
+  plot->addProperty(path, this, "mapMin"    , "mapMin"    );
+  plot->addProperty(path, this, "mapMax"    , "mapMin"    );
+}
+
+void
+CQChartsValueSet::
 addValue(const QVariant &value)
 {
   values_.push_back(value);
@@ -49,35 +59,65 @@ double
 CQChartsValueSet::
 imap(int i) const
 {
+  return imap(i, mapMin(), mapMax());
+}
+
+double
+CQChartsValueSet::
+imap(int i, double mapMin, double mapMax) const
+{
   if       (type() == Type::INTEGER) {
+    // get nth integer
     int ival = ivals_[i];
+
+    // return actual value if mapping disabled
+    if (! isMapEnabled())
+      return ival;
+
+    // map value using integer value range
     int imin = *iset_.begin ();
     int imax = *iset_.rbegin();
 
     if (imin != imax)
-      return (1.0*(ival - imin))/(imax - imin);
+      return CQChartsUtil::map(ival, imin, imax, mapMin, mapMax);
     else
-      return 0.0;
+      return mapMin;
   }
   else if (type() == Type::REAL) {
+    // get nth real
     double rval = rvals_[i];
+
+    // return actual value if mapping disabled
+    if (! isMapEnabled())
+      return rval;
+
+    // map value using real value range
     double rmin = rvalset_.begin ()->first;
     double rmax = rvalset_.rbegin()->first;
 
     if (rmin != rmax)
-      return (rval - rmin)/(rmax - rmin);
+      return CQChartsUtil::map(rval, rmin, rmax, mapMin, mapMax);
     else
-      return 0.0;
+      return mapMin;
   }
   else {
+    // get nth string
     QString sval = svals_[i];
-    int     ival = svalset_.find(sval)->second;
-    int     slen = svalset_.size();
+
+    // get string set index
+    int ival = svalset_.find(sval)->second;
+
+    // return string set index if mapping disabled
+    if (! isMapEnabled())
+      return ival;
+
+    // map string set index using 1 -> number of sets
+    int slen = svalset_.size();
 
     if (slen)
-      return (1.0*ival)/slen;
+      return CQChartsUtil::map(ival, 1, slen, mapMin, mapMax);
     else
-      return 0.0;
+      return mapMin;
   }
 }
 
@@ -171,9 +211,11 @@ init()
 
   ivals_  .clear();
   iset_   .clear();
+
   rvals_  .clear();
   rvalset_.clear();
   setrval_.clear();
+
   svals_  .clear();
   svalset_.clear();
   setsval_.clear();

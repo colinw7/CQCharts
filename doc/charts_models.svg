@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 744.09448819 1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="charts_models.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.95873206"
+     inkscape:cx="129.51092"
+     inkscape:cy="505.71429"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1985"
+     inkscape:window-height="1382"
+     inkscape:window-x="5087"
+     inkscape:window-y="433"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g4142"
+       transform="translate(119.95009,542.38303)">
+      <rect
+         y="168.22346"
+         x="92.150719"
+         height="108.79401"
+         width="319.48895"
+         id="rect4136"
+         style="fill:#782121;fill-opacity:0;stroke:#000000;stroke-width:18.81173515;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:9.60000038;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text4138"
+         y="237.74461"
+         x="115.77792"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           y="237.74461"
+           x="115.77792"
+           id="tspan4140"
+           sodipodi:role="line">CQBaseModel</tspan></text>
+    </g>
+    <g
+       transform="translate(123.07923,330.64503)"
+       id="g4147">
+      <rect
+         style="fill:#782121;fill-opacity:0;stroke:#000000;stroke-width:18.81173515;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:9.60000038;stroke-opacity:1"
+         id="rect4149"
+         width="319.48895"
+         height="108.79401"
+         x="92.150719"
+         y="168.22346" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="115.77792"
+         y="237.74461"
+         id="text4151"
+         sodipodi:linespacing="125%"><tspan
+           sodipodi:role="line"
+           id="tspan4153"
+           x="115.77792"
+           y="237.74461">CQDataModel</tspan></text>
+    </g>
+    <g
+       id="g4155"
+       transform="translate(-17.731753,46.936987)">
+      <rect
+         y="168.22346"
+         x="92.150719"
+         height="108.79401"
+         width="319.48895"
+         id="rect4157"
+         style="fill:#782121;fill-opacity:0;stroke:#000000;stroke-width:18.81173515;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:9.60000038;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text4159"
+         y="237.74461"
+         x="115.77792"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           y="237.74461"
+           x="115.77792"
+           id="tspan4161"
+           sodipodi:role="line">CQCsvModel</tspan></text>
+    </g>
+    <g
+       transform="translate(375.49595,42.76481)"
+       id="g4163">
+      <rect
+         style="fill:#782121;fill-opacity:0;stroke:#000000;stroke-width:18.81173515;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:9.60000038;stroke-opacity:1"
+         id="rect4165"
+         width="319.48895"
+         height="108.79401"
+         x="92.150719"
+         y="168.22346" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="115.77792"
+         y="237.74461"
+         id="text4167"
+         sodipodi:linespacing="125%"><tspan
+           sodipodi:role="line"
+           id="tspan4169"
+           x="115.77792"
+           y="237.74461">CQCsvModel</tspan></text>
+    </g>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       d="m 372.36681,615.32665 -1.04304,86.57267"
+       id="path4149"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4151"
+       d="m 232.59888,324.31729 124.12227,172.1023"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       sodipodi:nodetypes="cc" />
+    <path
+       sodipodi:nodetypes="cc"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 633.12788,322.2312 427.64816,499.54872"
+       id="path4153"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

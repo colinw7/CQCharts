@@ -1,5 +1,5 @@
 #include <CJson.h>
-#include <CQStrParse.h>
+#include <CStrParse.h>
 #include <CUtf8.h>
 #include <set>
 
@@ -55,7 +55,7 @@ stol(const std::string &str, bool &ok)
 // read string at file pos
 bool
 CJson::
-readString(CQStrParse &parse, std::string &str1)
+readString(CStrParse &parse, std::string &str1)
 {
   if (! parse.isChar('\"'))
     return false;
@@ -66,7 +66,7 @@ readString(CQStrParse &parse, std::string &str1)
     if      (parse.isChar('\\') && ! parse.neof(1)) {
       parse.skipChar();
 
-      char c = parse.readChar().toLatin1();
+      char c = parse.readChar();
 
       switch (c) {
         case '\"': str1 += '\"'; break;
@@ -85,7 +85,7 @@ readString(CQStrParse &parse, std::string &str1)
             if (! parse.isXDigit())
               return false;
 
-            char c = parse.readChar().toLatin1();
+            char c = parse.readChar();
 
             i = (i << 4) | (hexCharValue(c) & 0xF);
           }
@@ -107,7 +107,7 @@ readString(CQStrParse &parse, std::string &str1)
     else if (parse.isChar('\"'))
       break;
     else
-      str1 += parse.readChar().toLatin1();
+      str1 += parse.readChar();
   }
 
   if (parse.eof() || ! parse.isChar('\"'))
@@ -121,26 +121,26 @@ readString(CQStrParse &parse, std::string &str1)
 // read numner at file pos
 bool
 CJson::
-readNumber(CQStrParse &parse, std::string &str1)
+readNumber(CStrParse &parse, std::string &str1)
 {
   if (parse.eof())
     return false;
 
   if (parse.isChar('-'))
-    str1 += parse.readChar().toLatin1();
+    str1 += parse.readChar();
 
   // TODO: octal, hexadecimal
   if      (parse.isChar('0'))
-    str1 += parse.readChar().toLatin1();
+    str1 += parse.readChar();
   else if (parse.isDigit()) {
     while (parse.isDigit())
-      str1 += parse.readChar().toLatin1();
+      str1 += parse.readChar();
   }
   else
     return false;
 
   if (parse.isChar('.')) {
-    str1 += parse.readChar().toLatin1();
+    str1 += parse.readChar();
 
     if (isStrict()) {
       if (! parse.isDigit())
@@ -148,21 +148,21 @@ readNumber(CQStrParse &parse, std::string &str1)
     }
 
     while (parse.isDigit())
-      str1 += parse.readChar().toLatin1();
+      str1 += parse.readChar();
   }
 
   // [Ee][+-][0-9][0-9]*
   if (parse.isOneOf("eE")) {
-    str1 += parse.readChar().toLatin1();
+    str1 += parse.readChar();
 
     if (parse.isOneOf("+-"))
-      str1 += parse.readChar().toLatin1();
+      str1 += parse.readChar();
 
     if (! parse.isDigit())
       return false;
 
     while (parse.isDigit())
-      str1 += parse.readChar().toLatin1();
+      str1 += parse.readChar();
   }
 
   return true;
@@ -171,7 +171,7 @@ readNumber(CQStrParse &parse, std::string &str1)
 // read object at file pos
 bool
 CJson::
-readObject(CQStrParse &parse, Object *&obj)
+readObject(CStrParse &parse, Object *&obj)
 {
   if (! parse.isChar('{'))
     return false;
@@ -247,7 +247,7 @@ readObject(CQStrParse &parse, Object *&obj)
 // read array at file pos
 bool
 CJson::
-readArray(CQStrParse &parse, Array *&array)
+readArray(CStrParse &parse, Array *&array)
 {
   if (! parse.isChar('['))
     return false;
@@ -305,12 +305,12 @@ readArray(CQStrParse &parse, Array *&array)
 // read value at file pos
 bool
 CJson::
-readValue(CQStrParse &parse, Value *&value)
+readValue(CStrParse &parse, Value *&value)
 {
   if (parse.eof())
     return false;
 
-  char c = parse.getCharAt().toLatin1();
+  char c = parse.getCharAt();
 
   if      (c == '\"') {
     std::string str1;
@@ -420,7 +420,7 @@ loadString(const std::string &lines, Value *&value)
 {
   std::vector<std::string> strs;
 
-  CQStrParse parse(lines.c_str());
+  CStrParse parse(lines);
 
   parse.skipSpace();
 
@@ -1075,6 +1075,32 @@ hierTypeName() const
   typeName += "}";
 
   return typeName;
+}
+
+bool
+CJson::Object::
+isComposite() const
+{
+  for (const auto &nv : nameValueArray_) {
+    if (nv.second->isComposite())
+      return true;
+  }
+
+  return false;
+}
+
+int
+CJson::Object::
+numComposite() const
+{
+  int n = 0;
+
+  for (const auto &nv : nameValueArray_) {
+    if (nv.second->isComposite())
+      ++n;
+  }
+
+  return n;
 }
 
 void

@@ -3,10 +3,12 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsDataLabel.h>
 
 class CQChartsBarChartPlot;
 
+// bar object
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -15,34 +17,48 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
                       int iset, int nset, int ival, int nval,
                       int isval, int nsval, double value);
 
+  void setColor(double color) { color_ = color; }
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
+  typedef boost::optional<double> OptReal;
+
   CQChartsBarChartPlot *plot_  { nullptr };
-  int                   iset_  { -1 };
-  int                   nset_  { -1 };
-  int                   ival_  { -1 };
-  int                   nval_  { -1 };
-  int                   isval_ { -1 };
-  int                   nsval_ { -1 };
-  double                value_ { -1 };
+  int                   iset_  { -1 };      // set number
+  int                   nset_  { -1 };      // number of sets
+  int                   ival_  { -1 };      // value number
+  int                   nval_  { -1 };      // number of values
+  int                   isval_ { -1 };      // sub set number
+  int                   nsval_ { -1 };      // number of sub sets
+  double                value_ { -1 };      // value
+  OptReal               color_;             // custom color
 };
 
 //---
 
 #include <CQChartsKey.h>
 
+// key color box
 class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n);
 
+  void setColor(double color) { color_ = color; }
+
   bool mousePress(const CPoint2D &p) override;
 
   QColor fillColor() const override;
+
+ private:
+  typedef boost::optional<double> OptReal;
+
+  OptReal color_; // custom color
 };
 
+// key text
 class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
 
@@ -52,11 +68,12 @@ class CQChartsBarKeyText : public CQChartsKeyText {
   QColor textColor() const override;
 
  private:
-  int i_ { 0 };
+  int i_ { 0 }; // set id
 };
 
 //---
 
+// bar chart plot type
 class CQChartsBarChartPlotType : public CQChartsPlotType {
  public:
   CQChartsBarChartPlotType();
@@ -64,28 +81,38 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
+  void addParameters();
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
 
+// bar chart plot
+//  x   : category, name, ordered by set (keySets)
+//  y   : value, values
+//  bar : custom color, stacked, horizontal, margin, border, fill
 class CQChartsBarChartPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     categoryColumn   READ categoryColumn   WRITE setCategoryColumn  )
-  Q_PROPERTY(int     valueColumn      READ valueColumn      WRITE setValueColumn     )
-  Q_PROPERTY(QString valueColumns     READ valueColumnsStr  WRITE setValueColumnsStr )
-  Q_PROPERTY(int     nameColumn       READ nameColumn       WRITE setNameColumn      )
-  Q_PROPERTY(bool    stacked          READ isStacked        WRITE setStacked         )
-  Q_PROPERTY(bool    horizontal       READ isHorizontal     WRITE setHorizontal      )
-  Q_PROPERTY(double  margin           READ margin           WRITE setMargin          )
-  Q_PROPERTY(bool    keySets          READ isKeySets        WRITE setKeySets         )
-  Q_PROPERTY(bool    border           READ isBorder         WRITE setBorder          )
-  Q_PROPERTY(QColor  borderColor      READ borderColor      WRITE setBorderColor     )
-  Q_PROPERTY(double  borderWidth      READ borderWidth      WRITE setBorderWidth     )
-  Q_PROPERTY(double  borderCornerSize READ borderCornerSize WRITE setBorderCornerSize)
-  Q_PROPERTY(bool    fill             READ isFill           WRITE setFill            )
-  Q_PROPERTY(QString barColor         READ barColorStr      WRITE setBarColorStr     )
+  Q_PROPERTY(int     categoryColumn   READ categoryColumn    WRITE setCategoryColumn  )
+  Q_PROPERTY(int     valueColumn      READ valueColumn       WRITE setValueColumn     )
+  Q_PROPERTY(QString valueColumns     READ valueColumnsStr   WRITE setValueColumnsStr )
+  Q_PROPERTY(int     nameColumn       READ nameColumn        WRITE setNameColumn      )
+  Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
+  Q_PROPERTY(bool    stacked          READ isStacked         WRITE setStacked         )
+  Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
+  Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
+  Q_PROPERTY(bool    keySets          READ isKeySets         WRITE setKeySets         )
+  Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
+  Q_PROPERTY(QColor  borderColor      READ borderColor       WRITE setBorderColor     )
+  Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
+  Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
+  Q_PROPERTY(bool    fill             READ isFill            WRITE setFill            )
+  Q_PROPERTY(QString barColor         READ barColorStr       WRITE setBarColorStr     )
+  Q_PROPERTY(bool    colorMapEnabled  READ isColorMapEnabled WRITE setColorMapEnabled )
+  Q_PROPERTY(double  colorMapMin      READ colorMapMin       WRITE setColorMapMin     )
+  Q_PROPERTY(double  colorMapMax      READ colorMapMax       WRITE setColorMapMax     )
 
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
@@ -124,6 +151,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
+
+  int colorColumn() const { return colorColumn_; }
+  void setColorColumn(int i) { colorColumn_ = i; }
 
   //---
 
@@ -164,6 +194,17 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
+  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+
+  double colorMapMin() const { return colorSet_.mapMin(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+
+  double colorMapMax() const { return colorSet_.mapMax(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+
+  //---
+
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
 
   //---
@@ -192,21 +233,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
-  bool isSetHidden(int i) const {
-    auto p = idHidden_.find(i);
-
-    if (p == idHidden_.end())
-      return false;
-
-    return (*p).second;
-  }
-
-  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
-
-  void resetSetHidden() { idHidden_.clear(); }
-
-  //---
-
   void draw(QPainter *) override;
 
   void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
@@ -215,9 +241,10 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   struct Value {
     double  value;
     QString name;
+    int     i;
 
-    Value(double value=0.0, const QString &name="") :
-     value(value), name(name) {
+    Value(double value=0.0, const QString &name="", int i=-1) :
+     value(value), name(name), i(i) {
     }
   };
 
@@ -245,7 +272,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   typedef std::vector<ValueSet> ValueSets;
   typedef std::vector<QString>  ValueNames;
-  typedef std::map<int,bool>    IdHidden;
 
  private:
   ValueSet *getValueSet(const QString &name);
@@ -255,6 +281,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   int               valueColumn_     { 1 };
   Columns           valueColumns_;
   int               nameColumn_      { -1 };
+  int               colorColumn_     { -1 };
   bool              stacked_         { false };
   bool              horizontal_      { false };
   double            margin_          { 2 };
@@ -263,10 +290,10 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool              fill_            { true };
   bool              barColorPalette_ { true };
   QColor            barColor_        { 100, 100, 200 };
+  CQChartsValueSet  colorSet_;
   CQChartsDataLabel dataLabel_;
   ValueSets         valueSets_;
   ValueNames        valueNames_;
-  IdHidden          idHidden_;
 };
 
 #endif

@@ -68,16 +68,18 @@ class CQChartsPlotDlg : public QDialog {
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
   bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                                int &column, QString &columnType);
+                                int &column, QString &columnStr, QString &columnType);
   bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
                                  const PlotData &plotData, std::vector<int> &columns,
-                                 QString &columnType);
+                                 QStringList &columnStrs, QString &columnType);
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
-  bool lineEditValue(QLineEdit *le, int &i, QString &columnType, int defi=0) const;
+  bool lineEditValue(QLineEdit *le, int &column, QString &columnStr,
+                     QString &columnType, int defi=0) const;
 
-  bool lineEditValues(QLineEdit *le, std::vector<int> &ivals, QString &columnType) const;
+  bool lineEditValues(QLineEdit *le, std::vector<int> &columns,
+                      QStringList &columnStrs, QString &columnType) const;
 
   bool stringToColumn(const QString &str, int &column) const;
 

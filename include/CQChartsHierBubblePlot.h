@@ -270,7 +270,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
  private:
   void initNodes();
 
-  void loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int depth);
+  void loadChildren(CQChartsHierBubbleHierNode *hier,
+                    const QModelIndex &index=QModelIndex(), int depth=0);
 
   void transformNodes(CQChartsHierBubbleHierNode *hier);
 

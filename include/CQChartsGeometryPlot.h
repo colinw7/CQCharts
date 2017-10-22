@@ -111,7 +111,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
-  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
+  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str);
 
  private:
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);

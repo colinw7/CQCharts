@@ -125,9 +125,7 @@ void
 CQChartsBubblePlot::
 initNodes()
 {
-  QModelIndex index;
-
-  loadChildren(index);
+  loadChildren();
 
   //---
 
@@ -162,11 +160,13 @@ loadChildren(const QModelIndex &index)
   uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn(), index);
+
+    //---
 
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model, index1, ok1);
+    QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok1);
 
     //---
 
@@ -177,11 +177,9 @@ loadChildren(const QModelIndex &index)
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model->index(i, valueColumn_, index);
-
       bool ok2;
 
-      int size = CQChartsUtil::modelInteger(model, index2, ok2);
+      int size = CQChartsUtil::modelInteger(model, i, valueColumn(), ok2);
 
       if (! ok2) size = 1;
 
@@ -258,7 +256,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  QFontMetrics fm(p->font());
+  QFontMetricsF fm(p->font());
 
   QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
 
@@ -291,7 +289,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   for (int i = len; i >= 1; --i) {
     std::string name1 = node_->name().substr(0, i);
 
-    int tw = fm.width(name1.c_str());
+    double tw = fm.width(name1.c_str());
 
     if (tw > 2*(px2 - px1)) continue;
 

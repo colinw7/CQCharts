@@ -299,8 +299,8 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
  private:
   void initNodes();
 
-  void loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index,
-                    int depth, int colorId=-1);
+  void loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index=QModelIndex(),
+                    int depth=0, int colorId=-1);
 
   void transformNodes(CQChartsTreeMapHierNode *hier);
 

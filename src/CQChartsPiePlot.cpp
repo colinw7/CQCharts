@@ -10,10 +10,20 @@
 CQChartsPiePlotType::
 CQChartsPiePlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsPiePlotType::
+addParameters()
+{
   // name, desc, propName, attributes, default
   addColumnParameter("label"   , "Label"    , "labelColumn"   , "", 0);
   addColumnParameter("data"    , "Data"     , "dataColumn"    , "", 1);
   addColumnParameter("keyLabel", "Key Label", "keyLabelColumn", "optional");
+  addColumnParameter("color"   , "Color"    , "colorColumn"   , "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -42,15 +52,17 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "labelColumn"    , "label"   );
-  addProperty("columns", this, "dataColumn"     , "data"    );
-  addProperty("columns", this, "keyLabelColumn" , "keyLabel");
-  addProperty(""       , this, "donut"                      );
-  addProperty(""       , this, "innerRadius"                );
-  addProperty(""       , this, "labelRadius"                );
-  addProperty(""       , this, "explodeSelected"            );
-  addProperty(""       , this, "startAngle"                 );
-  addProperty(""       , this, "rotatedText"                );
+  addProperty("columns", this, "labelColumn"   , "label"   );
+  addProperty("columns", this, "dataColumn"    , "data"    );
+  addProperty("columns", this, "keyLabelColumn", "keyLabel");
+  addProperty("columns", this, "colorColumn"   , "color"   );
+
+  addProperty("", this, "donut"          );
+  addProperty("", this, "innerRadius"    );
+  addProperty("", this, "labelRadius"    );
+  addProperty("", this, "explodeSelected");
+  addProperty("", this, "startAngle"     );
+  addProperty("", this, "rotatedText"    );
 
   addProperty("label", &textBox_, "visible");
   addProperty("label", &textBox_, "font"   );
@@ -59,6 +71,10 @@ addProperties()
   QString labelBoxPath = id() + "/label/box";
 
   textBox_.CQChartsBoxObj::addProperties(propertyView(), labelBoxPath);
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
+  addProperty("color", this, "colorMapMin"    , "mapMin"     );
+  addProperty("color", this, "colorMapMax"    , "mapMax"     );
 }
 
 void
@@ -146,11 +162,9 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex yind = model->index(i, dataColumn());
-
     bool ok;
 
-    double value = CQChartsUtil::modelReal(model, yind, ok);
+    double value = CQChartsUtil::modelReal(model, i, dataColumn(), ok);
 
     if (! ok)
       value = i;
@@ -163,6 +177,18 @@ initObjs(bool force)
 
   //---
 
+  // init value sets
+  if (colorSet_.empty()) {
+    if (colorColumn() >= 0) {
+      bool ok;
+
+      for (int i = 0; i < n; ++i)
+        colorSet_.addValue(CQChartsUtil::modelValue(model, i, colorColumn(), ok));
+    }
+  }
+
+  //---
+
   for (int i = 0; i < n; ++i) {
     bool hidden = isSetHidden(i);
 
@@ -171,13 +197,10 @@ initObjs(bool force)
 
     //---
 
-    QModelIndex xind = model->index(i, labelColumn());
-    QModelIndex yind = model->index(i, dataColumn ());
-
     bool ok1, ok2;
 
-    QString name  = CQChartsUtil::modelString(model, xind, ok1);
-    double  value = CQChartsUtil::modelReal  (model, yind, ok2);
+    QString label = CQChartsUtil::modelString(model, i, labelColumn(), ok1);
+    double  value = CQChartsUtil::modelReal  (model, i, dataColumn (), ok2);
 
     if (! ok2) value = i;
 
@@ -189,18 +212,28 @@ initObjs(bool force)
 
     //---
 
+    // get color label (?)
+
+    OptReal color;
+
+    if (colorColumn() >= 0)
+      color = colorSet_.imap(i);
+
+    //---
+
     CBBox2D rect(xc - r, yc - r, xc + r, yc + r);
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, rect, i, n);
 
-    obj->setId(QString("%1:%2").arg(name).arg(columnStr(dataColumn(), value)));
+    obj->setId(QString("%1:%2").arg(label).arg(columnStr(dataColumn(), value)));
 
-    obj->setCenter(CPoint2D(xc, yc));
-    obj->setRadius(r);
     obj->setAngle1(angle1);
     obj->setAngle2(angle2);
-    obj->setName  (name);
+    obj->setLabel (label);
     obj->setValue (value);
+
+    if (color)
+      obj->setColor(*color);
 
     addPlotObject(obj);
 
@@ -233,14 +266,12 @@ addKeyItems(CQChartsKey *key)
   int n = model->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i) {
-    QModelIndex xind = model->index(i, labelColumn);
-
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, xind, ok);
+    QString label = CQChartsUtil::modelString(model, i, labelColumn, ok);
 
     CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, i, n);
-    CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, i, name);
+    CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, i, label);
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);
@@ -281,20 +312,23 @@ bool
 CQChartsPieObj::
 inside(const CPoint2D &p) const
 {
-  double r = p.distanceTo(center());
+  CPoint2D center(0, 0);
 
-  double ir = 0.0;
+  double r = p.distanceTo(center);
+
+  double ro = plot_->outerRadius();
+  double ri = 0.0;
 
   if (plot_->isDonut())
-    ir = plot_->innerRadius()*radius();
+    ri = plot_->innerRadius()*ro;
 
-  if (r < ir || r > radius())
+  if (r < ri || r > ro)
     return false;
 
   //---
 
   // check angle
-  double a = CQChartsUtil::Rad2Deg(atan2(p.y - center().y, p.x - center().x));
+  double a = CQChartsUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
   a = CQChartsUtil::normalizeAngle(a);
 
   double a1 = angle1(); a1 = CQChartsUtil::normalizeAngle(a1);
@@ -320,8 +354,10 @@ void
 CQChartsPieObj::
 draw(QPainter *p, const CQChartsPlot::Layer &layer)
 {
-  CPoint2D c  = center();
-  double   r  = radius();
+  CPoint2D center(0, 0);
+
+  CPoint2D c  = center;
+  double   ro = plot_->outerRadius();
   double   a1 = angle1();
   double   a2 = angle2();
 
@@ -335,8 +371,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
   if (exploded) {
     double angle = CQChartsUtil::Deg2Rad((a1 + a2)/2.0);
 
-    double dx = 0.1*radius()*cos(angle);
-    double dy = 0.1*radius()*sin(angle);
+    double dx = 0.1*ro*cos(angle);
+    double dy = 0.1*ro*sin(angle);
 
     c.x += dx;
     c.y += dy;
@@ -344,7 +380,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   //---
 
-  //double ir = plot_->innerRadius()*radius();
+  //double ri = plot_->innerRadius()*ro;
 
   CPoint2D pc;
 
@@ -352,7 +388,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   //---
 
-  CBBox2D bbox(c.x - r, c.y - r, c.x + r, c.y + r);
+  CBBox2D bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
 
   CBBox2D pbbox;
 
@@ -364,9 +400,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     QPainterPath path;
 
     if (plot_->isDonut()) {
-      double ir = plot_->innerRadius();
+      double ri = plot_->innerRadius();
 
-      CBBox2D bbox1(c.x - ir, c.y - ir, c.x + ir, c.y + ir);
+      CBBox2D bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
 
       CBBox2D pbbox1;
 
@@ -377,15 +413,15 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       double ra1 = a1*M_PI/180.0;
       double ra2 = a2*M_PI/180.0;
 
-      double x1 = c.x + ir*cos(ra1);
-      double y1 = c.y + ir*sin(ra1);
-      double x2 = c.x +  r*cos(ra1);
-      double y2 = c.y +  r*sin(ra1);
+      double x1 = c.x + ri*cos(ra1);
+      double y1 = c.y + ri*sin(ra1);
+      double x2 = c.x + ro*cos(ra1);
+      double y2 = c.y + ro*sin(ra1);
 
-      double x3 = c.x + ir*cos(ra2);
-      double y3 = c.y + ir*sin(ra2);
-      double x4 = c.x +  r*cos(ra2);
-      double y4 = c.y +  r*sin(ra2);
+      double x3 = c.x + ri*cos(ra2);
+      double y3 = c.y + ri*sin(ra2);
+      double x4 = c.x + ro*cos(ra2);
+      double y4 = c.y + ro*sin(ra2);
 
       double px1, py1, px2, py2, px3, py3, px4, py4;
 
@@ -421,7 +457,13 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    QColor bg = plot_->objectColor(this, i_, n_);
+    QColor bg;
+
+    if (color_)
+      bg = plot_->interpPaletteColor(*color_);
+    else
+      bg = plot_->objectColor(this, i_, n_);
+
     QColor fg = plot_->textColor(bg);
 
     p->setBrush(bg);
@@ -432,16 +474,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   //---
 
-  if (layer == CQChartsPlot::Layer::FG && name() != "") {
+  if (layer == CQChartsPlot::Layer::FG && label() != "") {
     double a21 = a2 - a1;
 
     // if full circle always draw text at center
     if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
-      plot_->textBox().draw(p, CQChartsUtil::toQPoint(pc), name(), 0.0);
+      plot_->textBox().draw(p, CQChartsUtil::toQPoint(pc), label(), 0.0);
     }
     // draw on arc center line
     else {
-      double ir = plot_->innerRadius();
+      double ri = plot_->innerRadius();
       double lr = plot_->labelRadius();
 
       double ta = (a1 + a2)/2.0;
@@ -451,9 +493,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       double lr1;
 
       if (plot_->isDonut())
-        lr1 = ir + lr*(radius() - ir);
+        lr1 = ri + lr*(ro - ri);
       else
-        lr1 = lr*radius();
+        lr1 = lr*ro;
 
       if (lr1 < 0.01)
         lr1 = 0.01;
@@ -473,9 +515,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       double        dx    = 0.0;
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      if (lr1 > radius()) {
-        double lx1 = c.x + radius()*tc;
-        double ly1 = c.y + radius()*ts;
+      if (lr1 > ro) {
+        double lx1 = c.x + ro*tc;
+        double ly1 = c.y + ro*ts;
         double lx2 = c.x + lr1*tc;
         double ly2 = c.y + lr1*ts;
 
@@ -512,7 +554,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
 
-      plot_->textBox().draw(p, pt, name(), angle, align);
+      plot_->textBox().draw(p, pt, label(), angle, align);
 
       CBBox2D tbbox;
 

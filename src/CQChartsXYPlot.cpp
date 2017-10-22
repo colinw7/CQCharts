@@ -1324,7 +1324,7 @@ size() const
 
   CQChartsXYPlot *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
 
-  QFontMetrics fm(plot->view()->font());
+  QFontMetricsF fm(plot->view()->font());
 
   double w = fm.width("X-X");
   double h = fm.height();

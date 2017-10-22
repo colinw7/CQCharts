@@ -19,12 +19,13 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
+class CQExprModel;
 
 class QStackedWidget;
 class QLineEdit;
 class QPushButton;
+class QTextEdit;
 class QGridLayout;
-class QHBoxLayout;
 
 class CQChartsTest : public CQAppWindow {
   Q_OBJECT
@@ -39,7 +40,8 @@ class CQChartsTest : public CQAppWindow {
     CSV,
     TSV,
     JSON,
-    DATA
+    DATA,
+    EXPR
   };
 
   typedef std::map<QString,QString> NameValues;
@@ -48,14 +50,15 @@ class CQChartsTest : public CQAppWindow {
   struct InitData {
     typedef std::vector<QString> FileNames;
 
+    FileNames  filenames;
     FileType   fileType        { FileType::NONE };
+    bool       commentHeader   { false };
+    bool       firstLineHeader { false };
     QString    typeName;
+    QString    process;
     NameValues nameValues;
     NameBools  nameBools;
     QString    columnType;
-    FileNames  filenames;
-    bool       commentHeader   { false };
-    bool       firstLineHeader { false };
     bool       xintegral       { false };
     bool       yintegral       { false };
     QString    title;
@@ -114,6 +117,8 @@ class CQChartsTest : public CQAppWindow {
   QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
   QAbstractItemModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
 
+  QAbstractItemModel *createExprModel();
+
   bool initPlot(const InitData &initData);
 
   CQChartsPlot *init(const ModelP &model, const InitData &initData, int i);
@@ -145,10 +150,14 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *getView(bool reuse=true);
 
+  void updateModelDetails();
+
   QSize sizeHint() const;
 
   FileType stringToFileType(const QString &str) const;
   QString fileTypeToString(FileType type) const;
+
+  void processExpression(const QString &expr);
 
  private:
   void parseLine(const std::string &line);
@@ -169,6 +178,9 @@ class CQChartsTest : public CQAppWindow {
   void createSlot();
 
   void filterSlot();
+
+  void exprSlot();
+
   void tableColumnClicked(int column);
   void typeOKSlot();
 
@@ -184,12 +196,14 @@ class CQChartsTest : public CQAppWindow {
   CQChartsPlot*   rootPlot_          { nullptr };
   CQCharts*       charts_            { nullptr };
   ModelP          model_;
+  QLineEdit*      columnNumEdit_     { nullptr };
   QLineEdit*      columnTypeEdit_    { nullptr };
   QStackedWidget* stack_             { nullptr };
   QLineEdit*      filterEdit_        { nullptr };
   CQChartsTable*  table_             { nullptr };
   CQChartsTree*   tree_              { nullptr };
-  int             tableColumn_       { 0 };
+  QLineEdit*      exprEdit_          { nullptr };
+  QTextEdit*      detailsText_       { nullptr };
   CQChartsLoader* loader_            { nullptr };
   ViewP           view_;
   QString         id_;

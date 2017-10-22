@@ -4,7 +4,8 @@
 #include <QHeaderView>
 
 class CQHeaderViewWidgetFactory;
-class QTableWidget;
+class QTableView;
+class QTreeView;
 
 class CQHeaderView : public QHeaderView {
   Q_OBJECT
@@ -35,6 +36,17 @@ class CQHeaderView : public QHeaderView {
 
   void fitColumnSlot();
   void fitAllSlot();
+
+  void stretchLastSlot(bool b);
+  void sortIndicatorSlot(bool b);
+
+ private:
+  typedef std::map<int,int> ColumnWidths;
+
+  void calcTableWidths(QTableView *table, ColumnWidths &columnWidths);
+
+  void calcTreeWidths(QTreeView *tree, const QModelIndex &ind,
+                      int depth, ColumnWidths &columnWidths);
 
  private:
   typedef QList<QWidget *> Widgets;

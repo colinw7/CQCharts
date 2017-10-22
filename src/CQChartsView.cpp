@@ -62,8 +62,11 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
-  for (const auto &plot : plotDatas_)
+  for (auto &plot : plotDatas_)
     delete plot.plot;
+
+  for (auto &probeBand : probeBands_)
+    delete probeBand;
 
   delete expander_;
   delete settings_;
@@ -95,8 +98,8 @@ setMode(const Mode &mode)
 {
   if (mode != mode_) {
     if      (mode_ == Mode::PROBE) {
-      for (int i = 0; i < int(probeBands_.size()); ++i)
-        probeBands_[i]->hide();
+      for (auto &probeBand : probeBands_)
+        probeBand->hide();
     }
     else if (mode_ == Mode::ZOOM) {
       if (zoomBand_)

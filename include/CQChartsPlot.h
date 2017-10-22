@@ -5,6 +5,7 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsQuadTree.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsKey.h>
 
 #include <CDisplayRange2D.h>
 #include <CDisplayTransform2D.h>
@@ -68,25 +69,32 @@ class CQChartsPlotType {
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
 
+  virtual void addParameters();
+
   const Parameters &parameters() const { return parameters_; }
 
-  void addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                          const QString &attributes="", int defValue=-1) {
-    addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
+  CQChartsPlotParameter &
+  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                     const QString &attributes="", int defValue=-1) {
+    return addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
   }
 
-  void addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                           const QString &attributes="", const QString &defValue="") {
-    addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
+  CQChartsPlotParameter &
+  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
+                      const QString &attributes="", const QString &defValue="") {
+    return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
   }
 
-  void addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                        const QString &attributes="", bool defValue=false) {
-    addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
+  CQChartsPlotParameter &
+  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
+                   const QString &attributes="", bool defValue=false) {
+    return addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
   }
 
-  void addParameter(const CQChartsPlotParameter &parameter) {
+  CQChartsPlotParameter &addParameter(const CQChartsPlotParameter &parameter) {
     parameters_.push_back(parameter);
+
+    return parameters_.back();
   }
 
   virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
@@ -126,6 +134,9 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(double  dataBorderWidth     READ dataBorderWidth     WRITE setDataBorderWidth    )
   Q_PROPERTY(QString dataBorderSides     READ dataBorderSides     WRITE setDataBorderSides    )
   Q_PROPERTY(bool    dataClip            READ isDataClip          WRITE setDataClip           )
+
+  // key
+  Q_PROPERTY(bool    keyVisible          READ isKeyVisible        WRITE setKeyVisible         )
 
   Q_PROPERTY(bool    equalScale          READ isEqualScale        WRITE setEqualScale         )
   Q_PROPERTY(bool    followMouse         READ isFollowMouse       WRITE setFollowMouse        )
@@ -263,6 +274,12 @@ class CQChartsPlot : public QObject {
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b) { dataClip_ = b; update(); }
+
+  //---
+
+  // key
+  bool isKeyVisible() const { return (keyObj_ ? keyObj_->isVisible() : false); }
+  void setKeyVisible(bool b) { if (keyObj_) keyObj_->setVisible(b); }
 
   //---
 
@@ -525,6 +542,23 @@ class CQChartsPlot : public QObject {
 
   QColor textColor(const QColor &bg) const;
 
+  //---
+
+  bool isSetHidden(int i) const {
+    auto p = idHidden_.find(i);
+
+    if (p == idHidden_.end())
+      return false;
+
+    return (*p).second;
+  }
+
+  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
+
+  void resetSetHidden() { idHidden_.clear(); }
+
+  //---
+
   void update();
 
   virtual void draw(QPainter *p) = 0;
@@ -542,6 +576,7 @@ class CQChartsPlot : public QObject {
  protected:
   typedef std::vector<CQChartsPlot *> RefPlots;
   typedef std::map<Layer,bool>        LayerActive;
+  typedef std::map<int,bool>          IdHidden;
 
   struct MouseData {
     QPoint pressPoint;
@@ -586,6 +621,7 @@ class CQChartsPlot : public QObject {
   PlotObjTree           plotObjTree_;
   MouseData             mouseData_;
   LayerActive           layerActive_;
+  IdHidden              idHidden_;
 };
 
 #endif

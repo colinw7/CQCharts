@@ -52,10 +52,10 @@ init()
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
   plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
 
-  columnTypeMgr_->addType("real"   , new CQChartsColumnRealType   );
-  columnTypeMgr_->addType("integer", new CQChartsColumnIntegerType);
-  columnTypeMgr_->addType("string" , new CQChartsColumnStringType );
-  columnTypeMgr_->addType("time"   , new CQChartsColumnTimeType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::REAL   , new CQChartsColumnRealType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::INTEGER, new CQChartsColumnIntegerType);
+  columnTypeMgr_->addType(CQBaseModel::Type::STRING , new CQChartsColumnStringType );
+  columnTypeMgr_->addType(CQBaseModel::Type::TIME   , new CQChartsColumnTimeType   );
 }
 
 bool

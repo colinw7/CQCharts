@@ -51,7 +51,7 @@ void
 CQChartsTextBoxObj::
 drawText(QPainter *p, const QRectF &rect, const QString &text) const
 {
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   p->setPen (color());
   p->setFont(font());
@@ -73,9 +73,9 @@ draw(QPainter *p, const QPointF &c, const QString &text, double angle,
 {
   p->save();
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
-  int tw = fm.width(text);
+  double tw = fm.width(text);
 
   double tw1 = tw + 2*margin();
   double th1 = fm.height() + 2*margin();

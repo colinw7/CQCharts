@@ -49,11 +49,6 @@ bool
 CQChartsJson::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  if (role == CQCharts::Role::ColumnType) {
-    setColumnType(section, value.toString());
-    return true;
-  }
-
   return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
 }
 
@@ -61,9 +56,6 @@ QVariant
 CQChartsJson::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (role == CQCharts::Role::ColumnType)
-    return QVariant(columnType(section));
-
   return QSortFilterProxyModel::headerData(section, orientation, role);
 }
 
@@ -83,11 +75,13 @@ data(const QModelIndex &index, int role) const
 
     assert(index.column() == index1.column());
 
-    QString type = columnType(index1.column());
+    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+    QString typeStr = columnType(index1.column());
 
     CQChartsNameValues nameValues;
 
-    CQChartsColumnType *typeData = charts_->columnTypeMgr()->decodeTypeData(type, nameValues);
+    CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
     if (typeData)
       return typeData->userData(var, nameValues);
@@ -107,10 +101,7 @@ Qt::ItemFlags
 CQChartsJson::
 flags(const QModelIndex &index) const
 {
-  if (! index.isValid())
-    return 0;
-
-  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  return QSortFilterProxyModel::flags(index);
 }
 
 //---
@@ -136,17 +127,19 @@ columnType(int col) const
 
 bool
 CQChartsJson::
-setColumnType(int col, const QString &type)
+setColumnType(int col, const QString &typeStr)
 {
   int n = columnCount();
 
   if (col < 0 || col >= n)
     return false;
 
-  QString            baseType;
+  QString            baseTypeStr;
   CQChartsNameValues nameValues;
 
-  CQChartsColumn::decodeType(type, baseType, nameValues);
+  CQChartsColumn::decodeType(typeStr, baseTypeStr, nameValues);
+
+  CQBaseModel::Type baseType = CQBaseModel::nameType(baseTypeStr);
 
   CQChartsColumnType *typeData = charts_->columnTypeMgr()->getType(baseType);
 
@@ -156,7 +149,7 @@ setColumnType(int col, const QString &type)
   while (n > int(columns_.size()))
     columns_.emplace_back("");
 
-  columns_[col].setType(type);
+  columns_[col].setType(typeStr);
 
   return true;
 }

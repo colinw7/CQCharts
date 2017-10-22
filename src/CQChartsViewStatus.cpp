@@ -28,7 +28,7 @@ paintEvent(QPaintEvent *)
 
   p.fillRect(rect(), palette().color(QPalette::Window));
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   p.drawText(2, 2 + fm.ascent(), text());
 }
@@ -37,7 +37,7 @@ QSize
 CQChartsViewStatus::
 sizeHint() const
 {
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   return QSize(fm.width("XX"), fm.height() + 4);
 }

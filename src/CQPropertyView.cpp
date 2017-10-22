@@ -79,10 +79,5 @@ CQPropertyViewEditorFactory *
 CQPropertyViewMgr::
 getEditor(const QString &name) const
 {
-  CQPropertyViewType *type = getType(name);
-
-  if (! type)
-    return nullptr;
-
-  return type->getEditor();
+  return editorMgr_->getEditor(name);
 }

@@ -115,9 +115,7 @@ initObjs(bool force)
 
     roots_.push_back(root);
 
-    QModelIndex index;
-
-    loadChildren(root, index, 1);
+    loadChildren(root);
 
     //---
 
@@ -146,11 +144,11 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
   uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn(), index);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, index1, ok);
+    QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok);
 
     //---
 
@@ -162,11 +160,9 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
       colorId1 = hier1->colorId();
     }
     else {
-      QModelIndex index2 = model->index(i, valueColumn_, index);
-
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model, index2, ok);
+      int size = CQChartsUtil::modelInteger(model, i, valueColumn(), ok);
 
       if (! ok) size = 1;
 

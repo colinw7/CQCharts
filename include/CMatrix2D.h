@@ -859,15 +859,15 @@ class CMatrix2D {
   //---
 
   int cmp(const CMatrix2D &m) const {
-    if (m00_ < m.m00_) return -1; if (m00_ > m.m00_) return  1;
-    if (m10_ < m.m10_) return -1; if (m10_ > m.m10_) return  1;
-    if (m01_ < m.m01_) return -1; if (m01_ > m.m01_) return  1;
-    if (m11_ < m.m11_) return -1; if (m11_ > m.m11_) return  1;
-    if (m02_ < m.m02_) return -1; if (m02_ > m.m02_) return  1;
-    if (m12_ < m.m12_) return -1; if (m12_ > m.m12_) return  1;
-    if (m20_ < m.m20_) return -1; if (m20_ > m.m20_) return  1;
-    if (m21_ < m.m21_) return -1; if (m21_ > m.m21_) return  1;
-    if (m22_ < m.m22_) return -1; if (m22_ > m.m22_) return  1;
+    { if (m00_ < m.m00_) return -1; } { if (m00_ > m.m00_) return 1; }
+    { if (m10_ < m.m10_) return -1; } { if (m10_ > m.m10_) return 1; }
+    { if (m01_ < m.m01_) return -1; } { if (m01_ > m.m01_) return 1; }
+    { if (m11_ < m.m11_) return -1; } { if (m11_ > m.m11_) return 1; }
+    { if (m02_ < m.m02_) return -1; } { if (m02_ > m.m02_) return 1; }
+    { if (m12_ < m.m12_) return -1; } { if (m12_ > m.m12_) return 1; }
+    { if (m20_ < m.m20_) return -1; } { if (m20_ > m.m20_) return 1; }
+    { if (m21_ < m.m21_) return -1; } { if (m21_ > m.m21_) return 1; }
+    { if (m22_ < m.m22_) return -1; } { if (m22_ > m.m22_) return 1; }
 
     return 0;
   }

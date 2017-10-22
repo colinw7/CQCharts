@@ -19,7 +19,6 @@ CQChartsCsv.cpp \
 CQChartsTsv.cpp \
 CQChartsJson.cpp \
 CQChartsGnuData.cpp \
-CQChartsModelColumn.cpp \
 CQChartsColumn.cpp \
 \
 CQChartsTable.cpp \
@@ -95,6 +94,9 @@ CQTsvModel.cpp \
 CQJsonModel.cpp \
 CJson.cpp \
 CQGnuDataModel.cpp \
+CQExprModel.cpp \
+CQDataModel.cpp \
+CQBaseModel.cpp \
 \
 CQColorChooser.cpp \
 CQAlphaButton.cpp \
@@ -126,7 +128,6 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsGnuData.h \
-../include/CQChartsModelColumn.h \
 ../include/CQChartsColumn.h \
 \
 ../include/CQChartsTable.h \
@@ -208,6 +209,9 @@ CGradientPalette.h \
 ../include/CQJsonModel.h \
 ../include/CJson.h \
 ../include/CQGnuDataModel.h \
+../include/CQExprModel.h \
+../include/CQDataModel.h \
+../include/CQBaseModel.h \
 \
 CQAlphaButton.h \
 CQBBox2DEdit.h \
@@ -241,3 +245,6 @@ LIB_DIR     = ../lib
 INCLUDEPATH += \
 . \
 ../include \
+../../CExpr/include \
+../../CStrUtil/include \
+../../CUtil/include \

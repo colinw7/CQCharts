@@ -77,10 +77,10 @@ CQChartsTitle::
 calcSize()
 {
   if (text().length()) {
-    QFontMetrics fm(font());
+    QFontMetricsF fm(font());
 
-    int pw = fm.width(text());
-    int ph = fm.height();
+    double pw = fm.width(text());
+    double ph = fm.height();
 
     double ww = plot_->pixelToWindowWidth (pw);
     double wh = plot_->pixelToWindowHeight(ph);
@@ -155,7 +155,7 @@ draw(QPainter *p)
 
   //---
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   p->setPen (color());
   p->setFont(font());

@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsValueSet.h>
 
 #include <CPoint2D.h>
 
@@ -30,26 +31,19 @@ class CQChartsPieObj : public CQChartsPlotObj {
  public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n);
 
-  const CPoint2D &center() const { return center_; }
-  void setCenter(const CPoint2D &c) { center_ = c; }
-
-  double radius() const { return r_; }
-  void setRadius(double r) { r_ = r; }
-
   double angle1() const { return angle1_; }
   void setAngle1(double a) { angle1_ = a; }
 
   double angle2() const { return angle2_; }
   void setAngle2(double a) { angle2_ = a; }
 
-  const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  const QString &label() const { return label_; }
+  void setLabel(const QString &s) { label_ = s; }
 
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
-  bool isWedge() const { return wedge_; }
-  void setWedge(bool b) { wedge_ = b; }
+  void setColor(double r) { color_ = r; }
 
   bool isExploded() const { return exploded_; }
   void setExploded(bool b) { exploded_ = b; }
@@ -61,17 +55,17 @@ class CQChartsPieObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  protected:
-  CQChartsPiePlot* plot_        { nullptr };
-  int              i_           { -1 };
-  int              n_           { -1 };
-  CPoint2D         center_      { 0, 0 };
-  double           r_           { 1 };
-  double           angle1_      { 0 };
-  double           angle2_      { 360 };
-  QString          name_        { "" };
-  double           value_       { 0 };
-  bool             wedge_       { true };
-  bool             exploded_    { false };
+  typedef boost::optional<double> OptReal;
+
+  CQChartsPiePlot* plot_     { nullptr }; // parent plot
+  int              i_        { -1 };      // index
+  int              n_        { -1 };      // number of wedges
+  double           angle1_   { 0 };       // wedge start angle
+  double           angle2_   { 360 };     // wedge start angle
+  QString          label_    { "" };      // label
+  double           value_    { 0 };       // value
+  OptReal          color_;                // color
+  bool             exploded_ { false };   // exploded
 };
 
 //---
@@ -110,6 +104,8 @@ class CQChartsPiePlotType : public CQChartsPlotType {
   QString name() const override { return "pie"; }
   QString desc() const override { return "Pie"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -124,12 +120,17 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(int    labelColumn     READ labelColumn       WRITE setLabelColumn    )
   Q_PROPERTY(int    dataColumn      READ dataColumn        WRITE setDataColumn     )
   Q_PROPERTY(int    keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
+  Q_PROPERTY(int    colorColumn     READ colorColumn       WRITE setColorColumn    )
   Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
   Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
+  Q_PROPERTY(double outerRadius     READ outerRadius       WRITE setOuterRadius    )
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
   Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
+  Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
+  Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
@@ -143,6 +144,9 @@ class CQChartsPiePlot : public CQChartsPlot {
   int keyLabelColumn() const { return keyLabelColumn_; }
   void setKeyLabelColumn(int i) { keyLabelColumn_ = i; }
 
+  int colorColumn() const { return colorColumn_; }
+  void setColorColumn(int i) { colorColumn_ = i; }
+
   //---
 
   bool isDonut() const { return donut_; }
@@ -150,6 +154,9 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r) { innerRadius_ = r; update(); }
+
+  double outerRadius() const { return outerRadius_; }
+  void setOuterRadius(double r) { outerRadius_ = r; update(); }
 
   double labelRadius() const { return labelRadius_; }
   void setLabelRadius(double r) { labelRadius_ = r; updateRange(); }
@@ -169,6 +176,17 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
+  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+
+  double colorMapMin() const { return colorSet_.mapMin(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+
+  double colorMapMax() const { return colorSet_.mapMax(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+
+  //---
+
   void addProperties() override;
 
   void updateRange() override;
@@ -179,36 +197,23 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
-  bool isSetHidden(int i) const {
-    auto p = idHidden_.find(i);
-
-    if (p == idHidden_.end())
-      return false;
-
-    return (*p).second;
-  }
-
-  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
-
-  //---
-
   void handleResize() override;
 
   void draw(QPainter *) override;
 
  private:
-  typedef std::map<int,bool> IdHidden;
-
   int                labelColumn_     { 0 };
   int                dataColumn_      { 1 };
   int                keyLabelColumn_  { -1 };
+  int                colorColumn_     { -1 };
   bool               donut_           { false };
-  double             innerRadius_     { 0.0 };
+  double             innerRadius_     { 0.6 };
+  double             outerRadius_     { 0.9 };
   double             labelRadius_     { 0.5 };
   bool               rotatedText_     { false };
   bool               explodeSelected_ { true };
   double             startAngle_      { 90 };
-  IdHidden           idHidden_;
+  CQChartsValueSet   colorSet_;
   CQChartsPieTextObj textBox_;
 };
 

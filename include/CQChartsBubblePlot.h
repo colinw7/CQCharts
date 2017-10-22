@@ -136,7 +136,7 @@ class CQChartsBubblePlot : public CQChartsPlot {
  private:
   void initNodes();
 
-  void loadChildren(const QModelIndex &index);
+  void loadChildren(const QModelIndex &index=QModelIndex());
 
  private:
   int             nameColumn_  { 0 };

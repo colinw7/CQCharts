@@ -382,8 +382,8 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   void drawNode(QPainter *p, CQChartsSunburstNode *node);
 
  private:
-  void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index,
-                    int depth, int colorId=-1);
+  void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index=QModelIndex(),
+                    int depth=1, int colorId=-1);
 
   void addPlotObjs(CQChartsSunburstHierNode *parent);
 

@@ -157,9 +157,7 @@ initNodes()
 
   //---
 
-  QModelIndex index;
-
-  loadChildren(root_, index, 0);
+  loadChildren(root_);
 
   //---
 
@@ -216,7 +214,7 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
   uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, nameColumn_, index);
+    QModelIndex index1 = model->index(i, nameColumn(), index);
 
     bool ok;
 
@@ -233,11 +231,9 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
       if (colorId < 0)
         colorId = nextColorId();
 
-      QModelIndex index2 = model->index(i, valueColumn_, index);
-
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model, index2, ok);
+      int size = CQChartsUtil::modelInteger(model, i, valueColumn(), ok);
 
       if (! ok) size = 1;
 
@@ -317,8 +313,6 @@ void
 CQChartsHierBubbleHierObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  QFontMetrics fm(p->font());
-
   //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
 
@@ -374,7 +368,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  QFontMetrics fm(p->font());
+  QFontMetricsF fm(p->font());
 
   QColor c = plot_->interpPaletteColor((1.0*i_)/n_);
   //QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
@@ -408,7 +402,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   for (int i = len; i >= 1; --i) {
     std::string name1 = node_->name().substr(0, i);
 
-    int tw = fm.width(name1.c_str());
+    double tw = fm.width(name1.c_str());
 
     if (tw > 2*(px2 - px1)) continue;
 

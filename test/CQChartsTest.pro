@@ -28,11 +28,14 @@ INCLUDEPATH += \
 
 unix:LIBS += \
 -L../lib \
+-L../../CExpr/lib \
+-L../../CMath/lib \
 -L../../CReadLine/lib \
 -L../../CFile/lib \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts \
+-lCExpr -lCMath \
 -lCReadLine -lCFile -lCStrUtil \
 -lCOS \
 -lreadline

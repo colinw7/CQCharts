@@ -6,6 +6,7 @@
 
 //------
 
+// node data
 class CQChartsAdjacencyNode {
  public:
   typedef std::pair<CQChartsAdjacencyNode *,int> NodeValue;
@@ -46,18 +47,20 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  int         id_ { 0 };
-  std::string name_;
-  int         group_ { 0 };
-  int         count_ { 0 };
-  int         maxCount_ { 0 };
-  NodeMap     nodes_;
+  int         id_ { 0 };       // id
+  std::string name_;           // name
+  int         group_ { 0 };    // group
+  int         count_ { 0 };    // total connections
+  int         maxCount_ { 0 }; // max connections to single node
+  NodeMap     nodes_;          // connected nodes
 };
 
 //------
 
 class CQChartsAdjacencyPlot;
 
+// grid cell object
+//  node1->node2 with connections count
 class CQChartsAdjacencyObj : public CQChartsPlotObj {
  public:
   CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
@@ -69,13 +72,14 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
  private:
   CQChartsAdjacencyPlot *plot_  { nullptr };
-  CQChartsAdjacencyNode *node1_ { nullptr };
-  CQChartsAdjacencyNode *node2_ { nullptr };
-  int                    value_ { 0 };
+  CQChartsAdjacencyNode *node1_ { nullptr }; // row node
+  CQChartsAdjacencyNode *node2_ { nullptr }; // column node
+  int                    value_ { 0 };       // connections value
 };
 
 //---
 
+// connectivity plot type
 class CQChartsAdjacencyPlotType : public CQChartsPlotType {
  public:
   CQChartsAdjacencyPlotType();
@@ -83,11 +87,18 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
   QString name() const override { return "adjacency"; }
   QString desc() const override { return "Adjacency"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
 
+// connectivity plot:
+//   nodes             : number, name(opt), group(opt)
+//   connections       : node->node
+//   grid cell         : background color, empty cell color
+//   row/column labels : text color, font
 class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_OBJECT
 

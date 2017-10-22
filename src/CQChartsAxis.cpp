@@ -167,17 +167,27 @@ QString
 CQChartsAxis::
 format() const
 {
-  QVariant columnTypeVar =
-    plot_->model()->headerData(column_, Qt::Horizontal, CQCharts::Role::ColumnType);
+  CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
 
-  return columnTypeVar.toString();
+  CQBaseModel::Type  type;
+  CQChartsNameValues nameValues;
+
+  columnTypeMgr->getModelColumnType(plot_->model(), column_, type, nameValues);
+
+  return columnTypeMgr->encodeTypeData(type, nameValues);
 }
 
 bool
 CQChartsAxis::
-setFormat(const QString &s)
+setFormat(const QString &typeStr)
 {
-  return plot_->model()->setHeaderData(column_, Qt::Horizontal, s, CQCharts::Role::ColumnType);
+  CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
+
+  CQChartsNameValues nameValues;
+
+  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+
+  return columnTypeMgr->setModelColumnType(plot_->model(), column_, typeData->type(), nameValues);
 }
 
 //---
@@ -622,16 +632,13 @@ getValueStr(double pos) const
   }
 
   if (column_ >= 0) {
-    QVariant columnTypeVar =
-      plot_->model()->headerData(column_, Qt::Horizontal, CQCharts::Role::ColumnType);
+    CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
 
-    if (columnTypeVar.isValid()) {
-      QString columnType = columnTypeVar.toString();
+    CQBaseModel::Type  columnType;
+    CQChartsNameValues nameValues;
 
-      CQChartsNameValues nameValues;
-
-      CQChartsColumnType *typeData =
-        plot_->charts()->columnTypeMgr()->decodeTypeData(columnType, nameValues);
+    if (columnTypeMgr->getModelColumnType(plot_->model(), column_, columnType, nameValues)) {
+      CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
 
       if (typeData)
         return typeData->dataName(pos, nameValues).toString();

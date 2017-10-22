@@ -51,7 +51,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
 
   p->setFont(font());
 
-  QFontMetrics fm(p->font());
+  QFontMetricsF fm(p->font());
 
   double ym = 2;
 
@@ -61,7 +61,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
   double b = b1 + b2;
 
   if (CQChartsUtil::isZero(angle())) {
-    int tw = fm.width(ystr);
+    double tw = fm.width(ystr);
 
     double x = 0.0, y = 0.0;
 
@@ -83,7 +83,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
     }
     else if (position() == Position::CENTER) {
       x = qrect.center().x();
-      y = qrect.center().y() - (fm.ascent() - fm.descent())/2;
+      y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
     }
 
     bool clipped = false;
@@ -101,7 +101,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
       }
     }
 
-    QRectF brect(x - tw/2 - b, y - fm.ascent() - b, tw + 2*b, fm.ascent() + fm.descent() + 2*b);
+    QRectF brect(x - tw/2 - b, y - fm.ascent() - b, tw + 2*b, fm.height() + 2*b);
 
     CQChartsBoxObj::draw(p, brect);
 

@@ -354,9 +354,9 @@ draw(QPainter *p)
 
 void
 CQChartsGeometryPlot::
-drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
+drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str)
 {
-  dataLabel_.draw(p, qrect, ystr);
+  dataLabel_.draw(p, qrect, str);
 }
 
 //------

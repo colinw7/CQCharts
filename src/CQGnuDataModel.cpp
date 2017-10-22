@@ -1,6 +1,7 @@
 #include <CQGnuDataModel.h>
 #include <CQStrParse.h>
-#include <CUnixFile.h>
+#include <QFile>
+#include <QTextStream>
 
 //------
 
@@ -8,16 +9,21 @@ namespace {
 
 inline bool fileToLines(const QString &filename, QStringList &lines) {
   // open file
-  CUnixFile file(filename.toStdString());
+  QFile file(filename);
 
-  if (! file.open())
+  if (! file.open(QIODevice::ReadOnly))
     return false;
 
   // read lines
-  std::string line;
+  QTextStream in(&file);
 
-  while (file.readLine(line))
-    lines.push_back(line.c_str());
+  while (! in.atEnd()) {
+    QString line = in.readLine();
+
+    lines.push_back(line);
+  }
+
+  file.close();
 
   return true;
 }
@@ -78,7 +84,7 @@ load(const QString &filename)
 
       auto line1 = line;
 
-      int cpos = line1.indexOf(comment.c_str());
+      int cpos = line1.indexOf(comment);
 
       if (cpos >= 0) {
         cpos += comment.length();
@@ -151,7 +157,7 @@ load(const QString &filename)
 
     auto line1 = line;
 
-    if (line1.indexOf(comment.c_str()) != -1) {
+    if (line1.indexOf(comment) != -1) {
       CQStrParse pline(line1);
 
       while (! pline.eof()) {
@@ -171,11 +177,10 @@ load(const QString &filename)
             pline.skipChar();
         }
         else {
-          if (pline.isString(comment.c_str())) {
+          if (pline.isString(comment)) {
             line1 = pline.getAt(0, pline.getPos()).simplified();
 
-            std::string cstr =
-              pline.getAt(pline.getPos() + comment.length()).simplified().toStdString();
+            QString cstr = pline.getAt(pline.getPos() + comment.length()).simplified();
 
             commentStrs_[setNum][subSetNum][lineNum] = cstr;
 
@@ -229,7 +234,7 @@ load(const QString &filename)
 
     for (int i = 0; i < numColumns; ++i) {
       if (i < int(columnHeaderFields_.size()))
-        addColumn(columnHeaderFields_[i].c_str());
+        addColumn(columnHeaderFields_[i]);
       else
         addColumn(QString("%1").arg(i + 1));
     }
@@ -238,11 +243,15 @@ load(const QString &filename)
       Cells cells;
 
       for (const auto &f : fields)
-        cells.push_back(f.c_str());
+        cells.push_back(f);
 
       data_.push_back(cells);
     }
   }
+
+  //---
+
+  genColumnTypes();
 
   return true;
 }
@@ -252,7 +261,10 @@ load(const QString &filename)
 namespace {
 
 struct Words {
-  Words(std::vector<std::string> &fields) :
+  typedef std::vector<QString> Fields;
+
+  // takes references to fileds to populate
+  Words(Fields &fields) :
    fields_(fields) {
     fields_.clear();
   }
@@ -261,11 +273,11 @@ struct Words {
     flush();
   }
 
-  void addChar(char c) {
+  void addChar(const QChar &c) {
     word_ += c;
   }
 
-  void addWord(const std::string &word) {
+  void addWord(const QString &word) {
     force_ = true;
     word_  = word;
 
@@ -281,9 +293,9 @@ struct Words {
     }
   }
 
-  std::vector<std::string> &fields_;
-  std::string               word_;
-  bool                      force_ { false };
+  Fields& fields_;
+  QString word_;
+  bool    force_ { false };
 };
 
 }
@@ -296,7 +308,7 @@ parseFileLine(const QString &str, Fields &fields)
 {
   bool isSeparator = false;
 
-  std::vector<std::string> strs;
+  std::vector<QString> strs;
 
   Words words(strs);
 
@@ -334,7 +346,7 @@ parseFileLine(const QString &str, Fields &fields)
       if (isKeepQuotes())
         word = "\"" + word + "\"";
 
-      words.addWord(word.toStdString());
+      words.addWord(word);
 
       isSeparator = false;
     }
@@ -355,7 +367,7 @@ parseFileLine(const QString &str, Fields &fields)
       isSeparator = true;
     }
     else {
-      words.addChar(line.getChar().toLatin1());
+      words.addChar(line.getChar());
 
       isSeparator = false;
     }
@@ -373,119 +385,5 @@ void
 CQGnuDataModel::
 addColumn(const QString &name)
 {
-  columns_.emplace_back(name);
-}
-
-int
-CQGnuDataModel::
-columnCount(const QModelIndex &) const
-{
-  return columns_.size();
-}
-
-QVariant
-CQGnuDataModel::
-headerData(int section, Qt::Orientation orientation, int role) const
-{
-  int n = columnCount();
-
-  if (section < 0 || section >= n)
-    return QVariant();
-
-  const Column &column = columns_[section];
-
-  if (orientation == Qt::Horizontal) {
-    if (role == Qt::DisplayRole) {
-      return QVariant(column.name());
-    }
-    else if (role == Qt::EditRole) {
-      return QVariant();
-    }
-    else if (role == Qt::ToolTipRole) {
-      if (column.type() != "")
-        return QVariant(QString("%1\n%2").arg(column.name()).arg(column.type()));
-      else
-        return QVariant(QString("%1").arg(column.name()));
-    }
-  }
-
-  return QVariant();
-}
-
-bool
-CQGnuDataModel::
-setHeaderData(int section, Qt::Orientation orientation, const QVariant &, int)
-{
-  if (section < 0 || orientation != Qt::Horizontal)
-    return false;
-
-  return false;
-}
-
-QVariant
-CQGnuDataModel::
-data(const QModelIndex &index, int role) const
-{
-  if (! index.isValid())
-    return QVariant();
-
-  if      (role == Qt::UserRole) {
-    const Cells &cells = data_[index.row()];
-
-    if (index.column() < 0 || index.column() >= int(cells.size()))
-      return QVariant();
-
-    const QString &cell = cells[index.column()];
-
-    return cell;
-  }
-  else if (role == Qt::DisplayRole) {
-    const Cells &cells = data_[index.row()];
-
-    if (index.column() < 0 || index.column() >= int(cells.size()))
-      return QVariant();
-
-    const QString &cell = cells[index.column()];
-
-    return cell;
-  }
-
-  return QVariant();
-}
-
-QModelIndex
-CQGnuDataModel::
-index(int row, int column, const QModelIndex &) const
-{
-  return createIndex(row, column, nullptr);
-}
-
-QModelIndex
-CQGnuDataModel::
-parent(const QModelIndex &index) const
-{
-  if (! index.isValid())
-    return QModelIndex();
-
-  return QModelIndex();
-}
-
-int
-CQGnuDataModel::
-rowCount(const QModelIndex &parent) const
-{
-  if (parent.isValid())
-    return 0;
-
-  return data_.size();
-}
-
-Qt::ItemFlags
-CQGnuDataModel::
-flags(const QModelIndex &index) const
-{
-  if (! index.isValid())
-    return 0;
-
-  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  header_.emplace_back(name);
 }

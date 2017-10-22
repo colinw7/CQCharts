@@ -115,7 +115,7 @@ index(int row, int column, const QModelIndex &parent) const
   if (row < 0 || row >= parentItem->numChildren())
     return QModelIndex();
 
-  if (column <0 || column >= 2)
+  if (column < 0 || column >= 2)
     return QModelIndex();
 
   CQPropertyViewItem *childItem = parentItem->child(row);

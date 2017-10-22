@@ -479,7 +479,7 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetrics fm(key_->textFont());
+  QFontMetricsF fm(key_->textFont());
 
   double w = fm.width(text_);
   double h = fm.height();
@@ -498,7 +498,7 @@ draw(QPainter *p, const CBBox2D &rect)
 
   p->setFont(key_->textFont());
 
-  QFontMetrics fm(p->font());
+  QFontMetricsF fm(p->font());
 
   p->setPen(textColor());
 
@@ -530,7 +530,7 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetrics fm(key_->textFont());
+  QFontMetricsF fm(key_->textFont());
 
   double h = fm.height();
 
