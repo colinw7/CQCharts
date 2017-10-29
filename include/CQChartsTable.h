@@ -20,7 +20,7 @@ class CQChartsTable : public QTableView {
 
   void setFilter(const QString &filter);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  signals:
   void columnClicked(int);

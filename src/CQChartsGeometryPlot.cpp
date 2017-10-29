@@ -54,7 +54,7 @@ addProperties()
 
 void
 CQChartsGeometryPlot::
-updateRange()
+updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
@@ -128,7 +128,8 @@ updateRange()
 
   //setEqualScale(true);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 bool
@@ -291,16 +292,8 @@ decodePoint(const QString &pointStr, QPointF &point)
 
 void
 CQChartsGeometryPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 

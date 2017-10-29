@@ -88,6 +88,18 @@ class CRange2D {
     return *this;
   }
 
+  friend bool operator==(const CRange2D &lhs, const CRange2D &rhs) {
+    if (! lhs.set_ && ! rhs.set_) return true;
+    if (! lhs.set_ || ! rhs.set_) return false;
+
+    return (lhs.x1_ == rhs.x1_ && lhs.y1_ == rhs.y1_ &&
+            lhs.x2_ == rhs.x2_ && lhs.y2_ == rhs.y2_);
+  }
+
+  friend bool operator!=(const CRange2D &lhs, const CRange2D &rhs) {
+    return ! (lhs == rhs);
+  }
+
   void print(std::ostream &os) const {
     os << x1_ << "," << y1_ << "," << x2_ << "," << y2_;
   }

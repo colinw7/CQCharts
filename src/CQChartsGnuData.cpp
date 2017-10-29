@@ -2,6 +2,7 @@
 #include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQGnuDataModel.h>
+#include <CQExprModel.h>
 #include <cassert>
 
 CQChartsGnuData::
@@ -10,12 +11,15 @@ CQChartsGnuData(CQCharts *charts) :
 {
   dataModel_ = new CQGnuDataModel;
 
-  setSourceModel(dataModel_);
+  exprModel_ = new CQExprModel(dataModel_);
+
+  setSourceModel(exprModel_);
 }
 
 CQChartsGnuData::
 ~CQChartsGnuData()
 {
+  delete exprModel_;
   delete dataModel_;
 }
 

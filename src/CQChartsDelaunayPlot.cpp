@@ -44,22 +44,22 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"       , "x"     );
-  addProperty("columns", this, "yColumn"       , "y"     );
-  addProperty("points" , this, "points"        , "shown" );
-  addProperty("points" , this, "pointsColor"   , "color" );
-  addProperty("points" , this, "symbolName"    , "symbol");
-  addProperty("points" , this, "symbolSize"    , "size"  );
-  addProperty("points" , this, "symbolFilled"  , "filled");
-  addProperty("lines"  , this, "lines"         , "shown" );
-  addProperty("lines"  , this, "linesColor"    , "color" );
-  addProperty("lines"  , this, "linesWidth"    , "width" );
-  addProperty(""       , this, "voronoi"                 );
+  addProperty("columns", this, "xColumn"       , "x"      );
+  addProperty("columns", this, "yColumn"       , "y"      );
+  addProperty("points" , this, "points"        , "visible");
+  addProperty("points" , this, "pointsColor"   , "color"  );
+  addProperty("points" , this, "symbolName"    , "symbol" );
+  addProperty("points" , this, "symbolSize"    , "size"   );
+  addProperty("points" , this, "symbolFilled"  , "filled" );
+  addProperty("lines"  , this, "lines"         , "visible");
+  addProperty("lines"  , this, "linesColor"    , "color"  );
+  addProperty("lines"  , this, "linesWidth"    , "width"  );
+  addProperty(""       , this, "voronoi"                  );
 }
 
 void
 CQChartsDelaunayPlot::
-updateRange()
+updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
@@ -101,25 +101,14 @@ updateRange()
 
   //---
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsDelaunayPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-
-    delete delaunay_;
-
-    delaunay_ = nullptr;
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -148,8 +137,9 @@ initObjs(bool force)
 
   //---
 
-  if (! delaunay_)
-    delaunay_ = new CDelaunay;
+  delete delaunay_;
+
+  delaunay_ = new CDelaunay;
 
   for (int i = 0; i < n; ++i) {
     bool ok1, ok2;

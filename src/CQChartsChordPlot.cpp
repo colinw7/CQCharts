@@ -61,7 +61,7 @@ addProperties()
 
 void
 CQChartsChordPlot::
-updateRange()
+updateRange(bool apply)
 {
   double r = 1.0;
 
@@ -84,21 +84,14 @@ updateRange()
   dataRange_.updateRange(-xr, -yr);
   dataRange_.updateRange( xr,  yr);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsChordPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -505,7 +498,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     // draw on arc center line
     double lr = plot_->labelRadius();
 
-    double ta = (angle1 + angle2)/2.0;
+    double ta = CQChartsUtil::avg(angle1, angle2);
 
     double tangle = CQChartsUtil::Deg2Rad(ta);
 

@@ -61,26 +61,25 @@ addProperties()
 
 void
 CQChartsAdjacencyPlot::
-updateRange()
+updateRange(bool apply)
 {
+  dataRange_.reset();
+
   dataRange_.updateRange(0, 0);
   dataRange_.updateRange(1, 1);
 
   //setEqualScale(true);
+
+  //---
+
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsAdjacencyPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -317,9 +316,7 @@ autoFit()
   for (int i = 0; i < tries; ++i) {
     factor_ = drawFactor_;
 
-    initObjs(/*force*/true);
-
-    update();
+    updateObjs();
   }
 }
 

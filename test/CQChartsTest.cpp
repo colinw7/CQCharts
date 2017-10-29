@@ -10,8 +10,9 @@
 #include <CQExprModel.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsPlotObj.h>
 #include <CQChartsAxis.h>
-#include <CQChartsXYPlot.h>
+#include <CQChartsKey.h>
 
 #include <CQChartsLoader.h>
 #include <CQChartsPlotDlg.h>
@@ -145,13 +146,23 @@ main(int argc, char **argv)
         initData.commentHeader = true;
       else if (arg == "first_line_header")
         initData.firstLineHeader = true;
+      else if (arg == "num_rows") {
+        ++i;
+
+        if (i < argc)
+          initData.numRows = std::max(atoi(argv[i]), 1);
+      }
 
       // process data
       else if (arg == "process") {
         ++i;
 
-        if (i < argc)
-          initData.process = argv[i];
+        if (i < argc) {
+          if (initData.process.length())
+            initData.process += ";";
+
+          initData.process += argv[i];
+        }
       }
 
       // plot type
@@ -183,7 +194,7 @@ main(int argc, char **argv)
               initData.setNameValue(name, value);
             }
             else {
-              std::cerr << "Invalid " << arg << " option '" << argv[i] << "'" << std::endl;
+              std::cerr << "Invalid " << arg << " option '" << argv[i] << "'\n";
             }
           }
         }
@@ -239,7 +250,7 @@ main(int argc, char **argv)
             if (ok)
               initData.setNameBool(name, b);
             else {
-              std::cerr << "Invalid -bool option '" << argv[i] << "'" << std::endl;
+              std::cerr << "Invalid -bool option '" << argv[i] << "'\n";
             }
           }
         }
@@ -255,6 +266,9 @@ main(int argc, char **argv)
       }
       else if (arg == "fillunder") {
         initData.setNameBool("fillUnder", true);
+      }
+      else if (arg == "impulse") {
+        initData.setNameBool("impulse", true);
       }
 
       // column types
@@ -285,8 +299,12 @@ main(int argc, char **argv)
       else if (arg == "properties") {
         ++i;
 
-        if (i < argc)
-          initData.properties = argv[i];
+        if (i < argc) {
+          if (initData.properties.length())
+            initData.properties += ",";
+
+          initData.properties += argv[i];
+        }
       }
 
       // plot chaining (overlay, y1y2, and)
@@ -299,14 +317,16 @@ main(int argc, char **argv)
       else if (arg == "and") {
         initDatas.push_back(initData);
 
-        xmin1 = boost::make_optional(false, 0.0);
-        xmax1 = boost::make_optional(false, 0.0);
-        xmin2 = boost::make_optional(false, 0.0);
-        xmax2 = boost::make_optional(false, 0.0);
-        ymin1 = boost::make_optional(false, 0.0);
-        ymax1 = boost::make_optional(false, 0.0);
-        ymin2 = boost::make_optional(false, 0.0);
-        ymax2 = boost::make_optional(false, 0.0);
+        if (! overlay) {
+          xmin1 = boost::make_optional(false, 0.0);
+          xmax1 = boost::make_optional(false, 0.0);
+          xmin2 = boost::make_optional(false, 0.0);
+          xmax2 = boost::make_optional(false, 0.0);
+          ymin1 = boost::make_optional(false, 0.0);
+          ymax1 = boost::make_optional(false, 0.0);
+          ymin2 = boost::make_optional(false, 0.0);
+          ymax2 = boost::make_optional(false, 0.0);
+        }
 
         initData = CQChartsTest::InitData();
       }
@@ -366,7 +386,7 @@ main(int argc, char **argv)
         loop = true;
       }
       else {
-        std::cerr << "Invalid option '" << argv[i] << "'" << std::endl;
+        std::cerr << "Invalid option '" << argv[i] << "'\n";
       }
     }
     else {
@@ -385,8 +405,10 @@ main(int argc, char **argv)
   int nr = std::max(int(sqrt(nd)), 1);
   int nc = (nd + nr - 1)/nr;
 
-  double dx = 1000.0/nc;
-  double dy = 1000.0/nr;
+  double vr = CQChartsView::viewportRange();
+
+  double dx = vr/nc;
+  double dy = vr/nr;
 
   int i = 0;
 
@@ -403,7 +425,7 @@ main(int argc, char **argv)
     if (xmin1) initData.xmin = xmin1;
     if (xmax1) initData.xmax = xmax1;
 
-    if (initData.overlay || initData.y1y2) {
+    if (initData.y1y2) {
       if      (i == 0) {
         if (ymin1) initData.ymin = ymin1;
         if (ymax1) initData.ymax = ymax1;
@@ -425,6 +447,11 @@ main(int argc, char **argv)
 
     ++i;
   }
+
+  //---
+
+  if (overlay && test.view())
+    test.view()->initOverlay();
 
   //---
 
@@ -607,8 +634,10 @@ initPlot(const InitData &initData)
   int r = i / initData.nc;
   int c = i % initData.nc;
 
+  double vr = CQChartsView::viewportRange();
+
   if (initData.overlay || initData.y1y2) {
-    setBBox(CBBox2D(0, 0, 1000, 1000));
+    setBBox(CBBox2D(0, 0, vr, vr));
   }
   else {
     double x1 =  c     *initData.dx;
@@ -616,23 +645,26 @@ initPlot(const InitData &initData)
     double y1 =  r     *initData.dy;
     double y2 = (r + 1)*initData.dy;
 
-    setBBox(CBBox2D(x1, 1000.0 - y2, x2, 1000.0 - y1));
+    setBBox(CBBox2D(x1, vr - y2, x2, vr - y1));
   }
 
   //---
 
+  QString filename;
+
   if (initData.filenames.size() > 0) {
+    filename = initData.filenames[0];
+
     if (initData.fileType != FileType::NONE) {
-      loadFileModel(initData.filenames[0], initData.fileType,
-                    initData.commentHeader, initData.firstLineHeader);
+      loadFileModel(filename, initData.fileType, initData.commentHeader, initData.firstLineHeader);
     }
     else {
-      std::cerr << "No file type specified" << std::endl;
+      std::cerr << "No file type specified\n";
     }
   }
   else {
     if (initData.fileType == FileType::EXPR)
-      loadFileModel("", initData.fileType, false, false);
+      loadFileModel("", initData.fileType, false, false, initData.numRows);
   }
 
   if (! model_)
@@ -651,6 +683,9 @@ initPlot(const InitData &initData)
 
   if (! plot)
     return false;
+
+  if (filename != "")
+    plot->setFileName(filename);
 
   //---
 
@@ -719,7 +754,7 @@ loadFileSlot(const QString &type, const QString &filename)
   FileType fileType = stringToFileType(type);
 
   if (fileType == FileType::NONE) {
-    std::cerr << "Bad type specified '" << type.toStdString() << "'" << std::endl;
+    std::cerr << "Bad type specified '" << type.toStdString() << "'\n";
     return;
   }
 
@@ -774,7 +809,7 @@ plotObjPressedSlot(CQChartsPlotObj *obj)
   QString id = obj->id();
 
   if (id.length())
-    std::cerr << id.toStdString() << std::endl;
+    std::cerr << id.toStdString() << "\n";
 }
 
 //------
@@ -818,8 +853,10 @@ processExpression(const QString &expr)
       exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
   }
 
-  if (! exprModel)
+  if (! exprModel) {
+    std::cerr << "Expression not supported for model\n";
     return;
+  }
 
   //---
 
@@ -835,14 +872,14 @@ processExpression(const QString &expr)
     int column = columnStr.toInt(&ok);
 
     if (! ok) {
-      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'" << std::endl;
+      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'\n";
       return;
     }
 
     bool rc = exprModel->removeExtraColumn(column);
 
     if (! rc) {
-      std::cerr << "Failed to delete column '" << column << "'" << std::endl;
+      std::cerr << "Failed to delete column '" << column << "'\n";
       return;
     }
   }
@@ -852,7 +889,7 @@ processExpression(const QString &expr)
     int pos = columnExprStr.indexOf(':');
 
     if (pos < 0) {
-      std::cerr << "Invalid assign expression '" << columnExprStr.toStdString() << "'" << std::endl;
+      std::cerr << "Invalid assign expression '" << columnExprStr.toStdString() << "'\n";
       return;
     }
 
@@ -864,7 +901,7 @@ processExpression(const QString &expr)
     int column = columnStr.toInt(&ok);
 
     if (! ok) {
-      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'" << std::endl;
+      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'\n";
       return;
     }
 
@@ -910,7 +947,7 @@ typeOKSlot()
   CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
   if (! typeData) {
-    std::cerr << "Invalid type '" << typeStr.toStdString() << "'" << std::endl;
+    std::cerr << "Invalid type '" << typeStr.toStdString() << "'\n";
     return;
   }
 
@@ -940,7 +977,7 @@ init(const ModelP &model, const InitData &initData, int i)
   CQChartsPlotType *type = charts_->plotType(typeName);
 
   if (! type) {
-    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot" << std::endl;
+    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot\n";
     return nullptr;
   }
 
@@ -1022,7 +1059,7 @@ setColumnFormats(const ModelP &model, const QString &columnType)
       if (stringToColumn(model, columnStr, column1))
         column = column1;
       else
-        std::cerr << "Bad column name '" << columnStr.toStdString() << "'" << std::endl;
+        std::cerr << "Bad column name '" << columnStr.toStdString() << "'\n";
 
       typeStr = typeStr.mid(pos + 1).simplified();
     }
@@ -1038,14 +1075,14 @@ setColumnFormats(const ModelP &model, const QString &columnType)
 
     if (! typeData) {
       std::cerr << "Invalid type '" << typeStr.toStdString() <<
-                   "' for section '" << column << "'" << std::endl;
+                   "' for section '" << column << "'\n";
       continue;
     }
 
     // store in model
     if (! columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues)) {
       std::cerr << "Failed to set column type '" << typeStr.toStdString() <<
-                   "' for section '" << column << "'" << std::endl;
+                   "' for section '" << column << "'\n";
       continue;
     }
   }
@@ -1107,12 +1144,12 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
       int column;
 
       if (! stringToColumn(model, (*p).second, column)) {
-        std::cerr << "Bad column name '" << (*p).second.toStdString() << "'" << std::endl;
+        std::cerr << "Bad column name '" << (*p).second.toStdString() << "'\n";
         column = -1;
       }
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "columns") {
       auto p = nameValues.find(parameter.name());
@@ -1128,7 +1165,7 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
         int column;
 
         if (! stringToColumn(model, strs[j], column)) {
-          std::cerr << "Bad column name '" << strs[j].toStdString() << "'" << std::endl;
+          std::cerr << "Bad column name '" << strs[j].toStdString() << "'\n";
           continue;
         }
 
@@ -1138,7 +1175,7 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
       QString s = CQChartsUtil::toString(columns);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "bool") {
       auto p = nameBools.find(parameter.name());
@@ -1149,27 +1186,10 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
       bool b = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(b)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << std::endl;
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else
       assert(false);
-  }
-
-  //---
-
-  // init plot
-  if (type->name() == "xy") {
-    CQChartsXYPlot *xyPlot = dynamic_cast<CQChartsXYPlot *>(plot);
-    assert(plot);
-
-    if      (xyPlot->isBivariate()) {
-      xyPlot->setFillUnder(true);
-      xyPlot->setPoints   (false);
-    }
-    else if (xyPlot->isStacked()) {
-      xyPlot->setFillUnder(true);
-      xyPlot->setPoints   (false);
-    }
   }
 
   //---
@@ -1199,7 +1219,7 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
     QString value = str.mid(pos + 1).simplified();
 
     if (! plot->setProperty(name, value))
-      std::cerr << "Failed to set property " << name.toStdString() << std::endl;
+      std::cerr << "Failed to set property " << name.toStdString() << "\n";
   }
 }
 
@@ -1207,14 +1227,15 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 bool
 CQChartsTest::
-loadFileModel(const QString &filename, FileType type, bool commentHeader, bool firstLineHeader)
+loadFileModel(const QString &filename, FileType type,
+              bool commentHeader, bool firstLineHeader, int n)
 {
   model_.clear();
 
   bool hierarchical;
 
   QAbstractItemModel *model =
-    loadFile(filename, type, commentHeader, firstLineHeader, hierarchical);
+    loadFile(filename, type, commentHeader, firstLineHeader, n, hierarchical);
 
   if (! model)
     return false;
@@ -1236,10 +1257,12 @@ CQChartsTest::
 updateModelDetails()
 {
   int numColumns = model_->columnCount();
+  int numRows    = model_->rowCount   ();
 
   QString text;
 
-  text += QString("%1 Columns").arg(numColumns);
+  text += QString("%1 Columns").arg(numColumns) + "\n";
+  text += QString("%1 Rows"   ).arg(numRows);
 
   detailsText_->setPlainText(text);
 }
@@ -1247,7 +1270,7 @@ updateModelDetails()
 QAbstractItemModel *
 CQChartsTest::
 loadFile(const QString &filename, FileType type, bool commentHeader, bool firstLineHeader,
-         bool &hierarchical)
+         int n, bool &hierarchical)
 {
   hierarchical = false;
 
@@ -1266,11 +1289,11 @@ loadFile(const QString &filename, FileType type, bool commentHeader, bool firstL
     model = loadData(filename, commentHeader, firstLineHeader);
   }
   else if (type == FileType::EXPR) {
-    model = createExprModel();
+    model = createExprModel(n);
   }
   else {
     std::cerr << "Bad file type specified '" <<
-      fileTypeToString(type).toStdString() << "'" << std::endl;
+      fileTypeToString(type).toStdString() << "'\n";
     return nullptr;
   }
 
@@ -1286,7 +1309,8 @@ loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
   csv->setCommentHeader  (commentHeader);
   csv->setFirstLineHeader(firstLineHeader);
 
-  csv->load(filename);
+  if (! csv->load(filename))
+    std::cerr << "Failed to load " << filename.toStdString() << "\n";
 
   return csv;
 }
@@ -1300,7 +1324,8 @@ loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
   tsv->setCommentHeader  (commentHeader);
   tsv->setFirstLineHeader(firstLineHeader);
 
-  tsv->load(filename);
+  if (! tsv->load(filename))
+    std::cerr << "Failed to load " << filename.toStdString() << "\n";
 
   return tsv;
 }
@@ -1311,7 +1336,8 @@ loadJson(const QString &filename, bool &hierarchical)
 {
   CQChartsJson *json = new CQChartsJson(charts_);
 
-  json->load(filename);
+  if (! json->load(filename))
+    std::cerr << "Failed to load " << filename.toStdString() << "\n";
 
   hierarchical = json->isHierarchical();
 
@@ -1327,17 +1353,18 @@ loadData(const QString &filename, bool commentHeader, bool firstLineHeader)
   data->setCommentHeader  (commentHeader);
   data->setFirstLineHeader(firstLineHeader);
 
-  data->load(filename);
+  if (! data->load(filename))
+    std::cerr << "Failed to load " << filename.toStdString() << "\n";
 
   return data;
 }
 
 QAbstractItemModel *
 CQChartsTest::
-createExprModel()
+createExprModel(int n)
 {
   int nc = 1;
-  int nr = 100;
+  int nr = n;
 
   CQDataModel *model = new CQDataModel(nc, nr);
 
@@ -1649,7 +1676,7 @@ setCmd(const Args & args)
   }
 
   if (! view) {
-    std::cerr << "No view '" << plotName.toStdString() << "'" << std::endl;
+    std::cerr << "No view '" << plotName.toStdString() << "'\n";
     return;
   }
 
@@ -1659,20 +1686,20 @@ setCmd(const Args & args)
     CQChartsPlot *plot = view->getPlot(plotName);
 
     if (! plot) {
-      std::cerr << "No plot '" << plotName.toStdString() << "'" << std::endl;
+      std::cerr << "No plot '" << plotName.toStdString() << "'\n";
       return;
     }
 
     //---
 
     if (! plot->setProperty(name, value)) {
-      std::cerr << "Failed to set view parameter '" << name.toStdString() << "'" << std::endl;
+      std::cerr << "Failed to set view parameter '" << name.toStdString() << "'\n";
       return;
     }
   }
   else {
     if (! view->setProperty(name, value)) {
-      std::cerr << "Failed to set plot parameter '" << name.toStdString() << "'" << std::endl;
+      std::cerr << "Failed to set plot parameter '" << name.toStdString() << "'\n";
       return;
     }
   }
@@ -1719,12 +1746,12 @@ loadCmd(const Args &args)
   }
 
   if (filename == "") {
-    std::cerr << "No filename" << std::endl;
+    std::cerr << "No filename\n";
     return;
   }
 
   if (fileType == FileType::NONE) {
-    std::cerr << "No file type" << std::endl;
+    std::cerr << "No file type\n";
     return;
   }
 
@@ -1778,7 +1805,7 @@ plotCmd(const Args &args)
               nameValues[name] = value;
             }
             else {
-              std::cerr << "Invalid " << opt << " option '" << args[i] << "'" << std::endl;
+              std::cerr << "Invalid " << opt << " option '" << args[i] << "'\n";
             }
           }
         }
@@ -1809,7 +1836,7 @@ plotCmd(const Args &args)
           if (ok)
             nameBools[name] = b;
           else {
-            std::cerr << "Invalid -bool option '" << args[i] << "'" << std::endl;
+            std::cerr << "Invalid -bool option '" << args[i] << "'\n";
           }
         }
       }
@@ -1869,7 +1896,7 @@ plotCmd(const Args &args)
   //------
 
   if (! model_) {
-    std::cerr << "No model data" << std::endl;
+    std::cerr << "No model data\n";
     return;
   }
 
@@ -1884,7 +1911,7 @@ plotCmd(const Args &args)
   CQChartsPlotType *type = charts_->plotType(typeName);
 
   if (! type) {
-    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot" << std::endl;
+    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot\n";
     return;
   }
 
@@ -1953,14 +1980,14 @@ sourceCmd(const Args &args)
   }
 
   if (filename == "") {
-    std::cerr << "No filename" << std::endl;
+    std::cerr << "No filename\n";
     return;
   }
 
   CUnixFile file(filename.toStdString());
 
   if (! file.open()) {
-    std::cerr << "Failed to open file '" << filename.toStdString() << "'" << std::endl;
+    std::cerr << "Failed to open file '" << filename.toStdString() << "'\n";
     return;
   }
 

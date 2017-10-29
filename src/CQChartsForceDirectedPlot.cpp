@@ -63,33 +63,22 @@ addProperties()
 
 void
 CQChartsForceDirectedPlot::
-updateRange()
+updateRange(bool apply)
 {
   // TODO: calculate good range size from data or auto fit ?
+  dataRange_.reset();
+
   dataRange_.updateRange(-rangeSize_, -rangeSize_);
   dataRange_.updateRange( rangeSize_,  rangeSize_);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsForceDirectedPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-
-    idConnections_.clear();
-
-    nodes_.clear();
-
-    forceDirected_.reset();
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 

@@ -40,6 +40,13 @@ redraw()
 
 void
 CQChartsKey::
+updatePlotKey()
+{
+  plot_->resetKeyItems();
+}
+
+void
+CQChartsKey::
 updateLayout()
 {
   invalidateLayout();
@@ -90,19 +97,21 @@ updatePosition()
 {
   plot_->updateKeyPosition();
 
-  plot_->update();
+  redraw();
 }
 
 void
 CQChartsKey::
 addProperties(CQPropertyViewTree *tree, const QString &path)
 {
-  tree->addProperty(path, this, "visible"  );
-  tree->addProperty(path, this, "location" );
-  tree->addProperty(path, this, "insideX"  );
-  tree->addProperty(path, this, "insideY"  );
-  tree->addProperty(path, this, "spacing"  );
-  tree->addProperty(path, this, "above"    );
+  tree->addProperty(path, this, "visible"   );
+  tree->addProperty(path, this, "location"  );
+  tree->addProperty(path, this, "insideX"   );
+  tree->addProperty(path, this, "insideY"   );
+  tree->addProperty(path, this, "spacing"   );
+  tree->addProperty(path, this, "horizontal");
+  tree->addProperty(path, this, "above"     );
+  tree->addProperty(path, this, "flipped"   );
 
   CQChartsBoxObj::addProperties(tree, path);
 
@@ -110,6 +119,7 @@ addProperties(CQPropertyViewTree *tree, const QString &path)
 
   tree->addProperty(textPath, this, "textColor", "color");
   tree->addProperty(textPath, this, "textFont" , "font" );
+  tree->addProperty(textPath, this, "textAlign", "align");
 }
 
 void
@@ -177,8 +187,15 @@ doLayout()
   for (const auto &item : items_) {
     numRows_ = std::max(numRows_, item->row() + item->rowSpan());
     numCols_ = std::max(numCols_, item->col() + item->colSpan());
+  }
 
-    rowColItems[item->row()][item->col()].push_back(item);
+  for (const auto &item : items_) {
+    int col = item->col();
+
+    if (isFlipped())
+      col = numCols_ - 1 - col;
+
+    rowColItems[item->row()][col].push_back(item);
   }
 
   //---
@@ -337,6 +354,20 @@ setInside(CQChartsKeyItem *item)
 
 void
 CQChartsKey::
+setFlipped(bool b)
+{
+  if (b == flipped_)
+    return;
+
+  flipped_ = b;
+
+  needsLayout_ = true;
+
+  redraw();
+}
+
+void
+CQChartsKey::
 draw(QPainter *p)
 {
   if (! isVisible())
@@ -391,7 +422,12 @@ draw(QPainter *p)
   //---
 
   for (const auto &item : items_) {
-    Cell &cell = rowColCell_[item->row()][item->col()];
+    int col = item->col();
+
+    if (isFlipped())
+      col = numCols_ - 1 - col;
+
+    Cell &cell = rowColCell_[item->row()][col];
 
     double x1 = cell.x;
     double y1 = cell.y;
@@ -399,13 +435,13 @@ draw(QPainter *p)
     double h1 = cell.height;
 
     for (int c = 1; c < item->colSpan(); ++c) {
-      Cell &cell1 = rowColCell_[item->row()][item->col() + c];
+      Cell &cell1 = rowColCell_[item->row()][col + c];
 
       w1 += cell1.width;
     }
 
     for (int r = 1; r < item->rowSpan(); ++r) {
-      Cell &cell1 = rowColCell_[item->row() + r][item->col()];
+      Cell &cell1 = rowColCell_[item->row() + r][col];
 
       h1 += cell1.height;
     }
@@ -502,11 +538,17 @@ draw(QPainter *p, const CBBox2D &rect)
 
   p->setPen(textColor());
 
-  double px, py;
+  double px1, px2, py;
 
-  plot->windowToPixel(rect.getXMin(), rect.getYMin(), px, py);
+  plot->windowToPixel(rect.getXMin(), rect.getYMin(), px1, py);
+  plot->windowToPixel(rect.getXMax(), rect.getYMin(), px2, py);
 
-  p->drawText(px + 2, py - fm.descent() - 2, text_);
+  double px = px1 + 2;
+
+  if (key_->textAlign() & Qt::AlignRight)
+    px = px2 - 2 - fm.width(text_);
+
+  p->drawText(px, py - fm.descent() - 2, text_);
 }
 
 QColor
@@ -553,21 +595,21 @@ draw(QPainter *p, const CBBox2D &rect)
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  QColor bc = borderColor();
-  QColor fc = fillColor();
+  QColor bc    = borderColor();
+  QBrush brush = fillBrush();
 
   if (isInside())
-    fc = plot->insideColor(fc);
+    brush.setColor(plot->insideColor(brush.color()));
 
   p->setPen  (bc);
-  p->setBrush(fc);
+  p->setBrush(brush);
 
   CQRoundedPolygon::draw(p, prect1, cornerRadius());
 }
 
-QColor
+QBrush
 CQChartsKeyColorBox::
-fillColor() const
+fillBrush() const
 {
   CQChartsPlot *plot = key_->plot();
 

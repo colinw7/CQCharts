@@ -102,7 +102,7 @@ class CQExprModel : public QAbstractProxyModel {
 
   ExtraColumn &extraColumn(int i) { return extraColumns_[i]; }
 
-  QString replaceDollarColumns(const QString &expr) const;
+  QString replaceNumericColumns(const QString &expr) const;
 
  private:
   QAbstractItemModel* model_      { nullptr };

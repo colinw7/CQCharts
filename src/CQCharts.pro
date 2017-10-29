@@ -53,6 +53,7 @@ CQChartsXYPlot.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
 CQChartsDataLabel.cpp \
+CQChartsFillObj.cpp \
 CQChartsLineObj.cpp \
 CQChartsPointObj.cpp \
 \
@@ -163,6 +164,7 @@ HEADERS += \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsTextBoxObj.h \
 ../include/CQChartsDataLabel.h \
+../include/CQChartsFillObj.h \
 ../include/CQChartsLineObj.h \
 ../include/CQChartsPointObj.h \
 \

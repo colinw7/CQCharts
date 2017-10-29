@@ -163,7 +163,7 @@ class CQChartsChordPlot : public CQChartsPlot {
   void setGroupColumn(int i) { groupColumn_ = i; update(); }
 
   bool isSorted() const { return sorted_; }
-  void setSorted(bool b) { sorted_ = b; initObjs(/*force*/true); update(); }
+  void setSorted(bool b) { sorted_ = b; updateObjs(); }
 
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r) { innerRadius_ = r; update(); }
@@ -187,9 +187,9 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 

@@ -16,11 +16,11 @@ class CQChartsViewExpander : public QFrame {
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b) { expanded_ = b; update(); }
 
-  void mousePressEvent  (QMouseEvent *);
-  void mouseMoveEvent   (QMouseEvent *);
-  void mouseReleaseEvent(QMouseEvent *);
+  void mousePressEvent  (QMouseEvent *) override;
+  void mouseMoveEvent   (QMouseEvent *) override;
+  void mouseReleaseEvent(QMouseEvent *) override;
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
  private:
   CQChartsView *view_     { nullptr };

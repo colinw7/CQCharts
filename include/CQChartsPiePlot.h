@@ -80,7 +80,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
 
   bool mousePress(const CPoint2D &p) override;
 
-  QColor fillColor() const override;
+  QBrush fillBrush() const override;
 };
 
 class CQChartsPieKeyText : public CQChartsKeyText {
@@ -177,21 +177,21 @@ class CQChartsPiePlot : public CQChartsPlot {
   //---
 
   bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
 
   double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
 
   double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
 
   //---
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;
 

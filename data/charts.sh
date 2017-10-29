@@ -152,7 +152,7 @@ CQChartsTest \
   -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
   -xintegral -ymin 0 \
   -plot_title "Spline Area Chart" \
-  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.displayed=1" \
+  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv console.csv -comment_header \
   -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
@@ -163,7 +163,7 @@ CQChartsTest \
   -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
   -column_type "0#time:format=%Y%m%d,oformat=%b" \
   -plot_title "Line Chart" \
-  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.displayed=1" \
+  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv country_wise_population.csv -comment_header \
   -type bar -columns "name=2,value=1" \
@@ -197,5 +197,197 @@ CQChartsTest \
 
 CQChartsTest \
  -tsv cities.dat -comment_header -process "+column(2)/20000.0" \
- -type scatter -columns "x=4,y=3,name=0,fontSize=5" -bool "textLabels=1,key=0" \
+ -type scatter -columns "x=4,y=3,name=0,fontSize=5" \
+ -bool "textLabels=1,key=0" \
  -properties "dataLabel.position=CENTER"
+
+#---
+
+CQChartsTest \
+ -expr -num_rows 50 \
+ -process "+row(-10,10)" \
+ -process "+sin(x)=sin(@1)" \
+ -process "+atan(x)=atan(@1)" \
+ -process "+cos(atan(x))=cos(atan(@1))" \
+ -type xy -columns "x=1,y=2 3 4" \
+ -plot_title "Simple Plots" \
+ -properties "points.visible=0,dataStyle.stroke.visible=1" \
+ -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
+ -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
+ -properties "Key.location=tl,Key.flipped=1" \
+ -properties "Title.text.font=+8"
+
+CQChartsTest \
+ -expr -num_rows 100 \
+ -process "+row(-pi/2,pi)" \
+ -process "+cos(x)=cos(@1)" \
+ -process "+-(sin(x)>sin(x+1)?sin(x):sin(x+1))=-(sin(@1)>sin(@1+1)?sin(@1):sin(@1+1))" \
+ -type xy -columns "x=1,y=2 3" \
+ -plot_title "Simple Plots" \
+ -properties "points.visible=0,dataStyle.stroke.visible=1" \
+ -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
+ -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
+ -properties "Key.flipped=1,Key.border.visible=0" \
+ -properties "Title.text.font=+8"
+
+CQChartsTest \
+ -expr -num_rows 200 \
+ -process "+row(-3,5)" \
+ -process "+asin(x)=asin(@1)" \
+ -process "+acos(x)=acos(@1)" \
+ -type xy -columns "x=1,y=2 3" \
+ -xmin -3 -xmax 5 \
+ -plot_title "Simple Plots" \
+ -properties "points.visible=0,dataStyle.stroke.visible=1" \
+ -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
+ -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
+ -properties "Key.location=tl,Key.flipped=1" \
+ -properties "Title.text.font=+8"
+
+CQChartsTest \
+ -expr -num_rows 500 \
+ -process "+row(-5*pi,5*pi)" \
+ -process "+tan(x)/atan(x)=tan(@1)/atan(@1)" \
+ -process "+1/x=1/@1" \
+ -type xy -columns "x=1,y=2 3" \
+ -plot_title "Simple Plots" \
+ -xmin -16 -xmax 16 -ymin -5 -ymax 5 \
+ -properties "points.visible=0" \
+ -properties "Key.location=bc,Key.insideY=0"
+ -properties "Title.text.font=+8"
+
+CQChartsTest \
+ -expr -num_rows 800 \
+ -process "+row(-30,20)" \
+ -process "+sin(x*20)*atan(x)=sin(@1*20)*atan(@1)" \
+ -type xy -columns "x=1,y=2" \
+ -plot_title "Simple Plots" \
+ -properties "points.visible=0" \
+ -properties "Key.location=bl,Key.insideY=0,Key.flipped=1"
+ -properties "Title.text.font=+8"
+
+#---
+
+CQChartsTest -overlay \
+ -data 1.dat -type xy \
+ -bool "impulse=1" \
+ -properties "points.visible=0,lines.visible=0" \
+ -properties "dataStyle.stroke.visible=1" \
+ -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1,X Axis.ticks.minor.visible=0" \
+ -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1,Y Axis.ticks.minor.visible=0" \
+ -properties "Key.location=bl,Key.insideY=0,Key.horizontal=1" \
+-and \
+ -data 2.dat -type xy \
+ -properties "lines.visible=0" \
+-and \
+ -data 3.dat -type xy \
+ -properties "points.visible=0" \
+ -ymin -10 -ymax 10
+
+CQChartsTest -overlay \
+ -expr -num_rows 100 \
+ -process "+row(-10,10)=row(-10,10)" \
+ -process "+1.5+sin(x)/x=1.5+sin(@1)/@1" \
+ -process "+sin(x)/x=sin(@1)/@1" \
+ -process "+1+sin(x)/x=1+sin(@1)/@1" \
+ -process "+-1+sin(x)/x=-1+sin(@1)/@1" \
+ -process "+-2.5+sin(x)/x=-2.5+sin(@1)/@1" \
+ -process "+-4.3+sin(x)/x=-4.3+sin(@1)/@1" \
+ -process "+(x>3.5 ? x/3-3 : 1/0)=(@1>3.5 ? @1/3-3 : 1/0)" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=max" \
+ -xmin -10 -xmax 10 -ymin -5 -ymax 3 \
+-and \
+ -type xy -columns "x=1,y=3" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=0.0" \
+-and \
+ -type xy -columns "x=1,y=4" \
+ -properties "points.visible=0" \
+-and \
+ -type xy -columns "x=1,y=5" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-2" \
+-and \
+ -type xy -columns "x=1,y=6" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-5 -4" \
+-and \
+ -type xy -columns "x=1,y=7" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min" \
+-and \
+ -type xy -columns "x=1,y=8" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-1.8333"
+
+CQChartsTest -overlay \
+ -expr -num_rows 100 \
+ -process "+row(-10,10)=row(-10,10)" \
+ -process "+x*x=@1*@1" \
+ -process "+50-x*x=50-@1*@1" \
+ -process "+x*x=@1*@1" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=max" \
+-and \
+ -type xy -columns "x=1,y=3" \
+ -properties "points.visible=0,fillUnder.visible=1" \
+-and \
+ -type xy -columns "x=1,y=4" \
+ -properties "points.visible=0"
+
+CQChartsTest -overlay \
+ -expr -num_rows 100 \
+ -process "+x=row(-10,10)" \
+ -process "+2+sin(x)**2=2+sin(@1)**2" \
+ -process "+cos(x)**2=cos(@1)**2" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min" \
+ -properties "Y Axis.grid.line.visible=1" \
+-and \
+ -type xy -columns "x=1,y=3" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min"
+
+CQChartsTest \
+ -expr -num_rows 100 \
+ -process "+x=row(-10,10)" \
+ -process "+abs(x)=abs(@1)" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=2 5"
+
+CQChartsTest -overlay \
+ -expr -num_rows 100 \
+ -process "+x=row(0,10)" \
+ -process "+-8=-8" \
+ -process "+sqrt(x)=sqrt(@1)" \
+ -process "+sqrt(10-x)-4.5=sqrt(10-@1)-4.5" \
+ -plot_title "Some sqrt stripes on filled graph background" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=max" \
+-and \
+ -type xy -columns "x=1,y=3" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-0.5" \
+-and \
+ -type xy -columns "x=1,y=4" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-5.5" \
+ -ymin -8 -ymax 6
+
+CQChartsTest \
+ -data silver.dat \
+ -type xy -columns "x=0,y=1 2" -bivariate \
+ -properties "fillUnder.visible=1"
+
+CQChartsTest -overlay \
+ -data silver.dat \
+ -process "+@2+@0/50.0" \
+ -type xy -columns "x=0,y=1 3" -bivariate \
+ -properties "fillUnder.visible=1,fillUnder.side=above,lines.visible=0" \
+ -plot_title "Fill area between two curves (above/below)" \
+ -xmin 250 -xmax 500 -ymin 5 -ymax 30 \
+-and \
+ -type xy -columns "x=0,y=1 3" -bivariate \
+ -properties "fillUnder.visible=1,fillUnder.side=below,lines.visible=0" \
+ -plot_title "Below" \
+-and \
+ -type xy -columns "x=0,y=1" \
+ -properties "lines.width=2,lines.color=black" \
+ -plot_title "curve 1" \
+-and \
+ -type xy -columns "x=0,y=3" \
+ -properties "lines.width=2,lines.color=cyan" \
+ -plot_title "curve 2"

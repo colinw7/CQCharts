@@ -57,26 +57,21 @@ addProperties()
 
 void
 CQChartsTreeMapPlot::
-updateRange()
+updateRange(bool apply)
 {
+  dataRange_.reset();
+
   dataRange_.updateRange(-1, -1);
   dataRange_.updateRange( 1,  1);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsTreeMapPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -96,12 +91,12 @@ initObjs(bool force)
 
   //---
 
-  initObjs(root_, 0);
+  initNodeObjs(root_, 0);
 }
 
 void
 CQChartsTreeMapPlot::
-initObjs(CQChartsTreeMapHierNode *hier, int depth)
+initNodeObjs(CQChartsTreeMapHierNode *hier, int depth)
 {
   if (hier != root_) {
     CBBox2D rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
@@ -117,7 +112,7 @@ initObjs(CQChartsTreeMapHierNode *hier, int depth)
   //---
 
   for (auto hierNode : hier->getChildren()) {
-    initObjs(hierNode, depth + 1);
+    initNodeObjs(hierNode, depth + 1);
   }
 
   //---

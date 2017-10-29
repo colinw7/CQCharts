@@ -123,5 +123,5 @@ void
 CQCharts::
 errorMsg(const QString &msg)
 {
-  std::cerr << msg.toStdString() << std::endl;
+  std::cerr << msg.toStdString() << "\n";
 }

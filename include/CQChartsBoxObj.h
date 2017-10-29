@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QColor>
+#include <QRectF>
+#include <QPolygonF>
 
 class CQPropertyViewTree;
 class QPainter;

@@ -76,6 +76,17 @@ set_nan(double &real)
   return false;
 }
 
+double
+COSNaN::
+get_nan()
+{
+  double real;
+
+  set_nan(real);
+
+  return real;
+}
+
 //------
 
 bool

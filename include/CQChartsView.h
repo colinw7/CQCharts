@@ -2,7 +2,7 @@
 #define CQChartsView_H
 
 #include <QFrame>
-#include <CDisplayRange2D.h>
+#include <CBBox2D.h>
 
 class CQCharts;
 class CQChartsPlot;
@@ -15,6 +15,7 @@ class CQChartsProbeBand;
 class CQPropertyViewTree;
 class CQGradientControlPlot;
 class CQGradientControlIFace;
+class CDisplayRange2D;
 class QToolButton;
 class QRubberBand;
 class QTabWidget;
@@ -42,6 +43,9 @@ class CQChartsView : public QFrame {
   typedef std::vector<CQChartsPlot *> Plots;
 
  public:
+  static double viewportRange() { return 100.0; }
+
+ public:
   CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
 
   virtual ~CQChartsView();
@@ -50,6 +54,8 @@ class CQChartsView : public QFrame {
 
   const QString &id() const { return id_; }
   void setId(const QString &s);
+
+  //---
 
   const QColor &background() const { return background_; }
   void setBackground(const QColor &c) { background_ = c; update(); }
@@ -86,11 +92,15 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void initOverlay();
+
+  //---
+
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;
 
-  void keyPressEvent(QKeyEvent *ke);
+  void keyPressEvent(QKeyEvent *ke) override;
 
   void resizeEvent(QResizeEvent *) override;
 
@@ -131,7 +141,7 @@ class CQChartsView : public QFrame {
 
   //---
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private:
   struct PlotData {
@@ -157,7 +167,7 @@ class CQChartsView : public QFrame {
 
   CQCharts*             charts_         { nullptr };
   QWidget*              parent_         { nullptr };
-  CDisplayRange2D       displayRange_;
+  CDisplayRange2D*      displayRange_   { nullptr };
   CQChartsViewExpander* expander_       { nullptr };
   CQChartsViewSettings* settings_       { nullptr };
   QString               id_;

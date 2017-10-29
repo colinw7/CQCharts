@@ -4,8 +4,6 @@
 #include <CQChartsPlotParameter.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsQuadTree.h>
-#include <CQChartsBoxObj.h>
-#include <CQChartsKey.h>
 
 #include <CDisplayRange2D.h>
 #include <CDisplayTransform2D.h>
@@ -23,6 +21,7 @@ class CQChartsAxis;
 class CQChartsKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
+class CQChartsBoxObj;
 class CQPropertyViewTree;
 
 class CGradientPalette;
@@ -66,9 +65,12 @@ class CQChartsPlotType {
 
   virtual ~CQChartsPlotType() { }
 
+  // type name and description
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
 
+  // plot parameters
+  // (required/key options to initialize plot)
   virtual void addParameters();
 
   const Parameters &parameters() const { return parameters_; }
@@ -97,6 +99,7 @@ class CQChartsPlotType {
     return parameters_.back();
   }
 
+  // create plot
   virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
 
  protected:
@@ -108,14 +111,20 @@ class CQChartsPlotType {
 class CQChartsPlot : public QObject {
   Q_OBJECT
 
+  // visible, rectangle and data range
   Q_PROPERTY(bool    visible             READ isVisible           WRITE setVisible            )
   Q_PROPERTY(QRectF  rect                READ rect                WRITE setRect               )
   Q_PROPERTY(QRectF  range               READ range               WRITE setRange              )
+
+  // margin
   Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
   Q_PROPERTY(double  marginTop           READ marginTop           WRITE setMarginTop          )
   Q_PROPERTY(double  marginRight         READ marginRight         WRITE setMarginRight        )
   Q_PROPERTY(double  marginBottom        READ marginBottom        WRITE setMarginBottom       )
+
+  // title and associated filesname (if any)
   Q_PROPERTY(QString title               READ title               WRITE setTitle              )
+  Q_PROPERTY(QString fileName            READ fileName            WRITE setFileName           )
 
   // plot area
   Q_PROPERTY(bool    background          READ isBackground        WRITE setBackground         )
@@ -138,19 +147,19 @@ class CQChartsPlot : public QObject {
   // key
   Q_PROPERTY(bool    keyVisible          READ isKeyVisible        WRITE setKeyVisible         )
 
+  // misc
   Q_PROPERTY(bool    equalScale          READ isEqualScale        WRITE setEqualScale         )
   Q_PROPERTY(bool    followMouse         READ isFollowMouse       WRITE setFollowMouse        )
   Q_PROPERTY(bool    overlay             READ isOverlay           WRITE setOverlay            )
   Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
 
  public:
+  // per display layer (optional)
   enum Layer {
     BG,
     MID,
     FG
   };
-
-  typedef std::vector<int> Columns;
 
   // margin (percent)
   struct Margin {
@@ -160,6 +169,10 @@ class CQChartsPlot : public QObject {
     double bottom { 10 };
   };
 
+  // column array
+  typedef std::vector<int> Columns;
+
+  // associated plot for overlay/y1y2
   struct OtherPlot {
     CQChartsPlot *next { nullptr };
     CQChartsPlot *prev { nullptr };
@@ -199,7 +212,7 @@ class CQChartsPlot : public QObject {
   void setDisplayTransform(const CDisplayTransform2D &t) { displayTransform_ = t; }
 
   const CRange2D &dataRange() const { return dataRange_; }
-  void setDataRange(const CRange2D &r) { dataRange_ = r; }
+  void setDataRange(const CRange2D &r);
 
   double dataScale() const { return dataScale_; }
   void setDataScale(double r) { dataScale_ = r; }
@@ -213,40 +226,43 @@ class CQChartsPlot : public QObject {
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
 
   const OptReal &xmin() const { return xmin_; }
-  void setXMin(const OptReal &r) { xmin_ = r; initObjs(/*force*/ true); }
+  void setXMin(const OptReal &r) { xmin_ = r; updateObjs(); }
 
   const OptReal &xmax() const { return xmax_; }
-  void setXMax(const OptReal &r) { xmax_ = r; initObjs(/*force*/ true); }
+  void setXMax(const OptReal &r) { xmax_ = r; updateObjs(); }
 
   const OptReal &ymin() const { return ymin_; }
-  void setYMin(const OptReal &r) { ymin_ = r; initObjs(/*force*/ true); }
+  void setYMin(const OptReal &r) { ymin_ = r; updateObjs(); }
 
   const OptReal &ymax() const { return ymax_; }
-  void setYMax(const OptReal &r) { ymax_ = r; initObjs(/*force*/ true); }
+  void setYMax(const OptReal &r) { ymax_ = r; updateObjs(); }
 
   const QString &title() const { return title_; }
   void setTitle(const QString &s);
 
+  const QString &fileName() const { return fileName_; }
+  void setFileName(const QString &s) { fileName_ = s; }
+
   //---
 
   // plot area
-  bool isBackground() const { return borderObj_.isBackground(); }
-  void setBackground(bool b) { borderObj_.setBackground(b); update(); }
+  bool isBackground() const;
+  void setBackground(bool b);
 
-  const QColor &backgroundColor() const { return borderObj_.backgroundColor(); }
-  void setBackgroundColor(const QColor &c) { borderObj_.setBackgroundColor(c); update(); }
+  const QColor &backgroundColor() const;
+  void setBackgroundColor(const QColor &c);
 
-  bool isBorder() const { return borderObj_.isBorder(); }
-  void setBorder(bool b) { borderObj_.setBorder(b); update(); }
+  bool isBorder() const;
+  void setBorder(bool b);
 
-  const QColor &borderColor() const { return borderObj_.borderColor(); }
-  void setBorderColor(const QColor &c) { borderObj_.setBorderColor(c); update(); }
+  const QColor &borderColor() const;
+  void setBorderColor(const QColor &c);
 
-  double borderWidth() const { return borderObj_.borderWidth(); }
-  void setBorderWidth(double r) { borderObj_.setBorderWidth(r); update(); }
+  double borderWidth() const;
+  void setBorderWidth(double r);
 
-  const QString &borderSides() const { return borderObj_.borderSides(); }
-  void setBorderSides(const QString &s) { borderObj_.setBorderSides(s); update(); }
+  const QString &borderSides() const;
+  void setBorderSides(const QString &s);
 
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
@@ -254,23 +270,23 @@ class CQChartsPlot : public QObject {
   //---
 
   // data area
-  bool isDataBackground() const { return dataBorderObj_.isBackground(); }
-  void setDataBackground(bool b) { dataBorderObj_.setBackground(b); update(); }
+  bool isDataBackground() const;
+  void setDataBackground(bool b);
 
-  const QColor &dataBackgroundColor() const { return dataBorderObj_.backgroundColor(); }
-  void setDataBackgroundColor(const QColor &c) { dataBorderObj_.setBackgroundColor(c); update(); }
+  const QColor &dataBackgroundColor() const;
+  void setDataBackgroundColor(const QColor &c);
 
-  bool isDataBorder() const { return dataBorderObj_.isBorder(); }
-  void setDataBorder(bool b) { dataBorderObj_.setBorder(b); update(); }
+  bool isDataBorder() const;
+  void setDataBorder(bool b);
 
-  const QColor &dataBorderColor() const { return dataBorderObj_.borderColor(); }
-  void setDataBorderColor(const QColor &c) { dataBorderObj_.setBorderColor(c); update(); }
+  const QColor &dataBorderColor() const;
+  void setDataBorderColor(const QColor &c);
 
-  double dataBorderWidth() const { return dataBorderObj_.borderWidth(); }
-  void setDataBorderWidth(double r) { dataBorderObj_.setBorderWidth(r); update(); }
+  double dataBorderWidth() const;
+  void setDataBorderWidth(double r);
 
-  const QString &dataBorderSides() const { return dataBorderObj_.borderSides(); }
-  void setDataBorderSides(const QString &s) { dataBorderObj_.setBorderSides(s); update(); }
+  const QString &dataBorderSides() const;
+  void setDataBorderSides(const QString &s);
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b) { dataClip_ = b; update(); }
@@ -278,8 +294,8 @@ class CQChartsPlot : public QObject {
   //---
 
   // key
-  bool isKeyVisible() const { return (keyObj_ ? keyObj_->isVisible() : false); }
-  void setKeyVisible(bool b) { if (keyObj_) keyObj_->setVisible(b); }
+  bool isKeyVisible() const;
+  void setKeyVisible(bool b);
 
   //---
 
@@ -363,10 +379,23 @@ class CQChartsPlot : public QObject {
     return this;
   }
 
+  bool isFirstPlot() const {
+    return (const_cast<CQChartsPlot *>(this)->firstPlot() == this);
+  }
+
+  bool isOverlayFirstPlot() const {
+    return (isOverlay() && isFirstPlot());
+  }
+
+  bool isOverlayOtherPlot() const {
+    return (isOverlay() && ! isFirstPlot());
+  }
+
   //---
 
   CQPropertyViewTree *propertyView() const;
 
+  // add plot properties to tree
   virtual void addProperties();
 
   bool setProperty(const QString &name, const QVariant &value);
@@ -398,17 +427,32 @@ class CQChartsPlot : public QObject {
   void addXAxis();
   void addYAxis();
 
+  //---
+
   void addKey();
 
+  void resetKeyItems();
+
+  // add items to key
   virtual void addKeyItems(CQChartsKey *) { }
+
+  //---
 
   void addTitle();
 
   //---
 
-  virtual void updateRange() = 0;
+  // update data range
+  // (TODO: remove apply)
+  virtual void updateRange(bool apply=true) = 0;
 
-  virtual void initObjs(bool force=false) = 0;
+  void updateObjs();
+
+  // (re)initialize plot objects
+  virtual void initObjs() = 0;
+
+  // routine to run after plot set up (usually fixes up some defaults)
+  virtual void postInit();
 
   //---
 
@@ -446,12 +490,15 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  // handle mouse press/move/release
   virtual bool mousePress  (const CPoint2D &p);
   virtual bool mouseMove   (const CPoint2D &p, bool first=false);
   virtual void mouseRelease(const CPoint2D &p);
 
+  // handle key press
   virtual void keyPress(int key);
 
+  // get tip text at point
   virtual bool tipText(const CPoint2D &p, QString &tip) const;
 
   //---
@@ -472,8 +519,10 @@ class CQChartsPlot : public QObject {
 
   void updateTransform();
 
+  // interpolate y value from x for probe
   virtual bool interpY(double /*x*/, std::vector<double> & /*y*/) const { return false; }
 
+  // called after resize
   virtual void handleResize();
 
   void updateKeyPosition(bool force=false);
@@ -489,6 +538,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  // auto fit
   virtual void autoFit();
 
   void setFitBBox(const CBBox2D &bbox);
@@ -504,24 +554,32 @@ class CQChartsPlot : public QObject {
 
   void drawParts(QPainter *painter);
 
+  // draw background
   virtual void drawBackground(QPainter *painter);
 
+  // draw objects
   virtual void drawObjs(QPainter *painter, const Layer &layer);
 
+  // draw axes on background/foreground
   virtual void drawBgAxes(QPainter *painter);
   virtual void drawFgAxes(QPainter *painter);
 
+  // draw key on background/foreground
   virtual void drawBgKey(QPainter *painter);
   virtual void drawFgKey(QPainter *painter);
 
+  // draw key
   virtual void drawKey(QPainter *painter);
 
+  // draw title
   virtual void drawTitle(QPainter *painter);
 
+  // draw foreground
   virtual void drawForeground(QPainter *) { }
 
   //---
 
+  // debug draw (red boxes)
   void drawWindowRedBox(QPainter *painter, const CBBox2D &bbox);
 
   void drawRedBox(QPainter *painter, const CBBox2D &bbox);
@@ -534,6 +592,7 @@ class CQChartsPlot : public QObject {
 
   QColor insideColor(const QColor &c) const;
 
+  // get palette color for ith value of n values
   virtual QColor paletteColor(int i, int n, const QColor &def=QColor(0,0,0)) const;
 
   QColor interpPaletteColor(double r, const QColor &def=QColor(0,0,0)) const;
@@ -544,8 +603,9 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  bool isSetHidden(int i) const {
-    auto p = idHidden_.find(i);
+  // get/set/reset id hidden
+  bool isSetHidden(int id) const {
+    auto p = idHidden_.find(id);
 
     if (p == idHidden_.end())
       return false;
@@ -553,7 +613,7 @@ class CQChartsPlot : public QObject {
     return (*p).second;
   }
 
-  void setSetHidden(int i, bool hidden) { idHidden_[i] = hidden; }
+  void setSetHidden(int id, bool hidden) { idHidden_[id] = hidden; }
 
   void resetSetHidden() { idHidden_.clear(); }
 
@@ -561,6 +621,7 @@ class CQChartsPlot : public QObject {
 
   void update();
 
+  // draw plot
   virtual void draw(QPainter *p) = 0;
 
  signals:
@@ -584,12 +645,14 @@ class CQChartsPlot : public QObject {
     bool   pressed { false };
   };
 
+  //---
+
   CQChartsView*         view_                { nullptr };
   CQChartsPlotType*     type_                { nullptr };
   ModelP                model_               { nullptr };
   QString               id_;
   bool                  visible_             { true };
-  CBBox2D               bbox_                { 0, 0, 1000, 1000 };
+  CBBox2D               bbox_                { 0, 0, 1, 1 };
   Margin                margin_;
   CDisplayRange2D       displayRange_;
   CDisplayTransform2D   displayTransform_;
@@ -601,11 +664,12 @@ class CQChartsPlot : public QObject {
   OptReal               xmax_;
   OptReal               ymax_;
   CGradientPalette*     palette_             { nullptr };
-  CQChartsBoxObj        borderObj_;
+  CQChartsBoxObj*       borderObj_           { nullptr };
   bool                  clip_                { true };
-  CQChartsBoxObj        dataBorderObj_;
+  CQChartsBoxObj*       dataBorderObj_       { nullptr };
   bool                  dataClip_            { false };
   QString               title_;
+  QString               fileName_;
   CQChartsAxis*         xAxis_               { nullptr };
   CQChartsAxis*         yAxis_               { nullptr };
   CQChartsKey*          keyObj_              { nullptr };

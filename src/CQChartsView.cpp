@@ -6,10 +6,13 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
+#include <CQChartsAxis.h>
+#include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewTree.h>
 #include <CQGradientControlPlot.h>
 #include <CQGradientControlIFace.h>
+#include <CDisplayRange2D.h>
 
 #include <svg/select_svg.h>
 #include <svg/zoom_svg.h>
@@ -36,7 +39,11 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  displayRange_.setWindowRange(0, 0, 1000, 1000);
+  displayRange_ = new CDisplayRange2D;
+
+  double vr = viewportRange();
+
+  displayRange_->setWindowRange(0, 0, vr, vr);
 
   //---
 
@@ -152,6 +159,8 @@ addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
   plotDatas_.emplace_back(plot, bbox);
 
   plot->addProperties();
+
+  plot->postInit();
 }
 
 CQChartsPlot *
@@ -164,6 +173,37 @@ getPlot(const QString &id) const
   }
 
   return nullptr;
+}
+
+void
+CQChartsView::
+initOverlay()
+{
+  if (! numPlots())
+    return;
+
+  CQChartsPlot *firstPlot = plot(0)->firstPlot();
+
+  for (const auto &plotData : plotDatas_) {
+    if (plotData.plot == firstPlot)
+      continue;
+
+    CQChartsAxis *xaxis = plotData.plot->xAxis();
+    CQChartsAxis *yaxis = plotData.plot->yAxis();
+
+    if (xaxis)
+      xaxis->setVisible(false);
+
+    if (yaxis)
+      yaxis->setVisible(false);
+
+    CQChartsTitle *title = plotData.plot->titleObj();
+
+    if (title)
+      title->setVisible(false);
+  }
+
+  firstPlot->updateObjs();
 }
 
 void
@@ -441,8 +481,8 @@ updateGeometry()
 
   //---
 
-  displayRange_.setPixelRange(prect_.getXMin(), prect_.getYMin(),
-                              prect_.getXMax(), prect_.getYMax());
+  displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
+                               prect_.getXMax(), prect_.getYMax());
 
   settings_->setVisible(expander_->isExpanded());
 
@@ -579,14 +619,14 @@ void
 CQChartsView::
 windowToPixel(double wx, double wy, double &px, double &py) const
 {
-  displayRange_.windowToPixel(wx, wy, &px, &py);
+  displayRange_->windowToPixel(wx, wy, &px, &py);
 }
 
 void
 CQChartsView::
 pixelToWindow(double px, double py, double &wx, double &wy) const
 {
-  displayRange_.pixelToWindow(px, py, &wx, &wy);
+  displayRange_->pixelToWindow(px, py, &wx, &wy);
 }
 
 CPoint2D

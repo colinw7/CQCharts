@@ -90,7 +90,7 @@ addProperties()
 
 void
 CQChartsScatterPlot::
-updateRange()
+updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
@@ -129,7 +129,8 @@ updateRange()
 
   //---
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 int
@@ -162,16 +163,8 @@ nameIndex(const QString &name) const
 
 void
 CQChartsScatterPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -336,9 +329,7 @@ initObjs(bool force)
 
   //---
 
-  keyObj_->clearItems();
-
-  addKeyItems(keyObj_);
+  resetKeyItems();
 }
 
 void
@@ -472,18 +463,16 @@ mousePress(const CPoint2D &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->initObjs(/*force*/true);
-
-  plot->update();
+  plot->updateObjs();
 
   return true;
 }
 
-QColor
+QBrush
 CQChartsScatterKeyColor::
-fillColor() const
+fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillColor();
+  QColor c = CQChartsKeyColorBox::fillBrush().color();
 
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 

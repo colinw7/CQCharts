@@ -2,6 +2,7 @@
 #include <CQBaseModel.h>
 #include <CQStrParse.h>
 #include <CExpr.h>
+#include <COSNaN.h>
 
 class CQExprModelFn : public CExprFunctionObj {
  public:
@@ -147,7 +148,7 @@ class CQExprModelSetColumnFn : public CQExprModelFn {
 
 //---
 
-// row(), row(row), row(row,column)
+// row(), row(max), row(min,max)
 class CQExprModelRowFn : public CQExprModelFn {
  public:
   CQExprModelRowFn(CQExprModel *model) :
@@ -155,20 +156,22 @@ class CQExprModelRowFn : public CQExprModelFn {
   }
 
   CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
-    long row = model_->currentRow(), col = model_->currentCol();
+    long row = model_->currentRow();
 
-    if      (values.size() == 0) {
+    if (values.size() == 0)
       return expr->createIntegerValue(row);
-    }
-    else if (values.size() == 1) {
-      if (! values[0]->getIntegerValue(row))
+
+    double min = 0.0, max = 1.0;
+
+    if      (values.size() == 1) {
+      if (! values[0]->getRealValue(max))
         return CExprValuePtr();
     }
     else if (values.size() == 2) {
-      if (! values[0]->getIntegerValue(row))
+      if (! values[0]->getRealValue(min))
         return CExprValuePtr();
 
-      if (! values[1]->getIntegerValue(col))
+      if (! values[1]->getRealValue(max))
         return CExprValuePtr();
     }
     else {
@@ -177,14 +180,16 @@ class CQExprModelRowFn : public CQExprModelFn {
 
     //---
 
-    if (! checkIndex(row, col))
-      return CExprValuePtr();
+    // scale row number to 0->1
+    double x = 0.0;
 
-    QModelIndex ind = model_->index(row, col, QModelIndex());
+    if (model_->rowCount())
+      x = (1.0*row)/model_->rowCount();
 
-    QVariant var = model_->data(ind, Qt::DisplayRole);
+    // map 0->1 -> min->max
+    double x1 = x*(max - min) + min;
 
-    return variantToValue(expr, var);
+    return expr->createRealValue(x1);
   }
 };
 
@@ -560,6 +565,9 @@ CQExprModel(QAbstractItemModel *model) :
 {
   expr_ = new CExpr;
 
+  expr_->createRealVariable("pi" , M_PI);
+  expr_->createRealVariable("NaN", COSNaN::get_nan());
+
   expr_->addFunction("column"   , "...", new CQExprModelColumnFn   (this));
   expr_->addFunction("setColumn", "...", new CQExprModelSetColumnFn(this));
   expr_->addFunction("row"      , "...", new CQExprModelRowFn      (this));
@@ -650,7 +658,7 @@ void
 CQExprModel::
 processExpr(const QString &expr)
 {
-  QString expr1 = replaceDollarColumns(expr);
+  QString expr1 = replaceNumericColumns(expr);
 
   for (int r = 0; r < rowCount(); ++r) {
     currentRow_ = r;
@@ -844,7 +852,7 @@ getExtraColumnValue(int row, int column) const
       expr = expr.mid(pos + 1).simplified();
     }
 
-    expr = replaceDollarColumns(expr);
+    expr = replaceNumericColumns(expr);
 
     QVariant var;
 
@@ -1051,14 +1059,14 @@ mapFromSource(const QModelIndex &index) const
 
 QString
 CQExprModel::
-replaceDollarColumns(const QString &expr) const
+replaceNumericColumns(const QString &expr) const
 {
   CQStrParse parse(expr);
 
   QString expr1;
 
   while (! parse.eof()) {
-    if (parse.isChar('$')) {
+    if (parse.isChar('@')) {
       parse.skipChar();
 
       if (parse.isDigit()) {
@@ -1074,7 +1082,7 @@ replaceDollarColumns(const QString &expr) const
         expr1 += QString("column(%1)").arg(column);
       }
       else
-        expr1 += "$";
+        expr1 += "@";
     }
     else
       expr1 += parse.getChar();

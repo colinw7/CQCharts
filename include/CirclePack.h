@@ -131,7 +131,7 @@ class CirclePack {
       NODE *node1 = nodes_[ind1];
       NODE *node2 = nodes_[ind2];
 
-      //std::cerr << "Test: " << node1->id() << " and " << node2->id() << std::endl;
+      //std::cerr << "Test: " << node1->id() << " and " << node2->id() << "\n";
 
       double xi1, yi1, xi2, yi2;
 
@@ -160,7 +160,7 @@ class CirclePack {
             yc = yi2;
           }
 
-          //std::cerr << "Place: " << xc << " " << yc << std::endl;
+          //std::cerr << "Place: " << xc << " " << yc << "\n";
 
           return true;
         }

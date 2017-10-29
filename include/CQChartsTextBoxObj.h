@@ -34,7 +34,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  void addProperties(CQPropertyViewTree *tree, const QString &path);
+  void addProperties(CQPropertyViewTree *tree, const QString &path) override;
 
   //---
 

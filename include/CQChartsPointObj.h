@@ -2,6 +2,7 @@
 #define CQChartsPointObj_H
 
 #include <CQChartsPlotSymbol.h>
+#include <CQChartsPaletteColor.h>
 #include <QObject>
 #include <QColor>
 #include <QPointF>
@@ -31,17 +32,22 @@ class CQChartsPointObj : public QObject {
   const CSymbol2D::Type &symbolType() const { return symbol_; }
   void setSymbolType(const CSymbol2D::Type &v) { symbol_ = v; redrawPointObj(); }
 
-  const QColor &color() const { return color_; }
-  void setColor(const QColor &c) { color_ = c; redrawPointObj(); }
+  const QColor &color() const { return color_.color; }
+  void setColor(const QColor &c) { color_.color = c; redrawPointObj(); }
 
-  bool isPalette() const { return palette_; }
-  void setPalette(bool b) { palette_ = b; redrawPointObj(); }
+  bool isPalette() const { return color_.palette; }
+  void setPalette(bool b) { color_.palette = b; redrawPointObj(); }
 
   double size() const { return size_; }
   void setSize(double r) { size_ = r; redrawPointObj(); }
 
   bool isFilled() const { return filled_; }
   void setFilled(bool b) { filled_ = b; redrawPointObj(); }
+
+  //---
+
+  QString colorStr() const { return color_.colorStr(); }
+  void setColorStr(const QString &str) { color_.setColorStr(str); redrawPointObj(); }
 
   //---
 
@@ -60,12 +66,11 @@ class CQChartsPointObj : public QObject {
   virtual void redrawPointObj() { }
 
  protected:
-  bool            displayed_ { true };
-  CSymbol2D::Type symbol_    { CSymbol2D::Type::CROSS };
-  QColor          color_     { 0, 0, 0 };
-  bool            palette_   { true };
-  double          size_      { 4 };
-  bool            filled_    { false };
+  bool                 displayed_ { true };
+  CSymbol2D::Type      symbol_    { CSymbol2D::Type::CROSS };
+  CQChartsPaletteColor color_     { QColor(0, 0, 0), true };
+  double               size_      { 4 };
+  bool                 filled_    { false };
 };
 
 #endif

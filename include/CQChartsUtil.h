@@ -18,6 +18,24 @@ namespace CQChartsUtil {
 
 //------
 
+inline bool isNaN(double r) {
+  return COSNaN::is_nan(r) && ! COSNaN::is_inf(r);
+}
+
+inline bool isInf(double r) {
+  return COSNaN::is_inf(r);
+}
+
+inline double getNaN() {
+  double r;
+
+  COSNaN::set_nan(r);
+
+  return r;
+}
+
+//------
+
 inline bool isInteger(double r) {
   return std::abs(r - int(r)) < 1E-3;
 }
@@ -48,6 +66,12 @@ inline double toReal(const QString &str, bool &ok) {
 }
 
 inline double toReal(const QVariant &var, bool &ok) {
+  if (! var.isValid()) {
+    ok = false;
+
+    return getNaN();
+  }
+
   return toReal(var.toString(), ok);
 }
 
@@ -77,6 +101,12 @@ inline long toInt(const QString &str, bool &ok) {
 }
 
 inline long toInt(const QVariant &var, bool &ok) {
+  if (! var.isValid()) {
+    ok = false;
+
+    return 0;
+  }
+
   return toInt(var.toString(), ok);
 }
 
@@ -182,6 +212,11 @@ inline CBBox2D fromQRect(const QRectF &rect) {
 
 //------
 
+// average of two reals
+inline double avg(double x1, double x2) {
+  return (x1 + x2)/2;
+}
+
 // map x in low->high to 0->1
 inline double norm(double x, double low, double high) {
   return (x - low)/(high - low);
@@ -209,6 +244,36 @@ inline double iclamp(int val, int low, int high) {
   if (val < low ) return low;
   if (val > high) return high;
   return val;
+}
+
+//---
+
+inline bool intersectLines(const QPointF &l1s, const QPointF &l1e,
+                           const QPointF &l2s, const QPointF &l2e, QPointF &pi) {
+  double dx1 = l1e.x() - l1s.x();
+  double dy1 = l1e.y() - l1s.y();
+  double dx2 = l2e.x() - l2s.x();
+  double dy2 = l2e.y() - l2s.y();
+
+  double delta = dx1*dy2 - dy1*dx2;
+
+  if (fabs(delta) < 1E-6) // parallel
+    return false;
+
+  double idelta = 1.0/delta;
+
+  double dx = l2s.x() - l1s.x();
+  double dy = l2s.y() - l1s.y();
+
+  double m1 = (dx*dy2 - dy*dx2)*idelta;
+//double m2 = (dx*dy1 - dy*dx1)*idelta;
+
+  double xi = l1s.x() + m1*dx1;
+  double yi = l1s.y() + m1*dy1;
+
+  pi = QPointF(xi, yi);
+
+  return true;
 }
 
 //---
@@ -375,12 +440,6 @@ inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
 
     return true;
   }
-}
-
-//------
-
-inline bool isNaN(double r) {
-  return COSNaN::is_nan(r) && ! COSNaN::is_inf(r);
 }
 
 //------

@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsColumn.h>
+#include <CQChartsBoxObj.h>
 #include <CQChartsPointObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
@@ -79,10 +80,17 @@ CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  view_(view), type_(type), model_(model), displayTransform_(&displayRange_)
 {
+  borderObj_     = new CQChartsBoxObj;
+  dataBorderObj_ = new CQChartsBoxObj;
+
   setBackground    (true);
   setDataBackground(true);
 
-  displayRange_.setPixelRange(0, 1000, 1000, 0);
+  double vr = CQChartsView::viewportRange();
+
+  bbox_ = CBBox2D(0, 0, vr, vr);
+
+  displayRange_.setPixelRange(0, vr, vr, 0);
 
   displayRange_.setWindowRange(0, 0, 1, 1);
 }
@@ -91,6 +99,9 @@ CQChartsPlot::
 ~CQChartsPlot()
 {
   clearPlotObjects();
+
+  delete borderObj_;
+  delete dataBorderObj_;
 
   delete titleObj_;
   delete keyObj_;
@@ -105,6 +116,21 @@ charts() const
   return view_->charts();
 }
 
+//---
+
+void
+CQChartsPlot::
+setDataRange(const CRange2D &r)
+{
+  if (r != dataRange_) {
+    dataRange_ = r;
+
+    updateObjs();
+  }
+}
+
+//---
+
 void
 CQChartsPlot::
 setTitle(const QString &s)
@@ -115,13 +141,205 @@ setTitle(const QString &s)
     titleObj_->setText(title_);
 }
 
+//---
+
+bool
+CQChartsPlot::
+isBackground() const
+{
+  return borderObj_->isBackground();
+}
+
+void
+CQChartsPlot::
+setBackground(bool b)
+{
+  borderObj_->setBackground(b); update();
+}
+
+const QColor &
+CQChartsPlot::
+backgroundColor() const
+{
+  return borderObj_->backgroundColor();
+}
+
+void
+CQChartsPlot::
+setBackgroundColor(const QColor &c)
+{
+  borderObj_->setBackgroundColor(c); update();
+}
+
+bool
+CQChartsPlot::
+isBorder() const
+{
+  return borderObj_->isBorder();
+}
+
+void
+CQChartsPlot::
+setBorder(bool b)
+{
+  borderObj_->setBorder(b); update();
+}
+
+const QColor &
+CQChartsPlot::
+borderColor() const
+{
+  return borderObj_->borderColor();
+}
+
+void
+CQChartsPlot::
+setBorderColor(const QColor &c)
+{
+  borderObj_->setBorderColor(c); update();
+}
+
+double
+CQChartsPlot::
+borderWidth() const
+{
+  return borderObj_->borderWidth();
+}
+
+void
+CQChartsPlot::
+setBorderWidth(double r)
+{
+  borderObj_->setBorderWidth(r); update();
+}
+
+const QString &
+CQChartsPlot::
+borderSides() const
+{
+  return borderObj_->borderSides();
+}
+
+void
+CQChartsPlot::
+setBorderSides(const QString &s)
+{
+  borderObj_->setBorderSides(s); update();
+}
+
+//---
+
+bool
+CQChartsPlot::
+isDataBackground() const
+{
+  return dataBorderObj_->isBackground();
+}
+
+void
+CQChartsPlot::
+setDataBackground(bool b)
+{
+  dataBorderObj_->setBackground(b); update();
+}
+
+const QColor &
+CQChartsPlot::
+dataBackgroundColor() const
+{
+  return dataBorderObj_->backgroundColor();
+}
+
+void
+CQChartsPlot::
+setDataBackgroundColor(const QColor &c)
+{
+  dataBorderObj_->setBackgroundColor(c); update();
+}
+
+bool
+CQChartsPlot::
+isDataBorder() const
+{
+  return dataBorderObj_->isBorder();
+}
+
+void
+CQChartsPlot::
+setDataBorder(bool b)
+{
+  dataBorderObj_->setBorder(b); update();
+}
+
+const QColor &
+CQChartsPlot::
+dataBorderColor() const
+{
+  return dataBorderObj_->borderColor();
+}
+
+void
+CQChartsPlot::
+setDataBorderColor(const QColor &c)
+{
+  dataBorderObj_->setBorderColor(c); update();
+}
+
+double
+CQChartsPlot::
+dataBorderWidth() const
+{
+  return dataBorderObj_->borderWidth();
+}
+
+void
+CQChartsPlot::
+setDataBorderWidth(double r)
+{
+  dataBorderObj_->setBorderWidth(r); update();
+}
+
+const QString &
+CQChartsPlot::
+dataBorderSides() const
+{
+  return dataBorderObj_->borderSides();
+}
+
+void
+CQChartsPlot::
+setDataBorderSides(const QString &s)
+{
+  dataBorderObj_->setBorderSides(s); update();
+}
+
+//---
+
+bool
+CQChartsPlot::
+isKeyVisible() const
+{
+  return (keyObj_ ? keyObj_->isVisible() : false);
+}
+
+void
+CQChartsPlot::
+setKeyVisible(bool b)
+{
+  if (keyObj_)
+    keyObj_->setVisible(b);
+}
+
+//---
+
 void
 CQChartsPlot::
 setEqualScale(bool b)
 {
   equalScale_ = b;
 
-  dataRange_.reset();
+  //dataRange_.reset();
+  setDataRange(CRange2D());
 
   updateMargin();
 }
@@ -185,7 +403,10 @@ setRange(const QRectF &r)
 
   CBBox2D bbox = CQChartsUtil::fromQRect(r);
 
-  dataRange_.set(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+  CRange2D range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+
+  //dataRange_.set(range);
+  setDataRange(range);
 
   applyDataRange();
 }
@@ -308,11 +529,46 @@ addKey()
 
 void
 CQChartsPlot::
+resetKeyItems()
+{
+  // if first plot then add all chained plot items to this plot's key
+  if (! prevPlot()) {
+    keyObj_->clearItems();
+
+    addKeyItems(keyObj_);
+
+    CQChartsPlot *plot1 = nextPlot();
+
+    while (plot1) {
+      plot1->addKeyItems(keyObj_);
+
+      plot1 = plot1->nextPlot();
+    }
+  }
+}
+
+void
+CQChartsPlot::
 addTitle()
 {
   titleObj_ = new CQChartsTitle(this);
 
   titleObj_->setText(title_);
+}
+
+void
+CQChartsPlot::
+updateObjs()
+{
+  clearPlotObjects();
+
+  update();
+}
+
+void
+CQChartsPlot::
+postInit()
+{
 }
 
 CBBox2D
@@ -341,7 +597,28 @@ void
 CQChartsPlot::
 applyDataRange(bool propagate)
 {
-  CBBox2D dataRange = calcDataRange();
+  CBBox2D dataRange;
+
+  if (propagate) {
+    CQChartsPlot *plot1 = firstPlot();
+
+    if (isOverlay()) {
+      while (plot1) {
+        plot1->setDataRange(CRange2D());
+
+        plot1->updateRange(/*update*/false);
+
+        dataRange += plot1->calcDataRange();
+
+        plot1 = plot1->nextPlot();
+      }
+    }
+    else
+      dataRange = plot1->calcDataRange();
+  }
+  else {
+    dataRange = calcDataRange();
+  }
 
   displayRange_.setWindowRange(dataRange.getXMin(), dataRange.getYMin(),
                                dataRange.getXMax(), dataRange.getYMax());
@@ -355,15 +632,18 @@ applyDataRange(bool propagate)
     CQChartsPlot *plot1 = firstPlot();
 
     if (isOverlay()) {
+      CRange2D dataRange1 = CRange2D(dataRange.getXMin(), dataRange.getYMin(),
+                                     dataRange.getXMax(), dataRange.getYMax());
+
       if (plot1) {
-        plot1->setDataRange (dataRange_ );
+        plot1->setDataRange (dataRange1 );
         plot1->setDataScale (dataScale_ );
         plot1->setDataOffset(dataOffset_);
 
         plot1->applyDataRange(/*propagate*/false);
 
         while (plot1) {
-          plot1->setDataRange (dataRange_ );
+          plot1->setDataRange (dataRange1 );
           plot1->setDataScale (dataScale_ );
           plot1->setDataOffset(dataOffset_);
 
@@ -395,7 +675,7 @@ applyDataRange(bool propagate)
             CRange2D dataRange(bbox3.getXMin(), bbox3.getYMin(),
                                bbox3.getXMax(), bbox3.getYMax());
 
-            plot1->setDataRange (dataRange  );
+            plot1->setDataRange(dataRange);
 #endif
 
             plot1->setDataScale (dataScale_ );
@@ -1059,7 +1339,7 @@ updateTitlePosition()
     if (! titleObj_->isInside()) {
       ky = bbox.getYMax() + ym;
 
-      if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::TOP_RIGHT)
+      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::TOP_RIGHT)
         ky += xAxis_->bbox().getHeight();
     }
     else
@@ -1072,7 +1352,7 @@ updateTitlePosition()
     if (! titleObj_->isInside()) {
       ky = bbox.getYMin() - ts.height() - ym;
 
-      if (xAxis_ && xAxis_->getSide() == CQChartsAxis::Side::BOTTOM_LEFT)
+      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::BOTTOM_LEFT)
         ky -= xAxis_->bbox().getHeight();
     }
     else
@@ -1342,10 +1622,10 @@ void
 CQChartsPlot::
 drawBgAxes(QPainter *painter)
 {
-  if (xAxis_ && xAxis_->getVisible() && ! xAxis_->isGridAbove())
+  if (xAxis_ && xAxis_->isVisible() && ! xAxis_->isGridAbove())
     xAxis_->drawGrid(this, painter);
 
-  if (yAxis_ && yAxis_->getVisible() && ! yAxis_->isGridAbove())
+  if (yAxis_ && yAxis_->isVisible() && ! yAxis_->isGridAbove())
     yAxis_->drawGrid(this, painter);
 }
 
@@ -1353,18 +1633,18 @@ void
 CQChartsPlot::
 drawFgAxes(QPainter *painter)
 {
-  if (xAxis_ && xAxis_->getVisible() && xAxis_->isGridAbove())
+  if (xAxis_ && xAxis_->isVisible() && xAxis_->isGridAbove())
     xAxis_->drawGrid(this, painter);
 
-  if (yAxis_ && yAxis_->getVisible() && yAxis_->isGridAbove())
+  if (yAxis_ && yAxis_->isVisible() && yAxis_->isGridAbove())
     yAxis_->drawGrid(this, painter);
 
   //---
 
-  if (xAxis_ && xAxis_->getVisible())
+  if (xAxis_ && xAxis_->isVisible())
     xAxis_->draw(this, painter);
 
-  if (yAxis_ && yAxis_->getVisible())
+  if (yAxis_ && yAxis_->isVisible())
     yAxis_->draw(this, painter);
 }
 

@@ -59,22 +59,22 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"     , "x"     );
-  addProperty("columns", this, "yColumn"     , "y"     );
-  addProperty("columns", this, "yColumns"    , "yset"  );
-  addProperty("points" , this, "points"      , "shown" );
-  addProperty("points" , this, "pointsColor" , "color" );
-  addProperty("points" , this, "symbolName"  , "symbol");
-  addProperty("points" , this, "symbolSize"  , "size"  );
-  addProperty("points" , this, "symbolFilled", "filled");
-  addProperty("lines"  , this, "lines"       , "shown" );
-  addProperty("lines"  , this, "linesColor"  , "color" );
-  addProperty("lines"  , this, "linesWidth"  , "width" );
+  addProperty("columns", this, "xColumn"     , "x"      );
+  addProperty("columns", this, "yColumn"     , "y"      );
+  addProperty("columns", this, "yColumns"    , "yset"   );
+  addProperty("points" , this, "points"      , "visible");
+  addProperty("points" , this, "pointsColor" , "color"  );
+  addProperty("points" , this, "symbolName"  , "symbol" );
+  addProperty("points" , this, "symbolSize"  , "size"   );
+  addProperty("points" , this, "symbolFilled", "filled" );
+  addProperty("lines"  , this, "lines"       , "visible");
+  addProperty("lines"  , this, "linesColor"  , "color"  );
+  addProperty("lines"  , this, "linesWidth"  , "width"  );
 }
 
 void
 CQChartsParallelPlot::
-updateRange()
+updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
@@ -132,20 +132,15 @@ updateRange()
   }
 
   displayRange_.setWindowRange(-0.5, 0, numSets() - 0.5, 1);
+
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsParallelPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -314,13 +309,13 @@ draw(QPainter *p)
 
     yAxes_[j]->draw(this, p);
 
-    QString label = yAxes_[j]->getLabel();
+    QString label = yAxes_[j]->label();
 
     double px, py;
 
     windowToPixel(j, dataRange_.ymax(), px, py);
 
-    p->setPen(yAxes_[j]->getTickLabelColor());
+    p->setPen(yAxes_[j]->tickLabelColor());
 
     p->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }

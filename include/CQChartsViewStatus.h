@@ -16,9 +16,9 @@ class CQChartsViewStatus : public QFrame {
   const QString &text() const { return text_; }
   void setText(const QString &s);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private:
   CQChartsView *view_ { nullptr };

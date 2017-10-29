@@ -53,12 +53,15 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 
 void
 CQChartsBubblePlot::
-updateRange()
+updateRange(bool apply)
 {
+  dataRange_.reset();
+
   dataRange_.updateRange(-1, -1);
   dataRange_.updateRange( 1,  1);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
@@ -72,16 +75,8 @@ addProperties()
 
 void
 CQChartsBubblePlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 

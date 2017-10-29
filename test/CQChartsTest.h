@@ -54,6 +54,7 @@ class CQChartsTest : public CQAppWindow {
     FileType   fileType        { FileType::NONE };
     bool       commentHeader   { false };
     bool       firstLineHeader { false };
+    int        numRows         { 100 };
     QString    typeName;
     QString    process;
     NameValues nameValues;
@@ -106,10 +107,10 @@ class CQChartsTest : public CQAppWindow {
   CQChartsView *view() const;
 
   bool loadFileModel(const QString &filename, FileType type,
-                     bool commentHeader, bool firstLineHeader);
+                     bool commentHeader, bool firstLineHeader, int n=100);
 
   QAbstractItemModel *loadFile(const QString &filename, FileType type,
-                               bool commentHeader, bool firstLineHeader,
+                               bool commentHeader, bool firstLineHeader, int n,
                                bool &hierarchical);
 
   QAbstractItemModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
@@ -117,7 +118,7 @@ class CQChartsTest : public CQAppWindow {
   QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
   QAbstractItemModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
 
-  QAbstractItemModel *createExprModel();
+  QAbstractItemModel *createExprModel(int n=100);
 
   bool initPlot(const InitData &initData);
 

@@ -79,7 +79,7 @@ addProperties()
 
 void
 CQChartsPiePlot::
-updateRange()
+updateRange(bool apply)
 {
   double r = 1.0;
 
@@ -102,21 +102,16 @@ updateRange()
   dataRange_.updateRange(-xr, -yr);
   dataRange_.updateRange( xr,  yr);
 
-  applyDataRange();
+  //---
+
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsPiePlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -244,9 +239,7 @@ initObjs(bool force)
 
   //---
 
-  keyObj_->clearItems();
-
-  addKeyItems(keyObj_);
+  resetKeyItems();
 }
 
 void
@@ -369,7 +362,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     exploded = true;
 
   if (exploded) {
-    double angle = CQChartsUtil::Deg2Rad((a1 + a2)/2.0);
+    double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
 
     double dx = 0.1*ro*cos(angle);
     double dy = 0.1*ro*sin(angle);
@@ -486,7 +479,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       double ri = plot_->innerRadius();
       double lr = plot_->labelRadius();
 
-      double ta = (a1 + a2)/2.0;
+      double ta = CQChartsUtil::avg(a1, a2);
 
       double tangle = CQChartsUtil::Deg2Rad(ta);
 
@@ -579,18 +572,16 @@ mousePress(const CPoint2D &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->initObjs(/*force*/true);
-
-  plot->update();
+  plot->updateObjs();
 
   return true;
 }
 
-QColor
+QBrush
 CQChartsPieKeyColor::
-fillColor() const
+fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillColor();
+  QColor c = CQChartsKeyColorBox::fillBrush().color();
 
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 

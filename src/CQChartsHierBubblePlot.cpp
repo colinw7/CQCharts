@@ -56,12 +56,15 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 
 void
 CQChartsHierBubblePlot::
-updateRange()
+updateRange(bool apply)
 {
+  dataRange_.reset();
+
   dataRange_.updateRange(-1, -1);
   dataRange_.updateRange( 1,  1);
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
@@ -75,16 +78,8 @@ addProperties()
 
 void
 CQChartsHierBubblePlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //--
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -104,12 +99,12 @@ initObjs(bool force)
 
   //---
 
-  initObjs(root_, 0);
+  initNodeObjs(root_, 0);
 }
 
 void
 CQChartsHierBubblePlot::
-initObjs(CQChartsHierBubbleHierNode *hier, int depth)
+initNodeObjs(CQChartsHierBubbleHierNode *hier, int depth)
 {
   if (hier != root_) {
     double r = hier->radius();
@@ -127,7 +122,7 @@ initObjs(CQChartsHierBubbleHierNode *hier, int depth)
   //---
 
   for (auto hierNode : hier->getChildren()) {
-    initObjs(hierNode, depth + 1);
+    initNodeObjs(hierNode, depth + 1);
   }
 
   //---

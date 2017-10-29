@@ -111,38 +111,31 @@ QString
 CQChartsBarChartPlot::
 barColorStr() const
 {
-  if (barColorPalette_)
-    return "palette";
-
-  return barColor_.name();
+  return barColor_.colorStr();
 }
 
 void
 CQChartsBarChartPlot::
 setBarColorStr(const QString &str)
 {
-  if (str == "palette") {
-    barColorPalette_ = true;
-  }
-  else {
-    barColorPalette_ = false;
-    barColor_        = QColor(str);
-  }
+  barColor_.setColorStr(str);
+
+  update();
 }
 
 QColor
 CQChartsBarChartPlot::
 barColor(int i, int n) const
 {
-  if (barColorPalette_)
-    return paletteColor(i, n);
+  if (! barColor_.palette)
+    return barColor_.color;
 
-  return barColor_;
+  return paletteColor(i, n);
 }
 
 void
 CQChartsBarChartPlot::
-updateRange()
+updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
@@ -429,7 +422,8 @@ updateRange()
 
   //---
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 int
@@ -470,16 +464,8 @@ getValueSet(const QString &name)
 
 void
 CQChartsBarChartPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     xAxis_->setIntegral           (! isHorizontal());
   //xAxis_->setDataLabels         (! isHorizontal());
@@ -742,9 +728,7 @@ initObjs(bool force)
 
   //----
 
-  keyObj_->clearItems();
-
-  addKeyItems(keyObj_);
+  resetKeyItems();
 }
 
 QString
@@ -752,9 +736,9 @@ CQChartsBarChartPlot::
 valueStr(double v) const
 {
   if (! isHorizontal())
-    return yAxis_->getValueStr(v);
+    return yAxis_->valueStr(v);
   else
-    return xAxis_->getValueStr(v);
+    return xAxis_->valueStr(v);
 }
 
 void
@@ -969,16 +953,14 @@ mousePress(const CPoint2D &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->initObjs(/*force*/true);
-
-  plot->update();
+  plot->updateObjs();
 
   return true;
 }
 
-QColor
+QBrush
 CQChartsBarKeyColor::
-fillColor() const
+fillBrush() const
 {
   CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
 
@@ -987,7 +969,7 @@ fillColor() const
   if (color_)
     c = plot->interpPaletteColor(*color_);
   else
-    c = CQChartsKeyColorBox::fillColor();
+    c = CQChartsKeyColorBox::fillBrush().color();
 
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);

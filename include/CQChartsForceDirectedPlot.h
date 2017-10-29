@@ -734,9 +734,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 

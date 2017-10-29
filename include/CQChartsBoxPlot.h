@@ -10,6 +10,7 @@
 
 class CQChartsBoxPlot;
 
+// box plot object
 class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -39,7 +40,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
 
   bool mousePress(const CPoint2D &p) override;
 
-  QColor fillColor() const override;
+  QBrush fillBrush() const override;
 };
 
 class CQChartsBoxKeyText : public CQChartsKeyText {
@@ -95,9 +96,9 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;
 

@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsPaletteColor.h>
 
 class CQChartsBarChartPlot;
 
@@ -50,7 +51,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
   bool mousePress(const CPoint2D &p) override;
 
-  QColor fillColor() const override;
+  QBrush fillBrush() const override;
 
  private:
   typedef boost::optional<double> OptReal;
@@ -81,7 +82,7 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
-  void addParameters();
+  void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -158,17 +159,17 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
+  void setStacked(bool b) { stacked_ = b; updateObjs(); }
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; initObjs(/*force*/true); update(); }
+  void setHorizontal(bool b) { horizontal_ = b; updateObjs(); }
 
   // bar margin
   int margin() const { return margin_; }
   void setMargin(int i) { margin_ = i; update(); }
 
   bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); initObjs(true); }
+  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateObjs(); }
 
   //---
 
@@ -195,13 +196,13 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
 
   double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
 
   double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
 
   //---
 
@@ -209,11 +210,11 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
   void addProperties() override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 
@@ -277,23 +278,22 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   ValueSet *getValueSet(const QString &name);
 
  private:
-  int               categoryColumn_  { 0 };
-  int               valueColumn_     { 1 };
-  Columns           valueColumns_;
-  int               nameColumn_      { -1 };
-  int               colorColumn_     { -1 };
-  bool              stacked_         { false };
-  bool              horizontal_      { false };
-  double            margin_          { 2 };
-  bool              keySets_         { false };
-  CQChartsBoxObj    borderObj_;
-  bool              fill_            { true };
-  bool              barColorPalette_ { true };
-  QColor            barColor_        { 100, 100, 200 };
-  CQChartsValueSet  colorSet_;
-  CQChartsDataLabel dataLabel_;
-  ValueSets         valueSets_;
-  ValueNames        valueNames_;
+  int                  categoryColumn_ { 0 };
+  int                  valueColumn_    { 1 };
+  Columns              valueColumns_;
+  int                  nameColumn_     { -1 };
+  int                  colorColumn_    { -1 };
+  bool                 stacked_        { false };
+  bool                 horizontal_     { false };
+  double               margin_         { 2 };
+  bool                 keySets_        { false };
+  CQChartsBoxObj       borderObj_;
+  bool                 fill_           { true };
+  CQChartsPaletteColor barColor_       { QColor(100, 100, 200), true };
+  CQChartsValueSet     colorSet_;
+  CQChartsDataLabel    dataLabel_;
+  ValueSets            valueSets_;
+  ValueNames           valueNames_;
 };
 
 #endif

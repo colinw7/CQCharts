@@ -131,15 +131,15 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 
   void draw(QPainter *) override;
 
-  void drawForeground(QPainter *p);
+  void drawForeground(QPainter *p) override;
 
  private:
   void drawDelaunay(QPainter *p);

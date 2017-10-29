@@ -49,7 +49,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 
   bool mousePress(const CPoint2D &p) override;
 
-  QColor fillColor() const override;
+  QBrush fillBrush() const override;
 };
 
 //---
@@ -137,30 +137,27 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void setSymbolBorderColor(const QColor &c) { symbolBorderColor_ = c; update(); }
 
   double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double s) { symbolSize_ = s; initObjs(/*force*/true); update(); }
+  void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
 
   bool isSymbolSizeMapEnabled() const { return symbolSizeSet_.isMapEnabled(); }
-  void setSymbolSizeMapEnabled(bool b) {
-    symbolSizeSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+  void setSymbolSizeMapEnabled(bool b) { symbolSizeSet_.setMapEnabled(b); updateObjs(); }
 
   double symbolSizeMapMin() const { return symbolSizeSet_.mapMin(); }
-  void setSymbolSizeMapMin(double r) {
-    symbolSizeSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+  void setSymbolSizeMapMin(double r) { symbolSizeSet_.setMapMin(r); updateObjs(); }
 
   double symbolSizeMapMax() const { return symbolSizeSet_.mapMax(); }
-  void setSymbolSizeMapMax(double r) {
-    symbolSizeSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+  void setSymbolSizeMapMax(double r) { symbolSizeSet_.setMapMax(r); updateObjs(); }
 
   //---
 
   bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
 
   double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
 
   double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
 
   //---
 
@@ -168,17 +165,16 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void setTextLabels(bool b) { dataLabel_.setVisible(b); }
 
   double fontSize() const { return fontSize_; }
-  void setFontSize(double s) { fontSize_ = s; initObjs(/*force*/true); update(); }
+  void setFontSize(double s) { fontSize_ = s; updateObjs(); }
 
   bool isFontSizeMapEnabled() const { return fontSizeSet_.isMapEnabled(); }
-  void setFontSizeMapEnabled(bool b) {
-    fontSizeSet_.setMapEnabled(b); initObjs(/*force*/true); update(); }
+  void setFontSizeMapEnabled(bool b) { fontSizeSet_.setMapEnabled(b); updateObjs(); }
 
   double fontSizeMapMin() const { return fontSizeSet_.mapMin(); }
-  void setFontSizeMapMin(double r) { fontSizeSet_.setMapMin(r); initObjs(/*force*/true); update(); }
+  void setFontSizeMapMin(double r) { fontSizeSet_.setMapMin(r); updateObjs(); }
 
   double fontSizeMapMax() const { return fontSizeSet_.mapMax(); }
-  void setFontSizeMapMax(double r) { fontSizeSet_.setMapMax(r); initObjs(/*force*/true); update(); }
+  void setFontSizeMapMax(double r) { fontSizeSet_.setMapMax(r); updateObjs(); }
 
   //---
 
@@ -188,9 +184,9 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 

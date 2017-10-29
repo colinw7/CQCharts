@@ -18,14 +18,17 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible   READ isVisible   WRITE setVisible    )
-  Q_PROPERTY(QString location  READ locationStr WRITE setLocationStr)
-  Q_PROPERTY(bool    insideX   READ isInsideX   WRITE setInsideX    )
-  Q_PROPERTY(bool    insideY   READ isInsideY   WRITE setInsideY    )
-  Q_PROPERTY(int     spacing   READ spacing     WRITE setSpacing    )
-  Q_PROPERTY(QColor  textColor READ textColor   WRITE setTextColor  )
-  Q_PROPERTY(QFont   textFont  READ textFont    WRITE setTextFont   )
-  Q_PROPERTY(bool    above     READ isAbove     WRITE setAbove      )
+  Q_PROPERTY(bool          visible    READ isVisible    WRITE setVisible    )
+  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr)
+  Q_PROPERTY(bool          insideX    READ isInsideX    WRITE setInsideX    )
+  Q_PROPERTY(bool          insideY    READ isInsideY    WRITE setInsideY    )
+  Q_PROPERTY(int           spacing    READ spacing      WRITE setSpacing    )
+  Q_PROPERTY(QColor        textColor  READ textColor    WRITE setTextColor  )
+  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont   )
+  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign  )
+  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal )
+  Q_PROPERTY(bool          above      READ isAbove      WRITE setAbove      )
+  Q_PROPERTY(bool          flipped    READ isFlipped    WRITE setFlipped    )
 
  public:
   enum Location {
@@ -61,14 +64,28 @@ class CQChartsKey : public CQChartsBoxObj {
   int spacing() const { return spacing_; }
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
 
+  //---
+
+  // text
   const QColor &textColor() const { return textColor_; }
   void setTextColor(const QColor &c) { textColor_ = c; updateLayout(); }
 
   const QFont &textFont() const { return textFont_; }
   void setTextFont(const QFont &f) { textFont_ = f; updateLayout(); }
 
+  Qt::Alignment textAlign() const { return textAlign_; }
+  void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; }
+
+  //---
+
+  bool isHorizontal() const { return horizontal_; }
+  void setHorizontal(bool b) { horizontal_ = b; updatePlotKey(); }
+
   bool isAbove() const { return above_; }
   void setAbove(bool b) { above_ = b; redraw(); }
+
+  bool isFlipped() const { return flipped_; }
+  void setFlipped(bool b);
 
   QString locationStr() const;
   void setLocationStr(const QString &s);
@@ -76,7 +93,9 @@ class CQChartsKey : public CQChartsBoxObj {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; }
 
-  void addProperties(CQPropertyViewTree *tree, const QString &path);
+  //---
+
+  void addProperties(CQPropertyViewTree *tree, const QString &path) override;
 
   void clearItems();
 
@@ -89,14 +108,24 @@ class CQChartsKey : public CQChartsBoxObj {
 
   void invalidateLayout();
 
+  //---
+
   const QPointF &position() const { return position_; }
   void setPosition(const QPointF &p) { position_ = p; }
 
+  //---
+
   QSizeF calcSize();
+
+  //---
 
   void redrawBoxObj() override;
 
   void redraw();
+
+  //---
+
+  void updatePlotKey();
 
   void updateLayout();
 
@@ -104,12 +133,20 @@ class CQChartsKey : public CQChartsBoxObj {
 
   CQChartsKeyItem *getItemAt(const CPoint2D &p) const;
 
+  //---
+
   virtual bool mousePress(const CPoint2D &) { return false; }
   virtual bool mouseMove (const CPoint2D &) { return true; }
 
+  //---
+
   bool setInside(CQChartsKeyItem *item);
 
+  //---
+
   void draw(QPainter *p);
+
+  //---
 
   QColor bgColor() const;
 
@@ -136,7 +173,10 @@ class CQChartsKey : public CQChartsBoxObj {
   int             spacing_     { 2 };
   QColor          textColor_;
   QFont           textFont_;
+  Qt::Alignment   textAlign_   { Qt::AlignLeft | Qt::AlignVCenter };
+  bool            horizontal_  { false };
   bool            above_       { true };
+  bool            flipped_     { false };
   Items           items_;
   int             maxRow_      { 0 };
   int             maxCol_      { 0 };
@@ -238,7 +278,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   void draw(QPainter *p, const CBBox2D &rect) override;
 
-  virtual QColor fillColor() const;
+  virtual QBrush fillBrush() const;
 
   virtual QColor borderColor() const { return borderColor_; }
   virtual void setBorderColor(const QColor &c) { borderColor_ = c; }

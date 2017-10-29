@@ -49,7 +49,7 @@ addProperties()
 
 void
 CQChartsBoxPlot::
-updateRange()
+updateRange(bool apply)
 {
   if (whiskers_.empty()) {
     QAbstractItemModel *model = this->model();
@@ -208,21 +208,14 @@ updateRange()
 
   //---
 
-  applyDataRange();
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsBoxPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -264,9 +257,7 @@ initObjs(bool force)
 
   //---
 
-  keyObj_->clearItems();
-
-  addKeyItems(keyObj_);
+  resetKeyItems();
 }
 
 void
@@ -389,18 +380,16 @@ mousePress(const CPoint2D &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->initObjs(/*force*/true);
-
-  plot->update();
+  plot->updateObjs();
 
   return true;
 }
 
-QColor
+QBrush
 CQChartsBoxKeyColor::
-fillColor() const
+fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillColor();
+  QColor c = CQChartsKeyColorBox::fillBrush().color();
 
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 

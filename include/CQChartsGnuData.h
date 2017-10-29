@@ -5,6 +5,7 @@
 
 class CQCharts;
 class CQGnuDataModel;
+class CQExprModel;
 
 class CQChartsGnuData : public QSortFilterProxyModel {
   Q_OBJECT
@@ -14,6 +15,7 @@ class CQChartsGnuData : public QSortFilterProxyModel {
  ~CQChartsGnuData();
 
   CQGnuDataModel *dataModel() const { return dataModel_; }
+  CQExprModel    *exprModel() const { return exprModel_; }
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
@@ -41,6 +43,7 @@ class CQChartsGnuData : public QSortFilterProxyModel {
  private:
   CQCharts*       charts_    { nullptr };
   CQGnuDataModel* dataModel_ { nullptr };
+  CQExprModel*    exprModel_ { nullptr };
 };
 
 #endif

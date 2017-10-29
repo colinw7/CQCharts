@@ -62,7 +62,7 @@ addProperties()
 
 void
 CQChartsSunburstPlot::
-updateRange()
+updateRange(bool apply)
 {
   double xr = 1.0;
   double yr = 1.0;
@@ -81,21 +81,16 @@ updateRange()
   dataRange_.updateRange(-xr, -yr);
   dataRange_.updateRange( xr,  yr);
 
-  applyDataRange();
+  //---
+
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsSunburstPlot::
-initObjs(bool force)
+initObjs()
 {
-  if (force) {
-    clearPlotObjects();
-
-    dataRange_.reset();
-  }
-
-  //---
-
   if (! dataRange_.isSet()) {
     updateRange();
 
@@ -316,7 +311,7 @@ drawNode(QPainter *p, CQChartsSunburstNode *node)
   double c  = cos(ta*M_PI/180.0);
   double s  = sin(ta*M_PI/180.0);
 
-  double r3 = (r1 + r2)/2.0;
+  double r3 = CQChartsUtil::avg(r1, r2);
 
   double tx = r3*c;
   double ty = r3*s;

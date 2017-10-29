@@ -15,7 +15,7 @@ class CQChartsViewToolBar : public QFrame {
 
   void updateMode();
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  private slots:
   void selectSlot(bool b);

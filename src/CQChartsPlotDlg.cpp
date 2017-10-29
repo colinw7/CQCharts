@@ -1,7 +1,6 @@
 #include <CQChartsPlotDlg.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
-#include <CQChartsXYPlot.h>
 #include <CQChartsPlotParameter.h>
 #include <CQChartsAxis.h>
 #include <CQChartsColumn.h>
@@ -488,23 +487,6 @@ applySlot()
 
   //---
 
-  // init plot
-  if (typeName == "xy") {
-    CQChartsXYPlot *xyPlot = dynamic_cast<CQChartsXYPlot *>(plot_);
-    assert(xyPlot);
-
-    if      (xyPlot->isBivariate()) {
-      xyPlot->setFillUnder(true);
-      xyPlot->setPoints   (false);
-    }
-    else if (xyPlot->isStacked()) {
-      xyPlot->setFillUnder(true);
-      xyPlot->setPoints   (false);
-    }
-  }
-
-  //---
-
   double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
 
   parsePosition(xmin, ymin, xmax, ymax);
@@ -542,9 +524,11 @@ applySlot()
 
   //---
 
+  double vr = CQChartsView::viewportRange();
+
   int n = view->numPlots();
 
-  CBBox2D bbox(1000*xmin, 1000*ymin, 1000*xmax, 1000*ymax);
+  CBBox2D bbox(vr*xmin, vr*ymin, vr*xmax, vr*ymax);
 
   plot_->setId(QString("Chart.%1").arg(n + 1));
 

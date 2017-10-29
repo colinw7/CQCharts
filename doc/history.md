@@ -110,3 +110,12 @@
  + Add custom font size support for scatter plot
  + Use common value set code for customization column value binning/scaling
  + Use CQExprModel for all input file models to allow expression support for extra column
+## 10/29/2017
+ + Improve auto range setting for overlay plots
+ + Add fill between, file above and fill below for bivarite
+ + Add pattern support for fill
+ + Add inside ticks
+ + Allow key flip and horizontal layout
+ + Add impulse lines
+ + Add fill under position
+ + Reduce exported dependencies

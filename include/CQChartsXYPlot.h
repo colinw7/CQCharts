@@ -5,6 +5,8 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsLineObj.h>
 #include <CQChartsPointObj.h>
+#include <CQChartsFillObj.h>
+#include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
 
@@ -25,6 +27,31 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   CQChartsXYPlot *plot_ { nullptr };
   double          x_    { 0.0 };
   double          y1_   { 0.0 };
+  double          y2_   { 0.0 };
+  int             i_    { -1 };
+  int             n_    { -1 };
+};
+
+//---
+
+class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x1, double y1,
+                           double x2, double y2, int i, int n);
+
+  bool visible() const override;
+
+  bool inside(const CPoint2D &p) const override;
+
+  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+
+ private:
+  CQChartsXYPlot *plot_ { nullptr };
+  double          x1_   { 0.0 };
+  double          y1_   { 0.0 };
+  double          x2_   { 0.0 };
   double          y2_   { 0.0 };
   int             i_    { -1 };
   int             n_    { -1 };
@@ -131,7 +158,7 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
 
   bool mouseMove(const CPoint2D &) override { return true; }
 
-  QColor fillColor() const override;
+  QBrush fillBrush() const override;
 };
 
 class CQChartsXYKeyLine : public CQChartsKeyItem {
@@ -214,6 +241,11 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(double  linesWidth         READ linesWidth         WRITE setLinesWidth        )
   Q_PROPERTY(bool    fillUnder          READ isFillUnder        WRITE setFillUnder         )
   Q_PROPERTY(QString fillUnderColor     READ fillUnderColorStr  WRITE setFillUnderColorStr )
+  Q_PROPERTY(double  fillUnderAlpha     READ fillUnderAlpha     WRITE setFillUnderAlpha    )
+  Q_PROPERTY(Pattern fillUnderPattern   READ fillUnderPattern   WRITE setFillUnderPattern  )
+  Q_PROPERTY(QString fillUnderPos       READ fillUnderPosStr    WRITE setFillUnderPosStr   )
+  Q_PROPERTY(QString fillUnderSide      READ fillUnderSide      WRITE setFillUnderSide     )
+  Q_PROPERTY(bool    impulse            READ isImpulse          WRITE setImpulse           )
   Q_PROPERTY(QString symbolName         READ symbolName         WRITE setSymbolName        )
   Q_PROPERTY(double  symbolSize         READ symbolSize         WRITE setSymbolSize        )
   Q_PROPERTY(bool    symbolFilled       READ isSymbolFilled     WRITE setSymbolFilled      )
@@ -221,13 +253,33 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(double  dataLabelAngle     READ dataLabelAngle     WRITE setDataLabelAngle    )
   Q_PROPERTY(double  bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
 
+  Q_ENUMS(Pattern)
+
+ public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
+
  private:
   struct FillUnderData {
-    bool   shown   { false };
-    QColor color   { 128, 128, 128 };
-    bool   palette { true };
+    CQChartsFillObj fillObj;
+    QString         posStr { "ymin" };
+    QString         side   { "both" };
 
-    FillUnderData() { }
+    FillUnderData() {
+     fillObj.setColor(QColor(128, 128, 128));
+     fillObj.setAlpha(0.5);
+    }
+
+    void setPosStr(const QString &s) {
+      posStr = s;
+    }
   };
 
   struct DataLabelData {
@@ -242,7 +294,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // columns
-
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
 
@@ -294,19 +345,19 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // bivariate, stacked, cumulative
   bool isBivariate() const { return bivariate_; }
-  void setBivariate(bool b) { bivariate_ = b; initObjs(/*force*/true); update(); }
+  void setBivariate(bool b) { bivariate_ = b; updateObjs(); }
 
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; initObjs(/*force*/true); update(); }
+  void setStacked(bool b) { stacked_ = b; updateObjs(); }
 
   bool isCumulative() const { return cumulative_; }
-  void setCumulative(bool b) { cumulative_ = b; initObjs(/*force*/true); update(); }
+  void setCumulative(bool b) { cumulative_ = b; updateObjs(); }
 
   //---
 
   // points
   bool isPoints() const { return pointObj_.isDisplayed(); }
-  void setPoints(bool b) { pointObj_.setDisplayed(b); update(); }
+  void setPoints(bool b) { pointObj_.setDisplayed(b); updateObjs(); }
 
   QString pointsColorStr() const;
   void setPointsColorStr(const QString &str);
@@ -315,7 +366,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // lines
   bool isLines() const { return lineObj_.isDisplayed(); }
-  void setLines(bool b) { lineObj_.setDisplayed(b); update(); }
+  void setLines(bool b) { lineObj_.setDisplayed(b); updateObjs(); }
 
   QString linesColorStr() const;
   void setLinesColorStr(const QString &str);
@@ -326,11 +377,32 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // fill under
-  bool isFillUnder() const { return fillUnderData_.shown; }
-  void setFillUnder(bool b) { fillUnderData_.shown = b; update(); }
+  bool isFillUnder() const { return fillUnderData_.fillObj.isVisible(); }
+  void setFillUnder(bool b) { fillUnderData_.fillObj.setVisible(b); updateObjs(); }
 
   QString fillUnderColorStr() const;
   void setFillUnderColorStr(const QString &str);
+
+  double fillUnderAlpha() const { return fillUnderData_.fillObj.alpha(); }
+  void setFillUnderAlpha(double r) { fillUnderData_.fillObj.setAlpha(r); }
+
+  Pattern fillUnderPattern() const { return (Pattern) fillUnderData_.fillObj.pattern(); }
+  void setFillUnderPattern(const Pattern &p) {
+    fillUnderData_.fillObj.setPattern((CQChartsFillObj::Pattern) p); update(); }
+
+  const QString &fillUnderPosStr() const { return fillUnderData_.posStr; }
+  void setFillUnderPosStr(const QString &s) { fillUnderData_.setPosStr(s); updateObjs(); }
+
+  QPointF fillUnderPos(double x, double y) const;
+
+  const QString &fillUnderSide() const { return fillUnderData_.side; }
+  void setFillUnderSide(const QString &s) { fillUnderData_.side = s; updateObjs(); }
+
+  //---
+
+  // impulse
+  bool isImpulse() const { return impulse_; }
+  void setImpulse(bool b) { impulse_ = b; updateObjs(); }
 
   //---
 
@@ -376,9 +448,11 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void postInit() override;
+
+  void initObjs() override;
 
   //---
 
@@ -413,6 +487,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   CQChartsPointObj pointObj_;
   CQChartsLineObj  lineObj_;
   FillUnderData    fillUnderData_;
+  bool             impulse_           { false };
   DataLabelData    dataLabelData_;
   CQChartsLineObj  bivariateLineObj_;
 };

@@ -52,7 +52,7 @@ class CQChartsTreeMapNode {
     w_ = w; h_ = h;
 
     //std::cerr << "Node: " << name() << " @ ( " << x_ << "," << y_ << ")" <<
-    //             " [" << w_ << "," << h_ << "]" << std::endl;
+    //             " [" << w_ << "," << h_ << "]" << "\n";
 
     placed_ = true;
   }
@@ -131,9 +131,9 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
     // sort nodes by size
     std::sort(nodes.begin(), nodes.end(), CQChartsTreeMapNodeCmp());
 
-    //std::cerr << name() << std::endl;
+    //std::cerr << name() << "\n";
     //for (uint i = 0; i < nodes.size(); ++i)
-    //  std::cerr << " " << nodes[i]->name() << ":" << nodes[i]->size() << std::endl;
+    //  std::cerr << " " << nodes[i]->name() << ":" << nodes[i]->size() << "\n";
 
     packSubNodes(x, y, w, h, nodes);
   }
@@ -284,13 +284,13 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange() override;
+  void updateRange(bool apply=true) override;
 
-  void initObjs(bool force=false) override;
+  void initObjs() override;
 
   //---
 
-  void initObjs(CQChartsTreeMapHierNode *hier, int depth);
+  void initNodeObjs(CQChartsTreeMapHierNode *hier, int depth);
 
   void draw(QPainter *) override;
 
