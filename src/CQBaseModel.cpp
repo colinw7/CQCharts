@@ -106,7 +106,7 @@ CQBaseModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (orientation != Qt::Horizontal)
-    return QVariant();
+    return QAbstractItemModel::headerData(section, orientation, role);
 
   if (role == static_cast<int>(Role::Type)) {
     Type type = columnType(section);
@@ -277,7 +277,9 @@ toReal(const QString &str, bool &ok)
 
   //---
 
-  const char *c_str = str.toLatin1().constData();
+  std::string sstr = str.toStdString();
+
+  const char *c_str = sstr.c_str();
 
   int i = 0;
 
@@ -332,7 +334,9 @@ toInt(const QString &str, bool &ok)
 
   long integer = 0;
 
-  const char *c_str = str.toLatin1().constData();
+  std::string sstr = str.toStdString();
+
+  const char *c_str = sstr.c_str();
 
   int i = 0;
 

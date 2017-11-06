@@ -45,7 +45,7 @@ CQDataModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (orientation != Qt::Horizontal)
-    return QVariant();
+    return CQBaseModel::headerData(section, orientation, role);
 
   int numCols = columnCount();
 

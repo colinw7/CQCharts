@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <QPainter>
 #include <QRectF>
 
@@ -63,13 +63,13 @@ updatePosition()
 
 void
 CQChartsTitle::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "visible" );
-  tree->addProperty(path, this, "location");
-  tree->addProperty(path, this, "inside"  );
+  model->addProperty(path, this, "visible" );
+  model->addProperty(path, this, "location");
+  model->addProperty(path, this, "inside"  );
 
-  CQChartsTextBoxObj::addProperties(tree, path);
+  CQChartsTextBoxObj::addProperties(model, path);
 }
 
 QSizeF

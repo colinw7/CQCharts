@@ -194,8 +194,8 @@ class CQChartsParallelPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  typedef std::vector<CRange2D>       Ranges;
-  typedef std::vector<CQChartsAxis *> YAxes;
+  using Ranges = std::vector<CRange2D>;
+  using YAxes  = std::vector<CQChartsAxis*>;
 
   int              xColumn_    { 0 };
   int              yColumn_    { 1 };

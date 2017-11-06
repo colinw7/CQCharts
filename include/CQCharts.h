@@ -34,7 +34,7 @@ class CQCharts {
   void errorMsg(const QString &msg);
 
  private:
-  typedef std::map<QString,CQChartsView *> Views;
+  using Views = std::map<QString,CQChartsView*>;
 
   CQChartsPlotTypeMgr*   plotTypeMgr_   { nullptr };
   CQChartsColumnTypeMgr* columnTypeMgr_ { nullptr };

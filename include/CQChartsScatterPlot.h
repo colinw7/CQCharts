@@ -12,7 +12,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
@@ -23,6 +23,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void setName(const QString &v) { name_ = v; }
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &);
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -105,8 +107,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
     }
   };
 
-  typedef std::vector<Point>       Values;
-  typedef std::map<QString,Values> NameValues;
+  using Values     = std::vector<Point>;
+  using NameValues = std::map<QString,Values>;
 
  public:
   CQChartsScatterPlot(CQChartsView *view, const ModelP &model);

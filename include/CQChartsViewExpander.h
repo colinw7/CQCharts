@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-class CQChartsView;
+class CQChartsWindow;
 
 class CQChartsViewExpander : public QFrame {
   Q_OBJECT
@@ -11,7 +11,7 @@ class CQChartsViewExpander : public QFrame {
   Q_PROPERTY(bool expanded READ isExpanded WRITE setExpanded)
 
  public:
-  CQChartsViewExpander(CQChartsView *view);
+  CQChartsViewExpander(CQChartsWindow *window);
 
   bool isExpanded() const { return expanded_; }
   void setExpanded(bool b) { expanded_ = b; update(); }
@@ -23,11 +23,11 @@ class CQChartsViewExpander : public QFrame {
   void paintEvent(QPaintEvent *) override;
 
  private:
-  CQChartsView *view_     { nullptr };
-  bool          expanded_ { false };
-  bool          pressed_  { false };
-  QPoint        pressPos_;
-  QPoint        movePos_;
+  CQChartsWindow *window_   { nullptr };
+  bool            expanded_ { false };
+  bool            pressed_  { false };
+  QPoint          pressPos_;
+  QPoint          movePos_;
 };
 
 #endif

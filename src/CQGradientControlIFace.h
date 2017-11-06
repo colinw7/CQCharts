@@ -17,6 +17,7 @@ class QLineEdit;
 class QCheckBox;
 class QGridLayout;
 
+// Controls for CGradientPalette customization
 class CQGradientControlIFace : public QFrame {
   Q_OBJECT
 

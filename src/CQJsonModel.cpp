@@ -6,6 +6,12 @@ CQJsonModel()
 {
 }
 
+CQJsonModel::
+~CQJsonModel()
+{
+  delete json_;
+}
+
 bool
 CQJsonModel::
 load(const QString &filename)
@@ -258,7 +264,7 @@ CQJsonModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
   if (orientation != Qt::Horizontal)
-    return QVariant();
+    return CQBaseModel::headerData(section, orientation, role);
 
   if (role == Qt::DisplayRole) {
     QString str;

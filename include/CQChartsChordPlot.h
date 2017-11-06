@@ -30,7 +30,7 @@ class CQChartsChordData {
     }
   };
 
-  typedef std::vector<Value> Values;
+  using Values = std::vector<Value>;
 
  public:
   CQChartsChordData() { }

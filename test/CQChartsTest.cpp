@@ -8,6 +8,7 @@
 #include <CQChartsGnuData.h>
 #include <CQDataModel.h>
 #include <CQExprModel.h>
+#include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
@@ -16,6 +17,7 @@
 
 #include <CQChartsLoader.h>
 #include <CQChartsPlotDlg.h>
+#include <CQSortModel.h>
 
 //#define CQ_APP_H 1
 
@@ -110,6 +112,8 @@ main(int argc, char **argv)
 
   std::vector<CQChartsTest::InitData> initDatas;
 
+  QString viewTitle;
+
   bool overlay = false;
   bool y1y2    = false;
   bool loop    = false;
@@ -171,6 +175,14 @@ main(int argc, char **argv)
 
         if (i < argc)
           initData.typeName = argv[i];
+      }
+
+      // plot filter
+      else if (arg == "where") {
+        ++i;
+
+        if (i < argc)
+          initData.filterStr = argv[i];
       }
 
       // plot columns
@@ -255,6 +267,70 @@ main(int argc, char **argv)
           }
         }
       }
+      else if (arg == "string") {
+        ++i;
+
+        if (i < argc) {
+          QString stringStr = argv[i];
+
+          QStringList strs = stringStr.split(",", QString::SkipEmptyParts);
+
+          for (int j = 0; j < strs.size(); ++j) {
+            const QString &nameValue = strs[j];
+
+            auto pos = nameValue.indexOf('=');
+
+            QString name, value;
+
+            if (pos >= 0) {
+              name  = nameValue.mid(0, pos).simplified();
+              value = nameValue.mid(pos + 1).simplified();
+            }
+            else {
+              name  = nameValue;
+              value = "";
+            }
+
+            initData.setNameString(name, value);
+          }
+        }
+      }
+      else if (arg == "real") {
+        ++i;
+
+        if (i < argc) {
+          QString realStr = argv[i];
+
+          QStringList strs = realStr.split(",", QString::SkipEmptyParts);
+
+          for (int j = 0; j < strs.size(); ++j) {
+            const QString &nameValue = strs[j];
+
+            auto pos = nameValue.indexOf('=');
+
+            QString name, value;
+
+            if (pos >= 0) {
+              name  = nameValue.mid(0, pos).simplified();
+              value = nameValue.mid(pos + 1).simplified();
+            }
+            else {
+              name  = nameValue;
+              value = "0.0";
+            }
+
+            bool ok;
+
+            double r = value.toDouble(&ok);
+
+            if (ok)
+              initData.setNameReal(name, r);
+            else {
+              std::cerr << "Invalid -bool option '" << argv[i] << "'\n";
+            }
+          }
+        }
+      }
       else if (arg == "bivariate") {
         initData.setNameBool("bivariate", true);
       }
@@ -288,6 +364,13 @@ main(int argc, char **argv)
       }
 
       // title
+      else if (arg == "view_title") {
+        ++i;
+
+        if (i < argc)
+          viewTitle = argv[i];
+      }
+
       else if (arg == "plot_title") {
         ++i;
 
@@ -450,15 +533,21 @@ main(int argc, char **argv)
 
   //---
 
-  if (overlay && test.view())
-    test.view()->initOverlay();
+  if (test.view()) {
+    if (viewTitle.length())
+      test.view()->setTitle(viewTitle);
+
+    if (overlay)
+      test.view()->initOverlay();
+  }
 
   //---
 
   test.show();
 
-  if (test.view())
-    test.view()->raise();
+  if (test.window()) {
+    test.window()->raise();
+  }
 
   //---
 
@@ -779,6 +868,9 @@ createSlot()
 
   CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model_);
 
+  if (sm_)
+    dlg->setSelectionModel(sm_);
+
   connect(dlg, SIGNAL(plotCreated(CQChartsPlot *)),
           this, SLOT(plotDialogCreatedSlot(CQChartsPlot *)));
 
@@ -796,8 +888,6 @@ plotDialogCreatedSlot(CQChartsPlot *plot)
 {
   connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
-
-  plot->view()->show();
 }
 
 //------
@@ -987,7 +1077,7 @@ init(const ModelP &model, const InitData &initData, int i)
   bool reuse = false;
 
   if (initData.overlay || initData.y1y2) {
-    if (typeName == "xy")
+    if (typeName == "xy" || typeName == "barchart")
       reuse = true;
   }
   else {
@@ -996,8 +1086,24 @@ init(const ModelP &model, const InitData &initData, int i)
 
   //---
 
+  CQChartsPlot *plot = nullptr;
+
   // create plot from init (argument) data
-  CQChartsPlot *plot = createPlot(model, type, initData.nameValues, initData.nameBools, reuse);
+  if (initData.filterStr.length()) {
+    CQSortModel *sortModel = new CQSortModel(model.data());
+
+    ModelP sortModelP(sortModel);
+
+    sortModel->setFilter(initData.filterStr);
+
+    plot = createPlot(sortModelP, type, initData.nameValues, initData.nameStrings,
+                      initData.nameReals, initData.nameBools, reuse);
+  }
+  else {
+    plot = createPlot(model, type, initData.nameValues, initData.nameStrings,
+                      initData.nameReals, initData.nameBools, reuse);
+  }
+
   assert(plot);
 
   //---
@@ -1120,6 +1226,7 @@ fixTypeName(const QString &typeName) const
 CQChartsPlot *
 CQChartsTest::
 createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameValues,
+           const NameValues &nameStrings, const NameReals &nameReals,
            const NameBools &nameBools, bool reuse)
 {
   CQChartsView *view = getView(reuse);
@@ -1127,6 +1234,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
   //---
 
   CQChartsPlot *plot = type->create(view, model);
+
+  if (sm_)
+    plot->setSelectionModel(sm_);
 
   connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
@@ -1177,6 +1287,28 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
+    else if (parameter.type() == "string") {
+      auto p = nameStrings.find(parameter.name());
+
+      if (p == nameStrings.end())
+        continue;
+
+      QString str = (*p).second;
+
+      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(str)))
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+    }
+    else if (parameter.type() == "real") {
+      auto p = nameReals.find(parameter.name());
+
+      if (p == nameReals.end())
+        continue;
+
+      double r = (*p).second;
+
+      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(r)))
+        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+    }
     else if (parameter.type() == "bool") {
       auto p = nameBools.find(parameter.name());
 
@@ -1198,8 +1330,6 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
   plot->setId(QString("%1%2").arg(plot->typeName()).arg(id_));
 
   view->addPlot(plot, bbox_);
-
-  view->show();
 
   return plot;
 }
@@ -1393,6 +1523,8 @@ setTableModel(const ModelP &model)
 {
   table_->setModel(model);
 
+  sm_ = table_->selectionModel();
+
   stack_->setCurrentIndex(0);
 }
 
@@ -1401,6 +1533,8 @@ CQChartsTest::
 setTreeModel(const ModelP &model)
 {
   tree_->setModel(model);
+
+  sm_ = tree_->selectionModel();
 
   stack_->setCurrentIndex(1);
 }
@@ -1474,13 +1608,26 @@ getView(bool reuse)
 {
   if (reuse) {
     if (! view_)
-      view_ = charts_->addView();
+      view_ = addView();
   }
   else {
-    view_ = charts_->addView();
+    view_ = addView();
   }
 
   return view_;
+}
+
+CQChartsView *
+CQChartsTest::
+addView()
+{
+  CQChartsView *view = charts_->addView();
+
+  window_ = new CQChartsWindow(view);
+
+  window_->show();
+
+  return view;
 }
 
 //------
@@ -1489,7 +1636,7 @@ QSize
 CQChartsTest::
 sizeHint() const
 {
-  return QSize(1600, 1200);
+  return QSize(1024, 1024);
 }
 
 //------
@@ -1765,6 +1912,8 @@ plotCmd(const Args &args)
   QString    typeName;
   NameValues nameValues;
   NameBools  nameBools;
+  NameValues nameStrings;
+  NameReals  nameReals;
   bool       xintegral { false };
   bool       yintegral { false };
   QString    title;
@@ -1838,6 +1987,53 @@ plotCmd(const Args &args)
           else {
             std::cerr << "Invalid -bool option '" << args[i] << "'\n";
           }
+        }
+      }
+      else if (opt == "string") {
+        ++i;
+
+        if (i < args.size()) {
+          QString nameValue = args[i].c_str();
+
+          auto pos = nameValue.indexOf('=');
+
+          QString name, value;
+
+          if (pos >= 0) {
+            name  = nameValue.mid(0, pos).simplified();
+            value = nameValue.mid(pos + 1).simplified();
+          }
+          else {
+            name  = nameValue;
+            value = "";
+          }
+
+          nameStrings[name] = value;
+        }
+      }
+      else if (opt == "real") {
+        ++i;
+
+        if (i < args.size()) {
+          QString nameValue = args[i].c_str();
+
+          auto pos = nameValue.indexOf('=');
+
+          QString name;
+          double  value = 0.0;
+
+          if (pos >= 0) {
+            bool ok;
+
+            name  = nameValue.mid(0, pos).simplified();
+            value = nameValue.mid(pos + 1).simplified().toDouble(&ok);
+          }
+          else {
+            name  = nameValue;
+            value = 0.0;
+          }
+
+          nameReals[name] = value;
         }
       }
       else if (opt == "xintegral") {
@@ -1931,7 +2127,8 @@ plotCmd(const Args &args)
   //------
 
   // create plot from init (argument) data
-  CQChartsPlot *plot = createPlot(model_, type, nameValues, nameBools, reuse);
+  CQChartsPlot *plot = createPlot(model_, type, nameValues, nameStrings,
+                                  nameReals, nameBools, reuse);
   assert(plot);
 
   //---

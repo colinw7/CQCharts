@@ -1,4 +1,5 @@
 #include <CQChartsViewSettings.h>
+#include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQPropertyViewTree.h>
 #include <CQGradientControlPlot.h>
@@ -12,8 +13,8 @@
 #include <svg/search_svg.h>
 
 CQChartsViewSettings::
-CQChartsViewSettings(CQChartsView *view) :
- QFrame(view), view_(view)
+CQChartsViewSettings(CQChartsWindow *window) :
+ QFrame(window), window_(window)
 {
   setObjectName("settings");
 
@@ -63,9 +64,9 @@ CQChartsViewSettings(CQChartsView *view) :
 
   viewLayout->addWidget(filterFrame);
 
-  propertyView_ = new CQPropertyViewTree(this);
+  propertyTree_ = new CQPropertyViewTree(this, window->view()->propertyModel());
 
-  viewLayout->addWidget(propertyView_);
+  viewLayout->addWidget(propertyTree_);
 
   tab_->addTab(viewFrame, "Properties");
 
@@ -79,7 +80,7 @@ CQChartsViewSettings(CQChartsView *view) :
 
   QVBoxLayout *paletteLayout = new QVBoxLayout(paletteFrame);
 
-  palettePlot_    = new CQGradientControlPlot(this);
+  palettePlot_    = new CQGradientControlPlot(this, window->view()->gradientPalette());
   paletteControl_ = new CQGradientControlIFace(palettePlot_);
 
   paletteLayout->addWidget(palettePlot_);
@@ -99,7 +100,7 @@ filterSlot()
   if (! edit) return;
 
   if (filterCombo_->currentIndex() == 0)
-    view_->propertyView()->setFilter(edit->text());
+    propertyTree()->setFilter(edit->text());
   else
-    view_->propertyView()->search(edit->text());
+    propertyTree()->search(edit->text());
 }

@@ -70,6 +70,26 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
 
 //---
 
+class CQChartsStringParameter : public CQChartsPlotParameter {
+ public:
+  CQChartsStringParameter(const QString &name, const QString &desc, const QString &propName,
+                          const QString &attributes="", const QString &defValue="") :
+   CQChartsPlotParameter(name, desc, "string", propName, attributes, QVariant(defValue)) {
+  }
+};
+
+//---
+
+class CQChartsRealParameter : public CQChartsPlotParameter {
+ public:
+  CQChartsRealParameter(const QString &name, const QString &desc, const QString &propName,
+                        const QString &attributes="", double defValue=0.0) :
+   CQChartsPlotParameter(name, desc, "real", propName, attributes, QVariant(defValue)) {
+  }
+};
+
+//---
+
 class CQChartsBoolParameter : public CQChartsPlotParameter {
  public:
   CQChartsBoolParameter(const QString &name, const QString &desc, const QString &propName,

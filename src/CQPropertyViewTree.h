@@ -17,7 +17,7 @@ class CQPropertyViewTree : public QTreeView {
   typedef std::vector<CQPropertyViewItem *> Items;
 
  public:
-  CQPropertyViewTree(QWidget *parent=nullptr);
+  CQPropertyViewTree(QWidget *parent, CQPropertyViewModel *model);
  ~CQPropertyViewTree();
 
   CQPropertyViewModel *propertyModel() const { return model_; }
@@ -25,8 +25,6 @@ class CQPropertyViewTree : public QTreeView {
   CQPropertyViewFilter *filterModel() const { return filter_; }
 
   void setFilter(const QString &filter);
-
-  void redraw();
 
   void clear();
 
@@ -64,6 +62,8 @@ class CQPropertyViewTree : public QTreeView {
   void menuExec(QObject *obj, const QPoint &gpos);
 
  public slots:
+  void redraw();
+
   void expandAll();
   void collapseAll();
 
@@ -81,10 +81,6 @@ class CQPropertyViewTree : public QTreeView {
   void customContextMenuSlot(const QPoint &pos);
 
  private:
-  CQPropertyViewItem *objectItem(const QObject *obj) const;
-
-  CQPropertyViewItem *objectItem(CQPropertyViewItem *parent, const QObject *obj) const;
-
   bool selectObject(CQPropertyViewItem *item, const QObject *obj);
 
   void getItemData(CQPropertyViewItem *item, QObject* &obj, QString &path);

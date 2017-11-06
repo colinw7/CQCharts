@@ -27,7 +27,7 @@
 template<typename DATA, typename RECT, typename T=double>
 class CQChartsQuadTree {
  public:
-  typedef std::list<DATA *> DataList;
+  using DataList = std::list<DATA*>;
 
  public:
   explicit CQChartsQuadTree(const RECT &rect=RECT()) :

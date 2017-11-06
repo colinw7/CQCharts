@@ -11,7 +11,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  typedef std::vector<QPolygonF> Polygons;
+  using Polygons = std::vector<QPolygonF>;
 
  public:
   CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CBBox2D &rect,
@@ -63,7 +63,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   Q_PROPERTY(QColor lineColor      READ lineColor      WRITE setLineColor     )
 
  public:
-  typedef std::vector<QPolygonF> Polygons;
+  using Polygons = std::vector<QPolygonF>;
 
   struct Geometry {
     QString  name;
@@ -121,7 +121,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   bool decodePoint(const QString &pointStr, QPointF &point);
 
  private:
-  typedef std::vector<Geometry> Geometries;
+  using Geometries = std::vector<Geometry>;
 
   int               nameColumn_     { 0 };
   int               geometryColumn_ { 1 };

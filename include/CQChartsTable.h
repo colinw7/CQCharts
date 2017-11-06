@@ -1,17 +1,17 @@
 #ifndef CQChartsTable_H
 #define CQChartsTable_H
 
-#include <QTableView>
+#include <CQTableView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
-class CQHeaderView;
+class CQChartsTableSelectionModel;
 
-class CQChartsTable : public QTableView {
+class CQChartsTable : public CQTableView {
   Q_OBJECT
 
  public:
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsTable(QWidget *parent=nullptr);
@@ -22,15 +22,22 @@ class CQChartsTable : public QTableView {
 
   QSize sizeHint() const override;
 
+ private:
+  void addMenuActions(QMenu *menu) override;
+
  signals:
   void columnClicked(int);
 
  private slots:
+  void selectionSlot();
+
   void headerClickSlot(int section);
 
+  void selectionBehaviorSlot(QAction *action);
+
  private:
-  ModelP        model_;
-  CQHeaderView* header_ { nullptr };
+  ModelP                       model_;
+  CQChartsTableSelectionModel* sm_ { nullptr };
 };
 
 #endif

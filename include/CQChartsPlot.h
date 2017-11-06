@@ -11,6 +11,7 @@
 
 #include <QPointer>
 #include <QAbstractItemModel>
+#include <QItemSelection>
 #include <QFrame>
 
 #include <boost/optional.hpp>
@@ -22,10 +23,11 @@ class CQChartsKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsBoxObj;
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 
 class CGradientPalette;
-class QAbstractItemModel;
+class QSortFilterProxyModel;
+class QItemSelectionModel;
 class QRubberBand;
 
 //----
@@ -46,7 +48,7 @@ class CQChartsPlotTypeMgr {
   void getTypeNames(QStringList &names, QStringList &descs) const;
 
  private:
-  typedef std::map<QString, CQChartsPlotType *> Types;
+  using Types = std::map<QString, CQChartsPlotType *>;
 
   Types types_;
 };
@@ -55,10 +57,10 @@ class CQChartsPlotTypeMgr {
 
 class CQChartsPlotType {
  public:
-  typedef std::vector<CQChartsPlotParameter> Parameters;
+  using Parameters = std::vector<CQChartsPlotParameter>;
 
  public:
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsPlotType() { }
@@ -85,6 +87,18 @@ class CQChartsPlotType {
   addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                       const QString &attributes="", const QString &defValue="") {
     return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
+  }
+
+  CQChartsPlotParameter &
+  addStringParameter(const QString &name, const QString &desc, const QString &propName,
+                     const QString &attributes="", const QString &defValue="") {
+    return addParameter(CQChartsStringParameter(name, desc, propName, attributes, defValue));
+  }
+
+  CQChartsPlotParameter &
+  addRealParameter(const QString &name, const QString &desc, const QString &propName,
+                   const QString &attributes="", double defValue=0.0) {
+    return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
   }
 
   CQChartsPlotParameter &
@@ -170,7 +184,7 @@ class CQChartsPlot : public QObject {
   };
 
   // column array
-  typedef std::vector<int> Columns;
+  using Columns = std::vector<int>;
 
   // associated plot for overlay/y1y2
   struct OtherPlot {
@@ -180,9 +194,10 @@ class CQChartsPlot : public QObject {
     OtherPlot() { }
   };
 
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using ModelP          = QSharedPointer<QAbstractItemModel>;
+  using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -192,6 +207,13 @@ class CQChartsPlot : public QObject {
   CQChartsView *view() const { return view_; }
 
   QAbstractItemModel *model() const { return model_.data(); }
+
+  void setSelectionModel(QItemSelectionModel *sm);
+  QItemSelectionModel *selectionModel() const;
+
+  QAbstractItemModel *sourceModel() const;
+
+  //---
 
   CQCharts *charts() const;
 
@@ -393,9 +415,9 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQPropertyViewTree *propertyView() const;
+  CQPropertyViewModel *propertyModel() const;
 
-  // add plot properties to tree
+  // add plot properties to model
   virtual void addProperties();
 
   bool setProperty(const QString &name, const QVariant &value);
@@ -404,6 +426,22 @@ class CQChartsPlot : public QObject {
   //---
 
   void updateMargin();
+
+  //---
+
+  QModelIndex normalizeIndex(const QModelIndex &ind) const;
+  QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
+
+  void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels) const;
+
+  //---
+
+  void beginSelect();
+  void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
+  void addSelectIndex(const QModelIndex &ind);
+  void endSelect();
+
+  //---
 
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
@@ -501,19 +539,24 @@ class CQChartsPlot : public QObject {
   // get tip text at point
   virtual bool tipText(const CPoint2D &p, QString &tip) const;
 
-  //---
-
-  void panLeft ();
-  void panRight();
-  void panUp   ();
-  void panDown ();
+  // handle mouse press in click zoom mode
+  virtual void clickZoom(const CPoint2D &p);
 
   //---
 
-  void zoomTo(const CBBox2D &bbox);
-  void zoomIn(double f=1.5);
-  void zoomOut(double f=1.5);
-  void zoomFull();
+  virtual void panLeft ();
+  virtual void panRight();
+  virtual void panUp   ();
+  virtual void panDown ();
+
+  //---
+
+  virtual bool isClickZoom() const { return false; }
+
+  virtual void zoomTo(const CBBox2D &bbox);
+  virtual void zoomIn(double f=1.5);
+  virtual void zoomOut(double f=1.5);
+  virtual void zoomFull();
 
   //---
 
@@ -624,20 +667,23 @@ class CQChartsPlot : public QObject {
   // draw plot
   virtual void draw(QPainter *p) = 0;
 
+ private slots:
+  void selectionSlot();
+
  signals:
   void objPressed(CQChartsPlotObj *);
 
  protected:
-  typedef std::vector<CQChartsPlotObj *>            PlotObjs;
-  typedef CQChartsQuadTree<CQChartsPlotObj,CBBox2D> PlotObjTree;
+  using PlotObjs    = std::vector<CQChartsPlotObj *>;
+  using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CBBox2D>;
 
  protected:
   void objsAtPoint(const CPoint2D &p, PlotObjTree::DataList &dataList1) const;
 
  protected:
-  typedef std::vector<CQChartsPlot *> RefPlots;
-  typedef std::map<Layer,bool>        LayerActive;
-  typedef std::map<int,bool>          IdHidden;
+  using RefPlots    = std::vector<CQChartsPlot *>;
+  using LayerActive = std::map<Layer,bool>;
+  using IdHidden    = std::map<int,bool>;
 
   struct MouseData {
     QPoint pressPoint;
@@ -647,45 +693,47 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsView*         view_                { nullptr };
-  CQChartsPlotType*     type_                { nullptr };
-  ModelP                model_               { nullptr };
-  QString               id_;
-  bool                  visible_             { true };
-  CBBox2D               bbox_                { 0, 0, 1, 1 };
-  Margin                margin_;
-  CDisplayRange2D       displayRange_;
-  CDisplayTransform2D   displayTransform_;
-  CRange2D              dataRange_;
-  double                dataScale_           { 1.0 };
-  CPoint2D              dataOffset_          { 0.0, 0.0 };
-  OptReal               xmin_;
-  OptReal               ymin_;
-  OptReal               xmax_;
-  OptReal               ymax_;
-  CGradientPalette*     palette_             { nullptr };
-  CQChartsBoxObj*       borderObj_           { nullptr };
-  bool                  clip_                { true };
-  CQChartsBoxObj*       dataBorderObj_       { nullptr };
-  bool                  dataClip_            { false };
-  QString               title_;
-  QString               fileName_;
-  CQChartsAxis*         xAxis_               { nullptr };
-  CQChartsAxis*         yAxis_               { nullptr };
-  CQChartsKey*          keyObj_              { nullptr };
-  CQChartsTitle*        titleObj_            { nullptr };
-  int                   xValueColumn_        { -1 };
-  int                   yValueColumn_        { -1 };
-  bool                  equalScale_          { false };
-  bool                  followMouse_         { true };
-  bool                  showBoxes_           { false };
-  bool                  overlay_             { false };
-  OtherPlot             otherPlot_;
-  PlotObjs              plotObjs_;
-  PlotObjTree           plotObjTree_;
-  MouseData             mouseData_;
-  LayerActive           layerActive_;
-  IdHidden              idHidden_;
+  CQChartsView*       view_                { nullptr };
+  CQChartsPlotType*   type_                { nullptr };
+  ModelP              model_;
+  SelectionModelP     selectionModel_;
+  QString             id_;
+  bool                visible_             { true };
+  CBBox2D             bbox_                { 0, 0, 1, 1 };
+  Margin              margin_;
+  CDisplayRange2D     displayRange_;
+  CDisplayTransform2D displayTransform_;
+  CRange2D            dataRange_;
+  double              dataScale_           { 1.0 };
+  CPoint2D            dataOffset_          { 0.0, 0.0 };
+  OptReal             xmin_;
+  OptReal             ymin_;
+  OptReal             xmax_;
+  OptReal             ymax_;
+  CGradientPalette*   palette_             { nullptr };
+  CQChartsBoxObj*     borderObj_           { nullptr };
+  bool                clip_                { true };
+  CQChartsBoxObj*     dataBorderObj_       { nullptr };
+  bool                dataClip_            { false };
+  QString             title_;
+  QString             fileName_;
+  CQChartsAxis*       xAxis_               { nullptr };
+  CQChartsAxis*       yAxis_               { nullptr };
+  CQChartsKey*        keyObj_              { nullptr };
+  CQChartsTitle*      titleObj_            { nullptr };
+  int                 xValueColumn_        { -1 };
+  int                 yValueColumn_        { -1 };
+  bool                equalScale_          { false };
+  bool                followMouse_         { true };
+  bool                showBoxes_           { false };
+  bool                overlay_             { false };
+  OtherPlot           otherPlot_;
+  PlotObjs            plotObjs_;
+  PlotObjTree         plotObjTree_;
+  MouseData           mouseData_;
+  LayerActive         layerActive_;
+  IdHidden            idHidden_;
+  QItemSelection      itemSelection_;
 };
 
 #endif

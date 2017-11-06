@@ -40,6 +40,10 @@ class CQChartsCsv : public QSortFilterProxyModel {
 
   Qt::ItemFlags flags(const QModelIndex &index) const;
 
+  //---
+
+  bool filterAcceptsRow(int row, const QModelIndex &parent) const override;
+
  private:
   CQCharts*    charts_    { nullptr };
   CQCsvModel*  csvModel_  { nullptr };

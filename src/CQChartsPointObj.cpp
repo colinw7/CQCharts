@@ -1,5 +1,5 @@
 #include <CQChartsPointObj.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <QPainter>
 
 CQChartsPointObj::
@@ -26,14 +26,14 @@ setSymbolName(const QString &s)
 
 void
 CQChartsPointObj::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "displayed" , "visible");
-  tree->addProperty(path, this, "symbolName", "symbol" );
-  tree->addProperty(path, this, "color"     , "color"  );
-  tree->addProperty(path, this, "palette"   , "palette");
-  tree->addProperty(path, this, "size"      , "size"   );
-  tree->addProperty(path, this, "filled"    , "filled" );
+  model->addProperty(path, this, "displayed" , "visible");
+  model->addProperty(path, this, "symbolName", "symbol" );
+  model->addProperty(path, this, "color"     , "color"  );
+  model->addProperty(path, this, "palette"   , "palette");
+  model->addProperty(path, this, "size"      , "size"   );
+  model->addProperty(path, this, "filled"    , "filled" );
 }
 
 void

@@ -19,7 +19,7 @@ class CQChartsAxis;
 class CQChartsPlot;
 class CQChartsLineObj;
 class CQChartsFillObj;
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 class QPainter;
 
 class CQChartsAxisLabel : public CQChartsTextBoxObj {
@@ -55,13 +55,17 @@ class CQChartsAxis : public QObject {
   Q_OBJECT
 
   // general
-  Q_PROPERTY(bool      visible     READ isVisible   WRITE setVisible    )
-  Q_PROPERTY(Direction direction   READ direction   WRITE setDirection  )
-  Q_PROPERTY(Side      side        READ side        WRITE setSide       )
-  Q_PROPERTY(bool      hasPosition READ hasPosition WRITE setHasPosition)
-  Q_PROPERTY(double    position    READ position    WRITE setPosition   )
-  Q_PROPERTY(bool      integral    READ isIntegral  WRITE setIntegral   )
-  Q_PROPERTY(QString   format      READ format      WRITE setFormat     )
+  Q_PROPERTY(bool      visible        READ isVisible      WRITE setVisible       )
+  Q_PROPERTY(Direction direction      READ direction      WRITE setDirection     )
+  Q_PROPERTY(Side      side           READ side           WRITE setSide          )
+  Q_PROPERTY(bool      hasPosition    READ hasPosition    WRITE setHasPosition   )
+  Q_PROPERTY(double    position       READ position       WRITE setPosition      )
+  Q_PROPERTY(bool      integral       READ isIntegral     WRITE setIntegral      )
+  Q_PROPERTY(QString   format         READ format         WRITE setFormat        )
+  Q_PROPERTY(double    tickIncrement  READ tickIncrement  WRITE setTickIncrement )
+  Q_PROPERTY(double    majorIncrement READ majorIncrement WRITE setMajorIncrement)
+  Q_PROPERTY(double    start          READ start          WRITE setStart         )
+  Q_PROPERTY(double    end            READ end            WRITE setEnd           )
 
   // line
   Q_PROPERTY(bool      lineDisplayed READ isLineDisplayed WRITE setLineDisplayed)
@@ -114,7 +118,7 @@ class CQChartsAxis : public QObject {
     TOP_RIGHT
   };
 
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
  public:
   CQChartsAxis(CQChartsPlot *plot, Direction direction=Direction::HORIZONTAL,
@@ -231,7 +235,7 @@ class CQChartsAxis : public QObject {
   void setTickInside(bool b) { tickInside_ = b; redraw(); }
 
   bool isMirrorTicks() const { return mirrorTicks_; }
-  void setMirrorTicks(bool b) { mirrorTicks_ = b; }
+  void setMirrorTicks(bool b) { mirrorTicks_ = b; redraw(); }
 
   //---
 
@@ -318,7 +322,7 @@ class CQChartsAxis : public QObject {
   const CBBox2D &bbox() const { return bbox_; }
   void setBBox(const CBBox2D &b) { bbox_ = b; redraw(); }
 
-  void addProperties(CQPropertyViewTree *tree, const QString &path);
+  void addProperties(CQPropertyViewModel *model, const QString &path);
 
   void updatePlotPosition();
 
@@ -357,8 +361,8 @@ class CQChartsAxis : public QObject {
                     AxisGapData &axisGapData);
 
  private:
-  typedef std::vector<double>   TickSpaces;
-  typedef std::map<int,QString> TickLabels;
+  using TickSpaces = std::vector<double>;
+  using TickLabels = std::map<int,QString>;
 
   CQChartsPlot*          plot_                { nullptr };
 

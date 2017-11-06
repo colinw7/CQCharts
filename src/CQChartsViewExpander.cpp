@@ -1,11 +1,11 @@
 #include <CQChartsViewExpander.h>
-#include <CQChartsView.h>
+#include <CQChartsWindow.h>
 #include <QPainter>
 #include <QMouseEvent>
 
 CQChartsViewExpander::
-CQChartsViewExpander(CQChartsView *view) :
- QFrame(view), view_(view)
+CQChartsViewExpander(CQChartsWindow *window) :
+ QFrame(window), window_(window)
 {
   setObjectName("expander");
 
@@ -27,7 +27,7 @@ mousePressEvent(QMouseEvent *me)
     if (handleRect.contains(me->pos())) {
       setExpanded(! isExpanded());
 
-      view_->updateGeometry();
+      window_->updateGeometry();
 
       return;
     }
@@ -49,7 +49,7 @@ mouseMoveEvent(QMouseEvent *me)
 
     int dx = pressPos_.x() - movePos_.x();
 
-    view_->moveExpander(dx);
+    window_->moveExpander(dx);
 
     movePos_ = pressPos_;
   }

@@ -57,17 +57,17 @@ updateRange(bool apply)
     if (! model)
       return;
 
-    int n = model->rowCount(QModelIndex());
+    int nr = model->rowCount(QModelIndex());
 
     // determine x data type
 
     bool isInt = true, isReal = true;
 
-    for (int i = 0; i < n; ++i) {
+    for (int r = 0; r < nr; ++r) {
       if (isInt) {
         bool ok1;
 
-        (void) CQChartsUtil::modelInteger(model, i, xColumn_, ok1);
+        (void) CQChartsUtil::modelInteger(model, r, xColumn(), ok1);
 
         if (ok1)
           continue;
@@ -78,7 +78,7 @@ updateRange(bool apply)
       if (isReal) {
         bool ok1;
 
-        (void) CQChartsUtil::modelReal(model, i, xColumn_, ok1);
+        (void) CQChartsUtil::modelReal(model, r, xColumn(), ok1);
 
         if (ok1)
           continue;
@@ -94,30 +94,36 @@ updateRange(bool apply)
     nameSet_ .clear();
     setName_ .clear();
 
-    for (int i = 0; i < n; ++i) {
-      int setId = i;
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex xind = model->index(r, xColumn());
+
+      QModelIndex xind1 = normalizeIndex(xind);
+
+      //---
+
+      int setId = r;
 
       if      (isInt) {
         bool ok1;
 
-        setId = CQChartsUtil::modelInteger(model, i, xColumn_, ok1);
+        setId = CQChartsUtil::modelInteger(model, xind, ok1);
       }
       else if (isReal) {
         bool ok1;
 
-        double r = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
+        double real = CQChartsUtil::modelReal(model, xind, ok1);
 
-        if (CQChartsUtil::isNaN(r))
+        if (CQChartsUtil::isNaN(real))
           continue;
 
-        auto p = valueSet_.find(r);
+        auto p = valueSet_.find(real);
 
         if (p == valueSet_.end()) {
           int setId = valueSet_.size() + 1;
 
-          p = valueSet_.insert(p, ValueSet::value_type(r, setId));
+          p = valueSet_.insert(p, ValueSet::value_type(real, setId));
 
-          setValue_[setId] = r;
+          setValue_[setId] = real;
         }
 
         setId = (*p).second;
@@ -125,7 +131,7 @@ updateRange(bool apply)
       else {
         bool ok1;
 
-        QString s = CQChartsUtil::modelString(model, i, xColumn_, ok1);
+        QString s = CQChartsUtil::modelString(model, xind, ok1);
 
         auto p = nameSet_.find(s);
 
@@ -142,16 +148,20 @@ updateRange(bool apply)
 
       //---
 
+      QModelIndex yind = model->index(r, yColumn());
+
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
+      double value = CQChartsUtil::modelReal(model, yind, ok2);
 
-      if (! ok2) value = i;
+      if (! ok2) value = r;
 
       if (CQChartsUtil::isNaN(value))
         continue;
 
-      whiskers_[setId].addValue(value);
+      CQChartsBoxPlotValue wv(value, xind1.row());
+
+      whiskers_[setId].addValue(wv);
     }
 
     for (auto &iwhisker : whiskers_)
@@ -179,10 +189,10 @@ updateRange(bool apply)
 
       double pos = setId;
 
-      const CBoxWhisker &whisker = iwhisker.second;
+      const CQChartsBoxPlotWhisker &whisker = iwhisker.second;
 
-      double min = whisker.value(0);
-      double max = whisker.value(whisker.numValues() - 1);
+      double min = whisker.rvalue(0);
+      double max = whisker.rvalue(whisker.numValues() - 1);
 
       dataRange_.updateRange(pos - 0.5, min);
       dataRange_.updateRange(pos + 0.5, max);
@@ -193,14 +203,14 @@ updateRange(bool apply)
 
   //---
 
-  xAxis_->setColumn(xColumn_);
-  yAxis_->setColumn(yColumn_);
+  xAxis_->setColumn(xColumn());
+  yAxis_->setColumn(yColumn());
 
   QAbstractItemModel *model = this->model();
 
   if (model) {
-    QString xname = model->headerData(xColumn_, Qt::Horizontal).toString();
-    QString yname = model->headerData(yColumn_, Qt::Horizontal).toString();
+    QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
+    QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
 
     xAxis_->setLabel(xname);
     yAxis_->setLabel(yname);
@@ -239,7 +249,7 @@ initObjs()
     if (! hidden) {
       double pos = iwhisker.first;
 
-      const CBoxWhisker &whisker = iwhisker.second;
+      const CQChartsBoxPlotWhisker &whisker = iwhisker.second;
 
       //----
 
@@ -299,9 +309,23 @@ draw(QPainter *p)
 
 CQChartsBoxPlotObj::
 CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
-                   const CBoxWhisker &whisker, int i, int n) :
+                   const CQChartsBoxPlotWhisker &whisker, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), i_(i), n_(n)
 {
+}
+
+void
+CQChartsBoxPlotObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  for (auto value : whisker_.values()) {
+    plot_->addSelectIndex(value.row, plot_->xColumn());
+    plot_->addSelectIndex(value.row, plot_->yColumn());
+  }
+
+  plot_->endSelect();
 }
 
 void
@@ -356,7 +380,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   for (auto o : whisker_.outliers()) {
     double px1, py1;
 
-    plot_->windowToPixel(pos_, whisker_.value(o), px1, py1);
+    plot_->windowToPixel(pos_, whisker_.rvalue(o), px1, py1);
 
     QRectF rect(px1 - 4, py1 - 4, 8, 8);
 

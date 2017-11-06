@@ -7,7 +7,7 @@
 #include <QColor>
 #include <QPointF>
 
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 
 class CQChartsPointObj : public QObject {
   Q_OBJECT
@@ -56,7 +56,7 @@ class CQChartsPointObj : public QObject {
 
   //---
 
-  virtual void addProperties(CQPropertyViewTree *tree, const QString &path);
+  virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
   void draw(QPainter *painter, const QPointF &p);
 

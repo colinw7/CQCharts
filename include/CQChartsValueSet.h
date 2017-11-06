@@ -80,15 +80,15 @@ class CQChartsValueSet : public QObject {
     }
   };
 
-  typedef std::vector<int>             IVals;
-  typedef std::vector<double>          RVals;
-  typedef std::vector<QString>         SVals;
-  typedef std::set<int>                ISets;
-  typedef std::map<double,int,RealCmp> RValSet;
-  typedef std::map<int,double>         SetRVal;
-  typedef std::map<QString,int>        SValSet;
-  typedef std::map<int,QString>        SetSVal;
-  typedef std::vector<QVariant>        Values;
+  using IVals   = std::vector<int>;
+  using RVals   = std::vector<double>;
+  using SVals   = std::vector<QString>;
+  using ISets   = std::set<int>;
+  using RValSet = std::map<double,int,RealCmp>;
+  using SetRVal = std::map<int,double>;
+  using SValSet = std::map<QString,int>;
+  using SetSVal = std::map<int,QString>;
+  using Values  = std::vector<QVariant>;
 
   Values  values_;                // input values
   bool    initialized_ { false }; // are real, integer, string values initialized

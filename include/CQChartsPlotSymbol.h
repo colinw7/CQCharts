@@ -52,7 +52,7 @@ struct CSymbol2D {
     }
   };
 
-  typedef std::vector<Line> Lines;
+  using Lines = std::vector<Line>;
 
   Type  type { Type::NONE };
   Lines lines;

@@ -23,7 +23,7 @@ addProperties(const QString &path)
 
   QString boxPath = plot_->id() + "/" + path + "/box";
 
-  CQChartsBoxObj::addProperties(plot_->propertyView(), boxPath);
+  CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath);
 }
 
 void

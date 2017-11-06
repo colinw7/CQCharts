@@ -1,17 +1,17 @@
 #ifndef CQChartsTree_H
 #define CQChartsTree_H
 
-#include <QTreeView>
+#include <CQTreeView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
 class CQHeaderView;
 
-class CQChartsTree : public QTreeView {
+class CQChartsTree : public CQTreeView {
   Q_OBJECT
 
  public:
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsTree(QWidget *parent=nullptr);

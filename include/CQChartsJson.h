@@ -43,7 +43,7 @@ class CQChartsJson : public QSortFilterProxyModel {
   bool setColumnType(int col, const QString &type);
 
  private:
-  typedef std::vector<CQChartsColumn> Columns;
+  using Columns = std::vector<CQChartsColumn>;
 
   CQCharts*    charts_   { nullptr };
   CQJsonModel* jsonModel_ { nullptr };

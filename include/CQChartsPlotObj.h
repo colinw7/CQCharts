@@ -41,7 +41,13 @@ class CQChartsPlotObj : public QObject {
 
   virtual bool inside(const CPoint2D &p) const { return rect_.inside(p); }
 
+  virtual bool isIndex(const QModelIndex &) const { return false; }
+
   virtual void handleResize() { }
+
+  virtual void mousePress(const CPoint2D &) { }
+
+  virtual void clickZoom(const CPoint2D &) { }
 
   virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 

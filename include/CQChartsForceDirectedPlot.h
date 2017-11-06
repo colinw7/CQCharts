@@ -131,7 +131,7 @@ namespace Springy {
     double  k_      { 1.0 }; // spring constant (See Hooke's law) .. how stiff the spring is
   };
 
-  typedef std::pair<Node *, Point *> NodePoint;
+  using NodePoint = std::pair<Node*,Point*>;
 
   //-----------
 
@@ -165,7 +165,7 @@ namespace Springy {
     double      value_  { 0.0 }; // value
   };
 
-  typedef std::vector<Node *> Nodes;
+  using Nodes = std::vector<Node*>;
 
   //-----------
 
@@ -195,7 +195,7 @@ namespace Springy {
     double value_  { 0.0 }; // value
   };
 
-  typedef std::vector<Edge *> Edges;
+  using Edges = std::vector<Edge*>;
 
   //-----------
 
@@ -363,9 +363,9 @@ namespace Springy {
     }
 
    public:
-    typedef std::map<int,Node *>    NodeSet;
-    typedef std::map<int,Edges>     NodeEdges;
-    typedef std::map<int,NodeEdges> NodeNodeEdges;
+    using NodeSet       = std::map<int,Node*>;
+    using NodeEdges     = std::map<int,Edges>;
+    using NodeNodeEdges = std::map<int,NodeEdges>;
 
    private:
     NodeSet       nodeSet_;
@@ -581,8 +581,8 @@ namespace Springy {
     }
 
    private:
-    typedef std::map<int,Point *>  NodePoints;
-    typedef std::map<int,Spring *> EdgeSprings;
+    using NodePoints  = std::map<int,Point*>;
+    using EdgeSprings = std::map<int,Spring*>;
 
     Graph*      graph_              { nullptr };
     double      stiffness_          { 400.0 };   // spring stiffness constant
@@ -762,7 +762,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
     }
   };
 
-  typedef std::vector<ConnectionData> ConnectionDataArray;
+  using ConnectionDataArray = std::vector<ConnectionData>;
 
   struct ConnectionsData {
     int                 node;
@@ -771,7 +771,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
     ConnectionDataArray connections;
   };
 
-  typedef std::map<int,ConnectionsData> IdConnectionsData;
+  using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
   bool decodeConnections(const QString &str, ConnectionDataArray &connections);
@@ -781,7 +781,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   void animateSlot();
 
  private:
-  typedef std::map<int,Springy::Node *> NodeMap;
+  using NodeMap = std::map<int,Springy::Node*>;
 
   int               nodeColumn_        { 0 };
   int               connectionsColumn_ { 1 };

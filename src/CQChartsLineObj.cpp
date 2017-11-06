@@ -1,6 +1,6 @@
 #include <CQChartsLineObj.h>
 #include <CQChartsUtil.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <QPainter>
 
 CQChartsLineObj::
@@ -10,12 +10,12 @@ CQChartsLineObj()
 
 void
 CQChartsLineObj::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "displayed", "visible");
-  tree->addProperty(path, this, "color"    , "color"  );
-  tree->addProperty(path, this, "width"    , "width"  );
-  tree->addProperty(path, this, "dash"     , "dash"   );
+  model->addProperty(path, this, "displayed", "visible");
+  model->addProperty(path, this, "color"    , "color"  );
+  model->addProperty(path, this, "width"    , "width"  );
+  model->addProperty(path, this, "dash"     , "dash"   );
 }
 
 void

@@ -97,18 +97,18 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = numRows();
+  int nr = numRows();
 
   dataRange_.reset();
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
-    double y = CQChartsUtil::modelReal(model, i, yColumn(), ok2);
+    double x = CQChartsUtil::modelReal(model, r, xColumn(), ok1);
+    double y = CQChartsUtil::modelReal(model, r, yColumn(), ok2);
 
-    if (! ok1) x = i;
-    if (! ok2) y = i;
+    if (! ok1) x = r;
+    if (! ok2) y = r;
 
     if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
       continue;
@@ -186,41 +186,41 @@ initObjs()
     if (! model)
       return;
 
-    int n = numRows();
+    int nr = numRows();
 
     if (symbolSizeColumn() >= 0) {
       bool ok;
 
-      for (int i = 0; i < n; ++i)
-        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, i, symbolSizeColumn(), ok));
+      for (int r = 0; r < nr; ++r)
+        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, r, symbolSizeColumn(), ok));
     }
 
     if (fontSizeColumn() >= 0) {
       bool ok;
 
-      for (int i = 0; i < n; ++i)
-        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, i, fontSizeColumn(), ok));
+      for (int r = 0; r < nr; ++r)
+        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, r, fontSizeColumn(), ok));
     }
 
     if (colorColumn() >= 0) {
       bool ok;
 
-      for (int i = 0; i < n; ++i)
-        colorSet_.addValue(CQChartsUtil::modelValue(model, i, colorColumn(), ok));
+      for (int r = 0; r < nr; ++r)
+        colorSet_.addValue(CQChartsUtil::modelValue(model, r, colorColumn(), ok));
     }
 
-    for (int i = 0; i < n; ++i) {
+    for (int r = 0; r < nr; ++r) {
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok);
+      QString name = CQChartsUtil::modelString(model, r, nameColumn(), ok);
 
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
-      double y = CQChartsUtil::modelReal(model, i, yColumn(), ok2);
+      double x = CQChartsUtil::modelReal(model, r, xColumn(), ok1);
+      double y = CQChartsUtil::modelReal(model, r, yColumn(), ok2);
 
-      if (! ok1) x = i;
-      if (! ok2) y = i;
+      if (! ok1) x = r;
+      if (! ok2) y = r;
 
       if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
         continue;
@@ -228,15 +228,15 @@ initObjs()
       bool ok3;
 
       // get symbol size label (needed if not string ?)
-      QString symbolSizeStr = CQChartsUtil::modelString(model, i, symbolSizeColumn(), ok3);
+      QString symbolSizeStr = CQChartsUtil::modelString(model, r, symbolSizeColumn(), ok3);
 
       // get font size label (needed if not string ?)
-      QString fontSizeStr = CQChartsUtil::modelString(model, i, fontSizeColumn(), ok3);
+      QString fontSizeStr = CQChartsUtil::modelString(model, r, fontSizeColumn(), ok3);
 
       // get color label (needed if not string ?)
-      QString colorStr = CQChartsUtil::modelString(model, i, colorColumn(), ok3);
+      QString colorStr = CQChartsUtil::modelString(model, r, colorColumn(), ok3);
 
-      nameValues_[name].emplace_back(x, y, i, symbolSizeStr, fontSizeStr, colorStr);
+      nameValues_[name].emplace_back(x, y, r, symbolSizeStr, fontSizeStr, colorStr);
     }
   }
 
@@ -265,10 +265,10 @@ initObjs()
 
   int nv = nameValues_.size();
 
-  int i = 0;
+  int r = 0;
 
   for (const auto &nameValues : nameValues_) {
-    bool hidden = isSetHidden(i);
+    bool hidden = isSetHidden(r);
 
     if (! hidden) {
       const QString &name   = nameValues.first;
@@ -300,7 +300,7 @@ initObjs()
         CBBox2D bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, i, nv);
+          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv);
 
         QString id = name;
 
@@ -324,7 +324,7 @@ initObjs()
       }
     }
 
-    ++i;
+    ++r;
   }
 
   //---
@@ -416,6 +416,18 @@ inside(const CPoint2D &p) const
   plot_->windowToPixel(p, pp);
 
   return pbbox.inside(pp);
+}
+
+void
+CQChartsScatterPointObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(i_, plot_->xColumn());
+  plot_->addSelectIndex(i_, plot_->yColumn());
+
+  plot_->endSelect();
 }
 
 void

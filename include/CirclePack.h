@@ -9,11 +9,13 @@
 #include <sys/types.h>
 
 #include <CEnclosingCircle.h>
+#include <COSNaN.h>
 
 class CircleNode {
   public:
    CircleNode(double r=1.0, double x=0.0, double y=0.0) :
     r_(r), x_(x), y_(y) {
+     assert(! COSNaN::is_nan(x_) && ! COSNaN::is_nan(y_));
    }
 
    virtual ~CircleNode() { }
@@ -21,27 +23,40 @@ class CircleNode {
    virtual double radius() const { return r_; }
 
    virtual double x() const { return x_; }
-   virtual double y() const { return y_; }
+   virtual void setX(double x) { assert(! COSNaN::is_nan(x)); x_ = x; }
 
-   virtual void setPosition(double x, double y) { x_ = x; y_ = y; }
+   virtual double y() const { return y_; }
+   virtual void setY(double y) { assert(! COSNaN::is_nan(y)); y_ = y; }
+
+   virtual void setPosition(double x, double y) {
+     assert(! COSNaN::is_nan(x) && ! COSNaN::is_nan(y));
+
+     x_ = x; y_ = y;
+   }
 
   protected:
-   double r_;
-   double x_;
-   double y_;
+   double r_ { 1.0 };
+   double x_ { 0.0 };
+   double y_ { 0.0 };
 };
+
+//---
 
 template<typename NODE>
 class CirclePack {
  public:
-  typedef std::vector<NODE *> Nodes;
+  using Nodes = std::vector<NODE*>;
 
  public:
   CirclePack() : ind1_(0), ind2_(1) { }
 
- ~CirclePack() {
-    for (auto &n : nodes_)
-      delete n;
+ ~CirclePack() { }
+
+  void reset() {
+    nodes_.clear();
+
+    ind1_ = 0;
+    ind2_ = 1;
   }
 
   bool addNode(NODE *node) {
@@ -51,8 +66,7 @@ class CirclePack {
 
     if (! findAddPos(r, xc, yc))
       return false;
-
-    node->setPosition(xc, yc);
+node->setPosition(xc, yc);
 
     nodes_.push_back(node);
 
@@ -60,6 +74,8 @@ class CirclePack {
   }
 
   const Nodes &nodes() const { return nodes_; }
+
+  NODE *node(int i) const { assert(i >= 0 && i < int(nodes_.size())); return nodes_[i]; }
 
   uint size() const { return nodes_.size(); }
 
@@ -69,10 +85,10 @@ class CirclePack {
     xmax = 0.0;
     ymax = 0.0;
 
-    int n = nodes_.size();
+    int n = size();
 
     for (int i = 0; i < n; ++i) {
-      NODE *node = nodes_[i];
+      NODE *node = node(i);
 
       xmin = std::min(xmin, node->x() - node->radius());
       ymin = std::min(ymin, node->y() - node->radius());
@@ -84,10 +100,10 @@ class CirclePack {
   void boundingCircle(double &xc, double &yc, double &r) const {
     CEnclosingCircle enclose;
 
-    int n = nodes_.size();
+    int n = size();
 
     for (int i = 0; i < n; ++i) {
-      NODE *node = nodes_[i];
+      NODE *node = this->node(i);
 
       enclose.addCircle(node->x(), node->y(), node->radius());
     }
@@ -97,7 +113,7 @@ class CirclePack {
 
  private:
   bool findAddPos(double r, double &xc, double &yc) const {
-    int n = nodes_.size();
+    int n = size();
 
     if (n == 0) {
       xc = 0.0;
@@ -107,7 +123,7 @@ class CirclePack {
     }
 
     if (n == 1) {
-      xc = nodes_[0]->radius() + r;
+      xc = node(0)->radius() + r;
       yc = 0.0;
 
       return true;
@@ -128,8 +144,8 @@ class CirclePack {
 
   bool testIndices(int ind1, int ind2, double r, double &xc, double &yc) const {
     while (ind1 < ind2) {
-      NODE *node1 = nodes_[ind1];
-      NODE *node2 = nodes_[ind2];
+      NODE *node1 = node(ind1);
+      NODE *node2 = node(ind2);
 
       //std::cerr << "Test: " << node1->id() << " and " << node2->id() << "\n";
 
@@ -195,10 +211,10 @@ class CirclePack {
   }
 
   bool isTouching(double x, double y, double r) const {
-    int n = nodes_.size();
+    int n = size();
 
     for (int i = 0; i < n; ++i) {
-      NODE *node = nodes_[i];
+      NODE *node = this->node(i);
 
       double dx = x - node->x();
       double dy = y - node->y();
@@ -238,7 +254,7 @@ class CirclePack {
     double a = (r1*r1 - r2*r2 + d*d)/(2.0*d);
 
     // calc distance from point 3 to either intersection points
-    double h = sqrt(r1*r1 - a*a);
+    double h = sqrt(std::max(r1*r1 - a*a, 0.0));
 
     // calc the coordinates of point 3
     double x3 = x1 + a*dx/d;
@@ -253,6 +269,9 @@ class CirclePack {
     *xi2 = x3 - rx;
     *yi1 = y3 + ry;
     *yi2 = y3 - ry;
+
+    assert(! COSNaN::is_nan(*xi1) && ! COSNaN::is_nan(*yi1) &&
+           ! COSNaN::is_nan(*xi2) && ! COSNaN::is_nan(*yi2));
 
     return true;
   }

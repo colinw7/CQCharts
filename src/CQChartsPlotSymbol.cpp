@@ -6,7 +6,7 @@
 
 class CSymbol2DList {
  public:
-  typedef std::vector<CSymbol2D> Symbols;
+  using Symbols = std::vector<CSymbol2D>;
 
  public:
   CSymbol2DList(std::initializer_list<CSymbol2D> symbols) :

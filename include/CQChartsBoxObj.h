@@ -6,7 +6,7 @@
 #include <QRectF>
 #include <QPolygonF>
 
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 class QPainter;
 
 class CQChartsBoxObj : public QObject {
@@ -66,7 +66,7 @@ class CQChartsBoxObj : public QObject {
 
   //---
 
-  virtual void addProperties(CQPropertyViewTree *tree, const QString &path);
+  virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
   void draw(QPainter *p, const QRectF &rect) const;
   void draw(QPainter *p, const QPolygonF &poly) const;

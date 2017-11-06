@@ -10,22 +10,39 @@
 
 class CQChartsBoxPlot;
 
+struct CQChartsBoxPlotValue {
+  CQChartsBoxPlotValue() = default;
+
+  CQChartsBoxPlotValue(double value, int row) :
+   value(value), row(row) {
+  }
+
+  operator double() const { return value; }
+
+  double value { 0.0 };
+  int    row   { -1 };
+};
+
+using CQChartsBoxPlotWhisker = CBoxWhiskerT<CQChartsBoxPlotValue>;
+
 // box plot object
 class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
   CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
-                     const CBoxWhisker &whisker, int i, int n);
+                     const CQChartsBoxPlotWhisker &whisker, int i, int n);
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsBoxPlot *plot_ { nullptr };
-  double           pos_  { 0.0 };
-  CBoxWhisker      whisker_;
-  int              i_    { -1 };
-  int              n_    { 0 };
+  CQChartsBoxPlot*       plot_ { nullptr };
+  double                 pos_  { 0.0 };
+  CQChartsBoxPlotWhisker whisker_;
+  int                    i_    { -1 };
+  int                    n_    { 0 };
 };
 
 //---
@@ -116,11 +133,11 @@ class CQChartsBoxPlot : public CQChartsPlot {
     }
   };
 
-  typedef std::map<int,CBoxWhisker>    Whiskers;
-  typedef std::map<double,int,RealCmp> ValueSet;
-  typedef std::map<int,double>         SetValue;
-  typedef std::map<QString,int>        NameSet;
-  typedef std::map<int,QString>        SetName;
+  using Whiskers = std::map<int,CQChartsBoxPlotWhisker>;
+  using ValueSet = std::map<double,int,RealCmp>;
+  using SetValue = std::map<int,double>;
+  using NameSet  = std::map<QString,int>;
+  using SetName  = std::map<int,QString>;
 
   int      xColumn_      { 0 };
   int      yColumn_      { 1 };

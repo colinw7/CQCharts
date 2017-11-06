@@ -1,19 +1,15 @@
 #include <CQChartsTree.h>
-#include <CQChartsHeader.h>
 #include <QSortFilterProxyModel>
+#include <cassert>
 
 CQChartsTree::
 CQChartsTree(QWidget *parent) :
- QTreeView(parent)
+ CQTreeView(parent)
 {
   setObjectName("table");
 
-  header_ = new CQChartsHeader(this);
-
-  header_->setSectionsClickable(true);
-  header_->setHighlightSections(true);
-
-  setHeader(header_);
+  //header()->setSectionsClickable(true);
+  //header()->setHighlightSections(true);
 }
 
 void
@@ -22,7 +18,7 @@ setModel(const ModelP &model)
 {
   model_ = model;
 
-  QTreeView::setModel(model_.data());
+  CQTreeView::setModel(model_.data());
 }
 
 void

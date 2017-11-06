@@ -119,3 +119,8 @@
  + Add impulse lines
  + Add fill under position
  + Reduce exported dependencies
+## 11/5/2017
+ + Add support for selection (select to/from view)
+ + Add distibution plot
+ + Update view dependencies so view uses property model and gradient palette and window uses
+   property tree and gradient canvas/control

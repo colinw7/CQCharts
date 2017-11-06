@@ -56,7 +56,7 @@ addProperties()
 
   QString labelBoxPath = id() + "/label/box";
 
-  textBox_.CQChartsBoxObj::addProperties(propertyView(), labelBoxPath);
+  textBox_.CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 }
 
 void
@@ -123,7 +123,7 @@ initObjs()
 
   //---
 
-  typedef std::vector<CQChartsChordData> Datas;
+  using Datas = std::vector<CQChartsChordData>;
 
   Datas datas;
 

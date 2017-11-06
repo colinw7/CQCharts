@@ -6,6 +6,7 @@
 #include <CQChartsBubblePlot.h>
 #include <CQChartsChordPlot.h>
 #include <CQChartsDelaunayPlot.h>
+#include <CQChartsDistributionPlot.h>
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsHierBubblePlot.h>
@@ -42,6 +43,7 @@ init()
   plotTypeMgr_->addType("bubble"       , new CQChartsBubblePlotType       );
   plotTypeMgr_->addType("chord"        , new CQChartsChordPlotType        );
   plotTypeMgr_->addType("delaunay"     , new CQChartsDelaunayPlotType     );
+  plotTypeMgr_->addType("distribution" , new CQChartsDistributionPlotType );
   plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
   plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
   plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );

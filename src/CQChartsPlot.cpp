@@ -10,9 +10,11 @@
 #include <CQChartsPointObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <CGradientPalette.h>
 
+#include <QItemSelectionModel>
+#include <QSortFilterProxyModel>
 #include <QPainter>
 
 //------
@@ -108,6 +110,78 @@ CQChartsPlot::
   delete xAxis_;
   delete yAxis_;
 }
+
+//---
+
+void
+CQChartsPlot::
+setSelectionModel(QItemSelectionModel *sm)
+{
+  QItemSelectionModel *sm1 = this->selectionModel();
+
+  if (sm1)
+    disconnect(sm1, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+               this, SLOT(selectionSlot()));
+
+  selectionModel_ = sm;
+
+  connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this, SLOT(selectionSlot()));
+}
+
+QItemSelectionModel *
+CQChartsPlot::
+selectionModel() const
+{
+  return selectionModel_.data();
+}
+
+QAbstractItemModel *
+CQChartsPlot::
+sourceModel() const
+{
+  QAbstractItemModel *model = this->model();
+  if (! model) return nullptr;
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+  while (proxyModel) {
+    model = proxyModel->sourceModel();
+
+    proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+  }
+
+  return model;
+}
+
+void
+CQChartsPlot::
+selectionSlot()
+{
+  QItemSelectionModel *sm = this->selectionModel();
+  if (! sm) return;
+
+  QModelIndexList indices = sm->selectedIndexes();
+  if (indices.empty()) return;
+
+  for (auto &plotObj : plotObjs_)
+    plotObj->setSelected(false);
+
+  for (int i = 0; i < indices.size(); ++i) {
+    const QModelIndex &ind = indices[i];
+
+    QModelIndex ind1 = normalizeIndex(ind);
+
+    for (auto &plotObj : plotObjs_) {
+      if (plotObj->isIndex(ind1))
+        plotObj->setSelected(true);
+    }
+  }
+
+  update();
+}
+
+//---
 
 CQCharts *
 CQChartsPlot::
@@ -411,11 +485,11 @@ setRange(const QRectF &r)
   applyDataRange();
 }
 
-CQPropertyViewTree *
+CQPropertyViewModel *
 CQChartsPlot::
-propertyView() const
+propertyModel() const
 {
-  return view_->propertyView();
+  return view_->propertyModel();
 }
 
 void
@@ -460,30 +534,30 @@ addProperties()
   addProperty("margin", this, "marginBottom", "bottom");
 
   if (xAxis_)
-    xAxis_->addProperties(propertyView(), id() + "/" + "X Axis");
+    xAxis_->addProperties(propertyModel(), id() + "/" + "X Axis");
 
   if (yAxis_)
-    yAxis_->addProperties(propertyView(), id() + "/" + "Y Axis");
+    yAxis_->addProperties(propertyModel(), id() + "/" + "Y Axis");
 
   if (keyObj_)
-    keyObj_->addProperties(propertyView(), id() + "/" + "Key");
+    keyObj_->addProperties(propertyModel(), id() + "/" + "Key");
 
   if (titleObj_)
-    titleObj_->addProperties(propertyView(), id() + "/" + "Title");
+    titleObj_->addProperties(propertyModel(), id() + "/" + "Title");
 }
 
 bool
 CQChartsPlot::
 setProperty(const QString &name, const QVariant &value)
 {
-  return propertyView()->setProperty(this, name, value);
+  return propertyModel()->setProperty(this, name, value);
 }
 
 bool
 CQChartsPlot::
 getProperty(const QString &name, QVariant &value)
 {
-  return propertyView()->getProperty(this, name, value);
+  return propertyModel()->getProperty(this, name, value);
 }
 
 void
@@ -772,7 +846,7 @@ mousePress(const CPoint2D &w)
 
   //---
 
-  typedef std::map<CQChartsPlotObj *, bool> PlotSelected;
+  using PlotSelected = std::map<CQChartsPlotObj*,bool>;
 
   PlotSelected selectedPlots;
 
@@ -785,6 +859,8 @@ mousePress(const CPoint2D &w)
 
   for (auto obj : dataList) {
     selectedPlots[obj] = ! obj->isSelected();
+
+    obj->mousePress(w);
 
     emit objPressed(obj);
   }
@@ -913,6 +989,18 @@ void
 CQChartsPlot::
 mouseRelease(const CPoint2D &)
 {
+}
+
+void
+CQChartsPlot::
+clickZoom(const CPoint2D &w)
+{
+  PlotObjTree::DataList dataList;
+
+  objsAtPoint(w, dataList);
+
+  for (auto obj : dataList)
+    obj->clickZoom(w);
 }
 
 void
@@ -1789,6 +1877,118 @@ CQChartsPlot::
 textColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
+}
+
+QModelIndex
+CQChartsPlot::
+normalizeIndex(const QModelIndex &ind) const
+{
+  // map index in proxy model, to source model (non-proxy model)
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  std::vector<QSortFilterProxyModel *> proxyModels;
+
+  this->proxyModels(proxyModels);
+
+  QModelIndex ind1 = ind;
+
+  int i = 0;
+
+  for ( ; i < int(proxyModels.size()); ++i)
+    if (ind1.model() == proxyModels[i])
+      break;
+
+  for ( ; i < int(proxyModels.size()); ++i)
+    ind1 = proxyModels[i]->mapToSource(ind1);
+
+  return ind1;
+}
+
+QModelIndex
+CQChartsPlot::
+unnormalizeIndex(const QModelIndex &ind) const
+{
+  // map index in source model (non-proxy model), to proxy model
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  std::vector<QSortFilterProxyModel *> proxyModels;
+
+  this->proxyModels(proxyModels);
+
+  QModelIndex ind1 = ind;
+
+  int i = int(proxyModels.size()) - 1;
+
+  for ( ; i >= 0; --i)
+    if (ind1.model() == proxyModels[i])
+      break;
+
+  for ( ; i >= 0; --i)
+    ind1 = proxyModels[i]->mapFromSource(ind1);
+
+  return ind1;
+}
+
+void
+CQChartsPlot::
+proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels) const
+{
+  // map index in source model (non-proxy model), to proxy model
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+  while (proxyModel) {
+    proxyModels.push_back(proxyModel);
+
+    model = proxyModel->sourceModel();
+
+    proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+  }
+}
+
+void
+CQChartsPlot::
+beginSelect()
+{
+  itemSelection_ = QItemSelection();
+}
+
+void
+CQChartsPlot::
+addSelectIndex(int row, int col, const QModelIndex &parent)
+{
+  QModelIndex ind = sourceModel()->index(row, col, parent);
+
+  addSelectIndex(ind);
+}
+
+void
+CQChartsPlot::
+addSelectIndex(const QModelIndex &ind)
+{
+  QModelIndex ind1 = unnormalizeIndex(ind);
+
+  itemSelection_.select(ind1, ind1);
+}
+
+void
+CQChartsPlot::
+endSelect()
+{
+  QItemSelectionModel *sm = this->selectionModel();
+  if (! sm) return;
+
+  disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+             this, SLOT(selectionSlot()));
+
+  sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
+
+  connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this, SLOT(selectionSlot()));
 }
 
 void

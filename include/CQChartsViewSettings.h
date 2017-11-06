@@ -3,8 +3,9 @@
 
 #include <QFrame>
 
-class CQChartsView;
+class CQChartsWindow;
 class CQPropertyViewTree;
+class CGradientPalette;
 class CQGradientControlPlot;
 class CQGradientControlIFace;
 class CQIconCombo;
@@ -15,10 +16,10 @@ class CQChartsViewSettings : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsViewSettings(CQChartsView *view);
+  CQChartsViewSettings(CQChartsWindow *window);
  ~CQChartsViewSettings();
 
-  CQPropertyViewTree *propertyView() const { return propertyView_; }
+  CQPropertyViewTree *propertyTree() const { return propertyTree_; }
 
   CQGradientControlPlot *palettePlot() const { return palettePlot_; }
 
@@ -28,11 +29,11 @@ class CQChartsViewSettings : public QFrame {
   void filterSlot();
 
  private:
-  CQChartsView*           view_           { nullptr };
+  CQChartsWindow*         window_         { nullptr };
   QTabWidget*             tab_            { nullptr };
   QLineEdit*              filterEdit_     { nullptr };
   CQIconCombo*            filterCombo_    { nullptr };
-  CQPropertyViewTree*     propertyView_   { nullptr };
+  CQPropertyViewTree*     propertyTree_   { nullptr };
   CQGradientControlPlot*  palettePlot_    { nullptr };
   CQGradientControlIFace* paletteControl_ { nullptr };
 };

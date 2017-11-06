@@ -1,4 +1,5 @@
 #include <CQChartsViewToolBar.h>
+#include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQPixmapCache.h>
@@ -8,8 +9,8 @@
 #include <QHBoxLayout>
 
 CQChartsViewToolBar::
-CQChartsViewToolBar(CQChartsView *view) :
- QFrame(view), view_(view)
+CQChartsViewToolBar(CQChartsWindow *window) :
+ QFrame(window), window_(window)
 {
   setObjectName("toolbar");
 
@@ -89,14 +90,14 @@ void
 CQChartsViewToolBar::
 selectSlot(bool)
 {
-  view_->setMode(CQChartsView::Mode::SELECT);
+  window_->view()->setMode(CQChartsView::Mode::SELECT);
 }
 
 void
 CQChartsViewToolBar::
 zoomSlot(bool)
 {
-  view_->setMode(CQChartsView::Mode::ZOOM);
+  window_->view()->setMode(CQChartsView::Mode::ZOOM);
 
   updateMode();
 }
@@ -105,7 +106,7 @@ void
 CQChartsViewToolBar::
 probeSlot(bool)
 {
-  view_->setMode(CQChartsView::Mode::PROBE);
+  window_->view()->setMode(CQChartsView::Mode::PROBE);
 
   updateMode();
 }
@@ -114,24 +115,24 @@ void
 CQChartsViewToolBar::
 updateMode()
 {
-  if      (view_->mode() == CQChartsView::Mode::SELECT)
+  if      (window_->view()->mode() == CQChartsView::Mode::SELECT)
     controlsStack_->setCurrentIndex(0);
-  else if (view_->mode() == CQChartsView::Mode::ZOOM)
+  else if (window_->view()->mode() == CQChartsView::Mode::ZOOM)
     controlsStack_->setCurrentIndex(1);
-  else if (view_->mode() == CQChartsView::Mode::PROBE)
+  else if (window_->view()->mode() == CQChartsView::Mode::PROBE)
     controlsStack_->setCurrentIndex(2);
 
-  selectButton_->setChecked(view_->mode() == CQChartsView::Mode::SELECT);
-  zoomButton_  ->setChecked(view_->mode() == CQChartsView::Mode::ZOOM);
-  probeButton_ ->setChecked(view_->mode() == CQChartsView::Mode::PROBE);
+  selectButton_->setChecked(window_->view()->mode() == CQChartsView::Mode::SELECT);
+  zoomButton_  ->setChecked(window_->view()->mode() == CQChartsView::Mode::ZOOM);
+  probeButton_ ->setChecked(window_->view()->mode() == CQChartsView::Mode::PROBE);
 }
 
 void
 CQChartsViewToolBar::
 autoFitSlot()
 {
-  for (int i = 0; i < view_->numPlots(); ++i) {
-    view_->plot(i)->autoFit();
+  for (int i = 0; i < window_->view()->numPlots(); ++i) {
+    window_->view()->plot(i)->autoFit();
   }
 }
 

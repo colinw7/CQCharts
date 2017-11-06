@@ -5,7 +5,7 @@
 #include <CQBaseModel.h>
 #include <QString>
 
-typedef std::map<QString,QString> CQChartsNameValues;
+using CQChartsNameValues = std::map<QString,QString>;
 
 class CQChartsColumnType {
  public:
@@ -221,7 +221,7 @@ class CQChartsColumnTypeMgr {
                           const CQChartsNameValues &nameValues);
 
  private:
-  typedef std::map<CQBaseModel::Type,CQChartsColumnType *> TypeData;
+  using TypeData = std::map<CQBaseModel::Type,CQChartsColumnType*>;
 
   TypeData typeData_;
 };

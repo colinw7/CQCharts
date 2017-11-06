@@ -115,3 +115,10 @@ flags(const QModelIndex &index) const
 {
   return QSortFilterProxyModel::flags(index);
 }
+
+bool
+CQChartsCsv::
+filterAcceptsRow(int row, const QModelIndex &parent) const
+{
+  return QSortFilterProxyModel::filterAcceptsRow(row, parent);
+}

@@ -215,6 +215,26 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 
 bool
 CQPropertyViewModel::
+setProperty(QObject *object, const QString &path, const QVariant &value)
+{
+  CQPropertyViewItem *item = objectItem(object);
+
+  if (! item)
+    return false;
+
+  bool rc = setProperty(item, path, value);
+
+  if (rc) {
+    QModelIndex ind = indexFromItem(item, 1);
+
+    emit dataChanged(ind, ind);
+  }
+
+  return rc;
+}
+
+bool
+CQPropertyViewModel::
 setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value)
 {
   QStringList strs = path.split(".");
@@ -225,6 +245,18 @@ setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value
     return false;
 
   return item1->setData(value);
+}
+
+bool
+CQPropertyViewModel::
+getProperty(QObject *object, const QString &path, QVariant &value)
+{
+  CQPropertyViewItem *item = objectItem(object);
+
+  if (! item)
+    return false;
+
+  return getProperty(item, path, value);
 }
 
 bool
@@ -332,6 +364,62 @@ root() const
   }
 
   return root_;
+}
+
+CQPropertyViewItem *
+CQPropertyViewModel::
+objectItem(const QObject *obj) const
+{
+  CQPropertyViewItem *root = this->root();
+
+  return objectItem(root, obj);
+}
+
+CQPropertyViewItem *
+CQPropertyViewModel::
+objectItem(CQPropertyViewItem *parent, const QObject *obj) const
+{
+  for (int i = 0; i < parent->numChildren(); ++i) {
+    CQPropertyViewItem *item = parent->child(i);
+
+    if (item->object() == obj)
+      return parent;
+  }
+
+  for (int i = 0; i < parent->numChildren(); ++i) {
+    CQPropertyViewItem *item = parent->child(i);
+
+    CQPropertyViewItem *item1 = objectItem(item, obj);
+
+    if (item1)
+      return item1;
+  }
+
+  return nullptr;
+}
+
+QModelIndex
+CQPropertyViewModel::
+indexFromItem(CQPropertyViewItem *item, int column) const
+{
+  CQPropertyViewItem *root = this->root();
+
+  if (item == root)
+    return QModelIndex();
+
+  CQPropertyViewItem *parentItem = item->parent();
+
+  for (int i = 0; parentItem->numChildren(); ++i) {
+    if (parentItem->child(i) == item) {
+      QModelIndex parentInd = indexFromItem(parentItem, 0);
+
+      QModelIndex ind = index(i, column, parentInd);
+
+      return ind;
+    }
+  }
+
+  return QModelIndex();
 }
 
 void

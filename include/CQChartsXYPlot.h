@@ -21,6 +21,8 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
+  void mousePress(const CPoint2D &) override;
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
@@ -44,6 +46,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -77,6 +81,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -113,6 +119,8 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
+  void mousePress(const CPoint2D &) override;
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
@@ -134,6 +142,8 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -210,19 +220,7 @@ class CQChartsXYPlotType : public CQChartsPlotType {
 class CQChartsXYPlot : public CQChartsPlot {
   Q_OBJECT
 
-  // properties
-  //  display
-  //   bivariate
-  //   stacked
-  //  point
-  //   display, color, symbol, size
-  //  line
-  //   display, stroke
-  //  fill under
-  //   display, brush
-  //  margin
-  //  key
-
+  // columns
   Q_PROPERTY(int     xColumn            READ xColumn            WRITE setXColumn           )
   Q_PROPERTY(int     yColumn            READ yColumn            WRITE setYColumn           )
   Q_PROPERTY(QString yColumns           READ yColumnsStr        WRITE setYColumnsStr       )
@@ -231,27 +229,42 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(int     pointLabelColumn   READ pointLabelColumn   WRITE setPointLabelColumn  )
   Q_PROPERTY(int     pointColorColumn   READ pointColorColumn   WRITE setPointColorColumn  )
   Q_PROPERTY(int     pointSymbolColumn  READ pointSymbolColumn  WRITE setPointSymbolColumn )
+
+  // display:
+  //  bivariate, stacked, cumulative, impulse
   Q_PROPERTY(bool    bivariate          READ isBivariate        WRITE setBivariate         )
   Q_PROPERTY(bool    stacked            READ isStacked          WRITE setStacked           )
   Q_PROPERTY(bool    cumulative         READ isCumulative       WRITE setCumulative        )
+  Q_PROPERTY(bool    impulse            READ isImpulse          WRITE setImpulse           )
+
+  // point:
+  //  display, color, symbol, size
   Q_PROPERTY(bool    points             READ isPoints           WRITE setPoints            )
   Q_PROPERTY(QString pointsColor        READ pointsColorStr     WRITE setPointsColorStr    )
+  Q_PROPERTY(QString symbolName         READ symbolName         WRITE setSymbolName        )
+  Q_PROPERTY(double  symbolSize         READ symbolSize         WRITE setSymbolSize        )
+  Q_PROPERTY(bool    symbolFilled       READ isSymbolFilled     WRITE setSymbolFilled      )
+
+  // line:
+  //  display, stroke
   Q_PROPERTY(bool    lines              READ isLines            WRITE setLines             )
+  Q_PROPERTY(bool    linesSelectable    READ isLinesSelectable  WRITE setLinesSelectable   )
   Q_PROPERTY(QString linesColor         READ linesColorStr      WRITE setLinesColorStr     )
   Q_PROPERTY(double  linesWidth         READ linesWidth         WRITE setLinesWidth        )
+  Q_PROPERTY(double  bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
+
+  // fill under:
+  //  display, brush
   Q_PROPERTY(bool    fillUnder          READ isFillUnder        WRITE setFillUnder         )
   Q_PROPERTY(QString fillUnderColor     READ fillUnderColorStr  WRITE setFillUnderColorStr )
   Q_PROPERTY(double  fillUnderAlpha     READ fillUnderAlpha     WRITE setFillUnderAlpha    )
   Q_PROPERTY(Pattern fillUnderPattern   READ fillUnderPattern   WRITE setFillUnderPattern  )
   Q_PROPERTY(QString fillUnderPos       READ fillUnderPosStr    WRITE setFillUnderPosStr   )
   Q_PROPERTY(QString fillUnderSide      READ fillUnderSide      WRITE setFillUnderSide     )
-  Q_PROPERTY(bool    impulse            READ isImpulse          WRITE setImpulse           )
-  Q_PROPERTY(QString symbolName         READ symbolName         WRITE setSymbolName        )
-  Q_PROPERTY(double  symbolSize         READ symbolSize         WRITE setSymbolSize        )
-  Q_PROPERTY(bool    symbolFilled       READ isSymbolFilled     WRITE setSymbolFilled      )
+
+  // data label
   Q_PROPERTY(QColor  dataLabelColor     READ dataLabelColor     WRITE setDataLabelColor    )
   Q_PROPERTY(double  dataLabelAngle     READ dataLabelAngle     WRITE setDataLabelAngle    )
-  Q_PROPERTY(double  bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
 
   Q_ENUMS(Pattern)
 
@@ -367,6 +380,9 @@ class CQChartsXYPlot : public CQChartsPlot {
   // lines
   bool isLines() const { return lineObj_.isDisplayed(); }
   void setLines(bool b) { lineObj_.setDisplayed(b); updateObjs(); }
+
+  bool isLinesSelectable() const { return linesSelectable_; }
+  void setLinesSelectable(bool b) { linesSelectable_ = b; update(); }
 
   QString linesColorStr() const;
   void setLinesColorStr(const QString &str);
@@ -485,6 +501,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool             stacked_           { false };
   bool             cumulative_        { false };
   CQChartsPointObj pointObj_;
+  bool             linesSelectable_   { false };
   CQChartsLineObj  lineObj_;
   FillUnderData    fillUnderData_;
   bool             impulse_           { false };

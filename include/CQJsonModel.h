@@ -14,6 +14,8 @@ class CQJsonModel : public CQBaseModel {
  public:
   CQJsonModel();
 
+ ~CQJsonModel();
+
   bool load(const QString &filename);
 
   bool isHierarchical() const { return hier_; }

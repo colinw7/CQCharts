@@ -6,6 +6,7 @@
 
 class QPainter;
 
+// Gradient Plot
 class CQGradientControlPlot : public QFrame {
   Q_OBJECT
 
@@ -18,16 +19,12 @@ class CQGradientControlPlot : public QFrame {
   };
 
  public:
-#ifdef CGRADIENT_EXPR
-  CQGradientControlPlot(QWidget *parent=0, CExpr *expr=0);
-  CQGradientControlPlot(CExpr *expr=0, QWidget *parent=0);
-#else
-  CQGradientControlPlot(QWidget *parent=0);
-#endif
+  CQGradientControlPlot(QWidget *parent, CGradientPalette *palette);
+  CQGradientControlPlot(CGradientPalette *palette, QWidget *parent=0);
 
  ~CQGradientControlPlot();
 
-  CGradientPalette *gradientPalette() { return pal_; }
+  CGradientPalette *gradientPalette() { return palette_; }
   void setGradientPalette(CGradientPalette *pal);
 
   void paintEvent(QPaintEvent *);
@@ -47,10 +44,7 @@ class CQGradientControlPlot : public QFrame {
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
  private:
-#ifdef CGRADIENT_EXPR
-  CExpr*            expr_ { nullptr };
-#endif
-  CGradientPalette* pal_ { nullptr };
+  CGradientPalette* palette_ { nullptr };
   Margin            margin_;
 };
 

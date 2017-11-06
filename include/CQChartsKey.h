@@ -12,7 +12,7 @@
 
 class CQChartsPlot;
 class CQChartsKeyItem;
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 class QPainter;
 
 class CQChartsKey : public CQChartsBoxObj {
@@ -95,7 +95,7 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
-  void addProperties(CQPropertyViewTree *tree, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   void clearItems();
 
@@ -161,9 +161,9 @@ class CQChartsKey : public CQChartsBoxObj {
     double height { 0 };
   };
 
-  typedef std::vector<CQChartsKeyItem *> Items;
-  typedef std::map<int,Cell>             ColCell;
-  typedef std::map<int,ColCell>          RowColCell;
+  using Items      = std::vector<CQChartsKeyItem*>;
+  using ColCell    = std::map<int,Cell>;
+  using RowColCell = std::map<int,ColCell>;
 
   CQChartsPlot*   plot_        { nullptr };
   bool            visible_     { true };

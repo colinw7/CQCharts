@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-class CQChartsView;
+class CQChartsWindow;
 class QToolButton;
 class QStackedWidget;
 
@@ -11,7 +11,7 @@ class CQChartsViewToolBar : public QFrame {
   Q_OBJECT
 
  public:
-  CQChartsViewToolBar(CQChartsView *view);
+  CQChartsViewToolBar(CQChartsWindow *window);
 
   void updateMode();
 
@@ -25,7 +25,7 @@ class CQChartsViewToolBar : public QFrame {
   void autoFitSlot();
 
  private:
-  CQChartsView*   view_          { nullptr };
+  CQChartsWindow* window_        { nullptr };
   QToolButton*    selectButton_  { nullptr };
   QToolButton*    zoomButton_    { nullptr };
   QToolButton*    probeButton_   { nullptr };

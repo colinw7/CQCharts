@@ -1,4 +1,5 @@
 #include <CQChartsPlotDlg.h>
+#include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotParameter.h>
@@ -8,6 +9,7 @@
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
 
+#include <QItemSelectionModel>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QGroupBox>
@@ -202,6 +204,20 @@ CQChartsPlotDlg(CQCharts *charts, const ModelP &model) :
 
 void
 CQChartsPlotDlg::
+setSelectionModel(QItemSelectionModel *sm)
+{
+  selectionModel_ = sm;
+}
+
+QItemSelectionModel *
+CQChartsPlotDlg::
+selectionModel() const
+{
+  return selectionModel_.data();
+}
+
+void
+CQChartsPlotDlg::
 addPlotWidgets(const QString &typeName, int ind)
 {
   CQChartsPlotType *type = charts()->plotType(typeName);
@@ -239,16 +255,39 @@ CQChartsPlotDlg::
 addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layout, int &row)
 {
   int nbool = 0;
+  int nstr  = 0;
+  int nreal = 0;
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column")
       addParameterColumnEdit(plotData, layout, row, parameter);
     else if (parameter.type() == "columns")
       addParameterColumnsEdit(plotData, layout, row, parameter);
+    else if (parameter.type() == "string")
+      ++nstr;
+    else if (parameter.type() == "real")
+      ++nreal;
     else if (parameter.type() == "bool")
       ++nbool;
     else
       assert(false);
+  }
+
+  if (nstr > 0 || nreal > 0) {
+    QHBoxLayout *strLayout = new QHBoxLayout;
+
+    for (const auto &parameter : type->parameters()) {
+      if      (parameter.type() == "string")
+        addParameterStringEdit(plotData, strLayout, parameter);
+      else if (parameter.type() == "real")
+        addParameterRealEdit(plotData, strLayout, parameter);
+    }
+
+    strLayout->addStretch(1);
+
+    layout->addLayout(strLayout, row, 0, 1, 2);
+
+    ++row;
   }
 
   if (nbool > 0) {
@@ -328,6 +367,56 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
 void
 CQChartsPlotDlg::
+addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
+                       const CQChartsPlotParameter &parameter)
+{
+  QString str = parameter.defValue().toString();
+
+  QHBoxLayout *editLayout = new QHBoxLayout;
+
+  QLabel    *label = new QLabel(parameter.desc());
+  QLineEdit *edit  = new QLineEdit;
+
+  label->setObjectName(parameter.name() + "_label");
+  label->setObjectName(parameter.name() + "_edit");
+
+  edit->setText(str);
+
+  editLayout->addWidget(label);
+  editLayout->addWidget(edit);
+
+  layout->addLayout(editLayout);
+
+  plotData.stringEdits[parameter.name()] = edit;
+}
+
+void
+CQChartsPlotDlg::
+addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
+                     const CQChartsPlotParameter &parameter)
+{
+  double r = parameter.defValue().toDouble();
+
+  QHBoxLayout *editLayout = new QHBoxLayout;
+
+  QLabel    *label = new QLabel(parameter.desc());
+  QLineEdit *edit  = new QLineEdit;
+
+  label->setObjectName(parameter.name() + "_label");
+  label->setObjectName(parameter.name() + "_edit");
+
+  edit->setText(QString("%1").arg(r));
+
+  editLayout->addWidget(label);
+  editLayout->addWidget(edit);
+
+  layout->addLayout(editLayout);
+
+  plotData.realEdits[parameter.name()] = edit;
+}
+
+void
+CQChartsPlotDlg::
 addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                      const CQChartsPlotParameter &parameter)
 {
@@ -403,13 +492,18 @@ applySlot()
   if (! view) {
     view = charts()->addView();
 
-    view->show();
+    CQChartsWindow *window = new CQChartsWindow(view);
+
+    window->show();
   }
 
   CQChartsPlotType *type = charts()->plotType(typeName);
   assert(type);
 
   plot_ = type->create(view, model_);
+
+  if (selectionModel())
+    plot_->setSelectionModel(selectionModel());
 
   //---
 
@@ -472,6 +566,22 @@ applySlot()
           columnTypeMgr->setModelColumnType(model_.data(), columns[0],
                                             typeData->type(), nameValues);
       }
+    }
+    else if (parameter.type() == "string") {
+      QString str = parameter.defValue().toString();
+
+      parseParameterStringEdit(parameter, plotData, str);
+
+      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(str)))
+        charts()->errorMsg("Failed to set parameter " + parameter.propName());
+    }
+    else if (parameter.type() == "real") {
+      double r = parameter.defValue().toDouble();
+
+      parseParameterRealEdit(parameter, plotData, r);
+
+      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(r)))
+        charts()->errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "bool") {
       bool b = parameter.defValue().toBool();
@@ -643,6 +753,34 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
   }
 
   return lineEditValues((*pe).second, columns, columnStrs, columnType);
+}
+
+bool
+CQChartsPlotDlg::
+parseParameterStringEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
+                         QString &str)
+{
+  auto p = plotData.stringEdits.find(parameter.name());
+  assert(p != plotData.stringEdits.end());
+
+  str = (*p).second->text();
+
+  return true;
+}
+
+bool
+CQChartsPlotDlg::
+parseParameterRealEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
+                       double &r)
+{
+  auto p = plotData.realEdits.find(parameter.name());
+  assert(p != plotData.realEdits.end());
+
+  bool ok;
+
+  r = (*p).second->text().toDouble(&ok);
+
+  return true;
 }
 
 bool

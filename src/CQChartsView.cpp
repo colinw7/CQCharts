@@ -1,17 +1,12 @@
 #include <CQChartsView.h>
-#include <CQChartsViewExpander.h>
-#include <CQChartsViewSettings.h>
-#include <CQChartsViewStatus.h>
-#include <CQChartsViewToolBar.h>
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
 #include <CQChartsAxis.h>
 #include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
-#include <CQPropertyViewTree.h>
-#include <CQGradientControlPlot.h>
-#include <CQGradientControlIFace.h>
+#include <CGradientPalette.h>
+#include <CQPropertyViewModel.h>
 #include <CDisplayRange2D.h>
 
 #include <svg/select_svg.h>
@@ -19,7 +14,6 @@
 #include <svg/probe_svg.h>
 #include <svg/zoom_fit_svg.h>
 
-#include <QToolButton>
 #include <QHBoxLayout>
 #include <QRubberBand>
 #include <QMouseEvent>
@@ -27,7 +21,7 @@
 
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
- charts_(charts), parent_(parent)
+ QFrame(parent), charts_(charts)
 {
   setObjectName("view");
 
@@ -47,13 +41,13 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  expander_ = new CQChartsViewExpander(this);
-  settings_ = new CQChartsViewSettings(this);
-  status_   = new CQChartsViewStatus(this);
-  toolbar_  = new CQChartsViewToolBar(this);
+  palette_       = new CGradientPalette;
+  propertyModel_ = new CQPropertyViewModel;
 
   //---
 
+  addProperty("", this, "id"            );
+  addProperty("", this, "title"         );
   addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
   addProperty("", this, "mode"          );
@@ -61,24 +55,22 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  updateMargins();
-
   CQToolTip::setToolTip(this, new CQChartsViewToolTip(this));
 }
 
 CQChartsView::
 ~CQChartsView()
 {
+  delete palette_;
+  delete propertyModel_;
+
+  delete displayRange_;
+
   for (auto &plot : plotDatas_)
     delete plot.plot;
 
   for (auto &probeBand : probeBands_)
     delete probeBand;
-
-  delete expander_;
-  delete settings_;
-  delete status_;
-  delete toolbar_;
 
   CQToolTip::unsetToolTip(this);
 }
@@ -89,14 +81,17 @@ setId(const QString &s)
 {
   id_ = s;
 
-  setWindowTitle(id_);
+  if (! title_.length())
+    setWindowTitle(id_);
 }
 
-CQPropertyViewTree *
+void
 CQChartsView::
-propertyView() const
+setTitle(const QString &s)
 {
-  return settings_->propertyView();
+  title_ = s;
+
+  setWindowTitle(title_);
 }
 
 void
@@ -115,44 +110,36 @@ setMode(const Mode &mode)
 
     mode_ = mode;
 
-    toolbar_->updateMode();
+    emit modeChanged();
   }
-}
-
-void
-CQChartsView::
-updateMargins()
-{
-  statusHeight_  = status_ ->sizeHint().height();
-  toolBarHeight_ = toolbar_->sizeHint().height();
 }
 
 bool
 CQChartsView::
 setProperty(const QString &name, const QVariant &value)
 {
-  return propertyView()->setProperty(this, name, value);
+  return propertyModel()->setProperty(this, name, value);
 }
 
 bool
 CQChartsView::
 getProperty(const QString &name, QVariant &value)
 {
-  return propertyView()->getProperty(this, name, value);
+  return propertyModel()->getProperty(this, name, value);
 }
 
 void
 CQChartsView::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
-  propertyView()->addProperty(path, object, name, alias);
+  propertyModel()->addProperty(path, object, name, alias);
 }
 
 void
 CQChartsView::
 addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
 {
-  plot->setPalette(settings_->palettePlot()->gradientPalette());
+  plot->setPalette(gradientPalette());
 
   plot->setBBox(bbox);
 
@@ -184,6 +171,11 @@ initOverlay()
 
   CQChartsPlot *firstPlot = plot(0)->firstPlot();
 
+  if (title().length())
+    firstPlot->titleObj()->setText(title());
+
+  //---
+
   for (const auto &plotData : plotDatas_) {
     if (plotData.plot == firstPlot)
       continue;
@@ -211,9 +203,10 @@ CQChartsView::
 mousePressEvent(QMouseEvent *me)
 {
   if (me->button() == Qt::LeftButton) {
+    mouseData_.reset();
+
     mouseData_.pressPoint = me->pos();
     mouseData_.pressed    = true;
-    mouseData_.escape     = false;
 
     if      (mode_ == Mode::SELECT) {
       CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
@@ -232,11 +225,22 @@ mousePressEvent(QMouseEvent *me)
       }
     }
     else if (mode_ == Mode::ZOOM) {
-      if (! zoomBand_)
-        zoomBand_ = new QRubberBand(QRubberBand::Rectangle, this);
+      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
-      zoomBand_->setGeometry(QRect(mouseData_.pressPoint, QSize()));
-      zoomBand_->show();
+      CQChartsPlot *plot = plotAt(w);
+
+      if (plot && plot->isClickZoom()) {
+        mouseData_.clickZoom = true;
+
+        plot->clickZoom(w);
+      }
+      else {
+        if (! zoomBand_)
+          zoomBand_ = new QRubberBand(QRubberBand::Rectangle, this);
+
+        zoomBand_->setGeometry(QRect(mouseData_.pressPoint, QSize()));
+        zoomBand_->show();
+      }
     }
     else if (mode_ == Mode::PROBE) {
     }
@@ -295,6 +299,9 @@ mouseMoveEvent(QMouseEvent *me)
     }
   }
   else if (mode_ == Mode::ZOOM) {
+    if (mouseData_.clickZoom)
+      return;
+
     if (mouseData_.pressed) {
       mouseData_.movePoint = me->pos();
 
@@ -392,6 +399,9 @@ mouseReleaseEvent(QMouseEvent *me)
     }
   }
   else if (mode_ == Mode::ZOOM) {
+    if (mouseData_.clickZoom)
+      return;
+
     if (mouseData_.pressed) {
       mouseData_.movePoint = me->pos();
 
@@ -416,7 +426,7 @@ mouseReleaseEvent(QMouseEvent *me)
   else if (mode_ == Mode::PROBE) {
   }
 
-  mouseData_.pressed = false;
+  mouseData_.reset();
 }
 
 void
@@ -461,75 +471,17 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  updateGeometry();
-
-  for (const auto &plot : plotDatas_)
-    plot.plot->handleResize();
-}
-
-void
-CQChartsView::
-updateGeometry()
-{
-  setMinimumSize(16 + expander_->width(), 16 + statusHeight_ + toolBarHeight_);
-
-  //---
-
-  prect_ = CBBox2D(0, toolBarHeight_, width() - expander_->width(), height() - statusHeight_);
+  prect_ = CBBox2D(0, 0, width(), height());
 
   aspect_ = (1.0*prect().getWidth())/prect().getHeight();
-
-  //---
 
   displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
                                prect_.getXMax(), prect_.getYMax());
 
-  settings_->setVisible(expander_->isExpanded());
-
-  if (expander_->isExpanded()) {
-    settings_->move  (width() - settings_->width(), 0);
-    settings_->resize(settings_->width(), height());
-  }
-
   //---
 
-  expander_->setVisible(true);
-
-  if (expander_->isExpanded())
-    expander_->move(width() - settings_->width() - expander_->width(), 0);
-  else
-    expander_->move(width() - expander_->width(), 0);
-
-  expander_->resize(expander_->width(), height());
-
-  //---
-
-  toolbar_->move(0, 0);
-  toolbar_->resize(width(), toolBarHeight_);
-
-  //---
-
-  status_->move(0, height() - statusHeight_);
-  status_->resize(width(), statusHeight_);
-
-  //---
-
-  toolbar_ ->raise();
-  status_  ->raise();
-  settings_->raise();
-}
-
-void
-CQChartsView::
-moveExpander(int dx)
-{
-  expander_->move(expander_->x() - dx, expander_->y());
-
-  settings_->resize(settings_->width() + dx, settings_->height());
-
-  settings_->move(settings_->x() - dx, settings_->y());
-
-  settings_->raise();
+  for (const auto &plot : plotDatas_)
+    plot.plot->handleResize();
 }
 
 void
@@ -612,7 +564,7 @@ void
 CQChartsView::
 setStatusText(const QString &text)
 {
-  status_->setText(text);
+  emit statusTextChanged(text);
 }
 
 void

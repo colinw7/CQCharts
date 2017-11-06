@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <CQRoundedPolygon.h>
 #include <QPainter>
 #include <QRectF>
@@ -102,24 +102,24 @@ updatePosition()
 
 void
 CQChartsKey::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "visible"   );
-  tree->addProperty(path, this, "location"  );
-  tree->addProperty(path, this, "insideX"   );
-  tree->addProperty(path, this, "insideY"   );
-  tree->addProperty(path, this, "spacing"   );
-  tree->addProperty(path, this, "horizontal");
-  tree->addProperty(path, this, "above"     );
-  tree->addProperty(path, this, "flipped"   );
+  model->addProperty(path, this, "visible"   );
+  model->addProperty(path, this, "location"  );
+  model->addProperty(path, this, "insideX"   );
+  model->addProperty(path, this, "insideY"   );
+  model->addProperty(path, this, "spacing"   );
+  model->addProperty(path, this, "horizontal");
+  model->addProperty(path, this, "above"     );
+  model->addProperty(path, this, "flipped"   );
 
-  CQChartsBoxObj::addProperties(tree, path);
+  CQChartsBoxObj::addProperties(model, path);
 
   QString textPath = path + "/text";
 
-  tree->addProperty(textPath, this, "textColor", "color");
-  tree->addProperty(textPath, this, "textFont" , "font" );
-  tree->addProperty(textPath, this, "textAlign", "align");
+  model->addProperty(textPath, this, "textColor", "color");
+  model->addProperty(textPath, this, "textFont" , "font" );
+  model->addProperty(textPath, this, "textAlign", "align");
 }
 
 void
@@ -176,8 +176,8 @@ doLayout()
   //---
 
   // get items in each cell and dimension of grid
-  typedef std::map<int,Items>    ColItems;
-  typedef std::map<int,ColItems> RowColItems;
+  using ColItems    = std::map<int,Items>;
+  using RowColItems = std::map<int,ColItems>;
 
   RowColItems rowColItems;
 
@@ -230,8 +230,8 @@ doLayout()
   //---
 
   // get size of each row and column
-  typedef std::map<int,double> RowHeights;
-  typedef std::map<int,double> ColWidths;
+  using RowHeights = std::map<int,double>;
+  using ColWidths  = std::map<int,double>;
 
   RowHeights rowHeights;
   ColWidths  colWidths;

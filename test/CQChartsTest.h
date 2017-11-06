@@ -15,12 +15,14 @@ class CQCharts;
 class CQChartsTable;
 class CQChartsTree;
 class CQChartsLoader;
+class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
 class CQExprModel;
 
+class QItemSelectionModel;
 class QStackedWidget;
 class QLineEdit;
 class QPushButton;
@@ -31,8 +33,8 @@ class CQChartsTest : public CQAppWindow {
   Q_OBJECT
 
  public:
-  typedef boost::optional<double>            OptReal;
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using OptReal = boost::optional<double>;
+  using ModelP  = QSharedPointer<QAbstractItemModel>;
 
  public:
   enum class FileType {
@@ -44,11 +46,12 @@ class CQChartsTest : public CQAppWindow {
     EXPR
   };
 
-  typedef std::map<QString,QString> NameValues;
-  typedef std::map<QString,bool>    NameBools;
+  using NameValues = std::map<QString,QString>;
+  using NameReals  = std::map<QString,double>;
+  using NameBools  = std::map<QString,bool>;
 
   struct InitData {
-    typedef std::vector<QString> FileNames;
+    using FileNames = std::vector<QString>;
 
     FileNames  filenames;
     FileType   fileType        { FileType::NONE };
@@ -56,8 +59,11 @@ class CQChartsTest : public CQAppWindow {
     bool       firstLineHeader { false };
     int        numRows         { 100 };
     QString    typeName;
+    QString    filterStr;
     QString    process;
     NameValues nameValues;
+    NameValues nameStrings;
+    NameReals  nameReals;
     NameBools  nameBools;
     QString    columnType;
     bool       xintegral       { false };
@@ -80,6 +86,26 @@ class CQChartsTest : public CQAppWindow {
 
     void setNameValue(const QString &name, const QString &value) {
       nameValues[name] = value;
+    }
+
+    QString nameString(const QString &name) const {
+      auto p = nameStrings.find(name);
+
+      return (p != nameStrings.end() ? (*p).second : "");
+    }
+
+    void setNameString(const QString &name, const QString &value) {
+      nameStrings[name] = value;
+    }
+
+    double nameReal(const QString &name) const {
+      auto p = nameReals.find(name);
+
+      return (p != nameReals.end() ? (*p).second : 0.0);
+    }
+
+    void setNameReal(const QString &name, double value) {
+      nameReals[name] = value;
     }
 
     bool nameBool(const QString &name) const {
@@ -144,12 +170,14 @@ class CQChartsTest : public CQAppWindow {
   bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
 
   CQChartsPlot *createPlot(const ModelP &model, CQChartsPlotType *type,
-                           const NameValues &nameValues, const NameBools &nameBools,
-                           bool reuse);
+                           const NameValues &nameValues, const NameValues &nameStrings,
+                           const NameReals &nameReals, const NameBools &nameBools, bool reuse);
 
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   CQChartsView *getView(bool reuse=true);
+
+  CQChartsView *addView();
 
   void updateModelDetails();
 
@@ -163,7 +191,7 @@ class CQChartsTest : public CQAppWindow {
  private:
   void parseLine(const std::string &line);
 
-  typedef std::vector<std::string> Args;
+  using Args = std::vector<std::string>;
 
   void setCmd   (const Args &args);
   void getCmd   (const Args &args);
@@ -190,25 +218,28 @@ class CQChartsTest : public CQAppWindow {
   void plotObjPressedSlot(CQChartsPlotObj *obj);
 
  private:
-  typedef std::vector<CQChartsPlot *> Plots;
-  typedef QPointer<CQChartsView>      ViewP;
+  using Plots   = std::vector<CQChartsPlot*>;
+  using ViewP   = QPointer<CQChartsView>;
+  using WindowP = QPointer<CQChartsWindow>;
 
-  Plots           plots_;
-  CQChartsPlot*   rootPlot_          { nullptr };
-  CQCharts*       charts_            { nullptr };
-  ModelP          model_;
-  QLineEdit*      columnNumEdit_     { nullptr };
-  QLineEdit*      columnTypeEdit_    { nullptr };
-  QStackedWidget* stack_             { nullptr };
-  QLineEdit*      filterEdit_        { nullptr };
-  CQChartsTable*  table_             { nullptr };
-  CQChartsTree*   tree_              { nullptr };
-  QLineEdit*      exprEdit_          { nullptr };
-  QTextEdit*      detailsText_       { nullptr };
-  CQChartsLoader* loader_            { nullptr };
-  ViewP           view_;
-  QString         id_;
-  CBBox2D         bbox_;
+  Plots                plots_;
+  CQChartsPlot*        rootPlot_          { nullptr };
+  CQCharts*            charts_            { nullptr };
+  ModelP               model_;
+  QLineEdit*           columnNumEdit_     { nullptr };
+  QLineEdit*           columnTypeEdit_    { nullptr };
+  QStackedWidget*      stack_             { nullptr };
+  QLineEdit*           filterEdit_        { nullptr };
+  CQChartsTable*       table_             { nullptr };
+  CQChartsTree*        tree_              { nullptr };
+  QItemSelectionModel* sm_                { nullptr };
+  QLineEdit*           exprEdit_          { nullptr };
+  QTextEdit*           detailsText_       { nullptr };
+  CQChartsLoader*      loader_            { nullptr };
+  ViewP                view_;
+  WindowP              window_;
+  QString              id_;
+  CBBox2D              bbox_;
 };
 
 #endif

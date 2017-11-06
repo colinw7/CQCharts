@@ -1,10 +1,10 @@
 #include <CQChartsViewStatus.h>
-#include <CQChartsView.h>
+#include <CQChartsWindow.h>
 #include <QPainter>
 
 CQChartsViewStatus::
-CQChartsViewStatus(CQChartsView *view) :
- QFrame(view), view_(view)
+CQChartsViewStatus(CQChartsWindow *window) :
+ QFrame(window), window_(window)
 {
   setObjectName("status");
 

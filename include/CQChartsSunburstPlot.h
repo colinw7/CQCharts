@@ -183,8 +183,8 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
   };
 
  public:
-  typedef std::vector<CQChartsSunburstNode *>     Nodes;
-  typedef std::vector<CQChartsSunburstHierNode *> Children;
+  using Nodes    = std::vector<CQChartsSunburstNode*>;
+  using Children = std::vector<CQChartsSunburstHierNode*>;
 
  public:
   CQChartsSunburstHierNode(CQChartsSunburstHierNode *parent=0, const QString &name="") :
@@ -396,7 +396,7 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   QColor nodeColor(int colorId) const;
 
  private:
-  typedef std::vector<CQChartsSunburstRootNode *> RootNodes;
+  using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
   int       nameColumn_  { 0 };
   int       valueColumn_ { 1 };

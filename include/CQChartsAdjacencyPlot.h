@@ -9,17 +9,18 @@
 // node data
 class CQChartsAdjacencyNode {
  public:
-  typedef std::pair<CQChartsAdjacencyNode *,int> NodeValue;
-  typedef std::map<int,NodeValue>                NodeMap;
+  using NodeValue = std::pair<CQChartsAdjacencyNode *,int>;
+  using NodeMap   = std::map<int,NodeValue>;
 
  public:
-  CQChartsAdjacencyNode(int id, const std::string &name, int group) :
-   id_(id), name_(name), group_(group) {
+  CQChartsAdjacencyNode(int id, const std::string &name, int group, int row) :
+   id_(id), name_(name), group_(group), row_(row) {
   }
 
   int                id   () const { return id_   ; }
   const std::string &name () const { return name_ ; }
   int                group() const { return group_; }
+  int                row  () const { return row_  ; }
 
   int count() const { return count_; }
 
@@ -47,10 +48,11 @@ class CQChartsAdjacencyNode {
   }
 
  private:
-  int         id_ { 0 };       // id
+  int         id_       { 0 }; // id
   std::string name_;           // name
-  int         group_ { 0 };    // group
-  int         count_ { 0 };    // total connections
+  int         group_    { 0 }; // group
+  int         row_      { 0 }; // row
+  int         count_    { 0 }; // total connections
   int         maxCount_ { 0 }; // max connections to single node
   NodeMap     nodes_;          // connected nodes
 };
@@ -67,6 +69,8 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
                        CQChartsAdjacencyNode *node2, int value, const CBBox2D &rect);
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &);
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -180,16 +184,17 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
     }
   };
 
-  typedef std::vector<ConnectionData> ConnectionDataArray;
+  using ConnectionDataArray = std::vector<ConnectionData>;
 
   struct ConnectionsData {
+    int                 row;
     int                 node;
     QString             name;
     int                 group;
     ConnectionDataArray connections;
   };
 
-  typedef std::map<int,ConnectionsData> IdConnectionsData;
+  using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
   bool decodeConnections(const QString &str, ConnectionDataArray &connections);
@@ -198,8 +203,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void sortNodes();
 
  private:
-  typedef std::map<int,CQChartsAdjacencyNode *> NodeMap;
-  typedef std::vector<CQChartsAdjacencyNode *>  NodeArray;
+  using NodeMap   = std::map<int,CQChartsAdjacencyNode *>;
+  using NodeArray = std::vector<CQChartsAdjacencyNode *>;
 
   int                   nodeColumn_        { 0 };
   int                   connectionsColumn_ { 1 };

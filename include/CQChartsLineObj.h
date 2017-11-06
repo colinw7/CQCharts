@@ -7,7 +7,7 @@
 #include <QPointF>
 #include <CLineDash.h>
 
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 class QPainter;
 
 class CQChartsLineObj : public QObject {
@@ -48,7 +48,7 @@ class CQChartsLineObj : public QObject {
 
   //---
 
-  virtual void addProperties(CQPropertyViewTree *tree, const QString &path);
+  virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
   void draw(QPainter *p, const QPointF &p1, const QPointF &p2) const;
 

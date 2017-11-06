@@ -1,5 +1,5 @@
 #include <CQChartsBoxObj.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <CQRoundedPolygon.h>
 #include <QPainter>
 
@@ -10,22 +10,22 @@ CQChartsBoxObj()
 
 void
 CQChartsBoxObj::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "margin" );
-  tree->addProperty(path, this, "padding");
+  model->addProperty(path, this, "margin" );
+  model->addProperty(path, this, "padding");
 
   QString bgPath = path + "/background";
 
-  tree->addProperty(bgPath, this, "background"     , "visible");
-  tree->addProperty(bgPath, this, "backgroundColor", "color"  );
+  model->addProperty(bgPath, this, "background"     , "visible");
+  model->addProperty(bgPath, this, "backgroundColor", "color"  );
 
   QString borderPath = path + "/border";
 
-  tree->addProperty(borderPath, this, "border"          , "visible"   );
-  tree->addProperty(borderPath, this, "borderColor"     , "color"     );
-  tree->addProperty(borderPath, this, "borderWidth"     , "width"     );
-  tree->addProperty(borderPath, this, "borderCornerSize", "cornerSize");
+  model->addProperty(borderPath, this, "border"          , "visible"   );
+  model->addProperty(borderPath, this, "borderColor"     , "color"     );
+  model->addProperty(borderPath, this, "borderWidth"     , "width"     );
+  model->addProperty(borderPath, this, "borderCornerSize", "cornerSize");
 }
 
 void

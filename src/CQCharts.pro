@@ -25,6 +25,7 @@ CQChartsTable.cpp \
 CQChartsTree.cpp \
 CQChartsHeader.cpp \
 \
+CQChartsWindow.cpp \
 CQChartsView.cpp \
 CQChartsViewExpander.cpp \
 CQChartsViewSettings.cpp \
@@ -40,6 +41,7 @@ CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
 CQChartsChordPlot.cpp \
 CQChartsDelaunayPlot.cpp \
+CQChartsDistributionPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHierBubblePlot.cpp \
@@ -95,6 +97,7 @@ CQTsvModel.cpp \
 CQJsonModel.cpp \
 CJson.cpp \
 CQGnuDataModel.cpp \
+CQSortModel.cpp \
 CQExprModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
@@ -112,6 +115,8 @@ CQUtil.cpp \
 CQWidgetMenu.cpp \
 CQIconCombo.cpp \
 \
+CQTreeView.cpp \
+CQTableView.cpp \
 CQHeaderView.cpp \
 CQRotatedText.cpp \
 CQRoundedPolygon.cpp \
@@ -135,6 +140,7 @@ HEADERS += \
 ../include/CQChartsTree.h \
 ../include/CQChartsHeader.h \
 \
+../include/CQChartsWindow.h \
 ../include/CQChartsView.h \
 ../include/CQChartsViewExpander.h \
 ../include/CQChartsViewSettings.h \
@@ -150,6 +156,7 @@ HEADERS += \
 ../include/CQChartsBubblePlot.h \
 ../include/CQChartsChordPlot.h \
 ../include/CQChartsDelaunayPlot.h \
+../include/CQChartsDistributionPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsHierBubblePlot.h \
@@ -211,6 +218,7 @@ CGradientPalette.h \
 ../include/CQJsonModel.h \
 ../include/CJson.h \
 ../include/CQGnuDataModel.h \
+../include/CQSortModel.h \
 ../include/CQExprModel.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
@@ -220,6 +228,8 @@ CQBBox2DEdit.h \
 CQColorChooser.h \
 CQFilename.h \
 CQFontChooser.h \
+../include/CQTreeView.h \
+../include/CQTableView.h \
 CQHeaderView.h \
 CQPixmapCache.h \
 CQPoint2DEdit.h \

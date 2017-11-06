@@ -1,6 +1,6 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsUtil.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <CQRotatedText.h>
 #include <QPainter>
 
@@ -11,16 +11,16 @@ CQChartsTextBoxObj()
 
 void
 CQChartsTextBoxObj::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  CQChartsBoxObj::addProperties(tree, path);
+  CQChartsBoxObj::addProperties(model, path);
 
   QString textPath = path + "/text";
 
-  tree->addProperty(textPath, this, "text" );
-  tree->addProperty(textPath, this, "font" );
-  tree->addProperty(textPath, this, "color");
-  tree->addProperty(textPath, this, "angle");
+  model->addProperty(textPath, this, "text" );
+  model->addProperty(textPath, this, "font" );
+  model->addProperty(textPath, this, "color");
+  model->addProperty(textPath, this, "angle");
 }
 
 void

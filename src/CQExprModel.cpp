@@ -938,6 +938,11 @@ QVariant
 CQExprModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if (orientation != Qt::Horizontal)
+    return QAbstractProxyModel::headerData(section, orientation, role);
+
+  //--
+
   int nc = sourceModel()->columnCount(sourceModel()->index(0, section, QModelIndex()));
 
   if (section < nc)
@@ -946,7 +951,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   //---
 
   if (orientation != Qt::Horizontal)
-    return QVariant();
+    return QAbstractProxyModel::headerData(section, orientation, role);
 
   //---
 
@@ -961,7 +966,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     if (extraColumn.header.length())
       return extraColumn.header;
 
-    QString header = QString("%1").arg(section);
+    QString header = QString("%1").arg(section + 1);
 
     return header;
   }
@@ -993,17 +998,17 @@ bool
 CQExprModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
+  if (orientation != Qt::Horizontal)
+    return false;
+
+  //--
+
   int nc = sourceModel()->columnCount(sourceModel()->index(0, section, QModelIndex()));
 
   if (section < nc)
     return sourceModel()->setHeaderData(section, orientation, value, role);
 
   //---
-
-  if (orientation != Qt::Horizontal)
-    return false;
-
-  //--
 
   int column = section - nc;
 

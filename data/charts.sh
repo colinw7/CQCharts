@@ -5,7 +5,7 @@ CQChartsTest \
 
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
- -type bar -columns "name=0,value=1 2 3 4 5 6" \
+ -type bar -columns "name=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer"
 
 CQChartsTest \
@@ -16,6 +16,7 @@ CQChartsTest \
 CQChartsTest \
  -csv airports.csv \
  -type xy -columns "x=6,y=5,name=1" \
+ -properties "lines.visible=0" \
  -plot_title "random xy"
 
 CQChartsTest \
@@ -98,7 +99,7 @@ CQChartsTest \
  -plot_title "choropeth"
 
 CQChartsTest \
- -tsv adjacency.tsv \
+ -tsv adjacency.tsv -comment_header \
  -type adjacency -columns "node=1,connections=3,name=0,group=2" \
  -plot_title "adjacency"
 
@@ -373,11 +374,12 @@ CQChartsTest \
  -properties "fillUnder.visible=1"
 
 CQChartsTest -overlay \
+ -view_title "Fill area between two curves (above/below)" \
  -data silver.dat \
  -process "+@2+@0/50.0" \
  -type xy -columns "x=0,y=1 3" -bivariate \
  -properties "fillUnder.visible=1,fillUnder.side=above,lines.visible=0" \
- -plot_title "Fill area between two curves (above/below)" \
+ -plot_title "Above" \
  -xmin 250 -xmax 500 -ymin 5 -ymax 30 \
 -and \
  -type xy -columns "x=0,y=1 3" -bivariate \
@@ -391,3 +393,22 @@ CQChartsTest -overlay \
  -type xy -columns "x=0,y=3" \
  -properties "lines.width=2,lines.color=cyan" \
  -plot_title "curve 2"
+
+##---
+
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -type distribution -columns "value=0" \
+ -real "delta=0.1"
+
+##---
+
+CQChartsTest -overlay \
+ -csv group.csv -comment_header \
+ -type barchart -where "layer:METAL1" -columns "value=2" \
+-and \
+ -type barchart -where "layer:METAL2" -columns "value=2" \
+-and \
+ -type barchart -where "layer:METAL3" -columns "value=2" \
+-and \
+ -type barchart -where "layer:METAL4" -columns "value=2"

@@ -17,8 +17,11 @@ class CQChartsBubbleNode : public CircleNode {
   }
 
  public:
-  CQChartsBubbleNode(const std::string &name="", double size=1.0, int colorId=0) :
-   id_(nextId()), name_(name), size_(size), colorId_(colorId) {
+  CQChartsBubbleNode() = default;
+
+  CQChartsBubbleNode(const std::string &name, double size, int colorId,
+                     int row, const QModelIndex &ind) :
+   id_(nextId()), name_(name), size_(size), colorId_(colorId), row_(row), ind_(ind) {
     r_ = sqrt(size_/(2*M_PI));
   }
 
@@ -28,20 +31,25 @@ class CQChartsBubbleNode : public CircleNode {
 
   double size() const { return size_; }
 
-  double x() const override { return x_; }
-  void setX(double x) { x_ = x; }
+  double x() const override { return CircleNode::x(); }
+  void setX(double x) override { CircleNode::setX(x); }
 
-  double y() const override { return y_; }
-  void setY(double y) { y_ = y; }
+  double y() const override { return CircleNode::y(); }
+  void setY(double y) override { CircleNode::setY(y); }
 
   int colorId() const { return colorId_; }
+
+  int row() const { return row_; }
+  void setRow(int r) { row_ = r; }
+
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
 
   double radius() const override { return r_; }
   void setRadius(double r) { r_ = r; }
 
   void setPosition(double x, double y) override {
-    x_ = x;
-    y_ = y;
+    CircleNode::setPosition(x, y);
 
     placed_ = true;
   }
@@ -53,6 +61,8 @@ class CQChartsBubbleNode : public CircleNode {
   std::string name_;
   double      size_    { 1.0 };
   int         colorId_ { 0 };
+  int         row_     { -1 };
+  QModelIndex ind_;
   bool        placed_  { false };
 };
 
@@ -64,6 +74,8 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
                     const CBBox2D &rect, int i, int n);
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -96,8 +108,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
   Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
-  typedef CirclePack<CQChartsBubbleNode>    Pack;
-  typedef std::vector<CQChartsBubbleNode *> Nodes;
+  using Pack  = CirclePack<CQChartsBubbleNode>;
+  using Nodes = std::vector<CQChartsBubbleNode*>;
 
  public:
   CQChartsBubblePlot(CQChartsView *view, const ModelP &model);

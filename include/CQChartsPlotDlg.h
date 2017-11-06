@@ -2,6 +2,8 @@
 #define CQChartsPlotDlg_H
 
 #include <QDialog>
+#include <QSharedPointer>
+#include <QPointer>
 
 class CQCharts;
 class CQChartsPlotType;
@@ -9,6 +11,7 @@ class CQChartsPlotParameter;
 class CQChartsPlot;
 
 class QAbstractItemModel;
+class QItemSelectionModel;
 class QGridLayout;
 class QHBoxLayout;
 class QComboBox;
@@ -20,10 +23,14 @@ class CQChartsPlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  typedef QSharedPointer<QAbstractItemModel> ModelP;
+  using ModelP          = QSharedPointer<QAbstractItemModel>;
+  using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
   CQChartsPlotDlg(CQCharts *charts, const ModelP &model);
+
+  void setSelectionModel(QItemSelectionModel *sm);
+  QItemSelectionModel *selectionModel() const;
 
   CQCharts *charts() const { return charts_; }
 
@@ -36,13 +43,15 @@ class CQChartsPlotDlg : public QDialog {
 
  private:
   struct PlotData {
-    typedef std::map<QString, QLineEdit *> LineEdits;
-    typedef std::map<QString, QCheckBox *> CheckBoxes;
+    using LineEdits  = std::map<QString,QLineEdit*>;
+    using CheckBoxes = std::map<QString,QCheckBox*>;
 
     LineEdits    columnEdits;
     LineEdits    columnsEdits;
     LineEdits    formatEdits;
     CheckBoxes   boolEdits;
+    LineEdits    stringEdits;
+    LineEdits    realEdits;
     QPushButton* okButton { nullptr };
     int          ind      { -1 };
   };
@@ -62,6 +71,12 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                             const CQChartsPlotParameter &parameter);
 
+  void addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
+                              const CQChartsPlotParameter &parameter);
+
+  void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
+                            const CQChartsPlotParameter &parameter);
+
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
                          const QString &objName, const QString &placeholderText) const;
 
@@ -72,6 +87,10 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
                                  const PlotData &plotData, std::vector<int> &columns,
                                  QStringList &columnStrs, QString &columnType);
+  bool parseParameterStringEdit(const CQChartsPlotParameter &parameter,
+                                const PlotData &plotData, QString &str);
+  bool parseParameterRealEdit(const CQChartsPlotParameter &parameter,
+                              const PlotData &plotData, double &rtr);
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
@@ -90,11 +109,12 @@ class CQChartsPlotDlg : public QDialog {
   void okSlot();
 
  private:
-  typedef std::map<QString,PlotData> TypePlotData;
-  typedef std::map<int,QString>      TabTypeName;
+  using TypePlotData = std::map<QString,PlotData>;
+  using TabTypeName  = std::map<int,QString>;
 
   CQCharts*       charts_         { nullptr };
   ModelP          model_;
+  SelectionModelP selectionModel_;
   QComboBox*      combo_          { nullptr };
   QStackedWidget* stack_          { nullptr };
   QLineEdit*      viewEdit_       { nullptr };

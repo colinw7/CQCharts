@@ -61,7 +61,7 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
@@ -70,18 +70,18 @@ updateRange(bool apply)
   minValue_ = 0.0;
   maxValue_ = 0.0;
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
     Geometry geometry;
 
     bool ok1;
 
-    geometry.name = CQChartsUtil::modelString(model, i, nameColumn_, ok1);
+    geometry.name = CQChartsUtil::modelString(model, r, nameColumn(), ok1);
 
     //--
 
     bool ok2;
 
-    QString geomStr = CQChartsUtil::modelString(model, i, geometryColumn_, ok2);
+    QString geomStr = CQChartsUtil::modelString(model, r, geometryColumn(), ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
       charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
@@ -102,15 +102,15 @@ updateRange(bool apply)
 
     bool ok;
 
-    geometry.value = CQChartsUtil::modelReal(model, i, valueColumn_, ok);
+    geometry.value = CQChartsUtil::modelReal(model, r, valueColumn_, ok);
 
     if (! ok)
-      geometry.value = i;
+      geometry.value = r;
 
     if (CQChartsUtil::isNaN(geometry.value))
       continue;
 
-    if (i == 0) {
+    if (r == 0) {
       minValue_ = geometry.value;
       maxValue_ = geometry.value;
     }

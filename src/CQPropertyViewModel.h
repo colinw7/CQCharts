@@ -36,11 +36,16 @@ class CQPropertyViewModel : public QAbstractItemModel {
   CQPropertyViewItem *addProperty(const QString &path, QObject *object, const QString &name,
                                   const QString &alias="");
 
+  bool setProperty(QObject *object, const QString &path, const QVariant &value);
+  bool getProperty(QObject *object, const QString &path, QVariant &value);
+
   bool setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value);
   bool getProperty(CQPropertyViewItem *item, const QString &path, QVariant &value);
 
   CQPropertyViewItem *item(const QModelIndex &index, bool &ok) const;
   CQPropertyViewItem *item(const QModelIndex &index) const;
+
+  QModelIndex indexFromItem(CQPropertyViewItem *item, int column) const;
 
   void refresh();
 
@@ -48,7 +53,11 @@ class CQPropertyViewModel : public QAbstractItemModel {
   CQPropertyViewItem *hierItem(const QStringList &pathPaths, bool create=false, bool alias=false);
 
   CQPropertyViewItem *hierItem(CQPropertyViewItem *parentRow, const QStringList &pathPaths,
-                           bool create=false, bool alias=false);
+                               bool create=false, bool alias=false);
+
+  CQPropertyViewItem *objectItem(const QObject *obj) const;
+
+  CQPropertyViewItem *objectItem(CQPropertyViewItem *parent, const QObject *obj) const;
 
  signals:
   void valueChanged(QObject *, const QString &);

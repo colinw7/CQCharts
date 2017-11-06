@@ -8,6 +8,8 @@
 #include <CQChartsPaletteColor.h>
 
 class CQChartsBarChartPlot;
+class CQChartsBoxObj;
+class CQChartsFillObj;
 
 // bar object
 class CQChartsBarChartObj : public CQChartsPlotObj {
@@ -16,14 +18,16 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
                       int iset, int nset, int ival, int nval,
-                      int isval, int nsval, double value);
+                      int isval, int nsval, double value, int row);
 
   void setColor(double color) { color_ = color; }
+
+  void mousePress(const CPoint2D &p);
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
   CQChartsBarChartPlot *plot_  { nullptr };
   int                   iset_  { -1 };      // set number
@@ -33,6 +37,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   int                   isval_ { -1 };      // sub set number
   int                   nsval_ { -1 };      // number of sub sets
   double                value_ { -1 };      // value
+  int                   row_   { -1 };      // model row
   OptReal               color_;             // custom color
 };
 
@@ -54,7 +59,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   QBrush fillBrush() const override;
 
  private:
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
   OptReal color_; // custom color
 };
@@ -109,14 +114,32 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(QColor  borderColor      READ borderColor       WRITE setBorderColor     )
   Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
   Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
-  Q_PROPERTY(bool    fill             READ isFill            WRITE setFill            )
+  Q_PROPERTY(bool    barFill          READ isBarFill         WRITE setBarFill         )
   Q_PROPERTY(QString barColor         READ barColorStr       WRITE setBarColorStr     )
+  Q_PROPERTY(double  barAlpha         READ barAlpha          WRITE setBarAlpha        )
+  Q_PROPERTY(Pattern barPattern       READ barPattern        WRITE setBarPattern      )
   Q_PROPERTY(bool    colorMapEnabled  READ isColorMapEnabled WRITE setColorMapEnabled )
   Q_PROPERTY(double  colorMapMin      READ colorMapMin       WRITE setColorMapMin     )
   Q_PROPERTY(double  colorMapMax      READ colorMapMax       WRITE setColorMapMax     )
 
+  Q_ENUMS(Pattern)
+
+ public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
+
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
+ ~CQChartsBarChartPlot();
+
+  //---
 
   int categoryColumn() const { return categoryColumn_; }
   void setCategoryColumn(int i) { categoryColumn_ = i; update(); }
@@ -164,34 +187,44 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateObjs(); }
 
-  // bar margin
-  int margin() const { return margin_; }
-  void setMargin(int i) { margin_ = i; update(); }
-
   bool isKeySets() const { return keySets_; }
   void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateObjs(); }
 
   //---
 
+  // bar margin
+  int margin() const { return margin_; }
+  void setMargin(int i) { margin_ = i; update(); }
+
+  //---
+
   // bar stroke
-  bool isBorder() const { return borderObj_.isBorder(); }
-  void setBorder(bool b) { borderObj_.setBorder(b); update(); }
+  bool isBorder() const;
+  void setBorder(bool b);
 
-  const QColor &borderColor() const { return borderObj_.borderColor(); }
-  void setBorderColor(const QColor &c) { borderObj_.setBorderColor(c); update(); }
+  const QColor &borderColor() const;
+  void setBorderColor(const QColor &c);
 
-  double borderWidth() const { return borderObj_.borderWidth(); }
-  void setBorderWidth(double r) { borderObj_.setBorderWidth(r); update(); }
+  double borderWidth() const;
+  void setBorderWidth(double r);
 
-  double borderCornerSize() const { return borderObj_.borderCornerSize(); }
-  void setBorderCornerSize(double r) { borderObj_.setBorderCornerSize(r); update(); }
+  double borderCornerSize() const;
+  void setBorderCornerSize(double r);
+
+  //---
 
   // bar fill
-  bool isFill() const { return fill_; }
-  void setFill(bool b) { fill_ = b; update(); }
+  bool isBarFill() const;
+  void setBarFill(bool b);
 
   QString barColorStr() const;
   void setBarColorStr(const QString &str);
+
+  double barAlpha() const;
+  void setBarAlpha(double a);
+
+  Pattern barPattern() const;
+  void setBarPattern(Pattern pattern);
 
   //---
 
@@ -210,9 +243,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
-  void updateRange(bool apply=true) override;
-
   void addProperties() override;
+
+  void updateRange(bool apply=true) override;
 
   void initObjs() override;
 
@@ -240,21 +273,25 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
  private:
   struct Value {
-    double  value;
+    double  value { 0.0 };
     QString name;
-    int     i;
+    int     row { -1 };
 
-    Value(double value=0.0, const QString &name="", int i=-1) :
-     value(value), name(name), i(i) {
+    Value() = default;
+
+    Value(double value, const QString &name, int row) :
+     value(value), name(name), row(row) {
     }
   };
 
-  typedef std::vector<Value> Values;
+  using Values = std::vector<Value>;
 
   struct ValueSet {
     QString name;
-    int     ind;
+    int     ind { 0 };
     Values  values;
+
+    ValueSet() = default;
 
     ValueSet(const QString &name, int ind) :
      name(name), ind(ind) {
@@ -271,8 +308,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
     }
   };
 
-  typedef std::vector<ValueSet> ValueSets;
-  typedef std::vector<QString>  ValueNames;
+  using ValueSets  = std::vector<ValueSet>;
+  using ValueNames = std::vector<QString>;
 
  private:
   ValueSet *getValueSet(const QString &name);
@@ -287,8 +324,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool                 horizontal_     { false };
   double               margin_         { 2 };
   bool                 keySets_        { false };
-  CQChartsBoxObj       borderObj_;
-  bool                 fill_           { true };
+  CQChartsBoxObj*      borderObj_      { nullptr };
+  CQChartsFillObj*     fillObj_        { nullptr };
   CQChartsPaletteColor barColor_       { QColor(100, 100, 200), true };
   CQChartsValueSet     colorSet_;
   CQChartsDataLabel    dataLabel_;

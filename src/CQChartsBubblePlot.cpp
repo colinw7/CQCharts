@@ -113,6 +113,8 @@ initObjs()
     obj->setId(QString("%1:%2").arg(node->name().c_str()).arg(node->size()));
 
     addPlotObject(obj);
+
+    ++i;
   }
 }
 
@@ -145,23 +147,26 @@ void
 CQChartsBubblePlot::
 loadChildren(const QModelIndex &index)
 {
-  int colorId = -1;
-
   QAbstractItemModel *model = this->model();
 
   if (! model)
     return;
 
-  uint nc = model->rowCount(index);
+  //---
 
-  for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, nameColumn(), index);
+  int colorId = -1;
+
+  int nr = model->rowCount(index);
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex index1 = model->index(r, nameColumn (), index);
+    QModelIndex index2 = model->index(r, valueColumn(), index);
 
     //---
 
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok1);
+    QString name = CQChartsUtil::modelString(model, index1, ok1);
 
     //---
 
@@ -174,11 +179,12 @@ loadChildren(const QModelIndex &index)
 
       bool ok2;
 
-      int size = CQChartsUtil::modelInteger(model, i, valueColumn(), ok2);
+      int size = CQChartsUtil::modelInteger(model, index2, ok2);
 
       if (! ok2) size = 1;
 
-      CQChartsBubbleNode *node = new CQChartsBubbleNode(name.toStdString(), size, colorId);
+      CQChartsBubbleNode *node =
+        new CQChartsBubbleNode(name.toStdString(), size, colorId, r, index);
 
       pack_.addNode(node);
 
@@ -237,6 +243,18 @@ CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
                   const CBBox2D &rect, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), i_(i), n_(n)
 {
+}
+
+void
+CQChartsBubbleObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(node_->row(), plot_->nameColumn (), node_->ind());
+  plot_->addSelectIndex(node_->row(), plot_->valueColumn(), node_->ind());
+
+  plot_->endSelect();
 }
 
 void

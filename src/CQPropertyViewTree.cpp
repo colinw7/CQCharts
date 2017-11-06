@@ -12,8 +12,8 @@
 #include <set>
 
 CQPropertyViewTree::
-CQPropertyViewTree(QWidget *parent) :
- QTreeView(parent)
+CQPropertyViewTree(QWidget *parent, CQPropertyViewModel *model) :
+ QTreeView(parent), model_(model)
 {
   setObjectName("propertyView");
 
@@ -21,10 +21,10 @@ CQPropertyViewTree(QWidget *parent) :
 
   filter_ = new CQPropertyViewFilter(this);
 
-  model_ = new CQPropertyViewModel;
-
   connect(model_, SIGNAL(valueChanged(QObject *, const QString &)),
           this, SIGNAL(valueChanged(QObject *, const QString &)));
+  connect(model_, SIGNAL(valueChanged(QObject *, const QString &)),
+          this, SLOT(redraw()));
 
   filter_->setSourceModel(model_);
 
@@ -76,7 +76,6 @@ CQPropertyViewTree::
 ~CQPropertyViewTree()
 {
   delete filter_;
-  delete model_;
 }
 
 void
@@ -127,12 +126,7 @@ bool
 CQPropertyViewTree::
 setProperty(QObject *object, const QString &path, const QVariant &value)
 {
-  CQPropertyViewItem *item = objectItem(object);
-
-  if (! item)
-    return false;
-
-  bool rc = model_->setProperty(item, path, value);
+  bool rc = model_->setProperty(object, path, value);
 
   redraw();
 
@@ -143,44 +137,7 @@ bool
 CQPropertyViewTree::
 getProperty(QObject *object, const QString &path, QVariant &value)
 {
-  CQPropertyViewItem *item = objectItem(object);
-
-  if (! item)
-    return false;
-
-  return model_->getProperty(item, path, value);
-}
-
-CQPropertyViewItem *
-CQPropertyViewTree::
-objectItem(const QObject *obj) const
-{
-  CQPropertyViewItem *root = model_->root();
-
-  return objectItem(root, obj);
-}
-
-CQPropertyViewItem *
-CQPropertyViewTree::
-objectItem(CQPropertyViewItem *parent, const QObject *obj) const
-{
-  for (int i = 0; i < parent->numChildren(); ++i) {
-    CQPropertyViewItem *item = parent->child(i);
-
-    if (item->object() == obj)
-      return parent;
-  }
-
-  for (int i = 0; i < parent->numChildren(); ++i) {
-    CQPropertyViewItem *item = parent->child(i);
-
-    CQPropertyViewItem *item1 = objectItem(item, obj);
-
-    if (item1)
-      return item1;
-  }
-
-  return nullptr;
+  return model_->getProperty(object, path, value);
 }
 
 void
@@ -631,30 +588,18 @@ QModelIndex
 CQPropertyViewTree::
 indexFromItem(CQPropertyViewItem *item, int column, bool map) const
 {
-  CQPropertyViewItem *root = model_->root();
+  QModelIndex ind = model_->indexFromItem(item, column);
 
-  if (item == root)
+  if (! ind.isValid())
     return QModelIndex();
 
-  CQPropertyViewItem *parentItem = item->parent();
+  if (map) {
+    CQPropertyViewFilter *filterModel = this->filterModel();
 
-  for (int i = 0; parentItem->numChildren(); ++i) {
-    if (parentItem->child(i) == item) {
-      QModelIndex parentInd = indexFromItem(parentItem, 0, false);
-
-      QModelIndex ind = model_->index(i, column, parentInd);
-
-      if (map) {
-        CQPropertyViewFilter *filterModel = this->filterModel();
-
-        return filterModel->mapFromSource(ind);
-      }
-      else
-        return ind;
-    }
+    return filterModel->mapFromSource(ind);
   }
 
-  return QModelIndex();
+  return ind;
 }
 
 void

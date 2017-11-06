@@ -17,33 +17,23 @@ namespace Util {
 
 //------
 
-#ifdef CGRADIENT_EXPR
 CQGradientControlPlot::
-CQGradientControlPlot(QWidget *parent, CExpr *expr) :
- QFrame(parent), expr_(expr)
+CQGradientControlPlot(QWidget *parent, CGradientPalette *palette) :
+ QFrame(parent), palette_(palette)
 {
   init();
 }
 
 CQGradientControlPlot::
-CQGradientControlPlot(CExpr *expr, QWidget *parent) :
- QFrame(parent), expr_(expr)
+CQGradientControlPlot(CGradientPalette *palette, QWidget *parent) :
+ QFrame(parent), palette_(palette)
 {
   init();
 }
-#else
-CQGradientControlPlot::
-CQGradientControlPlot(QWidget *parent) :
- QFrame(parent)
-{
-  init();
-}
-#endif
 
 CQGradientControlPlot::
 ~CQGradientControlPlot()
 {
-  delete pal_;
 }
 
 void
@@ -52,25 +42,15 @@ init()
 {
   setObjectName("palette");
 
-  if (! pal_) {
-#ifdef CGRADIENT_EXPR
-    pal_ = new CGradientPalette(expr_);
-#else
-    pal_ = new CGradientPalette();
-#endif
-  }
-
-  pal_->addDefinedColor(0, QColor(0,0,0));
-  pal_->addDefinedColor(1, QColor(255,255,255));
+  gradientPalette()->addDefinedColor(0, QColor(0,0,0));
+  gradientPalette()->addDefinedColor(1, QColor(255,255,255));
 }
 
 void
 CQGradientControlPlot::
-setGradientPalette(CGradientPalette *pal)
+setGradientPalette(CGradientPalette *palette)
 {
-  delete pal_;
-
-  pal_ = pal;
+  palette_ = palette;
 }
 
 void
@@ -110,7 +90,7 @@ paintEvent(QPaintEvent *)
 
     pixelToWindow(x, 0, wx, wy);
 
-    QColor c = pal_->getColor(wx);
+    QColor c = gradientPalette()->getColor(wx);
 
     double x2 = wx;
     double r2 = c.redF  ();
@@ -169,7 +149,7 @@ paintEvent(QPaintEvent *)
 
     pixelToWindow(0, y, wx, wy);
 
-    QColor c = pal_->getColor(wy);
+    QColor c = gradientPalette()->getColor(wy);
 
     QPen pen(c); pen.setWidth(0);
 
@@ -187,8 +167,8 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  if (pal_->colorType() == CGradientPalette::ColorType::DEFINED) {
-    for (const auto &c : pal_->colors()) {
+  if (gradientPalette()->colorType() == CGradientPalette::ColorType::DEFINED) {
+    for (const auto &c : gradientPalette()->colors()) {
       double x  = c.first;
       QColor c1 = c.second;
 

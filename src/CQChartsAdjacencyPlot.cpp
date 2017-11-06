@@ -99,30 +99,40 @@ initObjs()
   if (! model)
     return;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex nodeInd        = model->index(r, nodeColumn       ());
+    QModelIndex groupInd       = model->index(r, groupColumn      ());
+    QModelIndex connectionsInd = model->index(r, connectionsColumn());
+    QModelIndex nameInd        = model->index(r, nameColumn       ());
+
+    QModelIndex nodeInd1 = normalizeIndex(nodeInd);
+
+    //---
+
     bool ok1, ok2;
 
-    int id    = CQChartsUtil::modelInteger(model, i, nodeColumn_ , ok1);
-    int group = CQChartsUtil::modelInteger(model, i, groupColumn_, ok2);
+    int id    = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+    int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
 
-    if (! ok1) id    = i;
-    if (! ok2) group = i;
+    if (! ok1) id    = r;
+    if (! ok2) group = r;
 
     bool ok3;
 
-    QString connectionsStr = CQChartsUtil::modelString(model, i, connectionsColumn_, ok3);
+    QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
 
     bool ok4;
 
-    QString name = CQChartsUtil::modelString(model, i, nameColumn_, ok4);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok4);
 
     if (! name.length())
       name = QString("%1").arg(id);
 
     ConnectionsData connections;
 
+    connections.row   = nodeInd1.row();
     connections.node  = id;
     connections.name  = name;
     connections.group = group;
@@ -136,10 +146,12 @@ initObjs()
 
   for (const auto &idConnections : idConnections_) {
     int            id    = idConnections.first;
+    int            row   = idConnections.second.row;
     const QString &name  = idConnections.second.name;
     int            group = idConnections.second.group;
 
-    CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, name.toStdString(), group);
+    CQChartsAdjacencyNode *node =
+      new CQChartsAdjacencyNode(id, name.toStdString(), group, row);
 
     nodes_[id] = node;
   }
@@ -459,6 +471,18 @@ CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                      CQChartsAdjacencyNode *node2, int value, const CBBox2D &rect) :
  CQChartsPlotObj(rect), plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
+}
+
+void
+CQChartsAdjacencyObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(node1_->row(), plot_->nodeColumn());
+  plot_->addSelectIndex(node2_->row(), plot_->nodeColumn());
+
+  plot_->endSelect();
 }
 
 void

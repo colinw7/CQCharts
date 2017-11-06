@@ -6,15 +6,10 @@
 
 class CQCharts;
 class CQChartsPlot;
-class CQChartsViewExpander;
-class CQChartsViewStatus;
-class CQChartsViewSettings;
-class CQChartsViewToolBar;
 class CQChartsProbeBand;
 
-class CQPropertyViewTree;
-class CQGradientControlPlot;
-class CQGradientControlIFace;
+class CQPropertyViewModel;
+class CGradientPalette;
 class CDisplayRange2D;
 class QToolButton;
 class QRubberBand;
@@ -25,6 +20,7 @@ class CQChartsView : public QFrame {
   Q_OBJECT
 
   Q_PROPERTY(QString id             READ id             WRITE setId            )
+  Q_PROPERTY(QString title          READ title          WRITE setTitle         )
   Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
   Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
   Q_PROPERTY(Mode    mode           READ mode           WRITE setMode          )
@@ -40,7 +36,7 @@ class CQChartsView : public QFrame {
   };
 
  public:
-  typedef std::vector<CQChartsPlot *> Plots;
+  using Plots = std::vector<CQChartsPlot *>;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -52,8 +48,13 @@ class CQChartsView : public QFrame {
 
   CQCharts *charts() const { return charts_; }
 
+  //---
+
   const QString &id() const { return id_; }
   void setId(const QString &s);
+
+  const QString &title() const { return title_; }
+  void setTitle(const QString &v);
 
   //---
 
@@ -73,7 +74,11 @@ class CQChartsView : public QFrame {
 
   //---
 
-  CQPropertyViewTree *propertyView() const;
+  CGradientPalette* gradientPalette() const { return palette_; }
+
+  CQPropertyViewModel *propertyModel() const { return propertyModel_; }
+
+  //---
 
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value);
@@ -103,10 +108,6 @@ class CQChartsView : public QFrame {
   void keyPressEvent(QKeyEvent *ke) override;
 
   void resizeEvent(QResizeEvent *) override;
-
-  void updateGeometry();
-
-  void moveExpander(int dx);
 
   void paintEvent(QPaintEvent *) override;
 
@@ -143,6 +144,11 @@ class CQChartsView : public QFrame {
 
   QSize sizeHint() const override;
 
+ signals:
+  void modeChanged();
+
+  void statusTextChanged(const QString &text);
+
  private:
   struct PlotData {
     CQChartsPlot *plot { nullptr };
@@ -153,38 +159,43 @@ class CQChartsView : public QFrame {
     }
   };
 
-  typedef std::vector<PlotData> PlotDatas;
+  using PlotDatas = std::vector<PlotData>;
 
   struct MouseData {
     Plots  plots;
     QPoint pressPoint;
     QPoint movePoint;
-    bool   pressed { false };
-    bool   escape  { false };
+    bool   pressed   { false };
+    bool   escape    { false };
+    bool   clickZoom { false };
+
+    void reset() {
+      plots.clear();
+
+      pressed   = false;
+      escape    = false;
+      clickZoom = false;
+    }
   };
 
-  typedef std::vector<CQChartsProbeBand *> ProbeBands;
+  using ProbeBands = std::vector<CQChartsProbeBand *>;
 
-  CQCharts*             charts_         { nullptr };
-  QWidget*              parent_         { nullptr };
-  CDisplayRange2D*      displayRange_   { nullptr };
-  CQChartsViewExpander* expander_       { nullptr };
-  CQChartsViewSettings* settings_       { nullptr };
-  QString               id_;
-  QColor                background_     { 255, 255, 255 };
-  PlotDatas             plotDatas_;
-  int                   currentPlotInd_ { 0 };
-  Mode                  mode_           { Mode::SELECT };
-  bool                  zoomData_       { true };
-  CQChartsViewStatus*   status_         { nullptr };
-  CQChartsViewToolBar*  toolbar_        { nullptr };
-  CBBox2D               prect_          { 0, 0, 100, 100 };
-  double                aspect_         { 1.0 };
-  int                   toolBarHeight_  { 8 };
-  int                   statusHeight_   { 8 };
-  MouseData             mouseData_;
-  QRubberBand*          zoomBand_       { nullptr };
-  ProbeBands            probeBands_;
+  CQCharts*            charts_         { nullptr };
+  CDisplayRange2D*     displayRange_   { nullptr };
+  CGradientPalette*    palette_        { nullptr };
+  CQPropertyViewModel* propertyModel_  { nullptr };
+  QString              id_;
+  QString              title_;
+  QColor               background_     { 255, 255, 255 };
+  PlotDatas            plotDatas_;
+  int                  currentPlotInd_ { 0 };
+  Mode                 mode_           { Mode::SELECT };
+  bool                 zoomData_       { true };
+  CBBox2D              prect_          { 0, 0, 100, 100 };
+  double               aspect_         { 1.0 };
+  MouseData            mouseData_;
+  QRubberBand*         zoomBand_       { nullptr };
+  ProbeBands           probeBands_;
 };
 
 #endif

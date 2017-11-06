@@ -52,10 +52,12 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
+  void mousePress(const CPoint2D &);
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  protected:
-  typedef boost::optional<double> OptReal;
+  using OptReal = boost::optional<double>;
 
   CQChartsPiePlot* plot_     { nullptr }; // parent plot
   int              i_        { -1 };      // index
@@ -127,6 +129,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
   Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(double explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
   Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
   Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
   Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
@@ -153,13 +156,13 @@ class CQChartsPiePlot : public CQChartsPlot {
   void setDonut(bool b) { donut_ = b; update(); }
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; update(); }
+  void setInnerRadius(double r) { innerRadius_ = r; updateObjs(); }
 
   double outerRadius() const { return outerRadius_; }
-  void setOuterRadius(double r) { outerRadius_ = r; update(); }
+  void setOuterRadius(double r) { outerRadius_ = r; updateObjs(); }
 
   double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; updateRange(); }
+  void setLabelRadius(double r) { labelRadius_ = r; updateRange(); update(); }
 
   bool isRotatedText() const { return rotatedText_; }
   void setRotatedText(bool b) { rotatedText_ = b; update(); }
@@ -167,8 +170,16 @@ class CQChartsPiePlot : public CQChartsPlot {
   bool isExplodeSelected() const { return explodeSelected_; }
   void setExplodeSelected(bool b) { explodeSelected_ = b; update(); }
 
+  double explodeRadius() const { return explodeRadius_; }
+  void setExplodeRadius(double r) { explodeRadius_ = r; update(); }
+
   double startAngle() const { return startAngle_; }
-  void setStartAngle(double r) { startAngle_ = r; }
+  void setStartAngle(double r) { startAngle_ = r; updateObjs(); }
+
+  //---
+
+  double innerRadius1() const { return innerRadius1_; }
+  void setInnerRadius1(double r) { innerRadius1_ = r; }
 
   //---
 
@@ -212,7 +223,9 @@ class CQChartsPiePlot : public CQChartsPlot {
   double             labelRadius_     { 0.5 };
   bool               rotatedText_     { false };
   bool               explodeSelected_ { true };
+  double             explodeRadius_   { 0.1 };
   double             startAngle_      { 90 };
+  double             innerRadius1_    { 0.6 };
   CQChartsValueSet   colorSet_;
   CQChartsPieTextObj textBox_;
 };

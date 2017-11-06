@@ -8,7 +8,7 @@
 #include <vector>
 
 class CQChartsPlot;
-class CQPropertyViewTree;
+class CQPropertyViewModel;
 class QPainter;
 
 class CQChartsTitle : public CQChartsTextBoxObj {
@@ -57,7 +57,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void addProperties(CQPropertyViewTree *tree, const QString &path) override;
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
   //---
 

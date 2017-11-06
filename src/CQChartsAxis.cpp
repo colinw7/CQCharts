@@ -5,7 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsColumn.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 
 #include <CQRotatedText.h>
 #include <QPainter>
@@ -96,66 +96,71 @@ CQChartsAxis::
 
 void
 CQChartsAxis::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "visible"  );
-  tree->addProperty(path, this, "direction");
-  tree->addProperty(path, this, "side"     );
-  tree->addProperty(path, this, "integral" );
-  tree->addProperty(path, this, "format"   );
+  model->addProperty(path, this, "visible"  );
+  model->addProperty(path, this, "direction");
+  model->addProperty(path, this, "side"     );
+  model->addProperty(path, this, "integral" );
+  model->addProperty(path, this, "format"   );
+
+  model->addProperty(path, this, "tickIncrement" );
+  model->addProperty(path, this, "majorIncrement");
+  model->addProperty(path, this, "start"         );
+  model->addProperty(path, this, "end"           );
 
   QString posPath = path + "/position";
 
-  tree->addProperty(posPath, this, "hasPosition", "enabled");
-  tree->addProperty(posPath, this, "position"   , "value"  );
+  model->addProperty(posPath, this, "hasPosition", "enabled");
+  model->addProperty(posPath, this, "position"   , "value"  );
 
   QString linePath = path + "/line";
 
-  tree->addProperty(linePath, this, "lineDisplayed", "visible");
-  tree->addProperty(linePath, this, "lineColor"    , "color"  );
-  tree->addProperty(linePath, this, "lineWidth"    , "width"  );
-  tree->addProperty(linePath, this, "lineDash"     , "dash"   );
+  model->addProperty(linePath, this, "lineDisplayed", "visible");
+  model->addProperty(linePath, this, "lineColor"    , "color"  );
+  model->addProperty(linePath, this, "lineWidth"    , "width"  );
+  model->addProperty(linePath, this, "lineDash"     , "dash"   );
 
   QString ticksPath = path + "/ticks";
 
   QString majorTicksPath = ticksPath + "/major";
   QString minorTicksPath = ticksPath + "/minor";
 
-  tree->addProperty(majorTicksPath, this, "majorTicksDisplayed", "visible");
-  tree->addProperty(majorTicksPath, this, "majorTickLen"       , "length");
-  tree->addProperty(minorTicksPath, this, "minorTicksDisplayed", "visible");
-  tree->addProperty(minorTicksPath, this, "minorTickLen"       , "length");
+  model->addProperty(majorTicksPath, this, "majorTicksDisplayed", "visible");
+  model->addProperty(majorTicksPath, this, "majorTickLen"       , "length");
+  model->addProperty(minorTicksPath, this, "minorTicksDisplayed", "visible");
+  model->addProperty(minorTicksPath, this, "minorTickLen"       , "length");
 
   QString ticksLabelPath = ticksPath + "/label";
 
-  tree->addProperty(ticksLabelPath, this, "tickLabelDisplayed", "visible");
-  tree->addProperty(ticksLabelPath, this, "tickLabelFont"     , "font");
-  tree->addProperty(ticksLabelPath, this, "tickLabelColor"    , "color");
-  tree->addProperty(ticksLabelPath, this, "tickLabelAngle"    , "angle");
-  tree->addProperty(ticksLabelPath, this, "tickLabelAutoHide" , "autoHide");
+  model->addProperty(ticksLabelPath, this, "tickLabelDisplayed", "visible");
+  model->addProperty(ticksLabelPath, this, "tickLabelFont"     , "font");
+  model->addProperty(ticksLabelPath, this, "tickLabelColor"    , "color");
+  model->addProperty(ticksLabelPath, this, "tickLabelAngle"    , "angle");
+  model->addProperty(ticksLabelPath, this, "tickLabelAutoHide" , "autoHide");
 
-  tree->addProperty(ticksPath, this, "tickInside" , "inside");
-  tree->addProperty(ticksPath, this, "mirrorTicks", "mirror");
+  model->addProperty(ticksPath, this, "tickInside" , "inside");
+  model->addProperty(ticksPath, this, "mirrorTicks", "mirror");
 
   QString labelPath = path + "/label";
 
-  tree->addProperty(labelPath, this, "labelDisplayed", "visible");
-  tree->addProperty(labelPath, this, "label"         , "text"   );
-  tree->addProperty(labelPath, this, "labelFont"     , "font"   );
-  tree->addProperty(labelPath, this, "labelColor"    , "color"  );
+  model->addProperty(labelPath, this, "labelDisplayed", "visible");
+  model->addProperty(labelPath, this, "label"         , "text"   );
+  model->addProperty(labelPath, this, "labelFont"     , "font"   );
+  model->addProperty(labelPath, this, "labelColor"    , "color"  );
 
   QString gridPath     = path + "/grid";
   QString gridLinePath = gridPath + "/line";
   QString gridFillPath = gridPath + "/fill";
 
-  tree->addProperty(gridPath    , this, "gridAbove"    , "above"  );
-  tree->addProperty(gridLinePath, this, "gridDisplayed", "visible");
-  tree->addProperty(gridLinePath, this, "gridColor"    , "color"  );
-  tree->addProperty(gridLinePath, this, "gridWidth"    , "width"  );
-  tree->addProperty(gridLinePath, this, "gridDash"     , "dash"   );
-  tree->addProperty(gridFillPath, this, "gridFill"     , "visible");
-  tree->addProperty(gridFillPath, this, "gridFillColor", "color"  );
-  tree->addProperty(gridFillPath, this, "gridFillAlpha", "alpha"  );
+  model->addProperty(gridPath    , this, "gridAbove"    , "above"  );
+  model->addProperty(gridLinePath, this, "gridDisplayed", "visible");
+  model->addProperty(gridLinePath, this, "gridColor"    , "color"  );
+  model->addProperty(gridLinePath, this, "gridWidth"    , "width"  );
+  model->addProperty(gridLinePath, this, "gridDash"     , "dash"   );
+  model->addProperty(gridFillPath, this, "gridFill"     , "visible");
+  model->addProperty(gridFillPath, this, "gridFillColor", "color"  );
+  model->addProperty(gridFillPath, this, "gridFillAlpha", "alpha"  );
 }
 
 void
@@ -166,6 +171,8 @@ setRange(double start, double end)
   end_   = std::max(start, end);
 
   calc();
+
+  redraw();
 }
 
 void
@@ -175,6 +182,8 @@ setMajorIncrement(double i)
   majorIncrement_ = i;
 
   calc();
+
+  redraw();
 }
 
 void
@@ -184,6 +193,8 @@ setTickIncrement(uint tickIncrement)
   tickIncrement_ = tickIncrement;
 
   calc();
+
+  redraw();
 }
 
 QString
@@ -523,6 +534,8 @@ setIntegral(bool b)
   integral_ = b;
 
   calc();
+
+  redraw();
 }
 
 void

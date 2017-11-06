@@ -1,5 +1,5 @@
 #include <CQChartsFillObj.h>
-#include <CQPropertyViewTree.h>
+#include <CQPropertyViewModel.h>
 #include <CQRoundedPolygon.h>
 #include <QPainter>
 
@@ -10,11 +10,11 @@ CQChartsFillObj()
 
 void
 CQChartsFillObj::
-addProperties(CQPropertyViewTree *tree, const QString &path)
+addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  tree->addProperty(path, this, "visible");
-  tree->addProperty(path, this, "color"  );
-  tree->addProperty(path, this, "alpha"  );
+  model->addProperty(path, this, "visible");
+  model->addProperty(path, this, "color"  );
+  model->addProperty(path, this, "alpha"  );
 }
 
 void

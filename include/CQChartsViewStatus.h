@@ -3,7 +3,7 @@
 
 #include <QFrame>
 
-class CQChartsView;
+class CQChartsWindow;
 
 class CQChartsViewStatus : public QFrame {
   Q_OBJECT
@@ -11,7 +11,7 @@ class CQChartsViewStatus : public QFrame {
   Q_PROPERTY(QString text READ text WRITE setText)
 
  public:
-  CQChartsViewStatus(CQChartsView *view);
+  CQChartsViewStatus(CQChartsWindow *window);
 
   const QString &text() const { return text_; }
   void setText(const QString &s);
@@ -21,8 +21,8 @@ class CQChartsViewStatus : public QFrame {
   QSize sizeHint() const override;
 
  private:
-  CQChartsView *view_ { nullptr };
-  QString       text_;
+  CQChartsWindow *window_ { nullptr };
+  QString         text_;
 };
 
 #endif
