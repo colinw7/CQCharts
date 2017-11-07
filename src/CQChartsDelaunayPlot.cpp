@@ -66,18 +66,23 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex xind = model->index(r, xColumn());
+    QModelIndex yind = model->index(r, yColumn());
+
+    //---
+
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
-    double y = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
+    double x = CQChartsUtil::modelReal(model, xind, ok1);
+    double y = CQChartsUtil::modelReal(model, yind, ok2);
 
-    if (! ok1) x = i;
-    if (! ok2) y = i;
+    if (! ok1) x = r;
+    if (! ok2) y = r;
 
     if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
       continue;
@@ -87,15 +92,15 @@ updateRange(bool apply)
 
   //---
 
-  xAxis_->setColumn(xColumn_);
+  xAxis_->setColumn(xColumn());
 
-  QString xname = model->headerData(xColumn_, Qt::Horizontal).toString();
+  QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
 
   xAxis_->setLabel(xname);
 
-  yAxis_->setColumn(yColumn_);
+  yAxis_->setColumn(yColumn());
 
-  QString yname = model->headerData(yColumn_, Qt::Horizontal).toString();
+  QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
 
   yAxis_->setLabel(yname);
 
@@ -131,9 +136,9 @@ initObjs()
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
-  QString name = model->headerData(yColumn_, Qt::Horizontal).toString();
+  QString name = model->headerData(yColumn(), Qt::Horizontal).toString();
 
   //---
 
@@ -141,14 +146,17 @@ initObjs()
 
   delaunay_ = new CDelaunay;
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex xind = model->index(r, xColumn());
+    QModelIndex yind = model->index(r, yColumn());
+
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model, i, xColumn_, ok1);
-    double y = CQChartsUtil::modelReal(model, i, yColumn_, ok2);
+    double x = CQChartsUtil::modelReal(model, xind, ok1);
+    double y = CQChartsUtil::modelReal(model, yind, ok2);
 
-    if (! ok1) x = i;
-    if (! ok2) y = i;
+    if (! ok1) x = r;
+    if (! ok2) y = r;
 
     if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
       continue;
@@ -157,22 +165,29 @@ initObjs()
 
     QString name1;
 
-    if (nameColumn_ >= 0) {
+    if (nameColumn() >= 0) {
+      QModelIndex nameInd = model->index(r, nameColumn());
+
       bool ok;
 
-      name1 = CQChartsUtil::modelString(model, i, nameColumn_, ok);
+      name1 = CQChartsUtil::modelString(model, nameInd, ok);
     }
     else
       name1 = name;
 
+    //---
+
+    QModelIndex xind1 = normalizeIndex(xind);
+
     CBBox2D bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
-    CQChartsDelaunayPointObj *pointObj = new CQChartsDelaunayPointObj(this, bbox, x, y, i, n);
+    CQChartsDelaunayPointObj *pointObj =
+      new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
 
     if (name1.length())
       pointObj->setId(QString("%1:%2:%3").arg(name1).arg(x).arg(y));
     else
-      pointObj->setId(QString("%1:%2:%3").arg(i).arg(x).arg(y));
+      pointObj->setId(QString("%1:%2:%3").arg(r).arg(x).arg(y));
 
     addPlotObject(pointObj);
   }
@@ -290,8 +305,8 @@ drawVoronoi(QPainter *p)
 
 CQChartsDelaunayPointObj::
 CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CBBox2D &rect, double x, double y,
-                         int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), i_(i), n_(n)
+                         const QModelIndex &ind, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -322,6 +337,18 @@ inside(const CPoint2D &p) const
   plot_->windowToPixel(p, pp);
 
   return pbbox.inside(pp);
+}
+
+void
+CQChartsDelaunayPointObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
+  plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
+
+  plot_->endSelect();
 }
 
 void

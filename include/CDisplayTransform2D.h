@@ -1,5 +1,5 @@
-#ifndef CDISPLAY_TRANSFORM_2D
-#define CDISPLAY_TRANSFORM_2D
+#ifndef CDisplayTransform2D_H
+#define CDisplayTransform2D_H
 
 #include <CMatrix2D.h>
 #include <CDisplayRange2D.h>

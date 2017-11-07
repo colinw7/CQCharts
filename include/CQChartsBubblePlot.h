@@ -20,8 +20,8 @@ class CQChartsBubbleNode : public CircleNode {
   CQChartsBubbleNode() = default;
 
   CQChartsBubbleNode(const std::string &name, double size, int colorId,
-                     int row, const QModelIndex &ind) :
-   id_(nextId()), name_(name), size_(size), colorId_(colorId), row_(row), ind_(ind) {
+                     const QModelIndex &ind) :
+   id_(nextId()), name_(name), size_(size), colorId_(colorId), ind_(ind) {
     r_ = sqrt(size_/(2*M_PI));
   }
 
@@ -38,9 +38,6 @@ class CQChartsBubbleNode : public CircleNode {
   void setY(double y) override { CircleNode::setY(y); }
 
   int colorId() const { return colorId_; }
-
-  int row() const { return row_; }
-  void setRow(int r) { row_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -61,7 +58,6 @@ class CQChartsBubbleNode : public CircleNode {
   std::string name_;
   double      size_    { 1.0 };
   int         colorId_ { 0 };
-  int         row_     { -1 };
   QModelIndex ind_;
   bool        placed_  { false };
 };

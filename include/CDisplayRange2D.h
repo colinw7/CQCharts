@@ -1,5 +1,5 @@
-#ifndef CDISPLAY_RANGE_2D_H
-#define CDISPLAY_RANGE_2D_H
+#ifndef CDisplayRange2D_H
+#define CDisplayRange2D_H
 
 #include <CMatrix2D.h>
 #include <CBBox2D.h>
@@ -14,7 +14,7 @@ class CDisplayRange2D {
     RIGHT,
     JUSTIFY,
     INSIDE,
-    OUTSIDE,
+    OUTSIDE
   };
 
   enum class VAlign {
@@ -22,7 +22,7 @@ class CDisplayRange2D {
     TOP,
     CENTER,
     BOTTOM,
-    BASELINE,
+    BASELINE
   };
 
  public:

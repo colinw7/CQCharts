@@ -1,5 +1,5 @@
-#ifndef CLINE_DASH_H
-#define CLINE_DASH_H
+#ifndef CLineDash_H
+#define CLineDash_H
 
 #include <sys/types.h>
 

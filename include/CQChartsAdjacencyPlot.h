@@ -13,14 +13,14 @@ class CQChartsAdjacencyNode {
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
-  CQChartsAdjacencyNode(int id, const std::string &name, int group, int row) :
-   id_(id), name_(name), group_(group), row_(row) {
+  CQChartsAdjacencyNode(int id, const std::string &name, int group, const QModelIndex &ind) :
+   id_(id), name_(name), group_(group), ind_(ind) {
   }
 
   int                id   () const { return id_   ; }
   const std::string &name () const { return name_ ; }
   int                group() const { return group_; }
-  int                row  () const { return row_  ; }
+  const QModelIndex &ind  () const { return ind_  ; }
 
   int count() const { return count_; }
 
@@ -51,7 +51,7 @@ class CQChartsAdjacencyNode {
   int         id_       { 0 }; // id
   std::string name_;           // name
   int         group_    { 0 }; // group
-  int         row_      { 0 }; // row
+  QModelIndex ind_;            // model index
   int         count_    { 0 }; // total connections
   int         maxCount_ { 0 }; // max connections to single node
   NodeMap     nodes_;          // connected nodes
@@ -70,7 +70,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void mousePress(const CPoint2D &);
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -187,7 +187,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   using ConnectionDataArray = std::vector<ConnectionData>;
 
   struct ConnectionsData {
-    int                 row;
+    QModelIndex         ind;
     int                 node;
     QString             name;
     int                 group;

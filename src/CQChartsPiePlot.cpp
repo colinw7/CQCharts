@@ -162,9 +162,11 @@ initObjs()
 
     //---
 
+    QModelIndex dataInd = model->index(r, dataColumn());
+
     bool ok;
 
-    double value = CQChartsUtil::modelReal(model, r, dataColumn(), ok);
+    double value = CQChartsUtil::modelReal(model, dataInd, ok);
 
     if (! ok)
       value = r;
@@ -182,8 +184,11 @@ initObjs()
     if (colorColumn() >= 0) {
       bool ok;
 
-      for (int r = 0; r < nr; ++r)
-        colorSet_.addValue(CQChartsUtil::modelValue(model, r, colorColumn(), ok));
+      for (int r = 0; r < nr; ++r) {
+        QModelIndex colorInd = model->index(r, colorColumn());
+
+        colorSet_.addValue(CQChartsUtil::modelValue(model, colorInd, ok));
+      }
     }
   }
 
@@ -197,10 +202,17 @@ initObjs()
 
     //---
 
+    QModelIndex labelInd = model->index(r, labelColumn());
+    QModelIndex dataInd  = model->index(r, dataColumn ());
+
+    QModelIndex dataInd1 = normalizeIndex(dataInd);
+
+    //---
+
     bool ok1, ok2;
 
-    QString label = CQChartsUtil::modelString(model, r, labelColumn(), ok1);
-    double  value = CQChartsUtil::modelReal  (model, r, dataColumn (), ok2);
+    QString label = CQChartsUtil::modelString(model, labelInd, ok1);
+    double  value = CQChartsUtil::modelReal  (model, dataInd , ok2);
 
     if (! ok2) value = r;
 
@@ -223,7 +235,7 @@ initObjs()
 
     CBBox2D rect(xc - radius, yc - radius, xc + radius, yc + radius);
 
-    CQChartsPieObj *obj = new CQChartsPieObj(this, rect, r, nr);
+    CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1, r, nr);
 
     obj->setId(QString("%1:%2").arg(label).arg(columnStr(dataColumn(), value)));
 
@@ -264,9 +276,13 @@ addKeyItems(CQChartsKey *key)
   int nr = model->rowCount(QModelIndex());
 
   for (int r = 0; r < nr; ++r) {
+    QModelIndex labelInd = model->index(r, labelColumn);
+
+    //---
+
     bool ok;
 
-    QString label = CQChartsUtil::modelString(model, r, labelColumn, ok);
+    QString label = CQChartsUtil::modelString(model, labelInd, ok);
 
     CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, r, nr);
     CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, r, label);
@@ -301,8 +317,8 @@ draw(QPainter *p)
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), i_(i), n_(n)
+CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, const QModelIndex &ind, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -354,8 +370,8 @@ mousePress(const CPoint2D &)
 {
   plot_->beginSelect();
 
-  plot_->addSelectIndex(i_, plot_->labelColumn());
-  plot_->addSelectIndex(i_, plot_->dataColumn ());
+  plot_->addSelectIndex(ind_.row(), plot_->labelColumn(), ind_.parent());
+  plot_->addSelectIndex(ind_.row(), plot_->dataColumn (), ind_.parent());
 
   plot_->endSelect();
 }

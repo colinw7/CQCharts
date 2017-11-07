@@ -64,10 +64,12 @@ updateRange(bool apply)
     bool isInt = true, isReal = true;
 
     for (int r = 0; r < nr; ++r) {
+      QModelIndex xind = model->index(r, xColumn());
+
       if (isInt) {
         bool ok1;
 
-        (void) CQChartsUtil::modelInteger(model, r, xColumn(), ok1);
+        (void) CQChartsUtil::modelInteger(model, xind, ok1);
 
         if (ok1)
           continue;
@@ -78,7 +80,7 @@ updateRange(bool apply)
       if (isReal) {
         bool ok1;
 
-        (void) CQChartsUtil::modelReal(model, r, xColumn(), ok1);
+        (void) CQChartsUtil::modelReal(model, xind, ok1);
 
         if (ok1)
           continue;
@@ -159,7 +161,7 @@ updateRange(bool apply)
       if (CQChartsUtil::isNaN(value))
         continue;
 
-      CQChartsBoxPlotValue wv(value, xind1.row());
+      CQChartsBoxPlotValue wv(value, xind1);
 
       whiskers_[setId].addValue(wv);
     }
@@ -321,8 +323,8 @@ mousePress(const CPoint2D &)
   plot_->beginSelect();
 
   for (auto value : whisker_.values()) {
-    plot_->addSelectIndex(value.row, plot_->xColumn());
-    plot_->addSelectIndex(value.row, plot_->yColumn());
+    plot_->addSelectIndex(value.ind.row(), plot_->xColumn(), value.ind.parent());
+    plot_->addSelectIndex(value.ind.row(), plot_->yColumn(), value.ind.parent());
   }
 
   plot_->endSelect();

@@ -68,7 +68,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
-                     int iset, int nset, int i, int n);
+                     const QModelIndex &ind, int iset, int nset, int i, int n);
 
  ~CQChartsXYPointObj();
 
@@ -97,6 +97,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   double          x_     { 0.0 };
   double          y_     { 0.0 };
   double          size_  { -1 };
+  QModelIndex     ind_;
   int             iset_  { -1 };
   int             nset_  { -1 };
   int             i_     { -1 };

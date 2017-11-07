@@ -262,9 +262,13 @@ updateRange(bool apply)
 
     //---
 
+    QModelIndex xind = model->index(i, xColumn());
+
+    //---
+
     bool ok1;
 
-    double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
+    double x = CQChartsUtil::modelReal(model, xind, ok1);
 
     if (! ok1) x = i;
 
@@ -275,9 +279,13 @@ updateRange(bool apply)
       for (int j = 0; j < ns; ++j) {
         int yColumn = getSetColumn(j);
 
+        QModelIndex yind = model->index(i, yColumn);
+
+        //---
+
         bool ok2;
 
-        double y = CQChartsUtil::modelReal(model, i, yColumn, ok2);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok2) y = i;
 
@@ -293,9 +301,13 @@ updateRange(bool apply)
       for (int j = 0; j < ns; ++j) {
         int yColumn = getSetColumn(j);
 
+        QModelIndex yind = model->index(i, yColumn);
+
+        //---
+
         bool ok2;
 
-        double y = CQChartsUtil::modelReal(model, i, yColumn, ok2);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok2) y = i;
 
@@ -312,9 +324,13 @@ updateRange(bool apply)
       for (int j = 0; j < ns; ++j) {
         int yColumn = getSetColumn(j);
 
+        QModelIndex yind = model->index(i, yColumn);
+
+        //---
+
         bool ok2;
 
-        double y = CQChartsUtil::modelReal(model, i, yColumn, ok2);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok2) y = i;
 
@@ -459,9 +475,13 @@ initObjs()
     polygons2.resize(ns - 1);
 
     for (int i = 0; i < n; ++i) {
+      QModelIndex xind = model->index(i, xColumn());
+
+      //---
+
       bool ok1;
 
-      double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
+      double x = CQChartsUtil::modelReal(model, xind, ok1);
 
       if (! ok1) x = i;
 
@@ -480,9 +500,13 @@ initObjs()
 
         int yColumn = getSetColumn(j);
 
+        QModelIndex yind = model->index(i, yColumn);
+
+        //---
+
         bool ok2;
 
-        double y = CQChartsUtil::modelReal(model, i, yColumn, ok2);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok2) y = i;
 
@@ -684,10 +708,15 @@ initObjs()
       lastSum = sum;
 
       for (int i = 0; i < n; ++i) {
+        QModelIndex xind = model->index(i, xColumn());
+        QModelIndex yind = model->index(i, yColumn  );
+
+        //---
+
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
-        double y = CQChartsUtil::modelReal(model, i, yColumn  , ok2);
+        double x = CQChartsUtil::modelReal(model, xind, ok1);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok1) x = i;
         if (! ok2) y = i;
@@ -735,7 +764,7 @@ initObjs()
         CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, xind, j, ns, i, n);
 
         QString xstr = xStr(x);
         QString ystr = yStr(y1);
@@ -757,9 +786,13 @@ initObjs()
 
         if (i == n - 1) {
           for (int k = i; k > 0; --k) {
+            QModelIndex xind = model->index(k, xColumn());
+
+            //---
+
             bool ok1;
 
-            double x1 = CQChartsUtil::modelReal(model, k, xColumn(), ok1);
+            double x1 = CQChartsUtil::modelReal(model, xind, ok1);
 
             if (! ok1) x1 = k;
 
@@ -810,10 +843,15 @@ initObjs()
 
         //---
 
+        QModelIndex xind = model->index(i, xColumn());
+        QModelIndex yind = model->index(i, yColumn  );
+
+        //---
+
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, i, xColumn(), ok1);
-        double y = CQChartsUtil::modelReal(model, i, yColumn  , ok2);
+        double x = CQChartsUtil::modelReal(model, xind, ok1);
+        double y = CQChartsUtil::modelReal(model, yind, ok2);
 
         if (! ok1) x = i;
         if (! ok2) y = i;
@@ -865,7 +903,7 @@ initObjs()
         CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, xind, j, ns, i, n);
 
         QString xstr = xStr(x);
         QString ystr = yStr(y1);
@@ -1342,8 +1380,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 CQChartsXYPointObj::
 CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
-                   int iset, int nset, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), size_(size),
+                   const QModelIndex &ind, int iset, int nset, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), size_(size), ind_(ind),
  iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
@@ -1427,8 +1465,8 @@ mousePress(const CPoint2D &)
 
   int yColumn = plot_->getSetColumn(iset_);
 
-  plot_->addSelectIndex(i_, plot_->xColumn());
-  plot_->addSelectIndex(i_, yColumn         );
+  plot_->addSelectIndex(ind_.row(), plot_->xColumn());
+  plot_->addSelectIndex(ind_.row(), yColumn         );
 
   plot_->endSelect();
 }

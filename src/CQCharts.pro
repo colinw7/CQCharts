@@ -176,6 +176,7 @@ HEADERS += \
 ../include/CQChartsPointObj.h \
 \
 ../include/CQChartsAxis.h \
+CQChartsAxisObj.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
 \

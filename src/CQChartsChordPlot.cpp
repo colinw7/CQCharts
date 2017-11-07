@@ -135,9 +135,11 @@ initObjs()
 
   if (groupColumn_ >= 0) {
     for (int r = 0; r < nv; ++r) {
+      QModelIndex groupInd = model->index(r, groupColumn());
+
       bool ok;
 
-      QVariant group = CQChartsUtil::modelValue(model, r, groupColumn_, ok);
+      QVariant group = CQChartsUtil::modelValue(model, groupInd, ok);
 
       groupValues.addValue(group);
     }
@@ -156,24 +158,34 @@ initObjs()
 
     //---
 
-    if (nameColumn_ >= 0) {
+    if (nameColumn() >= 0) {
+      QModelIndex nameInd = model->index(r, nameColumn());
+
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model, r, nameColumn_, ok);
+      QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
-      if (ok)
+      if (ok) {
         data.setName(name);
+
+        data.setInd(normalizeIndex(nameInd));
+      }
     }
 
     //---
 
-    if (groupColumn_ >= 0) {
+    if (groupColumn() >= 0) {
+      QModelIndex groupInd = model->index(r, groupColumn());
+
       bool ok;
 
-      QString group = CQChartsUtil::modelString(model, r, groupColumn_, ok);
+      QString group = CQChartsUtil::modelString(model, groupInd, ok);
 
-      if (ok)
+      if (ok) {
         data.setGroup(CQChartsChordData::Group(group, groupValues.imap(r)));
+
+        data.setInd(normalizeIndex(groupInd));
+      }
     }
 
     //---
@@ -181,14 +193,16 @@ initObjs()
     int c1 = 0;
 
     for (int c = 0; c < nv; ++c) {
-      if (c == nameColumn_ || c == groupColumn_)
+      if (c == nameColumn() || c == groupColumn())
         continue;
+
+      QModelIndex ind = model->index(r, c);
 
       //---
 
       bool ok;
 
-      double value = CQChartsUtil::modelReal(model, r, c, ok);
+      double value = CQChartsUtil::modelReal(model, ind, ok);
 
       //---
 
@@ -335,6 +349,20 @@ inside(const CPoint2D &p) const
   }
 
   return false;
+}
+
+void
+CQChartsChordObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  const QModelIndex &ind = data_.ind();
+
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->groupColumn(), ind.parent());
+
+  plot_->endSelect();
 }
 
 void

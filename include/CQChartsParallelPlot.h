@@ -12,18 +12,21 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect,
-                          const QPolygonF &poly, int i, int n);
+  CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect, const QPolygonF &poly,
+                          const QModelIndex &ind, int i, int n);
 
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot *plot_ { nullptr };
   QPolygonF             poly_;
+  QModelIndex           ind_;
   int                   i_    { -1 };
   int                   n_    { -1 };
 };

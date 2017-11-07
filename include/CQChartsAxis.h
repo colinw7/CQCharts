@@ -1,7 +1,6 @@
 #ifndef CQChartsAxis_H
 #define CQChartsAxis_H
 
-#include <CQChartsTextBoxObj.h>
 #include <QColor>
 #include <QFont>
 #include <CLineDash.h>
@@ -16,39 +15,13 @@
 #include <boost/optional.hpp>
 
 class CQChartsAxis;
+class CQChartsAxisLabel;
+class CQChartsAxisTickLabel;
 class CQChartsPlot;
 class CQChartsLineObj;
 class CQChartsFillObj;
 class CQPropertyViewModel;
 class QPainter;
-
-class CQChartsAxisLabel : public CQChartsTextBoxObj {
-  Q_OBJECT
-
- public:
-  CQChartsAxisLabel(CQChartsAxis *axis);
-
-  void redrawBoxObj() override;
-
- private:
-  CQChartsAxis *axis_ { nullptr };
-};
-
-//---
-
-class CQChartsAxisTickLabel : public CQChartsTextBoxObj {
-  Q_OBJECT
-
- public:
-  CQChartsAxisTickLabel(CQChartsAxis *axis);
-
-  void redrawBoxObj() override;
-
- private:
-  CQChartsAxis *axis_ { nullptr };
-};
-
-//---
 
 // Axis Data
 class CQChartsAxis : public QObject {

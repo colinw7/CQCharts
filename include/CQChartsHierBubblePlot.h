@@ -19,9 +19,8 @@ class CQChartsHierBubbleNode : public CircleNode {
 
  public:
   CQChartsHierBubbleNode(CQChartsHierBubbleHierNode *parent, const QString &name,
-                         double size, int colorId, int row, const QModelIndex &ind) :
-   parent_(parent), id_(nextId()), name_(name), size_(size), colorId_(colorId),
-   row_(row), ind_(ind) {
+                         double size, int colorId, const QModelIndex &ind) :
+   parent_(parent), id_(nextId()), name_(name), size_(size), colorId_(colorId), ind_(ind) {
     initRadius();
   }
 
@@ -50,9 +49,6 @@ class CQChartsHierBubbleNode : public CircleNode {
 
   virtual int colorId() const { return colorId_; }
   virtual void setColorId(int id) { colorId_ = id; }
-
-  int row() const { return row_; }
-  void setRow(int r) { row_ = r; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -84,7 +80,6 @@ class CQChartsHierBubbleNode : public CircleNode {
   QString                     name_;
   double                      size_    { 1.0 };
   int                         colorId_ { 0 };
-  int                         row_     { -1 };
   QModelIndex                 ind_;
   int                         depth_   { 0 };
   bool                        placed_  { false };

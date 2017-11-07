@@ -13,7 +13,6 @@ class CGradientPalette;
 class CDisplayRange2D;
 class QToolButton;
 class QRubberBand;
-class QTabWidget;
 class QLabel;
 
 class CQChartsView : public QFrame {

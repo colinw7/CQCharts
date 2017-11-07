@@ -768,6 +768,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
     int                 node;
     QString             name;
     int                 group;
+    QModelIndex         ind;
     ConnectionDataArray connections;
   };
 

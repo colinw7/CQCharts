@@ -16,11 +16,13 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CBBox2D &rect, double x, double y,
-                           int i, int n);
+                           const QModelIndex &ind, int i, int n);
 
   bool visible() const override;
 
   bool inside(const CPoint2D &p) const override;
+
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -28,6 +30,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   CQChartsDelaunayPlot *plot_ { nullptr };
   double                x_    { 0.0 };
   double                y_    { 0.0 };
+  QModelIndex           ind_;
   int                   i_    { -1 };
   int                   n_    { -1 };
 };

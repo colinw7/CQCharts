@@ -97,10 +97,14 @@ updateRange(bool apply)
     int yColumn = getSetColumn(j);
 
     for (int i = 0; i < n; ++i) {
+      QModelIndex yind = model->index(i, yColumn);
+
+      //---
+
       bool ok;
 
       double x = 0;
-      double y = CQChartsUtil::modelReal(model, i, yColumn, ok);
+      double y = CQChartsUtil::modelReal(model, yind, ok);
 
       if (! ok)
         y = i;
@@ -131,7 +135,7 @@ updateRange(bool apply)
     yAxes_[j]->setLabel(name);
   }
 
-  displayRange_.setWindowRange(-0.5, 0, numSets() - 0.5, 1);
+  displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
 
   if (apply)
     applyDataRange();
@@ -173,10 +177,14 @@ initObjs()
     for (int j = 0; j < numSets(); ++j) {
       int yColumn = getSetColumn(j);
 
+      QModelIndex yind = model->index(i, yColumn);
+
+      //---
+
       bool ok;
 
       double x = j;
-      double y = CQChartsUtil::modelReal(model, i, yColumn, ok);
+      double y = CQChartsUtil::modelReal(model, yind, ok);
 
       if (! ok)
         y = i;
@@ -195,15 +203,22 @@ initObjs()
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
   for (int i = 0; i < n; ++i) {
+    QModelIndex xind = model->index(i, xColumn());
+
+    QModelIndex xind1 = normalizeIndex(xind);
+
+    //---
+
     bool ok;
 
-    QString xname = CQChartsUtil::modelString(model, i, xColumn_, ok);
+    QString xname = CQChartsUtil::modelString(model, xind, ok);
 
     QPolygonF &poly = polys[i];
 
     CBBox2D bbox(-0.5, 0, numSets() - 0.5, 1);
 
-    CQChartsParallelLineObj *lineObj = new CQChartsParallelLineObj(this, bbox, poly, i, n);
+    CQChartsParallelLineObj *lineObj =
+      new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
 
     int nl = poly.count();
 
@@ -294,16 +309,17 @@ draw(QPainter *p)
 
   QFontMetricsF fm(view()->font());
 
-  displayRange_.setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
+  displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 
   drawObjs(p, Layer::MID);
 
   for (int j = 0; j < numSets(); ++j) {
     const CRange2D &range = yRange(j);
 
-    setDataRange(range);
+    dataRange_ = range;
+    //setDataRange(range); // will clear objects
 
-    displayRange_.setWindowRange(-0.5, dataRange_.ymin(), numSets() - 0.5, dataRange_.ymax());
+    displayRange_->setWindowRange(-0.5, dataRange_.ymin(), numSets() - 0.5, dataRange_.ymax());
 
     yAxes_[j]->setPos(j);
 
@@ -320,7 +336,7 @@ draw(QPainter *p)
     p->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }
 
-  displayRange_.setWindowRange(-0.5, 0, numSets() - 0.5, 1);
+  displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
 
   //---
 
@@ -330,9 +346,9 @@ draw(QPainter *p)
 //------
 
 CQChartsParallelLineObj::
-CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect,
-                        const QPolygonF &poly, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), poly_(poly), i_(i), n_(n)
+CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect, const QPolygonF &poly,
+                        const QModelIndex &ind, int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -383,6 +399,18 @@ inside(const CPoint2D &p) const
 }
 
 // TODO : interpY
+
+void
+CQChartsParallelLineObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
+  plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
+
+  plot_->endSelect();
+}
 
 void
 CQChartsParallelLineObj::

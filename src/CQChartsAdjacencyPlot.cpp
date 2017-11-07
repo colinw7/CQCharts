@@ -132,7 +132,7 @@ initObjs()
 
     ConnectionsData connections;
 
-    connections.row   = nodeInd1.row();
+    connections.ind   = nodeInd1;
     connections.node  = id;
     connections.name  = name;
     connections.group = group;
@@ -145,13 +145,13 @@ initObjs()
   //---
 
   for (const auto &idConnections : idConnections_) {
-    int            id    = idConnections.first;
-    int            row   = idConnections.second.row;
-    const QString &name  = idConnections.second.name;
-    int            group = idConnections.second.group;
+    int                id    = idConnections.first;
+    const QModelIndex& ind   = idConnections.second.ind;
+    const QString&     name  = idConnections.second.name;
+    int                group = idConnections.second.group;
 
     CQChartsAdjacencyNode *node =
-      new CQChartsAdjacencyNode(id, name.toStdString(), group, row);
+      new CQChartsAdjacencyNode(id, name.toStdString(), group, ind);
 
     nodes_[id] = node;
   }
@@ -479,8 +479,8 @@ mousePress(const CPoint2D &)
 {
   plot_->beginSelect();
 
-  plot_->addSelectIndex(node1_->row(), plot_->nodeColumn());
-  plot_->addSelectIndex(node2_->row(), plot_->nodeColumn());
+  plot_->addSelectIndex(node1_->ind());
+  plot_->addSelectIndex(node2_->ind());
 
   plot_->endSelect();
 }

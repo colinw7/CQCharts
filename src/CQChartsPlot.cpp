@@ -8,6 +8,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsPointObj.h>
+#include <CQChartsQuadTree.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
@@ -16,6 +17,8 @@
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
+
+using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CBBox2D>;
 
 //------
 
@@ -80,10 +83,15 @@ addParameters()
 
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
- view_(view), type_(type), model_(model), displayTransform_(&displayRange_)
+ view_(view), type_(type), model_(model)
 {
+  displayRange_     = new CDisplayRange2D;
+  displayTransform_ = new CDisplayTransform2D(displayRange_);
+
   borderObj_     = new CQChartsBoxObj;
   dataBorderObj_ = new CQChartsBoxObj;
+
+  plotObjTree_ = new PlotObjTree;
 
   setBackground    (true);
   setDataBackground(true);
@@ -92,15 +100,20 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   bbox_ = CBBox2D(0, 0, vr, vr);
 
-  displayRange_.setPixelRange(0, vr, vr, 0);
+  displayRange_->setPixelRange(0, vr, vr, 0);
 
-  displayRange_.setWindowRange(0, 0, 1, 1);
+  displayRange_->setWindowRange(0, 0, 1, 1);
 }
 
 CQChartsPlot::
 ~CQChartsPlot()
 {
   clearPlotObjects();
+
+  delete static_cast<PlotObjTree *>(plotObjTree_);
+
+  delete displayRange_;
+  delete displayTransform_;
 
   delete borderObj_;
   delete dataBorderObj_;
@@ -191,6 +204,34 @@ charts() const
 }
 
 //---
+
+const CDisplayRange2D &
+CQChartsPlot::
+displayRange() const
+{
+  return *displayRange_;
+}
+
+void
+CQChartsPlot::
+setDisplayRange(const CDisplayRange2D &r)
+{
+  *displayRange_ = r;
+}
+
+const CDisplayTransform2D &
+CQChartsPlot::
+displayTransform() const
+{
+  return *displayTransform_;
+}
+
+void
+CQChartsPlot::
+setDisplayTransform(const CDisplayTransform2D &t)
+{
+  *displayTransform_ = t;
+}
 
 void
 CQChartsPlot::
@@ -436,8 +477,8 @@ updateMargin()
   double xmr = bbox_.getWidth ()*marginRight ()/100.0;
   double ymb = bbox_.getHeight()*marginBottom()/100.0;
 
-  displayRange_.setPixelRange(bbox_.getXMin() + xml, bbox_.getYMax() - ymt,
-                              bbox_.getXMax() - xmr, bbox_.getYMin() + ymb);
+  displayRange_->setPixelRange(bbox_.getXMin() + xml, bbox_.getYMax() - ymt,
+                               bbox_.getXMax() - xmr, bbox_.getYMin() + ymb);
 
   updateKeyPosition(/*force*/true);
 
@@ -694,8 +735,8 @@ applyDataRange(bool propagate)
     dataRange = calcDataRange();
   }
 
-  displayRange_.setWindowRange(dataRange.getXMin(), dataRange.getYMin(),
-                               dataRange.getXMax(), dataRange.getYMax());
+  displayRange_->setWindowRange(dataRange.getXMin(), dataRange.getYMin(),
+                                dataRange.getXMax(), dataRange.getYMax());
 
   if (xAxis_) {
     xAxis_->setRange(dataRange.getXMin(), dataRange.getXMax());
@@ -778,12 +819,12 @@ applyDisplayTransform(bool propagate)
       CQChartsPlot *plot1 = firstPlot();
 
       if (plot1) {
-        plot1->setDisplayTransform(displayTransform_);
+        plot1->setDisplayTransform(*displayTransform_);
 
         plot1->applyDisplayTransform(/*propagate*/false);
 
         while (plot1) {
-          plot1->setDisplayTransform(displayTransform_);
+          plot1->setDisplayTransform(*displayTransform_);
 
           plot1->applyDisplayTransform(/*propagate*/false);
 
@@ -801,7 +842,7 @@ addPlotObject(CQChartsPlotObj *obj)
   if (! obj->rect().isSet())
     return;
 
-  plotObjTree_.add(obj);
+  static_cast<PlotObjTree *>(plotObjTree_)->add(obj);
 
   plotObjs_.push_back(obj);
 }
@@ -815,7 +856,7 @@ clearPlotObjects()
 
   plotObjs_.clear();
 
-  plotObjTree_.reset();
+  static_cast<PlotObjTree *>(plotObjTree_)->reset();
 }
 
 bool
@@ -974,7 +1015,7 @@ mouseMove(const CPoint2D &w, bool first)
       }
     };
 
-    plotObjTree_.process(resetInside);
+    static_cast<PlotObjTree *>(plotObjTree_)->process(resetInside);
 
     if (changed)
       update();
@@ -1108,7 +1149,7 @@ panLeft()
     update();
   }
   else {
-    displayTransform_.panLeft();
+    displayTransform_->panLeft();
 
     updateTransform();
   }
@@ -1128,7 +1169,7 @@ panRight()
     update();
   }
   else {
-    displayTransform_.panRight();
+    displayTransform_->panRight();
 
     updateTransform();
   }
@@ -1148,7 +1189,7 @@ panUp()
     update();
   }
   else {
-    displayTransform_.panUp();
+    displayTransform_->panUp();
 
     updateTransform();
   }
@@ -1168,7 +1209,7 @@ panDown()
     update();
   }
   else {
-    displayTransform_.panDown();
+    displayTransform_->panDown();
 
     updateTransform();
   }
@@ -1186,7 +1227,7 @@ zoomIn(double f)
     update();
   }
   else {
-    displayTransform_.zoomIn(f);
+    displayTransform_->zoomIn(f);
 
     updateTransform();
   }
@@ -1204,7 +1245,7 @@ zoomOut(double f)
     update();
   }
   else {
-    displayTransform_.zoomOut(f);
+    displayTransform_->zoomOut(f);
 
     updateTransform();
   }
@@ -1243,7 +1284,7 @@ zoomTo(const CBBox2D &bbox)
     update();
   }
   else {
-    displayTransform_.zoomTo(bbox);
+    displayTransform_->zoomTo(bbox);
 
     updateTransform();
   }
@@ -1262,7 +1303,7 @@ zoomFull()
     update();
   }
   else {
-    displayTransform_.reset();
+    displayTransform_->reset();
 
     updateTransform();
   }
@@ -1305,11 +1346,11 @@ tipText(const CPoint2D &p, QString &tip) const
 
 void
 CQChartsPlot::
-objsAtPoint(const CPoint2D &p, PlotObjTree::DataList &dataList1) const
+objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &dataList1) const
 {
   PlotObjTree::DataList dataList;
 
-  plotObjTree_.dataAtPoint(p.x, p.y, dataList);
+  static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
 
   for (const auto &obj : dataList) {
     if (obj->inside(p))
@@ -1499,7 +1540,7 @@ calcRect() const
 {
   double xmin, ymin, xmax, ymax;
 
-  displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+  displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
   double pxmin, pymin, pxmax, pymax;
 
@@ -1515,7 +1556,7 @@ calcPixelRect() const
 {
   //double xmin, ymin, xmax, ymax;
 
-  //displayRange_.getPixelRange(&xmin, &ymin, &xmax, &ymax);
+  //displayRange_->getPixelRange(&xmin, &ymin, &xmax, &ymax);
 
   //double px1, py1, px2, py2;
 
@@ -1585,7 +1626,7 @@ setFitBBox(const CBBox2D &bbox)
 {
   double xmin, ymin, xmax, ymax;
 
-  displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+  displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
   CBBox2D pbbox(xmin, ymin, xmax, ymax);
 
@@ -1603,7 +1644,7 @@ fitBBox() const
 {
   double xmin, ymin, xmax, ymax;
 
-  displayRange_.getWindowRange(&xmin, &ymin, &xmax, &ymax);
+  displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
   CBBox2D pbbox(xmin, ymin, xmax, ymax);
 
@@ -1997,11 +2038,11 @@ windowToPixel(double wx, double wy, double &px, double &py) const
 {
   double wx1, wy1;
 
-  displayTransform_.getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
+  displayTransform_->getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
 
   double wx2, wy2;
 
-  displayRange_.windowToPixel(wx1, wy1, &wx2, &wy2);
+  displayRange_->windowToPixel(wx1, wy1, &wx2, &wy2);
 
   view_->windowToPixel(wx2, wy2, px, py);
 }
@@ -2016,9 +2057,9 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
 
   double wx2, wy2;
 
-  displayRange_.pixelToWindow(wx1, wy1, &wx2, &wy2);
+  displayRange_->pixelToWindow(wx1, wy1, &wx2, &wy2);
 
-  displayTransform_.getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
+  displayTransform_->getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
 }
 
 void

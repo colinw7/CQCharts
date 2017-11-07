@@ -18,11 +18,11 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
                       int iset, int nset, int ival, int nval,
-                      int isval, int nsval, double value, int row);
+                      int isval, int nsval, double value, const QModelIndex &ind);
 
   void setColor(double color) { color_ = color; }
 
-  void mousePress(const CPoint2D &p);
+  void mousePress(const CPoint2D &p) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -30,15 +30,15 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
   CQChartsBarChartPlot *plot_  { nullptr };
-  int                   iset_  { -1 };      // set number
-  int                   nset_  { -1 };      // number of sets
-  int                   ival_  { -1 };      // value number
-  int                   nval_  { -1 };      // number of values
-  int                   isval_ { -1 };      // sub set number
-  int                   nsval_ { -1 };      // number of sub sets
-  double                value_ { -1 };      // value
-  int                   row_   { -1 };      // model row
-  OptReal               color_;             // custom color
+  int                   iset_  { -1 }; // set number
+  int                   nset_  { -1 }; // number of sets
+  int                   ival_  { -1 }; // value number
+  int                   nval_  { -1 }; // number of values
+  int                   isval_ { -1 }; // sub set number
+  int                   nsval_ { -1 }; // number of sub sets
+  double                value_ { -1 }; // value
+  QModelIndex           ind_;          // model index
+  OptReal               color_;        // custom color
 };
 
 //---
@@ -273,14 +273,14 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
  private:
   struct Value {
-    double  value { 0.0 };
-    QString name;
-    int     row { -1 };
+    double      value { 0.0 };
+    QString     name;
+    QModelIndex ind;
 
     Value() = default;
 
-    Value(double value, const QString &name, int row) :
-     value(value), name(name), row(row) {
+    Value(double value, const QString &name, const QModelIndex &ind) :
+     value(value), name(name), ind(ind) {
     }
   };
 

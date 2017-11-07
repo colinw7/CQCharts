@@ -139,32 +139,37 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
   uint nc = model->rowCount(index);
 
   for (uint i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, nameColumn(), index);
+    QModelIndex nameInd  = model->index(i, nameColumn (), index);
+    QModelIndex valueInd = model->index(i, valueColumn(), index);
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, i, nameColumn(), ok);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
     //---
 
-    if (model->rowCount(index1) > 0) {
+    if (model->rowCount(nameInd) > 0) {
       CQChartsSunburstHierNode *hier1 = new CQChartsSunburstHierNode(hier, name);
 
-      loadChildren(hier1, index1, depth + 1, colorId);
+      loadChildren(hier1, nameInd, depth + 1, colorId);
 
       colorId1 = hier1->colorId();
     }
     else {
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model, i, valueColumn(), ok);
+      int size = CQChartsUtil::modelInteger(model, valueInd, ok);
 
       if (! ok) size = 1;
+
+      //---
 
       CQChartsSunburstNode *node = new CQChartsSunburstNode(hier, name);
 
       node->setSize(size);
       node->setColorId(colorId);
+
+      node->setInd(normalizeIndex(valueInd));
 
       hier->addNode(node);
 
@@ -394,6 +399,18 @@ inside(const CPoint2D &p) const
   }
 
   return false;
+}
+
+void
+CQChartsSunburstNodeObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(node_->ind().row(), plot_->nameColumn (), node_->ind().parent());
+  plot_->addSelectIndex(node_->ind().row(), plot_->valueColumn(), node_->ind().parent());
+
+  plot_->endSelect();
 }
 
 void

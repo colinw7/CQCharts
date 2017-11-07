@@ -21,6 +21,8 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
+  void mousePress(const CPoint2D &) override;
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
@@ -57,6 +59,9 @@ class CQChartsSunburstNode {
   virtual int depth() const { return 1; }
 
   virtual int numNodes() const { return 1; }
+
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &v) { ind_ = v; }
 
   double r () const { return r_ ; }
   double a () const { return a_ ; }
@@ -129,6 +134,7 @@ class CQChartsSunburstNode {
   uint                      id_      { 0 };
   QString                   name_;
   double                    size_    { 1.0 };
+  QModelIndex               ind_;
   double                    r_       { 0.0 };
   double                    a_       { 0.0 };
   double                    dr_      { 0.0 };

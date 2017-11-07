@@ -286,23 +286,25 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
   int nr = model->rowCount(index);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex index1 = model->index(r, nameColumn (), index);
-    QModelIndex index2 = model->index(r, valueColumn(), index);
+    QModelIndex nameInd  = model->index(r, nameColumn (), index);
+    QModelIndex valueInd = model->index(r, valueColumn(), index);
+
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
 
     //---
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, index1, ok);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
     //---
 
-    if (model->rowCount(index1) > 0) {
+    if (model->rowCount(nameInd) > 0) {
       CQChartsHierBubbleHierNode *hier1 = new CQChartsHierBubbleHierNode(hier, name);
 
       hier1->setDepth(depth);
 
-      loadChildren(hier1, index1, depth + 1);
+      loadChildren(hier1, nameInd, depth + 1);
     }
     else {
       if (colorId < 0)
@@ -310,12 +312,12 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
 
       bool ok;
 
-      int size = CQChartsUtil::modelInteger(model, index2, ok);
+      int size = CQChartsUtil::modelInteger(model, valueInd, ok);
 
       if (! ok) size = 1;
 
       CQChartsHierBubbleNode *node =
-        new CQChartsHierBubbleNode(hier, name, size, colorId, r, index);
+        new CQChartsHierBubbleNode(hier, name, size, colorId, nameInd1);
 
       node->setDepth(depth);
 
@@ -338,13 +340,13 @@ loadFlat()
   int nr = model->rowCount();
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex index1 = model->index(r, nameColumn ());
-    QModelIndex index2 = model->index(r, valueColumn());
+    QModelIndex nameInd  = model->index(r, nameColumn ());
+    QModelIndex valueInd = model->index(r, valueColumn());
 
     bool ok1, ok2;
 
-    QString name = CQChartsUtil::modelString (model, index1, ok1);
-    int     size = CQChartsUtil::modelInteger(model, index2, ok2);
+    QString name = CQChartsUtil::modelString (model, nameInd , ok1);
+    int     size = CQChartsUtil::modelInteger(model, valueInd, ok2);
 
     QStringList strs;
 
@@ -380,7 +382,7 @@ loadFlat()
 
     if (! node) {
       node = new CQChartsHierBubbleNode(parent, strs[strs.length() - 1], size, depth,
-                                        r, QModelIndex());
+                                        QModelIndex());
 
       node->setDepth(depth);
 
@@ -609,8 +611,10 @@ mousePress(const CPoint2D &)
 {
   plot_->beginSelect();
 
-  plot_->addSelectIndex(node_->row(), plot_->nameColumn (), node_->ind());
-  plot_->addSelectIndex(node_->row(), plot_->valueColumn(), node_->ind());
+  const QModelIndex &ind = node_->ind();
+
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
 
   plot_->endSelect();
 }
@@ -679,7 +683,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 CQChartsHierBubbleHierNode::
 CQChartsHierBubbleHierNode(CQChartsHierBubbleHierNode *parent, const QString &name) :
- CQChartsHierBubbleNode(parent, name, 0.0, -1, -1, QModelIndex()), parent_(parent)
+ CQChartsHierBubbleNode(parent, name, 0.0, -1, QModelIndex()), parent_(parent)
 {
   if (parent_)
     parent_->children_.push_back(this);

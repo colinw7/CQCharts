@@ -20,7 +20,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void mousePress(const CPoint2D &);
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 

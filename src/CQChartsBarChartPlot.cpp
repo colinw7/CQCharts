@@ -335,7 +335,7 @@ updateRange(bool apply)
           if (CQChartsUtil::isNaN(value))
             continue;
 
-          valueSet->values.emplace_back(value, "", categoryInd1.row());
+          valueSet->values.emplace_back(value, "", categoryInd1);
 
           if (! isHorizontal()) {
             if (isStacked())
@@ -387,7 +387,7 @@ updateRange(bool apply)
           if (CQChartsUtil::isNaN(value))
             continue;
 
-          valueSet->values.emplace_back(value, "", categoryInd1.row());
+          valueSet->values.emplace_back(value, "", categoryInd1);
 
           if (! isHorizontal()) {
             if (isStacked())
@@ -449,7 +449,7 @@ updateRange(bool apply)
 
       bool isNew = valueSet->values.empty();
 
-      valueSet->values.emplace_back(value, name, categoryInd1.row());
+      valueSet->values.emplace_back(value, name, categoryInd1);
 
       double posSum, negSum;
 
@@ -686,8 +686,8 @@ initObjs()
         for (int i = 0; i < ns; ++i) {
           const Value &ivalue = valueSet.values[numVisible1];
 
-          double value = ivalue.value;
-          int    row   = ivalue.row;
+          double             value = ivalue.value;
+          const QModelIndex &ind   = ivalue.ind;
 
           double value1 = value + sum;
 
@@ -710,7 +710,7 @@ initObjs()
           }
 
           CQChartsBarChartObj *barObj =
-            new CQChartsBarChartObj(this, brect, i, ns, j, nv, 0, 1, value, row);
+            new CQChartsBarChartObj(this, brect, i, ns, j, nv, 0, 1, value, ind);
 
           QString valueName = valueNames_[i];
 
@@ -739,8 +739,8 @@ initObjs()
 
           const Value &ivalue = valueSet.values[numVisible1];
 
-          double value = ivalue.value;
-          int    row   = ivalue.row;
+          double             value = ivalue.value;
+          const QModelIndex &ind   = ivalue.ind;
 
           double value1 = value + sum;
 
@@ -763,7 +763,7 @@ initObjs()
           }
 
           CQChartsBarChartObj *barObj =
-            new CQChartsBarChartObj(this, brect, i, ns, j, nv, 0, 1, value, row);
+            new CQChartsBarChartObj(this, brect, i, ns, j, nv, 0, 1, value, ind);
 
           QString valueName = valueNames_[i];
 
@@ -796,14 +796,14 @@ initObjs()
       for (int i = 0; i < nvs; ++i) {
         const Value &ivalue = valueSet.values[i];
 
-        double         value     = ivalue.value;
-        const QString &valueName = ivalue.name;
-        int            row       = ivalue.row;
+        double             value     = ivalue.value;
+        const QString     &valueName = ivalue.name;
+        const QModelIndex &ind       = ivalue.ind;
 
         OptReal color;
 
-        if (ivalue.row >= 0 && ! colorSet_.empty())
-          color = colorSet_.imap(ivalue.row);
+        if (ind.row() >= 0 && ! colorSet_.empty())
+          color = colorSet_.imap(ind.row());
 
         //---
 
@@ -840,7 +840,7 @@ initObjs()
         }
 
         CQChartsBarChartObj *barObj =
-          new CQChartsBarChartObj(this, brect, 0, 1, j, nv, i, nvs, value, row);
+          new CQChartsBarChartObj(this, brect, 0, 1, j, nv, i, nvs, value, ind);
 
         if (color)
           barObj->setColor(*color);
@@ -933,8 +933,10 @@ addKeyItems(CQChartsKey *key)
       if (valueSet.values.size() == 1) {
         const Value &ivalue = valueSet.values[0];
 
-        if (ivalue.row >= 0 && ! colorSet_.empty()) {
-          double color = colorSet_.imap(ivalue.row);
+        const QModelIndex &ind = ivalue.ind;
+
+        if (ind.row() >= 0 && ! colorSet_.empty()) {
+          double color = colorSet_.imap(ind.row());
 
           keyColor->setColor(color);
         }
@@ -990,9 +992,9 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
 CQChartsBarChartObj::
 CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
                     int iset, int nset, int ival, int nval, int isval, int nsval,
-                    double value, int row) :
+                    double value, const QModelIndex &ind) :
  CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
- isval_(isval), nsval_(nsval), value_(value), row_(row)
+ isval_(isval), nsval_(nsval), value_(value), ind_(ind)
 {
 }
 
@@ -1004,8 +1006,8 @@ mousePress(const CPoint2D &)
 
   int yColumn = plot_->getSetColumn(iset_);
 
-  plot_->addSelectIndex(row_, plot_->categoryColumn());
-  plot_->addSelectIndex(row_, yColumn                );
+  plot_->addSelectIndex(ind_.row(), plot_->categoryColumn(), ind_.parent());
+  plot_->addSelectIndex(ind_.row(), yColumn                , ind_.parent());
 
   plot_->endSelect();
 }

@@ -13,14 +13,14 @@ class CQChartsBoxPlot;
 struct CQChartsBoxPlotValue {
   CQChartsBoxPlotValue() = default;
 
-  CQChartsBoxPlotValue(double value, int row) :
-   value(value), row(row) {
+  CQChartsBoxPlotValue(double value, const QModelIndex &ind) :
+   value(value), ind(ind) {
   }
 
   operator double() const { return value; }
 
-  double value { 0.0 };
-  int    row   { -1 };
+  double      value { 0.0 };
+  QModelIndex ind;
 };
 
 using CQChartsBoxPlotWhisker = CBoxWhiskerT<CQChartsBoxPlotValue>;

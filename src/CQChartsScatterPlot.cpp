@@ -102,10 +102,15 @@ updateRange(bool apply)
   dataRange_.reset();
 
   for (int r = 0; r < nr; ++r) {
+    QModelIndex xInd = model->index(r, xColumn());
+    QModelIndex yInd = model->index(r, yColumn());
+
+    //---
+
     bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model, r, xColumn(), ok1);
-    double y = CQChartsUtil::modelReal(model, r, yColumn(), ok2);
+    double x = CQChartsUtil::modelReal(model, xInd, ok1);
+    double y = CQChartsUtil::modelReal(model, yInd, ok2);
 
     if (! ok1) x = r;
     if (! ok2) y = r;
@@ -191,33 +196,53 @@ initObjs()
     if (symbolSizeColumn() >= 0) {
       bool ok;
 
-      for (int r = 0; r < nr; ++r)
-        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, r, symbolSizeColumn(), ok));
+      for (int r = 0; r < nr; ++r) {
+        QModelIndex symbolSizeInd = model->index(r, symbolSizeColumn());
+
+        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, symbolSizeInd, ok));
+      }
     }
 
     if (fontSizeColumn() >= 0) {
       bool ok;
 
-      for (int r = 0; r < nr; ++r)
-        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, r, fontSizeColumn(), ok));
+      for (int r = 0; r < nr; ++r) {
+        QModelIndex fontSizeInd = model->index(r, fontSizeColumn());
+
+        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, fontSizeInd, ok));
+      }
     }
 
     if (colorColumn() >= 0) {
       bool ok;
 
-      for (int r = 0; r < nr; ++r)
-        colorSet_.addValue(CQChartsUtil::modelValue(model, r, colorColumn(), ok));
+      for (int r = 0; r < nr; ++r) {
+        QModelIndex colorInd = model->index(r, colorColumn());
+
+        colorSet_.addValue(CQChartsUtil::modelValue(model, colorInd, ok));
+      }
     }
 
     for (int r = 0; r < nr; ++r) {
+      QModelIndex nameInd = model->index(r, nameColumn());
+
+      //---
+
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model, r, nameColumn(), ok);
+      QString name = CQChartsUtil::modelString(model, nameInd, ok);
+
+      //---
+
+      QModelIndex xInd = model->index(r, xColumn());
+      QModelIndex yInd = model->index(r, yColumn());
+
+      //---
 
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, r, xColumn(), ok1);
-      double y = CQChartsUtil::modelReal(model, r, yColumn(), ok2);
+      double x = CQChartsUtil::modelReal(model, xInd, ok1);
+      double y = CQChartsUtil::modelReal(model, yInd, ok2);
 
       if (! ok1) x = r;
       if (! ok2) y = r;
@@ -225,18 +250,26 @@ initObjs()
       if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
         continue;
 
+      //---
+
+      QModelIndex symbolSizeInd = model->index(r, symbolSizeColumn());
+      QModelIndex fontSizeInd   = model->index(r, fontSizeColumn  ());
+      QModelIndex colorInd      = model->index(r, colorColumn     ());
+
       bool ok3;
 
       // get symbol size label (needed if not string ?)
-      QString symbolSizeStr = CQChartsUtil::modelString(model, r, symbolSizeColumn(), ok3);
+      QString symbolSizeStr = CQChartsUtil::modelString(model, symbolSizeInd, ok3);
 
       // get font size label (needed if not string ?)
-      QString fontSizeStr = CQChartsUtil::modelString(model, r, fontSizeColumn(), ok3);
+      QString fontSizeStr = CQChartsUtil::modelString(model, fontSizeInd, ok3);
 
       // get color label (needed if not string ?)
-      QString colorStr = CQChartsUtil::modelString(model, r, colorColumn(), ok3);
+      QString colorStr = CQChartsUtil::modelString(model, colorInd, ok3);
 
-      nameValues_[name].emplace_back(x, y, r, symbolSizeStr, fontSizeStr, colorStr);
+      //---
+
+      nameValues_[name].emplace_back(x, y, r, xInd, symbolSizeStr, fontSizeStr, colorStr);
     }
   }
 
@@ -302,6 +335,8 @@ initObjs()
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv);
 
+        //---
+
         QString id = name;
 
         id += QString("\n  %1\t%2").arg(xname).arg(p.x());
@@ -318,7 +353,11 @@ initObjs()
 
         pointObj->setId(id);
 
+        //---
+
         pointObj->setName(name);
+
+        pointObj->setInd(valuePoint.ind);
 
         addPlotObject(pointObj);
       }
@@ -424,8 +463,8 @@ mousePress(const CPoint2D &)
 {
   plot_->beginSelect();
 
-  plot_->addSelectIndex(i_, plot_->xColumn());
-  plot_->addSelectIndex(i_, plot_->yColumn());
+  plot_->addSelectIndex(ind_.row(), plot_->xColumn());
+  plot_->addSelectIndex(ind_.row(), plot_->yColumn());
 
   plot_->endSelect();
 }

@@ -29,7 +29,8 @@ class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
-  CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, int i, int n);
+  CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, const QModelIndex &ind,
+                 int i, int n);
 
   double angle1() const { return angle1_; }
   void setAngle1(double a) { angle1_ = a; }
@@ -52,7 +53,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
-  void mousePress(const CPoint2D &);
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -60,6 +61,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
   CQChartsPiePlot* plot_     { nullptr }; // parent plot
+  QModelIndex      ind_;
   int              i_        { -1 };      // index
   int              n_        { -1 };      // number of wedges
   double           angle1_   { 0 };       // wedge start angle
@@ -223,7 +225,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   double             labelRadius_     { 0.5 };
   bool               rotatedText_     { false };
   bool               explodeSelected_ { true };
-  double             explodeRadius_   { 0.1 };
+  double             explodeRadius_   { 0.05 };
   double             startAngle_      { 90 };
   double             innerRadius1_    { 0.6 };
   CQChartsValueSet   colorSet_;

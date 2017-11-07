@@ -159,19 +159,21 @@ loadChildren(const QModelIndex &index)
   int nr = model->rowCount(index);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex index1 = model->index(r, nameColumn (), index);
-    QModelIndex index2 = model->index(r, valueColumn(), index);
+    QModelIndex nameInd  = model->index(r, nameColumn (), index);
+    QModelIndex valueInd = model->index(r, valueColumn(), index);
+
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
 
     //---
 
     bool ok1;
 
-    QString name = CQChartsUtil::modelString(model, index1, ok1);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok1);
 
     //---
 
-    if (model->rowCount(index1) > 0) {
-      loadChildren(index1);
+    if (model->rowCount(nameInd) > 0) {
+      loadChildren(nameInd);
     }
     else {
       if (colorId < 0)
@@ -179,12 +181,12 @@ loadChildren(const QModelIndex &index)
 
       bool ok2;
 
-      int size = CQChartsUtil::modelInteger(model, index2, ok2);
+      int size = CQChartsUtil::modelInteger(model, valueInd, ok2);
 
       if (! ok2) size = 1;
 
       CQChartsBubbleNode *node =
-        new CQChartsBubbleNode(name.toStdString(), size, colorId, r, index);
+        new CQChartsBubbleNode(name.toStdString(), size, colorId, nameInd1);
 
       pack_.addNode(node);
 
@@ -251,8 +253,10 @@ mousePress(const CPoint2D &)
 {
   plot_->beginSelect();
 
-  plot_->addSelectIndex(node_->row(), plot_->nameColumn (), node_->ind());
-  plot_->addSelectIndex(node_->row(), plot_->valueColumn(), node_->ind());
+  const QModelIndex &ind = node_->ind();
+
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
 
   plot_->endSelect();
 }

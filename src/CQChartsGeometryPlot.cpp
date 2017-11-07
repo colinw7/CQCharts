@@ -73,15 +73,23 @@ updateRange(bool apply)
   for (int r = 0; r < nr; ++r) {
     Geometry geometry;
 
+    QModelIndex nameInd  = model->index(r, nameColumn    ());
+    QModelIndex geomInd  = model->index(r, geometryColumn());
+    QModelIndex valueInd = model->index(r, valueColumn   ());
+
+    QModelIndex geomInd1 = normalizeIndex(geomInd);
+
+    //---
+
     bool ok1;
 
-    geometry.name = CQChartsUtil::modelString(model, r, nameColumn(), ok1);
+    geometry.name = CQChartsUtil::modelString(model, nameInd, ok1);
 
     //--
 
     bool ok2;
 
-    QString geomStr = CQChartsUtil::modelString(model, r, geometryColumn(), ok2);
+    QString geomStr = CQChartsUtil::modelString(model, geomInd, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
       charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
@@ -102,7 +110,7 @@ updateRange(bool apply)
 
     bool ok;
 
-    geometry.value = CQChartsUtil::modelReal(model, r, valueColumn_, ok);
+    geometry.value = CQChartsUtil::modelReal(model, valueInd, ok);
 
     if (! ok)
       geometry.value = r;
@@ -118,6 +126,10 @@ updateRange(bool apply)
       minValue_ = std::min(minValue_, geometry.value);
       maxValue_ = std::max(maxValue_, geometry.value);
     }
+
+    //---
+
+    geometry.ind = geomInd1;
 
     //---
 
@@ -319,13 +331,13 @@ initObjs()
 
     if (valueColumn_ < 0) {
       geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
-                                        0.0, geometry.name, i, n);
+                                        0.0, geometry.name, geometry.ind, i, n);
 
       geomObj->setId(geometry.name);
     }
     else {
       geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
-                                        geometry.value, geometry.name, -1, -1);
+                                        geometry.value, geometry.name, geometry.ind, -1, -1);
 
       geomObj->setId(QString("%1:%2").arg(geometry.name).arg(geometry.value));
     }
@@ -356,9 +368,9 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str)
 
 CQChartsGeometryObj::
 CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CBBox2D &rect, const Polygons &polygons,
-                    double value, const QString &name, int ind, int n) :
+                    double value, const QString &name, const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), polygons_(polygons), value_(value),
- name_(name), ind_(ind), n_(n)
+ name_(name), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -374,6 +386,18 @@ inside(const CPoint2D &p) const
   }
 
   return false;
+}
+
+void
+CQChartsGeometryObj::
+mousePress(const CPoint2D &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
+  plot_->addSelectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
+
+  plot_->endSelect();
 }
 
 void
@@ -404,7 +428,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     QColor c;
 
     if (n_ > 0) {
-      c = plot_->objectColor(this, ind_, n_, Qt::black);
+      c = plot_->objectColor(this, i_, n_, Qt::black);
     }
     else {
       double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());

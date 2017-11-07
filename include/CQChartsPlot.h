@@ -3,7 +3,6 @@
 
 #include <CQChartsPlotParameter.h>
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsQuadTree.h>
 
 #include <CDisplayRange2D.h>
 #include <CDisplayTransform2D.h>
@@ -227,11 +226,11 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  const CDisplayRange2D &displayRange() const { return displayRange_; }
-  void setDisplayRange(const CDisplayRange2D &r) { displayRange_ = r; }
+  const CDisplayRange2D &displayRange() const;
+  void setDisplayRange(const CDisplayRange2D &r);
 
-  const CDisplayTransform2D &displayTransform() const { return displayTransform_; }
-  void setDisplayTransform(const CDisplayTransform2D &t) { displayTransform_ = t; }
+  const CDisplayTransform2D &displayTransform() const;
+  void setDisplayTransform(const CDisplayTransform2D &t);
 
   const CRange2D &dataRange() const { return dataRange_; }
   void setDataRange(const CRange2D &r);
@@ -674,11 +673,10 @@ class CQChartsPlot : public QObject {
   void objPressed(CQChartsPlotObj *);
 
  protected:
-  using PlotObjs    = std::vector<CQChartsPlotObj *>;
-  using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CBBox2D>;
+  using PlotObjs = std::vector<CQChartsPlotObj *>;
 
  protected:
-  void objsAtPoint(const CPoint2D &p, PlotObjTree::DataList &dataList1) const;
+  void objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &dataList1) const;
 
  protected:
   using RefPlots    = std::vector<CQChartsPlot *>;
@@ -693,47 +691,47 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsView*       view_                { nullptr };
-  CQChartsPlotType*   type_                { nullptr };
-  ModelP              model_;
-  SelectionModelP     selectionModel_;
-  QString             id_;
-  bool                visible_             { true };
-  CBBox2D             bbox_                { 0, 0, 1, 1 };
-  Margin              margin_;
-  CDisplayRange2D     displayRange_;
-  CDisplayTransform2D displayTransform_;
-  CRange2D            dataRange_;
-  double              dataScale_           { 1.0 };
-  CPoint2D            dataOffset_          { 0.0, 0.0 };
-  OptReal             xmin_;
-  OptReal             ymin_;
-  OptReal             xmax_;
-  OptReal             ymax_;
-  CGradientPalette*   palette_             { nullptr };
-  CQChartsBoxObj*     borderObj_           { nullptr };
-  bool                clip_                { true };
-  CQChartsBoxObj*     dataBorderObj_       { nullptr };
-  bool                dataClip_            { false };
-  QString             title_;
-  QString             fileName_;
-  CQChartsAxis*       xAxis_               { nullptr };
-  CQChartsAxis*       yAxis_               { nullptr };
-  CQChartsKey*        keyObj_              { nullptr };
-  CQChartsTitle*      titleObj_            { nullptr };
-  int                 xValueColumn_        { -1 };
-  int                 yValueColumn_        { -1 };
-  bool                equalScale_          { false };
-  bool                followMouse_         { true };
-  bool                showBoxes_           { false };
-  bool                overlay_             { false };
-  OtherPlot           otherPlot_;
-  PlotObjs            plotObjs_;
-  PlotObjTree         plotObjTree_;
-  MouseData           mouseData_;
-  LayerActive         layerActive_;
-  IdHidden            idHidden_;
-  QItemSelection      itemSelection_;
+  CQChartsView*        view_                { nullptr };
+  CQChartsPlotType*    type_                { nullptr };
+  ModelP               model_;
+  SelectionModelP      selectionModel_;
+  QString              id_;
+  bool                 visible_             { true };
+  CBBox2D              bbox_                { 0, 0, 1, 1 };
+  Margin               margin_;
+  CDisplayRange2D*     displayRange_        { nullptr };
+  CDisplayTransform2D* displayTransform_    { nullptr };
+  CRange2D             dataRange_;
+  double               dataScale_           { 1.0 };
+  CPoint2D             dataOffset_          { 0.0, 0.0 };
+  OptReal              xmin_;
+  OptReal              ymin_;
+  OptReal              xmax_;
+  OptReal              ymax_;
+  CGradientPalette*    palette_             { nullptr };
+  CQChartsBoxObj*      borderObj_           { nullptr };
+  bool                 clip_                { true };
+  CQChartsBoxObj*      dataBorderObj_       { nullptr };
+  bool                 dataClip_            { false };
+  QString              title_;
+  QString              fileName_;
+  CQChartsAxis*        xAxis_               { nullptr };
+  CQChartsAxis*        yAxis_               { nullptr };
+  CQChartsKey*         keyObj_              { nullptr };
+  CQChartsTitle*       titleObj_            { nullptr };
+  int                  xValueColumn_        { -1 };
+  int                  yValueColumn_        { -1 };
+  bool                 equalScale_          { false };
+  bool                 followMouse_         { true };
+  bool                 showBoxes_           { false };
+  bool                 overlay_             { false };
+  OtherPlot            otherPlot_;
+  PlotObjs             plotObjs_;
+  void*                plotObjTree_;
+  MouseData            mouseData_;
+  LayerActive          layerActive_;
+  IdHidden             idHidden_;
+  QItemSelection       itemSelection_;
 };
 
 #endif

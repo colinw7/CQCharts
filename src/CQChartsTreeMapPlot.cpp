@@ -221,20 +221,20 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
   uint nr = model->rowCount(index);
 
   for (uint r = 0; r < nr; ++r) {
-    QModelIndex index1 = model->index(r, nameColumn (), index);
-    QModelIndex index2 = model->index(r, valueColumn(), index);
+    QModelIndex nameInd  = model->index(r, nameColumn (), index);
+    QModelIndex valueInd = model->index(r, valueColumn(), index);
 
-    QModelIndex nindex1 = normalizeIndex(index1);
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
 
     //---
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, index1, ok);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
     //---
 
-    if (model->rowCount(index1) > 0) {
+    if (model->rowCount(nameInd) > 0) {
       CQChartsTreeMapHierNode *hier1 = new CQChartsTreeMapHierNode(hier, name);
 
       hier1->setDepth(depth);
@@ -246,7 +246,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
           colorId1 = nextColorId();
       }
 
-      loadChildren(hier1, index1, depth + 1, colorId1);
+      loadChildren(hier1, nameInd, depth + 1, colorId1);
     }
     else {
       if (colorId < 0)
@@ -254,11 +254,11 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
 
       bool ok;
 
-      int value = CQChartsUtil::modelInteger(model, index2, ok);
+      int value = CQChartsUtil::modelInteger(model, valueInd, ok);
 
       if (! ok) value = 1;
 
-      CQChartsTreeMapNode *node = new CQChartsTreeMapNode(hier, name, value, nindex1);
+      CQChartsTreeMapNode *node = new CQChartsTreeMapNode(hier, name, value, nameInd1);
 
       node->setDepth(depth);
 
@@ -285,17 +285,17 @@ loadFlat()
   int nr = model->rowCount();
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex index1 = model->index(r, nameColumn ());
-    QModelIndex index2 = model->index(r, valueColumn());
+    QModelIndex nameInd  = model->index(r, nameColumn ());
+    QModelIndex valueInd = model->index(r, valueColumn());
 
-    QModelIndex nindex1 = normalizeIndex(index1);
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
 
     //---
 
     bool ok1, ok2;
 
-    QString name = CQChartsUtil::modelString (model, index1, ok1);
-    int     size = CQChartsUtil::modelInteger(model, index2, ok2);
+    QString name = CQChartsUtil::modelString (model, nameInd , ok1);
+    int     size = CQChartsUtil::modelInteger(model, valueInd, ok2);
 
     QStringList strs;
 
@@ -330,7 +330,7 @@ loadFlat()
     CQChartsTreeMapNode *node = childNode(parent, strs[strs.length() - 1]);
 
     if (! node) {
-      node = new CQChartsTreeMapNode(parent, strs[strs.length() - 1], size, nindex1);
+      node = new CQChartsTreeMapNode(parent, strs[strs.length() - 1], size, nameInd1);
 
       node->setDepth(depth);
 
@@ -484,11 +484,12 @@ void
 CQChartsTreeMapObj::
 mousePress(const CPoint2D &)
 {
-  const QModelIndex &nind = node_->ind();
+  const QModelIndex &ind = node_->ind();
 
   plot_->beginSelect();
 
-  plot_->addSelectIndex(nind);
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
 
   plot_->endSelect();
 }

@@ -22,9 +22,12 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &v) { ind_ = v; }
+
   bool inside(const CPoint2D &p) const override;
 
-  void mousePress(const CPoint2D &);
+  void mousePress(const CPoint2D &) override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -37,6 +40,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   int                  i_          { -1 };
   int                  n_          { -1 };
   QString              name_;
+  QModelIndex          ind_;
 };
 
 //---
@@ -95,15 +99,17 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
  public:
   struct Point {
-    QPointF p;
-    int     i;
-    QString symbolSizeStr;
-    QString fontSizeStr;
-    QString colorStr;
+    QPointF     p;
+    int         i;
+    QModelIndex ind;
+    QString     symbolSizeStr;
+    QString     fontSizeStr;
+    QString     colorStr;
 
-    Point(double x, double y, int i, const QString &symbolSizeStr="",
+    Point(double x, double y, int i, const QModelIndex &ind, const QString &symbolSizeStr="",
           const QString &fontSizeStr="", const QString &colorStr="") :
-     p(x, y), i(i), symbolSizeStr(symbolSizeStr), fontSizeStr(fontSizeStr), colorStr(colorStr) {
+     p(x, y), i(i), ind(ind), symbolSizeStr(symbolSizeStr), fontSizeStr(fontSizeStr),
+     colorStr(colorStr) {
     }
   };
 

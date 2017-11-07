@@ -103,24 +103,37 @@ initObjs()
 
   int maxGroup = 0;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
-  for (int i = 0; i < n; ++i) {
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex nodeInd  = model->index(r, nodeColumn ());
+    QModelIndex groupInd = model->index(r, groupColumn());
+
+    //---
+
     bool ok1, ok2;
 
-    int id    = CQChartsUtil::modelInteger(model, i, nodeColumn_ , ok1);
-    int group = CQChartsUtil::modelInteger(model, i, groupColumn_, ok2);
+    int id    = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+    int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
 
-    if (! ok1) id    = i;
-    if (! ok2) group = i;
+    if (! ok1) id    = r;
+    if (! ok2) group = r;
+
+    //---
+
+    QModelIndex connectionsInd = model->index(r, connectionsColumn());
 
     bool ok3;
 
-    QString connectionsStr = CQChartsUtil::modelString(model, i, connectionsColumn_, ok3);
+    QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+
+    //---
+
+    QModelIndex nameInd = model->index(r, nameColumn());
 
     bool ok4;
 
-    QString name = CQChartsUtil::modelString(model, i, nameColumn_, ok4);
+    QString name = CQChartsUtil::modelString(model, nameInd, ok4);
 
     if (! name.length())
       name = QString("%1").arg(id);
@@ -132,6 +145,7 @@ initObjs()
     connections.node  = id;
     connections.name  = name;
     connections.group = group;
+    connections.ind   = normalizeIndex(nodeInd);
 
     decodeConnections(connectionsStr, connections.connections);
 

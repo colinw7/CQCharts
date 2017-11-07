@@ -25,8 +25,6 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 {
   setObjectName("view");
 
-  setAttribute(Qt::WA_DeleteOnClose);
-
   setMouseTracking(true);
 
   setFocusPolicy(Qt::StrongFocus);

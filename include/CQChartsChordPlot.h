@@ -52,6 +52,9 @@ class CQChartsChordData {
     totalValid_ = false;
   }
 
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &v) { ind_ = v; }
+
   double total() const {
     if (totalValid_)
       return total_;
@@ -88,12 +91,13 @@ class CQChartsChordData {
   }
 
  private:
-  int     from_;
-  QString name_;
-  Group   group_;
-  Values  values_;
-  double  a_  { 0 };
-  double  da_ { 0 };
+  int         from_;
+  QString     name_;
+  Group       group_;
+  Values      values_;
+  QModelIndex ind_;
+  double      a_  { 0 };
+  double      da_ { 0 };
 
   mutable double total_ { 0.0 };
   mutable double totalValid_ { false };
@@ -115,8 +119,11 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   bool inside(const CPoint2D &p) const override;
 
+  void mousePress(const CPoint2D &) override;
+
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
+ private:
   CQChartsChordObj *plotObject(int ind) const;
 
   void valueAngles(int ind, double &a, double &da) const;
