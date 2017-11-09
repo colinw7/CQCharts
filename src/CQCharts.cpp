@@ -85,7 +85,7 @@ CQChartsView *
 CQCharts::
 addView(const QString &id)
 {
-  CQChartsView *view = new CQChartsView(this);
+  CQChartsView *view = createView();
 
   QString id1 = id;
 
@@ -97,6 +97,15 @@ addView(const QString &id)
   view->setId(id1);
 
   views_[id1] = view;
+
+  return view;
+}
+
+CQChartsView *
+CQCharts::
+createView()
+{
+  CQChartsView *view = new CQChartsView(this);
 
   return view;
 }

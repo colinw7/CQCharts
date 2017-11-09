@@ -124,3 +124,6 @@
  + Add distibution plot
  + Update view dependencies so view uses property model and gradient palette and window uses
    property tree and gradient canvas/control
+## 11/8/2017
+ + Improve tree map coloring and borders
+ + Improve cross selection

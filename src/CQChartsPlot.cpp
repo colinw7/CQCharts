@@ -149,24 +149,6 @@ selectionModel() const
   return selectionModel_.data();
 }
 
-QAbstractItemModel *
-CQChartsPlot::
-sourceModel() const
-{
-  QAbstractItemModel *model = this->model();
-  if (! model) return nullptr;
-
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
-
-  while (proxyModel) {
-    model = proxyModel->sourceModel();
-
-    proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
-  }
-
-  return model;
-}
-
 void
 CQChartsPlot::
 selectionSlot()
@@ -1929,13 +1911,15 @@ normalizeIndex(const QModelIndex &ind) const
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
+  QAbstractItemModel*                  sourceModel;
 
-  this->proxyModels(proxyModels);
+  this->proxyModels(proxyModels, sourceModel);
 
   QModelIndex ind1 = ind;
 
   int i = 0;
 
+  // ind model should match first proxy model
   for ( ; i < int(proxyModels.size()); ++i)
     if (ind1.model() == proxyModels[i])
       break;
@@ -1955,15 +1939,17 @@ unnormalizeIndex(const QModelIndex &ind) const
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
+  QAbstractItemModel*                  sourceModel;
 
-  this->proxyModels(proxyModels);
+  this->proxyModels(proxyModels, sourceModel);
 
   QModelIndex ind1 = ind;
 
+  // ind model should match source model of last proxy model
   int i = int(proxyModels.size()) - 1;
 
   for ( ; i >= 0; --i)
-    if (ind1.model() == proxyModels[i])
+    if (ind1.model() == proxyModels[i]->sourceModel())
       break;
 
   for ( ; i >= 0; --i)
@@ -1974,7 +1960,8 @@ unnormalizeIndex(const QModelIndex &ind) const
 
 void
 CQChartsPlot::
-proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels) const
+proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
+            QAbstractItemModel* &sourceModel) const
 {
   // map index in source model (non-proxy model), to proxy model
   QAbstractItemModel *model = this->model();
@@ -1982,14 +1969,20 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels) const
 
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
-  while (proxyModel) {
-    proxyModels.push_back(proxyModel);
+  if (proxyModel) {
+    while (proxyModel) {
+      proxyModels.push_back(proxyModel);
 
-    model = proxyModel->sourceModel();
+      sourceModel = proxyModel->sourceModel();
 
-    proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+      proxyModel = qobject_cast<QSortFilterProxyModel *>(sourceModel);
+    }
   }
+  else
+    sourceModel = model;
 }
+
+//------
 
 void
 CQChartsPlot::
@@ -2002,7 +1995,12 @@ void
 CQChartsPlot::
 addSelectIndex(int row, int col, const QModelIndex &parent)
 {
-  QModelIndex ind = sourceModel()->index(row, col, parent);
+  std::vector<QSortFilterProxyModel *> proxyModels;
+  QAbstractItemModel*                  sourceModel;
+
+  this->proxyModels(proxyModels, sourceModel);
+
+  QModelIndex ind = sourceModel->index(row, col, parent);
 
   addSelectIndex(ind);
 }
@@ -2031,6 +2029,8 @@ endSelect()
   connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(selectionSlot()));
 }
+
+//------
 
 void
 CQChartsPlot::

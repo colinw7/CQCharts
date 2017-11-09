@@ -207,7 +207,7 @@ format() const
   CQBaseModel::Type  type;
   CQChartsNameValues nameValues;
 
-  columnTypeMgr->getModelColumnType(plot_->model(), column_, type, nameValues);
+  (void) columnTypeMgr->getModelColumnType(plot_->model(), column_, type, nameValues);
 
   return columnTypeMgr->encodeTypeData(type, nameValues);
 }

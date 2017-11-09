@@ -54,8 +54,12 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "separator" );
-  addProperty("", this, "fontHeight");
+  addProperty("", this, "separator"   );
+  addProperty("", this, "titles"      );
+  addProperty("", this, "fontHeight"  );
+  addProperty("", this, "headerHeight");
+  addProperty("", this, "headerColor" );
+  addProperty("", this, "marginWidth" );
 }
 
 void
@@ -71,7 +75,7 @@ void
 CQChartsTreeMapPlot::
 updateCurrentRoot()
 {
-  placeNodes(currentRoot_);
+  replaceNodes();
 
   updateObjs();
 }
@@ -159,9 +163,12 @@ void
 CQChartsTreeMapPlot::
 initNodes()
 {
-  root_ = new CQChartsTreeMapHierNode(0, "<root>");
+  hierInd_ = 0;
+
+  root_ = new CQChartsTreeMapHierNode(this, 0, "<root>");
 
   root_->setDepth(0);
+  root_->setInd(hierInd_++);
 
   currentRoot_ = root_;
 
@@ -172,7 +179,26 @@ initNodes()
   else
     loadFlat();
 
+  maxHierInd_ = hierInd_;
+
   //---
+
+  firstHier_ = root_;
+
+  while (firstHier_ && firstHier_->getChildren().size() == 1)
+    firstHier_ = firstHier_->getChildren()[0];
+
+  //---
+
+  replaceNodes();
+}
+
+void
+CQChartsTreeMapPlot::
+replaceNodes()
+{
+  windowHeaderHeight_ = pixelToWindowHeight(headerHeight());
+  windowMarginWidth_  = pixelToWindowWidth (marginWidth());
 
   placeNodes(currentRoot_);
 }
@@ -214,6 +240,8 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
   if (! model)
     return;
 
+  //---
+
   maxDepth_ = std::max(maxDepth_, depth + 1);
 
   //---
@@ -235,9 +263,11 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
     //---
 
     if (model->rowCount(nameInd) > 0) {
-      CQChartsTreeMapHierNode *hier1 = new CQChartsTreeMapHierNode(hier, name);
+      CQChartsTreeMapHierNode *hier1 =
+        new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
 
       hier1->setDepth(depth);
+      hier1->setInd(hierInd_++);
 
       int colorId1 = colorId;
 
@@ -258,7 +288,8 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
 
       if (! ok) value = 1;
 
-      CQChartsTreeMapNode *node = new CQChartsTreeMapNode(hier, name, value, nameInd1);
+      CQChartsTreeMapNode *node =
+        new CQChartsTreeMapNode(hier, name, value, nameInd1);
 
       node->setDepth(depth);
 
@@ -319,9 +350,10 @@ loadFlat()
       CQChartsTreeMapHierNode *child = childHierNode(parent, strs[j]);
 
       if (! child) {
-        child = new CQChartsTreeMapHierNode(parent, strs[j]);
+        child = new CQChartsTreeMapHierNode(this, parent, strs[j], nameInd1);
 
         child->setDepth(depth);
+        child->setInd(hierInd_++);
       }
 
       parent = child;
@@ -370,6 +402,15 @@ zoomFull()
 
 void
 CQChartsTreeMapPlot::
+handleResize()
+{
+  replaceNodes();
+
+  CQChartsPlot::handleResize();
+}
+
+void
+CQChartsTreeMapPlot::
 draw(QPainter *p)
 {
   initObjs();
@@ -413,6 +454,10 @@ void
 CQChartsTreeMapHierObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  p->save();
+
+  //---
+
   QFont font = plot_->view()->font();
 
   font.setPointSizeF(plot_->fontHeight());
@@ -421,12 +466,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+ //Color c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
 //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
+//QColor c = plot_->interpPaletteColor((1.0*(hier_->ind() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->headerColor();
 
-  QColor c1 = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
+//QColor tc = plot_->textColor(c1);
+  QColor tc = Qt::black;
 
-  QColor tc = plot_->textColor(c1);
+  if (isSelected())
+    tc = Qt::white;
 
   double px1, py1, px2, py2;
 
@@ -436,11 +485,27 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   p->setPen(tc);
 
   if (isInside())
-    p->setBrush(plot_->insideColor(c1));
+    p->setBrush(plot_->insideColor(c));
   else
-    p->setBrush(c1);
+    p->setBrush(c);
 
-  p->drawRect(CQChartsUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
+  QRectF qrect = CQChartsUtil::toQRect(CBBox2D(px1, py2, px2, py1));
+
+  p->drawRect(qrect);
+
+  //---
+
+  QFontMetricsF fm(p->font());
+
+  p->setPen(tc);
+
+  plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
+
+  QString name = hier_->name();
+
+  p->drawText(px1 + 2, py1 + fm.ascent(), name);
+
+  p->restore();
 }
 
 //------
@@ -507,6 +572,10 @@ void
 CQChartsTreeMapObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  p->save();
+
+  //---
+
   QFont font = plot_->view()->font();
 
   font.setPointSizeF(plot_->fontHeight());
@@ -515,12 +584,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  QFontMetricsF fm(p->font());
+  //CQChartsTreeMapHierNode *root = node_->rootNode(plot_->firstHier());
+  CQChartsTreeMapHierNode *root = node_->parent();
 
-  QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
 //QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
+  QColor c = plot_->interpPaletteColor((1.0*(root->ind() + 1))/(plot_->maxHierInd() + 1));
 
-  //QColor tc = plot_->textColor(c);
+//QColor tc = plot_->textColor(c);
   QColor tc = Qt::black;
 
   if (isSelected())
@@ -538,25 +609,203 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   else
     p->setBrush(c);
 
-  p->drawRect(CQChartsUtil::toQRect(CBBox2D(px1, py1, px2, py2)));
+  QRectF qrect = CQChartsUtil::toQRect(CBBox2D(px1 + 1, py2 + 1, px2 - 1, py1 - 1));
+
+  p->drawRect(qrect);
 
   //---
+
+  p->setClipRect(qrect, Qt::ReplaceClip);
+
+  QFontMetricsF fm(p->font());
 
   p->setPen(tc);
 
   plot_->windowToPixel(node_->x() + node_->w()/2, node_->y() + node_->h()/2, px1, py1);
 
-  int len = node_->name().size();
+  QString name = node_->name();
 
-  for (int i = len; i >= 1; --i) {
-    QString name1 = node_->name().mid(0, i);
+  double fdy = (fm.ascent() - fm.descent())/2;
 
-    double tw = fm.width(name1);
+  double tw = fm.width(name);
 
-    if (tw > 2*(px2 - px1)) continue;
+  p->drawText(px1 - tw/2, py1 + fdy, name);
 
-    p->drawText(px1 - tw/2, py1 + fm.descent(), name1);
+  //---
 
-    break;
+  p->restore();
+}
+
+//------
+
+CQChartsTreeMapHierNode::
+CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
+                        const QString &name, const QModelIndex &ind) :
+ CQChartsTreeMapNode(parent, name, 0.0, ind), plot_(plot)
+{
+  if (parent_)
+    parent_->children_.push_back(this);
+}
+
+double
+CQChartsTreeMapHierNode::
+size() const
+{
+  double s = 0.0;
+
+  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
+    s += (*p)->size();
+
+  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
+   s += (*pn)->size();
+
+  return s;
+}
+
+void
+CQChartsTreeMapHierNode::
+packNodes(double x, double y, double w, double h)
+{
+  double whh = plot_->windowHeaderHeight();
+  double wmw = plot_->windowMarginWidth();
+
+  double dh = (plot_->isTitles() ? (h > whh ? whh : 0.0) : 0.0);
+  double m  = (w > wmw ? wmw : 0.0);
+
+  // make single list of nodes to pack
+  Nodes nodes;
+
+  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
+    nodes.push_back(*p);
+
+  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
+    nodes.push_back(*pn);
+
+  // sort nodes by size
+  std::sort(nodes.begin(), nodes.end(), CQChartsTreeMapNodeCmp());
+
+  //std::cerr << name() << "\n";
+  //for (uint i = 0; i < nodes.size(); ++i)
+  //  std::cerr << " " << nodes[i]->name() << ":" << nodes[i]->size() << "\n";
+
+  packSubNodes(x + m/2, y + m/2, w - m, h - dh - m, nodes);
+}
+
+void
+CQChartsTreeMapHierNode::
+packSubNodes(double x, double y, double w, double h, const Nodes &nodes)
+{
+  // place nodes
+  int n = nodes.size();
+  if (n == 0) return;
+
+  if (n >= 2) {
+    int n1 = n/2;
+
+    Nodes  nodes1, nodes2;
+    double size1 = 0.0, size2 = 0.0;
+
+    for (int i = 0; i < n1; ++i) {
+      size1 += nodes[i]->size();
+
+      nodes1.push_back(nodes[i]);
+    }
+
+    for (int i = n1; i <  n; ++i) {
+      size2 += nodes[i]->size();
+
+      nodes2.push_back(nodes[i]);
+    }
+
+    // split area = (w*h) if largest direction
+    // e.g. split at w1. area1 = w1*h; area2 = (w - w1)*h;
+    // area1/area2 = w1/(w - w1) = size1/size2;
+    // w1*size2 = w*size1 - w1*size1;
+    // w1 = (w*size1)/(size1 + size2);
+
+    double size12 = size1 + size2;
+
+    if (size12 == 0.0)
+      return;
+
+    double f = size1/size12;
+
+    if (w >= h) {
+      double w1 = f*w;
+
+      packSubNodes(x     , y,     w1, h, nodes1);
+      packSubNodes(x + w1, y, w - w1, h, nodes2);
+    }
+    else {
+      double h1 = f*h;
+
+      packSubNodes(x, y     , w, h1    , nodes1);
+      packSubNodes(x, y + h1, w, h - h1, nodes2);
+    }
   }
+  else {
+    CQChartsTreeMapNode *node = nodes[0];
+
+    node->setPosition(x, y, w, h);
+  }
+}
+
+void
+CQChartsTreeMapHierNode::
+setPosition(double x, double y, double w, double h)
+{
+  CQChartsTreeMapNode::setPosition(x, y, w, h);
+
+  packNodes(x, y, w, h);
+}
+
+void
+CQChartsTreeMapHierNode::
+addNode(CQChartsTreeMapNode *node)
+{
+  nodes_.push_back(node);
+}
+
+//------
+
+CQChartsTreeMapNode::
+CQChartsTreeMapNode(CQChartsTreeMapHierNode *parent, const QString &name, double size,
+                    const QModelIndex &ind) :
+ parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
+{
+}
+
+void
+CQChartsTreeMapNode::
+setPosition(double x, double y, double w, double h)
+{
+  assert(! COSNaN::is_nan(x) && ! COSNaN::is_nan(y) &&
+         ! COSNaN::is_nan(w) && ! COSNaN::is_nan(h));
+
+  x_ = x; y_ = y;
+  w_ = w; h_ = h;
+
+  //std::cerr << "Node: " << name() << " @ ( " << x_ << "," << y_ << ")" <<
+  //             " [" << w_ << "," << h_ << "]" << "\n";
+
+  placed_ = true;
+}
+
+bool
+CQChartsTreeMapNode::
+contains(double x, double y) const
+{
+  return (x >= x_ && x <= (x_ + w_) && y >= y_ && y <= (y_ + h_));
+}
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapNode::
+rootNode(CQChartsTreeMapHierNode *root) const
+{
+  CQChartsTreeMapHierNode *parent = this->parent();
+
+  while (parent && parent->parent() && parent->parent() != root)
+    parent = parent->parent();
+
+  return parent;
 }

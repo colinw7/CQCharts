@@ -18,10 +18,8 @@ class CQChartsTreeMapNode {
   }
 
  public:
-  CQChartsTreeMapNode(CQChartsTreeMapHierNode *parent, const QString &name, double size,
-                      const QModelIndex &ind) :
-   parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind) {
-  }
+  CQChartsTreeMapNode(CQChartsTreeMapHierNode *parent, const QString &name,
+                      double size, const QModelIndex &ind);
 
   virtual ~CQChartsTreeMapNode() { }
 
@@ -54,31 +52,20 @@ class CQChartsTreeMapNode {
   virtual int depth() const { return depth_; }
   virtual void setDepth(int i) { depth_ = i; }
 
-  virtual void setPosition(double x, double y, double w, double h) {
-    assert(! COSNaN::is_nan(x) && ! COSNaN::is_nan(y) &&
-           ! COSNaN::is_nan(w) && ! COSNaN::is_nan(h));
+  virtual void setPosition(double x, double y, double w, double h);
 
-    x_ = x; y_ = y;
-    w_ = w; h_ = h;
-
-    //std::cerr << "Node: " << name() << " @ ( " << x_ << "," << y_ << ")" <<
-    //             " [" << w_ << "," << h_ << "]" << "\n";
-
-    placed_ = true;
-  }
-
-  virtual bool contains(double x, double y) {
-    return (x >= x_ && x <= (x_ + w_) && y >= y_ && y <= (y_ + h_));
-  }
+  virtual bool contains(double x, double y) const;
 
   virtual bool placed() const { return placed_; }
+
+  CQChartsTreeMapHierNode *rootNode(CQChartsTreeMapHierNode *root) const;
 
   friend bool operator<(const CQChartsTreeMapNode &n1, const CQChartsTreeMapNode &n2) {
     return n1.size_ < n2.size_;
   }
 
  protected:
-  CQChartsTreeMapHierNode *parent_  { nullptr };
+  CQChartsTreeMapHierNode* parent_  { nullptr };
   uint                     id_      { 0 };
   QString                  name_;
   double                   size_    { 0.0 };
@@ -108,117 +95,33 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   using Children = std::vector<CQChartsTreeMapHierNode*>;
 
  public:
-  CQChartsTreeMapHierNode(CQChartsTreeMapHierNode *parent=nullptr, const QString &name="") :
-   CQChartsTreeMapNode(parent, name, 0.0, QModelIndex()) {
-    if (parent_)
-      parent_->children_.push_back(this);
-  }
+  CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent=nullptr,
+                          const QString &name="", const QModelIndex &ind=QModelIndex());
 
-  double size() const {
-    double s = 0.0;
+  CQChartsTreeMapPlot *plot() const { return plot_; }
 
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      s += (*p)->size();
+  int ind() const { return ind_; }
+  void setInd(int i) { ind_ = i; }
 
-    for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-     s += (*pn)->size();
-
-    return s;
-  }
+  double size() const;
 
   const Nodes &getNodes() const { return nodes_; }
 
   const Children &getChildren() const { return children_; }
 
-  void packNodes(double x, double y, double w, double h) {
-    // make single list of nodes to pack
-    Nodes nodes;
+  void packNodes(double x, double y, double w, double h);
 
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      nodes.push_back(*p);
+  void packSubNodes(double x, double y, double w, double h, const Nodes &nodes);
 
-    for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-      nodes.push_back(*pn);
+  void setPosition(double x, double y, double w, double h);
 
-    // sort nodes by size
-    std::sort(nodes.begin(), nodes.end(), CQChartsTreeMapNodeCmp());
-
-    //std::cerr << name() << "\n";
-    //for (uint i = 0; i < nodes.size(); ++i)
-    //  std::cerr << " " << nodes[i]->name() << ":" << nodes[i]->size() << "\n";
-
-    packSubNodes(x, y, w, h, nodes);
-  }
-
-  void packSubNodes(double x, double y, double w, double h, const Nodes &nodes) {
-    // place nodes
-    int n = nodes.size();
-    if (n == 0) return;
-
-    if (n >= 2) {
-      int n1 = n/2;
-
-      Nodes  nodes1, nodes2;
-      double size1 = 0.0, size2 = 0.0;
-
-      for (int i = 0; i < n1; ++i) {
-        size1 += nodes[i]->size();
-
-        nodes1.push_back(nodes[i]);
-      }
-
-      for (int i = n1; i <  n; ++i) {
-        size2 += nodes[i]->size();
-
-        nodes2.push_back(nodes[i]);
-      }
-
-      // split area = (w*h) if largest direction
-      // e.g. split at w1. area1 = w1*h; area2 = (w - w1)*h;
-      // area1/area2 = w1/(w - w1) = size1/size2;
-      // w1*size2 = w*size1 - w1*size1;
-      // w1 = (w*size1)/(size1 + size2);
-
-      double size12 = size1 + size2;
-
-      if (size12 == 0.0)
-        return;
-
-      double f = size1/size12;
-
-      if (w >= h) {
-        double w1 = f*w;
-
-        packSubNodes(x     , y,     w1, h, nodes1);
-        packSubNodes(x + w1, y, w - w1, h, nodes2);
-      }
-      else {
-        double h1 = f*h;
-
-        packSubNodes(x, y     , w,     h1, nodes1);
-        packSubNodes(x, y + h1, w, h - h1, nodes2);
-      }
-    }
-    else {
-      CQChartsTreeMapNode *node = nodes[0];
-
-      node->setPosition(x, y, w, h);
-    }
-  }
-
-  void setPosition(double x, double y, double w, double h) {
-    CQChartsTreeMapNode::setPosition(x, y, w, h);
-
-    packNodes(x, y, w, h);
-  }
-
-  void addNode(CQChartsTreeMapNode *node) {
-    nodes_.push_back(node);
-  }
+  void addNode(CQChartsTreeMapNode *node);
 
  private:
-  Nodes    nodes_;
-  Children children_;
+  CQChartsTreeMapPlot* plot_    { nullptr };
+  Nodes                nodes_;
+  Children             children_;
+  int                  ind_     { -1 };
 };
 
 //---
@@ -282,10 +185,14 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
 class CQChartsTreeMapPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn  READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(int     valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(QString separator   READ separator   WRITE setSeparator  )
-  Q_PROPERTY(double  fontHeight  READ fontHeight  WRITE setFontHeight )
+  Q_PROPERTY(int     nameColumn   READ nameColumn   WRITE setNameColumn  )
+  Q_PROPERTY(int     valueColumn  READ valueColumn  WRITE setValueColumn )
+  Q_PROPERTY(QString separator    READ separator    WRITE setSeparator   )
+  Q_PROPERTY(bool    titles       READ isTitles     WRITE setTitles      )
+  Q_PROPERTY(double  fontHeight   READ fontHeight   WRITE setFontHeight  )
+  Q_PROPERTY(double  headerHeight READ headerHeight WRITE setHeaderHeight)
+  Q_PROPERTY(QColor  headerColor  READ headerColor  WRITE setHeaderColor )
+  Q_PROPERTY(double  marginWidth  READ marginWidth  WRITE setMarginWidth )
 
  public:
   using Nodes = std::vector<CQChartsTreeMapNode*>;
@@ -306,12 +213,26 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
 
+  bool isTitles() const { return titles_; }
+  void setTitles(bool b) { titles_ = b; updateCurrentRoot(); }
+
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
+
+  double headerHeight() const { return headerHeight_; }
+  void setHeaderHeight(double r) { headerHeight_ = r; updateCurrentRoot(); }
+
+  const QColor &headerColor() const { return headerColor_; }
+  void setHeaderColor(const QColor &v) { headerColor_ = v; }
+
+  double marginWidth() const { return marginWidth_; }
+  void setMarginWidth(double r) { marginWidth_ = r; updateCurrentRoot(); }
 
   //---
 
   CQChartsTreeMapHierNode *root() const { return root_; }
+
+  CQChartsTreeMapHierNode *firstHier() const { return firstHier_; }
 
   CQChartsTreeMapHierNode *currentRoot() const { return currentRoot_; }
   void setCurrentRoot(CQChartsTreeMapHierNode *r);
@@ -321,6 +242,11 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   int maxDepth() const { return maxDepth_; }
 
   int maxColorId() const { return maxColorId_; }
+
+  int maxHierInd() const { return maxHierInd_; }
+
+  double windowHeaderHeight() const { return windowHeaderHeight_; }
+  double windowMarginWidth () const { return windowMarginWidth_ ; }
 
   //---
 
@@ -348,12 +274,16 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   //---
 
+  void handleResize();
+
   void draw(QPainter *) override;
 
   QColor nodeColor(CQChartsTreeMapNode *node) const;
 
  private:
   void initNodes();
+
+  void replaceNodes();
 
   void placeNodes(CQChartsTreeMapHierNode *hier);
 
@@ -370,15 +300,24 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   void updateCurrentRoot();
 
  private:
-  int                      nameColumn_  { 0 };
-  int                      valueColumn_ { 1 };
+  int                      nameColumn_         { 0 };
+  int                      valueColumn_        { 1 };
   CDisplayRange2D          range_;
-  CQChartsTreeMapHierNode* root_        { nullptr };
-  CQChartsTreeMapHierNode* currentRoot_ { nullptr };
-  QString                  separator_   { "/" };
-  double                   fontHeight_  { 9.0 };
-  int                      maxDepth_    { 1 };
-  int                      maxColorId_  { 0 };
+  CQChartsTreeMapHierNode* root_               { nullptr };
+  CQChartsTreeMapHierNode* firstHier_          { nullptr };
+  CQChartsTreeMapHierNode* currentRoot_        { nullptr };
+  QString                  separator_          { "/" };
+  bool                     titles_             { true };
+  double                   fontHeight_         { 9.0 };
+  double                   headerHeight_       { 11.0 };
+  QColor                   headerColor_        { 128, 128, 128 };
+  double                   marginWidth_        { 2.0 };
+  int                      maxDepth_           { 1 };
+  int                      maxColorId_         { 0 };
+  int                      hierInd_            { 0 };
+  int                      maxHierInd_         { 0 };
+  double                   windowHeaderHeight_ { 0.01 };
+  double                   windowMarginWidth_  { 0.01 };
 };
 
 #endif

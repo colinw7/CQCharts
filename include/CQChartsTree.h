@@ -5,7 +5,7 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
-class CQHeaderView;
+class CQChartsTreeSelectionModel;
 
 class CQChartsTree : public CQTreeView {
   Q_OBJECT
@@ -20,9 +20,12 @@ class CQChartsTree : public CQTreeView {
 
   void setFilter(const QString &filter);
 
+ private slots:
+  void selectionSlot();
+
  private:
-  ModelP        model_;
-  CQHeaderView* header_ { nullptr };
+  ModelP                      model_;
+  CQChartsTreeSelectionModel* sm_ { nullptr };
 };
 
 #endif

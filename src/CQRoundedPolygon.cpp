@@ -1,6 +1,7 @@
 #include <CQRoundedPolygon.h>
 #include <QPainterPath>
 #include <QPainter>
+#include <cmath>
 
 namespace Util {
 

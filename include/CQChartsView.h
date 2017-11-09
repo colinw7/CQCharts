@@ -122,7 +122,7 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void setStatusText(const QString &text);
+  virtual void setStatusText(const QString &text);
 
   //---
 

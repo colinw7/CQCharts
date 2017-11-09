@@ -14,7 +14,6 @@
 #include <svg/probe_svg.h>
 #include <svg/zoom_fit_svg.h>
 
-#include <QHBoxLayout>
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QPainter>
@@ -432,7 +431,7 @@ CQChartsView::
 keyPressEvent(QKeyEvent *ke)
 {
   if      (ke->key() == Qt::Key_Escape) {
-     mouseData_.escape = true;
+    mouseData_.escape = true;
 
     if      (mode() == Mode::ZOOM) {
       if (mouseData_.pressed)

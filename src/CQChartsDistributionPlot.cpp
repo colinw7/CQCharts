@@ -245,7 +245,10 @@ updateRange(bool apply)
 
     //----
 
-    int bucket = std::floor((value - startValue())/deltaValue());
+    int bucket = 0;
+
+    if (deltaValue() > 0.0)
+      bucket = std::floor((value - startValue())/deltaValue());
 
     ivalues_[bucket].emplace_back(valueInd1.row());
 
@@ -328,8 +331,13 @@ initObjs()
     CQChartsDistributionBarObj *barObj =
       new CQChartsDistributionBarObj(this, bbox, bucket, values, i, n);
 
-    double value1 = bucket*deltaValue() + startValue();
-    double value2 = value1 + deltaValue();
+    double value1 = 0.0;
+    double value2 = 0.0;
+
+    if (deltaValue() > 0.0) {
+      value1 = bucket*deltaValue() + startValue();
+      value2 = value1 + deltaValue();
+    }
 
     QString id = QString("%1%2%3 : %4").arg(value1).arg(arrowChar).arg(value2).arg(values.size());
 

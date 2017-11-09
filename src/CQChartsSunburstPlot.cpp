@@ -153,6 +153,8 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
 
       loadChildren(hier1, nameInd, depth + 1, colorId);
 
+      hier1->setInd(normalizeIndex(nameInd));
+
       colorId1 = hier1->colorId();
     }
     else {

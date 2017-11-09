@@ -210,8 +210,6 @@ class CQChartsPlot : public QObject {
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
 
-  QAbstractItemModel *sourceModel() const;
-
   //---
 
   CQCharts *charts() const;
@@ -431,7 +429,8 @@ class CQChartsPlot : public QObject {
   QModelIndex normalizeIndex(const QModelIndex &ind) const;
   QModelIndex unnormalizeIndex(const QModelIndex &ind) const;
 
-  void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels) const;
+  void proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
+                   QAbstractItemModel* &sourceModel) const;
 
   //---
 

@@ -13,7 +13,7 @@ class CQCharts {
  public:
   CQCharts();
 
- ~CQCharts();
+  virtual ~CQCharts();
 
   void init();
 
@@ -26,6 +26,8 @@ class CQCharts {
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
 
   CQChartsView *addView(const QString &id="");
+
+  virtual CQChartsView *createView();
 
   CQChartsView *getView(const QString &id) const;
 
