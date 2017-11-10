@@ -5,7 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsUtil.h>
 
-#include <CBoxWhisker.h>
+#include <CQChartsBoxWhisker.h>
 #include <map>
 
 class CQChartsBoxPlot;
@@ -23,7 +23,7 @@ struct CQChartsBoxPlotValue {
   QModelIndex ind;
 };
 
-using CQChartsBoxPlotWhisker = CBoxWhiskerT<CQChartsBoxPlotValue>;
+using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
 
 // box plot object
 class CQChartsBoxPlotObj : public CQChartsPlotObj {

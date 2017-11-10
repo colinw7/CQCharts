@@ -1,18 +1,18 @@
-#include <CHull3D.h>
+#include <CQChartsHull3D.h>
 
-uint CHull3D::Vertex::count_ = 0;
+uint CQChartsHull3D::Vertex::count_ = 0;
 
 /*-------------------------------------------------------------------*/
 
-CHull3D::
-CHull3D() :
+CQChartsHull3D::
+CQChartsHull3D() :
  vertices_(0), edges_(0), faces_(0), vvertices_(0), vedges_(0),
  useLower_(false), debug_(false), check_(false)
 {
 }
 
 bool
-CHull3D::
+CQChartsHull3D::
 calc()
 {
   reset();
@@ -31,7 +31,7 @@ calc()
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 addVertex(double x, double y, double z)
 {
   PVertex v = new Vertex(x, y, z);
@@ -42,14 +42,14 @@ addVertex(double x, double y, double z)
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 addVertex(double x, double y)
 {
   addVertex(x, y, x*x + y*y);
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 clearVertices()
 {
   if (! vertices_) return;
@@ -73,7 +73,7 @@ clearVertices()
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 reset()
 {
   if (vertices_) {
@@ -115,7 +115,7 @@ reset()
  are cleaned up.
 ---------------------------------------------------------------------*/
 bool
-CHull3D::
+CQChartsHull3D::
 doubleTriangle()
 {
   if (! vertices_) return false;
@@ -188,7 +188,7 @@ constructHull adds the vertices to the hull one at a time. The hull
 vertices are those in the list marked as on hull.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 constructHull()
 {
   if (! vertices_) return;
@@ -222,7 +222,7 @@ constructHull()
   Not used in code, but useful for other purposes.
 ------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 edgeOrderOnFaces()
 {
   PFace f = faces_;
@@ -271,7 +271,7 @@ are visible, then the edge is marked for deletion. If just one of the
 adjacent faces is visible then a new face is constructed.
 ---------------------------------------------------------------------*/
 bool
-CHull3D::
+CQChartsHull3D::
 addOne(PVertex p)
 {
   if (debug_) {
@@ -339,8 +339,8 @@ makeConeFace makes a new face and two new edges between the
 edge and the point that are passed to it. It returns a pointer to
 the new face.
 ---------------------------------------------------------------------*/
-CHull3D::PFace
-CHull3D::
+CQChartsHull3D::PFace
+CQChartsHull3D::
 makeConeFace(PEdge e, PVertex p)
 {
   PEdge new_edge[2];
@@ -395,7 +395,7 @@ But note that this does not imply that f->edge(i) is between
 f->vertex(i) and f->vertex((i + 1) % 3).  (Thanks to Bob Williamson.)
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 makeCcw(PFace f, PEdge e, PVertex p)
 {
   PFace fv; /* The visible face adjacent to e */
@@ -445,7 +445,7 @@ corresponding to the order in which the vertices were input.
 Output is in PostScript format.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 dumpPS(const char *filename)
 {
   FILE *fp = fopen(filename, "w");
@@ -571,7 +571,7 @@ dumpPS(const char *filename)
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 getRange(double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax)
 {
   /*-- find X min & max --*/
@@ -605,7 +605,7 @@ the ccw normal to f points outside the tetrahedron. The final
 fewer-multiplications form is due to Bob Williamson.
 ---------------------------------------------------------------------*/
 int
-CHull3D::
+CQChartsHull3D::
 volumeSign(PFace f, PVertex p)
 {
   PVertex fv1 = f->vertex(0), fv2 = f->vertex(1), fv3 = f->vertex(2);
@@ -627,8 +627,8 @@ makeFace creates a new face structure and initializes all of its
 flags to NULL and sets all the flags to off.  It returns a pointer
 to the empty cell.
 ---------------------------------------------------------------------*/
-CHull3D::PFace
-CHull3D::
+CQChartsHull3D::PFace
+CQChartsHull3D::
 makeFace()
 {
   PFace f = new Face;
@@ -642,8 +642,8 @@ makeFace()
 makeFace creates a new face structure from three vertices (in ccw
 order).  It returns a pointer to the face.
 ---------------------------------------------------------------------*/
-CHull3D::PFace
-CHull3D::
+CQChartsHull3D::PFace
+CQChartsHull3D::
 makeFace(PVertex v0, PVertex v1, PVertex v2, PFace fold)
 {
   PEdge e0, e1, e2;
@@ -683,8 +683,8 @@ makeFace(PVertex v0, PVertex v1, PVertex v2, PFace fold)
 makeEdge creates a new cell and initializes all pointers to NULL
 and sets all flags to off.  It returns a pointer to the empty cell.
 ---------------------------------------------------------------------*/
-CHull3D::PEdge
-CHull3D::
+CQChartsHull3D::PEdge
+CQChartsHull3D::
 makeEdge()
 {
   PEdge e = new Edge;
@@ -700,7 +700,7 @@ flags and NULLs out some pointers.  The order of processing
 (edges, faces, vertices) is important.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 cleanUp(PVertex *pvnext)
 {
   cleanEdges();
@@ -716,7 +716,7 @@ If there is a new face then it will put that face in place of the
 visible face and NULL out new face. It also deletes so marked edges.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 cleanEdges()
 {
   /* Integrate the new face's into the data structure. */
@@ -768,7 +768,7 @@ cleanEdges()
 cleanFaces runs through the face list and deletes any face marked visible.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 cleanFaces()
 {
   PFace f; /* Primary pointer into face list. */
@@ -807,7 +807,7 @@ The pointer to vnext, is used to alter vnext in constructHull()
 if we are about to delete vnext.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 cleanVertices(PVertex *pvnext)
 {
   if (! edges_) return;
@@ -870,7 +870,7 @@ cleanVertices(PVertex *pvnext)
 }
 
 void
-CHull3D::
+CQChartsHull3D::
 crossProduct(double x1, double y1, double z1, double x2, double y2, double z2,
              double *x3, double *y3, double *z3)
 {
@@ -884,7 +884,7 @@ collinear checks to see if the three points given are collinear,
 by checking to see if each element of the cross product is zero.
 ---------------------------------------------------------------------*/
 bool
-CHull3D::
+CQChartsHull3D::
 collinear(PVertex a, PVertex b, PVertex c)
 {
   double x1 = b->x() - a->x(), y1 = b->y() - a->y(), z1 = b->z() - a->z();
@@ -908,7 +908,7 @@ collinear(PVertex a, PVertex b, PVertex c)
 
 /*-------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 checks()
 {
   if (! vertices_)
@@ -965,7 +965,7 @@ adjacent faces have their endpoints in opposite order.  This verifies
 that the vertices are in counterclockwise order.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 consistency()
 {
   PEdge e = edges_;
@@ -1012,7 +1012,7 @@ point is negative.  This shows that each point is inside every face
 and therefore the hull is convex.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 convexity()
 {
   if (! faces_) return;
@@ -1048,7 +1048,7 @@ all faces are known to be triangles.  Only prints positive information
 when debug is true, but always prints negative information.
 ---------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 checkEuler(uint numV, uint numE, uint numF)
 {
   if (check_)
@@ -1078,7 +1078,7 @@ printing is to standard error.
 
 /*-------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 printOut(PVertex v)
 {
   fprintf(stderr, "\nHead vertex %u = %6p :\n", v->num(), (void *) v);
@@ -1090,7 +1090,7 @@ printOut(PVertex v)
 
 /*-------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 printVertices()
 {
   PVertex temp = vertices_;
@@ -1113,7 +1113,7 @@ printVertices()
 
 /*-------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 printEdges()
 {
   if (! edges_) return;
@@ -1144,7 +1144,7 @@ printEdges()
 
 /*-------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 printFaces()
 {
   if (! faces_) return;
@@ -1179,7 +1179,7 @@ that face is either the [0]th or [1]st endpoint of the [ith] edge of
 the face.
 -------------------------------------------------------------------*/
 void
-CHull3D::
+CQChartsHull3D::
 checkEndpts()
 {
   if (faces_) {

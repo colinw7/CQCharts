@@ -226,7 +226,7 @@ initObjs()
 
     // get color label (?)
 
-    OptReal color;
+    OptReal color = boost::make_optional(false, 0.0);
 
     if (colorColumn() >= 0)
       color = colorSet_.imap(r);

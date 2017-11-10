@@ -2,11 +2,9 @@
 #define CQChartsPlot_H
 
 #include <CQChartsPlotParameter.h>
-#include <CQChartsPlotSymbol.h>
 
-#include <CDisplayRange2D.h>
-#include <CDisplayTransform2D.h>
 #include <CRange2D.h>
+#include <CBBox2D.h>
 
 #include <QPointer>
 #include <QAbstractItemModel>
@@ -17,12 +15,15 @@
 
 class CQCharts;
 class CQChartsView;
+class CQChartsPlot;
 class CQChartsAxis;
 class CQChartsKey;
 class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsBoxObj;
 class CQPropertyViewModel;
+class CDisplayRange2D;
+class CDisplayTransform2D;
 
 class CGradientPalette;
 class QSortFilterProxyModel;
@@ -47,7 +48,7 @@ class CQChartsPlotTypeMgr {
   void getTypeNames(QStringList &names, QStringList &descs) const;
 
  private:
-  using Types = std::map<QString, CQChartsPlotType *>;
+  using Types = std::map<QString,CQChartsPlotType*>;
 
   Types types_;
 };
@@ -672,13 +673,13 @@ class CQChartsPlot : public QObject {
   void objPressed(CQChartsPlotObj *);
 
  protected:
-  using PlotObjs = std::vector<CQChartsPlotObj *>;
+  using PlotObjs = std::vector<CQChartsPlotObj*>;
 
  protected:
-  void objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &dataList1) const;
+  void objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &objs) const;
 
  protected:
-  using RefPlots    = std::vector<CQChartsPlot *>;
+  using RefPlots    = std::vector<CQChartsPlot*>;
   using LayerActive = std::map<Layer,bool>;
   using IdHidden    = std::map<int,bool>;
 
@@ -726,7 +727,7 @@ class CQChartsPlot : public QObject {
   bool                 overlay_             { false };
   OtherPlot            otherPlot_;
   PlotObjs             plotObjs_;
-  void*                plotObjTree_;
+  void*                plotObjTree_         { nullptr };
   MouseData            mouseData_;
   LayerActive          layerActive_;
   IdHidden             idHidden_;

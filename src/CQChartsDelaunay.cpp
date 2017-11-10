@@ -1,16 +1,16 @@
-#include <CDelaunay.h>
+#include <CQChartsDelaunay.h>
 
 /*-------------------------------------------------------------------*/
 
-CDelaunay::
-CDelaunay() :
- CHull3D()
+CQChartsDelaunay::
+CQChartsDelaunay() :
+ CQChartsHull3D()
 {
   setUseLower(true);
 }
 
 bool
-CDelaunay::
+CQChartsDelaunay::
 calc()
 {
   reset();
@@ -32,7 +32,7 @@ calc()
 }
 
 void
-CDelaunay::
+CQChartsDelaunay::
 lowerFaces()
 {
   PFace f = faces_;
@@ -53,7 +53,7 @@ lowerFaces()
 }
 
 void
-CDelaunay::
+CQChartsDelaunay::
 calcVoronoi()
 {
   // get center of circle for each face
@@ -162,7 +162,7 @@ calcVoronoi()
 }
 
 bool
-CDelaunay::
+CQChartsDelaunay::
 faceCenter(PFace f, double *xc, double *yc)
 {
   PVertex v1 = f->vertex(0);
@@ -192,8 +192,8 @@ faceCenter(PFace f, double *xc, double *yc)
   return true;
 }
 
-CDelaunay::PVertex
-CDelaunay::
+CQChartsDelaunay::PVertex
+CQChartsDelaunay::
 calcEdgePoint(PFace f, PVertex v, PEdge e)
 {
   double fx, fy, fz;
@@ -224,7 +224,7 @@ calcEdgePoint(PFace f, PVertex v, PEdge e)
 }
 
 bool
-CDelaunay::
+CQChartsDelaunay::
 isLeft(double x, double y, PEdge e)
 {
   PVertex v1 = e->start(), v2 = e->end();
@@ -238,7 +238,7 @@ isLeft(double x, double y, PEdge e)
 Computes the z-coordinate of the vector normal to face f.
 ---------------------------------------------------------------------*/
 double
-CDelaunay::
+CQChartsDelaunay::
 normz(PFace f)
 {
   PVertex a = f->vertex(0);

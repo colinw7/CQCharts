@@ -3,12 +3,13 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CirclePack.h>
+#include <CQChartsCirclePack.h>
+#include <CDisplayRange2D.h>
 #include <QModelIndex>
 
 class CQChartsBubblePlot;
 
-class CQChartsBubbleNode : public CircleNode {
+class CQChartsBubbleNode : public CQChartsCircleNode {
  private:
   static uint nextId() {
     static int lastId = 0;
@@ -31,11 +32,11 @@ class CQChartsBubbleNode : public CircleNode {
 
   double size() const { return size_; }
 
-  double x() const override { return CircleNode::x(); }
-  void setX(double x) override { CircleNode::setX(x); }
+  double x() const override { return CQChartsCircleNode::x(); }
+  void setX(double x) override { CQChartsCircleNode::setX(x); }
 
-  double y() const override { return CircleNode::y(); }
-  void setY(double y) override { CircleNode::setY(y); }
+  double y() const override { return CQChartsCircleNode::y(); }
+  void setY(double y) override { CQChartsCircleNode::setY(y); }
 
   int colorId() const { return colorId_; }
 
@@ -46,7 +47,7 @@ class CQChartsBubbleNode : public CircleNode {
   void setRadius(double r) { r_ = r; }
 
   void setPosition(double x, double y) override {
-    CircleNode::setPosition(x, y);
+    CQChartsCircleNode::setPosition(x, y);
 
     placed_ = true;
   }
@@ -104,7 +105,7 @@ class CQChartsBubblePlot : public CQChartsPlot {
   Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
 
  public:
-  using Pack  = CirclePack<CQChartsBubbleNode>;
+  using Pack  = CQChartsCirclePack<CQChartsBubbleNode>;
   using Nodes = std::vector<CQChartsBubbleNode*>;
 
  public:

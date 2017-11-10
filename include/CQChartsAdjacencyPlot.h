@@ -9,7 +9,7 @@
 // node data
 class CQChartsAdjacencyNode {
  public:
-  using NodeValue = std::pair<CQChartsAdjacencyNode *,int>;
+  using NodeValue = std::pair<CQChartsAdjacencyNode*,int>;
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
@@ -203,8 +203,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void sortNodes();
 
  private:
-  using NodeMap   = std::map<int,CQChartsAdjacencyNode *>;
-  using NodeArray = std::vector<CQChartsAdjacencyNode *>;
+  using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
+  using NodeArray = std::vector<CQChartsAdjacencyNode*>;
 
   int                   nodeColumn_        { 0 };
   int                   connectionsColumn_ { 1 };

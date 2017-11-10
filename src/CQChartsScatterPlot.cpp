@@ -237,6 +237,8 @@ initObjs()
       QModelIndex xInd = model->index(r, xColumn());
       QModelIndex yInd = model->index(r, yColumn());
 
+      QModelIndex xInd1 = normalizeIndex(xInd);
+
       //---
 
       bool ok1, ok2;
@@ -269,7 +271,7 @@ initObjs()
 
       //---
 
-      nameValues_[name].emplace_back(x, y, r, xInd, symbolSizeStr, fontSizeStr, colorStr);
+      nameValues_[name].emplace_back(x, y, r, xInd1, symbolSizeStr, fontSizeStr, colorStr);
     }
   }
 

@@ -168,7 +168,7 @@ initNodes()
   root_ = new CQChartsTreeMapHierNode(this, 0, "<root>");
 
   root_->setDepth(0);
-  root_->setInd(hierInd_++);
+  root_->setHierInd(hierInd_++);
 
   currentRoot_ = root_;
 
@@ -246,9 +246,9 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
 
   //---
 
-  uint nr = model->rowCount(index);
+  int nr = model->rowCount(index);
 
-  for (uint r = 0; r < nr; ++r) {
+  for (int r = 0; r < nr; ++r) {
     QModelIndex nameInd  = model->index(r, nameColumn (), index);
     QModelIndex valueInd = model->index(r, valueColumn(), index);
 
@@ -267,7 +267,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth,
         new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
 
       hier1->setDepth(depth);
-      hier1->setInd(hierInd_++);
+      hier1->setHierInd(hierInd_++);
 
       int colorId1 = colorId;
 
@@ -353,7 +353,7 @@ loadFlat()
         child = new CQChartsTreeMapHierNode(this, parent, strs[j], nameInd1);
 
         child->setDepth(depth);
-        child->setInd(hierInd_++);
+        child->setHierInd(hierInd_++);
       }
 
       parent = child;
@@ -450,6 +450,15 @@ inside(const CPoint2D &p) const
   return false;
 }
 
+bool
+CQChartsTreeMapHierObj::
+isIndex(const QModelIndex &ind) const
+{
+  const QModelIndex &nind = hier_->ind();
+
+  return (ind == nind);
+}
+
 void
 CQChartsTreeMapHierObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
@@ -466,12 +475,12 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
- //Color c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
 //QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
-//QColor c = plot_->interpPaletteColor((1.0*(hier_->ind() + 1))/(plot_->maxHierInd() + 1));
+//QColor c = plot_->interpPaletteColor((1.0*(hier_->hierInd() + 1))/(plot_->maxHierInd() + 1));
   QColor c = plot_->headerColor();
 
-//QColor tc = plot_->textColor(c1);
+//QColor tc = plot_->textColor(c);
   QColor tc = Qt::black;
 
   if (isSelected())
@@ -538,7 +547,7 @@ clickZoom(const CPoint2D &)
 
   while (parent2 && parent2 != plot_->currentRoot()) {
     parent1 = parent2;
-    parent2 = (parent1 ? parent1->parent() : nullptr);
+    parent2 = parent1->parent();
   }
 
   if (parent1)
@@ -589,7 +598,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 //QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
 //QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
-  QColor c = plot_->interpPaletteColor((1.0*(root->ind() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
 
 //QColor tc = plot_->textColor(c);
   QColor tc = Qt::black;

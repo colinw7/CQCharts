@@ -3,7 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CDelaunay.h>
+#include <CQChartsDelaunay.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -144,7 +144,7 @@ initObjs()
 
   delete delaunay_;
 
-  delaunay_ = new CDelaunay;
+  delaunay_ = new CQChartsDelaunay;
 
   for (int r = 0; r < nr; ++r) {
     QModelIndex xind = model->index(r, xColumn());
@@ -224,7 +224,7 @@ drawDelaunay(QPainter *p)
     QColor lc = linesColor();
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
-      const CHull3D::Face *f = *pf;
+      const CQChartsHull3D::Face *f = *pf;
 
       if (! f->isLower()) continue;
 
@@ -261,9 +261,9 @@ drawVoronoi(QPainter *p)
     p->setPen(pc);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
-      const CHull3D::Face *f = *pf;
+      const CQChartsHull3D::Face *f = *pf;
 
-      CHull3D::Vertex *v = f->getVoronoi();
+      CQChartsHull3D::Vertex *v = f->getVoronoi();
       if (! v) continue;
 
       double px, py;
@@ -286,7 +286,7 @@ drawVoronoi(QPainter *p)
     CLineDash ld;
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
-      const CHull3D::Edge *e = *pve;
+      const CQChartsHull3D::Edge *e = *pve;
 
       auto *v1 = e->start();
       auto *v2 = e->end  ();

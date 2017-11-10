@@ -1,11 +1,11 @@
-#ifndef CEnclosingCircle_H
-#define CEnclosingCircle_H
+#ifndef CQChartsEnclosingCircle_H
+#define CQChartsEnclosingCircle_H
 
 #include <cmath>
 #include <algorithm>
-#include <CPointsCircle.h>
+#include <CQChartsPointsCircle.h>
 
-class CEnclosingCircle {
+class CQChartsEnclosingCircle {
  public:
   class Circle {
    public:
@@ -26,7 +26,7 @@ class CEnclosingCircle {
   typedef std::vector<Circle> Circles;
 
  public:
-  CEnclosingCircle() { }
+  CQChartsEnclosingCircle() { }
 
   // add circle
   void addCircle(double x, double y, double r) {
@@ -82,16 +82,16 @@ class CEnclosingCircle {
 
  private:
   void getPointCircle(Circle &pcircle) {
-    CPointsCircle::PointArray points;
+    CQChartsPointsCircle::PointArray points;
 
     uint nc = circles_.size();
 
     for (uint i = 1; i < nc; ++i)
-      points.push_back(CPointsCircle::Point(circles_[i].x(), circles_[i].y()));
+      points.push_back(CQChartsPointsCircle::Point(circles_[i].x(), circles_[i].y()));
 
-    CPointsCircle::Circle circle;
+    CQChartsPointsCircle::Circle circle;
 
-    (void) CPointsCircle::makeCircle(points, circle);
+    (void) CQChartsPointsCircle::makeCircle(points, circle);
 
     pcircle = Circle(circle.c.x, circle.c.y, circle.r);
   }

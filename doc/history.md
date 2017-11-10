@@ -127,3 +127,5 @@
 ## 11/8/2017
  + Improve tree map coloring and borders
  + Improve cross selection
+## 11/9/2017
+ + Fix hier bubble and tree map hier selection

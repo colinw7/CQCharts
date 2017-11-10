@@ -1,5 +1,5 @@
-#ifndef CHULL3D_H
-#define CHULL3D_H
+#ifndef CQChartsHull3D_H
+#define CQChartsHull3D_H
 
 #include <CListLink.h>
 #include <sys/types.h>
@@ -10,7 +10,7 @@
 #include <cassert>
 #include <iostream>
 
-class CHull3D {
+class CQChartsHull3D {
  private:
   /* Define vertex indices. */
   enum { IX = 0, IY = 1, IZ = 2 };
@@ -297,9 +297,9 @@ class CHull3D {
   //-------
 
  public:
-  CHull3D();
+  CQChartsHull3D();
 
- ~CHull3D() { }
+ ~CQChartsHull3D() { }
 
   bool getUseLower() const { return useLower_; }
   void setUseLower(bool lower) { useLower_ = lower; }

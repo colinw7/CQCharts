@@ -13,6 +13,8 @@
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CGradientPalette.h>
+#include <CDisplayTransform2D.h>
+#include <CDisplayRange2D.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
@@ -38,6 +40,8 @@ void
 CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
+  assert(name == type->name());
+
   types_[name] = type;
 }
 
@@ -1328,7 +1332,7 @@ tipText(const CPoint2D &p, QString &tip) const
 
 void
 CQChartsPlot::
-objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &dataList1) const
+objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &objs) const
 {
   PlotObjTree::DataList dataList;
 
@@ -1336,7 +1340,7 @@ objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &dataList1) const
 
   for (const auto &obj : dataList) {
     if (obj->inside(p))
-      dataList1.push_back(obj);
+      objs.push_back(obj);
   }
 }
 

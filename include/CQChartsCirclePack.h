@@ -1,5 +1,5 @@
-#ifndef CirclePack_H
-#define CirclePack_H
+#ifndef CQChartsCirclePack_H
+#define CQChartsCirclePack_H
 
 #include <set>
 #include <map>
@@ -8,17 +8,17 @@
 #include <cassert>
 #include <sys/types.h>
 
-#include <CEnclosingCircle.h>
+#include <CQChartsEnclosingCircle.h>
 #include <COSNaN.h>
 
-class CircleNode {
+class CQChartsCircleNode {
   public:
-   CircleNode(double r=1.0, double x=0.0, double y=0.0) :
+   CQChartsCircleNode(double r=1.0, double x=0.0, double y=0.0) :
     r_(r), x_(x), y_(y) {
      assert(! COSNaN::is_nan(x_) && ! COSNaN::is_nan(y_));
    }
 
-   virtual ~CircleNode() { }
+   virtual ~CQChartsCircleNode() { }
 
    virtual double radius() const { return r_; }
 
@@ -43,14 +43,14 @@ class CircleNode {
 //---
 
 template<typename NODE>
-class CirclePack {
+class CQChartsCirclePack {
  public:
   using Nodes = std::vector<NODE*>;
 
  public:
-  CirclePack() : ind1_(0), ind2_(1) { }
+  CQChartsCirclePack() : ind1_(0), ind2_(1) { }
 
- ~CirclePack() { }
+ ~CQChartsCirclePack() { }
 
   void reset() {
     nodes_.clear();
@@ -98,7 +98,7 @@ node->setPosition(xc, yc);
   }
 
   void boundingCircle(double &xc, double &yc, double &r) const {
-    CEnclosingCircle enclose;
+    CQChartsEnclosingCircle enclose;
 
     int n = size();
 

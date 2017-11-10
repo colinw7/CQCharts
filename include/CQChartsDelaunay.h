@@ -1,11 +1,11 @@
-#ifndef CDELAUNAY_H
-#define CDELAUNAY_H
+#ifndef CQChartsDelaunay_H
+#define CQChartsDelaunay_H
 
-#include <CHull3D.h>
+#include <CQChartsHull3D.h>
 
-class CDelaunay : public CHull3D {
+class CQChartsDelaunay : public CQChartsHull3D {
  public:
-  CDelaunay();
+  CQChartsDelaunay();
 
   bool calc();
 

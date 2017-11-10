@@ -7,7 +7,7 @@
 #include <CQChartsPointObj.h>
 
 class CQChartsDelaunayPlot;
-class CDelaunay;
+class CQChartsDelaunay;
 
 //---
 
@@ -149,13 +149,13 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   void drawVoronoi (QPainter *p);
 
  private:
-  int              xColumn_    { 0 };
-  int              yColumn_    { 1 };
-  int              nameColumn_ { -1 };
-  CQChartsPointObj pointObj_;
-  CQChartsLineObj  lineObj_;
-  bool             voronoi_    { true };
-  CDelaunay*       delaunay_   { nullptr };
+  int               xColumn_    { 0 };
+  int               yColumn_    { 1 };
+  int               nameColumn_ { -1 };
+  CQChartsPointObj  pointObj_;
+  CQChartsLineObj   lineObj_;
+  bool              voronoi_    { true };
+  CQChartsDelaunay* delaunay_   { nullptr };
 };
 
 #endif

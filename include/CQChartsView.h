@@ -35,7 +35,7 @@ class CQChartsView : public QFrame {
   };
 
  public:
-  using Plots = std::vector<CQChartsPlot *>;
+  using Plots = std::vector<CQChartsPlot*>;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -177,7 +177,7 @@ class CQChartsView : public QFrame {
     }
   };
 
-  using ProbeBands = std::vector<CQChartsProbeBand *>;
+  using ProbeBands = std::vector<CQChartsProbeBand*>;
 
   CQCharts*            charts_         { nullptr };
   CDisplayRange2D*     displayRange_   { nullptr };

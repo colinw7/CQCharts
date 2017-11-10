@@ -123,8 +123,8 @@ CQRoundedPolygon.cpp \
 CQFilename.cpp \
 CQStrParse.cpp \
 \
-CDelaunay.cpp \
-CHull3D.cpp \
+CQChartsDelaunay.cpp \
+CQChartsHull3D.cpp \
 COSNaN.cpp \
 
 HEADERS += \
@@ -244,8 +244,8 @@ CQToolTip.h \
 CQWidgetMenu.h \
 CQIconCombo.h \
 \
-CDelaunay.h \
-CHull3D.h \
+../include/CQChartsDelaunay.h \
+CQChartsHull3D.h \
 CListLink.h \
 CStateIterator.h \
 ../include/CUnixFile.h \

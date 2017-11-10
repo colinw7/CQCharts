@@ -1,5 +1,5 @@
-#ifndef CPointsCircle_H
-#define CPointsCircle_H
+#ifndef CQChartsPointsCircle_H
+#define CQChartsPointsCircle_H
 
 /*
  * Smallest enclosing circle
@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <sys/types.h>
 
-namespace CPointsCircle {
+namespace CQChartsPointsCircle {
 
 namespace {
 

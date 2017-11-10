@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CDisplayRange2D.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>

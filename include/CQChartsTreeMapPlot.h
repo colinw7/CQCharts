@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <COSNaN.h>
+#include <CDisplayRange2D.h>
 #include <QModelIndex>
 
 class CQChartsTreeMapPlot;
@@ -100,8 +100,8 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   CQChartsTreeMapPlot *plot() const { return plot_; }
 
-  int ind() const { return ind_; }
-  void setInd(int i) { ind_ = i; }
+  int hierInd() const { return hierInd_; }
+  void setHierInd(int i) { hierInd_ = i; }
 
   double size() const;
 
@@ -121,7 +121,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   CQChartsTreeMapPlot* plot_    { nullptr };
   Nodes                nodes_;
   Children             children_;
-  int                  ind_     { -1 };
+  int                  hierInd_ { -1 };
 };
 
 //---
@@ -132,6 +132,8 @@ class CQChartsTreeMapHierObj : public CQChartsPlotObj {
                          CQChartsTreeMapHierObj *hierObj, const CBBox2D &rect, int i, int n);
 
   bool inside(const CPoint2D &p) const override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 

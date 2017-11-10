@@ -1,32 +1,35 @@
-#ifndef CBoxWhisker_H
-#define CBoxWhisker_H
+#ifndef CQChartsBoxWhisker_H
+#define CQChartsBoxWhisker_H
 
 #include <vector>
 #include <algorithm>
 #include <cassert>
 
-class CBoxWhisker {
+template<typename VALUE>
+class CQChartsBoxWhiskerT {
  public:
-  typedef std::vector<double> Values;
-  typedef std::vector<int>    Outliers;
+  typedef std::vector<VALUE> Values;
+  typedef std::vector<int>   Outliers;
 
  public:
-  CBoxWhisker() { }
+  CQChartsBoxWhiskerT() { }
 
-  CBoxWhisker(const Values &values) :
+  CQChartsBoxWhiskerT(const Values &values) :
    values_(values) {
     invalidate();
   }
 
   int numValues() const { return int(values_.size()); }
 
-  double value(int i) const {
+  const Values &values() const { return values_; }
+
+  const VALUE &value(int i) const {
     assert(i >= 0 && i < int(values_.size()));
 
     return values_[i];
   }
 
-  void addValue(double value) {
+  void addValue(const VALUE &value) {
     values_.push_back(value);
 
     invalidate();
@@ -38,11 +41,15 @@ class CBoxWhisker {
     invalidate();
   }
 
-  void addValues(std::initializer_list<double> values) {
+  void addValues(std::initializer_list<VALUE> values) {
     for (auto value : values)
       values_.push_back(value);
 
     invalidate();
+  }
+
+  double rvalue(int i) const {
+    return double(value(i));
   }
 
   double range() const { return range_; }
@@ -79,7 +86,7 @@ class CBoxWhisker {
   }
 
   void const_calc() const {
-    const_cast<CBoxWhisker *>(this)->calc();
+    const_cast<CQChartsBoxWhiskerT *>(this)->calc();
   }
 
   void calc() {
@@ -101,7 +108,7 @@ class CBoxWhisker {
 
       medianInd(0, nv - 1, nv1, nv2);
 
-      median_ = (value(nv1) + value(nv2))/2.0;
+      median_ = (rvalue(nv1) + rvalue(nv2))/2.0;
 
       // lower median
       if (nv1 > 0) {
@@ -109,10 +116,10 @@ class CBoxWhisker {
 
         medianInd(0, nv1 - 1, nl1, nl2);
 
-        lower_ = (value(nl1) + value(nl2))/2.0;
+        lower_ = (rvalue(nl1) + rvalue(nl2))/2.0;
       }
       else
-        lower_ = value(0);
+        lower_ = rvalue(0);
 
       // upper median
       if (nv2 < nv - 1) {
@@ -120,10 +127,10 @@ class CBoxWhisker {
 
         medianInd(nv2 + 1, nv - 1, nu1, nu2);
 
-        upper_ = (value(nu1) + value(nu2))/2.0;
+        upper_ = (rvalue(nu1) + rvalue(nu2))/2.0;
       }
       else
-        upper_ = value(nv - 1);
+        upper_ = rvalue(nv - 1);
 
       // outliers outside range()*(upper - lower)
       double routlier = upper_ - lower_;
@@ -140,11 +147,13 @@ class CBoxWhisker {
       int i = 0;
 
       for (auto v : values_) {
-        if (v < loutlier || v > uoutlier)
+        double vr = (double) v;
+
+        if (vr < loutlier || vr > uoutlier)
           outliers_.push_back(i);
         else {
-          min_ = std::min(v, min_);
-          max_ = std::max(v, max_);
+          min_ = std::min(vr, min_);
+          max_ = std::max(vr, max_);
         }
 
         ++i;

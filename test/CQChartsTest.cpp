@@ -680,6 +680,7 @@ CQChartsTest::
 ~CQChartsTest()
 {
   delete charts_;
+  delete loader_;
 
   model_.clear();
 }
