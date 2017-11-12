@@ -51,7 +51,7 @@ updateWidget(const QPoint &gpos)
 
   CQChartsView::Plots plots;
 
-  view_->plotsAt(CPoint2D(wx, wy), plots);
+  view_->plotsAt(CQChartsGeom::Point(wx, wy), plots);
 
   if (plots.empty())
     return false;
@@ -59,7 +59,7 @@ updateWidget(const QPoint &gpos)
   QString tip;
 
   for (const auto &plot : plots) {
-    CPoint2D w;
+    CQChartsGeom::Point w;
 
     plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)), w);
 

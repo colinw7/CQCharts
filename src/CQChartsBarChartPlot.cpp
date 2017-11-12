@@ -304,11 +304,21 @@ updateRange(bool apply)
 
     QModelIndex categoryInd1 = normalizeIndex(categoryInd);
 
-    //---
-
     bool ok1;
 
     QString category = CQChartsUtil::modelString(model, categoryInd, ok1);
+
+    //---
+
+    QModelIndex nameInd = model->index(r, nameColumn());
+
+    bool ok3;
+
+    QString name = CQChartsUtil::modelString(model, nameInd, ok3);
+
+    if (! ok3) name = "";
+
+    //---
 
     double sum = 0.0;
 
@@ -337,6 +347,8 @@ updateRange(bool apply)
 
           valueSet->values.emplace_back(value, "", categoryInd1);
 
+          //---
+
           if (! isHorizontal()) {
             if (isStacked())
               dataRange_.updateRange(0, sum + value);
@@ -360,10 +372,12 @@ updateRange(bool apply)
 
         //---
 
+        QString axisLabel = (name != "" ? name : category);
+
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, category);
+          xAxis_->setTickLabel(numVisible, axisLabel);
         else
-          yAxis_->setTickLabel(numVisible, category);
+          yAxis_->setTickLabel(numVisible, axisLabel);
 
         ++numVisible;
       }
@@ -373,6 +387,8 @@ updateRange(bool apply)
         for (int j = 0; j < ns; ++j) {
           if (isSetHidden(j))
             continue;
+
+          //---
 
           int valueColumn = getSetColumn(j);
 
@@ -389,6 +405,8 @@ updateRange(bool apply)
 
           valueSet->values.emplace_back(value, "", categoryInd1);
 
+          //---
+
           if (! isHorizontal()) {
             if (isStacked())
               dataRange_.updateRange(0, sum + value);
@@ -412,10 +430,12 @@ updateRange(bool apply)
 
         //---
 
+        QString axisLabel = (name != "" ? name : category);
+
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, category);
+          xAxis_->setTickLabel(numVisible, axisLabel);
         else
-          yAxis_->setTickLabel(numVisible, category);
+          yAxis_->setTickLabel(numVisible, axisLabel);
 
         ++numVisible;
       }
@@ -423,6 +443,8 @@ updateRange(bool apply)
     else {
       if (isSetHidden(valueSet->ind))
         continue;
+
+      //---
 
       int valueColumn = getSetColumn(0);
 
@@ -436,14 +458,6 @@ updateRange(bool apply)
 
       if (CQChartsUtil::isNaN(value))
         continue;
-
-      QModelIndex nameInd = model->index(r, nameColumn());
-
-      bool ok3;
-
-      QString name = CQChartsUtil::modelString(model, nameInd, ok3);
-
-      if (! ok3) name = "";
 
       //---
 
@@ -477,10 +491,12 @@ updateRange(bool apply)
       //---
 
       if (isNew) {
+        QString axisLabel = (name != "" ? name : category);
+
         if (! isHorizontal())
-          xAxis_->setTickLabel(numVisible, category);
+          xAxis_->setTickLabel(numVisible, axisLabel);
         else
-          yAxis_->setTickLabel(numVisible, category);
+          yAxis_->setTickLabel(numVisible, axisLabel);
 
         ++numVisible;
       }
@@ -604,16 +620,6 @@ CQChartsBarChartPlot::
 initObjs()
 {
   if (! dataRange_.isSet()) {
-    xAxis_->setIntegral           (! isHorizontal());
-  //xAxis_->setDataLabels         (! isHorizontal());
-    xAxis_->setMinorTicksDisplayed(  isHorizontal());
-
-    yAxis_->setIntegral           (  isHorizontal());
-  //yAxis_->setDataLabels         (  isHorizontal());
-    yAxis_->setMinorTicksDisplayed(! isHorizontal());
-
-    //---
-
     updateRange();
 
     if (! dataRange_.isSet())
@@ -624,6 +630,16 @@ initObjs()
 
   if (! plotObjs_.empty())
     return;
+
+  //---
+
+  xAxis_->setIntegral           (! isHorizontal());
+//xAxis_->setDataLabels         (! isHorizontal());
+  xAxis_->setMinorTicksDisplayed(  isHorizontal());
+
+  yAxis_->setIntegral           (  isHorizontal());
+//yAxis_->setDataLabels         (  isHorizontal());
+  yAxis_->setMinorTicksDisplayed(! isHorizontal());
 
   //---
 
@@ -694,19 +710,19 @@ initObjs()
           //---
 
           // create bar rect
-          CBBox2D brect;
+          CQChartsGeom::BBox brect;
 
           if (! isHorizontal()) {
             if (isStacked())
-              brect = CBBox2D(bx, sum, bx + 1.0, value1);
+              brect = CQChartsGeom::BBox(bx, sum, bx + 1.0, value1);
             else
-              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+              brect = CQChartsGeom::BBox(bx1, 0.0, bx1 + bw1, value);
           }
           else {
             if (isStacked())
-              brect = CBBox2D(sum, bx, value1, bx + 1.0);
+              brect = CQChartsGeom::BBox(sum, bx, value1, bx + 1.0);
             else
-              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+              brect = CQChartsGeom::BBox(0.0, bx1, value, bx1 + bw1);
           }
 
           CQChartsBarChartObj *barObj =
@@ -747,19 +763,19 @@ initObjs()
           //---
 
           // create bar rect
-          CBBox2D brect;
+          CQChartsGeom::BBox brect;
 
           if (! isHorizontal()) {
             if (isStacked())
-              brect = CBBox2D(bx, sum, bx + 1.0, value1);
+              brect = CQChartsGeom::BBox(bx, sum, bx + 1.0, value1);
             else
-              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+              brect = CQChartsGeom::BBox(bx1, 0.0, bx1 + bw1, value);
           }
           else {
             if (isStacked())
-              brect = CBBox2D(sum, bx, value1, bx + 1.0);
+              brect = CQChartsGeom::BBox(sum, bx, value1, bx + 1.0);
             else
-              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+              brect = CQChartsGeom::BBox(0.0, bx1, value, bx1 + bw1);
           }
 
           CQChartsBarChartObj *barObj =
@@ -808,34 +824,34 @@ initObjs()
         //---
 
         // create bar rect
-        CBBox2D brect;
+        CQChartsGeom::BBox brect;
 
         if (value >= 0) {
           if (! isHorizontal()) {
             if (isStacked())
-              brect = CBBox2D(bx, lastPosValue, bx + 1.0, lastPosValue + value);
+              brect = CQChartsGeom::BBox(bx, lastPosValue, bx + 1.0, lastPosValue + value);
             else
-              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+              brect = CQChartsGeom::BBox(bx1, 0.0, bx1 + bw1, value);
           }
           else {
             if (isStacked())
-              brect = CBBox2D(lastPosValue, bx, lastPosValue + value, bx + 1.0);
+              brect = CQChartsGeom::BBox(lastPosValue, bx, lastPosValue + value, bx + 1.0);
             else
-              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+              brect = CQChartsGeom::BBox(0.0, bx1, value, bx1 + bw1);
           }
         }
         else {
           if (! isHorizontal()) {
             if (isStacked())
-              brect = CBBox2D(bx, lastNegValue + value, bx + 1.0, lastNegValue);
+              brect = CQChartsGeom::BBox(bx, lastNegValue + value, bx + 1.0, lastNegValue);
             else
-              brect = CBBox2D(bx1, 0.0, bx1 + bw1, value);
+              brect = CQChartsGeom::BBox(bx1, 0.0, bx1 + bw1, value);
           }
           else {
             if (isStacked())
-              brect = CBBox2D(lastNegValue + value, bx, lastNegValue, bx + 1.0);
+              brect = CQChartsGeom::BBox(lastNegValue + value, bx, lastNegValue, bx + 1.0);
             else
-              brect = CBBox2D(0.0, bx1, value, bx1 + bw1);
+              brect = CQChartsGeom::BBox(0.0, bx1, value, bx1 + bw1);
           }
         }
 
@@ -990,7 +1006,7 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
 //------
 
 CQChartsBarChartObj::
-CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
+CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                     int iset, int nset, int ival, int nval, int isval, int nsval,
                     double value, const QModelIndex &ind) :
  CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
@@ -1000,7 +1016,7 @@ CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
 
 void
 CQChartsBarChartObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -1010,6 +1026,13 @@ mousePress(const CPoint2D &)
   plot_->addSelectIndex(ind_.row(), yColumn                , ind_.parent());
 
   plot_->endSelect();
+}
+
+bool
+CQChartsBarChartObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
 }
 
 void
@@ -1034,7 +1057,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   p->save();
 
-  CBBox2D prect;
+  CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);
 
@@ -1050,7 +1073,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    // set pen
+    // calc pen (stroke)
     QPen pen;
 
     if (plot_->isBorder()) {
@@ -1061,9 +1084,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       pen.setStyle(Qt::NoPen);
     }
 
-    p->setPen(pen);
-
-    // set fill
+    // calc brush (fill)
     QBrush barBrush;
 
     if (plot_->isBarFill()) {
@@ -1071,25 +1092,25 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
       if (nset_ > 1) {
         if (plot_->isKeySets())
-          barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+          barColor = plot_->barColor(ival_, nval_);
         else
-          barColor = plot_->objectStateColor(this, plot_->barColor(iset_, nset_));
+          barColor = plot_->barColor(iset_, nset_);
       }
       else {
         if (! color_) {
           if (nsval_ > 1) {
-            QColor barColor1 = plot_->objectStateColor(this, plot_->barColor(ival_    , nval_ + 1));
-            QColor barColor2 = plot_->objectStateColor(this, plot_->barColor(ival_ + 1, nval_ + 1));
+            QColor barColor1 = plot_->barColor(ival_    , nval_ + 1);
+            QColor barColor2 = plot_->barColor(ival_ + 1, nval_ + 1);
 
             double f = (1.0*isval_)/nsval_;
 
             barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
           }
           else
-            barColor = plot_->objectStateColor(this, plot_->barColor(ival_, nval_));
+            barColor = plot_->barColor(ival_, nval_);
         }
         else {
-          barColor = plot_->objectStateColor(this, plot_->interpPaletteColor(*color_));
+          barColor = plot_->interpPaletteColor(*color_);
         }
       }
 
@@ -1103,9 +1124,13 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       barBrush.setStyle(Qt::NoBrush);
     }
 
-    p->setBrush(barBrush);
+    plot_->updateObjPenBrushState(this, pen, barBrush);
 
     //---
+
+    // draw rect
+    p->setPen(pen);
+    p->setBrush(barBrush);
 
     CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
   }
@@ -1128,7 +1153,7 @@ CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
 
 bool
 CQChartsBarKeyColor::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsBarChartPlot *plot = qobject_cast<CQChartsBarChartPlot *>(plot_);
 

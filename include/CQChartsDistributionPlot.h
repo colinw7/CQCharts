@@ -3,24 +3,27 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsDataLabel.h>
+#include <CQChartsPaletteColor.h>
 
 class CQChartsDistributionPlot;
 class CQChartsBoxObj;
 class CQChartsFillObj;
 
+// bar object
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Values = std::vector<int>;
+  using Values = std::vector<QModelIndex>;
 
  public:
-  CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CBBox2D &rect,
+  CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int bucket, const Values &value, int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  void mousePress(const CQChartsGeom::Point &) override;
 
-  void mousePress(const CPoint2D &) override;
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -41,6 +44,8 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
 
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
+
+  void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -86,6 +91,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i) { valueColumn_ = i; update(); }
+
+  //---
 
   double startValue() const { return startValue_; }
   void setStartValue(double r) { startValue_ = r; updateRange(); updateObjs(); }
@@ -136,6 +143,10 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
+  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
+
+  //---
+
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
@@ -146,22 +157,29 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   QColor barColor(int i, int n) const;
 
+  void addKeyItems(CQChartsKey *key) override;
+
   //---
 
   void draw(QPainter *) override;
 
+  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
+
  private:
-  using Values  = std::vector<int>;
+  using Values  = std::vector<QModelIndex>;
   using IValues = std::map<int,Values>;
 
-  int              valueColumn_ { -1 };
-  double           startValue_  { 0.0 };
-  double           deltaValue_  { 1.0 };
-  IValues          ivalues_;
-  bool             horizontal_  { false };
-  double           margin_      { 2 };
-  CQChartsBoxObj*  borderObj_   { nullptr };
-  CQChartsFillObj* fillObj_     { nullptr };
+ private:
+  int                  valueColumn_ { -1 };
+  double               startValue_  { 0.0 };
+  double               deltaValue_  { 1.0 };
+  IValues              ivalues_;
+  bool                 horizontal_  { false };
+  double               margin_      { 2 };
+  CQChartsBoxObj*      borderObj_   { nullptr };
+  CQChartsFillObj*     fillObj_     { nullptr };
+  CQChartsPaletteColor barColor_    { QColor(100, 100, 200), true };
+  CQChartsDataLabel    dataLabel_;
 };
 
 #endif

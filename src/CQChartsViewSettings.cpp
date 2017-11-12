@@ -5,8 +5,10 @@
 #include <CQGradientControlPlot.h>
 #include <CQGradientControlIFace.h>
 #include <CQIconCombo.h>
+
 #include <QTabWidget>
 #include <QLineEdit>
+#include <QSplitter>
 #include <QVBoxLayout>
 
 #include <svg/filter_svg.h>
@@ -80,11 +82,18 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QVBoxLayout *paletteLayout = new QVBoxLayout(paletteFrame);
 
+  QSplitter *splitter = new QSplitter;
+
+  splitter->setOrientation(Qt::Vertical);
+  splitter->setObjectName("splitter");
+
+  paletteLayout->addWidget(splitter);
+
   palettePlot_    = new CQGradientControlPlot(this, window->view()->gradientPalette());
   paletteControl_ = new CQGradientControlIFace(palettePlot_);
 
-  paletteLayout->addWidget(palettePlot_);
-  paletteLayout->addWidget(paletteControl_);
+  splitter->addWidget(palettePlot_);
+  splitter->addWidget(paletteControl_);
 }
 
 CQChartsViewSettings::

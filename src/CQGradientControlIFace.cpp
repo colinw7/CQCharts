@@ -2,9 +2,11 @@
 #include <CQGradientControlPlot.h>
 #include <CQRealSpin.h>
 #include <CQColorChooser.h>
+
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QPushButton>
@@ -24,18 +26,34 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
+  QFontMetrics fm(font());
+
+  //---
+
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(2); layout->setSpacing(2);
 
   CGradientPalette *pal = palette_->gradientPalette();
 
-  QFrame *typeFrame = createColorTypeCombo("Type", &colorType_);
+  //---
+
+  QFrame *colorTypeFrame = createColorTypeCombo("Type", &colorType_);
 
   colorType_->setType(pal->colorType());
 
   connect(colorType_, SIGNAL(currentIndexChanged(int)), this, SLOT(colorTypeChanged(int)));
 
-  layout->addWidget(typeFrame);
+  layout->addWidget(colorTypeFrame);
+
+  //---
+
+  QFrame *colorModelFrame = createColorModelCombo("Color", &colorModel_);
+
+  colorModel_->setModel(pal->colorModel());
+
+  connect(colorModel_, SIGNAL(currentIndexChanged(int)), this, SLOT(colorModelChanged(int)));
+
+  layout->addWidget(colorModelFrame);
 
   //---
 
@@ -49,38 +67,114 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
   modelFrame->setObjectName("modelFrame");
 
-  QGridLayout *modelGridLayout = new QGridLayout(modelFrame);
-  modelGridLayout->setMargin(2); modelGridLayout->setSpacing(2);
+  QVBoxLayout *modelLayout = new QVBoxLayout(modelFrame);
+  modelLayout->setMargin(2); modelLayout->setSpacing(2);
 
-  createModelCombo(modelGridLayout, 0, "Red"  , &redModel_  );
-  createModelCombo(modelGridLayout, 1, "Green", &greenModel_);
-  createModelCombo(modelGridLayout, 2, "Blue" , &blueModel_ );
+  //---
+
+  QGroupBox *functionGroupBox = new QGroupBox("Function");
+
+  functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
+
+  functionGroupBox->setObjectName("function");
+
+  QGridLayout *functionGroupLayout = new QGridLayout(functionGroupBox);
+  functionGroupLayout->setMargin(0); functionGroupLayout->setSpacing(2);
+
+  modelLayout->addWidget(functionGroupBox);
+
+  createModelCombo(functionGroupLayout, 0, "R", &redModelLabel_  , &redModelCombo_  );
+  createModelCombo(functionGroupLayout, 1, "G", &greenModelLabel_, &greenModelCombo_);
+  createModelCombo(functionGroupLayout, 2, "B", &blueModelLabel_ , &blueModelCombo_ );
 
   setRedModel  (pal->redModel  ());
   setGreenModel(pal->greenModel());
   setBlueModel (pal->blueModel ());
 
-  connect(redModel_  , SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
-  connect(greenModel_, SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
-  connect(blueModel_ , SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
+  connect(redModelCombo_  , SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
+  connect(greenModelCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
+  connect(blueModelCombo_ , SIGNAL(currentIndexChanged(int)), this, SLOT(modelChanged(int)));
 
-  modelRNegativeCheck_ = new QCheckBox("Red Negative");
-  modelGNegativeCheck_ = new QCheckBox("Green Negative");
-  modelBNegativeCheck_ = new QCheckBox("Blue Negative");
+  //---
+
+  QGroupBox *negateGroupBox = new QGroupBox("Negate");
+
+  negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
+
+  negateGroupBox->setObjectName("negate");
+
+  QHBoxLayout *negateGroupLayout = new QHBoxLayout(negateGroupBox);
+  negateGroupLayout->setMargin(0); negateGroupLayout->setSpacing(2);
+
+  modelLayout->addWidget(negateGroupBox);
+
+  modelRNegativeCheck_ = new QCheckBox("R");
+  modelGNegativeCheck_ = new QCheckBox("G");
+  modelBNegativeCheck_ = new QCheckBox("B");
 
   modelRNegativeCheck_->setObjectName("rnegative");
   modelGNegativeCheck_->setObjectName("gnegative");
   modelBNegativeCheck_->setObjectName("bnegative");
 
-  connect(modelRNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(rNegativeChecked(int)));
-  connect(modelGNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(gNegativeChecked(int)));
-  connect(modelBNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(bNegativeChecked(int)));
+  connect(modelRNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelRNegativeChecked(int)));
+  connect(modelGNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelGNegativeChecked(int)));
+  connect(modelBNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelBNegativeChecked(int)));
 
-  modelGridLayout->addWidget(modelRNegativeCheck_, 3, 0, 1, 2);
-  modelGridLayout->addWidget(modelGNegativeCheck_, 4, 0, 1, 2);
-  modelGridLayout->addWidget(modelBNegativeCheck_, 5, 0, 1, 2);
+  negateGroupLayout->addWidget(modelRNegativeCheck_);
+  negateGroupLayout->addWidget(modelGNegativeCheck_);
+  negateGroupLayout->addWidget(modelBNegativeCheck_);
+  negateGroupLayout->addStretch(1);
 
-  modelGridLayout->setRowStretch(6, 1);
+  //---
+
+  QGroupBox *rangeGroupBox = new QGroupBox("Range");
+
+  rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
+
+  rangeGroupBox->setObjectName("range");
+
+  QHBoxLayout *rangeGroupLayout = new QHBoxLayout(rangeGroupBox);
+  rangeGroupLayout->setMargin(0); rangeGroupLayout->setSpacing(2);
+
+  modelLayout->addWidget(rangeGroupBox);
+
+  QGridLayout *rangeGridLayout = new QGridLayout;
+
+  redMinMaxLabel_   = new QLabel("R");
+  greenMinMaxLabel_ = new QLabel("G");
+  blueMinMaxLabel_  = new QLabel("B");
+
+  rangeGridLayout->addWidget(redMinMaxLabel_  , 0, 0);
+  rangeGridLayout->addWidget(greenMinMaxLabel_, 1, 0);
+  rangeGridLayout->addWidget(blueMinMaxLabel_ , 2, 0);
+
+  createRealEdit(rangeGridLayout, 0, 1, false, "Min", &redMin_  );
+  createRealEdit(rangeGridLayout, 0, 3, true , "Max", &redMax_  );
+  createRealEdit(rangeGridLayout, 1, 1, false, "Min", &greenMin_);
+  createRealEdit(rangeGridLayout, 1, 3, true , "Max", &greenMax_);
+  createRealEdit(rangeGridLayout, 2, 1, false, "Min", &blueMin_ );
+  createRealEdit(rangeGridLayout, 2, 3, true , "Max", &blueMax_ );
+
+  redMin_  ->setValue(pal->redMin  ());
+  redMax_  ->setValue(pal->redMax  ());
+  greenMin_->setValue(pal->greenMin());
+  greenMax_->setValue(pal->greenMax());
+  blueMin_ ->setValue(pal->blueMin ());
+  blueMax_ ->setValue(pal->blueMax ());
+
+  rangeGroupLayout->addLayout(rangeGridLayout);
+  rangeGroupLayout->addStretch(1);
+
+  connect(redMin_  , SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+  connect(redMax_  , SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+  connect(greenMin_, SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+  connect(greenMax_, SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+  connect(blueMin_ , SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+  connect(blueMax_ , SIGNAL(valueChanged(double)), this, SLOT(modelRangeValueChanged(double)));
+
+  //---
+
+  modelLayout->addStretch(1);
 
   stack_->addWidget(modelFrame);
 
@@ -134,9 +228,9 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
   QGridLayout *functionsGridLayout = new QGridLayout(functionsFrame);
   functionsGridLayout->setMargin(2); functionsGridLayout->setSpacing(2);
 
-  createFunctionEdit(functionsGridLayout, 0, "Red"  , &redFunction_  );
-  createFunctionEdit(functionsGridLayout, 1, "Green", &greenFunction_);
-  createFunctionEdit(functionsGridLayout, 2, "Blue" , &blueFunction_ );
+  createFunctionEdit(functionsGridLayout, 0, "R", &redFunction_  );
+  createFunctionEdit(functionsGridLayout, 1, "G", &greenFunction_);
+  createFunctionEdit(functionsGridLayout, 2, "B", &blueFunction_ );
 
   functionsGridLayout->setRowStretch(3, 1);
 
@@ -213,46 +307,84 @@ colorTypeChanged(int)
   emit stateChanged();
 }
 
+void
+CQGradientControlIFace::
+colorModelChanged(int)
+{
+  CGradientPalette *pal = palette_->gradientPalette();
+
+  pal->setColorModel(colorModel_->model());
+
+  if (pal->colorModel() == CGradientPalette::ColorModel::HSV) {
+    redModelLabel_  ->setText("H");
+    greenModelLabel_->setText("S");
+    blueModelLabel_ ->setText("V");
+
+    modelRNegativeCheck_->setText("H");
+    modelGNegativeCheck_->setText("S");
+    modelBNegativeCheck_->setText("V");
+
+    redMinMaxLabel_  ->setText("H");
+    greenMinMaxLabel_->setText("S");
+    blueMinMaxLabel_ ->setText("V");
+  }
+  else {
+    redModelLabel_  ->setText("R");
+    greenModelLabel_->setText("G");
+    blueModelLabel_ ->setText("B");
+
+    modelRNegativeCheck_->setText("R");
+    modelGNegativeCheck_->setText("G");
+    modelBNegativeCheck_->setText("B");
+
+    redMinMaxLabel_  ->setText("R");
+    greenMinMaxLabel_->setText("G");
+    blueMinMaxLabel_ ->setText("B");
+  }
+
+  emit stateChanged();
+}
+
 int
 CQGradientControlIFace::
 redModel() const
 {
-  return redModel_->currentIndex();
+  return redModelCombo_->currentIndex();
 }
 
 void
 CQGradientControlIFace::
 setRedModel(int model)
 {
-  redModel_->setCurrentIndex(model);
+  redModelCombo_->setCurrentIndex(model);
 }
 
 int
 CQGradientControlIFace::
 greenModel() const
 {
-  return greenModel_->currentIndex();
+  return greenModelCombo_->currentIndex();
 }
 
 void
 CQGradientControlIFace::
 setGreenModel(int model)
 {
-  greenModel_->setCurrentIndex(model);
+  greenModelCombo_->setCurrentIndex(model);
 }
 
 int
 CQGradientControlIFace::
 blueModel() const
 {
-  return blueModel_->currentIndex();
+  return blueModelCombo_->currentIndex();
 }
 
 void
 CQGradientControlIFace::
 setBlueModel(int model)
 {
-  blueModel_->setCurrentIndex(model);
+  blueModelCombo_->setCurrentIndex(model);
 }
 
 void
@@ -264,19 +396,16 @@ modelChanged(int model)
 
   CGradientPalette *pal = palette_->gradientPalette();
 
-  if      (me == redModel_)
-    pal->setRedModel(model);
-  else if (me == greenModel_)
-    pal->setGreenModel(model);
-  else if (me == blueModel_)
-    pal->setBlueModel(model);
+  if      (me == redModelCombo_  ) pal->setRedModel  (model);
+  else if (me == greenModelCombo_) pal->setGreenModel(model);
+  else if (me == blueModelCombo_ ) pal->setBlueModel (model);
 
   emit stateChanged();
 }
 
 void
 CQGradientControlIFace::
-rNegativeChecked(int state)
+modelRNegativeChecked(int state)
 {
   CGradientPalette *pal = palette_->gradientPalette();
 
@@ -287,7 +416,7 @@ rNegativeChecked(int state)
 
 void
 CQGradientControlIFace::
-gNegativeChecked(int state)
+modelGNegativeChecked(int state)
 {
   CGradientPalette *pal = palette_->gradientPalette();
 
@@ -298,11 +427,30 @@ gNegativeChecked(int state)
 
 void
 CQGradientControlIFace::
-bNegativeChecked(int state)
+modelBNegativeChecked(int state)
 {
   CGradientPalette *pal = palette_->gradientPalette();
 
   pal->setBlueNegative(state);
+
+  emit stateChanged();
+}
+
+void
+CQGradientControlIFace::
+modelRangeValueChanged(double r)
+{
+  CQRealSpin *rs = qobject_cast<CQRealSpin *>(sender());
+  assert(rs);
+
+  CGradientPalette *pal = palette_->gradientPalette();
+
+  if      (rs == redMin_  ) pal->setRedMin  (r);
+  else if (rs == redMax_  ) pal->setRedMax  (r);
+  else if (rs == greenMin_) pal->setGreenMin(r);
+  else if (rs == greenMax_) pal->setGreenMax(r);
+  else if (rs == blueMin_ ) pal->setBlueMin (r);
+  else if (rs == blueMax_ ) pal->setBlueMax (r);
 
   emit stateChanged();
 }
@@ -341,7 +489,48 @@ addColorSlot()
 {
   CGradientPalette *pal = palette_->gradientPalette();
 
-  pal->addDefinedColor(0.5, QColor(127, 127, 127));
+  int row = 0;
+
+  QList<QTableWidgetItem *> selectedItems = definedColors_->selectedItems();
+
+  if (selectedItems.length())
+    row = selectedItems[0]->row();
+
+  const CGradientPalette::ColorMap colors = pal->colors();
+
+  double x = 0.5;
+  QColor c = QColor(127, 127, 127);
+
+  int row1 = -1;
+
+  if      (row + 1 < int(colors.size()))
+    row1 = row;
+  else if (row < int(colors.size()) && row > 0)
+    row1 = row - 1;
+
+  if (row1 >= 0) {
+    auto p = colors.begin();
+
+    std::advance(p, row1);
+
+    double        x1 = (*p).first;
+    const QColor &c1 = (*p).second;
+
+    ++p;
+    double        x2 = (*p).first;
+    const QColor &c2 = (*p).second;
+
+    x = (x1 + x2)/2;
+
+    if      (pal->colorModel() == CGradientPalette::ColorModel::RGB)
+      c = CGradientPalette::interpRGB(c1, c2, 0.5);
+    else if (pal->colorModel() == CGradientPalette::ColorModel::HSV)
+      c = CGradientPalette::interpHSV(c1, c2, 0.5);
+    else
+      c = CGradientPalette::interpRGB(c1, c2, 0.5);
+  }
+
+  pal->addDefinedColor(x, c);
 
   definedColors_->updateColors(pal);
 
@@ -508,14 +697,36 @@ createColorTypeCombo(const QString &label, CQGradientControlColorType **type)
   return frame;
 }
 
+QFrame *
+CQGradientControlIFace::
+createColorModelCombo(const QString &label, CQGradientControlColorModel **model)
+{
+  QFrame *frame = new QFrame;
+
+  frame->setObjectName("frame");
+
+  QHBoxLayout *layout = new QHBoxLayout(frame);
+  layout->setMargin(2); layout->setSpacing(2);
+
+  *model = new CQGradientControlColorModel;
+
+  layout->addWidget(new QLabel(label));
+  layout->addWidget(*model);
+  layout->addStretch(1);
+
+  return frame;
+}
+
 void
 CQGradientControlIFace::
-createModelCombo(QGridLayout *grid, int row, const QString &label, CQGradientControlModel **model)
+createModelCombo(QGridLayout *grid, int row, const QString &label,
+                 QLabel **modelLabel, CQGradientControlModel **modelCombo)
 {
-  *model = new CQGradientControlModel;
+  *modelLabel = new QLabel(label);
+  *modelCombo = new CQGradientControlModel;
 
-  grid->addWidget(new QLabel(label), row, 0);
-  grid->addWidget(*model, row, 1);
+  grid->addWidget(*modelLabel, row, 0);
+  grid->addWidget(*modelCombo, row, 1);
 
   grid->setColumnStretch(2, true);
 }
@@ -536,12 +747,21 @@ void
 CQGradientControlIFace::
 createRealEdit(QGridLayout *grid, int row, const QString &label, CQRealSpin **edit)
 {
+  createRealEdit(grid, row, 0, true, label, edit);
+}
+
+void
+CQGradientControlIFace::
+createRealEdit(QGridLayout *grid, int row, int col, bool stretch,
+               const QString &label, CQRealSpin **edit)
+{
   *edit = new CQRealSpin;
 
-  grid->addWidget(new QLabel(label), row, 0);
-  grid->addWidget(*edit, row, 1);
+  grid->addWidget(new QLabel(label), row, col);
+  grid->addWidget(*edit, row, col + 1);
 
-  grid->setColumnStretch(2, true);
+  if (stretch)
+    grid->setColumnStretch(col + 2, true);
 }
 
 //---
@@ -570,6 +790,36 @@ CQGradientControlColorType::
 setType(const CGradientPalette::ColorType &type)
 {
   QVariant var(static_cast<int>(type));
+
+  for (int i = 0; i < count(); ++i)
+    if (itemData(i).toInt() == var.toInt())
+      setCurrentIndex(i);
+}
+
+//---
+
+CQGradientControlColorModel::
+CQGradientControlColorModel(QWidget *parent) :
+ QComboBox(parent)
+{
+  setObjectName("colorModel");
+
+  addItem("RGB", QVariant(static_cast<int>(CGradientPalette::ColorModel::RGB)));
+  addItem("HSV", QVariant(static_cast<int>(CGradientPalette::ColorModel::HSV)));
+}
+
+CGradientPalette::ColorModel
+CQGradientControlColorModel::
+model() const
+{
+  return static_cast<CGradientPalette::ColorModel>(itemData(currentIndex()).toInt());
+}
+
+void
+CQGradientControlColorModel::
+setModel(const CGradientPalette::ColorModel &model)
+{
+  QVariant var(static_cast<int>(model));
 
   for (int i = 0; i < count(); ++i)
     if (itemData(i).toInt() == var.toInt())

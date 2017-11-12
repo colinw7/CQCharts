@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayRange.h>
 #include <QModelIndex>
 
 class CQChartsTreeMapPlot;
@@ -129,9 +129,10 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 class CQChartsTreeMapHierObj : public CQChartsPlotObj {
  public:
   CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
-                         CQChartsTreeMapHierObj *hierObj, const CBBox2D &rect, int i, int n);
+                         CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                         int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -150,13 +151,14 @@ class CQChartsTreeMapHierObj : public CQChartsPlotObj {
 class CQChartsTreeMapObj : public CQChartsPlotObj {
  public:
   CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
-                     CQChartsTreeMapHierObj *hierObj, const CBBox2D &rect, int i, int n);
+                     CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                     int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void clickZoom(const CPoint2D &p) override;
+  void clickZoom(const CQChartsGeom::Point &p) override;
 
-  void mousePress(const CPoint2D &p) override;
+  void mousePress(const CQChartsGeom::Point &p) override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -304,7 +306,7 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
  private:
   int                      nameColumn_         { 0 };
   int                      valueColumn_        { 1 };
-  CDisplayRange2D          range_;
+  CQChartsDisplayRange          range_;
   CQChartsTreeMapHierNode* root_               { nullptr };
   CQChartsTreeMapHierNode* firstHier_          { nullptr };
   CQChartsTreeMapHierNode* currentRoot_        { nullptr };

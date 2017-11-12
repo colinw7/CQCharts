@@ -51,7 +51,7 @@ draw(QPainter *painter, const QPointF &p, const CSymbol2D::Type &symbol,
   painter->setPen  (color);
   painter->setBrush(color);
 
-  CQChartsSymbol2DRenderer renderer(painter, CPoint2D(p.x(), p.y()), size);
+  CQChartsSymbol2DRenderer renderer(painter, CQChartsGeom::Point(p.x(), p.y()), size);
 
   if (! filled)
     CSymbol2DMgr::drawSymbol(symbol, &renderer);

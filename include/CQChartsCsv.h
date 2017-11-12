@@ -19,6 +19,7 @@ class CQChartsCsv : public QSortFilterProxyModel {
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
+  void setFilter(const QString &str);
 
   bool load(const QString &filename);
 

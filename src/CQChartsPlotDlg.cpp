@@ -638,7 +638,7 @@ applySlot()
 
   int n = view->numPlots();
 
-  CBBox2D bbox(vr*xmin, vr*ymin, vr*xmax, vr*ymax);
+  CQChartsGeom::BBox bbox(vr*xmin, vr*ymin, vr*xmax, vr*ymax);
 
   plot_->setId(QString("Chart.%1").arg(n + 1));
 

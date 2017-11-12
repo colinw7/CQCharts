@@ -6,7 +6,7 @@
 #include <QPointer>
 #include <QSharedPointer>
 
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 #include <map>
 
 #include <boost/optional.hpp>
@@ -27,6 +27,7 @@ class QStackedWidget;
 class QLineEdit;
 class QPushButton;
 class QTextEdit;
+class QTabWidget;
 class QGridLayout;
 
 class CQChartsTest : public CQAppWindow {
@@ -50,73 +51,92 @@ class CQChartsTest : public CQAppWindow {
   using NameReals  = std::map<QString,double>;
   using NameBools  = std::map<QString,bool>;
 
+  struct InputData {
+    bool    commentHeader   { false };
+    bool    firstLineHeader { false };
+    int     numRows         { 100 };
+    QString filter;
+    QString sort;
+  };
+
+  struct NameValueData {
+    NameValues values;
+    NameValues strings;
+    NameReals  reals;
+    NameBools  bools;
+  };
+
   struct InitData {
     using FileNames = std::vector<QString>;
 
-    FileNames  filenames;
-    FileType   fileType        { FileType::NONE };
-    bool       commentHeader   { false };
-    bool       firstLineHeader { false };
-    int        numRows         { 100 };
-    QString    typeName;
-    QString    filterStr;
-    QString    process;
-    NameValues nameValues;
-    NameValues nameStrings;
-    NameReals  nameReals;
-    NameBools  nameBools;
-    QString    columnType;
-    bool       xintegral       { false };
-    bool       yintegral       { false };
-    QString    title;
-    QString    properties;
-    OptReal    xmin, ymin, xmax, ymax;
-    bool       y1y2            { false };
-    bool       overlay         { false };
-    int        nr              { 1 };
-    int        nc              { 1 };
-    double     dx              { 1000.0 };
-    double     dy              { 1000.0 };
+    FileNames     filenames;
+    FileType      fileType        { FileType::NONE };
+    InputData     inputData;
+    QString       typeName;
+    QString       filterStr;
+    QString       process;
+    NameValueData nameValueData;
+    QString       columnType;
+    bool          xintegral       { false };
+    bool          yintegral       { false };
+    QString       title;
+    QString       properties;
+    OptReal       xmin, ymin, xmax, ymax;
+    bool          y1y2            { false };
+    bool          overlay         { false };
+    int           nr              { 1 };
+    int           nc              { 1 };
+    double        dx              { 1000.0 };
+    double        dy              { 1000.0 };
 
     QString nameValue(const QString &name) const {
-      auto p = nameValues.find(name);
+      auto p = nameValueData.values.find(name);
 
-      return (p != nameValues.end() ? (*p).second : QString());
+      return (p != nameValueData.values.end() ? (*p).second : QString());
     }
 
     void setNameValue(const QString &name, const QString &value) {
-      nameValues[name] = value;
+      nameValueData.values[name] = value;
     }
 
     QString nameString(const QString &name) const {
-      auto p = nameStrings.find(name);
+      auto p = nameValueData.strings.find(name);
 
-      return (p != nameStrings.end() ? (*p).second : "");
+      return (p != nameValueData.strings.end() ? (*p).second : "");
     }
 
     void setNameString(const QString &name, const QString &value) {
-      nameStrings[name] = value;
+      nameValueData.strings[name] = value;
     }
 
     double nameReal(const QString &name) const {
-      auto p = nameReals.find(name);
+      auto p = nameValueData.reals.find(name);
 
-      return (p != nameReals.end() ? (*p).second : 0.0);
+      return (p != nameValueData.reals.end() ? (*p).second : 0.0);
     }
 
     void setNameReal(const QString &name, double value) {
-      nameReals[name] = value;
+      nameValueData.reals[name] = value;
     }
 
     bool nameBool(const QString &name) const {
-      auto p = nameBools.find(name);
+      auto p = nameValueData.bools.find(name);
 
-      return (p != nameBools.end() ? (*p).second : false);
+      return (p != nameValueData.bools.end() ? (*p).second : false);
     }
 
     void setNameBool(const QString &name, bool value) {
-      nameBools[name] = value;
+      nameValueData.bools[name] = value;
     }
+  };
+
+  struct ViewData {
+    CQChartsTable*       table       { nullptr };
+    CQChartsTree*        tree        { nullptr };
+    QLineEdit*           filterEdit  { nullptr };
+    ModelP               model;
+    QItemSelectionModel* sm          { nullptr };
+    QTextEdit*           detailsText { nullptr };
   };
 
  public:
@@ -127,28 +147,26 @@ class CQChartsTest : public CQAppWindow {
   const QString &id() const { return id_; }
   void setId(const QString &v) { id_ = v; }
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &v) { bbox_ = v; }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
 
   CQChartsView *view() const;
 
-  bool loadFileModel(const QString &filename, FileType type,
-                     bool commentHeader, bool firstLineHeader, int n=100);
+  bool loadFileModel(const QString &filename, FileType type, const InputData &inputData);
 
   QAbstractItemModel *loadFile(const QString &filename, FileType type,
-                               bool commentHeader, bool firstLineHeader, int n,
-                               bool &hierarchical);
+                               const InputData &inputData, bool &hierarchical);
 
-  QAbstractItemModel *loadCsv (const QString &filename, bool commentHeader, bool firstLineHeader);
-  QAbstractItemModel *loadTsv (const QString &filename, bool commentHeader, bool firstLineHeader);
+  QAbstractItemModel *loadCsv (const QString &filename, const InputData &inputData);
+  QAbstractItemModel *loadTsv (const QString &filename, const InputData &inputData);
   QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
-  QAbstractItemModel *loadData(const QString &filename, bool commentHeader, bool firstLineHeader);
+  QAbstractItemModel *loadData(const QString &filename, const InputData &inputData);
 
   QAbstractItemModel *createExprModel(int n=100);
 
   bool initPlot(const InitData &initData);
 
-  CQChartsPlot *init(const ModelP &model, const InitData &initData, int i);
+  CQChartsPlot *initPlotView(const ViewData &viewData, const InitData &initData, int i);
 
   void setColumnFormats(const ModelP &model, const QString &columnType);
 
@@ -161,17 +179,15 @@ class CQChartsTest : public CQAppWindow {
  private:
   void addMenus();
 
-  void setTableModel(const ModelP &model);
-  void setTreeModel (const ModelP &model);
+  ViewData &addViewData(bool hierarchical);
 
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
   bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
 
-  CQChartsPlot *createPlot(const ModelP &model, CQChartsPlotType *type,
-                           const NameValues &nameValues, const NameValues &nameStrings,
-                           const NameReals &nameReals, const NameBools &nameBools, bool reuse);
+  CQChartsPlot *createPlot(const ViewData &viewData, const ModelP &model, CQChartsPlotType *type,
+                           const NameValueData &nameValueData, bool reuse);
 
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
@@ -179,7 +195,7 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *addView();
 
-  void updateModelDetails();
+  void updateModelDetails(const ViewData &viewData);
 
   QSize sizeHint() const;
 
@@ -187,6 +203,8 @@ class CQChartsTest : public CQAppWindow {
   QString fileTypeToString(FileType type) const;
 
   void processExpression(const QString &expr);
+
+  ViewData &currentViewData();
 
  private:
   void parseLine(const std::string &line);
@@ -196,13 +214,13 @@ class CQChartsTest : public CQAppWindow {
   void setCmd   (const Args &args);
   void getCmd   (const Args &args);
   void plotCmd  (const Args &args);
-  void loadCmd  (const Args &args);
+  bool loadCmd  (const Args &args);
   void sourceCmd(const Args &args);
 
  private slots:
   void loadSlot();
 
-  void loadFileSlot(const QString &type, const QString &filename);
+  bool loadFileSlot(const QString &type, const QString &filename);
 
   void createSlot();
 
@@ -222,24 +240,22 @@ class CQChartsTest : public CQAppWindow {
   using ViewP   = QPointer<CQChartsView>;
   using WindowP = QPointer<CQChartsWindow>;
 
-  Plots                plots_;
-  CQChartsPlot*        rootPlot_          { nullptr };
-  CQCharts*            charts_            { nullptr };
-  ModelP               model_;
-  QLineEdit*           columnNumEdit_     { nullptr };
-  QLineEdit*           columnTypeEdit_    { nullptr };
-  QStackedWidget*      stack_             { nullptr };
-  QLineEdit*           filterEdit_        { nullptr };
-  CQChartsTable*       table_             { nullptr };
-  CQChartsTree*        tree_              { nullptr };
-  QItemSelectionModel* sm_                { nullptr };
-  QLineEdit*           exprEdit_          { nullptr };
-  QTextEdit*           detailsText_       { nullptr };
-  CQChartsLoader*      loader_            { nullptr };
-  ViewP                view_;
-  WindowP              window_;
-  QString              id_;
-  CBBox2D              bbox_;
+  using ViewDatas = std::vector<ViewData>;
+
+ private:
+  Plots              plots_;
+  CQChartsPlot*      rootPlot_          { nullptr };
+  CQCharts*          charts_            { nullptr };
+  QLineEdit*         columnNumEdit_     { nullptr };
+  QLineEdit*         columnTypeEdit_    { nullptr };
+  QTabWidget*        viewTab_           { nullptr };
+  ViewDatas          viewDatas_;
+  QLineEdit*         exprEdit_          { nullptr };
+  CQChartsLoader*    loader_            { nullptr };
+  ViewP              view_;
+  WindowP            window_;
+  QString            id_;
+  CQChartsGeom::BBox bbox_;
 };
 
 #endif

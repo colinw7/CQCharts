@@ -332,7 +332,7 @@ initObjs()
         double sw = pixelToWindowWidth (symbolSize);
         double sh = pixelToWindowHeight(symbolSize);
 
-        CBBox2D bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
+        CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv);
@@ -432,7 +432,7 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontS
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
+CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect, const QPointF &p,
                         double symbolSize, const OptReal &fontSize, const OptReal &color,
                         int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
@@ -442,7 +442,7 @@ CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QP
 
 bool
 CQChartsScatterPointObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   double s = symbolSize_; // TODO: ensure not a crazy number
 
@@ -450,9 +450,9 @@ inside(const CPoint2D &p) const
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  CBBox2D pbbox(px - s, py - s, px + s, py + s);
+  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -461,7 +461,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsScatterPointObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -469,6 +469,13 @@ mousePress(const CPoint2D &)
   plot_->addSelectIndex(ind_.row(), plot_->yColumn());
 
   plot_->endSelect();
+}
+
+bool
+CQChartsScatterPointObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
 }
 
 void
@@ -480,16 +487,23 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QColor color;
 
   if (color_)
-    color = plot_->objectStateColor(this, plot_->interpPaletteColor(*color_, Qt::blue));
+    color = plot_->interpPaletteColor(*color_, Qt::blue);
   else
-    color = plot_->objectColor(this, i_, n_, Qt::blue);
+    color = plot_->paletteColor(i_, n_, Qt::blue);
+
+  QBrush brush(color);
+  QPen   pen  (plot_->symbolBorderColor());
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
 
   double px, py;
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  p->setPen  (plot_->symbolBorderColor());
-  p->setBrush(color);
+  p->setPen  (pen);
+  p->setBrush(brush);
 
   QRectF erect(px - s, py - s, 2*s, 2*s);
 
@@ -510,7 +524,7 @@ CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n) :
 
 bool
 CQChartsScatterKeyColor::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 

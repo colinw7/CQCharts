@@ -259,5 +259,6 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CExpr/include \
+../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \

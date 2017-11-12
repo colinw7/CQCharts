@@ -179,7 +179,7 @@ initObjs()
 
     QModelIndex xind1 = normalizeIndex(xind);
 
-    CBBox2D bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+    CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
     CQChartsDelaunayPointObj *pointObj =
       new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
@@ -304,8 +304,8 @@ drawVoronoi(QPainter *p)
 //------
 
 CQChartsDelaunayPointObj::
-CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CBBox2D &rect, double x, double y,
-                         const QModelIndex &ind, int i, int n) :
+CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
+                         double x, double y, const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
 {
 }
@@ -322,17 +322,20 @@ visible() const
 
 bool
 CQChartsDelaunayPointObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
+  if (! visible())
+    return false;
+
   double px, py;
 
   plot_->windowToPixel(x_, y_, px, py);
 
   double s = plot_->symbolSize();
 
-  CBBox2D pbbox(px - s, py - s, px + s, py + s);
+  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -341,7 +344,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsDelaunayPointObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -351,20 +354,35 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsDelaunayPointObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
+}
+
 void
 CQChartsDelaunayPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  if (plot_->isPoints()) {
-    QColor          c      = plot_->objectStateColor(this, plot_->pointsColor());
-    double          s      = plot_->symbolSize();
-    CSymbol2D::Type symbol = plot_->symbolType();
-    bool            filled = plot_->isSymbolFilled();
+  if (! visible())
+    return;
 
-    double px, py;
+  QColor          c      = plot_->pointsColor();
+  double          s      = plot_->symbolSize();
+  CSymbol2D::Type symbol = plot_->symbolType();
+  bool            filled = plot_->isSymbolFilled();
 
-    plot_->windowToPixel(x_, y_, px, py);
+  QBrush brush(Qt::NoBrush);
+  QPen   pen  (c);
 
-    CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
-  }
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  double px, py;
+
+  plot_->windowToPixel(x_, y_, px, py);
+
+  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, pen.color(), filled);
 }

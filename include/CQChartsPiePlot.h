@@ -6,7 +6,7 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsValueSet.h>
 
-#include <CPoint2D.h>
+#include <CQChartsGeom.h>
 
 #include <boost/optional.hpp>
 #include <string>
@@ -29,7 +29,7 @@ class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
-  CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, const QModelIndex &ind,
+  CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
                  int i, int n);
 
   double angle1() const { return angle1_; }
@@ -51,9 +51,11 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   //---
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -82,7 +84,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n);
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 };

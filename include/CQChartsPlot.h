@@ -3,8 +3,7 @@
 
 #include <CQChartsPlotParameter.h>
 
-#include <CRange2D.h>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 
 #include <QPointer>
 #include <QAbstractItemModel>
@@ -22,8 +21,8 @@ class CQChartsTitle;
 class CQChartsPlotObj;
 class CQChartsBoxObj;
 class CQPropertyViewModel;
-class CDisplayRange2D;
-class CDisplayTransform2D;
+class CQChartsDisplayRange;
+class CQChartsDisplayTransform;
 
 class CGradientPalette;
 class QSortFilterProxyModel;
@@ -225,20 +224,20 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  const CDisplayRange2D &displayRange() const;
-  void setDisplayRange(const CDisplayRange2D &r);
+  const CQChartsDisplayRange &displayRange() const;
+  void setDisplayRange(const CQChartsDisplayRange &r);
 
-  const CDisplayTransform2D &displayTransform() const;
-  void setDisplayTransform(const CDisplayTransform2D &t);
+  const CQChartsDisplayTransform &displayTransform() const;
+  void setDisplayTransform(const CQChartsDisplayTransform &t);
 
-  const CRange2D &dataRange() const { return dataRange_; }
-  void setDataRange(const CRange2D &r);
+  const CQChartsGeom::Range &dataRange() const { return dataRange_; }
+  void setDataRange(const CQChartsGeom::Range &r);
 
   double dataScale() const { return dataScale_; }
   void setDataScale(double r) { dataScale_ = r; }
 
-  const CPoint2D &dataOffset() const { return dataOffset_; }
-  void setDataOffset(const CPoint2D &o) { dataOffset_ = o; }
+  const CQChartsGeom::Point &dataOffset() const { return dataOffset_; }
+  void setDataOffset(const CQChartsGeom::Point &o) { dataOffset_ = o; }
 
   //---
 
@@ -328,8 +327,10 @@ class CQChartsPlot : public QObject {
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b) { showBoxes_ = b; update(); }
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &bbox);
+  //---
+
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &bbox);
 
   QRectF rect() const;
   void setRect(const QRectF &r);
@@ -357,6 +358,10 @@ class CQChartsPlot : public QObject {
 
     updateMargin();
   }
+
+  double aspect() const;
+
+  //---
 
   CQChartsAxis *xAxis() const { return xAxis_; }
   CQChartsAxis *yAxis() const { return yAxis_; }
@@ -435,6 +440,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  QModelIndex selectIndex(int row, int col, const QModelIndex &parent=QModelIndex()) const;
+
   void beginSelect();
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
@@ -445,11 +452,11 @@ class CQChartsPlot : public QObject {
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
-  void windowToPixel(const CPoint2D &w, CPoint2D &p) const;
-  void pixelToWindow(const CPoint2D &p, CPoint2D &w) const;
+  void windowToPixel(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
+  void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
 
-  void windowToPixel(const CBBox2D &wrect, CBBox2D &prect) const;
-  void pixelToWindow(const CBBox2D &prect, CBBox2D &wrect) const;
+  void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
+  void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
@@ -493,7 +500,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CBBox2D calcDataRange() const;
+  CQChartsGeom::BBox calcDataRange() const;
 
   void applyDataRange(bool propagate=true);
 
@@ -528,18 +535,18 @@ class CQChartsPlot : public QObject {
   //---
 
   // handle mouse press/move/release
-  virtual bool mousePress  (const CPoint2D &p);
-  virtual bool mouseMove   (const CPoint2D &p, bool first=false);
-  virtual void mouseRelease(const CPoint2D &p);
+  virtual bool mousePress  (const CQChartsGeom::Point &p);
+  virtual bool mouseMove   (const CQChartsGeom::Point &p, bool first=false);
+  virtual void mouseRelease(const CQChartsGeom::Point &p);
 
   // handle key press
   virtual void keyPress(int key);
 
   // get tip text at point
-  virtual bool tipText(const CPoint2D &p, QString &tip) const;
+  virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
   // handle mouse press in click zoom mode
-  virtual void clickZoom(const CPoint2D &p);
+  virtual void clickZoom(const CQChartsGeom::Point &p);
 
   //---
 
@@ -552,7 +559,7 @@ class CQChartsPlot : public QObject {
 
   virtual bool isClickZoom() const { return false; }
 
-  virtual void zoomTo(const CBBox2D &bbox);
+  virtual void zoomTo(const CQChartsGeom::BBox &bbox);
   virtual void zoomIn(double f=1.5);
   virtual void zoomOut(double f=1.5);
   virtual void zoomFull();
@@ -576,16 +583,16 @@ class CQChartsPlot : public QObject {
 
   QRectF calcRect() const;
 
-  CBBox2D calcPixelRect() const;
+  CQChartsGeom::BBox calcPixelRect() const;
 
   //---
 
   // auto fit
   virtual void autoFit();
 
-  void setFitBBox(const CBBox2D &bbox);
+  void setFitBBox(const CQChartsGeom::BBox &bbox);
 
-  CBBox2D fitBBox() const;
+  CQChartsGeom::BBox fitBBox() const;
 
   //---
 
@@ -621,16 +628,18 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  // debug draw (red boxes)
-  void drawWindowRedBox(QPainter *painter, const CBBox2D &bbox);
-
-  void drawRedBox(QPainter *painter, const CBBox2D &bbox);
+  void drawContrastText(QPainter *p, double x, double y, const QString &text, const QPen &pen);
 
   //---
 
-  QColor objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def=QColor(0,0,0)) const;
+  // debug draw (red boxes)
+  void drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
 
-  QColor objectStateColor(CQChartsPlotObj *obj, const QColor &c) const;
+  void drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
+
+  //---
+
+  void updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
 
   QColor insideColor(const QColor &c) const;
 
@@ -676,7 +685,7 @@ class CQChartsPlot : public QObject {
   using PlotObjs = std::vector<CQChartsPlotObj*>;
 
  protected:
-  void objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &objs) const;
+  void objsAtPoint(const CQChartsGeom::Point &p, std::list<CQChartsPlotObj *> &objs) const;
 
  protected:
   using RefPlots    = std::vector<CQChartsPlot*>;
@@ -691,47 +700,47 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsView*        view_                { nullptr };
-  CQChartsPlotType*    type_                { nullptr };
-  ModelP               model_;
-  SelectionModelP      selectionModel_;
-  QString              id_;
-  bool                 visible_             { true };
-  CBBox2D              bbox_                { 0, 0, 1, 1 };
-  Margin               margin_;
-  CDisplayRange2D*     displayRange_        { nullptr };
-  CDisplayTransform2D* displayTransform_    { nullptr };
-  CRange2D             dataRange_;
-  double               dataScale_           { 1.0 };
-  CPoint2D             dataOffset_          { 0.0, 0.0 };
-  OptReal              xmin_;
-  OptReal              ymin_;
-  OptReal              xmax_;
-  OptReal              ymax_;
-  CGradientPalette*    palette_             { nullptr };
-  CQChartsBoxObj*      borderObj_           { nullptr };
-  bool                 clip_                { true };
-  CQChartsBoxObj*      dataBorderObj_       { nullptr };
-  bool                 dataClip_            { false };
-  QString              title_;
-  QString              fileName_;
-  CQChartsAxis*        xAxis_               { nullptr };
-  CQChartsAxis*        yAxis_               { nullptr };
-  CQChartsKey*         keyObj_              { nullptr };
-  CQChartsTitle*       titleObj_            { nullptr };
-  int                  xValueColumn_        { -1 };
-  int                  yValueColumn_        { -1 };
-  bool                 equalScale_          { false };
-  bool                 followMouse_         { true };
-  bool                 showBoxes_           { false };
-  bool                 overlay_             { false };
-  OtherPlot            otherPlot_;
-  PlotObjs             plotObjs_;
-  void*                plotObjTree_         { nullptr };
-  MouseData            mouseData_;
-  LayerActive          layerActive_;
-  IdHidden             idHidden_;
-  QItemSelection       itemSelection_;
+  CQChartsView*             view_                { nullptr };
+  CQChartsPlotType*         type_                { nullptr };
+  ModelP                    model_;
+  SelectionModelP           selectionModel_;
+  QString                   id_;
+  bool                      visible_             { true };
+  CQChartsGeom::BBox        bbox_                { 0, 0, 1, 1 };
+  Margin                    margin_;
+  CQChartsDisplayRange*     displayRange_        { nullptr };
+  CQChartsDisplayTransform* displayTransform_    { nullptr };
+  CQChartsGeom::Range       dataRange_;
+  double                    dataScale_           { 1.0 };
+  CQChartsGeom::Point       dataOffset_          { 0.0, 0.0 };
+  OptReal                   xmin_;
+  OptReal                   ymin_;
+  OptReal                   xmax_;
+  OptReal                   ymax_;
+  CGradientPalette*         palette_             { nullptr };
+  CQChartsBoxObj*           borderObj_           { nullptr };
+  bool                      clip_                { true };
+  CQChartsBoxObj*           dataBorderObj_       { nullptr };
+  bool                      dataClip_            { false };
+  QString                   title_;
+  QString                   fileName_;
+  CQChartsAxis*             xAxis_               { nullptr };
+  CQChartsAxis*             yAxis_               { nullptr };
+  CQChartsKey*              keyObj_              { nullptr };
+  CQChartsTitle*            titleObj_            { nullptr };
+  int                       xValueColumn_        { -1 };
+  int                       yValueColumn_        { -1 };
+  bool                      equalScale_          { false };
+  bool                      followMouse_         { true };
+  bool                      showBoxes_           { false };
+  bool                      overlay_             { false };
+  OtherPlot                 otherPlot_;
+  PlotObjs                  plotObjs_;
+  void*                     plotObjTree_         { nullptr };
+  MouseData                 mouseData_;
+  LayerActive               layerActive_;
+  IdHidden                  idHidden_;
+  QItemSelection            itemSelection_;
 };
 
 #endif

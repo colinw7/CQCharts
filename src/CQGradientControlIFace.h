@@ -8,13 +8,16 @@
 
 class CQGradientControlPlot;
 class CQGradientControlColorType;
+class CQGradientControlColorModel;
 class CQGradientControlModel;
 class CQGradientControlDefinedColors;
 class CQRealSpin;
+
 class QStackedWidget;
 class QPushButton;
 class QLineEdit;
 class QCheckBox;
+class QLabel;
 class QGridLayout;
 
 // Controls for CGradientPalette customization
@@ -60,12 +63,15 @@ class CQGradientControlIFace : public QFrame {
 
  private slots:
   void colorTypeChanged(int);
+  void colorModelChanged(int);
 
   void modelChanged(int);
 
-  void rNegativeChecked(int state);
-  void gNegativeChecked(int state);
-  void bNegativeChecked(int state);
+  void modelRNegativeChecked(int state);
+  void modelGNegativeChecked(int state);
+  void modelBNegativeChecked(int state);
+
+  void modelRangeValueChanged(double v);
 
   void cubeNegativeChecked(int state);
 
@@ -79,23 +85,41 @@ class CQGradientControlIFace : public QFrame {
  private:
   QFrame *createColorTypeCombo(const QString &label, CQGradientControlColorType **type);
 
+  QFrame *createColorModelCombo(const QString &label, CQGradientControlColorModel **model);
+
   void createModelCombo(QGridLayout *grid, int row, const QString &label,
-                        CQGradientControlModel **model);
+                        QLabel **modelLabel, CQGradientControlModel **modelCombo);
 
   void createFunctionEdit(QGridLayout *grid, int row, const QString &label, QLineEdit **edit);
 
   void createRealEdit(QGridLayout *grid, int row, const QString &label, CQRealSpin **edit);
 
+  void createRealEdit(QGridLayout *grid, int row, int col, bool stretch,
+                      const QString &label, CQRealSpin **edit);
+
  private:
   CQGradientControlPlot*          palette_             { nullptr };
   CQGradientControlColorType*     colorType_           { nullptr };
+  CQGradientControlColorModel*    colorModel_          { nullptr };
   QStackedWidget*                 stack_               { nullptr };
-  CQGradientControlModel*         redModel_            { nullptr };
-  CQGradientControlModel*         greenModel_          { nullptr };
-  CQGradientControlModel*         blueModel_           { nullptr };
+  QLabel*                         redModelLabel_       { nullptr };
+  CQGradientControlModel*         redModelCombo_       { nullptr };
+  QLabel*                         greenModelLabel_     { nullptr };
+  CQGradientControlModel*         greenModelCombo_     { nullptr };
+  QLabel*                         blueModelLabel_      { nullptr };
+  CQGradientControlModel*         blueModelCombo_      { nullptr };
   QCheckBox*                      modelRNegativeCheck_ { nullptr };
   QCheckBox*                      modelGNegativeCheck_ { nullptr };
   QCheckBox*                      modelBNegativeCheck_ { nullptr };
+  QLabel*                         redMinMaxLabel_      { nullptr };
+  QLabel*                         greenMinMaxLabel_    { nullptr };
+  QLabel*                         blueMinMaxLabel_     { nullptr };
+  CQRealSpin*                     redMin_              { nullptr };
+  CQRealSpin*                     redMax_              { nullptr };
+  CQRealSpin*                     greenMin_            { nullptr };
+  CQRealSpin*                     greenMax_            { nullptr };
+  CQRealSpin*                     blueMin_             { nullptr };
+  CQRealSpin*                     blueMax_             { nullptr };
   QLineEdit*                      redFunction_         { nullptr };
   QLineEdit*                      greenFunction_       { nullptr };
   QLineEdit*                      blueFunction_        { nullptr };
@@ -119,6 +143,19 @@ class CQGradientControlColorType : public QComboBox {
   CGradientPalette::ColorType type() const;
 
   void setType(const CGradientPalette::ColorType &type);
+};
+
+//---
+
+class CQGradientControlColorModel : public QComboBox {
+  Q_OBJECT
+
+ public:
+  CQGradientControlColorModel(QWidget *parent=0);
+
+  CGradientPalette::ColorModel model() const;
+
+  void setModel(const CGradientPalette::ColorModel &model);
 };
 
 //---

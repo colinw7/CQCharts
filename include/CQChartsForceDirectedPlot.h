@@ -740,13 +740,13 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  bool mousePress  (const CPoint2D &p) override;
-  bool mouseMove   (const CPoint2D &p, bool first=false) override;
-  void mouseRelease(const CPoint2D &p) override;
+  bool mousePress  (const CQChartsGeom::Point &p) override;
+  bool mouseMove   (const CQChartsGeom::Point &p, bool first=false) override;
+  void mouseRelease(const CQChartsGeom::Point &p) override;
 
   void keyPress(int key) override;
 
-  bool tipText(const CPoint2D &p, QString &tip) const override;
+  bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
 
   //---
 

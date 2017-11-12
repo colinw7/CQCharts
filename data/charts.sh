@@ -80,8 +80,9 @@ CQChartsTest \
 
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
- -type bar -columns "name=0,value=1 2 3 4 5 6" -column_type "1#integer" -and \
- -csv ages.csv \
+ -type bar -columns "name=0,value=1 2 3 4 5 6" -column_type "1#integer" \
+-and \
+ -csv ages.csv -first_line_header \
  -type pie -columns "label=0,data=1" \
  -plot_title "bar chart and pie"
 
@@ -150,25 +151,25 @@ CQChartsTest \
 
 CQChartsTest \
  -csv spline_area.csv -comment_header \
-  -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
-  -xintegral -ymin 0 \
-  -plot_title "Spline Area Chart" \
-  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
+ -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
+ -xintegral -ymin 0 \
+ -plot_title "Spline Area Chart" \
+ -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv console.csv -comment_header \
-  -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
-  -plot_title "Pie Chart" \
-  -properties "labelRadius=1.2,startAngle=0.0" \
+ -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
+ -plot_title "Pie Chart" \
+ -properties "labelRadius=1.2,startAngle=0.0" \
 -and \
  -csv lines.csv -comment_header \
-  -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
-  -column_type "0#time:format=%Y%m%d,oformat=%b" \
-  -plot_title "Line Chart" \
-  -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
+ -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
+ -column_type "0#time:format=%Y%m%d,oformat=%b" \
+ -plot_title "Line Chart" \
+ -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv country_wise_population.csv -comment_header \
-  -type bar -columns "name=2,value=1" \
-  -plot_title "Column Chart"
+ -type bar -columns "name=2,value=1" \
+ -plot_title "Column Chart"
 
 CQChartsTest \
  -csv group.csv -comment_header \
@@ -412,3 +413,22 @@ CQChartsTest -overlay \
  -type barchart -where "layer:METAL3" -columns "value=2" \
 -and \
  -type barchart -where "layer:METAL4" -columns "value=2"
+
+##---
+
+@ year = 1850
+
+while ($year <= 2000)
+  CQChartsTest -overlay \
+   -csv population.csv -first_line_header -filter "sex:1,year:$year" \
+   -process "+key(@0,@0-@1)" -sort "4" \
+   -type barchart -columns "category=4,value=3,name=1" \
+   -properties "fill.color=blue,fill.alpha=0.5,Key.visible=0" \
+  -and \
+   -csv population.csv -first_line_header -filter "sex:2,year:$year" \
+   -process "+key(@0,@0-@1)" -sort "4" \
+   -type barchart -columns "category=4,value=3,name=1" \
+   -properties "fill.color=pink,fill.alpha=0.5"
+
+  @ year = $year + 10
+end

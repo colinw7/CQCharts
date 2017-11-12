@@ -103,7 +103,7 @@ updateRange(bool apply)
 
       //---
 
-      int setId = r;
+      int setId;
 
       if      (isInt) {
         bool ok1;
@@ -121,11 +121,11 @@ updateRange(bool apply)
         auto p = valueSet_.find(real);
 
         if (p == valueSet_.end()) {
-          int setId = valueSet_.size() + 1;
+          int setId1 = valueSet_.size() + 1;
 
-          p = valueSet_.insert(p, ValueSet::value_type(real, setId));
+          p = valueSet_.insert(p, ValueSet::value_type(real, setId1));
 
-          setValue_[setId] = real;
+          setValue_[setId1] = real;
         }
 
         setId = (*p).second;
@@ -138,11 +138,11 @@ updateRange(bool apply)
         auto p = nameSet_.find(s);
 
         if (p == nameSet_.end()) {
-          int setId = nameSet_.size() + 1;
+          int setId1 = nameSet_.size() + 1;
 
-          p = nameSet_.insert(p, NameSet::value_type(s, setId));
+          p = nameSet_.insert(p, NameSet::value_type(s, setId1));
 
-          setName_[setId] = s;
+          setName_[setId1] = s;
         }
 
         setId = (*p).second;
@@ -255,7 +255,7 @@ initObjs()
 
       //----
 
-      CBBox2D rect(pos - 0.10, whisker.lower(), pos + 0.10, whisker.upper());
+      CQChartsGeom::BBox rect(pos - 0.10, whisker.lower(), pos + 0.10, whisker.upper());
 
       CQChartsBoxPlotObj *boxObj = new CQChartsBoxPlotObj(this, rect, pos, whisker, i, n);
 
@@ -310,7 +310,7 @@ draw(QPainter *p)
 //------
 
 CQChartsBoxPlotObj::
-CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
+CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, double pos,
                    const CQChartsBoxPlotWhisker &whisker, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), i_(i), n_(n)
 {
@@ -318,7 +318,7 @@ CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
 
 void
 CQChartsBoxPlotObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -328,6 +328,18 @@ mousePress(const CPoint2D &)
   }
 
   plot_->endSelect();
+}
+
+bool
+CQChartsBoxPlotObj::
+isIndex(const QModelIndex &ind) const
+{
+  for (auto value : whisker_.values()) {
+    if (ind == value.ind)
+      return true;
+  }
+
+  return false;
 }
 
 void
@@ -348,24 +360,49 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(pos_ + 0.10, whisker_.upper (), px4, py4);
   plot_->windowToPixel(pos_ + 0.10, whisker_.max   (), px5, py5);
 
+  //---
+
+  // draw extent line
   p->setPen(QPen(QColor(0,0,0), 0.0, Qt::DashLine));
 
   p->drawLine(px3, py1, px3, py5);
 
+  //---
+
+  // draw lower/upper horizontal lines
   p->setPen(QPen(QColor(0,0,0), 0.0, Qt::SolidLine));
 
   p->drawLine(px2, py1, px4, py1);
   p->drawLine(px2, py5, px4, py5);
 
+  //---
+
+  // draw box
   QRectF rect(px2, py2, px4 - px2, py4 - py2);
 
-  QColor boxColor = plot_->objectColor(this, i_, n_, plot_->boxColor());
+  QColor boxColor = plot_->paletteColor(i_, n_, plot_->boxColor());
 
-  p->setBrush(boxColor);
+  QBrush brush(boxColor);
+  QPen   pen  (Qt::black);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  p->setBrush(brush);
+  p->setPen  (pen);
 
   CQRoundedPolygon::draw(p, rect, plot_->cornerRadius());
 
+  //---
+
+  // draw median line
+  p->setPen(QPen(QColor(0,0,0), 0.0, Qt::SolidLine));
+
   p->drawLine(px2, py3, px4, py3);
+
+  //---
+
+  // draw labels
+  p->setPen(QPen(QColor(0,0,0), 0.0, Qt::SolidLine));
 
   QString ustr = QString("%1").arg(whisker_.upper ());
   QString lstr = QString("%1").arg(whisker_.lower ());
@@ -378,6 +415,12 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   p->drawText(px4 + 2                 , py3 + yf, mstr);
   p->drawText(px4 + 2                 , py1 + yf, strl);
   p->drawText(px4 + 2                 , py5 + yf, strh);
+
+  //---
+
+  // draw whiskers
+  p->setBrush(brush);
+  p->setPen  (pen);
 
   for (auto o : whisker_.outliers()) {
     double px1, py1;
@@ -400,7 +443,7 @@ CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
 
 bool
 CQChartsBoxKeyColor::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 

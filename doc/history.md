@@ -129,3 +129,11 @@
  + Improve cross selection
 ## 11/9/2017
  + Fix hier bubble and tree map hier selection
+## 11/12/2017
+ + Import and Rename some classes to reduce dependencies
+ + Use common code to draw inside and selected state and add properties to customize
+ + Add filter support to Csv and Tsv readers
+ + Improve cross selection (view -> plot)
+ + Add Data Label to distribution plot
+ + Update aspect calc to work when plots tiled
+ + Update gradient calc to support HSV and range limits

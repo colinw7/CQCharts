@@ -4,7 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayRange.h>
 #include <QModelIndex>
 
 class CQChartsBubblePlot;
@@ -68,11 +68,13 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
 class CQChartsBubbleObj : public CQChartsPlotObj {
  public:
   CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
-                    const CBBox2D &rect, int i, int n);
+                    const CQChartsGeom::BBox &rect, int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -91,6 +93,8 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
 
   QString name() const override { return "bubble"; }
   QString desc() const override { return "Bubble"; }
+
+  void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -111,6 +115,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
  public:
   CQChartsBubblePlot(CQChartsView *view, const ModelP &model);
 
+ ~CQChartsBubblePlot();
+
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
@@ -120,8 +126,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
   double fontHeight() const { return fontHeight_; }
   void setFontHeight(double r) { fontHeight_ = r; update(); }
 
-  const CPoint2D &offset() const { return offset_; }
-  void setOffset(const CPoint2D &o) { offset_ = o; }
+  const CQChartsGeom::Point &offset() const { return offset_; }
+  void setOffset(const CQChartsGeom::Point &o) { offset_ = o; }
 
   double scale() const { return scale_; }
   void setScale(double r) { scale_ = r; }
@@ -148,14 +154,15 @@ class CQChartsBubblePlot : public CQChartsPlot {
   void loadChildren(const QModelIndex &index=QModelIndex());
 
  private:
-  int             nameColumn_  { 0 };
-  int             valueColumn_ { 1 };
-  CDisplayRange2D range_;
-  Nodes           nodes_;
-  Pack            pack_;
-  double          fontHeight_  { 6.0 };
-  CPoint2D        offset_      { 0, 0 };
-  double          scale_       { 1.0 };
+  int                  nameColumn_  { 0 };
+  int                  valueColumn_ { 1 };
+  CQChartsDisplayRange range_;
+  Nodes                nodes_;
+  Pack                 pack_;
+  double               fontHeight_  { 6.0 };
+  CQChartsGeom::Point  offset_      { 0, 0 };
+  double               scale_       { 1.0 };
+  int                  numColors_   { 1 };
 };
 
 #endif

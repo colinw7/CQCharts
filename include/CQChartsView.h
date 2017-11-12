@@ -2,7 +2,7 @@
 #define CQChartsView_H
 
 #include <QFrame>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 
 class CQCharts;
 class CQChartsPlot;
@@ -10,7 +10,7 @@ class CQChartsProbeBand;
 
 class CQPropertyViewModel;
 class CGradientPalette;
-class CDisplayRange2D;
+class CQChartsDisplayRange;
 class QToolButton;
 class QRubberBand;
 class QLabel;
@@ -18,20 +18,34 @@ class QLabel;
 class CQChartsView : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QString id             READ id             WRITE setId            )
-  Q_PROPERTY(QString title          READ title          WRITE setTitle         )
-  Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
-  Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
-  Q_PROPERTY(Mode    mode           READ mode           WRITE setMode          )
-  Q_PROPERTY(bool    zoomData       READ isZoomData     WRITE setZoomData      )
+  Q_PROPERTY(QString      id             READ id             WRITE setId            )
+  Q_PROPERTY(QString      title          READ title          WRITE setTitle         )
+  Q_PROPERTY(QColor       background     READ background     WRITE setBackground    )
+  Q_PROPERTY(int          currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(Mode         mode           READ mode           WRITE setMode          )
+  Q_PROPERTY(SelectedMode selectedMode   READ selectedMode   WRITE setSelectedMode  )
+  Q_PROPERTY(InsideMode   insideMode     READ insideMode     WRITE setInsideMode    )
+  Q_PROPERTY(bool         zoomData       READ isZoomData     WRITE setZoomData      )
 
   Q_ENUMS(Mode)
+  Q_ENUMS(SelectedMode)
+  Q_ENUMS(InsideMode)
 
  public:
   enum class Mode {
     SELECT,
     ZOOM,
     PROBE
+  };
+
+  enum class SelectedMode {
+    OUTLINE,
+    FILL
+  };
+
+  enum class InsideMode {
+    OUTLINE,
+    FILL
   };
 
  public:
@@ -66,6 +80,12 @@ class CQChartsView : public QFrame {
   const Mode &mode() const { return mode_; }
   void setMode(const Mode &m);
 
+  const SelectedMode &selectedMode() const { return selectedMode_; }
+  void setSelectedMode(const SelectedMode &mode) { selectedMode_ = mode; }
+
+  const InsideMode &insideMode() const { return insideMode_; }
+  void setInsideMode(const InsideMode &mode) { insideMode_ = mode; }
+
   bool isZoomData() const { return zoomData_; }
   void setZoomData(bool b) { zoomData_ = b; }
 
@@ -87,7 +107,7 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void addPlot(CQChartsPlot *plot, const CBBox2D &bbox=CBBox2D(0, 0, 1, 1));
+  void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(0, 0, 1, 1));
 
   int numPlots() const { return plotDatas_.size(); }
   CQChartsPlot *plot(int i) { return plotDatas_[i].plot; }
@@ -112,11 +132,11 @@ class CQChartsView : public QFrame {
 
   //---
 
-  CQChartsPlot *plotAt(const CPoint2D &p) const;
+  CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
 
-  bool plotsAt(const CPoint2D &p, Plots &plots) const;
+  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots) const;
 
-  CBBox2D plotBBox(CQChartsPlot *plot) const;
+  CQChartsGeom::BBox plotBBox(CQChartsPlot *plot) const;
 
   CQChartsPlot *currentPlot(bool remap=true) const;
 
@@ -129,13 +149,13 @@ class CQChartsView : public QFrame {
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
-  CPoint2D windowToPixel(const CPoint2D &w) const;
-  CPoint2D pixelToWindow(const CPoint2D &p) const;
+  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
+  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
 
-  CBBox2D windowToPixel(const CBBox2D &w) const;
-  CBBox2D pixelToWindow(const CBBox2D &p) const;
+  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
+  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
 
-  const CBBox2D prect() const { return prect_; }
+  const CQChartsGeom::BBox prect() const { return prect_; }
 
   double aspect() const { return aspect_; }
 
@@ -151,9 +171,9 @@ class CQChartsView : public QFrame {
  private:
   struct PlotData {
     CQChartsPlot *plot { nullptr };
-    CBBox2D       bbox;
+    CQChartsGeom::BBox       bbox;
 
-    PlotData(CQChartsPlot *plot, const CBBox2D &bbox) :
+    PlotData(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) :
      plot(plot), bbox(bbox) {
     }
   };
@@ -179,22 +199,24 @@ class CQChartsView : public QFrame {
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;
 
-  CQCharts*            charts_         { nullptr };
-  CDisplayRange2D*     displayRange_   { nullptr };
-  CGradientPalette*    palette_        { nullptr };
-  CQPropertyViewModel* propertyModel_  { nullptr };
-  QString              id_;
-  QString              title_;
-  QColor               background_     { 255, 255, 255 };
-  PlotDatas            plotDatas_;
-  int                  currentPlotInd_ { 0 };
-  Mode                 mode_           { Mode::SELECT };
-  bool                 zoomData_       { true };
-  CBBox2D              prect_          { 0, 0, 100, 100 };
-  double               aspect_         { 1.0 };
-  MouseData            mouseData_;
-  QRubberBand*         zoomBand_       { nullptr };
-  ProbeBands           probeBands_;
+  CQCharts*             charts_         { nullptr };
+  CQChartsDisplayRange* displayRange_   { nullptr };
+  CGradientPalette*     palette_        { nullptr };
+  CQPropertyViewModel*  propertyModel_  { nullptr };
+  QString               id_;
+  QString               title_;
+  QColor                background_     { 255, 255, 255 };
+  PlotDatas             plotDatas_;
+  int                   currentPlotInd_ { 0 };
+  Mode                  mode_           { Mode::SELECT };
+  SelectedMode          selectedMode_   { SelectedMode::OUTLINE };
+  InsideMode            insideMode_     { InsideMode::FILL };
+  bool                  zoomData_       { true };
+  CQChartsGeom::BBox    prect_          { 0, 0, 100, 100 };
+  double                aspect_         { 1.0 };
+  MouseData             mouseData_;
+  QRubberBand*          zoomBand_       { nullptr };
+  ProbeBands            probeBands_;
 };
 
 #endif

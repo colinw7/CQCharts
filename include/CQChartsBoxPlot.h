@@ -30,10 +30,12 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CBBox2D &rect, double pos,
+  CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, double pos,
                      const CQChartsBoxPlotWhisker &whisker, int i, int n);
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -55,7 +57,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n);
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 };

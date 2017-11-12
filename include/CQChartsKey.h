@@ -2,7 +2,7 @@
 #define CQChartsKey_H
 
 #include <CQChartsBoxObj.h>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 #include <QFont>
 #include <QPointF>
 #include <QSizeF>
@@ -90,8 +90,8 @@ class CQChartsKey : public CQChartsBoxObj {
   QString locationStr() const;
   void setLocationStr(const QString &s);
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &b) { bbox_ = b; }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
 
   //---
 
@@ -129,14 +129,14 @@ class CQChartsKey : public CQChartsBoxObj {
 
   void updateLayout();
 
-  bool contains(const CPoint2D &p) const;
+  bool contains(const CQChartsGeom::Point &p) const;
 
-  CQChartsKeyItem *getItemAt(const CPoint2D &p) const;
+  CQChartsKeyItem *getItemAt(const CQChartsGeom::Point &p) const;
 
   //---
 
-  virtual bool mousePress(const CPoint2D &) { return false; }
-  virtual bool mouseMove (const CPoint2D &) { return true; }
+  virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
+  virtual bool mouseMove (const CQChartsGeom::Point &) { return true; }
 
   //---
 
@@ -165,28 +165,28 @@ class CQChartsKey : public CQChartsBoxObj {
   using ColCell    = std::map<int,Cell>;
   using RowColCell = std::map<int,ColCell>;
 
-  CQChartsPlot*   plot_        { nullptr };
-  bool            visible_     { true };
-  Location        location_    { Location::TOP_RIGHT };
-  bool            insideX_     { true };
-  bool            insideY_     { true };
-  int             spacing_     { 2 };
-  QColor          textColor_;
-  QFont           textFont_;
-  Qt::Alignment   textAlign_   { Qt::AlignLeft | Qt::AlignVCenter };
-  bool            horizontal_  { false };
-  bool            above_       { true };
-  bool            flipped_     { false };
-  Items           items_;
-  int             maxRow_      { 0 };
-  int             maxCol_      { 0 };
-  bool            needsLayout_ { false };
-  QPointF         position_    { 0, 0 };
-  QSizeF          size_;
-  int             numRows_     { 0 };
-  int             numCols_     { 0 };
-  RowColCell      rowColCell_;
-  mutable CBBox2D bbox_;
+  CQChartsPlot*              plot_        { nullptr };
+  bool                       visible_     { true };
+  Location                   location_    { Location::TOP_RIGHT };
+  bool                       insideX_     { true };
+  bool                       insideY_     { true };
+  int                        spacing_     { 2 };
+  QColor                     textColor_;
+  QFont                      textFont_;
+  Qt::Alignment              textAlign_   { Qt::AlignLeft | Qt::AlignVCenter };
+  bool                       horizontal_  { false };
+  bool                       above_       { true };
+  bool                       flipped_     { false };
+  Items                      items_;
+  int                        maxRow_      { 0 };
+  int                        maxCol_      { 0 };
+  bool                       needsLayout_ { false };
+  QPointF                    position_    { 0, 0 };
+  QSizeF                     size_;
+  int                        numRows_     { 0 };
+  int                        numCols_     { 0 };
+  RowColCell                 rowColCell_;
+  mutable CQChartsGeom::BBox bbox_;
 };
 
 //------
@@ -216,25 +216,25 @@ class CQChartsKeyItem : public QObject {
   int colSpan() const { return colSpan_; }
   void setColSpan(int i) { colSpan_ = i; }
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &b) { bbox_ = b; }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
 
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
-  virtual bool mousePress(const CPoint2D &) { return false; }
-  virtual bool mouseMove (const CPoint2D &) { return false; }
+  virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
+  virtual bool mouseMove (const CQChartsGeom::Point &) { return false; }
 
-  virtual void draw(QPainter *p, const CBBox2D &rect) = 0;
+  virtual void draw(QPainter *p, const CQChartsGeom::BBox &rect) = 0;
 
  protected:
-  CQChartsKey*    key_     { nullptr };
-  int             row_     { 0 };
-  int             col_     { 0 };
-  int             rowSpan_ { 1 };
-  int             colSpan_ { 1 };
-  bool            inside_  { false };
-  mutable CBBox2D bbox_;
+  CQChartsKey*               key_     { nullptr };
+  int                        row_     { 0 };
+  int                        col_     { 0 };
+  int                        rowSpan_ { 1 };
+  int                        colSpan_ { 1 };
+  bool                       inside_  { false };
+  mutable CQChartsGeom::BBox bbox_;
 };
 
 //---
@@ -251,7 +251,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *p, const CBBox2D &rect) override;
+  void draw(QPainter *p, const CQChartsGeom::BBox &rect) override;
 
   virtual QColor textColor() const;
 
@@ -276,7 +276,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(QPainter *p, const CBBox2D &rect) override;
+  void draw(QPainter *p, const CQChartsGeom::BBox &rect) override;
 
   virtual QBrush fillBrush() const;
 

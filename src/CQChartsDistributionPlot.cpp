@@ -13,6 +13,13 @@
 CQChartsDistributionPlotType::
 CQChartsDistributionPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsDistributionPlotType::
+addParameters()
+{
   addColumnParameter("value", "Value", "valueColumn", "", 0);
 
   addRealParameter("start", "Start", "startValue", "", 0.0);
@@ -30,7 +37,7 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("distribution"), model)
+ CQChartsPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
 {
   borderObj_ = new CQChartsBoxObj;
   fillObj_   = new CQChartsFillObj;
@@ -39,7 +46,13 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
+  setBorder(true);
+
+  setLayerActive(Layer::FG, true);
+
   addAxes();
+
+  addKey();
 
   addTitle();
 }
@@ -76,6 +89,8 @@ addProperties()
   addProperty(fillStr, this, "barColor"  , "color"  );
   addProperty(fillStr, this, "barAlpha"  , "alpha"  );
   addProperty(fillStr, this, "barPattern", "pattern");
+
+  dataLabel_.addProperties("dataLabel");
 }
 
 //---
@@ -250,7 +265,7 @@ updateRange(bool apply)
     if (deltaValue() > 0.0)
       bucket = std::floor((value - startValue())/deltaValue());
 
-    ivalues_[bucket].emplace_back(valueInd1.row());
+    ivalues_[bucket].emplace_back(valueInd1);
 
     //---
 
@@ -321,12 +336,12 @@ initObjs()
     int           bucket = ivalue.first;
     const Values &values = ivalue.second;
 
-    CBBox2D bbox;
+    CQChartsGeom::BBox bbox;
 
     if (! isHorizontal())
-      bbox = CBBox2D(bucket - 0.5, 0, bucket + 0.5, values.size());
+      bbox = CQChartsGeom::BBox(bucket - 0.5, 0, bucket + 0.5, values.size());
     else
-      bbox = CBBox2D(0, bucket - 0.5, values.size(), bucket + 0.5);
+      bbox = CQChartsGeom::BBox(0, bucket - 0.5, values.size(), bucket + 0.5);
 
     CQChartsDistributionBarObj *barObj =
       new CQChartsDistributionBarObj(this, bbox, bucket, values, i, n);
@@ -369,6 +384,16 @@ initObjs()
     yAxis_->setLabel(valueName);
     xAxis_->setLabel("Count");
   }
+
+  //---
+
+  resetKeyItems();
+}
+
+void
+CQChartsDistributionPlot::
+addKeyItems(CQChartsKey *)
+{
 }
 
 void
@@ -382,41 +407,56 @@ draw(QPainter *p)
   drawParts(p);
 }
 
+void
+CQChartsDistributionPlot::
+drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
+{
+  dataLabel_.draw(p, qrect, ystr);
+}
+
 //------
 
 CQChartsDistributionBarObj::
-CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CBBox2D &rect,
+CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int bucket, const Values &values, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), bucket_(bucket), values_(values), i_(i), n_(n)
 {
 }
 
-bool
-CQChartsDistributionBarObj::
-inside(const CPoint2D &p) const
-{
-  CBBox2D bbox(bucket_ - 0.5, 0, bucket_ + 0.5, values_.size());
-
-  return bbox.inside(p);
-}
-
 void
 CQChartsDistributionBarObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
-  for (const auto &value : values_)
-    plot_->addSelectIndex(value, plot_->valueColumn());
+  for (const auto &value : values_) {
+    plot_->addSelectIndex(value);
+  }
 
   plot_->endSelect();
 }
 
+bool
+CQChartsDistributionBarObj::
+isIndex(const QModelIndex &ind) const
+{
+  for (const auto &value : values_) {
+    if (ind == value)
+      return true;
+  }
+
+  return false;
+}
+
 void
 CQChartsDistributionBarObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(QPainter *p, const CQChartsPlot::Layer &layer)
 {
-  CBBox2D bbox;
+  p->save();
+
+  //---
+
+  CQChartsGeom::BBox bbox;
 
   double m;
 
@@ -429,11 +469,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     m = m/2;
 
   if (! plot_->isHorizontal())
-    bbox = CBBox2D(bucket_ - 0.5 + m, 0, bucket_ + 0.5 - m, values_.size());
+    bbox = CQChartsGeom::BBox(bucket_ - 0.5 + m, 0, bucket_ + 0.5 - m, values_.size());
   else
-    bbox = CBBox2D(0, bucket_ - 0.5 + m, values_.size(), bucket_ + 0.5 - m);
+    bbox = CQChartsGeom::BBox(0, bucket_ - 0.5 + m, values_.size(), bucket_ + 0.5 - m);
 
-  CBBox2D pbbox;
+  CQChartsGeom::BBox pbbox;
 
   plot_->windowToPixel(bbox, pbbox);
 
@@ -441,38 +481,49 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  // set pen
-  QPen pen;
+  if (layer == CQChartsPlot::Layer::MID) {
+    // calc pen (stroke)
+    QPen pen;
 
-  if (plot_->isBorder()) {
-    pen.setColor(plot_->borderColor());
-    pen.setWidth(plot_->borderWidth());
+    if (plot_->isBorder()) {
+      pen.setColor(plot_->borderColor());
+      pen.setWidth(plot_->borderWidth());
+    }
+    else {
+      pen.setStyle(Qt::NoPen);
+    }
+
+    // calc brush (fill)
+    QBrush barBrush;
+
+    if (plot_->isBarFill()) {
+      QColor barColor = plot_->barColor(i_, n_);
+
+      barColor.setAlpha(plot_->barAlpha()*255);
+
+      barBrush.setColor(barColor);
+      barBrush.setStyle(CQChartsFillObj::patternToStyle(
+        (CQChartsFillObj::Pattern) plot_->barPattern()));
+    }
+    else {
+      barBrush.setStyle(Qt::NoBrush);
+    }
+
+    plot_->updateObjPenBrushState(this, pen, barBrush);
+
+    //---
+
+    // draw rect
+    p->setPen(pen);
+    p->setBrush(barBrush);
+
+    CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
   }
   else {
-    pen.setStyle(Qt::NoPen);
+    QString ystr = QString("%1").arg(values_.size());
+
+    plot_->drawDataLabel(p, qrect, ystr);
   }
 
-  p->setPen(pen);
-
-  // set fill
-  QBrush barBrush;
-
-  if (plot_->isBarFill()) {
-    QColor barColor = plot_->barColor(i_, n_);
-
-    barColor = plot_->objectStateColor(this, barColor);
-
-    barColor.setAlpha(plot_->barAlpha()*255);
-
-    barBrush.setColor(barColor);
-    barBrush.setStyle(CQChartsFillObj::patternToStyle(
-      (CQChartsFillObj::Pattern) plot_->barPattern()));
-  }
-  else {
-    barBrush.setStyle(Qt::NoBrush);
-  }
-
-  p->setBrush(barBrush);
-
-  CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
+  p->restore();
 }

@@ -16,12 +16,14 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CBBox2D &rect,
+  CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                           CQChartsSunburstNode *node);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &ind) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -385,7 +387,7 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
-  void drawNode(QPainter *p, CQChartsSunburstNode *node);
+  void drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node);
 
  private:
   void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index=QModelIndex(),

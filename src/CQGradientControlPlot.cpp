@@ -83,7 +83,7 @@ paintEvent(QPaintEvent *)
   windowToPixel(1.0, 1.0, px2, py2);
 
   bool   first = true;
-  double r1 = 0.0, g1 = 0.0, b1 = 0.0, m1 = 0.0, x1 = 0.0;
+//double r1 = 0.0, g1 = 0.0, b1 = 0.0, m1 = 0.0, x1 = 0.0;
 
   for (double x = px1; x <= px2; x += 1.0) {
     double wx, wy;
@@ -93,37 +93,38 @@ paintEvent(QPaintEvent *)
     QColor c = gradientPalette()->getColor(wx);
 
     double x2 = wx;
-    double r2 = c.redF  ();
-    double g2 = c.greenF();
-    double b2 = c.blueF ();
-    double m2 = qGray(r2*255, g2*255, b2*255)/255.0;
+
+    double r2 = 0.0, g2 = 0.0, b2 = 0.0, m2 = 0.0;
+
+    if (gradientPalette()->colorModel() == CGradientPalette::ColorModel::HSV) {
+      r2 = c.hueF       ();
+      g2 = c.saturationF();
+      b2 = c.valueF     ();
+      m2 = c.valueF     ();
+    }
+    else {
+      r2 = c.redF  ();
+      g2 = c.greenF();
+      b2 = c.blueF ();
+      m2 = qGray(r2*255, g2*255, b2*255)/255.0;
+    }
 
     double px, py;
 
     if (first) {
-      windowToPixel(x1, r1, px, py); redPath  .moveTo(px, py);
-      windowToPixel(x1, g1, px, py); greenPath.moveTo(px, py);
-      windowToPixel(x1, b1, px, py); bluePath .moveTo(px, py);
-      windowToPixel(x1, m1, px, py); blackPath.moveTo(px, py);
+      windowToPixel(x2, r2, px, py); redPath  .moveTo(px, py);
+      windowToPixel(x2, g2, px, py); greenPath.moveTo(px, py);
+      windowToPixel(x2, b2, px, py); bluePath .moveTo(px, py);
+      windowToPixel(x2, m2, px, py); blackPath.moveTo(px, py);
+    }
+    else {
+      windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
+      windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
+      windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
+      windowToPixel(x2, m2, px, py); blackPath.lineTo(px, py);
     }
 
-    windowToPixel(x2, r2, px, py); redPath  .lineTo(px, py);
-    windowToPixel(x2, g2, px, py); greenPath.lineTo(px, py);
-    windowToPixel(x2, b2, px, py); bluePath .lineTo(px, py);
-    windowToPixel(x2, m2, px, py); blackPath.lineTo(px, py);
-
-    //if (! first) {
-    //  drawLine(&painter, x1, r1, x2, r2, redPen  );
-    //  drawLine(&painter, x1, g1, x2, g2, greenPen);
-    //  drawLine(&painter, x1, b1, x2, b2, bluePen );
-    //  drawLine(&painter, x1, m1, x2, m2, blackPen);
-    //}
-
-    x1 = x2;
-    r1 = r2;
-    g1 = g2;
-    b1 = b2;
-    m1 = m2;
+//  x1 = x2; r1 = r2; g1 = g2; b1 = b2; m1 = m2;
 
     first = false;
   }
@@ -172,9 +173,16 @@ paintEvent(QPaintEvent *)
       double x  = c.first;
       QColor c1 = c.second;
 
-      drawSymbol(&painter, x, c1.redF  (), redPen  );
-      drawSymbol(&painter, x, c1.greenF(), greenPen);
-      drawSymbol(&painter, x, c1.blueF (), bluePen );
+      if (gradientPalette()->colorModel() == CGradientPalette::ColorModel::HSV) {
+        drawSymbol(&painter, x, c1.hueF       (), redPen  );
+        drawSymbol(&painter, x, c1.saturationF(), greenPen);
+        drawSymbol(&painter, x, c1.valueF     (), bluePen );
+      }
+      else {
+        drawSymbol(&painter, x, c1.redF  (), redPen  );
+        drawSymbol(&painter, x, c1.greenF(), greenPen);
+        drawSymbol(&painter, x, c1.blueF (), bluePen );
+      }
     }
   }
 }
@@ -200,6 +208,14 @@ drawAxis(QPainter *painter)
 
   painter->drawLine(QPointF(px1, py1), QPointF(px1 - 4, py1));
   painter->drawLine(QPointF(px1, py2), QPointF(px1 - 4, py2));
+
+  QFontMetrics fm(font());
+
+  int tw  = fm.width("X.X");
+  int dty = (fm.ascent() - fm.descent())/2;
+
+  painter->drawText(QPointF(px1 - tw - 4, py1 + dty), "0.0");
+  painter->drawText(QPointF(px1 - tw - 4, py2 + dty), "1.0");
 }
 
 void

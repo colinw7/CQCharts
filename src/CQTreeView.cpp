@@ -44,6 +44,17 @@ customContextMenuSlot(const QPoint &pos)
 
   QMenu *menu = new QMenu;
 
+  addMenuActions(menu);
+
+  menu->exec(mpos);
+
+  delete menu;
+}
+
+void
+CQTreeView::
+addMenuActions(QMenu *menu)
+{
   QAction *expandAction   = new QAction("Expand All"  , menu);
   QAction *collapseAction = new QAction("Collapse All", menu);
 
@@ -52,10 +63,6 @@ customContextMenuSlot(const QPoint &pos)
 
   menu->addAction(expandAction);
   menu->addAction(collapseAction);
-
-  menu->exec(mpos);
-
-  delete menu;
 }
 
 void

@@ -4,7 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayRange.h>
 #include <QModelIndex>
 
 class CQChartsHierBubblePlot;
@@ -127,11 +127,12 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
  public:
   CQChartsHierBubbleHierObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
-                            CQChartsHierBubbleHierObj *hierObj, const CBBox2D &rect, int i, int n);
+                            CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                            int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void clickZoom(const CPoint2D &p) override;
+  void clickZoom(const CQChartsGeom::Point &p) override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -150,13 +151,14 @@ class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
 class CQChartsHierBubbleObj : public CQChartsPlotObj {
  public:
   CQChartsHierBubbleObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
-                        CQChartsHierBubbleHierObj *hierObj, const CBBox2D &rect, int i, int n);
+                        CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                        int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void clickZoom(const CPoint2D &p) override;
+  void clickZoom(const CQChartsGeom::Point &p) override;
 
-  void mousePress(const CPoint2D &p) override;
+  void mousePress(const CQChartsGeom::Point &p) override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -178,6 +180,8 @@ class CQChartsHierBubblePlotType : public CQChartsPlotType {
 
   QString name() const override { return "hierbubble"; }
   QString desc() const override { return "HierBubble"; }
+
+  void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -225,8 +229,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   //---
 
-  const CPoint2D &offset() const { return offset_; }
-  void setOffset(const CPoint2D &o) { offset_ = o; }
+  const CQChartsGeom::Point &offset() const { return offset_; }
+  void setOffset(const CQChartsGeom::Point &o) { offset_ = o; }
 
   double scale() const { return scale_; }
   void setScale(double r) { scale_ = r; }
@@ -299,13 +303,13 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
  private:
   int                         nameColumn_  { 0 };
   int                         valueColumn_ { 1 };
-  CDisplayRange2D             range_;
+  CQChartsDisplayRange        range_;
   CQChartsHierBubbleHierNode* root_        { nullptr };
   CQChartsHierBubbleHierNode* firstHier_   { nullptr };
   CQChartsHierBubbleHierNode* currentRoot_ { nullptr };
   QString                     separator_   { "/" };
   double                      fontHeight_  { 9.0 };
-  CPoint2D                    offset_      { 0, 0 };
+  CQChartsGeom::Point         offset_      { 0, 0 };
   double                      scale_       { 1.0 };
   int                         maxDepth_    { 1 };
   int                         maxColorId_  { 0 };

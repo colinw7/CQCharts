@@ -4,7 +4,7 @@
 #include <QColor>
 #include <QFont>
 #include <CLineDash.h>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 
 #include <sys/types.h>
 
@@ -292,8 +292,8 @@ class CQChartsAxis : public QObject {
 
   QString valueStr(double pos) const;
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &b) { bbox_ = b; redraw(); }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; redraw(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path);
 
@@ -337,58 +337,58 @@ class CQChartsAxis : public QObject {
   using TickSpaces = std::vector<double>;
   using TickLabels = std::map<int,QString>;
 
-  CQChartsPlot*          plot_                { nullptr };
+  CQChartsPlot*              plot_                { nullptr };
 
   // general
-  bool                   visible_             { true };
-  Direction              direction_           { Direction::HORIZONTAL };
-  Side                   side_                { Side::BOTTOM_LEFT };
-  bool                   integral_            { false };
-  bool                   dataLabels_          { false };
-  int                    column_              { -1 };
+  bool                       visible_             { true };
+  Direction                  direction_           { Direction::HORIZONTAL };
+  Side                       side_                { Side::BOTTOM_LEFT };
+  bool                       integral_            { false };
+  bool                       dataLabels_          { false };
+  int                        column_              { -1 };
 
   // label
-  bool                   labelDisplayed_      { true };
-  CQChartsAxisLabel*     label_               { nullptr };
+  bool                       labelDisplayed_      { true };
+  CQChartsAxisLabel*         label_               { nullptr };
 
   // line
-  CQChartsLineObj*       lineObj_;
+  CQChartsLineObj*           lineObj_;
 
   // grid (lines and gap fill)
-  bool                   gridAbove_           { false };
-  CQChartsLineObj*       gridLineObj_;
-  CQChartsFillObj*       gridFill_;
+  bool                       gridAbove_           { false };
+  CQChartsLineObj*           gridLineObj_;
+  CQChartsFillObj*           gridFill_;
 
   // ticks
-  bool                   minorTicksDisplayed_ { true };
-  bool                   majorTicksDisplayed_ { true };
-  int                    minorTickLen_        { 4 };
-  int                    majorTickLen_        { 8 };
-  bool                   tickInside_          { false };
-  bool                   mirrorTicks_         { false };
+  bool                       minorTicksDisplayed_ { true };
+  bool                       majorTicksDisplayed_ { true };
+  int                        minorTickLen_        { 4 };
+  int                        majorTickLen_        { 8 };
+  bool                       tickInside_          { false };
+  bool                       mirrorTicks_         { false };
 
   // tick label
-  bool                   tickLabelDisplayed_ { true };
-  CQChartsAxisTickLabel *tickLabel_          { nullptr };
-  bool                   tickLabelAutoHide_  { false };
+  bool                       tickLabelDisplayed_ { true };
+  CQChartsAxisTickLabel*     tickLabel_          { nullptr };
+  bool                       tickLabelAutoHide_  { false };
 
   // state
-  double                 start_               { 0.0 };
-  double                 end_                 { 1.0 };
-  double                 start1_              { 0 };
-  double                 end1_                { 1 };
-  uint                   numMajorTicks_       { 1 };
-  uint                   numMinorTicks_       { 0 };
-  uint                   tickIncrement_       { 0 };
-  double                 majorIncrement_      { 0 };
-  TickSpaces             tickSpaces_;
-  TickLabels             tickLabels_;
-  OptReal                pos_;
-  mutable CBBox2D        bbox_;
+  double                     start_               { 0.0 };
+  double                     end_                 { 1.0 };
+  double                     start1_              { 0 };
+  double                     end1_                { 1 };
+  uint                       numMajorTicks_       { 1 };
+  uint                       numMinorTicks_       { 0 };
+  uint                       tickIncrement_       { 0 };
+  double                     majorIncrement_      { 0 };
+  TickSpaces                 tickSpaces_;
+  TickLabels                 tickLabels_;
+  OptReal                    pos_;
+  mutable CQChartsGeom::BBox bbox_;
 
-  mutable double         lmin_ { INT_MAX };
-  mutable double         lmax_ { INT_MIN };
-  mutable CBBox2D        lastTickLabelRect_;
+  mutable double             lmin_ { INT_MAX };
+  mutable double             lmax_ { INT_MIN };
+  mutable CQChartsGeom::BBox lastTickLabelRect_;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <memory>
 #include <map>
 
 #include <boost/optional.hpp>
@@ -31,6 +32,10 @@ class CJson {
   //---
 
   // Json Value base class
+  class Value;
+
+  typedef std::shared_ptr<Value> ValueP;
+
   class Value {
    public:
     Value(CJson *json, ValueType type) : json_(json), type_(type) { }
@@ -62,7 +67,7 @@ class CJson {
 
     virtual std::string indexKey(uint i) { assert(i == 0); return ""; }
 
-    virtual Value *indexValue(uint i) { assert(i == 0); return this; }
+    virtual ValueP indexValue(uint i) { assert(i == 0); return ValueP(); }
 
     //---
 
@@ -111,6 +116,8 @@ class CJson {
     Value*    parent_ { nullptr };
     ValueType type_   { ValueType::VALUE_NONE };
   };
+
+  typedef std::vector<ValueP> Values;
 
   //---
 
@@ -259,19 +266,16 @@ class CJson {
   // Json Object (name/value map)
   class Object : public Value {
    public:
-    typedef std::map<std::string,Value *>  NameValueMap;
-    typedef std::pair<std::string,Value *> NameValue;
-    typedef std::vector<NameValue>         NameValueArray;
+    typedef std::map<std::string,ValueP>  NameValueMap;
+    typedef std::pair<std::string,ValueP> NameValue;
+    typedef std::vector<NameValue>        NameValueArray;
 
    public:
     Object(CJson *json) :
      Value(json, ValueType::VALUE_OBJECT) {
     }
 
-   ~Object() {
-      for (auto &nv : nameValueArray_)
-        delete nv.second;
-    }
+   ~Object() { }
 
     //---
 
@@ -284,7 +288,7 @@ class CJson {
         names.push_back(nv.first);
     }
 
-    void getValues(std::vector<Value *> &values) {
+    void getValues(Values &values) {
       for (const auto &nv : nameValueArray_)
         values.push_back(nv.second);
     }
@@ -295,7 +299,7 @@ class CJson {
       return (p != nameValueMap_.end());
     }
 
-    void setNamedValue(const std::string &name, Value *value) {
+    void setNamedValue(const std::string &name, const ValueP &value) {
       auto p = nameValueMap_.find(name);
 
       if (p == nameValueMap_.end())
@@ -304,7 +308,7 @@ class CJson {
       nameValueArray_.emplace_back(name, value);
     }
 
-    bool getNamedValue(const std::string &name, Value *&value) const {
+    bool getNamedValue(const std::string &name, ValueP &value) const {
       auto p = nameValueMap_.find(name);
 
       if (p == nameValueMap_.end())
@@ -317,7 +321,7 @@ class CJson {
 
     template<typename T>
     bool getNamedValueT(const std::string &name, T *&t) const {
-      Value *value;
+      ValueP value;
 
       if (! getNamedValue(name, value))
         return false;
@@ -330,7 +334,7 @@ class CJson {
       return true;
     }
 
-    bool indexNameValue(uint i, std::string &name, Value* &value) const {
+    bool indexNameValue(uint i, std::string &name, ValueP &value) const {
       if (i >= nameValueArray_.size())
         return false;
 
@@ -358,7 +362,7 @@ class CJson {
       return nameValueArray_[i].first;
     }
 
-    Value *indexValue(uint i) override {
+    ValueP indexValue(uint i) override {
       assert(i < numValues());
 
       return nameValueArray_[i].second;
@@ -390,29 +394,23 @@ class CJson {
   // Json Array
   class Array : public Value {
    public:
-    typedef std::vector<Value *> Values;
-
-   public:
     Array(CJson *json) :
      Value(json, ValueType::VALUE_ARRAY) {
     }
 
-   ~Array() {
-      for (auto &v : values_)
-        delete v;
-    }
+   ~Array() { }
 
     //---
 
     const Values &values() const { return values_; }
 
-    void addValue(Value *value) {
+    void addValue(const ValueP &value) {
       values_.push_back(value);
     }
 
     uint size() const { return values_.size(); }
 
-    Value *at(uint i) const { return values_[i]; }
+    ValueP at(uint i) const { return values_[i]; }
 
     template<typename T>
     T *atT(uint i) const {
@@ -433,7 +431,7 @@ class CJson {
 
     std::string indexKey(uint) override { return ""; }
 
-    Value *indexValue(uint i) override {
+    ValueP indexValue(uint i) override {
       assert(i < numValues());
 
       return values_[i];
@@ -456,6 +454,8 @@ class CJson {
   //------
 
   CJson();
+
+ ~CJson();
 
   //---
 
@@ -485,12 +485,12 @@ class CJson {
   //---
 
   // load file and return root value
-  bool loadFile(const std::string &filename, Value *&value);
+  bool loadFile(const std::string &filename, ValueP &value);
 
   // load file and return typed root value
   template<typename T>
   bool loadFileT(const std::string &filename, T *&value) {
-    Value *value1;
+    ValueP value1;
 
     if (! loadFile(filename.c_str(), value1))
       return false;
@@ -504,17 +504,17 @@ class CJson {
   }
 
   // load string and return root value
-  bool loadString(const std::string &filename, Value *&value);
+  bool loadString(const std::string &filename, ValueP &value);
 
   //---
 
   template<typename FUNC>
-  void processNodes(const Value *value, const FUNC &f) {
+  void processNodes(const ValueP value, const FUNC &f) {
     return processNameNodes(OptString(), value, 0, f);
   }
 
   template<typename FUNC>
-  void processNameNodes(const OptString &name, const Value *value, int depth, const FUNC &f) {
+  void processNameNodes(const OptString &name, const ValueP value, int depth, const FUNC &f) {
     if (! f(name, value, depth))
       return;
 
@@ -562,9 +562,9 @@ class CJson {
    *
    *  e.g. "head/[1:3]/{name1,name2}/?
    */
-  bool matchValues(Value *value, const std::string &match, Array::Values &values);
+  bool matchValues(const ValueP &value, const std::string &match, Values &values);
 
-  bool matchValues(Value *value, int i, const std::string &match, Array::Values &values);
+  bool matchValues(const ValueP &value, int i, const std::string &match, Values &values);
 
   //---
 
@@ -604,7 +604,7 @@ class CJson {
   bool readArray(CStrParse &parse, Array *&array);
 
   // read value at file pos
-  bool readValue(CStrParse &parse, Value *&value);
+  bool readValue(CStrParse &parse, ValueP &value);
 
   bool readLine(FILE *fp, std::string &line);
 
@@ -645,20 +645,19 @@ class CJson {
 
   //------
 
-  bool matchObject(Value *value, const std::string &match, Value* &value1);
+  bool matchObject(const ValueP &value, const std::string &match, ValueP &value1);
 
-  bool matchArray(Value *value, const std::string &lhs, const std::string &rhs,
-                  Array::Values &values);
-  bool matchList(Value *value, int ind, const std::string &lhs, const std::string &rhs,
-                 Array::Values &values);
+  bool matchArray(const ValueP &value, const std::string &lhs, const std::string &rhs,
+                  Values &values);
+  bool matchList(const ValueP &value, int ind, const std::string &lhs, const std::string &rhs,
+                 Values &values);
 
-  bool matchHier(Value *value, int ind, const std::string &lhs, const std::string &rhs,
-                 Array::Values &values);
-  bool matchHier1(Value *value, int ind, const std::string &lhs, const std::string &rhs,
-                  const std::vector<std::string> &keys, Array::Values &ivalues,
-                  Array::Values &values);
+  bool matchHier(const ValueP &value, int ind, const std::string &lhs, const std::string &rhs,
+                 Values &values);
+  bool matchHier1(const ValueP &value, int ind, const std::string &lhs, const std::string &rhs,
+                  const std::vector<std::string> &keys, Values &ivalues, Values &values);
 
-  String *hierValuesToKey(const Array::Values &values, const Array::Values &kvalues);
+  String *hierValuesToKey(const Values &values, const Values &kvalues);
 
   //------
 
@@ -673,11 +672,11 @@ class CJson {
   //------
 
  private:
-  bool strict_       = false;
-  bool debug_        = false;
-  bool quiet_        = false;
-  bool printFlat_    = false;
-  bool stringToReal_ = false;
+  bool strict_       { false };
+  bool debug_        { false };
+  bool quiet_        { false };
+  bool printFlat_    { false };
+  bool stringToReal_ { false };
 };
 
 #endif

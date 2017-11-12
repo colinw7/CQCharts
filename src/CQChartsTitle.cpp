@@ -102,7 +102,7 @@ calcSize()
 
 bool
 CQChartsTitle::
-contains(const CPoint2D &p) const
+contains(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
     return false;
@@ -135,16 +135,16 @@ draw(QPainter *p)
   double w = size_.width ();
   double h = size_.height();
 
-  bbox_ = CBBox2D(x, y, x + w, y + h);
+  bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
 
   double xp = plot_->pixelToWindowWidth (padding());
   double yp = plot_->pixelToWindowHeight(padding());
 
-  CBBox2D ibbox = CBBox2D(x + xp, y + yp, x + w - xp, y + h - yp);
+  CQChartsGeom::BBox ibbox = CQChartsGeom::BBox(x + xp, y + yp, x + w - xp, y + h - yp);
 
   //---
 
-  CBBox2D prect, pirect;
+  CQChartsGeom::BBox prect, pirect;
 
   plot_->windowToPixel(bbox_, prect);
   plot_->windowToPixel(ibbox, pirect);

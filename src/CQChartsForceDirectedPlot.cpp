@@ -300,7 +300,7 @@ animateSlot()
 
 bool
 CQChartsForceDirectedPlot::
-mousePress(const CPoint2D &p)
+mousePress(const CQChartsGeom::Point &p)
 {
   Springy::NodePoint nodePoint = forceDirected_.nearest(Springy::Vector(p.x, p.y));
 
@@ -316,7 +316,7 @@ mousePress(const CPoint2D &p)
 
 bool
 CQChartsForceDirectedPlot::
-mouseMove(const CPoint2D &p, bool first)
+mouseMove(const CQChartsGeom::Point &p, bool first)
 {
   if (pressed_) {
     if (forceDirected_.currentPoint())
@@ -338,7 +338,7 @@ mouseMove(const CPoint2D &p, bool first)
 
 void
 CQChartsForceDirectedPlot::
-mouseRelease(const CPoint2D &p)
+mouseRelease(const CQChartsGeom::Point &p)
 {
   if (forceDirected_.currentPoint())
     forceDirected_.currentPoint()->setP(Springy::Vector(p.x, p.y));
@@ -363,7 +363,7 @@ keyPress(int key)
 
 bool
 CQChartsForceDirectedPlot::
-tipText(const CPoint2D &p, QString &tip) const
+tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
   if (! isRunning()) {
     Springy::NodePoint nodePoint = forceDirected_.nearest(Springy::Vector(p.x, p.y));

@@ -66,11 +66,13 @@ class CQChartsAdjacencyPlot;
 class CQChartsAdjacencyObj : public CQChartsPlotObj {
  public:
   CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                       CQChartsAdjacencyNode *node2, int value, const CBBox2D &rect);
+                       CQChartsAdjacencyNode *node2, int value, const CQChartsGeom::BBox &rect);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 

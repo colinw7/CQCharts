@@ -58,7 +58,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
   double b1 = CQChartsBoxObj::margin();
   double b2 = CQChartsBoxObj::padding();
 
-  double b = b1 + b2;
+  //double b = b1 + b2;
 
   if (CQChartsUtil::isZero(angle())) {
     double tw = fm.width(ystr);
@@ -67,19 +67,19 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
 
     if      (position() == Position::TOP_INSIDE) {
       x = qrect.center().x();
-      y = qrect.top() + fm.ascent() + ym;
+      y = qrect.top() + fm.ascent() + ym + b2;
     }
     else if (position() == Position::TOP_OUTSIDE) {
       x = qrect.center().x();
-      y = qrect.top() - fm.descent() - ym;
+      y = qrect.top() - fm.descent() - ym - b2;
     }
     else if (position() == Position::BOTTOM_INSIDE) {
       x = qrect.center().x();
-      y = qrect.bottom() - fm.descent() - ym;
+      y = qrect.bottom() - fm.descent() - ym - b2;
     }
     else if (position() == Position::BOTTOM_OUTSIDE) {
       x = qrect.center().x();
-      y = qrect.bottom() + fm.ascent() + ym;
+      y = qrect.bottom() + fm.ascent() + ym + b2;
     }
     else if (position() == Position::CENTER) {
       x = qrect.center().x();
@@ -101,7 +101,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
       }
     }
 
-    QRectF brect(x - tw/2 - b, y - fm.ascent() - b, tw + 2*b, fm.height() + 2*b);
+    QRectF brect(x - tw/2 - b1, y - fm.ascent() - b1, tw + 2*b1, fm.height() + 2*b1);
 
     CQChartsBoxObj::draw(p, brect);
 

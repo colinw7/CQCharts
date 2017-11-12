@@ -71,7 +71,7 @@ updateRange(bool apply)
   double yr = r;
 
   if (isEqualScale()) {
-    double aspect = view()->aspect();
+    double aspect = this->aspect();
 
     if (aspect > 1.0)
       xr *= aspect;
@@ -272,7 +272,7 @@ initObjs()
 
     double total1 = data.total();
 
-    CBBox2D rect(-1, -1, 1, 1);
+    CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
     CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, r, nv);
 
@@ -308,7 +308,7 @@ draw(QPainter *p)
 //------
 
 CQChartsChordObj::
-CQChartsChordObj(CQChartsChordPlot *plot, const CBBox2D &rect,
+CQChartsChordObj(CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
                  const CQChartsChordData &data, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), data_(data), i_(i), n_(n)
 {
@@ -316,7 +316,7 @@ CQChartsChordObj(CQChartsChordPlot *plot, const CBBox2D &rect,
 
 bool
 CQChartsChordObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   double r = std::hypot(p.x, p.y);
 
@@ -353,7 +353,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsChordObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -365,12 +365,19 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsChordObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == data_.ind());
+}
+
 void
 CQChartsChordObj::
 draw(QPainter *p, const CQChartsPlot::Layer &layer)
 {
   // calc inner outer arc rectangles
-  CPoint2D po1, po2, pi1, pi2;
+  CQChartsGeom::Point po1, po2, pi1, pi2;
 
   double ro = 1.0;
   double ri = plot_->innerRadius();
@@ -378,14 +385,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
   if (ri < 0.0 || ri > 1.0)
     ri = 0.9;
 
-  plot_->windowToPixel(CPoint2D(-ro, -ro), po1);
-  plot_->windowToPixel(CPoint2D( ro,  ro), po2);
-  plot_->windowToPixel(CPoint2D(-ri, -ri), pi1);
-  plot_->windowToPixel(CPoint2D( ri,  ri), pi2);
+  plot_->windowToPixel(CQChartsGeom::Point(-ro, -ro), po1);
+  plot_->windowToPixel(CQChartsGeom::Point( ro,  ro), po2);
+  plot_->windowToPixel(CQChartsGeom::Point(-ri, -ri), pi1);
+  plot_->windowToPixel(CQChartsGeom::Point( ri,  ri), pi2);
 
-  CPoint2D pc;
+  CQChartsGeom::Point pc;
 
-  plot_->windowToPixel(CPoint2D(0, 0), pc);
+  plot_->windowToPixel(CQChartsGeom::Point(0, 0), pc);
 
   QRectF orect(CQChartsUtil::toQPoint(po1), CQChartsUtil::toQPoint(po2));
   QRectF irect(CQChartsUtil::toQPoint(pi1), CQChartsUtil::toQPoint(pi2));
@@ -409,7 +416,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     path.closeSubpath();
 
-    p->setPen(borderColor);
+    //---
+
+    QPen pen(borderColor);
 
     double gval = data_.group().value;
 
@@ -423,10 +432,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     else
       fromColor = plot_->paletteColor(i(), n());
 
-    if (isInside())
-      p->setBrush(plot_->insideColor(fromColor));
-    else
-      p->setBrush(fromColor);
+    QBrush brush(fromColor);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    //---
+
+    p->setPen  (pen);
+    p->setBrush(brush);
 
     p->drawPath(path);
 
@@ -490,14 +503,19 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
       //--
 
-      p->setPen(borderColor);
+      QPen pen(borderColor);
+
+      p->setPen(pen);
 
       QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
-      if (! isInside())
+      if (! isInside() && ! isSelected())
         c.setAlpha(alpha);
 
-      p->setBrush(c);
+      QBrush brush(c);
+
+      p->setPen  (pen);
+      p->setBrush(brush);
 
       p->drawPath(path);
 
@@ -572,7 +590,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
         align = Qt::AlignRight | Qt::AlignVCenter;
       }
 
-      QColor bg = plot_->objectColor(this, i_, n_);
+      QColor bg = plot_->paletteColor(i_, n_);
 
       p->setPen(bg);
 
@@ -593,7 +611,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     plot_->textBox().draw(p, pt, data_.name(), angle, align);
 
-    CBBox2D tbbox;
+    CQChartsGeom::BBox tbbox;
 
     plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
   }

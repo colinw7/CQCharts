@@ -1,6 +1,8 @@
 Misc
  + Access Extra column data via header data roles
  + Cache plot pixmaps
+ + Use QScript/Tcl for expression evaluation
+ + Align Numeric Columns right
 
 Functions
  + Improved Filter

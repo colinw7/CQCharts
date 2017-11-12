@@ -325,7 +325,7 @@ initObjs()
   for (int i = 0; i < n; ++i) {
     const Geometry &geometry = geometries_[i];
 
-    CBBox2D bbox = geometry.bbox;
+    CQChartsGeom::BBox bbox = geometry.bbox;
 
     CQChartsGeometryObj *geomObj;
 
@@ -367,8 +367,9 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str)
 //------
 
 CQChartsGeometryObj::
-CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CBBox2D &rect, const Polygons &polygons,
-                    double value, const QString &name, const QModelIndex &ind, int i, int n) :
+CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
+                    const Polygons &polygons, double value, const QString &name,
+                    const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), polygons_(polygons), value_(value),
  name_(name), ind_(ind), i_(i), n_(n)
 {
@@ -376,7 +377,7 @@ CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CBBox2D &rect, const Polyg
 
 bool
 CQChartsGeometryObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   QPointF p1 = CQChartsUtil::toQPoint(p);
 
@@ -390,14 +391,26 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsGeometryObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
+  plot_->addSelectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
 
   plot_->endSelect();
+}
+
+bool
+CQChartsGeometryObj::
+isIndex(const QModelIndex &ind) const
+{
+  if (ind.row() != ind_.row()) return false;
+
+  return (ind == plot_->selectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent()) ||
+          ind == plot_->selectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent()) ||
+          ind == plot_->selectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent()));
 }
 
 void
@@ -423,12 +436,12 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    p->setPen(plot_->lineColor());
+    QPen pen(plot_->lineColor());
 
     QColor c;
 
     if (n_ > 0) {
-      c = plot_->objectColor(this, i_, n_, Qt::black);
+      c = plot_->paletteColor(i_, n_, Qt::black);
     }
     else {
       double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
@@ -436,9 +449,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       c = plot_->palette()->getColor(v);
     }
 
-    QColor c1 = plot_->objectStateColor(this, c);
+    QBrush brush(c);
 
-    p->setBrush(c1);
+    //---
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    p->setPen  (pen);
+    p->setBrush(brush);
 
     for (const auto &ppoly : ppolygons_) {
       QPainterPath path;
@@ -463,7 +481,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
   //---
 
   if (layer == CQChartsPlot::Layer::FG) {
-    CBBox2D prect;
+    CQChartsGeom::BBox prect;
 
     plot_->windowToPixel(rect(), prect);
 

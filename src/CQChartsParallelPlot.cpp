@@ -3,7 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayRange.h>
 
 #include <QAbstractItemModel>
 #include <QPainter>
@@ -93,7 +93,7 @@ updateRange(bool apply)
   }
 
   for (int j = 0; j < numSets(); ++j) {
-    CRange2D &range = yRanges_[j];
+    CQChartsGeom::Range &range = yRanges_[j];
 
     int yColumn = getSetColumn(j);
 
@@ -124,7 +124,7 @@ updateRange(bool apply)
   dataRange_.updateRange(numSets() - 0.5, 1);
 
   for (int j = 0; j < numSets(); ++j) {
-    const CRange2D &range = yRange(j);
+    const CQChartsGeom::Range &range = yRange(j);
 
     int yColumn = getSetColumn(j);
 
@@ -216,7 +216,7 @@ initObjs()
 
     QPolygonF &poly = polys[i];
 
-    CBBox2D bbox(-0.5, 0, numSets() - 0.5, 1);
+    CQChartsGeom::BBox bbox(-0.5, 0, numSets() - 0.5, 1);
 
     CQChartsParallelLineObj *lineObj =
       new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
@@ -240,18 +240,24 @@ initObjs()
     //---
 
     for (int j = 0; j < nl; ++j) {
-      const CRange2D &range = yRange(j);
+      int yColumn = getSetColumn(j);
+
+      QModelIndex yind = model->index(i, yColumn);
+
+      QModelIndex yind1 = normalizeIndex(yind);
+
+      //---
+
+      const CQChartsGeom::Range &range = yRange(j);
 
       const QPointF &p = poly[j];
 
       double y1 = (p.y() - range.ymin())/(range.ymax() - range.ymin());
 
-      CBBox2D bbox(j - sw/2, y1 - sh/2, j + sw/2, y1 + sh/2);
+      CQChartsGeom::BBox bbox(j - sw/2, y1 - sh/2, j + sw/2, y1 + sh/2);
 
       CQChartsParallelPointObj *pointObj =
-        new CQChartsParallelPointObj(this, bbox, j, y1, i, n, j, nl);
-
-      int yColumn = getSetColumn(j);
+        new CQChartsParallelPointObj(this, bbox, j, y1, yind1, i, n, j, nl);
 
       QString yname = model->headerData(yColumn, Qt::Horizontal).toString();
 
@@ -315,7 +321,7 @@ draw(QPainter *p)
   drawObjs(p, Layer::MID);
 
   for (int j = 0; j < numSets(); ++j) {
-    const CRange2D &range = yRange(j);
+    const CQChartsGeom::Range &range = yRange(j);
 
     dataRange_ = range;
     //setDataRange(range); // will clear objects
@@ -347,8 +353,8 @@ draw(QPainter *p)
 //------
 
 CQChartsParallelLineObj::
-CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect, const QPolygonF &poly,
-                        const QModelIndex &ind, int i, int n) :
+CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+                        const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
 {
 }
@@ -365,15 +371,15 @@ visible() const
 
 bool
 CQChartsParallelLineObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  if (! plot_->isLines())
+  if (! visible())
     return false;
 
   QPolygonF poly;
 
   for (int i = 0; i < poly_.count(); ++i) {
-    const CRange2D &range = plot_->yRange(i);
+    const CQChartsGeom::Range &range = plot_->yRange(i);
 
     double x = poly_[i].x();
     double y = (poly_[i].y() - range.ymin())/range.ysize();
@@ -389,8 +395,8 @@ inside(const CPoint2D &p) const
 
     double d;
 
-    CPoint2D pl1(x1, y1);
-    CPoint2D pl2(x2, y2);
+    CQChartsGeom::Point pl1(x1, y1);
+    CQChartsGeom::Point pl2(x2, y2);
 
     if (CQChartsUtil::PointLineDistance(p, pl1, pl2, &d) && d < 1E-3)
       return true;
@@ -403,7 +409,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsParallelLineObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -413,17 +419,24 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsParallelLineObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
+}
+
 void
 CQChartsParallelLineObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  if (! plot_->isLines())
+  if (! visible())
     return;
 
   QPolygonF poly;
 
   for (int i = 0; i < poly_.count(); ++i) {
-    const CRange2D &range = plot_->yRange(i);
+    const CQChartsGeom::Range &range = plot_->yRange(i);
 
     double x = poly_[i].x();
     double y = (poly_[i].y() - range.ymin())/range.ysize();
@@ -431,16 +444,25 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     poly << QPointF(x, y);
   }
 
-  QColor    lc = plot_->objectColor(this, i_, n_, plot_->linesColor());
-  double    lw = plot_->linesWidth();
-  CLineDash ld;
+  QColor lc = plot_->paletteColor(i_, n_, plot_->linesColor());
+  double lw = plot_->linesWidth();
 
+  QBrush brush(Qt::NoBrush);
+  QPen   pen(lc);
+
+  if (lw > 0)
+    pen.setWidth(lw);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+#if 0
   if (isInside()) {
     if (lw <= 0)
       lw = 1;
 
     lw *= 3;
   }
+#endif
 
   for (int i = 1; i < poly.count(); ++i) {
     double x1 = poly[i - 1].x();
@@ -453,16 +475,18 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     plot_->windowToPixel(x1, y1, px1, py1);
     plot_->windowToPixel(x2, y2, px2, py2);
 
-    CQChartsLineObj::draw(p, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
+    CQChartsLineObj::draw(p, QPointF(px1, py1), QPointF(px2, py2), pen);
   }
 }
 
 //------
 
 CQChartsParallelPointObj::
-CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CBBox2D &rect, double x, double y,
-                         int iset, int nset, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), iset_(iset), nset_(nset), i_(i), n_(n)
+CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+                         double x, double y, const QModelIndex &ind, int iset, int nset,
+                         int i, int n) :
+ CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), iset_(iset), nset_(nset),
+ i_(i), n_(n)
 {
 }
 
@@ -478,17 +502,20 @@ visible() const
 
 bool
 CQChartsParallelPointObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
+  if (! visible())
+    return false;
+
   double px, py;
 
   plot_->windowToPixel(x_, y_, px, py);
 
   double s = plot_->symbolSize();
 
-  CBBox2D pbbox(px - s, py - s, px + s, py + s);
+  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -497,20 +524,42 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsParallelPointObj::
+mousePress(const CQChartsGeom::Point &)
+{
+  plot_->beginSelect();
+
+  plot_->addSelectIndex(ind_);
+
+  plot_->endSelect();
+}
+
+bool
+CQChartsParallelPointObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
+}
+
+void
+CQChartsParallelPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  if (plot_->isPoints()) {
-    CSymbol2D::Type symbol = plot_->symbolType();
-    QColor          c      = plot_->objectColor(this, i_, n_, plot_->pointsColor());
-    bool            filled = plot_->isSymbolFilled();
-    double          s      = plot_->symbolSize();
+  if (! visible())
+    return;
 
-    CPoint2D pp(x_, y_);
+  CSymbol2D::Type symbol = plot_->symbolType();
+  QColor          c      = plot_->paletteColor(i_, n_, plot_->pointsColor());
+  bool            filled = plot_->isSymbolFilled();
+  double          s      = plot_->symbolSize();
 
-    double px, py;
+  CQChartsGeom::Point pp(x_, y_);
 
-    plot_->windowToPixel(pp.x, pp.y, px, py);
+  double px, py;
 
-    CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
-  }
+  plot_->windowToPixel(pp.x, pp.y, px, py);
+
+  if (isInside() || isSelected())
+    s *= 2;
+
+  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
 }

@@ -136,7 +136,7 @@ data(const QModelIndex &index, int role) const
     return var;
   }
 
-  return QVariant();
+  return CQBaseModel::data(index, role);
 }
 
 bool

@@ -422,7 +422,7 @@ fillSymbol(CSymbol2D::Type type)
 //------
 
 CQChartsSymbol2DRenderer::
-CQChartsSymbol2DRenderer(QPainter *painter, const CPoint2D &p, double s) :
+CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
  painter_(painter), p_(p), s_(s)
 {
   pc_ = painter_->pen  ().color();

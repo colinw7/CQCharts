@@ -771,6 +771,8 @@ void
 CQChartsHull3D::
 cleanFaces()
 {
+  if (! faces_) return;
+
   PFace f; /* Primary pointer into face list. */
 
   while (faces_ && faces_->isVisible()) {
@@ -993,9 +995,11 @@ consistency()
     int j1 = (j  + 1) % 3;
     int j2 = (j1 + 1) % 3;
 
-    if (! (lf->vertex(i1) == rf->vertex(j2) ||
-           lf->vertex(i2) == rf->vertex(j1)))
-      break;
+    if (lf && rf) {
+      if (! (lf->vertex(i1) == rf->vertex(j2) ||
+             lf->vertex(i2) == rf->vertex(j1)))
+        break;
+    }
 
     e = e->next;
   } while (e != edges_);

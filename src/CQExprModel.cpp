@@ -559,6 +559,32 @@ class CQExprModelNormFn : public CQExprModelFn {
 
 //------
 
+class CQExprModelKeyFn : public CQExprModelFn {
+ public:
+  CQExprModelKeyFn(CQExprModel *model) :
+   CQExprModelFn(model) {
+  }
+
+  CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
+    std::string str;
+
+    for (std::size_t i = 0; i < values.size(); ++i) {
+      std::string str1;
+
+      (void) values[i]->getStringValue(str1);
+
+      if (str.size())
+        str += ":" + str1;
+      else
+        str = str1;
+    }
+
+    return expr->createStringValue(str);
+  }
+};
+
+//------
+
 CQExprModel::
 CQExprModel(QAbstractItemModel *model) :
  model_(model)
@@ -578,6 +604,7 @@ CQExprModel(QAbstractItemModel *model) :
   expr_->addFunction("setType"  , "...", new CQExprModelSetTypeFn  (this));
   expr_->addFunction("bucket"   , "...", new CQExprModelBucketFn   (this));
   expr_->addFunction("norm"     , "...", new CQExprModelNormFn     (this));
+  expr_->addFunction("key"      , "...", new CQExprModelKeyFn      (this));
 
   setSourceModel(model);
 }
@@ -809,16 +836,28 @@ data(const QModelIndex &index, int role) const
 
   //---
 
-  if (role == Qt::DisplayRole) {
-    int column = index.column() - nc;
+  int column = index.column() - nc;
 
+  if (role == Qt::DisplayRole) {
     currentRow_ = index.row();
     currentCol_ = index.column();
 
     return getExtraColumnValue(currentRow_, column);
   }
-  else
-    return QVariant();
+
+  if (role == Qt::TextAlignmentRole) {
+    CQExprModel *th = const_cast<CQExprModel *>(this);
+
+    ExtraColumn &extraColumn = th->extraColumn(column);
+
+    if (extraColumn.type == CQBaseModel::Type::INTEGER ||
+        extraColumn.type == CQBaseModel::Type::REAL)
+      return QVariant(Qt::AlignRight | Qt::AlignVCenter);
+    else
+      return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
+  }
+
+  return QVariant();
 }
 
 QVariant

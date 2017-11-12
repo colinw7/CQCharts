@@ -7,7 +7,7 @@
 #include <CQChartsUtil.h>
 #include <CGradientPalette.h>
 #include <CQPropertyViewModel.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayRange.h>
 
 #include <svg/select_svg.h>
 #include <svg/zoom_svg.h>
@@ -30,7 +30,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  displayRange_ = new CDisplayRange2D;
+  displayRange_ = new CQChartsDisplayRange;
 
   double vr = viewportRange();
 
@@ -47,7 +47,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "title"         );
   addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
-  addProperty("", this, "mode"          );
+  addProperty("", this, "selectedMode"  );
+  addProperty("", this, "insideMode"    );
   addProperty("", this, "zoomData"      );
 
   //---
@@ -134,7 +135,7 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 
 void
 CQChartsView::
-addPlot(CQChartsPlot *plot, const CBBox2D &bbox)
+addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 {
   plot->setPalette(gradientPalette());
 
@@ -206,14 +207,14 @@ mousePressEvent(QMouseEvent *me)
     mouseData_.pressed    = true;
 
     if      (mode_ == Mode::SELECT) {
-      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
       mouseData_.plots.clear();
 
       plotsAt(w, mouseData_.plots);
 
       for (auto &plot : mouseData_.plots) {
-        CPoint2D w;
+        CQChartsGeom::Point w;
 
         plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -222,7 +223,7 @@ mousePressEvent(QMouseEvent *me)
       }
     }
     else if (mode_ == Mode::ZOOM) {
-      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
       CQChartsPlot *plot = plotAt(w);
 
@@ -249,7 +250,7 @@ CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
   if      (mode_ == Mode::SELECT) {
-    CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
     if (! mouseData_.pressed) {
       mouseData_.plots.clear();
@@ -271,7 +272,7 @@ mouseMoveEvent(QMouseEvent *me)
     bool first = true;
 
     if (found) {
-      CPoint2D w;
+      CQChartsGeom::Point w;
 
       plot1->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -285,7 +286,7 @@ mouseMoveEvent(QMouseEvent *me)
       if (plot1 == plot)
         continue;
 
-      CPoint2D w;
+      CQChartsGeom::Point w;
 
       plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -308,14 +309,14 @@ mouseMoveEvent(QMouseEvent *me)
         zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
     }
     else {
-      CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
       mouseData_.plots.clear();
 
       plotsAt(w, mouseData_.plots);
 
       for (auto &plot : mouseData_.plots) {
-        CPoint2D w;
+        CQChartsGeom::Point w;
 
         plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -340,7 +341,7 @@ mouseMoveEvent(QMouseEvent *me)
 
     int px = me->pos().x();
 
-    CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
     mouseData_.plots.clear();
 
@@ -349,7 +350,7 @@ mouseMoveEvent(QMouseEvent *me)
     int probeInd = 0;
 
     for (auto &plot : mouseData_.plots) {
-      CPoint2D w;
+      CQChartsGeom::Point w;
 
       plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -358,16 +359,16 @@ mouseMoveEvent(QMouseEvent *me)
       if (! plot->interpY(w.x, yvals1))
         continue;
 
-      CBBox2D dataRange = plot->calcDataRange();
+      CQChartsGeom::BBox dataRange = plot->calcDataRange();
 
-      CPoint2D p1;
+      CQChartsGeom::Point p1;
 
-      plot->windowToPixel(CPoint2D(w.x, dataRange.getYMin()), p1);
+      plot->windowToPixel(CQChartsGeom::Point(w.x, dataRange.getYMin()), p1);
 
       for (const auto &y1 : yvals1) {
-        CPoint2D p2;
+        CQChartsGeom::Point p2;
 
-        plot->windowToPixel(CPoint2D(w.x, y1), p2);
+        plot->windowToPixel(CQChartsGeom::Point(w.x, y1), p2);
 
         QString tip = plot->yStr(y1);
 
@@ -387,7 +388,7 @@ mouseReleaseEvent(QMouseEvent *me)
   if      (mode_ == Mode::SELECT) {
     if (mouseData_.pressed) {
       for (auto &plot : mouseData_.plots) {
-        CPoint2D w;
+        CQChartsGeom::Point w;
 
         plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -408,12 +409,12 @@ mouseReleaseEvent(QMouseEvent *me)
         if (! mouseData_.plots.empty()) {
           CQChartsPlot *plot = mouseData_.plots[0]->firstPlot();
 
-          CPoint2D w1, w2;
+          CQChartsGeom::Point w1, w2;
 
           plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint), w1);
           plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ), w2);
 
-          CBBox2D bbox(w1, w2);
+          CQChartsGeom::BBox bbox(w1, w2);
 
           plot->zoomTo(bbox);
         }
@@ -456,7 +457,7 @@ keyPressEvent(QKeyEvent *ke)
 
   QPointF pos = mapFromGlobal(gpos);
 
-  CPoint2D w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(pos));
 
   CQChartsPlot *plot = plotAt(w);
 
@@ -468,7 +469,7 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  prect_ = CBBox2D(0, 0, width(), height());
+  prect_ = CQChartsGeom::BBox(0, 0, width(), height());
 
   aspect_ = (1.0*prect().getWidth())/prect().getHeight();
 
@@ -503,7 +504,7 @@ paintEvent(QPaintEvent *)
 
 CQChartsPlot *
 CQChartsView::
-plotAt(const CPoint2D &p) const
+plotAt(const CQChartsGeom::Point &p) const
 {
   Plots plots;
 
@@ -517,7 +518,7 @@ plotAt(const CPoint2D &p) const
 
 bool
 CQChartsView::
-plotsAt(const CPoint2D &p, Plots &plots) const
+plotsAt(const CQChartsGeom::Point &p, Plots &plots) const
 {
   for (const auto &plot : plotDatas_)
     if (plot.bbox.inside(p))
@@ -526,7 +527,7 @@ plotsAt(const CPoint2D &p, Plots &plots) const
   return ! plots.empty();
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsView::
 plotBBox(CQChartsPlot *plot) const
 {
@@ -534,7 +535,7 @@ plotBBox(CQChartsPlot *plot) const
     if (plotData.plot == plot)
       return plotData.bbox;
 
-  return CBBox2D();
+  return CQChartsGeom::BBox();
 }
 
 CQChartsPlot *
@@ -578,50 +579,50 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
   displayRange_->pixelToWindow(px, py, &wx, &wy);
 }
 
-CPoint2D
+CQChartsGeom::Point
 CQChartsView::
-windowToPixel(const CPoint2D &w) const
+windowToPixel(const CQChartsGeom::Point &w) const
 {
-  CPoint2D p;
+  CQChartsGeom::Point p;
 
   windowToPixel(w.x, w.y, p.x, p.y);
 
   return p;
 }
 
-CPoint2D
+CQChartsGeom::Point
 CQChartsView::
-pixelToWindow(const CPoint2D &p) const
+pixelToWindow(const CQChartsGeom::Point &p) const
 {
-  CPoint2D w;
+  CQChartsGeom::Point w;
 
   pixelToWindow(p.x, p.y, w.x, w.y);
 
   return w;
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsView::
-windowToPixel(const CBBox2D &wrect) const
+windowToPixel(const CQChartsGeom::BBox &wrect) const
 {
   double px1, py1, px2, py2;
 
   windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
   windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
 
-  return CBBox2D(px1, py1, px2, py2);
+  return CQChartsGeom::BBox(px1, py1, px2, py2);
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsView::
-pixelToWindow(const CBBox2D &prect) const
+pixelToWindow(const CQChartsGeom::BBox &prect) const
 {
   double wx1, wy1, wx2, wy2;
 
   pixelToWindow(prect.getXMin(), prect.getYMin(), wx1, wy2);
   pixelToWindow(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
-  return CBBox2D(wx1, wy1, wx2, wy2);
+  return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
 
 QSize

@@ -15,9 +15,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   using OptReal = boost::optional<double>;
 
  public:
-  CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CBBox2D &rect, const QPointF &p,
-                          double symbolSize, const OptReal &fontSize, const OptReal &color,
-                          int i, int n);
+  CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect,
+                          const QPointF &p, double symbolSize, const OptReal &fontSize,
+                          const OptReal &color, int i, int n);
 
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
@@ -25,9 +25,11 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &v) { ind_ = v; }
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -53,7 +55,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 };

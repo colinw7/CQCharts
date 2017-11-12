@@ -180,6 +180,7 @@ class CCsv {
   bool stringToFields(std::string &line, Fields &strs) {
     std::vector<Fields> strsArray;
 
+    // keep reading lines until propertly terminated
     bool terminated = true;
 
     while (true) {
@@ -197,10 +198,14 @@ class CCsv {
         break;
     }
 
+    //---
+
     int na = strsArray.size();
 
     if (na == 0)
       return false;
+
+    //---
 
     for (int i = 0; i < na; ++i) {
       const Fields &strs1 = strsArray[i];

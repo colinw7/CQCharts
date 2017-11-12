@@ -42,6 +42,8 @@ class CQBaseModel : public QAbstractItemModel {
   bool setHeaderData(int section, Qt::Orientation orientation,
                      const QVariant &value, int role) override;
 
+  QVariant data(const QModelIndex &index, int role) const override;
+
   //---
 
   static Type variantToType(const QVariant &var, bool *ok=nullptr);

@@ -10,7 +10,10 @@ class CQTreeView : public QTreeView {
 
  public:
   CQTreeView(QWidget *parent=nullptr);
- ~CQTreeView();
+
+  virtual ~CQTreeView();
+
+  virtual void addMenuActions(QMenu *menu);
 
  private slots:
   void customContextMenuSlot(const QPoint &pos);

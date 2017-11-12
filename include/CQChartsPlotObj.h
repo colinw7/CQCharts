@@ -4,20 +4,20 @@
 #include <CQChartsPlot.h>
 #include <QObject>
 #include <QPainter>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 
 class CQChartsPlotObj : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsPlotObj(const CBBox2D &rect=CBBox2D()) :
+  CQChartsPlotObj(const CQChartsGeom::BBox &rect=CQChartsGeom::BBox()) :
    rect_(rect) {
   }
 
   virtual ~CQChartsPlotObj() { }
 
-  const CBBox2D &rect() const { return rect_; }
-  void setRect(const CBBox2D &r) { rect_ = r; }
+  const CQChartsGeom::BBox &rect() const { return rect_; }
+  void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
 
   const QString &id() const { return id_; }
   void setId(const QString &s) { id_ = s; }
@@ -39,26 +39,26 @@ class CQChartsPlotObj : public QObject {
 
   virtual bool visible() const { return isVisible(); }
 
-  virtual bool inside(const CPoint2D &p) const { return rect_.inside(p); }
+  virtual bool inside(const CQChartsGeom::Point &p) const { return rect_.inside(p); }
 
   virtual bool isIndex(const QModelIndex &) const { return false; }
 
   virtual void handleResize() { }
 
-  virtual void mousePress(const CPoint2D &) { }
+  virtual void mousePress(const CQChartsGeom::Point &) { }
 
-  virtual void clickZoom(const CPoint2D &) { }
+  virtual void clickZoom(const CQChartsGeom::Point &) { }
 
   virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 
  protected:
-  CBBox2D rect_;
-  QString id_;
-  bool    visible_  { true };
-  bool    selected_ { false };
-  bool    inside_   { false };
-  QBrush  fill_;
-  QPen    stroke_;
+  CQChartsGeom::BBox rect_;
+  QString            id_;
+  bool               visible_  { true };
+  bool               selected_ { false };
+  bool               inside_   { false };
+  QBrush             fill_;
+  QPen               stroke_;
 };
 
 #endif

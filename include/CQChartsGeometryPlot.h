@@ -14,13 +14,15 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   using Polygons = std::vector<QPolygonF>;
 
  public:
-  CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CBBox2D &rect,
+  CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
                       const Polygons &polygons, double value, const QString &name,
                       const QModelIndex &ind, int i, int n);
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -69,11 +71,11 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   using Polygons = std::vector<QPolygonF>;
 
   struct Geometry {
-    QString     name;
-    Polygons    polygons;
-    double      value { 0.0 };
-    CBBox2D     bbox;
-    QModelIndex ind;
+    QString            name;
+    Polygons           polygons;
+    double             value { 0.0 };
+    CQChartsGeom::BBox bbox;
+    QModelIndex        ind;
   };
 
  public:

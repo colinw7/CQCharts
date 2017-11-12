@@ -2,7 +2,7 @@
 #define CQChartsTitle_H
 
 #include <CQChartsTextBoxObj.h>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 #include <QPointF>
 #include <QSizeF>
 #include <vector>
@@ -52,8 +52,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  const CBBox2D &bbox() const { return bbox_; }
-  void setBBox(const CBBox2D &b) { bbox_ = b; }
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
 
   //---
 
@@ -78,22 +78,22 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  bool contains(const CPoint2D &p) const;
+  bool contains(const CQChartsGeom::Point &p) const;
 
-  virtual bool mousePress(const CPoint2D &) { return false; }
+  virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
 
   //---
 
   void draw(QPainter *p);
 
  private:
-  CQChartsPlot*   plot_     { nullptr };
-  bool            visible_  { true };
-  Location        location_ { Location::TOP};
-  bool            inside_   { false };
-  QPointF         position_ { 0, 0 };
-  QSizeF          size_;
-  mutable CBBox2D bbox_;
+  CQChartsPlot*              plot_     { nullptr };
+  bool                       visible_  { true };
+  Location                   location_ { Location::TOP};
+  bool                       inside_   { false };
+  QPointF                    position_ { 0, 0 };
+  QSizeF                     size_;
+  mutable CQChartsGeom::BBox bbox_;
 };
 
 #endif

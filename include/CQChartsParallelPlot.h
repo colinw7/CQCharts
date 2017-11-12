@@ -12,14 +12,16 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CBBox2D &rect, const QPolygonF &poly,
-                          const QModelIndex &ind, int i, int n);
+  CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+                          const QPolygonF &poly, const QModelIndex &ind, int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &ind) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -37,12 +39,17 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CBBox2D &rect, double x, double y,
-                           int iset, int nset, int i, int n);
+  CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
+                           double x, double y, const QModelIndex &ind, int iset, int nset,
+                           int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &ind) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -50,6 +57,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   CQChartsParallelPlot* plot_  { nullptr };
   double                x_     { 0.0 };
   double                y_     { 0.0 };
+  QModelIndex           ind_;
   int                   iset_  { -1 };
   int                   nset_  { -1 };
   int                   i_     { -1 };
@@ -172,7 +180,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   //---
 
-  const CRange2D &yRange(int i) { return yRanges_[i]; }
+  const CQChartsGeom::Range &yRange(int i) { return yRanges_[i]; }
 
   CQChartsAxis *yAxis(int i) { return yAxes_[i]; }
 
@@ -197,7 +205,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  using Ranges = std::vector<CRange2D>;
+  using Ranges = std::vector<CQChartsGeom::Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
   int              xColumn_    { 0 };

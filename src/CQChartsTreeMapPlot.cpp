@@ -126,7 +126,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
   CQChartsTreeMapHierObj *hierObj = 0;
 
   if (hier != root_) {
-    CBBox2D rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
+    CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
     hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
 
@@ -148,7 +148,7 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
 
     //---
 
-    CBBox2D rect(node->x(), node->y(), node->x() + node->w(), node->y() + node->h());
+    CQChartsGeom::BBox rect(node->x(), node->y(), node->x() + node->w(), node->y() + node->h());
 
     CQChartsTreeMapObj *obj =
       new CQChartsTreeMapObj(this, node, parentObj, rect, node->depth(), maxDepth());
@@ -433,16 +433,17 @@ nodeColor(CQChartsTreeMapNode *node) const
 
 CQChartsTreeMapHierObj::
 CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
-                       CQChartsTreeMapHierObj *hierObj, const CBBox2D &rect, int i, int n) :
+                       CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                       int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
 bool
 CQChartsTreeMapHierObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  CBBox2D bbox(hier_->x(), hier_->y(), hier_->x() + hier_->w(), hier_->y() + hier_->h());
+  CQChartsGeom::BBox bbox(hier_->x(), hier_->y(), hier_->x() + hier_->w(), hier_->y() + hier_->h());
 
   if (bbox.inside(p))
     return true;
@@ -463,56 +464,71 @@ void
 CQChartsTreeMapHierObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  p->save();
-
-  //---
-
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
-
-  p->setFont(font);
-
-  //---
-
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
-//QColor c = plot_->interpPaletteColor((1.0*(hier_->hierInd() + 1))/(plot_->maxHierInd() + 1));
-  QColor c = plot_->headerColor();
-
-//QColor tc = plot_->textColor(c);
-  QColor tc = Qt::black;
-
-  if (isSelected())
-    tc = Qt::white;
-
   double px1, py1, px2, py2;
 
   plot_->windowToPixel(hier_->x()             , hier_->y()             , px1, py1);
   plot_->windowToPixel(hier_->x() + hier_->w(), hier_->y() + hier_->h(), px2, py2);
 
-  p->setPen(tc);
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1, py2, px2, py1));
 
-  if (isInside())
-    p->setBrush(plot_->insideColor(c));
-  else
-    p->setBrush(c);
+  //---
 
-  QRectF qrect = CQChartsUtil::toQRect(CBBox2D(px1, py2, px2, py1));
+  // calc stroke and brush
+
+//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+//QColor c = plot_->hierColor(hier_);
+//QColor c = plot_->interpPaletteColor((1.0*(hier_->hierInd() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->headerColor();
+
+  QBrush brush(c);
+
+  QColor bc = Qt::black;
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  QPen bpen(bc);
+  QPen tpen(tc);
+
+  plot_->updateObjPenBrushState(this, bpen, brush);
+  plot_->updateObjPenBrushState(this, tpen, brush);
+
+  //---
+
+  p->save();
+
+  //---
+
+  // draw rectangle
+  p->setPen  (bpen);
+  p->setBrush(brush);
 
   p->drawRect(qrect);
 
   //---
 
-  QFontMetricsF fm(p->font());
+  // set font size
+  QFont font = plot_->view()->font();
 
-  p->setPen(tc);
+  font.setPointSizeF(plot_->fontHeight());
 
-  plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
+  //---
+
+  // calc text size and position
+  p->setFont(font);
 
   QString name = hier_->name();
 
-  p->drawText(px1 + 2, py1 + fm.ascent(), name);
+  QFontMetricsF fm(p->font());
+
+  plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
+
+  //---
+
+  // draw label
+  p->setClipRect(qrect, Qt::ReplaceClip);
+
+  plot_->drawContrastText(p, px1 + 2, py1 + fm.ascent(), name, tpen);
+
+  //---
 
   p->restore();
 }
@@ -521,16 +537,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 CQChartsTreeMapObj::
 CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
-                   CQChartsTreeMapHierObj *hierObj, const CBBox2D &rect, int i, int n) :
+                   CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
 bool
 CQChartsTreeMapObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  CBBox2D bbox(node_->x(), node_->y(), node_->x() + node_->w(), node_->y() + node_->h());
+  CQChartsGeom::BBox bbox(node_->x(), node_->y(), node_->x() + node_->w(), node_->y() + node_->h());
 
   if (bbox.inside(p))
     return true;
@@ -540,7 +556,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsTreeMapObj::
-clickZoom(const CPoint2D &)
+clickZoom(const CQChartsGeom::Point &)
 {
   CQChartsTreeMapHierNode *parent1 = node_->parent();
   CQChartsTreeMapHierNode *parent2 = (parent1 ? parent1->parent() : nullptr);
@@ -556,7 +572,7 @@ clickZoom(const CPoint2D &)
 
 void
 CQChartsTreeMapObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   const QModelIndex &ind = node_->ind();
 
@@ -581,64 +597,77 @@ void
 CQChartsTreeMapObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  p->save();
-
-  //---
-
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
-
-  p->setFont(font);
-
-  //---
-
   //CQChartsTreeMapHierNode *root = node_->rootNode(plot_->firstHier());
   CQChartsTreeMapHierNode *root = node_->parent();
 
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
-
-//QColor tc = plot_->textColor(c);
-  QColor tc = Qt::black;
-
-  if (isSelected())
-    tc = Qt::white;
+  //---
 
   double px1, py1, px2, py2;
 
   plot_->windowToPixel(node_->x()             , node_->y()             , px1, py1);
   plot_->windowToPixel(node_->x() + node_->w(), node_->y() + node_->h(), px2, py2);
 
-  p->setPen(tc);
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1 + 1, py2 + 1, px2 - 1, py1 - 1));
 
-  if (isInside())
-    p->setBrush(plot_->insideColor(c));
-  else
-    p->setBrush(c);
+  //---
 
-  QRectF qrect = CQChartsUtil::toQRect(CBBox2D(px1 + 1, py2 + 1, px2 - 1, py1 - 1));
+  // calc stroke and brush
+
+//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+//QColor c = plot_->nodeColor(node_);
+  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+
+  QBrush brush(c);
+
+  QColor bc = Qt::black;
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  QPen bpen(bc);
+  QPen tpen(tc);
+
+  plot_->updateObjPenBrushState(this, bpen, brush);
+  plot_->updateObjPenBrushState(this, tpen, brush);
+
+  //---
+
+  p->save();
+
+  //---
+
+  // draw rectangle
+  p->setPen  (bpen);
+  p->setBrush(brush);
 
   p->drawRect(qrect);
 
   //---
 
-  p->setClipRect(qrect, Qt::ReplaceClip);
+  // set font size
+  QFont font = plot_->view()->font();
 
-  QFontMetricsF fm(p->font());
+  font.setPointSizeF(plot_->fontHeight());
 
-  p->setPen(tc);
+  //---
 
-  plot_->windowToPixel(node_->x() + node_->w()/2, node_->y() + node_->h()/2, px1, py1);
+  // calc text size and position
+  p->setFont(font);
 
   QString name = node_->name();
 
-  double fdy = (fm.ascent() - fm.descent())/2;
+  QFontMetricsF fm(p->font());
 
   double tw = fm.width(name);
 
-  p->drawText(px1 - tw/2, py1 + fdy, name);
+  plot_->windowToPixel(node_->x() + node_->w()/2, node_->y() + node_->h()/2, px1, py1);
+
+  double fdy = (fm.ascent() - fm.descent())/2;
+
+  //---
+
+  // draw label
+  p->setClipRect(qrect, Qt::ReplaceClip);
+
+  plot_->drawContrastText(p, px1 - tw/2, py1 + fdy, name, tpen);
 
   //---
 

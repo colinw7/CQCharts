@@ -30,19 +30,19 @@ show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2)
 {
   int tickLen = 8;
 
-  CPoint2D p1(px          , py1);
-  CPoint2D p2(px          , py2);
-  CPoint2D p3(px + tickLen, py2);
+  CQChartsGeom::Point p1(px          , py1);
+  CQChartsGeom::Point p2(px          , py2);
+  CQChartsGeom::Point p3(px + tickLen, py2);
 
-  vband_->setGeometry(CQChartsUtil::toQRectI(CBBox2D(p1, p2)));
-  hband_->setGeometry(CQChartsUtil::toQRectI(CBBox2D(p2, p3)));
+  vband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p1, p2)));
+  hband_->setGeometry(CQChartsUtil::toQRectI(CQChartsGeom::BBox(p2, p3)));
 
   vband_->show();
   hband_->show();
 
   tip_->setText(text);
 
-  CPoint2D p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
+  CQChartsGeom::Point p4(px + tickLen + 2, py2 - tip_->sizeHint().height()/2);
 
   QPoint pos = CQChartsUtil::toQPointI(p4);
 
@@ -52,9 +52,9 @@ show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2)
 
   view_->pixelToWindow(pos.x(), pos.y(), wx, wy);
 
-  CBBox2D bbox = view_->plotBBox(plot);
+  CQChartsGeom::BBox bbox = view_->plotBBox(plot);
 
-  if (bbox.inside(CPoint2D(wx, wy))) {
+  if (bbox.inside(CQChartsGeom::Point(wx, wy))) {
     QFontMetricsF fm(font());
 
     tip_->move(gpos);

@@ -201,7 +201,7 @@ initObjs()
 
       // skip unconnected
       if (node1 == node2 || value) {
-        CBBox2D bbox(x, y - scale_, x + scale_, y);
+        CQChartsGeom::BBox bbox(x, y - scale_, x + scale_, y);
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
 
@@ -468,14 +468,14 @@ groupColor(int group) const
 
 CQChartsAdjacencyObj::
 CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                     CQChartsAdjacencyNode *node2, int value, const CBBox2D &rect) :
+                     CQChartsAdjacencyNode *node2, int value, const CQChartsGeom::BBox &rect) :
  CQChartsPlotObj(rect), plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
 }
 
 void
 CQChartsAdjacencyObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -485,10 +485,22 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsAdjacencyObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == node1_->ind() || ind == node2_->ind());
+}
+
 void
 CQChartsAdjacencyObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
+  if (isInside())
+    plot_->setInsideObj(this);
+
+  //---
+
   //int nn = plot_->numNodes();
 
   QColor bc = plot_->emptyCellColor();
@@ -511,17 +523,17 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   QColor pc = bc.lighter(120);
 
-  if (isInside()) {
-    bc = plot_->insideColor(bc);
-    pc = CQChartsUtil::bwColor(bc);
+  QBrush brush(bc);
+  QPen   pen  (pc);
 
-    plot_->setInsideObj(this);
-  }
+  plot_->updateObjPenBrushState(this, pen, brush);
 
-  p->setPen  (pc);
-  p->setBrush(bc);
+  //---
 
-  CBBox2D prect;
+  p->setPen  (pen);
+  p->setBrush(brush);
+
+  CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);
 
@@ -530,7 +542,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 bool
 CQChartsAdjacencyObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   return rect().inside(p);
 }

@@ -9,6 +9,18 @@ namespace Util {
     return val;
   }
 
+  double norm(double x, double low, double high) {
+    return (x - low)/(high - low);
+  }
+
+  double lerp(double value1, double value2, double amt) {
+    return value1 + (value2 - value1)*amt;
+  }
+
+  double map(double value, double low1, double high1, double low2, double high2) {
+    return lerp(low2, high2, norm(value, low1, high1));
+  }
+
 #ifdef CGRADIENT_EXPR
   CExprTokenStack compileExpression(CExpr *expr, const std::string &str) {
     CExprTokenStack pstack = expr->parseLine(str);
@@ -36,12 +48,6 @@ namespace Util {
 
     for (int i = 0; i < strs.length(); ++i)
       words.push_back(strs[i].toStdString());
-  }
-
-  QColor interpColor(const QColor &c1, const QColor &c2, double f) {
-    return QColor(c1.red  ()*f + c2.red  ()*(1 - f),
-                  c1.green()*f + c2.green()*(1 - f),
-                  c1.blue ()*f + c2.blue ()*(1 - f));
   }
 
   double toReal(const std::string &s) {
@@ -174,7 +180,12 @@ getColor(double x) const
       QColor c1(0,0,0);
       QColor c2(255,255,255);
 
-      return Util::interpColor(c1, c2, x);
+      if      (colorModel() == ColorModel::RGB)
+        return interpRGB(c1, c2, x);
+      else if (colorModel() == ColorModel::HSV)
+        return interpHSV(c1, c2, x);
+      else
+        return interpRGB(c1, c2, x);
     }
 
     double min = colors(). begin()->first;
@@ -194,7 +205,12 @@ getColor(double x) const
       if (x <= x2) {
         double m = (x - x1)/(x2 - x1);
 
-        return Util::interpColor(c1, c2, m);
+        if      (colorModel() == ColorModel::RGB)
+          return interpRGB(c1, c2, m);
+        else if (colorModel() == ColorModel::HSV)
+          return interpHSV(c1, c2, m);
+        else
+          return interpRGB(c1, c2, m);
       }
 
       x1 = x2;
@@ -212,19 +228,33 @@ getColor(double x) const
 
       return QColor(255*g, 255*g, 255*g);
     }
-    else {
-      double x1 = Util::clamp(x, 0.0, 1.0);
 
-      double r = Util::clamp(interp(redModel  (), x1), 0.0, 1.0);
-      double g = Util::clamp(interp(greenModel(), x1), 0.0, 1.0);
-      double b = Util::clamp(interp(blueModel (), x1), 0.0, 1.0);
+    //---
 
-      if (isRedNegative  ()) r = 1.0 - r;
-      if (isGreenNegative()) g = 1.0 - g;
-      if (isBlueNegative ()) b = 1.0 - b;
+    double x1 = Util::clamp(x, 0.0, 1.0);
 
-      return QColor(255*r, 255*g, 255*b);
-    }
+    double r = Util::clamp(interp(redModel  (), x1), 0.0, 1.0);
+    double g = Util::clamp(interp(greenModel(), x1), 0.0, 1.0);
+    double b = Util::clamp(interp(blueModel (), x1), 0.0, 1.0);
+
+    if (isRedNegative  ()) r = 1.0 - r;
+    if (isGreenNegative()) g = 1.0 - g;
+    if (isBlueNegative ()) b = 1.0 - b;
+
+    r = Util::map(r, 0.0, 1.0, redMin  (), redMax  ());
+    g = Util::map(g, 0.0, 1.0, greenMin(), greenMax());
+    b = Util::map(b, 0.0, 1.0, blueMin (), blueMax ());
+
+    QColor c;
+
+    if      (colorModel() == ColorModel::RGB)
+      c = QColor::fromRgbF(r, g, b);
+    else if (colorModel() == ColorModel::HSV)
+      c = QColor::fromHsvF(r, g, b);
+    else
+      c = QColor::fromRgbF(r, g, b);
+
+    return c;
   }
   else if (colorType() == ColorType::FUNCTIONS) {
 #ifdef CGRADIENT_EXPR
@@ -260,11 +290,11 @@ getColor(double x) const
     QColor c;
 
     if      (colorModel() == ColorModel::RGB)
-      c = QColor(255*r, 255*g, 255*b);
+      c = QColor::fromRgbF(r, g, b);
     else if (colorModel() == ColorModel::HSV)
-      c = QColor().setHsv(360*r, 255*g, 255*b);
+      c = QColor::fromHsvF(r, g, b);
     else
-      c = QColor(255*r, 255*g, 255*b);
+      c = QColor::fromRgbF(r, g, b);
 
     expr_->setQuiet(oldQuiet);
 
@@ -462,12 +492,17 @@ void
 CGradientPalette::
 unset()
 {
-  colorType_ = ColorType::MODEL;
+  colorType_  = ColorType::MODEL;
+  colorModel_ = ColorModel::RGB;
 
   // Model
-  rModel_ = 7;
-  gModel_ = 5;
-  bModel_ = 15;
+  rModel_        = 7;
+  gModel_        = 5;
+  bModel_        = 15;
+  gray_          = false;
+  redNegative_   = false;
+  greenNegative_ = false;
+  blueNegative_  = false;
 
   // Defined
   colors_.clear();
@@ -481,14 +516,11 @@ unset()
   cubeHelix_.reset();
 
   // Misc
-  colorModel_    = ColorModel::RGB;
-  redNegative_   = false;
-  greenNegative_ = false;
-  blueNegative_  = false;
-  gray_          = false;
-  gamma_         = 1.5;
-  maxColors_     = -1;
-  psAllcF_       = false;
+  gamma_     = 1.5;
+  maxColors_ = -1;
+#if 0
+  psAllcF_   = false;
+#endif
 }
 
 void
@@ -520,15 +552,18 @@ show(std::ostream &os) const
   else if (colorType() == ColorType::CUBEHELIX)
     os << "figure is " << (isCubeNegative() ? "NEGATIVE" : "POSITIVE") << std::endl;
 
+#if 0
   if (psAllcF_)
     os << "all color formulae ARE written into output postscript file" << std::endl;
   else
     os << "all color formulae ARE NOT written into output postscript file" << std::endl;
+#endif
 
   if (maxColors() <= 0)
     os << "allocating ALL remaining";
   else
     os << "allocating MAX " << maxColors();
+
   os << " color positions for discrete palette terminals" << std::endl;
 
   os << "Color-Model: ";

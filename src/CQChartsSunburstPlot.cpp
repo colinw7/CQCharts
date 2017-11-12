@@ -68,7 +68,7 @@ updateRange(bool apply)
   double yr = 1.0;
 
   if (isEqualScale()) {
-    double aspect = view()->aspect();
+    double aspect = this->aspect();
 
     if (aspect > 1.0)
       xr *= aspect;
@@ -204,7 +204,7 @@ addPlotObj(CQChartsSunburstNode *node)
   double r1 = node->r();
   double r2 = r1 + node->dr();
 
-  CBBox2D bbox(-r2, -r2, r2, r2);
+  CQChartsGeom::BBox bbox(-r2, -r2, r2, r2);
 
   CQChartsSunburstNodeObj *obj = new CQChartsSunburstNodeObj(this, bbox, node);
 
@@ -248,12 +248,12 @@ drawNodes(QPainter *p, CQChartsSunburstHierNode *hier)
   //---
 
   for (auto node : hier->getNodes())
-    drawNode(p, node);
+    drawNode(p, nullptr, node);
 
   //------
 
   for (auto hierNode : hier->getChildren()) {
-    drawNode(p, hierNode);
+    drawNode(p, nullptr, hierNode);
 
     drawNodes(p, hierNode);
   }
@@ -261,7 +261,7 @@ drawNodes(QPainter *p, CQChartsSunburstHierNode *hier)
 
 void
 CQChartsSunburstPlot::
-drawNode(QPainter *p, CQChartsSunburstNode *node)
+drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
 {
   if (! node->placed()) return;
 
@@ -303,11 +303,14 @@ drawNode(QPainter *p, CQChartsSunburstNode *node)
 
   QColor color = nodeColor(node);
 
-  if (node->obj()->isInside())
-    color = insideColor(color);
+  QBrush brush(color);
+  QPen   pen  (textColor(color));
 
-  p->setPen  (textColor(color));
-  p->setBrush(color);
+  if (nodeObj)
+    updateObjPenBrushState(nodeObj, pen, brush);
+
+  p->setPen  (pen);
+  p->setBrush(brush);
 
   p->drawPath(path);
 
@@ -356,7 +359,7 @@ nodeColor(int colorId) const
 //------
 
 CQChartsSunburstNodeObj::
-CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CBBox2D &rect,
+CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                         CQChartsSunburstNode *node) :
  CQChartsPlotObj(rect), plot_(plot), node_(node)
 {
@@ -364,12 +367,12 @@ CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CBBox2D &rect,
 
 bool
 CQChartsSunburstNodeObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   double r1 = node_->r();
   double r2 = r1 + node_->dr();
 
-  CPoint2D c(0, 0);
+  CQChartsGeom::Point c(0, 0);
 
   double r = p.distanceTo(c);
 
@@ -405,7 +408,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsSunburstNodeObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -413,6 +416,13 @@ mousePress(const CPoint2D &)
   plot_->addSelectIndex(node_->ind().row(), plot_->valueColumn(), node_->ind().parent());
 
   plot_->endSelect();
+}
+
+bool
+CQChartsSunburstNodeObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == node_->ind());
 }
 
 void
@@ -427,5 +437,5 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  plot_->drawNode(p, node_);
+  plot_->drawNode(p, this, node_);
 }

@@ -55,6 +55,8 @@ class CQChartsLineObj : public QObject {
   static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QColor &color,
                    double width, const CLineDash &dash);
 
+  static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QPen &pen);
+
   virtual void redrawLineObj() { }
 
  protected:

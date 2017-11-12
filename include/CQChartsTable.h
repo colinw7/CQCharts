@@ -16,6 +16,7 @@ class CQChartsTable : public CQTableView {
  public:
   CQChartsTable(QWidget *parent=nullptr);
 
+  ModelP model() const {return model_; }
   void setModel(const ModelP &model);
 
   void setFilter(const QString &filter);

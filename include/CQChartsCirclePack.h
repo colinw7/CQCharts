@@ -66,7 +66,8 @@ class CQChartsCirclePack {
 
     if (! findAddPos(r, xc, yc))
       return false;
-node->setPosition(xc, yc);
+
+    node->setPosition(xc, yc);
 
     nodes_.push_back(node);
 
@@ -88,7 +89,7 @@ node->setPosition(xc, yc);
     int n = size();
 
     for (int i = 0; i < n; ++i) {
-      NODE *node = node(i);
+      NODE *node = this->node(i);
 
       xmin = std::min(xmin, node->x() - node->radius());
       ymin = std::min(ymin, node->y() - node->radius());

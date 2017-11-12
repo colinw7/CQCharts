@@ -64,15 +64,15 @@ class CQJsonModel : public CQBaseModel {
   typedef std::vector<QString> Cells;
   typedef std::vector<Cells>   Data;
 
-  QString              filename_;
-  CJson*               json_      { nullptr };
-  CJson::Value*        jsonValue_ { nullptr };
-  QString              jsonMatch_;
-  CJson::Array::Values jsonValues_;
-  bool                 hier_      { false };
-  bool                 flat_      { false };
-  QString              hierName_;
-  QStringList          hierColumns_;
+  QString       filename_;
+  CJson*        json_      { nullptr };
+  CJson::ValueP jsonValue_;
+  QString       jsonMatch_;
+  CJson::Values jsonValues_;
+  bool          hier_      { false };
+  bool          flat_      { false };
+  QString       hierName_;
+  QStringList   hierColumns_;
 };
 
 #endif

@@ -303,7 +303,7 @@ calcSize()
 
 bool
 CQChartsKey::
-contains(const CPoint2D &p) const
+contains(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
     return false;
@@ -313,7 +313,7 @@ contains(const CPoint2D &p) const
 
 CQChartsKeyItem *
 CQChartsKey::
-getItemAt(const CPoint2D &p) const
+getItemAt(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
     return nullptr;
@@ -385,7 +385,7 @@ draw(QPainter *p)
   double w = size_.width ();
   double h = size_.height();
 
-  bbox_ = CBBox2D(x, y - h, x + w, y);
+  bbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
 
   //---
 
@@ -446,7 +446,7 @@ draw(QPainter *p)
       h1 += cell1.height;
     }
 
-    CBBox2D bbox(x1 + x, y1 + y - h1, x1 + x + w1, y1 + y);
+    CQChartsGeom::BBox bbox(x1 + x, y1 + y - h1, x1 + x + w1, y1 + y);
 
     item->setBBox(bbox);
 
@@ -528,7 +528,7 @@ size() const
 
 void
 CQChartsKeyText::
-draw(QPainter *p, const CBBox2D &rect)
+draw(QPainter *p, const CQChartsGeom::BBox &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
@@ -584,11 +584,11 @@ size() const
 
 void
 CQChartsKeyColorBox::
-draw(QPainter *p, const CBBox2D &rect)
+draw(QPainter *p, const CQChartsGeom::BBox &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
-  CBBox2D prect;
+  CQChartsGeom::BBox prect;
 
   plot->windowToPixel(rect, prect);
 

@@ -3,8 +3,7 @@
 
 #include <CUnixFile.h>
 #include <CLineDash.h>
-#include <CBBox2D.h>
-#include <CPoint2D.h>
+#include <CQChartsGeom.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -182,32 +181,32 @@ inline bool fromString(const QString &str, std::vector<int> &columns) {
 
 //------
 
-inline QPointF toQPoint(const CPoint2D &point) {
+inline QPointF toQPoint(const CQChartsGeom::Point &point) {
   return QPointF(point.x, point.y);
 }
 
-inline QPoint toQPointI(const CPoint2D &point) {
+inline QPoint toQPointI(const CQChartsGeom::Point &point) {
   return QPoint(point.x, point.y);
 }
 
-inline CPoint2D fromQPoint(const QPointF &point) {
-  return CPoint2D(point.x(), point.y());
+inline CQChartsGeom::Point fromQPoint(const QPointF &point) {
+  return CQChartsGeom::Point(point.x(), point.y());
 }
 
-inline CPoint2D fromQPointF(const QPoint &point) {
-  return CPoint2D(point.x(), point.y());
+inline CQChartsGeom::Point fromQPointF(const QPoint &point) {
+  return CQChartsGeom::Point(point.x(), point.y());
 }
 
-inline QRectF toQRect(const CBBox2D &rect) {
+inline QRectF toQRect(const CQChartsGeom::BBox &rect) {
   return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
 }
 
-inline QRect toQRectI(const CBBox2D &rect) {
+inline QRect toQRectI(const CQChartsGeom::BBox &rect) {
   return QRect(toQPointI(rect.getLL()), toQPointI(rect.getUR())).normalized();
 }
 
-inline CBBox2D fromQRect(const QRectF &rect) {
-  return CBBox2D(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
+inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
+  return CQChartsGeom::BBox(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
 }
 
 //------
@@ -399,7 +398,8 @@ inline double normalizeAngle(double a) {
 //------
 
 // distance between two points
-inline double PointPointDistance(const CPoint2D &point1, const CPoint2D &point2) {
+inline double PointPointDistance(const CQChartsGeom::Point &point1,
+                                 const CQChartsGeom::Point &point2) {
   double dx = point1.x - point2.x;
   double dy = point1.y - point2.y;
 
@@ -407,8 +407,9 @@ inline double PointPointDistance(const CPoint2D &point1, const CPoint2D &point2)
 }
 
 // distance between point and line
-inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
-                              const CPoint2D &lineEnd, double *dist) {
+inline bool PointLineDistance(const CQChartsGeom::Point &point,
+                              const CQChartsGeom::Point &lineStart,
+                              const CQChartsGeom::Point &lineEnd, double *dist) {
   double dx1 = lineEnd.x - lineStart.x;
   double dy1 = lineEnd.y - lineStart.y;
 
@@ -434,7 +435,7 @@ inline bool PointLineDistance(const CPoint2D &point, const CPoint2D &lineStart,
     return false;
   }
   else {
-    CPoint2D intersection = lineStart + u*CPoint2D(dx1, dy1);
+    CQChartsGeom::Point intersection = lineStart + u*CQChartsGeom::Point(dx1, dy1);
 
     *dist = PointPointDistance(point, intersection);
 

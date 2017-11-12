@@ -109,7 +109,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsChordObj(CQChartsChordPlot *plot, const CBBox2D &rect,
+  CQChartsChordObj(CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
                    const CQChartsChordData &data, int i, int n);
 
   const CQChartsChordData &data() { return data_; }
@@ -117,9 +117,11 @@ class CQChartsChordObj : public CQChartsPlotObj {
   int i() const { return i_; }
   int n() const { return n_; }
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &ind) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 

@@ -106,7 +106,7 @@ class CSymbol2DRenderer {
 
 //------
 
-#include <CPoint2D.h>
+#include <CQChartsGeom.h>
 #include <QPainterPath>
 #include <QColor>
 
@@ -115,7 +115,7 @@ class QPainter;
 
 class CQChartsSymbol2DRenderer : public CSymbol2DRenderer {
  public:
-  CQChartsSymbol2DRenderer(QPainter *painter, const CPoint2D &p, double s);
+  CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
 
   void moveTo(double x, double y) override;
 
@@ -135,7 +135,7 @@ class CQChartsSymbol2DRenderer : public CSymbol2DRenderer {
 
  private:
   QPainter*    painter_ { nullptr };
-  CPoint2D     p_       { 0.0, 0.0 };
+  CQChartsGeom::Point     p_       { 0.0, 0.0 };
   double       s_       { 2.0 };
   double       w_       { 0.0 };
   QPainterPath path_;

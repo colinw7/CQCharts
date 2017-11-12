@@ -1,15 +1,16 @@
 #include <CQChartsTable.h>
-#include <CQChartsHeader.h>
 
+#include <QHeaderView>
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
 #include <QMenu>
 #include <QActionGroup>
+#include <cassert>
 
 class CQChartsTableSelectionModel : public QItemSelectionModel {
  public:
   CQChartsTableSelectionModel(CQChartsTable *table) :
-   QItemSelectionModel(table->model()), table_(table) {
+   QItemSelectionModel(table->CQTableView::model()), table_(table) {
   }
 
   void select(const QModelIndex &index, SelectionFlags flags) {
@@ -40,6 +41,8 @@ CQChartsTable::
 CQChartsTable(QWidget *parent) :
  CQTableView(parent)
 {
+  setObjectName("table");
+
   setSortingEnabled(true);
 
   horizontalHeader()->setSectionsClickable(true);

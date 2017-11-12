@@ -13,14 +13,14 @@
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CGradientPalette.h>
-#include <CDisplayTransform2D.h>
-#include <CDisplayRange2D.h>
+#include <CQChartsDisplayTransform.h>
+#include <CQChartsDisplayRange.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
 
-using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CBBox2D>;
+using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
 
 //------
 
@@ -89,8 +89,8 @@ CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  view_(view), type_(type), model_(model)
 {
-  displayRange_     = new CDisplayRange2D;
-  displayTransform_ = new CDisplayTransform2D(displayRange_);
+  displayRange_     = new CQChartsDisplayRange;
+  displayTransform_ = new CQChartsDisplayTransform(displayRange_);
 
   borderObj_     = new CQChartsBoxObj;
   dataBorderObj_ = new CQChartsBoxObj;
@@ -102,7 +102,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   double vr = CQChartsView::viewportRange();
 
-  bbox_ = CBBox2D(0, 0, vr, vr);
+  bbox_ = CQChartsGeom::BBox(0, 0, vr, vr);
 
   displayRange_->setPixelRange(0, vr, vr, 0);
 
@@ -163,9 +163,11 @@ selectionSlot()
   QModelIndexList indices = sm->selectedIndexes();
   if (indices.empty()) return;
 
+  // deselect all objects
   for (auto &plotObj : plotObjs_)
     plotObj->setSelected(false);
 
+  // select objects with matching indices
   for (int i = 0; i < indices.size(); ++i) {
     const QModelIndex &ind = indices[i];
 
@@ -191,7 +193,7 @@ charts() const
 
 //---
 
-const CDisplayRange2D &
+const CQChartsDisplayRange &
 CQChartsPlot::
 displayRange() const
 {
@@ -200,12 +202,12 @@ displayRange() const
 
 void
 CQChartsPlot::
-setDisplayRange(const CDisplayRange2D &r)
+setDisplayRange(const CQChartsDisplayRange &r)
 {
   *displayRange_ = r;
 }
 
-const CDisplayTransform2D &
+const CQChartsDisplayTransform &
 CQChartsPlot::
 displayTransform() const
 {
@@ -214,14 +216,14 @@ displayTransform() const
 
 void
 CQChartsPlot::
-setDisplayTransform(const CDisplayTransform2D &t)
+setDisplayTransform(const CQChartsDisplayTransform &t)
 {
   *displayTransform_ = t;
 }
 
 void
 CQChartsPlot::
-setDataRange(const CRange2D &r)
+setDataRange(const CQChartsGeom::Range &r)
 {
   if (r != dataRange_) {
     dataRange_ = r;
@@ -440,14 +442,14 @@ setEqualScale(bool b)
   equalScale_ = b;
 
   //dataRange_.reset();
-  setDataRange(CRange2D());
+  setDataRange(CQChartsGeom::Range());
 
   updateMargin();
 }
 
 void
 CQChartsPlot::
-setBBox(const CBBox2D &bbox)
+setBBox(const CQChartsGeom::BBox &bbox)
 {
   bbox_ = bbox;
 
@@ -491,7 +493,7 @@ QRectF
 CQChartsPlot::
 range() const
 {
-  CBBox2D dataRange = calcDataRange();
+  CQChartsGeom::BBox dataRange = calcDataRange();
 
   return CQChartsUtil::toQRect(dataRange);
 }
@@ -502,15 +504,32 @@ setRange(const QRectF &r)
 {
   assert(dataScale_ == 1.0);
 
-  CBBox2D bbox = CQChartsUtil::fromQRect(r);
+  CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(r);
 
-  CRange2D range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+  CQChartsGeom::Range range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 
   //dataRange_.set(range);
   setDataRange(range);
 
   applyDataRange();
 }
+
+double
+CQChartsPlot::
+aspect() const
+{
+  double px1, py1, px2, py2;
+
+  view_->windowToPixel(bbox_.getXMin(), bbox_.getYMin(), px1, py1);
+  view_->windowToPixel(bbox_.getXMax(), bbox_.getYMax(), px2, py2);
+
+  if (py1 == py2)
+    return 1.0;
+
+  return fabs(px2 - px1)/fabs(py2 - py1);
+}
+
+//------
 
 CQPropertyViewModel *
 CQChartsPlot::
@@ -672,40 +691,40 @@ postInit()
 {
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRange() const
 {
-  CBBox2D bbox;
+  CQChartsGeom::BBox bbox;
 
   if (dataRange_.isSet())
-    bbox = CBBox2D(dataRange_.xmin(), dataRange_.ymin(),
+    bbox = CQChartsGeom::BBox(dataRange_.xmin(), dataRange_.ymin(),
                    dataRange_.xmax(), dataRange_.ymax());
   else
-    bbox = CBBox2D(0, 0, 1, 1);
+    bbox = CQChartsGeom::BBox(0, 0, 1, 1);
 
-  CPoint2D c = bbox.getCenter();
-  double   w = 0.5*bbox.getWidth ()/dataScale_;
-  double   h = 0.5*bbox.getHeight()/dataScale_;
+  CQChartsGeom::Point c = bbox.getCenter();
+  double              w = 0.5*bbox.getWidth ()/dataScale_;
+  double              h = 0.5*bbox.getHeight()/dataScale_;
 
   double x = c.x + dataOffset_.x;
   double y = c.y + dataOffset_.y;
 
-  return CBBox2D(x - w, y - h, x + w, y + h);
+  return CQChartsGeom::BBox(x - w, y - h, x + w, y + h);
 }
 
 void
 CQChartsPlot::
 applyDataRange(bool propagate)
 {
-  CBBox2D dataRange;
+  CQChartsGeom::BBox dataRange;
 
   if (propagate) {
     CQChartsPlot *plot1 = firstPlot();
 
     if (isOverlay()) {
       while (plot1) {
-        plot1->setDataRange(CRange2D());
+        plot1->setDataRange(CQChartsGeom::Range());
 
         plot1->updateRange(/*update*/false);
 
@@ -733,8 +752,9 @@ applyDataRange(bool propagate)
     CQChartsPlot *plot1 = firstPlot();
 
     if (isOverlay()) {
-      CRange2D dataRange1 = CRange2D(dataRange.getXMin(), dataRange.getYMin(),
-                                     dataRange.getXMax(), dataRange.getYMax());
+      CQChartsGeom::Range dataRange1 =
+        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
+                            dataRange.getXMax(), dataRange.getYMax());
 
       if (plot1) {
         plot1->setDataRange (dataRange1 );
@@ -757,24 +777,24 @@ applyDataRange(bool propagate)
     else {
       if (plot1) {
 #if 0
-        CBBox2D bbox1(dataRange_.xmin(), dataRange_.ymin(),
-                      dataRange_.xmax(), dataRange_.ymax());
+        CQChartsGeom::BBox bbox1(dataRange_.xmin(), dataRange_.ymin(),
+                                 dataRange_.xmax(), dataRange_.ymax());
 #endif
 
         while (plot1) {
           if (plot1 != this) {
 
 #if 0
-            CBBox2D bbox2;
+            CQChartsGeom::BBox bbox2;
 
             windowToPixel(bbox1, bbox2);
 
-            CBBox2D bbox3;
+            CQChartsGeom::BBox bbox3;
 
             plot1->pixelToWindow(bbox2, bbox3);
 
-            CRange2D dataRange(bbox3.getXMin(), bbox3.getYMin(),
-                               bbox3.getXMax(), bbox3.getYMax());
+            CQChartsGeom::Range dataRange(bbox3.getXMin(), bbox3.getYMin(),
+                                          bbox3.getXMax(), bbox3.getYMax());
 
             plot1->setDataRange(dataRange);
 #endif
@@ -847,7 +867,7 @@ clearPlotObjects()
 
 bool
 CQChartsPlot::
-mousePress(const CPoint2D &w)
+mousePress(const CQChartsGeom::Point &w)
 {
   if (keyObj_ && keyObj_->contains(w)) {
     CQChartsKeyItem *item = keyObj_->getItemAt(w);
@@ -873,19 +893,23 @@ mousePress(const CPoint2D &w)
 
   //---
 
-  using PlotSelected = std::map<CQChartsPlotObj*,bool>;
+  // init all objects to unselected
+  using ObjsSelected = std::map<CQChartsPlotObj*,bool>;
 
-  PlotSelected selectedPlots;
+  ObjsSelected objsSelected;
 
   for (auto &plotObj : plotObjs_)
-    selectedPlots[plotObj] = false;
+    objsSelected[plotObj] = false;
 
+  //---
+
+  // get selected objects and toggle selected
   PlotObjTree::DataList dataList;
 
   objsAtPoint(w, dataList);
 
   for (auto obj : dataList) {
-    selectedPlots[obj] = ! obj->isSelected();
+    objsSelected[obj] = ! obj->isSelected();
 
     obj->mousePress(w);
 
@@ -896,12 +920,13 @@ mousePress(const CPoint2D &w)
 
   bool changed = false;
 
-  for (const auto &plot : selectedPlots) {
-    if (plot.first->isSelected() != plot.second) {
-      plot.first->setSelected(plot.second);
+  for (const auto &objSelected : objsSelected) {
+    if (objSelected.first->isSelected() == objSelected.second)
+      continue;
 
-      changed = true;
-    }
+    objSelected.first->setSelected(objSelected.second);
+
+    changed = true;
   }
 
   if (changed)
@@ -914,7 +939,7 @@ mousePress(const CPoint2D &w)
 
 bool
 CQChartsPlot::
-mouseMove(const CPoint2D &w, bool first)
+mouseMove(const CQChartsGeom::Point &w, bool first)
 {
   if (keyObj_) {
     if (keyObj_->contains(w)) {
@@ -1014,13 +1039,13 @@ mouseMove(const CPoint2D &w, bool first)
 
 void
 CQChartsPlot::
-mouseRelease(const CPoint2D &)
+mouseRelease(const CQChartsGeom::Point &)
 {
 }
 
 void
 CQChartsPlot::
-clickZoom(const CPoint2D &w)
+clickZoom(const CQChartsGeom::Point &w)
 {
   PlotObjTree::DataList dataList;
 
@@ -1126,7 +1151,7 @@ CQChartsPlot::
 panLeft()
 {
   if (view_->isZoomData()) {
-    CBBox2D dataRange = calcDataRange();
+    CQChartsGeom::BBox dataRange = calcDataRange();
 
     dataOffset_.setX(dataOffset_.x - dataRange.getWidth()/8);
 
@@ -1146,7 +1171,7 @@ CQChartsPlot::
 panRight()
 {
   if (view_->isZoomData()) {
-    CBBox2D dataRange = calcDataRange();
+    CQChartsGeom::BBox dataRange = calcDataRange();
 
     dataOffset_.setX(dataOffset_.x + dataRange.getWidth()/8);
 
@@ -1166,7 +1191,7 @@ CQChartsPlot::
 panUp()
 {
   if (view_->isZoomData()) {
-    CBBox2D dataRange = calcDataRange();
+    CQChartsGeom::BBox dataRange = calcDataRange();
 
     dataOffset_.setY(dataOffset_.y + dataRange.getHeight()/8);
 
@@ -1186,7 +1211,7 @@ CQChartsPlot::
 panDown()
 {
   if (view_->isZoomData()) {
-    CBBox2D dataRange = calcDataRange();
+    CQChartsGeom::BBox dataRange = calcDataRange();
 
     dataOffset_.setY(dataOffset_.y - dataRange.getHeight()/8);
 
@@ -1239,7 +1264,7 @@ zoomOut(double f)
 
 void
 CQChartsPlot::
-zoomTo(const CBBox2D &bbox)
+zoomTo(const CQChartsGeom::BBox &bbox)
 {
   if (bbox.getWidth() < 1E-50 || bbox.getHeight() < 1E-50)
     return;
@@ -1251,7 +1276,7 @@ zoomTo(const CBBox2D &bbox)
     double w = bbox.getWidth ();
     double h = bbox.getHeight();
 
-    CPoint2D c = bbox.getCenter();
+    CQChartsGeom::Point c = bbox.getCenter();
 
     double w1 = dataRange_.xsize();
     double h1 = dataRange_.ysize();
@@ -1261,9 +1286,9 @@ zoomTo(const CBBox2D &bbox)
 
     dataScale_ = std::min(xscale, yscale);
 
-    CPoint2D c1 = CPoint2D(dataRange_.xmid(), dataRange_.ymid());
+    CQChartsGeom::Point c1 = CQChartsGeom::Point(dataRange_.xmid(), dataRange_.ymid());
 
-    dataOffset_ = CPoint2D(c.x - c1.x, c.y - c1.y);
+    dataOffset_ = CQChartsGeom::Point(c.x - c1.x, c.y - c1.y);
 
     applyDataRange();
 
@@ -1282,7 +1307,7 @@ zoomFull()
 {
   if (view_->isZoomData()) {
     dataScale_  = 1.0;
-    dataOffset_ = CPoint2D(0.0, 0.0);
+    dataOffset_ = CQChartsGeom::Point(0.0, 0.0);
 
     applyDataRange();
 
@@ -1308,7 +1333,7 @@ updateTransform()
 
 bool
 CQChartsPlot::
-tipText(const CPoint2D &p, QString &tip) const
+tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
   PlotObjTree::DataList dataList;
 
@@ -1332,7 +1357,7 @@ tipText(const CPoint2D &p, QString &tip) const
 
 void
 CQChartsPlot::
-objsAtPoint(const CPoint2D &p, std::list<CQChartsPlotObj *> &objs) const
+objsAtPoint(const CQChartsGeom::Point &p, std::list<CQChartsPlotObj *> &objs) const
 {
   PlotObjTree::DataList dataList;
 
@@ -1366,7 +1391,7 @@ updateKeyPosition(bool force)
   if (force)
     keyObj_->invalidateLayout();
 
-  CBBox2D bbox = calcDataRange();
+  CQChartsGeom::BBox bbox = calcDataRange();
 
   if (! bbox.isSet())
     return;
@@ -1434,7 +1459,7 @@ updateTitlePosition()
   if (! titleObj_)
     return;
 
-  CBBox2D bbox = calcDataRange();
+  CQChartsGeom::BBox bbox = calcDataRange();
 
   if (! bbox.isSet())
     return;
@@ -1536,7 +1561,7 @@ calcRect() const
   return QRectF(pxmin, pymin, pxmax - pxmin - 1, pymax - pymin - 1);
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsPlot::
 calcPixelRect() const
 {
@@ -1549,7 +1574,7 @@ calcPixelRect() const
   //view_->windowToPixel(xmin, ymin, px1, py1);
   //view_->windowToPixel(xmax, ymax, px2, py2);
 
-  //return CBBox2D(px1, py1, px2, py2);
+  //return CQChartsGeom::BBox(px1, py1, px2, py2);
 
   return view_->windowToPixel(bbox_);
 }
@@ -1563,16 +1588,16 @@ autoFit()
 
   //---
 
-  CBBox2D bbox = fitBBox();
+  CQChartsGeom::BBox bbox = fitBBox();
 
   //---
 
   CQChartsPlot *plot1 = nextPlot();
 
   while (plot1) {
-    CBBox2D bbox1 = plot1->fitBBox();
+    CQChartsGeom::BBox bbox1 = plot1->fitBBox();
 
-    CBBox2D bbox2;
+    CQChartsGeom::BBox bbox2;
 
     plot1->windowToPixel(bbox1, bbox2);
 
@@ -1588,11 +1613,11 @@ autoFit()
   plot1 = nextPlot();
 
   while (plot1) {
-    CBBox2D bbox1;
+    CQChartsGeom::BBox bbox1;
 
     windowToPixel(bbox, bbox1);
 
-    CBBox2D bbox2;
+    CQChartsGeom::BBox bbox2;
 
     plot1->pixelToWindow(bbox1, bbox2);
 
@@ -1608,13 +1633,13 @@ autoFit()
 
 void
 CQChartsPlot::
-setFitBBox(const CBBox2D &bbox)
+setFitBBox(const CQChartsGeom::BBox &bbox)
 {
   double xmin, ymin, xmax, ymax;
 
   displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
-  CBBox2D pbbox(xmin, ymin, xmax, ymax);
+  CQChartsGeom::BBox pbbox(xmin, ymin, xmax, ymax);
 
   margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
   margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
@@ -1624,7 +1649,7 @@ setFitBBox(const CBBox2D &bbox)
   updateMargin();
 }
 
-CBBox2D
+CQChartsGeom::BBox
 CQChartsPlot::
 fitBBox() const
 {
@@ -1632,9 +1657,9 @@ fitBBox() const
 
   displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
 
-  CBBox2D pbbox(xmin, ymin, xmax, ymax);
+  CQChartsGeom::BBox pbbox(xmin, ymin, xmax, ymax);
 
-  CBBox2D bbox = pbbox;
+  CQChartsGeom::BBox bbox = pbbox;
 
   if (xAxis_)
     bbox += xAxis_->bbox();
@@ -1655,6 +1680,8 @@ fitBBox() const
 
   return bbox;
 }
+
+//------
 
 void
 CQChartsPlot::
@@ -1810,9 +1837,22 @@ drawTitle(QPainter *painter)
 
 void
 CQChartsPlot::
-drawWindowRedBox(QPainter *painter, const CBBox2D &bbox)
+drawContrastText(QPainter *p, double x, double y, const QString &text, const QPen &pen)
 {
-  CBBox2D prect;
+  p->setPen(CQChartsUtil::invColor(pen.color()));
+
+  p->drawText(x + 1, y + 1, text);
+
+  p->setPen(pen);
+
+  p->drawText(x, y, text);
+}
+
+void
+CQChartsPlot::
+drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
+{
+  CQChartsGeom::BBox prect;
 
   windowToPixel(bbox, prect);
 
@@ -1821,7 +1861,7 @@ drawWindowRedBox(QPainter *painter, const CBBox2D &bbox)
 
 void
 CQChartsPlot::
-drawRedBox(QPainter *painter, const CBBox2D &bbox)
+drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
 {
   painter->setPen(Qt::red);
   painter->setBrush(Qt::NoBrush);
@@ -1829,6 +1869,65 @@ drawRedBox(QPainter *painter, const CBBox2D &bbox)
   painter->drawRect(CQChartsUtil::toQRect(bbox));
 }
 
+//------
+
+void
+CQChartsPlot::
+update()
+{
+  view_->update();
+}
+
+//------
+
+void
+CQChartsPlot::
+updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
+{
+  // stroke and fill
+  if (brush.style() != Qt::NoBrush) {
+    QColor pc = pen  .color();
+    QColor bc = brush.color();
+
+    // inside first (low priorty)
+    if (obj->isInside()) {
+      if (view()->insideMode() == CQChartsView::InsideMode::OUTLINE) {
+        pen.setColor(CQChartsUtil::invColor(pc));
+        pen.setWidth(1);
+      }
+      else
+        brush.setColor(insideColor(bc));
+    }
+
+    // selected last (high priority)
+    if (obj->isSelected()) {
+      if (view()->selectedMode() == CQChartsView::SelectedMode::OUTLINE) {
+        pen.setColor(CQChartsUtil::invColor(pc));
+        pen.setWidth(2);
+      }
+      else
+        brush.setColor(CQChartsUtil::invColor(bc));
+    }
+  }
+  // just stroke
+  else {
+    QColor pc = pen.color();
+
+    // inside first (low priorty)
+    if (obj->isInside()) {
+      pen.setColor(CQChartsUtil::invColor(pc));
+      pen.setWidth(2);
+    }
+
+    // selected last (high priority)
+    if (obj->isSelected()) {
+      pen.setColor(CQChartsUtil::invColor(pc));
+      pen.setWidth(4);
+    }
+  }
+}
+
+#if 0
 QColor
 CQChartsPlot::
 objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def) const
@@ -1837,7 +1936,9 @@ objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def) const
 
   return objectStateColor(obj, c);
 }
+#endif
 
+#if 0
 QColor
 CQChartsPlot::
 objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
@@ -1849,19 +1950,13 @@ objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
 
   return c1;
 }
+#endif
 
 QColor
 CQChartsPlot::
 insideColor(const QColor &c) const
 {
   return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
-}
-
-void
-CQChartsPlot::
-update()
-{
-  view_->update();
 }
 
 QColor
@@ -1905,6 +2000,8 @@ textColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
 }
+
+//------
 
 QModelIndex
 CQChartsPlot::
@@ -1988,6 +2085,18 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
 
 //------
 
+QModelIndex
+CQChartsPlot::
+selectIndex(int row, int col, const QModelIndex &parent) const
+{
+  std::vector<QSortFilterProxyModel *> proxyModels;
+  QAbstractItemModel*                  sourceModel;
+
+  this->proxyModels(proxyModels, sourceModel);
+
+  return sourceModel->index(row, col, parent);
+}
+
 void
 CQChartsPlot::
 beginSelect()
@@ -1999,14 +2108,7 @@ void
 CQChartsPlot::
 addSelectIndex(int row, int col, const QModelIndex &parent)
 {
-  std::vector<QSortFilterProxyModel *> proxyModels;
-  QAbstractItemModel*                  sourceModel;
-
-  this->proxyModels(proxyModels, sourceModel);
-
-  QModelIndex ind = sourceModel->index(row, col, parent);
-
-  addSelectIndex(ind);
+  addSelectIndex(selectIndex(row, col, parent));
 }
 
 void
@@ -2068,40 +2170,40 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
 
 void
 CQChartsPlot::
-windowToPixel(const CPoint2D &w, CPoint2D &p) const
+windowToPixel(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const
 {
   windowToPixel(w.x, w.y, p.x, p.y);
 }
 
 void
 CQChartsPlot::
-pixelToWindow(const CPoint2D &p, CPoint2D &w) const
+pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const
 {
   pixelToWindow(p.x, p.y, w.x, w.y);
 }
 
 void
 CQChartsPlot::
-windowToPixel(const CBBox2D &wrect, CBBox2D &prect) const
+windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const
 {
   double px1, py1, px2, py2;
 
   windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
   windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
 
-  prect = CBBox2D(px1, py1, px2, py2);
+  prect = CQChartsGeom::BBox(px1, py1, px2, py2);
 }
 
 void
 CQChartsPlot::
-pixelToWindow(const CBBox2D &prect, CBBox2D &wrect) const
+pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const
 {
   double wx1, wy1, wx2, wy2;
 
   pixelToWindow(prect.getXMin(), prect.getYMin(), wx1, wy2);
   pixelToWindow(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
-  wrect = CBBox2D(wx1, wy1, wx2, wy2);
+  wrect = CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
 
 double

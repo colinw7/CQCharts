@@ -16,12 +16,20 @@ class CQChartsTree : public CQTreeView {
  public:
   CQChartsTree(QWidget *parent=nullptr);
 
+  ModelP model() const {return model_; }
   void setModel(const ModelP &model);
 
   void setFilter(const QString &filter);
 
+  QSize sizeHint() const override;
+
+ private:
+  void addMenuActions(QMenu *menu) override;
+
  private slots:
   void selectionSlot();
+
+  void selectionBehaviorSlot(QAction *action);
 
  private:
   ModelP                      model_;

@@ -9,17 +9,12 @@
 
 namespace {
 
-int numColors = 20;
-
-int colorId = -1;
+int s_colorId = -1;
 
 int nextColorId() {
-  ++colorId;
+  ++s_colorId;
 
-  if (colorId >= numColors)
-    colorId = 0;
-
-  return colorId;
+  return s_colorId;
 }
 
 }
@@ -28,6 +23,13 @@ int nextColorId() {
 
 CQChartsBubblePlotType::
 CQChartsBubblePlotType()
+{
+  addParameters();
+}
+
+void
+CQChartsBubblePlotType::
+addParameters()
 {
   addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
   addColumnParameter("value", "Value", "valueColumn", "", 1);
@@ -51,17 +53,11 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
-void
 CQChartsBubblePlot::
-updateRange(bool apply)
+~CQChartsBubblePlot()
 {
-  dataRange_.reset();
-
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
-
-  if (apply)
-    applyDataRange();
+  for (auto &node : nodes_)
+    delete node;
 }
 
 void
@@ -71,6 +67,35 @@ addProperties()
   CQChartsPlot::addProperties();
 
   addProperty("", this, "fontHeight");
+}
+
+void
+CQChartsBubblePlot::
+updateRange(bool apply)
+{
+  double radius = 1.0;
+
+  double xr = radius;
+  double yr = radius;
+
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    if (aspect > 1.0)
+      xr *= aspect;
+    else
+      yr *= 1.0/aspect;
+  }
+
+  dataRange_.reset();
+
+  dataRange_.updateRange(-xr, -yr);
+  dataRange_.updateRange( xr,  yr);
+
+  //---
+
+  if (apply)
+    applyDataRange();
 }
 
 void
@@ -102,11 +127,11 @@ initObjs()
   for (auto node : nodes_) {
     if (! node->placed()) continue;
 
-    double r = node->radius();
-
     //---
 
-    CBBox2D rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
+    double r = node->radius();
+
+    CQChartsGeom::BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
 
     CQChartsBubbleObj *obj = new CQChartsBubbleObj(this, node, rect, i, n);
 
@@ -124,14 +149,16 @@ initNodes()
 {
   loadChildren();
 
+  numColors_ = s_colorId;
+
   //---
 
   double xc, yc, r;
 
   pack_.boundingCircle(xc, yc, r);
 
-  offset_ = CPoint2D(xc, yc);
-  scale_  = 1.0/r;
+  offset_ = CQChartsGeom::Point(xc, yc);
+  scale_  = (r > 0.0 ? 1.0/r : 1.0);
 
   //---
 
@@ -210,7 +237,7 @@ void
 CQChartsBubblePlot::
 drawForeground(QPainter *p)
 {
-  double xc, yc, r;
+  double xc = 0.0, yc = 0.0, r = 1.0;
 
   pack_.boundingCircle(xc, yc, r);
 
@@ -219,12 +246,17 @@ drawForeground(QPainter *p)
   windowToPixel(xc - r, yc + r, px1, py1);
   windowToPixel(xc + r, yc - r, px2, py2);
 
+  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+
+  //---
+
+  // draw bubble
+  p->setPen  (QColor(0,0,0));
+  p->setBrush(Qt::NoBrush);
+
   QPainterPath path;
 
-  path.addEllipse(QRectF(px1, py1, px2 - px1, py2 - py1));
-
-  p->setPen(QColor(0,0,0));
-  p->setBrush(QColor(0,0,0,0));
+  path.addEllipse(qrect);
 
   p->drawPath(path);
 }
@@ -235,25 +267,36 @@ nodeColor(CQChartsBubbleNode *node) const
 {
   QColor c(80,80,200);
 
-  return interpPaletteColor((1.0*node->colorId())/numColors, c);
+  return interpPaletteColor((1.0*node->colorId())/numColors_, c);
 }
 
 //------
 
 CQChartsBubbleObj::
 CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
-                  const CBBox2D &rect, int i, int n) :
+                  const CQChartsGeom::BBox &rect, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), i_(i), n_(n)
 {
 }
 
+bool
+CQChartsBubbleObj::
+inside(const CQChartsGeom::Point &p) const
+{
+  if (CQChartsUtil::PointPointDistance(p,
+        CQChartsGeom::Point(node_->x(), node_->y())) < node_->radius())
+    return true;
+
+  return false;
+}
+
 void
 CQChartsBubbleObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
-  plot_->beginSelect();
-
   const QModelIndex &ind = node_->ind();
+
+  plot_->beginSelect();
 
   plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
   plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
@@ -261,24 +304,19 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsBubbleObj::
+isIndex(const QModelIndex &ind) const
+{
+  const QModelIndex &nind = node_->ind();
+
+  return (ind == nind);
+}
+
 void
 CQChartsBubbleObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
-
-  p->setFont(font);
-
-  //---
-
-  QFontMetricsF fm(p->font());
-
-  QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
-
-  QColor tc = plot_->textColor(c);
-
   double r = node_->radius();
 
   double px1, py1, px2, py2;
@@ -286,42 +324,67 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(node_->x() - r, node_->y() + r, px1, py1);
   plot_->windowToPixel(node_->x() + r, node_->y() - r, px2, py2);
 
+  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+
+  //---
+
+  QColor c = plot_->nodeColor(node_);
+
+  QBrush brush(c);
+
+  QColor bc = Qt::black;
+  QColor tc = plot_->textColor(c);
+
+  QPen bpen(bc);
+  QPen tpen(tc);
+
+  plot_->updateObjPenBrushState(this, bpen, brush);
+  plot_->updateObjPenBrushState(this, tpen, brush);
+
+  //---
+
+  p->save();
+
+  //---
+
+  // draw bubble
+  p->setPen  (bpen);
+  p->setBrush(brush);
+
   QPainterPath path;
 
-  path.addEllipse(QRectF(px1, py1, px2 - px1, py2 - py1));
-
-  p->setPen  (tc);
-  p->setBrush(c);
+  path.addEllipse(qrect);
 
   p->drawPath(path);
 
   //---
 
-  p->setPen(tc);
+  // set font size
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  //---
+
+  // calc text size and position
+  p->setFont(font);
+
+  QString name = node_->name().c_str();
+
+  QFontMetricsF fm(p->font());
+
+  double tw = fm.width(name);
 
   plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
 
-  int len = node_->name().size();
+  //---
 
-  for (int i = len; i >= 1; --i) {
-    std::string name1 = node_->name().substr(0, i);
+  // draw label
+  p->setClipRect(qrect, Qt::ReplaceClip);
 
-    double tw = fm.width(name1.c_str());
+  plot_->drawContrastText(p, px1 - tw/2, py1 + fm.descent(), name, tpen);
 
-    if (tw > 2*(px2 - px1)) continue;
+  //---
 
-    p->drawText(px1 - tw/2, py1 + fm.descent(), name1.c_str());
-
-    break;
-  }
-}
-
-bool
-CQChartsBubbleObj::
-inside(const CPoint2D &p) const
-{
-  if (CQChartsUtil::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
-    return true;
-
-  return false;
+  p->restore();
 }

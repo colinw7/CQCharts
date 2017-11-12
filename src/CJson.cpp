@@ -18,6 +18,11 @@ CJson()
 {
 }
 
+CJson::
+~CJson()
+{
+}
+
 //------
 
 double
@@ -206,7 +211,7 @@ readObject(CStrParse &parse, Object *&obj)
 
     parse.skipSpace();
 
-    Value *value;
+    ValueP value;
 
     if (! readValue(parse, value)) {
       delete obj;
@@ -264,7 +269,7 @@ readArray(CStrParse &parse, Array *&array)
     if (parse.isChar(']'))
       break;
 
-    Value *value;
+    ValueP value;
 
     if (! readValue(parse, value)) {
       delete array;
@@ -305,7 +310,7 @@ readArray(CStrParse &parse, Array *&array)
 // read value at file pos
 bool
 CJson::
-readValue(CStrParse &parse, Value *&value)
+readValue(CStrParse &parse, ValueP &value)
 {
   if (parse.eof())
     return false;
@@ -318,7 +323,7 @@ readValue(CStrParse &parse, Value *&value)
     if (! readString(parse, str1))
       return false;
 
-    value = createString(str1);
+    value = ValueP(createString(str1));
   }
   else if (c == '-' || isdigit(c)) {
     std::string str1;
@@ -330,7 +335,7 @@ readValue(CStrParse &parse, Value *&value)
 
     double n = CJson::stod(str1, ok);
 
-    value = createNumber(n);
+    value = ValueP(createNumber(n));
   }
   else if (c == '{') {
     Object *obj;
@@ -338,7 +343,7 @@ readValue(CStrParse &parse, Value *&value)
     if (! readObject(parse, obj))
       return false;
 
-    value = obj;
+    value = ValueP(obj);
   }
   else if (c == '[') {
     Array *array;
@@ -346,22 +351,22 @@ readValue(CStrParse &parse, Value *&value)
     if (! readArray(parse, array))
       return false;
 
-    value = array;
+    value = ValueP(array);
   }
   else if (parse.isString("true")) {
     parse.skipChars("true");
 
-    value = createTrue();
+    value = ValueP(createTrue());
   }
   else if (parse.isString("false")) {
     parse.skipChars("false");
 
-    value = createFalse();
+    value = ValueP(createFalse());
   }
   else if (parse.isString("null")) {
     parse.skipChars("null");
 
-    value = createNull();
+    value = ValueP(createNull());
   }
   else
     return false;
@@ -391,9 +396,9 @@ readLine(FILE *fp, std::string &line)
 // load file and return root value
 bool
 CJson::
-loadFile(const std::string &filename, Value *&value)
+loadFile(const std::string &filename, ValueP &value)
 {
-  value = nullptr;
+  value = ValueP();
 
   FILE *fp = fopen(filename.c_str(), "r");
   if (! fp) return false;
@@ -416,7 +421,7 @@ loadFile(const std::string &filename, Value *&value)
 
 bool
 CJson::
-loadString(const std::string &lines, Value *&value)
+loadString(const std::string &lines, ValueP &value)
 {
   std::vector<std::string> strs;
 
@@ -430,7 +435,7 @@ loadString(const std::string &lines, Value *&value)
     if (! readObject(parse, obj))
       return false;
 
-    value = obj;
+    value = ValueP(obj);
   }
   else if (parse.isChar('[')) { // array
     Array *array;
@@ -438,10 +443,10 @@ loadString(const std::string &lines, Value *&value)
     if (! readArray(parse, array))
       return false;
 
-    value = array;
+    value = ValueP(array);
   }
   else {
-    Value *value1;
+    ValueP value1;
 
     if (! readValue(parse, value1))
       return false;
@@ -461,7 +466,7 @@ loadString(const std::string &lines, Value *&value)
 
 bool
 CJson::
-matchObject(Value *value, const std::string &match, Value* &value1)
+matchObject(const ValueP &value, const std::string &match, ValueP &value1)
 {
   if (isDebug())
     std::cerr << "matchObject \'" << match << "\'" << std::endl;
@@ -484,18 +489,18 @@ matchObject(Value *value, const std::string &match, Value* &value1)
     for (const auto &n : names) {
       String *str = createString(n);
 
-      array->addValue(str);
+      array->addValue(ValueP(str));
     }
 
-    value1 = array;
+    value1 = ValueP(array);
   }
   else if (match == "?type") {
     String *str = createString(obj->typeName());
 
-    value1 = str;
+    value1 = ValueP(str);
   }
   else if (match == "?values") {
-    std::vector<Value *> values;
+    Values values;
 
     obj->getValues(values);
 
@@ -504,7 +509,7 @@ matchObject(Value *value, const std::string &match, Value* &value1)
     for (const auto &v : values)
       array->addValue(v);
 
-   value1 = array;
+   value1 = ValueP(array);
   }
   else {
     if (! obj->getNamedValue(match, value1)) {
@@ -519,7 +524,7 @@ matchObject(Value *value, const std::string &match, Value* &value1)
 
 bool
 CJson::
-matchArray(Value *value, const std::string &lhs, const std::string &rhs, Array::Values &values)
+matchArray(const ValueP &value, const std::string &lhs, const std::string &rhs, Values &values)
 {
   if (isDebug())
     std::cerr << "matchArray \'" << lhs << "\' \'" << rhs << "\'" << std::endl;
@@ -540,7 +545,7 @@ matchArray(Value *value, const std::string &lhs, const std::string &rhs, Array::
   if (range == "?size") {
     Number *n = createNumber(array->size());
 
-    values.push_back(n);
+    values.push_back(ValueP(n));
 
     return true;
   }
@@ -565,7 +570,7 @@ matchArray(Value *value, const std::string &lhs, const std::string &rhs, Array::
     }
 
     for (int i = i1; i <= i2 && i < int(array->size()); ++i) {
-      Value *value1 = array->at(i);
+      ValueP value1 = array->at(i);
 
       if (rhs1 != "")
         matchValues(value1, i, rhs1, values);
@@ -615,8 +620,8 @@ matchArray(Value *value, const std::string &lhs, const std::string &rhs, Array::
 
 bool
 CJson::
-matchList(Value *value, int ind, const std::string &lhs,
-          const std::string &rhs, Array::Values &values)
+matchList(const ValueP &value, int ind, const std::string &lhs, const std::string &rhs,
+          Values &values)
 {
   if (isDebug())
     std::cerr << "matchList \'" << lhs << "\' \'" << rhs << "\'" << std::endl;
@@ -645,7 +650,7 @@ matchList(Value *value, int ind, const std::string &lhs,
   Array *array = createArray();
 
   for (const auto &f : fields) {
-    Array::Values values1;
+    Values values1;
 
     std::string match = (rhs != "" ? f + "/" + rhs : f);
 
@@ -655,22 +660,23 @@ matchList(Value *value, int ind, const std::string &lhs,
       array->addValue(v1);
   }
 
-  values.push_back(array);
+  values.push_back(ValueP(array));
 
   return true;
 }
 
 bool
 CJson::
-matchValues(Value *value, const std::string &match, Array::Values &values)
+matchValues(const ValueP &value, const std::string &match, Values &values)
 {
   return matchValues(value, 0, match, values);
 }
 
 bool
 CJson::
-matchValues(Value *value, int ind, const std::string &match, Array::Values &values)
+matchValues(const ValueP &value, int ind, const std::string &match, Values &values)
 {
+  ValueP      value1 = value;
   std::string match1 = match;
 
   auto p = match.find("...");
@@ -679,7 +685,7 @@ matchValues(Value *value, int ind, const std::string &match, Array::Values &valu
     std::string lhs = match1.substr(0, p);
     std::string rhs = match1.substr(p + 3);
 
-    return matchHier(value, ind, lhs, rhs, values);
+    return matchHier(value1, ind, lhs, rhs, values);
   }
 
   if (match1 != "" && match1[0] != '{') {
@@ -693,18 +699,18 @@ matchValues(Value *value, int ind, const std::string &match, Array::Values &valu
         return false;
 
       if      (lhs[0] == '[') {
-        return matchArray(value, lhs, rhs, values);
+        return matchArray(value1, lhs, rhs, values);
       }
       else if (lhs[0] == '{') {
-        return matchList(value, ind, lhs, rhs, values);
+        return matchList(value1, ind, lhs, rhs, values);
       }
       else {
-        Value *value1 = 0;
+        ValueP value2;
 
-        if (! matchObject(value, lhs, value1))
+        if (! matchObject(value1, lhs, value2))
           return false;
 
-        value = value1;
+        value1 = value2;
       }
 
       match1 = rhs;
@@ -717,10 +723,10 @@ matchValues(Value *value, int ind, const std::string &match, Array::Values &valu
     return true;
 
   if      (match1[0] == '[') {
-    return matchArray(value, match1, "", values);
+    return matchArray(value1, match1, "", values);
   }
   else if (match1[0] == '{') {
-    return matchList(value, ind, match1, "", values);
+    return matchList(value1, ind, match1, "", values);
   }
   else if (match1[0] == '#') {
     int base = 0;
@@ -733,18 +739,18 @@ matchValues(Value *value, int ind, const std::string &match, Array::Values &valu
 
     Number *n = createNumber(base + ind);
 
-    values.push_back(n);
+    values.push_back(ValueP(n));
   }
   else {
-    Value *value1 = 0;
+    ValueP value2;
 
-    if (! matchObject(value, match1, value1))
+    if (! matchObject(value1, match1, value2))
       return false;
 
-    value = value1;
+    value1 = value2;
 
-    if (value)
-      values.push_back(value);
+    if (value1)
+      values.push_back(value1);
   }
 
   return true;
@@ -752,8 +758,8 @@ matchValues(Value *value, int ind, const std::string &match, Array::Values &valu
 
 bool
 CJson::
-matchHier(Value *value, int ind, const std::string &name, const std::string &hname,
-          Array::Values &values)
+matchHier(const ValueP &value, int ind, const std::string &name, const std::string &hname,
+          Values &values)
 {
   typedef std::vector<std::string> Keys;
 
@@ -785,15 +791,15 @@ matchHier(Value *value, int ind, const std::string &name, const std::string &hna
     keys.push_back(rhs1);
   }
 
-  Array::Values ivalues;
+  Values ivalues;
 
   return matchHier1(value, ind, name, hname1, keys, ivalues, values);
 }
 
 bool
 CJson::
-matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string &rhs,
-           const std::vector<std::string> &keys, Array::Values &ivalues, Array::Values &values)
+matchHier1(const ValueP &value, int /*ind*/, const std::string &lhs, const std::string &rhs,
+           const std::vector<std::string> &keys, Values &ivalues, Values &values)
 {
   if (! value->isObject()) {
     if (! isQuiet())
@@ -804,13 +810,13 @@ matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string 
   Object *obj = value->cast<Object>();
 
   // name
-  Value *lvalue = 0;
+  ValueP lvalue;
 
   if (obj->getNamedValue(lhs, lvalue))
     ivalues.push_back(lvalue);
 
   // hier object
-  Value *rvalue = 0;
+  ValueP rvalue;
 
   if (obj->getNamedValue(rhs, rvalue)) {
     if (! rvalue->isArray()) {
@@ -824,7 +830,7 @@ matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string 
     int i = 0;
 
     for (auto &v : array->values()) {
-      Array::Values ivalues1 = ivalues;
+      Values ivalues1 = ivalues;
 
       matchHier1(v, i, lhs, rhs, keys, ivalues1, values);
 
@@ -832,10 +838,10 @@ matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string 
     }
   }
   else {
-    Array::Values kvalues;
+    Values kvalues;
 
     for (const auto &k : keys) {
-      Value *kvalue;
+      ValueP kvalue;
 
       if (obj->getNamedValue(k, kvalue))
         kvalues.push_back(kvalue);
@@ -843,7 +849,7 @@ matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string 
 
     String *str = hierValuesToKey(ivalues, kvalues);
 
-    values.push_back(str);
+    values.push_back(ValueP(str));
   }
 
   return true;
@@ -851,7 +857,7 @@ matchHier1(Value *value, int /*ind*/, const std::string &lhs, const std::string 
 
 CJson::String *
 CJson::
-hierValuesToKey(const Array::Values &values, const Array::Values &kvalues)
+hierValuesToKey(const Values &values, const Values &kvalues)
 {
   std::string str;
 
@@ -896,49 +902,63 @@ CJson::String *
 CJson::
 createString(const std::string &str)
 {
-  return new String(this, str);
+  String *jstr = new String(this, str);
+
+  return jstr;
 }
 
 CJson::Number *
 CJson::
 createNumber(double r)
 {
-  return new Number(this, r);
+  Number *jnumber = new Number(this, r);
+
+  return jnumber;
 }
 
 CJson::True *
 CJson::
 createTrue()
 {
-  return new True(this);
+  True *jtrue = new True(this);
+
+  return jtrue;
 }
 
 CJson::False *
 CJson::
 createFalse()
 {
-  return new False(this);
+  False *jfalse = new False(this);
+
+  return jfalse;
 }
 
 CJson::Null *
 CJson::
 createNull()
 {
-  return new Null(this);
+  Null *jnull = new Null(this);
+
+  return jnull;
 }
 
 CJson::Object *
 CJson::
 createObject()
 {
-  return new Object(this);
+  Object *jobj = new Object(this);
+
+  return jobj;
 }
 
 CJson::Array *
 CJson::
 createArray()
 {
-  return new Array(this);
+  Array *jarray = new Array(this);
+
+  return jarray;
 }
 
 //------

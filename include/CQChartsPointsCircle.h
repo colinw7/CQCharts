@@ -135,7 +135,6 @@ Circle makeCircumcircle(const Point &a, const Point &b, const Point &c) {
   return Circle(p, p.distance(a));
 }
 
-
 Circle makeDiameter(const Point &a, const Point &b) {
   return Circle(Point((a.x + b.x)/2, (a.y + b.y)/2), a.distance(b)/2);
 }

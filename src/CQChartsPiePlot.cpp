@@ -94,7 +94,7 @@ updateRange(bool apply)
   double yr = radius;
 
   if (isEqualScale()) {
-    double aspect = view()->aspect();
+    double aspect = this->aspect();
 
     if (aspect > 1.0)
       xr *= aspect;
@@ -233,7 +233,7 @@ initObjs()
 
     //---
 
-    CBBox2D rect(xc - radius, yc - radius, xc + radius, yc + radius);
+    CQChartsGeom::BBox rect(xc - radius, yc - radius, xc + radius, yc + radius);
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1, r, nr);
 
@@ -317,16 +317,17 @@ draw(QPainter *p)
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(CQChartsPiePlot *plot, const CBBox2D &rect, const QModelIndex &ind, int i, int n) :
+CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
+               int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), ind_(ind), i_(i), n_(n)
 {
 }
 
 bool
 CQChartsPieObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  CPoint2D center(0, 0);
+  CQChartsGeom::Point center(0, 0);
 
   double r = p.distanceTo(center);
 
@@ -366,7 +367,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsPieObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   plot_->beginSelect();
 
@@ -376,16 +377,23 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsPieObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
+}
+
 void
 CQChartsPieObj::
 draw(QPainter *p, const CQChartsPlot::Layer &layer)
 {
-  CPoint2D center(0, 0);
+  CQChartsGeom::Point center(0, 0);
 
-  CPoint2D c  = center;
-  double   ro = plot_->outerRadius();
-  double   a1 = angle1();
-  double   a2 = angle2();
+  CQChartsGeom::Point c  = center;
+  double              ro = plot_->outerRadius();
+  double              a1 = angle1();
+  double              a2 = angle2();
 
   //---
 
@@ -408,15 +416,15 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   //double ri = plot_->innerRadius1()*ro;
 
-  CPoint2D pc;
+  CQChartsGeom::Point pc;
 
   plot_->windowToPixel(c, pc);
 
   //---
 
-  CBBox2D bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
+  CQChartsGeom::BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
 
-  CBBox2D pbbox;
+  CQChartsGeom::BBox pbbox;
 
   plot_->windowToPixel(bbox, pbbox);
 
@@ -428,9 +436,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     if (plot_->isDonut()) {
       double ri = plot_->innerRadius1();
 
-      CBBox2D bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
+      CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
 
-      CBBox2D pbbox1;
+      CQChartsGeom::BBox pbbox1;
 
       plot_->windowToPixel(bbox1, pbbox1);
 
@@ -488,12 +496,17 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     if (color_)
       bg = plot_->interpPaletteColor(*color_);
     else
-      bg = plot_->objectColor(this, i_, n_);
+      bg = plot_->paletteColor(i_, n_);
 
     QColor fg = plot_->textColor(bg);
 
-    p->setBrush(bg);
-    p->setPen  (fg);
+    QPen   pen  (fg);
+    QBrush brush(bg);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    p->setPen  (pen);
+    p->setBrush(brush);
 
     p->drawPath(path);
   }
@@ -563,7 +576,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
           align = Qt::AlignRight | Qt::AlignVCenter;
         }
 
-        QColor bg = plot_->objectColor(this, i_, n_);
+        QColor bg = plot_->paletteColor(i_, n_);
 
         p->setPen(bg);
 
@@ -582,7 +595,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
       plot_->textBox().draw(p, pt, label(), angle, align);
 
-      CBBox2D tbbox;
+      CQChartsGeom::BBox tbbox;
 
       plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
     }
@@ -599,7 +612,7 @@ CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n) :
 
 bool
 CQChartsPieKeyColor::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 

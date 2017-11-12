@@ -151,6 +151,23 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   return false;
 }
 
+QVariant
+CQBaseModel::
+data(const QModelIndex &index, int role) const
+{
+  if (role == Qt::TextAlignmentRole) {
+    Type type = columnType(index.column());
+
+    if (type == Type::INTEGER || type == Type::REAL)
+      return QVariant(Qt::AlignRight | Qt::AlignVCenter);
+    else
+      return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
+  }
+
+  //return QAbstractItemModel::data(index, role);
+  return QVariant();
+}
+
 //------
 
 CQBaseModel::Type

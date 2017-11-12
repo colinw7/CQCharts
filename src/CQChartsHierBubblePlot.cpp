@@ -25,6 +25,13 @@ int nextColorId() {
 CQChartsHierBubblePlotType::
 CQChartsHierBubblePlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsHierBubblePlotType::
+addParameters()
+{
   addColumnParameter("name" , "Name"  , "nameColumn" , "", 0);
   addColumnParameter("value", "Value" , "valueColumn", "", 1);
 
@@ -79,10 +86,26 @@ void
 CQChartsHierBubblePlot::
 updateRange(bool apply)
 {
+  double radius = 1.0;
+
+  double xr = radius;
+  double yr = radius;
+
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    if (aspect > 1.0)
+      xr *= aspect;
+    else
+      yr *= 1.0/aspect;
+  }
+
   dataRange_.reset();
 
-  dataRange_.updateRange(-1, -1);
-  dataRange_.updateRange( 1,  1);
+  dataRange_.updateRange(-xr, -yr);
+  dataRange_.updateRange( xr,  yr);
+
+  //---
 
   if (apply)
     applyDataRange();
@@ -123,7 +146,7 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
   if (hier != root_) {
     double r = hier->radius();
 
-    CBBox2D rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
+    CQChartsGeom::BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
 
     hierObj = new CQChartsHierBubbleHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
 
@@ -147,7 +170,7 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
     double r = node->radius();
 
-    CBBox2D rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
+    CQChartsGeom::BBox rect(node->x() - r, node->y() - r, node->x() + r, node->y() + r);
 
     CQChartsHierBubbleObj *obj =
       new CQChartsHierBubbleObj(this, node, parentObj, rect, node->depth(), maxDepth());
@@ -209,8 +232,8 @@ placeNodes(CQChartsHierBubbleHierNode *hier)
 
   hier->packNodes();
 
-  offset_ = CPoint2D(hier->x(), hier->y());
-  scale_  = 1.0/hier->radius();
+  offset_ = CQChartsGeom::Point(hier->x(), hier->y());
+  scale_  = (hier->radius() > 0.0 ? 1.0/hier->radius() : 1.0);
 
   //---
 
@@ -475,21 +498,27 @@ drawBounds(QPainter *p, CQChartsHierBubbleHierNode *hier)
   windowToPixel(xc - r, yc + r, px1, py1);
   windowToPixel(xc + r, yc - r, px2, py2);
 
+  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+
+  //---
+
+  // draw bubble
+  p->setPen  (QColor(0,0,0));
+  p->setBrush(Qt::NoBrush);
+
   QPainterPath path;
 
-  path.addEllipse(QRectF(px1, py1, px2 - px1, py2 - py1));
-
-  p->setPen(QColor(0,0,0));
-
-  p->setBrush(Qt::NoBrush);
+  path.addEllipse(qrect);
 
   p->drawPath(path);
 
   //---
 
+#if 0
   for (auto hierNode : hier->getChildren()) {
     drawBounds(p, hierNode);
   }
+#endif
 }
 
 QColor
@@ -505,16 +534,18 @@ nodeColor(CQChartsHierBubbleNode *node) const
 
 CQChartsHierBubbleHierObj::
 CQChartsHierBubbleHierObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
-                          CQChartsHierBubbleHierObj *hierObj, const CBBox2D &rect, int i, int n) :
+                          CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                          int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
 bool
 CQChartsHierBubbleHierObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p, CPoint2D(hier_->x(), hier_->y())) < hier_->radius())
+  if (CQChartsUtil::PointPointDistance(p,
+        CQChartsGeom::Point(hier_->x(), hier_->y())) < hier_->radius())
     return true;
 
   return false;
@@ -522,7 +553,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsHierBubbleHierObj::
-clickZoom(const CPoint2D &)
+clickZoom(const CQChartsGeom::Point &)
 {
 #if 0
   CQChartsHierBubbleHierNode *parent1 = hier_->parent();
@@ -565,18 +596,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! root)
     root = hier_;
 
-//QColor c = plot_->objectStateColor(this, plot_->hierColor(hier_));
-//QColor c = plot_->interpPaletteColor(f);
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
-
-//QColor tc = CQChartsUtil::bwColor(c);
-  QColor tc = Qt::black;
-
-  if (isSelected())
-    tc = Qt::white;
-
-  //QColor c1;
-  //c1.setHsvF(c.hueF(), c.saturationF()*f, c.valueF());
+  //---
 
   double r = hier_->radius();
 
@@ -585,20 +605,34 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(hier_->x() - r, hier_->y() + r, px1, py1);
   plot_->windowToPixel(hier_->x() + r, hier_->y() - r, px2, py2);
 
+  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+
+  //---
+
+  // calc stroke and brush
+
+//QColor c = plot_->hierColor(hier_);
+//QColor c = plot_->interpPaletteColor(f);
+  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+
+  QBrush brush(c);
+
+//QColor bc = plot_->textColor(c);
+  QColor bc = Qt::black;
+
+  QPen pen(bc);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  // draw bubble
+  p->setPen  (pen);
+  p->setBrush(brush);
+
   QPainterPath path;
 
-  path.addEllipse(QRectF(px1, py1, px2 - px1, py2 - py1));
-
-  QPen pen(tc);
-
-  pen.setWidth(2);
-
-  p->setPen(pen);
-
-  if (isInside())
-    p->setBrush(plot_->insideColor(c));
-  else
-    p->setBrush(c);
+  path.addEllipse(qrect);
 
   p->drawPath(path);
 }
@@ -607,16 +641,18 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
 CQChartsHierBubbleObj::
 CQChartsHierBubbleObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
-                      CQChartsHierBubbleHierObj *hierObj, const CBBox2D &rect, int i, int n) :
+                      CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
+                      int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
 bool
 CQChartsHierBubbleObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
-  if (CQChartsUtil::PointPointDistance(p, CPoint2D(node_->x(), node_->y())) < node_->radius())
+  if (CQChartsUtil::PointPointDistance(p,
+        CQChartsGeom::Point(node_->x(), node_->y())) < node_->radius())
     return true;
 
   return false;
@@ -624,7 +660,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsHierBubbleObj::
-clickZoom(const CPoint2D &)
+clickZoom(const CQChartsGeom::Point &)
 {
 #if 0
   CQChartsHierBubbleHierNode *parent1 = node_->parent();
@@ -651,7 +687,7 @@ clickZoom(const CPoint2D &)
 
 void
 CQChartsHierBubbleObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   const QModelIndex &ind = node_->ind();
 
@@ -676,27 +712,6 @@ void
 CQChartsHierBubbleObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
-
-  p->setFont(font);
-
-  //---
-
-  //CQChartsHierBubbleHierNode *root = node_->rootNode(plot_->firstHier());
-  CQChartsHierBubbleHierNode *root = node_->parent();
-
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->objectStateColor(this, plot_->nodeColor(node_));
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
-
-//QColor tc = plot_->textColor(c);
-  QColor tc = Qt::black;
-
-  if (isSelected())
-    tc = Qt::white;
-
   double r = node_->radius();
 
   double px1, py1, px2, py2;
@@ -704,40 +719,74 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(node_->x() - r, node_->y() + r, px1, py1);
   plot_->windowToPixel(node_->x() + r, node_->y() - r, px2, py2);
 
+  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+
+  //---
+
+  //CQChartsHierBubbleHierNode *root = node_->rootNode(plot_->firstHier());
+  CQChartsHierBubbleHierNode *root = node_->parent();
+
+//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
+//QColor c = plot_->nodeColor(node_);
+  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+
+  QBrush brush(c);
+
+  QColor bc = Qt::black;
+  QColor tc = CQChartsUtil::bwColor(c);
+
+  QPen bpen(bc);
+  QPen tpen(tc);
+
+  plot_->updateObjPenBrushState(this, bpen, brush);
+  plot_->updateObjPenBrushState(this, tpen, brush);
+
+  //---
+
+  p->save();
+
+  //---
+
+  // draw bubble
+  p->setPen  (bpen);
+  p->setBrush(brush);
+
   QPainterPath path;
 
-  path.addEllipse(QRectF(px1, py1, px2 - px1, py2 - py1));
-
-  p->setPen(tc);
-
-  if (isInside())
-    p->setBrush(plot_->insideColor(c));
-  else
-    p->setBrush(c);
+  path.addEllipse(qrect);
 
   p->drawPath(path);
 
   //---
 
+  // set font size
+  QFont font = plot_->view()->font();
+
+  font.setPointSizeF(plot_->fontHeight());
+
+  //---
+
+  // calc text size and position
+  p->setFont(font);
+
+  QString name = node_->name();
+
   QFontMetricsF fm(p->font());
 
-  p->setPen(tc);
+  double tw = fm.width(name);
 
   plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
 
-  int len = node_->name().size();
+  //---
 
-  for (int i = len; i >= 1; --i) {
-    QString name1 = node_->name().mid(0, i);
+  // draw label
+  p->setClipRect(qrect, Qt::ReplaceClip);
 
-    double tw = fm.width(name1);
+  plot_->drawContrastText(p, px1 - tw/2, py1 + fm.descent(), name, tpen);
 
-    if (tw > 2*(px2 - px1)) continue;
+  //---
 
-    p->drawText(px1 - tw/2, py1 + fm.descent(), name1);
-
-    break;
-  }
+  p->restore();
 }
 
 //------

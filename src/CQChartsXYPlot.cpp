@@ -527,7 +527,7 @@ initObjs()
       for (int j = 1; j < ny; ++j) {
         double y2 = yVals[j];
 
-        CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
+        CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
 
         if (! isFillUnder()) {
           // use vertical line object for each point pair if not fill under
@@ -761,7 +761,7 @@ initObjs()
 
         //---
 
-        CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
+        CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
           new CQChartsXYPointObj(this, bbox, x, y1, size, xind, j, ns, i, n);
@@ -900,7 +900,7 @@ initObjs()
 
         //---
 
-        CBBox2D bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
+        CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
           new CQChartsXYPointObj(this, bbox, x, y1, size, xind, j, ns, i, n);
@@ -948,7 +948,7 @@ initObjs()
           double ys = std::min(y1, 0.0);
           double ye = std::max(y1, 0.0);
 
-          CBBox2D bbox(x, ys, x, ye);
+          CQChartsGeom::BBox bbox(x, ys, x, ye);
 
           CQChartsXYImpulseLineObj *lineObj =
             new CQChartsXYImpulseLineObj(this, bbox, x, ys, x, ye, j, ns);
@@ -1064,7 +1064,7 @@ void
 CQChartsXYPlot::
 addPolyLine(const QPolygonF &polyLine, int i, int n, const QString &name)
 {
-  CBBox2D bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
+  CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(polyLine.boundingRect());
 
   CQChartsXYPolylineObj *lineObj = new CQChartsXYPolylineObj(this, bbox, polyLine, i, n);
 
@@ -1077,7 +1077,7 @@ void
 CQChartsXYPlot::
 addPolygon(const QPolygonF &poly, int i, int n, const QString &name)
 {
-  CBBox2D bbox = CQChartsUtil::fromQRect(poly.boundingRect());
+  CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(poly.boundingRect());
 
   CQChartsXYPolygonObj *polyObj = new CQChartsXYPolygonObj(this, bbox, poly, i, n);
 
@@ -1234,7 +1234,7 @@ draw(QPainter *p)
 //------
 
 CQChartsXYBiLineObj::
-CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x,
+CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x,
                     double y1, double y2, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), x_(x), y1_(y1), y2_(y2), i_(i), n_(n)
 {
@@ -1252,7 +1252,7 @@ visible() const
 
 bool
 CQChartsXYBiLineObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
     return false;
@@ -1264,9 +1264,9 @@ inside(const CPoint2D &p) const
 
   double s = plot_->symbolSize();
 
-  CBBox2D pbbox(px - s, py1 - s, px + s, py2 + s);
+  CQChartsGeom::BBox pbbox(px - s, py1 - s, px + s, py2 + s);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -1275,10 +1275,17 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYBiLineObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   if (! visible())
     return;
+}
+
+bool
+CQChartsXYBiLineObj::
+isIndex(const QModelIndex &) const
+{
+  return false;
 }
 
 void
@@ -1294,26 +1301,34 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(x_, y2_, px, py2);
 
   if (plot_->isLines()) {
-    QColor lineColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
+    QPen   pen  (plot_->fillUnderColor(i_, n_));
+    QBrush brush(Qt::NoBrush);
 
-    plot_->drawBivariateLine(p, QPointF(px, py1), QPointF(px, py2), lineColor);
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    plot_->drawBivariateLine(p, QPointF(px, py1), QPointF(px, py2), pen.color());
   }
 
   if (plot_->isPoints()) {
-    QColor          c      = plot_->objectStateColor(this, plot_->pointColor(i_, n_));
+    QColor          c      = plot_->pointColor(i_, n_);
     CSymbol2D::Type symbol = plot_->symbolType();
     double          s      = plot_->symbolSize();
     bool            filled = plot_->isSymbolFilled();
 
-    CQChartsPointObj::draw(p, QPointF(px, py1), symbol, s, c, filled);
-    CQChartsPointObj::draw(p, QPointF(px, py2), symbol, s, c, filled);
+    QPen   pen  (c);
+    QBrush brush(Qt::NoBrush);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    CQChartsPointObj::draw(p, QPointF(px, py1), symbol, s, pen.color(), filled);
+    CQChartsPointObj::draw(p, QPointF(px, py2), symbol, s, pen.color(), filled);
   }
 }
 
 //------
 
 CQChartsXYImpulseLineObj::
-CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x1, double y1,
+CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x1, double y1,
                          double x2, double y2, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), x1_(x1), y1_(y1), x2_(x2), y2_(y2), i_(i), n_(n)
 {
@@ -1328,7 +1343,7 @@ visible() const
 
 bool
 CQChartsXYImpulseLineObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
     return false;
@@ -1340,9 +1355,9 @@ inside(const CPoint2D &p) const
 
   double b = 2;
 
-  CBBox2D pbbox(px1 - b, py1 - b, px2 + b, py2 + b);
+  CQChartsGeom::BBox pbbox(px1 - b, py1 - b, px2 + b, py2 + b);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -1351,10 +1366,17 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYImpulseLineObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   if (! visible())
     return;
+}
+
+bool
+CQChartsXYImpulseLineObj::
+isIndex(const QModelIndex &) const
+{
+  return false;
 }
 
 void
@@ -1369,9 +1391,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   plot_->windowToPixel(x1_, y1_, px1, py1);
   plot_->windowToPixel(x2_, y2_, px2, py2);
 
-  QColor c = plot_->objectStateColor(this, plot_->pointColor(i_, n_));
+  QColor c = plot_->pointColor(i_, n_);
 
-  p->setPen(c);
+  QBrush brush(Qt::NoBrush);
+  QPen   pen  (c);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  p->setPen(pen);
 
   p->drawLine(px1, py1, px2, py2);
 }
@@ -1379,8 +1406,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 //------
 
 CQChartsXYPointObj::
-CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
-                   const QModelIndex &ind, int iset, int nset, int i, int n) :
+CQChartsXYPointObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x, double y,
+                   double size, const QModelIndex &ind, int iset, int nset, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), size_(size), ind_(ind),
  iset_(iset), nset_(nset), i_(i), n_(n)
 {
@@ -1434,7 +1461,7 @@ visible() const
 
 bool
 CQChartsXYPointObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
     return false;
@@ -1445,9 +1472,9 @@ inside(const CPoint2D &p) const
 
   double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
-  CBBox2D pbbox(px - s, py - s, px + s, py + s);
+  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
 
-  CPoint2D pp;
+  CQChartsGeom::Point pp;
 
   plot_->windowToPixel(p, pp);
 
@@ -1456,7 +1483,7 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYPointObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   if (! visible())
     return;
@@ -1471,6 +1498,13 @@ mousePress(const CPoint2D &)
   plot_->endSelect();
 }
 
+bool
+CQChartsXYPointObj::
+isIndex(const QModelIndex &ind) const
+{
+  return (ind == ind_);
+}
+
 void
 CQChartsXYPointObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
@@ -1479,7 +1513,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     return;
 
   CSymbol2D::Type symbol = plot_->symbolType();
-  QColor          c      = plot_->objectStateColor(this, plot_->pointColor(iset_, nset_));
+  QColor          c      = plot_->pointColor(iset_, nset_);
   bool            filled = plot_->isSymbolFilled();
 
   if (edata_ && edata_->symbol != CSymbol2D::Type::NONE)
@@ -1490,13 +1524,20 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   double s = (size_ <= 0 ? plot_->symbolSize() : size_);
 
-  CPoint2D pp(x_, y_);
+  QBrush brush(Qt::NoBrush);
+  QPen   pen  (c);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  CQChartsGeom::Point pp(x_, y_);
 
   double px, py;
 
   plot_->windowToPixel(pp.x, pp.y, px, py);
 
-  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
+  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, pen.color(), filled);
 
   if (edata_ && edata_->label != "") {
     p->setPen(plot_->dataLabelColor());
@@ -1509,7 +1550,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 //------
 
 CQChartsXYPolylineObj::
-CQChartsXYPolylineObj(CQChartsXYPlot *plot, const CBBox2D &rect,
+CQChartsXYPolylineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
                       const QPolygonF &poly, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), poly_(poly), i_(i), n_(n)
 {
@@ -1527,7 +1568,7 @@ visible() const
 
 bool
 CQChartsXYPolylineObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
     return false;
@@ -1539,7 +1580,7 @@ inside(const CPoint2D &p) const
 
   plot_->windowToPixel(p.x, p.y, px, py);
 
-  CPoint2D pp(px, py);
+  CQChartsGeom::Point pp(px, py);
 
   for (int i = 1; i < poly_.count(); ++i) {
     double x1 = poly_[i - 1].x();
@@ -1552,8 +1593,8 @@ inside(const CPoint2D &p) const
     plot_->windowToPixel(x1, y1, px1, py1);
     plot_->windowToPixel(x2, y2, px2, py2);
 
-    CPoint2D pl1(px1, py1);
-    CPoint2D pl2(px2, py2);
+    CQChartsGeom::Point pl1(px1, py1);
+    CQChartsGeom::Point pl2(px2, py2);
 
     double d;
 
@@ -1589,10 +1630,17 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsXYPolylineObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   if (! visible())
     return;
+}
+
+bool
+CQChartsXYPolylineObj::
+isIndex(const QModelIndex &) const
+{
+  return false;
 }
 
 void
@@ -1609,16 +1657,19 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if      (plot_->isBivariate() && ns > 1)
     c = Qt::black;
   else if (plot_->isStacked())
-    c = plot_->objectStateColor(this, plot_->lineColor(i_, n_));
+    c = plot_->lineColor(i_, n_);
   else
-    c = plot_->objectStateColor(this, plot_->lineColor(i_, n_));
+    c = plot_->lineColor(i_, n_);
 
-  QPen pen(c);
+  QPen   pen  (c);
+  QBrush brush(Qt::NoBrush);
 
   if (isInside())
     pen.setWidth(3);
   else
     pen.setWidth(plot_->linesWidth());
+
+  plot_->updateObjPenBrushState(this, pen, brush);
 
   p->setPen(pen);
 
@@ -1635,7 +1686,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 //------
 
 CQChartsXYPolygonObj::
-CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CBBox2D &rect,
+CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
                      const QPolygonF &poly, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), poly_(poly), i_(i), n_(n)
 {
@@ -1653,7 +1704,7 @@ visible() const
 
 bool
 CQChartsXYPolygonObj::
-inside(const CPoint2D &p) const
+inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
     return false;
@@ -1663,10 +1714,17 @@ inside(const CPoint2D &p) const
 
 void
 CQChartsXYPolygonObj::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   if (! visible())
     return;
+}
+
+bool
+CQChartsXYPolygonObj::
+isIndex(const QModelIndex &) const
+{
+  return false;
 }
 
 void
@@ -1676,16 +1734,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  p->setPen(Qt::NoPen);
-
   QBrush brush;
 
   QColor fillColor;
 
   if (plot_->isStacked())
-    fillColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
+    fillColor = plot_->fillUnderColor(i_, n_);
   else
-    fillColor = plot_->objectStateColor(this, plot_->fillUnderColor(i_, n_));
+    fillColor = plot_->fillUnderColor(i_, n_);
 
   fillColor.setAlpha(plot_->fillUnderAlpha()*255);
 
@@ -1694,6 +1750,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   brush.setStyle(CQChartsFillObj::patternToStyle(
     (CQChartsFillObj::Pattern) plot_->fillUnderPattern()));
 
+  QPen pen(Qt::NoPen);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  p->setPen  (pen);
   p->setBrush(brush);
 
   QPolygonF poly;
@@ -1719,7 +1780,7 @@ CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n) :
 
 bool
 CQChartsXYKeyColor::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
@@ -1792,7 +1853,7 @@ size() const
 
 bool
 CQChartsXYKeyLine::
-mousePress(const CPoint2D &)
+mousePress(const CQChartsGeom::Point &)
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
@@ -1805,13 +1866,13 @@ mousePress(const CPoint2D &)
 
 void
 CQChartsXYKeyLine::
-draw(QPainter *p, const CBBox2D &rect)
+draw(QPainter *p, const CQChartsGeom::BBox &rect)
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
   CQChartsXYPlot *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
 
-  CBBox2D prect;
+  CQChartsGeom::BBox prect;
 
   keyPlot->windowToPixel(rect, prect);
 
@@ -1836,7 +1897,7 @@ draw(QPainter *p, const CBBox2D &rect)
     double y1 = prect.getYMin() + 4;
     double y2 = prect.getYMax() - 4;
 
-    p->fillRect(CQChartsUtil::toQRect(CBBox2D(x1, y1, x2, y2)), fillColor);
+    p->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillColor);
   }
 
   if (plot->isLines() || plot->isImpulse()) {

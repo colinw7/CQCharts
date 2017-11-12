@@ -14,14 +14,16 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x,
+  CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x,
                       double y1, double y2, int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -40,14 +42,16 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x1, double y1,
-                           double x2, double y2, int i, int n);
+  CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
+                           double x1, double y1, double x2, double y2, int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -67,8 +71,8 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPointObj(CQChartsXYPlot *plot, const CBBox2D &rect, double x, double y, double size,
-                     const QModelIndex &ind, int iset, int nset, int i, int n);
+  CQChartsXYPointObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x, double y,
+                     double size, const QModelIndex &ind, int iset, int nset, int i, int n);
 
  ~CQChartsXYPointObj();
 
@@ -80,9 +84,11 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -111,16 +117,18 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPolylineObj(CQChartsXYPlot *plot, const CBBox2D &rect,
+  CQChartsXYPolylineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
                         const QPolygonF &poly, int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -137,14 +145,16 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CBBox2D &rect,
+  CQChartsXYPolygonObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
                        const QPolygonF &poly, int i, int n);
 
   bool visible() const override;
 
-  bool inside(const CPoint2D &p) const override;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CPoint2D &) override;
+  void mousePress(const CQChartsGeom::Point &) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -165,9 +175,9 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n);
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
-  bool mouseMove(const CPoint2D &) override { return true; }
+  bool mouseMove(const CQChartsGeom::Point &) override { return true; }
 
   QBrush fillBrush() const override;
 };
@@ -180,11 +190,11 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
-  bool mouseMove(const CPoint2D &) override { return true; }
+  bool mouseMove(const CQChartsGeom::Point &) override { return true; }
 
-  void draw(QPainter *p, const CBBox2D &rect) override;
+  void draw(QPainter *p, const CQChartsGeom::BBox &rect) override;
 
 protected:
   CQChartsPlot *plot_ { nullptr };

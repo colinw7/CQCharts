@@ -16,13 +16,15 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CBBox2D &rect,
+  CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                       int iset, int nset, int ival, int nval,
                       int isval, int nsval, double value, const QModelIndex &ind);
 
   void setColor(double color) { color_ = color; }
 
-  void mousePress(const CPoint2D &p) override;
+  void mousePress(const CQChartsGeom::Point &p) override;
+
+  bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
@@ -54,7 +56,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
   void setColor(double color) { color_ = color; }
 
-  bool mousePress(const CPoint2D &p) override;
+  bool mousePress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 
@@ -182,13 +184,13 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; updateObjs(); }
+  void setStacked(bool b) { stacked_ = b; updateRange(); }
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updateObjs(); }
+  void setHorizontal(bool b) { horizontal_ = b; updateRange(); }
 
   bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateObjs(); }
+  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateRange(); }
 
   //---
 

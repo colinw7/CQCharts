@@ -39,6 +39,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
+#include <QSplitter>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
@@ -147,14 +148,20 @@ main(int argc, char **argv)
 
       // input data control
       else if (arg == "comment_header")
-        initData.commentHeader = true;
+        initData.inputData.commentHeader = true;
       else if (arg == "first_line_header")
-        initData.firstLineHeader = true;
+        initData.inputData.firstLineHeader = true;
       else if (arg == "num_rows") {
         ++i;
 
         if (i < argc)
-          initData.numRows = std::max(atoi(argv[i]), 1);
+          initData.inputData.numRows = std::max(atoi(argv[i]), 1);
+      }
+      else if (arg == "filter") {
+        ++i;
+
+        if (i < argc)
+          initData.inputData.filter = argv[i];
       }
 
       // process data
@@ -167,6 +174,13 @@ main(int argc, char **argv)
 
           initData.process += argv[i];
         }
+      }
+      // sort data
+      else if (arg == "sort") {
+        ++i;
+
+        if (i < argc)
+          initData.inputData.sort = argv[i];
       }
 
       // plot type
@@ -579,56 +593,9 @@ CQChartsTest() :
 
   //---
 
-  QTabWidget *viewTab = CQUtil::makeWidget<QTabWidget>("viewTab");
+  viewTab_ = CQUtil::makeWidget<QTabWidget>("viewTab");
 
-  layout->addWidget(viewTab);
-
-  //---
-
-  QFrame *viewFrame = CQUtil::makeWidget<QFrame>("viewFrame");
-
-  QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
-
-  viewTab->addTab(viewFrame, "View");
-
-  //---
-
-  filterEdit_ = CQUtil::makeWidget<QLineEdit>("filter");
-
-  viewLayout->addWidget(filterEdit_);
-
-  connect(filterEdit_, SIGNAL(returnPressed()), this, SLOT(filterSlot()));
-
-  //---
-
-  // table/tree widgets
-  stack_ = CQUtil::makeWidget<QStackedWidget>("stack");
-
-  table_ = new CQChartsTable;
-  tree_  = new CQChartsTree;
-
-  stack_->addWidget(table_);
-  stack_->addWidget(tree_);
-
-  viewLayout->addWidget(stack_);
-
-  connect(table_, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
-
-  //---
-
-  QFrame *detailsFrame = CQUtil::makeWidget<QFrame>("detailsFrame");
-
-  QVBoxLayout *detailsLayout = new QVBoxLayout(detailsFrame);
-
-  viewTab->addTab(detailsFrame, "Details");
-
-  //---
-
-  detailsText_ = CQUtil::makeWidget<QTextEdit>("detailsText");
-
-  detailsText_->setReadOnly(true);
-
-  detailsLayout->addWidget(detailsText_);
+  layout->addWidget(viewTab_);
 
   //---
 
@@ -681,8 +648,6 @@ CQChartsTest::
 {
   delete charts_;
   delete loader_;
-
-  model_.clear();
 }
 
 //------
@@ -711,6 +676,74 @@ addMenus()
 
 //------
 
+CQChartsTest::ViewData &
+CQChartsTest::
+addViewData(bool hierarchical)
+{
+  int ind = viewDatas_.size() + 1;
+
+  //---
+
+  QFrame *viewFrame = CQUtil::makeWidget<QFrame>(QString("viewFrame %1").arg(ind));
+
+  QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
+
+  viewTab_->addTab(viewFrame, QString("View %1").arg(ind));
+
+  viewTab_->setCurrentIndex(viewTab_->count() - 1);
+
+  //---
+
+  ViewData viewData;
+
+  //---
+
+  viewData.filterEdit = CQUtil::makeWidget<QLineEdit>("filter");
+
+  viewLayout->addWidget(viewData.filterEdit);
+
+  connect(viewData.filterEdit, SIGNAL(returnPressed()), this, SLOT(filterSlot()));
+
+  //---
+
+  QSplitter *splitter = CQUtil::makeWidget<QSplitter>("splitter");
+
+  splitter->setOrientation(Qt::Vertical);
+
+  viewLayout->addWidget(splitter);
+
+  //---
+
+  if (hierarchical) {
+    viewData.tree = new CQChartsTree;
+
+    splitter->addWidget(viewData.tree);
+  }
+  else {
+    viewData.table = new CQChartsTable;
+
+    splitter->addWidget(viewData.table);
+  }
+
+  connect(viewData.table, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
+
+  //---
+
+  viewData.detailsText = CQUtil::makeWidget<QTextEdit>("detailsText");
+
+  viewData.detailsText->setReadOnly(true);
+
+  splitter->addWidget(viewData.detailsText);
+
+  //---
+
+  viewDatas_.push_back(viewData);
+
+  return viewDatas_.back();
+}
+
+//------
+
 bool
 CQChartsTest::
 initPlot(const InitData &initData)
@@ -727,7 +760,7 @@ initPlot(const InitData &initData)
   double vr = CQChartsView::viewportRange();
 
   if (initData.overlay || initData.y1y2) {
-    setBBox(CBBox2D(0, 0, vr, vr));
+    setBBox(CQChartsGeom::BBox(0, 0, vr, vr));
   }
   else {
     double x1 =  c     *initData.dx;
@@ -735,7 +768,7 @@ initPlot(const InitData &initData)
     double y1 =  r     *initData.dy;
     double y2 = (r + 1)*initData.dy;
 
-    setBBox(CBBox2D(x1, vr - y2, x2, vr - y1));
+    setBBox(CQChartsGeom::BBox(x1, vr - y2, x2, vr - y1));
   }
 
   //---
@@ -746,19 +779,28 @@ initPlot(const InitData &initData)
     filename = initData.filenames[0];
 
     if (initData.fileType != FileType::NONE) {
-      loadFileModel(filename, initData.fileType, initData.commentHeader, initData.firstLineHeader);
+      if (! loadFileModel(filename, initData.fileType, initData.inputData))
+        return false;
     }
     else {
       std::cerr << "No file type specified\n";
     }
   }
   else {
-    if (initData.fileType == FileType::EXPR)
-      loadFileModel("", initData.fileType, false, false, initData.numRows);
+    if (initData.fileType == FileType::EXPR) {
+      if (! loadFileModel("", initData.fileType, initData.inputData))
+        return false;
+    }
   }
 
-  if (! model_)
+  //---
+
+  if (viewDatas_.empty())
     return false;
+
+  ViewData &viewData = currentViewData();
+
+  ModelP model = viewData.model;
 
   //---
 
@@ -769,7 +811,7 @@ initPlot(const InitData &initData)
 
   //---
 
-  CQChartsPlot *plot = init(model_, initData, i);
+  CQChartsPlot *plot = initPlotView(viewData, initData, i);
 
   if (! plot)
     return false;
@@ -837,7 +879,7 @@ loadSlot()
   loader_->show();
 }
 
-void
+bool
 CQChartsTest::
 loadFileSlot(const QString &type, const QString &filename)
 {
@@ -845,15 +887,17 @@ loadFileSlot(const QString &type, const QString &filename)
 
   if (fileType == FileType::NONE) {
     std::cerr << "Bad type specified '" << type.toStdString() << "'\n";
-    return;
+    return false;
   }
 
   //---
 
-  bool commentHeader   = loader_->isCommentHeader();
-  bool firstLineHeader = loader_->isFirstLineHeader();
+  InputData inputData;
 
-  loadFileModel(filename, fileType, commentHeader, firstLineHeader);
+  inputData.commentHeader   = loader_->isCommentHeader();
+  inputData.firstLineHeader = loader_->isFirstLineHeader();
+
+  return loadFileModel(filename, fileType, inputData);
 }
 
 //------
@@ -862,15 +906,19 @@ void
 CQChartsTest::
 createSlot()
 {
-  if (! model_)
+  if (viewDatas_.empty())
     return;
+
+  ViewData &viewData = currentViewData();
+
+  ModelP model = viewData.model;
 
   //---
 
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model_);
+  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
 
-  if (sm_)
-    dlg->setSelectionModel(sm_);
+  if (viewData.sm)
+    dlg->setSelectionModel(viewData.sm);
 
   connect(dlg, SIGNAL(plotCreated(CQChartsPlot *)),
           this, SLOT(plotDialogCreatedSlot(CQChartsPlot *)));
@@ -909,10 +957,16 @@ void
 CQChartsTest::
 filterSlot()
 {
-  if (stack_->currentIndex() == 0)
-    table_->setFilter(filterEdit_->text());
-  else
-    tree_->setFilter(filterEdit_->text());
+  QLineEdit *filterEdit = qobject_cast<QLineEdit *>(sender());
+
+  for (auto &viewData : viewDatas_) {
+    if (viewData.filterEdit == filterEdit) {
+      if (viewData.table)
+        viewData.table->setFilter(filterEdit->text());
+      else
+        viewData.tree->setFilter(filterEdit->text());
+    }
+  }
 }
 
 //------
@@ -935,10 +989,21 @@ processExpression(const QString &expr)
   if (! expr.length())
     return;
 
-  CQExprModel *exprModel = qobject_cast<CQExprModel *>(model_.data());
+  //---
+
+  if (viewDatas_.empty())
+    return;
+
+  ViewData &viewData = currentViewData();
+
+  ModelP model = viewData.model;
+
+  //---
+
+  CQExprModel *exprModel = qobject_cast<CQExprModel *>(model.data());
 
   if (! exprModel) {
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model.data());
 
     if (proxyModel)
       exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
@@ -1008,6 +1073,10 @@ void
 CQChartsTest::
 tableColumnClicked(int column)
 {
+  CQChartsTable *table = qobject_cast<CQChartsTable *>(sender());
+
+  ModelP model = table->model();
+
   columnNumEdit_->setText(QString("%1").arg(column));
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
@@ -1015,7 +1084,7 @@ tableColumnClicked(int column)
   CQBaseModel::Type  type;
   CQChartsNameValues nameValues;
 
-  columnTypeMgr->getModelColumnType(model_.data(), column, type, nameValues);
+  columnTypeMgr->getModelColumnType(model.data(), column, type, nameValues);
 
   QString typeStr = columnTypeMgr->encodeTypeData(type, nameValues);
 
@@ -1029,6 +1098,15 @@ void
 CQChartsTest::
 typeOKSlot()
 {
+  if (viewDatas_.empty())
+    return;
+
+  ViewData &viewData = currentViewData();
+
+  ModelP model = viewData.model;
+
+  //---
+
   QString typeStr = columnTypeEdit_->text();
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
@@ -1046,16 +1124,32 @@ typeOKSlot()
 
   int column = numStr.toInt();
 
-  columnTypeMgr->setModelColumnType(model_.data(), column, typeData->type(), nameValues);
+  columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues);
+}
+
+//------
+
+CQChartsTest::ViewData &
+CQChartsTest::
+currentViewData()
+{
+  assert(! viewDatas_.empty());
+
+  int ind = viewTab_->currentIndex();
+
+  if (ind >= 0 && ind < int(viewDatas_.size()))
+    return viewDatas_[ind];
+  else
+    return viewDatas_.back();
 }
 
 //------
 
 CQChartsPlot *
 CQChartsTest::
-init(const ModelP &model, const InitData &initData, int i)
+initPlotView(const ViewData &viewData, const InitData &initData, int i)
 {
-  setColumnFormats(model, initData.columnType);
+  setColumnFormats(viewData.model, initData.columnType);
 
   //---
 
@@ -1091,18 +1185,16 @@ init(const ModelP &model, const InitData &initData, int i)
 
   // create plot from init (argument) data
   if (initData.filterStr.length()) {
-    CQSortModel *sortModel = new CQSortModel(model.data());
+    CQSortModel *sortModel = new CQSortModel(viewData.model.data());
 
     ModelP sortModelP(sortModel);
 
     sortModel->setFilter(initData.filterStr);
 
-    plot = createPlot(sortModelP, type, initData.nameValues, initData.nameStrings,
-                      initData.nameReals, initData.nameBools, reuse);
+    plot = createPlot(viewData, sortModelP, type, initData.nameValueData, reuse);
   }
   else {
-    plot = createPlot(model, type, initData.nameValues, initData.nameStrings,
-                      initData.nameReals, initData.nameBools, reuse);
+    plot = createPlot(viewData, viewData.model, type, initData.nameValueData, reuse);
   }
 
   assert(plot);
@@ -1226,9 +1318,8 @@ fixTypeName(const QString &typeName) const
 
 CQChartsPlot *
 CQChartsTest::
-createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameValues,
-           const NameValues &nameStrings, const NameReals &nameReals,
-           const NameBools &nameBools, bool reuse)
+createPlot(const ViewData &viewData, const ModelP &model, CQChartsPlotType *type,
+           const NameValueData &nameValueData, bool reuse)
 {
   CQChartsView *view = getView(reuse);
 
@@ -1236,8 +1327,8 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
 
   CQChartsPlot *plot = type->create(view, model);
 
-  if (sm_)
-    plot->setSelectionModel(sm_);
+  if (viewData.sm)
+    plot->setSelectionModel(viewData.sm);
 
   connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
@@ -1247,9 +1338,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
-      auto p = nameValues.find(parameter.name());
+      auto p = nameValueData.values.find(parameter.name());
 
-      if (p == nameValues.end())
+      if (p == nameValueData.values.end())
         continue;
 
       int column;
@@ -1263,9 +1354,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "columns") {
-      auto p = nameValues.find(parameter.name());
+      auto p = nameValueData.values.find(parameter.name());
 
-      if (p == nameValues.end())
+      if (p == nameValueData.values.end())
         continue;
 
       QStringList strs = (*p).second.split(" ", QString::SkipEmptyParts);
@@ -1289,9 +1380,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "string") {
-      auto p = nameStrings.find(parameter.name());
+      auto p = nameValueData.strings.find(parameter.name());
 
-      if (p == nameStrings.end())
+      if (p == nameValueData.strings.end())
         continue;
 
       QString str = (*p).second;
@@ -1300,9 +1391,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "real") {
-      auto p = nameReals.find(parameter.name());
+      auto p = nameValueData.reals.find(parameter.name());
 
-      if (p == nameReals.end())
+      if (p == nameValueData.reals.end())
         continue;
 
       double r = (*p).second;
@@ -1311,9 +1402,9 @@ createPlot(const ModelP &model, CQChartsPlotType *type, const NameValues &nameVa
         std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
     }
     else if (parameter.type() == "bool") {
-      auto p = nameBools.find(parameter.name());
+      auto p = nameValueData.bools.find(parameter.name());
 
-      if (p == nameBools.end())
+      if (p == nameValueData.bools.end())
         continue;
 
       bool b = (*p).second;
@@ -1358,69 +1449,93 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 bool
 CQChartsTest::
-loadFileModel(const QString &filename, FileType type,
-              bool commentHeader, bool firstLineHeader, int n)
+loadFileModel(const QString &filename, FileType type, const InputData &inputData)
 {
-  model_.clear();
-
   bool hierarchical;
 
-  QAbstractItemModel *model =
-    loadFile(filename, type, commentHeader, firstLineHeader, n, hierarchical);
+  QAbstractItemModel *model = loadFile(filename, type, inputData, hierarchical);
 
   if (! model)
     return false;
 
-  model_ = ModelP(model);
+  ViewData &viewData = addViewData(hierarchical);
 
-  if (hierarchical)
-    setTreeModel(model_);
-  else
-    setTableModel(model_);
+  viewData.model = ModelP(model);
 
-  updateModelDetails();
+  //---
+
+  if (inputData.sort.simplified().length()) {
+    QString columnStr = inputData.sort.simplified();
+
+    Qt::SortOrder order = Qt::AscendingOrder;
+
+    if (columnStr[0] == '+' || columnStr[0] == '-') {
+      order = (columnStr[0] == '+' ? Qt::AscendingOrder : Qt::DescendingOrder);
+
+      columnStr = columnStr.mid(1);
+    }
+
+    int column;
+
+    if (stringToColumn(viewData.model, columnStr, column))
+      viewData.model->sort(column, order);
+  }
+
+  //---
+
+  if (hierarchical) {
+    viewData.tree->setModel(viewData.model);
+
+    viewData.sm = viewData.tree->selectionModel();
+  }
+  else {
+    viewData.table->setModel(viewData.model);
+
+    viewData.sm = viewData.table->selectionModel();
+  }
+
+  updateModelDetails(viewData);
 
   return true;
 }
 
 void
 CQChartsTest::
-updateModelDetails()
+updateModelDetails(const ViewData &viewData)
 {
-  int numColumns = model_->columnCount();
-  int numRows    = model_->rowCount   ();
+  int numColumns = viewData.model->columnCount();
+  int numRows    = viewData.model->rowCount   ();
 
   QString text;
 
   text += QString("%1 Columns").arg(numColumns) + "\n";
   text += QString("%1 Rows"   ).arg(numRows);
 
-  detailsText_->setPlainText(text);
+  viewData.detailsText->setPlainText(text);
 }
 
 QAbstractItemModel *
 CQChartsTest::
-loadFile(const QString &filename, FileType type, bool commentHeader, bool firstLineHeader,
-         int n, bool &hierarchical)
+loadFile(const QString &filename, FileType type, const InputData &inputData, bool &hierarchical)
 {
   hierarchical = false;
 
   QAbstractItemModel *model = nullptr;
 
   if      (type == FileType::CSV) {
-    model = loadCsv(filename, commentHeader, firstLineHeader);
+    model = loadCsv(filename, inputData);
   }
   else if (type == FileType::TSV) {
-    model = loadTsv(filename, commentHeader, firstLineHeader);
+    model = loadTsv(filename, inputData);
   }
   else if (type == FileType::JSON) {
     model = loadJson(filename, hierarchical);
   }
   else if (type == FileType::DATA) {
-    model = loadData(filename, commentHeader, firstLineHeader);
+    model = loadData(filename, inputData);
   }
   else if (type == FileType::EXPR) {
-    model = createExprModel(n);
+    model = createExprModel(inputData.numRows);
   }
   else {
     std::cerr << "Bad file type specified '" <<
@@ -1433,12 +1548,13 @@ loadFile(const QString &filename, FileType type, bool commentHeader, bool firstL
 
 QAbstractItemModel *
 CQChartsTest::
-loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
+loadCsv(const QString &filename, const InputData &inputData)
 {
   CQChartsCsv *csv = new CQChartsCsv(charts_);
 
-  csv->setCommentHeader  (commentHeader);
-  csv->setFirstLineHeader(firstLineHeader);
+  csv->setCommentHeader  (inputData.commentHeader);
+  csv->setFirstLineHeader(inputData.firstLineHeader);
+  csv->setFilter         (inputData.filter);
 
   if (! csv->load(filename))
     std::cerr << "Failed to load " << filename.toStdString() << "\n";
@@ -1448,12 +1564,13 @@ loadCsv(const QString &filename, bool commentHeader, bool firstLineHeader)
 
 QAbstractItemModel *
 CQChartsTest::
-loadTsv(const QString &filename, bool commentHeader, bool firstLineHeader)
+loadTsv(const QString &filename, const InputData &inputData)
 {
   CQChartsTsv *tsv = new CQChartsTsv(charts_);
 
-  tsv->setCommentHeader  (commentHeader);
-  tsv->setFirstLineHeader(firstLineHeader);
+  tsv->setCommentHeader  (inputData.commentHeader);
+  tsv->setFirstLineHeader(inputData.firstLineHeader);
+  tsv->setFilter         (inputData.filter);
 
   if (! tsv->load(filename))
     std::cerr << "Failed to load " << filename.toStdString() << "\n";
@@ -1477,12 +1594,12 @@ loadJson(const QString &filename, bool &hierarchical)
 
 QAbstractItemModel *
 CQChartsTest::
-loadData(const QString &filename, bool commentHeader, bool firstLineHeader)
+loadData(const QString &filename, const InputData &inputData)
 {
   CQChartsGnuData *data = new CQChartsGnuData(charts_);
 
-  data->setCommentHeader  (commentHeader);
-  data->setFirstLineHeader(firstLineHeader);
+  data->setCommentHeader  (inputData.commentHeader);
+  data->setFirstLineHeader(inputData.firstLineHeader);
 
   if (! data->load(filename))
     std::cerr << "Failed to load " << filename.toStdString() << "\n";
@@ -1514,30 +1631,6 @@ createExprModel(int n)
   proxyModel->setSourceModel(exprModel);
 
   return proxyModel;
-}
-
-//------
-
-void
-CQChartsTest::
-setTableModel(const ModelP &model)
-{
-  table_->setModel(model);
-
-  sm_ = table_->selectionModel();
-
-  stack_->setCurrentIndex(0);
-}
-
-void
-CQChartsTest::
-setTreeModel(const ModelP &model)
-{
-  tree_->setModel(model);
-
-  sm_ = tree_->selectionModel();
-
-  stack_->setCurrentIndex(1);
 }
 
 //------
@@ -1859,14 +1952,13 @@ getCmd(const Args &)
 {
 }
 
-void
+bool
 CQChartsTest::
 loadCmd(const Args &args)
 {
-  QString  filename;
-  FileType fileType { FileType::NONE };
-  bool     commentHeader = false;
-  bool     firstLineHeader = false;
+  QString   filename;
+  FileType  fileType { FileType::NONE };
+  InputData inputData;
 
   for (std::size_t i = 0; i < args.size(); ++i) {
     std::string arg = args[i];
@@ -1883,9 +1975,9 @@ loadCmd(const Args &args)
       else if (opt == "data")
         fileType = FileType::DATA;
       else if (opt == "comment_header")
-        commentHeader = true;
+        inputData.commentHeader = true;
       else if (opt == "first_line_header")
-        firstLineHeader = true;
+        inputData.firstLineHeader = true;
     }
     else {
       if (filename == "")
@@ -1895,33 +1987,30 @@ loadCmd(const Args &args)
 
   if (filename == "") {
     std::cerr << "No filename\n";
-    return;
+    return false;
   }
 
   if (fileType == FileType::NONE) {
     std::cerr << "No file type\n";
-    return;
+    return false;
   }
 
-  loadFileModel(filename, fileType, commentHeader, firstLineHeader);
+  return loadFileModel(filename, fileType, inputData);
 }
 
 void
 CQChartsTest::
 plotCmd(const Args &args)
 {
-  QString    typeName;
-  NameValues nameValues;
-  NameBools  nameBools;
-  NameValues nameStrings;
-  NameReals  nameReals;
-  bool       xintegral { false };
-  bool       yintegral { false };
-  QString    title;
-  QString    properties;
-  OptReal    xmin, ymin, xmax, ymax;
-  bool       y1y2      { false };
-  bool       overlay   { false };
+  QString       typeName;
+  NameValueData nameValueData;
+  bool          xintegral { false };
+  bool          yintegral { false };
+  QString       title;
+  QString       properties;
+  OptReal       xmin, ymin, xmax, ymax;
+  bool          y1y2      { false };
+  bool          overlay   { false };
 
   for (std::size_t i = 0; i < args.size(); ++i) {
     std::string arg = args[i];
@@ -1952,7 +2041,7 @@ plotCmd(const Args &args)
               auto name  = nameValue.mid(0, pos).simplified();
               auto value = nameValue.mid(pos + 1).simplified();
 
-              nameValues[name] = value;
+              nameValueData.values[name] = value;
             }
             else {
               std::cerr << "Invalid " << opt << " option '" << args[i] << "'\n";
@@ -1984,7 +2073,7 @@ plotCmd(const Args &args)
           bool b = stringToBool(value, &ok);
 
           if (ok)
-            nameBools[name] = b;
+            nameValueData.bools[name] = b;
           else {
             std::cerr << "Invalid -bool option '" << args[i] << "'\n";
           }
@@ -2009,7 +2098,7 @@ plotCmd(const Args &args)
             value = "";
           }
 
-          nameStrings[name] = value;
+          nameValueData.strings[name] = value;
         }
       }
       else if (opt == "real") {
@@ -2034,7 +2123,7 @@ plotCmd(const Args &args)
             value = 0.0;
           }
 
-          nameReals[name] = value;
+          nameValueData.reals[name] = value;
         }
       }
       else if (opt == "xintegral") {
@@ -2092,10 +2181,14 @@ plotCmd(const Args &args)
 
   //------
 
-  if (! model_) {
+  if (viewDatas_.empty()) {
     std::cerr << "No model data\n";
     return;
   }
+
+  ViewData &viewData = viewDatas_.back();
+
+  ModelP model = viewData.model;
 
   //------
 
@@ -2128,8 +2221,7 @@ plotCmd(const Args &args)
   //------
 
   // create plot from init (argument) data
-  CQChartsPlot *plot = createPlot(model_, type, nameValues, nameStrings,
-                                  nameReals, nameBools, reuse);
+  CQChartsPlot *plot = createPlot(viewData, model, type, nameValueData, reuse);
   assert(plot);
 
   //---
