@@ -4,11 +4,11 @@
 #include <QString>
 #include <vector>
 
-class CSymbol2DRenderer;
+class CQChartsPlotSymbolRenderer;
 
 //---
 
-struct CSymbol2D {
+struct CQChartsPlotSymbol {
   enum class Type {
     NONE,
     CROSS,
@@ -58,32 +58,33 @@ struct CSymbol2D {
   Lines lines;
   Lines fillLines;
 
-  CSymbol2D(Type type, std::initializer_list<Line> lines, std::initializer_list<Line> fillLines) :
+  CQChartsPlotSymbol(Type type, std::initializer_list<Line> lines,
+                     std::initializer_list<Line> fillLines) :
    type(type), lines(lines), fillLines(fillLines) {
   }
 };
 
 //---
 
-namespace CSymbol2DMgr {
-  bool isSymbol(CSymbol2D::Type type);
+namespace CQChartsPlotSymbolMgr {
+  bool isSymbol(CQChartsPlotSymbol::Type type);
 
-  const CSymbol2D &getSymbol(CSymbol2D::Type type);
+  const CQChartsPlotSymbol &getSymbol(CQChartsPlotSymbol::Type type);
 
-  void drawSymbol  (CSymbol2D::Type type, CSymbol2DRenderer *renderer);
-  void strokeSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer);
-  void fillSymbol  (CSymbol2D::Type type, CSymbol2DRenderer *renderer);
+  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
+  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
+  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
 
-  QString typeToName(CSymbol2D::Type type);
+  QString typeToName(CQChartsPlotSymbol::Type type);
 
-  CSymbol2D::Type nameToType(const QString &str);
+  CQChartsPlotSymbol::Type nameToType(const QString &str);
 }
 
 //---
 
-class CSymbol2DRenderer {
+class CQChartsPlotSymbolRenderer {
  public:
-  CSymbol2DRenderer() { }
+  CQChartsPlotSymbolRenderer() { }
 
   virtual void moveTo(double x, double y) = 0;
   virtual void lineTo(double x, double y) = 0;
@@ -99,9 +100,9 @@ class CSymbol2DRenderer {
 
   virtual double lineWidth() const { return 0.0; }
 
-  void drawSymbol  (CSymbol2D::Type type);
-  void strokeSymbol(CSymbol2D::Type type);
-  void fillSymbol  (CSymbol2D::Type type);
+  void drawSymbol  (CQChartsPlotSymbol::Type type);
+  void strokeSymbol(CQChartsPlotSymbol::Type type);
+  void fillSymbol  (CQChartsPlotSymbol::Type type);
 };
 
 //------
@@ -113,7 +114,7 @@ class CSymbol2DRenderer {
 class CQChartsPlot;
 class QPainter;
 
-class CQChartsSymbol2DRenderer : public CSymbol2DRenderer {
+class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
  public:
   CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
 
@@ -134,13 +135,13 @@ class CQChartsSymbol2DRenderer : public CSymbol2DRenderer {
   double lineWidth() const override;
 
  private:
-  QPainter*    painter_ { nullptr };
-  CQChartsGeom::Point     p_       { 0.0, 0.0 };
-  double       s_       { 2.0 };
-  double       w_       { 0.0 };
-  QPainterPath path_;
-  QColor       pc_;
-  QColor       fc_;
+  QPainter*           painter_ { nullptr };
+  CQChartsGeom::Point p_       { 0.0, 0.0 };
+  double              s_       { 2.0 };
+  double              w_       { 0.0 };
+  QPainterPath        path_;
+  QColor              pc_;
+  QColor              fc_;
 };
 
 #endif

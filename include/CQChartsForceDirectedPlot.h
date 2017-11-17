@@ -676,6 +676,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
   QString name() const override { return "forcedirected"; }
   QString desc() const override { return "ForceDirected"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

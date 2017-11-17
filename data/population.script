@@ -1,0 +1,58 @@
+@let year = 1850
+@let x    = 0
+@let y    = 0
+@let w    = 100
+@let h    = 100
+
+set -name scroll.numPages -value 15
+
+@while {year <= 2000} {
+  @let x1 = x + w
+  @let y1 = y + h
+
+  load -csv population.csv -first_line_header -filter "sex:1,year:${year}" -title "Male ${year}"
+
+  @let tableId = rc
+
+  get -model "${tableId}" -name num_rows
+
+  @let numRows = rc
+
+  @if {numRows == 0} {
+    @let year = year + 10
+
+    @continue
+  }
+
+  process "+key(@0,@0-@1)"
+
+  sort 4
+
+  plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
+
+  @let plot1 = rc
+
+  set -view view1 -plot "${plot1}" -name fill.color -value blue
+  set -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
+  set -view view1 -plot "${plot1}" -name Key.visible -value 0
+
+  load -csv population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
+
+  process "+key(@0,@0-@1)"
+
+  sort 4
+
+  plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
+
+  @let plot2 = rc
+
+  set -view view1 -plot "${plot2}" -name fill.color -value pink
+  set -view view1 -plot "${plot2}" -name fill.alpha -value 0.5
+  set -view view1 -plot "${plot2}" -name Key.visible -value 0
+
+  overlay "${plot1}" "${plot2}"
+
+  @let year = year + 10
+
+  @let x = x1
+}

@@ -29,6 +29,13 @@ int nextColorId() {
 CQChartsSunburstPlotType::
 CQChartsSunburstPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsSunburstPlotType::
+addParameters()
+{
   addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
   addColumnParameter("value", "Value", "valueColumn", "", 1);
 }
@@ -49,6 +56,13 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
   // addKey() // TODO
 
   addTitle();
+}
+
+CQChartsSunburstPlot::
+~CQChartsSunburstPlot()
+{
+  for (auto &root : roots_)
+    delete root;
 }
 
 void
@@ -438,4 +452,233 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   plot_->drawNode(p, this, node_);
+}
+
+//------
+
+CQChartsSunburstHierNode::
+CQChartsSunburstHierNode(CQChartsSunburstHierNode *parent, const QString &name) :
+ CQChartsSunburstNode(parent, name)
+{
+  if (parent_)
+    parent_->children_.push_back(this);
+}
+
+CQChartsSunburstHierNode::
+~CQChartsSunburstHierNode()
+{
+  for (auto &child : children_)
+    delete child;
+
+  for (auto &node : nodes_)
+    delete node;
+}
+
+double
+CQChartsSunburstHierNode::
+size() const
+{
+  double s = 0.0;
+
+  for (const auto &child : children_)
+    s += child->size();
+
+  for (const auto &node : nodes_)
+    s += node->size();
+
+  return s;
+}
+
+int
+CQChartsSunburstHierNode::
+depth() const
+{
+  int depth = 1;
+
+  for (const auto &child : children_)
+    depth = std::max(depth, child->depth() + 1);
+
+  return depth;
+}
+
+int
+CQChartsSunburstHierNode::
+numNodes() const
+{
+  int num = nodes_.size();
+
+  for (const auto &child : children_)
+    num += child->numNodes();
+
+  return std::max(num, 1);
+}
+
+void
+CQChartsSunburstHierNode::
+unplace()
+{
+  unplaceNodes();
+}
+
+void
+CQChartsSunburstHierNode::
+unplaceNodes()
+{
+  CQChartsSunburstNode::unplace();
+
+  for (auto &child : children_)
+    child->unplaceNodes();
+
+  for (auto &node : nodes_)
+    node->unplace();
+}
+
+void
+CQChartsSunburstHierNode::
+packNodes(CQChartsSunburstHierNode *root, double ri, double ro,
+          double dr, double a, double da, const Order &order, bool sort)
+{
+  int d = depth();
+
+  if (dr <= 0.0)
+    dr = (ro - ri)/d;
+
+  double s = (order == Order::SIZE ? size() : numNodes());
+
+  double da1 = da/s;
+
+  packSubNodes(root, ri, dr, a, da1, order, sort);
+}
+
+void
+CQChartsSunburstHierNode::
+packSubNodes(CQChartsSunburstHierNode *root, double ri,
+             double dr, double a, double da, const Order &order, bool sort)
+{
+  // make single list of nodes to pack
+  Nodes nodes;
+
+  for (auto &child : children_)
+    nodes.push_back(child);
+
+  for (auto &node : nodes_)
+    nodes.push_back(node);
+
+  if (sort) {
+#if 0
+    if (root->order() == Order::SIZE)
+      std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeSizeCmp());
+    else
+      std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeCountCmp());
+#else
+    std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeNameCmp());
+  }
+#endif
+
+  //---
+
+  placed_ = true;
+
+  // place each node
+  double a1 = a;
+
+  for (auto &node : nodes) {
+    double s = (order == Order::SIZE ? node->size() : node->numNodes());
+
+    node->setPosition(ri, a1, dr, s*da);
+
+    CQChartsSunburstHierNode *hierNode = dynamic_cast<CQChartsSunburstHierNode *>(node);
+
+    if (hierNode)
+      hierNode->packSubNodes(root, ri + dr, dr, a1, da, order, sort);
+
+    a1 += s*da;
+  }
+}
+
+void
+CQChartsSunburstHierNode::
+addNode(CQChartsSunburstNode *node)
+{
+  nodes_.push_back(node);
+}
+
+//------
+
+CQChartsSunburstNode::
+CQChartsSunburstNode(CQChartsSunburstHierNode *parent, const QString &name) :
+ parent_(parent), id_(nextId()), name_(name)
+{
+}
+
+void
+CQChartsSunburstNode::
+setPosition(double r, double a, double dr, double da)
+{
+  r_  = r ; a_  = a ;
+  dr_ = dr; da_ = da;
+
+  placed_ = true;
+}
+
+bool
+CQChartsSunburstNode::
+pointInside(double x, double y)
+{
+  if (! placed_) return false;
+
+  double r = sqrt(x*x + y*y);
+
+  if (r < r_ || r > r_ + dr_) return false;
+
+  double a = normalizeAngle(180.0*atan2(y, x)/M_PI);
+
+  double a1 = normalizeAngle(a_);
+  double a2 = a1 + da_;
+
+  if (a2 > a1) {
+    if (a2 >= 360.0) {
+      double da = a2 - 360.0; a -= da; a1 -= da; a2 = 360.0;
+      a = normalizeAngle(a);
+    }
+
+    if (a < a1 || a > a2)
+      return false;
+  }
+  else {
+    if (a2 < 0.0) {
+      double da = -a2; a += da; a1 += da; a2 = 0.0;
+
+      a = normalizeAngle(a);
+    }
+
+    if (a < a2 || a > a1)
+      return false;
+  }
+
+  return true;
+}
+
+//------
+
+// sort reverse alphabetic no case
+bool
+CQChartsSunburstNodeNameCmp::
+operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2)
+{
+  const QString &name1 = n1->name();
+  const QString &name2 = n2->name();
+
+  int l1 = name1.size();
+  int l2 = name2.size();
+
+  for (int i = 0; i < std::max(l1, l2); ++i) {
+    char c1 = (i < l1 ? tolower(name1[i].toLatin1()) : '\0');
+    char c2 = (i < l2 ? tolower(name2[i].toLatin1()) : '\0');
+
+    if (c1 > c2) return true;
+    if (c1 < c2) return false;
+  }
+
+  return false;
 }

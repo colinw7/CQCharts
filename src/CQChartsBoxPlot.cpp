@@ -11,6 +11,13 @@
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsBoxPlotType::
+addParameters()
+{
   addColumnParameter("x", "X", "xColumn", "", 0);
   addColumnParameter("y", "Y", "yColumn", "", 1);
 }
@@ -294,6 +301,21 @@ addKeyItems(CQChartsKey *key)
   }
 
   key->plot()->updateKeyPosition(/*force*/true);
+}
+
+bool
+CQChartsBoxPlot::
+probe(ProbeData &probeData) const
+{
+  if (probeData.x < dataRange_.xmin() + 0.5)
+    probeData.x = dataRange_.xmin() + 0.5;
+
+  if (probeData.x > dataRange_.xmax() - 0.5)
+    probeData.x = dataRange_.xmax() - 0.5;
+
+  probeData.x = std::round(probeData.x);
+
+  return true;
 }
 
 void

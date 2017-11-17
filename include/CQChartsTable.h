@@ -5,6 +5,7 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
+class CQCharts;
 class CQChartsTableSelectionModel;
 
 class CQChartsTable : public CQTableView {
@@ -13,13 +14,35 @@ class CQChartsTable : public CQTableView {
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
+  struct ColumnDetails {
+    QString  typeName;
+    QVariant minValue;
+    QVariant maxValue;
+
+    ColumnDetails() = default;
+
+    ColumnDetails(const QString &typeName, const QVariant &minValue, const QVariant &maxValue) :
+     typeName(typeName), minValue(minValue), maxValue(maxValue) {
+    }
+  };
+
+  using DetailsColumns = std::vector<ColumnDetails>;
+
+  struct Details {
+    int            numColumns { 0 };
+    int            numRows    { 0 };
+    DetailsColumns columns;
+  };
+
  public:
-  CQChartsTable(QWidget *parent=nullptr);
+  CQChartsTable(CQCharts *charts);
 
   ModelP model() const {return model_; }
   void setModel(const ModelP &model);
 
   void setFilter(const QString &filter);
+
+  void calcDetails(Details &details);
 
   QSize sizeHint() const override;
 
@@ -37,8 +60,9 @@ class CQChartsTable : public CQTableView {
   void selectionBehaviorSlot(QAction *action);
 
  private:
+  CQCharts*                    charts_ { nullptr };
   ModelP                       model_;
-  CQChartsTableSelectionModel* sm_ { nullptr };
+  CQChartsTableSelectionModel* sm_     { nullptr };
 };
 
 #endif

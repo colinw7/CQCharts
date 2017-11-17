@@ -56,6 +56,12 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
+CQChartsHierBubblePlot::
+~CQChartsHierBubblePlot()
+{
+  delete root_;
+}
+
 void
 CQChartsHierBubblePlot::
 addProperties()
@@ -800,38 +806,48 @@ CQChartsHierBubbleHierNode(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierN
     parent_->children_.push_back(this);
 }
 
+CQChartsHierBubbleHierNode::
+~CQChartsHierBubbleHierNode()
+{
+  for (auto &node : nodes_)
+    delete node;
+
+  for (auto &child : children_)
+    delete child;
+}
+
 void
 CQChartsHierBubbleHierNode::
 packNodes()
 {
   pack_.reset();
 
-  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-    (*pn)->resetPosition();
+  for (auto &node : nodes_)
+    node->resetPosition();
 
   //---
 
   // pack child hier nodes first
-  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-    (*p)->packNodes();
+  for (auto &child : children_)
+    child->packNodes();
 
   //---
 
   // make single list of nodes to pack
   Nodes packNodes;
 
-  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-    packNodes.push_back(*p);
+  for (auto &child : children_)
+    packNodes.push_back(child);
 
-  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-    packNodes.push_back(*pn);
+  for (auto &node : nodes_)
+    packNodes.push_back(node);
 
   // sort nodes
   std::sort(packNodes.begin(), packNodes.end(), CQChartsHierBubbleNodeCmp());
 
   // pack nodes
-  for (Nodes::const_iterator pp = packNodes.begin(); pp != packNodes.end(); ++pp)
-    pack_.addNode(*pp);
+  for (auto &packNode : packNodes)
+    pack_.addNode(packNode);
 
   //---
 
@@ -875,17 +891,11 @@ setPosition(double x, double y)
 
   CQChartsHierBubbleNode::setPosition(x, y);
 
-  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn) {
-    CQChartsHierBubbleNode *node = *pn;
-
+  for (auto &node : nodes_)
     node->setPosition(node->x() + dx, node->y() + dy);
-  }
 
-  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p) {
-    CQChartsHierBubbleHierNode *hierNode = *p;
-
-    hierNode->setPosition(hierNode->x() + dx, hierNode->y() + dy);
-  }
+  for (auto &child : children_)
+    child->setPosition(child->x() + dx, child->y() + dy);
 }
 
 //------

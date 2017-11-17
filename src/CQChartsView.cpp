@@ -3,19 +3,16 @@
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
 #include <CQChartsAxis.h>
+#include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
 #include <CGradientPalette.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDisplayRange.h>
 
-#include <svg/select_svg.h>
-#include <svg/zoom_svg.h>
-#include <svg/probe_svg.h>
-#include <svg/zoom_fit_svg.h>
-
 #include <QRubberBand>
 #include <QMouseEvent>
+#include <QMenu>
 #include <QPainter>
 
 CQChartsView::
@@ -51,6 +48,11 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "insideMode"    );
   addProperty("", this, "zoomData"      );
 
+  addProperty("scroll", this, "scrolled"      , "enabled" );
+  addProperty("scroll", this, "scrollDelta"   , "delta"   );
+  addProperty("scroll", this, "scrollNumPages", "numPages");
+  addProperty("scroll", this, "scrollPage"    , "page"    );
+
   //---
 
   CQToolTip::setToolTip(this, new CQChartsViewToolTip(this));
@@ -64,8 +66,8 @@ CQChartsView::
 
   delete displayRange_;
 
-  for (auto &plot : plotDatas_)
-    delete plot.plot;
+  for (auto &plotData : plotDatas_)
+    delete plotData.plot;
 
   for (auto &probeBand : probeBands_)
     delete probeBand;
@@ -137,6 +139,12 @@ void
 CQChartsView::
 addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 {
+  if (! plot->id().length()) {
+    QString id(QString("%1").arg(numPlots() + 1));
+
+    plot->setId(QString("%1%2").arg(plot->typeName()).arg(id));
+  }
+
   plot->setPalette(gradientPalette());
 
   plot->setBBox(bbox);
@@ -169,17 +177,23 @@ initOverlay()
 
   CQChartsPlot *firstPlot = plot(0)->firstPlot();
 
+  initOverlay(firstPlot);
+}
+
+void
+CQChartsView::
+initOverlay(CQChartsPlot *firstPlot)
+{
   if (title().length())
     firstPlot->titleObj()->setText(title());
 
   //---
 
-  for (const auto &plotData : plotDatas_) {
-    if (plotData.plot == firstPlot)
-      continue;
+  CQChartsPlot *plot = firstPlot->nextPlot();
 
-    CQChartsAxis *xaxis = plotData.plot->xAxis();
-    CQChartsAxis *yaxis = plotData.plot->yAxis();
+  while (plot) {
+    CQChartsAxis *xaxis = plot->xAxis();
+    CQChartsAxis *yaxis = plot->yAxis();
 
     if (xaxis)
       xaxis->setVisible(false);
@@ -187,13 +201,38 @@ initOverlay()
     if (yaxis)
       yaxis->setVisible(false);
 
-    CQChartsTitle *title = plotData.plot->titleObj();
+    CQChartsTitle *title = plot->titleObj();
 
     if (title)
       title->setVisible(false);
+
+    plot->setBackground    (false);
+    plot->setDataBackground(false);
+
+    plot = plot->nextPlot();
   }
 
   firstPlot->updateObjs();
+}
+
+void
+CQChartsView::
+initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2)
+{
+  plot1->setNextPlot(plot2);
+  plot2->setPrevPlot(plot1);
+
+  if (plot2->xAxis())
+    plot2->xAxis()->setVisible(false);
+
+  if (plot2->yAxis())
+    plot2->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
+
+  if (plot2->key())
+    plot2->key()->setVisible(false);
+
+  plot2->setBackground    (false);
+  plot2->setDataBackground(false);
 }
 
 void
@@ -242,6 +281,11 @@ mousePressEvent(QMouseEvent *me)
     }
     else if (mode_ == Mode::PROBE) {
     }
+  }
+  else if (me->button() == Qt::RightButton) {
+    showMenu(me->pos());
+
+    return;
   }
 }
 
@@ -339,7 +383,7 @@ mouseMoveEvent(QMouseEvent *me)
       ++ind;
     };
 
-    int px = me->pos().x();
+    //int px = me->pos().x();
 
     CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
@@ -354,25 +398,32 @@ mouseMoveEvent(QMouseEvent *me)
 
       plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
-      std::vector<double> yvals1;
+      CQChartsPlot::ProbeData probeData;
 
-      if (! plot->interpY(w.x, yvals1))
+      probeData.x = w.x;
+      probeData.y = w.y;
+
+      if (! plot->probe(probeData))
         continue;
+
+      if (probeData.yvals.empty())
+        probeData.yvals.emplace_back(w.y);
 
       CQChartsGeom::BBox dataRange = plot->calcDataRange();
 
+      // add probe lines from ymin to probed y values
       CQChartsGeom::Point p1;
 
-      plot->windowToPixel(CQChartsGeom::Point(w.x, dataRange.getYMin()), p1);
+      plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
 
-      for (const auto &y1 : yvals1) {
+      for (const auto &yval : probeData.yvals) {
         CQChartsGeom::Point p2;
 
-        plot->windowToPixel(CQChartsGeom::Point(w.x, y1), p2);
+        plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
 
-        QString tip = plot->yStr(y1);
+        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
-        addProbeBand(probeInd, plot, tip, px, p1.y, p2.y);
+        addProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
       }
     }
 
@@ -478,8 +529,8 @@ resizeEvent(QResizeEvent *)
 
   //---
 
-  for (const auto &plot : plotDatas_)
-    plot.plot->handleResize();
+  for (const auto &plotData : plotDatas_)
+    plotData.plot->handleResize();
 }
 
 void
@@ -496,11 +547,41 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  for (const auto &plot : plotDatas_) {
-    if (plot.plot->isVisible())
-      plot.plot->draw(&painter);
+  for (const auto &plotData : plotDatas_) {
+    if (plotData.plot->isVisible())
+      plotData.plot->draw(&painter);
   }
 }
+
+//------
+
+void
+CQChartsView::
+showMenu(const QPoint &p)
+{
+  if (! popupMenu_) {
+    popupMenu_ = new QMenu(this);
+
+    QAction *fitAction = new QAction("Fit", popupMenu_);
+
+    connect(fitAction, SIGNAL(triggered()), this, SLOT(fitSlot()));
+
+    popupMenu_->addAction(fitAction);
+  }
+
+  popupMenu_->popup(mapToGlobal(p));
+}
+
+void
+CQChartsView::
+fitSlot()
+{
+  for (const auto &plotData : plotDatas_) {
+    plotData.plot->autoFit();
+  }
+}
+
+//------
 
 CQChartsPlot *
 CQChartsView::
@@ -520,9 +601,9 @@ bool
 CQChartsView::
 plotsAt(const CQChartsGeom::Point &p, Plots &plots) const
 {
-  for (const auto &plot : plotDatas_)
-    if (plot.bbox.inside(p))
-      plots.push_back(plot.plot);
+  for (const auto &plotData : plotDatas_)
+    if (plotData.bbox.inside(p))
+      plots.push_back(plotData.plot);
 
   return ! plots.empty();
 }
@@ -564,6 +645,45 @@ setStatusText(const QString &text)
 {
   emit statusTextChanged(text);
 }
+
+//------
+
+void
+CQChartsView::
+scrollLeft()
+{
+  if (scrollPage_ > 0) {
+    --scrollPage_;
+
+    updateScroll();
+  }
+}
+
+void
+CQChartsView::
+scrollRight()
+{
+  if (scrollPage_ < scrollNumPages_ - 1) {
+    ++scrollPage_;
+
+    updateScroll();
+  }
+}
+
+void
+CQChartsView::
+updateScroll()
+{
+  double dx = scrollPage_*scrollDelta_;
+
+  double vr = viewportRange();
+
+  displayRange_->setWindowRange(dx, 0, dx + vr, vr);
+
+  update();
+}
+
+//------
 
 void
 CQChartsView::

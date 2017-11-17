@@ -12,6 +12,13 @@
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsForceDirectedPlotType::
+addParameters()
+{
   addColumnParameter("node"       , "Node"       , "nodeColumn"       , "", 0);
   addColumnParameter("connections", "Connections", "connectionsColumn", "", 1);
 

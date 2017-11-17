@@ -11,6 +11,13 @@
 CQChartsParallelPlotType::
 CQChartsParallelPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsParallelPlotType::
+addParameters()
+{
   addColumnParameter ("x", "X", "xColumn" , "", 0);
   addColumnsParameter("y", "Y", "yColumns", "", "1");
 }
@@ -302,6 +309,27 @@ numValues() const
   return model->rowCount(QModelIndex());
 }
 
+bool
+CQChartsParallelPlot::
+probe(ProbeData &probeData) const
+{
+  int n = numSets();
+
+  int x = std::round(probeData.x);
+
+  x = std::max(x, 0    );
+  x = std::min(x, n - 1);
+
+  const CQChartsGeom::Range &range = yRanges_[x];
+
+  probeData.x = x;
+
+  probeData.yvals.emplace_back(probeData.y,
+    QString("%1").arg(probeData.y*range.ysize() + range.ymin()));
+
+  return true;
+}
+
 void
 CQChartsParallelPlot::
 draw(QPainter *p)
@@ -547,10 +575,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  CSymbol2D::Type symbol = plot_->symbolType();
-  QColor          c      = plot_->paletteColor(i_, n_, plot_->pointsColor());
-  bool            filled = plot_->isSymbolFilled();
-  double          s      = plot_->symbolSize();
+  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
+  QColor                   c      = plot_->paletteColor(i_, n_, plot_->pointsColor());
+  bool                     filled = plot_->isSymbolFilled();
+  double                   s      = plot_->symbolSize();
 
   CQChartsGeom::Point pp(x_, y_);
 

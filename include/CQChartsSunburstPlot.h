@@ -43,9 +43,7 @@ class CQChartsSunburstNode {
   }
 
  public:
-  CQChartsSunburstNode(CQChartsSunburstHierNode *parent, const QString &name="") :
-   parent_(parent), id_(nextId()), name_(name) {
-  }
+  CQChartsSunburstNode(CQChartsSunburstHierNode *parent, const QString &name="");
 
   virtual ~CQChartsSunburstNode() { }
 
@@ -73,12 +71,7 @@ class CQChartsSunburstNode {
   const int &colorId() const { return colorId_; }
   virtual void setColorId(int colorId) { colorId_ = colorId; }
 
-  virtual void setPosition(double r, double a, double dr, double da) {
-    r_  = r ; a_  = a ;
-    dr_ = dr; da_ = da;
-
-    placed_ = true;
-  }
+  virtual void setPosition(double r, double a, double dr, double da);
 
   void unplace() { placed_ = false; }
 
@@ -96,40 +89,7 @@ class CQChartsSunburstNode {
     return a;
   }
 
-  bool pointInside(double x, double y) {
-    if (! placed_) return false;
-
-    double r = sqrt(x*x + y*y);
-
-    if (r < r_ || r > r_ + dr_) return false;
-
-    double a = normalizeAngle(180.0*atan2(y, x)/M_PI);
-
-    double a1 = normalizeAngle(a_);
-    double a2 = a1 + da_;
-
-    if (a2 > a1) {
-      if (a2 >= 360.0) {
-        double da = a2 - 360.0; a -= da; a1 -= da; a2 = 360.0;
-        a = normalizeAngle(a);
-      }
-
-      if (a < a1 || a > a2)
-        return false;
-    }
-    else {
-      if (a2 < 0.0) {
-        double da = -a2; a += da; a1 += da; a2 = 0.0;
-
-        a = normalizeAngle(a);
-      }
-
-      if (a < a2 || a > a1)
-        return false;
-    }
-
-    return true;
-  }
+  bool pointInside(double x, double y);
 
  protected:
   CQChartsSunburstHierNode* parent_  { nullptr };
@@ -150,23 +110,7 @@ class CQChartsSunburstNode {
 
 struct CQChartsSunburstNodeNameCmp {
   // sort reverse alphabetic no case
-  bool operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2) {
-    const QString &name1 = n1->name();
-    const QString &name2 = n2->name();
-
-    int l1 = name1.size();
-    int l2 = name2.size();
-
-    for (int i = 0; i < std::max(l1, l2); ++i) {
-      char c1 = (i < l1 ? tolower(name1[i].toLatin1()) : '\0');
-      char c2 = (i < l2 ? tolower(name2[i].toLatin1()) : '\0');
-
-      if (c1 > c2) return true;
-      if (c1 < c2) return false;
-    }
-
-    return false;
-  }
+  bool operator()(const CQChartsSunburstNode *n1, const CQChartsSunburstNode *n2);
 };
 
 struct CQChartsSunburstNodeSizeCmp {
@@ -195,122 +139,31 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
   using Children = std::vector<CQChartsSunburstHierNode*>;
 
  public:
-  CQChartsSunburstHierNode(CQChartsSunburstHierNode *parent=0, const QString &name="") :
-   CQChartsSunburstNode(parent, name) {
-    if (parent_)
-      parent_->children_.push_back(this);
-  }
+  CQChartsSunburstHierNode(CQChartsSunburstHierNode *parent=nullptr, const QString &name="");
 
-  double size() const {
-    double s = 0.0;
+ ~CQChartsSunburstHierNode();
 
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      s += (*p)->size();
+  double size() const;
 
-    for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-      s += (*pn)->size();
+  int depth() const;
 
-    return s;
-  }
-
-  int depth() const {
-    int depth = 1;
-
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      depth = std::max(depth, (*p)->depth() + 1);
-
-    return depth;
-  }
-
-  int numNodes() const {
-    int num = nodes_.size();
-
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      num += (*p)->numNodes();
-
-    return std::max(num, 1);
-  }
+  int numNodes() const;
 
   const Nodes &getNodes() const { return nodes_; }
 
   const Children &getChildren() const { return children_; }
 
-  void unplace() {
-    unplaceNodes();
-  }
+  void unplace();
 
-  void unplaceNodes() {
-    CQChartsSunburstNode::unplace();
-
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      (*p)->unplaceNodes();
-
-    for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-      (*pn)->unplace();
-  }
+  void unplaceNodes();
 
   void packNodes(CQChartsSunburstHierNode *root, double ri, double ro,
-                 double dr, double a, double da, const Order &order, bool sort) {
-    int d = depth();
-
-    if (dr <= 0.0)
-      dr = (ro - ri)/d;
-
-    double s = (order == Order::SIZE ? size() : numNodes());
-
-    double da1 = da/s;
-
-    packSubNodes(root, ri, dr, a, da1, order, sort);
-  }
+                 double dr, double a, double da, const Order &order, bool sort);
 
   void packSubNodes(CQChartsSunburstHierNode *root, double ri,
-                    double dr, double a, double da, const Order &order, bool sort) {
-    // make single list of nodes to pack
-    Nodes nodes;
+                    double dr, double a, double da, const Order &order, bool sort);
 
-    for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-      nodes.push_back(*p);
-
-    for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-      nodes.push_back(*pn);
-
-    if (sort) {
-#if 0
-      if (root->order() == Order::SIZE)
-        std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeSizeCmp());
-      else
-        std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeCountCmp());
-#else
-      std::sort(nodes.begin(), nodes.end(), CQChartsSunburstNodeNameCmp());
-    }
-#endif
-
-    //---
-
-    placed_ = true;
-
-    // place each node
-    double a1 = a;
-
-    for (Nodes::const_iterator pn = nodes.begin(); pn != nodes.end(); ++pn) {
-      CQChartsSunburstNode *node = *pn;
-
-      double s = (order == Order::SIZE ? node->size() : node->numNodes());
-
-      node->setPosition(ri, a1, dr, s*da);
-
-      CQChartsSunburstHierNode *hierNode = dynamic_cast<CQChartsSunburstHierNode *>(node);
-
-      if (hierNode)
-        hierNode->packSubNodes(root, ri + dr, dr, a1, da, order, sort);
-
-      a1 += s*da;
-    }
-  }
-
-  void addNode(CQChartsSunburstNode *node) {
-    nodes_.push_back(node);
-  }
+  void addNode(CQChartsSunburstNode *node);
 
  private:
   Nodes     nodes_;
@@ -349,6 +202,8 @@ class CQChartsSunburstPlotType : public CQChartsPlotType {
   QString name() const override { return "sunburst"; }
   QString desc() const override { return "Sunburst"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -363,6 +218,8 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
  public:
   CQChartsSunburstPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsSunburstPlot();
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }

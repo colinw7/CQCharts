@@ -24,12 +24,17 @@ class CQChartsViewToolBar : public QFrame {
 
   void autoFitSlot();
 
+  void leftSlot();
+  void rightSlot();
+
  private:
   CQChartsWindow* window_        { nullptr };
   QToolButton*    selectButton_  { nullptr };
   QToolButton*    zoomButton_    { nullptr };
   QToolButton*    probeButton_   { nullptr };
   QToolButton*    autoFitButton_ { nullptr };
+  QToolButton*    leftButton_    { nullptr };
+  QToolButton*    rightButton_   { nullptr };
   QStackedWidget* controlsStack_ { nullptr };
 };
 

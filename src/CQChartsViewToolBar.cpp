@@ -4,6 +4,13 @@
 #include <CQChartsPlot.h>
 #include <CQPixmapCache.h>
 
+#include <svg/select_svg.h>
+#include <svg/zoom_svg.h>
+#include <svg/probe_svg.h>
+#include <svg/zoom_fit_svg.h>
+#include <svg/left_svg.h>
+#include <svg/right_svg.h>
+
 #include <QToolButton>
 #include <QStackedWidget>
 #include <QHBoxLayout>
@@ -51,6 +58,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   zoomButton_    = createButton("zoom"  , "ZOOM"    , SLOT(zoomSlot(bool)));
   probeButton_   = createButton("probe" , "PROBE"   , SLOT(probeSlot(bool)));
   autoFitButton_ = createButton("fit"   , "ZOOM_FIT", SLOT(autoFitSlot()), false);
+  leftButton_    = createButton("left"  , "LEFT"    , SLOT(leftSlot()));
+  rightButton_   = createButton("right" , "RIGHT"   , SLOT(rightSlot()));
 
   selectButton_->setChecked(true);
 
@@ -58,6 +67,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   buttonsLayout->addWidget(zoomButton_   );
   buttonsLayout->addWidget(probeButton_  );
   buttonsLayout->addWidget(autoFitButton_);
+  buttonsLayout->addWidget(leftButton_);
+  buttonsLayout->addWidget(rightButton_);
 
   //---
 
@@ -131,9 +142,21 @@ void
 CQChartsViewToolBar::
 autoFitSlot()
 {
-  for (int i = 0; i < window_->view()->numPlots(); ++i) {
-    window_->view()->plot(i)->autoFit();
-  }
+  window_->view()->fitSlot();
+}
+
+void
+CQChartsViewToolBar::
+leftSlot()
+{
+  window_->view()->scrollLeft();
+}
+
+void
+CQChartsViewToolBar::
+rightSlot()
+{
+  window_->view()->scrollRight();
 }
 
 QSize

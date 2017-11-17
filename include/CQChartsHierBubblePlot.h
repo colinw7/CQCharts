@@ -99,6 +99,8 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
   CQChartsHierBubbleHierNode(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *parent,
                              const QString &name, const QModelIndex &ind=QModelIndex());
 
+ ~CQChartsHierBubbleHierNode();
+
   CQChartsHierBubblePlot *plot() const { return plot_; }
 
   int hierInd() const { return hierInd_; }
@@ -201,6 +203,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
  public:
   CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsHierBubblePlot();
 
   //---
 

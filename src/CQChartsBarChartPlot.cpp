@@ -102,7 +102,7 @@ addProperties()
 
   addProperty("", this, "stacked"   );
   addProperty("", this, "horizontal");
-  addProperty("", this, "margin"    );
+  addProperty("", this, "margin"    , "barMargin");
   addProperty("", this, "keySets"   );
 
   QString strokeStr = "stroke";
@@ -985,6 +985,21 @@ numSetValues() const
     return 0;
 }
 
+bool
+CQChartsBarChartPlot::
+probe(ProbeData &probeData) const
+{
+  if (probeData.x < dataRange_.xmin() + 0.5)
+    probeData.x = dataRange_.xmin() + 0.5;
+
+  if (probeData.x > dataRange_.xmax() - 0.5)
+    probeData.x = dataRange_.xmax() - 0.5;
+
+  probeData.x = std::round(probeData.x);
+
+  return true;
+}
+
 void
 CQChartsBarChartPlot::
 draw(QPainter *p)
@@ -1069,6 +1084,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     if (prect.getWidth() > 3*m) {
       prect.setXMin(prect.getXMin() + m);
       prect.setXMax(prect.getXMax() - m);
+
+      qrect = CQChartsUtil::toQRect(prect);
     }
 
     //---
@@ -1159,6 +1176,8 @@ mousePress(const CQChartsGeom::Point &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
+  plot->updateRange();
+
   plot->updateObjs();
 
   return true;
@@ -1174,8 +1193,10 @@ fillBrush() const
 
   if (color_)
     c = plot->interpPaletteColor(*color_);
-  else
-    c = CQChartsKeyColorBox::fillBrush().color();
+  else {
+    c = plot->barColor(i_, n_);
+  //c = CQChartsKeyColorBox::fillBrush().color();
+  }
 
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);

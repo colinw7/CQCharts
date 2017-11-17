@@ -14,6 +14,13 @@
 CQChartsChordPlotType::
 CQChartsChordPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsChordPlotType::
+addParameters()
+{
   addColumnParameter("name" , "Name" , "nameColumn" , "optional");
   addColumnParameter("group", "Group", "groupColumn", "optional");
 }

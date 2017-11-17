@@ -4,18 +4,18 @@
 #include <cmath>
 #include <cassert>
 
-class CSymbol2DList {
+class CQChartsPlotSymbolList {
  public:
-  using Symbols = std::vector<CSymbol2D>;
+  using Symbols = std::vector<CQChartsPlotSymbol>;
 
  public:
-  CSymbol2DList(std::initializer_list<CSymbol2D> symbols) :
+  CQChartsPlotSymbolList(std::initializer_list<CQChartsPlotSymbol> symbols) :
    symbols_(symbols) {
   }
 
   const Symbols &symbols() const { return symbols_; }
 
-  bool isSymbol(CSymbol2D::Type type) const {
+  bool isSymbol(CQChartsPlotSymbol::Type type) const {
     for (const auto &s : symbols_)
       if (s.type == type)
         return true;
@@ -23,7 +23,7 @@ class CSymbol2DList {
     return false;
   }
 
-  const CSymbol2D &getSymbol(CSymbol2D::Type type) const {
+  const CQChartsPlotSymbol &getSymbol(CQChartsPlotSymbol::Type type) const {
     for (const auto &s : symbols_)
       if (s.type == type)
         return s;
@@ -33,15 +33,15 @@ class CSymbol2DList {
     return symbols_[0];
   }
 
-  void drawSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer) const {
-    if (type == CSymbol2D::Type::CIRCLE) {
+  void drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
+    if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       renderer->strokeCircle(0, 0, 1);
       return;
     }
 
     //---
 
-    const CSymbol2D &s = getSymbol(type);
+    const CQChartsPlotSymbol &s = getSymbol(type);
 
     double w = renderer->lineWidth();
 
@@ -54,14 +54,14 @@ class CSymbol2DList {
         else
           renderer->lineTo(l.x1, l.y1);
 
-        if      (l.connect == CSymbol2D::Connect::CLOSE) {
+        if      (l.connect == CQChartsPlotSymbol::Connect::CLOSE) {
           renderer->closePath();
 
           renderer->stroke();
 
           connect = false;
         }
-        else if (l.connect == CSymbol2D::Connect::STROKE) {
+        else if (l.connect == CQChartsPlotSymbol::Connect::STROKE) {
           renderer->lineTo(l.x2, l.y2);
 
           renderer->stroke();
@@ -79,16 +79,17 @@ class CSymbol2DList {
     }
   }
 
-  void strokeSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer) const {
+  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
     fillStrokeSymbol(type, renderer, false);
   }
 
-  void fillSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer) const {
+  void fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
     fillStrokeSymbol(type, renderer, true);
   }
 
-  void fillStrokeSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer, bool fill) const {
-    if (type == CSymbol2D::Type::CIRCLE) {
+  void fillStrokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer,
+                        bool fill) const {
+    if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       if (fill)
         renderer->fillCircle(0, 0, 1);
       else
@@ -99,7 +100,7 @@ class CSymbol2DList {
 
     //---
 
-    const CSymbol2D &s = getSymbol(type);
+    const CQChartsPlotSymbol &s = getSymbol(type);
 
     bool connect = false;
 
@@ -109,7 +110,7 @@ class CSymbol2DList {
       else
         renderer->lineTo(l.x1, l.y1);
 
-      if      (l.connect == CSymbol2D::Connect::CLOSE) {
+      if      (l.connect == CQChartsPlotSymbol::Connect::CLOSE) {
         renderer->closePath();
 
         if (fill)
@@ -119,7 +120,7 @@ class CSymbol2DList {
 
         connect = false;
       }
-      else if (l.connect == CSymbol2D::Connect::FILL) {
+      else if (l.connect == CQChartsPlotSymbol::Connect::FILL) {
         renderer->lineTo(l.x2, l.y2);
 
         if (fill)
@@ -134,9 +135,10 @@ class CSymbol2DList {
     }
   }
 
-  void drawWideLine(CSymbol2DRenderer *renderer, const CSymbol2D::Line &l, double w) const {
-    auto addWidthToPoint= [&](const CSymbol2D::Point &p, double a, double w,
-                              CSymbol2D::Point &p1, CSymbol2D::Point &p2) {
+  void drawWideLine(CQChartsPlotSymbolRenderer *renderer, const CQChartsPlotSymbol::Line &l,
+                    double w) const {
+    auto addWidthToPoint= [&](const CQChartsPlotSymbol::Point &p, double a, double w,
+                              CQChartsPlotSymbol::Point &p1, CQChartsPlotSymbol::Point &p2) {
       double dx = w*sin(a)/2.0;
       double dy = w*cos(a)/2.0;
 
@@ -154,10 +156,10 @@ class CSymbol2DList {
 
     double a = atan2(y21, x21);
 
-    CSymbol2D::Point p[4];
+    CQChartsPlotSymbol::Point p[4];
 
-    addWidthToPoint(CSymbol2D::Point(l.x1, l.y1), a, w, p[0], p[3]);
-    addWidthToPoint(CSymbol2D::Point(l.x2, l.y2), a, w, p[1], p[2]);
+    addWidthToPoint(CQChartsPlotSymbol::Point(l.x1, l.y1), a, w, p[0], p[3]);
+    addWidthToPoint(CQChartsPlotSymbol::Point(l.x2, l.y2), a, w, p[1], p[2]);
 
     renderer->moveTo(p[0].x, p[0].y);
     renderer->lineTo(p[1].x, p[1].y);
@@ -177,246 +179,246 @@ static double cw1 =  0.2828430; // 0.4/sqrt(2)
 static double cw2 =  0.7171570; // 1-0.4/sqrt(2)
 static double cw3 = -0.0828427; // line intersect for Y
 
-CSymbol2DList symbols({
-  { CSymbol2D::Type::CROSS    ,
-    {{-1.0, -1.0,  1.0,  1.0, CSymbol2D::Connect::STROKE},
-     {-1.0,  1.0,  1.0, -1.0, CSymbol2D::Connect::STROKE}},
-    {{-cw2, -1.0,  0.0, -cw1, CSymbol2D::Connect::LINE  },
-     { 0.0, -cw1,  cw2, -1.0, CSymbol2D::Connect::LINE  },
-     { cw2, -1.0,  1.0, -cw2, CSymbol2D::Connect::LINE  },
-     { 1.0, -cw2,  cw1,  0.0, CSymbol2D::Connect::LINE  },
-     { cw1,  0.0,  1.0,  cw2, CSymbol2D::Connect::LINE  },
-     { 1.0,  cw2,  cw2,  1.0, CSymbol2D::Connect::LINE  },
-     { cw2,  1.0,  0.0,  cw1, CSymbol2D::Connect::LINE  },
-     { 0.0,  cw1, -cw2,  1.0, CSymbol2D::Connect::LINE  },
-     {-cw2,  1.0, -1.0,  cw2, CSymbol2D::Connect::LINE  },
-     {-1.0,  cw2, -cw1,  0.0, CSymbol2D::Connect::LINE  },
-     {-cw1,  0.0, -1.0, -cw2, CSymbol2D::Connect::LINE  },
-     {-1.0, -cw2, -cw2, -1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::PLUS     ,
-    {{ 0.0, -1.0,  0.0,  1.0, CSymbol2D::Connect::STROKE},
-     {-1.0,  0.0,  1.0,  0.0, CSymbol2D::Connect::STROKE}},
-    {{-0.2, -1.0,  0.2, -1.0, CSymbol2D::Connect::LINE  },
-     { 0.2, -1.0,  0.2, -0.2, CSymbol2D::Connect::LINE  },
-     { 0.2, -0.2,  1.0, -0.2, CSymbol2D::Connect::LINE  },
-     { 1.0, -0.2,  1.0,  0.2, CSymbol2D::Connect::LINE  },
-     { 1.0,  0.2,  0.2,  0.2, CSymbol2D::Connect::LINE  },
-     { 0.2,  0.2,  0.2,  1.0, CSymbol2D::Connect::LINE  },
-     { 0.2,  1.0, -0.2,  1.0, CSymbol2D::Connect::LINE  },
-     {-0.2,  1.0, -0.2,  0.2, CSymbol2D::Connect::LINE  },
-     {-0.2,  0.2, -1.0,  0.2, CSymbol2D::Connect::LINE  },
-     {-1.0,  0.2, -1.0, -0.2, CSymbol2D::Connect::LINE  },
-     {-1.0, -0.2, -0.2, -0.2, CSymbol2D::Connect::LINE  },
-     {-0.2, -0.2, -0.2, -1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::Y        ,
-    {{ 0.0,  0.0,  0.0, -1.0, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0,  1.0,  1.0, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0, -1.0,  1.0, CSymbol2D::Connect::STROKE}},
-    {{-0.2, -1.0,  0.2, -1.0, CSymbol2D::Connect::STROKE},
-     { 0.2, -1.0,  0.2,  cw3, CSymbol2D::Connect::STROKE},
-     { 0.2,  cw3,  1.0,  cw2, CSymbol2D::Connect::STROKE},
-     { 1.0,  cw2,  cw2,  1.0, CSymbol2D::Connect::STROKE},
-     { cw2,  1.0,  0.0,  cw1, CSymbol2D::Connect::STROKE},
-     { 0.0,  cw1, -cw2,  1.0, CSymbol2D::Connect::STROKE},
-     {-cw2,  1.0, -1.0,  cw2, CSymbol2D::Connect::STROKE},
-     {-1.0,  cw2, -0.2,  cw3, CSymbol2D::Connect::STROKE},
-     {-0.2,  cw3, -0.2, -1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::TRIANGLE ,
-    {{ 0.0,  1.0, -1.0, -1.0, CSymbol2D::Connect::LINE  },
-     {-1.0, -1.0,  1.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 1.0, -1.0,  0.0,  1.0, CSymbol2D::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::STROKE}},
-    {{ 0.0,  1.0, -1.0, -1.0, CSymbol2D::Connect::LINE  },
-     {-1.0, -1.0,  1.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 1.0, -1.0,  0.0,  1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::ITRIANGLE,
-    {{ 0.0, -1.0, -1.0,  1.0, CSymbol2D::Connect::LINE  },
-     {-1.0,  1.0,  1.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  1.0,  0.0, -1.0, CSymbol2D::Connect::CLOSE },
-     { 0.0,  0.0,  0.0, -1.0, CSymbol2D::Connect::STROKE}},
-    {{ 0.0, -1.0, -1.0,  1.0, CSymbol2D::Connect::LINE  },
-     {-1.0,  1.0,  1.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  1.0,  0.0, -1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::BOX      ,
-    {{-1.0,  1.0,  1.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  1.0,  1.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 1.0, -1.0, -1.0, -1.0, CSymbol2D::Connect::LINE  },
-     {-1.0, -1.0, -1.0,  1.0, CSymbol2D::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::STROKE}},
-    {{-1.0,  1.0,  1.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  1.0,  1.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 1.0, -1.0, -1.0, -1.0, CSymbol2D::Connect::LINE  },
-     {-1.0, -1.0, -1.0,  1.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::DIAMOND  ,
-    {{-1.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 0.0,  1.0,  1.0,  0.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  0.0,  0.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 0.0, -1.0, -1.0,  0.0, CSymbol2D::Connect::CLOSE },
-     { 0.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::STROKE}},
-    {{-1.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::LINE  },
-     { 0.0,  1.0,  1.0,  0.0, CSymbol2D::Connect::LINE  },
-     { 1.0,  0.0,  0.0, -1.0, CSymbol2D::Connect::LINE  },
-     { 0.0, -1.0, -1.0,  0.0, CSymbol2D::Connect::FILL  }} },
-  { CSymbol2D::Type::STAR     ,
-    {{ 0.0,  0.0,  0.0,  1.0, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0, -1.0,  0.4, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0,  1.0,  0.4, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0, -1.0, -1.0, CSymbol2D::Connect::STROKE},
-     { 0.0,  0.0,  1.0, -1.0, CSymbol2D::Connect::STROKE}},
-    {{ 0.0     ,  1       , -0.293893,  0.404508, CSymbol2D::Connect::LINE},
-     {-0.293893,  0.404508, -0.951057,  0.309017, CSymbol2D::Connect::LINE},
-     {-0.951057,  0.309017, -0.475528, -0.154508, CSymbol2D::Connect::LINE},
-     {-0.475528, -0.154508, -0.587785, -0.809017, CSymbol2D::Connect::LINE},
-     {-0.587785, -0.809017,  0.0     , -0.5     , CSymbol2D::Connect::LINE},
-     { 0.0     , -0.5     ,  0.587785, -0.809017, CSymbol2D::Connect::LINE},
-     { 0.587785, -0.809017,  0.475528, -0.154508, CSymbol2D::Connect::LINE},
-     { 0.475528, -0.154508,  0.951057,  0.309017, CSymbol2D::Connect::LINE},
-     { 0.951057,  0.309017,  0.293893,  0.404508, CSymbol2D::Connect::LINE},
-     { 0.293893,  0.404508,  0.0     ,  1       , CSymbol2D::Connect::FILL}} },
-  { CSymbol2D::Type::STAR1    ,
-    {{-1.0,  0.0,  1.0,  0.0, CSymbol2D::Connect::STROKE},
-     { 0.0, -1.0,  0.0,  1.0, CSymbol2D::Connect::STROKE},
-     {-1.0, -1.0,  1.0,  1.0, CSymbol2D::Connect::STROKE},
-     {-1.0,  1.0,  1.0, -1.0, CSymbol2D::Connect::STROKE}},
-    {{ 0.0     ,  1.0     , -0.25    ,  0.433013, CSymbol2D::Connect::LINE},
-     {-0.25    ,  0.433013, -0.866025,  0.5     , CSymbol2D::Connect::LINE},
-     {-0.866025,  0.5     , -0.5     ,  0.0     , CSymbol2D::Connect::LINE},
-     {-0.5     ,  0.0     , -0.866025, -0.5     , CSymbol2D::Connect::LINE},
-     {-0.866025, -0.5     , -0.25    , -0.433013, CSymbol2D::Connect::LINE},
-     {-0.25    , -0.433013,  0.0     , -1.0     , CSymbol2D::Connect::LINE},
-     { 0.0     , -1.0     ,  0.25    , -0.433013, CSymbol2D::Connect::LINE},
-     { 0.25    , -0.433013,  0.866025, -0.5     , CSymbol2D::Connect::LINE},
-     { 0.866025, -0.5     ,  0.5     ,  0.0     , CSymbol2D::Connect::LINE},
-     { 0.5     ,  0.0     ,  0.866025,  0.5     , CSymbol2D::Connect::LINE},
-     { 0.866025,  0.5     ,  0.25    ,  0.433013, CSymbol2D::Connect::LINE},
-     { 0.25    ,  0.433013,  0.0     ,  1.0     , CSymbol2D::Connect::FILL}} },
-  { CSymbol2D::Type::PENTAGON ,
-    {{  0.000000, -1.000000,  0.951057, -0.309017, CSymbol2D::Connect::LINE  },
-     {  0.951057, -0.309017,  0.587785,  0.809017, CSymbol2D::Connect::LINE  },
-     {  0.587785,  0.809017, -0.587785,  0.809017, CSymbol2D::Connect::LINE  },
-     { -0.587785,  0.809017, -0.951057, -0.309017, CSymbol2D::Connect::LINE  },
-     { -0.951057, -0.309017,  0.000000, -1.000000, CSymbol2D::Connect::CLOSE },
-     {  0.000000, -1.000000,  0.000000,  0.000000, CSymbol2D::Connect::STROKE}},
-    {{  0.000000, -1.000000,  0.951057, -0.309017, CSymbol2D::Connect::LINE  },
-     {  0.951057, -0.309017,  0.587785,  0.809017, CSymbol2D::Connect::LINE  },
-     {  0.587785,  0.809017, -0.587785,  0.809017, CSymbol2D::Connect::LINE  },
-     { -0.587785,  0.809017, -0.951057, -0.309017, CSymbol2D::Connect::LINE  },
-     { -0.951057, -0.309017,  0.000000, -1.000000, CSymbol2D::Connect::FILL  }} },
-   { CSymbol2D::Type::IPENTAGON ,
-    {{  0.000000,  1.000000,  0.951057,  0.309017, CSymbol2D::Connect::LINE  },
-     {  0.951057,  0.309017,  0.587785, -0.809017, CSymbol2D::Connect::LINE  },
-     {  0.587785, -0.809017, -0.587785, -0.809017, CSymbol2D::Connect::LINE  },
-     { -0.587785, -0.809017, -0.951057,  0.309017, CSymbol2D::Connect::LINE  },
-     { -0.951057,  0.309017,  0.000000,  1.000000, CSymbol2D::Connect::CLOSE },
-     {  0.000000,  1.000000,  0.000000, -0.000000, CSymbol2D::Connect::STROKE}},
-    {{  0.000000,  1.000000,  0.951057,  0.309017, CSymbol2D::Connect::LINE  },
-     {  0.951057,  0.309017,  0.587785, -0.809017, CSymbol2D::Connect::LINE  },
-     {  0.587785, -0.809017, -0.587785, -0.809017, CSymbol2D::Connect::LINE  },
-     { -0.587785, -0.809017, -0.951057,  0.309017, CSymbol2D::Connect::LINE  },
-     { -0.951057,  0.309017,  0.000000,  1.000000, CSymbol2D::Connect::FILL  }} }
+CQChartsPlotSymbolList symbols({
+  { CQChartsPlotSymbol::Type::CROSS    ,
+    {{-1.0, -1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     {-1.0,  1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{-cw2, -1.0,  0.0, -cw1, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0, -cw1,  cw2, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { cw2, -1.0,  1.0, -cw2, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -cw2,  cw1,  0.0, CQChartsPlotSymbol::Connect::LINE  },
+     { cw1,  0.0,  1.0,  cw2, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  cw2,  cw2,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { cw2,  1.0,  0.0,  cw1, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0,  cw1, -cw2,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-cw2,  1.0, -1.0,  cw2, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0,  cw2, -cw1,  0.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-cw1,  0.0, -1.0, -cw2, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -cw2, -cw2, -1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::PLUS     ,
+    {{ 0.0, -1.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     {-1.0,  0.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{-0.2, -1.0,  0.2, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.2, -1.0,  0.2, -0.2, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.2, -0.2,  1.0, -0.2, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -0.2,  1.0,  0.2, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  0.2,  0.2,  0.2, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.2,  0.2,  0.2,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.2,  1.0, -0.2,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-0.2,  1.0, -0.2,  0.2, CQChartsPlotSymbol::Connect::LINE  },
+     {-0.2,  0.2, -1.0,  0.2, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0,  0.2, -1.0, -0.2, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -0.2, -0.2, -0.2, CQChartsPlotSymbol::Connect::LINE  },
+     {-0.2, -0.2, -0.2, -1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::Y        ,
+    {{ 0.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0, -1.0,  1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{-0.2, -1.0,  0.2, -1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.2, -1.0,  0.2,  cw3, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.2,  cw3,  1.0,  cw2, CQChartsPlotSymbol::Connect::STROKE},
+     { 1.0,  cw2,  cw2,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { cw2,  1.0,  0.0,  cw1, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  cw1, -cw2,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     {-cw2,  1.0, -1.0,  cw2, CQChartsPlotSymbol::Connect::STROKE},
+     {-1.0,  cw2, -0.2,  cw3, CQChartsPlotSymbol::Connect::STROKE},
+     {-0.2,  cw3, -0.2, -1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::TRIANGLE ,
+    {{ 0.0,  1.0, -1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -1.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::CLOSE },
+     { 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{ 0.0,  1.0, -1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -1.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::ITRIANGLE,
+    {{ 0.0, -1.0, -1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0,  1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  1.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::CLOSE },
+     { 0.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{ 0.0, -1.0, -1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0,  1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  1.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::BOX      ,
+    {{-1.0,  1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -1.0, -1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -1.0, -1.0,  1.0, CQChartsPlotSymbol::Connect::CLOSE },
+     { 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{-1.0,  1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0, -1.0, -1.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     {-1.0, -1.0, -1.0,  1.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::DIAMOND  ,
+    {{-1.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0,  1.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0, -1.0, -1.0,  0.0, CQChartsPlotSymbol::Connect::CLOSE },
+     { 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{-1.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0,  1.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 1.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
+     { 0.0, -1.0, -1.0,  0.0, CQChartsPlotSymbol::Connect::FILL  }} },
+  { CQChartsPlotSymbol::Type::STAR     ,
+    {{ 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0, -1.0,  0.4, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0,  1.0,  0.4, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0, -1.0, -1.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0,  0.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{ 0.0     ,  1       , -0.293893,  0.404508, CQChartsPlotSymbol::Connect::LINE},
+     {-0.293893,  0.404508, -0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE},
+     {-0.951057,  0.309017, -0.475528, -0.154508, CQChartsPlotSymbol::Connect::LINE},
+     {-0.475528, -0.154508, -0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE},
+     {-0.587785, -0.809017,  0.0     , -0.5     , CQChartsPlotSymbol::Connect::LINE},
+     { 0.0     , -0.5     ,  0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE},
+     { 0.587785, -0.809017,  0.475528, -0.154508, CQChartsPlotSymbol::Connect::LINE},
+     { 0.475528, -0.154508,  0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE},
+     { 0.951057,  0.309017,  0.293893,  0.404508, CQChartsPlotSymbol::Connect::LINE},
+     { 0.293893,  0.404508,  0.0     ,  1       , CQChartsPlotSymbol::Connect::FILL}} },
+  { CQChartsPlotSymbol::Type::STAR1    ,
+    {{-1.0,  0.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::STROKE},
+     { 0.0, -1.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     {-1.0, -1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
+     {-1.0,  1.0,  1.0, -1.0, CQChartsPlotSymbol::Connect::STROKE}},
+    {{ 0.0     ,  1.0     , -0.25    ,  0.433013, CQChartsPlotSymbol::Connect::LINE},
+     {-0.25    ,  0.433013, -0.866025,  0.5     , CQChartsPlotSymbol::Connect::LINE},
+     {-0.866025,  0.5     , -0.5     ,  0.0     , CQChartsPlotSymbol::Connect::LINE},
+     {-0.5     ,  0.0     , -0.866025, -0.5     , CQChartsPlotSymbol::Connect::LINE},
+     {-0.866025, -0.5     , -0.25    , -0.433013, CQChartsPlotSymbol::Connect::LINE},
+     {-0.25    , -0.433013,  0.0     , -1.0     , CQChartsPlotSymbol::Connect::LINE},
+     { 0.0     , -1.0     ,  0.25    , -0.433013, CQChartsPlotSymbol::Connect::LINE},
+     { 0.25    , -0.433013,  0.866025, -0.5     , CQChartsPlotSymbol::Connect::LINE},
+     { 0.866025, -0.5     ,  0.5     ,  0.0     , CQChartsPlotSymbol::Connect::LINE},
+     { 0.5     ,  0.0     ,  0.866025,  0.5     , CQChartsPlotSymbol::Connect::LINE},
+     { 0.866025,  0.5     ,  0.25    ,  0.433013, CQChartsPlotSymbol::Connect::LINE},
+     { 0.25    ,  0.433013,  0.0     ,  1.0     , CQChartsPlotSymbol::Connect::FILL}} },
+  { CQChartsPlotSymbol::Type::PENTAGON ,
+    {{  0.000000, -1.000000,  0.951057, -0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.951057, -0.309017,  0.587785,  0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.587785,  0.809017, -0.587785,  0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.587785,  0.809017, -0.951057, -0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.951057, -0.309017,  0.000000, -1.000000, CQChartsPlotSymbol::Connect::CLOSE },
+     {  0.000000, -1.000000,  0.000000,  0.000000, CQChartsPlotSymbol::Connect::STROKE}},
+    {{  0.000000, -1.000000,  0.951057, -0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.951057, -0.309017,  0.587785,  0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.587785,  0.809017, -0.587785,  0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.587785,  0.809017, -0.951057, -0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.951057, -0.309017,  0.000000, -1.000000, CQChartsPlotSymbol::Connect::FILL  }} },
+   { CQChartsPlotSymbol::Type::IPENTAGON ,
+    {{  0.000000,  1.000000,  0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.951057,  0.309017,  0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.587785, -0.809017, -0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.587785, -0.809017, -0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.951057,  0.309017,  0.000000,  1.000000, CQChartsPlotSymbol::Connect::CLOSE },
+     {  0.000000,  1.000000,  0.000000, -0.000000, CQChartsPlotSymbol::Connect::STROKE}},
+    {{  0.000000,  1.000000,  0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.951057,  0.309017,  0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     {  0.587785, -0.809017, -0.587785, -0.809017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.587785, -0.809017, -0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE  },
+     { -0.951057,  0.309017,  0.000000,  1.000000, CQChartsPlotSymbol::Connect::FILL  }} }
 });
 
 //---
 
 bool
-CSymbol2DMgr::
-isSymbol(CSymbol2D::Type type)
+CQChartsPlotSymbolMgr::
+isSymbol(CQChartsPlotSymbol::Type type)
 {
   return symbols.isSymbol(type);
 }
 
-const CSymbol2D &
-CSymbol2DMgr::
-getSymbol(CSymbol2D::Type type)
+const CQChartsPlotSymbol &
+CQChartsPlotSymbolMgr::
+getSymbol(CQChartsPlotSymbol::Type type)
 {
   return symbols.getSymbol(type);
 }
 
 void
-CSymbol2DMgr::
-drawSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer)
+CQChartsPlotSymbolMgr::
+drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
 {
   return symbols.drawSymbol(type, renderer);
 }
 
 void
-CSymbol2DMgr::
-strokeSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer)
+CQChartsPlotSymbolMgr::
+strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
 {
   return symbols.strokeSymbol(type, renderer);
 }
 
 void
-CSymbol2DMgr::
-fillSymbol(CSymbol2D::Type type, CSymbol2DRenderer *renderer)
+CQChartsPlotSymbolMgr::
+fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
 {
   return symbols.fillSymbol(type, renderer);
 }
 
 QString
-CSymbol2DMgr::
-typeToName(CSymbol2D::Type type)
+CQChartsPlotSymbolMgr::
+typeToName(CQChartsPlotSymbol::Type type)
 {
   switch (type) {
-    case CSymbol2D::Type::CROSS:     return "cross";
-    case CSymbol2D::Type::PLUS:      return "plus";
-    case CSymbol2D::Type::Y:         return "y";
-    case CSymbol2D::Type::TRIANGLE:  return "triangle";
-    case CSymbol2D::Type::ITRIANGLE: return "itriangle";
-    case CSymbol2D::Type::BOX:       return "box";
-    case CSymbol2D::Type::DIAMOND:   return "diamond";
-    case CSymbol2D::Type::STAR:      return "star";
-    case CSymbol2D::Type::STAR1:     return "star1";
-    case CSymbol2D::Type::CIRCLE:    return "circle";
-    case CSymbol2D::Type::PENTAGON:  return "pentagon";
-    case CSymbol2D::Type::IPENTAGON: return "ipentagon";
+    case CQChartsPlotSymbol::Type::CROSS:     return "cross";
+    case CQChartsPlotSymbol::Type::PLUS:      return "plus";
+    case CQChartsPlotSymbol::Type::Y:         return "y";
+    case CQChartsPlotSymbol::Type::TRIANGLE:  return "triangle";
+    case CQChartsPlotSymbol::Type::ITRIANGLE: return "itriangle";
+    case CQChartsPlotSymbol::Type::BOX:       return "box";
+    case CQChartsPlotSymbol::Type::DIAMOND:   return "diamond";
+    case CQChartsPlotSymbol::Type::STAR:      return "star";
+    case CQChartsPlotSymbol::Type::STAR1:     return "star1";
+    case CQChartsPlotSymbol::Type::CIRCLE:    return "circle";
+    case CQChartsPlotSymbol::Type::PENTAGON:  return "pentagon";
+    case CQChartsPlotSymbol::Type::IPENTAGON: return "ipentagon";
     default:                         return "none";
   }
 }
 
-CSymbol2D::Type
-CSymbol2DMgr::
+CQChartsPlotSymbol::Type
+CQChartsPlotSymbolMgr::
 nameToType(const QString &str)
 {
   QString lstr = str.toLower();
 
-  if (lstr == "cross"    ) return CSymbol2D::Type::CROSS;
-  if (lstr == "plus"     ) return CSymbol2D::Type::PLUS;
-  if (lstr == "y"        ) return CSymbol2D::Type::Y;
-  if (lstr == "triangle" ) return CSymbol2D::Type::TRIANGLE;
-  if (lstr == "itriangle") return CSymbol2D::Type::ITRIANGLE;
-  if (lstr == "box"      ) return CSymbol2D::Type::BOX;
-  if (lstr == "diamond"  ) return CSymbol2D::Type::DIAMOND;
-  if (lstr == "star"     ) return CSymbol2D::Type::STAR;
-  if (lstr == "star1"    ) return CSymbol2D::Type::STAR1;
-  if (lstr == "circle"   ) return CSymbol2D::Type::CIRCLE;
-  if (lstr == "pentagon" ) return CSymbol2D::Type::PENTAGON;
-  if (lstr == "ipentagon") return CSymbol2D::Type::IPENTAGON;
+  if (lstr == "cross"    ) return CQChartsPlotSymbol::Type::CROSS;
+  if (lstr == "plus"     ) return CQChartsPlotSymbol::Type::PLUS;
+  if (lstr == "y"        ) return CQChartsPlotSymbol::Type::Y;
+  if (lstr == "triangle" ) return CQChartsPlotSymbol::Type::TRIANGLE;
+  if (lstr == "itriangle") return CQChartsPlotSymbol::Type::ITRIANGLE;
+  if (lstr == "box"      ) return CQChartsPlotSymbol::Type::BOX;
+  if (lstr == "diamond"  ) return CQChartsPlotSymbol::Type::DIAMOND;
+  if (lstr == "star"     ) return CQChartsPlotSymbol::Type::STAR;
+  if (lstr == "star1"    ) return CQChartsPlotSymbol::Type::STAR1;
+  if (lstr == "circle"   ) return CQChartsPlotSymbol::Type::CIRCLE;
+  if (lstr == "pentagon" ) return CQChartsPlotSymbol::Type::PENTAGON;
+  if (lstr == "ipentagon") return CQChartsPlotSymbol::Type::IPENTAGON;
 
-  return CSymbol2D::Type::NONE;
+  return CQChartsPlotSymbol::Type::NONE;
 }
 
 //---
 
 void
-CSymbol2DRenderer::
-drawSymbol(CSymbol2D::Type type)
+CQChartsPlotSymbolRenderer::
+drawSymbol(CQChartsPlotSymbol::Type type)
 {
-  CSymbol2DMgr::drawSymbol(type, this);
+  CQChartsPlotSymbolMgr::drawSymbol(type, this);
 }
 
 void
-CSymbol2DRenderer::
-strokeSymbol(CSymbol2D::Type type)
+CQChartsPlotSymbolRenderer::
+strokeSymbol(CQChartsPlotSymbol::Type type)
 {
-  CSymbol2DMgr::strokeSymbol(type, this);
+  CQChartsPlotSymbolMgr::strokeSymbol(type, this);
 }
 
 void
-CSymbol2DRenderer::
-fillSymbol(CSymbol2D::Type type)
+CQChartsPlotSymbolRenderer::
+fillSymbol(CQChartsPlotSymbol::Type type)
 {
-  CSymbol2DMgr::fillSymbol(type, this);
+  CQChartsPlotSymbolMgr::fillSymbol(type, this);
 }
 
 //------

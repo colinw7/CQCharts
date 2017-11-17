@@ -46,6 +46,8 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
   QString name() const override { return "delaunay"; }
   QString desc() const override { return "Delaunay"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -118,8 +120,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   double symbolSize() const { return pointObj_.size(); }
   void setSymbolSize(double r) { pointObj_.setSize(r); update(); }
 
-  CSymbol2D::Type symbolType() const { return pointObj_.symbolType(); }
-  void setSymbolType(CSymbol2D::Type t) { pointObj_.setSymbolType(t); update(); }
+  CQChartsPlotSymbol::Type symbolType() const { return pointObj_.symbolType(); }
+  void setSymbolType(CQChartsPlotSymbol::Type t) { pointObj_.setSymbolType(t); update(); }
 
   QString symbolName() const { return pointObj_.symbolName(); }
   void setSymbolName(const QString &s) { pointObj_.setSymbolName(s); }

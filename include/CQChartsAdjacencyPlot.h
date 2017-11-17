@@ -39,7 +39,7 @@ class CQChartsAdjacencyNode {
   int nodeValue(CQChartsAdjacencyNode *node) const {
     if (node == this) return 1;
 
-    NodeMap::const_iterator p = nodes_.find(node->id());
+    auto p = nodes_.find(node->id());
 
     if (p == nodes_.end())
       return 0;

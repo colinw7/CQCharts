@@ -12,6 +12,13 @@
 CQChartsXYPlotType::
 CQChartsXYPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsXYPlotType::
+addParameters()
+{
   // columns
   addColumnParameter ("x", "X", "xColumn" , "", 0);
   addColumnsParameter("y", "Y", "yColumns", "", "1");
@@ -600,7 +607,7 @@ initObjs()
         addPolyLine(poly1, j - 1, ns - 1, name1);
         addPolyLine(poly2, j - 1, ns - 1, name1);
 
-        int len = poly1.length();
+        int len = poly1.size();
 
         if      (fillUnderSide() == "both") {
           // add upper poly line to lower one (points reversed) to build fill polygon
@@ -635,7 +642,7 @@ initObjs()
             pa1 = pa2; pb1 = pb2; above1 = above2;
           }
 
-          len = poly4.length();
+          len = poly4.size();
 
           for (int k = len - 1; k >= 0; --k)
             poly3 << poly4[k];
@@ -670,7 +677,7 @@ initObjs()
             pa1 = pa2; pb1 = pb2; below1 = below2;
           }
 
-          len = poly4.length();
+          len = poly4.size();
 
           for (int k = len - 1; k >= 0; --k)
             poly3 << poly4[k];
@@ -937,7 +944,7 @@ initObjs()
           QString pointSymbolStr = CQChartsUtil::modelString(model, i, pointSymbolColumn(), ok);
 
           if (ok && pointSymbolStr.length())
-            pointObj->setSymbol(CSymbol2DMgr::nameToType(pointSymbolStr));
+            pointObj->setSymbol(CQChartsPlotSymbolMgr::nameToType(pointSymbolStr));
         }
 
         addPlotObject(pointObj);
@@ -1195,6 +1202,21 @@ getSetColumn(int i) const
 
 bool
 CQChartsXYPlot::
+probe(ProbeData &probeData) const
+{
+  std::vector<double> yvals;
+
+  if (! interpY(probeData.x, yvals))
+    return false;
+
+  for (const auto &yval : yvals)
+    probeData.yvals.emplace_back(yval);
+
+  return true;
+}
+
+bool
+CQChartsXYPlot::
 interpY(double x, std::vector<double> &yvals) const
 {
   int ns = numSets();
@@ -1310,10 +1332,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   }
 
   if (plot_->isPoints()) {
-    QColor          c      = plot_->pointColor(i_, n_);
-    CSymbol2D::Type symbol = plot_->symbolType();
-    double          s      = plot_->symbolSize();
-    bool            filled = plot_->isSymbolFilled();
+    QColor                   c      = plot_->pointColor(i_, n_);
+    CQChartsPlotSymbol::Type symbol = plot_->symbolType();
+    double                   s      = plot_->symbolSize();
+    bool                     filled = plot_->isSymbolFilled();
 
     QPen   pen  (c);
     QBrush brush(Qt::NoBrush);
@@ -1441,7 +1463,7 @@ setColor(const QColor &c)
 
 void
 CQChartsXYPointObj::
-setSymbol(CSymbol2D::Type symbol)
+setSymbol(CQChartsPlotSymbol::Type symbol)
 {
   if (! edata_)
     edata_ = new ExtraData;
@@ -1512,11 +1534,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  CSymbol2D::Type symbol = plot_->symbolType();
-  QColor          c      = plot_->pointColor(iset_, nset_);
-  bool            filled = plot_->isSymbolFilled();
+  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
+  QColor                   c      = plot_->pointColor(iset_, nset_);
+  bool                     filled = plot_->isSymbolFilled();
 
-  if (edata_ && edata_->symbol != CSymbol2D::Type::NONE)
+  if (edata_ && edata_->symbol != CQChartsPlotSymbol::Type::NONE)
     symbol = edata_->symbol;
 
   if (edata_ && edata_->c.isValid())
@@ -1840,6 +1862,9 @@ size() const
 
   CQChartsXYPlot *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
 
+  if (! keyPlot)
+    keyPlot = plot;
+
   QFontMetricsF fm(plot->view()->font());
 
   double w = fm.width("X-X");
@@ -1871,6 +1896,9 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
   CQChartsXYPlot *keyPlot = qobject_cast<CQChartsXYPlot *>(key_->plot());
+
+  if (! keyPlot)
+    keyPlot = plot;
 
   CQChartsGeom::BBox prect;
 
@@ -1922,9 +1950,9 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
     keyPlot->windowToPixel(x1, y, px1, py);
     keyPlot->windowToPixel(x2, y, px2, py);
 
-    CSymbol2D::Type symbol = plot->symbolType();
-    double          s      = plot->symbolSize();
-    bool            filled = plot->isSymbolFilled();
+    CQChartsPlotSymbol::Type symbol = plot->symbolType();
+    double                   s      = plot->symbolSize();
+    bool                     filled = plot->isSymbolFilled();
 
     if (plot->isLines() || plot->isImpulse()) {
       CQChartsPointObj::draw(p, QPointF(px1, py), symbol, s, pointColor, filled);

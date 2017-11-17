@@ -22,6 +22,8 @@ class CQChartsPlotType;
 class CQChartsPlotObj;
 class CQExprModel;
 
+class CExpr;
+
 class QItemSelectionModel;
 class QStackedWidget;
 class QLineEdit;
@@ -131,6 +133,7 @@ class CQChartsTest : public CQAppWindow {
   };
 
   struct ViewData {
+    int                  tabInd      { -1 };
     CQChartsTable*       table       { nullptr };
     CQChartsTree*        tree        { nullptr };
     QLineEdit*           filterEdit  { nullptr };
@@ -144,11 +147,8 @@ class CQChartsTest : public CQAppWindow {
 
  ~CQChartsTest();
 
-  const QString &id() const { return id_; }
-  void setId(const QString &v) { id_ = v; }
-
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
+//const QString &id() const { return id_; }
+//void setId(const QString &s) { id_ = s; }
 
   CQChartsView *view() const;
 
@@ -166,11 +166,14 @@ class CQChartsTest : public CQAppWindow {
 
   bool initPlot(const InitData &initData);
 
-  CQChartsPlot *initPlotView(const ViewData &viewData, const InitData &initData, int i);
+  CQChartsPlot *initPlotView(const ViewData &viewData, const InitData &initData,
+                             int i, const CQChartsGeom::BBox &bbox);
 
   void setColumnFormats(const ModelP &model, const QString &columnType);
 
   QString fixTypeName(const QString &typeName) const;
+
+  bool exec(const QString &filename);
 
   void loop();
 
@@ -187,13 +190,16 @@ class CQChartsTest : public CQAppWindow {
   bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
 
   CQChartsPlot *createPlot(const ViewData &viewData, const ModelP &model, CQChartsPlotType *type,
-                           const NameValueData &nameValueData, bool reuse);
+                           const NameValueData &nameValueData, bool reuse,
+                           const CQChartsGeom::BBox &bbox);
 
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   CQChartsView *getView(bool reuse=true);
 
   CQChartsView *addView();
+
+  void sortModel(const ViewData &viewData, const QString &args);
 
   void updateModelDetails(const ViewData &viewData);
 
@@ -203,19 +209,35 @@ class CQChartsTest : public CQAppWindow {
   QString fileTypeToString(FileType type) const;
 
   void processExpression(const QString &expr);
+  void processExpression(ViewData &viewData, const QString &expr);
 
   ViewData &currentViewData();
 
+  CQChartsView *currentView() const;
+
  private:
-  void parseLine(const std::string &line);
+  bool isCompleteLine(QString &line) const;
 
-  using Args = std::vector<std::string>;
+  void parseLine(const QString &line);
 
-  void setCmd   (const Args &args);
-  void getCmd   (const Args &args);
-  void plotCmd  (const Args &args);
-  bool loadCmd  (const Args &args);
-  void sourceCmd(const Args &args);
+  using Args = std::vector<QString>;
+
+  void setCmd     (const Args &args);
+  void getCmd     (const Args &args);
+  void viewCmd    (const Args &args);
+  void plotCmd    (const Args &args);
+  bool loadCmd    (const Args &args);
+  void processCmd (const Args &args);
+  void overlayCmd (const Args &args);
+  void sortCmd    (const Args &args);
+  void sourceCmd  (const Args &args);
+  void letCmd     (const Args &args);
+  void ifCmd      (const Args &args);
+  void whileCmd   (const Args &args);
+  void continueCmd(const Args &args);
+  void printCmd   (const Args &args);
+
+  QStringList stringToCmds(const QString &str) const;
 
  private slots:
   void loadSlot();
@@ -243,19 +265,20 @@ class CQChartsTest : public CQAppWindow {
   using ViewDatas = std::vector<ViewData>;
 
  private:
-  Plots              plots_;
-  CQChartsPlot*      rootPlot_          { nullptr };
-  CQCharts*          charts_            { nullptr };
-  QLineEdit*         columnNumEdit_     { nullptr };
-  QLineEdit*         columnTypeEdit_    { nullptr };
-  QTabWidget*        viewTab_           { nullptr };
-  ViewDatas          viewDatas_;
-  QLineEdit*         exprEdit_          { nullptr };
-  CQChartsLoader*    loader_            { nullptr };
-  ViewP              view_;
-  WindowP            window_;
-  QString            id_;
-  CQChartsGeom::BBox bbox_;
+//Plots           plots_;
+//CQChartsPlot*   rootPlot_          { nullptr };
+  CQCharts*       charts_            { nullptr };
+  QLineEdit*      columnNumEdit_     { nullptr };
+  QLineEdit*      columnTypeEdit_    { nullptr };
+  QTabWidget*     viewTab_           { nullptr };
+  ViewDatas       viewDatas_;
+  QLineEdit*      exprEdit_          { nullptr };
+  CQChartsLoader* loader_            { nullptr };
+  ViewP           view_;
+  WindowP         window_;
+//QString         id_;
+  CExpr*          expr_;
+  bool            continueFlag_      { false };
 };
 
 #endif

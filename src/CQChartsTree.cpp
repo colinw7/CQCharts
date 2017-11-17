@@ -166,6 +166,14 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectColumns);
 }
 
+void
+CQChartsTree::
+calcDetails(Details &details)
+{
+  details.numColumns = model_->columnCount();
+  details.numRows    = model_->rowCount   ();
+}
+
 QSize
 CQChartsTree::
 sizeHint() const

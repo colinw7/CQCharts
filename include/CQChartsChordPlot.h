@@ -146,6 +146,8 @@ class CQChartsChordPlotType : public CQChartsPlotType {
   QString name() const override { return "chord"; }
   QString desc() const override { return "Chord"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

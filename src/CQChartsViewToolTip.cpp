@@ -43,6 +43,9 @@ updateWidget(const QPoint &gpos)
 {
   if (! widget_) return false;
 
+  if (view_->mode() != CQChartsView::Mode::SELECT)
+    return false;
+
   QPoint p = view_->mapFromGlobal(gpos);
 
   double wx, wy;

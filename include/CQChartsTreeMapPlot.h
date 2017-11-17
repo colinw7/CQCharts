@@ -98,6 +98,8 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent=nullptr,
                           const QString &name="", const QModelIndex &ind=QModelIndex());
 
+ ~CQChartsTreeMapHierNode();
+
   CQChartsTreeMapPlot *plot() const { return plot_; }
 
   int hierInd() const { return hierInd_; }
@@ -181,6 +183,8 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
   QString name() const override { return "treemap"; }
   QString desc() const override { return "TreeMap"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -203,6 +207,8 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
  public:
   CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsTreeMapPlot();
 
   //---
 

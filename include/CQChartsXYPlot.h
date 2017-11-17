@@ -80,7 +80,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void setColor(const QColor &c);
 
-  void setSymbol(CSymbol2D::Type type);
+  void setSymbol(CQChartsPlotSymbol::Type type);
 
   bool visible() const override;
 
@@ -96,7 +96,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   struct ExtraData {
     QString         label;
     QColor          c;
-    CSymbol2D::Type symbol { CSymbol2D::Type::NONE };
+    CQChartsPlotSymbol::Type symbol { CQChartsPlotSymbol::Type::NONE };
   };
 
   CQChartsXYPlot* plot_  { nullptr };
@@ -222,6 +222,8 @@ class CQChartsXYPlotType : public CQChartsPlotType {
 
   QString name() const override { return "xy"; }
   QString desc() const override { return "XY"; }
+
+  void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -437,8 +439,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   double symbolSize() const { return pointObj_.size(); }
   void setSymbolSize(double r) { pointObj_.setSize(r); update(); }
 
-  CSymbol2D::Type symbolType() const { return pointObj_.symbolType(); }
-  void setSymbolType(CSymbol2D::Type t) { pointObj_.setSymbolType(t); update(); }
+  CQChartsPlotSymbol::Type symbolType() const { return pointObj_.symbolType(); }
+  void setSymbolType(CQChartsPlotSymbol::Type t) { pointObj_.setSymbolType(t); update(); }
 
   QString symbolName() const { return pointObj_.symbolName(); }
   void setSymbolName(const QString &s) { pointObj_.setSymbolName(s); update(); }
@@ -495,7 +497,9 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  bool interpY(double x, std::vector<double> &yvals) const override;
+  bool probe(ProbeData &probeData) const override;
+
+  bool interpY(double x, std::vector<double> &yvals) const;
 
   void draw(QPainter *) override;
 

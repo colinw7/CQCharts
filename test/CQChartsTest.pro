@@ -22,9 +22,11 @@ OBJECTS_DIR = ../obj
 INCLUDEPATH += \
 . \
 ../include \
+../../CExpr/include \
 ../../CReadLine/include \
 ../../CFile/include \
 ../../CStrUtil/include \
+../../CUtil/include \
 
 unix:LIBS += \
 -L../lib \

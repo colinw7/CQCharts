@@ -238,7 +238,7 @@ CQAlignEdit.h \
 CQRealSpin.h \
 CQRotatedText.h \
 CQRoundedPolygon.h \
-CQStrParse.h \
+../include/CQStrParse.h \
 CQToolTip.h \
 ../include/CQUtil.h \
 CQWidgetMenu.h \

@@ -269,6 +269,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
+  bool probe(ProbeData &probeData) const override;
+
   void draw(QPainter *) override;
 
   void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);

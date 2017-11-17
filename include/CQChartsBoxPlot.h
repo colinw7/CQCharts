@@ -83,6 +83,8 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
   QString name() const override { return "box"; }
   QString desc() const override { return "BoxPlot"; }
 
+  void addParameters() override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -122,6 +124,8 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void addKeyItems(CQChartsKey *key) override;
 
   //---
+
+  bool probe(ProbeData &probeData) const override;
 
   void draw(QPainter *) override;
 

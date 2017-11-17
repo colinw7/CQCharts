@@ -11,6 +11,13 @@
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsGeometryPlotType::
+addParameters()
+{
   addColumnParameter("geometry", "Geometry", "geometryColumn", "", 0);
   addColumnParameter("value"   , "Value"   , "valueColumn"   , "", 1);
 

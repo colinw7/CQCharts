@@ -14,6 +14,7 @@ class CQChartsDisplayRange;
 class QToolButton;
 class QRubberBand;
 class QLabel;
+class QMenu;
 
 class CQChartsView : public QFrame {
   Q_OBJECT
@@ -26,6 +27,10 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(SelectedMode selectedMode   READ selectedMode   WRITE setSelectedMode  )
   Q_PROPERTY(InsideMode   insideMode     READ insideMode     WRITE setInsideMode    )
   Q_PROPERTY(bool         zoomData       READ isZoomData     WRITE setZoomData      )
+  Q_PROPERTY(bool         scrolled       READ isScrolled     WRITE setScrolled      )
+  Q_PROPERTY(double       scrollDelta    READ scrollDelta    WRITE setScrollDelta   )
+  Q_PROPERTY(int          scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
+  Q_PROPERTY(int          scrollPage     READ scrollPage     WRITE setScrollPage    )
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectedMode)
@@ -89,7 +94,17 @@ class CQChartsView : public QFrame {
   bool isZoomData() const { return zoomData_; }
   void setZoomData(bool b) { zoomData_ = b; }
 
-  void updateMargins();
+  bool isScrolled() const { return scrolled_; }
+  void setScrolled(bool b) { scrolled_ = b; }
+
+  double scrollDelta() const { return scrollDelta_; }
+  void setScrollDelta(double r) { scrollDelta_ = r; }
+
+  int scrollNumPages() const { return scrollNumPages_; }
+  void setScrollNumPages(int i) { scrollNumPages_ = i; }
+
+  int scrollPage() const { return scrollPage_; }
+  void setScrollPage(int i) { scrollPage_ = i; }
 
   //---
 
@@ -117,6 +132,9 @@ class CQChartsView : public QFrame {
   //---
 
   void initOverlay();
+  void initOverlay(CQChartsPlot *firstPlot);
+
+  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2);
 
   //---
 
@@ -132,6 +150,10 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void showMenu(const QPoint &p);
+
+  //---
+
   CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
 
   bool plotsAt(const CQChartsGeom::Point &p, Plots &plots) const;
@@ -143,6 +165,12 @@ class CQChartsView : public QFrame {
   //---
 
   virtual void setStatusText(const QString &text);
+
+  //---
+
+  void scrollLeft();
+  void scrollRight();
+  void updateScroll();
 
   //---
 
@@ -167,6 +195,9 @@ class CQChartsView : public QFrame {
   void modeChanged();
 
   void statusTextChanged(const QString &text);
+
+ public slots:
+  void fitSlot();
 
  private:
   struct PlotData {
@@ -212,11 +243,16 @@ class CQChartsView : public QFrame {
   SelectedMode          selectedMode_   { SelectedMode::OUTLINE };
   InsideMode            insideMode_     { InsideMode::FILL };
   bool                  zoomData_       { true };
+  bool                  scrolled_       { false };
+  double                scrollDelta_    { 100 };
+  int                   scrollNumPages_ { 1 };
+  int                   scrollPage_     { 0 };
   CQChartsGeom::BBox    prect_          { 0, 0, 100, 100 };
   double                aspect_         { 1.0 };
   MouseData             mouseData_;
   QRubberBand*          zoomBand_       { nullptr };
   ProbeBands            probeBands_;
+  QMenu*                popupMenu_      { nullptr };
 };
 
 #endif

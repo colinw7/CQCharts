@@ -137,3 +137,9 @@
  + Add Data Label to distribution plot
  + Update aspect calc to work when plots tiled
  + Update gradient calc to support HSV and range limits
+## 11/16/2017
+ + custom plot probe
+ + calc tree and table details in view
+ + add context menu
+ + add scroll left/right for multiple horizontal plots outside view
+ + add more commands to scripting as well as control command (if, while, continue)

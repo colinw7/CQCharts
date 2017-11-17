@@ -1,4 +1,6 @@
 #include <CQChartsTable.h>
+#include <CQCharts.h>
+#include <CQChartsColumn.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
@@ -38,8 +40,8 @@ class CQChartsTableSelectionModel : public QItemSelectionModel {
 //------
 
 CQChartsTable::
-CQChartsTable(QWidget *parent) :
- CQTableView(parent)
+CQChartsTable(CQCharts *charts) :
+ CQTableView(nullptr), charts_(charts)
 {
   setObjectName("table");
 
@@ -175,6 +177,55 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectRows);
   else if (action->text() == "Select Columns")
     setSelectionBehavior(SelectColumns);
+}
+
+void
+CQChartsTable::
+calcDetails(Details &details)
+{
+  details.numColumns = model_->columnCount();
+  details.numRows    = model_->rowCount   ();
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  for (int c = 0; c < details.numColumns; ++c) {
+    CQBaseModel::Type  type;
+    CQChartsNameValues nameValues;
+
+    QString  typeName;
+    QVariant minValue;
+    QVariant maxValue;
+
+    if (columnTypeMgr->getModelColumnType(model_.data(), c, type, nameValues)) {
+      CQChartsColumnType *columnType = columnTypeMgr->getType(type);
+
+      typeName = columnType->name();
+
+      if (type == CQBaseModel::Type::INTEGER) {
+        long imin = 0; long imax = 0; bool iset = false;
+
+        for (int r = 0; r < details.numRows; ++r) {
+          bool ok;
+
+          QVariant value = CQChartsUtil::modelValue(model_.data(), r, c, ok);
+          if (! ok) continue;
+
+          long i = CQChartsUtil::toInt(value, ok);
+          if (! ok) continue;
+
+          imin = (! iset ? i : std::min(imin, i));
+          imax = (! iset ? i : std::max(imax, i));
+
+          iset = true;
+        }
+
+        minValue = QVariant(int(imin));
+        maxValue = QVariant(int(imax));
+      }
+    }
+
+    details.columns.emplace_back(typeName, minValue, maxValue);
+  }
 }
 
 QSize

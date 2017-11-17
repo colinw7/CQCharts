@@ -11,6 +11,13 @@
 CQChartsDelaunayPlotType::
 CQChartsDelaunayPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsDelaunayPlotType::
+addParameters()
+{
   addColumnParameter("x", "X", "xColumn", "", 0);
   addColumnParameter("y", "Y", "yColumn", "", 1);
 
@@ -368,10 +375,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  QColor          c      = plot_->pointsColor();
-  double          s      = plot_->symbolSize();
-  CSymbol2D::Type symbol = plot_->symbolType();
-  bool            filled = plot_->isSymbolFilled();
+  QColor                   c      = plot_->pointsColor();
+  double                   s      = plot_->symbolSize();
+  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
+  bool                     filled = plot_->isSymbolFilled();
 
   QBrush brush(Qt::NoBrush);
   QPen   pen  (c);

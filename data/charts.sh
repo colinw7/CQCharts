@@ -134,7 +134,7 @@ CQChartsTest -y1y2 \
  -type bar \
 -and \
  -csv pareto.csv -comment_header \
- -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin2 0 -xintegral \
+ -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin 2 0 -xintegral \
  -plot_title "pareto"
 
 CQChartsTest \
@@ -418,7 +418,7 @@ CQChartsTest -overlay \
 
 @ year = 1850
 
-while ($year <= 2000)
+#while ($year <= 2000)
   CQChartsTest -overlay \
    -csv population.csv -first_line_header -filter "sex:1,year:$year" \
    -process "+key(@0,@0-@1)" -sort "4" \
@@ -430,5 +430,5 @@ while ($year <= 2000)
    -type barchart -columns "category=4,value=3,name=1" \
    -properties "fill.color=pink,fill.alpha=0.5"
 
-  @ year = $year + 10
-end
+#  @ year = $year + 10
+#end

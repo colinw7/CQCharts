@@ -72,7 +72,7 @@ class CQChartsPlotType {
 
   // plot parameters
   // (required/key options to initialize plot)
-  virtual void addParameters();
+  virtual void addParameters() = 0;
 
   const Parameters &parameters() const { return parameters_; }
 
@@ -191,6 +191,25 @@ class CQChartsPlot : public QObject {
     CQChartsPlot *prev { nullptr };
 
     OtherPlot() { }
+  };
+
+  struct ProbeValue {
+    double  value;
+    QString label;
+
+    ProbeValue() = default;
+
+    ProbeValue(double value, const QString &label="") :
+     value(value), label(label) {
+    }
+  };
+
+  struct ProbeData {
+    using Values = std::vector<ProbeValue>;
+
+    double x;
+    double y;
+    Values yvals;
   };
 
   using OptReal = boost::optional<double>;
@@ -568,8 +587,12 @@ class CQChartsPlot : public QObject {
 
   void updateTransform();
 
-  // interpolate y value from x for probe
-  virtual bool interpY(double /*x*/, std::vector<double> & /*y*/) const { return false; }
+  //---
+
+  // probe at x, y
+  virtual bool probe(ProbeData & /*probeData*/) const { return false; }
+
+  //---
 
   // called after resize
   virtual void handleResize();

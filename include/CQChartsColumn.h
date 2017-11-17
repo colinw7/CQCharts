@@ -13,9 +13,11 @@ class CQChartsColumnType {
    type_(type) {
   }
 
+  virtual ~CQChartsColumnType() { }
+
   CQBaseModel::Type type() const { return type_; }
 
-  virtual ~CQChartsColumnType() { }
+  virtual const char *name() const = 0;
 
   // input variant to data variant
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
@@ -34,6 +36,8 @@ class CQChartsColumnStringType : public CQChartsColumnType {
   CQChartsColumnStringType() :
    CQChartsColumnType(CQBaseModel::Type::STRING) {
   }
+
+  const char *name() const { return "string"; }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
     if (var.type() == QVariant::Double)
@@ -63,6 +67,8 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   CQChartsColumnRealType() :
    CQChartsColumnType(CQBaseModel::Type::REAL) {
   }
+
+  const char *name() const { return "real"; }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
     if (var.type() == QVariant::Double)
@@ -96,6 +102,8 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::INTEGER) {
   }
 
+  const char *name() const { return "integer"; }
+
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
     if (var.type() == QVariant::Int)
       return var;
@@ -122,6 +130,8 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
   CQChartsColumnTimeType() :
    CQChartsColumnType(CQBaseModel::Type::TIME) {
   }
+
+  const char *name() const { return "time"; }
 
   QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
     auto p = nameValues.find("format");

@@ -24,6 +24,13 @@ int nextColorId() {
 CQChartsTreeMapPlotType::
 CQChartsTreeMapPlotType()
 {
+  addParameters();
+}
+
+void
+CQChartsTreeMapPlotType::
+addParameters()
+{
   addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
   addColumnParameter("value", "Value", "valueColumn", "", 1);
 
@@ -46,6 +53,12 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setMargins(1, 1, 1, 1);
 
   addTitle();
+}
+
+CQChartsTreeMapPlot::
+~CQChartsTreeMapPlot()
+{
+  delete root_;
 }
 
 void
@@ -685,17 +698,27 @@ CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *pare
     parent_->children_.push_back(this);
 }
 
+CQChartsTreeMapHierNode::
+~CQChartsTreeMapHierNode()
+{
+  for (auto &child : children_)
+    delete child;
+
+  for (auto &node : nodes_)
+    delete node;
+}
+
 double
 CQChartsTreeMapHierNode::
 size() const
 {
   double s = 0.0;
 
-  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-    s += (*p)->size();
+  for (auto &child : children_)
+    s += child->size();
 
-  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-   s += (*pn)->size();
+  for (auto &node : nodes_)
+    s += node->size();
 
   return s;
 }
@@ -713,11 +736,11 @@ packNodes(double x, double y, double w, double h)
   // make single list of nodes to pack
   Nodes nodes;
 
-  for (Children::const_iterator p = children_.begin(); p != children_.end(); ++p)
-    nodes.push_back(*p);
+  for (const auto &child : children_)
+    nodes.push_back(child);
 
-  for (Nodes::const_iterator pn = nodes_.begin(); pn != nodes_.end(); ++pn)
-    nodes.push_back(*pn);
+  for (const auto &node : nodes_)
+    nodes.push_back(node);
 
   // sort nodes by size
   std::sort(nodes.begin(), nodes.end(), CQChartsTreeMapNodeCmp());

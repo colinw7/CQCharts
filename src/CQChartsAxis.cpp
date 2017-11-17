@@ -207,7 +207,8 @@ format() const
   CQBaseModel::Type  type;
   CQChartsNameValues nameValues;
 
-  (void) columnTypeMgr->getModelColumnType(plot_->model(), column_, type, nameValues);
+  if (! columnTypeMgr->getModelColumnType(plot_->model(), column_, type, nameValues))
+    return "";
 
   return columnTypeMgr->encodeTypeData(type, nameValues);
 }
@@ -1070,6 +1071,7 @@ draw(CQChartsPlot *plot, QPainter *p)
   lmax_              = INT_MIN;
   lastTickLabelRect_ = CQChartsGeom::BBox();
 
+#if 0
   double minAxis = std::min(start(), end());
   double maxAxis = std::max(start(), end());
 
@@ -1077,10 +1079,11 @@ draw(CQChartsPlot *plot, QPainter *p)
     minAxis = std::floor(minAxis);
     maxAxis = std::ceil (maxAxis);
   }
+#endif
 
   for (uint i = 0; i < numMajorTicks() + 1; i++) {
     // draw major line (grid and tick)
-    if (pos1 >= minAxis && pos1 <= maxAxis) {
+    if (pos1 >= start() && pos1 <= end()) {
       double ppx, ppy;
 
       plot->windowToPixel(pos1, pos1, ppx, ppy);
@@ -1110,7 +1113,7 @@ draw(CQChartsPlot *plot, QPainter *p)
           continue;
 
         // draw minor tick line
-        if (pos2 >= minAxis && pos2 <= maxAxis) {
+        if (pos2 >= start() && pos2 <= end()) {
           drawTickLine(plot, p, apos1, pos2, isTickInside(), /*major*/false);
 
           if (isMirrorTicks())
@@ -1123,7 +1126,7 @@ draw(CQChartsPlot *plot, QPainter *p)
 
     if (isTickLabelDisplayed()) {
       // draw major tick label
-      if (pos1 >= minAxis && pos1 <= maxAxis) {
+      if (pos1 >= start() && pos1 <= end()) {
         drawTickLabel(plot, p, apos1, pos1, isTickInside());
       }
     }

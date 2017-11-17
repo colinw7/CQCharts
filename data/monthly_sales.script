@@ -1,0 +1,33 @@
+load -tsv monthly_sales.tsv -comment_header
+
+plot -type barchart -columns "category=0,value=1"-title "Actual Sales"
+
+@let plot1 = rc
+
+view -view view1 -title "Monthly Sales Data"
+
+set -view view1 -name insideMode -value OUTLINE
+
+set -view view1 -plot "${plot1}" -name barMargin -value 8
+set -view view1 -plot "${plot1}" -name Key.visible -value 0
+set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.visible" -value 1
+set -view view1 -plot "${plot1}" -name fill.color -value "#2060dd"
+
+plot -type xy -columns "x=0,y=2" -title "Expected Sales"
+
+@let plot2 = rc
+
+set -view view1 -plot "${plot2}" -name points.symbol -value circle
+set -view view1 -plot "${plot2}" -name points.filled -value 1
+set -view view1 -plot "${plot2}" -name points.size   -value 6
+
+plot -type xy -columns "x=0,y=3"-title "Profit"
+
+@let plot3 = rc
+
+set -view view1 -plot "${plot3}" -name fillUnder.visible -value 1
+set -view view1 -plot "${plot3}" -name fillUnder.color -value "#60dd20"
+set -view view1 -plot "${plot3}" -name points.symbol -value circle
+
+overlay "${plot1}" "${plot2}"
+overlay "${plot2}" "${plot3}"

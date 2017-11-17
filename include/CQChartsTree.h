@@ -13,6 +13,11 @@ class CQChartsTree : public CQTreeView {
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
+  struct Details {
+    int numColumns { 0 };
+    int numRows    { 0 };
+  };
+
  public:
   CQChartsTree(QWidget *parent=nullptr);
 
@@ -20,6 +25,8 @@ class CQChartsTree : public CQTreeView {
   void setModel(const ModelP &model);
 
   void setFilter(const QString &filter);
+
+  void calcDetails(Details &details);
 
   QSize sizeHint() const override;
 

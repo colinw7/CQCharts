@@ -11,16 +11,16 @@ QString
 CQChartsPointObj::
 symbolName() const
 {
-  return CSymbol2DMgr::typeToName(symbolType());
+  return CQChartsPlotSymbolMgr::typeToName(symbolType());
 }
 
 void
 CQChartsPointObj::
 setSymbolName(const QString &s)
 {
-  CSymbol2D::Type type = CSymbol2DMgr::nameToType(s);
+  CQChartsPlotSymbol::Type type = CQChartsPlotSymbolMgr::nameToType(s);
 
-  if (type != CSymbol2D::Type::NONE)
+  if (type != CQChartsPlotSymbol::Type::NONE)
     setSymbolType(type);
 }
 
@@ -45,7 +45,7 @@ draw(QPainter *painter, const QPointF &p)
 
 void
 CQChartsPointObj::
-draw(QPainter *painter, const QPointF &p, const CSymbol2D::Type &symbol,
+draw(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
      double size, const QColor &color, bool filled)
 {
   painter->setPen  (color);
@@ -54,7 +54,7 @@ draw(QPainter *painter, const QPointF &p, const CSymbol2D::Type &symbol,
   CQChartsSymbol2DRenderer renderer(painter, CQChartsGeom::Point(p.x(), p.y()), size);
 
   if (! filled)
-    CSymbol2DMgr::drawSymbol(symbol, &renderer);
+    CQChartsPlotSymbolMgr::drawSymbol(symbol, &renderer);
   else
-    CSymbol2DMgr::fillSymbol(symbol, &renderer);
+    CQChartsPlotSymbolMgr::fillSymbol(symbol, &renderer);
 }
