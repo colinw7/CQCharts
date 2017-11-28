@@ -173,7 +173,7 @@ resetDefinedColors()
 
 QColor
 CGradientPalette::
-getColor(double x) const
+getColor(double x, bool scale) const
 {
   if      (colorType() == ColorType::DEFINED) {
     if (colors().empty()) {
@@ -190,6 +190,9 @@ getColor(double x) const
 
     double min = colors(). begin()->first;
     double max = colors().rbegin()->first;
+
+    if (scale)
+      x = (x - min)/(max - min);
 
     auto p = colors().begin();
 
@@ -233,9 +236,9 @@ getColor(double x) const
 
     double x1 = Util::clamp(x, 0.0, 1.0);
 
-    double r = Util::clamp(interp(redModel  (), x1), 0.0, 1.0);
-    double g = Util::clamp(interp(greenModel(), x1), 0.0, 1.0);
-    double b = Util::clamp(interp(blueModel (), x1), 0.0, 1.0);
+    double r = Util::clamp(interpModel(redModel  (), x1), 0.0, 1.0);
+    double g = Util::clamp(interpModel(greenModel(), x1), 0.0, 1.0);
+    double b = Util::clamp(interpModel(blueModel (), x1), 0.0, 1.0);
 
     if (isRedNegative  ()) r = 1.0 - r;
     if (isGreenNegative()) g = 1.0 - g;
@@ -313,10 +316,10 @@ getColor(double x) const
 
 double
 CGradientPalette::
-interp(int ind, double x) const
+interpModel(int ind, double x) const
 {
   if (ind < 0)
-    return interp(-ind, 1 - x);
+    return interpModel(-ind, 1 - x);
 
   switch (ind) {
     case  0: return 0;
@@ -523,6 +526,7 @@ unset()
 #endif
 }
 
+#if 0
 void
 CGradientPalette::
 show(std::ostream &os) const
@@ -649,3 +653,4 @@ showPaletteValues(std::ostream &os, int n, bool is_float, bool is_int)
     }
   }
 }
+#endif

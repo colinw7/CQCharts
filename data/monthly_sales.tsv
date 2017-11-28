@@ -1,8 +1,8 @@
-# Month	Actual Sales	Expected Sales	Profit
+# Month	Actual Sales	Expected Sales	Profit	Label
 Jan	20000	40000	5000
 Feb	30000	42000	7000
 Mar	25000	45000	6000
-Apr	70000	45000	30000
+Apr	70000	45000	30000	High Renewals
 May	50000	47000	20000
 Jun	35000	43000	15000
 Jul	30000	42000	13000

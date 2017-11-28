@@ -30,11 +30,17 @@ class CQChartsValueSet : public QObject {
 
   void addProperties(CQChartsPlot *plot, const QString &path);
 
+  //---
+
   int empty() const { return values_.empty(); }
 
   void addValue(const QVariant &value);
 
   int numValues() const { return values_.size(); }
+
+  const QVariant &value(int i) const { return values_[i]; }
+
+  //---
 
   // get type
   Type type() const { init(); return type_; }

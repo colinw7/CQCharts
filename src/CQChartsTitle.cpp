@@ -8,16 +8,9 @@
 
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
- plot_(plot)
+ CQChartsTextBoxObj(plot)
 {
   setText("Title");
-}
-
-void
-CQChartsTitle::
-redrawBoxObj()
-{
-  redraw();
 }
 
 void
@@ -157,8 +150,9 @@ draw(QPainter *p)
 
   QFontMetricsF fm(font());
 
-  p->setPen (color());
   p->setFont(font());
+
+  p->setPen(interpColor(0, 1));
 
   p->drawText(pirect.getXMin() + margin(), pirect.getYMax() - margin() - fm.descent(), text());
 

@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsBoxObj.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
 
@@ -37,10 +38,136 @@ CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model), dataLabel_(this)
 {
+  boxObj_ = new CQChartsBoxObj(this);
+
+  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+
+  setBorder(true);
+
   setLayerActive(Layer::FG, true);
 
   addTitle();
 }
+
+CQChartsGeometryPlot::
+~CQChartsGeometryPlot()
+{
+  delete boxObj_;
+}
+
+//---
+
+bool
+CQChartsGeometryPlot::
+isBorder() const
+{
+  return boxObj_->isBorder();
+}
+
+void
+CQChartsGeometryPlot::
+setBorder(bool b)
+{
+  boxObj_->setBorder(b);
+
+  update();
+}
+
+QString
+CQChartsGeometryPlot::
+borderColorStr() const
+{
+  return boxObj_->borderColorStr();
+}
+
+void
+CQChartsGeometryPlot::
+setBorderColorStr(const QString &str)
+{
+  boxObj_->setBorderColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsGeometryPlot::
+interpBorderColor(int i, int n) const
+{
+  return boxObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsGeometryPlot::
+borderAlpha() const
+{
+  return boxObj_->borderAlpha();
+}
+
+void
+CQChartsGeometryPlot::
+setBorderAlpha(double a)
+{
+  boxObj_->setBorderAlpha(a);
+
+  update();
+}
+
+double
+CQChartsGeometryPlot::
+borderWidth() const
+{
+  return boxObj_->borderWidth();
+}
+
+void
+CQChartsGeometryPlot::
+setBorderWidth(double r)
+{
+  boxObj_->setBorderWidth(r);
+
+  update();
+}
+
+QString
+CQChartsGeometryPlot::
+fillColorStr() const
+{
+  return boxObj_->backgroundColorStr();
+}
+
+void
+CQChartsGeometryPlot::
+setFillColorStr(const QString &s)
+{
+  boxObj_->setBackgroundColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsGeometryPlot::
+interpFillColor(int i, int n) const
+{
+  return boxObj_->interpBackgroundColor(i, n);
+}
+
+double
+CQChartsGeometryPlot::
+fillAlpha() const
+{
+  return boxObj_->backgroundAlpha();
+}
+
+void
+CQChartsGeometryPlot::
+setFillAlpha(double a)
+{
+  boxObj_->setBackgroundAlpha(a);
+
+  update();
+}
+
+//---
 
 void
 CQChartsGeometryPlot::
@@ -48,13 +175,17 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn"    , "name"    );
-  addProperty("columns", this, "geometryColumn", "geometry");
-  addProperty("columns", this, "valueColumn"   , "value"   );
-  addProperty("value"  , this, "minValue"      , "min"     );
-  addProperty("value"  , this, "maxValue"      , "max"     );
-
-  addProperty("", this, "lineColor");
+  addProperty("columns", this, "nameColumn"    , "name"     );
+  addProperty("columns", this, "geometryColumn", "geometry" );
+  addProperty("columns", this, "valueColumn"   , "value"    );
+  addProperty("value"  , this, "minValue"      , "min"      );
+  addProperty("value"  , this, "maxValue"      , "max"      );
+  addProperty("fill"   , this, "fillColor"     , "color"    );
+  addProperty("fill"   , this, "fillAlpha"     , "alpha"    );
+  addProperty("border" , this, "border"        , "displayed");
+  addProperty("border" , this, "borderColor"   , "color"    );
+  addProperty("border" , this, "borderAlpha"   , "alpha"    );
+  addProperty("border" , this, "borderWidth"   , "width"    );
 
   dataLabel_.addProperties("dataLabel");
 }
@@ -144,8 +275,6 @@ updateRange(bool apply)
   }
 
   //---
-
-  //setEqualScale(true);
 
   if (apply)
     applyDataRange();
@@ -336,21 +465,19 @@ initObjs()
 
     CQChartsGeometryObj *geomObj;
 
-    if (valueColumn_ < 0) {
+    if (valueColumn() < 0)
       geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
                                         0.0, geometry.name, geometry.ind, i, n);
-
-      geomObj->setId(geometry.name);
-    }
-    else {
+    else
       geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
                                         geometry.value, geometry.name, geometry.ind, -1, -1);
 
-      geomObj->setId(QString("%1:%2").arg(geometry.name).arg(geometry.value));
-    }
-
     addPlotObject(geomObj);
   }
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -380,6 +507,16 @@ CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(rect), plot_(plot), polygons_(polygons), value_(value),
  name_(name), ind_(ind), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsGeometryObj::
+calcId() const
+{
+  if (plot_->valueColumn() < 0)
+    return name_;
+
+  return QString("%1:%2").arg(name_).arg(value_);
 }
 
 bool
@@ -443,20 +580,35 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     //---
 
-    QPen pen(plot_->lineColor());
+    // set polygon pen/brush
+    QPen pen;
 
-    QColor c;
+    if (plot_->isBorder()) {
+      QColor bc = plot_->interpBorderColor(0, 1);
+
+      bc.setAlphaF(plot_->borderAlpha());
+
+      pen = QPen(bc);
+
+      pen.setWidthF(plot_->borderWidth());
+    }
+    else
+      pen = QPen(Qt::NoPen);
+
+    QColor fc;
 
     if (n_ > 0) {
-      c = plot_->paletteColor(i_, n_, Qt::black);
+      fc = plot_->interpFillColor(i_, n_);
     }
     else {
       double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
 
-      c = plot_->palette()->getColor(v);
+      fc = plot_->palette()->getColor(v);
     }
 
-    QBrush brush(c);
+    fc.setAlphaF(plot_->fillAlpha());
+
+    QBrush brush(fc);
 
     //---
 

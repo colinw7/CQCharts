@@ -36,7 +36,14 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   //---
 
   palette_       = new CGradientPalette;
+  theme_         = new CGradientPalette;
   propertyModel_ = new CQPropertyViewModel;
+
+  //---
+
+  //setPaletteColors1();
+
+  setLightThemeColors();
 
   //---
 
@@ -44,6 +51,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "title"         );
   addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
+  addProperty("", this, "mode"          );
   addProperty("", this, "selectedMode"  );
   addProperty("", this, "insideMode"    );
   addProperty("", this, "zoomData"      );
@@ -62,6 +70,7 @@ CQChartsView::
 ~CQChartsView()
 {
   delete palette_;
+  delete theme_;
   delete propertyModel_;
 
   delete displayRange_;
@@ -146,6 +155,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
   }
 
   plot->setPalette(gradientPalette());
+  plot->setTheme  (themePalette());
 
   plot->setBBox(bbox);
 
@@ -182,9 +192,39 @@ initOverlay()
 
 void
 CQChartsView::
+initOverlay(const Plots &plots)
+{
+  assert(plots.size() >= 2);
+
+  CQChartsPlot *rootPlot = plots[0]->firstPlot();
+
+  for (std::size_t i = 0; i < plots.size(); ++i) {
+    CQChartsPlot *plot = plots[i];
+
+    plot->setOverlay(true);
+
+    if (i > 0) {
+      CQChartsPlot *prevPlot = plots[i - 1];
+
+      plot    ->setPrevPlot(prevPlot);
+      prevPlot->setNextPlot(plot);
+
+      //plot->setDataRange(rootPlot->dataRange());
+
+      //rootPlot->applyDataRange();
+    }
+  }
+
+  initOverlay(rootPlot);
+}
+
+void
+CQChartsView::
 initOverlay(CQChartsPlot *firstPlot)
 {
-  if (title().length())
+  firstPlot->setOverlay(true);
+
+  if (firstPlot->titleObj() && title().length())
     firstPlot->titleObj()->setText(title());
 
   //---
@@ -192,6 +232,10 @@ initOverlay(CQChartsPlot *firstPlot)
   CQChartsPlot *plot = firstPlot->nextPlot();
 
   while (plot) {
+    plot->setOverlay(true);
+
+    //---
+
     CQChartsAxis *xaxis = plot->xAxis();
     CQChartsAxis *yaxis = plot->yAxis();
 
@@ -212,13 +256,27 @@ initOverlay(CQChartsPlot *firstPlot)
     plot = plot->nextPlot();
   }
 
+  //---
+
   firstPlot->updateObjs();
+
+  //---
+
+  firstPlot->applyDataRange();
 }
 
 void
 CQChartsView::
 initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2)
 {
+  assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
+
+  if (plot1->titleObj() && title().length())
+    plot1->titleObj()->setText(title());
+
+  plot1->setY1Y2(true);
+  plot2->setY1Y2(true);
+
   plot1->setNextPlot(plot2);
   plot2->setPrevPlot(plot1);
 
@@ -230,6 +288,9 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2)
 
   if (plot2->key())
     plot2->key()->setVisible(false);
+
+  if (plot2->titleObj())
+    plot2->titleObj()->setVisible(false);
 
   plot2->setBackground    (false);
   plot2->setDataBackground(false);
@@ -272,6 +333,10 @@ mousePressEvent(QMouseEvent *me)
         plot->clickZoom(w);
       }
       else {
+        mouseData_.plots.clear();
+
+        plotsAt(w, mouseData_.plots);
+
         if (! zoomBand_)
           zoomBand_ = new QRubberBand(QRubberBand::Rectangle, this);
 
@@ -351,22 +416,6 @@ mouseMoveEvent(QMouseEvent *me)
         zoomBand_->hide();
       else
         zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
-    }
-    else {
-      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
-
-      mouseData_.plots.clear();
-
-      plotsAt(w, mouseData_.plots);
-
-      for (auto &plot : mouseData_.plots) {
-        CQChartsGeom::Point w;
-
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (plot->mouseMove(w))
-          break;
-      }
     }
   }
   else if (mode_ == Mode::PROBE) {
@@ -562,14 +611,50 @@ showMenu(const QPoint &p)
   if (! popupMenu_) {
     popupMenu_ = new QMenu(this);
 
+    QAction *keyAction = new QAction("Key", popupMenu_);
     QAction *fitAction = new QAction("Fit", popupMenu_);
 
+    keyAction->setCheckable(true);
+
+    connect(keyAction, SIGNAL(triggered(bool)), this, SLOT(keySlot(bool)));
     connect(fitAction, SIGNAL(triggered()), this, SLOT(fitSlot()));
 
+    popupMenu_->addAction(keyAction);
     popupMenu_->addAction(fitAction);
+
+    QMenu *themeMenu = new QMenu("Theme");
+
+    QAction *lightTheme1Action = new QAction("Light 1", themeMenu);
+    QAction *lightTheme2Action = new QAction("Light 2", themeMenu);
+    QAction *darkTheme1Action  = new QAction("Dark 1" , themeMenu);
+    QAction *darkTheme2Action  = new QAction("Dark 2" , themeMenu);
+
+    connect(lightTheme1Action, SIGNAL(triggered()), this, SLOT(lightTheme1Slot()));
+    connect(lightTheme2Action, SIGNAL(triggered()), this, SLOT(lightTheme2Slot()));
+    connect(darkTheme1Action , SIGNAL(triggered()), this, SLOT(darkTheme1Slot()));
+    connect(darkTheme2Action , SIGNAL(triggered()), this, SLOT(darkTheme2Slot()));
+
+    themeMenu->addAction(lightTheme1Action);
+    themeMenu->addAction(lightTheme2Action);
+    themeMenu->addAction(darkTheme1Action);
+    themeMenu->addAction(darkTheme2Action);
+
+    popupMenu_->addMenu(themeMenu);
   }
 
   popupMenu_->popup(mapToGlobal(p));
+}
+
+void
+CQChartsView::
+keySlot(bool b)
+{
+  for (const auto &plotData : plotDatas_) {
+    CQChartsKey *key = plotData.plot->key();
+
+    if (key)
+      key->setVisible(b);
+  }
 }
 
 void
@@ -578,6 +663,121 @@ fitSlot()
 {
   for (const auto &plotData : plotDatas_) {
     plotData.plot->autoFit();
+  }
+}
+
+void
+CQChartsView::
+lightTheme1Slot()
+{
+  setPaletteColors1();
+
+  setLightThemeColors();
+}
+
+void
+CQChartsView::
+lightTheme2Slot()
+{
+  setPaletteColors2();
+
+  setLightThemeColors();
+}
+
+void
+CQChartsView::
+darkTheme1Slot()
+{
+  setPaletteColors1();
+
+  setDarkThemeColors();
+}
+
+void
+CQChartsView::
+darkTheme2Slot()
+{
+  setPaletteColors2();
+
+  setDarkThemeColors();
+}
+
+void
+CQChartsView::
+setPaletteColors1()
+{
+  palette_->setRedModel  (1);
+  palette_->setGreenModel(7);
+  palette_->setBlueModel (4);
+
+  palette_->setBlueNegative(true);
+
+  palette_->setRedMax  (0.8);
+  palette_->setGreenMax(0.4);
+
+  palette_->setColorType(CGradientPalette::ColorType::DEFINED);
+
+  palette_->resetDefinedColors();
+
+  palette_->addDefinedColor(0.0, QColor("#6d78ad"));
+  palette_->addDefinedColor(1.0, QColor("#51cda0"));
+  palette_->addDefinedColor(2.0, QColor("#df7970"));
+}
+
+void
+CQChartsView::
+setPaletteColors2()
+{
+  palette_->setRedModel  (1);
+  palette_->setGreenModel(7);
+  palette_->setBlueModel (4);
+
+  palette_->setBlueNegative(true);
+
+  palette_->setRedMax  (0.8);
+  palette_->setGreenMax(0.4);
+
+  palette_->setColorType(CGradientPalette::ColorType::DEFINED);
+
+  palette_->resetDefinedColors();
+
+  palette_->addDefinedColor(0.0, QColor("#4d81bc"));
+  palette_->addDefinedColor(1.0, QColor("#c0504e"));
+  palette_->addDefinedColor(2.0, QColor("#9bbb58"));
+}
+
+void
+CQChartsView::
+setLightThemeColors()
+{
+  theme_->setColorType(CGradientPalette::ColorType::DEFINED);
+
+  theme_->resetDefinedColors();
+
+  theme_->addDefinedColor(0.0, QColor("#ffffff"));
+  theme_->addDefinedColor(1.0, QColor("#000000"));
+}
+
+void
+CQChartsView::
+setDarkThemeColors()
+{
+  theme_->setColorType(CGradientPalette::ColorType::DEFINED);
+
+  theme_->resetDefinedColors();
+
+  theme_->addDefinedColor(0.0, QColor("#000000"));
+  theme_->addDefinedColor(1.0, QColor("#ffffff"));
+}
+
+//------
+
+void
+CQChartsView::
+updatePlots()
+{
+  for (auto &plotData : plotDatas_) {
+    plotData.plot->update();
   }
 }
 

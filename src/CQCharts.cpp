@@ -10,13 +10,16 @@
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsHierBubblePlot.h>
+#include <CQChartsImagePlot.h>
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
+#include <CQChartsRadarPlot.h>
 #include <CQChartsScatterPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
 #include <CQChartsColumn.h>
+#include <iostream>
 
 CQCharts::
 CQCharts()
@@ -47,8 +50,10 @@ init()
   plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
   plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
   plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
+  plotTypeMgr_->addType("image"        , new CQChartsImagePlotType        );
   plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
   plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );
+  plotTypeMgr_->addType("radar"        , new CQChartsRadarPlotType        );
   plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );

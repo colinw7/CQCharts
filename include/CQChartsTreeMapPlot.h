@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsPaletteColor.h>
 #include <QModelIndex>
 
 class CQChartsTreeMapPlot;
@@ -134,6 +135,8 @@ class CQChartsTreeMapHierObj : public CQChartsPlotObj {
                          CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                          int i, int n);
 
+  QString calcId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   bool isIndex(const QModelIndex &) const override;
@@ -155,6 +158,8 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
   CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
                      CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                      int i, int n);
+
+  QString calcId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -193,14 +198,21 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
 class CQChartsTreeMapPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn   WRITE setNameColumn  )
-  Q_PROPERTY(int     valueColumn  READ valueColumn  WRITE setValueColumn )
-  Q_PROPERTY(QString separator    READ separator    WRITE setSeparator   )
-  Q_PROPERTY(bool    titles       READ isTitles     WRITE setTitles      )
-  Q_PROPERTY(double  fontHeight   READ fontHeight   WRITE setFontHeight  )
-  Q_PROPERTY(double  headerHeight READ headerHeight WRITE setHeaderHeight)
-  Q_PROPERTY(QColor  headerColor  READ headerColor  WRITE setHeaderColor )
-  Q_PROPERTY(double  marginWidth  READ marginWidth  WRITE setMarginWidth )
+  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
+  Q_PROPERTY(bool    titles       READ isTitles       WRITE setTitles        )
+  Q_PROPERTY(double  headerHeight READ headerHeight   WRITE setHeaderHeight  )
+  Q_PROPERTY(QString headerColor  READ headerColorStr WRITE setHeaderColorStr)
+  Q_PROPERTY(double  marginWidth  READ marginWidth    WRITE setMarginWidth   )
+  Q_PROPERTY(bool    border       READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(double  borderWidth  READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(QString fillColor    READ fillColorStr   WRITE setFillColorStr  )
+  Q_PROPERTY(double  fillAlpha    READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont      )
+  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr  )
 
  public:
   using Nodes = std::vector<CQChartsTreeMapNode*>;
@@ -226,17 +238,46 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   bool isTitles() const { return titles_; }
   void setTitles(bool b) { titles_ = b; updateCurrentRoot(); }
 
-  double fontHeight() const { return fontHeight_; }
-  void setFontHeight(double r) { fontHeight_ = r; update(); }
-
   double headerHeight() const { return headerHeight_; }
   void setHeaderHeight(double r) { headerHeight_ = r; updateCurrentRoot(); }
 
-  const QColor &headerColor() const { return headerColor_; }
-  void setHeaderColor(const QColor &v) { headerColor_ = v; }
+  QString headerColorStr() const { return headerColor_.colorStr(); }
+  void setHeaderColorStr(const QString &s) { headerColor_.setColorStr(s); }
+
+  QColor interpHeaderColor(int i, int n) const { return headerColor_.interpColor(this, i, n); }
 
   double marginWidth() const { return marginWidth_; }
   void setMarginWidth(double r) { marginWidth_ = r; updateCurrentRoot(); }
+
+  bool isBorder() const;
+  void setBorder(bool b);
+
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &str);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const;
+  void setBorderAlpha(double a);
+
+  double borderWidth() const;
+  void setBorderWidth(double r);
+
+  QString fillColorStr() const;
+  void setFillColorStr(const QString &s);
+
+  QColor interpFillColor(int i, int n) const;
+
+  double fillAlpha() const;
+  void setFillAlpha(double a);
+
+  const QFont &textFont() const { return textFont_; }
+  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+
+  QString textColorStr() const { return textColor_.colorStr(); }
+  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -288,8 +329,6 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
-  QColor nodeColor(CQChartsTreeMapNode *node) const;
-
  private:
   void initNodes();
 
@@ -310,24 +349,25 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   void updateCurrentRoot();
 
  private:
-  int                      nameColumn_         { 0 };
-  int                      valueColumn_        { 1 };
-  CQChartsDisplayRange          range_;
-  CQChartsTreeMapHierNode* root_               { nullptr };
-  CQChartsTreeMapHierNode* firstHier_          { nullptr };
-  CQChartsTreeMapHierNode* currentRoot_        { nullptr };
-  QString                  separator_          { "/" };
-  bool                     titles_             { true };
-  double                   fontHeight_         { 9.0 };
-  double                   headerHeight_       { 11.0 };
-  QColor                   headerColor_        { 128, 128, 128 };
-  double                   marginWidth_        { 2.0 };
-  int                      maxDepth_           { 1 };
-  int                      maxColorId_         { 0 };
-  int                      hierInd_            { 0 };
-  int                      maxHierInd_         { 0 };
-  double                   windowHeaderHeight_ { 0.01 };
-  double                   windowMarginWidth_  { 0.01 };
+  int                      nameColumn_         { 0 };       // name column
+  int                      valueColumn_        { 1 };       // value column
+  CQChartsTreeMapHierNode* root_               { nullptr }; // root node
+  CQChartsTreeMapHierNode* firstHier_          { nullptr }; // first hier node
+  CQChartsTreeMapHierNode* currentRoot_        { nullptr }; // current root
+  QString                  separator_          { "/" };     // hier name separator
+  bool                     titles_             { true };    // show titles
+  double                   headerHeight_       { 11.0 };    // header height (should be font based)
+  CQChartsPaletteColor     headerColor_;                    // header color
+  double                   marginWidth_        { 2.0 };     // box margin
+  CQChartsBoxObj*          boxObj_             { nullptr }; // bubble fill/border object
+  QFont                    textFont_;                       // text font
+  CQChartsPaletteColor     textColor_;                      // text color
+  int                      maxDepth_           { 1 };       // max hier depth
+  int                      maxColorId_         { 0 };       // max color
+  int                      hierInd_            { 0 };       // current hier ind
+  int                      maxHierInd_         { 0 };       // max hier ind
+  double                   windowHeaderHeight_ { 0.01 };    // window header height in pixels
+  double                   windowMarginWidth_  { 0.01 };    // window margin width in pixels
 };
 
 #endif

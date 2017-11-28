@@ -13,6 +13,10 @@ namespace Util {
   inline double map(double value, double low1, double high1, double low2, double high2) {
     return lerp(low2, high2, norm(value, low1, high1));
   }
+
+  inline double rgbToGray(double r, double g, double b) {
+    return r*0.3 + g*0.59 + b*0.11;
+  }
 }
 
 //------
@@ -106,7 +110,7 @@ paintEvent(QPaintEvent *)
       r2 = c.redF  ();
       g2 = c.greenF();
       b2 = c.blueF ();
-      m2 = qGray(r2*255, g2*255, b2*255)/255.0;
+      m2 = Util::rgbToGray(r2, g2, b2);
     }
 
     double px, py;

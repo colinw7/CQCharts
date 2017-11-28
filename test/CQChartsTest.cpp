@@ -6,7 +6,7 @@
 #include <CQChartsTsv.h>
 #include <CQChartsJson.h>
 #include <CQChartsGnuData.h>
-#include <CQDataModel.h>
+#include <CQChartsExprData.h>
 #include <CQExprModel.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
@@ -17,8 +17,10 @@
 
 #include <CQChartsLoader.h>
 #include <CQChartsPlotDlg.h>
+#include <CGradientPalette.h>
 #include <CQSortModel.h>
 #include <CQStrParse.h>
+#include <CQHistoryLineEdit.h>
 
 //#define CQ_APP_H 1
 
@@ -30,6 +32,7 @@
 
 #include <CQUtil.h>
 #include <CExpr.h>
+#include <CUnixFile.h>
 #include <CReadLine.h>
 
 #include <QSortFilterProxyModel>
@@ -39,9 +42,9 @@
 #include <QStackedWidget>
 #include <QGroupBox>
 #include <QLabel>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QTextEdit>
+#include <QComboBox>
 #include <QSplitter>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -245,8 +248,8 @@ main(int argc, char **argv)
 
   std::vector<CQChartsTest::InitData> initDatas;
 
-  QString viewTitle;
   QString execFile;
+  QString viewTitle;
 
   bool overlay = false;
   bool y1y2    = false;
@@ -512,6 +515,14 @@ main(int argc, char **argv)
         initData.yintegral = true;
       }
 
+      // log scale
+      else if (arg == "xlog") {
+        initData.xlog = true;
+      }
+      else if (arg == "ylog") {
+        initData.ylog = true;
+      }
+
       // title
       else if (arg == "view_title") {
         ++i;
@@ -652,12 +663,13 @@ main(int argc, char **argv)
   int i = 0;
 
   for (auto &initData : initDatas) {
-    initData.overlay = overlay;
-    initData.y1y2    = y1y2;
-    initData.nr      = nr;
-    initData.nc      = nc;
-    initData.dx      = dx;
-    initData.dy      = dy;
+    initData.viewTitle = viewTitle;
+    initData.overlay   = overlay;
+    initData.y1y2      = y1y2;
+    initData.nr        = nr;
+    initData.nc        = nc;
+    initData.dx        = dx;
+    initData.dy        = dy;
 
     //---
 
@@ -691,16 +703,6 @@ main(int argc, char **argv)
 
   if (execFile.length()) {
     test.exec(execFile);
-  }
-
-  //---
-
-  if (test.view()) {
-    if (viewTitle.length())
-      test.view()->setTitle(viewTitle);
-
-    if (overlay)
-      test.view()->initOverlay();
   }
 
   //---
@@ -755,11 +757,25 @@ CQChartsTest() :
 
   QHBoxLayout *exprGroupLayout = new QHBoxLayout(exprGroup);
 
-  exprEdit_ = CQUtil::makeWidget<QLineEdit>("exprEdit");
+  exprEdit_ = CQUtil::makeWidget<CQHistoryLineEdit>("exprEdit");
 
-  exprGroupLayout->addWidget(exprEdit_);
+  exprEdit_->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
+                        "Use: @<number> as shorthand for column(<number>)\n"
+                        "Functions: column, row, cell, setColumn, setRow, setCell\n"
+                        " header, setHeader, type, setType, map, bucket, norm, key, rand");
 
-  connect(exprEdit_, SIGNAL(returnPressed()), this, SLOT(exprSlot()));
+  connect(exprEdit_, SIGNAL(exec(const QString &)), this, SLOT(exprSlot()));
+
+  exprCombo_ = CQUtil::makeWidget<QComboBox>("exprCombo");
+
+  exprCombo_->addItems(QStringList() << "Add" << "Remove" << "Modify");
+
+  exprColumn_ = CQUtil::makeWidget<QLineEdit>("exprColumn");
+
+  exprGroupLayout->addWidget(exprCombo_ );
+  exprGroupLayout->addWidget(exprEdit_  );
+  exprGroupLayout->addWidget(new QLabel("Column"));
+  exprGroupLayout->addWidget(exprColumn_);
 
   //---
 
@@ -782,9 +798,9 @@ CQChartsTest() :
   columnNumEdit_  = addLineEdit(columnLayout, row, "Number", "number");
   columnTypeEdit_ = addLineEdit(columnLayout, row, "Type"  , "type"  );
 
-  QPushButton *typeOKButton = new QPushButton("Set");
+  QPushButton *typeOKButton = CQUtil::makeWidget<QPushButton>("typeOK");
 
-  typeOKButton->setObjectName("typeOK");
+  typeOKButton->setText("Set");
 
   connect(typeOKButton, SIGNAL(clicked()), this, SLOT(typeOKSlot()));
 
@@ -949,19 +965,19 @@ initPlot(const InitData &initData)
 
   //---
 
-  if (viewDatas_.empty())
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
     return false;
 
-  ViewData &viewData = currentViewData();
-
-  ModelP model = viewData.model;
+  ModelP model = viewData->model;
 
   //---
 
   QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
   for (int i = 0; i < strs.size(); ++i)
-    processExpression(strs[i]);
+    processExpression(model, strs[i]);
 
   //---
 
@@ -984,7 +1000,10 @@ initPlot(const InitData &initData)
     if      (i == 0) {
     }
     else if (i >= 1) {
-      CQChartsPlot *prevPlot = view->plot(view->numPlots() - 1);
+      if (initData.viewTitle.length())
+        view->setTitle(initData.viewTitle);
+
+      CQChartsPlot *prevPlot = view->plot(i - 1);
 
       plot    ->setPrevPlot(prevPlot);
       prevPlot->setNextPlot(plot);
@@ -993,14 +1012,17 @@ initPlot(const InitData &initData)
 
       plot->setDataRange(rootPlot->dataRange());
 
-      rootPlot->applyDataRange();
+      view->initOverlay(rootPlot);
     }
   }
   else if (initData.y1y2) {
     if      (i == 0) {
     }
     else if (i >= 1) {
-      CQChartsPlot *prevPlot = view->plot(view->numPlots() - 1);
+      if (initData.viewTitle.length())
+        view->setTitle(initData.viewTitle);
+
+      CQChartsPlot *prevPlot = view->plot(0);
 
       view->initY1Y2(prevPlot, plot);
     }
@@ -1046,6 +1068,7 @@ loadFileSlot(const QString &type, const QString &filename)
 
   inputData.commentHeader   = loader_->isCommentHeader();
   inputData.firstLineHeader = loader_->isFirstLineHeader();
+  inputData.numRows         = loader_->numRows();
 
   return loadFileModel(filename, fileType, inputData);
 }
@@ -1056,19 +1079,19 @@ void
 CQChartsTest::
 createSlot()
 {
-  if (viewDatas_.empty())
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
     return;
 
-  ViewData &viewData = currentViewData();
-
-  ModelP model = viewData.model;
+  ModelP model = viewData->model;
 
   //---
 
   CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
 
-  if (viewData.sm)
-    dlg->setSelectionModel(viewData.sm);
+  if (viewData->sm)
+    dlg->setSelectionModel(viewData->sm);
 
   connect(dlg, SIGNAL(plotCreated(CQChartsPlot *)),
           this, SLOT(plotDialogCreatedSlot(CQChartsPlot *)));
@@ -1125,9 +1148,32 @@ void
 CQChartsTest::
 exprSlot()
 {
-  QString text = exprEdit_->text();
+  QString expr = exprEdit_->text().simplified();
 
-  processExpression(text);
+  if (! expr.length())
+    return;
+
+  //---
+
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
+    return;
+
+  CQExprModel::Function function { CQExprModel::Function::EVAL };
+
+  switch (exprCombo_->currentIndex()) {
+    case 0: function = CQExprModel::Function::ADD   ; break;
+    case 1: function = CQExprModel::Function::DELETE; break;
+    case 2: function = CQExprModel::Function::ASSIGN; break;
+    default:                                          break;
+  }
+
+  bool ok;
+
+  int column = exprColumn_->text().toInt(&ok);
+
+  processExpression(viewData->model, function, column, expr);
 
   exprEdit_->setText("");
 }
@@ -1136,27 +1182,74 @@ void
 CQChartsTest::
 processExpression(const QString &expr)
 {
-  if (viewDatas_.empty())
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
     return;
 
-  ViewData &viewData = currentViewData();
-
-  processExpression(viewData, expr);
+  processExpression(viewData->model, expr);
 }
 
 void
 CQChartsTest::
-processExpression(ViewData &viewData, const QString &expr)
+processExpression(ModelP &model, const QString &exprStr)
 {
-  if (! expr.length())
+  CQExprModel *exprModel = getExprModel(model);
+
+  if (! exprModel) {
+    std::cerr << "Expression not supported for model\n";
     return;
+  }
 
-  //---
+  CQExprModel::Function function { CQExprModel::Function::EVAL };
+  int                   column   { -1 };
+  QString               expr;
 
-  ModelP model = viewData.model;
+  if (! exprModel->decodeExpressionFn(exprStr, function, column, expr)) {
+    std::cerr << "Invalid expression '" << exprStr.toStdString() << "'\n";
+    return;
+  }
 
-  //---
+  processExpression(model, function, column, expr);
+}
 
+void
+CQChartsTest::
+processExpression(ModelP &model, CQExprModel::Function function, int column, const QString &expr)
+{
+  CQExprModel *exprModel = getExprModel(model);
+
+  if (! exprModel) {
+    std::cerr << "Expression not supported for model\n";
+    return;
+  }
+
+  // add column <expr>
+  if      (function == CQExprModel::Function::ADD) {
+    exprModel->addExtraColumn(expr);
+  }
+  // delete column <n>
+  else if (function == CQExprModel::Function::DELETE) {
+    bool rc = exprModel->removeExtraColumn(column);
+
+    if (! rc) {
+      std::cerr << "Failed to delete column '" << column << "'\n";
+      return;
+    }
+  }
+  // modify column <n>:<expr>
+  else if (function == CQExprModel::Function::ASSIGN) {
+    exprModel->assignExtraColumn(column, expr);
+  }
+  else {
+    exprModel->processExpr(expr);
+  }
+}
+
+CQExprModel *
+CQChartsTest::
+getExprModel(ModelP &model) const
+{
   CQExprModel *exprModel = qobject_cast<CQExprModel *>(model.data());
 
   if (! exprModel) {
@@ -1166,62 +1259,7 @@ processExpression(ViewData &viewData, const QString &expr)
       exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
   }
 
-  if (! exprModel) {
-    std::cerr << "Expression not supported for model\n";
-    return;
-  }
-
-  //---
-
-  // add column <expr>
-  if      (expr[0] == '+')
-    exprModel->addExtraColumn(expr.mid(1));
-  // delete column <n>
-  else if (expr[0] == '-') {
-    QString columnStr = expr.mid(1).simplified();
-
-    bool ok;
-
-    int column = columnStr.toInt(&ok);
-
-    if (! ok) {
-      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'\n";
-      return;
-    }
-
-    bool rc = exprModel->removeExtraColumn(column);
-
-    if (! rc) {
-      std::cerr << "Failed to delete column '" << column << "'\n";
-      return;
-    }
-  }
-  else if (expr[0] == '=') {
-    QString columnExprStr = expr.mid(1);
-
-    int pos = columnExprStr.indexOf(':');
-
-    if (pos < 0) {
-      std::cerr << "Invalid assign expression '" << columnExprStr.toStdString() << "'\n";
-      return;
-    }
-
-    QString columnStr = columnExprStr.mid(0, pos).simplified();
-    QString exprStr   = columnExprStr.mid(pos + 1).simplified();
-
-    bool ok;
-
-    int column = columnStr.toInt(&ok);
-
-    if (! ok) {
-      std::cerr << "Invalid column number '" << columnStr.toStdString() << "'\n";
-      return;
-    }
-
-    exprModel->assignExtraColumn(column, exprStr);
-  }
-  else
-    exprModel->processExpr(expr);
+  return exprModel;
 }
 
 //------
@@ -1255,12 +1293,12 @@ void
 CQChartsTest::
 typeOKSlot()
 {
-  if (viewDatas_.empty())
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
     return;
 
-  ViewData &viewData = currentViewData();
-
-  ModelP model = viewData.model;
+  ModelP model = viewData->model;
 
   //---
 
@@ -1286,18 +1324,31 @@ typeOKSlot()
 
 //------
 
-CQChartsTest::ViewData &
+CQChartsTest::ViewData *
+CQChartsTest::
+getViewData(int ind)
+{
+  for (auto &viewData : viewDatas_) {
+    if (viewData.tabInd == ind)
+      return &viewData;
+  }
+
+  return nullptr;
+}
+
+CQChartsTest::ViewData *
 CQChartsTest::
 currentViewData()
 {
-  assert(! viewDatas_.empty());
+  if (viewDatas_.empty())
+    return nullptr;
 
   int ind = viewTab_->currentIndex();
 
   if (ind >= 0 && ind < int(viewDatas_.size()))
-    return viewDatas_[ind];
-  else
-    return viewDatas_.back();
+    return &viewDatas_[ind];
+
+  return &viewDatas_.back();
 }
 
 CQChartsView *
@@ -1318,10 +1369,10 @@ currentView() const
 
 CQChartsPlot *
 CQChartsTest::
-initPlotView(const ViewData &viewData, const InitData &initData, int i,
+initPlotView(const ViewData *viewData, const InitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  setColumnFormats(viewData.model, initData.columnType);
+  setColumnFormats(viewData->model, initData.columnType);
 
   //---
 
@@ -1357,7 +1408,7 @@ initPlotView(const ViewData &viewData, const InitData &initData, int i,
 
   // create plot from init (argument) data
   if (initData.filterStr.length()) {
-    CQSortModel *sortModel = new CQSortModel(viewData.model.data());
+    CQSortModel *sortModel = new CQSortModel(viewData->model.data());
 
     ModelP sortModelP(sortModel);
 
@@ -1366,7 +1417,7 @@ initPlotView(const ViewData &viewData, const InitData &initData, int i,
     plot = createPlot(viewData, sortModelP, type, initData.nameValueData, reuse, bbox);
   }
   else {
-    plot = createPlot(viewData, viewData.model, type, initData.nameValueData, reuse, bbox);
+    plot = createPlot(viewData, viewData->model, type, initData.nameValueData, reuse, bbox);
   }
 
   assert(plot);
@@ -1383,6 +1434,12 @@ initPlotView(const ViewData &viewData, const InitData &initData, int i,
 
   if (initData.title != "")
     plot->setTitle(initData.title);
+
+  if (initData.xlog)
+    plot->setLogX(true);
+
+  if (initData.ylog)
+    plot->setLogY(true);
 
   if (initData.xintegral)
     plot->xAxis()->setIntegral(true);
@@ -1490,7 +1547,7 @@ fixTypeName(const QString &typeName) const
 
 CQChartsPlot *
 CQChartsTest::
-createPlot(const ViewData &viewData, const ModelP &model, CQChartsPlotType *type,
+createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type,
            const NameValueData &nameValueData, bool reuse, const CQChartsGeom::BBox &bbox)
 {
   CQChartsView *view = getView(reuse);
@@ -1499,8 +1556,8 @@ createPlot(const ViewData &viewData, const ModelP &model, CQChartsPlotType *type
 
   CQChartsPlot *plot = type->create(view, model);
 
-  if (viewData.sm)
-    plot->setSelectionModel(viewData.sm);
+  if (viewData->sm)
+    plot->setSelectionModel(viewData->sm);
 
   connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
@@ -1634,7 +1691,7 @@ loadFileModel(const QString &filename, FileType type, const InputData &inputData
 
   //---
 
-  sortModel(viewData, inputData.sort);
+  sortModel(&viewData, inputData.sort);
 
   //---
 
@@ -1649,14 +1706,14 @@ loadFileModel(const QString &filename, FileType type, const InputData &inputData
     viewData.sm = viewData.table->selectionModel();
   }
 
-  updateModelDetails(viewData);
+  updateModelDetails(&viewData);
 
   return true;
 }
 
 void
 CQChartsTest::
-sortModel(const ViewData &viewData, const QString &args)
+sortModel(const ViewData *viewData, const QString &args)
 {
   if (! args.length())
     return;
@@ -1673,20 +1730,20 @@ sortModel(const ViewData &viewData, const QString &args)
 
   int column;
 
-  if (stringToColumn(viewData.model, columnStr, column))
-    viewData.model->sort(column, order);
+  if (stringToColumn(viewData->model, columnStr, column))
+    viewData->model->sort(column, order);
 }
 
 void
 CQChartsTest::
-updateModelDetails(const ViewData &viewData)
+updateModelDetails(const ViewData *viewData)
 {
   QString text;
 
-  if      (viewData.table) {
+  if      (viewData->table) {
     CQChartsTable::Details details;
 
-    viewData.table->calcDetails(details);
+    viewData->table->calcDetails(details);
 
     text += QString(  "%1\tColumns").arg(details.numColumns);
     text += QString("\n%1\tRows"   ).arg(details.numRows);
@@ -1698,16 +1755,16 @@ updateModelDetails(const ViewData &viewData)
                arg(details.columns[i].maxValue.toString());
     }
   }
-  else if (viewData.tree) {
+  else if (viewData->tree) {
     CQChartsTree::Details details;
 
-    viewData.tree->calcDetails(details);
+    viewData->tree->calcDetails(details);
 
     text += QString(  "%1\tColumns").arg(details.numColumns);
     text += QString("\n%1\tRows"   ).arg(details.numRows);
   }
 
-  viewData.detailsText->setPlainText(text);
+  viewData->detailsText->setPlainText(text);
 }
 
 QAbstractItemModel *
@@ -1810,23 +1867,9 @@ createExprModel(int n)
   int nc = 1;
   int nr = n;
 
-  CQDataModel *model = new CQDataModel(nc, nr);
+  CQChartsExprData *data = new CQChartsExprData(charts_, nc, nr);
 
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
-
-      model->setData(ind, QVariant(r*nc + c));
-    }
-  }
-
-  CQExprModel *exprModel = new CQExprModel(model);
-
-  QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel;
-
-  proxyModel->setSourceModel(exprModel);
-
-  return proxyModel;
+  return data;
 }
 
 //------
@@ -1835,11 +1878,10 @@ QLineEdit *
 CQChartsTest::
 addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &objName) const
 {
-  QLabel    *label = new QLabel(name);
-  QLineEdit *edit  = new QLineEdit;
+  QLabel    *label = CQUtil::makeWidget<QLabel   >(objName + "Label");
+  QLineEdit *edit  = CQUtil::makeWidget<QLineEdit>(objName + "Edit" );
 
-  label->setObjectName(objName + "Label");
-  label->setObjectName(objName + "Edit" );
+  label->setText(name);
 
   grid->addWidget(label, row, 0);
   grid->addWidget(edit , row, 1);
@@ -1913,9 +1955,10 @@ addView()
 {
   CQChartsView *view = charts_->addView();
 
-  window_ = new CQChartsWindow(view);
+  // TODO: handle multiple window
+  CQChartsWindow *window = CQChartsWindowMgrInst->createWindow(view);
 
-  window_->show();
+  window->show();
 
   return view;
 }
@@ -1941,6 +1984,7 @@ stringToFileType(const QString &str) const
   else if (lstr == "tsv" ) return FileType::TSV;
   else if (lstr == "json") return FileType::JSON;
   else if (lstr == "data") return FileType::DATA;
+  else if (lstr == "expr") return FileType::EXPR;
   else                     return FileType::NONE;
 }
 
@@ -1952,6 +1996,7 @@ fileTypeToString(FileType type) const
   else if (type == FileType::TSV ) return "tsv";
   else if (type == FileType::JSON) return "json";
   else if (type == FileType::DATA) return "data";
+  else if (type == FileType::EXPR) return "expr";
   else                             return "";
 }
 
@@ -2161,17 +2206,29 @@ parseLine(const QString &str)
   else if (cmd == "load") {
     loadCmd(args);
   }
-  else if (cmd == "view") {
-    viewCmd(args);
-  }
-  else if (cmd == "plot") {
-    plotCmd(args);
+  else if (cmd == "model") {
+    modelCmd(args);
   }
   else if (cmd == "process") {
     processCmd(args);
   }
+  else if (cmd == "view") {
+    viewCmd(args);
+  }
+  else if (cmd == "palette") {
+    paletteCmd(args);
+  }
+  else if (cmd == "theme") {
+    themeCmd(args);
+  }
+  else if (cmd == "plot") {
+    plotCmd(args);
+  }
   else if (cmd == "overlay") {
     overlayCmd(args);
+  }
+  else if (cmd == "y1y2") {
+    y1y2Cmd(args);
   }
   else if (cmd == "sort") {
     sortCmd(args);
@@ -2435,35 +2492,106 @@ loadCmd(const Args &args)
     }
   }
 
-  if (filename == "") {
-    std::cerr << "No filename\n";
-    return false;
-  }
-
   if (fileType == FileType::NONE) {
     std::cerr << "No file type\n";
     return false;
   }
 
-  if (! loadFileModel(filename, fileType, inputData))
+  if (fileType != FileType::EXPR && filename == "") {
+    std::cerr << "No filename\n";
     return false;
-
-  ViewData &viewData = currentViewData();
-
-  if (title.length()) {
-    if      (viewData.table)
-      viewData.table->setWindowTitle(title);
-    else if (viewData.tree)
-      viewData.tree->setWindowTitle(title);
-
-    viewTab_->setTabText(viewData.tabInd, title);
   }
 
-  CExprValuePtr ivalue = expr_->createIntegerValue(viewData.tabInd);
+  if (fileType != FileType::EXPR) {
+    if (! loadFileModel(filename, fileType, inputData))
+      return false;
+  }
+  else {
+    if (! loadFileModel("", fileType, inputData))
+      return false;
+  }
+
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
+    return false;
+
+  if (title.length()) {
+    if      (viewData->table)
+      viewData->table->setWindowTitle(title);
+    else if (viewData->tree)
+      viewData->tree->setWindowTitle(title);
+
+    viewTab_->setTabText(viewData->tabInd, title);
+  }
+
+  CExprValuePtr ivalue = expr_->createIntegerValue(viewData->tabInd);
 
   expr_->createVariable("rc", ivalue);
 
   return true;
+}
+
+void
+CQChartsTest::
+modelCmd(const Args &args)
+{
+  int argc = args.size();
+
+  int     ind = -1;
+  QString columnType;
+  QString processExpr;
+
+  for (int i = 0; i < argc; ++i) {
+    QString arg = args[i];
+
+    if (arg[0] == '-') {
+      QString opt = arg.mid(1);
+
+      if      (opt == "ind") {
+        ++i;
+
+        if (i < argc)
+          ind = args[i].toInt();
+      }
+      else if (opt == "column_type") {
+        ++i;
+
+        if (i < argc)
+          columnType = args[i];
+      }
+      else if (opt == "process") {
+        ++i;
+
+        if (i < argc)
+          processExpr = args[i];
+      }
+      else {
+        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      }
+    }
+    else {
+      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+    }
+  }
+
+  CQChartsTest::ViewData *viewData = nullptr;
+
+  if (ind >= 0)
+    viewData = getViewData(ind);
+  else
+    viewData = currentViewData();
+
+  if (! viewData) {
+    std::cerr << "No model\n";
+    return;
+  }
+
+  if (columnType != "")
+    setColumnFormats(viewData->model, columnType);
+
+  if (processExpr != "")
+    processExpression(viewData->model, processExpr);
 }
 
 void
@@ -2519,6 +2647,564 @@ viewCmd(const Args &args)
 
 void
 CQChartsTest::
+paletteCmd(const Args &args)
+{
+  struct DefinedColor {
+    double v { -1.0 };
+    QColor c;
+
+    DefinedColor(double v, const QColor &c) :
+     v(v), c(c) {
+    }
+  };
+
+  using DefinedColors = std::vector<DefinedColor>;
+
+  QString               viewName;
+  QString               colorTypeStr;
+  QString               colorModelStr;
+  CQChartsTest::OptInt  redModel    = boost::make_optional(false, 0);
+  CQChartsTest::OptInt  greenModel  = boost::make_optional(false, 0);
+  CQChartsTest::OptInt  blueModel   = boost::make_optional(false, 0);
+  CQChartsTest::OptBool negateRed   = boost::make_optional(false, false);
+  CQChartsTest::OptBool negateGreen = boost::make_optional(false, false);
+  CQChartsTest::OptBool negateBlue  = boost::make_optional(false, false);
+  CQChartsTest::OptReal redMin      = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal redMax      = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal greenMin    = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal greenMax    = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal blueMin     = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal blueMax     = boost::make_optional(false, 0.0);
+  DefinedColors         definedColors;
+  bool                  getColorScale { false };
+  bool                  getColorFlag  { false };
+  double                getColorValue { 0.0 };
+
+  int argc = args.size();
+
+  for (int i = 0; i < argc; ++i) {
+    QString arg = args[i];
+
+    if (arg[0] == '-') {
+      QString opt = arg.mid(1);
+
+      if      (opt == "view") {
+        ++i;
+
+        if (i < argc)
+          viewName = args[i];
+      }
+      else if (opt == "color_type") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color type\n";
+          continue;
+        }
+
+        colorTypeStr = args[i];
+      }
+      else if (opt == "color_model") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color type\n";
+          continue;
+        }
+
+        colorModelStr = args[i];
+      }
+      else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        int model = args[i].toInt(&ok);
+
+        if (! ok) {
+          std::cerr << "Invalid model number\n";
+          continue;
+        }
+
+        if      (opt == "redModel"  ) redModel   = model;
+        else if (opt == "greenModel") greenModel = model;
+        else if (opt == "blueModel" ) blueModel  = model;
+      }
+      else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        bool b = stringToBool(args[i], &ok);
+
+        if (! ok) {
+          std::cerr << "Invalid negate bool\n";
+          continue;
+        }
+
+        if      (opt == "negateRed"  ) negateRed   = b;
+        else if (opt == "negateGreen") negateGreen = b;
+        else if (opt == "negateBlue" ) negateBlue  = b;
+      }
+      else if (opt == "redMin"   || opt == "redMax"   ||
+               opt == "greenMin" || opt == "greenMax" ||
+               opt == "blueMin"  || opt == "blueMax") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        double r = args[i].toDouble(&ok);
+
+        if (! ok) {
+          std::cerr << "Invalid min/max value\n";
+          continue;
+        }
+
+        if      (opt == "redMin"  ) redMin   = r;
+        else if (opt == "greenMin") greenMin = r;
+        else if (opt == "blueMin" ) blueMin  = r;
+        else if (opt == "redMax"  ) redMax   = r;
+        else if (opt == "greenMax") greenMax = r;
+        else if (opt == "blueMax" ) blueMax  = r;
+      }
+      else if (opt == "defined") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing defined colors\n";
+          continue;
+        }
+
+        QStringList strs = args[i].split(" ", QString::SkipEmptyParts);
+
+        if (! strs.length())
+          continue;
+
+        double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
+
+        definedColors.clear();
+
+        for (int j = 0; j < strs.length(); ++j) {
+          int pos = strs[j].indexOf('=');
+
+          double v = j*dv;
+          QColor c;
+
+          if (pos > 0) {
+            QString lhs = strs[j].mid(0, pos).simplified();
+            QString rhs = strs[j].mid(pos + 1).simplified();
+
+            bool ok;
+
+            v = lhs.toDouble(&ok);
+            c = QColor(rhs);
+          }
+          else
+            c = QColor(strs[j]);
+
+          definedColors.push_back(DefinedColor(v, c));
+        }
+      }
+      else if (opt == "get_color") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color value\n";
+          continue;
+        }
+
+        getColorFlag  = true;
+        getColorValue = args[i].toDouble(&getColorFlag);
+      }
+      else if (opt == "get_color_scale") {
+        getColorScale = true;
+      }
+      else {
+        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      }
+    }
+    else {
+      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+    }
+  }
+
+  //---
+
+  CQChartsView *view = charts_->getView(viewName);
+
+  if (! view)
+    view = currentView();
+
+  if (! view) {
+    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    return;
+  }
+
+  //---
+
+  CGradientPalette *palette = view->gradientPalette();
+
+  if (colorTypeStr != "") {
+    CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;
+
+    if      (colorTypeStr == "model"    ) colorType = CGradientPalette::ColorType::MODEL;
+    else if (colorTypeStr == "defined"  ) colorType = CGradientPalette::ColorType::DEFINED;
+    else if (colorTypeStr == "functions") colorType = CGradientPalette::ColorType::FUNCTIONS;
+    else if (colorTypeStr == "cubehelix") colorType = CGradientPalette::ColorType::CUBEHELIX;
+
+    palette->setColorType(colorType);
+  }
+
+  if (colorModelStr != "") {
+    CGradientPalette::ColorModel colorModel = CGradientPalette::ColorModel::RGB;
+
+    if      (colorModelStr == "rgb") colorModel = CGradientPalette::ColorModel::RGB;
+    else if (colorModelStr == "hsv") colorModel = CGradientPalette::ColorModel::HSV;
+    else if (colorModelStr == "cmy") colorModel = CGradientPalette::ColorModel::CMY;
+    else if (colorModelStr == "yiq") colorModel = CGradientPalette::ColorModel::YIQ;
+    else if (colorModelStr == "xyz") colorModel = CGradientPalette::ColorModel::XYZ;
+
+    palette->setColorModel(colorModel);
+  }
+
+  if (redModel  ) palette->setRedModel  (*redModel  );
+  if (greenModel) palette->setGreenModel(*greenModel);
+  if (blueModel ) palette->setBlueModel (*blueModel );
+
+  if (negateRed  ) palette->setRedNegative  (*negateRed  );
+  if (negateGreen) palette->setGreenNegative(*negateGreen);
+  if (negateBlue ) palette->setBlueNegative (*negateBlue );
+
+  if (redMin  ) palette->setRedMin  (*redMin  );
+  if (redMax  ) palette->setRedMax  (*redMax  );
+  if (greenMin) palette->setGreenMin(*greenMin);
+  if (greenMax) palette->setGreenMax(*greenMax);
+  if (blueMin ) palette->setBlueMin (*blueMin );
+  if (blueMax ) palette->setBlueMax (*blueMax );
+
+  if (! definedColors.empty()) {
+    palette->resetDefinedColors();
+
+    for (const auto &definedColor : definedColors)
+      palette->addDefinedColor(definedColor.v, definedColor.c);
+  }
+
+  //---
+
+  if (getColorFlag) {
+    QColor c = palette->getColor(getColorValue, getColorScale);
+
+    CExprValuePtr svalue = expr_->createStringValue(c.name().toStdString());
+
+    expr_->createVariable("rc", svalue);
+  }
+
+  //---
+
+  view->updatePlots();
+
+  CQChartsWindow *window = CQChartsWindowMgrInst->getWindowForView(view);
+
+  if (window)
+    window->updatePalette();
+}
+
+void
+CQChartsTest::
+themeCmd(const Args &args)
+{
+  struct DefinedColor {
+    double v { -1.0 };
+    QColor c;
+
+    DefinedColor(double v, const QColor &c) :
+     v(v), c(c) {
+    }
+  };
+
+  using DefinedColors = std::vector<DefinedColor>;
+
+  QString               viewName;
+  QString               colorTypeStr;
+  QString               colorModelStr;
+  CQChartsTest::OptInt  redModel    = boost::make_optional(false, 0);
+  CQChartsTest::OptInt  greenModel  = boost::make_optional(false, 0);
+  CQChartsTest::OptInt  blueModel   = boost::make_optional(false, 0);
+  CQChartsTest::OptBool negateRed   = boost::make_optional(false, false);
+  CQChartsTest::OptBool negateGreen = boost::make_optional(false, false);
+  CQChartsTest::OptBool negateBlue  = boost::make_optional(false, false);
+  CQChartsTest::OptReal redMin      = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal redMax      = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal greenMin    = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal greenMax    = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal blueMin     = boost::make_optional(false, 0.0);
+  CQChartsTest::OptReal blueMax     = boost::make_optional(false, 0.0);
+  DefinedColors         definedColors;
+  bool                  getColorScale { false };
+  bool                  getColorFlag { false };
+  double                getColorValue { 0.0 };
+
+  int argc = args.size();
+
+  for (int i = 0; i < argc; ++i) {
+    QString arg = args[i];
+
+    if (arg[0] == '-') {
+      QString opt = arg.mid(1);
+
+      if      (opt == "view") {
+        ++i;
+
+        if (i < argc)
+          viewName = args[i];
+      }
+      else if (opt == "color_type") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color type\n";
+          continue;
+        }
+
+        colorTypeStr = args[i];
+      }
+      else if (opt == "color_model") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color type\n";
+          continue;
+        }
+
+        colorModelStr = args[i];
+      }
+      else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        int model = args[i].toInt(&ok);
+
+        if (! ok) {
+          std::cerr << "Invalid model number\n";
+          continue;
+        }
+
+        if      (opt == "redModel"  ) redModel   = model;
+        else if (opt == "greenModel") greenModel = model;
+        else if (opt == "blueModel" ) blueModel  = model;
+      }
+      else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        bool b = stringToBool(args[i], &ok);
+
+        if (! ok) {
+          std::cerr << "Invalid negate bool\n";
+          continue;
+        }
+
+        if      (opt == "negateRed"  ) negateRed   = b;
+        else if (opt == "negateGreen") negateGreen = b;
+        else if (opt == "negateBlue" ) negateBlue  = b;
+      }
+      else if (opt == "redMin"   || opt == "redMax"   ||
+               opt == "greenMin" || opt == "greenMax" ||
+               opt == "blueMin"  || opt == "blueMax") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing model number\n";
+          continue;
+        }
+
+        bool ok;
+
+        double r = args[i].toDouble(&ok);
+
+        if (! ok) {
+          std::cerr << "Invalid min/max value\n";
+          continue;
+        }
+
+        if      (opt == "redMin"  ) redMin   = r;
+        else if (opt == "greenMin") greenMin = r;
+        else if (opt == "blueMin" ) blueMin  = r;
+        else if (opt == "redMax"  ) redMax   = r;
+        else if (opt == "greenMax") greenMax = r;
+        else if (opt == "blueMax" ) blueMax  = r;
+      }
+      else if (opt == "defined") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing defined colors\n";
+          continue;
+        }
+
+        QStringList strs = args[i].split(" ", QString::SkipEmptyParts);
+
+        if (! strs.length())
+          continue;
+
+        double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
+
+        definedColors.clear();
+
+        for (int j = 0; j < strs.length(); ++j) {
+          int pos = strs[j].indexOf('=');
+
+          double v = j*dv;
+          QColor c;
+
+          if (pos > 0) {
+            QString lhs = strs[j].mid(0, pos).simplified();
+            QString rhs = strs[j].mid(pos + 1).simplified();
+
+            bool ok;
+
+            v = lhs.toDouble(&ok);
+            c = QColor(rhs);
+          }
+          else
+            c = QColor(strs[j]);
+
+          definedColors.push_back(DefinedColor(v, c));
+        }
+      }
+      else if (opt == "get_color") {
+        ++i;
+
+        if (i >= argc) {
+          std::cerr << "Missing color value\n";
+          continue;
+        }
+
+        getColorFlag  = true;
+        getColorValue = args[i].toDouble(&getColorFlag);
+      }
+      else if (opt == "get_color_scale") {
+        getColorScale = true;
+      }
+      else {
+        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      }
+    }
+    else {
+      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+    }
+  }
+
+  //---
+
+  CQChartsView *view = charts_->getView(viewName);
+
+  if (! view)
+    view = currentView();
+
+  if (! view) {
+    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    return;
+  }
+
+  //---
+
+  CGradientPalette *theme = view->themePalette();
+
+  if (colorTypeStr != "") {
+    CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;
+
+    if      (colorTypeStr == "model"    ) colorType = CGradientPalette::ColorType::MODEL;
+    else if (colorTypeStr == "defined"  ) colorType = CGradientPalette::ColorType::DEFINED;
+    else if (colorTypeStr == "functions") colorType = CGradientPalette::ColorType::FUNCTIONS;
+    else if (colorTypeStr == "cubehelix") colorType = CGradientPalette::ColorType::CUBEHELIX;
+
+    theme->setColorType(colorType);
+  }
+
+  if (colorModelStr != "") {
+    CGradientPalette::ColorModel colorModel = CGradientPalette::ColorModel::RGB;
+
+    if      (colorModelStr == "rgb") colorModel = CGradientPalette::ColorModel::RGB;
+    else if (colorModelStr == "hsv") colorModel = CGradientPalette::ColorModel::HSV;
+    else if (colorModelStr == "cmy") colorModel = CGradientPalette::ColorModel::CMY;
+    else if (colorModelStr == "yiq") colorModel = CGradientPalette::ColorModel::YIQ;
+    else if (colorModelStr == "xyz") colorModel = CGradientPalette::ColorModel::XYZ;
+
+    theme->setColorModel(colorModel);
+  }
+
+  if (redModel  ) theme->setRedModel  (*redModel  );
+  if (greenModel) theme->setGreenModel(*greenModel);
+  if (blueModel ) theme->setBlueModel (*blueModel );
+
+  if (negateRed  ) theme->setRedNegative  (*negateRed  );
+  if (negateGreen) theme->setGreenNegative(*negateGreen);
+  if (negateBlue ) theme->setBlueNegative (*negateBlue );
+
+  if (redMin  ) theme->setRedMin  (*redMin  );
+  if (redMax  ) theme->setRedMax  (*redMax  );
+  if (greenMin) theme->setGreenMin(*greenMin);
+  if (greenMax) theme->setGreenMax(*greenMax);
+  if (blueMin ) theme->setBlueMin (*blueMin );
+  if (blueMax ) theme->setBlueMax (*blueMax );
+
+  if (! definedColors.empty()) {
+    theme->resetDefinedColors();
+
+    for (const auto &definedColor : definedColors)
+      theme->addDefinedColor(definedColor.v, definedColor.c);
+  }
+
+  //---
+
+  if (getColorFlag) {
+    QColor c = theme->getColor(getColorValue, getColorScale);
+
+    CExprValuePtr svalue = expr_->createStringValue(c.name().toStdString());
+
+    expr_->createVariable("rc", svalue);
+  }
+
+  //---
+
+  view->updatePlots();
+
+  CQChartsWindow *window = CQChartsWindowMgrInst->getWindowForView(view);
+
+  if (window)
+    window->updatePalette();
+}
+
+void
+CQChartsTest::
 plotCmd(const Args &args)
 {
   QString       typeName;
@@ -2527,6 +3213,8 @@ plotCmd(const Args &args)
   QString       columnType;
   bool          xintegral { false };
   bool          yintegral { false };
+  bool          xlog { false };
+  bool          ylog { false };
   QString       title;
   QString       properties;
   QString       positionStr;
@@ -2678,6 +3366,14 @@ plotCmd(const Args &args)
         yintegral = true;
       }
 
+      // log scale
+      else if (opt == "xlog") {
+        xlog = true;
+      }
+      else if (opt == "ylog") {
+        ylog = true;
+      }
+
       // title
       else if (opt == "title") {
         ++i;
@@ -2739,14 +3435,17 @@ plotCmd(const Args &args)
 
   //------
 
-  if (viewDatas_.empty()) {
+  ViewData *viewData = currentViewData();
+
+  if (! viewData) {
     std::cerr << "No model data\n";
     return;
   }
 
-  ViewData &viewData = viewDatas_.back();
+  ModelP model = viewData->model;
 
-  ModelP model = viewData.model;
+  if (columnType != "")
+    setColumnFormats(viewData->model, columnType);
 
   //------
 
@@ -2803,6 +3502,12 @@ plotCmd(const Args &args)
   if (title != "")
     plot->setTitle(title);
 
+  if (xlog)
+    plot->setLogX(true);
+
+  if (ylog)
+    plot->setLogY(true);
+
   if (xintegral)
     plot->xAxis()->setIntegral(true);
 
@@ -2832,7 +3537,10 @@ processCmd(const Args &args)
 {
   int argc = args.size();
 
-  QString cmd;
+  CQExprModel::Function function = CQExprModel::Function::EVAL;
+  QString               header;
+  int                   column   = -1;
+  QString               expr;
 
   for (int i = 0; i < argc; ++i) {
     QString arg = args[i];
@@ -2840,15 +3548,72 @@ processCmd(const Args &args)
     if (arg[0] == '-') {
       QString opt = arg.mid(1);
 
-      std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      if      (opt == "add")
+        function = CQExprModel::Function::ADD;
+      else if (opt == "delete")
+        function = CQExprModel::Function::DELETE;
+      else if (opt == "modify")
+        function = CQExprModel::Function::ASSIGN;
+      else if (opt == "header") {
+        ++i;
+
+        if (i < argc)
+          header = args[i];
+      }
+      else if (opt == "column") {
+        ++i;
+
+        if (i < argc) {
+          bool ok;
+
+          column = args[i].toInt(&ok);
+
+          if (! ok)
+            std::cerr << "Invalid column '" << args[i].toStdString() << "'\n";
+        }
+      }
+      else
+        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
     }
     else {
-      if (cmd == "")
-        cmd = arg;
+      if (expr == "")
+        expr = arg;
     }
   }
 
-  processExpression(cmd);
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
+    return;
+
+  CQExprModel *exprModel = getExprModel(viewData->model);
+
+  if (! exprModel) {
+    std::cerr << "Expression not supported for model\n";
+    return;
+  }
+
+  if      (function  == CQExprModel::Function::ADD) {
+    if (! exprModel->addExtraColumn(header, expr)) {
+      std::cerr << "Failed to add column\n";
+      return;
+    }
+  }
+  else if (function  == CQExprModel::Function::DELETE) {
+    if (! exprModel->removeExtraColumn(column)) {
+      std::cerr << "Failed to delete column\n";
+      return;
+    }
+  }
+  else if (function  == CQExprModel::Function::ASSIGN) {
+    if (! exprModel->assignExtraColumn(header, column, expr)) {
+      std::cerr << "Failed to modify column\n";
+      return;
+    }
+  }
+  else {
+    processExpression(viewData->model, expr);
+  }
 }
 
 void
@@ -2857,7 +3622,6 @@ overlayCmd(const Args &args)
 {
   int argc = args.size();
 
-  bool        y1y2 = false;
   QString     viewName;
   QStringList plotNames;
 
@@ -2867,14 +3631,80 @@ overlayCmd(const Args &args)
     if (arg[0] == '-') {
       QString opt = arg.mid(1);
 
-      if      (opt == "view") {
+      if (opt == "view") {
         ++i;
 
         if (i < argc)
           viewName = args[i];
       }
-      else if (opt == "y1y2") {
-        y1y2 = true;
+      else {
+        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      }
+    }
+    else {
+      plotNames.push_back(arg);
+    }
+  }
+
+  //---
+
+  CQChartsView *view = charts_->getView(viewName);
+
+  if (! view)
+    view = currentView();
+
+  if (! view) {
+    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    return;
+  }
+
+  //---
+
+  typedef std::vector<CQChartsPlot *> Plots;
+
+  Plots plots;
+
+  for (int i = 0; i < plotNames.length(); ++i) {
+    QString plotName = plotNames[i];
+
+    CQChartsPlot *plot = view->getPlot(plotName);
+
+    if (! plot) {
+      std::cerr << "No plot '" << plotName.toStdString() << "'\n";
+      return;
+    }
+
+    plots.push_back(plot);
+  }
+
+  if (plots.size() < 2) {
+    std::cerr << "Need 2 or more plots for overlay\n";
+    return;
+  }
+
+  view->initOverlay(plots);
+}
+
+void
+CQChartsTest::
+y1y2Cmd(const Args &args)
+{
+  int argc = args.size();
+
+  QString     viewName;
+  QStringList plotNames;
+
+  for (int i = 0; i < argc; ++i) {
+    QString arg = args[i];
+
+    if (arg[0] == '-') {
+      QString opt = arg.mid(1);
+
+      if (opt == "view") {
+        ++i;
+
+        if (i < argc)
+          viewName = args[i];
       }
       else {
         std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
@@ -2914,43 +3744,12 @@ overlayCmd(const Args &args)
     plots.push_back(plot);
   }
 
-  if (! y1y2) {
-    if (plots.size() < 2) {
-      std::cerr << "Need 2 or more plots for overlay\n";
-      return;
-    }
-
-    CQChartsPlot *rootPlot = plots[0]->firstPlot();
-
-    for (std::size_t i = 0; i < plots.size(); ++i) {
-      CQChartsPlot *plot = plots[i];
-
-      plot->setOverlay(true);
-
-      if      (i == 0) {
-      }
-      else if (i >= 1) {
-        CQChartsPlot *prevPlot = plots[i - 1];
-
-        plot    ->setPrevPlot(prevPlot);
-        prevPlot->setNextPlot(plot);
-
-        plot->setDataRange(rootPlot->dataRange());
-
-        rootPlot->applyDataRange();
-      }
-    }
-
-    view->initOverlay(rootPlot);
+  if (plots.size() != 2) {
+    std::cerr << "Need 2 plots for y1y2\n";
+    return;
   }
-  else {
-    if (plots.size() != 2) {
-      std::cerr << "Need 2 plots for y1y2\n";
-      return;
-    }
 
-    view->initY1Y2(plots[0], plots[1]);
-  }
+  view->initY1Y2(plots[0], plots[1]);
 }
 
 void
@@ -2975,10 +3774,10 @@ sortCmd(const Args &args)
     }
   }
 
-  if (viewDatas_.empty())
-    return;
+  ViewData *viewData = currentViewData();
 
-  ViewData &viewData = currentViewData();
+  if (! viewData)
+    return;
 
   sortModel(viewData, sort);
 }

@@ -57,9 +57,9 @@ class CQChartsDisplayRange {
 
  public:
   CQChartsDisplayRange(double pixel_xmin  =   0, double pixel_ymin  =   0,
-                  double pixel_xmax  = 100, double pixel_ymax  = 100,
-                  double window_xmin = 0.0, double window_ymin = 0.0,
-                  double window_xmax = 1.0, double window_ymax = 1.0) :
+                       double pixel_xmax  = 100, double pixel_ymax  = 100,
+                       double window_xmin = 0.0, double window_ymin = 0.0,
+                       double window_xmax = 1.0, double window_ymax = 1.0) :
    pixel_ (pixel_xmin , pixel_ymin , pixel_xmax , pixel_ymax ),
    window_(window_xmin, window_ymin, window_xmax, window_ymax), window1_(window_) {
     reset();
@@ -94,8 +94,12 @@ class CQChartsDisplayRange {
     *pixel_ymax = pixel_ymax1;
   }
 
-  double getPixelWidth () const { return (pixel_.dx() >= 0 ? pixel_.dx() + 1 : pixel_.dx() - 1); }
-  double getPixelHeight() const { return (pixel_.dy() >= 0 ? pixel_.dy() + 1 : pixel_.dy() - 1); }
+  void setPixelAdjust(double dp) { dp_ = dp; }
+
+  double getPixelWidth () const {
+    return (pixel_.dx() >= 0 ? pixel_.dx() + dp_ : pixel_.dx() - dp_); }
+  double getPixelHeight() const {
+    return (pixel_.dy() >= 0 ? pixel_.dy() + dp_ : pixel_.dy() - dp_); }
 
   void getWindowRange(double *window_xmin, double *window_ymin,
                       double *window_xmax, double *window_ymax) const {
@@ -279,6 +283,11 @@ class CQChartsDisplayRange {
     *pixel_y = CMathRound::Round(pixel_y1);
   }
 
+  void invertPixel(double px, double py, double &ipx, double &ipy) {
+    ipx = pixel_.xmax - (px - pixel_.xmin);
+    ipy = pixel_.ymax - (py - pixel_.ymin);
+  }
+
   void pixelToWindow(const CQChartsGeom::Point &pixel, CQChartsGeom::Point &window) const {
     pixelToWindow(pixel.x, pixel.y, &window.x, &window.y);
   }
@@ -359,6 +368,8 @@ class CQChartsDisplayRange {
 
   double pdx_ { 0.0 };
   double pdy_ { 0.0 };
+
+  double dp_ { 1.0 };
 
   bool equal_scale_ { false };
   bool scale_min_   { true };

@@ -1,0 +1,5 @@
+palette -redModel 1 -greenModel 7 -blueModel 4 -negateBlue 1 -redMax 0.8 -greenMax 0.8
+
+palette -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
+
+theme -color_type defined -defined "0=#2a2a2a 1=#ffffff"

@@ -199,7 +199,8 @@ calcDetails(Details &details)
     if (columnTypeMgr->getModelColumnType(model_.data(), c, type, nameValues)) {
       CQChartsColumnType *columnType = columnTypeMgr->getType(type);
 
-      typeName = columnType->name();
+      if (columnType)
+        typeName = columnType->name();
 
       if (type == CQBaseModel::Type::INTEGER) {
         long imin = 0; long imax = 0; bool iset = false;

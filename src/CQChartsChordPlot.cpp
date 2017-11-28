@@ -38,9 +38,26 @@ CQChartsChordPlot::
 CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("chord"), model)
 {
+  textBox_ = new CQChartsRotatedTextBoxObj(this);
+
+  borderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   setLayerActive(Layer::FG, true);
 
   addTitle();
+}
+
+CQChartsChordPlot::
+~CQChartsChordPlot()
+{
+  delete textBox_;
+}
+
+QColor
+CQChartsChordPlot::
+interpBorderColor(int i, int n) const
+{
+  return borderColor_.interpColor(this, i, n);
 }
 
 void
@@ -57,13 +74,13 @@ addProperties()
   addProperty(""       , this, "borderColor"         );
   addProperty(""       , this, "arcAlpha"            );
 
-  addProperty("label", &textBox_, "visible");
-  addProperty("label", &textBox_, "font"   );
-  addProperty("label", &textBox_, "color"  );
+  addProperty("label", textBox_, "visible");
+  addProperty("label", textBox_, "font"   );
+  addProperty("label", textBox_, "color"  );
 
   QString labelBoxPath = id() + "/label/box";
 
-  textBox_.CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
+  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 }
 
 void
@@ -277,19 +294,16 @@ initObjs()
   for (int r = 0; r < nv; ++r) {
     CQChartsChordData &data = datas[r];
 
-    double total1 = data.total();
-
     CQChartsGeom::BBox rect(-1, -1, 1, 1);
 
     CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, r, nv);
 
-    if (data.group().str != "")
-      obj->setId(QString("%1:%2:%3").arg(data.name()).arg(data.group().str).arg(total1));
-    else
-      obj->setId(QString("%1:%2").arg(data.name()).arg(total1));
-
     addPlotObject(obj);
   }
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -319,6 +333,16 @@ CQChartsChordObj(CQChartsChordPlot *plot, const CQChartsGeom::BBox &rect,
                  const CQChartsChordData &data, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), data_(data), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsChordObj::
+calcId() const
+{
+  if (data_.group().str != "")
+    return QString("%1:%2:%3").arg(data_.name()).arg(data_.group().str).arg(data_.total());
+  else
+    return QString("%1:%2").arg(data_.name()).arg(data_.total());
 }
 
 bool
@@ -412,7 +436,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   if (layer == CQChartsPlot::Layer::MID) {
     // draw value set arc
-    QColor borderColor = plot_->borderColor();
+    QColor borderColor = plot_->interpBorderColor(0, 1);
 
     QPainterPath path;
 
@@ -437,7 +461,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       fromColor = plot_->groupPaletteColor(gval, r, 0.1);
     }
     else
-      fromColor = plot_->paletteColor(i(), n());
+      fromColor = plot_->interpPaletteColor(i(), n());
 
     QBrush brush(fromColor);
 
@@ -470,7 +494,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
       CQChartsChordObj *toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
 
-      QColor toColor = plot_->paletteColor(toObj->i(), toObj->n());
+      QColor toColor = plot_->interpPaletteColor(toObj->i(), toObj->n());
 
       double a2, da2;
 
@@ -543,6 +567,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
   //---
 
   if (layer == CQChartsPlot::Layer::FG && data_.name() != "") {
+    if (! plot_->textBox()->isVisible())
+      return;
+
     double total = data_.total();
 
     if (CQChartsUtil::isZero(total))
@@ -597,7 +624,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
         align = Qt::AlignRight | Qt::AlignVCenter;
       }
 
-      QColor bg = plot_->paletteColor(i_, n_);
+      QColor bg = plot_->interpPaletteColor(i_, n_);
 
       p->setPen(bg);
 
@@ -616,11 +643,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       angle = (tc >= 0 ? ta : 180.0 + ta);
 #endif
 
-    plot_->textBox().draw(p, pt, data_.name(), angle, align);
+    plot_->textBox()->draw(p, pt, data_.name(), angle, align);
 
-    CQChartsGeom::BBox tbbox;
+    //CQChartsGeom::BBox tbbox;
 
-    plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
+    //plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox()->rect()), tbbox);
   }
 }
 

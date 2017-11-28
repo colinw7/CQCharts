@@ -2,6 +2,8 @@
 #define CQChartsPlotSymbol_H
 
 #include <QString>
+#include <QBrush>
+#include <QPen>
 #include <vector>
 
 class CQChartsPlotSymbolRenderer;
@@ -109,7 +111,6 @@ class CQChartsPlotSymbolRenderer {
 
 #include <CQChartsGeom.h>
 #include <QPainterPath>
-#include <QColor>
 
 class CQChartsPlot;
 class QPainter;
@@ -140,8 +141,8 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double              s_       { 2.0 };
   double              w_       { 0.0 };
   QPainterPath        path_;
-  QColor              pc_;
-  QColor              fc_;
+  QPen                strokePen_;
+  QBrush              fillBrush_;
 };
 
 #endif

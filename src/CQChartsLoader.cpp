@@ -16,20 +16,31 @@ CQChartsLoader(CQCharts *charts) :
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
 
+  //---
+
   QGridLayout *promptGrid = new QGridLayout;
 
   layout->addLayout(promptGrid);
 
+  //---
+
+  // Type Combo
   typeCombo_ = new QComboBox;
+
+  typeCombo_->setObjectName("typeCombo");
 
   typeCombo_->addItem("CSV");
   typeCombo_->addItem("TSV");
   typeCombo_->addItem("Json");
   typeCombo_->addItem("Data");
+  typeCombo_->addItem("Expr");
 
   promptGrid->addWidget(new QLabel("Type"), 0, 0);
   promptGrid->addWidget(typeCombo_        , 0, 1);
 
+  //---
+
+  // File Prompt
   fileEdit_ = new CQFilename;
 
   promptGrid->addWidget(new QLabel("File"), 1, 0);
@@ -37,6 +48,7 @@ CQChartsLoader(CQCharts *charts) :
 
   //---
 
+  // Option Checks
   QHBoxLayout *optionLayout = new QHBoxLayout;
 
   commentHeaderCheck_ = new QCheckBox("Comment Header");
@@ -53,10 +65,22 @@ CQChartsLoader(CQCharts *charts) :
 
   //---
 
+  // Number Edit
+  numberEdit_ = new QLineEdit;
+
+  numberEdit_->setObjectName("numberEdit");
+  numberEdit_->setText("100");
+
+  promptGrid->addWidget(new QLabel("Num Rows"), 2, 0);
+  promptGrid->addWidget(numberEdit_           , 2, 1);
+
+  //---
+
   layout->addStretch(1);
 
   //---
 
+  // Bottom Buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
 
   QPushButton *okButton     = new QPushButton("OK");
@@ -90,6 +114,20 @@ CQChartsLoader::
 isFirstLineHeader() const
 {
   return firstLineHeaderCheck_->isChecked();
+}
+
+int
+CQChartsLoader::
+numRows() const
+{
+  bool ok;
+
+  int n = numberEdit_->text().toInt(&ok);
+
+  if (! ok)
+    n = 100;
+
+  return n;
 }
 
 void

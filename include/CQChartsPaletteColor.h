@@ -1,36 +1,53 @@
-#ifndef CQChartsCQChartsPaletteColor_H
-#define CQChartsCQChartsPaletteColor_H
+#ifndef CQChartsPaletteColor_H
+#define CQChartsPaletteColor_H
 
 #include <QColor>
 
-struct CQChartsPaletteColor {
-  bool   palette { true };
-  QColor color   { 0, 0, 0 };
+class CQChartsPlot;
 
-  CQChartsPaletteColor() :
-   palette(true) {
+class CQChartsPaletteColor {
+ public:
+  enum class Type {
+    PALETTE,
+    PALETTE_VALUE,
+    THEME_VALUE,
+    COLOR
+  };
+
+ public:
+  CQChartsPaletteColor() = default;
+
+  CQChartsPaletteColor(Type type, double value=0.0) :
+   type_(type), value_(value) {
   }
 
-  CQChartsPaletteColor(const QColor &color, bool palette) :
-   palette(palette), color(color) {
+  CQChartsPaletteColor(const QColor &color) :
+   type_(Type::COLOR), color_(color) {
   }
 
-  QString colorStr() const {
-    if (palette)
-      return "palette";
-
-    return color.name();
+  void setColor(const QColor &color) {
+    type_  = Type::COLOR;
+    color_ = color;
   }
 
-  void setColorStr(const QString &str) {
-    if (str == "palette") {
-      palette = true;
-    }
-    else {
-      palette = false;
-      color   = QColor(str);
-    }
+  void setValue(Type type, double value=0.0) {
+    type_  = type;
+    value_ = value;
   }
+
+  QString colorStr() const;
+
+  void setColorStr(const QString &str);
+
+  QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
+
+  QColor interpColor(const CQChartsPlot *plot, double value) const;
+
+ private:
+  Type   type_  { Type::COLOR };
+  double value_ { 0.0 };
+  QColor color_ { 0, 0, 0 };
+  bool   scale_ { false };
 };
 
 #endif

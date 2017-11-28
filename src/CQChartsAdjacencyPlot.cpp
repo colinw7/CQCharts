@@ -3,6 +3,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQRotatedText.h>
+#include <CQRoundedPolygon.h>
 #include <CQStrParse.h>
 
 #include <QAbstractItemModel>
@@ -36,8 +37,20 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsAdjacencyPlot::
 CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
+ CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
+ bgBox_(this), cellBox_(this), emptyCellBox_(this)
 {
+  CQChartsPaletteColor bg         (CQChartsPaletteColor::Type::THEME_VALUE, 0.2);
+  CQChartsPaletteColor border     (CQChartsPaletteColor::Type::THEME_VALUE, 1.0);
+  CQChartsPaletteColor emptyCellBg(CQChartsPaletteColor::Type::THEME_VALUE, 0.1);
+
+  bgBox_       .setBackgroundColor(bg);
+  cellBox_     .setBorderColor    (border);
+  cellBox_     .setBorderAlpha    (0.5);
+  emptyCellBox_.setBackgroundColor(emptyCellBg);
+
+  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   setMargins(0, 0, 0, 0);
 
   addTitle();
@@ -54,21 +67,35 @@ addProperties()
   addProperty("columns", this, "groupColumn"      , "group"     );
   addProperty("columns", this, "nameColumn"       , "name"      );
   addProperty(""       , this, "bgColor"          , ""          );
-  addProperty(""       , this, "textColor"        , ""          );
+  addProperty(""       , this, "borderColor"      , ""          );
+  addProperty(""       , this, "borderAlpha"      , ""          );
   addProperty(""       , this, "emptyCellColor"   , ""          );
+  addProperty(""       , this, "textColor"        , ""          );
+  addProperty(""       , this, "cornerSize"       , ""          );
   addProperty(""       , this, "font"             , ""          );
+  addProperty(""       , this, "margin"           , ""          );
 }
 
 void
 CQChartsAdjacencyPlot::
 updateRange(bool apply)
 {
+  double xr = 1.0;
+  double yr = 1.0;
+
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    if (aspect > 1.0)
+      xr *= aspect;
+    else
+      yr *= 1.0/aspect;
+  }
+
   dataRange_.reset();
 
-  dataRange_.updateRange(0, 0);
-  dataRange_.updateRange(1, 1);
-
-  //setEqualScale(true);
+  dataRange_.updateRange( 0,  0);
+  dataRange_.updateRange(xr, yr);
 
   //---
 
@@ -150,8 +177,7 @@ initObjs()
     const QString&     name  = idConnections.second.name;
     int                group = idConnections.second.group;
 
-    CQChartsAdjacencyNode *node =
-      new CQChartsAdjacencyNode(id, name.toStdString(), group, ind);
+    CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, name, group, ind);
 
     nodes_[id] = node;
   }
@@ -177,6 +203,9 @@ initObjs()
 
   //---
 
+  double xb = pixelToWindowWidth (margin());
+  double yb = pixelToWindowHeight(margin());
+
   maxLen_ = 0;
 
   for (auto node1 : sortedNodes_) {
@@ -185,16 +214,16 @@ initObjs()
 
   int nn = numNodes();
 
-  scale_ = 1.0/(nn + maxLen_*factor_);
+  scale_ = (1.0 - 2*std::max(xb, yb))/(nn + maxLen_*factor_);
 
   double tsize = maxLen_*factor_*scale_;
 
   //---
 
-  double y = 1.0 - tsize;
+  double y = 1.0 - tsize - yb;
 
   for (auto node1 : sortedNodes_) {
-    double x = tsize;
+    double x = tsize + xb;
 
     for (auto node2 : sortedNodes_) {
       int value = node1->nodeValue(node2);
@@ -205,10 +234,6 @@ initObjs()
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
 
-        obj->setId(QString("%1(%2):%3(%4):%5").
-          arg(node1->name().c_str()).arg(node1->group()).
-          arg(node2->name().c_str()).arg(node2->group()).arg(value));
-
         addPlotObject(obj);
       }
 
@@ -217,6 +242,10 @@ initObjs()
 
     y -= scale_;
   }
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -334,6 +363,17 @@ autoFit()
 
 void
 CQChartsAdjacencyPlot::
+handleResize()
+{
+  dataRange_.reset();
+
+  clearPlotObjects();
+
+  CQChartsPlot::handleResize();
+}
+
+void
+CQChartsAdjacencyPlot::
 draw(QPainter *p)
 {
   initObjs();
@@ -378,13 +418,13 @@ drawBackground(QPainter *p)
   double twMax = 0.0;
 
   // draw row labels
-  p->setPen(textColor());
+  p->setPen(interpTextColor(0, 1));
 
-  double px = pxo;
-  double py = pyo + yts;
+  double px = pxo + margin();
+  double py = pyo + margin() + yts;
 
   for (auto node : sortedNodes_) {
-    QString str = node->name().c_str();
+    const QString &str = node->name();
 
     double tw = fm.width(str) + 4;
 
@@ -398,11 +438,11 @@ drawBackground(QPainter *p)
   drawFactor_ = twMax/std::min(maxLen_*pxs, maxLen_*pys);
 
   // draw column labels
-  px = pxo + xts;
-  py = pyo + yts;
+  px = pxo + margin() + xts;
+  py = pyo + margin() + yts;
 
   for (auto node : sortedNodes_) {
-    CQRotatedText::drawRotatedText(p, px + pxs/2, py - 2, node->name().c_str(), 90,
+    CQRotatedText::drawRotatedText(p, px + pxs/2, py - 2, node->name(), 90,
                                    Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
     px += pxs;
@@ -412,19 +452,21 @@ drawBackground(QPainter *p)
 
   int nn = numNodes();
 
-  px = pxo + xts;
-  py = pyo + yts;
+  px = pxo + margin() + xts;
+  py = pyo + margin() + yts;
 
-  p->fillRect(QRectF(px, py, nn*pxs, nn*pys), bgColor());
+  QRectF cellRect(px, py, nn*pxs, nn*pys);
+
+  p->fillRect(cellRect, interpBgColor(0, 1));
 
   //---
 
-  QColor bc = emptyCellColor();
+  QColor bc = interpEmptyCellColor(0, 1);
 
-  py = pyo + yts;
+  py = pyo + margin() + yts;
 
   for (auto node1 : sortedNodes_) {
-    double px = pxo + xts;
+    double px = pxo + margin() + xts;
 
     for (auto node2 : sortedNodes_) {
       int value = node1->nodeValue(node2);
@@ -437,7 +479,10 @@ drawBackground(QPainter *p)
         p->setPen  (pc);
         p->setBrush(bc);
 
-        p->drawRect(QRectF(px, py, pxs, pys));
+        QRectF cellRect(px, py, pxs, pys);
+
+        double cs = 0; // cornerSize()
+        CQRoundedPolygon::draw(p, cellRect, cs);
       }
 
       px += pxs;
@@ -459,9 +504,9 @@ drawForeground(QPainter *p)
 
 QColor
 CQChartsAdjacencyPlot::
-groupColor(int group) const
+interpGroupColor(int group) const
 {
-  return interpPaletteColor((1.0*group)/maxGroup_, Qt::white);
+  return interpPaletteColor((1.0*group)/maxGroup_);
 }
 
 //------
@@ -471,6 +516,14 @@ CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                      CQChartsAdjacencyNode *node2, int value, const CQChartsGeom::BBox &rect) :
  CQChartsPlotObj(rect), plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
+}
+
+QString
+CQChartsAdjacencyObj::
+calcId() const
+{
+  return QString("%1(%2):%3(%4):%5").arg(node1_->name()).arg(node1_->group()).
+                                     arg(node2_->name()).arg(node2_->group()).arg(value_);
 }
 
 void
@@ -503,14 +556,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //int nn = plot_->numNodes();
 
-  QColor bc = plot_->emptyCellColor();
+  QColor bc = plot_->interpEmptyCellColor(0, 1);
 
+  // node to self (diagonal)
   if (node1_ == node2_) {
-    bc = plot_->groupColor(node1_->group());
+    bc = plot_->interpGroupColor(node1_->group());
   }
+  // node to other node (scale to connections)
   else {
-    QColor c1 = plot_->groupColor(node1_->group());
-    QColor c2 = plot_->groupColor(node2_->group());
+    QColor c1 = plot_->interpGroupColor(node1_->group());
+    QColor c2 = plot_->interpGroupColor(node2_->group());
 
     double s = (1.0*plot_->maxValue() - value_)/plot_->maxValue();
 
@@ -521,7 +576,12 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     bc = QColor(r, g, b);
   }
 
-  QColor pc = bc.lighter(120);
+  //---
+
+  //QColor pc = bc.lighter(120);
+  QColor pc = plot_->interpBorderColor(0, 1);
+
+  pc.setAlphaF(plot_->borderAlpha());
 
   QBrush brush(bc);
   QPen   pen  (pc);
@@ -537,7 +597,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(rect(), prect);
 
-  p->drawRect(CQChartsUtil::toQRect(prect));
+  CQRoundedPolygon::draw(p, CQChartsUtil::toQRect(prect), plot_->cornerSize());
 }
 
 bool

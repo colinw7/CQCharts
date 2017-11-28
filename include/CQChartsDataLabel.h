@@ -41,17 +41,14 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void addProperties(const QString &path);
 
-  void redrawBoxObj() override;
-
   void update();
 
   void draw(QPainter *p, const QRectF &qrect, const QString &ystr);
 
  private:
-  CQChartsPlot* plot_     { nullptr };
-  bool          visible_  { false };
-  Position      position_ { Position::TOP_INSIDE };
-  bool          clip_     { false };
+  bool     visible_  { false };
+  Position position_ { Position::TOP_INSIDE };
+  bool     clip_     { false };
 };
 
 #endif

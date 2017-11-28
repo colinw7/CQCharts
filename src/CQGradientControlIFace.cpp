@@ -72,6 +72,7 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
   //---
 
+  // red, green, blue function combos
   QGroupBox *functionGroupBox = new QGroupBox("Function");
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
@@ -97,6 +98,7 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
   //---
 
+  // red, green, blue negative check boxes
   QGroupBox *negateGroupBox = new QGroupBox("Negate");
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
@@ -127,6 +129,7 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
   //---
 
+  // red, green, blue min/max edits
   QGroupBox *rangeGroupBox = new QGroupBox("Range");
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
@@ -289,20 +292,79 @@ CQGradientControlIFace(CQGradientControlPlot *palette) :
 
 void
 CQGradientControlIFace::
-colorTypeChanged(int)
+updateState()
 {
   CGradientPalette *pal = palette_->gradientPalette();
 
-  pal->setColorType(colorType_->type());
+  setColorType (pal->colorType ());
+  setColorModel(pal->colorModel());
 
-  if      (pal->colorType() == CGradientPalette::ColorType::MODEL)
-    stack_->setCurrentIndex(0);
-  else if (pal->colorType() == CGradientPalette::ColorType::DEFINED)
-    stack_->setCurrentIndex(1);
-  else if (pal->colorType() == CGradientPalette::ColorType::FUNCTIONS)
-    stack_->setCurrentIndex(2);
-  else if (pal->colorType() == CGradientPalette::ColorType::CUBEHELIX)
-    stack_->setCurrentIndex(3);
+  setRedModel  (pal->redModel  ());
+  setGreenModel(pal->greenModel());
+  setBlueModel (pal->blueModel ());
+
+  modelRNegativeCheck_->setChecked(pal->isRedNegative  ());
+  modelGNegativeCheck_->setChecked(pal->isGreenNegative());
+  modelBNegativeCheck_->setChecked(pal->isBlueNegative ());
+
+  redMin_  ->setValue(pal->redMin  ());
+  redMax_  ->setValue(pal->redMax  ());
+  greenMin_->setValue(pal->greenMin());
+  greenMax_->setValue(pal->greenMax());
+  blueMin_ ->setValue(pal->blueMin ());
+  blueMax_ ->setValue(pal->blueMax ());
+
+  //---
+
+  setCubeStart     (pal->cbStart     ());
+  setCubeCycles    (pal->cbCycles    ());
+  setCubeSaturation(pal->cbSaturation());
+
+  //---
+
+  definedColors_->updateColors(pal);
+}
+
+void
+CQGradientControlIFace::
+colorTypeChanged(int)
+{
+  setColorType(colorType_->type());
+}
+
+CGradientPalette::ColorType
+CQGradientControlIFace::
+colorType() const
+{
+  CGradientPalette *pal = palette_->gradientPalette();
+
+  return pal->colorType();
+}
+
+void
+CQGradientControlIFace::
+setColorType(CGradientPalette::ColorType colorType)
+{
+  CGradientPalette *pal = palette_->gradientPalette();
+
+  pal->setColorType(colorType);
+
+  if      (colorType == CGradientPalette::ColorType::MODEL) {
+    colorType_->setCurrentIndex(0);
+    stack_    ->setCurrentIndex(0);
+  }
+  else if (colorType == CGradientPalette::ColorType::DEFINED) {
+    colorType_->setCurrentIndex(1);
+    stack_    ->setCurrentIndex(1);
+  }
+  else if (colorType == CGradientPalette::ColorType::FUNCTIONS) {
+    colorType_->setCurrentIndex(2);
+    stack_    ->setCurrentIndex(2);
+  }
+  else if (colorType == CGradientPalette::ColorType::CUBEHELIX) {
+    colorType_->setCurrentIndex(3);
+    stack_    ->setCurrentIndex(3);
+  }
 
   emit stateChanged();
 }
@@ -311,24 +373,29 @@ void
 CQGradientControlIFace::
 colorModelChanged(int)
 {
+  setColorModel(colorModel_->model());
+}
+
+CGradientPalette::ColorModel
+CQGradientControlIFace::
+colorModel() const
+{
   CGradientPalette *pal = palette_->gradientPalette();
 
-  pal->setColorModel(colorModel_->model());
+  return pal->colorModel();
+}
 
-  if (pal->colorModel() == CGradientPalette::ColorModel::HSV) {
-    redModelLabel_  ->setText("H");
-    greenModelLabel_->setText("S");
-    blueModelLabel_ ->setText("V");
+void
+CQGradientControlIFace::
+setColorModel(CGradientPalette::ColorModel colorModel)
+{
+  CGradientPalette *pal = palette_->gradientPalette();
 
-    modelRNegativeCheck_->setText("H");
-    modelGNegativeCheck_->setText("S");
-    modelBNegativeCheck_->setText("V");
+  pal->setColorModel(colorModel);
 
-    redMinMaxLabel_  ->setText("H");
-    greenMinMaxLabel_->setText("S");
-    blueMinMaxLabel_ ->setText("V");
-  }
-  else {
+  if      (colorModel == CGradientPalette::ColorModel::RGB) {
+    colorModel_->setCurrentIndex(0);
+
     redModelLabel_  ->setText("R");
     greenModelLabel_->setText("G");
     blueModelLabel_ ->setText("B");
@@ -340,6 +407,21 @@ colorModelChanged(int)
     redMinMaxLabel_  ->setText("R");
     greenMinMaxLabel_->setText("G");
     blueMinMaxLabel_ ->setText("B");
+  }
+  else if (colorModel == CGradientPalette::ColorModel::HSV) {
+    colorModel_->setCurrentIndex(1);
+
+    redModelLabel_  ->setText("H");
+    greenModelLabel_->setText("S");
+    blueModelLabel_ ->setText("V");
+
+    modelRNegativeCheck_->setText("H");
+    modelGNegativeCheck_->setText("S");
+    modelBNegativeCheck_->setText("V");
+
+    redMinMaxLabel_  ->setText("H");
+    greenMinMaxLabel_->setText("S");
+    blueMinMaxLabel_ ->setText("V");
   }
 
   emit stateChanged();
@@ -541,14 +623,21 @@ void
 CQGradientControlIFace::
 loadColorsSlot()
 {
-  CGradientPalette *pal = palette_->gradientPalette();
-
   QString dir = QDir::current().dirName();
 
   QString fileName = QFileDialog::getOpenFileName(this, "Open File", dir, "Files (*.*)");
 
   if (! fileName.length())
     return;
+
+  readFile(fileName);
+}
+
+void
+CQGradientControlIFace::
+readFile(const QString &fileName)
+{
+  CGradientPalette *pal = palette_->gradientPalette();
 
   pal->readFile(fileName.toStdString());
 
@@ -835,7 +924,7 @@ CQGradientControlModel(QWidget *parent) :
   setObjectName("model");
 
   for (int i = 0; i < CGradientPalette::numModels(); ++i)
-    addItem(CGradientPalette::modelName(i).c_str());
+    addItem(CGradientPalette::modelName(i).c_str() + QString(" (%1)").arg(i));
 }
 
 //---

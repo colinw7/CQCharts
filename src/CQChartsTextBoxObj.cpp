@@ -5,8 +5,33 @@
 #include <QPainter>
 
 CQChartsTextBoxObj::
-CQChartsTextBoxObj()
+CQChartsTextBoxObj(CQChartsPlot *plot) :
+ CQChartsBoxObj(plot)
 {
+  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  setColor(themeFg);
+}
+
+QString
+CQChartsTextBoxObj::
+colorStr() const
+{
+  return color_.colorStr();
+}
+
+void
+CQChartsTextBoxObj::
+setColorStr(const QString &s)
+{
+  color_.setColorStr(s);
+}
+
+QColor
+CQChartsTextBoxObj::
+interpColor(int i, int n) const
+{
+  return color_.interpColor(plot_, i, n);
 }
 
 void
@@ -27,6 +52,9 @@ void
 CQChartsTextBoxObj::
 draw(QPainter *p, const QRectF &rect) const
 {
+  if (! isVisible())
+    return;
+
   CQChartsBoxObj::draw(p, rect);
 
   //---
@@ -53,7 +81,7 @@ drawText(QPainter *p, const QRectF &rect, const QString &text) const
 {
   QFontMetricsF fm(font());
 
-  p->setPen (color());
+  p->setPen (interpColor(0, 1));
   p->setFont(font());
 
   p->drawText(rect.left() + margin(), rect.bottom() - margin() - fm.descent(), text);
@@ -62,14 +90,14 @@ drawText(QPainter *p, const QRectF &rect, const QString &text) const
 //------
 
 CQChartsRotatedTextBoxObj::
-CQChartsRotatedTextBoxObj()
+CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
+ CQChartsTextBoxObj(plot)
 {
 }
 
 void
 CQChartsRotatedTextBoxObj::
-draw(QPainter *p, const QPointF &c, const QString &text, double angle,
-     Qt::Alignment align) const
+draw(QPainter *p, const QPointF &c, const QString &text, double angle, Qt::Alignment align) const
 {
   p->save();
 
@@ -100,7 +128,8 @@ draw(QPainter *p, const QPointF &c, const QString &text, double angle,
   //---
 
   p->setFont(font());
-  p->setPen(color());
+
+  p->setPen(interpColor(0, 1));
 
   if (CQChartsUtil::isZero(angle)) {
     CQChartsBoxObj::draw(p, rect_);
@@ -120,7 +149,7 @@ draw(QPainter *p, const QPointF &c, const QString &text, double angle,
     CQChartsBoxObj::draw(p, poly);
   }
 
-  p->setPen(color());
+  p->setPen(interpColor(0, 1));
 
   CQRotatedText::drawRotatedText(p, c.x() + cd, c.y(), text, angle,
                                  align, /*alignBBox*/ true);

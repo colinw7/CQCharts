@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsBoxObj.h>
 
 //------
 
@@ -13,12 +14,12 @@ class CQChartsAdjacencyNode {
   using NodeMap   = std::map<int,NodeValue>;
 
  public:
-  CQChartsAdjacencyNode(int id, const std::string &name, int group, const QModelIndex &ind) :
+  CQChartsAdjacencyNode(int id, const QString &name, int group, const QModelIndex &ind) :
    id_(id), name_(name), group_(group), ind_(ind) {
   }
 
   int                id   () const { return id_   ; }
-  const std::string &name () const { return name_ ; }
+  const QString     &name () const { return name_ ; }
   int                group() const { return group_; }
   const QModelIndex &ind  () const { return ind_  ; }
 
@@ -49,7 +50,7 @@ class CQChartsAdjacencyNode {
 
  private:
   int         id_       { 0 }; // id
-  std::string name_;           // name
+  QString     name_;           // name
   int         group_    { 0 }; // group
   QModelIndex ind_;            // model index
   int         count_    { 0 }; // total connections
@@ -68,6 +69,8 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
                        CQChartsAdjacencyNode *node2, int value, const CQChartsGeom::BBox &rect);
 
+  QString calcId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void mousePress(const CQChartsGeom::Point &) override;
@@ -77,7 +80,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsAdjacencyPlot *plot_  { nullptr };
+  CQChartsAdjacencyPlot *plot_  { nullptr }; // parent plot
   CQChartsAdjacencyNode *node1_ { nullptr }; // row node
   CQChartsAdjacencyNode *node2_ { nullptr }; // column node
   int                    value_ { 0 };       // connections value
@@ -105,17 +108,24 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 //   connections       : node->node
 //   grid cell         : background color, empty cell color
 //   row/column labels : text color, font
+//   misc              : margin
+//
+// TODO: use box obj for box config
 class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
-  Q_PROPERTY(int    connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(int    groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(int    nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(QColor bgColor           READ bgColor           WRITE setBgColor          )
-  Q_PROPERTY(QColor textColor         READ textColor         WRITE setTextColor        )
-  Q_PROPERTY(QColor emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
-  Q_PROPERTY(QFont  font              READ font              WRITE setFont             )
+  Q_PROPERTY(int     nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
+  Q_PROPERTY(int     connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(int     groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(int     nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(QString bgColor           READ bgColorStr        WRITE setBgColorStr       )
+  Q_PROPERTY(QString borderColor       READ borderColorStr    WRITE setBorderColorStr   )
+  Q_PROPERTY(double  borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
+  Q_PROPERTY(QString emptyCellColor    READ emptyCellColorStr WRITE setEmptyCellColorStr)
+  Q_PROPERTY(double  cornerSize        READ cornerSize        WRITE setCornerSize       )
+  Q_PROPERTY(QString textColor         READ textColorStr      WRITE setTextColorStr     )
+  Q_PROPERTY(QFont   font              READ font              WRITE setFont             )
+  Q_PROPERTY(double  margin            READ margin            WRITE setMargin           )
 
  public:
   CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model);
@@ -132,17 +142,41 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
-  const QColor &bgColor() const { return bgColor_; }
-  void setBgColor(const QColor &c) { bgColor_ = c; update(); }
+  //---
 
-  const QColor &textColor() const { return textColor_; }
-  void setTextColor(const QColor &c) { textColor_ = c; update(); }
+  QString bgColorStr() const { return bgBox_.backgroundColorStr(); }
+  void setBgColorStr(const QString &s) { bgBox_.setBackgroundColorStr(s); update(); }
 
-  const QColor &emptyCellColor() const { return emptyCellColor_; }
-  void setEmptyCellColor(const QColor &c) { emptyCellColor_ = c; update(); }
+  QColor interpBgColor(int i, int n) const { return bgBox_.interpBackgroundColor(i, n); }
+
+  QString borderColorStr() const { return cellBox_.borderColorStr(); }
+  void setBorderColorStr(const QString &str) { cellBox_.setBorderColorStr(str); update(); }
+
+  QColor interpBorderColor(int i, int n) const {
+    return cellBox_.interpBorderColor(i, n); }
+
+  double borderAlpha() const { return cellBox_.borderAlpha(); }
+  void setBorderAlpha(double r) { cellBox_.setBorderAlpha(r); update(); }
+
+  QString emptyCellColorStr() const { return emptyCellBox_.backgroundColorStr(); }
+  void setEmptyCellColorStr(const QString &s) { emptyCellBox_.setBackgroundColorStr(s); update(); }
+
+  QColor interpEmptyCellColor(int i, int n) const {
+    return emptyCellBox_.interpBackgroundColor(i, n); }
+
+  double cornerSize() const { return cellBox_.borderCornerSize(); }
+  void setCornerSize(double r) { cellBox_.setBorderCornerSize(r); update(); }
+
+  QString textColorStr() const { return textColor_.colorStr(); }
+  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+
+  QColor interpTextColor(int i, int n) const { return textColor_.interpColor(this, i, n); }
 
   const QFont &font() const { return font_; }
   void setFont(const QFont &f) { font_ = f; update(); }
+
+  double margin() const { return bgBox_.margin(); }
+  void setMargin(double r) { bgBox_.setMargin(r); updateObjs(); }
 
   //---
 
@@ -163,11 +197,15 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  QColor groupColor(int) const;
+  QColor interpGroupColor(int) const;
 
   //---
 
   void autoFit() override;
+
+  //---
+
+  void handleResize();
 
   //---
 
@@ -208,24 +246,25 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
   using NodeArray = std::vector<CQChartsAdjacencyNode*>;
 
-  int                   nodeColumn_        { 0 };
-  int                   connectionsColumn_ { 1 };
-  int                   nameColumn_        { -1 };
-  int                   groupColumn_       { -1 };
-  QColor                bgColor_           { 200, 200, 200 };
-  QColor                textColor_         { 0, 0, 0 };
-  QColor                emptyCellColor_    { 238, 238, 238 };
-  QFont                 font_;
-  IdConnectionsData     idConnections_;
-  NodeMap               nodes_;
-  NodeArray             sortedNodes_;
-  CQChartsAdjacencyObj* insideObj_         { nullptr };
-  int                   maxValue_          { 0 };
-  int                   maxGroup_          { 0 };
-  int                   maxLen_            { 0 };
-  double                scale_             { 1.0 };
-  double                factor_            { 1.0 };
-  double                drawFactor_        { 1.0 };
+  int                   nodeColumn_        { 0 };       // node column
+  int                   connectionsColumn_ { 1 };       // connections column
+  int                   nameColumn_        { -1 };      // name column
+  int                   groupColumn_       { -1 };      // group column
+  CQChartsBoxObj        bgBox_;                         // background box data
+  CQChartsBoxObj        cellBox_;                       // cell box data
+  CQChartsBoxObj        emptyCellBox_;                  // empty cell box data
+  CQChartsPaletteColor  textColor_;                     // text data
+  QFont                 font_;                          // text font
+  IdConnectionsData     idConnections_;                 // connections by id
+  NodeMap               nodes_;                         // all nodes
+  NodeArray             sortedNodes_;                   // sorted nodes
+  CQChartsAdjacencyObj* insideObj_         { nullptr }; // last inside object
+  int                   maxValue_          { 0 };       // max node value
+  int                   maxGroup_          { 0 };       // max node group
+  int                   maxLen_            { 0 };       // max text length
+  double                scale_             { 1.0 };     // box size
+  double                factor_            { 1.0 };     // font factor
+  double                drawFactor_        { 1.0 };     // saved font factor
 };
 
 #endif

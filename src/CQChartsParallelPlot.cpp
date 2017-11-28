@@ -35,9 +35,18 @@ CQChartsParallelPlot::
 CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("parallel"), model)
 {
+  pointObj_ = new CQChartsPointObj(this);
+  lineObj_  = new CQChartsLineObj(this);
+
   //addKey(); TODO
 
   addTitle();
+}
+
+CQChartsParallelPlot::
+~CQChartsParallelPlot()
+{
+  delete lineObj_;
 }
 
 QString
@@ -59,6 +68,52 @@ setYColumnsStr(const QString &s)
   setYColumns(yColumns);
 
   return true;
+}
+
+QString
+CQChartsParallelPlot::
+pointsColorStr() const
+{
+  return pointObj_->strokeColorStr();
+}
+
+void
+CQChartsParallelPlot::
+setPointsColorStr(const QString &str)
+{
+  pointObj_->setStrokeColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsParallelPlot::
+interpPointsColor(int i, int n) const
+{
+  return pointObj_->interpStrokeColor(i, n);
+}
+
+QString
+CQChartsParallelPlot::
+linesColorStr() const
+{
+  return lineObj_->colorStr();
+}
+
+void
+CQChartsParallelPlot::
+setLinesColorStr(const QString &str)
+{
+  lineObj_->setColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsParallelPlot::
+interpLinesColor(int i, int n) const
+{
+  return lineObj_->interpColor(i, n);
 }
 
 void
@@ -228,23 +283,11 @@ initObjs()
     CQChartsParallelLineObj *lineObj =
       new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
 
-    int nl = poly.count();
-
-    QString id = xname + "\n";
-
-    for (int j = 0; j < nl; ++j) {
-      int yColumn = getSetColumn(j);
-
-      QString yname = model->headerData(yColumn, Qt::Horizontal).toString();
-
-      id += QString("  %1\t%2\n").arg(yname).arg(poly[j].y());
-    }
-
-    lineObj->setId(id);
-
     addPlotObject(lineObj);
 
     //---
+
+    int nl = poly.count();
 
     for (int j = 0; j < nl; ++j) {
       int yColumn = getSetColumn(j);
@@ -275,6 +318,10 @@ initObjs()
       addPlotObject(pointObj);
     }
   }
+
+  //---
+
+  initObjTree();
 }
 
 int
@@ -366,7 +413,7 @@ draw(QPainter *p)
 
     windowToPixel(j, dataRange_.ymax(), px, py);
 
-    p->setPen(yAxes_[j]->tickLabelColor());
+    p->setPen(yAxes_[j]->interpTickLabelColor(0, 1));
 
     p->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }
@@ -385,6 +432,31 @@ CQChartsParallelLineObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &re
                         const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), poly_(poly), ind_(ind), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsParallelLineObj::
+calcId() const
+{
+  QModelIndex xind = plot_->model()->index(i_, plot_->xColumn());
+
+  bool ok;
+
+  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+
+  QString id = xname + "\n";
+
+  int nl = poly_.count();
+
+  for (int j = 0; j < nl; ++j) {
+    int yColumn = plot_->getSetColumn(j);
+
+    QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+
+    id += QString("  %1\t%2\n").arg(yname).arg(poly_[j].y());
+  }
+
+  return id;
 }
 
 bool
@@ -472,14 +544,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     poly << QPointF(x, y);
   }
 
-  QColor lc = plot_->paletteColor(i_, n_, plot_->linesColor());
+  QColor lc = plot_->interpPaletteColor(i_, n_, /*scale*/false);
   double lw = plot_->linesWidth();
 
   QBrush brush(Qt::NoBrush);
   QPen   pen(lc);
 
   if (lw > 0)
-    pen.setWidth(lw);
+    pen.setWidthF(lw);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -516,6 +588,23 @@ CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &r
  CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), iset_(iset), nset_(nset),
  i_(i), n_(n)
 {
+}
+
+QString
+CQChartsParallelPointObj::
+calcId() const
+{
+  QModelIndex xind = plot_->model()->index(iset_, plot_->xColumn());
+
+  bool ok;
+
+  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+
+  int yColumn = plot_->getSetColumn(i_);
+
+  QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+
+  return QString("%1:%2=%3").arg(xname).arg(yname).arg(y_);
 }
 
 bool
@@ -576,9 +665,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
     return;
 
   CQChartsPlotSymbol::Type symbol = plot_->symbolType();
-  QColor                   c      = plot_->paletteColor(i_, n_, plot_->pointsColor());
   bool                     filled = plot_->isSymbolFilled();
   double                   s      = plot_->symbolSize();
+
+  QColor c = plot_->interpPaletteColor(i_, n_, /*scale*/false);
 
   CQChartsGeom::Point pp(x_, y_);
 
@@ -589,5 +679,5 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (isInside() || isSelected())
     s *= 2;
 
-  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, c, filled);
+  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, true, c, 1, filled, c);
 }

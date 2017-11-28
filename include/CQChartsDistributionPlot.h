@@ -21,6 +21,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int bucket, const Values &value, int i, int n);
 
+  QString calcId() const override;
+
   void mousePress(const CQChartsGeom::Point &) override;
 
   bool isIndex(const QModelIndex &) const override;
@@ -62,7 +64,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
   Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
   Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
-  Q_PROPERTY(QColor  borderColor      READ borderColor       WRITE setBorderColor     )
+  Q_PROPERTY(QString borderColor      READ borderColorStr    WRITE setBorderColorStr  )
   Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
   Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
   Q_PROPERTY(bool    barFill          READ isBarFill         WRITE setBarFill         )
@@ -117,8 +119,10 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool isBorder() const;
   void setBorder(bool b);
 
-  const QColor &borderColor() const;
-  void setBorderColor(const QColor &c);
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &s);
+
+  QColor interpBorderColor(int i, int n) const;
 
   double borderWidth() const;
   void setBorderWidth(double r);
@@ -155,7 +159,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  QColor barColor(int i, int n) const;
+  QColor interpBarColor(int i, int n) const;
 
   void addKeyItems(CQChartsKey *key) override;
 
@@ -178,7 +182,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   double               margin_      { 2 };
   CQChartsBoxObj*      borderObj_   { nullptr };
   CQChartsFillObj*     fillObj_     { nullptr };
-  CQChartsPaletteColor barColor_    { QColor(100, 100, 200), true };
+  CQChartsPaletteColor barColor_;
   CQChartsDataLabel    dataLabel_;
 };
 

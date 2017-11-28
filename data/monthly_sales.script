@@ -1,33 +1,79 @@
+# Bar chart key click should hide all
+
 load -tsv monthly_sales.tsv -comment_header
 
-plot -type barchart -columns "category=0,value=1"-title "Actual Sales"
+plot -type barchart -columns "category=0,value=1,label=4" -column_type "1#real:format=$%gK,format_scale=0.001;2#real:format=$%gK,format_scale=0.001;3#real:format=$%gK,format_scale=0.001" -title "Actual Sales" -ymax 80000
 
 @let plot1 = rc
 
 view -view view1 -title "Monthly Sales Data"
 
+palette -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
+#palette -color_type defined -defined "0=#4d81bc 1=#c0504e 2=#9bbb58"
+#theme -color_type defined -defined "0=#ffffff 1=#000000 2=#808080"
+#theme -color_type defined -defined "0=#2a2a2a 1=#ffffff 2=#808080"
+
+palette -get_color 0 -get_color_scale
+@let color0 = rc
+palette -get_color 1 -get_color_scale
+@let color1 = rc
+palette -get_color 2 -get_color_scale
+@let color2 = rc
+
 set -view view1 -name insideMode -value OUTLINE
 
-set -view view1 -plot "${plot1}" -name barMargin -value 8
-set -view view1 -plot "${plot1}" -name Key.visible -value 0
+set -view view1 -plot "${plot1}" -name barMargin                  -value 8
+set -view view1 -plot "${plot1}" -name fill.color                 -value "palette:0:s"
+set -view view1 -plot "${plot1}" -name keySets                    -value 1
+set -view view1 -plot "${plot1}" -name dataLabel.visible          -value 1
+set -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUTSIDE
+#set -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
+#set -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
+#set -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
+set -view view1 -plot "${plot1}" -name "X Axis.majorIncrement"    -value 1
+set -view view1 -plot "${plot1}" -name "X Axis.label.text"        -value ""
+#set -view view1 -plot "${plot1}" -name "X Axis.label.color"       -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "X Axis.ticks.label.color" -value "theme:1"
 set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.visible" -value 1
-set -view view1 -plot "${plot1}" -name fill.color -value "#2060dd"
+#set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.color"   -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "Y Axis.label.color"       -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "Y Axis.ticks.label.color" -value "theme:1"
+#set -view view1 -plot "${plot1}" -name Key.visible                -value 0
+set -view view1 -plot "${plot1}" -name Key.insideY                -value 0
+set -view view1 -plot "${plot1}" -name Key.location               -value bc
+set -view view1 -plot "${plot1}" -name Key.horizontal             -value 1
+set -view view1 -plot "${plot1}" -name Key.background.visible     -value 0
+set -view view1 -plot "${plot1}" -name Key.border.visible         -value 0
+#set -view view1 -plot "${plot1}" -name Key.text.color             -value "theme:1"
+set -view view1 -plot "${plot1}" -name Title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
+#set -view view1 -plot "${plot1}" -name Title.text.color           -value "theme:1"
 
 plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 
 @let plot2 = rc
 
-set -view view1 -plot "${plot2}" -name points.symbol -value circle
-set -view view1 -plot "${plot2}" -name points.filled -value 1
-set -view view1 -plot "${plot2}" -name points.size   -value 6
+set -view view1 -plot "${plot2}" -name points.symbol         -value circle
+set -view view1 -plot "${plot2}" -name points.size           -value 6
+set -view view1 -plot "${plot2}" -name points.fill.visible   -value 1
+set -view view1 -plot "${plot2}" -name points.fill.color     -value "palette:1:s"
+set -view view1 -plot "${plot2}" -name points.stroke.visible -value 0
+set -view view1 -plot "${plot2}" -name lines.width           -value 3
+set -view view1 -plot "${plot2}" -name lines.rounded         -value 1
+set -view view1 -plot "${plot2}" -name lines.color           -value "palette:1:s"
 
 plot -type xy -columns "x=0,y=3"-title "Profit"
 
 @let plot3 = rc
 
-set -view view1 -plot "${plot3}" -name fillUnder.visible -value 1
-set -view view1 -plot "${plot3}" -name fillUnder.color -value "#60dd20"
-set -view view1 -plot "${plot3}" -name points.symbol -value circle
+set -view view1 -plot "${plot3}" -name fillUnder.visible   -value 1
+set -view view1 -plot "${plot3}" -name fillUnder.color     -value "palette:2:s"
+set -view view1 -plot "${plot3}" -name points.symbol       -value circle
+set -view view1 -plot "${plot3}" -name points.size         -value 6
+set -view view1 -plot "${plot3}" -name points.stroke.color -value white
+set -view view1 -plot "${plot3}" -name points.stroke.width -value 3
+set -view view1 -plot "${plot3}" -name points.fill.visible -value 1
+set -view view1 -plot "${plot3}" -name points.fill.color   -value "palette:2:s"
+set -view view1 -plot "${plot3}" -name lines.rounded       -value 1
 
 overlay "${plot1}" "${plot2}"
 overlay "${plot2}" "${plot3}"

@@ -6,6 +6,7 @@
 class CQHeaderViewWidgetFactory;
 class QTableView;
 class QTreeView;
+class QSortFilterProxyModel;
 
 class CQHeaderView : public QHeaderView {
   Q_OBJECT
@@ -34,11 +35,15 @@ class CQHeaderView : public QHeaderView {
 
   void handleSectionMoved(int logical, int oldVisualIndex, int newVisualIndex);
 
+  void handleSectionClicked(int logical);
+
   void fitColumnSlot();
   void fitAllSlot();
 
   void stretchLastSlot(bool b);
   void sortIndicatorSlot(bool b);
+
+  void resetSortSlot();
 
  private:
   typedef std::map<int,int> ColumnWidths;
@@ -48,12 +53,15 @@ class CQHeaderView : public QHeaderView {
   void calcTreeWidths(QTreeView *tree, const QModelIndex &ind,
                       int depth, ColumnWidths &columnWidths);
 
+  QSortFilterProxyModel *proxyModel();
+
  private:
   typedef QList<QWidget *> Widgets;
 
   CQHeaderViewWidgetFactory *factory_ { nullptr };
   Widgets                    widgets_;
   int                        menuSection_ { -1 };
+  int                        sortRole_ { -1 };
 };
 
 //---

@@ -39,8 +39,8 @@ CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
 {
-  borderObj_ = new CQChartsBoxObj;
-  fillObj_   = new CQChartsFillObj;
+  borderObj_ = new CQChartsBoxObj(this);
+  fillObj_   = new CQChartsFillObj(this);
 
   fillObj_->setVisible(true);
 
@@ -52,7 +52,7 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 
   addAxes();
 
-  addKey();
+  //addKey();
 
   addTitle();
 }
@@ -109,18 +109,25 @@ setBorder(bool b)
   borderObj_->setBorder(b); update();
 }
 
-const QColor &
+QString
 CQChartsDistributionPlot::
-borderColor() const
+borderColorStr() const
 {
-  return borderObj_->borderColor();
+  return borderObj_->borderColorStr();
 }
 
 void
 CQChartsDistributionPlot::
-setBorderColor(const QColor &c)
+setBorderColorStr(const QString &s)
 {
-  borderObj_->setBorderColor(c); update();
+  borderObj_->setBorderColorStr(s); update();
+}
+
+QColor
+CQChartsDistributionPlot::
+interpBorderColor(int i, int n) const
+{
+  return borderObj_->interpBorderColor(i, n);
 }
 
 double
@@ -185,12 +192,9 @@ setBarColorStr(const QString &str)
 
 QColor
 CQChartsDistributionPlot::
-barColor(int i, int n) const
+interpBarColor(int i, int n) const
 {
-  if (! fillObj_->isPalette())
-    return fillObj_->color();
-
-  return paletteColor(i, n);
+  return fillObj_->interpColor(i, n);
 }
 
 double
@@ -354,10 +358,6 @@ initObjs()
       value2 = value1 + deltaValue();
     }
 
-    QString id = QString("%1%2%3 : %4").arg(value1).arg(arrowChar).arg(value2).arg(values.size());
-
-    barObj->setId(id);
-
     addPlotObject(barObj);
 
     //---
@@ -387,7 +387,11 @@ initObjs()
 
   //---
 
-  resetKeyItems();
+  //resetKeyItems();
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -421,6 +425,23 @@ CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::B
                            int bucket, const Values &values, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), bucket_(bucket), values_(values), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsDistributionBarObj::
+calcId() const
+{
+  QChar arrowChar(0x2192);
+
+  double value1 = 0.0;
+  double value2 = 0.0;
+
+  if (plot_->deltaValue() > 0.0) {
+    value1 = bucket_*plot_->deltaValue() + plot_->startValue();
+    value2 = value1 + plot_->deltaValue();
+  }
+
+  return QString("%1%2%3 : %4").arg(value1).arg(arrowChar).arg(value2).arg(values_.size());
 }
 
 void
@@ -486,8 +507,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     QPen pen;
 
     if (plot_->isBorder()) {
-      pen.setColor(plot_->borderColor());
-      pen.setWidth(plot_->borderWidth());
+      pen.setColor (plot_->interpBorderColor(0, 1));
+      pen.setWidthF(plot_->borderWidth());
     }
     else {
       pen.setStyle(Qt::NoPen);
@@ -497,9 +518,9 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     QBrush barBrush;
 
     if (plot_->isBarFill()) {
-      QColor barColor = plot_->barColor(i_, n_);
+      QColor barColor = plot_->interpBarColor(i_, n_);
 
-      barColor.setAlpha(plot_->barAlpha()*255);
+      barColor.setAlphaF(plot_->barAlpha());
 
       barBrush.setColor(barColor);
       barBrush.setStyle(CQChartsFillObj::patternToStyle(

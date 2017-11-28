@@ -85,12 +85,26 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   }
 
   QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
+    double value = userData(var, nameValues).toDouble();
+
     auto p1 = nameValues.find("format");
 
-    if (p1 != nameValues.end())
-      return CQChartsUtil::toString(userData(var, nameValues).toDouble(), (*p1).second);
+    if (p1 != nameValues.end()) {
+      auto p2 = nameValues.find("format_scale");
+
+      if (p2 != nameValues.end()) {
+        bool ok;
+
+        double scale = CQChartsUtil::toReal((*p2).second, ok);
+
+        if (ok)
+          value *= scale;
+      }
+
+      return CQChartsUtil::toString(value, (*p1).second);
+    }
     else
-      return CQChartsUtil::toString(userData(var, nameValues).toDouble());
+      return CQChartsUtil::toString(value);
   }
 };
 

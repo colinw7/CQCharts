@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsBoxObj.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -50,6 +51,18 @@ CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("treemap"), model)
 {
+  boxObj_ = new CQChartsBoxObj(this);
+
+  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+
+  setBorder(true);
+
+  textFont_.setPointSizeF(8.0);
+
+  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  headerColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 0.4);
+
   setMargins(1, 1, 1, 1);
 
   addTitle();
@@ -58,7 +71,126 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 CQChartsTreeMapPlot::
 ~CQChartsTreeMapPlot()
 {
+  delete boxObj_;
+
   delete root_;
+}
+
+QString
+CQChartsTreeMapPlot::
+fillColorStr() const
+{
+  return boxObj_->backgroundColorStr();
+}
+
+void
+CQChartsTreeMapPlot::
+setFillColorStr(const QString &s)
+{
+  boxObj_->setBackgroundColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsTreeMapPlot::
+interpFillColor(int i, int n) const
+{
+  return boxObj_->interpBackgroundColor(i, n);
+}
+
+double
+CQChartsTreeMapPlot::
+fillAlpha() const
+{
+  return boxObj_->backgroundAlpha();
+}
+
+void
+CQChartsTreeMapPlot::
+setFillAlpha(double a)
+{
+  boxObj_->setBackgroundAlpha(a);
+
+  update();
+}
+
+bool
+CQChartsTreeMapPlot::
+isBorder() const
+{
+  return boxObj_->isBorder();
+}
+
+void
+CQChartsTreeMapPlot::
+setBorder(bool b)
+{
+  boxObj_->setBorder(b);
+
+  update();
+}
+
+QString
+CQChartsTreeMapPlot::
+borderColorStr() const
+{
+  return boxObj_->borderColorStr();
+}
+
+void
+CQChartsTreeMapPlot::
+setBorderColorStr(const QString &str)
+{
+  boxObj_->setBorderColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsTreeMapPlot::
+interpBorderColor(int i, int n) const
+{
+  return boxObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsTreeMapPlot::
+borderAlpha() const
+{
+  return boxObj_->borderAlpha();
+}
+
+void
+CQChartsTreeMapPlot::
+setBorderAlpha(double a)
+{
+  boxObj_->setBorderAlpha(a);
+
+  update();
+}
+
+double
+CQChartsTreeMapPlot::
+borderWidth() const
+{
+  return boxObj_->borderWidth();
+}
+
+void
+CQChartsTreeMapPlot::
+setBorderWidth(double r)
+{
+  boxObj_->setBorderWidth(r);
+
+  update();
+}
+
+QColor
+CQChartsTreeMapPlot::
+interpTextColor(int i, int n) const
+{
+  return textColor_.interpColor(this, i, n);
 }
 
 void
@@ -67,12 +199,19 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "separator"   );
-  addProperty("", this, "titles"      );
-  addProperty("", this, "fontHeight"  );
-  addProperty("", this, "headerHeight");
-  addProperty("", this, "headerColor" );
-  addProperty("", this, "marginWidth" );
+  addProperty(""      , this, "separator"                );
+  addProperty(""      , this, "titles"                   );
+  addProperty(""      , this, "headerHeight"             );
+  addProperty(""      , this, "headerColor"              );
+  addProperty(""      , this, "marginWidth"              );
+  addProperty("fill"  , this, "fillColor"   , "color"    );
+  addProperty("fill"  , this, "fillAlpha"   , "alpha"    );
+  addProperty("border", this, "border"      , "displayed");
+  addProperty("border", this, "borderColor" , "color"    );
+  addProperty("border", this, "borderAlpha" , "alpha"    );
+  addProperty("border", this, "borderWidth" , "width"    );
+  addProperty("text"  , this, "textFont"    , "font"     );
+  addProperty("text"  , this, "textColor"   , "color"    );
 }
 
 void
@@ -130,6 +269,10 @@ initObjs()
   //---
 
   initNodeObjs(currentRoot_, nullptr, 0);
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -142,8 +285,6 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
     CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
     hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
-
-    hierObj->setId(QString("%1:%2").arg(hier->name()).arg(hier->size()));
 
     addPlotObject(hierObj);
   }
@@ -165,8 +306,6 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
 
     CQChartsTreeMapObj *obj =
       new CQChartsTreeMapObj(this, node, parentObj, rect, node->depth(), maxDepth());
-
-    obj->setId(QString("%1:%2").arg(node->name()).arg(node->size()));
 
     addPlotObject(obj);
   }
@@ -433,15 +572,6 @@ draw(QPainter *p)
   drawParts(p);
 }
 
-QColor
-CQChartsTreeMapPlot::
-nodeColor(CQChartsTreeMapNode *node) const
-{
-  QColor c(80,80,200);
-
-  return interpPaletteColor((1.0*node->colorId())/(maxColorId() + 1), c);
-}
-
 //------
 
 CQChartsTreeMapHierObj::
@@ -450,6 +580,13 @@ CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                        int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsTreeMapHierObj::
+calcId() const
+{
+  return QString("%1:%2").arg(hier_->name()).arg(hier_->size());
 }
 
 bool
@@ -488,17 +625,26 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   // calc stroke and brush
 
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->hierColor(hier_);
-//QColor c = plot_->interpPaletteColor((1.0*(hier_->hierInd() + 1))/(plot_->maxHierInd() + 1));
-  QColor c = plot_->headerColor();
+  QColor c = plot_->interpHeaderColor(0, 1);
 
   QBrush brush(c);
 
-  QColor bc = Qt::black;
-  QColor tc = CQChartsUtil::bwColor(c);
+  QPen bpen;
 
-  QPen bpen(bc);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    bpen = QPen(bc);
+
+    bpen.setWidthF(plot_->borderWidth());
+  }
+  else
+    bpen = QPen(Qt::NoPen);
+
+  QColor tc = plot_->interpTextColor(0, 1);
+
   QPen tpen(tc);
 
   plot_->updateObjPenBrushState(this, bpen, brush);
@@ -519,9 +665,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // set font size
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
+  QFont font = plot_->textFont();
 
   //---
 
@@ -553,6 +697,13 @@ CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
                    CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsTreeMapObj::
+calcId() const
+{
+  return QString("%1:%2").arg(node_->name()).arg(node_->size());
 }
 
 bool
@@ -626,16 +777,28 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   // calc stroke and brush
 
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->nodeColor(node_);
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->interpFillColor(root->hierInd(), plot_->maxHierInd());
+
+  c.setAlphaF(plot_->fillAlpha());
 
   QBrush brush(c);
 
-  QColor bc = Qt::black;
-  QColor tc = CQChartsUtil::bwColor(c);
+  QPen bpen;
 
-  QPen bpen(bc);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    bpen = QPen(bc);
+
+    bpen.setWidthF(plot_->borderWidth());
+  }
+  else
+    bpen = QPen(Qt::NoPen);
+
+  QColor tc = plot_->interpTextColor(0, 1);
+
   QPen tpen(tc);
 
   plot_->updateObjPenBrushState(this, bpen, brush);
@@ -656,9 +819,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // set font size
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
+  QFont font = plot_->textFont();
 
   //---
 
@@ -840,8 +1001,8 @@ void
 CQChartsTreeMapNode::
 setPosition(double x, double y, double w, double h)
 {
-  assert(! COSNaN::is_nan(x) && ! COSNaN::is_nan(y) &&
-         ! COSNaN::is_nan(w) && ! COSNaN::is_nan(h));
+  assert(! CQChartsUtil::isNaN(x) && ! CQChartsUtil::isNaN(y) &&
+         ! CQChartsUtil::isNaN(w) && ! CQChartsUtil::isNaN(h));
 
   x_ = x; y_ = y;
   w_ = w; h_ = h;

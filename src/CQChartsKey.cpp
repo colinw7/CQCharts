@@ -9,10 +9,13 @@
 
 CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
- plot_(plot)
+ CQChartsBoxObj(plot)
 {
-  setBackground(Qt::white);
-  setBorder    (true);
+  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  textColor_ = themeFg;
+
+  setBorder(true);
 
   clearItems();
 }
@@ -24,12 +27,30 @@ CQChartsKey::
     delete item;
 }
 
+//---
+
+QString
+CQChartsKey::
+textColorStr() const
+{
+  return textColor_.colorStr();
+}
+
 void
 CQChartsKey::
-redrawBoxObj()
+setTextColorStr(const QString &str)
 {
-  redraw();
+  textColor_.setColorStr(str);
 }
+
+QColor
+CQChartsKey::
+interpTextColor(int i, int n) const
+{
+  return textColor_.interpColor(plot_, i, n);
+}
+
+//---
 
 void
 CQChartsKey::
@@ -43,6 +64,8 @@ CQChartsKey::
 updatePlotKey()
 {
   plot_->resetKeyItems();
+
+  redraw();
 }
 
 void
@@ -465,32 +488,32 @@ draw(QPainter *p)
 
 QColor
 CQChartsKey::
-bgColor() const
+interpBgColor() const
 {
   if (isBackground())
-    return backgroundColor();
+    return interpBackgroundColor(0, 1);
 
   if      (isInsideX() && isInsideY()) {
     if (plot_->isDataBackground())
-      return plot_->dataBackgroundColor();
+      return plot_->interpDataBackgroundColor(0, 1);
   }
   else if (isInsideX()) {
     if (location_ == CENTER_LEFT || location_ == CENTER_CENTER || location_ == CENTER_RIGHT) {
       if (plot_->isDataBackground())
-        return plot_->dataBackgroundColor();
+        return plot_->interpDataBackgroundColor(0, 1);
     }
   }
   else if (isInsideY()) {
     if (location_ == TOP_CENTER || location_ == CENTER_CENTER || location_ == BOTTOM_CENTER) {
       if (plot_->isDataBackground())
-        return plot_->dataBackgroundColor();
+        return plot_->interpDataBackgroundColor(0, 1);
     }
   }
 
   if (plot_->isBackground())
-    return plot_->backgroundColor();
+    return plot_->interpBackgroundColor(0, 1);
 
-  return Qt::white;
+  return plot_->interpThemeColor(0);
 }
 
 //------
@@ -526,6 +549,13 @@ size() const
   return QSizeF(ww, wh);
 }
 
+QColor
+CQChartsKeyText::
+interpTextColor(int i, int n) const
+{
+  return key_->interpTextColor(i, n);
+}
+
 void
 CQChartsKeyText::
 draw(QPainter *p, const CQChartsGeom::BBox &rect)
@@ -536,7 +566,7 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
 
   QFontMetricsF fm(p->font());
 
-  p->setPen(textColor());
+  p->setPen(interpTextColor(0, 1));
 
   double px1, px2, py;
 
@@ -548,14 +578,10 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
   if (key_->textAlign() & Qt::AlignRight)
     px = px2 - 2 - fm.width(text_);
 
-  p->drawText(px, py - fm.descent() - 2, text_);
-}
-
-QColor
-CQChartsKeyText::
-textColor() const
-{
-  return key_->textColor();
+  if (! plot->isInvertY())
+    p->drawText(px, py - fm.descent() - 2, text_);
+  else
+    p->drawText(px, py + fm.ascent() + 2, text_);
 }
 
 //------
@@ -564,6 +590,26 @@ CQChartsKeyColorBox::
 CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
  CQChartsKeyItem(plot->key()), plot_(plot), i_(i), n_(n)
 {
+}
+
+bool
+CQChartsKeyColorBox::
+mousePress(const CQChartsGeom::Point &)
+{
+  if (isClickHide()) {
+    plot_->setSetHidden(i_, ! plot_->isSetHidden(i_));
+
+    plot_->hiddenChanged();
+  }
+
+  return true;
+}
+
+QColor
+CQChartsKeyColorBox::
+interpBorderColor(int i, int n) const
+{
+  return borderColor_.interpColor(plot_, i, n);
 }
 
 QSizeF
@@ -595,7 +641,7 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  QColor bc    = borderColor();
+  QColor bc    = interpBorderColor(0, 1);
   QBrush brush = fillBrush();
 
   if (isInside())
@@ -613,5 +659,10 @@ fillBrush() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  return plot->paletteColor(i_, n_);
+  QColor c = plot->interpPaletteColor(i_, n_);
+
+  if (plot->isSetHidden(i_))
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+
+  return c;
 }

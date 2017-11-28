@@ -19,6 +19,7 @@ CQChartsCsv.cpp \
 CQChartsTsv.cpp \
 CQChartsJson.cpp \
 CQChartsGnuData.cpp \
+CQChartsExprData.cpp \
 CQChartsColumn.cpp \
 \
 CQChartsTable.cpp \
@@ -45,13 +46,16 @@ CQChartsDistributionPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHierBubblePlot.cpp \
+CQChartsImagePlot.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
+CQChartsRadarPlot.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
 \
+CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
 CQChartsDataLabel.cpp \
@@ -87,6 +91,9 @@ CQPropertyViewRealType.cpp \
 CQPropertyViewRectFType.cpp \
 CQPropertyViewSizeFType.cpp \
 CQPropertyViewType.cpp \
+\
+CQChartsPaletteColor.cpp \
+CQChartsDrawUtil.cpp \
 \
 CQGradientControlIFace.cpp \
 CQGradientControlPlot.cpp \
@@ -134,6 +141,7 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsGnuData.h \
+../include/CQChartsExprData.h \
 ../include/CQChartsColumn.h \
 \
 ../include/CQChartsTable.h \
@@ -160,14 +168,17 @@ HEADERS += \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsHierBubblePlot.h \
+../include/CQChartsImagePlot.h \
 ../include/CQChartsParallelPlot.h \
 ../include/CQChartsPiePlot.h \
+../include/CQChartsRadarPlot.h \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
 \
 ../include/CQChartsPlotObj.h \
+CQChartsPlotObjTree.h \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsTextBoxObj.h \
 ../include/CQChartsDataLabel.h \
@@ -210,9 +221,12 @@ CQPropertyViewRectFType.h \
 CQPropertyViewSizeFType.h \
 CQPropertyViewType.h \
 \
+../include/CQChartsPaletteColor.h \
+CQChartsDrawUtil.h \
+\
 CQGradientControlIFace.h \
 CQGradientControlPlot.h \
-CGradientPalette.h \
+../include/CGradientPalette.h \
 \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \
@@ -262,3 +276,4 @@ INCLUDEPATH += \
 ../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \
+../../COS/include \

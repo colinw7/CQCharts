@@ -4,8 +4,17 @@
 #include <QPainter>
 
 CQChartsLineObj::
-CQChartsLineObj()
+CQChartsLineObj(CQChartsPlot *plot) :
+ plot_(plot)
 {
+  color_.setValue(CQChartsPaletteColor::Type::PALETTE);
+}
+
+QColor
+CQChartsLineObj::
+interpColor(int i, int n) const
+{
+  return color_.interpColor(plot_, i, n);
 }
 
 void
@@ -22,7 +31,9 @@ void
 CQChartsLineObj::
 draw(QPainter *p, const QPointF &p1, const QPointF &p2) const
 {
-  draw(p, p1, p2, color(), width(), dash());
+  QColor c = interpColor(0, 1);
+
+  draw(p, p1, p2, c, width(), dash());
 }
 
 void
@@ -33,7 +44,7 @@ draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QColor &color,
   QPen pen(color);
 
   if (width > 0.0)
-    pen.setWidth(width);
+    pen.setWidthF(width);
 
   CQChartsUtil::penSetLineDash(pen, dash);
 

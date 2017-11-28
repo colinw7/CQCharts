@@ -31,6 +31,12 @@ class CQGradientControlIFace : public QFrame {
  public:
   CQGradientControlIFace(CQGradientControlPlot *palette);
 
+  CGradientPalette::ColorType colorType() const;
+  void setColorType(CGradientPalette::ColorType colorType);
+
+  CGradientPalette::ColorModel colorModel() const;
+  void setColorModel(CGradientPalette::ColorModel colorModel);
+
   int redModel() const;
   void setRedModel(int mode);
 
@@ -57,6 +63,10 @@ class CQGradientControlIFace : public QFrame {
 
   double cubeSaturation() const;
   void setCubeSaturation(double r);
+
+  void readFile(const QString &fileName);
+
+  void updateState();
 
  signals:
   void stateChanged();

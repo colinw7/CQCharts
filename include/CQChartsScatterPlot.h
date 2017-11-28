@@ -17,13 +17,15 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect,
                           const QPointF &p, double symbolSize, const OptReal &fontSize,
-                          const OptReal &color, int i, int n);
+                          const OptReal &color, int is, int ns, int iv, int nv);
 
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &v) { ind_ = v; }
+
+  QString calcId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -39,8 +41,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   double               symbolSize_;
   OptReal              fontSize_;
   OptReal              color_;
-  int                  i_          { -1 };
-  int                  n_          { -1 };
+  int                  is_         { -1 };
+  int                  ns_         { -1 };
+  int                  iv_         { -1 };
+  int                  nv_         { -1 };
   QString              name_;
   QModelIndex          ind_;
 };
@@ -79,25 +83,25 @@ class CQChartsScatterPlotType : public CQChartsPlotType {
 class CQChartsScatterPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    nameColumn           READ nameColumn             WRITE setNameColumn          )
-  Q_PROPERTY(int    xColumn              READ xColumn                WRITE setXColumn             )
-  Q_PROPERTY(int    yColumn              READ yColumn                WRITE setYColumn             )
-  Q_PROPERTY(int    symbolSizeColumn     READ symbolSizeColumn       WRITE setSymbolSizeColumn    )
-  Q_PROPERTY(int    fontSizeColumn       READ fontSizeColumn         WRITE setFontSizeColumn      )
-  Q_PROPERTY(int    colorColumn          READ colorColumn            WRITE setColorColumn         )
-  Q_PROPERTY(QColor symbolBorderColor    READ symbolBorderColor      WRITE setSymbolBorderColor   )
-  Q_PROPERTY(double symbolSize           READ symbolSize             WRITE setSymbolSize          )
-  Q_PROPERTY(bool   symbolSizeMapEnabled READ isSymbolSizeMapEnabled WRITE setSymbolSizeMapEnabled)
-  Q_PROPERTY(double symbolSizeMapMin     READ symbolSizeMapMin       WRITE setSymbolSizeMapMin    )
-  Q_PROPERTY(double symbolSizeMapMax     READ symbolSizeMapMax       WRITE setSymbolSizeMapMax    )
-  Q_PROPERTY(bool   colorMapEnabled      READ isColorMapEnabled      WRITE setColorMapEnabled     )
-  Q_PROPERTY(double colorMapMin          READ colorMapMin            WRITE setColorMapMin         )
-  Q_PROPERTY(double colorMapMax          READ colorMapMax            WRITE setColorMapMax         )
-  Q_PROPERTY(double fontSize             READ fontSize               WRITE setFontSize            )
-  Q_PROPERTY(bool   fontSizeMapEnabled   READ isFontSizeMapEnabled   WRITE setFontSizeMapEnabled  )
-  Q_PROPERTY(double fontSizeMapMin       READ fontSizeMapMin         WRITE setFontSizeMapMin      )
-  Q_PROPERTY(double fontSizeMapMax       READ fontSizeMapMax         WRITE setFontSizeMapMax      )
-  Q_PROPERTY(bool   textLabels           READ isTextLabels           WRITE setTextLabels          )
+  Q_PROPERTY(int     nameColumn           READ nameColumn             WRITE setNameColumn          )
+  Q_PROPERTY(int     xColumn              READ xColumn                WRITE setXColumn             )
+  Q_PROPERTY(int     yColumn              READ yColumn                WRITE setYColumn             )
+  Q_PROPERTY(int     symbolSizeColumn     READ symbolSizeColumn       WRITE setSymbolSizeColumn    )
+  Q_PROPERTY(int     fontSizeColumn       READ fontSizeColumn         WRITE setFontSizeColumn      )
+  Q_PROPERTY(int     colorColumn          READ colorColumn            WRITE setColorColumn         )
+  Q_PROPERTY(QString symbolBorderColor    READ symbolBorderColorStr   WRITE setSymbolBorderColorStr)
+  Q_PROPERTY(double  symbolSize           READ symbolSize             WRITE setSymbolSize          )
+  Q_PROPERTY(bool    symbolSizeMapEnabled READ isSymbolSizeMapEnabled WRITE setSymbolSizeMapEnabled)
+  Q_PROPERTY(double  symbolSizeMapMin     READ symbolSizeMapMin       WRITE setSymbolSizeMapMin    )
+  Q_PROPERTY(double  symbolSizeMapMax     READ symbolSizeMapMax       WRITE setSymbolSizeMapMax    )
+  Q_PROPERTY(bool    colorMapEnabled      READ isColorMapEnabled      WRITE setColorMapEnabled     )
+  Q_PROPERTY(double  colorMapMin          READ colorMapMin            WRITE setColorMapMin         )
+  Q_PROPERTY(double  colorMapMax          READ colorMapMax            WRITE setColorMapMax         )
+  Q_PROPERTY(double  fontSize             READ fontSize               WRITE setFontSize            )
+  Q_PROPERTY(bool    fontSizeMapEnabled   READ isFontSizeMapEnabled   WRITE setFontSizeMapEnabled  )
+  Q_PROPERTY(double  fontSizeMapMin       READ fontSizeMapMin         WRITE setFontSizeMapMin      )
+  Q_PROPERTY(double  fontSizeMapMax       READ fontSizeMapMax         WRITE setFontSizeMapMax      )
+  Q_PROPERTY(bool    textLabels           READ isTextLabels           WRITE setTextLabels          )
 
  public:
   struct Point {
@@ -143,8 +147,11 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
-  const QColor &symbolBorderColor() const { return symbolBorderColor_; }
-  void setSymbolBorderColor(const QColor &c) { symbolBorderColor_ = c; update(); }
+  QString symbolBorderColorStr() const { return symbolBorderColor_.colorStr(); }
+  void setSymbolBorderColorStr(const QString &s) { symbolBorderColor_.setColorStr(s); update(); }
+
+  QColor interpSymbolBorderColor(int i, int n) const {
+    return symbolBorderColor_.interpColor(this, i, n); }
 
   double symbolSize() const { return symbolSize_; }
   void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
@@ -190,6 +197,12 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   const NameValues &nameValues() const { return nameValues_; }
 
+  const QString &xname         () const { return xname_         ; }
+  const QString &yname         () const { return yname_         ; }
+  const QString &symbolSizeName() const { return symbolSizeName_; }
+  const QString &fontSizeName  () const { return fontSizeName_  ; }
+  const QString &colorName     () const { return colorName_     ; }
+
   //---
 
   void addProperties() override;
@@ -213,20 +226,25 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontSize=-1);
 
  private:
-  int               nameColumn_        { -1 };
-  int               xColumn_           { 0 };
-  int               yColumn_           { 1 };
-  int               symbolSizeColumn_  { -1 };
-  int               fontSizeColumn_    { -1 };
-  int               colorColumn_       { -1 };
-  QColor            symbolBorderColor_ { Qt::black };
-  double            symbolSize_        { 4 };
-  CQChartsValueSet  symbolSizeSet_;
-  double            fontSize_          { 4 };
-  CQChartsValueSet  fontSizeSet_;
-  CQChartsValueSet  colorSet_;
-  NameValues        nameValues_;
-  CQChartsDataLabel dataLabel_;
+  int                  nameColumn_        { -1 };
+  int                  xColumn_           { 0 };
+  int                  yColumn_           { 1 };
+  int                  symbolSizeColumn_  { -1 };
+  int                  fontSizeColumn_    { -1 };
+  int                  colorColumn_       { -1 };
+  CQChartsPaletteColor symbolBorderColor_;
+  double               symbolSize_        { 4 };
+  CQChartsValueSet     symbolSizeSet_;
+  double               fontSize_          { 8 };
+  CQChartsValueSet     fontSizeSet_;
+  CQChartsValueSet     colorSet_;
+  NameValues           nameValues_;
+  CQChartsDataLabel    dataLabel_;
+  QString              xname_;
+  QString              yname_;
+  QString              symbolSizeName_;
+  QString              fontSizeName_;
+  QString              colorName_;
 };
 
 #endif

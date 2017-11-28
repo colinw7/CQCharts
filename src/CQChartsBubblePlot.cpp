@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsBoxObj.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -42,12 +43,22 @@ create(CQChartsView *view, const ModelP &model) const
   return new CQChartsBubblePlot(view, model);
 }
 
-//---
+//------
 
 CQChartsBubblePlot::
 CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
+  bubbleObj_ = new CQChartsBoxObj(this);
+
+  bubbleObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+
+  setBorder(true);
+
+  textFont_.setPointSizeF(8.0);
+
+  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   setMargins(1, 1, 1, 1);
 
   addTitle();
@@ -56,8 +67,127 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 CQChartsBubblePlot::
 ~CQChartsBubblePlot()
 {
+  delete bubbleObj_;
+
   for (auto &node : nodes_)
     delete node;
+}
+
+QString
+CQChartsBubblePlot::
+fillColorStr() const
+{
+  return bubbleObj_->backgroundColorStr();
+}
+
+void
+CQChartsBubblePlot::
+setFillColorStr(const QString &s)
+{
+  bubbleObj_->setBackgroundColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsBubblePlot::
+interpFillColor(int i, int n) const
+{
+  return bubbleObj_->interpBackgroundColor(i, n);
+}
+
+double
+CQChartsBubblePlot::
+fillAlpha() const
+{
+  return bubbleObj_->backgroundAlpha();
+}
+
+void
+CQChartsBubblePlot::
+setFillAlpha(double a)
+{
+  bubbleObj_->setBackgroundAlpha(a);
+
+  update();
+}
+
+bool
+CQChartsBubblePlot::
+isBorder() const
+{
+  return bubbleObj_->isBorder();
+}
+
+void
+CQChartsBubblePlot::
+setBorder(bool b)
+{
+  bubbleObj_->setBorder(b);
+
+  update();
+}
+
+QString
+CQChartsBubblePlot::
+borderColorStr() const
+{
+  return bubbleObj_->borderColorStr();
+}
+
+void
+CQChartsBubblePlot::
+setBorderColorStr(const QString &str)
+{
+  bubbleObj_->setBorderColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsBubblePlot::
+interpBorderColor(int i, int n) const
+{
+  return bubbleObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsBubblePlot::
+borderAlpha() const
+{
+  return bubbleObj_->borderAlpha();
+}
+
+void
+CQChartsBubblePlot::
+setBorderAlpha(double a)
+{
+  bubbleObj_->setBorderAlpha(a);
+
+  update();
+}
+
+double
+CQChartsBubblePlot::
+borderWidth() const
+{
+  return bubbleObj_->borderWidth();
+}
+
+void
+CQChartsBubblePlot::
+setBorderWidth(double r)
+{
+  bubbleObj_->setBorderWidth(r);
+
+  update();
+}
+
+QColor
+CQChartsBubblePlot::
+interpTextColor(int i, int n) const
+{
+  return textColor_.interpColor(this, i, n);
 }
 
 void
@@ -66,7 +196,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "fontHeight");
+  addProperty("fill"  , this, "fillColor"  , "color"    );
+  addProperty("fill"  , this, "fillAlpha"  , "alpha"    );
+  addProperty("border", this, "border"     , "displayed");
+  addProperty("border", this, "borderColor", "color"    );
+  addProperty("border", this, "borderAlpha", "alpha"    );
+  addProperty("border", this, "borderWidth", "width"    );
+  addProperty("text"  , this, "textFont"   , "font"     );
+  addProperty("text"  , this, "textColor"  , "color"    );
 }
 
 void
@@ -135,12 +272,14 @@ initObjs()
 
     CQChartsBubbleObj *obj = new CQChartsBubbleObj(this, node, rect, i, n);
 
-    obj->setId(QString("%1:%2").arg(node->name().c_str()).arg(node->size()));
-
     addPlotObject(obj);
 
     ++i;
   }
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -181,9 +320,22 @@ loadChildren(const QModelIndex &index)
 
   //---
 
-  int colorId = -1;
-
   int nr = model->rowCount(index);
+
+  bool hierarchical = false;
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex nameInd = model->index(r, nameColumn(), index);
+
+    if (model->rowCount(nameInd) > 0) {
+      hierarchical = true;
+      break;
+    }
+  }
+
+  //---
+
+  int colorId = -1;
 
   for (int r = 0; r < nr; ++r) {
     QModelIndex nameInd  = model->index(r, nameColumn (), index);
@@ -203,17 +355,25 @@ loadChildren(const QModelIndex &index)
       loadChildren(nameInd);
     }
     else {
-      if (colorId < 0)
+      if (hierarchical) {
+        if (colorId < 0)
+          colorId = nextColorId();
+      }
+      else {
         colorId = nextColorId();
+      }
+
+      //---
 
       bool ok2;
 
-      int size = CQChartsUtil::modelInteger(model, valueInd, ok2);
+      double size = CQChartsUtil::modelReal(model, valueInd, ok2);
 
-      if (! ok2) size = 1;
+      if (! ok2 || size <= 0.0)
+        continue;
 
       CQChartsBubbleNode *node =
-        new CQChartsBubbleNode(name.toStdString(), size, colorId, nameInd1);
+        new CQChartsBubbleNode(name, size, colorId, nameInd1);
 
       pack_.addNode(node);
 
@@ -251,7 +411,9 @@ drawForeground(QPainter *p)
   //---
 
   // draw bubble
-  p->setPen  (QColor(0,0,0));
+  QColor bc = interpBorderColor(0, 1);
+
+  p->setPen  (bc);
   p->setBrush(Qt::NoBrush);
 
   QPainterPath path;
@@ -261,15 +423,6 @@ drawForeground(QPainter *p)
   p->drawPath(path);
 }
 
-QColor
-CQChartsBubblePlot::
-nodeColor(CQChartsBubbleNode *node) const
-{
-  QColor c(80,80,200);
-
-  return interpPaletteColor((1.0*node->colorId())/numColors_, c);
-}
-
 //------
 
 CQChartsBubbleObj::
@@ -277,6 +430,13 @@ CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
                   const CQChartsGeom::BBox &rect, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsBubbleObj::
+calcId() const
+{
+  return QString("%1:%2").arg(node_->name()).arg(node_->size());
 }
 
 bool
@@ -328,14 +488,30 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  QColor c = plot_->nodeColor(node_);
+  // calc stroke and brush
+
+  QColor c = plot_->interpFillColor(node_->colorId(), plot_->numColors());
+
+  c.setAlphaF(plot_->fillAlpha());
 
   QBrush brush(c);
 
-  QColor bc = Qt::black;
-  QColor tc = plot_->textColor(c);
+  QPen bpen;
 
-  QPen bpen(bc);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    bpen = QPen(bc);
+
+    bpen.setWidthF(plot_->borderWidth());
+  }
+  else
+    bpen = QPen(Qt::NoPen);
+
+  QColor tc = plot_->interpTextColor(0, 1);
+
   QPen tpen(tc);
 
   plot_->updateObjPenBrushState(this, bpen, brush);
@@ -360,16 +536,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // set font size
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
+  QFont font = plot_->textFont();
 
   //---
 
   // calc text size and position
   p->setFont(font);
 
-  QString name = node_->name().c_str();
+  const QString &name = node_->name();
 
   QFontMetricsF fm(p->font());
 

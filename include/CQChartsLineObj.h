@@ -3,24 +3,23 @@
 
 #include <CQChartsPaletteColor.h>
 #include <QObject>
-#include <QColor>
 #include <QPointF>
 #include <CLineDash.h>
 
 class CQPropertyViewModel;
 class QPainter;
+class QPen;
 
 class CQChartsLineObj : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(bool      displayed READ isDisplayed WRITE setDisplayed)
-  Q_PROPERTY(QColor    color     READ color       WRITE setColor    )
-  Q_PROPERTY(bool      palette   READ isPalette   WRITE setPalette  )
+  Q_PROPERTY(QString   color     READ colorStr    WRITE setColorStr )
   Q_PROPERTY(double    width     READ width       WRITE setWidth    )
   Q_PROPERTY(CLineDash dash      READ dash        WRITE setDash     )
 
  public:
-  CQChartsLineObj();
+  CQChartsLineObj(CQChartsPlot *plot);
 
   virtual ~CQChartsLineObj() { }
 
@@ -29,22 +28,18 @@ class CQChartsLineObj : public QObject {
   bool isDisplayed() const { return displayed_; }
   void setDisplayed(bool b) { displayed_ = b; redrawLineObj(); }
 
-  const QColor &color() const { return color_.color; }
-  void setColor(const QColor &c) { color_.color = c; redrawLineObj(); }
+  void setColor(const CQChartsPaletteColor &c) { color_ = c; redrawLineObj(); }
 
-  bool isPalette() const { return color_.palette; }
-  void setPalette(bool b) { color_.palette = b; redrawLineObj(); }
+  QString colorStr() const { return color_.colorStr(); }
+  void setColorStr(const QString &str) { color_.setColorStr(str); redrawLineObj(); }
+
+  QColor interpColor(int i, int n) const;
 
   double width() const { return width_; }
   void setWidth(double r) { width_ = r; redrawLineObj(); }
 
   const CLineDash &dash() const { return dash_; }
   void setDash(const CLineDash &dash) { dash_ = dash; redrawLineObj(); }
-
-  //---
-
-  QString colorStr() const { return color_.colorStr(); }
-  void setColorStr(const QString &str) { color_.setColorStr(str); redrawLineObj(); }
 
   //---
 
@@ -60,8 +55,9 @@ class CQChartsLineObj : public QObject {
   virtual void redrawLineObj() { }
 
  protected:
+  CQChartsPlot*        plot_      { nullptr };
   bool                 displayed_ { true };
-  CQChartsPaletteColor color_     { QColor(0, 0, 0), true };
+  CQChartsPaletteColor color_;
   double               width_     { 0 };
   CLineDash            dash_      { };
 };

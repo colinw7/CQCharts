@@ -4,11 +4,20 @@
 #include <CQBaseModel.h>
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
+#include <set>
 
 class CExpr;
 
 class CQExprModel : public QAbstractProxyModel {
   Q_OBJECT
+
+ public:
+  enum class Function {
+    EVAL,
+    ADD,
+    DELETE,
+    ASSIGN
+  };
 
  public:
   CQExprModel(QAbstractItemModel *model);
@@ -17,13 +26,23 @@ class CQExprModel : public QAbstractProxyModel {
 
   //---
 
-  void addExtraColumn(const QString &expr);
+  int debug() const { return debug_; }
+  void setDebug(int i) { debug_ = i; }
+
+  //---
+
+  bool decodeExpressionFn(const QString &exprStr, Function &function,
+                          int &column, QString &expr) const;
+
+  bool addExtraColumn(const QString &expr);
+  bool addExtraColumn(const QString &header, const QString &expr);
 
   bool removeExtraColumn(int column);
 
   bool assignExtraColumn(int column, const QString &expr);
+  bool assignExtraColumn(const QString &header, int column, const QString &expr);
 
-  void processExpr(const QString &expr);
+  bool processExpr(const QString &expr);
 
   int columnStringBucket(int column, const QString &value) const;
 
@@ -63,9 +82,6 @@ class CQExprModel : public QAbstractProxyModel {
   int currentCol() const { return currentCol_; }
 
  private:
-  QVariant getExtraColumnValue(int row, int column) const;
-
- private:
   typedef boost::optional<int>    OptInt;
   typedef boost::optional<double> OptReal;
   typedef std::map<QString,int>   StringMap;
@@ -73,15 +89,17 @@ class CQExprModel : public QAbstractProxyModel {
   typedef std::vector<QVariant>   Values;
 
   struct ExtraColumn {
-    QString           expr;                             // expression
-    QString           header;                           // header
-    CQBaseModel::Type type { CQBaseModel::Type::NONE }; // type
-    QString           typeValues;                       // type extra values
-    VariantMap        variantMap;                       // calculated values
-    Values            values;
+    QString           expr;                                   // expression
+    QString           header;                                 // header
+    CQBaseModel::Type type       { CQBaseModel::Type::NONE }; // value type
+    QString           typeValues;                             // type extra values
+    VariantMap        variantMap;                             // calculated values
+    Values            values;                                 // assign values
+    Function          function   { Function::EVAL };          // current eval function
+    bool              evaluating { false };                   // is evaluating column
 
-    ExtraColumn(const QString &expr) :
-     expr(expr) {
+    ExtraColumn(const QString &expr, const QString &header="") :
+     expr(expr), header(header) {
     }
   };
 
@@ -102,16 +120,22 @@ class CQExprModel : public QAbstractProxyModel {
 
   ExtraColumn &extraColumn(int i) { return extraColumns_[i]; }
 
-  QString replaceNumericColumns(const QString &expr) const;
+  void calcColumn(int column, int ecolumn);
+
+  QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
+
+  bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
+
+  QString replaceNumericColumns(const QString &expr, int row, int column) const;
 
  private:
   QAbstractItemModel* model_      { nullptr };
   CExpr*              expr_       { nullptr };
+  bool                debug_      { false };
   ExtraColumns        extraColumns_;
   mutable int         currentRow_ { 0 };
   mutable int         currentCol_ { 0 };
   mutable ColumnDatas columnDatas_;
-  mutable bool        evaluating_ { false };
 };
 
 #endif

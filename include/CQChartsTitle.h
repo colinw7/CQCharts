@@ -32,8 +32,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void setMargin (int i) override { CQChartsBoxObj::setMargin (i); updatePosition(); }
-  void setPadding(int i) override { CQChartsBoxObj::setPadding(i); updatePosition(); }
+  void setMargin (double r) override { CQChartsBoxObj::setMargin (r); updatePosition(); }
+  void setPadding(double r) override { CQChartsBoxObj::setPadding(r); updatePosition(); }
 
   void setText(const QString &s) override { CQChartsTextBoxObj::setText(s); updatePosition(); }
   void setFont(const QFont &f) override { CQChartsTextBoxObj::setFont(f); updatePosition(); }
@@ -72,8 +72,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void redrawBoxObj() override;
-
   void redraw();
 
   //---
@@ -87,7 +85,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void draw(QPainter *p);
 
  private:
-  CQChartsPlot*              plot_     { nullptr };
   bool                       visible_  { true };
   Location                   location_ { Location::TOP};
   bool                       inside_   { false };

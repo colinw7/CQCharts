@@ -3,9 +3,9 @@
 
 #include <cassert>
 #include <cmath>
-#include <iostream>
+//#include <iostream>
 #include <cstring>
-#include <sstream>
+//#include <sstream>
 
 namespace CQChartsGeom {
 
@@ -271,6 +271,7 @@ class Point {
 
   //-----
 
+#if 0
   void print(std::ostream &os) const {
     os << "(" << x << "," << y << ")";
   }
@@ -280,6 +281,7 @@ class Point {
 
     return os;
   }
+#endif
 
  public:
   double x { 0 };
@@ -383,6 +385,7 @@ class Range {
     return ! (lhs == rhs);
   }
 
+#if 0
   void print(std::ostream &os) const {
     os << x1_ << "," << y1_ << "," << x2_ << "," << y2_;
   }
@@ -392,6 +395,7 @@ class Range {
 
     return os;
   }
+#endif
 
  private:
   bool   set_ { false };
@@ -888,6 +892,7 @@ class BBox {
     return (lhs.pmin_ == rhs.pmin_ && lhs.pmax_ == rhs.pmax_);
   }
 
+#if 0
   void print(std::ostream &os) const {
     if (! set_)
       os << "( not set )";
@@ -900,6 +905,7 @@ class BBox {
 
     return os;
   }
+#endif
 
  private:
   void update() {
@@ -998,6 +1004,7 @@ class Matrix {
 
   //------
 
+#if 0
   std::string toString() const {
     std::ostringstream ss;
 
@@ -1018,6 +1025,7 @@ class Matrix {
 
     return os;
   }
+#endif
 
   //------
 

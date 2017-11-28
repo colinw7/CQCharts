@@ -3,11 +3,35 @@
 
 #include <QFrame>
 
+class CQChartsWindow;
 class CQChartsView;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
+
+#define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
+
+class CQChartsWindowMgr {
+ public:
+  static CQChartsWindowMgr *instance();
+
+  CQChartsWindow *createWindow(CQChartsView *view);
+
+ ~CQChartsWindowMgr();
+
+  CQChartsWindow *getWindowForView(CQChartsView *view) const;
+
+ private:
+  CQChartsWindowMgr();
+
+ private:
+  using Windows = std::vector<CQChartsWindow *>;
+
+  Windows windows_;
+};
+
+//---
 
 class CQChartsWindow : public QFrame {
   Q_OBJECT
@@ -17,6 +41,8 @@ class CQChartsWindow : public QFrame {
  ~CQChartsWindow();
 
   CQChartsView *view() const { return view_; }
+
+  void updatePalette();
 
   //---
 

@@ -50,6 +50,8 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   fontSizeSet_.setMapMin(16);
   fontSizeSet_.setMapMax(64);
 
+  symbolBorderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   addAxes();
 
   addKey();
@@ -279,21 +281,30 @@ initObjs()
 
   QAbstractItemModel *model = this->model();
 
-  QString xname, yname, symbolSizeName, fontSizeName, colorName;
+  //---
 
   if (model) {
-    xname          = model->headerData(xColumn         (), Qt::Horizontal).toString();
-    yname          = model->headerData(yColumn         (), Qt::Horizontal).toString();
-    symbolSizeName = model->headerData(symbolSizeColumn(), Qt::Horizontal).toString();
-    fontSizeName   = model->headerData(fontSizeColumn  (), Qt::Horizontal).toString();
-    colorName      = model->headerData(colorColumn     (), Qt::Horizontal).toString();
+    xname_          = model->headerData(xColumn         (), Qt::Horizontal).toString();
+    yname_          = model->headerData(yColumn         (), Qt::Horizontal).toString();
+    symbolSizeName_ = model->headerData(symbolSizeColumn(), Qt::Horizontal).toString();
+    fontSizeName_   = model->headerData(fontSizeColumn  (), Qt::Horizontal).toString();
+    colorName_      = model->headerData(colorColumn     (), Qt::Horizontal).toString();
+  }
+  else {
+    xname_          = "";
+    yname_          = "";
+    symbolSizeName_ = "";
+    fontSizeName_   = "";
+    colorName_      = "";
   }
 
-  if (xname          == "") xname          = "x";
-  if (yname          == "") yname          = "y";
-  if (symbolSizeName == "") symbolSizeName = "symbolSize";
-  if (fontSizeName   == "") fontSizeName   = "fontSize";
-  if (colorName      == "") colorName      = "color";
+  if (! xname_         .length()) xname_          = "x";
+  if (! yname_         .length()) yname_          = "y";
+  if (! symbolSizeName_.length()) symbolSizeName_ = "symbolSize";
+  if (! fontSizeName_  .length()) fontSizeName_   = "fontSize";
+  if (! colorName_     .length()) colorName_      = "color";
+
+  //---
 
   //double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   //double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
@@ -335,25 +346,27 @@ initObjs()
         CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv);
+          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv, j, nv1);
 
         //---
 
+#if 0
         QString id = name;
 
-        id += QString("\n  %1\t%2").arg(xname).arg(p.x());
-        id += QString("\n  %1\t%2").arg(yname).arg(p.y());
+        id += QString("\n  %1\t%2").arg(xname_).arg(p.x());
+        id += QString("\n  %1\t%2").arg(yname_).arg(p.y());
 
         if (valuePoint.symbolSizeStr != "")
-          id += QString("\n  %1\t%2").arg(symbolSizeName).arg(valuePoint.symbolSizeStr);
+          id += QString("\n  %1\t%2").arg(symbolSizeName_).arg(valuePoint.symbolSizeStr);
 
         if (valuePoint.fontSizeStr != "")
-          id += QString("\n  %1\t%2").arg(fontSizeName).arg(valuePoint.fontSizeStr);
+          id += QString("\n  %1\t%2").arg(fontSizeName_).arg(valuePoint.fontSizeStr);
 
         if (valuePoint.colorStr != "")
-          id += QString("\n  %1\t%2").arg(colorName).arg(valuePoint.colorStr);
+          id += QString("\n  %1\t%2").arg(colorName_).arg(valuePoint.colorStr);
 
         pointObj->setId(id);
+#endif
 
         //---
 
@@ -371,6 +384,10 @@ initObjs()
   //---
 
   resetKeyItems();
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -434,10 +451,38 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontS
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect, const QPointF &p,
                         double symbolSize, const OptReal &fontSize, const OptReal &color,
-                        int i, int n) :
+                        int is, int ns, int iv, int nv) :
  CQChartsPlotObj(rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
- color_(color), i_(i), n_(n)
+ color_(color), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
+}
+
+QString
+CQChartsScatterPointObj::
+calcId() const
+{
+  QString id = name_;
+
+  id += QString("\n  %1\t%2").arg(plot_->xname()).arg(p_.x());
+  id += QString("\n  %1\t%2").arg(plot_->yname()).arg(p_.y());
+
+  auto p = plot_->nameValues().find(name_);
+  assert(p != plot_->nameValues().end());
+
+  const CQChartsScatterPlot::Values &values = (*p).second;
+
+  const CQChartsScatterPlot::Point &valuePoint = values[iv_];
+
+  if (valuePoint.symbolSizeStr != "")
+    id += QString("\n  %1\t%2").arg(plot_->symbolSizeName()).arg(valuePoint.symbolSizeStr);
+
+  if (valuePoint.fontSizeStr != "")
+    id += QString("\n  %1\t%2").arg(plot_->fontSizeName()).arg(valuePoint.fontSizeStr);
+
+  if (valuePoint.colorStr != "")
+    id += QString("\n  %1\t%2").arg(plot_->colorName()).arg(valuePoint.colorStr);
+
+  return id;
 }
 
 bool
@@ -487,12 +532,12 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QColor color;
 
   if (color_)
-    color = plot_->interpPaletteColor(*color_, Qt::blue);
+    color = plot_->interpPaletteColor(*color_);
   else
-    color = plot_->paletteColor(i_, n_, Qt::blue);
+    color = plot_->interpPaletteColor(is_, ns_);
 
   QBrush brush(color);
-  QPen   pen  (plot_->symbolBorderColor());
+  QPen   pen  (plot_->interpSymbolBorderColor(0, 1));
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -544,7 +589,7 @@ fillBrush() const
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;
 }

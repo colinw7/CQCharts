@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsPaletteColor.h>
 
 class QTimer;
 
@@ -151,18 +152,18 @@ namespace Springy {
     double mass() const { return mass_; }
     void setMass(double m) { mass_ = m; }
 
-    const std::string &label() const { return label_; }
-    void setLabel(const std::string &label) { label_ = label; }
+    const QString &label() const { return label_; }
+    void setLabel(const QString &label) { label_ = label; }
 
     double value() const { return value_; }
     void setValue(double v) { value_ = v; }
 
    private:
-    int         id_     { 0 };
-    Vector      pos_;            // position
-    double      mass_   { 1.0 }; // mass
-    std::string label_;          // label
-    double      value_  { 0.0 }; // value
+    int     id_     { 0 };
+    Vector  pos_;            // position
+    double  mass_   { 1.0 }; // mass
+    QString label_;          // label
+    double  value_  { 0.0 }; // value
   };
 
   using Nodes = std::vector<Node*>;
@@ -686,16 +687,16 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 class CQChartsForceDirectedPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
-  Q_PROPERTY(int    connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(int    groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(int    nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(bool   autoFit           READ isAutoFit         WRITE setAutoFit          )
-  Q_PROPERTY(bool   running           READ isRunning         WRITE setRunning          )
-  Q_PROPERTY(double nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
-  Q_PROPERTY(QColor nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
-  Q_PROPERTY(QColor edgeColor         READ edgeColor         WRITE setEdgeColor        )
-  Q_PROPERTY(double edgeAlpha         READ edgeAlpha         WRITE setEdgeAlpha        )
+  Q_PROPERTY(int     nodeColumn        READ nodeColumn         WRITE setNodeColumn        )
+  Q_PROPERTY(int     connectionsColumn READ connectionsColumn  WRITE setConnectionsColumn )
+  Q_PROPERTY(int     groupColumn       READ groupColumn        WRITE setGroupColumn       )
+  Q_PROPERTY(int     nameColumn        READ nameColumn         WRITE setNameColumn        )
+  Q_PROPERTY(bool    autoFit           READ isAutoFit          WRITE setAutoFit           )
+  Q_PROPERTY(bool    running           READ isRunning          WRITE setRunning           )
+  Q_PROPERTY(double  nodeRadius        READ nodeRadius         WRITE setNodeRadius        )
+  Q_PROPERTY(QString nodeBorderColor   READ nodeBorderColorStr WRITE setNodeBorderColorStr)
+  Q_PROPERTY(QString edgeColor         READ edgeColorStr       WRITE setEdgeColorStr      )
+  Q_PROPERTY(double  edgeAlpha         READ edgeAlpha          WRITE setEdgeAlpha         )
 
  public:
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
@@ -723,11 +724,16 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   double nodeRadius() const { return nodeRadius_; }
   void setNodeRadius(double r) { nodeRadius_ = r; }
 
-  const QColor &nodeBorderColor() const { return nodeBorderColor_; }
-  void setNodeBorderColor(const QColor &v) { nodeBorderColor_ = v; }
+  QString nodeBorderColorStr() const { return nodeBorderColor_.colorStr(); }
+  void setNodeBorderColorStr(const QString &s) { nodeBorderColor_.setColorStr(s); }
 
-  const QColor &edgeColor() const { return edgeColor_; }
-  void setEdgeColor(const QColor &v) { edgeColor_ = v; }
+  QColor interpNodeBorderColor(int i, int n) const {
+    return nodeBorderColor_.interpColor(this, i, n); }
+
+  QString edgeColorStr() const { return edgeColor_.colorStr(); }
+  void setEdgeColorStr(const QString &s) { edgeColor_.setColorStr(s); }
+
+  QColor interpEdgeColor(int i, int n) const { return edgeColor_.interpColor(this, i, n); }
 
   double edgeAlpha() const { return edgeAlpha_; }
   void setEdgeAlpha(double r) { edgeAlpha_ = r; }
@@ -786,27 +792,26 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
  private:
   using NodeMap = std::map<int,Springy::Node*>;
 
-  int               nodeColumn_        { 0 };
-  int               connectionsColumn_ { 1 };
-  int               nameColumn_        { -1 };
-  int               groupColumn_       { -1 };
-  IdConnectionsData idConnections_;
-  NodeMap           nodes_;
-  QTimer*           timer_             { nullptr };
-  CForceDirected    forceDirected_;
-  bool              autoFit_           { true };
-  bool              running_           { true };
-  bool              pressed_           { false };
-  int               tickLen_           { 30 };
-  double            rangeSize_         { 20 };
-  double            nodeMass_          { 1.0 };
-  int               initSteps_         { 100 };
-  double            stepSize_          { 0.01 };
-  QColor            nodeColor_         { 0, 100, 255 };
-  QColor            nodeBorderColor_   { 0, 0, 0 };
-  double            nodeRadius_        { 6 };
-  QColor            edgeColor_         { 0, 0, 0 };
-  double            edgeAlpha_         { 0.5 };
+  int                  nodeColumn_        { 0 };
+  int                  connectionsColumn_ { 1 };
+  int                  nameColumn_        { -1 };
+  int                  groupColumn_       { -1 };
+  IdConnectionsData    idConnections_;
+  NodeMap              nodes_;
+  QTimer*              timer_             { nullptr };
+  CForceDirected       forceDirected_;
+  bool                 autoFit_           { true };
+  bool                 running_           { true };
+  bool                 pressed_           { false };
+  int                  tickLen_           { 30 };
+  double               rangeSize_         { 20 };
+  double               nodeMass_          { 1.0 };
+  int                  initSteps_         { 100 };
+  double               stepSize_          { 0.01 };
+  CQChartsPaletteColor nodeBorderColor_;
+  double               nodeRadius_        { 6 };
+  CQChartsPaletteColor edgeColor_;
+  double               edgeAlpha_         { 0.5 };
 };
 
 #endif

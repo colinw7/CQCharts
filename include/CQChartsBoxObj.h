@@ -1,8 +1,8 @@
 #ifndef CQChartsBoxObj_H
 #define CQChartsBoxObj_H
 
+#include <CQChartsPaletteColor.h>
 #include <QObject>
-#include <QColor>
 #include <QRectF>
 #include <QPolygonF>
 
@@ -12,30 +12,32 @@ class QPainter;
 class CQChartsBoxObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(int     margin           READ margin           WRITE setMargin          )
-  Q_PROPERTY(int     padding          READ padding          WRITE setPadding         )
-  Q_PROPERTY(bool    background       READ isBackground     WRITE setBackground      )
-  Q_PROPERTY(QColor  backgroundColor  READ backgroundColor  WRITE setBackgroundColor )
-  Q_PROPERTY(bool    border           READ isBorder         WRITE setBorder          )
-  Q_PROPERTY(QColor  borderColor      READ borderColor      WRITE setBorderColor     )
-  Q_PROPERTY(double  borderWidth      READ borderWidth      WRITE setBorderWidth     )
-  Q_PROPERTY(double  borderCornerSize READ borderCornerSize WRITE setBorderCornerSize)
-  Q_PROPERTY(QString borderSides      READ borderSides      WRITE setBorderSides     )
+  Q_PROPERTY(double  margin           READ margin             WRITE setMargin            )
+  Q_PROPERTY(double  padding          READ padding            WRITE setPadding           )
+  Q_PROPERTY(bool    background       READ isBackground       WRITE setBackground        )
+  Q_PROPERTY(QString backgroundColor  READ backgroundColorStr WRITE setBackgroundColorStr)
+  Q_PROPERTY(double  backgroundAlpha  READ backgroundAlpha    WRITE setBackgroundAlpha   )
+  Q_PROPERTY(bool    border           READ isBorder           WRITE setBorder            )
+  Q_PROPERTY(QString borderColor      READ borderColorStr     WRITE setBorderColorStr    )
+  Q_PROPERTY(double  borderAlpha      READ borderAlpha        WRITE setBorderAlpha       )
+  Q_PROPERTY(double  borderWidth      READ borderWidth        WRITE setBorderWidth       )
+  Q_PROPERTY(double  borderCornerSize READ borderCornerSize   WRITE setBorderCornerSize  )
+  Q_PROPERTY(QString borderSides      READ borderSides        WRITE setBorderSides       )
 
  public:
-  CQChartsBoxObj();
+  CQChartsBoxObj(CQChartsPlot *plot);
 
   virtual ~CQChartsBoxObj() { }
 
   //---
 
   // inside margin
-  int margin() const { return margin_; }
-  virtual void setMargin(int i) { margin_ = i; redrawBoxObj(); }
+  double margin() const { return margin_; }
+  virtual void setMargin(double r) { margin_ = r; redrawBoxObj(); }
 
   // outside padding
-  int padding() const { return padding_; }
-  virtual void setPadding(int i) { padding_ = i; redrawBoxObj(); }
+  double padding() const { return padding_; }
+  virtual void setPadding(double r) { padding_ = r; redrawBoxObj(); }
 
   //---
 
@@ -43,8 +45,17 @@ class CQChartsBoxObj : public QObject {
   bool isBackground() const { return background_; }
   virtual void setBackground(bool b) { background_ = b; redrawBoxObj(); }
 
-  const QColor &backgroundColor() const { return backgroundColor_; }
-  virtual void setBackgroundColor(const QColor &c) { backgroundColor_ = c; redrawBoxObj(); }
+  const CQChartsPaletteColor &backgroundColor() const { return backgroundColor_; }
+  void setBackgroundColor(const CQChartsPaletteColor &c) { backgroundColor_ = c; redrawBoxObj(); }
+
+  QString backgroundColorStr() const { return backgroundColor_.colorStr(); }
+  void setBackgroundColorStr(const QString &str) {
+    backgroundColor_.setColorStr(str); redrawBoxObj(); }
+
+  QColor interpBackgroundColor(int i, int n) const;
+
+  double backgroundAlpha() const { return backgroundAlpha_; }
+  virtual void setBackgroundAlpha(double a) { backgroundAlpha_ = a; redrawBoxObj(); }
 
   //---
 
@@ -52,8 +63,16 @@ class CQChartsBoxObj : public QObject {
   bool isBorder() const { return border_; }
   virtual void setBorder(bool b) { border_ = b; redrawBoxObj(); }
 
-  const QColor &borderColor() const { return borderColor_; }
-  virtual void setBorderColor(const QColor &c) { borderColor_ = c; redrawBoxObj(); }
+  const CQChartsPaletteColor &borderColor() const { return borderColor_; }
+  void setBorderColor(const CQChartsPaletteColor &c) { borderColor_ = c; redrawBoxObj(); }
+
+  QString borderColorStr() const { return borderColor_.colorStr(); }
+  void setBorderColorStr(const QString &str) { borderColor_.setColorStr(str); redrawBoxObj(); }
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const { return borderAlpha_; }
+  virtual void setBorderAlpha(double a) { borderAlpha_ = a; redrawBoxObj(); }
 
   double borderWidth() const { return borderWidth_; }
   virtual void setBorderWidth(double r) { borderWidth_ = r; redrawBoxObj(); }
@@ -68,21 +87,24 @@ class CQChartsBoxObj : public QObject {
 
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
+  virtual void redrawBoxObj();
+
   void draw(QPainter *p, const QRectF &rect) const;
   void draw(QPainter *p, const QPolygonF &poly) const;
 
-  virtual void redrawBoxObj() { }
-
  protected:
-  int     margin_           { 4 }; // inside margin
-  int     padding_          { 0 }; // outside margin
-  bool    background_       { false };
-  QColor  backgroundColor_  { 255, 255, 255 };
-  bool    border_           { false };
-  QColor  borderColor_      { 0, 0, 0 };
-  double  borderWidth_      { 0.0 };
-  double  borderCornerSize_ { 0.0 };
-  QString borderSides_      { "tlbr" };
+  CQChartsPlot*        plot_             { nullptr }; // parent plot
+  double               margin_           { 4 };       // inside margin (pixels)
+  double               padding_          { 0 };       // outside margin (pixels)
+  bool                 background_       { false };   // draw background
+  CQChartsPaletteColor backgroundColor_;              // background color
+  double               backgroundAlpha_  { 1.0 };     // background color alpha
+  bool                 border_           { false };   // draw border
+  CQChartsPaletteColor borderColor_;                  // border color
+  double               borderWidth_      { 0.0 };     // border width
+  double               borderAlpha_      { 1.0 };     // border color alpha
+  double               borderCornerSize_ { 0.0 };     // border rounded corner size
+  QString              borderSides_      { "tlbr" };  // border sides to draw
 };
 
 #endif

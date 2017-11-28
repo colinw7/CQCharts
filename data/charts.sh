@@ -1,11 +1,11 @@
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
- -type bar -columns "name=0,value=1" -column_type "1#integer" \
+ -type bar -columns "category=0,value=1" -column_type "1#integer" \
  -plot_title "bar chart"
 
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
- -type bar -columns "name=0,value=1 2 3 4 5 6 7" \
+ -type bar -columns "category=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer"
 
 CQChartsTest \
@@ -107,7 +107,40 @@ CQChartsTest \
 CQChartsTest \
  -csv xy_10000.csv -first_line_header \
  -type xy -columns "x=0,y=1" \
+ -plot_title "10000 points" \
+ -properties "points.visible=0"
+CQChartsTest \
+ -csv xy_10000.csv -first_line_header \
+ -type bar -columns "x=0,y=1" \
+ -plot_title "10000 points" \
+ -properties "stroke.visible=0"
+CQChartsTest \
+ -csv xy_10000.csv -first_line_header \
+ -type scatter -columns "x=0,y=1" \
  -plot_title "10000 points"
+CQChartsTest \
+ -csv random_10000.csv -first_line_header \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "10000 points"
+
+CQChartsTest \
+ -csv xy_100000.csv -first_line_header \
+ -type xy -columns "x=0,y=1" \
+ -plot_title "100000 points" \
+ -properties "lines.visible=0"
+CQChartsTest \
+ -csv xy_100000.csv -first_line_header \
+ -type bar -columns "x=0,y=1" \
+ -plot_title "100000 points" \
+ -properties "stroke.visible=0"
+CQChartsTest \
+ -csv xy_100000.csv -first_line_header \
+ -type scatter -columns "x=0,y=1" \
+ -plot_title "100000 points"
+CQChartsTest \
+ -csv xy_100000_positive.csv -first_line_header \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "100000 points"
 
 CQChartsTest -y1y2 \
  -tsv multi_series.tsv -comment_header \
@@ -145,7 +178,7 @@ CQChartsTest \
 CQChartsTest \
   -data xy_size.data -comment_header \
   -type xy -columns "x=0,y=1,size=2" \
-  -properties "points.symbol=circle,points.filled=1"
+  -properties "points.symbol=circle,points.fill.visible=1"
 
 #---
 
@@ -154,7 +187,7 @@ CQChartsTest \
  -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
  -xintegral -ymin 0 \
  -plot_title "Spline Area Chart" \
- -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
+ -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv console.csv -comment_header \
  -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
@@ -165,7 +198,7 @@ CQChartsTest \
  -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
  -column_type "0#time:format=%Y%m%d,oformat=%b" \
  -plot_title "Line Chart" \
- -properties "points.symbol=circle,points.filled=1,Y Axis.grid.line.visible=1" \
+ -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
 -and \
  -csv country_wise_population.csv -comment_header \
  -type bar -columns "name=2,value=1" \
@@ -185,9 +218,9 @@ CQChartsTest \
 #---
 
 CQChartsTest \
-  -data chord-cities.data \
-  -type chord -columns "name=0,group=1" \
-  -plot_title "Chord Plot"
+ -data chord-cities.data \
+ -type chord -columns "name=0,group=1" \
+ -plot_title "Chord Plot"
 
 #---
 
@@ -401,6 +434,10 @@ CQChartsTest \
  -csv gaussian.txt -comment_header \
  -type distribution -columns "value=0" \
  -real "delta=0.1"
+CQChartsTest \
+ -csv distribution_sparse.csv \
+ -type distribution -columns "value=0" \
+ -real "delta=1"
 
 ##---
 
@@ -416,19 +453,20 @@ CQChartsTest -overlay \
 
 ##---
 
-@ year = 1850
+CQChartsTest -csv radar.csv -first_line_header -type radar -columns "name=0,value=1 2 3 4 5"
 
-#while ($year <= 2000)
-  CQChartsTest -overlay \
-   -csv population.csv -first_line_header -filter "sex:1,year:$year" \
-   -process "+key(@0,@0-@1)" -sort "4" \
-   -type barchart -columns "category=4,value=3,name=1" \
-   -properties "fill.color=blue,fill.alpha=0.5,Key.visible=0" \
-  -and \
-   -csv population.csv -first_line_header -filter "sex:2,year:$year" \
-   -process "+key(@0,@0-@1)" -sort "4" \
-   -type barchart -columns "category=4,value=3,name=1" \
-   -properties "fill.color=pink,fill.alpha=0.5"
+##---
 
-#  @ year = $year + 10
-#end
+CQChartsTest -y1y2 \
+ -view_title "Growth in Internet Users Globally" \
+ -csv log.csv -comment_header \
+ -type xy -ylog \
+ -properties "lines.width=2,points.symbol=circle,points.fill.visible=1" \
+ -properties "lines.color=palette:0.25,points.fill.color=palette:0.25" \
+ -plot_title "Log Scale" \
+-and \
+ -csv log.csv -comment_header \
+ -type xy \
+ -properties "lines.width=2,points.symbol=circle,points.fill.visible=1" \
+ -properties "lines.color=palette:0.75,points.fill.color=palette:0.75" \
+ -plot_title "Linear Scale"

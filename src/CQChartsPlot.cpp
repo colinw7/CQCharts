@@ -8,7 +8,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsPointObj.h>
-#include <CQChartsQuadTree.h>
+#include <CQChartsPlotObjTree.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
@@ -20,7 +20,7 @@
 #include <QSortFilterProxyModel>
 #include <QPainter>
 
-using PlotObjTree = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
+#include <iostream>
 
 //------
 
@@ -40,8 +40,6 @@ void
 CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
-  assert(name == type->name());
-
   types_[name] = type;
 }
 
@@ -92,13 +90,24 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   displayRange_     = new CQChartsDisplayRange;
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
 
-  borderObj_     = new CQChartsBoxObj;
-  dataBorderObj_ = new CQChartsBoxObj;
+  displayRange_->setPixelAdjust(0.0);
 
-  plotObjTree_ = new PlotObjTree;
+  borderObj_     = new CQChartsBoxObj(this);
+  dataBorderObj_ = new CQChartsBoxObj(this);
+
+  plotObjTree_ = new CQChartsPlotObjTree(this);
+
+  //--
 
   setBackground    (true);
   setDataBackground(true);
+
+  CQChartsPaletteColor themeBg(CQChartsPaletteColor::Type::THEME_VALUE, 0);
+
+  borderObj_    ->setBackgroundColor(themeBg);
+  dataBorderObj_->setBackgroundColor(themeBg);
+
+  //--
 
   double vr = CQChartsView::viewportRange();
 
@@ -107,6 +116,13 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   displayRange_->setPixelRange(0, vr, vr, 0);
 
   displayRange_->setWindowRange(0, 0, 1, 1);
+
+  //---
+
+  connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+          this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  connect(model_.data(), SIGNAL(layoutChanged()),
+          this, SLOT(modelLayoutChangedSlot()));
 }
 
 CQChartsPlot::
@@ -114,7 +130,7 @@ CQChartsPlot::
 {
   clearPlotObjects();
 
-  delete static_cast<PlotObjTree *>(plotObjTree_);
+  delete plotObjTree_;
 
   delete displayRange_;
   delete displayTransform_;
@@ -126,6 +142,31 @@ CQChartsPlot::
   delete keyObj_;
   delete xAxis_;
   delete yAxis_;
+}
+
+//---
+
+void
+CQChartsPlot::
+modelDataChangedSlot(const QModelIndex &tl, const QModelIndex &br)
+{
+  int column1 = tl.column();
+  int column2 = br.column();
+std::cerr << "data changed " << column1 << " -> " << column2 << "\n";
+
+  // TODO: check if model uses changed columns
+  updateRange();
+
+  updateObjs();
+}
+
+void
+CQChartsPlot::
+modelLayoutChangedSlot()
+{
+  updateRange();
+
+  updateObjs();
 }
 
 //---
@@ -260,18 +301,25 @@ setBackground(bool b)
   borderObj_->setBackground(b); update();
 }
 
-const QColor &
+QColor
 CQChartsPlot::
-backgroundColor() const
+interpBackgroundColor(int i, int n) const
 {
-  return borderObj_->backgroundColor();
+  return borderObj_->interpBackgroundColor(i, n);
+}
+
+QString
+CQChartsPlot::
+backgroundColorStr() const
+{
+  return borderObj_->backgroundColorStr();
 }
 
 void
 CQChartsPlot::
-setBackgroundColor(const QColor &c)
+setBackgroundColorStr(const QString &s)
 {
-  borderObj_->setBackgroundColor(c); update();
+  borderObj_->setBackgroundColorStr(s);
 }
 
 bool
@@ -288,18 +336,25 @@ setBorder(bool b)
   borderObj_->setBorder(b); update();
 }
 
-const QColor &
+QColor
 CQChartsPlot::
-borderColor() const
+interpBorderColor(int i, int n) const
 {
-  return borderObj_->borderColor();
+  return borderObj_->interpBorderColor(i, n);
+}
+
+QString
+CQChartsPlot::
+borderColorStr() const
+{
+  return borderObj_->borderColorStr();
 }
 
 void
 CQChartsPlot::
-setBorderColor(const QColor &c)
+setBorderColorStr(const QString &s)
 {
-  borderObj_->setBorderColor(c); update();
+  borderObj_->setBorderColorStr(s);
 }
 
 double
@@ -346,18 +401,25 @@ setDataBackground(bool b)
   dataBorderObj_->setBackground(b); update();
 }
 
-const QColor &
+QColor
 CQChartsPlot::
-dataBackgroundColor() const
+interpDataBackgroundColor(int i, int n) const
 {
-  return dataBorderObj_->backgroundColor();
+  return dataBorderObj_->interpBackgroundColor(i, n);
+}
+
+QString
+CQChartsPlot::
+dataBackgroundColorStr() const
+{
+  return dataBorderObj_->backgroundColorStr();
 }
 
 void
 CQChartsPlot::
-setDataBackgroundColor(const QColor &c)
+setDataBackgroundColorStr(const QString &s)
 {
-  dataBorderObj_->setBackgroundColor(c); update();
+  dataBorderObj_->setBackgroundColorStr(s);
 }
 
 bool
@@ -374,18 +436,25 @@ setDataBorder(bool b)
   dataBorderObj_->setBorder(b); update();
 }
 
-const QColor &
+QColor
 CQChartsPlot::
-dataBorderColor() const
+interpDataBorderColor(int i, int n) const
 {
-  return dataBorderObj_->borderColor();
+  return dataBorderObj_->interpBorderColor(i, n);
+}
+
+QString
+CQChartsPlot::
+dataBorderColorStr() const
+{
+  return dataBorderObj_->borderColorStr();
 }
 
 void
 CQChartsPlot::
-setDataBorderColor(const QColor &c)
+setDataBorderColorStr(const QString &s)
 {
-  dataBorderObj_->setBorderColor(c); update();
+  dataBorderObj_->setBorderColorStr(s);
 }
 
 double
@@ -531,6 +600,34 @@ aspect() const
 
 //------
 
+void
+CQChartsPlot::
+setLogX(bool b)
+{
+  logX_ = b;
+
+  if (xAxis_)
+    xAxis_->setLog(b);
+
+  updateRange();
+  updateObjs();
+}
+
+void
+CQChartsPlot::
+setLogY(bool b)
+{
+  logY_ = b;
+
+  if (yAxis_)
+    yAxis_->setLog(b);
+
+  updateRange();
+  updateObjs();
+}
+
+//------
+
 CQPropertyViewModel *
 CQChartsPlot::
 propertyModel() const
@@ -548,6 +645,11 @@ addProperties()
   addProperty("", this, "equalScale" );
   addProperty("", this, "followMouse");
   addProperty("", this, "overlay"    );
+  addProperty("", this, "y1y2"       );
+  addProperty("", this, "invertX"    );
+  addProperty("", this, "invertY"    );
+  addProperty("", this, "logX"       );
+  addProperty("", this, "logY"       );
   addProperty("", this, "showBoxes"  );
 
   QString plotStyleStr       = "plotStyle";
@@ -699,7 +801,7 @@ calcDataRange() const
 
   if (dataRange_.isSet())
     bbox = CQChartsGeom::BBox(dataRange_.xmin(), dataRange_.ymin(),
-                   dataRange_.xmax(), dataRange_.ymax());
+                              dataRange_.xmax(), dataRange_.ymax());
   else
     bbox = CQChartsGeom::BBox(0, 0, 1, 1);
 
@@ -720,9 +822,9 @@ applyDataRange(bool propagate)
   CQChartsGeom::BBox dataRange;
 
   if (propagate) {
-    CQChartsPlot *plot1 = firstPlot();
+    if      (isOverlay()) {
+      CQChartsPlot *plot1 = firstPlot();
 
-    if (isOverlay()) {
       while (plot1) {
         plot1->setDataRange(CQChartsGeom::Range());
 
@@ -733,8 +835,13 @@ applyDataRange(bool propagate)
         plot1 = plot1->nextPlot();
       }
     }
-    else
+    else if (isY1Y2()) {
+      CQChartsPlot *plot1 = firstPlot();
+
       dataRange = plot1->calcDataRange();
+    }
+    else
+      dataRange = calcDataRange();
   }
   else {
     dataRange = calcDataRange();
@@ -751,17 +858,17 @@ applyDataRange(bool propagate)
   if (propagate) {
     CQChartsPlot *plot1 = firstPlot();
 
-    if (isOverlay()) {
+    if      (isOverlay()) {
       CQChartsGeom::Range dataRange1 =
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
       if (plot1) {
-        plot1->setDataRange (dataRange1 );
-        plot1->setDataScale (dataScale_ );
-        plot1->setDataOffset(dataOffset_);
+        //plot1->setDataRange (dataRange1 );
+        //plot1->setDataScale (dataScale_ );
+        //plot1->setDataOffset(dataOffset_);
 
-        plot1->applyDataRange(/*propagate*/false);
+        //plot1->applyDataRange(/*propagate*/false);
 
         while (plot1) {
           plot1->setDataRange (dataRange1 );
@@ -774,31 +881,42 @@ applyDataRange(bool propagate)
         }
       }
     }
+    else if (isY1Y2()) {
+      CQChartsGeom::Range dataRange1 =
+        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
+                            dataRange.getXMax(), dataRange.getYMax());
+
+      plot1->setDataScale (dataScale_ );
+      plot1->setDataOffset(dataOffset_);
+
+      plot1->applyDataRange(/*propagate*/false);
+
+      //---
+
+      CQChartsPlot *plot2 = plot1->nextPlot();
+
+      if (plot2) {
+        plot2->setDataRange(CQChartsGeom::Range());
+
+        plot2->updateRange(/*update*/false);
+
+        CQChartsGeom::BBox bbox2 = plot2->calcDataRange();
+
+        CQChartsGeom::Range dataRange2 =
+          CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
+                              dataRange1.right(), bbox2.getYMax());
+
+        plot2->setDataRange(dataRange2);
+        plot2->setDataScale (dataScale_ );
+        plot2->setDataOffset(dataOffset_);
+
+        plot2->applyDataRange(/*propagate*/false);
+      }
+    }
     else {
       if (plot1) {
-#if 0
-        CQChartsGeom::BBox bbox1(dataRange_.xmin(), dataRange_.ymin(),
-                                 dataRange_.xmax(), dataRange_.ymax());
-#endif
-
         while (plot1) {
           if (plot1 != this) {
-
-#if 0
-            CQChartsGeom::BBox bbox2;
-
-            windowToPixel(bbox1, bbox2);
-
-            CQChartsGeom::BBox bbox3;
-
-            plot1->pixelToWindow(bbox2, bbox3);
-
-            CQChartsGeom::Range dataRange(bbox3.getXMin(), bbox3.getYMin(),
-                                          bbox3.getXMax(), bbox3.getYMax());
-
-            plot1->setDataRange(dataRange);
-#endif
-
             plot1->setDataScale (dataScale_ );
             plot1->setDataOffset(dataOffset_);
 
@@ -843,14 +961,26 @@ applyDisplayTransform(bool propagate)
 
 void
 CQChartsPlot::
+adjustDataRange()
+{
+  if (xmin_) dataRange_.setLeft  (*xmin_);
+  if (ymin_) dataRange_.setBottom(*ymin_);
+  if (xmax_) dataRange_.setRight (*xmax_);
+  if (ymax_) dataRange_.setTop   (*ymax_);
+}
+
+void
+CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
-  if (! obj->rect().isSet())
-    return;
-
-  static_cast<PlotObjTree *>(plotObjTree_)->add(obj);
-
   plotObjs_.push_back(obj);
+}
+
+void
+CQChartsPlot::
+initObjTree()
+{
+  plotObjTree_->addObjects(plotObjs_);
 }
 
 void
@@ -862,7 +992,9 @@ clearPlotObjects()
 
   plotObjs_.clear();
 
-  static_cast<PlotObjTree *>(plotObjTree_)->reset();
+  plotObjTree_->clearObjects();
+
+  insidePlotObjs_.clear();
 }
 
 bool
@@ -904,11 +1036,11 @@ mousePress(const CQChartsGeom::Point &w)
   //---
 
   // get selected objects and toggle selected
-  PlotObjTree::DataList dataList;
+  PlotObjs objs;
 
-  objsAtPoint(w, dataList);
+  objsAtPoint(w, objs);
 
-  for (auto obj : dataList) {
+  for (auto obj : objs) {
     objsSelected[obj] = ! obj->isSelected();
 
     obj->mousePress(w);
@@ -934,7 +1066,7 @@ mousePress(const CQChartsGeom::Point &w)
 
   //---
 
-  return ! dataList.empty();
+  return ! objs.empty();
 }
 
 bool
@@ -979,12 +1111,12 @@ mouseMove(const CQChartsGeom::Point &w, bool first)
 
   QString objText;
 
-  PlotObjTree::DataList dataList;
+  PlotObjs objs;
 
   if (isFollowMouse()) {
-    objsAtPoint(w, dataList);
+    objsAtPoint(w, objs);
 
-    for (auto obj : dataList) {
+    for (auto obj : objs) {
       if (objText != "")
         objText += " ";
 
@@ -1006,8 +1138,39 @@ mouseMove(const CQChartsGeom::Point &w, bool first)
   if (isFollowMouse()) {
     bool changed = false;
 
-    auto resetInside = [&] (CQChartsPlotObj *obj) -> void {
-      for (const auto &obj1 : dataList) {
+    if (objs.size() == insidePlotObjs_.size()) {
+      for (const auto &obj : objs) {
+        if (insidePlotObjs_.find(obj) == insidePlotObjs_.end()) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    else {
+      changed = true;
+    }
+
+    if (changed) {
+      insidePlotObjs_.clear();
+
+      for (const auto &obj : plotObjs_)
+        obj->setInside(false);
+
+      for (const auto &obj : objs) {
+        obj->setInside(true);
+
+        insidePlotObjs_.insert(obj);
+      }
+    }
+
+#if 0
+    // for all objects, if under mouse then set to inside (and log if changed)
+    // if not under mouse set to not inside (and log if changed)
+    // TODO: bad, slow code, need fast way to check if new inside objects match old
+    for (const auto &obj : plotObjs_) {
+      // check if object is under mouse
+      // TODO, just check if point inside ?
+      for (const auto &obj1 : objs) {
         if (obj1 == obj) {
           if (! obj->isInside()) {
             obj->setInside(true);
@@ -1025,8 +1188,7 @@ mouseMove(const CQChartsGeom::Point &w, bool first)
         changed = true;
       }
     };
-
-    static_cast<PlotObjTree *>(plotObjTree_)->process(resetInside);
+#endif
 
     if (changed)
       update();
@@ -1047,11 +1209,11 @@ void
 CQChartsPlot::
 clickZoom(const CQChartsGeom::Point &w)
 {
-  PlotObjTree::DataList dataList;
+  PlotObjs objs;
 
-  objsAtPoint(w, dataList);
+  objsAtPoint(w, objs);
 
-  for (auto obj : dataList)
+  for (auto obj : objs)
     obj->clickZoom(w);
 }
 
@@ -1079,6 +1241,9 @@ QString
 CQChartsPlot::
 xStr(double x) const
 {
+  if (isLogX())
+    x = expValue(x);
+
   return columnStr(xValueColumn(), x);
 }
 
@@ -1086,6 +1251,9 @@ QString
 CQChartsPlot::
 yStr(double y) const
 {
+  if (isLogY())
+    y = expValue(y);
+
   return columnStr(yValueColumn(), y);
 }
 
@@ -1228,6 +1396,29 @@ panDown()
 
 void
 CQChartsPlot::
+pan(double dx, double dy)
+{
+  if (view_->isZoomData()) {
+    //CQChartsGeom::BBox dataRange = calcDataRange();
+
+    dataOffset_.setX(dataOffset_.y + dx);
+    dataOffset_.setY(dataOffset_.y + dy);
+
+    applyDataRange();
+
+    update();
+  }
+  else {
+    // TODO
+
+    //displayTransform_->pan(dx, dy);
+
+    //updateTransform();
+  }
+}
+
+void
+CQChartsPlot::
 zoomIn(double f)
 {
   if (view_->isZoomData()) {
@@ -1335,14 +1526,14 @@ bool
 CQChartsPlot::
 tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
-  PlotObjTree::DataList dataList;
+  PlotObjs objs;
 
-  objsAtPoint(p, dataList);
+  objsAtPoint(p, objs);
 
-  if (dataList.empty())
+  if (objs.empty())
     return false;
 
-  for (auto obj : dataList) {
+  for (auto obj : objs) {
     if (! obj->visible())
       continue;
 
@@ -1357,16 +1548,9 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
 void
 CQChartsPlot::
-objsAtPoint(const CQChartsGeom::Point &p, std::list<CQChartsPlotObj *> &objs) const
+objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
 {
-  PlotObjTree::DataList dataList;
-
-  static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
-
-  for (const auto &obj : dataList) {
-    if (obj->inside(p))
-      objs.push_back(obj);
-  }
+  plotObjTree_->objectsAtPoint(p, objs);
 }
 
 void
@@ -1445,8 +1629,12 @@ updateKeyPosition(bool force)
            location == CQChartsKey::Location::BOTTOM_RIGHT) {
     if (keyObj_->isInsideY())
       ky = bbox.getYMin() + ks.height() + ym;
-    else
+    else {
       ky = bbox.getYMin() - ym;
+
+      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::BOTTOM_LEFT && xAxis_->bbox().isSet())
+        ky -= xAxis_->bbox().getHeight();
+    }
   }
 
   keyObj_->setPosition(QPointF(kx, ky));
@@ -1513,17 +1701,17 @@ drawBackground(QPainter *painter)
   QRectF dataRect = calcRect();
 
   if (isBackground())
-    painter->fillRect(plotRect, QBrush(backgroundColor()));
+    painter->fillRect(plotRect, QBrush(interpBackgroundColor(0, 1)));
 
   if (isBorder()) {
-    drawSides(painter, plotRect, borderSides(), borderWidth(), borderColor());
+    drawSides(painter, plotRect, borderSides(), borderWidth(), interpBorderColor(0, 1));
   }
 
   if (isDataBackground())
-    painter->fillRect(dataRect, QBrush(dataBackgroundColor()));
+    painter->fillRect(dataRect, QBrush(interpDataBackgroundColor(0, 1)));
 
   if (isDataBorder()) {
-    drawSides(painter, dataRect, dataBorderSides(), dataBorderWidth(), dataBorderColor());
+    drawSides(painter, dataRect, dataBorderSides(), dataBorderWidth(), interpDataBorderColor(0, 1));
   }
 }
 
@@ -1534,7 +1722,7 @@ drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
 {
   QPen pen(color);
 
-  pen.setWidth(width);
+  pen.setWidthF(width);
 
   painter->setPen(pen);
   painter->setBrush(Qt::NoBrush);
@@ -1754,8 +1942,18 @@ drawObjs(QPainter *painter, const Layer &layer)
     painter->setClipRect(plotRect, Qt::ReplaceClip);
   }
 
-  for (const auto &plotObj : plotObjs_)
+  double xmin, ymin, xmax, ymax;
+
+  displayRange_->getWindowRange(&xmin, &ymin, &xmax, &ymax);
+
+  CQChartsGeom::BBox bbox(xmin, ymin, xmax, ymax);
+
+  for (const auto &plotObj : plotObjs_) {
+    if (! bbox.overlaps(plotObj->rect()))
+      continue;
+
     plotObj->draw(painter, layer);
+  }
 
   painter->restore();
 }
@@ -1873,6 +2071,13 @@ drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsPlot::
+hiddenChanged()
+{
+  updateObjs();
+}
+
+void
+CQChartsPlot::
 update()
 {
   view_->update();
@@ -1893,7 +2098,8 @@ updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
     if (obj->isInside()) {
       if (view()->insideMode() == CQChartsView::InsideMode::OUTLINE) {
         pen.setColor(CQChartsUtil::invColor(pc));
-        pen.setWidth(1);
+        pen.setStyle(Qt::DashLine);
+        pen.setWidthF(1);
       }
       else
         brush.setColor(insideColor(bc));
@@ -1903,7 +2109,7 @@ updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
     if (obj->isSelected()) {
       if (view()->selectedMode() == CQChartsView::SelectedMode::OUTLINE) {
         pen.setColor(CQChartsUtil::invColor(pc));
-        pen.setWidth(2);
+        pen.setWidthF(2);
       }
       else
         brush.setColor(CQChartsUtil::invColor(bc));
@@ -1916,41 +2122,16 @@ updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
     // inside first (low priorty)
     if (obj->isInside()) {
       pen.setColor(CQChartsUtil::invColor(pc));
-      pen.setWidth(2);
+      pen.setWidthF(2);
     }
 
     // selected last (high priority)
     if (obj->isSelected()) {
       pen.setColor(CQChartsUtil::invColor(pc));
-      pen.setWidth(4);
+      pen.setWidthF(4);
     }
   }
 }
-
-#if 0
-QColor
-CQChartsPlot::
-objectColor(CQChartsPlotObj *obj, int i, int n, const QColor &def) const
-{
-  QColor c = paletteColor(i, n, def);
-
-  return objectStateColor(obj, c);
-}
-#endif
-
-#if 0
-QColor
-CQChartsPlot::
-objectStateColor(CQChartsPlotObj *obj, const QColor &c) const
-{
-  QColor c1 = c;
-
-  if (obj->isInside())
-    c1 = insideColor(c1);
-
-  return c1;
-}
-#endif
 
 QColor
 CQChartsPlot::
@@ -1961,32 +2142,26 @@ insideColor(const QColor &c) const
 
 QColor
 CQChartsPlot::
-paletteColor(int i, int n, const QColor &def) const
+interpPaletteColor(int i, int n, bool scale) const
 {
   double r = CQChartsUtil::norm(i + 1, 0, n + 1);
 
-  return interpPaletteColor(r, def);
+  return interpPaletteColor(r, scale);
 }
 
 QColor
 CQChartsPlot::
-interpPaletteColor(double r, const QColor &def) const
+interpPaletteColor(double r, bool scale) const
 {
-  if (! palette())
-    return def;
-
-  QColor c = palette()->getColor(r);
+  QColor c = palette()->getColor(r, scale);
 
   return c;
 }
 
 QColor
 CQChartsPlot::
-groupPaletteColor(double r1, double r2, double dr, const QColor &def) const
+groupPaletteColor(double r1, double r2, double dr) const
 {
-  if (! palette())
-    return def;
-
   // r1 is parent color and r2 is child color
   QColor c1 = palette()->getColor(r1 - dr/2.0);
   QColor c2 = palette()->getColor(r1 + dr/2.0);
@@ -1999,6 +2174,15 @@ CQChartsPlot::
 textColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
+}
+
+QColor
+CQChartsPlot::
+interpThemeColor(double r) const
+{
+  QColor c = theme()->getColor(r, /*scale*/true);
+
+  return c;
 }
 
 //------
@@ -2138,10 +2322,33 @@ endSelect()
 
 //------
 
+double
+CQChartsPlot::
+logValue(double x, int base) const
+{
+  if (x >= 1E-6)
+    return log(x)/log(base);
+  else
+    return CQChartsUtil::getNaN();
+}
+
+double
+CQChartsPlot::
+expValue(double x, int base) const
+{
+  //return exp(x*log(base)) - logTol();
+  return exp(x*log(base));
+}
+
+//------
+
 void
 CQChartsPlot::
 windowToPixel(double wx, double wy, double &px, double &py) const
 {
+  //if (isLogX()) wx = logValue(wx, 10);
+  //if (isLogY()) wy = logValue(wy, 10);
+
   double wx1, wy1;
 
   displayTransform_->getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
@@ -2149,6 +2356,15 @@ windowToPixel(double wx, double wy, double &px, double &py) const
   double wx2, wy2;
 
   displayRange_->windowToPixel(wx1, wy1, &wx2, &wy2);
+
+  if (isInvertX() || isInvertY()) {
+    double iwx2, iwy2;
+
+    displayRange_->invertPixel(wx2, wy2, iwx2, iwy2);
+
+    if (isInvertX()) wx2 = iwx2;
+    if (isInvertY()) wy2 = iwy2;
+  }
 
   view_->windowToPixel(wx2, wy2, px, py);
 }
@@ -2161,11 +2377,23 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
 
   view_->pixelToWindow(px, py, wx1, wy1);
 
+  if (isInvertX() || isInvertY()) {
+    double iwx1, iwy1;
+
+    displayRange_->invertPixel(wx1, wy1, iwx1, iwy1);
+
+    if (isInvertX()) wx1 = iwx1;
+    if (isInvertY()) wy1 = iwy1;
+  }
+
   double wx2, wy2;
 
   displayRange_->pixelToWindow(wx1, wy1, &wx2, &wy2);
 
   displayTransform_->getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
+
+  //if (isLogX()) wx = expValue(wx, 10);
+  //if (isLogY()) wy = expValue(wy, 10);
 }
 
 void

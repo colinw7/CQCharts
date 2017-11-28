@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsBoxObj.h>
 #include <CGradientPalette.h>
 
 #include <QAbstractItemModel>
@@ -51,6 +52,16 @@ CQChartsHierBubblePlot::
 CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierbubble"), model)
 {
+  bubbleObj_ = new CQChartsBoxObj(this);
+
+  bubbleObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+
+  setBorder(true);
+
+  textFont_.setPointSizeF(8.0);
+
+  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   setMargins(1, 1, 1, 1);
 
   addTitle();
@@ -59,7 +70,126 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 CQChartsHierBubblePlot::
 ~CQChartsHierBubblePlot()
 {
+  delete bubbleObj_;
+
   delete root_;
+}
+
+QString
+CQChartsHierBubblePlot::
+fillColorStr() const
+{
+  return bubbleObj_->backgroundColorStr();
+}
+
+void
+CQChartsHierBubblePlot::
+setFillColorStr(const QString &s)
+{
+  bubbleObj_->setBackgroundColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsHierBubblePlot::
+interpFillColor(int i, int n) const
+{
+  return bubbleObj_->interpBackgroundColor(i, n);
+}
+
+double
+CQChartsHierBubblePlot::
+fillAlpha() const
+{
+  return bubbleObj_->backgroundAlpha();
+}
+
+void
+CQChartsHierBubblePlot::
+setFillAlpha(double a)
+{
+  bubbleObj_->setBackgroundAlpha(a);
+
+  update();
+}
+
+bool
+CQChartsHierBubblePlot::
+isBorder() const
+{
+  return bubbleObj_->isBorder();
+}
+
+void
+CQChartsHierBubblePlot::
+setBorder(bool b)
+{
+  bubbleObj_->setBorder(b);
+
+  update();
+}
+
+QString
+CQChartsHierBubblePlot::
+borderColorStr() const
+{
+  return bubbleObj_->borderColorStr();
+}
+
+void
+CQChartsHierBubblePlot::
+setBorderColorStr(const QString &str)
+{
+  bubbleObj_->setBorderColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsHierBubblePlot::
+interpBorderColor(int i, int n) const
+{
+  return bubbleObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsHierBubblePlot::
+borderAlpha() const
+{
+  return bubbleObj_->borderAlpha();
+}
+
+void
+CQChartsHierBubblePlot::
+setBorderAlpha(double a)
+{
+  bubbleObj_->setBorderAlpha(a);
+
+  update();
+}
+
+double
+CQChartsHierBubblePlot::
+borderWidth() const
+{
+  return bubbleObj_->borderWidth();
+}
+
+void
+CQChartsHierBubblePlot::
+setBorderWidth(double r)
+{
+  bubbleObj_->setBorderWidth(r);
+
+  update();
+}
+
+QColor
+CQChartsHierBubblePlot::
+interpTextColor(int i, int n) const
+{
+  return textColor_.interpColor(this, i, n);
 }
 
 void
@@ -68,8 +198,15 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("", this, "separator" );
-  addProperty("", this, "fontHeight");
+  addProperty(""      , this, "separator" );
+  addProperty("fill"  , this, "fillColor"  , "color");
+  addProperty("fill"  , this, "fillAlpha"  , "alpha");
+  addProperty("border", this, "border"     , "displayed");
+  addProperty("border", this, "borderColor", "color");
+  addProperty("border", this, "borderAlpha", "alpha");
+  addProperty("border", this, "borderWidth", "width");
+  addProperty("text"  , this, "textFont"   , "font");
+  addProperty("text"  , this, "textColor"  , "color");
 }
 
 void
@@ -141,6 +278,10 @@ initObjs()
   //---
 
   initNodeObjs(currentRoot_, nullptr, 0);
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -155,8 +296,6 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
     CQChartsGeom::BBox rect(hier->x() - r, hier->y() - r, hier->x() + r, hier->y() + r);
 
     hierObj = new CQChartsHierBubbleHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
-
-    hierObj->setId(QString("%1:%2").arg(hier->name()).arg(hier->size()));
 
     addPlotObject(hierObj);
   }
@@ -180,8 +319,6 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
     CQChartsHierBubbleObj *obj =
       new CQChartsHierBubbleObj(this, node, parentObj, rect, node->depth(), maxDepth());
-
-    obj->setId(QString("%1:%2").arg(node->name()).arg(node->size()));
 
     addPlotObject(obj);
   }
@@ -509,7 +646,9 @@ drawBounds(QPainter *p, CQChartsHierBubbleHierNode *hier)
   //---
 
   // draw bubble
-  p->setPen  (QColor(0,0,0));
+  QColor bc = interpBorderColor(0, 1);
+
+  p->setPen  (bc);
   p->setBrush(Qt::NoBrush);
 
   QPainterPath path;
@@ -529,11 +668,9 @@ drawBounds(QPainter *p, CQChartsHierBubbleHierNode *hier)
 
 QColor
 CQChartsHierBubblePlot::
-nodeColor(CQChartsHierBubbleNode *node) const
+interpNodeColor(CQChartsHierBubbleNode *node) const
 {
-  QColor c(80,80,200);
-
-  return interpPaletteColor((1.0*node->colorId())/(maxColorId() + 1), c);
+  return interpPaletteColor((1.0*node->colorId())/(maxColorId() + 1), /*scale*/false);
 }
 
 //------
@@ -544,6 +681,13 @@ CQChartsHierBubbleHierObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNo
                           int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsHierBubbleHierObj::
+calcId() const
+{
+  return QString("%1:%2").arg(hier_->name()).arg(hier_->size());
 }
 
 bool
@@ -595,8 +739,6 @@ void
 CQChartsHierBubbleHierObj::
 draw(QPainter *p, const CQChartsPlot::Layer &)
 {
-//double f = (1.0*(i_ + 1))/(n_ + 1);
-
   CQChartsHierBubbleHierNode *root = hier_->parent();
 
   if (! root)
@@ -617,16 +759,25 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   // calc stroke and brush
 
-//QColor c = plot_->hierColor(hier_);
-//QColor c = plot_->interpPaletteColor(f);
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->interpFillColor(root->hierInd(), plot_->maxHierInd());
+
+  c.setAlphaF(plot_->fillAlpha());
 
   QBrush brush(c);
 
-//QColor bc = plot_->textColor(c);
-  QColor bc = Qt::black;
+  QPen pen;
 
-  QPen pen(bc);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    pen = QPen(bc);
+
+    pen.setWidthF(plot_->borderWidth());
+  }
+  else
+    pen = QPen(Qt::NoPen);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -651,6 +802,13 @@ CQChartsHierBubbleObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node
                       int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsHierBubbleObj::
+calcId() const
+{
+  return QString("%1:%2").arg(node_->name()).arg(node_->size());
 }
 
 bool
@@ -729,19 +887,33 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
+  // calc stroke and brush
+
   //CQChartsHierBubbleHierNode *root = node_->rootNode(plot_->firstHier());
   CQChartsHierBubbleHierNode *root = node_->parent();
 
-//QColor c = plot_->interpPaletteColor((1.0*(i_ + 1))/(n_ + 1));
-//QColor c = plot_->nodeColor(node_);
-  QColor c = plot_->interpPaletteColor((1.0*(root->hierInd() + 1))/(plot_->maxHierInd() + 1));
+  QColor c = plot_->interpFillColor(root->hierInd(), plot_->maxHierInd());
+
+  c.setAlphaF(plot_->fillAlpha());
 
   QBrush brush(c);
 
-  QColor bc = Qt::black;
-  QColor tc = CQChartsUtil::bwColor(c);
+  QPen bpen;
 
-  QPen bpen(bc);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    bpen = QPen(bc);
+
+    bpen.setWidthF(plot_->borderWidth());
+  }
+  else
+    bpen = QPen(Qt::NoPen);
+
+  QColor tc = plot_->interpTextColor(0, 1);
+
   QPen tpen(tc);
 
   plot_->updateObjPenBrushState(this, bpen, brush);
@@ -766,16 +938,14 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // set font size
-  QFont font = plot_->view()->font();
-
-  font.setPointSizeF(plot_->fontHeight());
+  QFont font = plot_->textFont();
 
   //---
 
   // calc text size and position
   p->setFont(font);
 
-  QString name = node_->name();
+  const QString &name = node_->name();
 
   QFontMetricsF fm(p->font());
 
@@ -809,11 +979,11 @@ CQChartsHierBubbleHierNode(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierN
 CQChartsHierBubbleHierNode::
 ~CQChartsHierBubbleHierNode()
 {
-  for (auto &node : nodes_)
-    delete node;
-
   for (auto &child : children_)
     delete child;
+
+  for (auto &node : nodes_)
+    delete node;
 }
 
 void

@@ -4,8 +4,10 @@
 #include <QPainter>
 
 CQChartsFillObj::
-CQChartsFillObj()
+CQChartsFillObj(CQChartsPlot *plot) :
+ plot_(plot)
 {
+  color_.setValue(CQChartsPaletteColor::Type::PALETTE);
 }
 
 void
@@ -17,6 +19,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "alpha"  );
 }
 
+QColor
+CQChartsFillObj::
+interpColor(int i, int n) const
+{
+  return color_.interpColor(plot_, i, n);
+}
+
 void
 CQChartsFillObj::
 draw(QPainter *p, const QRectF &rect) const
@@ -24,7 +33,7 @@ draw(QPainter *p, const QRectF &rect) const
   if (! isVisible())
     return;
 
-  QBrush brush(color());
+  QBrush brush(interpColor(0, 1));
 
   p->setBrush(brush);
   p->setPen  (Qt::NoPen);
@@ -39,7 +48,7 @@ draw(QPainter *p, const QPolygonF &poly) const
   if (! isVisible())
     return;
 
-  QBrush brush(color());
+  QBrush brush(interpColor(0, 1));
 
   p->setBrush(brush);
   p->setPen  (Qt::NoPen);

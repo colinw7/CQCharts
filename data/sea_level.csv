@@ -1,0 +1,6 @@
+Depth,Location,Color,Label
+300,Continental Shelf,#6d78ad
+3000,Continental Slope,#51cda0
+4000,Continental Rise,#df7970
+6000,Abyssal Plain,#4c9ca0,Deepest
+4400,Sea Mount,#ae7d99

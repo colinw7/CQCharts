@@ -142,15 +142,13 @@ class CGradientPalette {
   ColorModel colorModel() const { return colorModel_; }
   void setColorModel(ColorModel m) { colorModel_ = m; }
 
-  // NOT USED yet
+  //---
+
+  // gamma correction : NOT USED yet
   double gamma() const { return gamma_; }
   void setGamma(double g) { gamma_ = g; }
 
   //---
-
-  // NOT USED yet
-  int maxColors() const { return maxColors_; }
-  void setMaxColors(int n) { maxColors_ = n; }
 
 #if 0
   bool isPSAllCF() const { return psAllcF_; }
@@ -209,11 +207,15 @@ class CGradientPalette {
 
   void resetDefinedColors();
 
-  QColor getColor(double x) const;
+  // max defined colors : NOT USED yet
+  int maxColors() const { return maxColors_; }
+  void setMaxColors(int n) { maxColors_ = n; }
 
   //---
 
-  double interp(int ind, double x) const;
+  QColor getColor(double x, bool scale=false) const;
+
+  double interpModel(int ind, double x) const;
 
   //---
 
@@ -260,25 +262,29 @@ class CGradientPalette {
 
   void unset();
 
-  void show(std::ostream &os) const;
+  //void show(std::ostream &os) const;
 
-  void showGradient(std::ostream &os) const;
-  void showRGBFormulae(std::ostream &os) const;
-  void showPaletteValues(std::ostream &os, int n, bool is_float, bool is_int);
+  //void showGradient(std::ostream &os) const;
+  //void showRGBFormulae(std::ostream &os) const;
+  //void showPaletteValues(std::ostream &os, int n, bool is_float, bool is_int);
 
   //---
 
   // util
+  static double interpValue(double v1, double v2, double f) {
+    return v1*(1 - f) + v2*f;
+  }
+
   static QColor interpRGB(const QColor &c1, const QColor &c2, double f) {
-    return QColor::fromRgbF(c1.redF  ()*f + c2.redF  ()*(1 - f),
-                            c1.greenF()*f + c2.greenF()*(1 - f),
-                            c1.blueF ()*f + c2.blueF ()*(1 - f));
+    return QColor::fromRgbF(interpValue(c1.redF  (), c2.redF  (), f),
+                            interpValue(c1.greenF(), c2.greenF(), f),
+                            interpValue(c1.blueF (), c2.blueF (), f));
   }
 
   static QColor interpHSV(const QColor &c1, const QColor &c2, double f) {
-    return QColor::fromHsvF(c1.hueF       ()*f + c2.hueF       ()*(1 - f),
-                            c1.saturationF()*f + c2.saturationF()*(1 - f),
-                            c1.valueF     ()*f + c2.valueF     ()*(1 - f));
+    return QColor::fromHsvF(interpValue(c1.hueF       (), c2.hueF       (), f),
+                            interpValue(c1.saturationF(), c2.saturationF(), f),
+                            interpValue(c1.valueF     (), c2.valueF     (), f));
   }
 
  private:
@@ -321,13 +327,13 @@ class CGradientPalette {
 
   // Defined
   ColorMap   colors_;
+  int        maxColors_     { -1 };
 
   // Misc
 #ifdef CGRADIENT_EXPR
   CExpr*     expr_          { nullptr };
 #endif
   double     gamma_         { 1.5 };
-  int        maxColors_     { -1 };
 #if 0
   bool       psAllcF_       { false };
 #endif

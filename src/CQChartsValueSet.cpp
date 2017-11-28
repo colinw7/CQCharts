@@ -66,7 +66,7 @@ double
 CQChartsValueSet::
 imap(int i, double mapMin, double mapMax) const
 {
-  if       (type() == Type::INTEGER) {
+  if      (type() == Type::INTEGER) {
     // get nth integer
     int ival = ivals_[i];
 

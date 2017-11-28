@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsPaletteColor.h>
 #include <QModelIndex>
 
 class CQChartsSunburstPlot;
@@ -18,6 +19,8 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
  public:
   CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                           CQChartsSunburstNode *node);
+
+  QString calcId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -212,14 +215,30 @@ class CQChartsSunburstPlotType : public CQChartsPlotType {
 class CQChartsSunburstPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(int    valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(double fontHeight  READ fontHeight  WRITE setFontHeight )
+  Q_PROPERTY(int     nameColumn  READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     valueColumn READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(double  innerRadius READ innerRadius    WRITE setInnerRadius   )
+  Q_PROPERTY(double  outerRadius READ outerRadius    WRITE setOuterRadius   )
+  Q_PROPERTY(double  startAngle  READ startAngle     WRITE setStartAngle    )
+  Q_PROPERTY(bool    border      READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(QString borderColor READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  borderAlpha READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(double  borderWidth READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(QString fillColor   READ fillColorStr   WRITE setFillColorStr  )
+  Q_PROPERTY(double  fillAlpha   READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(QFont   textFont    READ textFont       WRITE setTextFont      )
+  Q_PROPERTY(QString textColor   READ textColorStr   WRITE setTextColorStr  )
 
  public:
   CQChartsSunburstPlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsSunburstPlot();
+
+  //---
+
+  void resetRoots();
+
+  //---
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
@@ -227,8 +246,48 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i) { valueColumn_ = i; update(); }
 
-  double fontHeight() const { return fontHeight_; }
-  void setFontHeight(double r) { fontHeight_ = r; update(); }
+  //---
+
+  double innerRadius() const { return innerRadius_; }
+  void setInnerRadius(double r) { innerRadius_ = r; resetRoots(); updateObjs(); }
+
+  double outerRadius() const { return outerRadius_; }
+  void setOuterRadius(double r) { outerRadius_ = r; resetRoots(); updateObjs(); }
+
+  double startAngle() const { return startAngle_; }
+  void setStartAngle(double r) { startAngle_ = r; resetRoots(); updateObjs(); }
+
+  //---
+
+  bool isBorder() const;
+  void setBorder(bool b);
+
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &str);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const;
+  void setBorderAlpha(double a);
+
+  double borderWidth() const;
+  void setBorderWidth(double r);
+
+  QString fillColorStr() const;
+  void setFillColorStr(const QString &s);
+
+  QColor interpFillColor(int i, int n) const;
+
+  double fillAlpha() const;
+  void setFillAlpha(double a);
+
+  const QFont &textFont() const { return textFont_; }
+  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+
+  QString textColorStr() const { return textColor_.colorStr(); }
+  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -256,17 +315,22 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void drawNodes(QPainter *p, CQChartsSunburstHierNode *hier);
 
-  QColor nodeColor(CQChartsSunburstNode *node) const;
+  QColor interpNodeColor(CQChartsSunburstNode *node) const;
 
-  QColor nodeColor(int colorId) const;
+  QColor interpNodeColor(int colorId) const;
 
  private:
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
-  int       nameColumn_  { 0 };
-  int       valueColumn_ { 1 };
-  RootNodes roots_;
-  double    fontHeight_  { 6.0 };
+  int                  nameColumn_  { 0 };    // name column
+  int                  valueColumn_ { 1 };    // value columns
+  double               innerRadius_ { 0.5 };  // inner radius
+  double               outerRadius_ { 1.0 };  // outer radius
+  double               startAngle_  { -90 };  // start angle
+  RootNodes            roots_;                // root nodes
+  CQChartsBoxObj*      boxObj_   { nullptr }; // bubble fill/border object
+  QFont                textFont_;             // text font
+  CQChartsPaletteColor textColor_;            // text color
 };
 
 #endif

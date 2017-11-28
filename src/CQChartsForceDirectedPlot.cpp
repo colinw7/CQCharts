@@ -39,7 +39,12 @@ CQChartsForceDirectedPlot::
 CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
 {
+  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
   setMargins(0, 0, 0, 0);
+
+  nodeBorderColor_ = themeFg;
+  edgeColor_       = themeFg;
 
   //---
 
@@ -174,7 +179,7 @@ initObjs()
 
     QString label = QString("%1:%2").arg(name).arg(group);
 
-    node->setLabel(label.toStdString());
+    node->setLabel(label);
     node->setMass (nodeMass_);
     node->setValue((1.0*group)/maxGroup);
 
@@ -203,6 +208,10 @@ initObjs()
 
   for (int i = 0; i < initSteps_; ++i)
     forceDirected_.step(stepSize_);
+
+  //---
+
+  initObjTree();
 }
 
 bool
@@ -378,7 +387,7 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
     if (! nodePoint.first)
       return false;
 
-    tip = nodePoint.first->label().c_str();
+    tip = nodePoint.first->label();
 
     return true;
   }
@@ -394,10 +403,14 @@ draw(QPainter *p)
 
   //---
 
-  // draw edges
-  QColor edgeColor = this->edgeColor();
+  drawBackground(p);
 
-  edgeColor.setAlpha(255*edgeAlpha());
+  //---
+
+  // draw edges
+  QColor edgeColor = this->interpEdgeColor(0, 1);
+
+  edgeColor.setAlphaF(edgeAlpha());
 
   for (auto edge : forceDirected_.edges()) {
     auto spring = forceDirected_.spring(edge);
@@ -427,9 +440,9 @@ draw(QPainter *p)
 
     windowToPixel(p1.x(), p1.y(), px, py);
 
-    p->setPen(nodeBorderColor());
+    p->setPen(interpNodeBorderColor(0, 1));
 
-    QColor c = interpPaletteColor(node->value(), nodeColor_);
+    QColor c = interpPaletteColor(node->value(), /*scale*/false);
 
     if (node == forceDirected_.currentNode()) {
       p->setBrush(insideColor(c));

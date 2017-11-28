@@ -18,6 +18,8 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                            double x, double y, const QModelIndex &ind, int i, int n);
 
+  QString calcId() const override;
+
   bool visible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
@@ -64,21 +66,23 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   //  margin
   //  key
 
-  Q_PROPERTY(int     xColumn      READ xColumn        WRITE setXColumn     )
-  Q_PROPERTY(int     yColumn      READ yColumn        WRITE setYColumn     )
-  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn  )
-  Q_PROPERTY(bool    points       READ isPoints       WRITE setPoints      )
-  Q_PROPERTY(QColor  pointsColor  READ pointsColor    WRITE setPointsColor )
-  Q_PROPERTY(bool    lines        READ isLines        WRITE setLines       )
-  Q_PROPERTY(QColor  linesColor   READ linesColor     WRITE setLinesColor  )
-  Q_PROPERTY(double  linesWidth   READ linesWidth     WRITE setLinesWidth  )
-  Q_PROPERTY(QString symbolName   READ symbolName     WRITE setSymbolName  )
-  Q_PROPERTY(double  symbolSize   READ symbolSize     WRITE setSymbolSize  )
-  Q_PROPERTY(bool    symbolFilled READ isSymbolFilled WRITE setSymbolFilled)
-  Q_PROPERTY(bool    voronoi      READ isVoronoi      WRITE setVoronoi     )
+  Q_PROPERTY(int     xColumn      READ xColumn        WRITE setXColumn       )
+  Q_PROPERTY(int     yColumn      READ yColumn        WRITE setYColumn       )
+  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(bool    points       READ isPoints       WRITE setPoints        )
+  Q_PROPERTY(QString pointsColor  READ pointsColorStr WRITE setPointsColorStr)
+  Q_PROPERTY(bool    lines        READ isLines        WRITE setLines         )
+  Q_PROPERTY(QString linesColor   READ linesColorStr  WRITE setLinesColorStr )
+  Q_PROPERTY(double  linesWidth   READ linesWidth     WRITE setLinesWidth    )
+  Q_PROPERTY(QString symbolName   READ symbolName     WRITE setSymbolName    )
+  Q_PROPERTY(double  symbolSize   READ symbolSize     WRITE setSymbolSize    )
+  Q_PROPERTY(bool    symbolFilled READ isSymbolFilled WRITE setSymbolFilled  )
+  Q_PROPERTY(bool    voronoi      READ isVoronoi      WRITE setVoronoi       )
 
  public:
   CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsDelaunayPlot();
 
   //---
 
@@ -96,43 +100,49 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   //---
 
   // points
-  bool isPoints() const { return pointObj_.isDisplayed(); }
-  void setPoints(bool b) { pointObj_.setDisplayed(b); update(); }
+  bool isPoints() const { return pointObj_->isDisplayed(); }
+  void setPoints(bool b) { pointObj_->setDisplayed(b); update(); }
 
-  const QColor &pointsColor() const { return pointObj_.color(); }
-  void setPointsColor(const QColor &c) { pointObj_.setColor(c); update(); }
+  QString pointsColorStr() const;
+  void setPointsColorStr(const QString &s);
+
+  QColor interpPointsColor(int i, int n) const;
 
   //---
 
   // lines
-  bool isLines() const { return lineObj_.isDisplayed(); }
-  void setLines(bool b) { lineObj_.setDisplayed(b); update(); }
+  bool isLines() const { return lineObj_->isDisplayed(); }
+  void setLines(bool b) { lineObj_->setDisplayed(b); update(); }
 
-  const QColor &linesColor() const { return lineObj_.color(); }
-  void setLinesColor(const QColor &c) { lineObj_.setColor(c); update(); }
+  QString linesColorStr() const;
+  void setLinesColorStr(const QString &str);
 
-  double linesWidth() const { return lineObj_.width(); }
-  void setLinesWidth(double w) { lineObj_.setWidth(w); update(); }
+  double linesWidth() const { return lineObj_->width(); }
+  void setLinesWidth(double w) { lineObj_->setWidth(w); update(); }
+
+  QColor interpLinesColor(int i, int n) const;
 
   //---
 
   // symbol
-  double symbolSize() const { return pointObj_.size(); }
-  void setSymbolSize(double r) { pointObj_.setSize(r); update(); }
+  double symbolSize() const { return pointObj_->size(); }
+  void setSymbolSize(double r) { pointObj_->setSize(r); update(); }
 
-  CQChartsPlotSymbol::Type symbolType() const { return pointObj_.symbolType(); }
-  void setSymbolType(CQChartsPlotSymbol::Type t) { pointObj_.setSymbolType(t); update(); }
+  CQChartsPlotSymbol::Type symbolType() const { return pointObj_->symbolType(); }
+  void setSymbolType(CQChartsPlotSymbol::Type t) { pointObj_->setSymbolType(t); update(); }
 
-  QString symbolName() const { return pointObj_.symbolName(); }
-  void setSymbolName(const QString &s) { pointObj_.setSymbolName(s); }
+  QString symbolName() const { return pointObj_->symbolName(); }
+  void setSymbolName(const QString &s) { pointObj_->setSymbolName(s); }
 
-  bool isSymbolFilled() const { return pointObj_.isFilled(); }
-  void setSymbolFilled(bool b) { pointObj_.setFilled(b); update(); }
+  bool isSymbolFilled() const { return pointObj_->isFilled(); }
+  void setSymbolFilled(bool b) { pointObj_->setFilled(b); update(); }
 
   //---
 
   bool isVoronoi() const { return voronoi_; }
   void setVoronoi(bool b) { voronoi_ = b; update(); }
+
+  const QString &yname() const { return yname_; }
 
   //---
 
@@ -156,10 +166,11 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   int               xColumn_    { 0 };
   int               yColumn_    { 1 };
   int               nameColumn_ { -1 };
-  CQChartsPointObj  pointObj_;
-  CQChartsLineObj   lineObj_;
+  CQChartsPointObj* pointObj_   { nullptr };
+  CQChartsLineObj*  lineObj_    { nullptr };
   bool              voronoi_    { true };
   CQChartsDelaunay* delaunay_   { nullptr };
+  QString           yname_;
 };
 
 #endif

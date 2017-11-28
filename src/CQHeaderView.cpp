@@ -1,6 +1,7 @@
 #include <CQHeaderView.h>
 #include <QTreeWidget>
 #include <QTableWidget>
+#include <QSortFilterProxyModel>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <cassert>
@@ -15,6 +16,8 @@ CQHeaderView(QWidget *parent) :
           SLOT(handleSectionResized(int)));
   connect(this, SIGNAL(sectionMoved(int, int, int)), this,
           SLOT(handleSectionMoved(int, int, int)));
+  connect(this, SIGNAL(sectionClicked(int)), this,
+          SLOT(handleSectionClicked(int)));
 
   setSectionsMovable(true);
 
@@ -84,6 +87,8 @@ contextMenuEvent(QContextMenuEvent *event)
   QAction *sortAction = menu.addAction("Sort Indicator", this, SLOT(sortIndicatorSlot(bool)));
   sortAction->setCheckable(true);
   sortAction->setChecked(isSortIndicatorShown());
+
+  menu.addAction("Reset Sort", this, SLOT(resetSortSlot()));
 
   menuSection_ = logicalIndexAt(event->pos());
 
@@ -276,6 +281,25 @@ sortIndicatorSlot(bool b)
 
 void
 CQHeaderView::
+resetSortSlot()
+{
+  setSortIndicator(-1, Qt::AscendingOrder);
+
+  QSortFilterProxyModel *proxyModel = this->proxyModel();
+
+  if (proxyModel) {
+    sortRole_ = proxyModel->sortRole();
+
+    proxyModel->setSortRole(Qt::InitialSortOrderRole);
+
+    proxyModel->invalidate();
+
+    //proxyModel->setSortRole(role);
+  }
+}
+
+void
+CQHeaderView::
 initWidgets()
 {
   if (! factory_)
@@ -343,6 +367,20 @@ handleSectionMoved(int /*logical*/, int oldVisualIndex, int newVisualIndex)
   }
 }
 
+void
+CQHeaderView::
+handleSectionClicked(int /*logical*/)
+{
+  if (sortRole_ >= 0) {
+    QSortFilterProxyModel *proxyModel = this->proxyModel();
+
+    if (proxyModel)
+      proxyModel->setSortRole(sortRole_);
+
+    sortRole_ = -1;
+  }
+}
+
 #if 0
 void
 CQHeaderView::
@@ -364,4 +402,23 @@ fixWidgetPositions()
 
     w->setGeometry(sectionViewportPosition(i), 0, sectionSize(i) - 5, height());
   }
+}
+
+QSortFilterProxyModel *
+CQHeaderView::
+proxyModel()
+{
+  QTreeView  *tree  = qobject_cast<QTreeView  *>(parentWidget());
+  QTableView *table = qobject_cast<QTableView *>(parentWidget());
+
+  QSortFilterProxyModel *proxyModel = nullptr;
+
+  if      (tree) {
+    proxyModel = qobject_cast<QSortFilterProxyModel *>(tree->model());
+  }
+  else if (table) {
+    proxyModel = qobject_cast<QSortFilterProxyModel *>(table->model());
+  }
+
+  return proxyModel;
 }

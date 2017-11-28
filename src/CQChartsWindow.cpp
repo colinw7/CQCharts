@@ -4,11 +4,62 @@
 #include <CQChartsViewSettings.h>
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
+#include <CQGradientControlIFace.h>
+
+CQChartsWindowMgr *
+CQChartsWindowMgr::
+instance()
+{
+  static CQChartsWindowMgr *inst;
+
+  if (! inst)
+    inst = new CQChartsWindowMgr;
+
+  return inst;
+}
+
+CQChartsWindowMgr::
+CQChartsWindowMgr()
+{
+}
+
+CQChartsWindowMgr::
+~CQChartsWindowMgr()
+{
+  for (auto &window : windows_)
+    delete window;
+}
+
+CQChartsWindow *
+CQChartsWindowMgr::
+createWindow(CQChartsView *view)
+{
+  CQChartsWindow *window = new CQChartsWindow(view);
+
+  windows_.push_back(window);
+
+  return window;
+}
+
+CQChartsWindow *
+CQChartsWindowMgr::
+getWindowForView(CQChartsView *view) const
+{
+  for (const auto &window : windows_)
+    if (window->view() == view)
+      return window;
+
+  return nullptr;
+}
+
+//------
 
 CQChartsWindow::
 CQChartsWindow(CQChartsView *view) :
- QFrame(0), view_(view)
+ QFrame(nullptr), view_(view)
 {
+  setWindowTitle("CQChartsWindow");
+
   setObjectName("window");
 
   setAttribute(Qt::WA_DeleteOnClose);
@@ -132,6 +183,13 @@ CQChartsWindow::
 modeSlot()
 {
   toolbar_->updateMode();
+}
+
+void
+CQChartsWindow::
+updatePalette()
+{
+  settings_->paletteControl()->updateState();
 }
 
 QSize

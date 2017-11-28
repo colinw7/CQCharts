@@ -9,7 +9,9 @@
 #include <map>
 
 class CQChartsBoxPlot;
+class CQChartsTextBoxObj;
 
+// box value
 struct CQChartsBoxPlotValue {
   CQChartsBoxPlotValue() = default;
 
@@ -23,7 +25,11 @@ struct CQChartsBoxPlotValue {
   QModelIndex ind;
 };
 
+//---
+
 using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
+
+//---
 
 // box plot object
 class CQChartsBoxPlotObj : public CQChartsPlotObj {
@@ -33,6 +39,8 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, double pos,
                      const CQChartsBoxPlotWhisker &whisker, int i, int n);
 
+  QString calcId() const override;
+
   void mousePress(const CQChartsGeom::Point &) override;
 
   bool isIndex(const QModelIndex &) const override;
@@ -40,11 +48,11 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsBoxPlot*       plot_ { nullptr };
-  double                 pos_  { 0.0 };
-  CQChartsBoxPlotWhisker whisker_;
-  int                    i_    { -1 };
-  int                    n_    { 0 };
+  CQChartsBoxPlot*       plot_ { nullptr }; // parent plot
+  double                 pos_  { 0.0 };     // x position
+  CQChartsBoxPlotWhisker whisker_;          // whisker data
+  int                    i_    { -1 };      // value index
+  int                    n_    { 0 };       // value count
 };
 
 //---
@@ -68,7 +76,7 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
  public:
   CQChartsBoxKeyText(CQChartsBoxPlot *plot, int i, const QString &text);
 
-  QColor textColor() const override;
+  QColor interpTextColor(int i, int n) const override;
 
  private:
   int i_ { 0 };
@@ -76,6 +84,7 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
 //---
 
+// box plot type
 class CQChartsBoxPlotType : public CQChartsPlotType {
  public:
   CQChartsBoxPlotType();
@@ -90,16 +99,27 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
 
 //---
 
+// box plot
 class CQChartsBoxPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    xColumn      READ xColumn      WRITE setXColumn     )
-  Q_PROPERTY(int    yColumn      READ yColumn      WRITE setYColumn     )
-  Q_PROPERTY(QColor boxColor     READ boxColor     WRITE setBoxColor    )
-  Q_PROPERTY(double cornerRadius READ cornerRadius WRITE setCornerRadius)
+  Q_PROPERTY(int     xColumn      READ xColumn         WRITE setXColumn        )
+  Q_PROPERTY(int     yColumn      READ yColumn         WRITE setYColumn        )
+  Q_PROPERTY(QString boxColor     READ boxColorStr     WRITE setBoxColorStr    )
+  Q_PROPERTY(QString borderColor  READ borderColorStr  WRITE setBorderColorStr )
+  Q_PROPERTY(double  borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
+  Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
+  Q_PROPERTY(double  cornerSize   READ cornerSize      WRITE setCornerSize     )
+  Q_PROPERTY(QString whiskerColor READ whiskerColorStr WRITE setWhiskerColorStr)
+  Q_PROPERTY(QString textColor    READ textColorStr    WRITE setTextColorStr   )
+  Q_PROPERTY(QFont   font         READ font            WRITE setFont           )
+  Q_PROPERTY(double  textMargin   READ textMargin      WRITE setTextMargin     )
+  Q_PROPERTY(double  symbolSize   READ symbolSize      WRITE setSymbolSize     )
 
  public:
   CQChartsBoxPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsBoxPlot();
 
   int xColumn() const { return xColumn_; }
   void setXColumn(int i) { xColumn_ = i; update(); }
@@ -107,11 +127,45 @@ class CQChartsBoxPlot : public CQChartsPlot {
   int yColumn() const { return yColumn_; }
   void setYColumn(int i) { yColumn_ = i; update(); }
 
-  const QColor &boxColor() const { return boxColor_; }
-  void setBoxColor(const QColor &c) { boxColor_ = c; update(); }
+  //---
 
-  double cornerRadius() const { return cornerRadius_; }
-  void setCornerRadius(double r) { cornerRadius_ = r; update(); }
+  QString boxColorStr() const;
+  void setBoxColorStr(const QString &s);
+
+  QColor interpBoxColor(int i, int n) const;
+
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &s);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const;
+  void setBorderAlpha(double r);
+
+  double borderWidth() const;
+  void setBorderWidth(double r);
+
+  double cornerSize() const;
+  void setCornerSize(double r);
+
+  QString whiskerColorStr() const;
+  void setWhiskerColorStr(const QString &s);
+
+  QColor interpWhiskerColor(int i, int n) const;
+
+  QString textColorStr() const;
+  void setTextColorStr(const QString &s);
+
+  QColor interpTextColor(int i, int n) const;
+
+  const QFont &font() const;
+  void setFont(const QFont &f);
+
+  double textMargin() const { return textMargin_; }
+  void setTextMargin(double r) { textMargin_ = r; update(); }
+
+  double symbolSize() const { return symbolSize_; }
+  void setSymbolSize(double r) { symbolSize_ = r; update(); }
 
   //---
 
@@ -145,15 +199,18 @@ class CQChartsBoxPlot : public CQChartsPlot {
   using NameSet  = std::map<QString,int>;
   using SetName  = std::map<int,QString>;
 
-  int      xColumn_      { 0 };
-  int      yColumn_      { 1 };
-  QColor   boxColor_     { "#46A2B4" };
-  double   cornerRadius_ { 0.0 };
-  Whiskers whiskers_;
-  ValueSet valueSet_;
-  SetValue setValue_;
-  NameSet  nameSet_;
-  SetName  setName_;
+  int                  xColumn_      { 0 };       // x column
+  int                  yColumn_      { 1 };       // y column
+  CQChartsBoxObj*      boxObj_       { nullptr }; // box data
+  CQChartsPaletteColor whiskerColor_;             // whisker color
+  CQChartsTextBoxObj*  textObj_      { nullptr }; // text data
+  double               textMargin_   { 2 };       // text margin
+  double               symbolSize_   { 4 };       // symbol size
+  Whiskers             whiskers_;                 // whisker data
+  ValueSet             valueSet_;                 // value set map
+  SetValue             setValue_;                 // set value map
+  NameSet              nameSet_;                  // name set map
+  SetName              setName_;                  // set name map
 };
 
 #endif

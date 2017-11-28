@@ -108,7 +108,8 @@ class CQChartsView : public QFrame {
 
   //---
 
-  CGradientPalette* gradientPalette() const { return palette_; }
+  CGradientPalette *gradientPalette() const { return palette_; }
+  CGradientPalette *themePalette   () const { return theme_  ; }
 
   CQPropertyViewModel *propertyModel() const { return propertyModel_; }
 
@@ -132,6 +133,7 @@ class CQChartsView : public QFrame {
   //---
 
   void initOverlay();
+  void initOverlay(const Plots &plots);
   void initOverlay(CQChartsPlot *firstPlot);
 
   void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2);
@@ -154,6 +156,10 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void updatePlots();
+
+  //---
+
   CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
 
   bool plotsAt(const CQChartsGeom::Point &p, Plots &plots) const;
@@ -171,6 +177,14 @@ class CQChartsView : public QFrame {
   void scrollLeft();
   void scrollRight();
   void updateScroll();
+
+  //---
+
+  void setPaletteColors1();
+  void setPaletteColors2();
+
+  void setLightThemeColors();
+  void setDarkThemeColors();
 
   //---
 
@@ -197,12 +211,20 @@ class CQChartsView : public QFrame {
   void statusTextChanged(const QString &text);
 
  public slots:
+  void keySlot(bool b);
+
   void fitSlot();
+
+  void lightTheme1Slot();
+  void lightTheme2Slot();
+
+  void darkTheme1Slot();
+  void darkTheme2Slot();
 
  private:
   struct PlotData {
-    CQChartsPlot *plot { nullptr };
-    CQChartsGeom::BBox       bbox;
+    CQChartsPlot*      plot { nullptr };
+    CQChartsGeom::BBox bbox;
 
     PlotData(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) :
      plot(plot), bbox(bbox) {
@@ -233,6 +255,7 @@ class CQChartsView : public QFrame {
   CQCharts*             charts_         { nullptr };
   CQChartsDisplayRange* displayRange_   { nullptr };
   CGradientPalette*     palette_        { nullptr };
+  CGradientPalette*     theme_          { nullptr };
   CQPropertyViewModel*  propertyModel_  { nullptr };
   QString               id_;
   QString               title_;
@@ -241,7 +264,7 @@ class CQChartsView : public QFrame {
   int                   currentPlotInd_ { 0 };
   Mode                  mode_           { Mode::SELECT };
   SelectedMode          selectedMode_   { SelectedMode::OUTLINE };
-  InsideMode            insideMode_     { InsideMode::FILL };
+  InsideMode            insideMode_     { InsideMode::OUTLINE };
   bool                  zoomData_       { true };
   bool                  scrolled_       { false };
   double                scrollDelta_    { 100 };

@@ -8,17 +8,21 @@
 class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString text  READ text  WRITE setText )
-  Q_PROPERTY(QFont   font  READ font  WRITE setFont )
-  Q_PROPERTY(QColor  color READ color WRITE setColor)
-  Q_PROPERTY(double  angle READ angle WRITE setAngle)
+  Q_PROPERTY(bool    visible READ isVisible WRITE setVisible )
+  Q_PROPERTY(QString text    READ text      WRITE setText    )
+  Q_PROPERTY(QFont   font    READ font      WRITE setFont    )
+  Q_PROPERTY(QString color   READ colorStr  WRITE setColorStr)
+  Q_PROPERTY(double  angle   READ angle     WRITE setAngle   )
 
  public:
-  CQChartsTextBoxObj();
+  CQChartsTextBoxObj(CQChartsPlot *plot);
 
   virtual ~CQChartsTextBoxObj() { }
 
   //---
+
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; redrawBoxObj(); }
 
   const QString &text() const { return text_; }
   virtual void setText(const QString &s) { text_ = s; redrawBoxObj(); }
@@ -26,8 +30,12 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   const QFont &font() const { return font_; }
   virtual void setFont(const QFont &f) { font_ = f; redrawBoxObj(); }
 
-  const QColor &color() const { return color_; }
-  virtual void setColor(const QColor &c) { color_ = c; redrawBoxObj(); }
+  void setColor(const CQChartsPaletteColor &c) { color_ = c; redrawBoxObj(); }
+
+  QString colorStr() const;
+  void setColorStr(const QString &s);
+
+  QColor interpColor(int i, int n) const;
 
   double angle() const { return angle_; }
   void setAngle(double r) { angle_ = r; redrawBoxObj(); }
@@ -46,17 +54,18 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   void drawText(QPainter *p, const QRectF &rect, const QString &text) const;
 
  protected:
-  QString text_;
-  QFont   font_;
-  QColor  color_ { 0, 0, 0 };
-  double  angle_ { 0.0 };
+  bool                 visible_ { true };
+  QString              text_;
+  QFont                font_;
+  CQChartsPaletteColor color_;
+  double               angle_   { 0.0 };
 };
 
 //------
 
 class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
  public:
-  CQChartsRotatedTextBoxObj();
+  CQChartsRotatedTextBoxObj(CQChartsPlot *plot);
 
   const QRectF &rect() const { return rect_; }
 

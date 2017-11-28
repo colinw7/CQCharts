@@ -3,8 +3,25 @@
 #include <QPainter>
 
 CQChartsPointObj::
-CQChartsPointObj()
+CQChartsPointObj(CQChartsPlot *plot) :
+ plot_(plot)
 {
+  strokeColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  fillColor_   = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE);
+}
+
+QColor
+CQChartsPointObj::
+interpStrokeColor(int i, int n) const
+{
+  return strokeColor_.interpColor(plot_, i, n);
+}
+
+QColor
+CQChartsPointObj::
+interpFillColor(int i, int n) const
+{
+  return fillColor_.interpColor(plot_, i, n);
 }
 
 QString
@@ -28,33 +45,51 @@ void
 CQChartsPointObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "displayed" , "visible");
-  model->addProperty(path, this, "symbolName", "symbol" );
-  model->addProperty(path, this, "color"     , "color"  );
-  model->addProperty(path, this, "palette"   , "palette");
-  model->addProperty(path, this, "size"      , "size"   );
-  model->addProperty(path, this, "filled"    , "filled" );
+  QString strokePath = path + "/stroke";
+  QString fillPath   = path + "/fill";
+
+  model->addProperty(path      , this, "displayed"     , "visible");
+  model->addProperty(path      , this, "symbolName"    , "symbol" );
+  model->addProperty(path      , this, "size"          , "size"   );
+  model->addProperty(strokePath, this, "stroked"       , "visible");
+  model->addProperty(strokePath, this, "strokeColor"   , "color"  );
+  model->addProperty(strokePath, this, "strokePalette" , "palette");
+  model->addProperty(strokePath, this, "lineWidth"     , "width"  );
+  model->addProperty(fillPath  , this, "filled"        , "visible");
+  model->addProperty(fillPath  , this, "fillColor"     , "color"  );
+  model->addProperty(fillPath  , this, "fillPalette"   , "palette");
 }
 
 void
 CQChartsPointObj::
 draw(QPainter *painter, const QPointF &p)
 {
-  draw(painter, p, symbolType(), size(), color(), isFilled());
+  QColor strokeColor = interpStrokeColor(0, 1);
+  QColor fillColor   = interpFillColor  (0, 1);
+
+  draw(painter, p, symbolType(), size(), isStroked(), strokeColor, lineWidth(),
+       isFilled(), fillColor);
 }
 
 void
 CQChartsPointObj::
 draw(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
-     double size, const QColor &color, bool filled)
+     double size, bool stroked, const QColor &strokeColor, double lineWidth,
+     bool filled, const QColor &fillColor)
 {
-  painter->setPen  (color);
-  painter->setBrush(color);
+  QPen   pen(strokeColor);
+  QBrush brush(fillColor);
+
+  pen.setWidthF(lineWidth);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   CQChartsSymbol2DRenderer renderer(painter, CQChartsGeom::Point(p.x(), p.y()), size);
 
-  if (! filled)
-    CQChartsPlotSymbolMgr::drawSymbol(symbol, &renderer);
-  else
+  if (filled)
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &renderer);
+
+  if (stroked)
+    CQChartsPlotSymbolMgr::drawSymbol(symbol, &renderer);
 }

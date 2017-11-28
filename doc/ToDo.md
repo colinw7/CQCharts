@@ -1,15 +1,18 @@
 Misc
- + Access Extra column data via header data roles
  + Cache plot pixmaps
+ + Draw inside/selected to overlay pixmap
  + Use QScript/Tcl for expression evaluation
- + Align Numeric Columns right
+ + Animation
+
+Theme
+ + theme file
 
 Functions
  + Improved Filter
  + Symbol better highlight
 
 Data
- + Allow Assign attributes to plot symbol (size, color)
+ + Allow more assigned attributes to plot symbol (size, color)
  + Allow Expressions for Data/Columns
  + Use Type for more data customization
 
@@ -17,38 +20,48 @@ Model
  + Add extra columns/roles for extra properties
    + data labels, symbol size, ....
    + allow interchangeable role/column for data
- + User sort filter to hide values
+ + Use sort filter to hide values
 
 Axes
  + Match X1/X2 ticks ?
  + Log axis
- + No Zoom
+ + Disable/Custom Zoom
  + Handle overlapping labels
    + Hide, Resize, Rotate
- + Tick Inside/Outside
+ + Scale break
 
 Title
  + Default to larger font
 
 Plots
- + Radar
- + Stacked Pie
- + Force Directed
  + Step Line (Left/Center/Right) (Fill Under)
- + Line Chart
-   + Allow Spline connect
- + Parallel needs x axis labels
  + Restrict which plots can be combined
    + Bar/Column Chart NOT paired with Pie, Bar
- + Box Plot
-   + BoxObj master for boxes
-   + Color String (palette or QColor)
- + Adjacency Plot
-   + X Border Width
  + Vector
+ + Contour
+ + Arrow at points
+
+Pie Chart
+ + Stacked (multiple categories)
+
+Parallel Plot
+ + Parallel needs x axis labels
+
+Adjacency Plot
+ + X Border Width
+
+Box Plot
+ + BoxObj master for boxes
+ + Color String (palette or QColor)
+
+Radar Plot
+ + Add Key
+ + Stacked
+ + Percent of Total/Max
 
 Plot
  + Context Menu
+   + More options
  + Allow config overlay data
    + connect to plot
  + timer delay on mouse over feedback and probe
@@ -60,6 +73,7 @@ Mouse Over
 
 Bar
  + Allow hide sets as well as individual sub set types
+ + Custom Data Labels (including hiding)
 
 Pie
  + Radial labels
@@ -68,8 +82,6 @@ Pie
 Key
  + Spacing
  + Inside/Outside
- + No Zoom
- + Symbols in Key
  + Overlap with Axis/Title
  + Title
 
@@ -90,6 +102,12 @@ Mouse Tools
  + Zoom : Data, Region
  + Zoom/Pan
    + Meaning for different plot types
+   + Allow non-square zoom
+   + Mouse position update in zoom mode
 
 Parameters
  + Description
+
+Optimization
+ + Get more data direct from model instead of cached
+ + Use H Tree (V Tree) for bars and other ordered data structures

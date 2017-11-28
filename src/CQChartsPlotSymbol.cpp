@@ -427,8 +427,10 @@ CQChartsSymbol2DRenderer::
 CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
  painter_(painter), p_(p), s_(s)
 {
-  pc_ = painter_->pen  ().color();
-  fc_ = painter_->brush().color();
+  strokePen_.setColor (painter_->pen().color());
+  strokePen_.setWidthF(painter_->pen().widthF());
+
+  fillBrush_ = QBrush(painter_->brush().color());
 }
 
 void
@@ -456,14 +458,14 @@ void
 CQChartsSymbol2DRenderer::
 stroke()
 {
-  painter_->strokePath(path_, QPen(pc_));
+  painter_->strokePath(path_, strokePen_);
 }
 
 void
 CQChartsSymbol2DRenderer::
 fill()
 {
-  painter_->fillPath(path_, QBrush(fc_));
+  painter_->fillPath(path_, fillBrush_);
 }
 
 void
@@ -475,7 +477,7 @@ strokeCircle(double x, double y, double r)
   painter_->save();
 
   painter_->setBrush(Qt::NoBrush);
-  painter_->setPen  (pc_);
+  painter_->setPen  (strokePen_);
 
   painter_->drawEllipse(rect);
 
@@ -490,7 +492,7 @@ fillCircle(double x, double y, double r)
 
   painter_->save();
 
-  painter_->setBrush(fc_);
+  painter_->setBrush(fillBrush_);
   painter_->setPen  (Qt::NoPen);
 
   painter_->drawEllipse(rect);

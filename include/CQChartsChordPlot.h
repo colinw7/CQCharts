@@ -117,6 +117,8 @@ class CQChartsChordObj : public CQChartsPlotObj {
   int i() const { return i_; }
   int n() const { return n_; }
 
+  QString calcId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void mousePress(const CQChartsGeom::Point &) override;
@@ -156,22 +158,26 @@ class CQChartsChordPlotType : public CQChartsPlotType {
 class CQChartsChordPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int    nameColumn  READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(int    groupColumn READ groupColumn WRITE setGroupColumn)
-  Q_PROPERTY(bool   sorted      READ isSorted    WRITE setSorted     )
-  Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
-  Q_PROPERTY(double labelRadius READ labelRadius WRITE setLabelRadius)
-  Q_PROPERTY(QColor borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double arcAlpha    READ arcAlpha    WRITE setArcAlpha   )
+  Q_PROPERTY(int     nameColumn  READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     groupColumn READ groupColumn    WRITE setGroupColumn   )
+  Q_PROPERTY(bool    sorted      READ isSorted       WRITE setSorted        )
+  Q_PROPERTY(double  innerRadius READ innerRadius    WRITE setInnerRadius   )
+  Q_PROPERTY(double  labelRadius READ labelRadius    WRITE setLabelRadius   )
+  Q_PROPERTY(QString borderColor READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  arcAlpha    READ arcAlpha       WRITE setArcAlpha      )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsChordPlot();
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; update(); }
 
   int groupColumn() const { return groupColumn_; }
   void setGroupColumn(int i) { groupColumn_ = i; update(); }
+
+  //---
 
   bool isSorted() const { return sorted_; }
   void setSorted(bool b) { sorted_ = b; updateObjs(); }
@@ -182,13 +188,15 @@ class CQChartsChordPlot : public CQChartsPlot {
   double labelRadius() const { return labelRadius_; }
   void setLabelRadius(double r) { labelRadius_ = r; update(); }
 
-  const QColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const QColor &v) { borderColor_ = v; update(); }
+  QString borderColorStr() const { return borderColor_.colorStr(); }
+  void setBorderColorStr(const QString &s) { borderColor_.setColorStr(s); }
+
+  QColor interpBorderColor(int i, int n) const;
 
   double arcAlpha() const { return arcAlpha_; }
   void setArcAlpha(double r) { arcAlpha_ = r; update(); }
 
-  const CQChartsRotatedTextBoxObj &textBox() const { return textBox_; }
+  CQChartsRotatedTextBoxObj *textBox() const { return textBox_; }
 
   //---
 
@@ -209,15 +217,15 @@ class CQChartsChordPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  int                       nameColumn_     { -1 };
-  int                       groupColumn_    { -1 };
-  bool                      sorted_         { false };
-  double                    innerRadius_    { 0.9 };
-  double                    labelRadius_    { 1.1 };
-  QColor                    borderColor_    { 0, 0, 0 };
-  double                    arcAlpha_       { 0.3 };
-  CQChartsRotatedTextBoxObj textBox_;
-  double                    valueToDegrees_ { 1.0 };
+  int                        nameColumn_     { -1 };
+  int                        groupColumn_    { -1 };
+  bool                       sorted_         { false };
+  double                     innerRadius_    { 0.9 };
+  double                     labelRadius_    { 1.1 };
+  CQChartsPaletteColor       borderColor_;
+  double                     arcAlpha_       { 0.3 };
+  CQChartsRotatedTextBoxObj* textBox_;
+  double                     valueToDegrees_ { 1.0 };
 };
 
 #endif

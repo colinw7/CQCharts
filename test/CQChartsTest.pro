@@ -11,10 +11,12 @@ QMAKE_CXXFLAGS += -std=c++11
 SOURCES += \
 CQChartsTest.cpp \
 CQAppWindow.cpp \
+CQHistoryLineEdit.cpp \
 
 HEADERS += \
 CQChartsTest.h \
 CQAppWindow.h \
+CQHistoryLineEdit.h \
 
 DESTDIR     = ../bin
 OBJECTS_DIR = ../obj

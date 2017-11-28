@@ -1,7 +1,6 @@
 #ifndef CQChartsUtil_H
 #define CQChartsUtil_H
 
-#include <CUnixFile.h>
 #include <CLineDash.h>
 #include <CQChartsGeom.h>
 #include <COSNaN.h>
@@ -445,6 +444,9 @@ inline bool PointLineDistance(const CQChartsGeom::Point &point,
 
 //------
 
+#if 0
+#include <CUnixFile.h>
+
 inline bool fileToLines(const QString &filename, QStringList &lines) {
   // open file
   CUnixFile file(filename.toStdString());
@@ -460,6 +462,7 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
 
   return true;
 }
+#endif
 
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   ok = true;

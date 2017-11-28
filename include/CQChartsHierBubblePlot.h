@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsPaletteColor.h>
 #include <QModelIndex>
 
 class CQChartsHierBubblePlot;
@@ -132,6 +133,8 @@ class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
                             CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
                             int i, int n);
 
+  QString calcId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void clickZoom(const CQChartsGeom::Point &p) override;
@@ -155,6 +158,8 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
   CQChartsHierBubbleObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleNode *node,
                         CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
                         int i, int n);
+
+  QString calcId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -193,10 +198,17 @@ class CQChartsHierBubblePlotType : public CQChartsPlotType {
 class CQChartsHierBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn  READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(int     valueColumn READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(QString separator   READ separator   WRITE setSeparator  )
-  Q_PROPERTY(double  fontHeight  READ fontHeight  WRITE setFontHeight )
+  Q_PROPERTY(int     nameColumn  READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     valueColumn READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(QString separator   READ separator      WRITE setSeparator     )
+  Q_PROPERTY(bool    border      READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(QString borderColor READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  borderAlpha READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(double  borderWidth READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(QString fillColor   READ fillColorStr   WRITE setFillColorStr  )
+  Q_PROPERTY(double  fillAlpha   READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(QFont   textFont    READ textFont       WRITE setTextFont      )
+  Q_PROPERTY(QString textColor   READ textColorStr   WRITE setTextColorStr  )
 
  public:
   using Nodes = std::vector<CQChartsHierBubbleNode*>;
@@ -219,8 +231,35 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
 
-  double fontHeight() const { return fontHeight_; }
-  void setFontHeight(double r) { fontHeight_ = r; update(); }
+  bool isBorder() const;
+  void setBorder(bool b);
+
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &str);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const;
+  void setBorderAlpha(double a);
+
+  double borderWidth() const;
+  void setBorderWidth(double r);
+
+  QString fillColorStr() const;
+  void setFillColorStr(const QString &s);
+
+  QColor interpFillColor(int i, int n) const;
+
+  double fillAlpha() const;
+  void setFillAlpha(double a);
+
+  const QFont &textFont() const { return textFont_; }
+  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+
+  QString textColorStr() const { return textColor_.colorStr(); }
+  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -279,7 +318,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void drawForeground(QPainter *) override;
 
-  QColor nodeColor(CQChartsHierBubbleNode *node) const;
+  QColor interpNodeColor(CQChartsHierBubbleNode *node) const;
 
  private:
   void initNodes();
@@ -305,20 +344,21 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   void updateCurrentRoot();
 
  private:
-  int                         nameColumn_  { 0 };
-  int                         valueColumn_ { 1 };
-  CQChartsDisplayRange        range_;
-  CQChartsHierBubbleHierNode* root_        { nullptr };
-  CQChartsHierBubbleHierNode* firstHier_   { nullptr };
-  CQChartsHierBubbleHierNode* currentRoot_ { nullptr };
-  QString                     separator_   { "/" };
-  double                      fontHeight_  { 9.0 };
-  CQChartsGeom::Point         offset_      { 0, 0 };
-  double                      scale_       { 1.0 };
-  int                         maxDepth_    { 1 };
-  int                         maxColorId_  { 0 };
-  int                         hierInd_     { 0 };
-  int                         maxHierInd_  { 0 };
+  int                         nameColumn_  { 0 };       // name column
+  int                         valueColumn_ { 1 };       // value column
+  CQChartsHierBubbleHierNode* root_        { nullptr }; // root node
+  CQChartsHierBubbleHierNode* firstHier_   { nullptr }; // first hier node
+  CQChartsHierBubbleHierNode* currentRoot_ { nullptr }; // current root node
+  QString                     separator_   { "/" };     // hierarchical name separator
+  CQChartsBoxObj*             bubbleObj_   { nullptr }; // bubble fill/border object
+  QFont                       textFont_;                // text font
+  CQChartsPaletteColor        textColor_;               // text color
+  CQChartsGeom::Point         offset_      { 0, 0 };    // draw offset
+  double                      scale_       { 1.0 };     // draw scale
+  int                         maxDepth_    { 1 };       // max hier depth
+  int                         maxColorId_  { 0 };       // max color id
+  int                         hierInd_     { 0 };       // current hier ind
+  int                         maxHierInd_  { 0 };       // max hier ind
 };
 
 #endif

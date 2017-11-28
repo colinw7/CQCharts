@@ -37,13 +37,21 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("pie"), model), textBox_(this)
+ CQChartsPlot(view, view->charts()->plotType("pie"), model)
 {
+  textBox_ = new CQChartsPieTextObj(this);
+
   setLayerActive(Layer::FG, true);
 
   addKey();
 
   addTitle();
+}
+
+CQChartsPiePlot::
+~CQChartsPiePlot()
+{
+  delete textBox_;
 }
 
 void
@@ -68,13 +76,13 @@ addProperties()
   addProperty("", this, "rotatedText"    );
 
   // label
-  addProperty("label", &textBox_, "visible");
-  addProperty("label", &textBox_, "font"   );
-  addProperty("label", &textBox_, "color"  );
+  addProperty("label", textBox_, "visible");
+  addProperty("label", textBox_, "font"   );
+  addProperty("label", textBox_, "color"  );
 
   QString labelBoxPath = id() + "/label/box";
 
-  textBox_.CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
+  textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 
   // colormap
   addProperty("color", this, "colorMapEnabled", "mapEnabled" );
@@ -237,8 +245,6 @@ initObjs()
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1, r, nr);
 
-    obj->setId(QString("%1:%2").arg(label).arg(columnStr(dataColumn(), value)));
-
     obj->setAngle1(angle1);
     obj->setAngle2(angle2);
     obj->setLabel (label);
@@ -257,6 +263,10 @@ initObjs()
   //---
 
   resetKeyItems();
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -321,6 +331,19 @@ CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QMod
                int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), ind_(ind), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsPieObj::
+calcId() const
+{
+  QModelIndex labelInd = plot_->model()->index(i_, plot_->labelColumn());
+
+  bool ok;
+
+  QString label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+
+  return QString("%1:%2").arg(label).arg(plot_->columnStr(plot_->dataColumn(), value_));
 }
 
 bool
@@ -496,7 +519,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     if (color_)
       bg = plot_->interpPaletteColor(*color_);
     else
-      bg = plot_->paletteColor(i_, n_);
+      bg = plot_->interpPaletteColor(i_, n_);
 
     QColor fg = plot_->textColor(bg);
 
@@ -518,7 +541,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     // if full circle always draw text at center
     if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
-      plot_->textBox().draw(p, CQChartsUtil::toQPoint(pc), label(), 0.0);
+      plot_->textBox()->draw(p, CQChartsUtil::toQPoint(pc), label(), 0.0);
     }
     // draw on arc center line
     else {
@@ -576,7 +599,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
           align = Qt::AlignRight | Qt::AlignVCenter;
         }
 
-        QColor bg = plot_->paletteColor(i_, n_);
+        QColor bg = plot_->interpPaletteColor(i_, n_);
 
         p->setPen(bg);
 
@@ -593,11 +616,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
 
-      plot_->textBox().draw(p, pt, label(), angle, align);
+      plot_->textBox()->draw(p, pt, label(), angle, align);
 
       CQChartsGeom::BBox tbbox;
 
-      plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox().rect()), tbbox);
+      plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox()->rect()), tbbox);
     }
   }
 }
@@ -632,7 +655,7 @@ fillBrush() const
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;
 }
@@ -647,14 +670,14 @@ CQChartsPieKeyText(CQChartsPiePlot *plot, int i, const QString &text) :
 
 QColor
 CQChartsPieKeyText::
-textColor() const
+interpTextColor(int i, int n) const
 {
-  QColor c = CQChartsKeyText::textColor();
-
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
+  QColor c = CQChartsKeyText::interpTextColor(i, n);
+
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->bgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;
 }
@@ -663,13 +686,6 @@ textColor() const
 
 CQChartsPieTextObj::
 CQChartsPieTextObj(CQChartsPiePlot *plot) :
- plot_(plot)
+ CQChartsRotatedTextBoxObj(plot), plot_(plot)
 {
-}
-
-void
-CQChartsPieTextObj::
-redrawBoxObj()
-{
-  plot_->update();
 }

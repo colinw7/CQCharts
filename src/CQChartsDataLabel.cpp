@@ -6,7 +6,7 @@
 
 CQChartsDataLabel::
 CQChartsDataLabel(CQChartsPlot *plot) :
- plot_(plot)
+ CQChartsTextBoxObj(plot)
 {
 }
 
@@ -24,13 +24,6 @@ addProperties(const QString &path)
   QString boxPath = plot_->id() + "/" + path + "/box";
 
   CQChartsBoxObj::addProperties(plot_->propertyModel(), boxPath);
-}
-
-void
-CQChartsDataLabel::
-redrawBoxObj()
-{
-  update();
 }
 
 void
@@ -67,19 +60,35 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
 
     if      (position() == Position::TOP_INSIDE) {
       x = qrect.center().x();
-      y = qrect.top() + fm.ascent() + ym + b2;
+
+      if (! plot_->isInvertY())
+        y = qrect.top() + fm.ascent() + ym + b2;
+      else
+        y = qrect.bottom() - fm.descent() - ym - b2;
     }
     else if (position() == Position::TOP_OUTSIDE) {
       x = qrect.center().x();
-      y = qrect.top() - fm.descent() - ym - b2;
+
+      if (! plot_->isInvertY())
+        y = qrect.top() - fm.descent() - ym - b2;
+      else
+        y = qrect.bottom() + fm.ascent() + ym + b2;
     }
     else if (position() == Position::BOTTOM_INSIDE) {
       x = qrect.center().x();
-      y = qrect.bottom() - fm.descent() - ym - b2;
+
+      if (! plot_->isInvertY())
+        y = qrect.bottom() - fm.descent() - ym - b2;
+      else
+        y = qrect.top() + fm.ascent() + ym + b2;
     }
     else if (position() == Position::BOTTOM_OUTSIDE) {
       x = qrect.center().x();
-      y = qrect.bottom() + fm.ascent() + ym + b2;
+
+      if (! plot_->isInvertY())
+        y = qrect.bottom() + fm.ascent() + ym + b2;
+      else
+        y = qrect.top() - fm.descent() - ym - b2;
     }
     else if (position() == Position::CENTER) {
       x = qrect.center().x();
@@ -106,9 +115,10 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
     CQChartsBoxObj::draw(p, brect);
 
     if (! clipped) {
-      p->setPen(color());
+      p->setPen(interpColor(0, 1));
 
-      p->drawText(x - tw/2, y, ystr);
+      if (ystr.length())
+        p->drawText(x - tw/2, y, ystr);
     }
   }
   else {
@@ -148,7 +158,7 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
     CQRotatedText::bboxData(x, y, ystr, p->font(), angle(), b1,
                             bbox, points, align, /*alignBBox*/ true);
 
-    p->setPen(color());
+    p->setPen(interpColor(0, 1));
 
     QPolygonF poly;
 
@@ -157,9 +167,10 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
 
     CQChartsBoxObj::draw(p, poly);
 
-    p->setPen(color());
+    p->setPen(interpColor(0, 1));
 
-    CQRotatedText::drawRotatedText(p, x, y, ystr, angle(), align, /*alignBBox*/ true);
+    if (ystr.length())
+      CQRotatedText::drawRotatedText(p, x, y, ystr, angle(), align, /*alignBBox*/ true);
   }
 
   p->restore();

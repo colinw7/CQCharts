@@ -6,6 +6,7 @@
 #include <CQChartsDataLabel.h>
 
 class CQChartsGeometryPlot;
+class CQChartsBoxObj;
 
 class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -18,6 +19,8 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
                       const Polygons &polygons, double value, const QString &name,
                       const QModelIndex &ind, int i, int n);
 
+  QString calcId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void mousePress(const CQChartsGeom::Point &) override;
@@ -27,14 +30,14 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsGeometryPlot *plot_  { nullptr };
-  Polygons              polygons_;
-  double                value_ { 0.0 };
-  QString               name_;
-  QModelIndex           ind_;
-  int                   i_     { -1 };
-  int                   n_     { -1 };
-  Polygons              ppolygons_;
+  CQChartsGeometryPlot *plot_  { nullptr }; // parent plot
+  Polygons              polygons_;          // geometry polygons
+  double                value_ { 0.0 };     // geometry value
+  QString               name_;              // geometry name
+  QModelIndex           ind_;               // model index
+  int                   i_     { -1 };      // value index
+  int                   n_     { -1 };      // value count
+  Polygons              ppolygons_;         // pixel polygons
 };
 
 //---
@@ -62,12 +65,17 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //  fill
   //   display, brush
 
-  Q_PROPERTY(int    nameColumn     READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int    geometryColumn READ geometryColumn WRITE setGeometryColumn)
-  Q_PROPERTY(int    valueColumn    READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(double minValue       READ minValue       WRITE setMinValue      )
-  Q_PROPERTY(double maxValue       READ maxValue       WRITE setMaxValue      )
-  Q_PROPERTY(QColor lineColor      READ lineColor      WRITE setLineColor     )
+  Q_PROPERTY(int     nameColumn     READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     geometryColumn READ geometryColumn WRITE setGeometryColumn)
+  Q_PROPERTY(int     valueColumn    READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(double  minValue       READ minValue       WRITE setMinValue      )
+  Q_PROPERTY(double  maxValue       READ maxValue       WRITE setMaxValue      )
+  Q_PROPERTY(bool    border         READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(QString borderColor    READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  borderAlpha    READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(double  borderWidth    READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(QString fillColor      READ fillColorStr   WRITE setFillColorStr  )
+  Q_PROPERTY(double  fillAlpha      READ fillAlpha      WRITE setFillAlpha     )
 
  public:
   using Polygons = std::vector<QPolygonF>;
@@ -83,6 +91,8 @@ class CQChartsGeometryPlot : public CQChartsPlot {
  public:
   CQChartsGeometryPlot(CQChartsView *view, const ModelP &model);
 
+ ~CQChartsGeometryPlot();
+
   //---
 
   int nameColumn() const { return nameColumn_; }
@@ -94,14 +104,35 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i) { valueColumn_ = i; update(); }
 
+  //---
+
   double minValue() const { return minValue_; }
   void setMinValue(double r) { minValue_ = r; update(); }
 
   double maxValue() const { return maxValue_; }
   void setMaxValue(double r) { maxValue_ = r; update(); }
 
-  const QColor &lineColor() const { return lineColor_; }
-  void setLineColor(const QColor &c) { lineColor_ = c; update(); }
+  bool isBorder() const;
+  void setBorder(bool b);
+
+  QString borderColorStr() const;
+  void setBorderColorStr(const QString &str);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const;
+  void setBorderAlpha(double a);
+
+  double borderWidth() const;
+  void setBorderWidth(double r);
+
+  QString fillColorStr() const;
+  void setFillColorStr(const QString &s);
+
+  QColor interpFillColor(int i, int n) const;
+
+  double fillAlpha() const;
+  void setFillAlpha(double a);
 
   //---
 
@@ -131,14 +162,14 @@ class CQChartsGeometryPlot : public CQChartsPlot {
  private:
   using Geometries = std::vector<Geometry>;
 
-  int               nameColumn_     { 0 };
-  int               geometryColumn_ { 1 };
-  int               valueColumn_    { -1 };
-  Geometries        geometries_;
-  double            minValue_       { 0.0 };
-  double            maxValue_       { 0.0 };
-  QColor            lineColor_      { 0, 0, 0 };
-  CQChartsDataLabel dataLabel_;
+  int                  nameColumn_     { 0 };
+  int                  geometryColumn_ { 1 };
+  int                  valueColumn_    { -1 };
+  Geometries           geometries_;
+  double               minValue_       { 0.0 };
+  double               maxValue_       { 0.0 };
+  CQChartsBoxObj*      boxObj_         { nullptr }; // polygon fill/border object
+  CQChartsDataLabel    dataLabel_;
 };
 
 #endif

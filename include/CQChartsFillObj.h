@@ -3,7 +3,6 @@
 
 #include <CQChartsPaletteColor.h>
 #include <QObject>
-#include <QColor>
 #include <QRectF>
 #include <QPolygonF>
 
@@ -13,11 +12,11 @@ class QPainter;
 class CQChartsFillObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible READ isVisible WRITE setVisible)
-  Q_PROPERTY(QColor  color   READ color     WRITE setColor  )
-  Q_PROPERTY(bool    palette READ isPalette WRITE setPalette)
-  Q_PROPERTY(double  alpha   READ alpha     WRITE setAlpha  )
-  Q_PROPERTY(Pattern pattern READ pattern   WRITE setPattern)
+  Q_PROPERTY(bool    visible READ isVisible WRITE setVisible )
+  Q_PROPERTY(QString color   READ colorStr  WRITE setColorStr)
+//Q_PROPERTY(bool    palette READ isPalette WRITE setPalette )
+  Q_PROPERTY(double  alpha   READ alpha     WRITE setAlpha   )
+  Q_PROPERTY(Pattern pattern READ pattern   WRITE setPattern )
 
   Q_ENUMS(Pattern);
 
@@ -33,7 +32,7 @@ class CQChartsFillObj : public QObject {
   };
 
  public:
-  CQChartsFillObj();
+  CQChartsFillObj(CQChartsPlot *plot);
 
   virtual ~CQChartsFillObj() { }
 
@@ -43,13 +42,13 @@ class CQChartsFillObj : public QObject {
   bool isVisible() const { return visible_; }
   virtual void setVisible(bool b) { visible_ = b; redrawFillObj(); }
 
-  // color (if not from palette)
-  const QColor &color() const { return color_.color; }
-  virtual void setColor(const QColor &c) { color_.color = c; redrawFillObj(); }
+  // color
+  void setColor(const CQChartsPaletteColor &c) { color_ = c; redrawFillObj(); }
 
-  // color from palette
-  bool isPalette() const { return color_.palette; }
-  virtual void setPalette(bool b) { color_.palette = b; redrawFillObj(); }
+  QString colorStr() const { return color_.colorStr(); }
+  void setColorStr(const QString &str) { color_.setColorStr(str); redrawFillObj(); }
+
+  QColor interpColor(int i, int n) const;
 
   // alpha
   double alpha() const { return alpha_; }
@@ -58,11 +57,6 @@ class CQChartsFillObj : public QObject {
   // pattern
   const Pattern &pattern() const { return pattern_; }
   virtual void setPattern(const Pattern &v) { pattern_ = v; }
-
-  //---
-
-  QString colorStr() const { return color_.colorStr(); }
-  void setColorStr(const QString &str) { color_.setColorStr(str); redrawFillObj(); }
 
   //---
 
@@ -92,8 +86,9 @@ class CQChartsFillObj : public QObject {
   //---
 
  protected:
+  CQChartsPlot*        plot_    { nullptr };
   bool                 visible_ { false };
-  CQChartsPaletteColor color_   { QColor(255, 255, 255), true };
+  CQChartsPaletteColor color_;
   double               alpha_   { 1.0 };
   Pattern              pattern_ { Pattern::SOLID };
 };

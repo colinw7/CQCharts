@@ -37,12 +37,67 @@ CQChartsDelaunayPlot::
 CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model)
 {
-  setLinesColor (QColor(40, 40, 200));
-  setPointsColor(QColor(200, 40, 40));
+  pointObj_ = new CQChartsPointObj(this);
+  lineObj_  = new CQChartsLineObj(this);
+
+  setLinesColorStr ("#282828");
+  setPointsColorStr("#c82828");
 
   addAxes();
 
   addTitle();
+}
+
+CQChartsDelaunayPlot::
+~CQChartsDelaunayPlot()
+{
+  delete lineObj_;
+}
+
+QString
+CQChartsDelaunayPlot::
+pointsColorStr() const
+{
+  return pointObj_->strokeColorStr();
+}
+
+void
+CQChartsDelaunayPlot::
+setPointsColorStr(const QString &s)
+{
+  pointObj_->setStrokeColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsDelaunayPlot::
+interpPointsColor(int i, int n) const
+{
+  return pointObj_->interpStrokeColor(i, n);
+}
+
+QString
+CQChartsDelaunayPlot::
+linesColorStr() const
+{
+  return lineObj_->colorStr();
+}
+
+void
+CQChartsDelaunayPlot::
+setLinesColorStr(const QString &str)
+{
+  lineObj_->setColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsDelaunayPlot::
+interpLinesColor(int i, int n) const
+{
+  return lineObj_->interpColor(i, n);
 }
 
 void
@@ -145,7 +200,7 @@ initObjs()
 
   int nr = model->rowCount(QModelIndex());
 
-  QString name = model->headerData(yColumn(), Qt::Horizontal).toString();
+  yname_ = model->headerData(yColumn(), Qt::Horizontal).toString();
 
   //---
 
@@ -170,18 +225,6 @@ initObjs()
 
     delaunay_->addVertex(x, y);
 
-    QString name1;
-
-    if (nameColumn() >= 0) {
-      QModelIndex nameInd = model->index(r, nameColumn());
-
-      bool ok;
-
-      name1 = CQChartsUtil::modelString(model, nameInd, ok);
-    }
-    else
-      name1 = name;
-
     //---
 
     QModelIndex xind1 = normalizeIndex(xind);
@@ -191,15 +234,14 @@ initObjs()
     CQChartsDelaunayPointObj *pointObj =
       new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
 
-    if (name1.length())
-      pointObj->setId(QString("%1:%2:%3").arg(name1).arg(x).arg(y));
-    else
-      pointObj->setId(QString("%1:%2:%3").arg(r).arg(x).arg(y));
-
     addPlotObject(pointObj);
   }
 
   delaunay_->calc();
+
+  //---
+
+  initObjTree();
 }
 
 void
@@ -228,7 +270,7 @@ CQChartsDelaunayPlot::
 drawDelaunay(QPainter *p)
 {
   if (isLines()) {
-    QColor lc = linesColor();
+    QColor lc = interpLinesColor(0, 1);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -263,7 +305,7 @@ CQChartsDelaunayPlot::
 drawVoronoi(QPainter *p)
 {
   if (isPoints()) {
-    QColor pc = pointsColor();
+    QColor pc = interpPointsColor(0, 1);
 
     p->setPen(pc);
 
@@ -288,7 +330,7 @@ drawVoronoi(QPainter *p)
   //---
 
   if (isLines()) {
-    QColor    lc = linesColor();
+    QColor    lc = interpLinesColor(0, 1);
     double    lw = linesWidth();
     CLineDash ld;
 
@@ -315,6 +357,28 @@ CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &r
                          double x, double y, const QModelIndex &ind, int i, int n) :
  CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
 {
+}
+
+QString
+CQChartsDelaunayPointObj::
+calcId() const
+{
+  QString name1;
+
+  if (plot_->nameColumn() >= 0) {
+    QModelIndex nameInd = plot_->model()->index(i_, plot_->nameColumn());
+
+    bool ok;
+
+    name1 = CQChartsUtil::modelString(plot_->model(), nameInd, ok);
+  }
+  else
+    name1 = plot_->yname();
+
+  if (name1.length())
+    return QString("%1:%2:%3").arg(name1).arg(x_).arg(y_);
+  else
+    return QString("%1:%2:%3").arg(i_).arg(x_).arg(y_);
 }
 
 bool
@@ -375,7 +439,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  QColor                   c      = plot_->pointsColor();
+  QColor                   c      = plot_->interpPointsColor(0, 1);
   double                   s      = plot_->symbolSize();
   CQChartsPlotSymbol::Type symbol = plot_->symbolType();
   bool                     filled = plot_->isSymbolFilled();
@@ -391,5 +455,6 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, pen.color(), filled);
+  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, true, pen.color(), 1,
+                         filled, pen.color());
 }

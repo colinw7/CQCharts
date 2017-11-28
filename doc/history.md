@@ -143,3 +143,17 @@
  + add context menu
  + add scroll left/right for multiple horizontal plots outside view
  + add more commands to scripting as well as control command (if, while, continue)
+## 11/21/2017
+ + performance improvements for large numbers of points
+   + calc plot object id on demand
+   + build quad tree on separate thread
+ + update plot on model change
+ + add radar and image plot
+## 11/24/2017
+ + Add theme colors
+ + Add margin to adjacency ploy
+ + Add invert for coordinate system (x/y)
+ + Add label column for bar chart
+## 11/26/2017
+ + Add more color configuration
+ + Support Log axes in xy plot

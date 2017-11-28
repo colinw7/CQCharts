@@ -130,6 +130,7 @@ class CQChartsCirclePack {
       return true;
     }
 
+    // try to place next to node starting at last
     while (ind2_ > ind1_) {
       if (testIndices(ind1_, ind2_, r, xc, yc)) {
         ind2_ = n;
@@ -140,18 +141,23 @@ class CQChartsCirclePack {
       --ind2_;
     }
 
-    return false;
+    return testIndices(ind1_, ind2_, r, xc, yc, /*force*/true);
   }
 
-  bool testIndices(int ind1, int ind2, double r, double &xc, double &yc) const {
-    while (ind1 < ind2) {
-      NODE *node1 = node(ind1);
-      NODE *node2 = node(ind2);
+  // intersect last node with each previous node until find place to add with no overlap
+  bool testIndices(int ind1, int ind2, double r, double &xc, double &yc, bool force=false) const {
+    NODE *node2 = node(ind2);
+
+    int ind = ind2 - 1;
+
+    while (ind >= ind1) {
+      NODE *node1 = node(ind);
 
       //std::cerr << "Test: " << node1->id() << " and " << node2->id() << "\n";
 
       double xi1, yi1, xi2, yi2;
 
+      // get overlap of extended circle at last node and previous node
       if (CircleCircleIntersect(node1->x(), node1->y(), node1->radius() + r,
                                 node2->x(), node2->y(), node2->radius() + r,
                                 &xi1, &yi1, &xi2, &yi2)) {
@@ -161,8 +167,10 @@ class CQChartsCirclePack {
         bool valid1 = (orient1 >= 0);
         bool valid2 = (orient2 >= 0);
 
-        valid1 = (valid1 && ! isTouching(xi1, yi1, r));
-        valid2 = (valid2 && ! isTouching(xi2, yi2, r));
+        if (! force) {
+          valid1 = (valid1 && ! isTouching(xi1, yi1, r));
+          valid2 = (valid2 && ! isTouching(xi2, yi2, r));
+        }
 
         if (valid1 || valid2) {
           double a1 = (valid1 ? calcAtan(yi1, xi1) : 1E50);
@@ -183,7 +191,7 @@ class CQChartsCirclePack {
         }
       }
 
-      ++ind1;
+      --ind;
     }
 
     return false;
@@ -214,13 +222,13 @@ class CQChartsCirclePack {
   bool isTouching(double x, double y, double r) const {
     int n = size();
 
-    for (int i = 0; i < n; ++i) {
+    for (int i = n - 1; i >= 0; --i) {
       NODE *node = this->node(i);
 
       double dx = x - node->x();
       double dy = y - node->y();
 
-      double d1 = sqrt(dx*dx + dy*dy);
+      double d1 = std::hypot(dx, dy);
       double d2 = node->radius() + r;
 
       if (d1 < d2 && ! realEq(d1, d2))
@@ -238,7 +246,7 @@ class CQChartsCirclePack {
     double dx = x2 - x1;
     double dy = y2 - y1;
 
-    double d = sqrt(dx*dx + dy*dy);
+    double d = std::hypot(dx, dy);
 
     double sr12 = r1 + r2;
     double dr12 = fabs(r1 - r2);

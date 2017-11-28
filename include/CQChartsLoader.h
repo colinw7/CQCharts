@@ -7,6 +7,7 @@ class CQCharts;
 class CQFilename;
 class QComboBox;
 class QCheckBox;
+class QLineEdit;
 
 class CQChartsLoader : public QFrame {
   Q_OBJECT
@@ -17,6 +18,8 @@ class CQChartsLoader : public QFrame {
 
   bool isCommentHeader() const;
   bool isFirstLineHeader() const;
+
+  int numRows() const;
 
  signals:
   void loadFile(const QString &type, const QString &filename);
@@ -31,6 +34,7 @@ class CQChartsLoader : public QFrame {
   CQFilename* fileEdit_             { nullptr };
   QCheckBox*  commentHeaderCheck_   { nullptr };
   QCheckBox*  firstLineHeaderCheck_ { nullptr };
+  QLineEdit*  numberEdit_           { nullptr };
 };
 
 #endif

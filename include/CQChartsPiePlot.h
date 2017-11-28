@@ -19,8 +19,6 @@ class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
  public:
   CQChartsPieTextObj(CQChartsPiePlot *plot);
 
-  void redrawBoxObj() override;
-
  private:
   CQChartsPiePlot* plot_ { nullptr };
 };
@@ -31,6 +29,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
  public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
                  int i, int n);
+
+  QString calcId() const override;
 
   double angle1() const { return angle1_; }
   void setAngle1(double a) { angle1_ = a; }
@@ -95,7 +95,7 @@ class CQChartsPieKeyText : public CQChartsKeyText {
  public:
   CQChartsPieKeyText(CQChartsPiePlot *plot, int i, const QString &text);
 
-  QColor textColor() const override;
+  QColor interpTextColor(int i, int n) const override;
 
  private:
   int i_ { 0 };
@@ -142,6 +142,8 @@ class CQChartsPiePlot : public CQChartsPlot {
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
 
+ ~CQChartsPiePlot();
+
   int labelColumn() const { return labelColumn_; }
   void setLabelColumn(int i) { labelColumn_ = i; }
 
@@ -187,7 +189,7 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsPieTextObj &textBox() const { return textBox_; }
+  CQChartsPieTextObj *textBox() const { return textBox_; }
 
   //---
 
@@ -217,21 +219,21 @@ class CQChartsPiePlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  int                labelColumn_     { 0 };
-  int                dataColumn_      { 1 };
-  int                keyLabelColumn_  { -1 };
-  int                colorColumn_     { -1 };
-  bool               donut_           { false };
-  double             innerRadius_     { 0.6 };
-  double             outerRadius_     { 0.9 };
-  double             labelRadius_     { 0.5 };
-  bool               rotatedText_     { false };
-  bool               explodeSelected_ { true };
-  double             explodeRadius_   { 0.05 };
-  double             startAngle_      { 90 };
-  double             innerRadius1_    { 0.6 };
-  CQChartsValueSet   colorSet_;
-  CQChartsPieTextObj textBox_;
+  int                 labelColumn_     { 0 };
+  int                 dataColumn_      { 1 };
+  int                 keyLabelColumn_  { -1 };
+  int                 colorColumn_     { -1 };
+  bool                donut_           { false };
+  double              innerRadius_     { 0.6 };
+  double              outerRadius_     { 0.9 };
+  double              labelRadius_     { 0.5 };
+  bool                rotatedText_     { false };
+  bool                explodeSelected_ { true };
+  double              explodeRadius_   { 0.05 };
+  double              startAngle_      { 90 };
+  double              innerRadius1_    { 0.6 };
+  CQChartsValueSet    colorSet_;
+  CQChartsPieTextObj* textBox_         { nullptr };
 };
 
 #endif

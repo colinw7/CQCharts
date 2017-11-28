@@ -19,8 +19,20 @@ class CQChartsPlotObj : public QObject {
   const CQChartsGeom::BBox &rect() const { return rect_; }
   void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
 
-  const QString &id() const { return id_; }
+  //---
+
+  const QString &id() const {
+    if (! id_)
+      const_cast<CQChartsPlotObj*>(this)->id_ = calcId();
+
+    return *id_;
+  }
+
   void setId(const QString &s) { id_ = s; }
+
+  virtual QString calcId() const = 0;
+
+  //---
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
@@ -52,8 +64,10 @@ class CQChartsPlotObj : public QObject {
   virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 
  protected:
+  using OptString = boost::optional<QString>;
+
   CQChartsGeom::BBox rect_;
-  QString            id_;
+  OptString          id_;
   bool               visible_  { true };
   bool               selected_ { false };
   bool               inside_   { false };
