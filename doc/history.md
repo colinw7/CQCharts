@@ -157,3 +157,8 @@
 ## 11/26/2017
  + Add more color configuration
  + Support Log axes in xy plot
+## 11/29/2017
+ + Remove all non custom tick labels in distribution plot
+ + Add max value for exp
+ + Allow antialias to be disabled
+ + Update context menu to show current key and theme state

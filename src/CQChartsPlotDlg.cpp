@@ -452,7 +452,7 @@ addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
 
   edit->setPlaceholderText(placeholderText);
 
-  grid->addWidget(edit , row, column); ++column;
+  grid->addWidget(edit, row, column); ++column;
 
   return edit;
 }
@@ -508,7 +508,7 @@ applySlot()
   //---
 
   // set plot property for widgets for plot parameters
-  PlotData &plotData = typePlotData_[typeName];
+  PlotData &plotData = typePlotData_[type->name()];
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
@@ -662,8 +662,8 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
   if (posStrs.length() == 4) {
     bool ok1; xmin = posStrs[0].toDouble(&ok1); if (! ok1) xmin = 0.0;
     bool ok2; ymin = posStrs[1].toDouble(&ok2); if (! ok2) ymin = 0.0;
-    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 0.0;
-    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 0.0;
+    bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 1.0;
+    bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 1.0;
 
     xmin = CQChartsUtil::clamp(xmin, 0.0, 1.0);
     ymin = CQChartsUtil::clamp(ymin, 0.0, 1.0);
@@ -826,6 +826,68 @@ lineEditValue(QLineEdit *le, int &i, QString &columnStr, QString &columnType, in
 
 bool
 CQChartsPlotDlg::
+lineEditValues(QLineEdit *le, std::vector<int> &columns, QStringList &columnStrs,
+               QString &columnType) const
+{
+  bool ok = true;
+
+  QStringList strs = le->text().split(" ", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    int pos = strs[i].indexOf(":");
+
+    QString lhs, rhs;
+
+    if (pos > 0) {
+      lhs = strs[i].mid(0, pos).simplified();
+      rhs = strs[i].mid(pos + 1).simplified();
+    }
+    else
+      lhs = strs[i].simplified();
+
+    //---
+
+    // support column numeric range <n>-<m>
+    QStringList strs1 = lhs.split("-", QString::SkipEmptyParts);
+
+    if (strs1.size() == 2) {
+      bool ok1, ok2;
+
+      int startCol = strs1[0].toInt(&ok1);
+      int endCol   = strs1[1].toInt(&ok2);
+
+      if (ok1 && ok2) {
+        for (int col = startCol; col <= endCol; ++col) {
+          columns   .push_back(col);
+          columnStrs.push_back(QString("%1").arg(col));
+        }
+
+        if (rhs.length())
+          columnType = rhs;
+      }
+      else
+        ok = false;
+    }
+    else {
+      int col;
+
+      if (stringToColumn(lhs, col)) {
+        columns   .push_back(col);
+        columnStrs.push_back(lhs);
+
+        if (rhs.length())
+          columnType = rhs;
+      }
+      else
+        ok = false;
+    }
+  }
+
+  return ok;
+}
+
+bool
+CQChartsPlotDlg::
 stringToColumn(const QString &str, int &column) const
 {
   bool ok = false;
@@ -856,69 +918,6 @@ stringToColumn(const QString &str, int &column) const
   }
 
   return false;
-}
-
-bool
-CQChartsPlotDlg::
-lineEditValues(QLineEdit *le, std::vector<int> &columns, QStringList &columnStrs,
-               QString &columnType) const
-{
-  bool ok = true;
-
-  QStringList strs = le->text().split(" ", QString::SkipEmptyParts);
-
-  for (int i = 0; i < strs.size(); ++i) {
-    int pos = strs[i].indexOf(":");
-
-    QString lhs, rhs;
-
-    if (pos > 0) {
-      lhs = strs[i].mid(0, pos).simplified();
-      rhs = strs[i].mid(pos + 1).simplified();
-    }
-    else
-      lhs = strs[i].simplified();
-
-    //---
-
-    QStringList strs1 = lhs.split("-", QString::SkipEmptyParts);
-
-    if (strs1.size() == 2) {
-      bool ok1, ok2;
-
-      int startCol = strs1[0].toInt(&ok1);
-      int endCol   = strs1[1].toInt(&ok2);
-
-      if (ok1 && ok2) {
-        for (int col = startCol; col <= endCol; ++col) {
-          columns   .push_back(col);
-          columnStrs.push_back(QString("%1").arg(col));
-        }
-
-        if (rhs.length())
-          columnType = rhs;
-      }
-      else
-        ok = false;
-    }
-    else {
-      bool ok1;
-
-      int col = lhs.toInt(&ok1);
-
-      if (ok1) {
-        columns   .push_back(col);
-        columnStrs.push_back(lhs);
-
-        if (rhs.length())
-          columnType = rhs;
-      }
-      else
-        ok = false;
-    }
-  }
-
-  return ok;
 }
 
 int

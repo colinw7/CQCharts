@@ -207,6 +207,43 @@ setTickIncrement(uint tickIncrement)
   redraw();
 }
 
+//---
+
+void
+CQChartsAxis::
+clearTickLabels()
+{
+  tickLabels_.clear();
+}
+
+void
+CQChartsAxis::
+setTickLabel(long i, const QString &label)
+{
+  tickLabels_[i] = label;
+
+  redraw();
+}
+
+bool
+CQChartsAxis::
+hasTickLabel(long i) const
+{
+  return (tickLabels_.find(i) != tickLabels_.end());
+}
+
+const QString &
+CQChartsAxis::
+tickLabel(long i) const
+{
+  auto p = tickLabels_.find(i);
+  assert(p != tickLabels_.end());
+
+  return (*p).second;
+}
+
+//---
+
 QString
 CQChartsAxis::
 format() const
@@ -285,24 +322,6 @@ setLabelFont(const QFont &font)
   redraw();
 }
 
-#if 0
-QColor
-CQChartsAxis::
-labelColor() const
-{
-  return label_->color();
-}
-
-void
-CQChartsAxis::
-setLabelColor(const QColor &color)
-{
-  label_->setColor(color);
-
-  redraw();
-}
-#endif
-
 QString
 CQChartsAxis::
 labelColorStr() const
@@ -339,22 +358,6 @@ setLineDisplayed(bool b)
 {
   lineObj_->setDisplayed(b); redraw();
 }
-
-#if 0
-QColor
-CQChartsAxis::
-lineColor() const
-{
-  return lineObj_->color();
-}
-
-void
-CQChartsAxis::
-setLineColor(const QColor &c)
-{
-  lineObj_->setColor(c); redraw();
-}
-#endif
 
 double
 CQChartsAxis::
@@ -421,22 +424,6 @@ setGridDisplayed(bool b)
   gridLineObj_->setDisplayed(b); redraw();
 }
 
-#if 0
-QColor
-CQChartsAxis::
-gridColor() const
-{
-  return gridLineObj_->color();
-}
-
-void
-CQChartsAxis::
-setGridColor(const QColor &c)
-{
-  gridLineObj_->setColor(c); redraw();
-}
-#endif
-
 double
 CQChartsAxis::
 gridWidth() const
@@ -478,22 +465,6 @@ setGridFill(bool b)
 {
   gridFill_->setVisible(b); redraw();
 }
-
-#if 0
-QColor
-CQChartsAxis::
-gridFillColor() const
-{
-  return gridFill_->color();
-}
-
-void
-CQChartsAxis::
-setGridFillColor(const QColor &c)
-{
-  gridFill_->setColor(c); redraw();
-}
-#endif
 
 double
 CQChartsAxis::
@@ -595,24 +566,6 @@ setTickLabelFont(const QFont &font)
 
   redraw();
 }
-
-#if 0
-QColor
-CQChartsAxis::
-tickLabelColor() const
-{
-  return tickLabel_->color();
-}
-
-void
-CQChartsAxis::
-setTickLabelColor(const QColor &color)
-{
-  tickLabel_->setColor(color);
-
-  redraw();
-}
-#endif
 
 double
 CQChartsAxis::
@@ -974,6 +927,9 @@ valueStr(double pos) const
 
     if (hasTickLabel(ipos))
       return tickLabel(ipos);
+
+    if (isRequireTickLabel())
+      return "";
   }
 
   if (column_ >= 0) {

@@ -124,7 +124,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
 //---
 
-class CSmooth;
+class CQChartsSmooth;
 
 class CQChartsXYPolylineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -158,7 +158,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   QString         name_;
   int             i_      { -1 };
   int             n_      { -1 };
-  CSmooth*        smooth_ { nullptr };
+  CQChartsSmooth* smooth_ { nullptr };
 };
 
 //---
@@ -193,7 +193,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   QString         name_;
   int             i_      { -1 };
   int             n_      { -1 };
-  CSmooth*        smooth_ { nullptr };
+  CQChartsSmooth* smooth_ { nullptr };
 };
 
 //---

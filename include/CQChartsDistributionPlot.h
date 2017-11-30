@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsPaletteColor.h>
 
@@ -16,6 +17,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
  public:
   using Values = std::vector<QModelIndex>;
+
+  using OptColor = boost::optional<CQChartsPaletteColor>;
 
  public:
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
@@ -59,6 +62,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   Q_OBJECT
 
   Q_PROPERTY(int     valueColumn      READ valueColumn       WRITE setValueColumn     )
+  Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
   Q_PROPERTY(double  startValue       READ startValue        WRITE setStartValue      )
   Q_PROPERTY(double  deltaValue       READ deltaValue        WRITE setDeltaValue      )
   Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
@@ -71,6 +75,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   Q_PROPERTY(QString barColor         READ barColorStr       WRITE setBarColorStr     )
   Q_PROPERTY(double  barAlpha         READ barAlpha          WRITE setBarAlpha        )
   Q_PROPERTY(Pattern barPattern       READ barPattern        WRITE setBarPattern      )
+  Q_PROPERTY(bool    colorMapEnabled  READ isColorMapEnabled WRITE setColorMapEnabled )
+  Q_PROPERTY(double  colorMapMin      READ colorMapMin       WRITE setColorMapMin     )
+  Q_PROPERTY(double  colorMapMax      READ colorMapMax       WRITE setColorMapMax     )
 
   Q_ENUMS(Pattern)
 
@@ -85,6 +92,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     BDIAG
   };
 
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsDistributionPlot();
@@ -93,6 +102,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i) { valueColumn_ = i; update(); }
+
+  int colorColumn() const { return colorColumn_; }
+  void setColorColumn(int i) { colorColumn_ = i; }
 
   //---
 
@@ -147,6 +159,21 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
+  void initColorSet();
+
+  bool colorSetColor(int i, OptColor &color);
+
+  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+
+  double colorMapMin() const { return colorSet_.mapMin(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
+
+  double colorMapMax() const { return colorSet_.mapMax(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+
+  //---
+
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
 
   //---
@@ -155,6 +182,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
+  void updateObjs() override;
+
   void initObjs() override;
 
   //---
@@ -162,6 +191,10 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   QColor interpBarColor(int i, int n) const;
 
   void addKeyItems(CQChartsKey *key) override;
+
+  QString bucketValuesStr(int bucket) const;
+
+  void bucketValues(int bucket, double &value1, double &value2) const;
 
   //---
 
@@ -174,16 +207,18 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using IValues = std::map<int,Values>;
 
  private:
-  int                  valueColumn_ { -1 };
-  double               startValue_  { 0.0 };
-  double               deltaValue_  { 1.0 };
-  IValues              ivalues_;
-  bool                 horizontal_  { false };
-  double               margin_      { 2 };
-  CQChartsBoxObj*      borderObj_   { nullptr };
-  CQChartsFillObj*     fillObj_     { nullptr };
-  CQChartsPaletteColor barColor_;
-  CQChartsDataLabel    dataLabel_;
+  int                  valueColumn_ { -1 };      // value column
+  int                  colorColumn_ { -1 };      // color column
+  double               startValue_  { 0.0 };     // start value
+  double               deltaValue_  { 1.0 };     // delta value
+  bool                 autoDelta_   { false };   // auto delta
+  IValues              ivalues_;                 // indexed values
+  bool                 horizontal_  { false };   // horizontal bars
+  double               margin_      { 2 };       // bar margin
+  CQChartsBoxObj*      borderObj_   { nullptr }; // border object
+  CQChartsFillObj*     fillObj_     { nullptr }; // fill object
+  CQChartsValueSet     colorSet_;                // color column value set
+  CQChartsDataLabel    dataLabel_;               // data label data
 };
 
 #endif

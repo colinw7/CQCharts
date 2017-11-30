@@ -31,6 +31,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(double       scrollDelta    READ scrollDelta    WRITE setScrollDelta   )
   Q_PROPERTY(int          scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
   Q_PROPERTY(int          scrollPage     READ scrollPage     WRITE setScrollPage    )
+  Q_PROPERTY(bool         antiAlias      READ isAntiAlias    WRITE setAntiAlias     )
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectedMode)
@@ -51,6 +52,14 @@ class CQChartsView : public QFrame {
   enum class InsideMode {
     OUTLINE,
     FILL
+  };
+
+  enum class ThemeType {
+    NONE,
+    LIGHT1,
+    LIGHT2,
+    DARK1,
+    DARK2
   };
 
  public:
@@ -105,6 +114,9 @@ class CQChartsView : public QFrame {
 
   int scrollPage() const { return scrollPage_; }
   void setScrollPage(int i) { scrollPage_ = i; }
+
+  bool isAntiAlias() const { return antiAlias_; }
+  void setAntiAlias(bool b) { antiAlias_ = b; }
 
   //---
 
@@ -270,12 +282,14 @@ class CQChartsView : public QFrame {
   double                scrollDelta_    { 100 };
   int                   scrollNumPages_ { 1 };
   int                   scrollPage_     { 0 };
+  bool                  antiAlias_      { true };
   CQChartsGeom::BBox    prect_          { 0, 0, 100, 100 };
   double                aspect_         { 1.0 };
   MouseData             mouseData_;
   QRubberBand*          zoomBand_       { nullptr };
   ProbeBands            probeBands_;
   QMenu*                popupMenu_      { nullptr };
+  ThemeType             themeType_      { ThemeType::NONE };
 };
 
 #endif

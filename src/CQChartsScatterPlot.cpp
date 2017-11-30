@@ -168,6 +168,111 @@ nameIndex(const QString &name) const
   return 0;
 }
 
+//------
+
+void
+CQChartsScatterPlot::
+initSymbolSizeSet()
+{
+  symbolSizeSet_.clear();
+
+  if (symbolSizeColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, symbolSizeColumn(), ok);
+
+    symbolSizeSet_.addValue(value); // always add some value
+  }
+}
+
+void
+CQChartsScatterPlot::
+initFontSizeSet()
+{
+  fontSizeSet_.clear();
+
+  if (fontSizeColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, fontSizeColumn(), ok);
+
+    fontSizeSet_.addValue(value); // always add some value
+  }
+}
+
+void
+CQChartsScatterPlot::
+initColorSet()
+{
+  colorSet_.clear();
+
+  if (colorColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+
+    colorSet_.addValue(value); // always add some value
+  }
+}
+
+bool
+CQChartsScatterPlot::
+colorSetColor(int i, OptColor &color)
+{
+  if (i < 0)
+    return false;
+
+  if (colorSet_.empty())
+    return false;
+
+  // color can be actual color value (string) or value used to map into palette
+  // (map enabled or disabled)
+  if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
+    double value = colorSet_.imap(i);
+
+    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
+  }
+  else {
+    QVariant colorVar = colorSet_.value(i);
+
+    color = QColor(colorVar.toString());
+  }
+
+  return true;
+}
+
+//------
+
 void
 CQChartsScatterPlot::
 initObjs()
@@ -188,42 +293,18 @@ initObjs()
 
   // init name values
   if (nameValues_.empty()) {
+    initSymbolSizeSet();
+    initFontSizeSet  ();
+    initColorSet     ();
+
+    //---
+
     QAbstractItemModel *model = this->model();
 
     if (! model)
       return;
 
     int nr = numRows();
-
-    if (symbolSizeColumn() >= 0) {
-      bool ok;
-
-      for (int r = 0; r < nr; ++r) {
-        QModelIndex symbolSizeInd = model->index(r, symbolSizeColumn());
-
-        symbolSizeSet_.addValue(CQChartsUtil::modelValue(model, symbolSizeInd, ok));
-      }
-    }
-
-    if (fontSizeColumn() >= 0) {
-      bool ok;
-
-      for (int r = 0; r < nr; ++r) {
-        QModelIndex fontSizeInd = model->index(r, fontSizeColumn());
-
-        fontSizeSet_.addValue(CQChartsUtil::modelValue(model, fontSizeInd, ok));
-      }
-    }
-
-    if (colorColumn() >= 0) {
-      bool ok;
-
-      for (int r = 0; r < nr; ++r) {
-        QModelIndex colorInd = model->index(r, colorColumn());
-
-        colorSet_.addValue(CQChartsUtil::modelValue(model, colorInd, ok));
-      }
-    }
 
     for (int r = 0; r < nr; ++r) {
       QModelIndex nameInd = model->index(r, nameColumn());
@@ -332,13 +413,13 @@ initObjs()
         if (symbolSizeColumn() >= 0)
           symbolSize = symbolSizeSet_.imap(valuePoint.i);
 
-        OptReal fontSize, color;
+        OptReal  fontSize = boost::make_optional(false, 0.0);
+        OptColor color    = boost::make_optional(false, CQChartsPaletteColor());
 
         if (fontSizeColumn() >= 0)
           fontSize = fontSizeSet_.imap(valuePoint.i);
 
-        if (colorColumn() >= 0)
-          color = colorSet_.imap(valuePoint.i);
+        (void) colorSetColor(valuePoint.i, color);
 
         double sw = pixelToWindowWidth (symbolSize);
         double sh = pixelToWindowHeight(symbolSize);
@@ -450,7 +531,7 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontS
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect, const QPointF &p,
-                        double symbolSize, const OptReal &fontSize, const OptReal &color,
+                        double symbolSize, const OptReal &fontSize, const OptColor &color,
                         int is, int ns, int iv, int nv) :
  CQChartsPlotObj(rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
  color_(color), is_(is), ns_(ns), iv_(iv), nv_(nv)
@@ -532,7 +613,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QColor color;
 
   if (color_)
-    color = plot_->interpPaletteColor(*color_);
+    color = (*color_).interpColor(plot_, is_);
   else
     color = plot_->interpPaletteColor(is_, ns_);
 

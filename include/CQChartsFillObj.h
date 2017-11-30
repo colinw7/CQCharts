@@ -14,7 +14,6 @@ class CQChartsFillObj : public QObject {
 
   Q_PROPERTY(bool    visible READ isVisible WRITE setVisible )
   Q_PROPERTY(QString color   READ colorStr  WRITE setColorStr)
-//Q_PROPERTY(bool    palette READ isPalette WRITE setPalette )
   Q_PROPERTY(double  alpha   READ alpha     WRITE setAlpha   )
   Q_PROPERTY(Pattern pattern READ pattern   WRITE setPattern )
 

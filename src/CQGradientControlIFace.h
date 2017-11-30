@@ -31,9 +31,11 @@ class CQGradientControlIFace : public QFrame {
  public:
   CQGradientControlIFace(CQGradientControlPlot *palette);
 
+  //! get/set color type
   CGradientPalette::ColorType colorType() const;
   void setColorType(CGradientPalette::ColorType colorType);
 
+  //! get/set color model
   CGradientPalette::ColorModel colorModel() const;
   void setColorModel(CGradientPalette::ColorModel colorModel);
 

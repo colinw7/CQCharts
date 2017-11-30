@@ -123,6 +123,57 @@ updateRange(bool apply)
 
 void
 CQChartsPiePlot::
+initColorSet()
+{
+  colorSet_.clear();
+
+  if (colorColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+
+    colorSet_.addValue(value); // always add some value
+  }
+}
+
+bool
+CQChartsPiePlot::
+colorSetColor(int i, OptColor &color)
+{
+  if (i < 0)
+    return false;
+
+  if (colorSet_.empty())
+    return false;
+
+  // color can be actual color value (string) or value used to map into palette
+  // (map enabled or disabled)
+  if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
+    double value = colorSet_.imap(i);
+
+    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
+  }
+  else {
+    QVariant colorVar = colorSet_.value(i);
+
+    color = QColor(colorVar.toString());
+  }
+
+  return true;
+}
+
+void
+CQChartsPiePlot::
 initObjs()
 {
   if (! dataRange_.isSet()) {
@@ -188,17 +239,8 @@ initObjs()
   //---
 
   // init value sets
-  if (colorSet_.empty()) {
-    if (colorColumn() >= 0) {
-      bool ok;
-
-      for (int r = 0; r < nr; ++r) {
-        QModelIndex colorInd = model->index(r, colorColumn());
-
-        colorSet_.addValue(CQChartsUtil::modelValue(model, colorInd, ok));
-      }
-    }
-  }
+  if (colorSet_.empty())
+    initColorSet();
 
   //---
 
@@ -232,15 +274,6 @@ initObjs()
 
     //---
 
-    // get color label (?)
-
-    OptReal color = boost::make_optional(false, 0.0);
-
-    if (colorColumn() >= 0)
-      color = colorSet_.imap(r);
-
-    //---
-
     CQChartsGeom::BBox rect(xc - radius, yc - radius, xc + radius, yc + radius);
 
     CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1, r, nr);
@@ -250,7 +283,9 @@ initObjs()
     obj->setLabel (label);
     obj->setValue (value);
 
-    if (color)
+    OptColor color;
+
+    if (colorSetColor(r, color))
       obj->setColor(*color);
 
     addPlotObject(obj);
@@ -517,7 +552,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     QColor bg;
 
     if (color_)
-      bg = plot_->interpPaletteColor(*color_);
+      bg = (*color_).interpColor(plot_, i_, n_);
     else
       bg = plot_->interpPaletteColor(i_, n_);
 

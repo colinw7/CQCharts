@@ -4,7 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQRotatedText.h>
-#include <CSmooth.h>
+#include <CQChartsSmooth.h>
 
 #include <QAbstractItemModel>
 #include <QItemSelectionModel>
@@ -1806,7 +1806,7 @@ initSmooth()
 {
   // init smooth if needed
   if (! smooth_) {
-    CSmooth::Points points;
+    CQChartsSmooth::Points points;
 
     int np = poly_.count();
 
@@ -1816,7 +1816,7 @@ initSmooth()
       points.emplace_back(p.x(), p.y());
     }
 
-    smooth_ = new CSmooth(points);
+    smooth_ = new CQChartsSmooth(points);
   }
 }
 
@@ -1963,7 +1963,7 @@ initSmooth()
   // init smooth if needed
   // (not first point and last point are the extra points to make the square protrusion
   if (! smooth_) {
-    CSmooth::Points points;
+    CQChartsSmooth::Points points;
 
     int np = poly_.count();
 
@@ -1973,7 +1973,7 @@ initSmooth()
       points.emplace_back(p.x(), p.y());
     }
 
-    smooth_ = new CSmooth(points);
+    smooth_ = new CQChartsSmooth(points);
   }
 }
 
@@ -2214,18 +2214,26 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
     fillColor.setAlphaF(xyKeyPlot->fillUnderAlpha());
 
+    QBrush fillBrush(fillColor);
+
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
     double y1 = prect.getYMin() + 4;
     double y2 = prect.getYMax() - 4;
 
-    painter->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillColor);
+    if (isInside())
+      fillBrush.setColor(plot->insideColor(fillBrush.color()));
+
+    painter->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillBrush);
   }
 
   if (plot->isLines() || plot->isImpulse()) {
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
+
+    if (isInside())
+      lineColor = plot->insideColor(lineColor);
 
     painter->setPen(lineColor);
 

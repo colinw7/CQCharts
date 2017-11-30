@@ -40,6 +40,8 @@ class CQChartsValueSet : public QObject {
 
   const QVariant &value(int i) const { return values_[i]; }
 
+  void clear();
+
   //---
 
   // get type

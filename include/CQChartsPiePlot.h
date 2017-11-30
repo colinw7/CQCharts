@@ -27,6 +27,9 @@ class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
+ public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
                  int i, int n);
 
@@ -44,7 +47,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
-  void setColor(double r) { color_ = r; }
+  void setColor(const CQChartsPaletteColor &c) { color_ = c; }
 
   bool isExploded() const { return exploded_; }
   void setExploded(bool b) { exploded_ = b; }
@@ -60,8 +63,6 @@ class CQChartsPieObj : public CQChartsPlotObj {
   void draw(QPainter *p, const CQChartsPlot::Layer &) override;
 
  protected:
-  using OptReal = boost::optional<double>;
-
   CQChartsPiePlot* plot_     { nullptr }; // parent plot
   QModelIndex      ind_;
   int              i_        { -1 };      // index
@@ -70,7 +71,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double           angle2_   { 360 };     // wedge start angle
   QString          label_    { "" };      // label
   double           value_    { 0 };       // value
-  OptReal          color_;                // color
+  OptColor         color_;                // color
   bool             exploded_ { false };   // exploded
 };
 
@@ -140,6 +141,9 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
  public:
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
+ public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsPiePlot();
@@ -207,6 +211,10 @@ class CQChartsPiePlot : public CQChartsPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
+
+  void initColorSet();
+
+  bool colorSetColor(int i, OptColor &color);
 
   void initObjs() override;
 

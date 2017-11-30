@@ -27,18 +27,19 @@ class CQChartsAxis : public QObject {
   Q_OBJECT
 
   // general
-  Q_PROPERTY(bool      visible        READ isVisible      WRITE setVisible       )
-  Q_PROPERTY(Direction direction      READ direction      WRITE setDirection     )
-  Q_PROPERTY(Side      side           READ side           WRITE setSide          )
-  Q_PROPERTY(bool      hasPosition    READ hasPosition    WRITE setHasPosition   )
-  Q_PROPERTY(double    position       READ position       WRITE setPosition      )
-  Q_PROPERTY(bool      integral       READ isIntegral     WRITE setIntegral      )
-  Q_PROPERTY(bool      log            READ isLog          WRITE setLog           )
-  Q_PROPERTY(QString   format         READ format         WRITE setFormat        )
-  Q_PROPERTY(double    tickIncrement  READ tickIncrement  WRITE setTickIncrement )
-  Q_PROPERTY(double    majorIncrement READ majorIncrement WRITE setMajorIncrement)
-  Q_PROPERTY(double    start          READ start          WRITE setStart         )
-  Q_PROPERTY(double    end            READ end            WRITE setEnd           )
+  Q_PROPERTY(bool      visible          READ isVisible          WRITE setVisible         )
+  Q_PROPERTY(Direction direction        READ direction          WRITE setDirection       )
+  Q_PROPERTY(Side      side             READ side               WRITE setSide            )
+  Q_PROPERTY(bool      hasPosition      READ hasPosition        WRITE setHasPosition     )
+  Q_PROPERTY(bool      requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
+  Q_PROPERTY(double    position         READ position           WRITE setPosition        )
+  Q_PROPERTY(bool      integral         READ isIntegral         WRITE setIntegral        )
+  Q_PROPERTY(bool      log              READ isLog              WRITE setLog             )
+  Q_PROPERTY(QString   format           READ format             WRITE setFormat          )
+  Q_PROPERTY(double    tickIncrement    READ tickIncrement      WRITE setTickIncrement   )
+  Q_PROPERTY(double    majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
+  Q_PROPERTY(double    start            READ start              WRITE setStart           )
+  Q_PROPERTY(double    end              READ end                WRITE setEnd             )
 
   // line
   Q_PROPERTY(bool      lineDisplayed READ isLineDisplayed WRITE setLineDisplayed)
@@ -265,20 +266,16 @@ class CQChartsAxis : public QObject {
 
   //---
 
-  void clearTickLabels() {
-    tickLabels_.clear();
-  }
+  void clearTickLabels();
 
-  void setTickLabel(long i, const QString &label) { tickLabels_[i] = label; redraw(); }
+  void setTickLabel(long i, const QString &label);
 
-  bool hasTickLabel(long i) const { return (tickLabels_.find(i) != tickLabels_.end()); }
+  bool hasTickLabel(long i) const;
 
-  const QString &tickLabel(long i) const {
-    auto p = tickLabels_.find(i);
-    assert(p != tickLabels_.end());
+  const QString &tickLabel(long i) const;
 
-    return (*p).second;
-  }
+  bool isRequireTickLabel() const { return requireTickLabel_; }
+  void setRequireTickLabel(bool b) { requireTickLabel_ = b; }
 
   //---
 
@@ -393,6 +390,7 @@ class CQChartsAxis : public QObject {
   double                     majorIncrement_      { 0 };
   TickSpaces                 tickSpaces_;
   TickLabels                 tickLabels_;
+  bool                       requireTickLabel_    { false };
   OptReal                    pos_;
   mutable CQChartsGeom::BBox bbox_;
 

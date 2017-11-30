@@ -164,15 +164,6 @@ interpBorderColor(int i, int n) const
   return borderObj_->interpBorderColor(i, n);
 }
 
-#if 0
-void
-CQChartsBarChartPlot::
-setBorderColor(const QColor &c)
-{
-  borderObj_->setBorderColor(c); update();
-}
-#endif
-
 double
 CQChartsBarChartPlot::
 borderWidth() const
@@ -272,6 +263,59 @@ setBarPattern(Pattern pattern)
 
 void
 CQChartsBarChartPlot::
+initColorSet()
+{
+  colorSet_.clear();
+
+  if (colorColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+
+    colorSet_.addValue(value); // always add some value
+  }
+}
+
+bool
+CQChartsBarChartPlot::
+colorSetColor(int i, OptColor &color)
+{
+  if (i < 0)
+    return false;
+
+  if (colorSet_.empty())
+    return false;
+
+  // color can be actual color value (string) or value used to map into palette
+  // (map enabled or disabled)
+  if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
+    double value = colorSet_.imap(i);
+
+    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
+  }
+  else {
+    QVariant colorVar = colorSet_.value(i);
+
+    color = QColor(colorVar.toString());
+  }
+
+  return true;
+}
+
+//---
+
+void
+CQChartsBarChartPlot::
 updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
@@ -299,23 +343,6 @@ updateRange(bool apply)
   int ns = numSets();
 
   int numVisible = 0;
-
-  //---
-
-  // init color value set
-  // color can be actual color value (string) or value used to map into palette
-  // (map enabled or disabled)
-  if (colorSet_.empty()) {
-    if (colorColumn() >= 0) {
-      for (int i = 0; i < nr; ++i) {
-        bool ok;
-
-        QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-        colorSet_.addValue(value); // always add some value
-      }
-    }
-  }
 
   //---
 
@@ -677,6 +704,15 @@ getValueSet(const QString &name)
 
 void
 CQChartsBarChartPlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  CQChartsPlot::updateObjs();
+}
+
+void
+CQChartsBarChartPlot::
 initObjs()
 {
   if (! dataRange_.isSet()) {
@@ -690,6 +726,12 @@ initObjs()
 
   if (! plotObjs_.empty())
     return;
+
+  //---
+
+  // init color value set
+  if (colorSet_.empty())
+    initColorSet();
 
   //---
 
@@ -767,15 +809,9 @@ initObjs()
 
           double value1 = value + sum;
 
-          CQChartsBarChartObj::OptColor color;
+          OptColor color;
 
-          if (ind.row() >= 0 && ! colorSet_.empty()) {
-            if (colorSet_.type() != CQChartsValueSet::Type::STRING)
-              color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE,
-                                           colorSet_.imap(ind.row()));
-            else
-              color = QColor(colorSet_.value(ind.row()).toString());
-          }
+          (void) colorSetColor(ind.row(), color);
 
           //---
 
@@ -830,15 +866,9 @@ initObjs()
 
           double value1 = value + sum;
 
-          CQChartsBarChartObj::OptColor color;
+          OptColor color;
 
-          if (ind.row() >= 0 && ! colorSet_.empty()) {
-            if (colorSet_.type() != CQChartsValueSet::Type::STRING)
-              color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE,
-                                           colorSet_.imap(ind.row()));
-            else
-              color = QColor(colorSet_.value(ind.row()).toString());
-          }
+          (void) colorSetColor(ind.row(), color);
 
           //---
 
@@ -896,15 +926,9 @@ initObjs()
 //      const QString     &valueName = ivalue.name;
         const QModelIndex &ind       = ivalue.ind;
 
-        CQChartsBarChartObj::OptColor color;
+        OptColor color;
 
-        if (ind.row() >= 0 && ! colorSet_.empty()) {
-          if (colorSet_.type() != CQChartsValueSet::Type::STRING)
-            color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE,
-                                         colorSet_.imap(ind.row()));
-          else
-            color = QColor(colorSet_.value(ind.row()).toString());
-        }
+        (void) colorSetColor(ind.row(), color);
 
         //---
 
@@ -1044,20 +1068,10 @@ addKeyItems(CQChartsKey *key)
 
           const QModelIndex &ind = ivalue.ind;
 
-          if (ind.row() >= 0 && ! colorSet_.empty()) {
-            if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
-              double value = colorSet_.imap(ind.row());
+          OptColor color;
 
-              CQChartsPaletteColor color(CQChartsPaletteColor::Type::PALETTE, value);
-
-              keyColor->setColor(color);
-            }
-            else {
-              QVariant colorVar = colorSet_.value(ind.row());
-
-              keyColor->setColor(QColor(colorVar.toString()));
-            }
-          }
+          if (colorSetColor(ind.row(), color))
+            keyColor->setColor((*color).interpColor(0, 1));
         }
 
         key->addItem(keyColor, row, 0);

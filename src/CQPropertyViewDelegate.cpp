@@ -232,7 +232,7 @@ drawColor(QPainter *painter, const QStyleOptionViewItem &option,
 
   painter->fillRect(rect, QBrush(c));
 
-  painter->setPen(QColor(0,0,0));
+  painter->setPen(QColor(0,0,0)); // TODO: contrast border
   painter->drawRect(rect);
 
   QFontMetrics fm(painter->font());
@@ -284,7 +284,10 @@ drawFont(QPainter *painter, const QStyleOptionViewItem &option,
   painter->save();
 
   painter->setFont(f1);
-  painter->setPen(QColor(0,0,0));
+
+  QColor fg = view_->palette().color(QPalette::Text);
+
+  painter->setPen(fg);
 
   painter->drawText(x1, y1, "Abc");
 

@@ -26,6 +26,7 @@
 
 #ifdef CQ_APP_H
 #include <CQApp.h>
+#include <CQStyle.h>
 #else
 #include <QApplication>
 #endif
@@ -233,6 +234,18 @@ QString replaceStringVariables(CExpr *expr, const QString &str) {
 
 //----
 
+namespace {
+
+void
+errorMsg(const QString &msg)
+{
+  std::cerr << msg.toStdString() << "\n";
+}
+
+}
+
+//----
+
 int
 main(int argc, char **argv)
 {
@@ -268,10 +281,16 @@ main(int argc, char **argv)
 
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] == '-') {
-      std::string arg = &argv[i][1];
+      QString arg = &argv[i][1];
+
+      if      (arg == "dark") {
+#ifdef CQ_APP_H
+        app.style()->setTheme(CQStyle::Theme::DARK);
+#endif
+      }
 
       // input data type
-      if      (arg == "csv")
+      else if (arg == "csv")
         initData.fileType = CQChartsTest::FileType::CSV;
       else if (arg == "tsv")
         initData.fileType = CQChartsTest::FileType::TSV;
@@ -356,7 +375,7 @@ main(int argc, char **argv)
               initData.setNameValue(name, value);
             }
             else {
-              std::cerr << "Invalid " << arg << " option '" << argv[i] << "'\n";
+              errorMsg("Invalid " + arg + " option '" + QString(argv[i]));
             }
           }
         }
@@ -412,7 +431,7 @@ main(int argc, char **argv)
             if (ok)
               initData.setNameBool(name, b);
             else {
-              std::cerr << "Invalid -bool option '" << argv[i] << "'\n";
+              errorMsg("Invalid -bool option '" + QString(argv[i]));
             }
           }
         }
@@ -478,7 +497,7 @@ main(int argc, char **argv)
             if (ok)
               initData.setNameReal(name, r);
             else {
-              std::cerr << "Invalid -bool option '" << argv[i] << "'\n";
+              errorMsg("Invalid -bool option '" + QString(argv[i]));
             }
           }
         }
@@ -636,7 +655,7 @@ main(int argc, char **argv)
         loop = true;
       }
       else {
-        std::cerr << "Invalid option '" << argv[i] << "'\n";
+        errorMsg("Invalid option '" + QString(argv[i]));
       }
     }
     else {
@@ -953,7 +972,7 @@ initPlot(const InitData &initData)
         return false;
     }
     else {
-      std::cerr << "No file type specified\n";
+      errorMsg("No file type specified");
     }
   }
   else {
@@ -1058,7 +1077,7 @@ loadFileSlot(const QString &type, const QString &filename)
   FileType fileType = stringToFileType(type);
 
   if (fileType == FileType::NONE) {
-    std::cerr << "Bad type specified '" << type.toStdString() << "'\n";
+    errorMsg("Bad type specified '" + type + "'");
     return false;
   }
 
@@ -1121,7 +1140,7 @@ plotObjPressedSlot(CQChartsPlotObj *obj)
   QString id = obj->id();
 
   if (id.length())
-    std::cerr << id.toStdString() << "\n";
+    errorMsg(id);
 }
 
 //------
@@ -1197,7 +1216,7 @@ processExpression(ModelP &model, const QString &exprStr)
   CQExprModel *exprModel = getExprModel(model);
 
   if (! exprModel) {
-    std::cerr << "Expression not supported for model\n";
+    errorMsg("Expression not supported for model");
     return;
   }
 
@@ -1206,7 +1225,7 @@ processExpression(ModelP &model, const QString &exprStr)
   QString               expr;
 
   if (! exprModel->decodeExpressionFn(exprStr, function, column, expr)) {
-    std::cerr << "Invalid expression '" << exprStr.toStdString() << "'\n";
+    errorMsg("Invalid expression '" + exprStr + "'");
     return;
   }
 
@@ -1220,7 +1239,7 @@ processExpression(ModelP &model, CQExprModel::Function function, int column, con
   CQExprModel *exprModel = getExprModel(model);
 
   if (! exprModel) {
-    std::cerr << "Expression not supported for model\n";
+    errorMsg("Expression not supported for model");
     return;
   }
 
@@ -1233,7 +1252,7 @@ processExpression(ModelP &model, CQExprModel::Function function, int column, con
     bool rc = exprModel->removeExtraColumn(column);
 
     if (! rc) {
-      std::cerr << "Failed to delete column '" << column << "'\n";
+      errorMsg(QString("Failed to delete column '%1'").arg(column));
       return;
     }
   }
@@ -1311,7 +1330,7 @@ typeOKSlot()
   CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
   if (! typeData) {
-    std::cerr << "Invalid type '" << typeStr.toStdString() << "'\n";
+    errorMsg("Invalid type '" + typeStr + "'");
     return;
   }
 
@@ -1385,7 +1404,7 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
   CQChartsPlotType *type = charts_->plotType(typeName);
 
   if (! type) {
-    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot\n";
+    errorMsg("Invalid type '" + typeName + "' for plot");
     return nullptr;
   }
 
@@ -1487,7 +1506,7 @@ setColumnFormats(const ModelP &model, const QString &columnType)
       if (stringToColumn(model, columnStr, column1))
         column = column1;
       else
-        std::cerr << "Bad column name '" << columnStr.toStdString() << "'\n";
+        errorMsg("Bad column name '" + columnStr + "'");
 
       typeStr = typeStr.mid(pos + 1).simplified();
     }
@@ -1502,15 +1521,13 @@ setColumnFormats(const ModelP &model, const QString &columnType)
     CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
 
     if (! typeData) {
-      std::cerr << "Invalid type '" << typeStr.toStdString() <<
-                   "' for section '" << column << "'\n";
+      errorMsg(QString("Invalid type '" + typeStr + "' for section '%1'").arg(column));
       continue;
     }
 
     // store in model
     if (! columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues)) {
-      std::cerr << "Failed to set column type '" << typeStr.toStdString() <<
-                   "' for section '" << column << "'\n";
+      errorMsg(QString("Failed to set column type '" + typeStr + "' for section '%1'").arg(column));
       continue;
     }
   }
@@ -1575,12 +1592,12 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       int column;
 
       if (! stringToColumn(model, (*p).second, column)) {
-        std::cerr << "Bad column name '" << (*p).second.toStdString() << "'\n";
+        errorMsg("Bad column name '" + (*p).second + "'");
         column = -1;
       }
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+        errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "columns") {
       auto p = nameValueData.values.find(parameter.name());
@@ -1596,7 +1613,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
         int column;
 
         if (! stringToColumn(model, strs[j], column)) {
-          std::cerr << "Bad column name '" << strs[j].toStdString() << "'\n";
+          errorMsg("Bad column name '" + strs[j] + "'");
           continue;
         }
 
@@ -1606,7 +1623,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       QString s = CQChartsUtil::toString(columns);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+        errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "string") {
       auto p = nameValueData.strings.find(parameter.name());
@@ -1617,7 +1634,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       QString str = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(str)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+        errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "real") {
       auto p = nameValueData.reals.find(parameter.name());
@@ -1628,7 +1645,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       double r = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(r)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+        errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "bool") {
       auto p = nameValueData.bools.find(parameter.name());
@@ -1639,7 +1656,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       bool b = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(b)))
-        std::cerr << "Failed to set parameter " << parameter.propName().toStdString() << "\n";
+        errorMsg("Failed to set parameter " + parameter.propName());
     }
     else
       assert(false);
@@ -1668,7 +1685,7 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
     QString value = str.mid(pos + 1).simplified();
 
     if (! plot->setProperty(name, value))
-      std::cerr << "Failed to set property " << name.toStdString() << "\n";
+      errorMsg("Failed to set property " + name);
   }
 }
 
@@ -1791,8 +1808,7 @@ loadFile(const QString &filename, FileType type, const InputData &inputData, boo
     model = createExprModel(inputData.numRows);
   }
   else {
-    std::cerr << "Bad file type specified '" <<
-      fileTypeToString(type).toStdString() << "'\n";
+    errorMsg("Bad file type specified '" + fileTypeToString(type) + "'");
     return nullptr;
   }
 
@@ -1810,7 +1826,7 @@ loadCsv(const QString &filename, const InputData &inputData)
   csv->setFilter         (inputData.filter);
 
   if (! csv->load(filename))
-    std::cerr << "Failed to load " << filename.toStdString() << "\n";
+    errorMsg("Failed to load '" + filename + "'");
 
   return csv;
 }
@@ -1826,7 +1842,7 @@ loadTsv(const QString &filename, const InputData &inputData)
   tsv->setFilter         (inputData.filter);
 
   if (! tsv->load(filename))
-    std::cerr << "Failed to load " << filename.toStdString() << "\n";
+    errorMsg("Failed to load '" + filename + "'");
 
   return tsv;
 }
@@ -1838,7 +1854,7 @@ loadJson(const QString &filename, bool &hierarchical)
   CQChartsJson *json = new CQChartsJson(charts_);
 
   if (! json->load(filename))
-    std::cerr << "Failed to load " << filename.toStdString() << "\n";
+    errorMsg("Failed to load '" + filename + "'");
 
   hierarchical = json->isHierarchical();
 
@@ -1855,7 +1871,7 @@ loadData(const QString &filename, const InputData &inputData)
   data->setFirstLineHeader(inputData.firstLineHeader);
 
   if (! data->load(filename))
-    std::cerr << "Failed to load " << filename.toStdString() << "\n";
+    errorMsg("Failed to load '" + filename + "'");
 
   return data;
 }
@@ -2162,7 +2178,7 @@ parseLine(const QString &str)
         QString str1;
 
         if (! line.readString(str1, /*stripQuotes*/true))
-          std::cerr << "Invalid string '" << str1.toStdString() << "'\n";
+          errorMsg("Invalid string '" + str1 + "'");
 
         str1 = CQChartsExpr::replaceStringVariables(expr_, str1);
 
@@ -2175,7 +2191,7 @@ parseLine(const QString &str)
         QString str1;
 
         if (! line.readBracedString(str1, /*includeBraces*/false))
-          std::cerr << "Invalid braced string '" << str1.toStdString() << "'\n";
+          errorMsg("Invalid braced string '" + str1 + "'");
 
         args.push_back(str1);
       }
@@ -2255,7 +2271,7 @@ parseLine(const QString &str)
     exit(0);
   }
   else {
-    std::cerr << "Invalid command '" << cmd.toStdString() << "'\n";
+    errorMsg("Invalid command '" + cmd + "'");
   }
 }
 
@@ -2301,11 +2317,11 @@ setCmd(const Args & args)
           value = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -2317,7 +2333,7 @@ setCmd(const Args & args)
     view = charts_->getView(viewName);
 
     if (! view) {
-      std::cerr << "No view '" << viewName.toStdString() << "'\n";
+      errorMsg("No view '" + viewName + "'");
       return;
     }
   }
@@ -2328,7 +2344,7 @@ setCmd(const Args & args)
       view = getView(/*reuse*/true);
 
     if (! view) {
-      std::cerr << "No view\n";
+      errorMsg("No view");
       return;
     }
   }
@@ -2339,20 +2355,20 @@ setCmd(const Args & args)
     CQChartsPlot *plot = view->getPlot(plotName);
 
     if (! plot) {
-      std::cerr << "No plot '" << plotName.toStdString() << "'\n";
+      errorMsg("No plot '" + plotName + "'");
       return;
     }
 
     //---
 
     if (! plot->setProperty(name, value)) {
-      std::cerr << "Failed to set view parameter '" << name.toStdString() << "'\n";
+      errorMsg("Failed to set view parameter '" + name + "'");
       return;
     }
   }
   else {
     if (! view->setProperty(name, value)) {
-      std::cerr << "Failed to set plot parameter '" << name.toStdString() << "'\n";
+      errorMsg("Failed to set plot parameter '" + name + "'");
       return;
     }
   }
@@ -2386,11 +2402,11 @@ getCmd(const Args &args)
           name = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -2483,7 +2499,7 @@ loadCmd(const Args &args)
           title = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
@@ -2493,12 +2509,12 @@ loadCmd(const Args &args)
   }
 
   if (fileType == FileType::NONE) {
-    std::cerr << "No file type\n";
+    errorMsg("No file type");
     return false;
   }
 
   if (fileType != FileType::EXPR && filename == "") {
-    std::cerr << "No filename\n";
+    errorMsg("No filename");
     return false;
   }
 
@@ -2567,11 +2583,11 @@ modelCmd(const Args &args)
           processExpr = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -2583,7 +2599,7 @@ modelCmd(const Args &args)
     viewData = currentViewData();
 
   if (! viewData) {
-    std::cerr << "No model\n";
+    errorMsg("No model");
     return;
   }
 
@@ -2622,11 +2638,11 @@ viewCmd(const Args &args)
           title = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -2636,7 +2652,7 @@ viewCmd(const Args &args)
     view = currentView();
 
   if (! view) {
-    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    errorMsg("No view '" + viewName + "'");
     return;
   }
 
@@ -2677,7 +2693,7 @@ paletteCmd(const Args &args)
   CQChartsTest::OptReal blueMax     = boost::make_optional(false, 0.0);
   DefinedColors         definedColors;
   bool                  getColorScale { false };
-  bool                  getColorFlag  { false };
+  bool                  getColorFlag { false };
   double                getColorValue { 0.0 };
 
   int argc = args.size();
@@ -2698,7 +2714,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color type\n";
+          errorMsg("Missing color type");
           continue;
         }
 
@@ -2708,7 +2724,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color type\n";
+          errorMsg("Missing color model");
           continue;
         }
 
@@ -2718,7 +2734,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing model number");
           continue;
         }
 
@@ -2727,7 +2743,7 @@ paletteCmd(const Args &args)
         int model = args[i].toInt(&ok);
 
         if (! ok) {
-          std::cerr << "Invalid model number\n";
+          errorMsg("Invalid model number");
           continue;
         }
 
@@ -2739,7 +2755,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing model number");
           continue;
         }
 
@@ -2748,7 +2764,7 @@ paletteCmd(const Args &args)
         bool b = stringToBool(args[i], &ok);
 
         if (! ok) {
-          std::cerr << "Invalid negate bool\n";
+          errorMsg("Invalid negate bool");
           continue;
         }
 
@@ -2762,7 +2778,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing min/max value");
           continue;
         }
 
@@ -2771,7 +2787,7 @@ paletteCmd(const Args &args)
         double r = args[i].toDouble(&ok);
 
         if (! ok) {
-          std::cerr << "Invalid min/max value\n";
+          errorMsg("Invalid min/max value");
           continue;
         }
 
@@ -2786,7 +2802,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing defined colors\n";
+          errorMsg("Missing defined colors");
           continue;
         }
 
@@ -2824,7 +2840,7 @@ paletteCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color value\n";
+          errorMsg("Missing color value");
           continue;
         }
 
@@ -2835,11 +2851,11 @@ paletteCmd(const Args &args)
         getColorScale = true;
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -2851,7 +2867,7 @@ paletteCmd(const Args &args)
     view = currentView();
 
   if (! view) {
-    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    errorMsg("No view '" + viewName + "'");
     return;
   }
 
@@ -2977,7 +2993,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color type\n";
+          errorMsg("Missing color type");
           continue;
         }
 
@@ -2987,7 +3003,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color type\n";
+          errorMsg("Missing color model");
           continue;
         }
 
@@ -2997,7 +3013,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing model number");
           continue;
         }
 
@@ -3006,7 +3022,7 @@ themeCmd(const Args &args)
         int model = args[i].toInt(&ok);
 
         if (! ok) {
-          std::cerr << "Invalid model number\n";
+          errorMsg("Invalid model number");
           continue;
         }
 
@@ -3018,7 +3034,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing negate value");
           continue;
         }
 
@@ -3027,7 +3043,7 @@ themeCmd(const Args &args)
         bool b = stringToBool(args[i], &ok);
 
         if (! ok) {
-          std::cerr << "Invalid negate bool\n";
+          errorMsg("Invalid negate bool");
           continue;
         }
 
@@ -3041,7 +3057,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing model number\n";
+          errorMsg("Missing min/max value\n");
           continue;
         }
 
@@ -3050,7 +3066,7 @@ themeCmd(const Args &args)
         double r = args[i].toDouble(&ok);
 
         if (! ok) {
-          std::cerr << "Invalid min/max value\n";
+          errorMsg("Invalid min/max value");
           continue;
         }
 
@@ -3065,7 +3081,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing defined colors\n";
+          errorMsg("Missing defined colors");
           continue;
         }
 
@@ -3103,7 +3119,7 @@ themeCmd(const Args &args)
         ++i;
 
         if (i >= argc) {
-          std::cerr << "Missing color value\n";
+          errorMsg("Missing color value");
           continue;
         }
 
@@ -3114,11 +3130,11 @@ themeCmd(const Args &args)
         getColorScale = true;
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -3130,7 +3146,7 @@ themeCmd(const Args &args)
     view = currentView();
 
   if (! view) {
-    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    errorMsg("No view '" + viewName + "'");
     return;
   }
 
@@ -3263,8 +3279,7 @@ plotCmd(const Args &args)
               nameValueData.values[name] = value;
             }
             else {
-              std::cerr << "Invalid " << opt.toStdString() <<
-                " option '" << args[i].toStdString() << "'\n";
+              errorMsg("Invalid " + opt + " option '" + args[i] + "'");
             }
           }
         }
@@ -3296,7 +3311,7 @@ plotCmd(const Args &args)
           if (ok)
             nameValueData.bools[name] = b;
           else {
-            std::cerr << "Invalid -bool option '" << args[i].toStdString() << "'\n";
+            errorMsg("Invalid -bool option '" + args[i] + "'");
           }
         }
       }
@@ -3425,11 +3440,11 @@ plotCmd(const Args &args)
       }
 
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
-      std::cerr << "Invalid arg '" << arg.toStdString() << "'\n";
+      errorMsg("Invalid arg '" + arg + "'");
     }
   }
 
@@ -3438,7 +3453,7 @@ plotCmd(const Args &args)
   ViewData *viewData = currentViewData();
 
   if (! viewData) {
-    std::cerr << "No model data\n";
+    errorMsg("No model data");
     return;
   }
 
@@ -3458,7 +3473,7 @@ plotCmd(const Args &args)
   CQChartsPlotType *type = charts_->plotType(typeName);
 
   if (! type) {
-    std::cerr << "Invalid type '" << typeName.toStdString() << "' for plot\n";
+    errorMsg("Invalid type '" + typeName + "' for plot");
     return;
   }
 
@@ -3483,10 +3498,10 @@ plotCmd(const Args &args)
         bbox = CQChartsGeom::BBox(pxmin, pymin, pxmax, pymax);
       }
       else
-        std::cerr << "Invalid position '" << positionStr.toStdString() << "'\n";
+        errorMsg("Invalid position '" + positionStr + "'");
     }
     else {
-      std::cerr << "Invalid position '" << positionStr.toStdString() << "'\n";
+      errorMsg("Invalid position '" + positionStr + "'");
     }
   }
 
@@ -3569,11 +3584,11 @@ processCmd(const Args &args)
           column = args[i].toInt(&ok);
 
           if (! ok)
-            std::cerr << "Invalid column '" << args[i].toStdString() << "'\n";
+            errorMsg("Invalid column '" + args[i] + "'");
         }
       }
       else
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
     }
     else {
       if (expr == "")
@@ -3589,25 +3604,25 @@ processCmd(const Args &args)
   CQExprModel *exprModel = getExprModel(viewData->model);
 
   if (! exprModel) {
-    std::cerr << "Expression not supported for model\n";
+    errorMsg("Expression not supported for model");
     return;
   }
 
   if      (function  == CQExprModel::Function::ADD) {
     if (! exprModel->addExtraColumn(header, expr)) {
-      std::cerr << "Failed to add column\n";
+      errorMsg("Failed to add column");
       return;
     }
   }
   else if (function  == CQExprModel::Function::DELETE) {
     if (! exprModel->removeExtraColumn(column)) {
-      std::cerr << "Failed to delete column\n";
+      errorMsg("Failed to delete column");
       return;
     }
   }
   else if (function  == CQExprModel::Function::ASSIGN) {
     if (! exprModel->assignExtraColumn(header, column, expr)) {
-      std::cerr << "Failed to modify column\n";
+      errorMsg("Failed to modify column");
       return;
     }
   }
@@ -3638,7 +3653,7 @@ overlayCmd(const Args &args)
           viewName = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
@@ -3654,7 +3669,7 @@ overlayCmd(const Args &args)
     view = currentView();
 
   if (! view) {
-    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    errorMsg("No view '" + viewName + "'");
     return;
   }
 
@@ -3670,7 +3685,7 @@ overlayCmd(const Args &args)
     CQChartsPlot *plot = view->getPlot(plotName);
 
     if (! plot) {
-      std::cerr << "No plot '" << plotName.toStdString() << "'\n";
+      errorMsg("No plot '" + plotName + "'");
       return;
     }
 
@@ -3678,7 +3693,7 @@ overlayCmd(const Args &args)
   }
 
   if (plots.size() < 2) {
-    std::cerr << "Need 2 or more plots for overlay\n";
+    errorMsg("Need 2 or more plots for overlay");
     return;
   }
 
@@ -3707,7 +3722,7 @@ y1y2Cmd(const Args &args)
           viewName = args[i];
       }
       else {
-        std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+        errorMsg("Invalid option '" + opt + "'");
       }
     }
     else {
@@ -3721,7 +3736,7 @@ y1y2Cmd(const Args &args)
     view = currentView();
 
   if (! view) {
-    std::cerr << "No view '" << viewName.toStdString() << "'\n";
+    errorMsg("No view '" + viewName + "'");
     return;
   }
 
@@ -3737,7 +3752,7 @@ y1y2Cmd(const Args &args)
     CQChartsPlot *plot = view->getPlot(plotName);
 
     if (! plot) {
-      std::cerr << "No plot '" << plotName.toStdString() << "'\n";
+      errorMsg("No plot '" + plotName + "'");
       return;
     }
 
@@ -3745,7 +3760,7 @@ y1y2Cmd(const Args &args)
   }
 
   if (plots.size() != 2) {
-    std::cerr << "Need 2 plots for y1y2\n";
+    errorMsg("Need 2 plots for y1y2");
     return;
   }
 
@@ -3766,7 +3781,7 @@ sortCmd(const Args &args)
     if (arg[0] == '-') {
       QString opt = arg.mid(1);
 
-      std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      errorMsg("Invalid option '" + opt + "'");
     }
     else {
       if (sort == "")
@@ -3796,7 +3811,7 @@ sourceCmd(const Args &args)
     if (arg[0] == '-') {
       QString opt = arg.mid(1);
 
-      std::cerr << "Invalid option '" << opt.toStdString() << "'\n";
+      errorMsg("Invalid option '" + opt + "'");
     }
     else {
       if (filename == "")
@@ -3805,14 +3820,14 @@ sourceCmd(const Args &args)
   }
 
   if (filename == "") {
-    std::cerr << "No filename\n";
+    errorMsg("No filename");
     return;
   }
 
   CUnixFile file(filename.toStdString());
 
   if (! file.open()) {
-    std::cerr << "Failed to open file '" << filename.toStdString() << "'\n";
+    errorMsg("Failed to open file '" + filename + "'");
     return;
   }
 
@@ -3844,7 +3859,7 @@ letCmd(const Args &args)
   int argc = args.size();
 
   if (argc != 1) {
-    std::cerr << "let requires 1 args\n";
+    errorMsg("let requires 1 args");
     return;
   }
 
@@ -3860,7 +3875,7 @@ ifCmd(const Args &args)
   int argc = args.size();
 
   if (argc != 2) {
-    std::cerr << "syntax error : @if {expr} {statement}\n";
+    errorMsg("syntax error : @if {expr} {statement}");
     return;
   }
 
@@ -3882,7 +3897,7 @@ whileCmd(const Args &args)
   int argc = args.size();
 
   if (argc != 2) {
-    std::cerr << "syntax error : @while {expr} {statement}\n";
+    errorMsg("syntax error : @while {expr} {statement}");
     return;
   }
 

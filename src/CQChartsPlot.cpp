@@ -20,8 +20,6 @@
 #include <QSortFilterProxyModel>
 #include <QPainter>
 
-#include <iostream>
-
 //------
 
 CQChartsPlotTypeMgr::
@@ -148,11 +146,10 @@ CQChartsPlot::
 
 void
 CQChartsPlot::
-modelDataChangedSlot(const QModelIndex &tl, const QModelIndex &br)
+modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 {
-  int column1 = tl.column();
-  int column2 = br.column();
-std::cerr << "data changed " << column1 << " -> " << column2 << "\n";
+  //int column1 = tl.column();
+  //int column2 = br.column();
 
   // TODO: check if model uses changed columns
   updateRange();
@@ -1163,33 +1160,6 @@ mouseMove(const CQChartsGeom::Point &w, bool first)
       }
     }
 
-#if 0
-    // for all objects, if under mouse then set to inside (and log if changed)
-    // if not under mouse set to not inside (and log if changed)
-    // TODO: bad, slow code, need fast way to check if new inside objects match old
-    for (const auto &obj : plotObjs_) {
-      // check if object is under mouse
-      // TODO, just check if point inside ?
-      for (const auto &obj1 : objs) {
-        if (obj1 == obj) {
-          if (! obj->isInside()) {
-            obj->setInside(true);
-
-            changed = true;
-          }
-
-          return;
-        }
-      }
-
-      if (obj->isInside()) {
-        obj->setInside(false);
-
-        changed = true;
-      }
-    };
-#endif
-
     if (changed)
       update();
   }
@@ -1401,7 +1371,7 @@ pan(double dx, double dy)
   if (view_->isZoomData()) {
     //CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setX(dataOffset_.y + dx);
+    dataOffset_.setX(dataOffset_.x + dx);
     dataOffset_.setY(dataOffset_.y + dy);
 
     applyDataRange();
@@ -2327,7 +2297,7 @@ CQChartsPlot::
 logValue(double x, int base) const
 {
   if (x >= 1E-6)
-    return log(x)/log(base);
+    return std::log(x)/log(base);
   else
     return CQChartsUtil::getNaN();
 }
@@ -2336,8 +2306,10 @@ double
 CQChartsPlot::
 expValue(double x, int base) const
 {
-  //return exp(x*log(base)) - logTol();
-  return exp(x*log(base));
+  if (x <= 709.78271289)
+    return std::exp(x*log(base));
+  else
+    return CQChartsUtil::getNaN();
 }
 
 //------
@@ -2346,9 +2318,6 @@ void
 CQChartsPlot::
 windowToPixel(double wx, double wy, double &px, double &py) const
 {
-  //if (isLogX()) wx = logValue(wx, 10);
-  //if (isLogY()) wy = logValue(wy, 10);
-
   double wx1, wy1;
 
   displayTransform_->getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
@@ -2391,9 +2360,6 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
   displayRange_->pixelToWindow(wx1, wy1, &wx2, &wy2);
 
   displayTransform_->getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
-
-  //if (isLogX()) wx = expValue(wx, 10);
-  //if (isLogY()) wy = expValue(wy, 10);
 }
 
 void

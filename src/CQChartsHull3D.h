@@ -316,7 +316,7 @@ class CQChartsHull3D {
 
   void getRange(double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax);
 
-  void dumpPS(const char *filename);
+  //void dumpPS(const char *filename);
 
   typedef Vertex::iterator VertexIterator;
   typedef Edge::iterator   EdgeIterator;
@@ -358,16 +358,20 @@ class CQChartsHull3D {
                        double *x3, double *y3, double *z3);
   bool    collinear(PVertex a, PVertex b, PVertex c);
 
+#if 0
   void    checks();
   void    consistency();
   void    convexity();
   void    checkEuler(uint numV, uint numE, uint numF);
   void    checkEndpts();
+#endif
 
+#if 0
   void    printOut(PVertex v);
   void    printVertices();
   void    printEdges();
   void    printFaces();
+#endif
 
  protected:
   /* Global variable definitions */

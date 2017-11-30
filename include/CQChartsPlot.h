@@ -554,7 +554,7 @@ class CQChartsPlot : public QObject {
   // (TODO: remove apply)
   virtual void updateRange(bool apply=true) = 0;
 
-  void updateObjs();
+  virtual void updateObjs();
 
   // (re)initialize plot objects
   virtual void initObjs() = 0;

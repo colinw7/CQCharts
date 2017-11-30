@@ -1,6 +1,7 @@
 #include <CQChartsDistributionPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
@@ -21,6 +22,7 @@ CQChartsDistributionPlotType::
 addParameters()
 {
   addColumnParameter("value", "Value", "valueColumn", "", 0);
+  addColumnParameter("color", "Color", "colorColumn", "optional");
 
   addRealParameter("start", "Start", "startValue", "", 0.0);
   addRealParameter("delta", "Delta", "deltaValue", "", 1.0);
@@ -52,7 +54,7 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 
   addAxes();
 
-  //addKey();
+  addKey();
 
   addTitle();
 }
@@ -71,6 +73,7 @@ addProperties()
   CQChartsPlot::addProperties();
 
   addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "colorColumn", "color");
   addProperty("value"  , this, "startValue" , "start");
   addProperty("value"  , this, "deltaValue" , "delta");
 
@@ -91,6 +94,10 @@ addProperties()
   addProperty(fillStr, this, "barPattern", "pattern");
 
   dataLabel_.addProperties("dataLabel");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
+  addProperty("color", this, "colorMapMin"    , "mapMin"     );
+  addProperty("color", this, "colorMapMax"    , "mapMax"     );
 }
 
 //---
@@ -229,6 +236,61 @@ setBarPattern(Pattern pattern)
 
 void
 CQChartsDistributionPlot::
+initColorSet()
+{
+  colorSet_.clear();
+
+  if (colorColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+
+    colorSet_.addValue(value); // always add some value
+  }
+}
+
+bool
+CQChartsDistributionPlot::
+colorSetColor(int i, OptColor &color)
+{
+  if (colorSet_.empty())
+    return false;
+
+  // color can be actual color value (string) or value used to map into palette
+  // (map enabled or disabled)
+  if (colorSet_.type() == CQChartsValueSet::Type::STRING) {
+    QVariant colorVar = colorSet_.value(i);
+
+    QColor c(colorVar.toString());
+
+    if (c.isValid()) {
+      color = c;
+
+      return true;
+    }
+  }
+
+  double value = colorSet_.imap(i);
+
+  color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
+
+  return true;
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
 updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
@@ -307,6 +369,15 @@ updateRange(bool apply)
 
 void
 CQChartsDistributionPlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  CQChartsPlot::updateObjs();
+}
+
+void
+CQChartsDistributionPlot::
 initObjs()
 {
   if (! dataRange_.isSet()) {
@@ -323,15 +394,22 @@ initObjs()
 
   //---
 
+  // init color value set
+  if (colorSet_.empty())
+    initColorSet();
+
+  //---
+
   xAxis_->clearTickLabels();
   yAxis_->clearTickLabels();
 
   xAxis()->setIntegral(true);
   yAxis()->setIntegral(true);
 
-  //---
+  xAxis()->setRequireTickLabel(! isHorizontal());
+  yAxis()->setRequireTickLabel(  isHorizontal());
 
-  QChar arrowChar(0x2192);
+  //---
 
   int i = 0;
   int n = ivalues_.size();
@@ -350,24 +428,16 @@ initObjs()
     CQChartsDistributionBarObj *barObj =
       new CQChartsDistributionBarObj(this, bbox, bucket, values, i, n);
 
-    double value1 = 0.0;
-    double value2 = 0.0;
-
-    if (deltaValue() > 0.0) {
-      value1 = bucket*deltaValue() + startValue();
-      value2 = value1 + deltaValue();
-    }
-
     addPlotObject(barObj);
 
     //---
 
-    QString xId = QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+    QString bucketStr =  bucketValuesStr(bucket);
 
     if (! isHorizontal())
-      xAxis_->setTickLabel(bucket, xId);
+      xAxis_->setTickLabel(bucket, bucketStr);
     else
-      yAxis_->setTickLabel(bucket, xId);
+      yAxis_->setTickLabel(bucket, bucketStr);
 
     //---
 
@@ -387,7 +457,7 @@ initObjs()
 
   //---
 
-  //resetKeyItems();
+  resetKeyItems();
 
   //---
 
@@ -396,8 +466,56 @@ initObjs()
 
 void
 CQChartsDistributionPlot::
-addKeyItems(CQChartsKey *)
+addKeyItems(CQChartsKey *key)
 {
+  int row = key->maxRow();
+
+  int i = 0;
+  int n = ivalues_.size();
+
+  for (const auto &ivalue : ivalues_) {
+    int bucket = ivalue.first;
+
+    QString bucketStr = bucketValuesStr(bucket);
+
+    CQChartsKeyColorBox *color = new CQChartsKeyColorBox(this, i, n);
+    CQChartsKeyText     *text  = new CQChartsKeyText    (this, bucketStr);
+
+    key->addItem(color, row, 0);
+    key->addItem(text , row, 1);
+
+    ++row;
+
+    ++i;
+  }
+
+  key->plot()->updateKeyPosition(/*force*/true);
+}
+
+QString
+CQChartsDistributionPlot::
+bucketValuesStr(int bucket) const
+{
+  QChar arrowChar(0x2192);
+
+  double value1, value2;
+
+  bucketValues(bucket, value1, value2);
+
+  return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+}
+
+void
+CQChartsDistributionPlot::
+bucketValues(int bucket, double &value1, double &value2) const
+{
+  value1 = 0.0;
+  value2 = 0.0;
+
+  if (deltaValue() > 0.0) {
+    value1 = bucket*deltaValue() + startValue();
+    value2 = value1 + deltaValue();
+  }
 }
 
 void
@@ -431,17 +549,9 @@ QString
 CQChartsDistributionBarObj::
 calcId() const
 {
-  QChar arrowChar(0x2192);
+  QString bucketStr = plot_->bucketValuesStr(bucket_);
 
-  double value1 = 0.0;
-  double value2 = 0.0;
-
-  if (plot_->deltaValue() > 0.0) {
-    value1 = bucket_*plot_->deltaValue() + plot_->startValue();
-    value2 = value1 + plot_->deltaValue();
-  }
-
-  return QString("%1%2%3 : %4").arg(value1).arg(arrowChar).arg(value2).arg(values_.size());
+  return QString("%1 : %2").arg(bucketStr).arg(values_.size());
 }
 
 void

@@ -55,6 +55,15 @@ addValue(const QVariant &value)
   initialized_ = false;
 }
 
+void
+CQChartsValueSet::
+clear()
+{
+  values_.clear();
+
+  initialized_ = false;
+}
+
 double
 CQChartsValueSet::
 imap(int i) const

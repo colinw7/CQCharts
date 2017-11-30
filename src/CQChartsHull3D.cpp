@@ -131,7 +131,7 @@ doubleTriangle()
     v0 = v0->next;
 
     if (v0 == vertices_) {
-      std::cerr << "doubleTriangle: All points collinear!" << std::endl;
+      //std::cerr << "doubleTriangle: All points collinear!" << std::endl;
       return false;
     }
   }
@@ -165,7 +165,7 @@ doubleTriangle()
     v3 = v3->next;
 
     if (v3 == v0) {
-      std::cerr << "doubleTriangle: All points coplanar!" << std::endl;
+      //std::cerr << "doubleTriangle: All points coplanar!" << std::endl;
       return false;
     }
 
@@ -175,10 +175,12 @@ doubleTriangle()
   // Ensure that v3 will be the first added.
   vertices_ = v3;
 
+#if 0
   if (debug_) {
     std::cerr << "doubleTriangle: finished. Head repositioned at v3." << std::endl;
     printOut(vertices_);
   }
+#endif
 
   return true;
 }
@@ -203,13 +205,17 @@ constructHull()
 
       cleanUp(&v1); /* Pass down v1 in case it gets deleted. */
 
+#if 0
       if (check_) {
         std::cerr << "constructHull: After add of " << v0->num() << " & cleanup" << std::endl;
         checks();
       }
+#endif
 
+#if 0
       if (debug_)
         printOut(v0);
+#endif
     }
 
     v0 = v1;
@@ -243,12 +249,15 @@ edgeOrderOnFaces()
               ((f->edge(j)->end  () == f->vertex(i )) &&
                (f->edge(j)->start() == f->vertex(i1)))) {
             /* Swap it with the one erroneously put into its place: */
-            if (debug_)
+#if 0
+            if (debug_) {
               std::cerr << "Making a swap in edgeOrderOnFaces: f(" <<
                            f->vertex(0)->num() << "," <<
                            f->vertex(1)->num() << "," <<
                            f->vertex(2)->num() << "): e[" <<
                            i << "] and e[" << j << "]" << std::endl;
+            }
+#endif
 
             PEdge newEdge = f->edge(i);
 
@@ -274,10 +283,12 @@ bool
 CQChartsHull3D::
 addOne(PVertex p)
 {
+#if 0
   if (debug_) {
     std::cerr << "addOne: starting to add v" << p->num() << std::endl;
     printOut(vertices_);
   }
+#endif
 
   // set processed
   p->setProcessed(true);
@@ -290,9 +301,12 @@ addOne(PVertex p)
   do {
     int vol = volumeSign(f, p);
 
-    if (debug_)
+#if 0
+    if (debug_) {
       std::cerr << "faddr: " << (void *) f << " paddr: " <<
                    (void *) p << " vol = " << vol << std::endl;
+    }
+#endif
 
     if (vol < 0) {
       f->setVisible(true);
@@ -439,6 +453,7 @@ makeCcw(PFace f, PEdge e, PVertex p)
   f->setVertex(2, p);
 }
 
+#if 0
 /*---------------------------------------------------------------------
 dumpPS: prints out the vertices and the faces. Uses the indices
 corresponding to the order in which the vertices were input.
@@ -450,7 +465,7 @@ dumpPS(const char *filename)
 {
   FILE *fp = fopen(filename, "w");
 
-  if (fp == 0) {
+  if (! fp) {
     std::cerr << "Invalid filename " << filename << std::endl;
     return;
   }
@@ -569,6 +584,7 @@ dumpPS(const char *filename)
 
   checkEuler(numV, numE, numF);
 }
+#endif
 
 void
 CQChartsHull3D::
@@ -882,8 +898,8 @@ crossProduct(double x1, double y1, double z1, double x2, double y2, double z2,
 }
 
 /*---------------------------------------------------------------------
-collinear checks to see if the three points given are collinear,
-by checking to see if each element of the cross product is zero.
+  collinear checks to see if the three points given are collinear,
+  by checking to see if each element of the cross product is zero.
 ---------------------------------------------------------------------*/
 bool
 CQChartsHull3D::
@@ -908,6 +924,7 @@ collinear(PVertex a, PVertex b, PVertex c)
 #endif
 }
 
+#if 0
 /*-------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -960,7 +977,9 @@ checks()
 
   checkEndpts();
 }
+#endif
 
+#if 0
 /*---------------------------------------------------------------------
 consistency runs through the edge list and checks that all
 adjacent faces have their endpoints in opposite order.  This verifies
@@ -1009,11 +1028,13 @@ consistency()
   else
     fprintf(stderr, "checks: edges consistent.\n");
 }
+#endif
 
+#if 0
 /*---------------------------------------------------------------------
-convexity checks that the volume between every face and every
-point is negative.  This shows that each point is inside every face
-and therefore the hull is convex.
+  convexity checks that the volume between every face and every
+  point is negative.  This shows that each point is inside every face
+  and therefore the hull is convex.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -1045,11 +1066,13 @@ convexity()
   else if (check_)
     fprintf(stderr, "checks: convex.\n");
 }
+#endif
 
+#if 0
 /*---------------------------------------------------------------------
-checkEuler checks Euler's relation, as well as its implications when
-all faces are known to be triangles.  Only prints positive information
-when debug is true, but always prints negative information.
+  checkEuler checks Euler's relation, as well as its implications when
+  all faces are known to be triangles.  Only prints positive information
+  when debug is true, but always prints negative information.
 ---------------------------------------------------------------------*/
 void
 CQChartsHull3D::
@@ -1073,14 +1096,16 @@ checkEuler(uint numV, uint numE, uint numF)
   else if (check_)
     fprintf(stderr, "2E = 3F\n");
 }
+#endif
 
 /*===================================================================
-These functions are used whenever the debug flag is set.
-They print out the entire contents of each data structure.
-printing is to standard error.
+  These functions are used whenever the debug flag is set.
+  They print out the entire contents of each data structure.
+  printing is to standard error.
 =====================================================================*/
 
 /*-------------------------------------------------------------------*/
+#if 0
 void
 CQChartsHull3D::
 printOut(PVertex v)
@@ -1091,8 +1116,10 @@ printOut(PVertex v)
   printEdges();
   printFaces();
 }
+#endif
 
 /*-------------------------------------------------------------------*/
+#if 0
 void
 CQChartsHull3D::
 printVertices()
@@ -1114,8 +1141,10 @@ printVertices()
     } while (vertices_ != temp);
   }
 }
+#endif
 
 /*-------------------------------------------------------------------*/
+#if 0
 void
 CQChartsHull3D::
 printEdges()
@@ -1145,8 +1174,10 @@ printEdges()
     } while (edges_ != temp);
   }
 }
+#endif
 
 /*-------------------------------------------------------------------*/
+#if 0
 void
 CQChartsHull3D::
 printFaces()
@@ -1176,7 +1207,9 @@ printFaces()
     } while (faces_ != temp);
   }
 }
+#endif
 
+#if 0
 /*-------------------------------------------------------------------
 Checks that, for each face, for each i={0,1,2}, the [i]th vertex of
 that face is either the [0]th or [1]st endpoint of the [ith] edge of
@@ -1216,3 +1249,4 @@ checkEndpts()
       fprintf(stderr,"Checks: All endpts of all edges of all faces check.\n");
   }
 }
+#endif

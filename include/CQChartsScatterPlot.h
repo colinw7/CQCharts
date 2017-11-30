@@ -12,12 +12,13 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using OptReal = boost::optional<double>;
+  using OptReal  = boost::optional<double>;
+  using OptColor = boost::optional<CQChartsPaletteColor>;
 
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect,
                           const QPointF &p, double symbolSize, const OptReal &fontSize,
-                          const OptReal &color, int is, int ns, int iv, int nv);
+                          const OptColor &color, int is, int ns, int iv, int nv);
 
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
@@ -40,7 +41,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   QPointF              p_;
   double               symbolSize_;
   OptReal              fontSize_;
-  OptReal              color_;
+  OptColor             color_;
   int                  is_         { -1 };
   int                  ns_         { -1 };
   int                  iv_         { -1 };
@@ -121,6 +122,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   using Values     = std::vector<Point>;
   using NameValues = std::map<QString,Values>;
+  using OptColor   = boost::optional<CQChartsPaletteColor>;
 
  public:
   CQChartsScatterPlot(CQChartsView *view, const ModelP &model);
@@ -208,6 +210,12 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
+
+  void initSymbolSizeSet();
+  void initFontSizeSet();
+  void initColorSet();
+
+  bool colorSetColor(int i, OptColor &color);
 
   void initObjs() override;
 

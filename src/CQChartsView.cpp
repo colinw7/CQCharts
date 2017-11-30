@@ -55,6 +55,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "selectedMode"  );
   addProperty("", this, "insideMode"    );
   addProperty("", this, "zoomData"      );
+  addProperty("", this, "antiAlias"     );
 
   addProperty("scroll", this, "scrolled"      , "enabled" );
   addProperty("scroll", this, "scrollDelta"   , "delta"   );
@@ -588,7 +589,8 @@ paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
 
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+  if (isAntiAlias())
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
   //---
 
@@ -609,12 +611,19 @@ CQChartsView::
 showMenu(const QPoint &p)
 {
   if (! popupMenu_) {
+    CQChartsPlot *currentPlot = this->currentPlot();
+
+    //---
+
     popupMenu_ = new QMenu(this);
 
     QAction *keyAction = new QAction("Key", popupMenu_);
     QAction *fitAction = new QAction("Fit", popupMenu_);
 
     keyAction->setCheckable(true);
+
+    if (currentPlot && currentPlot->key())
+      keyAction->setChecked(currentPlot->key()->isVisible());
 
     connect(keyAction, SIGNAL(triggered(bool)), this, SLOT(keySlot(bool)));
     connect(fitAction, SIGNAL(triggered()), this, SLOT(fitSlot()));
@@ -624,20 +633,34 @@ showMenu(const QPoint &p)
 
     QMenu *themeMenu = new QMenu("Theme");
 
+    QActionGroup *themeGroup = new QActionGroup(themeMenu);
+
     QAction *lightTheme1Action = new QAction("Light 1", themeMenu);
     QAction *lightTheme2Action = new QAction("Light 2", themeMenu);
     QAction *darkTheme1Action  = new QAction("Dark 1" , themeMenu);
     QAction *darkTheme2Action  = new QAction("Dark 2" , themeMenu);
+
+    lightTheme1Action->setCheckable(true);
+    lightTheme2Action->setCheckable(true);
+    darkTheme1Action ->setCheckable(true);
+    darkTheme2Action ->setCheckable(true);
+
+    lightTheme1Action->setChecked(themeType_ == ThemeType::LIGHT1);
+    lightTheme2Action->setChecked(themeType_ == ThemeType::LIGHT2);
+    darkTheme1Action ->setChecked(themeType_ == ThemeType::DARK1 );
+    darkTheme2Action ->setChecked(themeType_ == ThemeType::DARK2 );
+
+    themeGroup->addAction(lightTheme1Action);
+    themeGroup->addAction(lightTheme2Action);
+    themeGroup->addAction(darkTheme1Action);
+    themeGroup->addAction(darkTheme2Action);
 
     connect(lightTheme1Action, SIGNAL(triggered()), this, SLOT(lightTheme1Slot()));
     connect(lightTheme2Action, SIGNAL(triggered()), this, SLOT(lightTheme2Slot()));
     connect(darkTheme1Action , SIGNAL(triggered()), this, SLOT(darkTheme1Slot()));
     connect(darkTheme2Action , SIGNAL(triggered()), this, SLOT(darkTheme2Slot()));
 
-    themeMenu->addAction(lightTheme1Action);
-    themeMenu->addAction(lightTheme2Action);
-    themeMenu->addAction(darkTheme1Action);
-    themeMenu->addAction(darkTheme2Action);
+    themeMenu->addActions(themeGroup->actions());
 
     popupMenu_->addMenu(themeMenu);
   }
@@ -670,6 +693,8 @@ void
 CQChartsView::
 lightTheme1Slot()
 {
+  themeType_ = ThemeType::LIGHT1;
+
   setPaletteColors1();
 
   setLightThemeColors();
@@ -679,6 +704,8 @@ void
 CQChartsView::
 lightTheme2Slot()
 {
+  themeType_ = ThemeType::LIGHT2;
+
   setPaletteColors2();
 
   setLightThemeColors();
@@ -688,6 +715,8 @@ void
 CQChartsView::
 darkTheme1Slot()
 {
+  themeType_ = ThemeType::DARK1;
+
   setPaletteColors1();
 
   setDarkThemeColors();
@@ -697,6 +726,8 @@ void
 CQChartsView::
 darkTheme2Slot()
 {
+  themeType_ = ThemeType::DARK2;
+
   setPaletteColors2();
 
   setDarkThemeColors();
@@ -766,8 +797,8 @@ setDarkThemeColors()
 
   theme_->resetDefinedColors();
 
-  theme_->addDefinedColor(0.0, QColor("#000000"));
-  theme_->addDefinedColor(1.0, QColor("#ffffff"));
+  theme_->addDefinedColor(0.0, QColor("#222222"));
+  theme_->addDefinedColor(1.0, QColor("#dddddd"));
 }
 
 //------

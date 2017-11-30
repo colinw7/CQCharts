@@ -145,6 +145,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
     BDIAG
   };
 
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsBarChartPlot();
@@ -243,6 +245,10 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
+  void initColorSet();
+
+  bool colorSetColor(int i, OptColor &color);
+
   bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
   void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
 
@@ -261,6 +267,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
+
+  void updateObjs() override;
 
   void initObjs() override;
 
@@ -354,7 +362,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool                 keySets_        { false };   // use set in key
   CQChartsBoxObj*      borderObj_      { nullptr }; // border data
   CQChartsFillObj*     fillObj_        { nullptr }; // fill data
-  CQChartsPaletteColor barColor_;                   // bar color
   CQChartsValueSet     colorSet_;                   // color column value set
   CQChartsDataLabel    dataLabel_;                  // data label data
   ValueSets            valueSets_;                  // value sets
