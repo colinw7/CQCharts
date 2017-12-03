@@ -26,7 +26,6 @@
 
 #ifdef CQ_APP_H
 #include <CQApp.h>
-#include <CQStyle.h>
 #else
 #include <QApplication>
 #endif
@@ -285,7 +284,7 @@ main(int argc, char **argv)
 
       if      (arg == "dark") {
 #ifdef CQ_APP_H
-        app.style()->setTheme(CQStyle::Theme::DARK);
+        app.setDarkTheme(true);
 #endif
       }
 
@@ -1024,14 +1023,12 @@ initPlot(const InitData &initData)
 
       CQChartsPlot *prevPlot = view->plot(i - 1);
 
-      plot    ->setPrevPlot(prevPlot);
-      prevPlot->setNextPlot(plot);
+      CQChartsView::Plots plots;
 
-      CQChartsPlot *rootPlot = prevPlot->firstPlot();
+      plots.push_back(prevPlot);
+      plots.push_back(plot);
 
-      plot->setDataRange(rootPlot->dataRange());
-
-      view->initOverlay(rootPlot);
+      view->initOverlay(plots);
     }
   }
   else if (initData.y1y2) {

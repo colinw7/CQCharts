@@ -36,6 +36,8 @@ class CQPropertyViewTree : public QTreeView {
 
   void selectObject(const QObject *obj);
 
+  bool setCurrentProperty(QObject *object, const QString &path);
+
   void getSelectedObjects(std::vector<QObject *> &objs);
 
   bool isItemMenu() const { return itemMenu_; }

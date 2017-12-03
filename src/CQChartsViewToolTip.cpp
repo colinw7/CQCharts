@@ -79,9 +79,19 @@ updateWidget(const QPoint &gpos)
   if (! tip.length())
     return false;
 
-  widget_->setText(tip);
+  widget_->setText("<font></font>" + tip);
 
   return true;
+}
+
+bool
+CQChartsViewToolTip::
+isHideKey(int key, Qt::KeyboardModifiers mod)
+{
+  if (key == Qt::Key_Tab)
+    return false;
+
+  return CQToolTipIFace::isHideKey(key, mod);
 }
 
 QSize

@@ -42,31 +42,12 @@
 #include <QAbstractTextDocumentLayout>
 #include <QPainter>
 
-#define DCL_META_STREAM(TYPE, GETTER, SETTER) \
-QDataStream &operator<<(QDataStream &out, const TYPE &t) { \
-  QString str = t.GETTER().c_str(); \
-\
-  out << str; \
-\
-  return out; \
-} \
-\
-QDataStream &operator>>(QDataStream &in, TYPE &t) {\
-  QString str; \
-\
-  in >> str; \
-\
-  t.fromString(str.toStdString()); \
-\
-  return in; \
-}
-
 #ifdef CQUTIL_LINE_DASH
-DCL_META_STREAM(CLineDash, toString, fromString)
+CQUTIL_DCL_META_STREAM(CLineDash, toString, fromString)
 #endif
 
 #ifdef CQUTIL_ANGLE
-DCL_META_STREAM(CAngle, toString, fromString)
+CQUTIL_DCL_META_STREAM(CAngle, toString, fromString)
 #endif
 
 //------

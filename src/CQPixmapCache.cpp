@@ -1,6 +1,75 @@
 #include <CQPixmapCache.h>
+#include <QIconEngine>
+#include <QPainter>
 #include <cassert>
 #include <iostream>
+
+class CQPixmapIcon : public QIconEngine {
+ public:
+  CQPixmapIcon(const QString &lightId, const QString &darkId) :
+   lightId_(lightId), darkId_(darkId), dark_(CQPixmapCacheInst->isDark()) {
+    updateIcon();
+  }
+
+  void updateIcon() {
+    if (dark_ && darkId_.length())
+      icon_ = CQPixmapCacheInst->getPixmapIcon(darkId_);
+    else
+      icon_ = CQPixmapCacheInst->getPixmapIcon(lightId_);
+  }
+
+  QSize actualSize(const QSize &size, QIcon::Mode, QIcon::State) {
+    return size;
+  }
+
+  QString iconName() const {
+    if (dark_ && darkId_.length())
+      return darkId_;
+
+    return lightId_;
+  }
+
+  void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state) {
+    painter->drawPixmap(0, 0, pixmap(rect.size(), mode, state));
+  }
+
+  QPixmap pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state) {
+    bool dark = CQPixmapCacheInst->isDark();
+
+    if (dark_ != dark) {
+      dark_ = dark;
+
+      if (darkId_.length())
+        updateIcon();
+    }
+
+    if (size != state_.size || mode != state_.mode || state != state_.state) {
+      pixmap_ = icon_.pixmap(size, mode, state);
+    }
+
+    return pixmap_;
+  }
+
+  QIconEngine *clone() const {
+    return new CQPixmapIcon(lightId_, darkId_);
+  }
+
+ private:
+  struct State {
+    QSize        size;
+    QIcon::Mode  mode;
+    QIcon::State state;
+  };
+
+  QString lightId_;
+  QString darkId_;
+  QIcon   icon_;
+  QPixmap pixmap_;
+  State   state_;
+  bool    dark_ { false };
+};
+
+//------
 
 static CQPixmapCache *s_inst;
 
@@ -25,6 +94,11 @@ release()
 
 CQPixmapCache::
 CQPixmapCache()
+{
+}
+
+CQPixmapCache::
+~CQPixmapCache()
 {
 }
 
@@ -73,7 +147,14 @@ getSizedPixmap(const QString &id, const QSize &s)
 
 QIcon
 CQPixmapCache::
-getIcon(const QString &id)
+getIcon(const QString &lightId, const QString &darkId)
+{
+  return QIcon(new CQPixmapIcon(lightId, darkId));
+}
+
+QIcon
+CQPixmapCache::
+getPixmapIcon(const QString &id)
 {
   return QIcon(getPixmap(id));
 }

@@ -1,6 +1,8 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsWindow.h>
+#include <QHBoxLayout>
 #include <QPainter>
+#include <QLabel>
 
 CQChartsViewStatus::
 CQChartsViewStatus(CQChartsWindow *window) :
@@ -9,28 +11,53 @@ CQChartsViewStatus(CQChartsWindow *window) :
   setObjectName("status");
 
   setAutoFillBackground(true);
+
+  QHBoxLayout *layout = new QHBoxLayout(this);
+  layout->setMargin(0); layout->setSpacing(2);
+
+  statusLabel_ = new QLabel;
+
+  statusLabel_->setObjectName("status");
+
+  posLabel_ = new QLabel;
+
+  posLabel_->setObjectName("pos");
+
+  layout->addWidget (statusLabel_);
+  layout->addStretch(1);
+  layout->addWidget (posLabel_);
+}
+
+QString
+CQChartsViewStatus::
+statusText() const
+{
+  return statusLabel_->text();
 }
 
 void
 CQChartsViewStatus::
-setText(const QString &s)
+setStatusText(const QString &s)
 {
-  text_ = s;
+  statusLabel_->setText(s);
 
   update();
 }
 
+QString
+CQChartsViewStatus::
+posText() const
+{
+  return posLabel_->text();
+}
+
 void
 CQChartsViewStatus::
-paintEvent(QPaintEvent *)
+setPosText(const QString &s)
 {
-  QPainter p(this);
+  posLabel_->setText(s);
 
-  p.fillRect(rect(), palette().color(QPalette::Window));
-
-  QFontMetricsF fm(font());
-
-  p.drawText(2, 2 + fm.ascent(), text());
+  update();
 }
 
 QSize

@@ -217,12 +217,12 @@ bool
 CQPropertyViewModel::
 setProperty(QObject *object, const QString &path, const QVariant &value)
 {
-  CQPropertyViewItem *item = objectItem(object);
+  CQPropertyViewItem *item = propertyItem(object, path, '.', /*create*/false, /*alias*/true);
 
   if (! item)
     return false;
 
-  bool rc = setProperty(item, path, value);
+  bool rc = item->setData(value);
 
   if (rc) {
     QModelIndex ind = indexFromItem(item, 1);
@@ -235,42 +235,14 @@ setProperty(QObject *object, const QString &path, const QVariant &value)
 
 bool
 CQPropertyViewModel::
-setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value)
-{
-  QStringList strs = path.split(".");
-
-  CQPropertyViewItem *item1 = hierItem(item, strs, /*create*/false, /*alias*/true);
-
-  if (! item1)
-    return false;
-
-  return item1->setData(value);
-}
-
-bool
-CQPropertyViewModel::
 getProperty(QObject *object, const QString &path, QVariant &value)
 {
-  CQPropertyViewItem *item = objectItem(object);
+  CQPropertyViewItem *item = propertyItem(object, path, '.', /*create*/false, /*alias*/true);
 
   if (! item)
     return false;
 
-  return getProperty(item, path, value);
-}
-
-bool
-CQPropertyViewModel::
-getProperty(CQPropertyViewItem *item, const QString &path, QVariant &value)
-{
-  QStringList strs = path.split(".");
-
-  CQPropertyViewItem *item1 = hierItem(item, strs, /*create*/false, /*alias*/true);
-
-  if (! item1)
-    return false;
-
-  value = item1->data();
+  value = item->data();
 
   return true;
 }
@@ -303,6 +275,27 @@ item(const QModelIndex &index, bool &ok) const
     ok = item->isValid();
 
   return item;
+}
+
+CQPropertyViewItem *
+CQPropertyViewModel::
+propertyItem(QObject *object, const QString &path)
+{
+  return propertyItem(object, path, '.', /*create*/false, /*alias*/true);
+}
+
+CQPropertyViewItem *
+CQPropertyViewModel::
+propertyItem(QObject *object, const QString &path, QChar splitChar, bool create, bool alias)
+{
+  CQPropertyViewItem *item = objectItem(object);
+
+  if (! item)
+    return nullptr;
+
+  QStringList strs = path.split(splitChar);
+
+  return hierItem(item, strs, create, alias);
 }
 
 CQPropertyViewItem *

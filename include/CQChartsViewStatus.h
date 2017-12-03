@@ -4,25 +4,29 @@
 #include <QFrame>
 
 class CQChartsWindow;
+class QLabel;
 
 class CQChartsViewStatus : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QString text READ text WRITE setText)
+  Q_PROPERTY(QString statusText READ statusText WRITE setStatusText)
+  Q_PROPERTY(QString posText    READ posText    WRITE setPosText   )
 
  public:
   CQChartsViewStatus(CQChartsWindow *window);
 
-  const QString &text() const { return text_; }
-  void setText(const QString &s);
+  QString statusText() const;
+  void setStatusText(const QString &s);
 
-  void paintEvent(QPaintEvent *) override;
+  QString posText() const;
+  void setPosText(const QString &s);
 
   QSize sizeHint() const override;
 
  private:
-  CQChartsWindow *window_ { nullptr };
-  QString         text_;
+  CQChartsWindow* window_      { nullptr };
+  QLabel*         statusLabel_ { nullptr };
+  QLabel*         posLabel_    { nullptr };
 };
 
 #endif

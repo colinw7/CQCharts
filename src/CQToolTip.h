@@ -34,6 +34,8 @@ class CQToolTipIFace {
 
   virtual bool outside() const { return false; }
 
+  virtual bool isHideKey(int, Qt::KeyboardModifiers) { return true; }
+
   virtual QSize sizeHint() const { return QSize(); }
 };
 

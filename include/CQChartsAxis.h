@@ -2,7 +2,7 @@
 #define CQChartsAxis_H
 
 #include <QFont>
-#include <CLineDash.h>
+#include <CQChartsLineDash.h>
 #include <CQChartsGeom.h>
 
 #include <sys/types.h>
@@ -31,8 +31,8 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(Direction direction        READ direction          WRITE setDirection       )
   Q_PROPERTY(Side      side             READ side               WRITE setSide            )
   Q_PROPERTY(bool      hasPosition      READ hasPosition        WRITE setHasPosition     )
-  Q_PROPERTY(bool      requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
   Q_PROPERTY(double    position         READ position           WRITE setPosition        )
+  Q_PROPERTY(bool      requireTickLabel READ isRequireTickLabel WRITE setRequireTickLabel)
   Q_PROPERTY(bool      integral         READ isIntegral         WRITE setIntegral        )
   Q_PROPERTY(bool      log              READ isLog              WRITE setLog             )
   Q_PROPERTY(QString   format           READ format             WRITE setFormat          )
@@ -42,10 +42,10 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(double    end              READ end                WRITE setEnd             )
 
   // line
-  Q_PROPERTY(bool      lineDisplayed READ isLineDisplayed WRITE setLineDisplayed)
-  Q_PROPERTY(QString   lineColor     READ lineColorStr    WRITE setLineColorStr )
-  Q_PROPERTY(double    lineWidth     READ lineWidth       WRITE setLineWidth    )
-  Q_PROPERTY(CLineDash lineDash      READ lineDash        WRITE setLineDash     )
+  Q_PROPERTY(bool             lineDisplayed READ isLineDisplayed WRITE setLineDisplayed)
+  Q_PROPERTY(QString          lineColor     READ lineColorStr    WRITE setLineColorStr )
+  Q_PROPERTY(double           lineWidth     READ lineWidth       WRITE setLineWidth    )
+  Q_PROPERTY(CQChartsLineDash lineDash      READ lineDash        WRITE setLineDash     )
 
   // ticks
   Q_PROPERTY(bool minorTicksDisplayed READ isMinorTicksDisplayed WRITE setMinorTicksDisplayed)
@@ -69,14 +69,20 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(QString labelColor     READ labelColorStr    WRITE setLabelColorStr )
 
   // grid line/fill
-  Q_PROPERTY(bool      gridDisplayed READ isGridDisplayed  WRITE setGridDisplayed   )
-  Q_PROPERTY(QString   gridColor     READ gridColorStr     WRITE setGridColorStr    )
-  Q_PROPERTY(double    gridWidth     READ gridWidth        WRITE setGridWidth       )
-  Q_PROPERTY(CLineDash gridDash      READ gridDash         WRITE setGridDash        )
-  Q_PROPERTY(bool      gridAbove     READ isGridAbove      WRITE setGridAbove       )
-  Q_PROPERTY(bool      gridFill      READ isGridFill       WRITE setGridFill        )
-  Q_PROPERTY(QString   gridFillColor READ gridFillColorStr WRITE setGridFillColorStr)
-  Q_PROPERTY(double    gridFillAlpha READ gridFillAlpha    WRITE setGridFillAlpha   )
+  Q_PROPERTY(bool             gridMajorDisplayed READ isGridMajorDisplayed
+                                                 WRITE setGridMajorDisplayed)
+  Q_PROPERTY(QString          gridMajorColor     READ gridMajorColorStr WRITE setGridMajorColorStr)
+  Q_PROPERTY(double           gridMajorWidth     READ gridMajorWidth    WRITE setGridMajorWidth   )
+  Q_PROPERTY(CQChartsLineDash gridMajorDash      READ gridMajorDash     WRITE setGridMajorDash    )
+  Q_PROPERTY(bool             gridMinorDisplayed READ isGridMinorDisplayed
+                                                 WRITE setGridMinorDisplayed)
+  Q_PROPERTY(QString          gridMinorColor     READ gridMinorColorStr WRITE setGridMinorColorStr)
+  Q_PROPERTY(double           gridMinorWidth     READ gridMinorWidth    WRITE setGridMinorWidth   )
+  Q_PROPERTY(CQChartsLineDash gridMinorDash      READ gridMinorDash     WRITE setGridMinorDash    )
+  Q_PROPERTY(bool             gridAbove          READ isGridAbove       WRITE setGridAbove        )
+  Q_PROPERTY(bool             gridFill           READ isGridFill        WRITE setGridFill         )
+  Q_PROPERTY(QString          gridFillColor      READ gridFillColorStr  WRITE setGridFillColorStr )
+  Q_PROPERTY(double           gridFillAlpha      READ gridFillAlpha     WRITE setGridFillAlpha    )
 
   Q_ENUMS(Direction)
   Q_ENUMS(Side)
@@ -98,7 +104,7 @@ class CQChartsAxis : public QObject {
   CQChartsAxis(CQChartsPlot *plot, Direction direction=Direction::HORIZONTAL,
                double start=0.0, double end=1.0);
 
- ~CQChartsAxis();
+  virtual ~CQChartsAxis();
 
   CQChartsPlot *plot() const { return plot_; }
 
@@ -160,8 +166,8 @@ class CQChartsAxis : public QObject {
   double lineWidth() const;
   void setLineWidth(double r);
 
-  const CLineDash &lineDash() const;
-  void setLineDash(const CLineDash &dash);
+  const CQChartsLineDash &lineDash() const;
+  void setLineDash(const CQChartsLineDash &dash);
 
   QString lineColorStr() const;
   void setLineColorStr(const QString &str);
@@ -171,14 +177,33 @@ class CQChartsAxis : public QObject {
   //---
 
   // grid
-  bool isGridDisplayed() const;
-  void setGridDisplayed(bool b);
+  bool isGridMajorDisplayed() const;
+  void setGridMajorDisplayed(bool b);
 
-  double gridWidth() const;
-  void setGridWidth(double r);
+  QString gridMajorColorStr() const;
+  void setGridMajorColorStr(const QString &str);
 
-  const CLineDash &gridDash() const;
-  void setGridDash(const CLineDash &dash);
+  QColor interpGridMajorColor(int i, int n) const;
+
+  double gridMajorWidth() const;
+  void setGridMajorWidth(double r);
+
+  const CQChartsLineDash &gridMajorDash() const;
+  void setGridMajorDash(const CQChartsLineDash &dash);
+
+  bool isGridMinorDisplayed() const;
+  void setGridMinorDisplayed(bool b);
+
+  QString gridMinorColorStr() const;
+  void setGridMinorColorStr(const QString &str);
+
+  QColor interpGridMinorColor(int i, int n) const;
+
+  double gridMinorWidth() const;
+  void setGridMinorWidth(double r);
+
+  const CQChartsLineDash &gridMinorDash() const;
+  void setGridMinorDash(const CQChartsLineDash &dash);
 
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b) { gridAbove_ = b; redraw(); }
@@ -189,13 +214,9 @@ class CQChartsAxis : public QObject {
   double gridFillAlpha() const;
   void setGridFillAlpha(double a);
 
-  QString gridColorStr() const;
-  void setGridColorStr(const QString &str);
-
   QString gridFillColorStr() const;
   void setGridFillColorStr(const QString &str);
 
-  QColor interpGridColor(int i, int n) const;
   QColor interpGridFillColor(int i, int n) const;
 
   //---
@@ -305,9 +326,17 @@ class CQChartsAxis : public QObject {
 
   void updatePlotPosition();
 
+  bool contains(const CQChartsGeom::Point &p) const;
+
   //---
 
   void redraw();
+
+  //---
+
+  virtual bool mouseDragPress  (const CQChartsGeom::Point &);
+  virtual bool mouseDragMove   (const CQChartsGeom::Point &);
+  virtual void mouseDragRelease(const CQChartsGeom::Point &);
 
   //---
 
@@ -315,7 +344,12 @@ class CQChartsAxis : public QObject {
 
   void draw(CQChartsPlot *plot, QPainter *p);
 
+  void calcPos(double &apos1, double &apos2) const;
+
   void drawLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
+
+  void drawMajorGridLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
+  void drawMinorGridLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
 
   void drawTickLine(CQChartsPlot *plot, QPainter *p, double apos, double tpos,
                     bool inside, bool major);
@@ -363,7 +397,8 @@ class CQChartsAxis : public QObject {
 
   // grid (lines and gap fill)
   bool                       gridAbove_           { false };
-  CQChartsLineObj*           gridLineObj_         { nullptr };
+  CQChartsLineObj*           majorGridLineObj_    { nullptr };
+  CQChartsLineObj*           minorGridLineObj_    { nullptr };
   CQChartsFillObj*           gridFill_            { nullptr };
 
   // ticks
@@ -394,6 +429,7 @@ class CQChartsAxis : public QObject {
   OptReal                    pos_;
   mutable CQChartsGeom::BBox bbox_;
 
+  CQChartsGeom::Point        dragPos_;
   mutable double             lmin_ { INT_MAX };
   mutable double             lmax_ { INT_MIN };
   mutable CQChartsGeom::BBox lastTickLabelRect_;

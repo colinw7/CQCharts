@@ -11,8 +11,10 @@
 #include <QSplitter>
 #include <QVBoxLayout>
 
-#include <svg/filter_svg.h>
-#include <svg/search_svg.h>
+#include <svg/filter_light_svg.h>
+#include <svg/filter_dark_svg.h>
+#include <svg/search_light_svg.h>
+#include <svg/search_dark_svg.h>
 
 CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :
@@ -59,8 +61,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   filterCombo_->setObjectName("filterCombo");
 
-  filterCombo_->addItem(CQPixmapCacheInst->getIcon("FILTER"), "Filter");
-  filterCombo_->addItem(CQPixmapCacheInst->getIcon("SEARCH"), "Search");
+  filterCombo_->addItem(CQPixmapCacheInst->getIcon("FILTER_LIGHT", "FILTER_DARK"), "Filter");
+  filterCombo_->addItem(CQPixmapCacheInst->getIcon("SEARCH_LIGHT", "SEARCH_DARK"), "Search");
 
   filterLayout->addWidget(filterCombo_);
 

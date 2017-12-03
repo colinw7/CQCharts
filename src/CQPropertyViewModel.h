@@ -15,6 +15,8 @@ class CQPropertyViewModel : public QAbstractItemModel {
 
   CQPropertyViewItem *root() const;
 
+  //---
+
   int columnCount(const QModelIndex &) const override;
 
   int rowCount(const QModelIndex &parent) const override;
@@ -31,6 +33,8 @@ class CQPropertyViewModel : public QAbstractItemModel {
 
   Qt::ItemFlags flags(const QModelIndex &index) const override;
 
+  //---
+
   void clear();
 
   CQPropertyViewItem *addProperty(const QString &path, QObject *object, const QString &name,
@@ -39,8 +43,7 @@ class CQPropertyViewModel : public QAbstractItemModel {
   bool setProperty(QObject *object, const QString &path, const QVariant &value);
   bool getProperty(QObject *object, const QString &path, QVariant &value);
 
-  bool setProperty(CQPropertyViewItem *item, const QString &path, const QVariant &value);
-  bool getProperty(CQPropertyViewItem *item, const QString &path, QVariant &value);
+  CQPropertyViewItem *propertyItem(QObject *object, const QString &path);
 
   CQPropertyViewItem *item(const QModelIndex &index, bool &ok) const;
   CQPropertyViewItem *item(const QModelIndex &index) const;
@@ -50,6 +53,9 @@ class CQPropertyViewModel : public QAbstractItemModel {
   void refresh();
 
  private:
+  CQPropertyViewItem *propertyItem(QObject *object, const QString &path,
+                                   QChar splitChar, bool create, bool alias);
+
   CQPropertyViewItem *hierItem(const QStringList &pathPaths, bool create=false, bool alias=false);
 
   CQPropertyViewItem *hierItem(CQPropertyViewItem *parentRow, const QStringList &pathPaths,

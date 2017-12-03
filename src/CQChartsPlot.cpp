@@ -152,18 +152,14 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
   //int column2 = br.column();
 
   // TODO: check if model uses changed columns
-  updateRange();
-
-  updateObjs();
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelLayoutChangedSlot()
 {
-  updateRange();
-
-  updateObjs();
+  updateRangeAndObjs();
 }
 
 //---
@@ -606,8 +602,7 @@ setLogX(bool b)
   if (xAxis_)
     xAxis_->setLog(b);
 
-  updateRange();
-  updateObjs();
+  updateRangeAndObjs();
 }
 
 void
@@ -619,8 +614,7 @@ setLogY(bool b)
   if (yAxis_)
     yAxis_->setLog(b);
 
-  updateRange();
-  updateObjs();
+  updateRangeAndObjs();
 }
 
 //------
@@ -996,6 +990,101 @@ clearPlotObjects()
 
 bool
 CQChartsPlot::
+updatePlotObjects(const CQChartsGeom::Point &w)
+{
+  PlotObjs objs;
+
+  objsAtPoint(w, objs);
+
+  bool changed = false;
+
+  if (objs.size() == insidePlotObjs_.size()) {
+    for (const auto &obj : objs) {
+      if (insidePlotObjs_.find(obj) == insidePlotObjs_.end()) {
+        changed = true;
+        break;
+      }
+    }
+  }
+  else {
+    changed = true;
+  }
+
+  if (changed) {
+    insidePlotInd_ = 0;
+
+    insidePlotObjs_.clear();
+
+    for (const auto &obj : plotObjs_)
+      obj->setInside(false);
+
+    for (const auto &obj : objs)
+      insidePlotObjs_.insert(obj);
+
+    setInsidePlotObject();
+  }
+
+  return changed;
+}
+
+CQChartsPlotObj *
+CQChartsPlot::
+insidePlotObject() const
+{
+  int i = 0;
+
+  for (auto &obj : insidePlotObjs_) {
+    if (i == insidePlotInd_)
+      return obj;
+
+    ++i;
+  }
+
+  return nullptr;
+}
+
+void
+CQChartsPlot::
+nextInsidePlotInd()
+{
+  ++insidePlotInd_;
+
+  if (insidePlotInd_ >= int(insidePlotObjs_.size()))
+    insidePlotInd_ = 0;
+}
+
+void
+CQChartsPlot::
+setInsidePlotObject()
+{
+  CQChartsPlotObj *insideObj = insidePlotObject();
+
+  for (auto &obj : insidePlotObjs_)
+    obj->setInside(obj == insideObj);
+}
+
+QString
+CQChartsPlot::
+insidePlotObjectText() const
+{
+  QString objText;
+
+  for (auto obj : insidePlotObjs_) {
+    if (obj->isInside()) {
+      if (objText != "")
+        objText += " ";
+
+      objText += obj->id();
+    }
+  }
+
+  return objText;
+}
+
+//------
+
+bool
+CQChartsPlot::
 mousePress(const CQChartsGeom::Point &w)
 {
   if (keyObj_ && keyObj_->contains(w)) {
@@ -1033,16 +1122,29 @@ mousePress(const CQChartsGeom::Point &w)
   //---
 
   // get selected objects and toggle selected
-  PlotObjs objs;
+  CQChartsPlotObj *selectObj = nullptr;
 
-  objsAtPoint(w, objs);
+  if (isFollowMouse()) {
+    selectObj = insidePlotObject();
 
-  for (auto obj : objs) {
-    objsSelected[obj] = ! obj->isSelected();
+    nextInsidePlotInd();
 
-    obj->mousePress(w);
+    setInsidePlotObject();
+  }
+  else {
+    PlotObjs objs;
 
-    emit objPressed(obj);
+    objsAtPoint(w, objs);
+
+    selectObj = *objs.begin();
+  }
+
+  if (selectObj) {
+    objsSelected[selectObj] = ! selectObj->isSelected();
+
+    selectObj->mousePress(w);
+
+    emit objPressed(selectObj);
   }
 
   //---
@@ -1063,7 +1165,7 @@ mousePress(const CQChartsGeom::Point &w)
 
   //---
 
-  return ! objs.empty();
+  return selectObj;
 }
 
 bool
@@ -1071,97 +1173,33 @@ CQChartsPlot::
 mouseMove(const CQChartsGeom::Point &w, bool first)
 {
   if (keyObj_) {
-    if (keyObj_->contains(w)) {
-      CQChartsKeyItem *item = keyObj_->getItemAt(w);
+    bool handled = keyObj_->mouseMove(w);
 
-      bool handled = false;
-      bool changed = false;
-
-      if (item) {
-        changed = keyObj_->setInside(item);
-
-        handled = item->mouseMove(w);
-      }
-
-      if (! handled)
-        handled = keyObj_->mouseMove(w);
-
-      if (changed)
-        update();
-
-      if (handled)
-        return true;
-    }
-    else {
-      bool changed = keyObj_->setInside(nullptr);
-
-      if (changed)
-        update();
-    }
+    if (handled)
+      return true;
   }
-
-  //---
-
-  QString posText = xStr(w.x) + " " + yStr(w.y);
 
   //---
 
   QString objText;
 
-  PlotObjs objs;
-
   if (isFollowMouse()) {
-    objsAtPoint(w, objs);
+    bool changed = updatePlotObjects(w);
 
-    for (auto obj : objs) {
-      if (objText != "")
-        objText += " ";
+    objText = insidePlotObjectText();
 
-      objText += obj->id();
-    }
+    if (changed)
+      update();
   }
 
   //---
 
   if (first) {
-    if (objText != "")
-      view_->setStatusText(objText + " : " + posText);
-    else
-      view_->setStatusText(posText);
-  }
+    if (objText != "") {
+      view_->setStatusText(objText);
 
-  //---
-
-  if (isFollowMouse()) {
-    bool changed = false;
-
-    if (objs.size() == insidePlotObjs_.size()) {
-      for (const auto &obj : objs) {
-        if (insidePlotObjs_.find(obj) == insidePlotObjs_.end()) {
-          changed = true;
-          break;
-        }
-      }
+      return true;
     }
-    else {
-      changed = true;
-    }
-
-    if (changed) {
-      insidePlotObjs_.clear();
-
-      for (const auto &obj : plotObjs_)
-        obj->setInside(false);
-
-      for (const auto &obj : objs) {
-        obj->setInside(true);
-
-        insidePlotObjs_.insert(obj);
-      }
-    }
-
-    if (changed)
-      update();
   }
 
   //---
@@ -1175,6 +1213,67 @@ mouseRelease(const CQChartsGeom::Point &)
 {
 }
 
+//------
+
+bool
+CQChartsPlot::
+mouseDragPress(const CQChartsGeom::Point &w)
+{
+  mouseData_.dragObj = DragObj::NONE;
+
+  if (keyObj_ && keyObj_->contains(w)) {
+    if (keyObj_->mouseDragPress(w)) {
+      mouseData_.dragObj = DragObj::KEY;
+      return true;
+    }
+  }
+
+  if (xAxis_ && xAxis_->contains(w)) {
+    if (xAxis_->mouseDragPress(w)) {
+      mouseData_.dragObj = DragObj::XAXIS;
+      return true;
+    }
+  }
+
+  if (yAxis_ && yAxis_->contains(w)) {
+    if (yAxis_->mouseDragPress(w)) {
+      mouseData_.dragObj = DragObj::YAXIS;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+CQChartsPlot::
+mouseDragMove(const CQChartsGeom::Point &w, bool /*first*/)
+{
+  if      (mouseData_.dragObj == DragObj::KEY) {
+    (void) keyObj_->mouseDragMove(w);
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::XAXIS) {
+    (void) xAxis_->mouseDragMove(w);
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::YAXIS) {
+    (void) yAxis_->mouseDragMove(w);
+    return true;
+  }
+
+  return false;
+}
+
+void
+CQChartsPlot::
+mouseDragRelease(const CQChartsGeom::Point & /*w*/)
+{
+  mouseData_.dragObj = DragObj::NONE;
+}
+
+//------
+
 void
 CQChartsPlot::
 clickZoom(const CQChartsGeom::Point &w)
@@ -1186,6 +1285,8 @@ clickZoom(const CQChartsGeom::Point &w)
   for (auto obj : objs)
     obj->clickZoom(w);
 }
+
+//------
 
 void
 CQChartsPlot::
@@ -1205,6 +1306,15 @@ setYValueColumn(int column)
 
   if (yAxis_)
     yAxis_->setColumn(yValueColumn_);
+}
+
+//------
+
+QString
+CQChartsPlot::
+posStr(const CQChartsGeom::Point &w) const
+{
+  return xStr(w.x) + " " + yStr(w.y);
 }
 
 QString
@@ -1279,6 +1389,19 @@ keyPress(int key)
   }
   else if (key == Qt::Key_Home) {
     zoomFull();
+  }
+  else if (key == Qt::Key_Tab) {
+    if (! insidePlotObjs_.empty()) {
+      nextInsidePlotInd();
+
+      setInsidePlotObject();
+
+      QString objText = insidePlotObjectText();
+
+      view_->setStatusText(objText);
+
+      update();
+    }
   }
   else
     return;
@@ -1496,21 +1619,36 @@ bool
 CQChartsPlot::
 tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
-  PlotObjs objs;
+  int objNum  = 0;
+  int numObjs = 0;
 
-  objsAtPoint(p, objs);
+  CQChartsPlotObj *tipObj = nullptr;
 
-  if (objs.empty())
-    return false;
+  if (isFollowMouse()) {
+    objNum  = insidePlotInd_;
+    numObjs = insidePlotObjs_.size();
 
-  for (auto obj : objs) {
-    if (! obj->visible())
-      continue;
+    tipObj = insidePlotObject();
+  }
+  else {
+    PlotObjs objs;
 
+    objsAtPoint(p, objs);
+
+    numObjs = objs.size();
+
+    tipObj = *objs.begin();
+  }
+
+  if (tipObj) {
     if (tip != "")
       tip += " ";
 
-    tip += obj->id();
+    tip += tipObj->tipId();
+
+    if (numObjs > 1)
+      tip += QString("<br><font color=\"blue\">&nbsp;&nbsp;%1 of %2</font>").
+               arg(objNum + 1).arg(numObjs);
   }
 
   return tip.length();
@@ -1550,64 +1688,7 @@ updateKeyPosition(bool force)
   if (! bbox.isSet())
     return;
 
-  QSizeF ks = keyObj_->calcSize();
-
-  CQChartsKey::Location location = keyObj_->location();
-
-  double xm = pixelToWindowWidth (8);
-  double ym = pixelToWindowHeight(8);
-
-  double kx { 0.0 }, ky { 0.0 };
-
-  if      (location == CQChartsKey::Location::TOP_LEFT ||
-           location == CQChartsKey::Location::CENTER_LEFT ||
-           location == CQChartsKey::Location::BOTTOM_LEFT) {
-    if (keyObj_->isInsideX())
-      kx = bbox.getXMin() + xm;
-    else
-      kx = bbox.getXMin() - ks.width() - xm;
-  }
-  else if (location == CQChartsKey::Location::TOP_CENTER ||
-           location == CQChartsKey::Location::CENTER_CENTER ||
-           location == CQChartsKey::Location::BOTTOM_CENTER) {
-    kx = bbox.getXMid() - ks.width()/2;
-  }
-  else if (location == CQChartsKey::Location::TOP_RIGHT ||
-           location == CQChartsKey::Location::CENTER_RIGHT ||
-           location == CQChartsKey::Location::BOTTOM_RIGHT) {
-    if (keyObj_->isInsideX())
-      kx = bbox.getXMax() - ks.width() - xm;
-    else
-      kx = bbox.getXMax() + xm;
-  }
-
-  if      (location == CQChartsKey::Location::TOP_LEFT ||
-           location == CQChartsKey::Location::TOP_CENTER ||
-           location == CQChartsKey::Location::TOP_RIGHT) {
-    if (keyObj_->isInsideY())
-      ky = bbox.getYMax() - ym;
-    else
-      ky = bbox.getYMax() + ks.height() + ym;
-  }
-  else if (location == CQChartsKey::Location::CENTER_LEFT ||
-           location == CQChartsKey::Location::CENTER_CENTER ||
-           location == CQChartsKey::Location::CENTER_RIGHT) {
-    ky = bbox.getYMid() - ks.height()/2;
-  }
-  else if (location == CQChartsKey::Location::BOTTOM_LEFT ||
-           location == CQChartsKey::Location::BOTTOM_CENTER ||
-           location == CQChartsKey::Location::BOTTOM_RIGHT) {
-    if (keyObj_->isInsideY())
-      ky = bbox.getYMin() + ks.height() + ym;
-    else {
-      ky = bbox.getYMin() - ym;
-
-      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::BOTTOM_LEFT && xAxis_->bbox().isSet())
-        ky -= xAxis_->bbox().getHeight();
-    }
-  }
-
-  keyObj_->setPosition(QPointF(kx, ky));
+  keyObj_->updateLocation(bbox);
 }
 
 void
@@ -1622,45 +1703,7 @@ updateTitlePosition()
   if (! bbox.isSet())
     return;
 
-  QSizeF ts = titleObj_->calcSize();
-
-  CQChartsTitle::Location location = titleObj_->location();
-
-//double xm = pixelToWindowWidth (8);
-  double ym = pixelToWindowHeight(8);
-
-  double kx = bbox.getXMid() - ts.width()/2;
-
-  double ky = 0.0;
-
-  if      (location == CQChartsTitle::Location::TOP) {
-    if (! titleObj_->isInside()) {
-      ky = bbox.getYMax() + ym;
-
-      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::TOP_RIGHT)
-        ky += xAxis_->bbox().getHeight();
-    }
-    else
-      ky = bbox.getYMax() - ts.height() - ym;
-  }
-  else if (location == CQChartsTitle::Location::CENTER) {
-    ky = bbox.getYMid() - ts.height()/2;
-  }
-  else if (location == CQChartsTitle::Location::BOTTOM) {
-    if (! titleObj_->isInside()) {
-      ky = bbox.getYMin() - ts.height() - ym;
-
-      if (xAxis_ && xAxis_->side() == CQChartsAxis::Side::BOTTOM_LEFT)
-        ky -= xAxis_->bbox().getHeight();
-    }
-    else
-      ky = bbox.getYMin() + ym;
-  }
-  else {
-    ky = bbox.getYMid() - ts.height()/2;
-  }
-
-  titleObj_->setPosition(QPointF(kx, ky));
+  titleObj_->updateLocation(bbox);
 }
 
 void
@@ -2067,39 +2110,88 @@ updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
     // inside first (low priorty)
     if (obj->isInside()) {
       if (view()->insideMode() == CQChartsView::InsideMode::OUTLINE) {
-        pen.setColor(CQChartsUtil::invColor(pc));
+        QColor opc;
+
+        if (pen.style() != Qt::NoPen) {
+          opc = CQChartsUtil::invColor(pc);
+
+          opc.setAlphaF(pc.alphaF());
+        }
+        else
+          opc = CQChartsUtil::invColor(bc);
+
         pen.setStyle(Qt::DashLine);
-        pen.setWidthF(1);
+        pen.setColor(opc);
+        pen.setWidthF(obj->isSelected() ? 2 : 1);
       }
-      else
-        brush.setColor(insideColor(bc));
+      else {
+        QColor ibc = insideColor(bc);
+
+        ibc.setAlphaF(bc.alphaF());
+
+        brush.setColor(ibc);
+      }
+
+      return;
     }
 
     // selected last (high priority)
     if (obj->isSelected()) {
       if (view()->selectedMode() == CQChartsView::SelectedMode::OUTLINE) {
-        pen.setColor(CQChartsUtil::invColor(pc));
+        QColor opc;
+
+        if (pen.style() != Qt::NoPen) {
+          QColor opc = insideColor(pc);
+
+          opc.setAlphaF(pc.alphaF());
+        }
+        else
+          opc = CQChartsUtil::invColor(bc);
+
+        pen.setStyle(Qt::SolidLine);
+        pen.setColor(opc);
         pen.setWidthF(2);
       }
-      else
-        brush.setColor(CQChartsUtil::invColor(bc));
+      else {
+        QColor ibc = insideColor(bc);
+
+        ibc.setAlphaF(bc.alphaF());
+
+        brush.setColor(ibc);
+      }
+
+      return;
     }
   }
   // just stroke
   else {
+    assert(pen.style() != Qt::NoPen);
+
     QColor pc = pen.color();
 
     // inside first (low priorty)
     if (obj->isInside()) {
-      pen.setColor(CQChartsUtil::invColor(pc));
-      pen.setWidthF(2);
+      QColor opc = CQChartsUtil::invColor(pc);
+
+      opc.setAlphaF(pc.alphaF());
+
+      pen.setStyle(Qt::DashLine);
+      pen.setColor(opc);
+      pen.setWidthF(obj->isSelected() ? 4 : 2);
     }
 
     // selected last (high priority)
     if (obj->isSelected()) {
-      pen.setColor(CQChartsUtil::invColor(pc));
+      QColor opc = CQChartsUtil::invColor(pc);
+
+      opc.setAlphaF(pc.alphaF());
+
+      pen.setStyle(Qt::SolidLine);
+      pen.setColor(opc);
       pen.setWidthF(4);
     }
+
+    return;
   }
 }
 

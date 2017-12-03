@@ -19,6 +19,8 @@
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
 #include <CQChartsColumn.h>
+#include <CQChartsLineDashEdit.h>
+#include <CQPropertyView.h>
 #include <iostream>
 
 CQCharts::
@@ -63,6 +65,10 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::INTEGER, new CQChartsColumnIntegerType);
   columnTypeMgr_->addType(CQBaseModel::Type::STRING , new CQChartsColumnStringType );
   columnTypeMgr_->addType(CQBaseModel::Type::TIME   , new CQChartsColumnTimeType   );
+
+  //---
+
+  CQPropertyViewMgrInst->addType("CQChartsLineDash", new CQChartsLineDashPropertyViewType);
 }
 
 bool

@@ -613,7 +613,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QColor color;
 
   if (color_)
-    color = (*color_).interpColor(plot_, is_);
+    color = (*color_).interpColor(plot_, is_, ns_);
   else
     color = plot_->interpPaletteColor(is_, ns_);
 

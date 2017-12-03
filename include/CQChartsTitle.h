@@ -70,6 +70,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void updatePosition();
 
+  void updateLocation(const CQChartsGeom::BBox &bbox);
+
   //---
 
   void redraw();

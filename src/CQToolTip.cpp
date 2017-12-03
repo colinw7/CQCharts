@@ -290,15 +290,42 @@ eventFilter(QObject *o, QEvent *e)
   switch (e->type()) {
     case QEvent::KeyPress:
     case QEvent::KeyRelease: {
-      int                   key = static_cast<QKeyEvent *>(e)->key();
-      Qt::KeyboardModifiers mod = static_cast<QKeyEvent *>(e)->modifiers();
+      if (isVisible()) {
+        int                   key = static_cast<QKeyEvent *>(e)->key();
+        Qt::KeyboardModifiers mod = static_cast<QKeyEvent *>(e)->modifiers();
 
-      if ((mod & Qt::KeyboardModifierMask) ||
-          (key == Qt::Key_Shift || key == Qt::Key_Control ||
-           key == Qt::Key_Alt || key == Qt::Key_Meta))
-        break;
+        QWidget *parent = static_cast<QWidget *>(o);
 
-      hideLater();
+        CQToolTipIFace *tooltip = getToolTip(parent);
+
+        if ((mod & Qt::KeyboardModifierMask) ||
+            (key == Qt::Key_Shift || key == Qt::Key_Control ||
+             key == Qt::Key_Alt || key == Qt::Key_Meta))
+          break;
+
+        if (tooltip) {
+          if (tooltip->isHideKey(key, mod)) {
+            hideLater();
+          }
+          else {
+           QPoint gpos = QCursor::pos();
+
+            if (! tooltip->updateWidget(gpos)) {
+              hideLater();
+
+              return false;
+            }
+
+            showAtPos(gpos);
+
+            updateOpacity(tooltip);
+
+            tooltip_->update();
+
+            startHideTimer();
+          }
+        }
+      }
 
       break;
     }
@@ -320,23 +347,23 @@ eventFilter(QObject *o, QEvent *e)
         CQToolTipIFace *tooltip = getToolTip(parent);
 
         if (tooltip) {
-          QPoint pos = ((QMouseEvent *) e)->globalPos();
+          QPoint gpos = ((QMouseEvent *) e)->globalPos();
 
-          if (! tooltip->updateWidget(pos)) {
+          if (! tooltip->updateWidget(gpos)) {
             hideLater();
 
             return false;
           }
 
-          showAtPos(pos);
+          showAtPos(gpos);
 
           updateOpacity(tooltip);
 
           tooltip_->update();
+
+          startHideTimer();
         }
       }
-
-      startHideTimer();
 
       break;
     }

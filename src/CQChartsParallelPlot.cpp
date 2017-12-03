@@ -444,7 +444,24 @@ calcId() const
 
   QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
 
-  QString id = xname + "\n";
+  return xname;
+}
+
+QString
+CQChartsParallelLineObj::
+calcTipId() const
+{
+  QModelIndex xind = plot_->model()->index(i_, plot_->xColumn());
+
+  bool ok;
+
+  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+
+  QString id;
+
+  id += "<b>" + xname + "</b>\n";
+
+  id += "<table>\n";
 
   int nl = poly_.count();
 
@@ -453,8 +470,10 @@ calcId() const
 
     QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
 
-    id += QString("  %1\t%2\n").arg(yname).arg(poly_[j].y());
+    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(yname).arg(poly_[j].y());
   }
+
+  id += "</table>\n";
 
   return id;
 }
@@ -605,6 +624,23 @@ calcId() const
   QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
 
   return QString("%1:%2=%3").arg(xname).arg(yname).arg(y_);
+}
+
+QString
+CQChartsParallelPointObj::
+calcTipId() const
+{
+  QModelIndex xind = plot_->model()->index(iset_, plot_->xColumn());
+
+  bool ok;
+
+  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+
+  int yColumn = plot_->getSetColumn(i_);
+
+  QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+
+  return QString("<b>%1</b>&nbsp;&nbsp;%2=%3").arg(xname).arg(yname).arg(y_);
 }
 
 bool

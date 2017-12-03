@@ -73,7 +73,7 @@ paintEvent(QPaintEvent *)
   int s  = width();
   int ym = height()/2;
 
-  p.setBrush(QColor(0,0,0));
+  p.setBrush(palette().text().color());
 
   QPolygonF poly;
 

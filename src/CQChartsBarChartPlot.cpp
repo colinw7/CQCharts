@@ -1344,9 +1344,7 @@ mousePress(const CQChartsGeom::Point &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->updateRange();
-
-  plot->updateObjs();
+  plot->updateRangeAndObjs();
 
   return true;
 }

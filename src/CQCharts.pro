@@ -74,6 +74,9 @@ CQChartsLoader.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
+CQChartsLineDash.cpp \
+CQChartsLineDashEdit.cpp \
+\
 CQPropertyView.cpp \
 CQPropertyViewDelegate.cpp \
 CQPropertyViewEditor.cpp \
@@ -199,6 +202,9 @@ CQChartsAxisObj.h \
 ../include/CQChartsLoader.h \
 \
 ../include/CQChartsPlotDlg.h \
+\
+../include/CQChartsLineDash.h \
+CQChartsLineDashEdit.h \
 \
 CQPropertyView.h \
 CQPropertyViewDelegate.h \

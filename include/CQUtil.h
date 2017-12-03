@@ -45,6 +45,8 @@
 #include <CPen.h>
 #endif
 
+//---
+
 #ifdef CQUTIL_LINE_DASH
 Q_DECLARE_METATYPE(CLineDash)
 #endif
@@ -52,6 +54,27 @@ Q_DECLARE_METATYPE(CLineDash)
 #ifdef CQUTIL_ANGLE
 Q_DECLARE_METATYPE(CAngle)
 #endif
+
+#define CQUTIL_DCL_META_STREAM(TYPE, GETTER, SETTER) \
+QDataStream &operator<<(QDataStream &out, const TYPE &t) { \
+  QString str = t.GETTER().c_str(); \
+\
+  out << str; \
+\
+  return out; \
+} \
+\
+QDataStream &operator>>(QDataStream &in, TYPE &t) { \
+  QString str; \
+\
+  in >> str; \
+\
+  t.fromString(str.toStdString()); \
+\
+  return in; \
+}
+
+//---
 
 class QMouseEvent;
 class QKeyEvent;

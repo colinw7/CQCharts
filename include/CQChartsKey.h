@@ -18,20 +18,21 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool          visible    READ isVisible    WRITE setVisible     )
-  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr )
-  Q_PROPERTY(bool          insideX    READ isInsideX    WRITE setInsideX     )
-  Q_PROPERTY(bool          insideY    READ isInsideY    WRITE setInsideY     )
-  Q_PROPERTY(int           spacing    READ spacing      WRITE setSpacing     )
-  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal  )
-  Q_PROPERTY(bool          above      READ isAbove      WRITE setAbove       )
-  Q_PROPERTY(bool          flipped    READ isFlipped    WRITE setFlipped     )
-  Q_PROPERTY(QString       textColor  READ textColorStr WRITE setTextColorStr)
-  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont    )
-  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign   )
+  Q_PROPERTY(bool          visible     READ isVisible    WRITE setVisible     )
+  Q_PROPERTY(QString       location    READ locationStr  WRITE setLocationStr )
+  Q_PROPERTY(QPointF       absPosition READ absPosition  WRITE setAbsPosition )
+  Q_PROPERTY(bool          insideX     READ isInsideX    WRITE setInsideX     )
+  Q_PROPERTY(bool          insideY     READ isInsideY    WRITE setInsideY     )
+  Q_PROPERTY(int           spacing     READ spacing      WRITE setSpacing     )
+  Q_PROPERTY(bool          horizontal  READ isHorizontal WRITE setHorizontal  )
+  Q_PROPERTY(bool          above       READ isAbove      WRITE setAbove       )
+  Q_PROPERTY(bool          flipped     READ isFlipped    WRITE setFlipped     )
+  Q_PROPERTY(QString       textColor   READ textColorStr WRITE setTextColorStr)
+  Q_PROPERTY(QFont         textFont    READ textFont     WRITE setTextFont    )
+  Q_PROPERTY(Qt::Alignment textAlign   READ textAlign    WRITE setTextAlign   )
 
  public:
-  enum Location {
+  enum LocationType {
     TOP_LEFT,
     TOP_CENTER,
     TOP_RIGHT,
@@ -40,7 +41,8 @@ class CQChartsKey : public CQChartsBoxObj {
     CENTER_RIGHT,
     BOTTOM_LEFT,
     BOTTOM_CENTER,
-    BOTTOM_RIGHT
+    BOTTOM_RIGHT,
+    ABSOLUTE
   };
 
  public:
@@ -52,14 +54,20 @@ class CQChartsKey : public CQChartsBoxObj {
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; redraw(); }
 
-  const Location &location() const { return location_; }
-  void setLocation(const Location &l) { location_ = l; updatePosition(); }
+  const LocationType &location() const { return location_.location; }
+  void setLocation(const LocationType &l) { location_.location = l; updatePosition(); }
 
-  bool isInsideX() const { return insideX_; }
-  void setInsideX(bool b) { insideX_ = b; updatePosition(); }
+  QString locationStr() const;
+  void setLocationStr(const QString &s);
 
-  bool isInsideY() const { return insideY_; }
-  void setInsideY(bool b) { insideY_ = b; updatePosition(); }
+  const QPointF &absPosition() const { return location_.absPosition; }
+  void setAbsPosition(const QPointF &p) { location_.absPosition = p; updatePosition(); }
+
+  bool isInsideX() const { return location_.insideX; }
+  void setInsideX(bool b) { location_.insideX = b; updatePosition(); }
+
+  bool isInsideY() const { return location_.insideY; }
+  void setInsideY(bool b) { location_.insideY = b; updatePosition(); }
 
   int spacing() const { return spacing_; }
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
@@ -89,9 +97,6 @@ class CQChartsKey : public CQChartsBoxObj {
   bool isFlipped() const { return flipped_; }
   void setFlipped(bool b);
 
-  QString locationStr() const;
-  void setLocationStr(const QString &s);
-
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
 
@@ -107,6 +112,8 @@ class CQChartsKey : public CQChartsBoxObj {
   int maxCol() const { return maxCol_; }
 
   void updatePosition();
+
+  void updateLocation(const CQChartsGeom::BBox &bbox);
 
   void invalidateLayout();
 
@@ -135,8 +142,13 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
-  virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
-  virtual bool mouseMove (const CQChartsGeom::Point &) { return true; }
+  virtual bool mousePress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool mouseMove   (const CQChartsGeom::Point &);
+  virtual void mouseRelease(const CQChartsGeom::Point &) { }
+
+  virtual bool mouseDragPress  (const CQChartsGeom::Point &);
+  virtual bool mouseDragMove   (const CQChartsGeom::Point &);
+  virtual void mouseDragRelease(const CQChartsGeom::Point &);
 
   //---
 
@@ -161,14 +173,19 @@ class CQChartsKey : public CQChartsBoxObj {
     double height { 0 };
   };
 
+  struct Location {
+    LocationType location    { LocationType::TOP_RIGHT };
+    QPointF      absPosition;
+    bool         insideX     { true };
+    bool         insideY     { true };
+  };
+
   using Items      = std::vector<CQChartsKeyItem*>;
   using ColCell    = std::map<int,Cell>;
   using RowColCell = std::map<int,ColCell>;
 
   bool                       visible_     { true };
-  Location                   location_    { Location::TOP_RIGHT };
-  bool                       insideX_     { true };
-  bool                       insideY_     { true };
+  Location                   location_;
   int                        spacing_     { 2 };
   CQChartsPaletteColor       textColor_;
   QFont                      textFont_;
@@ -186,6 +203,7 @@ class CQChartsKey : public CQChartsBoxObj {
   int                        numCols_     { 0 };
   RowColCell                 rowColCell_;
   mutable CQChartsGeom::BBox bbox_;
+  CQChartsGeom::Point        dragPos_;
 };
 
 //------

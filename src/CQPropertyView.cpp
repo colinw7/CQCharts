@@ -37,10 +37,10 @@ CQPropertyViewMgr()
   addType("QPointF"      , new CQPropertyViewPointFType  );
   addType("QRectF"       , new CQPropertyViewRectFType   );
   addType("QSizeF"       , new CQPropertyViewSizeFType   );
-  //addType("QPalette"     , new CQPropertyViewPaletteType );
+//addType("QPalette"     , new CQPropertyViewPaletteType );
   addType("Qt::Alignment", new CQPropertyViewAlignType   );
-  //addType("CLineDash"    , new CQPropertyViewLineDashType);
-  //addType("CAngle"       , new CQPropertyViewAngleType   );
+//addType("CLineDash"    , new CQPropertyViewLineDashType);
+//addType("CAngle"       , new CQPropertyViewAngleType   );
 }
 
 CQPropertyViewMgr::

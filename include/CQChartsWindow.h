@@ -60,6 +60,7 @@ class CQChartsWindow : public QFrame {
   void modeSlot();
 
   void setStatusText(const QString &text);
+  void setPosText   (const QString &text);
 
  private:
   CQChartsView*         view_          { nullptr };

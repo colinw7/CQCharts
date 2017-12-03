@@ -1,6 +1,7 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 //#include <iostream>

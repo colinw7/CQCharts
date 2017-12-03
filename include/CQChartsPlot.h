@@ -2,10 +2,10 @@
 #define CQChartsPlot_H
 
 #include <CQChartsPlotParameter.h>
+#include <CQChartsModelP.h>
 
 #include <CQChartsGeom.h>
 
-#include <QPointer>
 #include <QAbstractItemModel>
 #include <QItemSelection>
 #include <QFrame>
@@ -30,6 +30,7 @@ class CGradientPalette;
 class QSortFilterProxyModel;
 class QItemSelectionModel;
 class QRubberBand;
+class QMenu;
 
 //----
 
@@ -59,7 +60,7 @@ class CQChartsPlotTypeMgr {
 class CQChartsPlotType {
  public:
   using Parameters = std::vector<CQChartsPlotParameter>;
-  using ModelP     = QSharedPointer<QAbstractItemModel>;
+  using ModelP     = CQChartsModelP;
 
  public:
   CQChartsPlotType() { }
@@ -220,7 +221,7 @@ class CQChartsPlot : public QObject {
 
   using OptReal = boost::optional<double>;
 
-  using ModelP          = QSharedPointer<QAbstractItemModel>;
+  using ModelP          = CQChartsModelP;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
@@ -556,6 +557,8 @@ class CQChartsPlot : public QObject {
 
   virtual void updateObjs();
 
+  void updateRangeAndObjs() { updateRange(); updateObjs(); }
+
   // (re)initialize plot objects
   virtual void initObjs() = 0;
 
@@ -583,6 +586,18 @@ class CQChartsPlot : public QObject {
 
   void clearPlotObjects();
 
+  bool updatePlotObjects(const CQChartsGeom::Point &w);
+
+  CQChartsPlotObj *insidePlotObject() const;
+
+  void setInsidePlotObject();
+
+  QString insidePlotObjectText() const;
+
+  void nextInsidePlotInd();
+
+  //---
+
   int numPlotObjects() const { return plotObjs_.size(); }
 
   CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
@@ -595,10 +610,14 @@ class CQChartsPlot : public QObject {
   int yValueColumn() const { return yValueColumn_; }
   void setYValueColumn(int column);
 
-  QString xStr(double x) const;
-  QString yStr(double x) const;
+  //---
 
-  QString columnStr(int column, double x) const;
+  virtual QString posStr(const CQChartsGeom::Point &w) const;
+
+  virtual QString xStr(double x) const;
+  virtual QString yStr(double x) const;
+
+  virtual QString columnStr(int column, double x) const;
 
   //---
 
@@ -606,6 +625,11 @@ class CQChartsPlot : public QObject {
   virtual bool mousePress  (const CQChartsGeom::Point &p);
   virtual bool mouseMove   (const CQChartsGeom::Point &p, bool first=false);
   virtual void mouseRelease(const CQChartsGeom::Point &p);
+
+  // handle mouse drag press/move/release
+  virtual bool mouseDragPress  (const CQChartsGeom::Point &p);
+  virtual bool mouseDragMove   (const CQChartsGeom::Point &p, bool first=false);
+  virtual void mouseDragRelease(const CQChartsGeom::Point &p);
 
   // handle key press
   virtual void keyPress(int key);
@@ -637,6 +661,10 @@ class CQChartsPlot : public QObject {
   //---
 
   void updateTransform();
+
+  //---
+
+  virtual bool addMenuItems(QMenu *) { return false; }
 
   //---
 
@@ -774,10 +802,18 @@ class CQChartsPlot : public QObject {
   using LayerActive = std::map<Layer,bool>;
   using IdHidden    = std::map<int,bool>;
 
+  enum class DragObj {
+    NONE,
+    KEY,
+    XAXIS,
+    YAXIS
+  };
+
   struct MouseData {
-    QPoint pressPoint;
-    QPoint movePoint;
-    bool   pressed { false };
+    QPoint  pressPoint;
+    QPoint  movePoint;
+    bool    pressed { false };
+    DragObj dragObj { DragObj::NONE };
   };
 
   //---
@@ -824,6 +860,7 @@ class CQChartsPlot : public QObject {
   bool                      logY_                { false };
   OtherPlot                 otherPlot_;
   PlotObjs                  plotObjs_;
+  int                       insidePlotInd_       { 0 };
   PlotObjSet                insidePlotObjs_;
   CQChartsPlotObjTree*      plotObjTree_         { nullptr };
   MouseData                 mouseData_;

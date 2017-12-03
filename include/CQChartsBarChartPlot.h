@@ -203,7 +203,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setHorizontal(bool b) { horizontal_ = b; updateRange(); }
 
   bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateRange(); updateObjs(); }
+  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateRangeAndObjs(); }
 
   //---
 

@@ -39,7 +39,7 @@ draw(QPainter *p, const QPointF &p1, const QPointF &p2) const
 void
 CQChartsLineObj::
 draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QColor &color,
-     double width, const CLineDash &dash)
+     double width, const CQChartsLineDash &dash)
 {
   QPen pen(color);
 

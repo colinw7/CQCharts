@@ -1,7 +1,7 @@
 #ifndef CQChartsUtil_H
 #define CQChartsUtil_H
 
-#include <CLineDash.h>
+#include <CQChartsLineDash.h>
 #include <CQChartsGeom.h>
 #include <COSNaN.h>
 
@@ -298,7 +298,7 @@ inline QColor blendColors(const QColor &c1, const QColor &c2, double f) {
 
 //------
 
-inline void penSetLineDash(QPen &pen, const CLineDash &dash) {
+inline void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
   int num = dash.getNumLengths();
 
   if (num > 0) {

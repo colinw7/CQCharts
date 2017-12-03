@@ -330,9 +330,9 @@ drawVoronoi(QPainter *p)
   //---
 
   if (isLines()) {
-    QColor    lc = interpLinesColor(0, 1);
-    double    lw = linesWidth();
-    CLineDash ld;
+    QColor           lc = interpLinesColor(0, 1);
+    double           lw = linesWidth();
+    CQChartsLineDash ld;
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CQChartsHull3D::Edge *e = *pve;

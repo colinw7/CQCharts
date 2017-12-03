@@ -2,9 +2,9 @@
 #define CQChartsLineObj_H
 
 #include <CQChartsPaletteColor.h>
+#include <CQChartsLineDash.h>
 #include <QObject>
 #include <QPointF>
-#include <CLineDash.h>
 
 class CQPropertyViewModel;
 class QPainter;
@@ -13,10 +13,10 @@ class QPen;
 class CQChartsLineObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(bool      displayed READ isDisplayed WRITE setDisplayed)
-  Q_PROPERTY(QString   color     READ colorStr    WRITE setColorStr )
-  Q_PROPERTY(double    width     READ width       WRITE setWidth    )
-  Q_PROPERTY(CLineDash dash      READ dash        WRITE setDash     )
+  Q_PROPERTY(bool             displayed READ isDisplayed WRITE setDisplayed)
+  Q_PROPERTY(QString          color     READ colorStr    WRITE setColorStr )
+  Q_PROPERTY(double           width     READ width       WRITE setWidth    )
+  Q_PROPERTY(CQChartsLineDash dash      READ dash        WRITE setDash     )
 
  public:
   CQChartsLineObj(CQChartsPlot *plot);
@@ -38,8 +38,8 @@ class CQChartsLineObj : public QObject {
   double width() const { return width_; }
   void setWidth(double r) { width_ = r; redrawLineObj(); }
 
-  const CLineDash &dash() const { return dash_; }
-  void setDash(const CLineDash &dash) { dash_ = dash; redrawLineObj(); }
+  const CQChartsLineDash &dash() const { return dash_; }
+  void setDash(const CQChartsLineDash &dash) { dash_ = dash; redrawLineObj(); }
 
   //---
 
@@ -48,7 +48,7 @@ class CQChartsLineObj : public QObject {
   void draw(QPainter *p, const QPointF &p1, const QPointF &p2) const;
 
   static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QColor &color,
-                   double width, const CLineDash &dash);
+                   double width, const CQChartsLineDash &dash);
 
   static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QPen &pen);
 
@@ -59,7 +59,7 @@ class CQChartsLineObj : public QObject {
   bool                 displayed_ { true };
   CQChartsPaletteColor color_;
   double               width_     { 0 };
-  CLineDash            dash_      { };
+  CQChartsLineDash     dash_      { };
 };
 
 #endif

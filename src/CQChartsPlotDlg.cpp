@@ -22,7 +22,7 @@
 #include <cassert>
 
 CQChartsPlotDlg::
-CQChartsPlotDlg(CQCharts *charts, const ModelP &model) :
+CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
  charts_(charts), model_(model)
 {
   setObjectName("plotDlg");
@@ -535,7 +535,7 @@ applySlot()
         CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(columnTypeStr, nameValues);
 
         if (typeData)
-          columnTypeMgr->setModelColumnType(model_.data(), column, typeData->type(), nameValues);
+          columnTypeMgr->setModelColumnType(model(), column, typeData->type(), nameValues);
       }
     }
     else if (parameter.type() == "columns") {
@@ -563,8 +563,7 @@ applySlot()
         CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(columnTypeStr, nameValues);
 
         if (typeData)
-          columnTypeMgr->setModelColumnType(model_.data(), columns[0],
-                                            typeData->type(), nameValues);
+          columnTypeMgr->setModelColumnType(model(), columns[0], typeData->type(), nameValues);
       }
     }
     else if (parameter.type() == "string") {
@@ -905,8 +904,8 @@ stringToColumn(const QString &str, int &column) const
   if (! str.length())
     return false;
 
-  for (int column1 = 0; column1 < model_->columnCount(); ++column1) {
-    QVariant var = model_->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
+  for (int column1 = 0; column1 < model()->columnCount(); ++column1) {
+    QVariant var = model()->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
 
     if (! var.isValid())
       continue;

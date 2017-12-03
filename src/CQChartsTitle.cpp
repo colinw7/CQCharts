@@ -1,5 +1,6 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlot.h>
+#include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
@@ -52,6 +53,53 @@ updatePosition()
   plot_->updateTitlePosition();
 
   plot_->update();
+}
+
+void
+CQChartsTitle::
+updateLocation(const CQChartsGeom::BBox &bbox)
+{
+  QSizeF ts = calcSize();
+
+  CQChartsTitle::Location location = this->location();
+
+//double xm = plot_->pixelToWindowWidth (8);
+  double ym = plot_->pixelToWindowHeight(8);
+
+  double kx = bbox.getXMid() - ts.width()/2;
+
+  double ky = 0.0;
+
+  CQChartsAxis *xAxis = plot_->xAxis();
+
+  if      (location == CQChartsTitle::Location::TOP) {
+    if (! isInside()) {
+      ky = bbox.getYMax() + ym;
+
+      if (xAxis && xAxis->side() == CQChartsAxis::Side::TOP_RIGHT)
+        ky += xAxis->bbox().getHeight();
+    }
+    else
+      ky = bbox.getYMax() - ts.height() - ym;
+  }
+  else if (location == CQChartsTitle::Location::CENTER) {
+    ky = bbox.getYMid() - ts.height()/2;
+  }
+  else if (location == CQChartsTitle::Location::BOTTOM) {
+    if (! isInside()) {
+      ky = bbox.getYMin() - ts.height() - ym;
+
+      if (xAxis && xAxis->side() == CQChartsAxis::Side::BOTTOM_LEFT)
+        ky -= xAxis->bbox().getHeight();
+    }
+    else
+      ky = bbox.getYMin() + ym;
+  }
+  else {
+    ky = bbox.getYMid() - ts.height()/2;
+  }
+
+  setPosition(QPointF(kx, ky));
 }
 
 void

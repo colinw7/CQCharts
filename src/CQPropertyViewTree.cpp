@@ -175,6 +175,23 @@ selectObject(CQPropertyViewItem *item, const QObject *obj)
   return false;
 }
 
+bool
+CQPropertyViewTree::
+setCurrentProperty(QObject *object, const QString &path)
+{
+  CQPropertyViewItem *item = model_->propertyItem(object, path);
+
+  if (! item)
+    return false;
+
+  QModelIndex ind = indexFromItem(item, 0, /*map*/true);
+
+  if (ind.isValid())
+    setCurrentIndex(ind);
+
+  return true;
+}
+
 void
 CQPropertyViewTree::
 expandAll()
@@ -548,7 +565,8 @@ scrollToItem(CQPropertyViewItem *item)
 {
   QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
-  scrollTo(ind);
+  if (ind.isValid())
+    scrollTo(ind);
 }
 
 void
@@ -557,13 +575,16 @@ selectItem(CQPropertyViewItem *item, bool selected)
 {
   QItemSelectionModel *sm = this->selectionModel();
 
-  if (selected) {
-    QModelIndex ind = indexFromItem(item, 0, /*map*/true);
+  QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
-    sm->select(ind, QItemSelectionModel::Select);
+  if (ind.isValid()) {
+    if (selected) {
+      sm->select(ind, QItemSelectionModel::Select);
+    }
+    else {
+     //sm->select(ind, QItemSelectionModel::Deselect);
+    }
   }
-
-  //sm->select(ind, QItemSelectionModel::Deselect);
 }
 
 void
@@ -572,7 +593,8 @@ expandItem(CQPropertyViewItem *item)
 {
   QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
-  setExpanded(ind, true);
+  if (ind.isValid())
+    setExpanded(ind, true);
 }
 
 void
@@ -581,7 +603,8 @@ collapseItem(CQPropertyViewItem *item)
 {
   QModelIndex ind = indexFromItem(item, 0, /*map*/true);
 
-  setExpanded(ind, false);
+  if (ind.isValid())
+    setExpanded(ind, false);
 }
 
 QModelIndex

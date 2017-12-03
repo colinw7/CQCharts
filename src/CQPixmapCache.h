@@ -14,13 +14,21 @@ class CQPixmapCache {
 
   static void release();
 
+ public:
+ ~CQPixmapCache();
+
+  bool isDark() const { return dark_; }
+  void setDark(bool b) { dark_ = b; }
+
   void clear();
 
   void addData(const QString &id, const uchar *data, int len);
 
   const QPixmap &getPixmap(const QString &id);
 
-  QIcon getIcon(const QString &id);
+  QIcon getIcon(const QString &lightId, const QString &darkId="");
+
+  QIcon getPixmapIcon(const QString &id);
 
   QPixmap getSizedPixmap(const QString &id, const QSize &s);
 
@@ -45,6 +53,7 @@ class CQPixmapCache {
   typedef std::map<QString,Data> IdData;
 
   IdData idData_;
+  bool   dark_ { false };
 };
 
 #endif

@@ -10,6 +10,9 @@
 
 #include <QAbstractItemModel>
 #include <QPainter>
+#include <QMenu>
+#include <QAction>
+#include <iostream>
 
 CQChartsDistributionPlotType::
 CQChartsDistributionPlotType()
@@ -24,8 +27,10 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn", "", 0);
   addColumnParameter("color", "Color", "colorColumn", "optional");
 
-  addRealParameter("start", "Start", "startValue", "", 0.0);
-  addRealParameter("delta", "Delta", "deltaValue", "", 1.0);
+  addBoolParameter("autoRange", "Auto Range", "autoRange", "optional", true);
+
+  addRealParameter("start", "Start", "startValue", "optional");
+  addRealParameter("delta", "Delta", "deltaValue", "optional");
 }
 
 CQChartsPlot *
@@ -74,8 +79,11 @@ addProperties()
 
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
-  addProperty("value"  , this, "startValue" , "start");
-  addProperty("value"  , this, "deltaValue" , "delta");
+
+  addProperty("value", this, "autoRange" , "autoRange");
+  addProperty("value", this, "startValue", "start"    );
+  addProperty("value", this, "deltaValue", "delta"    );
+  addProperty("value", this, "numAuto"   , "numAuto"  );
 
   addProperty("", this, "horizontal");
   addProperty("", this, "margin"    );
@@ -302,6 +310,45 @@ updateRange(bool apply)
 
   dataRange_.reset();
 
+  //---
+
+  // calc value range
+  categoryRange_.numValues = 0;
+  categoryRange_.minValue  = 0.0;
+  categoryRange_.maxValue  = 0.0;
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex valueInd = model->index(r, valueColumn());
+
+    bool ok;
+
+    double value = CQChartsUtil::modelReal(model, valueInd, ok);
+
+    if (! ok)
+      continue;
+
+    if (CQChartsUtil::isNaN(value))
+      continue;
+
+    if (! checkFilter(value))
+      continue;
+
+    if (categoryRange_.numValues == 0) {
+      categoryRange_.minValue = value;
+      categoryRange_.maxValue = value;
+    }
+    else {
+      categoryRange_.minValue = std::min(categoryRange_.minValue, value);
+      categoryRange_.maxValue = std::max(categoryRange_.maxValue, value);
+    }
+
+    ++categoryRange_.numValues;
+  }
+
+  calcCategoryRange();
+
+  //---
+
   int minBucket = 1;
   int maxBucket = -1;
 
@@ -324,12 +371,12 @@ updateRange(bool apply)
     if (CQChartsUtil::isNaN(value))
       continue;
 
+    if (! checkFilter(value))
+      continue;
+
     //----
 
-    int bucket = 0;
-
-    if (deltaValue() > 0.0)
-      bucket = std::floor((value - startValue())/deltaValue());
+    int bucket = calcBucket(value);
 
     ivalues_[bucket].emplace_back(valueInd1);
 
@@ -366,6 +413,71 @@ updateRange(bool apply)
   if (apply)
     applyDataRange();
 }
+
+//------
+
+bool
+CQChartsDistributionPlot::
+checkFilter(double value) const
+{
+  if (filters_.empty())
+    return true;
+
+  const Filter &filter = filters_.back();
+
+  return (value >= filter.minValue && value < filter.maxValue);
+}
+
+void
+CQChartsDistributionPlot::
+calcCategoryRange()
+{
+  double length = categoryRange_.maxValue - categoryRange_.minValue;
+
+  double length1 = length/categoryRange_.numAuto;
+
+  // Calculate nearest Power of Ten to Length
+  int power = CQChartsUtil::Round(log10(length1));
+
+ categoryRange_.increment = 0.1;
+
+  if      (power < 0) {
+    for (int i = 0; i < -power; i++)
+      categoryRange_.increment /= 10.0;
+  }
+  else if (power > 0) {
+    for (int i = 0; i <  power; i++)
+      categoryRange_.increment *= 10.0;
+  }
+
+  categoryRange_.increment =
+    categoryRange_.increment*CQChartsUtil::Round(length1/categoryRange_.increment);
+
+  categoryRange_.calcMinValue = categoryRange_.increment*
+    CQChartsUtil::RoundDown(categoryRange_.minValue/categoryRange_.increment);
+}
+
+int
+CQChartsDistributionPlot::
+calcBucket(double value) const
+{
+  int bucket = 0;
+
+  bool isAuto = (! filters_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+
+  if (isAuto) {
+    if (categoryRange_.increment > 0.0)
+      bucket = std::floor((value - categoryRange_.calcMinValue)/categoryRange_.increment);
+  }
+  else {
+    if (deltaValue() > 0.0)
+      bucket = std::floor((value - startValue())/deltaValue());
+  }
+
+  return bucket;
+}
+
+//------
 
 void
 CQChartsDistributionPlot::
@@ -432,7 +544,7 @@ initObjs()
 
     //---
 
-    QString bucketStr =  bucketValuesStr(bucket);
+    QString bucketStr = bucketValuesStr(bucket);
 
     if (! isHorizontal())
       xAxis_->setTickLabel(bucket, bucketStr);
@@ -512,11 +624,86 @@ bucketValues(int bucket, double &value1, double &value2) const
   value1 = 0.0;
   value2 = 0.0;
 
-  if (deltaValue() > 0.0) {
-    value1 = bucket*deltaValue() + startValue();
-    value2 = value1 + deltaValue();
+  bool isAuto = (! filters_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+
+  if (isAuto) {
+    if (categoryRange_.increment > 0.0) {
+      value1 = bucket*categoryRange_.increment + categoryRange_.calcMinValue;
+      value2 = value1 + categoryRange_.increment;
+    }
   }
+  else {
+    if (deltaValue() > 0.0) {
+      value1 = bucket*deltaValue() + startValue();
+      value2 = value1 + deltaValue();
+    }
+  }
+
+  if (CQChartsUtil::isZero(value1)) value1 = 0.0;
+  if (CQChartsUtil::isZero(value2)) value2 = 0.0;
 }
+
+//------
+
+bool
+CQChartsDistributionPlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *pushAction = new QAction("Push", menu);
+  QAction *popAction  = new QAction("Pop" , menu);
+
+  connect(pushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
+  connect(popAction , SIGNAL(triggered()), this, SLOT(popSlot()));
+
+  menu->addAction(pushAction);
+  menu->addAction(popAction );
+
+  return true;
+}
+
+void
+CQChartsDistributionPlot::
+pushSlot()
+{
+  QPointF gpos = view()->menuPos();
+
+  QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
+
+  CQChartsGeom::Point w;
+
+  pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
+
+  PlotObjs objs;
+
+  objsAtPoint(w, objs);
+
+  if (objs.empty())
+    return;
+
+  CQChartsDistributionBarObj *obj = qobject_cast<CQChartsDistributionBarObj *>(objs[0]);
+
+  double value1, value2;
+
+  bucketValues(obj->bucket(), value1, value2);
+
+  filters_.emplace_back(value1, value2);
+
+  updateRangeAndObjs();
+}
+
+void
+CQChartsDistributionPlot::
+popSlot()
+{
+  if (filters_.empty())
+    return;
+
+  filters_.pop_back();
+
+  updateRangeAndObjs();
+}
+
+//------
 
 void
 CQChartsDistributionPlot::

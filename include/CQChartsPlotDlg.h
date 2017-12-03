@@ -1,9 +1,8 @@
 #ifndef CQChartsPlotDlg_H
 #define CQChartsPlotDlg_H
 
+#include <CQChartsModelP.h>
 #include <QDialog>
-#include <QSharedPointer>
-#include <QPointer>
 
 class CQCharts;
 class CQChartsPlotType;
@@ -23,16 +22,17 @@ class CQChartsPlotDlg : public QDialog {
   Q_OBJECT
 
  public:
-  using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
-  CQChartsPlotDlg(CQCharts *charts, const ModelP &model);
+  CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model);
 
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
 
   CQCharts *charts() const { return charts_; }
+
+  QAbstractItemModel *model() const { return model_.data(); }
 
   int exec();
 
@@ -113,7 +113,7 @@ class CQChartsPlotDlg : public QDialog {
   using TabTypeName  = std::map<int,QString>;
 
   CQCharts*       charts_         { nullptr };
-  ModelP          model_;
+  CQChartsModelP  model_;
   SelectionModelP selectionModel_;
   QComboBox*      combo_          { nullptr };
   QStackedWidget* stack_          { nullptr };

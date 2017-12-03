@@ -20,6 +20,8 @@ class CQChartsViewToolTip : public CQToolTipIFace {
 
   bool updateWidget(const QPoint &gpos) override;
 
+  bool isHideKey(int key, Qt::KeyboardModifiers mod) override;
+
   QSize sizeHint() const override;
 
  private:

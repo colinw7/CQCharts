@@ -432,7 +432,10 @@ CQChartsTest -overlay \
 
 CQChartsTest \
  -csv gaussian.txt -comment_header \
- -type distribution -columns -first_line_header "value=0" \
+ -type distribution -columns "value=0"
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -type distribution -columns "value=0" \
  -real "delta=0.1"
 CQChartsTest \
  -csv distribution_sparse.csv -first_line_header \

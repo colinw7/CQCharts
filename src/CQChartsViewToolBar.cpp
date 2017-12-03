@@ -4,12 +4,18 @@
 #include <CQChartsPlot.h>
 #include <CQPixmapCache.h>
 
-#include <svg/select_svg.h>
-#include <svg/zoom_svg.h>
-#include <svg/probe_svg.h>
-#include <svg/zoom_fit_svg.h>
-#include <svg/left_svg.h>
-#include <svg/right_svg.h>
+#include <svg/select_light_svg.h>
+#include <svg/select_dark_svg.h>
+#include <svg/zoom_light_svg.h>
+#include <svg/zoom_dark_svg.h>
+#include <svg/probe_light_svg.h>
+#include <svg/probe_dark_svg.h>
+#include <svg/zoom_fit_light_svg.h>
+#include <svg/zoom_fit_dark_svg.h>
+#include <svg/left_light_svg.h>
+#include <svg/left_dark_svg.h>
+#include <svg/right_light_svg.h>
+#include <svg/right_dark_svg.h>
 
 #include <QToolButton>
 #include <QStackedWidget>
@@ -28,17 +34,19 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  auto createButton = [&](const QString &name, const QString &iconName,
+  auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver, bool checkable=true) -> QToolButton * {
     QToolButton *button = new QToolButton(this);
 
     button->setObjectName(name);
-    button->setIcon(CQPixmapCacheInst->getIcon(iconName));
+    button->setIcon(CQPixmapCacheInst->getIcon(iconName + "_LIGHT", iconName + "_DARK"));
     button->setCheckable(checkable);
 
     button->setFocusPolicy(Qt::NoFocus);
 
     connect(button, SIGNAL(clicked(bool)), this, receiver);
+
+    button->setToolTip(tip);
 
     return button;
   };
@@ -54,12 +62,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   QHBoxLayout *buttonsLayout = new QHBoxLayout(buttonsFrame);
   buttonsLayout->setMargin(0); buttonsLayout->setSpacing(2);
 
-  selectButton_  = createButton("select", "SELECT"  , SLOT(selectSlot(bool)));
-  zoomButton_    = createButton("zoom"  , "ZOOM"    , SLOT(zoomSlot(bool)));
-  probeButton_   = createButton("probe" , "PROBE"   , SLOT(probeSlot(bool)));
-  autoFitButton_ = createButton("fit"   , "ZOOM_FIT", SLOT(autoFitSlot()), false);
-  leftButton_    = createButton("left"  , "LEFT"    , SLOT(leftSlot()));
-  rightButton_   = createButton("right" , "RIGHT"   , SLOT(rightSlot()));
+  selectButton_  = createButton("select", "SELECT"  , "Select"      , SLOT(selectSlot(bool)));
+  zoomButton_    = createButton("zoom"  , "ZOOM"    , "Zoom"        , SLOT(zoomSlot(bool)));
+  probeButton_   = createButton("probe" , "PROBE"   , "Probe"       , SLOT(probeSlot(bool)));
+  autoFitButton_ = createButton("fit"   , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
+  leftButton_    = createButton("left"  , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
+  rightButton_   = createButton("right" , "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
 
   selectButton_->setChecked(true);
 

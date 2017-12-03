@@ -52,10 +52,14 @@ CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("xy"), model), fillUnderData_(this)
 {
-  pointObj_ = new CQChartsPointObj(this);
-  lineObj_  = new CQChartsLineObj(this);
+  pointObj_   = new CQChartsPointObj(this);
+  lineObj_    = new CQChartsLineObj(this);
 
+  impulseObj_       = new CQChartsLineObj(this);
   bivariateLineObj_ = new CQChartsLineObj(this);
+
+  impulseObj_      ->setDisplayed(false);
+  bivariateLineObj_->setDisplayed(false);
 
   addAxes();
 
@@ -70,6 +74,7 @@ CQChartsXYPlot::
   delete pointObj_;
   delete lineObj_;
 
+  delete impulseObj_;
   delete bivariateLineObj_;
 }
 
@@ -146,11 +151,36 @@ addProperties()
   addProperty("fillUnder", this, "fillUnderSide"   , "side"    );
 
   // impulse
-  addProperty("impulse", this, "impulse", "visible");
+  addProperty("impulse", this, "impulse"     , "visible");
+  addProperty("impulse", this, "impulseColor", "color"  );
+  addProperty("impulse", this, "impulseWidth", "width"  );
 
   // data label
   addProperty("dataLabel", this, "dataLabelColor", "color");
   addProperty("dataLabel", this, "dataLabelAngle", "angle");
+}
+
+QString
+CQChartsXYPlot::
+impulseColorStr() const
+{
+  return impulseObj_->colorStr();
+}
+
+void
+CQChartsXYPlot::
+setImpulseColorStr(const QString &str)
+{
+  impulseObj_->setColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsXYPlot::
+interpImpulseColor(int i, int n) const
+{
+  return impulseObj_->interpColor(i, n);
 }
 
 QString
@@ -169,6 +199,13 @@ setPointsStrokeColorStr(const QString &str)
   update();
 }
 
+QColor
+CQChartsXYPlot::
+interpPointStrokeColor(int i, int n) const
+{
+  return pointObj_->interpStrokeColor(i, n);
+}
+
 QString
 CQChartsXYPlot::
 pointsFillColorStr() const
@@ -185,6 +222,13 @@ setPointsFillColorStr(const QString &str)
   update();
 }
 
+QColor
+CQChartsXYPlot::
+interpPointFillColor(int i, int n) const
+{
+  return pointObj_->interpFillColor(i, n);
+}
+
 QString
 CQChartsXYPlot::
 linesColorStr() const
@@ -199,6 +243,13 @@ setLinesColorStr(const QString &str)
   lineObj_->setColorStr(str);
 
   update();
+}
+
+QColor
+CQChartsXYPlot::
+interpLineColor(int i, int n) const
+{
+  return lineObj_->interpColor(i, n);
 }
 
 QString
@@ -219,6 +270,13 @@ setFillUnderColorStr(const QString &str)
 
 QColor
 CQChartsXYPlot::
+interpFillUnderColor(int i, int n) const
+{
+  return fillUnderData_.fillObj.interpColor(i, n);
+}
+
+QColor
+CQChartsXYPlot::
 interpDataLabelColor(int i, int n)
 {
   return dataLabelData_.color.interpColor(this, i, n);
@@ -233,34 +291,6 @@ drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const
   bivariateLineObj_->setColor(pcolor);
 
   bivariateLineObj_->draw(painter, p1, p2);
-}
-
-QColor
-CQChartsXYPlot::
-interpPointStrokeColor(int i, int n) const
-{
-  return pointObj_->interpStrokeColor(i, n);
-}
-
-QColor
-CQChartsXYPlot::
-interpPointFillColor(int i, int n) const
-{
-  return pointObj_->interpFillColor(i, n);
-}
-
-QColor
-CQChartsXYPlot::
-interpLineColor(int i, int n) const
-{
-  return lineObj_->interpColor(i, n);
-}
-
-QColor
-CQChartsXYPlot::
-interpFillUnderColor(int i, int n) const
-{
-  return fillUnderData_.fillObj.interpColor(i, n);
 }
 
 QColor
@@ -998,12 +1028,12 @@ initObjs()
           double ys = std::min(y1, 0.0);
           double ye = std::max(y1, 0.0);
 
-          CQChartsGeom::BBox bbox(x, ys, x, ye);
+          CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
 
-          CQChartsXYImpulseLineObj *lineObj =
+          CQChartsXYImpulseLineObj *impulseObj =
             new CQChartsXYImpulseLineObj(this, bbox, x, 0.0, x, y1, xind1, j, ns);
 
-          addPlotObject(lineObj);
+          addPlotObject(impulseObj);
         }
 
         //---
@@ -1390,9 +1420,9 @@ mousePress(const CQChartsGeom::Point &)
 
 bool
 CQChartsXYBiLineObj::
-isIndex(const QModelIndex &) const
+isIndex(const QModelIndex &ind) const
 {
-  return false;
+  return (ind == ind_);
 }
 
 void
@@ -1500,9 +1530,9 @@ mousePress(const CQChartsGeom::Point &)
 
 bool
 CQChartsXYImpulseLineObj::
-isIndex(const QModelIndex &) const
+isIndex(const QModelIndex &ind) const
 {
-  return false;
+  return (ind == ind_);
 }
 
 void
@@ -1517,10 +1547,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   plot_->windowToPixel(x1_, y1_, px1, py1);
   plot_->windowToPixel(x2_, y2_, px2, py2);
 
-  QColor strokeColor = plot_->interpPointStrokeColor(iset_, nset_);
+  QColor strokeColor = plot_->interpImpulseColor(iset_, nset_);
 
   QBrush brush(Qt::NoBrush);
   QPen   pen  (strokeColor);
+
+  pen.setWidthF(plot_->impulseWidth());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1816,7 +1848,7 @@ initSmooth()
       points.emplace_back(p.x(), p.y());
     }
 
-    smooth_ = new CQChartsSmooth(points);
+    smooth_ = new CQChartsSmooth(points, /*sorted*/false);
   }
 }
 
@@ -1856,7 +1888,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     QPainterPath path;
 
     for (int i = 0; i < smooth_->numPoints(); ++i) {
-      const CPoint2D &p = smooth_->point(i);
+      const CQChartsGeom::Point &p = smooth_->point(i);
 
       double px, py;
 
@@ -1865,15 +1897,31 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
       if (i == 0)
         path.moveTo(px, py);
       else {
-        CPoint2D c1 = smooth_->controlPoint1(i - 1);
-        CPoint2D c2 = smooth_->controlPoint2(i - 1);
+        CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
-        double pcx1, pcy1, pcx2, pcy2;
+        if      (type == CQChartsSmooth::SegmentType::CURVE3) {
+          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
+          CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-        plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-        plot_->windowToPixel(c2.x, c2.y, pcx2, pcy2);
+          double pcx1, pcy1, pcx2, pcy2;
 
-        path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+          plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
+          plot_->windowToPixel(c2.x, c2.y, pcx2, pcy2);
+
+          path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+        }
+        else if (type == CQChartsSmooth::SegmentType::CURVE2) {
+          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
+
+          double pcx1, pcy1;
+
+          plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
+
+          path.quadTo(pcx1, pcy1, px, py);
+        }
+        else if (type == CQChartsSmooth::SegmentType::LINE) {
+          path.lineTo(px, py);
+        }
       }
     }
 
@@ -1973,7 +2021,7 @@ initSmooth()
       points.emplace_back(p.x(), p.y());
     }
 
-    smooth_ = new CQChartsSmooth(points);
+    smooth_ = new CQChartsSmooth(points, /*sorted*/false);
   }
 }
 
@@ -2022,7 +2070,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     }
 
     for (int i = 0; i < smooth_->numPoints(); ++i) {
-      const CPoint2D &p = smooth_->point(i);
+      const CQChartsGeom::Point &p = smooth_->point(i);
 
       double px, py;
 
@@ -2031,15 +2079,31 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
       if (i == 0)
         path.lineTo(px, py);
       else {
-        CPoint2D c1 = smooth_->controlPoint1(i - 1);
-        CPoint2D c2 = smooth_->controlPoint2(i - 1);
+        CQChartsSmooth::SegmentType type = smooth_->segmentType(i - 1);
 
-        double pcx1, pcy1, pcx2, pcy2;
+        if      (type == CQChartsSmooth::SegmentType::CURVE3) {
+          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
+          CQChartsGeom::Point c2 = smooth_->controlPoint2(i - 1);
 
-        plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
-        plot_->windowToPixel(c2.x, c2.y, pcx2, pcy2);
+          double pcx1, pcy1, pcx2, pcy2;
 
-        path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+          plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
+          plot_->windowToPixel(c2.x, c2.y, pcx2, pcy2);
+
+          path.cubicTo(pcx1, pcy1, pcx2, pcy2, px, py);
+        }
+        else if (type == CQChartsSmooth::SegmentType::CURVE2) {
+          CQChartsGeom::Point c1 = smooth_->controlPoint1(i - 1);
+
+          double pcx1, pcy1;
+
+          plot_->windowToPixel(c1.x, c1.y, pcx1, pcy1);
+
+          path.quadTo(pcx1, pcy1, px, py);
+        }
+        else if (type == CQChartsSmooth::SegmentType::LINE) {
+          path.lineTo(px, py);
+        }
       }
     }
 
@@ -2183,10 +2247,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   CQChartsPlot *keyPlot = qobject_cast<CQChartsPlot *>(key_->plot());
 
-  CQChartsXYPlot *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
-
-  if (! xyKeyPlot)
-    xyKeyPlot = plot;
+  //CQChartsXYPlot *xyKeyPlot = qobject_cast<CQChartsXYPlot *>(keyPlot);
+  //if (! xyKeyPlot) xyKeyPlot = plot;
 
   CQChartsGeom::BBox prect;
 
@@ -2200,6 +2262,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   QColor pointStrokeColor = plot->interpPointStrokeColor(i_, n_);
   QColor pointFillColor   = plot->interpPointFillColor  (i_, n_);
   QColor lineColor        = plot->interpLineColor       (i_, n_);
+  QColor impulseColor     = plot->interpImpulseColor    (i_, n_);
 
   if (plot->isSetHidden(i_)) {
     QColor bg = key_->interpBgColor();
@@ -2207,12 +2270,13 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, bg, 0.5);
     pointFillColor   = CQChartsUtil::blendColors(pointFillColor  , bg, 0.5);
     lineColor        = CQChartsUtil::blendColors(lineColor       , bg, 0.5);
+    impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, 0.5);
   }
 
   if (plot->isFillUnder()) {
-    QColor fillColor = xyKeyPlot->interpFillUnderColor(i_, n_);
+    QColor fillColor = plot->interpFillUnderColor(i_, n_);
 
-    fillColor.setAlphaF(xyKeyPlot->fillUnderAlpha());
+    fillColor.setAlphaF(plot->fillUnderAlpha());
 
     QBrush fillBrush(fillColor);
 
@@ -2231,6 +2295,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;
     double y  = prect.getYMid();
+
+    if (! plot->isLines())
+      lineColor = impulseColor;
 
     if (isInside())
       lineColor = plot->insideColor(lineColor);

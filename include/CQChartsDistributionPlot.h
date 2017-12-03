@@ -24,6 +24,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                              int bucket, const Values &value, int i, int n);
 
+  int bucket() const { return bucket_; }
+
   QString calcId() const override;
 
   void mousePress(const CQChartsGeom::Point &) override;
@@ -63,8 +65,10 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   Q_PROPERTY(int     valueColumn      READ valueColumn       WRITE setValueColumn     )
   Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
+  Q_PROPERTY(bool    autoRange        READ isAutoRange       WRITE setAutoRange       )
   Q_PROPERTY(double  startValue       READ startValue        WRITE setStartValue      )
   Q_PROPERTY(double  deltaValue       READ deltaValue        WRITE setDeltaValue      )
+  Q_PROPERTY(int     numAuto          READ numAuto           WRITE setNumAuto         )
   Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
   Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
   Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
@@ -94,6 +98,32 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   using OptColor = boost::optional<CQChartsPaletteColor>;
 
+  struct CategoryRange {
+    enum class Type {
+      DEFINED,
+      AUTO
+    };
+
+    Type   type         { Type::AUTO };
+    double start        { 0.0 };
+    double delta        { 1.0 };
+    int    numValues    { 0 };
+    double minValue     { 0.0 };
+    double maxValue     { 0.0 };
+    int    numAuto      { 20 };
+    double increment    { 1 };
+    double calcMinValue { 1 };
+  };
+
+  struct Filter {
+    Filter(double min, double max) :
+     minValue(min), maxValue(max) {
+    }
+
+    double minValue { 1.0 };
+    double maxValue { 1.0 };
+  };
+
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsDistributionPlot();
@@ -108,16 +138,38 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  double startValue() const { return startValue_; }
-  void setStartValue(double r) { startValue_ = r; updateRange(); updateObjs(); }
+  bool isAutoRange() const { return categoryRange_.type == CategoryRange::Type::AUTO; }
 
-  double deltaValue() const { return deltaValue_; }
-  void setDeltaValue(double r) { deltaValue_ = r; updateRange(); updateObjs(); }
+  void setAutoRange(bool b) {
+    categoryRange_.type = (b ? CategoryRange::Type::AUTO : CategoryRange::Type::DEFINED);
+
+    updateRangeAndObjs();
+  }
+
+  double startValue() const { return categoryRange_.start; }
+  void setStartValue(double r) { categoryRange_.start = r; updateRangeAndObjs(); }
+
+  double deltaValue() const { return categoryRange_.delta; }
+  void setDeltaValue(double r) { categoryRange_.delta = r; updateRangeAndObjs(); }
+
+  int numAuto() const { return categoryRange_.numAuto; }
+
+  void setNumAuto(int i) {
+    categoryRange_.numAuto = i; calcCategoryRange(); updateRangeAndObjs();
+  }
+
+  //---
+
+  bool checkFilter(double value) const;
+
+  int calcBucket(double v) const;
+
+  void calcCategoryRange();
 
   //---
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updateRange(); updateObjs(); }
+  void setHorizontal(bool b) { horizontal_ = b; updateRangeAndObjs(); }
 
   //---
 
@@ -150,6 +202,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   QString barColorStr() const;
   void setBarColorStr(const QString &str);
+
+  QColor interpBarColor(int i, int n) const;
 
   double barAlpha() const;
   void setBarAlpha(double a);
@@ -188,9 +242,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  QColor interpBarColor(int i, int n) const;
-
   void addKeyItems(CQChartsKey *key) override;
+
+  //---
 
   QString bucketValuesStr(int bucket) const;
 
@@ -198,19 +252,27 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
+  bool addMenuItems(QMenu *) override;
+
+  //---
+
   void draw(QPainter *) override;
 
   void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
 
+ private slots:
+  void pushSlot();
+  void popSlot();
+
  private:
   using Values  = std::vector<QModelIndex>;
   using IValues = std::map<int,Values>;
+  using Filters = std::vector<Filter>;
 
  private:
   int                  valueColumn_ { -1 };      // value column
   int                  colorColumn_ { -1 };      // color column
-  double               startValue_  { 0.0 };     // start value
-  double               deltaValue_  { 1.0 };     // delta value
+  CategoryRange        categoryRange_;           // category range
   bool                 autoDelta_   { false };   // auto delta
   IValues              ivalues_;                 // indexed values
   bool                 horizontal_  { false };   // horizontal bars
@@ -219,6 +281,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   CQChartsFillObj*     fillObj_     { nullptr }; // fill object
   CQChartsValueSet     colorSet_;                // color column value set
   CQChartsDataLabel    dataLabel_;               // data label data
+  Filters              filters_;                 // filter stack
 };
 
 #endif

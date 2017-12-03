@@ -24,7 +24,8 @@ addObjects(const Objs &objs)
 
   objs_ = objs;
 
-  plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_, objs);
+  if (! objs_.empty())
+    plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_, objs);
 }
 
 CQChartsPlotObjTree::PlotObjTree *
@@ -72,6 +73,9 @@ CQChartsPlotObjTree::
 objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 {
   initTree();
+
+  if (! plotObjTree_)
+    return;
 
   PlotObjTree::DataList dataList;
 

@@ -17,6 +17,8 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   bool visible() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
@@ -46,6 +48,8 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
                            int i, int n);
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   bool visible() const override;
 

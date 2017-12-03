@@ -162,3 +162,14 @@
  + Add max value for exp
  + Allow antialias to be disabled
  + Update context menu to show current key and theme state
+## 12/03/2017
+ + Add minor grid lines to grid
+ + Update custom Line Dash class to use Pen and own property editor
+ + Allow drag key and axes
+ + Support custom plot menu items
+ + Add push/pop for distribution plot to filter to selected bar
+ + Support auto range calc in distribution plot
+ + Add tab through objects under mouse
+ + Add dark/light icons
+ + Separate position and status labels on status line
+ + Add impulse color/width to xy plot

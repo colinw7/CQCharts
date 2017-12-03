@@ -1,7 +1,6 @@
 #ifndef CQChartsHull3D_H
 #define CQChartsHull3D_H
 
-#include <CListLink.h>
 #include <sys/types.h>
 #include <cstdlib>
 #include <cstdio>
@@ -9,6 +8,163 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+
+#include <iterator>
+#include <cstddef>
+
+// input iterator supports:
+//  . Default construct
+//  . Copy construct
+//  . Copy assign
+//  . Increment pre/post
+//  . ==, !=
+//  . * (dereference to value)
+//
+// single pass with a shared underlying iterator value for a class
+//
+// i.e  II i1, i2;
+//      i1 = o.begin();
+//      i2 = i1;
+//      ++i1
+//      assert(*i1 == *i2);
+//
+template<class STATE, class T, class DIST=ptrdiff_t>
+class CInputIterator : public std::iterator<std::input_iterator_tag,T,DIST> {
+ public:
+  enum { IS_PTR = std::is_pointer<T>::value };
+
+  typedef typename std::remove_reference<T>::type     NonRefT;
+  typedef typename std::remove_pointer<NonRefT>::type NonPtrT;
+  typedef typename std::remove_cv<NonPtrT>::type      BareT;
+
+  typedef typename std::conditional<IS_PTR,const BareT *,const BareT &>::type ContentsT;
+
+  CInputIterator() :
+   state_() {
+  }
+
+  CInputIterator(const STATE &state) :
+   state_(state) {
+  }
+
+  CInputIterator(const CInputIterator &i) :
+   state_(i.state_) {
+  }
+
+ ~CInputIterator() { }
+
+  const CInputIterator &operator=(const CInputIterator &i) {
+    state_ = i.state_;
+    return *this;
+  }
+
+  const CInputIterator &operator++() { state_.next(); return *this; }
+
+  const CInputIterator &operator++(int) { ++(*this); }
+
+  friend bool operator==(const CInputIterator &lhs, const CInputIterator &rhs) {
+    return lhs.state_ == rhs.state_;
+  }
+
+  friend bool operator!=(const CInputIterator &lhs, const CInputIterator &rhs) {
+    return ! (lhs == rhs);
+  }
+
+  ContentsT operator*() const {
+    return state_.contents();
+  }
+
+ protected:
+  STATE state_;
+};
+
+//------
+
+template<typename T>
+class CListLink {
+ public:
+  typedef CListLink<T> ListLink;
+
+  CListLink() {
+    next = 0;
+    prev = 0;
+  }
+
+  void addTo(T **head) {
+    T *th = (T *) this;
+
+    if (*head) {
+      th     ->next       = *head;
+      th     ->prev       = (*head)->prev;
+      (*head)->prev       = th;
+      th     ->prev->next = th;
+    }
+    else {
+      *head = th;
+
+      (*head)->next = (*head)->prev = th;
+    }
+  }
+
+  void removeFrom(T **head) {
+    T *th = (T *) this;
+
+    if (*head) {
+      if      (*head == (*head)->next)
+        *head = 0;
+      else if (th == *head)
+        (*head) = (*head)->next;
+
+      th->next->prev = th->prev;
+      th->prev->next = th->next;
+    }
+  }
+
+  class IteratorState {
+   public:
+    IteratorState(const ListLink *list=0) :
+     list_(list), p_(list), end_(false) {
+      end_ = (list_ == 0);
+    }
+
+    void next() {
+      assert(p_ != 0);
+
+      p_ = p_->next;
+
+      end_ = (p_ == list_);
+    }
+
+    const T *contents() const {
+      assert(p_ != 0);
+
+      return (const T *) p_;
+    }
+
+    friend bool operator==(const IteratorState &lhs, const IteratorState &rhs) {
+      if (lhs.end_ == rhs.end_) return true;
+      if (lhs.end_ != rhs.end_) return false;
+
+      return (lhs.p_ == rhs.p_);
+    }
+
+   private:
+    const ListLink *list_;
+    const ListLink *p_;
+    bool            end_;
+  };
+
+  typedef CInputIterator<IteratorState, T *> iterator;
+
+  iterator begin() const { return iterator(IteratorState(this)); }
+  iterator end  () const { return iterator(IteratorState(0));}
+
+ public:
+  T *next;
+  T *prev;
+};
+
+//---
 
 class CQChartsHull3D {
  private:

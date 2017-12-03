@@ -1,5 +1,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsPlot.h>
+#include <CQChartsAxis.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
@@ -81,17 +82,18 @@ QString
 CQChartsKey::
 locationStr() const
 {
-  switch (location_) {
-    case Location::TOP_LEFT:      return "tl";
-    case Location::TOP_CENTER:    return "tc";
-    case Location::TOP_RIGHT:     return "tr";
-    case Location::CENTER_LEFT:   return "cl";
-    case Location::CENTER_CENTER: return "cc";
-    case Location::CENTER_RIGHT:  return "cr";
-    case Location::BOTTOM_LEFT:   return "bl";
-    case Location::BOTTOM_CENTER: return "bc";
-    case Location::BOTTOM_RIGHT:  return "br";
-    default:                      return "none";
+  switch (location_.location) {
+    case LocationType::TOP_LEFT:      return "tl";
+    case LocationType::TOP_CENTER:    return "tc";
+    case LocationType::TOP_RIGHT:     return "tr";
+    case LocationType::CENTER_LEFT:   return "cl";
+    case LocationType::CENTER_CENTER: return "cc";
+    case LocationType::CENTER_RIGHT:  return "cr";
+    case LocationType::BOTTOM_LEFT:   return "bl";
+    case LocationType::BOTTOM_CENTER: return "bc";
+    case LocationType::BOTTOM_RIGHT:  return "br";
+    case LocationType::ABSOLUTE:      return "abs";
+    default:                          return "none";
   }
 }
 
@@ -101,15 +103,16 @@ setLocationStr(const QString &str)
 {
   QString lstr = str.toLower();
 
-  if      (lstr == "tl") location_ = Location::TOP_LEFT;
-  else if (lstr == "tc") location_ = Location::TOP_CENTER;
-  else if (lstr == "tr") location_ = Location::TOP_RIGHT;
-  else if (lstr == "cl") location_ = Location::CENTER_LEFT;
-  else if (lstr == "cc") location_ = Location::CENTER_CENTER;
-  else if (lstr == "cr") location_ = Location::CENTER_RIGHT;
-  else if (lstr == "bl") location_ = Location::BOTTOM_LEFT;
-  else if (lstr == "bc") location_ = Location::BOTTOM_CENTER;
-  else if (lstr == "br") location_ = Location::BOTTOM_RIGHT;
+  if      (lstr == "tl" ) location_.location = LocationType::TOP_LEFT;
+  else if (lstr == "tc" ) location_.location = LocationType::TOP_CENTER;
+  else if (lstr == "tr" ) location_.location = LocationType::TOP_RIGHT;
+  else if (lstr == "cl" ) location_.location = LocationType::CENTER_LEFT;
+  else if (lstr == "cc" ) location_.location = LocationType::CENTER_CENTER;
+  else if (lstr == "cr" ) location_.location = LocationType::CENTER_RIGHT;
+  else if (lstr == "bl" ) location_.location = LocationType::BOTTOM_LEFT;
+  else if (lstr == "bc" ) location_.location = LocationType::BOTTOM_CENTER;
+  else if (lstr == "br" ) location_.location = LocationType::BOTTOM_RIGHT;
+  else if (lstr == "abs") location_.location = LocationType::ABSOLUTE;
 
   updatePosition();
 }
@@ -125,16 +128,88 @@ updatePosition()
 
 void
 CQChartsKey::
+updateLocation(const CQChartsGeom::BBox &bbox)
+{
+  QSizeF ks = calcSize();
+
+  LocationType location = this->location();
+
+  double xm = plot_->pixelToWindowWidth (8);
+  double ym = plot_->pixelToWindowHeight(8);
+
+  double kx { 0.0 }, ky { 0.0 };
+
+  if      (location == LocationType::TOP_LEFT ||
+           location == LocationType::CENTER_LEFT ||
+           location == LocationType::BOTTOM_LEFT) {
+    if (isInsideX())
+      kx = bbox.getXMin() + xm;
+    else
+      kx = bbox.getXMin() - ks.width() - xm;
+  }
+  else if (location == LocationType::TOP_CENTER ||
+           location == LocationType::CENTER_CENTER ||
+           location == LocationType::BOTTOM_CENTER) {
+    kx = bbox.getXMid() - ks.width()/2;
+  }
+  else if (location == LocationType::TOP_RIGHT ||
+           location == LocationType::CENTER_RIGHT ||
+           location == LocationType::BOTTOM_RIGHT) {
+    if (isInsideX())
+      kx = bbox.getXMax() - ks.width() - xm;
+    else
+      kx = bbox.getXMax() + xm;
+  }
+
+  if      (location == LocationType::TOP_LEFT ||
+           location == LocationType::TOP_CENTER ||
+           location == LocationType::TOP_RIGHT) {
+    if (isInsideY())
+      ky = bbox.getYMax() - ym;
+    else
+      ky = bbox.getYMax() + ks.height() + ym;
+  }
+  else if (location == LocationType::CENTER_LEFT ||
+           location == LocationType::CENTER_CENTER ||
+           location == LocationType::CENTER_RIGHT) {
+    ky = bbox.getYMid() - ks.height()/2;
+  }
+  else if (location == LocationType::BOTTOM_LEFT ||
+           location == LocationType::BOTTOM_CENTER ||
+           location == LocationType::BOTTOM_RIGHT) {
+    if (isInsideY())
+      ky = bbox.getYMin() + ks.height() + ym;
+    else {
+      ky = bbox.getYMin() - ym;
+
+      CQChartsAxis *xAxis = plot_->xAxis();
+
+      if (xAxis && xAxis->side() == CQChartsAxis::Side::BOTTOM_LEFT && xAxis->bbox().isSet())
+        ky -= xAxis->bbox().getHeight();
+    }
+  }
+
+  QPointF kp(kx, ky);
+
+  if (location == LocationType::ABSOLUTE)
+    kp  = absPosition();
+
+  setPosition(kp);
+}
+
+void
+CQChartsKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"   );
-  model->addProperty(path, this, "location"  );
-  model->addProperty(path, this, "insideX"   );
-  model->addProperty(path, this, "insideY"   );
-  model->addProperty(path, this, "spacing"   );
-  model->addProperty(path, this, "horizontal");
-  model->addProperty(path, this, "above"     );
-  model->addProperty(path, this, "flipped"   );
+  model->addProperty(path, this, "visible"    );
+  model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "absPosition");
+  model->addProperty(path, this, "insideX"    );
+  model->addProperty(path, this, "insideY"    );
+  model->addProperty(path, this, "spacing"    );
+  model->addProperty(path, this, "horizontal" );
+  model->addProperty(path, this, "above"      );
+  model->addProperty(path, this, "flipped"    );
 
   CQChartsBoxObj::addProperties(model, path);
 
@@ -349,6 +424,79 @@ getItemAt(const CQChartsGeom::Point &p) const
   return nullptr;
 }
 
+//------
+
+bool
+CQChartsKey::
+mouseMove(const CQChartsGeom::Point &w)
+{
+  bool changed = false;
+
+  if (contains(w)) {
+    CQChartsKeyItem *item = getItemAt(w);
+
+    bool handled = false;
+
+    if (item) {
+      changed = setInside(item);
+
+      handled = item->mouseMove(w);
+    }
+
+    if (changed)
+      plot_->update();
+
+    if (handled)
+      return true;
+  }
+
+  changed = setInside(nullptr);
+
+  if (changed)
+    plot_->update();
+
+  return false;
+}
+
+//------
+
+bool
+CQChartsKey::
+mouseDragPress(const CQChartsGeom::Point &p)
+{
+  dragPos_ = p;
+
+  location_.location    = LocationType::ABSOLUTE;
+  location_.absPosition = position_;
+
+  return true;
+}
+
+bool
+CQChartsKey::
+mouseDragMove(const CQChartsGeom::Point &p)
+{
+  double dx = p.x - dragPos_.x;
+  double dy = p.y - dragPos_.y;
+
+  location_.location     = LocationType::ABSOLUTE;
+  location_.absPosition += QPointF(dx, dy);
+
+  dragPos_ = p;
+
+  updatePosition();
+
+  return true;
+}
+
+void
+CQChartsKey::
+mouseDragRelease(const CQChartsGeom::Point &)
+{
+}
+
+//------
+
 bool
 CQChartsKey::
 setInside(CQChartsKeyItem *item)
@@ -426,14 +574,16 @@ draw(QPainter *p)
   QRectF dataRect = plot_->calcRect();
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
-  if (isInsideX()) {
-    clipRect.setLeft (dataRect.left ());
-    clipRect.setRight(dataRect.right());
-  }
+  if (location_.location != LocationType::ABSOLUTE) {
+    if (isInsideX()) {
+      clipRect.setLeft (dataRect.left ());
+      clipRect.setRight(dataRect.right());
+    }
 
-  if (isInsideY()) {
-    clipRect.setTop   (dataRect.top   ());
-    clipRect.setBottom(dataRect.bottom());
+    if (isInsideY()) {
+      clipRect.setTop   (dataRect.top   ());
+      clipRect.setBottom(dataRect.bottom());
+    }
   }
 
   p->setClipRect(clipRect, Qt::ReplaceClip);
@@ -493,20 +643,26 @@ interpBgColor() const
   if (isBackground())
     return interpBackgroundColor(0, 1);
 
-  if      (isInsideX() && isInsideY()) {
-    if (plot_->isDataBackground())
-      return plot_->interpDataBackgroundColor(0, 1);
-  }
-  else if (isInsideX()) {
-    if (location_ == CENTER_LEFT || location_ == CENTER_CENTER || location_ == CENTER_RIGHT) {
+  if (location_.location != LocationType::ABSOLUTE) {
+    if      (isInsideX() && isInsideY()) {
       if (plot_->isDataBackground())
         return plot_->interpDataBackgroundColor(0, 1);
     }
-  }
-  else if (isInsideY()) {
-    if (location_ == TOP_CENTER || location_ == CENTER_CENTER || location_ == BOTTOM_CENTER) {
-      if (plot_->isDataBackground())
-        return plot_->interpDataBackgroundColor(0, 1);
+    else if (isInsideX()) {
+      if (location_.location == CENTER_LEFT ||
+          location_.location == CENTER_CENTER ||
+          location_.location == CENTER_RIGHT) {
+        if (plot_->isDataBackground())
+          return plot_->interpDataBackgroundColor(0, 1);
+      }
+    }
+    else if (isInsideY()) {
+      if (location_.location == TOP_CENTER ||
+          location_.location == CENTER_CENTER ||
+          location_.location == BOTTOM_CENTER) {
+        if (plot_->isDataBackground())
+          return plot_->interpDataBackgroundColor(0, 1);
+      }
     }
   }
 

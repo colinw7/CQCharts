@@ -77,6 +77,8 @@ CQChartsWindow(CQChartsView *view) :
 
   connect(view_, SIGNAL(modeChanged()), this, SLOT(modeSlot()));
 
+  connect(view_, SIGNAL(posTextChanged(const QString &)),
+          this, SLOT(setPosText(const QString &)));
   connect(view_, SIGNAL(statusTextChanged(const QString &)),
           this, SLOT(setStatusText(const QString &)));
 
@@ -175,7 +177,14 @@ void
 CQChartsWindow::
 setStatusText(const QString &text)
 {
-  status_->setText(text);
+  status_->setStatusText(text);
+}
+
+void
+CQChartsWindow::
+setPosText(const QString &text)
+{
+  status_->setPosText(text);
 }
 
 void

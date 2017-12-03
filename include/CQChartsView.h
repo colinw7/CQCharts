@@ -1,8 +1,10 @@
 #ifndef CQChartsView_H
 #define CQChartsView_H
 
-#include <QFrame>
 #include <CQChartsGeom.h>
+#include <QFrame>
+#include <QTimer>
+#include <set>
 
 class CQCharts;
 class CQChartsPlot;
@@ -63,7 +65,8 @@ class CQChartsView : public QFrame {
   };
 
  public:
-  using Plots = std::vector<CQChartsPlot*>;
+  using Plots   = std::vector<CQChartsPlot*>;
+  using PlotSet = std::set<CQChartsPlot*>;
 
  public:
   static double viewportRange() { return 100.0; }
@@ -166,21 +169,38 @@ class CQChartsView : public QFrame {
 
   void showMenu(const QPoint &p);
 
+  QPointF menuPos() const { return mouseData_.pressPoint; }
+
   //---
 
   void updatePlots();
 
   //---
 
+  bool plots(Plots &plots, bool clear=true) const;
+
+  bool basePlots(PlotSet &plots, bool clear=true) const;
+
   CQChartsPlot *plotAt(const CQChartsGeom::Point &p) const;
 
-  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots) const;
+  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot,
+               bool clear=true) const;
+
+  bool plotsAt(const CQChartsGeom::Point &p, Plots &plots, bool clear=true) const;
+
+  bool basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear=true) const;
 
   CQChartsGeom::BBox plotBBox(CQChartsPlot *plot) const;
+
+  //---
+
+  int plotInd(CQChartsPlot *plot) const;
 
   CQChartsPlot *currentPlot(bool remap=true) const;
 
   //---
+
+  virtual void setPosText(const QString &text);
 
   virtual void setStatusText(const QString &text);
 
@@ -221,8 +241,11 @@ class CQChartsView : public QFrame {
   void modeChanged();
 
   void statusTextChanged(const QString &text);
+  void posTextChanged(const QString &text);
 
  public slots:
+  void searchSlot();
+
   void keySlot(bool b);
 
   void fitSlot();
@@ -232,6 +255,8 @@ class CQChartsView : public QFrame {
 
   void darkTheme1Slot();
   void darkTheme2Slot();
+
+  void currentPlotSlot();
 
  private:
   struct PlotData {
@@ -246,19 +271,23 @@ class CQChartsView : public QFrame {
   using PlotDatas = std::vector<PlotData>;
 
   struct MouseData {
-    Plots  plots;
-    QPoint pressPoint;
-    QPoint movePoint;
-    bool   pressed   { false };
-    bool   escape    { false };
-    bool   clickZoom { false };
+    Plots         plots;
+    CQChartsPlot* plot      { nullptr };
+    QPoint        pressPoint;
+    QPoint        movePoint;
+    bool          pressed   { false };
+    bool          escape    { false };
+    bool          clickZoom { false };
+    int           button    { Qt::NoButton };
 
     void reset() {
       plots.clear();
 
+      plot      = nullptr;
       pressed   = false;
       escape    = false;
       clickZoom = false;
+      button    = Qt::NoButton;
     }
   };
 
@@ -286,6 +315,8 @@ class CQChartsView : public QFrame {
   CQChartsGeom::BBox    prect_          { 0, 0, 100, 100 };
   double                aspect_         { 1.0 };
   MouseData             mouseData_;
+  QTimer                searchTimer_;
+  QPointF               searchPos_;
   QRubberBand*          zoomBand_       { nullptr };
   ProbeBands            probeBands_;
   QMenu*                popupMenu_      { nullptr };

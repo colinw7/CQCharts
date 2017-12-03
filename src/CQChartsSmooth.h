@@ -1,8 +1,7 @@
 #ifndef CQChartsSmooth_H
 #define CQChartsSmooth_H
 
-#include <CPoint2D.h>
-#include <CBBox2D.h>
+#include <CQChartsGeom.h>
 #include <vector>
 
 //---
@@ -17,7 +16,8 @@ class CQChartsBezier2 {
    p1_(x1, y1), p2_(x2, y2), p3_(x3, y3) {
   }
 
-  CQChartsBezier2(const CPoint2D &p1, const CPoint2D &p2, const CPoint2D &p3) :
+  CQChartsBezier2(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2,
+                  const CQChartsGeom::Point &p3) :
    p1_(p1), p2_(p2), p3_(p3) {
   }
 
@@ -33,32 +33,34 @@ class CQChartsBezier2 {
     return *this;
   }
 
-  const CPoint2D &getFirstPoint  () const { return p1_; }
-  const CPoint2D &getControlPoint() const { return p2_; }
-  const CPoint2D &getLastPoint   () const { return p3_; }
+  const CQChartsGeom::Point &getFirstPoint  () const { return p1_; }
+  const CQChartsGeom::Point &getControlPoint() const { return p2_; }
+  const CQChartsGeom::Point &getLastPoint   () const { return p3_; }
 
-  void setFirstPoint  (const CPoint2D &p1) { p1_ = p1; }
-  void setControlPoint(const CPoint2D &p2) { p2_ = p2; };
-  void setLastPoint   (const CPoint2D &p3) { p3_ = p3; };
+  void setFirstPoint  (const CQChartsGeom::Point &p1) { p1_ = p1; }
+  void setControlPoint(const CQChartsGeom::Point &p2) { p2_ = p2; };
+  void setLastPoint   (const CQChartsGeom::Point &p3) { p3_ = p3; };
 
   void getFirstPoint  (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
   void getControlPoint(double *x, double *y) const { *x = p2_.x; *y = p2_.y; }
   void getLastPoint   (double *x, double *y) const { *x = p3_.x; *y = p3_.y; }
 
-  void setFirstPoint  (double x, double y) { setFirstPoint  (CPoint2D(x, y)); }
-  void setControlPoint(double x, double y) { setControlPoint(CPoint2D(x, y)); }
-  void setLastPoint   (double x, double y) { setLastPoint   (CPoint2D(x, y)); }
+  void setFirstPoint  (double x, double y) { setFirstPoint  (CQChartsGeom::Point(x, y)); }
+  void setControlPoint(double x, double y) { setControlPoint(CQChartsGeom::Point(x, y)); }
+  void setLastPoint   (double x, double y) { setLastPoint   (CQChartsGeom::Point(x, y)); }
 
   void setPoints(double x1, double y1, double x2, double y2, double x3, double y3) {
-    setPoints(CPoint2D(x1, y1), CPoint2D(x2, y2), CPoint2D(x3, y3));
+    setPoints(CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2),
+              CQChartsGeom::Point(x3, y3));
   }
 
-  void setPoints(const CPoint2D &p1, const CPoint2D &p2, const CPoint2D &p3) {
+  void setPoints(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2,
+                 const CQChartsGeom::Point &p3) {
     p1_ = p1; p2_ = p2; p3_ = p3;
   }
 
   void calc(double t, double *x, double *y) const {
-    CPoint2D p;
+    CQChartsGeom::Point p;
 
     calc(t, p);
 
@@ -66,11 +68,11 @@ class CQChartsBezier2 {
     *y = p.y;
   }
 
-  void calc(double t, CPoint2D &p) const {
+  void calc(double t, CQChartsGeom::Point &p) const {
     p = calc(t);
   }
 
-  CPoint2D calc(double t) const {
+  CQChartsGeom::Point calc(double t) const {
     double u = (1.0 - t);
 
     double tt = t*t;
@@ -80,14 +82,14 @@ class CQChartsBezier2 {
   }
 
   bool interp(double x, double y, double *t) const {
-    return interp(CPoint2D(x, y), t);
+    return interp(CQChartsGeom::Point(x, y), t);
   }
 
-  bool interp(const CPoint2D &p, double *t) const {
+  bool interp(const CQChartsGeom::Point &p, double *t) const {
     double t1 = (::fabs(p.x   - p1_.x) + ::fabs(p.y   - p1_.y))/
-           (::fabs(p3_.x - p1_.x) + ::fabs(p3_.y - p1_.y));
+                (::fabs(p3_.x - p1_.x) + ::fabs(p3_.y - p1_.y));
 
-    CPoint2D pp;
+    CQChartsGeom::Point pp;
 
     calc(t1, pp);
 
@@ -160,7 +162,7 @@ class CQChartsBezier2 {
   double gradient(double t) const {
     double u = 1.0 - t;
 
-    CPoint2D p = (p2_ - p1_)*u + (p3_ - p2_)*t;
+    CQChartsGeom::Point p = (p2_ - p1_)*u + (p3_ - p2_)*t;
 
     //double g = CMathGen::atan2(p.x, p.y);
     double g = atan2(p.y, p.x);
@@ -169,13 +171,13 @@ class CQChartsBezier2 {
   }
 
 #if 0
-  void getHullPolygon(std::vector<CPoint2D> &points) const {
+  void getHullPolygon(std::vector<CQChartsGeom::Point> &points) const {
     points.push_back(p1_);
     points.push_back(p2_);
     points.push_back(p3_);
   }
 
-  void getHullBBox(CBBox2D &bbox) const {
+  void getHullBBox(CQChartsGeom::BBox &bbox) const {
     bbox.reset();
 
     bbox.add(p1_);
@@ -186,15 +188,16 @@ class CQChartsBezier2 {
 
   void split(CQChartsBezier2 &bezier1, CQChartsBezier2 &bezier2) const {
     // split at control point
-    CPoint2D p12 = (p1_ + p2_)/2.0;
-    CPoint2D p23 = (p2_ + p3_)/2.0;
+    CQChartsGeom::Point p12 = (p1_ + p2_)/2.0;
+    CQChartsGeom::Point p23 = (p2_ + p3_)/2.0;
 
-    CPoint2D pm = (p12 + p23)/2.0;
+    CQChartsGeom::Point pm = (p12 + p23)/2.0;
 
     bezier1 = CQChartsBezier2(p1_, p12, pm );
     bezier2 = CQChartsBezier2(pm , p23, p3_);
   }
 
+#if 0
   double arcLength(double tol=1E-3) const {
     double l1 = p1_.distanceTo(p3_);
     double l2 = p1_.distanceTo(p2_) + p2_.distanceTo(p3_);
@@ -208,6 +211,7 @@ class CQChartsBezier2 {
 
     return bezier1.arcLength(tol) + bezier2.arcLength(tol);
   }
+#endif
 
 #if 0
   void print(std::ostream &os) const {
@@ -224,7 +228,7 @@ class CQChartsBezier2 {
 #endif
 
  private:
-  CPoint2D p1_, p2_, p3_;
+  CQChartsGeom::Point p1_, p2_, p3_;
 };
 
 //------
@@ -240,7 +244,8 @@ class CQChartsBezier3 {
    p1_(x1, y1), p2_(x2, y2), p3_(x3, y3), p4_(x4, y4) {
   }
 
-  CQChartsBezier3(const CPoint2D &p1, const CPoint2D &p2, const CPoint2D &p3, const CPoint2D &p4) :
+  CQChartsBezier3(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2,
+                  const CQChartsGeom::Point &p3, const CQChartsGeom::Point &p4) :
    p1_(p1), p2_(p2), p3_(p3), p4_(p4) {
   }
 
@@ -253,7 +258,7 @@ class CQChartsBezier3 {
     p1_ = bezier2.getFirstPoint();
     p4_ = bezier2.getLastPoint ();
 
-    const CPoint2D &p = bezier2.getControlPoint();
+    const CQChartsGeom::Point &p = bezier2.getControlPoint();
 
     p2_ = (p1_ + 2*p)/3;
     p3_ = (2*p + p4_)/3;
@@ -268,41 +273,44 @@ class CQChartsBezier3 {
     return *this;
   }
 
-  const CPoint2D &getFirstPoint   () const { return p1_; }
-  const CPoint2D &getControlPoint1() const { return p2_; }
-  const CPoint2D &getControlPoint2() const { return p3_; }
-  const CPoint2D &getLastPoint    () const { return p4_; }
+  const CQChartsGeom::Point &getFirstPoint   () const { return p1_; }
+  const CQChartsGeom::Point &getControlPoint1() const { return p2_; }
+  const CQChartsGeom::Point &getControlPoint2() const { return p3_; }
+  const CQChartsGeom::Point &getLastPoint    () const { return p4_; }
 
-  void setFirstPoint   (const CPoint2D &p1) { p1_ = p1; }
-  void setControlPoint1(const CPoint2D &p2) { p2_ = p2; };
-  void setControlPoint2(const CPoint2D &p3) { p3_ = p3; };
-  void setLastPoint    (const CPoint2D &p4) { p4_ = p4; };
+  void setFirstPoint   (const CQChartsGeom::Point &p1) { p1_ = p1; }
+  void setControlPoint1(const CQChartsGeom::Point &p2) { p2_ = p2; };
+  void setControlPoint2(const CQChartsGeom::Point &p3) { p3_ = p3; };
+  void setLastPoint    (const CQChartsGeom::Point &p4) { p4_ = p4; };
 
   void getFirstPoint   (double *x, double *y) const { *x = p1_.x; *y = p1_.y; }
   void getControlPoint1(double *x, double *y) const { *x = p2_.x; *y = p2_.y; }
   void getControlPoint2(double *x, double *y) const { *x = p3_.x; *y = p3_.y; }
   void getLastPoint    (double *x, double *y) const { *x = p4_.x; *y = p4_.y; }
 
-  void setFirstPoint   (double x, double y) { setFirstPoint   (CPoint2D(x, y)); }
-  void setControlPoint1(double x, double y) { setControlPoint1(CPoint2D(x, y)); }
-  void setControlPoint2(double x, double y) { setControlPoint2(CPoint2D(x, y)); }
-  void setLastPoint    (double x, double y) { setLastPoint    (CPoint2D(x, y)); }
+  void setFirstPoint   (double x, double y) { setFirstPoint   (CQChartsGeom::Point(x, y)); }
+  void setControlPoint1(double x, double y) { setControlPoint1(CQChartsGeom::Point(x, y)); }
+  void setControlPoint2(double x, double y) { setControlPoint2(CQChartsGeom::Point(x, y)); }
+  void setLastPoint    (double x, double y) { setLastPoint    (CQChartsGeom::Point(x, y)); }
 
   void setPoints(double x1, double y1, double x2, double y2,
                  double x3, double y3, double x4, double y4) {
-    setPoints(CPoint2D(x1, y1), CPoint2D(x2, y2), CPoint2D(x3, y3), CPoint2D(x4, y4));
+    setPoints(CQChartsGeom::Point(x1, y1), CQChartsGeom::Point(x2, y2),
+              CQChartsGeom::Point(x3, y3), CQChartsGeom::Point(x4, y4));
   }
 
-  void setPoints(const CPoint2D &p1, const CPoint2D &p2, const CPoint2D &p3, const CPoint2D &p4) {
+  void setPoints(const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2,
+                 const CQChartsGeom::Point &p3, const CQChartsGeom::Point &p4) {
     p1_ = p1; p2_ = p2; p3_ = p3; p4_ = p4;
   }
 
-  void getPoints(CPoint2D &p1, CPoint2D &p2, CPoint2D &p3, CPoint2D &p4) const {
+  void getPoints(CQChartsGeom::Point &p1, CQChartsGeom::Point &p2,
+                 CQChartsGeom::Point &p3, CQChartsGeom::Point &p4) const {
     p1 = p1_; p2 = p2_; p3 = p3_; p4 = p4_;
   }
 
   void calc(double t, double *x, double *y) const {
-    CPoint2D p;
+    CQChartsGeom::Point p;
 
     calc(t, p);
 
@@ -310,11 +318,11 @@ class CQChartsBezier3 {
     *y = p.y;
   }
 
-  void calc(double t, CPoint2D &p) const {
+  void calc(double t, CQChartsGeom::Point &p) const {
     p = calc(t);
   }
 
-  CPoint2D calc(double t) const {
+  CQChartsGeom::Point calc(double t) const {
     double u = (1.0 - t);
 
     double tt  = t*t;
@@ -327,14 +335,14 @@ class CQChartsBezier3 {
   }
 
   bool interp(double x, double y, double *t) const {
-    return interp(CPoint2D(x, y), t);
+    return interp(CQChartsGeom::Point(x, y), t);
   }
 
-  bool interp(const CPoint2D &p, double *t) const {
+  bool interp(const CQChartsGeom::Point &p, double *t) const {
     double t1 = (::fabs(p.x   - p1_.x) + ::fabs(p.y   - p1_.y))/
-           (::fabs(p4_.x - p1_.x) + ::fabs(p4_.y - p1_.y));
+                (::fabs(p4_.x - p1_.x) + ::fabs(p4_.y - p1_.y));
 
-    CPoint2D pp;
+    CQChartsGeom::Point pp;
 
     calc(t1, pp);
 
@@ -395,12 +403,10 @@ class CQChartsBezier3 {
   }
 
   double gradientStart() const {
-    //return CMathGen::atan2(p2_.x - p1_.x, p2_.y - p1_.y);
     return atan2(p2_.y - p1_.y, p2_.x - p1_.x);
   }
 
   double gradientEnd() const {
-    //return CMathGen::atan2(p4_.x - p3_.x, p4_.y - p3_.y);
     return atan2(p4_.y - p3_.y, p4_.x - p3_.x);
   }
 
@@ -411,22 +417,22 @@ class CQChartsBezier3 {
     double uu = u*u;
     double tu = t*u;
 
-    CPoint2D p = (p2_ - p1_)*uu + 2.0*(p3_ - p2_)*tu + (p4_ - p3_)*tt;
+    CQChartsGeom::Point p = (p2_ - p1_)*uu + 2.0*(p3_ - p2_)*tu + (p4_ - p3_)*tt;
 
-    //double g = CMathGen::atan2(p.x, p.y);
     double g = atan2(p.y, p.x);
 
     return g;
   }
 
-  void getHullPolygon(std::vector<CPoint2D> &points) const {
+#if 0
+  void getHullPolygon(std::vector<CQChartsGeom::Point> &points) const {
     points.push_back(p1_);
     points.push_back(p2_);
     points.push_back(p3_);
     points.push_back(p4_);
   }
 
-  void getHullBBox(CBBox2D &bbox) const {
+  void getHullBBox(CQChartsGeom::BBox &bbox) const {
     bbox.reset();
 
     bbox.add(p1_);
@@ -434,6 +440,7 @@ class CQChartsBezier3 {
     bbox.add(p3_);
     bbox.add(p4_);
   }
+#endif
 
   void split(CQChartsBezier3 &bezier1, CQChartsBezier3 &bezier2) const {
     split(0.5, bezier1, bezier2);
@@ -443,20 +450,21 @@ class CQChartsBezier3 {
     // split at t (0 - 1) of curve
     double u = 1.0 - t;
 
-    CPoint2D p11 = u*p1_ + t*p2_;
-    CPoint2D p12 = u*p2_ + t*p3_;
-    CPoint2D p13 = u*p3_ + t*p4_;
+    CQChartsGeom::Point p11 = u*p1_ + t*p2_;
+    CQChartsGeom::Point p12 = u*p2_ + t*p3_;
+    CQChartsGeom::Point p13 = u*p3_ + t*p4_;
 
-    CPoint2D p21 = u*p11 + t*p12;
-    CPoint2D p22 = u*p12 + t*p13;
+    CQChartsGeom::Point p21 = u*p11 + t*p12;
+    CQChartsGeom::Point p22 = u*p12 + t*p13;
 
-    CPoint2D p31 = u*p21 + t*p22;
+    CQChartsGeom::Point p31 = u*p21 + t*p22;
 
     bezier1 = CQChartsBezier3(p1_, p11, p21, p31);
     bezier2 = CQChartsBezier3(p31, p22, p13, p4_);
   }
 
-  bool split(const CPoint2D &p, CQChartsBezier3 &bezier1, CQChartsBezier3 &bezier2) const {
+  bool split(const CQChartsGeom::Point &p, CQChartsBezier3 &bezier1,
+             CQChartsBezier3 &bezier2) const {
     double t;
 
     if (! interp(p, &t)) return false;
@@ -466,20 +474,22 @@ class CQChartsBezier3 {
     return true;
   }
 
-  CPoint2D deCasteljauInterp(double t) const {
+#if 0
+  CQChartsGeom::Point deCasteljauInterp(double t) const {
     double u = 1.0 - t;
 
-    CPoint2D p11 = u*p1_ + t*p2_;
-    CPoint2D p12 = u*p2_ + t*p3_;
-    CPoint2D p13 = u*p3_ + t*p4_;
+    CQChartsGeom::Point p11 = u*p1_ + t*p2_;
+    CQChartsGeom::Point p12 = u*p2_ + t*p3_;
+    CQChartsGeom::Point p13 = u*p3_ + t*p4_;
 
-    CPoint2D p21 = u*p11 + t*p12;
-    CPoint2D p22 = u*p12 + t*p13;
+    CQChartsGeom::Point p21 = u*p11 + t*p12;
+    CQChartsGeom::Point p22 = u*p12 + t*p13;
 
-    CPoint2D p31 = u*p21 + t*p22;
+    CQChartsGeom::Point p31 = u*p21 + t*p22;
 
     return p31;
   }
+#endif
 
 #if 0
   template<typename FUNC>
@@ -571,15 +581,17 @@ class CQChartsBezier3 {
 
     return CQChartsBezier3(x1, y1, x11, y11, x21, y21, x2, y2);
   }
+#endif
 
+#if 0
   template<typename FUNC>
   static CQChartsBezier3 bestParamFit(FUNC f, double t1=0, double t2=1, int steps=50) {
     assert(t2 > t1);
 
-    CPoint2D p1 = f(t1);
-    CPoint2D p2 = f(t1 + 0.01);
-    CPoint2D p3 = f(t2 - 0.01);
-    CPoint2D p4 = f(t2);
+    CQChartsGeom::Point p1 = f(t1);
+    CQChartsGeom::Point p2 = f(t1 + 0.01);
+    CQChartsGeom::Point p3 = f(t2 - 0.01);
+    CQChartsGeom::Point p4 = f(t2);
 
     double x1 = p1.x, y1 = p1.y;
     double x2 = p4.x, y2 = p4.y;
@@ -616,7 +628,7 @@ class CQChartsBezier3 {
 
         b.calc(it, &bx, &by);
 
-        CPoint2D pi = f(it);
+        CQChartsGeom::Point pi = f(it);
 
         double d = std::max(fabs(bx - pi.x), fabs(by - pi.y));
 
@@ -648,7 +660,7 @@ class CQChartsBezier3 {
 
         b.calc(it, &bx, &by);
 
-        CPoint2D pi = f(it);
+        CQChartsGeom::Point pi = f(it);
 
         double d = std::max(fabs(bx - pi.x), fabs(by - pi.y));
 
@@ -668,7 +680,9 @@ class CQChartsBezier3 {
 
     return CQChartsBezier3(x1, y1, x11, y11, x21, y21, x2, y2);
   }
+#endif
 
+#if 0
   template<typename FUNC>
   static CQChartsBezier3 bestPolarFit(FUNC f, double a1, double r1, double g1,
                                       double a2, double r2, double g2, int steps=50) {
@@ -809,6 +823,7 @@ class CQChartsBezier3 {
   }
 #endif
 
+#if 0
   double arcLength(double tol=1E-3) const {
     double l1 = p1_.distanceTo(p4_);
     double l2 = p1_.distanceTo(p2_) + p2_.distanceTo(p3_) + p3_.distanceTo(p4_);
@@ -822,6 +837,7 @@ class CQChartsBezier3 {
 
     return bezier1.arcLength(tol) + bezier2.arcLength(tol);
   }
+#endif
 
 #if 0
   void print(std::ostream &os) const {
@@ -839,7 +855,7 @@ class CQChartsBezier3 {
 #endif
 
  private:
-  CPoint2D p1_, p2_, p3_, p4_;
+  CQChartsGeom::Point p1_, p2_, p3_, p4_;
 };
 
 //------
@@ -847,7 +863,14 @@ class CQChartsBezier3 {
 // smooth curve through set of points
 class CQChartsSmooth {
  public:
-  typedef std::vector<CPoint2D> Points;
+  typedef std::vector<CQChartsGeom::Point> Points;
+
+  enum class SegmentType {
+    NONE,
+    LINE,
+    CURVE2,
+    CURVE3
+  };
 
  private:
   class Segment {
@@ -856,28 +879,34 @@ class CQChartsSmooth {
 
     virtual ~Segment() { }
 
+    virtual SegmentType type() const = 0;
+
     virtual bool inside(const CQChartsSmooth *smooth, double x) const = 0;
 
     virtual double interp(const CQChartsSmooth *smooth, double x) const = 0;
 
-    virtual CPoint2D controlPoint1(const CQChartsSmooth *smooth) const = 0;
-    virtual CPoint2D controlPoint2(const CQChartsSmooth *smooth) const = 0;
+    virtual CQChartsGeom::Point controlPoint1(const CQChartsSmooth *smooth) const = 0;
+    virtual CQChartsGeom::Point controlPoint2(const CQChartsSmooth *smooth) const = 0;
   };
+
+  //---
 
   class Line : public Segment {
    public:
     Line(int i) : i_(i) { }
 
+    SegmentType type() const override { return SegmentType::LINE; }
+
     bool inside(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p2 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p2 = smooth->point(i_ + 1);
 
       return (x >= p1.x && x <= p2.x);
     }
 
     double interp(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p2 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p2 = smooth->point(i_ + 1);
 
       if (p1.x == p2.x) return p1.y;
 
@@ -887,87 +916,98 @@ class CQChartsSmooth {
       return y;
     }
 
-    CPoint2D controlPoint1(const CQChartsSmooth *smooth) const override {
+    CQChartsGeom::Point controlPoint1(const CQChartsSmooth *smooth) const override {
       return smooth->point(i_    ); }
-    CPoint2D controlPoint2(const CQChartsSmooth *smooth) const override {
+    CQChartsGeom::Point controlPoint2(const CQChartsSmooth *smooth) const override {
       return smooth->point(i_ + 1); }
 
    private:
     int i_;
   };
 
+  //---
+
   class Curve2 : public Segment {
    public:
-    Curve2(int i, const CPoint2D &mp) : i_(i), mp_(mp) { }
+    Curve2(int i, const CQChartsGeom::Point &mp) : i_(i), mp_(mp) { }
+
+    SegmentType type() const override { return SegmentType::CURVE2; }
 
     bool inside(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p2 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p2 = smooth->point(i_ + 1);
 
       return (x >= p1.x && x <= p2.x);
     }
 
     double interp(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p3 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p3 = smooth->point(i_ + 1);
 
       CQChartsBezier2 bezier(p1, mp_, p3);
 
       double t = (x - p1.x)/(p3.x - p1.x);
 
-      CPoint2D pi;
+      CQChartsGeom::Point pi;
 
       bezier.calc(t, pi);
 
       return pi.y;
     }
 
-    CPoint2D controlPoint1(const CQChartsSmooth *) const override { return mp_; }
-    CPoint2D controlPoint2(const CQChartsSmooth *) const override { return mp_; }
+    CQChartsGeom::Point controlPoint1(const CQChartsSmooth *) const override { return mp_; }
+    CQChartsGeom::Point controlPoint2(const CQChartsSmooth *) const override { return mp_; }
 
    private:
     int      i_;
-    CPoint2D mp_;
+    CQChartsGeom::Point mp_;
   };
+
+  //---
 
   class Curve3 : public Segment {
    public:
-    Curve3(int i, const CPoint2D &mp1, const CPoint2D &mp2) : i_(i), mp1_(mp1), mp2_(mp2) { }
+    Curve3(int i, const CQChartsGeom::Point &mp1, const CQChartsGeom::Point &mp2) :
+     i_(i), mp1_(mp1), mp2_(mp2) { }
+
+    SegmentType type() const override { return SegmentType::CURVE3; }
 
     bool inside(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p2 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p2 = smooth->point(i_ + 1);
 
       return (x >= p1.x && x <= p2.x);
     }
 
     double interp(const CQChartsSmooth *smooth, double x) const override {
-      const CPoint2D &p1 = smooth->point(i_    );
-      const CPoint2D &p3 = smooth->point(i_ + 1);
+      const CQChartsGeom::Point &p1 = smooth->point(i_    );
+      const CQChartsGeom::Point &p3 = smooth->point(i_ + 1);
 
       CQChartsBezier3 bezier(p1, mp1_, mp2_, p3);
 
       double t = (x - p1.x)/(p3.x - p1.x);
 
-      CPoint2D pi;
+      CQChartsGeom::Point pi;
 
       bezier.calc(t, pi);
 
       return pi.y;
     }
 
-    CPoint2D controlPoint1(const CQChartsSmooth *) const override { return mp1_; }
-    CPoint2D controlPoint2(const CQChartsSmooth *) const override { return mp2_; }
+    CQChartsGeom::Point controlPoint1(const CQChartsSmooth *) const override { return mp1_; }
+    CQChartsGeom::Point controlPoint2(const CQChartsSmooth *) const override { return mp2_; }
 
    private:
     int      i_;
-    CPoint2D mp1_;
-    CPoint2D mp2_;
+    CQChartsGeom::Point mp1_;
+    CQChartsGeom::Point mp2_;
   };
 
+  //---
+
  public:
-  CQChartsSmooth(const Points &points=Points()) :
-   points_(points) {
+  CQChartsSmooth(const Points &points=Points(), bool sorted=true) :
+   points_(points), sorted_(sorted) {
     reset();
 
     smooth();
@@ -991,7 +1031,7 @@ class CQChartsSmooth {
     smooth();
   }
 
-  void addPoint(const CPoint2D &p) {
+  void addPoint(const CQChartsGeom::Point &p) {
     points_.push_back(p);
 
     reset();
@@ -1001,7 +1041,8 @@ class CQChartsSmooth {
 
   void sort() {
     std::sort(points_.begin(), points_.end(),
-              [](const CPoint2D &p1, const CPoint2D &p2) { return p1.x < p2.x; });
+              [](const CQChartsGeom::Point &p1, const CQChartsGeom::Point &p2) {
+                return p1.x < p2.x; });
   }
 
   double interp(double x) {
@@ -1032,13 +1073,15 @@ class CQChartsSmooth {
 
   int numPoints() const { return points_.size(); }
 
-  const CPoint2D &point(int i) const { return points_[i]; }
+  const CQChartsGeom::Point &point(int i) const { return points_[i]; }
 
-  CPoint2D controlPoint1(int i) const {
+  SegmentType segmentType(int i) const { return segments_[i]->type(); }
+
+  CQChartsGeom::Point controlPoint1(int i) const {
     return segments_[i]->controlPoint1(this);
   }
 
-  CPoint2D controlPoint2(int i) const {
+  CQChartsGeom::Point controlPoint2(int i) const {
     return segments_[i]->controlPoint2(this);
   }
 
@@ -1051,7 +1094,8 @@ class CQChartsSmooth {
   }
 
   void smooth() {
-    sort();
+    if (sorted_)
+      sort();
 
     if (points_.size() < 2)
       return;
@@ -1082,8 +1126,8 @@ class CQChartsSmooth {
         double mx1 = points_[i1].x + dx;
         double mx2 = points_[i2].x - dx;
 
-        CPoint2D mp1(mx1, g1*mx1 + c1);
-        CPoint2D mp2(mx2, g2*mx2 + c2);
+        CQChartsGeom::Point mp1(mx1, g1*mx1 + c1);
+        CQChartsGeom::Point mp2(mx2, g2*mx2 + c2);
 
         segments_.push_back(new Curve3(i1, mp1, mp2));
       }
@@ -1092,7 +1136,7 @@ class CQChartsSmooth {
 
         double mx = points_[i2].x - dx;
 
-        CPoint2D mp(mx, g2*mx + c2);
+        CQChartsGeom::Point mp(mx, g2*mx + c2);
 
         segments_.push_back(new Curve2(i1, mp));
       }
@@ -1119,7 +1163,7 @@ class CQChartsSmooth {
 
     double mx = (points_[i2].x + points_[i3].x)/2;
 
-    CPoint2D mp(mx, g*mx + c);
+    CQChartsGeom::Point mp(mx, g*mx + c);
 
     segments_.push_back(new Curve2(i2, mp));
   }
@@ -1129,6 +1173,7 @@ class CQChartsSmooth {
 
   Points   points_;
   Segments segments_;
+  bool     sorted_ { true };
 };
 
 #endif

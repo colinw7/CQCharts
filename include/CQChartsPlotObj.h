@@ -32,6 +32,15 @@ class CQChartsPlotObj : public QObject {
 
   virtual QString calcId() const = 0;
 
+  virtual QString calcTipId() const { return calcId(); }
+
+  virtual const QString &tipId() const {
+    if (! tipId_)
+      const_cast<CQChartsPlotObj*>(this)->tipId_ = calcTipId();
+
+    return *tipId_;
+  }
+
   //---
 
   bool isVisible() const { return visible_; }
@@ -68,6 +77,7 @@ class CQChartsPlotObj : public QObject {
 
   CQChartsGeom::BBox rect_;
   OptString          id_;
+  OptString          tipId_;
   bool               visible_  { true };
   bool               selected_ { false };
   bool               inside_   { false };

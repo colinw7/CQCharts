@@ -277,9 +277,12 @@ class CQChartsXYPlot : public CQChartsPlot {
   // display:
   //  bivariate, stacked, cumulative, impulse
   Q_PROPERTY(bool    bivariate          READ isBivariate        WRITE setBivariate         )
+  Q_PROPERTY(double  bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
   Q_PROPERTY(bool    stacked            READ isStacked          WRITE setStacked           )
   Q_PROPERTY(bool    cumulative         READ isCumulative       WRITE setCumulative        )
   Q_PROPERTY(bool    impulse            READ isImpulse          WRITE setImpulse           )
+  Q_PROPERTY(QString impulseColor       READ impulseColorStr    WRITE setImpulseColorStr   )
+  Q_PROPERTY(double  impulseWidth       READ impulseWidth       WRITE setImpulseWidth      )
 
   // point:
   //  display, color, symbol, size
@@ -299,7 +302,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(QString linesColor         READ linesColorStr      WRITE setLinesColorStr     )
   Q_PROPERTY(double  linesWidth         READ linesWidth         WRITE setLinesWidth        )
   Q_PROPERTY(bool    roundedLines       READ isRoundedLines     WRITE setRoundedLines      )
-  Q_PROPERTY(double  bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
 
   // fill under:
   //  display, brush
@@ -406,12 +408,18 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  // bivariate, stacked, cumulative
-  bool isBivariate() const { return bivariate_; }
-  void setBivariate(bool b) { bivariate_ = b; updateObjs(); }
+  // bivariate
+  bool isBivariate() const { return bivariateLineObj_->isDisplayed(); }
+  void setBivariate(bool b) { bivariateLineObj_->setDisplayed(b); updateObjs(); }
 
+  double bivariateLineWidth() const { return bivariateLineObj_->width(); }
+  void setBivariateLineWidth(double r) { bivariateLineObj_->setWidth(r); update(); }
+
+  //---
+
+  // stacked, cumulative
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; updateObjs(); }
+  void setStacked(bool b) { stacked_ = b; updateRangeAndObjs(); }
 
   bool isCumulative() const { return cumulative_; }
   void setCumulative(bool b) { cumulative_ = b; updateObjs(); }
@@ -425,8 +433,12 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString pointsStrokeColorStr() const;
   void setPointsStrokeColorStr(const QString &str);
 
+  QColor interpPointStrokeColor(int i, int n) const;
+
   QString pointsFillColorStr() const;
   void setPointsFillColorStr(const QString &str);
+
+  QColor interpPointFillColor(int i, int n) const;
 
   //---
 
@@ -439,6 +451,8 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   QString linesColorStr() const;
   void setLinesColorStr(const QString &str);
+
+  QColor interpLineColor(int i, int n) const;
 
   double linesWidth() const { return lineObj_->width(); }
   void setLinesWidth(double w) { lineObj_->setWidth(w); update(); }
@@ -454,6 +468,8 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   QString fillUnderColorStr() const;
   void setFillUnderColorStr(const QString &str);
+
+  QColor interpFillUnderColor(int i, int n) const;
 
   double fillUnderAlpha() const { return fillUnderData_.fillObj.alpha(); }
   void setFillUnderAlpha(double r) { fillUnderData_.fillObj.setAlpha(r); }
@@ -473,8 +489,16 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // impulse
-  bool isImpulse() const { return impulse_; }
-  void setImpulse(bool b) { impulse_ = b; updateObjs(); }
+  bool isImpulse() const { return impulseObj_->isDisplayed(); }
+  void setImpulse(bool b) { impulseObj_->setDisplayed(b); updateObjs(); }
+
+  QString impulseColorStr() const;
+  void setImpulseColorStr(const QString &str);
+
+  QColor interpImpulseColor(int i, int n) const;
+
+  double impulseWidth() const { return impulseObj_->width(); }
+  void setImpulseWidth(double w) { impulseObj_->setWidth(w); update(); }
 
   //---
 
@@ -503,25 +527,17 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString dataLabelColorStr() const { return dataLabelData_.color.colorStr(); }
   void setDataLabelColorStr(const QString &s) { dataLabelData_.color.setColorStr(s); update(); }
 
+  QColor interpDataLabelColor(int i, int n);
+
   double dataLabelAngle() const { return dataLabelData_.angle; }
   void setDataLabelAngle(double r) { dataLabelData_.angle = r; }
-
-  QColor interpDataLabelColor(int i, int n);
 
   //---
 
   // bivariate line
-  double bivariateLineWidth() const { return bivariateLineObj_->width(); }
-  void setBivariateLineWidth(double r) { bivariateLineObj_->setWidth(r); update(); }
-
   void drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const QColor &c);
 
   //---
-
-  QColor interpPointStrokeColor(int i, int n) const;
-  QColor interpPointFillColor  (int i, int n) const;
-  QColor interpLineColor       (int i, int n) const;
-  QColor interpFillUnderColor  (int i, int n) const;
 
   QColor interpPaletteColor(int i, int n, bool scale=false) const override;
 
@@ -566,7 +582,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   int               pointLabelColumn_  { -1 };
   int               pointColorColumn_  { -1 };
   int               pointSymbolColumn_ { -1 };
-  bool              bivariate_         { false };
   bool              stacked_           { false };
   bool              cumulative_        { false };
   CQChartsPointObj* pointObj_          { nullptr };
@@ -574,7 +589,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   CQChartsLineObj*  lineObj_           { nullptr };
   bool              roundedLines_      { false };
   FillUnderData     fillUnderData_;
-  bool              impulse_           { false };
+  CQChartsLineObj*  impulseObj_        { nullptr };
   DataLabelData     dataLabelData_;
   CQChartsLineObj*  bivariateLineObj_  { nullptr };
 };
