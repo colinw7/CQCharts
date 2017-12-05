@@ -27,7 +27,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsGeometryPlot *plot_  { nullptr }; // parent plot
@@ -96,13 +96,13 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int geometryColumn() const { return geometryColumn_; }
-  void setGeometryColumn(int i) { geometryColumn_ = i; update(); }
+  void setGeometryColumn(int i) { geometryColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; update(); }
+  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -144,13 +144,13 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str);
+  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &str);
 
  private:
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
@@ -162,14 +162,14 @@ class CQChartsGeometryPlot : public CQChartsPlot {
  private:
   using Geometries = std::vector<Geometry>;
 
-  int                  nameColumn_     { 0 };
-  int                  geometryColumn_ { 1 };
-  int                  valueColumn_    { -1 };
-  Geometries           geometries_;
-  double               minValue_       { 0.0 };
-  double               maxValue_       { 0.0 };
-  CQChartsBoxObj*      boxObj_         { nullptr }; // polygon fill/border object
-  CQChartsDataLabel    dataLabel_;
+  int               nameColumn_     { 0 };
+  int               geometryColumn_ { 1 };
+  int               valueColumn_    { -1 };
+  Geometries        geometries_;
+  double            minValue_       { 0.0 };
+  double            maxValue_       { 0.0 };
+  CQChartsBoxObj*   boxObj_         { nullptr }; // polygon fill/border object
+  CQChartsDataLabel dataLabel_;
 };
 
 #endif

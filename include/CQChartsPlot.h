@@ -9,6 +9,8 @@
 #include <QAbstractItemModel>
 #include <QItemSelection>
 #include <QFrame>
+
+#include <memory>
 #include <set>
 
 #include <boost/optional.hpp>
@@ -25,6 +27,7 @@ class CQChartsBoxObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
+class CQChartsRenderer;
 
 class CGradientPalette;
 class QSortFilterProxyModel;
@@ -267,10 +270,10 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CGradientPalette *palette() const { return palette_; }
+  const CGradientPalette *palette() const { return palette_; }
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
 
-  CGradientPalette *theme() const { return theme_; }
+  const CGradientPalette *theme() const { return theme_; }
   void setTheme(CGradientPalette *theme) { theme_ = theme; update(); }
 
   //---
@@ -560,8 +563,12 @@ class CQChartsPlot : public QObject {
   void updateRangeAndObjs() { updateRange(); updateObjs(); }
 
   // (re)initialize plot objects
-  virtual void initObjs() = 0;
+  void initPlotObjs();
 
+  // (re)initialize plot objects (called by initPlotObjs)
+  virtual bool initObjs() = 0;
+
+  // add plotObjects to quad tree (create no data object in no objects)
   void initObjTree();
 
   // routine to run after plot set up (usually fixes up some defaults)
@@ -680,7 +687,7 @@ class CQChartsPlot : public QObject {
 
   void updateTitlePosition();
 
-  void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
+  void drawSides(CQChartsRenderer *renderer, const QRectF &rect, const QString &sides,
                  double width, const QColor &color);
 
   QRectF calcRect() const;
@@ -703,41 +710,42 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void drawParts(QPainter *painter);
+  void drawParts(CQChartsRenderer *renderer);
 
   // draw background
-  virtual void drawBackground(QPainter *painter);
+  virtual void drawBackground(CQChartsRenderer *renderer);
 
   // draw objects
-  virtual void drawObjs(QPainter *painter, const Layer &layer);
+  virtual void drawObjs(CQChartsRenderer *renderer, const Layer &layer);
 
   // draw axes on background/foreground
-  virtual void drawBgAxes(QPainter *painter);
-  virtual void drawFgAxes(QPainter *painter);
+  virtual void drawBgAxes(CQChartsRenderer *renderer);
+  virtual void drawFgAxes(CQChartsRenderer *renderer);
 
   // draw key on background/foreground
-  virtual void drawBgKey(QPainter *painter);
-  virtual void drawFgKey(QPainter *painter);
+  virtual void drawBgKey(CQChartsRenderer *renderer);
+  virtual void drawFgKey(CQChartsRenderer *renderer);
 
   // draw key
-  virtual void drawKey(QPainter *painter);
+  virtual void drawKey(CQChartsRenderer *renderer);
 
   // draw title
-  virtual void drawTitle(QPainter *painter);
+  virtual void drawTitle(CQChartsRenderer *renderer);
 
   // draw foreground
-  virtual void drawForeground(QPainter *) { }
+  virtual void drawForeground(CQChartsRenderer *) { }
 
   //---
 
-  void drawContrastText(QPainter *p, double x, double y, const QString &text, const QPen &pen);
+  void drawContrastText(CQChartsRenderer *renderer, double x, double y,
+                        const QString &text, const QPen &pen);
 
   //---
 
   // debug draw (red boxes)
-  void drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
+  void drawWindowRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox);
 
-  void drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
+  void drawRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox);
 
   //---
 
@@ -779,7 +787,7 @@ class CQChartsPlot : public QObject {
   void update();
 
   // draw plot
-  virtual void draw(QPainter *p) = 0;
+  virtual void draw(CQChartsRenderer *renderer) = 0;
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
@@ -818,51 +826,51 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsView*             view_                { nullptr };
-  CQChartsPlotType*         type_                { nullptr };
+  CQChartsView*             view_             { nullptr };
+  CQChartsPlotType*         type_             { nullptr };
   ModelP                    model_;
   SelectionModelP           selectionModel_;
   QString                   id_;
-  bool                      visible_             { true };
-  CQChartsGeom::BBox        bbox_                { 0, 0, 1, 1 };
+  bool                      visible_          { true };
+  CQChartsGeom::BBox        bbox_             { 0, 0, 1, 1 };
   Margin                    margin_;
-  CQChartsDisplayRange*     displayRange_        { nullptr };
-  CQChartsDisplayTransform* displayTransform_    { nullptr };
+  CQChartsDisplayRange*     displayRange_     { nullptr };
+  CQChartsDisplayTransform* displayTransform_ { nullptr };
   CQChartsGeom::Range       dataRange_;
-  double                    dataScale_           { 1.0 };
-  CQChartsGeom::Point       dataOffset_          { 0.0, 0.0 };
+  double                    dataScale_        { 1.0 };
+  CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };
   OptReal                   xmin_;
   OptReal                   ymin_;
   OptReal                   xmax_;
   OptReal                   ymax_;
-  CGradientPalette*         palette_             { nullptr };
-  CGradientPalette*         theme_               { nullptr };
-  CQChartsBoxObj*           borderObj_           { nullptr };
-  bool                      clip_                { true };
-  CQChartsBoxObj*           dataBorderObj_       { nullptr };
-  bool                      dataClip_            { false };
+  CGradientPalette*         palette_          { nullptr };
+  CGradientPalette*         theme_            { nullptr };
+  CQChartsBoxObj*           borderObj_        { nullptr };
+  bool                      clip_             { true };
+  CQChartsBoxObj*           dataBorderObj_    { nullptr };
+  bool                      dataClip_         { false };
   QString                   title_;
   QString                   fileName_;
-  CQChartsAxis*             xAxis_               { nullptr };
-  CQChartsAxis*             yAxis_               { nullptr };
-  CQChartsKey*              keyObj_              { nullptr };
-  CQChartsTitle*            titleObj_            { nullptr };
-  int                       xValueColumn_        { -1 };
-  int                       yValueColumn_        { -1 };
-  bool                      equalScale_          { false };
-  bool                      followMouse_         { true };
-  bool                      showBoxes_           { false };
-  bool                      overlay_             { false };
-  bool                      y1y2_                { false };
-  bool                      invertX_             { false };
-  bool                      invertY_             { false };
-  bool                      logX_                { false };
-  bool                      logY_                { false };
+  CQChartsAxis*             xAxis_            { nullptr };
+  CQChartsAxis*             yAxis_            { nullptr };
+  CQChartsKey*              keyObj_           { nullptr };
+  CQChartsTitle*            titleObj_         { nullptr };
+  int                       xValueColumn_     { -1 };
+  int                       yValueColumn_     { -1 };
+  bool                      equalScale_       { false };
+  bool                      followMouse_      { true };
+  bool                      showBoxes_        { false };
+  bool                      overlay_          { false };
+  bool                      y1y2_             { false };
+  bool                      invertX_          { false };
+  bool                      invertY_          { false };
+  bool                      logX_             { false };
+  bool                      logY_             { false };
   OtherPlot                 otherPlot_;
   PlotObjs                  plotObjs_;
-  int                       insidePlotInd_       { 0 };
+  int                       insidePlotInd_    { 0 };
   PlotObjSet                insidePlotObjs_;
-  CQChartsPlotObjTree*      plotObjTree_         { nullptr };
+  CQChartsPlotObjTree*      plotObjTree_      { nullptr };
   MouseData                 mouseData_;
   LayerActive               layerActive_;
   IdHidden                  idHidden_;

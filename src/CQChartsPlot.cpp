@@ -9,7 +9,9 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsPointObj.h>
 #include <CQChartsPlotObjTree.h>
+#include <CQChartsNoDataObj.h>
 #include <CQChartsUtil.h>
+#include <CQChartsRenderer.h>
 #include <CQCharts.h>
 #include <CQPropertyViewModel.h>
 #include <CGradientPalette.h>
@@ -18,7 +20,6 @@
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
-#include <QPainter>
 
 //------
 
@@ -85,7 +86,7 @@ CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  view_(view), type_(type), model_(model)
 {
-  displayRange_     = new CQChartsDisplayRange;
+  displayRange_     = new CQChartsDisplayRange();
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
 
   displayRange_->setPixelAdjust(0.0);
@@ -484,15 +485,15 @@ bool
 CQChartsPlot::
 isKeyVisible() const
 {
-  return (keyObj_ ? keyObj_->isVisible() : false);
+  return (key() ? key()->isVisible() : false);
 }
 
 void
 CQChartsPlot::
 setKeyVisible(bool b)
 {
-  if (keyObj_)
-    keyObj_->setVisible(b);
+  if (key())
+    key()->setVisible(b);
 }
 
 //---
@@ -678,8 +679,8 @@ addProperties()
   if (yAxis_)
     yAxis_->addProperties(propertyModel(), id() + "/" + "Y Axis");
 
-  if (keyObj_)
-    keyObj_->addProperties(propertyModel(), id() + "/" + "Key");
+  if (key())
+    key()->addProperties(propertyModel(), id() + "/" + "Key");
 
   if (titleObj_)
     titleObj_->addProperties(propertyModel(), id() + "/" + "Title");
@@ -746,14 +747,14 @@ resetKeyItems()
 {
   // if first plot then add all chained plot items to this plot's key
   if (! prevPlot()) {
-    keyObj_->clearItems();
+    key()->clearItems();
 
-    addKeyItems(keyObj_);
+    addKeyItems(key());
 
     CQChartsPlot *plot1 = nextPlot();
 
     while (plot1) {
-      plot1->addKeyItems(keyObj_);
+      plot1->addKeyItems(key());
 
       plot1 = plot1->nextPlot();
     }
@@ -969,6 +970,31 @@ addPlotObject(CQChartsPlotObj *obj)
 
 void
 CQChartsPlot::
+initPlotObjs()
+{
+  bool changed = initObjs();
+
+  if (! dataRange_.isSet()) {
+    dataRange_.updateRange(0, 0);
+    dataRange_.updateRange(1, 1);
+
+    changed = true;
+  }
+
+  if (plotObjs_.empty()) {
+    CQChartsNoDataObj *obj = new CQChartsNoDataObj(this);
+
+    addPlotObject(obj);
+
+    changed = true;
+  }
+
+  if (changed)
+    initObjTree();
+}
+
+void
+CQChartsPlot::
 initObjTree()
 {
   plotObjTree_->addObjects(plotObjs_);
@@ -1087,8 +1113,8 @@ bool
 CQChartsPlot::
 mousePress(const CQChartsGeom::Point &w)
 {
-  if (keyObj_ && keyObj_->contains(w)) {
-    CQChartsKeyItem *item = keyObj_->getItemAt(w);
+  if (key() && key()->contains(w)) {
+    CQChartsKeyItem *item = key()->getItemAt(w);
 
     bool handled = false;
 
@@ -1096,7 +1122,7 @@ mousePress(const CQChartsGeom::Point &w)
       handled = item->mousePress(w);
 
     if (! handled)
-      handled = keyObj_->mousePress(w);
+      handled = key()->mousePress(w);
 
     if (handled)
       return true;
@@ -1172,8 +1198,8 @@ bool
 CQChartsPlot::
 mouseMove(const CQChartsGeom::Point &w, bool first)
 {
-  if (keyObj_) {
-    bool handled = keyObj_->mouseMove(w);
+  if (key()) {
+    bool handled = key()->mouseMove(w);
 
     if (handled)
       return true;
@@ -1221,8 +1247,8 @@ mouseDragPress(const CQChartsGeom::Point &w)
 {
   mouseData_.dragObj = DragObj::NONE;
 
-  if (keyObj_ && keyObj_->contains(w)) {
-    if (keyObj_->mouseDragPress(w)) {
+  if (key() && key()->contains(w)) {
+    if (key()->mouseDragPress(w)) {
       mouseData_.dragObj = DragObj::KEY;
       return true;
     }
@@ -1250,7 +1276,7 @@ CQChartsPlot::
 mouseDragMove(const CQChartsGeom::Point &w, bool /*first*/)
 {
   if      (mouseData_.dragObj == DragObj::KEY) {
-    (void) keyObj_->mouseDragMove(w);
+    (void) key()->mouseDragMove(w);
     return true;
   }
   else if (mouseData_.dragObj == DragObj::XAXIS) {
@@ -1677,18 +1703,18 @@ void
 CQChartsPlot::
 updateKeyPosition(bool force)
 {
-  if (! keyObj_)
+  if (! key())
     return;
 
   if (force)
-    keyObj_->invalidateLayout();
+    key()->invalidateLayout();
 
   CQChartsGeom::BBox bbox = calcDataRange();
 
   if (! bbox.isSet())
     return;
 
-  keyObj_->updateLocation(bbox);
+  key()->updateLocation(bbox);
 }
 
 void
@@ -1708,42 +1734,44 @@ updateTitlePosition()
 
 void
 CQChartsPlot::
-drawBackground(QPainter *painter)
+drawBackground(CQChartsRenderer *renderer)
 {
   QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
   QRectF dataRect = calcRect();
 
   if (isBackground())
-    painter->fillRect(plotRect, QBrush(interpBackgroundColor(0, 1)));
+    renderer->fillRect(plotRect, QBrush(interpBackgroundColor(0, 1)));
 
   if (isBorder()) {
-    drawSides(painter, plotRect, borderSides(), borderWidth(), interpBorderColor(0, 1));
+    drawSides(renderer, plotRect, borderSides(), borderWidth(), interpBorderColor(0, 1));
   }
 
   if (isDataBackground())
-    painter->fillRect(dataRect, QBrush(interpDataBackgroundColor(0, 1)));
+    renderer->fillRect(dataRect, QBrush(interpDataBackgroundColor(0, 1)));
 
   if (isDataBorder()) {
-    drawSides(painter, dataRect, dataBorderSides(), dataBorderWidth(), interpDataBorderColor(0, 1));
+    QColor borderColor = interpDataBorderColor(0, 1);
+
+    drawSides(renderer, dataRect, dataBorderSides(), dataBorderWidth(), borderColor);
   }
 }
 
 void
 CQChartsPlot::
-drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
+drawSides(CQChartsRenderer *renderer, const QRectF &rect, const QString &sides,
           double width, const QColor &color)
 {
   QPen pen(color);
 
   pen.setWidthF(width);
 
-  painter->setPen(pen);
-  painter->setBrush(Qt::NoBrush);
+  renderer->setPen(pen);
+  renderer->setBrush(Qt::NoBrush);
 
-  if (sides.indexOf('t') >= 0) painter->drawLine(rect.topLeft   (), rect.topRight   ());
-  if (sides.indexOf('l') >= 0) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
-  if (sides.indexOf('b') >= 0) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
-  if (sides.indexOf('r') >= 0) painter->drawLine(rect.topRight  (), rect.bottomRight());
+  if (sides.indexOf('t') >= 0) renderer->drawLine(rect.topLeft   (), rect.topRight   ());
+  if (sides.indexOf('l') >= 0) renderer->drawLine(rect.topLeft   (), rect.bottomLeft ());
+  if (sides.indexOf('b') >= 0) renderer->drawLine(rect.bottomLeft(), rect.bottomRight());
+  if (sides.indexOf('r') >= 0) renderer->drawLine(rect.topRight  (), rect.bottomRight());
 }
 
 QRectF
@@ -1868,8 +1896,8 @@ fitBBox() const
   if (yAxis_)
     bbox += yAxis_->bbox();
 
-  if (keyObj_)
-    bbox += keyObj_->bbox();
+  if (key())
+    bbox += key()->bbox();
 
   if (titleObj_)
     bbox += titleObj_->bbox();
@@ -1886,29 +1914,29 @@ fitBBox() const
 
 void
 CQChartsPlot::
-drawParts(QPainter *p)
+drawParts(CQChartsRenderer *renderer)
 {
-  drawBackground(p);
+  drawBackground(renderer);
 
   //---
 
-  drawBgAxes(p);
-  drawBgKey(p);
+  drawBgAxes(renderer);
+  drawBgKey(renderer);
 
-  drawObjs(p, Layer::BG );
-  drawObjs(p, Layer::MID);
-  drawObjs(p, Layer::FG );
+  drawObjs(renderer, Layer::BG );
+  drawObjs(renderer, Layer::MID);
+  drawObjs(renderer, Layer::FG );
 
-  drawFgAxes(p);
-  drawFgKey(p);
-
-  //---
-
-  drawTitle(p);
+  drawFgAxes(renderer);
+  drawFgKey(renderer);
 
   //---
 
-  drawForeground(p);
+  drawTitle(renderer);
+
+  //---
+
+  drawForeground(renderer);
 }
 
 void
@@ -1935,24 +1963,24 @@ isLayerActive(const Layer &layer) const
 
 void
 CQChartsPlot::
-drawObjs(QPainter *painter, const Layer &layer)
+drawObjs(CQChartsRenderer *renderer, const Layer &layer)
 {
   if (! isLayerActive(layer))
     return;
 
-  painter->save();
+  renderer->save();
 
   CQChartsPlot *plot1 = firstPlot();
 
   if      (plot1->isDataClip()) {
     QRectF dataRect = calcRect();
 
-    painter->setClipRect(dataRect, Qt::ReplaceClip);
+    renderer->setClipRect(dataRect);
   }
   else if (plot1->isClip()) {
     QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
 
-    painter->setClipRect(plotRect, Qt::ReplaceClip);
+    renderer->setClipRect(plotRect);
   }
 
   double xmin, ymin, xmax, ymax;
@@ -1965,119 +1993,120 @@ drawObjs(QPainter *painter, const Layer &layer)
     if (! bbox.overlaps(plotObj->rect()))
       continue;
 
-    plotObj->draw(painter, layer);
+    plotObj->draw(renderer, layer);
   }
 
-  painter->restore();
+  renderer->restore();
 }
 
 void
 CQChartsPlot::
-drawBgAxes(QPainter *painter)
+drawBgAxes(CQChartsRenderer *renderer)
 {
   if (xAxis_ && xAxis_->isVisible() && ! xAxis_->isGridAbove())
-    xAxis_->drawGrid(this, painter);
+    xAxis_->drawGrid(this, renderer);
 
   if (yAxis_ && yAxis_->isVisible() && ! yAxis_->isGridAbove())
-    yAxis_->drawGrid(this, painter);
+    yAxis_->drawGrid(this, renderer);
 }
 
 void
 CQChartsPlot::
-drawFgAxes(QPainter *painter)
+drawFgAxes(CQChartsRenderer *renderer)
 {
   if (xAxis_ && xAxis_->isVisible() && xAxis_->isGridAbove())
-    xAxis_->drawGrid(this, painter);
+    xAxis_->drawGrid(this, renderer);
 
   if (yAxis_ && yAxis_->isVisible() && yAxis_->isGridAbove())
-    yAxis_->drawGrid(this, painter);
+    yAxis_->drawGrid(this, renderer);
 
   //---
 
   if (xAxis_ && xAxis_->isVisible())
-    xAxis_->draw(this, painter);
+    xAxis_->draw(this, renderer);
 
   if (yAxis_ && yAxis_->isVisible())
-    yAxis_->draw(this, painter);
+    yAxis_->draw(this, renderer);
 }
 
 void
 CQChartsPlot::
-drawBgKey(QPainter *painter)
+drawBgKey(CQChartsRenderer *renderer)
 {
-  if (keyObj_ && ! keyObj_->isAbove())
-    drawKey(painter);
+  if (key() && ! key()->isAbove())
+    drawKey(renderer);
 }
 
 void
 CQChartsPlot::
-drawFgKey(QPainter *painter)
+drawFgKey(CQChartsRenderer *renderer)
 {
-  if (keyObj_ && keyObj_->isAbove())
-    drawKey(painter);
+  if (key() && key()->isAbove())
+    drawKey(renderer);
 }
 
 void
 CQChartsPlot::
-drawKey(QPainter *painter)
+drawKey(CQChartsRenderer *renderer)
 {
   CQChartsPlot *plot1 = firstPlot();
 
-  if (! plot1->keyObj_)
+  if (! plot1->key())
     return;
 
   // draw key under first plot
-  if (! plot1->keyObj_->isAbove()) {
+  if (! plot1->key()->isAbove()) {
     if (plot1 == this)
-      plot1->keyObj_->draw(painter);
+      plot1->key()->draw(renderer);
   }
   // draw key above last plot
   else {
     if (lastPlot() == this)
-      plot1->keyObj_->draw(painter);
+      plot1->key()->draw(renderer);
   }
 }
 
 void
 CQChartsPlot::
-drawTitle(QPainter *painter)
+drawTitle(CQChartsRenderer *renderer)
 {
   if (titleObj_)
-    titleObj_->draw(painter);
+    titleObj_->draw(renderer);
 }
 
 void
 CQChartsPlot::
-drawContrastText(QPainter *p, double x, double y, const QString &text, const QPen &pen)
+drawContrastText(CQChartsRenderer *renderer, double x, double y, const QString &text,
+                 const QPen &pen)
 {
-  p->setPen(CQChartsUtil::invColor(pen.color()));
+  renderer->setPen(CQChartsUtil::invColor(pen.color()));
 
-  p->drawText(x + 1, y + 1, text);
+  renderer->drawText(QPointF(x + 1, y + 1), text);
 
-  p->setPen(pen);
+  renderer->setPen(pen);
 
-  p->drawText(x, y, text);
+  renderer->drawText(QPointF(x, y), text);
 }
 
 void
 CQChartsPlot::
-drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
+drawWindowRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox)
 {
   CQChartsGeom::BBox prect;
 
   windowToPixel(bbox, prect);
 
-  drawRedBox(painter, prect);
+  drawRedBox(renderer, prect);
 }
 
 void
 CQChartsPlot::
-drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
+drawRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox)
 {
-  painter->setPen(Qt::red);
-  painter->setBrush(Qt::NoBrush);
+  renderer->setPen(QColor(Qt::red));
+  renderer->setBrush(Qt::NoBrush);
 
-  painter->drawRect(CQChartsUtil::toQRect(bbox));
+  renderer->drawRect(CQChartsUtil::toQRect(bbox));
 }
 
 //------

@@ -3,10 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CQChartsDelaunay.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 CQChartsDelaunayPlotType::
 CQChartsDelaunayPlotType()
@@ -172,7 +170,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsDelaunayPlot::
 initObjs()
 {
@@ -180,20 +178,22 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
-  //--
+  //---
 
   QAbstractItemModel *model = this->model();
 
   if (! model)
-    return;
+    return false;
+
+  //---
 
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
@@ -241,33 +241,33 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
 CQChartsDelaunayPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsDelaunayPlot::
-drawForeground(QPainter *p)
+drawForeground(CQChartsRenderer *renderer)
 {
   if (! isVoronoi())
-    drawDelaunay(p);
+    drawDelaunay(renderer);
   else
-    drawVoronoi(p);
+    drawVoronoi(renderer);
 }
 
 void
 CQChartsDelaunayPlot::
-drawDelaunay(QPainter *p)
+drawDelaunay(CQChartsRenderer *renderer)
 {
   if (isLines()) {
     QColor lc = interpLinesColor(0, 1);
@@ -295,19 +295,19 @@ drawDelaunay(QPainter *p)
 
       path.closeSubpath();
 
-      p->strokePath(path, QPen(lc));
+      renderer->strokePath(path, QPen(lc));
     }
   }
 }
 
 void
 CQChartsDelaunayPlot::
-drawVoronoi(QPainter *p)
+drawVoronoi(CQChartsRenderer *renderer)
 {
   if (isPoints()) {
     QColor pc = interpPointsColor(0, 1);
 
-    p->setPen(pc);
+    renderer->setPen(pc);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -323,7 +323,7 @@ drawVoronoi(QPainter *p)
 
       QRectF rect(px - d, py - d, 2*d, 2*d);
 
-      p->drawArc(rect, 0, 16*360);
+      renderer->drawArc(rect, 0, 16*360);
     }
   }
 
@@ -345,7 +345,7 @@ drawVoronoi(QPainter *p)
       windowToPixel(v1->x(), v1->y(), px1, py1);
       windowToPixel(v2->x(), v2->y(), px2, py2);
 
-      CQChartsLineObj::draw(p, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
+      CQChartsLineObj::draw(renderer, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
     }
   }
 }
@@ -355,7 +355,7 @@ drawVoronoi(QPainter *p)
 CQChartsDelaunayPointObj::
 CQChartsDelaunayPointObj(CQChartsDelaunayPlot *plot, const CQChartsGeom::BBox &rect,
                          double x, double y, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), x_(x), y_(y), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -434,7 +434,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsDelaunayPointObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -455,6 +455,6 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  CQChartsPointObj::draw(p, QPointF(px, py), symbol, s, true, pen.color(), 1,
+  CQChartsPointObj::draw(renderer, QPointF(px, py), symbol, s, true, pen.color(), 1,
                          filled, pen.color());
 }

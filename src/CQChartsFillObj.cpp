@@ -1,7 +1,7 @@
 #include <CQChartsFillObj.h>
+#include <CQChartsRenderer.h>
 #include <CQPropertyViewModel.h>
 #include <CQRoundedPolygon.h>
-#include <QPainter>
 
 CQChartsFillObj::
 CQChartsFillObj(CQChartsPlot *plot) :
@@ -28,30 +28,30 @@ interpColor(int i, int n) const
 
 void
 CQChartsFillObj::
-draw(QPainter *p, const QRectF &rect) const
+draw(CQChartsRenderer *renderer, const QRectF &rect) const
 {
   if (! isVisible())
     return;
 
   QBrush brush(interpColor(0, 1));
 
-  p->setBrush(brush);
-  p->setPen  (Qt::NoPen);
+  renderer->setBrush(brush);
+  renderer->setPen  (Qt::NoPen);
 
-  p->fillRect(rect, p->brush());
+  renderer->fillRect(rect, renderer->brush());
 }
 
 void
 CQChartsFillObj::
-draw(QPainter *p, const QPolygonF &poly) const
+draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
 {
   if (! isVisible())
     return;
 
   QBrush brush(interpColor(0, 1));
 
-  p->setBrush(brush);
-  p->setPen  (Qt::NoPen);
+  renderer->setBrush(brush);
+  renderer->setPen  (Qt::NoPen);
 
-  p->drawPolygon(poly);
+  renderer->drawPolygon(poly);
 }

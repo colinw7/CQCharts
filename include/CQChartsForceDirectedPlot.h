@@ -702,16 +702,16 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
 
   int nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(int i) { nodeColumn_ = i; update(); }
+  void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
 
   int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; update(); }
+  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
 
   int connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(int i) { connectionsColumn_ = i; update(); }
+  void setConnectionsColumn(int i) { connectionsColumn_ = i; updateRangeAndObjs(); }
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -744,7 +744,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -758,7 +758,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   struct ConnectionData {

@@ -59,6 +59,8 @@ void
 CQChartsValueSet::
 clear()
 {
+  type_ = Type::NONE;
+
   values_.clear();
 
   initialized_ = false;
@@ -132,6 +134,30 @@ imap(int i, double mapMin, double mapMax) const
 
 int
 CQChartsValueSet::
+sind(const QString &s) const
+{
+  auto p = svalset_.find(s);
+
+  if (p == svalset_.end())
+    return -1;
+
+  return (*p).second;
+}
+
+QString
+CQChartsValueSet::
+inds(int ind) const
+{
+  auto p = setsval_.find(ind);
+
+  if (p == setsval_.end())
+    return "";
+
+  return (*p).second;
+}
+
+int
+CQChartsValueSet::
 imin() const
 {
   if      (type() == Type::INTEGER)
@@ -152,6 +178,34 @@ imax() const
     return setrval_.rbegin()->first;
   else
     return setsval_.rbegin()->first;
+}
+
+double
+CQChartsValueSet::
+rmin() const
+{
+  if      (type() == Type::INTEGER)
+    return *iset_.begin();
+  else if (type() == Type::REAL)
+    return rvalset_.begin()->first;
+
+  assert(false);
+
+  return 0.0;
+}
+
+double
+CQChartsValueSet::
+rmax() const
+{
+  if      (type() == Type::INTEGER)
+    return *iset_.rbegin();
+  else if (type() == Type::REAL)
+    return rvalset_.rbegin()->first;
+
+  assert(false);
+
+  return 0.0;
 }
 
 void
@@ -240,6 +294,9 @@ init()
     }
     else if (type_ == Type::REAL) {
       double r = CQChartsUtil::toReal(value, ok);
+
+      if (! isAllowNaN() && CQChartsUtil::isNaN(r))
+        continue;
 
       rvals_.push_back(r);
 

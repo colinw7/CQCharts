@@ -3,9 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
+#include <CQChartsRenderer.h>
 
 CQChartsPiePlotType::
 CQChartsPiePlotType()
@@ -172,7 +170,7 @@ colorSetColor(int i, OptColor &color)
   return true;
 }
 
-void
+bool
 CQChartsPiePlot::
 initObjs()
 {
@@ -180,20 +178,20 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
   QAbstractItemModel *model = this->model();
 
   if (! model)
-    return;
+    return false;
 
   //---
 
@@ -301,7 +299,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -350,13 +348,13 @@ handleResize()
 
 void
 CQChartsPiePlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 //------
@@ -364,7 +362,7 @@ draw(QPainter *p)
 CQChartsPieObj::
 CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
                int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -444,7 +442,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsPieObj::
-draw(QPainter *p, const CQChartsPlot::Layer &layer)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 {
   CQChartsGeom::Point center(0, 0);
 
@@ -563,10 +561,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    p->setPen  (pen);
-    p->setBrush(brush);
+    renderer->setPen  (pen);
+    renderer->setBrush(brush);
 
-    p->drawPath(path);
+    renderer->drawPath(path);
   }
 
   //---
@@ -576,7 +574,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     // if full circle always draw text at center
     if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
-      plot_->textBox()->draw(p, CQChartsUtil::toQPoint(pc), label(), 0.0);
+      plot_->textBox()->draw(renderer, CQChartsUtil::toQPoint(pc), label(), 0.0);
     }
     // draw on arc center line
     else {
@@ -636,10 +634,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
         QColor bg = plot_->interpPaletteColor(i_, n_);
 
-        p->setPen(bg);
+        renderer->setPen(bg);
 
-        p->drawLine(lpx1, lpy1, lpx2     , lpy2);
-        p->drawLine(lpx2, lpy2, lpx2 + dx, lpy2);
+        renderer->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
+        renderer->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
       }
 
       //---
@@ -651,7 +649,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
 
-      plot_->textBox()->draw(p, pt, label(), angle, align);
+      plot_->textBox()->draw(renderer, pt, label(), angle, align);
 
       CQChartsGeom::BBox tbbox;
 

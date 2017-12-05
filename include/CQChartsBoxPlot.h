@@ -45,7 +45,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBoxPlot*       plot_ { nullptr }; // parent plot
@@ -122,10 +122,10 @@ class CQChartsBoxPlot : public CQChartsPlot {
  ~CQChartsBoxPlot();
 
   int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; update(); }
+  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
 
   int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; update(); }
+  void setYColumn(int i) { yColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -173,7 +173,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;
 
@@ -181,7 +181,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   struct RealCmp {

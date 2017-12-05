@@ -3,11 +3,9 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsRenderer.h>
 #include <CQRotatedText.h>
 #include <CGradientPalette.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 namespace {
 
@@ -252,7 +250,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsSunburstPlot::
 initObjs()
 {
@@ -260,13 +258,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -291,7 +289,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -396,34 +394,34 @@ handleResize()
 
 void
 CQChartsSunburstPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsSunburstPlot::
-drawNodes(QPainter *p, CQChartsSunburstHierNode *hier)
+drawNodes(CQChartsRenderer *renderer, CQChartsSunburstHierNode *hier)
 {
   for (auto node : hier->getNodes())
-    drawNode(p, nullptr, node);
+    drawNode(renderer, nullptr, node);
 
   //------
 
   for (auto hierNode : hier->getChildren()) {
-    drawNode(p, nullptr, hierNode);
+    drawNode(renderer, nullptr, hierNode);
 
-    drawNodes(p, hierNode);
+    drawNodes(renderer, hierNode);
   }
 }
 
 void
 CQChartsSunburstPlot::
-drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
+drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
 {
   if (! node->placed()) return;
 
@@ -493,10 +491,10 @@ drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *no
   //---
 
   // draw path
-  p->setPen  (pen);
-  p->setBrush(brush);
+  renderer->setPen  (pen);
+  renderer->setBrush(brush);
 
-  p->drawPath(path);
+  renderer->drawPath(path);
 
   //---
 
@@ -508,11 +506,11 @@ drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *no
   if (nodeObj)
     updateObjPenBrushState(nodeObj, tpen, brush);
 
-  p->setPen(tpen);
+  renderer->setPen(tpen);
 
   QFont font = textFont();
 
-  p->setFont(font);
+  renderer->setFont(font);
 
   double ta = a1 + da/2.0;
   double c  = cos(ta*M_PI/180.0);
@@ -532,9 +530,9 @@ drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *no
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   if (c >= 0)
-    CQRotatedText::drawRotatedText(p, px, py, str, ta, align);
+    CQRotatedText::drawRotatedText(renderer, px, py, str, ta, align);
   else
-    CQRotatedText::drawRotatedText(p, px, py, str, ta - 180, align);
+    CQRotatedText::drawRotatedText(renderer, px, py, str, ta - 180, align);
 }
 
 //------
@@ -542,7 +540,7 @@ drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *no
 CQChartsSunburstNodeObj::
 CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                         CQChartsSunburstNode *node) :
- CQChartsPlotObj(rect), plot_(plot), node_(node)
+ CQChartsPlotObj(plot, rect), plot_(plot), node_(node)
 {
 }
 
@@ -615,9 +613,9 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsSunburstNodeObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
-  plot_->drawNode(p, this, node_);
+  plot_->drawNode(renderer, this, node_);
 }
 
 //------

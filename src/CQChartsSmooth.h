@@ -1106,7 +1106,7 @@ class CQChartsSmooth {
     }
 
     // generate beziers for each point pair
-    double g1, c1, g2, c2;
+    double g1 = 0.0, c1 = 0.0, g2, c2;
 
     for (int i1 = 0, i2 = 1, i3 = 2; i3 < int(points_.size()); i1 = i2, i2 = i3++) {
       if (points_[i1].x == points_[i2].x || points_[i2].x == points_[i3].x) {

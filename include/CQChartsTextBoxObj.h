@@ -46,12 +46,12 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  virtual void draw(QPainter *p, const QRectF &rect) const;
-  virtual void draw(QPainter *p, const QPolygonF &poly) const;
+  virtual void draw(CQChartsRenderer *renderer, const QRectF &rect) const;
+  virtual void draw(CQChartsRenderer *renderer, const QPolygonF &poly) const;
 
   //---
 
-  void drawText(QPainter *p, const QRectF &rect, const QString &text) const;
+  void drawText(CQChartsRenderer *renderer, const QRectF &rect, const QString &text) const;
 
  protected:
   bool                 visible_ { true };
@@ -69,7 +69,7 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
 
   const QRectF &rect() const { return rect_; }
 
-  void draw(QPainter *p, const QPointF &c, const QString &text, double angle=0.0,
+  void draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text, double angle=0.0,
             Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
 
  private:

@@ -4,10 +4,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsRenderer.h>
 #include <CQRoundedPolygon.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
@@ -414,7 +412,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsBoxPlot::
 initObjs()
 {
@@ -422,13 +420,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -461,7 +459,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -505,13 +503,13 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsBoxPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 //------
@@ -519,7 +517,7 @@ draw(QPainter *p)
 CQChartsBoxPlotObj::
 CQChartsBoxPlotObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, double pos,
                    const CQChartsBoxPlotWhisker &whisker, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), pos_(pos), whisker_(whisker), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), pos_(pos), whisker_(whisker), i_(i), n_(n)
 {
 }
 
@@ -558,7 +556,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsBoxPlotObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   QFontMetricsF fm(plot_->font());
 
@@ -582,17 +580,17 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // draw extent line
-  p->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  p->drawLine(px3, py1, px3, py5);
+  renderer->drawLine(QPointF(px3, py1), QPointF(px3, py5));
 
   //---
 
   // draw lower/upper horizontal lines
-  p->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  p->drawLine(px2, py1, px4, py1);
-  p->drawLine(px2, py5, px4, py5);
+  renderer->drawLine(QPointF(px2, py1), QPointF(px4, py1));
+  renderer->drawLine(QPointF(px2, py5), QPointF(px4, py5));
 
   //---
 
@@ -612,28 +610,28 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  p->setBrush(brush);
-  p->setPen  (pen);
+  renderer->setBrush(brush);
+  renderer->setPen  (pen);
 
-  CQRoundedPolygon::draw(p, rect, plot_->cornerSize());
+  CQRoundedPolygon::draw(renderer, rect, plot_->cornerSize());
 
   //---
 
   // draw median line
-  p->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  p->drawLine(px2, py3, px4, py3);
+  renderer->drawLine(QPointF(px2, py3), QPointF(px4, py3));
 
   //---
 
   // draw labels
   double margin = plot_->textMargin();
 
-  p->setFont(plot_->font());
+  renderer->setFont(plot_->font());
 
   QColor textColor = plot_->interpTextColor(0, 1);
 
-  p->setPen(textColor);
+  renderer->setPen(textColor);
 
   QString ustr = QString("%1").arg(whisker_.upper ());
   QString lstr = QString("%1").arg(whisker_.lower ());
@@ -641,19 +639,19 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   QString strl = QString("%1").arg(whisker_.min   ());
   QString strh = QString("%1").arg(whisker_.max   ());
 
-  p->drawText(px2 - margin - fm.width(ustr), py4 + yf, ustr);
-  p->drawText(px2 - margin - fm.width(lstr), py2 + yf, lstr);
-  p->drawText(px4 + margin                 , py3 + yf, mstr);
-  p->drawText(px4 + margin                 , py1 + yf, strl);
-  p->drawText(px4 + margin                 , py5 + yf, strh);
+  renderer->drawText(QPointF(px2 - margin - fm.width(ustr), py4 + yf), ustr);
+  renderer->drawText(QPointF(px2 - margin - fm.width(lstr), py2 + yf), lstr);
+  renderer->drawText(QPointF(px4 + margin                 , py3 + yf), mstr);
+  renderer->drawText(QPointF(px4 + margin                 , py1 + yf), strl);
+  renderer->drawText(QPointF(px4 + margin                 , py5 + yf), strh);
 
   //---
 
   // draw whiskers
-  p->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  p->setBrush(brush);
-  p->setPen  (pen);
+  renderer->setBrush(brush);
+  renderer->setPen  (pen);
 
   double symbolSize = plot_->symbolSize();
 
@@ -664,7 +662,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
     QRectF rect(px1 - symbolSize, py1 - symbolSize, 2*symbolSize, 2*symbolSize);
 
-    p->drawEllipse(rect);
+    renderer->drawEllipse(rect);
   }
 }
 

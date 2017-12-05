@@ -28,7 +28,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsRadarPlot *plot_  { nullptr }; // parent plot
@@ -79,7 +79,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
  ~CQChartsRadarPlot();
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
 
@@ -91,7 +91,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
     if (valueColumn_ >= 0)
       valueColumns_.push_back(valueColumn_);
 
-    update();
+    updateRangeAndObjs();
   }
 
   const Columns &valueColumns() const { return valueColumns_; }
@@ -104,7 +104,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
     else
       valueColumn_ = -1;
 
-    update();
+    updateRangeAndObjs();
   }
 
   QString valueColumnsStr() const;
@@ -159,15 +159,15 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;
 
   //---
 
-  void drawBackground(QPainter *) override;
+  void drawBackground(CQChartsRenderer *) override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   class ValueData {

@@ -27,7 +27,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot *plot_ { nullptr };
@@ -59,7 +59,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot* plot_  { nullptr };
@@ -123,7 +123,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
   // columns
 
   int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; update(); }
+  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
 
   int yColumn() const { return yColumn_; }
 
@@ -135,7 +135,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
     if (yColumn_ >= 0)
       yColumns_.push_back(yColumn_);
 
-    update();
+    updateRangeAndObjs();
   }
 
   const Columns &yColumns() const { return yColumns_; }
@@ -148,7 +148,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
     else
       yColumn_ = -1;
 
-    update();
+    updateRangeAndObjs();
   }
 
   QString yColumnsStr() const;
@@ -206,7 +206,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -220,7 +220,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   using Ranges = std::vector<CQChartsGeom::Range>;

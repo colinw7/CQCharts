@@ -28,7 +28,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsSunburstPlot *plot_ { nullptr };
@@ -241,10 +241,10 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; update(); }
+  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -295,15 +295,16 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
   void handleResize() override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawNode(QPainter *p, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node);
+  void drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj,
+                CQChartsSunburstNode *node);
 
  private:
   void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index=QModelIndex(),
@@ -313,7 +314,7 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void addPlotObj(CQChartsSunburstNode *node);
 
-  void drawNodes(QPainter *p, CQChartsSunburstHierNode *hier);
+  void drawNodes(CQChartsRenderer *renderer, CQChartsSunburstHierNode *hier);
 
   QColor interpNodeColor(CQChartsSunburstNode *node) const;
 

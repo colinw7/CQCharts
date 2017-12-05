@@ -9,10 +9,11 @@
 class CQCharts;
 class CQChartsPlot;
 class CQChartsProbeBand;
-
+class CQChartsRenderer;
 class CQPropertyViewModel;
-class CGradientPalette;
 class CQChartsDisplayRange;
+
+class CGradientPalette;
 class QToolButton;
 class QRubberBand;
 class QLabel;
@@ -165,6 +166,8 @@ class CQChartsView : public QFrame {
 
   void paintEvent(QPaintEvent *) override;
 
+  void paint(CQChartsRenderer *renderer);
+
   //---
 
   void showMenu(const QPoint &p);
@@ -255,6 +258,8 @@ class CQChartsView : public QFrame {
 
   void darkTheme1Slot();
   void darkTheme2Slot();
+
+  void printSlot();
 
   void currentPlotSlot();
 

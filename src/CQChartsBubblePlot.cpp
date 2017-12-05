@@ -2,11 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CQChartsBoxObj.h>
 #include <CGradientPalette.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 namespace {
 
@@ -235,7 +233,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsBubblePlot::
 initObjs()
 {
@@ -243,13 +241,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -279,7 +277,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -384,18 +382,18 @@ loadChildren(const QModelIndex &index)
 
 void
 CQChartsBubblePlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsBubblePlot::
-drawForeground(QPainter *p)
+drawForeground(CQChartsRenderer *renderer)
 {
   double xc = 0.0, yc = 0.0, r = 1.0;
 
@@ -413,14 +411,14 @@ drawForeground(QPainter *p)
   // draw bubble
   QColor bc = interpBorderColor(0, 1);
 
-  p->setPen  (bc);
-  p->setBrush(Qt::NoBrush);
+  renderer->setPen  (bc);
+  renderer->setBrush(Qt::NoBrush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  p->drawPath(path);
+  renderer->drawPath(path);
 }
 
 //------
@@ -428,7 +426,7 @@ drawForeground(QPainter *p)
 CQChartsBubbleObj::
 CQChartsBubbleObj(CQChartsBubblePlot *plot, CQChartsBubbleNode *node,
                   const CQChartsGeom::BBox &rect, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), node_(node), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), node_(node), i_(i), n_(n)
 {
 }
 
@@ -475,7 +473,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsBubbleObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   double r = node_->radius();
 
@@ -519,19 +517,19 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  p->save();
+  renderer->save();
 
   //---
 
   // draw bubble
-  p->setPen  (bpen);
-  p->setBrush(brush);
+  renderer->setPen  (bpen);
+  renderer->setBrush(brush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  p->drawPath(path);
+  renderer->drawPath(path);
 
   //---
 
@@ -541,11 +539,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  p->setFont(font);
+  renderer->setFont(font);
 
   const QString &name = node_->name();
 
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
   double tw = fm.width(name);
 
@@ -554,11 +552,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // draw label
-  p->setClipRect(qrect, Qt::ReplaceClip);
+  renderer->setClipRect(qrect);
 
-  plot_->drawContrastText(p, px1 - tw/2, py1 + fm.descent(), name, tpen);
+  plot_->drawContrastText(renderer, px1 - tw/2, py1 + fm.descent(), name, tpen);
 
   //---
 
-  p->restore();
+  renderer->restore();
 }

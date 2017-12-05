@@ -1,14 +1,12 @@
 #include <CQChartsDrawUtil.h>
-
-#include <QPainter>
-#include <QPen>
+#include <CQChartsRenderer.h>
 
 void
 CQChartsDrawUtil::
-drawAlignedText(QPainter *p, double x, double y, const QString &text,
+drawAlignedText(CQChartsRenderer *renderer, double x, double y, const QString &text,
                 Qt::Alignment align, double dx, double dy)
 {
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
   double x1 = x;
   double y1 = y;
@@ -27,5 +25,5 @@ drawAlignedText(QPainter *p, double x, double y, const QString &text,
   else if (align & Qt::AlignVCenter)
     y1 = y + (fm.ascent() - fm.descent())/2;
 
-  p->drawText(x1, y1, text);
+  renderer->drawText(QPointF(x1, y1), text);
 }

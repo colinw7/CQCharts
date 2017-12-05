@@ -1,6 +1,6 @@
 #include <CQRoundedPolygon.h>
+#include <CQChartsRenderer.h>
 #include <QPainterPath>
-#include <QPainter>
 #include <cmath>
 
 namespace Util {
@@ -38,21 +38,21 @@ void interpLine(const QPointF &p1, const QPointF &p2, double size, QPointF &pc1,
 namespace CQRoundedPolygon {
 
 void
-draw(QPainter *painter, const QRectF &rect, double size)
+draw(CQChartsRenderer *renderer, const QRectF &rect, double size)
 {
   if (size > 0)
-    painter->drawRoundedRect(rect, size, size);
+    renderer->drawRoundedRect(rect, size, size);
   else
-    painter->drawRect(rect);
+    renderer->drawRect(rect);
 }
 
 void
-draw(QPainter *painter, const QPolygonF &poly, double size)
+draw(CQChartsRenderer *renderer, const QPolygonF &poly, double size)
 {
   QPainterPath path;
 
   if (poly.count() < 3) {
-    painter->drawPolygon(poly);
+    renderer->drawPolygon(poly);
     return;
   }
 
@@ -100,7 +100,7 @@ draw(QPainter *painter, const QPolygonF &poly, double size)
 
   path.closeSubpath();
 
-  painter->drawPath(path);
+  renderer->drawPath(path);
 }
 
 }

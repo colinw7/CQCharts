@@ -6,10 +6,9 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
-
-#include <QPainter>
 
 CQChartsRadarPlotType::
 CQChartsRadarPlotType()
@@ -270,7 +269,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsRadarPlot::
 initObjs()
 {
@@ -278,20 +277,20 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
   QAbstractItemModel *model = this->model();
 
   if (! model)
-    return;
+    return false;
 
   //---
 
@@ -357,7 +356,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -394,9 +393,9 @@ addKeyItems(CQChartsKey *key)
 
 void
 CQChartsRadarPlot::
-drawBackground(QPainter *p)
+drawBackground(CQChartsRenderer *renderer)
 {
-  CQChartsPlot::drawBackground(p);
+  CQChartsPlot::drawBackground(renderer);
 
   //---
 
@@ -416,7 +415,7 @@ drawBackground(QPainter *p)
 
   QPen gpen1(gridColor1);
 
-  p->setPen(gpen1);
+  renderer->setPen(gpen1);
 
   double px1, py1;
 
@@ -434,7 +433,7 @@ drawBackground(QPainter *p)
 
     windowToPixel(x, y, px2, py2);
 
-    p->drawLine(px1, py1, px2, py2);
+    renderer->drawLine(QPointF(px1, py1), QPointF(px2, py2));
 
     a -= da;
   }
@@ -448,7 +447,7 @@ drawBackground(QPainter *p)
 
   QColor textColor = interpTextColor(0, 1);
 
-  p->setFont(textFont());
+  renderer->setFont(textFont());
 
   QPen tpen(textColor);
 
@@ -477,7 +476,7 @@ drawBackground(QPainter *p)
       //---
 
       if (i == nl) {
-        p->setPen(tpen);
+        renderer->setPen(tpen);
 
         //---
 
@@ -493,7 +492,7 @@ drawBackground(QPainter *p)
         else if (y > 0)                   align |= Qt::AlignBottom;
         else if (y < 0)                   align |= Qt::AlignTop;
 
-        CQChartsDrawUtil::drawAlignedText(p, px, py, name, align, 2, 2);
+        CQChartsDrawUtil::drawAlignedText(renderer, px, py, name, align, 2, 2);
       }
 
       //---
@@ -503,21 +502,21 @@ drawBackground(QPainter *p)
 
     poly << poly[0];
 
-    p->setPen(gpen2);
+    renderer->setPen(gpen2);
 
-    p->drawPolygon(poly);
+    renderer->drawPolygon(poly);
   }
 }
 
 void
 CQChartsRadarPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 //------
@@ -525,7 +524,7 @@ draw(QPainter *p)
 CQChartsRadarObj::
 CQChartsRadarObj(CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
                  const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), name_(name), poly_(poly), ind_(ind), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), name_(name), poly_(poly), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -566,7 +565,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsRadarObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   if (! poly_.size())
     return;
@@ -608,8 +607,8 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  p->setPen  (pen);
-  p->setBrush(brush);
+  renderer->setPen  (pen);
+  renderer->setBrush(brush);
 
-  p->drawPolygon(ppoly);
+  renderer->drawPolygon(ppoly);
 }

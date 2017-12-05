@@ -34,7 +34,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
@@ -130,22 +130,22 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; update(); }
+  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
 
   int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; update(); }
+  void setYColumn(int i) { yColumn_ = i; updateRangeAndObjs(); }
 
   int symbolSizeColumn() const { return symbolSizeColumn_; }
-  void setSymbolSizeColumn(int i) { symbolSizeColumn_ = i; update(); }
+  void setSymbolSizeColumn(int i) { symbolSizeColumn_ = i; updateRangeAndObjs(); }
 
   int fontSizeColumn() const { return fontSizeColumn_; }
-  void setFontSizeColumn(int i) { fontSizeColumn_ = i; update(); }
+  void setFontSizeColumn(int i) { fontSizeColumn_ = i; updateRangeAndObjs(); }
 
   int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; update(); }
+  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -217,7 +217,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   bool colorSetColor(int i, OptColor &color);
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -229,9 +229,10 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontSize=-1);
+  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect,
+                     const QString &str, double fontSize=-1);
 
  private:
   int                  nameColumn_        { -1 };

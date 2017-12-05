@@ -60,7 +60,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  protected:
   CQChartsPiePlot* plot_     { nullptr }; // parent plot
@@ -149,16 +149,16 @@ class CQChartsPiePlot : public CQChartsPlot {
  ~CQChartsPiePlot();
 
   int labelColumn() const { return labelColumn_; }
-  void setLabelColumn(int i) { labelColumn_ = i; }
+  void setLabelColumn(int i) { labelColumn_ = i; updateRangeAndObjs(); }
 
   int dataColumn() const { return dataColumn_; }
-  void setDataColumn(int i) { dataColumn_ = i; }
+  void setDataColumn(int i) { dataColumn_ = i; updateRangeAndObjs(); }
 
   int keyLabelColumn() const { return keyLabelColumn_; }
-  void setKeyLabelColumn(int i) { keyLabelColumn_ = i; }
+  void setKeyLabelColumn(int i) { keyLabelColumn_ = i; updateRangeAndObjs(); }
 
   int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; }
+  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -216,7 +216,7 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   bool colorSetColor(int i, OptColor &color);
 
-  void initObjs() override;
+  bool initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;
 
@@ -224,7 +224,7 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void handleResize() override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   int                 labelColumn_     { 0 };

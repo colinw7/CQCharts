@@ -35,14 +35,21 @@ inline double getNaN() {
 //------
 
 inline bool isInteger(double r) {
+  if (isNaN(r))
+    return false;
+
   return std::abs(r - int(r)) < 1E-3;
 }
 
 inline bool realEq(double r1, double r2) {
+  if (isNaN(r1) || isNaN(r2)) return false;
+
   return std::fabs(r2 - r1) < 1E-5;
 }
 
 inline bool isZero(double r) {
+  if (isNaN(r)) return false;
+
   return realEq(r, 0.0);
 }
 

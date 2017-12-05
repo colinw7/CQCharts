@@ -1,8 +1,8 @@
 #include <CQChartsDataLabel.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CQChartsRenderer.h>
 #include <CQRotatedText.h>
-#include <QPainter>
 
 CQChartsDataLabel::
 CQChartsDataLabel(CQChartsPlot *plot) :
@@ -35,16 +35,16 @@ update()
 
 void
 CQChartsDataLabel::
-draw(QPainter *p, const QRectF &qrect, const QString &ystr)
+draw(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
 {
   if (! isVisible())
     return;
 
-  p->save();
+  renderer->save();
 
-  p->setFont(font());
+  renderer->setFont(font());
 
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
   double ym = 2;
 
@@ -106,19 +106,19 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
       if (position() == Position::TOP_INSIDE ||
           position() == Position::BOTTOM_INSIDE ||
           position() == Position::CENTER) {
-        p->setClipRect(qrect, Qt::ReplaceClip);
+        renderer->setClipRect(qrect);
       }
     }
 
     QRectF brect(x - tw/2 - b1, y - fm.ascent() - b1, tw + 2*b1, fm.height() + 2*b1);
 
-    CQChartsBoxObj::draw(p, brect);
+    CQChartsBoxObj::draw(renderer, brect);
 
     if (! clipped) {
-      p->setPen(interpColor(0, 1));
+      renderer->setPen(interpColor(0, 1));
 
       if (ystr.length())
-        p->drawText(x - tw/2, y, ystr);
+        renderer->drawText(QPointF(x - tw/2, y), ystr);
     }
   }
   else {
@@ -155,23 +155,23 @@ draw(QPainter *p, const QRectF &qrect, const QString &ystr)
     QRectF                bbox;
     CQRotatedText::Points points;
 
-    CQRotatedText::bboxData(x, y, ystr, p->font(), angle(), b1,
+    CQRotatedText::bboxData(x, y, ystr, renderer->font(), angle(), b1,
                             bbox, points, align, /*alignBBox*/ true);
 
-    p->setPen(interpColor(0, 1));
+    renderer->setPen(interpColor(0, 1));
 
     QPolygonF poly;
 
     for (std::size_t i = 0; i < points.size(); ++i)
       poly << points[i];
 
-    CQChartsBoxObj::draw(p, poly);
+    CQChartsBoxObj::draw(renderer, poly);
 
-    p->setPen(interpColor(0, 1));
+    renderer->setPen(interpColor(0, 1));
 
     if (ystr.length())
-      CQRotatedText::drawRotatedText(p, x, y, ystr, angle(), align, /*alignBBox*/ true);
+      CQRotatedText::drawRotatedText(renderer, x, y, ystr, angle(), align, /*alignBBox*/ true);
   }
 
-  p->restore();
+  renderer->restore();
 }

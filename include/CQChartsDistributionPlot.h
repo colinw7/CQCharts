@@ -32,7 +32,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsDistributionPlot *plot_   { nullptr };
@@ -131,10 +131,10 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   //---
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; update(); }
+  void setValueColumn(int i) { valueColumn_ = i; resetValues(); updateRangeAndObjs(); }
 
   int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; }
+  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -165,6 +165,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   int calcBucket(double v) const;
 
   void calcCategoryRange();
+
+  void resetValues() { valueSet_.clear(); }
 
   //---
 
@@ -238,7 +240,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   void updateObjs() override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -256,9 +258,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
+  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr);
 
  private slots:
   void pushSlot();
@@ -273,6 +275,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   int                  valueColumn_ { -1 };      // value column
   int                  colorColumn_ { -1 };      // color column
   CategoryRange        categoryRange_;           // category range
+  CQChartsValueSet     valueSet_;
   bool                 autoDelta_   { false };   // auto delta
   IValues              ivalues_;                 // indexed values
   bool                 horizontal_  { false };   // horizontal bars

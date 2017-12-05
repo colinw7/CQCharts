@@ -9,7 +9,7 @@
 
 class CQChartsPlot;
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsRenderer;
 
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
@@ -84,7 +84,7 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  void draw(QPainter *p);
+  void draw(CQChartsRenderer *renderer);
 
  private:
   bool                       visible_  { true };

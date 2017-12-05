@@ -6,14 +6,15 @@
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
+#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDisplayRange.h>
 
+#include <QSvgGenerator>
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QMenu>
-#include <QPainter>
 
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
@@ -681,18 +682,27 @@ paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
 
+  CQChartsPainter renderer(&painter);
+
+  paint(&renderer);
+}
+
+void
+CQChartsView::
+paint(CQChartsRenderer *renderer)
+{
   if (isAntiAlias())
-    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    renderer->setAntiAlias();
 
   //---
 
-  painter.fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
+  renderer->fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
 
   //---
 
   for (const auto &plotData : plotDatas_) {
     if (plotData.plot->isVisible())
-      plotData.plot->draw(&painter);
+      plotData.plot->draw(renderer);
   }
 }
 
@@ -837,6 +847,14 @@ showMenu(const QPoint &p)
     for (const auto &plot : plots) {
       (void) plot->addMenuItems(popupMenu_);
     }
+
+    //---
+
+    QAction *printAction = new QAction("Print", popupMenu_);
+
+    connect(printAction, SIGNAL(triggered()), this, SLOT(printSlot()));
+
+    popupMenu_->addAction(printAction);
   }
 
   popupMenu_->popup(mapToGlobal(p));
@@ -973,6 +991,27 @@ setDarkThemeColors()
 
   theme_->addDefinedColor(0.0, QColor("#222222"));
   theme_->addDefinedColor(1.0, QColor("#dddddd"));
+}
+
+//------
+
+void
+CQChartsView::
+printSlot()
+{
+  QSvgGenerator generator;
+
+  generator.setFileName("charts.svg");
+
+  QPainter painter;
+
+  painter.begin(&generator);
+
+  CQChartsPainter renderer(&painter);
+
+  paint(&renderer);
+
+  painter.end();
 }
 
 //------

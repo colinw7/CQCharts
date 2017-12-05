@@ -6,10 +6,9 @@
 #include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CQRoundedPolygon.h>
 
-#include <QAbstractItemModel>
-#include <QPainter>
 #include <QMenu>
 #include <QAction>
 #include <iostream>
@@ -312,40 +311,64 @@ updateRange(bool apply)
 
   //---
 
+  // calc category type
+  if (! valueSet_.initialized()) {
+    valueSet_.clear();
+
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex valueInd = model->index(r, valueColumn());
+
+      bool ok;
+
+      QVariant value = CQChartsUtil::modelValue(model, valueInd, ok);
+
+      if (! ok)
+        continue;
+
+      valueSet_.addValue(value);
+    }
+  }
+
+  //---
+
   // calc value range
+
   categoryRange_.numValues = 0;
   categoryRange_.minValue  = 0.0;
   categoryRange_.maxValue  = 0.0;
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex valueInd = model->index(r, valueColumn());
+  if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
+      valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex valueInd = model->index(r, valueColumn());
 
-    bool ok;
+      bool ok;
 
-    double value = CQChartsUtil::modelReal(model, valueInd, ok);
+      double value = CQChartsUtil::modelReal(model, valueInd, ok);
 
-    if (! ok)
-      continue;
+      if (! ok)
+        continue;
 
-    if (CQChartsUtil::isNaN(value))
-      continue;
+      if (CQChartsUtil::isNaN(value))
+        continue;
 
-    if (! checkFilter(value))
-      continue;
+      if (! checkFilter(value))
+        continue;
 
-    if (categoryRange_.numValues == 0) {
-      categoryRange_.minValue = value;
-      categoryRange_.maxValue = value;
+      if (categoryRange_.numValues == 0) {
+        categoryRange_.minValue = value;
+        categoryRange_.maxValue = value;
+      }
+      else {
+        categoryRange_.minValue = std::min(categoryRange_.minValue, value);
+        categoryRange_.maxValue = std::max(categoryRange_.maxValue, value);
+      }
+
+      ++categoryRange_.numValues;
     }
-    else {
-      categoryRange_.minValue = std::min(categoryRange_.minValue, value);
-      categoryRange_.maxValue = std::max(categoryRange_.maxValue, value);
-    }
 
-    ++categoryRange_.numValues;
+    calcCategoryRange();
   }
-
-  calcCategoryRange();
 
   //---
 
@@ -361,41 +384,68 @@ updateRange(bool apply)
 
     //---
 
-    bool ok;
+    int bucket = -1;
 
-    double value = CQChartsUtil::modelReal(model, valueInd, ok);
+    if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
+        valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+      bool ok;
 
-    if (! ok)
-      continue;
+      double value = CQChartsUtil::modelReal(model, valueInd, ok);
 
-    if (CQChartsUtil::isNaN(value))
-      continue;
+      if (! ok)
+        continue;
 
-    if (! checkFilter(value))
-      continue;
+      if (CQChartsUtil::isNaN(value))
+        continue;
 
-    //----
+      if (! checkFilter(value))
+        continue;
 
-    int bucket = calcBucket(value);
+      //----
 
-    ivalues_[bucket].emplace_back(valueInd1);
+      bucket = calcBucket(value);
+
+      ivalues_[bucket].emplace_back(valueInd1);
+    }
+    else {
+      bool ok;
+
+      QString value = CQChartsUtil::modelString(model, valueInd, ok);
+
+      if (! ok)
+        continue;
+
+      bucket = valueSet_.sind(value);
+
+      ivalues_[bucket].emplace_back(valueInd1);
+    }
 
     //---
 
-    if (minBucket <= maxBucket) {
-      minBucket = std::min(minBucket, bucket);
-      maxBucket = std::max(maxBucket, bucket);
-    }
-    else {
-      minBucket = bucket;
-      maxBucket = bucket;
+    if (bucket >= 0) {
+      if (minBucket <= maxBucket) {
+        minBucket = std::min(minBucket, bucket);
+        maxBucket = std::max(maxBucket, bucket);
+      }
+      else {
+        minBucket = bucket;
+        maxBucket = bucket;
+      }
     }
   }
+
+  //---
 
   int maxValues = 0;
 
   for (const auto &ivalue : ivalues_)
     maxValues = std::max(maxValues, int(ivalue.second.size()));
+
+  if (maxValues == 0)
+    maxValues = 1;
+
+  if (maxBucket < minBucket) // unset
+    maxBucket = minBucket;
 
   //---
 
@@ -488,7 +538,7 @@ updateObjs()
   CQChartsPlot::updateObjs();
 }
 
-void
+bool
 CQChartsDistributionPlot::
 initObjs()
 {
@@ -496,13 +546,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -573,7 +623,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -608,13 +658,19 @@ QString
 CQChartsDistributionPlot::
 bucketValuesStr(int bucket) const
 {
-  QChar arrowChar(0x2192);
+  if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
+      valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+    QChar arrowChar(0x2192);
 
-  double value1, value2;
+    double value1, value2;
 
-  bucketValues(bucket, value1, value2);
+    bucketValues(bucket, value1, value2);
 
-  return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+    return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+  }
+  else {
+    return valueSet_.inds(bucket);
+  }
 }
 
 void
@@ -707,20 +763,20 @@ popSlot()
 
 void
 CQChartsDistributionPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsDistributionPlot::
-drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
+drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
 {
-  dataLabel_.draw(p, qrect, ystr);
+  dataLabel_.draw(renderer, qrect, ystr);
 }
 
 //------
@@ -728,7 +784,7 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int bucket, const Values &values, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), bucket_(bucket), values_(values), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), bucket_(bucket), values_(values), i_(i), n_(n)
 {
 }
 
@@ -768,9 +824,9 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsDistributionBarObj::
-draw(QPainter *p, const CQChartsPlot::Layer &layer)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 {
-  p->save();
+  renderer->save();
 
   //---
 
@@ -832,16 +888,16 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     //---
 
     // draw rect
-    p->setPen(pen);
-    p->setBrush(barBrush);
+    renderer->setPen(pen);
+    renderer->setBrush(barBrush);
 
-    CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
+    CQRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
   }
   else {
     QString ystr = QString("%1").arg(values_.size());
 
-    plot_->drawDataLabel(p, qrect, ystr);
+    plot_->drawDataLabel(renderer, qrect, ystr);
   }
 
-  p->restore();
+  renderer->restore();
 }

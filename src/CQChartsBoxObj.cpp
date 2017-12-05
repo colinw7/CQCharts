@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQPropertyViewModel.h>
 #include <CQRoundedPolygon.h>
-#include <QPainter>
+#include <CQChartsRenderer.h>
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
@@ -53,7 +53,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsBoxObj::
-draw(QPainter *p, const QRectF &rect) const
+draw(CQChartsRenderer *renderer, const QRectF &rect) const
 {
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
@@ -62,10 +62,10 @@ draw(QPainter *p, const QRectF &rect) const
 
     QBrush brush(bgColor);
 
-    p->setBrush(brush);
-    p->setPen  (Qt::NoPen);
+    renderer->setBrush(brush);
+    renderer->setPen  (Qt::NoPen);
 
-    CQRoundedPolygon::draw(p, rect, borderCornerSize());
+    CQRoundedPolygon::draw(renderer, rect, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -77,10 +77,10 @@ draw(QPainter *p, const QRectF &rect) const
 
     pen.setWidthF(borderWidth());
 
-    p->setPen  (pen);
-    p->setBrush(Qt::NoBrush);
+    renderer->setPen  (pen);
+    renderer->setBrush(Qt::NoBrush);
 
-    CQRoundedPolygon::draw(p, rect, borderCornerSize());
+    CQRoundedPolygon::draw(renderer, rect, borderCornerSize());
   }
 }
 
@@ -93,7 +93,7 @@ redrawBoxObj()
 
 void
 CQChartsBoxObj::
-draw(QPainter *p, const QPolygonF &poly) const
+draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
 {
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
@@ -102,10 +102,10 @@ draw(QPainter *p, const QPolygonF &poly) const
 
     QBrush brush(bgColor);
 
-    p->setBrush(brush);
-    p->setPen  (Qt::NoPen);
+    renderer->setBrush(brush);
+    renderer->setPen  (Qt::NoPen);
 
-    CQRoundedPolygon::draw(p, poly, borderCornerSize());
+    CQRoundedPolygon::draw(renderer, poly, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -117,9 +117,9 @@ draw(QPainter *p, const QPolygonF &poly) const
 
     pen.setWidthF(borderWidth());
 
-    p->setPen  (pen);
-    p->setBrush(Qt::NoBrush);
+    renderer->setPen  (pen);
+    renderer->setBrush(Qt::NoBrush);
 
-    CQRoundedPolygon::draw(p, poly, borderCornerSize());
+    CQRoundedPolygon::draw(renderer, poly, borderCornerSize());
   }
 }

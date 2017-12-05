@@ -1,13 +1,18 @@
 #ifndef CQRotatedText_H
 #define CQRotatedText_H
 
-#include <QPainter>
+#include <QPointF>
+#include <QRectF>
+#include <QFont>
+#include <vector>
+
+class CQChartsRenderer;
 
 namespace CQRotatedText {
 
 typedef std::vector<QPointF> Points;
 
-void drawRotatedText(QPainter *painter, double x, double y, const QString &text,
+void drawRotatedText(CQChartsRenderer *renderer, double x, double y, const QString &text,
                      double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
                      bool alignBBox=false);
 

@@ -28,7 +28,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsDelaunayPlot *plot_ { nullptr };
@@ -89,13 +89,13 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   // columns
 
   int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; update(); }
+  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
 
   int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; update(); }
+  void setYColumn(int i) { yColumn_ = i; updateRangeAndObjs(); }
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -150,17 +150,17 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawForeground(QPainter *p) override;
+  void drawForeground(CQChartsRenderer *renderer) override;
 
  private:
-  void drawDelaunay(QPainter *p);
-  void drawVoronoi (QPainter *p);
+  void drawDelaunay(CQChartsRenderer *p);
+  void drawVoronoi (CQChartsRenderer *p);
 
  private:
   int               xColumn_    { 0 };

@@ -63,6 +63,8 @@ void
 CQChartsPlotObjTree::
 clearObjects()
 {
+  initTree();
+
   delete plotObjTree_;
 
   plotObjTree_ = nullptr;

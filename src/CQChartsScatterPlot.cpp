@@ -4,9 +4,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
+#include <CQChartsRenderer.h>
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -273,7 +271,7 @@ colorSetColor(int i, OptColor &color)
 
 //------
 
-void
+bool
 CQChartsScatterPlot::
 initObjs()
 {
@@ -281,13 +279,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -302,7 +300,7 @@ initObjs()
     QAbstractItemModel *model = this->model();
 
     if (! model)
-      return;
+      return false;
 
     int nr = numRows();
 
@@ -468,7 +466,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -496,18 +494,18 @@ addKeyItems(CQChartsKey *key)
 
 void
 CQChartsScatterPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsScatterPlot::
-drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontSize)
+drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &str, double fontSize)
 {
   if (fontSize > 0) {
     QFont font = dataLabel_.font();
@@ -518,12 +516,12 @@ drawDataLabel(QPainter *p, const QRectF &qrect, const QString &str, double fontS
 
     dataLabel_.setFont(font1);
 
-    dataLabel_.draw(p, qrect, str);
+    dataLabel_.draw(renderer, qrect, str);
 
     dataLabel_.setFont(font);
   }
   else {
-    dataLabel_.draw(p, qrect, str);
+    dataLabel_.draw(renderer, qrect, str);
   }
 }
 
@@ -533,7 +531,7 @@ CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect, const QPointF &p,
                         double symbolSize, const OptReal &fontSize, const OptColor &color,
                         int is, int ns, int iv, int nv) :
- CQChartsPlotObj(rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
+ CQChartsPlotObj(plot, rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
  color_(color), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
 }
@@ -606,7 +604,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsScatterPointObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   double s = symbolSize_; // TODO: ensure not a crazy number
 
@@ -628,15 +626,15 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  p->setPen  (pen);
-  p->setBrush(brush);
+  renderer->setPen  (pen);
+  renderer->setBrush(brush);
 
   QRectF erect(px - s, py - s, 2*s, 2*s);
 
-  p->drawEllipse(erect);
+  renderer->drawEllipse(erect);
 
   if (plot_->isTextLabels()) {
-    plot_->drawDataLabel(p, erect, name_, (fontSize_ ? *fontSize_ : -1));
+    plot_->drawDataLabel(renderer, erect, name_, (fontSize_ ? *fontSize_ : -1));
   }
 }
 

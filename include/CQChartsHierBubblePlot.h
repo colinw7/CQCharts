@@ -141,7 +141,7 @@ class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot*     plot_    { nullptr };
@@ -169,7 +169,7 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot*    plot_    { nullptr };
@@ -221,10 +221,10 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; update(); }
+  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -292,7 +292,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -314,9 +314,9 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawForeground(QPainter *) override;
+  void drawForeground(CQChartsRenderer *) override;
 
   QColor interpNodeColor(CQChartsHierBubbleNode *node) const;
 
@@ -338,7 +338,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void transformNodes(CQChartsHierBubbleHierNode *hier);
 
-  void drawBounds(QPainter *p, CQChartsHierBubbleHierNode *hier);
+  void drawBounds(CQChartsRenderer *renderer, CQChartsHierBubbleHierNode *hier);
 
  public slots:
   void updateCurrentRoot();

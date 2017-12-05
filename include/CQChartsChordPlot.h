@@ -125,7 +125,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsChordObj *plotObject(int ind) const;
@@ -172,10 +172,10 @@ class CQChartsChordPlot : public CQChartsPlot {
  ~CQChartsChordPlot();
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; update(); }
+  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -208,13 +208,13 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
   void handleResize() override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
  private:
   int                        nameColumn_     { -1 };

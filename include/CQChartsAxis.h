@@ -20,7 +20,7 @@ class CQChartsPlot;
 class CQChartsLineObj;
 class CQChartsFillObj;
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsRenderer;
 
 // Axis Data
 class CQChartsAxis : public QObject {
@@ -340,24 +340,28 @@ class CQChartsAxis : public QObject {
 
   //---
 
-  void drawGrid(CQChartsPlot *plot, QPainter *p);
+  void drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer);
 
-  void draw(CQChartsPlot *plot, QPainter *p);
+  void draw(CQChartsPlot *plot, CQChartsRenderer *renderer);
 
   void calcPos(double &apos1, double &apos2) const;
 
-  void drawLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
+  void drawLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                double apos, double amin, double amax);
 
-  void drawMajorGridLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
-  void drawMinorGridLine(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax);
+  void drawMajorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                         double apos, double amin, double amax);
+  void drawMinorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                         double apos, double amin, double amax);
 
-  void drawTickLine(CQChartsPlot *plot, QPainter *p, double apos, double tpos,
-                    bool inside, bool major);
+  void drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                    double apos, double tpos, bool inside, bool major);
 
-  void drawTickLabel(CQChartsPlot *plot, QPainter *p, double apos, double tpos, bool inside);
+  void drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                     double apos, double tpos, bool inside);
 
-  void drawAxisLabel(CQChartsPlot *plot, QPainter *p, double apos, double amin, double amax,
-                     const QString &text);
+  void drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer,
+                     double apos, double amin, double amax, const QString &text);
 
  private:
   struct AxisGapData {

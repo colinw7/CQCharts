@@ -3,10 +3,9 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
-
-#include <QPainter>
 
 CQChartsImagePlotType::
 CQChartsImagePlotType()
@@ -93,7 +92,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsImagePlot::
 initObjs()
 {
@@ -101,20 +100,20 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
   QAbstractItemModel *model = this->model();
 
   if (! model)
-    return;
+    return false;
 
   //---
 
@@ -159,18 +158,18 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
 CQChartsImagePlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 //------
@@ -178,7 +177,7 @@ draw(QPainter *p)
 CQChartsImageObj::
 CQChartsImageObj(CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
                  double value, const QModelIndex &ind) :
- CQChartsPlotObj(rect), plot_(plot), value_(value), ind_(ind)
+ CQChartsPlotObj(plot, rect), plot_(plot), value_(value), ind_(ind)
 {
 }
 
@@ -209,7 +208,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsImageObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   CQChartsGeom::BBox prect;
 
@@ -221,5 +220,5 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   QColor c = plot_->interpPaletteColor(v);
 
-  p->fillRect(qrect, c);
+  renderer->fillRect(qrect, c);
 }

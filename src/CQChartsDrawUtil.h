@@ -3,11 +3,11 @@
 
 #include <QString>
 
-class QPainter;
+class CQChartsRenderer;
 
 namespace CQChartsDrawUtil {
 
-void drawAlignedText(QPainter *p, double x, double y, const QString &text,
+void drawAlignedText(CQChartsRenderer *renderer, double x, double y, const QString &text,
                      Qt::Alignment align, double dx=0, double dy=0);
 
 }

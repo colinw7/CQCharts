@@ -4,8 +4,8 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
+#include <CQChartsRenderer.h>
 #include <CQRoundedPolygon.h>
-#include <QPainter>
 #include <QRectF>
 
 CQChartsKey::
@@ -539,7 +539,7 @@ setFlipped(bool b)
 
 void
 CQChartsKey::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
   if (! isVisible())
     return;
@@ -569,7 +569,7 @@ draw(QPainter *p)
 
   //---
 
-  p->save();
+  renderer->save();
 
   QRectF dataRect = plot_->calcRect();
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
@@ -586,11 +586,11 @@ draw(QPainter *p)
     }
   }
 
-  p->setClipRect(clipRect, Qt::ReplaceClip);
+  renderer->setClipRect(clipRect);
 
   //---
 
-  CQChartsBoxObj::draw(p, rect);
+  CQChartsBoxObj::draw(renderer, rect);
 
   //---
 
@@ -623,17 +623,17 @@ draw(QPainter *p)
 
     item->setBBox(bbox);
 
-    item->draw(p, bbox);
+    item->draw(renderer, bbox);
   }
 
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowRedBox(p, bbox_);
+    plot_->drawWindowRedBox(renderer, bbox_);
 
   //---
 
-  p->restore();
+  renderer->restore();
 }
 
 QColor
@@ -714,15 +714,15 @@ interpTextColor(int i, int n) const
 
 void
 CQChartsKeyText::
-draw(QPainter *p, const CQChartsGeom::BBox &rect)
+draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
-  p->setFont(key_->textFont());
+  renderer->setFont(key_->textFont());
 
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
-  p->setPen(interpTextColor(0, 1));
+  renderer->setPen(interpTextColor(0, 1));
 
   double px1, px2, py;
 
@@ -735,9 +735,9 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
     px = px2 - 2 - fm.width(text_);
 
   if (! plot->isInvertY())
-    p->drawText(px, py - fm.descent() - 2, text_);
+    renderer->drawText(QPointF(px, py - fm.descent() - 2), text_);
   else
-    p->drawText(px, py + fm.ascent() + 2, text_);
+    renderer->drawText(QPointF(px, py + fm.ascent() + 2), text_);
 }
 
 //------
@@ -786,7 +786,7 @@ size() const
 
 void
 CQChartsKeyColorBox::
-draw(QPainter *p, const CQChartsGeom::BBox &rect)
+draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
@@ -803,10 +803,10 @@ draw(QPainter *p, const CQChartsGeom::BBox &rect)
   if (isInside())
     brush.setColor(plot->insideColor(brush.color()));
 
-  p->setPen  (bc);
-  p->setBrush(brush);
+  renderer->setPen  (bc);
+  renderer->setBrush(brush);
 
-  CQRoundedPolygon::draw(p, prect1, cornerRadius());
+  CQRoundedPolygon::draw(renderer, prect1, cornerRadius());
 }
 
 QBrush

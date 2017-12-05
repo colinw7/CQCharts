@@ -2,11 +2,10 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CQRotatedText.h>
 #include <CQStrParse.h>
 
-#include <QAbstractItemModel>
-#include <QPainter>
 #include <QTimer>
 
 CQChartsForceDirectedPlotType::
@@ -87,7 +86,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsForceDirectedPlot::
 initObjs()
 {
@@ -95,23 +94,25 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   if (! idConnections_.empty())
-    return;
+    return false;
 
   //---
 
   QAbstractItemModel *model = this->model();
 
   if (! model)
-    return;
+    return false;
+
+  //---
 
   int maxGroup = 0;
 
@@ -211,7 +212,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 bool
@@ -397,13 +398,13 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
 void
 CQChartsForceDirectedPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawBackground(p);
+  drawBackground(renderer);
 
   //---
 
@@ -425,9 +426,9 @@ draw(QPainter *p)
 
     double w = sqrt(edge->value());
 
-    p->setPen(QPen(edgeColor, w));
+    renderer->setPen(QPen(edgeColor, w));
 
-    p->drawLine(px1, py1, px2, py2);
+    renderer->drawLine(QPointF(px1, py1), QPointF(px2, py2));
   }
 
   // draw nodes
@@ -440,19 +441,19 @@ draw(QPainter *p)
 
     windowToPixel(p1.x(), p1.y(), px, py);
 
-    p->setPen(interpNodeBorderColor(0, 1));
+    renderer->setPen(interpNodeBorderColor(0, 1));
 
     QColor c = interpPaletteColor(node->value(), /*scale*/false);
 
     if (node == forceDirected_.currentNode()) {
-      p->setBrush(insideColor(c));
+      renderer->setBrush(insideColor(c));
     }
     else {
-      p->setBrush(c);
+      renderer->setBrush(c);
     }
 
     double r = nodeRadius();
 
-    p->drawEllipse(QRectF(px - r, py - r, 2*r, 2*r));
+    renderer->drawEllipse(QRectF(px - r, py - r, 2*r, 2*r));
   }
 }

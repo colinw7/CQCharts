@@ -3,10 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 namespace {
 
@@ -245,7 +243,7 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-void
+bool
 CQChartsTreeMapPlot::
 initObjs()
 {
@@ -253,13 +251,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -272,7 +270,7 @@ initObjs()
 
   //---
 
-  initObjTree();
+  return true;
 }
 
 void
@@ -563,13 +561,13 @@ handleResize()
 
 void
 CQChartsTreeMapPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 //------
@@ -578,7 +576,7 @@ CQChartsTreeMapHierObj::
 CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                        CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                        int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
@@ -612,7 +610,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsTreeMapHierObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   double px1, py1, px2, py2;
 
@@ -652,15 +650,15 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  p->save();
+  renderer->save();
 
   //---
 
   // draw rectangle
-  p->setPen  (bpen);
-  p->setBrush(brush);
+  renderer->setPen  (bpen);
+  renderer->setBrush(brush);
 
-  p->drawRect(qrect);
+  renderer->drawRect(qrect);
 
   //---
 
@@ -670,24 +668,24 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  p->setFont(font);
+  renderer->setFont(font);
 
   QString name = hier_->name();
 
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
   plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
 
   //---
 
   // draw label
-  p->setClipRect(qrect, Qt::ReplaceClip);
+  renderer->setClipRect(qrect);
 
-  plot_->drawContrastText(p, px1 + 2, py1 + fm.ascent(), name, tpen);
+  plot_->drawContrastText(renderer, px1 + 2, py1 + fm.ascent(), name, tpen);
 
   //---
 
-  p->restore();
+  renderer->restore();
 }
 
 //------
@@ -695,7 +693,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 CQChartsTreeMapObj::
 CQChartsTreeMapObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapNode *node,
                    CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect, int i, int n) :
- CQChartsPlotObj(rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
+ CQChartsPlotObj(plot, rect), plot_(plot), node_(node), hierObj_(hierObj), i_(i), n_(n)
 {
 }
 
@@ -759,7 +757,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsTreeMapObj::
-draw(QPainter *p, const CQChartsPlot::Layer &)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 {
   //CQChartsTreeMapHierNode *root = node_->rootNode(plot_->firstHier());
   CQChartsTreeMapHierNode *root = node_->parent();
@@ -806,15 +804,15 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
 
   //---
 
-  p->save();
+  renderer->save();
 
   //---
 
   // draw rectangle
-  p->setPen  (bpen);
-  p->setBrush(brush);
+  renderer->setPen  (bpen);
+  renderer->setBrush(brush);
 
-  p->drawRect(qrect);
+  renderer->drawRect(qrect);
 
   //---
 
@@ -824,11 +822,11 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  p->setFont(font);
+  renderer->setFont(font);
 
   QString name = node_->name();
 
-  QFontMetricsF fm(p->font());
+  QFontMetricsF fm(renderer->font());
 
   double tw = fm.width(name);
 
@@ -839,13 +837,13 @@ draw(QPainter *p, const CQChartsPlot::Layer &)
   //---
 
   // draw label
-  p->setClipRect(qrect, Qt::ReplaceClip);
+  renderer->setClipRect(qrect);
 
-  plot_->drawContrastText(p, px1 - tw/2, py1 + fdy, name, tpen);
+  plot_->drawContrastText(renderer, px1 - tw/2, py1 + fdy, name, tpen);
 
   //---
 
-  p->restore();
+  renderer->restore();
 }
 
 //------

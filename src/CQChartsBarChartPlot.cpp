@@ -5,10 +5,8 @@
 #include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQChartsRenderer.h>
 #include <CQRoundedPolygon.h>
-
-#include <QAbstractItemModel>
-#include <QPainter>
 
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
@@ -404,6 +402,9 @@ updateRange(bool apply)
 
           QModelIndex valueInd = model->index(r, valueColumn);
 
+          if (! valueInd.isValid())
+            continue;
+
           bool ok2;
 
           double value = CQChartsUtil::modelReal(model, valueInd, ok2);
@@ -462,6 +463,9 @@ updateRange(bool apply)
 
           QModelIndex valueInd = model->index(r, valueColumn);
 
+          if (! valueInd.isValid())
+            continue;
+
           bool ok2;
 
           double value = CQChartsUtil::modelReal(model, valueInd, ok2);
@@ -517,6 +521,9 @@ updateRange(bool apply)
       int valueColumn = getSetColumn(0);
 
       QModelIndex valueInd = model->index(r, valueColumn);
+
+      if (! valueInd.isValid())
+        continue;
 
       bool ok2;
 
@@ -711,7 +718,7 @@ updateObjs()
   CQChartsPlot::updateObjs();
 }
 
-void
+bool
 CQChartsBarChartPlot::
 initObjs()
 {
@@ -719,13 +726,13 @@ initObjs()
     updateRange();
 
     if (! dataRange_.isSet())
-      return;
+      return false;
   }
 
   //---
 
   if (! plotObjs_.empty())
-    return;
+    return false;
 
   //---
 
@@ -995,9 +1002,9 @@ initObjs()
 
   resetKeyItems();
 
-  //---
+  //----
 
-  initObjTree();
+  return true;
 }
 
 QString
@@ -1136,20 +1143,20 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsBarChartPlot::
-draw(QPainter *p)
+draw(CQChartsRenderer *renderer)
 {
-  initObjs();
+  initPlotObjs();
 
   //---
 
-  drawParts(p);
+  drawParts(renderer);
 }
 
 void
 CQChartsBarChartPlot::
-drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr)
+drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
 {
-  dataLabel_.draw(p, qrect, ystr);
+  dataLabel_.draw(renderer, qrect, ystr);
 }
 
 //------
@@ -1158,7 +1165,7 @@ CQChartsBarChartObj::
 CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                     int iset, int nset, int ival, int nval, int isval, int nsval,
                     double value, const QModelIndex &ind) :
- CQChartsPlotObj(rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
+ CQChartsPlotObj(plot, rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
  isval_(isval), nsval_(nsval), value_(value), ind_(ind)
 {
 }
@@ -1207,7 +1214,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsBarChartObj::
-draw(QPainter *p, const CQChartsPlot::Layer &layer)
+draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 {
   static double minBarSize = 1.0/64.0;
 
@@ -1227,7 +1234,7 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
   //---
 
-  p->save();
+  renderer->save();
 
   CQChartsGeom::BBox prect;
 
@@ -1304,16 +1311,17 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
 
     // draw rect
     if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
-      p->setPen(pen);
-      p->setBrush(barBrush);
+      renderer->setPen(pen);
+      renderer->setBrush(barBrush);
 
-      CQRoundedPolygon::draw(p, qrect, plot_->borderCornerSize());
+      CQRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
     }
     else {
       if (! plot_->isBorder())
-        p->setPen(barBrush.color());
+        renderer->setPen(barBrush.color());
 
-      p->drawLine(qrect.left(), qrect.bottom(), qrect.right(), qrect.top());
+      renderer->drawLine(QPointF(qrect.left (), qrect.bottom()),
+                         QPointF(qrect.right(), qrect.top   ()));
     }
   }
   else {
@@ -1322,10 +1330,10 @@ draw(QPainter *p, const CQChartsPlot::Layer &layer)
     if (plot_->labelColumn() < 0)
       label = plot_->valueStr(value_);
 
-    plot_->drawDataLabel(p, qrect, label);
+    plot_->drawDataLabel(renderer, qrect, label);
   }
 
-  p->restore();
+  renderer->restore();
 }
 
 //------

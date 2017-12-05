@@ -1,7 +1,6 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsWindow.h>
 #include <QHBoxLayout>
-#include <QPainter>
 #include <QLabel>
 
 CQChartsViewStatus::

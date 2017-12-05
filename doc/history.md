@@ -173,3 +173,9 @@
  + Add dark/light icons
  + Separate position and status labels on status line
  + Add impulse color/width to xy plot
+## 12/04/2017
+ + Add abstract renderer to allow replace QPainter
+ + Add SVG print support
+ + Improve object init in paint to avoid high CPU when no range/objects
+ + Add no data object when no objects
+ + Update column set routines to update all objects

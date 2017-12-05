@@ -2,7 +2,7 @@ TEMPLATE = lib
 
 TARGET = CQCharts
 
-QT += widgets
+QT += widgets svg
 
 DEPENDPATH += .
 
@@ -55,6 +55,7 @@ CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
 \
+CQChartsNoDataObj.cpp \
 CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
@@ -180,6 +181,7 @@ HEADERS += \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
 \
+CQChartsNoDataObj.h \
 ../include/CQChartsPlotObj.h \
 CQChartsPlotObjTree.h \
 ../include/CQChartsBoxObj.h \

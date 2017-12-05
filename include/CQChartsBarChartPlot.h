@@ -33,7 +33,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBarChartPlot *plot_  { nullptr }; // parent plot
@@ -154,7 +154,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   int categoryColumn() const { return categoryColumn_; }
-  void setCategoryColumn(int i) { categoryColumn_ = i; update(); }
+  void setCategoryColumn(int i) { categoryColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
 
@@ -166,7 +166,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
     if (valueColumn_ >= 0)
       valueColumns_.push_back(valueColumn_);
 
-    update();
+    updateRangeAndObjs();
   }
 
   const Columns &valueColumns() const { return valueColumns_; }
@@ -179,20 +179,20 @@ class CQChartsBarChartPlot : public CQChartsPlot {
     else
       valueColumn_ = -1;
 
-    update();
+    updateRangeAndObjs();
   }
 
   QString valueColumnsStr() const;
   bool setValueColumnsStr(const QString &s);
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; }
+  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
 
   int labelColumn() const { return labelColumn_; }
-  void setLabelColumn(int i) { labelColumn_ = i; }
+  void setLabelColumn(int i) { labelColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -270,7 +270,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   void updateObjs() override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -300,9 +300,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawDataLabel(QPainter *p, const QRectF &qrect, const QString &ystr);
+  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr);
 
  private:
   struct Value {

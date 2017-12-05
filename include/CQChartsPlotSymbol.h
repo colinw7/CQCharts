@@ -113,11 +113,11 @@ class CQChartsPlotSymbolRenderer {
 #include <QPainterPath>
 
 class CQChartsPlot;
-class QPainter;
+class CQChartsRenderer;
 
 class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
  public:
-  CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
+  CQChartsSymbol2DRenderer(CQChartsRenderer *renderer, const CQChartsGeom::Point &p, double s);
 
   void moveTo(double x, double y) override;
 
@@ -136,10 +136,10 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double lineWidth() const override;
 
  private:
-  QPainter*           painter_ { nullptr };
-  CQChartsGeom::Point p_       { 0.0, 0.0 };
-  double              s_       { 2.0 };
-  double              w_       { 0.0 };
+  CQChartsRenderer*   renderer_ { nullptr };
+  CQChartsGeom::Point p_        { 0.0, 0.0 };
+  double              s_        { 2.0 };
+  double              w_        { 0.0 };
   QPainterPath        path_;
   QPen                strokePen_;
   QBrush              fillBrush_;

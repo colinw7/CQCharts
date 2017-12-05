@@ -7,7 +7,7 @@
 #include <QPolygonF>
 
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsRenderer;
 
 class CQChartsBoxObj : public QObject {
   Q_OBJECT
@@ -89,8 +89,8 @@ class CQChartsBoxObj : public QObject {
 
   virtual void redrawBoxObj();
 
-  void draw(QPainter *p, const QRectF &rect) const;
-  void draw(QPainter *p, const QPolygonF &poly) const;
+  void draw(CQChartsRenderer *renderer, const QRectF &rect) const;
+  void draw(CQChartsRenderer *renderer, const QPolygonF &poly) const;
 
  protected:
   CQChartsPlot*        plot_             { nullptr }; // parent plot

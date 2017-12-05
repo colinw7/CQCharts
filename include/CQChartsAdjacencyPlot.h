@@ -77,7 +77,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsAdjacencyPlot *plot_  { nullptr }; // parent plot
@@ -131,16 +131,16 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model);
 
   int nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(int i) { nodeColumn_ = i; update(); }
+  void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
 
   int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; update(); }
+  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
 
   int connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(int i) { connectionsColumn_ = i; update(); }
+  void setConnectionsColumn(int i) { connectionsColumn_ = i; updateRangeAndObjs(); }
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -193,7 +193,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
@@ -209,10 +209,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawBackground(QPainter *) override;
-  void drawForeground(QPainter *) override;
+  void drawBackground(CQChartsRenderer *) override;
+  void drawForeground(CQChartsRenderer *) override;
 
  private:
   struct ConnectionData {

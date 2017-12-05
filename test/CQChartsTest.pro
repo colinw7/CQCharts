@@ -4,7 +4,7 @@ TARGET = CQChartsTest
 
 DEPENDPATH += .
 
-QT += widgets
+QT += widgets svg
 
 QMAKE_CXXFLAGS += -std=c++11
 

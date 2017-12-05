@@ -78,7 +78,7 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(QPainter *p, const CQChartsPlot::Layer &) override;
+  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBubblePlot *plot_ { nullptr }; // parent plot
@@ -129,10 +129,10 @@ class CQChartsBubblePlot : public CQChartsPlot {
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; update(); }
+  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; update(); }
+  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
 
   //---
 
@@ -184,13 +184,13 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initObjs() override;
+  bool initObjs() override;
 
   //---
 
-  void draw(QPainter *) override;
+  void draw(CQChartsRenderer *) override;
 
-  void drawForeground(QPainter *p) override;
+  void drawForeground(CQChartsRenderer *renderer) override;
 
  private:
   void initNodes();

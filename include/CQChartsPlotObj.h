@@ -3,15 +3,16 @@
 
 #include <CQChartsPlot.h>
 #include <QObject>
-#include <QPainter>
 #include <CQChartsGeom.h>
+#include <QPen>
+#include <QBrush>
 
 class CQChartsPlotObj : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsPlotObj(const CQChartsGeom::BBox &rect=CQChartsGeom::BBox()) :
-   rect_(rect) {
+  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox()) :
+   plot_(plot), rect_(rect) {
   }
 
   virtual ~CQChartsPlotObj() { }
@@ -70,11 +71,12 @@ class CQChartsPlotObj : public QObject {
 
   virtual void clickZoom(const CQChartsGeom::Point &) { }
 
-  virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
+  virtual void draw(CQChartsRenderer *, const CQChartsPlot::Layer &) = 0;
 
  protected:
   using OptString = boost::optional<QString>;
 
+  CQChartsPlot*      plot_     { nullptr };
   CQChartsGeom::BBox rect_;
   OptString          id_;
   OptString          tipId_;

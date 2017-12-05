@@ -1,6 +1,6 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsPlot.h>
-#include <QPainter>
+#include <CQChartsRenderer.h>
 #include <cmath>
 #include <cassert>
 
@@ -424,13 +424,13 @@ fillSymbol(CQChartsPlotSymbol::Type type)
 //------
 
 CQChartsSymbol2DRenderer::
-CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
- painter_(painter), p_(p), s_(s)
+CQChartsSymbol2DRenderer(CQChartsRenderer *renderer, const CQChartsGeom::Point &p, double s) :
+ renderer_(renderer), p_(p), s_(s)
 {
-  strokePen_.setColor (painter_->pen().color());
-  strokePen_.setWidthF(painter_->pen().widthF());
+  strokePen_.setColor (renderer_->pen().color());
+  strokePen_.setWidthF(renderer_->pen().widthF());
 
-  fillBrush_ = QBrush(painter_->brush().color());
+  fillBrush_ = QBrush(renderer_->brush().color());
 }
 
 void
@@ -458,14 +458,14 @@ void
 CQChartsSymbol2DRenderer::
 stroke()
 {
-  painter_->strokePath(path_, strokePen_);
+  renderer_->strokePath(path_, strokePen_);
 }
 
 void
 CQChartsSymbol2DRenderer::
 fill()
 {
-  painter_->fillPath(path_, fillBrush_);
+  renderer_->fillPath(path_, fillBrush_);
 }
 
 void
@@ -474,14 +474,14 @@ strokeCircle(double x, double y, double r)
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
-  painter_->save();
+  renderer_->save();
 
-  painter_->setBrush(Qt::NoBrush);
-  painter_->setPen  (strokePen_);
+  renderer_->setBrush(Qt::NoBrush);
+  renderer_->setPen  (strokePen_);
 
-  painter_->drawEllipse(rect);
+  renderer_->drawEllipse(rect);
 
-  painter_->restore();
+  renderer_->restore();
 }
 
 void
@@ -490,14 +490,14 @@ fillCircle(double x, double y, double r)
 {
   QRectF rect(p_.x + (x - r)*s_, p_.y + (y - r)*s_, 2*r*s_, 2*r*s_);
 
-  painter_->save();
+  renderer_->save();
 
-  painter_->setBrush(fillBrush_);
-  painter_->setPen  (Qt::NoPen);
+  renderer_->setBrush(fillBrush_);
+  renderer_->setPen  (Qt::NoPen);
 
-  painter_->drawEllipse(rect);
+  renderer_->drawEllipse(rect);
 
-  painter_->restore();
+  renderer_->restore();
 }
 
 double

@@ -16,6 +16,7 @@ class CQChartsValueSet : public QObject {
   Q_PROPERTY(bool   mapEnabled READ isMapEnabled WRITE setMapEnabled)
   Q_PROPERTY(double mapMin     READ mapMin       WRITE setMapMin    )
   Q_PROPERTY(double mapMax     READ mapMax       WRITE setMapMax    )
+  Q_PROPERTY(bool   allowNaN   READ isAllowNaN   WRITE setAllowNaN  )
 
  public:
   enum class Type {
@@ -44,6 +45,9 @@ class CQChartsValueSet : public QObject {
 
   //---
 
+  // is initialized
+  bool initialized() const { return initialized_; }
+
   // get type
   Type type() const { init(); return type_; }
 
@@ -65,6 +69,15 @@ class CQChartsValueSet : public QObject {
   double mapMax() const { return mapMax_; }
   void setMapMax(double r) { mapMax_ = r; }
 
+  // get/set allow nam values
+  bool isAllowNaN() const { return allowNaN_; }
+  void setAllowNaN(bool b) { allowNaN_ = b; }
+
+  // get string index
+  int sind(const QString &s) const;
+  // get index string
+  QString inds(int ind) const;
+
   // get minimum index value
   // for integers this is the minimum value, for real/string this is one
   int imin() const;
@@ -72,6 +85,14 @@ class CQChartsValueSet : public QObject {
   // get maximum index value
   // for integers this is the maximum value, for real/string this is the number of unique values
   int imax() const;
+
+  // get minimum real value
+  // (integers/reals only)
+  double rmin() const;
+
+  // get maximum real value
+  // (integers/reals only)
+  double rmax() const;
 
  private:
   void init() const;
@@ -103,20 +124,22 @@ class CQChartsValueSet : public QObject {
 
   Type    type_ { Type::NONE };   // calculated type
 
-  IVals   ivals_; // integer values
-  ISets   iset_;  // unique integer values
+  IVals   ivals_;   // all integer values
+  ISets   iset_;    // unique integer values
 
-  RVals   rvals_;   // real values
+  RVals   rvals_;   // all real values
   RValSet rvalset_; // unique indexed real values
   SetRVal setrval_; // index to real map
 
-  SVals   svals_;   // string values
+  SVals   svals_;   // all string values
   SValSet svalset_; // unique indexed string values
   SetSVal setsval_; // index to string map
 
   bool    mapEnabled_ { true };
   double  mapMin_     { 0.0 };
   double  mapMax_     { 1.0 };
+
+  bool    allowNaN_ { false }; // allow NaN values
 };
 
 #endif

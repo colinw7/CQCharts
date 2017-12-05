@@ -7,7 +7,7 @@
 #include <QPointF>
 
 class CQPropertyViewModel;
-class QPainter;
+class CQChartsRenderer;
 class QPen;
 
 class CQChartsLineObj : public QObject {
@@ -45,12 +45,13 @@ class CQChartsLineObj : public QObject {
 
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
-  void draw(QPainter *p, const QPointF &p1, const QPointF &p2) const;
+  void draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2) const;
 
-  static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QColor &color,
-                   double width, const CQChartsLineDash &dash);
+  static void draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2,
+                   const QColor &color, double width, const CQChartsLineDash &dash);
 
-  static void draw(QPainter *p, const QPointF &p1, const QPointF &p2, const QPen &pen);
+  static void draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2,
+                   const QPen &pen);
 
   virtual void redrawLineObj() { }
 

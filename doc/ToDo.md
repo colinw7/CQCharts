@@ -5,7 +5,8 @@ Misc
  + Animation
 
 Theme
- + theme file
+ + theme config file
+ + more colors
 
 Functions
  + Improved Filter
@@ -23,11 +24,10 @@ Model
  + Use sort filter to hide values
 
 Axes
- + Match X1/X2 ticks ?
- + Log axis
+ + Match Y1/Y2 ticks if possible ?
  + Disable/Custom Zoom
  + Handle overlapping labels
-   + Hide, Resize, Rotate
+   + Auto Hide, Resize, Rotate
  + Scale break
 
 Title
