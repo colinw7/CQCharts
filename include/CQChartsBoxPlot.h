@@ -41,7 +41,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
-  void mousePress(const CQChartsGeom::Point &) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 

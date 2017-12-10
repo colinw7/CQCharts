@@ -1,11 +1,11 @@
-#ifndef CQRoundedPolygon_H
-#define CQRoundedPolygon_H
+#ifndef CQChartsRoundedPolygon_H
+#define CQChartsRoundedPolygon_H
 
 #include <QPolygonF>
 
 class CQChartsRenderer;
 
-namespace CQRoundedPolygon {
+namespace CQChartsRoundedPolygon {
 
 void draw(CQChartsRenderer *painter, const QRectF &rect, double size=0.0);
 

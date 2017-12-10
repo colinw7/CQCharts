@@ -72,11 +72,17 @@ CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
 CQChartsLoader.cpp \
+CQChartsFilterEdit.cpp \
+CQChartsModelFilter.cpp \
+CQChartsModelExprMatch.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
 CQChartsLineDash.cpp \
 CQChartsLineDashEdit.cpp \
+\
+CQChartsRotatedText.cpp \
+CQChartsRoundedPolygon.cpp \
 \
 CQPropertyView.cpp \
 CQPropertyViewDelegate.cpp \
@@ -110,6 +116,7 @@ CJson.cpp \
 CQGnuDataModel.cpp \
 CQSortModel.cpp \
 CQExprModel.cpp \
+CQExprModelExpr.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
 \
@@ -125,12 +132,11 @@ CQPixmapCache.cpp \
 CQUtil.cpp \
 CQWidgetMenu.cpp \
 CQIconCombo.cpp \
+CQHistoryLineEdit.cpp \
 \
 CQTreeView.cpp \
 CQTableView.cpp \
 CQHeaderView.cpp \
-CQRotatedText.cpp \
-CQRoundedPolygon.cpp \
 CQFilename.cpp \
 CQStrParse.cpp \
 \
@@ -202,11 +208,17 @@ CQChartsAxisObj.h \
 ../include/CQChartsQuadTree.h \
 \
 ../include/CQChartsLoader.h \
+CQChartsFilterEdit.h \
+../include/CQChartsModelFilter.h \
+CQChartsModelExprMatch.h \
 \
 ../include/CQChartsPlotDlg.h \
 \
 ../include/CQChartsLineDash.h \
 CQChartsLineDashEdit.h \
+\
+CQChartsRotatedText.h \
+CQChartsRoundedPolygon.h \
 \
 CQPropertyView.h \
 CQPropertyViewDelegate.h \
@@ -243,6 +255,7 @@ CQGradientControlPlot.h \
 ../include/CQGnuDataModel.h \
 ../include/CQSortModel.h \
 ../include/CQExprModel.h \
+CQExprModelExpr.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
 \
@@ -258,13 +271,12 @@ CQPixmapCache.h \
 CQPoint2DEdit.h \
 CQAlignEdit.h \
 CQRealSpin.h \
-CQRotatedText.h \
-CQRoundedPolygon.h \
 ../include/CQStrParse.h \
 CQToolTip.h \
 ../include/CQUtil.h \
 CQWidgetMenu.h \
 CQIconCombo.h \
+CQHistoryLineEdit.h \
 \
 ../include/CQChartsDelaunay.h \
 CQChartsHull3D.h \
@@ -281,6 +293,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CExpr/include \
+../../CReadLine/include \
 ../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \

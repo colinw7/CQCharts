@@ -1,4 +1,5 @@
 #include <CQChartsTree.h>
+#include <CQChartsUtil.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
@@ -115,33 +116,17 @@ setFilter(const QString &filter)
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
-  QString filter1 = filter;
+  QString filter1;
+  int     column { -1 };
 
-  if (filter.length()) {
-    QStringList strs = filter.split(':', QString::KeepEmptyParts);
+  CQChartsUtil::decodeModelFilterStr(model_.data(), filter, filter1, column);
 
-    if (strs.size() == 2) {
-      int column = -1;
-
-      QString name = strs[0];
-
-      for (int i = 0; i < model_->columnCount(); ++i) {
-        QString name1 = model_->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
-
-        if (name == name1) {
-          column = i;
-          break;
-        }
-      }
-
-      if (column > 0)
-        proxyModel->setFilterKeyColumn(column);
-
-      filter1 = strs[1];
-    }
-  }
+  if (column >= 0)
+    proxyModel->setFilterKeyColumn(column);
 
   proxyModel->setFilterWildcard(filter1);
+
+  emit filterChanged();
 }
 
 void

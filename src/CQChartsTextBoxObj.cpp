@@ -2,7 +2,7 @@
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
@@ -137,11 +137,11 @@ draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text,
     CQChartsBoxObj::draw(renderer, rect_);
   }
   else {
-    QRectF                bbox;
-    CQRotatedText::Points points;
+    QRectF                      bbox;
+    CQChartsRotatedText::Points points;
 
-    CQRotatedText::bboxData(c.x(), c.y(), text, font(), angle, margin(),
-                            bbox, points, align, /*alignBBox*/ true);
+    CQChartsRotatedText::bboxData(c.x(), c.y(), text, font(), angle, margin(),
+                                  bbox, points, align, /*alignBBox*/ true);
 
     QPolygonF poly;
 
@@ -153,8 +153,8 @@ draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text,
 
   renderer->setPen(interpColor(0, 1));
 
-  CQRotatedText::drawRotatedText(renderer, c.x() + cd, c.y(), text, angle,
-                                 align, /*alignBBox*/ true);
+  CQChartsRotatedText::drawRotatedText(renderer, c.x() + cd, c.y(), text, angle,
+                                       align, /*alignBBox*/ true);
 
   renderer->restore();
 }

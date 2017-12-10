@@ -748,7 +748,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  bool mousePress  (const CQChartsGeom::Point &p) override;
+  bool mousePress  (const CQChartsGeom::Point &p, ModSelect modSelect) override;
   bool mouseMove   (const CQChartsGeom::Point &p, bool first=false) override;
   void mouseRelease(const CQChartsGeom::Point &p) override;
 

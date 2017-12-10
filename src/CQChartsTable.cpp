@@ -1,6 +1,9 @@
 #include <CQChartsTable.h>
 #include <CQCharts.h>
 #include <CQChartsColumn.h>
+#include <CQChartsModelFilter.h>
+#include <CQChartsModelExprMatch.h>
+#include <CQChartsRegExp.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
@@ -40,8 +43,8 @@ class CQChartsTableSelectionModel : public QItemSelectionModel {
 //------
 
 CQChartsTable::
-CQChartsTable(CQCharts *charts) :
- CQTableView(nullptr), charts_(charts)
+CQChartsTable(CQCharts *charts, QWidget *parent) :
+ CQTableView(parent), charts_(charts)
 {
   setObjectName("table");
 
@@ -55,6 +58,12 @@ CQChartsTable(CQCharts *charts) :
   setSelectionBehavior(SelectRows);
 
   connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickSlot(int)));
+}
+
+CQChartsTable::
+~CQChartsTable()
+{
+  delete match_;
 }
 
 void
@@ -115,39 +124,192 @@ void
 CQChartsTable::
 setFilter(const QString &filter)
 {
+  addReplaceFilter(filter, /*add*/false);
+}
+
+void
+CQChartsTable::
+addFilter(const QString &filter)
+{
+  addReplaceFilter(filter, /*add*/true);
+}
+
+void
+CQChartsTable::
+addReplaceFilter(const QString &filter, bool add)
+{
   if (! model_)
     return;
 
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
   assert(proxyModel);
 
-  QString filter1 = filter;
+  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
-  if (filter.length()) {
-    QStringList strs = filter.split(':', QString::KeepEmptyParts);
+  if (modelFilter) {
+    modelFilter->setSelectionModel(sm_);
 
-    if (strs.size() == 2) {
-      int column = -1;
+    if (add)
+      modelFilter->pushFilterData();
+    else
+      modelFilter->resetFilterData();
 
-      QString name = strs[0];
+    if      (filter == "selected" || filter == "non-selected") {
+      bool invert = (filter == "non-selected");
 
-      for (int i = 0; i < model_->columnCount(); ++i) {
-        QString name1 = model_->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+      modelFilter->setSelectionFilter(invert);
+    }
+    else if (isExprFilter()) {
+      modelFilter->setExpressionFilter(filter);
+    }
+    else {
+      modelFilter->setRegExpFilter(filter);
+    }
+  }
+  else {
+    QAbstractItemModel *model = proxyModel->sourceModel();
+    assert(model);
 
-        if (name == name1) {
-          column = i;
+    QString filter1;
+    int     column = -1;
+
+    if (CQChartsUtil::decodeModelFilterStr(model, filter, filter1, column))
+      proxyModel->setFilterKeyColumn(column);
+
+    proxyModel->setFilterWildcard(filter1);
+  }
+
+  emit filterChanged();
+}
+
+void
+CQChartsTable::
+setSearch(const QString &text)
+{
+  addReplaceSearch(text, /*add*/false);
+}
+
+void
+CQChartsTable::
+addSearch(const QString &text)
+{
+  addReplaceSearch(text, /*add*/true);
+}
+
+void
+CQChartsTable::
+addReplaceSearch(const QString &text, bool add)
+{
+  if (! add)
+    matches_.clear();
+
+  matches_.push_back(text);
+
+  //---
+
+  if (! model_)
+    return;
+
+  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+  assert(proxyModel);
+
+  //---
+
+  int oldKeyColumn = proxyModel->filterKeyColumn();
+
+  int keyColumn = oldKeyColumn;
+
+  // get matching items
+  int nr = model_->rowCount();
+
+  std::vector<int> rows;
+
+  if (! isExprFilter()) {
+    QString text1;
+    int     column = -1;
+
+    if (CQChartsUtil::decodeModelFilterStr(model_.data(), text, text1, column)) {
+      proxyModel->setFilterKeyColumn(column);
+
+      keyColumn = column;
+    }
+
+    CQChartsRegExp regexp(text1);
+
+    keyColumn = proxyModel->filterKeyColumn();
+
+    for (int r = 0; r < nr; ++r) {
+      bool ok;
+
+      QString str = CQChartsUtil::modelString(model_.data(), r, keyColumn, ok);
+      if (! ok) continue;
+
+      if (regexp.match(str))
+        rows.push_back(r);
+    }
+  }
+  else {
+    if (! match_)
+      match_ = new CQChartsModelExprMatch;
+
+    QAbstractItemModel *model = proxyModel->sourceModel();
+
+    match_->setModel(model);
+
+    match_->initColumns();
+
+    for (int r = 0; r < nr; ++r) {
+      bool isMatch = false;
+
+      for (const auto &matchText : matches_) {
+        match_->initMatch(matchText); // TODO: eval once
+
+        bool ok;
+
+        if (match_->match(r, keyColumn, ok) && ok) {
+          isMatch = true;
           break;
         }
       }
 
-      if (column > 0)
-        proxyModel->setFilterKeyColumn(column);
-
-      filter1 = strs[1];
+      if (isMatch)
+        rows.push_back(r);
     }
   }
 
-  proxyModel->setFilterWildcard(filter1);
+  //---
+
+  // select matching items
+  QItemSelection sel;
+
+  for (auto &r : rows) {
+    QModelIndex ind = model_->index(r, keyColumn);
+
+    sel.select(ind, ind);
+  }
+
+  QItemSelectionModel *sm = this->selectionModel();
+
+  sm->clear();
+
+  sm->select(sel, QItemSelectionModel::Select);
+
+  //---
+
+  // make item visible
+  for (auto &r : rows) {
+    QModelIndex ind = model_->index(r, keyColumn);
+
+    scrollTo(ind);
+
+    break;
+  }
+
+  //---
+
+  // reset key column (if changed)
+  if (oldKeyColumn != keyColumn)
+    proxyModel->setFilterKeyColumn(oldKeyColumn);
 }
 
 void

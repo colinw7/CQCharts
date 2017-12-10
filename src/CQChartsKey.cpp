@@ -5,7 +5,7 @@
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRenderer.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 #include <QRectF>
 
 CQChartsKey::
@@ -191,8 +191,9 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   QPointF kp(kx, ky);
 
-  if (location == LocationType::ABSOLUTE)
-    kp  = absPosition();
+  if (location == LocationType::ABSOLUTE) {
+    kp = absPlotPosition();
+  }
 
   setPosition(kp);
 }
@@ -390,6 +391,28 @@ doLayout()
   size_ = QSizeF(w, h);
 }
 
+QPointF
+CQChartsKey::
+absPlotPosition() const
+{
+  double wx, wy;
+
+  plot_->viewToWindow(absPosition().x(), absPosition().y(), wx, wy);
+
+  return QPointF(wx, wy);
+}
+
+void
+CQChartsKey::
+setAbsPlotPosition(const QPointF &p)
+{
+  double vx, vy;
+
+  plot_->windowToView(p.x(), p.y(), vx, vy);
+
+  setAbsPosition(QPointF(vx, vy));
+}
+
 QSizeF
 CQChartsKey::
 calcSize()
@@ -466,8 +489,9 @@ mouseDragPress(const CQChartsGeom::Point &p)
 {
   dragPos_ = p;
 
-  location_.location    = LocationType::ABSOLUTE;
-  location_.absPosition = position_;
+  location_.location = LocationType::ABSOLUTE;
+
+  setAbsPlotPosition(position_);
 
   return true;
 }
@@ -479,8 +503,9 @@ mouseDragMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos_.x;
   double dy = p.y - dragPos_.y;
 
-  location_.location     = LocationType::ABSOLUTE;
-  location_.absPosition += QPointF(dx, dy);
+  location_.location = LocationType::ABSOLUTE;
+
+  setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
   dragPos_ = p;
 
@@ -729,6 +754,9 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
   plot->windowToPixel(rect.getXMin(), rect.getYMin(), px1, py);
   plot->windowToPixel(rect.getXMax(), rect.getYMin(), px2, py);
 
+  if (px1 > px2)
+    std::swap(px1, px2);
+
   double px = px1 + 2;
 
   if (key_->textAlign() & Qt::AlignRight)
@@ -806,7 +834,7 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
   renderer->setPen  (bc);
   renderer->setBrush(brush);
 
-  CQRoundedPolygon::draw(renderer, prect1, cornerRadius());
+  CQChartsRoundedPolygon::draw(renderer, prect1, cornerRadius());
 }
 
 QBrush

@@ -74,7 +74,7 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CQChartsGeom::Point &) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 

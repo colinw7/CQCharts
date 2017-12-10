@@ -61,13 +61,19 @@ class CQChartsPlotObj : public QObject {
 
   virtual bool visible() const { return isVisible(); }
 
+  // is point inside (override if not simple rect shape)
   virtual bool inside(const CQChartsGeom::Point &p) const { return rect_.inside(p); }
+
+  // is rect touching (override if not simple rect shape)
+  virtual bool touching(const CQChartsGeom::BBox &r) const { return rect_.overlaps(r); }
 
   virtual bool isIndex(const QModelIndex &) const { return false; }
 
   virtual void handleResize() { }
 
-  virtual void mousePress(const CQChartsGeom::Point &) { }
+  virtual void mousePress() { }
+
+  virtual void addSelectIndex() { }
 
   virtual void clickZoom(const CQChartsGeom::Point &) { }
 

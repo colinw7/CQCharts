@@ -5,7 +5,6 @@
 #include <CQPropertyViewItem.h>
 #include <CQHeaderView.h>
 
-#include <QSortFilterProxyModel>
 #include <QHeaderView>
 #include <QMouseEvent>
 #include <QMenu>

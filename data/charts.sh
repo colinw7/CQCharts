@@ -54,7 +54,9 @@ CQChartsTest \
 CQChartsTest \
  -tsv scatter.tsv -first_line_header \
  -type scatter -columns "name=4,x=0,y=1,size=2" \
- -plot_title "scatter"
+ -plot_title "scatter" \
+ -properties "symbol.size=12" \
+ -view_properties "selectedHighlight.fill.enabled=1"
 
 CQChartsTest \
  -tsv stacked_area.tsv -comment_header \
@@ -442,6 +444,16 @@ CQChartsTest \
  -type distribution -columns "value=0,color=1" \
  -real "delta=1"
 
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -process-add "Color=@0 > 0.0 ? 'green' : 'red'" \
+ -type distribution -columns "value=0,color=1" \
+ -view_properties "selectedHighlight.fill.enabled=1" \
+ -properties "X Axis.ticks.label.placement=BETWEEN" \
+ -properties "Y Axis.ticks.label.placement=TOP_RIGHT" \
+ -properties "Key.visible=0" \
+ -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE"
+  
 ##---
 
 CQChartsTest -overlay \

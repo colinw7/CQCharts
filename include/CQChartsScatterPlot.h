@@ -28,9 +28,11 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void mousePress(const CQChartsGeom::Point &) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -216,6 +218,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void initColorSet();
 
   bool colorSetColor(int i, OptColor &color);
+
+  void updateObjs() override;
 
   bool initObjs() override;
 

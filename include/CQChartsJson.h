@@ -2,13 +2,13 @@
 #define CQChartsJson_H
 
 #include <CQChartsColumn.h>
-#include <QSortFilterProxyModel>
+#include <CQChartsModelFilter.h>
 
 class CQCharts;
 class CQChartsColumnType;
 class CQJsonModel;
 
-class CQChartsJson : public QSortFilterProxyModel {
+class CQChartsJson : public CQChartsModelFilter {
   Q_OBJECT
 
  public:
@@ -21,21 +21,9 @@ class CQChartsJson : public QSortFilterProxyModel {
 
   bool isHierarchical() const;
 
-  int columnCount(const QModelIndex &parent=QModelIndex()) const override;
-
-  int rowCount(const QModelIndex &parent=QModelIndex()) const override;
-
-  bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value,
-                     int role=Qt::DisplayRole) override;
-
-  QVariant headerData(int section, Qt::Orientation orientation=Qt::Horizontal,
-                      int role=Qt::DisplayRole) const override;
+  //---
 
   QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
-
-  QModelIndex parent(const QModelIndex &index) const override;
-
-  Qt::ItemFlags flags(const QModelIndex &index) const;
 
   //---
 

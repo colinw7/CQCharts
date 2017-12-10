@@ -278,4 +278,3 @@ init()
 
   pen_.setDashPattern(qlengths);
 }
-

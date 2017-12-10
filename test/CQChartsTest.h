@@ -82,6 +82,7 @@ class CQChartsTest : public CQAppWindow {
     QString       typeName;
     QString       filterStr;
     QString       process;
+    QString       processAdd;
     NameValueData nameValueData;
     QString       columnType;
     bool          xintegral       { false };
@@ -90,7 +91,8 @@ class CQChartsTest : public CQAppWindow {
     bool          ylog            { false };
     QString       title;
     QString       viewTitle;
-    QString       properties;
+    QString       viewProperties;
+    QString       plotProperties;
     OptReal       xmin, ymin, xmax, ymax;
     bool          y1y2            { false };
     bool          overlay         { false };
@@ -201,6 +203,7 @@ class CQChartsTest : public CQAppWindow {
                            const NameValueData &nameValueData, bool reuse,
                            const CQChartsGeom::BBox &bbox);
 
+  void setViewProperties(CQChartsView *view, const QString &properties);
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   CQChartsView *getView(bool reuse=true);
@@ -217,7 +220,10 @@ class CQChartsTest : public CQAppWindow {
   QString fileTypeToString(FileType type) const;
 
   void processExpression(const QString &expr);
-  void processExpression(ModelP &model, const QString &expr);
+
+  void processExpression   (ModelP &model, const QString &expr);
+  void processAddExpression(ModelP &model, const QString &expr);
+
   void processExpression(ModelP &model, CQExprModel::Function function,
                          int column, const QString &expr);
 

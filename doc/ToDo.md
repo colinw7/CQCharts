@@ -1,3 +1,15 @@
+Use CQChartsModelP everywhere !!!!
+
+More testing of x/y flip for axis/key/...
+Allow title drag move ?
+
+Filter Stack (Push/Pop) Tree - keep/delete
+Generic Filter support (plugin)
+
+Allow disable theme for fixed color plot
+
+//---
+
 Misc
  + Cache plot pixmaps
  + Draw inside/selected to overlay pixmap
@@ -84,6 +96,7 @@ Key
  + Inside/Outside
  + Overlap with Axis/Title
  + Title
+ + Max entries
 
 Overlay
  + Share Key
@@ -96,7 +109,6 @@ Symbols
 ToolTip
  + Format value depending on type
  + Format contents (wrap, max line length, max lines, ...)
- + Tab through multiple items
 
 Mouse Tools
  + Zoom : Data, Region

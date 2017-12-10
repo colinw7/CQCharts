@@ -329,6 +329,16 @@ main(int argc, char **argv)
           initData.process += argv[i];
         }
       }
+      else if (arg == "process-add") {
+        ++i;
+
+        if (i < argc) {
+          if (initData.processAdd.length())
+            initData.processAdd += ";";
+
+          initData.processAdd += argv[i];
+        }
+      }
       // sort data
       else if (arg == "sort") {
         ++i;
@@ -556,15 +566,27 @@ main(int argc, char **argv)
           initData.title = argv[i];
       }
 
-      // plot properties
-      else if (arg == "properties") {
+      // view properties
+      else if (arg == "view_properties") {
         ++i;
 
         if (i < argc) {
-          if (initData.properties.length())
-            initData.properties += ",";
+          if (initData.viewProperties.length())
+            initData.viewProperties += ",";
 
-          initData.properties += argv[i];
+          initData.viewProperties += argv[i];
+        }
+      }
+
+      // plot properties
+      else if (arg == "properties" || arg == "plot_properties") {
+        ++i;
+
+        if (i < argc) {
+          if (initData.plotProperties.length())
+            initData.plotProperties += ",";
+
+          initData.plotProperties += argv[i];
         }
       }
 
@@ -992,10 +1014,19 @@ initPlot(const InitData &initData)
 
   //---
 
-  QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
+  if (initData.process.length()) {
+    QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
-  for (int i = 0; i < strs.size(); ++i)
-    processExpression(model, strs[i]);
+    for (int i = 0; i < strs.size(); ++i)
+      processExpression(model, strs[i]);
+  }
+
+  if (initData.processAdd.length()) {
+    QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.size(); ++i)
+      processAddExpression(model, strs[i]);
+  }
 
   //---
 
@@ -1231,6 +1262,20 @@ processExpression(ModelP &model, const QString &exprStr)
 
 void
 CQChartsTest::
+processAddExpression(ModelP &model, const QString &exprStr)
+{
+  CQExprModel *exprModel = getExprModel(model);
+
+  if (! exprModel) {
+    errorMsg("Expression not supported for model");
+    return;
+  }
+
+  exprModel->addExtraColumn(exprStr);
+}
+
+void
+CQChartsTest::
 processExpression(ModelP &model, CQExprModel::Function function, int column, const QString &expr)
 {
   CQExprModel *exprModel = getExprModel(model);
@@ -1438,6 +1483,9 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
 
   assert(plot);
 
+  if (initData.viewProperties != "")
+    plot->view()->setProperties(initData.viewProperties);
+
   //---
 
   // init plot
@@ -1470,8 +1518,8 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
 
   //---
 
-  if (initData.properties != "")
-    setPlotProperties(plot, initData.properties);
+  if (initData.plotProperties != "")
+    setPlotProperties(plot, initData.plotProperties);
 
   return plot;
 }
@@ -1669,21 +1717,18 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
 
 void
 CQChartsTest::
+setViewProperties(CQChartsView *view, const QString &properties)
+{
+  if (! view->setProperties(properties))
+    errorMsg("Failed to set view properties '" + properties + "'");
+}
+
+void
+CQChartsTest::
 setPlotProperties(CQChartsPlot *plot, const QString &properties)
 {
-  QStringList strs = properties.split(",", QString::SkipEmptyParts);
-
-  for (int i = 0; i < strs.size(); ++i) {
-    QString str = strs[i].simplified();
-
-    int pos = str.indexOf("=");
-
-    QString name  = str.mid(0, pos).simplified();
-    QString value = str.mid(pos + 1).simplified();
-
-    if (! plot->setProperty(name, value))
-      errorMsg("Failed to set property " + name);
-  }
+  if (! plot->setProperties(properties))
+    errorMsg("Failed to set plot properties '" + properties + "'");
 }
 
 //------
@@ -2613,6 +2658,7 @@ viewCmd(const Args &args)
 {
   QString viewName;
   QString title;
+  QString properties;
 
   int argc = args.size();
 
@@ -2634,6 +2680,12 @@ viewCmd(const Args &args)
         if (i < argc)
           title = args[i];
       }
+      else if (opt == "properties") {
+        ++i;
+
+        if (i < argc)
+          properties = args[i];
+      }
       else {
         errorMsg("Invalid option '" + opt + "'");
       }
@@ -2642,6 +2694,8 @@ viewCmd(const Args &args)
       errorMsg("Invalid arg '" + arg + "'");
     }
   }
+
+  //---
 
   CQChartsView *view = charts_->getView(viewName);
 
@@ -2653,9 +2707,13 @@ viewCmd(const Args &args)
     return;
   }
 
-  if (title.length()) {
+  //---
+
+  if (title.length())
     view->setTitle(title);
-  }
+
+  if (properties != "")
+    setViewProperties(view, properties);
 }
 
 void

@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
 #include <CQStrParse.h>
 
 #include <QTimer>
@@ -317,7 +316,7 @@ animateSlot()
 
 bool
 CQChartsForceDirectedPlot::
-mousePress(const CQChartsGeom::Point &p)
+mousePress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
 {
   Springy::NodePoint nodePoint = forceDirected_.nearest(Springy::Vector(p.x, p.y));
 

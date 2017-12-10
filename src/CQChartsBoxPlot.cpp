@@ -5,7 +5,7 @@
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsRenderer.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
@@ -399,8 +399,10 @@ updateRange(bool apply)
   QAbstractItemModel *model = this->model();
 
   if (model) {
-    QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
-    QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
+    bool ok;
+
+    QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
+    QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
 
     xAxis_->setLabel(xname);
     yAxis_->setLabel(yname);
@@ -530,16 +532,12 @@ calcId() const
 
 void
 CQChartsBoxPlotObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   for (auto value : whisker_.values()) {
     plot_->addSelectIndex(value.ind.row(), plot_->xColumn(), value.ind.parent());
     plot_->addSelectIndex(value.ind.row(), plot_->yColumn(), value.ind.parent());
   }
-
-  plot_->endSelect();
 }
 
 bool
@@ -613,7 +611,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   renderer->setBrush(brush);
   renderer->setPen  (pen);
 
-  CQRoundedPolygon::draw(renderer, rect, plot_->cornerSize());
+  CQChartsRoundedPolygon::draw(renderer, rect, plot_->cornerSize());
 
   //---
 

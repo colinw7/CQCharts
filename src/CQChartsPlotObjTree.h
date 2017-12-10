@@ -24,6 +24,8 @@ class CQChartsPlotObjTree {
 
   void objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
 
+  void objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
+
  private:
   using PlotObjTree       = CQChartsQuadTree<CQChartsPlotObj,CQChartsGeom::BBox>;
   using PlotObjTreeFuture = std::future<PlotObjTree*>;

@@ -88,3 +88,22 @@ objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
       objs.push_back(obj);
   }
 }
+
+void
+CQChartsPlotObjTree::
+objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
+{
+  initTree();
+
+  if (! plotObjTree_)
+    return;
+
+  PlotObjTree::DataList dataList;
+
+  static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
+
+  for (const auto &obj : dataList) {
+    if (obj->touching(r))
+      objs.push_back(obj);
+  }
+}

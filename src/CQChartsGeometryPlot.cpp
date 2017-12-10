@@ -534,15 +534,11 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsGeometryObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
-
-  plot_->endSelect();
 }
 
 bool

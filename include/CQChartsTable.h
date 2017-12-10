@@ -7,9 +7,12 @@
 
 class CQCharts;
 class CQChartsTableSelectionModel;
+class CQChartsModelExprMatch;
 
 class CQChartsTable : public CQTableView {
   Q_OBJECT
+
+  Q_PROPERTY(bool exprFilter READ isExprFilter WRITE setIsExprFilter)
 
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
@@ -35,22 +38,35 @@ class CQChartsTable : public CQTableView {
   };
 
  public:
-  CQChartsTable(CQCharts *charts);
+  CQChartsTable(CQCharts *charts, QWidget *parent=nullptr);
+ ~CQChartsTable();
 
   ModelP model() const {return model_; }
   void setModel(const ModelP &model);
 
+  bool isExprFilter() const { return isExprFilter_; }
+  void setIsExprFilter(bool b) { isExprFilter_ = b; }
+
   void setFilter(const QString &filter);
+  void addFilter(const QString &filter);
+
+  void setSearch(const QString &text);
+  void addSearch(const QString &text);
 
   void calcDetails(Details &details);
 
   QSize sizeHint() const override;
 
  private:
+  void addReplaceFilter(const QString &filter, bool add);
+  void addReplaceSearch(const QString &text, bool add);
+
   void addMenuActions(QMenu *menu) override;
 
  signals:
   void columnClicked(int);
+
+  void filterChanged();
 
  private slots:
   void selectionSlot();
@@ -60,9 +76,14 @@ class CQChartsTable : public CQTableView {
   void selectionBehaviorSlot(QAction *action);
 
  private:
-  CQCharts*                    charts_ { nullptr };
+  using Matches = std::vector<QString>;
+
+  CQCharts*                    charts_       { nullptr };
   ModelP                       model_;
-  CQChartsTableSelectionModel* sm_     { nullptr };
+  CQChartsTableSelectionModel* sm_           { nullptr };
+  bool                         isExprFilter_ { true };
+  CQChartsModelExprMatch*      match_        { nullptr };
+  Matches                      matches_;
 };
 
 #endif

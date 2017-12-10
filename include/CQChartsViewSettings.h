@@ -4,13 +4,11 @@
 #include <QFrame>
 
 class CQChartsWindow;
+class CQChartsFilterEdit;
 class CQPropertyViewTree;
-class CGradientPalette;
 class CQGradientControlPlot;
 class CQGradientControlIFace;
-class CQIconCombo;
 class QTabWidget;
-class QLineEdit;
 
 class CQChartsViewSettings : public QFrame {
   Q_OBJECT
@@ -26,13 +24,16 @@ class CQChartsViewSettings : public QFrame {
   CQGradientControlIFace *paletteControl() const { return paletteControl_; }
 
  private slots:
-  void filterSlot();
+  void replaceFilterSlot(const QString &text);
+  void addFilterSlot(const QString &text);
+
+  void replaceSearchSlot(const QString &text);
+  void addSearchSlot(const QString &text);
 
  private:
   CQChartsWindow*         window_         { nullptr };
   QTabWidget*             tab_            { nullptr };
-  QLineEdit*              filterEdit_     { nullptr };
-  CQIconCombo*            filterCombo_    { nullptr };
+  CQChartsFilterEdit*     filterEdit_     { nullptr };
   CQPropertyViewTree*     propertyTree_   { nullptr };
   CQGradientControlPlot*  palettePlot_    { nullptr };
   CQGradientControlIFace* paletteControl_ { nullptr };

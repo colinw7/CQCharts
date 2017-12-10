@@ -1,7 +1,7 @@
 #include <CQChartsBoxObj.h>
 #include <CQChartsPlot.h>
 #include <CQPropertyViewModel.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 #include <CQChartsRenderer.h>
 
 CQChartsBoxObj::
@@ -65,7 +65,7 @@ draw(CQChartsRenderer *renderer, const QRectF &rect) const
     renderer->setBrush(brush);
     renderer->setPen  (Qt::NoPen);
 
-    CQRoundedPolygon::draw(renderer, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(renderer, rect, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -80,7 +80,7 @@ draw(CQChartsRenderer *renderer, const QRectF &rect) const
     renderer->setPen  (pen);
     renderer->setBrush(Qt::NoBrush);
 
-    CQRoundedPolygon::draw(renderer, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(renderer, rect, borderCornerSize());
   }
 }
 
@@ -105,7 +105,7 @@ draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
     renderer->setBrush(brush);
     renderer->setPen  (Qt::NoPen);
 
-    CQRoundedPolygon::draw(renderer, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(renderer, poly, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -120,6 +120,6 @@ draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
     renderer->setPen  (pen);
     renderer->setBrush(Qt::NoBrush);
 
-    CQRoundedPolygon::draw(renderer, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(renderer, poly, borderCornerSize());
   }
 }

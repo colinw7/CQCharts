@@ -6,7 +6,7 @@
 #include <boost/optional.hpp>
 #include <set>
 
-class CExpr;
+class CQExprModelExpr;
 
 class CQExprModel : public QAbstractProxyModel {
   Q_OBJECT
@@ -126,11 +126,9 @@ class CQExprModel : public QAbstractProxyModel {
 
   bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
 
-  QString replaceNumericColumns(const QString &expr, int row, int column) const;
-
  private:
   QAbstractItemModel* model_      { nullptr };
-  CExpr*              expr_       { nullptr };
+  CQExprModelExpr*    expr_       { nullptr };
   bool                debug_      { false };
   ExtraColumns        extraColumns_;
   mutable int         currentRow_ { 0 };

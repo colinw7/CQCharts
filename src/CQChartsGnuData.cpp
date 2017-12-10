@@ -7,7 +7,7 @@
 
 CQChartsGnuData::
 CQChartsGnuData(CQCharts *charts) :
- QSortFilterProxyModel(), charts_(charts)
+ CQChartsModelFilter(), charts_(charts)
 {
   dataModel_ = new CQGnuDataModel;
 
@@ -44,42 +44,14 @@ load(const QString &filename)
   return dataModel_->load(filename);
 }
 
-int
-CQChartsGnuData::
-columnCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::columnCount(parent);
-}
-
-int
-CQChartsGnuData::
-rowCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::rowCount(parent);
-}
-
-QVariant
-CQChartsGnuData::
-headerData(int section, Qt::Orientation orientation, int role) const
-{
-  return QSortFilterProxyModel::headerData(section, orientation, role);
-}
-
-bool
-CQChartsGnuData::
-setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
-{
-  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
-}
-
 QVariant
 CQChartsGnuData::
 data(const QModelIndex &index, int role) const
 {
-  QVariant var = QSortFilterProxyModel::data(index, role);
+  QVariant var = CQChartsModelFilter::data(index, role);
 
   if (role == Qt::UserRole && ! var.isValid())
-    var = QSortFilterProxyModel::data(index, Qt::DisplayRole);
+    var = CQChartsModelFilter::data(index, Qt::DisplayRole);
 
   if (role == Qt::DisplayRole || role == Qt::UserRole) {
     if (! index.isValid())
@@ -87,7 +59,7 @@ data(const QModelIndex &index, int role) const
 
     assert(index.model() == this);
 
-    QModelIndex index1 = QSortFilterProxyModel::mapToSource(index);
+    QModelIndex index1 = CQChartsModelFilter::mapToSource(index);
 
     assert(index.column() == index1.column());
 
@@ -100,18 +72,4 @@ data(const QModelIndex &index, int role) const
   }
 
   return var;
-}
-
-QModelIndex
-CQChartsGnuData::
-parent(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::parent(index);
-}
-
-Qt::ItemFlags
-CQChartsGnuData::
-flags(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::flags(index);
 }

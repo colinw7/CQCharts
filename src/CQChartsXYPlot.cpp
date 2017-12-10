@@ -4,7 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 #include <CQChartsSmooth.h>
 
 CQChartsXYPlotType::
@@ -49,8 +49,8 @@ CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("xy"), model), fillUnderData_(this)
 {
-  pointObj_   = new CQChartsPointObj(this);
-  lineObj_    = new CQChartsLineObj(this);
+  pointObj_ = new CQChartsPointObj(this);
+  lineObj_  = new CQChartsLineObj(this);
 
   impulseObj_       = new CQChartsLineObj(this);
   bivariateLineObj_ = new CQChartsLineObj(this);
@@ -468,7 +468,9 @@ updateRange(bool apply)
     xAxis()->setColumn(xColumn());
   }
 
-  QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
+  bool ok;
+
+  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
 
   if (isOverlay()) {
     if (isFirstPlot())
@@ -485,8 +487,10 @@ updateRange(bool apply)
       int yColumn1 = getSetColumn(0);
       int yColumn2 = getSetColumn(1);
 
-      QString yname1 = model->headerData(yColumn1, Qt::Horizontal).toString();
-      QString yname2 = model->headerData(yColumn2, Qt::Horizontal).toString();
+      bool ok;
+
+      QString yname1 = CQChartsUtil::modelHeaderString(model, yColumn1, ok);
+      QString yname2 = CQChartsUtil::modelHeaderString(model, yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -517,7 +521,9 @@ updateRange(bool apply)
     QString yname;
 
     for (int j = 0; j < numSets(); ++j) {
-      QString yname1 = model->headerData(getSetColumn(j), Qt::Horizontal).toString();
+      bool ok;
+
+      QString yname1 = CQChartsUtil::modelHeaderString(model, getSetColumn(j), ok);
 
       if (yname.length())
         yname += ", ";
@@ -694,8 +700,10 @@ initObjs()
         int yColumn1 = getSetColumn(0);
         int yColumn2 = getSetColumn(1);
 
-        QString yname1 = model->headerData(yColumn1, Qt::Horizontal).toString();
-        QString yname2 = model->headerData(yColumn2, Qt::Horizontal).toString();
+        bool ok;
+
+        QString yname1 = CQChartsUtil::modelHeaderString(model, yColumn1, ok);
+        QString yname2 = CQChartsUtil::modelHeaderString(model, yColumn2, ok);
 
         name = QString("%1-%2").arg(yname1).arg(yname2);
       }
@@ -822,7 +830,9 @@ initObjs()
 
       int yColumn = getSetColumn(j);
 
-      QString name = model->headerData(yColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
       //---
 
@@ -949,7 +959,9 @@ initObjs()
 
       int yColumn = getSetColumn(j);
 
-      QString name = model->headerData(yColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
       //---
 
@@ -1203,7 +1215,9 @@ valueName(int iset, int irow) const
   if (iset >= 0) {
     int yColumn = getSetColumn(iset);
 
-    name = model()->headerData(yColumn, Qt::Horizontal).toString();
+    bool ok;
+
+    name = CQChartsUtil::modelHeaderString(model(), yColumn, ok);
   }
 
   if (nameColumn() >= 0) {
@@ -1247,8 +1261,10 @@ addKeyItems(CQChartsKey *key)
       int yColumn1 = getSetColumn(0);
       int yColumn2 = getSetColumn(1);
 
-      QString yname1 = model->headerData(yColumn1, Qt::Horizontal).toString();
-      QString yname2 = model->headerData(yColumn2, Qt::Horizontal).toString();
+      bool ok;
+
+      QString yname1 = CQChartsUtil::modelHeaderString(model, yColumn1, ok);
+      QString yname2 = CQChartsUtil::modelHeaderString(model, yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1263,7 +1279,9 @@ addKeyItems(CQChartsKey *key)
     for (int i = 0; i < ns; ++i) {
       int yColumn = getSetColumn(i);
 
-      QString name = model->headerData(yColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
       CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
@@ -1276,7 +1294,9 @@ addKeyItems(CQChartsKey *key)
     for (int i = 0; i < ns; ++i) {
       int yColumn = getSetColumn(i);
 
-      QString name = model->headerData(yColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
 #if 0
       if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
@@ -1446,10 +1466,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYBiLineObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   if (! visible())
     return;
+
+  plot_->addSelectIndex(ind_);
 }
 
 bool
@@ -1556,10 +1578,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYImpulseLineObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   if (! visible())
     return;
+
+  plot_->addSelectIndex(ind_);
 }
 
 bool
@@ -1689,19 +1713,15 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYPointObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   if (! visible())
     return;
-
-  plot_->beginSelect();
 
   int yColumn = plot_->getSetColumn(iset_);
 
   plot_->addSelectIndex(ind_.row(), plot_->xColumn());
   plot_->addSelectIndex(ind_.row(), yColumn         );
-
-  plot_->endSelect();
 }
 
 bool
@@ -1752,8 +1772,8 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   if (edata_ && edata_->label != "") {
     renderer->setPen(plot_->interpDataLabelColor(0, 1));
 
-    CQRotatedText::drawRotatedText(renderer, px, py, edata_->label, plot_->dataLabelAngle(),
-                                   Qt::AlignHCenter | Qt::AlignBottom);
+    CQChartsRotatedText::drawRotatedText(renderer, px, py, edata_->label, plot_->dataLabelAngle(),
+                                         Qt::AlignHCenter | Qt::AlignBottom);
   }
 }
 
@@ -1853,7 +1873,7 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsXYPolylineObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   if (! visible())
     return;
@@ -1863,6 +1883,7 @@ bool
 CQChartsXYPolylineObj::
 isIndex(const QModelIndex &) const
 {
+  // all objects part of line (dont support select)
   return false;
 }
 
@@ -2025,7 +2046,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYPolygonObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   if (! visible())
     return;
@@ -2035,6 +2056,7 @@ bool
 CQChartsXYPolygonObj::
 isIndex(const QModelIndex &) const
 {
+  // all objects part of polygon (dont support select)
   return false;
 }
 

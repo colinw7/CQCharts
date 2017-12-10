@@ -1,9 +1,9 @@
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 #include <CQChartsRenderer.h>
 
 #include <cmath>
 
-namespace CQRotatedText {
+namespace CQChartsRotatedText {
 
 void
 drawRotatedText(CQChartsRenderer *renderer, double x, double y, const QString &text,

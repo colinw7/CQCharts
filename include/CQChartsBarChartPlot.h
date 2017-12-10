@@ -29,7 +29,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void setLabel(const QString &label) { label_ = label; }
 
-  void mousePress(const CQChartsGeom::Point &p) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 

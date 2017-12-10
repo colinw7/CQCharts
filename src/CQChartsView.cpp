@@ -42,6 +42,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
+  setSelectedMode(HighlightDataMode::FILL);
+
+  //---
+
   //setPaletteColors1();
 
   setLightThemeColors();
@@ -53,10 +57,25 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
   addProperty("", this, "mode"          );
-  addProperty("", this, "selectedMode"  );
-  addProperty("", this, "insideMode"    );
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
+  addProperty("", this, "posTextType"   );
+
+  addProperty("selectedHighlight"       , this, "selectedMode"              , "mode");
+  addProperty("selectedHighlight/stroke", this, "selectedStrokeColorEnabled", "enabled");
+  addProperty("selectedHighlight/stroke", this, "selectedStrokeColor"       , "color");
+  addProperty("selectedHighlight/stroke", this, "selectedStrokeWidth"       , "width");
+  addProperty("selectedHighlight/stroke", this, "selectedStrokeDash"        , "dash");
+  addProperty("selectedHighlight/fill"  , this, "selectedFillColorEnabled"  , "enabled");
+  addProperty("selectedHighlight/fill"  , this, "selectedFillColor"         , "color");
+
+  addProperty("insideHighlight"       , this, "insideMode"              , "mode");
+  addProperty("insideHighlight/stroke", this, "insideStrokeColorEnabled", "enabled");
+  addProperty("insideHighlight/stroke", this, "insideStrokeColor"       , "color");
+  addProperty("insideHighlight/stroke", this, "insideStrokeWidth"       , "width");
+  addProperty("insideHighlight/stroke", this, "insideStrokeDash"        , "dash");
+  addProperty("insideHighlight/fill"  , this, "insideFillColorEnabled"  , "enabled");
+  addProperty("insideHighlight/fill"  , this, "insideFillColor"         , "color");
 
   addProperty("scroll", this, "scrolled"      , "enabled" );
   addProperty("scroll", this, "scrollDelta"   , "delta"   );
@@ -114,22 +133,50 @@ setTitle(const QString &s)
 
 void
 CQChartsView::
+setCurrentPlotInd(int ind)
+{
+  currentPlotInd_ = ind;
+
+  emit currentPlotChanged();
+}
+
+void
+CQChartsView::
 setMode(const Mode &mode)
 {
   if (mode != mode_) {
-    if      (mode_ == Mode::PROBE) {
-      for (auto &probeBand : probeBands_)
-        probeBand->hide();
-    }
-    else if (mode_ == Mode::ZOOM) {
-      if (zoomBand_)
-        zoomBand_->hide();
-    }
+    endRegionBand();
+
+    for (auto &probeBand : probeBands_)
+      probeBand->hide();
 
     mode_ = mode;
 
     emit modeChanged();
   }
+}
+
+bool
+CQChartsView::
+setProperties(const QString &properties)
+{
+  bool rc = true;
+
+  QStringList strs = properties.split(",", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    QString str = strs[i].simplified();
+
+    int pos = str.indexOf("=");
+
+    QString name  = str.mid(0, pos).simplified();
+    QString value = str.mid(pos + 1).simplified();
+
+    if (! setProperty(name, value))
+      rc = false;
+  }
+
+  return rc;
 }
 
 bool
@@ -173,6 +220,11 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
   plot->addProperties();
 
   plot->postInit();
+
+  //---
+
+  if (currentPlotInd_ < 0)
+    setCurrentPlotInd(0);
 }
 
 CQChartsPlot *
@@ -323,36 +375,57 @@ mousePressEvent(QMouseEvent *me)
 
   if (me->button() == Qt::LeftButton) {
     if      (mode_ == Mode::SELECT) {
-      if (mouseData_.plot) {
-        CQChartsGeom::Point w;
+      if (selectMode_ == SelectMode::POINT) {
+        CQChartsScopeGuard updateSelTextGuard([&]() { updateSelText(); });
 
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+        CQChartsPlot::ModSelect modSelect = CQChartsPlot::ModSelect::REPLACE;
 
-        if (mouseData_.plot->mousePress(w))
-          return;
+        if      (me->modifiers() & Qt::ControlModifier &&
+                 me->modifiers() & Qt::ShiftModifier)
+          modSelect = CQChartsPlot::ModSelect::TOGGLE;
+        else if (me->modifiers() & Qt::ControlModifier)
+          modSelect = CQChartsPlot::ModSelect::ADD;
+        else if (me->modifiers() & Qt::ShiftModifier)
+          modSelect = CQChartsPlot::ModSelect::REMOVE;
+
+        //---
+
+        if (mouseData_.plot) {
+          CQChartsGeom::Point w;
+
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+          if (mouseData_.plot->mousePress(w, modSelect))
+            return;
+        }
+
+        for (auto &plot : mouseData_.plots) {
+          if (plot == mouseData_.plot) continue;
+
+          CQChartsGeom::Point w;
+
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+          if (plot->mousePress(w, modSelect))
+            return;
+        }
       }
-
-      for (auto &plot : mouseData_.plots) {
-        if (plot == mouseData_.plot) continue;
-
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (plot->mousePress(w))
-          return;
+      else {
+        startRegionBand(mouseData_.pressPoint);
       }
     }
     else if (mode_ == Mode::ZOOM) {
       if (mouseData_.plot && mouseData_.plot->isClickZoom()) {
+        CQChartsGeom::Point w;
+
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
         mouseData_.clickZoom = true;
 
         mouseData_.plot->clickZoom(w);
       }
       else {
-        if (! zoomBand_)
-          zoomBand_ = new QRubberBand(QRubberBand::Rectangle, this);
-
-        zoomBand_->setGeometry(QRect(mouseData_.pressPoint, QSize()));
-        zoomBand_->show();
+        startRegionBand(mouseData_.pressPoint);
       }
     }
     else if (mode_ == Mode::PROBE) {
@@ -371,6 +444,8 @@ mousePressEvent(QMouseEvent *me)
 
       for (auto &plot : mouseData_.plots) {
         if (plot == mouseData_.plot) continue;
+
+        CQChartsGeom::Point w;
 
         plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
@@ -397,13 +472,14 @@ mouseMoveEvent(QMouseEvent *me)
 
   //---
 
-  if (! mouseData_.pressed) {
-    if (mode_ == Mode::SELECT) {
+  // select mode and move (not pressed) - update plot positions
+  if (mode_ == Mode::SELECT && ! mouseData_.pressed) {
+    QString posStr;
+
+    if (posTextType() == PosTextType::PLOT) {
       PlotSet plots;
 
       basePlotsAt(w, plots);
-
-      QString posStr;
 
       for (const auto &plot : plots) {
         CQChartsGeom::Point w;
@@ -415,107 +491,148 @@ mouseMoveEvent(QMouseEvent *me)
 
         posStr += plot->posStr(w);
       }
-
-      setPosText(posStr);
-
-      //---
-
-      searchPos_ = me->pos();
-
-      searchTimer_.start();
     }
+    else if (posTextType() == PosTextType::VIEW) {
+      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+
+      posStr = QString("%1 %2").arg(w.x).arg(w.y);
+    }
+    else {
+      posStr = QString("%1 %2").arg(me->x()).arg(me->y());
+    }
+
+    setPosText(posStr);
+
+    //---
+
+    searchPos_ = me->pos();
+
+    searchTimer_.start();
 
     return;
   }
 
   //---
 
+  // probe move and move (pressed or not pressed) - show probe lines
+  if (mode_ == Mode::PROBE) {
+    auto addProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip, double px,
+                            double py1, double py2) -> void {
+      while (ind >= int(probeBands_.size())) {
+        CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
+
+        probeBands_.push_back(probeBand);
+      }
+
+      probeBands_[ind]->show(plot, tip, px, py1, py2);
+
+      ++ind;
+    };
+
+    //int px = me->pos().x();
+
+    Plots         plots;
+    CQChartsPlot *plot;
+
+    plotsAt(w, plots, plot);
+
+    int probeInd = 0;
+
+    for (auto &plot : plots) {
+      CQChartsGeom::Point w;
+
+      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+      //---
+
+      CQChartsPlot::ProbeData probeData;
+
+      probeData.x = w.x;
+      probeData.y = w.y;
+
+      if (! plot->probe(probeData))
+        continue;
+
+      if (probeData.yvals.empty())
+        probeData.yvals.emplace_back(w.y);
+
+      CQChartsGeom::BBox dataRange = plot->calcDataRange();
+
+      // add probe lines from ymin to probed y values
+      CQChartsGeom::Point p1;
+
+      plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
+
+      for (const auto &yval : probeData.yvals) {
+        CQChartsGeom::Point p2;
+
+        plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
+
+        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+
+        addProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+      }
+    }
+
+    for (int i = probeInd; i < int(probeBands_.size()); ++i)
+      probeBands_[i]->hide();
+
+    return;
+  }
+
+  //---
+
+  // get plots are point
   plotsAt(w, mouseData_.plots, mouseData_.plot);
 
   //---
 
   if      (mouseData_.button == Qt::LeftButton) {
+    if (! mouseData_.pressed)
+      return;
+
+    // select plot object
     if      (mode_ == Mode::SELECT) {
-      if (mouseData_.plot) {
-        CQChartsGeom::Point w;
+      if (selectMode_ == SelectMode::POINT) {
+        if (mouseData_.plot) {
+          CQChartsGeom::Point w;
 
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
-        (void) mouseData_.plot->mouseMove(w, true);
+          (void) mouseData_.plot->mouseMove(w, true);
+        }
+
+        for (auto &plot : mouseData_.plots) {
+          if (plot == mouseData_.plot) continue;
+
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(searchPos_)), w);
+
+          if (plot->mouseMove(w, false))
+            return;
+        }
       }
+      else {
+        mouseData_.movePoint = me->pos();
 
-      for (auto &plot : mouseData_.plots) {
-        if (plot == mouseData_.plot) continue;
-
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(searchPos_)), w);
-
-        if (plot->mouseMove(w, false))
-          return;
+        if (mouseData_.escape)
+          endRegionBand();
+        else
+          updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
       }
     }
+    // draw zoom rectangle
     else if (mode_ == Mode::ZOOM) {
       if (mouseData_.clickZoom)
         return;
 
-      if (mouseData_.pressed) {
-        mouseData_.movePoint = me->pos();
+      mouseData_.movePoint = me->pos();
 
-        if (mouseData_.escape)
-          zoomBand_->hide();
-        else
-          zoomBand_->setGeometry(QRect(mouseData_.pressPoint, mouseData_.movePoint));
-      }
+      if (mouseData_.escape)
+        endRegionBand();
+      else
+        updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
     }
     else if (mode_ == Mode::PROBE) {
-      auto addProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip, double px,
-                              double py1, double py2) -> void {
-        while (ind >= int(probeBands_.size())) {
-          CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
-
-          probeBands_.push_back(probeBand);
-        }
-
-        probeBands_[ind]->show(plot, tip, px, py1, py2);
-
-        ++ind;
-      };
-
-      //int px = me->pos().x();
-
-      int probeInd = 0;
-
-      for (auto &plot : mouseData_.plots) {
-        CQChartsPlot::ProbeData probeData;
-
-        probeData.x = w.x;
-        probeData.y = w.y;
-
-        if (! plot->probe(probeData))
-          continue;
-
-        if (probeData.yvals.empty())
-          probeData.yvals.emplace_back(w.y);
-
-        CQChartsGeom::BBox dataRange = plot->calcDataRange();
-
-        // add probe lines from ymin to probed y values
-        CQChartsGeom::Point p1;
-
-        plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
-
-        for (const auto &yval : probeData.yvals) {
-          CQChartsGeom::Point p2;
-
-          plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
-
-          QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
-
-          addProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
-        }
-      }
-
-      for (int i = probeInd; i < int(probeBands_.size()); ++i)
-        probeBands_[i]->hide();
     }
   }
   else if (mouseData_.button == Qt::MiddleButton) {
@@ -523,6 +640,7 @@ mouseMoveEvent(QMouseEvent *me)
       return;
 
     if      (mode_ == Mode::SELECT) {
+      // drag plot object
       if (mouseData_.plot) {
         CQChartsGeom::Point w;
 
@@ -534,6 +652,8 @@ mouseMoveEvent(QMouseEvent *me)
       for (auto &plot : mouseData_.plots) {
         if (plot == mouseData_.plot) continue;
 
+        CQChartsGeom::Point w;
+
         plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
         if (plot->mouseDragMove(w, false))
@@ -542,6 +662,8 @@ mouseMoveEvent(QMouseEvent *me)
     }
   }
   else if (mouseData_.button == Qt::RightButton) {
+    if (! mouseData_.pressed)
+      return;
   }
 }
 
@@ -549,11 +671,16 @@ void
 CQChartsView::
 mouseReleaseEvent(QMouseEvent *me)
 {
+  CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
+
   //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
   if      (mouseData_.button == Qt::LeftButton) {
     if      (mode_ == Mode::SELECT) {
-      if (mouseData_.pressed) {
+      if (! mouseData_.pressed)
+        return;
+
+      if (selectMode_ == SelectMode::POINT) {
         if (mouseData_.plot) {
           CQChartsGeom::Point w;
 
@@ -562,28 +689,69 @@ mouseReleaseEvent(QMouseEvent *me)
           mouseData_.plot->mouseRelease(w);
         }
       }
+      else {
+        CQChartsScopeGuard updateSelTextGuard([&]() { updateSelText(); });
+
+        mouseData_.movePoint = me->pos();
+
+        endRegionBand();
+
+        CQChartsPlot::ModSelect modSelect = CQChartsPlot::ModSelect::REPLACE;
+
+        if      (me->modifiers() & Qt::ControlModifier &&
+                 me->modifiers() & Qt::ShiftModifier)
+          modSelect = CQChartsPlot::ModSelect::TOGGLE;
+        else if (me->modifiers() & Qt::ControlModifier)
+          modSelect = CQChartsPlot::ModSelect::ADD;
+        else if (me->modifiers() & Qt::ShiftModifier)
+          modSelect = CQChartsPlot::ModSelect::REMOVE;
+
+        if (mouseData_.plot) {
+          CQChartsGeom::Point w1, w2;
+
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
+
+          if (mouseData_.plot->rectSelect(CQChartsGeom::BBox(w1, w2), modSelect))
+            return;
+        }
+
+        for (auto &plot : mouseData_.plots) {
+          if (plot == mouseData_.plot) continue;
+
+          CQChartsGeom::Point w1, w2;
+
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
+          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
+
+          if (plot->rectSelect(CQChartsGeom::BBox(w1, w2), modSelect))
+            return;
+        }
+      }
     }
     else if (mode_ == Mode::ZOOM) {
       if (mouseData_.clickZoom)
         return;
 
-      if (mouseData_.pressed) {
-        mouseData_.movePoint = me->pos();
+      if (! mouseData_.pressed)
+        return;
 
-        zoomBand_->hide();
+      mouseData_.movePoint = me->pos();
 
-        if (! mouseData_.escape) {
-          if (mouseData_.plot) {
-            CQChartsGeom::Point w1, w2;
+      endRegionBand();
 
-            mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint), w1);
-            mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ), w2);
+      if (mouseData_.escape)
+        return;
 
-            CQChartsGeom::BBox bbox(w1, w2);
+      if (mouseData_.plot) {
+        CQChartsGeom::Point w1, w2;
 
-            mouseData_.plot->zoomTo(bbox);
-          }
-        }
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.pressPoint), w1);
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPointF(mouseData_.movePoint ), w2);
+
+        CQChartsGeom::BBox bbox(w1, w2);
+
+        mouseData_.plot->zoomTo(bbox);
       }
     }
     else if (mode_ == Mode::PROBE) {
@@ -591,31 +759,30 @@ mouseReleaseEvent(QMouseEvent *me)
   }
   else if (mouseData_.button == Qt::MiddleButton) {
     if      (mode_ == Mode::SELECT) {
-      if (mouseData_.pressed) {
-        if (mouseData_.plot) {
-          CQChartsGeom::Point w;
+      if (! mouseData_.pressed)
+        return;
 
-          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+      if (mouseData_.plot) {
+        CQChartsGeom::Point w;
 
-          mouseData_.plot->mouseDragRelease(w);
-        }
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
 
-        for (auto &plot : mouseData_.plots) {
-          if (plot == mouseData_.plot) continue;
+        mouseData_.plot->mouseDragRelease(w);
+      }
 
-          CQChartsGeom::Point w;
+      for (auto &plot : mouseData_.plots) {
+        if (plot == mouseData_.plot) continue;
 
-          plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+        CQChartsGeom::Point w;
 
-          plot->mouseDragRelease(w);
-        }
+        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
+
+        plot->mouseDragRelease(w);
       }
     }
   }
   else if (mouseData_.button == Qt::RightButton) {
   }
-
-  mouseData_.reset();
 }
 
 void
@@ -625,14 +792,16 @@ keyPressEvent(QKeyEvent *ke)
   if      (ke->key() == Qt::Key_Escape) {
     mouseData_.escape = true;
 
+    if (mouseData_.pressed)
+      endRegionBand();
+
     if      (mode() == Mode::ZOOM) {
-      if (mouseData_.pressed)
-        zoomBand_->hide();
-      else
+      if (! mouseData_.pressed)
         setMode(Mode::SELECT);
     }
-    else if (mode() == Mode::PROBE)
+    else if (mode() == Mode::PROBE) {
       setMode(Mode::SELECT);
+    }
 
     return;
   }
@@ -658,6 +827,55 @@ keyPressEvent(QKeyEvent *ke)
   if (plot)
     plot->keyPress(ke->key());
 }
+
+//------
+
+void
+CQChartsView::
+startRegionBand(const QPoint &pos)
+{
+  if (! regionBand_)
+    regionBand_ = new QRubberBand(QRubberBand::Rectangle, this);
+
+  regionBand_->setGeometry(QRect(pos, QSize()));
+  regionBand_->show();
+}
+
+void
+CQChartsView::
+updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint)
+{
+  regionBand_->setGeometry(QRect(pressPoint, movePoint));
+}
+
+void
+CQChartsView::
+endRegionBand()
+{
+  if (regionBand_)
+    regionBand_->hide();
+}
+
+//------
+
+void
+CQChartsView::
+updateSelText()
+{
+  int num = 0;
+
+  for (auto &plotData : plotDatas_) {
+    CQChartsPlot::PlotObjs objs;
+
+    plotData.plot->selectedObjs(objs);
+
+    num += objs.size();
+  }
+
+  setSelText(QString("%1").arg(num));
+}
+
+//------
 
 void
 CQChartsView::
@@ -737,6 +955,8 @@ searchSlot()
   // process other plots
   for (auto &plot : mouseData_.plots) {
     if (plot == mouseData_.plot) continue;
+
+    CQChartsGeom::Point w;
 
     plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(searchPos_)), w);
 
@@ -1022,7 +1242,7 @@ currentPlotSlot()
 {
   QAction *action = qobject_cast<QAction *>(sender());
 
-  currentPlotInd_ = action->data().toInt();
+  setCurrentPlotInd(action->data().toInt());
 }
 
 //------
@@ -1200,6 +1420,13 @@ CQChartsView::
 setPosText(const QString &text)
 {
   emit posTextChanged(text);
+}
+
+void
+CQChartsView::
+setSelText(const QString &text)
+{
+  emit selTextChanged(text);
 }
 
 //------

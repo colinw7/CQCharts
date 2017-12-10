@@ -7,7 +7,7 @@
 
 CQChartsCsv::
 CQChartsCsv(CQCharts *charts) :
- QSortFilterProxyModel(), charts_(charts)
+ CQChartsModelFilter(), charts_(charts)
 {
   csvModel_ = new CQCsvModel;
 
@@ -37,13 +37,6 @@ setFirstLineHeader(bool b)
   csvModel_->setFirstLineHeader(b);
 }
 
-void
-CQChartsCsv::
-setFilter(const QString &filter)
-{
-  csvModel_->setFilter(filter);
-}
-
 bool
 CQChartsCsv::
 load(const QString &filename)
@@ -51,42 +44,14 @@ load(const QString &filename)
   return csvModel_->load(filename);
 }
 
-int
-CQChartsCsv::
-columnCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::columnCount(parent);
-}
-
-int
-CQChartsCsv::
-rowCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::rowCount(parent);
-}
-
-QVariant
-CQChartsCsv::
-headerData(int section, Qt::Orientation orientation, int role) const
-{
-  return QSortFilterProxyModel::headerData(section, orientation, role);
-}
-
-bool
-CQChartsCsv::
-setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
-{
-  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
-}
-
 QVariant
 CQChartsCsv::
 data(const QModelIndex &index, int role) const
 {
-  QVariant var = QSortFilterProxyModel::data(index, role);
+  QVariant var = CQChartsModelFilter::data(index, role);
 
   if (role == Qt::UserRole && ! var.isValid())
-    var = QSortFilterProxyModel::data(index, Qt::DisplayRole);
+    var = CQChartsModelFilter::data(index, Qt::DisplayRole);
 
   if (role == Qt::DisplayRole || role == Qt::UserRole) {
     if (! index.isValid())
@@ -94,7 +59,7 @@ data(const QModelIndex &index, int role) const
 
     assert(index.model() == this);
 
-    QModelIndex index1 = QSortFilterProxyModel::mapToSource(index);
+    QModelIndex index1 = CQChartsModelFilter::mapToSource(index);
 
     assert(index.column() == index1.column());
 
@@ -107,25 +72,4 @@ data(const QModelIndex &index, int role) const
   }
 
   return var;
-}
-
-QModelIndex
-CQChartsCsv::
-parent(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::parent(index);
-}
-
-Qt::ItemFlags
-CQChartsCsv::
-flags(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::flags(index);
-}
-
-bool
-CQChartsCsv::
-filterAcceptsRow(int row, const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::filterAcceptsRow(row, parent);
 }

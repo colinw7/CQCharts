@@ -56,11 +56,14 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(bool mirrorTicks         READ isMirrorTicks         WRITE setMirrorTicks        )
 
   // ticks label
-  Q_PROPERTY(bool    tickLabelDisplayed READ isTickLabelDisplayed WRITE setTickLabelDisplayed)
-  Q_PROPERTY(QFont   tickLabelFont      READ tickLabelFont        WRITE setTickLabelFont     )
-  Q_PROPERTY(QString tickLabelColor     READ tickLabelColorStr    WRITE setTickLabelColorStr )
-  Q_PROPERTY(double  tickLabelAngle     READ tickLabelAngle       WRITE setTickLabelAngle    )
-  Q_PROPERTY(bool    tickLabelAutoHide  READ isTickLabelAutoHide  WRITE setTickLabelAutoHide )
+  Q_PROPERTY(bool    tickLabelDisplayed READ  isTickLabelDisplayed WRITE setTickLabelDisplayed)
+  Q_PROPERTY(QFont   tickLabelFont      READ  tickLabelFont        WRITE setTickLabelFont     )
+  Q_PROPERTY(QString tickLabelColor     READ  tickLabelColorStr    WRITE setTickLabelColorStr )
+  Q_PROPERTY(double  tickLabelAngle     READ  tickLabelAngle       WRITE setTickLabelAngle    )
+  Q_PROPERTY(bool    tickLabelAutoHide  READ  isTickLabelAutoHide  WRITE setTickLabelAutoHide )
+
+  Q_PROPERTY(TickLabelPlacement tickLabelPlacement
+             READ tickLabelPlacement WRITE setTickLabelPlacement )
 
   // label
   Q_PROPERTY(bool    labelDisplayed READ isLabelDisplayed WRITE setLabelDisplayed)
@@ -69,23 +72,24 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(QString labelColor     READ labelColorStr    WRITE setLabelColorStr )
 
   // grid line/fill
-  Q_PROPERTY(bool             gridMajorDisplayed READ isGridMajorDisplayed
+  Q_PROPERTY(bool             gridMajorDisplayed READ  isGridMajorDisplayed
                                                  WRITE setGridMajorDisplayed)
-  Q_PROPERTY(QString          gridMajorColor     READ gridMajorColorStr WRITE setGridMajorColorStr)
-  Q_PROPERTY(double           gridMajorWidth     READ gridMajorWidth    WRITE setGridMajorWidth   )
-  Q_PROPERTY(CQChartsLineDash gridMajorDash      READ gridMajorDash     WRITE setGridMajorDash    )
-  Q_PROPERTY(bool             gridMinorDisplayed READ isGridMinorDisplayed
+  Q_PROPERTY(QString          gridMajorColor     READ  gridMajorColorStr WRITE setGridMajorColorStr)
+  Q_PROPERTY(double           gridMajorWidth     READ  gridMajorWidth    WRITE setGridMajorWidth   )
+  Q_PROPERTY(CQChartsLineDash gridMajorDash      READ  gridMajorDash     WRITE setGridMajorDash    )
+  Q_PROPERTY(bool             gridMinorDisplayed READ  isGridMinorDisplayed
                                                  WRITE setGridMinorDisplayed)
-  Q_PROPERTY(QString          gridMinorColor     READ gridMinorColorStr WRITE setGridMinorColorStr)
-  Q_PROPERTY(double           gridMinorWidth     READ gridMinorWidth    WRITE setGridMinorWidth   )
-  Q_PROPERTY(CQChartsLineDash gridMinorDash      READ gridMinorDash     WRITE setGridMinorDash    )
-  Q_PROPERTY(bool             gridAbove          READ isGridAbove       WRITE setGridAbove        )
-  Q_PROPERTY(bool             gridFill           READ isGridFill        WRITE setGridFill         )
-  Q_PROPERTY(QString          gridFillColor      READ gridFillColorStr  WRITE setGridFillColorStr )
-  Q_PROPERTY(double           gridFillAlpha      READ gridFillAlpha     WRITE setGridFillAlpha    )
+  Q_PROPERTY(QString          gridMinorColor     READ  gridMinorColorStr WRITE setGridMinorColorStr)
+  Q_PROPERTY(double           gridMinorWidth     READ  gridMinorWidth    WRITE setGridMinorWidth   )
+  Q_PROPERTY(CQChartsLineDash gridMinorDash      READ  gridMinorDash     WRITE setGridMinorDash    )
+  Q_PROPERTY(bool             gridAbove          READ  isGridAbove       WRITE setGridAbove        )
+  Q_PROPERTY(bool             gridFill           READ  isGridFill        WRITE setGridFill         )
+  Q_PROPERTY(QString          gridFillColor      READ  gridFillColorStr  WRITE setGridFillColorStr )
+  Q_PROPERTY(double           gridFillAlpha      READ  gridFillAlpha     WRITE setGridFillAlpha    )
 
   Q_ENUMS(Direction)
   Q_ENUMS(Side)
+  Q_ENUMS(TickLabelPlacement)
 
  public:
   enum class Direction {
@@ -96,6 +100,13 @@ class CQChartsAxis : public QObject {
   enum class Side {
     BOTTOM_LEFT,
     TOP_RIGHT
+  };
+
+  enum TickLabelPlacement {
+    MIDDLE,
+    BOTTOM_LEFT,
+    TOP_RIGHT,
+    BETWEEN
   };
 
   using OptReal = boost::optional<double>;
@@ -249,16 +260,19 @@ class CQChartsAxis : public QObject {
   const QFont &tickLabelFont() const;
   void setTickLabelFont(const QFont &font);
 
+  QString tickLabelColorStr() const;
+  void setTickLabelColorStr(const QString &str);
+
+  QColor interpTickLabelColor(int i, int n) const;
+
   double tickLabelAngle() const;
   void setTickLabelAngle(double r);
 
   bool isTickLabelAutoHide() const { return tickLabelAutoHide_; }
   void setTickLabelAutoHide(bool b) { tickLabelAutoHide_ = b; redraw(); }
 
-  QString tickLabelColorStr() const;
-  void setTickLabelColorStr(const QString &str);
-
-  QColor interpTickLabelColor(int i, int n) const;
+  const TickLabelPlacement &tickLabelPlacement() const { return tickLabelPlacement_; }
+  void setTickLabelPlacement(const TickLabelPlacement &v) { tickLabelPlacement_ = v; redraw(); }
 
   //---
 
@@ -413,10 +427,11 @@ class CQChartsAxis : public QObject {
   bool                       tickInside_          { false };
   bool                       mirrorTicks_         { false };
 
-  // tick label
+  // tick label (TODO: use CQChartsAxisTickLabel for all tick label data)
   bool                       tickLabelDisplayed_ { true };
   CQChartsAxisTickLabel*     tickLabel_          { nullptr };
   bool                       tickLabelAutoHide_  { false };
+  TickLabelPlacement         tickLabelPlacement_ { TickLabelPlacement::MIDDLE };
 
   // state
   double                     start_               { 0.0 };

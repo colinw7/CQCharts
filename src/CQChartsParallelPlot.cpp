@@ -188,7 +188,9 @@ updateRange(bool apply)
 
     int yColumn = getSetColumn(j);
 
-    QString name = model->headerData(yColumn, Qt::Horizontal).toString();
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
     setDataRange(range);
 
@@ -309,7 +311,9 @@ initObjs()
       CQChartsParallelPointObj *pointObj =
         new CQChartsParallelPointObj(this, bbox, j, y1, yind1, i, n, j, nl);
 
-      QString yname = model->headerData(yColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString yname = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
       QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 
@@ -468,7 +472,9 @@ calcTipId() const
   for (int j = 0; j < nl; ++j) {
     int yColumn = plot_->getSetColumn(j);
 
-    QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+    bool ok;
+
+    QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
     id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(yname).arg(poly_[j].y());
   }
@@ -528,14 +534,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsParallelLineObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
-
-  plot_->endSelect();
 }
 
 bool
@@ -621,7 +623,7 @@ calcId() const
 
   int yColumn = plot_->getSetColumn(i_);
 
-  QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+  QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
   return QString("%1:%2=%3").arg(xname).arg(yname).arg(y_);
 }
@@ -638,7 +640,7 @@ calcTipId() const
 
   int yColumn = plot_->getSetColumn(i_);
 
-  QString yname = plot_->model()->headerData(yColumn, Qt::Horizontal).toString();
+  QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
   return QString("<b>%1</b>&nbsp;&nbsp;%2=%3").arg(xname).arg(yname).arg(y_);
 }
@@ -677,13 +679,9 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsParallelPointObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_);
-
-  plot_->endSelect();
 }
 
 bool

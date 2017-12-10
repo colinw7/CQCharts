@@ -4,7 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 #include <CGradientPalette.h>
 
 namespace {
@@ -530,9 +530,9 @@ drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsS
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   if (c >= 0)
-    CQRotatedText::drawRotatedText(renderer, px, py, str, ta, align);
+    CQChartsRotatedText::drawRotatedText(renderer, px, py, str, ta, align);
   else
-    CQRotatedText::drawRotatedText(renderer, px, py, str, ta - 180, align);
+    CQChartsRotatedText::drawRotatedText(renderer, px, py, str, ta - 180, align);
 }
 
 //------
@@ -594,14 +594,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsSunburstNodeObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(node_->ind().row(), plot_->nameColumn (), node_->ind().parent());
   plot_->addSelectIndex(node_->ind().row(), plot_->valueColumn(), node_->ind().parent());
-
-  plot_->endSelect();
 }
 
 bool

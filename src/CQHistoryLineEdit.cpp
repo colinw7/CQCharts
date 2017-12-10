@@ -24,7 +24,10 @@ execSlot()
 
   emit exec(str);
 
-  history_->addCommand(str.toStdString());
+  QString str1 = str.simplified();
+
+  if (str1.length())
+    history_->addCommand(str1.toStdString());
 
   setText("");
 }

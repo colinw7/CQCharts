@@ -7,6 +7,7 @@ class CQChartsWindow;
 class CQChartsView;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
+class CQChartsTable;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
 
@@ -52,24 +53,34 @@ class CQChartsWindow : public QFrame {
 
   void updateGeometry();
 
-  void moveExpander(int dx);
-
   QSize sizeHint() const;
 
  private slots:
+  void replaceFilterSlot(const QString &text);
+  void addFilterSlot(const QString &text);
+
+  void replaceSearchSlot(const QString &text);
+  void addSearchSlot(const QString &text);
+
+  void filterChangedSlot();
+
+  void plotSlot();
   void modeSlot();
 
   void setStatusText(const QString &text);
   void setPosText   (const QString &text);
+  void setSelText   (const QString &text);
 
  private:
-  CQChartsView*         view_          { nullptr };
-  CQChartsViewExpander* expander_      { nullptr };
-  CQChartsViewSettings* settings_      { nullptr };
-  CQChartsViewStatus*   status_        { nullptr };
-  CQChartsViewToolBar*  toolbar_       { nullptr };
-  int                   toolBarHeight_ { 8 };
-  int                   statusHeight_  { 8 };
+  CQChartsView*         view_             { nullptr };
+  CQChartsViewSettings* settings_         { nullptr };
+  CQChartsViewExpander* settingsExpander_ { nullptr };
+  CQChartsTable*        table_            { nullptr };
+  CQChartsViewExpander* tableExpander_    { nullptr };
+  CQChartsViewStatus*   status_           { nullptr };
+  CQChartsViewToolBar*  toolbar_          { nullptr };
+  int                   toolBarHeight_    { 8 };
+  int                   statusHeight_     { 8 };
 };
 
 #endif

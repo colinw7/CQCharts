@@ -1,6 +1,7 @@
 #include <CQChartsViewSettings.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
+#include <CQChartsFilterEdit.h>
 #include <CQPropertyViewTree.h>
 #include <CQGradientControlPlot.h>
 #include <CQGradientControlIFace.h>
@@ -10,11 +11,6 @@
 #include <QLineEdit>
 #include <QSplitter>
 #include <QVBoxLayout>
-
-#include <svg/filter_light_svg.h>
-#include <svg/filter_dark_svg.h>
-#include <svg/search_light_svg.h>
-#include <svg/search_dark_svg.h>
 
 CQChartsViewSettings::
 CQChartsViewSettings(CQChartsWindow *window) :
@@ -44,29 +40,19 @@ CQChartsViewSettings(CQChartsWindow *window) :
   QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
   viewLayout->setMargin(0); viewLayout->setSpacing(2);
 
-  QFrame *filterFrame = new QFrame;
+  filterEdit_ = new CQChartsFilterEdit;
 
-  filterFrame->setObjectName("filterFrame");
+  connect(filterEdit_, SIGNAL(replaceFilter(const QString &)),
+          this, SLOT(replaceFilterSlot(const QString &)));
+  connect(filterEdit_, SIGNAL(addFilter(const QString &)),
+          this, SLOT(addFilterSlot(const QString &)));
 
-  QHBoxLayout *filterLayout = new QHBoxLayout(filterFrame);
-  filterLayout->setMargin(0); filterLayout->setSpacing(2);
+  connect(filterEdit_, SIGNAL(replaceSearch(const QString &)),
+          this, SLOT(replaceSearchSlot(const QString &)));
+  connect(filterEdit_, SIGNAL(addSearch(const QString &)),
+          this, SLOT(addSearchSlot(const QString &)));
 
-  filterEdit_ = new QLineEdit;
-
-  connect(filterEdit_, SIGNAL(returnPressed()), this, SLOT(filterSlot()));
-
-  filterLayout->addWidget(filterEdit_);
-
-  filterCombo_ = new CQIconCombo;
-
-  filterCombo_->setObjectName("filterCombo");
-
-  filterCombo_->addItem(CQPixmapCacheInst->getIcon("FILTER_LIGHT", "FILTER_DARK"), "Filter");
-  filterCombo_->addItem(CQPixmapCacheInst->getIcon("SEARCH_LIGHT", "SEARCH_DARK"), "Search");
-
-  filterLayout->addWidget(filterCombo_);
-
-  viewLayout->addWidget(filterFrame);
+  viewLayout->addWidget(filterEdit_);
 
   propertyTree_ = new CQPropertyViewTree(this, window->view()->propertyModel());
 
@@ -105,13 +91,30 @@ CQChartsViewSettings::
 
 void
 CQChartsViewSettings::
-filterSlot()
+replaceFilterSlot(const QString &text)
 {
-  QLineEdit *edit = qobject_cast<QLineEdit *>(sender());
-  if (! edit) return;
+  propertyTree()->setFilter(text);
+}
 
-  if (filterCombo_->currentIndex() == 0)
-    propertyTree()->setFilter(edit->text());
-  else
-    propertyTree()->search(edit->text());
+void
+CQChartsViewSettings::
+addFilterSlot(const QString &text)
+{
+  //propertyTree()->addFilter(text);
+  propertyTree()->setFilter(text);
+}
+
+void
+CQChartsViewSettings::
+replaceSearchSlot(const QString &text)
+{
+  propertyTree()->search(text);
+}
+
+void
+CQChartsViewSettings::
+addSearchSlot(const QString &text)
+{
+  //propertyTree()->addSearch(text);
+  propertyTree()->search(text);
 }

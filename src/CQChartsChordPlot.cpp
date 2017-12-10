@@ -4,7 +4,6 @@
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
 #include <CQChartsValueSet.h>
-#include <CQRotatedText.h>
 #include <CGradientPalette.h>
 
 //---
@@ -384,16 +383,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsChordObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   const QModelIndex &ind = data_.ind();
 
   plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
   plot_->addSelectIndex(ind.row(), plot_->groupColumn(), ind.parent());
-
-  plot_->endSelect();
 }
 
 bool

@@ -26,9 +26,11 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   int bucket() const { return bucket_; }
 
+  const Values &values() const { return values_; }
+
   QString calcId() const override;
 
-  void mousePress(const CQChartsGeom::Point &) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 
@@ -40,6 +42,20 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Values                    values_;
   int                       i_      { -1 };
   int                       n_      { -1 };
+};
+
+//---
+
+#include <CQChartsKey.h>
+
+// key color box
+class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
+  Q_OBJECT
+
+ public:
+  CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n);
+
+  QBrush fillBrush() const override;
 };
 
 //---
@@ -124,6 +140,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     double maxValue { 1.0 };
   };
 
+  using Values = std::vector<QModelIndex>;
+
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsDistributionPlot();
@@ -178,6 +196,17 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   // bar margin
   int margin() const { return margin_; }
   void setMargin(int i) { margin_ = i; update(); }
+
+  //---
+
+  int numValues() const { return ivalues_.size(); }
+
+  const Values &ivalues(int i) const {
+    auto p = ivalues_.find(i);
+    assert(p != ivalues_.end());
+
+    return (*p).second;
+  }
 
   //---
 
@@ -248,7 +277,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  QString bucketValuesStr(int bucket) const;
+  QString bucketValuesStr(int bucket, bool init=false) const;
 
   void bucketValues(int bucket, double &value1, double &value2) const;
 
@@ -267,7 +296,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   void popSlot();
 
  private:
-  using Values  = std::vector<QModelIndex>;
   using IValues = std::map<int,Values>;
   using Filters = std::vector<Filter>;
 

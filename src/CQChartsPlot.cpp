@@ -122,6 +122,19 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
           this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   connect(model_.data(), SIGNAL(layoutChanged()),
           this, SLOT(modelLayoutChangedSlot()));
+
+  connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+          this, SLOT(modelRowsInsertedSlot()));
+  connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+          this, SLOT(modelRowsRemovedSlot()));
+  connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+          this, SLOT(modelColumnsInsertedSlot()));
+  connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+          this, SLOT(modelColumnsRemovedSlot()));
+
+  updateTimer_.setSingleShot(true);
+
+  connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateTimerSlot()));
 }
 
 CQChartsPlot::
@@ -149,16 +162,51 @@ void
 CQChartsPlot::
 modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 {
+  // TODO: check if model uses changed columns
   //int column1 = tl.column();
   //int column2 = br.column();
 
-  // TODO: check if model uses changed columns
-  updateRangeAndObjs();
+  updateTimer_.start(100);
 }
 
 void
 CQChartsPlot::
 modelLayoutChangedSlot()
+{
+  updateTimer_.start(100);
+}
+
+void
+CQChartsPlot::
+modelRowsInsertedSlot()
+{
+  updateTimer_.start(100);
+}
+
+void
+CQChartsPlot::
+modelRowsRemovedSlot()
+{
+  updateTimer_.start(100);
+}
+
+void
+CQChartsPlot::
+modelColumnsInsertedSlot()
+{
+  updateTimer_.start(100);
+}
+
+void
+CQChartsPlot::
+modelColumnsRemovedSlot()
+{
+  updateTimer_.start(100);
+}
+
+void
+CQChartsPlot::
+updateTimerSlot()
 {
   updateRangeAndObjs();
 }
@@ -213,6 +261,8 @@ selectionSlot()
         plotObj->setSelected(true);
     }
   }
+
+  view()->updateSelText();
 
   update();
 }
@@ -688,6 +738,29 @@ addProperties()
 
 bool
 CQChartsPlot::
+setProperties(const QString &properties)
+{
+  bool rc = true;
+
+  QStringList strs = properties.split(",", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    QString str = strs[i].simplified();
+
+    int pos = str.indexOf("=");
+
+    QString name  = str.mid(0, pos).simplified();
+    QString value = str.mid(pos + 1).simplified();
+
+    if (! setProperty(name, value))
+      rc = false;
+  }
+
+  return rc;
+}
+
+bool
+CQChartsPlot::
 setProperty(const QString &name, const QVariant &value)
 {
   return propertyModel()->setProperty(this, name, value);
@@ -1111,7 +1184,7 @@ insidePlotObjectText() const
 
 bool
 CQChartsPlot::
-mousePress(const CQChartsGeom::Point &w)
+mousePress(const CQChartsGeom::Point &w, ModSelect modSelect)
 {
   if (key() && key()->contains(w)) {
     CQChartsKeyItem *item = key()->getItemAt(w);
@@ -1137,17 +1210,22 @@ mousePress(const CQChartsGeom::Point &w)
 
   //---
 
-  // init all objects to unselected
+  // for replace init all objects to unselected
+  // for add/remove/toggle init all objects to current state
   using ObjsSelected = std::map<CQChartsPlotObj*,bool>;
 
   ObjsSelected objsSelected;
 
-  for (auto &plotObj : plotObjs_)
-    objsSelected[plotObj] = false;
+  for (auto &plotObj : plotObjs_) {
+    if (modSelect == ModSelect::REPLACE)
+      objsSelected[plotObj] = false;
+    else
+      objsSelected[plotObj] = plotObj->isSelected();
+  }
 
   //---
 
-  // get selected objects and toggle selected
+  // get object under mouse
   CQChartsPlotObj *selectObj = nullptr;
 
   if (isFollowMouse()) {
@@ -1165,16 +1243,29 @@ mousePress(const CQChartsGeom::Point &w)
     selectObj = *objs.begin();
   }
 
-  if (selectObj) {
-    objsSelected[selectObj] = ! selectObj->isSelected();
+  //---
 
-    selectObj->mousePress(w);
+  // change selection depending on selection modifier
+  if (selectObj) {
+    if      (modSelect == ModSelect::TOGGLE)
+      objsSelected[selectObj] = ! selectObj->isSelected();
+    else if(modSelect == ModSelect::REPLACE)
+      objsSelected[selectObj] = true;
+    else if (modSelect == ModSelect::ADD)
+      objsSelected[selectObj] = true;
+    else if (modSelect == ModSelect::REMOVE)
+      objsSelected[selectObj] = false;
+
+    //---
+
+    selectObj->mousePress();
 
     emit objPressed(selectObj);
   }
 
   //---
 
+  // determine if selection changed
   bool changed = false;
 
   for (const auto &objSelected : objsSelected) {
@@ -1186,8 +1277,20 @@ mousePress(const CQChartsGeom::Point &w)
     changed = true;
   }
 
-  if (changed)
+  //----
+
+  // update selection if changed
+  if (changed) {
+    beginSelect();
+
+    for (const auto &objSelected : objsSelected)
+      if (objSelected.first->isSelected())
+        objSelected.first->addSelectIndex();
+
+    endSelect();
+
     update();
+  }
 
   //---
 
@@ -1296,6 +1399,88 @@ CQChartsPlot::
 mouseDragRelease(const CQChartsGeom::Point & /*w*/)
 {
   mouseData_.dragObj = DragObj::NONE;
+}
+
+//------
+
+bool
+CQChartsPlot::
+rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
+{
+  // for replace init all objects to unselected
+  // for add/remove/toggle init all objects to current state
+  using ObjsSelected = std::map<CQChartsPlotObj*,bool>;
+
+  ObjsSelected objsSelected;
+
+  for (auto &plotObj : plotObjs_) {
+    if (modSelect == ModSelect::REPLACE)
+      objsSelected[plotObj] = false;
+    else
+      objsSelected[plotObj] = plotObj->isSelected();
+  }
+
+  //---
+
+  // get objects touching rectangle
+  PlotObjs objs;
+
+  objsTouchingRect(r, objs);
+
+  // change selection depending on selection modifier
+  for (auto &obj : objs) {
+    if      (modSelect == ModSelect::TOGGLE)
+      objsSelected[obj] = ! obj->isSelected();
+    else if (modSelect == ModSelect::REPLACE)
+      objsSelected[obj] = true;
+    else if (modSelect == ModSelect::ADD)
+      objsSelected[obj] = true;
+    else if (modSelect == ModSelect::REMOVE)
+      objsSelected[obj] = false;
+  }
+
+  //---
+
+  // determine if selection changed
+  bool changed = false;
+
+  for (const auto &objSelected : objsSelected) {
+    if (objSelected.first->isSelected() == objSelected.second)
+      continue;
+
+    objSelected.first->setSelected(objSelected.second);
+
+    changed = true;
+  }
+
+  //----
+
+  // update selection if changed
+  if (changed) {
+    beginSelect();
+
+    for (const auto &objSelected : objsSelected)
+      if (objSelected.first->isSelected())
+        objSelected.first->addSelectIndex();
+
+    endSelect();
+
+    update();
+  }
+
+  //---
+
+  return ! objs.empty();
+}
+
+void
+CQChartsPlot::
+selectedObjs(PlotObjs &objs) const
+{
+  for (const auto &plotObj : plotObjs_) {
+    if (plotObj->isSelected())
+      objs.push_back(plotObj);
+  }
 }
 
 //------
@@ -1685,6 +1870,13 @@ CQChartsPlot::
 objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
 {
   plotObjTree_->objectsAtPoint(p, objs);
+}
+
+void
+CQChartsPlot::
+objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const
+{
+  plotObjTree_->objectsTouchingRect(r, objs);
 }
 
 void
@@ -2131,65 +2323,67 @@ void
 CQChartsPlot::
 updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
 {
-  // stroke and fill
+  // inside and selected
+  if      (obj->isInside() && obj->isSelected()) {
+    updateSelectedObjPenBrushState(pen, brush);
+    updateInsideObjPenBrushState  (pen, brush);
+  }
+  // inside
+  else if (obj->isInside()) {
+    updateInsideObjPenBrushState(pen, brush);
+  }
+  // selected
+  else if (obj->isSelected()) {
+    updateSelectedObjPenBrushState(pen, brush);
+  }
+}
+
+void
+CQChartsPlot::
+updateInsideObjPenBrushState(QPen &pen, QBrush &brush) const
+{
+  // fill and stroke
   if (brush.style() != Qt::NoBrush) {
-    QColor pc = pen  .color();
-    QColor bc = brush.color();
+    if (view()->insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+      QColor opc;
 
-    // inside first (low priorty)
-    if (obj->isInside()) {
-      if (view()->insideMode() == CQChartsView::InsideMode::OUTLINE) {
-        QColor opc;
+      if (pen.style() != Qt::NoPen) {
+        QColor pc = pen.color();
 
-        if (pen.style() != Qt::NoPen) {
+        if (view()->isInsideStrokeColorEnabled())
+          opc = view()->insideStrokeColor();
+        else
           opc = CQChartsUtil::invColor(pc);
 
-          opc.setAlphaF(pc.alphaF());
-        }
-        else
-          opc = CQChartsUtil::invColor(bc);
-
-        pen.setStyle(Qt::DashLine);
-        pen.setColor(opc);
-        pen.setWidthF(obj->isSelected() ? 2 : 1);
+        opc.setAlphaF(pc.alphaF());
       }
       else {
-        QColor ibc = insideColor(bc);
+        QColor bc = brush.color();
 
-        ibc.setAlphaF(bc.alphaF());
-
-        brush.setColor(ibc);
+        if (view()->isInsideStrokeColorEnabled())
+          opc = view()->insideStrokeColor();
+        else
+          opc = CQChartsUtil::invColor(bc);
       }
 
-      return;
+      CQChartsUtil::penSetLineDash(pen, view()->insideStrokeDash());
+
+      pen.setColor(opc);
+      pen.setWidthF(view()->insideStrokeWidth());
     }
+    else {
+      QColor bc = brush.color();
 
-    // selected last (high priority)
-    if (obj->isSelected()) {
-      if (view()->selectedMode() == CQChartsView::SelectedMode::OUTLINE) {
-        QColor opc;
+      QColor ibc;
 
-        if (pen.style() != Qt::NoPen) {
-          QColor opc = insideColor(pc);
+      if (view()->isInsideFillColorEnabled())
+        ibc = view()->insideFillColor();
+      else
+        ibc = insideColor(bc);
 
-          opc.setAlphaF(pc.alphaF());
-        }
-        else
-          opc = CQChartsUtil::invColor(bc);
+      ibc.setAlphaF(bc.alphaF());
 
-        pen.setStyle(Qt::SolidLine);
-        pen.setColor(opc);
-        pen.setWidthF(2);
-      }
-      else {
-        QColor ibc = insideColor(bc);
-
-        ibc.setAlphaF(bc.alphaF());
-
-        brush.setColor(ibc);
-      }
-
-      return;
+      brush.setColor(ibc);
     }
   }
   // just stroke
@@ -2198,29 +2392,91 @@ updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
 
     QColor pc = pen.color();
 
-    // inside first (low priorty)
-    if (obj->isInside()) {
-      QColor opc = CQChartsUtil::invColor(pc);
+    QColor opc;
 
-      opc.setAlphaF(pc.alphaF());
+    if (view()->isInsideStrokeColorEnabled())
+      opc = view()->insideStrokeColor();
+    else
+      opc = CQChartsUtil::invColor(pc);
 
-      pen.setStyle(Qt::DashLine);
+    opc.setAlphaF(pc.alphaF());
+
+    CQChartsUtil::penSetLineDash(pen, view()->insideStrokeDash());
+
+    pen.setColor(opc);
+    pen.setWidthF(view()->insideStrokeWidth());
+  }
+}
+
+void
+CQChartsPlot::
+updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
+{
+  // fill and stroke
+  if (brush.style() != Qt::NoBrush) {
+    if (view()->selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
+      QColor opc;
+
+      if (pen.style() != Qt::NoPen) {
+        QColor pc = pen.color();
+
+        QColor opc;
+
+        if (view()->isSelectedStrokeColorEnabled())
+          opc = view()->selectedStrokeColor();
+        else
+          opc = selectedColor(pc);
+
+        opc.setAlphaF(pc.alphaF());
+      }
+      else {
+        QColor bc = brush.color();
+
+        if (view()->isSelectedStrokeColorEnabled())
+          opc = view()->selectedStrokeColor();
+        else
+          opc = CQChartsUtil::invColor(bc);
+      }
+
+      CQChartsUtil::penSetLineDash(pen, view()->selectedStrokeDash());
+
       pen.setColor(opc);
-      pen.setWidthF(obj->isSelected() ? 4 : 2);
+      pen.setWidthF(view()->selectedStrokeWidth());
     }
+    else {
+      QColor bc = brush.color();
 
-    // selected last (high priority)
-    if (obj->isSelected()) {
-      QColor opc = CQChartsUtil::invColor(pc);
+      QColor ibc;
 
-      opc.setAlphaF(pc.alphaF());
+      if (view()->isSelectedFillColorEnabled())
+        ibc = view()->selectedFillColor();
+      else
+        ibc = selectedColor(bc);
 
-      pen.setStyle(Qt::SolidLine);
-      pen.setColor(opc);
-      pen.setWidthF(4);
+      ibc.setAlphaF(bc.alphaF());
+
+      brush.setColor(ibc);
     }
+  }
+  // just stroke
+  else {
+    assert(pen.style() != Qt::NoPen);
 
-    return;
+    QColor pc = pen.color();
+
+    QColor opc;
+
+    if (view()->isSelectedStrokeColorEnabled())
+      opc = view()->selectedStrokeColor();
+    else
+      opc = CQChartsUtil::invColor(pc);
+
+    opc.setAlphaF(pc.alphaF());
+
+    CQChartsUtil::penSetLineDash(pen, view()->selectedStrokeDash());
+
+    pen.setColor(opc);
+    pen.setWidthF(view()->selectedStrokeWidth());
   }
 }
 
@@ -2229,6 +2485,13 @@ CQChartsPlot::
 insideColor(const QColor &c) const
 {
   return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.8);
+}
+
+QColor
+CQChartsPlot::
+selectedColor(const QColor &c) const
+{
+  return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
 }
 
 QColor
@@ -2439,46 +2702,60 @@ void
 CQChartsPlot::
 windowToPixel(double wx, double wy, double &px, double &py) const
 {
+  double vx, vy;
+
+  windowToView(wx, wy, vx, vy);
+
+  view_->windowToPixel(vx, vy, px, py);
+}
+
+void
+CQChartsPlot::
+windowToView(double wx, double wy, double &vx, double &vy) const
+{
   double wx1, wy1;
 
   displayTransform_->getMatrix().multiplyPoint(wx, wy, &wx1, &wy1);
 
-  double wx2, wy2;
-
-  displayRange_->windowToPixel(wx1, wy1, &wx2, &wy2);
+  displayRange_->windowToPixel(wx1, wy1, &vx, &vy);
 
   if (isInvertX() || isInvertY()) {
-    double iwx2, iwy2;
+    double ivx, ivy;
 
-    displayRange_->invertPixel(wx2, wy2, iwx2, iwy2);
+    displayRange_->invertPixel(vx, vy, ivx, ivy);
 
-    if (isInvertX()) wx2 = iwx2;
-    if (isInvertY()) wy2 = iwy2;
+    if (isInvertX()) vx = ivx;
+    if (isInvertY()) vy = ivy;
   }
-
-  view_->windowToPixel(wx2, wy2, px, py);
 }
 
 void
 CQChartsPlot::
 pixelToWindow(double px, double py, double &wx, double &wy) const
 {
-  double wx1, wy1;
+  double vx, vy;
 
-  view_->pixelToWindow(px, py, wx1, wy1);
+  view_->pixelToWindow(px, py, vx, vy);
 
+  viewToWindow(vx, vy, wx, wy);
+}
+
+void
+CQChartsPlot::
+viewToWindow(double vx, double vy, double &wx, double &wy) const
+{
   if (isInvertX() || isInvertY()) {
-    double iwx1, iwy1;
+    double ivx, ivy;
 
-    displayRange_->invertPixel(wx1, wy1, iwx1, iwy1);
+    displayRange_->invertPixel(vx, vy, ivx, ivy);
 
-    if (isInvertX()) wx1 = iwx1;
-    if (isInvertY()) wy1 = iwy1;
+    if (isInvertX()) vx = ivx;
+    if (isInvertY()) vy = ivy;
   }
 
   double wx2, wy2;
 
-  displayRange_->pixelToWindow(wx1, wy1, &wx2, &wy2);
+  displayRange_->pixelToWindow(vx, vy, &wx2, &wy2);
 
   displayTransform_->getIMatrix().multiplyPoint(wx2, wy2, &wx, &wy);
 }

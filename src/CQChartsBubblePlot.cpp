@@ -450,16 +450,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsBubbleObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
   const QModelIndex &ind = node_->ind();
 
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
   plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
-
-  plot_->endSelect();
 }
 
 bool

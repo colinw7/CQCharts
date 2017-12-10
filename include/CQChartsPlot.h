@@ -9,6 +9,7 @@
 #include <QAbstractItemModel>
 #include <QItemSelection>
 #include <QFrame>
+#include <QTimer>
 
 #include <memory>
 #include <set>
@@ -184,6 +185,14 @@ class CQChartsPlot : public QObject {
     FG
   };
 
+  // selection modifier type
+  enum class ModSelect {
+    REPLACE,
+    ADD,
+    REMOVE,
+    TOGGLE
+  };
+
   // margin (percent)
   struct Margin {
     double left   { 10 };
@@ -227,6 +236,8 @@ class CQChartsPlot : public QObject {
   using ModelP          = CQChartsModelP;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
+  using PlotObjs = std::vector<CQChartsPlotObj*>;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -235,6 +246,8 @@ class CQChartsPlot : public QObject {
   CQChartsView *view() const { return view_; }
 
   QAbstractItemModel *model() const { return model_.data(); }
+
+  CQChartsModelP::ModelP modelp() const { return model_.modelp; }
 
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
@@ -270,10 +283,10 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  const CGradientPalette *palette() const { return palette_; }
+  CGradientPalette *palette() const { return palette_; }
   void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
 
-  const CGradientPalette *theme() const { return theme_; }
+  CGradientPalette *theme() const { return theme_; }
   void setTheme(CGradientPalette *theme) { theme_ = theme; update(); }
 
   //---
@@ -486,6 +499,8 @@ class CQChartsPlot : public QObject {
   // add plot properties to model
   virtual void addProperties();
 
+  bool setProperties(const QString &properties);
+
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value);
 
@@ -518,7 +533,10 @@ class CQChartsPlot : public QObject {
   //---
 
   void windowToPixel(double wx, double wy, double &px, double &py) const;
+  void windowToView (double wx, double wy, double &vx, double &vy) const;
+
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
+  void viewToWindow (double vx, double vy, double &wx, double &wy) const;
 
   void windowToPixel(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
   void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
@@ -629,7 +647,8 @@ class CQChartsPlot : public QObject {
   //---
 
   // handle mouse press/move/release
-  virtual bool mousePress  (const CQChartsGeom::Point &p);
+  // TODO: split mouse press and mouse select
+  virtual bool mousePress  (const CQChartsGeom::Point &p, ModSelect modSelect);
   virtual bool mouseMove   (const CQChartsGeom::Point &p, bool first=false);
   virtual void mouseRelease(const CQChartsGeom::Point &p);
 
@@ -644,8 +663,15 @@ class CQChartsPlot : public QObject {
   // get tip text at point
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
+  // handle rect select
+  bool rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect);
+
   // handle mouse press in click zoom mode
   virtual void clickZoom(const CQChartsGeom::Point &p);
+
+  //---
+
+  void selectedObjs(PlotObjs &objs) const;
 
   //---
 
@@ -751,7 +777,11 @@ class CQChartsPlot : public QObject {
 
   void updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
 
+  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush) const;
+  void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const;
+
   QColor insideColor(const QColor &c) const;
+  QColor selectedColor(const QColor &c) const;
 
   // get palette color for ith value of n values
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
@@ -791,7 +821,15 @@ class CQChartsPlot : public QObject {
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
+
   void modelLayoutChangedSlot();
+
+  void modelRowsInsertedSlot();
+  void modelRowsRemovedSlot();
+  void modelColumnsInsertedSlot();
+  void modelColumnsRemovedSlot();
+
+  void updateTimerSlot();
 
   void selectionSlot();
 
@@ -799,11 +837,12 @@ class CQChartsPlot : public QObject {
   void objPressed(CQChartsPlotObj *);
 
  protected:
-  using PlotObjs   = std::vector<CQChartsPlotObj*>;
   using PlotObjSet = std::set<CQChartsPlotObj*>;
 
  protected:
   void objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+
+  void objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const;
 
  protected:
   using RefPlots    = std::vector<CQChartsPlot*>;
@@ -875,6 +914,7 @@ class CQChartsPlot : public QObject {
   LayerActive               layerActive_;
   IdHidden                  idHidden_;
   QItemSelection            itemSelection_;
+  QTimer                    updateTimer_;
 };
 
 #endif

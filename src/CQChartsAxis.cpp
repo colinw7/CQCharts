@@ -9,7 +9,7 @@
 #include <CQChartsRenderer.h>
 #include <CQPropertyViewModel.h>
 
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 
 #include <cstring>
 #include <algorithm>
@@ -156,6 +156,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(ticksLabelPath, this, "tickLabelColor"    , "color");
   model->addProperty(ticksLabelPath, this, "tickLabelAngle"    , "angle");
   model->addProperty(ticksLabelPath, this, "tickLabelAutoHide" , "autoHide");
+  model->addProperty(ticksLabelPath, this, "tickLabelPlacement", "placement");
 
   model->addProperty(ticksPath, this, "tickInside" , "inside");
   model->addProperty(ticksPath, this, "mirrorTicks", "mirror");
@@ -1290,8 +1291,19 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
   int tlen2 = majorTickLen();
   int tgap  = 2;
 
-  lmin_              = INT_MAX;
-  lmax_              = INT_MIN;
+  //---
+
+  lmin_ = INT_MAX;
+  lmax_ = INT_MIN;
+
+  if ((direction_ == Direction::HORIZONTAL && plot->isInvertY()) ||
+      (direction_ == Direction::VERTICAL   && plot->isInvertX())) {
+    lmin_ = INT_MIN;
+    lmax_ = INT_MAX;
+  }
+
+  //---
+
   lastTickLabelRect_ = CQChartsGeom::BBox();
 
 #if 0
@@ -1307,12 +1319,6 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
   for (uint i = 0; i < numMajorTicks() + 1; i++) {
     // draw major line (grid and tick)
     if (pos1 >= amin && pos1 <= amax) {
-      double ppx, ppy;
-
-      plot->windowToPixel(pos1, pos1, ppx, ppy);
-
-      //---
-
       // draw major tick (or minor tick if major ticks off and minor ones on)
       if      (isMajorTicksDisplayed()) {
         drawTickLine(plot, renderer, apos1, pos1, isTickInside(), /*major*/true);
@@ -1362,6 +1368,9 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
   //---
 
   // fix range if not set
+  int pxs = (plot->isInvertX() ? -1 : 1);
+  int pys = (plot->isInvertY() ? -1 : 1);
+
   if (direction_ == Direction::HORIZONTAL) {
     double ax3, ay3;
 
@@ -1369,11 +1378,11 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
     if (side() == Side::BOTTOM_LEFT) {
       if (lmax_ == INT_MIN)
-        lmax_ = ay3 + tlen2 + tgap;
+        lmax_ = ay3 + pys*(tlen2 + tgap);
     }
     else {
       if (lmin_ == INT_MAX)
-        lmin_ = ay3 - tlen2 - tgap;
+        lmin_ = ay3 - pys*(tlen2 + tgap);
     }
   }
   else {
@@ -1383,11 +1392,11 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
     if (side() == Side::BOTTOM_LEFT) {
       if (lmin_ == INT_MAX)
-        lmin_ = ax3 - tlen2 - tgap;
+        lmin_ = ax3 - pxs*(tlen2 + tgap);
     }
     else {
       if (lmax_ == INT_MIN)
-        lmax_ = ax3 + tlen2 + tgap;
+        lmax_ = ax3 + pxs*(tlen2 + tgap);
     }
   }
 
@@ -1510,10 +1519,18 @@ drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double
 
   double ppx, ppy;
 
-  if (direction_ == Direction::HORIZONTAL)
-    plot->windowToPixel(tpos, apos, ppx, ppy);
-  else
-    plot->windowToPixel(apos, tpos, ppx, ppy);
+  if (major && tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+    if (direction_ == Direction::HORIZONTAL)
+      plot->windowToPixel(tpos - 0.5, apos, ppx, ppy);
+    else
+      plot->windowToPixel(apos, tpos - 0.5, ppx, ppy);
+  }
+  else {
+    if (direction_ == Direction::HORIZONTAL)
+      plot->windowToPixel(tpos, apos, ppx, ppy);
+    else
+      plot->windowToPixel(apos, tpos, ppx, ppy);
+  }
 
   int dt1 = (side() == Side::BOTTOM_LEFT ? tlen : -tlen);
 
@@ -1585,6 +1602,19 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
   int pys = (plot->isInvertY() ? -1 : 1);
 
   if (direction_ == Direction::HORIZONTAL) {
+    double tyo = 0.0;
+
+    if (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+      if (inside)
+        tyo = pys*tgap;
+      else
+        tyo = pys*(tlen + tgap);
+    }
+    else
+      tyo = pys;
+
+    //---
+
     CQChartsGeom::BBox tbbox;
 
     bool visible = true;
@@ -1592,12 +1622,7 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
     if (side() == Side::BOTTOM_LEFT) {
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignTop;
 
-      QPointF pt;
-
-      if (inside)
-        pt = QPointF(ppx, ppy + pys*tgap);
-      else
-        pt = QPointF(ppx, ppy + pys*tlen + pys*tgap);
+      QPointF pt(ppx, ppy + tyo);
 
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
@@ -1609,8 +1634,8 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
         tbbox = CQChartsGeom::BBox(tpos - atw/2, apos - ath - atm, tpos + atw/2, apos - atm);
       }
       else {
-        QRectF rrect = CQRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
-                                           angle, 0, align, /*alignBox*/true);
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+                                                 angle, 0, align, /*alignBox*/true);
 
         lmax_ = std::max(lmax_, rrect.bottom());
 
@@ -1623,12 +1648,29 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle))
-          renderer->drawText(QPointF(pt.x() - tw/2, pt.y() + (plot->isInvertY() ? -td : ta)),
-                             text);
-        else
-          CQRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
-                                         angle, align, /*alignBox*/true);
+        if (CQChartsUtil::isZero(angle)) {
+          double ty = pt.y() + (plot->isInvertY() ? -td : ta);
+
+          QPointF p;
+
+          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+            p = QPointF(pt.x() - tw/2, ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+            p = QPointF(pt.x() - tw  , ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+            p = QPointF(pt.x()       , ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+            double pb = plot->windowToPixelWidth(0.5);
+
+            p = QPointF(pt.x() - pb, ty);
+          }
+
+          renderer->drawText(p, text);
+        }
+        else {
+          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+                                               angle, align, /*alignBox*/true);
+        }
 
         if (plot_->showBoxes())
           plot_->drawWindowRedBox(renderer, tbbox);
@@ -1639,27 +1681,28 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
     else {
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignBottom;
 
-      QPointF pt;
-
-      if (inside)
-        pt = QPointF(ppx, ppy - pys*tgap);
-      else
-        pt = QPointF(ppx, ppy - pys*tlen - pys*tgap);
+      QPointF pt(ppx, ppy - tyo);
 
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
         double atm = plot->pixelToWindowHeight(tlen + tgap);
 
-        lmin_ = std::min(lmin_, pt.y() - pys*(ta + td));
+        if (plot->isInvertY())
+          lmin_ = std::max(lmin_, pt.y() - pys*(ta + td));
+        else
+          lmin_ = std::min(lmin_, pt.y() - pys*(ta + td));
 
         tbbox = CQChartsGeom::BBox(tpos - atw/2, apos + atm, tpos + atw/2, apos + ath + atm);
       }
       else {
-        QRectF rrect = CQRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
-                                           angle, 0, align, /*alignBox*/true);
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+                                                 angle, 0, align, /*alignBox*/true);
 
-        lmin_ = std::min(lmin_, rrect.top());
+        if (plot->isInvertY())
+          lmin_ = std::min(lmin_, rrect.bottom());
+        else
+          lmin_ = std::min(lmin_, rrect.top());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1670,11 +1713,29 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle))
-          renderer->drawText(QPointF(pt.x() - tw/2, pt.y() - pys*td), text);
-        else
-          CQRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
-                                         angle, align, /*alignBox*/true);
+        if (CQChartsUtil::isZero(angle)) {
+          double ty = pt.y() - (plot->isInvertY() ? -ta : td);
+
+          QPointF p;
+
+          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+            p = QPointF(pt.x() - tw/2, ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+            p = QPointF(pt.x() - tw  , ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+            p = QPointF(pt.x()       , ty);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+            double pb = plot->windowToPixelWidth(0.5);
+
+            p = QPointF(pt.x() - pb, ty);
+          }
+
+          renderer->drawText(p, text);
+        }
+        else {
+          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+                                               angle, align, /*alignBox*/true);
+        }
 
         if (plot_->showBoxes())
           plot_->drawWindowRedBox(renderer, tbbox);
@@ -1686,6 +1747,19 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
     bbox_ += tbbox;
   }
   else {
+    double txo = 0.0;
+
+    if (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+      if (inside)
+        txo = pxs*tgap;
+      else
+        txo = pxs*(tlen + tgap);
+    }
+    else
+      txo = pxs;
+
+    //---
+
     CQChartsGeom::BBox tbbox;
 
     bool visible = true;
@@ -1693,27 +1767,28 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
     if (side() == Side::BOTTOM_LEFT) {
       Qt::Alignment align = Qt::AlignVCenter | Qt::AlignRight;
 
-      QPointF pt;
-
-      if (inside)
-        pt = QPointF(ppx - pxs*tgap, ppy);
-      else
-        pt = QPointF(ppx - pxs*tlen - pxs*tgap, ppy);
+      QPointF pt(ppx - txo, ppy);
 
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
         double atm = plot->pixelToWindowWidth (tlen + tgap);
 
-        lmin_ = std::min(lmin_, pt.x() - tw);
+        if (plot->isInvertX())
+          lmin_ = std::max(lmin_, pt.x() - pxs*tw);
+        else
+          lmin_ = std::min(lmin_, pt.x() - pxs*tw);
 
         tbbox = CQChartsGeom::BBox(apos - atw - atm, tpos - ath/2, apos - atm, tpos + ath/2);
       }
       else {
-        QRectF rrect = CQRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
-                                           angle, 0, align, /*alignBox*/true);
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+                                                 angle, 0, align, /*alignBox*/true);
 
-        lmin_ = std::min(lmin_, rrect.left());
+        if (plot->isInvertX())
+          lmin_ = std::min(lmin_, rrect.right());
+        else
+          lmin_ = std::min(lmin_, rrect.left());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1724,11 +1799,29 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle))
-          renderer->drawText(QPointF(pt.x() - pxs*tw, pt.y() + ta/2), text);
-        else
-          CQRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
-                                         angle, align, /*alignBox*/true);
+        if (CQChartsUtil::isZero(angle)) {
+          double tx = pt.x() - (! plot->isInvertX() ? tw : 0.0);
+
+          QPointF p;
+
+          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+            p = QPointF(tx, pt.y() + ta/2);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+            p = QPointF(tx, pt.y() + ta  );
+          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+            p = QPointF(tx, pt.y() - td  );
+          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+            double pb = plot->windowToPixelHeight(0.5);
+
+            p = QPointF(tx, pt.y() - pb + ta);
+          }
+
+          renderer->drawText(p, text);
+        }
+        else {
+          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+                                               angle, align, /*alignBox*/true);
+        }
 
         if (plot_->showBoxes())
           plot_->drawWindowRedBox(renderer, tbbox);
@@ -1739,25 +1832,20 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
     else {
       Qt::Alignment align = Qt::AlignVCenter | Qt::AlignLeft;
 
-      QPointF pt;
-
-      if (inside)
-        pt = QPointF(ppx + pxs*tgap, ppy);
-      else
-        pt = QPointF(ppx + pxs*tlen + pxs*tgap, ppy);
+      QPointF pt(ppx + txo, ppy);
 
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
         double atm = plot->pixelToWindowWidth (tlen + tgap);
 
-        lmax_ = std::max(lmax_, ppx + pxs*tlen + pxs*tgap + tw);
+        lmax_ = std::max(lmax_, ppx + pxs*(tlen + tgap) + tw);
 
         tbbox = CQChartsGeom::BBox(apos + atm, tpos - ath/2, apos + atw + atm, tpos + ath/2);
       }
       else {
-        QRectF rrect = CQRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
-                                           angle, 0, align, /*alignBox*/true);
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+                                                 angle, 0, align, /*alignBox*/true);
 
         lmax_ = std::max(lmax_, rrect.right());
 
@@ -1770,11 +1858,29 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle))
-          renderer->drawText(QPointF(pt.x(), pt.y() + ta/2), text);
-        else
-          CQRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
-                                         angle, align, /*alignBox*/true);
+        if (CQChartsUtil::isZero(angle)) {
+          double tx = pt.x() - (! plot->isInvertX() ? 0.0 : tw);
+
+          QPointF p;
+
+          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+            p = QPointF(tx, pt.y() + ta/2);
+          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+            p = QPointF(tx, pt.y() + ta  );
+          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+            p = QPointF(tx, pt.y() - td  );
+          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+            double pb = plot->windowToPixelHeight(0.5);
+
+            p = QPointF(tx, pt.y() - pb + ta);
+          }
+
+          renderer->drawText(p, text);
+        }
+        else {
+          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+                                               angle, align, /*alignBox*/true);
+        }
 
         if (plot_->showBoxes())
           plot_->drawWindowRedBox(renderer, tbbox);
@@ -1857,7 +1963,9 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
       double atw = plot->pixelToWindowWidth ((ax3 - lmin_) + tgap + ta + td);
       double ath = plot->pixelToWindowHeight(tw/2);
 
-      CQRotatedText::drawRotatedText(renderer, lmin_ - pxs*tgap - pxs*td, aym, text, 90.0);
+      double tx = lmin_ - pxs*(tgap + (plot->isInvertX() ? ta : td));
+
+      CQChartsRotatedText::drawRotatedText(renderer, tx, aym, text, 90.0);
 
       bbox_ += CQChartsGeom::Point(apos - atw, (amin + amax)/2 - ath);
       bbox_ += CQChartsGeom::Point(apos - atw, (amin + amax)/2 + ath);
@@ -1868,7 +1976,9 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
       double atw = plot->pixelToWindowWidth ((lmax_ - ax3) + tgap + ta + td);
       double ath = plot->pixelToWindowHeight(tw/2);
 
-      CQRotatedText::drawRotatedText(renderer, lmax_ + pxs*tgap + pxs*td, aym, text, -90.0);
+      double tx = lmax_ + pxs*(tgap + (plot->isInvertX() ? ta : td));
+
+      CQChartsRotatedText::drawRotatedText(renderer, tx, aym, text, -90.0);
 
       bbox_ += CQChartsGeom::Point(apos + atw, (amin + amax)/2 - ath);
       bbox_ += CQChartsGeom::Point(apos + atw, (amin + amax)/2 + ath);

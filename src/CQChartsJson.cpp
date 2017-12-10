@@ -4,7 +4,7 @@
 
 CQChartsJson::
 CQChartsJson(CQCharts *charts) :
- QSortFilterProxyModel(), charts_(charts)
+ CQChartsModelFilter(), charts_(charts)
 {
   jsonModel_ = new CQJsonModel;
 
@@ -31,39 +31,11 @@ isHierarchical() const
   return jsonModel_->isHierarchical();
 }
 
-int
-CQChartsJson::
-columnCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::columnCount(parent);
-}
-
-int
-CQChartsJson::
-rowCount(const QModelIndex &parent) const
-{
-  return QSortFilterProxyModel::rowCount(parent);
-}
-
-bool
-CQChartsJson::
-setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
-{
-  return QSortFilterProxyModel::setHeaderData(section, orientation, value, role);
-}
-
-QVariant
-CQChartsJson::
-headerData(int section, Qt::Orientation orientation, int role) const
-{
-  return QSortFilterProxyModel::headerData(section, orientation, role);
-}
-
 QVariant
 CQChartsJson::
 data(const QModelIndex &index, int role) const
 {
-  QVariant var = QSortFilterProxyModel::data(index, role);
+  QVariant var = CQChartsModelFilter::data(index, role);
 
   if (role == Qt::DisplayRole) {
     if (! index.isValid())
@@ -71,7 +43,7 @@ data(const QModelIndex &index, int role) const
 
     assert(index.model() == this);
 
-    QModelIndex index1 = QSortFilterProxyModel::mapToSource(index);
+    QModelIndex index1 = CQChartsModelFilter::mapToSource(index);
 
     assert(index.column() == index1.column());
 
@@ -88,20 +60,6 @@ data(const QModelIndex &index, int role) const
   }
 
   return var;
-}
-
-QModelIndex
-CQChartsJson::
-parent(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::parent(index);
-}
-
-Qt::ItemFlags
-CQChartsJson::
-flags(const QModelIndex &index) const
-{
-  return QSortFilterProxyModel::flags(index);
 }
 
 //---

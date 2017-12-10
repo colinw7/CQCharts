@@ -9,9 +9,14 @@ class CHistory;
 class CQHistoryLineEdit : public QLineEdit {
   Q_OBJECT
 
+  Q_PROPERTY(bool autoClear READ isAutoClear WRITE setAutoClear)
+
  public:
   CQHistoryLineEdit(QWidget *parent=0);
  ~CQHistoryLineEdit();
+
+  bool isAutoClear() const { return autoClear_; }
+  void setAutoClear(bool b) { autoClear_ = b; }
 
  private slots:
   void execSlot();
@@ -24,6 +29,7 @@ class CQHistoryLineEdit : public QLineEdit {
 
  private:
   CAutoPtr<CHistory> history_;
+  bool               autoClear_ { true };
 };
 
 #endif

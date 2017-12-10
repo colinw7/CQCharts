@@ -7,7 +7,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 
 #include <QMenu>
 #include <QAction>
@@ -102,9 +102,9 @@ addProperties()
 
   dataLabel_.addProperties("dataLabel");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
-  addProperty("color", this, "colorMapMin"    , "mapMin"     );
-  addProperty("color", this, "colorMapMax"    , "mapMax"     );
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //---
@@ -257,10 +257,10 @@ initColorSet()
 
   int nr = model->rowCount(QModelIndex());
 
-  for (int i = 0; i < nr; ++i) {
+  for (int r = 0; r < nr; ++r) {
     bool ok;
 
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+    QVariant value = CQChartsUtil::modelValue(model, r, colorColumn(), ok);
 
     colorSet_.addValue(value); // always add some value
   }
@@ -312,21 +312,19 @@ updateRange(bool apply)
   //---
 
   // calc category type
-  if (! valueSet_.initialized()) {
-    valueSet_.clear();
+  valueSet_.clear();
 
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex valueInd = model->index(r, valueColumn());
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex valueInd = model->index(r, valueColumn());
 
-      bool ok;
+    bool ok;
 
-      QVariant value = CQChartsUtil::modelValue(model, valueInd, ok);
+    QVariant value = CQChartsUtil::modelValue(model, valueInd, ok);
 
-      if (! ok)
-        continue;
+    if (! ok)
+      continue;
 
-      valueSet_.addValue(value);
-    }
+    valueSet_.addValue(value);
   }
 
   //---
@@ -487,9 +485,9 @@ calcCategoryRange()
   double length1 = length/categoryRange_.numAuto;
 
   // Calculate nearest Power of Ten to Length
-  int power = CQChartsUtil::Round(log10(length1));
+  int power = (length1 > 0 ? CQChartsUtil::Round(log10(length1)) : 1);
 
- categoryRange_.increment = 0.1;
+  categoryRange_.increment = 0.1;
 
   if      (power < 0) {
     for (int i = 0; i < -power; i++)
@@ -500,11 +498,15 @@ calcCategoryRange()
       categoryRange_.increment *= 10.0;
   }
 
-  categoryRange_.increment =
-    categoryRange_.increment*CQChartsUtil::Round(length1/categoryRange_.increment);
+  if (length1 > 0) {
+    categoryRange_.increment =
+      categoryRange_.increment*CQChartsUtil::Round(length1/categoryRange_.increment);
 
-  categoryRange_.calcMinValue = categoryRange_.increment*
-    CQChartsUtil::RoundDown(categoryRange_.minValue/categoryRange_.increment);
+    categoryRange_.calcMinValue = categoryRange_.increment*
+      CQChartsUtil::RoundDown(categoryRange_.minValue/categoryRange_.increment);
+  }
+  else
+    categoryRange_.calcMinValue = categoryRange_.minValue;
 }
 
 int
@@ -533,6 +535,8 @@ void
 CQChartsDistributionPlot::
 updateObjs()
 {
+  valueSet_.clear();
+
   colorSet_.clear();
 
   CQChartsPlot::updateObjs();
@@ -568,13 +572,16 @@ initObjs()
   xAxis()->setIntegral(true);
   yAxis()->setIntegral(true);
 
+  xAxis()->setMajorIncrement(! isHorizontal() ? 1 : 0);
+  yAxis()->setMajorIncrement(  isHorizontal() ? 1 : 0);
+
   xAxis()->setRequireTickLabel(! isHorizontal());
   yAxis()->setRequireTickLabel(  isHorizontal());
 
   //---
 
   int i = 0;
-  int n = ivalues_.size();
+  int n = numValues();
 
   for (const auto &ivalue : ivalues_) {
     int           bucket = ivalue.first;
@@ -594,7 +601,7 @@ initObjs()
 
     //---
 
-    QString bucketStr = bucketValuesStr(bucket);
+    QString bucketStr = bucketValuesStr(bucket, /*init*/true);
 
     if (! isHorizontal())
       xAxis_->setTickLabel(bucket, bucketStr);
@@ -606,7 +613,9 @@ initObjs()
     ++i;
   }
 
-  QString valueName = model()->headerData(valueColumn(), Qt::Horizontal).toString();
+  bool ok;
+
+  QString valueName = CQChartsUtil::modelHeaderString(model(), valueColumn(), ok);
 
   if (! isHorizontal()) {
     xAxis_->setLabel(valueName);
@@ -632,23 +641,20 @@ addKeyItems(CQChartsKey *key)
 {
   int row = key->maxRow();
 
-  int i = 0;
-  int n = ivalues_.size();
+  int n = numValues();
 
   for (const auto &ivalue : ivalues_) {
     int bucket = ivalue.first;
 
     QString bucketStr = bucketValuesStr(bucket);
 
-    CQChartsKeyColorBox *color = new CQChartsKeyColorBox(this, i, n);
-    CQChartsKeyText     *text  = new CQChartsKeyText    (this, bucketStr);
+    CQChartsDistKeyColorBox *color = new CQChartsDistKeyColorBox(this, bucket, n);
+    CQChartsKeyText         *text  = new CQChartsKeyText        (this, bucketStr);
 
     key->addItem(color, row, 0);
     key->addItem(text , row, 1);
 
     ++row;
-
-    ++i;
   }
 
   key->plot()->updateKeyPosition(/*force*/true);
@@ -656,17 +662,21 @@ addKeyItems(CQChartsKey *key)
 
 QString
 CQChartsDistributionPlot::
-bucketValuesStr(int bucket) const
+bucketValuesStr(int bucket, bool init) const
 {
   if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
       valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
-    QChar arrowChar(0x2192);
-
     double value1, value2;
 
     bucketValues(bucket, value1, value2);
 
-    return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+    if (! init) {
+      QChar arrowChar(0x2192);
+
+      return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
+    }
+    else
+      return QString("%1").arg(value1);
   }
   else {
     return valueSet_.inds(bucket);
@@ -799,15 +809,11 @@ calcId() const
 
 void
 CQChartsDistributionBarObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   for (const auto &value : values_) {
     plot_->addSelectIndex(value);
   }
-
-  plot_->endSelect();
 }
 
 bool
@@ -873,6 +879,17 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
     if (plot_->isBarFill()) {
       QColor barColor = plot_->interpBarColor(i_, n_);
 
+      OptColor color;
+
+      if (! values_.empty()) {
+        QModelIndex colorInd = plot_->unnormalizeIndex(values_[0]);
+
+        (void) plot_->colorSetColor(colorInd.row(), color);
+      }
+
+      if (color)
+        barColor = color->interpColor(plot_, 0, 1);
+
       barColor.setAlphaF(plot_->barAlpha());
 
       barBrush.setColor(barColor);
@@ -891,7 +908,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
     renderer->setPen(pen);
     renderer->setBrush(barBrush);
 
-    CQRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
+    CQChartsRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
   }
   else {
     QString ystr = QString("%1").arg(values_.size());
@@ -900,4 +917,36 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
   }
 
   renderer->restore();
+}
+
+//------
+
+CQChartsDistKeyColorBox::
+CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n)
+{
+}
+
+QBrush
+CQChartsDistKeyColorBox::
+fillBrush() const
+{
+  CQChartsDistributionPlot *plot = qobject_cast<CQChartsDistributionPlot *>(plot_);
+
+  QColor barColor = plot->interpBarColor(i_, n_);
+
+  CQChartsDistributionPlot::OptColor color;
+
+  const CQChartsDistributionPlot::Values &values = plot->ivalues(i_);
+
+  if (! values.empty()) {
+    QModelIndex colorInd = plot->unnormalizeIndex(values[0]);
+
+    (void) plot->colorSetColor(colorInd.row(), color);
+
+    if (color)
+      barColor = color->interpColor(plot, 0, 1);
+  }
+
+  return barColor;
 }

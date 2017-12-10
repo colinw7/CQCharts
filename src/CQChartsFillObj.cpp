@@ -1,7 +1,6 @@
 #include <CQChartsFillObj.h>
 #include <CQChartsRenderer.h>
 #include <CQPropertyViewModel.h>
-#include <CQRoundedPolygon.h>
 
 CQChartsFillObj::
 CQChartsFillObj(CQChartsPlot *plot) :

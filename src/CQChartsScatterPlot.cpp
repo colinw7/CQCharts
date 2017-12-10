@@ -123,11 +123,31 @@ updateRange(bool apply)
 
   //---
 
+  if (CQChartsUtil::isZero(dataRange_.xsize())) {
+    double x = dataRange_.xmid();
+    double y = dataRange_.ymid();
+
+    dataRange_.updateRange(x - 1, y);
+    dataRange_.updateRange( x + 1, y);
+  }
+
+  if (CQChartsUtil::isZero(dataRange_.ysize())) {
+    double x = dataRange_.xmid();
+    double y = dataRange_.ymid();
+
+    dataRange_.updateRange(x, y - 1);
+    dataRange_.updateRange(x, y + 1);
+  }
+
+  //---
+
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
-  QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
+  bool ok;
+
+  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
+  QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -271,6 +291,15 @@ colorSetColor(int i, OptColor &color)
 
 //------
 
+void
+CQChartsScatterPlot::
+updateObjs()
+{
+  nameValues_.clear();
+
+  CQChartsPlot::updateObjs();
+}
+
 bool
 CQChartsScatterPlot::
 initObjs()
@@ -363,11 +392,13 @@ initObjs()
   //---
 
   if (model) {
-    xname_          = model->headerData(xColumn         (), Qt::Horizontal).toString();
-    yname_          = model->headerData(yColumn         (), Qt::Horizontal).toString();
-    symbolSizeName_ = model->headerData(symbolSizeColumn(), Qt::Horizontal).toString();
-    fontSizeName_   = model->headerData(fontSizeColumn  (), Qt::Horizontal).toString();
-    colorName_      = model->headerData(colorColumn     (), Qt::Horizontal).toString();
+    bool ok;
+
+    xname_          = CQChartsUtil::modelHeaderString(model, xColumn         (), ok);
+    yname_          = CQChartsUtil::modelHeaderString(model, yColumn         (), ok);
+    symbolSizeName_ = CQChartsUtil::modelHeaderString(model, symbolSizeColumn(), ok);
+    fontSizeName_   = CQChartsUtil::modelHeaderString(model, fontSizeColumn  (), ok);
+    colorName_      = CQChartsUtil::modelHeaderString(model, colorColumn     (), ok);
   }
   else {
     xname_          = "";
@@ -542,8 +573,22 @@ calcId() const
 {
   QString id = name_;
 
-  id += QString("\n  %1\t%2").arg(plot_->xname()).arg(p_.x());
-  id += QString("\n  %1\t%2").arg(plot_->yname()).arg(p_.y());
+  id += QString(" %1=%2").arg(plot_->xname()).arg(p_.x());
+  id += QString(" %1=%2").arg(plot_->yname()).arg(p_.y());
+
+  return id;
+}
+
+QString
+CQChartsScatterPointObj::
+calcTipId() const
+{
+  QString id = "<b>" + name_ + "</b>\n";
+
+  id += "<table>\n";
+
+  id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(plot_->xname()).arg(p_.x());
+  id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(plot_->yname()).arg(p_.y());
 
   auto p = plot_->nameValues().find(name_);
   assert(p != plot_->nameValues().end());
@@ -553,13 +598,16 @@ calcId() const
   const CQChartsScatterPlot::Point &valuePoint = values[iv_];
 
   if (valuePoint.symbolSizeStr != "")
-    id += QString("\n  %1\t%2").arg(plot_->symbolSizeName()).arg(valuePoint.symbolSizeStr);
+    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
+            arg(plot_->symbolSizeName()).arg(valuePoint.symbolSizeStr);
 
   if (valuePoint.fontSizeStr != "")
-    id += QString("\n  %1\t%2").arg(plot_->fontSizeName()).arg(valuePoint.fontSizeStr);
+    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
+            arg(plot_->fontSizeName()).arg(valuePoint.fontSizeStr);
 
   if (valuePoint.colorStr != "")
-    id += QString("\n  %1\t%2").arg(plot_->colorName()).arg(valuePoint.colorStr);
+    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
+            arg(plot_->colorName()).arg(valuePoint.colorStr);
 
   return id;
 }
@@ -585,14 +633,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsScatterPointObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_.row(), plot_->xColumn());
   plot_->addSelectIndex(ind_.row(), plot_->yColumn());
-
-  plot_->endSelect();
 }
 
 bool

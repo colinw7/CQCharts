@@ -6,7 +6,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
@@ -586,7 +586,9 @@ updateRange(bool apply)
     for (int j = 0; j < ns; ++j) {
       int valueColumn = getSetColumn(j);
 
-      QString valueName = model->headerData(valueColumn, Qt::Horizontal).toString();
+      bool ok;
+
+      QString valueName = CQChartsUtil::modelHeaderString(model, valueColumn, ok);
 
       valueNames_.push_back(valueName);
     }
@@ -623,7 +625,9 @@ updateRange(bool apply)
   else
     yAxis_->setColumn(categoryColumn());
 
-  QString xname = model->headerData(categoryColumn() , Qt::Horizontal).toString();
+  bool ok;
+
+  QString xname = CQChartsUtil::modelHeaderString(model, categoryColumn(), ok);
 
   if (! isHorizontal())
     xAxis_->setLabel(xname);
@@ -638,7 +642,9 @@ updateRange(bool apply)
     xAxis_->setColumn(valueColumn());
 
   if (valueColumns().size() <= 1) {
-    QString yname = model->headerData(valueColumn(), Qt::Horizontal).toString();
+    bool ok;
+
+    QString yname = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
 
     if (! isHorizontal())
       yAxis_->setLabel(yname);
@@ -1091,7 +1097,9 @@ addKeyItems(CQChartsKey *key)
       QString title = this->title();
 
       if (! title.length()) {
-        QString yname = model->headerData(valueColumn(), Qt::Horizontal).toString();
+        bool ok;
+
+        QString yname = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
 
         title = yname;
       }
@@ -1193,16 +1201,12 @@ calcId() const
 
 void
 CQChartsBarChartObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   int yColumn = plot_->getSetColumn(iset_);
 
   plot_->addSelectIndex(ind_.row(), plot_->categoryColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), yColumn                , ind_.parent());
-
-  plot_->endSelect();
 }
 
 bool
@@ -1314,7 +1318,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
       renderer->setPen(pen);
       renderer->setBrush(barBrush);
 
-      CQRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
+      CQChartsRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
     }
     else {
       if (! plot_->isBorder())

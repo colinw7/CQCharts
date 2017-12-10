@@ -1,5 +1,5 @@
-#ifndef CQRotatedText_H
-#define CQRotatedText_H
+#ifndef CQChartsRotatedText_H
+#define CQChartsRotatedText_H
 
 #include <QPointF>
 #include <QRectF>
@@ -8,7 +8,7 @@
 
 class CQChartsRenderer;
 
-namespace CQRotatedText {
+namespace CQChartsRotatedText {
 
 typedef std::vector<QPointF> Points;
 

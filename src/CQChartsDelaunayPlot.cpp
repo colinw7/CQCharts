@@ -152,15 +152,17 @@ updateRange(bool apply)
 
   //---
 
+  bool ok;
+
   xAxis_->setColumn(xColumn());
 
-  QString xname = model->headerData(xColumn(), Qt::Horizontal).toString();
+  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = model->headerData(yColumn(), Qt::Horizontal).toString();
+  QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
 
   yAxis_->setLabel(yname);
 
@@ -200,7 +202,9 @@ initObjs()
 
   int nr = model->rowCount(QModelIndex());
 
-  yname_ = model->headerData(yColumn(), Qt::Horizontal).toString();
+  bool ok;
+
+  yname_ = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
 
   //---
 
@@ -415,14 +419,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsDelaunayPointObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
-
-  plot_->endSelect();
 }
 
 bool

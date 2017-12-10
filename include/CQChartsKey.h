@@ -124,6 +124,11 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
+  QPointF absPlotPosition() const;
+  void setAbsPlotPosition(const QPointF &p);
+
+  //---
+
   QSizeF calcSize();
 
   //---

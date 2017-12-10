@@ -480,7 +480,9 @@ drawBackground(CQChartsRenderer *renderer)
 
         //---
 
-        QString name = model()->headerData(valueColumns()[iv], Qt::Horizontal).toString();
+        bool ok;
+
+        QString name = CQChartsUtil::modelHeaderString(model(), valueColumns()[iv], ok);
 
         Qt::Alignment align = 0;
 
@@ -547,13 +549,9 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsRadarObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_);
-
-  plot_->endSelect();
 }
 
 bool

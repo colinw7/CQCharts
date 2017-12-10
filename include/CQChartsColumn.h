@@ -129,7 +129,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
     if (! ok)
       return var;
 
-    return QVariant::fromValue<long>(l);
+    return QVariant::fromValue<int>(l);
   }
 
   QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {

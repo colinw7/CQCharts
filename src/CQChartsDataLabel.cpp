@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
+#include <CQChartsRotatedText.h>
 
 CQChartsDataLabel::
 CQChartsDataLabel(CQChartsPlot *plot) :
@@ -152,11 +152,11 @@ draw(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
       align = Qt::AlignHCenter | Qt::AlignVCenter;
     }
 
-    QRectF                bbox;
-    CQRotatedText::Points points;
+    QRectF                      bbox;
+    CQChartsRotatedText::Points points;
 
-    CQRotatedText::bboxData(x, y, ystr, renderer->font(), angle(), b1,
-                            bbox, points, align, /*alignBBox*/ true);
+    CQChartsRotatedText::bboxData(x, y, ystr, renderer->font(), angle(), b1,
+                                  bbox, points, align, /*alignBBox*/ true);
 
     renderer->setPen(interpColor(0, 1));
 
@@ -170,7 +170,8 @@ draw(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
     renderer->setPen(interpColor(0, 1));
 
     if (ystr.length())
-      CQRotatedText::drawRotatedText(renderer, x, y, ystr, angle(), align, /*alignBBox*/ true);
+      CQChartsRotatedText::drawRotatedText(renderer, x, y, ystr, angle(), align,
+                                           /*alignBBox*/ true);
   }
 
   renderer->restore();

@@ -190,13 +190,9 @@ calcId() const
 
 void
 CQChartsImageObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_);
-
-  plot_->endSelect();
 }
 
 bool

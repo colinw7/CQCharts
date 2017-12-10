@@ -423,14 +423,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPieObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(ind_.row(), plot_->labelColumn(), ind_.parent());
   plot_->addSelectIndex(ind_.row(), plot_->dataColumn (), ind_.parent());
-
-  plot_->endSelect();
 }
 
 bool

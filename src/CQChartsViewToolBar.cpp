@@ -3,6 +3,8 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQPixmapCache.h>
+#include <CQIconCombo.h>
+#include <CQUtil.h>
 
 #include <svg/select_light_svg.h>
 #include <svg/select_dark_svg.h>
@@ -17,8 +19,11 @@
 #include <svg/right_light_svg.h>
 #include <svg/right_dark_svg.h>
 
-#include <QToolButton>
 #include <QStackedWidget>
+#include <QToolButton>
+#include <QPushButton>
+#include <QRadioButton>
+#include <QButtonGroup>
 #include <QHBoxLayout>
 
 CQChartsViewToolBar::
@@ -36,9 +41,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   auto createButton = [&](const QString &name, const QString &iconName, const QString &tip,
                           const char *receiver, bool checkable=true) -> QToolButton * {
-    QToolButton *button = new QToolButton(this);
+    QToolButton *button = CQUtil::makeWidget<QToolButton>(name);
 
-    button->setObjectName(name);
     button->setIcon(CQPixmapCacheInst->getIcon(iconName + "_LIGHT", iconName + "_DARK"));
     button->setCheckable(checkable);
 
@@ -53,97 +57,130 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  QFrame *buttonsFrame = new QFrame;
+  modeCombo_ = new CQIconCombo;
 
-  buttonsFrame ->setObjectName("buttons");
+  modeCombo_->setObjectName("modeCombo");
 
-  layout->addWidget(buttonsFrame);
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT", "SELECT_DARK"), "Select");
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT" , "PROBE_DARK" ), "Probe" );
 
-  QHBoxLayout *buttonsLayout = new QHBoxLayout(buttonsFrame);
-  buttonsLayout->setMargin(0); buttonsLayout->setSpacing(2);
+  connect(modeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(modeSlot(int)));
 
-  selectButton_  = createButton("select", "SELECT"  , "Select"      , SLOT(selectSlot(bool)));
-  zoomButton_    = createButton("zoom"  , "ZOOM"    , "Zoom"        , SLOT(zoomSlot(bool)));
-  probeButton_   = createButton("probe" , "PROBE"   , "Probe"       , SLOT(probeSlot(bool)));
-  autoFitButton_ = createButton("fit"   , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
-  leftButton_    = createButton("left"  , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
-  rightButton_   = createButton("right" , "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
-
-  selectButton_->setChecked(true);
-
-  buttonsLayout->addWidget(selectButton_ );
-  buttonsLayout->addWidget(zoomButton_   );
-  buttonsLayout->addWidget(probeButton_  );
-  buttonsLayout->addWidget(autoFitButton_);
-  buttonsLayout->addWidget(leftButton_);
-  buttonsLayout->addWidget(rightButton_);
+  layout->addWidget(modeCombo_);
 
   //---
 
-  controlsStack_ = new QStackedWidget;
-
-  controlsStack_->setObjectName("controls");
+  controlsStack_ = CQUtil::makeWidget<QStackedWidget>("controls");
 
   controlsStack_->layout()->setMargin(0); controlsStack_->layout()->setSpacing(0);
 
   layout->addWidget(controlsStack_);
 
-  QFrame *selectControls = new QFrame;
-  QFrame *zoomControl    = new QFrame;
-  QFrame *probeControl   = new QFrame;
-
-  selectControls->setObjectName("select");
-  zoomControl   ->setObjectName("zoom");
-  probeControl  ->setObjectName("probe");
+  QFrame *selectControls = CQUtil::makeWidget<QFrame>("select");
+  QFrame *zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
+  QFrame *probeControls  = CQUtil::makeWidget<QFrame>("probe");
 
   controlsStack_->addWidget(selectControls);
-  controlsStack_->addWidget(zoomControl);
-  controlsStack_->addWidget(probeControl);
+  controlsStack_->addWidget(zoomControls);
+  controlsStack_->addWidget(probeControls);
+
+  layout->addStretch(1);
 
   //---
 
-  layout->addStretch(1);
+  QHBoxLayout *selectControlsLayout = new QHBoxLayout(selectControls);
+  selectControlsLayout->setMargin(0); selectControlsLayout->setSpacing(2);
+
+  QButtonGroup *selectButtonGroup = new QButtonGroup(this);
+
+  QRadioButton *selectPointButton = new QRadioButton("Point");
+  QRadioButton *selectRectButton  = new QRadioButton("Rect");
+
+  selectPointButton->setChecked(true);
+
+  selectButtonGroup->addButton(selectPointButton, 0);
+  selectButtonGroup->addButton(selectRectButton , 1);
+
+  selectControlsLayout->addWidget(selectPointButton);
+  selectControlsLayout->addWidget(selectRectButton );
+
+  connect(selectButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(selectButtonClicked(int)));
+
+  //---
+
+  QHBoxLayout *zoomControlsLayout = new QHBoxLayout(zoomControls);
+  zoomControlsLayout->setMargin(0); zoomControlsLayout->setSpacing(2);
+
+  QPushButton *zoomButton = CQUtil::makeWidget<QPushButton>("reset");
+
+  zoomButton->setText("Reset");
+
+  connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomSlot()));
+
+  zoomControlsLayout->addWidget(zoomButton);
+
+  //---
+
+  autoFitButton_ = createButton("fit"   , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
+  leftButton_    = createButton("left"  , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
+  rightButton_   = createButton("right" , "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+
+  layout->addWidget(autoFitButton_);
+  layout->addWidget(leftButton_);
+  layout->addWidget(rightButton_);
 }
 
 void
 CQChartsViewToolBar::
-selectSlot(bool)
+modeSlot(int ind)
 {
-  window_->view()->setMode(CQChartsView::Mode::SELECT);
-}
-
-void
-CQChartsViewToolBar::
-zoomSlot(bool)
-{
-  window_->view()->setMode(CQChartsView::Mode::ZOOM);
+  if      (ind == 0)
+    window_->view()->setMode(CQChartsView::Mode::SELECT);
+  else if (ind == 1)
+    window_->view()->setMode(CQChartsView::Mode::ZOOM);
+  else if (ind == 2)
+    window_->view()->setMode(CQChartsView::Mode::PROBE);
 
   updateMode();
 }
 
 void
 CQChartsViewToolBar::
-probeSlot(bool)
+selectButtonClicked(int ind)
 {
-  window_->view()->setMode(CQChartsView::Mode::PROBE);
+  if (ind == 0)
+    window_->view()->setSelectMode(CQChartsView::SelectMode::POINT);
+  else
+    window_->view()->setSelectMode(CQChartsView::SelectMode::RECT);
+}
 
-  updateMode();
+void
+CQChartsViewToolBar::
+zoomSlot()
+{
+  CQChartsPlot *plot = window_->view()->currentPlot();
+
+  if (plot)
+    plot->zoomFull();
 }
 
 void
 CQChartsViewToolBar::
 updateMode()
 {
-  if      (window_->view()->mode() == CQChartsView::Mode::SELECT)
+  if      (window_->view()->mode() == CQChartsView::Mode::SELECT) {
+    modeCombo_    ->setCurrentIndex(0);
     controlsStack_->setCurrentIndex(0);
-  else if (window_->view()->mode() == CQChartsView::Mode::ZOOM)
+  }
+  else if (window_->view()->mode() == CQChartsView::Mode::ZOOM) {
+    modeCombo_    ->setCurrentIndex(1);
     controlsStack_->setCurrentIndex(1);
-  else if (window_->view()->mode() == CQChartsView::Mode::PROBE)
+  }
+  else if (window_->view()->mode() == CQChartsView::Mode::PROBE) {
+    modeCombo_    ->setCurrentIndex(2);
     controlsStack_->setCurrentIndex(2);
-
-  selectButton_->setChecked(window_->view()->mode() == CQChartsView::Mode::SELECT);
-  zoomButton_  ->setChecked(window_->view()->mode() == CQChartsView::Mode::ZOOM);
-  probeButton_ ->setChecked(window_->view()->mode() == CQChartsView::Mode::PROBE);
+  }
 }
 
 void
@@ -171,8 +208,8 @@ QSize
 CQChartsViewToolBar::
 sizeHint() const
 {
-  int w = probeButton_->sizeHint().width ();
-  int h = probeButton_->sizeHint().height();
+  int w = autoFitButton_->sizeHint().width ();
+  int h = autoFitButton_->sizeHint().height();
 
   return QSize(4*w + 6, h);
 }

@@ -179,3 +179,18 @@
  + Improve object init in paint to avoid high CPU when no range/objects
  + Add no data object when no objects
  + Update column set routines to update all objects
+## 12/10/2017
+ + Add point or rect select support and add/remove/replace with key modifiers
+ + Fix some renderering issues with invert x/y in axis/key
+ + More control of axis tick label placement 
+ + Support filter or selection in plot table
+ + Improve filter/selection to support general expression syntax
+ + Use axis tick placement in distribution plot to display start of range on left side of bar
+ + Improve select/inside control to allow specify color, width and dash
+ + Manual place key using view coords to keep stable placement when plot range changes
+ + Update plot on filter change
+ + Support set of view properties from input args
+ + Add selected object count to status bar
+ + Better tip id for scatter plot
+ + Add table of current plot data to window
+ + Change current window mode to combo and add controls per mode

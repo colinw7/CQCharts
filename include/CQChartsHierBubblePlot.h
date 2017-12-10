@@ -165,7 +165,7 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
   void clickZoom(const CQChartsGeom::Point &p) override;
 
-  void mousePress(const CQChartsGeom::Point &p) override;
+  void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 

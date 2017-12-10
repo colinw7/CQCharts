@@ -1,4 +1,4 @@
-#include <CQRoundedPolygon.h>
+#include <CQChartsRoundedPolygon.h>
 #include <CQChartsRenderer.h>
 #include <QPainterPath>
 #include <cmath>
@@ -35,7 +35,7 @@ void interpLine(const QPointF &p1, const QPointF &p2, double size, QPointF &pc1,
 
 //------
 
-namespace CQRoundedPolygon {
+namespace CQChartsRoundedPolygon {
 
 void
 draw(CQChartsRenderer *renderer, const QRectF &rect, double size)

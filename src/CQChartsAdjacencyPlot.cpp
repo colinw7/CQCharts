@@ -3,8 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRenderer.h>
-#include <CQRotatedText.h>
-#include <CQRoundedPolygon.h>
+#include <CQChartsRotatedText.h>
+#include <CQChartsRoundedPolygon.h>
 #include <CQStrParse.h>
 
 CQChartsAdjacencyPlotType::
@@ -442,8 +442,8 @@ drawBackground(CQChartsRenderer *renderer)
   py = pyo + margin() + yts;
 
   for (auto node : sortedNodes_) {
-    CQRotatedText::drawRotatedText(renderer, px + pxs/2, py - 2, node->name(), 90,
-                                   Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
+    CQChartsRotatedText::drawRotatedText(renderer, px + pxs/2, py - 2, node->name(), 90,
+                                         Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
     px += pxs;
   }
@@ -482,7 +482,8 @@ drawBackground(CQChartsRenderer *renderer)
         QRectF cellRect(px, py, pxs, pys);
 
         double cs = 0; // cornerSize()
-        CQRoundedPolygon::draw(renderer, cellRect, cs);
+
+        CQChartsRoundedPolygon::draw(renderer, cellRect, cs);
       }
 
       px += pxs;
@@ -528,14 +529,10 @@ calcId() const
 
 void
 CQChartsAdjacencyObj::
-mousePress(const CQChartsGeom::Point &)
+addSelectIndex()
 {
-  plot_->beginSelect();
-
   plot_->addSelectIndex(node1_->ind());
   plot_->addSelectIndex(node2_->ind());
-
-  plot_->endSelect();
 }
 
 bool
@@ -597,7 +594,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(rect(), prect);
 
-  CQRoundedPolygon::draw(renderer, CQChartsUtil::toQRect(prect), plot_->cornerSize());
+  CQChartsRoundedPolygon::draw(renderer, CQChartsUtil::toQRect(prect), plot_->cornerSize());
 }
 
 bool

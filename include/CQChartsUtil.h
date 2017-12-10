@@ -471,6 +471,29 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
 }
 #endif
 
+//------
+
+inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, bool &ok) {
+  ok = false;
+
+  if (column < 0)
+    return QVariant();
+
+  QVariant var = model->headerData(column, Qt::Horizontal);
+
+  ok = var.isValid();
+
+  return var;
+}
+
+inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
+  QVariant var = modelHeaderValue(model, column, ok);
+
+  return var.toString();
+}
+
+//------
+
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   ok = true;
 
@@ -532,6 +555,83 @@ inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) 
   return modelInteger(model, ind, ok);
 }
 
+//------
+
+inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
+  for (int i = 0; i < model->columnCount(); ++i) {
+    QString name1 = model->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+
+    if (name == name1)
+      return i;
+  }
+
+  bool ok;
+
+  int column = name.toInt(&ok);
+
+  if (ok)
+    return column;
+
+  return -1;
 }
+
+//------
+
+inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filter,
+                                 QString &filter1, int &column) {
+  filter1 = filter;
+  column  = -1;
+
+  if (! filter1.length())
+    return false;
+
+  QStringList strs = filter1.split(':', QString::KeepEmptyParts);
+
+  if (strs.size() != 2)
+    return false;
+
+  column = CQChartsUtil::modelColumnNameToInd(model, strs[0]);
+
+  if (column < 0)
+    return false;
+
+  filter1 = strs[1];
+
+  return true;
+}
+
+}
+
+//------
+
+#include <functional>
+
+class CQChartsScopeGuard {
+ public:
+  template<class Callable>
+  CQChartsScopeGuard(Callable &&f) :
+   f_(std::forward<Callable>(f)) {
+  }
+
+  CQChartsScopeGuard(CQChartsScopeGuard &&other) :
+   f_(std::move(other.f_)) {
+    other.f_ = nullptr;
+  }
+
+ ~CQChartsScopeGuard() {
+    if (f_)
+      f_(); // must not throw
+  }
+
+  void dismiss() noexcept {
+    f_ = nullptr;
+  }
+
+  CQChartsScopeGuard(const CQChartsScopeGuard&) = delete;
+  void operator = (const CQChartsScopeGuard&) = delete;
+
+ private:
+  std::function<void()> f_;
+};
 
 #endif

@@ -78,6 +78,8 @@ CQChartsValueSet::
 imap(int i, double mapMin, double mapMax) const
 {
   if      (type() == Type::INTEGER) {
+    assert(i >= 0 && i < int(ivals_.size()));
+
     // get nth integer
     int ival = ivals_[i];
 
@@ -95,6 +97,8 @@ imap(int i, double mapMin, double mapMax) const
       return mapMin;
   }
   else if (type() == Type::REAL) {
+    assert(i >= 0 && i < int(rvals_.size()));
+
     // get nth real
     double rval = rvals_[i];
 
@@ -112,6 +116,8 @@ imap(int i, double mapMin, double mapMax) const
       return mapMin;
   }
   else {
+    assert(i >= 0 && i < int(svals_.size()));
+
     // get nth string
     QString sval = svals_[i];
 

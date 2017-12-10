@@ -4,6 +4,7 @@
 #include <QFrame>
 
 class CQChartsWindow;
+class CQIconCombo;
 class QToolButton;
 class QStackedWidget;
 
@@ -18,9 +19,10 @@ class CQChartsViewToolBar : public QFrame {
   QSize sizeHint() const override;
 
  private slots:
-  void selectSlot(bool b);
-  void zoomSlot(bool b);
-  void probeSlot(bool b);
+  void modeSlot(int ind);
+
+  void selectButtonClicked(int);
+  void zoomSlot();
 
   void autoFitSlot();
 
@@ -29,9 +31,7 @@ class CQChartsViewToolBar : public QFrame {
 
  private:
   CQChartsWindow* window_        { nullptr };
-  QToolButton*    selectButton_  { nullptr };
-  QToolButton*    zoomButton_    { nullptr };
-  QToolButton*    probeButton_   { nullptr };
+  CQIconCombo*    modeCombo_     { nullptr };
   QToolButton*    autoFitButton_ { nullptr };
   QToolButton*    leftButton_    { nullptr };
   QToolButton*    rightButton_   { nullptr };

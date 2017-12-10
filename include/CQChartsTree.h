@@ -38,6 +38,9 @@ class CQChartsTree : public CQTreeView {
 
   void selectionBehaviorSlot(QAction *action);
 
+ signals:
+  void filterChanged();
+
  private:
   ModelP                      model_;
   CQChartsTreeSelectionModel* sm_ { nullptr };

@@ -14,7 +14,7 @@ class CQPropertyViewFilter : public QSortFilterProxyModel {
   Q_PROPERTY(bool    matchPath   READ isMatchPath   WRITE setMatchPath  )
   Q_PROPERTY(bool    matchParent READ isMatchParent WRITE setMatchParent)
 
-  // model indices are from source mode (propertyModel)
+  // model indices are from source model (propertyModel)
  public:
   CQPropertyViewFilter(CQPropertyViewTree *view);
 
