@@ -7,7 +7,7 @@
 #include <QPolygonF>
 
 class CQPropertyViewModel;
-class CQChartsRenderer;
+class QPainter;
 
 class CQChartsFillObj : public QObject {
   Q_OBJECT
@@ -76,9 +76,9 @@ class CQChartsFillObj : public QObject {
 
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
-  void draw(CQChartsRenderer *renderer, const QRectF &rect) const;
+  void draw(QPainter *painter, const QRectF &rect) const;
 
-  void draw(CQChartsRenderer *renderer, const QPolygonF &poly) const;
+  void draw(QPainter *painter, const QPolygonF &poly) const;
 
   virtual void redrawFillObj() { }
 

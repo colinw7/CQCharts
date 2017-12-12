@@ -6,10 +6,9 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsColumn.h>
-#include <CQChartsRenderer.h>
-#include <CQPropertyViewModel.h>
-
 #include <CQChartsRotatedText.h>
+#include <CQPropertyViewModel.h>
+#include <QPainter>
 
 #include <cstring>
 #include <algorithm>
@@ -126,6 +125,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "majorIncrement");
   model->addProperty(path, this, "start"         );
   model->addProperty(path, this, "end"           );
+  model->addProperty(path, this, "includeZero"   );
 
   QString posPath = path + "/position";
 
@@ -1057,6 +1057,13 @@ redraw()
   plot_->update();
 }
 
+void
+CQChartsAxis::
+updatePlotRange()
+{
+  plot_->updateRange();
+}
+
 //---
 
 bool
@@ -1103,7 +1110,7 @@ mouseDragRelease(const CQChartsGeom::Point &)
 
 void
 CQChartsAxis::
-drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
+drawGrid(CQChartsPlot *plot, QPainter *painter)
 {
   if (! isGridMajorDisplayed() && ! isGridMinorDisplayed() && ! isGridFill())
     return;
@@ -1139,7 +1146,7 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   //---
 
@@ -1153,7 +1160,7 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
   if (isGridFill()) {
     QRectF dataRect = plot_->calcRect();
 
-    renderer->setClipRect(dataRect);
+    painter->setClipRect(dataRect);
 
     //---
 
@@ -1187,7 +1194,7 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
           else
             bbox = CQChartsGeom::BBox(ax1, ppy1, ax2, ppy2);
 
-          renderer->fillRect(CQChartsUtil::toQRect(bbox), brush);
+          painter->fillRect(CQChartsUtil::toQRect(bbox), brush);
         }
       }
 
@@ -1209,9 +1216,9 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
       if (pos1 >= amin && pos1 <= amax) {
         // draw major grid line if major or minor displayed
         if      (isGridMajorDisplayed())
-          drawMajorGridLine(plot, renderer, pos1, dmin, dmax);
+          drawMajorGridLine(plot, painter, pos1, dmin, dmax);
         else if (isGridMinorDisplayed())
-          drawMinorGridLine(plot, renderer, pos1, dmin, dmax);
+          drawMinorGridLine(plot, painter, pos1, dmin, dmax);
       }
 
       if (isGridMinorDisplayed()) {
@@ -1223,7 +1230,7 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
           // draw minor grid line
           if (pos2 >= amin && pos2 <= amax)
-            drawMinorGridLine(plot, renderer, pos2, dmin, dmax);
+            drawMinorGridLine(plot, painter, pos2, dmin, dmax);
         }
       }
 
@@ -1235,12 +1242,12 @@ drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }
 
 void
 CQChartsAxis::
-draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
+draw(CQChartsPlot *plot, QPainter *painter)
 {
   bbox_ = CQChartsGeom::BBox();
 
@@ -1269,13 +1276,13 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   //---
 
   // axis line
   if (isLineDisplayed()) {
-    drawLine(plot, renderer, apos1, amin, amax);
+    drawLine(plot, painter, apos1, amin, amax);
   }
 
   //---
@@ -1321,16 +1328,16 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
     if (pos1 >= amin && pos1 <= amax) {
       // draw major tick (or minor tick if major ticks off and minor ones on)
       if      (isMajorTicksDisplayed()) {
-        drawTickLine(plot, renderer, apos1, pos1, isTickInside(), /*major*/true);
+        drawTickLine(plot, painter, apos1, pos1, isTickInside(), /*major*/true);
 
         if (isMirrorTicks())
-          drawTickLine(plot, renderer, apos2, pos1, ! isTickInside(), /*major*/true);
+          drawTickLine(plot, painter, apos2, pos1, ! isTickInside(), /*major*/true);
       }
       else if (isMinorTicksDisplayed()) {
-        drawTickLine(plot, renderer, apos1, pos1, isTickInside(), /*major*/false);
+        drawTickLine(plot, painter, apos1, pos1, isTickInside(), /*major*/false);
 
         if (isMirrorTicks())
-          drawTickLine(plot, renderer, apos2, pos1, ! isTickInside(), /*major*/false);
+          drawTickLine(plot, painter, apos2, pos1, ! isTickInside(), /*major*/false);
       }
     }
 
@@ -1343,10 +1350,10 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
 
         // draw minor tick line
         if (pos2 >= amin && pos2 <= amax) {
-          drawTickLine(plot, renderer, apos1, pos2, isTickInside(), /*major*/false);
+          drawTickLine(plot, painter, apos1, pos2, isTickInside(), /*major*/false);
 
           if (isMirrorTicks())
-            drawTickLine(plot, renderer, apos2, pos2, ! isTickInside(), /*major*/false);
+            drawTickLine(plot, painter, apos2, pos2, ! isTickInside(), /*major*/false);
         }
       }
     }
@@ -1356,7 +1363,7 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
     if (isTickLabelDisplayed()) {
       // draw major tick label
       if (pos1 >= amin && pos1 <= amax) {
-        drawTickLabel(plot, renderer, apos1, pos1, isTickInside());
+        drawTickLabel(plot, painter, apos1, pos1, isTickInside());
       }
     }
 
@@ -1405,17 +1412,17 @@ draw(CQChartsPlot *plot, CQChartsRenderer *renderer)
   if (isLabelDisplayed()) {
     QString text = label();
 
-    drawAxisLabel(plot, renderer, apos1, amin, amax, text);
+    drawAxisLabel(plot, painter, apos1, amin, amax, text);
   }
 
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowRedBox(renderer, bbox_);
+    plot_->drawWindowRedBox(painter, bbox_);
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }
 
 void
@@ -1448,9 +1455,9 @@ calcPos(double &apos1, double &apos2) const
 
 void
 CQChartsAxis::
-drawLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double amin, double amax)
+drawLine(CQChartsPlot *plot, QPainter *painter, double apos, double amin, double amax)
 {
-  renderer->setPen(interpLineColor(0, 1));
+  painter->setPen(interpLineColor(0, 1));
 
   double ax1, ay1, ax2, ay2;
 
@@ -1458,19 +1465,19 @@ drawLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double ami
     plot->windowToPixel(amin, apos, ax1, ay1);
     plot->windowToPixel(amax, apos, ax2, ay2);
 
-    lineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    lineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
   }
   else {
     plot->windowToPixel(apos, amin, ax1, ay1);
     plot->windowToPixel(apos, amax, ax2, ay2);
 
-    lineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    lineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
   }
 }
 
 void
 CQChartsAxis::
-drawMajorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
+drawMajorGridLine(CQChartsPlot *plot, QPainter *painter, double apos,
                   double dmin, double dmax)
 {
   double ax1, ay1, ax2, ay2;
@@ -1479,19 +1486,19 @@ drawMajorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
-    majorGridLineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    majorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
   }
   else {
     plot->windowToPixel(dmin, apos, ax1, ay1);
     plot->windowToPixel(dmax, apos, ax2, ay2);
 
-    majorGridLineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    majorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
   }
 }
 
 void
 CQChartsAxis::
-drawMinorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
+drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos,
                   double dmin, double dmax)
 {
   double ax1, ay1, ax2, ay2;
@@ -1500,19 +1507,19 @@ drawMinorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
-    minorGridLineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    minorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
   }
   else {
     plot->windowToPixel(dmin, apos, ax1, ay1);
     plot->windowToPixel(dmax, apos, ax2, ay2);
 
-    minorGridLineObj_->draw(renderer, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    minorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
   }
 }
 
 void
 CQChartsAxis::
-drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double tpos,
+drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
              bool inside, bool major)
 {
   int tlen = (major ? majorTickLen() : minorTickLen());
@@ -1534,7 +1541,7 @@ drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double
 
   int dt1 = (side() == Side::BOTTOM_LEFT ? tlen : -tlen);
 
-  renderer->setPen(interpLineColor(0, 1));
+  painter->setPen(interpLineColor(0, 1));
 
   int pxs = (plot->isInvertX() ? -1 : 1);
   int pys = (plot->isInvertY() ? -1 : 1);
@@ -1543,9 +1550,9 @@ drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double
     double adt1 = plot->pixelToWindowHeight(dt1);
 
     if (inside)
-      renderer->drawLine(QPointF(ppx, ppy), QPointF(ppx, ppy - pys*dt1));
+      painter->drawLine(QPointF(ppx, ppy), QPointF(ppx, ppy - pys*dt1));
     else {
-      renderer->drawLine(QPointF(ppx, ppy), QPointF(ppx, ppy + pys*dt1));
+      painter->drawLine(QPointF(ppx, ppy), QPointF(ppx, ppy + pys*dt1));
 
       if (side() == Side::BOTTOM_LEFT)
         bbox_ += CQChartsGeom::Point(tpos, apos - adt1);
@@ -1557,9 +1564,9 @@ drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double
     double adt1 = plot->pixelToWindowWidth(dt1);
 
     if (inside)
-      renderer->drawLine(QPointF(ppx, ppy), QPointF(ppx + pxs*dt1, ppy));
+      painter->drawLine(QPointF(ppx, ppy), QPointF(ppx + pxs*dt1, ppy));
     else {
-      renderer->drawLine(QPointF(ppx, ppy), QPointF(ppx - pxs*dt1, ppy));
+      painter->drawLine(QPointF(ppx, ppy), QPointF(ppx - pxs*dt1, ppy));
 
       if (side() == Side::BOTTOM_LEFT)
         bbox_ += CQChartsGeom::Point(apos - adt1, tpos);
@@ -1571,7 +1578,7 @@ drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double
 
 void
 CQChartsAxis::
-drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, double tpos,
+drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
               bool inside)
 {
   int tgap = 2;
@@ -1586,11 +1593,11 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
 
   QString text = valueStr(tpos);
 
-  renderer->setPen(interpTickLabelColor(0, 1));
+  painter->setPen(interpTickLabelColor(0, 1));
 
-  renderer->setFont(tickLabelFont());
+  painter->setFont(tickLabelFont());
 
-  QFontMetricsF fm(renderer->font());
+  QFontMetricsF fm(painter->font());
 
   double tw = fm.width(text);
   double ta = fm.ascent();
@@ -1629,15 +1636,21 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
         double ath = plot->pixelToWindowHeight(ta + td);
         double atm = plot->pixelToWindowHeight(tlen + tgap);
 
-        lmax_ = std::max(lmax_, pt.y() + pys*(ta + td));
+        if (! plot->isInvertY())
+          lmax_ = std::max(lmax_, pt.y() + pys*(ta + td));
+        else
+          lmax_ = std::min(lmax_, pt.y() + pys*(ta + td));
 
         tbbox = CQChartsGeom::BBox(tpos - atw/2, apos - ath - atm, tpos + atw/2, apos - atm);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
-        lmax_ = std::max(lmax_, rrect.bottom());
+        if (! plot->isInvertY())
+          lmax_ = std::max(lmax_, rrect.bottom());
+        else
+          lmax_ = std::min(lmax_, rrect.bottom());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1665,15 +1678,15 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
             p = QPointF(pt.x() - pb, ty);
           }
 
-          renderer->drawText(p, text);
+          painter->drawText(p, text);
         }
         else {
-          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+          CQChartsRotatedText::drawRotatedText(painter, pt.x(), pt.y(), text,
                                                angle, align, /*alignBox*/true);
         }
 
         if (plot_->showBoxes())
-          plot_->drawWindowRedBox(renderer, tbbox);
+          plot_->drawWindowRedBox(painter, tbbox);
 
         lastTickLabelRect_ = tbbox;
       }
@@ -1696,7 +1709,7 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
         tbbox = CQChartsGeom::BBox(tpos - atw/2, apos + atm, tpos + atw/2, apos + ath + atm);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
         if (plot->isInvertY())
@@ -1730,15 +1743,15 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
             p = QPointF(pt.x() - pb, ty);
           }
 
-          renderer->drawText(p, text);
+          painter->drawText(p, text);
         }
         else {
-          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+          CQChartsRotatedText::drawRotatedText(painter, pt.x(), pt.y(), text,
                                                angle, align, /*alignBox*/true);
         }
 
         if (plot_->showBoxes())
-          plot_->drawWindowRedBox(renderer, tbbox);
+          plot_->drawWindowRedBox(painter, tbbox);
 
         lastTickLabelRect_ = tbbox;
       }
@@ -1782,7 +1795,7 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
         tbbox = CQChartsGeom::BBox(apos - atw - atm, tpos - ath/2, apos - atm, tpos + ath/2);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
         if (plot->isInvertX())
@@ -1816,15 +1829,15 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
             p = QPointF(tx, pt.y() - pb + ta);
           }
 
-          renderer->drawText(p, text);
+          painter->drawText(p, text);
         }
         else {
-          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+          CQChartsRotatedText::drawRotatedText(painter, pt.x(), pt.y(), text,
                                                angle, align, /*alignBox*/true);
         }
 
         if (plot_->showBoxes())
-          plot_->drawWindowRedBox(renderer, tbbox);
+          plot_->drawWindowRedBox(painter, tbbox);
 
         lastTickLabelRect_ = tbbox;
       }
@@ -1839,15 +1852,21 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
         double ath = plot->pixelToWindowHeight(ta + td);
         double atm = plot->pixelToWindowWidth (tlen + tgap);
 
-        lmax_ = std::max(lmax_, ppx + pxs*(tlen + tgap) + tw);
+        if (! plot->isInvertX())
+          lmax_ = std::max(lmax_, ppx + pxs*(tlen + tgap) + tw);
+        else
+          lmax_ = std::min(lmax_, ppx + pxs*(tlen + tgap) + tw);
 
         tbbox = CQChartsGeom::BBox(apos + atm, tpos - ath/2, apos + atw + atm, tpos + ath/2);
       }
       else {
-        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, renderer->font(),
+        QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
-        lmax_ = std::max(lmax_, rrect.right());
+        if (! plot->isInvertX())
+          lmax_ = std::max(lmax_, rrect.right());
+        else
+          lmax_ = std::min(lmax_, rrect.right());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1875,15 +1894,15 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
             p = QPointF(tx, pt.y() - pb + ta);
           }
 
-          renderer->drawText(p, text);
+          painter->drawText(p, text);
         }
         else {
-          CQChartsRotatedText::drawRotatedText(renderer, pt.x(), pt.y(), text,
+          CQChartsRotatedText::drawRotatedText(painter, pt.x(), pt.y(), text,
                                                angle, align, /*alignBox*/true);
         }
 
         if (plot_->showBoxes())
-          plot_->drawWindowRedBox(renderer, tbbox);
+          plot_->drawWindowRedBox(painter, tbbox);
 
         lastTickLabelRect_ = tbbox;
       }
@@ -1895,7 +1914,7 @@ drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos, doubl
 
 void
 CQChartsAxis::
-drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
+drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
               double amin, double amax, const QString &text)
 {
   if (! text.length())
@@ -1920,11 +1939,11 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
 
   //---
 
-  renderer->setPen(interpLabelColor(0, 1));
+  painter->setPen(interpLabelColor(0, 1));
 
-  renderer->setFont(labelFont());
+  painter->setFont(labelFont());
 
-  QFontMetricsF fm(renderer->font());
+  QFontMetricsF fm(painter->font());
 
   double tw = fm.width(text);
   double ta = fm.ascent();
@@ -1941,7 +1960,7 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
       double atw = plot->pixelToWindowWidth (tw/2);
       double ath = plot->pixelToWindowHeight((lmax_ - ay3) + tgap + ta + td);
 
-      renderer->drawText(QPointF(axm, lmax_ + (plot->isInvertY() ? -td : ta) + pys*tgap), text);
+      painter->drawText(QPointF(axm, lmax_ + (plot->isInvertY() ? -td : ta) + pys*tgap), text);
 
       bbox_ += CQChartsGeom::Point((amin + amax)/2 - atw, apos - ath);
       bbox_ += CQChartsGeom::Point((amin + amax)/2 + atw, apos - ath);
@@ -1950,7 +1969,7 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
       double atw = plot->pixelToWindowWidth (tw/2);
       double ath = plot->pixelToWindowHeight((ay3 - lmin_) + tgap + ta + td);
 
-      renderer->drawText(QPointF(axm, lmin_ - pys*td - pys*tgap), text);
+      painter->drawText(QPointF(axm, lmin_ - pys*td - pys*tgap), text);
 
       bbox_ += CQChartsGeom::Point((amin + amax)/2 - atw, apos + ath);
       bbox_ += CQChartsGeom::Point((amin + amax)/2 + atw, apos + ath);
@@ -1965,7 +1984,7 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
 
       double tx = lmin_ - pxs*(tgap + (plot->isInvertX() ? ta : td));
 
-      CQChartsRotatedText::drawRotatedText(renderer, tx, aym, text, 90.0);
+      CQChartsRotatedText::drawRotatedText(painter, tx, aym, text, 90.0);
 
       bbox_ += CQChartsGeom::Point(apos - atw, (amin + amax)/2 - ath);
       bbox_ += CQChartsGeom::Point(apos - atw, (amin + amax)/2 + ath);
@@ -1978,7 +1997,7 @@ drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer, double apos,
 
       double tx = lmax_ + pxs*(tgap + (plot->isInvertX() ? ta : td));
 
-      CQChartsRotatedText::drawRotatedText(renderer, tx, aym, text, -90.0);
+      CQChartsRotatedText::drawRotatedText(painter, tx, aym, text, -90.0);
 
       bbox_ += CQChartsGeom::Point(apos + atw, (amin + amax)/2 - ath);
       bbox_ += CQChartsGeom::Point(apos + atw, (amin + amax)/2 + ath);

@@ -36,7 +36,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
@@ -233,9 +233,9 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect,
+  void drawDataLabel(QPainter *painter, const QRectF &qrect,
                      const QString &str, double fontSize=-1);
 
  private:

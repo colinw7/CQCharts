@@ -60,7 +60,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  protected:
   CQChartsPiePlot* plot_     { nullptr }; // parent plot
@@ -224,7 +224,7 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void handleResize() override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   int                 labelColumn_     { 0 };

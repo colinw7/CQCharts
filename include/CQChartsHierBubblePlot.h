@@ -141,7 +141,7 @@ class CQChartsHierBubbleHierObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot*     plot_    { nullptr };
@@ -169,7 +169,7 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsHierBubblePlot*    plot_    { nullptr };
@@ -314,9 +314,9 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawForeground(CQChartsRenderer *) override;
+  void drawForeground(QPainter *) override;
 
   QColor interpNodeColor(CQChartsHierBubbleNode *node) const;
 
@@ -338,7 +338,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
 
   void transformNodes(CQChartsHierBubbleHierNode *hier);
 
-  void drawBounds(CQChartsRenderer *renderer, CQChartsHierBubbleHierNode *hier);
+  void drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier);
 
  public slots:
   void updateCurrentRoot();

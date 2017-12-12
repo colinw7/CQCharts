@@ -1,8 +1,8 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRotatedText.h>
+#include <QPainter>
 
 CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
@@ -50,41 +50,41 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsTextBoxObj::
-draw(CQChartsRenderer *renderer, const QRectF &rect) const
+draw(QPainter *painter, const QRectF &rect) const
 {
   if (! isVisible())
     return;
 
-  CQChartsBoxObj::draw(renderer, rect);
+  CQChartsBoxObj::draw(painter, rect);
 
   //---
 
-  drawText(renderer, rect, text());
+  drawText(painter, rect, text());
 }
 
 void
 CQChartsTextBoxObj::
-draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
+draw(QPainter *painter, const QPolygonF &poly) const
 {
-  CQChartsBoxObj::draw(renderer, poly);
+  CQChartsBoxObj::draw(painter, poly);
 
   //---
 
   QRectF rect = poly.boundingRect();
 
-  drawText(renderer, rect, text());
+  drawText(painter, rect, text());
 }
 
 void
 CQChartsTextBoxObj::
-drawText(CQChartsRenderer *renderer, const QRectF &rect, const QString &text) const
+drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 {
   QFontMetricsF fm(font());
 
-  renderer->setPen (interpColor(0, 1));
-  renderer->setFont(font());
+  painter->setPen (interpColor(0, 1));
+  painter->setFont(font());
 
-  renderer->drawText(QPointF(rect.left() + margin(),
+  painter->drawText(QPointF(rect.left() + margin(),
                              rect.bottom() - margin() - fm.descent()), text);
 }
 
@@ -98,10 +98,10 @@ CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
 
 void
 CQChartsRotatedTextBoxObj::
-draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text,
+draw(QPainter *painter, const QPointF &c, const QString &text,
      double angle, Qt::Alignment align) const
 {
-  renderer->save();
+  painter->save();
 
   QFontMetricsF fm(font());
 
@@ -129,12 +129,12 @@ draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text,
 
   //---
 
-  renderer->setFont(font());
+  painter->setFont(font());
 
-  renderer->setPen(interpColor(0, 1));
+  painter->setPen(interpColor(0, 1));
 
   if (CQChartsUtil::isZero(angle)) {
-    CQChartsBoxObj::draw(renderer, rect_);
+    CQChartsBoxObj::draw(painter, rect_);
   }
   else {
     QRectF                      bbox;
@@ -148,13 +148,13 @@ draw(CQChartsRenderer *renderer, const QPointF &c, const QString &text,
     for (std::size_t i = 0; i < points.size(); ++i)
       poly << points[i];
 
-    CQChartsBoxObj::draw(renderer, poly);
+    CQChartsBoxObj::draw(painter, poly);
   }
 
-  renderer->setPen(interpColor(0, 1));
+  painter->setPen(interpColor(0, 1));
 
-  CQChartsRotatedText::drawRotatedText(renderer, c.x() + cd, c.y(), text, angle,
+  CQChartsRotatedText::drawRotatedText(painter, c.x() + cd, c.y(), text, angle,
                                        align, /*alignBBox*/ true);
 
-  renderer->restore();
+  painter->restore();
 }

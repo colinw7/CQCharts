@@ -3,9 +3,9 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
+#include <QPainter>
 
 CQChartsImagePlotType::
 CQChartsImagePlotType()
@@ -163,13 +163,13 @@ initObjs()
 
 void
 CQChartsImagePlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -204,7 +204,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsImageObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   CQChartsGeom::BBox prect;
 
@@ -216,5 +216,5 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   QColor c = plot_->interpPaletteColor(v);
 
-  renderer->fillRect(qrect, c);
+  painter->fillRect(qrect, c);
 }

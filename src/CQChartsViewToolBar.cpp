@@ -65,6 +65,8 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT" , "PROBE_DARK" ), "Probe" );
 
+  modeCombo_->setFocusPolicy(Qt::NoFocus);
+
   connect(modeCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(modeSlot(int)));
 
   layout->addWidget(modeCombo_);
@@ -97,6 +99,9 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   QRadioButton *selectPointButton = new QRadioButton("Point");
   QRadioButton *selectRectButton  = new QRadioButton("Rect");
 
+  selectPointButton->setFocusPolicy(Qt::NoFocus);
+  selectRectButton ->setFocusPolicy(Qt::NoFocus);
+
   selectPointButton->setChecked(true);
 
   selectButtonGroup->addButton(selectPointButton, 0);
@@ -115,6 +120,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   QPushButton *zoomButton = CQUtil::makeWidget<QPushButton>("reset");
 
   zoomButton->setText("Reset");
+  zoomButton->setFocusPolicy(Qt::NoFocus);
 
   connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomSlot()));
 
@@ -125,6 +131,10 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   autoFitButton_ = createButton("fit"   , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
   leftButton_    = createButton("left"  , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
   rightButton_   = createButton("right" , "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+
+  autoFitButton_->setFocusPolicy(Qt::NoFocus);
+  leftButton_   ->setFocusPolicy(Qt::NoFocus);
+  rightButton_  ->setFocusPolicy(Qt::NoFocus);
 
   layout->addWidget(autoFitButton_);
   layout->addWidget(leftButton_);

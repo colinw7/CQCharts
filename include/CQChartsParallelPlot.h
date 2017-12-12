@@ -27,7 +27,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot *plot_ { nullptr };
@@ -59,7 +59,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsParallelPlot* plot_  { nullptr };
@@ -220,7 +220,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   using Ranges = std::vector<CQChartsGeom::Range>;

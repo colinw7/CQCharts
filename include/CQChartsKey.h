@@ -13,7 +13,7 @@
 class CQChartsPlot;
 class CQChartsKeyItem;
 class CQPropertyViewModel;
-class CQChartsRenderer;
+class QPainter;
 
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
@@ -161,7 +161,7 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
-  void draw(CQChartsRenderer *renderer);
+  void draw(QPainter *painter);
 
   //---
 
@@ -247,7 +247,7 @@ class CQChartsKeyItem : public QObject {
   virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
   virtual bool mouseMove (const CQChartsGeom::Point &) { return false; }
 
-  virtual void draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect) = 0;
+  virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) = 0;
 
  protected:
   CQChartsKey*               key_     { nullptr };
@@ -275,7 +275,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
   virtual QColor interpTextColor(int i, int n) const;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
  protected:
   CQChartsPlot *plot_ { nullptr };
@@ -298,7 +298,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
   virtual QBrush fillBrush() const;
 

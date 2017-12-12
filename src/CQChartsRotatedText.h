@@ -6,13 +6,13 @@
 #include <QFont>
 #include <vector>
 
-class CQChartsRenderer;
+class QPainter;
 
 namespace CQChartsRotatedText {
 
 typedef std::vector<QPointF> Points;
 
-void drawRotatedText(CQChartsRenderer *renderer, double x, double y, const QString &text,
+void drawRotatedText(QPainter *painter, double x, double y, const QString &text,
                      double angle=0.0, Qt::Alignment align=Qt::AlignLeft | Qt::AlignBottom,
                      bool alignBBox=false);
 

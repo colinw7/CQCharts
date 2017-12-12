@@ -2,10 +2,10 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQStrParse.h>
+#include <QPainter>
 
 CQChartsAdjacencyPlotType::
 CQChartsAdjacencyPlotType()
@@ -374,20 +374,20 @@ handleResize()
 
 void
 CQChartsAdjacencyPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsAdjacencyPlot::
-drawBackground(CQChartsRenderer *renderer)
+drawBackground(QPainter *painter)
 {
-  CQChartsPlot::drawBackground(renderer);
+  CQChartsPlot::drawBackground(painter);
 
   //---
 
@@ -409,7 +409,7 @@ drawBackground(CQChartsRenderer *renderer)
 
   f.setPixelSize(ts);
 
-  renderer->setFont(f);
+  painter->setFont(f);
 
   QFontMetricsF fm(f);
 
@@ -418,7 +418,7 @@ drawBackground(CQChartsRenderer *renderer)
   double twMax = 0.0;
 
   // draw row labels
-  renderer->setPen(interpTextColor(0, 1));
+  painter->setPen(interpTextColor(0, 1));
 
   double px = pxo + margin();
   double py = pyo + margin() + yts;
@@ -430,7 +430,7 @@ drawBackground(CQChartsRenderer *renderer)
 
     twMax = std::max(twMax, tw);
 
-    renderer->drawText(QPointF(px + xts - tw - 2, py + pys - fm.descent()), str);
+    painter->drawText(QPointF(px + xts - tw - 2, py + pys - fm.descent()), str);
 
     py += pys;
   }
@@ -442,7 +442,7 @@ drawBackground(CQChartsRenderer *renderer)
   py = pyo + margin() + yts;
 
   for (auto node : sortedNodes_) {
-    CQChartsRotatedText::drawRotatedText(renderer, px + pxs/2, py - 2, node->name(), 90,
+    CQChartsRotatedText::drawRotatedText(painter, px + pxs/2, py - 2, node->name(), 90,
                                          Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
     px += pxs;
@@ -457,7 +457,7 @@ drawBackground(CQChartsRenderer *renderer)
 
   QRectF cellRect(px, py, nn*pxs, nn*pys);
 
-  renderer->fillRect(cellRect, interpBgColor(0, 1));
+  painter->fillRect(cellRect, interpBgColor(0, 1));
 
   //---
 
@@ -476,14 +476,14 @@ drawBackground(CQChartsRenderer *renderer)
       if (empty) {
         QColor pc = bc.lighter(120);
 
-        renderer->setPen  (pc);
-        renderer->setBrush(bc);
+        painter->setPen  (pc);
+        painter->setBrush(bc);
 
         QRectF cellRect(px, py, pxs, pys);
 
         double cs = 0; // cornerSize()
 
-        CQChartsRoundedPolygon::draw(renderer, cellRect, cs);
+        CQChartsRoundedPolygon::draw(painter, cellRect, cs);
       }
 
       px += pxs;
@@ -497,10 +497,10 @@ drawBackground(CQChartsRenderer *renderer)
 
 void
 CQChartsAdjacencyPlot::
-drawForeground(CQChartsRenderer *renderer)
+drawForeground(QPainter *painter)
 {
   if (insideObj())
-    insideObj()->draw(renderer, CQChartsPlot::Layer::FG);
+    insideObj()->draw(painter, CQChartsPlot::Layer::FG);
 }
 
 QColor
@@ -544,7 +544,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsAdjacencyObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (isInside())
     plot_->setInsideObj(this);
@@ -587,14 +587,14 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   //---
 
-  renderer->setPen  (pen);
-  renderer->setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);
 
-  CQChartsRoundedPolygon::draw(renderer, CQChartsUtil::toQRect(prect), plot_->cornerSize());
+  CQChartsRoundedPolygon::draw(painter, CQChartsUtil::toQRect(prect), plot_->cornerSize());
 }
 
 bool

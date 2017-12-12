@@ -1,17 +1,17 @@
 #include <CQChartsRotatedText.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 
 #include <cmath>
 
 namespace CQChartsRotatedText {
 
 void
-drawRotatedText(CQChartsRenderer *renderer, double x, double y, const QString &text,
+drawRotatedText(QPainter *painter, double x, double y, const QString &text,
                 double angle, Qt::Alignment align, bool alignBBox)
 {
-  renderer->save();
+  painter->save();
 
-  QFontMetrics fm(renderer->font());
+  QFontMetrics fm(painter->font());
 
   int th = fm.height();
   int tw = fm.width(text);
@@ -74,11 +74,11 @@ drawRotatedText(CQChartsRenderer *renderer, double x, double y, const QString &t
   t.rotate(-angle);
 //t.translate(0, -fm.descent());
 
-  renderer->setTransform(t);
+  painter->setTransform(t);
 
-  renderer->drawText(QPointF(0, 0), text);
+  painter->drawText(QPointF(0, 0), text);
 
-  renderer->restore();
+  painter->restore();
 }
 
 QRectF

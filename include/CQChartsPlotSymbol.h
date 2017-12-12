@@ -73,9 +73,9 @@ namespace CQChartsPlotSymbolMgr {
 
   const CQChartsPlotSymbol &getSymbol(CQChartsPlotSymbol::Type type);
 
-  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
-  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
-  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
+  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
+  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
+  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
 
   QString typeToName(CQChartsPlotSymbol::Type type);
 
@@ -113,11 +113,11 @@ class CQChartsPlotSymbolRenderer {
 #include <QPainterPath>
 
 class CQChartsPlot;
-class CQChartsRenderer;
+class QPainter;
 
 class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
  public:
-  CQChartsSymbol2DRenderer(CQChartsRenderer *renderer, const CQChartsGeom::Point &p, double s);
+  CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s);
 
   void moveTo(double x, double y) override;
 
@@ -136,7 +136,7 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double lineWidth() const override;
 
  private:
-  CQChartsRenderer*   renderer_ { nullptr };
+  QPainter*   renderer_ { nullptr };
   CQChartsGeom::Point p_        { 0.0, 0.0 };
   double              s_        { 2.0 };
   double              w_        { 0.0 };

@@ -33,7 +33,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBarChartPlot *plot_  { nullptr }; // parent plot
@@ -200,7 +200,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setStacked(bool b) { stacked_ = b; updateRange(); }
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updateRange(); }
+  void setHorizontal(bool b) { horizontal_ = b; updateRangeAndObjs(); }
 
   bool isKeySets() const { return keySets_; }
   void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateRangeAndObjs(); }
@@ -300,9 +300,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr);
+  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
  private:
   struct Value {

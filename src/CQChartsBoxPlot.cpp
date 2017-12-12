@@ -4,8 +4,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRoundedPolygon.h>
+#include <QPainter>
 
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
@@ -505,13 +505,13 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsBoxPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -554,7 +554,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsBoxPlotObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   QFontMetricsF fm(plot_->font());
 
@@ -578,17 +578,17 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // draw extent line
-  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  painter->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  renderer->drawLine(QPointF(px3, py1), QPointF(px3, py5));
+  painter->drawLine(QPointF(px3, py1), QPointF(px3, py5));
 
   //---
 
   // draw lower/upper horizontal lines
-  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  painter->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  renderer->drawLine(QPointF(px2, py1), QPointF(px4, py1));
-  renderer->drawLine(QPointF(px2, py5), QPointF(px4, py5));
+  painter->drawLine(QPointF(px2, py1), QPointF(px4, py1));
+  painter->drawLine(QPointF(px2, py5), QPointF(px4, py5));
 
   //---
 
@@ -608,28 +608,28 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  renderer->setBrush(brush);
-  renderer->setPen  (pen);
+  painter->setBrush(brush);
+  painter->setPen  (pen);
 
-  CQChartsRoundedPolygon::draw(renderer, rect, plot_->cornerSize());
+  CQChartsRoundedPolygon::draw(painter, rect, plot_->cornerSize());
 
   //---
 
   // draw median line
-  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  painter->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  renderer->drawLine(QPointF(px2, py3), QPointF(px4, py3));
+  painter->drawLine(QPointF(px2, py3), QPointF(px4, py3));
 
   //---
 
   // draw labels
   double margin = plot_->textMargin();
 
-  renderer->setFont(plot_->font());
+  painter->setFont(plot_->font());
 
   QColor textColor = plot_->interpTextColor(0, 1);
 
-  renderer->setPen(textColor);
+  painter->setPen(textColor);
 
   QString ustr = QString("%1").arg(whisker_.upper ());
   QString lstr = QString("%1").arg(whisker_.lower ());
@@ -637,19 +637,19 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   QString strl = QString("%1").arg(whisker_.min   ());
   QString strh = QString("%1").arg(whisker_.max   ());
 
-  renderer->drawText(QPointF(px2 - margin - fm.width(ustr), py4 + yf), ustr);
-  renderer->drawText(QPointF(px2 - margin - fm.width(lstr), py2 + yf), lstr);
-  renderer->drawText(QPointF(px4 + margin                 , py3 + yf), mstr);
-  renderer->drawText(QPointF(px4 + margin                 , py1 + yf), strl);
-  renderer->drawText(QPointF(px4 + margin                 , py5 + yf), strh);
+  painter->drawText(QPointF(px2 - margin - fm.width(ustr), py4 + yf), ustr);
+  painter->drawText(QPointF(px2 - margin - fm.width(lstr), py2 + yf), lstr);
+  painter->drawText(QPointF(px4 + margin                 , py3 + yf), mstr);
+  painter->drawText(QPointF(px4 + margin                 , py1 + yf), strl);
+  painter->drawText(QPointF(px4 + margin                 , py5 + yf), strh);
 
   //---
 
   // draw whiskers
-  renderer->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
+  painter->setPen(QPen(whiskerColor, whiskerWidth, Qt::SolidLine));
 
-  renderer->setBrush(brush);
-  renderer->setPen  (pen);
+  painter->setBrush(brush);
+  painter->setPen  (pen);
 
   double symbolSize = plot_->symbolSize();
 
@@ -660,7 +660,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
     QRectF rect(px1 - symbolSize, py1 - symbolSize, 2*symbolSize, 2*symbolSize);
 
-    renderer->drawEllipse(rect);
+    painter->drawEllipse(rect);
   }
 }
 

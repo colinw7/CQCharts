@@ -4,9 +4,9 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
+#include <QPainter>
 
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
@@ -481,20 +481,20 @@ initObjs()
 
 void
 CQChartsGeometryPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsGeometryPlot::
-drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &str)
+drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str)
 {
-  dataLabel_.draw(renderer, qrect, str);
+  dataLabel_.draw(painter, qrect, str);
 }
 
 //------
@@ -554,7 +554,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsGeometryObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
   if (layer == CQChartsPlot::Layer::MID) {
     ppolygons_.clear();
@@ -609,8 +609,8 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
     for (const auto &ppoly : ppolygons_) {
       QPainterPath path;
@@ -628,7 +628,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
       path.closeSubpath();
 
-      renderer->drawPath(path);
+      painter->drawPath(path);
     }
   }
 
@@ -641,6 +641,6 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     QRectF qrect = CQChartsUtil::toQRect(prect);
 
-    plot_->drawDataLabel(renderer, qrect, name_);
+    plot_->drawDataLabel(painter, qrect, name_);
   }
 }

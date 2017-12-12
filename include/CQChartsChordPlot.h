@@ -125,7 +125,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsChordObj *plotObject(int ind) const;
@@ -214,7 +214,7 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   void handleResize() override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   int                        nameColumn_     { -1 };

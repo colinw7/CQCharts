@@ -34,7 +34,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsDistributionPlot *plot_   { nullptr };
@@ -182,6 +182,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   int calcBucket(double v) const;
 
+  double calcStartValue() const;
+
   void calcCategoryRange();
 
   void resetValues() { valueSet_.clear(); }
@@ -287,9 +289,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr);
+  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
  private slots:
   void pushSlot();

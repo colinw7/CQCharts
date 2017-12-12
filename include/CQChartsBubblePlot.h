@@ -78,7 +78,7 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBubblePlot *plot_ { nullptr }; // parent plot
@@ -188,9 +188,9 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawForeground(CQChartsRenderer *renderer) override;
+  void drawForeground(QPainter *painter) override;
 
  private:
   void initNodes();

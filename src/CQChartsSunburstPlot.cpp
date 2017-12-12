@@ -3,9 +3,9 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRotatedText.h>
 #include <CGradientPalette.h>
+#include <QPainter>
 
 namespace {
 
@@ -394,34 +394,34 @@ handleResize()
 
 void
 CQChartsSunburstPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsSunburstPlot::
-drawNodes(CQChartsRenderer *renderer, CQChartsSunburstHierNode *hier)
+drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier)
 {
   for (auto node : hier->getNodes())
-    drawNode(renderer, nullptr, node);
+    drawNode(painter, nullptr, node);
 
   //------
 
   for (auto hierNode : hier->getChildren()) {
-    drawNode(renderer, nullptr, hierNode);
+    drawNode(painter, nullptr, hierNode);
 
-    drawNodes(renderer, hierNode);
+    drawNodes(painter, hierNode);
   }
 }
 
 void
 CQChartsSunburstPlot::
-drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
+drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNode *node)
 {
   if (! node->placed()) return;
 
@@ -491,10 +491,10 @@ drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsS
   //---
 
   // draw path
-  renderer->setPen  (pen);
-  renderer->setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
-  renderer->drawPath(path);
+  painter->drawPath(path);
 
   //---
 
@@ -506,11 +506,11 @@ drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsS
   if (nodeObj)
     updateObjPenBrushState(nodeObj, tpen, brush);
 
-  renderer->setPen(tpen);
+  painter->setPen(tpen);
 
   QFont font = textFont();
 
-  renderer->setFont(font);
+  painter->setFont(font);
 
   double ta = a1 + da/2.0;
   double c  = cos(ta*M_PI/180.0);
@@ -530,9 +530,9 @@ drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj, CQChartsS
   Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
   if (c >= 0)
-    CQChartsRotatedText::drawRotatedText(renderer, px, py, str, ta, align);
+    CQChartsRotatedText::drawRotatedText(painter, px, py, str, ta, align);
   else
-    CQChartsRotatedText::drawRotatedText(renderer, px, py, str, ta - 180, align);
+    CQChartsRotatedText::drawRotatedText(painter, px, py, str, ta - 180, align);
 }
 
 //------
@@ -609,9 +609,9 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsSunburstNodeObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  plot_->drawNode(renderer, this, node_);
+  plot_->drawNode(painter, this, node_);
 }
 
 //------

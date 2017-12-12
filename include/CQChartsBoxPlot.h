@@ -45,7 +45,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsBoxPlot*       plot_ { nullptr }; // parent plot
@@ -181,7 +181,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   struct RealCmp {

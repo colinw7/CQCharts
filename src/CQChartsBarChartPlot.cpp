@@ -5,8 +5,8 @@
 #include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRoundedPolygon.h>
+#include <QPainter>
 
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
@@ -1151,20 +1151,20 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsBarChartPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsBarChartPlot::
-drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
+drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr)
 {
-  dataLabel_.draw(renderer, qrect, ystr);
+  dataLabel_.draw(painter, qrect, ystr);
 }
 
 //------
@@ -1218,7 +1218,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsBarChartObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
   static double minBarSize = 1.0/64.0;
 
@@ -1238,7 +1238,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   CQChartsGeom::BBox prect;
 
@@ -1315,16 +1315,16 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     // draw rect
     if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
-      renderer->setPen(pen);
-      renderer->setBrush(barBrush);
+      painter->setPen(pen);
+      painter->setBrush(barBrush);
 
-      CQChartsRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
+      CQChartsRoundedPolygon::draw(painter, qrect, plot_->borderCornerSize());
     }
     else {
       if (! plot_->isBorder())
-        renderer->setPen(barBrush.color());
+        painter->setPen(barBrush.color());
 
-      renderer->drawLine(QPointF(qrect.left (), qrect.bottom()),
+      painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
                          QPointF(qrect.right(), qrect.top   ()));
     }
   }
@@ -1334,10 +1334,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
     if (plot_->labelColumn() < 0)
       label = plot_->valueStr(value_);
 
-    plot_->drawDataLabel(renderer, qrect, label);
+    plot_->drawDataLabel(painter, qrect, label);
   }
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------

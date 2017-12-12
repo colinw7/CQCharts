@@ -1,6 +1,6 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsPlot.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 #include <cmath>
 #include <cassert>
 
@@ -33,9 +33,9 @@ class CQChartsPlotSymbolList {
     return symbols_[0];
   }
 
-  void drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
+  void drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter) const {
     if (type == CQChartsPlotSymbol::Type::CIRCLE) {
-      renderer->strokeCircle(0, 0, 1);
+      painter->strokeCircle(0, 0, 1);
       return;
     }
 
@@ -43,28 +43,28 @@ class CQChartsPlotSymbolList {
 
     const CQChartsPlotSymbol &s = getSymbol(type);
 
-    double w = renderer->lineWidth();
+    double w = painter->lineWidth();
 
     bool connect = false;
 
     if (w <= 0.0) {
       for (const auto &l : s.lines) {
         if (! connect)
-          renderer->moveTo(l.x1, l.y1);
+          painter->moveTo(l.x1, l.y1);
         else
-          renderer->lineTo(l.x1, l.y1);
+          painter->lineTo(l.x1, l.y1);
 
         if      (l.connect == CQChartsPlotSymbol::Connect::CLOSE) {
-          renderer->closePath();
+          painter->closePath();
 
-          renderer->stroke();
+          painter->stroke();
 
           connect = false;
         }
         else if (l.connect == CQChartsPlotSymbol::Connect::STROKE) {
-          renderer->lineTo(l.x2, l.y2);
+          painter->lineTo(l.x2, l.y2);
 
-          renderer->stroke();
+          painter->stroke();
 
           connect = false;
         }
@@ -74,26 +74,26 @@ class CQChartsPlotSymbolList {
     }
     else {
       for (const auto &l : s.lines) {
-        drawWideLine(renderer, l, w);
+        drawWideLine(painter, l, w);
       }
     }
   }
 
-  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
-    fillStrokeSymbol(type, renderer, false);
+  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter) const {
+    fillStrokeSymbol(type, painter, false);
   }
 
-  void fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
-    fillStrokeSymbol(type, renderer, true);
+  void fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter) const {
+    fillStrokeSymbol(type, painter, true);
   }
 
-  void fillStrokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer,
+  void fillStrokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter,
                         bool fill) const {
     if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       if (fill)
-        renderer->fillCircle(0, 0, 1);
+        painter->fillCircle(0, 0, 1);
       else
-        renderer->strokeCircle(0, 0, 1);
+        painter->strokeCircle(0, 0, 1);
 
       return;
     }
@@ -106,27 +106,27 @@ class CQChartsPlotSymbolList {
 
     for (const auto &l : s.fillLines) {
       if (! connect)
-        renderer->moveTo(l.x1, l.y1);
+        painter->moveTo(l.x1, l.y1);
       else
-        renderer->lineTo(l.x1, l.y1);
+        painter->lineTo(l.x1, l.y1);
 
       if      (l.connect == CQChartsPlotSymbol::Connect::CLOSE) {
-        renderer->closePath();
+        painter->closePath();
 
         if (fill)
-          renderer->fill();
+          painter->fill();
         else
-          renderer->stroke();
+          painter->stroke();
 
         connect = false;
       }
       else if (l.connect == CQChartsPlotSymbol::Connect::FILL) {
-        renderer->lineTo(l.x2, l.y2);
+        painter->lineTo(l.x2, l.y2);
 
         if (fill)
-          renderer->fill();
+          painter->fill();
         else
-          renderer->stroke();
+          painter->stroke();
 
         connect = false;
       }
@@ -135,7 +135,7 @@ class CQChartsPlotSymbolList {
     }
   }
 
-  void drawWideLine(CQChartsPlotSymbolRenderer *renderer, const CQChartsPlotSymbol::Line &l,
+  void drawWideLine(CQChartsPlotSymbolRenderer *painter, const CQChartsPlotSymbol::Line &l,
                     double w) const {
     auto addWidthToPoint= [&](const CQChartsPlotSymbol::Point &p, double a, double w,
                               CQChartsPlotSymbol::Point &p1, CQChartsPlotSymbol::Point &p2) {
@@ -161,14 +161,14 @@ class CQChartsPlotSymbolList {
     addWidthToPoint(CQChartsPlotSymbol::Point(l.x1, l.y1), a, w, p[0], p[3]);
     addWidthToPoint(CQChartsPlotSymbol::Point(l.x2, l.y2), a, w, p[1], p[2]);
 
-    renderer->moveTo(p[0].x, p[0].y);
-    renderer->lineTo(p[1].x, p[1].y);
-    renderer->lineTo(p[2].x, p[2].y);
-    renderer->lineTo(p[3].x, p[3].y);
+    painter->moveTo(p[0].x, p[0].y);
+    painter->lineTo(p[1].x, p[1].y);
+    painter->lineTo(p[2].x, p[2].y);
+    painter->lineTo(p[3].x, p[3].y);
 
-    renderer->closePath();
+    painter->closePath();
 
-    renderer->fill();
+    painter->fill();
   }
 
  private:
@@ -336,23 +336,23 @@ getSymbol(CQChartsPlotSymbol::Type type)
 
 void
 CQChartsPlotSymbolMgr::
-drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
+drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter)
 {
-  return symbols.drawSymbol(type, renderer);
+  return symbols.drawSymbol(type, painter);
 }
 
 void
 CQChartsPlotSymbolMgr::
-strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
+strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter)
 {
-  return symbols.strokeSymbol(type, renderer);
+  return symbols.strokeSymbol(type, painter);
 }
 
 void
 CQChartsPlotSymbolMgr::
-fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer)
+fillSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter)
 {
-  return symbols.fillSymbol(type, renderer);
+  return symbols.fillSymbol(type, painter);
 }
 
 QString
@@ -424,8 +424,8 @@ fillSymbol(CQChartsPlotSymbol::Type type)
 //------
 
 CQChartsSymbol2DRenderer::
-CQChartsSymbol2DRenderer(CQChartsRenderer *renderer, const CQChartsGeom::Point &p, double s) :
- renderer_(renderer), p_(p), s_(s)
+CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
+ renderer_(painter), p_(p), s_(s)
 {
   strokePen_.setColor (renderer_->pen().color());
   strokePen_.setWidthF(renderer_->pen().widthF());

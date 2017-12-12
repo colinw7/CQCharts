@@ -3,9 +3,9 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsSmooth.h>
+#include <QPainter>
 
 CQChartsXYPlotType::
 CQChartsXYPlotType()
@@ -281,13 +281,13 @@ interpDataLabelColor(int i, int n)
 
 void
 CQChartsXYPlot::
-drawBivariateLine(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2, const QColor &c)
+drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const QColor &c)
 {
   CQChartsPaletteColor pcolor(c);
 
   bivariateLineObj_->setColor(pcolor);
 
-  bivariateLineObj_->draw(renderer, p1, p2);
+  bivariateLineObj_->draw(painter, p1, p2);
 }
 
 QColor
@@ -1397,13 +1397,13 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsXYPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -1483,7 +1483,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsXYBiLineObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -1499,7 +1499,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    plot_->drawBivariateLine(renderer, QPointF(px, py1), QPointF(px, py2), pen.color());
+    plot_->drawBivariateLine(painter, QPointF(px, py1), QPointF(px, py2), pen.color());
   }
 
   if (plot_->isPoints()) {
@@ -1515,9 +1515,9 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    CQChartsPointObj::draw(renderer, QPointF(px, py1), symbol, s,
+    CQChartsPointObj::draw(painter, QPointF(px, py1), symbol, s,
                            stroked, pen.color(), 1, filled, brush.color());
-    CQChartsPointObj::draw(renderer, QPointF(px, py2), symbol, s,
+    CQChartsPointObj::draw(painter, QPointF(px, py2), symbol, s,
                            stroked, pen.color(), 1, filled, brush.color());
   }
 }
@@ -1595,7 +1595,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsXYImpulseLineObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -1614,9 +1614,9 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  renderer->setPen(pen);
+  painter->setPen(pen);
 
-  renderer->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+  painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
 }
 
 //------
@@ -1733,7 +1733,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsXYPointObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -1766,13 +1766,13 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(pp.x, pp.y, px, py);
 
-  CQChartsPointObj::draw(renderer, QPointF(px, py), symbol, s, stroked, pen.color(), lineWidth,
+  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s, stroked, pen.color(), lineWidth,
                          filled, brush.color());
 
   if (edata_ && edata_->label != "") {
-    renderer->setPen(plot_->interpDataLabelColor(0, 1));
+    painter->setPen(plot_->interpDataLabelColor(0, 1));
 
-    CQChartsRotatedText::drawRotatedText(renderer, px, py, edata_->label, plot_->dataLabelAngle(),
+    CQChartsRotatedText::drawRotatedText(painter, px, py, edata_->label, plot_->dataLabelAngle(),
                                          Qt::AlignHCenter | Qt::AlignBottom);
   }
 }
@@ -1909,7 +1909,7 @@ initSmooth()
 
 void
 CQChartsXYPolylineObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -1980,14 +1980,14 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
       }
     }
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    renderer->drawPath(path);
+    painter->drawPath(path);
   }
   else {
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
     int np = poly_.count();
 
@@ -1997,7 +1997,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
       plot_->windowToPixel(poly_[i - 1].x(), poly_[i - 1].y(), px1, py1);
       plot_->windowToPixel(poly_[i    ].x(), poly_[i    ].y(), px2, py2);
 
-      renderer->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+      painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
     }
   }
 }
@@ -2083,7 +2083,7 @@ initSmooth()
 
 void
 CQChartsXYPolygonObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -2173,10 +2173,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
     path.closeSubpath();
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    renderer->drawPath(path);
+    painter->drawPath(path);
   }
   else {
     QPolygonF poly;
@@ -2189,10 +2189,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
       poly << QPointF(px, py);
     }
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    renderer->drawPolygon(poly);
+    painter->drawPolygon(poly);
   }
 }
 
@@ -2295,9 +2295,9 @@ mousePress(const CQChartsGeom::Point &)
 
 void
 CQChartsXYKeyLine::
-draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
+draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 {
-  renderer->save();
+  painter->save();
 
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
@@ -2313,7 +2313,7 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
   QRectF prect1(QPointF(prect.getXMin() + 2, prect.getYMin() + 2),
                 QPointF(prect.getXMax() - 2, prect.getYMax() - 2));
 
-  renderer->setClipRect(prect1);
+  painter->setClipRect(prect1);
 
   QColor pointStrokeColor = plot->interpPointStrokeColor(i_, n_);
   QColor pointFillColor   = plot->interpPointFillColor  (i_, n_);
@@ -2344,7 +2344,7 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
     if (isInside())
       fillBrush.setColor(plot->insideColor(fillBrush.color()));
 
-    renderer->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillBrush);
+    painter->fillRect(CQChartsUtil::toQRect(CQChartsGeom::BBox(x1, y1, x2, y2)), fillBrush);
   }
 
   if (plot->isLines() || plot->isImpulse()) {
@@ -2358,9 +2358,9 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
     if (isInside())
       lineColor = plot->insideColor(lineColor);
 
-    renderer->setPen(lineColor);
+    painter->setPen(lineColor);
 
-    renderer->drawLine(QPointF(x1, y), QPointF(x2, y));
+    painter->drawLine(QPointF(x1, y), QPointF(x2, y));
   }
 
   if (plot->isPoints()) {
@@ -2381,20 +2381,20 @@ draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect)
     bool                     filled  = plot->isSymbolFilled();
 
     if (plot->isLines() || plot->isImpulse()) {
-      CQChartsPointObj::draw(renderer, QPointF(px1, py), symbol, s,
+      CQChartsPointObj::draw(painter, QPointF(px1, py), symbol, s,
                              stroked, pointStrokeColor, 1, filled, pointFillColor);
-      CQChartsPointObj::draw(renderer, QPointF(px2, py), symbol, s,
+      CQChartsPointObj::draw(painter, QPointF(px2, py), symbol, s,
                              stroked, pointStrokeColor, 1, filled, pointFillColor);
     }
     else {
       double px = CQChartsUtil::avg(px1, px2);
 
-      CQChartsPointObj::draw(renderer, QPointF(px, py), symbol, s,
+      CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s,
                              stroked, pointStrokeColor, 1, filled, pointFillColor);
     }
   }
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------

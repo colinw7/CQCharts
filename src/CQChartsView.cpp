@@ -6,7 +6,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
 #include <CQChartsUtil.h>
-#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDisplayRange.h>
@@ -15,6 +14,7 @@
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QMenu>
+#include <QPainter>
 
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
@@ -900,27 +900,25 @@ paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
 
-  CQChartsPainter renderer(&painter);
-
-  paint(&renderer);
+  paint(&painter);
 }
 
 void
 CQChartsView::
-paint(CQChartsRenderer *renderer)
+paint(QPainter *painter)
 {
   if (isAntiAlias())
-    renderer->setAntiAlias();
+    painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
   //---
 
-  renderer->fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
+  painter->fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
 
   //---
 
   for (const auto &plotData : plotDatas_) {
     if (plotData.plot->isVisible())
-      plotData.plot->draw(renderer);
+      plotData.plot->draw(painter);
   }
 }
 
@@ -1227,9 +1225,7 @@ printSlot()
 
   painter.begin(&generator);
 
-  CQChartsPainter renderer(&painter);
-
-  paint(&renderer);
+  paint(&painter);
 
   painter.end();
 }

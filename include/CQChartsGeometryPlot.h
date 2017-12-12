@@ -27,7 +27,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsGeometryPlot *plot_  { nullptr }; // parent plot
@@ -148,9 +148,9 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &str);
+  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str);
 
  private:
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);

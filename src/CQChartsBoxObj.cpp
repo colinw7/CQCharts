@@ -2,7 +2,7 @@
 #include <CQChartsPlot.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
@@ -53,7 +53,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsBoxObj::
-draw(CQChartsRenderer *renderer, const QRectF &rect) const
+draw(QPainter *painter, const QRectF &rect) const
 {
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
@@ -62,10 +62,10 @@ draw(CQChartsRenderer *renderer, const QRectF &rect) const
 
     QBrush brush(bgColor);
 
-    renderer->setBrush(brush);
-    renderer->setPen  (Qt::NoPen);
+    painter->setBrush(brush);
+    painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(renderer, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, rect, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -77,10 +77,10 @@ draw(CQChartsRenderer *renderer, const QRectF &rect) const
 
     pen.setWidthF(borderWidth());
 
-    renderer->setPen  (pen);
-    renderer->setBrush(Qt::NoBrush);
+    painter->setPen  (pen);
+    painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(renderer, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, rect, borderCornerSize());
   }
 }
 
@@ -93,7 +93,7 @@ redrawBoxObj()
 
 void
 CQChartsBoxObj::
-draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
+draw(QPainter *painter, const QPolygonF &poly) const
 {
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
@@ -102,10 +102,10 @@ draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
 
     QBrush brush(bgColor);
 
-    renderer->setBrush(brush);
-    renderer->setPen  (Qt::NoPen);
+    painter->setBrush(brush);
+    painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(renderer, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, poly, borderCornerSize());
   }
 
   if (isBorder()) {
@@ -117,9 +117,9 @@ draw(CQChartsRenderer *renderer, const QPolygonF &poly) const
 
     pen.setWidthF(borderWidth());
 
-    renderer->setPen  (pen);
-    renderer->setBrush(Qt::NoBrush);
+    painter->setPen  (pen);
+    painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(renderer, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, poly, borderCornerSize());
   }
 }

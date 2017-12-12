@@ -27,7 +27,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -59,7 +59,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -99,7 +99,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   using OptColor = boost::optional<CQChartsPaletteColor>;
@@ -147,7 +147,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   void initSmooth();
@@ -182,7 +182,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   void initSmooth();
@@ -225,7 +225,7 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 
   bool mouseMove(const CQChartsGeom::Point &) override { return true; }
 
-  void draw(CQChartsRenderer *renderer, const CQChartsGeom::BBox &rect) override;
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
 
 protected:
   CQChartsPlot *plot_ { nullptr };
@@ -535,7 +535,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // bivariate line
-  void drawBivariateLine(CQChartsRenderer *painter, const QPointF &p1, const QPointF &p2,
+  void drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2,
                          const QColor &c);
 
   //---
@@ -572,7 +572,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   int               xColumn_           { 0 };

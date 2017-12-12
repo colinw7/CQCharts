@@ -65,9 +65,9 @@ class CQChartsPointObj : public QObject {
 
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
-  void draw(CQChartsRenderer *renderer, const QPointF &p);
+  void draw(QPainter *painter, const QPointF &p);
 
-  static void draw(CQChartsRenderer *renderer, const QPointF &p,
+  static void draw(QPainter *painter, const QPointF &p,
                    const CQChartsPlotSymbol::Type &symbol, double size, bool stroked,
                    const QColor &strokeColor, double lineWidth, bool filled,
                    const QColor &fillColor);

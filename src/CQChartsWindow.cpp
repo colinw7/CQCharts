@@ -80,6 +80,8 @@ CQChartsWindow(CQChartsView *view) :
   settingsExpander_ =
    new CQChartsViewExpander(this, settings_, CQChartsViewExpander::Side::RIGHT);
 
+  settingsExpander_->setObjectName("settingsExpander");
+
   //---
 
   QFrame *tableFrame = new QFrame(this);
@@ -113,6 +115,8 @@ CQChartsWindow(CQChartsView *view) :
 
   tableExpander_ =
    new CQChartsViewExpander(this, tableFrame, CQChartsViewExpander::Side::BOTTOM);
+
+  tableExpander_->setObjectName("tableExpander");
 
   //---
 
@@ -170,21 +174,28 @@ void
 CQChartsWindow::
 updateGeometry()
 {
-  setMinimumSize(16 + settingsExpander_->width(), 16 + statusHeight_ + toolBarHeight_);
+  int sew = (! settingsExpander_->isDetached() ? settingsExpander_->width () : 0);
+  int teh = (! tableExpander_   ->isDetached() ? tableExpander_   ->height() : 0);
+
+  setMinimumSize(16 + sew, 16 + statusHeight_ + toolBarHeight_ + teh);
 
   //---
 
-  view_->resize(width() - settingsExpander_->width(), height() - statusHeight_ - toolBarHeight_);
+  view_->resize(width() - sew, height() - statusHeight_ - toolBarHeight_ - teh);
 
   view_->move(0, toolBarHeight_);
 
   //---
 
-  settingsExpander_->setVisible(true);
-  settingsExpander_->updateGeometry();
+  if (! settingsExpander_->isDetached()) {
+    settingsExpander_->setVisible(true);
+    settingsExpander_->updateGeometry();
+  }
 
-  tableExpander_->setVisible(true);
-  tableExpander_->updateGeometry();
+  if (! tableExpander_->isDetached()) {
+    tableExpander_->setVisible(true);
+    tableExpander_->updateGeometry();
+  }
 
   //---
 

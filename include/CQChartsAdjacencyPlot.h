@@ -77,7 +77,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsAdjacencyPlot *plot_  { nullptr }; // parent plot
@@ -209,10 +209,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawBackground(CQChartsRenderer *) override;
-  void drawForeground(CQChartsRenderer *) override;
+  void drawBackground(QPainter *) override;
+  void drawForeground(QPainter *) override;
 
  private:
   struct ConnectionData {

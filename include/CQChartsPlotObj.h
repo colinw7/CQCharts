@@ -77,7 +77,7 @@ class CQChartsPlotObj : public QObject {
 
   virtual void clickZoom(const CQChartsGeom::Point &) { }
 
-  virtual void draw(CQChartsRenderer *, const CQChartsPlot::Layer &) = 0;
+  virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 
  protected:
   using OptString = boost::optional<QString>;

@@ -43,7 +43,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void update();
 
-  void draw(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr);
+  void draw(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
  private:
   bool     visible_  { false };

@@ -758,7 +758,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   struct ConnectionData {

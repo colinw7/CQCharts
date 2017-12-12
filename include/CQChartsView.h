@@ -10,7 +10,7 @@
 class CQCharts;
 class CQChartsPlot;
 class CQChartsProbeBand;
-class CQChartsRenderer;
+class QPainter;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 
@@ -253,7 +253,7 @@ class CQChartsView : public QFrame {
 
   void paintEvent(QPaintEvent *) override;
 
-  void paint(CQChartsRenderer *renderer);
+  void paint(QPainter *painter);
 
   //---
 

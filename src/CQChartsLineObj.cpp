@@ -1,7 +1,7 @@
 #include <CQChartsLineObj.h>
 #include <CQChartsUtil.h>
-#include <CQChartsRenderer.h>
 #include <CQPropertyViewModel.h>
+#include <QPainter>
 
 CQChartsLineObj::
 CQChartsLineObj(CQChartsPlot *plot) :
@@ -29,16 +29,16 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsLineObj::
-draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2) const
+draw(QPainter *painter, const QPointF &p1, const QPointF &p2) const
 {
   QColor c = interpColor(0, 1);
 
-  draw(renderer, p1, p2, c, width(), dash());
+  draw(painter, p1, p2, c, width(), dash());
 }
 
 void
 CQChartsLineObj::
-draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2, const QColor &color,
+draw(QPainter *painter, const QPointF &p1, const QPointF &p2, const QColor &color,
      double width, const CQChartsLineDash &dash)
 {
   QPen pen(color);
@@ -48,14 +48,14 @@ draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2, const QCo
 
   CQChartsUtil::penSetLineDash(pen, dash);
 
-  draw(renderer, p1, p2, pen);
+  draw(painter, p1, p2, pen);
 }
 
 void
 CQChartsLineObj::
-draw(CQChartsRenderer *renderer, const QPointF &p1, const QPointF &p2, const QPen &pen)
+draw(QPainter *painter, const QPointF &p1, const QPointF &p2, const QPen &pen)
 {
-  renderer->setPen(pen);
+  painter->setPen(pen);
 
-  renderer->drawLine(p1, p2);
+  painter->drawLine(p1, p2);
 }

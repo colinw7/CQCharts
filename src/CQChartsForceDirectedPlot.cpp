@@ -2,9 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQStrParse.h>
 
+#include <QPainter>
 #include <QTimer>
 
 CQChartsForceDirectedPlotType::
@@ -397,13 +397,13 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
 void
 CQChartsForceDirectedPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawBackground(renderer);
+  drawBackground(painter);
 
   //---
 
@@ -425,9 +425,9 @@ draw(CQChartsRenderer *renderer)
 
     double w = sqrt(edge->value());
 
-    renderer->setPen(QPen(edgeColor, w));
+    painter->setPen(QPen(edgeColor, w));
 
-    renderer->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+    painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
   }
 
   // draw nodes
@@ -440,19 +440,19 @@ draw(CQChartsRenderer *renderer)
 
     windowToPixel(p1.x(), p1.y(), px, py);
 
-    renderer->setPen(interpNodeBorderColor(0, 1));
+    painter->setPen(interpNodeBorderColor(0, 1));
 
     QColor c = interpPaletteColor(node->value(), /*scale*/false);
 
     if (node == forceDirected_.currentNode()) {
-      renderer->setBrush(insideColor(c));
+      painter->setBrush(insideColor(c));
     }
     else {
-      renderer->setBrush(c);
+      painter->setBrush(c);
     }
 
     double r = nodeRadius();
 
-    renderer->drawEllipse(QRectF(px - r, py - r, 2*r, 2*r));
+    painter->drawEllipse(QRectF(px - r, py - r, 2*r, 2*r));
   }
 }

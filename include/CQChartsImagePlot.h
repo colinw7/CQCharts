@@ -20,7 +20,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsImagePlot *plot_  { nullptr };
@@ -71,7 +71,7 @@ class CQChartsImagePlot : public CQChartsPlot {
 
   //---
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   double minValue_ { 0.0 };

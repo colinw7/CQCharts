@@ -276,7 +276,7 @@ CQToolTip.h \
 ../include/CQUtil.h \
 CQWidgetMenu.h \
 CQIconCombo.h \
-CQHistoryLineEdit.h \
+../include/CQHistoryLineEdit.h \
 \
 ../include/CQChartsDelaunay.h \
 CQChartsHull3D.h \

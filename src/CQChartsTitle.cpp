@@ -4,7 +4,7 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 #include <QRectF>
 
 CQChartsTitle::
@@ -155,7 +155,7 @@ contains(const CQChartsGeom::Point &p) const
 
 void
 CQChartsTitle::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   if (! isVisible())
     return;
@@ -165,11 +165,11 @@ draw(CQChartsRenderer *renderer)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
-  renderer->setClipRect(clipRect);
+  painter->setClipRect(clipRect);
 
   //---
 
@@ -194,25 +194,25 @@ draw(CQChartsRenderer *renderer)
 
   //---
 
-  CQChartsBoxObj::draw(renderer, CQChartsUtil::toQRect(pirect));
+  CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(pirect));
 
   //---
 
   QFontMetricsF fm(font());
 
-  renderer->setFont(font());
+  painter->setFont(font());
 
-  renderer->setPen(interpColor(0, 1));
+  painter->setPen(interpColor(0, 1));
 
-  renderer->drawText(QPointF(pirect.getXMin() + margin(),
+  painter->drawText(QPointF(pirect.getXMin() + margin(),
                              pirect.getYMax() - margin() - fm.descent()), text());
 
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowRedBox(renderer, bbox_);
+    plot_->drawWindowRedBox(painter, bbox_);
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }

@@ -20,7 +20,7 @@ class CQChartsPlot;
 class CQChartsLineObj;
 class CQChartsFillObj;
 class CQPropertyViewModel;
-class CQChartsRenderer;
+class QPainter;
 
 // Axis Data
 class CQChartsAxis : public QObject {
@@ -40,6 +40,7 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(double    majorIncrement   READ majorIncrement     WRITE setMajorIncrement  )
   Q_PROPERTY(double    start            READ start              WRITE setStart           )
   Q_PROPERTY(double    end              READ end                WRITE setEnd             )
+  Q_PROPERTY(bool      includeZero      READ isIncludeZero      WRITE setIncludeZero     )
 
   // line
   Q_PROPERTY(bool             lineDisplayed READ isLineDisplayed WRITE setLineDisplayed)
@@ -56,11 +57,11 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(bool mirrorTicks         READ isMirrorTicks         WRITE setMirrorTicks        )
 
   // ticks label
-  Q_PROPERTY(bool    tickLabelDisplayed READ  isTickLabelDisplayed WRITE setTickLabelDisplayed)
-  Q_PROPERTY(QFont   tickLabelFont      READ  tickLabelFont        WRITE setTickLabelFont     )
-  Q_PROPERTY(QString tickLabelColor     READ  tickLabelColorStr    WRITE setTickLabelColorStr )
-  Q_PROPERTY(double  tickLabelAngle     READ  tickLabelAngle       WRITE setTickLabelAngle    )
-  Q_PROPERTY(bool    tickLabelAutoHide  READ  isTickLabelAutoHide  WRITE setTickLabelAutoHide )
+  Q_PROPERTY(bool    tickLabelDisplayed READ isTickLabelDisplayed WRITE setTickLabelDisplayed)
+  Q_PROPERTY(QFont   tickLabelFont      READ tickLabelFont        WRITE setTickLabelFont     )
+  Q_PROPERTY(QString tickLabelColor     READ tickLabelColorStr    WRITE setTickLabelColorStr )
+  Q_PROPERTY(double  tickLabelAngle     READ tickLabelAngle       WRITE setTickLabelAngle    )
+  Q_PROPERTY(bool    tickLabelAutoHide  READ isTickLabelAutoHide  WRITE setTickLabelAutoHide )
 
   Q_PROPERTY(TickLabelPlacement tickLabelPlacement
              READ tickLabelPlacement WRITE setTickLabelPlacement )
@@ -133,6 +134,9 @@ class CQChartsAxis : public QObject {
 
   double end() const { return end_; }
   void setEnd(double end) { setRange(start_, end); }
+
+  bool isIncludeZero() const { return includeZero_; }
+  void setIncludeZero(bool b) { includeZero_ = b; updatePlotRange(); }
 
   void setRange(double start, double end);
 
@@ -346,6 +350,8 @@ class CQChartsAxis : public QObject {
 
   void redraw();
 
+  void updatePlotRange();
+
   //---
 
   virtual bool mouseDragPress  (const CQChartsGeom::Point &);
@@ -354,27 +360,27 @@ class CQChartsAxis : public QObject {
 
   //---
 
-  void drawGrid(CQChartsPlot *plot, CQChartsRenderer *renderer);
+  void drawGrid(CQChartsPlot *plot, QPainter *painter);
 
-  void draw(CQChartsPlot *plot, CQChartsRenderer *renderer);
+  void draw(CQChartsPlot *plot, QPainter *painter);
 
   void calcPos(double &apos1, double &apos2) const;
 
-  void drawLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawLine(CQChartsPlot *plot, QPainter *painter,
                 double apos, double amin, double amax);
 
-  void drawMajorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawMajorGridLine(CQChartsPlot *plot, QPainter *painter,
                          double apos, double amin, double amax);
-  void drawMinorGridLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawMinorGridLine(CQChartsPlot *plot, QPainter *painter,
                          double apos, double amin, double amax);
 
-  void drawTickLine(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawTickLine(CQChartsPlot *plot, QPainter *painter,
                     double apos, double tpos, bool inside, bool major);
 
-  void drawTickLabel(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawTickLabel(CQChartsPlot *plot, QPainter *painter,
                      double apos, double tpos, bool inside);
 
-  void drawAxisLabel(CQChartsPlot *plot, CQChartsRenderer *renderer,
+  void drawAxisLabel(CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
 
  private:
@@ -438,6 +444,7 @@ class CQChartsAxis : public QObject {
   double                     end_                 { 1.0 };
   double                     start1_              { 0 };
   double                     end1_                { 1 };
+  bool                       includeZero_         { false };
   uint                       numMajorTicks_       { 1 };
   uint                       numMinorTicks_       { 0 };
   uint                       tickIncrement_       { 0 };

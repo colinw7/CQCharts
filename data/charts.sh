@@ -29,7 +29,8 @@ CQChartsTest \
  -type xy -columns "x=0,y=1 2" \
  -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
- -plot_title "bivariate"
+ -plot_title "bivariate" \
+ -properties "Y Axis.includeZero=1"
 
 CQChartsTest \
  -csv boxplot.csv -first_line_header \
@@ -169,7 +170,7 @@ CQChartsTest -y1y2 \
  -type bar \
 -and \
  -csv pareto.csv -comment_header \
- -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin 2 0 -xintegral \
+ -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin 2.0 -xintegral \
  -plot_title "pareto"
 
 CQChartsTest \
@@ -438,11 +439,11 @@ CQChartsTest \
 CQChartsTest \
  -csv gaussian.txt -comment_header \
  -type distribution -columns "value=0" \
- -real "delta=0.1"
+ -bool "autoRange=0" -real "start=1.0,delta=0.1"
 CQChartsTest \
  -csv distribution_sparse.csv -first_line_header \
  -type distribution -columns "value=0,color=1" \
- -real "delta=1"
+ -real "autoRange=0,delta=1"
 
 CQChartsTest \
  -csv gaussian.txt -comment_header \

@@ -28,7 +28,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsRadarPlot *plot_  { nullptr }; // parent plot
@@ -165,9 +165,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   //---
 
-  void drawBackground(CQChartsRenderer *) override;
+  void drawBackground(QPainter *) override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   class ValueData {

@@ -3,8 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsDisplayRange.h>
+#include <QPainter>
 
 CQChartsParallelPlotType::
 CQChartsParallelPlotType()
@@ -383,13 +383,13 @@ probe(ProbeData &probeData) const
 
 void
 CQChartsParallelPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawBackground(renderer);
+  drawBackground(painter);
 
   //---
 
@@ -397,7 +397,7 @@ draw(CQChartsRenderer *renderer)
 
   displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
 
-  drawObjs(renderer, Layer::MID);
+  drawObjs(painter, Layer::MID);
 
   for (int j = 0; j < numSets(); ++j) {
     const CQChartsGeom::Range &range = yRange(j);
@@ -409,7 +409,7 @@ draw(CQChartsRenderer *renderer)
 
     yAxes_[j]->setPos(j);
 
-    yAxes_[j]->draw(this, renderer);
+    yAxes_[j]->draw(this, painter);
 
     QString label = yAxes_[j]->label();
 
@@ -417,16 +417,16 @@ draw(CQChartsRenderer *renderer)
 
     windowToPixel(j, dataRange_.ymax(), px, py);
 
-    renderer->setPen(yAxes_[j]->interpTickLabelColor(0, 1));
+    painter->setPen(yAxes_[j]->interpTickLabelColor(0, 1));
 
-    renderer->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
+    painter->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }
 
   displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
 
   //---
 
-  drawTitle(renderer);
+  drawTitle(painter);
 }
 
 //------
@@ -549,7 +549,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsParallelLineObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -596,7 +596,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
     plot_->windowToPixel(x1, y1, px1, py1);
     plot_->windowToPixel(x2, y2, px2, py2);
 
-    CQChartsLineObj::draw(renderer, QPointF(px1, py1), QPointF(px2, py2), pen);
+    CQChartsLineObj::draw(painter, QPointF(px1, py1), QPointF(px2, py2), pen);
   }
 }
 
@@ -693,7 +693,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsParallelPointObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -713,5 +713,5 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   if (isInside() || isSelected())
     s *= 2;
 
-  CQChartsPointObj::draw(renderer, QPointF(px, py), symbol, s, true, c, 1, filled, c);
+  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s, true, c, 1, filled, c);
 }

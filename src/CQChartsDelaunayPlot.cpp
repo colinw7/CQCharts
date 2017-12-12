@@ -3,8 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsDelaunay.h>
+#include <QPainter>
 
 CQChartsDelaunayPlotType::
 CQChartsDelaunayPlotType()
@@ -250,28 +250,28 @@ initObjs()
 
 void
 CQChartsDelaunayPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsDelaunayPlot::
-drawForeground(CQChartsRenderer *renderer)
+drawForeground(QPainter *painter)
 {
   if (! isVoronoi())
-    drawDelaunay(renderer);
+    drawDelaunay(painter);
   else
-    drawVoronoi(renderer);
+    drawVoronoi(painter);
 }
 
 void
 CQChartsDelaunayPlot::
-drawDelaunay(CQChartsRenderer *renderer)
+drawDelaunay(QPainter *painter)
 {
   if (isLines()) {
     QColor lc = interpLinesColor(0, 1);
@@ -299,19 +299,19 @@ drawDelaunay(CQChartsRenderer *renderer)
 
       path.closeSubpath();
 
-      renderer->strokePath(path, QPen(lc));
+      painter->strokePath(path, QPen(lc));
     }
   }
 }
 
 void
 CQChartsDelaunayPlot::
-drawVoronoi(CQChartsRenderer *renderer)
+drawVoronoi(QPainter *painter)
 {
   if (isPoints()) {
     QColor pc = interpPointsColor(0, 1);
 
-    renderer->setPen(pc);
+    painter->setPen(pc);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -327,7 +327,7 @@ drawVoronoi(CQChartsRenderer *renderer)
 
       QRectF rect(px - d, py - d, 2*d, 2*d);
 
-      renderer->drawArc(rect, 0, 16*360);
+      painter->drawArc(rect, 0, 16*360);
     }
   }
 
@@ -349,7 +349,7 @@ drawVoronoi(CQChartsRenderer *renderer)
       windowToPixel(v1->x(), v1->y(), px1, py1);
       windowToPixel(v2->x(), v2->y(), px2, py2);
 
-      CQChartsLineObj::draw(renderer, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
+      CQChartsLineObj::draw(painter, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
     }
   }
 }
@@ -434,7 +434,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsDelaunayPointObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   if (! visible())
     return;
@@ -455,6 +455,6 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  CQChartsPointObj::draw(renderer, QPointF(px, py), symbol, s, true, pen.color(), 1,
+  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s, true, pen.color(), 1,
                          filled, pen.color());
 }

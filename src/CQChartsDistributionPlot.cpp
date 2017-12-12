@@ -6,12 +6,11 @@
 #include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsRoundedPolygon.h>
 
 #include <QMenu>
 #include <QAction>
-#include <iostream>
+#include <QPainter>
 
 CQChartsDistributionPlotType::
 CQChartsDistributionPlotType()
@@ -498,6 +497,7 @@ calcCategoryRange()
       categoryRange_.increment *= 10.0;
   }
 
+  // round min value to increment
   if (length1 > 0) {
     categoryRange_.increment =
       categoryRange_.increment*CQChartsUtil::Round(length1/categoryRange_.increment);
@@ -505,8 +505,9 @@ calcCategoryRange()
     categoryRange_.calcMinValue = categoryRange_.increment*
       CQChartsUtil::RoundDown(categoryRange_.minValue/categoryRange_.increment);
   }
-  else
+  else {
     categoryRange_.calcMinValue = categoryRange_.minValue;
+  }
 }
 
 int
@@ -523,10 +524,22 @@ calcBucket(double value) const
   }
   else {
     if (deltaValue() > 0.0)
-      bucket = std::floor((value - startValue())/deltaValue());
+      bucket = std::floor((value - calcStartValue())/deltaValue());
   }
 
   return bucket;
+}
+
+double
+CQChartsDistributionPlot::
+calcStartValue() const
+{
+  double startVal = std::min(categoryRange_.minValue, startValue());
+
+  if (deltaValue() > 0.0)
+    startVal = deltaValue()*CQChartsUtil::RoundDown(startVal/deltaValue());
+
+  return startVal;
 }
 
 //------
@@ -700,7 +713,7 @@ bucketValues(int bucket, double &value1, double &value2) const
   }
   else {
     if (deltaValue() > 0.0) {
-      value1 = bucket*deltaValue() + startValue();
+      value1 = bucket*deltaValue() + calcStartValue();
       value2 = value1 + deltaValue();
     }
   }
@@ -773,20 +786,20 @@ popSlot()
 
 void
 CQChartsDistributionPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsDistributionPlot::
-drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &ystr)
+drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr)
 {
-  dataLabel_.draw(renderer, qrect, ystr);
+  dataLabel_.draw(painter, qrect, ystr);
 }
 
 //------
@@ -830,9 +843,9 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsDistributionBarObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
-  renderer->save();
+  painter->save();
 
   //---
 
@@ -905,18 +918,18 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
     //---
 
     // draw rect
-    renderer->setPen(pen);
-    renderer->setBrush(barBrush);
+    painter->setPen(pen);
+    painter->setBrush(barBrush);
 
-    CQChartsRoundedPolygon::draw(renderer, qrect, plot_->borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, qrect, plot_->borderCornerSize());
   }
   else {
     QString ystr = QString("%1").arg(values_.size());
 
-    plot_->drawDataLabel(renderer, qrect, ystr);
+    plot_->drawDataLabel(painter, qrect, ystr);
   }
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------

@@ -28,7 +28,7 @@ class CQChartsBoxObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
-class CQChartsRenderer;
+class QPainter;
 
 class CGradientPalette;
 class QSortFilterProxyModel;
@@ -713,7 +713,7 @@ class CQChartsPlot : public QObject {
 
   void updateTitlePosition();
 
-  void drawSides(CQChartsRenderer *renderer, const QRectF &rect, const QString &sides,
+  void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
                  double width, const QColor &color);
 
   QRectF calcRect() const;
@@ -736,42 +736,42 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void drawParts(CQChartsRenderer *renderer);
+  void drawParts(QPainter *painter);
 
   // draw background
-  virtual void drawBackground(CQChartsRenderer *renderer);
+  virtual void drawBackground(QPainter *painter);
 
   // draw objects
-  virtual void drawObjs(CQChartsRenderer *renderer, const Layer &layer);
+  virtual void drawObjs(QPainter *painter, const Layer &layer);
 
   // draw axes on background/foreground
-  virtual void drawBgAxes(CQChartsRenderer *renderer);
-  virtual void drawFgAxes(CQChartsRenderer *renderer);
+  virtual void drawBgAxes(QPainter *painter);
+  virtual void drawFgAxes(QPainter *painter);
 
   // draw key on background/foreground
-  virtual void drawBgKey(CQChartsRenderer *renderer);
-  virtual void drawFgKey(CQChartsRenderer *renderer);
+  virtual void drawBgKey(QPainter *painter);
+  virtual void drawFgKey(QPainter *painter);
 
   // draw key
-  virtual void drawKey(CQChartsRenderer *renderer);
+  virtual void drawKey(QPainter *painter);
 
   // draw title
-  virtual void drawTitle(CQChartsRenderer *renderer);
+  virtual void drawTitle(QPainter *painter);
 
   // draw foreground
-  virtual void drawForeground(CQChartsRenderer *) { }
+  virtual void drawForeground(QPainter *) { }
 
   //---
 
-  void drawContrastText(CQChartsRenderer *renderer, double x, double y,
+  void drawContrastText(QPainter *painter, double x, double y,
                         const QString &text, const QPen &pen);
 
   //---
 
   // debug draw (red boxes)
-  void drawWindowRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox);
+  void drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
 
-  void drawRedBox(CQChartsRenderer *renderer, const CQChartsGeom::BBox &bbox);
+  void drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
 
   //---
 
@@ -817,7 +817,7 @@ class CQChartsPlot : public QObject {
   void update();
 
   // draw plot
-  virtual void draw(CQChartsRenderer *renderer) = 0;
+  virtual void draw(QPainter *painter) = 0;
 
  private slots:
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);

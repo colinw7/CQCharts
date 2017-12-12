@@ -3,7 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 
 CQChartsPiePlotType::
 CQChartsPiePlotType()
@@ -348,13 +348,13 @@ handleResize()
 
 void
 CQChartsPiePlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -438,7 +438,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsPieObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
   CQChartsGeom::Point center(0, 0);
 
@@ -557,10 +557,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    renderer->drawPath(path);
+    painter->drawPath(path);
   }
 
   //---
@@ -570,7 +570,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     // if full circle always draw text at center
     if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
-      plot_->textBox()->draw(renderer, CQChartsUtil::toQPoint(pc), label(), 0.0);
+      plot_->textBox()->draw(painter, CQChartsUtil::toQPoint(pc), label(), 0.0);
     }
     // draw on arc center line
     else {
@@ -630,10 +630,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
         QColor bg = plot_->interpPaletteColor(i_, n_);
 
-        renderer->setPen(bg);
+        painter->setPen(bg);
 
-        renderer->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-        renderer->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
+        painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
+        painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
       }
 
       //---
@@ -645,7 +645,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
       if (plot_->isRotatedText())
         angle = (tc >= 0 ? ta : 180.0 + ta);
 
-      plot_->textBox()->draw(renderer, pt, label(), angle, align);
+      plot_->textBox()->draw(painter, pt, label(), angle, align);
 
       CQChartsGeom::BBox tbbox;
 

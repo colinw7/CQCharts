@@ -4,7 +4,7 @@
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -525,18 +525,18 @@ addKeyItems(CQChartsKey *key)
 
 void
 CQChartsScatterPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsScatterPlot::
-drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &str, double fontSize)
+drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str, double fontSize)
 {
   if (fontSize > 0) {
     QFont font = dataLabel_.font();
@@ -547,12 +547,12 @@ drawDataLabel(CQChartsRenderer *renderer, const QRectF &qrect, const QString &st
 
     dataLabel_.setFont(font1);
 
-    dataLabel_.draw(renderer, qrect, str);
+    dataLabel_.draw(painter, qrect, str);
 
     dataLabel_.setFont(font);
   }
   else {
-    dataLabel_.draw(renderer, qrect, str);
+    dataLabel_.draw(painter, qrect, str);
   }
 }
 
@@ -648,7 +648,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsScatterPointObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   double s = symbolSize_; // TODO: ensure not a crazy number
 
@@ -670,15 +670,15 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  renderer->setPen  (pen);
-  renderer->setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   QRectF erect(px - s, py - s, 2*s, 2*s);
 
-  renderer->drawEllipse(erect);
+  painter->drawEllipse(erect);
 
   if (plot_->isTextLabels()) {
-    plot_->drawDataLabel(renderer, erect, name_, (fontSize_ ? *fontSize_ : -1));
+    plot_->drawDataLabel(painter, erect, name_, (fontSize_ ? *fontSize_ : -1));
   }
 }
 

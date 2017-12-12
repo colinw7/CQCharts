@@ -2,9 +2,9 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsRenderer.h>
 #include <CQChartsValueSet.h>
 #include <CGradientPalette.h>
+#include <QPainter>
 
 //---
 
@@ -316,13 +316,13 @@ handleResize()
 
 void
 CQChartsChordPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -400,7 +400,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsChordObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
   // calc inner outer arc rectangles
   CQChartsGeom::Point po1, po2, pi1, pi2;
@@ -464,10 +464,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
     //---
 
-    renderer->setPen  (pen);
-    renderer->setBrush(brush);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    renderer->drawPath(path);
+    painter->drawPath(path);
 
     //---
 
@@ -531,7 +531,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
       QPen pen(borderColor);
 
-      renderer->setPen(pen);
+      painter->setPen(pen);
 
       QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
@@ -540,10 +540,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
       QBrush brush(c);
 
-      renderer->setPen  (pen);
-      renderer->setBrush(brush);
+      painter->setPen  (pen);
+      painter->setBrush(brush);
 
-      renderer->drawPath(path);
+      painter->drawPath(path);
 
       //--
 
@@ -551,10 +551,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
       path.arcMoveTo(orect, -a1 ); p3 = path.currentPosition();
       path.arcMoveTo(orect, -a11); p4 = path.currentPosition();
 
-      renderer->setPen(QColor(0,0,0));
+      painter->setPen(QColor(0,0,0));
 
-      renderer->drawLine(p1, p3);
-      renderer->drawLine(p2, p4);
+      painter->drawLine(p1, p3);
+      painter->drawLine(p2, p4);
   #endif
     }
   }
@@ -621,10 +621,10 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
 
       QColor bg = plot_->interpPaletteColor(i_, n_);
 
-      renderer->setPen(bg);
+      painter->setPen(bg);
 
-      renderer->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-      renderer->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
+      painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
+      painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
     }
 
     //---
@@ -638,7 +638,7 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &layer)
       angle = (tc >= 0 ? ta : 180.0 + ta);
 #endif
 
-    plot_->textBox()->draw(renderer, pt, data_.name(), angle, align);
+    plot_->textBox()->draw(painter, pt, data_.name(), angle, align);
 
     //CQChartsGeom::BBox tbbox;
 

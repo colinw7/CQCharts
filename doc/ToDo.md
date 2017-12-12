@@ -1,19 +1,16 @@
-Use CQChartsModelP everywhere !!!!
-
-More testing of x/y flip for axis/key/...
-Allow title drag move ?
-
-Filter Stack (Push/Pop) Tree - keep/delete
-Generic Filter support (plugin)
-
-Allow disable theme for fixed color plot
-
-//---
+High
+ + Use CQChartsModelP everywhere !!!!
+ + More testing of x/y flip for axis/key/...
+ + Allow title drag move ?
+ + Filter Stack (Push/Pop) Tree - keep/delete
+ + Generic Filter support (plugin)
+ + Allow disable theme for fixed color plot
 
 Misc
  + Cache plot pixmaps
  + Draw inside/selected to overlay pixmap
  + Use QScript/Tcl for expression evaluation
+   + Plugable evaluation engine
  + Animation
 
 Theme

@@ -28,7 +28,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &ind) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsSunburstPlot *plot_ { nullptr };
@@ -301,9 +301,9 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void handleResize() override;
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
-  void drawNode(CQChartsRenderer *renderer, CQChartsSunburstNodeObj *nodeObj,
+  void drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj,
                 CQChartsSunburstNode *node);
 
  private:
@@ -314,7 +314,7 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void addPlotObj(CQChartsSunburstNode *node);
 
-  void drawNodes(CQChartsRenderer *renderer, CQChartsSunburstHierNode *hier);
+  void drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier);
 
   QColor interpNodeColor(CQChartsSunburstNode *node) const;
 

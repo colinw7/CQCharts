@@ -3,8 +3,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
+#include <QPainter>
 
 namespace {
 
@@ -561,13 +561,13 @@ handleResize()
 
 void
 CQChartsTreeMapPlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 //------
@@ -610,7 +610,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsTreeMapHierObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   double px1, py1, px2, py2;
 
@@ -650,15 +650,15 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   //---
 
   // draw rectangle
-  renderer->setPen  (bpen);
-  renderer->setBrush(brush);
+  painter->setPen  (bpen);
+  painter->setBrush(brush);
 
-  renderer->drawRect(qrect);
+  painter->drawRect(qrect);
 
   //---
 
@@ -668,24 +668,24 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  renderer->setFont(font);
+  painter->setFont(font);
 
   QString name = hier_->name();
 
-  QFontMetricsF fm(renderer->font());
+  QFontMetricsF fm(painter->font());
 
   plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
 
   //---
 
   // draw label
-  renderer->setClipRect(qrect);
+  painter->setClipRect(qrect);
 
-  plot_->drawContrastText(renderer, px1 + 2, py1 + fm.ascent(), name, tpen);
+  plot_->drawContrastText(painter, px1 + 2, py1 + fm.ascent(), name, tpen);
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------
@@ -753,7 +753,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsTreeMapObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   //CQChartsTreeMapHierNode *root = node_->rootNode(plot_->firstHier());
   CQChartsTreeMapHierNode *root = node_->parent();
@@ -800,15 +800,15 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   //---
 
   // draw rectangle
-  renderer->setPen  (bpen);
-  renderer->setBrush(brush);
+  painter->setPen  (bpen);
+  painter->setBrush(brush);
 
-  renderer->drawRect(qrect);
+  painter->drawRect(qrect);
 
   //---
 
@@ -818,11 +818,11 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  renderer->setFont(font);
+  painter->setFont(font);
 
   QString name = node_->name();
 
-  QFontMetricsF fm(renderer->font());
+  QFontMetricsF fm(painter->font());
 
   double tw = fm.width(name);
 
@@ -833,13 +833,13 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // draw label
-  renderer->setClipRect(qrect);
+  painter->setClipRect(qrect);
 
-  plot_->drawContrastText(renderer, px1 - tw/2, py1 + fdy, name, tpen);
+  plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------

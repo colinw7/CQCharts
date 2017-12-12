@@ -3,9 +3,9 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsRenderer.h>
 #include <CGradientPalette.h>
 
+#include <QPainter>
 #include <QTimer>
 
 namespace {
@@ -611,25 +611,25 @@ zoomFull()
 
 void
 CQChartsHierBubblePlot::
-draw(CQChartsRenderer *renderer)
+draw(QPainter *painter)
 {
   initPlotObjs();
 
   //---
 
-  drawParts(renderer);
+  drawParts(painter);
 }
 
 void
 CQChartsHierBubblePlot::
-drawForeground(CQChartsRenderer *renderer)
+drawForeground(QPainter *painter)
 {
-  drawBounds(renderer, currentRoot_);
+  drawBounds(painter, currentRoot_);
 }
 
 void
 CQChartsHierBubblePlot::
-drawBounds(CQChartsRenderer *renderer, CQChartsHierBubbleHierNode *hier)
+drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier)
 {
   double xc = hier->x();
   double yc = hier->y();
@@ -647,20 +647,20 @@ drawBounds(CQChartsRenderer *renderer, CQChartsHierBubbleHierNode *hier)
   // draw bubble
   QColor bc = interpBorderColor(0, 1);
 
-  renderer->setPen  (bc);
-  renderer->setBrush(Qt::NoBrush);
+  painter->setPen  (bc);
+  painter->setBrush(Qt::NoBrush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  renderer->drawPath(path);
+  painter->drawPath(path);
 
   //---
 
 #if 0
   for (auto hierNode : hier->getChildren()) {
-    drawBounds(renderer, hierNode);
+    drawBounds(painter, hierNode);
   }
 #endif
 }
@@ -736,7 +736,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsHierBubbleHierObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   CQChartsHierBubbleHierNode *root = hier_->parent();
 
@@ -783,14 +783,14 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // draw bubble
-  renderer->setPen  (pen);
-  renderer->setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  renderer->drawPath(path);
+  painter->drawPath(path);
 }
 
 //------
@@ -869,7 +869,7 @@ isIndex(const QModelIndex &ind) const
 
 void
 CQChartsHierBubbleObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   double r = node_->radius();
 
@@ -916,19 +916,19 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
 
   //---
 
-  renderer->save();
+  painter->save();
 
   //---
 
   // draw bubble
-  renderer->setPen  (bpen);
-  renderer->setBrush(brush);
+  painter->setPen  (bpen);
+  painter->setBrush(brush);
 
   QPainterPath path;
 
   path.addEllipse(qrect);
 
-  renderer->drawPath(path);
+  painter->drawPath(path);
 
   //---
 
@@ -938,11 +938,11 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // calc text size and position
-  renderer->setFont(font);
+  painter->setFont(font);
 
   const QString &name = node_->name();
 
-  QFontMetricsF fm(renderer->font());
+  QFontMetricsF fm(painter->font());
 
   double tw = fm.width(name);
 
@@ -951,13 +951,13 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   //---
 
   // draw label
-  renderer->setClipRect(qrect);
+  painter->setClipRect(qrect);
 
-  plot_->drawContrastText(renderer, px1 - tw/2, py1 + fm.descent(), name, tpen);
+  plot_->drawContrastText(painter, px1 - tw/2, py1 + fm.descent(), name, tpen);
 
   //---
 
-  renderer->restore();
+  painter->restore();
 }
 
 //------

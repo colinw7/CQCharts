@@ -1,6 +1,6 @@
 #include <CQChartsNoDataObj.h>
 #include <CQChartsView.h>
-#include <CQChartsRenderer.h>
+#include <QPainter>
 
 CQChartsNoDataObj::
 CQChartsNoDataObj(CQChartsPlot *plot) :
@@ -10,7 +10,7 @@ CQChartsNoDataObj(CQChartsPlot *plot) :
 
 void
 CQChartsNoDataObj::
-draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
+draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   CQChartsView *view = plot_->view();
 
@@ -23,5 +23,5 @@ draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &)
   int w = view->width ();
   int h = view->height();
 
-  renderer->drawText(QPointF(w/2 - fw, h/2 - fm.ascent()), msg);
+  painter->drawText(QPointF(w/2 - fw, h/2 - fm.ascent()), msg);
 }

@@ -3,13 +3,13 @@
 
 #include <QPolygonF>
 
-class CQChartsRenderer;
+class QPainter;
 
 namespace CQChartsRoundedPolygon {
 
-void draw(CQChartsRenderer *painter, const QRectF &rect, double size=0.0);
+void draw(QPainter *painter, const QRectF &rect, double size=0.0);
 
-void draw(CQChartsRenderer *painter, const QPolygonF &poly, double size=0.0);
+void draw(QPainter *painter, const QPolygonF &poly, double size=0.0);
 
 }
 

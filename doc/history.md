@@ -194,3 +194,8 @@
  + Better tip id for scatter plot
  + Add table of current plot data to window
  + Change current window mode to combo and add controls per mode
+## 12/11/2017
+ + Revert back to QPainter from abstract renderer as not needed (yet)
+ + Add includeZero option to axis
+ + ensure start coord of distribution is snapped to delta
+ + Update expander widget to allow detach

@@ -141,7 +141,7 @@ class CQChartsTreeMapHierObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsTreeMapPlot*     plot_    { nullptr };
@@ -169,7 +169,7 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
   bool isIndex(const QModelIndex &) const override;
 
-  void draw(CQChartsRenderer *renderer, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
   CQChartsTreeMapPlot*    plot_    { nullptr };
@@ -327,7 +327,7 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   void handleResize();
 
-  void draw(CQChartsRenderer *) override;
+  void draw(QPainter *) override;
 
  private:
   void initNodes();

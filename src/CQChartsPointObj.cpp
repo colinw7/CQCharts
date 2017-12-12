@@ -1,6 +1,6 @@
 #include <CQChartsPointObj.h>
-#include <CQChartsRenderer.h>
 #include <CQPropertyViewModel.h>
+#include <QPainter>
 
 CQChartsPointObj::
 CQChartsPointObj(CQChartsPlot *plot) :
@@ -62,18 +62,18 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsPointObj::
-draw(CQChartsRenderer *renderer, const QPointF &p)
+draw(QPainter *painter, const QPointF &p)
 {
   QColor strokeColor = interpStrokeColor(0, 1);
   QColor fillColor   = interpFillColor  (0, 1);
 
-  draw(renderer, p, symbolType(), size(), isStroked(), strokeColor, lineWidth(),
+  draw(painter, p, symbolType(), size(), isStroked(), strokeColor, lineWidth(),
        isFilled(), fillColor);
 }
 
 void
 CQChartsPointObj::
-draw(CQChartsRenderer *renderer, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
+draw(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
      double size, bool stroked, const QColor &strokeColor, double lineWidth,
      bool filled, const QColor &fillColor)
 {
@@ -82,10 +82,10 @@ draw(CQChartsRenderer *renderer, const QPointF &p, const CQChartsPlotSymbol::Typ
 
   pen.setWidthF(lineWidth);
 
-  renderer->setPen  (pen);
-  renderer->setBrush(brush);
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
-  CQChartsSymbol2DRenderer srenderer(renderer, CQChartsGeom::Point(p.x(), p.y()), size);
+  CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(p.x(), p.y()), size);
 
   if (filled)
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
