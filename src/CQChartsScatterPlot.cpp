@@ -128,7 +128,7 @@ updateRange(bool apply)
     double y = dataRange_.ymid();
 
     dataRange_.updateRange(x - 1, y);
-    dataRange_.updateRange( x + 1, y);
+    dataRange_.updateRange(x + 1, y);
   }
 
   if (CQChartsUtil::isZero(dataRange_.ysize())) {

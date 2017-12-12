@@ -1323,24 +1323,29 @@ draw(CQChartsPlot *plot, QPainter *painter)
   }
 #endif
 
+  double dt = (tickLabelPlacement_ == TickLabelPlacement::BETWEEN ? -0.5 : 0.0);
+
   for (uint i = 0; i < numMajorTicks() + 1; i++) {
+    double pos2 = pos1 + dt;
+
     // draw major line (grid and tick)
-    if (pos1 >= amin && pos1 <= amax) {
+    if (pos2 >= amin && pos2 <= amax) {
       // draw major tick (or minor tick if major ticks off and minor ones on)
       if      (isMajorTicksDisplayed()) {
-        drawTickLine(plot, painter, apos1, pos1, isTickInside(), /*major*/true);
+        drawMajorTickLine(plot, painter, apos1, pos1, isTickInside());
 
         if (isMirrorTicks())
-          drawTickLine(plot, painter, apos2, pos1, ! isTickInside(), /*major*/true);
+          drawMajorTickLine(plot, painter, apos2, pos1, ! isTickInside());
       }
       else if (isMinorTicksDisplayed()) {
-        drawTickLine(plot, painter, apos1, pos1, isTickInside(), /*major*/false);
+        drawMinorTickLine(plot, painter, apos1, pos1, isTickInside());
 
         if (isMirrorTicks())
-          drawTickLine(plot, painter, apos2, pos1, ! isTickInside(), /*major*/false);
+          drawMinorTickLine(plot, painter, apos2, pos1, ! isTickInside());
       }
     }
 
+    // draw minor tick lines (grid and tick)
     if (isMinorTicksDisplayed() && i < numMajorTicks()) {
       for (uint j = 1; j < numMinorTicks(); j++) {
         double pos2 = pos1 + (isLog() ? plot_->logValue(j*inc1) : j*inc1);
@@ -1350,10 +1355,10 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
         // draw minor tick line
         if (pos2 >= amin && pos2 <= amax) {
-          drawTickLine(plot, painter, apos1, pos2, isTickInside(), /*major*/false);
+          drawMinorTickLine(plot, painter, apos1, pos2, isTickInside());
 
           if (isMirrorTicks())
-            drawTickLine(plot, painter, apos2, pos2, ! isTickInside(), /*major*/false);
+            drawMinorTickLine(plot, painter, apos2, pos2, ! isTickInside());
         }
       }
     }
@@ -1519,6 +1524,20 @@ drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos,
 
 void
 CQChartsAxis::
+drawMajorTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
+{
+  drawTickLine(plot, painter, apos, tpos, inside, /*major*/true);
+}
+
+void
+CQChartsAxis::
+drawMinorTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
+{
+  drawTickLine(plot, painter, apos, tpos, inside, /*major*/false);
+}
+
+void
+CQChartsAxis::
 drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
              bool inside, bool major)
 {
@@ -1650,7 +1669,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
         if (! plot->isInvertY())
           lmax_ = std::max(lmax_, rrect.bottom());
         else
-          lmax_ = std::min(lmax_, rrect.bottom());
+          lmax_ = std::min(lmax_, rrect.top());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1675,7 +1694,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelWidth(0.5);
 
-            p = QPointF(pt.x() - pb, ty);
+            p = QPointF(pt.x() - pb, ty + pys*tgap);
           }
 
           painter->drawText(p, text);
@@ -1712,10 +1731,10 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
         QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
-        if (plot->isInvertY())
-          lmin_ = std::min(lmin_, rrect.bottom());
-        else
+        if (! plot->isInvertY())
           lmin_ = std::min(lmin_, rrect.top());
+        else
+          lmin_ = std::min(lmin_, rrect.bottom());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1740,7 +1759,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelWidth(0.5);
 
-            p = QPointF(pt.x() - pb, ty);
+            p = QPointF(pt.x() - pb, ty + pys*tgap);
           }
 
           painter->drawText(p, text);
@@ -1798,10 +1817,10 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
         QRectF rrect = CQChartsRotatedText::bbox(pt.x(), pt.y(), text, painter->font(),
                                                  angle, 0, align, /*alignBox*/true);
 
-        if (plot->isInvertX())
-          lmin_ = std::min(lmin_, rrect.right());
-        else
+        if (! plot->isInvertX())
           lmin_ = std::min(lmin_, rrect.left());
+        else
+          lmin_ = std::min(lmin_, rrect.right());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1822,7 +1841,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
           else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
-            p = QPointF(tx, pt.y() - td  );
+            p = QPointF(tx - pxs*tgap, pt.y() - td  );
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelHeight(0.5);
 
@@ -1866,7 +1885,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
         if (! plot->isInvertX())
           lmax_ = std::max(lmax_, rrect.right());
         else
-          lmax_ = std::min(lmax_, rrect.right());
+          lmax_ = std::min(lmax_, rrect.left());
 
         plot->pixelToWindow(CQChartsUtil::fromQRect(rrect), tbbox);
       }
@@ -1887,7 +1906,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
           else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
-            p = QPointF(tx, pt.y() - td  );
+            p = QPointF(tx + pxs*tgap, pt.y() - td  );
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelHeight(0.5);
 

@@ -1,7 +1,6 @@
 #ifndef CQChartsDisplayRange_H
 #define CQChartsDisplayRange_H
 
-#include <CMathRound.h>
 #include <CQChartsGeom.h>
 
 // Class to represent a 2D mapping from window to pixel coordinates
@@ -279,8 +278,8 @@ class CQChartsDisplayRange {
 
     windowToPixel(window_x, window_y, &pixel_x1, &pixel_y1);
 
-    *pixel_x = CMathRound::Round(pixel_x1);
-    *pixel_y = CMathRound::Round(pixel_y1);
+    *pixel_x = roundReal(pixel_x1);
+    *pixel_y = roundReal(pixel_y1);
   }
 
   void invertPixel(double px, double py, double &ipx, double &ipy) {
@@ -349,6 +348,20 @@ class CQChartsDisplayRange {
 
   const CQChartsGeom::Matrix &getMatrix () const { return matrix_ ; }
   const CQChartsGeom::Matrix &getIMatrix() const { return imatrix_; }
+
+  static double roundReal(double x) {
+    double x1;
+
+    if (x <= 0.0)
+      x1 = (x - 0.499999);
+    else
+      x1 = (x + 0.500001);
+
+    if (x1 < INT_MIN || x1 > INT_MAX)
+      errno = ERANGE;
+
+    return int(x1);
+  }
 
  private:
   RRange pixel_;

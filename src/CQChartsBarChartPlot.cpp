@@ -1325,7 +1325,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
         painter->setPen(barBrush.color());
 
       painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
-                         QPointF(qrect.right(), qrect.top   ()));
+                        QPointF(qrect.right(), qrect.top   ()));
     }
   }
   else {

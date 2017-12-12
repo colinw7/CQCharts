@@ -73,9 +73,9 @@ namespace CQChartsPlotSymbolMgr {
 
   const CQChartsPlotSymbol &getSymbol(CQChartsPlotSymbol::Type type);
 
-  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
-  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
-  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *painter);
+  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
+  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
+  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
 
   QString typeToName(CQChartsPlotSymbol::Type type);
 
@@ -136,7 +136,7 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double lineWidth() const override;
 
  private:
-  QPainter*   renderer_ { nullptr };
+  QPainter*           painter_  { nullptr };
   CQChartsGeom::Point p_        { 0.0, 0.0 };
   double              s_        { 2.0 };
   double              w_        { 0.0 };

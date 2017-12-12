@@ -85,7 +85,7 @@ drawText(QPainter *painter, const QRectF &rect, const QString &text) const
   painter->setFont(font());
 
   painter->drawText(QPointF(rect.left() + margin(),
-                             rect.bottom() - margin() - fm.descent()), text);
+                            rect.bottom() - margin() - fm.descent()), text);
 }
 
 //------
@@ -98,8 +98,8 @@ CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
 
 void
 CQChartsRotatedTextBoxObj::
-draw(QPainter *painter, const QPointF &c, const QString &text,
-     double angle, Qt::Alignment align) const
+draw(QPainter *painter, const QPointF &c, const QString &text, double angle,
+     Qt::Alignment align) const
 {
   painter->save();
 

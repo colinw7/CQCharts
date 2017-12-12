@@ -374,6 +374,11 @@ class CQChartsAxis : public QObject {
   void drawMinorGridLine(CQChartsPlot *plot, QPainter *painter,
                          double apos, double amin, double amax);
 
+  void drawMajorTickLine(CQChartsPlot *plot, QPainter *painter,
+                         double apos, double tpos, bool inside);
+  void drawMinorTickLine(CQChartsPlot *plot, QPainter *painter,
+                         double apos, double tpos, bool inside);
+
   void drawTickLine(CQChartsPlot *plot, QPainter *painter,
                     double apos, double tpos, bool inside, bool major);
 

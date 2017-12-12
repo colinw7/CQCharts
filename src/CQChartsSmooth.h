@@ -150,12 +150,10 @@ class CQChartsBezier2 {
   }
 
   double gradientStart() const {
-    //return CMathGen::atan2(p2_.x - p1_.x, p2_.y - p1_.y);
     return atan2(p2_.y - p1_.y, p2_.x - p1_.x);
   }
 
   double gradientEnd() const {
-    //return CMathGen::atan2(p3_.x - p2_.x, p3_.y - p2_.y);
     return atan2(p3_.y - p2_.y, p3_.x - p2_.x);
   }
 
@@ -164,7 +162,6 @@ class CQChartsBezier2 {
 
     CQChartsGeom::Point p = (p2_ - p1_)*u + (p3_ - p2_)*t;
 
-    //double g = CMathGen::atan2(p.x, p.y);
     double g = atan2(p.y, p.x);
 
     return g;
@@ -922,7 +919,7 @@ class CQChartsSmooth {
       return smooth->point(i_ + 1); }
 
    private:
-    int i_;
+    int i_ { -1 };
   };
 
   //---
@@ -959,7 +956,7 @@ class CQChartsSmooth {
     CQChartsGeom::Point controlPoint2(const CQChartsSmooth *) const override { return mp_; }
 
    private:
-    int      i_;
+    int                 i_ { -1 };
     CQChartsGeom::Point mp_;
   };
 
@@ -998,7 +995,7 @@ class CQChartsSmooth {
     CQChartsGeom::Point controlPoint2(const CQChartsSmooth *) const override { return mp2_; }
 
    private:
-    int      i_;
+    int                 i_ { -1 };
     CQChartsGeom::Point mp1_;
     CQChartsGeom::Point mp2_;
   };

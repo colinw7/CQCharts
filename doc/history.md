@@ -199,3 +199,5 @@
  + Add includeZero option to axis
  + ensure start coord of distribution is snapped to delta
  + Update expander widget to allow detach
+## 12/12/2017
+ + Support override of distribution plot model data using virtuals

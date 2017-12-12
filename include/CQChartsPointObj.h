@@ -67,10 +67,9 @@ class CQChartsPointObj : public QObject {
 
   void draw(QPainter *painter, const QPointF &p);
 
-  static void draw(QPainter *painter, const QPointF &p,
-                   const CQChartsPlotSymbol::Type &symbol, double size, bool stroked,
-                   const QColor &strokeColor, double lineWidth, bool filled,
-                   const QColor &fillColor);
+  static void draw(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
+                   double size, bool stroked, const QColor &strokeColor, double lineWidth,
+                   bool filled, const QColor &fillColor);
 
   virtual void redrawPointObj() { }
 

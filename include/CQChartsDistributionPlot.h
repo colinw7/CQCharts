@@ -142,9 +142,24 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   using Values = std::vector<QModelIndex>;
 
+  enum class BucketValueType {
+    START,
+    END,
+    ALL
+  };
+
  public:
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
- ~CQChartsDistributionPlot();
+
+  virtual ~CQChartsDistributionPlot();
+
+  //---
+
+  virtual int rowCount(QAbstractItemModel *model) const;
+
+  virtual QVariant rowValue(QAbstractItemModel *model, int r, int c, bool &ok) const;
+
+  virtual QVariant headerValue(QAbstractItemModel *model, int c, bool &ok) const;
 
   //---
 
@@ -279,7 +294,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  QString bucketValuesStr(int bucket, bool init=false) const;
+  QString bucketValuesStr(int bucket, BucketValueType valueType=BucketValueType::ALL) const;
 
   void bucketValues(int bucket, double &value1, double &value2) const;
 

@@ -2274,8 +2274,7 @@ drawTitle(QPainter *painter)
 
 void
 CQChartsPlot::
-drawContrastText(QPainter *painter, double x, double y, const QString &text,
-                 const QPen &pen)
+drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen)
 {
   painter->setPen(CQChartsUtil::invColor(pen.color()));
 
