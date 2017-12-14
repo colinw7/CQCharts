@@ -821,7 +821,7 @@ CQChartsTest() :
 
   QGroupBox *typeGroup = CQUtil::makeWidget<QGroupBox>("typeGroup");
 
-  typeGroup->setTitle("Column Type");
+  typeGroup->setTitle("Column Data");
 
   layout->addWidget(typeGroup);
 
@@ -836,6 +836,7 @@ CQChartsTest() :
   int row = 0;
 
   columnNumEdit_  = addLineEdit(columnLayout, row, "Number", "number");
+  columnNameEdit_ = addLineEdit(columnLayout, row, "Name"  , "name"  );
   columnTypeEdit_ = addLineEdit(columnLayout, row, "Type"  , "type"  );
 
   QPushButton *typeOKButton = CQUtil::makeWidget<QPushButton>("typeOK");
@@ -1335,6 +1336,12 @@ tableColumnClicked(int column)
 
   columnNumEdit_->setText(QString("%1").arg(column));
 
+  //---
+
+  columnNameEdit_->setText(model->headerData(column, Qt::Horizontal).toString());
+
+  //---
+
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   CQBaseModel::Type  type;
@@ -1363,6 +1370,26 @@ typeOKSlot()
 
   //---
 
+  QString numStr = columnNumEdit_->text();
+
+  bool ok;
+
+  int column = numStr.toInt(&ok);
+
+  if (! ok) {
+    errorMsg("Invalid column number '" + numStr + "'");
+    return;
+  }
+
+  //--
+
+  QString nameStr = columnNameEdit_->text();
+
+  if (nameStr.length())
+    model->setHeaderData(column, Qt::Horizontal, nameStr, Qt::DisplayRole);
+
+  //---
+
   QString typeStr = columnTypeEdit_->text();
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
@@ -1376,11 +1403,11 @@ typeOKSlot()
     return;
   }
 
-  QString numStr = columnNumEdit_->text();
-
-  int column = numStr.toInt();
-
   columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues);
+
+  //---
+
+  viewData->table->update();
 }
 
 //------

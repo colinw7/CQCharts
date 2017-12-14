@@ -25,6 +25,8 @@ class CQHeaderView : public QHeaderView {
 
   void fixWidgetPositions();
 
+  void update();
+
  private:
   void contextMenuEvent(QContextMenuEvent *event);
 

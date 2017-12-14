@@ -363,7 +363,8 @@ class CQChartsView : public QFrame {
   void darkTheme1Slot();
   void darkTheme2Slot();
 
-  void printSlot();
+  void printPNGSlot();
+  void printSVGSlot();
 
   void currentPlotSlot();
 

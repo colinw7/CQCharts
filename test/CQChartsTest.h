@@ -293,6 +293,7 @@ class CQChartsTest : public CQAppWindow {
 //CQChartsPlot*      rootPlot_          { nullptr };
   CQCharts*          charts_            { nullptr };
   QLineEdit*         columnNumEdit_     { nullptr };
+  QLineEdit*         columnNameEdit_    { nullptr };
   QLineEdit*         columnTypeEdit_    { nullptr };
   QTabWidget*        viewTab_           { nullptr };
   ViewDatas          viewDatas_;

@@ -1600,8 +1600,9 @@ CQChartsAxis::
 drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
               bool inside)
 {
-  int tgap = 2;
-  int tlen = majorTickLen();
+  int tgap  = 2;
+  int tlen1 = majorTickLen();
+  int tlen2 = minorTickLen();
 
   double ppx, ppy;
 
@@ -1634,7 +1635,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (inside)
         tyo = pys*tgap;
       else
-        tyo = pys*(tlen + tgap);
+        tyo = pys*(tlen1 + tgap);
     }
     else
       tyo = pys;
@@ -1653,7 +1654,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
-        double atm = plot->pixelToWindowHeight(tlen + tgap);
+        double atm = plot->pixelToWindowHeight(tlen1 + tgap);
 
         if (! plot->isInvertY())
           lmax_ = std::max(lmax_, pt.y() + pys*(ta + td));
@@ -1718,7 +1719,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
-        double atm = plot->pixelToWindowHeight(tlen + tgap);
+        double atm = plot->pixelToWindowHeight(tlen1 + tgap);
 
         if (plot->isInvertY())
           lmin_ = std::max(lmin_, pt.y() - pys*(ta + td));
@@ -1785,7 +1786,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (inside)
         txo = pxs*tgap;
       else
-        txo = pxs*(tlen + tgap);
+        txo = pxs*(tlen1 + tgap);
     }
     else
       txo = pxs;
@@ -1804,7 +1805,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
-        double atm = plot->pixelToWindowWidth (tlen + tgap);
+        double atm = plot->pixelToWindowWidth (tlen1 + tgap);
 
         if (plot->isInvertX())
           lmin_ = std::max(lmin_, pt.x() - pxs*tw);
@@ -1841,7 +1842,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
           else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
-            p = QPointF(tx - pxs*tgap, pt.y() - td  );
+            p = QPointF(tx - pxs*(tlen2 + tgap), pt.y() - td  );
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelHeight(0.5);
 
@@ -1869,12 +1870,12 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       if (CQChartsUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double ath = plot->pixelToWindowHeight(ta + td);
-        double atm = plot->pixelToWindowWidth (tlen + tgap);
+        double atm = plot->pixelToWindowWidth (tlen1 + tgap);
 
         if (! plot->isInvertX())
-          lmax_ = std::max(lmax_, ppx + pxs*(tlen + tgap) + tw);
+          lmax_ = std::max(lmax_, ppx + pxs*(tlen1 + tgap) + tw);
         else
-          lmax_ = std::min(lmax_, ppx + pxs*(tlen + tgap) + tw);
+          lmax_ = std::min(lmax_, ppx + pxs*(tlen1 + tgap) + tw);
 
         tbbox = CQChartsGeom::BBox(apos + atm, tpos - ath/2, apos + atw + atm, tpos + ath/2);
       }
@@ -1906,7 +1907,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
           else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
           else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
-            p = QPointF(tx + pxs*tgap, pt.y() - td  );
+            p = QPointF(tx + pxs*(tlen2 + tgap), pt.y() - td  );
           else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
             double pb = plot->windowToPixelHeight(0.5);
 

@@ -244,27 +244,25 @@ int
 CQChartsDistributionPlot::
 rowCount(QAbstractItemModel *model) const
 {
-  if (! model) return 0;
-
-  return model->rowCount(QModelIndex());
+  return (model ? model->rowCount(QModelIndex()) : 0);
 }
 
 QVariant
 CQChartsDistributionPlot::
 rowValue(QAbstractItemModel *model, int r, int c, bool &ok) const
 {
-  if (! model) return QVariant();
+  ok = false;
 
-  return CQChartsUtil::modelValue(model, r, c, ok);
+  return (model ? CQChartsUtil::modelValue(model, r, c, ok) : QVariant());
 }
 
 QVariant
 CQChartsDistributionPlot::
 headerValue(QAbstractItemModel *model, int c, bool &ok) const
 {
-  if (! model) return QVariant();
+  ok = false;
 
-  return CQChartsUtil::modelHeaderString(model, c, ok);
+  return (model ? CQChartsUtil::modelHeaderString(model, c, ok) : QVariant());
 }
 
 //---
@@ -354,13 +352,13 @@ updateRange(bool apply)
   //---
 
   // calc value range
+  bool hasRange = valueSet_.isNumeric();
 
   categoryRange_.numValues = 0;
   categoryRange_.minValue  = 0.0;
   categoryRange_.maxValue  = 0.0;
 
-  if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
-      valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+  if (hasRange) {
     for (int r = 0; r < nr; ++r) {
       bool ok;
 
@@ -409,8 +407,7 @@ updateRange(bool apply)
 
     int bucket = -1;
 
-    if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
-        valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+    if (hasRange) {
       bool ok;
 
       double value = rowValue(model, r, valueColumn(), ok).toReal();
@@ -574,7 +571,7 @@ void
 CQChartsDistributionPlot::
 updateObjs()
 {
-  valueSet_.clear();
+  //valueSet_.clear();
 
   colorSet_.clear();
 
@@ -611,13 +608,15 @@ initObjs()
   xAxis()->setIntegral(true);
   yAxis()->setIntegral(true);
 
-  xAxis()->setMajorIncrement(! isHorizontal() ? 1 : 0);
-  yAxis()->setMajorIncrement(  isHorizontal() ? 1 : 0);
+  valueAxis()->setMajorIncrement(1);
+  countAxis()->setMajorIncrement(0);
 
-  xAxis()->setRequireTickLabel(! isHorizontal());
-  yAxis()->setRequireTickLabel(  isHorizontal());
+  valueAxis()->setRequireTickLabel(true );
+  countAxis()->setRequireTickLabel(false);
 
   //---
+
+  bool hasRange = valueSet_.isNumeric();
 
   int i = 0;
   int n = numValues();
@@ -643,14 +642,12 @@ initObjs()
     QString bucketStr1 = bucketValuesStr(bucket, BucketValueType::START);
     QString bucketStr2 = bucketValuesStr(bucket, BucketValueType::END  );
 
-    if (! isHorizontal()) {
-      xAxis_->setTickLabel(bucket    , bucketStr1);
-      xAxis_->setTickLabel(bucket + 1, bucketStr2);
+    if (hasRange) {
+      valueAxis()->setTickLabel(bucket    , bucketStr1);
+      valueAxis()->setTickLabel(bucket + 1, bucketStr2);
     }
-    else {
-      yAxis_->setTickLabel(bucket    , bucketStr1);
-      yAxis_->setTickLabel(bucket + 1, bucketStr2);
-    }
+    else
+      valueAxis()->setTickLabel(bucket, bucketStr1);
 
     //---
 
@@ -665,14 +662,8 @@ initObjs()
 
   QString valueName = headerValue(model, valueColumn(), ok).toString();
 
-  if (! isHorizontal()) {
-    xAxis_->setLabel(valueName);
-    yAxis_->setLabel("Count");
-  }
-  else {
-    yAxis_->setLabel(valueName);
-    xAxis_->setLabel("Count");
-  }
+  valueAxis()->setLabel(valueName);
+  countAxis()->setLabel("Count");
 
   //---
 
@@ -681,6 +672,20 @@ initObjs()
   //---
 
   return true;
+}
+
+CQChartsAxis *
+CQChartsDistributionPlot::
+valueAxis() const
+{
+  return (! isHorizontal() ? xAxis_ : yAxis_);
+}
+
+CQChartsAxis *
+CQChartsDistributionPlot::
+countAxis() const
+{
+  return (! isHorizontal() ? yAxis_ : xAxis_);
 }
 
 void
@@ -712,8 +717,9 @@ QString
 CQChartsDistributionPlot::
 bucketValuesStr(int bucket, BucketValueType type) const
 {
-  if (valueSet_.type() == CQChartsValueSet::Type::REAL ||
-      valueSet_.type() == CQChartsValueSet::Type::INTEGER) {
+  bool hasRange = valueSet_.isNumeric();
+
+  if (hasRange) {
     double value1, value2;
 
     bucketValues(bucket, value1, value2);

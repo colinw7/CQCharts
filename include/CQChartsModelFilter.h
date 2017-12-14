@@ -56,6 +56,8 @@ class CQChartsModelFilterData {
   QModelIndexList filterRows_;
 };
 
+//------
+
 class CQChartsModelFilter : public QSortFilterProxyModel {
   Q_OBJECT
 

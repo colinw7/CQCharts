@@ -15,6 +15,8 @@ class CQTableView : public QTableView {
 
   virtual void addMenuActions(QMenu *menu);
 
+  void update();
+
  private slots:
   void customContextMenuSlot(const QPoint &pos);
 

@@ -422,3 +422,12 @@ proxyModel()
 
   return proxyModel;
 }
+
+void
+CQHeaderView::
+update()
+{
+  viewport()->update();
+
+  QHeaderView::update();
+}

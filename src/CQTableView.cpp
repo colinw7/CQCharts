@@ -71,3 +71,14 @@ showVertical()
 {
   verticalHeader()->setVisible(! verticalHeader()->isVisible());
 }
+
+void
+CQTableView::
+update()
+{
+  header_->update();
+
+  viewport()->update();
+
+  QTableView::update();
+}

@@ -51,6 +51,8 @@ class CQChartsValueSet : public QObject {
   // get type
   Type type() const { init(); return type_; }
 
+  bool isNumeric() const { return (type() == Type::REAL || type() == Type::INTEGER); }
+
   // map nth value to real range (mapMin()->mapMax())
   double imap(int i) const;
 

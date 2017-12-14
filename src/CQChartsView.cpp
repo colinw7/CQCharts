@@ -109,6 +109,8 @@ CQChartsView::
   for (auto &probeBand : probeBands_)
     delete probeBand;
 
+  delete popupMenu_;
+
   CQToolTip::unsetToolTip(this);
 }
 
@@ -983,7 +985,7 @@ showMenu(const QPoint &p)
     this->plots(plots);
 
     if (plots.size() > 1) {
-      QMenu *plotsMenu = new QMenu("Plots");
+      QMenu *plotsMenu = new QMenu("Plots", popupMenu_);
 
       QActionGroup *plotsGroup = new QActionGroup(plotsMenu);
 
@@ -1027,7 +1029,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    QMenu *themeMenu = new QMenu("Theme");
+    QMenu *themeMenu = new QMenu("Theme", popupMenu_);
 
     QActionGroup *themeGroup = new QActionGroup(themeMenu);
 
@@ -1068,11 +1070,18 @@ showMenu(const QPoint &p)
 
     //---
 
-    QAction *printAction = new QAction("Print", popupMenu_);
+    QMenu *printMenu = new QMenu("Print", popupMenu_);
 
-    connect(printAction, SIGNAL(triggered()), this, SLOT(printSlot()));
+    QAction *pngAction = new QAction("PNG", popupMenu_);
+    QAction *svgAction = new QAction("SVG", popupMenu_);
 
-    popupMenu_->addAction(printAction);
+    printMenu->addAction(pngAction);
+    printMenu->addAction(svgAction);
+
+    connect(pngAction, SIGNAL(triggered()), this, SLOT(printPNGSlot()));
+    connect(svgAction, SIGNAL(triggered()), this, SLOT(printSVGSlot()));
+
+    popupMenu_->addMenu(printMenu);
   }
 
   popupMenu_->popup(mapToGlobal(p));
@@ -1215,7 +1224,27 @@ setDarkThemeColors()
 
 void
 CQChartsView::
-printSlot()
+printPNGSlot()
+{
+  int w = width ();
+  int h = height();
+
+  QImage image = QImage(QSize(w, h), QImage::Format_ARGB32);
+
+  QPainter painter;
+
+  painter.begin(&image);
+
+  paint(&painter);
+
+  painter.end();
+
+  image.save("charts.png");
+}
+
+void
+CQChartsView::
+printSVGSlot()
 {
   QSvgGenerator generator;
 

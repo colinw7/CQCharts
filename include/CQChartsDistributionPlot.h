@@ -277,6 +277,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   //---
 
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
   //---
 
@@ -289,6 +290,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool initObjs() override;
 
   //---
+
+  CQChartsAxis *valueAxis() const;
+  CQChartsAxis *countAxis() const;
 
   void addKeyItems(CQChartsKey *key) override;
 
