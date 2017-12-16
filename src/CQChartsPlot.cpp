@@ -2180,18 +2180,7 @@ drawObjs(QPainter *painter, const Layer &layer)
 
   painter->save();
 
-  CQChartsPlot *plot1 = firstPlot();
-
-  if      (plot1->isDataClip()) {
-    QRectF dataRect = calcRect();
-
-    painter->setClipRect(dataRect);
-  }
-  else if (plot1->isClip()) {
-    QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
-
-    painter->setClipRect(plotRect);
-  }
+  setClipRect(painter);
 
   double xmin, ymin, xmax, ymax;
 
@@ -2207,6 +2196,24 @@ drawObjs(QPainter *painter, const Layer &layer)
   }
 
   painter->restore();
+}
+
+void
+CQChartsPlot::
+setClipRect(QPainter *painter)
+{
+  CQChartsPlot *plot1 = firstPlot();
+
+  if      (plot1->isDataClip()) {
+    QRectF dataRect = calcRect();
+
+    painter->setClipRect(dataRect);
+  }
+  else if (plot1->isClip()) {
+    QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
+
+    painter->setClipRect(plotRect);
+  }
 }
 
 void

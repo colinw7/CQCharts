@@ -39,7 +39,6 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 
   CQChartsPaletteColor bg(CQChartsPaletteColor::Type::PALETTE);
 
-//boxObj_->setBackgroundColor(QColor("#46A2B4"));
   boxObj_->setBackgroundColor(bg);
 
   whiskerColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
@@ -239,126 +238,11 @@ void
 CQChartsBoxPlot::
 updateRange(bool apply)
 {
-  if (whiskers_.empty()) {
-    QAbstractItemModel *model = this->model();
-
-    if (! model)
-      return;
-
-    int nr = model->rowCount(QModelIndex());
-
-    // determine x data type
-
-    bool isInt = true, isReal = true;
-
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex xind = model->index(r, xColumn());
-
-      if (isInt) {
-        bool ok1;
-
-        (void) CQChartsUtil::modelInteger(model, xind, ok1);
-
-        if (ok1)
-          continue;
-
-        isInt = false;
-      }
-
-      if (isReal) {
-        bool ok1;
-
-        (void) CQChartsUtil::modelReal(model, xind, ok1);
-
-        if (ok1)
-          continue;
-
-        isReal = false;
-      }
-
-      break;
-    }
-
-    valueSet_.clear();
-    setValue_.clear();
-    nameSet_ .clear();
-    setName_ .clear();
-
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex xind = model->index(r, xColumn());
-
-      QModelIndex xind1 = normalizeIndex(xind);
-
-      //---
-
-      int setId;
-
-      if      (isInt) {
-        bool ok1;
-
-        setId = CQChartsUtil::modelInteger(model, xind, ok1);
-      }
-      else if (isReal) {
-        bool ok1;
-
-        double real = CQChartsUtil::modelReal(model, xind, ok1);
-
-        if (CQChartsUtil::isNaN(real))
-          continue;
-
-        auto p = valueSet_.find(real);
-
-        if (p == valueSet_.end()) {
-          int setId1 = valueSet_.size() + 1;
-
-          p = valueSet_.insert(p, ValueSet::value_type(real, setId1));
-
-          setValue_[setId1] = real;
-        }
-
-        setId = (*p).second;
-      }
-      else {
-        bool ok1;
-
-        QString s = CQChartsUtil::modelString(model, xind, ok1);
-
-        auto p = nameSet_.find(s);
-
-        if (p == nameSet_.end()) {
-          int setId1 = nameSet_.size() + 1;
-
-          p = nameSet_.insert(p, NameSet::value_type(s, setId1));
-
-          setName_[setId1] = s;
-        }
-
-        setId = (*p).second;
-      }
-
-      //---
-
-      QModelIndex yind = model->index(r, yColumn());
-
-      bool ok2;
-
-      double value = CQChartsUtil::modelReal(model, yind, ok2);
-
-      if (! ok2) value = r;
-
-      if (CQChartsUtil::isNaN(value))
-        continue;
-
-      CQChartsBoxPlotValue wv(value, xind1);
-
-      whiskers_[setId].addValue(wv);
-    }
-
-    for (auto &iwhisker : whiskers_)
-      iwhisker.second.init();
-  }
+  updateWhiskers();
 
   //---
+
+  dataRange_.reset();
 
   xAxis_->clearTickLabels();
 
@@ -412,6 +296,132 @@ updateRange(bool apply)
 
   if (apply)
     applyDataRange();
+}
+
+void
+CQChartsBoxPlot::
+updateWhiskers()
+{
+  whiskers_.clear();
+
+  //---
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  // determine x data type
+
+  bool isInt = true, isReal = true;
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex xind = model->index(r, xColumn());
+
+    if (isInt) {
+      bool ok1;
+
+      (void) CQChartsUtil::modelInteger(model, xind, ok1);
+
+      if (ok1)
+        continue;
+
+      isInt = false;
+    }
+
+    if (isReal) {
+      bool ok1;
+
+      (void) CQChartsUtil::modelReal(model, xind, ok1);
+
+      if (ok1)
+        continue;
+
+      isReal = false;
+    }
+
+    break;
+  }
+
+  valueSet_.clear();
+  setValue_.clear();
+  nameSet_ .clear();
+  setName_ .clear();
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex xind = model->index(r, xColumn());
+
+    QModelIndex xind1 = normalizeIndex(xind);
+
+    //---
+
+    int setId;
+
+    if      (isInt) {
+      bool ok1;
+
+      setId = CQChartsUtil::modelInteger(model, xind, ok1);
+    }
+    else if (isReal) {
+      bool ok1;
+
+      double real = CQChartsUtil::modelReal(model, xind, ok1);
+
+      if (CQChartsUtil::isNaN(real))
+        continue;
+
+      auto p = valueSet_.find(real);
+
+      if (p == valueSet_.end()) {
+        int setId1 = valueSet_.size() + 1;
+
+        p = valueSet_.insert(p, ValueSet::value_type(real, setId1));
+
+        setValue_[setId1] = real;
+      }
+
+      setId = (*p).second;
+    }
+    else {
+      bool ok1;
+
+      QString s = CQChartsUtil::modelString(model, xind, ok1);
+
+      auto p = nameSet_.find(s);
+
+      if (p == nameSet_.end()) {
+        int setId1 = nameSet_.size() + 1;
+
+        p = nameSet_.insert(p, NameSet::value_type(s, setId1));
+
+        setName_[setId1] = s;
+      }
+
+      setId = (*p).second;
+    }
+
+    //---
+
+    QModelIndex yind = model->index(r, yColumn());
+
+    bool ok2;
+
+    double value = CQChartsUtil::modelReal(model, yind, ok2);
+
+    if (! ok2) value = r;
+
+    if (CQChartsUtil::isNaN(value))
+      continue;
+
+    CQChartsBoxPlotValue wv(value, xind1);
+
+    whiskers_[setId].addValue(wv);
+  }
+
+  for (auto &iwhisker : whiskers_)
+    iwhisker.second.init();
 }
 
 bool

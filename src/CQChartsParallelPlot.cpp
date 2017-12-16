@@ -44,7 +44,11 @@ CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
 CQChartsParallelPlot::
 ~CQChartsParallelPlot()
 {
+  delete pointObj_;
   delete lineObj_;
+
+  for (auto &yAxis : yAxes_)
+    delete yAxis;
 }
 
 QString

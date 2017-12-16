@@ -89,9 +89,9 @@ calcVoronoi()
       PFace f2 = e2->otherFace(f);
       PFace f3 = e3->otherFace(f);
 
-      PVertex v1 = (f1 ? f1->getVoronoi() : NULL);
-      PVertex v2 = (f2 ? f2->getVoronoi() : NULL);
-      PVertex v3 = (f3 ? f3->getVoronoi() : NULL);
+      PVertex v1 = (f1 ? f1->getVoronoi() : nullptr);
+      PVertex v2 = (f2 ? f2->getVoronoi() : nullptr);
+      PVertex v3 = (f3 ? f3->getVoronoi() : nullptr);
 
       if (v1) {
         PEdge e = new Edge(v, v1);
@@ -109,7 +109,7 @@ calcVoronoi()
 
         PEdge e = new Edge(v, vm);
 
-        e->setLeftFace(NULL); e->setRightFace(f);
+        e->setLeftFace(nullptr); e->setRightFace(f);
 
         e->addTo(&vedges_);
       }
@@ -130,7 +130,7 @@ calcVoronoi()
 
         PEdge e = new Edge(v, vm);
 
-        e->setLeftFace(NULL); e->setRightFace(f);
+        e->setLeftFace(nullptr); e->setRightFace(f);
 
         e->addTo(&vedges_);
       }
@@ -151,7 +151,7 @@ calcVoronoi()
 
         PEdge e = new Edge(v, vm);
 
-        e->setLeftFace(NULL); e->setRightFace(f);
+        e->setLeftFace(nullptr); e->setRightFace(f);
 
         e->addTo(&vedges_);
       }

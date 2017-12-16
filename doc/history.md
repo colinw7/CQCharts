@@ -204,3 +204,7 @@
 ## 12/15/2017
  + Better bounding boxes for axis tick labels
  + Use Qt::EditRole for raw model data
+## 12/16/2017
+ + Update documentation with screen shots
+ + Fix some memory leaks
+ + Add pan mode

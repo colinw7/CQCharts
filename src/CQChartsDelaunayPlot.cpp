@@ -49,7 +49,10 @@ CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
 CQChartsDelaunayPlot::
 ~CQChartsDelaunayPlot()
 {
+  delete pointObj_;
   delete lineObj_;
+
+  delete delaunay_;
 }
 
 QString
@@ -263,6 +266,8 @@ void
 CQChartsDelaunayPlot::
 drawForeground(QPainter *painter)
 {
+  setClipRect(painter);
+
   if (! isVoronoi())
     drawDelaunay(painter);
   else

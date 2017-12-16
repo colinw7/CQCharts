@@ -130,6 +130,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
  public:
   CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model);
 
+ ~CQChartsAdjacencyPlot();
+
   int nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
 

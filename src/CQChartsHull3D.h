@@ -455,7 +455,7 @@ class CQChartsHull3D {
  public:
   CQChartsHull3D();
 
- ~CQChartsHull3D() { }
+  virtual ~CQChartsHull3D();
 
   bool getUseLower() const { return useLower_; }
   void setUseLower(bool lower) { useLower_ = lower; }
@@ -531,14 +531,14 @@ class CQChartsHull3D {
 
  protected:
   /* Global variable definitions */
-  PVertex vertices_;
-  PEdge   edges_;
-  PFace   faces_;
-  PVertex vvertices_;
-  PEdge   vedges_;
-  bool    useLower_;
-  bool    debug_;
-  bool    check_;
+  PVertex vertices_  { nullptr };
+  PEdge   edges_     { nullptr };
+  PFace   faces_     { nullptr };
+  PVertex vvertices_ { nullptr };
+  PEdge   vedges_    { nullptr };
+  bool    useLower_  { false };
+  bool    debug_     { false };
+  bool    check_     { false };
 };
 
 #endif

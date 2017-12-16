@@ -22,7 +22,10 @@ class CQChartsViewToolBar : public QFrame {
   void modeSlot(int ind);
 
   void selectButtonClicked(int);
-  void zoomSlot();
+
+  void zoomFullSlot();
+
+  void panResetSlot();
 
   void autoFitSlot();
 

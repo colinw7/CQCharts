@@ -54,6 +54,13 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
+CQChartsAdjacencyPlot::
+~CQChartsAdjacencyPlot()
+{
+  for (auto pnode : nodes_)
+    delete pnode.second;
+}
+
 void
 CQChartsAdjacencyPlot::
 addProperties()

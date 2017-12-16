@@ -368,6 +368,7 @@ mousePressEvent(QMouseEvent *me)
   mouseData_.pressPoint = me->pos();
   mouseData_.button     = me->button();
   mouseData_.pressed    = true;
+  mouseData_.movePoint  = mouseData_.pressPoint;
 
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
@@ -429,6 +430,8 @@ mousePressEvent(QMouseEvent *me)
       else {
         startRegionBand(mouseData_.pressPoint);
       }
+    }
+    else if (mode_ == Mode::PAN) {
     }
     else if (mode_ == Mode::PROBE) {
     }
@@ -634,6 +637,21 @@ mouseMoveEvent(QMouseEvent *me)
       else
         updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
     }
+    else if (mode_ == Mode::PAN) {
+      if (mouseData_.plot) {
+        CQChartsGeom::Point w1, w2;
+
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(mouseData_.movePoint)), w1);
+        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos()           )), w2);
+
+        double dx = w1.x - w2.x;
+        double dy = w1.y - w2.y;
+
+        mouseData_.plot->pan(dx, dy);
+
+        mouseData_.movePoint = me->pos();
+      }
+    }
     else if (mode_ == Mode::PROBE) {
     }
   }
@@ -756,6 +774,8 @@ mouseReleaseEvent(QMouseEvent *me)
         mouseData_.plot->zoomTo(bbox);
       }
     }
+    else if (mode_ == Mode::PAN) {
+    }
     else if (mode_ == Mode::PROBE) {
     }
   }
@@ -798,6 +818,10 @@ keyPressEvent(QKeyEvent *ke)
       endRegionBand();
 
     if      (mode() == Mode::ZOOM) {
+      if (! mouseData_.pressed)
+        setMode(Mode::SELECT);
+    }
+    else if (mode() == Mode::PAN) {
       if (! mouseData_.pressed)
         setMode(Mode::SELECT);
     }

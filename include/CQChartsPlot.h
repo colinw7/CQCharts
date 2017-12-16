@@ -758,6 +758,9 @@ class CQChartsPlot : public QObject {
   // draw objects
   virtual void drawObjs(QPainter *painter, const Layer &layer);
 
+  // set clip rect
+  void setClipRect(QPainter *painter);
+
   // draw axes on background/foreground
   virtual void drawBgAxes(QPainter *painter);
   virtual void drawFgAxes(QPainter *painter);

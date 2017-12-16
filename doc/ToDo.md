@@ -1,4 +1,5 @@
 High
+ + zoom/pan on overlay is recalcing objects
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
@@ -7,6 +8,7 @@ High
  + Generic Filter support (plugin)
  + Allow disable theme for fixed color plot
  + Radial Cooords
+ + Pan Mode
 
 Misc
  + Cache plot pixmaps

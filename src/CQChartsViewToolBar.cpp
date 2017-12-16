@@ -10,6 +10,8 @@
 #include <svg/select_dark_svg.h>
 #include <svg/zoom_light_svg.h>
 #include <svg/zoom_dark_svg.h>
+#include <svg/pan_light_svg.h>
+#include <svg/pan_dark_svg.h>
 #include <svg/probe_light_svg.h>
 #include <svg/probe_dark_svg.h>
 #include <svg/zoom_fit_light_svg.h>
@@ -63,6 +65,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("SELECT_LIGHT", "SELECT_DARK"), "Select");
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"   , "PAN_DARK"   ), "Pan"   );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT" , "PROBE_DARK" ), "Probe" );
 
   modeCombo_->setFocusPolicy(Qt::NoFocus);
@@ -81,10 +84,12 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   QFrame *selectControls = CQUtil::makeWidget<QFrame>("select");
   QFrame *zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
+  QFrame *panControls    = CQUtil::makeWidget<QFrame>("pan");
   QFrame *probeControls  = CQUtil::makeWidget<QFrame>("probe");
 
   controlsStack_->addWidget(selectControls);
   controlsStack_->addWidget(zoomControls);
+  controlsStack_->addWidget(panControls);
   controlsStack_->addWidget(probeControls);
 
   layout->addStretch(1);
@@ -122,9 +127,23 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   zoomButton->setText("Reset");
   zoomButton->setFocusPolicy(Qt::NoFocus);
 
-  connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomSlot()));
+  connect(zoomButton, SIGNAL(clicked()), this, SLOT(zoomFullSlot()));
 
   zoomControlsLayout->addWidget(zoomButton);
+
+  //---
+
+  QHBoxLayout *panControlsLayout = new QHBoxLayout(panControls);
+  panControlsLayout->setMargin(0); panControlsLayout->setSpacing(2);
+
+  QPushButton *panButton = CQUtil::makeWidget<QPushButton>("reset");
+
+  panButton->setText("Reset");
+  panButton->setFocusPolicy(Qt::NoFocus);
+
+  connect(panButton, SIGNAL(clicked()), this, SLOT(panResetSlot()));
+
+  panControlsLayout->addWidget(panButton);
 
   //---
 
@@ -150,6 +169,8 @@ modeSlot(int ind)
   else if (ind == 1)
     window_->view()->setMode(CQChartsView::Mode::ZOOM);
   else if (ind == 2)
+    window_->view()->setMode(CQChartsView::Mode::PAN);
+  else if (ind == 3)
     window_->view()->setMode(CQChartsView::Mode::PROBE);
 
   updateMode();
@@ -167,12 +188,18 @@ selectButtonClicked(int ind)
 
 void
 CQChartsViewToolBar::
-zoomSlot()
+zoomFullSlot()
 {
   CQChartsPlot *plot = window_->view()->currentPlot();
 
   if (plot)
     plot->zoomFull();
+}
+
+void
+CQChartsViewToolBar::
+panResetSlot()
+{
 }
 
 void
@@ -187,9 +214,13 @@ updateMode()
     modeCombo_    ->setCurrentIndex(1);
     controlsStack_->setCurrentIndex(1);
   }
-  else if (window_->view()->mode() == CQChartsView::Mode::PROBE) {
+  else if (window_->view()->mode() == CQChartsView::Mode::PAN) {
     modeCombo_    ->setCurrentIndex(2);
     controlsStack_->setCurrentIndex(2);
+  }
+  else if (window_->view()->mode() == CQChartsView::Mode::PROBE) {
+    modeCombo_    ->setCurrentIndex(3);
+    controlsStack_->setCurrentIndex(3);
   }
 }
 

@@ -77,6 +77,7 @@ class CQChartsView : public QFrame {
   enum class Mode {
     SELECT,
     ZOOM,
+    PAN,
     PROBE
   };
 

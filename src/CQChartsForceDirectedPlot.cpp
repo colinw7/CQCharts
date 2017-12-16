@@ -53,6 +53,12 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
   timer_->start(tickLen_);
 }
 
+CQChartsForceDirectedPlot::
+~CQChartsForceDirectedPlot()
+{
+  delete timer_;
+}
+
 void
 CQChartsForceDirectedPlot::
 addProperties()
@@ -413,7 +419,9 @@ draw(QPainter *painter)
   edgeColor.setAlphaF(edgeAlpha());
 
   for (auto edge : forceDirected_.edges()) {
-    auto spring = forceDirected_.spring(edge);
+    bool isTemp = false;
+
+    auto spring = forceDirected_.spring(edge, isTemp);
 
     const Springy::Vector &p1 = spring->point1()->p();
     const Springy::Vector &p2 = spring->point2()->p();
@@ -428,6 +436,9 @@ draw(QPainter *painter)
     painter->setPen(QPen(edgeColor, w));
 
     painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+
+    if (isTemp)
+      delete spring;
   }
 
   // draw nodes

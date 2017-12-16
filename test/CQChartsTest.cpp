@@ -1483,7 +1483,8 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
   bool reuse = false;
 
   if (initData.overlay || initData.y1y2) {
-    if (typeName == "xy" || typeName == "barchart")
+    if (typeName == "xy"       || typeName == "barchart" ||
+        typeName == "geometry" || typeName == "delaunay")
       reuse = true;
   }
   else {

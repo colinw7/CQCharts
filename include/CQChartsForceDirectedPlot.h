@@ -410,7 +410,9 @@ namespace Springy {
       return (*p).second;
     }
 
-    Spring *edgeSpring(Edge *edge) {
+    Spring *edgeSpring(Edge *edge, bool &isTemp) {
+      isTemp = false;
+
       auto p = edgeSprings_.find(edge->id());
 
       if (p == edgeSprings_.end()) {
@@ -425,7 +427,12 @@ namespace Springy {
             existingSpring = (*p1).second;
 
             // MLK ?
-            return new Spring(existingSpring->point1(), existingSpring->point2(), 0.0, 0.0);
+            Spring *tspring =
+             new Spring(existingSpring->point1(), existingSpring->point2(), 0.0, 0.0);
+
+            isTemp = true;
+
+            return tspring;
           }
         }
 
@@ -438,7 +445,12 @@ namespace Springy {
             existingSpring = (*p1).second;
 
             // MLK ?
-            return new Spring(existingSpring->point2(), existingSpring->point1(), 0.0, 0.0);
+            Spring *tspring =
+              new Spring(existingSpring->point2(), existingSpring->point1(), 0.0, 0.0);
+
+            isTemp = true;
+
+            return tspring;
           }
         }
 
@@ -478,7 +490,9 @@ namespace Springy {
 
     void applyHookesLaw() {
       for (auto edge : graph_->edges()) {
-        auto spring = this->edgeSpring(edge);
+        bool isTemp = false;
+
+        auto spring = this->edgeSpring(edge, isTemp);
 
         // the direction of the spring
         Vector d = spring->point2()->p().subtract(spring->point1()->p());
@@ -490,6 +504,9 @@ namespace Springy {
         // apply force to each end point
         spring->point1()->applyForce(direction.multiply(spring->k()*displacement*-0.5));
         spring->point2()->applyForce(direction.multiply(spring->k()*displacement* 0.5));
+
+        if (isTemp)
+          delete spring;
       }
     }
 
@@ -636,8 +653,8 @@ class CForceDirected {
     layout_->step(dt);
   }
 
-  Springy::Spring *spring(Springy::Edge *edge) {
-    return layout_->edgeSpring(edge);
+  Springy::Spring *spring(Springy::Edge *edge, bool &isTemp) {
+    return layout_->edgeSpring(edge, isTemp);
   }
 
   Springy::Point *point(Springy::Node *node) {
@@ -700,6 +717,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
  public:
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
+
+ ~CQChartsForceDirectedPlot();
 
   int nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }

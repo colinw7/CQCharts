@@ -173,6 +173,8 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
+  void updateWhiskers();
+
   bool initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;

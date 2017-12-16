@@ -469,6 +469,10 @@ CQChartsTest -overlay \
 
 ##---
 
+CQChartsTest -csv mandelbrot.csv -type image
+
+##---
+
 CQChartsTest -csv radar.csv -first_line_header -type radar -columns "name=0,value=1 2 3 4 5"
 
 ##---

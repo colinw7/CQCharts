@@ -5,10 +5,42 @@ uint CQChartsHull3D::Vertex::count_ = 0;
 /*-------------------------------------------------------------------*/
 
 CQChartsHull3D::
-CQChartsHull3D() :
- vertices_(0), edges_(0), faces_(0), vvertices_(0), vedges_(0),
- useLower_(false), debug_(false), check_(false)
+CQChartsHull3D()
 {
+}
+
+CQChartsHull3D::
+~CQChartsHull3D()
+{
+  for (PVertex v = vertices_, vn = nullptr; v && vn != vertices_; v = vn) {
+    vn = v->next;
+
+    delete v;
+  }
+
+  for (PEdge e = edges_, en = nullptr; e && en != edges_; e = en) {
+    en = e->next;
+
+    delete e;
+  }
+
+  for (PFace f = faces_, fn = nullptr; f && fn != faces_; f = fn) {
+    fn = f->next;
+
+    delete f;
+  }
+
+  for (PVertex v = vvertices_, vn = nullptr; v && vn != vvertices_; v = vn) {
+    vn = v->next;
+
+    delete v;
+  }
+
+  for (PEdge e = vedges_, en = nullptr; e && en != vedges_; e = en) {
+    en = e->next;
+
+    delete e;
+  }
 }
 
 bool
