@@ -1,10 +1,12 @@
 High
+ + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
  + Allow title drag move ?
  + Filter Stack (Push/Pop) Tree - keep/delete
  + Generic Filter support (plugin)
  + Allow disable theme for fixed color plot
+ + Radial Cooords
 
 Misc
  + Cache plot pixmaps

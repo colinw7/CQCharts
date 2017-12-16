@@ -122,7 +122,7 @@ data(const QModelIndex &index, int role) const
 
     return var;
   }
-  else if (role == Qt::UserRole) {
+  else if (role == Qt::EditRole) {
     if (index.row() < 0 || index.row() >= int(data_.size()))
       return QVariant();
 

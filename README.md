@@ -14,7 +14,7 @@ Chart types supported
     + tabular connectivity table (needs special column value syntax for connections)
   + BarChart
     + 1d bar chart for column value
-![barchart](barchart.png "desc")
+    ![barchart](barchart.png "desc")
   + Box
     + Box plot of agregated values from value and group columns
   + Bubble
@@ -47,3 +47,4 @@ Chart types supported
     + Hierarchical tree map
   + XY
     + x/y monotic value plot
+    ![xychart](xychart.png "desc")

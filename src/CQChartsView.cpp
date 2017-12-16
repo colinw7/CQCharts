@@ -1117,6 +1117,8 @@ lightTheme1Slot()
   setPaletteColors1();
 
   setLightThemeColors();
+
+  update();
 }
 
 void
@@ -1128,6 +1130,8 @@ lightTheme2Slot()
   setPaletteColors2();
 
   setLightThemeColors();
+
+  update();
 }
 
 void
@@ -1139,6 +1143,8 @@ darkTheme1Slot()
   setPaletteColors1();
 
   setDarkThemeColors();
+
+  update();
 }
 
 void
@@ -1150,6 +1156,8 @@ darkTheme2Slot()
   setPaletteColors2();
 
   setDarkThemeColors();
+
+  update();
 }
 
 void

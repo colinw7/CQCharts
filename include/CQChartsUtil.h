@@ -497,7 +497,7 @@ inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   ok = true;
 
-  QVariant var = model->data(ind, Qt::UserRole);
+  QVariant var = model->data(ind, Qt::EditRole);
 
   if (! var.isValid())
     var = model->data(ind, Qt::DisplayRole);

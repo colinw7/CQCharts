@@ -20,6 +20,7 @@
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
+#include <iostream>
 
 //------
 
@@ -615,7 +616,7 @@ void
 CQChartsPlot::
 setRange(const QRectF &r)
 {
-  assert(dataScale_ == 1.0);
+  assert(dataScaleX() == 1.0 && dataScaleY() == 1.0);
 
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(r);
 
@@ -684,6 +685,8 @@ addProperties()
   addProperty("", this, "visible"    );
   addProperty("", this, "rect"       );
   addProperty("", this, "range"      );
+  addProperty("", this, "dataScaleX" );
+  addProperty("", this, "dataScaleY" );
   addProperty("", this, "equalScale" );
   addProperty("", this, "followMouse");
   addProperty("", this, "overlay"    );
@@ -871,8 +874,8 @@ calcDataRange() const
     bbox = CQChartsGeom::BBox(0, 0, 1, 1);
 
   CQChartsGeom::Point c = bbox.getCenter();
-  double              w = 0.5*bbox.getWidth ()/dataScale_;
-  double              h = 0.5*bbox.getHeight()/dataScale_;
+  double              w = 0.5*bbox.getWidth ()/dataScaleX();
+  double              h = 0.5*bbox.getHeight()/dataScaleY();
 
   double x = c.x + dataOffset_.x;
   double y = c.y + dataOffset_.y;
@@ -929,16 +932,18 @@ applyDataRange(bool propagate)
                             dataRange.getXMax(), dataRange.getYMax());
 
       if (plot1) {
-        //plot1->setDataRange (dataRange1 );
-        //plot1->setDataScale (dataScale_ );
-        //plot1->setDataOffset(dataOffset_);
+        //plot1->setDataRange (dataRange1  );
+        //plot1->setDataScaleX(dataScaleX());
+        //plot1->setDataScaleY(dataScaleY());
+        //plot1->setDataOffset(dataOffset());
 
         //plot1->applyDataRange(/*propagate*/false);
 
         while (plot1) {
-          plot1->setDataRange (dataRange1 );
-          plot1->setDataScale (dataScale_ );
-          plot1->setDataOffset(dataOffset_);
+          plot1->setDataRange (dataRange1  );
+          plot1->setDataScaleX(dataScaleX());
+          plot1->setDataScaleY(dataScaleY());
+          plot1->setDataOffset(dataOffset());
 
           plot1->applyDataRange(/*propagate*/false);
 
@@ -951,8 +956,9 @@ applyDataRange(bool propagate)
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
-      plot1->setDataScale (dataScale_ );
-      plot1->setDataOffset(dataOffset_);
+      plot1->setDataScaleX(dataScaleX());
+      plot1->setDataScaleY(dataScaleY());
+      plot1->setDataOffset(dataOffset());
 
       plot1->applyDataRange(/*propagate*/false);
 
@@ -971,9 +977,10 @@ applyDataRange(bool propagate)
           CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
                               dataRange1.right(), bbox2.getYMax());
 
-        plot2->setDataRange(dataRange2);
-        plot2->setDataScale (dataScale_ );
-        plot2->setDataOffset(dataOffset_);
+        plot2->setDataRange (dataRange2  );
+        plot2->setDataScaleX(dataScaleX());
+        plot2->setDataScaleY(dataScaleY());
+        plot2->setDataOffset(dataOffset());
 
         plot2->applyDataRange(/*propagate*/false);
       }
@@ -982,8 +989,9 @@ applyDataRange(bool propagate)
       if (plot1) {
         while (plot1) {
           if (plot1 != this) {
-            plot1->setDataScale (dataScale_ );
-            plot1->setDataOffset(dataOffset_);
+            plot1->setDataScaleX(dataScaleX());
+            plot1->setDataScaleY(dataScaleY());
+            plot1->setDataOffset(dataOffset());
 
             plot1->applyDataRange(/*propagate*/false);
           }
@@ -1732,7 +1740,8 @@ CQChartsPlot::
 zoomIn(double f)
 {
   if (view_->isZoomData()) {
-    dataScale_ *= 1.5;
+    dataScaleX_ *= f;
+    dataScaleY_ *= f;
 
     applyDataRange();
 
@@ -1750,7 +1759,8 @@ CQChartsPlot::
 zoomOut(double f)
 {
   if (view_->isZoomData()) {
-    dataScale_ /= 1.5;
+    dataScaleX_ /= f;
+    dataScaleY_ /= f;
 
     applyDataRange();
 
@@ -1785,7 +1795,8 @@ zoomTo(const CQChartsGeom::BBox &bbox)
     double xscale = w1/w;
     double yscale = h1/h;
 
-    dataScale_ = std::min(xscale, yscale);
+    dataScaleX_ = std::min(xscale, yscale);
+    dataScaleY_ = std::min(xscale, yscale);
 
     CQChartsGeom::Point c1 = CQChartsGeom::Point(dataRange_.xmid(), dataRange_.ymid());
 
@@ -1807,7 +1818,8 @@ CQChartsPlot::
 zoomFull()
 {
   if (view_->isZoomData()) {
-    dataScale_  = 1.0;
+    dataScaleX_ = 1.0;
+    dataScaleY_ = 1.0;
     dataOffset_ = CQChartsGeom::Point(0.0, 0.0);
 
     applyDataRange();
@@ -2645,6 +2657,8 @@ CQChartsPlot::
 beginSelect()
 {
   itemSelection_ = QItemSelection();
+
+  selIndexColumnRows_.clear();
 }
 
 void
@@ -2661,6 +2675,8 @@ addSelectIndex(const QModelIndex &ind)
   QModelIndex ind1 = unnormalizeIndex(ind);
 
   itemSelection_.select(ind1, ind1);
+
+  selIndexColumnRows_[ind1.parent()][ind1.column()].insert(ind1.row());
 }
 
 void
@@ -2673,7 +2689,58 @@ endSelect()
   disconnect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
              this, SLOT(selectionSlot()));
 
-  sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
+  //---
+
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  QItemSelection optItemSelection;
+
+  for (const auto &p : selIndexColumnRows_) {
+    const QModelIndex &parent     = p.first;
+    const ColumnRows  &columnRows = p.second;
+
+    for (const auto &p1 : columnRows) {
+      int         column = p1.first;
+      const Rows &rows   = p1.second;
+
+      int startRow = -1;
+      int endRow   = -1;
+
+      for (const auto &row : rows) {
+        if      (startRow < 0) {
+          startRow = row;
+          endRow   = row;
+        }
+        else if (row == endRow + 1) {
+          endRow = row;
+        }
+        else {
+          QModelIndex ind1 = model->index(startRow, column, parent);
+          QModelIndex ind2 = model->index(endRow  , column, parent);
+
+          optItemSelection.select(ind1, ind2);
+
+          startRow = row;
+          endRow   = row;
+        }
+      }
+
+      if (startRow >= 0) {
+        QModelIndex ind1 = model->index(startRow, column, parent);
+        QModelIndex ind2 = model->index(endRow  , column, parent);
+
+        optItemSelection.select(ind1, ind2);
+      }
+    }
+  }
+
+std::cerr << "Opt: " << optItemSelection.length() << " Std: " << itemSelection_.length() << "\n";
+  sm->select(optItemSelection, QItemSelectionModel::ClearAndSelect);
+
+//sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
+
+  //---
 
   connect(sm, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
           this, SLOT(selectionSlot()));

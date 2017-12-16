@@ -65,7 +65,7 @@ class CQChartsModelExprMatchColumnFn : public CQChartsModelExprMatchFn {
 
     QModelIndex ind = expr_->model()->index(row, col, QModelIndex());
 
-    QVariant var = expr_->model()->data(ind, Qt::UserRole);
+    QVariant var = expr_->model()->data(ind, Qt::EditRole);
 
     return CQChartsModelExprMatch::variantToValue(expr, var);
   }
@@ -108,7 +108,7 @@ class CQChartsModelExprMatchRowFn : public CQChartsModelExprMatchFn {
 
     QModelIndex ind = expr_->model()->index(row, col, QModelIndex());
 
-    QVariant var = expr_->model()->data(ind, Qt::UserRole);
+    QVariant var = expr_->model()->data(ind, Qt::EditRole);
 
     return CQChartsModelExprMatch::variantToValue(expr, var);
   }
@@ -155,7 +155,7 @@ class CQChartsModelExprMatchCellFn : public CQChartsModelExprMatchFn {
 
     QModelIndex ind = expr_->model()->index(row, col, QModelIndex());
 
-    QVariant var = expr_->model()->data(ind, Qt::UserRole);
+    QVariant var = expr_->model()->data(ind, Qt::EditRole);
 
     return CQChartsModelExprMatch::variantToValue(expr, var);
   }
@@ -338,7 +338,7 @@ evaluateExpression(const QString &expr, int row, int column, CExprValuePtr &valu
 
     QModelIndex ind = model_->index(row, column, QModelIndex());
 
-    QVariant var = model_->data(ind, Qt::UserRole);
+    QVariant var = model_->data(ind, Qt::EditRole);
 
     columnVar->setValue(variantToValue(this, var));
   }

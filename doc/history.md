@@ -201,3 +201,6 @@
  + Update expander widget to allow detach
 ## 12/12/2017
  + Support override of distribution plot model data using virtuals
+## 12/15/2017
+ + Better bounding boxes for axis tick labels
+ + Use Qt::EditRole for raw model data

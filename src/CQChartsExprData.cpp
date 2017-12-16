@@ -37,10 +37,10 @@ data(const QModelIndex &index, int role) const
 {
   QVariant var = CQChartsModelFilter::data(index, role);
 
-  if (role == Qt::UserRole && ! var.isValid())
+  if (role == Qt::EditRole && ! var.isValid())
     var = CQChartsModelFilter::data(index, Qt::DisplayRole);
 
-  if (role == Qt::DisplayRole || role == Qt::UserRole) {
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
     if (! index.isValid())
       return QVariant();
 

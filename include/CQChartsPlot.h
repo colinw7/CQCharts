@@ -133,6 +133,8 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool    visible             READ isVisible           WRITE setVisible            )
   Q_PROPERTY(QRectF  rect                READ rect                WRITE setRect               )
   Q_PROPERTY(QRectF  range               READ range               WRITE setRange              )
+  Q_PROPERTY(double  dataScaleX          READ dataScaleX          WRITE updateDataScaleX      )
+  Q_PROPERTY(double  dataScaleY          READ dataScaleY          WRITE updateDataScaleY      )
 
   // margin
   Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
@@ -275,8 +277,17 @@ class CQChartsPlot : public QObject {
   const CQChartsGeom::Range &dataRange() const { return dataRange_; }
   void setDataRange(const CQChartsGeom::Range &r);
 
-  double dataScale() const { return dataScale_; }
-  void setDataScale(double r) { dataScale_ = r; }
+  double dataScaleX() const { return dataScaleX_; }
+  void setDataScaleX(double r) { dataScaleX_ = r; }
+
+  double dataScaleY() const { return dataScaleY_; }
+  void setDataScaleY(double r) { dataScaleY_ = r; }
+
+  void updateDataScaleX(double r) { setDataScaleX(r); applyDataRange(); update(); }
+  void updateDataScaleY(double r) { setDataScaleY(r); applyDataRange(); update(); }
+
+  double dataScale() const { return dataScaleX_; }
+  void setDataScale(double r) { dataScaleX_ = r; dataScaleY_ = r; }
 
   const CQChartsGeom::Point &dataOffset() const { return dataOffset_; }
   void setDataOffset(const CQChartsGeom::Point &o) { dataOffset_ = o; }
@@ -675,21 +686,24 @@ class CQChartsPlot : public QObject {
 
   //---
 
+ public slots:
   virtual void panLeft ();
   virtual void panRight();
   virtual void panUp   ();
   virtual void panDown ();
 
+  virtual void zoomIn(double f=1.5);
+  virtual void zoomOut(double f=1.5);
+  virtual void zoomFull();
+
+ public:
   virtual void pan(double dx, double dy);
+
+  virtual void zoomTo(const CQChartsGeom::BBox &bbox);
 
   //---
 
   virtual bool isClickZoom() const { return false; }
-
-  virtual void zoomTo(const CQChartsGeom::BBox &bbox);
-  virtual void zoomIn(double f=1.5);
-  virtual void zoomOut(double f=1.5);
-  virtual void zoomFull();
 
   //---
 
@@ -845,9 +859,12 @@ class CQChartsPlot : public QObject {
   void objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const;
 
  protected:
-  using RefPlots    = std::vector<CQChartsPlot*>;
-  using LayerActive = std::map<Layer,bool>;
-  using IdHidden    = std::map<int,bool>;
+  using RefPlots        = std::vector<CQChartsPlot*>;
+  using LayerActive     = std::map<Layer,bool>;
+  using IdHidden        = std::map<int,bool>;
+  using Rows            = std::set<int>;
+  using ColumnRows      = std::map<int,Rows>;
+  using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
 
   enum class DragObj {
     NONE,
@@ -876,7 +893,8 @@ class CQChartsPlot : public QObject {
   CQChartsDisplayRange*     displayRange_     { nullptr };
   CQChartsDisplayTransform* displayTransform_ { nullptr };
   CQChartsGeom::Range       dataRange_;
-  double                    dataScale_        { 1.0 };
+  double                    dataScaleX_       { 1.0 };
+  double                    dataScaleY_       { 1.0 };
   CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };
   OptReal                   xmin_;
   OptReal                   ymin_;
@@ -913,6 +931,7 @@ class CQChartsPlot : public QObject {
   MouseData                 mouseData_;
   LayerActive               layerActive_;
   IdHidden                  idHidden_;
+  IndexColumnRows           selIndexColumnRows_;
   QItemSelection            itemSelection_;
   QTimer                    updateTimer_;
 };
