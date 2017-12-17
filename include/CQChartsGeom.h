@@ -291,6 +291,7 @@ class Point {
 
 //-----
 
+// TODO: enforce min/max order always ? Same as BBox
 class Range {
  public:
   Range() { }

@@ -481,7 +481,7 @@ updateRange(bool apply)
   }
 
   if      (isBivariate() && ns > 1) {
-    QString name = title();
+    QString name = titleStr();
 
     if (! name.length()) {
       int yColumn1 = getSetColumn(0);
@@ -694,7 +694,7 @@ initObjs()
 
     // add lower, upper and polygon objects for fill under
     if (isFillUnder()) {
-      QString name = title();
+      QString name = titleStr();
 
       if (! name.length()) {
         int yColumn1 = getSetColumn(0);
@@ -1255,7 +1255,7 @@ addKeyItems(CQChartsKey *key)
   int ns = numSets();
 
   if      (isBivariate() && ns > 1) {
-    QString name = title();
+    QString name = titleStr();
 
     if (! name.length()) {
       int yColumn1 = getSetColumn(0);
@@ -1300,15 +1300,15 @@ addKeyItems(CQChartsKey *key)
 
 #if 0
       if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
-        if      (title().length())
-          name = title();
+        if      (titleStr().length())
+          name = titleStr();
         else if (fileName().length())
           name = fileName();
       }
 #endif
-      if (ns == 1 && (title().length() || fileName().length())) {
-        if      (title().length())
-          name = title();
+      if (ns == 1 && (titleStr().length() || fileName().length())) {
+        if      (titleStr().length())
+          name = titleStr();
         else if (fileName().length())
           name = fileName();
       }

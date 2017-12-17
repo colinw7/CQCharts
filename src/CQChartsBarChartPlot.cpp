@@ -1094,7 +1094,7 @@ addKeyItems(CQChartsKey *key)
       }
     }
     else {
-      QString title = this->title();
+      QString title = this->titleStr();
 
       if (! title.length()) {
         bool ok;

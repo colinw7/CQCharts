@@ -354,7 +354,17 @@ class CQChartsView : public QFrame {
  public slots:
   void searchSlot();
 
-  void keySlot(bool b);
+  void keyVisibleSlot(bool b);
+  void keyPositionSlot(QAction *action);
+
+  void xAxisVisibleSlot(bool b);
+  void xAxisSideSlot(QAction *action);
+
+  void yAxisVisibleSlot(bool b);
+  void yAxisSideSlot(QAction *action);
+
+  void titleVisibleSlot(bool b);
+  void titleLocationSlot(QAction *action);
 
   void fitSlot();
 

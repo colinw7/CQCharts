@@ -27,11 +27,12 @@ QString
 CQChartsTitle::
 locationStr() const
 {
-  switch (location_) {
-    case Location::TOP:    return "top";
-    case Location::CENTER: return "center";
-    case Location::BOTTOM: return "bottom";
-    default:               return "none";
+  switch (location_.location) {
+    case LocationType::TOP:      return "top";
+    case LocationType::CENTER:   return "center";
+    case LocationType::BOTTOM:   return "bottom";
+    case LocationType::ABSOLUTE: return "abs";
+    default:                     return "none";
   }
 }
 
@@ -41,40 +42,41 @@ setLocationStr(const QString &str)
 {
   QString lstr = str.toLower();
 
-  if      (lstr == "top"   ) location_ = Location::TOP;
-  else if (lstr == "center") location_ = Location::CENTER;
-  else if (lstr == "bottom") location_ = Location::BOTTOM;
+  if      (lstr == "top"   ) location_.location = LocationType::TOP;
+  else if (lstr == "center") location_.location = LocationType::CENTER;
+  else if (lstr == "bottom") location_.location = LocationType::BOTTOM;
+  else if (lstr == "abs"   ) location_.location = LocationType::ABSOLUTE;
 
-  updatePosition();
+  redraw();
 }
 
 void
 CQChartsTitle::
-updatePosition()
+updateLocation()
 {
-  plot_->updateTitlePosition();
+  CQChartsGeom::BBox bbox = plot_->calcDataRange();
 
-  plot_->update();
-}
+  if (bbox.isSet())
+    bbox += plot_->annotationBBox();
+  else
+    bbox = CQChartsGeom::BBox(0, 0, 1, 1);
 
-void
-CQChartsTitle::
-updateLocation(const CQChartsGeom::BBox &bbox)
-{
+  //---
+
+  // calc title size
   QSizeF ts = calcSize();
 
-  CQChartsTitle::Location location = this->location();
+  LocationType location = this->location();
 
 //double xm = plot_->pixelToWindowWidth (8);
   double ym = plot_->pixelToWindowHeight(8);
 
   double kx = bbox.getXMid() - ts.width()/2;
-
   double ky = 0.0;
 
   CQChartsAxis *xAxis = plot_->xAxis();
 
-  if      (location == CQChartsTitle::Location::TOP) {
+  if      (location == CQChartsTitle::LocationType::TOP) {
     if (! isInside()) {
       ky = bbox.getYMax() + ym;
 
@@ -84,10 +86,10 @@ updateLocation(const CQChartsGeom::BBox &bbox)
     else
       ky = bbox.getYMax() - ts.height() - ym;
   }
-  else if (location == CQChartsTitle::Location::CENTER) {
+  else if (location == CQChartsTitle::LocationType::CENTER) {
     ky = bbox.getYMid() - ts.height()/2;
   }
-  else if (location == CQChartsTitle::Location::BOTTOM) {
+  else if (location == CQChartsTitle::LocationType::BOTTOM) {
     if (! isInside()) {
       ky = bbox.getYMin() - ts.height() - ym;
 
@@ -101,18 +103,47 @@ updateLocation(const CQChartsGeom::BBox &bbox)
     ky = bbox.getYMid() - ts.height()/2;
   }
 
-  setPosition(QPointF(kx, ky));
+  QPointF kp(kx, ky);
+
+  if (location == LocationType::ABSOLUTE) {
+    kp = absPlotPosition();
+  }
+
+  setPosition(kp);
 }
 
 void
 CQChartsTitle::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible" );
-  model->addProperty(path, this, "location");
-  model->addProperty(path, this, "inside"  );
+  model->addProperty(path, this, "visible"    );
+  model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "absPosition");
+  model->addProperty(path, this, "inside"     );
 
   CQChartsTextBoxObj::addProperties(model, path);
+}
+
+QPointF
+CQChartsTitle::
+absPlotPosition() const
+{
+  double wx, wy;
+
+  plot_->viewToWindow(absPosition().x(), absPosition().y(), wx, wy);
+
+  return QPointF(wx, wy);
+}
+
+void
+CQChartsTitle::
+setAbsPlotPosition(const QPointF &p)
+{
+  double vx, vy;
+
+  plot_->windowToView(p.x(), p.y(), vx, vy);
+
+  setAbsPosition(QPointF(vx, vy));
 }
 
 QSizeF
@@ -153,6 +184,47 @@ contains(const CQChartsGeom::Point &p) const
   return bbox().inside(p);
 }
 
+//------
+
+bool
+CQChartsTitle::
+mouseDragPress(const CQChartsGeom::Point &p)
+{
+  dragPos_ = p;
+
+  location_.location = LocationType::ABSOLUTE;
+
+  setAbsPlotPosition(position_);
+
+  return true;
+}
+
+bool
+CQChartsTitle::
+mouseDragMove(const CQChartsGeom::Point &p)
+{
+  double dx = p.x - dragPos_.x;
+  double dy = p.y - dragPos_.y;
+
+  location_.location = LocationType::ABSOLUTE;
+
+  setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+
+  dragPos_ = p;
+
+  redraw();
+
+  return true;
+}
+
+void
+CQChartsTitle::
+mouseDragRelease(const CQChartsGeom::Point &)
+{
+}
+
+//------
+
 void
 CQChartsTitle::
 draw(QPainter *painter)
@@ -170,6 +242,10 @@ draw(QPainter *painter)
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
   painter->setClipRect(clipRect);
+
+  //---
+
+  updateLocation();
 
   //---
 

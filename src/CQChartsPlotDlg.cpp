@@ -603,7 +603,7 @@ applySlot()
   //---
 
   if (titleEdit_->text().length())
-    plot_->setTitle(titleEdit_->text());
+    plot_->setTitleStr(titleEdit_->text());
 
   if (xintegralCheck_->isChecked())
     plot_->xAxis()->setIntegral(true);

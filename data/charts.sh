@@ -449,6 +449,7 @@ CQChartsTest \
  -csv gaussian.txt -comment_header \
  -process-add "Color=@0 > 0.0 ? 'green' : 'red'" \
  -type distribution -columns "value=0,color=1" \
+ -plot_title "distribution chart" \
  -view_properties "selectedHighlight.fill.enabled=1" \
  -properties "X Axis.ticks.label.placement=BETWEEN" \
  -properties "Y Axis.ticks.label.placement=TOP_RIGHT" \

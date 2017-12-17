@@ -130,6 +130,7 @@ void
 CQChartsKey::
 updateLocation(const CQChartsGeom::BBox &bbox)
 {
+  // calc key size
   QSizeF ks = calcSize();
 
   LocationType location = this->location();
@@ -562,6 +563,8 @@ setFlipped(bool b)
   redraw();
 }
 
+//------
+
 void
 CQChartsKey::
 draw(QPainter *painter)
@@ -596,7 +599,7 @@ draw(QPainter *painter)
 
   painter->save();
 
-  QRectF dataRect = plot_->calcRect();
+  QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
   if (location_.location != LocationType::ABSOLUTE) {

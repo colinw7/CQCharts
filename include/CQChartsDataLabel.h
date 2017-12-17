@@ -2,6 +2,7 @@
 #define CQChartsDataLabel_H
 
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsGeom.h>
 
 class CQChartsPlot;
 
@@ -27,6 +28,8 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
  public:
   CQChartsDataLabel(CQChartsPlot *plot);
 
+  virtual ~CQChartsDataLabel() { }
+
   // data label
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; update(); }
@@ -37,13 +40,19 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
 
-  ///--
+  //--
 
   void addProperties(const QString &path);
 
-  void update();
+  virtual void update();
+
+  //---
 
   void draw(QPainter *painter, const QRectF &qrect, const QString &ystr);
+
+  CQChartsGeom::BBox calcRect(const QRectF &qrect, const QString &ystr) const;
+
+  Qt::Alignment textAlignment() const;
 
  private:
   bool     visible_  { false };

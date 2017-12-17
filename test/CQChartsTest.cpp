@@ -1525,7 +1525,7 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
   }
 
   if (initData.title != "")
-    plot->setTitle(initData.title);
+    plot->setTitleStr(initData.title);
 
   if (initData.xlog)
     plot->setLogX(true);
@@ -3598,7 +3598,7 @@ plotCmd(const Args &args)
 
   // init plot
   if (title != "")
-    plot->setTitle(title);
+    plot->setTitleStr(title);
 
   if (xlog)
     plot->setLogX(true);

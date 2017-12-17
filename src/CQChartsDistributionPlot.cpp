@@ -484,6 +484,27 @@ updateRange(bool apply)
     applyDataRange();
 }
 
+CQChartsGeom::BBox
+CQChartsDistributionPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  CQChartsDataLabel::Position position = dataLabel().position();
+
+  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
+    return bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+    if (barObj)
+      bbox += barObj->dataLabelRect();
+  }
+
+  return bbox;
+}
+
 //------
 
 bool
@@ -838,13 +859,6 @@ draw(QPainter *painter)
   drawParts(painter);
 }
 
-void
-CQChartsDistributionPlot::
-drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr)
-{
-  dataLabel_.draw(painter, qrect, ystr);
-}
-
 //------
 
 CQChartsDistributionBarObj::
@@ -861,6 +875,22 @@ calcId() const
   QString bucketStr = plot_->bucketValuesStr(bucket_);
 
   return QString("%1 : %2").arg(bucketStr).arg(values_.size());
+}
+
+CQChartsGeom::BBox
+CQChartsDistributionBarObj::
+dataLabelRect() const
+{
+  if (! plot_->dataLabel().isVisible())
+    return CQChartsGeom::BBox();
+
+  CQChartsGeom::BBox rect = calcRect();
+
+  QRectF qrect = CQChartsUtil::toQRect(rect);
+
+  QString ystr = QString("%1").arg(values_.size());
+
+  return plot_->dataLabel().calcRect(qrect, ystr);
 }
 
 void
@@ -892,26 +922,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  CQChartsGeom::BBox bbox;
-
-  double m;
-
-  if (! plot_->isHorizontal())
-    m = plot_->pixelToWindowWidth(plot_->margin());
-  else
-    m = plot_->pixelToWindowHeight(plot_->margin());
-
-  if (2*m > 1)
-    m = m/2;
-
-  if (! plot_->isHorizontal())
-    bbox = CQChartsGeom::BBox(bucket_ - 0.5 + m, 0, bucket_ + 0.5 - m, values_.size());
-  else
-    bbox = CQChartsGeom::BBox(0, bucket_ - 0.5 + m, values_.size(), bucket_ + 0.5 - m);
-
-  CQChartsGeom::BBox pbbox;
-
-  plot_->windowToPixel(bbox, pbbox);
+  CQChartsGeom::BBox pbbox = calcRect();
 
   QRectF qrect = CQChartsUtil::toQRect(pbbox);
 
@@ -969,10 +980,38 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   else {
     QString ystr = QString("%1").arg(values_.size());
 
-    plot_->drawDataLabel(painter, qrect, ystr);
+    plot_->dataLabel().draw(painter, qrect, ystr);
   }
 
   painter->restore();
+}
+
+CQChartsGeom::BBox
+CQChartsDistributionBarObj::
+calcRect() const
+{
+  CQChartsGeom::BBox bbox;
+
+  double m;
+
+  if (! plot_->isHorizontal())
+    m = plot_->pixelToWindowWidth (plot_->margin());
+  else
+    m = plot_->pixelToWindowHeight(plot_->margin());
+
+  if (2*m > 1)
+    m = m/2;
+
+  if (! plot_->isHorizontal())
+    bbox = CQChartsGeom::BBox(bucket_ - 0.5 + m, 0, bucket_ + 0.5 - m, values_.size());
+  else
+    bbox = CQChartsGeom::BBox(0, bucket_ - 0.5 + m, values_.size(), bucket_ + 0.5 - m);
+
+  CQChartsGeom::BBox pbbox;
+
+  plot_->windowToPixel(bbox, pbbox);
+
+  return pbbox;
 }
 
 //------
@@ -1005,4 +1044,21 @@ fillBrush() const
   }
 
   return barColor;
+}
+
+//------
+
+CQChartsDistributionDataLabel::
+CQChartsDistributionDataLabel(CQChartsDistributionPlot *plot) :
+ CQChartsDataLabel(plot), plot_(plot)
+{
+}
+
+void
+CQChartsDistributionDataLabel::
+update()
+{
+  //plot_->updateRange();
+
+  plot_->update();
 }

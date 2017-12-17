@@ -208,3 +208,10 @@
  + Update documentation with screen shots
  + Fix some memory leaks
  + Add pan mode
+## 12/17/2017
+ + Add annotation bbox to distribution plot
+ + More fixes for axis label bounding boxes
+ + Data label box
+ + Improve title placement
+ + Context menus for title, axis, key placementment/visibility
+ + Drag move title

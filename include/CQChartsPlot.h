@@ -143,7 +143,7 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(double  marginBottom        READ marginBottom        WRITE setMarginBottom       )
 
   // title and associated filesname (if any)
-  Q_PROPERTY(QString title               READ title               WRITE setTitle              )
+  Q_PROPERTY(QString title               READ titleStr            WRITE setTitleStr           )
   Q_PROPERTY(QString fileName            READ fileName            WRITE setFileName           )
 
   // plot area
@@ -314,8 +314,8 @@ class CQChartsPlot : public QObject {
   const OptReal &ymax() const { return ymax_; }
   void setYMax(const OptReal &r) { ymax_ = r; updateObjs(); }
 
-  const QString &title() const { return title_; }
-  void setTitle(const QString &s);
+  const QString &titleStr() const { return titleStr_; }
+  void setTitleStr(const QString &s);
 
   const QString &fileName() const { return fileName_; }
   void setFileName(const QString &s) { fileName_ = s; }
@@ -434,7 +434,7 @@ class CQChartsPlot : public QObject {
 
   CQChartsKey *key() const { return keyObj_; }
 
-  CQChartsTitle *titleObj() const { return titleObj_; }
+  CQChartsTitle *title() const { return titleObj_; }
 
   //---
 
@@ -725,12 +725,12 @@ class CQChartsPlot : public QObject {
 
   void updateKeyPosition(bool force=false);
 
-  void updateTitlePosition();
-
   void drawSides(QPainter *painter, const QRectF &rect, const QString &sides,
                  double width, const QColor &color);
 
-  QRectF calcRect() const;
+  CQChartsGeom::BBox displayRangeBBox() const;
+
+  CQChartsGeom::BBox calcDataPixelRect() const;
 
   CQChartsGeom::BBox calcPixelRect() const;
 
@@ -742,6 +742,15 @@ class CQChartsPlot : public QObject {
   void setFitBBox(const CQChartsGeom::BBox &bbox);
 
   CQChartsGeom::BBox fitBBox() const;
+
+  virtual void addExtraFitBBox(CQChartsGeom::BBox &) const { }
+
+  CQChartsGeom::BBox dataFitBBox () const;
+  CQChartsGeom::BBox axesFitBBox () const;
+  CQChartsGeom::BBox keyFitBBox  () const;
+  CQChartsGeom::BBox titleFitBBox() const;
+
+  virtual CQChartsGeom::BBox annotationBBox() const { return CQChartsGeom::BBox(); }
 
   //---
 
@@ -873,7 +882,8 @@ class CQChartsPlot : public QObject {
     NONE,
     KEY,
     XAXIS,
-    YAXIS
+    YAXIS,
+    TITLE
   };
 
   struct MouseData {
@@ -909,7 +919,7 @@ class CQChartsPlot : public QObject {
   bool                      clip_             { true };
   CQChartsBoxObj*           dataBorderObj_    { nullptr };
   bool                      dataClip_         { false };
-  QString                   title_;
+  QString                   titleStr_;
   QString                   fileName_;
   CQChartsAxis*             xAxis_            { nullptr };
   CQChartsAxis*             yAxis_            { nullptr };

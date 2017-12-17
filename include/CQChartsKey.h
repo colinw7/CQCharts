@@ -51,6 +51,8 @@ class CQChartsKey : public CQChartsBoxObj {
 
   CQChartsPlot *plot() const { return plot_; }
 
+  //---
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; redraw(); }
 

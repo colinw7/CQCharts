@@ -30,11 +30,15 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  CQChartsGeom::BBox dataLabelRect() const;
+
   void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+
+  CQChartsGeom::BBox calcRect() const;
 
  private:
   CQChartsDistributionPlot *plot_   { nullptr };
@@ -42,6 +46,18 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Values                    values_;
   int                       i_      { -1 };
   int                       n_      { -1 };
+};
+
+//---
+
+class CQChartsDistributionDataLabel : public CQChartsDataLabel {
+ public:
+  CQChartsDistributionDataLabel(CQChartsDistributionPlot *plot);
+
+  void update() override;
+
+ private:
+  CQChartsDistributionPlot *plot_ { nullptr };
 };
 
 //---
@@ -276,8 +292,12 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
-  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+  const CQChartsDistributionDataLabel &dataLabel() const { return dataLabel_; }
+  CQChartsDistributionDataLabel &dataLabel() { return dataLabel_; }
+
+  //---
+
+  CQChartsGeom::BBox annotationBBox() const override;
 
   //---
 
@@ -312,6 +332,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
+  //---
+
  private slots:
   void pushSlot();
   void popSlot();
@@ -321,19 +343,19 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using Filters = std::vector<Filter>;
 
  private:
-  int                  valueColumn_ { -1 };      // value column
-  int                  colorColumn_ { -1 };      // color column
-  CategoryRange        categoryRange_;           // category range
-  CQChartsValueSet     valueSet_;
-  bool                 autoDelta_   { false };   // auto delta
-  IValues              ivalues_;                 // indexed values
-  bool                 horizontal_  { false };   // horizontal bars
-  double               margin_      { 2 };       // bar margin
-  CQChartsBoxObj*      borderObj_   { nullptr }; // border object
-  CQChartsFillObj*     fillObj_     { nullptr }; // fill object
-  CQChartsValueSet     colorSet_;                // color column value set
-  CQChartsDataLabel    dataLabel_;               // data label data
-  Filters              filters_;                 // filter stack
+  int                           valueColumn_ { -1 };      // value column
+  int                           colorColumn_ { -1 };      // color column
+  CategoryRange                 categoryRange_;           // category range
+  CQChartsValueSet              valueSet_;                // distribution values
+  bool                          autoDelta_   { false };   // auto delta
+  IValues                       ivalues_;                 // indexed values
+  bool                          horizontal_  { false };   // horizontal bars
+  double                        margin_      { 2 };       // bar margin
+  CQChartsBoxObj*               borderObj_   { nullptr }; // border object
+  CQChartsFillObj*              fillObj_     { nullptr }; // fill object
+  CQChartsValueSet              colorSet_;                // color column value set
+  CQChartsDistributionDataLabel dataLabel_;               // data label data
+  Filters                       filters_;                 // filter stack
 };
 
 #endif
