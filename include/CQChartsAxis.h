@@ -121,10 +121,10 @@ class CQChartsAxis : public QObject {
   CQChartsPlot *plot() const { return plot_; }
 
   bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; }
+  void setVisible(bool b) { visible_ = b; redraw(); }
 
   Direction direction() const { return direction_; }
-  void setDirection(Direction dir) { direction_ = dir; }
+  void setDirection(Direction dir) { direction_ = dir; updatePlotPosition(); }
 
   Side side() const { return side_; }
   void setSide(Side side) { side_ = side; updatePlotPosition(); }
@@ -147,10 +147,10 @@ class CQChartsAxis : public QObject {
   void setLog(bool b);
 
   int column() const { return column_; }
-  void setColumn(int i) { column_ = i; }
+  void setColumn(int i) { column_ = i; redraw(); }
 
   bool isDataLabels() const { return dataLabels_; }
-  void setDataLabels(bool b) { dataLabels_ = b; }
+  void setDataLabels(bool b) { dataLabels_ = b; redraw(); }
 
   QString format() const;
   bool setFormat(const QString &s);

@@ -215,3 +215,7 @@
  + Improve title placement
  + Context menus for title, axis, key placementment/visibility
  + Drag move title
+## 12/18/2017
+ + Draw line when distribution bar too thin
+ + Don't calc key size when not displayed
+ + Add Grid to Axes context menu

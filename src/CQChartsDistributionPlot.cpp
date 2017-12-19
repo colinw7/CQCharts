@@ -926,6 +926,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   QRectF qrect = CQChartsUtil::toQRect(pbbox);
 
+  double s = (! plot_->isHorizontal() ? qrect.width() : qrect.height());
+
+  bool useLine = (s <= 2);
+
   //---
 
   if (layer == CQChartsPlot::Layer::MID) {
@@ -962,9 +966,17 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       barBrush.setColor(barColor);
       barBrush.setStyle(CQChartsFillObj::patternToStyle(
         (CQChartsFillObj::Pattern) plot_->barPattern()));
+
+      if (useLine) {
+        pen.setColor(barColor);
+        pen.setWidth(0);
+      }
     }
     else {
       barBrush.setStyle(Qt::NoBrush);
+
+      if (useLine)
+        pen.setWidth(0);
     }
 
     plot_->updateObjPenBrushState(this, pen, barBrush);
@@ -975,7 +987,15 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     painter->setPen(pen);
     painter->setBrush(barBrush);
 
-    CQChartsRoundedPolygon::draw(painter, qrect, plot_->borderCornerSize());
+    if (! useLine) {
+      CQChartsRoundedPolygon::draw(painter, qrect, plot_->borderCornerSize());
+    }
+    else {
+      if (! plot_->isHorizontal())
+        painter->drawLine(qrect.center().x(), qrect.bottom(), qrect.center().x(), qrect.top());
+      else
+        painter->drawLine(qrect.left(), qrect.center().y(), qrect.right(), qrect.center().y());
+    }
   }
   else {
     QString ystr = QString("%1").arg(values_.size());
@@ -1044,21 +1064,4 @@ fillBrush() const
   }
 
   return barColor;
-}
-
-//------
-
-CQChartsDistributionDataLabel::
-CQChartsDistributionDataLabel(CQChartsDistributionPlot *plot) :
- CQChartsDataLabel(plot), plot_(plot)
-{
-}
-
-void
-CQChartsDistributionDataLabel::
-update()
-{
-  //plot_->updateRange();
-
-  plot_->update();
 }

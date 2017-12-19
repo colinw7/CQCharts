@@ -358,9 +358,11 @@ class CQChartsView : public QFrame {
   void keyPositionSlot(QAction *action);
 
   void xAxisVisibleSlot(bool b);
+  void xAxisGridSlot(bool b);
   void xAxisSideSlot(QAction *action);
 
   void yAxisVisibleSlot(bool b);
+  void yAxisGridSlot(bool b);
   void yAxisSideSlot(QAction *action);
 
   void titleVisibleSlot(bool b);

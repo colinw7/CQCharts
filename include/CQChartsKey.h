@@ -54,7 +54,7 @@ class CQChartsKey : public CQChartsBoxObj {
   //---
 
   bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; redraw(); }
+  void setVisible(bool b) { visible_ = b; updatePosition(); }
 
   const LocationType &location() const { return location_.location; }
   void setLocation(const LocationType &l) { location_.location = l; updatePosition(); }

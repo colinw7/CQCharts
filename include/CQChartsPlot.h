@@ -743,8 +743,6 @@ class CQChartsPlot : public QObject {
 
   CQChartsGeom::BBox fitBBox() const;
 
-  virtual void addExtraFitBBox(CQChartsGeom::BBox &) const { }
-
   CQChartsGeom::BBox dataFitBBox () const;
   CQChartsGeom::BBox axesFitBBox () const;
   CQChartsGeom::BBox keyFitBBox  () const;

@@ -1926,7 +1926,7 @@ void
 CQChartsPlot::
 updateKeyPosition(bool force)
 {
-  if (! key())
+  if (! key() || ! key()->isVisible())
     return;
 
   if (force)
@@ -2102,8 +2102,6 @@ fitBBox() const
   bbox += keyFitBBox  ();
   bbox += titleFitBBox();
 
-  addExtraFitBBox(bbox);
-
   // add margin (TODO: config pixel margin size)
   double xm = pixelToWindowWidth (8);
   double ym = pixelToWindowHeight(8);
@@ -2128,10 +2126,10 @@ axesFitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (xAxis())
+  if (xAxis() && xAxis()->isVisible())
     bbox += xAxis()->bbox();
 
-  if (yAxis())
+  if (yAxis() && yAxis()->isVisible())
     bbox += yAxis()->bbox();
 
   return bbox;
@@ -2143,7 +2141,7 @@ keyFitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (key())
+  if (key() && key()->isVisible())
     bbox += key()->bbox();
 
   return bbox;
@@ -2155,7 +2153,7 @@ titleFitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (title())
+  if (title() && title()->isVisible())
     bbox += title()->bbox();
 
   return bbox;

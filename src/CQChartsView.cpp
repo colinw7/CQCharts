@@ -741,8 +741,8 @@ mouseReleaseEvent(QMouseEvent *me)
 
           CQChartsGeom::Point w1, w2;
 
-          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
-          mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
+          plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
 
           if (plot->rectSelect(CQChartsGeom::BBox(w1, w2), modSelect))
             return;
@@ -1115,6 +1115,8 @@ showMenu(const QPoint &p)
 
   QMenu *xAxisMenu = new QMenu("X Axis", popupMenu_);
 
+  //---
+
   QAction *xAxisVisibleAction = new QAction("Visible", popupMenu_);
 
   xAxisVisibleAction->setCheckable(true);
@@ -1125,6 +1127,19 @@ showMenu(const QPoint &p)
   connect(xAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(xAxisVisibleSlot(bool)));
 
   xAxisMenu->addAction(xAxisVisibleAction);
+
+  //---
+
+  QAction *xAxisGridAction = new QAction("Grid", popupMenu_);
+
+  xAxisGridAction->setCheckable(true);
+
+  if (currentPlot && currentPlot->xAxis())
+    xAxisGridAction->setChecked(currentPlot->xAxis()->isGridMajorDisplayed());
+
+  connect(xAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(xAxisGridSlot(bool)));
+
+  xAxisMenu->addAction(xAxisGridAction);
 
   //---
 
@@ -1166,6 +1181,8 @@ showMenu(const QPoint &p)
 
   QMenu *yAxisMenu = new QMenu("Y Axis", popupMenu_);
 
+  //---
+
   QAction *yAxisVisibleAction = new QAction("Visible", popupMenu_);
 
   yAxisVisibleAction->setCheckable(true);
@@ -1176,6 +1193,19 @@ showMenu(const QPoint &p)
   connect(yAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(yAxisVisibleSlot(bool)));
 
   yAxisMenu->addAction(yAxisVisibleAction);
+
+  //---
+
+  QAction *yAxisGridAction = new QAction("Grid", popupMenu_);
+
+  yAxisGridAction->setCheckable(true);
+
+  if (currentPlot && currentPlot->yAxis())
+    yAxisGridAction->setChecked(currentPlot->yAxis()->isGridMajorDisplayed());
+
+  connect(yAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(yAxisGridSlot(bool)));
+
+  yAxisMenu->addAction(yAxisGridAction);
 
   //---
 
@@ -1391,6 +1421,16 @@ xAxisVisibleSlot(bool b)
 
 void
 CQChartsView::
+xAxisGridSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot();
+
+  if (currentPlot && currentPlot->xAxis())
+    currentPlot->xAxis()->setGridMajorDisplayed(b);
+}
+
+void
+CQChartsView::
 xAxisSideSlot(QAction *action)
 {
   CQChartsPlot *currentPlot = this->currentPlot();
@@ -1411,6 +1451,16 @@ yAxisVisibleSlot(bool b)
 
   if (currentPlot && currentPlot->yAxis())
     currentPlot->yAxis()->setVisible(b);
+}
+
+void
+CQChartsView::
+yAxisGridSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot();
+
+  if (currentPlot && currentPlot->yAxis())
+    currentPlot->yAxis()->setGridMajorDisplayed(b);
 }
 
 void
