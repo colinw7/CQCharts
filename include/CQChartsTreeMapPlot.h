@@ -9,6 +9,7 @@
 
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;
+class CQChartsTextBoxObj;
 
 class CQChartsTreeMapNode {
  private:
@@ -209,12 +210,27 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
   Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
   Q_PROPERTY(double  borderWidth  READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(bool    filled       READ isFilled       WRITE setFilled        )
   Q_PROPERTY(QString fillColor    READ fillColorStr   WRITE setFillColorStr  )
   Q_PROPERTY(double  fillAlpha    READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(Pattern fillPattern  READ fillPattern    WRITE setFillPattern   )
   Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont      )
   Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr  )
+  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast  )
+
+  Q_ENUMS(Pattern);
 
  public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
+
   using Nodes = std::vector<CQChartsTreeMapNode*>;
 
  public:
@@ -249,6 +265,8 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   double marginWidth() const { return marginWidth_; }
   void setMarginWidth(double r) { marginWidth_ = r; updateCurrentRoot(); }
 
+  //---
+
   bool isBorder() const;
   void setBorder(bool b);
 
@@ -263,6 +281,11 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   double borderWidth() const;
   void setBorderWidth(double r);
 
+  //---
+
+  bool isFilled() const;
+  void setFilled(bool b);
+
   QString fillColorStr() const;
   void setFillColorStr(const QString &s);
 
@@ -271,13 +294,21 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   double fillAlpha() const;
   void setFillAlpha(double a);
 
-  const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+  Pattern fillPattern() const;
+  void setFillPattern(Pattern pattern);
 
-  QString textColorStr() const { return textColor_.colorStr(); }
-  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+  //---
+
+  const QFont &textFont() const;
+  void setTextFont(const QFont &f);
+
+  QString textColorStr() const;
+  void setTextColorStr(const QString &s);
 
   QColor interpTextColor(int i, int n) const;
+
+  bool isTextContrast() const;
+  void setTextContrast(bool b);
 
   //---
 
@@ -359,9 +390,7 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   double                   headerHeight_       { 11.0 };    // header height (should be font based)
   CQChartsPaletteColor     headerColor_;                    // header color
   double                   marginWidth_        { 2.0 };     // box margin
-  CQChartsBoxObj*          boxObj_             { nullptr }; // bubble fill/border object
-  QFont                    textFont_;                       // text font
-  CQChartsPaletteColor     textColor_;                      // text color
+  CQChartsTextBoxObj*      textBoxObj_         { nullptr }; // bubble fill/border object
   int                      maxDepth_           { 1 };       // max hier depth
   int                      maxColorId_         { 0 };       // max color
   int                      hierInd_            { 0 };       // current hier ind

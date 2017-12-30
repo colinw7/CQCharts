@@ -473,9 +473,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     // draw arcs between value sets
 
-    int alpha = CQChartsUtil::iclamp(plot_->arcAlpha()*255, 0, 255);
+    double alpha = CQChartsUtil::iclamp(plot_->arcAlpha(), 0, 1);
 
-    borderColor.setAlpha(alpha);
+    borderColor.setAlphaF(alpha);
 
     int from = data_.from();
 
@@ -536,7 +536,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
       if (! isInside() && ! isSelected())
-        c.setAlpha(alpha);
+        c.setAlphaF(alpha);
 
       QBrush brush(c);
 
@@ -562,7 +562,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   //---
 
   if (layer == CQChartsPlot::Layer::FG && data_.name() != "") {
-    if (! plot_->textBox()->isVisible())
+    if (! plot_->textBox()->isTextVisible())
       return;
 
     double total = data_.total();

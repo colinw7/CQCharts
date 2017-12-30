@@ -263,9 +263,10 @@ main(int argc, char **argv)
   QString execFile;
   QString viewTitle;
 
-  bool overlay = false;
-  bool y1y2    = false;
-  bool loop    = false;
+  bool overlay   = false;
+  bool y1y2      = false;
+  bool loop      = false;
+  bool close_app = false;
 
   CQChartsTest::OptReal xmin1 = boost::make_optional(false, 0.0);
   CQChartsTest::OptReal xmax1 = boost::make_optional(false, 0.0);
@@ -675,6 +676,12 @@ main(int argc, char **argv)
       else if (arg == "loop") {
         loop = true;
       }
+
+      // close app
+      else if (arg == "close_app") {
+        close_app = true;
+      }
+
       else {
         errorMsg("Invalid option '" + QString(argv[i]));
       }
@@ -752,6 +759,9 @@ main(int argc, char **argv)
   if (test.window()) {
     test.window()->raise();
   }
+
+  if (close_app)
+    test.close();
 
   //---
 
@@ -927,7 +937,7 @@ addViewData(bool hierarchical)
   //---
 
   if (hierarchical) {
-    viewData.tree = new CQChartsTree;
+    viewData.tree = new CQChartsTree(charts_);
 
     splitter->addWidget(viewData.tree);
   }
@@ -1765,6 +1775,8 @@ bool
 CQChartsTest::
 loadFileModel(const QString &filename, FileType type, const InputData &inputData)
 {
+  CScopeTimer timer("loadFileModel");
+
   bool hierarchical;
 
   QAbstractItemModel *model = loadFile(filename, type, inputData, hierarchical);

@@ -22,10 +22,6 @@ class CQChartsPlotObj : public QObject {
 
   //---
 
-  virtual CQChartsGeom::BBox fitRect() const { return rect_; }
-
-  //---
-
   const QString &id() const {
     if (! id_)
       const_cast<CQChartsPlotObj*>(this)->id_ = calcId();

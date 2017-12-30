@@ -5,6 +5,7 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
+class CQCharts;
 class CQChartsTreeSelectionModel;
 
 class CQChartsTree : public CQTreeView {
@@ -19,7 +20,7 @@ class CQChartsTree : public CQTreeView {
   };
 
  public:
-  CQChartsTree(QWidget *parent=nullptr);
+  CQChartsTree(CQCharts *charts, QWidget *parent=nullptr);
 
   ModelP model() const {return model_; }
   void setModel(const ModelP &model);
@@ -42,8 +43,9 @@ class CQChartsTree : public CQTreeView {
   void filterChanged();
 
  private:
+  CQCharts*                   charts_ { nullptr };
   ModelP                      model_;
-  CQChartsTreeSelectionModel* sm_ { nullptr };
+  CQChartsTreeSelectionModel* sm_     { nullptr };
 };
 
 #endif

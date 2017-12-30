@@ -15,6 +15,7 @@ class CQChartsLineObj : public QObject {
 
   Q_PROPERTY(bool             displayed READ isDisplayed WRITE setDisplayed)
   Q_PROPERTY(QString          color     READ colorStr    WRITE setColorStr )
+  Q_PROPERTY(double           alpha     READ alpha       WRITE setAlpha    )
   Q_PROPERTY(double           width     READ width       WRITE setWidth    )
   Q_PROPERTY(CQChartsLineDash dash      READ dash        WRITE setDash     )
 
@@ -38,6 +39,9 @@ class CQChartsLineObj : public QObject {
   double width() const { return width_; }
   void setWidth(double r) { width_ = r; redrawLineObj(); }
 
+  double alpha() const { return alpha_; }
+  void setAlpha(double r) { alpha_ = r; redrawLineObj(); }
+
   const CQChartsLineDash &dash() const { return dash_; }
   void setDash(const CQChartsLineDash &dash) { dash_ = dash; redrawLineObj(); }
 
@@ -58,7 +62,8 @@ class CQChartsLineObj : public QObject {
   CQChartsPlot*        plot_      { nullptr };
   bool                 displayed_ { true };
   CQChartsPaletteColor color_;
-  double               width_     { 0 };
+  double               alpha_     { 1.0 };
+  double               width_     { 0.0 };
   CQChartsLineDash     dash_      { };
 };
 

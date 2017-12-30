@@ -219,3 +219,9 @@
  + Draw line when distribution bar too thin
  + Don't calc key size when not displayed
  + Add Grid to Axes context menu
+## 12/30/2017
+ + Add Sankey plot
+ + More consistent property names and config of fill stroke
+ + Delay plot update on property change to speed up multiple changes
+ + Add Trie to ValueSet to auto generate string groups
+ + Support multiple selection on distribution plot push

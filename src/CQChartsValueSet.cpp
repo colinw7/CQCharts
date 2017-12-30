@@ -66,6 +66,18 @@ clear()
   initialized_ = false;
 }
 
+bool
+CQChartsValueSet::
+hasInd(int i) const
+{
+  if      (type() == Type::INTEGER)
+    return (i >= 0 && i < int(ivals_.size()));
+  else if (type() == Type::REAL)
+    return (i >= 0 && i < int(rvals_.size()));
+  else
+    return (i >= 0 && i < int(svals_.size()));
+}
+
 double
 CQChartsValueSet::
 imap(int i) const
@@ -136,6 +148,40 @@ imap(int i, double mapMin, double mapMax) const
     else
       return mapMin;
   }
+}
+
+int
+CQChartsValueSet::
+sbucket(const QString &s) const
+{
+  initPatterns();
+
+  return trie_.patternIndex(s, spatterns_);
+}
+
+QString
+CQChartsValueSet::
+buckets(int i) const
+{
+  initPatterns();
+
+  return trie_.indexPattern(i, spatterns_);
+}
+
+void
+CQChartsValueSet::
+initPatterns() const
+{
+  if (spatternsSet_)
+    return;
+
+  CQChartsValueSet *th = const_cast<CQChartsValueSet *>(this);
+
+  int depth = 1;
+
+  trie_.patterns(depth, th->spatterns_);
+
+  th->spatternsSet_ = true;
 }
 
 int
@@ -289,6 +335,10 @@ init()
   svalset_.clear();
   setsval_.clear();
 
+  spatterns_.clear();
+
+  spatternsSet_ = false;
+
   bool ok;
 
   for (const auto &value : values_) {
@@ -318,6 +368,8 @@ init()
     }
     else {
       QString s = value.toString();
+
+      trie_.addWord(s);
 
       svals_.push_back(s);
 

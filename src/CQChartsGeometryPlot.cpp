@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsFillObj.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
 #include <QPainter>
@@ -41,6 +42,7 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 
   boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
 
+  setFilled(true);
   setBorder(true);
 
   setLayerActive(Layer::FG, true);
@@ -127,6 +129,24 @@ setBorderWidth(double r)
   update();
 }
 
+//------
+
+bool
+CQChartsGeometryPlot::
+isFilled() const
+{
+  return boxObj_->isBackground();
+}
+
+void
+CQChartsGeometryPlot::
+setFilled(bool b)
+{
+  boxObj_->setBackground(b);
+
+  update();
+}
+
 QString
 CQChartsGeometryPlot::
 fillColorStr() const
@@ -166,6 +186,22 @@ setFillAlpha(double a)
   update();
 }
 
+CQChartsGeometryPlot::Pattern
+CQChartsGeometryPlot::
+fillPattern() const
+{
+  return (Pattern) boxObj_->backgroundPattern();
+}
+
+void
+CQChartsGeometryPlot::
+setFillPattern(Pattern pattern)
+{
+  boxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+
+  update();
+}
+
 //---
 
 void
@@ -174,19 +210,24 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn"    , "name"     );
-  addProperty("columns", this, "geometryColumn", "geometry" );
-  addProperty("columns", this, "valueColumn"   , "value"    );
-  addProperty("value"  , this, "minValue"      , "min"      );
-  addProperty("value"  , this, "maxValue"      , "max"      );
-  addProperty("fill"   , this, "fillColor"     , "color"    );
-  addProperty("fill"   , this, "fillAlpha"     , "alpha"    );
-  addProperty("border" , this, "border"        , "displayed");
-  addProperty("border" , this, "borderColor"   , "color"    );
-  addProperty("border" , this, "borderAlpha"   , "alpha"    );
-  addProperty("border" , this, "borderWidth"   , "width"    );
+  addProperty("columns", this, "nameColumn"    , "name"    );
+  addProperty("columns", this, "geometryColumn", "geometry");
+  addProperty("columns", this, "valueColumn"   , "value"   );
+
+  addProperty("stroke", this, "border"     , "visible");
+  addProperty("stroke", this, "borderColor", "color"  );
+  addProperty("stroke", this, "borderAlpha", "alpha"  );
+  addProperty("stroke", this, "borderWidth", "width"  );
+
+  addProperty("fill", this, "filled"     , "visible");
+  addProperty("fill", this, "fillColor"  , "color"  );
+  addProperty("fill", this, "fillAlpha"  , "alpha"  );
+  addProperty("fill", this, "fillPattern", "pattern");
 
   dataLabel_.addProperties("dataLabel");
+
+  addProperty("value", this, "minValue", "min");
+  addProperty("value", this, "maxValue", "max");
 }
 
 void
@@ -490,13 +531,6 @@ draw(QPainter *painter)
   drawParts(painter);
 }
 
-void
-CQChartsGeometryPlot::
-drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str)
-{
-  dataLabel_.draw(painter, qrect, str);
-}
-
 //------
 
 CQChartsGeometryObj::
@@ -583,31 +617,40 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       bc.setAlphaF(plot_->borderAlpha());
 
-      pen = QPen(bc);
-
+      pen.setColor (bc);
       pen.setWidthF(plot_->borderWidth());
     }
-    else
+    else {
       pen = QPen(Qt::NoPen);
+    }
 
-    QColor fc;
+    QBrush brush;
 
-    if (n_ > 0) {
-      fc = plot_->interpFillColor(i_, n_);
+    if (plot_->isFilled()) {
+      QColor fc;
+
+      if (n_ > 0) {
+        fc = plot_->interpFillColor(i_, n_);
+      }
+      else {
+        double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+
+        fc = plot_->palette()->getColor(v);
+      }
+
+      fc.setAlphaF(plot_->fillAlpha());
+
+      brush.setColor(fc);
+      brush.setStyle(CQChartsFillObj::patternToStyle(
+        (CQChartsFillObj::Pattern) plot_->fillPattern()));
     }
     else {
-      double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
-
-      fc = plot_->palette()->getColor(v);
+      brush.setStyle(Qt::NoBrush);
     }
 
-    fc.setAlphaF(plot_->fillAlpha());
-
-    QBrush brush(fc);
+    plot_->updateObjPenBrushState(this, pen, brush);
 
     //---
-
-    plot_->updateObjPenBrushState(this, pen, brush);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -641,6 +684,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     QRectF qrect = CQChartsUtil::toQRect(prect);
 
-    plot_->drawDataLabel(painter, qrect, name_);
+    plot_->dataLabel().draw(painter, qrect, name_);
   }
 }

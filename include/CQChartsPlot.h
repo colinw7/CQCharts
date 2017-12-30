@@ -3,13 +3,15 @@
 
 #include <CQChartsPlotParameter.h>
 #include <CQChartsModelP.h>
-
 #include <CQChartsGeom.h>
+#include <CQBaseModel.h>
 
 #include <QAbstractItemModel>
 #include <QItemSelection>
 #include <QFrame>
 #include <QTimer>
+
+#include <CHRTimer.h>
 
 #include <memory>
 #include <set>
@@ -122,6 +124,19 @@ class CQChartsPlotType {
 
  protected:
   Parameters parameters_;
+};
+
+//----
+
+class CQChartsPlotUpdateTimer : public QTimer {
+ public:
+  CQChartsPlotUpdateTimer(CQChartsPlot *plot) :
+   plot_(plot) {
+    setSingleShot(true);
+  }
+
+ private:
+  CQChartsPlot *plot_ { nullptr };
 };
 
 //----
@@ -245,6 +260,8 @@ class CQChartsPlot : public QObject {
 
   virtual ~CQChartsPlot();
 
+  //---
+
   CQChartsView *view() const { return view_; }
 
   QAbstractItemModel *model() const { return model_.data(); }
@@ -253,6 +270,8 @@ class CQChartsPlot : public QObject {
 
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
+
+  virtual bool isHierarchical() const { return false; }
 
   //---
 
@@ -505,6 +524,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  void startAnimateTimer();
+
+  virtual void animateStep() { }
+
+  //---
+
   CQPropertyViewModel *propertyModel() const;
 
   // add plot properties to model
@@ -552,6 +577,10 @@ class CQChartsPlot : public QObject {
   void windowToPixel(const CQChartsGeom::Point &w, CQChartsGeom::Point &p) const;
   void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
 
+  CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
+
+  QPointF windowToPixel(const QPointF &w) const;
+
   void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
   void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
@@ -589,7 +618,9 @@ class CQChartsPlot : public QObject {
 
   virtual void updateObjs();
 
-  void updateRangeAndObjs() { updateRange(); updateObjs(); }
+  void updateRangeAndObjs();
+
+  void updateRangeAndObjsInternal();
 
   // (re)initialize plot objects
   void initPlotObjs();
@@ -820,6 +851,10 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  CQBaseModel::Type columnValueType(QAbstractItemModel *model, int column) const;
+
+  //---
+
   // get/set/reset id hidden
   bool isSetHidden(int id) const {
     auto p = idHidden_.find(id);
@@ -844,6 +879,8 @@ class CQChartsPlot : public QObject {
   virtual void draw(QPainter *painter) = 0;
 
  private slots:
+  void animateSlot();
+
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
 
   void modelLayoutChangedSlot();
@@ -889,6 +926,11 @@ class CQChartsPlot : public QObject {
     QPoint  movePoint;
     bool    pressed { false };
     DragObj dragObj { DragObj::NONE };
+  };
+
+  struct AnimateData {
+    QTimer* timer   { nullptr };
+    int     tickLen { 30 };
   };
 
   //---
@@ -940,11 +982,12 @@ class CQChartsPlot : public QObject {
   PlotObjSet                insidePlotObjs_;
   CQChartsPlotObjTree*      plotObjTree_      { nullptr };
   MouseData                 mouseData_;
+  AnimateData               animateData_;
   LayerActive               layerActive_;
   IdHidden                  idHidden_;
   IndexColumnRows           selIndexColumnRows_;
   QItemSelection            itemSelection_;
-  QTimer                    updateTimer_;
+  CQChartsPlotUpdateTimer*  updateTimer_;
 };
 
 #endif

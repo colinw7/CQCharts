@@ -37,8 +37,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   void setMargin (double r) override { CQChartsBoxObj::setMargin (r); redraw(); }
   void setPadding(double r) override { CQChartsBoxObj::setPadding(r); redraw(); }
 
-  void setText(const QString &s) override { CQChartsTextBoxObj::setText(s); redraw(); }
-  void setFont(const QFont &f) override { CQChartsTextBoxObj::setFont(f); redraw(); }
+  void setTextStr(const QString &s) override { CQChartsTextBoxObj::setTextStr(s); redraw(); }
+  void setTextFont(const QFont &f) override { CQChartsTextBoxObj::setTextFont(f); redraw(); }
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; redraw(); }

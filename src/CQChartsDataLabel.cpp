@@ -43,7 +43,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
   painter->save();
 
-  painter->setFont(font());
+  painter->setFont(textFont());
 
   //---
 
@@ -56,7 +56,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
   //double b = b1 + b2;
 
-  if (CQChartsUtil::isZero(angle())) {
+  if (CQChartsUtil::isZero(textAngle())) {
     QFontMetricsF fm(painter->font());
 
     double tw = fm.width(ystr);
@@ -112,7 +112,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      painter->setPen(interpColor(0, 1));
+      painter->setPen(interpTextColor(0, 1));
 
       if (ystr.length())
         painter->drawText(QPointF(x - tw/2, y), ystr);
@@ -137,10 +137,10 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(x, y, ystr, painter->font(), angle(), b1,
+    CQChartsRotatedText::bboxData(x, y, ystr, painter->font(), textAngle(), b1,
                                   prect, points, align, /*alignBBox*/ true);
 
-    painter->setPen(interpColor(0, 1));
+    painter->setPen(interpTextColor(0, 1));
 
     QPolygonF poly;
 
@@ -149,10 +149,10 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     CQChartsBoxObj::draw(painter, poly);
 
-    painter->setPen(interpColor(0, 1));
+    painter->setPen(interpTextColor(0, 1));
 
     if (ystr.length())
-      CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, angle(), align,
+      CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,
                                            /*alignBBox*/ true);
   }
 
@@ -189,8 +189,8 @@ calcRect(const QRectF &qrect, const QString &ystr) const
 
   //double b = b1 + b2;
 
-  if (CQChartsUtil::isZero(angle())) {
-    QFontMetricsF fm(font());
+  if (CQChartsUtil::isZero(textAngle())) {
+    QFontMetricsF fm(textFont());
 
     double tw = fm.width(ystr);
 
@@ -246,7 +246,7 @@ calcRect(const QRectF &qrect, const QString &ystr) const
 
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(x, y, ystr, font(), angle(), b1,
+    CQChartsRotatedText::bboxData(x, y, ystr, textFont(), textAngle(), b1,
                                   prect, points, align, /*alignBBox*/ true);
   }
 

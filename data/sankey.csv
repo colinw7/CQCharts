@@ -1,8 +1,9 @@
-wagets/budget,2000
-interest/budget,25
-budget/taxes,500
-budget/housing,450
-budget/food,310
-budget/transportation,205
-budget/health care,400
-budget/other necessities,160
+#source/target,amount
+Wages/Budget,2000
+Interest/Budget,25
+Budget/Taxes,500
+Budget/Housing,450
+Budget/Food,310
+Budget/Transportation,205
+Budget/Health Care,400
+Budget/Other Necessities,160

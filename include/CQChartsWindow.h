@@ -8,8 +8,10 @@ class CQChartsView;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
 class CQChartsTable;
+class CQChartsTree;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
+class QStackedWidget;
 
 #define CQChartsWindowMgrInst CQChartsWindowMgr::instance()
 
@@ -75,7 +77,9 @@ class CQChartsWindow : public QFrame {
   CQChartsView*         view_             { nullptr };
   CQChartsViewSettings* settings_         { nullptr };
   CQChartsViewExpander* settingsExpander_ { nullptr };
+  QStackedWidget*       viewStack_        { nullptr };
   CQChartsTable*        table_            { nullptr };
+  CQChartsTree*         tree_             { nullptr };
   CQChartsViewExpander* tableExpander_    { nullptr };
   CQChartsViewStatus*   status_           { nullptr };
   CQChartsViewToolBar*  toolbar_          { nullptr };

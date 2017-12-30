@@ -93,6 +93,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
   Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
   Q_PROPERTY(QString borderColor      READ borderColorStr    WRITE setBorderColorStr  )
+  Q_PROPERTY(double  borderAlpha      READ borderAlpha       WRITE setBorderAlpha     )
   Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
   Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
   Q_PROPERTY(bool    barFill          READ isBarFill         WRITE setBarFill         )
@@ -130,7 +131,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     int    numValues    { 0 };
     double minValue     { 0.0 };
     double maxValue     { 0.0 };
-    int    numAuto      { 20 };
+    int    numAuto      { 10 };
     double increment    { 1 };
     double calcMinValue { 1 };
   };
@@ -240,6 +241,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   QColor interpBorderColor(int i, int n) const;
 
+  double borderAlpha() const;
+  void setBorderAlpha(double r);
+
   double borderWidth() const;
   void setBorderWidth(double r);
 
@@ -318,8 +322,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
-  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr);
-
   //---
 
  private slots:
@@ -327,8 +329,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   void popSlot();
 
  private:
-  using IValues = std::map<int,Values>;
-  using Filters = std::vector<Filter>;
+  using IValues     = std::map<int,Values>;
+  using Filters     = std::vector<Filter>;
+  using FilterStack = std::vector<Filters>;
 
  private:
   int               valueColumn_ { -1 };      // value column
@@ -343,7 +346,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   CQChartsFillObj*  fillObj_     { nullptr }; // fill object
   CQChartsValueSet  colorSet_;                // color column value set
   CQChartsDataLabel dataLabel_;               // data label data
-  Filters           filters_;                 // filter stack
+  FilterStack       filterStack_;             // filter stack
 };
 
 #endif

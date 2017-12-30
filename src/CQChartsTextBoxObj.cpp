@@ -10,28 +10,28 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 {
   CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
-  setColor(themeFg);
+  setTextColor(themeFg);
 }
 
 QString
 CQChartsTextBoxObj::
-colorStr() const
+textColorStr() const
 {
-  return color_.colorStr();
+  return textColor_.colorStr();
 }
 
 void
 CQChartsTextBoxObj::
-setColorStr(const QString &s)
+setTextColorStr(const QString &s)
 {
-  color_.setColorStr(s);
+  textColor_.setColorStr(s);
 }
 
 QColor
 CQChartsTextBoxObj::
-interpColor(int i, int n) const
+interpTextColor(int i, int n) const
 {
-  return color_.interpColor(plot_, i, n);
+  return textColor_.interpColor(plot_, i, n);
 }
 
 void
@@ -42,24 +42,24 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "text" );
-  model->addProperty(textPath, this, "font" );
-  model->addProperty(textPath, this, "color");
-  model->addProperty(textPath, this, "angle");
+  model->addProperty(textPath, this, "text"     , "text" );
+  model->addProperty(textPath, this, "textFont" , "font" );
+  model->addProperty(textPath, this, "textColor", "color");
+  model->addProperty(textPath, this, "textAngle", "angle");
 }
 
 void
 CQChartsTextBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
-  if (! isVisible())
+  if (! isTextVisible())
     return;
 
   CQChartsBoxObj::draw(painter, rect);
 
   //---
 
-  drawText(painter, rect, text());
+  drawText(painter, rect, textStr());
 }
 
 void
@@ -72,17 +72,23 @@ draw(QPainter *painter, const QPolygonF &poly) const
 
   QRectF rect = poly.boundingRect();
 
-  drawText(painter, rect, text());
+  drawText(painter, rect, textStr());
 }
 
 void
 CQChartsTextBoxObj::
 drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 {
-  QFontMetricsF fm(font());
+  QFontMetricsF fm(textFont());
 
-  painter->setPen (interpColor(0, 1));
-  painter->setFont(font());
+  QColor c = interpTextColor(0, 1);
+
+  c.setAlphaF(textAlpha());
+
+  QPen pen(c);
+
+  painter->setPen (pen);
+  painter->setFont(textFont());
 
   painter->drawText(QPointF(rect.left() + margin(),
                             rect.bottom() - margin() - fm.descent()), text);
@@ -98,20 +104,20 @@ CQChartsRotatedTextBoxObj(CQChartsPlot *plot) :
 
 void
 CQChartsRotatedTextBoxObj::
-draw(QPainter *painter, const QPointF &c, const QString &text, double angle,
+draw(QPainter *painter, const QPointF &center, const QString &text, double angle,
      Qt::Alignment align) const
 {
   painter->save();
 
-  QFontMetricsF fm(font());
+  QFontMetricsF fm(textFont());
 
   double tw = fm.width(text);
 
   double tw1 = tw + 2*margin();
   double th1 = fm.height() + 2*margin();
 
-  double cx = c.x();
-  double cy = c.y() - th1/2;
+  double cx = center.x();
+  double cy = center.y() - th1/2;
   double cd = 0.0;
 
   if      (align & Qt::AlignHCenter) {
@@ -129,10 +135,7 @@ draw(QPainter *painter, const QPointF &c, const QString &text, double angle,
 
   //---
 
-  painter->setFont(font());
-
-  painter->setPen(interpColor(0, 1));
-
+  // draw box
   if (CQChartsUtil::isZero(angle)) {
     CQChartsBoxObj::draw(painter, rect_);
   }
@@ -140,7 +143,7 @@ draw(QPainter *painter, const QPointF &c, const QString &text, double angle,
     QRectF                      bbox;
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(c.x(), c.y(), text, font(), angle, margin(),
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, textFont(), angle, margin(),
                                   bbox, points, align, /*alignBBox*/ true);
 
     QPolygonF poly;
@@ -151,9 +154,20 @@ draw(QPainter *painter, const QPointF &c, const QString &text, double angle,
     CQChartsBoxObj::draw(painter, poly);
   }
 
-  painter->setPen(interpColor(0, 1));
+  //---
 
-  CQChartsRotatedText::drawRotatedText(painter, c.x() + cd, c.y(), text, angle,
+  // draw text
+  painter->setFont(textFont());
+
+  QColor c = interpTextColor(0, 1);
+
+  c.setAlphaF(textAlpha());
+
+  QPen pen(c);
+
+  painter->setPen(pen);
+
+  CQChartsRotatedText::drawRotatedText(painter, center.x() + cd, center.y(), text, angle,
                                        align, /*alignBBox*/ true);
 
   painter->restore();

@@ -1,0 +1,152 @@
+1       1       Toronto (Mississauga, Brampton)         Ontario         CMA     5,928,040       5,583,064       +6.18%
+2       2       Montreal (Laval, Longueuil)     Quebec  CMA     4,098,927       3,934,078       +4.19%
+3       3       Vancouver (Surrey)      British Columbia        CMA     2,463,431       2,313,328       +6.49%
+4       5       Calgary         Alberta         CMA     1,392,609       1,214,839       +14.63%
+5       4       Ottawa–Gatineau         Ontario/Quebec  CMA     1,323,783       1,254,919       +5.49%
+6       6       Edmonton        Alberta         CMA     1,321,426       1,159,869       +13.93%
+7       7       Quebec City (Lévis)     Quebec  CMA     800,296         767,310         +4.30%
+8       8       Winnipeg        Manitoba        CMA     778,489         730,018         +6.64%
+9       9       Hamilton (Burlington)   Ontario         CMA     747,545         721,053         +3.67%
+10      10      Kitchener–Cambridge–Waterloo    Ontario         CMA     523,894         496,383         +5.54%
+11      11      London  Ontario         CMA     494,069         474,786         +4.06%
+12      12      St. Catharines - Niagara (Niagara Falls, Welland)       Ontario         CMA     406,074         392,184         +3.54%
+13      13      Halifax         Nova Scotia     CMA     403,390         390,328         +3.35%
+14      14      Oshawa (Whitby, Clarington)     Ontario         CMA     379,848         356,177         +6.65%
+15      15      Victoria (Saanich)      British Columbia        CMA     367,770         344,580         +6.73%
+16      16      Windsor (Lakeshore)     Ontario         CMA     329,144         319,246         +3.10%
+17      17      Saskatoon       Saskatchewan    CMA     295,095         262,215         +12.54%
+18      18      Regina  Saskatchewan    CMA     236,481         211,519         +11.80%
+19      19      Sherbrooke (Magog)      Quebec  CMA     212,105         202,261         +4.87%
+20      20      St. John's (Conception Bay South, Mount Pearl, Paradise)        Newfoundland and Labrador       CMA     205,955         196,954         +4.57%
+21      21      Barrie (Innisfil)       Ontario         CMA     197,059         187,013         +5.37%
+22      22      Kelowna (West Kelowna)  British Columbia        CMA     194,882         179,839         +8.36%
+23      23      Abbotsford - Mission    British Columbia        CMA     180,518         170,191         +6.07%
+24      24      Greater Sudbury         Ontario         CMA     164,689         163,067         +0.99%
+25      25      Kingston (South Frontenac, Loyalist)    Ontario         CMA     161,175         159,561         +1.01%
+26      26      Saguenay        Quebec  CMA     160,980         158,658         +1.46%
+27      27      Trois-Rivières  Quebec  CMA     156,042         151,773         +2.81%
+28      28      Guelph  Ontario         CMA     151,984         141,097         +7.72%
+29      29      Moncton (Dieppe, Riverview)     New Brunswick   CMA     144,810         139,287         +3.97%
+30      30      Brantford (Brant)       Ontario         CMA     134,203         135,501         −0.96%
+31      31      Saint John (Quispamsis)         New Brunswick   CMA     126,202         129,057         −2.21%
+32      33      Peterborough (Selwyn)   Ontario         CMA     121,721         118,975         +2.31%
+33      32      Thunder Bay     Ontario         CMA     121,621         121,596         +0.02%
+34      34      Lethbridge      Alberta         CMA     117,394         105,999         +10.75%
+35      38      Nanaimo         British Columbia        CA      104,936         98,021  +7.05%
+36      37      Kamloops        British Columbia        CA      103,811         98,754  +5.12%
+37      40      Belleville (Quinte West)        Ontario         CMA     103,472         101,668         +1.77%
+38      35      Chatham-Kent    Ontario         CA      102,042         104,075         −1.95%
+39      39      Fredericton     New Brunswick   CA      101,760         98,320  +3.50%
+40      42      Chilliwack      British Columbia        CA      101,512         93,882  +8.13%
+41      43      Red Deer        Alberta         CA      100,418         90,564  +10.88%
+42      36      Cape Breton     Nova Scotia     CA      98,722  101,619         −2.85%
+43      44      Sarnia (St. Clair)      Ontario         CA      96,151  97,131  −1.01%
+44      45      Drummondville   Quebec  CA      96,118  91,222  +5.37%
+45      46      Prince George   British Columbia        CA      86,622  84,232  +2.84%
+46      48      Granby (Bromont)        Quebec  CA      85,056  80,863  +5.19%
+47      47      Sault Ste. Marie        Ontario         CA      78,159  79,800  −2.06%
+48      50      Medicine Hat (Cypress County)   Alberta         CA      76,522  72,807  +5.10%
+49      49      Kawartha Lakes  Ontario         CA      75,423  73,219  +3.01%
+50      51      Wood Buffalo    Alberta         CA      73,320  66,896  +9.60%
+51      53      North Bay       Ontario         CA      70,378  72,241  −2.58%
+52      52      Charlottetown (Stratford)       Prince Edward Island    CA      69,325  65,523  +5.80%
+53      54      Norfolk         Ontario         CA      64,044  63,175  +1.38%
+54      59      Grande Prairie  Alberta         CA      63,166  55,655  +13.50%
+55      56      Vernon (Coldstream)     British Columbia        CA      61,334  58,584  +4.69%
+56      55      Cornwall (South Stormont)       Ontario         CA      59,699  58,957  +1.26%
+57      57      Saint-Hyacinthe         Quebec  CA      59,614  56,794  +4.97%
+58      61      Brandon         Manitoba        CA      58,003  54,847  +5.75%
+59      62      Rimouski        Quebec  CA      55,349  53,711  +3.05%
+60      60      Shawinigan      Quebec  CA      54,181  54,489  −0.57%
+61      58      Courtenay (Comox, Comox Valley A & B)   British Columbia        CA      54,157  51,787  +4.58%
+62      65      Joliette (Notre-Dame-des-Prairies, Saint-Charles-Borromée, Saint-Paul)  Quebec  CA      49,439  46,932  +5.34%
+63      66      Victoriaville   Quebec  CA      49,151  46,354  +6.03%
+64      63      Leamington (Kingsville)         Ontario         CA      49,147  49,765  −1.24%
+65      67      Truro (Colchester, Subd. B & C)         Nova Scotia     CA      45,753  45,888  −0.29%
+66      68      Duncan (North Cowichan)         British Columbia        CA      44,451  43,252  +2.77%
+67      70      Prince Albert   Saskatchewan    CA      44,160  43,680  +1.10%
+68      71      Penticton (Okanagan-Similkameen D)      British Columbia        CA      43,432  42,361  +2.53%
+69      72      Rouyn-Noranda   Quebec  CA      42,334  41,012  +3.22%
+70      69      Timmins         Ontario         CA      41,788  43,165  −3.19%
+71      64      Sorel-Tracy     Quebec  CA      41,629  41,520  +0.26%
+72      76      Woodstock       Ontario         CA      40,902  37,754  +8.34%
+73      74      Salaberry-de-Valleyfield        Quebec  CA      40,745  40,077  +1.67%
+74      75      Brockville (Elizabethtown-Kitley, Augusta)      Ontario         CA      38,553  39,024  −1.21%
+75      77      Campbell River (Strathcona D)   British Columbia        CA      37,861  36,096  +4.89%
+76      79      Midland (Tay, Penetanguishene)  Ontario         CA      35,859  35,419  +1.24%
+77      81      Moose Jaw       Saskatchewan    CA      35,053  34,421  +1.84%
+78      87      Lloydminster    Alberta/Saskatchewan    CA      34,583  30,798  +12.29%
+79      78      New Glasgow (Pictou, Subd. C & B, Stellarton, Westville)        Nova Scotia     CA      34,487  35,809  −3.69%
+80      83      Val-d'Or        Quebec  CA      33,871  33,265  +1.82%
+81      84      Alma    Quebec  CA      32,849  33,018  −0.51%
+82      80      Saint-Georges   Quebec  CA      32,513  31,173  +4.30%
+83      94      Corner Brook (Pasadena)         Newfoundland and Labrador       CA      31,917  31,417  +1.59%
+84      85      Owen Sound (Georgian Bluffs)    Ontario         CA      31,820  32,092  −0.85%
+85      86      Stratford       Ontario         CA      31,465  30,903  +1.82%
+86      NR      Carleton Place (Mississippi Mills, Beckwith)    Ontario         CA      31,451  29,180  +7.78%
+87      73      Orillia         Ontario         CA      31,166  30,586  +1.90%
+88      82      Bathurst (Beresford Parish, Bathurst Parish, Beresford)         New Brunswick   CA      31,110  31,936  −2.59%
+89      NR      Winkler (Stanley, Morden)       Manitoba        CA      30,297  26,838  +12.89%
+90      92      Parksville (Qualicum Beach, Nanaimo G)  British Columbia        CA      28,922  27,822  +3.95%
+91      93      Rivière-du-Loup (Saint-Antonin)         Quebec  CA      28,902  28,987  −0.29%
+92      101     Okotoks         Alberta         CA      28,881  24,511  +17.83%
+93      89      Sept-Îles       Quebec  CA      28,534  28,487  +0.16%
+94      91      Thetford Mines  Quebec  CA      28,448  28,927  −1.66%
+95      96      Fort St. John (Peace River C)   British Columbia        CA      28,396  26,380  +7.64%
+96      98      Whitehorse      Yukon   CA      28,225  26,028  +8.44%
+97      95      Centre Wellington       Ontario         CA      28,191  26,693  +5.61%
+98      88      Baie-Comeau     Quebec  CA      27,692  28,465  −2.72%
+99      90      Miramichi       New Brunswick   CA      27,523  28,115  −2.11%
+100     97      Kentville (Kings, Subd. B & C)  Nova Scotia     CA      26,222  26,359  −0.52%
+101     100     Cranbrook (East Kootenay C)     British Columbia        CA      26,083  25,037  +4.18%
+102     99      Port Alberni (Alberni-Clayoquot E)      British Columbia        CA      25,112  25,465  −1.39%
+103     103     Brooks (Newell County)  Alberta         CA      24,662  23,430  +5.26%
+104     105     Edmundston      New Brunswick   CA      23,524  23,819  −1.24%
+105     102     Pembroke (Laurentian Valley)    Ontario         CA      23,269  24,017  −3.11%
+106     104     Quesnel (Cariboo A & B)         British Columbia        CA      23,146  23,566  −1.78%
+107     106     Collingwood     Ontario         CA      21,793  19,241  +13.26%
+108     NR      Wasaga Beach    Ontario         CA      20,675  17,537  +17.89%
+109     116     Squamish        British Columbia        CA      19,893  17,479  +13.81%
+110     108     North Battleford (Battleford)   Saskatchewan    CA      19,623  18,850  +4.10%
+111     107     Yellowknife     Northwest Territories   CA      19,569  19,234  +1.74%
+112     109     Cobourg         Ontario         CA      19,440  18,519  +4.97%
+113     112     Yorkton         Saskatchewan    CA      18,905  18,238  +3.66%
+114     117     Camrose         Alberta         CA      18,742  17,286  +8.42%
+115     115     Swift Current (Swift Current No. 137)   Saskatchewan    CA      18,536  17,535  +5.71%
+116     NR      Nelson (Central Kootenay F & E)         British Columbia        CA      18,307  17,987  +1.78%
+117     110     Williams Lake (Cariboo D & E)   British Columbia        CA      18,277  18,490  −1.15%
+118     111     Matane  Quebec  CA      17,926  18,368  −2.41%
+119     114     Salmon Arm      British Columbia        CA      17,904  17,683  +1.25%
+120     123     Petawawa        Ontario         CA      17,187  15,988  +7.50%
+121     119     Powell River (Powell River C)   British Columbia        CA      16,783  16,689  +0.56%
+122     121     Port Hope       Ontario         CA      16,753  16,214  +3.32%
+123     120     Summerside      Prince Edward Island    CA      16,587  16,488  +0.60%
+124     NR      Arnprior (McNab/Braeside)       Ontario         CA      15,973  15,485  +3.15%
+125     126     Tillsonburg     Ontario         CA      15,872  15,301  +3.73%
+126     130     Steinbach       Manitoba        CA      15,829  13,524  +17.04%
+127     113     Campbellton, New Brunswick (Atholville)         New Brunswick   CA      15,746  17,361  −9.30%
+128     124     Terrace (Kitimat-Stikine E)     British Columbia        CA      15,723  15,569  +0.99%
+129     122     Dolbeau-Mistassini      Quebec  CA      15,673  15,826  −0.97%
+130     136     Sylvan Lake     Alberta         CA      15,302  12,797  +19.57%
+131     125     Kenora  Ontario         CA      15,096  15,348  −1.64%
+132     127     Cold Lake       Alberta         CA      14,961  13,839  +8.11%
+133     128     Grand Falls-Windsor     Newfoundland and Labrador       CA      14,171  13,725  +3.25%
+134     141     Canmore         Alberta         CA      13,992  12,288  +13.87%
+135     140     Strathmore      Alberta         CA      13,756  12,305  +11.79%
+136     135     Thompson        Manitoba        CA      13,678  12,829  +6.62%
+137     139     Cowansville     Quebec  CA      13,656  12,489  +9.34%
+138     133     Estevan (Estevan No. 5)         Saskatchewan    CA      13,615  12,973  +4.95%
+139     134     High River      Alberta         CA      13,584  12,930  +5.06%
+140     NR      Sainte-Marie    Quebec  CA      13,565  12,889  +5.24%
+141     132     Portage la Prairie      Manitoba        CA      13,304  12,996  +2.37%
+142     NR      Gander  Newfoundland and Labrador       CA      13,234  12,683  +4.34%
+143     144     Lacombe         Alberta         CA      13,057  11,707  +11.53%
+144     137     Lachute         Quebec  CA      12,862  12,551  +2.48%
+145     142     Ingersoll       Ontario         CA      12,757  12,146  +5.03%
+146     131     Prince Rupert   British Columbia        CA      12,687  13,052  −2.80%
+147     138     Wetaskiwin      Alberta         CA      12,655  12,525  +1.04%
+148     145     Dawson Creek    British Columbia        CA      12,178  11,583  +5.14%
+149     143     Hawkesbury (Grenville)  Ontario/Quebec  CA      11,974  12,128  −1.27%
+150     147     Bay Roberts (Spaniard's Bay, Upper Island Cove)         Newfoundland and Labrador       CA      11,083  10,871  +1.95%
+151     NR      Weyburn         Saskatchewan    CA      10,870  10,484  +3.68%
+152     146     Elliot Lake     Ontario         CA      10,741  11,348  −5.35%

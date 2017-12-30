@@ -39,15 +39,15 @@ class CQChartsTreeSelectionModel : public QItemSelectionModel {
 //------
 
 CQChartsTree::
-CQChartsTree(QWidget *parent) :
- CQTreeView(parent)
+CQChartsTree(CQCharts *charts, QWidget *parent) :
+ CQTreeView(parent), charts_(charts)
 {
   setObjectName("tree");
 
   setSortingEnabled(true);
 
   header()->setSectionsClickable(true);
-  //header()->setHighlightSections(true);
+//header()->setHighlightSections(true);
 
   setSelectionBehavior(SelectRows);
 }
@@ -96,14 +96,17 @@ setModel(const ModelP &model)
 
   CQTreeView::setModel(model_.data());
 
-  sm_ = new CQChartsTreeSelectionModel(this);
+  if (model_.data()) {
+    sm_ = new CQChartsTreeSelectionModel(this);
 
-  setSelectionModel(sm_);
+    setSelectionModel(sm_);
+  }
 
   //---
 
-  connect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this, SLOT(selectionSlot()));
+  if (sm_)
+    connect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this, SLOT(selectionSlot()));
 }
 
 void

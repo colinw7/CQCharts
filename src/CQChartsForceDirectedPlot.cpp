@@ -46,17 +46,12 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
 
   //---
 
-  timer_ = new QTimer;
-
-  connect(timer_, SIGNAL(timeout()), this, SLOT(animateSlot()));
-
-  timer_->start(tickLen_);
+  startAnimateTimer();
 }
 
 CQChartsForceDirectedPlot::
 ~CQChartsForceDirectedPlot()
 {
-  delete timer_;
 }
 
 void
@@ -294,7 +289,7 @@ decodeConnection(const QString &str, ConnectionData &connection)
 
 void
 CQChartsForceDirectedPlot::
-animateSlot()
+animateStep()
 {
   if (pressed_ || ! isRunning())
     return;

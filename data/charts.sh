@@ -491,3 +491,19 @@ CQChartsTest -y1y2 \
  -properties "lines.width=2,points.symbol=circle,points.fill.visible=1" \
  -properties "lines.color=palette:0.75,points.fill.color=palette:0.75" \
  -plot_title "Linear Scale"
+
+##---
+
+CQChartsTest \
+ -csv name_value.csv \
+ -type distribution -columns "value=0"
+
+##---
+
+CQChartsTest \
+  -csv sankey.csv -comment_header \
+  -type sankey -columns "link=0,value=1"
+
+CQChartsTest \
+  -csv sankey_energy.csv -comment_header \
+  -type sankey -columns "link=0,value=1"

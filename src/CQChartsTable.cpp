@@ -51,7 +51,7 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
   setSortingEnabled(true);
 
   horizontalHeader()->setSectionsClickable(true);
-  //horizontalHeader()->setHighlightSections(true);
+//horizontalHeader()->setHighlightSections(true);
 
   verticalHeader()->setVisible(false);
 
@@ -108,16 +108,19 @@ setModel(const ModelP &model)
 
   model_ = model;
 
-  QTableView::setModel(model_.data());
+  CQTableView::setModel(model_.data());
 
-  sm_ = new CQChartsTableSelectionModel(this);
+  if (model_.data()) {
+    sm_ = new CQChartsTableSelectionModel(this);
 
-  setSelectionModel(sm_);
+    setSelectionModel(sm_);
+  }
 
   //---
 
-  connect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this, SLOT(selectionSlot()));
+  if (sm_)
+    connect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+            this, SLOT(selectionSlot()));
 }
 
 void
@@ -147,7 +150,8 @@ addReplaceFilter(const QString &filter, bool add)
   CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
   if (modelFilter) {
-    modelFilter->setSelectionModel(sm_);
+    if (sm_)
+      modelFilter->setSelectionModel(sm_);
 
     if (add)
       modelFilter->pushFilterData();

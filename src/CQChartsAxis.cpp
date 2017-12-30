@@ -71,8 +71,8 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
   label_     = new CQChartsAxisLabel(this);
   tickLabel_ = new CQChartsAxisTickLabel(this);
 
-  label_    ->setColor(themeFg);
-  tickLabel_->setColor(themeFg);
+  label_    ->setTextColor(themeFg);
+  tickLabel_->setTextColor(themeFg);
 
   lineObj_ = new CQChartsLineObj(plot);
 
@@ -309,14 +309,14 @@ const QString &
 CQChartsAxis::
 label() const
 {
-  return label_->text();
+  return label_->textStr();
 }
 
 void
 CQChartsAxis::
 setLabel(const QString &str)
 {
-  label_->setText(str);
+  label_->setTextStr(str);
 
   redraw();
 }
@@ -325,14 +325,14 @@ const QFont &
 CQChartsAxis::
 labelFont() const
 {
-  return label_->font();
+  return label_->textFont();
 }
 
 void
 CQChartsAxis::
 setLabelFont(const QFont &font)
 {
-  label_->setFont(font);
+  label_->setTextFont(font);
 
   redraw();
 }
@@ -341,21 +341,21 @@ QString
 CQChartsAxis::
 labelColorStr() const
 {
-  return label_->colorStr();
+  return label_->textColorStr();
 }
 
 void
 CQChartsAxis::
 setLabelColorStr(const QString &str)
 {
-  label_->setColorStr(str);
+  label_->setTextColorStr(str);
 }
 
 QColor
 CQChartsAxis::
 interpLabelColor(int i, int n) const
 {
-  return label_->interpColor(i, n);
+  return label_->interpTextColor(i, n);
 }
 
 //---
@@ -626,14 +626,14 @@ const QFont &
 CQChartsAxis::
 tickLabelFont() const
 {
-  return tickLabel_->font();
+  return tickLabel_->textFont();
 }
 
 void
 CQChartsAxis::
 setTickLabelFont(const QFont &font)
 {
-  tickLabel_->setFont(font);
+  tickLabel_->setTextFont(font);
 
   redraw();
 }
@@ -642,14 +642,14 @@ double
 CQChartsAxis::
 tickLabelAngle() const
 {
-  return tickLabel_->angle();
+  return tickLabel_->textAngle();
 }
 
 void
 CQChartsAxis::
 setTickLabelAngle(double angle)
 {
-  tickLabel_->setAngle(angle);
+  tickLabel_->setTextAngle(angle);
 
   redraw();
 }
@@ -658,21 +658,21 @@ QString
 CQChartsAxis::
 tickLabelColorStr() const
 {
-  return tickLabel_->colorStr();
+  return tickLabel_->textColorStr();
 }
 
 void
 CQChartsAxis::
 setTickLabelColorStr(const QString &str)
 {
-  return tickLabel_->setColorStr(str);
+  return tickLabel_->setTextColorStr(str);
 }
 
 QColor
 CQChartsAxis::
 interpTickLabelColor(int i, int n) const
 {
-  return tickLabel_->interpColor(i, n);
+  return tickLabel_->interpTextColor(i, n);
 }
 
 //---

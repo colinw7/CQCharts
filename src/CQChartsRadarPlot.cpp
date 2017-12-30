@@ -5,7 +5,8 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsBoxObj.h>
+#include <CQChartsTextBoxObj.h>
+#include <CQChartsFillObj.h>
 #include <CGradientPalette.h>
 #include <CQStrParse.h>
 #include <QPainter>
@@ -39,14 +40,17 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
 {
   gridColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 0.5);
 
-  boxObj_ = new CQChartsBoxObj(this);
+  textBoxObj_ = new CQChartsTextBoxObj(this);
 
-  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
-  boxObj_->setBackgroundAlpha(0.5);
-
-  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  textBoxObj_->setBackgroundAlpha(0.5);
 
   setBorder(true);
+  setFilled(true);
+
+  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  textBoxObj_->setTextColor(textColor);
 
   addKey();
 
@@ -56,8 +60,10 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
 CQChartsRadarPlot::
 ~CQChartsRadarPlot()
 {
-  delete boxObj_;
+  delete textBoxObj_;
 }
+
+//------
 
 QString
 CQChartsRadarPlot::
@@ -80,18 +86,36 @@ setValueColumnsStr(const QString &s)
   return true;
 }
 
+//------
+
+bool
+CQChartsRadarPlot::
+isFilled() const
+{
+  return textBoxObj_->isBackground();
+}
+
+void
+CQChartsRadarPlot::
+setFilled(bool b)
+{
+  textBoxObj_->setBackground(b);
+
+  update();
+}
+
 QString
 CQChartsRadarPlot::
 fillColorStr() const
 {
-  return boxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColorStr();
 }
 
 void
 CQChartsRadarPlot::
 setFillColorStr(const QString &s)
 {
-  boxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColorStr(s);
 
   update();
 }
@@ -100,37 +124,55 @@ QColor
 CQChartsRadarPlot::
 interpFillColor(int i, int n)
 {
-  return boxObj_->interpBackgroundColor(i, n);
+  return textBoxObj_->interpBackgroundColor(i, n);
 }
 
 double
 CQChartsRadarPlot::
 fillAlpha() const
 {
-  return boxObj_->backgroundAlpha();
+  return textBoxObj_->backgroundAlpha();
 }
 
 void
 CQChartsRadarPlot::
 setFillAlpha(double r)
 {
-  boxObj_->setBackgroundAlpha(r);
+  textBoxObj_->setBackgroundAlpha(r);
 
   update();
 }
+
+CQChartsRadarPlot::Pattern
+CQChartsRadarPlot::
+fillPattern() const
+{
+  return (Pattern) textBoxObj_->backgroundPattern();
+}
+
+void
+CQChartsRadarPlot::
+setFillPattern(Pattern pattern)
+{
+  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+
+  update();
+}
+
+//---
 
 bool
 CQChartsRadarPlot::
 isBorder() const
 {
-  return boxObj_->isBorder();
+  return textBoxObj_->isBorder();
 }
 
 void
 CQChartsRadarPlot::
 setBorder(bool b)
 {
-  boxObj_->setBorder(b);
+  textBoxObj_->setBorder(b);
 
   update();
 }
@@ -139,14 +181,14 @@ QString
 CQChartsRadarPlot::
 borderColorStr() const
 {
-  return boxObj_->borderColorStr();
+  return textBoxObj_->borderColorStr();
 }
 
 void
 CQChartsRadarPlot::
 setBorderColorStr(const QString &str)
 {
-  boxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColorStr(str);
 
   update();
 }
@@ -155,21 +197,21 @@ QColor
 CQChartsRadarPlot::
 interpBorderColor(int i, int n) const
 {
-  return boxObj_->interpBorderColor(i, n);
+  return textBoxObj_->interpBorderColor(i, n);
 }
 
 double
 CQChartsRadarPlot::
 borderAlpha() const
 {
-  return boxObj_->borderAlpha();
+  return textBoxObj_->borderAlpha();
 }
 
 void
 CQChartsRadarPlot::
 setBorderAlpha(double a)
 {
-  boxObj_->setBorderAlpha(a);
+  textBoxObj_->setBorderAlpha(a);
 
   update();
 }
@@ -178,17 +220,60 @@ double
 CQChartsRadarPlot::
 borderWidth() const
 {
-  return boxObj_->borderWidth();
+  return textBoxObj_->borderWidth();
 }
 
 void
 CQChartsRadarPlot::
 setBorderWidth(double r)
 {
-  boxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(r);
 
   update();
 }
+
+//---
+
+const QFont &
+CQChartsRadarPlot::
+textFont() const
+{
+  return textBoxObj_->textFont();
+}
+
+void
+CQChartsRadarPlot::
+setTextFont(const QFont &f)
+{
+  textBoxObj_->setTextFont(f);
+
+  update();
+}
+
+QString
+CQChartsRadarPlot::
+textColorStr() const
+{
+  return textBoxObj_->textColorStr();
+}
+
+void
+CQChartsRadarPlot::
+setTextColorStr(const QString &s)
+{
+  textBoxObj_->setTextColorStr(s);
+
+  update();
+}
+
+QColor
+CQChartsRadarPlot::
+interpTextColor(int i, int n) const
+{
+  return textBoxObj_->interpTextColor(i, n);
+}
+
+//----
 
 void
 CQChartsRadarPlot::
@@ -199,16 +284,24 @@ addProperties()
   addProperty("columns", this, "nameColumn"  , "name"     );
   addProperty("columns", this, "valueColumn" , "value"    );
   addProperty("columns", this, "valueColumns", "valuesSet");
-  addProperty(""       , this, "angleStart"               );
-  addProperty("grid"   , this, "gridColor"   , "color"    );
-  addProperty("grid"   , this, "gridAlpha"   , "alpha"    );
-  addProperty("border" , this, "borderColor" , "color"    );
-  addProperty("border" , this, "borderAlpha" , "alpha"    );
-  addProperty("border" , this, "borderWidth" , "width"    );
-  addProperty("fill"   , this, "fillColor"   , "color"    );
-  addProperty("fill"   , this, "fillAlpha"   , "alpha"    );
-  addProperty("text"   , this, "textFont"    , "font"     );
-  addProperty("text"   , this, "textColor"   , "color"    );
+
+  addProperty("", this, "angleStart");
+
+  addProperty("grid", this, "gridColor", "color");
+  addProperty("grid", this, "gridAlpha", "alpha");
+
+  addProperty("stroke", this, "border"     , "visible");
+  addProperty("stroke", this, "borderColor", "color"  );
+  addProperty("stroke", this, "borderAlpha", "alpha"  );
+  addProperty("stroke", this, "borderWidth", "width"  );
+
+  addProperty("fill", this, "filled"     , "visible");
+  addProperty("fill", this, "fillColor"  , "color"  );
+  addProperty("fill", this, "fillAlpha"  , "alpha"  );
+  addProperty("fill", this, "fillPattern", "pattern");
+
+  addProperty("text", this, "textColor", "color");
+  addProperty("text", this, "textFont" , "font" );
 }
 
 void
@@ -445,11 +538,13 @@ drawBackground(QPainter *painter)
 
   QPen gpen2(gridColor2);
 
+  //---
+
   QColor textColor = interpTextColor(0, 1);
 
-  painter->setFont(textFont());
-
   QPen tpen(textColor);
+
+  painter->setFont(textFont());
 
   int    nl = 5;
   double dr = valueRadius_/nl;
@@ -583,11 +678,23 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   ppoly << ppoly[0];
 
-  QColor c = plot_->interpFillColor(i_, n_);
+  //---
 
-  c.setAlphaF(plot_->fillAlpha());
+  // calc stroke and brush
+  QBrush brush;
 
-  QBrush brush(c);
+  if (plot_->isFilled()) {
+    QColor c = plot_->interpFillColor(i_, n_);
+
+    c.setAlphaF(plot_->fillAlpha());
+
+    brush.setColor(c);
+    brush.setStyle(CQChartsFillObj::patternToStyle(
+      (CQChartsFillObj::Pattern) plot_->fillPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
 
   QPen pen;
 
@@ -596,12 +703,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
-    pen = QPen(bc);
-
+    pen.setColor (bc);
     pen.setWidthF(plot_->borderWidth());
   }
-  else
-    pen = QPen(Qt::NoPen);
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

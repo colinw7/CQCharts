@@ -136,9 +136,9 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
           this, SLOT(modelColumnsRemovedSlot()));
 
-  updateTimer_.setSingleShot(true);
+  updateTimer_ = new CQChartsPlotUpdateTimer(this);
 
-  connect(&updateTimer_, SIGNAL(timeout()), this, SLOT(updateTimerSlot()));
+  connect(updateTimer_, SIGNAL(timeout()), this, SLOT(updateTimerSlot()));
 }
 
 CQChartsPlot::
@@ -158,6 +158,30 @@ CQChartsPlot::
   delete keyObj_;
   delete xAxis_;
   delete yAxis_;
+
+  delete animateData_.timer;
+
+  delete updateTimer_;
+}
+
+//---
+
+void
+CQChartsPlot::
+startAnimateTimer()
+{
+  animateData_.timer = new QTimer;
+
+  connect(animateData_.timer, SIGNAL(timeout()), this, SLOT(animateSlot()));
+
+  animateData_.timer->start(animateData_.tickLen);
+}
+
+void
+CQChartsPlot::
+animateSlot()
+{
+  animateStep();
 }
 
 //---
@@ -170,49 +194,49 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
   //int column1 = tl.column();
   //int column2 = br.column();
 
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelLayoutChangedSlot()
 {
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelRowsInsertedSlot()
 {
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelRowsRemovedSlot()
 {
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelColumnsInsertedSlot()
 {
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 modelColumnsRemovedSlot()
 {
-  updateTimer_.start(100);
+  updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
 updateTimerSlot()
 {
-  updateRangeAndObjs();
+  updateRangeAndObjsInternal();
 }
 
 //---
@@ -330,7 +354,7 @@ setTitleStr(const QString &s)
   titleStr_ = s;
 
   if (title())
-    title()->setText(titleStr_);
+    title()->setTextStr(titleStr_);
 }
 
 //---
@@ -728,16 +752,16 @@ addProperties()
   addProperty("margin", this, "marginBottom", "bottom");
 
   if (xAxis())
-    xAxis()->addProperties(propertyModel(), id() + "/" + "X Axis");
+    xAxis()->addProperties(propertyModel(), id() + "/" + "xaxis");
 
   if (yAxis())
-    yAxis()->addProperties(propertyModel(), id() + "/" + "Y Axis");
+    yAxis()->addProperties(propertyModel(), id() + "/" + "yaxis");
 
   if (key())
-    key()->addProperties(propertyModel(), id() + "/" + "Key");
+    key()->addProperties(propertyModel(), id() + "/" + "key");
 
   if (title())
-    title()->addProperties(propertyModel(), id() + "/" + "Title");
+    title()->addProperties(propertyModel(), id() + "/" + "title");
 }
 
 bool
@@ -844,13 +868,33 @@ addTitle()
 {
   titleObj_ = new CQChartsTitle(this);
 
-  titleObj_->setText(titleStr());
+  titleObj_->setTextStr(titleStr());
+}
+
+void
+CQChartsPlot::
+updateRangeAndObjs()
+{
+  updateTimer_->start(100);
+}
+
+void
+CQChartsPlot::
+updateRangeAndObjsInternal()
+{
+  CScopeTimer timer("updateRangeAndObjsInternal");
+
+  updateRange();
+
+  updateObjs();
 }
 
 void
 CQChartsPlot::
 updateObjs()
 {
+  CScopeTimer timer("updateObjs");
+
   clearPlotObjects();
 
   update();
@@ -2097,10 +2141,11 @@ fitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  bbox += dataFitBBox ();
-  bbox += axesFitBBox ();
-  bbox += keyFitBBox  ();
-  bbox += titleFitBBox();
+  bbox += dataFitBBox   ();
+  bbox += axesFitBBox   ();
+  bbox += keyFitBBox    ();
+  bbox += titleFitBBox  ();
+  bbox += annotationBBox();
 
   // add margin (TODO: config pixel margin size)
   double xm = pixelToWindowWidth (8);
@@ -2625,6 +2670,56 @@ interpThemeColor(double r) const
 
 //------
 
+CQBaseModel::Type
+CQChartsPlot::
+columnValueType(QAbstractItemModel *model, int column) const
+{
+  assert(model);
+
+  int nr = model->rowCount(QModelIndex());
+
+  // determine column value type
+  bool isInt = true, isReal = true;
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex xind = model->index(r, column);
+
+    if (isInt) {
+      bool ok1;
+
+      (void) CQChartsUtil::modelInteger(model, xind, ok1);
+
+      if (ok1)
+        continue;
+
+      isInt = false;
+    }
+
+    if (isReal) {
+      bool ok1;
+
+      (void) CQChartsUtil::modelReal(model, xind, ok1);
+
+      if (ok1)
+        continue;
+
+      isReal = false;
+    }
+
+    break;
+  }
+
+  if (isInt)
+    return CQBaseModel::Type::INTEGER;
+
+  if (isReal)
+    return CQBaseModel::Type::REAL;
+
+  return CQBaseModel::Type::STRING;
+}
+
+//------
+
 QModelIndex
 CQChartsPlot::
 normalizeIndex(const QModelIndex &ind) const
@@ -2723,9 +2818,9 @@ void
 CQChartsPlot::
 beginSelect()
 {
-  itemSelection_ = QItemSelection();
-
   selIndexColumnRows_.clear();
+
+//itemSelection_ = QItemSelection();
 }
 
 void
@@ -2741,9 +2836,9 @@ addSelectIndex(const QModelIndex &ind)
 {
   QModelIndex ind1 = unnormalizeIndex(ind);
 
-  itemSelection_.select(ind1, ind1);
-
   selIndexColumnRows_[ind1.parent()][ind1.column()].insert(ind1.row());
+
+//itemSelection_.select(ind1, ind1);
 }
 
 void
@@ -2763,10 +2858,12 @@ endSelect()
 
   QItemSelection optItemSelection;
 
+  // build row range per index column
   for (const auto &p : selIndexColumnRows_) {
     const QModelIndex &parent     = p.first;
     const ColumnRows  &columnRows = p.second;
 
+    // build row range per column
     for (const auto &p1 : columnRows) {
       int         column = p1.first;
       const Rows &rows   = p1.second;
@@ -2802,7 +2899,6 @@ endSelect()
     }
   }
 
-//std::cerr << "Opt: " << optItemSelection.length() << " Std: " << itemSelection_.length() << "\n";
   sm->select(optItemSelection, QItemSelectionModel::ClearAndSelect);
 
 //sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
@@ -2911,6 +3007,24 @@ CQChartsPlot::
 pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const
 {
   pixelToWindow(p.x, p.y, w.x, w.y);
+}
+
+CQChartsGeom::Point
+CQChartsPlot::
+windowToPixel(const CQChartsGeom::Point &w) const
+{
+  CQChartsGeom::Point p;
+
+  windowToPixel(w, p);
+
+  return p;
+}
+
+QPointF
+CQChartsPlot::
+windowToPixel(const QPointF &w) const
+{
+  return CQChartsUtil::toQPoint(windowToPixel(CQChartsUtil::fromQPoint(w)));
 }
 
 void

@@ -33,6 +33,8 @@ draw(QPainter *painter, const QPointF &p1, const QPointF &p2) const
 {
   QColor c = interpColor(0, 1);
 
+  c.setAlphaF(alpha());
+
   draw(painter, p1, p2, c, width(), dash());
 }
 

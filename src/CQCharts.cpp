@@ -14,6 +14,7 @@
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
 #include <CQChartsRadarPlot.h>
+#include <CQChartsSankeyPlot.h>
 #include <CQChartsScatterPlot.h>
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTreeMapPlot.h>
@@ -56,6 +57,7 @@ init()
   plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
   plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );
   plotTypeMgr_->addType("radar"        , new CQChartsRadarPlotType        );
+  plotTypeMgr_->addType("sankey"       , new CQChartsSankeyPlotType       );
   plotTypeMgr_->addType("scatter"      , new CQChartsScatterPlotType      );
   plotTypeMgr_->addType("sunburst"     , new CQChartsSunburstPlotType     );
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );

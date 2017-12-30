@@ -209,6 +209,11 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
+  const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+
+  //---
+
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
@@ -234,9 +239,6 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   void draw(QPainter *) override;
-
-  void drawDataLabel(QPainter *painter, const QRectF &qrect,
-                     const QString &str, double fontSize=-1);
 
  private:
   int                  nameColumn_        { -1 };

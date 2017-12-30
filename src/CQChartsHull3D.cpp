@@ -163,7 +163,7 @@ doubleTriangle()
     v0 = v0->next;
 
     if (v0 == vertices_) {
-      //std::cerr << "doubleTriangle: All points collinear!" << std::endl;
+      //std::cerr << "doubleTriangle: All points collinear!\n";
       return false;
     }
   }
@@ -197,7 +197,7 @@ doubleTriangle()
     v3 = v3->next;
 
     if (v3 == v0) {
-      //std::cerr << "doubleTriangle: All points coplanar!" << std::endl;
+      //std::cerr << "doubleTriangle: All points coplanar!\n";
       return false;
     }
 
@@ -209,7 +209,7 @@ doubleTriangle()
 
 #if 0
   if (debug_) {
-    std::cerr << "doubleTriangle: finished. Head repositioned at v3." << std::endl;
+    std::cerr << "doubleTriangle: finished. Head repositioned at v3.\n";
     printOut(vertices_);
   }
 #endif
@@ -239,7 +239,7 @@ constructHull()
 
 #if 0
       if (check_) {
-        std::cerr << "constructHull: After add of " << v0->num() << " & cleanup" << std::endl;
+        std::cerr << "constructHull: After add of " << v0->num() << " & cleanup\n";
         checks();
       }
 #endif
@@ -287,7 +287,7 @@ edgeOrderOnFaces()
                            f->vertex(0)->num() << "," <<
                            f->vertex(1)->num() << "," <<
                            f->vertex(2)->num() << "): e[" <<
-                           i << "] and e[" << j << "]" << std::endl;
+                           i << "] and e[" << j << "]\n";
             }
 #endif
 
@@ -317,7 +317,7 @@ addOne(PVertex p)
 {
 #if 0
   if (debug_) {
-    std::cerr << "addOne: starting to add v" << p->num() << std::endl;
+    std::cerr << "addOne: starting to add v" << p->num() << "\n";
     printOut(vertices_);
   }
 #endif
@@ -336,7 +336,7 @@ addOne(PVertex p)
 #if 0
     if (debug_) {
       std::cerr << "faddr: " << (void *) f << " paddr: " <<
-                   (void *) p << " vol = " << vol << std::endl;
+                   (void *) p << " vol = " << vol << "\n";
     }
 #endif
 
@@ -498,7 +498,7 @@ dumpPS(const char *filename)
   FILE *fp = fopen(filename, "w");
 
   if (! fp) {
-    std::cerr << "Invalid filename " << filename << std::endl;
+    std::cerr << "Invalid filename " << filename << "\n";
     return;
   }
 

@@ -8,11 +8,13 @@
 class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible READ isVisible WRITE setVisible )
-  Q_PROPERTY(QString text    READ text      WRITE setText    )
-  Q_PROPERTY(QFont   font    READ font      WRITE setFont    )
-  Q_PROPERTY(QString color   READ colorStr  WRITE setColorStr)
-  Q_PROPERTY(double  angle   READ angle     WRITE setAngle   )
+  Q_PROPERTY(bool    textVisible  READ isTextVisible  WRITE setTextVisible )
+  Q_PROPERTY(QString textStr      READ textStr        WRITE setTextStr     )
+  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont    )
+  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr)
+  Q_PROPERTY(double  textAlpha    READ textAlpha      WRITE setTextAlpha   )
+  Q_PROPERTY(double  textAngle    READ textAngle      WRITE setTextAngle   )
+  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast)
 
  public:
   CQChartsTextBoxObj(CQChartsPlot *plot);
@@ -21,24 +23,32 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; redrawBoxObj(); }
+  bool isTextVisible() const { return textVisible_; }
+  void setTextVisible(bool b) { textVisible_ = b; redrawBoxObj(); }
 
-  const QString &text() const { return text_; }
-  virtual void setText(const QString &s) { text_ = s; redrawBoxObj(); }
+  const QString &textStr() const { return textStr_; }
+  virtual void setTextStr(const QString &s) { textStr_ = s; redrawBoxObj(); }
 
-  const QFont &font() const { return font_; }
-  virtual void setFont(const QFont &f) { font_ = f; redrawBoxObj(); }
+  const QFont &textFont() const { return textFont_; }
+  virtual void setTextFont(const QFont &f) { textFont_ = f; redrawBoxObj(); }
 
-  void setColor(const CQChartsPaletteColor &c) { color_ = c; redrawBoxObj(); }
+  void setTextFontSize(double s) { textFont_.setPointSizeF(s); redrawBoxObj(); }
 
-  QString colorStr() const;
-  void setColorStr(const QString &s);
+  void setTextColor(const CQChartsPaletteColor &c) { textColor_ = c; redrawBoxObj(); }
 
-  QColor interpColor(int i, int n) const;
+  QString textColorStr() const;
+  void setTextColorStr(const QString &s);
 
-  double angle() const { return angle_; }
-  void setAngle(double r) { angle_ = r; redrawBoxObj(); }
+  QColor interpTextColor(int i, int n) const;
+
+  double textAlpha() const { return textAlpha_; }
+  void setTextAlpha(double r) { textAlpha_ = r; redrawBoxObj(); }
+
+  double textAngle() const { return textAngle_; }
+  void setTextAngle(double r) { textAngle_ = r; redrawBoxObj(); }
+
+  bool isTextContrast() const { return textContrast_; }
+  void setTextContrast(bool b) { textContrast_ = b; redrawBoxObj(); }
 
   //---
 
@@ -54,11 +64,13 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   void drawText(QPainter *painter, const QRectF &rect, const QString &text) const;
 
  protected:
-  bool                 visible_ { true };
-  QString              text_;
-  QFont                font_;
-  CQChartsPaletteColor color_;
-  double               angle_   { 0.0 };
+  bool                 textVisible_  { true };
+  QString              textStr_;
+  QFont                textFont_;
+  CQChartsPaletteColor textColor_;
+  double               textAlpha_    { 1.0 };
+  double               textAngle_    { 0.0 };
+  bool                 textContrast_ { false };
 };
 
 //------

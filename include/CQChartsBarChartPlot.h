@@ -29,6 +29,8 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void setLabel(const QString &label) { label_ = label; }
 
+  CQChartsGeom::BBox dataLabelRect() const;
+
   void addSelectIndex() override;
 
   bool isIndex(const QModelIndex &) const override;
@@ -122,6 +124,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(bool    keySets          READ isKeySets         WRITE setKeySets         )
   Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
   Q_PROPERTY(QString borderColor      READ borderColorStr    WRITE setBorderColorStr  )
+  Q_PROPERTY(double  borderAlpha      READ borderAlpha       WRITE setBorderAlpha     )
   Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
   Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
   Q_PROPERTY(bool    barFill          READ isBarFill         WRITE setBarFill         )
@@ -222,6 +225,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   QColor interpBorderColor(int i, int n) const;
 
+  double borderAlpha() const;
+  void setBorderAlpha(double r);
+
   double borderWidth() const;
   void setBorderWidth(double r);
 
@@ -261,6 +267,11 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel &dataLabel() { return dataLabel_; }
+
+  //---
+
+  CQChartsGeom::BBox annotationBBox() const override;
 
   //---
 
@@ -301,8 +312,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool probe(ProbeData &probeData) const override;
 
   void draw(QPainter *) override;
-
-  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
  private:
   struct Value {

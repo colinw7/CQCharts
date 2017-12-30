@@ -52,6 +52,9 @@ Chart types supported
   + Radar
     + Radar (polygon pie chart)
     ![radar](radar.png "Radar Plot")
+  + Sankey
+    + Sankey plot of connected values
+    ![sankey](sankey.png "Sankey Plot")
   + Scatter
     + Scatter plot of disparate values
     ![scatterplot](scatterplot.png "Scatter Plot")

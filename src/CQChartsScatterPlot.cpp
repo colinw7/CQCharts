@@ -534,27 +534,29 @@ draw(QPainter *painter)
   drawParts(painter);
 }
 
+#if 0
 void
 CQChartsScatterPlot::
 drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str, double fontSize)
 {
   if (fontSize > 0) {
-    QFont font = dataLabel_.font();
+    QFont font = dataLabel_.textFont();
 
     QFont font1 = font;
 
     font1.setPointSizeF(fontSize);
 
-    dataLabel_.setFont(font1);
+    dataLabel_.setTextFont(font1);
 
     dataLabel_.draw(painter, qrect, str);
 
-    dataLabel_.setFont(font);
+    dataLabel_.setTextFont(font);
   }
   else {
     dataLabel_.draw(painter, qrect, str);
   }
 }
+#endif
 
 //------
 
@@ -678,7 +680,28 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->drawEllipse(erect);
 
   if (plot_->isTextLabels()) {
-    plot_->drawDataLabel(painter, erect, name_, (fontSize_ ? *fontSize_ : -1));
+    int fontSize = (fontSize_ ? *fontSize_ : -1);
+
+    CQChartsDataLabel &dataLabel = plot_->dataLabel();
+
+    if (fontSize > 0) {
+      QFont font = dataLabel.textFont();
+
+      QFont font1 = font;
+
+      font1.setPointSizeF(fontSize);
+
+      dataLabel.setTextFont(font1);
+
+      dataLabel.draw(painter, erect, name_);
+
+      dataLabel.setTextFont(font);
+    }
+    else {
+      dataLabel.draw(painter, erect, name_);
+    }
+
+    //plot_->drawDataLabel(painter, erect, name_, (fontSize_ ? *fontSize_ : -1));
   }
 }
 

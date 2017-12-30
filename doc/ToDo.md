@@ -8,6 +8,53 @@ High
  + Allow disable theme for fixed color plot
  + Radial Cooords
  + More annotation range support (bar chart, pie ...)
+ + Compose BoxObj, FillObj, TextBoxObj together
+ + Optional shadow text draw
+ + Buffer texts and remove overlaps (per layer/type)
+ + Bucket algorithm for all plots (box plot, ...)
+
+Common Properties
+ + Fill
+   + visible
+   + color
+   + alpha
+   + pattern
+ + Stroke
+   + visible
+   + color
+   + alpha
+   + width
+   + dash
+ + Text
+   + visible
+   + string
+   + font
+   + color
+   + alpha
+   + angle
+   + contrast (shadow) - ToDo shadow properties
+ + Box
+   + cornerSize (ToDo corners)
+   + sides
+ + Point
+   + visible
+   + symbol
+   + size
+   + Stroke
+     + visible (?)
+     + color
+     + alpha (?)
+     + width
+     + dash (?)
+   + Fill
+     + visible
+     + color
+     + alpha (?)
+     + pattern (?)
+
+Colors
+ + Custom Editor
+ + Contrast, Invert, B/W (Invert)
 
 Misc
  + Cache plot pixmaps
@@ -51,6 +98,7 @@ Plots
    + Bar/Column Chart NOT paired with Pie, Bar
  + Vector
  + Contour
+ + Dendogram
  + Arrow at points
 
 Pie Chart

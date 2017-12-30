@@ -5,6 +5,8 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 
+class CQChartsTextBoxObj;
+
 // TODO:
 //  Stacked
 //  mouse feedback depend on angle (actual value)
@@ -64,14 +66,29 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Q_PROPERTY(double  angleStart   READ angleStart      WRITE setAngleStart     )
   Q_PROPERTY(QString gridColor    READ gridColorStr    WRITE setGridColorStr   )
   Q_PROPERTY(double  gridAlpha    READ gridAlpha       WRITE setGridAlpha      )
-  Q_PROPERTY(QString fillColor    READ fillColorStr    WRITE setFillColorStr   )
-  Q_PROPERTY(double  fillAlpha    READ fillAlpha       WRITE setFillAlpha      )
   Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
   Q_PROPERTY(QString borderColor  READ borderColorStr  WRITE setBorderColorStr )
   Q_PROPERTY(double  borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
   Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(QFont   textFont     READ textFont        WRITE setTextFont       )
+  Q_PROPERTY(bool    filled       READ isFilled        WRITE setFilled         )
+  Q_PROPERTY(QString fillColor    READ fillColorStr    WRITE setFillColorStr   )
+  Q_PROPERTY(double  fillAlpha    READ fillAlpha       WRITE setFillAlpha      )
+  Q_PROPERTY(Pattern fillPattern  READ fillPattern     WRITE setFillPattern    )
   Q_PROPERTY(QString textColor    READ textColorStr    WRITE setTextColorStr   )
+  Q_PROPERTY(QFont   textFont     READ textFont        WRITE setTextFont       )
+
+  Q_ENUMS(Pattern);
+
+ public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
 
  public:
   CQChartsRadarPlot(CQChartsView *view, const ModelP &model);
@@ -115,6 +132,8 @@ class CQChartsRadarPlot : public CQChartsPlot {
   double angleStart() const { return angleStart_; }
   void setAngleStart(double r) { angleStart_ = r; update(); }
 
+  //----
+
   QString gridColorStr() const { return gridColor_.colorStr(); }
   void setGridColorStr(const QString &s) { gridColor_.setColorStr(s); update(); }
 
@@ -123,6 +142,11 @@ class CQChartsRadarPlot : public CQChartsPlot {
   double gridAlpha() const { return gridAlpha_; }
   void setGridAlpha(double r) { gridAlpha_ = r; update(); }
 
+  //---
+
+  bool isFilled() const;
+  void setFilled(bool b);
+
   QString fillColorStr() const;
   void setFillColorStr(const QString &s);
 
@@ -130,6 +154,11 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   double fillAlpha() const;
   void setFillAlpha(double r);
+
+  Pattern fillPattern() const;
+  void setFillPattern(Pattern pattern);
+
+  //---
 
   bool isBorder() const;
   void setBorder(bool b);
@@ -145,13 +174,15 @@ class CQChartsRadarPlot : public CQChartsPlot {
   double borderWidth() const;
   void setBorderWidth(double r);
 
-  const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+  //---
 
-  QString textColorStr() const { return textColor_.colorStr(); }
-  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+  const QFont &textFont() const;
+  void setTextFont(const QFont &f);
 
-  QColor interpTextColor(int i, int n) const { return textColor_.interpColor(this, i, n); }
+  QString textColorStr() const;
+  void setTextColorStr(const QString &s);
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -210,9 +241,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
   double               angleStart_    { 90 };      // angle start
   CQChartsPaletteColor gridColor_;                 // grid color
   double               gridAlpha_     { 0.5 };     // grid alpha
-  CQChartsBoxObj*      boxObj_        { nullptr }; // box object for fill and border
-  QFont                textFont_;                  // text font
-  CQChartsPaletteColor textColor_;                 // text color
+  CQChartsTextBoxObj*  textBoxObj_    { nullptr }; // box object for fill and border
   ValueDatas           valueDatas_;                // value
   double               valueRadius_   { 1.0 };     // max value (radius)
 };

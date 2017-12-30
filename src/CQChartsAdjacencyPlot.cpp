@@ -71,14 +71,17 @@ addProperties()
   addProperty("columns", this, "connectionsColumn", "connection");
   addProperty("columns", this, "groupColumn"      , "group"     );
   addProperty("columns", this, "nameColumn"       , "name"      );
-  addProperty(""       , this, "bgColor"          , ""          );
-  addProperty(""       , this, "borderColor"      , ""          );
-  addProperty(""       , this, "borderAlpha"      , ""          );
-  addProperty(""       , this, "emptyCellColor"   , ""          );
-  addProperty(""       , this, "textColor"        , ""          );
-  addProperty(""       , this, "cornerSize"       , ""          );
-  addProperty(""       , this, "font"             , ""          );
-  addProperty(""       , this, "margin"           , ""          );
+
+  addProperty("", this, "bgColor"       , "");
+  addProperty("", this, "emptyCellColor", "");
+  addProperty("", this, "margin"        , "");
+
+  addProperty("border", this, "borderColor", "color");
+  addProperty("border", this, "borderAlpha", "alpha");
+  addProperty("border", this, "cornerSize" , "cornerSize");
+
+  addProperty("text", this, "textColor", "color");
+  addProperty("text", this, "font"     , "font" );
 }
 
 void

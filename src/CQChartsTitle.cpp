@@ -11,9 +11,9 @@ CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
  CQChartsTextBoxObj(plot)
 {
-  setText("Title");
+  setTextStr("Title");
 
-  font_.setPointSizeF(1.5*font_.pointSizeF());
+  textFont_.setPointSizeF(1.5*textFont().pointSizeF());
 }
 
 void
@@ -150,10 +150,10 @@ QSizeF
 CQChartsTitle::
 calcSize()
 {
-  if (text().length()) {
-    QFontMetricsF fm(font());
+  if (textStr().length()) {
+    QFontMetricsF fm(textFont());
 
-    double pw = fm.width(text());
+    double pw = fm.width(textStr());
     double ph = fm.height();
 
     double ww = plot_->pixelToWindowWidth (pw);
@@ -232,7 +232,7 @@ draw(QPainter *painter)
   if (! isVisible())
     return;
 
-  if (! text().length())
+  if (! textStr().length())
      return;
 
   //---
@@ -274,14 +274,14 @@ draw(QPainter *painter)
 
   //---
 
-  QFontMetricsF fm(font());
+  QFontMetricsF fm(textFont());
 
-  painter->setFont(font());
+  painter->setFont(textFont());
 
-  painter->setPen(interpColor(0, 1));
+  painter->setPen(interpTextColor(0, 1));
 
   painter->drawText(QPointF(pirect.getXMin() + margin(),
-                             pirect.getYMax() - margin() - fm.descent()), text());
+                             pirect.getYMax() - margin() - fm.descent()), textStr());
 
   //---
 

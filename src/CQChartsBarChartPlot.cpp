@@ -105,18 +105,16 @@ addProperties()
   addProperty("", this, "margin"    , "barMargin");
   addProperty("", this, "keySets"   );
 
-  QString strokeStr = "stroke";
-  QString fillStr   = "fill";
+  addProperty("stroke", this, "border"          , "visible"   );
+  addProperty("stroke", this, "borderColor"     , "color"     );
+  addProperty("stroke", this, "borderAlpha"     , "alpha"     );
+  addProperty("stroke", this, "borderWidth"     , "width"     );
+  addProperty("stroke", this, "borderCornerSize", "cornerSize");
 
-  addProperty(strokeStr, this, "border"          , "visible"   );
-  addProperty(strokeStr, this, "borderColor"     , "color"     );
-  addProperty(strokeStr, this, "borderWidth"     , "width"     );
-  addProperty(strokeStr, this, "borderCornerSize", "cornerSize");
-
-  addProperty(fillStr, this, "barFill"   , "visible");
-  addProperty(fillStr, this, "barColor"  , "color"  );
-  addProperty(fillStr, this, "barAlpha"  , "alpha"  );
-  addProperty(fillStr, this, "barPattern", "pattern");
+  addProperty("fill", this, "barFill"   , "visible");
+  addProperty("fill", this, "barColor"  , "color"  );
+  addProperty("fill", this, "barAlpha"  , "alpha"  );
+  addProperty("fill", this, "barPattern", "pattern");
 
   dataLabel_.addProperties("dataLabel");
 
@@ -160,6 +158,20 @@ CQChartsBarChartPlot::
 interpBorderColor(int i, int n) const
 {
   return borderObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsBarChartPlot::
+borderAlpha() const
+{
+  return borderObj_->borderAlpha();
+}
+
+void
+CQChartsBarChartPlot::
+setBorderAlpha(double r)
+{
+  borderObj_->setBorderAlpha(r); update();
 }
 
 double
@@ -715,6 +727,29 @@ getValueSet(const QString &name)
 #endif
 }
 
+CQChartsGeom::BBox
+CQChartsBarChartPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  CQChartsDataLabel::Position position = dataLabel().position();
+
+  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
+    return bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsBarChartObj *barObj = dynamic_cast<CQChartsBarChartObj *>(plotObj);
+
+    if (barObj)
+      bbox += barObj->dataLabelRect();
+  }
+
+  return bbox;
+}
+
+//------
+
 void
 CQChartsBarChartPlot::
 updateObjs()
@@ -1160,13 +1195,6 @@ draw(QPainter *painter)
   drawParts(painter);
 }
 
-void
-CQChartsBarChartPlot::
-drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &ystr)
-{
-  dataLabel_.draw(painter, qrect, ystr);
-}
-
 //------
 
 CQChartsBarChartObj::
@@ -1197,6 +1225,27 @@ calcId() const
     return QString("%1:%2=%3").arg(setName).arg(valueName).arg(valueStr);
   else
     return QString("%1:%2").arg(setName).arg(valueStr);
+}
+
+CQChartsGeom::BBox
+CQChartsBarChartObj::
+dataLabelRect() const
+{
+  if (! plot_->dataLabel().isVisible())
+    return CQChartsGeom::BBox();
+
+  CQChartsGeom::BBox prect;
+
+  plot_->windowToPixel(rect(), prect);
+
+  QRectF qrect = CQChartsUtil::toQRect(prect);
+
+  QString label = label_;
+
+  if (plot_->labelColumn() < 0)
+    label = plot_->valueStr(value_);
+
+  return plot_->dataLabel().calcRect(qrect, label);
 }
 
 void
@@ -1240,11 +1289,15 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   painter->save();
 
+  //---
+
   CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
+
+  //---
 
   if (layer == CQChartsPlot::Layer::MID) {
     double m = plot_->margin();
@@ -1262,7 +1315,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     QPen pen;
 
     if (plot_->isBorder()) {
-      pen.setColor (plot_->interpBorderColor(0, 1));
+      QColor bc = plot_->interpBorderColor(0, 1);
+
+      bc.setAlphaF(plot_->borderAlpha());
+
+      pen.setColor (bc);
       pen.setWidthF(plot_->borderWidth());
     }
     else {
@@ -1334,7 +1391,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     if (plot_->labelColumn() < 0)
       label = plot_->valueStr(value_);
 
-    plot_->drawDataLabel(painter, qrect, label);
+    plot_->dataLabel().draw(painter, qrect, label);
   }
 
   painter->restore();

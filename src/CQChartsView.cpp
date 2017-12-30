@@ -288,7 +288,7 @@ initOverlay(CQChartsPlot *firstPlot)
   firstPlot->setOverlay(true);
 
   if (firstPlot->title() && title().length())
-    firstPlot->title()->setText(title());
+    firstPlot->title()->setTextStr(title());
 
   //---
 
@@ -335,7 +335,7 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2)
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
 
   if (plot1->title() && title().length())
-    plot1->title()->setText(title());
+    plot1->title()->setTextStr(title());
 
   plot1->setY1Y2(true);
   plot2->setY1Y2(true);

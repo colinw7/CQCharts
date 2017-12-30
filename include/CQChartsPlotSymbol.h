@@ -136,10 +136,10 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   double lineWidth() const override;
 
  private:
-  QPainter*           painter_  { nullptr };
-  CQChartsGeom::Point p_        { 0.0, 0.0 };
-  double              s_        { 2.0 };
-  double              w_        { 0.0 };
+  QPainter*           painter_ { nullptr };
+  CQChartsGeom::Point p_       { 0.0, 0.0 };
+  double              s_       { 2.0 };
+  double              w_       { 0.0 };
   QPainterPath        path_;
   QPen                strokePen_;
   QBrush              fillBrush_;

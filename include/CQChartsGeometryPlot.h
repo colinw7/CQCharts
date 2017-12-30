@@ -74,10 +74,24 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   Q_PROPERTY(QString borderColor    READ borderColorStr WRITE setBorderColorStr)
   Q_PROPERTY(double  borderAlpha    READ borderAlpha    WRITE setBorderAlpha   )
   Q_PROPERTY(double  borderWidth    READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(bool    filled         READ isFilled       WRITE setFilled        )
   Q_PROPERTY(QString fillColor      READ fillColorStr   WRITE setFillColorStr  )
   Q_PROPERTY(double  fillAlpha      READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(Pattern fillPattern    READ fillPattern    WRITE setFillPattern   )
+
+  Q_ENUMS(Pattern)
 
  public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
+
   using Polygons = std::vector<QPolygonF>;
 
   struct Geometry {
@@ -112,6 +126,8 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   double maxValue() const { return maxValue_; }
   void setMaxValue(double r) { maxValue_ = r; update(); }
 
+  //---
+
   bool isBorder() const;
   void setBorder(bool b);
 
@@ -126,6 +142,11 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   double borderWidth() const;
   void setBorderWidth(double r);
 
+  //---
+
+  bool isFilled() const;
+  void setFilled(bool b);
+
   QString fillColorStr() const;
   void setFillColorStr(const QString &s);
 
@@ -134,9 +155,13 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   double fillAlpha() const;
   void setFillAlpha(double a);
 
+  Pattern fillPattern() const;
+  void setFillPattern(Pattern pattern);
+
   //---
 
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
+  CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
   //---
 
@@ -149,8 +174,6 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //---
 
   void draw(QPainter *) override;
-
-  void drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str);
 
  private:
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);

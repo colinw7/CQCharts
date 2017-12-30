@@ -10,6 +10,7 @@
 
 class CQChartsHierBubblePlot;
 class CQChartsHierBubbleHierNode;
+class CQChartsTextBoxObj;
 
 class CQChartsHierBubbleNode : public CQChartsCircleNode {
  private:
@@ -198,19 +199,34 @@ class CQChartsHierBubblePlotType : public CQChartsPlotType {
 class CQChartsHierBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn  READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int     valueColumn READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(QString separator   READ separator      WRITE setSeparator     )
-  Q_PROPERTY(bool    border      READ isBorder       WRITE setBorder        )
-  Q_PROPERTY(QString borderColor READ borderColorStr WRITE setBorderColorStr)
-  Q_PROPERTY(double  borderAlpha READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(double  borderWidth READ borderWidth    WRITE setBorderWidth   )
-  Q_PROPERTY(QString fillColor   READ fillColorStr   WRITE setFillColorStr  )
-  Q_PROPERTY(double  fillAlpha   READ fillAlpha      WRITE setFillAlpha     )
-  Q_PROPERTY(QFont   textFont    READ textFont       WRITE setTextFont      )
-  Q_PROPERTY(QString textColor   READ textColorStr   WRITE setTextColorStr  )
+  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
+  Q_PROPERTY(bool    border       READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(double  borderWidth  READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(bool    filled       READ isFilled       WRITE setFilled        )
+  Q_PROPERTY(QString fillColor    READ fillColorStr   WRITE setFillColorStr  )
+  Q_PROPERTY(double  fillAlpha    READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(Pattern fillPattern  READ fillPattern    WRITE setFillPattern   )
+  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont      )
+  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr  )
+  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast  )
+
+  Q_ENUMS(Pattern);
 
  public:
+  enum class Pattern {
+    SOLID,
+    HATCH,
+    DENSE,
+    HORIZ,
+    VERT,
+    FDIAG,
+    BDIAG
+  };
+
   using Nodes = std::vector<CQChartsHierBubbleNode*>;
 
  public:
@@ -231,6 +247,8 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
 
+  //---
+
   bool isBorder() const;
   void setBorder(bool b);
 
@@ -245,6 +263,11 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   double borderWidth() const;
   void setBorderWidth(double r);
 
+  //---
+
+  bool isFilled() const;
+  void setFilled(bool b);
+
   QString fillColorStr() const;
   void setFillColorStr(const QString &s);
 
@@ -253,13 +276,21 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   double fillAlpha() const;
   void setFillAlpha(double a);
 
-  const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &f) { textFont_ = f; update(); }
+  Pattern fillPattern() const;
+  void setFillPattern(Pattern pattern);
 
-  QString textColorStr() const { return textColor_.colorStr(); }
-  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+  //---
+
+  const QFont &textFont() const;
+  void setTextFont(const QFont &f);
+
+  QString textColorStr() const;
+  void setTextColorStr(const QString &s);
 
   QColor interpTextColor(int i, int n) const;
+
+  bool isTextContrast() const;
+  void setTextContrast(bool b);
 
   //---
 
@@ -350,9 +381,7 @@ class CQChartsHierBubblePlot : public CQChartsPlot {
   CQChartsHierBubbleHierNode* firstHier_   { nullptr }; // first hier node
   CQChartsHierBubbleHierNode* currentRoot_ { nullptr }; // current root node
   QString                     separator_   { "/" };     // hierarchical name separator
-  CQChartsBoxObj*             bubbleObj_   { nullptr }; // bubble fill/border object
-  QFont                       textFont_;                // text font
-  CQChartsPaletteColor        textColor_;               // text color
+  CQChartsTextBoxObj*         textBoxObj_  { nullptr }; // bubble fill/border/text object
   CQChartsGeom::Point         offset_      { 0, 0 };    // draw offset
   double                      scale_       { 1.0 };     // draw scale
   int                         maxDepth_    { 1 };       // max hier depth

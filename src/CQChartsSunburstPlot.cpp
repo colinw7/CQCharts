@@ -2,9 +2,10 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsBoxObj.h>
+#include <CQChartsTextBoxObj.h>
+#include <CQChartsFillObj.h>
 #include <CQChartsRotatedText.h>
-#include <CGradientPalette.h>
+
 #include <QPainter>
 
 namespace {
@@ -52,15 +53,18 @@ CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("sunburst"), model)
 {
-  boxObj_ = new CQChartsBoxObj(this);
+  textBoxObj_ = new CQChartsTextBoxObj(this);
 
-  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
 
   setBorder(true);
+  setFilled(true);
 
-  textFont_.setPointSizeF(8.0);
+  textBoxObj_->setTextFontSize(8.0);
 
-  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  textBoxObj_->setTextColor(textColor);
 
   setMargins(1, 1, 1, 1);
 
@@ -72,7 +76,7 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 CQChartsSunburstPlot::
 ~CQChartsSunburstPlot()
 {
-  delete boxObj_;
+  delete textBoxObj_;
 
   resetRoots();
 }
@@ -87,18 +91,36 @@ resetRoots()
   roots_.clear();
 }
 
+//----
+
+bool
+CQChartsSunburstPlot::
+isFilled() const
+{
+  return textBoxObj_->isBackground();
+}
+
+void
+CQChartsSunburstPlot::
+setFilled(bool b)
+{
+  textBoxObj_->setBackground(b);
+
+  update();
+}
+
 QString
 CQChartsSunburstPlot::
 fillColorStr() const
 {
-  return boxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColorStr();
 }
 
 void
 CQChartsSunburstPlot::
 setFillColorStr(const QString &s)
 {
-  boxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColorStr(s);
 
   update();
 }
@@ -107,37 +129,55 @@ QColor
 CQChartsSunburstPlot::
 interpFillColor(int i, int n) const
 {
-  return boxObj_->interpBackgroundColor(i, n);
+  return textBoxObj_->interpBackgroundColor(i, n);
 }
 
 double
 CQChartsSunburstPlot::
 fillAlpha() const
 {
-  return boxObj_->backgroundAlpha();
+  return textBoxObj_->backgroundAlpha();
 }
 
 void
 CQChartsSunburstPlot::
 setFillAlpha(double a)
 {
-  boxObj_->setBackgroundAlpha(a);
+  textBoxObj_->setBackgroundAlpha(a);
 
   update();
 }
+
+CQChartsSunburstPlot::Pattern
+CQChartsSunburstPlot::
+fillPattern() const
+{
+  return (Pattern) textBoxObj_->backgroundPattern();
+}
+
+void
+CQChartsSunburstPlot::
+setFillPattern(Pattern pattern)
+{
+  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+
+  update();
+}
+
+//---
 
 bool
 CQChartsSunburstPlot::
 isBorder() const
 {
-  return boxObj_->isBorder();
+  return textBoxObj_->isBorder();
 }
 
 void
 CQChartsSunburstPlot::
 setBorder(bool b)
 {
-  boxObj_->setBorder(b);
+  textBoxObj_->setBorder(b);
 
   update();
 }
@@ -146,14 +186,14 @@ QString
 CQChartsSunburstPlot::
 borderColorStr() const
 {
-  return boxObj_->borderColorStr();
+  return textBoxObj_->borderColorStr();
 }
 
 void
 CQChartsSunburstPlot::
 setBorderColorStr(const QString &str)
 {
-  boxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColorStr(str);
 
   update();
 }
@@ -162,21 +202,21 @@ QColor
 CQChartsSunburstPlot::
 interpBorderColor(int i, int n) const
 {
-  return boxObj_->interpBorderColor(i, n);
+  return textBoxObj_->interpBorderColor(i, n);
 }
 
 double
 CQChartsSunburstPlot::
 borderAlpha() const
 {
-  return boxObj_->borderAlpha();
+  return textBoxObj_->borderAlpha();
 }
 
 void
 CQChartsSunburstPlot::
 setBorderAlpha(double a)
 {
-  boxObj_->setBorderAlpha(a);
+  textBoxObj_->setBorderAlpha(a);
 
   update();
 }
@@ -185,14 +225,48 @@ double
 CQChartsSunburstPlot::
 borderWidth() const
 {
-  return boxObj_->borderWidth();
+  return textBoxObj_->borderWidth();
 }
 
 void
 CQChartsSunburstPlot::
 setBorderWidth(double r)
 {
-  boxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(r);
+
+  update();
+}
+
+//---
+
+const QFont &
+CQChartsSunburstPlot::
+textFont() const
+{
+  return textBoxObj_->textFont();
+}
+
+void
+CQChartsSunburstPlot::
+setTextFont(const QFont &f)
+{
+  textBoxObj_->setTextFont(f);
+
+  update();
+}
+
+QString
+CQChartsSunburstPlot::
+textColorStr() const
+{
+  return textBoxObj_->textColorStr();
+}
+
+void
+CQChartsSunburstPlot::
+setTextColorStr(const QString &s)
+{
+  textBoxObj_->setTextColorStr(s);
 
   update();
 }
@@ -201,8 +275,26 @@ QColor
 CQChartsSunburstPlot::
 interpTextColor(int i, int n) const
 {
-  return textColor_.interpColor(this, i, n);
+  return textBoxObj_->interpTextColor(i, n);
 }
+
+bool
+CQChartsSunburstPlot::
+isTextContrast() const
+{
+  return textBoxObj_->isTextContrast();
+}
+
+void
+CQChartsSunburstPlot::
+setTextContrast(bool b)
+{
+  textBoxObj_->setTextContrast(b);
+
+  update();
+}
+
+//---
 
 void
 CQChartsSunburstPlot::
@@ -210,17 +302,23 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty(""      , this, "innerRadius"             );
-  addProperty(""      , this, "outerRadius"             );
-  addProperty(""      , this, "startAngle"              );
-  addProperty("fill"  , this, "fillColor"  , "color"    );
-  addProperty("fill"  , this, "fillAlpha"  , "alpha"    );
-  addProperty("border", this, "border"     , "displayed");
-  addProperty("border", this, "borderColor", "color"    );
-  addProperty("border", this, "borderAlpha", "alpha"    );
-  addProperty("border", this, "borderWidth", "width"    );
-  addProperty("text"  , this, "textFont"   , "font"     );
-  addProperty("text"  , this, "textColor"  , "color"    );
+  addProperty("", this, "innerRadius");
+  addProperty("", this, "outerRadius");
+  addProperty("", this, "startAngle" );
+
+  addProperty("border", this, "border"     , "visible");
+  addProperty("border", this, "borderColor", "color"  );
+  addProperty("border", this, "borderAlpha", "alpha"  );
+  addProperty("border", this, "borderWidth", "width"  );
+
+  addProperty("fill", this, "filled"     , "visible");
+  addProperty("fill", this, "fillColor"  , "color"  );
+  addProperty("fill", this, "fillAlpha"  , "alpha"  );
+  addProperty("fill", this, "fillPattern", "pattern");
+
+  addProperty("text", this, "textFont"    , "font"    );
+  addProperty("text", this, "textColor"   , "color"   );
+  addProperty("text", this, "textContrast", "contrast");
 }
 
 void
@@ -464,12 +562,19 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // calc stroke and brush
+  QBrush brush;
 
-  QColor fillColor = interpFillColor(node->colorId(), numColors);
+  if (isFilled()) {
+    QColor fillColor = interpFillColor(node->colorId(), numColors);
 
-  fillColor.setAlphaF(fillAlpha());
+    fillColor.setAlphaF(fillAlpha());
 
-  QBrush brush(fillColor);
+    brush.setColor(fillColor);
+    brush.setStyle(CQChartsFillObj::patternToStyle((CQChartsFillObj::Pattern) fillPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
 
   QPen pen;
 
@@ -478,15 +583,21 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
     bc.setAlphaF(borderAlpha());
 
-    pen = QPen(bc);
-
+    pen.setColor (bc);
     pen.setWidthF(borderWidth());
   }
-  else
-    pen = QPen(Qt::NoPen);
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
 
-  if (nodeObj)
-    updateObjPenBrushState(nodeObj, pen, brush);
+  QColor tc = interpTextColor(0, 1);
+
+  QPen tpen(tc);
+
+  if (nodeObj) {
+    updateObjPenBrushState(nodeObj, pen , brush);
+    updateObjPenBrushState(nodeObj, tpen, brush);
+  }
 
   //---
 
@@ -499,10 +610,6 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // draw node label
-  QColor tc = interpTextColor(0, 1);
-
-  QPen tpen(tc);
-
   if (nodeObj)
     updateObjPenBrushState(nodeObj, tpen, brush);
 

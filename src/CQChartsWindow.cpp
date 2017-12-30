@@ -4,11 +4,13 @@
 #include <CQChartsViewExpander.h>
 #include <CQChartsViewSettings.h>
 #include <CQChartsTable.h>
+#include <CQChartsTree.h>
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
 #include <CQGradientControlIFace.h>
 
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 CQChartsWindowMgr *
@@ -107,11 +109,20 @@ CQChartsWindow(CQChartsView *view) :
 
   tableLayout->addWidget(filterEdit);
 
+  viewStack_ = new QStackedWidget;
+
+  viewStack_->setObjectName("viewStack");
+
   table_ = new CQChartsTable(view->charts(), this);
 
-  tableLayout->addWidget(table_);
-
   connect(table_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
+
+  tree_ = new CQChartsTree(view->charts(), this);
+
+  viewStack_->addWidget(table_);
+  viewStack_->addWidget(tree_ );
+
+  tableLayout->addWidget(viewStack_);
 
   tableExpander_ =
    new CQChartsViewExpander(this, tableFrame, CQChartsViewExpander::Side::BOTTOM);
@@ -149,6 +160,7 @@ CQChartsWindow::
 
   delete settings_;
   delete table_;
+  delete tree_;
   delete status_;
   delete toolbar_;
 }
@@ -280,9 +292,22 @@ plotSlot()
   CQChartsPlot *plot = view_->currentPlot();
   if (! plot) return;
 
-  table_->setModel(plot->modelp());
+  if (! plot->isHierarchical()) {
+    table_->setModel(plot->modelp());
+    tree_ ->setModel(CQChartsTree::ModelP());
 
-  plot->setSelectionModel(table_->selectionModel());
+    plot->setSelectionModel(table_->selectionModel());
+
+    viewStack_->setCurrentIndex(0);
+  }
+  else {
+    tree_ ->setModel(plot->modelp());
+    table_->setModel(CQChartsTable::ModelP());
+
+    plot->setSelectionModel(table_->selectionModel());
+
+    viewStack_->setCurrentIndex(1);
+  }
 }
 
 void

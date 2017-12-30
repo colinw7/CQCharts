@@ -50,6 +50,7 @@ CQChartsImagePlot.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
 CQChartsRadarPlot.cpp \
+CQChartsSankeyPlot.cpp \
 CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
@@ -182,14 +183,15 @@ HEADERS += \
 ../include/CQChartsParallelPlot.h \
 ../include/CQChartsPiePlot.h \
 ../include/CQChartsRadarPlot.h \
+../include/CQChartsSankeyPlot.h \
 ../include/CQChartsScatterPlot.h \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
 \
-CQChartsNoDataObj.h \
+../include/CQChartsNoDataObj.h \
 ../include/CQChartsPlotObj.h \
-CQChartsPlotObjTree.h \
+../include/CQChartsPlotObjTree.h \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsTextBoxObj.h \
 ../include/CQChartsDataLabel.h \
@@ -198,7 +200,7 @@ CQChartsPlotObjTree.h \
 ../include/CQChartsPointObj.h \
 \
 ../include/CQChartsAxis.h \
-CQChartsAxisObj.h \
+../include/CQChartsAxisObj.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
 \
@@ -208,17 +210,17 @@ CQChartsAxisObj.h \
 ../include/CQChartsQuadTree.h \
 \
 ../include/CQChartsLoader.h \
-CQChartsFilterEdit.h \
+../include/CQChartsFilterEdit.h \
 ../include/CQChartsModelFilter.h \
-CQChartsModelExprMatch.h \
+../include/CQChartsModelExprMatch.h \
 \
 ../include/CQChartsPlotDlg.h \
 \
 ../include/CQChartsLineDash.h \
-CQChartsLineDashEdit.h \
+../include/CQChartsLineDashEdit.h \
 \
-CQChartsRotatedText.h \
-CQChartsRoundedPolygon.h \
+../include/CQChartsRotatedText.h \
+../include/CQChartsRoundedPolygon.h \
 \
 CQPropertyView.h \
 CQPropertyViewDelegate.h \
@@ -242,7 +244,7 @@ CQPropertyViewSizeFType.h \
 CQPropertyViewType.h \
 \
 ../include/CQChartsPaletteColor.h \
-CQChartsDrawUtil.h \
+../include/CQChartsDrawUtil.h \
 \
 CQGradientControlIFace.h \
 CQGradientControlPlot.h \
@@ -279,7 +281,7 @@ CQIconCombo.h \
 ../include/CQHistoryLineEdit.h \
 \
 ../include/CQChartsDelaunay.h \
-CQChartsHull3D.h \
+../include/CQChartsHull3D.h \
 CListLink.h \
 CStateIterator.h \
 ../include/CUnixFile.h \

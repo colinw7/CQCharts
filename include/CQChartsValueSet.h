@@ -2,6 +2,7 @@
 #define CQChartsValueSet_H
 
 #include <CQChartsUtil.h>
+#include <CQChartsTrie.h>
 #include <vector>
 #include <set>
 #include <map>
@@ -53,6 +54,9 @@ class CQChartsValueSet : public QObject {
 
   bool isNumeric() const { return (type() == Type::REAL || type() == Type::INTEGER); }
 
+  // is value value index
+  bool hasInd(int i) const;
+
   // map nth value to real range (mapMin()->mapMax())
   double imap(int i) const;
 
@@ -80,6 +84,9 @@ class CQChartsValueSet : public QObject {
   // get index string
   QString inds(int ind) const;
 
+  int sbucket(const QString &s) const;
+  QString buckets(int ind) const;
+
   // get minimum index value
   // for integers this is the minimum value, for real/string this is one
   int imin() const;
@@ -99,6 +106,8 @@ class CQChartsValueSet : public QObject {
  private:
   void init() const;
   void init();
+
+  void initPatterns() const;
 
  private:
   // compare reals with tolerance
@@ -133,9 +142,13 @@ class CQChartsValueSet : public QObject {
   RValSet rvalset_; // unique indexed real values
   SetRVal setrval_; // index to real map
 
-  SVals   svals_;   // all string values
-  SValSet svalset_; // unique indexed string values
-  SetSVal setsval_; // index to string map
+  SVals   svals_;     // all string values
+  SValSet svalset_;   // unique indexed string values
+  SetSVal setsval_;   // index to string map
+
+  CQChartsTrie           trie_;                   // string trie
+  CQChartsTrie::Patterns spatterns_;              // trie patterns
+  bool                   spatternsSet_ { false }; // trie patterns set
 
   bool    mapEnabled_ { true };
   double  mapMin_     { 0.0 };

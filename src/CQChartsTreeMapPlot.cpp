@@ -2,7 +2,8 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsBoxObj.h>
+#include <CQChartsTextBoxObj.h>
+#include <CQChartsFillObj.h>
 #include <CGradientPalette.h>
 #include <QPainter>
 
@@ -49,15 +50,20 @@ CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("treemap"), model)
 {
-  boxObj_ = new CQChartsBoxObj(this);
+  textBoxObj_ = new CQChartsTextBoxObj(this);
 
-  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
 
   setBorder(true);
+  setFilled(true);
 
-  textFont_.setPointSizeF(8.0);
+  setTextContrast(true);
 
-  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  textBoxObj_->setTextFontSize(8.0);
+
+  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  textBoxObj_->setTextColor(textColor);
 
   headerColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 0.4);
 
@@ -69,23 +75,41 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 CQChartsTreeMapPlot::
 ~CQChartsTreeMapPlot()
 {
-  delete boxObj_;
+  delete textBoxObj_;
 
   delete root_;
+}
+
+//----
+
+bool
+CQChartsTreeMapPlot::
+isFilled() const
+{
+  return textBoxObj_->isBackground();
+}
+
+void
+CQChartsTreeMapPlot::
+setFilled(bool b)
+{
+  textBoxObj_->setBackground(b);
+
+  update();
 }
 
 QString
 CQChartsTreeMapPlot::
 fillColorStr() const
 {
-  return boxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColorStr();
 }
 
 void
 CQChartsTreeMapPlot::
 setFillColorStr(const QString &s)
 {
-  boxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColorStr(s);
 
   update();
 }
@@ -94,37 +118,55 @@ QColor
 CQChartsTreeMapPlot::
 interpFillColor(int i, int n) const
 {
-  return boxObj_->interpBackgroundColor(i, n);
+  return textBoxObj_->interpBackgroundColor(i, n);
 }
 
 double
 CQChartsTreeMapPlot::
 fillAlpha() const
 {
-  return boxObj_->backgroundAlpha();
+  return textBoxObj_->backgroundAlpha();
 }
 
 void
 CQChartsTreeMapPlot::
 setFillAlpha(double a)
 {
-  boxObj_->setBackgroundAlpha(a);
+  textBoxObj_->setBackgroundAlpha(a);
 
   update();
 }
+
+CQChartsTreeMapPlot::Pattern
+CQChartsTreeMapPlot::
+fillPattern() const
+{
+  return (Pattern) textBoxObj_->backgroundPattern();
+}
+
+void
+CQChartsTreeMapPlot::
+setFillPattern(Pattern pattern)
+{
+  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+
+  update();
+}
+
+//---
 
 bool
 CQChartsTreeMapPlot::
 isBorder() const
 {
-  return boxObj_->isBorder();
+  return textBoxObj_->isBorder();
 }
 
 void
 CQChartsTreeMapPlot::
 setBorder(bool b)
 {
-  boxObj_->setBorder(b);
+  textBoxObj_->setBorder(b);
 
   update();
 }
@@ -133,14 +175,14 @@ QString
 CQChartsTreeMapPlot::
 borderColorStr() const
 {
-  return boxObj_->borderColorStr();
+  return textBoxObj_->borderColorStr();
 }
 
 void
 CQChartsTreeMapPlot::
 setBorderColorStr(const QString &str)
 {
-  boxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColorStr(str);
 
   update();
 }
@@ -149,21 +191,21 @@ QColor
 CQChartsTreeMapPlot::
 interpBorderColor(int i, int n) const
 {
-  return boxObj_->interpBorderColor(i, n);
+  return textBoxObj_->interpBorderColor(i, n);
 }
 
 double
 CQChartsTreeMapPlot::
 borderAlpha() const
 {
-  return boxObj_->borderAlpha();
+  return textBoxObj_->borderAlpha();
 }
 
 void
 CQChartsTreeMapPlot::
 setBorderAlpha(double a)
 {
-  boxObj_->setBorderAlpha(a);
+  textBoxObj_->setBorderAlpha(a);
 
   update();
 }
@@ -172,14 +214,48 @@ double
 CQChartsTreeMapPlot::
 borderWidth() const
 {
-  return boxObj_->borderWidth();
+  return textBoxObj_->borderWidth();
 }
 
 void
 CQChartsTreeMapPlot::
 setBorderWidth(double r)
 {
-  boxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(r);
+
+  update();
+}
+
+//---
+
+const QFont &
+CQChartsTreeMapPlot::
+textFont() const
+{
+  return textBoxObj_->textFont();
+}
+
+void
+CQChartsTreeMapPlot::
+setTextFont(const QFont &f)
+{
+  textBoxObj_->setTextFont(f);
+
+  update();
+}
+
+QString
+CQChartsTreeMapPlot::
+textColorStr() const
+{
+  return textBoxObj_->textColorStr();
+}
+
+void
+CQChartsTreeMapPlot::
+setTextColorStr(const QString &s)
+{
+  textBoxObj_->setTextColorStr(s);
 
   update();
 }
@@ -188,8 +264,26 @@ QColor
 CQChartsTreeMapPlot::
 interpTextColor(int i, int n) const
 {
-  return textColor_.interpColor(this, i, n);
+  return textBoxObj_->interpTextColor(i, n);
 }
+
+bool
+CQChartsTreeMapPlot::
+isTextContrast() const
+{
+  return textBoxObj_->isTextContrast();
+}
+
+void
+CQChartsTreeMapPlot::
+setTextContrast(bool b)
+{
+  textBoxObj_->setTextContrast(b);
+
+  update();
+}
+
+//---
 
 void
 CQChartsTreeMapPlot::
@@ -197,19 +291,26 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty(""      , this, "separator"                );
-  addProperty(""      , this, "titles"                   );
-  addProperty(""      , this, "headerHeight"             );
-  addProperty(""      , this, "headerColor"              );
-  addProperty(""      , this, "marginWidth"              );
-  addProperty("fill"  , this, "fillColor"   , "color"    );
-  addProperty("fill"  , this, "fillAlpha"   , "alpha"    );
-  addProperty("border", this, "border"      , "displayed");
-  addProperty("border", this, "borderColor" , "color"    );
-  addProperty("border", this, "borderAlpha" , "alpha"    );
-  addProperty("border", this, "borderWidth" , "width"    );
-  addProperty("text"  , this, "textFont"    , "font"     );
-  addProperty("text"  , this, "textColor"   , "color"    );
+  addProperty("", this, "separator"  );
+  addProperty("", this, "marginWidth");
+
+  addProperty("header", this, "titles"      , "visible");
+  addProperty("header", this, "headerHeight", "height" );
+  addProperty("header", this, "headerColor" , "color"  );
+
+  addProperty("stroke", this, "border"      , "visible");
+  addProperty("stroke", this, "borderColor" , "color"  );
+  addProperty("stroke", this, "borderAlpha" , "alpha"  );
+  addProperty("stroke", this, "borderWidth" , "width"  );
+
+  addProperty("fill", this, "filled"     , "visible");
+  addProperty("fill", this, "fillColor"  , "color"  );
+  addProperty("fill", this, "fillAlpha"  , "alpha"  );
+  addProperty("fill", this, "fillPattern", "pattern");
+
+  addProperty("text", this, "textFont"    , "font"    );
+  addProperty("text", this, "textColor"   , "color"   );
+  addProperty("text", this, "textContrast", "contrast");
 }
 
 void
@@ -621,8 +722,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  // calc stroke and brush
-
+  // calc header stroke and brush
   QColor c = plot_->interpHeaderColor(0, 1);
 
   QBrush brush(c);
@@ -634,12 +734,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
-    bpen = QPen(bc);
-
+    bpen.setColor (bc);
     bpen.setWidthF(plot_->borderWidth());
   }
-  else
+  else {
     bpen = QPen(Qt::NoPen);
+  }
 
   QColor tc = plot_->interpTextColor(0, 1);
 
@@ -770,12 +870,20 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // calc stroke and brush
+  QBrush brush;
 
-  QColor c = plot_->interpFillColor(root->hierInd(), plot_->maxHierInd());
+  if (plot_->isFilled()) {
+    QColor c = plot_->interpFillColor(root->hierInd(), plot_->maxHierInd());
 
-  c.setAlphaF(plot_->fillAlpha());
+    c.setAlphaF(plot_->fillAlpha());
 
-  QBrush brush(c);
+    brush.setColor(c);
+    brush.setStyle(CQChartsFillObj::patternToStyle(
+      (CQChartsFillObj::Pattern) plot_->fillPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
 
   QPen bpen;
 
@@ -784,12 +892,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
-    bpen = QPen(bc);
-
+    bpen.setColor (bc);
     bpen.setWidthF(plot_->borderWidth());
   }
-  else
+  else {
     bpen = QPen(Qt::NoPen);
+  }
 
   QColor tc = plot_->interpTextColor(0, 1);
 
@@ -835,7 +943,13 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // draw label
   painter->setClipRect(qrect);
 
-  plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
+  if (plot_->isTextContrast())
+    plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
+  else {
+    painter->setPen(tpen);
+
+    painter->drawText(px1 - tw/2, py1 + fdy, name);
+  }
 
   //---
 

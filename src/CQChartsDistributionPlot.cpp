@@ -86,18 +86,16 @@ addProperties()
   addProperty("", this, "horizontal");
   addProperty("", this, "margin"    );
 
-  QString strokeStr = "stroke";
-  QString fillStr   = "fill";
+  addProperty("stroke", this, "border"          , "visible"   );
+  addProperty("stroke", this, "borderColor"     , "color"     );
+  addProperty("stroke", this, "borderAlpha"     , "alpha"     );
+  addProperty("stroke", this, "borderWidth"     , "width"     );
+  addProperty("stroke", this, "borderCornerSize", "cornerSize");
 
-  addProperty(strokeStr, this, "border"          , "visible"   );
-  addProperty(strokeStr, this, "borderColor"     , "color"     );
-  addProperty(strokeStr, this, "borderWidth"     , "width"     );
-  addProperty(strokeStr, this, "borderCornerSize", "cornerSize");
-
-  addProperty(fillStr, this, "barFill"   , "visible");
-  addProperty(fillStr, this, "barColor"  , "color"  );
-  addProperty(fillStr, this, "barAlpha"  , "alpha"  );
-  addProperty(fillStr, this, "barPattern", "pattern");
+  addProperty("fill", this, "barFill"   , "visible");
+  addProperty("fill", this, "barColor"  , "color"  );
+  addProperty("fill", this, "barAlpha"  , "alpha"  );
+  addProperty("fill", this, "barPattern", "pattern");
 
   dataLabel_.addProperties("dataLabel");
 
@@ -141,6 +139,20 @@ CQChartsDistributionPlot::
 interpBorderColor(int i, int n) const
 {
   return borderObj_->interpBorderColor(i, n);
+}
+
+double
+CQChartsDistributionPlot::
+borderAlpha() const
+{
+  return borderObj_->borderAlpha();
+}
+
+void
+CQChartsDistributionPlot::
+setBorderAlpha(double r)
+{
+  borderObj_->setBorderAlpha(r); update();
 }
 
 double
@@ -312,6 +324,9 @@ colorSetColor(int i, OptColor &color)
     }
   }
 
+  if (! colorSet_.hasInd(i))
+    return false;
+
   double value = colorSet_.imap(i);
 
   color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
@@ -435,7 +450,7 @@ updateRange(bool apply)
       if (! ok)
         continue;
 
-      bucket = valueSet_.sind(value);
+      bucket = valueSet_.sbucket(value);
 
       ivalues_[bucket].emplace_back(valueInd1);
     }
@@ -511,12 +526,17 @@ bool
 CQChartsDistributionPlot::
 checkFilter(double value) const
 {
-  if (filters_.empty())
+  if (filterStack_.empty())
     return true;
 
-  const Filter &filter = filters_.back();
+  const Filters &filters = filterStack_.back();
 
-  return (value >= filter.minValue && value < filter.maxValue);
+  for (const auto &filter : filters) {
+    if (value >= filter.minValue && value < filter.maxValue)
+      return true;
+  }
+
+  return false;
 }
 
 void
@@ -560,7 +580,7 @@ calcBucket(double value) const
 {
   int bucket = 0;
 
-  bool isAuto = (! filters_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+  bool isAuto = (! filterStack_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
 
   if (isAuto) {
     if (categoryRange_.increment > 0.0)
@@ -756,7 +776,7 @@ bucketValuesStr(int bucket, BucketValueType type) const
       return QString("%1").arg(value2);
   }
   else {
-    return valueSet_.inds(bucket);
+    return valueSet_.buckets(bucket);
   }
 }
 
@@ -767,7 +787,7 @@ bucketValues(int bucket, double &value1, double &value2) const
   value1 = 0.0;
   value2 = 0.0;
 
-  bool isAuto = (! filters_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+  bool isAuto = (! filterStack_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
 
   if (isAuto) {
     if (categoryRange_.increment > 0.0) {
@@ -792,14 +812,25 @@ bool
 CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
+  PlotObjs objs;
+
+  selectedObjs(objs);
+
   QAction *pushAction = new QAction("Push", menu);
   QAction *popAction  = new QAction("Pop" , menu);
 
   connect(pushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
   connect(popAction , SIGNAL(triggered()), this, SLOT(popSlot()));
 
+  pushAction->setEnabled(! objs.empty());
+  popAction ->setEnabled(! filterStack_.empty());
+
+  menu->addSeparator();
+
   menu->addAction(pushAction);
   menu->addAction(popAction );
+
+  menu->addSeparator();
 
   return true;
 }
@@ -808,28 +839,35 @@ void
 CQChartsDistributionPlot::
 pushSlot()
 {
-  QPointF gpos = view()->menuPos();
-
-  QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
-
-  CQChartsGeom::Point w;
-
-  pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
-
   PlotObjs objs;
 
-  objsAtPoint(w, objs);
+  selectedObjs(objs);
 
-  if (objs.empty())
-    return;
+  if (objs.empty()) {
+    QPointF gpos = view()->menuPos();
 
-  CQChartsDistributionBarObj *obj = qobject_cast<CQChartsDistributionBarObj *>(objs[0]);
+    QPointF pos = view()->mapFromGlobal(QPoint(gpos.x(), gpos.y()));
 
-  double value1, value2;
+    CQChartsGeom::Point w;
 
-  bucketValues(obj->bucket(), value1, value2);
+    pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
 
-  filters_.emplace_back(value1, value2);
+    objsAtPoint(w, objs);
+  }
+
+  Filters filters;
+
+  for (const auto &obj : objs) {
+    CQChartsDistributionBarObj *distObj = qobject_cast<CQChartsDistributionBarObj *>(obj);
+
+    double value1, value2;
+
+    bucketValues(distObj->bucket(), value1, value2);
+
+    filters.emplace_back(value1, value2);
+  }
+
+  filterStack_.push_back(filters);
 
   updateRangeAndObjs();
 }
@@ -838,10 +876,10 @@ void
 CQChartsDistributionPlot::
 popSlot()
 {
-  if (filters_.empty())
+  if (filterStack_.empty())
     return;
 
-  filters_.pop_back();
+  filterStack_.pop_back();
 
   updateRangeAndObjs();
 }
@@ -937,7 +975,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     QPen pen;
 
     if (plot_->isBorder()) {
-      pen.setColor (plot_->interpBorderColor(0, 1));
+      QColor c = plot_->interpBorderColor(0, 1);
+
+      c.setAlphaF(plot_->borderAlpha());
+
+      pen.setColor (c);
       pen.setWidthF(plot_->borderWidth());
     }
     else {
@@ -968,15 +1010,15 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
         (CQChartsFillObj::Pattern) plot_->barPattern()));
 
       if (useLine) {
-        pen.setColor(barColor);
-        pen.setWidth(0);
+        pen.setColor (barColor);
+        pen.setWidthF(0);
       }
     }
     else {
       barBrush.setStyle(Qt::NoBrush);
 
       if (useLine)
-        pen.setWidth(0);
+        pen.setWidthF(0);
     }
 
     plot_->updateObjPenBrushState(this, pen, barBrush);
