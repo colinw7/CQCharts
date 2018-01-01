@@ -1,13 +1,13 @@
 # CQCharts
 
-Qt charting library to support displaying a interactive chart from an
-QAbstractItemModel with support for cross selection using a
-QItemSelectionModel.
+CQCharts is a Qt based charting library to support the display of an interactive
+chart from a 'QAbstractItemModel' data model with support for cross selection using
+a 'QItemSelectionModel' selection model.
 
 Charts are live in that changes to the data model automatically update
-the chart which allows the programmer to build interactive charts
-where user can select items from the model using a table/tree view and/or
-the display chart data.
+the chart which allows the programmer to build interactive charts where
+the user can select items from the model using a table/tree view and/or
+the displayed chart data.
 
 Chart types supported 
   + Adjacency
@@ -17,8 +17,9 @@ Chart types supported
     + 1d bar chart for column value
     ![barchart](barchart.png "Bar Chart")
   + Box
-    + Box plot of agregated values from value and group columns
+    + Box plot of aggregated values from value and group columns
     ![boxplot](boxplot.png "Box Plot")
+    ![connected_boxplot](boxplot_connected.png "Connected Box Plot")
   + Bubble
     + Bubble plot where circle is size of column value
     ![bubble](bubbleplot.png "Bubble Plot")
@@ -58,12 +59,115 @@ Chart types supported
   + Scatter
     + Scatter plot of disparate values
     ![scatterplot](scatterplot.png "Scatter Plot")
-  +  Sunburst
+  + Sunburst
     + Hierarchical pie chart plot
     ![sunburst](sunburst.png "Sunburst Plot")
   + TreeMap
     + Hierarchical tree map
     ![treemap](treemap.png "Treemap Plot")
   + XY
-    + x/y monotic value plot
+    + x/y monotonic value plot
     ![xychart](xychart.png "XY Chart")
+
+## Adjacency
+
+Uses table cell coloring to show number of connections between two items.
+
+Items names are displayed in the row and column headers and the number of connections
+is used to color the cell (row/column intersection).
+
+Cell colors are derived from the blend of the colors for each item's group
+and the color intensity is calculated from the relative value.
+
+The following values can be customized:
+ + table background color
+ + empty cell color
+ + margin
+ + cell border color, alpha and corner size
+ + header text color and font
+
+Input data model can contain either node data (name, id, group) and a list of
+connections (id, count) [old format] or a '/' separated connection data
+(from name/to name, value, count).
+
+## BarChart
+
+1d bar chart for column value or values.
+
+Bars can be grouped using a group/category column.
+
+Custom bar colors and data labels can be provided in additional columns
+
+Bars can be stacked next to each other or on top of each other and can be
+drawn vertically (default) or horizontally.
+
+## Box
+
+Box plot of aggregated values from value and group columns.
+
+Input data is a set of y values for an associated common x value.
+
+Data can also be additional grouped by an extra column.
+
+Values can be displayed as a candlestick bar or connected into a single
+solid bar of the value range.
+
+## Bubble
+
+Bubble plot where circle is size of column value.
+
+Circles are packed in minimum enclosing circle.
+
+## Chord
+
+Circlular connectivity chart.
+
+Input data model can contain either node data (name, id, group) and a list of
+connections (id, count) (old format) or '/' separated connection data
+(from name/to name, value, count).
+
+## Delaunay
+
+Delaunay/Voronoi geometric connectivity chart
+
+## Distribution
+Distribution count of range based values
+
+## ForceDirected
+Force directed connectivity chart
+
+## Geometry
+General polygon geometry colored by value
+
+## HierBubble
+
+Hierarchical bubble plot where circle is size of column value.
+
+Hierarchical circles are packed in minimum enclosing circle.
+
+## Image
+Image plot (x, y, color)
+
+## Parallel
+Parallel lines plots multiple overlaid value sets
+
+## Pie
+Pie chart
+
+## Radar
+Radar (polygon pie chart)
+
+## Sankey
+Sankey plot of connected values
+
+## Scatter
+Scatter plot of disparate values
+
+## Sunburst
+Hierarchical pie chart plot
+
+## TreeMap
+Hierarchical tree map
+
+## XY
+x/y monotonic value plot

@@ -154,7 +154,7 @@ int
 CQChartsValueSet::
 sbucket(const QString &s) const
 {
-  initPatterns();
+  initPatterns(initBuckets_);
 
   return trie_.patternIndex(s, spatterns_);
 }
@@ -163,25 +163,50 @@ QString
 CQChartsValueSet::
 buckets(int i) const
 {
-  initPatterns();
+  initPatterns(initBuckets_);
 
   return trie_.indexPattern(i, spatterns_);
 }
 
 void
 CQChartsValueSet::
-initPatterns() const
+initPatterns(int numIdeal) const
 {
   if (spatternsSet_)
     return;
 
+  using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
+
+  DepthCountMap depthCountMap;
+
+  for (int depth = 1; depth <= 3; ++depth) {
+    CQChartsTrie::Patterns patterns;
+
+    trie_.patterns(depth, patterns);
+
+    depthCountMap[depth] = patterns;
+
+    //patterns.print(std::cerr);
+  }
+
+  int minD     = -1;
+  int minDepth = -1;
+
+  for (const auto &depthCount : depthCountMap) {
+    int d = std::abs(depthCount.second.numPatterns() - numIdeal);
+
+    if (minDepth < 0 || d < minD) {
+      minD     = d;
+      minDepth = depthCount.first;
+    }
+  }
+
   CQChartsValueSet *th = const_cast<CQChartsValueSet *>(this);
 
-  int depth = 1;
-
-  trie_.patterns(depth, th->spatterns_);
-
+  th->spatterns_    = depthCountMap[minDepth];
   th->spatternsSet_ = true;
+
+  //spatterns_.print(std::cerr);
 }
 
 int

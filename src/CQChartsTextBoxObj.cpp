@@ -1,4 +1,5 @@
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRotatedText.h>
@@ -171,4 +172,44 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
                                        align, /*alignBBox*/ true);
 
   painter->restore();
+}
+
+CQChartsGeom::BBox
+CQChartsRotatedTextBoxObj::
+bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment align) const
+{
+  QFontMetricsF fm(textFont());
+
+  double tw = fm.width(text);
+
+  double tw1 = tw + 2*margin();
+  double th1 = fm.height() + 2*margin();
+
+  double cx = center.x();
+  double cy = center.y() - th1/2;
+
+  if      (align & Qt::AlignHCenter) {
+    cx -= tw1/2;
+  }
+  else if (align & Qt::AlignRight) {
+    cx -= tw1;
+  }
+
+  QRectF qrect;
+
+  if (angle) {
+    qrect = QRectF(cx, cy, tw1, th1);
+  }
+  else {
+    CQChartsRotatedText::Points points;
+
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, textFont(), angle, margin(),
+                                  qrect, points, align, /*alignBBox*/ true);
+  }
+
+  CQChartsGeom::BBox bbox;
+
+  plot_->pixelToWindow(CQChartsUtil::fromQRect(qrect), bbox);
+
+  return bbox;
 }

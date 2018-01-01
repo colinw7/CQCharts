@@ -128,14 +128,17 @@ addProperties()
   addProperty("points"       , this, "symbolSize"       , "size"   );
   addProperty("points/stroke", this, "symbolStroked"    , "visible");
   addProperty("points/stroke", this, "pointsStrokeColor", "color"  );
+  addProperty("points/stroke", this, "pointsStrokeAlpha", "alpha"  );
   addProperty("points/stroke", this, "symbolLineWidth"  , "width"  );
   addProperty("points/fill"  , this, "symbolFilled"     , "visible");
   addProperty("points/fill"  , this, "pointsFillColor"  , "color"  );
+  addProperty("points/fill"  , this, "pointsFillAlpha"  , "alpha"  );
 
   // lines
   addProperty("lines", this, "lines"          , "visible"   );
   addProperty("lines", this, "linesSelectable", "selectable");
   addProperty("lines", this, "linesColor"     , "color"     );
+  addProperty("lines", this, "linesAlpha"     , "alpha"     );
   addProperty("lines", this, "linesWidth"     , "width"     );
   addProperty("lines", this, "roundedLines"   , "rounded"   );
 
@@ -156,6 +159,8 @@ addProperties()
   addProperty("dataLabel", this, "dataLabelColor", "color");
   addProperty("dataLabel", this, "dataLabelAngle", "angle");
 }
+
+//---
 
 QString
 CQChartsXYPlot::
@@ -180,6 +185,8 @@ interpImpulseColor(int i, int n) const
   return impulseObj_->interpColor(i, n);
 }
 
+//---
+
 QString
 CQChartsXYPlot::
 pointsStrokeColorStr() const
@@ -201,6 +208,22 @@ CQChartsXYPlot::
 interpPointStrokeColor(int i, int n) const
 {
   return pointObj_->interpStrokeColor(i, n);
+}
+
+double
+CQChartsXYPlot::
+pointsStrokeAlpha() const
+{
+  return pointObj_->strokeAlpha();
+}
+
+void
+CQChartsXYPlot::
+setPointsStrokeAlpha(double a)
+{
+  pointObj_->setStrokeAlpha(a);
+
+  update();
 }
 
 QString
@@ -226,6 +249,24 @@ interpPointFillColor(int i, int n) const
   return pointObj_->interpFillColor(i, n);
 }
 
+double
+CQChartsXYPlot::
+pointsFillAlpha() const
+{
+  return pointObj_->fillAlpha();
+}
+
+void
+CQChartsXYPlot::
+setPointsFillAlpha(double a)
+{
+  pointObj_->setFillAlpha(a);
+
+  update();
+}
+
+//---
+
 QString
 CQChartsXYPlot::
 linesColorStr() const
@@ -244,10 +285,12 @@ setLinesColorStr(const QString &str)
 
 QColor
 CQChartsXYPlot::
-interpLineColor(int i, int n) const
+interpLinesColor(int i, int n) const
 {
   return lineObj_->interpColor(i, n);
 }
+
+//---
 
 QString
 CQChartsXYPlot::
@@ -272,12 +315,16 @@ interpFillUnderColor(int i, int n) const
   return fillUnderData_.fillObj.interpColor(i, n);
 }
 
+//---
+
 QColor
 CQChartsXYPlot::
 interpDataLabelColor(int i, int n)
 {
   return dataLabelData_.color.interpColor(this, i, n);
 }
+
+//---
 
 void
 CQChartsXYPlot::
@@ -314,6 +361,8 @@ interpPaletteColor(int i, int n, bool scale) const
 
   return CQChartsPlot::interpPaletteColor(i, n, scale);
 }
+
+//---
 
 void
 CQChartsXYPlot::
@@ -1745,6 +1794,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   bool                     filled      = plot_->isSymbolFilled();
   QColor                   fillColor   = plot_->interpPointFillColor(iset_, nset_);
 
+  strokeColor.setAlphaF(plot_->pointsStrokeAlpha());
+  fillColor  .setAlphaF(plot_->pointsFillAlpha());
+
   if (edata_ && edata_->symbol != CQChartsPlotSymbol::Type::NONE)
     symbol = edata_->symbol;
 
@@ -1922,10 +1974,16 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   if      (plot_->isBivariate() && ns > 1)
     c = plot_->interpThemeColor(1);
-  else if (plot_->isStacked())
-    c = plot_->interpLineColor(i_, n_);
-  else
-    c = plot_->interpLineColor(i_, n_);
+  else if (plot_->isStacked()) {
+    c = plot_->interpLinesColor(i_, n_);
+
+    c.setAlphaF(plot_->linesAlpha());
+  }
+  else {
+    c = plot_->interpLinesColor(i_, n_);
+
+    c.setAlphaF(plot_->linesAlpha());
+  }
 
   QPen   pen  (c);
   QBrush brush(Qt::NoBrush);
@@ -2237,8 +2295,11 @@ fillBrush() const
     brush.setStyle(CQChartsFillObj::patternToStyle(
       (CQChartsFillObj::Pattern) plot->fillUnderPattern()));
   }
-  else if (plot->prevPlot() || plot->nextPlot())
-    c = plot->interpLineColor(i_, n_);
+  else if (plot->prevPlot() || plot->nextPlot()) {
+    c = plot->interpLinesColor(i_, n_);
+
+    c.setAlphaF(plot->linesAlpha());
+  }
   else
     c = CQChartsKeyColorBox::fillBrush().color();
 
@@ -2317,7 +2378,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QColor pointStrokeColor = plot->interpPointStrokeColor(i_, n_);
   QColor pointFillColor   = plot->interpPointFillColor  (i_, n_);
-  QColor lineColor        = plot->interpLineColor       (i_, n_);
+  QColor lineColor        = plot->interpLinesColor      (i_, n_);
   QColor impulseColor     = plot->interpImpulseColor    (i_, n_);
 
   if (plot->isSetHidden(i_)) {
@@ -2328,6 +2389,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     lineColor        = CQChartsUtil::blendColors(lineColor       , bg, 0.5);
     impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, 0.5);
   }
+
+  lineColor.setAlphaF(plot->linesAlpha());
 
   if (plot->isFillUnder()) {
     QColor fillColor = plot->interpFillUnderColor(i_, n_);

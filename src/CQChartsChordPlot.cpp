@@ -19,6 +19,7 @@ CQChartsChordPlotType::
 addParameters()
 {
   addColumnParameter("name" , "Name" , "nameColumn" , "optional");
+  addColumnParameter("value", "Value", "valueColumn", "optional");
   addColumnParameter("group", "Group", "groupColumn", "optional");
 }
 
@@ -50,12 +51,16 @@ CQChartsChordPlot::
   delete textBox_;
 }
 
+//---
+
 QColor
 CQChartsChordPlot::
 interpBorderColor(int i, int n) const
 {
   return borderColor_.interpColor(this, i, n);
 }
+
+//---
 
 void
 CQChartsChordPlot::
@@ -64,12 +69,19 @@ addProperties()
   CQChartsPlot::addProperties();
 
   addProperty("columns", this, "nameColumn" , "name" );
+  addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "groupColumn", "group");
-  addProperty(""       , this, "sorted"              );
-  addProperty(""       , this, "innerRadius"         );
-  addProperty(""       , this, "labelRadius"         );
-  addProperty(""       , this, "borderColor"         );
-  addProperty(""       , this, "arcAlpha"            );
+
+  addProperty("", this, "sorted"     );
+  addProperty("", this, "innerRadius");
+  addProperty("", this, "labelRadius");
+
+  addProperty("border", this, "borderColor", "color");
+  addProperty("border", this, "borderAlpha", "alpha");
+
+  addProperty("segment", this, "segmentAlpha", "alpha");
+
+  addProperty("arc", this, "arcAlpha", "alpha");
 
   addProperty("label", textBox_, "visible");
   addProperty("label", textBox_, "font"   );
@@ -109,6 +121,24 @@ updateRange(bool apply)
     applyDataRange();
 }
 
+CQChartsGeom::BBox
+CQChartsChordPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsChordObj *obj = dynamic_cast<CQChartsChordObj *>(plotObj);
+
+    if (obj)
+      bbox += obj->textBBox();
+  }
+
+  return bbox;
+}
+
+//------
+
 bool
 CQChartsChordPlot::
 initObjs()
@@ -127,6 +157,16 @@ initObjs()
 
   //---
 
+  if (valueColumn() >= 0)
+    return initHierObjs();
+
+  return initTableObjs();
+}
+
+bool
+CQChartsChordPlot::
+initTableObjs()
+{
   QAbstractItemModel *model = this->model();
 
   if (! model)
@@ -182,7 +222,8 @@ initObjs()
     //---
 
     if (nameColumn() >= 0) {
-      QModelIndex nameInd = model->index(r, nameColumn());
+      QModelIndex nameInd  = model->index(r, nameColumn());
+      QModelIndex nameInd1 = normalizeIndex(nameInd);
 
       bool ok;
 
@@ -191,14 +232,15 @@ initObjs()
       if (ok) {
         data.setName(name);
 
-        data.setInd(normalizeIndex(nameInd));
+        data.setInd(nameInd1);
       }
     }
 
     //---
 
     if (groupColumn() >= 0) {
-      QModelIndex groupInd = model->index(r, groupColumn());
+      QModelIndex groupInd  = model->index(r, groupColumn());
+      QModelIndex groupInd1 = normalizeIndex(groupInd);
 
       bool ok;
 
@@ -207,7 +249,7 @@ initObjs()
       if (ok) {
         data.setGroup(CQChartsChordData::Group(group, groupValues.imap(r)));
 
-        data.setInd(normalizeIndex(groupInd));
+        data.setInd(groupInd1);
       }
     }
 
@@ -278,6 +320,186 @@ initObjs()
 
     if (CQChartsUtil::isZero(total1))
       continue;
+
+    double dangle = -valueToDegrees(total1);
+
+    double angle2 = angle1 + dangle;
+
+    data.setAngles(angle1, dangle);
+
+    angle1 = angle2 - 2;
+  }
+
+  //---
+
+  for (int r = 0; r < nv; ++r) {
+    CQChartsChordData &data = datas[r];
+
+    CQChartsGeom::BBox rect(-1, -1, 1, 1);
+
+    CQChartsChordObj *obj = new CQChartsChordObj(this, rect, data, r, nv);
+
+    addPlotObject(obj);
+  }
+
+  //---
+
+  return true;
+}
+
+bool
+CQChartsChordPlot::
+initHierObjs()
+{
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return false;
+
+  //---
+
+  using NameDataMap = std::map<QString,CQChartsChordData>;
+
+  NameDataMap nameDataMap;
+
+  //---
+
+  int nr = model->rowCount();
+
+  CQChartsValueSet groupValues;
+
+  if (groupColumn() >= 0) {
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex groupInd = model->index(r, groupColumn());
+
+      bool ok;
+
+      QVariant group = CQChartsUtil::modelValue(model, groupInd, ok);
+
+      groupValues.addValue(group);
+    }
+  }
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex linkInd  = model->index(r, nameColumn ());
+    QModelIndex valueInd = model->index(r, valueColumn());
+
+    QModelIndex linkInd1 = normalizeIndex(linkInd);
+
+    bool ok1, ok2;
+
+    QString linkStr = CQChartsUtil::modelString (model, linkInd , ok1);
+    double  value   = CQChartsUtil::modelReal   (model, valueInd, ok2);
+
+    if (! ok1 || ! ok2)
+      continue;
+
+    //---
+
+    int pos = linkStr.indexOf("/");
+
+    if (pos == -1)
+      continue;
+
+    QString srcStr  = linkStr.mid(0, pos ).simplified();
+    QString destStr = linkStr.mid(pos + 1).simplified();
+
+    auto ps = nameDataMap.find(srcStr);
+
+    if (ps == nameDataMap.end()) {
+      ps = nameDataMap.insert(ps, NameDataMap::value_type(srcStr, CQChartsChordData()));
+
+      (*ps).second.setFrom(nameDataMap.size() - 1);
+      (*ps).second.setName(srcStr);
+      (*ps).second.setInd (linkInd1);
+    }
+
+    auto pd = nameDataMap.find(destStr);
+
+    if (pd == nameDataMap.end()) {
+      pd = nameDataMap.insert(pd, NameDataMap::value_type(destStr, CQChartsChordData()));
+
+      (*pd).second.setFrom(nameDataMap.size() - 1);
+      (*pd).second.setName(destStr);
+      (*pd).second.setInd (linkInd1);
+    }
+
+    (*ps).second.addValue((*pd).second.from(), value);
+
+    //---
+
+    if (groupColumn() >= 0) {
+      QModelIndex groupInd = model->index(r, groupColumn());
+
+      bool ok;
+
+      QString groupStr = CQChartsUtil::modelString(model, groupInd, ok);
+
+      (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues.imap(r)));
+    }
+  }
+
+  //---
+
+  using Datas = std::vector<CQChartsChordData>;
+
+  Datas datas;
+
+  double total = 0.0;
+
+  for (const auto &nameData : nameDataMap) {
+    const CQChartsChordData &data = nameData.second;
+
+    datas.push_back(data);
+
+    total += data.total();
+  }
+
+  int nv = datas.size();
+
+  //---
+
+  if (isSorted()) {
+    std::sort(datas.begin(), datas.end(),
+      [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
+        if (lhs.group().value != rhs.group().value)
+          return lhs.group().value < rhs.group().value;
+
+        return lhs.total() < rhs.total();
+      });
+
+    for (auto &data : datas)
+      data.sort();
+  }
+  else {
+    std::sort(datas.begin(), datas.end(),
+      [](const CQChartsChordData &lhs, const CQChartsChordData &rhs) {
+        if (lhs.group().value != rhs.group().value)
+          return lhs.group().value < rhs.group().value;
+
+        return lhs.from() < rhs.from();
+      });
+
+    for (auto &data : datas)
+      data.sort();
+  }
+
+  //---
+
+  // 360 degree circle, minus 2 degree (gap) per set
+  double drange = 360 - nv*2;
+
+  // divide remaining degrees by total to get value->degrees factor
+  valueToDegrees_ = drange/total;
+
+  //---
+
+  double angle1 = 90.0;
+
+  for (int r = 0; r < nv; ++r) {
+    CQChartsChordData &data = datas[r];
+
+    double total1 = data.total();
 
     double dangle = -valueToDegrees(total1);
 
@@ -430,8 +652,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   double angle2 = angle1 + dangle;
 
   if (layer == CQChartsPlot::Layer::MID) {
-    // draw value set arc
-    QColor borderColor = plot_->interpBorderColor(0, 1);
+    // draw value set segment arc
+    QColor segmentBorderColor = plot_->interpBorderColor(0, 1);
+
+    segmentBorderColor.setAlphaF(CQChartsUtil::clamp(plot_->borderAlpha(), 0, 1));
 
     QPainterPath path;
 
@@ -444,7 +668,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     //---
 
-    QPen pen(borderColor);
+    QPen pen(segmentBorderColor);
 
     double gval = data_.group().value;
 
@@ -457,6 +681,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     }
     else
       fromColor = plot_->interpPaletteColor(i(), n());
+
+    if (! isInside() && ! isSelected())
+      fromColor.setAlphaF(CQChartsUtil::clamp(plot_->segmentAlpha(), 0, 1));
 
     QBrush brush(fromColor);
 
@@ -473,9 +700,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     // draw arcs between value sets
 
-    double alpha = CQChartsUtil::iclamp(plot_->arcAlpha(), 0, 1);
+    QColor arcBorderColor = plot_->interpBorderColor(0, 1);
 
-    borderColor.setAlphaF(alpha);
+    arcBorderColor.setAlphaF(CQChartsUtil::clamp(plot_->borderAlpha(), 0, 1));
 
     int from = data_.from();
 
@@ -529,14 +756,14 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       //--
 
-      QPen pen(borderColor);
+      QPen pen(arcBorderColor);
 
       painter->setPen(pen);
 
       QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
       if (! isInside() && ! isSelected())
-        c.setAlphaF(alpha);
+        c.setAlphaF(CQChartsUtil::clamp(plot_->arcAlpha(), 0, 1));
 
       QBrush brush(c);
 
@@ -644,6 +871,93 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     //plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox()->rect()), tbbox);
   }
+}
+
+CQChartsGeom::BBox
+CQChartsChordObj::
+textBBox() const
+{
+  double ro = 1.0;
+  double ri = plot_->innerRadius();
+
+  if (ri < 0.0 || ri > 1.0)
+    ri = 0.9;
+
+  //---
+
+  double angle1 = data_.angle();
+  double dangle = data_.dangle();
+  double angle2 = angle1 + dangle;
+
+  //---
+
+  if (! plot_->textBox()->isTextVisible())
+    return CQChartsGeom::BBox();
+
+  double total = data_.total();
+
+  if (CQChartsUtil::isZero(total))
+    return CQChartsGeom::BBox();
+
+  //---
+
+  // draw on arc center line
+  double lr = plot_->labelRadius();
+
+  double ta = CQChartsUtil::avg(angle1, angle2);
+
+  double tangle = CQChartsUtil::Deg2Rad(ta);
+
+  double lr1 = ri + lr*(ro - ri);
+
+  if (lr1 < 0.01)
+    lr1 = 0.01;
+
+  double tc = cos(tangle);
+  double ts = sin(tangle);
+
+  double tx = lr1*tc;
+  double ty = lr1*ts;
+
+  double ptx, pty;
+
+  plot_->windowToPixel(tx, ty, ptx, pty);
+
+  //---
+
+  double        dx    = 0.0;
+  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+  if (lr1 > ro) {
+    double lx1 = ro*tc;
+    double ly1 = ro*ts;
+    double lx2 = lr1*tc;
+    double ly2 = lr1*ts;
+
+    double lpx1, lpy1, lpx2, lpy2;
+
+    plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
+    plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
+
+    int tickSize = 16;
+
+    if (tc >= 0) {
+      dx    = tickSize;
+      align = Qt::AlignLeft | Qt::AlignVCenter;
+    }
+    else {
+      dx    = -tickSize;
+      align = Qt::AlignRight | Qt::AlignVCenter;
+    }
+  }
+
+  //---
+
+  QPointF pt = QPointF(ptx + dx, pty);
+
+  double angle = 0.0;
+
+  return plot_->textBox()->bbox(pt, data_.name(), angle, align);
 }
 
 CQChartsChordObj *

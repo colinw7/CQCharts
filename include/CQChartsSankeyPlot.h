@@ -13,7 +13,8 @@ class CQChartsTextBoxObj;
 
 class CQChartsSankeyPlotNode {
  public:
-  using Edges = std::vector<CQChartsSankeyPlotEdge *>;
+  using Edges   = std::vector<CQChartsSankeyPlotEdge *>;
+  using NodeSet = std::set<CQChartsSankeyPlotNode *>;
 
  public:
   CQChartsSankeyPlotNode(CQChartsSankeyPlot *plot, const QString &str);
@@ -49,6 +50,10 @@ class CQChartsSankeyPlotNode {
   double destEdgeSum() const;
 
   void setObj(CQChartsSankeyNodeObj *obj);
+
+ private:
+  int srcDepth (NodeSet &visited) const;
+  int destDepth(NodeSet &visited) const;
 
  private:
   CQChartsSankeyPlot*     plot_      { nullptr };

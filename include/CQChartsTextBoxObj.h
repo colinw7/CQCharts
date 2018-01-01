@@ -2,6 +2,7 @@
 #define CQChartsTextBoxObj_H
 
 #include <CQChartsBoxObj.h>
+#include <CQChartsGeom.h>
 #include <QFont>
 #include <QRectF>
 
@@ -83,6 +84,9 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
 
   void draw(QPainter *painter, const QPointF &c, const QString &text, double angle=0.0,
             Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
+
+  CQChartsGeom::BBox bbox(const QPointF &center, const QString &text, double angle=0.0,
+                          Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
 
  private:
   mutable QRectF rect_;

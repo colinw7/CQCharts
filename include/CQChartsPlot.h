@@ -294,7 +294,7 @@ class CQChartsPlot : public QObject {
   void setDisplayTransform(const CQChartsDisplayTransform &t);
 
   const CQChartsGeom::Range &dataRange() const { return dataRange_; }
-  void setDataRange(const CQChartsGeom::Range &r);
+  void setDataRange(const CQChartsGeom::Range &r, bool update=true);
 
   double dataScaleX() const { return dataScaleX_; }
   void setDataScaleX(double r) { dataScaleX_ = r; }
@@ -636,7 +636,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsGeom::BBox calcDataRange() const;
+  CQChartsGeom::BBox calcDataRange(bool adjust=true) const;
 
   void applyDataRange(bool propagate=true);
 

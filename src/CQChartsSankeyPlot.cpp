@@ -704,7 +704,7 @@ createNodes(const IndNodeMap &nodes)
 
     //---
 
-    int srcDepth  = node->srcDepth();
+    int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
 
     int xpos = node->calcXPos();
@@ -758,7 +758,7 @@ updateMaxDepth()
   for (const auto &idNode : indNodeMap_) {
     CQChartsSankeyPlotNode *node = idNode.second;
 
-    int srcDepth  = node->srcDepth();
+    int srcDepth  = node->srcDepth ();
     int destDepth = node->destDepth();
 
     if      (align() == CQChartsSankeyPlot::Align::SRC)
@@ -1100,6 +1100,17 @@ int
 CQChartsSankeyPlotNode::
 srcDepth() const
 {
+  NodeSet visited;
+
+  visited.insert(const_cast<CQChartsSankeyPlotNode *>(this));
+
+  return srcDepth(visited);
+}
+
+int
+CQChartsSankeyPlotNode::
+srcDepth(NodeSet &visited) const
+{
   if (srcDepth_ >= 0)
     return srcDepth_;
 
@@ -1111,7 +1122,13 @@ srcDepth() const
     for (const auto &edge : srcEdges_) {
       CQChartsSankeyPlotNode *node = edge->srcNode();
 
-      depth = std::max(depth, node->srcDepth());
+      auto p = visited.find(node);
+
+      if (p == visited.end()) {
+        visited.insert(node);
+
+        depth = std::max(depth, node->srcDepth(visited));
+      }
     }
 
     srcDepth_ = depth + 1;
@@ -1124,6 +1141,17 @@ int
 CQChartsSankeyPlotNode::
 destDepth() const
 {
+  NodeSet visited;
+
+  visited.insert(const_cast<CQChartsSankeyPlotNode *>(this));
+
+  return destDepth(visited);
+}
+
+int
+CQChartsSankeyPlotNode::
+destDepth(NodeSet &visited) const
+{
   if (destDepth_ >= 0)
     return destDepth_;
 
@@ -1135,7 +1163,13 @@ destDepth() const
     for (const auto &edge : destEdges_) {
       CQChartsSankeyPlotNode *node = edge->destNode();
 
-      depth = std::max(depth, node->destDepth());
+      auto p = visited.find(node);
+
+      if (p == visited.end()) {
+        visited.insert(node);
+
+        depth = std::max(depth, node->destDepth(visited));
+      }
     }
 
     destDepth_ = depth + 1;
@@ -1148,7 +1182,7 @@ int
 CQChartsSankeyPlotNode::
 calcXPos() const
 {
-  int srcDepth  = this->srcDepth();
+  int srcDepth  = this->srcDepth ();
   int destDepth = this->destDepth();
 
   if      (srcDepth == 0)

@@ -21,16 +21,25 @@ class CQChartsTrie {
    public:
     Patterns() { }
 
+    int depth() const { return depth_; }
+    void setDepth(int i) { depth_ = i; }
+
     void clear() {
+      depth_ = -1;
+
       nodeIndMap_.clear();
       patterns_  .clear();
+    }
+
+    int numPatterns() const {
+      return patterns_.size();
     }
 
     void addPattern(const Node *node, const String &pattern) {
 //std::cerr << node->str().toStdString() << " : " << pattern.toStdString() <<
 //             " (#" << patterns_.size() << ")\n";
 
-      nodeIndMap_[node] = patterns_.size();
+      nodeIndMap_[node] = numPatterns();
 
       patterns_.push_back(pattern);
     }
@@ -57,7 +66,15 @@ class CQChartsTrie {
       return patterns_[i];
     }
 
+    void print(std::ostream &os) const {
+      os << numPatterns() << " patterns\n";
+
+      for (int i = 0; i < numPatterns(); ++i)
+        os << " " << pattern(i).toStdString() << "\n";
+    }
+
    private:
+    int        depth_ { -1 };
     NodeIndMap nodeIndMap_;
     Strings    patterns_;
   };
@@ -102,6 +119,8 @@ class CQChartsTrie {
     }
 
     void patterns(int depth, Patterns &patterns) const {
+      patterns.setDepth(depth);
+
       String prefix;
 
       subPatterns(prefix, depth, patterns);
@@ -176,7 +195,12 @@ class CQChartsTrie {
       if (ind >= 0)
         return ind;
 
-      QChar c = str[i];
+      QChar c;
+
+      if (i >= str.length())
+        c = 0;
+      else
+        c = str[i];
 
       for (const auto &node : nodes_) {
         QChar c1 = node.first;

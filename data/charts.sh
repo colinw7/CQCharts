@@ -1,3 +1,16 @@
+# Adjacency
+
+CQChartsTest \
+ -tsv adjacency.tsv -comment_header \
+ -type adjacency -columns "node=1,connections=3,name=0,group=2" \
+ -plot_title "adjacency"
+CQChartsTest \
+ -csv adjacency.csv \
+ -type adjacency -columns "name=0,value=1,group=2" \
+ -plot_title "adjacency"
+
+# Bar Chart
+
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
  -type bar -columns "category=0,value=1" -column_type "1#integer" \
@@ -9,9 +22,158 @@ CQChartsTest \
  -plot_title "multiple bar chart" -column_type "1#integer"
 
 CQChartsTest \
+ -csv group.csv -comment_header \
+ -type barchart -columns "category=1,value=2,name=0"
+
+# Box Plot
+
+CQChartsTest \
+ -csv boxplot.csv -first_line_header \
+ -type box -columns "x=0,y=2" \
+ -plot_title "boxplot"
+
+# Bubble/Hier Bubble Plot
+
+CQChartsTest -json flare.json \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "bubble"
+
+CQChartsTest -json flare.json \
+ -type hierbubble -columns "name=0,value=1" \
+ -plot_title "hierarchical bubble"
+
+# Chord Plot
+
+CQChartsTest \
+ -data chord-cities.data \
+ -type chord -columns "name=0,group=1" \
+ -plot_title "Chord Plot"
+CQChartsTest \
+ -csv chord-cities.csv \
+ -type chord -columns "name=0,value=1,group=2" \
+ -plot_title "Chord Plot"
+
+# Delaunay Plot
+
+CQChartsTest \
+ -csv airports.csv \
+ -type delaunay -columns "x=6,y=5,name=1" \
+ -plot_title "delaunay"
+
+# Distribution Plot
+
+CQChartsTest \
+ -csv name_value.csv \
+ -type distribution -columns "value=0"
+
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -type distribution -columns "value=0"
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -type distribution -columns "value=0" \
+ -bool "autoRange=0" -real "start=1.0,delta=0.1"
+CQChartsTest \
+ -csv distribution_sparse.csv -first_line_header \
+ -type distribution -columns "value=0,color=1" \
+ -real "autoRange=0,delta=1"
+
+CQChartsTest \
+ -csv gaussian.txt -comment_header \
+ -process-add "Color=@0 > 0.0 ? 'green' : 'red'" \
+ -type distribution -columns "value=0,color=1" \
+ -plot_title "distribution chart" \
+ -view_properties "selectedHighlight.fill.enabled=1" \
+ -properties "X Axis.ticks.label.placement=BETWEEN" \
+ -properties "Y Axis.ticks.label.placement=TOP_RIGHT" \
+ -properties "Key.visible=0" \
+ -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE"
+  
+# Force Directed Plot
+
+CQChartsTest \
+ -tsv adjacency.tsv \
+ -type forcedirected -columns "node=1,connections=3,name=0,group=2"
+
+# Geometry Plot
+
+CQChartsTest \
+ -tsv states.tsv -comment_header \
+ -type geometry -columns "name=0,geometry=1" \
+ -plot_title "geometry"
+
+CQChartsTest \
+ -tsv choropeth.tsv \
+ -type geometry -columns "name=0,geometry=1,value=2" \
+ -plot_title "choropeth"
+
+# Image Plot
+
+CQChartsTest -csv mandelbrot.csv -type image
+
+# Parallel Plot
+
+CQChartsTest \
+ -csv parallel_coords.csv -first_line_header \
+ -type parallel -columns "x=0,y=1 2 3 4 5 6 7" \
+ -plot_title "parallel"
+
+# Pie Chart
+
+CQChartsTest \
  -csv ages.csv -first_line_header \
  -type pie -columns "label=0,data=1" \
  -plot_title "pie chart" -column_type "1#integer"
+
+# Radar Plot
+
+CQChartsTest \
+  -csv radar.csv -first_line_header \
+  -type radar -columns "name=0,value=1 2 3 4 5"
+
+# Sankey
+
+CQChartsTest \
+ -csv sankey.csv -comment_header \
+ -type sankey -columns "link=0,value=1"
+
+CQChartsTest \
+ -csv sankey_energy.csv -comment_header \
+ -type sankey -columns "link=0,value=1"
+
+# Scatter Plot
+
+CQChartsTest \
+ -tsv scatter.tsv -first_line_header \
+ -type scatter -columns "name=4,x=0,y=1,size=2" \
+ -plot_title "scatter" \
+ -properties "symbol.size=12" \
+ -view_properties "selectedHighlight.fill.enabled=1"
+
+CQChartsTest \
+ -csv bubble.csv -comment_header \
+ -type scatter -columns "name=0,x=1,y=2,color=3,size=4" \
+ -plot_title "Scatter Plot"
+
+CQChartsTest \
+ -tsv cities.dat -comment_header -process "+column(2)/20000.0" \
+ -type scatter -columns "x=4,y=3,name=0,fontSize=5" \
+ -bool "textLabels=1,key=0" \
+ -properties "dataLabel.position=CENTER"
+
+# Sunburst Plot
+
+CQChartsTest -json flare.json \
+ -type sunburst -columns "name=0,value=1" \
+ -plot_title "sunburst"
+
+# TreeMap Plot
+
+CQChartsTest -json flare.json \
+ -type treemap -columns "name=0,value=1" \
+ -plot_title "tree map"
+
+# XY Plot
 
 CQChartsTest \
  -csv airports.csv \
@@ -20,22 +182,12 @@ CQChartsTest \
  -plot_title "random xy"
 
 CQChartsTest \
- -csv airports.csv \
- -type delaunay -columns "x=6,y=5,name=1" \
- -plot_title "delaunay"
-
-CQChartsTest \
  -tsv bivariate.tsv -comment_header \
  -type xy -columns "x=0,y=1 2" \
  -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate" \
  -properties "Y Axis.includeZero=1"
-
-CQChartsTest \
- -csv boxplot.csv -first_line_header \
- -type box -columns "x=0,y=2" \
- -plot_title "boxplot"
 
 CQChartsTest \
  -tsv multi_series.tsv -comment_header \
@@ -48,130 +200,9 @@ CQChartsTest \
  -plot_title "multiple xy plot"
 
 CQChartsTest \
- -csv parallel_coords.csv -first_line_header \
- -type parallel -columns "x=0,y=1 2 3 4 5 6 7" \
- -plot_title "parallel"
-
-CQChartsTest \
- -tsv scatter.tsv -first_line_header \
- -type scatter -columns "name=4,x=0,y=1,size=2" \
- -plot_title "scatter" \
- -properties "symbol.size=12" \
- -view_properties "selectedHighlight.fill.enabled=1"
-
-CQChartsTest \
  -tsv stacked_area.tsv -comment_header \
  -type xy -columns "x=0,y=1 2 3 4 5" -column_type "time:format=%y-%b-%d" -stacked \
  -plot_title "stacked area"
-
-CQChartsTest -json flare.json \
- -type sunburst -columns "name=0,value=1" \
- -plot_title "sunburst"
-
-CQChartsTest -json flare.json \
- -type bubble -columns "name=0,value=1" \
- -plot_title "bubble"
-
-CQChartsTest -json flare.json \
- -type hierbubble -columns "name=0,value=1" \
- -plot_title "hierarchical bubble"
-
-CQChartsTest \
- -tsv states.tsv -comment_header \
- -type geometry -columns "name=0,geometry=1" \
- -plot_title "geometry"
-
-CQChartsTest \
- -csv multi_bar.csv -first_line_header \
- -type bar -columns "name=0,value=1 2 3 4 5 6" -column_type "1#integer" \
--and \
- -csv ages.csv -first_line_header \
- -type pie -columns "label=0,data=1" \
- -plot_title "bar chart and pie"
-
-CQChartsTest -overlay \
- -tsv states.tsv -comment_header \
- -type geometry -columns "name=0,geometry=1" \
--and \
- -csv airports.csv \
- -type delaunay -columns "x=6,y=5,name=1" \
- -plot_title "states and airports"
-
-CQChartsTest \
- -tsv choropeth.tsv \
- -type geometry -columns "name=0,geometry=1,value=2" \
- -plot_title "choropeth"
-
-CQChartsTest \
- -tsv adjacency.tsv -comment_header \
- -type adjacency -columns "node=1,connections=3,name=0,group=2" \
- -plot_title "adjacency"
-
-CQChartsTest \
- -csv xy_10000.csv -first_line_header \
- -type xy -columns "x=0,y=1" \
- -plot_title "10000 points" \
- -properties "points.visible=0"
-CQChartsTest \
- -csv xy_10000.csv -first_line_header \
- -type bar -columns "x=0,y=1" \
- -plot_title "10000 points" \
- -properties "stroke.visible=0"
-CQChartsTest \
- -csv xy_10000.csv -first_line_header \
- -type scatter -columns "x=0,y=1" \
- -plot_title "10000 points"
-CQChartsTest \
- -csv random_10000.csv -first_line_header \
- -type bubble -columns "name=0,value=1" \
- -plot_title "10000 points"
-
-CQChartsTest \
- -csv xy_100000.csv -first_line_header \
- -type xy -columns "x=0,y=1" \
- -plot_title "100000 points" \
- -properties "lines.visible=0"
-CQChartsTest \
- -csv xy_100000.csv -first_line_header \
- -type bar -columns "x=0,y=1" \
- -plot_title "100000 points" \
- -properties "stroke.visible=0"
-CQChartsTest \
- -csv xy_100000.csv -first_line_header \
- -type scatter -columns "x=0,y=1" \
- -plot_title "100000 points"
-CQChartsTest \
- -csv xy_100000_positive.csv -first_line_header \
- -type bubble -columns "name=0,value=1" \
- -plot_title "100000 points"
-
-CQChartsTest -y1y2 \
- -tsv multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d" \
--and \
- -tsv multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=2" -column_type "time:format=%Y%m%d" \
- -plot_title "multiple y axis"
-
-CQChartsTest -y1y2 \
- -tsv multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d,oformat=%F" \
--and \
- -tsv multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=2" -column_type "time:format=%Y%m%d,oformat=%F" \
- -plot_title "multiple y axis"
-
-CQChartsTest -json flare.json \
- -type treemap -columns "name=0,value=1" \
- -plot_title "tree map"
-
-CQChartsTest -y1y2 \
- -csv pareto.csv -comment_header \
- -type bar \
--and \
- -csv pareto.csv -comment_header \
- -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin 2.0 -xintegral \
- -plot_title "pareto"
 
 CQChartsTest \
   -data missing.data -comment_header \
@@ -182,64 +213,6 @@ CQChartsTest \
   -data xy_size.data -comment_header \
   -type xy -columns "x=0,y=1,size=2" \
   -properties "points.symbol=circle,points.fill.visible=1"
-
-#---
-
-CQChartsTest \
- -csv spline_area.csv -comment_header \
- -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
- -xintegral -ymin 0 \
- -plot_title "Spline Area Chart" \
- -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
--and \
- -csv console.csv -comment_header \
- -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
- -plot_title "Pie Chart" \
- -properties "labelRadius=1.2,startAngle=0.0" \
--and \
- -csv lines.csv -comment_header \
- -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
- -column_type "0#time:format=%Y%m%d,oformat=%b" \
- -plot_title "Line Chart" \
- -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
--and \
- -csv country_wise_population.csv -comment_header \
- -type bar -columns "name=2,value=1" \
- -plot_title "Column Chart"
-
-CQChartsTest \
- -csv group.csv -comment_header \
- -type barchart -columns "category=1,value=2,name=0"
-
-#---
-
-CQChartsTest \
- -csv bubble.csv -comment_header \
- -type scatter -columns "name=0,x=1,y=2,color=3,size=4" \
- -plot_title "Scatter Plot"
-
-#---
-
-CQChartsTest \
- -data chord-cities.data \
- -type chord -columns "name=0,group=1" \
- -plot_title "Chord Plot"
-
-#---
-
-CQChartsTest \
- -tsv adjacency.tsv \
- -type forcedirected -columns "node=1,connections=3,name=0,group=2"
-
-#---
-
-CQChartsTest \
- -tsv cities.dat -comment_header -process "+column(2)/20000.0" \
- -type scatter -columns "x=4,y=3,name=0,fontSize=5" \
- -bool "textLabels=1,key=0" \
- -properties "dataLabel.position=CENTER"
-
-#---
 
 CQChartsTest \
  -expr -num_rows 50 \
@@ -304,7 +277,91 @@ CQChartsTest \
  -properties "Key.location=bl,Key.insideY=0,Key.flipped=1"
  -properties "Title.text.font=+8"
 
+CQChartsTest \
+ -data silver.dat \
+ -type xy -columns "x=0,y=1 2" -bivariate \
+ -properties "fillUnder.visible=1"
+
+CQChartsTest \
+ -expr -num_rows 100 \
+ -process "+x=row(-10,10)" \
+ -process "+abs(x)=abs(@1)" \
+ -type xy -columns "x=1,y=2" \
+ -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=2 5"
+
+#----
+
+# Multiplot
+
+CQChartsTest \
+ -csv multi_bar.csv -first_line_header \
+ -type bar -columns "name=0,value=1 2 3 4 5 6" -column_type "1#integer" \
+-and \
+ -csv ages.csv -first_line_header \
+ -type pie -columns "label=0,data=1" \
+ -plot_title "bar chart and pie"
+
+CQChartsTest \
+ -csv spline_area.csv -comment_header \
+ -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
+ -xintegral -ymin 0 \
+ -plot_title "Spline Area Chart" \
+ -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
+-and \
+ -csv console.csv -comment_header \
+ -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
+ -plot_title "Pie Chart" \
+ -properties "labelRadius=1.2,startAngle=0.0" \
+-and \
+ -csv lines.csv -comment_header \
+ -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
+ -column_type "0#time:format=%Y%m%d,oformat=%b" \
+ -plot_title "Line Chart" \
+ -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
+-and \
+ -csv country_wise_population.csv -comment_header \
+ -type bar -columns "name=2,value=1" \
+ -plot_title "Column Chart"
+
 #---
+
+# Y1Y2 Plots
+
+CQChartsTest -y1y2 \
+ -tsv multi_series.tsv -comment_header \
+ -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d" \
+-and \
+ -tsv multi_series.tsv -comment_header \
+ -type xy -columns "x=0,y=2" -column_type "time:format=%Y%m%d" \
+ -plot_title "multiple y axis"
+
+CQChartsTest -y1y2 \
+ -tsv multi_series.tsv -comment_header \
+ -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d,oformat=%F" \
+-and \
+ -tsv multi_series.tsv -comment_header \
+ -type xy -columns "x=0,y=2" -column_type "time:format=%Y%m%d,oformat=%F" \
+ -plot_title "multiple y axis"
+
+CQChartsTest -y1y2 \
+ -csv pareto.csv -comment_header \
+ -type bar \
+-and \
+ -csv pareto.csv -comment_header \
+ -type xy -cumulative -xmin -0.5 -xmax 5.5 -ymin 2.0 -xintegral \
+ -plot_title "pareto"
+
+#---
+
+# Overlay Plots
+
+CQChartsTest -overlay \
+ -tsv states.tsv -comment_header \
+ -type geometry -columns "name=0,geometry=1" \
+-and \
+ -csv airports.csv \
+ -type delaunay -columns "x=6,y=5,name=1" \
+ -plot_title "states and airports"
 
 CQChartsTest -overlay \
  -data 1.dat -type xy \
@@ -381,13 +438,6 @@ CQChartsTest -overlay \
  -type xy -columns "x=1,y=3" \
  -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min"
 
-CQChartsTest \
- -expr -num_rows 100 \
- -process "+x=row(-10,10)" \
- -process "+abs(x)=abs(@1)" \
- -type xy -columns "x=1,y=2" \
- -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=2 5"
-
 CQChartsTest -overlay \
  -expr -num_rows 100 \
  -process "+x=row(0,10)" \
@@ -404,11 +454,6 @@ CQChartsTest -overlay \
  -type xy -columns "x=1,y=4" \
  -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=-5.5" \
  -ymin -8 -ymax 6
-
-CQChartsTest \
- -data silver.dat \
- -type xy -columns "x=0,y=1 2" -bivariate \
- -properties "fillUnder.visible=1"
 
 CQChartsTest -overlay \
  -view_title "Fill area between two curves (above/below)" \
@@ -431,33 +476,6 @@ CQChartsTest -overlay \
  -properties "lines.width=2,lines.color=cyan" \
  -plot_title "curve 2"
 
-##---
-
-CQChartsTest \
- -csv gaussian.txt -comment_header \
- -type distribution -columns "value=0"
-CQChartsTest \
- -csv gaussian.txt -comment_header \
- -type distribution -columns "value=0" \
- -bool "autoRange=0" -real "start=1.0,delta=0.1"
-CQChartsTest \
- -csv distribution_sparse.csv -first_line_header \
- -type distribution -columns "value=0,color=1" \
- -real "autoRange=0,delta=1"
-
-CQChartsTest \
- -csv gaussian.txt -comment_header \
- -process-add "Color=@0 > 0.0 ? 'green' : 'red'" \
- -type distribution -columns "value=0,color=1" \
- -plot_title "distribution chart" \
- -view_properties "selectedHighlight.fill.enabled=1" \
- -properties "X Axis.ticks.label.placement=BETWEEN" \
- -properties "Y Axis.ticks.label.placement=TOP_RIGHT" \
- -properties "Key.visible=0" \
- -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE"
-  
-##---
-
 CQChartsTest -overlay \
  -csv group.csv -comment_header \
  -type barchart -where "layer:METAL1" -columns "value=2" \
@@ -470,13 +488,7 @@ CQChartsTest -overlay \
 
 ##---
 
-CQChartsTest -csv mandelbrot.csv -type image
-
-##---
-
-CQChartsTest -csv radar.csv -first_line_header -type radar -columns "name=0,value=1 2 3 4 5"
-
-##---
+# Log Plot
 
 CQChartsTest -y1y2 \
  -view_title "Growth in Internet Users Globally" \
@@ -492,18 +504,44 @@ CQChartsTest -y1y2 \
  -properties "lines.color=palette:0.75,points.fill.color=palette:0.75" \
  -plot_title "Linear Scale"
 
-##---
+#----
+
+# Performance
 
 CQChartsTest \
- -csv name_value.csv \
- -type distribution -columns "value=0"
-
-##---
+ -csv xy_10000.csv -first_line_header \
+ -type xy -columns "x=0,y=1" \
+ -plot_title "10000 points" \
+ -properties "points.visible=0"
+CQChartsTest \
+ -csv xy_10000.csv -first_line_header \
+ -type bar -columns "x=0,y=1" \
+ -plot_title "10000 points" \
+ -properties "stroke.visible=0"
+CQChartsTest \
+ -csv xy_10000.csv -first_line_header \
+ -type scatter -columns "x=0,y=1" \
+ -plot_title "10000 points"
+CQChartsTest \
+ -csv random_10000.csv -first_line_header \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "10000 points"
 
 CQChartsTest \
-  -csv sankey.csv -comment_header \
-  -type sankey -columns "link=0,value=1"
-
+ -csv xy_100000.csv -first_line_header \
+ -type xy -columns "x=0,y=1" \
+ -plot_title "100000 points" \
+ -properties "lines.visible=0"
 CQChartsTest \
-  -csv sankey_energy.csv -comment_header \
-  -type sankey -columns "link=0,value=1"
+ -csv xy_100000.csv -first_line_header \
+ -type bar -columns "x=0,y=1" \
+ -plot_title "100000 points" \
+ -properties "stroke.visible=0"
+CQChartsTest \
+ -csv xy_100000.csv -first_line_header \
+ -type scatter -columns "x=0,y=1" \
+ -plot_title "100000 points"
+CQChartsTest \
+ -csv xy_100000_positive.csv -first_line_header \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "100000 points"

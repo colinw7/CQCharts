@@ -42,6 +42,7 @@ CQChartsBoxPlot.cpp \
 CQChartsBubblePlot.cpp \
 CQChartsChordPlot.cpp \
 CQChartsDelaunayPlot.cpp \
+CQChartsDendrogramPlot.cpp \
 CQChartsDistributionPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
@@ -142,6 +143,7 @@ CQFilename.cpp \
 CQStrParse.cpp \
 \
 CQChartsDelaunay.cpp \
+CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
 COSNaN.cpp \
 
@@ -175,6 +177,7 @@ HEADERS += \
 ../include/CQChartsBubblePlot.h \
 ../include/CQChartsChordPlot.h \
 ../include/CQChartsDelaunayPlot.h \
+../include/CQChartsDendrogramPlot.h \
 ../include/CQChartsDistributionPlot.h \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
@@ -281,6 +284,7 @@ CQIconCombo.h \
 ../include/CQHistoryLineEdit.h \
 \
 ../include/CQChartsDelaunay.h \
+../include/CQChartsDendrogram.h \
 ../include/CQChartsHull3D.h \
 CListLink.h \
 CStateIterator.h \

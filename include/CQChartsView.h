@@ -258,6 +258,10 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void updatePosText(const QPointF &pos);
+
+  //---
+
   void startRegionBand(const QPoint &pos);
   void updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint);
   void endRegionBand();

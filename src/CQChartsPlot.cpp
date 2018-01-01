@@ -336,12 +336,13 @@ setDisplayTransform(const CQChartsDisplayTransform &t)
 
 void
 CQChartsPlot::
-setDataRange(const CQChartsGeom::Range &r)
+setDataRange(const CQChartsGeom::Range &r, bool update)
 {
   if (r != dataRange_) {
     dataRange_ = r;
 
-    updateObjs();
+    if (update)
+      updateObjs();
   }
 }
 
@@ -908,7 +909,7 @@ postInit()
 
 CQChartsGeom::BBox
 CQChartsPlot::
-calcDataRange() const
+calcDataRange(bool adjust) const
 {
   CQChartsGeom::BBox bbox;
 
@@ -919,7 +920,7 @@ calcDataRange() const
     bbox = CQChartsGeom::BBox(0, 0, 1, 1);
 
   // adjust by zoom data pan offset, zoom scale
-  if (view_->isZoomData()) {
+  if (view_->isZoomData() && adjust) {
     CQChartsGeom::Point c = bbox.getCenter();
     double              w = 0.5*bbox.getWidth ()/dataScaleX();
     double              h = 0.5*bbox.getHeight()/dataScaleY();
@@ -944,11 +945,13 @@ applyDataRange(bool propagate)
       CQChartsPlot *plot1 = firstPlot();
 
       while (plot1) {
-        plot1->setDataRange(CQChartsGeom::Range());
+        plot1->setDataRange(CQChartsGeom::Range(), /*update*/false);
 
         plot1->updateRange(/*update*/false);
 
-        dataRange += plot1->calcDataRange();
+        CQChartsGeom::BBox dataRange1 = plot1->calcDataRange(/*adjust*/false);
+
+        dataRange += dataRange1;
 
         plot1 = plot1->nextPlot();
       }
@@ -982,7 +985,7 @@ applyDataRange(bool propagate)
                             dataRange.getXMax(), dataRange.getYMax());
 
       if (plot1) {
-        //plot1->setDataRange (dataRange1  );
+        //plot1->setDataRange (dataRange1);
         //plot1->setDataScaleX(dataScaleX());
         //plot1->setDataScaleY(dataScaleY());
         //plot1->setDataOffset(dataOffset());
@@ -990,7 +993,7 @@ applyDataRange(bool propagate)
         //plot1->applyDataRange(/*propagate*/false);
 
         while (plot1) {
-          plot1->setDataRange (dataRange1  );
+          plot1->setDataRange (dataRange1, /*update*/false);
           plot1->setDataScaleX(dataScaleX());
           plot1->setDataScaleY(dataScaleY());
           plot1->setDataOffset(dataOffset());
@@ -1017,17 +1020,17 @@ applyDataRange(bool propagate)
       CQChartsPlot *plot2 = plot1->nextPlot();
 
       if (plot2) {
-        plot2->setDataRange(CQChartsGeom::Range());
+        plot2->setDataRange(CQChartsGeom::Range(), /*update*/false);
 
         plot2->updateRange(/*update*/false);
 
-        CQChartsGeom::BBox bbox2 = plot2->calcDataRange();
+        CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
 
         CQChartsGeom::Range dataRange2 =
           CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
                               dataRange1.right(), bbox2.getYMax());
 
-        plot2->setDataRange (dataRange2  );
+        plot2->setDataRange (dataRange2, /*update*/false);
         plot2->setDataScaleX(dataScaleX());
         plot2->setDataScaleY(dataScaleY());
         plot2->setDataOffset(dataOffset());
@@ -1836,15 +1839,21 @@ void
 CQChartsPlot::
 zoomTo(const CQChartsGeom::BBox &bbox)
 {
-  if (bbox.getWidth() < 1E-50 || bbox.getHeight() < 1E-50)
-    return;
+  CQChartsGeom::BBox bbox1 = bbox;
+
+  double w = bbox1.getWidth ();
+  double h = bbox1.getHeight();
+
+  if (w < 1E-50 || h < 1E-50) {
+    double dataScale = 2*std::min(dataScaleX_, dataScaleY_);
+
+    w = dataRange_.xsize()/dataScale;
+    h = dataRange_.ysize()/dataScale;
+  }
 
   if (view_->isZoomData()) {
     if (! dataRange_.isSet())
       return;
-
-    double w = bbox.getWidth ();
-    double h = bbox.getHeight();
 
     CQChartsGeom::Point c = bbox.getCenter();
 
@@ -1854,8 +1863,10 @@ zoomTo(const CQChartsGeom::BBox &bbox)
     double xscale = w1/w;
     double yscale = h1/h;
 
-    dataScaleX_ = std::min(xscale, yscale);
-    dataScaleY_ = std::min(xscale, yscale);
+    //dataScaleX_ = std::min(xscale, yscale);
+    //dataScaleY_ = std::min(xscale, yscale);
+    dataScaleX_ = xscale;
+    dataScaleY_ = yscale;
 
     CQChartsGeom::Point c1 = CQChartsGeom::Point(dataRange_.xmid(), dataRange_.ymid());
 

@@ -291,30 +291,33 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(double  symbolSize         READ symbolSize           WRITE setSymbolSize          )
   Q_PROPERTY(bool    symbolStroked      READ isSymbolStroked      WRITE setSymbolStroked       )
   Q_PROPERTY(QString pointsStrokeColor  READ pointsStrokeColorStr WRITE setPointsStrokeColorStr)
+  Q_PROPERTY(double  pointsStrokeAlpha  READ pointsStrokeAlpha    WRITE setPointsStrokeAlpha   )
   Q_PROPERTY(double  symbolLineWidth    READ symbolLineWidth      WRITE setSymbolLineWidth     )
   Q_PROPERTY(bool    symbolFilled       READ isSymbolFilled       WRITE setSymbolFilled        )
   Q_PROPERTY(QString pointsFillColor    READ pointsFillColorStr   WRITE setPointsFillColorStr  )
+  Q_PROPERTY(double  pointsFillAlpha    READ pointsFillAlpha      WRITE setPointsFillAlpha     )
 
   // line:
   //  display, stroke
-  Q_PROPERTY(bool    lines              READ isLines            WRITE setLines             )
-  Q_PROPERTY(bool    linesSelectable    READ isLinesSelectable  WRITE setLinesSelectable   )
-  Q_PROPERTY(QString linesColor         READ linesColorStr      WRITE setLinesColorStr     )
-  Q_PROPERTY(double  linesWidth         READ linesWidth         WRITE setLinesWidth        )
-  Q_PROPERTY(bool    roundedLines       READ isRoundedLines     WRITE setRoundedLines      )
+  Q_PROPERTY(bool    lines           READ isLines           WRITE setLines          )
+  Q_PROPERTY(bool    linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
+  Q_PROPERTY(QString linesColor      READ linesColorStr     WRITE setLinesColorStr  )
+  Q_PROPERTY(double  linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
+  Q_PROPERTY(double  linesWidth      READ linesWidth        WRITE setLinesWidth     )
+  Q_PROPERTY(bool    roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
 
   // fill under:
   //  display, brush
-  Q_PROPERTY(bool    fillUnder          READ isFillUnder        WRITE setFillUnder         )
-  Q_PROPERTY(QString fillUnderColor     READ fillUnderColorStr  WRITE setFillUnderColorStr )
-  Q_PROPERTY(double  fillUnderAlpha     READ fillUnderAlpha     WRITE setFillUnderAlpha    )
-  Q_PROPERTY(Pattern fillUnderPattern   READ fillUnderPattern   WRITE setFillUnderPattern  )
-  Q_PROPERTY(QString fillUnderPos       READ fillUnderPosStr    WRITE setFillUnderPosStr   )
-  Q_PROPERTY(QString fillUnderSide      READ fillUnderSide      WRITE setFillUnderSide     )
+  Q_PROPERTY(bool    fillUnder        READ isFillUnder       WRITE setFillUnder        )
+  Q_PROPERTY(QString fillUnderColor   READ fillUnderColorStr WRITE setFillUnderColorStr)
+  Q_PROPERTY(double  fillUnderAlpha   READ fillUnderAlpha    WRITE setFillUnderAlpha   )
+  Q_PROPERTY(Pattern fillUnderPattern READ fillUnderPattern  WRITE setFillUnderPattern )
+  Q_PROPERTY(QString fillUnderPos     READ fillUnderPosStr   WRITE setFillUnderPosStr  )
+  Q_PROPERTY(QString fillUnderSide    READ fillUnderSide      WRITE setFillUnderSide    )
 
   // data label
-  Q_PROPERTY(QString dataLabelColor     READ dataLabelColorStr  WRITE setDataLabelColorStr )
-  Q_PROPERTY(double  dataLabelAngle     READ dataLabelAngle     WRITE setDataLabelAngle    )
+  Q_PROPERTY(QString dataLabelColor READ dataLabelColorStr WRITE setDataLabelColorStr)
+  Q_PROPERTY(double  dataLabelAngle READ dataLabelAngle    WRITE setDataLabelAngle   )
 
   Q_ENUMS(Pattern)
 
@@ -433,12 +436,18 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString pointsStrokeColorStr() const;
   void setPointsStrokeColorStr(const QString &str);
 
+  double pointsStrokeAlpha() const;
+  void setPointsStrokeAlpha(double a);
+
   QColor interpPointStrokeColor(int i, int n) const;
 
   QString pointsFillColorStr() const;
   void setPointsFillColorStr(const QString &str);
 
   QColor interpPointFillColor(int i, int n) const;
+
+  double pointsFillAlpha() const;
+  void setPointsFillAlpha(double a);
 
   //---
 
@@ -452,7 +461,10 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString linesColorStr() const;
   void setLinesColorStr(const QString &str);
 
-  QColor interpLineColor(int i, int n) const;
+  QColor interpLinesColor(int i, int n) const;
+
+  double linesAlpha() const { return lineObj_->alpha(); }
+  void setLinesAlpha(double a) { lineObj_->setAlpha(a); }
 
   double linesWidth() const { return lineObj_->width(); }
   void setLinesWidth(double w) { lineObj_->setWidth(w); update(); }

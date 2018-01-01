@@ -107,7 +107,7 @@ class CQChartsValueSet : public QObject {
   void init() const;
   void init();
 
-  void initPatterns() const;
+  void initPatterns(int n) const;
 
  private:
   // compare reals with tolerance
@@ -146,6 +146,7 @@ class CQChartsValueSet : public QObject {
   SValSet svalset_;   // unique indexed string values
   SetSVal setsval_;   // index to string map
 
+  int                    initBuckets_  { 10 };
   CQChartsTrie           trie_;                   // string trie
   CQChartsTrie::Patterns spatterns_;              // trie patterns
   bool                   spatternsSet_ { false }; // trie patterns set

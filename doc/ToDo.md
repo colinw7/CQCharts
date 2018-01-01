@@ -1,17 +1,18 @@
 High
- + zoom/pan on overlay is recalcing objects
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
  + Filter Stack (Push/Pop) Tree - keep/delete
  + Generic Filter support (plugin)
  + Allow disable theme for fixed color plot
- + Radial Cooords
+ + Radial Coords
  + More annotation range support (bar chart, pie ...)
  + Compose BoxObj, FillObj, TextBoxObj together
  + Optional shadow text draw
  + Buffer texts and remove overlaps (per layer/type)
  + Bucket algorithm for all plots (box plot, ...)
+ + Group in more areas
+ + Standard format (formats) for hierarchical and connectivity (node/edge) data
 
 Common Properties
  + Fill
@@ -53,7 +54,7 @@ Common Properties
      + pattern (?)
 
 Colors
- + Custom Editor
+ + Custom Editor for palette/theme/color
  + Contrast, Invert, B/W (Invert)
 
 Misc
@@ -81,6 +82,7 @@ Model
    + data labels, symbol size, ....
    + allow interchangeable role/column for data
  + Use sort filter to hide values
+ + column type from header or values ?
 
 Axes
  + Match Y1/Y2 ticks if possible ?
@@ -101,18 +103,25 @@ Plots
  + Dendogram
  + Arrow at points
 
-Pie Chart
- + Stacked (multiple categories)
-
-Parallel Plot
- + Parallel needs x axis labels
-
 Adjacency Plot
  + X Border Width
+ + Better Text Placement/Sizing
+
+Bar
+ + Allow hide sets as well as individual sub set types
+ + Custom Data Labels (including hiding)
 
 Box Plot
  + BoxObj master for boxes
  + Color String (palette or QColor)
+
+Parallel Plot
+ + Parallel needs x axis labels
+
+Pie Chart
+ + Stacked (multiple categories)
+ + Radial labels
+ + Expand selected
 
 Radar Plot
  + Add Key
@@ -130,14 +139,6 @@ Plot
 
 Mouse Over
  + Customize
-
-Bar
- + Allow hide sets as well as individual sub set types
- + Custom Data Labels (including hiding)
-
-Pie
- + Radial labels
- + Expand selected
 
 Key
  + Spacing

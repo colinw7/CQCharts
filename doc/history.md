@@ -225,3 +225,11 @@
  + Delay plot update on property change to speed up multiple changes
  + Add Trie to ValueSet to auto generate string groups
  + Support multiple selection on distribution plot push
+## 1/1/2018
+ + Support name based connections in model for adjacency plot 
+ + Support name based connections in model for chord plot 
+ + Add annotation bbox to chord plot for better fit
+ + Add dendrogram plot type
+ + More style config for delaunay plot
+ + Fix zoom for overlay plots
+ + Add pos feedback in zoom mode and fix rubber band point order

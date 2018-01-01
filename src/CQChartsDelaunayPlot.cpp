@@ -38,8 +38,11 @@ CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
   pointObj_ = new CQChartsPointObj(this);
   lineObj_  = new CQChartsLineObj(this);
 
-  setLinesColorStr ("#282828");
-  setPointsColorStr("#c82828");
+  CQChartsPaletteColor linesColor (CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsPaletteColor pointsColor(CQChartsPaletteColor::Type::PALETTE);
+
+  lineObj_ ->setColor      (linesColor);
+  pointObj_->setStrokeColor(pointsColor);
 
   addAxes();
 
@@ -55,16 +58,18 @@ CQChartsDelaunayPlot::
   delete delaunay_;
 }
 
+//---
+
 QString
 CQChartsDelaunayPlot::
-pointsColorStr() const
+pointsStrokeColorStr() const
 {
   return pointObj_->strokeColorStr();
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsColorStr(const QString &s)
+setPointsStrokeColorStr(const QString &s)
 {
   pointObj_->setStrokeColorStr(s);
 
@@ -73,10 +78,67 @@ setPointsColorStr(const QString &s)
 
 QColor
 CQChartsDelaunayPlot::
-interpPointsColor(int i, int n) const
+interpPointStrokeColor(int i, int n) const
 {
   return pointObj_->interpStrokeColor(i, n);
 }
+
+double
+CQChartsDelaunayPlot::
+pointsStrokeAlpha() const
+{
+  return pointObj_->strokeAlpha();
+}
+
+void
+CQChartsDelaunayPlot::
+setPointsStrokeAlpha(double a)
+{
+  pointObj_->setStrokeAlpha(a);
+
+  update();
+}
+
+QString
+CQChartsDelaunayPlot::
+pointsFillColorStr() const
+{
+  return pointObj_->fillColorStr();
+}
+
+void
+CQChartsDelaunayPlot::
+setPointsFillColorStr(const QString &str)
+{
+  pointObj_->setFillColorStr(str);
+
+  update();
+}
+
+QColor
+CQChartsDelaunayPlot::
+interpPointFillColor(int i, int n) const
+{
+  return pointObj_->interpFillColor(i, n);
+}
+
+double
+CQChartsDelaunayPlot::
+pointsFillAlpha() const
+{
+  return pointObj_->fillAlpha();
+}
+
+void
+CQChartsDelaunayPlot::
+setPointsFillAlpha(double a)
+{
+  pointObj_->setFillAlpha(a);
+
+  update();
+}
+
+//---
 
 QString
 CQChartsDelaunayPlot::
@@ -101,6 +163,8 @@ interpLinesColor(int i, int n) const
   return lineObj_->interpColor(i, n);
 }
 
+//---
+
 void
 CQChartsDelaunayPlot::
 addProperties()
@@ -109,15 +173,25 @@ addProperties()
 
   addProperty("columns", this, "xColumn"       , "x"      );
   addProperty("columns", this, "yColumn"       , "y"      );
-  addProperty("points" , this, "points"        , "visible");
-  addProperty("points" , this, "pointsColor"   , "color"  );
-  addProperty("points" , this, "symbolName"    , "symbol" );
-  addProperty("points" , this, "symbolSize"    , "size"   );
-  addProperty("points" , this, "symbolFilled"  , "filled" );
-  addProperty("lines"  , this, "lines"         , "visible");
-  addProperty("lines"  , this, "linesColor"    , "color"  );
-  addProperty("lines"  , this, "linesWidth"    , "width"  );
-  addProperty(""       , this, "voronoi"                  );
+
+  addProperty("points"       , this, "points"           , "visible");
+  addProperty("points"       , this, "symbolName"       , "symbol" );
+  addProperty("points"       , this, "symbolSize"       , "size"   );
+  addProperty("points/stroke", this, "symbolStroked"    , "visible");
+  addProperty("points/stroke", this, "pointsStrokeColor", "color"  );
+  addProperty("points/stroke", this, "pointsStrokeAlpha", "alpha"  );
+  addProperty("points/stroke", this, "symbolLineWidth"  , "width"  );
+  addProperty("points/fill"  , this, "symbolFilled"     , "visible");
+  addProperty("points/fill"  , this, "pointsFillColor"  , "color"  );
+  addProperty("points/fill"  , this, "pointsFillAlpha"  , "alpha"  );
+
+  addProperty("lines", this, "lines"     , "visible");
+  addProperty("lines", this, "linesColor", "color"  );
+  addProperty("lines", this, "linesAlpha", "alpha"  );
+  addProperty("lines", this, "linesWidth", "width"  );
+
+  addProperty("voronoi", this, "voronoi"         , "enabled"  );
+  addProperty("voronoi", this, "voronoiPointSize", "pointSize");
 }
 
 void
@@ -236,7 +310,7 @@ initObjs()
 
     QModelIndex xind1 = normalizeIndex(xind);
 
-    CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+    CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
 
     CQChartsDelaunayPointObj *pointObj =
       new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
@@ -281,6 +355,12 @@ drawDelaunay(QPainter *painter)
   if (isLines()) {
     QColor lc = interpLinesColor(0, 1);
 
+    lc.setAlphaF(linesAlpha());
+
+    QPen pen(lc);
+
+    pen.setWidthF(linesWidth());
+
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
 
@@ -304,7 +384,7 @@ drawDelaunay(QPainter *painter)
 
       path.closeSubpath();
 
-      painter->strokePath(path, QPen(lc));
+      painter->strokePath(path, pen);
     }
   }
 }
@@ -314,9 +394,34 @@ CQChartsDelaunayPlot::
 drawVoronoi(QPainter *painter)
 {
   if (isPoints()) {
-    QColor pc = interpPointsColor(0, 1);
+    QPen   pen;
+    QBrush brush;
 
-    painter->setPen(pc);
+    if (isSymbolStroked()) {
+      QColor pc = interpPointStrokeColor(0, 1);
+
+      pc.setAlphaF(pointsStrokeAlpha());
+
+      pen.setColor(pc);
+    }
+    else
+      pen.setStyle(Qt::NoPen);
+
+    pen.setWidthF(symbolLineWidth());
+
+    if (isSymbolFilled()) {
+      QColor bc = interpPointFillColor(0, 1);
+
+      bc.setAlphaF(pointsFillAlpha());
+
+      brush.setStyle(Qt::SolidPattern);
+      brush.setColor(bc);
+    }
+    else
+      brush.setStyle(Qt::NoBrush);
+
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -328,9 +433,9 @@ drawVoronoi(QPainter *painter)
 
       windowToPixel(v->x(), v->y(), px, py);
 
-      int d = 2;
+      double d = voronoiPointSize();
 
-      QRectF rect(px - d, py - d, 2*d, 2*d);
+      QRectF rect(px - d, py - d, 2.0*d, 2.0*d);
 
       painter->drawArc(rect, 0, 16*360);
     }
@@ -339,8 +444,12 @@ drawVoronoi(QPainter *painter)
   //---
 
   if (isLines()) {
-    QColor           lc = interpLinesColor(0, 1);
-    double           lw = linesWidth();
+    QColor lc = interpLinesColor(0, 1);
+
+    lc.setAlphaF(linesAlpha());
+
+    double lw = linesWidth();
+
     CQChartsLineDash ld;
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
@@ -444,15 +553,40 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  QColor                   c      = plot_->interpPointsColor(0, 1);
-  double                   s      = plot_->symbolSize();
-  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
-  bool                     filled = plot_->isSymbolFilled();
+  QPen   pen;
+  QBrush brush;
 
-  QBrush brush(Qt::NoBrush);
-  QPen   pen  (c);
+  if (plot_->isSymbolStroked()) {
+    QColor pc = plot_->interpPointStrokeColor(0, 1);
+
+    pc.setAlphaF(plot_->pointsStrokeAlpha());
+
+    pen.setColor(pc);
+  }
+  else
+    pen.setStyle(Qt::NoPen);
+
+  pen.setWidthF(plot_->symbolLineWidth());
+
+  if (plot_->isSymbolFilled()) {
+    QColor bc = plot_->interpPointFillColor(0, 1);
+
+    bc.setAlphaF(plot_->pointsFillAlpha());
+
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(bc);
+  }
+  else
+    brush.setStyle(Qt::NoBrush);
 
   plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  double s = plot_->symbolSize();
+
+  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
 
   //---
 
@@ -460,6 +594,5 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s, true, pen.color(), 1,
-                         filled, pen.color());
+  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s);
 }

@@ -473,40 +473,9 @@ void
 CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
-  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
-
-  //---
-
   // select mode and move (not pressed) - update plot positions
   if (mode_ == Mode::SELECT && ! mouseData_.pressed) {
-    QString posStr;
-
-    if (posTextType() == PosTextType::PLOT) {
-      PlotSet plots;
-
-      basePlotsAt(w, plots);
-
-      for (const auto &plot : plots) {
-        CQChartsGeom::Point w;
-
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (posStr.length())
-          posStr += " ";
-
-        posStr += plot->posStr(w);
-      }
-    }
-    else if (posTextType() == PosTextType::VIEW) {
-      CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
-
-      posStr = QString("%1 %2").arg(w.x).arg(w.y);
-    }
-    else {
-      posStr = QString("%1 %2").arg(me->x()).arg(me->y());
-    }
-
-    setPosText(posStr);
+    updatePosText(me->pos());
 
     //---
 
@@ -518,6 +487,13 @@ mouseMoveEvent(QMouseEvent *me)
   }
 
   //---
+
+  if (mode_ == Mode::ZOOM)
+    updatePosText(me->pos());
+
+  //---
+
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
   // probe move and move (pressed or not pressed) - show probe lines
   if (mode_ == Mode::PROBE) {
@@ -831,6 +807,11 @@ keyPressEvent(QKeyEvent *ke)
 
     return;
   }
+  else if (ke->key() == Qt::Key_Z) {
+    setMode(Mode::ZOOM);
+
+    return;
+  }
   else if (ke->key() == Qt::Key_Bar) {
     setMode(Mode::PROBE);
 
@@ -854,6 +835,42 @@ keyPressEvent(QKeyEvent *ke)
     plot->keyPress(ke->key());
 }
 
+void
+CQChartsView::
+updatePosText(const QPointF &pos)
+{
+  QString posStr;
+
+  if (posTextType() == PosTextType::PLOT) {
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
+
+    PlotSet plots;
+
+    basePlotsAt(w, plots);
+
+    for (const auto &plot : plots) {
+      CQChartsGeom::Point w;
+
+      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)), w);
+
+      if (posStr.length())
+        posStr += " ";
+
+      posStr += plot->posStr(w);
+    }
+  }
+  else if (posTextType() == PosTextType::VIEW) {
+    CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(pos)));
+
+    posStr = QString("%1 %2").arg(w.x).arg(w.y);
+  }
+  else {
+    posStr = QString("%1 %2").arg(pos.x()).arg(pos.y());
+  }
+
+  setPosText(posStr);
+}
+
 //------
 
 void
@@ -871,7 +888,12 @@ void
 CQChartsView::
 updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint)
 {
-  regionBand_->setGeometry(QRect(pressPoint, movePoint));
+  double x = std::min(pressPoint.x(), movePoint.x());
+  double y = std::min(pressPoint.y(), movePoint.y());
+  double w = std::abs(movePoint.x() - pressPoint.x());
+  double h = std::abs(movePoint.y() - pressPoint.y());
+
+  regionBand_->setGeometry(QRect(x, y, w, h));
 }
 
 void

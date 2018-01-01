@@ -17,11 +17,11 @@ void
 CQChartsAdjacencyPlotType::
 addParameters()
 {
-  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "", 0);
-  addColumnParameter("connections", "Connections", "connectionsColumn", "", 1);
-
-  addColumnParameter("group", "Group", "groupColumn", "optional");
-  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
+  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "optional");
+  addColumnParameter("connections", "Connections", "connectionsColumn", "optional");
+  addColumnParameter("value"      , "Value"      , "valueColumn"      , "optional");
+  addColumnParameter("group"      , "Group"      , "groupColumn"      , "optional");
+  addColumnParameter("name"       , "Name"       , "nameColumn"       , "optional");
 }
 
 CQChartsPlot *
@@ -69,9 +69,11 @@ addProperties()
 
   addProperty("columns", this, "nodeColumn"       , "node"      );
   addProperty("columns", this, "connectionsColumn", "connection");
+  addProperty("columns", this, "valueColumn"      , "value"     );
   addProperty("columns", this, "groupColumn"      , "group"     );
   addProperty("columns", this, "nameColumn"       , "name"      );
 
+  addProperty("", this, "sortType"      , "");
   addProperty("", this, "bgColor"       , "");
   addProperty("", this, "emptyCellColor", "");
   addProperty("", this, "margin"        , "");
@@ -129,6 +131,180 @@ initObjs()
 
   //---
 
+  for (auto pnode : nodes_)
+    delete pnode.second;
+
+  nodes_.clear();
+
+  //---
+
+  if      (nameColumn() >= 0 && valueColumn() >= 0)
+    return initHierObjs();
+  else if (connectionsColumn() >= 0)
+    return initConnectionObjs();
+  else
+    return false;
+}
+
+bool
+CQChartsAdjacencyPlot::
+initHierObjs()
+{
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return false;
+
+  //---
+
+  using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
+
+  NameNodeMap nameNodeMap;
+
+  //---
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex nameInd = model->index(r, nameColumn ());
+
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+    bool ok1;
+
+    QString linkStr = CQChartsUtil::modelString(model, nameInd, ok1);
+
+    if (! ok1)
+      continue;
+
+    //---
+
+    QModelIndex valueInd = model->index(r, valueColumn());
+
+    bool ok2;
+
+    double value = CQChartsUtil::modelReal(model, valueInd, ok2);
+
+    if (! ok2)
+      continue;
+
+    //---
+
+    int group = r;
+
+    if (groupColumn() >= 0) {
+      QModelIndex groupInd = model->index(r, groupColumn());
+
+      bool ok3;
+
+      group = CQChartsUtil::modelInteger(model, groupInd, ok3);
+
+      if (! ok3)
+        group = r;
+    }
+
+    //---
+
+    int pos = linkStr.indexOf("/");
+
+    if (pos == -1)
+      continue;
+
+    QString srcStr  = linkStr.mid(0, pos ).simplified();
+    QString destStr = linkStr.mid(pos + 1).simplified();
+
+    auto ps = nameNodeMap.find(srcStr);
+
+    if (ps == nameNodeMap.end()) {
+      int id = nameNodeMap.size();
+
+      CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, srcStr, group, nameInd1);
+
+      ps = nameNodeMap.insert(ps, NameNodeMap::value_type(srcStr, node));
+    }
+
+    auto pd = nameNodeMap.find(destStr);
+
+    if (pd == nameNodeMap.end()) {
+      int id = nameNodeMap.size();
+
+      CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, destStr, 0, QModelIndex());
+
+      pd = nameNodeMap.insert(pd, NameNodeMap::value_type(destStr, node));
+    }
+
+    //---
+
+    CQChartsAdjacencyNode *srcNode  = (*ps).second;
+    CQChartsAdjacencyNode *destNode = (*pd).second;
+
+    srcNode->setGroup(group);
+    srcNode->setInd  (nameInd1);
+
+    srcNode->addNode(destNode, value);
+  }
+
+  for (const auto &nameNode : nameNodeMap) {
+    CQChartsAdjacencyNode *node = nameNode.second;
+
+    nodes_[node->id()] = node;
+  }
+
+  //---
+
+  sortNodes();
+
+  //---
+
+  double xb = pixelToWindowWidth (margin());
+  double yb = pixelToWindowHeight(margin());
+
+  maxLen_ = 0;
+
+  for (auto node1 : sortedNodes_) {
+    maxLen_ = std::max(maxLen_, int(node1->name().size()));
+  }
+
+  int nn = numNodes();
+
+  scale_ = (1.0 - 2*std::max(xb, yb))/(nn + maxLen_*factor_);
+
+  double tsize = maxLen_*factor_*scale_;
+
+  //---
+
+  double y = 1.0 - tsize - yb;
+
+  for (auto node1 : sortedNodes_) {
+    double x = tsize + xb;
+
+    for (auto node2 : sortedNodes_) {
+      double value = node1->nodeValue(node2);
+
+      // skip unconnected
+      if (node1 == node2 || ! CQChartsUtil::isZero(value)) {
+        CQChartsGeom::BBox bbox(x, y - scale_, x + scale_, y);
+
+        CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
+
+        addPlotObject(obj);
+      }
+
+      x += scale_;
+    }
+
+    y -= scale_;
+  }
+
+  //---
+
+  return true;
+}
+
+bool
+CQChartsAdjacencyPlot::
+initConnectionObjs()
+{
   QAbstractItemModel *model = this->model();
 
   if (! model)
@@ -140,25 +316,40 @@ initObjs()
 
   for (int r = 0; r < nr; ++r) {
     QModelIndex nodeInd        = model->index(r, nodeColumn       ());
-    QModelIndex groupInd       = model->index(r, groupColumn      ());
     QModelIndex connectionsInd = model->index(r, connectionsColumn());
-    QModelIndex nameInd        = model->index(r, nameColumn       ());
 
     QModelIndex nodeInd1 = normalizeIndex(nodeInd);
 
     //---
 
-    bool ok1, ok2;
+    bool ok1;
 
-    int id    = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+    QModelIndex nameInd = model->index(r, nameColumn());
+
+    int id = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+
+    if (! ok1) id = r;
+
+    //---
+
+    bool ok2;
+
+    QModelIndex groupInd = model->index(r, groupColumn());
+
     int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
 
-    if (! ok1) id    = r;
     if (! ok2) group = r;
+
+    //---
 
     bool ok3;
 
     QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+
+    if (! ok3)
+      continue;
+
+    //----
 
     bool ok4;
 
@@ -166,6 +357,8 @@ initObjs()
 
     if (! name.length())
       name = QString("%1").arg(id);
+
+    //---
 
     ConnectionsData connections;
 
@@ -236,10 +429,10 @@ initObjs()
     double x = tsize + xb;
 
     for (auto node2 : sortedNodes_) {
-      int value = node1->nodeValue(node2);
+      double value = node1->nodeValue(node2);
 
       // skip unconnected
-      if (node1 == node2 || value) {
+      if (node1 == node2 || ! CQChartsUtil::isZero(value)) {
         CQChartsGeom::BBox bbox(x, y - scale_, x + scale_, y);
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
@@ -276,14 +469,27 @@ sortNodes()
     maxGroup_ = std::max(maxGroup_, node->group());
   }
 
-#if 0
-  if      (sort_ == SortType::NAME)
-    std::sort(sortedNodes_.begin(), sortedNodes_.end(), NodeNameCmp());
-  else if (sort_ == SortType::GROUP)
-    std::sort(sortedNodes_.begin(), sortedNodes_.end(), NodeGroupCmp());
-  else if (sort_ == SortType::COUNT)
-    std::sort(sortedNodes_.begin(), sortedNodes_.end(), NodeCountCmp());
-#endif
+  if      (sortType() == SortType::NAME)
+    std::sort(sortedNodes_.begin(), sortedNodes_.end(),
+      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+        return lhs->name() < rhs->name();
+      });
+  else if (sortType() == SortType::GROUP)
+    std::sort(sortedNodes_.begin(), sortedNodes_.end(),
+      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+        if (lhs->group() != rhs->group())
+          return lhs->group() < rhs->group();
+
+        return lhs->name() < rhs->name();
+      });
+  else if (sortType() == SortType::COUNT)
+    std::sort(sortedNodes_.begin(), sortedNodes_.end(),
+      [](CQChartsAdjacencyNode *lhs, CQChartsAdjacencyNode *rhs) {
+        if (lhs->count() != rhs->count())
+          return lhs->count() < rhs->count();
+
+        return lhs->name() < rhs->name();
+      });
 }
 
 bool
@@ -479,9 +685,9 @@ drawBackground(QPainter *painter)
     double px = pxo + margin() + xts;
 
     for (auto node2 : sortedNodes_) {
-      int value = node1->nodeValue(node2);
+      double value = node1->nodeValue(node2);
 
-      bool empty = (node1 != node2 && ! value);
+      bool empty = (node1 != node2 && CQChartsUtil::isZero(value));
 
       if (empty) {
         QColor pc = bc.lighter(120);
@@ -524,7 +730,7 @@ interpGroupColor(int group) const
 
 CQChartsAdjacencyObj::
 CQChartsAdjacencyObj(CQChartsAdjacencyPlot *plot, CQChartsAdjacencyNode *node1,
-                     CQChartsAdjacencyNode *node2, int value, const CQChartsGeom::BBox &rect) :
+                     CQChartsAdjacencyNode *node2, double value, const CQChartsGeom::BBox &rect) :
  CQChartsPlotObj(plot, rect), plot_(plot), node1_(node1), node2_(node2), value_(value)
 {
 }
