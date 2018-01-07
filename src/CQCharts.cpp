@@ -11,6 +11,7 @@
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsHierBubblePlot.h>
+#include <CQChartsHierScatterPlot.h>
 #include <CQChartsImagePlot.h>
 #include <CQChartsParallelPlot.h>
 #include <CQChartsPiePlot.h>
@@ -55,6 +56,7 @@ init()
   plotTypeMgr_->addType("forcedirected", new CQChartsForceDirectedPlotType);
   plotTypeMgr_->addType("geometry"     , new CQChartsGeometryPlotType     );
   plotTypeMgr_->addType("hierbubble"   , new CQChartsHierBubblePlotType   );
+  plotTypeMgr_->addType("hierscatter"  , new CQChartsHierScatterPlotType  );
   plotTypeMgr_->addType("image"        , new CQChartsImagePlotType        );
   plotTypeMgr_->addType("parallel"     , new CQChartsParallelPlotType     );
   plotTypeMgr_->addType("pie"          , new CQChartsPiePlotType          );

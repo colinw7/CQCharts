@@ -26,16 +26,22 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   selLabel_->setObjectName("sel");
 
+  QFontMetrics fm(font());
+
+  QFrame *selSpacer = new QFrame;
+  selSpacer->setFixedWidth(fm.width("XX"));
+
   layout->addWidget (statusLabel_);
   layout->addStretch(1);
   layout->addWidget (posLabel_);
+  layout->addWidget (selSpacer);
   layout->addWidget (selLabel_);
 
   //---
 
   setStatusText("");
   setPosText("");
-  setSelText("0");
+  setSelText("None");
 }
 
 QString
@@ -49,7 +55,7 @@ void
 CQChartsViewStatus::
 setStatusText(const QString &s)
 {
-  statusLabel_->setText(s);
+  statusLabel_->setText("<b>Status:</b> " + s);
 
   update();
 }
@@ -61,13 +67,6 @@ posText() const
   return posLabel_->text();
 }
 
-QString
-CQChartsViewStatus::
-selText() const
-{
-  return selLabel_->text();
-}
-
 void
 CQChartsViewStatus::
 setPosText(const QString &s)
@@ -75,6 +74,13 @@ setPosText(const QString &s)
   posLabel_->setText("<b>Pos:</b> " + s);
 
   update();
+}
+
+QString
+CQChartsViewStatus::
+selText() const
+{
+  return selLabel_->text();
 }
 
 void

@@ -281,7 +281,7 @@ draw(QPainter *painter)
   painter->setPen(interpTextColor(0, 1));
 
   painter->drawText(QPointF(pirect.getXMin() + margin(),
-                             pirect.getYMax() - margin() - fm.descent()), textStr());
+                            pirect.getYMax() - margin() - fm.descent()), textStr());
 
   //---
 

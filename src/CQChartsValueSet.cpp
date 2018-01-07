@@ -141,7 +141,7 @@ imap(int i, double mapMin, double mapMax) const
       return ival;
 
     // map string set index using 1 -> number of sets
-    int slen = svalset_.size();
+    int slen = this->snum();
 
     if (slen)
       return CQChartsUtil::map(ival, 1, slen, mapMin, mapMax);
@@ -213,6 +213,8 @@ int
 CQChartsValueSet::
 sind(const QString &s) const
 {
+  init();
+
   auto p = svalset_.find(s);
 
   if (p == svalset_.end())
@@ -225,12 +227,23 @@ QString
 CQChartsValueSet::
 inds(int ind) const
 {
+  init();
+
   auto p = setsval_.find(ind);
 
   if (p == setsval_.end())
     return "";
 
   return (*p).second;
+}
+
+int
+CQChartsValueSet::
+snum() const
+{
+  init();
+
+  return svalset_.size();
 }
 
 int
@@ -401,7 +414,7 @@ init()
       auto p = svalset_.find(s);
 
       if (p == svalset_.end()) {
-        int id = svalset_.size() + 1;
+        int id = this->snum() + 1;
 
         p = svalset_.insert(p, SValSet::value_type(s, id));
 

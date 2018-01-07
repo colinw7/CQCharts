@@ -271,7 +271,7 @@ class CQChartsPlot : public QObject {
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
 
-  virtual bool isHierarchical() const { return false; }
+  virtual bool isHierarchical() const;
 
   //---
 
@@ -662,6 +662,7 @@ class CQChartsPlot : public QObject {
   QString insidePlotObjectText() const;
 
   void nextInsidePlotInd();
+  void prevInsidePlotInd();
 
   //---
 
@@ -700,16 +701,13 @@ class CQChartsPlot : public QObject {
   virtual void mouseDragRelease(const CQChartsGeom::Point &p);
 
   // handle key press
-  virtual void keyPress(int key);
+  virtual void keyPress(int key, int modifier);
 
   // get tip text at point
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
   // handle rect select
   bool rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect);
-
-  // handle mouse press in click zoom mode
-  virtual void clickZoom(const CQChartsGeom::Point &p);
 
   //---
 
@@ -718,23 +716,24 @@ class CQChartsPlot : public QObject {
   //---
 
  public slots:
-  virtual void panLeft ();
-  virtual void panRight();
-  virtual void panUp   ();
-  virtual void panDown ();
+  virtual void cycleNext();
+  virtual void cyclePrev();
+
+  virtual void panLeft (double f=0.125);
+  virtual void panRight(double f=0.125);
+  virtual void panUp   (double f=0.125);
+  virtual void panDown (double f=0.125);
 
   virtual void zoomIn(double f=1.5);
   virtual void zoomOut(double f=1.5);
   virtual void zoomFull();
 
  public:
+  virtual void cycleNextPrev(bool prev);
+
   virtual void pan(double dx, double dy);
 
   virtual void zoomTo(const CQChartsGeom::BBox &bbox);
-
-  //---
-
-  virtual bool isClickZoom() const { return false; }
 
   //---
 
@@ -753,6 +752,8 @@ class CQChartsPlot : public QObject {
 
   // called after resize
   virtual void handleResize();
+
+  //---
 
   void updateKeyPosition(bool force=false);
 
@@ -987,7 +988,7 @@ class CQChartsPlot : public QObject {
   IdHidden                  idHidden_;
   IndexColumnRows           selIndexColumnRows_;
   QItemSelection            itemSelection_;
-  CQChartsPlotUpdateTimer*  updateTimer_;
+  CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };
 };
 
 #endif

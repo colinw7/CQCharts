@@ -326,7 +326,7 @@ class CJson {
       if (! getNamedValue(name, value))
         return false;
 
-      t = dynamic_cast<T *>(value);
+      t = dynamic_cast<T *>(value.get());
 
       if (! t)
         return false;
@@ -414,7 +414,7 @@ class CJson {
 
     template<typename T>
     T *atT(uint i) const {
-      T *t = dynamic_cast<T *>(values_[i]);
+      T *t = dynamic_cast<T *>(values_[i].get());
 
       return t;
     }
@@ -495,7 +495,7 @@ class CJson {
     if (! loadFile(filename.c_str(), value1))
       return false;
 
-    value = dynamic_cast<T *>(value1);
+    value = dynamic_cast<T *>(value1.get());
 
     if (! value)
       return false;

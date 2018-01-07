@@ -1219,6 +1219,16 @@ nextInsidePlotInd()
 
 void
 CQChartsPlot::
+prevInsidePlotInd()
+{
+  --insidePlotInd_;
+
+  if (insidePlotInd_ < 0)
+    insidePlotInd_ = insidePlotObjs_.size() - 1;
+}
+
+void
+CQChartsPlot::
 setInsidePlotObject()
 {
   CQChartsPlotObj *insideObj = insidePlotObject();
@@ -1563,20 +1573,6 @@ selectedObjs(PlotObjs &objs) const
 
 void
 CQChartsPlot::
-clickZoom(const CQChartsGeom::Point &w)
-{
-  PlotObjs objs;
-
-  objsAtPoint(w, objs);
-
-  for (auto obj : objs)
-    obj->clickZoom(w);
-}
-
-//------
-
-void
-CQChartsPlot::
 setXValueColumn(int column)
 {
   xValueColumn_ = column;
@@ -1654,41 +1650,40 @@ columnStr(int column, double x) const
 
 void
 CQChartsPlot::
-keyPress(int key)
+keyPress(int key, int modifier)
 {
-  if      (key == Qt::Key_Left || key == Qt::Key_Right) {
-    if (key == Qt::Key_Right)
-      panLeft();
+  bool is_shift = (modifier & Qt::ShiftModifier  );
+//bool is_ctrl  = (modifier & Qt::ControlModifier);
+
+  if      (key == Qt::Key_Left || key == Qt::Key_Right ||
+           key == Qt::Key_Up   || key == Qt::Key_Down) {
+    double f = (! is_shift ? 0.125 : 0.25);
+
+    if      (key == Qt::Key_Right)
+      panLeft(f);
+    else if (key == Qt::Key_Left)
+      panRight(f);
+    else if (key == Qt::Key_Up)
+      panDown(f);
+    else if ( key == Qt::Key_Down)
+      panUp(f);
+  }
+  else if (key == Qt::Key_Plus || key == Qt::Key_Minus) {
+    double f = (! is_shift ? 1.5 : 2.0);
+
+    if (key == Qt::Key_Plus)
+      zoomIn(f);
     else
-      panRight();
-  }
-  else if (key == Qt::Key_Up || key == Qt::Key_Down) {
-    if (key == Qt::Key_Up)
-      panDown();
-    else
-      panUp();
-  }
-  else if (key == Qt::Key_Plus) {
-    zoomIn();
-  }
-  else if (key == Qt::Key_Minus) {
-    zoomOut();
+      zoomOut(f);
   }
   else if (key == Qt::Key_Home) {
     zoomFull();
   }
-  else if (key == Qt::Key_Tab) {
-    if (! insidePlotObjs_.empty()) {
-      nextInsidePlotInd();
-
-      setInsidePlotObject();
-
-      QString objText = insidePlotObjectText();
-
-      view_->setStatusText(objText);
-
-      update();
-    }
+  else if (key == Qt::Key_Tab || key == Qt::Key_Backtab) {
+    if (key == Qt::Key_Tab)
+      cycleNext();
+    else
+      cyclePrev();
   }
   else
     return;
@@ -1696,12 +1691,46 @@ keyPress(int key)
 
 void
 CQChartsPlot::
-panLeft()
+cycleNext()
+{
+  cycleNextPrev(/*prev*/false);
+}
+
+void
+CQChartsPlot::
+cyclePrev()
+{
+  cycleNextPrev(/*prev*/true);
+}
+
+void
+CQChartsPlot::
+cycleNextPrev(bool prev)
+{
+  if (! insidePlotObjs_.empty()) {
+    if (! prev)
+      nextInsidePlotInd();
+    else
+      prevInsidePlotInd();
+
+    setInsidePlotObject();
+
+    QString objText = insidePlotObjectText();
+
+    view_->setStatusText(objText);
+
+    update();
+  }
+}
+
+void
+CQChartsPlot::
+panLeft(double f)
 {
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setX(dataOffset_.x - dataRange.getWidth()/8);
+    dataOffset_.setX(dataOffset_.x - f*dataRange.getWidth());
 
     applyDataRange();
 
@@ -1716,12 +1745,12 @@ panLeft()
 
 void
 CQChartsPlot::
-panRight()
+panRight(double f)
 {
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setX(dataOffset_.x + dataRange.getWidth()/8);
+    dataOffset_.setX(dataOffset_.x + f*dataRange.getWidth());
 
     applyDataRange();
 
@@ -1736,12 +1765,12 @@ panRight()
 
 void
 CQChartsPlot::
-panUp()
+panUp(double f)
 {
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setY(dataOffset_.y + dataRange.getHeight()/8);
+    dataOffset_.setY(dataOffset_.y + f*dataRange.getHeight());
 
     applyDataRange();
 
@@ -1756,12 +1785,12 @@ panUp()
 
 void
 CQChartsPlot::
-panDown()
+panDown(double f)
 {
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setY(dataOffset_.y - dataRange.getHeight()/8);
+    dataOffset_.setY(dataOffset_.y - f*dataRange.getHeight());
 
     applyDataRange();
 
@@ -2689,6 +2718,9 @@ columnValueType(QAbstractItemModel *model, int column) const
 
   int nr = model->rowCount(QModelIndex());
 
+  if (column < 0 || column >= nr)
+    return CQBaseModel::Type::NONE;
+
   // determine column value type
   bool isInt = true, isReal = true;
 
@@ -2809,6 +2841,27 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
   }
   else
     sourceModel = model;
+}
+
+bool
+CQChartsPlot::
+isHierarchical() const
+{
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return true;
+
+  int nc = model->rowCount();
+
+  for (int i = 0; i < nc; ++i) {
+    QModelIndex index1 = model->index(i, 0);
+
+    if (model->rowCount(index1) > 0)
+      return true;
+  }
+
+  return false;
 }
 
 //------

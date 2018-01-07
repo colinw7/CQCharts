@@ -303,6 +303,25 @@ inline QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   return QColor(iclamp(255*r, 0, 255), iclamp(255*g, 0, 255), iclamp(255*b, 0, 255));
 }
 
+inline QColor blendColors(const std::vector<QColor> &colors) {
+  if (colors.empty())
+    return QColor();
+
+  double f = 1.0/colors.size();
+
+  double r = 0.0;
+  double g = 0.0;
+  double b = 0.0;
+
+  for (const auto &c : colors) {
+    r += c.redF  ()*f;
+    g += c.greenF()*f;
+    b += c.blueF ()*f;
+  }
+
+  return QColor(iclamp(255*r, 0, 255), iclamp(255*g, 0, 255), iclamp(255*b, 0, 255));
+}
+
 //------
 
 inline void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {

@@ -83,8 +83,12 @@ class CQChartsValueSet : public QObject {
   int sind(const QString &s) const;
   // get index string
   QString inds(int ind) const;
+  // get number of string indices
+  int snum() const;
 
+  // get string bucket
   int sbucket(const QString &s) const;
+  // get bucket string
   QString buckets(int ind) const;
 
   // get minimum index value

@@ -796,7 +796,10 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  return borderColor_.interpColor(plot_, i, n);
+  if (borderColor_.isValid())
+    return borderColor_.interpColor(plot_, i, n);
+  else
+    return QColor(0,0,0);
 }
 
 QSizeF

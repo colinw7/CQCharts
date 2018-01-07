@@ -47,6 +47,7 @@ CQChartsDistributionPlot.cpp \
 CQChartsForceDirectedPlot.cpp \
 CQChartsGeometryPlot.cpp \
 CQChartsHierBubblePlot.cpp \
+CQChartsHierScatterPlot.cpp \
 CQChartsImagePlot.cpp \
 CQChartsParallelPlot.cpp \
 CQChartsPiePlot.cpp \
@@ -182,6 +183,7 @@ HEADERS += \
 ../include/CQChartsForceDirectedPlot.h \
 ../include/CQChartsGeometryPlot.h \
 ../include/CQChartsHierBubblePlot.h \
+../include/CQChartsHierScatterPlot.h \
 ../include/CQChartsImagePlot.h \
 ../include/CQChartsParallelPlot.h \
 ../include/CQChartsPiePlot.h \

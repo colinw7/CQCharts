@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsPaletteColor.h>
+#include <CQChartsColorSet.h>
 #include <QModelIndex>
 
 class CQChartsSunburstPlot;
@@ -20,6 +21,8 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
  public:
   CQChartsSunburstNodeObj(CQChartsSunburstPlot *plot, const CQChartsGeom::BBox &rect,
                           CQChartsSunburstNode *node);
+
+  CQChartsSunburstNode *node() const { return node_; }
 
   QString calcId() const override;
 
@@ -72,8 +75,11 @@ class CQChartsSunburstNode {
   double dr() const { return dr_; }
   double da() const { return da_; }
 
-  const int &colorId() const { return colorId_; }
+  int colorId() const { return colorId_; }
   virtual void setColorId(int colorId) { colorId_ = colorId; }
+
+  const CQChartsPaletteColor &color() const { return color_; }
+  void setColor(const CQChartsPaletteColor &v) { color_ = v; }
 
   virtual void setPosition(double r, double a, double dr, double da);
 
@@ -95,6 +101,8 @@ class CQChartsSunburstNode {
 
   bool pointInside(double x, double y);
 
+  virtual QColor interpColor(CQChartsSunburstPlot *plot, int n) const;
+
  protected:
   CQChartsSunburstHierNode* parent_  { nullptr };
   uint                      id_      { 0 };
@@ -105,7 +113,8 @@ class CQChartsSunburstNode {
   double                    a_       { 0.0 };
   double                    dr_      { 0.0 };
   double                    da_      { 0.0 };
-  int                       colorId_ { 0 };
+  int                       colorId_ { -1 };
+  CQChartsPaletteColor      color_   { };
   bool                      placed_  { false };
   CQChartsSunburstNodeObj*  obj_     { nullptr };
 };
@@ -153,7 +162,11 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   int numNodes() const;
 
+  bool hasNodes() const { return ! nodes_.empty(); }
+
   const Nodes &getNodes() const { return nodes_; }
+
+  bool hasChildren() const { return ! children_.empty(); }
 
   const Children &getChildren() const { return children_; }
 
@@ -169,9 +182,11 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   void addNode(CQChartsSunburstNode *node);
 
+  QColor interpColor(CQChartsSunburstPlot *plot, int n) const override;
+
  private:
-  Nodes     nodes_;
-  Children  children_;
+  Nodes    nodes_;
+  Children children_;
 };
 
 //---
@@ -218,9 +233,12 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
   Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(int     colorColumn  READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
   Q_PROPERTY(double  innerRadius  READ innerRadius    WRITE setInnerRadius   )
   Q_PROPERTY(double  outerRadius  READ outerRadius    WRITE setOuterRadius   )
   Q_PROPERTY(double  startAngle   READ startAngle     WRITE setStartAngle    )
+  Q_PROPERTY(bool    multiRoot    READ isMultiRoot    WRITE setMultiRoot     )
   Q_PROPERTY(bool    border       READ isBorder       WRITE setBorder        )
   Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
   Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
@@ -246,24 +264,28 @@ class CQChartsSunburstPlot : public CQChartsPlot {
     BDIAG
   };
 
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
  public:
   CQChartsSunburstPlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsSunburstPlot();
 
-  bool isHierarchical() const override { return true; }
-
-  //---
-
-  void resetRoots();
-
   //---
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  void setNameColumn(int i);
 
   int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  void setValueColumn(int i);
+
+  int colorColumn() const { return colorColumn_; }
+  void setColorColumn(int i);
+
+  //---
+
+  const QString &separator() const { return separator_; }
+  void setSeparator(const QString &s) { separator_ = s; }
 
   //---
 
@@ -275,6 +297,11 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   double startAngle() const { return startAngle_; }
   void setStartAngle(double r) { startAngle_ = r; resetRoots(); updateObjs(); }
+
+  //---
+
+  bool isMultiRoot() const { return multiRoot_; }
+  void setMultiRoot(bool b) { multiRoot_ = b; resetRoots(); updateObjs(); }
 
   //---
 
@@ -323,9 +350,49 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   //---
 
+  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
+  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+
+  double colorMapMin() const { return colorSet_.mapMin(); }
+  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
+
+  double colorMapMax() const { return colorSet_.mapMax(); }
+  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+
+  //---
+
+  CQChartsSunburstHierNode *currentRoot() const { return currentRoot_; }
+  void setCurrentRoot(CQChartsSunburstHierNode *r, bool update=true);
+
+  //---
+
+  int colorId() const { return colorId_; }
+
+  int numColorIds() const { return numColorIds_; }
+
+  void initColorIds() {
+    colorId_     = -1;
+    numColorIds_ = 0;
+  }
+
+  int nextColorId() {
+    ++colorId_;
+
+    if (colorId_ >= numColorIds_)
+      numColorIds_ = colorId_ + 1;
+
+    return colorId_;
+  }
+
+  //---
+
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
+
+  void initColorSet();
+
+  bool colorSetColor(int i, OptColor &color);
 
   bool initObjs() override;
 
@@ -333,14 +400,46 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void handleResize() override;
 
+  //---
+
   void draw(QPainter *) override;
 
   void drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj,
                 CQChartsSunburstNode *node);
 
+  //---
+
+  bool addMenuItems(QMenu *menu) override;
+
  private:
+  void resetRoots();
+
+  void initRoots();
+
+  void replaceRoots();
+
+  void colorNodes(CQChartsSunburstHierNode *hier);
+
+  void colorNode(CQChartsSunburstNode *node);
+
+  //---
+
   void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index=QModelIndex(),
-                    int depth=1, int colorId=-1);
+                    int depth=1);
+
+  void loadFlat(CQChartsSunburstHierNode *hier);
+
+  CQChartsSunburstRootNode *createRootNode(const QString &name="");
+
+  CQChartsSunburstRootNode *rootNode(const QString &name) const;
+
+  CQChartsSunburstHierNode *childHierNode(CQChartsSunburstHierNode *parent,
+                                          const QString &name) const;
+
+  CQChartsSunburstNode *childNode(CQChartsSunburstHierNode *parent,
+                                  const QString &name) const;
+
+  //---
 
   void addPlotObjs(CQChartsSunburstHierNode *parent);
 
@@ -348,20 +447,28 @@ class CQChartsSunburstPlot : public CQChartsPlot {
 
   void drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier);
 
-  QColor interpNodeColor(CQChartsSunburstNode *node) const;
-
-  QColor interpNodeColor(int colorId) const;
+ public slots:
+  void pushSlot();
+  void popSlot();
+  void popTopSlot();
 
  private:
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
-  int                  nameColumn_  { 0 };       // name column
-  int                  valueColumn_ { 1 };       // value columns
-  double               innerRadius_ { 0.5 };     // inner radius
-  double               outerRadius_ { 1.0 };     // outer radius
-  double               startAngle_  { -90 };     // start angle
-  RootNodes            roots_;                   // root nodes
-  CQChartsTextBoxObj*  textBoxObj_  { nullptr }; // arc fill/border/text object
+  int                       nameColumn_  { 0 };       // name column
+  int                       valueColumn_ { -1 };      // value column
+  int                       colorColumn_ { -1 };      // color column
+  QString                   separator_   { "/" };     // hierarchical name separator
+  double                    innerRadius_ { 0.5 };     // inner radius
+  double                    outerRadius_ { 1.0 };     // outer radius
+  double                    startAngle_  { -90 };     // start angle
+  bool                      multiRoot_   { false };   // has multiple roots
+  RootNodes                 roots_;                   // root nodes
+  CQChartsSunburstHierNode* currentRoot_ { nullptr }; // current root
+  CQChartsTextBoxObj*       textBoxObj_  { nullptr }; // arc fill/border/text object
+  CQChartsColorSet          colorSet_;                // color value set
+  int                       colorId_     { -1 };      // current color id
+  int                       numColorIds_ { 0 };       // num used color ids
 };
 
 #endif

@@ -570,9 +570,18 @@ void
 CQChartsGeometryObj::
 addSelectIndex()
 {
-  plot_->addSelectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
+  QModelIndex nameInd     = plot_->selectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
+  QModelIndex geometryInd = plot_->selectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
+  QModelIndex valueInd    = plot_->selectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
+
+  if (nameInd.isValid())
+    plot_->addSelectIndex(nameInd);
+
+  if (geometryInd.isValid())
+    plot_->addSelectIndex(geometryInd);
+
+  if (valueInd.isValid())
+    plot_->addSelectIndex(valueInd);
 }
 
 bool

@@ -350,7 +350,7 @@ class CQChartsSankeyPlot : public CQChartsPlot {
 
   //---
 
-  void keyPress(int key);
+  void keyPress(int key, int modifier);
 
   //---
 

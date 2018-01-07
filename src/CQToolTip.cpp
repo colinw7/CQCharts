@@ -298,9 +298,9 @@ eventFilter(QObject *o, QEvent *e)
 
         CQToolTipIFace *tooltip = getToolTip(parent);
 
-        if ((mod & Qt::KeyboardModifierMask) ||
-            (key == Qt::Key_Shift || key == Qt::Key_Control ||
-             key == Qt::Key_Alt || key == Qt::Key_Meta))
+        // ignore modifier key presses
+        if (key == Qt::Key_Shift || key == Qt::Key_Control ||
+            key == Qt::Key_Alt   || key == Qt::Key_Meta)
           break;
 
         if (tooltip) {
@@ -308,7 +308,7 @@ eventFilter(QObject *o, QEvent *e)
             hideLater();
           }
           else {
-           QPoint gpos = QCursor::pos();
+            QPoint gpos = QCursor::pos();
 
             if (! tooltip->updateWidget(gpos)) {
               hideLater();

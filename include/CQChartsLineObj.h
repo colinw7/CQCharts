@@ -36,11 +36,11 @@ class CQChartsLineObj : public QObject {
 
   QColor interpColor(int i, int n) const;
 
-  double width() const { return width_; }
-  void setWidth(double r) { width_ = r; redrawLineObj(); }
-
   double alpha() const { return alpha_; }
   void setAlpha(double r) { alpha_ = r; redrawLineObj(); }
+
+  double width() const { return width_; }
+  void setWidth(double r) { width_ = r; redrawLineObj(); }
 
   const CQChartsLineDash &dash() const { return dash_; }
   void setDash(const CQChartsLineDash &dash) { dash_ = dash; redrawLineObj(); }

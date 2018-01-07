@@ -16,10 +16,10 @@ void
 CQChartsScatterPlotType::
 addParameters()
 {
-  addColumnParameter("x", "X", "xColumn", "", 0);
-  addColumnParameter("y", "Y", "yColumn", "", 1);
+  addColumnParameter("x"   , "X"   , "xColumn"   , "", 0);
+  addColumnParameter("y"   , "Y"   , "yColumn"   , "", 1);
+  addColumnParameter("name", "Name", "nameColumn", "optional");
 
-  addColumnParameter("name"      , "Name"       , "nameColumn"      , "optional");
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn", "optional");
   addColumnParameter("fontSize"  , "Font Size"  , "fontSizeColumn"  , "optional");
   addColumnParameter("color"     , "Color"      , "colorColumn"     , "optional");
@@ -63,12 +63,12 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn"       , "name"       );
-  addProperty("columns", this, "xColumn"          , "x"          );
-  addProperty("columns", this, "yColumn"          , "y"          );
-  addProperty("columns", this, "symbolSizeColumn" , "symbolSize" );
-  addProperty("columns", this, "fontSizeColumn"   , "fontSize"   );
-  addProperty("columns", this, "colorColumn"      , "color"      );
+  addProperty("columns", this, "nameColumn"      , "name"      );
+  addProperty("columns", this, "xColumn"         , "x"         );
+  addProperty("columns", this, "yColumn"         , "y"         );
+  addProperty("columns", this, "symbolSizeColumn", "symbolSize");
+  addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
+  addProperty("columns", this, "colorColumn"     , "color"     );
 
   addProperty("symbol", this, "symbolBorderColor"   , "borderColor");
   addProperty("symbol", this, "symbolSize"          , "size"       );
@@ -76,16 +76,16 @@ addProperties()
   addProperty("symbol", this, "symbolSizeMapMin"    , "mapMin"     );
   addProperty("symbol", this, "symbolSizeMapMax"    , "mapMax"     );
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
-  addProperty("color", this, "colorMapMin"    , "mapMin"     );
-  addProperty("color", this, "colorMapMax"    , "mapMax"     );
-
   addProperty("font", this, "fontSize"          , "font"      );
   addProperty("font", this, "fontSizeMapEnabled", "mapEnabled");
   addProperty("font", this, "fontSizeMapMin"    , "mapMin"    );
   addProperty("font", this, "fontSizeMapMax"    , "mapMax"    );
 
   dataLabel_.addProperties("dataLabel");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 void
@@ -267,26 +267,7 @@ bool
 CQChartsScatterPlot::
 colorSetColor(int i, OptColor &color)
 {
-  if (i < 0)
-    return false;
-
-  if (colorSet_.empty())
-    return false;
-
-  // color can be actual color value (string) or value used to map into palette
-  // (map enabled or disabled)
-  if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
-    double value = colorSet_.imap(i);
-
-    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
-  }
-  else {
-    QVariant colorVar = colorSet_.value(i);
-
-    color = QColor(colorVar.toString());
-  }
-
-  return true;
+  return colorSet_.icolor(i, color);
 }
 
 //------

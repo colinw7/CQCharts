@@ -171,8 +171,8 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"       , "x"      );
-  addProperty("columns", this, "yColumn"       , "y"      );
+  addProperty("columns", this, "xColumn", "x");
+  addProperty("columns", this, "yColumn", "y");
 
   addProperty("points"       , this, "points"           , "visible");
   addProperty("points"       , this, "symbolName"       , "symbol" );

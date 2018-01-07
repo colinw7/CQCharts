@@ -88,7 +88,7 @@ bool
 CQChartsViewToolTip::
 isHideKey(int key, Qt::KeyboardModifiers mod)
 {
-  if (key == Qt::Key_Tab)
+  if (key == Qt::Key_Tab || key == Qt::Key_Backtab)
     return false;
 
   return CQToolTipIFace::isHideKey(key, mod);

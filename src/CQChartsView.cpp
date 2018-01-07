@@ -5,6 +5,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
+#include <CQChartsPlotObj.h>
 #include <CQChartsUtil.h>
 #include <CGradientPalette.h>
 #include <CQPropertyViewModel.h>
@@ -418,18 +419,7 @@ mousePressEvent(QMouseEvent *me)
       }
     }
     else if (mode_ == Mode::ZOOM) {
-      if (mouseData_.plot && mouseData_.plot->isClickZoom()) {
-        CQChartsGeom::Point w;
-
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        mouseData_.clickZoom = true;
-
-        mouseData_.plot->clickZoom(w);
-      }
-      else {
-        startRegionBand(mouseData_.pressPoint);
-      }
+      startRegionBand(mouseData_.pressPoint);
     }
     else if (mode_ == Mode::PAN) {
     }
@@ -603,9 +593,6 @@ mouseMoveEvent(QMouseEvent *me)
     }
     // draw zoom rectangle
     else if (mode_ == Mode::ZOOM) {
-      if (mouseData_.clickZoom)
-        return;
-
       mouseData_.movePoint = me->pos();
 
       if (mouseData_.escape)
@@ -726,9 +713,6 @@ mouseReleaseEvent(QMouseEvent *me)
       }
     }
     else if (mode_ == Mode::ZOOM) {
-      if (mouseData_.clickZoom)
-        return;
-
       if (! mouseData_.pressed)
         return;
 
@@ -832,7 +816,7 @@ keyPressEvent(QKeyEvent *ke)
   plotsAt(w, plots, plot);
 
   if (plot)
-    plot->keyPress(ke->key());
+    plot->keyPress(ke->key(), ke->modifiers());
 }
 
 void
@@ -910,17 +894,27 @@ void
 CQChartsView::
 updateSelText()
 {
+  CQChartsPlot::PlotObjs objs;
+
   int num = 0;
 
   for (auto &plotData : plotDatas_) {
-    CQChartsPlot::PlotObjs objs;
+    CQChartsPlot::PlotObjs objs1;
 
-    plotData.plot->selectedObjs(objs);
+    plotData.plot->selectedObjs(objs1);
 
-    num += objs.size();
+    num += objs1.size();
+
+    if (! objs1.empty())
+      objs = objs1;
   }
 
-  setSelText(QString("%1").arg(num));
+  if      (num == 0)
+    setSelText("None");
+  else if (num == 1)
+    setSelText(objs[0]->id());
+  else
+    setSelText(QString("%1").arg(num));
 }
 
 //------
@@ -931,7 +925,10 @@ resizeEvent(QResizeEvent *)
 {
   prect_ = CQChartsGeom::BBox(0, 0, width(), height());
 
-  aspect_ = (1.0*prect().getWidth())/prect().getHeight();
+  if (prect().getHeight() > 0)
+    aspect_ = (1.0*prect().getWidth())/prect().getHeight();
+  else
+    aspect_ = 1.0;
 
   displayRange_->setPixelRange(prect_.getXMin(), prect_.getYMin(),
                                prect_.getXMax(), prect_.getYMax());

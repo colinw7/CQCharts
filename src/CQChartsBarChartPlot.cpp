@@ -300,26 +300,7 @@ bool
 CQChartsBarChartPlot::
 colorSetColor(int i, OptColor &color)
 {
-  if (i < 0)
-    return false;
-
-  if (colorSet_.empty())
-    return false;
-
-  // color can be actual color value (string) or value used to map into palette
-  // (map enabled or disabled)
-  if (colorSet_.type() != CQChartsValueSet::Type::STRING) {
-    double value = colorSet_.imap(i);
-
-    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
-  }
-  else {
-    QVariant colorVar = colorSet_.value(i);
-
-    color = QColor(colorVar.toString());
-  }
-
-  return true;
+  return colorSet_.icolor(i, color);
 }
 
 //---

@@ -64,12 +64,15 @@ addProperties()
   addProperty("columns", this, "connectionsColumn", "connection" );
   addProperty("columns", this, "groupColumn"      , "group"      );
   addProperty("columns", this, "nameColumn"       , "name"       );
-  addProperty(""       , this, "autoFit"                         );
-  addProperty(""       , this, "running"                         );
-  addProperty("node"   , this, "nodeRadius"       , "radius"     );
-  addProperty("node"   , this, "nodeBorderColor"  , "borderColor");
-  addProperty("edge"   , this, "edgeColor"        , "color"      );
-  addProperty("edge"   , this, "edgeAlpha"        , "alpha"      );
+
+  addProperty("", this, "autoFit");
+  addProperty("", this, "running");
+
+  addProperty("node", this, "nodeRadius"     , "radius"     );
+  addProperty("node", this, "nodeBorderColor", "borderColor");
+
+  addProperty("edge", this, "edgeColor", "color");
+  addProperty("edge", this, "edgeAlpha", "alpha");
 }
 
 void
@@ -370,12 +373,12 @@ mouseRelease(const CQChartsGeom::Point &p)
 
 void
 CQChartsForceDirectedPlot::
-keyPress(int key)
+keyPress(int key, int modifier)
 {
   if (key == Qt::Key_S)
     setRunning(! isRunning());
   else
-    CQChartsPlot::keyPress(key);
+    CQChartsPlot::keyPress(key, modifier);
 }
 
 bool

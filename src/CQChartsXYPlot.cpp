@@ -373,7 +373,7 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
@@ -385,7 +385,7 @@ updateRange(bool apply)
 
   sum.resize(ns);
 
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < nr; ++i) {
     lastSum = sum;
 
     //---
@@ -642,7 +642,7 @@ initObjs()
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  int n = model->rowCount(QModelIndex());
+  int nr = model->rowCount(QModelIndex());
 
   int ns = numSets();
 
@@ -654,7 +654,7 @@ initObjs()
     polygons1.resize(ns - 1);
     polygons2.resize(ns - 1);
 
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < nr; ++i) {
       QModelIndex xind = model->index(i, xColumn());
 
       if (! xind.isValid())
@@ -867,7 +867,7 @@ initObjs()
 
     Reals sum, lastSum;
 
-    sum.resize(n);
+    sum.resize(nr);
 
     for (int j = 0; j < ns; ++j) {
       bool hidden = isSetHidden(j);
@@ -889,7 +889,7 @@ initObjs()
 
       lastSum = sum;
 
-      for (int i = 0; i < n; ++i) {
+      for (int i = 0; i < nr; ++i) {
         QModelIndex xind = model->index(i, xColumn());
 
         if (! xind.isValid())
@@ -946,7 +946,7 @@ initObjs()
         CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, nr);
 
         addPlotObject(pointObj);
 
@@ -958,7 +958,7 @@ initObjs()
         poly     << QPointF(x, y1);
         polyLine << QPointF(x, y1);
 
-        if (i == n - 1) {
+        if (i == nr - 1) {
           for (int k = i; k > 0; --k) {
             QModelIndex xind = model->index(k, xColumn());
 
@@ -1019,7 +1019,7 @@ initObjs()
 
       QPolygonF poly, polyLine;
 
-      for (int i = 0; i < n; ++i) {
+      for (int i = 0; i < nr; ++i) {
         lastSum = sum;
 
         //---
@@ -1086,7 +1086,7 @@ initObjs()
         CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, n);
+          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, nr);
 
         if (pointLabelColumn() >= 0) {
           bool ok;
@@ -1139,7 +1139,7 @@ initObjs()
         poly     << QPointF(x, y1);
         polyLine << QPointF(x, y1);
 
-        if (i == n - 1)
+        if (i == nr - 1)
           poly << fillUnderPos(x, dataRange_.ymin());
       }
 

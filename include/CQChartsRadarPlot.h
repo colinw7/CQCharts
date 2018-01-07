@@ -196,6 +196,10 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   //---
 
+  void handleResize() override;
+
+  //---
+
   void drawBackground(QPainter *) override;
 
   void draw(QPainter *) override;

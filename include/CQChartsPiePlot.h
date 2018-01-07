@@ -4,8 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsValueSet.h>
-
+#include <CQChartsColorSet.h>
 #include <CQChartsGeom.h>
 
 #include <boost/optional.hpp>
@@ -224,24 +223,26 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void handleResize() override;
 
+  //---
+
   void draw(QPainter *) override;
 
  private:
-  int                 labelColumn_     { 0 };
-  int                 dataColumn_      { 1 };
-  int                 keyLabelColumn_  { -1 };
-  int                 colorColumn_     { -1 };
-  bool                donut_           { false };
-  double              innerRadius_     { 0.6 };
-  double              outerRadius_     { 0.9 };
-  double              labelRadius_     { 0.5 };
-  bool                rotatedText_     { false };
-  bool                explodeSelected_ { true };
-  double              explodeRadius_   { 0.05 };
-  double              startAngle_      { 90 };
-  double              innerRadius1_    { 0.6 };
-  CQChartsValueSet    colorSet_;
-  CQChartsPieTextObj* textBox_         { nullptr };
+  int                 labelColumn_     { 0 };       // label column
+  int                 dataColumn_      { 1 };       // data column
+  int                 keyLabelColumn_  { -1 };      // key label column
+  int                 colorColumn_     { -1 };      // color column
+  bool                donut_           { false };   // is donut
+  double              innerRadius_     { 0.6 };     // relative inner donut radius
+  double              outerRadius_     { 0.9 };     // relative outer donut radius
+  double              labelRadius_     { 0.5 };     // label radus
+  bool                rotatedText_     { false };   // is label rotated
+  bool                explodeSelected_ { true };    // explode selected pie
+  double              explodeRadius_   { 0.05 };    // expose radus
+  double              startAngle_      { 90 };      // first pie start angle
+  double              innerRadius1_    { 0.6 };     // absolute inner radius
+  CQChartsColorSet    colorSet_;                    // color value set
+  CQChartsPieTextObj* textBox_         { nullptr }; // label column
 };
 
 #endif

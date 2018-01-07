@@ -1050,7 +1050,7 @@ createEdge(double value, CQChartsSankeyPlotNode *srcNode, CQChartsSankeyPlotNode
 
 void
 CQChartsSankeyPlot::
-keyPress(int key)
+keyPress(int key, int modifier)
 {
   if (key == Qt::Key_A) {
     adjustNodes();
@@ -1058,7 +1058,7 @@ keyPress(int key)
     update();
   }
   else
-    CQChartsPlot::keyPress(key);
+    CQChartsPlot::keyPress(key, modifier);
 }
 
 //------

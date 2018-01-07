@@ -124,17 +124,19 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"     , "x"      );
-  addProperty("columns", this, "yColumn"     , "y"      );
-  addProperty("columns", this, "yColumns"    , "yset"   );
+  addProperty("columns", this, "xColumn" , "x"   );
+  addProperty("columns", this, "yColumn" , "y"   );
+  addProperty("columns", this, "yColumns", "yset");
+
   addProperty("points" , this, "points"      , "visible");
   addProperty("points" , this, "pointsColor" , "color"  );
   addProperty("points" , this, "symbolName"  , "symbol" );
   addProperty("points" , this, "symbolSize"  , "size"   );
   addProperty("points" , this, "symbolFilled", "filled" );
-  addProperty("lines"  , this, "lines"       , "visible");
-  addProperty("lines"  , this, "linesColor"  , "color"  );
-  addProperty("lines"  , this, "linesWidth"  , "width"  );
+
+  addProperty("lines", this, "lines"     , "visible");
+  addProperty("lines", this, "linesColor", "color"  );
+  addProperty("lines", this, "linesWidth", "width"  );
 }
 
 void

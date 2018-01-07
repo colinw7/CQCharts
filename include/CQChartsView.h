@@ -404,17 +404,15 @@ class CQChartsView : public QFrame {
     QPoint        movePoint;
     bool          pressed   { false };
     bool          escape    { false };
-    bool          clickZoom { false };
     int           button    { Qt::NoButton };
 
     void reset() {
       plots.clear();
 
-      plot      = nullptr;
-      pressed   = false;
-      escape    = false;
-      clickZoom = false;
-      button    = Qt::NoButton;
+      plot    = nullptr;
+      pressed = false;
+      escape  = false;
+      button  = Qt::NoButton;
     }
   };
 

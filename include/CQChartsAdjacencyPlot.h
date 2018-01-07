@@ -234,7 +234,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  void handleResize();
+  void handleResize() override;
 
   //---
 

@@ -486,6 +486,15 @@ addKeyItems(CQChartsKey *key)
 
 void
 CQChartsRadarPlot::
+handleResize()
+{
+  dataRange_.reset();
+
+  CQChartsPlot::handleResize();
+}
+
+void
+CQChartsRadarPlot::
 drawBackground(QPainter *painter)
 {
   CQChartsPlot::drawBackground(painter);

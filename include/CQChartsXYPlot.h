@@ -313,7 +313,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(double  fillUnderAlpha   READ fillUnderAlpha    WRITE setFillUnderAlpha   )
   Q_PROPERTY(Pattern fillUnderPattern READ fillUnderPattern  WRITE setFillUnderPattern )
   Q_PROPERTY(QString fillUnderPos     READ fillUnderPosStr   WRITE setFillUnderPosStr  )
-  Q_PROPERTY(QString fillUnderSide    READ fillUnderSide      WRITE setFillUnderSide    )
+  Q_PROPERTY(QString fillUnderSide    READ fillUnderSide     WRITE setFillUnderSide    )
 
   // data label
   Q_PROPERTY(QString dataLabelColor READ dataLabelColorStr WRITE setDataLabelColorStr)

@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsValueSet.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsDataLabel.h>
 
 class CQChartsScatterPlot;
@@ -252,7 +252,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
   CQChartsValueSet     symbolSizeSet_;
   double               fontSize_          { 8 };
   CQChartsValueSet     fontSizeSet_;
-  CQChartsValueSet     colorSet_;
+  CQChartsColorSet     colorSet_;
   NameValues           nameValues_;
   CQChartsDataLabel    dataLabel_;
   QString              xname_;

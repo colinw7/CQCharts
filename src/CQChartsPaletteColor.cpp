@@ -6,6 +6,9 @@ QString
 CQChartsPaletteColor::
 colorStr() const
 {
+  if (! isValid())
+    return "none";
+
   if (type_ == Type::PALETTE)
     return "palette";
 
@@ -70,6 +73,8 @@ QColor
 CQChartsPaletteColor::
 interpColor(const CQChartsPlot *plot, int i, int n) const
 {
+  assert(isValid());
+
   if (type_ == Type::THEME_VALUE) {
     double r = CQChartsUtil::norm(i, 0, n);
 
@@ -86,6 +91,8 @@ QColor
 CQChartsPaletteColor::
 interpColor(const CQChartsPlot *plot, double value) const
 {
+  assert(isValid());
+
   if (type_ == Type::COLOR)
     return color_;
 

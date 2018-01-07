@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsValueSet.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsPaletteColor.h>
 
@@ -327,6 +327,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
  private slots:
   void pushSlot();
   void popSlot();
+  void popTopSlot();
 
  private:
   using IValues     = std::map<int,Values>;
@@ -344,7 +345,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   double            margin_      { 2 };       // bar margin
   CQChartsBoxObj*   borderObj_   { nullptr }; // border object
   CQChartsFillObj*  fillObj_     { nullptr }; // fill object
-  CQChartsValueSet  colorSet_;                // color column value set
+  CQChartsColorSet  colorSet_;                // color column value set
   CQChartsDataLabel dataLabel_;               // data label data
   FilterStack       filterStack_;             // filter stack
 };

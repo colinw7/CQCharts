@@ -2,17 +2,22 @@ High
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
- + Filter Stack (Push/Pop) Tree - keep/delete
  + Generic Filter support (plugin)
  + Allow disable theme for fixed color plot
  + Radial Coords
  + More annotation range support (bar chart, pie ...)
  + Compose BoxObj, FillObj, TextBoxObj together
- + Optional shadow text draw
  + Buffer texts and remove overlaps (per layer/type)
  + Bucket algorithm for all plots (box plot, ...)
  + Group in more areas
  + Standard format (formats) for hierarchical and connectivity (node/edge) data
+   + Support multi column to specify hierarchy
+ + Multiple sets of connected data (single level tree) - csv ?
+ + Grouping support
+   + support different grouping per depth for push down/hier plots
+   + group data for scrolled (left/right) plot series
+ + Auto group in model - table -> tree
+ + Common code for hier plots data import
 
 Common Properties
  + Fill
@@ -56,6 +61,7 @@ Common Properties
 Colors
  + Custom Editor for palette/theme/color
  + Contrast, Invert, B/W (Invert)
+ + Do hierarchical plots handle fill color ?
 
 Misc
  + Cache plot pixmaps
@@ -63,10 +69,14 @@ Misc
  + Use QScript/Tcl for expression evaluation
    + Plugable evaluation engine
  + Animation
+ + Custom editor for column (name or number)
 
 Theme
  + theme config file
  + more colors
+ + cube helix max/min range
+ + contrast color set
+ + support discrete colors
 
 Functions
  + Improved Filter
@@ -94,14 +104,31 @@ Axes
 Title
  + Default to larger font
 
-Plots
+Property View
+ + Add more custom edtiors
+   + Column (Number or Name)
+   + Color (Name, Palette or Theme)
+
+Plots to Add
  + Step Line (Left/Center/Right) (Fill Under)
- + Restrict which plots can be combined
-   + Bar/Column Chart NOT paired with Pie, Bar
  + Vector
  + Contour
- + Dendogram
  + Arrow at points
+
+Plots General
+ + Restrict which plots can be combined
+   + Bar/Column Chart NOT paired with Pie, Bar
+ + columnValueType more usage
+   + Common handling of column data type determination
+ + All set methods (especially column) check value change
+   + This should be a common pattern
+ + Context Menu
+   + More options
+ + Allow config overlay data
+   + connect to plot
+ + timer delay on mouse over feedback and probe
+ + auto fit with overlay/xy
+ + current plot
 
 Adjacency Plot
  + X Border Width
@@ -115,12 +142,21 @@ Box Plot
  + BoxObj master for boxes
  + Color String (palette or QColor)
 
+Distribution Plot
+ + Push/Pop save restore ranges
+ + Draw data label inside bar if fits
+
+Hier Bubble Plot
+ + Pop to top
+ + Pop top is off by one level
+ + Better coloring algorithm ?
+
 Parallel Plot
  + Parallel needs x axis labels
 
 Pie Chart
  + Stacked (multiple categories)
- + Radial labels
+ + Radial labels (see radar)
  + Expand selected
 
 Radar Plot
@@ -128,14 +164,17 @@ Radar Plot
  + Stacked
  + Percent of Total/Max
 
-Plot
- + Context Menu
-   + More options
- + Allow config overlay data
-   + connect to plot
- + timer delay on mouse over feedback and probe
- + auto fit with overlay/xy
- + current plot
+Sunburst
+ + Flat coloring
+ + Different node depth
+ + Push/Pop
+
+Tree map
+ + Support Hier Value and Child Values (include in sum, total size)
+ + Auto font size
+
+XY Plot
+ + Use color set for color column to allow explict colors and colors from data
 
 Mouse Over
  + Customize

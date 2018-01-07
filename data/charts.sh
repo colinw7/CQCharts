@@ -37,10 +37,28 @@ CQChartsTest \
 CQChartsTest -json flare.json \
  -type bubble -columns "name=0,value=1" \
  -plot_title "bubble"
+CQChartsTest -csv flare.csv \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "bubble"
+CQChartsTest -csv pareto.csv -comment_header \
+ -type bubble -columns "name=0,value=1" \
+ -plot_title "bubble"
 
 CQChartsTest -json flare.json \
  -type hierbubble -columns "name=0,value=1" \
  -plot_title "hierarchical bubble"
+CQChartsTest -csv flare.csv \
+ -type hierbubble -columns "name=0,value=1" \
+ -plot_title "hierarchical bubble"
+CQChartsTest -csv hier.csv -comment_header \
+ -type hierbubble -columns "name=0,value=1" \
+ -plot_title "hierarchical bubble"
+CQChartsTest -csv hier_files.csv \
+ -type hierbubble -columns "name=0,value=1" \
+ -plot_title "hier files"
+CQChartsTest -tsv coffee.tsv -first_line_header \
+ -type hierbubble -columns "name=0,color=1" \
+ -plot_title "coffee characteristics"
 
 # Chord Plot
 
@@ -56,7 +74,7 @@ CQChartsTest \
 # Delaunay Plot
 
 CQChartsTest \
- -csv airports.csv \
+ -csv airports.csv -comment_header \
  -type delaunay -columns "x=6,y=5,name=1" \
  -plot_title "delaunay"
 
@@ -161,22 +179,47 @@ CQChartsTest \
  -bool "textLabels=1,key=0" \
  -properties "dataLabel.position=CENTER"
 
+CQChartsTest \
+ -csv airports.csv -comment_header \
+ -type scatter -columns "x=6,y=5,name=1" \
+ -plot_title "airports"
+
+# Hier Scatter Plot
+
+CQChartsTest \
+ -csv airports.csv -comment_header \
+ -type hierscatter -columns "x=6,y=5,name=1,group=4 3 2" \
+ -plot_title "airports"
+
 # Sunburst Plot
 
 CQChartsTest -json flare.json \
  -type sunburst -columns "name=0,value=1" \
  -plot_title "sunburst"
+CQChartsTest -csv flare.csv \
+ -type sunburst -columns "name=0,value=1" \
+ -plot_title "sunburst"
+CQChartsTest -tsv coffee.tsv -first_line_header \
+ -type sunburst -columns "name=0,color=1" \
+ -plot_title "coffee characteristics" \
+ -properties "multiRoot=1"
 
 # TreeMap Plot
 
 CQChartsTest -json flare.json \
  -type treemap -columns "name=0,value=1" \
  -plot_title "tree map"
+CQChartsTest -csv flare.csv \
+ -type treemap -columns "name=0,value=1" \
+ -plot_title "tree map"
+CQChartsTest -tsv coffee.tsv -first_line_header \
+ -type treemap -columns "name=0,color=1" \
+ -plot_title "coffee characteristics"
 
 # XY Plot
 
 CQChartsTest \
- -csv airports.csv \
+ -csv airports.csv -comment_header \
  -type xy -columns "x=6,y=5,name=1" \
  -properties "lines.visible=0" \
  -plot_title "random xy"
@@ -359,7 +402,7 @@ CQChartsTest -overlay \
  -tsv states.tsv -comment_header \
  -type geometry -columns "name=0,geometry=1" \
 -and \
- -csv airports.csv \
+ -csv airports.csv -comment_header \
  -type delaunay -columns "x=6,y=5,name=1" \
  -plot_title "states and airports"
 

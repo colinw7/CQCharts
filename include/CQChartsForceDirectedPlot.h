@@ -98,7 +98,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   bool mouseMove   (const CQChartsGeom::Point &p, bool first=false) override;
   void mouseRelease(const CQChartsGeom::Point &p) override;
 
-  void keyPress(int key) override;
+  void keyPress(int key, int modifier) override;
 
   bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
 

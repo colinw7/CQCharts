@@ -236,6 +236,8 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   void handleResize() override;
 
+  //---
+
   void draw(QPainter *) override;
 
  private:

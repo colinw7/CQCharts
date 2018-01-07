@@ -8,6 +8,7 @@ class CQChartsPlot;
 class CQChartsPaletteColor {
  public:
   enum class Type {
+    NONE,
     PALETTE,
     PALETTE_VALUE,
     THEME_VALUE,
@@ -24,6 +25,8 @@ class CQChartsPaletteColor {
   CQChartsPaletteColor(const QColor &color) :
    type_(Type::COLOR), color_(color) {
   }
+
+  bool isValid() const { return type_ != Type::NONE; }
 
   void setColor(const QColor &color) {
     type_  = Type::COLOR;
@@ -44,7 +47,7 @@ class CQChartsPaletteColor {
   QColor interpColor(const CQChartsPlot *plot, double value) const;
 
  private:
-  Type   type_  { Type::COLOR };
+  Type   type_  { Type::NONE };
   double value_ { 0.0 };
   QColor color_ { 0, 0, 0 };
   bool   scale_ { false };

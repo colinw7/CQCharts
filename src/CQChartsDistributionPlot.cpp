@@ -307,31 +307,7 @@ bool
 CQChartsDistributionPlot::
 colorSetColor(int i, OptColor &color)
 {
-  if (colorSet_.empty())
-    return false;
-
-  // color can be actual color value (string) or value used to map into palette
-  // (map enabled or disabled)
-  if (colorSet_.type() == CQChartsValueSet::Type::STRING) {
-    QVariant colorVar = colorSet_.value(i);
-
-    QColor c(colorVar.toString());
-
-    if (c.isValid()) {
-      color = c;
-
-      return true;
-    }
-  }
-
-  if (! colorSet_.hasInd(i))
-    return false;
-
-  double value = colorSet_.imap(i);
-
-  color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
-
-  return true;
+  return colorSet_.icolor(i, color);
 }
 
 //---
@@ -816,19 +792,23 @@ addMenuItems(QMenu *menu)
 
   selectedObjs(objs);
 
-  QAction *pushAction = new QAction("Push", menu);
-  QAction *popAction  = new QAction("Pop" , menu);
+  QAction *pushAction   = new QAction("Push"   , menu);
+  QAction *popAction    = new QAction("Pop"    , menu);
+  QAction *popTopAction = new QAction("Pop Top", menu);
 
-  connect(pushAction, SIGNAL(triggered()), this, SLOT(pushSlot()));
-  connect(popAction , SIGNAL(triggered()), this, SLOT(popSlot()));
+  connect(pushAction  , SIGNAL(triggered()), this, SLOT(pushSlot()));
+  connect(popAction   , SIGNAL(triggered()), this, SLOT(popSlot()));
+  connect(popTopAction, SIGNAL(triggered()), this, SLOT(popTopSlot()));
 
-  pushAction->setEnabled(! objs.empty());
-  popAction ->setEnabled(! filterStack_.empty());
+  pushAction  ->setEnabled(! objs.empty());
+  popAction   ->setEnabled(! filterStack_.empty());
+  popTopAction->setEnabled(! filterStack_.empty());
 
   menu->addSeparator();
 
-  menu->addAction(pushAction);
-  menu->addAction(popAction );
+  menu->addAction(pushAction  );
+  menu->addAction(popAction   );
+  menu->addAction(popTopAction);
 
   menu->addSeparator();
 
@@ -855,6 +835,9 @@ pushSlot()
     objsAtPoint(w, objs);
   }
 
+  if (objs.empty())
+    return;
+
   Filters filters;
 
   for (const auto &obj : objs) {
@@ -876,12 +859,22 @@ void
 CQChartsDistributionPlot::
 popSlot()
 {
-  if (filterStack_.empty())
-    return;
+  if (! filterStack_.empty()) {
+    filterStack_.pop_back();
 
-  filterStack_.pop_back();
+    updateRangeAndObjs();
+  }
+}
 
-  updateRangeAndObjs();
+void
+CQChartsDistributionPlot::
+popTopSlot()
+{
+  if (! filterStack_.empty()) {
+    filterStack_.clear();
+
+    updateRangeAndObjs();
+  }
 }
 
 //------

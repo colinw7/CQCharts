@@ -8,20 +8,6 @@
 
 #include <QPainter>
 
-namespace {
-
-int s_colorId = -1;
-
-int nextColorId() {
-  ++s_colorId;
-
-  return s_colorId;
-}
-
-}
-
-//------
-
 CQChartsBubblePlotType::
 CQChartsBubblePlotType()
 {
@@ -33,7 +19,8 @@ CQChartsBubblePlotType::
 addParameters()
 {
   addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
-  addColumnParameter("value", "Value", "valueColumn", "", 1);
+  addColumnParameter("value", "Value", "valueColumn", "optional");
+  addColumnParameter("color", "Color", "colorColumn", "optional");
 }
 
 CQChartsPlot *
@@ -79,6 +66,47 @@ CQChartsBubblePlot::
 }
 
 //------
+
+void
+CQChartsBubblePlot::
+setNameColumn(int i)
+{
+  if (i != nameColumn_) {
+    nameColumn_ = i;
+
+    resetNodes();
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsBubblePlot::
+setValueColumn(int i)
+{
+  if (i != valueColumn_) {
+    valueColumn_ = i;
+
+    resetNodes();
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsBubblePlot::
+setColorColumn(int i)
+{
+  if (i != colorColumn_) {
+    colorColumn_ = i;
+
+    resetNodes();
+
+    updateRangeAndObjs();
+  }
+}
+
+//----
 
 bool
 CQChartsBubblePlot::
@@ -289,6 +317,10 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  addProperty("columns", this, "nameColumn" , "name" );
+  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "colorColumn", "color");
+
   addProperty("stroke", this, "border"     , "visible");
   addProperty("stroke", this, "borderColor", "color"  );
   addProperty("stroke", this, "borderAlpha", "alpha"  );
@@ -302,6 +334,10 @@ addProperties()
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
   addProperty("text", this, "textContrast", "contrast");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 void
@@ -333,6 +369,38 @@ updateRange(bool apply)
     applyDataRange();
 }
 
+void
+CQChartsBubblePlot::
+initColorSet()
+{
+  colorSet_.clear();
+
+  if (colorColumn() < 0)
+    return;
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(QModelIndex());
+
+  for (int i = 0; i < nr; ++i) {
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
+
+    colorSet_.addValue(value); // always add some value
+  }
+}
+
+bool
+CQChartsBubblePlot::
+colorSetColor(int i, OptColor &color)
+{
+  return colorSet_.icolor(i,color);
+}
+
 bool
 CQChartsBubblePlot::
 initObjs()
@@ -351,8 +419,21 @@ initObjs()
 
   //---
 
+  // init value sets
+  if (colorSet_.empty())
+    initColorSet();
+
+  //---
+
   if (nodes_.empty())
     initNodes();
+
+  //---
+
+  initColorIds();
+
+  for (const auto &node : nodes_)
+    colorNode(node);
 
   //---
 
@@ -380,13 +461,22 @@ initObjs()
   return true;
 }
 
+
+void
+CQChartsBubblePlot::
+resetNodes()
+{
+  for (auto &node : nodes_)
+    delete node;
+
+  nodes_.clear();
+}
+
 void
 CQChartsBubblePlot::
 initNodes()
 {
   loadChildren();
-
-  numColors_ = s_colorId;
 
   //---
 
@@ -409,6 +499,14 @@ initNodes()
 
 void
 CQChartsBubblePlot::
+colorNode(CQChartsBubbleNode *node)
+{
+  if (! node->color().isValid())
+    node->setColorId(nextColorId());
+}
+
+void
+CQChartsBubblePlot::
 loadChildren(const QModelIndex &index)
 {
   QAbstractItemModel *model = this->model();
@@ -418,26 +516,18 @@ loadChildren(const QModelIndex &index)
 
   //---
 
-  int nr = model->rowCount(index);
-
-  bool hierarchical = false;
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn(), index);
-
-    if (model->rowCount(nameInd) > 0) {
-      hierarchical = true;
-      break;
-    }
-  }
+  CQBaseModel::Type valueColumnType = columnValueType(model, valueColumn());
 
   //---
 
-  int colorId = -1;
+  //bool hierarchical = isHierarchical();
+
+  //---
+
+  int nr = model->rowCount(index);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd  = model->index(r, nameColumn (), index);
-    QModelIndex valueInd = model->index(r, valueColumn(), index);
+    QModelIndex nameInd = model->index(r, nameColumn (), index);
 
     QModelIndex nameInd1 = normalizeIndex(nameInd);
 
@@ -453,31 +543,49 @@ loadChildren(const QModelIndex &index)
       loadChildren(nameInd);
     }
     else {
-      if (hierarchical) {
-        if (colorId < 0)
-          colorId = nextColorId();
-      }
-      else {
-        colorId = nextColorId();
+      double size = 1.0;
+
+      QModelIndex valueInd = model->index(r, valueColumn(), index);
+
+      if (valueInd.isValid()) {
+        bool ok2 = true;
+
+        if      (valueColumnType == CQBaseModel::Type::REAL)
+          size = CQChartsUtil::modelReal(model, valueInd, ok2);
+        else if (valueColumnType == CQBaseModel::Type::INTEGER)
+          size = CQChartsUtil::modelInteger(model, valueInd, ok2);
+        else
+          ok2 = false;
+
+        if (! ok2)
+          continue;
       }
 
       //---
 
-      bool ok2;
+      CQChartsBubbleNode *node = new CQChartsBubbleNode(name, size, nameInd1);
 
-      double size = CQChartsUtil::modelReal(model, valueInd, ok2);
+      OptColor color;
 
-      if (! ok2 || size <= 0.0)
-        continue;
-
-      CQChartsBubbleNode *node =
-        new CQChartsBubbleNode(name, size, colorId, nameInd1);
+      if (colorSetColor(r, color))
+        node->setColor(*color);
 
       pack_.addNode(node);
 
       nodes_.push_back(node);
     }
   }
+}
+
+//------
+
+void
+CQChartsBubblePlot::
+handleResize()
+{
+  dataRange_.reset();
+
+  CQChartsPlot::handleResize();
 }
 
 void
@@ -554,8 +662,17 @@ addSelectIndex()
 {
   const QModelIndex &ind = node_->ind();
 
-  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
-  plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
+  QModelIndex nameInd  = plot_->selectIndex(ind.row(), plot_->nameColumn (), ind.parent());
+  QModelIndex valueInd = plot_->selectIndex(ind.row(), plot_->valueColumn(), ind.parent());
+  QModelIndex colorInd = plot_->selectIndex(ind.row(), plot_->colorColumn(), ind.parent());
+
+  plot_->addSelectIndex(nameInd);
+
+  if (valueInd.isValid())
+    plot_->addSelectIndex(valueInd);
+
+  if (colorInd.isValid())
+    plot_->addSelectIndex(colorInd);
 }
 
 bool
@@ -578,7 +695,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   plot_->windowToPixel(node_->x() - r, node_->y() + r, px1, py1);
   plot_->windowToPixel(node_->x() + r, node_->y() - r, px2, py2);
 
-  QRectF qrect(px1, py1, px2 - px1, py2 - py1);
+  QRectF qrect = CQChartsUtil::toQRect(CQChartsGeom::BBox(px1, py2, px2, py1));
 
   //---
 
@@ -586,7 +703,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   QBrush brush;
 
   if (plot_->isFilled()) {
-    QColor c = plot_->interpFillColor(node_->colorId(), plot_->numColors());
+    QColor c = node_->interpColor(plot_, plot_->numColorIds());
 
     c.setAlphaF(plot_->fillAlpha());
 
@@ -598,25 +715,28 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     brush.setStyle(Qt::NoBrush);
   }
 
-  QPen bpen;
+  QPen pen;
 
   if (plot_->isBorder()) {
     QColor bc = plot_->interpBorderColor(0, 1);
 
     bc.setAlphaF(plot_->borderAlpha());
 
-    bpen.setColor (bc);
-    bpen.setWidthF(plot_->borderWidth());
+    pen.setColor (bc);
+    pen.setWidthF(plot_->borderWidth());
   }
   else {
-    bpen.setStyle(Qt::NoPen);
+    pen.setStyle(Qt::NoPen);
   }
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
 
   QColor tc = plot_->interpTextColor(0, 1);
 
   QPen tpen(tc);
 
-  plot_->updateObjPenBrushState(this, bpen, brush);
   plot_->updateObjPenBrushState(this, tpen, brush);
 
   //---
@@ -626,7 +746,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // draw bubble
-  painter->setPen  (bpen);
+  painter->setPen  (pen);
   painter->setBrush(brush);
 
   QPainterPath path;
@@ -637,21 +757,26 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  // set font size
+  // set font
   QFont font = plot_->textFont();
+
+  painter->setFont(font);
+
+  QFontMetricsF fm(painter->font());
 
   //---
 
   // calc text size and position
-  painter->setFont(font);
-
   const QString &name = node_->name();
 
-  QFontMetricsF fm(painter->font());
+  plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
+
+  //---
 
   double tw = fm.width(name);
 
-  plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
+  //double fdy = (fm.ascent() - fm.descent())/2;
+  double fdy = fm.descent();
 
   //---
 
@@ -659,14 +784,44 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->setClipRect(qrect);
 
   if (plot_->isTextContrast())
-    plot_->drawContrastText(painter, px1 - tw/2, py1 + fm.descent(), name, tpen);
+    plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
   else {
     painter->setPen(tpen);
 
-    painter->drawText(px1 - tw/2, py1 + fm.descent(), name);
+    painter->drawText(px1 - tw/2, py1 + fdy, name);
   }
 
   //---
 
   painter->restore();
+}
+
+//------
+
+CQChartsBubbleNode::
+CQChartsBubbleNode(const QString &name, double size, const QModelIndex &ind) :
+ id_(nextId()), name_(name), size_(size), ind_(ind)
+{
+  initRadius();
+}
+
+void
+CQChartsBubbleNode::
+setPosition(double x, double y)
+{
+  CQChartsCircleNode::setPosition(x, y);
+
+  placed_ = true;
+}
+
+QColor
+CQChartsBubbleNode::
+interpColor(CQChartsBubblePlot *plot, int n) const
+{
+  if      (colorId() >= 0)
+    return plot->interpPaletteColor(colorId(), n);
+  else if (color().isValid())
+    return color().interpColor(plot, 0, 1);
+  else
+    return plot->interpPaletteColor(0, 1);
 }

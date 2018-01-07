@@ -233,3 +233,10 @@
  + More style config for delaunay plot
  + Fix zoom for overlay plots
  + Add pos feedback in zoom mode and fix rubber band point order
+## 1/7/2018
+ + Support color column for hierarchical plots
+ + Improve auto coloring of hierarchical and bubble plot
+ + Add Hierarchical Scatter Plot
+ + Add cycle back (Shift Tab)
+ + Add push/pop and multiple root support to sunburst plot
+ + Remove click zoom - always use push/pop
