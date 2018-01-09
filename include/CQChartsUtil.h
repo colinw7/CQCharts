@@ -224,7 +224,10 @@ inline double avg(double x1, double x2) {
 
 // map x in low->high to 0->1
 inline double norm(double x, double low, double high) {
-  return (x - low)/(high - low);
+  if (high != low)
+    return (x - low)/(high - low);
+  else
+    return 0;
 }
 
 // map x in 0->1 to low->high

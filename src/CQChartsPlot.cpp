@@ -1149,7 +1149,8 @@ clearPlotObjects()
 
   plotObjTree_->clearObjects();
 
-  insidePlotObjs_.clear();
+  insidePlotObjs_    .clear();
+  sizeInsidePlotObjs_.clear();
 }
 
 bool
@@ -1177,13 +1178,17 @@ updatePlotObjects(const CQChartsGeom::Point &w)
   if (changed) {
     insidePlotInd_ = 0;
 
-    insidePlotObjs_.clear();
+    insidePlotObjs_    .clear();
+    sizeInsidePlotObjs_.clear();
 
     for (const auto &obj : plotObjs_)
       obj->setInside(false);
 
-    for (const auto &obj : objs)
+    for (const auto &obj : objs) {
       insidePlotObjs_.insert(obj);
+
+      sizeInsidePlotObjs_[obj->rect().area()].insert(obj);
+    }
 
     setInsidePlotObject();
   }
@@ -1197,11 +1202,13 @@ insidePlotObject() const
 {
   int i = 0;
 
-  for (auto &obj : insidePlotObjs_) {
-    if (i == insidePlotInd_)
-      return obj;
+  for (const auto &sizeObjs : sizeInsidePlotObjs_) {
+    for (const auto &obj : sizeObjs.second) {
+      if (i == insidePlotInd_)
+        return obj;
 
-    ++i;
+      ++i;
+    }
   }
 
   return nullptr;
@@ -1243,12 +1250,14 @@ insidePlotObjectText() const
 {
   QString objText;
 
-  for (auto obj : insidePlotObjs_) {
-    if (obj->isInside()) {
-      if (objText != "")
-        objText += " ";
+  for (const auto &sizeObjs : sizeInsidePlotObjs_) {
+    for (const auto &obj : sizeObjs.second) {
+      if (obj->isInside()) {
+        if (objText != "")
+          objText += " ";
 
-      objText += obj->id();
+        objText += obj->id();
+      }
     }
   }
 
@@ -2763,6 +2772,64 @@ columnValueType(QAbstractItemModel *model, int column) const
 
 //------
 
+bool
+CQChartsPlot::
+getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
+                   QStringList &nameStrs, ModelIndices &nameInds)
+{
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  // single column (seprated names)
+  if (nameColumns.size() == 1) {
+    int nameColumn = nameColumns[0];
+
+    QModelIndex nameInd = model->index(r, nameColumn);
+
+    //---
+
+    bool ok;
+
+    QString name = CQChartsUtil::modelString(model, nameInd, ok);
+
+    if (ok && ! name.simplified().length())
+      ok = false;
+
+    if (ok) {
+      if (separator.length())
+        nameStrs = name.split(separator, QString::SkipEmptyParts);
+      else
+        nameStrs << name;
+    }
+
+    nameInds.push_back(nameInd);
+  }
+  else {
+    for (auto &nameColumn : nameColumns) {
+      QModelIndex nameInd = model->index(r, nameColumn);
+
+      //---
+
+      bool ok;
+
+      QString name = CQChartsUtil::modelString(model, nameInd, ok);
+
+      if (ok && ! name.simplified().length())
+        ok = false;
+
+      if (ok) {
+        nameStrs << name;
+
+        nameInds.push_back(nameInd);
+      }
+    }
+  }
+
+  return nameStrs.length();
+}
+
+//------
+
 QModelIndex
 CQChartsPlot::
 normalizeIndex(const QModelIndex &ind) const
@@ -2900,6 +2967,7 @@ addSelectIndex(const QModelIndex &ind)
 {
   QModelIndex ind1 = unnormalizeIndex(ind);
 
+  // add to map ordered by parent, column, row
   selIndexColumnRows_[ind1.parent()][ind1.column()].insert(ind1.row());
 
 //itemSelection_.select(ind1, ind1);
@@ -3161,4 +3229,95 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
+}
+
+//------
+
+CQChartsHierPlot::
+CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
+ CQChartsPlot(view, type, model)
+{
+  nameColumns_.push_back(nameColumn_);
+}
+
+CQChartsHierPlot::
+~CQChartsHierPlot()
+{
+}
+
+//----
+
+void
+CQChartsHierPlot::
+setNameColumn(int i)
+{
+  if (i != nameColumn_) {
+    nameColumn_ = i;
+
+    nameColumns_.clear();
+
+    if (nameColumn_ >= 0)
+      nameColumns_.push_back(nameColumn_);
+
+    updateHierColumns();
+  }
+}
+
+void
+CQChartsHierPlot::
+setNameColumns(const Columns &nameColumns)
+{
+  nameColumns_ = nameColumns;
+
+  if (! nameColumns_.empty())
+    nameColumn_ = nameColumns_[0];
+  else
+    nameColumn_ = -1;
+
+  updateHierColumns();
+}
+
+QString
+CQChartsHierPlot::
+nameColumnsStr() const
+{
+  return CQChartsUtil::toString(nameColumns_);
+}
+
+bool
+CQChartsHierPlot::
+setNameColumnsStr(const QString &s)
+{
+  if (s != nameColumnsStr()) {
+    std::vector<int> nameColumns;
+
+    if (! CQChartsUtil::fromString(s, nameColumns))
+      return false;
+
+    setNameColumns(nameColumns);
+  }
+
+  return true;
+}
+
+void
+CQChartsHierPlot::
+setValueColumn(int i)
+{
+  if (i != valueColumn_) {
+    valueColumn_ = i;
+
+    updateHierColumns();
+  }
+}
+
+void
+CQChartsHierPlot::
+setColorColumn(int i)
+{
+  if (i != colorColumn_) {
+    colorColumn_ = i;
+
+    updateHierColumns();
+  }
 }

@@ -398,7 +398,7 @@ bool
 CQChartsBubblePlot::
 colorSetColor(int i, OptColor &color)
 {
-  return colorSet_.icolor(i,color);
+  return colorSet_.icolor(i, color);
 }
 
 bool

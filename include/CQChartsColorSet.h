@@ -36,7 +36,7 @@ class CQChartsColorSet : public CQChartsValueSet {
 
     double value = imap(i);
 
-    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE, value);
+    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE_VALUE, value);
 
     return true;
   }

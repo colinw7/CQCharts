@@ -54,7 +54,7 @@ class CQChartsValueSet : public QObject {
 
   bool isNumeric() const { return (type() == Type::REAL || type() == Type::INTEGER); }
 
-  // is value value index
+  // check if has value for specified index
   bool hasInd(int i) const;
 
   // map nth value to real range (mapMin()->mapMax())

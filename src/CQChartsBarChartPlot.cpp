@@ -118,9 +118,9 @@ addProperties()
 
   dataLabel_.addProperties("dataLabel");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
-  addProperty("color", this, "colorMapMin"    , "mapMin"     );
-  addProperty("color", this, "colorMapMax"    , "mapMax"     );
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //---

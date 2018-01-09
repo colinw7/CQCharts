@@ -33,6 +33,7 @@ class CQChartsTreeMapNode {
   virtual const QString &name() const { return name_; }
 
   virtual double size() const { return size_; }
+  virtual void setSize(double s) { size_ = s; }
 
   virtual double x() const { return x_; }
   virtual void setX(double x) { x_ = x; }
@@ -57,6 +58,11 @@ class CQChartsTreeMapNode {
 
   virtual int depth() const { return depth_; }
   virtual void setDepth(int i) { depth_ = i; }
+
+  bool isFiller() const { return filler_; }
+  void setFiller(bool b) { filler_ = b; }
+
+  virtual double hierSize() const { return size(); }
 
   virtual void setPosition(double x, double y, double w, double h);
 
@@ -85,6 +91,7 @@ class CQChartsTreeMapNode {
   CQChartsPaletteColor     color_   { };
   QModelIndex              ind_;
   int                      depth_   { 0 };
+  bool                     filler_  { false };
   bool                     placed_  { false };
 };
 
@@ -114,7 +121,11 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   int hierInd() const { return hierInd_; }
   void setHierInd(int i) { hierInd_ = i; }
 
-  double size() const;
+  //---
+
+  double hierSize() const override;
+
+  //---
 
   bool hasNodes() const { return ! nodes_.empty(); }
 
@@ -133,6 +144,8 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
   void setPosition(double x, double y, double w, double h);
 
   void addNode(CQChartsTreeMapNode *node);
+
+  void removeNode(CQChartsTreeMapNode *node);
 
   QColor interpColor(CQChartsTreeMapPlot *plot, int n) const override;
 
@@ -213,13 +226,9 @@ class CQChartsTreeMapPlotType : public CQChartsPlotType {
 
 //---
 
-class CQChartsTreeMapPlot : public CQChartsPlot {
+class CQChartsTreeMapPlot : public CQChartsHierPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn         READ nameColumn           WRITE setNameColumn          )
-  Q_PROPERTY(int     valueColumn        READ valueColumn          WRITE setValueColumn         )
-  Q_PROPERTY(int     colorColumn        READ colorColumn          WRITE setColorColumn         )
-  Q_PROPERTY(QString separator          READ separator            WRITE setSeparator           )
   Q_PROPERTY(bool    titles             READ isTitles             WRITE setTitles              )
   Q_PROPERTY(double  headerHeight       READ headerHeight         WRITE setHeaderHeight        )
   Q_PROPERTY(bool    headerBorder       READ isHeaderBorder       WRITE setHeaderBorder        )
@@ -244,6 +253,9 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   Q_PROPERTY(QFont   textFont           READ textFont             WRITE setTextFont            )
   Q_PROPERTY(QString textColor          READ textColorStr         WRITE setTextColorStr        )
   Q_PROPERTY(bool    textContrast       READ isTextContrast       WRITE setTextContrast        )
+  Q_PROPERTY(bool    colorMapEnabled    READ isColorMapEnabled    WRITE setColorMapEnabled     )
+  Q_PROPERTY(double  colorMapMin        READ colorMapMin          WRITE setColorMapMin         )
+  Q_PROPERTY(double  colorMapMax        READ colorMapMax          WRITE setColorMapMax         )
 
   Q_ENUMS(Pattern);
 
@@ -258,30 +270,14 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
     BDIAG
   };
 
-  using Nodes = std::vector<CQChartsTreeMapNode*>;
-
   using OptColor = boost::optional<CQChartsPaletteColor>;
+
+  using Nodes = std::vector<CQChartsTreeMapNode*>;
 
  public:
   CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsTreeMapPlot();
-
-  //---
-
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
-
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i);
-
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i);
-
-  //---
-
-  const QString &separator() const { return separator_; }
-  void setSeparator(const QString &s) { separator_ = s; }
 
   //---
 
@@ -459,6 +455,8 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   bool addMenuItems(QMenu *menu) override;
 
  private:
+  void updateHierColumns() override;
+
   void initNodeObjs(CQChartsTreeMapHierNode *hier,
                     CQChartsTreeMapHierObj *parentObj, int depth);
 
@@ -481,14 +479,18 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
 
   void loadFlat();
 
-  //---
+  void addExtraNodes(CQChartsTreeMapHierNode *hier);
 
-  void transformNodes(CQChartsTreeMapHierNode *hier);
+  //---
 
   CQChartsTreeMapHierNode *childHierNode(CQChartsTreeMapHierNode *parent,
                                          const QString &name) const;
   CQChartsTreeMapNode *childNode(CQChartsTreeMapHierNode *parent,
                                  const QString &name) const;
+
+  //---
+
+  void transformNodes(CQChartsTreeMapHierNode *hier);
 
  public slots:
   void pushSlot();
@@ -498,13 +500,9 @@ class CQChartsTreeMapPlot : public CQChartsPlot {
   void updateCurrentRoot();
 
  private:
-  int                      nameColumn_         { 0 };       // name column
-  int                      valueColumn_        { -1 };      // value column
-  int                      colorColumn_        { -1 };      // color column
   CQChartsTreeMapHierNode* root_               { nullptr }; // root node
   CQChartsTreeMapHierNode* firstHier_          { nullptr }; // first hier node
   CQChartsTreeMapHierNode* currentRoot_        { nullptr }; // current root
-  QString                  separator_          { "/" };     // hier name separator
   bool                     titles_             { true };    // show titles
   double                   headerHeight_       { -1 };      // header height (should be font based)
   CQChartsTextBoxObj*      headerTextBoxObj_   { nullptr }; // header fill/border/text object

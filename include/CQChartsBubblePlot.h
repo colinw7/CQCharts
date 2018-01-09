@@ -112,20 +112,23 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
 class CQChartsBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(int     colorColumn  READ colorColumn    WRITE setColorColumn   )
-  Q_PROPERTY(bool    border       READ isBorder       WRITE setBorder        )
-  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
-  Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(double  borderWidth  READ borderWidth    WRITE setBorderWidth   )
-  Q_PROPERTY(bool    filled       READ isFilled       WRITE setFilled        )
-  Q_PROPERTY(QString fillColor    READ fillColorStr   WRITE setFillColorStr  )
-  Q_PROPERTY(double  fillAlpha    READ fillAlpha      WRITE setFillAlpha     )
-  Q_PROPERTY(Pattern fillPattern  READ fillPattern    WRITE setFillPattern   )
-  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont      )
-  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr  )
-  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast  )
+  Q_PROPERTY(int     nameColumn      READ nameColumn        WRITE setNameColumn      )
+  Q_PROPERTY(int     valueColumn     READ valueColumn       WRITE setValueColumn     )
+  Q_PROPERTY(int     colorColumn     READ colorColumn       WRITE setColorColumn     )
+  Q_PROPERTY(bool    border          READ isBorder          WRITE setBorder          )
+  Q_PROPERTY(QString borderColor     READ borderColorStr    WRITE setBorderColorStr  )
+  Q_PROPERTY(double  borderAlpha     READ borderAlpha       WRITE setBorderAlpha     )
+  Q_PROPERTY(double  borderWidth     READ borderWidth       WRITE setBorderWidth     )
+  Q_PROPERTY(bool    filled          READ isFilled          WRITE setFilled          )
+  Q_PROPERTY(QString fillColor       READ fillColorStr      WRITE setFillColorStr    )
+  Q_PROPERTY(double  fillAlpha       READ fillAlpha         WRITE setFillAlpha       )
+  Q_PROPERTY(Pattern fillPattern     READ fillPattern       WRITE setFillPattern     )
+  Q_PROPERTY(QFont   textFont        READ textFont          WRITE setTextFont        )
+  Q_PROPERTY(QString textColor       READ textColorStr      WRITE setTextColorStr    )
+  Q_PROPERTY(bool    textContrast    READ isTextContrast    WRITE setTextContrast    )
+  Q_PROPERTY(bool    colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled )
+  Q_PROPERTY(double  colorMapMin     READ colorMapMin       WRITE setColorMapMin     )
+  Q_PROPERTY(double  colorMapMax     READ colorMapMax       WRITE setColorMapMax     )
 
   Q_ENUMS(Pattern);
 

@@ -1,0 +1,12 @@
+# node,size
+a/b1,10
+a/b1/c2,20
+a/b1/c3,30
+a/b2/c1,40
+a/b2/c2,50
+a/b2/c2/d1,10
+a/b2/c2/d2,30
+a/b2,50
+a,5
+zero,0
+bad,-1

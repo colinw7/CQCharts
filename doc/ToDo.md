@@ -17,7 +17,9 @@ High
    + support different grouping per depth for push down/hier plots
    + group data for scrolled (left/right) plot series
  + Auto group in model - table -> tree
- + Common code for hier plots data import
+ + Common code for hier plots
+   + data import
+   + name column handling 
 
 Common Properties
  + Fill
@@ -129,6 +131,8 @@ Plots General
  + timer delay on mouse over feedback and probe
  + auto fit with overlay/xy
  + current plot
+ + value set manager (by name) for plot
+ + common menu code
 
 Adjacency Plot
  + X Border Width
@@ -172,6 +176,7 @@ Sunburst
 Tree map
  + Support Hier Value and Child Values (include in sum, total size)
  + Auto font size
+ + Color Key
 
 XY Plot
  + Use color set for color column to allow explict colors and colors from data

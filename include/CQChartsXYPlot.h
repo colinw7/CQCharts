@@ -363,39 +363,19 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // columns
   int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
+  void setXColumn(int i);
 
   int yColumn() const { return yColumn_; }
-
-  void setYColumn(int i) {
-    yColumn_ = i;
-
-    yColumns_.clear();
-
-    if (yColumn_ >= 0)
-      yColumns_.push_back(yColumn_);
-
-    updateRangeAndObjs();
-  }
+  void setYColumn(int i);
 
   const Columns &yColumns() const { return yColumns_; }
-
-  void setYColumns(const Columns &yColumns) {
-    yColumns_ = yColumns;
-
-    if (! yColumns_.empty())
-      yColumn_ = yColumns_[0];
-    else
-      yColumn_ = -1;
-
-    updateRangeAndObjs();
-  }
+  void setYColumns(const Columns &yColumns);
 
   QString yColumnsStr() const;
   bool setYColumnsStr(const QString &s);
 
   int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  void setNameColumn(int i);
 
   int sizeColumn() const { return sizeColumn_; }
   void setSizeColumn(int i) { sizeColumn_ = i; updateRangeAndObjs(); }
@@ -436,10 +416,10 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString pointsStrokeColorStr() const;
   void setPointsStrokeColorStr(const QString &str);
 
+  QColor interpPointStrokeColor(int i, int n) const;
+
   double pointsStrokeAlpha() const;
   void setPointsStrokeAlpha(double a);
-
-  QColor interpPointStrokeColor(int i, int n) const;
 
   QString pointsFillColorStr() const;
   void setPointsFillColorStr(const QString &str);
@@ -587,24 +567,24 @@ class CQChartsXYPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  int               xColumn_           { 0 };
-  int               yColumn_           { 1 };
-  Columns           yColumns_;
-  int               nameColumn_        { -1 };
-  int               sizeColumn_        { -1 };
-  int               pointLabelColumn_  { -1 };
-  int               pointColorColumn_  { -1 };
-  int               pointSymbolColumn_ { -1 };
-  bool              stacked_           { false };
-  bool              cumulative_        { false };
-  CQChartsPointObj* pointObj_          { nullptr };
-  bool              linesSelectable_   { false };
-  CQChartsLineObj*  lineObj_           { nullptr };
-  bool              roundedLines_      { false };
-  FillUnderData     fillUnderData_;
-  CQChartsLineObj*  impulseObj_        { nullptr };
-  DataLabelData     dataLabelData_;
-  CQChartsLineObj*  bivariateLineObj_  { nullptr };
+  int               xColumn_           { 0 };       // x column
+  int               yColumn_           { 1 };       // y column
+  Columns           yColumns_;                      // multiple y columns
+  int               nameColumn_        { -1 };      // name column
+  int               sizeColumn_        { -1 };      // size column
+  int               pointLabelColumn_  { -1 };      // point label column
+  int               pointColorColumn_  { -1 };      // point color column
+  int               pointSymbolColumn_ { -1 };      // point symbol column
+  bool              stacked_           { false };   // is stacked
+  bool              cumulative_        { false };   // cumulate values
+  CQChartsPointObj* pointObj_          { nullptr }; // point config object
+  bool              linesSelectable_   { false };   // are lines selectable
+  CQChartsLineObj*  lineObj_           { nullptr }; // line config object
+  bool              roundedLines_      { false };   // draw rounded (smooth) lines
+  FillUnderData     fillUnderData_;                 // fill under data
+  CQChartsLineObj*  impulseObj_        { nullptr }; // impulse config object
+  DataLabelData     dataLabelData_;                 // data label config data
+  CQChartsLineObj*  bivariateLineObj_  { nullptr }; // bivariate config object
 };
 
 #endif

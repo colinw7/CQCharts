@@ -242,7 +242,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   double              startAngle_      { 90 };      // first pie start angle
   double              innerRadius1_    { 0.6 };     // absolute inner radius
   CQChartsColorSet    colorSet_;                    // color value set
-  CQChartsPieTextObj* textBox_         { nullptr }; // label column
+  CQChartsPieTextObj* textBox_         { nullptr }; // text box
 };
 
 #endif

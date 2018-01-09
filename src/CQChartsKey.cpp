@@ -777,6 +777,7 @@ CQChartsKeyColorBox::
 CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
  CQChartsKeyItem(plot->key()), plot_(plot), i_(i), n_(n)
 {
+  borderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1.0);
 }
 
 bool
@@ -796,10 +797,7 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  if (borderColor_.isValid())
-    return borderColor_.interpColor(plot_, i, n);
-  else
-    return QColor(0,0,0);
+  return borderColor_.interpColor(plot_, i, n);
 }
 
 QSizeF

@@ -652,17 +652,15 @@ class BBox {
     return bbox;
   }
 
-#if 0
   double area() const {
     if (! set_) return 0.0;
 
-    Vector diag = Vector(pmin_, pmax_);
-
-    return fabs(diag.getX()*diag.getY());
+    return getWidth()*getHeight();
   }
-#endif
 
   double perimeter() const {
+    if (! set_) return 0.0;
+
     return 2*getWidth() + 2*getHeight();
   }
 

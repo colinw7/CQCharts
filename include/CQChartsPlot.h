@@ -255,6 +255,8 @@ class CQChartsPlot : public QObject {
 
   using PlotObjs = std::vector<CQChartsPlotObj*>;
 
+  using ModelIndices = std::vector<QModelIndex>;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -854,6 +856,9 @@ class CQChartsPlot : public QObject {
 
   CQBaseModel::Type columnValueType(QAbstractItemModel *model, int column) const;
 
+  bool getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
+                          QStringList &nameStrs, ModelIndices &nameInds);
+
   //---
 
   // get/set/reset id hidden
@@ -899,7 +904,8 @@ class CQChartsPlot : public QObject {
   void objPressed(CQChartsPlotObj *);
 
  protected:
-  using PlotObjSet = std::set<CQChartsPlotObj*>;
+  using PlotObjSet     = std::set<CQChartsPlotObj*>;
+  using SizePlotObjSet = std::map<double,PlotObjSet>;
 
  protected:
   void objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
@@ -981,6 +987,7 @@ class CQChartsPlot : public QObject {
   PlotObjs                  plotObjs_;
   int                       insidePlotInd_    { 0 };
   PlotObjSet                insidePlotObjs_;
+  SizePlotObjSet            sizeInsidePlotObjs_;
   CQChartsPlotObjTree*      plotObjTree_      { nullptr };
   MouseData                 mouseData_;
   AnimateData               animateData_;
@@ -989,6 +996,58 @@ class CQChartsPlot : public QObject {
   IndexColumnRows           selIndexColumnRows_;
   QItemSelection            itemSelection_;
   CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };
+};
+
+//------
+
+class CQChartsHierPlot : public CQChartsPlot {
+  Q_OBJECT
+
+  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(QString nameColumns  READ nameColumnsStr WRITE setNameColumnsStr)
+  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(int     colorColumn  READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
+
+ public:
+  CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
+
+ ~CQChartsHierPlot();
+
+  //---
+
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i);
+
+  const Columns &nameColumns() const { return nameColumns_; }
+  void setNameColumns(const Columns &nameColumns);
+
+  QString nameColumnsStr() const;
+  bool setNameColumnsStr(const QString &s);
+
+  int numNameColumns() const { return nameColumns_.size(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i);
+
+  int colorColumn() const { return colorColumn_; }
+  void setColorColumn(int i);
+
+  //---
+
+  const QString &separator() const { return separator_; }
+  void setSeparator(const QString &s) { separator_ = s; }
+
+  //---
+
+  virtual void updateHierColumns() = 0;
+
+ protected:
+  int     nameColumn_  { 0 };   // name column
+  Columns nameColumns_;         // multiple name columns
+  int     valueColumn_ { -1 };  // value column
+  int     colorColumn_ { -1 };  // color column
+  QString separator_   { "/" }; // hierarchical name separator
 };
 
 #endif

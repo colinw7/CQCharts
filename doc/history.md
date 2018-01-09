@@ -240,3 +240,9 @@
  + Add cycle back (Shift Tab)
  + Add push/pop and multiple root support to sunburst plot
  + Remove click zoom - always use push/pop
+ + Add Hier Plot base type with support for multiple name columns
+## 1/8/2018
+ + Handle zero/negative size and sizes in hierarchical plots
+ + Handle sizes on hierarchical nodes in hierarchical plots
+ + Fix bad colorValueSet range color
+ + Order inside objects by area

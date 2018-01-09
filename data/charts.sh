@@ -60,6 +60,14 @@ CQChartsTest -tsv coffee.tsv -first_line_header \
  -type hierbubble -columns "name=0,color=1" \
  -plot_title "coffee characteristics"
 
+CQChartsTest -csv hier_order.csv -comment_header \
+ -type hierbubble -columns "name=0,value=1" \
+ -plot_title "hierarchical bubble"
+
+CQChartsTest -csv book_revenue.csv -first_line_header \
+ -type hierbubble -columns "names=0 1 2,value=3" \
+ -plot_title "book revenue"
+
 # Chord Plot
 
 CQChartsTest \
@@ -203,6 +211,9 @@ CQChartsTest -tsv coffee.tsv -first_line_header \
  -type sunburst -columns "name=0,color=1" \
  -plot_title "coffee characteristics" \
  -properties "multiRoot=1"
+CQChartsTest -csv book_revenue.csv -first_line_header \
+ -type sunburst -columns "names=0 1 2,value=3" \
+ -plot_title "book revenue"
 
 # TreeMap Plot
 
@@ -215,6 +226,10 @@ CQChartsTest -csv flare.csv \
 CQChartsTest -tsv coffee.tsv -first_line_header \
  -type treemap -columns "name=0,color=1" \
  -plot_title "coffee characteristics"
+
+CQChartsTest -csv hier_order.csv -comment_header \
+ -type treemap -columns "name=0,value=1" \
+ -plot_title "tree map"
 
 # XY Plot
 

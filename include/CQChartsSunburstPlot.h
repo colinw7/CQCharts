@@ -81,6 +81,11 @@ class CQChartsSunburstNode {
   const CQChartsPaletteColor &color() const { return color_; }
   void setColor(const CQChartsPaletteColor &v) { color_ = v; }
 
+  bool isFiller() const { return filler_; }
+  void setFiller(bool b) { filler_ = b; }
+
+  virtual double hierSize() const { return size(); }
+
   virtual void setPosition(double r, double a, double dr, double da);
 
   void unplace() { placed_ = false; }
@@ -107,7 +112,7 @@ class CQChartsSunburstNode {
   CQChartsSunburstHierNode* parent_  { nullptr };
   uint                      id_      { 0 };
   QString                   name_;
-  double                    size_    { 1.0 };
+  double                    size_    { 0.0 };
   QModelIndex               ind_;
   double                    r_       { 0.0 };
   double                    a_       { 0.0 };
@@ -115,6 +120,7 @@ class CQChartsSunburstNode {
   double                    da_      { 0.0 };
   int                       colorId_ { -1 };
   CQChartsPaletteColor      color_   { };
+  bool                      filler_  { false };
   bool                      placed_  { false };
   CQChartsSunburstNodeObj*  obj_     { nullptr };
 };
@@ -156,7 +162,7 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
  ~CQChartsSunburstHierNode();
 
-  double size() const;
+  double hierSize() const override;
 
   int depth() const;
 
@@ -181,6 +187,8 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
                     double dr, double a, double da, const Order &order, bool sort);
 
   void addNode(CQChartsSunburstNode *node);
+
+  void removeNode(CQChartsSunburstNode *node);
 
   QColor interpColor(CQChartsSunburstPlot *plot, int n) const override;
 
@@ -228,28 +236,27 @@ class CQChartsSunburstPlotType : public CQChartsPlotType {
 
 //---
 
-class CQChartsSunburstPlot : public CQChartsPlot {
+class CQChartsSunburstPlot : public CQChartsHierPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(int     colorColumn  READ colorColumn    WRITE setColorColumn   )
-  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
-  Q_PROPERTY(double  innerRadius  READ innerRadius    WRITE setInnerRadius   )
-  Q_PROPERTY(double  outerRadius  READ outerRadius    WRITE setOuterRadius   )
-  Q_PROPERTY(double  startAngle   READ startAngle     WRITE setStartAngle    )
-  Q_PROPERTY(bool    multiRoot    READ isMultiRoot    WRITE setMultiRoot     )
-  Q_PROPERTY(bool    border       READ isBorder       WRITE setBorder        )
-  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
-  Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(double  borderWidth  READ borderWidth    WRITE setBorderWidth   )
-  Q_PROPERTY(bool    filled       READ isFilled       WRITE setFilled        )
-  Q_PROPERTY(QString fillColor    READ fillColorStr   WRITE setFillColorStr  )
-  Q_PROPERTY(double  fillAlpha    READ fillAlpha      WRITE setFillAlpha     )
-  Q_PROPERTY(Pattern fillPattern  READ fillPattern    WRITE setFillPattern   )
-  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont      )
-  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr  )
-  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast  )
+  Q_PROPERTY(double  innerRadius     READ innerRadius       WRITE setInnerRadius    )
+  Q_PROPERTY(double  outerRadius     READ outerRadius       WRITE setOuterRadius    )
+  Q_PROPERTY(double  startAngle      READ startAngle        WRITE setStartAngle     )
+  Q_PROPERTY(bool    multiRoot       READ isMultiRoot       WRITE setMultiRoot      )
+  Q_PROPERTY(bool    border          READ isBorder          WRITE setBorder         )
+  Q_PROPERTY(QString borderColor     READ borderColorStr    WRITE setBorderColorStr )
+  Q_PROPERTY(double  borderAlpha     READ borderAlpha       WRITE setBorderAlpha    )
+  Q_PROPERTY(double  borderWidth     READ borderWidth       WRITE setBorderWidth    )
+  Q_PROPERTY(bool    filled          READ isFilled          WRITE setFilled         )
+  Q_PROPERTY(QString fillColor       READ fillColorStr      WRITE setFillColorStr   )
+  Q_PROPERTY(double  fillAlpha       READ fillAlpha         WRITE setFillAlpha      )
+  Q_PROPERTY(Pattern fillPattern     READ fillPattern       WRITE setFillPattern    )
+  Q_PROPERTY(QFont   textFont        READ textFont          WRITE setTextFont       )
+  Q_PROPERTY(QString textColor       READ textColorStr      WRITE setTextColorStr   )
+  Q_PROPERTY(bool    textContrast    READ isTextContrast    WRITE setTextContrast   )
+  Q_PROPERTY(bool    colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(double  colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
+  Q_PROPERTY(double  colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
   Q_ENUMS(Pattern);
 
@@ -270,22 +277,6 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   CQChartsSunburstPlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsSunburstPlot();
-
-  //---
-
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
-
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i);
-
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i);
-
-  //---
-
-  const QString &separator() const { return separator_; }
-  void setSeparator(const QString &s) { separator_ = s; }
 
   //---
 
@@ -412,6 +403,8 @@ class CQChartsSunburstPlot : public CQChartsPlot {
   bool addMenuItems(QMenu *menu) override;
 
  private:
+  void updateHierColumns() override;
+
   void resetRoots();
 
   void initRoots();
@@ -428,6 +421,10 @@ class CQChartsSunburstPlot : public CQChartsPlot {
                     int depth=1);
 
   void loadFlat(CQChartsSunburstHierNode *hier);
+
+  void addExtraNodes(CQChartsSunburstHierNode *hier);
+
+  //---
 
   CQChartsSunburstRootNode *createRootNode(const QString &name="");
 
@@ -455,10 +452,6 @@ class CQChartsSunburstPlot : public CQChartsPlot {
  private:
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
-  int                       nameColumn_  { 0 };       // name column
-  int                       valueColumn_ { -1 };      // value column
-  int                       colorColumn_ { -1 };      // color column
-  QString                   separator_   { "/" };     // hierarchical name separator
   double                    innerRadius_ { 0.5 };     // inner radius
   double                    outerRadius_ { 1.0 };     // outer radius
   double                    startAngle_  { -90 };     // start angle

@@ -84,9 +84,9 @@ addProperties()
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 
   // colormap
-  addProperty("color", this, "colorMapEnabled", "mapEnabled" );
-  addProperty("color", this, "colorMapMin"    , "mapMin"     );
-  addProperty("color", this, "colorMapMax"    , "mapMax"     );
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 void
@@ -149,7 +149,7 @@ bool
 CQChartsPiePlot::
 colorSetColor(int i, OptColor &color)
 {
-  return colorSet_.icolor(i,color);
+  return colorSet_.icolor(i, color);
 }
 
 bool

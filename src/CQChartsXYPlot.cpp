@@ -75,6 +75,49 @@ CQChartsXYPlot::
   delete bivariateLineObj_;
 }
 
+//---
+
+void
+CQChartsXYPlot::
+setXColumn(int i)
+{
+  if (i != xColumn_) {
+    xColumn_ = i;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setYColumn(int i)
+{
+  if (i != yColumn_) {
+    yColumn_ = i;
+
+    yColumns_.clear();
+
+    if (yColumn_ >= 0)
+      yColumns_.push_back(yColumn_);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setYColumns(const Columns &yColumns)
+{
+  yColumns_ = yColumns;
+
+  if (! yColumns_.empty())
+    yColumn_ = yColumns_[0];
+  else
+    yColumn_ = -1;
+
+  updateRangeAndObjs();
+}
+
 QString
 CQChartsXYPlot::
 yColumnsStr() const
@@ -86,15 +129,30 @@ bool
 CQChartsXYPlot::
 setYColumnsStr(const QString &s)
 {
-  std::vector<int> yColumns;
+  if (s != yColumnsStr()) {
+    std::vector<int> yColumns;
 
-  if (! CQChartsUtil::fromString(s, yColumns))
-    return false;
+    if (! CQChartsUtil::fromString(s, yColumns))
+      return false;
 
-  setYColumns(yColumns);
+    setYColumns(yColumns);
+  }
 
   return true;
 }
+
+void
+CQChartsXYPlot::
+setNameColumn(int i)
+{
+  if (i != nameColumn_) {
+    nameColumn_ = i;
+
+    updateRangeAndObjs();
+  }
+}
+
+//---
 
 void
 CQChartsXYPlot::
