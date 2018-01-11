@@ -644,7 +644,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       else {
         double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
 
-        fc = plot_->palette()->getColor(v);
+        fc = plot_->interpPaletteColor(v);
       }
 
       fc.setAlphaF(plot_->fillAlpha());

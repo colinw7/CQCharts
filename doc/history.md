@@ -246,3 +246,11 @@
  + Handle sizes on hierarchical nodes in hierarchical plots
  + Fix bad colorValueSet range color
  + Order inside objects by area
+## 1/10/2018
+ + Improve tip text for hier plots
+ + Add more symbol display properties for scatter plot
+ + Fix data label alignment when box is horizontal
+ + Save current root as string in hier plots so model reload does not lose state
+ + Improve check for integer/real columns
+ + Add theme class and allow reset to default theme
+ + Add theme palette to view settings

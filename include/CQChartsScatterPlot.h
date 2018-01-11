@@ -92,7 +92,13 @@ class CQChartsScatterPlot : public CQChartsPlot {
   Q_PROPERTY(int     symbolSizeColumn     READ symbolSizeColumn       WRITE setSymbolSizeColumn    )
   Q_PROPERTY(int     fontSizeColumn       READ fontSizeColumn         WRITE setFontSizeColumn      )
   Q_PROPERTY(int     colorColumn          READ colorColumn            WRITE setColorColumn         )
+  Q_PROPERTY(bool    symbolBorder         READ isSymbolBorder         WRITE setSymbolBorder        )
   Q_PROPERTY(QString symbolBorderColor    READ symbolBorderColorStr   WRITE setSymbolBorderColorStr)
+  Q_PROPERTY(double  symbolBorderAlpha    READ symbolBorderAlpha      WRITE setSymbolBorderAlpha   )
+  Q_PROPERTY(double  symbolBorderWidth    READ symbolBorderWidth      WRITE setSymbolBorderWidth   )
+  Q_PROPERTY(bool    symbolFilled         READ isSymbolFilled         WRITE setSymbolFilled        )
+  Q_PROPERTY(QString symbolFillColor      READ symbolFillColorStr     WRITE setSymbolFillColorStr  )
+  Q_PROPERTY(double  symbolFillAlpha      READ symbolFillAlpha        WRITE setSymbolFillAlpha     )
   Q_PROPERTY(double  symbolSize           READ symbolSize             WRITE setSymbolSize          )
   Q_PROPERTY(bool    symbolSizeMapEnabled READ isSymbolSizeMapEnabled WRITE setSymbolSizeMapEnabled)
   Q_PROPERTY(double  symbolSizeMapMin     READ symbolSizeMapMin       WRITE setSymbolSizeMapMin    )
@@ -151,11 +157,36 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
+  bool isSymbolBorder() const { return symbolBorder_; }
+  void setSymbolBorder(bool b) { symbolBorder_ = b; update(); }
+
   QString symbolBorderColorStr() const { return symbolBorderColor_.colorStr(); }
   void setSymbolBorderColorStr(const QString &s) { symbolBorderColor_.setColorStr(s); update(); }
 
   QColor interpSymbolBorderColor(int i, int n) const {
     return symbolBorderColor_.interpColor(this, i, n); }
+
+  double symbolBorderAlpha() const { return symbolBorderAlpha_; }
+  void setSymbolBorderAlpha(double r) { symbolBorderAlpha_ = r; update(); }
+
+  double symbolBorderWidth() const { return symbolBorderWidth_; }
+  void setSymbolBorderWidth(double r) { symbolBorderWidth_ = r; update(); }
+
+  //---
+
+  bool isSymbolFilled() const { return symbolFilled_; }
+  void setSymbolFilled(bool b) { symbolFilled_ = b; update(); }
+
+  QString symbolFillColorStr() const { return symbolFillColor_.colorStr(); }
+  void setSymbolFillColorStr(const QString &s) { symbolFillColor_.setColorStr(s); update(); }
+
+  QColor interpSymbolFillColor(int i, int n) const {
+    return symbolFillColor_.interpColor(this, i, n); }
+
+  double symbolFillAlpha() const { return symbolFillAlpha_; }
+  void setSymbolFillAlpha(double r) { symbolFillAlpha_ = r; update(); }
+
+  //---
 
   double symbolSize() const { return symbolSize_; }
   void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
@@ -247,7 +278,14 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int                  symbolSizeColumn_  { -1 };
   int                  fontSizeColumn_    { -1 };
   int                  colorColumn_       { -1 };
+  bool                 symbolBorder_      { true };
   CQChartsPaletteColor symbolBorderColor_;
+  double               symbolBorderAlpha_ { 1.0 };
+  double               symbolBorderWidth_ { 0 };
+  bool                 symbolFilled_      { true };
+  CQChartsPaletteColor symbolFillColor_;
+  double               symbolFillAlpha_   { 1.0 };
+  double               symbolFillWidth_   { 0 };
   double               symbolSize_        { 4 };
   CQChartsValueSet     symbolSizeSet_;
   double               fontSize_          { 8 };

@@ -1,6 +1,7 @@
 #ifndef CQChartsView_H
 #define CQChartsView_H
 
+#include <CQChartsTheme.h>
 #include <CQChartsGeom.h>
 #include <CQChartsLineDash.h>
 #include <QFrame>
@@ -210,8 +211,15 @@ class CQChartsView : public QFrame {
 
   //---
 
-  CGradientPalette *gradientPalette() const { return palette_; }
-  CGradientPalette *themePalette   () const { return theme_  ; }
+  CQChartsTheme *theme() { return theme_; }
+  const CQChartsTheme *theme() const { return theme_; }
+
+  const QString &themeName() const { return theme()->name(); }
+
+  //CGradientPalette *gradientPalette() const { return theme_->palette(); }
+  //CGradientPalette *themePalette   () const { return theme_->theme  (); }
+
+  //---
 
   CQPropertyViewModel *propertyModel() const { return propertyModel_; }
 
@@ -374,14 +382,22 @@ class CQChartsView : public QFrame {
 
   void fitSlot();
 
-  void lightTheme1Slot();
-  void lightTheme2Slot();
+  //---
 
-  void darkTheme1Slot();
-  void darkTheme2Slot();
+  void defaultThemeSlot();
+  void light1ThemeSlot();
+  void light2ThemeSlot();
+  void dark1ThemeSlot();
+  void dark2ThemeSlot();
+
+  void themeSlot(const QString &name);
+
+  //---
 
   void printPNGSlot();
   void printSVGSlot();
+
+  //---
 
   void currentPlotSlot();
 
@@ -433,8 +449,7 @@ class CQChartsView : public QFrame {
 
   CQCharts*             charts_         { nullptr };
   CQChartsDisplayRange* displayRange_   { nullptr };
-  CGradientPalette*     palette_        { nullptr };
-  CGradientPalette*     theme_          { nullptr };
+  CQChartsTheme*        theme_          { nullptr };
   CQPropertyViewModel*  propertyModel_  { nullptr };
   QString               id_;
   QString               title_;

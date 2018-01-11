@@ -38,6 +38,9 @@ CQChartsTest -json flare.json \
  -type bubble -columns "name=0,value=1" \
  -plot_title "bubble"
 CQChartsTest -csv flare.csv \
+ -type bubble -columns "name=0,value=1" -column_type "1#real" \
+ -plot_title "bubble"
+CQChartsTest -csv flare.csv \
  -type bubble -columns "name=0,value=1" \
  -plot_title "bubble"
 CQChartsTest -csv pareto.csv -comment_header \
@@ -61,7 +64,7 @@ CQChartsTest -tsv coffee.tsv -first_line_header \
  -plot_title "coffee characteristics"
 
 CQChartsTest -csv hier_order.csv -comment_header \
- -type hierbubble -columns "name=0,value=1" \
+ -type hierbubble -columns "name=0,value=1,color=2" \
  -plot_title "hierarchical bubble"
 
 CQChartsTest -csv book_revenue.csv -first_line_header \
@@ -171,7 +174,7 @@ CQChartsTest \
 
 CQChartsTest \
  -tsv scatter.tsv -first_line_header \
- -type scatter -columns "name=4,x=0,y=1,size=2" \
+ -type scatter -columns "name=4,x=0,y=1,symbolSize=2" \
  -plot_title "scatter" \
  -properties "symbol.size=12" \
  -view_properties "selectedHighlight.fill.enabled=1"

@@ -9,10 +9,11 @@ class CQChartsPlot;
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool     visible  READ isVisible WRITE setVisible )
-  Q_PROPERTY(Position position READ position  WRITE setPosition)
-  Q_PROPERTY(bool     clip     READ isClip    WRITE setClip    )
-  Q_PROPERTY(double   margin   READ margin    WRITE setMargin  )
+  Q_PROPERTY(bool      visible   READ isVisible WRITE setVisible  )
+  Q_PROPERTY(Position  position  READ position  WRITE setPosition )
+  Q_PROPERTY(Direction direction READ direction WRITE setDirection)
+  Q_PROPERTY(bool      clip      READ isClip    WRITE setClip     )
+  Q_PROPERTY(double    margin    READ margin    WRITE setMargin   )
 
   Q_ENUMS(Position)
 
@@ -23,6 +24,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
     CENTER,
     BOTTOM_INSIDE,
     BOTTOM_OUTSIDE,
+  };
+
+  enum Direction {
+    HORIZONTAL,
+    VERTICAL
   };
 
  public:
@@ -36,6 +42,9 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; update(); }
+
+  const Direction &direction() const { return direction_; }
+  void setDirection(const Direction &v) { direction_ = v; }
 
   bool isClip() const { return clip_; }
   void setClip(bool b) { clip_ = b; update(); }
@@ -55,9 +64,10 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   Qt::Alignment textAlignment() const;
 
  private:
-  bool     visible_  { false };
-  Position position_ { Position::TOP_INSIDE };
-  bool     clip_     { false };
+  bool      visible_   { false };
+  Position  position_  { Position::TOP_INSIDE };
+  Direction direction_ { Direction::VERTICAL };
+  bool      clip_      { false };
 };
 
 #endif

@@ -76,21 +76,22 @@ class CQChartsViewExpander : public QFrame {
  private:
   using WidgetP = QPointer<QWidget>;
 
-  QWidget*  parent_      { nullptr };
-  WidgetP   w_;
-  Side      side_        { Side::RIGHT };
-  int       l_           { 0 };
-  int       b_           { 0 };
-  int       r_           { 0 };
-  int       t_           { 0 };
-  bool      expanded_    { false };
-  bool      pressed_     { false };
-  QPoint    pressPos_;
-  PressSide pressSide_   { PressSide::NONE };
-  QPoint    movePos_;
-  bool      detached_    { false };
-  int       border_      { 4 };
-  int       titleHeight_ { 12 };
+  QWidget*        parent_      { nullptr };
+  WidgetP         w_;
+  Side            side_        { Side::RIGHT };
+  int             l_           { 0 };
+  int             b_           { 0 };
+  int             r_           { 0 };
+  int             t_           { 0 };
+  Qt::WindowFlags windowFlags_ { 0}  ;
+  bool            expanded_    { false };
+  bool            pressed_     { false };
+  QPoint          pressPos_;
+  PressSide       pressSide_   { PressSide::NONE };
+  QPoint          movePos_;
+  bool            detached_    { false };
+  int             border_      { 4 };
+  int             titleHeight_ { 12 };
 };
 
 #endif

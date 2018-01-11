@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <QPainter>
 
@@ -49,6 +50,7 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   fontSizeSet_.setMapMax(64);
 
   symbolBorderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  symbolFillColor_   = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE);
 
   addAxes();
 
@@ -70,11 +72,19 @@ addProperties()
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
   addProperty("columns", this, "colorColumn"     , "color"     );
 
-  addProperty("symbol", this, "symbolBorderColor"   , "borderColor");
-  addProperty("symbol", this, "symbolSize"          , "size"       );
-  addProperty("symbol", this, "symbolSizeMapEnabled", "mapEnabled" );
-  addProperty("symbol", this, "symbolSizeMapMin"    , "mapMin"     );
-  addProperty("symbol", this, "symbolSizeMapMax"    , "mapMax"     );
+  addProperty("symbol/stroke", this, "symbolBorder"     , "visible");
+  addProperty("symbol/stroke", this, "symbolBorderColor", "color"  );
+  addProperty("symbol/stroke", this, "symbolBorderAlpha", "alpha"  );
+  addProperty("symbol/stroke", this, "symbolBorderWidth", "width"  );
+
+  addProperty("symbol/fill", this, "symbolFilled"   , "visible");
+  addProperty("symbol/fill", this, "symbolFillColor", "color"  );
+  addProperty("symbol/fill", this, "symbolFillAlpha", "alpha"  );
+
+  addProperty("symbol", this, "symbolSize"          , "size"      );
+  addProperty("symbol", this, "symbolSizeMapEnabled", "mapEnabled");
+  addProperty("symbol", this, "symbolSizeMapMin"    , "mapMin"    );
+  addProperty("symbol", this, "symbolSizeMapMax"    , "mapMax"    );
 
   addProperty("font", this, "fontSize"          , "font"      );
   addProperty("font", this, "fontSizeMapEnabled", "mapEnabled");
@@ -238,6 +248,8 @@ initFontSizeSet()
   }
 }
 
+//------
+
 void
 CQChartsScatterPlot::
 initColorSet()
@@ -277,6 +289,10 @@ CQChartsScatterPlot::
 updateObjs()
 {
   nameValues_.clear();
+
+  symbolSizeSet_.clear();
+  fontSizeSet_  .clear();
+  colorSet_     .clear();
 
   CQChartsPlot::updateObjs();
 }
@@ -566,12 +582,12 @@ QString
 CQChartsScatterPointObj::
 calcTipId() const
 {
-  QString id = "<b>" + name_ + "</b>\n";
+  CQChartsTableTip tableTip;
 
-  id += "<table>\n";
+  tableTip.addBoldLine(name_);
 
-  id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(plot_->xname()).arg(p_.x());
-  id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(plot_->yname()).arg(p_.y());
+  tableTip.addTableRow(plot_->xname(), p_.x());
+  tableTip.addTableRow(plot_->yname(), p_.y());
 
   auto p = plot_->nameValues().find(name_);
   assert(p != plot_->nameValues().end());
@@ -581,18 +597,15 @@ calcTipId() const
   const CQChartsScatterPlot::Point &valuePoint = values[iv_];
 
   if (valuePoint.symbolSizeStr != "")
-    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
-            arg(plot_->symbolSizeName()).arg(valuePoint.symbolSizeStr);
+    tableTip.addTableRow(plot_->symbolSizeName(), valuePoint.symbolSizeStr);
 
   if (valuePoint.fontSizeStr != "")
-    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
-            arg(plot_->fontSizeName()).arg(valuePoint.fontSizeStr);
+    tableTip.addTableRow(plot_->fontSizeName(), valuePoint.fontSizeStr);
 
   if (valuePoint.colorStr != "")
-    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").
-            arg(plot_->colorName()).arg(valuePoint.colorStr);
+    tableTip.addTableRow(plot_->colorName(), valuePoint.colorStr);
 
-  return id;
+  return tableTip.str();
 }
 
 bool
@@ -635,15 +648,41 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
   double s = symbolSize_; // TODO: ensure not a crazy number
 
-  QColor color;
+  //---
 
-  if (color_)
-    color = (*color_).interpColor(plot_, is_, ns_);
-  else
-    color = plot_->interpPaletteColor(is_, ns_);
+  // calc stroke and brush
+  QBrush brush;
 
-  QBrush brush(color);
-  QPen   pen  (plot_->interpSymbolBorderColor(0, 1));
+  if (plot_->isSymbolFilled()) {
+    QColor c;
+
+    if (color_)
+      c = (*color_).interpColor(plot_, is_, ns_);
+    else
+      c = plot_->interpSymbolFillColor(is_, ns_);
+
+    c.setAlphaF(plot_->symbolFillAlpha());
+
+    brush.setColor(c);
+    brush.setStyle(Qt::SolidPattern);
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
+
+  QPen pen;
+
+  if (plot_->isSymbolBorder()) {
+    QColor c = plot_->interpSymbolBorderColor(0, 1);
+
+    c.setAlphaF(plot_->symbolBorderAlpha());
+
+    pen.setColor (c);
+    pen.setWidthF(plot_->symbolBorderWidth());
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

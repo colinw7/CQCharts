@@ -24,6 +24,8 @@ class CQChartsViewSettings : public QFrame {
   CQGradientControlIFace *paletteControl() const { return paletteControl_; }
 
  private slots:
+  void gradientComboSlot(int ind);
+
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);
 

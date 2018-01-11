@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsFillObj.h>
+#include <CQChartsTip.h>
 #include <CGradientPalette.h>
 
 #include <QMenu>
@@ -78,17 +79,6 @@ CQChartsTreeMapPlot::
   delete textBoxObj_;
 
   delete root_;
-}
-
-//----
-
-void
-CQChartsTreeMapPlot::
-updateHierColumns()
-{
-  resetNodes();
-
-  updateRangeAndObjs();
 }
 
 //----
@@ -543,11 +533,39 @@ addProperties()
   addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
+//------
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapPlot::
+currentRoot() const
+{
+  CQChartsTreeMapHierNode *currentRoot = root_;
+
+  QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+
+  if (names.empty())
+    return currentRoot;
+
+  for (int i = 0; i < names.size(); ++i) {
+    CQChartsTreeMapHierNode *hier = childHierNode(currentRoot, names[i]);
+
+    if (! hier)
+      return currentRoot;
+
+    currentRoot = hier;
+  }
+
+  return currentRoot;
+}
+
 void
 CQChartsTreeMapPlot::
 setCurrentRoot(CQChartsTreeMapHierNode *hier, bool update)
 {
-  currentRoot_ = hier;
+  if (hier)
+    currentRootName_ = hier->hierName();
+  else
+    currentRootName_ = "";
 
   if (update)
     updateCurrentRoot();
@@ -623,6 +641,19 @@ colorSetColor(int i, OptColor &color)
   return colorSet_.icolor(i, color);
 }
 
+//------
+
+void
+CQChartsTreeMapPlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  resetNodes();
+
+  CQChartsPlot::updateObjs();
+}
+
 bool
 CQChartsTreeMapPlot::
 initObjs()
@@ -658,7 +689,7 @@ initObjs()
 
   //---
 
-  initNodeObjs(currentRoot_, nullptr, 0);
+  initNodeObjs(currentRoot(), nullptr, 0);
 
   //---
 
@@ -721,8 +752,6 @@ initNodes()
   root_->setDepth(0);
   root_->setHierInd(hierInd_++);
 
-  currentRoot_ = root_;
-
   //---
 
   if (isHierarchical())
@@ -749,7 +778,7 @@ replaceNodes()
   windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
   windowMarginWidth_  = pixelToWindowWidth (marginWidth());
 
-  placeNodes(currentRoot_);
+  placeNodes(currentRoot());
 }
 
 void
@@ -844,7 +873,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth)
       //---
 
       CQChartsTreeMapNode *node =
-        new CQChartsTreeMapNode(hier, name, size, nameInd1);
+        new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
 
       node->setDepth(depth);
 
@@ -922,7 +951,8 @@ loadFlat()
         CQChartsTreeMapNode *node = childNode(parent, nameStrs[j]);
 
         if (node) {
-          size = node->size();
+          nameInd1 = node->ind();
+          size     = node->size();
 
           parent->removeNode(node);
 
@@ -960,7 +990,7 @@ loadFlat()
 
       //---
 
-      node = new CQChartsTreeMapNode(parent, name, size, nameInd1);
+      node = new CQChartsTreeMapNode(this, parent, name, size, nameInd1);
 
       node->setDepth(depth);
 
@@ -984,7 +1014,14 @@ addExtraNodes(CQChartsTreeMapHierNode *hier)
 {
   if (hier->size() > 0) {
     CQChartsTreeMapNode *node =
-      new CQChartsTreeMapNode(hier, "", hier->size(), hier->ind());
+      new CQChartsTreeMapNode(this, hier, "", hier->size(), hier->ind());
+
+    int r = unnormalizeIndex(hier->ind()).row();
+
+    OptColor color;
+
+    if (colorSetColor(r, color))
+      node->setColor(*color);
 
     node->setDepth (hier->depth() + 1);
     node->setFiller(true);
@@ -1080,7 +1117,7 @@ pushSlot()
     CQChartsTreeMapHierObj *hierObj = dynamic_cast<CQChartsTreeMapHierObj *>(obj);
 
     if (hierObj) {
-      CQChartsTreeMapHierNode *hnode = hierObj->node();
+      CQChartsTreeMapHierNode *hnode = hierObj->hierNode();
 
       setCurrentRoot(hnode, /*update*/true);
 
@@ -1158,7 +1195,7 @@ CQChartsTreeMapHierObj::
 CQChartsTreeMapHierObj(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *hier,
                        CQChartsTreeMapHierObj *hierObj, const CQChartsGeom::BBox &rect,
                        int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
+ CQChartsTreeMapObj(plot, hier, hierObj, rect, i, n), hier_(hier)
 {
 }
 
@@ -1166,7 +1203,16 @@ QString
 CQChartsTreeMapHierObj::
 calcId() const
 {
-  return QString("%1:%2").arg(hier_->name()).arg(hier_->hierSize());
+  //return QString("%1:%2").arg(hier_->name()).arg(hier_->hierSize());
+  return CQChartsTreeMapObj::calcId();
+}
+
+QString
+CQChartsTreeMapHierObj::
+calcTipId() const
+{
+  //return QString("%1:%2").arg(hier_->hierName()).arg(hier_->hierSize());
+  return CQChartsTreeMapObj::calcTipId();
 }
 
 bool
@@ -1315,6 +1361,34 @@ calcId() const
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   return QString("%1:%2").arg(name).arg(node_->hierSize());
+}
+
+QString
+CQChartsTreeMapObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  QString name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+
+  //return QString("%1:%2").arg(name).arg(node_->hierSize());
+
+  tableTip.addTableRow("Name", name);
+  tableTip.addTableRow("Size", node_->hierSize());
+
+  if (plot_->colorColumn() >= 0) {
+    QAbstractItemModel *model = plot_->model();
+
+    int r = plot_->unnormalizeIndex(node_->ind()).row();
+
+    bool ok;
+
+    QString colorStr = CQChartsUtil::modelString(model, r, plot_->colorColumn(), ok);
+
+    tableTip.addTableRow("Color", colorStr);
+  }
+
+  return tableTip.str();
 }
 
 bool
@@ -1473,7 +1547,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 CQChartsTreeMapHierNode::
 CQChartsTreeMapHierNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
                         const QString &name, const QModelIndex &ind) :
- CQChartsTreeMapNode(parent, name, 0.0, ind), plot_(plot)
+ CQChartsTreeMapNode(plot, parent, name, 0.0, ind)
 {
   if (parent_)
     parent_->children_.push_back(this);
@@ -1508,10 +1582,10 @@ void
 CQChartsTreeMapHierNode::
 packNodes(double x, double y, double w, double h)
 {
-  double whh = plot_->windowHeaderHeight();
-  double wmw = plot_->windowMarginWidth();
+  double whh = plot()->windowHeaderHeight();
+  double wmw = plot()->windowMarginWidth();
 
-  double dh = (plot_->isTitles() ? (h > whh ? whh : 0.0) : 0.0);
+  double dh = (plot()->isTitles() ? (h > whh ? whh : 0.0) : 0.0);
   double m  = (w > wmw ? wmw : 0.0);
 
   // make single list of nodes to pack
@@ -1654,10 +1728,20 @@ interpColor(CQChartsTreeMapPlot *plot, int n) const
 //------
 
 CQChartsTreeMapNode::
-CQChartsTreeMapNode(CQChartsTreeMapHierNode *parent, const QString &name, double size,
-                    const QModelIndex &ind) :
- parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
+CQChartsTreeMapNode(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *parent,
+                    const QString &name, double size, const QModelIndex &ind) :
+ plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
 {
+}
+
+QString
+CQChartsTreeMapNode::
+hierName() const
+{
+  if (parent() && parent() != plot()->root())
+    return parent()->hierName() + "/" + name();
+  else
+    return name();
 }
 
 void

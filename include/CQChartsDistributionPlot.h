@@ -198,6 +198,11 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
+  bool isHorizontal() const { return horizontal_; }
+  void setHorizontal(bool b);
+
+  //---
+
   bool checkFilter(double value) const;
 
   int calcBucket(double v) const;
@@ -207,11 +212,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   void calcCategoryRange();
 
   void resetValues() { valueSet_.clear(); }
-
-  //---
-
-  bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updateRangeAndObjs(); }
 
   //---
 

@@ -60,12 +60,53 @@ inline double toReal(const QString &str, bool &ok) {
 
   double r = 0.0;
 
-  try {
-    r = std::stod(str.toStdString());
-  }
-  catch (...) {
+  //---
+
+  std::string sstr = str.toStdString();
+
+  const char *c_str = sstr.c_str();
+
+  int i = 0;
+
+  while (c_str[i] != 0 && ::isspace(c_str[i]))
+    ++i;
+
+  if (c_str[i] == '\0') {
     ok = false;
+    return r;
   }
+
+  const char *p;
+
+#ifdef ALLOW_NAN
+  if (COS::has_nan() && strncmp(&c_str[i], "NaN", 3) == 0)
+    p = &c_str[i + 3];
+  else {
+    errno = 0;
+
+    r = strtod(&c_str[i], (char **) &p);
+
+    if (errno == ERANGE) {
+      ok = false;
+      return r;
+    }
+  }
+#else
+  errno = 0;
+
+  r = strtod(&c_str[i], (char **) &p);
+
+  if (errno == ERANGE) {
+    ok = false;
+    return r;
+  }
+#endif
+
+  while (*p != 0 && ::isspace(*p))
+    ++p;
+
+  if (*p != '\0')
+    ok = false;
 
   return r;
 }
@@ -93,16 +134,50 @@ inline bool toReal(const QString &str, double &r) {
 inline long toInt(const QString &str, bool &ok) {
   ok = true;
 
-  long i = 0.0;
+  long integer = 0;
 
-  try {
-    i = std::stol(str.toStdString());
-  }
-  catch (...) {
+  std::string sstr = str.toStdString();
+
+  const char *c_str = sstr.c_str();
+
+  int i = 0;
+
+  while (c_str[i] != 0 && ::isspace(c_str[i]))
+    ++i;
+
+  if (c_str[i] == '\0') {
     ok = false;
+    return integer;
   }
 
-  return i;
+  const char *p;
+
+  errno = 0;
+
+  integer = strtol(&c_str[i], (char **) &p, 10);
+
+  if (errno == ERANGE) {
+    ok = false;
+    return integer;
+  }
+
+  while (*p != 0 && ::isspace(*p))
+    ++p;
+
+  if (*p == '.') {
+    ++p;
+
+    while (*p == '0')
+      ++p;
+  }
+
+  if (*p != '\0') {
+    ok = false;
+
+    return integer;
+  }
+
+  return integer;
 }
 
 inline long toInt(const QVariant &var, bool &ok) {

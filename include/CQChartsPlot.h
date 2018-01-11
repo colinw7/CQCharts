@@ -24,6 +24,7 @@ class CQChartsPlot;
 class CQChartsAxis;
 class CQChartsKey;
 class CQChartsTitle;
+class CQChartsTheme;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
 class CQChartsBoxObj;
@@ -32,7 +33,6 @@ class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
 class QPainter;
 
-class CGradientPalette;
 class QSortFilterProxyModel;
 class QItemSelectionModel;
 class QRubberBand;
@@ -315,11 +315,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CGradientPalette *palette() const { return palette_; }
-  void setPalette(CGradientPalette *palette) { palette_ = palette; update(); }
-
-  CGradientPalette *theme() const { return theme_; }
-  void setTheme(CGradientPalette *theme) { theme_ = theme; update(); }
+  CQChartsTheme *theme() const { return theme_; }
+  void setTheme(CQChartsTheme *theme) { theme_ = theme; update(); }
 
   //---
 
@@ -960,8 +957,7 @@ class CQChartsPlot : public QObject {
   OptReal                   ymin_;
   OptReal                   xmax_;
   OptReal                   ymax_;
-  CGradientPalette*         palette_          { nullptr };
-  CGradientPalette*         theme_            { nullptr };
+  CQChartsTheme*            theme_            { nullptr };
   CQChartsBoxObj*           borderObj_        { nullptr };
   bool                      clip_             { true };
   CQChartsBoxObj*           dataBorderObj_    { nullptr };
@@ -1037,10 +1033,6 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
-
-  //---
-
-  virtual void updateHierColumns() = 0;
 
  protected:
   int     nameColumn_  { 0 };   // name column

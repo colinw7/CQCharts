@@ -16,6 +16,8 @@ CQChartsViewExpander(QWidget *parent, QWidget *w, const Side &side) :
 
   setAutoFillBackground(true);
 
+  windowFlags_ = this->windowFlags();
+
   updateGeometry();
 }
 
@@ -37,7 +39,9 @@ setExpanded(bool b)
   updateGeometry();
 
   if (expanded_)
-    raise();
+    w_->raise();
+
+  raise();
 }
 
 void
@@ -47,16 +51,16 @@ setDetached(bool b)
   detached_ = b;
 
   if (detached_) {
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint);
-
     setParent(nullptr);
+
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::X11BypassWindowManagerHint);
 
     w_->setParent(this);
   }
   else {
-    setWindowFlags(Qt::Window);
-
     setParent(parent_);
+
+    setWindowFlags(windowFlags_);
 
     w_->setParent(parent_);
   }
@@ -124,6 +128,8 @@ updateGeometry()
 
         move(0, w_->height() + t_);
       }
+
+      w_->raise();
     }
     else {
       if      (side_ == Side::RIGHT) {
@@ -144,6 +150,8 @@ updateGeometry()
       resize(width(), parent_->height());
     else
       resize(parent_->width(), height());
+
+    raise();
   }
   else {
     QFontMetrics fm(font());
@@ -159,6 +167,8 @@ updateGeometry()
   }
 
   update();
+
+  QFrame::updateGeometry();
 }
 
 void
@@ -266,8 +276,6 @@ mouseMoveEvent(QMouseEvent *me)
         else {
           w_->resize(w_->width() + dx, w_->height());
         }
-
-        w_->raise();
       }
       else {
         int dy = movePos_.y() - lastMovePos.y();
@@ -282,9 +290,9 @@ mouseMoveEvent(QMouseEvent *me)
         else {
           w_->resize(w_->width(), w_->height() + dy);
         }
-
-        w_->raise();
       }
+
+      w_->raise();
     }
     else {
       if      (pressSide_ == PressSide::NONE) {
@@ -342,12 +350,16 @@ mouseMoveEvent(QMouseEvent *me)
 
       if (handleRect.contains(me->pos())) {
         if (isVertical())
+          setCursor(Qt::SplitHCursor);
+        else
+          setCursor(Qt::SplitVCursor);
+      }
+      else {
+        if (isVertical())
           setCursor(Qt::SizeHorCursor);
         else
           setCursor(Qt::SizeVerCursor);
       }
-      else
-        setCursor(Qt::ArrowCursor);
     }
     else {
       PressSide pressSide = posToPressSide(me->pos());

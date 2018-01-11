@@ -152,6 +152,17 @@ colorSetColor(int i, OptColor &color)
   return colorSet_.icolor(i, color);
 }
 
+//------
+
+void
+CQChartsPiePlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  CQChartsPlot::updateObjs();
+}
+
 bool
 CQChartsPiePlot::
 initObjs()

@@ -10,6 +10,7 @@
 #include <QTabWidget>
 #include <QLineEdit>
 #include <QSplitter>
+#include <QLabel>
 #include <QVBoxLayout>
 
 CQChartsViewSettings::
@@ -54,21 +55,61 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   viewLayout->addWidget(filterEdit_);
 
-  propertyTree_ = new CQPropertyViewTree(this, window->view()->propertyModel());
+  propertyTree_ = new CQPropertyViewTree(this, window_->view()->propertyModel());
 
   viewLayout->addWidget(propertyTree_);
 
   tab_->addTab(viewFrame, "Properties");
 
+  //------
+
+  QFrame *themeFrame = new QFrame;
+
+  themeFrame->setObjectName("palette");
+
+  tab_->addTab(themeFrame, "Theme");
+
+  QVBoxLayout *paletteLayout = new QVBoxLayout(themeFrame);
+
   //---
+
+#if 0
+  QFrame *themeColorsFrame = new QFrame;
+
+  themeColorsFrame->setObjectName("themeColorsFrame");
+
+  QGridLayout *themeColorsLayout = new QGridLayout(themeColorsFrame);
+
+  QLabel    *selColorLabel = new QLabel("Selection");
+  QLineEdit *selColorEdit  = new QLineEdit;
+
+  themeColorsLayout->addWidget(selColorLabel, 0, 0);
+  themeColorsLayout->addWidget(selColorEdit , 0, 1);
+
+  paletteLayout->addWidget(themeColorsFrame);
+#endif
 
   QFrame *paletteFrame = new QFrame;
 
-  paletteFrame->setObjectName("palette");
+  paletteFrame->setObjectName("paletteFrame");
 
-  tab_->addTab(paletteFrame, "Palette");
+  QHBoxLayout *paletteFrameLayout = new QHBoxLayout(paletteFrame);
 
-  QVBoxLayout *paletteLayout = new QVBoxLayout(paletteFrame);
+  QLabel    *gradientLabel = new QLabel("Gradient");
+  QComboBox *gradientCombo = new QComboBox;
+
+  gradientCombo->addItem("Palette");
+  gradientCombo->addItem("Theme");
+
+  connect(gradientCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(gradientComboSlot(int)));
+
+  paletteFrameLayout->addWidget(gradientLabel);
+  paletteFrameLayout->addWidget(gradientCombo);
+  paletteFrameLayout->addStretch(1);
+
+  paletteLayout->addWidget(paletteFrame);
+
+  //---
 
   QSplitter *splitter = new QSplitter;
 
@@ -77,7 +118,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   paletteLayout->addWidget(splitter);
 
-  palettePlot_    = new CQGradientControlPlot(this, window->view()->gradientPalette());
+  palettePlot_    = new CQGradientControlPlot(this, window_->view()->theme()->palette());
   paletteControl_ = new CQGradientControlIFace(palettePlot_);
 
   splitter->addWidget(palettePlot_);
@@ -87,6 +128,18 @@ CQChartsViewSettings(CQChartsWindow *window) :
 CQChartsViewSettings::
 ~CQChartsViewSettings()
 {
+}
+
+void
+CQChartsViewSettings::
+gradientComboSlot(int ind)
+{
+  if (ind == 0)
+    palettePlot_->setGradientPalette(window_->view()->theme()->palette());
+  else
+    palettePlot_->setGradientPalette(window_->view()->theme()->theme());
+
+  paletteControl_->updateState();
 }
 
 void

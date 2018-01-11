@@ -1,12 +1,15 @@
-# node,size
-a/b1,10
-a/b1/c2,20
-a/b1/c3,30
-a/b2/c1,40
-a/b2/c2,50
-a/b2/c2/d1,10
-a/b2/c2/d2,30
-a/b2,50
-a,5
-zero,0
-bad,-1
+# node,size,owner
+a/b1,10,fred
+a/b1/c2,20,fred
+a/b1/c3,30,fred
+a/b2/c1,40,bill
+a/b2/c2,50,bill
+a/b2/c2/d1,10,bill
+a/b2/c2/d2,30,bill
+a/b2,50,harry
+a,5,harry
+zero,0,harry
+bad,-1,george
+d,20,george
+e/f,40,harry
+e/g,20,ian

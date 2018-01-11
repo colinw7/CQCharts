@@ -55,6 +55,8 @@ CQGradientControlPlot::
 setGradientPalette(CGradientPalette *palette)
 {
   palette_ = palette;
+
+  update();
 }
 
 void

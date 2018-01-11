@@ -498,6 +498,18 @@ annotationBBox() const
 
 //------
 
+void
+CQChartsDistributionPlot::
+setHorizontal(bool b)
+{
+  horizontal_ = b;
+
+  dataLabel_.setDirection(horizontal_ ?
+    CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
+
+  updateRangeAndObjs();
+}
+
 bool
 CQChartsDistributionPlot::
 checkFilter(double value) const

@@ -17,9 +17,13 @@ addProperties(const QString &path)
   plot_->addProperty(path, this, "visible" );
   plot_->addProperty(path, this, "position");
   plot_->addProperty(path, this, "clip"    );
-  plot_->addProperty(path, this, "angle"   );
-  plot_->addProperty(path, this, "font"    );
-  plot_->addProperty(path, this, "color"   );
+
+  QString textPath = path + "/text";
+
+  plot_->addProperty(textPath, this, "textAngle", "angle");
+  plot_->addProperty(textPath, this, "textFont" , "font" );
+  plot_->addProperty(textPath, this, "textColor", "color");
+  plot_->addProperty(textPath, this, "textAlpha", "alpha");
 
   QString boxPath = plot_->id() + "/" + path + "/box";
 
@@ -49,6 +53,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
   QRectF prect;
 
+  double xm = 2;
   double ym = 2;
 
   double b1 = CQChartsBoxObj::margin();
@@ -61,35 +66,78 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     double tw = fm.width(ystr);
 
-    double x = qrect.center().x();
-    double y = 0.0;
+    double x, y;
+
+    if (direction() == Direction::VERTICAL) {
+      x = qrect.center().x() - tw/2;
+      y = 0.0;
+    }
+    else {
+      x = 0.0;
+      y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
+    }
 
     if      (position() == Position::TOP_INSIDE) {
-      if (! plot_->isInvertY())
-        y = qrect.top   () + fm.ascent () + ym + b2;
-      else
-        y = qrect.bottom() - fm.descent() - ym - b2;
+      if (direction() == Direction::VERTICAL) {
+        if (! plot_->isInvertY())
+          y = qrect.top   () + fm.ascent () + ym + b2;
+        else
+          y = qrect.bottom() - fm.descent() - ym - b2;
+      }
+      else {
+        if (! plot_->isInvertX())
+          x = qrect.right() - tw - xm - b2;
+        else
+          x = qrect.left () + ym + b2;
+      }
     }
     else if (position() == Position::TOP_OUTSIDE) {
-      if (! plot_->isInvertY())
-        y = qrect.top   () - fm.descent() - ym - b2;
-      else
-        y = qrect.bottom() + fm.ascent () + ym + b2;
+      if (direction() == Direction::VERTICAL) {
+        if (! plot_->isInvertY())
+          y = qrect.top   () - fm.descent() - ym - b2;
+        else
+          y = qrect.bottom() + fm.ascent () + ym + b2;
+      }
+      else {
+        if (! plot_->isInvertX())
+          x = qrect.right() + xm + b2;
+        else
+          x = qrect.left () - tw - ym - b2;
+      }
     }
     else if (position() == Position::BOTTOM_INSIDE) {
-      if (! plot_->isInvertY())
-        y = qrect.bottom() - fm.descent() - ym - b2;
-      else
-        y = qrect.top   () + fm.ascent () + ym + b2;
+      if (direction() == Direction::VERTICAL) {
+        if (! plot_->isInvertY())
+          y = qrect.bottom() - fm.descent() - ym - b2;
+        else
+          y = qrect.top   () + fm.ascent () + ym + b2;
+      }
+      else {
+        if (! plot_->isInvertX())
+          x = qrect.left() + xm + b2;
+        else
+          x = qrect.right() - tw - ym - b2;
+      }
     }
     else if (position() == Position::BOTTOM_OUTSIDE) {
-      if (! plot_->isInvertY())
-        y = qrect.bottom() + fm.ascent () + ym + b2;
-      else
-        y = qrect.top   () - fm.descent() - ym - b2;
+      if (direction() == Direction::VERTICAL) {
+        if (! plot_->isInvertY())
+          y = qrect.bottom() + fm.ascent () + ym + b2;
+        else
+          y = qrect.top   () - fm.descent() - ym - b2;
+      }
+      else {
+        if (! plot_->isInvertX())
+          x = qrect.left() - tw - xm - b2;
+        else
+          x = qrect.right() + ym + b2;
+      }
     }
     else if (position() == Position::CENTER) {
-      y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
+      if (direction() == Direction::VERTICAL)
+        y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
+      else
+        x = qrect.center().x() - tw/2;
     }
 
     bool clipped = false;
@@ -107,18 +155,28 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
       }
     }
 
-    prect = QRectF(x - tw/2 - b1, y - fm.ascent() - b1, tw + 2*b1, fm.height() + 2*b1);
+    prect = QRectF(x - b1, y - fm.ascent() - b1, tw + 2*b1, fm.height() + 2*b1);
 
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      painter->setPen(interpTextColor(0, 1));
+      QColor tc = interpTextColor(0, 1);
 
-      if (ystr.length())
-        painter->drawText(QPointF(x - tw/2, y), ystr);
+      tc.setAlphaF(textAlpha());
+
+      painter->setPen(tc);
+
+      if (ystr.length()) {
+        if (direction() == Direction::VERTICAL)
+          painter->drawText(QPointF(x, y), ystr);
+        else
+          painter->drawText(QPointF(x, y), ystr);
+       }
     }
   }
   else {
+    // TODO: handle horizontal and angle
+
     double x = qrect.center().x();
     double y = 0.0;
 
@@ -140,7 +198,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
     CQChartsRotatedText::bboxData(x, y, ystr, painter->font(), textAngle(), b1,
                                   prect, points, align, /*alignBBox*/ true);
 
-    painter->setPen(interpTextColor(0, 1));
+    //painter->setPen(interpTextColor(0, 1));
 
     QPolygonF poly;
 
@@ -149,7 +207,11 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     CQChartsBoxObj::draw(painter, poly);
 
-    painter->setPen(interpTextColor(0, 1));
+    QColor tc = interpTextColor(0, 1);
+
+    tc.setAlphaF(textAlpha());
+
+    painter->setPen(tc);
 
     if (ystr.length())
       CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,

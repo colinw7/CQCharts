@@ -20,6 +20,12 @@ High
  + Common code for hier plots
    + data import
    + name column handling 
+ + Set cursor on mode change
+
++ TOAST UI plots
+  + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)
+  + Check in key
+  + Scatter Plot Circle Size Key (Min, Max, Mean)
 
 Common Properties
  + Fill
@@ -154,6 +160,7 @@ Hier Bubble Plot
  + Pop to top
  + Pop top is off by one level
  + Better coloring algorithm ?
+ + How handle non-cumulative values (percentages)
 
 Parallel Plot
  + Parallel needs x axis labels
@@ -180,6 +187,7 @@ Tree map
 
 XY Plot
  + Use color set for color column to allow explict colors and colors from data
+ + Diverging
 
 Mouse Over
  + Customize
@@ -190,6 +198,11 @@ Key
  + Overlap with Axis/Title
  + Title
  + Max entries
+ + Check Box for hide/show
+
+Expander
+ + Better Title Bar
+ + Attach Icon
 
 Overlay
  + Share Key

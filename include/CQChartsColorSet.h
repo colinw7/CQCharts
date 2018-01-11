@@ -32,6 +32,10 @@ class CQChartsColorSet : public CQChartsValueSet {
 
         return true;
       }
+
+      // must have at least 2 unique string values
+      if (snum() <= 1)
+        return false;
     }
 
     double value = imap(i);

@@ -2968,7 +2968,7 @@ paletteCmd(const Args &args)
 
   //---
 
-  CGradientPalette *palette = view->gradientPalette();
+  CGradientPalette *palette = view->theme()->palette();
 
   if (colorTypeStr != "") {
     CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;
@@ -3247,7 +3247,7 @@ themeCmd(const Args &args)
 
   //---
 
-  CGradientPalette *theme = view->themePalette();
+  CGradientPalette *theme = view->theme()->theme();
 
   if (colorTypeStr != "") {
     CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;

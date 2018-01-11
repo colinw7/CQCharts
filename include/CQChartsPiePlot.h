@@ -215,6 +215,8 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   bool colorSetColor(int i, OptColor &color);
 
+  void updateObjs() override;
+
   bool initObjs() override;
 
   void addKeyItems(CQChartsKey *key) override;

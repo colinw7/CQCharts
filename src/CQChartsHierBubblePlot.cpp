@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsFillObj.h>
+#include <CQChartsTip.h>
 #include <CGradientPalette.h>
 
 #include <QMenu>
@@ -66,17 +67,6 @@ CQChartsHierBubblePlot::
   delete textBoxObj_;
 
   delete root_;
-}
-
-//----
-
-void
-CQChartsHierBubblePlot::
-updateHierColumns()
-{
-  resetNodes();
-
-  updateRangeAndObjs();
 }
 
 //----
@@ -316,11 +306,39 @@ addProperties()
   addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
+//------
+
+CQChartsHierBubbleHierNode *
+CQChartsHierBubblePlot::
+currentRoot() const
+{
+  CQChartsHierBubbleHierNode *currentRoot = root_;
+
+  QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
+
+  if (names.empty())
+    return currentRoot;
+
+  for (int i = 0; i < names.size(); ++i) {
+    CQChartsHierBubbleHierNode *hier = childHierNode(currentRoot, names[i]);
+
+    if (! hier)
+      return currentRoot;
+
+    currentRoot = hier;
+  }
+
+  return currentRoot;
+}
+
 void
 CQChartsHierBubblePlot::
 setCurrentRoot(CQChartsHierBubbleHierNode *hier, bool update)
 {
-  currentRoot_ = hier;
+  if (hier)
+    currentRootName_ = hier->hierName();
+  else
+    currentRootName_ = "";
 
   if (update)
     updateCurrentRoot();
@@ -396,6 +414,19 @@ colorSetColor(int i, OptColor &color)
   return colorSet_.icolor(i, color);
 }
 
+//------
+
+void
+CQChartsHierBubblePlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  resetNodes();
+
+  CQChartsPlot::updateObjs();
+}
+
 bool
 CQChartsHierBubblePlot::
 initObjs()
@@ -431,7 +462,7 @@ initObjs()
 
   //---
 
-  initNodeObjs(currentRoot_, nullptr, 0);
+  initNodeObjs(currentRoot(), nullptr, 0);
 
   //---
 
@@ -498,8 +529,6 @@ initNodes()
   root_->setDepth(0);
   root_->setHierInd(hierInd_++);
 
-  currentRoot_ = root_;
-
   //---
 
   if (isHierarchical())
@@ -523,7 +552,7 @@ void
 CQChartsHierBubblePlot::
 replaceNodes()
 {
-  placeNodes(currentRoot_);
+  placeNodes(currentRoot());
 }
 
 void
@@ -673,7 +702,7 @@ loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int dep
       //---
 
       CQChartsHierBubbleNode *node =
-        new CQChartsHierBubbleNode(hier, name, size, nameInd1);
+        new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
 
       node->setDepth(depth);
 
@@ -751,7 +780,8 @@ loadFlat()
         CQChartsHierBubbleNode *node = childNode(parent, nameStrs[j]);
 
         if (node) {
-          size = node->size();
+          nameInd1 = node->ind();
+          size     = node->size();
 
           parent->removeNode(node);
 
@@ -789,7 +819,7 @@ loadFlat()
 
       //---
 
-      node = new CQChartsHierBubbleNode(parent, name, size, nameInd1);
+      node = new CQChartsHierBubbleNode(this, parent, name, size, nameInd1);
 
       node->setDepth(depth);
 
@@ -813,7 +843,14 @@ addExtraNodes(CQChartsHierBubbleHierNode *hier)
 {
   if (hier->size() > 0) {
     CQChartsHierBubbleNode *node =
-      new CQChartsHierBubbleNode(hier, "", hier->size(), hier->ind());
+      new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
+
+    int r = unnormalizeIndex(hier->ind()).row();
+
+    OptColor color;
+
+    if (colorSetColor(r, color))
+      node->setColor(*color);
 
     node->setDepth (hier->depth() + 1);
     node->setFiller(true);
@@ -909,7 +946,7 @@ pushSlot()
     CQChartsHierBubbleHierObj *hierObj = dynamic_cast<CQChartsHierBubbleHierObj *>(obj);
 
     if (hierObj) {
-      CQChartsHierBubbleHierNode *hnode = hierObj->node();
+      CQChartsHierBubbleHierNode *hnode = hierObj->hierNode();
 
       setCurrentRoot(hnode, /*update*/true);
 
@@ -980,7 +1017,7 @@ void
 CQChartsHierBubblePlot::
 drawForeground(QPainter *painter)
 {
-  drawBounds(painter, currentRoot_);
+  drawBounds(painter, currentRoot());
 }
 
 void
@@ -1027,7 +1064,7 @@ CQChartsHierBubbleHierObj::
 CQChartsHierBubbleHierObj(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *hier,
                           CQChartsHierBubbleHierObj *hierObj, const CQChartsGeom::BBox &rect,
                           int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), hier_(hier), hierObj_(hierObj), i_(i), n_(n)
+ CQChartsHierBubbleObj(plot, hier, hierObj, rect, i, n), hier_(hier)
 {
 }
 
@@ -1035,7 +1072,16 @@ QString
 CQChartsHierBubbleHierObj::
 calcId() const
 {
-  return QString("%1:%2").arg(hier_->name()).arg(hier_->hierSize());
+  //return QString("%1:%2").arg(hier_->name()).arg(hier_->hierSize());
+  return CQChartsHierBubbleObj::calcId();
+}
+
+QString
+CQChartsHierBubbleHierObj::
+calcTipId() const
+{
+  //return QString("%1:%2").arg(hier_->hierName()).arg(hier_->hierSize());
+  return CQChartsHierBubbleObj::calcTipId();
 }
 
 bool
@@ -1142,7 +1188,34 @@ calcId() const
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   return QString("%1:%2").arg(name).arg(node_->hierSize());
-//return QString("%1:%2:%3").arg(name).arg(node_->hierSize()).arg(node_->colorId());
+}
+
+QString
+CQChartsHierBubbleObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  QString name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+
+  //return QString("%1:%2").arg(name).arg(node_->hierSize());
+
+  tableTip.addTableRow("Name", name);
+  tableTip.addTableRow("Size", node_->hierSize());
+
+  if (plot_->colorColumn() >= 0) {
+    QAbstractItemModel *model = plot_->model();
+
+    int r = plot_->unnormalizeIndex(node_->ind()).row();
+
+    bool ok;
+
+    QString colorStr = CQChartsUtil::modelString(model, r, plot_->colorColumn(), ok);
+
+    tableTip.addTableRow("Color", colorStr);
+  }
+
+  return tableTip.str();
 }
 
 bool
@@ -1307,7 +1380,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 CQChartsHierBubbleHierNode::
 CQChartsHierBubbleHierNode(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *parent,
                            const QString &name, const QModelIndex &ind) :
- CQChartsHierBubbleNode(parent, name, 0.0, ind), plot_(plot)
+ CQChartsHierBubbleNode(plot, parent, name, 0.0, ind)
 {
   if (parent_)
     parent_->children_.push_back(this);
@@ -1456,9 +1529,9 @@ interpColor(CQChartsHierBubblePlot *plot, int n) const
 //------
 
 CQChartsHierBubbleNode::
-CQChartsHierBubbleNode(CQChartsHierBubbleHierNode *parent, const QString &name,
-                       double size, const QModelIndex &ind) :
- parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
+CQChartsHierBubbleNode(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *parent,
+                       const QString &name, double size, const QModelIndex &ind) :
+ plot_(plot), parent_(parent), id_(nextId()), name_(name), size_(size), ind_(ind)
 {
   initRadius();
 }
@@ -1473,6 +1546,16 @@ CQChartsHierBubbleNode::
 initRadius()
 {
   r_ = sqrt(hierSize()/(2*M_PI));
+}
+
+QString
+CQChartsHierBubbleNode::
+hierName() const
+{
+  if (parent() && parent() != plot()->root())
+    return parent()->hierName() + "/" + name();
+  else
+    return name();
 }
 
 void

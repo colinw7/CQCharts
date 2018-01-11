@@ -2685,7 +2685,7 @@ QColor
 CQChartsPlot::
 interpPaletteColor(double r, bool scale) const
 {
-  QColor c = palette()->getColor(r, scale);
+  QColor c = theme()->palette()->getColor(r, scale);
 
   return c;
 }
@@ -2695,8 +2695,8 @@ CQChartsPlot::
 groupPaletteColor(double r1, double r2, double dr) const
 {
   // r1 is parent color and r2 is child color
-  QColor c1 = palette()->getColor(r1 - dr/2.0);
-  QColor c2 = palette()->getColor(r1 + dr/2.0);
+  QColor c1 = theme()->palette()->getColor(r1 - dr/2.0);
+  QColor c2 = theme()->palette()->getColor(r1 + dr/2.0);
 
   return CQChartsUtil::blendColors(c1, c2, r2);
 }
@@ -2712,7 +2712,7 @@ QColor
 CQChartsPlot::
 interpThemeColor(double r) const
 {
-  QColor c = theme()->getColor(r, /*scale*/true);
+  QColor c = theme()->theme()->getColor(r, /*scale*/true);
 
   return c;
 }
@@ -3259,7 +3259,7 @@ setNameColumn(int i)
     if (nameColumn_ >= 0)
       nameColumns_.push_back(nameColumn_);
 
-    updateHierColumns();
+    updateRangeAndObjs();
   }
 }
 
@@ -3274,7 +3274,7 @@ setNameColumns(const Columns &nameColumns)
   else
     nameColumn_ = -1;
 
-  updateHierColumns();
+  updateRangeAndObjs();
 }
 
 QString
@@ -3307,7 +3307,7 @@ setValueColumn(int i)
   if (i != valueColumn_) {
     valueColumn_ = i;
 
-    updateHierColumns();
+    updateRangeAndObjs();
   }
 }
 
@@ -3318,6 +3318,6 @@ setColorColumn(int i)
   if (i != colorColumn_) {
     colorColumn_ = i;
 
-    updateHierColumns();
+    updateRangeAndObjs();
   }
 }

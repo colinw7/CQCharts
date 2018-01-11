@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTip.h>
 #include <CQCharts.h>
 #include <CQChartsDisplayRange.h>
 #include <QPainter>
@@ -467,11 +468,9 @@ calcTipId() const
 
   QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
 
-  QString id;
+  CQChartsTableTip tableTip;
 
-  id += "<b>" + xname + "</b>\n";
-
-  id += "<table>\n";
+  tableTip.addBoldLine(xname);
 
   int nl = poly_.count();
 
@@ -482,12 +481,10 @@ calcTipId() const
 
     QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
-    id += QString("<tr><td>%1</td><td>%2</td></tr>\n").arg(yname).arg(poly_[j].y());
+    tableTip.addTableRow(yname, poly_[j].y());
   }
 
-  id += "</table>\n";
-
-  return id;
+  return tableTip.str();
 }
 
 bool
@@ -638,17 +635,23 @@ QString
 CQChartsParallelPointObj::
 calcTipId() const
 {
+  CQChartsTableTip tableTip;
+
   QModelIndex xind = plot_->model()->index(iset_, plot_->xColumn());
 
   bool ok;
 
   QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
 
+  tableTip.addBoldLine(xname);
+
   int yColumn = plot_->getSetColumn(i_);
 
   QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
-  return QString("<b>%1</b>&nbsp;&nbsp;%2=%3").arg(xname).arg(yname).arg(y_);
+  tableTip.addTableRow(yname, y_);
+
+  return tableTip.str();
 }
 
 bool

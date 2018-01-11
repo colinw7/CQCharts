@@ -70,6 +70,7 @@ CQChartsPointObj.cpp \
 CQChartsAxis.cpp \
 CQChartsKey.cpp \
 CQChartsTitle.cpp \
+CQChartsTheme.cpp \
 \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
@@ -208,6 +209,7 @@ HEADERS += \
 ../include/CQChartsAxisObj.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
+../include/CQChartsTheme.h \
 \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \

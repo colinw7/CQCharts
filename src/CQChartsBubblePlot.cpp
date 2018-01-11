@@ -74,8 +74,6 @@ setNameColumn(int i)
   if (i != nameColumn_) {
     nameColumn_ = i;
 
-    resetNodes();
-
     updateRangeAndObjs();
   }
 }
@@ -87,8 +85,6 @@ setValueColumn(int i)
   if (i != valueColumn_) {
     valueColumn_ = i;
 
-    resetNodes();
-
     updateRangeAndObjs();
   }
 }
@@ -99,8 +95,6 @@ setColorColumn(int i)
 {
   if (i != colorColumn_) {
     colorColumn_ = i;
-
-    resetNodes();
 
     updateRangeAndObjs();
   }
@@ -401,6 +395,19 @@ colorSetColor(int i, OptColor &color)
   return colorSet_.icolor(i, color);
 }
 
+//------
+
+void
+CQChartsBubblePlot::
+updateObjs()
+{
+  colorSet_.clear();
+
+  resetNodes();
+
+  CQChartsPlot::updateObjs();
+}
+
 bool
 CQChartsBubblePlot::
 initObjs()
@@ -476,6 +483,10 @@ void
 CQChartsBubblePlot::
 initNodes()
 {
+  pack_.reset();
+
+  //---
+
   loadChildren();
 
   //---

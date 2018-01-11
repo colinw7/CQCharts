@@ -37,8 +37,6 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  palette_       = new CGradientPalette;
-  theme_         = new CGradientPalette;
   propertyModel_ = new CQPropertyViewModel;
 
   //---
@@ -47,9 +45,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
-  //setPaletteColors1();
-
-  setLightThemeColors();
+  themeSlot("default");
 
   //---
 
@@ -98,8 +94,6 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
-  delete palette_;
-  delete theme_;
   delete propertyModel_;
 
   delete displayRange_;
@@ -213,8 +207,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
     plot->setId(QString("%1%2").arg(plot->typeName()).arg(id));
   }
 
-  plot->setPalette(gradientPalette());
-  plot->setTheme  (themePalette());
+  plot->setTheme(theme());
 
   plot->setBBox(bbox);
 
@@ -1333,30 +1326,29 @@ showMenu(const QPoint &p)
 
   QActionGroup *themeGroup = new QActionGroup(themeMenu);
 
-  QAction *lightTheme1Action = new QAction("Light 1", themeMenu);
-  QAction *lightTheme2Action = new QAction("Light 2", themeMenu);
-  QAction *darkTheme1Action  = new QAction("Dark 1" , themeMenu);
-  QAction *darkTheme2Action  = new QAction("Dark 2" , themeMenu);
+  auto addThemeAction =
+   [&](const QString &label, const char *slotName) {
+    QAction *action = new QAction(label, themeMenu);
 
-  lightTheme1Action->setCheckable(true);
-  lightTheme2Action->setCheckable(true);
-  darkTheme1Action ->setCheckable(true);
-  darkTheme2Action ->setCheckable(true);
+    action->setCheckable(true);
 
-  lightTheme1Action->setChecked(themeType_ == ThemeType::LIGHT1);
-  lightTheme2Action->setChecked(themeType_ == ThemeType::LIGHT2);
-  darkTheme1Action ->setChecked(themeType_ == ThemeType::DARK1 );
-  darkTheme2Action ->setChecked(themeType_ == ThemeType::DARK2 );
+    themeGroup->addAction(action);
 
-  themeGroup->addAction(lightTheme1Action);
-  themeGroup->addAction(lightTheme2Action);
-  themeGroup->addAction(darkTheme1Action);
-  themeGroup->addAction(darkTheme2Action);
+    connect(action, SIGNAL(triggered()), this, slotName);
+    return action;
+  };
 
-  connect(lightTheme1Action, SIGNAL(triggered()), this, SLOT(lightTheme1Slot()));
-  connect(lightTheme2Action, SIGNAL(triggered()), this, SLOT(lightTheme2Slot()));
-  connect(darkTheme1Action , SIGNAL(triggered()), this, SLOT(darkTheme1Slot()));
-  connect(darkTheme2Action , SIGNAL(triggered()), this, SLOT(darkTheme2Slot()));
+  QAction *defaultThemeAction = addThemeAction("Default", SLOT(defaultThemeSlot()));
+  QAction *light1ThemeAction  = addThemeAction("Light 1", SLOT(light1ThemeSlot()));
+  QAction *light2ThemeAction  = addThemeAction("Light 2", SLOT(light2ThemeSlot()));
+  QAction *dark1ThemeAction   = addThemeAction("Dark 1" , SLOT(dark1ThemeSlot()));
+  QAction *dark2ThemeAction   = addThemeAction("Dark 2" , SLOT(dark2ThemeSlot()));
+
+  defaultThemeAction->setChecked(themeName() == "default");
+  light1ThemeAction ->setChecked(themeName() == "light1" );
+  light2ThemeAction ->setChecked(themeName() == "light2" );
+  dark1ThemeAction  ->setChecked(themeName() == "dark1"  );
+  dark2ThemeAction  ->setChecked(themeName() == "dark2"  );
 
   themeMenu->addActions(themeGroup->actions());
 
@@ -1533,124 +1525,58 @@ fitSlot()
   }
 }
 
+//------
+
 void
 CQChartsView::
-lightTheme1Slot()
+defaultThemeSlot()
 {
-  themeType_ = ThemeType::LIGHT1;
+  themeSlot("default");
+}
 
-  setPaletteColors1();
+void
+CQChartsView::
+light1ThemeSlot()
+{
+  themeSlot("light1");
+}
 
-  setLightThemeColors();
+void
+CQChartsView::
+light2ThemeSlot()
+{
+  themeSlot("light2");
+}
+
+void
+CQChartsView::
+dark1ThemeSlot()
+{
+  themeSlot("dark1");
+}
+
+void
+CQChartsView::
+dark2ThemeSlot()
+{
+  themeSlot("dark2");
+}
+
+void
+CQChartsView::
+themeSlot(const QString &name)
+{
+  theme_ = CQChartsThemeMgrInst->getTheme(name);
+
+  setSelectedFillColor(theme_->selectColor());
+
+  for (auto &plotData : plotDatas_) {
+    CQChartsPlot *plot = plotData.plot;
+
+    plot->setTheme(theme_);
+  }
 
   update();
-}
-
-void
-CQChartsView::
-lightTheme2Slot()
-{
-  themeType_ = ThemeType::LIGHT2;
-
-  setPaletteColors2();
-
-  setLightThemeColors();
-
-  update();
-}
-
-void
-CQChartsView::
-darkTheme1Slot()
-{
-  themeType_ = ThemeType::DARK1;
-
-  setPaletteColors1();
-
-  setDarkThemeColors();
-
-  update();
-}
-
-void
-CQChartsView::
-darkTheme2Slot()
-{
-  themeType_ = ThemeType::DARK2;
-
-  setPaletteColors2();
-
-  setDarkThemeColors();
-
-  update();
-}
-
-void
-CQChartsView::
-setPaletteColors1()
-{
-  palette_->setRedModel  (1);
-  palette_->setGreenModel(7);
-  palette_->setBlueModel (4);
-
-  palette_->setBlueNegative(true);
-
-  palette_->setRedMax  (0.8);
-  palette_->setGreenMax(0.4);
-
-  palette_->setColorType(CGradientPalette::ColorType::DEFINED);
-
-  palette_->resetDefinedColors();
-
-  palette_->addDefinedColor(0.0, QColor("#6d78ad"));
-  palette_->addDefinedColor(1.0, QColor("#51cda0"));
-  palette_->addDefinedColor(2.0, QColor("#df7970"));
-}
-
-void
-CQChartsView::
-setPaletteColors2()
-{
-  palette_->setRedModel  (1);
-  palette_->setGreenModel(7);
-  palette_->setBlueModel (4);
-
-  palette_->setBlueNegative(true);
-
-  palette_->setRedMax  (0.8);
-  palette_->setGreenMax(0.4);
-
-  palette_->setColorType(CGradientPalette::ColorType::DEFINED);
-
-  palette_->resetDefinedColors();
-
-  palette_->addDefinedColor(0.0, QColor("#4d81bc"));
-  palette_->addDefinedColor(1.0, QColor("#c0504e"));
-  palette_->addDefinedColor(2.0, QColor("#9bbb58"));
-}
-
-void
-CQChartsView::
-setLightThemeColors()
-{
-  theme_->setColorType(CGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#ffffff"));
-  theme_->addDefinedColor(1.0, QColor("#000000"));
-}
-
-void
-CQChartsView::
-setDarkThemeColors()
-{
-  theme_->setColorType(CGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#222222"));
-  theme_->addDefinedColor(1.0, QColor("#dddddd"));
 }
 
 //------

@@ -289,7 +289,11 @@ class Point {
   double y { 0 };
 };
 
+}
+
 //-----
+
+namespace CQChartsGeom {
 
 // TODO: enforce min/max order always ? Same as BBox
 class Range {
@@ -404,7 +408,11 @@ class Range {
   double x1_ { 0 }, y1_ { 0 }, x2_ { 0 }, y2_ { 0 };
 };
 
+}
+
 //------
+
+namespace CQChartsGeom {
 
 class BBox {
  public:
@@ -918,10 +926,14 @@ class BBox {
  private:
   Point pmin_;
   Point pmax_;
-  bool     set_ { false };
+  bool  set_ { false };
 };
 
+}
+
 //------
+
+namespace CQChartsGeom {
 
 /* / a b tx \ */
 /* | c d ty | */
