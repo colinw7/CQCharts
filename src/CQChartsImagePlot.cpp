@@ -10,7 +10,6 @@
 CQChartsImagePlotType::
 CQChartsImagePlotType()
 {
-  addParameters();
 }
 
 void

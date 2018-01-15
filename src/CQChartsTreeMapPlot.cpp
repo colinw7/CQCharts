@@ -13,19 +13,15 @@
 CQChartsTreeMapPlotType::
 CQChartsTreeMapPlotType()
 {
-  addParameters();
 }
 
 void
 CQChartsTreeMapPlotType::
 addParameters()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn" , "", 0);
-  addColumnsParameter("names", "Names", "nameColumns", "optional");
-  addColumnParameter ("value", "Value", "valueColumn", "optional");
-  addColumnParameter ("color", "Color", "colorColumn", "optional");
+  CQChartsHierPlotType::addParameters();
 
-  addStringParameter("separator", "Separator", "separator", "optional", "/");
+  addColumnParameter("id", "Id", "idColumn", "optional");
 }
 
 CQChartsPlot *
@@ -55,8 +51,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 
   setTextContrast(true);
 
-  headerTextBoxObj_->setTextFontSize(10.0);
-  textBoxObj_      ->setTextFontSize( 8.0);
+  headerTextBoxObj_->setTextFontSize(12.0);
+  textBoxObj_      ->setTextFontSize(14.0);
 
   CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
@@ -494,12 +490,14 @@ addProperties()
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
+  addProperty("columns", this, "idColumn"   , "id"   );
 
   addProperty("", this, "separator"  );
   addProperty("", this, "marginWidth");
 
-  addProperty("header", this, "titles"      , "visible");
-  addProperty("header", this, "headerHeight", "height" );
+  addProperty("header", this, "titles"        , "visible"  );
+  addProperty("header", this, "titleMaxExtent", "maxExtent");
+  addProperty("header", this, "headerHeight"  , "height"   );
 
   addProperty("header/stroke", this, "headerBorder"     , "visible");
   addProperty("header/stroke", this, "headerBorderColor", "color"  );
@@ -689,7 +687,8 @@ initObjs()
 
   //---
 
-  initNodeObjs(currentRoot(), nullptr, 0);
+  if (currentRoot())
+    initNodeObjs(currentRoot(), nullptr, 0);
 
   //---
 
@@ -778,7 +777,8 @@ replaceNodes()
   windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
   windowMarginWidth_  = pixelToWindowWidth (marginWidth());
 
-  placeNodes(currentRoot());
+  if (currentRoot())
+    placeNodes(currentRoot());
 }
 
 void
@@ -1358,22 +1358,37 @@ QString
 CQChartsTreeMapObj::
 calcId() const
 {
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  if (node_->isFiller())
+    return hierObj_->calcId();
 
-  return QString("%1:%2").arg(name).arg(node_->hierSize());
+  if (plot_->idColumn() >= 0) {
+    QAbstractItemModel *model = plot_->model();
+
+    int r = plot_->unnormalizeIndex(node_->ind()).row();
+
+    bool ok;
+
+    QString idStr = CQChartsUtil::modelString(model, r, plot_->idColumn(), ok);
+
+    if (ok)
+      return idStr;
+  }
+
+  return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
 }
 
 QString
 CQChartsTreeMapObj::
 calcTipId() const
 {
-  CQChartsTableTip tableTip;
+  if (node_->isFiller())
+    return hierObj_->calcTipId();
 
-  QString name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+  CQChartsTableTip tableTip;
 
   //return QString("%1:%2").arg(name).arg(node_->hierSize());
 
-  tableTip.addTableRow("Name", name);
+  tableTip.addTableRow("Name", node_->hierName());
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn() >= 0) {
@@ -1585,7 +1600,11 @@ packNodes(double x, double y, double w, double h)
   double whh = plot()->windowHeaderHeight();
   double wmw = plot()->windowMarginWidth();
 
-  double dh = (plot()->isTitles() ? (h > whh ? whh : 0.0) : 0.0);
+  double maxExtent = CQChartsUtil::clamp(plot()->titleMaxExtent(), 0.0, 1.0);
+
+  bool showTitle = (plot()->isTitles() && h*maxExtent > whh);
+
+  double dh = (showTitle ? whh : 0.0);
   double m  = (w > wmw ? wmw : 0.0);
 
   // make single list of nodes to pack

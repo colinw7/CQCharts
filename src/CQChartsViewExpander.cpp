@@ -166,9 +166,9 @@ updateGeometry()
     resize(w_->width() + 2*border_, w_->height() + 2*border_ + titleHeight_);
   }
 
-  update();
-
   QFrame::updateGeometry();
+
+  update();
 }
 
 void

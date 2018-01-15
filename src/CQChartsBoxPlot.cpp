@@ -11,7 +11,6 @@
 CQChartsBoxPlotType::
 CQChartsBoxPlotType()
 {
-  addParameters();
 }
 
 void
@@ -430,130 +429,38 @@ updateWhiskers()
   //---
 
   // determine group data type
-  CQBaseModel::Type groupType = CQBaseModel::Type::NONE;
+  groupType_ = CQBaseModel::Type::NONE;
 
   if (groupColumn() >= 0)
-    groupType = columnValueType(model, groupColumn());
+    groupType_ = columnValueType(model, groupColumn());
 
   groupValueInd_.clear();
 
   // determine x data type
-  CQBaseModel::Type xType = columnValueType(model, xColumn());
+  xType_ = columnValueType(model, xColumn());
 
   xValueInd_.clear();
 
   //---
 
-  int nr = model->rowCount(QModelIndex());
-
-  for (int r = 0; r < nr; ++r) {
-    // get group
-    int groupId = -1;
-
-    if (groupColumn() >= 0) {
-      QModelIndex groupInd = model->index(r, groupColumn());
-
-      // get value set id
-      if      (groupType == CQBaseModel::Type::INTEGER) {
-        bool ok1;
-
-        int i = CQChartsUtil::modelInteger(model, groupInd, ok1);
-
-        groupId = groupValueInd_.calcId(i);
-      }
-      else if (groupType == CQBaseModel::Type::REAL) {
-        bool ok1;
-
-        double r = CQChartsUtil::modelReal(model, groupInd, ok1);
-
-        if (CQChartsUtil::isNaN(r))
-          continue;
-
-        groupId = groupValueInd_.calcId(r);
-      }
-      else {
-        bool ok1;
-
-        QString s = CQChartsUtil::modelString(model, groupInd, ok1);
-
-        groupId = groupValueInd_.calcId(s);
-      }
+  // process model data
+  class BoxPlotVisitor : public Visitor {
+   public:
+    BoxPlotVisitor(CQChartsBoxPlot *plot) :
+     plot_(plot) {
     }
 
-    //---
-
-    QModelIndex xind = model->index(r, xColumn());
-
-    QModelIndex xind1 = normalizeIndex(xind);
-
-    //---
-
-    // get value set id
-    int setId = -1;
-
-    if      (xType == CQBaseModel::Type::INTEGER) {
-      bool ok1;
-
-      int i = CQChartsUtil::modelInteger(model, xind, ok1);
-
-      setId = xValueInd_.calcId(i);
-    }
-    else if (xType == CQBaseModel::Type::REAL) {
-      bool ok1;
-
-      double r = CQChartsUtil::modelReal(model, xind, ok1);
-
-      if (CQChartsUtil::isNaN(r))
-        continue;
-
-      setId = xValueInd_.calcId(r);
-    }
-    else {
-      bool ok1;
-
-      QString s = CQChartsUtil::modelString(model, xind, ok1);
-
-      setId = xValueInd_.calcId(s);
+    void visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+      plot_->addWhiskerRow(model, ind, row);
     }
 
-    //---
+   private:
+    CQChartsBoxPlot *plot_ { nullptr };
+  };
 
-    // add value to set
-    QModelIndex yind = model->index(r, yColumn());
+  BoxPlotVisitor boxPlotVisitor(this);
 
-    bool ok2;
-
-    double value = CQChartsUtil::modelReal(model, yind, ok2);
-
-    if (! ok2) value = r;
-
-    if (CQChartsUtil::isNaN(value))
-      continue;
-
-    CQChartsBoxPlotValue wv(value, xind1);
-
-    auto p = groupWhiskers_.find(groupId);
-
-    if (p == groupWhiskers_.end()) {
-      SetWhiskerMap setWhiskerMap;
-
-      p = groupWhiskers_.insert(p, GroupSetWhiskerMap::value_type(groupId, SetWhiskerMap()));
-    }
-
-    SetWhiskerMap &setWhiskerMap = (*p).second;
-
-    auto p1 = setWhiskerMap.find(setId);
-
-    if (p1 == setWhiskerMap.end()) {
-      CQChartsBoxPlotWhisker whisker;
-
-      whisker.setRange(whiskerRange());
-
-      p1 = setWhiskerMap.insert(p1, SetWhiskerMap::value_type(setId, whisker));
-    }
-
-    (*p1).second.addValue(wv);
-  }
+  visitModel(boxPlotVisitor);
 
   //---
 
@@ -567,6 +474,118 @@ updateWhiskers()
     for (auto &setWhiskers : setWhiskerMap)
       setWhiskers.second.init();
   }
+}
+
+void
+CQChartsBoxPlot::
+addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
+{
+  // get group
+  int groupId = -1;
+
+  if (groupColumn() >= 0) {
+    QModelIndex groupInd = model->index(r, groupColumn(), parent);
+
+    // get value set id
+    if      (groupType_ == CQBaseModel::Type::INTEGER) {
+      bool ok1;
+
+      int i = CQChartsUtil::modelInteger(model, groupInd, ok1);
+
+      groupId = groupValueInd_.calcId(i);
+    }
+    else if (groupType_ == CQBaseModel::Type::REAL) {
+      bool ok1;
+
+      double r = CQChartsUtil::modelReal(model, groupInd, ok1);
+
+      if (CQChartsUtil::isNaN(r))
+        return;
+
+      groupId = groupValueInd_.calcId(r);
+    }
+    else {
+      bool ok1;
+
+      QString s = CQChartsUtil::modelString(model, groupInd, ok1);
+
+      groupId = groupValueInd_.calcId(s);
+    }
+  }
+
+  //---
+
+  QModelIndex xind = model->index(r, xColumn());
+
+  QModelIndex xind1 = normalizeIndex(xind);
+
+  //---
+
+  // get value set id
+  int setId = -1;
+
+  if      (xType_ == CQBaseModel::Type::INTEGER) {
+    bool ok1;
+
+    int i = CQChartsUtil::modelInteger(model, xind, ok1);
+
+    setId = xValueInd_.calcId(i);
+  }
+  else if (xType_ == CQBaseModel::Type::REAL) {
+    bool ok1;
+
+    double r = CQChartsUtil::modelReal(model, xind, ok1);
+
+    if (CQChartsUtil::isNaN(r))
+      return;
+
+    setId = xValueInd_.calcId(r);
+  }
+  else {
+    bool ok1;
+
+    QString s = CQChartsUtil::modelString(model, xind, ok1);
+
+    setId = xValueInd_.calcId(s);
+  }
+
+  //---
+
+  // add value to set
+  QModelIndex yind = model->index(r, yColumn());
+
+  bool ok2;
+
+  double value = CQChartsUtil::modelReal(model, yind, ok2);
+
+  if (! ok2) value = r;
+
+  if (CQChartsUtil::isNaN(value))
+    return;
+
+  CQChartsBoxPlotValue wv(value, xind1);
+
+  auto p = groupWhiskers_.find(groupId);
+
+  if (p == groupWhiskers_.end()) {
+    SetWhiskerMap setWhiskerMap;
+
+    p = groupWhiskers_.insert(p, GroupSetWhiskerMap::value_type(groupId, SetWhiskerMap()));
+  }
+
+  SetWhiskerMap &setWhiskerMap = (*p).second;
+
+  auto p1 = setWhiskerMap.find(setId);
+
+  if (p1 == setWhiskerMap.end()) {
+    CQChartsBoxPlotWhisker whisker;
+
+    whisker.setRange(whiskerRange());
+
+    p1 = setWhiskerMap.insert(p1, SetWhiskerMap::value_type(setId, whisker));
+  }
+
+  (*p1).second.addValue(wv);
 }
 
 CQChartsGeom::BBox

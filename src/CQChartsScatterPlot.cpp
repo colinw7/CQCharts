@@ -10,7 +10,6 @@
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
 {
-  addParameters();
 }
 
 void

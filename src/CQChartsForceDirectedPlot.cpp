@@ -10,7 +10,6 @@
 CQChartsForceDirectedPlotType::
 CQChartsForceDirectedPlotType()
 {
-  addParameters();
 }
 
 void

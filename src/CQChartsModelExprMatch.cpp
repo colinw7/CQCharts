@@ -318,8 +318,11 @@ bool
 CQChartsModelExprMatch::
 evaluateExpression(const QString &expr, int row, int column, CExprValuePtr &value, bool replace)
 {
-  rowValue_->setIntegerValue(row);
-  colValue_->setIntegerValue(column);
+  if (rowValue_.isValid())
+    rowValue_->setIntegerValue(row);
+
+  if (colValue_.isValid())
+    colValue_->setIntegerValue(column);
 
   //---
 
@@ -328,7 +331,7 @@ evaluateExpression(const QString &expr, int row, int column, CExprValuePtr &valu
   // TODO: optimize, get header variable names once (checked for valid chars)
   // and only add column value for columns which are found (possibly) in expression.
 
-  int nc = model_->columnCount();
+  int nc = (model_ ? model_->columnCount() : 0);
 
   for (int column = 0; column < nc; ++column) {
     CExprVariablePtr columnVar = columnVars_[column];

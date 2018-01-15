@@ -30,23 +30,23 @@ set -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUT
 #set -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
 #set -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
 #set -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
-set -view view1 -plot "${plot1}" -name "X Axis.majorIncrement"    -value 1
-set -view view1 -plot "${plot1}" -name "X Axis.label.text"        -value ""
-#set -view view1 -plot "${plot1}" -name "X Axis.label.color"       -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "X Axis.ticks.label.color" -value "theme:1"
-set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.visible" -value 1
-#set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.color"   -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "Y Axis.label.color"       -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "Y Axis.ticks.label.color" -value "theme:1"
-#set -view view1 -plot "${plot1}" -name Key.visible                -value 0
-set -view view1 -plot "${plot1}" -name Key.insideY                -value 0
-set -view view1 -plot "${plot1}" -name Key.location               -value bc
-set -view view1 -plot "${plot1}" -name Key.horizontal             -value 1
-set -view view1 -plot "${plot1}" -name Key.background.visible     -value 0
-set -view view1 -plot "${plot1}" -name Key.border.visible         -value 0
-#set -view view1 -plot "${plot1}" -name Key.text.color             -value "theme:1"
-set -view view1 -plot "${plot1}" -name Title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
-#set -view view1 -plot "${plot1}" -name Title.text.color           -value "theme:1"
+set -view view1 -plot "${plot1}" -name "xxis.majorIncrement"    -value 1
+set -view view1 -plot "${plot1}" -name "xxis.label.text"        -value ""
+#set -view view1 -plot "${plot1}" -name "xxis.label.color"       -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "xxis.ticks.label.color" -value "theme:1"
+set -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
+#set -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "theme:1"
+#set -view view1 -plot "${plot1}" -name "yaxis.ticks.label.color" -value "theme:1"
+#set -view view1 -plot "${plot1}" -name key.visible                -value 0
+set -view view1 -plot "${plot1}" -name key.insideY                -value 0
+set -view view1 -plot "${plot1}" -name key.location               -value bc
+set -view view1 -plot "${plot1}" -name key.horizontal             -value 1
+set -view view1 -plot "${plot1}" -name key.background.visible     -value 0
+set -view view1 -plot "${plot1}" -name key.border.visible         -value 0
+#set -view view1 -plot "${plot1}" -name key.text.color             -value "theme:1"
+set -view view1 -plot "${plot1}" -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
+#set -view view1 -plot "${plot1}" -name title.text.color           -value "theme:1"
 
 plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 

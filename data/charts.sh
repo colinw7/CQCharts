@@ -113,9 +113,9 @@ CQChartsTest \
  -type distribution -columns "value=0,color=1" \
  -plot_title "distribution chart" \
  -view_properties "selectedHighlight.fill.enabled=1" \
- -properties "X Axis.ticks.label.placement=BETWEEN" \
- -properties "Y Axis.ticks.label.placement=TOP_RIGHT" \
- -properties "Key.visible=0" \
+ -properties "xaxis.ticks.label.placement=BETWEEN" \
+ -properties "yaxis.ticks.label.placement=TOP_RIGHT" \
+ -properties "key.visible=0" \
  -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE"
   
 # Force Directed Plot
@@ -248,7 +248,7 @@ CQChartsTest \
  -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate" \
- -properties "Y Axis.includeZero=1"
+ -properties "yaxis.includeZero=1"
 
 CQChartsTest \
  -tsv multi_series.tsv -comment_header \
@@ -284,10 +284,10 @@ CQChartsTest \
  -type xy -columns "x=1,y=2 3 4" \
  -plot_title "Simple Plots" \
  -properties "points.visible=0,dataStyle.stroke.visible=1" \
- -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
- -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
- -properties "Key.location=tl,Key.flipped=1" \
- -properties "Title.text.font=+8"
+ -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
+ -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
+ -properties "key.location=tl,key.flipped=1" \
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 100 \
@@ -297,10 +297,10 @@ CQChartsTest \
  -type xy -columns "x=1,y=2 3" \
  -plot_title "Simple Plots" \
  -properties "points.visible=0,dataStyle.stroke.visible=1" \
- -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
- -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
- -properties "Key.flipped=1,Key.border.visible=0" \
- -properties "Title.text.font=+8"
+ -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
+ -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
+ -properties "key.flipped=1,key.border.visible=0" \
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 200 \
@@ -311,10 +311,10 @@ CQChartsTest \
  -xmin -3 -xmax 5 \
  -plot_title "Simple Plots" \
  -properties "points.visible=0,dataStyle.stroke.visible=1" \
- -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1" \
- -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1" \
- -properties "Key.location=tl,Key.flipped=1" \
- -properties "Title.text.font=+8"
+ -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
+ -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
+ -properties "key.location=tl,key.flipped=1" \
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 500 \
@@ -325,8 +325,8 @@ CQChartsTest \
  -plot_title "Simple Plots" \
  -xmin -16 -xmax 16 -ymin -5 -ymax 5 \
  -properties "points.visible=0" \
- -properties "Key.location=bc,Key.insideY=0"
- -properties "Title.text.font=+8"
+ -properties "key.location=bc,key.insideY=0"
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 800 \
@@ -335,8 +335,8 @@ CQChartsTest \
  -type xy -columns "x=1,y=2" \
  -plot_title "Simple Plots" \
  -properties "points.visible=0" \
- -properties "Key.location=bl,Key.insideY=0,Key.flipped=1"
- -properties "Title.text.font=+8"
+ -properties "key.location=bl,key.insideY=0,key.flipped=1"
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -data silver.dat \
@@ -367,7 +367,7 @@ CQChartsTest \
  -type xy -columns "x=0,y=1" -column_type "0#integer;1#integer" -fillunder \
  -xintegral -ymin 0 \
  -plot_title "Spline Area Chart" \
- -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
+ -properties "points.symbol=circle,points.fill.visible=1,yaxis.grid.line.major.visible=1" \
 -and \
  -csv console.csv -comment_header \
  -type pie -columns "label=2,data=0,keyLabel=1" -column_type "0#integer" \
@@ -378,7 +378,7 @@ CQChartsTest \
  -type xy -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
  -column_type "0#time:format=%Y%m%d,oformat=%b" \
  -plot_title "Line Chart" \
- -properties "points.symbol=circle,points.fill.visible=1,Y Axis.grid.line.visible=1" \
+ -properties "points.symbol=circle,points.fill.visible=1,yaxis.grid.line.major.visible=1" \
 -and \
  -csv country_wise_population.csv -comment_header \
  -type bar -columns "name=2,value=1" \
@@ -429,9 +429,9 @@ CQChartsTest -overlay \
  -bool "impulse=1" \
  -properties "points.visible=0,lines.visible=0" \
  -properties "dataStyle.stroke.visible=1" \
- -properties "X Axis.ticks.inside=1,X Axis.line.visible=0,X Axis.ticks.mirror=1,X Axis.ticks.minor.visible=0" \
- -properties "Y Axis.ticks.inside=1,Y Axis.line.visible=0,Y Axis.ticks.mirror=1,Y Axis.ticks.minor.visible=0" \
- -properties "Key.location=bl,Key.insideY=0,Key.horizontal=1" \
+ -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1,xaxis.ticks.minor.visible=0" \
+ -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1,yaxis.ticks.minor.visible=0" \
+ -properties "key.location=bl,key.insideY=0,key.horizontal=1" \
 -and \
  -data 2.dat -type xy \
  -properties "lines.visible=0" \
@@ -494,7 +494,7 @@ CQChartsTest -overlay \
  -process "+cos(x)**2=cos(@1)**2" \
  -type xy -columns "x=1,y=2" \
  -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min" \
- -properties "Y Axis.grid.line.visible=1" \
+ -properties "yaxis.grid.line.major.visible=1" \
 -and \
  -type xy -columns "x=1,y=3" \
  -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=min"

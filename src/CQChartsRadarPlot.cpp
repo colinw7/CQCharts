@@ -14,7 +14,6 @@
 CQChartsRadarPlotType::
 CQChartsRadarPlotType()
 {
-  addParameters();
 }
 
 void

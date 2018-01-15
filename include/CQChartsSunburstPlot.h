@@ -231,7 +231,7 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 
 //---
 
-class CQChartsSunburstPlotType : public CQChartsPlotType {
+class CQChartsSunburstPlotType : public CQChartsHierPlotType {
  public:
   CQChartsSunburstPlotType();
 

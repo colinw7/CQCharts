@@ -254,3 +254,10 @@
  + Improve check for integer/real columns
  + Add theme class and allow reset to default theme
  + Add theme palette to view settings
+## 1/14/2018
+ + Add Folded Model
+ + Support model visitor to better support hierarchical input data
+ + Call addParameters from plot type register
+ + Add simple filter support to CQChartsModelFilter (multi column wildcards)
+ + Tree map has control for header max area usage before hidden
+ + Test proc supports folded model and table/tree switching

@@ -11,7 +11,6 @@
 CQChartsHierScatterPlotType::
 CQChartsHierScatterPlotType()
 {
-  addParameters();
 }
 
 void

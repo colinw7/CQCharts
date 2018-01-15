@@ -121,6 +121,7 @@ CQGnuDataModel.cpp \
 CQSortModel.cpp \
 CQExprModel.cpp \
 CQExprModelExpr.cpp \
+CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
 \
@@ -265,6 +266,7 @@ CQGradientControlPlot.h \
 ../include/CQSortModel.h \
 ../include/CQExprModel.h \
 CQExprModelExpr.h \
+../include/CQFoldedModel.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
 \

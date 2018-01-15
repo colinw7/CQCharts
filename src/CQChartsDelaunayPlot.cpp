@@ -9,7 +9,6 @@
 CQChartsDelaunayPlotType::
 CQChartsDelaunayPlotType()
 {
-  addParameters();
 }
 
 void

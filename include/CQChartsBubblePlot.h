@@ -263,6 +263,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   bool initObjs() override;
 
+  void initNodeObjs();
+
   //---
 
   void handleResize() override;
@@ -275,6 +277,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
  private:
   void resetNodes();
+
+  void placeNodes();
 
   void initNodes();
 

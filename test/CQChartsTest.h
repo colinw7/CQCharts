@@ -21,11 +21,14 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
+
 class CQExprModel;
+class CQFoldedModel;
 class CQHistoryLineEdit;
 
 class CExpr;
 
+class QSortFilterProxyModel;
 class QItemSelectionModel;
 class QStackedWidget;
 class QLineEdit;
@@ -63,6 +66,7 @@ class CQChartsTest : public CQAppWindow {
     bool    firstLineHeader { false };
     int     numRows         { 100 };
     QString filter;
+    QString fold;
     QString sort;
   };
 
@@ -142,23 +146,26 @@ class CQChartsTest : public CQAppWindow {
     }
   };
 
+  using FoldedModels = std::vector<ModelP>;
+
   struct ViewData {
-    int                  tabInd      { -1 };
-    CQChartsTable*       table       { nullptr };
-    CQChartsTree*        tree        { nullptr };
-    QLineEdit*           filterEdit  { nullptr };
+    int                  tabInd       { -1 };
+    bool                 hierarchical { false };
+    QStackedWidget*      stack        { nullptr };
+    CQChartsTable*       table        { nullptr };
+    CQChartsTree*        tree         { nullptr };
+    QLineEdit*           filterEdit   { nullptr };
     ModelP               model;
-    QItemSelectionModel* sm          { nullptr };
-    QTextEdit*           detailsText { nullptr };
+    QItemSelectionModel* sm           { nullptr };
+    QTextEdit*           detailsText  { nullptr };
+    ModelP               foldProxyModel;
+    FoldedModels         foldedModels;
   };
 
  public:
   CQChartsTest();
 
  ~CQChartsTest();
-
-//const QString &id() const { return id_; }
-//void setId(const QString &s) { id_ = s; }
 
   CQChartsView *view() const;
 
@@ -210,6 +217,8 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *addView();
 
+  void updateModel(ViewData *viewData);
+
   void sortModel(const ViewData *viewData, const QString &args);
 
   void updateModelDetails(const ViewData *viewData);
@@ -226,6 +235,10 @@ class CQChartsTest : public CQAppWindow {
 
   void processExpression(ModelP &model, CQExprModel::Function function,
                          int column, const QString &expr);
+
+  void foldModel(ViewData *viewData, const QString &str);
+
+  void foldClear(ViewData *viewData);
 
   CQExprModel *getExprModel(ModelP &model) const;
 
@@ -274,8 +287,11 @@ class CQChartsTest : public CQAppWindow {
 
   void exprSlot();
 
+  void foldSlot();
+
   void tableColumnClicked(int column);
-  void typeOKSlot();
+
+  void typeSetSlot();
 
   void plotDialogCreatedSlot(CQChartsPlot *plot);
 
@@ -292,6 +308,7 @@ class CQChartsTest : public CQAppWindow {
 //Plots              plots_;
 //CQChartsPlot*      rootPlot_          { nullptr };
   CQCharts*          charts_            { nullptr };
+  QLineEdit*         foldEdit_          { nullptr };
   QLineEdit*         columnNumEdit_     { nullptr };
   QLineEdit*         columnNameEdit_    { nullptr };
   QLineEdit*         columnTypeEdit_    { nullptr };

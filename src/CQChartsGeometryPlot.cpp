@@ -12,7 +12,6 @@
 CQChartsGeometryPlotType::
 CQChartsGeometryPlotType()
 {
-  addParameters();
 }
 
 void

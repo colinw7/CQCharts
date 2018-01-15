@@ -11,7 +11,6 @@
 CQChartsBubblePlotType::
 CQChartsBubblePlotType()
 {
-  addParameters();
 }
 
 void
@@ -45,7 +44,7 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
 
   setTextContrast(true);
 
-  textBoxObj_->setTextFontSize(8.0);
+  textBoxObj_->setTextFontSize(12.0);
 
   CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
@@ -334,6 +333,8 @@ addProperties()
   addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
+//---
+
 void
 CQChartsBubblePlot::
 updateRange(bool apply)
@@ -444,6 +445,17 @@ initObjs()
 
   //---
 
+  initNodeObjs();
+
+  //---
+
+  return true;
+}
+
+void
+CQChartsBubblePlot::
+initNodeObjs()
+{
   int i = 0;
   int n = nodes_.size();
 
@@ -462,12 +474,7 @@ initObjs()
 
     ++i;
   }
-
-  //---
-
-  return true;
 }
-
 
 void
 CQChartsBubblePlot::
@@ -483,11 +490,18 @@ void
 CQChartsBubblePlot::
 initNodes()
 {
-  pack_.reset();
+  loadChildren();
 
   //---
 
-  loadChildren();
+  placeNodes();
+}
+
+void
+CQChartsBubblePlot::
+placeNodes()
+{
+  pack_.reset();
 
   //---
 
@@ -531,10 +545,6 @@ loadChildren(const QModelIndex &index)
 
   //---
 
-  //bool hierarchical = isHierarchical();
-
-  //---
-
   int nr = model->rowCount(index);
 
   for (int r = 0; r < nr; ++r) {
@@ -554,9 +564,9 @@ loadChildren(const QModelIndex &index)
       loadChildren(nameInd);
     }
     else {
-      double size = 1.0;
-
       QModelIndex valueInd = model->index(r, valueColumn(), index);
+
+      double size = 1.0;
 
       if (valueInd.isValid()) {
         bool ok2 = true;
@@ -566,6 +576,9 @@ loadChildren(const QModelIndex &index)
         else if (valueColumnType == CQBaseModel::Type::INTEGER)
           size = CQChartsUtil::modelInteger(model, valueInd, ok2);
         else
+          ok2 = false;
+
+        if (ok2 && size <= 0.0)
           ok2 = false;
 
         if (! ok2)

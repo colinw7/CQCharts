@@ -14,8 +14,12 @@ class CQChartsModelFilterData {
   enum class Type {
     EXPRESSION,
     REGEXP,
+    SIMPLE,
     SELECTED
   };
+
+ public:
+  using ColumnFilterMap = std::map<int,CQChartsRegExp>;
 
  public:
   CQChartsModelFilterData() { }
@@ -27,8 +31,12 @@ class CQChartsModelFilterData {
   void setFilter(const QString &filter) { filter_ = filter; }
 
   bool isExpr    () const { return type_ == Type::EXPRESSION; }
-  bool isRegExp  () const { return type_ == Type::REGEXP; }
-  bool isSelected() const { return type_ == Type::SELECTED; }
+  bool isRegExp  () const { return type_ == Type::REGEXP;     }
+  bool isSimple  () const { return type_ == Type::SIMPLE;     }
+  bool isSelected() const { return type_ == Type::SELECTED;   }
+
+  bool isInvert() const { return invert_; }
+  void setInvert(bool b) { invert_ = b; }
 
   const CQChartsRegExp &regexp() const { return regexp_; }
   void setRegExp(const CQChartsRegExp &regexp) { regexp_ = regexp; }
@@ -36,8 +44,8 @@ class CQChartsModelFilterData {
   const QModelIndexList &filterRows() const { return filterRows_; }
   void setFilterRows(const QModelIndexList &filterRows) { filterRows_ = filterRows; }
 
-  bool isInvert() const { return invert_; }
-  void setInvert(bool b) { invert_ = b; }
+  const ColumnFilterMap &columnFilterMap() const { return columnFilterMap_; }
+  void setColumnFilterMap(const ColumnFilterMap &v) { columnFilterMap_ = v; }
 
   bool isEmpty() const {
     if (! isSelected())
@@ -49,11 +57,10 @@ class CQChartsModelFilterData {
  private:
   Type            type_           { Type::EXPRESSION };
   QString         filter_;
-  bool            isExpr_         { true };
-  bool            filterSelected_ { false };
   bool            invert_         { false };
   CQChartsRegExp  regexp_;
   QModelIndexList filterRows_;
+  ColumnFilterMap columnFilterMap_;
 };
 
 //------
@@ -95,6 +102,8 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   void setExpressionFilter(const QString &filter);
 
   void setRegExpFilter(const QString &filter);
+
+  void setSimpleFilter(const QString &filter);
 
   void setSelectionFilter(bool invert);
 

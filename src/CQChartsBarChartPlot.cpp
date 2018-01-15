@@ -11,7 +11,6 @@
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
 {
-  addParameters();
 }
 
 void

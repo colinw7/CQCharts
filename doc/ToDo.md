@@ -3,8 +3,7 @@ High
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
  + Generic Filter support (plugin)
- + Allow disable theme for fixed color plot
- + Radial Coords
+ + Radial Coords/Plot
  + More annotation range support (bar chart, pie ...)
  + Compose BoxObj, FillObj, TextBoxObj together
  + Buffer texts and remove overlaps (per layer/type)
@@ -21,6 +20,13 @@ High
    + data import
    + name column handling 
  + Set cursor on mode change
+ + Id Column in all plots
+ + Interface language (Ceil)
+ + Consolidate binning algorithms (class/config)
+
+ + Allow table/tree floating inside view
+ + Edit mode to edit plot positions (illustrator code ?)
+ + Only move key, title, axes in edit mode ?
 
 + TOAST UI plots
   + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)
@@ -80,8 +86,10 @@ Misc
  + Custom editor for column (name or number)
 
 Theme
+ + Allow disable theme for fixed color plot
  + theme config file
  + more colors
+ + add fonts (other defaults)
  + cube helix max/min range
  + contrast color set
  + support discrete colors
@@ -174,6 +182,9 @@ Radar Plot
  + Add Key
  + Stacked
  + Percent of Total/Max
+
+Scatter
+ + Use FillObj for circles
 
 Sunburst
  + Flat coloring

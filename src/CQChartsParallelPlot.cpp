@@ -10,7 +10,6 @@
 CQChartsParallelPlotType::
 CQChartsParallelPlotType()
 {
-  addParameters();
 }
 
 void

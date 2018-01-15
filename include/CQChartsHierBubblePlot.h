@@ -216,7 +216,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 
 //---
 
-class CQChartsHierBubblePlotType : public CQChartsPlotType {
+class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
  public:
   CQChartsHierBubblePlotType();
 
@@ -445,7 +445,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
  private:
   CQChartsHierBubbleHierNode* root_            { nullptr }; // root node
   CQChartsHierBubbleHierNode* firstHier_       { nullptr }; // first hier node
-  QString                     currentRootName_;             // current root node
+  QString                     currentRootName_;             // current root name
   CQChartsTextBoxObj*         textBoxObj_      { nullptr }; // bubble fill/border/text object
   CQChartsGeom::Point         offset_          { 0, 0 };    // draw offset
   double                      scale_           { 1.0 };     // draw scale

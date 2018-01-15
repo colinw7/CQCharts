@@ -13,7 +13,7 @@ plot -type bar -columns "name=0,value=1" -ymax 150000
 
 view -view view1 -title "Popular Fast Food Chains"
 
-set -view view1 -plot "${plot1}" -name "Y Axis.grid.line.visible" -value 1
+set -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
 
 plot -type xy -columns "x=0,y=3" -ymin 0
 

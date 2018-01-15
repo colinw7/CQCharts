@@ -13,19 +13,13 @@
 CQChartsHierBubblePlotType::
 CQChartsHierBubblePlotType()
 {
-  addParameters();
 }
 
 void
 CQChartsHierBubblePlotType::
 addParameters()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn" , "", 0);
-  addColumnsParameter("names", "Names", "nameColumns", "optional");
-  addColumnParameter ("value", "Value", "valueColumn", "optional");
-  addColumnParameter ("color", "Color", "colorColumn", "optional");
-
-  addStringParameter("separator", "Separator", "separator", "optional", "/");
+  CQChartsHierPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -50,7 +44,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 
   setTextContrast(true);
 
-  textBoxObj_->setTextFontSize(8.0);
+  textBoxObj_->setTextFontSize(12.0);
 
   CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
@@ -278,14 +272,7 @@ void
 CQChartsHierBubblePlot::
 addProperties()
 {
-  CQChartsPlot::addProperties();
-
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "nameColumns", "names");
-  addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "colorColumn", "color");
-
-  addProperty("", this, "separator");
+  CQChartsHierPlot::addProperties();
 
   addProperty("stroke", this, "border"     , "visible");
   addProperty("stroke", this, "borderColor", "color"  );
@@ -352,6 +339,8 @@ updateCurrentRoot()
 
   updateObjs();
 }
+
+//---
 
 void
 CQChartsHierBubblePlot::
@@ -1048,14 +1037,6 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier)
   path.addEllipse(qrect);
 
   painter->drawPath(path);
-
-  //---
-
-#if 0
-  for (auto hierNode : hier->getChildren()) {
-    drawBounds(painter, hierNode);
-  }
-#endif
 }
 
 //------
@@ -1185,22 +1166,24 @@ QString
 CQChartsHierBubbleObj::
 calcId() const
 {
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+  if (node_->isFiller())
+    return hierObj_->calcId();
 
-  return QString("%1:%2").arg(name).arg(node_->hierSize());
+  return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
 }
 
 QString
 CQChartsHierBubbleObj::
 calcTipId() const
 {
-  CQChartsTableTip tableTip;
+  if (node_->isFiller())
+    return hierObj_->calcTipId();
 
-  QString name = (! node_->isFiller() ? node_->hierName() : node_->parent()->hierName());
+  CQChartsTableTip tableTip;
 
   //return QString("%1:%2").arg(name).arg(node_->hierSize());
 
-  tableTip.addTableRow("Name", name);
+  tableTip.addTableRow("Name", node_->hierName());
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn() >= 0) {
@@ -1261,12 +1244,6 @@ void
 CQChartsHierBubbleObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  //CQChartsHierBubbleHierNode *root = node_->rootNode(plot_->firstHier());
-
-//CQChartsHierBubbleHierNode *root = node_->parent();
-
-  //---
-
   double r = node_->radius();
 
   double px1, py1, px2, py2;

@@ -10,7 +10,6 @@
 CQChartsAdjacencyPlotType::
 CQChartsAdjacencyPlotType()
 {
-  addParameters();
 }
 
 void

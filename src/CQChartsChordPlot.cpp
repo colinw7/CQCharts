@@ -11,7 +11,6 @@
 CQChartsChordPlotType::
 CQChartsChordPlotType()
 {
-  addParameters();
 }
 
 void

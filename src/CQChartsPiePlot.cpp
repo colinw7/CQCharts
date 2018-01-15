@@ -8,7 +8,6 @@
 CQChartsPiePlotType::
 CQChartsPiePlotType()
 {
-  addParameters();
 }
 
 void

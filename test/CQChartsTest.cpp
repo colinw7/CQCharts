@@ -7,20 +7,22 @@
 #include <CQChartsJson.h>
 #include <CQChartsGnuData.h>
 #include <CQChartsExprData.h>
-#include <CQExprModel.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
-
 #include <CQChartsLoader.h>
 #include <CQChartsPlotDlg.h>
-#include <CGradientPalette.h>
+
+#include <CQExprModel.h>
+#include <CQFoldedModel.h>
 #include <CQSortModel.h>
-#include <CQStrParse.h>
+
+#include <CGradientPalette.h>
 #include <CQHistoryLineEdit.h>
+#include <CQStrParse.h>
 
 //#define CQ_APP_H 1
 
@@ -317,6 +319,12 @@ main(int argc, char **argv)
 
         if (i < argc)
           initData.inputData.filter = argv[i];
+      }
+      else if (arg == "fold") {
+        ++i;
+
+        if (i < argc)
+          initData.inputData.fold = argv[i];
       }
 
       // process data
@@ -799,13 +807,21 @@ CQChartsTest() :
 
   //---
 
-  QGroupBox *exprGroup = CQUtil::makeWidget<QGroupBox>("exprGroup");
+  QTabWidget *controlTab = new QTabWidget;
 
-  exprGroup->setTitle("Expression");
+  controlTab->setObjectName("controlTab");
 
-  layout->addWidget(exprGroup);
+  layout->addWidget(controlTab);
 
-  QHBoxLayout *exprGroupLayout = new QHBoxLayout(exprGroup);
+  //------
+
+  QFrame *expressionFrame = CQUtil::makeWidget<QFrame>("expressionFrame");
+
+  controlTab->addTab(expressionFrame, "Expression");
+
+  QVBoxLayout *expressionFrameLayout = new QVBoxLayout(expressionFrame);
+
+  QHBoxLayout *exprFrameLayout = new QHBoxLayout;
 
   exprEdit_ = CQUtil::makeWidget<CQHistoryLineEdit>("exprEdit");
 
@@ -822,40 +838,53 @@ CQChartsTest() :
 
   exprColumn_ = CQUtil::makeWidget<QLineEdit>("exprColumn");
 
-  exprGroupLayout->addWidget(exprCombo_ );
-  exprGroupLayout->addWidget(exprEdit_  );
-  exprGroupLayout->addWidget(new QLabel("Column"));
-  exprGroupLayout->addWidget(exprColumn_);
+  exprFrameLayout->addWidget(exprCombo_ );
+  exprFrameLayout->addWidget(exprEdit_  );
+  exprFrameLayout->addWidget(new QLabel("Column"));
+  exprFrameLayout->addWidget(exprColumn_);
 
-  //---
+  expressionFrameLayout->addLayout(exprFrameLayout);
+  expressionFrameLayout->addStretch(1);
 
-  QGroupBox *typeGroup = CQUtil::makeWidget<QGroupBox>("typeGroup");
+  //------
 
-  typeGroup->setTitle("Column Data");
+  QFrame *foldFrame = CQUtil::makeWidget<QFrame>("foldFrame");
 
-  layout->addWidget(typeGroup);
+  controlTab->addTab(foldFrame, "Fold");
 
-  QVBoxLayout *typeGroupLayout = new QVBoxLayout(typeGroup);
+  QGridLayout *foldFrameLayout = new QGridLayout(foldFrame);
 
-  QFrame *columnFrame = CQUtil::makeWidget<QFrame>("columnFrame");
+  int foldRow = 0;
 
-  typeGroupLayout->addWidget(columnFrame);
+  foldEdit_ = addLineEdit(foldFrameLayout, foldRow, "Fold", "fold");
 
-  QGridLayout *columnLayout = new QGridLayout(columnFrame);
+  foldFrameLayout->setRowStretch(foldRow, 1); ++foldRow;
 
-  int row = 0;
+  connect(foldEdit_, SIGNAL(returnPressed()), this, SLOT(foldSlot()));
 
-  columnNumEdit_  = addLineEdit(columnLayout, row, "Number", "number");
-  columnNameEdit_ = addLineEdit(columnLayout, row, "Name"  , "name"  );
-  columnTypeEdit_ = addLineEdit(columnLayout, row, "Type"  , "type"  );
+  //------
 
-  QPushButton *typeOKButton = CQUtil::makeWidget<QPushButton>("typeOK");
+  QFrame *columnDataFrame = CQUtil::makeWidget<QFrame>("columnDataFrame");
 
-  typeOKButton->setText("Set");
+  controlTab->addTab(columnDataFrame, "Column Data");
 
-  connect(typeOKButton, SIGNAL(clicked()), this, SLOT(typeOKSlot()));
+  QGridLayout *columnDataFrameLayout = new QGridLayout(columnDataFrame);
 
-  columnLayout->addWidget(typeOKButton);
+  int columnDataRow = 0;
+
+  columnNumEdit_  = addLineEdit(columnDataFrameLayout, columnDataRow, "Number", "number");
+  columnNameEdit_ = addLineEdit(columnDataFrameLayout, columnDataRow, "Name"  , "name"  );
+  columnTypeEdit_ = addLineEdit(columnDataFrameLayout, columnDataRow, "Type"  , "type"  );
+
+  columnDataFrameLayout->setRowStretch(columnDataRow, 1); ++columnDataRow;
+
+  QPushButton *typeSetButton = CQUtil::makeWidget<QPushButton>("typeSet");
+
+  typeSetButton->setText("Set");
+
+  connect(typeSetButton, SIGNAL(clicked()), this, SLOT(typeSetSlot()));
+
+  columnDataFrameLayout->addWidget(typeSetButton, columnDataRow, 0);
 
   //---
 
@@ -916,7 +945,8 @@ addViewData(bool hierarchical)
 
   ViewData viewData;
 
-  viewData.tabInd = tabInd;
+  viewData.hierarchical = hierarchical;
+  viewData.tabInd       = tabInd;
 
   //---
 
@@ -934,22 +964,27 @@ addViewData(bool hierarchical)
 
   viewLayout->addWidget(splitter);
 
-  //---
+  //------
 
-  if (hierarchical) {
-    viewData.tree = new CQChartsTree(charts_);
+  viewData.stack = CQUtil::makeWidget<QStackedWidget>("stack");
 
-    splitter->addWidget(viewData.tree);
-  }
-  else {
-    viewData.table = new CQChartsTable(charts_);
-
-    splitter->addWidget(viewData.table);
-
-    connect(viewData.table, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
-  }
+  splitter->addWidget(viewData.stack);
 
   //---
+
+  viewData.tree = new CQChartsTree(charts_);
+
+  viewData.stack->addWidget(viewData.tree);
+
+  //---
+
+  viewData.table = new CQChartsTable(charts_);
+
+  viewData.stack->addWidget(viewData.table);
+
+  connect(viewData.table, SIGNAL(columnClicked(int)), this, SLOT(tableColumnClicked(int)));
+
+  //------
 
   viewData.detailsText = CQUtil::makeWidget<QTextEdit>("detailsText");
 
@@ -1192,10 +1227,10 @@ filterSlot()
 
   for (auto &viewData : viewDatas_) {
     if (viewData.filterEdit == filterEdit) {
-      if (viewData.table)
-        viewData.table->setFilter(filterEdit->text());
+      if (viewData.stack->currentIndex() == 0)
+        viewData.tree ->setFilter(filterEdit->text());
       else
-        viewData.tree->setFilter(filterEdit->text());
+        viewData.table->setFilter(filterEdit->text());
     }
   }
 }
@@ -1338,6 +1373,89 @@ getExprModel(ModelP &model) const
 
 void
 CQChartsTest::
+foldSlot()
+{
+  ViewData *viewData = currentViewData();
+
+  if (! viewData)
+    return;
+
+  QString text = foldEdit_->text();
+
+  foldModel(viewData, text);
+
+  updateModel(viewData);
+}
+
+void
+CQChartsTest::
+foldModel(ViewData *viewData, const QString &str)
+{
+  foldClear(viewData);
+
+  //---
+
+  using Columns = std::vector<int>;
+
+  Columns columns;
+
+  QStringList strs = str.split(",", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.length(); ++i) {
+    bool ok;
+
+    int column = strs[i].toInt(&ok);
+
+    if (! ok)
+      continue;
+
+    columns.push_back(column);
+  }
+
+  //---
+
+  ModelP modelp = viewData->model;
+
+  for (const auto &column : columns) {
+    QAbstractItemModel *model = modelp.data();
+
+    CQFoldedModel *foldedModel = new CQFoldedModel(model, column);
+
+    modelp = ModelP(foldedModel);
+
+    viewData->foldedModels.push_back(modelp);
+  }
+
+  if (! viewData->foldedModels.empty()) {
+    QAbstractItemModel *model = modelp.data();
+
+    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+    if (! proxyModel) {
+      QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+
+      foldProxyModel->setSourceModel(model);
+
+      modelp = ModelP(foldProxyModel);
+    }
+
+    viewData->foldProxyModel = modelp;
+  }
+}
+
+void
+CQChartsTest::
+foldClear(ViewData *viewData)
+{
+  viewData->foldedModels.clear();
+
+  viewData->foldProxyModel = ModelP();
+}
+
+//------
+
+void
+CQChartsTest::
 tableColumnClicked(int column)
 {
   CQChartsTable *table = qobject_cast<CQChartsTable *>(sender());
@@ -1369,7 +1487,7 @@ tableColumnClicked(int column)
 
 void
 CQChartsTest::
-typeOKSlot()
+typeSetSlot()
 {
   ViewData *viewData = currentViewData();
 
@@ -1417,7 +1535,10 @@ typeOKSlot()
 
   //---
 
-  viewData->table->update();
+  if (viewData->stack->currentIndex() == 0)
+    viewData->tree->update();
+  else
+    viewData->table->update();
 }
 
 //------
@@ -1790,24 +1911,48 @@ loadFileModel(const QString &filename, FileType type, const InputData &inputData
 
   //---
 
+  if (inputData.fold.length())
+    foldModel(&viewData, inputData.fold);
+
+  //---
+
   sortModel(&viewData, inputData.sort);
 
   //---
 
-  if (hierarchical) {
-    viewData.tree->setModel(viewData.model);
-
-    viewData.sm = viewData.tree->selectionModel();
-  }
-  else {
-    viewData.table->setModel(viewData.model);
-
-    viewData.sm = viewData.table->selectionModel();
-  }
-
-  updateModelDetails(&viewData);
+  updateModel(&viewData);
 
   return true;
+}
+
+void
+CQChartsTest::
+updateModel(ViewData *viewData)
+{
+  if (! viewData->foldedModels.empty()) {
+    viewData->table->setModel(ModelP());
+    viewData->tree ->setModel(viewData->foldProxyModel);
+
+    viewData->stack->setCurrentIndex(0);
+  }
+  else {
+    if (viewData->hierarchical) {
+      viewData->tree->setModel(viewData->model);
+
+      viewData->sm = viewData->tree->selectionModel();
+
+      viewData->stack->setCurrentIndex(0);
+    }
+    else {
+      viewData->table->setModel(viewData->model);
+
+      viewData->sm = viewData->table->selectionModel();
+
+      viewData->stack->setCurrentIndex(1);
+    }
+  }
+
+  updateModelDetails(viewData);
 }
 
 void
@@ -1839,7 +1984,15 @@ updateModelDetails(const ViewData *viewData)
 {
   QString text;
 
-  if      (viewData->table) {
+  if (viewData->stack->currentIndex() == 0) {
+    CQChartsTree::Details details;
+
+    viewData->tree->calcDetails(details);
+
+    text += QString(  "%1\tColumns").arg(details.numColumns);
+    text += QString("\n%1\tRows"   ).arg(details.numRows);
+  }
+  else {
     CQChartsTable::Details details;
 
     viewData->table->calcDetails(details);
@@ -1853,14 +2006,6 @@ updateModelDetails(const ViewData *viewData)
                arg(details.columns[i].minValue.toString()).
                arg(details.columns[i].maxValue.toString());
     }
-  }
-  else if (viewData->tree) {
-    CQChartsTree::Details details;
-
-    viewData->tree->calcDetails(details);
-
-    text += QString(  "%1\tColumns").arg(details.numColumns);
-    text += QString("\n%1\tRows"   ).arg(details.numRows);
   }
 
   viewData->detailsText->setPlainText(text);
@@ -1905,10 +2050,12 @@ loadCsv(const QString &filename, const InputData &inputData)
 
   csv->setCommentHeader  (inputData.commentHeader);
   csv->setFirstLineHeader(inputData.firstLineHeader);
-  csv->setFilter         (inputData.filter);
 
   if (! csv->load(filename))
     errorMsg("Failed to load '" + filename + "'");
+
+  if (inputData.filter.length())
+    csv->setSimpleFilter(inputData.filter);
 
   return csv;
 }
@@ -1921,10 +2068,12 @@ loadTsv(const QString &filename, const InputData &inputData)
 
   tsv->setCommentHeader  (inputData.commentHeader);
   tsv->setFirstLineHeader(inputData.firstLineHeader);
-  tsv->setFilter         (inputData.filter);
 
   if (! tsv->load(filename))
     errorMsg("Failed to load '" + filename + "'");
+
+  if (inputData.filter.length())
+    tsv->setSimpleFilter(inputData.filter);
 
   return tsv;
 }
@@ -2499,10 +2648,10 @@ getCmd(const Args &args)
 
     for (auto &viewData : viewDatas_) {
       if (viewData.tabInd == ind) {
-        if (viewData.table) {
-          CQChartsTable::Details details;
+        if (viewData.stack->currentIndex() == 0) {
+          CQChartsTree::Details details;
 
-          viewData.table->calcDetails(details);
+          viewData.tree->calcDetails(details);
 
           if (name == "num_rows") {
             CExprValuePtr ivalue = expr_->createIntegerValue(details.numRows);
@@ -2510,10 +2659,10 @@ getCmd(const Args &args)
             expr_->createVariable("rc", ivalue);
           }
         }
-        else if (viewData.tree) {
-          CQChartsTree::Details details;
+        else {
+          CQChartsTable::Details details;
 
-          viewData.tree->calcDetails(details);
+          viewData.table->calcDetails(details);
 
           if (name == "num_rows") {
             CExprValuePtr ivalue = expr_->createIntegerValue(details.numRows);
@@ -2615,10 +2764,10 @@ loadCmd(const Args &args)
     return false;
 
   if (title.length()) {
-    if      (viewData->table)
-      viewData->table->setWindowTitle(title);
-    else if (viewData->tree)
+    if (viewData->stack->currentIndex() == 0)
       viewData->tree->setWindowTitle(title);
+    else
+      viewData->table->setWindowTitle(title);
 
     viewTab_->setTabText(viewData->tabInd, title);
   }

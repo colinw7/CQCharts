@@ -34,7 +34,7 @@ set -name scroll.numPages -value 15
 
   set -view view1 -plot "${plot1}" -name fill.color -value blue
   set -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
-  set -view view1 -plot "${plot1}" -name Key.visible -value 0
+  set -view view1 -plot "${plot1}" -name key.visible -value 0
 
   load -csv population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
 
@@ -48,7 +48,7 @@ set -name scroll.numPages -value 15
 
   set -view view1 -plot "${plot2}" -name fill.color -value pink
   set -view view1 -plot "${plot2}" -name fill.alpha -value 0.5
-  set -view view1 -plot "${plot2}" -name Key.visible -value 0
+  set -view view1 -plot "${plot2}" -name key.visible -value 0
 
   overlay "${plot1}" "${plot2}"
 

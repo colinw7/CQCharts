@@ -69,7 +69,7 @@ class CQChartsPlotType {
   using ModelP     = CQChartsModelP;
 
  public:
-  CQChartsPlotType() { }
+  CQChartsPlotType();
 
   virtual ~CQChartsPlotType() { }
 
@@ -128,6 +128,15 @@ class CQChartsPlotType {
 
 //----
 
+class CQChartsHierPlotType : public CQChartsPlotType {
+ public:
+  CQChartsHierPlotType();
+
+  void addParameters() override;
+};
+
+//----
+
 class CQChartsPlotUpdateTimer : public QTimer {
  public:
   CQChartsPlotUpdateTimer(CQChartsPlot *plot) :
@@ -143,6 +152,9 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 class CQChartsPlot : public QObject {
   Q_OBJECT
+
+  // generic columns
+  Q_PROPERTY(int     idColumn            READ idColumn            WRITE setIdColumn           )
 
   // visible, rectangle and data range
   Q_PROPERTY(bool    visible             READ isVisible           WRITE setVisible            )
@@ -266,12 +278,19 @@ class CQChartsPlot : public QObject {
 
   CQChartsView *view() const { return view_; }
 
-  QAbstractItemModel *model() const { return model_.data(); }
+  CQChartsPlotType *type() const { return type_; }
 
+  //---
+
+  QAbstractItemModel *model() const { return model_.data(); }
   CQChartsModelP::ModelP modelp() const { return model_.modelp; }
+
+  void setModel(const ModelP &model);
 
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
+
+  //---
 
   virtual bool isHierarchical() const;
 
@@ -279,7 +298,7 @@ class CQChartsPlot : public QObject {
 
   CQCharts *charts() const;
 
-  QString typeName() const { return type_->name(); }
+  QString typeName() const { return type()->name(); }
 
   const QString &id() const { return id_; }
   void setId(const QString &s) { id_ = s; }
@@ -553,6 +572,21 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  class Visitor {
+   public:
+    Visitor() { }
+
+    virtual ~Visitor() { }
+
+    virtual void visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+  };
+
+  void visitModel(Visitor &visitor);
+
+  void visitModelIndex(const QModelIndex &parent, Visitor &visitor);
+
+  //---
+
   QModelIndex selectIndex(int row, int col, const QModelIndex &parent=QModelIndex()) const;
 
   void beginSelect();
@@ -676,6 +710,9 @@ class CQChartsPlot : public QObject {
 
   int yValueColumn() const { return yValueColumn_; }
   void setYValueColumn(int column);
+
+  int idColumn() const { return idColumn_; }
+  void setIdColumn(int i);
 
   //---
 
@@ -881,7 +918,7 @@ class CQChartsPlot : public QObject {
   // draw plot
   virtual void draw(QPainter *painter) = 0;
 
- private slots:
+ protected slots:
   void animateSlot();
 
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
@@ -898,13 +935,20 @@ class CQChartsPlot : public QObject {
   void selectionSlot();
 
  signals:
+  void modelChanged();
+
   void objPressed(CQChartsPlotObj *);
+
+  void objIdPressed(const QString &);
 
  protected:
   using PlotObjSet     = std::set<CQChartsPlotObj*>;
   using SizePlotObjSet = std::map<double,PlotObjSet>;
 
  protected:
+  void connectModel();
+  void disconnectModel();
+
   void objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
 
   void objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const;
@@ -970,6 +1014,7 @@ class CQChartsPlot : public QObject {
   CQChartsTitle*            titleObj_         { nullptr };
   int                       xValueColumn_     { -1 };
   int                       yValueColumn_     { -1 };
+  int                       idColumn_         { -1 };
   bool                      equalScale_       { false };
   bool                      followMouse_      { true };
   bool                      showBoxes_        { false };
@@ -1033,6 +1078,10 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   const QString &separator() const { return separator_; }
   void setSeparator(const QString &s) { separator_ = s; }
+
+  //---
+
+  void addProperties() override;
 
  protected:
   int     nameColumn_  { 0 };   // name column

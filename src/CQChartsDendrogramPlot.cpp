@@ -8,7 +8,6 @@
 CQChartsDendrogramPlotType::
 CQChartsDendrogramPlotType()
 {
-  addParameters();
 }
 
 void

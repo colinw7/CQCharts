@@ -13,7 +13,6 @@
 CQChartsSankeyPlotType::
 CQChartsSankeyPlotType()
 {
-  addParameters();
 }
 
 void

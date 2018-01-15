@@ -171,7 +171,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
           painter->drawText(QPointF(x, y), ystr);
         else
           painter->drawText(QPointF(x, y), ystr);
-       }
+      }
     }
   }
   else {
@@ -197,8 +197,6 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     CQChartsRotatedText::bboxData(x, y, ystr, painter->font(), textAngle(), b1,
                                   prect, points, align, /*alignBBox*/ true);
-
-    //painter->setPen(interpTextColor(0, 1));
 
     QPolygonF poly;
 

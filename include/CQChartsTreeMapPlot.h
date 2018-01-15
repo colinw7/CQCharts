@@ -211,12 +211,12 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsTreeMapHierNode* hier_    { nullptr };
+  CQChartsTreeMapHierNode* hier_ { nullptr };
 };
 
 //---
 
-class CQChartsTreeMapPlotType : public CQChartsPlotType {
+class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
  public:
   CQChartsTreeMapPlotType();
 
@@ -234,6 +234,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   Q_OBJECT
 
   Q_PROPERTY(bool    titles             READ isTitles             WRITE setTitles              )
+  Q_PROPERTY(double  titleMaxExtent     READ titleMaxExtent       WRITE setTitleMaxExtent      )
   Q_PROPERTY(double  headerHeight       READ headerHeight         WRITE setHeaderHeight        )
   Q_PROPERTY(bool    headerBorder       READ isHeaderBorder       WRITE setHeaderBorder        )
   Q_PROPERTY(QString headerBorderColor  READ headerBorderColorStr WRITE setHeaderBorderColorStr)
@@ -287,6 +288,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
 
   bool isTitles() const { return titles_; }
   void setTitles(bool b) { titles_ = b; updateCurrentRoot(); }
+
+  double titleMaxExtent() const { return titleMaxExtent_; }
+  void setTitleMaxExtent(double r) { titleMaxExtent_ = r; }
 
   double headerHeight() const { return headerHeight_; }
   void setHeaderHeight(double r) { headerHeight_ = r; updateCurrentRoot(); }
@@ -507,7 +511,8 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   CQChartsTreeMapHierNode* root_               { nullptr }; // root node
   CQChartsTreeMapHierNode* firstHier_          { nullptr }; // first hier node
   QString                  currentRootName_;                // current root name
-  bool                     titles_             { true };    // show titles
+  bool                     titles_             { true };    // show title bar (header)
+  double                   titleMaxExtent_     { 0.5 };     // title bar max extent (0-1)
   double                   headerHeight_       { -1 };      // header height (should be font based)
   CQChartsTextBoxObj*      headerTextBoxObj_   { nullptr }; // header fill/border/text object
   double                   marginWidth_        { 2.0 };     // box margin

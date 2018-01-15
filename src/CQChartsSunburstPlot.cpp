@@ -15,19 +15,13 @@
 CQChartsSunburstPlotType::
 CQChartsSunburstPlotType()
 {
-  addParameters();
 }
 
 void
 CQChartsSunburstPlotType::
 addParameters()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn" , "", 0);
-  addColumnsParameter("names", "Names", "nameColumns", "optional");
-  addColumnParameter ("value", "Value", "valueColumn", "optional");
-  addColumnParameter ("color", "Color", "colorColumn", "optional");
-
-  addStringParameter("separator", "Separator", "separator", "optional", "/");
+  CQChartsHierPlotType::addParameters();
 }
 
 CQChartsPlot *

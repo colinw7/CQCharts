@@ -1,0 +1,27 @@
+# Data
+  . Types
+    . CSV
+    . TSV
+    . Json
+    . SQL
+    . Tcl
+    . Snic
+
+# Model
+
+# View
+  . Table
+  . Chart
+
+------
+
+# Analysis
+
+ Operations
+  . Group
+  . Add/Remove/Modify Columns
+    . Calculation from Row/Column Values
+
+  . Data
+  . Model
+  . View

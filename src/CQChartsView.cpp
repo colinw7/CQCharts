@@ -217,10 +217,13 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   plot->postInit();
 
+  connect(plot, SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
+
   //---
 
   if (currentPlotInd_ < 0)
     setCurrentPlotInd(0);
+
 }
 
 CQChartsPlot *
@@ -233,6 +236,16 @@ getPlot(const QString &id) const
   }
 
   return nullptr;
+}
+
+void
+CQChartsView::
+plotModelChanged()
+{
+  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(sender());
+
+  if (plot == currentPlot())
+    emit currentPlotChanged();
 }
 
 void

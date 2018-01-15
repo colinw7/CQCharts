@@ -10,7 +10,6 @@
 CQChartsXYPlotType::
 CQChartsXYPlotType()
 {
-  addParameters();
 }
 
 void

@@ -364,6 +364,8 @@ class CQChartsView : public QFrame {
   void currentPlotChanged();
 
  public slots:
+  void plotModelChanged();
+
   void searchSlot();
 
   void keyVisibleSlot(bool b);

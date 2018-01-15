@@ -41,6 +41,8 @@ CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
   types_[name] = type;
+
+  type->addParameters();
 }
 
 bool
@@ -74,11 +76,35 @@ getTypeNames(QStringList &names, QStringList &descs) const
 
 //------
 
+CQChartsPlotType::
+CQChartsPlotType()
+{
+}
+
 void
 CQChartsPlotType::
 addParameters()
 {
   addBoolParameter("key", "Key", "keyVisible", "optional");
+}
+
+//------
+
+CQChartsHierPlotType::
+CQChartsHierPlotType()
+{
+}
+
+void
+CQChartsHierPlotType::
+addParameters()
+{
+  addColumnParameter ("name" , "Name" , "nameColumn" , "", 0);
+  addColumnsParameter("names", "Names", "nameColumns", "optional");
+  addColumnParameter ("value", "Value", "valueColumn", "optional");
+  addColumnParameter ("color", "Color", "colorColumn", "optional");
+
+  addStringParameter("separator", "Separator", "separator", "optional", "/");
 }
 
 //------
@@ -122,19 +148,9 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   //---
 
-  connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  connect(model_.data(), SIGNAL(layoutChanged()),
-          this, SLOT(modelLayoutChangedSlot()));
+  connectModel();
 
-  connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-          this, SLOT(modelRowsInsertedSlot()));
-  connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelRowsRemovedSlot()));
-  connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-          this, SLOT(modelColumnsInsertedSlot()));
-  connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelColumnsRemovedSlot()));
+  //---
 
   updateTimer_ = new CQChartsPlotUpdateTimer(this);
 
@@ -162,6 +178,67 @@ CQChartsPlot::
   delete animateData_.timer;
 
   delete updateTimer_;
+}
+
+//---
+
+void
+CQChartsPlot::
+setModel(const ModelP &model)
+{
+  disconnectModel();
+
+  model_ = model;
+
+  connectModel();
+
+  updateRangeAndObjs();
+
+  emit modelChanged();
+}
+
+void
+CQChartsPlot::
+connectModel()
+{
+  if (! model_.data())
+    return;
+
+  connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+          this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  connect(model_.data(), SIGNAL(layoutChanged()),
+          this, SLOT(modelLayoutChangedSlot()));
+
+  connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+          this, SLOT(modelRowsInsertedSlot()));
+  connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+          this, SLOT(modelRowsRemovedSlot()));
+  connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+          this, SLOT(modelColumnsInsertedSlot()));
+  connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+          this, SLOT(modelColumnsRemovedSlot()));
+}
+
+void
+CQChartsPlot::
+disconnectModel()
+{
+  if (! model_.data())
+    return;
+
+  disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+             this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
+  disconnect(model_.data(), SIGNAL(layoutChanged()),
+             this, SLOT(modelLayoutChangedSlot()));
+
+  disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+             this, SLOT(modelRowsInsertedSlot()));
+  disconnect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+             this, SLOT(modelRowsRemovedSlot()));
+  disconnect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+             this, SLOT(modelColumnsInsertedSlot()));
+  disconnect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+             this, SLOT(modelColumnsRemovedSlot()));
 }
 
 //---
@@ -1345,6 +1422,8 @@ mousePress(const CQChartsGeom::Point &w, ModSelect modSelect)
     selectObj->mousePress();
 
     emit objPressed(selectObj);
+
+    emit objIdPressed(selectObj->id());
   }
 
   //---
@@ -1598,6 +1677,19 @@ setYValueColumn(int column)
 
   if (yAxis())
     yAxis()->setColumn(yValueColumn_);
+}
+
+//------
+
+void
+CQChartsPlot::
+setIdColumn(int i)
+{
+  if (i != idColumn_) {
+    idColumn_ = i;
+
+    updateRangeAndObjs();
+  }
 }
 
 //------
@@ -2921,14 +3013,46 @@ isHierarchical() const
 
   int nc = model->rowCount();
 
-  for (int i = 0; i < nc; ++i) {
-    QModelIndex index1 = model->index(i, 0);
+  for (int r = 0; r < nc; ++r) {
+    QModelIndex index1 = model->index(r, 0);
 
     if (model->rowCount(index1) > 0)
       return true;
   }
 
   return false;
+}
+
+//------
+
+void
+CQChartsPlot::
+visitModel(Visitor &visitor)
+{
+  QModelIndex parent;
+
+  visitModelIndex(parent, visitor);
+}
+
+void
+CQChartsPlot::
+visitModelIndex(const QModelIndex &parent, Visitor &visitor)
+{
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  int nr = model->rowCount(parent);
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex ind1 = model->index(r, 0, parent);
+
+    if (model->rowCount(ind1) > 0)
+      visitModelIndex(ind1, visitor);
+    else
+      visitor.visit(model, parent, r);
+  }
 }
 
 //------
@@ -3320,4 +3444,16 @@ setColorColumn(int i)
 
     updateRangeAndObjs();
   }
+}
+
+void
+CQChartsHierPlot::
+addProperties()
+{
+  addProperty("columns", this, "nameColumn" , "name" );
+  addProperty("columns", this, "nameColumns", "names");
+  addProperty("columns", this, "valueColumn", "value");
+  addProperty("columns", this, "colorColumn", "color");
+
+  addProperty("", this, "separator");
 }

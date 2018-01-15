@@ -285,7 +285,6 @@ class CQChartsScatterPlot : public CQChartsPlot {
   bool                 symbolFilled_      { true };
   CQChartsPaletteColor symbolFillColor_;
   double               symbolFillAlpha_   { 1.0 };
-  double               symbolFillWidth_   { 0 };
   double               symbolSize_        { 4 };
   CQChartsValueSet     symbolSizeSet_;
   double               fontSize_          { 8 };

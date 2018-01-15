@@ -78,6 +78,21 @@ setRegExpFilter(const QString &filter)
 
 void
 CQChartsModelFilter::
+setSimpleFilter(const QString &filter)
+{
+  CQChartsModelFilterData &filterData = currentFilterData();
+
+  filterData.setType  (CQChartsModelFilterData::Type::SIMPLE);
+  filterData.setFilter(filter);
+  filterData.setInvert(false);
+
+  initFilterData(filterData);
+
+  initFilter();
+}
+
+void
+CQChartsModelFilter::
 setSelectionFilter(bool invert)
 {
   CQChartsModelFilterData &filterData = currentFilterData();
@@ -188,6 +203,21 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     return filterData.regexp().match(str);
   }
+  else if (filterData.isSimple()) {
+    QAbstractItemModel *model = sourceModel();
+    assert(model);
+
+    for (const auto &columnFilter : filterData.columnFilterMap()) {
+      QModelIndex ind1 = model->index(ind.row(), columnFilter.first, ind.parent());
+
+      QString str = model->data(ind1).toString();
+
+      if (! columnFilter.second.match(str))
+        return false;
+    }
+
+    return true;
+  }
   else {
     bool ok;
 
@@ -270,16 +300,36 @@ initFilterData(CQChartsModelFilterData &filterData)
     }
   }
   else if (filterData.isRegExp()) {
-    QString filter;
-    int     column = -1;
-
     QAbstractItemModel *model = this->sourceModel();
     assert(model);
+
+    QString filter;
+    int     column = -1;
 
     if (CQChartsUtil::decodeModelFilterStr(model, filterData.filter(), filter, column))
       setFilterKeyColumn(column);
 
     filterData.setRegExp(CQChartsRegExp(filter));
+  }
+  else if (filterData.isSimple()) {
+    QAbstractItemModel *model = this->sourceModel();
+    assert(model);
+
+    QStringList strs = filterData.filter().split(",");
+
+    CQChartsModelFilterData::ColumnFilterMap columnFilterMap;
+
+    for (int i = 0; i < strs.size(); ++i) {
+      QString filter;
+      int     column = -1;
+
+      if (! CQChartsUtil::decodeModelFilterStr(model, strs[i], filter, column))
+        continue;
+
+      columnFilterMap[column] = CQChartsRegExp(filter);
+    }
+
+    filterData.setColumnFilterMap(columnFilterMap);
   }
   else {
   }
