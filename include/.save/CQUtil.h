@@ -35,6 +35,7 @@
 
 #include <CPoint2D.h>
 #include <CBBox2D.h>
+#include <CMatrix2D.h>
 
 #ifdef CQUTIL_BRUSH
 #include <CBrush.h>
@@ -250,6 +251,14 @@ namespace CQUtil {
   CPoint2D  fromQPointF(const QPoint &point);
 #endif
 
+#ifdef CQUTIL_SIZE
+  QSizeF  toQSize  (const CSize2D &size);
+  CSize2D fromQSize(const QSizeF &size);
+
+  QSize    toQSize  (const CISize2D &size);
+  CISize2D fromQSize(const QSize &size);
+#endif
+
 #ifdef CQUTIL_BBOX
   QRectF  toQRect  (const CBBox2D &rect);
   QRect   toQRectI (const CBBox2D &rect);
@@ -257,6 +266,14 @@ namespace CQUtil {
 
   QRect    toQRect  (const CIBBox2D &rect);
   CIBBox2D fromQRect(const QRect &rect);
+#endif
+
+#ifdef CQUTIL_MATRIX
+  QMatrix   toQMatrix  (const CMatrix2D &m);
+  CMatrix2D fromQMatrix(const QMatrix &m);
+
+  QTransform toQTransform  (const CMatrix2D &m);
+  CMatrix2D  fromQTransform(const QTransform &t);
 #endif
 
 #ifdef CQUTIL_FONT

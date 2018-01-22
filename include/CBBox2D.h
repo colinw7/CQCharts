@@ -3,8 +3,14 @@
 
 //#include <CMathGen.h>
 #include <CPoint2D.h>
+
+#ifdef CBBOX_2D_VECTOR
 #include <CVector2D.h>
+#endif
+
+#ifdef CBBOX_2D_SIZE
 #include <CSize2D.h>
+#endif
 
 class CBBox2D {
  public:
@@ -30,10 +36,12 @@ class CBBox2D {
     update();
   }
 
+#ifdef CBBOX_2D_SIZE
   CBBox2D(const CPoint2D &o, const CSize2D &s) :
    pmin_(o), pmax_(o + s), set_(true) {
     update();
   }
+#endif
 
   void reset() { set_ = false; }
 
@@ -250,6 +258,7 @@ class CBBox2D {
     return bbox;
   }
 
+#ifdef CBBOX_2D_VECTOR
   double area() const {
     if (! set_) return 0.0;
 
@@ -257,6 +266,7 @@ class CBBox2D {
 
     return fabs(diag.getX()*diag.getY());
   }
+#endif
 
   double perimeter() const {
     return 2*getWidth() + 2*getHeight();
@@ -364,6 +374,7 @@ class CBBox2D {
     set_    = true;
   }
 
+#ifdef CBBOX_2D_SIZE
   void setSize(const CSize2D &size) {
     if (! set_) {
       pmin_.x = 0;
@@ -374,21 +385,26 @@ class CBBox2D {
     pmax_.y = pmin_.y + size.height;
     set_    = true;
   }
+#endif
 
   CPoint2D getLL() const { return getMin(); }
   CPoint2D getLR() const { assert(set_); return CPoint2D(pmax_.x, pmin_.y); }
   CPoint2D getUL() const { assert(set_); return CPoint2D(pmin_.x, pmax_.y); }
   CPoint2D getUR() const { return getMax(); }
 
+#ifdef CBBOX_2D_SIZE
   CSize2D getSize() const {
     return CSize2D(getWidth(), getHeight());
   }
+#endif
 
+#ifdef CBBOX_2D_VECTOR
   double getRadius() const {
     CVector2D radius = 0.5*CVector2D(getMin(), getMax());
 
     return radius.length();
   }
+#endif
 
   double getWidth() const {
     return fabs(getXMax() - getXMin());
@@ -437,6 +453,7 @@ class CBBox2D {
     return *this;
   }
 
+#ifdef CBBOX_2D_VECTOR
   CBBox2D &moveBy(const CVector2D &delta) {
     assert(set_);
 
@@ -447,6 +464,7 @@ class CBBox2D {
 
     return *this;
   }
+#endif
 
   CBBox2D &moveBy(const CPoint2D &delta) {
     assert(set_);

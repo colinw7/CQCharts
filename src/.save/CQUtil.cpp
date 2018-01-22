@@ -2191,6 +2191,36 @@ fromQPoint(const QPointF &point)
 }
 #endif
 
+#ifdef CQUTIL_SIZE
+QSize
+CQUtil::
+toQSize(const CISize2D &size)
+{
+  return QSize(size.width, size.height);
+}
+
+CISize2D
+CQUtil::
+fromQSize(const QSize &size)
+{
+  return CISize2D(size.width(), size.height());
+}
+
+QSizeF
+CQUtil::
+toQSize(const CSize2D &size)
+{
+  return QSizeF(size.width, size.height);
+}
+
+CSize2D
+CQUtil::
+fromQSize(const QSizeF &size)
+{
+  return CSize2D(size.width(), size.height());
+}
+#endif
+
 #ifdef CQUTIL_BBOX
 QRectF
 CQUtil::
@@ -2225,6 +2255,46 @@ CQUtil::
 fromQRect(const QRect &rect)
 {
   return CIBBox2D(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
+}
+#endif
+
+#ifdef CQUTIL_MATRIX
+QMatrix
+CQUtil::
+toQMatrix(const CMatrix2D &m)
+{
+  double a, b, c, d, tx, ty;
+
+  m.getValues(&a, &b, &c, &d, &tx, &ty);
+
+  //return QMatrix(a, b, c, d, tx, ty);
+  return QMatrix(a, c, b, d, tx, ty);
+}
+
+CMatrix2D
+CQUtil::
+fromQMatrix(const QMatrix &m)
+{
+  return CMatrix2D(m.m11(), m.m12(), m.m21(), m.m22(), m.dx(), m.dy());
+}
+
+QTransform
+CQUtil::
+toQTransform(const CMatrix2D &m)
+{
+  double a, b, c, d, tx, ty;
+
+  m.getValues(&a, &b, &c, &d, &tx, &ty);
+
+  //return QTransform(a, b, c, d, tx, ty);
+  return QTransform(a, c, b, d, tx, ty);
+}
+
+CMatrix2D
+CQUtil::
+fromQTransform(const QTransform &t)
+{
+  return CMatrix2D(t.m11(), t.m12(), t.m21(), t.m22(), t.dx(), t.dy());
 }
 #endif
 
