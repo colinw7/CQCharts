@@ -68,6 +68,7 @@ class CQChartsWindow : public QFrame {
 
   void plotSlot();
   void modeSlot();
+  void selectModeSlot();
 
   void setStatusText(const QString &text);
   void setPosText   (const QString &text);

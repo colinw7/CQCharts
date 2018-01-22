@@ -7,7 +7,7 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsUtil.h>
-#include <CGradientPalette.h>
+#include <CQChartsGradientPalette.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsDisplayRange.h>
 
@@ -54,6 +54,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
   addProperty("", this, "mode"          );
+  addProperty("", this, "selectMode"    );
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
   addProperty("", this, "posTextType"   );
@@ -153,6 +154,24 @@ setMode(const Mode &mode)
   }
 }
 
+void
+CQChartsView::
+setSelectMode(const SelectMode &selectMode)
+{
+  if (selectMode != selectMode_) {
+    selectMode_ = selectMode;
+
+    emit selectModeChanged();
+  }
+}
+
+CQChartsGradientPalette *
+CQChartsView::
+themeGroupPalette(int i, int /*n*/) const
+{
+  return theme_->palette(i);
+}
+
 bool
 CQChartsView::
 setProperties(const QString &properties)
@@ -206,8 +225,6 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
     plot->setId(QString("%1%2").arg(plot->typeName()).arg(id));
   }
-
-  plot->setTheme(theme());
 
   plot->setBBox(bbox);
 
@@ -1583,11 +1600,7 @@ themeSlot(const QString &name)
 
   setSelectedFillColor(theme_->selectColor());
 
-  for (auto &plotData : plotDatas_) {
-    CQChartsPlot *plot = plotData.plot;
-
-    plot->setTheme(theme_);
-  }
+  updatePlots();
 
   update();
 }

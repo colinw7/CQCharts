@@ -43,6 +43,9 @@ CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
 {
+  (void) addValueSet("values");
+  (void) addColorSet("color");
+
   borderObj_ = new CQChartsBoxObj(this);
   fillObj_   = new CQChartsFillObj(this);
 
@@ -280,39 +283,6 @@ headerValue(QAbstractItemModel *model, int c, bool &ok) const
 
 void
 CQChartsDistributionPlot::
-initColorSet()
-{
-  QAbstractItemModel *model = this->model();
-
-  //---
-
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  int nr = rowCount(model);
-
-  for (int r = 0; r < nr; ++r) {
-    bool ok;
-
-    QVariant value = rowValue(model, r, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsDistributionPlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i, color);
-}
-
-//---
-
-void
-CQChartsDistributionPlot::
 updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
@@ -326,23 +296,14 @@ updateRange(bool apply)
   //---
 
   // calc category type
-  valueSet_.clear();
-
-  for (int r = 0; r < nr; ++r) {
-    bool ok;
-
-    QVariant value = rowValue(model, r, valueColumn(), ok);
-
-    if (! ok)
-      continue;
-
-    valueSet_.addValue(value);
-  }
+  initValueSets();
 
   //---
 
+  CQChartsValueSet *valueSet = getValueSet("values");
+
   // calc value range
-  bool hasRange = valueSet_.isNumeric();
+  bool hasRange = valueSet->isNumeric();
 
   categoryRange_.numValues = 0;
   categoryRange_.minValue  = 0.0;
@@ -425,7 +386,7 @@ updateRange(bool apply)
       if (! ok)
         continue;
 
-      bucket = valueSet_.sbucket(value);
+      bucket = valueSet->sbucket(value);
 
       ivalues_[bucket].emplace_back(valueInd1);
     }
@@ -599,9 +560,7 @@ void
 CQChartsDistributionPlot::
 updateObjs()
 {
-  //valueSet_.clear();
-
-  colorSet_.clear();
+  clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -625,8 +584,7 @@ initObjs()
   //---
 
   // init color value set
-  if (colorSet_.empty())
-    initColorSet();
+  initValueSets();
 
   //---
 
@@ -644,7 +602,9 @@ initObjs()
 
   //---
 
-  bool hasRange = valueSet_.isNumeric();
+  CQChartsValueSet *valueSet = getValueSet("values");
+
+  bool hasRange = valueSet->isNumeric();
 
   int i = 0;
   int n = numValues();
@@ -745,7 +705,9 @@ QString
 CQChartsDistributionPlot::
 bucketValuesStr(int bucket, BucketValueType type) const
 {
-  bool hasRange = valueSet_.isNumeric();
+  CQChartsValueSet *valueSet = getValueSet("values");
+
+  bool hasRange = valueSet->isNumeric();
 
   if (hasRange) {
     double value1, value2;
@@ -763,7 +725,7 @@ bucketValuesStr(int bucket, BucketValueType type) const
       return QString("%1").arg(value2);
   }
   else {
-    return valueSet_.buckets(bucket);
+    return valueSet->buckets(bucket);
   }
 }
 
@@ -1001,7 +963,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       if (! values_.empty()) {
         QModelIndex colorInd = plot_->unnormalizeIndex(values_[0]);
 
-        (void) plot_->colorSetColor(colorInd.row(), color);
+        (void) plot_->colorSetColor("color", colorInd.row(), color);
       }
 
       if (color)
@@ -1103,7 +1065,7 @@ fillBrush() const
   if (! values.empty()) {
     QModelIndex colorInd = plot->unnormalizeIndex(values[0]);
 
-    (void) plot->colorSetColor(colorInd.row(), color);
+    (void) plot->colorSetColor("color", colorInd.row(), color);
 
     if (color)
       barColor = color->interpColor(plot, 0, 1);

@@ -59,6 +59,7 @@ CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
 \
 CQChartsNoDataObj.cpp \
+CQChartsPlotObj.cpp \
 CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
@@ -81,6 +82,10 @@ CQChartsModelFilter.cpp \
 CQChartsModelExprMatch.cpp \
 \
 CQChartsPlotDlg.cpp \
+\
+CQChartsGradientPaletteCanvas.cpp \
+CQChartsGradientPalette.cpp \
+CQChartsGradientPaletteControl.cpp \
 \
 CQChartsLineDash.cpp \
 CQChartsLineDashEdit.cpp \
@@ -108,10 +113,6 @@ CQPropertyViewType.cpp \
 \
 CQChartsPaletteColor.cpp \
 CQChartsDrawUtil.cpp \
-\
-CQGradientControlIFace.cpp \
-CQGradientControlPlot.cpp \
-CGradientPalette.cpp \
 \
 CQCsvModel.cpp \
 CQTsvModel.cpp \
@@ -224,6 +225,10 @@ HEADERS += \
 \
 ../include/CQChartsPlotDlg.h \
 \
+../include/CQChartsGradientPaletteCanvas.h \
+../include/CQChartsGradientPalette.h \
+../include/CQChartsGradientPaletteControl.h \
+\
 ../include/CQChartsLineDash.h \
 ../include/CQChartsLineDashEdit.h \
 \
@@ -253,10 +258,6 @@ CQPropertyViewType.h \
 \
 ../include/CQChartsPaletteColor.h \
 ../include/CQChartsDrawUtil.h \
-\
-CQGradientControlIFace.h \
-CQGradientControlPlot.h \
-../include/CGradientPalette.h \
 \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \

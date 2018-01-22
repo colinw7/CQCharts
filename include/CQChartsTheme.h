@@ -1,7 +1,7 @@
 #ifndef CQChartsTheme_H
 #define CQChartsTheme_H
 
-#include <CGradientPalette.h>
+#include <CQChartsGradientPalette.h>
 #include <QObject>
 
 class CQChartsTheme;
@@ -14,6 +14,12 @@ class CQChartsThemeMgr {
 
  ~CQChartsThemeMgr();
 
+  void addNamedPalette(const QString &name, CQChartsGradientPalette *palette);
+
+  CQChartsGradientPalette *getNamedPalette(const QString &name) const;
+
+  void getPaletteNames(QStringList &names) const;
+
   void addTheme(const QString &name, CQChartsTheme *theme);
 
   CQChartsTheme *getTheme(const QString &name) const;
@@ -21,10 +27,14 @@ class CQChartsThemeMgr {
  private:
   CQChartsThemeMgr();
 
- private:
-  using ThemeMap = std::map<QString,CQChartsTheme *>;
+  void init();
 
-  ThemeMap themes_;
+ private:
+  using ThemeMap      = std::map<QString,CQChartsTheme*>;
+  using NamedPalettes = std::map<QString,CQChartsGradientPalette*>;
+
+  NamedPalettes namedPalettes_;
+  ThemeMap      themes_;
 };
 
 //------
@@ -39,18 +49,37 @@ class CQChartsTheme : public QObject {
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
-  CGradientPalette *theme() { return theme_; }
+  CQChartsGradientPalette *theme() { return theme_; }
 
-  CGradientPalette *palette() { return palette_; }
+  CQChartsGradientPalette *palette(int i=0);
+  void setPalette(int i, CQChartsGradientPalette *palette);
+
+  void addNamedPalettes();
+
+  void addNamedPalette(const QString &name);
+
+  void setNamedPalette(int i, const QString &name);
+
+  int numPalettes() const { return palettes_.size(); }
+
+  void shiftPalettes(int n);
 
   const QColor &selectColor() const { return selectColor_; }
   void setSelectColor(const QColor &v) { selectColor_ = v; }
 
  protected:
-  QString           name_;
-  CGradientPalette* theme_       { nullptr };
-  CGradientPalette* palette_     { nullptr };
-  QColor            selectColor_ { Qt::yellow };
+  void initPalette(CQChartsGradientPalette *palette);
+
+  void initPalette1(CQChartsGradientPalette *palette);
+  void initPalette2(CQChartsGradientPalette *palette);
+
+ protected:
+  using Palettes = std::vector<CQChartsGradientPalette*>;
+
+  QString                  name_;
+  CQChartsGradientPalette* theme_       { nullptr };
+  Palettes                 palettes_;
+  QColor                   selectColor_ { Qt::yellow };
 };
 
 class CQChartsDefaultTheme : public CQChartsTheme {

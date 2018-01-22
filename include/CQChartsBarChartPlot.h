@@ -11,6 +11,101 @@ class CQChartsBarChartPlot;
 class CQChartsBoxObj;
 class CQChartsFillObj;
 
+// bar value
+class CQChartsBarChartValue {
+ public:
+  using NameValues = std::map<QString,QString>;
+
+ public:
+  CQChartsBarChartValue() = default;
+
+  CQChartsBarChartValue(double value, const QModelIndex &ind) :
+   value_(value), ind_(ind) {
+  }
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  const QModelIndex &ind() const { return ind_; }
+  void setInd(const QModelIndex &v) { ind_ = v; }
+
+  const QString &groupName() const { return groupName_; }
+  void setGroupName(const QString &v) { groupName_ = v; }
+
+  const QString &valueName() const { return valueName_; }
+  void setValueName(const QString &v) { valueName_ = v; }
+
+  const NameValues &nameValues() const { return nameValues_; }
+  void setNameValues(const NameValues &v) { nameValues_ = v; }
+
+  void setNameValue(const QString &name, QString &value) {
+    nameValues_[name] = value;
+  }
+
+  QString getNameValue(const QString &name) const {
+    auto p = nameValues_.find(name);
+    if (p == nameValues_.end()) return "";
+
+    return (*p).second;
+  }
+
+ private:
+  double      value_ { 0.0 };
+  QModelIndex ind_;
+  QString     groupName_;
+  QString     valueName_;
+  NameValues  nameValues_;
+};
+
+class CQChartsBarChartValueSet {
+ public:
+  using Values = std::vector<CQChartsBarChartValue>;
+
+ public:
+  CQChartsBarChartValueSet() = default;
+
+  CQChartsBarChartValueSet(const QString &name, int ind) :
+   name_(name), ind_(ind) {
+  }
+
+  const QString &name() const { return name_; }
+
+  int ind() const { return ind_; }
+
+  int numValues() const { return values_.size(); }
+
+  const Values &values() const { return values_; }
+
+  void addValue(const CQChartsBarChartValue &value) {
+    values_.push_back(value);
+  }
+
+  const CQChartsBarChartValue &value(int i) const {
+    assert(i >= 0 && i < int(values_.size()));
+
+    return values_[i];
+  }
+
+  void calcSums(double &posSum, double &negSum) const {
+    posSum = 0.0;
+    negSum = 0.0;
+
+    for (auto &v : values_) {
+      double value = v.value();
+
+      if (value >= 0) posSum += value;
+      else            negSum += value;
+    }
+  }
+
+ private:
+  QString name_;
+  int     ind_ { 0 };
+  Values  values_;
+};
+
+//------
+
 // bar object
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -20,14 +115,14 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
-                      int iset, int nset, int ival, int nval,
-                      int isval, int nsval, double value, const QModelIndex &ind);
+                      int iset, int nset, int ival, int nval, int isval, int nsval,
+                      const CQChartsBarChartValue *value, const QModelIndex &ind);
 
   QString calcId() const override;
 
-  void setColor(const CQChartsPaletteColor &color) { color_ = color; }
+  QString calcTipId() const override;
 
-  void setLabel(const QString &label) { label_ = label; }
+  void setColor(const CQChartsPaletteColor &color) { color_ = color; }
 
   CQChartsGeom::BBox dataLabelRect() const;
 
@@ -38,17 +133,16 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
-  CQChartsBarChartPlot *plot_  { nullptr }; // parent plot
-  int                   iset_  { -1 };      // set number
-  int                   nset_  { -1 };      // number of sets
-  int                   ival_  { -1 };      // value number
-  int                   nval_  { -1 };      // number of values
-  int                   isval_ { -1 };      // sub set number
-  int                   nsval_ { -1 };      // number of sub sets
-  double                value_ { -1 };      // value
-  QModelIndex           ind_;               // model index
-  OptColor              color_;             // custom color
-  QString               label_;             // custom data label
+  CQChartsBarChartPlot*        plot_  { nullptr }; // parent plot
+  int                          iset_  { -1 };      // set number
+  int                          nset_  { -1 };      // number of sets
+  int                          ival_  { -1 };      // value number
+  int                          nval_  { -1 };      // number of values
+  int                          isval_ { -1 };      // sub set number
+  int                          nsval_ { -1 };      // number of sub sets
+  const CQChartsBarChartValue* value_ { nullptr }; // value data
+  QModelIndex                  ind_;               // model index
+  OptColor                     color_;             // custom color
 };
 
 //---
@@ -71,8 +165,15 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
   QBrush fillBrush() const override;
 
+  bool tipText(const CQChartsGeom::Point &p, QString &tip) const override;
+
+  bool isSetHidden() const;
+
+  void setSetHidden(bool b);
+
  private:
-  OptColor color_; // custom color
+  CQChartsBarChartPlot *plot_;  // plot
+  OptColor              color_; // custom color
 };
 
 // key text
@@ -106,7 +207,7 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
 //---
 
 // bar chart plot
-//  x   : category, name, ordered by set (keySets)
+//  x   : category, name
 //  y   : value, values
 //  bar : custom color, stacked, horizontal, margin, border, fill
 class CQChartsBarChartPlot : public CQChartsPlot {
@@ -116,12 +217,13 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(int     valueColumn      READ valueColumn       WRITE setValueColumn     )
   Q_PROPERTY(QString valueColumns     READ valueColumnsStr   WRITE setValueColumnsStr )
   Q_PROPERTY(int     nameColumn       READ nameColumn        WRITE setNameColumn      )
-  Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
   Q_PROPERTY(int     labelColumn      READ labelColumn       WRITE setLabelColumn     )
+  Q_PROPERTY(bool    rowGrouping      READ isRowGrouping     WRITE setRowGrouping     )
+  Q_PROPERTY(bool    colorBySet       READ isColorBySet      WRITE setColorBySet      )
+  Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
   Q_PROPERTY(bool    stacked          READ isStacked         WRITE setStacked         )
   Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
   Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
-  Q_PROPERTY(bool    keySets          READ isKeySets         WRITE setKeySets         )
   Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
   Q_PROPERTY(QString borderColor      READ borderColorStr    WRITE setBorderColorStr  )
   Q_PROPERTY(double  borderAlpha      READ borderAlpha       WRITE setBorderAlpha     )
@@ -148,8 +250,6 @@ class CQChartsBarChartPlot : public CQChartsPlot {
     BDIAG
   };
 
-  using OptColor = boost::optional<CQChartsPaletteColor>;
-
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsBarChartPlot();
@@ -157,56 +257,43 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   int categoryColumn() const { return categoryColumn_; }
-  void setCategoryColumn(int i) { categoryColumn_ = i; updateRangeAndObjs(); }
+  void setCategoryColumn(int i);
 
   int valueColumn() const { return valueColumn_; }
-
-  void setValueColumn(int i) {
-    valueColumn_ = i;
-
-    valueColumns_.clear();
-
-    if (valueColumn_ >= 0)
-      valueColumns_.push_back(valueColumn_);
-
-    updateRangeAndObjs();
-  }
+  void setValueColumn(int i);
 
   const Columns &valueColumns() const { return valueColumns_; }
-
-  void setValueColumns(const Columns &valueColumns) {
-    valueColumns_ = valueColumns;
-
-    if (! valueColumns_.empty())
-      valueColumn_ = valueColumns_[0];
-    else
-      valueColumn_ = -1;
-
-    updateRangeAndObjs();
-  }
+  void setValueColumns(const Columns &valueColumns);
 
   QString valueColumnsStr() const;
   bool setValueColumnsStr(const QString &s);
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  int valueColumnAt(int i) {
+    assert(i >= 0 && i < int(valueColumns_.size()));
 
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
+    return valueColumns_[i];
+  }
+
+  int numValueColumns() const { return std::max(int(valueColumns_.size()), 1); }
+
+  int nameColumn() const { return nameColumn_; }
+  void setNameColumn(int i);
 
   int labelColumn() const { return labelColumn_; }
-  void setLabelColumn(int i) { labelColumn_ = i; updateRangeAndObjs(); }
+  void setLabelColumn(int i);
+
+  //---
+
+  bool isColorBySet() const { return colorBySet_; }
+  void setColorBySet(bool b) { colorBySet_ = b; resetSetHidden(); updateRangeAndObjs(); }
 
   //---
 
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; updateRange(); }
+  void setStacked(bool b) { stacked_ = b; updateRangeAndObjs(); }
 
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateRangeAndObjs(); }
-
-  bool isKeySets() const { return keySets_; }
-  void setKeySets(bool b) { keySets_ = b; resetSetHidden(); updateRangeAndObjs(); }
 
   //---
 
@@ -251,18 +338,17 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
-  void initColorSet();
+  int colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
 
-  bool colorSetColor(int i, OptColor &color);
+  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
+  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
 
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
-
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
@@ -291,21 +377,10 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   void addKeyItems(CQChartsKey *key) override;
 
-  int numSets() const;
+   //---
 
-  int getSetColumn(int i) const;
-
-  int numValueSets() const;
-
-  int numSetValues() const;
-
-  //---
-
-  const QString &valueName(int i) const { return valueNames_[i]; }
-
-  const QString &valueSetName(int i) const { return valueSets_[i].name; }
-
-  const QString &valueSetValueName(int i, int j) const { return valueSets_[i].values[j].name; }
+  bool isSetHidden  (int i) const;
+  bool isValueHidden(int i) const;
 
   //---
 
@@ -314,68 +389,47 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  struct Value {
-    double      value { 0.0 };
-    QString     name;
-    QString     label;
-    QModelIndex ind;
+  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
-    Value() = default;
-
-    Value(double value, const QString &name, const QString &label, const QModelIndex &ind) :
-     value(value), name(name), label(label), ind(ind) {
-    }
-  };
-
-  using Values = std::vector<Value>;
-
-  struct ValueSet {
-    QString name;
-    int     ind { 0 };
-    Values  values;
-
-    ValueSet() = default;
-
-    ValueSet(const QString &name, int ind) :
-     name(name), ind(ind) {
-    }
-
-    void calcSums(double &posSum, double &negSum) {
-      posSum = 0.0;
-      negSum = 0.0;
-
-      for (auto &v : values) {
-        if (v.value >= 0) posSum += v.value;
-        else              negSum += v.value;
-      }
-    }
-  };
-
-  using ValueSets    = std::vector<ValueSet>;
-  using ValueNames   = std::vector<QString>;
-  using ValueNameInd = std::map<QString,int>;
+  void addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int valueColumn);
 
  private:
-  ValueSet *getValueSet(const QString &name);
+  using ValueSets     = std::vector<CQChartsBarChartValueSet>;
+  using ValueNames    = std::vector<QString>;
+  using ValueGroupInd = std::map<int,int>;
+
+ public:
+  int numValueSets() const { return valueSets_.size(); }
+
+  const CQChartsBarChartValueSet &valueSet(int i) const {
+    assert(i >= 0 && i < int(valueSets_.size()));
+    return valueSets_[i];
+  }
+
+  int numSetValues() const { return (! valueSets_.empty() ? valueSets_[0].numValues() : 0); }
 
  private:
-  int                  categoryColumn_ { 0 };       // category column
-  int                  valueColumn_    { 1 };       // value column
-  Columns              valueColumns_;               // value columns
-  int                  nameColumn_     { -1 };      // name column
-  int                  colorColumn_    { -1 };      // color column
-  int                  labelColumn_    { -1 };      // data label column
-  bool                 stacked_        { false };   // stacked bars
-  bool                 horizontal_     { false };   // horizontal bars
-  double               margin_         { 2 };       // bar margin
-  bool                 keySets_        { false };   // use set in key
-  CQChartsBoxObj*      borderObj_      { nullptr }; // border data
-  CQChartsFillObj*     fillObj_        { nullptr }; // fill data
-  CQChartsColorSet     colorSet_;                   // color column value set
-  CQChartsDataLabel    dataLabel_;                  // data label data
-  ValueSets            valueSets_;                  // value sets
-  ValueNames           valueNames_;                 // value names
-  ValueNameInd         valueNameInd_;               // name value index map
+  const QString &valueName(int i) const { return valueNames_[i]; }
+
+  CQChartsBarChartValueSet *groupValueSet(int groupId);
+
+ private:
+  int               categoryColumn_ { -1 };      // category column
+  int               valueColumn_    { 1 };       // value column
+  Columns           valueColumns_;               // value columns
+  int               nameColumn_     { -1 };      // name column
+  int               labelColumn_    { -1 };      // data label column
+  bool              colorBySet_     { false };   // color bars by set or value
+  bool              stacked_        { false };   // stacked bars
+  bool              horizontal_     { false };   // horizontal bars
+  double            margin_         { 2 };       // bar margin
+  CQChartsBoxObj*   borderObj_      { nullptr }; // border data
+  CQChartsFillObj*  fillObj_        { nullptr }; // fill data
+  CQChartsDataLabel dataLabel_;                  // data label data
+  ValueSets         valueSets_;                  // value sets
+  ValueNames        valueNames_;                 // value names
+  ValueGroupInd     valueGroupInd_;              // group ind to value index map
+  int               numVisible_     { 0 };       // number of visible bars
 };
 
 #endif

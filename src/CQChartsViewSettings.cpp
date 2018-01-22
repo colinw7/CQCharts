@@ -3,14 +3,17 @@
 #include <CQChartsView.h>
 #include <CQChartsFilterEdit.h>
 #include <CQPropertyViewTree.h>
-#include <CQGradientControlPlot.h>
-#include <CQGradientControlIFace.h>
+#include <CQChartsGradientPaletteCanvas.h>
+#include <CQChartsGradientPaletteControl.h>
 #include <CQIconCombo.h>
+#include <CQUtil.h>
 
 #include <QTabWidget>
 #include <QLineEdit>
+#include <QSpinBox>
 #include <QSplitter>
 #include <QLabel>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 CQChartsViewSettings::
@@ -24,9 +27,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(0);
 
-  tab_ = new QTabWidget;
-
-  tab_->setObjectName("tab");
+  tab_ = CQUtil::makeWidget<QTabWidget>("tab");
 
   layout->addWidget(tab_);
 
@@ -95,16 +96,50 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QHBoxLayout *paletteFrameLayout = new QHBoxLayout(paletteFrame);
 
-  QLabel    *gradientLabel = new QLabel("Gradient");
-  QComboBox *gradientCombo = new QComboBox;
+  QLabel *gradientLabel = new QLabel("Gradient");
 
-  gradientCombo->addItem("Palette");
-  gradientCombo->addItem("Theme");
+  gradientCombo_ = new QComboBox;
 
-  connect(gradientCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(gradientComboSlot(int)));
+  gradientCombo_->addItem("Palette");
+  gradientCombo_->addItem("Theme");
+
+  connect(gradientCombo_, SIGNAL(currentIndexChanged(int)), this, SLOT(gradientComboSlot(int)));
 
   paletteFrameLayout->addWidget(gradientLabel);
-  paletteFrameLayout->addWidget(gradientCombo);
+  paletteFrameLayout->addWidget(gradientCombo_);
+
+  QLabel *spinLabel = new QLabel("Index");
+
+  paletteSpin_ = new QSpinBox;
+
+  int np = window_->view()->theme()->numPalettes();
+
+  paletteSpin_->setRange(0, np);
+
+  connect(paletteSpin_, SIGNAL(valueChanged(int)), this, SLOT(paletteIndexSlot(int)));
+
+  paletteFrameLayout->addWidget(spinLabel);
+  paletteFrameLayout->addWidget(paletteSpin_);
+
+  QLabel *paletteNameLabel = new QLabel("Name");
+
+  paletteCombo_ = new QComboBox;
+
+  QStringList paletteNames;
+
+  CQChartsThemeMgrInst->getPaletteNames(paletteNames);
+
+  paletteCombo_->addItems(paletteNames);
+
+  paletteFrameLayout->addWidget(paletteNameLabel);
+  paletteFrameLayout->addWidget(paletteCombo_);
+
+  QPushButton *paletteLoadButton = new QPushButton("Load");
+
+  connect(paletteLoadButton, SIGNAL(clicked()), this, SLOT(loadPaletteNameSlot()));
+
+  paletteFrameLayout->addWidget(paletteLoadButton);
+
   paletteFrameLayout->addStretch(1);
 
   paletteLayout->addWidget(paletteFrame);
@@ -118,8 +153,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   paletteLayout->addWidget(splitter);
 
-  palettePlot_    = new CQGradientControlPlot(this, window_->view()->theme()->palette());
-  paletteControl_ = new CQGradientControlIFace(palettePlot_);
+  palettePlot_    = new CQChartsGradientPaletteCanvas(this, window_->view()->theme()->palette());
+  paletteControl_ = new CQChartsGradientPaletteControl(palettePlot_);
 
   splitter->addWidget(palettePlot_);
   splitter->addWidget(paletteControl_);
@@ -132,12 +167,60 @@ CQChartsViewSettings::
 
 void
 CQChartsViewSettings::
-gradientComboSlot(int ind)
+gradientComboSlot(int)
 {
-  if (ind == 0)
-    palettePlot_->setGradientPalette(window_->view()->theme()->palette());
-  else
+  updateGradientPalette();
+}
+
+void
+CQChartsViewSettings::
+paletteIndexSlot(int)
+{
+  updateGradientPalette();
+}
+
+void
+CQChartsViewSettings::
+loadPaletteNameSlot()
+{
+  QString name = paletteCombo_->currentText();
+
+  CQChartsGradientPalette *palette = CQChartsThemeMgrInst->getNamedPalette(name);
+
+  if (! palette)
+    return;
+
+  int i = paletteSpin_->value();
+
+  window_->view()->theme()->setPalette(i, palette);
+
+  updateGradientPalette();
+}
+
+void
+CQChartsViewSettings::
+updateGradientPalette()
+{
+  int ind = gradientCombo_->currentIndex();
+
+  if (ind == 0) {
+    paletteSpin_->setEnabled(true);
+
+    int i = paletteSpin_->value();
+
+    CQChartsGradientPalette *palette = window_->view()->theme()->palette(i);
+
+    palettePlot_->setGradientPalette(palette);
+
+    paletteCombo_->setCurrentText(palette->name());
+  }
+  else {
     palettePlot_->setGradientPalette(window_->view()->theme()->theme());
+
+    paletteSpin_->setEnabled(false);
+
+    paletteCombo_->setCurrentIndex(-1);
+  }
 
   paletteControl_->updateState();
 }

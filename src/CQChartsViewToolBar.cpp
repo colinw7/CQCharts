@@ -101,19 +101,19 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   QButtonGroup *selectButtonGroup = new QButtonGroup(this);
 
-  QRadioButton *selectPointButton = new QRadioButton("Point");
-  QRadioButton *selectRectButton  = new QRadioButton("Rect");
+  selectPointButton_ = new QRadioButton("Point");
+  selectRectButton_  = new QRadioButton("Rect");
 
-  selectPointButton->setFocusPolicy(Qt::NoFocus);
-  selectRectButton ->setFocusPolicy(Qt::NoFocus);
+  selectPointButton_->setFocusPolicy(Qt::NoFocus);
+  selectRectButton_ ->setFocusPolicy(Qt::NoFocus);
 
-  selectPointButton->setChecked(true);
+  selectPointButton_->setChecked(true);
 
-  selectButtonGroup->addButton(selectPointButton, 0);
-  selectButtonGroup->addButton(selectRectButton , 1);
+  selectButtonGroup->addButton(selectPointButton_, 0);
+  selectButtonGroup->addButton(selectRectButton_ , 1);
 
-  selectControlsLayout->addWidget(selectPointButton);
-  selectControlsLayout->addWidget(selectRectButton );
+  selectControlsLayout->addWidget(selectPointButton_);
+  selectControlsLayout->addWidget(selectRectButton_ );
 
   connect(selectButtonGroup, SIGNAL(buttonClicked(int)), this, SLOT(selectButtonClicked(int)));
 
@@ -209,6 +209,11 @@ updateMode()
   if      (window_->view()->mode() == CQChartsView::Mode::SELECT) {
     modeCombo_    ->setCurrentIndex(0);
     controlsStack_->setCurrentIndex(0);
+
+    if (window_->view()->selectMode() == CQChartsView::SelectMode::POINT)
+      selectPointButton_->setChecked(true);
+    else
+      selectRectButton_->setChecked(true);
   }
   else if (window_->view()->mode() == CQChartsView::Mode::ZOOM) {
     modeCombo_    ->setCurrentIndex(1);

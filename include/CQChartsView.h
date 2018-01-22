@@ -15,7 +15,7 @@ class QPainter;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 
-class CGradientPalette;
+class CQChartsGradientPalette;
 class QToolButton;
 class QRubberBand;
 class QLabel;
@@ -24,11 +24,12 @@ class QMenu;
 class CQChartsView : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(QString id             READ id             WRITE setId            )
-  Q_PROPERTY(QString title          READ title          WRITE setTitle         )
-  Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
-  Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
-  Q_PROPERTY(Mode    mode           READ mode           WRITE setMode          )
+  Q_PROPERTY(QString    id             READ id             WRITE setId            )
+  Q_PROPERTY(QString    title          READ title          WRITE setTitle         )
+  Q_PROPERTY(QColor     background     READ background     WRITE setBackground    )
+  Q_PROPERTY(int        currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(Mode       mode           READ mode           WRITE setMode          )
+  Q_PROPERTY(SelectMode selectMode     READ selectMode     WRITE setSelectMode    )
 
   Q_PROPERTY(HighlightDataMode selectedMode               READ selectedMode
                                                           WRITE setSelectedMode)
@@ -140,7 +141,7 @@ class CQChartsView : public QFrame {
   void setMode(const Mode &m);
 
   const SelectMode &selectMode() const { return selectMode_; }
-  void setSelectMode(const SelectMode &m) { selectMode_ = m; }
+  void setSelectMode(const SelectMode &m);
 
   //---
 
@@ -216,8 +217,10 @@ class CQChartsView : public QFrame {
 
   const QString &themeName() const { return theme()->name(); }
 
-  //CGradientPalette *gradientPalette() const { return theme_->palette(); }
-  //CGradientPalette *themePalette   () const { return theme_->theme  (); }
+  CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
+
+  CQChartsGradientPalette *themePalette() const { return theme_->palette(); }
+  CQChartsGradientPalette *themeTheme  () const { return theme_->theme  (); }
 
   //---
 
@@ -354,6 +357,7 @@ class CQChartsView : public QFrame {
 
  signals:
   void modeChanged();
+  void selectModeChanged();
 
   void statusTextChanged(const QString &text);
 

@@ -11,9 +11,7 @@ class CQChartsPlotObj : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox()) :
-   plot_(plot), rect_(rect) {
-  }
+  CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
 
   virtual ~CQChartsPlotObj() { }
 
@@ -22,25 +20,20 @@ class CQChartsPlotObj : public QObject {
 
   //---
 
-  const QString &id() const {
-    if (! id_)
-      const_cast<CQChartsPlotObj*>(this)->id_ = calcId();
-
-    return *id_;
-  }
-
+  const QString &id() const;
   void setId(const QString &s) { id_ = s; }
 
   virtual QString calcId() const = 0;
 
+  const QString &tipId() const;
+  void setTipId(const QString &s) { tipId_ = s; }
+
   virtual QString calcTipId() const { return calcId(); }
 
-  virtual const QString &tipId() const {
-    if (! tipId_)
-      const_cast<CQChartsPlotObj*>(this)->tipId_ = calcTipId();
+  //---
 
-    return *tipId_;
-  }
+  virtual int colorInd() const { return colorInd_; }
+  void setColorInd(int i) { colorInd_ = i; }
 
   //---
 
@@ -59,7 +52,11 @@ class CQChartsPlotObj : public QObject {
   const QPen &stroke() const { return stroke_; }
   void setStroke(const QPen &p) { stroke_ = p; }
 
+  //---
+
   virtual bool visible() const { return isVisible(); }
+
+  //---
 
   // is point inside (override if not simple rect shape)
   virtual bool inside(const CQChartsGeom::Point &p) const { return rect_.inside(p); }
@@ -84,11 +81,21 @@ class CQChartsPlotObj : public QObject {
   CQChartsGeom::BBox rect_;
   OptString          id_;
   OptString          tipId_;
+  int                colorInd_ { -1 };
   bool               visible_  { true };
   bool               selected_ { false };
   bool               inside_   { false };
   QBrush             fill_;
   QPen               stroke_;
+};
+
+//------
+
+class CQChartsGroupObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsGroupObj(CQChartsPlot *plot);
 };
 
 #endif

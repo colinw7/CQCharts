@@ -6,6 +6,7 @@
 #include <set>
 #include <cassert>
 
+class CQCharts;
 class CQChartsModelExprMatch;
 class QItemSelectionModel;
 
@@ -73,7 +74,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   // model indices are from source model
  public:
-  CQChartsModelFilter();
+  CQChartsModelFilter(CQCharts *charts);
 
  ~CQChartsModelFilter();
 
@@ -111,7 +112,11 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   bool acceptsItem(const QModelIndex &ind) const;
 
- private:
+  //---
+
+  QVariant data(const QModelIndex &index, int role) const;
+
+ protected:
   const CQChartsModelFilterData &currentFilterData() const {
     assert(! filterDatas_.empty());
 
@@ -136,12 +141,13 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   bool filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &ind) const;
 
- private:
+ protected:
   typedef std::map<QModelIndex,bool> IndexMatches;
   typedef std::set<QModelIndex>      ExpandInds;
 
   using FilterDatas = std::vector<CQChartsModelFilterData>;
 
+  CQCharts*               charts_         { nullptr };
   CQChartsModelExprMatch* expr_           { nullptr };
   QItemSelectionModel*    selectionModel_ { nullptr };
   FilterDatas             filterDatas_;

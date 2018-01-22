@@ -149,6 +149,10 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
+  bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
+
+  //---
+
   virtual bool mousePress  (const CQChartsGeom::Point &) { return false; }
   virtual bool mouseMove   (const CQChartsGeom::Point &);
   virtual void mouseRelease(const CQChartsGeom::Point &) { }
@@ -246,8 +250,16 @@ class CQChartsKeyItem : public QObject {
   bool isInside() const { return inside_; }
   void setInside(bool b) { inside_ = b; }
 
+  //---
+
+  virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
+
+  //---
+
   virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
   virtual bool mouseMove (const CQChartsGeom::Point &) { return false; }
+
+  //---
 
   virtual void draw(QPainter *painter, const CQChartsGeom::BBox &rect) = 0;
 
@@ -272,6 +284,9 @@ class CQChartsKeyText : public CQChartsKeyItem {
 
  public:
   CQChartsKeyText(CQChartsPlot *plot, const QString &text);
+
+  const QString &text() const { return text_; }
+  void setText(const QString &s) { text_ = s; }
 
   QSizeF size() const override;
 

@@ -525,6 +525,32 @@ mouseDragRelease(const CQChartsGeom::Point &)
 
 bool
 CQChartsKey::
+tipText(const CQChartsGeom::Point &p, QString &tip) const
+{
+  bool rc = false;
+
+  CQChartsKeyItem *item = getItemAt(p);
+
+  if (item) {
+    QString tip1;
+
+    if (item->tipText(p, tip1)) {
+      if (! tip.length())
+        tip += "\n";
+
+      tip += tip1;
+
+      rc = true;
+    }
+  }
+
+  return rc;
+}
+
+//------
+
+bool
+CQChartsKey::
 setInside(CQChartsKeyItem *item)
 {
   bool changed = false;
@@ -706,6 +732,13 @@ CQChartsKeyItem::
 CQChartsKeyItem(CQChartsKey *key) :
  key_(key)
 {
+}
+
+bool
+CQChartsKeyItem::
+tipText(const CQChartsGeom::Point &, QString &) const
+{
+  return false;
 }
 
 //------

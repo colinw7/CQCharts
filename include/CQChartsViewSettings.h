@@ -6,9 +6,13 @@
 class CQChartsWindow;
 class CQChartsFilterEdit;
 class CQPropertyViewTree;
-class CQGradientControlPlot;
-class CQGradientControlIFace;
+class CQChartsGradientPaletteCanvas;
+class CQChartsGradientPaletteControl;
+
 class QTabWidget;
+class QComboBox;
+class QSpinBox;
+class QLabel;
 
 class CQChartsViewSettings : public QFrame {
   Q_OBJECT
@@ -19,12 +23,15 @@ class CQChartsViewSettings : public QFrame {
 
   CQPropertyViewTree *propertyTree() const { return propertyTree_; }
 
-  CQGradientControlPlot *palettePlot() const { return palettePlot_; }
+  CQChartsGradientPaletteCanvas *palettePlot() const { return palettePlot_; }
 
-  CQGradientControlIFace *paletteControl() const { return paletteControl_; }
+  CQChartsGradientPaletteControl *paletteControl() const { return paletteControl_; }
 
  private slots:
   void gradientComboSlot(int ind);
+  void paletteIndexSlot(int ind);
+
+  void loadPaletteNameSlot();
 
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);
@@ -33,12 +40,18 @@ class CQChartsViewSettings : public QFrame {
   void addSearchSlot(const QString &text);
 
  private:
-  CQChartsWindow*         window_         { nullptr };
-  QTabWidget*             tab_            { nullptr };
-  CQChartsFilterEdit*     filterEdit_     { nullptr };
-  CQPropertyViewTree*     propertyTree_   { nullptr };
-  CQGradientControlPlot*  palettePlot_    { nullptr };
-  CQGradientControlIFace* paletteControl_ { nullptr };
+  void updateGradientPalette();
+
+ private:
+  CQChartsWindow*                 window_         { nullptr };
+  QTabWidget*                     tab_            { nullptr };
+  CQChartsFilterEdit*             filterEdit_     { nullptr };
+  CQPropertyViewTree*             propertyTree_   { nullptr };
+  CQChartsGradientPaletteCanvas*  palettePlot_    { nullptr };
+  CQChartsGradientPaletteControl* paletteControl_ { nullptr };
+  QComboBox*                      gradientCombo_  { nullptr };
+  QSpinBox*                       paletteSpin_    { nullptr };
+  QComboBox*                      paletteCombo_   { nullptr };
 };
 
 #endif

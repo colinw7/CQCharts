@@ -10,17 +10,18 @@
 #include <CQChartsPointObj.h>
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsNoDataObj.h>
-#include <CQChartsUtil.h>
-#include <CQCharts.h>
-#include <CQPropertyViewModel.h>
-#include <CGradientPalette.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
+#include <CQChartsUtil.h>
+#include <CQCharts.h>
+
+#include <CQPropertyViewModel.h>
+#include <CQChartsGradientPalette.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
-#include <iostream>
 
 //------
 
@@ -161,6 +162,8 @@ CQChartsPlot::
 ~CQChartsPlot()
 {
   clearPlotObjects();
+
+  deleteValueSets();
 
   delete plotObjTree_;
 
@@ -1401,7 +1404,8 @@ mousePress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
     objsAtPoint(w, objs);
 
-    selectObj = *objs.begin();
+    if (! objs.empty())
+      selectObj = *objs.begin();
   }
 
   //---
@@ -1410,7 +1414,7 @@ mousePress(const CQChartsGeom::Point &w, ModSelect modSelect)
   if (selectObj) {
     if      (modSelect == ModSelect::TOGGLE)
       objsSelected[selectObj] = ! selectObj->isSelected();
-    else if(modSelect == ModSelect::REPLACE)
+    else if (modSelect == ModSelect::REPLACE)
       objsSelected[selectObj] = true;
     else if (modSelect == ModSelect::ADD)
       objsSelected[selectObj] = true;
@@ -1735,7 +1739,7 @@ columnStr(int column, double x) const
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
-  CQBaseModel::Type  columnType;
+  ColumnType         columnType;
   CQChartsNameValues nameValues;
 
   if (! columnTypeMgr->getModelColumnType(model, column, columnType, nameValues))
@@ -2066,7 +2070,8 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
     numObjs = objs.size();
 
-    tipObj = *objs.begin();
+    if (numObjs)
+      tipObj = *objs.begin();
   }
 
   if (tipObj) {
@@ -2777,18 +2782,35 @@ QColor
 CQChartsPlot::
 interpPaletteColor(double r, bool scale) const
 {
-  QColor c = theme()->palette()->getColor(r, scale);
+  CQChartsGradientPalette *palette = view()->themePalette();
+
+  QColor c = palette->getColor(r, scale);
 
   return c;
 }
 
 QColor
 CQChartsPlot::
-groupPaletteColor(double r1, double r2, double dr) const
+interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
+  CQChartsGradientPalette *palette = view()->themeGroupPalette(ig, ng);
+
+  double r = CQChartsUtil::norm(i + 1, 0, n  + 1);
+
+  QColor c = palette->getColor(r, scale);
+
+  return c;
+}
+
+QColor
+CQChartsPlot::
+interpGroupPaletteColor(double r1, double r2, double dr) const
+{
+  CQChartsTheme *theme = view()->theme();
+
   // r1 is parent color and r2 is child color
-  QColor c1 = theme()->palette()->getColor(r1 - dr/2.0);
-  QColor c2 = theme()->palette()->getColor(r1 + dr/2.0);
+  QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
+  QColor c2 = theme->palette()->getColor(r1 + dr/2.0);
 
   return CQChartsUtil::blendColors(c1, c2, r2);
 }
@@ -2804,62 +2826,99 @@ QColor
 CQChartsPlot::
 interpThemeColor(double r) const
 {
-  QColor c = theme()->theme()->getColor(r, /*scale*/true);
+  CQChartsTheme *theme = view()->theme();
+
+  QColor c = theme->theme()->getColor(r, /*scale*/true);
 
   return c;
 }
 
 //------
 
-CQBaseModel::Type
+CQChartsPlot::ColumnType
 CQChartsPlot::
 columnValueType(QAbstractItemModel *model, int column) const
 {
   assert(model);
 
-  int nr = model->rowCount(QModelIndex());
+  if (column < 0 || column >= model->columnCount())
+    return ColumnType::NONE;
 
-  if (column < 0 || column >= nr)
-    return CQBaseModel::Type::NONE;
+  //---
+
+  // use defined column type if available
+  CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
+
+  ColumnType         columnType;
+  CQChartsNameValues nameValues;
+
+  if (columnTypeMgr->getModelColumnType(model, column, columnType, nameValues))
+    return columnType;
+
+  //---
+
+  // determine column type from values
+  // TODO: cache ?
+
+  // process model data
+  class ColumnTypeVisitor : public Visitor {
+   public:
+    ColumnTypeVisitor(int column) :
+     column_(column) {
+    }
+
+    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+       QModelIndex ind = model->index(row, column_, parent);
+
+      // if column can be integral, check if value is valid integer
+      if (isInt_) {
+        bool ok;
+
+        (void) CQChartsUtil::modelInteger(model, ind, ok);
+
+        if (ok)
+          return true;
+
+        isInt_ = false;
+      }
+
+      // if column can be real, check if value is valid real
+      if (isReal_) {
+        bool ok;
+
+        (void) CQChartsUtil::modelReal(model, ind, ok);
+
+        if (ok)
+          return true;
+
+        isReal_ = false;
+      }
+
+      // not value real or integer so assume string and we are done
+      return false;
+    }
+
+    ColumnType columnType() {
+      if      (isInt_)
+        return ColumnType::INTEGER;
+      else if (isReal_)
+        return ColumnType::REAL;
+      else
+        return ColumnType::STRING;
+    }
+
+   private:
+    int  column_ { -1 };
+    bool isInt_  { true };
+    bool isReal_ { true };
+  };
 
   // determine column value type
-  bool isInt = true, isReal = true;
+  ColumnTypeVisitor columnTypeVisitor(column);
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex xind = model->index(r, column);
+  const_cast<CQChartsPlot *>(this)->visitModel(columnTypeVisitor);
 
-    if (isInt) {
-      bool ok1;
-
-      (void) CQChartsUtil::modelInteger(model, xind, ok1);
-
-      if (ok1)
-        continue;
-
-      isInt = false;
-    }
-
-    if (isReal) {
-      bool ok1;
-
-      (void) CQChartsUtil::modelReal(model, xind, ok1);
-
-      if (ok1)
-        continue;
-
-      isReal = false;
-    }
-
-    break;
-  }
-
-  if (isInt)
-    return CQBaseModel::Type::INTEGER;
-
-  if (isReal)
-    return CQBaseModel::Type::REAL;
-
-  return CQBaseModel::Type::STRING;
+  return columnTypeVisitor.columnType();
 }
 
 //------
@@ -3025,10 +3084,367 @@ isHierarchical() const
 
 //------
 
+CQChartsValueSet *
+CQChartsPlot::
+addValueSet(const QString &name, double min, double max)
+{
+  CQChartsValueSet *valueSet = addValueSet(name);
+
+  valueSet->setMapMin(min);
+  valueSet->setMapMax(max);
+
+  return valueSet;
+}
+
+CQChartsValueSet *
+CQChartsPlot::
+addValueSet(const QString &name)
+{
+  assert(! getValueSet(name));
+
+  CQChartsValueSet *valueSet = new CQChartsValueSet;
+
+  valueSets_[name] = valueSet;
+
+  return valueSet;
+}
+
+CQChartsValueSet *
+CQChartsPlot::
+addColorSet(const QString &name)
+{
+  assert(! getColorSet(name));
+
+  CQChartsColorSet *colorSet = new CQChartsColorSet;
+
+  valueSets_[name] = colorSet;
+
+  return colorSet;
+}
+
+CQChartsValueSet *
+CQChartsPlot::
+getValueSet(const QString &name) const
+{
+  auto p = valueSets_.find(name);
+
+  if (p == valueSets_.end())
+    return nullptr;
+
+  return (*p).second;
+}
+
+CQChartsColorSet *
+CQChartsPlot::
+getColorSet(const QString &name) const
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+
+  return dynamic_cast<CQChartsColorSet *>(valueSet);
+}
+
+void
+CQChartsPlot::
+clearValueSets()
+{
+  for (auto &valueSet : valueSets_)
+    valueSet.second->clear();
+}
+
+void
+CQChartsPlot::
+deleteValueSets()
+{
+  for (auto &valueSet : valueSets_)
+    delete valueSet.second;
+
+  valueSets_.clear();
+}
+
+int
+CQChartsPlot::
+valueSetColumn(const QString &name) const
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  return valueSet->column();
+}
+
+void
+CQChartsPlot::
+setValueSetColumn(const QString &name, int i)
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  valueSet->setColumn(i);
+}
+
+bool
+CQChartsPlot::
+isValueSetMapEnabled(const QString &name) const
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  return valueSet->isMapEnabled();
+}
+
+void
+CQChartsPlot::
+setValueSetMapEnabled(const QString &name, bool b)
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  valueSet->setMapEnabled(b);
+}
+
+double
+CQChartsPlot::
+valueSetMapMin(const QString &name) const
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  return valueSet->mapMin();
+}
+
+void
+CQChartsPlot::
+setValueSetMapMin(const QString &name, double min)
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  valueSet->setMapMin(min);
+}
+
+double
+CQChartsPlot::
+valueSetMapMax(const QString &name) const
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  return valueSet->mapMax();
+}
+
+void
+CQChartsPlot::
+setValueSetMapMax(const QString &name, double max)
+{
+  CQChartsValueSet *valueSet = getValueSet(name);
+  assert(valueSet);
+
+  valueSet->setMapMax(max);
+}
+
+bool
+CQChartsPlot::
+colorSetColor(const QString &name, int i, OptColor &color)
+{
+  CQChartsColorSet *colorSet = getColorSet(name);
+  assert(colorSet);
+
+  return colorSet->icolor(i, color);
+}
+
+void
+CQChartsPlot::
+initValueSets()
+{
+  // if no columns set then skip
+  bool anyColumn = false;
+
+  for (auto &valueSet : valueSets_) {
+    if (valueSet.second->column() >= 0) {
+      anyColumn = true;
+      break;
+    }
+  }
+
+  if (! anyColumn)
+    return;
+
+  //---
+
+  // if any sets non-empty then already populated
+  // TODO: only check active and fill all empty ?
+  bool empty = true;
+
+  for (auto &valueSet : valueSets_) {
+    if (! valueSet.second->empty()) {
+      empty = false;
+      break;
+    }
+  }
+
+  if (! empty)
+    return;
+
+  //---
+
+  // process model data
+  class ValueSetVisitor : public Visitor {
+   public:
+    ValueSetVisitor(CQChartsPlot *plot) :
+     plot_(plot) {
+    }
+
+    bool visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+      plot_->addValueSetRow(model, ind, row);
+
+      return true;
+    }
+
+   private:
+    CQChartsPlot *plot_ { nullptr };
+  };
+
+  ValueSetVisitor valueSetVisitor(this);
+
+  visitModel(valueSetVisitor);
+}
+
+void
+CQChartsPlot::
+addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
+{
+  for (auto &valueSet : valueSets_) {
+    int column = valueSet.second->column();
+
+    if (column >= 0) {
+      QModelIndex ind = model->index(r, column, parent);
+
+      bool ok;
+
+      QVariant value = CQChartsUtil::modelValue(model, ind, ok);
+
+      valueSet.second->addValue(value); // always add some value
+    }
+  }
+}
+
+//------
+
+void
+CQChartsPlot::
+initGroup(int groupColumn, const Columns &valueColumns, bool rowGrouping)
+{
+  groupBucket_.clear();
+
+  QAbstractItemModel *model = this->model();
+
+  if (! model)
+    return;
+
+  //---
+
+  // for row grouping we use the column header as the grouping id so all row
+  // values in the column are added to the group
+  if (valueColumns.size() > 1 && rowGrouping) {
+    groupBucket_.setColumnType (ColumnType::INTEGER);
+    groupBucket_.setDataType   (CQChartsColumnBucket::DataType::HEADER);
+    groupBucket_.setRowGrouping(true);
+
+    for (const auto &column : valueColumns) {
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderValue(model, column, ok).toString();
+
+      int ind = groupBucket_.addValue(column);
+
+      groupBucket_.setIndName(ind, name);
+    }
+
+    return;
+  }
+
+  //---
+
+  if (groupColumn >= 0) {
+    ColumnType columnType = columnValueType(model, groupColumn);
+
+    groupBucket_.setColumnType(columnType);
+    groupBucket_.setColumn    (groupColumn);
+    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
+  }
+  else {
+    groupBucket_.setColumnType(ColumnType::STRING);
+    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::PATH);
+  }
+
+  // process model data
+  class GroupVisitor : public Visitor {
+   public:
+    GroupVisitor(CQChartsColumnBucket *bucket) :
+     bucket_(bucket) {
+    }
+
+    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      if (bucket_->column() >= 0) {
+        QModelIndex ind = model->index(row, bucket_->column(), parent);
+
+        bool ok;
+
+        QVariant value = CQChartsUtil::modelValue(model, ind, ok);
+
+        bucket_->addValue(value);
+      }
+      else {
+        QString path = plot()->parentPath(model, parent);
+
+        bucket_->addString(path);
+      }
+
+      return true;
+    }
+
+   private:
+    CQChartsColumnBucket *bucket_ { nullptr };
+  };
+
+  GroupVisitor groupVisitor(&groupBucket_);
+
+  visitModel(groupVisitor);
+}
+
+int
+CQChartsPlot::
+rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row, int column) const
+{
+  // header has multiple groups (one per column)
+  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
+    return groupBucket_.ind(column);
+  }
+
+  // get group id from value in group column
+  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
+    QModelIndex ind = model->index(row, groupBucket_.column(), parent);
+
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, ind, ok);
+
+    return groupBucket_.ind(value);
+  }
+
+  // get group id from parent path name
+  QString path = parentPath(model, parent);
+
+  return groupBucket_.ind(path);
+}
+
+//------
+
 void
 CQChartsPlot::
 visitModel(Visitor &visitor)
 {
+  visitor.setPlot(this);
+
   QModelIndex parent;
 
   visitModelIndex(parent, visitor);
@@ -3050,9 +3466,38 @@ visitModelIndex(const QModelIndex &parent, Visitor &visitor)
 
     if (model->rowCount(ind1) > 0)
       visitModelIndex(ind1, visitor);
-    else
-      visitor.visit(model, parent, r);
+    else {
+      if (! visitor.visit(model, parent, r))
+        break;
+    }
   }
+}
+
+QString
+CQChartsPlot::
+parentPath(QAbstractItemModel *model, const QModelIndex &parent) const
+{
+  QString path;
+
+  QModelIndex pind = parent;
+
+  while (pind.isValid()) {
+    bool ok;
+
+    QString str = CQChartsUtil::modelString(model, parent, ok);
+
+    if (! ok)
+      break;
+
+    if (path.length())
+      path = "/" + path;
+
+    path = str + path;
+
+    pind = pind.parent();
+  }
+
+  return path;
 }
 
 //------

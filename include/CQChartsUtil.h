@@ -591,6 +591,26 @@ inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok
 
 //------
 
+inline double varToReal(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Double)
+    return var.toReal();
+
+  return toReal(var, ok);
+}
+
+inline long varToInt(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Int)
+    return var.toInt();
+
+  return toInt(var, ok);
+}
+
+//---
+
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   ok = true;
 
@@ -625,10 +645,7 @@ inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
 
-  if (var.type() == QVariant::Double)
-    return var.toReal();
-
-  return toReal(var, ok);
+  return varToReal(var, ok);
 }
 
 inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
@@ -640,10 +657,7 @@ inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
 
-  if (var.type() == QVariant::Int)
-    return var.toInt();
-
-  return toInt(var, ok);
+  return varToInt(var, ok);
 }
 
 inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
@@ -697,6 +711,18 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
   return true;
 }
 
+//------
+
+// compare reals with tolerance
+struct RealCmp {
+  bool operator()(const double &lhs, const double &rhs) const {
+    if (CQChartsUtil::realEq(lhs, rhs))
+      return false;
+
+    return lhs < rhs;
+  }
+};
+
 }
 
 //------
@@ -730,5 +756,54 @@ class CQChartsScopeGuard {
  private:
   std::function<void()> f_;
 };
+
+//------
+
+#if 0
+template<typename KEY>
+class CQChartsOrderedSet {
+ public:
+  CQChartsOrderedSet() { }
+
+  void add(const KEY &key) {
+    auto p = keySet_.find(key);
+
+    if (p == keySet_.end()) {
+      keySet_.insert(key);
+
+      keys_.push_back(key);
+    }
+  }
+
+ private:
+  using KeySet = std::set<KEY>;
+  using Keys   = std::vector<KEY>;
+
+  KeySet keySet_;
+  Keys   keys_;
+};
+
+template<typename KEY, typename VALUE>
+class CQChartsOrderedMap {
+ public:
+  CQChartsOrderedMap() { }
+
+  void add(const KEY &key, const VALUE &value) {
+    auto p = keyValues_.find(key);
+
+    if (p == keyValues_.end())
+      p = keyValues_.insert(p, KeyValues::value_type(key, value));
+
+    p.second.add(value);
+  }
+
+ private:
+  using ValueSet = CQChartsOrderedSet<VALUE>;
+  using KeyMap   = std::map<KEY,ValueSet>;
+
+  KeyMap keyMap_;
+  Keys   keys_;
+};
+#endif
 
 #endif

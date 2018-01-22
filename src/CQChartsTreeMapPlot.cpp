@@ -5,7 +5,6 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsFillObj.h>
 #include <CQChartsTip.h>
-#include <CGradientPalette.h>
 
 #include <QMenu>
 #include <QPainter>
@@ -821,7 +820,7 @@ loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth)
   if (! model)
     return;
 
-  //CQBaseModel::Type valueColumnType = columnValueType(model, valueColumn());
+  //ColumnType valueColumnType = columnValueType(model, valueColumn());
 
   //---
 
@@ -893,7 +892,7 @@ loadFlat()
 
   //---
 
-  CQBaseModel::Type valueColumnType = columnValueType(model, valueColumn());
+  ColumnType valueColumnType = columnValueType(model, valueColumn());
 
   //---
 
@@ -917,9 +916,9 @@ loadFlat()
     if (valueInd.isValid()) {
       bool ok2 = true;
 
-      if      (valueColumnType == CQBaseModel::Type::REAL)
+      if      (valueColumnType == ColumnType::REAL)
         size = CQChartsUtil::modelReal(model, valueInd, ok2);
-      else if (valueColumnType == CQBaseModel::Type::INTEGER)
+      else if (valueColumnType == ColumnType::INTEGER)
         size = CQChartsUtil::modelInteger(model, valueInd, ok2);
       else
         ok2 = false;
@@ -1385,8 +1384,6 @@ calcTipId() const
     return hierObj_->calcTipId();
 
   CQChartsTableTip tableTip;
-
-  //return QString("%1:%2").arg(name).arg(node_->hierSize());
 
   tableTip.addTableRow("Name", node_->hierName());
   tableTip.addTableRow("Size", node_->hierSize());

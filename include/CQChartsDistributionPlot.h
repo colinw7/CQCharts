@@ -168,11 +168,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; resetValues(); updateRangeAndObjs(); }
-
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
+  int valueColumn() const { return valueSetColumn("values"); }
+  void setValueColumn(int i) { setValueSetColumn("values", i); updateRangeAndObjs(); }
 
   //---
 
@@ -210,8 +207,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   double calcStartValue() const;
 
   void calcCategoryRange();
-
-  void resetValues() { valueSet_.clear(); }
 
   //---
 
@@ -269,18 +264,17 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  void initColorSet();
+  int colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
 
-  bool colorSetColor(int i, OptColor &color);
+  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
+  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
 
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
-
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
@@ -335,17 +329,13 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using FilterStack = std::vector<Filters>;
 
  private:
-  int               valueColumn_ { -1 };      // value column
-  int               colorColumn_ { -1 };      // color column
   CategoryRange     categoryRange_;           // category range
-  CQChartsValueSet  valueSet_;                // distribution values
   bool              autoDelta_   { false };   // auto delta
   IValues           ivalues_;                 // indexed values
   bool              horizontal_  { false };   // horizontal bars
   double            margin_      { 2 };       // bar margin
   CQChartsBoxObj*   borderObj_   { nullptr }; // border object
   CQChartsFillObj*  fillObj_     { nullptr }; // fill object
-  CQChartsColorSet  colorSet_;                // color column value set
   CQChartsDataLabel dataLabel_;               // data label data
   FilterStack       filterStack_;             // filter stack
 };

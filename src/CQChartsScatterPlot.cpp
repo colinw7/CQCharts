@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
@@ -42,11 +43,9 @@ CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("scatter"), model), dataLabel_(this)
 {
-  symbolSizeSet_.setMapMin(16);
-  symbolSizeSet_.setMapMax(64);
-
-  fontSizeSet_.setMapMin(16);
-  fontSizeSet_.setMapMax(64);
+  (void) addValueSet("symbolSize", 16, 64);
+  (void) addValueSet("fontSize"  , 16, 64);
+  (void) addColorSet("color");
 
   symbolBorderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
   symbolFillColor_   = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE);
@@ -199,99 +198,11 @@ nameIndex(const QString &name) const
 
 void
 CQChartsScatterPlot::
-initSymbolSizeSet()
-{
-  symbolSizeSet_.clear();
-
-  if (symbolSizeColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, symbolSizeColumn(), ok);
-
-    symbolSizeSet_.addValue(value); // always add some value
-  }
-}
-
-void
-CQChartsScatterPlot::
-initFontSizeSet()
-{
-  fontSizeSet_.clear();
-
-  if (fontSizeColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, fontSizeColumn(), ok);
-
-    fontSizeSet_.addValue(value); // always add some value
-  }
-}
-
-//------
-
-void
-CQChartsScatterPlot::
-initColorSet()
-{
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsScatterPlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i, color);
-}
-
-//------
-
-void
-CQChartsScatterPlot::
 updateObjs()
 {
   nameValues_.clear();
 
-  symbolSizeSet_.clear();
-  fontSizeSet_  .clear();
-  colorSet_     .clear();
+  clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -314,14 +225,13 @@ initObjs()
 
   //---
 
+  // init value set
+  initValueSets();
+
+  //---
+
   // init name values
   if (nameValues_.empty()) {
-    initSymbolSizeSet();
-    initFontSizeSet  ();
-    initColorSet     ();
-
-    //---
-
     QAbstractItemModel *model = this->model();
 
     if (! model)
@@ -412,6 +322,13 @@ initObjs()
 
   //---
 
+  CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
+  CQChartsValueSet *fontSizeSet   = getValueSet("fontSize");
+
+  assert(symbolSizeSet && fontSizeSet);
+
+  //---
+
   //double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   //double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
@@ -436,15 +353,16 @@ initObjs()
         double symbolSize = this->symbolSize();
 
         if (symbolSizeColumn() >= 0)
-          symbolSize = symbolSizeSet_.imap(valuePoint.i);
+          symbolSize = symbolSizeSet->imap(valuePoint.i);
 
         OptReal  fontSize = boost::make_optional(false, 0.0);
         OptColor color    = boost::make_optional(false, CQChartsPaletteColor());
 
         if (fontSizeColumn() >= 0)
-          fontSize = fontSizeSet_.imap(valuePoint.i);
+          fontSize = fontSizeSet->imap(valuePoint.i);
 
-        (void) colorSetColor(valuePoint.i, color);
+        if (colorColumn() >= 0)
+          (void) colorSetColor("color", valuePoint.i, color);
 
         double sw = pixelToWindowWidth (symbolSize);
         double sh = pixelToWindowHeight(symbolSize);

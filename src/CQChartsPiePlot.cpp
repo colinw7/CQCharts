@@ -1,6 +1,7 @@
 #include <CQChartsPiePlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <QPainter>
@@ -15,10 +16,12 @@ CQChartsPiePlotType::
 addParameters()
 {
   // name, desc, propName, attributes, default
-  addColumnParameter("label"   , "Label"    , "labelColumn"   , "", 0);
-  addColumnParameter("data"    , "Data"     , "dataColumn"    , "", 1);
-  addColumnParameter("keyLabel", "Key Label", "keyLabelColumn", "optional");
-  addColumnParameter("color"   , "Color"    , "colorColumn"   , "optional");
+  addColumnParameter ("label"      , "Label"       , "labelColumn"   , "", 0);
+  addColumnsParameter("data"       , "Data"        , "dataColumns"   , "", "1");
+  addColumnParameter ("group"      , "Group"       , "groupColumn"   , "optional");
+  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   , "optional");
+  addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn", "optional");
+  addColumnParameter ("color"      , "Color"       , "colorColumn"   , "optional");
 
   CQChartsPlotType::addParameters();
 }
@@ -36,6 +39,8 @@ CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("pie"), model)
 {
+  (void) addColorSet("color");
+
   textBox_ = new CQChartsPieTextObj(this);
 
   setLayerActive(Layer::FG, true);
@@ -48,8 +53,101 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 CQChartsPiePlot::
 ~CQChartsPiePlot()
 {
+  for (auto &groupObj : groupObjs_)
+    delete groupObj;
+
   delete textBox_;
 }
+
+//---
+
+void
+CQChartsPiePlot::
+setLabelColumn(int i)
+{
+  if (i != labelColumn_) {
+    labelColumn_ = i;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsPiePlot::
+setDataColumn(int i)
+{
+  if (i != dataColumn_) {
+    dataColumn_ = i;
+
+    dataColumns_.clear();
+
+    if (dataColumn_ >= 0)
+      dataColumns_.push_back(dataColumn_);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsPiePlot::
+setDataColumns(const Columns &dataColumns)
+{
+  if (dataColumns != dataColumns_) {
+    dataColumns_ = dataColumns;
+
+    if (! dataColumns_.empty())
+      dataColumn_ = dataColumns_[0];
+    else
+      dataColumn_ = -1;
+
+    updateRangeAndObjs();
+  }
+}
+
+QString
+CQChartsPiePlot::
+dataColumnsStr() const
+{
+  return CQChartsUtil::toString(dataColumns());
+}
+
+bool
+CQChartsPiePlot::
+setDataColumnsStr(const QString &s)
+{
+  std::vector<int> dataColumns;
+
+  if (! CQChartsUtil::fromString(s, dataColumns))
+    return false;
+
+  setDataColumns(dataColumns);
+
+  return true;
+}
+
+void
+CQChartsPiePlot::
+setGroupColumn(int i)
+{
+  if (i != groupColumn_) {
+    groupColumn_ = i;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsPiePlot::
+setKeyLabelColumn(int i)
+{
+  if (i != keyLabelColumn_) {
+    keyLabelColumn_ = i;
+
+    updateRangeAndObjs();
+  }
+}
+
+//---
 
 void
 CQChartsPiePlot::
@@ -58,25 +156,29 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "labelColumn"   , "label"   );
-  addProperty("columns", this, "dataColumn"    , "data"    );
-  addProperty("columns", this, "keyLabelColumn", "keyLabel");
-  addProperty("columns", this, "colorColumn"   , "color"   );
+  addProperty("columns", this, "labelColumn"   , "label"      );
+  addProperty("columns", this, "dataColumn"    , "data"       );
+  addProperty("columns", this, "dataColumns"   , "dataSet"    );
+  addProperty("columns", this, "groupColumn"   , "group"      );
+  addProperty("columns", this, "rowGrouping"   , "rowGrouping");
+  addProperty("columns", this, "keyLabelColumn", "keyLabel"   );
+  addProperty("columns", this, "colorColumn"   , "color"      );
 
   // general
-  addProperty("", this, "donut"          );
-  addProperty("", this, "innerRadius"    );
-  addProperty("", this, "labelRadius"    );
-  addProperty("", this, "explodeSelected");
-  addProperty("", this, "explodeRadius"  );
-  addProperty("", this, "startAngle"     );
-  addProperty("", this, "rotatedText"    );
+  addProperty("", this, "donut"      );
+  addProperty("", this, "innerRadius");
+  addProperty("", this, "labelRadius");
+  addProperty("", this, "startAngle" );
+
+  addProperty("explode", this, "explodeSelected", "selected");
+  addProperty("explode", this, "explodeRadius"  , "radius"  );
 
   // label
   addProperty("label", textBox_, "textVisible", "visible");
   addProperty("label", textBox_, "textFont"   , "font"   );
   addProperty("label", textBox_, "textColor"  , "color"  );
   addProperty("label", textBox_, "textAlpha"  , "alpha"  );
+  addProperty("label", this    , "rotatedText", "rotated");
 
   QString labelBoxPath = id() + "/label/box";
 
@@ -115,40 +217,22 @@ updateRange(bool apply)
 
   //---
 
+  // if group column defined use that
+  // if multiple data column then use label column and data labels
+  //   if row grouping we are creating a value set per row (1 value per data column)
+  //   if column grouping we are creating a value set per data column (1 value per row)
+  // otherwise (single data column) just use dummy group (column -1)
+  if      (groupColumn() > 0)
+    initGroup(groupColumn());
+  else if (dataColumns().size() > 1)
+    initGroup(labelColumn(), dataColumns(), isRowGrouping());
+  else
+    initGroup(-1);
+
+  //---
+
   if (apply)
     applyDataRange();
-}
-
-void
-CQChartsPiePlot::
-initColorSet()
-{
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsPiePlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i, color);
 }
 
 //------
@@ -157,7 +241,7 @@ void
 CQChartsPiePlot::
 updateObjs()
 {
-  colorSet_.clear();
+  clearValueSets();
 
   CQChartsPlot::updateObjs();
 }
@@ -180,110 +264,86 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return false;
+  // calc group totals
+  calcDataTotal();
 
   //---
 
-  double xc     = 0.0;
-  double yc     = 0.0;
-  double radius = outerRadius();
+  for (auto &groupObj : groupObjs_)
+    delete groupObj;
 
-  setInnerRadius1(innerRadius()*radius);
-
-  //---
-
-  double angle1 = startAngle();
-
-  int nr = model->rowCount(QModelIndex());
+  groupObjs_.clear();
 
   //---
 
-  double total = 0.0;
+  double ro = outerRadius();
+  double ri = 0.0;
 
-  for (int r = 0; r < nr; ++r) {
-    bool hidden = isSetHidden(r);
+  if (isDonut())
+    ri = innerRadius()*outerRadius();
 
-    if (hidden)
-      continue;
+  int ng = numGroups();
+
+  double dr = (ng > 0 ? (ro - ri)/ng : 0.0);
+
+  double r = ro;
+
+  for (int groupInd = groupBucket_.imin(); groupInd <= groupBucket_.imax(); ++groupInd) {
+    auto pg = groupDatas_.find(groupInd);
+    assert(pg != groupDatas_.end());
+
+    GroupData &groupData = (*pg).second;
 
     //---
 
-    QModelIndex dataInd = model->index(r, dataColumn());
+    // create group obj
+    CQChartsPieGroupObj *groupObj = new CQChartsPieGroupObj(this, groupData.name);
 
-    bool ok;
+    groupObj->setColorInd(groupInd);
 
-    double value = CQChartsUtil::modelReal(model, dataInd, ok);
+    groupObj->setTotal(groupData.total);
+    groupObj->setAngle(startAngle());
 
-    if (! ok)
-      value = r;
+    groupObj->setInnerRadius(r - dr);
+    groupObj->setOuterRadius(r);
 
-    if (CQChartsUtil::isNaN(value))
-      continue;
+    groupObjs_.push_back(groupObj);
 
-    total += value;
+    //---
+
+    groupData.groupObj = groupObj;
+
+    //---
+
+    r -= dr;
   }
 
   //---
 
   // init value sets
-  if (colorSet_.empty())
-    initColorSet();
+  initValueSets();
 
   //---
 
-  for (int r = 0; r < nr; ++r) {
-    bool hidden = isSetHidden(r);
+  // process model data
+  class PieVisitor : public Visitor {
+   public:
+    PieVisitor(CQChartsPiePlot *plot) :
+     plot_(plot) {
+    }
 
-    if (hidden)
-      continue;
+    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      plot_->addRow(model, parent, row);
+      return true;
+    }
 
-    //---
+   private:
+    CQChartsPiePlot *plot_ { nullptr };
+  };
 
-    QModelIndex labelInd = model->index(r, labelColumn());
-    QModelIndex dataInd  = model->index(r, dataColumn ());
+  PieVisitor pieVisitor(this);
 
-    QModelIndex dataInd1 = normalizeIndex(dataInd);
-
-    //---
-
-    bool ok1, ok2;
-
-    QString label = CQChartsUtil::modelString(model, labelInd, ok1);
-    double  value = CQChartsUtil::modelReal  (model, dataInd , ok2);
-
-    if (! ok2) value = r;
-
-    if (CQChartsUtil::isNaN(value))
-      continue;
-
-    double angle  = 360.0*value/total;
-    double angle2 = angle1 - angle;
-
-    //---
-
-    CQChartsGeom::BBox rect(xc - radius, yc - radius, xc + radius, yc + radius);
-
-    CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1, r, nr);
-
-    obj->setAngle1(angle1);
-    obj->setAngle2(angle2);
-    obj->setLabel (label);
-    obj->setValue (value);
-
-    OptColor color;
-
-    if (colorSetColor(r, color))
-      obj->setColor(*color);
-
-    addPlotObject(obj);
-
-    //---
-
-    angle1 = angle2;
-  }
+  visitModel(pieVisitor);
 
   //---
 
@@ -296,34 +356,285 @@ initObjs()
 
 void
 CQChartsPiePlot::
-addKeyItems(CQChartsKey *key)
+addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+{
+  if (dataColumns().size() > 1) {
+    for (const auto &column : dataColumns())
+      addRowColumn(model, parent, row, column);
+  }
+  else {
+    int column = dataColumn();
+
+    addRowColumn(model, parent, row, column);
+  }
+}
+
+void
+CQChartsPiePlot::
+addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int dataColumn)
+{
+  // get group ind
+  int groupInd = rowGroupInd(model, parent, row, dataColumn);
+
+  //---
+
+  bool hidden = false;
+
+  if (numGroups() > 1)
+    hidden = isSetHidden(groupInd);
+  else
+    hidden = isSetHidden(row);
+
+  //---
+
+  QModelIndex dataInd = model->index(row, dataColumn, parent);
+
+  double value = row;
+
+  if (! getDataColumnValue(model, dataInd, value))
+    return;
+
+  //---
+
+  bool ok;
+
+  QString label;
+
+  if (numGroups() > 1) {
+    if (isRowGrouping()) {
+      QModelIndex labelInd = model->index(row, labelColumn(), parent);
+
+      label = CQChartsUtil::modelString(model, labelInd, ok);
+    }
+    else
+      label = CQChartsUtil::modelHeaderString(model, dataColumn, ok);
+  }
+  else {
+    QModelIndex labelInd = model->index(row, labelColumn(), parent);
+
+    label = CQChartsUtil::modelString(model, labelInd, ok);
+  }
+
+  //---
+
+  QString keyLabel = label;
+
+  if (keyLabelColumn() >= 0) {
+    bool ok;
+
+    QModelIndex keyLabelInd = model->index(row, keyLabelColumn(), parent);
+
+    keyLabel = CQChartsUtil::modelString(model, keyLabelInd, ok);
+  }
+
+  //---
+
+  auto pg = groupDatas_.find(groupInd);
+  assert(pg != groupDatas_.end());
+
+  GroupData &groupData = (*pg).second;
+
+  CQChartsPieGroupObj *groupObj = groupData.groupObj;
+
+  double total  = groupObj->total();
+  double angle  = (total > 0.0 ? 360.0*value/total : 0.0);
+  double angle1 = groupObj->angle();
+  double angle2 = angle1 - angle;
+
+  double ri = groupObj->innerRadius();
+  double ro = groupObj->outerRadius();
+
+  //---
+
+  QModelIndex dataInd1 = normalizeIndex(dataInd);
+
+  //---
+
+  CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
+
+  int objInd = groupObj->numObjs();
+
+  CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1);
+
+  if (hidden)
+    obj->setVisible(false);
+
+  obj->setColorInd(objInd);
+
+  obj->setAngle1     (angle1);
+  obj->setAngle2     (angle2);
+  obj->setInnerRadius(ri);
+  obj->setOuterRadius(ro);
+
+  obj->setLabel   (label);
+  obj->setValue   (value);
+  obj->setKeyLabel(keyLabel);
+
+  OptColor color;
+
+  if (colorSetColor("color", row, color))
+    obj->setColor(*color);
+
+  addPlotObject(obj);
+
+  groupObj->addObject(obj);
+
+  //---
+
+  if (! hidden)
+    groupObj->setAngle(angle2);
+}
+
+void
+CQChartsPiePlot::
+calcDataTotal()
 {
   QAbstractItemModel *model = this->model();
 
   if (! model)
     return;
 
-  int labelColumn = keyLabelColumn();
+  groupDatas_.clear();
 
-  if (labelColumn < 0)
-    labelColumn = this->labelColumn();
+  // process model data
+  class DataTotalVisitor : public Visitor {
+   public:
+    DataTotalVisitor(CQChartsPiePlot *plot) :
+     plot_(plot) {
+    }
 
-  int nr = model->rowCount(QModelIndex());
+    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      plot_->addRowDataTotal(model, parent, row);
+      return true;
+    }
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex labelInd = model->index(r, labelColumn);
+   private:
+    CQChartsPiePlot *plot_ { nullptr };
+  };
 
-    //---
+  DataTotalVisitor dataTotalVisitor(this);
 
-    bool ok;
+  visitModel(dataTotalVisitor);
+}
 
-    QString label = CQChartsUtil::modelString(model, labelInd, ok);
+void
+CQChartsPiePlot::
+addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row)
+{
+  if (dataColumns().size() > 1) {
+    for (const auto &column : dataColumns())
+      addRowColumnDataTotal(model, parent, row, column);
+  }
+  else {
+    int column = dataColumn();
 
-    CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, r, nr);
-    CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, r, label);
+    addRowColumnDataTotal(model, parent, row, column);
+  }
+}
 
-    key->addItem(color, r, 0);
-    key->addItem(text , r, 1);
+void
+CQChartsPiePlot::
+addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row, int dataColumn)
+{
+  // get group ind
+  int groupInd = rowGroupInd(model, parent, row, dataColumn);
+
+  //---
+
+  bool hidden = false;
+
+  if (numGroups() > 1)
+    hidden = isSetHidden(groupInd);
+  else
+    hidden = isSetHidden(row);
+
+  //---
+
+  QModelIndex dataInd = model->index(row, dataColumn, parent);
+
+  double value = row;
+
+  if (! getDataColumnValue(model, dataInd, value))
+    return;
+
+  //---
+
+  // get group data for group ind (add if new)
+  auto pg = groupDatas_.find(groupInd);
+
+  if (pg == groupDatas_.end()) {
+    QString groupName = groupBucket_.indName(groupInd);
+
+    pg = groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
+  }
+
+  GroupData &groupData = (*pg).second;
+
+  if (! hidden)
+    groupData.total += value;
+}
+
+bool
+CQChartsPiePlot::
+getDataColumnValue(QAbstractItemModel *model, const QModelIndex &ind, double &value) const
+{
+  bool ok;
+
+  value = CQChartsUtil::modelReal(model, ind, ok);
+
+  if (! ok)
+    return true; // allow missing value
+
+  if (CQChartsUtil::isNaN(value))
+    return false;
+
+  if (value <= 0.0)
+    return false;
+
+  return true;
+}
+
+void
+CQChartsPiePlot::
+addKeyItems(CQChartsKey *key)
+{
+  int ng = groupObjs_.size();
+
+  if (ng > 1) {
+    int i = 0;
+
+    for (const auto &groupObj : groupObjs_) {
+      CQChartsPieGroupObj *pieObj = dynamic_cast<CQChartsPieGroupObj *>(groupObj);
+
+      if (! pieObj)
+        continue;
+
+      CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, groupObj);
+      CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, groupObj);
+
+      key->addItem(color, i, 0);
+      key->addItem(text , i, 1);
+
+      ++i;
+    }
+  }
+  else {
+    int i = 0;
+
+    for (auto &plotObj : plotObjs_) {
+      CQChartsPieObj *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+
+      if (! pieObj)
+        continue;
+
+      CQChartsPieKeyColor *color = new CQChartsPieKeyColor(this, plotObj);
+      CQChartsPieKeyText  *text  = new CQChartsPieKeyText (this, plotObj);
+
+      key->addItem(color, i, 0);
+      key->addItem(text , i, 1);
+
+      ++i;
+    }
   }
 
   key->plot()->updateKeyPosition(/*force*/true);
@@ -352,38 +663,90 @@ draw(QPainter *painter)
 //------
 
 CQChartsPieObj::
-CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind,
-               int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), ind_(ind), i_(i), n_(n)
+CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind) :
+ CQChartsPlotObj(plot, rect), plot_(plot), ind_(ind)
 {
+}
+
+QString
+CQChartsPieObj::
+calcTipId() const
+{
+  QModelIndex ind = plot_->unnormalizeIndex(ind_);
+
+  QString groupName, label;
+
+  bool ok;
+
+  if (plot_->dataColumns().size() > 1) {
+    CQChartsPieGroupObj *groupObj = this->groupObj();
+
+    groupName = groupObj->name();
+
+    if (! plot_->isRowGrouping()) {
+      label = CQChartsUtil::modelHeaderString(plot_->model(), ind.column(), ok);
+    }
+    else {
+      QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
+
+      label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+    }
+  }
+  else {
+    QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
+
+    label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+  }
+
+  int dataColumn = ind_.column();
+
+  QString valueStr = plot_->columnStr(dataColumn, value_);
+
+  //---
+
+  CQChartsTableTip tableTip;
+
+  if (plot_->dataColumns().size() > 1)
+    tableTip.addTableRow("Group", groupName);
+
+  tableTip.addTableRow("Name" , label);
+  tableTip.addTableRow("Value", valueStr);
+
+  return tableTip.str();
 }
 
 QString
 CQChartsPieObj::
 calcId() const
 {
-  QModelIndex labelInd = plot_->model()->index(i_, plot_->labelColumn());
+  QModelIndex ind = plot_->unnormalizeIndex(ind_);
+
+  QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
 
   bool ok;
 
   QString label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
 
-  return QString("%1:%2").arg(label).arg(plot_->columnStr(plot_->dataColumn(), value_));
+  int dataColumn = ind_.column();
+
+  QString valueStr = plot_->columnStr(dataColumn, value_);
+
+  return QString("%1:%2").arg(label).arg(valueStr);
 }
 
 bool
 CQChartsPieObj::
 inside(const CQChartsGeom::Point &p) const
 {
+  if (! visible())
+    return false;
+
   CQChartsGeom::Point center(0, 0);
 
   double r = p.distanceTo(center);
 
-  double ro = plot_->outerRadius();
-  double ri = 0.0;
-
-  if (plot_->isDonut())
-    ri = plot_->innerRadius1()*ro;
+  double ro = outerRadius();
+  double ri = innerRadius();
 
   if (r < ri || r > ro)
     return false;
@@ -428,25 +791,44 @@ isIndex(const QModelIndex &ind) const
   return (ind == ind_);
 }
 
+bool
+CQChartsPieObj::
+calcExploded() const
+{
+  bool isExploded = this->isExploded();
+
+  if (isSelected() && plot_->isExplodeSelected())
+    isExploded = true;
+
+  return isExploded;
+}
+
 void
 CQChartsPieObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 {
+  if (! visible())
+    return;
+
+  CQChartsPieGroupObj *groupObj = this->groupObj();
+
+  int ng = plot_->numGroupObjs();
+  int no = groupObj->numObjs();
+
+  //---
+
   CQChartsGeom::Point center(0, 0);
 
   CQChartsGeom::Point c  = center;
-  double              ro = plot_->outerRadius();
+  double              ro = outerRadius();
   double              a1 = angle1();
   double              a2 = angle2();
 
   //---
 
-  bool exploded = isExploded();
+  bool isExploded = calcExploded();
 
-  if (isSelected() && plot_->isExplodeSelected())
-    exploded = true;
-
-  if (exploded) {
+  if (isExploded) {
     double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
 
     double dx = plot_->explodeRadius()*ro*cos(angle);
@@ -457,8 +839,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   }
 
   //---
-
-  //double ri = plot_->innerRadius1()*ro;
 
   CQChartsGeom::Point pc;
 
@@ -475,11 +855,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   //---
 
   if (layer == CQChartsPlot::Layer::MID) {
+    double ri = innerRadius();
+
     QPainterPath path;
 
-    if (plot_->isDonut()) {
-      double ri = plot_->innerRadius1();
-
+    if (! CQChartsUtil::isZero(ri)) {
       CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
 
       CQChartsGeom::BBox pbbox1;
@@ -538,9 +918,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     QColor bg;
 
     if (color_)
-      bg = (*color_).interpColor(plot_, i_, n_);
+      bg = (*color_).interpColor(plot_, colorInd(), no);
     else
-      bg = plot_->interpPaletteColor(i_, n_);
+      bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
     QColor fg = plot_->textColor(bg);
 
@@ -566,7 +946,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     }
     // draw on arc center line
     else {
-      double ri = plot_->innerRadius1();
+      double ri = innerRadius();
       double lr = plot_->labelRadius();
 
       double ta = CQChartsUtil::avg(a1, a2);
@@ -575,7 +955,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       double lr1;
 
-      if (plot_->isDonut())
+      if (! CQChartsUtil::isZero(ri))
         lr1 = ri + lr*(ro - ri);
       else
         lr1 = lr*ro;
@@ -620,7 +1000,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
           align = Qt::AlignRight | Qt::AlignVCenter;
         }
 
-        QColor bg = plot_->interpPaletteColor(i_, n_);
+        QColor bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
         painter->setPen(bg);
 
@@ -648,9 +1028,26 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
 //------
 
+CQChartsPieGroupObj::
+CQChartsPieGroupObj(CQChartsPiePlot *plot, const QString &name) :
+ CQChartsGroupObj(plot), plot_(plot), name_(name)
+{
+}
+
+void
+CQChartsPieGroupObj::
+addObject(CQChartsPieObj *obj)
+{
+  obj->setGroupObj(this);
+
+  objs_.push_back(obj);
+}
+
+//------
+
 CQChartsPieKeyColor::
-CQChartsPieKeyColor(CQChartsPiePlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, i, n)
+CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj) :
+ CQChartsKeyColorBox(plot, 0, 1), obj_(obj)
 {
 }
 
@@ -660,7 +1057,17 @@ mousePress(const CQChartsGeom::Point &)
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
+  int ih = 0;
+
+  if (group)
+    ih = group->colorInd();
+  else
+    ih = obj->colorInd();
+
+  plot->setSetHidden(ih, ! plot->isSetHidden(ih));
 
   plot->updateObjs();
 
@@ -671,12 +1078,35 @@ QBrush
 CQChartsPieKeyColor::
 fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillBrush().color();
-
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
-  if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
+  int ng = plot->numGroups();
+
+  QColor c;
+
+  if (group) {
+    int ig = group->colorInd();
+
+    c = plot->interpGroupPaletteColor(ig, ng, 0, 1);
+
+    if (plot->isSetHidden(ig))
+      c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+  }
+  else {
+    CQChartsPieGroupObj *group = obj->groupObj();
+
+    int ig = group->colorInd();
+    int io = obj  ->colorInd();
+    int no = group->numObjs();
+
+    c = plot->interpGroupPaletteColor(ig, ng, io, no);
+
+    if (plot->isSetHidden(io))
+      c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+  }
 
   return c;
 }
@@ -684,9 +1114,16 @@ fillBrush() const
 //------
 
 CQChartsPieKeyText::
-CQChartsPieKeyText(CQChartsPiePlot *plot, int i, const QString &text) :
- CQChartsKeyText(plot, text), i_(i)
+CQChartsPieKeyText(CQChartsPiePlot *plot, CQChartsPlotObj *plotObj) :
+ CQChartsKeyText(plot, ""), obj_(plotObj)
 {
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
+  if (group)
+    setText(group->name());
+  else
+    setText(obj->keyLabel());
 }
 
 QColor
@@ -695,9 +1132,19 @@ interpTextColor(int i, int n) const
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 
+  CQChartsPieGroupObj *group = dynamic_cast<CQChartsPieGroupObj *>(obj_);
+  CQChartsPieObj      *obj   = dynamic_cast<CQChartsPieObj      *>(obj_);
+
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
-  if (plot->isSetHidden(i_))
+  int ih = 0;
+
+  if (group)
+    ih = group->colorInd();
+  else
+    ih = obj->colorInd();
+
+  if (plot->isSetHidden(ih))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;

@@ -1,11 +1,14 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
 #include <QItemSelectionModel>
 #include <cassert>
 
 CQChartsModelFilter::
-CQChartsModelFilter()
+CQChartsModelFilter(CQCharts *charts) :
+ charts_(charts)
 {
   expr_ = new CQChartsModelExprMatch;
 
@@ -360,4 +363,34 @@ initFilter()
   //invalidate();
 
   //expandMatches();
+}
+
+QVariant
+CQChartsModelFilter::
+data(const QModelIndex &index, int role) const
+{
+  QVariant var = QSortFilterProxyModel::data(index, role);
+
+  if (role == Qt::EditRole && ! var.isValid())
+    var = QSortFilterProxyModel::data(index, Qt::DisplayRole);
+
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+    if (! index.isValid())
+      return QVariant();
+
+    assert(index.model() == this);
+
+    QModelIndex index1 = mapToSource(index);
+
+    assert(index.column() == index1.column());
+
+    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+    if (role == Qt::DisplayRole)
+      return columnTypeMgr->getDisplayData(this, index1.column(), var);
+    else
+      return columnTypeMgr->getUserData(this, index1.column(), var);
+  }
+
+  return var;
 }

@@ -1,6 +1,7 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsKey.h>
 #include <CQChartsUtil.h>
 #include <QLabel>
 
@@ -73,6 +74,28 @@ updateWidget(const QPoint &gpos)
         tip += "\n";
 
       tip += tip1;
+    }
+  }
+
+  if (! tip.length()) {
+    for (const auto &plot : plots) {
+      CQChartsKey *key = plot->key();
+      if (! key) continue;
+
+      CQChartsGeom::Point w;
+
+      plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)), w);
+
+      if (key->contains(w)) {
+        QString tip1;
+
+        if (key->tipText(w, tip1)) {
+          if (tip.length())
+            tip += "\n";
+
+          tip += tip1;
+        }
+      }
     }
   }
 

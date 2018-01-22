@@ -429,7 +429,7 @@ updateWhiskers()
   //---
 
   // determine group data type
-  groupType_ = CQBaseModel::Type::NONE;
+  groupType_ = ColumnType::NONE;
 
   if (groupColumn() >= 0)
     groupType_ = columnValueType(model, groupColumn());
@@ -450,8 +450,9 @@ updateWhiskers()
      plot_(plot) {
     }
 
-    void visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+    bool visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
       plot_->addWhiskerRow(model, ind, row);
+      return true;
     }
 
    private:
@@ -487,14 +488,14 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
     QModelIndex groupInd = model->index(r, groupColumn(), parent);
 
     // get value set id
-    if      (groupType_ == CQBaseModel::Type::INTEGER) {
+    if      (groupType_ == ColumnType::INTEGER) {
       bool ok1;
 
       int i = CQChartsUtil::modelInteger(model, groupInd, ok1);
 
       groupId = groupValueInd_.calcId(i);
     }
-    else if (groupType_ == CQBaseModel::Type::REAL) {
+    else if (groupType_ == ColumnType::REAL) {
       bool ok1;
 
       double r = CQChartsUtil::modelReal(model, groupInd, ok1);
@@ -524,14 +525,14 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
   // get value set id
   int setId = -1;
 
-  if      (xType_ == CQBaseModel::Type::INTEGER) {
+  if      (xType_ == ColumnType::INTEGER) {
     bool ok1;
 
     int i = CQChartsUtil::modelInteger(model, xind, ok1);
 
     setId = xValueInd_.calcId(i);
   }
-  else if (xType_ == CQBaseModel::Type::REAL) {
+  else if (xType_ == ColumnType::REAL) {
     bool ok1;
 
     double r = CQChartsUtil::modelReal(model, xind, ok1);

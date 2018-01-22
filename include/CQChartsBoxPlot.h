@@ -308,26 +308,26 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
  private:
-  int                  xColumn_          { 0 };                       // x column
-  int                  yColumn_          { 1 };                       // y column
-  int                  groupColumn_      { -1 };                      // grouping column
-  bool                 skipOutliers_     { false };                   // skip outliers
-  bool                 connected_        { false };                   // connect boxes
-  CQChartsBoxObj*      boxObj_           { nullptr };                 // box data
-  double               whiskerRange_     { 1.5 };                     // box width
-  double               boxWidth_         { 0.2 };                     // box width
-  CQChartsPaletteColor whiskerColor_;                                 // whisker color
-  double               whiskerLineWidth_ { 0.0 };                     // whisker line width
-  double               whiskerExtent_    { 0.2 };                     // whisker extent
-  CQChartsTextBoxObj*  textObj_          { nullptr };                 // text data
-  double               textMargin_       { 2 };                       // text margin
-  double               symbolSize_       { 4 };                       // symbol size
-  CQBaseModel::Type    groupType_        { CQBaseModel::Type::NONE }; // group column data type
-  CQBaseModel::Type    xType_            { CQBaseModel::Type::NONE }; // x column data type
-  GroupSetWhiskerMap   groupWhiskers_;                                // whisker data
-  CQChartsValueInd     groupValueInd_;                                // group value inds
-  CQChartsValueInd     xValueInd_;                                    // x value inds
-  bool                 grouped_          { false };                   // is grouped values
+  int                  xColumn_          { 0 };                // x column
+  int                  yColumn_          { 1 };                // y column
+  int                  groupColumn_      { -1 };               // grouping column
+  bool                 skipOutliers_     { false };            // skip outliers
+  bool                 connected_        { false };            // connect boxes
+  CQChartsBoxObj*      boxObj_           { nullptr };          // box data
+  double               whiskerRange_     { 1.5 };              // box width
+  double               boxWidth_         { 0.2 };              // box width
+  CQChartsPaletteColor whiskerColor_;                          // whisker color
+  double               whiskerLineWidth_ { 0.0 };              // whisker line width
+  double               whiskerExtent_    { 0.2 };              // whisker extent
+  CQChartsTextBoxObj*  textObj_          { nullptr };          // text data
+  double               textMargin_       { 2 };                // text margin
+  double               symbolSize_       { 4 };                // symbol size
+  ColumnType           groupType_        { ColumnType::NONE }; // group column data type
+  ColumnType           xType_            { ColumnType::NONE }; // x column data type
+  GroupSetWhiskerMap   groupWhiskers_;                         // whisker data
+  CQChartsValueInd     groupValueInd_;                         // group value inds
+  CQChartsValueInd     xValueInd_;                             // x value inds
+  bool                 grouped_          { false };            // is grouped values
 };
 
 #endif

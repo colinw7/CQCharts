@@ -3,7 +3,6 @@
 
 #include <CQChartsModelFilter.h>
 
-class CQCharts;
 class CQGnuDataModel;
 class CQExprModel;
 
@@ -22,12 +21,7 @@ class CQChartsGnuData : public CQChartsModelFilter {
 
   bool load(const QString &filename);
 
-  //---
-
-  QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
-
  private:
-  CQCharts*       charts_    { nullptr };
   CQGnuDataModel* dataModel_ { nullptr };
   CQExprModel*    exprModel_ { nullptr };
 };

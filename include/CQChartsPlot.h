@@ -3,6 +3,8 @@
 
 #include <CQChartsPlotParameter.h>
 #include <CQChartsModelP.h>
+#include <CQChartsPaletteColor.h>
+#include <CQChartsColumnBucket.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -31,6 +33,8 @@ class CQChartsBoxObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
+class CQChartsValueSet;
+class CQChartsColorSet;
 class QPainter;
 
 class QSortFilterProxyModel;
@@ -153,7 +157,7 @@ class CQChartsPlotUpdateTimer : public QTimer {
 class CQChartsPlot : public QObject {
   Q_OBJECT
 
-  // generic columns
+  // generic columns and control
   Q_PROPERTY(int     idColumn            READ idColumn            WRITE setIdColumn           )
 
   // visible, rectangle and data range
@@ -269,6 +273,10 @@ class CQChartsPlot : public QObject {
 
   using ModelIndices = std::vector<QModelIndex>;
 
+  using ColumnType = CQBaseModel::Type;
+
+  using OptColor = boost::optional<CQChartsPaletteColor>;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -331,11 +339,6 @@ class CQChartsPlot : public QObject {
 
   const CQChartsGeom::Point &dataOffset() const { return dataOffset_; }
   void setDataOffset(const CQChartsGeom::Point &o) { dataOffset_ = o; }
-
-  //---
-
-  CQChartsTheme *theme() const { return theme_; }
-  void setTheme(CQChartsTheme *theme) { theme_ = theme; update(); }
 
   //---
 
@@ -542,6 +545,10 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
+
+  //---
+
   void startAnimateTimer();
 
   virtual void animateStep() { }
@@ -572,18 +579,64 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  CQChartsValueSet *addValueSet(const QString &name, double min, double max);
+  CQChartsValueSet *addValueSet(const QString &name);
+  CQChartsValueSet *addColorSet(const QString &name);
+
+  CQChartsValueSet *getValueSet(const QString &name) const;
+  CQChartsColorSet *getColorSet(const QString &name) const;
+
+  void clearValueSets();
+  void deleteValueSets();
+
+  int valueSetColumn(const QString &name) const;
+  void setValueSetColumn(const QString &name, int column);
+
+  bool isValueSetMapEnabled(const QString &name) const;
+  void setValueSetMapEnabled(const QString &name, bool b);
+
+  double valueSetMapMin(const QString &name) const;
+  void setValueSetMapMin(const QString &name, double min);
+
+  double valueSetMapMax(const QString &name) const;
+  void setValueSetMapMax(const QString &name, double max);
+
+  bool colorSetColor(const QString &name, int i, OptColor &color);
+
+  void initValueSets();
+
+  void addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
+
+  //---
+
+  void initGroup(int column, const Columns &columns=Columns(), bool rowGrouping=false);
+
+  int rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row, int column) const;
+
+  //---
+
   class Visitor {
    public:
     Visitor() { }
 
     virtual ~Visitor() { }
 
-    virtual void visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+    CQChartsPlot *plot() const { return plot_; }
+    void setPlot(CQChartsPlot *p) { plot_ = p; }
+
+    virtual bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+
+   private:
+    CQChartsPlot *plot_ { nullptr };
   };
 
   void visitModel(Visitor &visitor);
 
   void visitModelIndex(const QModelIndex &parent, Visitor &visitor);
+
+  //---
+
+  QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) const;
 
   //---
 
@@ -712,7 +765,10 @@ class CQChartsPlot : public QObject {
   void setYValueColumn(int column);
 
   int idColumn() const { return idColumn_; }
-  void setIdColumn(int i);
+  void setIdColumn(int column);
+
+  bool isRowGrouping() const { return rowGrouping_; }
+  void setRowGrouping(bool b) { rowGrouping_ = b; updateRangeAndObjs(); }
 
   //---
 
@@ -878,9 +934,11 @@ class CQChartsPlot : public QObject {
   // get palette color for ith value of n values
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
 
+  virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
+
   QColor interpPaletteColor(double r, bool scale=false) const;
 
-  QColor groupPaletteColor(double r1, double r2, double dr) const;
+  QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
 
   QColor textColor(const QColor &bg) const;
 
@@ -888,7 +946,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQBaseModel::Type columnValueType(QAbstractItemModel *model, int column) const;
+  ColumnType columnValueType(QAbstractItemModel *model, int column) const;
 
   bool getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
                           QStringList &nameStrs, ModelIndices &nameInds);
@@ -960,6 +1018,7 @@ class CQChartsPlot : public QObject {
   using Rows            = std::set<int>;
   using ColumnRows      = std::map<int,Rows>;
   using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
+  using ValueSets       = std::map<QString,CQChartsValueSet *>;
 
   enum class DragObj {
     NONE,
@@ -983,60 +1042,62 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsView*             view_             { nullptr };
-  CQChartsPlotType*         type_             { nullptr };
-  ModelP                    model_;
-  SelectionModelP           selectionModel_;
-  QString                   id_;
-  bool                      visible_          { true };
-  CQChartsGeom::BBox        bbox_             { 0, 0, 1, 1 };
-  Margin                    margin_;
-  CQChartsDisplayRange*     displayRange_     { nullptr };
-  CQChartsDisplayTransform* displayTransform_ { nullptr };
-  CQChartsGeom::Range       dataRange_;
-  double                    dataScaleX_       { 1.0 };
-  double                    dataScaleY_       { 1.0 };
-  CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };
-  OptReal                   xmin_;
-  OptReal                   ymin_;
-  OptReal                   xmax_;
-  OptReal                   ymax_;
-  CQChartsTheme*            theme_            { nullptr };
-  CQChartsBoxObj*           borderObj_        { nullptr };
-  bool                      clip_             { true };
-  CQChartsBoxObj*           dataBorderObj_    { nullptr };
-  bool                      dataClip_         { false };
-  QString                   titleStr_;
-  QString                   fileName_;
-  CQChartsAxis*             xAxis_            { nullptr };
-  CQChartsAxis*             yAxis_            { nullptr };
-  CQChartsKey*              keyObj_           { nullptr };
-  CQChartsTitle*            titleObj_         { nullptr };
-  int                       xValueColumn_     { -1 };
-  int                       yValueColumn_     { -1 };
-  int                       idColumn_         { -1 };
-  bool                      equalScale_       { false };
-  bool                      followMouse_      { true };
-  bool                      showBoxes_        { false };
-  bool                      overlay_          { false };
-  bool                      y1y2_             { false };
-  bool                      invertX_          { false };
-  bool                      invertY_          { false };
-  bool                      logX_             { false };
-  bool                      logY_             { false };
-  OtherPlot                 otherPlot_;
-  PlotObjs                  plotObjs_;
-  int                       insidePlotInd_    { 0 };
-  PlotObjSet                insidePlotObjs_;
-  SizePlotObjSet            sizeInsidePlotObjs_;
-  CQChartsPlotObjTree*      plotObjTree_      { nullptr };
-  MouseData                 mouseData_;
-  AnimateData               animateData_;
-  LayerActive               layerActive_;
-  IdHidden                  idHidden_;
-  IndexColumnRows           selIndexColumnRows_;
-  QItemSelection            itemSelection_;
-  CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };
+  CQChartsView*             view_             { nullptr };    // parent view
+  CQChartsPlotType*         type_             { nullptr };    // plot type data
+  ModelP                    model_;                           // abstract model
+  SelectionModelP           selectionModel_;                  // selection model
+  QString                   id_;                              // plot id
+  bool                      visible_          { true };       // is visible
+  CQChartsGeom::BBox        bbox_             { 0, 0, 1, 1 }; // view box
+  Margin                    margin_;                          // border margin
+  CQChartsDisplayRange*     displayRange_     { nullptr };    // value range mapping
+  CQChartsDisplayTransform* displayTransform_ { nullptr };    // value range transform (zoom/pan)
+  CQChartsGeom::Range       dataRange_;                       // data range
+  double                    dataScaleX_       { 1.0 };        // data scale (zoom in x direction)
+  double                    dataScaleY_       { 1.0 };        // data scale (zoom in y direction)
+  CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };   // data offset (pan)
+  OptReal                   xmin_;                            // xmin override
+  OptReal                   ymin_;                            // ymin override
+  OptReal                   xmax_;                            // xmax override
+  OptReal                   ymax_;                            // ymax override
+  CQChartsBoxObj*           borderObj_        { nullptr };    // plot border display object
+  bool                      clip_             { true };       // is clipped at plot limits
+  CQChartsBoxObj*           dataBorderObj_    { nullptr };    // data border display object
+  bool                      dataClip_         { false };      // is clipped at data limits
+  QString                   titleStr_;                        // title string
+  QString                   fileName_;                        // associated data filename
+  CQChartsAxis*             xAxis_            { nullptr };    // x axis object
+  CQChartsAxis*             yAxis_            { nullptr };    // y axis object
+  CQChartsKey*              keyObj_           { nullptr };    // key object
+  CQChartsTitle*            titleObj_         { nullptr };    // tilte object
+  int                       xValueColumn_     { -1 };         // x axis value column
+  int                       yValueColumn_     { -1 };         // y axis value column
+  int                       idColumn_         { -1 };         // unique data id column
+  bool                      rowGrouping_      { false };      // row grouping on/off
+  bool                      equalScale_       { false };      // equal scaled
+  bool                      followMouse_      { true };       // track object under mouse
+  bool                      showBoxes_        { false };      // show debug boxes
+  bool                      overlay_          { false };      // is overlay plot
+  bool                      y1y2_             { false };      // is double y axis plot
+  bool                      invertX_          { false };      // x values inverted
+  bool                      invertY_          { false };      // y values inverted
+  bool                      logX_             { false };      // x values log scaled
+  bool                      logY_             { false };      // y values log scaled
+  OtherPlot                 otherPlot_;                       // other associated plot
+  PlotObjs                  plotObjs_;                        // plot objects
+  ValueSets                 valueSets_;                       // named value sets
+  CQChartsColumnBucket      groupBucket_;                     // group value bucket
+  int                       insidePlotInd_    { 0 };          // current inside plot object ind
+  PlotObjSet                insidePlotObjs_;                  // inside plot objects
+  SizePlotObjSet            sizeInsidePlotObjs_;              // inside plot objects (szie sorted)
+  CQChartsPlotObjTree*      plotObjTree_      { nullptr };    // plot object quad tree
+  MouseData                 mouseData_;                       // mouse event data
+  AnimateData               animateData_;                     // animation data
+  LayerActive               layerActive_;                     // active layers
+  IdHidden                  idHidden_;                        // hidden object ids
+  IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
+  QItemSelection            itemSelection_;                   // selected model indices
+  CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
 };
 
 //------

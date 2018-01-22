@@ -4,7 +4,6 @@
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsFillObj.h>
-#include <CGradientPalette.h>
 
 #include <QPainter>
 
@@ -541,7 +540,7 @@ loadChildren(const QModelIndex &index)
 
   //---
 
-  CQBaseModel::Type valueColumnType = columnValueType(model, valueColumn());
+  ColumnType valueColumnType = columnValueType(model, valueColumn());
 
   //---
 
@@ -571,9 +570,9 @@ loadChildren(const QModelIndex &index)
       if (valueInd.isValid()) {
         bool ok2 = true;
 
-        if      (valueColumnType == CQBaseModel::Type::REAL)
+        if      (valueColumnType == ColumnType::REAL)
           size = CQChartsUtil::modelReal(model, valueInd, ok2);
-        else if (valueColumnType == CQBaseModel::Type::INTEGER)
+        else if (valueColumnType == ColumnType::INTEGER)
           size = CQChartsUtil::modelInteger(model, valueInd, ok2);
         else
           ok2 = false;

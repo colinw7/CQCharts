@@ -352,7 +352,13 @@ class CQChartsTrie {
   CQChartsTrie() { }
 
  ~CQChartsTrie() {
+    clear();
+  }
+
+  void clear() {
     delete root_;
+
+    root_ = nullptr;
   }
 
   void addWord(const String &str) {

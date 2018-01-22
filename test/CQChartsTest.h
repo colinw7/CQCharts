@@ -21,6 +21,7 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
+class CQChartsGradientPalette;
 
 class CQExprModel;
 class CQFoldedModel;
@@ -160,6 +161,13 @@ class CQChartsTest : public CQAppWindow {
     QTextEdit*           detailsText  { nullptr };
     ModelP               foldProxyModel;
     FoldedModels         foldedModels;
+
+    ModelP currentModel() const {
+      if (! foldedModels.empty())
+        return foldProxyModel;
+      else
+        return model;
+    }
   };
 
  public:
@@ -275,6 +283,56 @@ class CQChartsTest : public CQAppWindow {
   void printCmd   (const Args &args);
 
   QStringList stringToCmds(const QString &str) const;
+
+ private:
+  struct DefinedColor {
+    double v { -1.0 };
+    QColor c;
+
+    DefinedColor(double v, const QColor &c) :
+     v(v), c(c) {
+    }
+  };
+
+  struct PaletteColorData {
+    using DefinedColors = std::vector<DefinedColor>;
+
+    QString       colorTypeStr;
+    QString       colorModelStr;
+    OptInt        redModel;
+    OptInt        greenModel;
+    OptInt        blueModel;
+    OptBool       negateRed;
+    OptBool       negateGreen;
+    OptBool       negateBlue;
+    OptReal       redMin;
+    OptReal       redMax;
+    OptReal       greenMin;
+    OptReal       greenMax;
+    OptReal       blueMin;
+    OptReal       blueMax;
+    DefinedColors definedColors;
+    bool          getColorScale { false };
+    bool          getColorFlag { false };
+    double        getColorValue { 0.0 };
+
+    PaletteColorData() {
+      redModel    = boost::make_optional(false, 0);
+      greenModel  = boost::make_optional(false, 0);
+      blueModel   = boost::make_optional(false, 0);
+      negateRed   = boost::make_optional(false, false);
+      negateGreen = boost::make_optional(false, false);
+      negateBlue  = boost::make_optional(false, false);
+      redMin      = boost::make_optional(false, 0.0);
+      redMax      = boost::make_optional(false, 0.0);
+      greenMin    = boost::make_optional(false, 0.0);
+      greenMax    = boost::make_optional(false, 0.0);
+      blueMin     = boost::make_optional(false, 0.0);
+      blueMax     = boost::make_optional(false, 0.0);
+    }
+  };
+
+  void setPaleteData(CQChartsGradientPalette *palette, const PaletteColorData &paletteData);
 
  private slots:
   void loadSlot();

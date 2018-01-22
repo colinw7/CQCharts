@@ -43,7 +43,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "text"     , "text" );
+  model->addProperty(textPath, this, "textStr"  , "text" );
   model->addProperty(textPath, this, "textFont" , "font" );
   model->addProperty(textPath, this, "textColor", "color");
   model->addProperty(textPath, this, "textAngle", "angle");

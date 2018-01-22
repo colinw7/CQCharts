@@ -20,10 +20,31 @@ CQChartsTest \
  -csv multi_bar.csv -first_line_header \
  -type bar -columns "category=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer"
+CQChartsTest \
+ -csv multi_bar.csv -first_line_header \
+ -type bar -columns "category=0,value=1 2 3 4 5 6 7" \
+ -plot_title "multiple bar chart" -column_type "1#integer" \
+ -properties "columns.rowGrouping=1"
 
 CQChartsTest \
  -csv group.csv -comment_header \
  -type barchart -columns "category=1,value=2,name=0"
+
+#--
+
+CQChartsTest \
+ -csv ages.csv -first_line_header \
+ -type bar -columns "category=0,value=1" \
+ -plot_title "bar chart" -column_type "1#integer"
+
+CQChartsTest \
+ -csv group_ages.csv -first_line_header \
+ -type bar -columns "category=0,name=1,value=2" \
+ -plot_title "grouped bar chart" -column_type "2#integer"
+CQChartsTest \
+ -csv group_ages.csv -first_line_header -fold 0 \
+ -type bar -columns "category=1,value=2" \
+ -plot_title "folded bar chart" -column_type "2#integer"
 
 # Box Plot
 
@@ -153,6 +174,24 @@ CQChartsTest \
  -csv ages.csv -first_line_header \
  -type pie -columns "label=0,data=1" \
  -plot_title "pie chart" -column_type "1#integer"
+
+CQChartsTest \
+ -csv group_ages.csv -first_line_header \
+ -type pie -columns "label=1,data=2,group=0" \
+ -plot_title "grouped pie chart" -column_type "2#integer"
+CQChartsTest \
+ -csv group_ages.csv -first_line_header -fold 0 \
+ -type pie -columns "label=1,data=2" \
+ -plot_title "folded pie chart" -column_type "2#integer"
+CQChartsTest \
+ -csv multi_bar.csv -first_line_header \
+ -type pie -columns "label=0,data=1 2 3 4 5 6 7" \
+ -plot_title "multi column pie chart"
+CQChartsTest \
+ -csv multi_bar.csv -first_line_header \
+ -type pie -columns "label=0,data=1 2 3 4 5 6 7" \
+ -plot_title "multi column pie chart" \
+ -properties "columns.rowGrouping=1"
 
 # Radar Plot
 

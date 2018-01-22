@@ -8,7 +8,7 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
-#include <CQGradientControlIFace.h>
+#include <CQChartsGradientPaletteControl.h>
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -139,6 +139,7 @@ CQChartsWindow(CQChartsView *view) :
   connect(view_, SIGNAL(currentPlotChanged()), this, SLOT(plotSlot()));
 
   connect(view_, SIGNAL(modeChanged()), this, SLOT(modeSlot()));
+  connect(view_, SIGNAL(selectModeChanged()), this, SLOT(selectModeSlot()));
 
   connect(view_, SIGNAL(posTextChanged(const QString &)),
           this, SLOT(setPosText(const QString &)));
@@ -304,7 +305,7 @@ plotSlot()
     tree_ ->setModel(plot->modelp());
     table_->setModel(CQChartsTable::ModelP());
 
-    plot->setSelectionModel(table_->selectionModel());
+    plot->setSelectionModel(tree_->selectionModel());
 
     viewStack_->setCurrentIndex(1);
   }
@@ -313,6 +314,13 @@ plotSlot()
 void
 CQChartsWindow::
 modeSlot()
+{
+  toolbar_->updateMode();
+}
+
+void
+CQChartsWindow::
+selectModeSlot()
 {
   toolbar_->updateMode();
 }

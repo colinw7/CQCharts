@@ -15,6 +15,13 @@ High
  + Grouping support
    + support different grouping per depth for push down/hier plots
    + group data for scrolled (left/right) plot series
+   + what does grouping do (configurable)
+     + overlay (multi-plot)
+     + stack (bar chart)
+   + grouping on:
+     + hier (group per parent path)
+     + name column(s) (group per bucketed value, how handle multiple ?)
+     + multiple columns (group per column)
  + Auto group in model - table -> tree
  + Common code for hier plots
    + data import
@@ -23,6 +30,7 @@ High
  + Id Column in all plots
  + Interface language (Ceil)
  + Consolidate binning algorithms (class/config)
+ + support data from script
 
  + Allow table/tree floating inside view
  + Edit mode to edit plot positions (illustrator code ?)
@@ -77,6 +85,14 @@ Colors
  + Contrast, Invert, B/W (Invert)
  + Do hierarchical plots handle fill color ?
 
+Grouping
+ + Switch between key for group and bucketed values
+ + Support group by hier, column, ... in all plots
+ + Common grouping code
+
+Coloring
+ + Color Column for all plots
+
 Misc
  + Cache plot pixmaps
  + Draw inside/selected to overlay pixmap
@@ -84,6 +100,9 @@ Misc
    + Plugable evaluation engine
  + Animation
  + Custom editor for column (name or number)
+ + OrderedMap/OrderedSet
+   + Quick lookup of values in insertion order
+   + Option list of values for common key (in insertion order)
 
 Theme
  + Allow disable theme for fixed color plot
@@ -159,6 +178,8 @@ Bar
 Box Plot
  + BoxObj master for boxes
  + Color String (palette or QColor)
+ + Better tooltip for connected
+ + interp connected
 
 Distribution Plot
  + Push/Pop save restore ranges
@@ -176,7 +197,7 @@ Parallel Plot
 Pie Chart
  + Stacked (multiple categories)
  + Radial labels (see radar)
- + Expand selected
+ + Better expand display when grouped
 
 Radar Plot
  + Add Key
@@ -210,6 +231,9 @@ Key
  + Title
  + Max entries
  + Check Box for hide/show
+ + Hierarchical Key when groups or switch group/value color/sel ?
+ + Optional column for label in all plots
+ + Hierarchical
 
 Expander
  + Better Title Bar
@@ -240,3 +264,6 @@ Parameters
 Optimization
  + Get more data direct from model instead of cached
  + Use H Tree (V Tree) for bars and other ordered data structures
+
+Gradient Palette
+ + Probe show color value at vertical line and on gradient

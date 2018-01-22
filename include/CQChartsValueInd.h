@@ -94,16 +94,7 @@ class CQChartsValueInd {
   }
 
  private:
-  struct RealCmp {
-    bool operator()(const double &lhs, const double &rhs) const {
-      if (CQChartsUtil::realEq(lhs, rhs))
-        return false;
-
-      return lhs < rhs;
-    }
-  };
-
-  using ValueSet = std::map<double,int,RealCmp>;
+  using ValueSet = std::map<double,int,CQChartsUtil::RealCmp>;
   using SetValue = std::map<int,double>;
   using NameSet  = std::map<QString,int>;
   using SetName  = std::map<int,QString>;

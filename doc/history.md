@@ -261,3 +261,9 @@
  + Add simple filter support to CQChartsModelFilter (multi column wildcards)
  + Tree map has control for header max area usage before hidden
  + Test proc supports folded model and table/tree switching
+# 1/21/2018
+ + Support grouping by hierarchy in bar chart and pie chart
+ + Cleanup duplicate code in bar chart
+ + Move common model data method to CQChartsModelFilter
+ + Add named value sets
+ + Add more palettes to gradient and allow selection

@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsDataLabel.h>
 
 class CQChartsScatterPlot;
@@ -146,15 +145,6 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int yColumn() const { return yColumn_; }
   void setYColumn(int i) { yColumn_ = i; updateRangeAndObjs(); }
 
-  int symbolSizeColumn() const { return symbolSizeColumn_; }
-  void setSymbolSizeColumn(int i) { symbolSizeColumn_ = i; updateRangeAndObjs(); }
-
-  int fontSizeColumn() const { return fontSizeColumn_; }
-  void setFontSizeColumn(int i) { fontSizeColumn_ = i; updateRangeAndObjs(); }
-
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i) { colorColumn_ = i; updateRangeAndObjs(); }
-
   //---
 
   bool isSymbolBorder() const { return symbolBorder_; }
@@ -191,42 +181,55 @@ class CQChartsScatterPlot : public CQChartsPlot {
   double symbolSize() const { return symbolSize_; }
   void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
 
-  bool isSymbolSizeMapEnabled() const { return symbolSizeSet_.isMapEnabled(); }
-  void setSymbolSizeMapEnabled(bool b) { symbolSizeSet_.setMapEnabled(b); updateObjs(); }
+  //---
 
-  double symbolSizeMapMin() const { return symbolSizeSet_.mapMin(); }
-  void setSymbolSizeMapMin(double r) { symbolSizeSet_.setMapMin(r); updateObjs(); }
+  int symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
+  void setSymbolSizeColumn(int i) { setValueSetColumn("symbolSize", i); updateRangeAndObjs(); }
 
-  double symbolSizeMapMax() const { return symbolSizeSet_.mapMax(); }
-  void setSymbolSizeMapMax(double r) { symbolSizeSet_.setMapMax(r); updateObjs(); }
+  bool isSymbolSizeMapEnabled() const { return isValueSetMapEnabled("symbolSize"); }
+  void setSymbolSizeMapEnabled(bool b) { setValueSetMapEnabled("symbolSize", b); updateObjs(); }
+
+  double symbolSizeMapMin() const { return valueSetMapMin("symbolSize"); }
+  void setSymbolSizeMapMin(double r) { setValueSetMapMin("symbolSize", r); updateObjs(); }
+
+  double symbolSizeMapMax() const { return valueSetMapMax("symbolSize"); }
+  void setSymbolSizeMapMax(double r) { setValueSetMapMax("symbolSize", r); updateObjs(); }
 
   //---
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+  int colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
 
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
+  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
+  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
 
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
+
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
   bool isTextLabels() const { return dataLabel_.isVisible(); }
   void setTextLabels(bool b) { dataLabel_.setVisible(b); }
 
+  //---
+
+  int fontSizeColumn() const { return valueSetColumn("fontSize"); }
+  void setFontSizeColumn(int i) { setValueSetColumn("fontSize", i); updateRangeAndObjs(); }
+
   double fontSize() const { return fontSize_; }
   void setFontSize(double s) { fontSize_ = s; updateObjs(); }
 
-  bool isFontSizeMapEnabled() const { return fontSizeSet_.isMapEnabled(); }
-  void setFontSizeMapEnabled(bool b) { fontSizeSet_.setMapEnabled(b); updateObjs(); }
+  bool isFontSizeMapEnabled() const { return isValueSetMapEnabled("fontSize"); }
+  void setFontSizeMapEnabled(bool b) { setValueSetMapEnabled("fontSize", b); updateObjs(); }
 
-  double fontSizeMapMin() const { return fontSizeSet_.mapMin(); }
-  void setFontSizeMapMin(double r) { fontSizeSet_.setMapMin(r); updateObjs(); }
+  double fontSizeMapMin() const { return valueSetMapMin("fontSize"); }
+  void setFontSizeMapMin(double r) { setValueSetMapMin("fontSize", r); updateObjs(); }
 
-  double fontSizeMapMax() const { return fontSizeSet_.mapMax(); }
-  void setFontSizeMapMax(double r) { fontSizeSet_.setMapMax(r); updateObjs(); }
+  double fontSizeMapMax() const { return valueSetMapMax("fontSize"); }
+  void setFontSizeMapMax(double r) { setValueSetMapMax("fontSize", r); updateObjs(); }
 
   //---
 
@@ -249,12 +252,6 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initSymbolSizeSet();
-  void initFontSizeSet();
-  void initColorSet();
-
-  bool colorSetColor(int i, OptColor &color);
-
   void updateObjs() override;
 
   bool initObjs() override;
@@ -275,9 +272,6 @@ class CQChartsScatterPlot : public CQChartsPlot {
   int                  nameColumn_        { -1 };
   int                  xColumn_           { 0 };
   int                  yColumn_           { 1 };
-  int                  symbolSizeColumn_  { -1 };
-  int                  fontSizeColumn_    { -1 };
-  int                  colorColumn_       { -1 };
   bool                 symbolBorder_      { true };
   CQChartsPaletteColor symbolBorderColor_;
   double               symbolBorderAlpha_ { 1.0 };
@@ -286,10 +280,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
   CQChartsPaletteColor symbolFillColor_;
   double               symbolFillAlpha_   { 1.0 };
   double               symbolSize_        { 4 };
-  CQChartsValueSet     symbolSizeSet_;
   double               fontSize_          { 8 };
-  CQChartsValueSet     fontSizeSet_;
-  CQChartsColorSet     colorSet_;
   NameValues           nameValues_;
   CQChartsDataLabel    dataLabel_;
   QString              xname_;

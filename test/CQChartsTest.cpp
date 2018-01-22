@@ -14,13 +14,14 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsLoader.h>
+#include <CQChartsColumn.h>
 #include <CQChartsPlotDlg.h>
 
 #include <CQExprModel.h>
 #include <CQFoldedModel.h>
 #include <CQSortModel.h>
 
-#include <CGradientPalette.h>
+#include <CQChartsGradientPalette.h>
 #include <CQHistoryLineEdit.h>
 #include <CQStrParse.h>
 
@@ -1056,11 +1057,11 @@ initPlot(const InitData &initData)
   if (! viewData)
     return false;
 
-  ModelP model = viewData->model;
-
   //---
 
   if (initData.process.length()) {
+    ModelP model = viewData->model;
+
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
@@ -1068,6 +1069,8 @@ initPlot(const InitData &initData)
   }
 
   if (initData.processAdd.length()) {
+    ModelP model = viewData->model;
+
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
@@ -1262,11 +1265,13 @@ exprSlot()
     default:                                          break;
   }
 
+  ModelP model = viewData->model;
+
   bool ok;
 
   int column = exprColumn_->text().toInt(&ok);
 
-  processExpression(viewData->model, function, column, expr);
+  processExpression(model, function, column, expr);
 
   exprEdit_->setText("");
 }
@@ -1280,7 +1285,9 @@ processExpression(const QString &expr)
   if (! viewData)
     return;
 
-  processExpression(viewData->model, expr);
+  ModelP model = viewData->model;
+
+  processExpression(model, expr);
 }
 
 void
@@ -1626,9 +1633,11 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
 
   CQChartsPlot *plot = nullptr;
 
+  ModelP model = viewData->currentModel();
+
   // create plot from init (argument) data
   if (initData.filterStr.length()) {
-    CQSortModel *sortModel = new CQSortModel(viewData->model.data());
+    CQSortModel *sortModel = new CQSortModel(model.data());
 
     ModelP sortModelP(sortModel);
 
@@ -1637,7 +1646,7 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
     plot = createPlot(viewData, sortModelP, type, initData.nameValueData, reuse, bbox);
   }
   else {
-    plot = createPlot(viewData, viewData->model, type, initData.nameValueData, reuse, bbox);
+    plot = createPlot(viewData, model, type, initData.nameValueData, reuse, bbox);
   }
 
   assert(plot);
@@ -2909,36 +2918,8 @@ void
 CQChartsTest::
 paletteCmd(const Args &args)
 {
-  struct DefinedColor {
-    double v { -1.0 };
-    QColor c;
-
-    DefinedColor(double v, const QColor &c) :
-     v(v), c(c) {
-    }
-  };
-
-  using DefinedColors = std::vector<DefinedColor>;
-
-  QString               viewName;
-  QString               colorTypeStr;
-  QString               colorModelStr;
-  CQChartsTest::OptInt  redModel    = boost::make_optional(false, 0);
-  CQChartsTest::OptInt  greenModel  = boost::make_optional(false, 0);
-  CQChartsTest::OptInt  blueModel   = boost::make_optional(false, 0);
-  CQChartsTest::OptBool negateRed   = boost::make_optional(false, false);
-  CQChartsTest::OptBool negateGreen = boost::make_optional(false, false);
-  CQChartsTest::OptBool negateBlue  = boost::make_optional(false, false);
-  CQChartsTest::OptReal redMin      = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal redMax      = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal greenMin    = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal greenMax    = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal blueMin     = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal blueMax     = boost::make_optional(false, 0.0);
-  DefinedColors         definedColors;
-  bool                  getColorScale { false };
-  bool                  getColorFlag { false };
-  double                getColorValue { 0.0 };
+  QString          viewName;
+  PaletteColorData paletteData;
 
   int argc = args.size();
 
@@ -2962,7 +2943,7 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        colorTypeStr = args[i];
+        paletteData.colorTypeStr = args[i];
       }
       else if (opt == "color_model") {
         ++i;
@@ -2972,7 +2953,7 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        colorModelStr = args[i];
+        paletteData.colorModelStr = args[i];
       }
       else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
         ++i;
@@ -2991,9 +2972,9 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "redModel"  ) redModel   = model;
-        else if (opt == "greenModel") greenModel = model;
-        else if (opt == "blueModel" ) blueModel  = model;
+        if      (opt == "redModel"  ) paletteData.redModel   = model;
+        else if (opt == "greenModel") paletteData.greenModel = model;
+        else if (opt == "blueModel" ) paletteData.blueModel  = model;
       }
       else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
         ++i;
@@ -3012,9 +2993,9 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "negateRed"  ) negateRed   = b;
-        else if (opt == "negateGreen") negateGreen = b;
-        else if (opt == "negateBlue" ) negateBlue  = b;
+        if      (opt == "negateRed"  ) paletteData.negateRed   = b;
+        else if (opt == "negateGreen") paletteData.negateGreen = b;
+        else if (opt == "negateBlue" ) paletteData.negateBlue  = b;
       }
       else if (opt == "redMin"   || opt == "redMax"   ||
                opt == "greenMin" || opt == "greenMax" ||
@@ -3035,12 +3016,12 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "redMin"  ) redMin   = r;
-        else if (opt == "greenMin") greenMin = r;
-        else if (opt == "blueMin" ) blueMin  = r;
-        else if (opt == "redMax"  ) redMax   = r;
-        else if (opt == "greenMax") greenMax = r;
-        else if (opt == "blueMax" ) blueMax  = r;
+        if      (opt == "redMin"  ) paletteData.redMin   = r;
+        else if (opt == "greenMin") paletteData.greenMin = r;
+        else if (opt == "blueMin" ) paletteData.blueMin  = r;
+        else if (opt == "redMax"  ) paletteData.redMax   = r;
+        else if (opt == "greenMax") paletteData.greenMax = r;
+        else if (opt == "blueMax" ) paletteData.blueMax  = r;
       }
       else if (opt == "defined") {
         ++i;
@@ -3057,7 +3038,7 @@ paletteCmd(const Args &args)
 
         double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
 
-        definedColors.clear();
+        paletteData.definedColors.clear();
 
         for (int j = 0; j < strs.length(); ++j) {
           int pos = strs[j].indexOf('=');
@@ -3077,7 +3058,7 @@ paletteCmd(const Args &args)
           else
             c = QColor(strs[j]);
 
-          definedColors.push_back(DefinedColor(v, c));
+          paletteData.definedColors.push_back(DefinedColor(v, c));
         }
       }
       else if (opt == "get_color") {
@@ -3088,11 +3069,11 @@ paletteCmd(const Args &args)
           continue;
         }
 
-        getColorFlag  = true;
-        getColorValue = args[i].toDouble(&getColorFlag);
+        paletteData.getColorFlag  = true;
+        paletteData.getColorValue = args[i].toDouble(&paletteData.getColorFlag);
       }
       else if (opt == "get_color_scale") {
-        getColorScale = true;
+        paletteData.getColorScale = true;
       }
       else {
         errorMsg("Invalid option '" + opt + "'");
@@ -3117,62 +3098,9 @@ paletteCmd(const Args &args)
 
   //---
 
-  CGradientPalette *palette = view->theme()->palette();
+  CQChartsGradientPalette *palette = view->theme()->palette();
 
-  if (colorTypeStr != "") {
-    CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;
-
-    if      (colorTypeStr == "model"    ) colorType = CGradientPalette::ColorType::MODEL;
-    else if (colorTypeStr == "defined"  ) colorType = CGradientPalette::ColorType::DEFINED;
-    else if (colorTypeStr == "functions") colorType = CGradientPalette::ColorType::FUNCTIONS;
-    else if (colorTypeStr == "cubehelix") colorType = CGradientPalette::ColorType::CUBEHELIX;
-
-    palette->setColorType(colorType);
-  }
-
-  if (colorModelStr != "") {
-    CGradientPalette::ColorModel colorModel = CGradientPalette::ColorModel::RGB;
-
-    if      (colorModelStr == "rgb") colorModel = CGradientPalette::ColorModel::RGB;
-    else if (colorModelStr == "hsv") colorModel = CGradientPalette::ColorModel::HSV;
-    else if (colorModelStr == "cmy") colorModel = CGradientPalette::ColorModel::CMY;
-    else if (colorModelStr == "yiq") colorModel = CGradientPalette::ColorModel::YIQ;
-    else if (colorModelStr == "xyz") colorModel = CGradientPalette::ColorModel::XYZ;
-
-    palette->setColorModel(colorModel);
-  }
-
-  if (redModel  ) palette->setRedModel  (*redModel  );
-  if (greenModel) palette->setGreenModel(*greenModel);
-  if (blueModel ) palette->setBlueModel (*blueModel );
-
-  if (negateRed  ) palette->setRedNegative  (*negateRed  );
-  if (negateGreen) palette->setGreenNegative(*negateGreen);
-  if (negateBlue ) palette->setBlueNegative (*negateBlue );
-
-  if (redMin  ) palette->setRedMin  (*redMin  );
-  if (redMax  ) palette->setRedMax  (*redMax  );
-  if (greenMin) palette->setGreenMin(*greenMin);
-  if (greenMax) palette->setGreenMax(*greenMax);
-  if (blueMin ) palette->setBlueMin (*blueMin );
-  if (blueMax ) palette->setBlueMax (*blueMax );
-
-  if (! definedColors.empty()) {
-    palette->resetDefinedColors();
-
-    for (const auto &definedColor : definedColors)
-      palette->addDefinedColor(definedColor.v, definedColor.c);
-  }
-
-  //---
-
-  if (getColorFlag) {
-    QColor c = palette->getColor(getColorValue, getColorScale);
-
-    CExprValuePtr svalue = expr_->createStringValue(c.name().toStdString());
-
-    expr_->createVariable("rc", svalue);
-  }
+  setPaleteData(palette, paletteData);
 
   //---
 
@@ -3188,36 +3116,8 @@ void
 CQChartsTest::
 themeCmd(const Args &args)
 {
-  struct DefinedColor {
-    double v { -1.0 };
-    QColor c;
-
-    DefinedColor(double v, const QColor &c) :
-     v(v), c(c) {
-    }
-  };
-
-  using DefinedColors = std::vector<DefinedColor>;
-
-  QString               viewName;
-  QString               colorTypeStr;
-  QString               colorModelStr;
-  CQChartsTest::OptInt  redModel    = boost::make_optional(false, 0);
-  CQChartsTest::OptInt  greenModel  = boost::make_optional(false, 0);
-  CQChartsTest::OptInt  blueModel   = boost::make_optional(false, 0);
-  CQChartsTest::OptBool negateRed   = boost::make_optional(false, false);
-  CQChartsTest::OptBool negateGreen = boost::make_optional(false, false);
-  CQChartsTest::OptBool negateBlue  = boost::make_optional(false, false);
-  CQChartsTest::OptReal redMin      = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal redMax      = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal greenMin    = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal greenMax    = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal blueMin     = boost::make_optional(false, 0.0);
-  CQChartsTest::OptReal blueMax     = boost::make_optional(false, 0.0);
-  DefinedColors         definedColors;
-  bool                  getColorScale { false };
-  bool                  getColorFlag { false };
-  double                getColorValue { 0.0 };
+  QString          viewName;
+  PaletteColorData paletteData;
 
   int argc = args.size();
 
@@ -3241,7 +3141,7 @@ themeCmd(const Args &args)
           continue;
         }
 
-        colorTypeStr = args[i];
+        paletteData.colorTypeStr = args[i];
       }
       else if (opt == "color_model") {
         ++i;
@@ -3251,7 +3151,7 @@ themeCmd(const Args &args)
           continue;
         }
 
-        colorModelStr = args[i];
+        paletteData.colorModelStr = args[i];
       }
       else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
         ++i;
@@ -3270,9 +3170,9 @@ themeCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "redModel"  ) redModel   = model;
-        else if (opt == "greenModel") greenModel = model;
-        else if (opt == "blueModel" ) blueModel  = model;
+        if      (opt == "redModel"  ) paletteData.redModel   = model;
+        else if (opt == "greenModel") paletteData.greenModel = model;
+        else if (opt == "blueModel" ) paletteData.blueModel  = model;
       }
       else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
         ++i;
@@ -3291,9 +3191,9 @@ themeCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "negateRed"  ) negateRed   = b;
-        else if (opt == "negateGreen") negateGreen = b;
-        else if (opt == "negateBlue" ) negateBlue  = b;
+        if      (opt == "negateRed"  ) paletteData.negateRed   = b;
+        else if (opt == "negateGreen") paletteData.negateGreen = b;
+        else if (opt == "negateBlue" ) paletteData.negateBlue  = b;
       }
       else if (opt == "redMin"   || opt == "redMax"   ||
                opt == "greenMin" || opt == "greenMax" ||
@@ -3314,12 +3214,12 @@ themeCmd(const Args &args)
           continue;
         }
 
-        if      (opt == "redMin"  ) redMin   = r;
-        else if (opt == "greenMin") greenMin = r;
-        else if (opt == "blueMin" ) blueMin  = r;
-        else if (opt == "redMax"  ) redMax   = r;
-        else if (opt == "greenMax") greenMax = r;
-        else if (opt == "blueMax" ) blueMax  = r;
+        if      (opt == "redMin"  ) paletteData.redMin   = r;
+        else if (opt == "greenMin") paletteData.greenMin = r;
+        else if (opt == "blueMin" ) paletteData.blueMin  = r;
+        else if (opt == "redMax"  ) paletteData.redMax   = r;
+        else if (opt == "greenMax") paletteData.greenMax = r;
+        else if (opt == "blueMax" ) paletteData.blueMax  = r;
       }
       else if (opt == "defined") {
         ++i;
@@ -3336,7 +3236,7 @@ themeCmd(const Args &args)
 
         double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
 
-        definedColors.clear();
+        paletteData.definedColors.clear();
 
         for (int j = 0; j < strs.length(); ++j) {
           int pos = strs[j].indexOf('=');
@@ -3356,7 +3256,7 @@ themeCmd(const Args &args)
           else
             c = QColor(strs[j]);
 
-          definedColors.push_back(DefinedColor(v, c));
+          paletteData.definedColors.push_back(DefinedColor(v, c));
         }
       }
       else if (opt == "get_color") {
@@ -3367,11 +3267,11 @@ themeCmd(const Args &args)
           continue;
         }
 
-        getColorFlag  = true;
-        getColorValue = args[i].toDouble(&getColorFlag);
+        paletteData.getColorFlag  = true;
+        paletteData.getColorValue = args[i].toDouble(&paletteData.getColorFlag);
       }
       else if (opt == "get_color_scale") {
-        getColorScale = true;
+        paletteData.getColorScale = true;
       }
       else {
         errorMsg("Invalid option '" + opt + "'");
@@ -3396,62 +3296,9 @@ themeCmd(const Args &args)
 
   //---
 
-  CGradientPalette *theme = view->theme()->theme();
+  CQChartsGradientPalette *theme = view->theme()->theme();
 
-  if (colorTypeStr != "") {
-    CGradientPalette::ColorType colorType = CGradientPalette::ColorType::MODEL;
-
-    if      (colorTypeStr == "model"    ) colorType = CGradientPalette::ColorType::MODEL;
-    else if (colorTypeStr == "defined"  ) colorType = CGradientPalette::ColorType::DEFINED;
-    else if (colorTypeStr == "functions") colorType = CGradientPalette::ColorType::FUNCTIONS;
-    else if (colorTypeStr == "cubehelix") colorType = CGradientPalette::ColorType::CUBEHELIX;
-
-    theme->setColorType(colorType);
-  }
-
-  if (colorModelStr != "") {
-    CGradientPalette::ColorModel colorModel = CGradientPalette::ColorModel::RGB;
-
-    if      (colorModelStr == "rgb") colorModel = CGradientPalette::ColorModel::RGB;
-    else if (colorModelStr == "hsv") colorModel = CGradientPalette::ColorModel::HSV;
-    else if (colorModelStr == "cmy") colorModel = CGradientPalette::ColorModel::CMY;
-    else if (colorModelStr == "yiq") colorModel = CGradientPalette::ColorModel::YIQ;
-    else if (colorModelStr == "xyz") colorModel = CGradientPalette::ColorModel::XYZ;
-
-    theme->setColorModel(colorModel);
-  }
-
-  if (redModel  ) theme->setRedModel  (*redModel  );
-  if (greenModel) theme->setGreenModel(*greenModel);
-  if (blueModel ) theme->setBlueModel (*blueModel );
-
-  if (negateRed  ) theme->setRedNegative  (*negateRed  );
-  if (negateGreen) theme->setGreenNegative(*negateGreen);
-  if (negateBlue ) theme->setBlueNegative (*negateBlue );
-
-  if (redMin  ) theme->setRedMin  (*redMin  );
-  if (redMax  ) theme->setRedMax  (*redMax  );
-  if (greenMin) theme->setGreenMin(*greenMin);
-  if (greenMax) theme->setGreenMax(*greenMax);
-  if (blueMin ) theme->setBlueMin (*blueMin );
-  if (blueMax ) theme->setBlueMax (*blueMax );
-
-  if (! definedColors.empty()) {
-    theme->resetDefinedColors();
-
-    for (const auto &definedColor : definedColors)
-      theme->addDefinedColor(definedColor.v, definedColor.c);
-  }
-
-  //---
-
-  if (getColorFlag) {
-    QColor c = theme->getColor(getColorValue, getColorScale);
-
-    CExprValuePtr svalue = expr_->createStringValue(c.name().toStdString());
-
-    expr_->createVariable("rc", svalue);
-  }
+  setPaleteData(theme, paletteData);
 
   //---
 
@@ -3461,6 +3308,81 @@ themeCmd(const Args &args)
 
   if (window)
     window->updatePalette();
+}
+
+void
+CQChartsTest::
+setPaleteData(CQChartsGradientPalette *palette, const PaletteColorData &paletteData)
+{
+  if (paletteData.colorTypeStr != "") {
+    CQChartsGradientPalette::ColorType colorType = CQChartsGradientPalette::ColorType::MODEL;
+
+    if      (paletteData.colorTypeStr == "model"    )
+      colorType = CQChartsGradientPalette::ColorType::MODEL;
+    else if (paletteData.colorTypeStr == "defined"  )
+      colorType = CQChartsGradientPalette::ColorType::DEFINED;
+    else if (paletteData.colorTypeStr == "functions")
+      colorType = CQChartsGradientPalette::ColorType::FUNCTIONS;
+    else if (paletteData.colorTypeStr == "cubehelix")
+      colorType = CQChartsGradientPalette::ColorType::CUBEHELIX;
+
+    palette->setColorType(colorType);
+  }
+
+  //---
+
+  if (paletteData.colorModelStr != "") {
+    CQChartsGradientPalette::ColorModel colorModel = CQChartsGradientPalette::ColorModel::RGB;
+
+    if      (paletteData.colorModelStr == "rgb")
+      colorModel = CQChartsGradientPalette::ColorModel::RGB;
+    else if (paletteData.colorModelStr == "hsv")
+      colorModel = CQChartsGradientPalette::ColorModel::HSV;
+    else if (paletteData.colorModelStr == "cmy")
+      colorModel = CQChartsGradientPalette::ColorModel::CMY;
+    else if (paletteData.colorModelStr == "yiq")
+      colorModel = CQChartsGradientPalette::ColorModel::YIQ;
+    else if (paletteData.colorModelStr == "xyz")
+      colorModel = CQChartsGradientPalette::ColorModel::XYZ;
+
+    palette->setColorModel(colorModel);
+  }
+
+  //---
+
+  if (paletteData.redModel  ) palette->setRedModel  (*paletteData.redModel  );
+  if (paletteData.greenModel) palette->setGreenModel(*paletteData.greenModel);
+  if (paletteData.blueModel ) palette->setBlueModel (*paletteData.blueModel );
+
+  if (paletteData.negateRed  ) palette->setRedNegative  (*paletteData.negateRed  );
+  if (paletteData.negateGreen) palette->setGreenNegative(*paletteData.negateGreen);
+  if (paletteData.negateBlue ) palette->setBlueNegative (*paletteData.negateBlue );
+
+  if (paletteData.redMin  ) palette->setRedMin  (*paletteData.redMin  );
+  if (paletteData.redMax  ) palette->setRedMax  (*paletteData.redMax  );
+  if (paletteData.greenMin) palette->setGreenMin(*paletteData.greenMin);
+  if (paletteData.greenMax) palette->setGreenMax(*paletteData.greenMax);
+  if (paletteData.blueMin ) palette->setBlueMin (*paletteData.blueMin );
+  if (paletteData.blueMax ) palette->setBlueMax (*paletteData.blueMax );
+
+  //---
+
+  if (! paletteData.definedColors.empty()) {
+    palette->resetDefinedColors();
+
+    for (const auto &definedColor : paletteData.definedColors)
+      palette->addDefinedColor(definedColor.v, definedColor.c);
+  }
+
+  //---
+
+  if (paletteData.getColorFlag) {
+    QColor c = palette->getColor(paletteData.getColorValue, paletteData.getColorScale);
+
+    CExprValuePtr svalue = expr_->createStringValue(c.name().toStdString());
+
+    expr_->createVariable("rc", svalue);
+  }
 }
 
 void

@@ -5,7 +5,6 @@
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsFillObj.h>
-#include <CGradientPalette.h>
 #include <CQStrParse.h>
 #include <QPainter>
 

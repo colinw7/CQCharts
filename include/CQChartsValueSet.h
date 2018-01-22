@@ -9,11 +9,315 @@
 
 class CQChartsPlot;
 
+//------
+
+class CQChartsRValues {
+ public:
+  CQChartsRValues() { }
+
+  void clear() {
+    rvals_  .clear();
+    rvalset_.clear();
+    setrval_.clear();
+  }
+
+  int size() const { return rvals_.size(); }
+
+  // get nth value (non-unique)
+  double value(int i) const { return rvals_[i]; }
+
+  int addValue(double r) {
+    rvals_.push_back(r);
+
+    auto p = rvalset_.find(r);
+
+    if (p == rvalset_.end()) {
+      int id = rvalset_.size();
+
+      p = rvalset_.insert(p, RValSet::value_type(r, id)); // id for value
+
+      setrval_[id] = r; // value for id
+    }
+
+    return (*p).second;;
+  }
+
+  // real to id
+  int id(double r) const {
+    auto p = rvalset_.find(r);
+
+    if (p == rvalset_.end())
+      return -1;
+
+    return (*p).second;
+  }
+
+  // id to real
+  double ivalue(int i) const {
+    // get real for index
+    auto p = setrval_.find(i);
+
+    if (p == setrval_.end())
+      return 0.0;
+
+    return (*p).second;
+  }
+
+  double map(double r, double mapMin=0.0, double mapMax=1.0) const {
+    // map value using real value range
+    double rmin = this->min();
+    double rmax = this->max();
+
+    if (rmin == rmax)
+      return mapMin;
+
+    return CQChartsUtil::map(r, rmin, rmax, mapMin, mapMax);
+  }
+
+  double min() const { assert(! rvalset_.empty()); return rvalset_. begin()->first; }
+  double max() const { assert(! rvalset_.empty()); return rvalset_.rbegin()->first; }
+
+  int imin() const { assert(! setrval_.empty()); return setrval_. begin()->first; }
+  int imax() const { assert(! setrval_.empty()); return setrval_.rbegin()->first; }
+
+  int numUnique() const { return rvalset_.size(); }
+
+ private:
+  using RVals   = std::vector<double>;
+  using RValSet = std::map<double,int,CQChartsUtil::RealCmp>;
+  using SetRVal = std::map<int,double>;
+
+  RVals   rvals_;   // all real values
+  RValSet rvalset_; // unique indexed real values
+  SetRVal setrval_; // index to real map
+};
+
+class CQChartsIValues {
+ public:
+  CQChartsIValues() { }
+
+  void clear() {
+    ivals_  .clear();
+    ivalset_.clear();
+    setival_.clear();
+  }
+
+  int size() const { return ivals_.size(); }
+
+  // get nth value (non-unique)
+  int value(int i) const { return ivals_[i]; }
+
+  int addValue(int i) {
+    ivals_.push_back(i);
+
+    auto p = ivalset_.find(i);
+
+    if (p == ivalset_.end()) {
+      int id = ivalset_.size();
+
+      p = ivalset_.insert(p, IValSet::value_type(i, id)); // id for value
+
+      setival_[id] = i; // value for id
+    }
+
+    return (*p).second;;
+  }
+
+  // integer to id
+  int id(int i) const {
+    auto p = ivalset_.find(i);
+
+    if (p == ivalset_.end())
+      return -1;
+
+    return (*p).second;
+  }
+
+  // id to integer
+  int ivalue(int i) const {
+    // get integer for index
+    auto p = setival_.find(i);
+
+    if (p == setival_.end())
+      return 0;
+
+    return (*p).second;
+  }
+
+  int min() const { assert(! ivalset_.empty()); return ivalset_. begin()->first; }
+  int max() const { assert(! ivalset_.empty()); return ivalset_.rbegin()->first; }
+
+  int imin() const { assert(! setival_.empty()); return setival_. begin()->first; }
+  int imax() const { assert(! setival_.empty()); return setival_.rbegin()->first; }
+
+  int numUnique() const { return ivalset_.size(); }
+
+ private:
+  using IVals   = std::vector<int>;
+  using IValSet = std::map<int,int>;
+  using SetIVal = std::map<int,int>;
+
+  IVals   ivals_;   // all integer values
+  IValSet ivalset_; // unique indexed integer values
+  SetIVal setival_; // index to integer map
+};
+
+class CQChartsSValues {
+ public:
+  CQChartsSValues() { }
+
+  void clear() {
+    svals_  .clear();
+    svalset_.clear();
+    setsval_.clear();
+
+    trie_.clear();
+
+    spatterns_.clear();
+
+    spatternsSet_ = false;
+  }
+
+  int size() const { return svals_.size(); }
+
+  // get nth value (non-unique)
+  const QString &value(int i) const { return svals_[i]; }
+
+  int addValue(const QString &s) {
+    trie_.addWord(s);
+
+    svals_.push_back(s);
+
+    auto p = svalset_.find(s);
+
+    if (p == svalset_.end()) {
+      int id = svalset_.size();
+
+      p = svalset_.insert(p, SValSet::value_type(s, id));
+
+      setsval_[id] = s;
+    }
+
+    return (*p).second;;
+  }
+
+  // string to id
+  int id(const QString &s) const {
+    // get string set index
+    auto p = svalset_.find(s);
+
+    if (p == svalset_.end())
+      return -1;
+
+    return (*p).second;
+  }
+
+  // id to string
+  QString ivalue(int i) const {
+    // get string for index
+    auto p = setsval_.find(i);
+
+    if (p == setsval_.end())
+      return "";
+
+    return (*p).second;
+  }
+
+  QString min() const { assert(! svalset_.empty()); return svalset_. begin()->first; }
+  QString max() const { assert(! svalset_.empty()); return svalset_.rbegin()->first; }
+
+  int imin() const { assert(! setsval_.empty()); return setsval_. begin()->first; }
+  int imax() const { assert(! setsval_.empty()); return setsval_.rbegin()->first; }
+
+  int numUnique() const { return svalset_.size(); }
+
+  double map(const QString &s, double mapMin=0.0, double mapMax=1.0) const {
+    // get string set index
+    int i = id(s);
+
+    // map string set index using 1 -> number of unique values
+    int slen = numUnique();
+
+    if (! slen)
+      return mapMin;
+
+    return CQChartsUtil::map(i, imin(), imax(), mapMin, mapMax);
+  }
+
+  int sbucket(const QString &s) const {
+    initPatterns(initBuckets_);
+
+    return trie_.patternIndex(s, spatterns_);
+  }
+
+  QString buckets(int i) const {
+    initPatterns(initBuckets_);
+
+    return trie_.indexPattern(i, spatterns_);
+  }
+
+ private:
+  void initPatterns(int numIdeal) const {
+    if (spatternsSet_)
+      return;
+
+    using DepthCountMap = std::map<int,CQChartsTrie::Patterns>;
+
+    DepthCountMap depthCountMap;
+
+    for (int depth = 1; depth <= 3; ++depth) {
+      CQChartsTrie::Patterns patterns;
+
+      trie_.patterns(depth, patterns);
+
+      depthCountMap[depth] = patterns;
+
+      //patterns.print(std::cerr);
+    }
+
+    int minD     = -1;
+    int minDepth = -1;
+
+    for (const auto &depthCount : depthCountMap) {
+      int d = std::abs(depthCount.second.numPatterns() - numIdeal);
+
+      if (minDepth < 0 || d < minD) {
+        minD     = d;
+        minDepth = depthCount.first;
+      }
+    }
+
+    CQChartsSValues *th = const_cast<CQChartsSValues *>(this);
+
+    th->spatterns_    = depthCountMap[minDepth];
+    th->spatternsSet_ = true;
+
+    //spatterns_.print(std::cerr);
+  }
+
+ private:
+  using SVals   = std::vector<QString>;
+  using SValSet = std::map<QString,int>;
+  using SetSVal = std::map<int,QString>;
+
+  SVals   svals_;   // all string values
+  SValSet svalset_; // unique indexed string values
+  SetSVal setsval_; // index to string map
+
+  int                    initBuckets_  { 10 };
+  CQChartsTrie           trie_;                   // string trie
+  CQChartsTrie::Patterns spatterns_;              // trie patterns
+  bool                   spatternsSet_ { false }; // trie patterns set
+};
+
+//------
+
 // set of real, integer or string values which will be grouped by their unique values.
 // Auto detects value type from input data
 class CQChartsValueSet : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(int    column     READ column       WRITE setColumn    )
   Q_PROPERTY(bool   mapEnabled READ isMapEnabled WRITE setMapEnabled)
   Q_PROPERTY(double mapMin     READ mapMin       WRITE setMapMin    )
   Q_PROPERTY(double mapMax     READ mapMax       WRITE setMapMax    )
@@ -29,6 +333,13 @@ class CQChartsValueSet : public QObject {
 
  public:
   CQChartsValueSet();
+
+  //---
+
+  int column() const { return column_; }
+  void setColumn(int i) { column_ = i; }
+
+  //---
 
   void addProperties(CQChartsPlot *plot, const QString &path);
 
@@ -111,49 +422,19 @@ class CQChartsValueSet : public QObject {
   void init() const;
   void init();
 
-  void initPatterns(int n) const;
-
  private:
-  // compare reals with tolerance
-  struct RealCmp {
-    bool operator()(const double &lhs, const double &rhs) const {
-      if (CQChartsUtil::realEq(lhs, rhs))
-        return false;
+  using Values = std::vector<QVariant>;
 
-      return lhs < rhs;
-    }
-  };
+  int column_ { -1 }; // associated model column
 
-  using IVals   = std::vector<int>;
-  using RVals   = std::vector<double>;
-  using SVals   = std::vector<QString>;
-  using ISets   = std::set<int>;
-  using RValSet = std::map<double,int,RealCmp>;
-  using SetRVal = std::map<int,double>;
-  using SValSet = std::map<QString,int>;
-  using SetSVal = std::map<int,QString>;
-  using Values  = std::vector<QVariant>;
+  Values values_;                // input values
+  bool   initialized_ { false }; // are real, integer, string values initialized
 
-  Values  values_;                // input values
-  bool    initialized_ { false }; // are real, integer, string values initialized
+  Type    type_ { Type::NONE }; // calculated type
 
-  Type    type_ { Type::NONE };   // calculated type
-
-  IVals   ivals_;   // all integer values
-  ISets   iset_;    // unique integer values
-
-  RVals   rvals_;   // all real values
-  RValSet rvalset_; // unique indexed real values
-  SetRVal setrval_; // index to real map
-
-  SVals   svals_;     // all string values
-  SValSet svalset_;   // unique indexed string values
-  SetSVal setsval_;   // index to string map
-
-  int                    initBuckets_  { 10 };
-  CQChartsTrie           trie_;                   // string trie
-  CQChartsTrie::Patterns spatterns_;              // trie patterns
-  bool                   spatternsSet_ { false }; // trie patterns set
+  CQChartsIValues ivals_; // integer values
+  CQChartsRValues rvals_; // real values
+  CQChartsSValues svals_; // string values
 
   bool    mapEnabled_ { true };
   double  mapMin_     { 0.0 };

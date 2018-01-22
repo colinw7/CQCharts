@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
-#include <CGradientPalette.h>
 #include <QPainter>
 
 //---
@@ -676,7 +675,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     if (gval >= 0.0) {
       double r = CQChartsUtil::norm(i(), 0, n());
 
-      fromColor = plot_->groupPaletteColor(gval, r, 0.1);
+      fromColor = plot_->interpGroupPaletteColor(gval, r, 0.1);
     }
     else
       fromColor = plot_->interpPaletteColor(i(), n());
