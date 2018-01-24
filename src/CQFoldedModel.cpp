@@ -5,9 +5,10 @@
 //------
 
 CQFoldedModel::
-CQFoldedModel(QAbstractItemModel *model, int foldColumn) :
- foldColumn_(foldColumn)
+CQFoldedModel(QAbstractItemModel *model, const CQFoldData &foldData)
 {
+  setFoldData(foldData);
+
   setSourceModel(model);
 }
 
@@ -15,6 +16,16 @@ CQFoldedModel::
 ~CQFoldedModel()
 {
   clear();
+}
+
+void
+CQFoldedModel::
+setFoldData(const CQFoldData &foldData)
+{
+  foldData_ = foldData;
+
+  bucketer_.setType (foldData_.type ());
+  bucketer_.setDelta(foldData_.delta());
 }
 
 QAbstractItemModel *
@@ -43,10 +54,40 @@ void
 CQFoldedModel::
 setFoldColumn(int i)
 {
-  if (i != foldColumn_) {
+  if (i != foldData_.column()) {
     beginResetModel();
 
-    foldColumn_ = i;
+    foldData_.setColumn(i);
+
+    fold();
+
+    endResetModel();
+  }
+}
+
+void
+CQFoldedModel::
+setShowFoldColumnData(bool b)
+{
+  if (b != foldData_.showColumnData()) {
+    beginResetModel();
+
+    foldData_.setShowColumnData(b);
+
+    fold();
+
+    endResetModel();
+  }
+}
+
+void
+CQFoldedModel::
+setKeepFoldColumn(bool b)
+{
+  if (b != foldData_.isKeepColumn()) {
+    beginResetModel();
+
+    foldData_.setKeepColumn(b);
 
     fold();
 
@@ -116,6 +157,9 @@ fold()
   if (foldColumn() < 0 || foldColumn() >= numColumns_)
     return;
 
+  if (isKeepFoldColumn())
+    ++numColumns_;
+
   //---
 
   root_ = new Node(QModelIndex());
@@ -162,9 +206,17 @@ foldNode(Node *parent, int depth)
       // get value for column
       QModelIndex ind = model->index(r, foldColumn(), parent->sourceInd);
 
-      QString str = model->data(ind, Qt::DisplayRole).toString();
+      QVariant var = model->data(ind, Qt::DisplayRole);
 
-      Node *node = parent->getStringNode(str, depth);
+      int bucket = bucketer_.bucket(var);
+
+      bool isNew = false;
+
+      Node *node = parent->getBucketNode(bucket, depth, isNew);
+
+      if (isNew) {
+        node->str = bucketer_.bucketName(bucket);
+      }
 
       node->addSourceRow(r);
     }
@@ -201,8 +253,6 @@ columnCount(const QModelIndex &parent) const
 
     return model->columnCount(parent);
   }
-
-  //---
 
   return numColumns_;
 }
@@ -349,8 +399,10 @@ data(const QModelIndex &index, int role) const
   // folded node has no child
   if (! nodeData.child) {
     // fold column only has data after depth
-    if (c <= nodeData.parent->depth)
-      return QVariant();
+    if (c <= nodeData.parent->depth) {
+      if (! showFoldColumnData())
+        return QVariant();
+    }
 
     // get source model index for folded row number
     QModelIndex ind1 = foldedChildIndex(nodeData.parent, index.row(), index.column());
@@ -640,15 +692,23 @@ initSourceColumns()
   for (int i = 0; i < numColumns_; ++i)
     sourceColumns_[i] = i;
 
-  if      (foldPos_ < foldColumn()) {
-    for (int i = foldColumn(); i >= foldPos_ + 1; --i)
-      sourceColumns_[i] = sourceColumns_[i - 1];
+  if (! isKeepFoldColumn()) {
+    if      (foldPos_ < foldColumn()) {
+      for (int i = foldColumn(); i >= foldPos_ + 1; --i)
+        sourceColumns_[i] = sourceColumns_[i - 1];
 
-    sourceColumns_[foldPos_] = foldColumn();
+      sourceColumns_[foldPos_] = foldColumn();
+    }
+    else if (foldPos_ > foldColumn()) {
+      for (int i = foldColumn() + 1; i <= foldPos_; ++i)
+        sourceColumns_[i - 1] = sourceColumns_[i];
+
+      sourceColumns_[foldPos_] = foldColumn();
+    }
   }
-  else if (foldPos_ > foldColumn()) {
-    for (int i = foldColumn() + 1; i <= foldPos_; ++i)
-      sourceColumns_[i - 1] = sourceColumns_[i];
+  else {
+    for (int i = numColumns_ - 1; i >= foldPos_ + 1; --i)
+      sourceColumns_[i] = sourceColumns_[i - 1];
 
     sourceColumns_[foldPos_] = foldColumn();
   }

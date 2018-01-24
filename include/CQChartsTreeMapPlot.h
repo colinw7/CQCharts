@@ -134,9 +134,19 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   const Nodes &getNodes() const { return nodes_; }
 
+  //---
+
   bool hasChildren() const { return ! children_.empty(); }
 
+  int numChildren() const { return children_.size(); }
+
   const Children &getChildren() const { return children_; }
+
+  CQChartsTreeMapHierNode *childAt(int i) {
+    assert(i >= 0 && i < numChildren());
+
+    return children_[i];
+  }
 
   //---
 
@@ -342,7 +352,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   //---
 
   double marginWidth() const { return marginWidth_; }
-  void setMarginWidth(double r) { marginWidth_ = r; updateCurrentRoot(); }
+  void setMarginWidth(double r);
 
   //---
 

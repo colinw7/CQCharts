@@ -1402,31 +1402,59 @@ foldModel(ViewData *viewData, const QString &str)
 
   //---
 
-  using Columns = std::vector<int>;
+  using FoldDatas = std::vector<CQFoldData>;
 
-  Columns columns;
+  FoldDatas foldDatas;
 
   QStringList strs = str.split(",", QString::SkipEmptyParts);
 
   for (int i = 0; i < strs.length(); ++i) {
+    QStringList strs1 = strs[i].split(":", QString::SkipEmptyParts);
+
+    if (strs1.length() == 0)
+      continue;
+
     bool ok;
 
-    int column = strs[i].toInt(&ok);
+    int column = strs1[0].toInt(&ok);
 
     if (! ok)
       continue;
 
-    columns.push_back(column);
+    CQFoldData foldData(column);
+
+    if (strs1.length() > 1) {
+      CQFoldData::Type type = CQFoldData::Type::REAL_RANGE;
+
+      int i = 1;
+
+      if (strs1.length() > 2) {
+        if (strs1[1] == "i")
+          type = CQFoldData::Type::INTEGER_RANGE;
+
+        ++i;
+      }
+
+      double delta = strs1[i].toDouble(&ok);
+
+      if (! ok)
+        continue;
+
+      foldData.setType (type);
+      foldData.setDelta(delta);
+    }
+
+    foldDatas.push_back(foldData);
   }
 
   //---
 
   ModelP modelp = viewData->model;
 
-  for (const auto &column : columns) {
+  for (const auto &foldData : foldDatas) {
     QAbstractItemModel *model = modelp.data();
 
-    CQFoldedModel *foldedModel = new CQFoldedModel(model, column);
+    CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
 
     modelp = ModelP(foldedModel);
 

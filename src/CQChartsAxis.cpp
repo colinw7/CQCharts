@@ -836,6 +836,8 @@ calc()
     numMajorTicks_ = CQChartsUtil::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
     numMinorTicks_ = 5;
   }
+
+  emit ticksChanged();
 }
 
 bool

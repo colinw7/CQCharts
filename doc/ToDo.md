@@ -2,36 +2,18 @@ High
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
- + Generic Filter support (plugin)
  + Radial Coords/Plot
  + More annotation range support (bar chart, pie ...)
  + Compose BoxObj, FillObj, TextBoxObj together
  + Buffer texts and remove overlaps (per layer/type)
- + Bucket algorithm for all plots (box plot, ...)
- + Group in more areas
  + Standard format (formats) for hierarchical and connectivity (node/edge) data
    + Support multi column to specify hierarchy
  + Multiple sets of connected data (single level tree) - csv ?
- + Grouping support
-   + support different grouping per depth for push down/hier plots
-   + group data for scrolled (left/right) plot series
-   + what does grouping do (configurable)
-     + overlay (multi-plot)
-     + stack (bar chart)
-   + grouping on:
-     + hier (group per parent path)
-     + name column(s) (group per bucketed value, how handle multiple ?)
-     + multiple columns (group per column)
- + Auto group in model - table -> tree
+   . Filter to row or range or auto group (extra column, hierarchy for multiple sets of csv data)
  + Common code for hier plots
    + data import
    + name column handling 
  + Set cursor on mode change
- + Id Column in all plots
- + Interface language (Ceil)
- + Consolidate binning algorithms (class/config)
- + support data from script
-
  + Allow table/tree floating inside view
  + Edit mode to edit plot positions (illustrator code ?)
  + Only move key, title, axes in edit mode ?
@@ -41,12 +23,17 @@ High
   + Check in key
   + Scatter Plot Circle Size Key (Min, Max, Mean)
 
+Scripting
+ + Interface language (Ceil)
+ + support data from script (Ceil)
+
 Common Properties
  + Fill
    + visible
    + color
    + alpha
    + pattern
+   + gradient ?
  + Stroke
    + visible
    + color
@@ -89,6 +76,22 @@ Grouping
  + Switch between key for group and bucketed values
  + Support group by hier, column, ... in all plots
  + Common grouping code
+ + Bucket algorithm for all plots (box plot, ...)
+ + Group in more areas
+ + support different grouping per depth for push down/hier plots
+ + group data for scrolled (left/right) plot series (view level)
+ + group data for gridded plots (view level)
+ + what does grouping do (configurable)
+   + overlay (multi-plot)
+   + stack (bar chart)
+ + grouping on:
+   + hier (group per parent path)
+   + name column(s) (group per bucketed value, how handle multiple ?)
+   + multiple columns (group per column)
+ + Auto group in model - table -> tree
+   + bucket controls
+ + Consolidate binning algorithms (class/config)
+ + How color key for multi-color data
 
 Coloring
  + Color Column for all plots
@@ -112,6 +115,9 @@ Theme
  + cube helix max/min range
  + contrast color set
  + support discrete colors
+
+Filter
+ + Generic Filter support (plugin)
 
 Functions
  + Improved Filter
@@ -171,7 +177,7 @@ Adjacency Plot
  + X Border Width
  + Better Text Placement/Sizing
 
-Bar
+Bar Chart
  + Allow hide sets as well as individual sub set types
  + Custom Data Labels (including hiding)
 
@@ -198,6 +204,8 @@ Pie Chart
  + Stacked (multiple categories)
  + Radial labels (see radar)
  + Better expand display when grouped
+ + Key by group and by value (see bar chart)
+ + Group Labels 
 
 Radar Plot
  + Add Key
@@ -216,6 +224,7 @@ Tree map
  + Support Hier Value and Child Values (include in sum, total size)
  + Auto font size
  + Color Key
+ + Color fixed size box by value
 
 XY Plot
  + Use color set for color column to allow explict colors and colors from data
@@ -250,6 +259,8 @@ Symbols
 ToolTip
  + Format value depending on type
  + Format contents (wrap, max line length, max lines, ...)
+ + use html version (encoded text) in more plots
+ + More Key ToolTips
 
 Mouse Tools
  + Zoom : Data, Region
@@ -267,3 +278,12 @@ Optimization
 
 Gradient Palette
  + Probe show color value at vertical line and on gradient
+ + Interp vertical graph, horizontal gradient
+ + Interp show RGB values
+ + Min/Max, Negate controls on non-model data ?
+ + Support indexed palette (1-N colors) with different color values
+
+Data Processing
+ + Script/Data
+ + Table/Tree
+ + Chart

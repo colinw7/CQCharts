@@ -11,6 +11,7 @@
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsNoDataObj.h>
 #include <CQChartsColorSet.h>
+#include <CQChartsRotatedText.h>
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsUtil.h>
@@ -801,6 +802,7 @@ addProperties()
   addProperty("", this, "invertY"    );
   addProperty("", this, "logX"       );
   addProperty("", this, "logY"       );
+  addProperty("", this, "autoFit"    );
   addProperty("", this, "showBoxes"  );
 
   QString plotStyleStr       = "plotStyle";
@@ -1209,6 +1211,9 @@ initPlotObjs()
 
   if (changed)
     initObjTree();
+
+  if (isAutoFit())
+    autoFit();
 }
 
 void
@@ -1428,6 +1433,8 @@ mousePress(const CQChartsGeom::Point &w, ModSelect modSelect)
     emit objPressed(selectObj);
 
     emit objIdPressed(selectObj->id());
+
+    // potential crash if signals cause objects to be deleted (defer !!!)
   }
 
   //---
@@ -2541,7 +2548,54 @@ drawTitle(QPainter *painter)
 
 void
 CQChartsPlot::
-drawContrastText(QPainter *painter, double x, double y, const QString &text, const QPen &pen)
+drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
+              const QPen &pen, bool contrast) const
+{
+  QFontMetricsF fm(painter->font());
+
+  painter->setClipRect(rect);
+
+  if (! contrast)
+    painter->setPen(pen);
+
+  //---
+
+  QStringList strs;
+
+  CQChartsUtil::formatStringInRect(text, painter->font(), rect, strs);
+
+  //---
+
+  double th = 0;
+
+  for (int i = 0; i < strs.size(); ++i) {
+    th += fm.height();
+  }
+
+  //---
+
+  double dy = (rect.height() - th)/2.0;
+
+  double y = rect.top() + dy + fm.ascent();
+
+  for (int i = 0; i < strs.size(); ++i) {
+    double dx = (rect.width() - fm.width(strs[i]))/2;
+
+    double x = rect.left() + dx;
+
+    if (contrast)
+      drawContrastText(painter, x, y, strs[i], pen);
+    else
+      painter->drawText(x, y, strs[i]);
+
+    y += fm.height();
+  }
+}
+
+void
+CQChartsPlot::
+drawContrastText(QPainter *painter, double x, double y, const QString &text,
+                 const QPen &pen) const
 {
   painter->setPen(CQChartsUtil::invColor(pen.color()));
 
@@ -2551,6 +2605,114 @@ drawContrastText(QPainter *painter, double x, double y, const QString &text, con
 
   painter->drawText(QPointF(x, y), text);
 }
+
+#if 0
+void
+CQChartsPlot::
+drawConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
+                        double ta, const QString &text, const QPen &lpen, const QPen &tpen,
+                        const QFont &tfont, double tmargin, bool rotatedText)
+{
+  painter->save();
+
+  //---
+
+  if (lr < 0.01)
+    lr = 0.01;
+
+  double tangle = CQChartsUtil::Deg2Rad(ta);
+
+  double tc = cos(tangle);
+  double ts = sin(tangle);
+
+  double tx = center.x() + lr*tc;
+  double ty = center.y() + lr*ts;
+
+  double ptx, pty;
+
+  windowToPixel(tx, ty, ptx, pty);
+
+  //---
+
+  double        dx    = 0.0;
+  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+  // connect text to outer edge
+  if (lr > ro) {
+    double lx1 = center.x() + ro*tc;
+    double ly1 = center.y() + ro*ts;
+    double lx2 = center.x() + lr*tc;
+    double ly2 = center.y() + lr*ts;
+
+    double lpx1, lpy1, lpx2, lpy2;
+
+    windowToPixel(lx1, ly1, lpx1, lpy1);
+    windowToPixel(lx2, ly2, lpx2, lpy2);
+
+    int tickSize = 16;
+
+    if (tc >= 0) {
+      dx    = tickSize;
+      align = Qt::AlignLeft | Qt::AlignVCenter;
+    }
+    else {
+      dx    = -tickSize;
+      align = Qt::AlignRight | Qt::AlignVCenter;
+    }
+
+    painter->setPen(lpen);
+
+    painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
+    painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
+  }
+
+  //---
+
+  // draw text
+  QFontMetricsF fm(tfont);
+
+  double tw = fm.width(text);
+
+  double tw1 = tw + 2*tmargin;
+  double th1 = fm.height() + 2*tmargin;
+
+  double cx = ptx + dx;
+  double cy = pty - th1/2;
+  double cd = 0.0;
+
+  if      (align & Qt::AlignHCenter) {
+    cx -= tw1/2;
+  }
+  else if (align & Qt::AlignRight) {
+    cx -= tw1;
+    cd  = -tmargin;
+  }
+  else {
+    cd  = tmargin;
+  }
+
+  double angle = 0.0;
+
+  if (rotatedText)
+    angle = (tc >= 0 ? ta : 180.0 + ta);
+
+  //---
+
+  QRectF rect(cx, cy, tw1, th1);
+
+  painter->setPen (tpen);
+  painter->setFont(tfont);
+
+  CQChartsRotatedText::drawRotatedText(painter, ptx + dx + cd, pty, text, angle,
+                                       align, /*alignBBox*/ true);
+
+  //---
+
+  painter->restore();
+}
+#endif
+
+//------
 
 void
 CQChartsPlot::
@@ -3171,14 +3333,19 @@ valueSetColumn(const QString &name) const
   return valueSet->column();
 }
 
-void
+bool
 CQChartsPlot::
 setValueSetColumn(const QString &name, int i)
 {
   CQChartsValueSet *valueSet = getValueSet(name);
   assert(valueSet);
 
-  valueSet->setColumn(i);
+  if (valueSet->column() != i) {
+    valueSet->setColumn(i);
+    return true;
+  }
+
+  return false;
 }
 
 bool

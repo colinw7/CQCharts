@@ -55,6 +55,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "currentPlotInd");
   addProperty("", this, "mode"          );
   addProperty("", this, "selectMode"    );
+  addProperty("", this, "themeName"     );
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
   addProperty("", this, "posTextType"   );
@@ -163,6 +164,14 @@ setSelectMode(const SelectMode &selectMode)
 
     emit selectModeChanged();
   }
+}
+
+void
+CQChartsView::
+setThemeName(const QString &str)
+{
+  if (themeName() != str)
+    themeSlot(str);
 }
 
 CQChartsGradientPalette *
@@ -1596,13 +1605,18 @@ void
 CQChartsView::
 themeSlot(const QString &name)
 {
-  theme_ = CQChartsThemeMgrInst->getTheme(name);
+  CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(name);
+  if (! theme) return;
+
+  theme_ = theme;
 
   setSelectedFillColor(theme_->selectColor());
 
   updatePlots();
 
   update();
+
+  emit themeChanged();
 }
 
 //------
@@ -1937,6 +1951,56 @@ pixelToWindow(const CQChartsGeom::BBox &prect) const
 
   return CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
 }
+
+double
+CQChartsView::
+pixelToWindowWidth(double pw) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  pixelToWindow( 0, 0, wx1, wy1);
+  pixelToWindow(pw, 0, wx2, wy2);
+
+  return std::abs(wx2 - wx1);
+}
+
+double
+CQChartsView::
+pixelToWindowHeight(double ph) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  pixelToWindow(0, 0 , wx1, wy1);
+  pixelToWindow(0, ph, wx2, wy2);
+
+  return std::abs(wy2 - wy1);
+}
+
+double
+CQChartsView::
+windowToPixelWidth(double ww) const
+{
+  double px1, py1, px2, py2;
+
+  windowToPixel( 0, 0, px1, py1);
+  windowToPixel(ww, 0, px2, py2);
+
+  return std::abs(px2 - px1);
+}
+
+double
+CQChartsView::
+windowToPixelHeight(double wh) const
+{
+  double px1, py1, px2, py2;
+
+  windowToPixel(0, 0 , px1, py1);
+  windowToPixel(0, wh, px2, py2);
+
+  return std::abs(py2 - py1);
+}
+
+//------
 
 QSize
 CQChartsView::

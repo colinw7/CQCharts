@@ -448,6 +448,62 @@ draw(QPainter *painter)
   drawParts(painter);
 }
 
+void
+CQChartsScatterPlot::
+drawForeground(QPainter *painter)
+{
+  if (symbolSizeColumn() < 0)
+    return;
+
+  CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
+
+  double min  = symbolSizeSet->rmin();
+  double mean = symbolSizeSet->rmean();
+  double max  = symbolSizeSet->rmax();
+
+  double px, py;
+
+  double vx = view()->viewportRange();
+  double vy = 0.0;
+
+  view()->windowToPixel(vx, vy, px, py);
+
+  int pm = 16;
+
+  double pr1 = symbolSizeSet->mapMax();
+  double pr3 = symbolSizeSet->mapMin();
+  double pr2 = (pr1 + pr3)/2;
+
+  QColor borderColor = interpThemeColor(1.0);
+
+  painter->setPen(borderColor);
+
+  double xm = px - pr1 - pm;
+  double ym = py - pm;
+
+  QRectF r1(xm - pr1, ym - 2*pr1, 2*pr1, 2*pr1);
+  QRectF r2(xm - pr2, ym - 2*pr2, 2*pr2, 2*pr2);
+  QRectF r3(xm - pr3, ym - 2*pr3, 2*pr3, 2*pr3);
+
+  QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(0.2);
+  QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(0.2);
+  QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(0.2);
+
+  painter->setBrush(fillColor1); painter->drawEllipse(r1);
+  painter->setBrush(fillColor2); painter->drawEllipse(r2);
+  painter->setBrush(fillColor3); painter->drawEllipse(r3);
+
+  auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
+    QFontMetrics fm(painter->font());
+
+    painter->drawText(p.x() - fm.width(text)/2, p.y(), text);
+  };
+
+  drawText(painter, QPointF(r1.center().x(), r1.top()), QString("%1").arg(max));
+  drawText(painter, QPointF(r2.center().x(), r2.top()), QString("%1").arg(mean));
+  drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(min));
+}
+
 #if 0
 void
 CQChartsScatterPlot::
@@ -529,7 +585,7 @@ bool
 CQChartsScatterPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  double s = symbolSize_; // TODO: ensure not a crazy number
+  double s = this->symbolSize(); // TODO: ensure not a crazy number
 
   double px, py;
 
@@ -563,7 +619,7 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  double s = symbolSize_; // TODO: ensure not a crazy number
+  double s = this->symbolSize(); // TODO: ensure not a crazy number
 
   //---
 

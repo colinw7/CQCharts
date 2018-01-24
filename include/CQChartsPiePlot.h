@@ -79,6 +79,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
+  void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c);
+
  protected:
   CQChartsPiePlot*     plot_     { nullptr }; // parent plot
   QModelIndex          ind_;                  // model index
@@ -98,6 +100,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
 class CQChartsPieGroupObj : public CQChartsGroupObj {
  public:
+  using PieObjs = std::vector<CQChartsPieObj *>;
+
+ public:
   CQChartsPieGroupObj(CQChartsPiePlot *plot, const QString &name);
 
   const QString &name() const { return name_; }
@@ -105,9 +110,6 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   double total() const { return total_; }
   void setTotal(double r) { total_ = r; }
-
-  double angle() const { return angle_; }
-  void setAngle(double r) { angle_ = r; }
 
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r) { innerRadius_ = r; }
@@ -117,19 +119,20 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void addObject(CQChartsPieObj *obj);
 
+  CQChartsPieObj *lookupObj(const QString &name) const;
+
   int numObjs() const { return objs_.size(); }
+
+  const PieObjs &objs() const { return objs_; }
 
   QString calcId() const override { return name_; }
 
   void draw(QPainter *, const CQChartsPlot::Layer &) override { }
 
  private:
-  using PieObjs = std::vector<CQChartsPieObj *>;
-
   CQChartsPiePlot* plot_        { nullptr }; // parent plot
   QString          name_;                    // group name
   double           total_       { 0.0 };     // value total
-  double           angle_       { 0.0 };     // current angle
   double           innerRadius_ { 0.0 };     // inner radius
   double           outerRadius_ { 0.0 };     // outer radius
   PieObjs          objs_;                    // objects
@@ -298,6 +301,8 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   bool initObjs() override;
 
+  void adjustObjAngles();
+
   void addKeyItems(CQChartsKey *key) override;
 
   //---
@@ -350,7 +355,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   bool                 donut_           { false };   // is donut
   double               innerRadius_     { 0.6 };     // relative inner donut radius
   double               outerRadius_     { 0.9 };     // relative outer donut radius
-  double               labelRadius_     { 0.5 };     // label radus
+  double               labelRadius_     { 1.1 };     // label radus
   double               startAngle_      { 90 };      // first pie start angle
   bool                 rotatedText_     { false };   // is label rotated
   bool                 explodeSelected_ { true };    // explode selected pie

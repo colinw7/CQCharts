@@ -1,17 +1,56 @@
 #ifndef CQFoldedModel_H
 #define CQFoldedModel_H
 
+#include <CQBucketer.h>
 #include <QAbstractProxyModel>
 #include <set>
 #include <cassert>
 
 class CQFoldedModelFolded;
 
+class CQFoldData {
+ public:
+  using Type = CQBucketer::Type;
+
+ public:
+  CQFoldData(int column=-1) :
+   column_(column) {
+  }
+
+  const Type &type() const { return type_; }
+  void setType(const Type &t) { type_ = t; }
+
+  int column() const { return column_; }
+  void setColumn(int i) { column_ = i; }
+
+  bool showColumnData() const { return showColumnData_; }
+  void setShowColumnData(bool b) { showColumnData_ = b; }
+
+  bool isKeepColumn() const { return keepColumn_; }
+  void setKeepColumn(bool b) { keepColumn_ = b; }
+
+  double delta() const { return delta_; }
+  void setDelta(double r) { delta_ = r; }
+
+ private:
+  Type   type_           { Type::STRING };
+  int    column_         { -1 };
+  bool   showColumnData_ { false };
+  bool   keepColumn_     { false };
+  double delta_          { 1.0 };
+};
+
+//---
+
 class CQFoldedModel : public QAbstractProxyModel {
   Q_OBJECT
 
+  Q_PROPERTY(int  foldColumn         READ foldColumn         WRITE setFoldColumn)
+  Q_PROPERTY(bool showFoldColumnData READ showFoldColumnData WRITE setShowFoldColumnData)
+  Q_PROPERTY(bool keepFoldColumn     READ isKeepFoldColumn   WRITE setKeepFoldColumn)
+
  public:
-  CQFoldedModel(QAbstractItemModel *model, int column=-1);
+  CQFoldedModel(QAbstractItemModel *model, const CQFoldData &foldData=CQFoldData());
 
  ~CQFoldedModel();
 
@@ -23,9 +62,21 @@ class CQFoldedModel : public QAbstractProxyModel {
 
   //---
 
+  // get/set fold data
+  const CQFoldData &foldData() const { return foldData_; }
+  void setFoldData(const CQFoldData &data);
+
   // get/set fold column
-  int foldColumn() const { return foldColumn_; }
+  int foldColumn() const { return foldData_.column(); }
   void setFoldColumn(int i);
+
+  // get/set show column data
+  bool showFoldColumnData() const { return foldData_.showColumnData(); }
+  void setShowFoldColumnData(bool b);
+
+  // get/set keep fold column
+  bool isKeepFoldColumn() const { return foldData_.isKeepColumn(); }
+  void setKeepFoldColumn(bool b);
 
   //---
 
@@ -77,20 +128,20 @@ class CQFoldedModel : public QAbstractProxyModel {
   using RowArray      = std::vector<int>;
   using RowSet        = std::set<int>;
   using ColumnArray   = std::vector<int>;
-  using StringNodeMap = std::map<QString,Node *>;
+  using BucketNodeMap = std::map<int,Node *>;
   using Children      = std::vector<Node *>;
 
   // Node structure for tree construct
   struct Node {
-    Node*         parent        { nullptr }; // parent node
-    QString       str;                       // node string
-    int           depth         { 0 };       // node depth
-    int           foldRow       { -1 };      // node fold row
-    QModelIndex   sourceInd;                 // source model index of node
-    RowArray      sourceRows;                // source rows of folded node
-    RowSet        sourceRowSet;              // source row set of folded node
-    StringNodeMap stringNodeMap;             // string to node for folded nodes
-    Children      children;                  // child nodes
+    Node*          parent        { nullptr }; // parent node
+    QString        str;                       // node string
+    int            depth         { 0 };       // node depth
+    int            foldRow       { -1 };      // node fold row
+    QModelIndex    sourceInd;                 // source model index of node
+    RowArray       sourceRows;                // source rows of folded node
+    RowSet         sourceRowSet;              // source row set of folded node
+    BucketNodeMap  bucketNodeMap;             // string to node for folded nodes
+    Children       children;                  // child nodes
 
     Node(const QModelIndex &sourceInd) :
      sourceInd(sourceInd) {
@@ -108,17 +159,21 @@ class CQFoldedModel : public QAbstractProxyModel {
         delete child;
     }
 
-    Node *getStringNode(const QString &str, int depth) {
-      auto p = stringNodeMap.find(str);
+    Node *getBucketNode(int bucket, int depth, bool &isNew) {
+      auto p = bucketNodeMap.find(bucket);
 
-      if (p == stringNodeMap.end()) {
+      if (p == bucketNodeMap.end()) {
         Node *node = new Node(this, sourceInd);
 
-        node->str     = str;
         node->depth   = depth;
-        node->foldRow = stringNodeMap.size(); // folded row index
+        node->foldRow = bucketNodeMap.size(); // folded row index
 
-        p = stringNodeMap.insert(p, StringNodeMap::value_type(str, node));
+        p = bucketNodeMap.insert(p, BucketNodeMap::value_type(bucket, node));
+
+        isNew = true;
+      }
+      else {
+        isNew = false;
       }
 
       return p->second;
@@ -192,13 +247,14 @@ class CQFoldedModel : public QAbstractProxyModel {
   //---
 
  private:
-  int            foldColumn_        { -1 };      // fold column
+  CQFoldData     foldData_;                      // fold data
   CQFoldedModel* sourceFoldedModel_ { nullptr }; // source folded model
   int            foldPos_           { 0 };       // fold column position
   int            numColumns_        { 0 };       // source model column count
   ColumnArray    sourceColumns_;
   Node*          root_              { nullptr }; // root node
   bool           folded_            { false };   // is folded
+  CQBucketer     bucketer_;
 };
 
 #endif

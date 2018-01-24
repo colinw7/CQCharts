@@ -800,74 +800,19 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     double ta = CQChartsUtil::avg(angle1, angle2);
 
-    double tangle = CQChartsUtil::Deg2Rad(ta);
+    QPointF center(0, 0);
 
     double lr1 = ri + lr*(ro - ri);
 
     if (lr1 < 0.01)
       lr1 = 0.01;
 
-    double tc = cos(tangle);
-    double ts = sin(tangle);
+    QColor bg = plot_->interpPaletteColor(i_, n_);
 
-    double tx = lr1*tc;
-    double ty = lr1*ts;
+    QPen lpen(bg);
 
-    double ptx, pty;
-
-    plot_->windowToPixel(tx, ty, ptx, pty);
-
-    //---
-
-    double        dx    = 0.0;
-    Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-    if (lr1 > ro) {
-      double lx1 = ro*tc;
-      double ly1 = ro*ts;
-      double lx2 = lr1*tc;
-      double ly2 = lr1*ts;
-
-      double lpx1, lpy1, lpx2, lpy2;
-
-      plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
-      plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
-
-      int tickSize = 16;
-
-      if (tc >= 0) {
-        dx    = tickSize;
-        align = Qt::AlignLeft | Qt::AlignVCenter;
-      }
-      else {
-        dx    = -tickSize;
-        align = Qt::AlignRight | Qt::AlignVCenter;
-      }
-
-      QColor bg = plot_->interpPaletteColor(i_, n_);
-
-      painter->setPen(bg);
-
-      painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-      painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
-    }
-
-    //---
-
-    QPointF pt = QPointF(ptx + dx, pty);
-
-    double angle = 0.0;
-
-#if 0
-    if (plot_->isRotatedText())
-      angle = (tc >= 0 ? ta : 180.0 + ta);
-#endif
-
-    plot_->textBox()->draw(painter, pt, data_.name(), angle, align);
-
-    //CQChartsGeom::BBox tbbox;
-
-    //plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox()->rect()), tbbox);
+    plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, data_.name(),
+                                              lpen, /*isRotated*/false);
   }
 }
 
@@ -899,63 +844,24 @@ textBBox() const
 
   //---
 
-  // draw on arc center line
+  // calc box of text on arc center line
   double lr = plot_->labelRadius();
 
   double ta = CQChartsUtil::avg(angle1, angle2);
 
-  double tangle = CQChartsUtil::Deg2Rad(ta);
+  QPointF center(0, 0);
 
   double lr1 = ri + lr*(ro - ri);
 
   if (lr1 < 0.01)
     lr1 = 0.01;
 
-  double tc = cos(tangle);
-  double ts = sin(tangle);
+  CQChartsGeom::BBox tbbox;
 
-  double tx = lr1*tc;
-  double ty = lr1*ts;
+  plot_->textBox()->calcConnectedRadialTextBBox(center, ro, lr1, ta, data_.name(),
+                                                /*isRotated*/false, tbbox);
 
-  double ptx, pty;
-
-  plot_->windowToPixel(tx, ty, ptx, pty);
-
-  //---
-
-  double        dx    = 0.0;
-  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-  if (lr1 > ro) {
-    double lx1 = ro*tc;
-    double ly1 = ro*ts;
-    double lx2 = lr1*tc;
-    double ly2 = lr1*ts;
-
-    double lpx1, lpy1, lpx2, lpy2;
-
-    plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
-    plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
-
-    int tickSize = 16;
-
-    if (tc >= 0) {
-      dx    = tickSize;
-      align = Qt::AlignLeft | Qt::AlignVCenter;
-    }
-    else {
-      dx    = -tickSize;
-      align = Qt::AlignRight | Qt::AlignVCenter;
-    }
-  }
-
-  //---
-
-  QPointF pt = QPointF(ptx + dx, pty);
-
-  double angle = 0.0;
-
-  return plot_->textBox()->bbox(pt, data_.name(), angle, align);
+  return tbbox;
 }
 
 CQChartsChordObj *

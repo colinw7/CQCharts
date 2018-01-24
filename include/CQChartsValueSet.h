@@ -77,6 +77,8 @@ class CQChartsRValues {
   double min() const { assert(! rvalset_.empty()); return rvalset_. begin()->first; }
   double max() const { assert(! rvalset_.empty()); return rvalset_.rbegin()->first; }
 
+  double mean() const { assert(! rvalset_.empty()); return (min() + max())/2.0; }
+
   int imin() const { assert(! setrval_.empty()); return setrval_. begin()->first; }
   int imax() const { assert(! setrval_.empty()); return setrval_.rbegin()->first; }
 
@@ -144,8 +146,21 @@ class CQChartsIValues {
     return (*p).second;
   }
 
+  double map(int i, double mapMin=0.0, double mapMax=1.0) const {
+    // map value using real value range
+    double imin = this->min();
+    double imax = this->max();
+
+    if (imin == imax)
+      return mapMin;
+
+    return CQChartsUtil::map(i, imin, imax, mapMin, mapMax);
+  }
+
   int min() const { assert(! ivalset_.empty()); return ivalset_. begin()->first; }
   int max() const { assert(! ivalset_.empty()); return ivalset_.rbegin()->first; }
+
+  double mean() const { assert(! ivalset_.empty()); return (min() + max())/2.0; }
 
   int imin() const { assert(! setival_.empty()); return setival_. begin()->first; }
   int imax() const { assert(! setival_.empty()); return setival_.rbegin()->first; }
@@ -403,20 +418,25 @@ class CQChartsValueSet : public QObject {
   QString buckets(int ind) const;
 
   // get minimum index value
-  // for integers this is the minimum value, for real/string this is one
+  // (for integers this is the minimum value, for real/string this is zero)
   int imin() const;
 
   // get maximum index value
-  // for integers this is the maximum value, for real/string this is the number of unique values
+  // (for integers this is the maximum value, for real/string this is the one
+  // less than the number of unique values)
   int imax() const;
 
   // get minimum real value
-  // (integers/reals only)
+  // (for integers and reals this is the minimum unique value, for string this is imin))
   double rmin() const;
 
   // get maximum real value
-  // (integers/reals only)
+  // (for integers and reals this is the maximum unique value, for string this is imax))
   double rmax() const;
+
+  // get mean real value
+  // (for integers and reals this is the mean value, for string this is imax/2))
+  double rmean() const;
 
  private:
   void init() const;

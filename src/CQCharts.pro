@@ -113,6 +113,7 @@ CQPropertyViewType.cpp \
 \
 CQChartsPaletteColor.cpp \
 CQChartsDrawUtil.cpp \
+CQChartsUtil.cpp \
 \
 CQCsvModel.cpp \
 CQTsvModel.cpp \

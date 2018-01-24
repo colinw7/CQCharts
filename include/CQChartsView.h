@@ -30,6 +30,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(int        currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
   Q_PROPERTY(Mode       mode           READ mode           WRITE setMode          )
   Q_PROPERTY(SelectMode selectMode     READ selectMode     WRITE setSelectMode    )
+  Q_PROPERTY(QString    themeName      READ themeName      WRITE setThemeName     )
 
   Q_PROPERTY(HighlightDataMode selectedMode               READ selectedMode
                                                           WRITE setSelectedMode)
@@ -215,7 +216,8 @@ class CQChartsView : public QFrame {
   CQChartsTheme *theme() { return theme_; }
   const CQChartsTheme *theme() const { return theme_; }
 
-  const QString &themeName() const { return theme()->name(); }
+  QString themeName() const { return (theme() ? theme()->name() : ""); }
+  void setThemeName(const QString &name);
 
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
@@ -347,6 +349,14 @@ class CQChartsView : public QFrame {
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
 
+  double pixelToWindowWidth (double pw) const;
+  double pixelToWindowHeight(double ph) const;
+
+  double windowToPixelWidth (double ww) const;
+  double windowToPixelHeight(double wh) const;
+
+  //---
+
   const CQChartsGeom::BBox prect() const { return prect_; }
 
   double aspect() const { return aspect_; }
@@ -358,6 +368,8 @@ class CQChartsView : public QFrame {
  signals:
   void modeChanged();
   void selectModeChanged();
+
+  void themeChanged();
 
   void statusTextChanged(const QString &text);
 

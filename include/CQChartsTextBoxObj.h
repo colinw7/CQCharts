@@ -88,6 +88,16 @@ class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
   CQChartsGeom::BBox bbox(const QPointF &center, const QString &text, double angle=0.0,
                           Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
 
+  void drawConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
+                               double ta, const QString &text, const QPen &lpen, bool isRotated);
+
+  void calcConnectedRadialTextBBox(const QPointF &center, double ro, double lr, double ta,
+                                   const QString &text, bool isRotated, CQChartsGeom::BBox &tbbox);
+
+ private:
+  void drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
+                                   double ta, const QString &text, const QPen &lpen,
+                                   bool isRotated, CQChartsGeom::BBox &tbbox);
  private:
   mutable QRectF rect_;
 };

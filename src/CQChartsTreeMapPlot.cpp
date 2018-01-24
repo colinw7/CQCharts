@@ -347,6 +347,17 @@ setFillPattern(Pattern pattern)
   update();
 }
 
+void
+CQChartsTreeMapPlot::
+setMarginWidth(double r)
+{
+  if (r != marginWidth_) {
+    marginWidth_ = r;
+
+    updateCurrentRoot();
+  }
+}
+
 //---
 
 bool
@@ -536,12 +547,15 @@ CQChartsTreeMapHierNode *
 CQChartsTreeMapPlot::
 currentRoot() const
 {
-  CQChartsTreeMapHierNode *currentRoot = root_;
-
   QStringList names = currentRootName_.split(separator(), QString::SkipEmptyParts);
 
   if (names.empty())
-    return currentRoot;
+    return firstHier();
+
+  CQChartsTreeMapHierNode *currentRoot = root();
+
+  if (! currentRoot)
+    return nullptr;
 
   for (int i = 0; i < names.size(); ++i) {
     CQChartsTreeMapHierNode *hier = childHierNode(currentRoot, names[i]);
@@ -682,7 +696,7 @@ initObjs()
 
   initColorIds();
 
-  colorNodes(root_);
+  colorNodes(firstHier());
 
   //---
 
@@ -700,13 +714,11 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
 {
   CQChartsTreeMapHierObj *hierObj = 0;
 
-  if (hier != root_) {
-    CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
+  CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
-    hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
+  hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
 
-    addPlotObject(hierObj);
-  }
+  addPlotObject(hierObj);
 
   //---
 
@@ -736,7 +748,8 @@ resetNodes()
 {
   delete root_;
 
-  root_ = nullptr;
+  root_      = nullptr;
+  firstHier_ = nullptr;
 }
 
 void
@@ -761,8 +774,8 @@ initNodes()
 
   firstHier_ = root_;
 
-  while (firstHier_ && firstHier_->getChildren().size() == 1)
-    firstHier_ = firstHier_->getChildren()[0];
+  while (firstHier_ && firstHier_->numChildren() == 1)
+    firstHier_ = firstHier_->childAt(0);
 
   //---
 
@@ -776,8 +789,10 @@ replaceNodes()
   windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
   windowMarginWidth_  = pixelToWindowWidth (marginWidth());
 
-  if (currentRoot())
-    placeNodes(currentRoot());
+  CQChartsTreeMapHierNode *hier = currentRoot();
+
+  if (hier)
+    placeNodes(hier);
 }
 
 void
@@ -938,7 +953,7 @@ loadFlat()
 
     //---
 
-    CQChartsTreeMapHierNode *parent = root_;
+    CQChartsTreeMapHierNode *parent = firstHier();
 
     for (int j = 0; j < nameStrs.length() - 1; ++j) {
       CQChartsTreeMapHierNode *child = childHierNode(parent, nameStrs[j]);
@@ -1004,7 +1019,7 @@ loadFlat()
 
   //----
 
-  addExtraNodes(root_);
+  addExtraNodes(firstHier());
 }
 
 void
@@ -1075,8 +1090,8 @@ addMenuItems(QMenu *menu)
   connect(popTopAction, SIGNAL(triggered()), this, SLOT(popTopSlot()));
 
   pushAction  ->setEnabled(! objs.empty());
-  popAction   ->setEnabled(currentRoot() != root_);
-  popTopAction->setEnabled(currentRoot() != root_);
+  popAction   ->setEnabled(currentRoot() != firstHier());
+  popTopAction->setEnabled(currentRoot() != firstHier());
 
   menu->addSeparator();
 
@@ -1156,8 +1171,8 @@ popTopSlot()
 {
   CQChartsTreeMapHierNode *root = currentRoot();
 
-  if (root != root_) {
-    setCurrentRoot(root_, /*update*/true);
+  if (root != firstHier()) {
+    setCurrentRoot(firstHier(), /*update*/true);
   }
 }
 
@@ -1447,12 +1462,6 @@ void
 CQChartsTreeMapObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  //CQChartsTreeMapHierNode *root = node_->rootNode(plot_->firstHier());
-
-//CQChartsTreeMapHierNode *root = node_->parent();
-
-  //---
-
   double px1, py1, px2, py2;
 
   plot_->windowToPixel(node_->x()             , node_->y()             , px1, py1);
@@ -1528,13 +1537,14 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // calc text size and position
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
-  plot_->windowToPixel(node_->x() + node_->w()/2, node_->y() + node_->h()/2, px1, py1);
+#if 0
+  double tw  = fm.width(name);
+  double fdy = (fm.ascent() - fm.descent())/2;
+
+  double px = (px1 + px2)/2 - tw/2;
+  double py = (py1 + py2)/2 + fdy;
 
   //---
-
-  double tw = fm.width(name);
-
-  double fdy = (fm.ascent() - fm.descent())/2;
 
   //---
 
@@ -1542,12 +1552,15 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->setClipRect(qrect);
 
   if (plot_->isTextContrast())
-    plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
+    plot_->drawContrastText(painter, px, py, name, tpen);
   else {
     painter->setPen(tpen);
 
-    painter->drawText(px1 - tw/2, py1 + fdy, name);
+    painter->drawText(px, py, name);
   }
+#else
+  plot_->drawTextInBox(painter, qrect, name, tpen, plot_->isTextContrast());
+#endif
 
   //---
 
@@ -1754,7 +1767,7 @@ QString
 CQChartsTreeMapNode::
 hierName() const
 {
-  if (parent() && parent() != plot()->root())
+  if (parent() && parent() != plot_->root())
     return parent()->hierName() + "/" + name();
   else
     return name();

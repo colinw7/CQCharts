@@ -19,6 +19,9 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           const QPointF &p, double symbolSize, const OptReal &fontSize,
                           const OptColor &color, int is, int ns, int iv, int nv);
 
+  double symbolSize() const { return symbolSize_; }
+  void setSymbolSize(double s) { symbolSize_ = s; }
+
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
@@ -172,6 +175,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   QColor interpSymbolFillColor(int i, int n) const {
     return symbolFillColor_.interpColor(this, i, n); }
+  QColor interpSymbolFillColor(double r) const {
+    return symbolFillColor_.interpColor(this, r); }
 
   double symbolFillAlpha() const { return symbolFillAlpha_; }
   void setSymbolFillAlpha(double r) { symbolFillAlpha_ = r; update(); }
@@ -184,7 +189,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   int symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
-  void setSymbolSizeColumn(int i) { setValueSetColumn("symbolSize", i); updateRangeAndObjs(); }
+  void setSymbolSizeColumn(int i) { if (setValueSetColumn("symbolSize", i)) updateRangeAndObjs(); }
 
   bool isSymbolSizeMapEnabled() const { return isValueSetMapEnabled("symbolSize"); }
   void setSymbolSizeMapEnabled(bool b) { setValueSetMapEnabled("symbolSize", b); updateObjs(); }
@@ -198,7 +203,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   int colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+  void setColorColumn(int i) { if (setValueSetColumn("color", i)) updateRangeAndObjs(); }
 
   bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
   void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
@@ -217,7 +222,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   int fontSizeColumn() const { return valueSetColumn("fontSize"); }
-  void setFontSizeColumn(int i) { setValueSetColumn("fontSize", i); updateRangeAndObjs(); }
+  void setFontSizeColumn(int i) { if (setValueSetColumn("fontSize", i)) updateRangeAndObjs(); }
 
   double fontSize() const { return fontSize_; }
   void setFontSize(double s) { fontSize_ = s; updateObjs(); }
@@ -267,6 +272,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   void draw(QPainter *) override;
+
+  void drawForeground(QPainter *) override;
 
  private:
   int                  nameColumn_        { -1 };

@@ -267,3 +267,8 @@
  + Move common model data method to CQChartsModelFilter
  + Add named value sets
  + Add more palettes to gradient and allow selection
+# 1/23/2018
+ + Add common code for radial text
+ + Add auto format text to fit rect
+ + Add scatter plot symbol size key (wip)
+ + Ensure skip empty root when drawing tree map

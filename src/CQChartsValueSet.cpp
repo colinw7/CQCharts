@@ -71,6 +71,7 @@ imap(int i, double mapMin, double mapMax) const
     if (! isMapEnabled())
       return ival;
 
+#if 0
     // map value using integer value range
     int imin = ivals_.imin();
     int imax = ivals_.imax();
@@ -79,28 +80,32 @@ imap(int i, double mapMin, double mapMax) const
       return CQChartsUtil::map(ival, imin, imax, mapMin, mapMax);
     else
       return mapMin;
+#endif
+
+    // map value using real value range
+    return ivals_.map(ival, mapMin, mapMax);
   }
   else if (type() == Type::REAL) {
     // get nth real
-    double r = rvals_.value(i);
+    double rval = rvals_.value(i);
 
     // return actual value if mapping disabled
     if (! isMapEnabled())
-      return r;
+      return rval;
 
     // map value using real value range
-    return rvals_.map(r, mapMin, mapMax);
+    return rvals_.map(rval, mapMin, mapMax);
   }
   else if (type() == Type::STRING) {
     // get nth string
-    QString s = svals_.value(i);
+    QString sval = svals_.value(i);
 
     // return string set index if mapping disabled
     if (! isMapEnabled())
-      return svals_.id(s);
+      return svals_.id(sval);
 
     // map string using number of sets
-    return svals_.map(s, mapMin, mapMax);
+    return svals_.map(sval, mapMin, mapMax);
   }
   else
     assert(false);
@@ -202,8 +207,10 @@ rmin() const
     return ivals_.min();
   else if (type() == Type::REAL)
     return rvals_.min();
-
-  assert(false);
+  else if (type() == Type::STRING)
+    return svals_.imin();
+  else
+    assert(false);
 
   return 0.0;
 }
@@ -216,8 +223,26 @@ rmax() const
     return ivals_.max();
   else if (type() == Type::REAL)
     return rvals_.max();
+  else if (type() == Type::STRING)
+    return svals_.imax();
+  else
+    assert(false);
 
-  assert(false);
+  return 0.0;
+}
+
+double
+CQChartsValueSet::
+rmean() const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.mean();
+  else if (type() == Type::REAL)
+    return rvals_.mean();
+  else if (type() == Type::STRING)
+    return (svals_.imin() + svals_.imax())/2.0;
+  else
+    assert(false);
 
   return 0.0;
 }

@@ -388,6 +388,9 @@ class CQChartsAxis : public QObject {
   void drawAxisLabel(CQChartsPlot *plot, QPainter *painter,
                      double apos, double amin, double amax, const QString &text);
 
+ signals:
+  void ticksChanged();
+
  private:
   struct AxisGapData {
     double start       { 0.0 };

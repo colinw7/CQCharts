@@ -668,6 +668,10 @@ inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) 
 
 //------
 
+inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
+  return (column >= 0 && column < model->columnCount());
+}
+
 inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
   for (int i = 0; i < model->columnCount(); ++i) {
     QString name1 = model->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
@@ -722,6 +726,11 @@ struct RealCmp {
     return lhs < rhs;
   }
 };
+
+//------
+
+bool formatStringInRect(const QString &str, const QFont &font,
+                        const QRectF &rect, QStringList &strs);
 
 }
 

@@ -167,7 +167,6 @@ addProperties()
   // general
   addProperty("", this, "donut"      );
   addProperty("", this, "innerRadius");
-  addProperty("", this, "labelRadius");
   addProperty("", this, "startAngle" );
 
   addProperty("explode", this, "explodeSelected", "selected");
@@ -178,6 +177,7 @@ addProperties()
   addProperty("label", textBox_, "textFont"   , "font"   );
   addProperty("label", textBox_, "textColor"  , "color"  );
   addProperty("label", textBox_, "textAlpha"  , "alpha"  );
+  addProperty("label", this    , "labelRadius", "radius" );
   addProperty("label", this    , "rotatedText", "rotated");
 
   QString labelBoxPath = id() + "/label/box";
@@ -302,7 +302,6 @@ initObjs()
     groupObj->setColorInd(groupInd);
 
     groupObj->setTotal(groupData.total);
-    groupObj->setAngle(startAngle());
 
     groupObj->setInnerRadius(r - dr);
     groupObj->setOuterRadius(r);
@@ -344,6 +343,10 @@ initObjs()
   PieVisitor pieVisitor(this);
 
   visitModel(pieVisitor);
+
+  //---
+
+  adjustObjAngles();
 
   //---
 
@@ -401,7 +404,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
   QString label;
 
   if (numGroups() > 1) {
-    if (isRowGrouping()) {
+    if (dataColumns().size() <= 1 || isRowGrouping()) {
       QModelIndex labelInd = model->index(row, labelColumn(), parent);
 
       label = CQChartsUtil::modelString(model, labelInd, ok);
@@ -436,11 +439,6 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
 
   CQChartsPieGroupObj *groupObj = groupData.groupObj;
 
-  double total  = groupObj->total();
-  double angle  = (total > 0.0 ? 360.0*value/total : 0.0);
-  double angle1 = groupObj->angle();
-  double angle2 = angle1 - angle;
-
   double ri = groupObj->innerRadius();
   double ro = groupObj->outerRadius();
 
@@ -450,39 +448,41 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
 
   //---
 
-  CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
+  CQChartsPieObj *obj = groupObj->lookupObj(label);
 
-  int objInd = groupObj->numObjs();
+  if (! obj) {
+    CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
-  CQChartsPieObj *obj = new CQChartsPieObj(this, rect, dataInd1);
+    int objInd = groupObj->numObjs();
 
-  if (hidden)
-    obj->setVisible(false);
+    obj = new CQChartsPieObj(this, rect, dataInd1);
 
-  obj->setColorInd(objInd);
+    if (hidden)
+      obj->setVisible(false);
 
-  obj->setAngle1     (angle1);
-  obj->setAngle2     (angle2);
-  obj->setInnerRadius(ri);
-  obj->setOuterRadius(ro);
+    obj->setColorInd(objInd);
 
-  obj->setLabel   (label);
-  obj->setValue   (value);
-  obj->setKeyLabel(keyLabel);
+    obj->setInnerRadius(ri);
+    obj->setOuterRadius(ro);
 
-  OptColor color;
+    obj->setLabel   (label);
+    obj->setValue   (value);
+    obj->setKeyLabel(keyLabel);
 
-  if (colorSetColor("color", row, color))
-    obj->setColor(*color);
+    OptColor color;
 
-  addPlotObject(obj);
+    if (colorSetColor("color", row, color))
+      obj->setColor(*color);
 
-  groupObj->addObject(obj);
+    addPlotObject(obj);
 
-  //---
+    groupObj->addObject(obj);
+  }
+  else {
+    obj->setValue (obj->value () + value);
 
-  if (! hidden)
-    groupObj->setAngle(angle2);
+    // TODO: add dataInd
+  }
 }
 
 void
@@ -592,6 +592,32 @@ getDataColumnValue(QAbstractItemModel *model, const QModelIndex &ind, double &va
     return false;
 
   return true;
+}
+
+void
+CQChartsPiePlot::
+adjustObjAngles()
+{
+  for (auto &groupObj : groupObjs_) {
+    double angle1 = startAngle();
+    double total  = groupObj->total();
+
+    for (auto &obj : groupObj->objs()) {
+      if (! obj->isVisible())
+        continue;
+
+      double value = obj->value();
+
+      double angle = (total > 0.0 ? 360.0*value/total : 0.0);
+
+      double angle2 = angle1 - angle;
+
+      obj->setAngle1(angle1);
+      obj->setAngle2(angle2);
+
+      angle1 = angle2;
+    }
+  }
 }
 
 void
@@ -707,9 +733,9 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   if (plot_->dataColumns().size() > 1)
-    tableTip.addTableRow("Group", groupName);
+    tableTip.addTableRow("Group", tableTip.escapeText(groupName));
 
-  tableTip.addTableRow("Name" , label);
+  tableTip.addTableRow("Name" , tableTip.escapeText(label));
   tableTip.addTableRow("Value", valueStr);
 
   return tableTip.str();
@@ -937,80 +963,90 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  if (layer == CQChartsPlot::Layer::FG && label() != "") {
-    double a21 = a2 - a1;
+  if (layer == CQChartsPlot::Layer::FG) {
+    drawSegmentLabel(painter, c);
+  }
+}
 
-    // if full circle always draw text at center
-    if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
-      plot_->textBox()->draw(painter, CQChartsUtil::toQPoint(pc), label(), 0.0);
+void
+CQChartsPieObj::
+drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
+{
+  if (! plot_->textBox()->isTextVisible())
+    return;
+
+  if (! label().length())
+    return;
+
+  //---
+
+  CQChartsPieGroupObj *groupObj = this->groupObj();
+
+  QPointF center(c.x, c.y);
+
+  int ng = plot_->numGroupObjs();
+  int no = groupObj->numObjs();
+
+  double ro = outerRadius();
+  double ri = innerRadius();
+  double lr = plot_->labelRadius();
+
+  double a1 = angle1();
+  double a2 = angle2();
+
+  double lr1;
+
+  if (! CQChartsUtil::isZero(ri))
+    lr1 = ri + lr*(ro - ri);
+  else
+    lr1 = lr*ro;
+
+  if (lr1 < 0.01)
+    lr1 = 0.01;
+
+  double ta = CQChartsUtil::avg(a1, a2);
+
+  QColor bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+
+  QPen lpen(bg);
+
+  double a21 = a2 - a1;
+
+  // if full circle always draw text at center
+  if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
+    CQChartsGeom::Point pc;
+
+    plot_->windowToPixel(c, pc);
+
+    //---
+
+    plot_->textBox()->draw(painter, CQChartsUtil::toQPoint(pc), label(), 0.0);
+  }
+  // draw on arc center line
+  else {
+    if (lr > 1.0) {
+      plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, label(),
+                                                lpen, plot_->isRotatedText());
     }
-    // draw on arc center line
     else {
-      double ri = innerRadius();
-      double lr = plot_->labelRadius();
+      //plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, label(),
+      //                                          lpen, plot_->isRotatedText());
 
-      double ta = CQChartsUtil::avg(a1, a2);
+      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
       double tangle = CQChartsUtil::Deg2Rad(ta);
-
-      double lr1;
-
-      if (! CQChartsUtil::isZero(ri))
-        lr1 = ri + lr*(ro - ri);
-      else
-        lr1 = lr*ro;
-
-      if (lr1 < 0.01)
-        lr1 = 0.01;
 
       double tc = cos(tangle);
       double ts = sin(tangle);
 
-      double tx = c.x + lr1*tc;
-      double ty = c.y + lr1*ts;
+      double tx = center.x() + lr1*tc;
+      double ty = center.y() + lr1*ts;
 
       double ptx, pty;
 
       plot_->windowToPixel(tx, ty, ptx, pty);
 
-      //---
-
-      double        dx    = 0.0;
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-      if (lr1 > ro) {
-        double lx1 = c.x + ro*tc;
-        double ly1 = c.y + ro*ts;
-        double lx2 = c.x + lr1*tc;
-        double ly2 = c.y + lr1*ts;
-
-        double lpx1, lpy1, lpx2, lpy2;
-
-        plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
-        plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
-
-        int tickSize = 16;
-
-        if (tc >= 0) {
-          dx    = tickSize;
-          align = Qt::AlignLeft | Qt::AlignVCenter;
-        }
-        else {
-          dx    = -tickSize;
-          align = Qt::AlignRight | Qt::AlignVCenter;
-        }
-
-        QColor bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
-
-        painter->setPen(bg);
-
-        painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-        painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
-      }
-
-      //---
-
-      QPointF pt = QPointF(ptx + dx, pty);
+      QPointF pt(ptx, pty);
 
       double angle = 0.0;
 
@@ -1018,10 +1054,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
         angle = (tc >= 0 ? ta : 180.0 + ta);
 
       plot_->textBox()->draw(painter, pt, label(), angle, align);
-
-      CQChartsGeom::BBox tbbox;
-
-      plot_->pixelToWindow(CQChartsUtil::fromQRect(plot_->textBox()->rect()), tbbox);
     }
   }
 }
@@ -1041,6 +1073,17 @@ addObject(CQChartsPieObj *obj)
   obj->setGroupObj(this);
 
   objs_.push_back(obj);
+}
+
+CQChartsPieObj *
+CQChartsPieGroupObj::
+lookupObj(const QString &name) const
+{
+  for (const auto &obj : objs_)
+    if (obj->label() == name)
+      return obj;
+
+  return nullptr;
 }
 
 //------

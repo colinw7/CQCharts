@@ -208,6 +208,7 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool    invertY             READ isInvertY           WRITE setInvertY            )
   Q_PROPERTY(bool    logX                READ isLogX              WRITE setLogX               )
   Q_PROPERTY(bool    logY                READ isLogY              WRITE setLogY               )
+  Q_PROPERTY(bool    autoFit             READ isAutoFit           WRITE setAutoFit            )
   Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
 
  public:
@@ -430,6 +431,9 @@ class CQChartsPlot : public QObject {
   bool isFollowMouse() const { return followMouse_; }
   void setFollowMouse(bool b) { followMouse_ = b; }
 
+  bool isAutoFit() const { return autoFit_; }
+  void setAutoFit(bool b) { autoFit_ = b; }
+
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b) { showBoxes_ = b; update(); }
 
@@ -590,7 +594,7 @@ class CQChartsPlot : public QObject {
   void deleteValueSets();
 
   int valueSetColumn(const QString &name) const;
-  void setValueSetColumn(const QString &name, int column);
+  bool setValueSetColumn(const QString &name, int column);
 
   bool isValueSetMapEnabled(const QString &name) const;
   void setValueSetMapEnabled(const QString &name, bool b);
@@ -911,8 +915,11 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
+                     const QPen &pen, bool contrast) const;
+
   void drawContrastText(QPainter *painter, double x, double y,
-                        const QString &text, const QPen &pen);
+                        const QString &text, const QPen &pen) const;
 
   //---
 
@@ -1072,10 +1079,11 @@ class CQChartsPlot : public QObject {
   CQChartsTitle*            titleObj_         { nullptr };    // tilte object
   int                       xValueColumn_     { -1 };         // x axis value column
   int                       yValueColumn_     { -1 };         // y axis value column
-  int                       idColumn_         { -1 };         // unique data id column
+  int                       idColumn_         { -1 };         // unique data id column (signalled)
   bool                      rowGrouping_      { false };      // row grouping on/off
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
+  bool                      autoFit_          { false };      // auto fit on data change
   bool                      showBoxes_        { false };      // show debug boxes
   bool                      overlay_          { false };      // is overlay plot
   bool                      y1y2_             { false };      // is double y axis plot
