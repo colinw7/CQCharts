@@ -39,6 +39,11 @@ class QTabWidget;
 class QComboBox;
 class QGridLayout;
 
+#ifdef CQ_CHARTS_CEIL
+class ClLanguageCommand;
+class ClLanguageArgs;
+#endif
+
 class CQChartsTest : public CQAppWindow {
   Q_OBJECT
 
@@ -177,6 +182,11 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsView *view() const;
 
+#ifdef CQ_CHARTS_CEIL
+  bool isCeil() const { return ceil_; }
+  void setCeil(bool b);
+#endif
+
   bool loadFileModel(const QString &filename, FileType type, const InputData &inputData);
 
   QAbstractItemModel *loadFile(const QString &filename, FileType type,
@@ -263,26 +273,44 @@ class CQChartsTest : public CQAppWindow {
 
   using Args = std::vector<QString>;
 
-  void setCmd     (const Args &args);
-  void getCmd     (const Args &args);
-  void viewCmd    (const Args &args);
-  void paletteCmd (const Args &args);
-  void themeCmd   (const Args &args);
-  void plotCmd    (const Args &args);
-  bool loadCmd    (const Args &args);
-  void modelCmd   (const Args &args);
-  void processCmd (const Args &args);
-  void overlayCmd (const Args &args);
-  void y1y2Cmd    (const Args &args);
-  void sortCmd    (const Args &args);
-  void sourceCmd  (const Args &args);
-  void letCmd     (const Args &args);
-  void ifCmd      (const Args &args);
-  void whileCmd   (const Args &args);
-  void continueCmd(const Args &args);
-  void printCmd   (const Args &args);
+#ifdef CQ_CHARTS_CEIL
+  static void setPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void getPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void viewLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void plotLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void loadLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void modelLCmd      (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+#endif
+
+  bool loadCmd       (const Args &args);
+  void modelCmd      (const Args &args);
+  void processCmd    (const Args &args);
+  void sortCmd       (const Args &args);
+  void viewCmd       (const Args &args);
+  void plotCmd       (const Args &args);
+  void overlayCmd    (const Args &args);
+  void y1y2Cmd       (const Args &args);
+  void paletteCmd    (const Args &args);
+  void themeCmd      (const Args &args);
+  void setPropertyCmd(const Args &args);
+  void getPropertyCmd(const Args &args);
+
+  void letCmd        (const Args &args);
+  void ifCmd         (const Args &args);
+  void whileCmd      (const Args &args);
+  void continueCmd   (const Args &args);
+  void printCmd      (const Args &args);
+
+  void sourceCmd     (const Args &args);
 
   QStringList stringToCmds(const QString &str) const;
+
+#ifdef CQ_CHARTS_CEIL
+  Args parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs);
+#endif
+
+  void setCmdRc(int rc);
+  void setCmdRc(const QString &rc);
 
  private:
   struct DefinedColor {
@@ -378,7 +406,10 @@ class CQChartsTest : public CQAppWindow {
   CQChartsLoader*    loader_            { nullptr };
   ViewP              view_;
 //QString            id_;
-  CExpr*             expr_;
+  CExpr*             expr_              { nullptr };
+#ifdef CQ_CHARTS_CEIL
+  bool               ceil_              { false };
+#endif
   bool               continueFlag_      { false };
 };
 

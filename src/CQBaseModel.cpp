@@ -27,6 +27,9 @@ genColumnTypes()
 
       QString s = data(ind, Qt::DisplayRole).toString();
 
+      if (! s.length())
+        continue;
+
       bool ok;
 
       double real = toReal(s, ok);

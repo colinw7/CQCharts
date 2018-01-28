@@ -39,6 +39,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   propertyModel_ = new CQPropertyViewModel;
 
+  keyObj_ = new CQChartsViewKey(this);
+
+  keyObj_->setVisible(false);
+
   //---
 
   setSelectedMode(HighlightDataMode::FILL);
@@ -80,6 +84,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("scroll", this, "scrollDelta"   , "delta"   );
   addProperty("scroll", this, "scrollNumPages", "numPages");
   addProperty("scroll", this, "scrollPage"    , "page"    );
+
+  key()->addProperties(propertyModel(), "key");
 
   //---
 
@@ -410,7 +416,7 @@ mousePressEvent(QMouseEvent *me)
   //---
 
   if (me->button() == Qt::LeftButton) {
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::SELECT) {
       if (selectMode_ == SelectMode::POINT) {
         CQChartsScopeGuard updateSelTextGuard([&]() { updateSelText(); });
 
@@ -450,33 +456,33 @@ mousePressEvent(QMouseEvent *me)
         startRegionBand(mouseData_.pressPoint);
       }
     }
-    else if (mode_ == Mode::ZOOM) {
+    else if (mode() == Mode::ZOOM) {
       startRegionBand(mouseData_.pressPoint);
     }
-    else if (mode_ == Mode::PAN) {
+    else if (mode() == Mode::PAN) {
     }
-    else if (mode_ == Mode::PROBE) {
+    else if (mode() == Mode::PROBE) {
+    }
+    else if (mode() == Mode::EDIT) {
     }
   }
   else if (me->button() == Qt::MiddleButton) {
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::EDIT) {
+      CQChartsGeom::Point p = CQChartsUtil::fromQPoint(QPointF(me->pos()));
+
       if (mouseData_.plot) {
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = mouseData_.plot->pixelToWindow(p);
 
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (mouseData_.plot->mouseDragPress(w))
+        if (mouseData_.plot->mouseDragPress(p, w))
           return;
       }
 
       for (auto &plot : mouseData_.plots) {
         if (plot == mouseData_.plot) continue;
 
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = plot->pixelToWindow(p);
 
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (plot->mouseDragPress(w))
+        if (plot->mouseDragPress(p, w))
           return;
       }
     }
@@ -496,7 +502,7 @@ CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
   // select mode and move (not pressed) - update plot positions
-  if (mode_ == Mode::SELECT && ! mouseData_.pressed) {
+  if (mode() == Mode::SELECT && ! mouseData_.pressed) {
     updatePosText(me->pos());
 
     //---
@@ -510,7 +516,7 @@ mouseMoveEvent(QMouseEvent *me)
 
   //---
 
-  if (mode_ == Mode::ZOOM)
+  if (mode() == Mode::ZOOM)
     updatePosText(me->pos());
 
   //---
@@ -518,7 +524,7 @@ mouseMoveEvent(QMouseEvent *me)
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
   // probe move and move (pressed or not pressed) - show probe lines
-  if (mode_ == Mode::PROBE) {
+  if (mode() == Mode::PROBE) {
     auto addProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip, double px,
                             double py1, double py2) -> void {
       while (ind >= int(probeBands_.size())) {
@@ -595,7 +601,7 @@ mouseMoveEvent(QMouseEvent *me)
       return;
 
     // select plot object
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::SELECT) {
       if (selectMode_ == SelectMode::POINT) {
         if (mouseData_.plot) {
           CQChartsGeom::Point w;
@@ -624,7 +630,7 @@ mouseMoveEvent(QMouseEvent *me)
       }
     }
     // draw zoom rectangle
-    else if (mode_ == Mode::ZOOM) {
+    else if (mode() == Mode::ZOOM) {
       mouseData_.movePoint = me->pos();
 
       if (mouseData_.escape)
@@ -632,7 +638,7 @@ mouseMoveEvent(QMouseEvent *me)
       else
         updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
     }
-    else if (mode_ == Mode::PAN) {
+    else if (mode() == Mode::PAN) {
       if (mouseData_.plot) {
         CQChartsGeom::Point w1, w2;
 
@@ -647,31 +653,31 @@ mouseMoveEvent(QMouseEvent *me)
         mouseData_.movePoint = me->pos();
       }
     }
-    else if (mode_ == Mode::PROBE) {
+    else if (mode() == Mode::PROBE) {
+    }
+    else if (mode() == Mode::EDIT) {
     }
   }
   else if (mouseData_.button == Qt::MiddleButton) {
     if (! mouseData_.pressed)
       return;
 
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::EDIT) {
+      CQChartsGeom::Point p = CQChartsUtil::fromQPoint(QPointF(me->pos()));
+
       // drag plot object
       if (mouseData_.plot) {
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = mouseData_.plot->pixelToWindow(p);
 
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        (void) mouseData_.plot->mouseDragMove(w, true);
+        (void) mouseData_.plot->mouseDragMove(p, w, true);
       }
 
       for (auto &plot : mouseData_.plots) {
         if (plot == mouseData_.plot) continue;
 
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = plot->pixelToWindow(p);
 
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        if (plot->mouseDragMove(w, false))
+        if (plot->mouseDragMove(p, w, false))
           return;
       }
     }
@@ -691,7 +697,7 @@ mouseReleaseEvent(QMouseEvent *me)
   //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
   if      (mouseData_.button == Qt::LeftButton) {
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::SELECT) {
       if (! mouseData_.pressed)
         return;
 
@@ -744,7 +750,7 @@ mouseReleaseEvent(QMouseEvent *me)
         }
       }
     }
-    else if (mode_ == Mode::ZOOM) {
+    else if (mode() == Mode::ZOOM) {
       if (! mouseData_.pressed)
         return;
 
@@ -766,32 +772,32 @@ mouseReleaseEvent(QMouseEvent *me)
         mouseData_.plot->zoomTo(bbox);
       }
     }
-    else if (mode_ == Mode::PAN) {
+    else if (mode() == Mode::PAN) {
     }
-    else if (mode_ == Mode::PROBE) {
+    else if (mode() == Mode::PROBE) {
+    }
+    else if (mode() == Mode::EDIT) {
     }
   }
   else if (mouseData_.button == Qt::MiddleButton) {
-    if      (mode_ == Mode::SELECT) {
+    if      (mode() == Mode::EDIT) {
       if (! mouseData_.pressed)
         return;
 
+      CQChartsGeom::Point p = CQChartsUtil::fromQPoint(QPointF(me->pos()));
+
       if (mouseData_.plot) {
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = mouseData_.plot->pixelToWindow(p);
 
-        mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        mouseData_.plot->mouseDragRelease(w);
+        mouseData_.plot->mouseDragRelease(p, w);
       }
 
       for (auto &plot : mouseData_.plots) {
         if (plot == mouseData_.plot) continue;
 
-        CQChartsGeom::Point w;
+        CQChartsGeom::Point w = plot->pixelToWindow(p);
 
-        plot->pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())), w);
-
-        plot->mouseDragRelease(w);
+        plot->mouseDragRelease(p, w);
       }
     }
   }
@@ -820,6 +826,9 @@ keyPressEvent(QKeyEvent *ke)
     else if (mode() == Mode::PROBE) {
       setMode(Mode::SELECT);
     }
+    else if (mode() == Mode::EDIT) {
+      setMode(Mode::SELECT);
+    }
 
     return;
   }
@@ -832,6 +841,9 @@ keyPressEvent(QKeyEvent *ke)
     setMode(Mode::PROBE);
 
     return;
+  }
+  else if (ke->key() == Qt::Key_Insert) {
+    setMode(Mode::EDIT);
   }
 
   //---
@@ -997,6 +1009,10 @@ paint(QPainter *painter)
     if (plotData.plot->isVisible())
       plotData.plot->draw(painter);
   }
+
+  //---
+
+  key()->draw(painter);
 }
 
 //------
@@ -1107,7 +1123,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  using KeyLocationActionMap = std::map<CQChartsKey::LocationType, QAction *>;
+  using KeyLocationActionMap = std::map<CQChartsPlotKey::LocationType, QAction *>;
 
   KeyLocationActionMap keyLocationActionMap;
 
@@ -1116,7 +1132,7 @@ showMenu(const QPoint &p)
   QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
 
   auto addKeyLocationGroupAction =
-   [&](const QString &label, const CQChartsKey::LocationType &location) {
+   [&](const QString &label, const CQChartsPlotKey::LocationType &location) {
     QAction *action = new QAction(label, keyLocationMenu);
 
     action->setCheckable(true);
@@ -1128,21 +1144,21 @@ showMenu(const QPoint &p)
     return action;
   };
 
-  addKeyLocationGroupAction("Top Left"     , CQChartsKey::LocationType::TOP_LEFT     );
-  addKeyLocationGroupAction("Top Center"   , CQChartsKey::LocationType::TOP_CENTER   );
-  addKeyLocationGroupAction("Top Right"    , CQChartsKey::LocationType::TOP_RIGHT    );
-  addKeyLocationGroupAction("Center Left"  , CQChartsKey::LocationType::CENTER_LEFT  );
-  addKeyLocationGroupAction("Center Center", CQChartsKey::LocationType::CENTER_CENTER);
-  addKeyLocationGroupAction("Center Right" , CQChartsKey::LocationType::CENTER_RIGHT );
-  addKeyLocationGroupAction("Bottom Left"  , CQChartsKey::LocationType::BOTTOM_LEFT  );
-  addKeyLocationGroupAction("Bottom Center", CQChartsKey::LocationType::BOTTOM_LEFT  );
-  addKeyLocationGroupAction("Bottom Right" , CQChartsKey::LocationType::BOTTOM_RIGHT );
-  addKeyLocationGroupAction("Absolute"     , CQChartsKey::LocationType::ABSOLUTE     );
+  addKeyLocationGroupAction("Top Left"     , CQChartsPlotKey::LocationType::TOP_LEFT     );
+  addKeyLocationGroupAction("Top Center"   , CQChartsPlotKey::LocationType::TOP_CENTER   );
+  addKeyLocationGroupAction("Top Right"    , CQChartsPlotKey::LocationType::TOP_RIGHT    );
+  addKeyLocationGroupAction("Center Left"  , CQChartsPlotKey::LocationType::CENTER_LEFT  );
+  addKeyLocationGroupAction("Center Center", CQChartsPlotKey::LocationType::CENTER_CENTER);
+  addKeyLocationGroupAction("Center Right" , CQChartsPlotKey::LocationType::CENTER_RIGHT );
+  addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+  addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+  addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
+  addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABSOLUTE     );
 
   keyLocationActionGroup->setExclusive(true);
 
   if (currentPlot && currentPlot->key()) {
-    CQChartsKey::LocationType location = currentPlot->key()->location();
+    CQChartsPlotKey::LocationType location = currentPlot->key()->location();
 
     keyLocationActionMap[location]->setChecked(true);
   }
@@ -1437,25 +1453,25 @@ keyPositionSlot(QAction *action)
 
   if (currentPlot && currentPlot->key()) {
     if      (action->text() == "Top Left"     )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::TOP_LEFT     );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_LEFT     );
     else if (action->text() == "Top Center"   )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::TOP_CENTER   );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_CENTER   );
     else if (action->text() == "Top Right"    )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::TOP_RIGHT    );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_RIGHT    );
     else if (action->text() == "Center Left"  )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::CENTER_LEFT  );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_LEFT  );
     else if (action->text() == "Center Center")
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::CENTER_CENTER);
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_CENTER);
     else if (action->text() == "Center Right" )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::CENTER_RIGHT );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_RIGHT );
     else if (action->text() == "Bottom Left"  )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::BOTTOM_LEFT  );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
     else if (action->text() == "Bottom Center")
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::BOTTOM_LEFT  );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
     else if (action->text() == "Bottom Right" )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::BOTTOM_RIGHT );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
     else if (action->text() == "Absolute"     )
-      currentPlot->key()->setLocation(CQChartsKey::LocationType::ABSOLUTE     );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::ABSOLUTE     );
   }
 }
 

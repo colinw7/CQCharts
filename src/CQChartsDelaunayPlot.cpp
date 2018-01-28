@@ -345,6 +345,10 @@ drawForeground(QPainter *painter)
     drawDelaunay(painter);
   else
     drawVoronoi(painter);
+
+  //---
+
+  CQChartsPlot::drawForeground(painter);
 }
 
 void

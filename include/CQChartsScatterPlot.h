@@ -267,7 +267,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   int nameIndex(const QString &name) const;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 

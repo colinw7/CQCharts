@@ -289,7 +289,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
 
   int acceptsRow(int r) const;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 

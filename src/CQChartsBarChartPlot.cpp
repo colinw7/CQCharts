@@ -922,7 +922,7 @@ valueStr(double v) const
 
 void
 CQChartsBarChartPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   QAbstractItemModel *model = this->model();
 
@@ -1222,11 +1222,21 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   if (layer == CQChartsPlot::Layer::MID) {
     double m = plot_->margin();
 
-    if (prect.getWidth() > 3*m) {
-      prect.setXMin(prect.getXMin() + m);
-      prect.setXMax(prect.getXMax() - m);
+    if (! plot_->isHorizontal()) {
+      if (prect.getWidth() > 3*m) {
+        prect.setXMin(prect.getXMin() + m);
+        prect.setXMax(prect.getXMax() - m);
 
-      qrect = CQChartsUtil::toQRect(prect);
+        qrect = CQChartsUtil::toQRect(prect);
+      }
+    }
+    else {
+      if (prect.getHeight() > 3*m) {
+        prect.setYMin(prect.getYMin() + m);
+        prect.setYMax(prect.getYMax() - m);
+
+        qrect = CQChartsUtil::toQRect(prect);
+      }
     }
 
     //---

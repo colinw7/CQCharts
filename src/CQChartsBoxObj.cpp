@@ -1,8 +1,20 @@
 #include <CQChartsBoxObj.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>
+
+CQChartsBoxObj::
+CQChartsBoxObj(CQChartsView *view) :
+ view_(view)
+{
+  CQChartsPaletteColor themeBg(CQChartsPaletteColor::Type::THEME_VALUE, 0);
+  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  setBackgroundColor(themeBg);
+  setBorderColor    (themeFg);
+}
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
@@ -19,14 +31,20 @@ QColor
 CQChartsBoxObj::
 interpBackgroundColor(int i, int n) const
 {
-  return backgroundColor_.interpColor(plot_, i, n);
+  if (plot_)
+    return backgroundColor_.interpColor(plot_, i, n);
+  else
+    return QColor();
 }
 
 QColor
 CQChartsBoxObj::
 interpBorderColor(int i, int n) const
 {
-  return borderColor_.interpColor(plot_, i, n);
+  if (plot_)
+    return borderColor_.interpColor(plot_, i, n);
+  else
+    return QColor();
 }
 
 void
@@ -88,7 +106,10 @@ void
 CQChartsBoxObj::
 redrawBoxObj()
 {
-  plot_->update();
+  if (plot_)
+    plot_->update();
+  else
+    view_->update();
 }
 
 void

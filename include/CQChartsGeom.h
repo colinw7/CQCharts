@@ -348,6 +348,8 @@ class Range {
   double xsize() const { assert(set_); return fabs(x2_ - x1_); }
   double ysize() const { assert(set_); return fabs(y2_ - y1_); }
 
+  Point center() const { assert(set_); return Point((x1_ + x2_)/2.0, (y1_ + y2_)/2.0); }
+
   void inc(double dx, double dy) {
     assert(set_);
 
@@ -357,6 +359,10 @@ class Range {
 
   void incX(double dx) { assert(set_); x1_ += dx; x2_ += dx; }
   void incY(double dy) { assert(set_); y1_ += dy; y2_ += dy; }
+
+  void updateRange(const Point &p) {
+    updateRange(p.x, p.y);
+  }
 
   void updateRange(double x, double y) {
     if (! set_) {
@@ -389,6 +395,27 @@ class Range {
 
   friend bool operator!=(const Range &lhs, const Range &rhs) {
     return ! (lhs == rhs);
+  }
+
+  void equalScale(double aspect) {
+    Point c = center();
+
+    double w = xsize();
+    double h = ysize();
+
+    if (aspect > 1.0) {
+      h = std::max(w, h);
+      w = h*aspect;
+    }
+    else {
+      w = std::max(w, h);
+      h = w/aspect;
+    }
+
+    x1_ = c.x - w/2;
+    x2_ = c.x + w/2;
+    y1_ = c.y - h/2;
+    y2_ = c.y + h/2;
   }
 
 #if 0
@@ -717,6 +744,27 @@ class BBox {
 
     if (! set_) {
       pmax_ = point;
+      set_  = true;
+    }
+  }
+
+  void setLR(const Point &point) {
+    pmax_.x = point.x;
+    pmin_.y = point.y;
+
+    if (! set_) {
+      pmin_ = point;
+      pmax_ = point;
+      set_  = true;
+    }
+  }
+
+  void setUL(const Point &point) {
+    pmin_.x = point.x;
+    pmax_.y = point.y;
+
+    if (! set_) {
+      pmin_ = point;
       set_  = true;
     }
   }

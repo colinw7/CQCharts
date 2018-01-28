@@ -296,7 +296,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   bool initObjs() override;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 

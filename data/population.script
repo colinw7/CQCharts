@@ -4,7 +4,7 @@
 @let w    = 100
 @let h    = 100
 
-set -name scroll.numPages -value 15
+set_property -name scroll.numPages -value 15
 
 @while {year <= 2000} {
   @let x1 = x + w
@@ -14,7 +14,7 @@ set -name scroll.numPages -value 15
 
   @let tableId = rc
 
-  get -model "${tableId}" -name num_rows
+  get_property -model "${tableId}" -name num_rows
 
   @let numRows = rc
 
@@ -32,9 +32,9 @@ set -name scroll.numPages -value 15
 
   @let plot1 = rc
 
-  set -view view1 -plot "${plot1}" -name fill.color -value blue
-  set -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
-  set -view view1 -plot "${plot1}" -name key.visible -value 0
+  set_property -view view1 -plot "${plot1}" -name fill.color -value blue
+  set_property -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
+  set_property -view view1 -plot "${plot1}" -name key.visible -value 0
 
   load -csv population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
 
@@ -46,9 +46,9 @@ set -name scroll.numPages -value 15
 
   @let plot2 = rc
 
-  set -view view1 -plot "${plot2}" -name fill.color -value pink
-  set -view view1 -plot "${plot2}" -name fill.alpha -value 0.5
-  set -view view1 -plot "${plot2}" -name key.visible -value 0
+  set_property -view view1 -plot "${plot2}" -name fill.color -value pink
+  set_property -view view1 -plot "${plot2}" -name fill.alpha -value 0.5
+  set_property -view view1 -plot "${plot2}" -name key.visible -value 0
 
   overlay "${plot1}" "${plot2}"
 

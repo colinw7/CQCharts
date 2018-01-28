@@ -11,11 +11,17 @@ CQDataModel(int numCols, int numRows)
   init(numCols, numRows);
 }
 
+CQDataModel::
+~CQDataModel()
+{
+}
+
 void
 CQDataModel::
 init(int numCols, int numRows)
 {
-  header_.resize(numCols);
+  hheader_.resize(numCols);
+  vheader_.resize(numRows);
 
   data_.resize(numRows);
 
@@ -23,11 +29,99 @@ init(int numCols, int numRows)
     data_[i].resize(numCols);
 }
 
+//------
+
+void
+CQDataModel::
+initFilter()
+{
+  int numHeaders = hheader_.size();
+
+  filterDatas_.clear();
+
+  QStringList patterns = filter_.split(",");
+
+  for (int i = 0; i < patterns.size(); ++i) {
+    FilterData filterData;
+
+    QStringList fields = patterns[i].split(":");
+
+    if (fields.length() == 2) {
+      QString name  = fields[0];
+      QString value = fields[1];
+
+      filterData.column = -1;
+
+      for (int j = 0; j < numHeaders; ++j) {
+        if (hheader_[j] == name) {
+          filterData.column = j;
+          break;
+        }
+      }
+
+      if (filterData.column == -1) {
+        bool ok;
+
+        filterData.column = name.toInt(&ok);
+
+        if (! ok)
+          filterData.column = -1;
+      }
+
+      filterData.regexp = QRegExp(value, Qt::CaseSensitive, QRegExp::Wildcard);
+    }
+    else {
+      filterData.column = 0;
+      filterData.regexp = QRegExp(patterns[i], Qt::CaseSensitive, QRegExp::Wildcard);
+    }
+
+    filterData.valid = (filterData.column >= 0 && filterData.column < numHeaders);
+
+    filterDatas_.push_back(filterData);
+  }
+
+  setFilterInited(true);
+}
+
+bool
+CQDataModel::
+acceptsRow(const Cells &cells) const
+{
+  if (! hasFilter())
+    return true;
+
+  //---
+
+  if (! isFilterInited()) {
+    CQDataModel *th = const_cast<CQDataModel *>(this);
+
+    th->initFilter();
+  }
+
+  //---
+
+  for (std::size_t i = 0; i < filterDatas_.size(); ++i) {
+    const FilterData &filterData = filterDatas_[i];
+
+    if (! filterData.valid)
+      continue;
+
+    QString field = cells[filterData.column].toString();
+
+    if (! filterData.regexp.exactMatch(field))
+      return false;
+  }
+
+  return true;
+}
+
+//------
+
 int
 CQDataModel::
 columnCount(const QModelIndex &) const
 {
-  return header_.size();
+  return hheader_.size();
 }
 
 int
@@ -44,31 +138,61 @@ QVariant
 CQDataModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (orientation != Qt::Horizontal)
-    return CQBaseModel::headerData(section, orientation, role);
+  if (orientation == Qt::Horizontal) {
+    if (hheader_.empty())
+      return CQBaseModel::headerData(section, orientation, role);
 
-  int numCols = columnCount();
+    int numCols = columnCount();
 
-  if (section < 0 || section >= numCols)
-    return QVariant();
+    if (section < 0 || section >= numCols)
+      return QVariant();
 
-  if      (role == Qt::DisplayRole) {
-    return header_[section];
-  }
-  else if (role == Qt::ToolTipRole) {
-    QVariant var = header_[section];
+    if      (role == Qt::DisplayRole) {
+      if (hheader_[section].toString().length())
+        return hheader_[section];
+      else
+        return CQBaseModel::headerData(section, orientation, role);
+    }
+    else if (role == Qt::ToolTipRole) {
+      QVariant var = hheader_[section];
 
-    Type type = columnType(section);
+      Type type = columnType(section);
 
-    QString str = var.toString() + ":" + typeName(type);
+      QString str = var.toString() + ":" + typeName(type);
 
-    return QVariant(str);
-  }
-  else if (role == Qt::EditRole) {
-    return QVariant();
+      return QVariant(str);
+    }
+    else if (role == Qt::EditRole) {
+      return QVariant();
+    }
+    else {
+      return CQBaseModel::headerData(section, orientation, role);
+    }
   }
   else {
-    return CQBaseModel::headerData(section, orientation, role);
+    if (vheader_.empty())
+      return CQBaseModel::headerData(section, orientation, role);
+
+    int numRows = rowCount();
+
+    if (section < 0 || section >= numRows)
+      return QVariant();
+
+    if      (role == Qt::DisplayRole) {
+      if (vheader_[section].toString().length())
+        return vheader_[section];
+      else
+        return CQBaseModel::headerData(section, orientation, role);
+    }
+    else if (role == Qt::ToolTipRole) {
+      return vheader_[section];
+    }
+    else if (role == Qt::EditRole) {
+      return QVariant();
+    }
+    else {
+      return CQBaseModel::headerData(section, orientation, role);
+    }
   }
 }
 
@@ -76,21 +200,41 @@ bool
 CQDataModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  if (orientation != Qt::Horizontal)
-    return false;
+  if (orientation == Qt::Horizontal) {
+    if (hheader_.empty())
+      return CQBaseModel::setHeaderData(section, orientation, value, role);
 
-  int numCols = columnCount();
+    int numCols = columnCount();
 
-  if (section < 0 || section >= numCols)
-    return false;
+    if (section < 0 || section >= numCols)
+      return false;
 
-  if (role == Qt::DisplayRole) {
-    header_[section] = value;
+    if (role == Qt::DisplayRole) {
+      hheader_[section] = value;
 
-    return true;
+      return true;
+    }
+    else {
+      return CQBaseModel::setHeaderData(section, orientation, value, role);
+    }
   }
   else {
-    return CQBaseModel::setHeaderData(section, orientation, value, role);
+    if (vheader_.empty())
+      return CQBaseModel::setHeaderData(section, orientation, value, role);
+
+    int numRows = rowCount();
+
+    if (section < 0 || section >= numRows)
+      return false;
+
+    if (role == Qt::DisplayRole) {
+      vheader_[section] = value;
+
+      return true;
+    }
+    else {
+      return CQBaseModel::setHeaderData(section, orientation, value, role);
+    }
   }
 }
 

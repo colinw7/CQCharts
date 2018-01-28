@@ -9,80 +9,27 @@
 #include <QRectF>
 
 CQChartsKey::
+CQChartsKey(CQChartsView *view) :
+ CQChartsBoxObj(view)
+{
+}
+
+CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
  CQChartsBoxObj(plot)
 {
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-
-  textColor_ = themeFg;
-
-  setBorder(true);
-
-  clearItems();
 }
 
 CQChartsKey::
 ~CQChartsKey()
 {
-  for (auto &item : items_)
-    delete item;
-}
-
-//---
-
-QString
-CQChartsKey::
-textColorStr() const
-{
-  return textColor_.colorStr();
-}
-
-void
-CQChartsKey::
-setTextColorStr(const QString &str)
-{
-  textColor_.setColorStr(str);
-}
-
-QColor
-CQChartsKey::
-interpTextColor(int i, int n) const
-{
-  return textColor_.interpColor(plot_, i, n);
-}
-
-//---
-
-void
-CQChartsKey::
-redraw()
-{
-  plot_->update();
-}
-
-void
-CQChartsKey::
-updatePlotKey()
-{
-  plot_->resetKeyItems();
-
-  redraw();
-}
-
-void
-CQChartsKey::
-updateLayout()
-{
-  invalidateLayout();
-
-  redraw();
 }
 
 QString
 CQChartsKey::
 locationStr() const
 {
-  switch (location_.location) {
+  switch (location_) {
     case LocationType::TOP_LEFT:      return "tl";
     case LocationType::TOP_CENTER:    return "tc";
     case LocationType::TOP_RIGHT:     return "tr";
@@ -103,22 +50,234 @@ setLocationStr(const QString &str)
 {
   QString lstr = str.toLower();
 
-  if      (lstr == "tl" ) location_.location = LocationType::TOP_LEFT;
-  else if (lstr == "tc" ) location_.location = LocationType::TOP_CENTER;
-  else if (lstr == "tr" ) location_.location = LocationType::TOP_RIGHT;
-  else if (lstr == "cl" ) location_.location = LocationType::CENTER_LEFT;
-  else if (lstr == "cc" ) location_.location = LocationType::CENTER_CENTER;
-  else if (lstr == "cr" ) location_.location = LocationType::CENTER_RIGHT;
-  else if (lstr == "bl" ) location_.location = LocationType::BOTTOM_LEFT;
-  else if (lstr == "bc" ) location_.location = LocationType::BOTTOM_CENTER;
-  else if (lstr == "br" ) location_.location = LocationType::BOTTOM_RIGHT;
-  else if (lstr == "abs") location_.location = LocationType::ABSOLUTE;
+  if      (lstr == "tl" ) location_ = LocationType::TOP_LEFT;
+  else if (lstr == "tc" ) location_ = LocationType::TOP_CENTER;
+  else if (lstr == "tr" ) location_ = LocationType::TOP_RIGHT;
+  else if (lstr == "cl" ) location_ = LocationType::CENTER_LEFT;
+  else if (lstr == "cc" ) location_ = LocationType::CENTER_CENTER;
+  else if (lstr == "cr" ) location_ = LocationType::CENTER_RIGHT;
+  else if (lstr == "bl" ) location_ = LocationType::BOTTOM_LEFT;
+  else if (lstr == "bc" ) location_ = LocationType::BOTTOM_CENTER;
+  else if (lstr == "br" ) location_ = LocationType::BOTTOM_RIGHT;
+  else if (lstr == "abs") location_ = LocationType::ABSOLUTE;
 
   updatePosition();
 }
 
 void
 CQChartsKey::
+draw(QPainter *)
+{
+}
+
+//------
+
+CQChartsViewKey::
+CQChartsViewKey(CQChartsView *view) :
+ CQChartsKey(view)
+{
+}
+
+CQChartsViewKey::
+~CQChartsViewKey()
+{
+}
+
+void
+CQChartsViewKey::
+updatePosition()
+{
+}
+
+void
+CQChartsViewKey::
+updateLayout()
+{
+}
+
+void
+CQChartsViewKey::
+doLayout()
+{
+  double x = 100.0;
+  double y = 100.0;
+
+  double px, py;
+
+  view_->windowToPixel(x, y, px, py);
+
+  px -= 16;
+  py += 16;
+
+  QFontMetrics fm(textFont());
+
+  double pw = 0.0;
+  double ph = 0.0;
+
+  int n = view_->numPlots();
+
+  for (int i = 0; i < n; ++i) {
+    CQChartsPlot *plot = view_->plot(i);
+
+    QString name = plot->id();
+
+    double tw = fm.width(name);
+
+    pw = std::max(pw, tw);
+
+    ph += fm.height();
+  }
+
+  position_ = QPointF(px - pw - 2*margin(), py);
+  size_     = QSizeF(pw + 2*margin(), ph + 2*margin());
+}
+
+void
+CQChartsViewKey::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  model->addProperty(path, this, "visible"    );
+  model->addProperty(path, this, "location"   );
+
+  CQChartsBoxObj::addProperties(model, path);
+
+  QString textPath = path + "/text";
+
+  model->addProperty(textPath, this, "textFont" , "font" );
+}
+
+void
+CQChartsViewKey::
+draw(QPainter *painter)
+{
+  if (! isVisible())
+    return;
+
+  //---
+
+  doLayout();
+
+  //---
+
+  double px = position_.x(); // left
+  double py = position_.y(); // top
+
+  double pw = size_.width ();
+  double ph = size_.height();
+
+  //bbox_ = CQChartsGeom::BBox(x, y - h, x + w, y);
+
+  //---
+
+  //double x1, y1, x2, y2;
+
+  //view_->pixelToWindow(px    , py    , x1, y2);
+  //view_->pixelToWindow(px + w, py - h, x2, y1);
+
+  QRectF rect(px, py, pw, ph);
+
+  //---
+
+  CQChartsBoxObj::draw(painter, rect);
+
+  //---
+
+  painter->setFont(textFont());
+
+  QFontMetrics fm(textFont());
+
+  double px1 = px + margin();
+  double py1 = py + margin();
+
+  int n = view_->numPlots();
+
+  for (int i = 0; i < n; ++i) {
+    CQChartsPlot *plot = view_->plot(i);
+
+    QString name = plot->id();
+
+    //double tw = fm.width(name);
+
+    painter->drawText(px1, py1 + fm.ascent(), name);
+
+    py1 += fm.height();
+  }
+}
+
+//------
+
+CQChartsPlotKey::
+CQChartsPlotKey(CQChartsPlot *plot) :
+ CQChartsKey(plot)
+{
+  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+
+  textColor_ = themeFg;
+
+  setBorder(true);
+
+  clearItems();
+}
+
+CQChartsPlotKey::
+~CQChartsPlotKey()
+{
+  for (auto &item : items_)
+    delete item;
+}
+
+//---
+
+QString
+CQChartsPlotKey::
+textColorStr() const
+{
+  return textColor_.colorStr();
+}
+
+void
+CQChartsPlotKey::
+setTextColorStr(const QString &str)
+{
+  textColor_.setColorStr(str);
+}
+
+QColor
+CQChartsPlotKey::
+interpTextColor(int i, int n) const
+{
+  return textColor_.interpColor(plot_, i, n);
+}
+
+//---
+
+void
+CQChartsPlotKey::
+redraw()
+{
+  plot_->update();
+}
+
+void
+CQChartsPlotKey::
+updatePlotKey()
+{
+  plot_->resetKeyItems();
+
+  redraw();
+}
+
+void
+CQChartsPlotKey::
+updateLayout()
+{
+  invalidateLayout();
+
+  redraw();
+}
+
+void
+CQChartsPlotKey::
 updatePosition()
 {
   plot_->updateKeyPosition();
@@ -127,7 +286,7 @@ updatePosition()
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 updateLocation(const CQChartsGeom::BBox &bbox)
 {
   // calc key size
@@ -200,7 +359,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"    );
@@ -223,14 +382,14 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 invalidateLayout()
 {
   needsLayout_ = true;
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 clearItems()
 {
   for (auto &item : items_)
@@ -245,7 +404,7 @@ clearItems()
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 addItem(CQChartsKeyItem *item, int row, int col, int nrows, int ncols)
 {
   item->setKey(this);
@@ -265,7 +424,7 @@ addItem(CQChartsKeyItem *item, int row, int col, int nrows, int ncols)
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 doLayout()
 {
   if (! needsLayout_)
@@ -393,7 +552,7 @@ doLayout()
 }
 
 QPointF
-CQChartsKey::
+CQChartsPlotKey::
 absPlotPosition() const
 {
   double wx, wy;
@@ -404,7 +563,7 @@ absPlotPosition() const
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 setAbsPlotPosition(const QPointF &p)
 {
   double vx, vy;
@@ -415,7 +574,7 @@ setAbsPlotPosition(const QPointF &p)
 }
 
 QSizeF
-CQChartsKey::
+CQChartsPlotKey::
 calcSize()
 {
   doLayout();
@@ -424,7 +583,7 @@ calcSize()
 }
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 contains(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
@@ -434,7 +593,7 @@ contains(const CQChartsGeom::Point &p) const
 }
 
 CQChartsKeyItem *
-CQChartsKey::
+CQChartsPlotKey::
 getItemAt(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
@@ -451,7 +610,7 @@ getItemAt(const CQChartsGeom::Point &p) const
 //------
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 mouseMove(const CQChartsGeom::Point &w)
 {
   bool changed = false;
@@ -485,12 +644,12 @@ mouseMove(const CQChartsGeom::Point &w)
 //------
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 mouseDragPress(const CQChartsGeom::Point &p)
 {
   dragPos_ = p;
 
-  location_.location = LocationType::ABSOLUTE;
+  location_ = LocationType::ABSOLUTE;
 
   setAbsPlotPosition(position_);
 
@@ -498,13 +657,13 @@ mouseDragPress(const CQChartsGeom::Point &p)
 }
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 mouseDragMove(const CQChartsGeom::Point &p)
 {
   double dx = p.x - dragPos_.x;
   double dy = p.y - dragPos_.y;
 
-  location_.location = LocationType::ABSOLUTE;
+  location_ = LocationType::ABSOLUTE;
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
@@ -516,7 +675,7 @@ mouseDragMove(const CQChartsGeom::Point &p)
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 mouseDragRelease(const CQChartsGeom::Point &)
 {
 }
@@ -524,7 +683,7 @@ mouseDragRelease(const CQChartsGeom::Point &)
 //------
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
   bool rc = false;
@@ -550,7 +709,7 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 //------
 
 bool
-CQChartsKey::
+CQChartsPlotKey::
 setInside(CQChartsKeyItem *item)
 {
   bool changed = false;
@@ -576,7 +735,7 @@ setInside(CQChartsKeyItem *item)
 }
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 setFlipped(bool b)
 {
   if (b == flipped_)
@@ -592,7 +751,7 @@ setFlipped(bool b)
 //------
 
 void
-CQChartsKey::
+CQChartsPlotKey::
 draw(QPainter *painter)
 {
   if (! isVisible())
@@ -628,7 +787,7 @@ draw(QPainter *painter)
   QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
-  if (location_.location != LocationType::ABSOLUTE) {
+  if (location() != LocationType::ABSOLUTE) {
     if (isInsideX()) {
       clipRect.setLeft (dataRect.left ());
       clipRect.setRight(dataRect.right());
@@ -691,29 +850,29 @@ draw(QPainter *painter)
 }
 
 QColor
-CQChartsKey::
+CQChartsPlotKey::
 interpBgColor() const
 {
   if (isBackground())
     return interpBackgroundColor(0, 1);
 
-  if (location_.location != LocationType::ABSOLUTE) {
+  if (location() != LocationType::ABSOLUTE) {
     if      (isInsideX() && isInsideY()) {
       if (plot_->isDataBackground())
         return plot_->interpDataBackgroundColor(0, 1);
     }
     else if (isInsideX()) {
-      if (location_.location == CENTER_LEFT ||
-          location_.location == CENTER_CENTER ||
-          location_.location == CENTER_RIGHT) {
+      if (location() == CENTER_LEFT ||
+          location() == CENTER_CENTER ||
+          location() == CENTER_RIGHT) {
         if (plot_->isDataBackground())
           return plot_->interpDataBackgroundColor(0, 1);
       }
     }
     else if (isInsideY()) {
-      if (location_.location == TOP_CENTER ||
-          location_.location == CENTER_CENTER ||
-          location_.location == BOTTOM_CENTER) {
+      if (location() == TOP_CENTER ||
+          location() == CENTER_CENTER ||
+          location() == BOTTOM_CENTER) {
         if (plot_->isDataBackground())
           return plot_->interpDataBackgroundColor(0, 1);
       }
@@ -729,7 +888,7 @@ interpBgColor() const
 //------
 
 CQChartsKeyItem::
-CQChartsKeyItem(CQChartsKey *key) :
+CQChartsKeyItem(CQChartsPlotKey *key) :
  key_(key)
 {
 }

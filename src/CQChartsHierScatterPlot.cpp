@@ -558,7 +558,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPoin
 
 void
 CQChartsHierScatterPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   CQChartsHierScatterPointGroup *group = currentGroup();
 

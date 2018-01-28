@@ -552,7 +552,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   QString valueName(int iset, int irow) const;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   int numSets() const;
 

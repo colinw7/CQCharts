@@ -35,113 +35,72 @@ load(const QString &filename)
 
   // add header to model
   if (! header.empty()) {
-    for (const auto &f : header)
-      header_.push_back(f.c_str());
+    int i = 0;
 
-    numColumns = std::max(numColumns, int(header_.size()));
+    for (const auto &f : header) {
+      if (i == 0 && isFirstColumnHeader())
+        vheader_.push_back(f.c_str());
+      else
+        hheader_.push_back(f.c_str());
+
+      ++i;
+    }
+
+    numColumns = std::max(numColumns, int(hheader_.size()));
   }
 
   //---
 
-  for (const auto &fields : data)
-    numColumns = std::max(numColumns, int(fields.size()));
+  // expand horizontal header to max number of columns
+  for (const auto &fields : data) {
+    int numFields = fields.size();
 
-  while (int(header_.size()) < numColumns)
-    header_.push_back("");
+    if (isFirstColumnHeader())
+      --numFields;
+
+    numColumns = std::max(numColumns, numFields);
+  }
+
+  while (int(hheader_.size()) < numColumns)
+    hheader_.push_back("");
 
   //---
-
-  bool hasFilter = filter_.length();
-
-  if (hasFilter)
-    initFilter();
 
   // add fields to model
   for (const auto &fields : data) {
-    if (hasFilter && ! acceptsRow(fields))
-      continue;
+    Cells   cells;
+    QString vheader;
 
-    //---
-
-    Cells cells;
+    int i = 0;
 
     for (const auto &f : fields) {
-      cells.push_back(f.c_str());
+      if (i == 0 && isFirstColumnHeader())
+        vheader = f.c_str();
+      else
+        cells.push_back(f.c_str());
+
+      ++i;
     }
 
-    data_.push_back(cells);
+    if (acceptsRow(cells)) {
+      if (isFirstColumnHeader())
+        vheader_.push_back(vheader);
+
+      data_.push_back(cells);
+    }
   }
+
+  //---
+
+  // expand vertical header to max number of rows
+  int numRows = data_.size();
+
+  while (int(vheader_.size()) < numRows)
+    vheader_.push_back("");
 
   //---
 
   genColumnTypes();
-
-  return true;
-}
-
-void
-CQCsvModel::
-initFilter()
-{
-  filterDatas_.clear();
-
-  QStringList patterns = filter_.split(",");
-
-  for (int i = 0; i < patterns.size(); ++i) {
-    FilterData filterData;
-
-    QStringList fields = patterns[i].split(":");
-
-    if (fields.length() == 2) {
-      QString name  = fields[0];
-      QString value = fields[1];
-
-      filterData.column = -1;
-
-      for (std::size_t j = 0; j < header_.size(); ++j) {
-        if (header_[j] == name) {
-          filterData.column = j;
-          break;
-        }
-      }
-
-      if (filterData.column == -1) {
-        bool ok;
-
-        filterData.column = name.toInt(&ok);
-
-        if (! ok)
-          filterData.column = -1;
-      }
-
-      filterData.regexp = QRegExp(value, Qt::CaseSensitive, QRegExp::Wildcard);
-    }
-    else {
-      filterData.column = 0;
-      filterData.regexp = QRegExp(patterns[i], Qt::CaseSensitive, QRegExp::Wildcard);
-    }
-
-    filterData.valid = (filterData.column >= 0 && filterData.column < int(header_.size()));
-
-    filterDatas_.push_back(filterData);
-  }
-}
-
-bool
-CQCsvModel::
-acceptsRow(const std::vector<std::string> &cells) const
-{
-  for (std::size_t i = 0; i < filterDatas_.size(); ++i) {
-    const FilterData &filterData = filterDatas_[i];
-
-    if (! filterData.valid)
-      continue;
-
-    const std::string &field = cells[filterData.column];
-
-    if (! filterData.regexp.exactMatch(field.c_str()))
-      return false;
-  }
 
   return true;
 }

@@ -128,7 +128,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     Type   type         { Type::AUTO };
     double start        { 0.0 };
     double delta        { 1.0 };
-    int    numValues    { 0 };
     double minValue     { 0.0 };
     double maxValue     { 0.0 };
     int    numAuto      { 10 };
@@ -300,7 +299,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   CQChartsAxis *valueAxis() const;
   CQChartsAxis *countAxis() const;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 

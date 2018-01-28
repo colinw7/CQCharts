@@ -714,11 +714,13 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
 {
   CQChartsTreeMapHierObj *hierObj = 0;
 
-  CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
+  if (hier != root_) {
+    CQChartsGeom::BBox rect(hier->x(), hier->y(), hier->x() + hier->w(), hier->y() + hier->h());
 
-  hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
+    hierObj = new CQChartsTreeMapHierObj(this, hier, parentObj, rect, hier->depth(), maxDepth());
 
-  addPlotObject(hierObj);
+    addPlotObject(hierObj);
+  }
 
   //---
 
@@ -758,7 +760,7 @@ initNodes()
 {
   hierInd_ = 0;
 
-  root_ = new CQChartsTreeMapHierNode(this, 0, "<root>");
+  root_ = new CQChartsTreeMapHierNode(this, nullptr, "<root>");
 
   root_->setDepth(0);
   root_->setHierInd(hierInd_++);
@@ -953,7 +955,7 @@ loadFlat()
 
     //---
 
-    CQChartsTreeMapHierNode *parent = firstHier();
+    CQChartsTreeMapHierNode *parent = root();
 
     for (int j = 0; j < nameStrs.length() - 1; ++j) {
       CQChartsTreeMapHierNode *child = childHierNode(parent, nameStrs[j]);
@@ -1019,7 +1021,7 @@ loadFlat()
 
   //----
 
-  addExtraNodes(firstHier());
+  addExtraNodes(root());
 }
 
 void
@@ -1546,8 +1548,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  //---
-
   // draw label
   painter->setClipRect(qrect);
 
@@ -1613,6 +1613,9 @@ packNodes(double x, double y, double w, double h)
   double maxExtent = CQChartsUtil::clamp(plot()->titleMaxExtent(), 0.0, 1.0);
 
   bool showTitle = (plot()->isTitles() && h*maxExtent > whh);
+
+  if (! parent())
+    showTitle = false;
 
   double dh = (showTitle ? whh : 0.0);
   double m  = (w > wmw ? wmw : 0.0);

@@ -1006,6 +1006,10 @@ CQChartsHierBubblePlot::
 drawForeground(QPainter *painter)
 {
   drawBounds(painter, currentRoot());
+
+  //---
+
+  CQChartsPlot::drawForeground(painter);
 }
 
 void

@@ -716,6 +716,10 @@ drawForeground(QPainter *painter)
 {
   if (insideObj())
     insideObj()->draw(painter, CQChartsPlot::Layer::FG);
+
+  //---
+
+  CQChartsPlot::drawForeground(painter);
 }
 
 QColor

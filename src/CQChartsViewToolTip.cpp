@@ -79,7 +79,7 @@ updateWidget(const QPoint &gpos)
 
   if (! tip.length()) {
     for (const auto &plot : plots) {
-      CQChartsKey *key = plot->key();
+      CQChartsPlotKey *key = plot->key();
       if (! key) continue;
 
       CQChartsGeom::Point w;

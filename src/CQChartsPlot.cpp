@@ -113,7 +113,11 @@ addParameters()
 
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
- view_(view), type_(type), model_(model)
+ view_(view), type_(type), model_(model),
+ llHandle_(this, CQChartsResizeHandle::Side::LL),
+ lrHandle_(this, CQChartsResizeHandle::Side::LR),
+ ulHandle_(this, CQChartsResizeHandle::Side::UL),
+ urHandle_(this, CQChartsResizeHandle::Side::UR)
 {
   displayRange_     = new CQChartsDisplayRange();
   displayTransform_ = new CQChartsDisplayTransform(displayRange_);
@@ -922,7 +926,7 @@ void
 CQChartsPlot::
 addKey()
 {
-  keyObj_ = new CQChartsKey(this);
+  keyObj_ = new CQChartsPlotKey(this);
 }
 
 void
@@ -1212,7 +1216,7 @@ initPlotObjs()
   if (changed)
     initObjTree();
 
-  if (isAutoFit())
+  if (changed && isAutoFit())
     autoFit();
 }
 
@@ -1520,34 +1524,62 @@ mouseRelease(const CQChartsGeom::Point &)
 
 bool
 CQChartsPlot::
-mouseDragPress(const CQChartsGeom::Point &w)
+mouseDragPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 {
-  mouseData_.dragObj = DragObj::NONE;
+  mouseData_.dragObj    = DragObj::NONE;
+  mouseData_.pressPoint = CQChartsUtil::toQPoint(p);
+  mouseData_.movePoint  = mouseData_.pressPoint;
 
-  if (key() && key()->contains(w)) {
+  if      (key() && key()->contains(w)) {
     if (key()->mouseDragPress(w)) {
       mouseData_.dragObj = DragObj::KEY;
       return true;
     }
   }
-
-  if (xAxis() && xAxis()->contains(w)) {
+  else if (xAxis() && xAxis()->contains(w)) {
     if (xAxis()->mouseDragPress(w)) {
       mouseData_.dragObj = DragObj::XAXIS;
       return true;
     }
   }
-
-  if (yAxis() && yAxis()->contains(w)) {
+  else if (yAxis() && yAxis()->contains(w)) {
     if (yAxis()->mouseDragPress(w)) {
       mouseData_.dragObj = DragObj::YAXIS;
       return true;
     }
   }
-
-  if (title() && title()->contains(w)) {
+  else if (title() && title()->contains(w)) {
     if (title()->mouseDragPress(w)) {
       mouseData_.dragObj = DragObj::TITLE;
+      return true;
+    }
+  }
+  else {
+    // to drag plot must be inside a plot object
+    PlotObjs objs;
+
+    objsAtPoint(w, objs);
+
+    if (! objs.empty()) {
+      mouseData_.dragObj = DragObj::PLOT;
+      return true;
+    }
+
+    // to resize must be in handle
+    if      (llHandle_.inside(w)) {
+      mouseData_.dragObj = DragObj::PLOT_LL;
+      return true;
+    }
+    else if (lrHandle_.inside(w)) {
+      mouseData_.dragObj = DragObj::PLOT_LR;
+      return true;
+    }
+    else if (ulHandle_.inside(w)) {
+      mouseData_.dragObj = DragObj::PLOT_UL;
+      return true;
+    }
+    else if (urHandle_.inside(w)) {
+      mouseData_.dragObj = DragObj::PLOT_UR;
       return true;
     }
   }
@@ -1557,8 +1589,12 @@ mouseDragPress(const CQChartsGeom::Point &w)
 
 bool
 CQChartsPlot::
-mouseDragMove(const CQChartsGeom::Point &w, bool /*first*/)
+mouseDragMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*first*/)
 {
+  QPointF lastMovePoint = mouseData_.movePoint;
+
+  mouseData_.movePoint = CQChartsUtil::toQPoint(p);
+
   if      (mouseData_.dragObj == DragObj::KEY) {
     (void) key()->mouseDragMove(w);
     return true;
@@ -1575,13 +1611,78 @@ mouseDragMove(const CQChartsGeom::Point &w, bool /*first*/)
     (void) title()->mouseDragMove(w);
     return true;
   }
+  else if (mouseData_.dragObj == DragObj::PLOT) {
+    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
+    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+
+    double dx1 = CQChartsUtil::sign(dx)*view_->pixelToWindowWidth (dx);
+    double dy1 = CQChartsUtil::sign(dy)*view_->pixelToWindowHeight(dy);
+
+    bbox_.moveBy(CQChartsGeom::Point(dx1, dy1));
+
+    updateMargin();
+
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::PLOT_LL) {
+    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
+    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+
+    double dx1 = CQChartsUtil::sign(dx)*view_->pixelToWindowWidth (dx);
+    double dy1 = CQChartsUtil::sign(dy)*view_->pixelToWindowHeight(dy);
+
+    bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx1, dy1));
+
+    updateMargin();
+
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::PLOT_LR) {
+    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
+    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+
+    double dx1 = CQChartsUtil::sign(dx)*view_->pixelToWindowWidth (dx);
+    double dy1 = CQChartsUtil::sign(dy)*view_->pixelToWindowHeight(dy);
+
+    bbox_.setLR(bbox_.getLR() + CQChartsGeom::Point(dx1, dy1));
+
+    updateMargin();
+
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::PLOT_UL) {
+    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
+    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+
+    double dx1 = CQChartsUtil::sign(dx)*view_->pixelToWindowWidth (dx);
+    double dy1 = CQChartsUtil::sign(dy)*view_->pixelToWindowHeight(dy);
+
+    bbox_.setUL(bbox_.getUL() + CQChartsGeom::Point(dx1, dy1));
+
+    updateMargin();
+
+    return true;
+  }
+  else if (mouseData_.dragObj == DragObj::PLOT_UR) {
+    double dx = mouseData_.movePoint.x() - lastMovePoint.x();
+    double dy = lastMovePoint.y() - mouseData_.movePoint.y();
+
+    double dx1 = CQChartsUtil::sign(dx)*view_->pixelToWindowWidth (dx);
+    double dy1 = CQChartsUtil::sign(dy)*view_->pixelToWindowHeight(dy);
+
+    bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx1, dy1));
+
+    updateMargin();
+
+    return true;
+  }
 
   return false;
 }
 
 void
 CQChartsPlot::
-mouseDragRelease(const CQChartsGeom::Point & /*w*/)
+mouseDragRelease(const CQChartsGeom::Point & /*p*/, const CQChartsGeom::Point & /*w*/)
 {
   mouseData_.dragObj = DragObj::NONE;
 }
@@ -2548,6 +2649,18 @@ drawTitle(QPainter *painter)
 
 void
 CQChartsPlot::
+drawForeground(QPainter *painter)
+{
+  if (view()->mode() == CQChartsView::Mode::EDIT) {
+    llHandle_.draw(painter);
+    lrHandle_.draw(painter);
+    ulHandle_.draw(painter);
+    urHandle_.draw(painter);
+  }
+}
+
+void
+CQChartsPlot::
 drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
               const QPen &pen, bool contrast) const
 {
@@ -2605,112 +2718,6 @@ drawContrastText(QPainter *painter, double x, double y, const QString &text,
 
   painter->drawText(QPointF(x, y), text);
 }
-
-#if 0
-void
-CQChartsPlot::
-drawConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
-                        double ta, const QString &text, const QPen &lpen, const QPen &tpen,
-                        const QFont &tfont, double tmargin, bool rotatedText)
-{
-  painter->save();
-
-  //---
-
-  if (lr < 0.01)
-    lr = 0.01;
-
-  double tangle = CQChartsUtil::Deg2Rad(ta);
-
-  double tc = cos(tangle);
-  double ts = sin(tangle);
-
-  double tx = center.x() + lr*tc;
-  double ty = center.y() + lr*ts;
-
-  double ptx, pty;
-
-  windowToPixel(tx, ty, ptx, pty);
-
-  //---
-
-  double        dx    = 0.0;
-  Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
-
-  // connect text to outer edge
-  if (lr > ro) {
-    double lx1 = center.x() + ro*tc;
-    double ly1 = center.y() + ro*ts;
-    double lx2 = center.x() + lr*tc;
-    double ly2 = center.y() + lr*ts;
-
-    double lpx1, lpy1, lpx2, lpy2;
-
-    windowToPixel(lx1, ly1, lpx1, lpy1);
-    windowToPixel(lx2, ly2, lpx2, lpy2);
-
-    int tickSize = 16;
-
-    if (tc >= 0) {
-      dx    = tickSize;
-      align = Qt::AlignLeft | Qt::AlignVCenter;
-    }
-    else {
-      dx    = -tickSize;
-      align = Qt::AlignRight | Qt::AlignVCenter;
-    }
-
-    painter->setPen(lpen);
-
-    painter->drawLine(QPointF(lpx1, lpy1), QPointF(lpx2     , lpy2));
-    painter->drawLine(QPointF(lpx2, lpy2), QPointF(lpx2 + dx, lpy2));
-  }
-
-  //---
-
-  // draw text
-  QFontMetricsF fm(tfont);
-
-  double tw = fm.width(text);
-
-  double tw1 = tw + 2*tmargin;
-  double th1 = fm.height() + 2*tmargin;
-
-  double cx = ptx + dx;
-  double cy = pty - th1/2;
-  double cd = 0.0;
-
-  if      (align & Qt::AlignHCenter) {
-    cx -= tw1/2;
-  }
-  else if (align & Qt::AlignRight) {
-    cx -= tw1;
-    cd  = -tmargin;
-  }
-  else {
-    cd  = tmargin;
-  }
-
-  double angle = 0.0;
-
-  if (rotatedText)
-    angle = (tc >= 0 ? ta : 180.0 + ta);
-
-  //---
-
-  QRectF rect(cx, cy, tw1, th1);
-
-  painter->setPen (tpen);
-  painter->setFont(tfont);
-
-  CQChartsRotatedText::drawRotatedText(painter, ptx + dx + cd, pty, text, angle,
-                                       align, /*alignBBox*/ true);
-
-  //---
-
-  painter->restore();
-}
-#endif
 
 //------
 
@@ -3041,6 +3048,11 @@ columnValueType(QAbstractItemModel *model, int column) const
         if (ok)
           return true;
 
+        QString str = CQChartsUtil::modelString(model, ind, ok);
+
+        if (! str.length())
+          return true;
+
         isInt_ = false;
       }
 
@@ -3051,6 +3063,11 @@ columnValueType(QAbstractItemModel *model, int column) const
         (void) CQChartsUtil::modelReal(model, ind, ok);
 
         if (ok)
+          return true;
+
+        QString str = CQChartsUtil::modelString(model, ind, ok);
+
+        if (! str.length())
           return true;
 
         isReal_ = false;
@@ -3888,6 +3905,17 @@ windowToPixel(const CQChartsGeom::Point &w) const
   return p;
 }
 
+CQChartsGeom::Point
+CQChartsPlot::
+pixelToWindow(const CQChartsGeom::Point &w) const
+{
+  CQChartsGeom::Point p;
+
+  pixelToWindow(w, p);
+
+  return p;
+}
+
 QPointF
 CQChartsPlot::
 windowToPixel(const QPointF &w) const
@@ -4068,4 +4096,69 @@ addProperties()
   addProperty("columns", this, "colorColumn", "color");
 
   addProperty("", this, "separator");
+}
+
+//------
+
+CQChartsResizeHandle::
+CQChartsResizeHandle(CQChartsPlot *plot, Side side) :
+ plot_(plot), side_(side)
+{
+}
+
+void
+CQChartsResizeHandle::
+draw(QPainter *painter)
+{
+  double cs = 16;
+
+  CQChartsGeom::BBox bbox = plot_->bbox();
+
+  path_ = QPainterPath();
+
+  if     (side() == Side::LL) {
+    QPointF ll = CQChartsUtil::toQPoint(plot_->view()->windowToPixel(bbox.getLL()));
+
+    path_.moveTo(ll.x()     , ll.y()     );
+    path_.lineTo(ll.x() + cs, ll.y()     );
+    path_.lineTo(ll.x()     , ll.y() - cs);
+  }
+  else if (side() == Side::LR) {
+    QPointF lr = CQChartsUtil::toQPoint(plot_->view()->windowToPixel(bbox.getLR()));
+
+    path_.moveTo(lr.x()     , lr.y()     );
+    path_.lineTo(lr.x() - cs, lr.y()     );
+    path_.lineTo(lr.x()     , lr.y() - cs);
+  }
+  else if (side() == Side::UL) {
+    QPointF ul = CQChartsUtil::toQPoint(plot_->view()->windowToPixel(bbox.getUL()));
+
+    path_.moveTo(ul.x()     , ul.y()     );
+    path_.lineTo(ul.x() + cs, ul.y()     );
+    path_.lineTo(ul.x()     , ul.y() + cs);
+  }
+  else if (side() == Side::UR) {
+    QPointF ur = CQChartsUtil::toQPoint(plot_->view()->windowToPixel(bbox.getUR()));
+
+    path_.moveTo(ur.x()     , ur.y()     );
+    path_.lineTo(ur.x() - cs, ur.y()     );
+    path_.lineTo(ur.x()     , ur.y() + cs);
+  }
+  else {
+    return;
+  }
+
+  painter->setPen  (Qt::black);
+  painter->setBrush(Qt::green);
+
+  painter->drawPath(path_);
+}
+
+bool
+CQChartsResizeHandle::
+inside(const CQChartsGeom::Point &w) const
+{
+  QPointF p = plot_->windowToPixel(CQChartsUtil::toQPoint(w));
+
+  return path_.contains(p);
 }

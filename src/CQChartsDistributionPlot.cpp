@@ -305,9 +305,9 @@ updateRange(bool apply)
   // calc value range
   bool hasRange = valueSet->isNumeric();
 
-  categoryRange_.numValues = 0;
-  categoryRange_.minValue  = 0.0;
-  categoryRange_.maxValue  = 0.0;
+  int numValues = 0;
+
+  double minValue = 0.0, maxValue = 0.0;
 
   if (hasRange) {
     for (int r = 0; r < nr; ++r) {
@@ -324,17 +324,20 @@ updateRange(bool apply)
       if (! checkFilter(value))
         continue;
 
-      if (categoryRange_.numValues == 0) {
-        categoryRange_.minValue = value;
-        categoryRange_.maxValue = value;
+      if (numValues == 0) {
+        minValue = value;
+        maxValue = value;
       }
       else {
-        categoryRange_.minValue = std::min(categoryRange_.minValue, value);
-        categoryRange_.maxValue = std::max(categoryRange_.maxValue, value);
+        minValue = std::min(minValue, value);
+        maxValue = std::max(maxValue, value);
       }
 
-      ++categoryRange_.numValues;
+      ++numValues;
     }
+
+    categoryRange_.minValue = minValue;
+    categoryRange_.maxValue = maxValue;
 
     calcCategoryRange();
   }
@@ -678,7 +681,7 @@ countAxis() const
 
 void
 CQChartsDistributionPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   int row = key->maxRow();
 

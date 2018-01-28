@@ -179,10 +179,16 @@ CQChartsTest \
  -csv group_ages.csv -first_line_header \
  -type pie -columns "label=1,data=2,group=0" \
  -plot_title "grouped pie chart" -column_type "2#integer"
+
 CQChartsTest \
  -csv group_ages.csv -first_line_header -fold 0 \
  -type pie -columns "label=1,data=2" \
  -plot_title "folded pie chart" -column_type "2#integer"
+CQChartsTest \
+ -csv group_ages.csv -first_line_header -fold "0:i:10" \
+ -type pie -columns "label=1,data=2" \
+ -plot_title "folded pie chart" -column_type "2#integer"
+
 CQChartsTest \
  -csv multi_bar.csv -first_line_header \
  -type pie -columns "label=0,data=1 2 3 4 5 6 7" \
@@ -215,7 +221,7 @@ CQChartsTest \
  -tsv scatter.tsv -first_line_header \
  -type scatter -columns "name=4,x=0,y=1,symbolSize=2" \
  -plot_title "scatter" \
- -properties "symbol.size=12" \
+ -properties "symbol.size=12,symbol.stroke.alpha=0.3,symbol.fill.alpha=0.5" \
  -view_properties "selectedHighlight.fill.enabled=1"
 
 CQChartsTest \

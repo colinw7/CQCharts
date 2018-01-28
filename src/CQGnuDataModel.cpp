@@ -73,8 +73,7 @@ load(const QString &filename)
   auto comment = commentChars_.value_or("#");
 
   for (const auto &line : lines_) {
-    if ((commentHeader || firstLineHeader) &&
-        setNum == 0 && subSetNum == 0 && lineNum == 0) {
+    if ((commentHeader || firstLineHeader) && setNum == 0 && subSetNum == 0 && lineNum == 0) {
       if (! line.length())
         continue;
 
@@ -385,5 +384,5 @@ void
 CQGnuDataModel::
 addColumn(const QString &name)
 {
-  header_.emplace_back(name);
+  hheader_.emplace_back(name);
 }

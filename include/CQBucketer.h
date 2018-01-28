@@ -8,7 +8,8 @@ class CQBucketer {
   enum class Type {
     STRING,
     INTEGER_RANGE,
-    REAL_RANGE
+    REAL_RANGE,
+    REAL_AUTO
   };
 
  public:
@@ -23,83 +24,121 @@ class CQBucketer {
 
   // fixed bucket delta
 
-  double delta() const { return delta_; }
-  void setDelta(double r) { delta_ = r; }
+  double rstart() const { return rstart_; }
+  void setRStart(double r) { rstart_ = r; }
+
+  double rdelta() const { return rdelta_; }
+  void setRDelta(double r) { rdelta_ = r; }
+
+  double istart() const { return int(rstart_); }
+  void setIStart(int i) { rstart_ = i; }
+
+  double idelta() const { return int(rdelta_); }
+  void setIDelta(int i) { rdelta_ = i; }
 
   //---
 
   // auto bucket delta
 
-  double min() const { return min_; needsCalc_ = true; }
-  void setMin(double r) { min_ = r; }
+  double rmin() const { return rmin_; }
+  void setRMin(double r) { rmin_ = r; needsCalc_ = true; }
 
-  double max() const { return max_; needsCalc_ = true; }
-  void setMax(double r) { max_ = r; }
+  double rmax() const { return rmax_; }
+  void setRMax(double r) { rmax_ = r; needsCalc_ = true; }
 
-  int numAuto() const { return numAuto_; needsCalc_ = true; }
-  void setNumAuto(int i) { numAuto_ = i; }
+  double imin() const { return int(rmin_); }
+  void setIMin(int i) { rmin_ = i; needsCalc_ = true; }
+
+  double imax() const { return int(rmax_); }
+  void setIMax(int i) { rmax_ = i; needsCalc_ = true; }
+
+  int numAuto() const { return numAuto_; }
+  void setNumAuto(int i) { numAuto_ = i; needsCalc_ = true; }
 
   //---
 
-  int bucket(const QVariant &var) {
+  // get bucket for generic value
+  int bucket(const QVariant &var) const {
+    int n = INT_MIN; // optional ?
+
+    bool ok;
+
     if      (type() == Type::STRING) {
       QString str = var.toString();
 
       return stringBucket(str);
     }
     else if (type() == Type::INTEGER_RANGE) {
-      int i;
+      int i = varInt(var, ok);
 
-      if (var.type() == QVariant::Int)
-        i = var.toInt();
-      else {
-        bool ok;
-
-        i = var.toString().toInt(&ok);
-
-        if (! ok)
-          return INT_MIN; // optional ?
-      }
-
-      int idelta = delta();
-
-      if (idelta <= 0)
-        return INT_MIN; // optional ?
-
-      int n = i/idelta;
-
-      return n;
+      if (ok)
+        return intBucket(i);
     }
     else if (type() == Type::REAL_RANGE) {
-      double r = 0.0;
+      double r = varReal(var, ok);
 
-      if (var.type() == QVariant::Double) {
-        r = var.toReal();
-      }
-      else {
-        bool ok;
+      if (ok)
+        return realBucket(r);
+    }
+    else if (type() == Type::REAL_AUTO) {
+      double r = varReal(var, ok);
 
-        r = var.toString().toDouble(&ok);
+      if (ok)
+        return autoRealBucket(r);
+    }
 
-        if (! ok)
-          return INT_MIN; // optional ?
-      }
+    return n;
+  }
 
-      if (delta() <= 0)
-        return INT_MIN; // optional ?
+  bool bucketValues(int bucket, double &min, double &max) const {
+    if      (type() == Type::INTEGER_RANGE) {
+      int idelta = this->idelta();
 
-      int n = r/delta();
+      min = bucket*idelta + calcIStart();
+      max = min + idelta;
+    }
+    else if (type() == Type::REAL_RANGE) {
+      double rdelta = this->rdelta();
 
-      return n;
+      min = bucket*rdelta + calcRStart();
+      max = min + rdelta;
+    }
+    else if (type() == Type::REAL_AUTO) {
+      double rdelta = calcDelta_;
+
+      min = bucket*rdelta + calcMin_;
+      max = min + rdelta;
     }
     else {
-      return INT_MIN; // optional ?
+      return false;
     }
+
+    return true;
   }
 
   //----
 
-  QString bucketName(int bucket) {
+  static int varInt(const QVariant &var, bool &ok) {
+    ok = true;
+
+    if (var.type() == QVariant::Int)
+      return var.toInt();
+
+    return var.toString().toInt(&ok);
+  }
+
+  static double varReal(const QVariant &var, bool &ok) {
+    ok = true;
+
+    if (var.type() == QVariant::Double)
+      return var.toReal();
+
+    return var.toString().toDouble(&ok);
+  }
+
+  //----
+
+  QString bucketName(int bucket) const {
     if      (type() == Type::STRING) {
       auto p = indString_.find(bucket);
 
@@ -109,7 +148,7 @@ class CQBucketer {
       return (*p).second;
     }
     else if (type() == Type::INTEGER_RANGE) {
-      int idelta = delta();
+      int idelta = this->rdelta();
 
       int imin = bucket*idelta;
       int imax = imin + idelta;
@@ -117,8 +156,8 @@ class CQBucketer {
       return QString("%1-%2").arg(imin).arg(imax);
     }
     else if (type() == Type::REAL_RANGE) {
-      double rmin = bucket*delta();
-      double rmax = rmin + delta();
+      double rmin = bucket*this->rdelta();
+      double rmax = rmin + this->rdelta();
 
       return QString("%1-%2").arg(rmin).arg(rmax);
     }
@@ -128,11 +167,11 @@ class CQBucketer {
 
   //----
 
-  void autoCalc() {
+  void autoCalc() const {
     if (needsCalc_) {
-      double length = max_ - min_;
+      double length = rmax() - rmin();
 
-      double length1 = length/numAuto_;
+      double length1 = length/numAuto();
 
       // Calculate nearest Power of Ten to Length
       int power = (length1 > 0 ? roundNearest(log10(length1)) : 1);
@@ -152,10 +191,10 @@ class CQBucketer {
       if (length1 > 0) {
         calcDelta_ = calcDelta_*roundNearest(length1/calcDelta_);
 
-        calcMin_ = calcDelta_*roundDown(min_/calcDelta_);
+        calcMin_ = calcDelta_*roundDown(rmin()/calcDelta_);
       }
       else {
-        calcMin_ = min_;
+        calcMin_ = rmin();
       }
 
       needsCalc_ = false;
@@ -165,7 +204,7 @@ class CQBucketer {
   //----
 
  private:
-  int stringBucket(const QString &str) {
+  int stringBucket(const QString &str) const {
     auto p = stringInd_.find(str);
 
     if (p == stringInd_.end()) {
@@ -179,7 +218,62 @@ class CQBucketer {
     return p->second;
   }
 
-  int roundNearest(double x) {
+  int intBucket(int i) const {
+    int n = INT_MIN; // optional ?
+
+    int idelta = this->idelta();
+    int istart = this->calcIStart();
+
+    if (idelta > 0)
+      n = (i - istart)/idelta;
+
+    return n;
+  }
+
+  int realBucket(double r) const {
+    int n = INT_MIN; // optional ?
+
+    double rdelta = this->rdelta();
+    double rstart = this->calcRStart();
+
+    if (rdelta > 0)
+      n = std::floor(r - rstart)/rdelta;
+
+    return n;
+  }
+
+  int autoRealBucket(double r) const {
+    autoCalc();
+
+    int n = INT_MIN; // optional ?
+
+    double rdelta = calcDelta_;
+
+    if (rdelta > 0)
+      n = std::floor((r - calcMin_)/rdelta);
+
+    return n;
+  }
+
+  double calcRStart() const {
+    double rstart = std::min(rmin(), this->rstart());
+
+    if (rdelta() > 0.0)
+      rstart = rdelta()*roundDown(rstart/rdelta());
+
+    return rstart;
+  }
+
+  int calcIStart() const {
+    int istart = std::min(imin(), this->istart());
+
+    if (idelta() > 0)
+      istart = idelta()*roundDown(istart/idelta());
+
+    return istart;
+  }
+
+  int roundNearest(double x) const {
     double x1;
 
     if (x <= 0.0)
@@ -193,7 +287,7 @@ class CQBucketer {
     return int(x1);
   }
 
-  int roundDown(double x) {
+  int roundDown(double x) const {
     double x1;
 
     if (x >= 0.0)
@@ -211,17 +305,25 @@ class CQBucketer {
   using StringInd = std::map<QString,int>;
   using IndString = std::map<int,QString>;
 
-  Type         type_      { Type::STRING }; // data type
-  double       min_       { 0.0 };          // min value
-  double       max_       { 0.0 };          // max value
-  double       delta_     { 1.0 };          // delta value
-  int          numAuto_   { 10 };           // num auto
-  double       calcMin_   { 0.0 };          // calculated min value
-  double       calcMax_   { 1.0 };          // calculated max value
-  double       calcDelta_ { 1.0 };          // calculated delta value
-  mutable bool needsCalc_ { true };         // needs auto calc
-  StringInd    stringInd_;                  // string to ind map
-  IndString    indString_;                  // ind to string map
+  // data
+  Type   type_ { Type::STRING }; // data type
+  double rmin_ { 0.0 };          // actual min value
+  double rmax_ { 1.0 };          // actual max value
+
+  // manual
+  double rstart_  { 0.0 }; // manual bucktet start value
+  double rdelta_  { 1.0 }; // manual bucktet delta value
+
+  // auto bucket number of values
+  int numAuto_ { 10 }; // num auto
+
+  // cached data
+  mutable bool       needsCalc_ { true }; // needs auto calc
+  mutable double     calcMin_   { 0.0 };  // calculated min value
+  mutable double     calcMax_   { 1.0 };  // calculated max value
+  mutable double     calcDelta_ { 1.0 };  // calculated delta value
+  mutable StringInd stringInd_;           // string to ind map
+  mutable IndString indString_;           // ind to string map
 };
 
 #endif

@@ -650,6 +650,10 @@ drawForeground(QPainter *painter)
   path.addEllipse(qrect);
 
   painter->drawPath(path);
+
+  //---
+
+  CQChartsPlot::drawForeground(painter);
 }
 
 //------

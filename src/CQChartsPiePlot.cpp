@@ -151,6 +151,19 @@ setKeyLabelColumn(int i)
 
 void
 CQChartsPiePlot::
+setAngleExtent(double r)
+{
+  if (r != angleExtent_) {
+    angleExtent_ = r;
+
+    updateRangeAndObjs();
+  }
+}
+
+//---
+
+void
+CQChartsPiePlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
@@ -168,6 +181,8 @@ addProperties()
   addProperty("", this, "donut"      );
   addProperty("", this, "innerRadius");
   addProperty("", this, "startAngle" );
+  addProperty("", this, "angleExtent");
+  addProperty("", this, "endAngle"   );
 
   addProperty("explode", this, "explodeSelected", "selected");
   addProperty("explode", this, "explodeRadius"  , "radius"  );
@@ -194,26 +209,46 @@ void
 CQChartsPiePlot::
 updateRange(bool apply)
 {
-  double radius = 1.0;
+  double r = std::max(1.0, labelRadius());
 
-  radius = std::max(radius, labelRadius());
+  //---
 
-  double xr = radius;
-  double yr = radius;
+  CQChartsGeom::Point c(0.0, 0.0);
+
+  dataRange_.reset();
+
+  //dataRange_.updateRange(-r, -r);
+  //dataRange_.updateRange( r,  r);
+
+  dataRange_.updateRange(c);
+
+  double angle1 = startAngle();
+  double alen   = std::min(std::max(angleExtent(), -360.0), 360.0);
+  double angle2 = angle1 - alen;
+
+  dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
+  dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
+
+  double a1 = 90.0*CQChartsUtil::RoundDown(angle1/90.0);
+
+  if (angle1 < angle2) {
+    for (double a = a1; a < angle2; a += 90.0) {
+      if (a > angle1 && a < angle2)
+        dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+    }
+  }
+  else {
+    for (double a = a1; a > angle2; a -= 90.0) {
+      if (a > angle2 && a < angle1)
+        dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+    }
+  }
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.reset();
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
 
   //---
 
@@ -600,6 +635,7 @@ adjustObjAngles()
 {
   for (auto &groupObj : groupObjs_) {
     double angle1 = startAngle();
+    double alen   = std::min(std::max(angleExtent(), -360.0), 360.0);
     double total  = groupObj->total();
 
     for (auto &obj : groupObj->objs()) {
@@ -608,7 +644,7 @@ adjustObjAngles()
 
       double value = obj->value();
 
-      double angle = (total > 0.0 ? 360.0*value/total : 0.0);
+      double angle = (total > 0.0 ? alen*value/total : 0.0);
 
       double angle2 = angle1 - angle;
 
@@ -622,7 +658,7 @@ adjustObjAngles()
 
 void
 CQChartsPiePlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   int ng = groupObjs_.size();
 
@@ -788,10 +824,10 @@ inside(const CQChartsGeom::Point &p) const
 
   if (a1 < a2) {
     // crosses zero
-    if (a >= 0 && a <= a1)
+    if (a >= 0.0 && a <= a1)
       return true;
 
-    if (a <= 360 && a >= a2)
+    if (a <= 360.0 && a >= a2)
       return true;
   }
   else {
@@ -843,7 +879,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  CQChartsGeom::Point center(0, 0);
+  CQChartsGeom::Point center(0.0, 0.0);
 
   CQChartsGeom::Point c  = center;
   double              ro = outerRadius();
@@ -894,8 +930,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       //---
 
-      double ra1 = a1*M_PI/180.0;
-      double ra2 = a2*M_PI/180.0;
+      double ra1 = CQChartsUtil::Deg2Rad(a1);
+      double ra2 = CQChartsUtil::Deg2Rad(a2);
 
       double x1 = c.x + ri*cos(ra1);
       double y1 = c.y + ri*sin(ra1);

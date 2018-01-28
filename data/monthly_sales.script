@@ -20,60 +20,60 @@ palette -get_color 1 -get_color_scale
 palette -get_color 2 -get_color_scale
 @let color2 = rc
 
-set -view view1 -name insideMode -value OUTLINE
+set_property -view view1 -name insideMode -value OUTLINE
 
-set -view view1 -plot "${plot1}" -name barMargin                  -value 8
-set -view view1 -plot "${plot1}" -name fill.color                 -value "palette:0:s"
-set -view view1 -plot "${plot1}" -name keySets                    -value 1
-set -view view1 -plot "${plot1}" -name dataLabel.visible          -value 1
-set -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUTSIDE
-#set -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
-#set -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
-#set -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
-set -view view1 -plot "${plot1}" -name "xxis.majorIncrement"    -value 1
-set -view view1 -plot "${plot1}" -name "xxis.label.text"        -value ""
-#set -view view1 -plot "${plot1}" -name "xxis.label.color"       -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "xxis.ticks.label.color" -value "theme:1"
-set -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
-#set -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "theme:1"
-#set -view view1 -plot "${plot1}" -name "yaxis.ticks.label.color" -value "theme:1"
-#set -view view1 -plot "${plot1}" -name key.visible                -value 0
-set -view view1 -plot "${plot1}" -name key.insideY                -value 0
-set -view view1 -plot "${plot1}" -name key.location               -value bc
-set -view view1 -plot "${plot1}" -name key.horizontal             -value 1
-set -view view1 -plot "${plot1}" -name key.background.visible     -value 0
-set -view view1 -plot "${plot1}" -name key.border.visible         -value 0
-#set -view view1 -plot "${plot1}" -name key.text.color             -value "theme:1"
-set -view view1 -plot "${plot1}" -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
-#set -view view1 -plot "${plot1}" -name title.text.color           -value "theme:1"
+set_property -view view1 -plot "${plot1}" -name barMargin                  -value 8
+set_property -view view1 -plot "${plot1}" -name fill.color                 -value "palette:0:s"
+set_property -view view1 -plot "${plot1}" -name keySets                    -value 1
+set_property -view view1 -plot "${plot1}" -name dataLabel.visible          -value 1
+set_property -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUTSIDE
+#set_property -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
+#set_property -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
+set_property -view view1 -plot "${plot1}" -name "xxis.majorIncrement"    -value 1
+set_property -view view1 -plot "${plot1}" -name "xxis.label.text"        -value ""
+#set_property -view view1 -plot "${plot1}" -name "xxis.label.color"       -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "xxis.ticks.label.color" -value "theme:1"
+set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
+#set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "yaxis.ticks.label.color" -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name key.visible                -value 0
+set_property -view view1 -plot "${plot1}" -name key.insideY                -value 0
+set_property -view view1 -plot "${plot1}" -name key.location               -value bc
+set_property -view view1 -plot "${plot1}" -name key.horizontal             -value 1
+set_property -view view1 -plot "${plot1}" -name key.background.visible     -value 0
+set_property -view view1 -plot "${plot1}" -name key.border.visible         -value 0
+#set_property -view view1 -plot "${plot1}" -name key.text.color             -value "theme:1"
+set_property -view view1 -plot "${plot1}" -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
+#set_property -view view1 -plot "${plot1}" -name title.text.color           -value "theme:1"
 
 plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 
 @let plot2 = rc
 
-set -view view1 -plot "${plot2}" -name points.symbol         -value circle
-set -view view1 -plot "${plot2}" -name points.size           -value 6
-set -view view1 -plot "${plot2}" -name points.fill.visible   -value 1
-set -view view1 -plot "${plot2}" -name points.fill.color     -value "palette:1:s"
-set -view view1 -plot "${plot2}" -name points.stroke.visible -value 0
-set -view view1 -plot "${plot2}" -name lines.width           -value 3
-set -view view1 -plot "${plot2}" -name lines.rounded         -value 1
-set -view view1 -plot "${plot2}" -name lines.color           -value "palette:1:s"
+set_property -view view1 -plot "${plot2}" -name points.symbol         -value circle
+set_property -view view1 -plot "${plot2}" -name points.size           -value 6
+set_property -view view1 -plot "${plot2}" -name points.fill.visible   -value 1
+set_property -view view1 -plot "${plot2}" -name points.fill.color     -value "palette:1:s"
+set_property -view view1 -plot "${plot2}" -name points.stroke.visible -value 0
+set_property -view view1 -plot "${plot2}" -name lines.width           -value 3
+set_property -view view1 -plot "${plot2}" -name lines.rounded         -value 1
+set_property -view view1 -plot "${plot2}" -name lines.color           -value "palette:1:s"
 
 plot -type xy -columns "x=0,y=3"-title "Profit"
 
 @let plot3 = rc
 
-set -view view1 -plot "${plot3}" -name fillUnder.visible   -value 1
-set -view view1 -plot "${plot3}" -name fillUnder.color     -value "palette:2:s"
-set -view view1 -plot "${plot3}" -name points.symbol       -value circle
-set -view view1 -plot "${plot3}" -name points.size         -value 6
-set -view view1 -plot "${plot3}" -name points.stroke.color -value white
-set -view view1 -plot "${plot3}" -name points.stroke.width -value 3
-set -view view1 -plot "${plot3}" -name points.fill.visible -value 1
-set -view view1 -plot "${plot3}" -name points.fill.color   -value "palette:2:s"
-set -view view1 -plot "${plot3}" -name lines.rounded       -value 1
+set_property -view view1 -plot "${plot3}" -name fillUnder.visible   -value 1
+set_property -view view1 -plot "${plot3}" -name fillUnder.color     -value "palette:2:s"
+set_property -view view1 -plot "${plot3}" -name points.symbol       -value circle
+set_property -view view1 -plot "${plot3}" -name points.size         -value 6
+set_property -view view1 -plot "${plot3}" -name points.stroke.color -value white
+set_property -view view1 -plot "${plot3}" -name points.stroke.width -value 3
+set_property -view view1 -plot "${plot3}" -name points.fill.visible -value 1
+set_property -view view1 -plot "${plot3}" -name points.fill.color   -value "palette:2:s"
+set_property -view view1 -plot "${plot3}" -name lines.rounded       -value 1
 
 overlay "${plot1}" "${plot2}"
 overlay "${plot2}" "${plot3}"

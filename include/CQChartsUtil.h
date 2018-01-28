@@ -292,9 +292,15 @@ inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
 
 //------
 
+// sign of value
+template<typename T>
+int sign(T v) {
+  return (T(0) < v) - (v < T(0));
+}
+
 // average of two reals
 inline double avg(double x1, double x2) {
-  return (x1 + x2)/2;
+  return (x1 + x2)/2.0;
 }
 
 // map x in low->high to 0->1
@@ -491,11 +497,31 @@ inline int Round(double x, Rounding rounding=ROUND_NEAREST) {
 inline double Deg2Rad(double d) { return M_PI*d/180.0; }
 inline double Rad2Deg(double r) { return 180.0*r/M_PI; }
 
-inline double normalizeAngle(double a) {
-  while (a <    0.0) a += 360.0;
-  while (a >= 360.0) a -= 360.0;
+inline double normalizeAngle(double a, bool isEnd=false) {
+  while (a < 0.0) a += 360.0;
+
+  if (! isEnd) {
+    while (a >= 360.0) a -= 360.0;
+  }
+  else {
+    while (a > 360.0) a -= 360.0;
+  }
 
   return a;
+}
+
+inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c,
+                                        double xr, double yr, double a) {
+  double ra = CQChartsUtil::Deg2Rad(a);
+
+  double x = c.x + xr*cos(ra);
+  double y = c.y + yr*sin(ra);
+
+  return CQChartsGeom::Point(x, y);
+}
+
+inline CQChartsGeom::Point AngleToPoint(const CQChartsGeom::Point &c, double r, double a) {
+  return AngleToPoint(c, r, r, a);
 }
 
 //------

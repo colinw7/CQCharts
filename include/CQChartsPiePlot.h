@@ -188,7 +188,8 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_OBJECT
 
   // properties
-  //   donut, inner radius, outer radius, label radius, start angle, explode/explode radius
+  //   donut, inner radius, outer radius, label radius, start angle, end angle,
+  //   explode/explode radius
 
   Q_PROPERTY(int     labelColumn     READ labelColumn       WRITE setLabelColumn    )
   Q_PROPERTY(int     dataColumn      READ dataColumn        WRITE setDataColumn     )
@@ -202,6 +203,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(double  outerRadius     READ outerRadius       WRITE setOuterRadius    )
   Q_PROPERTY(double  labelRadius     READ labelRadius       WRITE setLabelRadius    )
   Q_PROPERTY(double  startAngle      READ startAngle        WRITE setStartAngle     )
+  Q_PROPERTY(double  angleExtent     READ angleExtent       WRITE setAngleExtent    )
   Q_PROPERTY(bool    rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool    explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double  explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
@@ -246,19 +248,22 @@ class CQChartsPiePlot : public CQChartsPlot {
   //---
 
   bool isDonut() const { return donut_; }
-  void setDonut(bool b) { donut_ = b; updateObjs(); }
+  void setDonut(bool b) { donut_ = b; updateRangeAndObjs(); }
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; updateObjs(); }
+  void setInnerRadius(double r) { innerRadius_ = r; updateRangeAndObjs(); }
 
   double outerRadius() const { return outerRadius_; }
-  void setOuterRadius(double r) { outerRadius_ = r; updateObjs(); }
+  void setOuterRadius(double r) { outerRadius_ = r; updateRangeAndObjs(); }
 
   double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; updateRange(); update(); }
+  void setLabelRadius(double r) { labelRadius_ = r; updateRangeAndObjs(); }
 
   double startAngle() const { return startAngle_; }
-  void setStartAngle(double r) { startAngle_ = r; updateObjs(); }
+  void setStartAngle(double r) { startAngle_ = r; updateRangeAndObjs(); }
+
+  double angleExtent() const { return angleExtent_; }
+  void setAngleExtent(double r);
 
   //---
 
@@ -303,7 +308,7 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   void adjustObjAngles();
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 
@@ -357,6 +362,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   double               outerRadius_     { 0.9 };     // relative outer donut radius
   double               labelRadius_     { 1.1 };     // label radus
   double               startAngle_      { 90 };      // first pie start angle
+  double               angleExtent_     { 360.0 };   // pie angle extent
   bool                 rotatedText_     { false };   // is label rotated
   bool                 explodeSelected_ { true };    // explode selected pie
   double               explodeRadius_   { 0.05 };    // expose radus

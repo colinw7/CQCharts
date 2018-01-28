@@ -272,3 +272,12 @@
  + Add auto format text to fit rect
  + Add scatter plot symbol size key (wip)
  + Ensure skip empty root when drawing tree map
+# 1/28/2018
+ + Add support for view key (wip)
+ + Fix margin on horizontal bar chart
+ + Support angle extent in pie chart
+ + Add edit mode for move of plot objects (key, title axis) and support move/resize plot (wip)
+ + Fix bad equal scale in pie chart
+ + Add support for ceil as interface language in test exec
+ + support row headers in csv loader
+ + Move filter for csv/tsv loaded to base class

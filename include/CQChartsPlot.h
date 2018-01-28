@@ -24,7 +24,7 @@ class CQCharts;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsAxis;
-class CQChartsKey;
+class CQChartsPlotKey;
 class CQChartsTitle;
 class CQChartsTheme;
 class CQChartsPlotObj;
@@ -41,6 +41,36 @@ class QSortFilterProxyModel;
 class QItemSelectionModel;
 class QRubberBand;
 class QMenu;
+
+//----
+
+class CQChartsResizeHandle {
+ public:
+  enum class Side {
+    NONE,
+    LL,
+    LR,
+    UL,
+    UR
+  };
+
+ public:
+  CQChartsResizeHandle() = default;
+
+  CQChartsResizeHandle(CQChartsPlot *plot, Side side);
+
+  const Side &side() const { return side_; }
+
+  void draw(QPainter *painter);
+
+  bool inside(const CQChartsGeom::Point &p) const;
+
+ private:
+  CQChartsPlot *plot_ { nullptr };
+  Side          side_ { Side::NONE };
+  QPointF       pos_;
+  QPainterPath  path_;
+};
 
 //----
 
@@ -476,7 +506,7 @@ class CQChartsPlot : public QObject {
   CQChartsAxis *xAxis() const { return xAxis_; }
   CQChartsAxis *yAxis() const { return yAxis_; }
 
-  CQChartsKey *key() const { return keyObj_; }
+  CQChartsPlotKey *key() const { return keyObj_; }
 
   CQChartsTitle *title() const { return titleObj_; }
 
@@ -668,6 +698,7 @@ class CQChartsPlot : public QObject {
   void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
 
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
+  CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
 
   QPointF windowToPixel(const QPointF &w) const;
 
@@ -694,7 +725,7 @@ class CQChartsPlot : public QObject {
   void resetKeyItems();
 
   // add items to key
-  virtual void addKeyItems(CQChartsKey *) { }
+  virtual void addKeyItems(CQChartsPlotKey *) { }
 
   //---
 
@@ -792,9 +823,12 @@ class CQChartsPlot : public QObject {
   virtual void mouseRelease(const CQChartsGeom::Point &p);
 
   // handle mouse drag press/move/release
-  virtual bool mouseDragPress  (const CQChartsGeom::Point &p);
-  virtual bool mouseDragMove   (const CQChartsGeom::Point &p, bool first=false);
-  virtual void mouseDragRelease(const CQChartsGeom::Point &p);
+  virtual bool mouseDragPress  (const CQChartsGeom::Point &p,
+                                const CQChartsGeom::Point &w);
+  virtual bool mouseDragMove   (const CQChartsGeom::Point &p,
+                                const CQChartsGeom::Point &w, bool first=false);
+  virtual void mouseDragRelease(const CQChartsGeom::Point &p,
+                                const CQChartsGeom::Point &w);
 
   // handle key press
   virtual void keyPress(int key, int modifier);
@@ -911,7 +945,7 @@ class CQChartsPlot : public QObject {
   virtual void drawTitle(QPainter *painter);
 
   // draw foreground
-  virtual void drawForeground(QPainter *) { }
+  virtual void drawForeground(QPainter *painter);
 
   //---
 
@@ -1032,12 +1066,17 @@ class CQChartsPlot : public QObject {
     KEY,
     XAXIS,
     YAXIS,
-    TITLE
+    TITLE,
+    PLOT,
+    PLOT_LL,
+    PLOT_LR,
+    PLOT_UL,
+    PLOT_UR
   };
 
   struct MouseData {
-    QPoint  pressPoint;
-    QPoint  movePoint;
+    QPointF pressPoint;
+    QPointF movePoint;
     bool    pressed { false };
     DragObj dragObj { DragObj::NONE };
   };
@@ -1075,7 +1114,7 @@ class CQChartsPlot : public QObject {
   QString                   fileName_;                        // associated data filename
   CQChartsAxis*             xAxis_            { nullptr };    // x axis object
   CQChartsAxis*             yAxis_            { nullptr };    // y axis object
-  CQChartsKey*              keyObj_           { nullptr };    // key object
+  CQChartsPlotKey*          keyObj_           { nullptr };    // key object
   CQChartsTitle*            titleObj_         { nullptr };    // tilte object
   int                       xValueColumn_     { -1 };         // x axis value column
   int                       yValueColumn_     { -1 };         // y axis value column
@@ -1106,6 +1145,10 @@ class CQChartsPlot : public QObject {
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection            itemSelection_;                   // selected model indices
   CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
+  CQChartsResizeHandle      llHandle_;
+  CQChartsResizeHandle      lrHandle_;
+  CQChartsResizeHandle      ulHandle_;
+  CQChartsResizeHandle      urHandle_;
 };
 
 //------

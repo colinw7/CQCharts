@@ -6,6 +6,7 @@
 #include <QRectF>
 #include <QPolygonF>
 
+class CQChartsView;
 class CQPropertyViewModel;
 class QPainter;
 
@@ -39,7 +40,9 @@ class CQChartsBoxObj : public QObject {
   };
 
  public:
+  CQChartsBoxObj(CQChartsView *view);
   CQChartsBoxObj(CQChartsPlot *plot);
+
 
   virtual ~CQChartsBoxObj() { }
 
@@ -110,6 +113,7 @@ class CQChartsBoxObj : public QObject {
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
  protected:
+  CQChartsView*        view_              { nullptr };        // parent view
   CQChartsPlot*        plot_              { nullptr };        // parent plot
   double               margin_            { 4 };              // inside margin (pixels)
   double               padding_           { 0 };              // outside margin (pixels)

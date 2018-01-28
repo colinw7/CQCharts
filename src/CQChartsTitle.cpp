@@ -13,7 +13,7 @@ CQChartsTitle(CQChartsPlot *plot) :
 {
   setTextStr("Title");
 
-  textFont_.setPointSizeF(1.5*textFont().pointSizeF());
+  textFont_.setPointSizeF(1.2*textFont().pointSizeF());
 }
 
 void

@@ -1340,7 +1340,7 @@ valueName(int iset, int irow) const
 
 void
 CQChartsXYPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   QAbstractItemModel *model = this->model();
 

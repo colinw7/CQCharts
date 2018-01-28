@@ -4,21 +4,40 @@
 namespace {
 
 void findStringSplits1(const QString &str, std::vector<int> &splits) {
-  for (int i = 1; i < str.length(); ++i) {
+  int len = str.length();
+  assert(len);
+
+  for (int i = 1; i < len; ++i) {
     if (str[i].isSpace())
       splits.push_back(i);
   }
 }
 
 void findStringSplits2(const QString &str, std::vector<int> &splits) {
-  for (int i = 1; i < str.length(); ++i) {
-    if (str[i].isPunct())
-      splits.push_back(i);
+  int len = str.length();
+  assert(len);
+
+  for (int i = 0; i < len; ++i) {
+    if (str[i].isPunct()) {
+      int i1 = i;
+
+      // keep consecutive punctuation together (::, ..., etc)
+      while (i < len - 1 && str[i].isPunct())
+        ++i;
+
+      if (i == 0 || i >= len) // don't break if at start or end
+        continue;
+
+      splits.push_back(i1);
+    }
   }
 }
 
 void findStringSplits3(const QString &str, std::vector<int> &splits) {
-  for (int i = 1; i < str.length(); ++i) {
+  int len = str.length();
+  assert(len);
+
+  for (int i = 1; i < len; ++i) {
     if (str[i - 1].isLower() && str[i].isUpper())
       splits.push_back(i);
   }
@@ -35,13 +54,25 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 {
   QString sstr = str.simplified();
 
+  if (! sstr.length()) { // empty
+    strs.push_back(sstr);
+    return false;
+  }
+
   //---
 
   QFontMetricsF fm(font);
 
   double w = fm.width(sstr);
 
-  if (w < rect.width()) {
+  if (w < rect.width()) { // fits
+    strs.push_back(sstr);
+    return false;
+  }
+
+  double h = fm.height();
+
+  if (h >= rect.height()) { // rect can only fit single line of text
     strs.push_back(sstr);
     return false;
   }
@@ -123,7 +154,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
     strs += strs2;
   }
   else if (w1 > rect.width()) {
-    double splitHeight = rect.height() - fm.height();
+    double splitHeight = rect.height() - h;
 
     QRect rect1(rect.left(), rect.top(), rect.width(), splitHeight);
 
@@ -136,9 +167,9 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
     strs.push_back(str2);
   }
   else {
-    double splitHeight = rect.height() - fm.height();
+    double splitHeight = rect.height() - h;
 
-    QRect rect2(rect.left(), rect.top() + fm.height(), rect.width(), splitHeight);
+    QRect rect2(rect.left(), rect.top() + h, rect.width(), splitHeight);
 
     QStringList strs2;
 

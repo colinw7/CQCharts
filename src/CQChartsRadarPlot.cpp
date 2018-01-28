@@ -452,7 +452,7 @@ initObjs()
 
 void
 CQChartsRadarPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   QAbstractItemModel *model = this->model();
 

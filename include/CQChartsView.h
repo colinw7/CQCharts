@@ -10,6 +10,7 @@
 
 class CQCharts;
 class CQChartsPlot;
+class CQChartsViewKey;
 class CQChartsProbeBand;
 class QPainter;
 class CQPropertyViewModel;
@@ -81,7 +82,8 @@ class CQChartsView : public QFrame {
     SELECT,
     ZOOM,
     PAN,
-    PROBE
+    PROBE,
+    EDIT
   };
 
   enum class SelectMode {
@@ -237,6 +239,10 @@ class CQChartsView : public QFrame {
 
   void addProperty(const QString &path, QObject *object,
                    const QString &name, const QString &alias="");
+
+  //---
+
+  CQChartsViewKey *key() const { return keyObj_; }
 
   //---
 
@@ -465,6 +471,8 @@ class CQChartsView : public QFrame {
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;
 
+  // TODO: view title, view key, view annotations
+
   CQCharts*             charts_         { nullptr };
   CQChartsDisplayRange* displayRange_   { nullptr };
   CQChartsTheme*        theme_          { nullptr };
@@ -472,6 +480,7 @@ class CQChartsView : public QFrame {
   QString               id_;
   QString               title_;
   QColor                background_     { 255, 255, 255 };
+  CQChartsViewKey*      keyObj_         { nullptr };
   PlotDatas             plotDatas_;
   int                   currentPlotInd_ { -1 };
   Mode                  mode_           { Mode::SELECT };

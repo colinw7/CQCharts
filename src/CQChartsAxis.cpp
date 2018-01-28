@@ -1665,7 +1665,12 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
     bool visible = true;
 
     if (side() == Side::BOTTOM_LEFT) {
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignTop;
+      Qt::Alignment align = Qt::AlignHCenter;
+
+      if (! plot->isInvertY())
+        align |= Qt::AlignBottom;
+      else
+        align |= Qt::AlignTop;
 
       QPointF pt(ppx, ppy + tyo);
 
@@ -1755,7 +1760,12 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       }
     }
     else {
-      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignBottom;
+      Qt::Alignment align = Qt::AlignHCenter;
+
+      if (! plot->isInvertY())
+        align |= Qt::AlignBottom;
+      else
+        align |= Qt::AlignTop;
 
       QPointF pt(ppx, ppy - tyo);
 
@@ -1870,7 +1880,12 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
     bool visible = true;
 
     if (side() == Side::BOTTOM_LEFT) {
-      Qt::Alignment align = Qt::AlignVCenter | Qt::AlignRight;
+      Qt::Alignment align = Qt::AlignVCenter;
+
+      if (! plot->isInvertX())
+        align |= Qt::AlignRight;
+      else
+        align |= Qt::AlignLeft;
 
       QPointF pt(ppx - txo, ppy);
 
@@ -1960,7 +1975,12 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
       }
     }
     else {
-      Qt::Alignment align = Qt::AlignVCenter | Qt::AlignLeft;
+      Qt::Alignment align = Qt::AlignVCenter;
+
+      if (! plot->isInvertX())
+        align |= Qt::AlignRight;
+      else
+        align |= Qt::AlignLeft;
 
       QPointF pt(ppx + txo, ppy);
 

@@ -8,4 +8,4 @@ process "+rand()"
 
 #@let plot = rc
 
-#set -view view1 -plot "${plot}" -name points.visible -value 0
+#set_property -view view1 -plot "${plot}" -name points.visible -value 0

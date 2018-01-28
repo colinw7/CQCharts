@@ -375,7 +375,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   QString valueStr(double v) const;
 
-  void addKeyItems(CQChartsKey *key) override;
+  void addKeyItems(CQChartsPlotKey *key) override;
 
    //---
 

@@ -14,6 +14,8 @@
 #include <svg/pan_dark_svg.h>
 #include <svg/probe_light_svg.h>
 #include <svg/probe_dark_svg.h>
+#include <svg/edit_light_svg.h>
+#include <svg/edit_dark_svg.h>
 #include <svg/zoom_fit_light_svg.h>
 #include <svg/zoom_fit_dark_svg.h>
 #include <svg/left_light_svg.h>
@@ -67,6 +69,7 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("ZOOM_LIGHT"  , "ZOOM_DARK"  ), "Zoom"  );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PAN_LIGHT"   , "PAN_DARK"   ), "Pan"   );
   modeCombo_->addItem(CQPixmapCacheInst->getIcon("PROBE_LIGHT" , "PROBE_DARK" ), "Probe" );
+  modeCombo_->addItem(CQPixmapCacheInst->getIcon("EDIT_LIGHT"  , "EDIT_DARK"  ), "Edit"  );
 
   modeCombo_->setFocusPolicy(Qt::NoFocus);
 
@@ -86,11 +89,13 @@ CQChartsViewToolBar(CQChartsWindow *window) :
   QFrame *zoomControls   = CQUtil::makeWidget<QFrame>("zoom");
   QFrame *panControls    = CQUtil::makeWidget<QFrame>("pan");
   QFrame *probeControls  = CQUtil::makeWidget<QFrame>("probe");
+  QFrame *editControls   = CQUtil::makeWidget<QFrame>("edit");
 
   controlsStack_->addWidget(selectControls);
   controlsStack_->addWidget(zoomControls);
   controlsStack_->addWidget(panControls);
   controlsStack_->addWidget(probeControls);
+  controlsStack_->addWidget(editControls);
 
   layout->addStretch(1);
 
@@ -172,6 +177,8 @@ modeSlot(int ind)
     window_->view()->setMode(CQChartsView::Mode::PAN);
   else if (ind == 3)
     window_->view()->setMode(CQChartsView::Mode::PROBE);
+  else if (ind == 4)
+    window_->view()->setMode(CQChartsView::Mode::EDIT);
 
   updateMode();
 }
@@ -226,6 +233,10 @@ updateMode()
   else if (window_->view()->mode() == CQChartsView::Mode::PROBE) {
     modeCombo_    ->setCurrentIndex(3);
     controlsStack_->setCurrentIndex(3);
+  }
+  else if (window_->view()->mode() == CQChartsView::Mode::EDIT) {
+    modeCombo_    ->setCurrentIndex(4);
+    controlsStack_->setCurrentIndex(4);
   }
 }
 

@@ -1,4 +1,10 @@
 High
+ + Bucket Model
+ + Split Axes
+ + CCeil support
+ + Rotate Model
+
+Medium
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
@@ -17,8 +23,9 @@ High
  + Allow table/tree floating inside view
  + Edit mode to edit plot positions (illustrator code ?)
  + Only move key, title, axes in edit mode ?
+ + Allow reference header data in chart
 
-+ TOAST UI plots
++ TOAST UI plots (tui)
   + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)
   + Check in key
   + Scatter Plot Circle Size Key (Min, Max, Mean)
@@ -95,6 +102,12 @@ Grouping
 
 Coloring
  + Color Column for all plots
+
+Fit Text
+ + Support bubble fit
+ + Test prog
+ + Test punctuation (::, ..., etc)
+ + Cache
 
 Misc
  + Cache plot pixmaps
@@ -225,6 +238,7 @@ Tree map
  + Auto font size
  + Color Key
  + Color fixed size box by value
+ + Show size with label
 
 XY Plot
  + Use color set for color column to allow explict colors and colors from data
@@ -247,6 +261,11 @@ Key
 Expander
  + Better Title Bar
  + Attach Icon
+
+Auto fit
+ + Not always called (init ?)
+ + set title string triggers update
+ + delayed (timer), dirty flag
 
 Overlay
  + Share Key
@@ -282,8 +301,19 @@ Gradient Palette
  + Interp show RGB values
  + Min/Max, Negate controls on non-model data ?
  + Support indexed palette (1-N colors) with different color values
+   + Interp or index select with wrap
 
 Data Processing
- + Script/Data
- + Table/Tree
- + Chart
+ + Sources
+   + Script/Data
+   + Model
+   + Table/Tree
+   + Chart
+ + Operations
+  + Add, Remove, Delete
+    + Expression
+  + Restricted View
+  + Flip/SubSet
+  + Show/Hide
+  + Find
+  + Bucket/Fold

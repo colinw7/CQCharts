@@ -24,8 +24,8 @@ setFoldData(const CQFoldData &foldData)
 {
   foldData_ = foldData;
 
-  bucketer_.setType (foldData_.type ());
-  bucketer_.setDelta(foldData_.delta());
+  bucketer_.setType  (foldData_.type ());
+  bucketer_.setRDelta(foldData_.delta());
 }
 
 QAbstractItemModel *

@@ -686,7 +686,7 @@ initObjs()
 
 void
 CQChartsBoxPlot::
-addKeyItems(CQChartsKey *key)
+addKeyItems(CQChartsPlotKey *key)
 {
   int ig = 0;
   int ng = numGroups();
