@@ -98,22 +98,18 @@ updateRange(bool apply)
 
   r = std::max(r, labelRadius());
 
-  double xr = r;
-  double yr = r;
+  dataRange_.reset();
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
 
-  dataRange_.reset();
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
+  //---
 
   if (apply)
     applyDataRange();
@@ -194,7 +190,7 @@ initTableObjs()
 
   CQChartsValueSet groupValues;
 
-  if (groupColumn_ >= 0) {
+  if (groupColumn() >= 0) {
     for (int r = 0; r < nv; ++r) {
       QModelIndex groupInd = model->index(r, groupColumn());
 

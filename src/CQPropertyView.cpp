@@ -7,10 +7,16 @@
 #include <CQPropertyViewPointFType.h>
 #include <CQPropertyViewRectFType.h>
 #include <CQPropertyViewSizeFType.h>
-//#include <CQPropertyViewPaletteType.h>
+#ifdef CQPROPERTY_VIEW_PALETTE
+#include <CQPropertyViewPaletteType.h>
+#endif
 #include <CQPropertyViewAlignType.h>
-//#include <CQPropertyViewLineDashType.h>
-//#include <CQPropertyViewAngleType.h>
+#ifdef CQPROPERTY_VIEW_LINE_DASH
+#include <CQPropertyViewLineDashType.h>
+#endif
+#ifdef CQPROPERTY_VIEW_ANGLE
+#include <CQPropertyViewAngleType.h>
+#endif
 #include <cassert>
 
 CQPropertyViewMgr *
@@ -37,10 +43,16 @@ CQPropertyViewMgr()
   addType("QPointF"      , new CQPropertyViewPointFType  );
   addType("QRectF"       , new CQPropertyViewRectFType   );
   addType("QSizeF"       , new CQPropertyViewSizeFType   );
-//addType("QPalette"     , new CQPropertyViewPaletteType );
+#ifdef CQPROPERTY_VIEW_PALETTE
+  addType("QPalette"     , new CQPropertyViewPaletteType );
+#endif
   addType("Qt::Alignment", new CQPropertyViewAlignType   );
-//addType("CLineDash"    , new CQPropertyViewLineDashType);
-//addType("CAngle"       , new CQPropertyViewAngleType   );
+#ifdef CQPROPERTY_VIEW_LINE_DASH
+  addType("CLineDash"    , new CQPropertyViewLineDashType);
+#endif
+#ifdef CQPROPERTY_VIEW_ANGLE
+  addType("CAngle"       , new CQPropertyViewAngleType   );
+#endif
 }
 
 CQPropertyViewMgr::

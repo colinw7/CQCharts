@@ -24,6 +24,17 @@ class CQChartsTableTip {
     inTable_ = true;
   }
 
+  template<typename T1, typename T2>
+  void addTableRow(const QString &name, const T1 &value1, const T2 &value2) {
+    if (! inTable_)
+      str_ += "<table>\n";
+
+    str_ += QString("<tr><th>%1</th><td>&nbsp;</td><td>%2</td><td>%3</td></tr>\n").
+              arg(name).arg(value1).arg(value2);
+
+    inTable_ = true;
+  }
+
   QString str() {
     if (inTable_)
       str_ += "</table>\n";

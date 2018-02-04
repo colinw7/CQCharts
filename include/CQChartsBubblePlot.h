@@ -6,7 +6,6 @@
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsPaletteColor.h>
-#include <CQChartsColorSet.h>
 #include <QModelIndex>
 
 class CQChartsBubblePlot;
@@ -162,9 +161,6 @@ class CQChartsBubblePlot : public CQChartsPlot {
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i);
 
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i);
-
   //---
 
   bool isBorder() const;
@@ -212,14 +208,17 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   //---
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
+  int colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
 
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
+  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
+  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
 
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
+
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
@@ -255,10 +254,6 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void initColorSet();
-
-  bool colorSetColor(int i, OptColor &color);
-
   void updateObjs() override;
 
   bool initObjs() override;
@@ -287,17 +282,15 @@ class CQChartsBubblePlot : public CQChartsPlot {
   void loadChildren(const QModelIndex &index=QModelIndex());
 
  private:
-  int                  nameColumn_  { 0 };       // name column
-  int                  valueColumn_ { -1 };      // value column
-  int                  colorColumn_ { -1 };      // color column
-  Nodes                nodes_;                   // nodes
-  Pack                 pack_;                    // packed nodes
-  CQChartsTextBoxObj*  textBoxObj_  { nullptr }; // bubble fill/border/text object
-  CQChartsGeom::Point  offset_      { 0, 0 };    // draw offset
-  double               scale_       { 1.0 };     // draw scale
-  CQChartsColorSet     colorSet_;                // color value set
-  int                  colorId_     { -1 };      // current color id
-  int                  numColorIds_ { 0 };       // num used color ids
+  int                 nameColumn_  { 0 };       // name column
+  int                 valueColumn_ { -1 };      // value column
+  Nodes               nodes_;                   // nodes
+  Pack                pack_;                    // packed nodes
+  CQChartsTextBoxObj* textBoxObj_  { nullptr }; // bubble fill/border/text object
+  CQChartsGeom::Point offset_      { 0, 0 };    // draw offset
+  double              scale_       { 1.0 };     // draw scale
+  int                 colorId_     { -1 };      // current color id
+  int                 numColorIds_ { 0 };       // num used color ids
 };
 
 #endif

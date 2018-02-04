@@ -160,6 +160,18 @@ calcDetails(Details &details)
 {
   details.numColumns = model_->columnCount();
   details.numRows    = model_->rowCount   ();
+
+  for (int c = 0; c < details.numColumns; ++c) {
+    CQChartsUtil::ModelColumnDetails columnDetails(charts_, model_.data(), c);
+
+    QString  typeName = columnDetails.typeName();
+    QVariant minValue = columnDetails.minValue();
+    QVariant maxValue = columnDetails.maxValue();
+
+    details.columns.emplace_back(typeName, minValue, maxValue);
+
+    details.numRows = std::max(details.numRows, columnDetails.numRows());
+  }
 }
 
 QSize

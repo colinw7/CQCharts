@@ -202,8 +202,8 @@ CQChartsTest \
 # Radar Plot
 
 CQChartsTest \
-  -csv radar.csv -first_line_header \
-  -type radar -columns "name=0,value=1 2 3 4 5"
+ -csv radar.csv -first_line_header \
+ -type radar -columns "name=0,value=1 2 3 4 5"
 
 # Sankey
 
@@ -311,18 +311,18 @@ CQChartsTest \
  -plot_title "stacked area"
 
 CQChartsTest \
-  -data missing.data -comment_header \
-  -type xy -columns "x=0,y=1" \
-  -plot_title "Missing Data"
+ -data missing.data -comment_header \
+ -type xy -columns "x=0,y=1" \
+ -plot_title "Missing Data"
 
 CQChartsTest \
-  -data xy_size.data -comment_header \
-  -type xy -columns "x=0,y=1,size=2" \
-  -properties "points.symbol=circle,points.fill.visible=1"
+ -data xy_size.data -comment_header \
+ -type xy -columns "x=0,y=1,size=2" \
+ -properties "points.symbol=circle,points.fill.visible=1"
 
 CQChartsTest \
  -expr -num_rows 50 \
- -process "+row(-10,10)" \
+ -process "+map(-10,10)" \
  -process "+sin(x)=sin(@1)" \
  -process "+atan(x)=atan(@1)" \
  -process "+cos(atan(x))=cos(atan(@1))" \
@@ -336,7 +336,7 @@ CQChartsTest \
 
 CQChartsTest \
  -expr -num_rows 100 \
- -process "+row(-pi/2,pi)" \
+ -process "+map(-pi/2,pi)" \
  -process "+cos(x)=cos(@1)" \
  -process "+-(sin(x)>sin(x+1)?sin(x):sin(x+1))=-(sin(@1)>sin(@1+1)?sin(@1):sin(@1+1))" \
  -type xy -columns "x=1,y=2 3" \
@@ -349,7 +349,7 @@ CQChartsTest \
 
 CQChartsTest \
  -expr -num_rows 200 \
- -process "+row(-3,5)" \
+ -process "+map(-3,5)" \
  -process "+asin(x)=asin(@1)" \
  -process "+acos(x)=acos(@1)" \
  -type xy -columns "x=1,y=2 3" \
@@ -363,7 +363,7 @@ CQChartsTest \
 
 CQChartsTest \
  -expr -num_rows 500 \
- -process "+row(-5*pi,5*pi)" \
+ -process "+map(-5*pi,5*pi)" \
  -process "+tan(x)/atan(x)=tan(@1)/atan(@1)" \
  -process "+1/x=1/@1" \
  -type xy -columns "x=1,y=2 3" \
@@ -375,7 +375,7 @@ CQChartsTest \
 
 CQChartsTest \
  -expr -num_rows 800 \
- -process "+row(-30,20)" \
+ -process "+map(-30,20)" \
  -process "+sin(x*20)*atan(x)=sin(@1*20)*atan(@1)" \
  -type xy -columns "x=1,y=2" \
  -plot_title "Simple Plots" \
@@ -390,7 +390,7 @@ CQChartsTest \
 
 CQChartsTest \
  -expr -num_rows 100 \
- -process "+x=row(-10,10)" \
+ -process "+x=map(-10,10)" \
  -process "+abs(x)=abs(@1)" \
  -type xy -columns "x=1,y=2" \
  -properties "points.visible=0,fillUnder.visible=1,fillUnder.position=2 5"
@@ -487,7 +487,7 @@ CQChartsTest -overlay \
 
 CQChartsTest -overlay \
  -expr -num_rows 100 \
- -process "+row(-10,10)=row(-10,10)" \
+ -process "+map(-10,10)=map(-10,10)" \
  -process "+1.5+sin(x)/x=1.5+sin(@1)/@1" \
  -process "+sin(x)/x=sin(@1)/@1" \
  -process "+1+sin(x)/x=1+sin(@1)/@1" \
@@ -519,7 +519,7 @@ CQChartsTest -overlay \
 
 CQChartsTest -overlay \
  -expr -num_rows 100 \
- -process "+row(-10,10)=row(-10,10)" \
+ -process "+map(-10,10)=map(-10,10)" \
  -process "+x*x=@1*@1" \
  -process "+50-x*x=50-@1*@1" \
  -process "+x*x=@1*@1" \
@@ -534,7 +534,7 @@ CQChartsTest -overlay \
 
 CQChartsTest -overlay \
  -expr -num_rows 100 \
- -process "+x=row(-10,10)" \
+ -process "+x=map(-10,10)" \
  -process "+2+sin(x)**2=2+sin(@1)**2" \
  -process "+cos(x)**2=cos(@1)**2" \
  -type xy -columns "x=1,y=2" \
@@ -546,7 +546,7 @@ CQChartsTest -overlay \
 
 CQChartsTest -overlay \
  -expr -num_rows 100 \
- -process "+x=row(0,10)" \
+ -process "+x=map(0,10)" \
  -process "+-8=-8" \
  -process "+sqrt(x)=sqrt(@1)" \
  -process "+sqrt(10-x)-4.5=sqrt(10-@1)-4.5" \
@@ -651,3 +651,37 @@ CQChartsTest \
  -csv xy_100000_positive.csv -first_line_header \
  -type bubble -columns "name=0,value=1" \
  -plot_title "100000 points"
+
+#----
+
+CQChartsTest \
+ -csv money_bar.csv -first_line_header \
+ -type barchart -columns "category=0,value=1 2 3 4" \
+ -bool "horizontal=1"
+CQChartsTest \
+ -csv money_bar_neg.csv -first_line_header \
+ -type barchart -columns "category=0,value=1 2 3" \
+ -bool "horizontal=1" \
+ -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
+ -properties "xaxis.format=real:format=%T"
+CQChartsTest \
+ -csv money_bar_stack.csv -first_line_header \
+ -type barchart -columns "category=0,value=1 2 3 4" \
+ -bool "horizontal=1,stacked=1"
+
+CQChartsTest -ceil -exec split_bar_connected.cl
+CQChartsTest -ceil -exec split_bar_separated.cl
+
+CQChartsTest \
+ -csv temp_bar_range.csv -first_line_header \
+ -type barchart -columns "category=0,value=2 3" \
+ -bool "range=1,horizontal=1" \
+ -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
+ -properties "key.visible=0,barMargin=12,fill.color=palette:0.2"
+
+#----
+
+CQChartsTest \
+ -csv money_bar_stack_neg.csv -first_line_header \
+ -type barchart -columns "category=0,value=1 2 3 4" \
+ -bool "stacked=1,percent=1"

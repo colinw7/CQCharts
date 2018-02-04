@@ -5,6 +5,7 @@
 #include <CQChartsModelP.h>
 #include <CQChartsPaletteColor.h>
 #include <CQChartsColumnBucket.h>
+#include <CQChartsLength.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -197,6 +198,12 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(double  dataScaleX          READ dataScaleX          WRITE updateDataScaleX      )
   Q_PROPERTY(double  dataScaleY          READ dataScaleY          WRITE updateDataScaleY      )
 
+  // every
+  Q_PROPERTY(bool    everyEnabled        READ isEveryEnabled      WRITE setEveryEnabled       )
+  Q_PROPERTY(int     everyStart          READ everyStart          WRITE setEveryStart         )
+  Q_PROPERTY(int     everyEnd            READ everyEnd            WRITE setEveryEnd           )
+  Q_PROPERTY(int     everyStep           READ everyStep           WRITE setEveryStep          )
+
   // margin
   Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
   Q_PROPERTY(double  marginTop           READ marginTop           WRITE setMarginTop          )
@@ -384,6 +391,22 @@ class CQChartsPlot : public QObject {
 
   const OptReal &ymax() const { return ymax_; }
   void setYMax(const OptReal &r) { ymax_ = r; updateObjs(); }
+
+  //---
+
+  int isEveryEnabled() const { return everyData_.enabled; }
+  void setEveryEnabled(bool b) { everyData_.enabled = b; updateObjs(); }
+
+  int everyStart() const { return everyData_.start; }
+  void setEveryStart(int i) { everyData_.start = i; updateObjs(); }
+
+  int everyEnd() const { return everyData_.end; }
+  void setEveryEnd(int i) { everyData_.end = i; updateObjs(); }
+
+  int everyStep() const { return everyData_.step; }
+  void setEveryStep(int i) { everyData_.step = i; updateObjs(); }
+
+  //---
 
   const QString &titleStr() const { return titleStr_; }
   void setTitleStr(const QString &s);
@@ -649,28 +672,23 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  class Visitor {
+  class ModelVisitor : public CQChartsUtil::ModelVisitor {
    public:
-    Visitor() { }
+    ModelVisitor() { }
 
-    virtual ~Visitor() { }
+    virtual ~ModelVisitor() { }
 
     CQChartsPlot *plot() const { return plot_; }
     void setPlot(CQChartsPlot *p) { plot_ = p; }
 
-    virtual bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+    State preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override;
 
    private:
     CQChartsPlot *plot_ { nullptr };
+    int           vrow_ { 0 };
   };
 
-  void visitModel(Visitor &visitor);
-
-  void visitModelIndex(const QModelIndex &parent, Visitor &visitor);
-
-  //---
-
-  QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) const;
+  void visitModel(ModelVisitor &visitor);
 
   //---
 
@@ -685,6 +703,11 @@ class CQChartsPlot : public QObject {
 
   double logValue(double x, int base=10) const;
   double expValue(double x, int base=10) const;
+
+  //---
+
+  double lengthPixelWidth (const CQChartsLength &len) const;
+  double lengthPixelHeight(const CQChartsLength &len) const;
 
   //---
 
@@ -807,6 +830,10 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  virtual QString keyText() const;
+
+  //---
+
   virtual QString posStr(const CQChartsGeom::Point &w) const;
 
   virtual QString xStr(double x) const;
@@ -857,6 +884,12 @@ class CQChartsPlot : public QObject {
   virtual void zoomIn(double f=1.5);
   virtual void zoomOut(double f=1.5);
   virtual void zoomFull();
+
+  virtual bool allowZoomX() const { return true; }
+  virtual bool allowZoomY() const { return true; }
+
+  virtual bool allowPanX() const { return true; }
+  virtual bool allowPanY() const { return true; }
 
  public:
   virtual void cycleNextPrev(bool prev);
@@ -957,10 +990,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  // debug draw (red boxes)
-  void drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
+  // debug draw (default to red boxes)
+  void drawWindowColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
+                          const QColor &c=Qt::red);
 
-  void drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox);
+  void drawColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox,
+                    const QColor &c=Qt::red);
 
   //---
 
@@ -1061,6 +1096,13 @@ class CQChartsPlot : public QObject {
   using IndexColumnRows = std::map<QModelIndex,ColumnRows>;
   using ValueSets       = std::map<QString,CQChartsValueSet *>;
 
+  struct EveryData {
+    bool enabled { false };
+    int  start   { 0 };
+    int  end     { std::numeric_limits<int>::max() };
+    int  step    { 1 };
+  };
+
   enum class DragObj {
     NONE,
     KEY,
@@ -1106,6 +1148,7 @@ class CQChartsPlot : public QObject {
   OptReal                   ymin_;                            // ymin override
   OptReal                   xmax_;                            // xmax override
   OptReal                   ymax_;                            // ymax override
+  EveryData                 everyData_;                       // every data
   CQChartsBoxObj*           borderObj_        { nullptr };    // plot border display object
   bool                      clip_             { true };       // is clipped at plot limits
   CQChartsBoxObj*           dataBorderObj_    { nullptr };    // data border display object
@@ -1183,8 +1226,19 @@ class CQChartsHierPlot : public CQChartsPlot {
   int valueColumn() const { return valueColumn_; }
   void setValueColumn(int i);
 
-  int colorColumn() const { return colorColumn_; }
-  void setColorColumn(int i);
+  //---
+
+  int colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+
+  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
+  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
+
+  double colorMapMin() const { return valueSetMapMin("color"); }
+  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
+
+  double colorMapMax() const { return valueSetMapMax("color"); }
+  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
@@ -1199,7 +1253,6 @@ class CQChartsHierPlot : public CQChartsPlot {
   int     nameColumn_  { 0 };   // name column
   Columns nameColumns_;         // multiple name columns
   int     valueColumn_ { -1 };  // value column
-  int     colorColumn_ { -1 };  // color column
   QString separator_   { "/" }; // hierarchical name separator
 };
 

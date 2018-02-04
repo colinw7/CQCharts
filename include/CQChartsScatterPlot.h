@@ -238,6 +238,12 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
+  void addNameValue(const QString &name, double x, double y, int row, const QModelIndex &xind,
+                    const QString &symbolSizeStr, const QString &fontSizeStr,
+                    const QString &colorStr) {
+    nameValues_[name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, colorStr);
+  }
+
   const NameValues &nameValues() const { return nameValues_; }
 
   const QString &xname         () const { return xname_         ; }

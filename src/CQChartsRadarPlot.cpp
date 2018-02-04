@@ -283,7 +283,8 @@ addProperties()
   addProperty("columns", this, "valueColumn" , "value"    );
   addProperty("columns", this, "valueColumns", "valuesSet");
 
-  addProperty("", this, "angleStart");
+  addProperty("", this, "angleStart" );
+  addProperty("", this, "angleExtent");
 
   addProperty("grid", this, "gridColor", "color");
   addProperty("grid", this, "gridAlpha", "alpha");
@@ -313,46 +314,64 @@ updateRange(bool apply)
 
   //---
 
-  valueDatas_.clear();
-
-  int nr = model->rowCount(QModelIndex());
-  int nv = valueColumns().size();
-
-  for (int r = 0; r < nr; ++r) {
-    for (int iv = 0; iv < nv; ++iv) {
-      QModelIndex valueInd = model->index(r, valueColumns()[iv]);
-
-      bool ok;
-
-      double value = CQChartsUtil::modelReal(model, valueInd, ok);
-
-      valueDatas_[iv].add(value);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsRadarPlot *plot) :
+     plot_(plot) {
+      nv_ = plot_->numValueColumns();
     }
-  }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      for (int iv = 0; iv < nv_; ++iv) {
+        int column = plot_->valueColumn(iv);
+
+        QModelIndex valueInd = model->index(row, column, parent);
+
+        bool ok;
+
+        double value = CQChartsUtil::modelReal(model, valueInd, ok);
+
+        valueDatas_[iv].add(value);
+      }
+
+      return State::OK;
+    }
+
+    const ValueDatas &valueDatas() const { return valueDatas_; }
+
+   private:
+    CQChartsRadarPlot *plot_ { nullptr };
+    int                nv_   { 0 };
+    ValueDatas         valueDatas_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  valueDatas_ = visitor.valueDatas();
 
   //---
 
   valueRadius_ = 0.0;
+
+  int nv = numValueColumns();
 
   for (int iv = 0; iv < nv; ++iv)
     valueRadius_ = std::max(valueRadius_, valueDatas_[iv].max()/valueDatas_[iv].sum());
 
   //---
 
-  double xr = valueRadius_;
-  double yr = valueRadius_;
+  double r = valueRadius_;
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
 
   //---
 
@@ -378,68 +397,26 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return false;
-
-  //---
-
-  int nr = model->rowCount(QModelIndex());
-  int nv = valueColumns().size();
-
-  double da = (nv > 0 ? 360.0/nv : 0.0);
-
-  for (int r = 0; r < nr; ++r) {
-    bool hidden = isSetHidden(r);
-
-    if (hidden)
-      continue;
-
-    //---
-
-    QModelIndex nameInd = model->index(r, nameColumn());
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    bool ok;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-    //---
-
-    QPolygonF poly;
-
-    double a = angleStart();
-
-    for (int iv = 0; iv < nv; ++iv) {
-      QModelIndex valueInd = model->index(r, valueColumns()[iv]);
-
-      bool ok1;
-
-      double value = CQChartsUtil::modelReal(model, valueInd, ok1);
-
-      double scale = valueDatas_[iv].sum();
-
-      double ra = CQChartsUtil::Deg2Rad(a);
-
-      double x = value*cos(ra)/scale;
-      double y = value*sin(ra)/scale;
-
-      poly << QPointF(x, y);
-
-      a -= da;
+  // process model data
+  class RadarPlotVisitor : public ModelVisitor {
+   public:
+    RadarPlotVisitor(CQChartsRadarPlot *plot) :
+     plot_(plot) {
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+      plot_->addRow(model, ind, row, numRows());
 
-    CQChartsGeom::BBox bbox(-1, -1, 1, 1);
+      return State::OK;
+    }
 
-    CQChartsRadarObj *radarObj =
-      new CQChartsRadarObj(this, bbox, name, poly, nameInd1, r, nr);
+   private:
+    CQChartsRadarPlot *plot_ { nullptr };
+  };
 
-    addPlotObject(radarObj);
-  }
+  RadarPlotVisitor radarPlotVisitor(this);
+
+  visitModel(radarPlotVisitor);
 
   //---
 
@@ -452,6 +429,68 @@ initObjs()
 
 void
 CQChartsRadarPlot::
+addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
+{
+  bool hidden = isSetHidden(row);
+
+  if (hidden)
+    return;
+
+  //---
+
+  QModelIndex nameInd = model->index(row, nameColumn(), parent);
+
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  bool ok;
+
+  QString name = CQChartsUtil::modelString(model, nameInd, ok);
+
+  //---
+
+  int nv = valueColumns().size();
+
+  double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
+
+  double da = (nv > 0 ? alen/nv : 0.0);
+
+  //---
+
+  QPolygonF poly;
+
+  double a = angleStart();
+
+  for (int iv = 0; iv < nv; ++iv) {
+    QModelIndex valueInd = model->index(row, valueColumns()[iv], parent);
+
+    bool ok1;
+
+    double value = CQChartsUtil::modelReal(model, valueInd, ok1);
+
+    double scale = valueDatas_[iv].sum();
+
+    double ra = CQChartsUtil::Deg2Rad(a);
+
+    double x = value*cos(ra)/scale;
+    double y = value*sin(ra)/scale;
+
+    poly << QPointF(x, y);
+
+    a -= da;
+  }
+
+  //---
+
+  CQChartsGeom::BBox bbox(-1, -1, 1, 1);
+
+  CQChartsRadarObj *radarObj =
+    new CQChartsRadarObj(this, bbox, name, poly, nameInd1, row, nr);
+
+  addPlotObject(radarObj);
+}
+
+void
+CQChartsRadarPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
   QAbstractItemModel *model = this->model();
@@ -459,25 +498,44 @@ addKeyItems(CQChartsPlotKey *key)
   if (! model)
     return;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsRadarPlot *plot, CQChartsPlotKey *key) :
+     plot_(plot), key_(key) {
+    }
 
-    bool ok;
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
 
-    QString name = CQChartsUtil::modelString(model, nameInd, ok);
+      bool ok;
 
-    //---
+      QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
-    CQChartsKeyColorBox *color = new CQChartsKeyColorBox(this, r, nr);
-    CQChartsKeyText     *text  = new CQChartsKeyText(this, name);
+      //---
 
-    color->setClickHide(true);
+      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot_, row, numRows());
+      CQChartsKeyText     *text  = new CQChartsKeyText(plot_, name);
 
-    key->addItem(color, r, 0);
-    key->addItem(text , r, 1);
-  }
+      color->setClickHide(true);
+
+      key_->addItem(color, row, 0);
+      key_->addItem(text , row, 1);
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsRadarPlot *plot_ { nullptr };
+    CQChartsPlotKey   *key_  { nullptr };
+  };
+
+  RowVisitor visitor(this, key);
+
+  visitModel(visitor);
+
+  //---
 
   key->plot()->updateKeyPosition(/*force*/true);
 }
@@ -504,7 +562,9 @@ drawBackground(QPainter *painter)
   if (! nv)
     return;
 
-  double da = 360.0/nv;
+  double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
+
+  double da = alen/nv;
 
   //---
 

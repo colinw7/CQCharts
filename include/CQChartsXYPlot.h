@@ -393,7 +393,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // bivariate
   bool isBivariate() const { return bivariateLineObj_->isDisplayed(); }
-  void setBivariate(bool b) { bivariateLineObj_->setDisplayed(b); updateObjs(); }
 
   double bivariateLineWidth() const { return bivariateLineObj_->width(); }
   void setBivariateLineWidth(double r) { bivariateLineObj_->setWidth(r); update(); }
@@ -402,10 +401,8 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // stacked, cumulative
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; updateRangeAndObjs(); }
 
   bool isCumulative() const { return cumulative_; }
-  void setCumulative(bool b) { cumulative_ = b; updateObjs(); }
 
   //---
 
@@ -456,7 +453,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // fill under
   bool isFillUnder() const { return fillUnderData_.fillObj.isVisible(); }
-  void setFillUnder(bool b) { fillUnderData_.fillObj.setVisible(b); updateObjs(); }
 
   QString fillUnderColorStr() const;
   void setFillUnderColorStr(const QString &str);
@@ -482,7 +478,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // impulse
   bool isImpulse() const { return impulseObj_->isDisplayed(); }
-  void setImpulse(bool b) { impulseObj_->setDisplayed(b); updateObjs(); }
 
   QString impulseColorStr() const;
   void setImpulseColorStr(const QString &str);
@@ -546,6 +541,14 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
+  bool rowData(const QModelIndex &parent, int row,
+               double &x, std::vector<double> &yv, bool skipBad) const;
+
+  bool modelReal(QAbstractItemModel *model, const QModelIndex &parent, int row, int column,
+                 double &r, bool log, double def) const;
+
+  //---
+
   void addPolyLine(const QPolygonF &polyLine, int i, int n, const QString &name);
 
   void addPolygon(const QPolygonF &poly, int i, int n, const QString &name);
@@ -560,11 +563,34 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
+  double symbolWidth () const { return symbolWidth_ ; }
+  double symbolHeight() const { return symbolHeight_; }
+
+  //---
+
   bool probe(ProbeData &probeData) const override;
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
+  bool addMenuItems(QMenu *menu) override;
+
   void draw(QPainter *) override;
+
+ private slots:
+  // set bivariate
+  void setBivariate(bool b);
+
+  // set stacked
+  void setStacked(bool b);
+
+  // set cumulative
+  void setCumulative(bool b);
+
+  // set impulse
+  void setImpulse(bool b);
+
+  // set fill under
+  void setFillUnder(bool b);
 
  private:
   int               xColumn_           { 0 };       // x column
@@ -585,6 +611,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   CQChartsLineObj*  impulseObj_        { nullptr }; // impulse config object
   DataLabelData     dataLabelData_;                 // data label config data
   CQChartsLineObj*  bivariateLineObj_  { nullptr }; // bivariate config object
+  double            symbolWidth_       { 1.0 };
+  double            symbolHeight_      { 1.0 };
 };
 
 #endif

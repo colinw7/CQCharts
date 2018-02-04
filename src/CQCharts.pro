@@ -113,6 +113,7 @@ CQPropertyViewType.cpp \
 \
 CQChartsPaletteColor.cpp \
 CQChartsDrawUtil.cpp \
+CQChartsLength.cpp \
 CQChartsUtil.cpp \
 \
 CQCsvModel.cpp \
@@ -216,6 +217,7 @@ HEADERS += \
 \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
+../include/CQChartsLength.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \
 \

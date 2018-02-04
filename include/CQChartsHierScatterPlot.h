@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsDataLabel.h>
 
 class CQChartsHierScatterPlot;
@@ -284,8 +283,6 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
                       CQChartsHierScatterPointGroup *group);
 
   //---
-
-  int numRows() const;
 
   int acceptsRow(int r) const;
 

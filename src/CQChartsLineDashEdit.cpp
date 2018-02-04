@@ -196,7 +196,7 @@ updateState()
   button_->setVisible(editable_);
   combo_ ->setVisible(! editable_);
 
-  edit_->setText(dash_.toString().c_str());
+  edit_->setText(dash_.toString());
 
   for (int i = 0; i < combo_->count(); ++i) {
     QVariant var = combo_->itemData(i);
@@ -221,7 +221,7 @@ dashChangedSlot()
 
   QString str = edit_->text();
 
-  if (dash.fromString(str.toStdString())) {
+  if (dash.fromString(str)) {
     dash_ = dash;
 
     emit valueChanged(dash_);
@@ -383,7 +383,7 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   QIcon icon = CQChartsLineDashEdit::dashIcon(dash);
 
-  QString str = dash.toString().c_str();
+  QString str = dash.toString();
 
   QFontMetrics fm(option.font);
 
@@ -410,7 +410,7 @@ QString
 CQChartsLineDashPropertyViewType::
 tip(const QVariant &value) const
 {
-  QString str = value.value<CQChartsLineDash>().toString().c_str();
+  QString str = value.value<CQChartsLineDash>().toString();
 
   return str;
 }

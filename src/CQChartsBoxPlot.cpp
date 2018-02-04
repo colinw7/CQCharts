@@ -444,15 +444,16 @@ updateWhiskers()
   //---
 
   // process model data
-  class BoxPlotVisitor : public Visitor {
+  class BoxPlotVisitor : public ModelVisitor {
    public:
     BoxPlotVisitor(CQChartsBoxPlot *plot) :
      plot_(plot) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
       plot_->addWhiskerRow(model, ind, row);
-      return true;
+
+      return State::OK;
     }
 
    private:

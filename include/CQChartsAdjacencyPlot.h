@@ -77,6 +77,8 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
+  QString calcTipId() const override;
+
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void addSelectIndex() override;

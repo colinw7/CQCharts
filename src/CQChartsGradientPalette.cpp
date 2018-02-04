@@ -467,7 +467,7 @@ bool
 CQChartsGradientPalette::
 readFile(const std::string &filename)
 {
-  typedef std::vector<std::string> Lines;
+  using Lines = std::vector<std::string>;
 
   Lines lines;
 

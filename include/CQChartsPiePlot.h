@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsColumnBucket.h>
 #include <CQChartsGeom.h>
 
@@ -299,8 +298,6 @@ class CQChartsPiePlot : public CQChartsPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
-
-  void initColorSet();
 
   void updateObjs() override;
 

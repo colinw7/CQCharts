@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
@@ -105,32 +104,51 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = numRows();
+  //---
 
-  dataRange_.reset();
+  // calc data range (x, y values)
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsScatterPlot *plot) :
+     plot_(plot) {
+    }
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex xInd = model->index(r, xColumn());
-    QModelIndex yInd = model->index(r, yColumn());
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
+      QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
 
-    //---
+      bool ok1, ok2;
 
-    bool ok1, ok2;
+      double x = CQChartsUtil::modelReal(model, xInd, ok1);
+      double y = CQChartsUtil::modelReal(model, yInd, ok2);
 
-    double x = CQChartsUtil::modelReal(model, xInd, ok1);
-    double y = CQChartsUtil::modelReal(model, yInd, ok2);
+      if (! ok1) x = row;
+      if (! ok2) y = row;
 
-    if (! ok1) x = r;
-    if (! ok2) y = r;
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        return State::SKIP;
 
-    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-      continue;
+      range_.updateRange(x, y);
 
-    dataRange_.updateRange(x, y);
-  }
+      return State::OK;
+    }
+
+    const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    CQChartsScatterPlot *plot_ { nullptr };
+    CQChartsGeom::Range  range_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  dataRange_ = visitor.range();
 
   //---
 
+  // update data range if unset
   if (CQChartsUtil::isZero(dataRange_.xsize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
@@ -164,18 +182,6 @@ updateRange(bool apply)
 
   if (apply)
     applyDataRange();
-}
-
-int
-CQChartsScatterPlot::
-numRows() const
-{
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return 0;
-
-  return model->rowCount(QModelIndex());
 }
 
 int
@@ -237,58 +243,73 @@ initObjs()
     if (! model)
       return false;
 
-    int nr = numRows();
+    class RowVisitor : public ModelVisitor {
+     public:
+      RowVisitor(CQChartsScatterPlot *plot) :
+       plot_(plot) {
+      }
 
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex nameInd = model->index(r, nameColumn());
+      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
 
-      //---
+        //---
 
-      bool ok;
+        // get value name
+        bool ok;
 
-      QString name = CQChartsUtil::modelString(model, nameInd, ok);
+        QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
-      //---
+        //---
 
-      QModelIndex xInd = model->index(r, xColumn());
-      QModelIndex yInd = model->index(r, yColumn());
+        // get x, y value
+        QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
+        QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
 
-      QModelIndex xInd1 = normalizeIndex(xInd);
+        QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
-      //---
+        bool ok1, ok2;
 
-      bool ok1, ok2;
+        double x = CQChartsUtil::modelReal(model, xInd, ok1);
+        double y = CQChartsUtil::modelReal(model, yInd, ok2);
 
-      double x = CQChartsUtil::modelReal(model, xInd, ok1);
-      double y = CQChartsUtil::modelReal(model, yInd, ok2);
+        if (! ok1) x = row;
+        if (! ok2) y = row;
 
-      if (! ok1) x = r;
-      if (! ok2) y = r;
+        if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+          return State::SKIP;
 
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-        continue;
+        //---
 
-      //---
+        // get symbol size, font size and color
+        QModelIndex symbolSizeInd = model->index(row, plot_->symbolSizeColumn());
+        QModelIndex fontSizeInd   = model->index(row, plot_->fontSizeColumn  ());
+        QModelIndex colorInd      = model->index(row, plot_->colorColumn     ());
 
-      QModelIndex symbolSizeInd = model->index(r, symbolSizeColumn());
-      QModelIndex fontSizeInd   = model->index(r, fontSizeColumn  ());
-      QModelIndex colorInd      = model->index(r, colorColumn     ());
+        bool ok3, ok4, ok5;
 
-      bool ok3;
+        // get symbol size label (needed if not string ?)
+        QString symbolSizeStr = CQChartsUtil::modelString(model, symbolSizeInd, ok3);
 
-      // get symbol size label (needed if not string ?)
-      QString symbolSizeStr = CQChartsUtil::modelString(model, symbolSizeInd, ok3);
+        // get font size label (needed if not string ?)
+        QString fontSizeStr = CQChartsUtil::modelString(model, fontSizeInd, ok4);
 
-      // get font size label (needed if not string ?)
-      QString fontSizeStr = CQChartsUtil::modelString(model, fontSizeInd, ok3);
+        // get color label (needed if not string ?)
+        QString colorStr = CQChartsUtil::modelString(model, colorInd, ok5);
 
-      // get color label (needed if not string ?)
-      QString colorStr = CQChartsUtil::modelString(model, colorInd, ok3);
+        //---
 
-      //---
+        plot_->addNameValue(name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, colorStr);
 
-      nameValues_[name].emplace_back(x, y, r, xInd1, symbolSizeStr, fontSizeStr, colorStr);
-    }
+        return State::OK;
+      }
+
+     private:
+      CQChartsScatterPlot *plot_ { nullptr };
+    };
+
+    RowVisitor visitor(this);
+
+    visitModel(visitor);
   }
 
   //---

@@ -1,7 +1,14 @@
 #include <CQChartsLineDash.h>
 #include <CQUtil.h>
 
-CQUTIL_DCL_META_STREAM(CQChartsLineDash, toString, fromString)
+CQUTIL_DEF_META_TYPE(CQChartsLineDash, toString, fromString)
+
+void
+CQChartsLineDash::
+registerMetaType()
+{
+  CQUTIL_REGISTER_META(CQChartsLineDash);
+}
 
 CQChartsLineDash::
 CQChartsLineDash()
@@ -45,7 +52,7 @@ CQChartsLineDash(ushort pattern)
 }
 
 CQChartsLineDash::
-CQChartsLineDash(const std::string &str)
+CQChartsLineDash(const QString &str)
 {
   fromString(str);
 }
@@ -189,7 +196,7 @@ setDashes(ushort pattern)
   pen_.setDashPattern(qlengths);
 }
 
-std::string
+QString
 CQChartsLineDash::
 toString() const
 {
@@ -207,12 +214,12 @@ toString() const
     ss << qlengths[i];
   }
 
-  return ss.str();
+  return ss.str().c_str();
 }
 
 bool
 CQChartsLineDash::
-fromString(const std::string &str)
+fromString(const QString &str)
 {
   if (str == "solid") {
     init();
@@ -222,19 +229,19 @@ fromString(const std::string &str)
 
   Lengths lengths;
 
-  uint pos = 0;
-  uint len = str.size();
+  int pos = 0;
+  int len = str.length();
 
-  while (pos < len && isspace(str[pos])) ++pos;
+  while (pos < len && str[pos].isSpace()) ++pos;
 
   while (pos < len) {
-    if (pos < len && ! isdigit(str[pos]))
+    if (pos < len && ! str[pos].isNumber())
       return false;
 
     double num = 0;
 
-    while (pos < len && isdigit(str[pos]))
-      num = num*10 + (str[pos++] - '0');
+    while (pos < len && str[pos].isNumber())
+      num = num*10 + (str[pos++].toLatin1() - '0');
 
     if (pos < len && str[pos] == '.') {
       double dec = 0;
@@ -243,8 +250,8 @@ fromString(const std::string &str)
 
       ++pos;
 
-      while (pos < len && isdigit(str[pos])) {
-        dec += (str[pos++] - '0')*f;
+      while (pos < len && str[pos].isNumber()) {
+        dec += (str[pos++].toLatin1() - '0')*f;
 
         f /= 10.0;
       }
@@ -252,12 +259,12 @@ fromString(const std::string &str)
       num += f;
     }
 
-    while (pos < len && isspace(str[pos])) ++pos;
+    while (pos < len && str[pos].isSpace()) ++pos;
 
     if (pos < len && str[pos] == ',') {
       ++pos;
 
-      while (pos < len && isspace(str[pos])) ++pos;
+      while (pos < len && str[pos].isSpace()) ++pos;
     }
 
     lengths.push_back(num);

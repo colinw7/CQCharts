@@ -286,7 +286,7 @@ draw(QPainter *painter)
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowRedBox(painter, bbox_);
+    plot_->drawWindowColorBox(painter, bbox_);
 
   //---
 

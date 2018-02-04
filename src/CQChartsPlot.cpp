@@ -838,6 +838,11 @@ addProperties()
   addProperty("margin", this, "marginRight" , "right" );
   addProperty("margin", this, "marginBottom", "bottom");
 
+  addProperty("every", this, "everyEnabled", "enabled");
+  addProperty("every", this, "everyStart"  , "start"  );
+  addProperty("every", this, "everyEnd"    , "end"    );
+  addProperty("every", this, "everyStep"   , "step"   );
+
   if (xAxis())
     xAxis()->addProperties(propertyModel(), id() + "/" + "xaxis");
 
@@ -1808,6 +1813,22 @@ setIdColumn(int i)
 
 QString
 CQChartsPlot::
+keyText() const
+{
+  QString text;
+
+  text = this->titleStr();
+
+  if (! text.length())
+    text = this->id();
+
+  return text;
+}
+
+//------
+
+QString
+CQChartsPlot::
 posStr(const CQChartsGeom::Point &w) const
 {
   return xStr(w.x) + " " + yStr(w.y);
@@ -1940,6 +1961,9 @@ void
 CQChartsPlot::
 panLeft(double f)
 {
+  if (! allowPanX())
+    return;
+
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
@@ -1960,6 +1984,9 @@ void
 CQChartsPlot::
 panRight(double f)
 {
+  if (! allowPanX())
+    return;
+
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
@@ -1980,6 +2007,9 @@ void
 CQChartsPlot::
 panUp(double f)
 {
+  if (! allowPanY())
+    return;
+
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
@@ -2000,6 +2030,9 @@ void
 CQChartsPlot::
 panDown(double f)
 {
+  if (! allowPanY())
+    return;
+
   if (view_->isZoomData()) {
     CQChartsGeom::BBox dataRange = calcDataRange();
 
@@ -2023,8 +2056,11 @@ pan(double dx, double dy)
   if (view_->isZoomData()) {
     //CQChartsGeom::BBox dataRange = calcDataRange();
 
-    dataOffset_.setX(dataOffset_.x + dx);
-    dataOffset_.setY(dataOffset_.y + dy);
+    if (allowPanX())
+      dataOffset_.setX(dataOffset_.x + dx);
+
+    if (allowPanY())
+      dataOffset_.setY(dataOffset_.y + dy);
 
     applyDataRange();
 
@@ -2044,8 +2080,11 @@ CQChartsPlot::
 zoomIn(double f)
 {
   if (view_->isZoomData()) {
-    dataScaleX_ *= f;
-    dataScaleY_ *= f;
+    if (allowZoomX())
+      dataScaleX_ *= f;
+
+    if (allowZoomY())
+      dataScaleY_ *= f;
 
     applyDataRange();
 
@@ -2063,8 +2102,11 @@ CQChartsPlot::
 zoomOut(double f)
 {
   if (view_->isZoomData()) {
-    dataScaleX_ /= f;
-    dataScaleY_ /= f;
+    if (allowZoomX())
+      dataScaleX_ /= f;
+
+    if (allowZoomY())
+      dataScaleY_ /= f;
 
     applyDataRange();
 
@@ -2107,12 +2149,19 @@ zoomTo(const CQChartsGeom::BBox &bbox)
 
     //dataScaleX_ = std::min(xscale, yscale);
     //dataScaleY_ = std::min(xscale, yscale);
-    dataScaleX_ = xscale;
-    dataScaleY_ = yscale;
+
+    if (allowZoomX())
+      dataScaleX_ = xscale;
+
+    if (allowZoomY())
+      dataScaleY_ = yscale;
 
     CQChartsGeom::Point c1 = CQChartsGeom::Point(dataRange_.xmid(), dataRange_.ymid());
 
-    dataOffset_ = CQChartsGeom::Point(c.x - c1.x, c.y - c1.y);
+    double cx = (allowPanX() ? c.x - c1.x : 0.0);
+    double cy = (allowPanY() ? c.y - c1.y : 0.0);
+
+    dataOffset_ = CQChartsGeom::Point(cx, cy);
 
     applyDataRange();
 
@@ -2130,8 +2179,12 @@ CQChartsPlot::
 zoomFull()
 {
   if (view_->isZoomData()) {
-    dataScaleX_ = 1.0;
-    dataScaleY_ = 1.0;
+    if (allowZoomX())
+      dataScaleX_ = 1.0;
+
+    if (allowZoomY())
+      dataScaleY_ = 1.0;
+
     dataOffset_ = CQChartsGeom::Point(0.0, 0.0);
 
     applyDataRange();
@@ -2386,6 +2439,9 @@ setFitBBox(const CQChartsGeom::BBox &bbox)
   margin_.right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
   margin_.top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
 
+  if (isInvertX()) std::swap(margin_.left, margin_.right );
+  if (isInvertY()) std::swap(margin_.top , margin_.bottom);
+
   updateMargin();
 }
 
@@ -2491,13 +2547,13 @@ drawParts(QPainter *painter)
   if (showBoxes()) {
     CQChartsGeom::BBox bbox = fitBBox();
 
-    drawWindowRedBox(painter, bbox);
+    drawWindowColorBox(painter, bbox);
 
-    drawWindowRedBox(painter, dataFitBBox   ());
-    drawWindowRedBox(painter, axesFitBBox   ());
-    drawWindowRedBox(painter, keyFitBBox    ());
-    drawWindowRedBox(painter, titleFitBBox  ());
-    drawWindowRedBox(painter, annotationBBox());
+    drawWindowColorBox(painter, dataFitBBox   ());
+    drawWindowColorBox(painter, axesFitBBox   ());
+    drawWindowColorBox(painter, keyFitBBox    ());
+    drawWindowColorBox(painter, titleFitBBox  ());
+    drawWindowColorBox(painter, annotationBBox());
   }
 }
 
@@ -2723,7 +2779,7 @@ drawContrastText(QPainter *painter, double x, double y, const QString &text,
 
 void
 CQChartsPlot::
-drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
+drawWindowColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox, const QColor &c)
 {
   if (! bbox.isSet())
     return;
@@ -2732,14 +2788,14 @@ drawWindowRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
 
   windowToPixel(bbox, prect);
 
-  drawRedBox(painter, prect);
+  drawColorBox(painter, prect, c);
 }
 
 void
 CQChartsPlot::
-drawRedBox(QPainter *painter, const CQChartsGeom::BBox &bbox)
+drawColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox, const QColor &c)
 {
-  painter->setPen(QColor(Qt::red));
+  painter->setPen(c);
   painter->setBrush(Qt::NoBrush);
 
   painter->drawRect(CQChartsUtil::toQRect(bbox));
@@ -3030,13 +3086,13 @@ columnValueType(QAbstractItemModel *model, int column) const
   // TODO: cache ?
 
   // process model data
-  class ColumnTypeVisitor : public Visitor {
+  class ColumnTypeVisitor : public ModelVisitor {
    public:
     ColumnTypeVisitor(int column) :
      column_(column) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
        QModelIndex ind = model->index(row, column_, parent);
 
       // if column can be integral, check if value is valid integer
@@ -3046,12 +3102,12 @@ columnValueType(QAbstractItemModel *model, int column) const
         (void) CQChartsUtil::modelInteger(model, ind, ok);
 
         if (ok)
-          return true;
+          return State::SKIP;
 
         QString str = CQChartsUtil::modelString(model, ind, ok);
 
         if (! str.length())
-          return true;
+          return State::SKIP;
 
         isInt_ = false;
       }
@@ -3063,18 +3119,18 @@ columnValueType(QAbstractItemModel *model, int column) const
         (void) CQChartsUtil::modelReal(model, ind, ok);
 
         if (ok)
-          return true;
+          return State::SKIP;
 
         QString str = CQChartsUtil::modelString(model, ind, ok);
 
         if (! str.length())
-          return true;
+          return State::SKIP;
 
         isReal_ = false;
       }
 
       // not value real or integer so assume string and we are done
-      return false;
+      return State::TERMINATE;
     }
 
     ColumnType columnType() {
@@ -3471,16 +3527,16 @@ initValueSets()
   //---
 
   // process model data
-  class ValueSetVisitor : public Visitor {
+  class ValueSetVisitor : public ModelVisitor {
    public:
     ValueSetVisitor(CQChartsPlot *plot) :
      plot_(plot) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
       plot_->addValueSetRow(model, ind, row);
 
-      return true;
+      return State::OK;
     }
 
    private:
@@ -3561,13 +3617,13 @@ initGroup(int groupColumn, const Columns &valueColumns, bool rowGrouping)
   }
 
   // process model data
-  class GroupVisitor : public Visitor {
+  class GroupVisitor : public ModelVisitor {
    public:
     GroupVisitor(CQChartsColumnBucket *bucket) :
      bucket_(bucket) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       if (bucket_->column() >= 0) {
         QModelIndex ind = model->index(row, bucket_->column(), parent);
 
@@ -3578,12 +3634,12 @@ initGroup(int groupColumn, const Columns &valueColumns, bool rowGrouping)
         bucket_->addValue(value);
       }
       else {
-        QString path = plot()->parentPath(model, parent);
+        QString path = CQChartsUtil::parentPath(model, parent);
 
         bucket_->addString(path);
       }
 
-      return true;
+      return State::OK;
     }
 
    private:
@@ -3616,7 +3672,7 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row, int c
   }
 
   // get group id from parent path name
-  QString path = parentPath(model, parent);
+  QString path = CQChartsUtil::parentPath(model, parent);
 
   return groupBucket_.ind(path);
 }
@@ -3625,63 +3681,11 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row, int c
 
 void
 CQChartsPlot::
-visitModel(Visitor &visitor)
+visitModel(ModelVisitor &visitor)
 {
   visitor.setPlot(this);
 
-  QModelIndex parent;
-
-  visitModelIndex(parent, visitor);
-}
-
-void
-CQChartsPlot::
-visitModelIndex(const QModelIndex &parent, Visitor &visitor)
-{
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(parent);
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex ind1 = model->index(r, 0, parent);
-
-    if (model->rowCount(ind1) > 0)
-      visitModelIndex(ind1, visitor);
-    else {
-      if (! visitor.visit(model, parent, r))
-        break;
-    }
-  }
-}
-
-QString
-CQChartsPlot::
-parentPath(QAbstractItemModel *model, const QModelIndex &parent) const
-{
-  QString path;
-
-  QModelIndex pind = parent;
-
-  while (pind.isValid()) {
-    bool ok;
-
-    QString str = CQChartsUtil::modelString(model, parent, ok);
-
-    if (! ok)
-      break;
-
-    if (path.length())
-      path = "/" + path;
-
-    path = str + path;
-
-    pind = pind.parent();
-  }
-
-  return path;
+  (void) CQChartsUtil::visitModel(model(), visitor);
 }
 
 //------
@@ -3814,6 +3818,36 @@ expValue(double x, int base) const
     return std::exp(x*log(base));
   else
     return CQChartsUtil::getNaN();
+}
+
+//------
+
+double
+CQChartsPlot::
+lengthPixelWidth(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsLength::Units::PIXEL)
+    return len.value();
+  else if (len.units() == CQChartsLength::Units::PLOT)
+    return windowToPixelWidth(len.value());
+  else if (len.units() == CQChartsLength::Units::PERCENT)
+    return len.value()*calcPixelRect().getWidth()/100.0;
+  else
+    return len.value();
+}
+
+double
+CQChartsPlot::
+lengthPixelHeight(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsLength::Units::PIXEL)
+    return len.value();
+  else if (len.units() == CQChartsLength::Units::PLOT)
+    return windowToPixelHeight(len.value());
+  else if (len.units() == CQChartsLength::Units::PERCENT)
+    return len.value()*calcPixelRect().getHeight()/100.0;
+  else
+    return len.value();
 }
 
 //------
@@ -3997,10 +4031,41 @@ windowToPixelHeight(double wh) const
 
 //------
 
+CQChartsUtil::ModelVisitor::State
+CQChartsPlot::ModelVisitor::
+preVisit(QAbstractItemModel *, const QModelIndex &, int)
+{
+  int vrow = vrow_++;
+
+  if (! plot_->isEveryEnabled())
+    return State::OK;
+
+  int start = plot_->everyStart();
+  int end   = plot_->everyEnd();
+
+  if (vrow < start || vrow > end)
+    return State::SKIP;
+
+  int step = plot_->everyStep();
+
+  if (step > 1) {
+    int n = (vrow - start) % step;
+
+    if (n != 0)
+      return State::SKIP;
+  }
+
+  return State::OK;
+}
+
+//------
+
 CQChartsHierPlot::
 CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
  CQChartsPlot(view, type, model)
 {
+  (void) addColorSet("color");
+
   nameColumns_.push_back(nameColumn_);
 }
 
@@ -4077,17 +4142,6 @@ setValueColumn(int i)
 
 void
 CQChartsHierPlot::
-setColorColumn(int i)
-{
-  if (i != colorColumn_) {
-    colorColumn_ = i;
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsHierPlot::
 addProperties()
 {
   addProperty("columns", this, "nameColumn" , "name" );
@@ -4096,6 +4150,10 @@ addProperties()
   addProperty("columns", this, "colorColumn", "color");
 
   addProperty("", this, "separator");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //------

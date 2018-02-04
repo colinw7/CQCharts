@@ -179,7 +179,7 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = numRows();
+  int nr = model->rowCount(QModelIndex());
 
   dataRange_.reset();
 
@@ -247,18 +247,6 @@ updateRange(bool apply)
 
 int
 CQChartsHierScatterPlot::
-numRows() const
-{
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return 0;
-
-  return model->rowCount(QModelIndex());
-}
-
-int
-CQChartsHierScatterPlot::
 acceptsRow(int r) const
 {
   QAbstractItemModel *model = this->model();
@@ -318,7 +306,7 @@ initGroupValueSets()
 
   //---
 
-  int nr = numRows();
+  int nr = model->rowCount(QModelIndex());
 
   for (int r = 0; r < nr; ++r) {
     for (const auto &groupValueSet : groupValueSets_) {
@@ -382,7 +370,7 @@ initObjs()
     if (! model)
       return false;
 
-    int nr = numRows();
+    int nr = model->rowCount(QModelIndex());
 
     for (int r = 0; r < nr; ++r) {
       if (! acceptsRow(r))
@@ -600,8 +588,6 @@ addMenuItems(QMenu *menu)
 
   menu->addAction(popAction  );
   menu->addAction(resetAction);
-
-  menu->addSeparator();
 
   return true;
 }

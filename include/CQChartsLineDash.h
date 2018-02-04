@@ -15,6 +15,9 @@ class CQChartsLineDash {
   using Lengths  = std::vector<double>;
 
  public:
+  static void registerMetaType();
+
+ public:
   CQChartsLineDash();
 
   CQChartsLineDash(const CQChartsLineDash &dash);
@@ -23,7 +26,7 @@ class CQChartsLineDash {
 
   explicit CQChartsLineDash(ushort pattern);
 
-  explicit CQChartsLineDash(const std::string &str);
+  explicit CQChartsLineDash(const QString &str);
 
  ~CQChartsLineDash() { }
 
@@ -51,12 +54,12 @@ class CQChartsLineDash {
 
   void setDashes(ushort pattern);
 
-  std::string toString() const;
+  QString toString() const;
 
-  bool fromString(const std::string &str);
+  bool fromString(const QString &str);
 
   friend std::ostream &operator<<(std::ostream &os, const CQChartsLineDash &dash) {
-    os << dash.toString();
+    os << dash.toString().toStdString();
 
     return os;
   }
@@ -70,8 +73,8 @@ class CQChartsLineDash {
 
 //------
 
-#include <QMetaType>
+#include <CQUtilMeta.h>
 
-Q_DECLARE_METATYPE(CQChartsLineDash)
+CQUTIL_DCL_META_TYPE(CQChartsLineDash)
 
 #endif

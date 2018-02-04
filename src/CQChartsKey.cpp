@@ -6,6 +6,8 @@
 #include <CQPropertyViewModel.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>
+#include <QStylePainter>
+#include <QStyleOption>
 #include <QRectF>
 
 CQChartsKey::
@@ -64,6 +66,32 @@ setLocationStr(const QString &str)
   updatePosition();
 }
 
+//---
+
+QString
+CQChartsKey::
+textColorStr() const
+{
+  return textColor_.colorStr();
+}
+
+void
+CQChartsKey::
+setTextColorStr(const QString &str)
+{
+  textColor_.setColorStr(str);
+}
+
+QColor
+CQChartsKey::
+interpTextColor(int i, int n) const
+{
+  if (plot_)
+    return textColor_.interpColor(plot_, i, n);
+  else
+    return QColor();
+}
+
 void
 CQChartsKey::
 draw(QPainter *)
@@ -87,29 +115,43 @@ void
 CQChartsViewKey::
 updatePosition()
 {
+  view_->update();
 }
 
 void
 CQChartsViewKey::
 updateLayout()
 {
+  view_->update();
 }
 
 void
 CQChartsViewKey::
 doLayout()
 {
-  double x = 100.0;
-  double y = 100.0;
+  double x  = 0.0, y  = 0.0;
+  double dx = 0.0, dy = 0.0;
+
+  if      (onLeft   ()) { x =   0.0; dx =  1.0; }
+  else if (onHCenter()) { x =  50.0; dx =  0.0; }
+  else if (onRight  ()) { x = 100.0; dx = -1.0; }
+
+  if      (onTop    ()) { y = 100.0; dy =  1.0; }
+  else if (onVCenter()) { y =  50.0; dy =  0.0; }
+  else if (onBottom ()) { y =   0.0; dy = -1.0; }
+
+  //----
 
   double px, py;
 
   view_->windowToPixel(x, y, px, py);
 
-  px -= 16;
-  py += 16;
+  px += dx*16.0;
+  py += dy*16.0;
 
-  QFontMetrics fm(textFont());
+  //---
+
+  QFontMetricsF fm(textFont());
 
   double pw = 0.0;
   double ph = 0.0;
@@ -119,31 +161,38 @@ doLayout()
   for (int i = 0; i < n; ++i) {
     CQChartsPlot *plot = view_->plot(i);
 
-    QString name = plot->id();
+    QString name = plot->keyText();
 
-    double tw = fm.width(name);
+    double tw = fm.width(name) + 16.0 + margin();
 
     pw = std::max(pw, tw);
 
     ph += fm.height();
   }
 
-  position_ = QPointF(px - pw - 2*margin(), py);
-  size_     = QSizeF(pw + 2*margin(), ph + 2*margin());
+  if      (onLeft   ()) position_ = QPointF(px        +   margin(), py);
+  else if (onHCenter()) position_ = QPointF(px - pw/2 -   margin(), py);
+  else if (onRight  ()) position_ = QPointF(px - pw   - 2*margin(), py);
+
+  size_ = QSizeF(pw + 2*margin(), ph + 2*margin());
 }
 
 void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"    );
-  model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "visible"   );
+  model->addProperty(path, this, "location"  );
+  model->addProperty(path, this, "horizontal");
+  model->addProperty(path, this, "autoHide"  );
 
   CQChartsBoxObj::addProperties(model, path);
 
   QString textPath = path + "/text";
 
+  model->addProperty(textPath, this, "textColor", "color");
   model->addProperty(textPath, this, "textFont" , "font" );
+  model->addProperty(textPath, this, "textAlign", "align");
 }
 
 void
@@ -169,10 +218,14 @@ draw(QPainter *painter)
 
   //---
 
-  //double x1, y1, x2, y2;
+  double x1, y1, x2, y2;
 
-  //view_->pixelToWindow(px    , py    , x1, y2);
-  //view_->pixelToWindow(px + w, py - h, x2, y1);
+  view_->pixelToWindow(px     , py     , x1, y1);
+  view_->pixelToWindow(px + pw, py + ph, x2, y2);
+
+  rect_ = QRectF(x1, y2, x2 - x1, y1 - y2);
+
+  //---
 
   QRectF rect(px, py, pw, ph);
 
@@ -191,17 +244,87 @@ draw(QPainter *painter)
 
   int n = view_->numPlots();
 
+  double bs = fm.height() + 4.0;
+
   for (int i = 0; i < n; ++i) {
+    double py2 = py1 + fm.height() + 2;
+
     CQChartsPlot *plot = view_->plot(i);
 
-    QString name = plot->id();
+    bool checked = plot->isVisible();
+
+    //---
+
+    QRect qrect(px1, (py1 + py2)/2.0 - bs/2.0, bs, bs);
+
+    QStylePainter spainter(view_);
+
+    spainter.setPen(interpTextColor(0, 1));
+
+    QStyleOptionButton opt;
+
+    opt.initFrom(view_);
+
+    opt.rect = qrect;
+
+    opt.state |= (checked ? QStyle::State_On : QStyle::State_Off);
+
+    spainter.drawControl(QStyle::CE_CheckBox, opt);
+
+    //painter->drawRect(qrect);
+
+    //---
+
+    painter->setPen(interpTextColor(0, 1));
+
+    QString name = plot->keyText();
+
+    double px2 = px1 + bs + margin();
 
     //double tw = fm.width(name);
 
-    painter->drawText(px1, py1 + fm.ascent(), name);
+    painter->drawText(px2, py1 + fm.ascent(), name);
 
-    py1 += fm.height();
+    //---
+
+    double x1, y1, x2, y2;
+
+    view_->pixelToWindow(px     , py1, x1, y1);
+    view_->pixelToWindow(px + pw, py2, x2, y2);
+
+    QRectF prect(x1, y2, x2 - x1, y1 - y2);
+
+    prects_.push_back(prect);
+
+    //---
+
+    py1 = py2;
   }
+}
+
+bool
+CQChartsViewKey::
+isInside(const CQChartsGeom::Point &w) const
+{
+  return rect_.contains(CQChartsUtil::toQPoint(w));
+}
+
+void
+CQChartsViewKey::
+mousePress(const CQChartsGeom::Point &w)
+{
+  int n = std::min(view_->numPlots(), int(prects_.size()));
+
+  for (int i = 0; i < n; ++i) {
+    CQChartsPlot *plot = view_->plot(i);
+
+    if (prects_[i].contains(CQChartsUtil::toQPoint(w))) {
+      plot->setVisible(! plot->isVisible());
+      break;
+    }
+  }
+
+  view_->update();
 }
 
 //------
@@ -228,29 +351,6 @@ CQChartsPlotKey::
 
 //---
 
-QString
-CQChartsPlotKey::
-textColorStr() const
-{
-  return textColor_.colorStr();
-}
-
-void
-CQChartsPlotKey::
-setTextColorStr(const QString &str)
-{
-  textColor_.setColorStr(str);
-}
-
-QColor
-CQChartsPlotKey::
-interpTextColor(int i, int n) const
-{
-  return textColor_.interpColor(plot_, i, n);
-}
-
-//---
-
 void
 CQChartsPlotKey::
 redraw()
@@ -260,7 +360,7 @@ redraw()
 
 void
 CQChartsPlotKey::
-updatePlotKey()
+updateKeyItems()
 {
   plot_->resetKeyItems();
 
@@ -299,44 +399,32 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   double kx { 0.0 }, ky { 0.0 };
 
-  if      (location == LocationType::TOP_LEFT ||
-           location == LocationType::CENTER_LEFT ||
-           location == LocationType::BOTTOM_LEFT) {
+  if      (onLeft()) {
     if (isInsideX())
       kx = bbox.getXMin() + xm;
     else
       kx = bbox.getXMin() - ks.width() - xm;
   }
-  else if (location == LocationType::TOP_CENTER ||
-           location == LocationType::CENTER_CENTER ||
-           location == LocationType::BOTTOM_CENTER) {
+  else if (onHCenter()) {
     kx = bbox.getXMid() - ks.width()/2;
   }
-  else if (location == LocationType::TOP_RIGHT ||
-           location == LocationType::CENTER_RIGHT ||
-           location == LocationType::BOTTOM_RIGHT) {
+  else if (onRight()) {
     if (isInsideX())
       kx = bbox.getXMax() - ks.width() - xm;
     else
       kx = bbox.getXMax() + xm;
   }
 
-  if      (location == LocationType::TOP_LEFT ||
-           location == LocationType::TOP_CENTER ||
-           location == LocationType::TOP_RIGHT) {
+  if      (onTop()) {
     if (isInsideY())
       ky = bbox.getYMax() - ym;
     else
       ky = bbox.getYMax() + ks.height() + ym;
   }
-  else if (location == LocationType::CENTER_LEFT ||
-           location == LocationType::CENTER_CENTER ||
-           location == LocationType::CENTER_RIGHT) {
+  else if (onVCenter()) {
     ky = bbox.getYMid() - ks.height()/2;
   }
-  else if (location == LocationType::BOTTOM_LEFT ||
-           location == LocationType::BOTTOM_CENTER ||
-           location == LocationType::BOTTOM_RIGHT) {
+  else if (onBottom()) {
     if (isInsideY())
       ky = bbox.getYMin() + ks.height() + ym;
     else {
@@ -364,6 +452,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"    );
   model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "autoHide"  );
   model->addProperty(path, this, "absPosition");
   model->addProperty(path, this, "insideX"    );
   model->addProperty(path, this, "insideY"    );
@@ -782,6 +871,15 @@ draw(QPainter *painter)
 
   //---
 
+  if (isAutoHide()) {
+    CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
+
+    if (rect.width() > pixelRect.getWidth() || rect.height() > pixelRect.getHeight())
+      return;
+  }
+
+  //---
+
   painter->save();
 
   QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
@@ -842,7 +940,7 @@ draw(QPainter *painter)
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowRedBox(painter, bbox_);
+    plot_->drawWindowColorBox(painter, bbox_);
 
   //---
 

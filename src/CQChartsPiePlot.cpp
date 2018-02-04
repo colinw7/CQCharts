@@ -360,15 +360,16 @@ initObjs()
   //---
 
   // process model data
-  class PieVisitor : public Visitor {
+  class PieVisitor : public ModelVisitor {
    public:
     PieVisitor(CQChartsPiePlot *plot) :
      plot_(plot) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       plot_->addRow(model, parent, row);
-      return true;
+
+      return State::OK;
     }
 
    private:
@@ -532,15 +533,16 @@ calcDataTotal()
   groupDatas_.clear();
 
   // process model data
-  class DataTotalVisitor : public Visitor {
+  class DataTotalVisitor : public ModelVisitor {
    public:
     DataTotalVisitor(CQChartsPiePlot *plot) :
      plot_(plot) {
     }
 
-    bool visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       plot_->addRowDataTotal(model, parent, row);
-      return true;
+
+      return State::OK;
     }
 
    private:

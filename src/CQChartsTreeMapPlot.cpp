@@ -535,10 +535,6 @@ addProperties()
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
   addProperty("text", this, "textContrast", "contrast");
-
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //------
@@ -595,61 +591,23 @@ void
 CQChartsTreeMapPlot::
 updateRange(bool apply)
 {
-  double radius = 1.0;
+  double r = 1.0;
 
-  double xr = radius;
-  double yr = radius;
+  dataRange_.reset();
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.reset();
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
 
   //---
 
   if (apply)
     applyDataRange();
-}
-
-void
-CQChartsTreeMapPlot::
-initColorSet()
-{
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsTreeMapPlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i, color);
 }
 
 //------
@@ -658,7 +616,7 @@ void
 CQChartsTreeMapPlot::
 updateObjs()
 {
-  colorSet_.clear();
+  clearValueSets();
 
   resetNodes();
 
@@ -684,8 +642,7 @@ initObjs()
   //---
 
   // init value sets
-  if (colorSet_.empty())
-    initColorSet();
+  initValueSets();
 
   //---
 
@@ -1012,7 +969,7 @@ loadFlat()
 
       OptColor color;
 
-      if (colorSetColor(r, color))
+      if (colorSetColor("color", r, color))
         node->setColor(*color);
 
       parent->addNode(node);
@@ -1036,7 +993,7 @@ addExtraNodes(CQChartsTreeMapHierNode *hier)
 
     OptColor color;
 
-    if (colorSetColor(r, color))
+    if (colorSetColor("color", r, color))
       node->setColor(*color);
 
     node->setDepth (hier->depth() + 1);
@@ -1100,8 +1057,6 @@ addMenuItems(QMenu *menu)
   menu->addAction(pushAction  );
   menu->addAction(popAction   );
   menu->addAction(popTopAction);
-
-  menu->addSeparator();
 
   return true;
 }

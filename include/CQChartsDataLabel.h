@@ -51,6 +51,30 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   //--
 
+  bool isPositionInside() const {
+    return (position_ == Position::TOP_INSIDE || position_ == Position::BOTTOM_INSIDE);
+  }
+
+  bool isPositionOutside() const {
+    return (position_ == Position::TOP_OUTSIDE || position_ == Position::BOTTOM_OUTSIDE);
+  }
+
+  Position flipPosition() const {
+    return flipPosition(position());
+  }
+
+  static Position flipPosition(const Position &position) {
+    switch (position) {
+      case TOP_INSIDE    : return BOTTOM_INSIDE;
+      case TOP_OUTSIDE   : return BOTTOM_OUTSIDE;
+      case BOTTOM_INSIDE : return TOP_INSIDE;
+      case BOTTOM_OUTSIDE: return TOP_OUTSIDE;
+      default            : return position;
+    }
+  }
+
+  //--
+
   void addProperties(const QString &path);
 
   virtual void update();
@@ -59,9 +83,17 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
 
   void draw(QPainter *painter, const QRectF &qrect, const QString &ystr);
 
+  void draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
+            const Position &position);
+
   CQChartsGeom::BBox calcRect(const QRectF &qrect, const QString &ystr) const;
 
+  CQChartsGeom::BBox calcRect(const QRectF &qrect, const QString &ystr,
+                              const Position &position) const;
+
   Qt::Alignment textAlignment() const;
+
+  static Qt::Alignment textAlignment(const Position &position);
 
  private:
   bool      visible_   { false };

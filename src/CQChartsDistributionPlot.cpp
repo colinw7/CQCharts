@@ -254,42 +254,16 @@ setBarPattern(Pattern pattern)
 
 //---
 
-int
-CQChartsDistributionPlot::
-rowCount(QAbstractItemModel *model) const
-{
-  return (model ? model->rowCount(QModelIndex()) : 0);
-}
-
-QVariant
-CQChartsDistributionPlot::
-rowValue(QAbstractItemModel *model, int r, int c, bool &ok) const
-{
-  ok = false;
-
-  return (model ? CQChartsUtil::modelValue(model, r, c, ok) : QVariant());
-}
-
-QVariant
-CQChartsDistributionPlot::
-headerValue(QAbstractItemModel *model, int c, bool &ok) const
-{
-  ok = false;
-
-  return (model ? CQChartsUtil::modelHeaderString(model, c, ok) : QVariant());
-}
-
-//---
-
 void
 CQChartsDistributionPlot::
 updateRange(bool apply)
 {
   QAbstractItemModel *model = this->model();
 
-  //---
+  if (! model)
+    return;
 
-  int nr = rowCount(model);
+  //---
 
   dataRange_.reset();
 
@@ -305,108 +279,122 @@ updateRange(bool apply)
   // calc value range
   bool hasRange = valueSet->isNumeric();
 
-  int numValues = 0;
-
-  double minValue = 0.0, maxValue = 0.0;
-
   if (hasRange) {
-    for (int r = 0; r < nr; ++r) {
-      bool ok;
-
-      double value = rowValue(model, r, valueColumn(), ok).toReal();
-
-      if (! ok)
-        continue;
-
-      if (CQChartsUtil::isNaN(value))
-        continue;
-
-      if (! checkFilter(value))
-        continue;
-
-      if (numValues == 0) {
-        minValue = value;
-        maxValue = value;
-      }
-      else {
-        minValue = std::min(minValue, value);
-        maxValue = std::max(maxValue, value);
+    class ColumnDetails : public CQChartsUtil::ModelColumnDetails {
+     public:
+      ColumnDetails(CQChartsDistributionPlot *plot, QAbstractItemModel *model, int column) :
+       CQChartsUtil::ModelColumnDetails(plot->charts(), model, column), plot_(plot) {
       }
 
-      ++numValues;
-    }
+      bool checkRow(const QVariant &var) override {
+        return plot_->checkFilter(var.toReal());
+      }
 
-    categoryRange_.minValue = minValue;
-    categoryRange_.maxValue = maxValue;
+     private:
+      CQChartsDistributionPlot *plot_ { nullptr };
+    };
+
+    //---
+
+    ColumnDetails columnDetails(this, model, valueColumn());
+
+    categoryRange_.minValue = columnDetails.minValue().toReal();
+    categoryRange_.maxValue = columnDetails.maxValue().toReal();
+
+    //---
 
     calcCategoryRange();
   }
 
   //---
 
-  int minBucket = 1;
-  int maxBucket = -1;
-
-  ivalues_.clear();
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex valueInd, valueInd1;
-
-    if (model) {
-      valueInd  = model->index(r, valueColumn());
-      valueInd1 = normalizeIndex(valueInd);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsDistributionPlot *plot, CQChartsValueSet *valueSet) :
+     plot_(plot), valueSet_(valueSet) {
+      hasRange_ = valueSet->isNumeric();
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
-    int bucket = -1;
+      QModelIndex valueInd1 = plot_->normalizeIndex(valueInd);
 
-    if (hasRange) {
-      bool ok;
+      //---
 
-      double value = rowValue(model, r, valueColumn(), ok).toReal();
+      int bucket = -1;
 
-      if (! ok)
-        continue;
+      if (hasRange_) {
+        bool ok;
 
-      if (CQChartsUtil::isNaN(value))
-        continue;
+        double value = CQChartsUtil::modelReal(model, valueInd, ok);
 
-      if (! checkFilter(value))
-        continue;
+        if (! ok)
+          return State::SKIP;
 
-      //----
+        if (CQChartsUtil::isNaN(value))
+          return State::SKIP;
 
-      bucket = calcBucket(value);
+        if (! plot_->checkFilter(value))
+          return State::SKIP;
 
-      ivalues_[bucket].emplace_back(valueInd1);
-    }
-    else {
-      bool ok;
+        //----
 
-      QString value = rowValue(model, r, valueColumn(), ok).toString();
+        bucket = plot_->calcBucket(value);
 
-      if (! ok)
-        continue;
-
-      bucket = valueSet->sbucket(value);
-
-      ivalues_[bucket].emplace_back(valueInd1);
-    }
-
-    //---
-
-    if (bucket >= 0) {
-      if (minBucket <= maxBucket) {
-        minBucket = std::min(minBucket, bucket);
-        maxBucket = std::max(maxBucket, bucket);
+        ivalues_[bucket].emplace_back(valueInd1);
       }
       else {
-        minBucket = bucket;
-        maxBucket = bucket;
+        bool ok;
+
+        QString value = CQChartsUtil::modelString(model, valueInd, ok);
+
+        if (! ok)
+          return State::SKIP;
+
+        bucket = valueSet_->sbucket(value);
+
+        ivalues_[bucket].emplace_back(valueInd1);
       }
+
+      //---
+
+      if (bucket >= 0) {
+        if (minBucket_ <= maxBucket_) {
+          minBucket_ = std::min(minBucket_, bucket);
+          maxBucket_ = std::max(maxBucket_, bucket);
+        }
+        else {
+          minBucket_ = bucket;
+          maxBucket_ = bucket;
+        }
+      }
+
+      return State::OK;
     }
-  }
+
+    const IValues &ivalues() const { return ivalues_; }
+
+    int minBucket() const { return minBucket_; }
+    int maxBucket() const { return maxBucket_; }
+
+   private:
+    CQChartsDistributionPlot *plot_      { nullptr };
+    CQChartsValueSet         *valueSet_  { nullptr };
+    bool                      hasRange_  { false };
+    IValues                   ivalues_;
+    int                       minBucket_ {  1 };
+    int                       maxBucket_ { -1 };
+  };
+
+  RowVisitor visitor(this, valueSet);
+
+  visitModel(visitor);
+
+  ivalues_ = visitor.ivalues();
+
+  int minBucket = visitor.minBucket();
+  int maxBucket = visitor.maxBucket();
 
   //---
 
@@ -465,12 +453,14 @@ void
 CQChartsDistributionPlot::
 setHorizontal(bool b)
 {
-  horizontal_ = b;
+  if (b != horizontal_) {
+    horizontal_ = b;
 
-  dataLabel_.setDirection(horizontal_ ?
-    CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
+    dataLabel_.setDirection(horizontal_ ?
+      CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
 
-  updateRangeAndObjs();
+    updateRangeAndObjs();
+  }
 }
 
 bool
@@ -499,9 +489,14 @@ calcCategoryRange()
   double length1 = length/categoryRange_.numAuto;
 
   // Calculate nearest Power of Ten to Length
-  int power = (length1 > 0 ? CQChartsUtil::Round(log10(length1)) : 1);
+  int power = (length1 > 0 ? CQChartsUtil::RoundDown(log10(length1)) : 1);
 
-  categoryRange_.increment = 0.1;
+  //if (isIntegral()) {
+  //  if (power < 0)
+  //    power = 1;
+  //}
+
+  categoryRange_.increment = 1;
 
   if      (power < 0) {
     for (int i = 0; i < -power; i++)
@@ -531,7 +526,7 @@ calcBucket(double value) const
 {
   int bucket = 0;
 
-  bool isAuto = (! filterStack_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+  bool isAuto = (! filterStack_.empty() || isAutoRange());
 
   if (isAuto) {
     if (categoryRange_.increment > 0.0)
@@ -651,7 +646,7 @@ initObjs()
 
   bool ok;
 
-  QString valueName = headerValue(model, valueColumn(), ok).toString();
+  QString valueName = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
 
   valueAxis()->setLabel(valueName);
   countAxis()->setLabel("Count");
@@ -739,7 +734,7 @@ bucketValues(int bucket, double &value1, double &value2) const
   value1 = 0.0;
   value2 = 0.0;
 
-  bool isAuto = (! filterStack_.empty() || categoryRange_.type == CategoryRange::Type::AUTO);
+  bool isAuto = (! filterStack_.empty() || isAutoRange());
 
   if (isAuto) {
     if (categoryRange_.increment > 0.0) {
@@ -785,8 +780,6 @@ addMenuItems(QMenu *menu)
   menu->addAction(pushAction  );
   menu->addAction(popAction   );
   menu->addAction(popTopAction);
-
-  menu->addSeparator();
 
   return true;
 }

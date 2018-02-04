@@ -5,7 +5,6 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsPaletteColor.h>
-#include <CQChartsColorSet.h>
 #include <QModelIndex>
 
 class CQChartsTreeMapPlot;
@@ -401,17 +400,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
 
   //---
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
-
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
-
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
-
-  //---
-
   CQChartsTreeMapHierNode *root() const { return root_; }
 
   CQChartsTreeMapHierNode *firstHier() const { return firstHier_; }
@@ -453,10 +441,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
-
-  void initColorSet();
-
-  bool colorSetColor(int i, OptColor &color);
 
   void updateObjs() override;
 
@@ -527,7 +511,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   CQChartsTextBoxObj*      headerTextBoxObj_   { nullptr }; // header fill/border/text object
   double                   marginWidth_        { 2.0 };     // box margin
   CQChartsTextBoxObj*      textBoxObj_         { nullptr }; // bubble fill/border/text object
-  CQChartsColorSet         colorSet_;                       // color value set
   int                      colorId_            { -1 };      // current color id
   int                      numColorIds_        { 0 };       // num used color ids
   int                      maxDepth_           { 1 };       // max hier depth

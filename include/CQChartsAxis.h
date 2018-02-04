@@ -419,6 +419,7 @@ class CQChartsAxis : public QObject {
   bool                       log_                 { false };
   bool                       dataLabels_          { false };
   int                        column_              { -1 };
+  QString                    formatStr_;
 
   // label
   bool                       labelDisplayed_      { true };
@@ -444,7 +445,7 @@ class CQChartsAxis : public QObject {
   // tick label (TODO: use CQChartsAxisTickLabel for all tick label data)
   bool                       tickLabelDisplayed_ { true };
   CQChartsAxisTickLabel*     tickLabel_          { nullptr };
-  bool                       tickLabelAutoHide_  { false };
+  bool                       tickLabelAutoHide_  { true };
   TickLabelPlacement         tickLabelPlacement_ { TickLabelPlacement::MIDDLE };
 
   // state
@@ -464,8 +465,9 @@ class CQChartsAxis : public QObject {
   mutable CQChartsGeom::BBox bbox_;
 
   CQChartsGeom::Point        dragPos_;
-  mutable double             lmin_ { INT_MAX };
-  mutable double             lmax_ { INT_MIN };
+//mutable double             lmin_ { INT_MAX };
+//mutable double             lmax_ { INT_MIN };
+  mutable CQChartsGeom::BBox lbbox_;
   mutable CQChartsGeom::BBox lastTickLabelRect_;
 };
 

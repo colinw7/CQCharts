@@ -211,7 +211,10 @@ CQJsonModel::
 rowCount(const QModelIndex &parent) const
 {
   if (jsonMatch_ != "") {
-    return jsonValues_.size();
+    if (! parent.isValid())
+      return jsonValues_.size();
+
+    return 0;
   }
 
   //---

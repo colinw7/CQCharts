@@ -42,6 +42,13 @@ void
 CQChartsDataLabel::
 draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 {
+  draw(painter, qrect, ystr, position());
+}
+
+void
+CQChartsDataLabel::
+draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position &position)
+{
   if (! isVisible())
     return;
 
@@ -77,7 +84,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
       y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
     }
 
-    if      (position() == Position::TOP_INSIDE) {
+    if      (position == Position::TOP_INSIDE) {
       if (direction() == Direction::VERTICAL) {
         if (! plot_->isInvertY())
           y = qrect.top   () + fm.ascent () + ym + b2;
@@ -91,7 +98,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
           x = qrect.left () + ym + b2;
       }
     }
-    else if (position() == Position::TOP_OUTSIDE) {
+    else if (position == Position::TOP_OUTSIDE) {
       if (direction() == Direction::VERTICAL) {
         if (! plot_->isInvertY())
           y = qrect.top   () - fm.descent() - ym - b2;
@@ -105,7 +112,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
           x = qrect.left () - tw - ym - b2;
       }
     }
-    else if (position() == Position::BOTTOM_INSIDE) {
+    else if (position == Position::BOTTOM_INSIDE) {
       if (direction() == Direction::VERTICAL) {
         if (! plot_->isInvertY())
           y = qrect.bottom() - fm.descent() - ym - b2;
@@ -119,7 +126,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
           x = qrect.right() - tw - ym - b2;
       }
     }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
+    else if (position == Position::BOTTOM_OUTSIDE) {
       if (direction() == Direction::VERTICAL) {
         if (! plot_->isInvertY())
           y = qrect.bottom() + fm.ascent () + ym + b2;
@@ -133,7 +140,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
           x = qrect.right() + ym + b2;
       }
     }
-    else if (position() == Position::CENTER) {
+    else if (position == Position::CENTER) {
       if (direction() == Direction::VERTICAL)
         y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
       else
@@ -148,9 +155,9 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
     }
 
     if (isClip()) {
-      if (position() == Position::TOP_INSIDE ||
-          position() == Position::BOTTOM_INSIDE ||
-          position() == Position::CENTER) {
+      if (position == Position::TOP_INSIDE ||
+          position == Position::BOTTOM_INSIDE ||
+          position == Position::CENTER) {
         painter->setClipRect(qrect);
       }
     }
@@ -182,15 +189,15 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 
     Qt::Alignment align = textAlignment();
 
-    if      (position() == Position::TOP_INSIDE)
+    if      (position == Position::TOP_INSIDE)
       y = qrect.top   () + 2*b1;
-    else if (position() == Position::TOP_OUTSIDE)
+    else if (position == Position::TOP_OUTSIDE)
       y = qrect.top   () - 2*b1;
-    else if (position() == Position::BOTTOM_INSIDE)
+    else if (position == Position::BOTTOM_INSIDE)
       y = qrect.bottom() - 2*b1;
-    else if (position() == Position::BOTTOM_OUTSIDE)
+    else if (position == Position::BOTTOM_OUTSIDE)
       y = qrect.bottom() + 2*b1;
-    else if (position() == Position::CENTER)
+    else if (position == Position::CENTER)
       y = qrect.center().y();
 
     CQChartsRotatedText::Points points;
@@ -223,7 +230,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
   plot_->pixelToWindow(CQChartsUtil::fromQRect(prect), wrect);
 
   if (plot_->showBoxes()) {
-    plot_->drawWindowRedBox(painter, wrect);
+    plot_->drawWindowColorBox(painter, wrect);
   }
 
   //---
@@ -234,6 +241,13 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr)
 CQChartsGeom::BBox
 CQChartsDataLabel::
 calcRect(const QRectF &qrect, const QString &ystr) const
+{
+  return calcRect(qrect, ystr, position());
+}
+
+CQChartsGeom::BBox
+CQChartsDataLabel::
+calcRect(const QRectF &qrect, const QString &ystr, const Position &position) const
 {
   if (! isVisible())
     return CQChartsGeom::BBox();
@@ -257,31 +271,31 @@ calcRect(const QRectF &qrect, const QString &ystr) const
     double x = qrect.center().x();
     double y = 0.0;
 
-    if      (position() == Position::TOP_INSIDE) {
+    if      (position == Position::TOP_INSIDE) {
       if (! plot_->isInvertY())
         y = qrect.top   () + fm.ascent () + ym + b2;
       else
         y = qrect.bottom() - fm.descent() - ym - b2;
     }
-    else if (position() == Position::TOP_OUTSIDE) {
+    else if (position == Position::TOP_OUTSIDE) {
       if (! plot_->isInvertY())
         y = qrect.top   () - fm.descent() - ym - b2;
       else
         y = qrect.bottom() + fm.ascent () + ym + b2;
     }
-    else if (position() == Position::BOTTOM_INSIDE) {
+    else if (position == Position::BOTTOM_INSIDE) {
       if (! plot_->isInvertY())
         y = qrect.bottom() - fm.descent() - ym - b2;
       else
         y = qrect.top   () + fm.ascent () + ym + b2;
     }
-    else if (position() == Position::BOTTOM_OUTSIDE) {
+    else if (position == Position::BOTTOM_OUTSIDE) {
       if (! plot_->isInvertY())
         y = qrect.bottom() + fm.ascent () + ym + b2;
       else
         y = qrect.top   () - fm.descent() - ym - b2;
     }
-    else if (position() == Position::CENTER) {
+    else if (position == Position::CENTER) {
       y = qrect.center().y() + (fm.ascent() - fm.descent())/2;
     }
 
@@ -293,15 +307,15 @@ calcRect(const QRectF &qrect, const QString &ystr) const
 
     Qt::Alignment align = textAlignment();
 
-    if      (position() == Position::TOP_INSIDE)
+    if      (position == Position::TOP_INSIDE)
       y = qrect.top   () + 2*b1;
-    else if (position() == Position::TOP_OUTSIDE)
+    else if (position == Position::TOP_OUTSIDE)
       y = qrect.top   () - 2*b1;
-    else if (position() == Position::BOTTOM_INSIDE)
+    else if (position == Position::BOTTOM_INSIDE)
       y = qrect.bottom() - 2*b1;
-    else if (position() == Position::BOTTOM_OUTSIDE)
+    else if (position == Position::BOTTOM_OUTSIDE)
       y = qrect.bottom() + 2*b1;
-    else if (position() == Position::CENTER)
+    else if (position == Position::CENTER)
       y = qrect.center().y();
 
     CQChartsRotatedText::Points points;
@@ -323,17 +337,24 @@ Qt::Alignment
 CQChartsDataLabel::
 textAlignment() const
 {
+  return textAlignment(position());
+}
+
+Qt::Alignment
+CQChartsDataLabel::
+textAlignment(const Position &position)
+{
   Qt::Alignment align = Qt::AlignHCenter;
 
-  if      (position() == Position::TOP_INSIDE)
+  if      (position == Position::TOP_INSIDE)
     align |= Qt::AlignTop;
-  else if (position() == Position::TOP_OUTSIDE)
+  else if (position == Position::TOP_OUTSIDE)
     align |= Qt::AlignBottom;
-  else if (position() == Position::BOTTOM_INSIDE)
+  else if (position == Position::BOTTOM_INSIDE)
     align |= Qt::AlignBottom;
-  else if (position() == Position::BOTTOM_OUTSIDE)
+  else if (position == Position::BOTTOM_OUTSIDE)
     align |= Qt::AlignTop;
-  else if (position() == Position::CENTER)
+  else if (position == Position::CENTER)
     align |= Qt::AlignVCenter;
 
   return align;

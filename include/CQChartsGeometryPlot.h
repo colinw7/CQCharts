@@ -176,6 +176,8 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
+  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int row);
+
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
 
   bool decodePolygons(const QString &polysStr, Polygons &poly);

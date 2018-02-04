@@ -237,8 +237,6 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = model->rowCount(QModelIndex());
-
   dataRange_.reset();
 
   geometries_.clear();
@@ -246,76 +244,102 @@ updateRange(bool apply)
   minValue_ = 0.0;
   maxValue_ = 0.0;
 
-  for (int r = 0; r < nr; ++r) {
-    Geometry geometry;
+  //---
 
-    QModelIndex nameInd  = model->index(r, nameColumn    ());
-    QModelIndex geomInd  = model->index(r, geometryColumn());
-    QModelIndex valueInd = model->index(r, valueColumn   ());
-
-    QModelIndex geomInd1 = normalizeIndex(geomInd);
-
-    //---
-
-    bool ok1;
-
-    geometry.name = CQChartsUtil::modelString(model, nameInd, ok1);
-
-    //--
-
-    bool ok2;
-
-    QString geomStr = CQChartsUtil::modelString(model, geomInd, ok2);
-
-    if (! decodeGeometry(geomStr, geometry.polygons)) {
-      charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
-      continue;
+  // process model data
+  class GeometryPlotVisitor : public ModelVisitor {
+   public:
+    GeometryPlotVisitor(CQChartsGeometryPlot *plot) :
+     plot_(plot) {
     }
 
-    for (auto &poly : geometry.polygons) {
-      for (int j = 0; j < poly.count(); ++j) {
-        const QPointF &p = poly[j];
+    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
+      plot_->addRow(model, ind, row);
 
-        dataRange_.updateRange(p.x(), p.y());
-
-        geometry.bbox.add(p.x(), p.y());
-      }
+      return State::OK;
     }
 
-    //---
+   private:
+    CQChartsGeometryPlot *plot_ { nullptr };
+  };
 
-    bool ok;
+  GeometryPlotVisitor geometryPlotVisitor(this);
 
-    geometry.value = CQChartsUtil::modelReal(model, valueInd, ok);
-
-    if (! ok)
-      geometry.value = r;
-
-    if (CQChartsUtil::isNaN(geometry.value))
-      continue;
-
-    if (r == 0) {
-      minValue_ = geometry.value;
-      maxValue_ = geometry.value;
-    }
-    else {
-      minValue_ = std::min(minValue_, geometry.value);
-      maxValue_ = std::max(maxValue_, geometry.value);
-    }
-
-    //---
-
-    geometry.ind = geomInd1;
-
-    //---
-
-    geometries_.push_back(geometry);
-  }
+  visitModel(geometryPlotVisitor);
 
   //---
 
   if (apply)
     applyDataRange();
+}
+
+void
+CQChartsGeometryPlot::
+addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+{
+  Geometry geometry;
+
+  QModelIndex nameInd  = model->index(row, nameColumn    (), parent);
+  QModelIndex geomInd  = model->index(row, geometryColumn(), parent);
+  QModelIndex valueInd = model->index(row, valueColumn   (), parent);
+
+  QModelIndex geomInd1 = normalizeIndex(geomInd);
+
+  //---
+
+  bool ok1;
+
+  geometry.name = CQChartsUtil::modelString(model, nameInd, ok1);
+
+  //--
+
+  bool ok2;
+
+  QString geomStr = CQChartsUtil::modelString(model, geomInd, ok2);
+
+  if (! decodeGeometry(geomStr, geometry.polygons)) {
+    charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
+    return;
+  }
+
+  for (auto &poly : geometry.polygons) {
+    for (int j = 0; j < poly.count(); ++j) {
+      const QPointF &p = poly[j];
+
+      dataRange_.updateRange(p.x(), p.y());
+
+      geometry.bbox.add(p.x(), p.y());
+    }
+  }
+
+  //---
+
+  bool ok;
+
+  geometry.value = CQChartsUtil::modelReal(model, valueInd, ok);
+
+  if (! ok)
+    geometry.value = row;
+
+  if (CQChartsUtil::isNaN(geometry.value))
+    return;
+
+  if (geometries_.empty()) {
+    minValue_ = geometry.value;
+    maxValue_ = geometry.value;
+  }
+  else {
+    minValue_ = std::min(minValue_, geometry.value);
+    maxValue_ = std::max(maxValue_, geometry.value);
+  }
+
+  //---
+
+  geometry.ind = geomInd1;
+
+  //---
+
+  geometries_.push_back(geometry);
 }
 
 bool

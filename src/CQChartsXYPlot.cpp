@@ -5,6 +5,7 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsSmooth.h>
+#include <QMenu>
 #include <QPainter>
 
 CQChartsXYPlotType::
@@ -215,6 +216,63 @@ addProperties()
   // data label
   addProperty("dataLabel", this, "dataLabelColor", "color");
   addProperty("dataLabel", this, "dataLabelAngle", "angle");
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setBivariate(bool b)
+{
+  if (b != isBivariate()) {
+    bivariateLineObj_->setDisplayed(b);
+
+    updateObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setStacked(bool b)
+{
+  if (b != isStacked()) {
+    stacked_ = b;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setCumulative(bool b)
+{
+  if (b != isCumulative()) {
+    cumulative_ = b;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setImpulse(bool b)
+{
+  if (b != isImpulse()) {
+    impulseObj_->setDisplayed(b);
+
+    updateObjs();
+  }
+}
+
+void
+CQChartsXYPlot::
+setFillUnder(bool b)
+{
+  if (b != isFillUnder()) {
+    fillUnderData_.fillObj.setVisible(b);
+
+    updateObjs();
+  }
 }
 
 //---
@@ -430,130 +488,78 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  dataRange_.reset();
+  // calc data range (x, y values)
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsXYPlot *plot) :
+     plot_(plot) {
+      int ns = plot_->numSets();
 
-  int ns = numSets();
-
-  using Reals = std::vector<double>;
-
-  Reals sum, lastSum;
-
-  sum.resize(ns);
-
-  for (int i = 0; i < nr; ++i) {
-    lastSum = sum;
-
-    //---
-
-    QModelIndex xind = model->index(i, xColumn());
-
-    if (! xind.isValid())
-      continue;
-
-    //---
-
-    bool ok1;
-
-    double x = CQChartsUtil::modelReal(model, xind, ok1);
-
-    if (! ok1) x = i;
-
-    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isInf(x))
-      continue;
-
-    if (isLogX()) x = logValue(x);
-
-    if      (isBivariate() && ns > 1) {
-      for (int j = 0; j < ns; ++j) {
-        int yColumn = getSetColumn(j);
-
-        QModelIndex yind = model->index(i, yColumn);
-
-        if (! yind.isValid())
-          continue;
-
-        //---
-
-        bool ok2;
-
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
-
-        if (! ok2) y = i;
-
-        if (CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y))
-          continue;
-
-        if (isLogY()) y = logValue(y);
-
-        dataRange_.updateRange(x, y);
-      }
+      sum_.resize(ns);
     }
-    else if (isStacked()) {
-      double sum1 = 0.0;
 
-      for (int j = 0; j < ns; ++j) {
-        int yColumn = getSetColumn(j);
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      lastSum_ = sum_;
 
-        QModelIndex yind = model->index(i, yColumn);
+      //---
 
-        if (! yind.isValid())
-          continue;
+      double x; std::vector<double> y;
 
-        //---
+      if (! plot_->rowData(parent, row, x, y, /*skipBad*/true))
+        return State::SKIP;
 
-        bool ok2;
+      int ny = y.size();
 
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
+      //---
 
-        if (! ok2) y = i;
-
-        if (CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y))
-          continue;
-
-        if (isLogY()) y = logValue(y);
-
-        sum1 += y;
+      if      (plot_->isBivariate()) {
+        for (int i = 0; i < ny; ++i)
+          range_.updateRange(x, y[i]);
       }
+      else if (plot_->isStacked()) {
+        double sum1 = 0.0;
 
-      dataRange_.updateRange(x, 0.0);
-      dataRange_.updateRange(x, sum1);
-    }
-    else {
-      for (int j = 0; j < ns; ++j) {
-        int yColumn = getSetColumn(j);
+        for (int i = 0; i < ny; ++i)
+          sum1 += y[i];
 
-        QModelIndex yind = model->index(i, yColumn);
+        range_.updateRange(x, 0.0);
+        range_.updateRange(x, sum1);
+      }
+      else {
+        for (int i = 0; i < ny; ++i) {
+          double y1 = y[i];
 
-        if (! yind.isValid())
-          continue;
+          if (plot_->isCumulative()) {
+            y1 = y[i] + lastSum_[i];
 
-        //---
+            sum_[i] += y[i];
+          }
 
-        bool ok2;
-
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
-
-        if (! ok2) y = i;
-
-        if (CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y))
-          continue;
-
-        if (isLogY()) y = logValue(y);
-
-        double y1 = y;
-
-        if (isCumulative()) {
-          y1 = y + lastSum[j];
-
-          sum[j] += y;
+          range_.updateRange(x, y1);
         }
-
-        dataRange_.updateRange(x, y1);
       }
+
+      return State::OK;
     }
-  }
+
+    const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    using Reals = std::vector<double>;
+
+    CQChartsXYPlot*     plot_ { nullptr };
+    CQChartsGeom::Range range_;
+    Reals               sum_;
+    Reals               lastSum_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  dataRange_ = visitor.range();
 
   //---
 
@@ -585,6 +591,8 @@ updateRange(bool apply)
   else {
     xAxis()->setLabel(xname);
   }
+
+  int ns = numSets();
 
   if      (isBivariate() && ns > 1) {
     QString name = titleStr();
@@ -658,9 +666,7 @@ void
 CQChartsXYPlot::
 postInit()
 {
-  int ns = numSets();
-
-  if      (isBivariate() && ns > 1) {
+  if      (isBivariate()) {
     setLines (true);
     setPoints(false);
   }
@@ -696,43 +702,132 @@ initObjs()
   //---
 
   // TODO: use actual symbol size
-  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+  symbolWidth_  = (dataRange_.xmax() - dataRange_.xmin())/100.0;
+  symbolHeight_ = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  int ns = numSets();
+  using Polygons = std::vector<QPolygonF>;
 
-  if      (isBivariate() && ns > 1) {
-    using Polygons = std::vector<QPolygonF>;
+  // create line per set
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsXYPlot *plot) :
+     plot_(plot) {
+      ns_ = plot_->numSets();
+
+      setPoly_.resize(ns_);
+    }
+
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      double x; std::vector<double> y;
+
+      (void) plot_->rowData(parent, row, x, y, /*skipBad*/false);
+      assert(int(y.size()) == ns_);
+
+      for (int i = 0; i < ns_; ++i)
+        setPoly_[i] << QPointF(x, y[i]);
+
+      return State::OK;
+    }
+
+    // stack lines
+    void stack() {
+      for (int i = 1; i < ns_; ++i) {
+        QPolygonF &poly1 = setPoly_[i - 1];
+        QPolygonF &poly2 = setPoly_[i    ];
+
+        int np = poly1.size();
+        assert(poly2.size() == np);
+
+        for (int j = 0; j < np; ++j) {
+          const QPointF &p1 = poly1[j];
+
+          double y1 = p1.y();
+
+          const QPointF &p2 = poly2[j];
+
+          double x2 = p2.x(), y2 = p2.y();
+
+          if (CQChartsUtil::isNaN(y1) || CQChartsUtil::isInf(y1))
+            continue;
+
+          poly2[j] = QPointF(x2, y2 + y1);
+        }
+      }
+    }
+
+    // cumulate
+    void cumulate() {
+      for (int i = 0; i < ns_; ++i) {
+        QPolygonF &poly = setPoly_[i];
+
+        int np = poly.size();
+
+        for (int j = 1; j < np; ++j) {
+          const QPointF &p1 = poly[j - 1];
+          const QPointF &p2 = poly[j    ];
+
+          double y1 = p1.y();
+          double x2 = p2.x(), y2 = p2.y();
+
+          if (CQChartsUtil::isNaN(y1) || CQChartsUtil::isInf(y1))
+            continue;
+
+          poly[j] = QPointF(x2, y1 + y2);
+        }
+      }
+    }
+
+    const Polygons &setPoly() const { return setPoly_; }
+
+   private:
+    CQChartsXYPlot* plot_ { nullptr };
+    int             ns_;
+    Polygons        setPoly_;
+  };
+
+  //---
+
+  double sw = symbolWidth ();
+  double sh = symbolHeight();
+
+  //---
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  if      (isStacked())
+    visitor.stack();
+  else if (isCumulative())
+    visitor.cumulate();
+
+  const Polygons &setPoly = visitor.setPoly();
+
+  //---
+
+  if      (isBivariate()) {
+    // convert lines bivariate lines (line connected each point pair)
+    int ns = setPoly.size();
+
+    if (ns < 1)
+      return false;
 
     Polygons polygons1, polygons2;
 
     polygons1.resize(ns - 1);
     polygons2.resize(ns - 1);
 
-    for (int i = 0; i < nr; ++i) {
-      QModelIndex xind = model->index(i, xColumn());
+    const QPolygonF &poly = setPoly[0];
 
-      if (! xind.isValid())
-        continue;
+    int np = poly.size();
 
-      QModelIndex xind1 = normalizeIndex(xind);
+    for (int row = 0; row < np; ++row) {
+      double x = 0.0;
 
-      //---
-
-      bool ok1;
-
-      double x = CQChartsUtil::modelReal(model, xind, ok1);
-
-      if (! ok1) x = i;
-
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isInf(x))
-        continue;
-
-      if (isLogX()) x = logValue(x);
-
-      std::vector<double> yVals;
+      // sorted y vals
+      std::set<double> sortedYVals;
 
       for (int j = 0; j < ns; ++j) {
         bool hidden = isSetHidden(j);
@@ -742,38 +837,42 @@ initObjs()
 
         //---
 
-        int yColumn = getSetColumn(j);
+        const QPolygonF &poly = setPoly[j];
 
-        QModelIndex yind = model->index(i, yColumn);
+        const QPointF &p = poly[row];
 
-        if (! yind.isValid())
+        if (CQChartsUtil::isNaN(p.y()) || CQChartsUtil::isInf(p.y()))
           continue;
 
-        //---
+        if (j == 0)
+          x = p.x();
 
-        bool ok2;
-
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
-
-        if (! ok2) y = i;
-
-        if (CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y))
-          continue;
-
-        if (isLogY()) y = logValue(y);
-
-        yVals.push_back(y);
+        sortedYVals.insert(p.y());
       }
 
       // need at least 2 values
-      if (yVals.size() < 2)
+      if (sortedYVals.size() < 2)
         continue;
 
-      // connect each y value to next y value
-      double y1 = yVals[0];
-      int    ny = yVals.size();
+      //---
 
-      for (int j = 1; j < ny; ++j) {
+      std::vector<double> yVals;
+
+      for (const auto &y : sortedYVals)
+        yVals.push_back(y);
+
+      //---
+
+      QModelIndex xind  = model->index(row, xColumn()); // TODO: parent
+      QModelIndex xind1 = normalizeIndex(xind);
+
+      //---
+
+      // connect each y value to next y value
+      double y1  = yVals[0];
+      int    ny1 = yVals.size();
+
+      for (int j = 1; j < ny1; ++j) {
         double y2 = yVals[j];
 
         CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y2 + sh/2);
@@ -781,7 +880,7 @@ initObjs()
         if (! isFillUnder()) {
           // use vertical line object for each point pair if not fill under
           CQChartsXYBiLineObj *lineObj =
-            new CQChartsXYBiLineObj(this, bbox, x, y1, y2, xind1, j - 1, ny - 1);
+            new CQChartsXYBiLineObj(this, bbox, x, y1, y2, xind1, j - 1, ny1 - 1);
 
           addPlotObject(lineObj);
         }
@@ -798,6 +897,8 @@ initObjs()
       }
     }
 
+    //---
+
     // add lower, upper and polygon objects for fill under
     if (isFillUnder()) {
       QString name = titleStr();
@@ -813,6 +914,8 @@ initObjs()
 
         name = QString("%1-%2").arg(yname1).arg(yname2);
       }
+
+      int ns = numSets();
 
       for (int j = 1; j < ns; ++j) {
         bool hidden = isSetHidden(j);
@@ -919,12 +1022,9 @@ initObjs()
       }
     }
   }
-  else if (isStacked()) {
-    using Reals = std::vector<double>;
-
-    Reals sum, lastSum;
-
-    sum.resize(nr);
+  else {
+    // convert lines into set polygon and set poly lines (more than one if NaNs)
+    int ns = numSets();
 
     for (int j = 0; j < ns; ++j) {
       bool hidden = isSetHidden(j);
@@ -934,6 +1034,7 @@ initObjs()
 
       //---
 
+      // get column name
       int yColumn = getSetColumn(j);
 
       bool ok;
@@ -942,32 +1043,18 @@ initObjs()
 
       //---
 
-      QPolygonF poly, polyLine;
+      QPolygonF polyShape, polyLine;
 
-      lastSum = sum;
+      const QPolygonF &poly     = setPoly[j];
+      const QPolygonF &prevPoly = (j > 0 ? setPoly[j - 1] : poly);
 
-      for (int i = 0; i < nr; ++i) {
-        QModelIndex xind = model->index(i, xColumn());
+      int np = poly.size();
+      assert(prevPoly.size() == np);
 
-        if (! xind.isValid())
-          continue;
+      for (int row = 0; row < np; ++row) {
+        const QPointF &p = poly[row];
 
-        QModelIndex xind1 = normalizeIndex(xind);
-
-        QModelIndex yind = model->index(i, yColumn  );
-
-        if (! yind.isValid())
-          continue;
-
-        //---
-
-        bool ok1, ok2;
-
-        double x = CQChartsUtil::modelReal(model, xind, ok1);
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
-
-        if (! ok1) x = i;
-        if (! ok2) y = i;
+        double x = p.x(), y = p.y();
 
         if (CQChartsUtil::isNaN(x) || CQChartsUtil::isInf(x) ||
             CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y)) {
@@ -980,19 +1067,15 @@ initObjs()
           continue;
         }
 
-        if (isLogX()) x = logValue(x);
-        if (isLogY()) y = logValue(y);
-
-        double y1 = y + lastSum[i];
-
         //---
 
+        // get point size
         double size = -1;
 
         if (sizeColumn() >= 0) {
           bool ok;
 
-          size = CQChartsUtil::modelReal(model, i, sizeColumn(), ok);
+          size = CQChartsUtil::modelReal(model, row, sizeColumn(), ok);
 
           if (! ok)
             size = -1;
@@ -1000,155 +1083,24 @@ initObjs()
 
         //---
 
-        CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
+        // create point object
+        QModelIndex xind  = model->index(row, xColumn()); // TODO: parent
+        QModelIndex xind1 = normalizeIndex(xind);
+
+        CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
         CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, nr);
+          new CQChartsXYPointObj(this, bbox, x, y, size, xind1, j, ns, row, np);
 
         addPlotObject(pointObj);
 
         //---
 
-        if (i == 0)
-          poly << QPointF(x, lastSum[i]);
-
-        poly     << QPointF(x, y1);
-        polyLine << QPointF(x, y1);
-
-        if (i == nr - 1) {
-          for (int k = i; k > 0; --k) {
-            QModelIndex xind = model->index(k, xColumn());
-
-            if (! xind.isValid())
-              continue;
-
-            //---
-
-            bool ok1;
-
-            double x1 = CQChartsUtil::modelReal(model, xind, ok1);
-
-            if (! ok1) x1 = k;
-
-            if (CQChartsUtil::isNaN(x1) || CQChartsUtil::isInf(x1))
-              continue;
-
-            if (isLogX()) x1 = logValue(x1);
-
-            poly << QPointF(x1, lastSum[k]);
-          }
-        }
-
-        //---
-
-        sum[i] = y1;
-      }
-
-      //---
-
-      if (polyLine.count())
-        addPolyLine(polyLine, j, ns, name);
-
-      //---
-
-      addPolygon(poly, j, ns, name);
-    }
-  }
-  else {
-    for (int j = 0; j < ns; ++j) {
-      bool hidden = isSetHidden(j);
-
-      if (hidden)
-        continue;
-
-      //---
-
-      int yColumn = getSetColumn(j);
-
-      bool ok;
-
-      QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
-
-      //---
-
-      double sum     = 0.0;
-      double lastSum = 0.0;
-
-      QPolygonF poly, polyLine;
-
-      for (int i = 0; i < nr; ++i) {
-        lastSum = sum;
-
-        //---
-
-        QModelIndex xind = model->index(i, xColumn());
-
-        if (! xind.isValid())
-          continue;
-
-        QModelIndex xind1 = normalizeIndex(xind);
-
-        QModelIndex yind = model->index(i, yColumn  );
-
-        if (! yind.isValid())
-          continue;
-
-        //---
-
-        bool ok1, ok2;
-
-        double x = CQChartsUtil::modelReal(model, xind, ok1);
-        double y = CQChartsUtil::modelReal(model, yind, ok2);
-
-        if (! ok1) x = i;
-        if (! ok2) y = i;
-
-        if (CQChartsUtil::isNaN(x) || CQChartsUtil::isInf(x) ||
-            CQChartsUtil::isNaN(y) || CQChartsUtil::isInf(y)) {
-          if (polyLine.count()) {
-            addPolyLine(polyLine, j, ns, name);
-
-            polyLine = QPolygonF();
-          }
-
-          continue;
-        }
-
-        if (isLogX()) x = logValue(x);
-        if (isLogY()) y = logValue(y);
-
-        double y1 = y;
-
-        if (isCumulative()) {
-          sum += y;
-
-          y1 = y + lastSum;
-        }
-
-        //---
-
-        double size = -1;
-
-        if (sizeColumn() >= 0) {
-          bool ok;
-
-          size = CQChartsUtil::modelReal(model, i, sizeColumn(), ok);
-
-          if (! ok)
-            size = -1;
-        }
-
-        //---
-
-        CQChartsGeom::BBox bbox(x - sw/2, y1 - sh/2, x + sw/2, y1 + sh/2);
-
-        CQChartsXYPointObj *pointObj =
-          new CQChartsXYPointObj(this, bbox, x, y1, size, xind1, j, ns, i, nr);
-
+        // set optional point label, color and symbol
         if (pointLabelColumn() >= 0) {
           bool ok;
 
-          QString pointLabelStr = CQChartsUtil::modelString(model, i, pointLabelColumn(), ok);
+          QString pointLabelStr = CQChartsUtil::modelString(model, row, pointLabelColumn(), ok);
 
           if (ok && pointLabelStr.length())
             pointObj->setLabel(pointLabelStr);
@@ -1157,7 +1109,7 @@ initObjs()
         if (pointColorColumn() >= 0) {
           bool ok;
 
-          QString pointColorStr = CQChartsUtil::modelString(model, i, pointColorColumn(), ok);
+          QString pointColorStr = CQChartsUtil::modelString(model, row, pointColorColumn(), ok);
 
           if (ok && pointColorStr.length())
             pointObj->setColor(QColor(pointColorStr));
@@ -1166,38 +1118,85 @@ initObjs()
         if (pointSymbolColumn() >= 0) {
           bool ok;
 
-          QString pointSymbolStr = CQChartsUtil::modelString(model, i, pointSymbolColumn(), ok);
+          QString pointSymbolStr = CQChartsUtil::modelString(model, row, pointSymbolColumn(), ok);
 
           if (ok && pointSymbolStr.length())
             pointObj->setSymbol(CQChartsPlotSymbolMgr::nameToType(pointSymbolStr));
         }
 
-        addPlotObject(pointObj);
-
         //---
 
-        if (isImpulse()) {
-          double ys = std::min(y1, 0.0);
-          double ye = std::max(y1, 0.0);
+        // add impulse line (down to or up to zero)
+        if (! isStacked() && isImpulse()) {
+          double ys = std::min(y, 0.0);
+          double ye = std::max(y, 0.0);
 
           CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
 
           CQChartsXYImpulseLineObj *impulseObj =
-            new CQChartsXYImpulseLineObj(this, bbox, x, 0.0, x, y1, xind1, j, ns);
+            new CQChartsXYImpulseLineObj(this, bbox, x, ys, x, ye, xind1, j, ns);
 
           addPlotObject(impulseObj);
         }
 
         //---
 
-        if (i == 0)
-          poly << fillUnderPos(x, dataRange_.ymin());
+        // add point to poly line
+        polyLine << p;
 
-        poly     << QPointF(x, y1);
-        polyLine << QPointF(x, y1);
+        //---
 
-        if (i == nr - 1)
-          poly << fillUnderPos(x, dataRange_.ymin());
+        // add point to polygon
+
+        // if first point then add first point of previous polygon
+        if (row == 0) {
+          if (isStacked()) {
+            double y1 = (j > 0 ? prevPoly[row].y() : dataRange_.ymin());
+
+            if (CQChartsUtil::isNaN(y1) || CQChartsUtil::isInf(y1))
+              y1 = dataRange_.ymin();
+
+            polyShape << QPointF(x, y1);
+          }
+          else
+            polyShape << fillUnderPos(x, dataRange_.ymin());
+        }
+
+        polyShape << p;
+
+        // if last point then add last point of previous polygon
+        if (row == np - 1) {
+          if (isStacked()) {
+            double y1 = (j > 0 ? prevPoly[row].y() : dataRange_.ymin());
+
+            if (CQChartsUtil::isNaN(y1) || CQChartsUtil::isInf(y1))
+              y1 = dataRange_.ymin();
+
+            polyShape << QPointF(x, y1);
+          }
+          else
+            polyShape << fillUnderPos(x, dataRange_.ymin());
+        }
+      }
+
+      //---
+
+      if (isStacked()) {
+        // add points from previous polygon to bottom of polygon
+        if (j > 0) {
+          for (int row = np - 2; row >= 1; --row) {
+            double x1 = prevPoly[row].x();
+            double y1 = prevPoly[row].y();
+
+            if (CQChartsUtil::isNaN(x1) || CQChartsUtil::isInf(x1))
+              x1 = poly[row].x();
+
+            if (CQChartsUtil::isNaN(y1) || CQChartsUtil::isInf(y1))
+              y1 = 0.0;
+
+            polyShape << QPointF(x1, y1);
+          }
+        }
       }
 
       //---
@@ -1207,7 +1206,7 @@ initObjs()
 
       //---
 
-      addPolygon(poly, j, ns, name);
+      addPolygon(polyShape, j, ns, name);
     }
   }
 
@@ -1216,6 +1215,76 @@ initObjs()
   resetKeyItems();
 
   //---
+
+  return true;
+}
+
+bool
+CQChartsXYPlot::
+rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y, bool skipBad) const
+{
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  //---
+
+  bool ok1 = modelReal(model, parent, row, xColumn(), x, isLogX(), row);
+
+  //---
+
+  bool ok2 = true;
+
+  int ns = numSets();
+
+  for (int i = 0; i < ns; ++i) {
+    int yColumn = getSetColumn(i);
+
+    double y1;
+
+    bool ok3 = modelReal(model, parent, row, yColumn, y1, isLogY(), row);
+
+    if (! ok3) {
+      if (skipBad)
+        continue;
+
+      y1  = CQChartsUtil::getNaN();
+      ok2 = false;
+    }
+
+    //---
+
+    y.push_back(y1);
+  }
+
+  if (ns && y.empty())
+    return false;
+
+  return (ok1 && ok2);
+}
+
+bool
+CQChartsXYPlot::
+modelReal(QAbstractItemModel *model, const QModelIndex &parent, int row, int column,
+          double &r, bool log, double def) const
+{
+  QModelIndex ind = model->index(row, column, parent);
+
+  if (ind.isValid()) {
+    bool ok1;
+
+    r = CQChartsUtil::modelReal(model, ind, ok1);
+
+    if (! ok1)
+      r = def;
+
+    if (CQChartsUtil::isNaN(r) || CQChartsUtil::isInf(r))
+      return false;
+  }
+  else
+    r = def;
+
+  if (log)
+    r = logValue(r);
 
   return true;
 }
@@ -1360,7 +1429,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   int ns = numSets();
 
-  if      (isBivariate() && ns > 1) {
+  if      (isBivariate()) {
     QString name = titleStr();
 
     if (! name.length()) {
@@ -1478,9 +1547,7 @@ bool
 CQChartsXYPlot::
 interpY(double x, std::vector<double> &yvals) const
 {
-  int ns = numSets();
-
-  if (isBivariate() && ns > 1) {
+  if (isBivariate()) {
     return false;
   }
 
@@ -1500,6 +1567,52 @@ interpY(double x, std::vector<double> &yvals) const
 
   return ! yvals.empty();
 }
+
+//------
+
+bool
+CQChartsXYPlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *bivariateAction  = new QAction("Bivariate" , menu);
+  QAction *stackedAction    = new QAction("Stacked"   , menu);
+  QAction *cumulativeAction = new QAction("Cumulative", menu);
+  QAction *impulseAction    = new QAction("Impulse"   , menu);
+  QAction *fullUnderAction  = new QAction("Fill Under", menu);
+
+  bivariateAction->setCheckable(true);
+  bivariateAction->setChecked(isBivariate());
+
+  stackedAction->setCheckable(true);
+  stackedAction->setChecked(isStacked());
+
+  cumulativeAction->setCheckable(true);
+  cumulativeAction->setChecked(isCumulative());
+
+  impulseAction->setCheckable(true);
+  impulseAction->setChecked(isImpulse());
+
+  fullUnderAction->setCheckable(true);
+  fullUnderAction->setChecked(isFillUnder());
+
+  connect(bivariateAction , SIGNAL(triggered(bool)), this, SLOT(setBivariate(bool)));
+  connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
+  connect(cumulativeAction, SIGNAL(triggered(bool)), this, SLOT(setCumulative(bool)));
+  connect(impulseAction   , SIGNAL(triggered(bool)), this, SLOT(setImpulse(bool)));
+  connect(fullUnderAction , SIGNAL(triggered(bool)), this, SLOT(setFillUnder(bool)));
+
+  menu->addSeparator();
+
+  menu->addAction(bivariateAction);
+  menu->addAction(stackedAction);
+  menu->addAction(cumulativeAction);
+  menu->addAction(impulseAction);
+  menu->addAction(fullUnderAction);
+
+  return true;
+}
+
+//------
 
 void
 CQChartsXYPlot::
@@ -2025,11 +2138,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  int ns = plot_->numSets();
-
   QColor c;
 
-  if      (plot_->isBivariate() && ns > 1)
+  if      (plot_->isBivariate())
     c = plot_->interpThemeColor(1);
   else if (plot_->isStacked()) {
     c = plot_->interpLinesColor(i_, n_);
@@ -2338,13 +2449,11 @@ fillBrush() const
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
-  int ns = plot->numSets();
-
   QBrush brush;
 
   QColor c;
 
-  if      (plot->isBivariate() && ns > 1) {
+  if      (plot->isBivariate()) {
     c = plot->interpFillUnderColor(i_, n_);
 
     c.setAlphaF(plot->fillUnderAlpha());

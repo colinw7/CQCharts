@@ -46,32 +46,15 @@
 
 //---
 
+#include <CQUtilMeta.h>
+
 #ifdef CQUTIL_LINE_DASH
-Q_DECLARE_METATYPE(CLineDash)
+CQUTIL_DCL_META_TYPE(CLineDash)
 #endif
 
 #ifdef CQUTIL_ANGLE
-Q_DECLARE_METATYPE(CAngle)
+CQUTIL_DCL_META_TYPE(CAngle)
 #endif
-
-#define CQUTIL_DCL_META_STREAM(TYPE, GETTER, SETTER) \
-QDataStream &operator<<(QDataStream &out, const TYPE &t) { \
-  QString str = t.GETTER().c_str(); \
-\
-  out << str; \
-\
-  return out; \
-} \
-\
-QDataStream &operator>>(QDataStream &in, TYPE &t) { \
-  QString str; \
-\
-  in >> str; \
-\
-  t.fromString(str.toStdString()); \
-\
-  return in; \
-}
 
 //---
 
@@ -179,6 +162,8 @@ namespace CQUtil {
 
   QVariant::Type getPropertyType(const QObject *object, int ind, bool inherited=true);
 
+  QString getPropertyTypeName(const QObject *object, int ind, bool inherited=true);
+
   QVariant getPropertyValue(const QObject *object, int ind, bool inherited=true);
 
   bool getPropertyValueIsEnum(const QObject *object, int ind, bool inherited=true);
@@ -267,8 +252,8 @@ namespace CQUtil {
   QString variantToString(const QVariant &var);
   bool variantToString(const QVariant &var, QString &str);
 
-  bool stringToVariant(const QString &str, QVariant::Type type,
-                       const char *typeName, QVariant &var);
+  bool stringToVariant(const QString &str, QVariant::Type type, const char *typeName,
+                       QVariant &var, const QVariant &oldVar=QVariant());
 
 #ifdef CQUTIL_PALETTE
   bool paletteFromString(QPalette &palette, const QString &paletteDef);
@@ -278,11 +263,20 @@ namespace CQUtil {
   bool activateSlot(QObject *receiver, const char *slotName, const char *valuesStr);
   bool activateSignal(QObject* sender, const char *signalName, const char *valuesStr);
 
+  //---
+
+  bool userVariantToString(const QVariant &var, QString &str);
+  bool userVariantFromString(QVariant &ivar, const QString &str);
+
+  //---
+
   /*! template function to get table cell widget of type */
   template<typename T>
   T tableCellWidget(QTableWidget *table, int row, int col) {
     return qobject_cast<T>(table->cellWidget(row, col));
   }
+
+  //---
 
 #ifdef CQUTIL_IMAGE
   QIcon imageToIcon(CImagePtr image);

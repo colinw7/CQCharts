@@ -214,8 +214,6 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   int getSetColumn(int i) const;
 
-  int numValues() const;
-
   //---
 
   bool probe(ProbeData &probeData) const override;

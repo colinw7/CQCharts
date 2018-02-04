@@ -20,9 +20,13 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible  READ isVisible   WRITE setVisible    )
-  Q_PROPERTY(QString location READ locationStr WRITE setLocationStr)
-  Q_PROPERTY(QFont   textFont READ textFont    WRITE setTextFont   )
+  Q_PROPERTY(bool          visible    READ isVisible    WRITE setVisible     )
+  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal  )
+  Q_PROPERTY(bool          autoHide   READ isAutoHide   WRITE setAutoHide    )
+  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr )
+  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont    )
+  Q_PROPERTY(QString       textColor  READ textColorStr WRITE setTextColorStr)
+  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign   )
 
  public:
   enum LocationType {
@@ -44,8 +48,15 @@ class CQChartsKey : public CQChartsBoxObj {
 
   virtual ~CQChartsKey();
 
+  //---
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; updatePosition(); }
+
+  bool isHorizontal() const { return horizontal_; }
+  void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
+
+  //---
 
   // position
 
@@ -55,23 +66,78 @@ class CQChartsKey : public CQChartsBoxObj {
   QString locationStr() const;
   void setLocationStr(const QString &s);
 
+  bool onLeft() const {
+    return (location_ == LocationType::TOP_LEFT ||
+            location_ == LocationType::CENTER_LEFT ||
+            location_ == LocationType::BOTTOM_LEFT);
+  }
+  bool onHCenter() const {
+    return (location_ == LocationType::TOP_CENTER ||
+            location_ == LocationType::CENTER_CENTER ||
+            location_ == LocationType::BOTTOM_CENTER);
+  }
+  bool onRight() const {
+    return (location_ == LocationType::TOP_RIGHT ||
+            location_ == LocationType::CENTER_RIGHT ||
+            location_ == LocationType::BOTTOM_RIGHT);
+  }
+
+  bool onTop() const {
+    return (location_ == LocationType::TOP_LEFT ||
+            location_ == LocationType::TOP_CENTER ||
+            location_ == LocationType::TOP_RIGHT);
+  }
+  bool onVCenter() const {
+    return (location_ == LocationType::CENTER_LEFT ||
+            location_ == LocationType::CENTER_CENTER ||
+            location_ == LocationType::CENTER_RIGHT);
+  }
+  bool onBottom() const {
+    return (location_ == LocationType::BOTTOM_LEFT ||
+            location_ == LocationType::BOTTOM_CENTER ||
+            location_ == LocationType::BOTTOM_RIGHT);
+  }
+
+  //---
+
+  bool isAutoHide() const { return autoHide_; }
+  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
+
+  //---
+
   // text
 
   const QFont &textFont() const { return textFont_; }
   void setTextFont(const QFont &f) { textFont_ = f; updateLayout(); }
 
+  QString textColorStr() const;
+  void setTextColorStr(const QString &str);
+
+  QColor interpTextColor(int i, int n) const;
+
+  Qt::Alignment textAlign() const { return textAlign_; }
+  void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; }
+
+  //---
+
   virtual void updatePosition() { }
 
   virtual void updateLayout() { }
+
+  virtual void updateKeyItems() { }
 
   //---
 
   virtual void draw(QPainter *painter);
 
  protected:
-  bool         visible_   { true };
-  LocationType location_ { LocationType::TOP_RIGHT };
-  QFont        textFont_;
+  bool                 visible_    { true };
+  bool                 horizontal_ { false };
+  LocationType         location_   { LocationType::TOP_RIGHT };
+  bool                 autoHide_   { true };
+  QFont                textFont_;
+  CQChartsPaletteColor textColor_;
+  Qt::Alignment        textAlign_  { Qt::AlignLeft | Qt::AlignVCenter };
 };
 
 //------
@@ -92,12 +158,20 @@ class CQChartsViewKey : public CQChartsKey {
 
   void draw(QPainter *painter) override;
 
+  bool isInside(const CQChartsGeom::Point &w) const;
+
+  void mousePress(const CQChartsGeom::Point &w);
+
  private:
   void doLayout();
 
  private:
+  using Rects = std::vector<QRectF>;
+
   QPointF position_ { 0, 0 };
   QSizeF  size_;
+  QRectF  rect_;
+  Rects   prects_;
 };
 
 //------
@@ -105,15 +179,12 @@ class CQChartsViewKey : public CQChartsKey {
 class CQChartsPlotKey : public CQChartsKey {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF       absPosition READ absPosition  WRITE setAbsPosition )
-  Q_PROPERTY(bool          insideX     READ isInsideX    WRITE setInsideX     )
-  Q_PROPERTY(bool          insideY     READ isInsideY    WRITE setInsideY     )
-  Q_PROPERTY(int           spacing     READ spacing      WRITE setSpacing     )
-  Q_PROPERTY(bool          horizontal  READ isHorizontal WRITE setHorizontal  )
-  Q_PROPERTY(bool          above       READ isAbove      WRITE setAbove       )
-  Q_PROPERTY(bool          flipped     READ isFlipped    WRITE setFlipped     )
-  Q_PROPERTY(QString       textColor   READ textColorStr WRITE setTextColorStr)
-  Q_PROPERTY(Qt::Alignment textAlign   READ textAlign    WRITE setTextAlign   )
+  Q_PROPERTY(QPointF absPosition READ absPosition  WRITE setAbsPosition)
+  Q_PROPERTY(bool    insideX     READ isInsideX    WRITE setInsideX    )
+  Q_PROPERTY(bool    insideY     READ isInsideY    WRITE setInsideY    )
+  Q_PROPERTY(int     spacing     READ spacing      WRITE setSpacing    )
+  Q_PROPERTY(bool    above       READ isAbove      WRITE setAbove      )
+  Q_PROPERTY(bool    flipped     READ isFlipped    WRITE setFlipped    )
 
  public:
   CQChartsPlotKey(CQChartsPlot *plot);
@@ -136,20 +207,6 @@ class CQChartsPlotKey : public CQChartsKey {
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
 
   //---
-
-  // text
-  QString textColorStr() const;
-  void setTextColorStr(const QString &str);
-
-  QColor interpTextColor(int i, int n) const;
-
-  Qt::Alignment textAlign() const { return textAlign_; }
-  void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; }
-
-  //---
-
-  bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b) { horizontal_ = b; updatePlotKey(); }
 
   bool isAbove() const { return above_; }
   void setAbove(bool b) { above_ = b; redraw(); }
@@ -197,7 +254,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  void updatePlotKey();
+  void updateKeyItems() override;
 
   void updateLayout() override;
 
@@ -254,9 +311,6 @@ class CQChartsPlotKey : public CQChartsKey {
 
   Location                   locationData_;
   int                        spacing_     { 2 };
-  CQChartsPaletteColor       textColor_;
-  Qt::Alignment              textAlign_   { Qt::AlignLeft | Qt::AlignVCenter };
-  bool                       horizontal_  { false };
   bool                       above_       { true };
   bool                       flipped_     { false };
   Items                      items_;

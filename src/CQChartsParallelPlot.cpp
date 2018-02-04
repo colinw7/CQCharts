@@ -148,7 +148,7 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = numValues();
+  int n = model->rowCount(QModelIndex());
 
   for (int j = 0; j < numSets(); ++j) {
     yRanges_.emplace_back();
@@ -237,7 +237,7 @@ initObjs()
 
   std::vector<QPolygonF> polys;
 
-  int n = numValues();
+  int n = model->rowCount(QModelIndex());
 
   for (int i = 0; i < n; ++i)
     polys.emplace_back();
@@ -352,18 +352,6 @@ getSetColumn(int i) const
     return yColumns_[i];
   else
     return yColumn_;
-}
-
-int
-CQChartsParallelPlot::
-numValues() const
-{
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return 0;
-
-  return model->rowCount(QModelIndex());
 }
 
 bool

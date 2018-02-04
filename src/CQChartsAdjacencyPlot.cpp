@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQChartsTip.h>
 #include <CQStrParse.h>
 #include <QPainter>
 
@@ -89,22 +90,18 @@ void
 CQChartsAdjacencyPlot::
 updateRange(bool apply)
 {
-  double xr = 1.0;
-  double yr = 1.0;
+  double r = 1.0;
+
+  dataRange_.reset();
+
+  dataRange_.updateRange(0, 0);
+  dataRange_.updateRange(r, r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.reset();
-
-  dataRange_.updateRange( 0,  0);
-  dataRange_.updateRange(xr, yr);
 
   //---
 
@@ -158,90 +155,109 @@ initHierObjs()
 
   using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
 
-  NameNodeMap nameNodeMap;
-
   //---
 
-  int nr = model->rowCount(QModelIndex());
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn ());
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    bool ok1;
-
-    QString linkStr = CQChartsUtil::modelString(model, nameInd, ok1);
-
-    if (! ok1)
-      continue;
-
-    //---
-
-    QModelIndex valueInd = model->index(r, valueColumn());
-
-    bool ok2;
-
-    double value = CQChartsUtil::modelReal(model, valueInd, ok2);
-
-    if (! ok2)
-      continue;
-
-    //---
-
-    int group = r;
-
-    if (groupColumn() >= 0) {
-      QModelIndex groupInd = model->index(r, groupColumn());
-
-      bool ok3;
-
-      group = CQChartsUtil::modelInteger(model, groupInd, ok3);
-
-      if (! ok3)
-        group = r;
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsAdjacencyPlot *plot) :
+     plot_(plot) {
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
 
-    int pos = linkStr.indexOf("/");
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
-    if (pos == -1)
-      continue;
+      bool ok1;
 
-    QString srcStr  = linkStr.mid(0, pos ).simplified();
-    QString destStr = linkStr.mid(pos + 1).simplified();
+      QString linkStr = CQChartsUtil::modelString(model, nameInd, ok1);
 
-    auto ps = nameNodeMap.find(srcStr);
+      if (! ok1)
+        return State::SKIP;
 
-    if (ps == nameNodeMap.end()) {
-      int id = nameNodeMap.size();
+      //---
 
-      CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, srcStr, group, nameInd1);
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
-      ps = nameNodeMap.insert(ps, NameNodeMap::value_type(srcStr, node));
+      bool ok2;
+
+      double value = CQChartsUtil::modelReal(model, valueInd, ok2);
+
+      if (! ok2)
+        return State::SKIP;
+
+      //---
+
+      int group = row;
+
+      if (plot_->groupColumn() >= 0) {
+        QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
+
+        bool ok3;
+
+        group = CQChartsUtil::modelInteger(model, groupInd, ok3);
+
+        if (! ok3)
+          group = row;
+      }
+
+      //---
+
+      int pos = linkStr.indexOf("/");
+
+      if (pos == -1)
+        return State::SKIP;
+
+      QString srcStr  = linkStr.mid(0, pos ).simplified();
+      QString destStr = linkStr.mid(pos + 1).simplified();
+
+      auto ps = nameNodeMap_.find(srcStr);
+
+      if (ps == nameNodeMap_.end()) {
+        int id = nameNodeMap_.size();
+
+        CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, srcStr, group, nameInd1);
+
+        ps = nameNodeMap_.insert(ps, NameNodeMap::value_type(srcStr, node));
+      }
+
+      auto pd = nameNodeMap_.find(destStr);
+
+      if (pd == nameNodeMap_.end()) {
+        int id = nameNodeMap_.size();
+
+        CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, destStr, 0, QModelIndex());
+
+        pd = nameNodeMap_.insert(pd, NameNodeMap::value_type(destStr, node));
+      }
+
+      //---
+
+      CQChartsAdjacencyNode *srcNode  = (*ps).second;
+      CQChartsAdjacencyNode *destNode = (*pd).second;
+
+      srcNode->setGroup(group);
+      srcNode->setInd  (nameInd1);
+
+      srcNode->addNode(destNode, value);
+
+      return State::OK;
     }
 
-    auto pd = nameNodeMap.find(destStr);
+    const NameNodeMap &nameNodeMap() const { return nameNodeMap_; }
 
-    if (pd == nameNodeMap.end()) {
-      int id = nameNodeMap.size();
+   private:
+    CQChartsAdjacencyPlot *plot_ { nullptr };
+    NameNodeMap            nameNodeMap_;
+  };
 
-      CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, destStr, 0, QModelIndex());
+  RowVisitor visitor(this);
 
-      pd = nameNodeMap.insert(pd, NameNodeMap::value_type(destStr, node));
-    }
+  visitModel(visitor);
 
-    //---
+  NameNodeMap nameNodeMap = visitor.nameNodeMap();
 
-    CQChartsAdjacencyNode *srcNode  = (*ps).second;
-    CQChartsAdjacencyNode *destNode = (*pd).second;
-
-    srcNode->setGroup(group);
-    srcNode->setInd  (nameInd1);
-
-    srcNode->addNode(destNode, value);
-  }
+  //---
 
   for (const auto &nameNode : nameNodeMap) {
     CQChartsAdjacencyNode *node = nameNode.second;
@@ -311,65 +327,84 @@ initConnectionObjs()
 
   //---
 
-  int nr = model->rowCount(QModelIndex());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsAdjacencyPlot *plot) :
+     plot_(plot) {
+    }
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nodeInd        = model->index(r, nodeColumn       ());
-    QModelIndex connectionsInd = model->index(r, connectionsColumn());
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex nodeInd        = model->index(row, plot_->nodeColumn       (), parent);
+      QModelIndex connectionsInd = model->index(row, plot_->connectionsColumn(), parent);
 
-    QModelIndex nodeInd1 = normalizeIndex(nodeInd);
+      QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
-    //---
+      //---
 
-    bool ok1;
+      bool ok1;
 
-    QModelIndex nameInd = model->index(r, nameColumn());
+      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
 
-    int id = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+      int id = CQChartsUtil::modelInteger(model, nodeInd , ok1);
 
-    if (! ok1) id = r;
+      if (! ok1) id = row;
 
-    //---
+      //---
 
-    bool ok2;
+      bool ok2;
 
-    QModelIndex groupInd = model->index(r, groupColumn());
+      QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
 
-    int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
+      int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
 
-    if (! ok2) group = r;
+      if (! ok2) group = row;
 
-    //---
+      //---
 
-    bool ok3;
+      bool ok3;
 
-    QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+      QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
 
-    if (! ok3)
-      continue;
+      if (! ok3)
+        return State::SKIP;
 
-    //----
+      //----
 
-    bool ok4;
+      bool ok4;
 
-    QString name = CQChartsUtil::modelString(model, nameInd, ok4);
+      QString name = CQChartsUtil::modelString(model, nameInd, ok4);
 
-    if (! name.length())
-      name = QString("%1").arg(id);
+      if (! name.length())
+        name = QString("%1").arg(id);
 
-    //---
+      //---
 
-    ConnectionsData connections;
+      ConnectionsData connections;
 
-    connections.ind   = nodeInd1;
-    connections.node  = id;
-    connections.name  = name;
-    connections.group = group;
+      connections.ind   = nodeInd1;
+      connections.node  = id;
+      connections.name  = name;
+      connections.group = group;
 
-    decodeConnections(connectionsStr, connections.connections);
+      plot_->decodeConnections(connectionsStr, connections.connections);
 
-    idConnections_[id] = connections;
-  }
+      idConnections_[id] = connections;
+
+      return State::OK;
+    }
+
+    const IdConnectionsData &idConnections() const { return idConnections_; }
+
+   private:
+    CQChartsAdjacencyPlot *plot_ { nullptr };
+    IdConnectionsData      idConnections_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  idConnections_ = visitor.idConnections();
 
   //---
 
@@ -742,8 +777,27 @@ QString
 CQChartsAdjacencyObj::
 calcId() const
 {
-  return QString("%1(%2):%3(%4):%5").arg(node1_->name()).arg(node1_->group()).
-                                     arg(node2_->name()).arg(node2_->group()).arg(value_);
+  QString groupStr1 = QString("(%1)").arg(node1_->group());
+  QString groupStr2 = QString("(%1)").arg(node2_->group());
+
+  return QString("%1%2:%3%4:%5").arg(node1_->name()).arg(groupStr1).
+                                 arg(node2_->name()).arg(groupStr2).arg(value_);
+}
+
+QString
+CQChartsAdjacencyObj::
+calcTipId() const
+{
+  QString groupStr1 = QString("(%1)").arg(node1_->group());
+  QString groupStr2 = QString("(%1)").arg(node2_->group());
+
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("From" , node1_->name(), groupStr1);
+  tableTip.addTableRow("To"   , node2_->name(), groupStr2);
+  tableTip.addTableRow("Value", value_);
+
+  return tableTip.str();
 }
 
 void

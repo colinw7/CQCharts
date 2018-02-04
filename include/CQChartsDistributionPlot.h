@@ -3,7 +3,6 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsColorSet.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsPaletteColor.h>
 
@@ -159,14 +158,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  virtual int rowCount(QAbstractItemModel *model) const;
-
-  virtual QVariant rowValue(QAbstractItemModel *model, int r, int c, bool &ok) const;
-
-  virtual QVariant headerValue(QAbstractItemModel *model, int c, bool &ok) const;
-
-  //---
-
   int valueColumn() const { return valueSetColumn("values"); }
   void setValueColumn(int i) { setValueSetColumn("values", i); updateRangeAndObjs(); }
 
@@ -175,6 +166,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool isAutoRange() const { return categoryRange_.type == CategoryRange::Type::AUTO; }
 
   void setAutoRange(bool b) {
+    if (! b)
+      categoryRange_.delta = categoryRange_.increment;
+
     categoryRange_.type = (b ? CategoryRange::Type::AUTO : CategoryRange::Type::DEFINED);
 
     updateRangeAndObjs();
@@ -283,6 +277,14 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   //---
 
   CQChartsGeom::BBox annotationBBox() const override;
+
+  //---
+
+  bool allowZoomX() const override { return ! isHorizontal(); }
+  bool allowZoomY() const override { return   isHorizontal(); }
+
+  bool allowPanX() const override { return ! isHorizontal(); }
+  bool allowPanY() const override { return   isHorizontal(); }
 
   //---
 

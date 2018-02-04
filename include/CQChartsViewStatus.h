@@ -2,8 +2,10 @@
 #define CQChartsViewStatus_H
 
 #include <QFrame>
+#include <QLabel>
 
 class CQChartsWindow;
+class CQChartsViewStatusPos;
 class QLabel;
 
 class CQChartsViewStatus : public QFrame {
@@ -15,6 +17,8 @@ class CQChartsViewStatus : public QFrame {
 
  public:
   CQChartsViewStatus(CQChartsWindow *window);
+
+  CQChartsWindow *window() const { return window_; }
 
   QString statusText() const;
   void setStatusText(const QString &s);
@@ -28,10 +32,31 @@ class CQChartsViewStatus : public QFrame {
   QSize sizeHint() const override;
 
  private:
-  CQChartsWindow* window_      { nullptr };
-  QLabel*         statusLabel_ { nullptr };
-  QLabel*         posLabel_    { nullptr };
-  QLabel*         selLabel_    { nullptr };
+  CQChartsWindow*        window_      { nullptr };
+  QLabel*                statusLabel_ { nullptr };
+  CQChartsViewStatusPos* posLabel_    { nullptr };
+  QLabel*                selLabel_    { nullptr };
+};
+
+//---
+
+class CQChartsViewStatusPos : public QLabel {
+  Q_OBJECT
+
+ public:
+  CQChartsViewStatusPos(CQChartsViewStatus *status);
+
+  const QString &text() const { return text_; }
+  void setText(const QString &text);
+
+  void contextMenuEvent(QContextMenuEvent *e);
+
+ private slots:
+  void posTextTypeAction(QAction *action);
+
+ private:
+  CQChartsViewStatus *status_ { nullptr };
+  QString             text_;
 };
 
 #endif

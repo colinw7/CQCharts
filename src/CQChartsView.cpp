@@ -104,6 +104,8 @@ CQChartsView::
 {
   delete propertyModel_;
 
+  delete keyObj_;
+
   delete displayRange_;
 
   for (auto &plotData : plotDatas_)
@@ -451,6 +453,13 @@ mousePressEvent(QMouseEvent *me)
           if (plot->mousePress(w, modSelect))
             return;
         }
+
+        //---
+
+        CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
+
+        if (keyObj_->isInside(w))
+          keyObj_->mousePress(w);
       }
       else {
         startRegionBand(mouseData_.pressPoint);
@@ -516,8 +525,9 @@ mouseMoveEvent(QMouseEvent *me)
 
   //---
 
-  if (mode() == Mode::ZOOM)
+  if (mode() == Mode::ZOOM) {
     updatePosText(me->pos());
+  }
 
   //---
 
@@ -636,7 +646,7 @@ mouseMoveEvent(QMouseEvent *me)
       if (mouseData_.escape)
         endRegionBand();
       else
-        updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
+        updateRegionBand(mouseData_.plot, mouseData_.pressPoint, mouseData_.movePoint);
     }
     else if (mode() == Mode::PAN) {
       if (mouseData_.plot) {
@@ -914,6 +924,35 @@ startRegionBand(const QPoint &pos)
 
 void
 CQChartsView::
+updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &movePoint)
+{
+  updateRegionBand(pressPoint, movePoint);
+
+  if (! plot->allowZoomX() || ! plot->allowZoomY()) {
+    int x = regionBand_->x     ();
+    int y = regionBand_->y     ();
+    int w = regionBand_->width ();
+    int h = regionBand_->height();
+
+    CQChartsGeom::BBox pixelRect = plot->calcPixelRect();
+
+    if (! plot->allowZoomX()) {
+      x = pixelRect.getXMin();
+      w = pixelRect.getWidth();
+    }
+
+    if (! plot->allowZoomY()) {
+      y = pixelRect.getYMin();
+      h = pixelRect.getHeight();
+    }
+
+    regionBand_->setGeometry(QRect(x, y, w, h));
+    regionBand_->show();
+  }
+}
+
+void
+CQChartsView::
 updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint)
 {
   double x = std::min(pressPoint.x(), movePoint.x());
@@ -1068,31 +1107,42 @@ showMenu(const QPoint &p)
 
   //---
 
-  //PlotSet plots;
+  // get all plots
+  Plots allPlots;
 
-  //basePlots(plots);
+  this->plots(allPlots);
 
-  Plots plots;
+  //---
 
-  this->plots(plots);
+  // get current plot
+  CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(p));
 
-  CQChartsPlot *currentPlot = this->currentPlot();
+  Plots         plots;
+  CQChartsPlot* plot { nullptr };
+
+  plotsAt(w, plots, plot);
+
+  CQChartsPlot *currentPlot = (plot ? plot : this->currentPlot());
 
   //---
 
   // Add plots
-  if (plots.size() > 1) {
+  if (allPlots.size() > 1) {
     QMenu *plotsMenu = new QMenu("Plots", popupMenu_);
 
     QActionGroup *plotsGroup = new QActionGroup(plotsMenu);
 
-    for (const auto &plot : plots) {
+    for (const auto &plot : allPlots) {
       int ind = plotInd(plot);
 
       QAction *plotAction = new QAction(plot->id(), plotsMenu);
 
       plotAction->setCheckable(true);
-      plotAction->setChecked(currentPlotInd() == ind);
+
+      if (currentPlot)
+        plotAction->setChecked(plot == currentPlot);
+      else
+        plotAction->setChecked(currentPlotInd() == ind);
 
       plotAction->setData(ind);
 
@@ -1369,6 +1419,25 @@ showMenu(const QPoint &p)
 
   //------
 
+  QAction *invertXAction = new QAction("Invert X", popupMenu_);
+  QAction *invertYAction = new QAction("Invert Y", popupMenu_);
+
+  invertXAction->setCheckable(true);
+  invertYAction->setCheckable(true);
+
+  if (currentPlot) {
+    invertXAction->setChecked(currentPlot->isInvertX());
+    invertYAction->setChecked(currentPlot->isInvertY());
+  }
+
+  connect(invertXAction, SIGNAL(triggered(bool)), this, SLOT(invertXSlot(bool)));
+  connect(invertYAction, SIGNAL(triggered(bool)), this, SLOT(invertYSlot(bool)));
+
+  popupMenu_->addAction(invertXAction);
+  popupMenu_->addAction(invertYAction);
+
+  //------
+
   QAction *fitAction = new QAction("Fit", popupMenu_);
 
   connect(fitAction, SIGNAL(triggered()), this, SLOT(fitSlot()));
@@ -1411,8 +1480,11 @@ showMenu(const QPoint &p)
 
   //---
 
-  for (const auto &plot : plots) {
-    (void) plot->addMenuItems(popupMenu_);
+  // add Menus for current plot
+
+  if (currentPlot) {
+    if (currentPlot->addMenuItems(popupMenu_))
+      popupMenu_->addSeparator();
   }
 
   //---
@@ -1429,6 +1501,21 @@ showMenu(const QPoint &p)
   connect(svgAction, SIGNAL(triggered()), this, SLOT(printSVGSlot()));
 
   popupMenu_->addMenu(printMenu);
+
+  //---
+
+  if (getenv("CQCHARTS_DEBUG_MENU")) {
+    QAction *showBoxesAction = new QAction("Show Boxes", popupMenu_);
+
+    showBoxesAction->setCheckable(true);
+
+    if (currentPlot)
+      showBoxesAction->setChecked(currentPlot->showBoxes());
+
+    popupMenu_->addAction(showBoxesAction);
+
+    connect(showBoxesAction, SIGNAL(triggered(bool)), this, SLOT(showBoxesSlot(bool)));
+  }
 
   //---
 
@@ -1573,6 +1660,26 @@ titleLocationSlot(QAction *action)
 
 void
 CQChartsView::
+invertXSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot();
+
+  if (currentPlot)
+    currentPlot->setInvertX(b);
+}
+
+void
+CQChartsView::
+invertYSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot();
+
+  if (currentPlot)
+    currentPlot->setInvertY(b);
+}
+
+void
+CQChartsView::
 fitSlot()
 {
   for (const auto &plotData : plotDatas_) {
@@ -1672,6 +1779,18 @@ printSVGSlot()
   paint(&painter);
 
   painter.end();
+}
+
+//------
+
+void
+CQChartsView::
+showBoxesSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot();
+
+  if (currentPlot)
+    currentPlot->setShowBoxes(b);
 }
 
 //------

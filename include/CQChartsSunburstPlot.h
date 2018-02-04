@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsPaletteColor.h>
-#include <CQChartsColorSet.h>
 #include <QModelIndex>
 
 class CQChartsSunburstPlot;
@@ -354,17 +353,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
 
   //---
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
-
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
-
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
-
-  //---
-
   CQChartsSunburstHierNode *currentRoot() const;
   void setCurrentRoot(CQChartsSunburstHierNode *r, bool update=true);
 
@@ -393,10 +381,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
-
-  void initColorSet();
-
-  bool colorSetColor(int i, OptColor &color);
 
   void updateObjs() override;
 
@@ -470,7 +454,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   RootNodes           roots_;                   // root nodes
   QString             currentRootName_;         // current root name
   CQChartsTextBoxObj* textBoxObj_  { nullptr }; // arc fill/border/text object
-  CQChartsColorSet    colorSet_;                // color value set
   int                 colorId_     { -1 };      // current color id
   int                 numColorIds_ { 0 };       // num used color ids
 };

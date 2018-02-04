@@ -1,8 +1,8 @@
 High
- + Bucket Model
- + Split Axes
- + CCeil support
- + Rotate Model
+ + Switch to CQChartsUtil visitor
+ + Zoom in single direction
+ + More common grouping column handling
+ + Samplit (scatter, xy, ...)
 
 Medium
  + Documentation

@@ -189,6 +189,23 @@ createEditor(QWidget *parent)
 
     widget_ = check;
   }
+  else if (var.type() == QVariant::UserType) {
+    QLineEdit *edit = new QLineEdit(parent);
+
+    edit->setObjectName("edit");
+
+    QString valueStr;
+
+    if (! CQUtil::userVariantToString(var, valueStr)) {
+      //std::cerr << "Failed to convert to string" << std::endl;
+    }
+
+    edit->setText(valueStr);
+
+    connect(edit, SIGNAL(editingFinished()), this, SLOT(updateValue()));
+
+    widget_ = edit;
+  }
   else {
     QLineEdit *edit = new QLineEdit(parent);
 
@@ -293,6 +310,15 @@ updateValue()
 
     setEditorData(text);
   }
+  else if (propInfo.type() == QVariant::UserType) {
+    QLineEdit *edit = qobject_cast<QLineEdit *>(widget_);
+    assert(edit);
+
+    QVariant var = this->data();
+
+    if (CQUtil::userVariantFromString(var, edit->text()))
+      setEditorData(var);
+  }
   else {
     QLineEdit *edit = qobject_cast<QLineEdit *>(widget_);
     assert(edit);
@@ -394,6 +420,14 @@ paint(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
     if (enumIndToString(propInfo, ind, str))
       delegate->drawString(painter, option, str, index, inside);
+  }
+  else if (var.type() == QVariant::UserType) {
+    QString str;
+
+    if (! CQUtil::userVariantToString(var, str))
+      return false;
+
+    delegate->drawString(painter, option, str, index, inside);
   }
   else {
     QString str;

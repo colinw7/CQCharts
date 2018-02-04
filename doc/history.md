@@ -281,3 +281,20 @@
  + Add support for ceil as interface language in test exec
  + support row headers in csv loader
  + Move filter for csv/tsv loaded to base class
+# 2/4/2018
+ + Use vistor class for more model data processing for common row handling
+ + Improve axis bbox calc for invert x/y
+ + Add percent and range (min, max value) to bar chart
+ + Remove old equal scale calc code
+ + Fix data label on horizontal bar chart
+ + Support single direction zoom and pan - use in distribution plot
+ + Fix bad range auto calc for distribution plot and use auto value as default for non-auto
+ + Improve view key drawing and config
+ + Improve Qt custom property type support and use for units in bar chart margin
+ + Add support for every (start,stop,step) when processing model data
+ + Fix bad auto fit for invert x/y
+ + Support custom menu items for xy plot
+ + Support more details in tree view
+ + Support thousands format for numbers
+ + Add context menu to view position text for value type
+ + Cleanup duplicate code in xy plot

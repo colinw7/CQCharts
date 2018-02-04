@@ -23,12 +23,15 @@
 #include <CQChartsXYPlot.h>
 #include <CQChartsColumn.h>
 #include <CQChartsLineDashEdit.h>
+#include <CQChartsLength.h>
 #include <CQPropertyView.h>
 #include <iostream>
 
 CQCharts::
 CQCharts()
 {
+  CQChartsLength  ::registerMetaType();
+  CQChartsLineDash::registerMetaType();
 }
 
 CQCharts::

@@ -14,9 +14,24 @@ class CQChartsTree : public CQTreeView {
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
+  struct ColumnDetails {
+    QString  typeName;
+    QVariant minValue;
+    QVariant maxValue;
+
+    ColumnDetails() = default;
+
+    ColumnDetails(const QString &typeName, const QVariant &minValue, const QVariant &maxValue) :
+     typeName(typeName), minValue(minValue), maxValue(maxValue) {
+    }
+  };
+
+  using DetailsColumns = std::vector<ColumnDetails>;
+
   struct Details {
-    int numColumns { 0 };
-    int numRows    { 0 };
+    int            numColumns { 0 };
+    int            numRows    { 0 };
+    DetailsColumns columns;
   };
 
  public:

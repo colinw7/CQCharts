@@ -311,10 +311,6 @@ addProperties()
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
   addProperty("text", this, "textContrast", "contrast");
-
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //------
@@ -362,61 +358,23 @@ void
 CQChartsSunburstPlot::
 updateRange(bool apply)
 {
-  double radius = 1.0;
+  double r = 1.0;
 
-  double xr = radius;
-  double yr = radius;
+  dataRange_.reset();
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.reset();
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
 
   //---
 
   if (apply)
     applyDataRange();
-}
-
-void
-CQChartsSunburstPlot::
-initColorSet()
-{
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsSunburstPlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i,color);
 }
 
 //------
@@ -425,7 +383,7 @@ void
 CQChartsSunburstPlot::
 updateObjs()
 {
-  colorSet_.clear();
+  clearValueSets();
 
   resetRoots();
 
@@ -451,8 +409,7 @@ initObjs()
   //---
 
   // init value sets
-  if (colorSet_.empty())
-    initColorSet();
+  initValueSets();
 
   //---
 
@@ -759,7 +716,7 @@ loadFlat(CQChartsSunburstHierNode *root)
 
       OptColor color;
 
-      if (colorSetColor(r, color))
+      if (colorSetColor("color", r, color))
         node->setColor(*color);
 
       if (valueInd.isValid()) {
@@ -791,7 +748,7 @@ addExtraNodes(CQChartsSunburstHierNode *hier)
 
     OptColor color;
 
-    if (colorSetColor(r, color))
+    if (colorSetColor("color", r, color))
       node->setColor(*color);
 
     node->setSize(hier->size());
@@ -912,8 +869,6 @@ addMenuItems(QMenu *menu)
   menu->addAction(pushAction  );
   menu->addAction(popAction   );
   menu->addAction(popTopAction);
-
-  menu->addSeparator();
 
   return true;
 }

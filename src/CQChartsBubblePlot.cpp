@@ -34,6 +34,8 @@ CQChartsBubblePlot::
 CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("bubble"), model)
 {
+  (void) addColorSet("color");
+
   textBoxObj_ = new CQChartsTextBoxObj(this);
 
   textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
@@ -82,17 +84,6 @@ setValueColumn(int i)
 {
   if (i != valueColumn_) {
     valueColumn_ = i;
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsBubblePlot::
-setColorColumn(int i)
-{
-  if (i != colorColumn_) {
-    colorColumn_ = i;
 
     updateRangeAndObjs();
   }
@@ -338,61 +329,23 @@ void
 CQChartsBubblePlot::
 updateRange(bool apply)
 {
-  double radius = 1.0;
+  double r = 1.0;
 
-  double xr = radius;
-  double yr = radius;
+  dataRange_.reset();
+
+  dataRange_.updateRange(-r, -r);
+  dataRange_.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    if (aspect > 1.0)
-      xr *= aspect;
-    else
-      yr *= 1.0/aspect;
+    dataRange_.equalScale(aspect);
   }
-
-  dataRange_.reset();
-
-  dataRange_.updateRange(-xr, -yr);
-  dataRange_.updateRange( xr,  yr);
 
   //---
 
   if (apply)
     applyDataRange();
-}
-
-void
-CQChartsBubblePlot::
-initColorSet()
-{
-  colorSet_.clear();
-
-  if (colorColumn() < 0)
-    return;
-
-  QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return;
-
-  int nr = model->rowCount(QModelIndex());
-
-  for (int i = 0; i < nr; ++i) {
-    bool ok;
-
-    QVariant value = CQChartsUtil::modelValue(model, i, colorColumn(), ok);
-
-    colorSet_.addValue(value); // always add some value
-  }
-}
-
-bool
-CQChartsBubblePlot::
-colorSetColor(int i, OptColor &color)
-{
-  return colorSet_.icolor(i, color);
 }
 
 //------
@@ -401,7 +354,7 @@ void
 CQChartsBubblePlot::
 updateObjs()
 {
-  colorSet_.clear();
+  clearValueSets();
 
   resetNodes();
 
@@ -427,8 +380,7 @@ initObjs()
   //---
 
   // init value sets
-  if (colorSet_.empty())
-    initColorSet();
+  initValueSets();
 
   //---
 
@@ -502,14 +454,21 @@ placeNodes()
 {
   pack_.reset();
 
+  for (auto node : nodes_)
+    pack_.addNode(node);
+
   //---
 
   double xc, yc, r;
 
-  pack_.boundingCircle(xc, yc, r);
-
-  offset_ = CQChartsGeom::Point(xc, yc);
-  scale_  = (r > 0.0 ? 1.0/r : 1.0);
+  if (pack_.boundingCircle(xc, yc, r)) {
+    offset_ = CQChartsGeom::Point(xc, yc);
+    scale_  = (r > 0.0 ? 1.0/r : 1.0);
+  }
+  else {
+    offset_ = CQChartsGeom::Point(0.0, 0.0);
+    scale_  = 1.0;
+  }
 
   //---
 
@@ -590,10 +549,8 @@ loadChildren(const QModelIndex &index)
 
       OptColor color;
 
-      if (colorSetColor(r, color))
+      if (colorSetColor("color", r, color))
         node->setColor(*color);
-
-      pack_.addNode(node);
 
       nodes_.push_back(node);
     }

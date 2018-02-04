@@ -64,6 +64,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Q_PROPERTY(int     valueColumn  READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(QString valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
   Q_PROPERTY(double  angleStart   READ angleStart      WRITE setAngleStart     )
+  Q_PROPERTY(double  angleExtent  READ angleExtent     WRITE setAngleExtent    )
   Q_PROPERTY(QString gridColor    READ gridColorStr    WRITE setGridColorStr   )
   Q_PROPERTY(double  gridAlpha    READ gridAlpha       WRITE setGridAlpha      )
   Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
@@ -111,6 +112,14 @@ class CQChartsRadarPlot : public CQChartsPlot {
     updateRangeAndObjs();
   }
 
+  int numValueColumns() const { return valueColumns_.size(); }
+
+  int valueColumn(int i) const {
+    assert(i >= 0 && i < numValueColumns());
+
+    return valueColumns_[i];
+  }
+
   const Columns &valueColumns() const { return valueColumns_; }
 
   void setValueColumns(const Columns &valueColumns) {
@@ -130,7 +139,10 @@ class CQChartsRadarPlot : public CQChartsPlot {
   //---
 
   double angleStart() const { return angleStart_; }
-  void setAngleStart(double r) { angleStart_ = r; update(); }
+  void setAngleStart(double r) { angleStart_ = r; updateRangeAndObjs(); }
+
+  double angleExtent() const { return angleExtent_; }
+  void setAngleExtent(double r) { angleExtent_ = r; updateRangeAndObjs(); }
 
   //----
 
@@ -205,6 +217,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
+  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r, int nr);
+
+ private:
   class ValueData {
    public:
     ValueData() { }
@@ -242,7 +257,8 @@ class CQChartsRadarPlot : public CQChartsPlot {
   int                  nameColumn_    { -1 };      // name column
   int                  valueColumn_   { 1 };       // value column
   Columns              valueColumns_;              // values column
-  double               angleStart_    { 90 };      // angle start
+  double               angleStart_    { 90.0 };    // angle start
+  double               angleExtent_   { 360.0 };   // angle extent
   CQChartsPaletteColor gridColor_;                 // grid color
   double               gridAlpha_     { 0.5 };     // grid alpha
   CQChartsTextBoxObj*  textBoxObj_    { nullptr }; // box object for fill and border

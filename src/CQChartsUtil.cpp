@@ -1,5 +1,347 @@
 #include <CQChartsUtil.h>
+#include <CQChartsColumn.h>
+#include <CQCharts.h>
 #include <QFontMetrics>
+
+namespace CQChartsUtil {
+
+bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor) {
+  visitor.init();
+
+  if (! model)
+    return false;
+
+  QModelIndex parent;
+
+  visitModelIndex(model, parent, visitor);
+
+  visitor.term();
+
+  return true;
+}
+
+void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor) {
+  int nr = model->rowCount(parent);
+
+  visitor.setNumRows(nr);
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex ind1 = model->index(r, 0, parent);
+
+    if (model->rowCount(ind1) > 0) {
+      visitModelIndex(model, ind1, visitor);
+    }
+    else {
+      ModelVisitor::State preState = visitor.preVisit(model, parent, r);
+      if (preState == ModelVisitor::State::TERMINATE) break;
+      if (preState == ModelVisitor::State::SKIP     ) continue;
+
+      ModelVisitor::State state = visitor.visit(model, parent, r);
+      if (state == ModelVisitor::State::TERMINATE) break;
+      if (state == ModelVisitor::State::SKIP     ) continue;
+
+      visitor.step();
+    }
+  }
+}
+
+QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
+  QString path;
+
+  QModelIndex pind = parent;
+
+  while (pind.isValid()) {
+    bool ok;
+
+    QString str = CQChartsUtil::modelString(model, parent, ok);
+
+    if (! ok)
+      break;
+
+    if (path.length())
+      path = "/" + path;
+
+    path = str + path;
+
+    pind = pind.parent();
+  }
+
+  return path;
+}
+
+//------
+
+ModelColumnDetails::
+ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, int column) :
+ charts_(charts), model_(model), column_(column)
+{
+}
+
+QString
+ModelColumnDetails::
+typeName() const
+{
+  if (! initialized_)
+    (void) const_cast<ModelColumnDetails *>(this)->init();
+
+  return typeName_;
+}
+
+QVariant
+ModelColumnDetails::
+minValue() const
+{
+  if (! initialized_)
+    (void) const_cast<ModelColumnDetails *>(this)->init();
+
+  return minValue_;
+}
+
+QVariant
+ModelColumnDetails::
+maxValue() const
+{
+  if (! initialized_)
+    (void) const_cast<ModelColumnDetails *>(this)->init();
+
+  return maxValue_;
+}
+
+int
+ModelColumnDetails::
+numRows() const
+{
+  if (! initialized_)
+    (void) const_cast<ModelColumnDetails *>(this)->init();
+
+  return numRows_;
+}
+
+bool
+ModelColumnDetails::
+init()
+{
+  initialized_ = true;
+
+  //---
+
+  if (! model_)
+    return false;
+
+  int numColumns = model_->columnCount();
+
+  if (column_ < 0 || column_ >= numColumns)
+    return false;
+
+  //---
+
+  class DetailVisitor : public ModelVisitor {
+   public:
+    DetailVisitor(ModelColumnDetails *details) :
+     details_(details) {
+      CQChartsColumnTypeMgr *columnTypeMgr = details_->charts()->columnTypeMgr();
+
+      CQChartsNameValues nameValues;
+
+      if (columnTypeMgr->getModelColumnType(details_->model(), details_->column(),
+                                            type_, nameValues)) {
+        CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+
+        if (columnType)
+          typeName_ = columnType->name();
+      }
+      else {
+        type_ = CQBaseModel::Type::STRING;
+      }
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex ind = model->index(row, details_->column(), parent);
+
+      if      (type_ == CQBaseModel::Type::INTEGER) {
+        bool ok;
+
+        long i = CQChartsUtil::modelInteger(model, ind, ok);
+        if (! ok) return State::SKIP;
+
+        if (! details_->checkRow(int(i)))
+          return State::SKIP;
+
+        imin_ = (! iset_ ? i : std::min(imin_, i));
+        imax_ = (! iset_ ? i : std::max(imax_, i));
+
+        iset_ = true;
+      }
+      else if (type_ == CQBaseModel::Type::REAL) {
+        bool ok;
+
+        double r = CQChartsUtil::modelReal(model, ind, ok);
+        if (! ok) return State::SKIP;
+
+        if (! details_->checkRow(r))
+          return State::SKIP;
+
+        rmin_ = (! rset_ ? r : std::min(rmin_, r));
+        rmax_ = (! rset_ ? r : std::max(rmax_, r));
+
+        rset_ = true;
+      }
+      else {
+        bool ok;
+
+        QString s = CQChartsUtil::modelString(model, ind, ok);
+        if (! ok) return State::SKIP;
+
+        if (! details_->checkRow(s))
+          return State::SKIP;
+
+        smin_ = (! sset_ ? s : std::min(smin_, s));
+        smax_ = (! sset_ ? s : std::max(smax_, s));
+
+        sset_ = true;
+      }
+
+      return State::OK;
+    }
+
+    CQBaseModel::Type type() const { return type_; }
+
+    QString typeName() const { return typeName_; }
+
+    QVariant minValue() const {
+      if      (type_ == CQBaseModel::Type::INTEGER) return QVariant(int(imin_));
+      else if (type_ == CQBaseModel::Type::REAL   ) return QVariant(rmin_);
+      else                                          return QVariant(smin_);
+    }
+
+    QVariant maxValue() const {
+      if      (type_ == CQBaseModel::Type::INTEGER) return QVariant(int(imax_));
+      else if (type_ == CQBaseModel::Type::REAL   ) return QVariant(rmax_);
+      else                                          return QVariant(smax_);
+    }
+
+   private:
+    ModelColumnDetails *details_ { nullptr };
+    CQBaseModel::Type   type_;
+    QString             typeName_;
+    long                imin_ { 0 }; long    imax_ { 0 }; bool iset_ { false };
+    double              rmin_ { 0 }; double  rmax_ { 0 }; bool rset_ { false };
+    QString             smin_      ; QString smax_      ; bool sset_ { false };
+  };
+
+  //---
+
+  DetailVisitor detailVisitor(this);
+
+  visitModel(model_, detailVisitor);
+
+  //---
+
+  typeName_ = detailVisitor.typeName();
+  minValue_ = detailVisitor.minValue();
+  maxValue_ = detailVisitor.maxValue();
+  numRows_  = detailVisitor.numRows();
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString toString(double r, const QString &fmt) {
+#ifdef ALLOW_NAN
+  if (COS::is_nan(real))
+    return "NaN";
+#endif
+
+  if (fmt == "%g" && isZero(r))
+    return "0.0";
+
+  static char buffer[128];
+
+  if (fmt == "%T") {
+    // format real in buffer
+    bool negative = (r < 0);
+
+    if (negative)
+      r = -r;
+
+    ::sprintf(buffer, "%g", r);
+
+    // find decimal point - if less than 4 digits to left then done
+    QString res = buffer;
+
+    int pos = res.indexOf('.');
+
+    if (pos < 0)
+      pos = res.length();
+
+    if (pos <= 3) {
+      if (negative)
+        return "-" + res;
+      else
+        return res;
+    }
+
+    // add commas to value to left of decimal point
+    QString rhs = res.mid(pos);
+
+    int ncomma = pos/3; // number of comma to add
+
+    QString lhs;
+
+    if (negative)
+      lhs = "-";
+
+    // add digits before first comma
+    int pos1 = pos - ncomma*3;
+
+    lhs += res.mid(0, pos1);
+
+    for (int i = 0; i < ncomma; ++i) {
+      // add comma and next set of 3 digits
+      lhs += "," + res.mid(pos1, 3);
+
+      pos1 += 3;
+    }
+
+    return lhs + rhs;
+  }
+  else {
+    // format real in buffer
+    ::sprintf(buffer, fmt.toLatin1().constData(), r);
+
+    return buffer;
+  }
+}
+
+QString toString(long i, const QString &fmt) {
+  static char buffer[64];
+
+  ::sprintf(buffer, fmt.toLatin1().constData(), i);
+
+  return buffer;
+}
+
+QString toString(const std::vector<int> &columns) {
+  QString str;
+
+  for (std::size_t i = 0; i < columns.size(); ++i) {
+    if (str.length())
+      str += " ";
+
+    str += QString("%1").arg(columns[i]);
+  }
+
+  return str;
+}
+
+}
+
+//------
 
 namespace {
 

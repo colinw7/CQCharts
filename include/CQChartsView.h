@@ -282,6 +282,7 @@ class CQChartsView : public QFrame {
   //---
 
   void startRegionBand(const QPoint &pos);
+  void updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &movePoint);
   void updateRegionBand(const QPoint &pressPoint, const QPoint &movePoint);
   void endRegionBand();
 
@@ -404,6 +405,9 @@ class CQChartsView : public QFrame {
   void titleVisibleSlot(bool b);
   void titleLocationSlot(QAction *action);
 
+  void invertXSlot(bool);
+  void invertYSlot(bool);
+
   void fitSlot();
 
   //---
@@ -420,6 +424,10 @@ class CQChartsView : public QFrame {
 
   void printPNGSlot();
   void printSVGSlot();
+
+  //---
+
+  void showBoxesSlot(bool b);
 
   //---
 

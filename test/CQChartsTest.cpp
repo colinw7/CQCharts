@@ -2065,6 +2065,13 @@ updateModelDetails(const ViewData *viewData)
 
     text += QString(  "%1\tColumns").arg(details.numColumns);
     text += QString("\n%1\tRows"   ).arg(details.numRows);
+
+    for (int i = 0; i < details.numColumns; ++i) {
+      text += QString("\n\t%1\t%2\t%3").
+               arg(details.columns[i].typeName).
+               arg(details.columns[i].minValue.toString()).
+               arg(details.columns[i].maxValue.toString());
+    }
   }
   else {
     CQChartsTable::Details details;

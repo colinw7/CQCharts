@@ -47,7 +47,9 @@ genColumnTypes()
     }
 
     if (type == Type::NONE) {
-      if (numReal == 0)
+      if      (numReal == 0 && numInt == 0)
+        type = Type::STRING;
+      else if (numReal == 0)
         type = Type::INTEGER;
       else
         type = Type::REAL;

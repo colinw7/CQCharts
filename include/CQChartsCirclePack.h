@@ -98,10 +98,17 @@ class CQChartsCirclePack {
     }
   }
 
-  void boundingCircle(double &xc, double &yc, double &r) const {
+  bool boundingCircle(double &xc, double &yc, double &r) const {
+    xc = 0.0;
+    yc = 0.0;
+    r  = 0.0;
+
     CQChartsEnclosingCircle enclose;
 
     int n = size();
+
+    if (n <= 0)
+      return false;
 
     for (int i = 0; i < n; ++i) {
       NODE *node = this->node(i);
@@ -110,6 +117,8 @@ class CQChartsCirclePack {
     }
 
     enclose.calc(xc, yc, r);
+
+    return true;
   }
 
  private:

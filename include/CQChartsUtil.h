@@ -12,7 +12,85 @@
 #include <QStringList>
 #include <QRectF>
 
+class CQCharts;
+
 namespace CQChartsUtil {
+
+class ModelVisitor {
+ public:
+  enum class State {
+    OK,
+    SKIP,
+    TERMINATE
+  };
+
+ public:
+  ModelVisitor() { }
+
+  virtual ~ModelVisitor() { }
+
+  int row() const { return row_; }
+
+  int numRows() const { return numRows_; }
+  void setNumRows(int nr) { numRows_ = nr; }
+
+  void init() { row_ = 0; numRows_ = 0; }
+  void step() { ++row_; }
+  void term() { numRows_ = row_; }
+
+  virtual State preVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+
+  virtual State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+
+  //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+
+ protected:
+  int row_     { 0 };
+  int numRows_ { 0 };
+};
+
+bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor);
+
+void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor);
+
+QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
+
+//------
+
+class ModelColumnDetails {
+ public:
+  ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, int column);
+
+  virtual ~ModelColumnDetails() { }
+
+  CQCharts *charts() const { return charts_; }
+
+  QAbstractItemModel *model() const { return model_; }
+
+  int column() const { return column_; }
+
+  QString typeName() const;
+
+  QVariant minValue() const;
+  QVariant maxValue() const;
+
+  int numRows() const;
+
+  virtual bool checkRow(const QVariant &) { return true; }
+
+ private:
+  bool init();
+
+ private:
+  CQCharts           *charts_ { nullptr };
+  QAbstractItemModel *model_ { nullptr };
+  int                 column_ { 0 };
+  QString             typeName_;
+  QVariant            minValue_;
+  QVariant            maxValue_;
+  int                 numRows_;
+  bool                initialized_ { false };
+};
 
 //------
 
@@ -200,42 +278,10 @@ inline bool toInt(const QString &str, long &i) {
 
 //------
 
-inline QString toString(double r, const QString &fmt="%g") {
-#ifdef ALLOW_NAN
-  if (COS::is_nan(real))
-    return "NaN";
-#endif
+QString toString(double r, const QString &fmt="%g" );
+QString toString(long   i, const QString &fmt="%ld");
 
-  if (fmt == "%g" && isZero(r))
-    return "0.0";
-
-  static char buffer[128];
-
-  ::sprintf(buffer, fmt.toLatin1().constData(), r);
-
-  return buffer;
-}
-
-inline QString toString(long i, const QString &fmt="%ld") {
-  static char buffer[64];
-
-  ::sprintf(buffer, fmt.toLatin1().constData(), i);
-
-  return buffer;
-}
-
-inline QString toString(const std::vector<int> &columns) {
-  QString str;
-
-  for (std::size_t i = 0; i < columns.size(); ++i) {
-    if (str.length())
-      str += " ";
-
-    str += QString("%1").arg(columns[i]);
-  }
-
-  return str;
-}
+QString toString(const std::vector<int> &columns);
 
 //------
 
@@ -658,6 +704,7 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, int col, bool &ok
 
 inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
+  if (! ok) return "";
 
   return var.toString();
 }
@@ -670,6 +717,7 @@ inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
+  if (! ok) return 0.0;
 
   return varToReal(var, ok);
 }
@@ -682,6 +730,7 @@ inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
 
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
+  if (! ok) return 0;
 
   return varToInt(var, ok);
 }

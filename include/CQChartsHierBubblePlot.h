@@ -6,7 +6,6 @@
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsPaletteColor.h>
-#include <CQChartsColorSet.h>
 #include <QModelIndex>
 
 class CQChartsHierBubblePlot;
@@ -317,17 +316,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
 
   //---
 
-  bool isColorMapEnabled() const { return colorSet_.isMapEnabled(); }
-  void setColorMapEnabled(bool b) { colorSet_.setMapEnabled(b); updateObjs(); }
-
-  double colorMapMin() const { return colorSet_.mapMin(); }
-  void setColorMapMin(double r) { colorSet_.setMapMin(r); updateObjs(); }
-
-  double colorMapMax() const { return colorSet_.mapMax(); }
-  void setColorMapMax(double r) { colorSet_.setMapMax(r); updateObjs(); }
-
-  //---
-
   CQChartsHierBubbleHierNode *root() const { return root_; }
 
   CQChartsHierBubbleHierNode *firstHier() const { return firstHier_; }
@@ -372,10 +360,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
-
-  void initColorSet();
-
-  bool colorSetColor(int i, OptColor &color);
 
   void updateObjs() override;
 
@@ -449,7 +433,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   CQChartsTextBoxObj*         textBoxObj_      { nullptr }; // bubble fill/border/text object
   CQChartsGeom::Point         offset_          { 0, 0 };    // draw offset
   double                      scale_           { 1.0 };     // draw scale
-  CQChartsColorSet            colorSet_;                    // color value set
   int                         colorId_         { -1 };      // current color id
   int                         numColorIds_     { 0 };       // num used color ids
   int                         maxDepth_        { 1 };       // max hier depth
