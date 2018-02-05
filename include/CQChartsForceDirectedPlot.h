@@ -25,6 +25,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   Q_PROPERTY(int     nodeColumn        READ nodeColumn         WRITE setNodeColumn        )
   Q_PROPERTY(int     connectionsColumn READ connectionsColumn  WRITE setConnectionsColumn )
+  Q_PROPERTY(int     valueColumn       READ valueColumn        WRITE setValueColumn       )
   Q_PROPERTY(int     groupColumn       READ groupColumn        WRITE setGroupColumn       )
   Q_PROPERTY(int     nameColumn        READ nameColumn         WRITE setNameColumn        )
   Q_PROPERTY(bool    autoFit           READ isAutoFit          WRITE setAutoFit           )
@@ -44,11 +45,14 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   int nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
 
-  int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
-
   int connectionsColumn() const { return connectionsColumn_; }
   void setConnectionsColumn(int i) { connectionsColumn_ = i; updateRangeAndObjs(); }
+
+  int valueColumn() const { return valueColumn_; }
+  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+
+  int groupColumn() const { return groupColumn_; }
+  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
@@ -129,30 +133,35 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
+  ConnectionsData &getConnections(int id);
+
+  void addConnections(int id, const ConnectionsData &connections);
+
   bool decodeConnections(const QString &str, ConnectionDataArray &connections);
   bool decodeConnection(const QString &pointStr, ConnectionData &connection);
 
  private:
   using NodeMap = std::map<int,Springy::Node*>;
 
-  int                   nodeColumn_        { 0 };
-  int                   connectionsColumn_ { 1 };
-  int                   nameColumn_        { -1 };
-  int                   groupColumn_       { -1 };
-  IdConnectionsData     idConnections_;
-  NodeMap               nodes_;
-  CQChartsForceDirected forceDirected_;
-  bool                  autoFit_           { true };
-  bool                  running_           { true };
-  bool                  pressed_           { false };
-  double                rangeSize_         { 20 };
-  double                nodeMass_          { 1.0 };
-  int                   initSteps_         { 100 };
-  double                stepSize_          { 0.01 };
-  CQChartsPaletteColor  nodeBorderColor_;
-  double                nodeRadius_        { 6 };
-  CQChartsPaletteColor  edgeColor_;
-  double                edgeAlpha_         { 0.5 };
+  int                   nodeColumn_        { -1 };    // node column
+  int                   connectionsColumn_ { -1 };    // connections column
+  int                   valueColumn_       { -1 };    // value column
+  int                   groupColumn_       { -1 };    // group column
+  int                   nameColumn_        { -1 };    // name column
+  IdConnectionsData     idConnections_;               // id connections
+  NodeMap               nodes_;                       // force directed nodes
+  CQChartsForceDirected forceDirected_;               // force directed class
+  bool                  autoFit_           { true };  // is auto fit
+  bool                  running_           { true };  // is running
+  bool                  pressed_           { false }; // is pressed
+  double                rangeSize_         { 20.0 };  // range size
+  double                nodeMass_          { 1.0 };   // node mass
+  int                   initSteps_         { 100 };   // initial steps
+  double                stepSize_          { 0.01 };  // step size
+  CQChartsPaletteColor  nodeBorderColor_;             // node border color
+  double                nodeRadius_        { 6.0 };   // node radius
+  CQChartsPaletteColor  edgeColor_;                   // edge color
+  double                edgeAlpha_         { 0.5 };   // edge alpha
 };
 
 #endif

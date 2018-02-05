@@ -142,9 +142,11 @@ void
 CQChartsView::
 setCurrentPlotInd(int ind)
 {
-  currentPlotInd_ = ind;
+  if (ind != currentPlotInd_) {
+    currentPlotInd_ = ind;
 
-  emit currentPlotChanged();
+    emit currentPlotChanged();
+  }
 }
 
 void
@@ -533,17 +535,30 @@ mouseMoveEvent(QMouseEvent *me)
 
   CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
-  // probe move and move (pressed or not pressed) - show probe lines
+  // probe mode and move (pressed or not pressed) - show probe lines
   if (mode() == Mode::PROBE) {
-    auto addProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip, double px,
-                            double py1, double py2) -> void {
+    auto addVerticalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
+                                    double px, double py1, double py2) -> void {
       while (ind >= int(probeBands_.size())) {
         CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
 
         probeBands_.push_back(probeBand);
       }
 
-      probeBands_[ind]->show(plot, tip, px, py1, py2);
+      probeBands_[ind]->showVertical(plot, tip, px, py1, py2);
+
+      ++ind;
+    };
+
+    auto addHorizontalProbeBand = [&](int &ind, CQChartsPlot *plot, const QString &tip,
+                                      double px1, double px2, double py) -> void {
+      while (ind >= int(probeBands_.size())) {
+        CQChartsProbeBand *probeBand = new CQChartsProbeBand(this);
+
+        probeBands_.push_back(probeBand);
+      }
+
+      probeBands_[ind]->showHorizontal(plot, tip, px1, px2, py);
 
       ++ind;
     };
@@ -572,24 +587,45 @@ mouseMoveEvent(QMouseEvent *me)
       if (! plot->probe(probeData))
         continue;
 
-      if (probeData.yvals.empty())
-        probeData.yvals.emplace_back(w.y);
-
       CQChartsGeom::BBox dataRange = plot->calcDataRange();
 
-      // add probe lines from ymin to probed y values
-      CQChartsGeom::Point p1;
+      if (probeData.direction == CQChartsPlot::ProbeData::Direction::VERTICAL) {
+        if (probeData.yvals.empty())
+          probeData.yvals.emplace_back(w.y);
 
-      plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
+        // add probe lines from ymin to probed y values
+        CQChartsGeom::Point p1;
 
-      for (const auto &yval : probeData.yvals) {
-        CQChartsGeom::Point p2;
+        plot->windowToPixel(CQChartsGeom::Point(probeData.x, dataRange.getYMin()), p1);
 
-        plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
+        for (const auto &yval : probeData.yvals) {
+          CQChartsGeom::Point p2;
 
-        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+          plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
 
-        addProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+          QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+
+          addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
+        }
+      }
+      else {
+        if (probeData.xvals.empty())
+          probeData.xvals.emplace_back(w.x);
+
+        // add probe lines from xmin to probed x values
+        CQChartsGeom::Point p1;
+
+        plot->windowToPixel(CQChartsGeom::Point(dataRange.getXMin(), probeData.y), p1);
+
+        for (const auto &xval : probeData.xvals) {
+          CQChartsGeom::Point p2;
+
+          plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y), p2);
+
+          QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+
+          addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
+        }
       }
     }
 
@@ -849,6 +885,8 @@ keyPressEvent(QKeyEvent *ke)
   }
   else if (ke->key() == Qt::Key_Bar) {
     setMode(Mode::PROBE);
+
+    // TODO: do mouse move to show probe immediately or add probe move API
 
     return;
   }
@@ -1122,7 +1160,10 @@ showMenu(const QPoint &p)
 
   plotsAt(w, plots, plot);
 
-  CQChartsPlot *currentPlot = (plot ? plot : this->currentPlot());
+  if (plot)
+    setCurrentPlotInd(plotInd(plot));
+
+  CQChartsPlot *currentPlot = this->currentPlot();
 
   //---
 

@@ -615,11 +615,9 @@ void
 CQChartsAdjacencyPlot::
 handleResize()
 {
-  dataRange_.reset();
-
-  clearPlotObjects();
-
   CQChartsPlot::handleResize();
+
+  clearRangeAndObjs();
 }
 
 void

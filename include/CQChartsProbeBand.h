@@ -22,7 +22,9 @@ class CQChartsProbeBand : public QObject {
   const QFont &font() const { return font_; }
   void setFont(const QFont &f) { font_ = f; }
 
-  void show(CQChartsPlot *plot, const QString &text, double px, double py1, double py2);
+  void showVertical  (CQChartsPlot *plot, const QString &text, double px, double py1, double py2);
+  void showHorizontal(CQChartsPlot *plot, const QString &text, double px1, double px2, double py);
+
   void hide();
 
  private:

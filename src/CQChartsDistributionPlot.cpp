@@ -24,10 +24,11 @@ addParameters()
   addColumnParameter("value", "Value", "valueColumn", "", 0);
   addColumnParameter("color", "Color", "colorColumn", "optional");
 
-  addBoolParameter("autoRange", "Auto Range", "autoRange", "optional", true);
+  addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
 
-  addRealParameter("start", "Start", "startValue", "optional");
-  addRealParameter("delta", "Delta", "deltaValue", "optional");
+  addBoolParameter("autoRange", "Auto Range", "autoRange" , "optional", true);
+  addRealParameter("start"    , "Start"     , "startValue", "optional");
+  addRealParameter("delta"    , "Delta"     , "deltaValue", "optional");
 }
 
 CQChartsPlot *
@@ -104,6 +105,22 @@ addProperties()
   addProperty("color", this, "colorMapEnabled", "mapEnabled");
   addProperty("color", this, "colorMapMin"    , "mapMin"    );
   addProperty("color", this, "colorMapMax"    , "mapMax"    );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+setHorizontal(bool b)
+{
+  if (b != horizontal_) {
+    horizontal_ = b;
+
+    dataLabel_.setDirection(horizontal_ ?
+      CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
+
+    updateRangeAndObjs();
+  }
 }
 
 //---
@@ -449,20 +466,6 @@ annotationBBox() const
 
 //------
 
-void
-CQChartsDistributionPlot::
-setHorizontal(bool b)
-{
-  if (b != horizontal_) {
-    horizontal_ = b;
-
-    dataLabel_.setDirection(horizontal_ ?
-      CQChartsDataLabel::Direction::HORIZONTAL : CQChartsDataLabel::Direction::VERTICAL);
-
-    updateRangeAndObjs();
-  }
-}
-
 bool
 CQChartsDistributionPlot::
 checkFilter(double value) const
@@ -753,12 +756,53 @@ bucketValues(int bucket, double &value1, double &value2) const
   if (CQChartsUtil::isZero(value2)) value2 = 0.0;
 }
 
-//------
+//---
+
+bool
+CQChartsDistributionPlot::
+probe(ProbeData &probeData) const
+{
+  if (! isHorizontal()) {
+    probeData.direction = ProbeData::Direction::VERTICAL;
+
+    if (probeData.x < dataRange_.xmin() + 0.5)
+      probeData.x = dataRange_.xmin() + 0.5;
+
+    if (probeData.x > dataRange_.xmax() - 0.5)
+      probeData.x = dataRange_.xmax() - 0.5;
+
+    probeData.x = std::round(probeData.x);
+  }
+  else {
+    probeData.direction = ProbeData::Direction::HORIZONTAL;
+
+    if (probeData.y < dataRange_.ymin() + 0.5)
+      probeData.y = dataRange_.ymin() + 0.5;
+
+    if (probeData.y > dataRange_.ymax() - 0.5)
+      probeData.y = dataRange_.ymax() - 0.5;
+
+    probeData.y = std::round(probeData.y);
+  }
+
+  return true;
+}
+
+//---
 
 bool
 CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
+  QAction *horizontalAction = new QAction("Horizontal", menu);
+
+  horizontalAction->setCheckable(true);
+  horizontalAction->setChecked(isHorizontal());
+
+  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
+
+  //---
+
   PlotObjs objs;
 
   selectedObjs(objs);
@@ -775,8 +819,11 @@ addMenuItems(QMenu *menu)
   popAction   ->setEnabled(! filterStack_.empty());
   popTopAction->setEnabled(! filterStack_.empty());
 
+  //---
+
   menu->addSeparator();
 
+  menu->addAction(horizontalAction);
   menu->addAction(pushAction  );
   menu->addAction(popAction   );
   menu->addAction(popTopAction);

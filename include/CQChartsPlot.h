@@ -295,11 +295,18 @@ class CQChartsPlot : public QObject {
   };
 
   struct ProbeData {
+    enum class Direction {
+      VERTICAL,
+      HORIZONTAL
+    };
+
     using Values = std::vector<ProbeValue>;
 
-    double x;
-    double y;
-    Values yvals;
+    double    x         { 0.0 };
+    double    y         { 0.0 };
+    Values    xvals;
+    Values    yvals;
+    Direction direction { Direction::VERTICAL };
   };
 
   using OptReal = boost::optional<double>;
@@ -761,6 +768,8 @@ class CQChartsPlot : public QObject {
   virtual void updateRange(bool apply=true) = 0;
 
   virtual void updateObjs();
+
+  void clearRangeAndObjs();
 
   void updateRangeAndObjs();
 

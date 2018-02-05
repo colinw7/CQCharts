@@ -145,6 +145,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
+  void addNameValue(const QString &name, double value);
+
   bool initObjs() override;
 
   //---

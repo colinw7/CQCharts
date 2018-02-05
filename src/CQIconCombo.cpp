@@ -77,8 +77,8 @@ class CQIconComboModel : public QAbstractListModel {
         return QVariant();
     }
     else if (role == Qt::BackgroundRole)
-      return QVariant(QColor(255,255,255));
-    else if (role == Qt::UserRole) {
+      return QVariant(combo_->palette().window().color());
+    else if (role == Qt::EditRole) {
       return data_[row].var;
     }
     else
@@ -141,6 +141,12 @@ CQIconCombo(QWidget *parent) :
   setModelColumn(0);
 
   connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTip()));
+}
+
+CQIconCombo::
+~CQIconCombo()
+{
+  delete model_;
 }
 
 void
@@ -209,7 +215,7 @@ itemData(int row) const
 {
   QModelIndex ind = model()->index(row, 0);
 
-  return model()->data(ind, Qt::UserRole);
+  return model()->data(ind, Qt::EditRole);
 }
 
 void
@@ -324,27 +330,29 @@ paintEvent(QPaintEvent *)
   // draw the icon
   QRect rect = opt.rect.adjusted(2, 2, -(popupRect.width() + 2), -2);
 
-  painter.fillRect(rect, QColor(255,255,255));
+  painter.fillRect(rect, palette().color(QPalette::Window));
 
-  int border = 3;
+  if (rect.width() > 0) {
+    int border = 3;
 
-  int x  = border;
-  int yc = rect.y() + rect.height()/2;
+    int x  = border;
+    int yc = rect.y() + rect.height()/2;
 
-  int is = style()->pixelMetric(QStyle::PM_SmallIconSize);
+    int is = style()->pixelMetric(QStyle::PM_SmallIconSize);
 
-  int row = currentIndex();
-  if (row < 0) return;
+    int row = currentIndex();
+    if (row < 0) return;
 
-  QModelIndex ind = model()->index(row, 0);
+    QModelIndex ind = model()->index(row, 0);
 
-  QIcon icon = model()->data(ind, Qt::DisplayRole).value<QIcon>();
-  assert(! icon.isNull());
+    QIcon icon = model()->data(ind, Qt::DisplayRole).value<QIcon>();
+    assert(! icon.isNull());
 
-  QPixmap pm = icon.pixmap(QSize(rect.width(), is));
-  assert(! pm.isNull());
+    QPixmap pm = icon.pixmap(QSize(rect.width(), is));
 
-  painter.drawPixmap(x, yc - is/2, pm);
+    if (! pm.isNull())
+      painter.drawPixmap(x, yc - is/2, pm);
+  }
 
   //------
 

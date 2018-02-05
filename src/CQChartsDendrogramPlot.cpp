@@ -35,6 +35,10 @@ CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
   edgeBoxObj_ = new CQChartsTextBoxObj(this);
 
   nodeBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+
+  //---
+
+  addTitle();
 }
 
 CQChartsDendrogramPlot::
@@ -308,88 +312,60 @@ updateRange(bool apply)
 
   //---
 
-  int nr = model->rowCount(QModelIndex());
-
-  dataRange_.reset();
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd  = model->index(r, nameColumn ());
-    QModelIndex valueInd = model->index(r, valueColumn());
-
-    //QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    //---
-
-    bool ok1;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok1);
-
-    //--
-
-    bool ok2;
-
-    double value = CQChartsUtil::modelReal(model, valueInd, ok2);
-
-    if (CQChartsUtil::isNaN(value))
-      continue;
-
-    //---
-
-    QStringList names;
-
-    int pos = name.indexOf('/');
-
-    while (pos != -1) {
-      QString lhs = name.mid(0, pos);
-      QString rhs = name.mid(pos + 1);
-
-      names.push_back(lhs);
-
-      name = rhs;
-
-      pos = name.indexOf('/');
+  // calc data range (x, y values)
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsDendrogramPlot *plot) :
+     plot_(plot) {
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString path = CQChartsUtil::parentPath(model, parent);
 
-    // create nodes
-    CQChartsDendrogram::HierNode *hierNode = 0;
+      //---
 
-    for (const auto &n : names) {
-      if (! hierNode) {
-        if (! dendrogram_->root()) {
-          hierNode = dendrogram_->createRootNode(n);
+      QModelIndex nameInd  = model->index(row, plot_->nameColumn (), parent);
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
-          hierNode->setOpen(false);
-        }
-        else
-          hierNode = dendrogram_->root();
-      }
-      else {
-        CQChartsDendrogram::HierNode *hierNode1 = hierNode->findChild(n);
+      //QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-        if (! hierNode1) {
-          hierNode = dendrogram_->createHierNode(hierNode, n);
+      //---
 
-          hierNode->setOpen(false);
-        }
-        else
-          hierNode = hierNode1;
-      }
+      bool ok1;
+
+      QString name = CQChartsUtil::modelString(model, nameInd, ok1);
+
+      if (path.length())
+        name = path + "/" + name;
+
+      //--
+
+      bool ok2;
+
+      double value = CQChartsUtil::modelReal(model, valueInd, ok2);
+
+      if (CQChartsUtil::isNaN(value))
+        return State::SKIP;
+
+      //---
+
+      plot_->addNameValue(name, value);
+
+      return State::OK;
     }
 
-    if (! hierNode) {
-      hierNode = dendrogram_->createRootNode(name);
+    const CQChartsGeom::Range &range() const { return range_; }
 
-      hierNode->setOpen(false);
-    }
-    else {
-      CQChartsDendrogram::Node *node = dendrogram_->createNode(hierNode, name, value);
+   private:
+    CQChartsDendrogramPlot *plot_ { nullptr };
+    CQChartsGeom::Range     range_;
+  };
 
-      assert(node);
-      //node->setInd(nameInd1);
-    }
-  }
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  dataRange_ = visitor.range();
 
   //---
 
@@ -408,6 +384,74 @@ updateRange(bool apply)
 
   if (apply)
     applyDataRange();
+}
+
+void
+CQChartsDendrogramPlot::
+addNameValue(const QString &name, double value)
+{
+  QStringList names;
+
+  QString name1 = name;
+
+  int pos = name1.indexOf('/');
+
+  if (pos != -1) {
+    while (pos != -1) {
+      QString lhs = name1.mid(0, pos);
+      QString rhs = name1.mid(pos + 1);
+
+      names.push_back(lhs);
+
+      name1 = rhs;
+
+      pos = name1.indexOf('/');
+    }
+  }
+  else {
+    names.push_back(name1);
+  }
+
+  //---
+
+  // create nodes
+  CQChartsDendrogram::HierNode *hierNode = 0;
+
+  for (const auto &n : names) {
+    if (! hierNode) {
+      if (! dendrogram_->root()) {
+        hierNode = dendrogram_->createRootNode(n);
+
+        hierNode->setOpen(false);
+      }
+      else
+        hierNode = dendrogram_->root();
+    }
+    else {
+      CQChartsDendrogram::HierNode *hierNode1 = hierNode->findChild(n);
+
+      if (! hierNode1) {
+        hierNode = dendrogram_->createHierNode(hierNode, n);
+
+        hierNode->setOpen(false);
+      }
+      else
+        hierNode = hierNode1;
+    }
+  }
+
+  if (! hierNode) {
+    hierNode = dendrogram_->createRootNode(name1);
+
+    hierNode->setOpen(false);
+  }
+  else {
+    CQChartsDendrogram::Node *node = dendrogram_->createNode(hierNode, name1, value);
+
+    assert(node);
+
+  //node->setInd(nameInd1);
+  }
 }
 
 CQChartsGeom::BBox

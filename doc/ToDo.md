@@ -1,10 +1,9 @@
 High
- + Switch to CQChartsUtil visitor
- + Zoom in single direction
  + More common grouping column handling
- + Samplit (scatter, xy, ...)
+ + equal scale just be quick adjust of dataRange (cached original)
 
 Medium
+ + Scroll by Single Large Tick Mark ?
  + Documentation
  + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
@@ -212,6 +211,7 @@ Hier Bubble Plot
 
 Parallel Plot
  + Parallel needs x axis labels
+ + Allow horizontal
 
 Pie Chart
  + Stacked (multiple categories)

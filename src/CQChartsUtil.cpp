@@ -53,7 +53,7 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
   while (pind.isValid()) {
     bool ok;
 
-    QString str = CQChartsUtil::modelString(model, parent, ok);
+    QString str = CQChartsUtil::modelString(model, pind, ok);
 
     if (! ok)
       break;

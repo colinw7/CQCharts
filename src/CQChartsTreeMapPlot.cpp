@@ -1139,14 +1139,11 @@ void
 CQChartsTreeMapPlot::
 handleResize()
 {
-  if (isEqualScale())
-    dataRange_.reset();
+  CQChartsPlot::handleResize();
 
   replaceNodes();
 
   updateObjs();
-
-  CQChartsPlot::handleResize();
 }
 
 void

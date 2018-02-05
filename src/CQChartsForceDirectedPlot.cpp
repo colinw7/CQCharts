@@ -16,11 +16,11 @@ void
 CQChartsForceDirectedPlotType::
 addParameters()
 {
-  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "", 0);
-  addColumnParameter("connections", "Connections", "connectionsColumn", "", 1);
-
-  addColumnParameter("group", "Group", "groupColumn", "optional");
-  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
+  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "optional");
+  addColumnParameter("connections", "Connections", "connectionsColumn", "optional");
+  addColumnParameter("value"      , "Value"      , "valueColumn"      , "optional");
+  addColumnParameter("group"      , "Group"      , "groupColumn"      , "optional");
+  addColumnParameter("name"       , "Name"       , "nameColumn"       , "optional");
 }
 
 CQChartsPlot *
@@ -59,10 +59,11 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"       );
-  addProperty("columns", this, "connectionsColumn", "connection" );
-  addProperty("columns", this, "groupColumn"      , "group"      );
-  addProperty("columns", this, "nameColumn"       , "name"       );
+  addProperty("columns", this, "nodeColumn"       , "node"      );
+  addProperty("columns", this, "connectionsColumn", "connection");
+  addProperty("columns", this, "valueColumn"      , "value"     );
+  addProperty("columns", this, "groupColumn"      , "group"     );
+  addProperty("columns", this, "nameColumn"       , "name"      );
 
   addProperty("", this, "autoFit");
   addProperty("", this, "running");
@@ -104,6 +105,8 @@ initObjs()
   if (! plotObjs_.empty())
     return false;
 
+  //---
+
   if (! idConnections_.empty())
     return false;
 
@@ -116,60 +119,155 @@ initObjs()
 
   //---
 
-  int maxGroup = 0;
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsForceDirectedPlot *plot) :
+     plot_(plot) {
+    }
 
-  int nr = model->rowCount(QModelIndex());
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      bool ok1;
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nodeInd  = model->index(r, nodeColumn ());
-    QModelIndex groupInd = model->index(r, groupColumn());
+      QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
 
-    //---
+      int group = CQChartsUtil::modelInteger(model, groupInd, ok1);
 
-    bool ok1, ok2;
+      if (! ok1) group = row;
 
-    int id    = CQChartsUtil::modelInteger(model, nodeInd , ok1);
-    int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
+      //---
 
-    if (! ok1) id    = r;
-    if (! ok2) group = r;
+      if (plot_->connectionsColumn() >= 0) {
+        QModelIndex nodeInd  = model->index(row, plot_->nodeColumn (), parent);
 
-    //---
+        //---
 
-    QModelIndex connectionsInd = model->index(r, connectionsColumn());
+        bool ok2;
 
-    bool ok3;
+        int id = CQChartsUtil::modelInteger(model, nodeInd, ok2);
 
-    QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+        if (! ok2) id = row;
 
-    //---
+        //---
 
-    QModelIndex nameInd = model->index(r, nameColumn());
+        QModelIndex connectionsInd = model->index(row, plot_->connectionsColumn(), parent);
 
-    bool ok4;
+        bool ok3;
 
-    QString name = CQChartsUtil::modelString(model, nameInd, ok4);
+        QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
 
-    if (! name.length())
-      name = QString("%1").arg(id);
+        ConnectionDataArray connectionDataArray;
 
-    //---
+        plot_->decodeConnections(connectionsStr, connectionDataArray);
 
-    ConnectionsData connections;
+        //---
 
-    connections.node  = id;
-    connections.name  = name;
-    connections.group = group;
-    connections.ind   = normalizeIndex(nodeInd);
+        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
 
-    decodeConnections(connectionsStr, connections.connections);
+        bool ok4;
 
-    idConnections_[id] = connections;
+        QString name = CQChartsUtil::modelString(model, nameInd, ok4);
 
-    //---
+        if (! name.length())
+          name = QString("%1").arg(id);
 
-    maxGroup = std::max(maxGroup, group);
-  }
+        //---
+
+        ConnectionsData connectionsData;
+
+        connectionsData.ind         = plot_->normalizeIndex(nodeInd);
+        connectionsData.node        = id;
+        connectionsData.name        = name;
+        connectionsData.group       = group;
+        connectionsData.connections = connectionDataArray;
+
+        plot_->addConnections(id, connectionsData);
+      }
+      else {
+        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
+
+        bool ok2;
+
+        QString linkStr = CQChartsUtil::modelString(model, nameInd, ok2);
+
+        if (! ok2)
+          return State::SKIP;
+
+        int pos = linkStr.indexOf("/");
+
+        if (pos == -1)
+          return State::SKIP;
+
+        QString srcStr  = linkStr.mid(0, pos ).simplified();
+        QString destStr = linkStr.mid(pos + 1).simplified();
+
+        int srcId  = getStringId(srcStr);
+        int destId = getStringId(destStr);
+
+        //---
+
+        QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
+
+        bool ok3;
+
+        int value = CQChartsUtil::modelInteger(model, valueInd, ok3);
+
+        if (! ok3)
+          value = 0;
+
+        //---
+
+        ConnectionsData &srcConnectionsData = plot_->getConnections(srcId);
+
+        (void) plot_->getConnections(destId);
+
+        srcConnectionsData.ind   = plot_->normalizeIndex(nameInd);
+        srcConnectionsData.node  = srcId;
+        srcConnectionsData.name  = srcStr;
+        srcConnectionsData.group = group;
+
+        ConnectionData connectionData;
+
+        connectionData.node  = destId;
+        connectionData.count = value;
+
+        srcConnectionsData.connections.push_back(connectionData);
+      }
+
+      //---
+
+      maxGroup_ = std::max(maxGroup_, group);
+
+      return State::OK;
+    }
+
+    int maxGroup() const { return maxGroup_; }
+
+   private:
+    int getStringId(const QString &str) {
+      auto p = stringIndMap_.find(str);
+
+      if (p == stringIndMap_.end()) {
+        int id = stringIndMap_.size();
+
+        p = stringIndMap_.insert(p, StringIndMap::value_type(str, id));
+      }
+
+      return (*p).second;
+    }
+
+   private:
+    typedef std::map<QString,int> StringIndMap;
+
+    CQChartsForceDirectedPlot *plot_     { nullptr };
+    int                        maxGroup_ { 0 };
+    StringIndMap               stringIndMap_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  int maxGroup = visitor.maxGroup();
 
   //---
 
@@ -215,6 +313,30 @@ initObjs()
   //---
 
   return true;
+}
+
+CQChartsForceDirectedPlot::ConnectionsData &
+CQChartsForceDirectedPlot::
+getConnections(int id)
+{
+  auto p = idConnections_.find(id);
+
+  if (p == idConnections_.end()) {
+    ConnectionsData data;
+
+    data.node = id;
+
+    p = idConnections_.insert(p, IdConnectionsData::value_type(id, data));
+  }
+
+  return (*p).second;
+}
+
+void
+CQChartsForceDirectedPlot::
+addConnections(int id, const ConnectionsData &connections)
+{
+  idConnections_[id] = connections;
 }
 
 bool

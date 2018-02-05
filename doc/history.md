@@ -298,3 +298,8 @@
  + Support thousands format for numbers
  + Add context menu to view position text for value type
  + Cleanup duplicate code in xy plot
+# 2/4/2018
+ + Add Bar Chart Menu Items
+ + More Visitor usage
+ + Support From/To format for Force Directed nodes
+ + Support Vertical Probe Lines

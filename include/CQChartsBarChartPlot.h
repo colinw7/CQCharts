@@ -315,16 +315,12 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   //---
 
   bool isStacked() const { return stacked_; }
-  void setStacked(bool b) { stacked_ = b; updateRangeAndObjs(); }
 
   bool isRange() const { return range_; }
-  void setRange(bool b) { range_ = b; updateRangeAndObjs(); }
 
   bool isPercent() const { return percent_; }
-  void setPercent(bool b) { percent_ = b; updateRangeAndObjs(); }
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b);
 
   //---
 
@@ -417,7 +413,24 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   bool probe(ProbeData &probeData) const override;
 
+  bool addMenuItems(QMenu *menu) override;
+
   void draw(QPainter *) override;
+
+  //---
+
+ public slots:
+  // set stacked
+  void setStacked(bool b);
+
+  // set range
+  void setRange(bool b);
+
+  // set percent
+  void setPercent(bool b);
+
+  // set horizontal
+  void setHorizontal(bool b);
 
  private:
   void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r);

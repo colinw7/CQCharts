@@ -148,46 +148,78 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int n = model->rowCount(QModelIndex());
-
   for (int j = 0; j < numSets(); ++j) {
-    yRanges_.emplace_back();
-
     CQChartsAxis *axis = new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1);
 
     yAxes_.push_back(axis);
   }
 
+  //---
+
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsParallelPlot *plot) :
+     plot_(plot) {
+      ns_ = plot_->numSets();
+
+      for (int i = 0; i < ns_; ++i)
+        yRanges_.emplace_back();
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      for (int i = 0; i < ns_; ++i) {
+        CQChartsGeom::Range &range = yRanges_[i];
+
+        int yColumn = plot_->getSetColumn(i);
+
+        QModelIndex yind = model->index(row, yColumn, parent);
+
+        //---
+
+        bool ok;
+
+        double x = 0;
+        double y = CQChartsUtil::modelReal(model, yind, ok);
+
+        if (! ok)
+          y = i;
+
+        if (CQChartsUtil::isNaN(y))
+          continue;
+
+        range.updateRange(x, y);
+      }
+
+      return State::OK;
+    }
+
+    const Ranges &yRanges() const { return yRanges_; }
+
+   private:
+    CQChartsParallelPlot *plot_ { nullptr };
+    int                   ns_   { 0 };
+    Ranges                yRanges_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  yRanges_ = visitor.yRanges();
+
+  //---
+
   for (int j = 0; j < numSets(); ++j) {
     CQChartsGeom::Range &range = yRanges_[j];
 
-    int yColumn = getSetColumn(j);
-
-    for (int i = 0; i < n; ++i) {
-      QModelIndex yind = model->index(i, yColumn);
-
-      //---
-
-      bool ok;
-
-      double x = 0;
-      double y = CQChartsUtil::modelReal(model, yind, ok);
-
-      if (! ok)
-        y = i;
-
-      if (CQChartsUtil::isNaN(y))
-        continue;
-
-      range.updateRange(x, y);
-    }
-
     range.updateRange(          - 0.5, range.ymin());
-    range.updateRange(numSets() - 0.5, range.ymin());
+    range.updateRange(numSets() - 0.5, range.ymax());
   }
 
   dataRange_.updateRange(          - 0.5, 0);
   dataRange_.updateRange(numSets() - 0.5, 1);
+
+  //---
 
   for (int j = 0; j < numSets(); ++j) {
     const CQChartsGeom::Range &range = yRange(j);
@@ -204,7 +236,11 @@ updateRange(bool apply)
     yAxes_[j]->setLabel(name);
   }
 
+  //---
+
   displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
+
+  //---
 
   if (apply)
     applyDataRange();
@@ -235,37 +271,68 @@ initObjs()
 
   //---
 
-  std::vector<QPolygonF> polys;
+  using Polygons = std::vector<QPolygonF>;
+  using Indices  = std::vector<QModelIndex>;
 
-  int n = model->rowCount(QModelIndex());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsParallelPlot *plot) :
+     plot_(plot) {
+      ns_ = plot_->numSets();
+    }
 
-  for (int i = 0; i < n; ++i)
-    polys.emplace_back();
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QPolygonF poly;
 
-  for (int i = 0; i < n; ++i) {
-    QPolygonF &poly = polys[i];
+      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
 
-    for (int j = 0; j < numSets(); ++j) {
-      int yColumn = getSetColumn(j);
-
-      QModelIndex yind = model->index(i, yColumn);
+      xinds_.push_back(xind);
 
       //---
 
-      bool ok;
+      for (int i = 0; i < ns_; ++i) {
+        int yColumn = plot_->getSetColumn(i);
 
-      double x = j;
-      double y = CQChartsUtil::modelReal(model, yind, ok);
+        QModelIndex yind = model->index(row, yColumn, parent);
 
-      if (! ok)
-        y = i;
+        //---
 
-      if (CQChartsUtil::isNaN(y))
-        continue;
+        bool ok;
 
-      poly << QPointF(x, y);
+        double x = i;
+        double y = CQChartsUtil::modelReal(model, yind, ok);
+
+        if (! ok)
+          y = i;
+
+        if (CQChartsUtil::isNaN(y))
+          continue;
+
+        poly << QPointF(x, y);
+      }
+
+      polys_.push_back(poly);
+
+      return State::OK;
     }
-  }
+
+    const Polygons &polys() const { return polys_; }
+
+    const Indices &xinds() const { return xinds_; }
+
+   private:
+    CQChartsParallelPlot *plot_ { nullptr };
+    int                   ns_   { 0 };
+    Polygons              polys_;
+    Indices               xinds_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  const Polygons &polys = visitor.polys();
+  const Indices  &xinds = visitor.xinds();
 
   //---
 
@@ -273,8 +340,11 @@ initObjs()
   double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
+  int n = polys.size();
+
   for (int i = 0; i < n; ++i) {
-    QModelIndex xind = model->index(i, xColumn());
+    const QPolygonF   &poly = polys[i];
+    const QModelIndex &xind = xinds[i];
 
     QModelIndex xind1 = normalizeIndex(xind);
 
@@ -283,8 +353,6 @@ initObjs()
     bool ok;
 
     QString xname = CQChartsUtil::modelString(model, xind, ok);
-
-    QPolygonF &poly = polys[i];
 
     CQChartsGeom::BBox bbox(-0.5, 0, numSets() - 0.5, 1);
 
@@ -300,8 +368,7 @@ initObjs()
     for (int j = 0; j < nl; ++j) {
       int yColumn = getSetColumn(j);
 
-      QModelIndex yind = model->index(i, yColumn);
-
+      QModelIndex yind  = model->index(i, yColumn, xind.parent());
       QModelIndex yind1 = normalizeIndex(yind);
 
       //---

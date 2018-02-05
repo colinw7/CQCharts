@@ -110,6 +110,15 @@ CQChartsTest \
  -type delaunay -columns "x=6,y=5,name=1" \
  -plot_title "delaunay"
 
+# Dendrogram
+
+CQChartsTest -csv flare.csv \
+ -type dendrogram -columns "name=0,value=1" \
+ -plot_title "dendrogram"
+CQChartsTest -json flare.json \
+ -type dendrogram -columns "name=0,value=1" \
+ -plot_title "dendrogram"
+
 # Distribution Plot
 
 CQChartsTest \
@@ -144,6 +153,10 @@ CQChartsTest \
 CQChartsTest \
  -tsv adjacency.tsv \
  -type forcedirected -columns "node=1,connections=3,name=0,group=2"
+CQChartsTest \
+ -csv adjacency.csv \
+ -type forcedirected -columns "name=0,value=1,group=2" \
+ -plot_title "adjacency"
 
 # Geometry Plot
 

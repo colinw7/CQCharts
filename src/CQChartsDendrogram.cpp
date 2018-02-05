@@ -23,6 +23,8 @@ struct NodeCmp {
   }
 };
 
+//---
+
 CQChartsDendrogram::Node::
 Node(HierNode *parent, const QString &name, double size) :
  parent_(parent), id_(nextId()), name_(name), size_(size), open_(true)
@@ -289,7 +291,6 @@ getNodeAtPoint(double x, double y, double tol) const
   return 0;
 }
 
-// print node gaps
 //---
 
 CQChartsDendrogram::RootNode::
@@ -392,6 +393,7 @@ setGaps()
   dy_ = 1.0/max_rows_;
 }
 
+// print node gaps
 void
 CQChartsDendrogram::RootNode::
 printGaps() const

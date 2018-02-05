@@ -545,36 +545,51 @@ initObjs()
   if (! model)
     return false;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex linkInd  = model->index(r, linkColumn ());
-    QModelIndex valueInd = model->index(r, valueColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsSankeyPlot *plot) :
+     plot_(plot) {
+    }
 
-    bool ok1, ok2;
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex linkInd  = model->index(row, plot_->linkColumn (), parent);
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
-    QString linkStr = CQChartsUtil::modelString(model, linkInd , ok1);
-    double  value   = CQChartsUtil::modelReal  (model, valueInd, ok2);
+      bool ok1, ok2;
 
-    if (! ok1 || ! ok2)
-      continue;
+      QString linkStr = CQChartsUtil::modelString(model, linkInd , ok1);
+      double  value   = CQChartsUtil::modelReal  (model, valueInd, ok2);
 
-    int pos = linkStr.indexOf("/");
+      if (! ok1 || ! ok2)
+        return State::SKIP;
 
-    if (pos == -1)
-      continue;
+      int pos = linkStr.indexOf("/");
 
-    QString srcStr  = linkStr.mid(0, pos ).simplified();
-    QString destStr = linkStr.mid(pos + 1).simplified();
+      if (pos == -1)
+        return State::SKIP;
 
-    CQChartsSankeyPlotNode *srcNode  = findNode(srcStr);
-    CQChartsSankeyPlotNode *destNode = findNode(destStr);
+      QString srcStr  = linkStr.mid(0, pos ).simplified();
+      QString destStr = linkStr.mid(pos + 1).simplified();
 
-    CQChartsSankeyPlotEdge *edge = createEdge(value, srcNode, destNode);
+      CQChartsSankeyPlotNode *srcNode  = plot_->findNode(srcStr);
+      CQChartsSankeyPlotNode *destNode = plot_->findNode(destStr);
 
-    srcNode ->addDestEdge(edge);
-    destNode->addSrcEdge (edge);
-  }
+      CQChartsSankeyPlotEdge *edge = plot_->createEdge(value, srcNode, destNode);
+
+      srcNode ->addDestEdge(edge);
+      destNode->addSrcEdge (edge);
+
+      return State::OK;
+    }
+
+    CQChartsSankeyPlot *plot_ { nullptr };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
 
   //---
 

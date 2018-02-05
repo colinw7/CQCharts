@@ -189,7 +189,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   //---
 
   bool isHorizontal() const { return horizontal_; }
-  void setHorizontal(bool b);
 
   //---
 
@@ -311,17 +310,23 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  bool addMenuItems(QMenu *) override;
+  bool probe(ProbeData &probeData) const;
 
-  //---
+  bool addMenuItems(QMenu *) override;
 
   void draw(QPainter *) override;
 
   //---
 
  private slots:
+  // set horizontal
+  void setHorizontal(bool b);
+
+  // push to bar range
   void pushSlot();
+  // pop out of bar range
   void popSlot();
+  // pop out of all bar ranges
   void popTopSlot();
 
  private:

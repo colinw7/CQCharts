@@ -63,6 +63,10 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   Q_PROPERTY(int yColumn    READ yColumn    WRITE setYColumn       )
   Q_PROPERTY(int nameColumn READ nameColumn WRITE setNameColumn    )
 
+  // voronoi
+  Q_PROPERTY(bool   voronoi          READ isVoronoi        WRITE setVoronoi         )
+  Q_PROPERTY(double voronoiPointSize READ voronoiPointSize WRITE setVoronoiPointSize)
+
   // point:
   //  display, color, symbol, size
   Q_PROPERTY(bool    points             READ isPoints             WRITE setPoints              )
@@ -83,10 +87,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   Q_PROPERTY(double  linesAlpha READ linesAlpha    WRITE setLinesAlpha   )
   Q_PROPERTY(double  linesWidth READ linesWidth    WRITE setLinesWidth   )
 
-  // voronoi
-  Q_PROPERTY(bool   voronoi          READ isVoronoi        WRITE setVoronoi         )
-  Q_PROPERTY(double voronoiPointSize READ voronoiPointSize WRITE setVoronoiPointSize)
-
  public:
   CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model);
 
@@ -103,6 +103,14 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   int nameColumn() const { return nameColumn_; }
   void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+
+  //---
+
+  // voronoi
+  bool isVoronoi() const { return voronoi_; }
+
+  double voronoiPointSize() const { return voronoiPointSize_; }
+  void setVoronoiPointSize(double r) { voronoiPointSize_ = r; update(); }
 
   //---
 
@@ -166,14 +174,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   //---
 
-  bool isVoronoi() const { return voronoi_; }
-  void setVoronoi(bool b) { voronoi_ = b; update(); }
-
-  double voronoiPointSize() const { return voronoiPointSize_; }
-  void setVoronoiPointSize(double r) { voronoiPointSize_ = r; update(); }
-
-  //---
-
   const QString &yname() const { return yname_; }
 
   //---
@@ -184,11 +184,20 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   bool initObjs() override;
 
+  void addPointObj(double x, double y, const QModelIndex &xind, int r);
+
+  //---
+
+  bool addMenuItems(QMenu *menu);
+
   //---
 
   void draw(QPainter *) override;
 
   void drawForeground(QPainter *painter) override;
+
+ public slots:
+  void setVoronoi(bool b);
 
  private:
   void drawDelaunay(QPainter *p);
@@ -202,6 +211,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   CQChartsLineObj*  lineObj_          { nullptr };
   bool              voronoi_          { true };
   double            voronoiPointSize_ { 2 };
+  int               nr_               { 0 };
   CQChartsDelaunay* delaunay_         { nullptr };
   QString           yname_;
 };

@@ -670,7 +670,7 @@ setEqualScale(bool b)
 
   setDataRange(CQChartsGeom::Range());
 
-  updateMargin();
+  //updateMargin();
 }
 
 void
@@ -961,6 +961,15 @@ addTitle()
   titleObj_ = new CQChartsTitle(this);
 
   titleObj_->setTextStr(titleStr());
+}
+
+void
+CQChartsPlot::
+clearRangeAndObjs()
+{
+  dataRange_.reset();
+
+  clearPlotObjects();
 }
 
 void
@@ -2267,6 +2276,9 @@ void
 CQChartsPlot::
 handleResize()
 {
+  if (isEqualScale())
+    dataRange_.reset();
+
   for (auto &obj : plotObjs_)
     obj->handleResize();
 

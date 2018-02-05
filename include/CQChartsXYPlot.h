@@ -576,7 +576,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
- private slots:
+ public slots:
   // set bivariate
   void setBivariate(bool b);
 

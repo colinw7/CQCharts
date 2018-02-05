@@ -5,6 +5,7 @@
 #include <CQCharts.h>
 #include <CQChartsDelaunay.h>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsDelaunayPlotType::
 CQChartsDelaunayPlotType()
@@ -19,6 +20,8 @@ addParameters()
   addColumnParameter("y", "Y", "yColumn", "", 1);
 
   addColumnParameter("name", "Name", "nameColumn", "optional");
+
+  addBoolParameter("voronoi", "Voronoi", "voronoi", "optional");
 }
 
 CQChartsPlot *
@@ -55,6 +58,19 @@ CQChartsDelaunayPlot::
   delete lineObj_;
 
   delete delaunay_;
+}
+
+//---
+
+void
+CQChartsDelaunayPlot::
+setVoronoi(bool b)
+{
+  if (b != voronoi_) {
+    voronoi_ = b;
+
+    updateRangeAndObjs();
+  }
 }
 
 //---
@@ -173,6 +189,9 @@ addProperties()
   addProperty("columns", this, "xColumn", "x");
   addProperty("columns", this, "yColumn", "y");
 
+  addProperty("voronoi", this, "voronoi"         , "enabled"  );
+  addProperty("voronoi", this, "voronoiPointSize", "pointSize");
+
   addProperty("points"       , this, "points"           , "visible");
   addProperty("points"       , this, "symbolName"       , "symbol" );
   addProperty("points"       , this, "symbolSize"       , "size"   );
@@ -188,9 +207,6 @@ addProperties()
   addProperty("lines", this, "linesColor", "color"  );
   addProperty("lines", this, "linesAlpha", "alpha"  );
   addProperty("lines", this, "linesWidth", "width"  );
-
-  addProperty("voronoi", this, "voronoi"         , "enabled"  );
-  addProperty("voronoi", this, "voronoiPointSize", "pointSize");
 }
 
 void
@@ -202,29 +218,51 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  dataRange_.reset();
+  // calc data range (x, y values)
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsDelaunayPlot *plot) :
+     plot_(plot) {
+    }
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex xind = model->index(r, xColumn());
-    QModelIndex yind = model->index(r, yColumn());
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
+      QModelIndex yind = model->index(row, plot_->yColumn(), parent);
 
-    //---
+      //---
 
-    bool ok1, ok2;
+      bool ok1, ok2;
 
-    double x = CQChartsUtil::modelReal(model, xind, ok1);
-    double y = CQChartsUtil::modelReal(model, yind, ok2);
+      double x = CQChartsUtil::modelReal(model, xind, ok1);
+      double y = CQChartsUtil::modelReal(model, yind, ok2);
 
-    if (! ok1) x = r;
-    if (! ok2) y = r;
+      if (! ok1) x = row;
+      if (! ok2) y = row;
 
-    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-      continue;
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        return State::SKIP;
 
-    dataRange_.updateRange(x, y);
-  }
+      range_.updateRange(x, y);
+
+      return State::OK;
+    }
+
+    const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    CQChartsDelaunayPlot *plot_ { nullptr };
+    CQChartsGeom::Range   range_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  dataRange_ = visitor.range();
+
+  nr_ = visitor.numRows();
 
   //---
 
@@ -241,6 +279,14 @@ updateRange(bool apply)
   QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
 
   yAxis_->setLabel(yname);
+
+  //---
+
+  if (isEqualScale()) {
+    double aspect = this->aspect();
+
+    dataRange_.equalScale(aspect);
+  }
 
   //---
 
@@ -273,11 +319,6 @@ initObjs()
 
   //---
 
-  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
-
-  int nr = model->rowCount(QModelIndex());
-
   bool ok;
 
   yname_ = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
@@ -288,34 +329,43 @@ initObjs()
 
   delaunay_ = new CQChartsDelaunay;
 
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex xind = model->index(r, xColumn());
-    QModelIndex yind = model->index(r, yColumn());
+  //---
 
-    bool ok1, ok2;
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsDelaunayPlot *plot) :
+     plot_(plot) {
+    }
 
-    double x = CQChartsUtil::modelReal(model, xind, ok1);
-    double y = CQChartsUtil::modelReal(model, yind, ok2);
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
+      QModelIndex yind = model->index(row, plot_->yColumn(), parent);
 
-    if (! ok1) x = r;
-    if (! ok2) y = r;
+      bool ok1, ok2;
 
-    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-      continue;
+      double x = CQChartsUtil::modelReal(model, xind, ok1);
+      double y = CQChartsUtil::modelReal(model, yind, ok2);
 
-    delaunay_->addVertex(x, y);
+      if (! ok1) x = row;
+      if (! ok2) y = row;
 
-    //---
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        return State::SKIP;
 
-    QModelIndex xind1 = normalizeIndex(xind);
+      plot_->addPointObj(x, y, xind, ModelVisitor::row());
 
-    CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
+      return State::OK;
+    }
 
-    CQChartsDelaunayPointObj *pointObj =
-      new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr);
+   private:
+    CQChartsDelaunayPlot *plot_ { nullptr };
+  };
 
-    addPlotObject(pointObj);
-  }
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
 
   delaunay_->calc();
 
@@ -323,6 +373,49 @@ initObjs()
 
   return true;
 }
+
+void
+CQChartsDelaunayPlot::
+addPointObj(double x, double y, const QModelIndex &xind, int r)
+{
+  delaunay_->addVertex(x, y);
+
+  //---
+
+  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
+  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+
+  QModelIndex xind1 = normalizeIndex(xind);
+
+  CQChartsGeom::BBox bbox(x - sw/2.0, y - sh/2.0, x + sw/2.0, y + sh/2.0);
+
+  CQChartsDelaunayPointObj *pointObj =
+    new CQChartsDelaunayPointObj(this, bbox, x, y, xind1, r, nr_);
+
+  addPlotObject(pointObj);
+}
+
+//------
+
+bool
+CQChartsDelaunayPlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *voronoiAction = new QAction("Voronoi", menu);
+
+  voronoiAction->setCheckable(true);
+  voronoiAction->setChecked(isVoronoi());
+
+  connect(voronoiAction, SIGNAL(triggered(bool)), this, SLOT(setVoronoi(bool)));
+
+  menu->addSeparator();
+
+  menu->addAction(voronoiAction);
+
+  return true;
+}
+
+//------
 
 void
 CQChartsDelaunayPlot::
@@ -487,7 +580,7 @@ calcId() const
   QString name1;
 
   if (plot_->nameColumn() >= 0) {
-    QModelIndex nameInd = plot_->model()->index(i_, plot_->nameColumn());
+    QModelIndex nameInd = plot_->model()->index(ind_.row(), plot_->nameColumn(), ind_.parent());
 
     bool ok;
 

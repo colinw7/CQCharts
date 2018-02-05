@@ -525,9 +525,9 @@ void
 CQChartsChordPlot::
 handleResize()
 {
-  dataRange_.reset();
-
   CQChartsPlot::handleResize();
+
+  dataRange_.reset();
 }
 
 void

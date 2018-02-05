@@ -10,6 +10,7 @@ class CQIconCombo : public QComboBox {
 
  public:
   CQIconCombo(QWidget *parent=0);
+ ~CQIconCombo();
 
   int iconWidth() const { return iconWidth_; }
   void setIconWidth(int i) { iconWidth_ = i; }

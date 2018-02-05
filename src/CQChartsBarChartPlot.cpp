@@ -8,6 +8,7 @@
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsBarChartPlotType::
 CQChartsBarChartPlotType()
@@ -202,6 +203,39 @@ addProperties()
 }
 
 //---
+
+void
+CQChartsBarChartPlot::
+setStacked(bool b)
+{
+  if (b != stacked_) {
+    stacked_ = b;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsBarChartPlot::
+setRange(bool b)
+{
+  if (b != range_) {
+    range_ = b;
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsBarChartPlot::
+setPercent(bool b)
+{
+  if (b != percent_) {
+    percent_ = b;
+
+    updateRangeAndObjs();
+  }
+}
 
 void
 CQChartsBarChartPlot::
@@ -735,7 +769,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     }
     else {
       for (const auto &valueInd : valueInds)
-        dataRange_.updateRange(0, valueInd.value);
+        dataRange_.updateRange(0, scale*valueInd.value);
     }
   }
   else {
@@ -745,7 +779,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     }
     else {
       for (const auto &valueInd : valueInds)
-        dataRange_.updateRange(valueInd.value, 0);
+        dataRange_.updateRange(scale*valueInd.value, 0);
     }
   }
 }
@@ -1192,16 +1226,71 @@ bool
 CQChartsBarChartPlot::
 probe(ProbeData &probeData) const
 {
-  if (probeData.x < dataRange_.xmin() + 0.5)
-    probeData.x = dataRange_.xmin() + 0.5;
+  if (! isHorizontal()) {
+    probeData.direction = ProbeData::Direction::VERTICAL;
 
-  if (probeData.x > dataRange_.xmax() - 0.5)
-    probeData.x = dataRange_.xmax() - 0.5;
+    if (probeData.x < dataRange_.xmin() + 0.5)
+      probeData.x = dataRange_.xmin() + 0.5;
 
-  probeData.x = std::round(probeData.x);
+    if (probeData.x > dataRange_.xmax() - 0.5)
+      probeData.x = dataRange_.xmax() - 0.5;
+
+    probeData.x = std::round(probeData.x);
+  }
+  else {
+    probeData.direction = ProbeData::Direction::HORIZONTAL;
+
+    if (probeData.y < dataRange_.ymin() + 0.5)
+      probeData.y = dataRange_.ymin() + 0.5;
+
+    if (probeData.y > dataRange_.ymax() - 0.5)
+      probeData.y = dataRange_.ymax() - 0.5;
+
+    probeData.y = std::round(probeData.y);
+  }
 
   return true;
 }
+
+//------
+
+bool
+CQChartsBarChartPlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *stackedAction    = new QAction("Stacked"   , menu);
+  QAction *percentAction    = new QAction("Percent"   , menu);
+  QAction *rangeAction      = new QAction("Range"     , menu);
+  QAction *horizontalAction = new QAction("Horizontal", menu);
+
+  stackedAction->setCheckable(true);
+  stackedAction->setChecked(isStacked());
+
+  percentAction->setCheckable(true);
+  percentAction->setChecked(isPercent());
+
+  rangeAction->setCheckable(true);
+  rangeAction->setChecked(isRange());
+
+  horizontalAction->setCheckable(true);
+  horizontalAction->setChecked(isHorizontal());
+
+  connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
+  connect(percentAction   , SIGNAL(triggered(bool)), this, SLOT(setPercent(bool)));
+  connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRange(bool)));
+  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
+
+  menu->addSeparator();
+
+  menu->addAction(stackedAction);
+  menu->addAction(percentAction);
+  menu->addAction(rangeAction);
+  menu->addAction(horizontalAction);
+
+  return true;
+}
+
+//------
 
 void
 CQChartsBarChartPlot::
