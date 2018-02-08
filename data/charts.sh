@@ -70,10 +70,10 @@ CQChartsTest -csv pareto.csv -comment_header \
 
 CQChartsTest -json flare.json \
  -type hierbubble -columns "name=0,value=1" \
- -plot_title "hierarchical bubble"
+ -plot_title "hierarchical bubble (hier data)"
 CQChartsTest -csv flare.csv \
  -type hierbubble -columns "name=0,value=1" \
- -plot_title "hierarchical bubble"
+ -plot_title "hierarchical bubble (flat data)"
 CQChartsTest -csv hier.csv -comment_header \
  -type hierbubble -columns "name=0,value=1" \
  -plot_title "hierarchical bubble"

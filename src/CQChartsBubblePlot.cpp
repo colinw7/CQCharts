@@ -441,7 +441,7 @@ void
 CQChartsBubblePlot::
 initNodes()
 {
-  loadChildren();
+  loadModel();
 
   //---
 
@@ -490,7 +490,7 @@ colorNode(CQChartsBubbleNode *node)
 
 void
 CQChartsBubblePlot::
-loadChildren(const QModelIndex &index)
+loadModel()
 {
   QAbstractItemModel *model = this->model();
 
@@ -499,39 +499,37 @@ loadChildren(const QModelIndex &index)
 
   //---
 
-  ColumnType valueColumnType = columnValueType(model, valueColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsBubblePlot *plot) :
+     plot_(plot) {
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
 
-  //---
-
-  int nr = model->rowCount(index);
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn (), index);
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    //---
-
-    bool ok1;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok1);
-
-    //---
-
-    if (model->rowCount(nameInd) > 0) {
-      loadChildren(nameInd);
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
     }
-    else {
-      QModelIndex valueInd = model->index(r, valueColumn(), index);
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
+
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
+      bool ok1;
+
+      QString name = CQChartsUtil::modelString(model, nameInd, ok1);
+
+      //---
 
       double size = 1.0;
+
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
       if (valueInd.isValid()) {
         bool ok2 = true;
 
-        if      (valueColumnType == ColumnType::REAL)
+        if      (valueColumnType_ == ColumnType::REAL)
           size = CQChartsUtil::modelReal(model, valueInd, ok2);
-        else if (valueColumnType == ColumnType::INTEGER)
+        else if (valueColumnType_ == ColumnType::INTEGER)
           size = CQChartsUtil::modelInteger(model, valueInd, ok2);
         else
           ok2 = false;
@@ -540,21 +538,40 @@ loadChildren(const QModelIndex &index)
           ok2 = false;
 
         if (! ok2)
-          continue;
+          return State::SKIP;
       }
 
       //---
 
-      CQChartsBubbleNode *node = new CQChartsBubbleNode(name, size, nameInd1);
+      CQChartsBubbleNode *node = plot_->addNode(name, size, nameInd1);
 
       OptColor color;
 
-      if (colorSetColor("color", r, color))
+      if (plot_->colorSetColor("color", row, color))
         node->setColor(*color);
 
-      nodes_.push_back(node);
+      return State::OK;
     }
-  }
+
+   private:
+    CQChartsBubblePlot *plot_            { nullptr };
+    ColumnType          valueColumnType_ { ColumnType::NONE };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+}
+
+CQChartsBubbleNode *
+CQChartsBubblePlot::
+addNode(const QString &name, double size, const QModelIndex &nameInd)
+{
+  CQChartsBubbleNode *node = new CQChartsBubbleNode(name, size, nameInd);
+
+  nodes_.push_back(node);
+
+  return node;
 }
 
 //------

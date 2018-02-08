@@ -671,6 +671,8 @@ class CQChartsPlot : public QObject {
 
   void addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
+  void addColumnValues(int column, CQChartsValueSet &valueSet);
+
   //---
 
   void initGroup(int column, const Columns &columns=Columns(), bool rowGrouping=false);
@@ -1033,8 +1035,8 @@ class CQChartsPlot : public QObject {
 
   ColumnType columnValueType(QAbstractItemModel *model, int column) const;
 
-  bool getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
-                          QStringList &nameStrs, ModelIndices &nameInds);
+  bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
+                          const QString &separator, QStringList &nameStrs, ModelIndices &nameInds);
 
   //---
 

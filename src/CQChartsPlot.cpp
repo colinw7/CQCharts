@@ -3172,8 +3172,8 @@ columnValueType(QAbstractItemModel *model, int column) const
 
 bool
 CQChartsPlot::
-getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
-                   QStringList &nameStrs, ModelIndices &nameInds)
+getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
+                   const QString &separator, QStringList &nameStrs, ModelIndices &nameInds)
 {
   QAbstractItemModel *model = this->model();
   assert(model);
@@ -3182,7 +3182,7 @@ getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
   if (nameColumns.size() == 1) {
     int nameColumn = nameColumns[0];
 
-    QModelIndex nameInd = model->index(r, nameColumn);
+    QModelIndex nameInd = model->index(row, nameColumn, parent);
 
     //---
 
@@ -3204,7 +3204,7 @@ getHierColumnNames(int r, const Columns &nameColumns, const QString &separator,
   }
   else {
     for (auto &nameColumn : nameColumns) {
-      QModelIndex nameInd = model->index(r, nameColumn);
+      QModelIndex nameInd = model->index(row, nameColumn, parent);
 
       //---
 
@@ -3314,19 +3314,7 @@ isHierarchical() const
 {
   QAbstractItemModel *model = this->model();
 
-  if (! model)
-    return true;
-
-  int nc = model->rowCount();
-
-  for (int r = 0; r < nc; ++r) {
-    QModelIndex index1 = model->index(r, 0);
-
-    if (model->rowCount(index1) > 0)
-      return true;
-  }
-
-  return false;
+  return CQChartsUtil::isHierarchical(model);
 }
 
 //------
@@ -3562,13 +3550,13 @@ initValueSets()
 
 void
 CQChartsPlot::
-addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
+addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
   for (auto &valueSet : valueSets_) {
     int column = valueSet.second->column();
 
     if (column >= 0) {
-      QModelIndex ind = model->index(r, column, parent);
+      QModelIndex ind = model->index(row, column, parent);
 
       bool ok;
 
@@ -3577,6 +3565,41 @@ addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
       valueSet.second->addValue(value); // always add some value
     }
   }
+}
+
+void
+CQChartsPlot::
+addColumnValues(int column, CQChartsValueSet &valueSet)
+{
+  class ValueSetVisitor : public ModelVisitor {
+   public:
+    ValueSetVisitor(CQChartsPlot *plot, int column, CQChartsValueSet &valueSet) :
+     plot_(plot), column_(column), valueSet_(valueSet) {
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QModelIndex ind = model->index(row, column_, parent);
+
+      bool ok;
+
+      QVariant value = CQChartsUtil::modelValue(model, ind, ok);
+
+      // TODO: skip if not ok ?
+
+      valueSet_.addValue(value);
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsPlot*     plot_   { nullptr };
+    int               column_ { 0 };
+    CQChartsValueSet& valueSet_;
+  };
+
+  ValueSetVisitor valueSetVisitor(this, column, valueSet);
+
+  visitModel(valueSetVisitor);
 }
 
 //------

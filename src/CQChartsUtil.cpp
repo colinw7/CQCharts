@@ -5,8 +5,34 @@
 
 namespace CQChartsUtil {
 
+bool isHierarchical(QAbstractItemModel *model) {
+  if (! model)
+    return false;
+
+  int nr = model->rowCount();
+
+  for (int row = 0; row < nr; ++row) {
+    QModelIndex index1 = model->index(row, 0);
+
+    if (model->hasChildren(index1))
+      return true;
+  }
+
+  return false;
+}
+
+int hierRowCount(QAbstractItemModel *model) {
+  ModelVisitor visitor;
+
+  visitModel(model, visitor);
+
+  return visitor.numRows();
+}
+
 bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor) {
-  visitor.init();
+  int nc = model->columnCount(QModelIndex());
+
+  visitor.init(nc);
 
   if (! model)
     return false;
@@ -28,8 +54,16 @@ void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, Model
   for (int r = 0; r < nr; ++r) {
     QModelIndex ind1 = model->index(r, 0, parent);
 
-    if (model->rowCount(ind1) > 0) {
+    if (model->hasChildren(ind1)) {
+      ModelVisitor::State state = visitor.hierVisit(model, parent, r);
+      if (state == ModelVisitor::State::TERMINATE) break;
+      if (state == ModelVisitor::State::SKIP     ) continue;
+
       visitModelIndex(model, ind1, visitor);
+
+      ModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
+      if (postState == ModelVisitor::State::TERMINATE) break;
+      if (postState == ModelVisitor::State::SKIP     ) continue;
     }
     else {
       ModelVisitor::State preState = visitor.preVisit(model, parent, r);
@@ -41,6 +75,8 @@ void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, Model
       if (state == ModelVisitor::State::SKIP     ) continue;
 
       visitor.step();
+
+      // postVisit ?
     }
   }
 }

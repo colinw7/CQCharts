@@ -476,10 +476,18 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
 
   //---
 
-  void loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index=QModelIndex(),
-                    int depth=0);
+  void loadHier();
+
+  CQChartsTreeMapHierNode *addHierNode(CQChartsTreeMapHierNode *parent, const QString &name,
+                                       const QModelIndex &nameInd);
+
+  CQChartsTreeMapNode *addNode(CQChartsTreeMapHierNode *parent, const QString &name,
+                               double size, const QModelIndex &nameInd);
 
   void loadFlat();
+
+  CQChartsTreeMapNode *addNode(const QStringList &nameStrs, double size,
+                               const QModelIndex &nameInd);
 
   void addExtraNodes(CQChartsTreeMapHierNode *hier);
 

@@ -260,6 +260,8 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void initNodeObjs();
 
+  CQChartsBubbleNode *addNode(const QString &name, double size, const QModelIndex &nameInd);
+
   //---
 
   void handleResize() override;
@@ -279,7 +281,7 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   void colorNode(CQChartsBubbleNode *node);
 
-  void loadChildren(const QModelIndex &index=QModelIndex());
+  void loadModel();
 
  private:
   int                 nameColumn_  { 0 };       // name column

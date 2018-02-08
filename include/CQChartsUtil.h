@@ -29,25 +29,42 @@ class ModelVisitor {
 
   virtual ~ModelVisitor() { }
 
+  int numCols() const { return numCols_; }
+
   int row() const { return row_; }
 
   int numRows() const { return numRows_; }
   void setNumRows(int nr) { numRows_ = nr; }
 
-  void init() { row_ = 0; numRows_ = 0; }
+  void init(int nc) { numCols_ = nc; row_ = 0; numRows_ = 0; }
+
   void step() { ++row_; }
+
   void term() { numRows_ = row_; }
+
+  //---
+
+  virtual State hierVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+
+  virtual State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+
+  //---
 
   virtual State preVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
 
-  virtual State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) = 0;
+  virtual State visit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
 
   //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
 
  protected:
+  int numCols_ { 0 };
   int row_     { 0 };
   int numRows_ { 0 };
 };
+
+bool isHierarchical(QAbstractItemModel *model);
+
+int hierRowCount(QAbstractItemModel *model);
 
 bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor);
 

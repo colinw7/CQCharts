@@ -168,15 +168,15 @@ initTableObjs()
 
   //---
 
-  int num_rows = model->rowCount   ();
-  int num_cols = model->columnCount();
+  int nr = model->rowCount   ();
+  int nc = model->columnCount();
 
   int numExtraColumns = 0;
 
   if (nameColumn_  >= 0) ++numExtraColumns;
   if (groupColumn_ >= 0) ++numExtraColumns;
 
-  int nv = std::min(num_rows, num_cols - numExtraColumns);
+  int nv = std::min(nr, nc - numExtraColumns);
 
   //---
 
@@ -358,21 +358,14 @@ initHierObjs()
 
   //---
 
-  int nr = model->rowCount();
-
   CQChartsValueSet groupValues;
 
-  if (groupColumn() >= 0) {
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex groupInd = model->index(r, groupColumn());
+  if (groupColumn() >= 0)
+    addColumnValues(groupColumn(), groupValues);
 
-      bool ok;
+  //---
 
-      QVariant group = CQChartsUtil::modelValue(model, groupInd, ok);
-
-      groupValues.addValue(group);
-    }
-  }
+  int nr = model->rowCount();
 
   for (int r = 0; r < nr; ++r) {
     QModelIndex linkInd  = model->index(r, nameColumn ());

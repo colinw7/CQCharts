@@ -50,36 +50,60 @@ updateRange(bool apply)
 
   //---
 
-  dataRange_.reset();
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsImagePlot *plot) :
+     plot_(plot) {
+    }
 
-  minValue_ = 0.0;
-  maxValue_ = 0.0;
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      for (int col = 0; col < numCols(); ++col) {
+        QModelIndex ind = model->index(row, col, parent);
+
+        //---
+
+        bool ok;
+
+        double value = CQChartsUtil::modelReal(model, ind, ok);
+
+        if (! valueSet_) {
+          minValue_ = value;
+          maxValue_ = value;
+
+          valueSet_ = true;
+        }
+        else {
+          minValue_ = std::min(minValue_, value);
+          maxValue_ = std::max(maxValue_, value);
+        }
+      }
+
+      return State::OK;
+    }
+
+    double minValue() const { return minValue_; }
+    double maxValue() const { return maxValue_; }
+
+   private:
+    CQChartsImagePlot *plot_     { nullptr };
+    bool               valueSet_ { false };
+    double             minValue_ { 0.0 };
+    double             maxValue_ { 0.0 };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
 
   //---
 
-  int nr = model->rowCount   (QModelIndex());
-  int nc = model->columnCount(QModelIndex());
+  minValue_ = visitor.minValue();
+  maxValue_ = visitor.maxValue();
 
-  for (int r = 0; r < nr; ++r) {
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
+  dataRange_.reset();
 
-      //---
-
-      bool ok;
-
-      double value = CQChartsUtil::modelReal(model, ind, ok);
-
-      if (r == 0 && c == 0) {
-        minValue_ = value;
-        maxValue_ = value;
-      }
-      else {
-        minValue_ = std::min(minValue_, value);
-        maxValue_ = std::max(maxValue_, value);
-      }
-    }
-  }
+  int nr = visitor.numRows();
+  int nc = visitor.numCols();
 
   dataRange_.updateRange( 0,  0);
   dataRange_.updateRange(nc, nr);
@@ -115,48 +139,64 @@ initObjs()
 
   //---
 
-  int nr = model->rowCount   (QModelIndex());
-  int nc = model->columnCount(QModelIndex());
-
-  double x = 0.0;
-  double y = 0.0;
-
-  //double dx = (nc > 0 ? 1.0/nc : 0.0);
-  //double dy = (nr > 0 ? 1.0/nr : 0.0);
-  double dx = 1;
-  double dy = 1;
-
-  for (int r = 0; r < nr; ++r) {
-    x = 0.0;
-
-    for (int c = 0; c < nc; ++c) {
-      QModelIndex ind = model->index(r, c);
-
-      QModelIndex ind1 = normalizeIndex(ind);
-
-      //---
-
-      bool ok;
-
-      int value = CQChartsUtil::modelInteger(model, ind, ok);
-
-      CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
-
-      CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, value, ind1);
-
-      addPlotObject(imageObj);
-
-      //---
-
-      x += dx;
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsImagePlot *plot) :
+     plot_(plot) {
     }
 
-    y += dy;
-  }
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      x_ = 0.0;
+
+      for (int col = 0; col < numCols(); ++col) {
+        QModelIndex ind = model->index(row, col, parent);
+
+        bool ok;
+
+        int value = CQChartsUtil::modelInteger(model, ind, ok);
+
+        //---
+
+        plot_->addImageObj(x_, y_, dx_, dy_, value, ind);
+
+        //---
+
+        x_ += dx_;
+      }
+
+      y_ += dy_;
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsImagePlot *plot_ { nullptr };
+    double             x_    { 0.0 };
+    double             y_    { 0.0 };
+    double             dx_   { 1.0 };
+    double             dy_   { 1.0 };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
 
   //---
 
   return true;
+}
+
+void
+CQChartsImagePlot::
+addImageObj(double x, double y, double dx, double dy, int value, const QModelIndex &ind)
+{
+  QModelIndex ind1 = normalizeIndex(ind);
+
+  CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
+
+  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, value, ind1);
+
+  addPlotObject(imageObj);
 }
 
 void

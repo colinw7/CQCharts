@@ -11,53 +11,95 @@ void
 CQBaseModel::
 genColumnTypes()
 {
-  // auto determine types
   int nc = columnCount();
-  int nr = rowCount   ();
 
   resetColumnTypes();
 
+  // auto determine type for each column. Do column by column to allow early out
   for (int c = 0; c < nc; ++c) {
-    Type type = Type::NONE;
+    ColumnTypeData columnTypeData;
 
-    int numInt = 0, numReal = 0;
+    QModelIndex parent;
 
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex ind = index(r, c);
+    (void) genColumnTypes(parent, c, columnTypeData);
 
-      QString s = data(ind, Qt::DisplayRole).toString();
+    // if inderminate (no values or all reals or integers) then use real if any reals,
+    // integer if any integers and string if no values.
+    if (columnTypeData.type == Type::NONE) {
+      if     (columnTypeData.numReal)
+        columnTypeData.type = Type::REAL;
+      else if (columnTypeData.numInt)
+        columnTypeData.type = Type::INTEGER;
+      else
+        columnTypeData.type = Type::STRING;
+    }
 
-      if (! s.length())
-        continue;
+    setColumnType(c, columnTypeData.type);
+  }
+}
 
-      bool ok;
+bool
+CQBaseModel::
+genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData)
+{
+  bool done = false;
 
-      double real = toReal(s, ok);
+  int nr = rowCount(parent);
 
-      if (ok) {
-        if (isInteger(real))
-          ++numInt;
-        else
-          ++numReal;
-      }
-      else {
-        type = Type::STRING;
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex ind0 = index(r, 0, parent);
+
+    if (rowCount(ind0) > 0) {
+      if (genColumnTypes(ind0, c, columnTypeData)) {
+        done = true;
         break;
       }
     }
 
-    if (type == Type::NONE) {
-      if      (numReal == 0 && numInt == 0)
-        type = Type::STRING;
-      else if (numReal == 0)
-        type = Type::INTEGER;
-      else
-        type = Type::REAL;
-    }
+    //---
 
-    setColumnType(c, type);
+    // get value
+    QModelIndex ind = (c != 0 ? index(r, c, parent) : ind0);
+
+    QVariant v = data(ind, Qt::DisplayRole);
+
+    if      (v.type() == QVariant::Double) {
+      ++columnTypeData.numReal;
+    }
+    else if (v.type() == QVariant::Int) {
+      ++columnTypeData.numInt;
+    }
+    else {
+      QString s = v.toString();
+
+      if (! s.length())
+        continue;
+
+      //---
+
+      // check if string can be converted to real
+      bool ok;
+
+      double real = toReal(s, ok);
+
+      // if not real then assume string column and we are done
+      if (! ok) {
+        columnTypeData.type = Type::STRING;
+        done = true;
+        break;
+      }
+
+      // if real can also be an integer prefer integer
+      if (isInteger(real))
+        ++columnTypeData.numInt;
+      else
+        ++columnTypeData.numReal;
+    }
   }
+
+  return done;
 }
+
 
 CQBaseModel::Type
 CQBaseModel::

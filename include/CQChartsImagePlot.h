@@ -74,6 +74,9 @@ class CQChartsImagePlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
+  void addImageObj(double x, double y, double dx, double dy, int value, const QModelIndex &ind);
+
+ private:
   double minValue_ { 0.0 };
   double maxValue_ { 0.0 };
 };

@@ -179,34 +179,50 @@ updateRange(bool apply)
   if (! model)
     return;
 
-  int nr = model->rowCount(QModelIndex());
+  //---
 
-  dataRange_.reset();
+  // calc data range (x, y values)
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsHierScatterPlot *plot) :
+     plot_(plot) {
+    }
 
-  for (int r = 0; r < nr; ++r) {
-    if (! acceptsRow(r))
-      continue;
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      if (! plot_->acceptsRow(row, parent))
+        return State::SKIP;
 
-    //---
+      QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
+      QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
 
-    QModelIndex xInd = model->index(r, xColumn());
-    QModelIndex yInd = model->index(r, yColumn());
+      bool ok1, ok2;
 
-    //---
+      double x = CQChartsUtil::modelReal(model, xInd, ok1);
+      double y = CQChartsUtil::modelReal(model, yInd, ok2);
 
-    bool ok1, ok2;
+      if (! ok1) x = row;
+      if (! ok2) y = row;
 
-    double x = CQChartsUtil::modelReal(model, xInd, ok1);
-    double y = CQChartsUtil::modelReal(model, yInd, ok2);
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        return State::SKIP;
 
-    if (! ok1) x = r;
-    if (! ok2) y = r;
+      range_.updateRange(x, y);
 
-    if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-      continue;
+      return State::OK;
+    }
 
-    dataRange_.updateRange(x, y);
-  }
+    const CQChartsGeom::Range &range() const { return range_; }
+
+   private:
+    CQChartsHierScatterPlot *plot_ { nullptr };
+    CQChartsGeom::Range      range_;
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  dataRange_ = visitor.range();
 
   //---
 
@@ -247,21 +263,21 @@ updateRange(bool apply)
 
 int
 CQChartsHierScatterPlot::
-acceptsRow(int r) const
+acceptsRow(int row, const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->model();
-
-  if (! model)
-    return false;
+  assert(model);
 
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
     int column = groupValues_[i];
 
+    QModelIndex ind = model->index(row, column, parent);
+
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, r, column, ok);
+    QString name = CQChartsUtil::modelString(model, ind, ok);
 
     if (! ok)
       return false;
@@ -306,22 +322,48 @@ initGroupValueSets()
 
   //---
 
-  int nr = model->rowCount(QModelIndex());
-
-  for (int r = 0; r < nr; ++r) {
-    for (const auto &groupValueSet : groupValueSets_) {
-      int               groupColumn = groupValueSet.first;
-      CQChartsValueSet *valueSet    = groupValueSet.second;
-
-      bool ok;
-
-      QVariant value = CQChartsUtil::modelValue(model, r, groupColumn, ok);
-
-      if (! ok)
-        continue;
-
-      valueSet->addValue(value);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsHierScatterPlot *plot) :
+     plot_(plot) {
     }
+
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      plot_->addRowGroupValueSets(parent, row);
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsHierScatterPlot *plot_ { nullptr };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+}
+
+void
+CQChartsHierScatterPlot::
+addRowGroupValueSets(const QModelIndex &parent, int row)
+{
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  for (const auto &groupValueSet : groupValueSets_) {
+    int               groupColumn = groupValueSet.first;
+    CQChartsValueSet *valueSet    = groupValueSet.second;
+
+    QModelIndex groupInd = model->index(row, groupColumn, parent);
+
+    bool ok;
+
+    QVariant value = CQChartsUtil::modelValue(model, groupInd, ok);
+
+    if (! ok)
+      continue;
+
+    valueSet->addValue(value);
   }
 }
 
@@ -370,90 +412,56 @@ initObjs()
     if (! model)
       return false;
 
-    int nr = model->rowCount(QModelIndex());
-
-    for (int r = 0; r < nr; ++r) {
-      if (! acceptsRow(r))
-        continue;
-
-      //---
-
-      // get point position
-      QModelIndex xInd = model->index(r, xColumn());
-      QModelIndex yInd = model->index(r, yColumn());
-
-      QModelIndex xInd1 = normalizeIndex(xInd);
-
-      //---
-
-      bool ok1, ok2;
-
-      double x = CQChartsUtil::modelReal(model, xInd, ok1);
-      double y = CQChartsUtil::modelReal(model, yInd, ok2);
-
-      if (! ok1) x = r;
-      if (! ok2) y = r;
-
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-        continue;
-
-      //---
-
-      // get optional name
-      QModelIndex nameInd = model->index(r, nameColumn());
-
-      bool ok;
-
-      QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-      //---
-
-      // get point groups
-      struct GroupData {
-        int               column   { -1 };
-        CQChartsValueSet* valueSet { nullptr };
-        QString           str;
-        int               ind      { -1 };
-      };
-
-      std::vector<GroupData> groupDatas;
-
-      for (const auto &groupValue : groupValues_) {
-        GroupData groupData;
-
-        groupData.column   = groupValue;
-        groupData.valueSet = groupValueSets_[groupData.column];
-
-        QModelIndex ind = model->index(r, groupData.column);
-
-        bool ok3;
-
-        groupData.str = CQChartsUtil::modelString(model, ind, ok3);
-
-        groupData.ind = groupData.valueSet->sind(groupData.str);
-
-        groupDatas.push_back(groupData);
+    class RowVisitor : public ModelVisitor {
+     public:
+      RowVisitor(CQChartsHierScatterPlot *plot) :
+       plot_(plot) {
       }
 
-      //---
+      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+        if (! plot_->acceptsRow(row, parent))
+          return State::SKIP;
 
-      // get parent group
-      CQChartsHierScatterPointGroup *group = currentGroup_;
+        //---
 
-      for (const auto &groupData : groupDatas) {
-        CQChartsHierScatterPointGroup *group1 = group->lookupGroup(groupData.ind);
+        // get x, y value
+        QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
+        QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
 
-        if (! group1) {
-          group1 = group->addGroup(groupData.ind, groupData.str);
-        }
+        bool ok1, ok2;
 
-        group = group1;
+        double x = CQChartsUtil::modelReal(model, xInd, ok1);
+        double y = CQChartsUtil::modelReal(model, yInd, ok2);
+
+        if (! ok1) x = row;
+        if (! ok2) y = row;
+
+        if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+          return State::SKIP;
+
+        //---
+
+        // get optional name
+        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
+
+        bool ok;
+
+        QString name = CQChartsUtil::modelString(model, nameInd, ok);
+
+        //---
+
+        plot_->addGroupPoint(parent, row, x, y, name);
+
+        return State::OK;
       }
 
-      CQChartsHierScatterPoint point(group, x, y, name, r, xInd1);
+     private:
+      CQChartsHierScatterPlot *plot_ { nullptr };
+    };
 
-      group->addPoint(point);
-    }
+    RowVisitor visitor(this);
+
+    visitModel(visitor);
   }
 
   //---
@@ -502,6 +510,68 @@ initObjs()
   //---
 
   return true;
+}
+
+void
+CQChartsHierScatterPlot::
+addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QString &name)
+{
+  // get point groups
+  struct GroupData {
+    int               column   { -1 };
+    CQChartsValueSet* valueSet { nullptr };
+    QString           str;
+    int               ind      { -1 };
+  };
+
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  //---
+
+  std::vector<GroupData> groupDatas;
+
+  for (const auto &groupValue : groupValues_) {
+    GroupData groupData;
+
+    groupData.column   = groupValue;
+    groupData.valueSet = groupValueSets_[groupData.column];
+
+    QModelIndex ind = model->index(row, groupData.column, parent);
+
+    bool ok3;
+
+    groupData.str = CQChartsUtil::modelString(model, ind, ok3);
+
+    groupData.ind = groupData.valueSet->sind(groupData.str);
+
+    groupDatas.push_back(groupData);
+  }
+
+  //---
+
+  // get parent group
+  CQChartsHierScatterPointGroup *group = currentGroup_;
+
+  for (const auto &groupData : groupDatas) {
+    CQChartsHierScatterPointGroup *group1 = group->lookupGroup(groupData.ind);
+
+    if (! group1) {
+      group1 = group->addGroup(groupData.ind, groupData.str);
+    }
+
+    group = group1;
+  }
+
+  //---
+
+  QModelIndex xInd = model->index(row, xColumn(), parent);
+
+  QModelIndex xInd1 = normalizeIndex(xInd);
+
+  CQChartsHierScatterPoint point(group, x, y, name, row, xInd1);
+
+  group->addPoint(point);
 }
 
 void

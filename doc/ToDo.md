@@ -1,4 +1,6 @@
 High
+ + remove rowCount calls
+ + ensure all model->index() calls have parent
  + More common grouping column handling
  + equal scale just be quick adjust of dataRange (cached original)
 

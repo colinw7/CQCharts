@@ -477,7 +477,7 @@ initNodes()
   //---
 
   if (isHierarchical())
-    loadChildren(root_);
+    loadHier();
   else
     loadFlat();
 
@@ -588,72 +588,171 @@ colorNode(CQChartsHierBubbleNode *node)
 
 void
 CQChartsHierBubblePlot::
-loadChildren(CQChartsHierBubbleHierNode *hier, const QModelIndex &index, int depth)
+loadHier()
 {
   QAbstractItemModel *model = this->model();
 
   if (! model)
     return;
 
-  //ColumnType valueColumnType = columnValueType(model, valueColumn());
-
   //---
 
-  maxDepth_ = std::max(maxDepth_, depth + 1);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *root) :
+     plot_(plot) {
+      hierStack_.push_back(root);
 
-  //---
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
 
-  int nr = model->rowCount(index);
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn(), index);
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    //---
-
-    bool ok;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-    //---
-
-    if (model->rowCount(nameInd) > 0) {
-      CQChartsHierBubbleHierNode *hier1 =
-        new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
-
-      hier1->setDepth(depth);
-      hier1->setHierInd(hierInd_++);
-
-      loadChildren(hier1, nameInd, depth + 1);
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
     }
-    else {
-      QModelIndex valueInd = model->index(r, valueColumn(), index);
 
-      double size = 1.0;
+    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
 
-      if (valueInd.isValid()) {
-        bool ok;
-
-        size = CQChartsUtil::modelReal(model, valueInd, ok);
-
-        if (ok && size <= 0.0)
-          ok = false;
-
-        if (! ok)
-          continue;
-      }
+      (void) getName(model, parent, row, name, nameInd);
 
       //---
 
-      CQChartsHierBubbleNode *node =
-        new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
+      CQChartsHierBubbleHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
-      node->setDepth(depth);
+      //---
 
-      hier->addNode(node);
+      hierStack_.push_back(hier);
+
+      return State::OK;
     }
-  }
+
+    State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) override {
+      hierStack_.pop_back();
+
+      assert(! hierStack_.empty());
+
+      return State::OK;
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
+
+      (void) getName(model, parent, row, name, nameInd);
+
+      //---
+
+      double size = 1.0;
+
+      if (! getSize(model, parent, row, size))
+        return State::SKIP;
+
+      //---
+
+      CQChartsHierBubbleNode *node = plot_->addNode(parentHier(), name, size, nameInd);
+
+      if (node) {
+        OptColor color;
+
+        if (plot_->colorSetColor("color", row, color))
+          node->setColor(*color);
+      }
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsHierBubbleHierNode *parentHier() const {
+      assert(! hierStack_.empty());
+
+      return hierStack_.back();
+    }
+
+    bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 QString &name, QModelIndex &nameInd) const {
+      nameInd = model->index(row, plot_->nameColumn(), parent);
+
+      bool ok;
+
+      name = CQChartsUtil::modelString(model, nameInd, ok);
+
+      return ok;
+    }
+
+    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 double &size) const {
+      size = 1.0;
+
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
+
+      if (! valueInd.isValid())
+        return true;
+
+      bool ok = true;
+
+      if      (valueColumnType_ == ColumnType::REAL)
+        size = CQChartsUtil::modelReal(model, valueInd, ok);
+      else if (valueColumnType_ == ColumnType::INTEGER)
+        size = CQChartsUtil::modelInteger(model, valueInd, ok);
+      else
+        ok = false;
+
+      if (ok && size <= 0.0)
+        ok = false;
+
+      return ok;
+    }
+
+   private:
+    using HierStack = std::vector<CQChartsHierBubbleHierNode *>;
+
+    CQChartsHierBubblePlot *plot_            { nullptr };
+    ColumnType              valueColumnType_ { ColumnType::NONE };
+    HierStack               hierStack_;
+  };
+
+  RowVisitor visitor(this, root_);
+
+  visitModel(visitor);
+}
+
+CQChartsHierBubbleHierNode *
+CQChartsHierBubblePlot::
+addHierNode(CQChartsHierBubbleHierNode *hier, const QString &name, const QModelIndex &nameInd)
+{
+  int depth1 = hier->depth() + 1;
+
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  CQChartsHierBubbleHierNode *hier1 = new CQChartsHierBubbleHierNode(this, hier, name, nameInd1);
+
+  hier1->setDepth(depth1);
+
+  hier1->setHierInd(hierInd_++);
+
+  maxDepth_ = std::max(maxDepth_, depth1);
+
+  return hier1;
+}
+
+CQChartsHierBubbleNode *
+CQChartsHierBubblePlot::
+addNode(CQChartsHierBubbleHierNode *hier, const QString &name, double size,
+        const QModelIndex &nameInd)
+{
+  int depth1 = hier->depth() + 1;
+
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  CQChartsHierBubbleNode *node = new CQChartsHierBubbleNode(this, hier, name, size, nameInd1);
+
+  node->setDepth(depth1);
+
+  hier->addNode(node);
+
+  maxDepth_ = std::max(maxDepth_, depth1);
+
+  return node;
 }
 
 void
@@ -667,119 +766,155 @@ loadFlat()
 
   //---
 
-  ColumnType valueColumnType = columnValueType(model, valueColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsHierBubblePlot *plot) :
+     plot_(plot) {
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
+
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QStringList  nameStrs;
+      ModelIndices nameInds;
+
+      if (! plot_->getHierColumnNames(parent, row, plot_->nameColumns(), plot_->separator(),
+                                      nameStrs, nameInds))
+        return State::SKIP;
+
+      //---
+
+      double size = 1.0;
+
+      if (! getSize(model, parent, row, size))
+        return State::SKIP;
+
+      //---
+
+      CQChartsHierBubbleNode *node = plot_->addNode(nameStrs, size, nameInds[0]);
+
+      if (node) {
+        OptColor color;
+
+        if (plot_->colorSetColor("color", row, color))
+          node->setColor(*color);
+      }
+
+      return State::OK;
+    }
+
+   private:
+    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 double &size) const {
+      size = 1.0;
+
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
+
+      if (! valueInd.isValid())
+        return true;
+
+      bool ok = true;
+
+      if      (valueColumnType_ == ColumnType::REAL)
+        size = CQChartsUtil::modelReal(model, valueInd, ok);
+      else if (valueColumnType_ == ColumnType::INTEGER)
+        size = CQChartsUtil::modelInteger(model, valueInd, ok);
+      else
+        ok = false;
+
+      if (ok && size <= 0.0)
+        ok = false;
+
+      return ok;
+    }
+
+   private:
+    CQChartsHierBubblePlot *plot_            { nullptr };
+    ColumnType              valueColumnType_ { ColumnType::NONE };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
 
   //---
 
-  int nr = model->rowCount();
+  addExtraNodes(root_);
+}
 
-  for (int r = 0; r < nr; ++r) {
-    QStringList  nameStrs;
-    ModelIndices nameInds;
+CQChartsHierBubbleNode *
+CQChartsHierBubblePlot::
+addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd)
+{
+  int depth = nameStrs.length();
 
-    if (! getHierColumnNames(r, nameColumns(), separator(), nameStrs, nameInds))
-      continue;
+  maxDepth_ = std::max(maxDepth_, depth + 1);
 
-    QModelIndex nameInd1 = normalizeIndex(nameInds[0]);
+  //---
 
-    //---
+  CQChartsHierBubbleHierNode *parent = root_;
 
-    double size = 1.0;
+  for (int i = 0; i < nameStrs.length() - 1; ++i) {
+    CQChartsHierBubbleHierNode *child = childHierNode(parent, nameStrs[i]);
 
-    QModelIndex valueInd = model->index(r, valueColumn());
+    if (! child) {
+      // remove any existing leaf node (save size to use in new hier node)
+      QModelIndex nameInd1;
+      double      size1 = 0.0;
 
-    if (valueInd.isValid()) {
-      bool ok2 = true;
+      CQChartsHierBubbleNode *node = childNode(parent, nameStrs[i]);
 
-      if      (valueColumnType == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, valueInd, ok2);
-      else if (valueColumnType == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, valueInd, ok2);
-      else
-        ok2 = false;
+      if (node) {
+        nameInd1 = node->ind();
+        size1    = node->size();
 
-      if (ok2 && size <= 0.0)
-        ok2 = false;
+        parent->removeNode(node);
 
-      if (! ok2)
-        continue;
-    }
-
-    //---
-
-    int depth = nameStrs.length();
-
-    maxDepth_ = std::max(maxDepth_, depth + 1);
-
-    //---
-
-    CQChartsHierBubbleHierNode *parent = root_;
-
-    for (int j = 0; j < nameStrs.length() - 1; ++j) {
-      CQChartsHierBubbleHierNode *child = childHierNode(parent, nameStrs[j]);
-
-      if (! child) {
-        // remove any existing leaf node (save size to use in new hier node)
-        double size = 0.0;
-
-        CQChartsHierBubbleNode *node = childNode(parent, nameStrs[j]);
-
-        if (node) {
-          nameInd1 = node->ind();
-          size     = node->size();
-
-          parent->removeNode(node);
-
-          delete node;
-        }
-
-        //---
-
-        child = new CQChartsHierBubbleHierNode(this, parent, nameStrs[j], nameInd1);
-
-        child->setSize(size);
-
-        child->setDepth(depth);
-        child->setHierInd(hierInd_++);
-      }
-
-      parent = child;
-    }
-
-    //---
-
-    QString name = nameStrs[nameStrs.length() - 1];
-
-    CQChartsHierBubbleNode *node = childNode(parent, name);
-
-    if (! node) {
-      // use hier node if already created
-      CQChartsHierBubbleHierNode *child = childHierNode(parent, name);
-
-      if (child) {
-        child->setSize(size);
-
-        continue;
+        delete node;
       }
 
       //---
 
-      node = new CQChartsHierBubbleNode(this, parent, name, size, nameInd1);
+      child = new CQChartsHierBubbleHierNode(this, parent, nameStrs[i], nameInd1);
 
-      node->setDepth(depth);
+      child->setSize(size1);
 
-      OptColor color;
-
-      if (colorSetColor("color", r, color))
-        node->setColor(*color);
-
-      parent->addNode(node);
+      child->setDepth(depth);
+      child->setHierInd(hierInd_++);
     }
+
+    parent = child;
   }
 
-  //----
+  //---
 
-  addExtraNodes(root_);
+  QString name = nameStrs[nameStrs.length() - 1];
+
+  CQChartsHierBubbleNode *node = childNode(parent, name);
+
+  if (! node) {
+    // use hier node if already created
+    CQChartsHierBubbleHierNode *child = childHierNode(parent, name);
+
+    if (child) {
+      child->setSize(size);
+      return nullptr;
+    }
+
+    //---
+
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+    node = new CQChartsHierBubbleNode(this, parent, name, size, nameInd1);
+
+    node->setDepth(depth);
+
+    parent->addNode(node);
+  }
+
+  return node;
 }
 
 void

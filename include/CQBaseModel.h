@@ -24,6 +24,13 @@ class CQBaseModel : public QAbstractItemModel {
     COLOR   = QVariant::Color
   };
 
+ protected:
+  struct ColumnTypeData {
+    Type type    { Type::NONE };
+    int  numInt  { 0 };
+    int  numReal { 0 };
+  };
+
  public:
   CQBaseModel();
 
@@ -67,14 +74,17 @@ class CQBaseModel : public QAbstractItemModel {
  protected:
   void genColumnTypes();
 
+  bool genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
+
  protected:
   struct ColumnData {
-    Type    type;
+    Type    type { Type::NONE };
     QString typeValues;
   };
 
-  typedef std::map<int,ColumnData> ColumnDatas;
+  using ColumnDatas = std::map<int,ColumnData>;
 
+ protected:
   ColumnDatas columnDatas_;
 };
 

@@ -43,6 +43,8 @@ CQToolTip() :
  margin_ (style()->pixelMetric(QStyle::PM_ToolTipLabelFrameWidth)),
  opacity_(style()->styleHint  (QStyle::SH_ToolTipLabel_Opacity)/255.0)
 {
+  setObjectName("tooltip");
+
   setAttribute(Qt::WA_TranslucentBackground);
 
   //setPalette(QToolTip::palette());
@@ -113,6 +115,10 @@ updateSize()
   int margin = calcMargin();
 
   tooltip_->setParent(this);
+
+  QPalette pal = this->palette();
+  pal.setColor(tooltip_->foregroundRole(), pal.color(QPalette::ToolTipText));
+  tooltip_->setPalette(pal);
 
   tooltip_->move(margin, margin);
 

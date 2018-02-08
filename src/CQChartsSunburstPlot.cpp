@@ -462,7 +462,7 @@ initRoots()
     root = createRootNode();
 
   if (isHierarchical())
-    loadChildren(root);
+    loadHier(root);
   else
     loadFlat(root);
 
@@ -527,7 +527,7 @@ colorNode(CQChartsSunburstNode *node)
 
 void
 CQChartsSunburstPlot::
-loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth)
+loadHier(CQChartsSunburstHierNode *root)
 {
   QAbstractItemModel *model = this->model();
 
@@ -536,62 +536,144 @@ loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index, int depth
 
   //---
 
-  int nr = model->rowCount(index);
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn(), index);
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    //---
-
-    bool ok;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-    //---
-
-    if (model->rowCount(nameInd) > 0) {
-      CQChartsSunburstHierNode *hier1 = new CQChartsSunburstHierNode(this, hier, name);
-
-      loadChildren(hier1, nameInd, depth + 1);
-
-      hier1->setInd(nameInd1);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
+     plot_(plot) {
+      hierStack_.push_back(root);
     }
-    else {
-      QModelIndex valueInd = model->index(r, valueColumn(), index);
 
-      double size = 1.0;
+    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
 
-      if (valueInd.isValid()) {
-        bool ok;
-
-        size = CQChartsUtil::modelReal(model, valueInd, ok);
-
-        if (ok && size <= 0.0)
-          ok = false;
-
-        if (! ok)
-          continue;
-      }
+      (void) getName(model, parent, row, name, nameInd);
 
       //---
 
-      CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, name);
+      CQChartsSunburstHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
-      node->setSize(size);
+      //---
 
-      if (valueInd.isValid()) {
-        QModelIndex valueInd1 = normalizeIndex(valueInd);
+      hierStack_.push_back(hier);
 
-        node->setInd(valueInd1);
-      }
-      else
-        node->setInd(nameInd1);
-
-      hier->addNode(node);
+      return State::OK;
     }
+
+    State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) override {
+      hierStack_.pop_back();
+
+      assert(! hierStack_.empty());
+
+      return State::OK;
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
+
+      (void) getName(model, parent, row, name, nameInd);
+
+      //---
+
+      double      size = 1.0;
+      QModelIndex valueInd;
+
+      if (! getSize(model, parent, row, size, valueInd))
+        return State::SKIP;
+
+      //---
+
+      (void) plot_->addNode(parentHier(), name, size, nameInd, valueInd);
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsSunburstHierNode *parentHier() const {
+      assert(! hierStack_.empty());
+
+      return hierStack_.back();
+    }
+
+    bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 QString &name, QModelIndex &nameInd) const {
+      nameInd = model->index(row, plot_->nameColumn(), parent);
+
+      bool ok;
+
+      name = CQChartsUtil::modelString(model, nameInd, ok);
+
+      return ok;
+    }
+
+    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 double size, QModelIndex &valueInd) const {
+      size = 1.0;
+
+      valueInd = model->index(row, plot_->valueColumn(), parent);
+
+      if (! valueInd.isValid())
+        return true;
+
+      bool ok = true;
+
+      size = CQChartsUtil::modelReal(model, valueInd, ok);
+
+      if (ok && size <= 0.0)
+        ok = false;
+
+      return ok;
+    }
+
+   private:
+    using HierStack = std::vector<CQChartsSunburstHierNode *>;
+
+    CQChartsSunburstPlot *plot_ { nullptr };
+    HierStack             hierStack_;
+  };
+
+  RowVisitor visitor(this, root);
+
+  visitModel(visitor);
+}
+
+CQChartsSunburstHierNode *
+CQChartsSunburstPlot::
+addHierNode(CQChartsSunburstHierNode *hier, const QString &name, const QModelIndex &nameInd)
+{
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  CQChartsSunburstHierNode *hier1 = new CQChartsSunburstHierNode(this, hier, name);
+
+  hier1->setInd(nameInd1);
+
+  return hier1;
+}
+
+CQChartsSunburstNode *
+CQChartsSunburstPlot::
+addNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
+        const QModelIndex &nameInd, const QModelIndex &valueInd)
+{
+  CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, name);
+
+  node->setSize(size);
+
+  if (valueInd.isValid()) {
+    QModelIndex valueInd1 = normalizeIndex(valueInd);
+
+    node->setInd(valueInd1);
   }
+  else {
+    QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+    node->setInd(nameInd1);
+  }
+
+  hier->addNode(node);
+
+  return node;
 }
 
 void
@@ -605,136 +687,165 @@ loadFlat(CQChartsSunburstHierNode *root)
 
   //---
 
-  ColumnType valueColumnType = columnValueType(model, valueColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
+     plot_(plot), root_(root) {
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
 
-  //---
-
-  int nr = model->rowCount();
-
-  for (int r = 0; r < nr; ++r) {
-    QStringList  nameStrs;
-    ModelIndices nameInds;
-
-    if (! getHierColumnNames(r, nameColumns(), separator(), nameStrs, nameInds))
-      continue;
-
-    QModelIndex nameInd1 = normalizeIndex(nameInds[0]);
-
-    //---
-
-    double size = 1.0;
-
-    QModelIndex valueInd = model->index(r, valueColumn());
-
-    if (valueInd.isValid()) {
-      bool ok2 = true;
-
-      if      (valueColumnType == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, valueInd, ok2);
-      else if (valueColumnType == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, valueInd, ok2);
-      else
-        ok2 = false;
-
-      if (ok2 && size <= 0.0)
-        ok2 = false;
-
-      if (! ok2)
-        continue;
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QStringList  nameStrs;
+      ModelIndices nameInds;
 
-    CQChartsSunburstHierNode *parent = root;
+      if (! plot_->getHierColumnNames(parent, row, plot_->nameColumns(), plot_->separator(),
+                                      nameStrs, nameInds))
+        return State::SKIP;
 
-    for (int j = 0; j < nameStrs.length() - 1; ++j) {
-      CQChartsSunburstHierNode *child = nullptr;
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInds[0]);
 
-      if (j == 0 && isMultiRoot()) {
-        CQChartsSunburstRootNode *root = rootNode(nameStrs[j]);
+      //---
 
-        if (! root) {
-          root = createRootNode(nameStrs[j]);
+      double size = 1.0;
 
-          root->setInd(nameInd1);
-        }
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
-        child = root;
-      }
-      else {
-        child = childHierNode(parent, nameStrs[j]);
+      if (valueInd.isValid()) {
+        bool ok2 = true;
 
-        if (! child) {
-          // remove any existing leaf node (save size to use in new hier node)
-          double size = 0.0;
+        if      (valueColumnType_ == ColumnType::REAL)
+          size = CQChartsUtil::modelReal(model, valueInd, ok2);
+        else if (valueColumnType_ == ColumnType::INTEGER)
+          size = CQChartsUtil::modelInteger(model, valueInd, ok2);
+        else
+          ok2 = false;
 
-          CQChartsSunburstNode *node = childNode(parent, nameStrs[j]);
+        if (ok2 && size <= 0.0)
+          ok2 = false;
 
-          if (node) {
-            nameInd1 = node->ind();
-            size     = node->size();
-
-            parent->removeNode(node);
-
-            delete node;
-          }
-
-          //---
-
-          child = new CQChartsSunburstHierNode(this, parent, nameStrs[j]);
-
-          child->setSize(size);
-
-          child->setInd(nameInd1);
-        }
-      }
-
-      parent = child;
-    }
-
-    //---
-
-    QString name = nameStrs[nameStrs.length() - 1];
-
-    CQChartsSunburstNode *node = childNode(parent, name);
-
-    if (! node) {
-      // use hier node if already created
-      CQChartsSunburstHierNode *child = childHierNode(parent, name);
-
-      if (child) {
-        child->setSize(size);
-
-        continue;
+        if (! ok2)
+          return State::SKIP;
       }
 
       //---
 
-      node = new CQChartsSunburstNode(this, parent, name);
+      CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
-      node->setSize(size);
+      if (node) {
+        OptColor color;
 
-      OptColor color;
-
-      if (colorSetColor("color", r, color))
-        node->setColor(*color);
-
-      if (valueInd.isValid()) {
-        QModelIndex valueInd1 = normalizeIndex(valueInd);
-
-        node->setInd(valueInd1);
+        if (plot_->colorSetColor("color", row, color))
+          node->setColor(*color);
       }
-      else
-        node->setInd(nameInd1);
 
-      parent->addNode(node);
+      return State::OK;
     }
-  }
 
-  //----
+   private:
+    CQChartsSunburstPlot     *plot_            { nullptr };
+    CQChartsSunburstHierNode *root_            { nullptr };
+    ColumnType                valueColumnType_ { ColumnType::NONE };
+  };
+
+  RowVisitor visitor(this, root);
+
+  visitModel(visitor);
+
+  //---
 
   for (auto &root : roots_)
     addExtraNodes(root);
+}
+
+CQChartsSunburstNode *
+CQChartsSunburstPlot::
+addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs, double size,
+        const QModelIndex &nameInd, const QModelIndex &valueInd)
+{
+  CQChartsSunburstHierNode *parent = root;
+
+  for (int i = 0; i < nameStrs.length() - 1; ++i) {
+    CQChartsSunburstHierNode *child = nullptr;
+
+    if (i == 0 && isMultiRoot()) {
+      CQChartsSunburstRootNode *root = rootNode(nameStrs[i]);
+
+      if (! root) {
+        root = createRootNode(nameStrs[i]);
+
+        root->setInd(nameInd);
+      }
+
+      child = root;
+    }
+    else {
+      child = childHierNode(parent, nameStrs[i]);
+
+      if (! child) {
+        // remove any existing leaf node (save size to use in new hier node)
+        QModelIndex nameInd1;
+        double      size1 = 0.0;
+
+        CQChartsSunburstNode *node = childNode(parent, nameStrs[i]);
+
+        if (node) {
+          nameInd1 = node->ind();
+          size1    = node->size();
+
+          parent->removeNode(node);
+
+          delete node;
+        }
+
+        //---
+
+        child = new CQChartsSunburstHierNode(this, parent, nameStrs[i]);
+
+        child->setSize(size1);
+
+        child->setInd(nameInd1);
+      }
+    }
+
+    parent = child;
+  }
+
+  //---
+
+  QString name = nameStrs[nameStrs.length() - 1];
+
+  CQChartsSunburstNode *node = childNode(parent, name);
+
+  if (! node) {
+    // use hier node if already created
+    CQChartsSunburstHierNode *child = childHierNode(parent, name);
+
+    if (child) {
+      child->setSize(size);
+      return nullptr;
+    }
+
+    //---
+
+    node = new CQChartsSunburstNode(this, parent, name);
+
+    node->setSize(size);
+
+    if (valueInd.isValid()) {
+      QModelIndex valueInd1 = normalizeIndex(valueInd);
+
+      node->setInd(valueInd1);
+    }
+    else
+      node->setInd(nameInd);
+
+    parent->addNode(node);
+  }
+
+  return node;
 }
 
 void
@@ -744,11 +855,11 @@ addExtraNodes(CQChartsSunburstHierNode *hier)
   if (hier->size() > 0) {
     CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, "");
 
-    int r = unnormalizeIndex(hier->ind()).row();
+    int row = unnormalizeIndex(hier->ind()).row();
 
     OptColor color;
 
-    if (colorSetColor("color", r, color))
+    if (colorSetColor("color", row, color))
       node->setColor(*color);
 
     node->setSize(hier->size());
@@ -1186,11 +1297,11 @@ calcTipId() const
   if (plot_->colorColumn() >= 0) {
     QAbstractItemModel *model = plot_->model();
 
-    int r = plot_->unnormalizeIndex(node_->ind()).row();
+    int row = plot_->unnormalizeIndex(node_->ind()).row();
 
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, r, plot_->colorColumn(), ok);
+    QString colorStr = CQChartsUtil::modelString(model, row, plot_->colorColumn(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

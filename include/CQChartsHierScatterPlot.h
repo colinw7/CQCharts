@@ -216,6 +216,10 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   Q_PROPERTY(bool    textLabels        READ isTextLabels         WRITE setTextLabels          )
 
  public:
+  using GroupValues    = std::vector<int>;
+  using GroupValueSets = std::map<int,CQChartsValueSet *>;
+
+ public:
   CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsHierScatterPlot();
 
@@ -275,16 +279,21 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
 
   void initGroupValueSets();
 
+  void addRowGroupValueSets(const QModelIndex &parent, int row);
+
   void updateObjs() override;
 
   bool initObjs() override;
+
+  void addGroupPoint(const QModelIndex &parent, int row,
+                     double x, double y, const QString &name);
 
   void addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,
                       CQChartsHierScatterPointGroup *group);
 
   //---
 
-  int acceptsRow(int r) const;
+  int acceptsRow(int row, const QModelIndex &parent) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
@@ -300,9 +309,6 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   void resetCurrentGroup();
 
  private:
-  using GroupValues    = std::vector<int>;
-  using GroupValueSets = std::map<int,CQChartsValueSet *>;
-
   int                            xColumn_           { 0 };
   int                            yColumn_           { 1 };
   int                            nameColumn_        { -1 };

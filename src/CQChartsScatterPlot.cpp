@@ -250,17 +250,6 @@ initObjs()
       }
 
       State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
-        //---
-
-        // get value name
-        bool ok;
-
-        QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-        //---
-
         // get x, y value
         QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
         QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
@@ -277,6 +266,15 @@ initObjs()
 
         if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
           return State::SKIP;
+
+        //---
+
+        // get optional name
+        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
+
+        bool ok;
+
+        QString name = CQChartsUtil::modelString(model, nameInd, ok);
 
         //---
 

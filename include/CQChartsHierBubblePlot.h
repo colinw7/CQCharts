@@ -397,10 +397,18 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
 
   //---
 
-  void loadChildren(CQChartsHierBubbleHierNode *hier,
-                    const QModelIndex &index=QModelIndex(), int depth=0);
+  void loadHier();
+
+  CQChartsHierBubbleHierNode *addHierNode(CQChartsHierBubbleHierNode *parent, const QString &name,
+                                          const QModelIndex &nameInd);
+
+  CQChartsHierBubbleNode *addNode(CQChartsHierBubbleHierNode *parent, const QString &name,
+                                  double size, const QModelIndex &nameInd);
 
   void loadFlat();
+
+  CQChartsHierBubbleNode *addNode(const QStringList &nameStrs, double size,
+                                  const QModelIndex &nameInd);
 
   void addExtraNodes(CQChartsHierBubbleHierNode *hier);
 

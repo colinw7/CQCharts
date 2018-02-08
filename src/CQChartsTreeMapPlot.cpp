@@ -725,7 +725,7 @@ initNodes()
   //---
 
   if (isHierarchical())
-    loadChildren(root_);
+    loadHier();
   else
     loadFlat();
 
@@ -787,72 +787,171 @@ colorNode(CQChartsTreeMapNode *node)
 
 void
 CQChartsTreeMapPlot::
-loadChildren(CQChartsTreeMapHierNode *hier, const QModelIndex &index, int depth)
+loadHier()
 {
   QAbstractItemModel *model = this->model();
 
   if (! model)
     return;
 
-  //ColumnType valueColumnType = columnValueType(model, valueColumn());
-
   //---
 
-  maxDepth_ = std::max(maxDepth_, depth + 1);
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsTreeMapPlot *plot, CQChartsTreeMapHierNode *root) :
+     plot_(plot) {
+      hierStack_.push_back(root);
 
-  //---
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
 
-  int nr = model->rowCount(index);
-
-  for (int r = 0; r < nr; ++r) {
-    QModelIndex nameInd = model->index(r, nameColumn(), index);
-
-    QModelIndex nameInd1 = normalizeIndex(nameInd);
-
-    //---
-
-    bool ok;
-
-    QString name = CQChartsUtil::modelString(model, nameInd, ok);
-
-    //---
-
-    if (model->rowCount(nameInd) > 0) {
-      CQChartsTreeMapHierNode *hier1 =
-        new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
-
-      hier1->setDepth(depth);
-      hier1->setHierInd(hierInd_++);
-
-      loadChildren(hier1, nameInd, depth + 1);
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
     }
-    else {
-      QModelIndex valueInd = model->index(r, valueColumn(), index);
 
-      double size = 1.0;
+    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
 
-      if (valueInd.isValid()) {
-        bool ok;
-
-        size = CQChartsUtil::modelReal(model, valueInd, ok);
-
-        if (ok && size <= 0.0)
-          ok = false;
-
-        if (! ok)
-          continue;
-      }
+      (void) getName(model, parent, row, name, nameInd);
 
       //---
 
-      CQChartsTreeMapNode *node =
-        new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
+      CQChartsTreeMapHierNode *hier = plot_->addHierNode(parentHier(), name, nameInd);
 
-      node->setDepth(depth);
+      //---
 
-      hier->addNode(node);
+      hierStack_.push_back(hier);
+
+      return State::OK;
     }
-  }
+
+    State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) override {
+      hierStack_.pop_back();
+
+      assert(! hierStack_.empty());
+
+      return State::OK;
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QString     name;
+      QModelIndex nameInd;
+
+      (void) getName(model, parent, row, name, nameInd);
+
+      //---
+
+      double size = 1.0;
+
+      if (! getSize(model, parent, row, size))
+        return State::SKIP;
+
+      //---
+
+      CQChartsTreeMapNode *node = plot_->addNode(parentHier(), name, size, nameInd);
+
+      if (node) {
+        OptColor color;
+
+        if (plot_->colorSetColor("color", row, color))
+          node->setColor(*color);
+      }
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsTreeMapHierNode *parentHier() const {
+      assert(! hierStack_.empty());
+
+      return hierStack_.back();
+    }
+
+    bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 QString &name, QModelIndex &nameInd) const {
+      nameInd = model->index(row, plot_->nameColumn(), parent);
+
+      bool ok;
+
+      name = CQChartsUtil::modelString(model, nameInd, ok);
+
+      return ok;
+    }
+
+    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                 double &size) const {
+      size = 1.0;
+
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
+
+      if (! valueInd.isValid())
+        return true;
+
+      bool ok = true;
+
+      if      (valueColumnType_ == ColumnType::REAL)
+        size = CQChartsUtil::modelReal(model, valueInd, ok);
+      else if (valueColumnType_ == ColumnType::INTEGER)
+        size = CQChartsUtil::modelInteger(model, valueInd, ok);
+      else
+        ok = false;
+
+      if (ok && size <= 0.0)
+        ok = false;
+
+      return ok;
+    }
+
+   private:
+    using HierStack = std::vector<CQChartsTreeMapHierNode *>;
+
+    CQChartsTreeMapPlot *plot_            { nullptr };
+    ColumnType           valueColumnType_ { ColumnType::NONE };
+    HierStack            hierStack_;
+  };
+
+  RowVisitor visitor(this, root_);
+
+  visitModel(visitor);
+}
+
+CQChartsTreeMapHierNode *
+CQChartsTreeMapPlot::
+addHierNode(CQChartsTreeMapHierNode *hier, const QString &name, const QModelIndex &nameInd)
+{
+  int depth1 = hier->depth() + 1;
+
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  CQChartsTreeMapHierNode *hier1 = new CQChartsTreeMapHierNode(this, hier, name, nameInd1);
+
+  hier1->setDepth(depth1);
+
+  hier1->setHierInd(hierInd_++);
+
+  maxDepth_ = std::max(maxDepth_, depth1);
+
+  return hier1;
+}
+
+CQChartsTreeMapNode *
+CQChartsTreeMapPlot::
+addNode(CQChartsTreeMapHierNode *hier, const QString &name, double size,
+        const QModelIndex &nameInd)
+{
+  int depth1 = hier->depth() + 1;
+
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
+
+  CQChartsTreeMapNode *node = new CQChartsTreeMapNode(this, hier, name, size, nameInd1);
+
+  node->setDepth(depth1);
+
+  hier->addNode(node);
+
+  maxDepth_ = std::max(maxDepth_, depth1);
+
+  return node;
 }
 
 void
@@ -866,119 +965,146 @@ loadFlat()
 
   //---
 
-  ColumnType valueColumnType = columnValueType(model, valueColumn());
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsTreeMapPlot *plot) :
+     plot_(plot) {
+      QAbstractItemModel *model = plot_->model();
+      assert(model);
 
-  //---
-
-  int nr = model->rowCount();
-
-  for (int r = 0; r < nr; ++r) {
-    QStringList  nameStrs;
-    ModelIndices nameInds;
-
-    if (! getHierColumnNames(r, nameColumns(), separator(), nameStrs, nameInds))
-      continue;
-
-    QModelIndex nameInd1 = normalizeIndex(nameInds[0]);
-
-    //---
-
-    double size = 1.0;
-
-    QModelIndex valueInd = model->index(r, valueColumn());
-
-    if (valueInd.isValid()) {
-      bool ok2 = true;
-
-      if      (valueColumnType == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, valueInd, ok2);
-      else if (valueColumnType == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, valueInd, ok2);
-      else
-        ok2 = false;
-
-      if (ok2 && size <= 0.0)
-        ok2 = false;
-
-      if (! ok2)
-        continue;
+      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
     }
 
-    //---
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      QStringList  nameStrs;
+      ModelIndices nameInds;
 
-    int depth = nameStrs.length();
+      if (! plot_->getHierColumnNames(parent, row, plot_->nameColumns(), plot_->separator(),
+                                      nameStrs, nameInds))
+        return State::SKIP;
 
-    maxDepth_ = std::max(maxDepth_, depth + 1);
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInds[0]);
 
-    //---
+      //---
 
-    CQChartsTreeMapHierNode *parent = root();
+      double size = 1.0;
 
-    for (int j = 0; j < nameStrs.length() - 1; ++j) {
-      CQChartsTreeMapHierNode *child = childHierNode(parent, nameStrs[j]);
+      QModelIndex valueInd = model->index(row, plot_->valueColumn());
 
-      if (! child) {
-        // remove any existing leaf node (save size to use in new hier node)
-        double size = 0.0;
+      if (valueInd.isValid()) {
+        bool ok2 = true;
 
-        CQChartsTreeMapNode *node = childNode(parent, nameStrs[j]);
+        if      (valueColumnType_ == ColumnType::REAL)
+          size = CQChartsUtil::modelReal(model, valueInd, ok2);
+        else if (valueColumnType_ == ColumnType::INTEGER)
+          size = CQChartsUtil::modelInteger(model, valueInd, ok2);
+        else
+          ok2 = false;
 
-        if (node) {
-          nameInd1 = node->ind();
-          size     = node->size();
+        if (ok2 && size <= 0.0)
+          ok2 = false;
 
-          parent->removeNode(node);
-
-          delete node;
-        }
-
-        //---
-
-        child = new CQChartsTreeMapHierNode(this, parent, nameStrs[j], nameInd1);
-
-        child->setSize(size);
-
-        child->setDepth(depth);
-        child->setHierInd(hierInd_++);
-      }
-
-      parent = child;
-    }
-
-    //---
-
-    QString name = nameStrs[nameStrs.length() - 1];
-
-    CQChartsTreeMapNode *node = childNode(parent, name);
-
-    if (! node) {
-      // use hier node if already created
-      CQChartsTreeMapHierNode *child = childHierNode(parent, name);
-
-      if (child) {
-        child->setSize(size);
-
-        continue;
+        if (! ok2)
+          return State::SKIP;
       }
 
       //---
 
-      node = new CQChartsTreeMapNode(this, parent, name, size, nameInd1);
+      CQChartsTreeMapNode *node = plot_->addNode(nameStrs, size, nameInd1);
 
-      node->setDepth(depth);
+      if (node) {
+        OptColor color;
 
-      OptColor color;
+        if (plot_->colorSetColor("color", row, color))
+          node->setColor(*color);
+      }
 
-      if (colorSetColor("color", r, color))
-        node->setColor(*color);
-
-      parent->addNode(node);
+      return State::OK;
     }
-  }
 
-  //----
+   private:
+    CQChartsTreeMapPlot *plot_            { nullptr };
+    ColumnType           valueColumnType_ { ColumnType::NONE };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+
+  //---
 
   addExtraNodes(root());
+}
+
+CQChartsTreeMapNode *
+CQChartsTreeMapPlot::
+addNode(const QStringList &nameStrs, double size, const QModelIndex &nameInd)
+{
+  int depth = nameStrs.length();
+
+  maxDepth_ = std::max(maxDepth_, depth + 1);
+
+  //---
+
+  CQChartsTreeMapHierNode *parent = root();
+
+  for (int j = 0; j < nameStrs.length() - 1; ++j) {
+    CQChartsTreeMapHierNode *child = childHierNode(parent, nameStrs[j]);
+
+    if (! child) {
+      // remove any existing leaf node (save size to use in new hier node)
+      QModelIndex nameInd1;
+      double      size1 = 0.0;
+
+      CQChartsTreeMapNode *node = childNode(parent, nameStrs[j]);
+
+      if (node) {
+        nameInd1 = node->ind();
+        size1    = node->size();
+
+        parent->removeNode(node);
+
+        delete node;
+      }
+
+      //---
+
+      child = new CQChartsTreeMapHierNode(this, parent, nameStrs[j], nameInd1);
+
+      child->setSize(size1);
+
+      child->setDepth(depth);
+      child->setHierInd(hierInd_++);
+    }
+
+    parent = child;
+  }
+
+  //---
+
+  QString name = nameStrs[nameStrs.length() - 1];
+
+  CQChartsTreeMapNode *node = childNode(parent, name);
+
+  if (! node) {
+    // use hier node if already created
+    CQChartsTreeMapHierNode *child = childHierNode(parent, name);
+
+    if (child) {
+      child->setSize(size);
+      return nullptr;
+    }
+
+    //---
+
+    node = new CQChartsTreeMapNode(this, parent, name, size, nameInd);
+
+    node->setDepth(depth);
+
+    parent->addNode(node);
+  }
+
+  return node;
 }
 
 void

@@ -303,3 +303,5 @@
  + More Visitor usage
  + Support From/To format for Force Directed nodes
  + Support Vertical Probe Lines
+# 2/7/2018
+ + Use visitor in more plot types

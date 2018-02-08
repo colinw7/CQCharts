@@ -414,10 +414,19 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
 
   //---
 
-  void loadChildren(CQChartsSunburstHierNode *hier, const QModelIndex &index=QModelIndex(),
-                    int depth=1);
+  void loadHier(CQChartsSunburstHierNode *hier);
+
+  CQChartsSunburstHierNode *addHierNode(CQChartsSunburstHierNode *hier, const QString &name,
+                                        const QModelIndex &nameInd);
+
+  CQChartsSunburstNode *addNode(CQChartsSunburstHierNode *hier, const QString &name, double size,
+                                const QModelIndex &nameInd, const QModelIndex &valueInd);
 
   void loadFlat(CQChartsSunburstHierNode *hier);
+
+  CQChartsSunburstNode *addNode(CQChartsSunburstHierNode *root, const QStringList &nameStrs,
+                                double size, const QModelIndex &nameInd,
+                                const QModelIndex &valueInd);
 
   void addExtraNodes(CQChartsSunburstHierNode *hier);
 

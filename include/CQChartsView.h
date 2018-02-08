@@ -208,7 +208,7 @@ class CQChartsView : public QFrame {
   void setScrollPage(int i) { scrollPage_ = i; }
 
   bool isAntiAlias() const { return antiAlias_; }
-  void setAntiAlias(bool b) { antiAlias_ = b; }
+  void setAntiAlias(bool b) { antiAlias_ = b; updatePlots(); }
 
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &v) { posTextType_ = v; }
