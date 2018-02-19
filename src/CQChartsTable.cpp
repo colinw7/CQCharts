@@ -4,6 +4,8 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsRegExp.h>
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
 
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
@@ -18,8 +20,8 @@ class CQChartsTableSelectionModel : public QItemSelectionModel {
    QItemSelectionModel(table->CQTableView::model()), table_(table) {
   }
 
-  void select(const QModelIndex &index, SelectionFlags flags) {
-    QItemSelectionModel::select(index, adjustFlags(flags));
+  void select(const QModelIndex &ind, SelectionFlags flags) {
+    QItemSelectionModel::select(ind, adjustFlags(flags));
   }
 
   void select(const QItemSelection &selection, SelectionFlags flags) {
@@ -72,11 +74,15 @@ addMenuActions(QMenu *menu)
 {
   CQTableView::addMenuActions(menu);
 
-  QActionGroup *actionGroup = new QActionGroup(menu);
+  //---
 
-  QAction *selectItems   = new QAction("Select Items"  , menu);
-  QAction *selectRows    = new QAction("Select Rows"   , menu);
-  QAction *selectColumns = new QAction("Select Columns", menu);
+  QMenu *selectMenu = new QMenu("Select");
+
+  QActionGroup *selectActionGroup = new QActionGroup(menu);
+
+  QAction *selectItems   = new QAction("Items"  , selectMenu);
+  QAction *selectRows    = new QAction("Rows"   , selectMenu);
+  QAction *selectColumns = new QAction("Columns", selectMenu);
 
   selectItems  ->setCheckable(true);
   selectRows   ->setCheckable(true);
@@ -86,14 +92,35 @@ addMenuActions(QMenu *menu)
   selectRows   ->setChecked(selectionBehavior() == SelectRows);
   selectColumns->setChecked(selectionBehavior() == SelectColumns);
 
-  actionGroup->addAction(selectItems);
-  actionGroup->addAction(selectRows);
-  actionGroup->addAction(selectColumns);
+  selectActionGroup->addAction(selectItems);
+  selectActionGroup->addAction(selectRows);
+  selectActionGroup->addAction(selectColumns);
 
-  connect(actionGroup, SIGNAL(triggered(QAction *)),
+  connect(selectActionGroup, SIGNAL(triggered(QAction *)),
           this, SLOT(selectionBehaviorSlot(QAction *)));
 
-  menu->addActions(actionGroup->actions());
+  selectMenu->addActions(selectActionGroup->actions());
+
+  menu->addMenu(selectMenu);
+
+  //---
+
+  QMenu *exportMenu = new QMenu("Export");
+
+  QActionGroup *exportActionGroup = new QActionGroup(exportMenu);
+
+  QAction *exportCSV = new QAction("CSV", exportMenu);
+  QAction *exportTSV = new QAction("TSV", exportMenu);
+
+  exportActionGroup->addAction(exportCSV);
+  exportActionGroup->addAction(exportTSV);
+
+  connect(exportActionGroup, SIGNAL(triggered(QAction *)),
+          this, SLOT(exportSlot(QAction *)));
+
+  exportMenu->addActions(exportActionGroup->actions());
+
+  menu->addMenu(exportMenu);
 }
 
 void
@@ -224,33 +251,49 @@ addReplaceSearch(const QString &text, bool add)
   int keyColumn = oldKeyColumn;
 
   // get matching items
-  int nr = model_->rowCount();
+  using Rows = std::vector<QModelIndex>;
 
-  std::vector<int> rows;
+  Rows rows;
 
   if (! isExprFilter()) {
     QString text1;
     int     column = -1;
 
-    if (CQChartsUtil::decodeModelFilterStr(model_.data(), text, text1, column)) {
+    if (CQChartsUtil::decodeModelFilterStr(model_.data(), text, text1, column))
       proxyModel->setFilterKeyColumn(column);
-
-      keyColumn = column;
-    }
-
-    CQChartsRegExp regexp(text1);
 
     keyColumn = proxyModel->filterKeyColumn();
 
-    for (int r = 0; r < nr; ++r) {
-      bool ok;
+    class RowVisitor : public CQChartsUtil::ModelVisitor {
+     public:
+      RowVisitor(CQChartsTable *table, const QString &text, int column, Rows &rows) :
+       table_(table), regexp_(text), column_(column), rows_(rows) {
+      }
 
-      QString str = CQChartsUtil::modelString(model_.data(), r, keyColumn, ok);
-      if (! ok) continue;
+      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
+        QModelIndex ind = model->index(row, column_, parent);
 
-      if (regexp.match(str))
-        rows.push_back(r);
-    }
+        bool ok;
+
+        QString str = CQChartsUtil::modelString(model, ind, ok);
+        if (! ok) return State::SKIP;
+
+        if (regexp_.match(str))
+          rows_.push_back(ind);
+
+        return State::OK;
+      }
+
+     private:
+      CQChartsTable* table_  { nullptr };
+      CQChartsRegExp regexp_;
+      int            column_ { 0 };
+      Rows&          rows_;
+    };
+
+    RowVisitor visitor(this, text1, keyColumn, rows);
+
+    (void) visitModel(model_.data(), visitor);
   }
   else {
     if (! match_)
@@ -262,23 +305,46 @@ addReplaceSearch(const QString &text, bool add)
 
     match_->initColumns();
 
-    for (int r = 0; r < nr; ++r) {
-      bool isMatch = false;
-
-      for (const auto &matchText : matches_) {
-        match_->initMatch(matchText); // TODO: eval once
-
-        bool ok;
-
-        if (match_->match(r, keyColumn, ok) && ok) {
-          isMatch = true;
-          break;
-        }
+    class RowVisitor : public CQChartsUtil::ModelVisitor {
+     public:
+      RowVisitor(CQChartsTable *table, CQChartsModelExprMatch *match, const Matches &matches,
+                 int column, Rows &rows) :
+       table_(table), match_(match), matches_(matches), column_(column), rows_(rows) {
       }
 
-      if (isMatch)
-        rows.push_back(r);
-    }
+      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
+        QModelIndex ind = model->index(row, column_, parent);
+
+        bool isMatch = false;
+
+        for (const auto &matchText : matches_) {
+          match_->initMatch(matchText); // TODO: eval once
+
+          bool ok;
+
+          if (match_->match(ind, ok) && ok) {
+            isMatch = true;
+            break;
+          }
+        }
+
+        if (isMatch)
+          rows_.push_back(ind);
+
+        return State::OK;
+      }
+
+     private:
+      CQChartsTable*          table_  { nullptr };
+      CQChartsModelExprMatch* match_  { nullptr };
+      const Matches&          matches_;
+      int                     column_ { 0 };
+      Rows&                   rows_;
+    };
+
+    RowVisitor visitor(this, match_, matches_, keyColumn, rows);
+
+    (void) visitModel(model_.data(), visitor);
   }
 
   //---
@@ -287,7 +353,7 @@ addReplaceSearch(const QString &text, bool add)
   QItemSelection sel;
 
   for (auto &r : rows) {
-    QModelIndex ind = model_->index(r, keyColumn);
+    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
 
     sel.select(ind, ind);
   }
@@ -302,7 +368,7 @@ addReplaceSearch(const QString &text, bool add)
 
   // make item visible
   for (auto &r : rows) {
-    QModelIndex ind = model_->index(r, keyColumn);
+    QModelIndex ind = model_->index(r.row(), keyColumn, r.parent());
 
     scrollTo(ind);
 
@@ -343,6 +409,26 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectRows);
   else if (action->text() == "Select Columns")
     setSelectionBehavior(SelectColumns);
+}
+
+void
+CQChartsTable::
+exportSlot(QAction *action)
+{
+  if      (action->text() == "CSV") {
+    CQCsvModel csv;
+
+    csv.setFirstLineHeader(true);
+
+    csv.save(model().data(), std::cout);
+  }
+  else if (action->text() == "TSV") {
+    CQTsvModel tsv;
+
+    tsv.setFirstLineHeader(true);
+
+    tsv.save(model().data(), std::cout);
+  }
 }
 
 void

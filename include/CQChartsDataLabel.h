@@ -9,7 +9,6 @@ class CQChartsPlot;
 class CQChartsDataLabel : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool      visible   READ isVisible WRITE setVisible  )
   Q_PROPERTY(Position  position  READ position  WRITE setPosition )
   Q_PROPERTY(Direction direction READ direction WRITE setDirection)
   Q_PROPERTY(bool      clip      READ isClip    WRITE setClip     )
@@ -37,9 +36,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   virtual ~CQChartsDataLabel() { }
 
   // data label
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; update(); }
-
   const Position &position() const { return position_; }
   void setPosition(const Position &p) { position_ = p; update(); }
 
@@ -96,7 +92,6 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   static Qt::Alignment textAlignment(const Position &position);
 
  private:
-  bool      visible_   { false };
   Position  position_  { Position::TOP_INSIDE };
   Direction direction_ { Direction::VERTICAL };
   bool      clip_      { false };

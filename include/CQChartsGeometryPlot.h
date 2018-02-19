@@ -65,19 +65,19 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //  fill
   //   display, brush
 
-  Q_PROPERTY(int     nameColumn     READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int     geometryColumn READ geometryColumn WRITE setGeometryColumn)
-  Q_PROPERTY(int     valueColumn    READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(double  minValue       READ minValue       WRITE setMinValue      )
-  Q_PROPERTY(double  maxValue       READ maxValue       WRITE setMaxValue      )
-  Q_PROPERTY(bool    border         READ isBorder       WRITE setBorder        )
-  Q_PROPERTY(QString borderColor    READ borderColorStr WRITE setBorderColorStr)
-  Q_PROPERTY(double  borderAlpha    READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(double  borderWidth    READ borderWidth    WRITE setBorderWidth   )
-  Q_PROPERTY(bool    filled         READ isFilled       WRITE setFilled        )
-  Q_PROPERTY(QString fillColor      READ fillColorStr   WRITE setFillColorStr  )
-  Q_PROPERTY(double  fillAlpha      READ fillAlpha      WRITE setFillAlpha     )
-  Q_PROPERTY(Pattern fillPattern    READ fillPattern    WRITE setFillPattern   )
+  Q_PROPERTY(int            nameColumn     READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(int            geometryColumn READ geometryColumn WRITE setGeometryColumn)
+  Q_PROPERTY(int            valueColumn    READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(double         minValue       READ minValue       WRITE setMinValue      )
+  Q_PROPERTY(double         maxValue       READ maxValue       WRITE setMaxValue      )
+  Q_PROPERTY(bool           border         READ isBorder       WRITE setBorder        )
+  Q_PROPERTY(CQChartsColor  borderColor    READ borderColor    WRITE setBorderColor   )
+  Q_PROPERTY(double         borderAlpha    READ borderAlpha    WRITE setBorderAlpha   )
+  Q_PROPERTY(CQChartsLength borderWidth    READ borderWidth    WRITE setBorderWidth   )
+  Q_PROPERTY(bool           filled         READ isFilled       WRITE setFilled        )
+  Q_PROPERTY(CQChartsColor  fillColor      READ fillColor      WRITE setFillColor     )
+  Q_PROPERTY(double         fillAlpha      READ fillAlpha      WRITE setFillAlpha     )
+  Q_PROPERTY(Pattern        fillPattern    READ fillPattern    WRITE setFillPattern   )
 
   Q_ENUMS(Pattern)
 
@@ -131,24 +131,24 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   bool isBorder() const;
   void setBorder(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &str);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const;
   void setBorderAlpha(double a);
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
   //---
 
   bool isFilled() const;
   void setFilled(bool b);
 
-  QString fillColorStr() const;
-  void setFillColorStr(const QString &s);
+  const CQChartsColor &fillColor() const;
+  void setFillColor(const CQChartsColor &c);
 
   QColor interpFillColor(int i, int n) const;
 
@@ -182,7 +182,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   bool decodePolygons(const QString &polysStr, Polygons &poly);
   bool decodePolygon(const QString &polyStr, QPolygonF &poly);
-  bool decodePoint(const QString &pointStr, QPointF &point);
+  bool decodePoint(const QString &pointStr, QPointF &point, QString &poimtStr1);
 
  private:
   using Geometries = std::vector<Geometry>;

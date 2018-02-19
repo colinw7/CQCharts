@@ -3,8 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsPointObj.h>
-#include <CQChartsLineObj.h>
+#include <CQChartsData.h>
 
 class CQChartsParallelPlot;
 
@@ -101,17 +100,17 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //  margin
   //  key
 
-  Q_PROPERTY(int     xColumn      READ xColumn        WRITE setXColumn       )
-  Q_PROPERTY(int     yColumn      READ yColumn        WRITE setYColumn       )
-  Q_PROPERTY(QString yColumns     READ yColumnsStr    WRITE setYColumnsStr   )
-  Q_PROPERTY(bool    points       READ isPoints       WRITE setPoints        )
-  Q_PROPERTY(QString pointsColor  READ pointsColorStr WRITE setPointsColorStr)
-  Q_PROPERTY(bool    lines        READ isLines        WRITE setLines         )
-  Q_PROPERTY(QString linesColor   READ linesColorStr  WRITE setLinesColorStr )
-  Q_PROPERTY(double  linesWidth   READ linesWidth     WRITE setLinesWidth    )
-  Q_PROPERTY(QString symbolName   READ symbolName     WRITE setSymbolName    )
-  Q_PROPERTY(double  symbolSize   READ symbolSize     WRITE setSymbolSize    )
-  Q_PROPERTY(bool    symbolFilled READ isSymbolFilled WRITE setSymbolFilled  )
+  Q_PROPERTY(int            xColumn      READ xColumn        WRITE setXColumn     )
+  Q_PROPERTY(int            yColumn      READ yColumn        WRITE setYColumn     )
+  Q_PROPERTY(QString        yColumns     READ yColumnsStr    WRITE setYColumnsStr )
+  Q_PROPERTY(bool           points       READ isPoints       WRITE setPoints      )
+  Q_PROPERTY(CQChartsColor  pointsColor  READ pointsColor    WRITE setPointsColor )
+  Q_PROPERTY(bool           lines        READ isLines        WRITE setLines       )
+  Q_PROPERTY(CQChartsColor  linesColor   READ linesColor     WRITE setLinesColor  )
+  Q_PROPERTY(CQChartsLength linesWidth   READ linesWidth     WRITE setLinesWidth  )
+  Q_PROPERTY(QString        symbolName   READ symbolName     WRITE setSymbolName  )
+  Q_PROPERTY(double         symbolSize   READ symbolSize     WRITE setSymbolSize  )
+  Q_PROPERTY(bool           symbolFilled READ isSymbolFilled WRITE setSymbolFilled)
 
  public:
   CQChartsParallelPlot(CQChartsView *view, const ModelP &model);
@@ -157,42 +156,42 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //---
 
   // points
-  bool isPoints() const { return pointObj_->isDisplayed(); }
-  void setPoints(bool b) { pointObj_->setDisplayed(b); update(); }
+  bool isPoints() const { return pointData_.visible; }
+  void setPoints(bool b) { pointData_.visible = b; update(); }
 
-  QString pointsColorStr() const;
-  void setPointsColorStr(const QString &str);
+  const CQChartsColor &pointsColor() const;
+  void setPointsColor(const CQChartsColor &c);
 
   QColor interpPointsColor(int i, int n) const;
 
   //---
 
   // lines
-  bool isLines() const { return lineObj_->isDisplayed(); }
-  void setLines(bool b) { lineObj_->setDisplayed(b); update(); }
+  bool isLines() const { return lineData_.visible; }
+  void setLines(bool b) { lineData_.visible = b; update(); }
 
-  QString linesColorStr() const;
-  void setLinesColorStr(const QString &str);
+  const CQChartsColor &linesColor() const;
+  void setLinesColor(const CQChartsColor &c);
 
-  double linesWidth() const { return lineObj_->width(); }
-  void setLinesWidth(double w) { lineObj_->setWidth(w); update(); }
+  const CQChartsLength &linesWidth() const { return lineData_.width; }
+  void setLinesWidth(const CQChartsLength &l) { lineData_.width = l; update(); }
 
   QColor interpLinesColor(int i, int n) const;
 
   //---
 
   // symbol
-  double symbolSize() const { return pointObj_->size(); }
-  void setSymbolSize(double r) { pointObj_->setSize(r); update(); }
+  double symbolSize() const { return pointData_.size; }
+  void setSymbolSize(double s) { pointData_.size = s; update(); }
 
-  CQChartsPlotSymbol::Type symbolType() const { return pointObj_->symbolType(); }
-  void setSymbolType(CQChartsPlotSymbol::Type t) { pointObj_->setSymbolType(t); update(); }
+  CQChartsPlotSymbol::Type symbolType() const { return pointData_.type; }
+  void setSymbolType(CQChartsPlotSymbol::Type t) { pointData_.type = t; update(); }
 
-  QString symbolName() const { return pointObj_->symbolName(); }
-  void setSymbolName(const QString &s) { pointObj_->setSymbolName(s); update(); }
+  QString symbolName() const;
+  void setSymbolName(const QString &s);
 
-  bool isSymbolFilled() const { return pointObj_->isFilled(); }
-  void setSymbolFilled(bool b) { pointObj_->setFilled(b); update(); }
+  bool isSymbolFilled() const { return pointData_.fill.visible; }
+  void setSymbolFilled(bool b) { pointData_.fill.visible = b; update(); }
 
   //---
 
@@ -224,13 +223,13 @@ class CQChartsParallelPlot : public CQChartsPlot {
   using Ranges = std::vector<CQChartsGeom::Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
-  int               xColumn_   { 0 };
-  int               yColumn_   { 1 };
-  Columns           yColumns_;
-  Ranges            yRanges_;
-  YAxes             yAxes_;
-  CQChartsPointObj* pointObj_;
-  CQChartsLineObj*  lineObj_   { nullptr };
+  int                xColumn_   { 0 };
+  int                yColumn_   { 1 };
+  Columns            yColumns_;
+  Ranges             yRanges_;
+  YAxes              yAxes_;
+  CQChartsSymbolData pointData_;
+  CQChartsLineData   lineData_;
 };
 
 #endif

@@ -28,7 +28,7 @@ class CQChartsPieGroupObj;
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
  public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind);
@@ -58,7 +58,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   const QString &keyLabel() const { return keyLabel_; }
   void setKeyLabel(const QString &s) { keyLabel_ = s; }
 
-  void setColor(const CQChartsPaletteColor &c) { color_ = c; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
 
   CQChartsPieGroupObj *groupObj() const { return groupObj_; }
   void setGroupObj(CQChartsPieGroupObj *p) { groupObj_ = p; }
@@ -147,7 +147,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj);
 
-  bool mousePress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 
@@ -211,7 +211,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(double  colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
  public:
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);

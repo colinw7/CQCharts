@@ -46,8 +46,9 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   (void) addValueSet("fontSize"  , 16, 64);
   (void) addColorSet("color");
 
-  symbolBorderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-  symbolFillColor_   = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE);
+  symbolData_.border.visible     = true;
+  symbolData_.background.visible = true;
+  symbolData_.background.color   = CQChartsColor(CQChartsColor::Type::PALETTE);
 
   addAxes();
 
@@ -74,9 +75,10 @@ addProperties()
   addProperty("symbol/stroke", this, "symbolBorderAlpha", "alpha"  );
   addProperty("symbol/stroke", this, "symbolBorderWidth", "width"  );
 
-  addProperty("symbol/fill", this, "symbolFilled"   , "visible");
-  addProperty("symbol/fill", this, "symbolFillColor", "color"  );
-  addProperty("symbol/fill", this, "symbolFillAlpha", "alpha"  );
+  addProperty("symbol/fill", this, "symbolFilled"     , "visible");
+  addProperty("symbol/fill", this, "symbolFillColor"  , "color"  );
+  addProperty("symbol/fill", this, "symbolFillAlpha"  , "alpha"  );
+  addProperty("symbol/fill", this, "symbolFillPattern", "pattern");
 
   addProperty("symbol", this, "symbolSize"          , "size"      );
   addProperty("symbol", this, "symbolSizeMapEnabled", "mapEnabled");
@@ -279,9 +281,9 @@ initObjs()
         //---
 
         // get symbol size, font size and color
-        QModelIndex symbolSizeInd = model->index(row, plot_->symbolSizeColumn());
-        QModelIndex fontSizeInd   = model->index(row, plot_->fontSizeColumn  ());
-        QModelIndex colorInd      = model->index(row, plot_->colorColumn     ());
+        QModelIndex symbolSizeInd = model->index(row, plot_->symbolSizeColumn(), parent);
+        QModelIndex fontSizeInd   = model->index(row, plot_->fontSizeColumn  (), parent);
+        QModelIndex colorInd      = model->index(row, plot_->colorColumn     (), parent);
 
         bool ok3, ok4, ok5;
 
@@ -375,7 +377,7 @@ initObjs()
           symbolSize = symbolSizeSet->imap(valuePoint.i);
 
         OptReal  fontSize = boost::make_optional(false, 0.0);
-        OptColor color    = boost::make_optional(false, CQChartsPaletteColor());
+        OptColor color    = boost::make_optional(false, CQChartsColor());
 
         if (fontSizeColumn() >= 0)
           fontSize = fontSizeSet->imap(valuePoint.i);
@@ -659,7 +661,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     c.setAlphaF(plot_->symbolFillAlpha());
 
     brush.setColor(c);
-    brush.setStyle(Qt::SolidPattern);
+    brush.setStyle(CQChartsFillPattern::toStyle(
+      (CQChartsFillPattern::Type) plot_->symbolFillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -672,8 +675,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     c.setAlphaF(plot_->symbolBorderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->symbolBorderWidth());
+
     pen.setColor (c);
-    pen.setWidthF(plot_->symbolBorderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -730,7 +735,7 @@ CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n) :
 
 bool
 CQChartsScatterKeyColor::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 

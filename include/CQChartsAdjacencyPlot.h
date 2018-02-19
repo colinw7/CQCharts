@@ -122,20 +122,20 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int      nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
-  Q_PROPERTY(int      connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(int      valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(int      groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(int      nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(SortType sortType          READ sortType          WRITE setSortType         )
-  Q_PROPERTY(QString  bgColor           READ bgColorStr        WRITE setBgColorStr       )
-  Q_PROPERTY(QString  borderColor       READ borderColorStr    WRITE setBorderColorStr   )
-  Q_PROPERTY(double   borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
-  Q_PROPERTY(QString  emptyCellColor    READ emptyCellColorStr WRITE setEmptyCellColorStr)
-  Q_PROPERTY(double   cornerSize        READ cornerSize        WRITE setCornerSize       )
-  Q_PROPERTY(QString  textColor         READ textColorStr      WRITE setTextColorStr     )
-  Q_PROPERTY(QFont    font              READ font              WRITE setFont             )
-  Q_PROPERTY(double   margin            READ margin            WRITE setMargin           )
+  Q_PROPERTY(int           nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
+  Q_PROPERTY(int           connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(int           valueColumn       READ valueColumn       WRITE setValueColumn      )
+  Q_PROPERTY(int           groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(SortType      sortType          READ sortType          WRITE setSortType         )
+  Q_PROPERTY(CQChartsColor bgColor           READ bgColor           WRITE setBgColor          )
+  Q_PROPERTY(CQChartsColor borderColor       READ borderColor       WRITE setBorderColor      )
+  Q_PROPERTY(double        borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
+  Q_PROPERTY(CQChartsColor emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
+  Q_PROPERTY(double        cornerSize        READ cornerSize        WRITE setCornerSize       )
+  Q_PROPERTY(CQChartsColor textColor         READ textColor         WRITE setTextColor        )
+  Q_PROPERTY(QFont         font              READ font              WRITE setFont             )
+  Q_PROPERTY(double        margin            READ margin            WRITE setMargin           )
 
   Q_ENUMS(SortType)
 
@@ -175,36 +175,35 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  QString bgColorStr() const { return bgBox_.backgroundColorStr(); }
-  void setBgColorStr(const QString &s) { bgBox_.setBackgroundColorStr(s); update(); }
+  const CQChartsColor &bgColor() const { return bgBox_.backgroundColor(); }
+  void setBgColor(const CQChartsColor &c) { bgBox_.setBackgroundColor(c); update(); }
 
   QColor interpBgColor(int i, int n) const { return bgBox_.interpBackgroundColor(i, n); }
 
-  QString borderColorStr() const { return cellBox_.borderColorStr(); }
-  void setBorderColorStr(const QString &str) { cellBox_.setBorderColorStr(str); update(); }
+  const CQChartsColor &borderColor() const { return cellBox_.borderColor(); }
+  void setBorderColor(const CQChartsColor &c) { cellBox_.setBorderColor(c); update(); }
 
-  QColor interpBorderColor(int i, int n) const {
-    return cellBox_.interpBorderColor(i, n); }
+  QColor interpBorderColor(int i, int n) const { return cellBox_.interpBorderColor(i, n); }
 
   double borderAlpha() const { return cellBox_.borderAlpha(); }
   void setBorderAlpha(double r) { cellBox_.setBorderAlpha(r); update(); }
 
-  QString emptyCellColorStr() const { return emptyCellBox_.backgroundColorStr(); }
-  void setEmptyCellColorStr(const QString &s) { emptyCellBox_.setBackgroundColorStr(s); update(); }
+  const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
+  void setEmptyCellColor(const CQChartsColor &s) { emptyCellBox_.setBackgroundColor(s); update(); }
 
   QColor interpEmptyCellColor(int i, int n) const {
     return emptyCellBox_.interpBackgroundColor(i, n); }
 
-  double cornerSize() const { return cellBox_.borderCornerSize(); }
-  void setCornerSize(double r) { cellBox_.setBorderCornerSize(r); update(); }
+  double cornerSize() const { return cellBox_.cornerSize(); }
+  void setCornerSize(double r) { cellBox_.setCornerSize(r); update(); }
 
-  QString textColorStr() const { return textColor_.colorStr(); }
-  void setTextColorStr(const QString &s) { textColor_.setColorStr(s); update(); }
+  const CQChartsColor &textColor() const { return textData_.color; }
+  void setTextColor(const CQChartsColor &c) { textData_.color = c; update(); }
 
-  QColor interpTextColor(int i, int n) const { return textColor_.interpColor(this, i, n); }
+  QColor interpTextColor(int i, int n) const { return textColor().interpColor(this, i, n); }
 
-  const QFont &font() const { return font_; }
-  void setFont(const QFont &f) { font_ = f; update(); }
+  const QFont &font() const { return textData_.font; }
+  void setFont(const QFont &f) { textData_.font = f; update(); }
 
   double margin() const { return bgBox_.margin(); }
   void setMargin(double r) { bgBox_.setMargin(r); updateObjs(); }
@@ -289,8 +288,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   CQChartsBoxObj        bgBox_;                                 // background box data
   CQChartsBoxObj        cellBox_;                               // cell box data
   CQChartsBoxObj        emptyCellBox_;                          // empty cell box data
-  CQChartsPaletteColor  textColor_;                             // text data
-  QFont                 font_;                                  // text font
+  CQChartsTextData      textData_;
   IdConnectionsData     idConnections_;                         // connections by id
   NodeMap               nodes_;                                 // all nodes
   NodeArray             sortedNodes_;                           // sorted nodes

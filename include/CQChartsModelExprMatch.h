@@ -18,8 +18,8 @@ class CQChartsModelExprMatch : public CExpr {
 
   void initColumns();
 
-  bool match(const QString &expr, int row, int column, bool &ok);
-  bool match(int row, int column, bool &ok);
+  bool match(const QString &expr, const QModelIndex &ind, bool &ok);
+  bool match(const QModelIndex &ind, bool &ok);
 
   int currentRow() const;
   int currentCol() const;
@@ -28,10 +28,10 @@ class CQChartsModelExprMatch : public CExpr {
   static QVariant valueToVariant(CExpr *, const CExprValuePtr &value);
 
  private:
-  bool evaluateExpression(const QString &expr, int row, int column,
+  bool evaluateExpression(const QString &expr, const QModelIndex &ind,
                           CExprValuePtr &value, bool replace);
 
-  QString replaceNumericColumns(const QString &expr, int row, int column) const;
+  QString replaceNumericColumns(const QString &expr, const QModelIndex &ind) const;
 
  private:
   using Variables = std::vector<CExprVariablePtr>;

@@ -14,12 +14,16 @@ CQChartsKey::
 CQChartsKey(CQChartsView *view) :
  CQChartsBoxObj(view)
 {
+  setObjectName("key");
 }
 
 CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
  CQChartsBoxObj(plot)
 {
+  setObjectName("key");
+
+  boxData_.background.visible = false;
 }
 
 CQChartsKey::
@@ -68,18 +72,18 @@ setLocationStr(const QString &str)
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsKey::
-textColorStr() const
+textColor() const
 {
-  return textColor_.colorStr();
+  return textData_.color;
 }
 
 void
 CQChartsKey::
-setTextColorStr(const QString &str)
+setTextColor(const CQChartsColor &c)
 {
-  textColor_.setColorStr(str);
+  textData_.color = c;
 }
 
 QColor
@@ -87,7 +91,7 @@ CQChartsKey::
 interpTextColor(int i, int n) const
 {
   if (plot_)
-    return textColor_.interpColor(plot_, i, n);
+    return textColor().interpColor(plot_, i, n);
   else
     return QColor();
 }
@@ -311,7 +315,7 @@ isInside(const CQChartsGeom::Point &w) const
 
 void
 CQChartsViewKey::
-mousePress(const CQChartsGeom::Point &w)
+selectPress(const CQChartsGeom::Point &w)
 {
   int n = std::min(view_->numPlots(), int(prects_.size()));
 
@@ -331,12 +335,8 @@ mousePress(const CQChartsGeom::Point &w)
 
 CQChartsPlotKey::
 CQChartsPlotKey(CQChartsPlot *plot) :
- CQChartsKey(plot)
+ CQChartsKey(plot), editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
 {
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-
-  textColor_ = themeFg;
-
   setBorder(true);
 
   clearItems();
@@ -700,7 +700,7 @@ getItemAt(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsPlotKey::
-mouseMove(const CQChartsGeom::Point &w)
+selectMove(const CQChartsGeom::Point &w)
 {
   bool changed = false;
 
@@ -712,7 +712,7 @@ mouseMove(const CQChartsGeom::Point &w)
     if (item) {
       changed = setInside(item);
 
-      handled = item->mouseMove(w);
+      handled = item->selectMove(w);
     }
 
     if (changed)
@@ -734,9 +734,9 @@ mouseMove(const CQChartsGeom::Point &w)
 
 bool
 CQChartsPlotKey::
-mouseDragPress(const CQChartsGeom::Point &p)
+editPress(const CQChartsGeom::Point &p)
 {
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   location_ = LocationType::ABSOLUTE;
 
@@ -747,26 +747,36 @@ mouseDragPress(const CQChartsGeom::Point &p)
 
 bool
 CQChartsPlotKey::
-mouseDragMove(const CQChartsGeom::Point &p)
+editMove(const CQChartsGeom::Point &p)
 {
-  double dx = p.x - dragPos_.x;
-  double dy = p.y - dragPos_.y;
+  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+
+  double dx = p.x - dragPos.x;
+  double dy = p.y - dragPos.y;
 
   location_ = LocationType::ABSOLUTE;
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   updatePosition();
 
   return true;
 }
 
-void
+bool
 CQChartsPlotKey::
-mouseDragRelease(const CQChartsGeom::Point &)
+editMotion(const CQChartsGeom::Point &p)
 {
+  return editHandles_.selectInside(p);
+}
+
+bool
+CQChartsPlotKey::
+editRelease(const CQChartsGeom::Point &)
+{
+  return true;
 }
 
 //------
@@ -944,6 +954,14 @@ draw(QPainter *painter)
 
   //---
 
+  if (isSelected()) {
+    editHandles_.setBBox(this->bbox());
+
+    editHandles_.draw(painter);
+  }
+
+  //---
+
   painter->restore();
 }
 
@@ -1067,12 +1085,11 @@ CQChartsKeyColorBox::
 CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
  CQChartsKeyItem(plot->key()), plot_(plot), i_(i), n_(n)
 {
-  borderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1.0);
 }
 
 bool
 CQChartsKeyColorBox::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   if (isClickHide()) {
     plot_->setSetHidden(i_, ! plot_->isSetHidden(i_));
@@ -1087,7 +1104,7 @@ QColor
 CQChartsKeyColorBox::
 interpBorderColor(int i, int n) const
 {
-  return borderColor_.interpColor(plot_, i, n);
+  return borderColor().interpColor(plot_, i, n);
 }
 
 QSizeF

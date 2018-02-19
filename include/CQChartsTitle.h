@@ -2,6 +2,7 @@
 #define CQChartsTitle_H
 
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsGeom.h>
 #include <QPointF>
 #include <QSizeF>
@@ -14,7 +15,6 @@ class QPainter;
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    visible     READ isVisible   WRITE setVisible    )
   Q_PROPERTY(QString location    READ locationStr WRITE setLocationStr)
   Q_PROPERTY(QPointF absPosition READ absPosition WRITE setAbsPosition)
   Q_PROPERTY(bool    inside      READ isInside    WRITE setInside     )
@@ -39,9 +39,6 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void setTextStr(const QString &s) override { CQChartsTextBoxObj::setTextStr(s); redraw(); }
   void setTextFont(const QFont &f) override { CQChartsTextBoxObj::setTextFont(f); redraw(); }
-
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; redraw(); }
 
   const LocationType &location() const { return location_.location; }
   void setLocation(const LocationType &l) { location_.location = l; redraw(); }
@@ -78,6 +75,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   QSizeF calcSize();
 
+  CQChartsEditHandles &editHandles() { return editHandles_; }
+
   //---
 
   void redraw();
@@ -88,13 +87,14 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  virtual bool mousePress  (const CQChartsGeom::Point &) { return false; }
-  virtual bool mouseMove   (const CQChartsGeom::Point &) { return false; }
-  virtual void mouseRelease(const CQChartsGeom::Point &) { }
+  virtual bool selectPress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectMove   (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
 
-  virtual bool mouseDragPress  (const CQChartsGeom::Point &);
-  virtual bool mouseDragMove   (const CQChartsGeom::Point &);
-  virtual void mouseDragRelease(const CQChartsGeom::Point &);
+  virtual bool editPress  (const CQChartsGeom::Point &);
+  virtual bool editMove   (const CQChartsGeom::Point &);
+  virtual bool editMotion (const CQChartsGeom::Point &);
+  virtual bool editRelease(const CQChartsGeom::Point &);
 
   //---
 
@@ -110,12 +110,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
     bool         inside      { false };
   };
 
-  bool                       visible_  { true };
   Location                   location_;
   QPointF                    position_ { 0, 0 };
   QSizeF                     size_;
   mutable CQChartsGeom::BBox bbox_;
-  CQChartsGeom::Point        dragPos_;
+  CQChartsEditHandles        editHandles_;
 };
 
 #endif

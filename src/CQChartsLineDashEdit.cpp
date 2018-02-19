@@ -374,10 +374,10 @@ setEditorData(CQPropertyViewItem *item, const QVariant &value)
 void
 CQChartsLineDashPropertyViewType::
 draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
-     const QStyleOptionViewItem &option, const QModelIndex &index,
+     const QStyleOptionViewItem &option, const QModelIndex &ind,
      const QVariant &value, bool inside)
 {
-  delegate->drawBackground(painter, option, index, inside);
+  delegate->drawBackground(painter, option, ind, inside);
 
   CQChartsLineDash dash = value.value<CQChartsLineDash>();
 
@@ -403,7 +403,7 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   option1.rect.setRight(option1.rect.left() + w + 8);
 
-  delegate->drawString(painter, option1, str, index, inside);
+  delegate->drawString(painter, option1, str, ind, inside);
 }
 
 QString

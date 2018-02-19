@@ -116,6 +116,10 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   QVariant data(const QModelIndex &index, int role) const;
 
+  //---
+
+  void addExpand(const QModelIndex &ind) const { expand_.insert(ind); }
+
  protected:
   const CQChartsModelFilterData &currentFilterData() const {
     assert(! filterDatas_.empty());

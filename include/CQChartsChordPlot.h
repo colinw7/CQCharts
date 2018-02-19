@@ -160,16 +160,16 @@ class CQChartsChordPlotType : public CQChartsPlotType {
 class CQChartsChordPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(int     groupColumn  READ groupColumn    WRITE setGroupColumn   )
-  Q_PROPERTY(bool    sorted       READ isSorted       WRITE setSorted        )
-  Q_PROPERTY(double  innerRadius  READ innerRadius    WRITE setInnerRadius   )
-  Q_PROPERTY(double  labelRadius  READ labelRadius    WRITE setLabelRadius   )
-  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
-  Q_PROPERTY(double  borderAlpha  READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(double  segmentAlpha READ segmentAlpha   WRITE setSegmentAlpha  )
-  Q_PROPERTY(double  arcAlpha     READ arcAlpha       WRITE setArcAlpha      )
+  Q_PROPERTY(int           nameColumn   READ nameColumn     WRITE setNameColumn  )
+  Q_PROPERTY(int           valueColumn  READ valueColumn    WRITE setValueColumn )
+  Q_PROPERTY(int           groupColumn  READ groupColumn    WRITE setGroupColumn )
+  Q_PROPERTY(bool          sorted       READ isSorted       WRITE setSorted      )
+  Q_PROPERTY(double        innerRadius  READ innerRadius    WRITE setInnerRadius )
+  Q_PROPERTY(double        labelRadius  READ labelRadius    WRITE setLabelRadius )
+  Q_PROPERTY(CQChartsColor borderColor  READ borderColor    WRITE setBorderColor )
+  Q_PROPERTY(double        borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
+  Q_PROPERTY(double        segmentAlpha READ segmentAlpha   WRITE setSegmentAlpha)
+  Q_PROPERTY(double        arcAlpha     READ arcAlpha       WRITE setArcAlpha    )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
@@ -198,13 +198,13 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   //---
 
-  QString borderColorStr() const { return borderColor_.colorStr(); }
-  void setBorderColorStr(const QString &s) { borderColor_.setColorStr(s); update(); }
+  const CQChartsColor &borderColor() const { return borderData_.color; }
+  void setBorderColor(const CQChartsColor &c) { borderData_.color = c; update(); }
 
   QColor interpBorderColor(int i, int n) const;
 
-  double borderAlpha() const { return borderAlpha_; }
-  void setBorderAlpha(double r) { borderAlpha_ = r; update(); }
+  double borderAlpha() const { return borderData_.alpha; }
+  void setBorderAlpha(double r) { borderData_.alpha = r; update(); }
 
   //---
 
@@ -251,8 +251,7 @@ class CQChartsChordPlot : public CQChartsPlot {
   bool                       sorted_         { false };
   double                     innerRadius_    { 0.9 };
   double                     labelRadius_    { 1.1 };
-  CQChartsPaletteColor       borderColor_;
-  double                     borderAlpha_    { 0.3 };
+  CQChartsStrokeData         borderData_;
   double                     segmentAlpha_   { 0.7 };
   double                     arcAlpha_       { 0.3 };
   CQChartsRotatedTextBoxObj* textBox_;

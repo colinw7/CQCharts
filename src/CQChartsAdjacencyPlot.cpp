@@ -38,16 +38,14 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
  bgBox_(this), cellBox_(this), emptyCellBox_(this)
 {
-  CQChartsPaletteColor bg         (CQChartsPaletteColor::Type::THEME_VALUE, 0.2);
-  CQChartsPaletteColor border     (CQChartsPaletteColor::Type::THEME_VALUE, 1.0);
-  CQChartsPaletteColor emptyCellBg(CQChartsPaletteColor::Type::THEME_VALUE, 0.1);
+  CQChartsColor bg         (CQChartsColor::Type::THEME_VALUE, 0.2);
+  CQChartsColor border     (CQChartsColor::Type::THEME_VALUE, 1.0);
+  CQChartsColor emptyCellBg(CQChartsColor::Type::THEME_VALUE, 0.1);
 
   bgBox_       .setBackgroundColor(bg);
   cellBox_     .setBorderColor    (border);
   cellBox_     .setBorderAlpha    (0.5);
   emptyCellBox_.setBackgroundColor(emptyCellBg);
-
-  textColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
   setMargins(0, 0, 0, 0);
 

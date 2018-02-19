@@ -27,6 +27,9 @@ class CTsv {
   bool isFirstLineHeader() const { return firstLineHeader_; }
   void setFirstLineHeader(bool b) { firstLineHeader_ = b; }
 
+  bool isAllowEmpty() const { return allowEmpty_; }
+  void setAllowEmpty(bool b) { allowEmpty_ = b; }
+
   bool load() {
     bool commentHeader   = isCommentHeader  ();
     bool firstLineHeader = isFirstLineHeader();
@@ -143,7 +146,8 @@ class CTsv {
     int i   = 0;
     int len = str.size();
 
-    skipSpace(str, i);
+    if (! isAllowEmpty())
+      skipSpace(str, i);
 
     while (i < len) {
       // skip to end of word
@@ -151,17 +155,22 @@ class CTsv {
 
       skipToTab(str, i);
 
-      // get (non-empty) word
-      if (j == i)
-        break;
+      // add (optionally non-empty) word
+      if (isAllowEmpty() || i > j) {
+        std::string str1 = str.substr(j, i - j);
 
-      std::string str1 = str.substr(j, i - j);
+        // add to return list
+        fields.push_back(str1);
+      }
 
-      // add to return list
-      fields.push_back(str1);
-
-      if (str[i] == '\t')
-        ++i;
+      if (isAllowEmpty()) {
+        if (str[i] == '\t')
+          ++i;
+      }
+      else {
+        while (i < len && str[i] == '\t')
+          ++i;
+      }
     }
 
     return true;
@@ -187,6 +196,7 @@ class CTsv {
   Data          data_;
   bool          commentHeader_   { true };
   bool          firstLineHeader_ { false };
+  bool          allowEmpty_      { true };
   mutable FILE* fp_              { 0 };
 };
 

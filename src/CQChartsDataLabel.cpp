@@ -8,6 +8,7 @@ CQChartsDataLabel::
 CQChartsDataLabel(CQChartsPlot *plot) :
  CQChartsTextBoxObj(plot)
 {
+  setVisible(false);
 }
 
 void

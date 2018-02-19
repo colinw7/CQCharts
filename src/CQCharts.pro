@@ -19,7 +19,7 @@ CQChartsCsv.cpp \
 CQChartsTsv.cpp \
 CQChartsJson.cpp \
 CQChartsGnuData.cpp \
-CQChartsExprData.cpp \
+CQChartsExprModel.cpp \
 CQChartsColumn.cpp \
 \
 CQChartsTable.cpp \
@@ -64,14 +64,15 @@ CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
 CQChartsDataLabel.cpp \
-CQChartsFillObj.cpp \
-CQChartsLineObj.cpp \
-CQChartsPointObj.cpp \
 \
 CQChartsAxis.cpp \
 CQChartsKey.cpp \
 CQChartsTitle.cpp \
 CQChartsTheme.cpp \
+CQChartsAnnotation.cpp \
+CQChartsArrow.cpp \
+CQChartsEditHandles.cpp \
+CQChartsResizeHandle.cpp \
 \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
@@ -111,7 +112,7 @@ CQPropertyViewRectFType.cpp \
 CQPropertyViewSizeFType.cpp \
 CQPropertyViewType.cpp \
 \
-CQChartsPaletteColor.cpp \
+CQChartsColor.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsLength.cpp \
 CQChartsUtil.cpp \
@@ -160,7 +161,7 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsGnuData.h \
-../include/CQChartsExprData.h \
+../include/CQChartsExprModel.h \
 ../include/CQChartsColumn.h \
 \
 ../include/CQChartsTable.h \
@@ -205,15 +206,16 @@ HEADERS += \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsTextBoxObj.h \
 ../include/CQChartsDataLabel.h \
-../include/CQChartsFillObj.h \
-../include/CQChartsLineObj.h \
-../include/CQChartsPointObj.h \
 \
 ../include/CQChartsAxis.h \
 ../include/CQChartsAxisObj.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
 ../include/CQChartsTheme.h \
+../include/CQChartsAnnotation.h \
+../include/CQChartsArrow.h \
+../include/CQChartsEditHandles.h \
+../include/CQChartsResizeHandle.h \
 \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
@@ -259,7 +261,7 @@ CQPropertyViewRectFType.h \
 CQPropertyViewSizeFType.h \
 CQPropertyViewType.h \
 \
-../include/CQChartsPaletteColor.h \
+../include/CQChartsColor.h \
 ../include/CQChartsDrawUtil.h \
 \
 ../include/CQCsvModel.h \

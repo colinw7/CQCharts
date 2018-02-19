@@ -9,30 +9,19 @@ CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
  CQChartsBoxObj(plot)
 {
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
 
   setTextColor(themeFg);
-}
 
-QString
-CQChartsTextBoxObj::
-textColorStr() const
-{
-  return textColor_.colorStr();
-}
-
-void
-CQChartsTextBoxObj::
-setTextColorStr(const QString &s)
-{
-  textColor_.setColorStr(s);
+  boxData_.background.visible = false;
+  boxData_.border    .visible = false;
 }
 
 QColor
 CQChartsTextBoxObj::
 interpTextColor(int i, int n) const
 {
-  return textColor_.interpColor(plot_, i, n);
+  return textColor().interpColor(plot_, i, n);
 }
 
 void

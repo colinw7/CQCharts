@@ -4,11 +4,10 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
-#include <CQChartsPaletteColor.h>
+#include <CQChartsColor.h>
 
 class CQChartsDistributionPlot;
 class CQChartsBoxObj;
-class CQChartsFillObj;
 
 // bar object
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
@@ -17,7 +16,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
  public:
   using Values = std::vector<QModelIndex>;
 
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
  public:
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
@@ -82,26 +81,26 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
 class CQChartsDistributionPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     valueColumn      READ valueColumn       WRITE setValueColumn     )
-  Q_PROPERTY(int     colorColumn      READ colorColumn       WRITE setColorColumn     )
-  Q_PROPERTY(bool    autoRange        READ isAutoRange       WRITE setAutoRange       )
-  Q_PROPERTY(double  startValue       READ startValue        WRITE setStartValue      )
-  Q_PROPERTY(double  deltaValue       READ deltaValue        WRITE setDeltaValue      )
-  Q_PROPERTY(int     numAuto          READ numAuto           WRITE setNumAuto         )
-  Q_PROPERTY(bool    horizontal       READ isHorizontal      WRITE setHorizontal      )
-  Q_PROPERTY(double  margin           READ margin            WRITE setMargin          )
-  Q_PROPERTY(bool    border           READ isBorder          WRITE setBorder          )
-  Q_PROPERTY(QString borderColor      READ borderColorStr    WRITE setBorderColorStr  )
-  Q_PROPERTY(double  borderAlpha      READ borderAlpha       WRITE setBorderAlpha     )
-  Q_PROPERTY(double  borderWidth      READ borderWidth       WRITE setBorderWidth     )
-  Q_PROPERTY(double  borderCornerSize READ borderCornerSize  WRITE setBorderCornerSize)
-  Q_PROPERTY(bool    barFill          READ isBarFill         WRITE setBarFill         )
-  Q_PROPERTY(QString barColor         READ barColorStr       WRITE setBarColorStr     )
-  Q_PROPERTY(double  barAlpha         READ barAlpha          WRITE setBarAlpha        )
-  Q_PROPERTY(Pattern barPattern       READ barPattern        WRITE setBarPattern      )
-  Q_PROPERTY(bool    colorMapEnabled  READ isColorMapEnabled WRITE setColorMapEnabled )
-  Q_PROPERTY(double  colorMapMin      READ colorMapMin       WRITE setColorMapMin     )
-  Q_PROPERTY(double  colorMapMax      READ colorMapMax       WRITE setColorMapMax     )
+  Q_PROPERTY(int            valueColumn     READ valueColumn       WRITE setValueColumn    )
+  Q_PROPERTY(int            colorColumn     READ colorColumn       WRITE setColorColumn    )
+  Q_PROPERTY(bool           autoRange       READ isAutoRange       WRITE setAutoRange      )
+  Q_PROPERTY(double         startValue      READ startValue        WRITE setStartValue     )
+  Q_PROPERTY(double         deltaValue      READ deltaValue        WRITE setDeltaValue     )
+  Q_PROPERTY(int            numAuto         READ numAuto           WRITE setNumAuto        )
+  Q_PROPERTY(bool           horizontal      READ isHorizontal      WRITE setHorizontal     )
+  Q_PROPERTY(double         margin          READ margin            WRITE setMargin         )
+  Q_PROPERTY(bool           border          READ isBorder          WRITE setBorder         )
+  Q_PROPERTY(CQChartsColor  borderColor     READ borderColor       WRITE setBorderColor    )
+  Q_PROPERTY(double         borderAlpha     READ borderAlpha       WRITE setBorderAlpha    )
+  Q_PROPERTY(CQChartsLength borderWidth     READ borderWidth       WRITE setBorderWidth    )
+  Q_PROPERTY(double         cornerSize      READ cornerSize        WRITE setCornerSize     )
+  Q_PROPERTY(bool           barFill         READ isBarFill         WRITE setBarFill        )
+  Q_PROPERTY(CQChartsColor  barColor        READ barColor          WRITE setBarColor       )
+  Q_PROPERTY(double         barAlpha        READ barAlpha          WRITE setBarAlpha       )
+  Q_PROPERTY(Pattern        barPattern      READ barPattern        WRITE setBarPattern     )
+  Q_PROPERTY(bool           colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
+  Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
   Q_ENUMS(Pattern)
 
@@ -116,7 +115,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     BDIAG
   };
 
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
   struct CategoryRange {
     enum class Type {
@@ -223,19 +222,19 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool isBorder() const;
   void setBorder(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &s);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const;
   void setBorderAlpha(double r);
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
-  double borderCornerSize() const;
-  void setBorderCornerSize(double r);
+  double cornerSize() const;
+  void setCornerSize(double r);
 
   //---
 
@@ -243,8 +242,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool isBarFill() const;
   void setBarFill(bool b);
 
-  QString barColorStr() const;
-  void setBarColorStr(const QString &str);
+  const CQChartsColor &barColor() const;
+  void setBarColor(const CQChartsColor &c);
 
   QColor interpBarColor(int i, int n) const;
 
@@ -341,7 +340,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool              horizontal_  { false };   // horizontal bars
   double            margin_      { 2 };       // bar margin
   CQChartsBoxObj*   borderObj_   { nullptr }; // border object
-  CQChartsFillObj*  fillObj_     { nullptr }; // fill object
+  CQChartsFillData  fillData_;                // fill data
   CQChartsDataLabel dataLabel_;               // data label data
   FilterStack       filterStack_;             // filter stack
 };

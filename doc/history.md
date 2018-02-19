@@ -305,3 +305,18 @@
  + Support Vertical Probe Lines
 # 2/7/2018
  + Use visitor in more plot types
+# 2/11/2018
+ + Add drag handles for plot, title, key and axis
+ + More visitor usage
+ + vector support in xy plot
+ + ensure parent used in model index calls for hier data
+ + Add text and arrow annotations
+ + Support export CSV/TSV from table
+ + Edit uses left mouse instead of middle mouse
+ + Allow generate model with variables as columns
+# 2/18/2018
+ + rename CQChartsPaletteColor to CQChartsColor
+ + Add rect, ellipse, poly, text and point annotation
+ + Remove FillObj, LineObj, PointObj. Use data struectures
+ + Use CQChartsLenght for more property widths
+ + Support object cross select from property view

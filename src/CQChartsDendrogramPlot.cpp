@@ -34,7 +34,7 @@ CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
   nodeBoxObj_ = new CQChartsTextBoxObj(this);
   edgeBoxObj_ = new CQChartsTextBoxObj(this);
 
-  nodeBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  nodeBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   //---
 
@@ -83,18 +83,18 @@ addProperties()
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsDendrogramPlot::
-nodeBorderColorStr() const
+nodeBorderColor() const
 {
-  return nodeBoxObj_->borderColorStr();
+  return nodeBoxObj_->borderColor();
 }
 
 void
 CQChartsDendrogramPlot::
-setNodeBorderColorStr(const QString &str)
+setNodeBorderColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBorderColorStr(str);
+  nodeBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -122,7 +122,7 @@ setNodeBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsDendrogramPlot::
 nodeBorderWidth() const
 {
@@ -131,27 +131,27 @@ nodeBorderWidth() const
 
 void
 CQChartsDendrogramPlot::
-setNodeBorderWidth(double r)
+setNodeBorderWidth(const CQChartsLength &l)
 {
-  nodeBoxObj_->setBorderWidth(r);
+  nodeBoxObj_->setBorderWidth(l);
 
   update();
 }
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsDendrogramPlot::
-nodeFillColorStr() const
+nodeFillColor() const
 {
-  return nodeBoxObj_->backgroundColorStr();
+  return nodeBoxObj_->backgroundColor();
 }
 
 void
 CQChartsDendrogramPlot::
-setNodeFillColorStr(const QString &s)
+setNodeFillColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBackgroundColorStr(s);
+  nodeBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -181,18 +181,18 @@ setNodeFillAlpha(double a)
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsDendrogramPlot::
-edgeLineColorStr() const
+edgeLineColor() const
 {
-  return edgeBoxObj_->borderColorStr();
+  return edgeBoxObj_->borderColor();
 }
 
 void
 CQChartsDendrogramPlot::
-setEdgeLineColorStr(const QString &str)
+setEdgeLineColor(const CQChartsColor &c)
 {
-  edgeBoxObj_->setBorderColorStr(str);
+  edgeBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -220,7 +220,7 @@ setEdgeLineAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsDendrogramPlot::
 edgeLineWidth() const
 {
@@ -229,9 +229,9 @@ edgeLineWidth() const
 
 void
 CQChartsDendrogramPlot::
-setEdgeLineWidth(double r)
+setEdgeLineWidth(const CQChartsLength &l)
 {
-  edgeBoxObj_->setBorderWidth(r);
+  edgeBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -254,18 +254,18 @@ setTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsDendrogramPlot::
-textColorStr() const
+textColor() const
 {
-  return nodeBoxObj_->textColorStr();
+  return nodeBoxObj_->textColor();
 }
 
 void
 CQChartsDendrogramPlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setTextColorStr(s);
+  nodeBoxObj_->setTextColor(c);
 
   update();
 }
@@ -623,8 +623,10 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogr
     QPen   lpen;
     QBrush lbrush;
 
+    double lw = lengthPixelWidth(edgeLineWidth());
+
     lpen.setColor (edgeColor);
-    lpen.setWidthF(edgeLineWidth());
+    lpen.setWidthF(lw);
 
     painter->setPen(lpen);
 
@@ -646,7 +648,7 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogr
 
 bool
 CQChartsDendrogramPlot::
-mousePress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
+selectPress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
 {
   double cs = circleSize();
 
@@ -765,10 +767,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   borderColor.setAlphaF(plot_->nodeBorderAlpha());
 
-  pen.setColor (borderColor);
-  pen.setWidthF(plot_->borderWidth());
+  double bw = plot_->lengthPixelWidth(plot_->borderWidth());
 
-  QColor fillColor = plot_->interpNodeFillColor  (0, 1);
+  pen.setColor (borderColor);
+  pen.setWidthF(bw);
+
+  QColor fillColor = plot_->interpNodeFillColor(0, 1);
 
   fillColor.setAlphaF(plot_->nodeFillAlpha  ());
 

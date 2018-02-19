@@ -1,8 +1,15 @@
 High
- + remove rowCount calls
- + ensure all model->index() calls have parent
  + More common grouping column handling
- + equal scale just be quick adjust of dataRange (cached original)
+ + equal scale should be quick adjust of dataRange (cached original)
+ + support first header column in CSV/TSV others
+ + Allow reference header data in chart (syntax ?, -1 already taken)
+ + More variant properties to remove string conversion
+ + More variant editors
+ + More annotations (symbol, box, ...)
+ + Annotation tip, select, ..., widget (float widget in plot)
+ + Filter by Zoom
+ + Key/Title should be positioned relative to plot
+ + Annotation Layer
 
 Medium
  + Scroll by Single Large Tick Mark ?
@@ -23,8 +30,8 @@ Medium
  + Set cursor on mode change
  + Allow table/tree floating inside view
  + Edit mode to edit plot positions (illustrator code ?)
- + Only move key, title, axes in edit mode ?
- + Allow reference header data in chart
+ + Use Data not Obj to store data in objects (axis -> line obj ...)
+ + rounded corner control
 
 + TOAST UI plots (tui)
   + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)
@@ -32,7 +39,7 @@ Medium
   + Scatter Plot Circle Size Key (Min, Max, Mean)
 
 Scripting
- + Interface language (Ceil)
+ + Interface language (Ceil, Tcl, QtScript, ...)
  + support data from script (Ceil)
 
 Common Properties
@@ -51,11 +58,6 @@ Common Properties
  + Text
    + visible
    + string
-   + font
-   + color
-   + alpha
-   + angle
-   + contrast (shadow) - ToDo shadow properties
  + Box
    + cornerSize (ToDo corners)
    + sides
@@ -190,6 +192,7 @@ Plots General
 Adjacency Plot
  + X Border Width
  + Better Text Placement/Sizing
+ + Hierarchical Adjacency (H/V headers are hierarchical trees)
 
 Bar Chart
  + Allow hide sets as well as individual sub set types

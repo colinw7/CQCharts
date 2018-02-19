@@ -36,12 +36,9 @@ CQChartsForceDirectedPlot::
 CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
 {
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-
   setMargins(0, 0, 0, 0);
 
-  nodeBorderColor_ = themeFg;
-  edgeColor_       = themeFg;
+  edgeStroke_.alpha = 0.5;
 
   //---
 
@@ -441,7 +438,7 @@ animateStep()
 
 bool
 CQChartsForceDirectedPlot::
-mousePress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
+selectPress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
 {
   Springy::NodePoint nodePoint = forceDirected_.nearest(Springy::Vector(p.x, p.y));
 
@@ -457,7 +454,7 @@ mousePress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
 
 bool
 CQChartsForceDirectedPlot::
-mouseMove(const CQChartsGeom::Point &p, bool first)
+selectMove(const CQChartsGeom::Point &p, bool first)
 {
   if (pressed_) {
     if (forceDirected_.currentPoint())
@@ -474,12 +471,12 @@ mouseMove(const CQChartsGeom::Point &p, bool first)
     forceDirected_.setCurrentPoint(nodePoint.second);
   }
 
-  return CQChartsPlot::mouseMove(p, first);
+  return CQChartsPlot::selectMove(p, first);
 }
 
-void
+bool
 CQChartsForceDirectedPlot::
-mouseRelease(const CQChartsGeom::Point &p)
+selectRelease(const CQChartsGeom::Point &p)
 {
   if (forceDirected_.currentPoint())
     forceDirected_.currentPoint()->setP(Springy::Vector(p.x, p.y));
@@ -490,6 +487,8 @@ mouseRelease(const CQChartsGeom::Point &p)
   pressed_ = false;
 
   update();
+
+  return true;
 }
 
 void
@@ -533,9 +532,13 @@ draw(QPainter *painter)
   //---
 
   // draw edges
+  QPen edgePen;
+
   QColor edgeColor = this->interpEdgeColor(0, 1);
 
   edgeColor.setAlphaF(edgeAlpha());
+
+  edgePen.setColor(edgeColor);
 
   for (auto edge : forceDirected_.edges()) {
     bool isTemp = false;
@@ -552,7 +555,9 @@ draw(QPainter *painter)
 
     double w = sqrt(edge->value());
 
-    painter->setPen(QPen(edgeColor, w));
+    edgePen.setWidthF(w);
+
+    painter->setPen(edgePen);
 
     painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
 

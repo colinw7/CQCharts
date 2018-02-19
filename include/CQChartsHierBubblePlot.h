@@ -5,7 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
-#include <CQChartsPaletteColor.h>
+#include <CQChartsData.h>
 #include <QModelIndex>
 
 class CQChartsHierBubblePlot;
@@ -51,8 +51,8 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   virtual int colorId() const { return colorId_; }
   virtual void setColorId(int id) { colorId_ = id; }
 
-  const CQChartsPaletteColor &color() const { return color_; }
-  void setColor(const CQChartsPaletteColor &v) { color_ = v; }
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &v) { color_ = v; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -90,7 +90,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   QString                     name_;                // node name
   double                      size_    { 0.0 };     // node size
   int                         colorId_ { -1 };      // node color index
-  CQChartsPaletteColor        color_   { };         // node explicit color
+  CQChartsColor               color_   { };         // node explicit color
   QModelIndex                 ind_;                 // node model index
   int                         depth_   { 0 };       // node depth
   bool                        filler_  { false };   // is filler
@@ -232,22 +232,23 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 class CQChartsHierBubblePlot : public CQChartsHierPlot {
   Q_OBJECT
 
-  Q_PROPERTY(bool    border          READ isBorder          WRITE setBorder          )
-  Q_PROPERTY(QString borderColor     READ borderColorStr    WRITE setBorderColorStr  )
-  Q_PROPERTY(double  borderAlpha     READ borderAlpha       WRITE setBorderAlpha     )
-  Q_PROPERTY(double  borderWidth     READ borderWidth       WRITE setBorderWidth     )
-  Q_PROPERTY(bool    filled          READ isFilled          WRITE setFilled          )
-  Q_PROPERTY(QString fillColor       READ fillColorStr      WRITE setFillColorStr    )
-  Q_PROPERTY(double  fillAlpha       READ fillAlpha         WRITE setFillAlpha       )
-  Q_PROPERTY(Pattern fillPattern     READ fillPattern       WRITE setFillPattern     )
-  Q_PROPERTY(QFont   textFont        READ textFont          WRITE setTextFont        )
-  Q_PROPERTY(QString textColor       READ textColorStr      WRITE setTextColorStr    )
-  Q_PROPERTY(bool    textContrast    READ isTextContrast    WRITE setTextContrast    )
-  Q_PROPERTY(bool    colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled )
-  Q_PROPERTY(double  colorMapMin     READ colorMapMin       WRITE setColorMapMin     )
-  Q_PROPERTY(double  colorMapMax     READ colorMapMax       WRITE setColorMapMax     )
+  Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
+  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
+  Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
+  Q_PROPERTY(CQChartsLength borderWidth  READ borderWidth    WRITE setBorderWidth )
+  Q_PROPERTY(bool           filled       READ isFilled       WRITE setFilled      )
+  Q_PROPERTY(CQChartsColor  fillColor    READ fillColor      WRITE setFillColor   )
+  Q_PROPERTY(double         fillAlpha    READ fillAlpha      WRITE setFillAlpha   )
+  Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
+  Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
+  Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
 
-  Q_ENUMS(Pattern);
+  Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
+  Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
+
+  Q_ENUMS(Pattern)
 
  public:
   enum class Pattern {
@@ -260,7 +261,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
     BDIAG
   };
 
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
   using Nodes = std::vector<CQChartsHierBubbleNode*>;
 
@@ -274,24 +275,24 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   bool isBorder() const;
   void setBorder(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &str);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const;
   void setBorderAlpha(double a);
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
   //---
 
   bool isFilled() const;
   void setFilled(bool b);
 
-  QString fillColorStr() const;
-  void setFillColorStr(const QString &s);
+  const CQChartsColor &fillColor() const;
+  void setFillColor(const CQChartsColor &c);
 
   QColor interpFillColor(int i, int n) const;
 
@@ -306,8 +307,8 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   const QFont &textFont() const;
   void setTextFont(const QFont &f);
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &s);
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
 
   QColor interpTextColor(int i, int n) const;
 

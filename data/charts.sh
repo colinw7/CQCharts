@@ -242,8 +242,9 @@ CQChartsTest \
  -type scatter -columns "name=0,x=1,y=2,color=3,size=4" \
  -plot_title "Scatter Plot"
 
+# TODO: ignore degree symbol in cities.dat ?
 CQChartsTest \
- -tsv cities.dat -comment_header -process "+column(2)/20000.0" \
+ -tsv cities1.dat -comment_header -process "+column(2)/20000.0" \
  -type scatter -columns "x=4,y=3,name=0,fontSize=5" \
  -bool "textLabels=1,key=0" \
  -properties "dataLabel.position=CENTER"

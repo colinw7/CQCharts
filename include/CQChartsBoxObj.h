@@ -1,7 +1,7 @@
 #ifndef CQChartsBoxObj_H
 #define CQChartsBoxObj_H
 
-#include <CQChartsPaletteColor.h>
+#include <CQChartsData.h>
 #include <QObject>
 #include <QRectF>
 #include <QPolygonF>
@@ -13,20 +13,22 @@ class QPainter;
 class CQChartsBoxObj : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(double  margin            READ margin             WRITE setMargin            )
-  Q_PROPERTY(double  padding           READ padding            WRITE setPadding           )
-  Q_PROPERTY(bool    background        READ isBackground       WRITE setBackground        )
-  Q_PROPERTY(QString backgroundColor   READ backgroundColorStr WRITE setBackgroundColorStr)
-  Q_PROPERTY(double  backgroundAlpha   READ backgroundAlpha    WRITE setBackgroundAlpha   )
-  Q_PROPERTY(Pattern backgroundPattern READ backgroundPattern  WRITE setBackgroundPattern )
-  Q_PROPERTY(bool    border            READ isBorder           WRITE setBorder            )
-  Q_PROPERTY(QString borderColor       READ borderColorStr     WRITE setBorderColorStr    )
-  Q_PROPERTY(double  borderAlpha       READ borderAlpha        WRITE setBorderAlpha       )
-  Q_PROPERTY(double  borderWidth       READ borderWidth        WRITE setBorderWidth       )
-  Q_PROPERTY(double  borderCornerSize  READ borderCornerSize   WRITE setBorderCornerSize  )
-  Q_PROPERTY(QString borderSides       READ borderSides        WRITE setBorderSides       )
+  Q_PROPERTY(bool           visible           READ isVisible         WRITE setVisible          )
+  Q_PROPERTY(bool           selected          READ isSelected        WRITE setSelected         )
+  Q_PROPERTY(double         margin            READ margin            WRITE setMargin           )
+  Q_PROPERTY(double         padding           READ padding           WRITE setPadding          )
+  Q_PROPERTY(bool           background        READ isBackground      WRITE setBackground       )
+  Q_PROPERTY(CQChartsColor  backgroundColor   READ backgroundColor   WRITE setBackgroundColor  )
+  Q_PROPERTY(double         backgroundAlpha   READ backgroundAlpha   WRITE setBackgroundAlpha  )
+  Q_PROPERTY(Pattern        backgroundPattern READ backgroundPattern WRITE setBackgroundPattern)
+  Q_PROPERTY(bool           border            READ isBorder          WRITE setBorder           )
+  Q_PROPERTY(CQChartsColor  borderColor       READ borderColor       WRITE setBorderColor      )
+  Q_PROPERTY(double         borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
+  Q_PROPERTY(CQChartsLength borderWidth       READ borderWidth       WRITE setBorderWidth      )
+  Q_PROPERTY(double         cornerSize        READ cornerSize        WRITE setCornerSize       )
+  Q_PROPERTY(QString        borderSides       READ borderSides       WRITE setBorderSides      )
 
-  Q_ENUMS(Pattern);
+  Q_ENUMS(Pattern)
 
  public:
   enum class Pattern {
@@ -48,85 +50,86 @@ class CQChartsBoxObj : public QObject {
 
   //---
 
+  // get/set visible
+  bool isVisible() const { return visible_; }
+  void setVisible(bool b) { visible_ = b; redrawBoxObj(); }
+
+  // get/set selected
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; redrawBoxObj(); }
+
+  //---
+
   // inside margin
-  double margin() const { return margin_; }
-  virtual void setMargin(double r) { margin_ = r; redrawBoxObj(); }
+  double margin() const { return boxData_.margin; }
+  virtual void setMargin(double r) { boxData_.margin = r; redrawBoxObj(); }
 
   // outside padding
-  double padding() const { return padding_; }
-  virtual void setPadding(double r) { padding_ = r; redrawBoxObj(); }
+  double padding() const { return boxData_.padding; }
+  virtual void setPadding(double r) { boxData_.padding = r; redrawBoxObj(); }
 
   //---
 
   // background
-  bool isBackground() const { return background_; }
-  void setBackground(bool b) { background_ = b; redrawBoxObj(); }
+  bool isBackground() const { return boxData_.background.visible; }
+  void setBackground(bool b) { boxData_.background.visible = b; redrawBoxObj(); }
 
-  const CQChartsPaletteColor &backgroundColor() const { return backgroundColor_; }
-  void setBackgroundColor(const CQChartsPaletteColor &c) { backgroundColor_ = c; redrawBoxObj(); }
+  const CQChartsColor &backgroundColor() const { return boxData_.background.color; }
+  void setBackgroundColor(const CQChartsColor &c) { boxData_.background.color = c; redrawBoxObj(); }
 
-  QString backgroundColorStr() const { return backgroundColor_.colorStr(); }
-  void setBackgroundColorStr(const QString &str) {
-    backgroundColor_.setColorStr(str); redrawBoxObj(); }
+  double backgroundAlpha() const { return boxData_.background.alpha; }
+  void setBackgroundAlpha(double a) { boxData_.background.alpha = a; redrawBoxObj(); }
 
-  QColor interpBackgroundColor(int i, int n) const;
-
-  double backgroundAlpha() const { return backgroundAlpha_; }
-  void setBackgroundAlpha(double a) { backgroundAlpha_ = a; redrawBoxObj(); }
-
-  const Pattern &backgroundPattern() const { return backgroundPattern_; }
-  void setBackgroundPattern(const Pattern &v) { backgroundPattern_ = v; redrawBoxObj(); }
+  Pattern backgroundPattern() const { return (Pattern ) boxData_.background.pattern; }
+  void setBackgroundPattern(const Pattern &p) {
+    boxData_.background.pattern = (CQChartsFillPattern::Type) p; redrawBoxObj(); }
 
   //---
 
   // border
-  bool isBorder() const { return border_; }
-  virtual void setBorder(bool b) { border_ = b; redrawBoxObj(); }
+  bool isBorder() const { return boxData_.border.visible; }
+  void setBorder(bool b) { boxData_.border.visible = b; redrawBoxObj(); }
 
-  const CQChartsPaletteColor &borderColor() const { return borderColor_; }
-  void setBorderColor(const CQChartsPaletteColor &c) { borderColor_ = c; redrawBoxObj(); }
+  const CQChartsColor &borderColor() const { return boxData_.border.color; }
+  void setBorderColor(const CQChartsColor &c) { boxData_.border.color = c; redrawBoxObj(); }
 
-  QString borderColorStr() const { return borderColor_.colorStr(); }
-  void setBorderColorStr(const QString &str) { borderColor_.setColorStr(str); redrawBoxObj(); }
+  double borderAlpha() const { return boxData_.border.alpha; }
+  void setBorderAlpha(double a) { boxData_.border.alpha = a; redrawBoxObj(); }
 
-  QColor interpBorderColor(int i, int n) const;
+  const CQChartsLength &borderWidth() const { return boxData_.border.width; }
+  void setBorderWidth(const CQChartsLength &l) { boxData_.border.width = l; redrawBoxObj(); }
 
-  double borderAlpha() const { return borderAlpha_; }
-  virtual void setBorderAlpha(double a) { borderAlpha_ = a; redrawBoxObj(); }
+  double cornerSize() const { return boxData_.cornerSize; }
+  void setCornerSize(double r) { boxData_.cornerSize = r; redrawBoxObj(); }
 
-  double borderWidth() const { return borderWidth_; }
-  virtual void setBorderWidth(double r) { borderWidth_ = r; redrawBoxObj(); }
+  const QString &borderSides() const { return boxData_.borderSides; }
+  void setBorderSides(const QString &s) { boxData_.borderSides = s; redrawBoxObj(); }
 
-  double borderCornerSize() const { return borderCornerSize_; }
-  virtual void setBorderCornerSize(double r) { borderCornerSize_ = r; redrawBoxObj(); }
+  //---
 
-  const QString &borderSides() const { return borderSides_; }
-  void setBorderSides(const QString &s) { borderSides_ = s; redrawBoxObj(); }
+  const CQChartsBoxData &data() const { return boxData_; }
+  void setData(const CQChartsBoxData &data) { boxData_ = data; }
+
+  //---
+
+  QColor interpBackgroundColor(int i, int n) const;
+  QColor interpBorderColor    (int i, int n) const;
 
   //---
 
   virtual void addProperties(CQPropertyViewModel *model, const QString &path);
 
-  virtual void redrawBoxObj();
+  virtual void redrawBoxObj(); // TODO: signal
 
   void draw(QPainter *painter, const QRectF &rect) const;
   void draw(QPainter *painter, const QPolygonF &poly) const;
 
  protected:
-  CQChartsView*        view_              { nullptr };        // parent view
-  CQChartsPlot*        plot_              { nullptr };        // parent plot
-  double               margin_            { 4 };              // inside margin (pixels)
-  double               padding_           { 0 };              // outside margin (pixels)
-  bool                 background_        { false };          // draw background
-  CQChartsPaletteColor backgroundColor_;                      // background fill color
-  double               backgroundAlpha_   { 1.0 };            // background fill color alpha
-  Pattern              backgroundPattern_ { Pattern::SOLID }; // background fill pattern
-  bool                 border_            { false };          // draw border
-  CQChartsPaletteColor borderColor_;                          // border color
-  double               borderWidth_       { 0.0 };            // border width
-  double               borderAlpha_       { 1.0 };            // border color alpha
-  double               borderCornerSize_  { 0.0 };            // border rounded corner size
-  QString              borderSides_       { "tlbr" };         // border sides to draw
+  CQChartsView*   view_     { nullptr }; // parent view
+  CQChartsPlot*   plot_     { nullptr }; // parent plot
+  bool            visible_  { true };    // is visible
+  bool            selected_ { false };   // is selected
+  CQChartsBoxData boxData_;              // box data
 };
 
 #endif

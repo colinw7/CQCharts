@@ -3,9 +3,10 @@
 
 #include <CQChartsPlotParameter.h>
 #include <CQChartsModelP.h>
-#include <CQChartsPaletteColor.h>
+#include <CQChartsColor.h>
 #include <CQChartsColumnBucket.h>
-#include <CQChartsLength.h>
+#include <CQChartsPlotSymbol.h>
+#include <CQChartsData.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -30,6 +31,13 @@ class CQChartsTitle;
 class CQChartsTheme;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
+class CQChartsAnnotation;
+class CQChartsTextAnnotation;
+class CQChartsArrowAnnotation;
+class CQChartsRectAnnotation;
+class CQChartsEllipseAnnotation;
+class CQChartsPolyAnnotation;
+class CQChartsPointAnnotation;
 class CQChartsBoxObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
@@ -45,32 +53,18 @@ class QMenu;
 
 //----
 
-class CQChartsResizeHandle {
- public:
-  enum class Side {
-    NONE,
-    LL,
-    LR,
-    UL,
-    UR
-  };
+#include <CQChartsEditHandles.h>
 
- public:
-  CQChartsResizeHandle() = default;
+//----
 
-  CQChartsResizeHandle(CQChartsPlot *plot, Side side);
+struct CQChartsTextOptions {
+  double        angle     { 0.0 };
+  bool          contrast  { false };
+  bool          formatted { false };
+  bool          clipped   { true };
+  Qt::Alignment align     { Qt::AlignHCenter | Qt::AlignVCenter };
 
-  const Side &side() const { return side_; }
-
-  void draw(QPainter *painter);
-
-  bool inside(const CQChartsGeom::Point &p) const;
-
- private:
-  CQChartsPlot *plot_ { nullptr };
-  Side          side_ { Side::NONE };
-  QPointF       pos_;
-  QPainterPath  path_;
+  CQChartsTextOptions() = default;
 };
 
 //----
@@ -189,64 +183,65 @@ class CQChartsPlot : public QObject {
   Q_OBJECT
 
   // generic columns and control
-  Q_PROPERTY(int     idColumn            READ idColumn            WRITE setIdColumn           )
+  Q_PROPERTY(int          idColumn             READ idColumn        WRITE setIdColumn       )
 
   // visible, rectangle and data range
-  Q_PROPERTY(bool    visible             READ isVisible           WRITE setVisible            )
-  Q_PROPERTY(QRectF  rect                READ rect                WRITE setRect               )
-  Q_PROPERTY(QRectF  range               READ range               WRITE setRange              )
-  Q_PROPERTY(double  dataScaleX          READ dataScaleX          WRITE updateDataScaleX      )
-  Q_PROPERTY(double  dataScaleY          READ dataScaleY          WRITE updateDataScaleY      )
+  Q_PROPERTY(bool         visible              READ isVisible       WRITE setVisible        )
+  Q_PROPERTY(bool         selected             READ isSelected      WRITE setSelected       )
+  Q_PROPERTY(QRectF       rect                 READ rect            WRITE setRect           )
+  Q_PROPERTY(QRectF       range                READ range           WRITE setRange          )
+  Q_PROPERTY(double       dataScaleX           READ dataScaleX      WRITE updateDataScaleX  )
+  Q_PROPERTY(double       dataScaleY           READ dataScaleY      WRITE updateDataScaleY  )
 
   // every
-  Q_PROPERTY(bool    everyEnabled        READ isEveryEnabled      WRITE setEveryEnabled       )
-  Q_PROPERTY(int     everyStart          READ everyStart          WRITE setEveryStart         )
-  Q_PROPERTY(int     everyEnd            READ everyEnd            WRITE setEveryEnd           )
-  Q_PROPERTY(int     everyStep           READ everyStep           WRITE setEveryStep          )
+  Q_PROPERTY(bool         everyEnabled         READ isEveryEnabled  WRITE setEveryEnabled   )
+  Q_PROPERTY(int          everyStart           READ everyStart      WRITE setEveryStart     )
+  Q_PROPERTY(int          everyEnd             READ everyEnd        WRITE setEveryEnd       )
+  Q_PROPERTY(int          everyStep            READ everyStep       WRITE setEveryStep      )
 
   // margin
-  Q_PROPERTY(double  marginLeft          READ marginLeft          WRITE setMarginLeft         )
-  Q_PROPERTY(double  marginTop           READ marginTop           WRITE setMarginTop          )
-  Q_PROPERTY(double  marginRight         READ marginRight         WRITE setMarginRight        )
-  Q_PROPERTY(double  marginBottom        READ marginBottom        WRITE setMarginBottom       )
+  Q_PROPERTY(double       marginLeft           READ marginLeft      WRITE setMarginLeft     )
+  Q_PROPERTY(double       marginTop            READ marginTop       WRITE setMarginTop      )
+  Q_PROPERTY(double       marginRight          READ marginRight     WRITE setMarginRight    )
+  Q_PROPERTY(double       marginBottom         READ marginBottom    WRITE setMarginBottom   )
 
   // title and associated filesname (if any)
-  Q_PROPERTY(QString title               READ titleStr            WRITE setTitleStr           )
-  Q_PROPERTY(QString fileName            READ fileName            WRITE setFileName           )
+  Q_PROPERTY(QString      title                READ titleStr        WRITE setTitleStr       )
+  Q_PROPERTY(QString      fileName             READ fileName        WRITE setFileName       )
 
   // plot area
-  Q_PROPERTY(bool    background          READ isBackground        WRITE setBackground         )
-  Q_PROPERTY(QString backgroundColor     READ backgroundColorStr  WRITE setBackgroundColorStr )
-  Q_PROPERTY(bool    border              READ isBorder            WRITE setBorder             )
-  Q_PROPERTY(QString borderColor         READ borderColorStr      WRITE setBorderColorStr     )
-  Q_PROPERTY(double  borderWidth         READ borderWidth         WRITE setBorderWidth        )
-  Q_PROPERTY(QString borderSides         READ borderSides         WRITE setBorderSides        )
-  Q_PROPERTY(bool    clip                READ isClip              WRITE setClip               )
+  Q_PROPERTY(bool           background         READ isBackground    WRITE setBackground     )
+  Q_PROPERTY(CQChartsColor  backgroundColor    READ backgroundColor WRITE setBackgroundColor)
+  Q_PROPERTY(bool           border             READ isBorder        WRITE setBorder         )
+  Q_PROPERTY(CQChartsColor  borderColor        READ borderColor     WRITE setBorderColor    )
+  Q_PROPERTY(CQChartsLength borderWidth        READ borderWidth     WRITE setBorderWidth    )
+  Q_PROPERTY(QString        borderSides        READ borderSides     WRITE setBorderSides    )
+  Q_PROPERTY(bool           clip               READ isClip          WRITE setClip           )
 
   // data area
-  Q_PROPERTY(bool    dataBackground      READ isDataBackground    WRITE setDataBackground     )
-  Q_PROPERTY(QString dataBackgroundColor READ dataBackgroundColorStr
-                                         WRITE setDataBackgroundColorStr)
-  Q_PROPERTY(bool    dataBorder          READ isDataBorder        WRITE setDataBorder         )
-  Q_PROPERTY(QString dataBorderColor     READ dataBorderColorStr  WRITE setDataBorderColorStr )
-  Q_PROPERTY(double  dataBorderWidth     READ dataBorderWidth     WRITE setDataBorderWidth    )
-  Q_PROPERTY(QString dataBorderSides     READ dataBorderSides     WRITE setDataBorderSides    )
-  Q_PROPERTY(bool    dataClip            READ isDataClip          WRITE setDataClip           )
+  Q_PROPERTY(bool           dataBackground      READ isDataBackground    WRITE setDataBackground )
+  Q_PROPERTY(CQChartsColor  dataBackgroundColor READ dataBackgroundColor
+                                                WRITE setDataBackgroundColor)
+  Q_PROPERTY(bool           dataBorder          READ isDataBorder        WRITE setDataBorder     )
+  Q_PROPERTY(CQChartsColor  dataBorderColor     READ dataBorderColor     WRITE setDataBorderColor)
+  Q_PROPERTY(CQChartsLength dataBorderWidth     READ dataBorderWidth     WRITE setDataBorderWidth)
+  Q_PROPERTY(QString        dataBorderSides     READ dataBorderSides     WRITE setDataBorderSides)
+  Q_PROPERTY(bool           dataClip            READ isDataClip          WRITE setDataClip       )
 
   // key
-  Q_PROPERTY(bool    keyVisible          READ isKeyVisible        WRITE setKeyVisible         )
+  Q_PROPERTY(bool          keyVisible          READ isKeyVisible        WRITE setKeyVisible     )
 
   // misc
-  Q_PROPERTY(bool    equalScale          READ isEqualScale        WRITE setEqualScale         )
-  Q_PROPERTY(bool    followMouse         READ isFollowMouse       WRITE setFollowMouse        )
-  Q_PROPERTY(bool    overlay             READ isOverlay           WRITE setOverlay            )
-  Q_PROPERTY(bool    y1y2                READ isY1Y2              WRITE setY1Y2               )
-  Q_PROPERTY(bool    invertX             READ isInvertX           WRITE setInvertX            )
-  Q_PROPERTY(bool    invertY             READ isInvertY           WRITE setInvertY            )
-  Q_PROPERTY(bool    logX                READ isLogX              WRITE setLogX               )
-  Q_PROPERTY(bool    logY                READ isLogY              WRITE setLogY               )
-  Q_PROPERTY(bool    autoFit             READ isAutoFit           WRITE setAutoFit            )
-  Q_PROPERTY(bool    showBoxes           READ showBoxes           WRITE setShowBoxes          )
+  Q_PROPERTY(bool          equalScale          READ isEqualScale        WRITE setEqualScale     )
+  Q_PROPERTY(bool          followMouse         READ isFollowMouse       WRITE setFollowMouse    )
+  Q_PROPERTY(bool          overlay             READ isOverlay           WRITE setOverlay        )
+  Q_PROPERTY(bool          y1y2                READ isY1Y2              WRITE setY1Y2           )
+  Q_PROPERTY(bool          invertX             READ isInvertX           WRITE setInvertX        )
+  Q_PROPERTY(bool          invertY             READ isInvertY           WRITE setInvertY        )
+  Q_PROPERTY(bool          logX                READ isLogX              WRITE setLogX           )
+  Q_PROPERTY(bool          logY                READ isLogY              WRITE setLogY           )
+  Q_PROPERTY(bool          autoFit             READ isAutoFit           WRITE setAutoFit        )
+  Q_PROPERTY(bool          showBoxes           READ showBoxes           WRITE setShowBoxes      )
 
  public:
   // per display layer (optional)
@@ -320,7 +315,9 @@ class CQChartsPlot : public QObject {
 
   using ColumnType = CQBaseModel::Type;
 
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
+
+  using Annotations = std::vector<CQChartsAnnotation *>;
 
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -358,6 +355,9 @@ class CQChartsPlot : public QObject {
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; update(); }
+
+  bool isSelected() const { return selected_; }
+  void setSelected(bool b) { selected_ = b; update(); }
 
   //---
 
@@ -427,21 +427,21 @@ class CQChartsPlot : public QObject {
   bool isBackground() const;
   void setBackground(bool b);
 
-  QString backgroundColorStr() const;
-  void setBackgroundColorStr(const QString &s);
+  const CQChartsColor &backgroundColor() const;
+  void setBackgroundColor(const CQChartsColor &c);
 
   QColor interpBackgroundColor(int i, int n) const;
 
   bool isBorder() const;
   void setBorder(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &s);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
   const QString &borderSides() const;
   void setBorderSides(const QString &s);
@@ -455,21 +455,21 @@ class CQChartsPlot : public QObject {
   bool isDataBackground() const;
   void setDataBackground(bool b);
 
-  QString dataBackgroundColorStr() const;
-  void setDataBackgroundColorStr(const QString &s);
+  const CQChartsColor &dataBackgroundColor() const;
+  void setDataBackgroundColor(const CQChartsColor &c);
 
   QColor interpDataBackgroundColor(int i, int n) const;
 
   bool isDataBorder() const;
   void setDataBorder(bool b);
 
-  QString dataBorderColorStr() const;
-  void setDataBorderColorStr(const QString &s);
+  const CQChartsColor &dataBorderColor() const;
+  void setDataBorderColor(const CQChartsColor &c);
 
   QColor interpDataBorderColor(int i, int n) const;
 
-  double dataBorderWidth() const;
-  void setDataBorderWidth(double r);
+  const CQChartsLength &dataBorderWidth() const;
+  void setDataBorderWidth(const CQChartsLength &l);
 
   const QString &dataBorderSides() const;
   void setDataBorderSides(const QString &s);
@@ -629,6 +629,8 @@ class CQChartsPlot : public QObject {
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value);
 
+  void propertyItemSelected(QObject *obj, const QString &path);
+
   //---
 
   void updateMargin();
@@ -715,6 +717,9 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  double lengthPlotWidth (const CQChartsLength &len) const;
+  double lengthPlotHeight(const CQChartsLength &len) const;
+
   double lengthPixelWidth (const CQChartsLength &len) const;
   double lengthPixelHeight(const CQChartsLength &len) const;
 
@@ -730,6 +735,7 @@ class CQChartsPlot : public QObject {
   void pixelToWindow(const CQChartsGeom::Point &p, CQChartsGeom::Point &w) const;
 
   CQChartsGeom::Point windowToPixel(const CQChartsGeom::Point &w) const;
+  CQChartsGeom::Point windowToView (const CQChartsGeom::Point &w) const;
   CQChartsGeom::Point pixelToWindow(const CQChartsGeom::Point &p) const;
 
   QPointF windowToPixel(const QPointF &w) const;
@@ -737,8 +743,14 @@ class CQChartsPlot : public QObject {
   void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
   void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
+  double pixelToSignedWindowWidth (double ww) const;
+  double pixelToSignedWindowHeight(double wh) const;
+
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
+
+  double windowToSignedPixelWidth (double ww) const;
+  double windowToSignedPixelHeight(double wh) const;
 
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
@@ -855,18 +867,27 @@ class CQChartsPlot : public QObject {
   //---
 
   // handle mouse press/move/release
-  // TODO: split mouse press and mouse select
-  virtual bool mousePress  (const CQChartsGeom::Point &p, ModSelect modSelect);
-  virtual bool mouseMove   (const CQChartsGeom::Point &p, bool first=false);
-  virtual void mouseRelease(const CQChartsGeom::Point &p);
+  bool selectMousePress  (const QPointF &p, ModSelect modSelect);
+  bool selectMouseMove   (const QPointF &p, bool first=false);
+  bool selectMouseRelease(const QPointF &p);
+
+  virtual bool selectPress  (const CQChartsGeom::Point &p, ModSelect modSelect);
+  virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
+  virtual bool selectRelease(const CQChartsGeom::Point &p);
 
   // handle mouse drag press/move/release
-  virtual bool mouseDragPress  (const CQChartsGeom::Point &p,
-                                const CQChartsGeom::Point &w);
-  virtual bool mouseDragMove   (const CQChartsGeom::Point &p,
-                                const CQChartsGeom::Point &w, bool first=false);
-  virtual void mouseDragRelease(const CQChartsGeom::Point &p,
-                                const CQChartsGeom::Point &w);
+  bool editMousePress  (const QPointF &p);
+  bool editMouseMove   (const QPointF &p, bool first=false);
+  bool editMouseMotion (const QPointF &p);
+  bool editMouseRelease(const QPointF &p);
+
+  virtual bool editPress  (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+  virtual bool editMove   (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w,
+                           bool first=false);
+  virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+  virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
+
+  void deselectAll();
 
   // handle key press
   virtual void keyPress(int key, int modifier);
@@ -884,6 +905,8 @@ class CQChartsPlot : public QObject {
   //---
 
  public slots:
+  void updateSlot();
+
   virtual void cycleNext();
   virtual void cyclePrev();
 
@@ -958,6 +981,21 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  // annotations
+
+  const Annotations &annotations() const { return annotations_; }
+
+  CQChartsTextAnnotation    *addTextAnnotation   (const QPointF &pos, const QString &text);
+  CQChartsArrowAnnotation   *addArrowAnnotation  (const QPointF &start, const QPointF &end);
+  CQChartsRectAnnotation    *addRectAnnotation   (const QPointF &start, const QPointF &end);
+  CQChartsEllipseAnnotation *addEllipseAnnotation(const QPointF &center, double xRadius,
+                                                  double yRadius);
+  CQChartsPolyAnnotation    *addPolyAnnotation   (const QPolygonF &points);
+  CQChartsPointAnnotation   *addPointAnnotation  (const QPointF &pos,
+                                                  const CQChartsPlotSymbol::Type &type);
+
+  //---
+
   void setLayerActive(const Layer &layer, bool b);
   bool isLayerActive(const Layer &layer) const;
 
@@ -993,8 +1031,25 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
-                     const QPen &pen, bool contrast) const;
+  void drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2,
+                const CQChartsLineData &data);
+
+  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data);
+
+  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
+                  double size, bool stroked, const QColor &strokeColor, double lineWidth,
+                  bool filled, const QColor &fillColor);
+
+  void drawSymbol(QPainter *painter, const QPointF &p,
+                  const CQChartsPlotSymbol::Type &symbol, double size);
+
+  void drawTextAtPoint(QPainter *painter, const QPointF &point,
+                       const QString &text, const QPen &pen,
+                       const CQChartsTextOptions &options=CQChartsTextOptions()) const;
+
+  void drawTextInBox(QPainter *painter, const QRectF &rect,
+                     const QString &text, const QPen &pen,
+                     const CQChartsTextOptions &options=CQChartsTextOptions()) const;
 
   void drawContrastText(QPainter *painter, double x, double y,
                         const QString &text, const QPen &pen) const;
@@ -1120,18 +1175,16 @@ class CQChartsPlot : public QObject {
     XAXIS,
     YAXIS,
     TITLE,
+    ANNOTATION,
     PLOT,
-    PLOT_LL,
-    PLOT_LR,
-    PLOT_UL,
-    PLOT_UR
+    PLOT_HANDLE
   };
 
   struct MouseData {
-    QPointF pressPoint;
-    QPointF movePoint;
-    bool    pressed { false };
-    DragObj dragObj { DragObj::NONE };
+    QPointF pressPoint { 0, 0 };
+    QPointF movePoint  { 0, 0 };
+    bool    pressed    { false };
+    DragObj dragObj    { DragObj::NONE };
   };
 
   struct AnimateData {
@@ -1147,6 +1200,7 @@ class CQChartsPlot : public QObject {
   SelectionModelP           selectionModel_;                  // selection model
   QString                   id_;                              // plot id
   bool                      visible_          { true };       // is visible
+  bool                      selected_         { false };      // is selected
   CQChartsGeom::BBox        bbox_             { 0, 0, 1, 1 }; // view box
   Margin                    margin_;                          // border margin
   CQChartsDisplayRange*     displayRange_     { nullptr };    // value range mapping
@@ -1199,10 +1253,8 @@ class CQChartsPlot : public QObject {
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection            itemSelection_;                   // selected model indices
   CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
-  CQChartsResizeHandle      llHandle_;
-  CQChartsResizeHandle      lrHandle_;
-  CQChartsResizeHandle      ulHandle_;
-  CQChartsResizeHandle      urHandle_;
+  CQChartsEditHandles       editHandles_;                     // edit controls
+  Annotations               annotations_;                     // extra annotations
 };
 
 //------

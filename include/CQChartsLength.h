@@ -68,11 +68,25 @@ class CQChartsLength {
     if      (units_ == Units::PIXEL  ) return QString("%1px").arg(value_);
     else if (units_ == Units::PERCENT) return QString("%1%" ).arg(value_);
     else if (units_ == Units::PLOT   ) return QString("%1"  ).arg(value_);
+    else if (units_ == Units::VIEW   ) return QString("%1V" ).arg(value_);
     else                               return QString("%1"  ).arg(value_);
   }
 
   void fromString(const QString &s) {
     setValue(s);
+  }
+
+  //---
+
+  friend bool operator==(const CQChartsLength &lhs, const CQChartsLength &rhs) {
+    if (lhs.units_ != rhs.units_) return false;
+    if (lhs.value_ != rhs.value_) return false;
+
+    return true;
+  }
+
+  friend bool operator!=(const CQChartsLength &lhs, const CQChartsLength &rhs) {
+    return ! operator==(lhs, rhs);
   }
 
   //---
@@ -121,6 +135,8 @@ class CQChartsLength {
       units = Units::PIXEL;
     else if (strcmp(p, "%") == 0)
       units = Units::PERCENT;
+    else if (strcmp(p, "V") == 0)
+      units = Units::VIEW;
     else
       return false;
 
@@ -128,7 +144,7 @@ class CQChartsLength {
   }
 
  private:
-  Units units_  { Units::PIXEL };
+  Units  units_ { Units::PIXEL };
   double value_ { 0.0 };
 };
 

@@ -179,7 +179,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                               int i, int n);
 
-  bool mousePress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 
@@ -206,14 +206,14 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 class CQChartsHierScatterPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     xColumn           READ xColumn              WRITE setXColumn             )
-  Q_PROPERTY(int     yColumn           READ yColumn              WRITE setYColumn             )
-  Q_PROPERTY(int     nameColumn        READ nameColumn           WRITE setNameColumn          )
-  Q_PROPERTY(QString groupColumnStr    READ groupColumnStr       WRITE setGroupColumnStr      )
-  Q_PROPERTY(QString symbolBorderColor READ symbolBorderColorStr WRITE setSymbolBorderColorStr)
-  Q_PROPERTY(double  symbolSize        READ symbolSize           WRITE setSymbolSize          )
-  Q_PROPERTY(double  fontSize          READ fontSize             WRITE setFontSize            )
-  Q_PROPERTY(bool    textLabels        READ isTextLabels         WRITE setTextLabels          )
+  Q_PROPERTY(int           xColumn           READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(int           yColumn           READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(QString       groupColumnStr    READ groupColumnStr    WRITE setGroupColumnStr   )
+  Q_PROPERTY(CQChartsColor symbolBorderColor READ symbolBorderColor WRITE setSymbolBorderColor)
+  Q_PROPERTY(double        symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(double        fontSize          READ fontSize          WRITE setFontSize         )
+  Q_PROPERTY(bool          textLabels        READ isTextLabels      WRITE setTextLabels       )
 
  public:
   using GroupValues    = std::vector<int>;
@@ -239,14 +239,14 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
 
   //---
 
-  QString symbolBorderColorStr() const { return symbolBorderColor_.colorStr(); }
-  void setSymbolBorderColorStr(const QString &s) { symbolBorderColor_.setColorStr(s); update(); }
+  const CQChartsColor &symbolBorderColor() const { return symbolData_.stroke.color; }
+  void setSymbolBorderColor(const CQChartsColor &c) { symbolData_.stroke.color = c; update(); }
 
   QColor interpSymbolBorderColor(int i, int n) const {
-    return symbolBorderColor_.interpColor(this, i, n); }
+    return symbolBorderColor().interpColor(this, i, n); }
 
-  double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
+  double symbolSize() const { return symbolData_.size; }
+  void setSymbolSize(double s) { symbolData_.size = s; updateObjs(); }
 
   //---
 
@@ -313,8 +313,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   int                            yColumn_           { 1 };
   int                            nameColumn_        { -1 };
   QString                        groupColumnStr_;
-  CQChartsPaletteColor           symbolBorderColor_;
-  double                         symbolSize_        { 4 };
+  CQChartsSymbolData             symbolData_;
   double                         fontSize_          { 8 };
   CQChartsHierScatterPointGroup* rootGroup_         { nullptr };
   CQChartsHierScatterPointGroup* currentGroup_      { nullptr };

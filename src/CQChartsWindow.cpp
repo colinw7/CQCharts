@@ -79,6 +79,9 @@ CQChartsWindow(CQChartsView *view) :
 
   settings_ = new CQChartsViewSettings(this);
 
+  connect(settings_, SIGNAL(propertyItemSelected(QObject *, const QString &)),
+          this, SLOT(propertyItemSelected(QObject *, const QString &)));
+
   settingsExpander_ =
    new CQChartsViewExpander(this, settings_, CQChartsViewExpander::Side::RIGHT);
 
@@ -330,6 +333,24 @@ CQChartsWindow::
 updatePalette()
 {
   settings_->paletteControl()->updateState();
+}
+
+void
+CQChartsWindow::
+propertyItemSelected(QObject *obj, const QString &path)
+{
+  QObject *obj1 = obj;
+
+  while (obj1) {
+    CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(obj1);
+
+    if (plot) {
+      plot->propertyItemSelected(obj, path);
+      return;
+    }
+
+    obj1 = obj1->parent();
+  }
 }
 
 QSize

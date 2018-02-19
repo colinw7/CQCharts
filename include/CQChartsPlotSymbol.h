@@ -13,6 +13,7 @@ class CQChartsPlotSymbolRenderer;
 struct CQChartsPlotSymbol {
   enum class Type {
     NONE,
+    DOT,
     CROSS,
     PLUS,
     Y,
@@ -20,8 +21,8 @@ struct CQChartsPlotSymbol {
     ITRIANGLE,
     BOX,
     DIAMOND,
-    STAR,
-    STAR1,
+    STAR5,
+    STAR6,
     CIRCLE,
     PENTAGON,
     IPENTAGON
@@ -97,6 +98,8 @@ class CQChartsPlotSymbolRenderer {
 
   virtual void fill() = 0;
 
+  virtual void drawPoint(double x, double y) = 0;
+
   virtual void strokeCircle(double x, double y, double r) = 0;
   virtual void fillCircle  (double x, double y, double r) = 0;
 
@@ -128,6 +131,8 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   void stroke() override;
 
   void fill() override;
+
+  void drawPoint(double x, double y) override;
 
   void strokeCircle(double x, double y, double r) override;
 

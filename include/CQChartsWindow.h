@@ -74,6 +74,8 @@ class CQChartsWindow : public QFrame {
   void setPosText   (const QString &text);
   void setSelText   (const QString &text);
 
+  void propertyItemSelected(QObject *obj, const QString &path);
+
  private:
   CQChartsView*         view_             { nullptr };
   CQChartsViewSettings* settings_         { nullptr };

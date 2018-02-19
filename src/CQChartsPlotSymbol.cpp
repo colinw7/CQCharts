@@ -34,6 +34,18 @@ class CQChartsPlotSymbolList {
   }
 
   void drawSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer) const {
+    if (type == CQChartsPlotSymbol::Type::DOT) {
+      renderer->drawPoint(0, 0);
+      return;
+    }
+
+    //---
+
+    if (type == CQChartsPlotSymbol::Type::DOT) {
+      renderer->drawPoint(0, 0);
+      return;
+    }
+
     if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       renderer->strokeCircle(0, 0, 1);
       return;
@@ -89,6 +101,12 @@ class CQChartsPlotSymbolList {
 
   void fillStrokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer,
                         bool fill) const {
+    if (type == CQChartsPlotSymbol::Type::DOT) {
+      renderer->drawPoint(0, 0);
+
+      return;
+    }
+
     if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       if (fill)
         renderer->fillCircle(0, 0, 1);
@@ -259,7 +277,7 @@ CQChartsPlotSymbolList symbols({
      { 0.0,  1.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::LINE  },
      { 1.0,  0.0,  0.0, -1.0, CQChartsPlotSymbol::Connect::LINE  },
      { 0.0, -1.0, -1.0,  0.0, CQChartsPlotSymbol::Connect::FILL  }} },
-  { CQChartsPlotSymbol::Type::STAR     ,
+  { CQChartsPlotSymbol::Type::STAR5    ,
     {{ 0.0,  0.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
      { 0.0,  0.0, -1.0,  0.4, CQChartsPlotSymbol::Connect::STROKE},
      { 0.0,  0.0,  1.0,  0.4, CQChartsPlotSymbol::Connect::STROKE},
@@ -275,7 +293,7 @@ CQChartsPlotSymbolList symbols({
      { 0.475528, -0.154508,  0.951057,  0.309017, CQChartsPlotSymbol::Connect::LINE},
      { 0.951057,  0.309017,  0.293893,  0.404508, CQChartsPlotSymbol::Connect::LINE},
      { 0.293893,  0.404508,  0.0     ,  1       , CQChartsPlotSymbol::Connect::FILL}} },
-  { CQChartsPlotSymbol::Type::STAR1    ,
+  { CQChartsPlotSymbol::Type::STAR6    ,
     {{-1.0,  0.0,  1.0,  0.0, CQChartsPlotSymbol::Connect::STROKE},
      { 0.0, -1.0,  0.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
      {-1.0, -1.0,  1.0,  1.0, CQChartsPlotSymbol::Connect::STROKE},
@@ -360,6 +378,7 @@ CQChartsPlotSymbolMgr::
 typeToName(CQChartsPlotSymbol::Type type)
 {
   switch (type) {
+    case CQChartsPlotSymbol::Type::DOT:       return "dot";
     case CQChartsPlotSymbol::Type::CROSS:     return "cross";
     case CQChartsPlotSymbol::Type::PLUS:      return "plus";
     case CQChartsPlotSymbol::Type::Y:         return "y";
@@ -367,12 +386,12 @@ typeToName(CQChartsPlotSymbol::Type type)
     case CQChartsPlotSymbol::Type::ITRIANGLE: return "itriangle";
     case CQChartsPlotSymbol::Type::BOX:       return "box";
     case CQChartsPlotSymbol::Type::DIAMOND:   return "diamond";
-    case CQChartsPlotSymbol::Type::STAR:      return "star";
-    case CQChartsPlotSymbol::Type::STAR1:     return "star1";
+    case CQChartsPlotSymbol::Type::STAR5:     return "star5";
+    case CQChartsPlotSymbol::Type::STAR6:     return "star6";
     case CQChartsPlotSymbol::Type::CIRCLE:    return "circle";
     case CQChartsPlotSymbol::Type::PENTAGON:  return "pentagon";
     case CQChartsPlotSymbol::Type::IPENTAGON: return "ipentagon";
-    default:                         return "none";
+    default:                                  return "none";
   }
 }
 
@@ -382,6 +401,7 @@ nameToType(const QString &str)
 {
   QString lstr = str.toLower();
 
+  if (lstr == "dot"      ) return CQChartsPlotSymbol::Type::DOT;
   if (lstr == "cross"    ) return CQChartsPlotSymbol::Type::CROSS;
   if (lstr == "plus"     ) return CQChartsPlotSymbol::Type::PLUS;
   if (lstr == "y"        ) return CQChartsPlotSymbol::Type::Y;
@@ -389,8 +409,9 @@ nameToType(const QString &str)
   if (lstr == "itriangle") return CQChartsPlotSymbol::Type::ITRIANGLE;
   if (lstr == "box"      ) return CQChartsPlotSymbol::Type::BOX;
   if (lstr == "diamond"  ) return CQChartsPlotSymbol::Type::DIAMOND;
-  if (lstr == "star"     ) return CQChartsPlotSymbol::Type::STAR;
-  if (lstr == "star1"    ) return CQChartsPlotSymbol::Type::STAR1;
+  if (lstr == "star"     ) return CQChartsPlotSymbol::Type::STAR5;
+  if (lstr == "star5"    ) return CQChartsPlotSymbol::Type::STAR5;
+  if (lstr == "star6"    ) return CQChartsPlotSymbol::Type::STAR6;
   if (lstr == "circle"   ) return CQChartsPlotSymbol::Type::CIRCLE;
   if (lstr == "pentagon" ) return CQChartsPlotSymbol::Type::PENTAGON;
   if (lstr == "ipentagon") return CQChartsPlotSymbol::Type::IPENTAGON;
@@ -466,6 +487,21 @@ CQChartsSymbol2DRenderer::
 fill()
 {
   painter_->fillPath(path_, fillBrush_);
+}
+
+void
+CQChartsSymbol2DRenderer::
+drawPoint(double x, double y)
+{
+  QPointF p(p_.x + x*s_, p_.y + y*s_);
+
+  painter_->save();
+
+  painter_->setPen(strokePen_);
+
+  painter_->drawPoint(p);
+
+  painter_->restore();
 }
 
 void

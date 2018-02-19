@@ -7,24 +7,14 @@
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
- view_(view)
+ QObject(view), view_(view)
 {
-  CQChartsPaletteColor themeBg(CQChartsPaletteColor::Type::THEME_VALUE, 0);
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-
-  setBackgroundColor(themeBg);
-  setBorderColor    (themeFg);
 }
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
- plot_(plot)
+ QObject(plot), plot_(plot)
 {
-  CQChartsPaletteColor themeBg(CQChartsPaletteColor::Type::THEME_VALUE, 0);
-  CQChartsPaletteColor themeFg(CQChartsPaletteColor::Type::THEME_VALUE, 1);
-
-  setBackgroundColor(themeBg);
-  setBorderColor    (themeFg);
 }
 
 QColor
@@ -32,7 +22,7 @@ CQChartsBoxObj::
 interpBackgroundColor(int i, int n) const
 {
   if (plot_)
-    return backgroundColor_.interpColor(plot_, i, n);
+    return backgroundColor().interpColor(plot_, i, n);
   else
     return QColor();
 }
@@ -42,7 +32,7 @@ CQChartsBoxObj::
 interpBorderColor(int i, int n) const
 {
   if (plot_)
-    return borderColor_.interpColor(plot_, i, n);
+    return borderColor().interpColor(plot_, i, n);
   else
     return QColor();
 }
@@ -56,17 +46,19 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString bgPath = path + "/background";
 
-  model->addProperty(bgPath, this, "background"     , "visible");
-  model->addProperty(bgPath, this, "backgroundColor", "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha", "alpha"  );
+  model->addProperty(bgPath, this, "background"       , "visible");
+  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
+  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
+  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
 
   QString borderPath = path + "/border";
 
-  model->addProperty(borderPath, this, "border"          , "visible"   );
-  model->addProperty(borderPath, this, "borderColor"     , "color"     );
-  model->addProperty(borderPath, this, "borderAlpha"     , "alpha"     );
-  model->addProperty(borderPath, this, "borderWidth"     , "width"     );
-  model->addProperty(borderPath, this, "borderCornerSize", "cornerSize");
+  model->addProperty(borderPath, this, "border"     , "visible"   );
+  model->addProperty(borderPath, this, "borderColor", "color"     );
+  model->addProperty(borderPath, this, "borderAlpha", "alpha"     );
+  model->addProperty(borderPath, this, "borderWidth", "width"     );
+  model->addProperty(borderPath, this, "cornerSize" , "cornerSize");
+  model->addProperty(borderPath, this, "borderSides", "sides"     );
 }
 
 void
@@ -80,10 +72,13 @@ draw(QPainter *painter, const QRectF &rect) const
 
     QBrush brush(bgColor);
 
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) backgroundPattern()));
+
     painter->setBrush(brush);
     painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(painter, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, rect, cornerSize());
   }
 
   if (isBorder()) {
@@ -93,12 +88,14 @@ draw(QPainter *painter, const QRectF &rect) const
 
     QPen pen(borderColor);
 
-    pen.setWidthF(borderWidth());
+    double bw = plot_->lengthPixelWidth(borderWidth());
+
+    pen.setWidthF(bw);
 
     painter->setPen  (pen);
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(painter, rect, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, rect, cornerSize());
   }
 }
 
@@ -126,7 +123,7 @@ draw(QPainter *painter, const QPolygonF &poly) const
     painter->setBrush(brush);
     painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(painter, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, poly, cornerSize());
   }
 
   if (isBorder()) {
@@ -136,11 +133,13 @@ draw(QPainter *painter, const QPolygonF &poly) const
 
     QPen pen(borderColor);
 
-    pen.setWidthF(borderWidth());
+    double bw = plot_->lengthPixelWidth(borderWidth());
+
+    pen.setWidthF(bw);
 
     painter->setPen  (pen);
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(painter, poly, borderCornerSize());
+    CQChartsRoundedPolygon::draw(painter, poly, cornerSize());
   }
 }

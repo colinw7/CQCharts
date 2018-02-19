@@ -4,7 +4,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQStrParse.h>
 #include <QPainter>
@@ -40,7 +39,7 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
   nodeBoxObj_ = new CQChartsTextBoxObj(this);
   edgeBoxObj_ = new CQChartsBoxObj    (this);
 
-  CQChartsPaletteColor bg(CQChartsPaletteColor::Type::PALETTE);
+  CQChartsColor bg(CQChartsColor::Type::PALETTE);
 
   nodeBoxObj_->setBackground(true);
   nodeBoxObj_->setBackgroundColor(bg);
@@ -90,18 +89,18 @@ setNodeFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSankeyPlot::
-nodeFillColorStr() const
+nodeFillColor() const
 {
-  return nodeBoxObj_->backgroundColorStr();
+  return nodeBoxObj_->backgroundColor();
 }
 
 void
 CQChartsSankeyPlot::
-setNodeFillColorStr(const QString &s)
+setNodeFillColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBackgroundColorStr(s);
+  nodeBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -161,18 +160,18 @@ setNodeStroked(bool b)
   return nodeBoxObj_->setBorder(b);
 }
 
-QString
+const CQChartsColor &
 CQChartsSankeyPlot::
-nodeStrokeColorStr() const
+nodeStrokeColor() const
 {
-  return nodeBoxObj_->borderColorStr();
+  return nodeBoxObj_->borderColor();
 }
 
 void
 CQChartsSankeyPlot::
-setNodeStrokeColorStr(const QString &s)
+setNodeStrokeColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBorderColorStr(s);
+  nodeBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -200,7 +199,7 @@ setNodeStrokeAlpha(double r)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsSankeyPlot::
 nodeStrokeWidth() const
 {
@@ -209,9 +208,9 @@ nodeStrokeWidth() const
 
 void
 CQChartsSankeyPlot::
-setNodeStrokeWidth(double r)
+setNodeStrokeWidth(const CQChartsLength &l)
 {
-  nodeBoxObj_->setBorderWidth(r);
+  nodeBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -234,18 +233,18 @@ setEdgeFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSankeyPlot::
-edgeFillColorStr() const
+edgeFillColor() const
 {
-  return edgeBoxObj_->backgroundColorStr();
+  return edgeBoxObj_->backgroundColor();
 }
 
 void
 CQChartsSankeyPlot::
-setEdgeFillColorStr(const QString &s)
+setEdgeFillColor(const CQChartsColor &c)
 {
-  edgeBoxObj_->setBackgroundColorStr(s);
+  edgeBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -305,18 +304,18 @@ setEdgeStroked(bool b)
   return edgeBoxObj_->setBorder(b);
 }
 
-QString
+const CQChartsColor &
 CQChartsSankeyPlot::
-edgeStrokeColorStr() const
+edgeStrokeColor() const
 {
-  return edgeBoxObj_->borderColorStr();
+  return edgeBoxObj_->borderColor();
 }
 
 void
 CQChartsSankeyPlot::
-setEdgeStrokeColorStr(const QString &s)
+setEdgeStrokeColor(const CQChartsColor &c)
 {
-  edgeBoxObj_->setBorderColorStr(s);
+  edgeBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -344,7 +343,7 @@ setEdgeStrokeAlpha(double r)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsSankeyPlot::
 edgeStrokeWidth() const
 {
@@ -353,9 +352,9 @@ edgeStrokeWidth() const
 
 void
 CQChartsSankeyPlot::
-setEdgeStrokeWidth(double r)
+setEdgeStrokeWidth(const CQChartsLength &l)
 {
-  edgeBoxObj_->setBorderWidth(r);
+  edgeBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -392,18 +391,18 @@ setTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSankeyPlot::
-textColorStr() const
+textColor() const
 {
-  return nodeBoxObj_->textColorStr();
+  return nodeBoxObj_->textColor();
 }
 
 void
 CQChartsSankeyPlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setTextColorStr(s);
+  nodeBoxObj_->setTextColor(c);
 
   update();
 }
@@ -1374,8 +1373,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       c.setAlphaF(plot_->nodeFillAlpha());
 
       brush.setColor(c);
-      brush.setStyle(CQChartsFillObj::patternToStyle(
-        (CQChartsFillObj::Pattern) plot_->nodeFillPattern()));
+      brush.setStyle(CQChartsFillPattern::toStyle(
+       (CQChartsFillPattern::Type) plot_->nodeFillPattern()));
     }
     else {
       brush.setStyle(Qt::NoBrush);
@@ -1388,8 +1387,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       c.setAlphaF(plot_->nodeStrokeAlpha());
 
+      double lw = plot_->lengthPixelWidth(plot_->nodeStrokeWidth());
+
       pen.setColor (c);
-      pen.setWidthF(plot_->nodeStrokeWidth());
+      pen.setWidthF(lw);
     }
     else {
       pen.setStyle(Qt::NoPen);
@@ -1511,8 +1512,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       c.setAlphaF(plot_->edgeFillAlpha());
 
       brush.setColor(c);
-      brush.setStyle(CQChartsFillObj::patternToStyle(
-        (CQChartsFillObj::Pattern) plot_->edgeFillPattern()));
+      brush.setStyle(CQChartsFillPattern::toStyle(
+       (CQChartsFillPattern::Type) plot_->edgeFillPattern()));
     }
     else {
       brush.setStyle(Qt::NoBrush);
@@ -1528,8 +1529,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       c.setAlphaF(plot_->edgeStrokeAlpha());
 
+      double lw = plot_->lengthPixelWidth(plot_->edgeStrokeWidth());
+
       pen.setColor (c);
-      pen.setWidthF(plot_->edgeStrokeWidth());
+      pen.setWidthF(lw);
     }
     else {
       pen.setStyle(Qt::NoPen);

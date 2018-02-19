@@ -4,7 +4,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQStrParse.h>
 #include <QPainter>
 
@@ -38,7 +37,7 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 {
   boxObj_ = new CQChartsBoxObj(this);
 
-  boxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  boxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setFilled(true);
   setBorder(true);
@@ -72,18 +71,18 @@ setBorder(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsGeometryPlot::
-borderColorStr() const
+borderColor() const
 {
-  return boxObj_->borderColorStr();
+  return boxObj_->borderColor();
 }
 
 void
 CQChartsGeometryPlot::
-setBorderColorStr(const QString &str)
+setBorderColor(const CQChartsColor &c)
 {
-  boxObj_->setBorderColorStr(str);
+  boxObj_->setBorderColor(c);
 
   update();
 }
@@ -111,7 +110,7 @@ setBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsGeometryPlot::
 borderWidth() const
 {
@@ -120,9 +119,9 @@ borderWidth() const
 
 void
 CQChartsGeometryPlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  boxObj_->setBorderWidth(r);
+  boxObj_->setBorderWidth(l);
 
   update();
 }
@@ -145,18 +144,18 @@ setFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsGeometryPlot::
-fillColorStr() const
+fillColor() const
 {
-  return boxObj_->backgroundColorStr();
+  return boxObj_->backgroundColor();
 }
 
 void
 CQChartsGeometryPlot::
-setFillColorStr(const QString &s)
+setFillColor(const CQChartsColor &c)
 {
-  boxObj_->setBackgroundColorStr(s);
+  boxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -363,8 +362,17 @@ decodeGeometry(const QString &geomStr, Polygons &polygons)
 
   //---
 
+  // single polygon x1 y1 x2 y2 ...
+  if      (n == 0) {
+    QPolygonF poly;
+
+    if (! decodePolygon("{{" + geomStr + "}}", poly))
+      return false;
+
+    polygons.push_back(poly);
+  }
   // single polygon {x1 y1} {x2 y2} ...
-  if      (n == 1) {
+  else if (n == 1) {
     QPolygonF poly;
 
     if (! decodePolygon("{" + geomStr + "}", poly))
@@ -451,14 +459,23 @@ decodePolygon(const QString &polyStr, QPolygonF &poly)
     if (! parse.readBracedString(pointStr, /*includeBraces*/false))
       return false;
 
+    QString pointStr1;
+
     QPointF point;
 
-    if (! decodePoint(pointStr, point))
+    if (! decodePoint(pointStr, point, pointStr1))
       return false;
 
     poly.push_back(point);
 
-    parse.skipSpace();
+    while (pointStr1.length()) {
+      pointStr = pointStr1;
+
+      if (! decodePoint(pointStr, point, pointStr1))
+        break;
+
+      poly.push_back(point);
+    }
   }
 
   if (parse.isChar('}'))
@@ -469,7 +486,7 @@ decodePolygon(const QString &polyStr, QPolygonF &poly)
 
 bool
 CQChartsGeometryPlot::
-decodePoint(const QString &pointStr, QPointF &point)
+decodePoint(const QString &pointStr, QPointF &point, QString &pointStr1)
 {
   CQStrParse parse(pointStr);
 
@@ -487,6 +504,8 @@ decodePoint(const QString &pointStr, QPointF &point)
   if (! parse.readNonSpace(ystr))
     return false;
 
+  parse.skipSpace();
+
   double x, y;
 
   if (! CQChartsUtil::toReal(xstr, x))
@@ -496,6 +515,8 @@ decodePoint(const QString &pointStr, QPointF &point)
     return false;
 
   point = QPointF(x, y);
+
+  pointStr1 = parse.getAt();
 
   return true;
 }
@@ -648,8 +669,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       bc.setAlphaF(plot_->borderAlpha());
 
+      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
       pen.setColor (bc);
-      pen.setWidthF(plot_->borderWidth());
+      pen.setWidthF(bw);
     }
     else {
       pen = QPen(Qt::NoPen);
@@ -672,8 +695,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       fc.setAlphaF(plot_->fillAlpha());
 
       brush.setColor(fc);
-      brush.setStyle(CQChartsFillObj::patternToStyle(
-        (CQChartsFillObj::Pattern) plot_->fillPattern()));
+      brush.setStyle(CQChartsFillPattern::toStyle(
+        (CQChartsFillPattern::Type) plot_->fillPattern()));
     }
     else {
       brush.setStyle(Qt::NoBrush);

@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsTip.h>
 
 #include <QMenu>
@@ -36,7 +35,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 {
   textBoxObj_ = new CQChartsTextBoxObj(this);
 
-  textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  textBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorder(true);
   setFilled(true);
@@ -45,7 +44,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 
   textBoxObj_->setTextFontSize(12.0);
 
-  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
 
   textBoxObj_->setTextColor(textColor);
 
@@ -80,18 +79,18 @@ setFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsHierBubblePlot::
-fillColorStr() const
+fillColor() const
 {
-  return textBoxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColor();
 }
 
 void
 CQChartsHierBubblePlot::
-setFillColorStr(const QString &s)
+setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -153,18 +152,18 @@ setBorder(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsHierBubblePlot::
-borderColorStr() const
+borderColor() const
 {
-  return textBoxObj_->borderColorStr();
+  return textBoxObj_->borderColor();
 }
 
 void
 CQChartsHierBubblePlot::
-setBorderColorStr(const QString &str)
+setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -192,7 +191,7 @@ setBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsHierBubblePlot::
 borderWidth() const
 {
@@ -201,9 +200,9 @@ borderWidth() const
 
 void
 CQChartsHierBubblePlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -226,18 +225,18 @@ setTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsHierBubblePlot::
-textColorStr() const
+textColor() const
 {
-  return textBoxObj_->textColorStr();
+  return textBoxObj_->textColor();
 }
 
 void
 CQChartsHierBubblePlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColorStr(s);
+  textBoxObj_->setTextColor(c);
 
   update();
 }
@@ -925,11 +924,11 @@ addExtraNodes(CQChartsHierBubbleHierNode *hier)
     CQChartsHierBubbleNode *node =
       new CQChartsHierBubbleNode(this, hier, "", hier->size(), hier->ind());
 
-    int r = unnormalizeIndex(hier->ind()).row();
+    QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
     OptColor color;
 
-    if (colorSetColor("color", r, color))
+    if (colorSetColor("color", ind1.row(), color))
       node->setColor(*color);
 
     node->setDepth (hier->depth() + 1);
@@ -1209,8 +1208,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     c.setAlphaF(plot_->fillAlpha());
 
     brush.setColor(c);
-    brush.setStyle(CQChartsFillObj::patternToStyle(
-      (CQChartsFillObj::Pattern) plot_->fillPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->fillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -1223,8 +1222,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
     pen.setColor (bc);
-    pen.setWidthF(plot_->borderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -1282,11 +1283,13 @@ calcTipId() const
   if (plot_->colorColumn() >= 0) {
     QAbstractItemModel *model = plot_->model();
 
-    int r = plot_->unnormalizeIndex(node_->ind()).row();
+    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+
+    QModelIndex colorInd = model->index(ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, r, plot_->colorColumn(), ok);
+    QString colorStr = CQChartsUtil::modelString(model, colorInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1357,8 +1360,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     c.setAlphaF(plot_->fillAlpha());
 
     brush.setColor(c);
-    brush.setStyle(CQChartsFillObj::patternToStyle(
-      (CQChartsFillObj::Pattern) plot_->fillPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->fillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -1371,8 +1374,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
     pen.setColor (bc);
-    pen.setWidthF(plot_->borderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -1422,23 +1427,14 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  double tw = fm.width(name);
-
-  //double fdy = (fm.ascent() - fm.descent())/2;
-  double fdy = fm.descent();
-
-  //---
-
   // draw label
   painter->setClipRect(qrect);
 
-  if (plot_->isTextContrast())
-    plot_->drawContrastText(painter, px1 - tw/2, py1 + fdy, name, tpen);
-  else {
-    painter->setPen(tpen);
+  CQChartsTextOptions textOptions;
 
-    painter->drawText(px1 - tw/2, py1 + fdy, name);
-  }
+  textOptions.contrast = plot_->isTextContrast();
+
+  plot_->drawTextAtPoint(painter, QPointF(px1, py1), name, tpen, textOptions);
 
   //---
 

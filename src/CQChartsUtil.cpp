@@ -9,10 +9,12 @@ bool isHierarchical(QAbstractItemModel *model) {
   if (! model)
     return false;
 
-  int nr = model->rowCount();
+  QModelIndex parent;
+
+  int nr = model->rowCount(parent);
 
   for (int row = 0; row < nr; ++row) {
-    QModelIndex index1 = model->index(row, 0);
+    QModelIndex index1 = model->index(row, 0, parent);
 
     if (model->hasChildren(index1))
       return true;
@@ -39,46 +41,71 @@ bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor) {
 
   QModelIndex parent;
 
-  visitModelIndex(model, parent, visitor);
+  (void) visitModelIndex(model, parent, visitor);
 
   visitor.term();
 
   return true;
 }
 
-void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor) {
+bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
+                ModelVisitor &visitor) {
+  int nc = model->columnCount(QModelIndex());
+
+  visitor.init(nc);
+
+  if (! model)
+    return false;
+
+  (void) visitModelRow(model, parent, r, visitor);
+
+  visitor.term();
+
+  return true;
+}
+
+ModelVisitor::State
+visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor) {
   int nr = model->rowCount(parent);
 
   visitor.setNumRows(nr);
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex ind1 = model->index(r, 0, parent);
-
-    if (model->hasChildren(ind1)) {
-      ModelVisitor::State state = visitor.hierVisit(model, parent, r);
-      if (state == ModelVisitor::State::TERMINATE) break;
-      if (state == ModelVisitor::State::SKIP     ) continue;
-
-      visitModelIndex(model, ind1, visitor);
-
-      ModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
-      if (postState == ModelVisitor::State::TERMINATE) break;
-      if (postState == ModelVisitor::State::SKIP     ) continue;
-    }
-    else {
-      ModelVisitor::State preState = visitor.preVisit(model, parent, r);
-      if (preState == ModelVisitor::State::TERMINATE) break;
-      if (preState == ModelVisitor::State::SKIP     ) continue;
-
-      ModelVisitor::State state = visitor.visit(model, parent, r);
-      if (state == ModelVisitor::State::TERMINATE) break;
-      if (state == ModelVisitor::State::SKIP     ) continue;
-
-      visitor.step();
-
-      // postVisit ?
-    }
+    ModelVisitor::State state = visitModelRow(model, parent, r, visitor);
+    if (state == ModelVisitor::State::TERMINATE) return state;
+    if (state == ModelVisitor::State::SKIP     ) continue;
   }
+
+  return ModelVisitor::State::OK;
+}
+
+ModelVisitor::State
+visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r, ModelVisitor &visitor) {
+  QModelIndex ind1 = model->index(r, 0, parent);
+
+  if (model->hasChildren(ind1)) {
+    ModelVisitor::State state = visitor.hierVisit(model, parent, r);
+    if (state != ModelVisitor::State::OK) return state;
+
+    ModelVisitor::State iterState = visitModelIndex(model, ind1, visitor);
+    if (iterState != ModelVisitor::State::OK) return iterState;
+
+    ModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
+    if (postState != ModelVisitor::State::OK) return postState;
+  }
+  else {
+    ModelVisitor::State preState = visitor.preVisit(model, parent, r);
+    if (preState != ModelVisitor::State::OK) return preState;
+
+    ModelVisitor::State state = visitor.visit(model, parent, r);
+    if (state != ModelVisitor::State::OK) return state;
+
+    visitor.step();
+
+    // postVisit ?
+  }
+
+  return ModelVisitor::State::OK;
 }
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
@@ -164,7 +191,7 @@ init()
   if (! model_)
     return false;
 
-  int numColumns = model_->columnCount();
+  int numColumns = model_->columnCount(QModelIndex());
 
   if (column_ < 0 || column_ >= numColumns)
     return false;

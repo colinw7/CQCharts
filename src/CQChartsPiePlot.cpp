@@ -1136,7 +1136,7 @@ CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj) :
 
 bool
 CQChartsPieKeyColor::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   CQChartsPiePlot *plot = qobject_cast<CQChartsPiePlot *>(plot_);
 

@@ -60,25 +60,25 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 class CQChartsRadarPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(int     valueColumn  READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(double  angleStart   READ angleStart      WRITE setAngleStart     )
-  Q_PROPERTY(double  angleExtent  READ angleExtent     WRITE setAngleExtent    )
-  Q_PROPERTY(QString gridColor    READ gridColorStr    WRITE setGridColorStr   )
-  Q_PROPERTY(double  gridAlpha    READ gridAlpha       WRITE setGridAlpha      )
-  Q_PROPERTY(bool    border       READ isBorder        WRITE setBorder         )
-  Q_PROPERTY(QString borderColor  READ borderColorStr  WRITE setBorderColorStr )
-  Q_PROPERTY(double  borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
-  Q_PROPERTY(double  borderWidth  READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(bool    filled       READ isFilled        WRITE setFilled         )
-  Q_PROPERTY(QString fillColor    READ fillColorStr    WRITE setFillColorStr   )
-  Q_PROPERTY(double  fillAlpha    READ fillAlpha       WRITE setFillAlpha      )
-  Q_PROPERTY(Pattern fillPattern  READ fillPattern     WRITE setFillPattern    )
-  Q_PROPERTY(QString textColor    READ textColorStr    WRITE setTextColorStr   )
-  Q_PROPERTY(QFont   textFont     READ textFont        WRITE setTextFont       )
+  Q_PROPERTY(int            nameColumn   READ nameColumn      WRITE setNameColumn     )
+  Q_PROPERTY(int            valueColumn  READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
+  Q_PROPERTY(double         angleStart   READ angleStart      WRITE setAngleStart     )
+  Q_PROPERTY(double         angleExtent  READ angleExtent     WRITE setAngleExtent    )
+  Q_PROPERTY(CQChartsColor  gridColor    READ gridColor       WRITE setGridColor      )
+  Q_PROPERTY(double         gridAlpha    READ gridAlpha       WRITE setGridAlpha      )
+  Q_PROPERTY(bool           border       READ isBorder        WRITE setBorder         )
+  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor     WRITE setBorderColor    )
+  Q_PROPERTY(double         borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
+  Q_PROPERTY(CQChartsLength borderWidth  READ borderWidth     WRITE setBorderWidth    )
+  Q_PROPERTY(bool           filled       READ isFilled        WRITE setFilled         )
+  Q_PROPERTY(CQChartsColor  fillColor    READ fillColor       WRITE setFillColor      )
+  Q_PROPERTY(double         fillAlpha    READ fillAlpha       WRITE setFillAlpha      )
+  Q_PROPERTY(Pattern        fillPattern  READ fillPattern     WRITE setFillPattern    )
+  Q_PROPERTY(CQChartsColor  textColor    READ textColor       WRITE setTextColor      )
+  Q_PROPERTY(QFont          textFont     READ textFont        WRITE setTextFont       )
 
-  Q_ENUMS(Pattern);
+  Q_ENUMS(Pattern)
 
  public:
   enum class Pattern {
@@ -146,21 +146,21 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   //----
 
-  QString gridColorStr() const { return gridColor_.colorStr(); }
-  void setGridColorStr(const QString &s) { gridColor_.setColorStr(s); update(); }
+  const CQChartsColor &gridColor() const { return gridData_.color; }
+  void setGridColor(const CQChartsColor &c) { gridData_.color = c; update(); }
 
-  QColor interpGridColor(int i, int n) { return gridColor_.interpColor(this, i, n); }
+  QColor interpGridColor(int i, int n) { return gridColor().interpColor(this, i, n); }
 
-  double gridAlpha() const { return gridAlpha_; }
-  void setGridAlpha(double r) { gridAlpha_ = r; update(); }
+  double gridAlpha() const { return gridData_.alpha; }
+  void setGridAlpha(double r) { gridData_.alpha = r; update(); }
 
   //---
 
   bool isFilled() const;
   void setFilled(bool b);
 
-  QString fillColorStr() const;
-  void setFillColorStr(const QString &s);
+  const CQChartsColor &fillColor() const;
+  void setFillColor(const CQChartsColor &c);
 
   QColor interpFillColor(int i, int n);
 
@@ -175,24 +175,24 @@ class CQChartsRadarPlot : public CQChartsPlot {
   bool isBorder() const;
   void setBorder(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &str);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const;
   void setBorderAlpha(double a);
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
   //---
 
   const QFont &textFont() const;
   void setTextFont(const QFont &f);
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &s);
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
 
   QColor interpTextColor(int i, int n) const;
 
@@ -254,16 +254,15 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   using ValueDatas = std::map<int,ValueData>;
 
-  int                  nameColumn_    { -1 };      // name column
-  int                  valueColumn_   { 1 };       // value column
-  Columns              valueColumns_;              // values column
-  double               angleStart_    { 90.0 };    // angle start
-  double               angleExtent_   { 360.0 };   // angle extent
-  CQChartsPaletteColor gridColor_;                 // grid color
-  double               gridAlpha_     { 0.5 };     // grid alpha
-  CQChartsTextBoxObj*  textBoxObj_    { nullptr }; // box object for fill and border
-  ValueDatas           valueDatas_;                // value
-  double               valueRadius_   { 1.0 };     // max value (radius)
+  int                 nameColumn_    { -1 };      // name column
+  int                 valueColumn_   { 1 };       // value column
+  Columns             valueColumns_;              // values column
+  double              angleStart_    { 90.0 };    // angle start
+  double              angleExtent_   { 360.0 };   // angle extent
+  CQChartsLineData    gridData_;                  // grid line data
+  CQChartsTextBoxObj* textBoxObj_    { nullptr }; // box object for fill and border
+  ValueDatas          valueDatas_;                // value
+  double              valueRadius_   { 1.0 };     // max value (radius)
 };
 
 #endif

@@ -75,6 +75,8 @@ class CQChartsTable : public CQTableView {
 
   void selectionBehaviorSlot(QAction *action);
 
+  void exportSlot(QAction *action);
+
  private:
   using Matches = std::vector<QString>;
 

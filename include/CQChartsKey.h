@@ -2,6 +2,7 @@
 #define CQChartsKey_H
 
 #include <CQChartsBoxObj.h>
+#include <CQChartsEditHandles.h>
 #include <CQChartsGeom.h>
 #include <QFont>
 #include <QPointF>
@@ -20,13 +21,12 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool          visible    READ isVisible    WRITE setVisible     )
-  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal  )
-  Q_PROPERTY(bool          autoHide   READ isAutoHide   WRITE setAutoHide    )
-  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr )
-  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont    )
-  Q_PROPERTY(QString       textColor  READ textColorStr WRITE setTextColorStr)
-  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign   )
+  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal )
+  Q_PROPERTY(bool          autoHide   READ isAutoHide   WRITE setAutoHide   )
+  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr)
+  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont   )
+  Q_PROPERTY(CQChartsColor textColor  READ textColor    WRITE setTextColor  )
+  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign  )
 
  public:
   enum LocationType {
@@ -49,9 +49,6 @@ class CQChartsKey : public CQChartsBoxObj {
   virtual ~CQChartsKey();
 
   //---
-
-  bool isVisible() const { return visible_; }
-  void setVisible(bool b) { visible_ = b; updatePosition(); }
 
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
@@ -107,16 +104,16 @@ class CQChartsKey : public CQChartsBoxObj {
 
   // text
 
-  const QFont &textFont() const { return textFont_; }
-  void setTextFont(const QFont &f) { textFont_ = f; updateLayout(); }
+  const QFont &textFont() const { return textData_.font; }
+  void setTextFont(const QFont &f) { textData_.font = f; updateLayout(); }
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &str);
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
 
   QColor interpTextColor(int i, int n) const;
 
-  Qt::Alignment textAlign() const { return textAlign_; }
-  void setTextAlign(const Qt::Alignment &a) { textAlign_ = a; }
+  Qt::Alignment textAlign() const { return textData_.align; }
+  void setTextAlign(const Qt::Alignment &a) { textData_.align = a; }
 
   //---
 
@@ -131,13 +128,10 @@ class CQChartsKey : public CQChartsBoxObj {
   virtual void draw(QPainter *painter);
 
  protected:
-  bool                 visible_    { true };
-  bool                 horizontal_ { false };
-  LocationType         location_   { LocationType::TOP_RIGHT };
-  bool                 autoHide_   { true };
-  QFont                textFont_;
-  CQChartsPaletteColor textColor_;
-  Qt::Alignment        textAlign_  { Qt::AlignLeft | Qt::AlignVCenter };
+  bool             horizontal_ { false };                   // is layed out horizontallly
+  LocationType     location_   { LocationType::TOP_RIGHT }; // key placement
+  bool             autoHide_   { true };                    // auto hide if too big
+  CQChartsTextData textData_;                               // text data
 };
 
 //------
@@ -160,7 +154,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   bool isInside(const CQChartsGeom::Point &w) const;
 
-  void mousePress(const CQChartsGeom::Point &w);
+  void selectPress(const CQChartsGeom::Point &w);
 
  private:
   void doLayout();
@@ -250,6 +244,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
+  void redrawBoxObj() override { redraw(); }
+
   void redraw();
 
   //---
@@ -266,15 +262,18 @@ class CQChartsPlotKey : public CQChartsKey {
 
   bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
+  CQChartsEditHandles &editHandles() { return editHandles_; }
+
   //---
 
-  virtual bool mousePress  (const CQChartsGeom::Point &) { return false; }
-  virtual bool mouseMove   (const CQChartsGeom::Point &);
-  virtual void mouseRelease(const CQChartsGeom::Point &) { }
+  virtual bool selectPress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectMove   (const CQChartsGeom::Point &);
+  virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
 
-  virtual bool mouseDragPress  (const CQChartsGeom::Point &);
-  virtual bool mouseDragMove   (const CQChartsGeom::Point &);
-  virtual void mouseDragRelease(const CQChartsGeom::Point &);
+  virtual bool editPress  (const CQChartsGeom::Point &);
+  virtual bool editMove   (const CQChartsGeom::Point &);
+  virtual bool editMotion (const CQChartsGeom::Point &);
+  virtual bool editRelease(const CQChartsGeom::Point &);
 
   //---
 
@@ -323,7 +322,7 @@ class CQChartsPlotKey : public CQChartsKey {
   int                        numCols_     { 0 };
   RowColCell                 rowColCell_;
   mutable CQChartsGeom::BBox bbox_;
-  CQChartsGeom::Point        dragPos_;
+  CQChartsEditHandles        editHandles_;
 };
 
 //------
@@ -365,8 +364,8 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual bool mousePress(const CQChartsGeom::Point &) { return false; }
-  virtual bool mouseMove (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress(const CQChartsGeom::Point &) { return false; }
+  virtual bool selectMove (const CQChartsGeom::Point &) { return false; }
 
   //---
 
@@ -413,14 +412,14 @@ class CQChartsKeyText : public CQChartsKeyItem {
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 
-  Q_PROPERTY(double  cornerRadius READ cornerRadius   WRITE setCornerRadius  )
-  Q_PROPERTY(QString borderColor  READ borderColorStr WRITE setBorderColorStr)
+  Q_PROPERTY(double        cornerRadius READ cornerRadius WRITE setCornerRadius)
+  Q_PROPERTY(CQChartsColor borderColor  READ borderColor  WRITE setBorderColor )
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
 
-  double cornerRadius() const { return cornerRadius_; }
-  void setCornerRadius(double r) { cornerRadius_ = r; }
+  double cornerRadius() const { return boxData_.cornerSize; }
+  void setCornerRadius(double r) { boxData_.cornerSize = r; }
 
   QSizeF size() const override;
 
@@ -428,23 +427,22 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   virtual QBrush fillBrush() const;
 
-  virtual QString borderColorStr() const { return borderColor_.colorStr(); }
-  virtual void setBorderColorStr(const QString &s) { borderColor_.setColorStr(s); }
+  virtual const CQChartsColor &borderColor() const { return boxData_.border.color; }
+  virtual void setBorderColor(const CQChartsColor &c) { boxData_.border.color = c; }
 
   QColor interpBorderColor(int i, int n) const;
 
   bool isClickHide() const { return clickHide_; }
   void setClickHide(bool b) { clickHide_ = b; }
 
-  bool mousePress(const CQChartsGeom::Point &) override;
+  bool selectPress(const CQChartsGeom::Point &) override;
 
  protected:
-  CQChartsPlot*        plot_         { nullptr };
-  int                  i_            { 0 };
-  int                  n_            { 0 };
-  double               cornerRadius_ { 0.0 };
-  CQChartsPaletteColor borderColor_;
-  bool                 clickHide_    { false };
+  CQChartsPlot*   plot_      { nullptr };
+  int             i_         { 0 };
+  int             n_         { 0 };
+  CQChartsBoxData boxData_;
+  bool            clickHide_ { false };
 };
 
 #endif

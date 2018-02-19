@@ -4,7 +4,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsRoundedPolygon.h>
 #include <QPainter>
 
@@ -38,14 +37,12 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
   boxObj_  = new CQChartsBoxObj(this);
   textObj_ = new CQChartsTextBoxObj(this);
 
-  CQChartsPaletteColor bg(CQChartsPaletteColor::Type::PALETTE);
+  CQChartsColor bg(CQChartsColor::Type::PALETTE);
 
   boxObj_->setBackground(true);
   boxObj_->setBackgroundColor(bg);
 
   boxObj_->setBorder(true);
-
-  whiskerColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
 
   addAxes();
 
@@ -81,18 +78,18 @@ setBoxFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsBoxPlot::
-boxColorStr() const
+boxColor() const
 {
-  return boxObj_->backgroundColorStr();
+  return boxObj_->backgroundColor();
 }
 
 void
 CQChartsBoxPlot::
-setBoxColorStr(const QString &s)
+setBoxColor(const CQChartsColor &c)
 {
-  boxObj_->setBackgroundColorStr(s);
+  boxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -152,18 +149,18 @@ setBorderStroked(bool b)
   return boxObj_->setBorder(b);
 }
 
-QString
+const CQChartsColor &
 CQChartsBoxPlot::
-borderColorStr() const
+borderColor() const
 {
-  return boxObj_->borderColorStr();
+  return boxObj_->borderColor();
 }
 
 void
 CQChartsBoxPlot::
-setBorderColorStr(const QString &s)
+setBorderColor(const CQChartsColor &c)
 {
-  boxObj_->setBorderColorStr(s);
+  boxObj_->setBorderColor(c);
 
   update();
 }
@@ -191,7 +188,7 @@ setBorderAlpha(double r)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsBoxPlot::
 borderWidth() const
 {
@@ -200,9 +197,9 @@ borderWidth() const
 
 void
 CQChartsBoxPlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  boxObj_->setBorderWidth(r);
+  boxObj_->setBorderWidth(l);
 
   update();
 }
@@ -211,32 +208,32 @@ double
 CQChartsBoxPlot::
 cornerSize() const
 {
-  return boxObj_->borderCornerSize();
+  return boxObj_->cornerSize();
 }
 
 void
 CQChartsBoxPlot::
 setCornerSize(double r)
 {
-  boxObj_->setBorderCornerSize(r);
+  boxObj_->setCornerSize(r);
 
   update();
 }
 
 //------
 
-QString
+const CQChartsColor &
 CQChartsBoxPlot::
-whiskerColorStr() const
+whiskerColor() const
 {
-  return whiskerColor_.colorStr();
+  return whiskerData_.color;
 }
 
 void
 CQChartsBoxPlot::
-setWhiskerColorStr(const QString &s)
+setWhiskerColor(const CQChartsColor &c)
 {
-  whiskerColor_.setColorStr(s);
+  whiskerData_.color = c;
 
   update();
 }
@@ -245,23 +242,23 @@ QColor
 CQChartsBoxPlot::
 interpWhiskerColor(int i, int n) const
 {
-  return whiskerColor_.interpColor(this, i, n);
+  return whiskerColor().interpColor(this, i, n);
 }
 
 //------
 
-QString
+const CQChartsColor &
 CQChartsBoxPlot::
-textColorStr() const
+textColor() const
 {
-  return textObj_->textColorStr();
+  return textObj_->textColor();
 }
 
 void
 CQChartsBoxPlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  textObj_->setTextColorStr(s);
+  textObj_->setTextColor(c);
 
   update();
 }
@@ -517,7 +514,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
 
   //---
 
-  QModelIndex xind = model->index(r, xColumn());
+  QModelIndex xind = model->index(r, xColumn(), parent);
 
   QModelIndex xind1 = normalizeIndex(xind);
 
@@ -554,7 +551,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
   //---
 
   // add value to set
-  QModelIndex yind = model->index(r, yColumn());
+  QModelIndex yind = model->index(r, yColumn(), parent);
 
   bool ok2;
 
@@ -808,7 +805,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->boxWidth()/2;
+  double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
@@ -821,7 +818,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   QColor whiskerColor     = plot_->interpWhiskerColor(0, 1);
-  double whiskerLineWidth = plot_->whiskerLineWidth();
+  double whiskerLineWidth = plot_->lengthPixelWidth(plot_->whiskerLineWidth());
 
   //---
 
@@ -853,8 +850,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     boxColor.setAlphaF(plot_->boxAlpha());
 
     brush.setColor(boxColor);
-    brush.setStyle(CQChartsFillObj::patternToStyle(
-      (CQChartsFillObj::Pattern) plot_->boxPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->boxPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -868,8 +865,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     borderColor.setAlphaF(plot_->borderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
     pen.setColor (borderColor);
-    pen.setWidthF(plot_->borderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -950,7 +949,7 @@ annotationBBox() const
   //---
 
   double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->boxWidth()/2;
+  double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
@@ -1077,8 +1076,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
       fillColor.setAlphaF(plot_->boxAlpha());
 
       pbrush.setColor(fillColor);
-      pbrush.setStyle(CQChartsFillObj::patternToStyle(
-        (CQChartsFillObj::Pattern) plot_->boxPattern()));
+      pbrush.setStyle(CQChartsFillPattern::toStyle(
+       (CQChartsFillPattern::Type) plot_->boxPattern()));
     }
 
     QPen ppen;
@@ -1088,8 +1087,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
       borderColor.setAlphaF(plot_->borderAlpha());
 
+      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
       ppen.setColor (borderColor);
-      ppen.setWidthF(plot_->borderWidth());
+      ppen.setWidthF(bw);
     }
     else {
       ppen.setStyle(Qt::NoPen);
@@ -1117,8 +1118,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   lineColor.setAlphaF(plot_->borderAlpha());
 
+  double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
   lpen.setColor (lineColor);
-  lpen.setWidthF(plot_->borderWidth());
+  lpen.setWidthF(bw);
 
   QBrush lbrush;
 
@@ -1139,7 +1142,7 @@ CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
 
 bool
 CQChartsBoxKeyColor::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 

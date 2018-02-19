@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 
@@ -39,14 +38,14 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 {
   textBoxObj_ = new CQChartsTextBoxObj(this);
 
-  textBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  textBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorder(true);
   setFilled(true);
 
   textBoxObj_->setTextFontSize(8.0);
 
-  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
 
   textBoxObj_->setTextColor(textColor);
 
@@ -93,18 +92,18 @@ setFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSunburstPlot::
-fillColorStr() const
+fillColor() const
 {
-  return textBoxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColor();
 }
 
 void
 CQChartsSunburstPlot::
-setFillColorStr(const QString &s)
+setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -166,18 +165,18 @@ setBorder(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSunburstPlot::
-borderColorStr() const
+borderColor() const
 {
-  return textBoxObj_->borderColorStr();
+  return textBoxObj_->borderColor();
 }
 
 void
 CQChartsSunburstPlot::
-setBorderColorStr(const QString &str)
+setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -205,7 +204,7 @@ setBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsSunburstPlot::
 borderWidth() const
 {
@@ -214,9 +213,9 @@ borderWidth() const
 
 void
 CQChartsSunburstPlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -239,18 +238,18 @@ setTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsSunburstPlot::
-textColorStr() const
+textColor() const
 {
-  return textBoxObj_->textColorStr();
+  return textBoxObj_->textColor();
 }
 
 void
 CQChartsSunburstPlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColorStr(s);
+  textBoxObj_->setTextColor(c);
 
   update();
 }
@@ -855,11 +854,11 @@ addExtraNodes(CQChartsSunburstHierNode *hier)
   if (hier->size() > 0) {
     CQChartsSunburstNode *node = new CQChartsSunburstNode(this, hier, "");
 
-    int row = unnormalizeIndex(hier->ind()).row();
+    QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
     OptColor color;
 
-    if (colorSetColor("color", row, color))
+    if (colorSetColor("color", ind1.row(), color))
       node->setColor(*color);
 
     node->setSize(hier->size());
@@ -1174,7 +1173,8 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
     fillColor.setAlphaF(fillAlpha());
 
     brush.setColor(fillColor);
-    brush.setStyle(CQChartsFillObj::patternToStyle((CQChartsFillObj::Pattern) fillPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) fillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -1187,8 +1187,10 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
     bc.setAlphaF(borderAlpha());
 
+    double bw = lengthPixelWidth(borderWidth());
+
     pen.setColor (bc);
-    pen.setWidthF(borderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen.setStyle(Qt::NoPen);
@@ -1297,11 +1299,13 @@ calcTipId() const
   if (plot_->colorColumn() >= 0) {
     QAbstractItemModel *model = plot_->model();
 
-    int row = plot_->unnormalizeIndex(node_->ind()).row();
+    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+
+    QModelIndex colorInd = model->index(ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, row, plot_->colorColumn(), ok);
+    QString colorStr = CQChartsUtil::modelString(model, colorInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

@@ -1,8 +1,6 @@
 #include <CQChartsAxis.h>
 #include <CQChartsAxisObj.h>
 #include <CQChartsPlot.h>
-#include <CQChartsLineObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsColumn.h>
@@ -60,13 +58,16 @@ AxisGoodTicks axisGoodTicks;
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
- plot_(plot), direction_(direction), start_(std::min(start, end)), end_(std::max(start, end)),
- start1_(start), end1_(end)
+ QObject(plot), plot_(plot), direction_(direction),
+ start_(std::min(start, end)), end_(std::max(start, end)), start1_(start), end1_(end),
+ editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
 {
-  CQChartsPaletteColor themeFg   (CQChartsPaletteColor::Type::THEME_VALUE, 1);
-  CQChartsPaletteColor themeGray1(CQChartsPaletteColor::Type::THEME_VALUE, 0.7);
-  CQChartsPaletteColor themeGray2(CQChartsPaletteColor::Type::THEME_VALUE, 0.3);
-  CQChartsPaletteColor themeGray3(CQChartsPaletteColor::Type::THEME_VALUE, 0.3);
+  setObjectName("axis");
+
+  CQChartsColor themeFg   (CQChartsColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeGray1(CQChartsColor::Type::THEME_VALUE, 0.7);
+  CQChartsColor themeGray2(CQChartsColor::Type::THEME_VALUE, 0.3);
+  CQChartsColor themeGray3(CQChartsColor::Type::THEME_VALUE, 0.3);
 
   label_     = new CQChartsAxisLabel(this);
   tickLabel_ = new CQChartsAxisTickLabel(this);
@@ -74,23 +75,18 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
   label_    ->setTextColor(themeFg);
   tickLabel_->setTextColor(themeFg);
 
-  lineObj_ = new CQChartsLineObj(plot);
-
-  lineObj_->setColor(themeGray1);
+  lineData_.color = themeGray1;
 
   // init grid
-  majorGridLineObj_ = new CQChartsLineObj(plot);
-  minorGridLineObj_ = new CQChartsLineObj(plot);
-  gridFill_         = new CQChartsFillObj(plot);
+  majorGridLineData_.visible = false;
+  majorGridLineData_.color   = themeGray2;
 
-  majorGridLineObj_->setDisplayed(false);
-  majorGridLineObj_->setColor(themeGray2);
+  minorGridLineData_.visible = false;
+  minorGridLineData_.color   = themeGray2;
 
-  minorGridLineObj_->setDisplayed(false);
-  minorGridLineObj_->setColor(themeGray2);
-
-  gridFill_->setColor(themeGray3);
-  gridFill_->setAlpha(0.5);
+  gridFill_.visible = false;
+  gridFill_.color   = themeGray3;
+  gridFill_.alpha   = 0.5;
 
   setGridMajorDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
   setGridMinorDash(CQChartsLineDash(CQChartsLineDash::Lengths({2, 2}), 0));
@@ -101,11 +97,6 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
 CQChartsAxis::
 ~CQChartsAxis()
 {
-  delete lineObj_;
-  delete majorGridLineObj_;
-  delete minorGridLineObj_;
-  delete gridFill_;
-
   delete label_;
   delete tickLabel_;
 }
@@ -359,18 +350,18 @@ setLabelFont(const QFont &font)
   redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-labelColorStr() const
+labelColor() const
 {
-  return label_->textColorStr();
+  return label_->textColor();
 }
 
 void
 CQChartsAxis::
-setLabelColorStr(const QString &str)
+setLabelColor(const CQChartsColor &c)
 {
-  label_->setTextColorStr(str);
+  label_->setTextColor(c);
 }
 
 QColor
@@ -386,63 +377,63 @@ bool
 CQChartsAxis::
 isLineDisplayed() const
 {
-  return lineObj_->isDisplayed();
+  return lineData_.visible;
 }
 
 void
 CQChartsAxis::
 setLineDisplayed(bool b)
 {
-  lineObj_->setDisplayed(b); redraw();
+  lineData_.visible = b; redraw();
 }
 
-double
+const CQChartsLength &
 CQChartsAxis::
 lineWidth() const
 {
-  return lineObj_->width();
+  return lineData_.width;
 }
 
 void
 CQChartsAxis::
-setLineWidth(double r)
+setLineWidth(const CQChartsLength &l)
 {
-  lineObj_->setWidth(r); redraw();
+  lineData_.width = l; redraw();
 }
 
 const CQChartsLineDash &
 CQChartsAxis::
 lineDash() const
 {
-  return lineObj_->dash();
+  return lineData_.dash;
 }
 
 void
 CQChartsAxis::
 setLineDash(const CQChartsLineDash &dash)
 {
-  lineObj_->setDash(dash); redraw();
+  lineData_.dash = dash; redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-lineColorStr() const
+lineColor() const
 {
-  return lineObj_->colorStr();
+  return lineData_.color;
 }
 
 void
 CQChartsAxis::
-setLineColorStr(const QString &str)
+setLineColor(const CQChartsColor &c)
 {
-  lineObj_->setColorStr(str);
+  lineData_.color = c;
 }
 
 QColor
 CQChartsAxis::
 interpLineColor(int i, int n) const
 {
-  return lineObj_->interpColor(i, n);
+  return lineColor().interpColor(plot_, i, n);
 }
 
 //---
@@ -451,168 +442,168 @@ bool
 CQChartsAxis::
 isGridMajorDisplayed() const
 {
-  return majorGridLineObj_->isDisplayed();
+  return majorGridLineData_.visible;
 }
 
 void
 CQChartsAxis::
 setGridMajorDisplayed(bool b)
 {
-  majorGridLineObj_->setDisplayed(b); redraw();
+  majorGridLineData_.visible = b; redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-gridMajorColorStr() const
+gridMajorColor() const
 {
-  return majorGridLineObj_->colorStr();
+  return majorGridLineData_.color;
 }
 
 void
 CQChartsAxis::
-setGridMajorColorStr(const QString &str)
+setGridMajorColor(const CQChartsColor &c)
 {
-  majorGridLineObj_->setColorStr(str);
+  majorGridLineData_.color = c;
 }
 
 QColor
 CQChartsAxis::
 interpGridMajorColor(int i, int n) const
 {
-  return majorGridLineObj_->interpColor(i, n);
+  return gridMajorColor().interpColor(plot_, i, n);
 }
 
-double
+const CQChartsLength &
 CQChartsAxis::
 gridMajorWidth() const
 {
-  return majorGridLineObj_->width();
+  return majorGridLineData_.width;
 }
 
 void
 CQChartsAxis::
-setGridMajorWidth(double r)
+setGridMajorWidth(const CQChartsLength &l)
 {
-  majorGridLineObj_->setWidth(r); redraw();
+  majorGridLineData_.width = l; redraw();
 }
 
 const CQChartsLineDash &
 CQChartsAxis::
 gridMajorDash() const
 {
-  return majorGridLineObj_->dash();
+  return majorGridLineData_.dash;
 }
 
 void
 CQChartsAxis::
 setGridMajorDash(const CQChartsLineDash &dash)
 {
-  majorGridLineObj_->setDash(dash); redraw();
+  majorGridLineData_.dash = dash; redraw();
 }
 
 bool
 CQChartsAxis::
 isGridMinorDisplayed() const
 {
-  return minorGridLineObj_->isDisplayed();
+  return minorGridLineData_.visible;
 }
 
 void
 CQChartsAxis::
 setGridMinorDisplayed(bool b)
 {
-  minorGridLineObj_->setDisplayed(b); redraw();
+  minorGridLineData_.visible = b; redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-gridMinorColorStr() const
+gridMinorColor() const
 {
-  return minorGridLineObj_->colorStr();
+  return minorGridLineData_.color;
 }
 
 void
 CQChartsAxis::
-setGridMinorColorStr(const QString &str)
+setGridMinorColor(const CQChartsColor &c)
 {
-  minorGridLineObj_->setColorStr(str);
+  minorGridLineData_.color = c;
 }
 
-double
+const CQChartsLength &
 CQChartsAxis::
 gridMinorWidth() const
 {
-  return minorGridLineObj_->width();
+  return minorGridLineData_.width;
 }
 
 void
 CQChartsAxis::
-setGridMinorWidth(double r)
+setGridMinorWidth(const CQChartsLength &l)
 {
-  minorGridLineObj_->setWidth(r); redraw();
+  minorGridLineData_.width = l; redraw();
 }
 
 const CQChartsLineDash &
 CQChartsAxis::
 gridMinorDash() const
 {
-  return minorGridLineObj_->dash();
+  return minorGridLineData_.dash;
 }
 
 void
 CQChartsAxis::
 setGridMinorDash(const CQChartsLineDash &dash)
 {
-  minorGridLineObj_->setDash(dash); redraw();
+  minorGridLineData_.dash = dash; redraw();
 }
 
 bool
 CQChartsAxis::
 isGridFill() const
 {
-  return gridFill_->isVisible();
+  return gridFill_.visible;
 }
 
 void
 CQChartsAxis::
 setGridFill(bool b)
 {
-  gridFill_->setVisible(b); redraw();
+  gridFill_.visible = b; redraw();
 }
 
 double
 CQChartsAxis::
 gridFillAlpha() const
 {
-  return gridFill_->alpha();
+  return gridFill_.alpha;
 }
 
 void
 CQChartsAxis::
 setGridFillAlpha(double a)
 {
-  gridFill_->setAlpha(a); redraw();
+  gridFill_.alpha = a; redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-gridFillColorStr() const
+gridFillColor() const
 {
-  return gridFill_->colorStr();
+  return gridFill_.color;
 }
 
 void
 CQChartsAxis::
-setGridFillColorStr(const QString &str)
+setGridFillColor(const CQChartsColor &c)
 {
-  gridFill_->setColorStr(str);
+  gridFill_.color = c;
 }
 
 QColor
 CQChartsAxis::
 interpGridFillColor(int i, int n) const
 {
-  return gridFill_->interpColor(i, n);
+  return gridFillColor().interpColor(plot_, i, n);
 }
 
 //---
@@ -676,18 +667,18 @@ setTickLabelAngle(double angle)
   redraw();
 }
 
-QString
+const CQChartsColor &
 CQChartsAxis::
-tickLabelColorStr() const
+tickLabelColor() const
 {
-  return tickLabel_->textColorStr();
+  return tickLabel_->textColor();
 }
 
 void
 CQChartsAxis::
-setTickLabelColorStr(const QString &str)
+setTickLabelColor(const CQChartsColor &c)
 {
-  return tickLabel_->setTextColorStr(str);
+  return tickLabel_->setTextColor(c);
 }
 
 QColor
@@ -1051,7 +1042,9 @@ valueStr(double pos) const
     else if (isDataLabels()) {
       int row = int(pos);
 
-      QModelIndex ind = plot_->model()->index(row, column());
+      QModelIndex parent; // TODO: support parent
+
+      QModelIndex ind = plot_->model()->index(row, column(), parent);
 
       QVariant header = plot_->model()->data(ind, Qt::DisplayRole);
 
@@ -1101,9 +1094,9 @@ updatePlotRange()
 
 bool
 CQChartsAxis::
-mouseDragPress(const CQChartsGeom::Point &p)
+editPress(const CQChartsGeom::Point &p)
 {
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   double apos1, apos2;
 
@@ -1116,27 +1109,37 @@ mouseDragPress(const CQChartsGeom::Point &p)
 
 bool
 CQChartsAxis::
-mouseDragMove(const CQChartsGeom::Point &p)
+editMove(const CQChartsGeom::Point &p)
 {
-  double dx = p.x - dragPos_.x;
-  double dy = p.y - dragPos_.y;
+  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+
+  double dx = p.x - dragPos.x;
+  double dy = p.y - dragPos.y;
 
   if (direction_ == Direction::HORIZONTAL)
     pos_ = *pos_ + dy;
   else
     pos_ = *pos_ + dx;
 
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   redraw();
 
   return true;
 }
 
-void
+bool
 CQChartsAxis::
-mouseDragRelease(const CQChartsGeom::Point &)
+editMotion(const CQChartsGeom::Point &p)
 {
+  return editHandles_.selectInside(p);
+}
+
+bool
+CQChartsAxis::
+editRelease(const CQChartsGeom::Point &)
+{
+  return true;
 }
 
 //---
@@ -1528,6 +1531,14 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   //---
 
+  if (isSelected()) {
+    editHandles_.setBBox(this->bbox());
+
+    editHandles_.draw(painter);
+  }
+
+  //---
+
   painter->restore();
 }
 
@@ -1580,13 +1591,13 @@ drawLine(CQChartsPlot *plot, QPainter *painter, double apos, double amin, double
     plot->windowToPixel(amin, apos, ax1, ay1);
     plot->windowToPixel(amax, apos, ax2, ay2);
 
-    lineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax2, ay1), lineData_);
   }
   else {
     plot->windowToPixel(apos, amin, ax1, ay1);
     plot->windowToPixel(apos, amax, ax2, ay2);
 
-    lineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax1, ay2), lineData_);
   }
 }
 
@@ -1601,13 +1612,13 @@ drawMajorGridLine(CQChartsPlot *plot, QPainter *painter, double apos,
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
-    majorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax1, ay2), majorGridLineData_);
   }
   else {
     plot->windowToPixel(dmin, apos, ax1, ay1);
     plot->windowToPixel(dmax, apos, ax2, ay2);
 
-    majorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax2, ay1), majorGridLineData_);
   }
 }
 
@@ -1622,13 +1633,13 @@ drawMinorGridLine(CQChartsPlot *plot, QPainter *painter, double apos,
     plot->windowToPixel(apos, dmin, ax1, ay1);
     plot->windowToPixel(apos, dmax, ax2, ay2);
 
-    minorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax1, ay2));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax1, ay2), minorGridLineData_);
   }
   else {
     plot->windowToPixel(dmin, apos, ax1, ay1);
     plot->windowToPixel(dmax, apos, ax2, ay2);
 
-    minorGridLineObj_->draw(painter, QPointF(ax1, ay1), QPointF(ax2, ay1));
+    plot_->drawLine(painter, QPointF(ax1, ay1), QPointF(ax2, ay1), minorGridLineData_);
   }
 }
 

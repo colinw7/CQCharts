@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsPaletteColor.h>
+#include <CQChartsData.h>
 #include <CQChartsForceDirected.h>
 
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
@@ -23,17 +23,17 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 class CQChartsForceDirectedPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nodeColumn        READ nodeColumn         WRITE setNodeColumn        )
-  Q_PROPERTY(int     connectionsColumn READ connectionsColumn  WRITE setConnectionsColumn )
-  Q_PROPERTY(int     valueColumn       READ valueColumn        WRITE setValueColumn       )
-  Q_PROPERTY(int     groupColumn       READ groupColumn        WRITE setGroupColumn       )
-  Q_PROPERTY(int     nameColumn        READ nameColumn         WRITE setNameColumn        )
-  Q_PROPERTY(bool    autoFit           READ isAutoFit          WRITE setAutoFit           )
-  Q_PROPERTY(bool    running           READ isRunning          WRITE setRunning           )
-  Q_PROPERTY(double  nodeRadius        READ nodeRadius         WRITE setNodeRadius        )
-  Q_PROPERTY(QString nodeBorderColor   READ nodeBorderColorStr WRITE setNodeBorderColorStr)
-  Q_PROPERTY(QString edgeColor         READ edgeColorStr       WRITE setEdgeColorStr      )
-  Q_PROPERTY(double  edgeAlpha         READ edgeAlpha          WRITE setEdgeAlpha         )
+  Q_PROPERTY(int           nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
+  Q_PROPERTY(int           connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(int           valueColumn       READ valueColumn       WRITE setValueColumn      )
+  Q_PROPERTY(int           groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(bool          autoFit           READ isAutoFit         WRITE setAutoFit          )
+  Q_PROPERTY(bool          running           READ isRunning         WRITE setRunning          )
+  Q_PROPERTY(double        nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
+  Q_PROPERTY(CQChartsColor nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
+  Q_PROPERTY(CQChartsColor edgeColor         READ edgeColor         WRITE setEdgeColor        )
+  Q_PROPERTY(double        edgeAlpha         READ edgeAlpha         WRITE setEdgeAlpha        )
 
  public:
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
@@ -70,19 +70,19 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   double nodeRadius() const { return nodeRadius_; }
   void setNodeRadius(double r) { nodeRadius_ = r; }
 
-  QString nodeBorderColorStr() const { return nodeBorderColor_.colorStr(); }
-  void setNodeBorderColorStr(const QString &s) { nodeBorderColor_.setColorStr(s); }
+  const CQChartsColor &nodeBorderColor() const { return nodeData_.border.color; }
+  void setNodeBorderColor(const CQChartsColor &c) { nodeData_.border.color = c; }
 
   QColor interpNodeBorderColor(int i, int n) const {
-    return nodeBorderColor_.interpColor(this, i, n); }
+    return nodeBorderColor().interpColor(this, i, n); }
 
-  QString edgeColorStr() const { return edgeColor_.colorStr(); }
-  void setEdgeColorStr(const QString &s) { edgeColor_.setColorStr(s); }
+  const CQChartsColor &edgeColor() const { return edgeStroke_.color; }
+  void setEdgeColor(const CQChartsColor &c) { edgeStroke_.color = c; }
 
-  QColor interpEdgeColor(int i, int n) const { return edgeColor_.interpColor(this, i, n); }
+  QColor interpEdgeColor(int i, int n) const { return edgeColor().interpColor(this, i, n); }
 
-  double edgeAlpha() const { return edgeAlpha_; }
-  void setEdgeAlpha(double r) { edgeAlpha_ = r; }
+  double edgeAlpha() const { return edgeStroke_.alpha; }
+  void setEdgeAlpha(double r) { edgeStroke_.alpha = r; }
 
   //---
 
@@ -98,9 +98,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  bool mousePress  (const CQChartsGeom::Point &p, ModSelect modSelect) override;
-  bool mouseMove   (const CQChartsGeom::Point &p, bool first=false) override;
-  void mouseRelease(const CQChartsGeom::Point &p) override;
+  bool selectPress  (const CQChartsGeom::Point &p, ModSelect modSelect) override;
+  bool selectMove   (const CQChartsGeom::Point &p, bool first=false) override;
+  bool selectRelease(const CQChartsGeom::Point &p) override;
 
   void keyPress(int key, int modifier) override;
 
@@ -158,10 +158,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   double                nodeMass_          { 1.0 };   // node mass
   int                   initSteps_         { 100 };   // initial steps
   double                stepSize_          { 0.01 };  // step size
-  CQChartsPaletteColor  nodeBorderColor_;             // node border color
   double                nodeRadius_        { 6.0 };   // node radius
-  CQChartsPaletteColor  edgeColor_;                   // edge color
-  double                edgeAlpha_         { 0.5 };   // edge alpha
+  CQChartsStrokeData    edgeStroke_;                  // edge stroke
+  CQChartsShapeData     nodeData_;                    // node stoke and fill
 };
 
 #endif

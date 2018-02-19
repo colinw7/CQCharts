@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsData.h>
 
 class CQChartsSankeyPlot;
 class CQChartsSankeyPlotNode;
@@ -177,30 +178,30 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 class CQChartsSankeyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     linkColumn      READ linkColumn         WRITE setLinkColumn        )
-  Q_PROPERTY(int     valueColumn     READ valueColumn        WRITE setValueColumn       )
-  Q_PROPERTY(Align   align           READ align              WRITE setAlign             )
-  Q_PROPERTY(bool    nodeFilled      READ isNodeFilled       WRITE setNodeFilled        )
-  Q_PROPERTY(QString nodeFillColor   READ nodeFillColorStr   WRITE setNodeFillColorStr  )
-  Q_PROPERTY(double  nodeFillAlpha   READ nodeFillAlpha      WRITE setNodeFillAlpha     )
-  Q_PROPERTY(Pattern nodeFillPattern READ nodeFillPattern    WRITE setNodeFillPattern   )
-  Q_PROPERTY(bool    nodeStroked     READ isNodeStroked      WRITE setNodeStroked       )
-  Q_PROPERTY(QString nodeStrokeColor READ nodeStrokeColorStr WRITE setNodeStrokeColorStr)
-  Q_PROPERTY(double  nodeStrokeAlpha READ nodeStrokeAlpha    WRITE setNodeStrokeAlpha   )
-  Q_PROPERTY(double  nodeStrokeWidth READ nodeStrokeWidth    WRITE setNodeStrokeWidth   )
-  Q_PROPERTY(bool    edgeFilled      READ isEdgeFilled       WRITE setEdgeFilled        )
-  Q_PROPERTY(QString edgeFillColor   READ edgeFillColorStr   WRITE setEdgeFillColorStr  )
-  Q_PROPERTY(double  edgeFillAlpha   READ edgeFillAlpha      WRITE setEdgeFillAlpha     )
-  Q_PROPERTY(Pattern edgeFillPattern READ edgeFillPattern    WRITE setEdgeFillPattern   )
-  Q_PROPERTY(bool    edgeStroked     READ isEdgeStroked      WRITE setEdgeStroked       )
-  Q_PROPERTY(QString edgeStrokeColor READ edgeStrokeColorStr WRITE setEdgeStrokeColorStr)
-  Q_PROPERTY(double  edgeStrokeAlpha READ edgeStrokeAlpha    WRITE setEdgeStrokeAlpha   )
-  Q_PROPERTY(double  edgeStrokeWidth READ edgeStrokeWidth    WRITE setEdgeStrokeWidth   )
-  Q_PROPERTY(bool    textVisible     READ isTextVisible      WRITE setTextVisible       )
-  Q_PROPERTY(QFont   textFont        READ textFont           WRITE setTextFont          )
-  Q_PROPERTY(QString textColor       READ textColorStr       WRITE setTextColorStr      )
-  Q_PROPERTY(double  textAlpha       READ textAlpha          WRITE setTextAlpha         )
-  Q_PROPERTY(bool    textContrast    READ isTextContrast     WRITE setTextContrast      )
+  Q_PROPERTY(int            linkColumn      READ linkColumn      WRITE setLinkColumn     )
+  Q_PROPERTY(int            valueColumn     READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(Align          align           READ align           WRITE setAlign          )
+  Q_PROPERTY(bool           nodeFilled      READ isNodeFilled    WRITE setNodeFilled     )
+  Q_PROPERTY(CQChartsColor  nodeFillColor   READ nodeFillColor   WRITE setNodeFillColor  )
+  Q_PROPERTY(double         nodeFillAlpha   READ nodeFillAlpha   WRITE setNodeFillAlpha  )
+  Q_PROPERTY(Pattern        nodeFillPattern READ nodeFillPattern WRITE setNodeFillPattern)
+  Q_PROPERTY(bool           nodeStroked     READ isNodeStroked   WRITE setNodeStroked    )
+  Q_PROPERTY(CQChartsColor  nodeStrokeColor READ nodeStrokeColor WRITE setNodeStrokeColor)
+  Q_PROPERTY(double         nodeStrokeAlpha READ nodeStrokeAlpha WRITE setNodeStrokeAlpha)
+  Q_PROPERTY(CQChartsLength nodeStrokeWidth READ nodeStrokeWidth WRITE setNodeStrokeWidth)
+  Q_PROPERTY(bool           edgeFilled      READ isEdgeFilled    WRITE setEdgeFilled     )
+  Q_PROPERTY(CQChartsColor  edgeFillColor   READ edgeFillColor   WRITE setEdgeFillColor  )
+  Q_PROPERTY(double         edgeFillAlpha   READ edgeFillAlpha   WRITE setEdgeFillAlpha  )
+  Q_PROPERTY(Pattern        edgeFillPattern READ edgeFillPattern WRITE setEdgeFillPattern)
+  Q_PROPERTY(bool           edgeStroked     READ isEdgeStroked   WRITE setEdgeStroked    )
+  Q_PROPERTY(CQChartsColor  edgeStrokeColor READ edgeStrokeColor WRITE setEdgeStrokeColor)
+  Q_PROPERTY(double         edgeStrokeAlpha READ edgeStrokeAlpha WRITE setEdgeStrokeAlpha)
+  Q_PROPERTY(CQChartsLength edgeStrokeWidth READ edgeStrokeWidth WRITE setEdgeStrokeWidth)
+  Q_PROPERTY(bool           textVisible     READ isTextVisible   WRITE setTextVisible    )
+  Q_PROPERTY(QFont          textFont        READ textFont        WRITE setTextFont       )
+  Q_PROPERTY(CQChartsColor  textColor       READ textColor       WRITE setTextColor      )
+  Q_PROPERTY(double         textAlpha       READ textAlpha       WRITE setTextAlpha      )
+  Q_PROPERTY(bool           textContrast    READ isTextContrast  WRITE setTextContrast   )
 
   Q_ENUMS(Align)
   Q_ENUMS(Pattern)
@@ -250,8 +251,8 @@ class CQChartsSankeyPlot : public CQChartsPlot {
   bool isNodeFilled() const;
   void setNodeFilled(bool b);
 
-  QString nodeFillColorStr() const;
-  void setNodeFillColorStr(const QString &s);
+  const CQChartsColor &nodeFillColor() const;
+  void setNodeFillColor(const CQChartsColor &s);
 
   QColor interpNodeFillColor(int i, int n) const;
 
@@ -266,24 +267,24 @@ class CQChartsSankeyPlot : public CQChartsPlot {
   bool isNodeStroked() const;
   void setNodeStroked(bool b);
 
-  QString nodeStrokeColorStr() const;
-  void setNodeStrokeColorStr(const QString &s);
+  const CQChartsColor &nodeStrokeColor() const;
+  void setNodeStrokeColor(const CQChartsColor &s);
 
   QColor interpNodeStrokeColor(int i, int n) const;
 
   double nodeStrokeAlpha() const;
   void setNodeStrokeAlpha(double r);
 
-  double nodeStrokeWidth() const;
-  void setNodeStrokeWidth(double r);
+  const CQChartsLength &nodeStrokeWidth() const;
+  void setNodeStrokeWidth(const CQChartsLength &l);
 
   //---
 
   bool isEdgeFilled() const;
   void setEdgeFilled(bool b);
 
-  QString edgeFillColorStr() const;
-  void setEdgeFillColorStr(const QString &s);
+  const CQChartsColor &edgeFillColor() const;
+  void setEdgeFillColor(const CQChartsColor &s);
 
   QColor interpEdgeFillColor(int i, int n) const;
 
@@ -298,16 +299,16 @@ class CQChartsSankeyPlot : public CQChartsPlot {
   bool isEdgeStroked() const;
   void setEdgeStroked(bool b);
 
-  QString edgeStrokeColorStr() const;
-  void setEdgeStrokeColorStr(const QString &s);
+  const CQChartsColor &edgeStrokeColor() const;
+  void setEdgeStrokeColor(const CQChartsColor &s);
 
   QColor interpEdgeStrokeColor(int i, int n) const;
 
   double edgeStrokeAlpha() const;
   void setEdgeStrokeAlpha(double r);
 
-  double edgeStrokeWidth() const;
-  void setEdgeStrokeWidth(double r);
+  const CQChartsLength &edgeStrokeWidth() const;
+  void setEdgeStrokeWidth(const CQChartsLength &l);
 
   //---
 
@@ -317,8 +318,8 @@ class CQChartsSankeyPlot : public CQChartsPlot {
   const QFont &textFont() const;
   void setTextFont(const QFont &f);
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &s);
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
 
   QColor interpTextColor(int i, int n) const;
 

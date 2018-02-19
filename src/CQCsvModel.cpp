@@ -38,8 +38,9 @@ load(const QString &filename)
     int i = 0;
 
     for (const auto &f : header) {
-      if (i == 0 && isFirstColumnHeader())
-        vheader_.push_back(f.c_str());
+      if (i == 0 && isFirstColumnHeader()) {
+        //vheader_.push_back(f.c_str());
+      }
       else
         hheader_.push_back(f.c_str());
 
@@ -103,4 +104,67 @@ load(const QString &filename)
   genColumnTypes();
 
   return true;
+}
+
+void
+CQCsvModel::
+save(std::ostream &os)
+{
+  save(this, os);
+}
+
+void
+CQCsvModel::
+save(QAbstractItemModel *model, std::ostream &os)
+{
+  int nc = model->columnCount();
+
+  if (isFirstLineHeader()) {
+    bool output = false;
+
+    if (isFirstColumnHeader())
+      output = true;
+
+    for (int c = 0; c < nc; ++c) {
+      QString str = model->headerData(c, Qt::Horizontal).toString();
+
+      if (output)
+        os << ",";
+
+      os << str.toStdString();
+
+      output = true;
+    }
+
+    os << "\n";
+  }
+
+  int nr = model->rowCount();
+
+  for (int r = 0; r < nr; ++r) {
+    bool output = false;
+
+    if (isFirstColumnHeader()) {
+      QString str = model->headerData(r, Qt::Vertical).toString();
+
+      os << str.toStdString();
+
+      output = true;
+    }
+
+    for (int c = 0; c < nc; ++c) {
+      QModelIndex ind = model->index(r, c);
+
+      QString str = model->data(ind).toString();
+
+      if (output)
+        os << ",";
+
+      os << str.toStdString();
+
+      output = true;
+    }
+
+    os << "\n";
+  }
 }

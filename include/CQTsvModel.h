@@ -24,6 +24,9 @@ class CQTsvModel : public CQDataModel {
 
   bool load(const QString &filename);
 
+  void save(std::ostream &os);
+  void save(QAbstractItemModel *model, std::ostream &os);
+
  protected:
   QString filename_;                    // input filename
   bool    commentHeader_     { false }; // first comment line has column names

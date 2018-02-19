@@ -37,14 +37,11 @@ CQChartsDelaunayPlot::
 CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model)
 {
-  pointObj_ = new CQChartsPointObj(this);
-  lineObj_  = new CQChartsLineObj(this);
+  pointData_.visible = true;
 
-  CQChartsPaletteColor linesColor (CQChartsPaletteColor::Type::THEME_VALUE, 1);
-  CQChartsPaletteColor pointsColor(CQChartsPaletteColor::Type::PALETTE);
+  CQChartsColor pointsColor(CQChartsColor::Type::PALETTE);
 
-  lineObj_ ->setColor      (linesColor);
-  pointObj_->setStrokeColor(pointsColor);
+  pointData_.stroke.color = pointsColor;
 
   addAxes();
 
@@ -54,9 +51,6 @@ CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
 CQChartsDelaunayPlot::
 ~CQChartsDelaunayPlot()
 {
-  delete pointObj_;
-  delete lineObj_;
-
   delete delaunay_;
 }
 
@@ -75,18 +69,18 @@ setVoronoi(bool b)
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsDelaunayPlot::
-pointsStrokeColorStr() const
+pointsStrokeColor() const
 {
-  return pointObj_->strokeColorStr();
+  return pointData_.stroke.color;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsStrokeColorStr(const QString &s)
+setPointsStrokeColor(const CQChartsColor &c)
 {
-  pointObj_->setStrokeColorStr(s);
+  pointData_.stroke.color = c;
 
   update();
 }
@@ -95,37 +89,37 @@ QColor
 CQChartsDelaunayPlot::
 interpPointStrokeColor(int i, int n) const
 {
-  return pointObj_->interpStrokeColor(i, n);
+  return pointsStrokeColor().interpColor(this, i, n);
 }
 
 double
 CQChartsDelaunayPlot::
 pointsStrokeAlpha() const
 {
-  return pointObj_->strokeAlpha();
+  return pointData_.stroke.alpha;
 }
 
 void
 CQChartsDelaunayPlot::
 setPointsStrokeAlpha(double a)
 {
-  pointObj_->setStrokeAlpha(a);
+  pointData_.stroke.alpha = a;
 
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsDelaunayPlot::
-pointsFillColorStr() const
+pointsFillColor() const
 {
-  return pointObj_->fillColorStr();
+  return pointData_.fill.color;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsFillColorStr(const QString &str)
+setPointsFillColor(const CQChartsColor &c)
 {
-  pointObj_->setFillColorStr(str);
+  pointData_.fill.color = c;
 
   update();
 }
@@ -134,39 +128,39 @@ QColor
 CQChartsDelaunayPlot::
 interpPointFillColor(int i, int n) const
 {
-  return pointObj_->interpFillColor(i, n);
+  return pointsFillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsDelaunayPlot::
 pointsFillAlpha() const
 {
-  return pointObj_->fillAlpha();
+  return pointData_.fill.alpha;
 }
 
 void
 CQChartsDelaunayPlot::
 setPointsFillAlpha(double a)
 {
-  pointObj_->setFillAlpha(a);
+  pointData_.fill.alpha = a;
 
   update();
 }
 
 //---
 
-QString
+const CQChartsColor &
 CQChartsDelaunayPlot::
-linesColorStr() const
+linesColor() const
 {
-  return lineObj_->colorStr();
+  return lineData_.color;
 }
 
 void
 CQChartsDelaunayPlot::
-setLinesColorStr(const QString &str)
+setLinesColor(const CQChartsColor &c)
 {
-  lineObj_->setColorStr(str);
+  lineData_.color = c;
 
   update();
 }
@@ -175,7 +169,27 @@ QColor
 CQChartsDelaunayPlot::
 interpLinesColor(int i, int n) const
 {
-  return lineObj_->interpColor(i, n);
+  return linesColor().interpColor(this, i, n);
+}
+
+QString
+CQChartsDelaunayPlot::
+symbolName() const
+{
+  return CQChartsPlotSymbolMgr::typeToName(pointData_.type);
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolName(const QString &s)
+{
+  CQChartsPlotSymbol::Type type = CQChartsPlotSymbolMgr::nameToType(s);
+
+  if (type != CQChartsPlotSymbol::Type::NONE) {
+    pointData_.type = type;
+
+    update();
+  }
 }
 
 //---
@@ -432,6 +446,8 @@ void
 CQChartsDelaunayPlot::
 drawForeground(QPainter *painter)
 {
+  painter->save();
+
   setClipRect(painter);
 
   if (! isVoronoi())
@@ -442,6 +458,8 @@ drawForeground(QPainter *painter)
   //---
 
   CQChartsPlot::drawForeground(painter);
+
+  painter->restore();
 }
 
 void
@@ -455,7 +473,9 @@ drawDelaunay(QPainter *painter)
 
     QPen pen(lc);
 
-    pen.setWidthF(linesWidth());
+    double lw = lengthPixelWidth(linesWidth());
+
+    pen.setWidthF(lw);
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;
@@ -503,7 +523,9 @@ drawVoronoi(QPainter *painter)
     else
       pen.setStyle(Qt::NoPen);
 
-    pen.setWidthF(symbolLineWidth());
+    double lw = lengthPixelWidth(symbolLineWidth());
+
+    pen.setWidthF(lw);
 
     if (isSymbolFilled()) {
       QColor bc = interpPointFillColor(0, 1);
@@ -540,13 +562,11 @@ drawVoronoi(QPainter *painter)
   //---
 
   if (isLines()) {
-    QColor lc = interpLinesColor(0, 1);
+    CQChartsLineData ld;
 
-    lc.setAlphaF(linesAlpha());
-
-    double lw = linesWidth();
-
-    CQChartsLineDash ld;
+    ld.width = linesWidth();
+    ld.color = linesColor();
+    ld.alpha = linesAlpha();
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CQChartsHull3D::Edge *e = *pve;
@@ -559,7 +579,7 @@ drawVoronoi(QPainter *painter)
       windowToPixel(v1->x(), v1->y(), px1, py1);
       windowToPixel(v2->x(), v2->y(), px2, py2);
 
-      CQChartsLineObj::draw(painter, QPointF(px1, py1), QPointF(px2, py2), lc, lw, ld);
+      drawLine(painter, QPointF(px1, py1), QPointF(px2, py2), ld);
     }
   }
 }
@@ -662,7 +682,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   else
     pen.setStyle(Qt::NoPen);
 
-  pen.setWidthF(plot_->symbolLineWidth());
+  double lw = plot_->lengthPixelWidth(plot_->symbolLineWidth());
+
+  pen.setWidthF(lw);
 
   if (plot_->isSymbolFilled()) {
     QColor bc = plot_->interpPointFillColor(0, 1);
@@ -690,5 +712,5 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  CQChartsPointObj::draw(painter, QPointF(px, py), symbol, s);
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, s);
 }

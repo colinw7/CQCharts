@@ -3,7 +3,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsTip.h>
 
 #include <QMenu>
@@ -39,8 +38,8 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   headerTextBoxObj_ = new CQChartsTextBoxObj(this);
   textBoxObj_       = new CQChartsTextBoxObj(this);
 
-  headerTextBoxObj_->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
-  textBoxObj_      ->setBackgroundColor(CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE));
+  headerTextBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  textBoxObj_      ->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setHeaderBorder(true);
   setHeaderFilled(true);
@@ -53,12 +52,12 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   headerTextBoxObj_->setTextFontSize(12.0);
   textBoxObj_      ->setTextFontSize(14.0);
 
-  CQChartsPaletteColor textColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
 
   headerTextBoxObj_->setTextColor(textColor);
   textBoxObj_      ->setTextColor(textColor);
 
-  CQChartsPaletteColor headerFillColor(CQChartsPaletteColor::Type::THEME_VALUE, 0.4);
+  CQChartsColor headerFillColor(CQChartsColor::Type::THEME_VALUE, 0.4);
 
   headerTextBoxObj_->setBackgroundColor(headerFillColor);
 
@@ -94,18 +93,18 @@ setHeaderFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-headerFillColorStr() const
+headerFillColor() const
 {
-  return headerTextBoxObj_->backgroundColorStr();
+  return headerTextBoxObj_->backgroundColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setHeaderFillColorStr(const QString &s)
+setHeaderFillColor(const CQChartsColor &c)
 {
-  headerTextBoxObj_->setBackgroundColorStr(s);
+  headerTextBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -151,18 +150,18 @@ setHeaderBorder(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-headerBorderColorStr() const
+headerBorderColor() const
 {
-  return headerTextBoxObj_->borderColorStr();
+  return headerTextBoxObj_->borderColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setHeaderBorderColorStr(const QString &str)
+setHeaderBorderColor(const CQChartsColor &c)
 {
-  headerTextBoxObj_->setBorderColorStr(str);
+  headerTextBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -190,7 +189,7 @@ setHeaderBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsTreeMapPlot::
 headerBorderWidth() const
 {
@@ -199,9 +198,9 @@ headerBorderWidth() const
 
 void
 CQChartsTreeMapPlot::
-setHeaderBorderWidth(double r)
+setHeaderBorderWidth(const CQChartsLength &l)
 {
-  headerTextBoxObj_->setBorderWidth(r);
+  headerTextBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -224,18 +223,18 @@ setHeaderTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-headerTextColorStr() const
+headerTextColor() const
 {
-  return headerTextBoxObj_->textColorStr();
+  return headerTextBoxObj_->textColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setHeaderTextColorStr(const QString &s)
+setHeaderTextColor(const CQChartsColor &c)
 {
-  headerTextBoxObj_->setTextColorStr(s);
+  headerTextBoxObj_->setTextColor(c);
 
   update();
 }
@@ -271,7 +270,9 @@ calcHeaderHeight() const
 {
   QFontMetricsF fm(headerTextFont());
 
-  return std::max(headerHeight(), fm.height() + 4);
+  double hh = lengthPixelHeight(headerHeight());
+
+  return std::max(hh, fm.height() + 4);
 }
 
 //----
@@ -292,18 +293,18 @@ setFilled(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-fillColorStr() const
+fillColor() const
 {
-  return textBoxObj_->backgroundColorStr();
+  return textBoxObj_->backgroundColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setFillColorStr(const QString &s)
+setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColorStr(s);
+  textBoxObj_->setBackgroundColor(c);
 
   update();
 }
@@ -349,10 +350,10 @@ setFillPattern(Pattern pattern)
 
 void
 CQChartsTreeMapPlot::
-setMarginWidth(double r)
+setMarginWidth(const CQChartsLength &l)
 {
-  if (r != marginWidth_) {
-    marginWidth_ = r;
+  if (l != marginWidth_) {
+    marginWidth_ = l;
 
     updateCurrentRoot();
   }
@@ -376,18 +377,18 @@ setBorder(bool b)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-borderColorStr() const
+borderColor() const
 {
-  return textBoxObj_->borderColorStr();
+  return textBoxObj_->borderColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setBorderColorStr(const QString &str)
+setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColorStr(str);
+  textBoxObj_->setBorderColor(c);
 
   update();
 }
@@ -415,7 +416,7 @@ setBorderAlpha(double a)
   update();
 }
 
-double
+const CQChartsLength &
 CQChartsTreeMapPlot::
 borderWidth() const
 {
@@ -424,9 +425,9 @@ borderWidth() const
 
 void
 CQChartsTreeMapPlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(r);
+  textBoxObj_->setBorderWidth(l);
 
   update();
 }
@@ -449,18 +450,18 @@ setTextFont(const QFont &f)
   update();
 }
 
-QString
+const CQChartsColor &
 CQChartsTreeMapPlot::
-textColorStr() const
+textColor() const
 {
-  return textBoxObj_->textColorStr();
+  return textBoxObj_->textColor();
 }
 
 void
 CQChartsTreeMapPlot::
-setTextColorStr(const QString &s)
+setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColorStr(s);
+  textBoxObj_->setTextColor(c);
 
   update();
 }
@@ -746,7 +747,7 @@ CQChartsTreeMapPlot::
 replaceNodes()
 {
   windowHeaderHeight_ = pixelToWindowHeight(calcHeaderHeight());
-  windowMarginWidth_  = pixelToWindowWidth (marginWidth());
+  windowMarginWidth_  = lengthPixelWidth   (marginWidth());
 
   CQChartsTreeMapHierNode *hier = currentRoot();
 
@@ -989,7 +990,7 @@ loadFlat()
 
       double size = 1.0;
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn());
+      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
 
       if (valueInd.isValid()) {
         bool ok2 = true;
@@ -1115,11 +1116,11 @@ addExtraNodes(CQChartsTreeMapHierNode *hier)
     CQChartsTreeMapNode *node =
       new CQChartsTreeMapNode(this, hier, "", hier->size(), hier->ind());
 
-    int r = unnormalizeIndex(hier->ind()).row();
+    QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
     OptColor color;
 
-    if (colorSetColor("color", r, color))
+    if (colorSetColor("color", ind1.row(), color))
       node->setColor(*color);
 
     node->setDepth (hier->depth() + 1);
@@ -1369,8 +1370,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->headerBorderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->headerBorderWidth());
+
     pen.setColor (bc);
-    pen.setWidthF(plot_->headerBorderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen = QPen(Qt::NoPen);
@@ -1458,11 +1461,13 @@ calcId() const
   if (plot_->idColumn() >= 0) {
     QAbstractItemModel *model = plot_->model();
 
-    int r = plot_->unnormalizeIndex(node_->ind()).row();
+    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+
+    QModelIndex idInd = model->index(ind1.row(), plot_->idColumn(), ind1.parent());
 
     bool ok;
 
-    QString idStr = CQChartsUtil::modelString(model, r, plot_->idColumn(), ok);
+    QString idStr = CQChartsUtil::modelString(model, idInd, ok);
 
     if (ok)
       return idStr;
@@ -1486,11 +1491,13 @@ calcTipId() const
   if (plot_->colorColumn() >= 0) {
     QAbstractItemModel *model = plot_->model();
 
-    int r = plot_->unnormalizeIndex(node_->ind()).row();
+    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+
+    QModelIndex colorInd = model->index(ind1.row(), plot_->colorColumn(), ind1.parent());
 
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, r, plot_->colorColumn(), ok);
+    QString colorStr = CQChartsUtil::modelString(model, colorInd, ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1560,8 +1567,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     c.setAlphaF(plot_->fillAlpha());
 
     brush.setColor(c);
-    brush.setStyle(CQChartsFillObj::patternToStyle(
-      (CQChartsFillObj::Pattern) plot_->fillPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->fillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -1574,8 +1581,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     bc.setAlphaF(plot_->borderAlpha());
 
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
     pen.setColor (bc);
-    pen.setWidthF(plot_->borderWidth());
+    pen.setWidthF(bw);
   }
   else {
     pen = QPen(Qt::NoPen);
@@ -1617,28 +1626,15 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // calc text size and position
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
-#if 0
-  double tw  = fm.width(name);
-  double fdy = (fm.ascent() - fm.descent())/2;
-
-  double px = (px1 + px2)/2 - tw/2;
-  double py = (py1 + py2)/2 + fdy;
-
   //---
 
   // draw label
-  painter->setClipRect(qrect);
+  CQChartsTextOptions textOptions;
 
-  if (plot_->isTextContrast())
-    plot_->drawContrastText(painter, px, py, name, tpen);
-  else {
-    painter->setPen(tpen);
+  textOptions.contrast  = plot_->isTextContrast();
+  textOptions.formatted = true;
 
-    painter->drawText(px, py, name);
-  }
-#else
-  plot_->drawTextInBox(painter, qrect, name, tpen, plot_->isTextContrast());
-#endif
+  plot_->drawTextInBox(painter, qrect, name, tpen, textOptions);
 
   //---
 

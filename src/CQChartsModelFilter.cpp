@@ -130,25 +130,49 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
   QAbstractItemModel *model = sourceModel();
   assert(model);
 
+  class RowVisitor : public CQChartsUtil::ModelVisitor {
+   public:
+    RowVisitor(const CQChartsModelFilter *filter, int column) :
+     filter_(filter), column_(column) {
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
+      QModelIndex ind = model->index(row, column_, parent);
+
+      if (filter_->acceptsItem(ind)) {
+        accepted_ = true;
+        return State::TERMINATE;
+      }
+
+      return State::OK;
+    }
+
+    State hierPostVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
+      if (isAccepted()) {
+        QModelIndex ind = model->index(row, column_, parent);
+
+        filter_->addExpand(ind);
+      }
+
+      return State::OK;
+    }
+
+    bool isAccepted() const { return accepted_; }
+
+   private:
+    const CQChartsModelFilter* filter_   { nullptr };
+    int                        column_   { 0 };
+    bool                       accepted_ { false };
+  };
+
   int column = filterKeyColumn();
 
-  QModelIndex ind = model->index(row, 0, parent);
+  RowVisitor visitor(this, column);
 
-  if (model->hasChildren(ind)) {
-    QModelIndex ind1 = model->index(row, column, parent);
+  (void) visitModel(model, parent, row, visitor);
 
-    if (! anyChildMatch(ind1))
-      return false;
-
-    expand_.insert(ind1);
-
-    return true;
-  }
-  else {
-    QModelIndex ind1 = model->index(row, column, parent);
-
-    return acceptsItem(ind1);
-  }
+  // TODO: cache result for hier traversal
+  return visitor.isAccepted();
 }
 
 bool
@@ -224,39 +248,8 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
   else {
     bool ok;
 
-    return expr_->match(filterData.filter(), ind.row(), ind.column(), ok);
+    return expr_->match(filterData.filter(), ind, ok);
   }
-}
-
-bool
-CQChartsModelFilter::
-anyChildMatch(const QModelIndex &parent) const
-{
-  QAbstractItemModel *model = sourceModel();
-  assert(model);
-
-  int column = filterKeyColumn();
-
-  int nr = model->rowCount(parent);
-
-  for (int row = 0; row < nr; ++row) {
-    QModelIndex child = model->index(row, 0, parent);
-
-    if (model->hasChildren(child)) {
-      QModelIndex child1 = model->index(row, column, parent);
-
-      if (! anyChildMatch(child1))
-        return true;
-    }
-    else {
-      QModelIndex child1 = model->index(row, column, parent);
-
-      if (acceptsItem(child1))
-        return true;
-    }
-  }
-
-  return false;
 }
 
 #if 0
@@ -367,29 +360,29 @@ initFilter()
 
 QVariant
 CQChartsModelFilter::
-data(const QModelIndex &index, int role) const
+data(const QModelIndex &ind, int role) const
 {
-  QVariant var = QSortFilterProxyModel::data(index, role);
+  QVariant var = QSortFilterProxyModel::data(ind, role);
 
   if (role == Qt::EditRole && ! var.isValid())
-    var = QSortFilterProxyModel::data(index, Qt::DisplayRole);
+    var = QSortFilterProxyModel::data(ind, Qt::DisplayRole);
 
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
-    if (! index.isValid())
+    if (! ind.isValid())
       return QVariant();
 
-    assert(index.model() == this);
+    assert(ind.model() == this);
 
-    QModelIndex index1 = mapToSource(index);
+    QModelIndex ind1 = mapToSource(ind);
 
-    assert(index.column() == index1.column());
+    assert(ind.column() == ind1.column());
 
     CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
     if (role == Qt::DisplayRole)
-      return columnTypeMgr->getDisplayData(this, index1.column(), var);
+      return columnTypeMgr->getDisplayData(this, ind1.column(), var);
     else
-      return columnTypeMgr->getUserData(this, index1.column(), var);
+      return columnTypeMgr->getUserData(this, ind1.column(), var);
   }
 
   return var;

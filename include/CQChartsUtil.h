@@ -68,7 +68,14 @@ int hierRowCount(QAbstractItemModel *model);
 
 bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor);
 
-void visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor);
+bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
+                ModelVisitor &visitor);
+
+ModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
+                                    ModelVisitor &visitor);
+
+ModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
+                                  int r, ModelVisitor &visitor);
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 
@@ -428,6 +435,21 @@ inline bool intersectLines(const QPointF &l1s, const QPointF &l1e,
   return true;
 }
 
+inline bool intersectLines(double x11, double y11, double x21, double y21,
+                           double x12, double y12, double x22, double y22,
+                           double &xi, double &yi)
+{
+  QPointF pi;
+
+  bool rc = intersectLines(QPointF(x11, y11), QPointF(x21, y21),
+                           QPointF(x12, y12), QPointF(x22, y22), pi);
+
+  xi = pi.x();
+  yi = pi.y();
+
+  return rc;
+}
+
 //---
 
 inline QColor bwColor(const QColor &c) {
@@ -713,11 +735,13 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bo
   return var;
 }
 
+#if 0
 inline QVariant modelValue(QAbstractItemModel *model, int row, int col, bool &ok) {
   QModelIndex ind = model->index(row, col);
 
   return modelValue(model, ind, ok);
 }
+#endif
 
 inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
@@ -726,11 +750,13 @@ inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bo
   return var.toString();
 }
 
+#if 0
 inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok) {
   QModelIndex ind = model->index(row, col);
 
   return modelString(model, ind, ok);
 }
+#endif
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
@@ -739,11 +765,13 @@ inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool 
   return varToReal(var, ok);
 }
 
+#if 0
 inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
   QModelIndex ind = model->index(row, col);
 
   return modelReal(model, ind, ok);
 }
+#endif
 
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
@@ -752,11 +780,13 @@ inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool
   return varToInt(var, ok);
 }
 
+#if 0
 inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
   QModelIndex ind = model->index(row, col);
 
   return modelInteger(model, ind, ok);
 }
+#endif
 
 //------
 

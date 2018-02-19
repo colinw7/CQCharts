@@ -58,6 +58,9 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   propertyTree_ = new CQPropertyViewTree(this, window_->view()->propertyModel());
 
+  connect(propertyTree_, SIGNAL(itemSelected(QObject *, const QString &)),
+          this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
+
   viewLayout->addWidget(propertyTree_);
 
   tab_->addTab(viewFrame, "Properties");

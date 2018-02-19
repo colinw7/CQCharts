@@ -40,7 +40,7 @@ CQChartsHierScatterPlot::
 CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierscatter"), model), dataLabel_(this)
 {
-  symbolBorderColor_ = CQChartsPaletteColor(CQChartsPaletteColor::Type::THEME_VALUE, 1);
+  symbolData_.size = 4;
 
   addAxes();
 
@@ -784,7 +784,7 @@ CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPo
 
 bool
 CQChartsHierScatterKeyColor::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   CQChartsHierScatterPlot *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 

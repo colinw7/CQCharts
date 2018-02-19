@@ -27,6 +27,9 @@ class CQChartsViewSettings : public QFrame {
 
   CQChartsGradientPaletteControl *paletteControl() const { return paletteControl_; }
 
+ signals:
+  void propertyItemSelected(QObject *obj, const QString &path);
+
  private slots:
   void gradientComboSlot(int ind);
   void paletteIndexSlot(int ind);

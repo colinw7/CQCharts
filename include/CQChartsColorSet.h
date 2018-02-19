@@ -2,11 +2,11 @@
 #define CQChartsColorSet_H
 
 #include <CQChartsValueSet.h>
-#include <CQChartsPaletteColor.h>
+#include <CQChartsColor.h>
 
 class CQChartsColorSet : public CQChartsValueSet {
  public:
-  using OptColor = boost::optional<CQChartsPaletteColor>;
+  using OptColor = boost::optional<CQChartsColor>;
 
  public:
   CQChartsColorSet() :
@@ -40,7 +40,7 @@ class CQChartsColorSet : public CQChartsValueSet {
 
     double value = imap(i);
 
-    color = CQChartsPaletteColor(CQChartsPaletteColor::Type::PALETTE_VALUE, value);
+    color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, value);
 
     return true;
   }

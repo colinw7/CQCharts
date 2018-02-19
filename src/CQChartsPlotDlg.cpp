@@ -904,7 +904,9 @@ stringToColumn(const QString &str, int &column) const
   if (! str.length())
     return false;
 
-  for (int column1 = 0; column1 < model()->columnCount(); ++column1) {
+  int nc = model()->columnCount();
+
+  for (int column1 = 0; column1 < nc; ++column1) {
     QVariant var = model()->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
 
     if (! var.isValid())

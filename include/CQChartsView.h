@@ -267,6 +267,8 @@ class CQChartsView : public QFrame {
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;
 
+  bool editMousePress(const QPointF &p);
+
   void keyPressEvent(QKeyEvent *ke) override;
 
   void resizeEvent(QResizeEvent *) override;
@@ -276,6 +278,10 @@ class CQChartsView : public QFrame {
   void paint(QPainter *painter);
 
   //---
+
+  void showProbeLines(const QPointF &p);
+
+  void editMouseMotion(const QPointF &p);
 
   void updatePosText(const QPointF &pos);
 
@@ -356,8 +362,14 @@ class CQChartsView : public QFrame {
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &w) const;
   CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &p) const;
 
+  double pixelToSignedWindowWidth (double ww) const;
+  double pixelToSignedWindowHeight(double wh) const;
+
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
+
+  double windowToSignedPixelWidth (double ww) const;
+  double windowToSignedPixelHeight(double wh) const;
 
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;

@@ -68,7 +68,7 @@ class CQChartsPlotObj : public QObject {
 
   virtual void handleResize() { }
 
-  virtual void mousePress() { }
+  virtual void selectPress() { }
 
   virtual void addSelectIndex() { }
 

@@ -14,8 +14,8 @@ class CQChartsTreeSelectionModel : public QItemSelectionModel {
    QItemSelectionModel(tree->CQTreeView::model()), tree_(tree) {
   }
 
-  void select(const QModelIndex &index, SelectionFlags flags) {
-    QItemSelectionModel::select(index, adjustFlags(flags));
+  void select(const QModelIndex &ind, SelectionFlags flags) {
+    QItemSelectionModel::select(ind, adjustFlags(flags));
   }
 
   void select(const QItemSelection &selection, SelectionFlags flags) {

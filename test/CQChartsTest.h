@@ -60,12 +60,14 @@ class CQChartsTest : public CQAppWindow {
     TSV,
     JSON,
     DATA,
-    EXPR
+    EXPR,
+    VARS
   };
 
   using NameValues = std::map<QString,QString>;
   using NameReals  = std::map<QString,double>;
   using NameBools  = std::map<QString,bool>;
+  using Vars       = std::vector<QString>;
 
   struct InputData {
     bool    commentHeader   { false };
@@ -74,6 +76,7 @@ class CQChartsTest : public CQAppWindow {
     QString filter;
     QString fold;
     QString sort;
+    Vars    vars;
   };
 
   struct NameValueData {
@@ -199,6 +202,8 @@ class CQChartsTest : public CQAppWindow {
 
   QAbstractItemModel *createExprModel(int n=100);
 
+  QAbstractItemModel *createVarsModel(const Vars &vars);
+
   bool initPlot(const InitData &initData);
 
   CQChartsPlot *initPlotView(const ViewData *viewData, const InitData &initData,
@@ -274,26 +279,43 @@ class CQChartsTest : public CQAppWindow {
   using Args = std::vector<QString>;
 
 #ifdef CQ_CHARTS_CEIL
-  static void setPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void viewLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void plotLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void loadLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void modelLCmd      (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void loadLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void modelLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void processLCmd     (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void sortLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void viewLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void plotLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void setPropertyLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void getPropertyLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void themeLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void paletteLCmd     (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void textShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void arrowShapeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void rectShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void ellipseShapeLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void polyShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void pointShapeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
 #endif
 
-  bool loadCmd       (const Args &args);
-  void modelCmd      (const Args &args);
-  void processCmd    (const Args &args);
+  bool loadCmd        (const Args &args);
+  void modelCmd       (const Args &args);
+  void processCmd     (const Args &args);
   void sortCmd       (const Args &args);
-  void viewCmd       (const Args &args);
-  void plotCmd       (const Args &args);
+  void viewCmd        (const Args &args);
+  void plotCmd        (const Args &args);
+  void setPropertyCmd (const Args &args);
+  void getPropertyCmd (const Args &args);
+  void themeCmd       (const Args &args);
+  void paletteCmd     (const Args &args);
+  void textShapeCmd   (const Args &args);
+  void arrowShapeCmd  (const Args &args);
+  void rectShapeCmd   (const Args &args);
+  void ellipseShapeCmd(const Args &args);
+  void polyShapeCmd   (const Args &args);
+  void pointShapeCmd  (const Args &args);
+
   void overlayCmd    (const Args &args);
   void y1y2Cmd       (const Args &args);
-  void paletteCmd    (const Args &args);
-  void themeCmd      (const Args &args);
-  void setPropertyCmd(const Args &args);
-  void getPropertyCmd(const Args &args);
 
   void letCmd        (const Args &args);
   void ifCmd         (const Args &args);
@@ -308,6 +330,9 @@ class CQChartsTest : public CQAppWindow {
 #ifdef CQ_CHARTS_CEIL
   Args parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs);
 #endif
+
+  CQChartsView *getViewByName(const QString &viewName);
+  CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name);
 
   void setCmdRc(int rc);
   void setCmdRc(const QString &rc);

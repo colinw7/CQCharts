@@ -9,11 +9,16 @@
 
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
- CQChartsTextBoxObj(plot)
+ CQChartsTextBoxObj(plot), editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
 {
+  setObjectName("title");
+
   setTextStr("Title");
 
-  textFont_.setPointSizeF(1.2*textFont().pointSizeF());
+  textData_.font.setPointSizeF(1.2*textFont().pointSizeF());
+
+  boxData_.background.visible = false;
+  boxData_.border    .visible = false;
 }
 
 void
@@ -188,9 +193,9 @@ contains(const CQChartsGeom::Point &p) const
 
 bool
 CQChartsTitle::
-mouseDragPress(const CQChartsGeom::Point &p)
+editPress(const CQChartsGeom::Point &p)
 {
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   location_.location = LocationType::ABSOLUTE;
 
@@ -201,26 +206,36 @@ mouseDragPress(const CQChartsGeom::Point &p)
 
 bool
 CQChartsTitle::
-mouseDragMove(const CQChartsGeom::Point &p)
+editMove(const CQChartsGeom::Point &p)
 {
-  double dx = p.x - dragPos_.x;
-  double dy = p.y - dragPos_.y;
+  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+
+  double dx = p.x - dragPos.x;
+  double dy = p.y - dragPos.y;
 
   location_.location = LocationType::ABSOLUTE;
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
-  dragPos_ = p;
+  editHandles_.setDragPos(p);
 
   redraw();
 
   return true;
 }
 
-void
+bool
 CQChartsTitle::
-mouseDragRelease(const CQChartsGeom::Point &)
+editMotion(const CQChartsGeom::Point &p)
 {
+  return editHandles_.selectInside(p);
+}
+
+bool
+CQChartsTitle::
+editRelease(const CQChartsGeom::Point &)
+{
+  return true;
 }
 
 //------
@@ -286,7 +301,15 @@ draw(QPainter *painter)
   //---
 
   if (plot_->showBoxes())
-    plot_->drawWindowColorBox(painter, bbox_);
+    plot_->drawWindowColorBox(painter, bbox_, Qt::red);
+
+  //---
+
+  if (isSelected()) {
+    editHandles_.setBBox(this->bbox());
+
+    editHandles_.draw(painter);
+  }
 
   //---
 

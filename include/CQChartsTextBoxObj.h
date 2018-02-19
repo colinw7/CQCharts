@@ -2,6 +2,7 @@
 #define CQChartsTextBoxObj_H
 
 #include <CQChartsBoxObj.h>
+#include <CQChartsData.h>
 #include <CQChartsGeom.h>
 #include <QFont>
 #include <QRectF>
@@ -9,13 +10,13 @@
 class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool    textVisible  READ isTextVisible  WRITE setTextVisible )
-  Q_PROPERTY(QString textStr      READ textStr        WRITE setTextStr     )
-  Q_PROPERTY(QFont   textFont     READ textFont       WRITE setTextFont    )
-  Q_PROPERTY(QString textColor    READ textColorStr   WRITE setTextColorStr)
-  Q_PROPERTY(double  textAlpha    READ textAlpha      WRITE setTextAlpha   )
-  Q_PROPERTY(double  textAngle    READ textAngle      WRITE setTextAngle   )
-  Q_PROPERTY(bool    textContrast READ isTextContrast WRITE setTextContrast)
+  Q_PROPERTY(bool          textVisible  READ isTextVisible  WRITE setTextVisible )
+  Q_PROPERTY(QString       textStr      READ textStr        WRITE setTextStr     )
+  Q_PROPERTY(QFont         textFont     READ textFont       WRITE setTextFont    )
+  Q_PROPERTY(CQChartsColor textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(double        textAlpha    READ textAlpha      WRITE setTextAlpha   )
+  Q_PROPERTY(double        textAngle    READ textAngle      WRITE setTextAngle   )
+  Q_PROPERTY(bool          textContrast READ isTextContrast WRITE setTextContrast)
 
  public:
   CQChartsTextBoxObj(CQChartsPlot *plot);
@@ -30,26 +31,26 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   const QString &textStr() const { return textStr_; }
   virtual void setTextStr(const QString &s) { textStr_ = s; redrawBoxObj(); }
 
-  const QFont &textFont() const { return textFont_; }
-  virtual void setTextFont(const QFont &f) { textFont_ = f; redrawBoxObj(); }
+  const QFont &textFont() const { return textData_.font; }
+  virtual void setTextFont(const QFont &f) { textData_.font = f; redrawBoxObj(); }
 
-  void setTextFontSize(double s) { textFont_.setPointSizeF(s); redrawBoxObj(); }
+  const CQChartsColor &textColor() const { return textData_.color; }
+  void setTextColor(const CQChartsColor &c) { textData_.color = c; redrawBoxObj(); }
 
-  void setTextColor(const CQChartsPaletteColor &c) { textColor_ = c; redrawBoxObj(); }
+  double textAlpha() const { return textData_.alpha; }
+  void setTextAlpha(double r) { textData_.alpha = r; redrawBoxObj(); }
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &s);
+  double textAngle() const { return textData_.angle; }
+  void setTextAngle(double r) { textData_.angle = r; redrawBoxObj(); }
+
+  bool isTextContrast() const { return textData_.contrast; }
+  void setTextContrast(bool b) { textData_.contrast = b; redrawBoxObj(); }
+
+  //---
+
+  void setTextFontSize(double s) { textData_.font.setPointSizeF(s); redrawBoxObj(); }
 
   QColor interpTextColor(int i, int n) const;
-
-  double textAlpha() const { return textAlpha_; }
-  void setTextAlpha(double r) { textAlpha_ = r; redrawBoxObj(); }
-
-  double textAngle() const { return textAngle_; }
-  void setTextAngle(double r) { textAngle_ = r; redrawBoxObj(); }
-
-  bool isTextContrast() const { return textContrast_; }
-  void setTextContrast(bool b) { textContrast_ = b; redrawBoxObj(); }
 
   //---
 
@@ -57,21 +58,17 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
 
   //---
 
-  virtual void draw(QPainter *painter, const QRectF &rect) const;
-  virtual void draw(QPainter *painter, const QPolygonF &poly) const;
+  void draw(QPainter *painter, const QRectF &rect) const;
+  void draw(QPainter *painter, const QPolygonF &poly) const;
 
   //---
 
   void drawText(QPainter *painter, const QRectF &rect, const QString &text) const;
 
  protected:
-  bool                 textVisible_  { true };
-  QString              textStr_;
-  QFont                textFont_;
-  CQChartsPaletteColor textColor_;
-  double               textAlpha_    { 1.0 };
-  double               textAngle_    { 0.0 };
-  bool                 textContrast_ { false };
+  bool             textVisible_  { true };
+  QString          textStr_;
+  CQChartsTextData textData_;
 };
 
 //------

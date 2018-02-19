@@ -935,21 +935,21 @@ class CQChartsGradientPaletteDefinedColorsDelegate : public QItemDelegate {
 
   // Override to create editor
   QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-                        const QModelIndex &index) const;
+                        const QModelIndex &ind) const;
 
   // Override to get content from editor
-  void setEditorData(QWidget *editor, const QModelIndex &index) const;
+  void setEditorData(QWidget *editor, const QModelIndex &ind) const;
 
   // Override to set editor from content
-  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &ind) const;
 
-  QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const;
+  QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &ind) const;
 
   void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
-                            const QModelIndex &index) const;
+                            const QModelIndex &ind) const;
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
-             const QModelIndex &index) const;
+             const QModelIndex &ind) const;
 
  private:
   CQChartsGradientPaletteDefinedColors *colors_;
@@ -1035,21 +1035,21 @@ CQChartsGradientPaletteDefinedColorsDelegate(CQChartsGradientPaletteDefinedColor
 
 QWidget *
 CQChartsGradientPaletteDefinedColorsDelegate::
-createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &ind) const
 {
-  QTableWidgetItem *item = colors_->item(index.row(), index.column());
+  QTableWidgetItem *item = colors_->item(ind.row(), ind.column());
   assert(item);
 
-  const CQChartsGradientPaletteDefinedColors::RealColor &realColor = colors_->realColor(index.row());
+  const CQChartsGradientPaletteDefinedColors::RealColor &realColor = colors_->realColor(ind.row());
 
-  if       (index.column() == 0) {
+  if       (ind.column() == 0) {
     CQRealSpin *edit = new CQRealSpin(parent);
 
     edit->setValue(realColor.r);
 
     return edit;
   }
-  else if (index.column() == 1) {
+  else if (ind.column() == 1) {
     CQColorChooser *edit = new CQColorChooser(parent);
 
     edit->setStyles(CQColorChooser::Text | CQColorChooser::ColorButton);
@@ -1059,25 +1059,25 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIn
     return edit;
   }
   else
-    return QItemDelegate::createEditor(parent, option, index);
+    return QItemDelegate::createEditor(parent, option, ind);
 }
 
 // model->editor
 void
 CQChartsGradientPaletteDefinedColorsDelegate::
-setEditorData(QWidget *w, const QModelIndex &index) const
+setEditorData(QWidget *w, const QModelIndex &ind) const
 {
-  QTableWidgetItem *item = colors_->item(index.row(), index.column());
+  QTableWidgetItem *item = colors_->item(ind.row(), ind.column());
   assert(item);
 
-  const CQChartsGradientPaletteDefinedColors::RealColor &realColor = colors_->realColor(index.row());
+  const CQChartsGradientPaletteDefinedColors::RealColor &realColor = colors_->realColor(ind.row());
 
-  if       (index.column() == 0) {
+  if       (ind.column() == 0) {
     CQRealSpin *edit = qobject_cast<CQRealSpin *>(w);
 
     edit->setValue(realColor.r);
   }
-  else if (index.column() == 1) {
+  else if (ind.column() == 1) {
     CQColorChooser *edit = qobject_cast<CQColorChooser *>(w);
 
     const QColor &c = realColor.c;
@@ -1085,65 +1085,65 @@ setEditorData(QWidget *w, const QModelIndex &index) const
     edit->setColor(c);
   }
   else
-    QItemDelegate::setEditorData(w, index);
+    QItemDelegate::setEditorData(w, ind);
 }
 
 // editor->model
 void
 CQChartsGradientPaletteDefinedColorsDelegate::
-setModelData(QWidget *w, QAbstractItemModel *model, const QModelIndex &index) const
+setModelData(QWidget *w, QAbstractItemModel *model, const QModelIndex &ind) const
 {
-  QTableWidgetItem *item = colors_->item(index.row(), index.column());
+  QTableWidgetItem *item = colors_->item(ind.row(), ind.column());
   assert(item);
 
-  CQChartsGradientPaletteDefinedColors::RealColor realColor = colors_->realColor(index.row());
+  CQChartsGradientPaletteDefinedColors::RealColor realColor = colors_->realColor(ind.row());
 
-  if       (index.column() == 0) {
+  if       (ind.column() == 0) {
     CQRealSpin *edit = qobject_cast<CQRealSpin *>(w);
 
     double r = edit->value();
 
-    model->setData(index, QVariant(r));
+    model->setData(ind, QVariant(r));
 
     realColor.r = r;
   }
-  else if (index.column() == 1) {
+  else if (ind.column() == 1) {
     CQColorChooser *edit = qobject_cast<CQColorChooser *>(w);
 
     realColor.c = edit->color();
 
-    model->setData(index, QVariant(realColor.c));
+    model->setData(ind, QVariant(realColor.c));
   }
   else
-    QItemDelegate::setModelData(w, model, index);
+    QItemDelegate::setModelData(w, model, ind);
 
-  colors_->setRealColor(index.row(), realColor);
+  colors_->setRealColor(ind.row(), realColor);
 }
 
 QSize
 CQChartsGradientPaletteDefinedColorsDelegate::
-sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+sizeHint(const QStyleOptionViewItem &option, const QModelIndex &ind) const
 {
-  QTableWidgetItem *item = colors_->item(index.row(), index.column());
+  QTableWidgetItem *item = colors_->item(ind.row(), ind.column());
   assert(item);
 
-  return QItemDelegate::sizeHint(option, index);
+  return QItemDelegate::sizeHint(option, ind);
 }
 
 void
 CQChartsGradientPaletteDefinedColorsDelegate::
 updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option,
-                     const QModelIndex &/* index */) const
+                     const QModelIndex &/* ind */) const
 {
   editor->setGeometry(option.rect);
 }
 
 void
 CQChartsGradientPaletteDefinedColorsDelegate::
-paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &ind) const
 {
-  QTableWidgetItem *item = colors_->item(index.row(), index.column());
+  QTableWidgetItem *item = colors_->item(ind.row(), ind.column());
   assert(item);
 
-  QItemDelegate::paint(painter, option, index);
+  QItemDelegate::paint(painter, option, ind);
 }

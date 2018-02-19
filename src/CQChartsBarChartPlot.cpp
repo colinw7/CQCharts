@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsFillObj.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
@@ -49,9 +48,9 @@ CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
   (void) addColorSet("color");
 
   borderObj_ = new CQChartsBoxObj(this);
-  fillObj_   = new CQChartsFillObj(this);
 
-  fillObj_->setVisible(true);
+  fillData_.visible = true;
+  fillData_.color   = CQChartsColor(CQChartsColor::Type::PALETTE);
 
   //---
 
@@ -70,7 +69,6 @@ CQChartsBarChartPlot::
 ~CQChartsBarChartPlot()
 {
   delete borderObj_;
-  delete fillObj_;
 }
 
 //---
@@ -184,11 +182,11 @@ addProperties()
   addProperty("", this, "horizontal");
   addProperty("", this, "margin"    , "barMargin");
 
-  addProperty("stroke", this, "border"          , "visible"   );
-  addProperty("stroke", this, "borderColor"     , "color"     );
-  addProperty("stroke", this, "borderAlpha"     , "alpha"     );
-  addProperty("stroke", this, "borderWidth"     , "width"     );
-  addProperty("stroke", this, "borderCornerSize", "cornerSize");
+  addProperty("stroke", this, "border"     , "visible"   );
+  addProperty("stroke", this, "borderColor", "color"     );
+  addProperty("stroke", this, "borderAlpha", "alpha"     );
+  addProperty("stroke", this, "borderWidth", "width"     );
+  addProperty("stroke", this, "cornerSize" , "cornerSize");
 
   addProperty("fill", this, "barFill"   , "visible");
   addProperty("fill", this, "barColor"  , "color"  );
@@ -267,18 +265,18 @@ setBorder(bool b)
   borderObj_->setBorder(b); update();
 }
 
-QString
+const CQChartsColor &
 CQChartsBarChartPlot::
-borderColorStr() const
+borderColor() const
 {
-  return borderObj_->borderColorStr();
+  return borderObj_->borderColor();
 }
 
 void
 CQChartsBarChartPlot::
-setBorderColorStr(const QString &s)
+setBorderColor(const CQChartsColor &c)
 {
-  borderObj_->setBorderColorStr(s);
+  borderObj_->setBorderColor(c);
 }
 
 QColor
@@ -302,7 +300,7 @@ setBorderAlpha(double r)
   borderObj_->setBorderAlpha(r); update();
 }
 
-double
+const CQChartsLength &
 CQChartsBarChartPlot::
 borderWidth() const
 {
@@ -311,23 +309,23 @@ borderWidth() const
 
 void
 CQChartsBarChartPlot::
-setBorderWidth(double r)
+setBorderWidth(const CQChartsLength &l)
 {
-  borderObj_->setBorderWidth(r); update();
+  borderObj_->setBorderWidth(l); update();
 }
 
 double
 CQChartsBarChartPlot::
-borderCornerSize() const
+cornerSize() const
 {
-  return borderObj_->borderCornerSize();
+  return borderObj_->cornerSize();
 }
 
 void
 CQChartsBarChartPlot::
-setBorderCornerSize(double r)
+setCornerSize(double r)
 {
-  borderObj_->setBorderCornerSize(r); update();
+  borderObj_->setCornerSize(r); update();
 }
 
 //---
@@ -336,65 +334,79 @@ bool
 CQChartsBarChartPlot::
 isBarFill() const
 {
-  return fillObj_->isVisible();
+  return fillData_.visible;
 }
 
 void
 CQChartsBarChartPlot::
 setBarFill(bool b)
 {
-  fillObj_->setVisible(b); update();
+  if (b != fillData_.visible) {
+    fillData_.visible = b;
+
+    update();
+  }
 }
 
-QString
+const CQChartsColor &
 CQChartsBarChartPlot::
-barColorStr() const
+barColor() const
 {
-  return fillObj_->colorStr();
+  return fillData_.color;
 }
 
 void
 CQChartsBarChartPlot::
-setBarColorStr(const QString &str)
+setBarColor(const CQChartsColor &c)
 {
-  fillObj_->setColorStr(str);
+  if (c != fillData_.color) {
+    fillData_.color = c;
 
-  update();
+    update();
+  }
 }
 
 QColor
 CQChartsBarChartPlot::
 interpBarColor(int i, int n) const
 {
-  return fillObj_->interpColor(i, n);
+  return barColor().interpColor(this, i, n);
 }
 
 double
 CQChartsBarChartPlot::
 barAlpha() const
 {
-  return fillObj_->alpha();
+  return fillData_.alpha;
 }
 
 void
 CQChartsBarChartPlot::
 setBarAlpha(double a)
 {
-  fillObj_->setAlpha(a); update();
+  if (a != fillData_.alpha) {
+    fillData_.alpha = a;
+
+    update();
+  }
 }
 
 CQChartsBarChartPlot::Pattern
 CQChartsBarChartPlot::
 barPattern() const
 {
-  return (Pattern) fillObj_->pattern();
+  return (Pattern) fillData_.pattern;
 }
 
 void
 CQChartsBarChartPlot::
 setBarPattern(Pattern pattern)
 {
-  fillObj_->setPattern((CQChartsFillObj::Pattern) pattern); update();
+  if (pattern != (Pattern) fillData_.pattern) {
+    fillData_.pattern = (CQChartsFillPattern::Type) pattern;
+
+    update();
+  }
 }
 
 //---
@@ -1508,8 +1520,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       bc.setAlphaF(plot_->borderAlpha());
 
+      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
       pen.setColor (bc);
-      pen.setWidthF(plot_->borderWidth());
+      pen.setWidthF(bw);
     }
     else {
       pen.setStyle(Qt::NoPen);
@@ -1548,8 +1562,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       barColor.setAlphaF(plot_->barAlpha());
 
       barBrush.setColor(barColor);
-      barBrush.setStyle(CQChartsFillObj::patternToStyle(
-        (CQChartsFillObj::Pattern) plot_->barPattern()));
+      barBrush.setStyle(CQChartsFillPattern::toStyle(
+       (CQChartsFillPattern::Type) plot_->barPattern()));
     }
     else {
       barBrush.setStyle(Qt::NoBrush);
@@ -1564,7 +1578,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       painter->setPen(pen);
       painter->setBrush(barBrush);
 
-      CQChartsRoundedPolygon::draw(painter, qrect, plot_->borderCornerSize());
+      CQChartsRoundedPolygon::draw(painter, qrect, plot_->cornerSize());
     }
     else {
       if (! plot_->isBorder())
@@ -1626,7 +1640,7 @@ CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
 
 bool
 CQChartsBarKeyColor::
-mousePress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &)
 {
   setSetHidden(! isSetHidden());
 

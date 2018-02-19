@@ -32,6 +32,7 @@ CQCharts()
 {
   CQChartsLength  ::registerMetaType();
   CQChartsLineDash::registerMetaType();
+  CQChartsColor   ::registerMetaType();
 }
 
 CQCharts::
@@ -115,6 +116,8 @@ addView(const QString &id)
   assert(! getView(id1));
 
   view->setId(id1);
+
+  view->setObjectName(view->id());
 
   views_[id1] = view;
 

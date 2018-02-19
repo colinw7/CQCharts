@@ -98,7 +98,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n);
 
-  bool mousePress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
 };
@@ -136,29 +136,29 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
 class CQChartsBoxPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     xColumn          READ xColumn          WRITE setXColumn         )
-  Q_PROPERTY(int     yColumn          READ yColumn          WRITE setYColumn         )
-  Q_PROPERTY(int     groupColumn      READ groupColumn      WRITE setGroupColumn     )
-  Q_PROPERTY(bool    skipOutliers     READ isSkipOutliers   WRITE setSkipOutliers    )
-  Q_PROPERTY(bool    connected        READ isConnected      WRITE setConnected       )
-  Q_PROPERTY(double  whiskerRange     READ whiskerRange     WRITE setWhiskerRange    )
-  Q_PROPERTY(double  boxWidth         READ boxWidth         WRITE setBoxWidth        )
-  Q_PROPERTY(bool    boxFilled        READ isBoxFilled      WRITE setBoxFilled       )
-  Q_PROPERTY(QString boxColor         READ boxColorStr      WRITE setBoxColorStr     )
-  Q_PROPERTY(double  boxAlpha         READ boxAlpha         WRITE setBoxAlpha        )
-  Q_PROPERTY(Pattern boxPattern       READ boxPattern       WRITE setBoxPattern      )
-  Q_PROPERTY(bool    boxStroked       READ isBorderStroked  WRITE setBorderStroked   )
-  Q_PROPERTY(QString borderColor      READ borderColorStr   WRITE setBorderColorStr  )
-  Q_PROPERTY(double  borderAlpha      READ borderAlpha      WRITE setBorderAlpha     )
-  Q_PROPERTY(double  borderWidth      READ borderWidth      WRITE setBorderWidth     )
-  Q_PROPERTY(double  cornerSize       READ cornerSize       WRITE setCornerSize      )
-  Q_PROPERTY(QString whiskerColor     READ whiskerColorStr  WRITE setWhiskerColorStr )
-  Q_PROPERTY(double  whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
-  Q_PROPERTY(double  whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
-  Q_PROPERTY(QString textColor        READ textColorStr     WRITE setTextColorStr    )
-  Q_PROPERTY(QFont   font             READ font             WRITE setFont            )
-  Q_PROPERTY(double  textMargin       READ textMargin       WRITE setTextMargin      )
-  Q_PROPERTY(double  symbolSize       READ symbolSize       WRITE setSymbolSize      )
+  Q_PROPERTY(int            xColumn          READ xColumn          WRITE setXColumn         )
+  Q_PROPERTY(int            yColumn          READ yColumn          WRITE setYColumn         )
+  Q_PROPERTY(int            groupColumn      READ groupColumn      WRITE setGroupColumn     )
+  Q_PROPERTY(bool           skipOutliers     READ isSkipOutliers   WRITE setSkipOutliers    )
+  Q_PROPERTY(bool           connected        READ isConnected      WRITE setConnected       )
+  Q_PROPERTY(double         whiskerRange     READ whiskerRange     WRITE setWhiskerRange    )
+  Q_PROPERTY(CQChartsLength boxWidth         READ boxWidth         WRITE setBoxWidth        )
+  Q_PROPERTY(bool           boxFilled        READ isBoxFilled      WRITE setBoxFilled       )
+  Q_PROPERTY(CQChartsColor  boxColor         READ boxColor         WRITE setBoxColor        )
+  Q_PROPERTY(double         boxAlpha         READ boxAlpha         WRITE setBoxAlpha        )
+  Q_PROPERTY(Pattern        boxPattern       READ boxPattern       WRITE setBoxPattern      )
+  Q_PROPERTY(bool           boxStroked       READ isBorderStroked  WRITE setBorderStroked   )
+  Q_PROPERTY(CQChartsColor  borderColor      READ borderColor      WRITE setBorderColor     )
+  Q_PROPERTY(double         borderAlpha      READ borderAlpha      WRITE setBorderAlpha     )
+  Q_PROPERTY(CQChartsLength borderWidth      READ borderWidth      WRITE setBorderWidth     )
+  Q_PROPERTY(double         cornerSize       READ cornerSize       WRITE setCornerSize      )
+  Q_PROPERTY(CQChartsColor  whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
+  Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
+  Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+  Q_PROPERTY(CQChartsColor  textColor        READ textColor        WRITE setTextColor       )
+  Q_PROPERTY(QFont          font             READ font             WRITE setFont            )
+  Q_PROPERTY(double         textMargin       READ textMargin       WRITE setTextMargin      )
+  Q_PROPERTY(double         symbolSize       READ symbolSize       WRITE setSymbolSize      )
 
   Q_ENUMS(Pattern)
 
@@ -203,16 +203,16 @@ class CQChartsBoxPlot : public CQChartsPlot {
   double whiskerRange() const { return whiskerRange_; }
   void setWhiskerRange(double r) { whiskerRange_ = r; updateRangeAndObjs(); }
 
-  double boxWidth() const { return boxWidth_; }
-  void setBoxWidth(double r) { boxWidth_ = r; update(); }
+  const CQChartsLength &boxWidth() const { return boxWidth_; }
+  void setBoxWidth(const CQChartsLength &l) { boxWidth_ = l; update(); }
 
   //---
 
   bool isBoxFilled() const;
   void setBoxFilled(bool b);
 
-  QString boxColorStr() const;
-  void setBoxColorStr(const QString &s);
+  const CQChartsColor &boxColor() const;
+  void setBoxColor(const CQChartsColor &c);
 
   QColor interpBoxColor(int i, int n) const;
 
@@ -227,37 +227,37 @@ class CQChartsBoxPlot : public CQChartsPlot {
   bool isBorderStroked() const;
   void setBorderStroked(bool b);
 
-  QString borderColorStr() const;
-  void setBorderColorStr(const QString &s);
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const;
   void setBorderAlpha(double r);
 
-  double borderWidth() const;
-  void setBorderWidth(double r);
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
 
   double cornerSize() const;
   void setCornerSize(double r);
 
   //---
 
-  QString whiskerColorStr() const;
-  void setWhiskerColorStr(const QString &s);
+  const CQChartsColor &whiskerColor() const;
+  void setWhiskerColor(const CQChartsColor &c);
 
   QColor interpWhiskerColor(int i, int n) const;
 
-  double whiskerLineWidth() const { return whiskerLineWidth_; }
-  void setWhiskerLineWidth(double r) { whiskerLineWidth_ = r; update(); }
+  const CQChartsLength &whiskerLineWidth() const { return whiskerData_.width; }
+  void setWhiskerLineWidth(const CQChartsLength &l) { whiskerData_.width = l; update(); }
 
   double whiskerExtent() const { return whiskerExtent_; }
   void setWhiskerExtent(double r) { whiskerExtent_ = r; update(); }
 
   //---
 
-  QString textColorStr() const;
-  void setTextColorStr(const QString &s);
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
 
   QColor interpTextColor(int i, int n) const;
 
@@ -308,26 +308,25 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
  private:
-  int                  xColumn_          { 0 };                // x column
-  int                  yColumn_          { 1 };                // y column
-  int                  groupColumn_      { -1 };               // grouping column
-  bool                 skipOutliers_     { false };            // skip outliers
-  bool                 connected_        { false };            // connect boxes
-  CQChartsBoxObj*      boxObj_           { nullptr };          // box data
-  double               whiskerRange_     { 1.5 };              // box width
-  double               boxWidth_         { 0.2 };              // box width
-  CQChartsPaletteColor whiskerColor_;                          // whisker color
-  double               whiskerLineWidth_ { 0.0 };              // whisker line width
-  double               whiskerExtent_    { 0.2 };              // whisker extent
-  CQChartsTextBoxObj*  textObj_          { nullptr };          // text data
-  double               textMargin_       { 2 };                // text margin
-  double               symbolSize_       { 4 };                // symbol size
-  ColumnType           groupType_        { ColumnType::NONE }; // group column data type
-  ColumnType           xType_            { ColumnType::NONE }; // x column data type
-  GroupSetWhiskerMap   groupWhiskers_;                         // whisker data
-  CQChartsValueInd     groupValueInd_;                         // group value inds
-  CQChartsValueInd     xValueInd_;                             // x value inds
-  bool                 grouped_          { false };            // is grouped values
+  int                 xColumn_          { 0 };                // x column
+  int                 yColumn_          { 1 };                // y column
+  int                 groupColumn_      { -1 };               // grouping column
+  bool                skipOutliers_     { false };            // skip outliers
+  bool                connected_        { false };            // connect boxes
+  CQChartsBoxObj*     boxObj_           { nullptr };          // box data
+  double              whiskerRange_     { 1.5 };              // whisker range
+  CQChartsLength      boxWidth_         { 0.2 };              // box width
+  CQChartsLineData    whiskerData_;                           // whisker stroke
+  double              whiskerExtent_    { 0.2 };              // whisker extent
+  CQChartsTextBoxObj* textObj_          { nullptr };          // text data
+  double              textMargin_       { 2 };                // text margin
+  double              symbolSize_       { 4 };                // symbol size
+  ColumnType          groupType_        { ColumnType::NONE }; // group column data type
+  ColumnType          xType_            { ColumnType::NONE }; // x column data type
+  GroupSetWhiskerMap  groupWhiskers_;                         // whisker data
+  CQChartsValueInd    groupValueInd_;                         // group value inds
+  CQChartsValueInd    xValueInd_;                             // x value inds
+  bool                grouped_          { false };            // is grouped values
 };
 
 #endif
