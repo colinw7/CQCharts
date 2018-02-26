@@ -146,8 +146,8 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   bool filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &ind) const;
 
  protected:
-  typedef std::map<QModelIndex,bool> IndexMatches;
-  typedef std::set<QModelIndex>      ExpandInds;
+  using IndexMatches = std::map<QModelIndex,bool>;
+  using ExpandInds   = std::set<QModelIndex>;
 
   using FilterDatas = std::vector<CQChartsModelFilterData>;
 

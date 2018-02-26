@@ -266,16 +266,16 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(int     xColumn            READ xColumn            WRITE setXColumn           )
-  Q_PROPERTY(int     yColumn            READ yColumn            WRITE setYColumn           )
-  Q_PROPERTY(QString yColumns           READ yColumnsStr        WRITE setYColumnsStr       )
-  Q_PROPERTY(int     nameColumn         READ nameColumn         WRITE setNameColumn        )
-  Q_PROPERTY(int     sizeColumn         READ sizeColumn         WRITE setSizeColumn        )
-  Q_PROPERTY(int     pointLabelColumn   READ pointLabelColumn   WRITE setPointLabelColumn  )
-  Q_PROPERTY(int     pointColorColumn   READ pointColorColumn   WRITE setPointColorColumn  )
-  Q_PROPERTY(int     pointSymbolColumn  READ pointSymbolColumn  WRITE setPointSymbolColumn )
-  Q_PROPERTY(int     vectorXColumn      READ vectorXColumn      WRITE setVectorXColumn     )
-  Q_PROPERTY(int     vectorYColumn      READ vectorYColumn      WRITE setVectorYColumn     )
+  Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(CQChartsColumn yColumn           READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(QString        yColumns          READ yColumnsStr       WRITE setYColumnsStr      )
+  Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(CQChartsColumn sizeColumn        READ sizeColumn        WRITE setSizeColumn       )
+  Q_PROPERTY(CQChartsColumn pointLabelColumn  READ pointLabelColumn  WRITE setPointLabelColumn )
+  Q_PROPERTY(CQChartsColumn pointColorColumn  READ pointColorColumn  WRITE setPointColorColumn )
+  Q_PROPERTY(CQChartsColumn pointSymbolColumn READ pointSymbolColumn WRITE setPointSymbolColumn)
+  Q_PROPERTY(CQChartsColumn vectorXColumn     READ vectorXColumn     WRITE setVectorXColumn    )
+  Q_PROPERTY(CQChartsColumn vectorYColumn     READ vectorYColumn     WRITE setVectorYColumn    )
 
   // display:
   //  bivariate, stacked, cumulative, impulse, vectors
@@ -336,6 +336,8 @@ class CQChartsXYPlot : public CQChartsPlot {
     BDIAG
   };
 
+  using Columns = std::vector<CQChartsColumn>;
+
  private:
   struct FillUnderData {
     CQChartsFillData fillData;
@@ -361,11 +363,11 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // columns
-  int xColumn() const { return xColumn_; }
-  void setXColumn(int i);
+  const CQChartsColumn &xColumn() const { return xColumn_; }
+  void setXColumn(const CQChartsColumn &c);
 
-  int yColumn() const { return yColumn_; }
-  void setYColumn(int i);
+  const CQChartsColumn &yColumn() const { return yColumn_; }
+  void setYColumn(const CQChartsColumn &c);
 
   const Columns &yColumns() const { return yColumns_; }
   void setYColumns(const Columns &yColumns);
@@ -373,26 +375,29 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString yColumnsStr() const;
   bool setYColumnsStr(const QString &s);
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
 
-  int sizeColumn() const { return sizeColumn_; }
-  void setSizeColumn(int i) { sizeColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &sizeColumn() const { return sizeColumn_; }
+  void setSizeColumn(const CQChartsColumn &c) { sizeColumn_ = c; updateRangeAndObjs(); }
 
-  int pointLabelColumn() const { return pointLabelColumn_; }
-  void setPointLabelColumn(int i) { pointLabelColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &pointLabelColumn() const { return pointLabelColumn_; }
+  void setPointLabelColumn(const CQChartsColumn &c) {
+    pointLabelColumn_ = c; updateRangeAndObjs(); }
 
-  int pointColorColumn() const { return pointColorColumn_; }
-  void setPointColorColumn(int i) { pointColorColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &pointColorColumn() const { return pointColorColumn_; }
+  void setPointColorColumn(const CQChartsColumn &c) {
+    pointColorColumn_ = c; updateRangeAndObjs(); }
 
-  int pointSymbolColumn() const { return pointSymbolColumn_; }
-  void setPointSymbolColumn(int i) { pointSymbolColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &pointSymbolColumn() const { return pointSymbolColumn_; }
+  void setPointSymbolColumn(const CQChartsColumn &c) {
+    pointSymbolColumn_ = c; updateRangeAndObjs(); }
 
-  int vectorXColumn() const { return vectorXColumn_; }
-  void setVectorXColumn(int i) { vectorXColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn & vectorXColumn() const { return vectorXColumn_; }
+  void setVectorXColumn(const CQChartsColumn &c) { vectorXColumn_ = c; updateRangeAndObjs(); }
 
-  int vectorYColumn() const { return vectorYColumn_; }
-  void setVectorYColumn(int i) { vectorYColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn & vectorYColumn() const { return vectorYColumn_; }
+  void setVectorYColumn(const CQChartsColumn &c) { vectorYColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -554,8 +559,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &yv,
                QModelIndex &ind, bool skipBad) const;
 
-  bool modelReal(QAbstractItemModel *model, const QModelIndex &ind,
-                 double &r, bool log, double def) const;
+  bool modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                 const QModelIndex &ind, double &r, bool log, double def) const;
 
   //---
 
@@ -569,7 +574,7 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   int numSets() const;
 
-  int getSetColumn(int i) const;
+  CQChartsColumn getSetColumn(int i) const;
 
   //---
 
@@ -612,29 +617,29 @@ class CQChartsXYPlot : public CQChartsPlot {
     bool visible { false };
   };
 
-  int                xColumn_           { 0 };       // x column
-  int                yColumn_           { 1 };       // y column
-  Columns            yColumns_;                      // multiple y columns
-  int                nameColumn_        { -1 };      // name column
-  int                sizeColumn_        { -1 };      // size column
-  int                pointLabelColumn_  { -1 };      // point label column
-  int                pointColorColumn_  { -1 };      // point color column
-  int                pointSymbolColumn_ { -1 };      // point symbol column
-  int                vectorXColumn_     { -1 };      // vector x direction column
-  int                vectorYColumn_     { -1 };      // vector y direction column
-  bool               stacked_           { false };   // is stacked
-  bool               cumulative_        { false };   // cumulate values
-  CQChartsSymbolData pointData_;                     // point data
-  bool               linesSelectable_   { false };   // are lines selectable
-  CQChartsLineData   lineData_;                      // line data
-  bool               roundedLines_      { false };   // draw rounded (smooth) lines
-  FillUnderData      fillUnderData_;                 // fill under data
-  CQChartsLineData   impulseData_;                   // impulse line data
-  CQChartsArrow*     arrowObj_;                      // vectors data
-  CQChartsTextData   dataLabelData_;                 // data label text data
-  CQChartsLineData   bivariateLineData_;             // bivariate line object
-  mutable double     symbolWidth_       { 1.0 };     // current symbol width
-  mutable double     symbolHeight_      { 1.0 };     // current symbol height
+  CQChartsColumn     xColumn_           { 0 };     // x column
+  CQChartsColumn     yColumn_           { 1 };     // y column
+  Columns            yColumns_;                    // multiple y columns
+  CQChartsColumn     nameColumn_;                  // name column
+  CQChartsColumn     sizeColumn_;                  // size column
+  CQChartsColumn     pointLabelColumn_;            // point label column
+  CQChartsColumn     pointColorColumn_;            // point color column
+  CQChartsColumn     pointSymbolColumn_;           // point symbol column
+  CQChartsColumn     vectorXColumn_;               // vector x direction column
+  CQChartsColumn     vectorYColumn_;               // vector y direction column
+  bool               stacked_           { false }; // is stacked
+  bool               cumulative_        { false }; // cumulate values
+  CQChartsSymbolData pointData_;                   // point data
+  bool               linesSelectable_   { false }; // are lines selectable
+  CQChartsLineData   lineData_;                    // line data
+  bool               roundedLines_      { false }; // draw rounded (smooth) lines
+  FillUnderData      fillUnderData_;               // fill under data
+  CQChartsLineData   impulseData_;                 // impulse line data
+  CQChartsArrow*     arrowObj_;                    // vectors data
+  CQChartsTextData   dataLabelData_;               // data label text data
+  CQChartsLineData   bivariateLineData_;           // bivariate line object
+  mutable double     symbolWidth_       { 1.0 };   // current symbol width
+  mutable double     symbolHeight_      { 1.0 };   // current symbol height
 };
 
 #endif

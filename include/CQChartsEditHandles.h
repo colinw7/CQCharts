@@ -31,10 +31,10 @@ class CQChartsEditHandles : public QObject {
   const CQChartsResizeHandle &urHandle() const { return urHandle_; }
 
   const CQChartsGeom::Point &dragPos() const { return dragPos_; }
-  void setDragPos(const CQChartsGeom::Point &v) { dragPos_ = v; }
+  void setDragPos(const CQChartsGeom::Point &p) { dragPos_ = p; }
 
   const CQChartsResizeHandle::Side &dragSide() const { return dragSide_; }
-  void setDragSide(const CQChartsResizeHandle::Side &v) { dragSide_ = v; }
+  void setDragSide(const CQChartsResizeHandle::Side &s) { dragSide_ = s; }
 
   bool selectInside(const CQChartsGeom::Point &p);
 

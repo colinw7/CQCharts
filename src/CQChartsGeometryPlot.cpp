@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsTip.h>
 #include <CQStrParse.h>
 #include <QPainter>
 
@@ -19,7 +20,8 @@ addParameters()
   addColumnParameter("geometry", "Geometry", "geometryColumn", "", 0);
   addColumnParameter("value"   , "Value"   , "valueColumn"   , "", 1);
 
-  addColumnParameter("name", "Name", "nameColumn", "optional");
+  addColumnParameter("color", "Color", "colorColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
 }
 
 CQChartsPlot *
@@ -35,14 +37,14 @@ CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model), dataLabel_(this)
 {
-  boxObj_ = new CQChartsBoxObj(this);
-
-  boxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setFilled(true);
   setBorder(true);
 
   setLayerActive(Layer::FG, true);
+
+  addAxes();
 
   addTitle();
 }
@@ -50,7 +52,6 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
 CQChartsGeometryPlot::
 ~CQChartsGeometryPlot()
 {
-  delete boxObj_;
 }
 
 //---
@@ -59,71 +60,63 @@ bool
 CQChartsGeometryPlot::
 isBorder() const
 {
-  return boxObj_->isBorder();
+  return shapeData_.border.visible;
 }
 
 void
 CQChartsGeometryPlot::
 setBorder(bool b)
 {
-  boxObj_->setBorder(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsGeometryPlot::
 borderColor() const
 {
-  return boxObj_->borderColor();
+  return shapeData_.border.color;
 }
 
 void
 CQChartsGeometryPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  boxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsGeometryPlot::
 interpBorderColor(int i, int n) const
 {
-  return boxObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsGeometryPlot::
 borderAlpha() const
 {
-  return boxObj_->borderAlpha();
+  return shapeData_.border.alpha;
 }
 
 void
 CQChartsGeometryPlot::
 setBorderAlpha(double a)
 {
-  boxObj_->setBorderAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsGeometryPlot::
 borderWidth() const
 {
-  return boxObj_->borderWidth();
+  return shapeData_.border.width;
 }
 
 void
 CQChartsGeometryPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  boxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
 //------
@@ -132,71 +125,67 @@ bool
 CQChartsGeometryPlot::
 isFilled() const
 {
-  return boxObj_->isBackground();
+  return shapeData_.background.visible;
 }
 
 void
 CQChartsGeometryPlot::
 setFilled(bool b)
 {
-  boxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsGeometryPlot::
 fillColor() const
 {
-  return boxObj_->backgroundColor();
+  return shapeData_.background.color;
 }
 
 void
 CQChartsGeometryPlot::
 setFillColor(const CQChartsColor &c)
 {
-  boxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsGeometryPlot::
 interpFillColor(int i, int n) const
 {
-  return boxObj_->interpBackgroundColor(i, n);
+  return fillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsGeometryPlot::
 fillAlpha() const
 {
-  return boxObj_->backgroundAlpha();
+  return shapeData_.background.alpha;
 }
 
 void
 CQChartsGeometryPlot::
 setFillAlpha(double a)
 {
-  boxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsGeometryPlot::Pattern
 CQChartsGeometryPlot::
 fillPattern() const
 {
-  return (Pattern) boxObj_->backgroundPattern();
+  return (Pattern) shapeData_.background.pattern;
 }
 
 void
 CQChartsGeometryPlot::
 setFillPattern(Pattern pattern)
 {
-  boxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) shapeData_.background.pattern) {
+    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
 //---
@@ -210,6 +199,7 @@ addProperties()
   addProperty("columns", this, "nameColumn"    , "name"    );
   addProperty("columns", this, "geometryColumn", "geometry");
   addProperty("columns", this, "valueColumn"   , "value"   );
+  addProperty("columns", this, "colorColumn"   , "color"   );
 
   addProperty("stroke", this, "border"     , "visible");
   addProperty("stroke", this, "borderColor", "color"  );
@@ -242,6 +232,11 @@ updateRange(bool apply)
 
   minValue_ = 0.0;
   maxValue_ = 0.0;
+
+  //---
+
+  geometryColumnType_ = columnValueType(geometryColumn());
+  colorColumnType_    = columnValueType(colorColumn());
 
   //---
 
@@ -278,29 +273,50 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
   Geometry geometry;
 
-  QModelIndex nameInd  = model->index(row, nameColumn    (), parent);
-  QModelIndex geomInd  = model->index(row, geometryColumn(), parent);
-  QModelIndex valueInd = model->index(row, valueColumn   (), parent);
+  //---
 
-  QModelIndex geomInd1 = normalizeIndex(geomInd);
+  // get geometry name
+  bool ok1;
+
+  geometry.name = CQChartsUtil::modelString(model, row, nameColumn(), parent, ok1);
 
   //---
 
-  bool ok1;
+  // decode geometry column value into polygons
+  if (geometryColumnType_ == ColumnType::RECT ||
+      geometryColumnType_ == ColumnType::POLYGON) {
+    bool ok2;
 
-  geometry.name = CQChartsUtil::modelString(model, nameInd, ok1);
+    QVariant var = CQChartsUtil::modelValue(model, row, geometryColumn(), parent, ok2);
 
-  //--
+    QVariant rvar = CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var);
 
-  bool ok2;
+    QPolygonF poly;
 
-  QString geomStr = CQChartsUtil::modelString(model, geomInd, ok2);
+    if (geometryColumnType_ == ColumnType::RECT) {
+      QRectF r = rvar.value<QRectF>();
 
-  if (! decodeGeometry(geomStr, geometry.polygons)) {
-    charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
-    return;
+      poly = QPolygonF(r);
+    }
+    else
+      poly = rvar.value<QPolygonF>();
+
+    geometry.polygons.push_back(poly);
+  }
+  else {
+    bool ok2;
+
+    QString geomStr = CQChartsUtil::modelString(model, row, geometryColumn(), parent, ok2);
+
+    if (! decodeGeometry(geomStr, geometry.polygons)) {
+      charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
+      return;
+    }
   }
 
+  //---
+
+  // update range from polygons
   for (auto &poly : geometry.polygons) {
     for (int j = 0; j < poly.count(); ++j) {
       const QPointF &p = poly[j];
@@ -313,16 +329,18 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
   //---
 
-  bool ok;
+  // get geometry associated value
+  bool ok3;
 
-  geometry.value = CQChartsUtil::modelReal(model, valueInd, ok);
+  geometry.value = CQChartsUtil::modelReal(model, row, valueColumn(), parent, ok3);
 
-  if (! ok)
+  if (! ok3)
     geometry.value = row;
 
   if (CQChartsUtil::isNaN(geometry.value))
     return;
 
+  // update value range
   if (geometries_.empty()) {
     minValue_ = geometry.value;
     maxValue_ = geometry.value;
@@ -334,10 +352,38 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
   //---
 
+  // get geometry custom color
+  if (colorColumn().isValid()) {
+    bool ok4;
+
+    QVariant var = CQChartsUtil::modelValue(model, row, colorColumn(), parent, ok4);
+
+    if (colorColumnType_ == ColumnType::COLOR) {
+      QColor c = var.value<QColor>();
+
+      geometry.color = CQChartsColor(c);
+    }
+    else {
+      QString str;
+
+      bool rc = CQChartsUtil::variantToString(var, str);
+      assert(rc);
+
+      geometry.color = CQChartsColor(str);
+    }
+  }
+
+  //---
+
+  // save model index for geometry
+  QModelIndex geomInd  = model->index(row, geometryColumn().column(), parent);
+  QModelIndex geomInd1 = normalizeIndex(geomInd);
+
   geometry.ind = geomInd1;
 
   //---
 
+  // add to list
   geometries_.push_back(geometry);
 }
 
@@ -403,9 +449,10 @@ decodeGeometry(const QString &geomStr, Polygons &polygons)
 
 bool
 CQChartsGeometryPlot::
-decodePolygons(const QString &polysStr, Polygons &polygons)
+decodePolygons(const QString &str, Polygons &polys)
 {
-  CQStrParse parse(polysStr);
+#if 0
+  CQStrParse parse(str);
 
   parse.skipSpace();
 
@@ -436,13 +483,17 @@ decodePolygons(const QString &polysStr, Polygons &polygons)
     parse.skipChar();
 
   return true;
+#else
+  return CQChartsUtil::stringToPolygons(str, polys);
+#endif
 }
 
 bool
 CQChartsGeometryPlot::
-decodePolygon(const QString &polyStr, QPolygonF &poly)
+decodePolygon(const QString &str, QPolygonF &poly)
 {
-  CQStrParse parse(polyStr);
+#if 0
+  CQStrParse parse(str);
 
   parse.skipSpace();
 
@@ -482,13 +533,17 @@ decodePolygon(const QString &polyStr, QPolygonF &poly)
     parse.skipChar();
 
   return true;
+#else
+  return CQChartsUtil::stringToPolygon(str, poly);
+#endif
 }
 
+#if 0
 bool
 CQChartsGeometryPlot::
-decodePoint(const QString &pointStr, QPointF &point, QString &pointStr1)
+decodePoint(const QString &str, QPointF &point, QString &pointStr1)
 {
-  CQStrParse parse(pointStr);
+  CQStrParse parse(str);
 
   parse.skipSpace();
 
@@ -520,6 +575,7 @@ decodePoint(const QString &pointStr, QPointF &point, QString &pointStr1)
 
   return true;
 }
+#endif
 
 bool
 CQChartsGeometryPlot::
@@ -548,12 +604,14 @@ initObjs()
 
     CQChartsGeometryObj *geomObj;
 
-    if (valueColumn() < 0)
-      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
-                                        0.0, geometry.name, geometry.ind, i, n);
+    if (! valueColumn().isValid())
+      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, i, n);
     else
-      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons,
-                                        geometry.value, geometry.name, geometry.ind, -1, -1);
+      geomObj = new CQChartsGeometryObj(this, bbox, geometry.polygons, geometry.ind, -1, -1);
+
+    geomObj->setName (geometry.name);
+    geomObj->setValue(geometry.value);
+    geomObj->setColor(geometry.color);
 
     addPlotObject(geomObj);
   }
@@ -578,10 +636,8 @@ draw(QPainter *painter)
 
 CQChartsGeometryObj::
 CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                    const Polygons &polygons, double value, const QString &name,
-                    const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), polygons_(polygons), value_(value),
- name_(name), ind_(ind), i_(i), n_(n)
+                    const Polygons &polygons, const QModelIndex &ind, int i, int n) :
+ CQChartsPlotObj(plot, rect), plot_(plot), polygons_(polygons), ind_(ind), i_(i), n_(n)
 {
 }
 
@@ -589,10 +645,22 @@ QString
 CQChartsGeometryObj::
 calcId() const
 {
-  if (plot_->valueColumn() < 0)
-    return name_;
+  if (! plot_->valueColumn().isValid())
+    return name();
 
-  return QString("%1:%2").arg(name_).arg(value_);
+  return QString("%1:%2").arg(name()).arg(value());
+}
+
+QString
+CQChartsGeometryObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Name" , name ());
+  tableTip.addTableRow("Value", value());
+
+  return tableTip.str();
 }
 
 bool
@@ -616,6 +684,7 @@ addSelectIndex()
   QModelIndex nameInd     = plot_->selectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
   QModelIndex geometryInd = plot_->selectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
   QModelIndex valueInd    = plot_->selectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
+  QModelIndex colorInd    = plot_->selectIndex(ind_.row(), plot_->colorColumn   (), ind_.parent());
 
   if (nameInd.isValid())
     plot_->addSelectIndex(nameInd);
@@ -625,6 +694,9 @@ addSelectIndex()
 
   if (valueInd.isValid())
     plot_->addSelectIndex(valueInd);
+
+  if (colorInd.isValid())
+    plot_->addSelectIndex(colorInd);
 }
 
 bool
@@ -635,7 +707,8 @@ isIndex(const QModelIndex &ind) const
 
   return (ind == plot_->selectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent()) ||
           ind == plot_->selectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent()) ||
-          ind == plot_->selectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent()));
+          ind == plot_->selectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent()) ||
+          ind == plot_->selectIndex(ind_.row(), plot_->colorColumn   (), ind_.parent()));
 }
 
 void
@@ -683,13 +756,19 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     if (plot_->isFilled()) {
       QColor fc;
 
-      if (n_ > 0) {
-        fc = plot_->interpFillColor(i_, n_);
+      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+
+      if (color().isValid()) {
+        if (n_ > 0)
+          fc = color().interpColor(plot_, i_, n_);
+        else
+          fc = color().interpColor(plot_, dv);
       }
       else {
-        double v = (value_ - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
-
-        fc = plot_->interpPaletteColor(v);
+        if (n_ > 0)
+          fc = plot_->interpFillColor(i_, n_);
+        else
+          fc = plot_->interpPaletteColor(dv);
       }
 
       fc.setAlphaF(plot_->fillAlpha());
@@ -738,6 +817,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     QRectF qrect = CQChartsUtil::toQRect(prect);
 
-    plot_->dataLabel().draw(painter, qrect, name_);
+    plot_->dataLabel().draw(painter, qrect, name());
   }
 }

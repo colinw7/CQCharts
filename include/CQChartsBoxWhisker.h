@@ -8,8 +8,8 @@
 template<typename VALUE>
 class CQChartsBoxWhiskerT {
  public:
-  typedef std::vector<VALUE> Values;
-  typedef std::vector<int>   Outliers;
+  using Values   = std::vector<VALUE>;
+  using Outliers = std::vector<int>;
 
  public:
   CQChartsBoxWhiskerT() { }

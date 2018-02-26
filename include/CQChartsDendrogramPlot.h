@@ -6,7 +6,6 @@
 #include <CQChartsDendrogram.h>
 
 class CQChartsDendrogramPlot;
-class CQChartsTextBoxObj;
 
 //---
 
@@ -49,8 +48,8 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
 class CQChartsDendrogramPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int            nameColumn      READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(int            valueColumn     READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(CQChartsColumn nameColumn      READ nameColumn      WRITE setNameColumn     )
+  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(double         circleSize      READ circleSize      WRITE setCircleSize     )
   Q_PROPERTY(double         textMargin      READ textMargin      WRITE setTextMargin     )
   Q_PROPERTY(CQChartsColor  nodeBorderColor READ nodeBorderColor WRITE setNodeBorderColor)
@@ -72,11 +71,11 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
 
   //---
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -168,13 +167,14 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
                 CQChartsDendrogram::Node *node);
 
  private:
-  int                 nameColumn_  { 0 };
-  int                 valueColumn_ { 1 };
-  CQChartsDendrogram* dendrogram_  { nullptr };
-  double              circleSize_  { 8 };
-  double              textMargin_  { 4 };
-  CQChartsTextBoxObj* nodeBoxObj_  { nullptr }; // node fill/border/text object
-  CQChartsTextBoxObj* edgeBoxObj_  { nullptr }; // edge fill/border/text object
+  CQChartsColumn      nameColumn_  { 0 };       // name column
+  CQChartsColumn      valueColumn_ { 1 };       // value column
+  CQChartsDendrogram* dendrogram_  { nullptr }; // dendogram class
+  double              circleSize_  { 8 };       // circle size
+  double              textMargin_  { 4 };       // text margin
+  CQChartsShapeData   nodeData_;                // node fill/border data
+  CQChartsStrokeData  edgeData_;                // edge stroke data
+  CQChartsTextData    textData_;                // text data
 };
 
 #endif

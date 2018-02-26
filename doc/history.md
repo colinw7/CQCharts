@@ -318,5 +318,20 @@
  + rename CQChartsPaletteColor to CQChartsColor
  + Add rect, ellipse, poly, text and point annotation
  + Remove FillObj, LineObj, PointObj. Use data struectures
- + Use CQChartsLenght for more property widths
+ + Use CQChartsLength for more property widths
  + Support object cross select from property view
+# 2/25/2018
+ + Use CQChartsColumn class for all column values to support model columns, expression columns
+   and vertical header columns
+ + Improve usage of Column Type so columns with custom value types (rect, polygon, color)
+   are handled using type not manually
+ + Support QRectF and QPolygonF type columns in geometry plot.
+ + More type support in base model
+ + Support color column in geometry plot
+ + Cleanup more object usage for style data
+ + Use CQChartsPosition for more point values
+ + Add some missing color alpha customization in plot colors
+ + Rounded rect support x and y corner sizes with units
+ + Support scaled font in hier bubble plot
+ + Support first column header in CSV reader
+ + Support polyline annotation

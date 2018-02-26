@@ -7,6 +7,7 @@
 #include <CQChartsColumnBucket.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsData.h>
+#include <CQChartsPosition.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -36,7 +37,8 @@ class CQChartsTextAnnotation;
 class CQChartsArrowAnnotation;
 class CQChartsRectAnnotation;
 class CQChartsEllipseAnnotation;
-class CQChartsPolyAnnotation;
+class CQChartsPolygonAnnotation;
+class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsBoxObj;
 class CQPropertyViewModel;
@@ -61,6 +63,7 @@ struct CQChartsTextOptions {
   double        angle     { 0.0 };
   bool          contrast  { false };
   bool          formatted { false };
+  bool          scaled    { false };
   bool          clipped   { true };
   Qt::Alignment align     { Qt::AlignHCenter | Qt::AlignVCenter };
 
@@ -183,40 +186,40 @@ class CQChartsPlot : public QObject {
   Q_OBJECT
 
   // generic columns and control
-  Q_PROPERTY(int          idColumn             READ idColumn        WRITE setIdColumn       )
+  Q_PROPERTY(CQChartsColumn idColumn            READ idColumn            WRITE setIdColumn       )
 
   // visible, rectangle and data range
-  Q_PROPERTY(bool         visible              READ isVisible       WRITE setVisible        )
-  Q_PROPERTY(bool         selected             READ isSelected      WRITE setSelected       )
-  Q_PROPERTY(QRectF       rect                 READ rect            WRITE setRect           )
-  Q_PROPERTY(QRectF       range                READ range           WRITE setRange          )
-  Q_PROPERTY(double       dataScaleX           READ dataScaleX      WRITE updateDataScaleX  )
-  Q_PROPERTY(double       dataScaleY           READ dataScaleY      WRITE updateDataScaleY  )
+  Q_PROPERTY(bool           visible             READ isVisible           WRITE setVisible        )
+  Q_PROPERTY(bool           selected            READ isSelected          WRITE setSelected       )
+  Q_PROPERTY(QRectF         rect                READ rect                WRITE setRect           )
+  Q_PROPERTY(QRectF         range               READ range               WRITE setRange          )
+  Q_PROPERTY(double         dataScaleX          READ dataScaleX          WRITE updateDataScaleX  )
+  Q_PROPERTY(double         dataScaleY          READ dataScaleY          WRITE updateDataScaleY  )
 
   // every
-  Q_PROPERTY(bool         everyEnabled         READ isEveryEnabled  WRITE setEveryEnabled   )
-  Q_PROPERTY(int          everyStart           READ everyStart      WRITE setEveryStart     )
-  Q_PROPERTY(int          everyEnd             READ everyEnd        WRITE setEveryEnd       )
-  Q_PROPERTY(int          everyStep            READ everyStep       WRITE setEveryStep      )
+  Q_PROPERTY(bool           everyEnabled        READ isEveryEnabled      WRITE setEveryEnabled   )
+  Q_PROPERTY(int            everyStart          READ everyStart          WRITE setEveryStart     )
+  Q_PROPERTY(int            everyEnd            READ everyEnd            WRITE setEveryEnd       )
+  Q_PROPERTY(int            everyStep           READ everyStep           WRITE setEveryStep      )
 
   // margin
-  Q_PROPERTY(double       marginLeft           READ marginLeft      WRITE setMarginLeft     )
-  Q_PROPERTY(double       marginTop            READ marginTop       WRITE setMarginTop      )
-  Q_PROPERTY(double       marginRight          READ marginRight     WRITE setMarginRight    )
-  Q_PROPERTY(double       marginBottom         READ marginBottom    WRITE setMarginBottom   )
+  Q_PROPERTY(double         marginLeft          READ marginLeft          WRITE setMarginLeft     )
+  Q_PROPERTY(double         marginTop           READ marginTop           WRITE setMarginTop      )
+  Q_PROPERTY(double         marginRight         READ marginRight         WRITE setMarginRight    )
+  Q_PROPERTY(double         marginBottom        READ marginBottom        WRITE setMarginBottom   )
 
-  // title and associated filesname (if any)
-  Q_PROPERTY(QString      title                READ titleStr        WRITE setTitleStr       )
-  Q_PROPERTY(QString      fileName             READ fileName        WRITE setFileName       )
+  // title and associated filename (if any)
+  Q_PROPERTY(QString        title               READ titleStr            WRITE setTitleStr       )
+  Q_PROPERTY(QString        fileName            READ fileName            WRITE setFileName       )
 
   // plot area
-  Q_PROPERTY(bool           background         READ isBackground    WRITE setBackground     )
-  Q_PROPERTY(CQChartsColor  backgroundColor    READ backgroundColor WRITE setBackgroundColor)
-  Q_PROPERTY(bool           border             READ isBorder        WRITE setBorder         )
-  Q_PROPERTY(CQChartsColor  borderColor        READ borderColor     WRITE setBorderColor    )
-  Q_PROPERTY(CQChartsLength borderWidth        READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(QString        borderSides        READ borderSides     WRITE setBorderSides    )
-  Q_PROPERTY(bool           clip               READ isClip          WRITE setClip           )
+  Q_PROPERTY(bool           background          READ isBackground        WRITE setBackground     )
+  Q_PROPERTY(CQChartsColor  backgroundColor     READ backgroundColor     WRITE setBackgroundColor)
+  Q_PROPERTY(bool           border              READ isBorder            WRITE setBorder         )
+  Q_PROPERTY(CQChartsColor  borderColor         READ borderColor         WRITE setBorderColor    )
+  Q_PROPERTY(CQChartsLength borderWidth         READ borderWidth         WRITE setBorderWidth    )
+  Q_PROPERTY(QString        borderSides         READ borderSides         WRITE setBorderSides    )
+  Q_PROPERTY(bool           clip                READ isClip              WRITE setClip           )
 
   // data area
   Q_PROPERTY(bool           dataBackground      READ isDataBackground    WRITE setDataBackground )
@@ -229,19 +232,19 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool           dataClip            READ isDataClip          WRITE setDataClip       )
 
   // key
-  Q_PROPERTY(bool          keyVisible          READ isKeyVisible        WRITE setKeyVisible     )
+  Q_PROPERTY(bool           keyVisible          READ isKeyVisible        WRITE setKeyVisible     )
 
   // misc
-  Q_PROPERTY(bool          equalScale          READ isEqualScale        WRITE setEqualScale     )
-  Q_PROPERTY(bool          followMouse         READ isFollowMouse       WRITE setFollowMouse    )
-  Q_PROPERTY(bool          overlay             READ isOverlay           WRITE setOverlay        )
-  Q_PROPERTY(bool          y1y2                READ isY1Y2              WRITE setY1Y2           )
-  Q_PROPERTY(bool          invertX             READ isInvertX           WRITE setInvertX        )
-  Q_PROPERTY(bool          invertY             READ isInvertY           WRITE setInvertY        )
-  Q_PROPERTY(bool          logX                READ isLogX              WRITE setLogX           )
-  Q_PROPERTY(bool          logY                READ isLogY              WRITE setLogY           )
-  Q_PROPERTY(bool          autoFit             READ isAutoFit           WRITE setAutoFit        )
-  Q_PROPERTY(bool          showBoxes           READ showBoxes           WRITE setShowBoxes      )
+  Q_PROPERTY(bool           equalScale          READ isEqualScale        WRITE setEqualScale     )
+  Q_PROPERTY(bool           followMouse         READ isFollowMouse       WRITE setFollowMouse    )
+  Q_PROPERTY(bool           overlay             READ isOverlay           WRITE setOverlay        )
+  Q_PROPERTY(bool           y1y2                READ isY1Y2              WRITE setY1Y2           )
+  Q_PROPERTY(bool           invertX             READ isInvertX           WRITE setInvertX        )
+  Q_PROPERTY(bool           invertY             READ isInvertY           WRITE setInvertY        )
+  Q_PROPERTY(bool           logX                READ isLogX              WRITE setLogX           )
+  Q_PROPERTY(bool           logY                READ isLogY              WRITE setLogY           )
+  Q_PROPERTY(bool           autoFit             READ isAutoFit           WRITE setAutoFit        )
+  Q_PROPERTY(bool           showBoxes           READ showBoxes           WRITE setShowBoxes      )
 
  public:
   // per display layer (optional)
@@ -268,7 +271,7 @@ class CQChartsPlot : public QObject {
   };
 
   // column array
-  using Columns = std::vector<int>;
+  using Columns = std::vector<CQChartsColumn>;
 
   // associated plot for overlay/y1y2
   struct OtherPlot {
@@ -655,8 +658,8 @@ class CQChartsPlot : public QObject {
   void clearValueSets();
   void deleteValueSets();
 
-  int valueSetColumn(const QString &name) const;
-  bool setValueSetColumn(const QString &name, int column);
+  const CQChartsColumn &valueSetColumn(const QString &name) const;
+  bool setValueSetColumn(const QString &name, const CQChartsColumn &column);
 
   bool isValueSetMapEnabled(const QString &name) const;
   void setValueSetMapEnabled(const QString &name, bool b);
@@ -673,13 +676,15 @@ class CQChartsPlot : public QObject {
 
   void addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
-  void addColumnValues(int column, CQChartsValueSet &valueSet);
+  void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
 
   //---
 
-  void initGroup(int column, const Columns &columns=Columns(), bool rowGrouping=false);
+  void initGroup(const CQChartsColumn &column=CQChartsColumn(), const Columns &columns=Columns(),
+                 bool rowGrouping=false);
 
-  int rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row, int column) const;
+  int rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent,
+                  int row, const CQChartsColumn &column=CQChartsColumn()) const;
 
   //---
 
@@ -703,9 +708,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  QModelIndex selectIndex(int row, const CQChartsColumn &col,
+                          const QModelIndex &parent=QModelIndex()) const;
+
   QModelIndex selectIndex(int row, int col, const QModelIndex &parent=QModelIndex()) const;
 
   void beginSelect();
+  void addSelectIndex(int row, const CQChartsColumn &col,
+                      const QModelIndex &parent=QModelIndex());
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
   void endSelect();
@@ -714,6 +724,11 @@ class CQChartsPlot : public QObject {
 
   double logValue(double x, int base=10) const;
   double expValue(double x, int base=10) const;
+
+  //---
+
+  QPointF positionToPlot (const CQChartsPosition &pos) const;
+  QPointF positionToPixel(const CQChartsPosition &pos) const;
 
   //---
 
@@ -839,14 +854,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  int xValueColumn() const { return xValueColumn_; }
-  void setXValueColumn(int column);
+  const CQChartsColumn &xValueColumn() const { return xValueColumn_; }
+  void setXValueColumn(const CQChartsColumn &column);
 
-  int yValueColumn() const { return yValueColumn_; }
-  void setYValueColumn(int column);
+  const CQChartsColumn &yValueColumn() const { return yValueColumn_; }
+  void setYValueColumn(const CQChartsColumn &column);
 
-  int idColumn() const { return idColumn_; }
-  void setIdColumn(int column);
+  const CQChartsColumn &idColumn() const { return idColumn_; }
+  void setIdColumn(const CQChartsColumn &column);
 
   bool isRowGrouping() const { return rowGrouping_; }
   void setRowGrouping(bool b) { rowGrouping_ = b; updateRangeAndObjs(); }
@@ -862,7 +877,7 @@ class CQChartsPlot : public QObject {
   virtual QString xStr(double x) const;
   virtual QString yStr(double x) const;
 
-  virtual QString columnStr(int column, double x) const;
+  virtual QString columnStr(const CQChartsColumn &column, double x) const;
 
   //---
 
@@ -985,14 +1000,15 @@ class CQChartsPlot : public QObject {
 
   const Annotations &annotations() const { return annotations_; }
 
-  CQChartsTextAnnotation    *addTextAnnotation   (const QPointF &pos, const QString &text);
-  CQChartsArrowAnnotation   *addArrowAnnotation  (const QPointF &start, const QPointF &end);
-  CQChartsRectAnnotation    *addRectAnnotation   (const QPointF &start, const QPointF &end);
-  CQChartsEllipseAnnotation *addEllipseAnnotation(const QPointF &center, double xRadius,
-                                                  double yRadius);
-  CQChartsPolyAnnotation    *addPolyAnnotation   (const QPolygonF &points);
-  CQChartsPointAnnotation   *addPointAnnotation  (const QPointF &pos,
-                                                  const CQChartsPlotSymbol::Type &type);
+  CQChartsTextAnnotation     *addTextAnnotation    (const QPointF &pos, const QString &text);
+  CQChartsArrowAnnotation    *addArrowAnnotation   (const QPointF &start, const QPointF &end);
+  CQChartsRectAnnotation     *addRectAnnotation    (const QPointF &start, const QPointF &end);
+  CQChartsEllipseAnnotation  *addEllipseAnnotation (const QPointF &center, double xRadius,
+                                                    double yRadius);
+  CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
+  CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
+  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos,
+                                                    const CQChartsPlotSymbol::Type &type);
 
   //---
 
@@ -1088,7 +1104,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  ColumnType columnValueType(QAbstractItemModel *model, int column) const;
+  ColumnType columnValueType(const CQChartsColumn &column) const;
+
+  bool columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
+                       CQChartsNameValues &nameValues) const;
+
+  bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
+
+  bool setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr);
 
   bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                           const QString &separator, QStringList &nameStrs, ModelIndices &nameInds);
@@ -1224,9 +1247,9 @@ class CQChartsPlot : public QObject {
   CQChartsAxis*             yAxis_            { nullptr };    // y axis object
   CQChartsPlotKey*          keyObj_           { nullptr };    // key object
   CQChartsTitle*            titleObj_         { nullptr };    // tilte object
-  int                       xValueColumn_     { -1 };         // x axis value column
-  int                       yValueColumn_     { -1 };         // y axis value column
-  int                       idColumn_         { -1 };         // unique data id column (signalled)
+  CQChartsColumn            xValueColumn_;                    // x axis value column
+  CQChartsColumn            yValueColumn_;                    // y axis value column
+  CQChartsColumn            idColumn_;                        // unique data id column (signalled)
   bool                      rowGrouping_      { false };      // row grouping on/off
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
@@ -1262,11 +1285,11 @@ class CQChartsPlot : public QObject {
 class CQChartsHierPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int     nameColumn   READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(QString nameColumns  READ nameColumnsStr WRITE setNameColumnsStr)
-  Q_PROPERTY(int     valueColumn  READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(int     colorColumn  READ colorColumn    WRITE setColorColumn   )
-  Q_PROPERTY(QString separator    READ separator      WRITE setSeparator     )
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(QString        nameColumns READ nameColumnsStr WRITE setNameColumnsStr)
+  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(CQChartsColumn colorColumn READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(QString        separator   READ separator      WRITE setSeparator     )
 
  public:
   CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -1275,8 +1298,8 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //---
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
 
   const Columns &nameColumns() const { return nameColumns_; }
   void setNameColumns(const Columns &nameColumns);
@@ -1286,13 +1309,14 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   int numNameColumns() const { return nameColumns_.size(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i);
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c);
 
   //---
 
-  int colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(const CQChartsColumn &c) {
+    setValueSetColumn("color", c); updateRangeAndObjs(); }
 
   bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
   void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
@@ -1313,10 +1337,10 @@ class CQChartsHierPlot : public CQChartsPlot {
   void addProperties() override;
 
  protected:
-  int     nameColumn_  { 0 };   // name column
-  Columns nameColumns_;         // multiple name columns
-  int     valueColumn_ { -1 };  // value column
-  QString separator_   { "/" }; // hierarchical name separator
+  CQChartsColumn nameColumn_  { 0 };   // name column
+  Columns        nameColumns_;         // multiple name columns
+  CQChartsColumn valueColumn_;         // value column
+  QString        separator_   { "/" }; // hierarchical name separator
 };
 
 #endif

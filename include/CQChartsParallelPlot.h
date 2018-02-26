@@ -100,8 +100,8 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //  margin
   //  key
 
-  Q_PROPERTY(int            xColumn      READ xColumn        WRITE setXColumn     )
-  Q_PROPERTY(int            yColumn      READ yColumn        WRITE setYColumn     )
+  Q_PROPERTY(CQChartsColumn xColumn      READ xColumn        WRITE setXColumn     )
+  Q_PROPERTY(CQChartsColumn yColumn      READ yColumn        WRITE setYColumn     )
   Q_PROPERTY(QString        yColumns     READ yColumnsStr    WRITE setYColumnsStr )
   Q_PROPERTY(bool           points       READ isPoints       WRITE setPoints      )
   Q_PROPERTY(CQChartsColor  pointsColor  READ pointsColor    WRITE setPointsColor )
@@ -121,17 +121,17 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   // columns
 
-  int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &xColumn() const { return xColumn_; }
+  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
 
-  int yColumn() const { return yColumn_; }
+  const CQChartsColumn &yColumn() const { return yColumn_; }
 
-  void setYColumn(int i) {
-    yColumn_ = i;
+  void setYColumn(const CQChartsColumn &c) {
+    yColumn_ = c;
 
     yColumns_.clear();
 
-    if (yColumn_ >= 0)
+    if (yColumn_.isValid())
       yColumns_.push_back(yColumn_);
 
     updateRangeAndObjs();
@@ -211,7 +211,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   int numSets() const;
 
-  int getSetColumn(int i) const;
+  const CQChartsColumn &getSetColumn(int i) const;
 
   //---
 
@@ -223,13 +223,13 @@ class CQChartsParallelPlot : public CQChartsPlot {
   using Ranges = std::vector<CQChartsGeom::Range>;
   using YAxes  = std::vector<CQChartsAxis*>;
 
-  int                xColumn_   { 0 };
-  int                yColumn_   { 1 };
-  Columns            yColumns_;
-  Ranges             yRanges_;
-  YAxes              yAxes_;
-  CQChartsSymbolData pointData_;
-  CQChartsLineData   lineData_;
+  CQChartsColumn     xColumn_   { 0 }; // x value column
+  CQChartsColumn     yColumn_   { 1 }; // y value columns
+  Columns            yColumns_;        // y value columns
+  Ranges             yRanges_;         // y ranges
+  YAxes              yAxes_;           // y axes
+  CQChartsSymbolData pointData_;       // point style data
+  CQChartsLineData   lineData_;        // line style data
 };
 
 #endif

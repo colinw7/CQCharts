@@ -1,5 +1,4 @@
 #include <CQChartsDataModel.h>
-#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
 #include <cassert>

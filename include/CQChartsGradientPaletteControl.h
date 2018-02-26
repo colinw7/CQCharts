@@ -194,7 +194,7 @@ class CQChartsGradientPaletteDefinedColors : public QTableWidget {
     QColor c { 0, 0, 0 };
   };
 
-  typedef std::vector<RealColor> RealColors;
+  using RealColors = std::vector<RealColor>;
 
  public:
   CQChartsGradientPaletteDefinedColors(QWidget *parent=0);

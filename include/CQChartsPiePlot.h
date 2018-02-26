@@ -190,25 +190,25 @@ class CQChartsPiePlot : public CQChartsPlot {
   //   donut, inner radius, outer radius, label radius, start angle, end angle,
   //   explode/explode radius
 
-  Q_PROPERTY(int     labelColumn     READ labelColumn       WRITE setLabelColumn    )
-  Q_PROPERTY(int     dataColumn      READ dataColumn        WRITE setDataColumn     )
-  Q_PROPERTY(QString dataColumns     READ dataColumnsStr    WRITE setDataColumnsStr )
-  Q_PROPERTY(int     groupColumn     READ groupColumn       WRITE setGroupColumn    )
-  Q_PROPERTY(bool    rowGrouping     READ isRowGrouping     WRITE setRowGrouping    )
-  Q_PROPERTY(int     keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
-  Q_PROPERTY(int     colorColumn     READ colorColumn       WRITE setColorColumn    )
-  Q_PROPERTY(bool    donut           READ isDonut           WRITE setDonut          )
-  Q_PROPERTY(double  innerRadius     READ innerRadius       WRITE setInnerRadius    )
-  Q_PROPERTY(double  outerRadius     READ outerRadius       WRITE setOuterRadius    )
-  Q_PROPERTY(double  labelRadius     READ labelRadius       WRITE setLabelRadius    )
-  Q_PROPERTY(double  startAngle      READ startAngle        WRITE setStartAngle     )
-  Q_PROPERTY(double  angleExtent     READ angleExtent       WRITE setAngleExtent    )
-  Q_PROPERTY(bool    rotatedText     READ isRotatedText     WRITE setRotatedText    )
-  Q_PROPERTY(bool    explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
-  Q_PROPERTY(double  explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
-  Q_PROPERTY(bool    colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
-  Q_PROPERTY(double  colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
-  Q_PROPERTY(double  colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
+  Q_PROPERTY(CQChartsColumn labelColumn     READ labelColumn       WRITE setLabelColumn    )
+  Q_PROPERTY(CQChartsColumn dataColumn      READ dataColumn        WRITE setDataColumn     )
+  Q_PROPERTY(QString        dataColumns     READ dataColumnsStr    WRITE setDataColumnsStr )
+  Q_PROPERTY(CQChartsColumn groupColumn     READ groupColumn       WRITE setGroupColumn    )
+  Q_PROPERTY(bool           rowGrouping     READ isRowGrouping     WRITE setRowGrouping    )
+  Q_PROPERTY(CQChartsColumn keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
+  Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
+  Q_PROPERTY(bool           donut           READ isDonut           WRITE setDonut          )
+  Q_PROPERTY(double         innerRadius     READ innerRadius       WRITE setInnerRadius    )
+  Q_PROPERTY(double         outerRadius     READ outerRadius       WRITE setOuterRadius    )
+  Q_PROPERTY(double         labelRadius     READ labelRadius       WRITE setLabelRadius    )
+  Q_PROPERTY(double         startAngle      READ startAngle        WRITE setStartAngle     )
+  Q_PROPERTY(double         angleExtent     READ angleExtent       WRITE setAngleExtent    )
+  Q_PROPERTY(bool           rotatedText     READ isRotatedText     WRITE setRotatedText    )
+  Q_PROPERTY(bool           explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(double         explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
+  Q_PROPERTY(bool           colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
+  Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
  public:
   using OptColor = boost::optional<CQChartsColor>;
@@ -220,11 +220,11 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
-  int labelColumn() const { return labelColumn_; }
-  void setLabelColumn(int i);
+  const CQChartsColumn &labelColumn() const { return labelColumn_; }
+  void setLabelColumn(const CQChartsColumn &c);
 
-  int dataColumn() const { return dataColumn_; }
-  void setDataColumn(int i);
+  const CQChartsColumn &dataColumn() const { return dataColumn_; }
+  void setDataColumn(const CQChartsColumn &c);
 
   const Columns &dataColumns() const { return dataColumns_; }
   void setDataColumns(const Columns &dataColumns);
@@ -232,17 +232,17 @@ class CQChartsPiePlot : public CQChartsPlot {
   QString dataColumnsStr() const;
   bool setDataColumnsStr(const QString &s);
 
-  int dataColumnAt(int i) const {
+  const CQChartsColumn &dataColumnAt(int i) const {
     assert(i >= 0 && i < int(dataColumns_.size()));
 
     return dataColumns_[i];
   }
 
-  int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i);
+  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const CQChartsColumn &c);
 
-  int keyLabelColumn() const { return keyLabelColumn_; }
-  void setKeyLabelColumn(int i);
+  const CQChartsColumn &keyLabelColumn() const { return keyLabelColumn_; }
+  void setKeyLabelColumn(const CQChartsColumn &c);
 
   //---
 
@@ -281,8 +281,9 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   //---
 
-  int colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(const CQChartsColumn &c) {
+    setValueSetColumn("color", c); updateRangeAndObjs(); }
 
   bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
   void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
@@ -324,15 +325,18 @@ class CQChartsPiePlot : public CQChartsPlot {
  private:
   void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
 
-  void addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int r, int c);
+  void addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                    const CQChartsColumn &column);
 
   void calcDataTotal();
 
-  void addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int r);
+  void addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row);
 
-  void addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int r, int c);
+  void addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                             const CQChartsColumn &column);
 
-  bool getDataColumnValue(QAbstractItemModel *model, const QModelIndex &ind, double &value) const;
+  bool getDataColumnValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                          const QModelIndex &parent, double &value) const;
 
  private:
   struct GroupData {
@@ -349,11 +353,11 @@ class CQChartsPiePlot : public CQChartsPlot {
   using GroupDatas = std::map<int,GroupData>;
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
-  int                  labelColumn_     { 0 };       // label column
-  int                  dataColumn_      { 1 };       // data column
+  CQChartsColumn       labelColumn_     { 0 };       // label column
+  CQChartsColumn       dataColumn_      { 1 };       // data column
   Columns              dataColumns_;                 // data columns
-  int                  groupColumn_     { -1 };      // group column
-  int                  keyLabelColumn_  { -1 };      // key label column
+  CQChartsColumn       groupColumn_;                 // group column
+  CQChartsColumn       keyLabelColumn_;              // key label column
   bool                 donut_           { false };   // is donut
   double               innerRadius_     { 0.6 };     // relative inner donut radius
   double               outerRadius_     { 0.9 };     // relative outer donut radius
@@ -366,7 +370,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   GroupDatas           groupDatas_;                  // data per group
   CQChartsPieTextObj*  textBox_         { nullptr }; // text box
   CQChartsGeom::Point  center_;                      // center point
-  GroupObjs            groupObjs_;
+  GroupObjs            groupObjs_;                   // group objects
 };
 
 #endif

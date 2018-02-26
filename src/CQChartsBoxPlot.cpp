@@ -34,15 +34,10 @@ CQChartsBoxPlot::
 CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("box"), model)
 {
-  boxObj_  = new CQChartsBoxObj(this);
-  textObj_ = new CQChartsTextBoxObj(this);
+  setBoxColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  CQChartsColor bg(CQChartsColor::Type::PALETTE);
-
-  boxObj_->setBackground(true);
-  boxObj_->setBackgroundColor(bg);
-
-  boxObj_->setBorder(true);
+  setBorderStroked(true);
+  setBoxFilled    (true);
 
   addAxes();
 
@@ -56,8 +51,6 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 CQChartsBoxPlot::
 ~CQChartsBoxPlot()
 {
-  delete boxObj_;
-  delete textObj_;
 }
 
 //------
@@ -66,71 +59,67 @@ bool
 CQChartsBoxPlot::
 isBoxFilled() const
 {
-  return boxObj_->isBackground();
+  return boxData_.shape.background.visible;
 }
 
 void
 CQChartsBoxPlot::
 setBoxFilled(bool b)
 {
-  boxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsBoxPlot::
 boxColor() const
 {
-  return boxObj_->backgroundColor();
+  return boxData_.shape.background.color;
 }
 
 void
 CQChartsBoxPlot::
 setBoxColor(const CQChartsColor &c)
 {
-  boxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsBoxPlot::
 interpBoxColor(int i, int n) const
 {
-  return boxObj_->interpBackgroundColor(i, n);
+  return boxColor().interpColor(this, i, n);
 }
 
 double
 CQChartsBoxPlot::
 boxAlpha() const
 {
-  return boxObj_->backgroundAlpha();
+  return boxData_.shape.background.alpha;
 }
 
 void
 CQChartsBoxPlot::
 setBoxAlpha(double a)
 {
-  boxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsBoxPlot::Pattern
 CQChartsBoxPlot::
 boxPattern() const
 {
-  return (Pattern) boxObj_->backgroundPattern();
+  return (Pattern) boxData_.shape.background.pattern;
 }
 
 void
 CQChartsBoxPlot::
 setBoxPattern(Pattern pattern)
 {
-  boxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) boxData_.shape.background.pattern) {
+    boxData_.shape.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
 //------
@@ -139,85 +128,77 @@ bool
 CQChartsBoxPlot::
 isBorderStroked() const
 {
-  return boxObj_->isBorder();
+  return boxData_.shape.border.visible;
 }
 
 void
 CQChartsBoxPlot::
 setBorderStroked(bool b)
 {
-  return boxObj_->setBorder(b);
+  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsBoxPlot::
 borderColor() const
 {
-  return boxObj_->borderColor();
+  return boxData_.shape.border.color;
 }
 
 void
 CQChartsBoxPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  boxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsBoxPlot::
 interpBorderColor(int i, int n) const
 {
-  return boxObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsBoxPlot::
 borderAlpha() const
 {
-  return boxObj_->borderAlpha();
+  return boxData_.shape.border.alpha;
 }
 
 void
 CQChartsBoxPlot::
-setBorderAlpha(double r)
+setBorderAlpha(double a)
 {
-  boxObj_->setBorderAlpha(r);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsBoxPlot::
 borderWidth() const
 {
-  return boxObj_->borderWidth();
+  return boxData_.shape.border.width;
 }
 
 void
 CQChartsBoxPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  boxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { update(); } );
 }
 
-double
+const CQChartsLength &
 CQChartsBoxPlot::
 cornerSize() const
 {
-  return boxObj_->cornerSize();
+  return boxData_.cornerSize;
 }
 
 void
 CQChartsBoxPlot::
-setCornerSize(double r)
+setCornerSize(const CQChartsLength &s)
 {
-  boxObj_->setCornerSize(r);
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { update(); } );
 }
 
 //------
@@ -251,39 +232,49 @@ const CQChartsColor &
 CQChartsBoxPlot::
 textColor() const
 {
-  return textObj_->textColor();
+  return textData_.color;
 }
 
 void
 CQChartsBoxPlot::
 setTextColor(const CQChartsColor &c)
 {
-  textObj_->setTextColor(c);
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+}
 
-  update();
+double
+CQChartsBoxPlot::
+textAlpha() const
+{
+  return textData_.alpha;
+}
+
+void
+CQChartsBoxPlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
 }
 
 QColor
 CQChartsBoxPlot::
 interpTextColor(int i, int n) const
 {
-  return textObj_->interpTextColor(i, n);
+  return textColor().interpColor(this, i, n);
 }
 
 const QFont &
 CQChartsBoxPlot::
-font() const
+textFont() const
 {
-  return textObj_->textFont();
+  return textData_.font;
 }
 
 void
 CQChartsBoxPlot::
-setFont(const QFont &f)
+setTextFont(const QFont &f)
 {
-  textObj_->setTextFont(f);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
 }
 
 //---
@@ -318,8 +309,9 @@ addProperties()
   addProperty("whisker", this, "whiskerLineWidth", "width" );
   addProperty("whisker", this, "whiskerExtent"   , "extent");
 
+  addProperty("text", this, "textFont"  , "font"  );
   addProperty("text", this, "textColor" , "color" );
-  addProperty("text", this, "font"      , "font"  );
+  addProperty("text", this, "textAlpha" , "alpha" );
   addProperty("text", this, "textMargin", "margin");
 
   addProperty("outlier", this, "symbolSize", "size");
@@ -425,18 +417,12 @@ updateWhiskers()
 
   //---
 
-  // determine group data type
-  groupType_ = ColumnType::NONE;
-
-  if (groupColumn() >= 0)
-    groupType_ = columnValueType(model, groupColumn());
+  // determine group and x data type
+  groupType_ = columnValueType(groupColumn());
+  xType_     = columnValueType(xColumn    ());
 
   groupValueInd_.clear();
-
-  // determine x data type
-  xType_ = columnValueType(model, xColumn());
-
-  xValueInd_.clear();
+  xValueInd_    .clear();
 
   //---
 
@@ -477,26 +463,24 @@ updateWhiskers()
 
 void
 CQChartsBoxPlot::
-addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
+addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
   // get group
   int groupId = -1;
 
-  if (groupColumn() >= 0) {
-    QModelIndex groupInd = model->index(r, groupColumn(), parent);
-
+  if (groupColumn().isValid()) {
     // get value set id
     if      (groupType_ == ColumnType::INTEGER) {
       bool ok1;
 
-      int i = CQChartsUtil::modelInteger(model, groupInd, ok1);
+      int i = CQChartsUtil::modelInteger(model, row, groupColumn(), parent, ok1);
 
       groupId = groupValueInd_.calcId(i);
     }
     else if (groupType_ == ColumnType::REAL) {
       bool ok1;
 
-      double r = CQChartsUtil::modelReal(model, groupInd, ok1);
+      double r = CQChartsUtil::modelReal(model, row, groupColumn(), parent, ok1);
 
       if (CQChartsUtil::isNaN(r))
         return;
@@ -506,17 +490,11 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
     else {
       bool ok1;
 
-      QString s = CQChartsUtil::modelString(model, groupInd, ok1);
+      QString s = CQChartsUtil::modelString(model, row, groupColumn(), parent, ok1);
 
       groupId = groupValueInd_.calcId(s);
     }
   }
-
-  //---
-
-  QModelIndex xind = model->index(r, xColumn(), parent);
-
-  QModelIndex xind1 = normalizeIndex(xind);
 
   //---
 
@@ -526,14 +504,14 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
   if      (xType_ == ColumnType::INTEGER) {
     bool ok1;
 
-    int i = CQChartsUtil::modelInteger(model, xind, ok1);
+    int i = CQChartsUtil::modelInteger(model, row, xColumn(), parent, ok1);
 
     setId = xValueInd_.calcId(i);
   }
   else if (xType_ == ColumnType::REAL) {
     bool ok1;
 
-    double r = CQChartsUtil::modelReal(model, xind, ok1);
+    double r = CQChartsUtil::modelReal(model, row, xColumn(), parent, ok1);
 
     if (CQChartsUtil::isNaN(r))
       return;
@@ -543,7 +521,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
   else {
     bool ok1;
 
-    QString s = CQChartsUtil::modelString(model, xind, ok1);
+    QString s = CQChartsUtil::modelString(model, row, xColumn(), parent, ok1);
 
     setId = xValueInd_.calcId(s);
   }
@@ -551,16 +529,17 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r)
   //---
 
   // add value to set
-  QModelIndex yind = model->index(r, yColumn(), parent);
-
   bool ok2;
 
-  double value = CQChartsUtil::modelReal(model, yind, ok2);
+  double value = CQChartsUtil::modelReal(model, row, yColumn(), parent, ok2);
 
-  if (! ok2) value = r;
+  if (! ok2) value = row;
 
   if (CQChartsUtil::isNaN(value))
     return;
+
+  QModelIndex xind  = model->index(row, xColumn().column(), parent);
+  QModelIndex xind1 = normalizeIndex(xind);
 
   CQChartsBoxPlotValue wv(value, xind1);
 
@@ -798,7 +777,7 @@ void
 CQChartsBoxPlotObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  QFontMetricsF fm(plot_->font());
+  QFontMetricsF fm(plot_->textFont());
 
   double yf = (fm.ascent() - fm.descent())/2.0;
 
@@ -879,7 +858,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->setBrush(brush);
   painter->setPen  (pen);
 
-  CQChartsRoundedPolygon::draw(painter, rect, plot_->cornerSize());
+  double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+  double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+
+  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
 
   //---
 
@@ -893,11 +875,13 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // draw labels
   double margin = plot_->textMargin();
 
-  painter->setFont(plot_->font());
+  painter->setFont(plot_->textFont());
 
-  QColor textColor = plot_->interpTextColor(0, 1);
+  QColor tc = plot_->interpTextColor(0, 1);
 
-  painter->setPen(textColor);
+  tc.setAlphaF(plot_->textAlpha());
+
+  painter->setPen(tc);
 
   QString strl = QString("%1").arg(whisker_.min   ());
   QString lstr = QString("%1").arg(whisker_.lower ());
@@ -940,7 +924,7 @@ annotationBBox() const
 {
   double margin = plot_->textMargin();
 
-  QFontMetricsF fm(plot_->font());
+  QFontMetricsF fm(plot_->textFont());
 
   double fa = fm.ascent ();
   double fd = fm.descent();

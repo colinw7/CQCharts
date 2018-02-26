@@ -178,8 +178,8 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 class CQChartsSankeyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int            linkColumn      READ linkColumn      WRITE setLinkColumn     )
-  Q_PROPERTY(int            valueColumn     READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(CQChartsColumn linkColumn      READ linkColumn      WRITE setLinkColumn     )
+  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(Align          align           READ align           WRITE setAlign          )
   Q_PROPERTY(bool           nodeFilled      READ isNodeFilled    WRITE setNodeFilled     )
   Q_PROPERTY(CQChartsColor  nodeFillColor   READ nodeFillColor   WRITE setNodeFillColor  )
@@ -235,11 +235,11 @@ class CQChartsSankeyPlot : public CQChartsPlot {
 
   //---
 
-  int linkColumn() const { return linkColumn_; }
-  void setLinkColumn(int i) { linkColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &linkColumn() const { return linkColumn_; }
+  void setLinkColumn(const CQChartsColumn &c) { linkColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -384,21 +384,23 @@ class CQChartsSankeyPlot : public CQChartsPlot {
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;
 
-  int                 linkColumn_  { 0 };
-  int                 valueColumn_ { 1 };
-  Align               align_       { Align::JUSTIFY };
-  CQChartsTextBoxObj* nodeBoxObj_  { nullptr };
-  CQChartsBoxObj*     edgeBoxObj_  { nullptr };
-  NameNodeMap         nameNodeMap_;
-  IndNodeMap          indNodeMap_;
-  PosNodesMap         posNodesMap_;
-  Edges               edges_;
-  CQChartsGeom::BBox  bbox_;
-  int                 maxHeight_   { 0 };
-  int                 maxDepth_    { 0 };
-  double              valueScale_  { 1.0 };
-  double              margin_      { 0.0 };
-  bool                pressed_     { false };
+  CQChartsColumn     linkColumn_  { 0 };              // link column
+  CQChartsColumn     valueColumn_ { 1 };              // value column
+  Align              align_       { Align::JUSTIFY }; // align
+  CQChartsBoxObj*    edgeBoxObj_  { nullptr };        // edge box style
+  CQChartsShapeData  nodeData_;                       // node fill/border data
+  CQChartsShapeData  edgeData_;                       // edge stroke data
+  CQChartsTextData   textData_;                       // text data
+  NameNodeMap        nameNodeMap_;                    // name node map
+  IndNodeMap         indNodeMap_;                     // ind node map
+  PosNodesMap        posNodesMap_;                    // pos node map
+  Edges              edges_;                          // edges
+  CQChartsGeom::BBox bbox_;                           // bbox
+  int                maxHeight_   { 0 };              // max height
+  int                maxDepth_    { 0 };              // max depth
+  double             valueScale_  { 1.0 };            // value scale
+  double             margin_      { 0.0 };            // margin
+  bool               pressed_     { false };          // mouse pressed
 };
 
 #endif

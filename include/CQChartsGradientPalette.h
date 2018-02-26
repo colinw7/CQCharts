@@ -120,7 +120,7 @@ class CQChartsGradientPalette {
     XYZ,
   };
 
-  typedef std::map<double,QColor> ColorMap;
+  using ColorMap = std::map<double,QColor>;
 
  public:
 #ifdef CGRADIENT_EXPR
@@ -366,6 +366,6 @@ class CQChartsGradientPalette {
 #endif
 };
 
-typedef std::unique_ptr<CQChartsGradientPalette> CQChartsGradientPaletteP;
+using CQChartsGradientPaletteP = std::unique_ptr<CQChartsGradientPalette>;
 
 #endif

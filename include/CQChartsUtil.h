@@ -2,7 +2,9 @@
 #define CQChartsUtil_H
 
 #include <CQChartsLineDash.h>
+#include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
+#include <CQBaseModel.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -11,6 +13,8 @@
 #include <QColor>
 #include <QStringList>
 #include <QRectF>
+
+using CQChartsNameValues = std::map<QString,QString>;
 
 class CQCharts;
 
@@ -81,9 +85,31 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 
 //------
 
+bool columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                     CQBaseModel::Type &columnType, CQChartsNameValues &nameValues);
+
+bool formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str);
+
+bool formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                       double value, QString &str);
+
+QVariant columnDisplayData(CQCharts *charts, QAbstractItemModel *model,
+                           const CQChartsColumn &column, const QVariant &var);
+
+QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model,
+                        const CQChartsColumn &column, const QVariant &var);
+
+bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
+                   const CQChartsColumn &column, QString &typeStr);
+
+bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
+                      const CQChartsColumn &column, const QString &typeStr);
+
+//------
+
 class ModelColumnDetails {
  public:
-  ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, int column);
+  ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column);
 
   virtual ~ModelColumnDetails() { }
 
@@ -91,7 +117,7 @@ class ModelColumnDetails {
 
   QAbstractItemModel *model() const { return model_; }
 
-  int column() const { return column_; }
+  const CQChartsColumn &column() const { return column_; }
 
   QString typeName() const;
 
@@ -106,9 +132,9 @@ class ModelColumnDetails {
   bool init();
 
  private:
-  CQCharts           *charts_ { nullptr };
-  QAbstractItemModel *model_ { nullptr };
-  int                 column_ { 0 };
+  CQCharts           *charts_      { nullptr };
+  QAbstractItemModel *model_       { nullptr };
+  CQChartsColumn      column_;
   QString             typeName_;
   QVariant            minValue_;
   QVariant            maxValue_;
@@ -213,16 +239,6 @@ inline double toReal(const QString &str, bool &ok) {
   return r;
 }
 
-inline double toReal(const QVariant &var, bool &ok) {
-  if (! var.isValid()) {
-    ok = false;
-
-    return getNaN();
-  }
-
-  return toReal(var.toString(), ok);
-}
-
 inline bool toReal(const QString &str, double &r) {
   bool ok;
 
@@ -280,16 +296,6 @@ inline long toInt(const QString &str, bool &ok) {
   }
 
   return integer;
-}
-
-inline long toInt(const QVariant &var, bool &ok) {
-  if (! var.isValid()) {
-    ok = false;
-
-    return 0;
-  }
-
-  return toInt(var.toString(), ok);
 }
 
 inline bool toInt(const QString &str, long &i) {
@@ -681,23 +687,118 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
 
 //------
 
-inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, bool &ok) {
+QString rectToString   (const QRectF    &rect);
+QString polygonToString(const QPolygonF &poly);
+
+bool variantToString(const QVariant &var, QString &str);
+
+inline double toReal(const QVariant &var, bool &ok) {
+  if (! var.isValid()) {
+    ok = false;
+
+    return getNaN();
+  }
+
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return toReal(str, ok);
+}
+
+inline long toInt(const QVariant &var, bool &ok) {
+  if (! var.isValid()) {
+    ok = false;
+
+    return 0;
+  }
+
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return toInt(str, ok);
+}
+
+//------
+
+bool evalExpr(int row, const QString &expr, double &r);
+
+//------
+
+inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, int role, bool &ok) {
   ok = false;
 
   if (column < 0)
     return QVariant();
 
-  QVariant var = model->headerData(column, Qt::Horizontal);
+  QVariant var = model->headerData(column, Qt::Horizontal, role);
 
   ok = var.isValid();
 
   return var;
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
-  QVariant var = modelHeaderValue(model, column, ok);
+inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, bool &ok) {
+  return modelHeaderValue(model, column, Qt::DisplayRole, ok);
+}
 
-  return var.toString();
+inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 int role, bool &ok) {
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return QVariant();
+
+  return modelHeaderValue(model, column.column(), role, ok);
+}
+
+inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 bool &ok) {
+  return modelHeaderValue(model, column, Qt::DisplayRole, ok);
+}
+
+inline QString modelHeaderString(QAbstractItemModel *model, int column, int role, bool &ok) {
+  QVariant var = modelHeaderValue(model, column, role, ok);
+
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return str;
+}
+
+inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
+  return modelHeaderString(model, column, Qt::DisplayRole, ok);
+}
+
+inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 int role, bool &ok) {
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return "";
+
+  return modelHeaderString(model, column.column(), role, ok);
+}
+
+inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 bool &ok) {
+  return modelHeaderString(model, column, Qt::DisplayRole, ok);
+}
+
+inline bool setModelHeaderValue(QAbstractItemModel *model, int column,
+                                const QVariant &var, int role)
+{
+  return model->setHeaderData(column, Qt::Horizontal, var, role);
+}
+
+inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                const QVariant &var, int role)
+{
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return false;
+
+  return setModelHeaderValue(model, column.column(), var, role);
 }
 
 //------
@@ -743,11 +844,37 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, int col, bool &ok
 }
 #endif
 
+inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                           const QModelIndex &parent, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelValue(model, ind, ok);
+  }
+  else if (col.type() == CQChartsColumn::Type::VHEADER) {
+    ok = true;
+
+    QVariant var = model->headerData(row, Qt::Vertical);
+
+    return var;
+  }
+  else {
+    ok = false;
+
+    return "";
+  }
+}
+
 inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
   if (! ok) return "";
 
-  return var.toString();
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return str;
 }
 
 #if 0
@@ -757,6 +884,32 @@ inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok
   return modelString(model, ind, ok);
 }
 #endif
+
+inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                           const QModelIndex &parent, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelString(model, ind, ok);
+  }
+  else if (col.type() == CQChartsColumn::Type::VHEADER) {
+    ok = true;
+
+    QVariant var = model->headerData(row, Qt::Vertical);
+
+    QString str;
+
+    bool rc = variantToString(var, str);
+    assert(rc);
+
+    return str;
+  }
+  else {
+    ok = false;
+
+    return "";
+  }
+}
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
@@ -773,6 +926,27 @@ inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
 }
 #endif
 
+inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                        const QModelIndex &parent, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelReal(model, ind, ok);
+  }
+  else if (col.type() == CQChartsColumn::Type::EXPR) {
+    double r = 0.0;
+
+    ok = CQChartsUtil::evalExpr(row, col.expr(), r);
+
+    return r;
+  }
+  else {
+    ok = false;
+
+    return 0.0;
+  }
+}
+
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
   if (! ok) return 0;
@@ -788,6 +962,27 @@ inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) 
 }
 #endif
 
+inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                         const QModelIndex &parent, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelInteger(model, ind, ok);
+  }
+  else if (col.type() == CQChartsColumn::Type::EXPR) {
+    double r = 0.0;
+
+    ok = CQChartsUtil::evalExpr(row, col.expr(), r);
+
+    return r;
+  }
+  else {
+    ok = false;
+
+    return 0;
+  }
+}
+
 //------
 
 inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
@@ -796,7 +991,12 @@ inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
 
 inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
   for (int i = 0; i < model->columnCount(); ++i) {
-    QString name1 = model->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+    QVariant var1 = model->headerData(i, Qt::Horizontal, Qt::DisplayRole);
+
+    QString name1;
+
+    bool rc = variantToString(var1, name1);
+    assert(rc);
 
     if (name == name1)
       return i;
@@ -851,6 +1051,19 @@ struct RealCmp {
 
 //------
 
+bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polys);
+
+bool stringToPolygon (const QString &str, QPolygonF &poly );
+bool stringToRect    (const QString &str, QRectF    &rect );
+bool stringToPoint   (const QString &str, QPointF   &point);
+
+//------
+
+QString timeToString(const QString &fmt, double r);
+bool    stringToTime(const QString &fmt, const QString &str, double &t);
+
+//------
+
 bool formatStringInRect(const QString &str, const QFont &font,
                         const QRectF &rect, QStringList &strs);
 
@@ -887,6 +1100,21 @@ class CQChartsScopeGuard {
  private:
   std::function<void()> f_;
 };
+
+//------
+
+namespace CQChartsUtil {
+
+template<class T, class Callable>
+void testAndSet(T &t, const T &v, Callable &&f) {
+  if (v != t) {
+    t = v;
+
+    f();
+  }
+}
+
+}
 
 //------
 

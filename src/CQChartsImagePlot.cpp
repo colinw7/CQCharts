@@ -3,7 +3,6 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQStrParse.h>
 #include <QPainter>
 
 CQChartsImagePlotType::

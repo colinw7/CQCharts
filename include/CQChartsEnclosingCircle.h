@@ -23,7 +23,7 @@ class CQChartsEnclosingCircle {
     double r_ { 1.0 };
   };
 
-  typedef std::vector<Circle> Circles;
+  using Circles = std::vector<Circle>;
 
  public:
   CQChartsEnclosingCircle() { }

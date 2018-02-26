@@ -10,7 +10,6 @@ class CQChartsSunburstPlot;
 class CQChartsSunburstRootNode;
 class CQChartsSunburstHierNode;
 class CQChartsSunburstNode;
-class CQChartsTextBoxObj;
 
 //---
 
@@ -261,6 +260,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
   Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
   Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
   Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
 
   Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
@@ -331,13 +331,13 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   const CQChartsColor &fillColor() const;
   void setFillColor(const CQChartsColor &c);
 
-  QColor interpFillColor(int i, int n) const;
-
   double fillAlpha() const;
   void setFillAlpha(double a);
 
   Pattern fillPattern() const;
   void setFillPattern(Pattern pattern);
+
+  QColor interpFillColor(int i, int n) const;
 
   //---
 
@@ -347,10 +347,15 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);
 
-  QColor interpTextColor(int i, int n) const;
+  double textAlpha() const;
+  void setTextAlpha(double a);
 
   bool isTextContrast() const;
   void setTextContrast(bool b);
+
+  void setTextFontSize(double s);
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -457,15 +462,16 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   void popTopSlot();
 
  private:
-  double              innerRadius_ { 0.5 };     // inner radius
-  double              outerRadius_ { 1.0 };     // outer radius
-  double              startAngle_  { -90 };     // start angle
-  bool                multiRoot_   { false };   // has multiple roots
-  RootNodes           roots_;                   // root nodes
-  QString             currentRootName_;         // current root name
-  CQChartsTextBoxObj* textBoxObj_  { nullptr }; // arc fill/border/text object
-  int                 colorId_     { -1 };      // current color id
-  int                 numColorIds_ { 0 };       // num used color ids
+  double            innerRadius_ { 0.5 };   // inner radius
+  double            outerRadius_ { 1.0 };   // outer radius
+  double            startAngle_  { -90 };   // start angle
+  bool              multiRoot_   { false }; // has multiple roots
+  RootNodes         roots_;                 // root nodes
+  QString           currentRootName_;       // current root name
+  CQChartsShapeData shapeData_;             // arc fill/border data
+  CQChartsTextData  textData_;              // arc text data
+  int               colorId_     { -1 };    // current color id
+  int               numColorIds_ { 0 };     // num used color ids
 };
 
 #endif

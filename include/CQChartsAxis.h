@@ -3,6 +3,7 @@
 
 #include <CQChartsEditHandles.h>
 #include <CQChartsData.h>
+#include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
 
 #include <QFont>
@@ -149,8 +150,8 @@ class CQChartsAxis : public QObject {
   bool isLog() const { return log_; }
   void setLog(bool b);
 
-  int column() const { return column_; }
-  void setColumn(int i) { column_ = i; redraw(); }
+  const CQChartsColumn &column() const { return column_; }
+  void setColumn(const CQChartsColumn &c) { column_ = c; redraw(); }
 
   bool isDataLabels() const { return dataLabels_; }
   void setDataLabels(bool b) { dataLabels_ = b; redraw(); }
@@ -425,7 +426,7 @@ class CQChartsAxis : public QObject {
   bool                       integral_            { false };
   bool                       log_                 { false };
   bool                       dataLabels_          { false };  // labels from model row
-  int                        column_              { -1 };
+  CQChartsColumn             column_;
   QString                    formatStr_;
 
   // label

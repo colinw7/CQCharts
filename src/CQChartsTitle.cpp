@@ -9,7 +9,7 @@
 
 CQChartsTitle::
 CQChartsTitle(CQChartsPlot *plot) :
- CQChartsTextBoxObj(plot), editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
+ CQChartsTextBoxObj(plot), editHandles_(plot)
 {
   setObjectName("title");
 
@@ -17,8 +17,8 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   textData_.font.setPointSizeF(1.2*textFont().pointSizeF());
 
-  boxData_.background.visible = false;
-  boxData_.border    .visible = false;
+  boxData_.shape.background.visible = false;
+  boxData_.shape.border    .visible = false;
 }
 
 void
@@ -36,7 +36,8 @@ locationStr() const
     case LocationType::TOP:      return "top";
     case LocationType::CENTER:   return "center";
     case LocationType::BOTTOM:   return "bottom";
-    case LocationType::ABSOLUTE: return "abs";
+    case LocationType::ABS_POS:  return "abs_pos";
+    case LocationType::ABS_RECT: return "abs_rect";
     default:                     return "none";
   }
 }
@@ -47,10 +48,11 @@ setLocationStr(const QString &str)
 {
   QString lstr = str.toLower();
 
-  if      (lstr == "top"   ) location_.location = LocationType::TOP;
-  else if (lstr == "center") location_.location = LocationType::CENTER;
-  else if (lstr == "bottom") location_.location = LocationType::BOTTOM;
-  else if (lstr == "abs"   ) location_.location = LocationType::ABSOLUTE;
+  if      (lstr == "top"     ) location_.location = LocationType::TOP;
+  else if (lstr == "center"  ) location_.location = LocationType::CENTER;
+  else if (lstr == "bottom"  ) location_.location = LocationType::BOTTOM;
+  else if (lstr == "abs_pos" ) location_.location = LocationType::ABS_POS;
+  else if (lstr == "abs_rect") location_.location = LocationType::ABS_RECT;
 
   redraw();
 }
@@ -110,8 +112,10 @@ updateLocation()
 
   QPointF kp(kx, ky);
 
-  if (location == LocationType::ABSOLUTE) {
+  if      (location == LocationType::ABS_POS) {
     kp = absPlotPosition();
+  }
+  else if (location == LocationType::ABS_RECT) {
   }
 
   setPosition(kp);
@@ -124,6 +128,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "visible"    );
   model->addProperty(path, this, "location"   );
   model->addProperty(path, this, "absPosition");
+  model->addProperty(path, this, "absRect"    );
   model->addProperty(path, this, "inside"     );
 
   CQChartsTextBoxObj::addProperties(model, path);
@@ -133,11 +138,7 @@ QPointF
 CQChartsTitle::
 absPlotPosition() const
 {
-  double wx, wy;
-
-  plot_->viewToWindow(absPosition().x(), absPosition().y(), wx, wy);
-
-  return QPointF(wx, wy);
+  return plot_->positionToPlot(absPosition());
 }
 
 void
@@ -148,7 +149,7 @@ setAbsPlotPosition(const QPointF &p)
 
   plot_->windowToView(p.x(), p.y(), vx, vy);
 
-  setAbsPosition(QPointF(vx, vy));
+  setAbsPosition(CQChartsPosition(QPointF(vx, vy), CQChartsPosition::Units::VIEW));
 }
 
 QSizeF
@@ -197,9 +198,12 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_.setDragPos(p);
 
-  location_.location = LocationType::ABSOLUTE;
+  if (location_.location != LocationType::ABS_POS &&
+      location_.location != LocationType::ABS_RECT) {
+    location_.location = LocationType::ABS_POS;
 
-  setAbsPlotPosition(position_);
+    setAbsPlotPosition(position_);
+  }
 
   return true;
 }
@@ -208,14 +212,27 @@ bool
 CQChartsTitle::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+  const CQChartsGeom::Point        &dragPos  = editHandles_.dragPos();
+  const CQChartsResizeHandle::Side &dragSide = editHandles_.dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  location_.location = LocationType::ABSOLUTE;
+  if (location_.location == LocationType::ABS_POS &&
+      dragSide == CQChartsResizeHandle::Side::MOVE) {
+    location_.location = LocationType::ABS_POS;
 
-  setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+    setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
+  }
+  else {
+    location_.location = LocationType::ABS_RECT;
+
+    editHandles_.updateBBox(dx, dy);
+
+    bbox_ = editHandles_.bbox();
+
+    setAbsRect(CQChartsUtil::toQRect(bbox_));
+  }
 
   editHandles_.setDragPos(p);
 
@@ -254,34 +271,52 @@ draw(QPainter *painter)
 
   painter->save();
 
+  //---
+
+  // clip to plot
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
   painter->setClipRect(clipRect);
 
   //---
 
-  updateLocation();
+  if (location_.location != LocationType::ABS_RECT)
+    updateLocation();
 
   //---
 
-  double x = position_.x(); // bottom
-  double y = position_.y(); // top
-  double w = size_.width ();
-  double h = size_.height();
+  double x, y, w, h;
 
-  bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+  if (location_.location != LocationType::ABS_RECT) {
+    x = position_.x(); // bottom
+    y = position_.y(); // top
+    w = size_.width ();
+    h = size_.height();
+
+    bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+  }
+  else {
+    x = bbox_.getXMin  ();
+    y = bbox_.getYMin  ();
+    w = bbox_.getWidth ();
+    h = bbox_.getHeight();
+  }
 
   double xp = plot_->pixelToWindowWidth (padding());
   double yp = plot_->pixelToWindowHeight(padding());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
 
-  CQChartsGeom::BBox ibbox = CQChartsGeom::BBox(x + xp, y + yp, x + w - xp, y + h - yp);
+  CQChartsGeom::BBox ibbox(x + xp     , y + yp     , x + w - xp     , y + h - yp     );
+  CQChartsGeom::BBox tbbox(x + xp + xm, y + yp + ym, x + w - xp - xm, y + h - yp - ym);
 
   //---
 
-  CQChartsGeom::BBox prect, pirect;
+  CQChartsGeom::BBox prect, pirect, ptrect;
 
   plot_->windowToPixel(bbox_, prect);
   plot_->windowToPixel(ibbox, pirect);
+  plot_->windowToPixel(tbbox, ptrect);
 
   //---
 
@@ -289,14 +324,24 @@ draw(QPainter *painter)
 
   //---
 
-  QFontMetricsF fm(textFont());
+  QColor tc = interpTextColor(0, 1);
 
+  tc.setAlphaF(textAlpha());
+
+  QPen pen(tc);
+
+  painter->setPen (pen);
   painter->setFont(textFont());
 
-  painter->setPen(interpTextColor(0, 1));
+  CQChartsTextOptions textOptions;
 
-  painter->drawText(QPointF(pirect.getXMin() + margin(),
-                            pirect.getYMax() - margin() - fm.descent()), textStr());
+  textOptions.angle     = textAngle();
+  textOptions.contrast  = isTextContrast();
+  textOptions.formatted = true;
+  textOptions.clipped   = false;
+  textOptions.align     = textAlign();
+
+  plot_->drawTextInBox(painter, CQChartsUtil::toQRect(ptrect), textStr(), pen, textOptions);
 
   //---
 
@@ -306,7 +351,8 @@ draw(QPainter *painter)
   //---
 
   if (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    if (location_.location != LocationType::ABS_RECT)
+      editHandles_.setBBox(this->bbox());
 
     editHandles_.draw(painter);
   }

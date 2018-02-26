@@ -13,8 +13,8 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 
   setTextColor(themeFg);
 
-  boxData_.background.visible = false;
-  boxData_.border    .visible = false;
+  boxData_.shape.background.visible = false;
+  boxData_.shape.border    .visible = false;
 }
 
 QColor
@@ -32,10 +32,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString textPath = path + "/text";
 
-  model->addProperty(textPath, this, "textStr"  , "text" );
-  model->addProperty(textPath, this, "textFont" , "font" );
-  model->addProperty(textPath, this, "textColor", "color");
-  model->addProperty(textPath, this, "textAngle", "angle");
+  model->addProperty(textPath, this, "textStr"     , "text"    );
+  model->addProperty(textPath, this, "textFont"    , "font"    );
+  model->addProperty(textPath, this, "textColor"   , "color"   );
+  model->addProperty(textPath, this, "textAlpha"   , "alpha"   );
+  model->addProperty(textPath, this, "textAngle"   , "angle"   );
+  model->addProperty(textPath, this, "textContrast", "contrast");
+  model->addProperty(textPath, this, "textAlign"   , "align"   );
 }
 
 void

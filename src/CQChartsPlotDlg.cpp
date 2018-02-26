@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotParameter.h>
 #include <CQChartsAxis.h>
-#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQUtil.h>
@@ -527,16 +526,8 @@ applySlot()
       if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(column)))
         charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
-      if (columnTypeStr.length()) {
-        CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-        CQChartsNameValues nameValues;
-
-        CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(columnTypeStr, nameValues);
-
-        if (typeData)
-          columnTypeMgr->setModelColumnType(model(), column, typeData->type(), nameValues);
-      }
+      if (columnTypeStr.length())
+        CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
     }
     else if (parameter.type() == "columns") {
       QString columnsStr = parameter.defValue().toString();
@@ -555,16 +546,8 @@ applySlot()
       if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(s)))
         charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
-      if (columnTypeStr.length() && ! columns.empty()) {
-        CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-        CQChartsNameValues nameValues;
-
-        CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(columnTypeStr, nameValues);
-
-        if (typeData)
-          columnTypeMgr->setModelColumnType(model(), columns[0], typeData->type(), nameValues);
-      }
+      if (columnTypeStr.length() && ! columns.empty())
+        CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
     }
     else if (parameter.type() == "string") {
       QString str = parameter.defValue().toString();

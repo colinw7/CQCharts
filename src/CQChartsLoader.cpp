@@ -59,6 +59,10 @@ CQChartsLoader(CQCharts *charts) :
 
   optionLayout->addWidget(firstLineHeaderCheck_);
 
+  firstColumnHeaderCheck_ = new QCheckBox("First Column Header");
+
+  optionLayout->addWidget(firstColumnHeaderCheck_);
+
   optionLayout->addStretch(1);
 
   layout->addLayout(optionLayout);
@@ -114,6 +118,13 @@ CQChartsLoader::
 isFirstLineHeader() const
 {
   return firstLineHeaderCheck_->isChecked();
+}
+
+bool
+CQChartsLoader::
+isFirstColumnHeader() const
+{
+  return firstColumnHeaderCheck_->isChecked();
 }
 
 int

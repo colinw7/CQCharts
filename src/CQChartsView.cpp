@@ -1243,7 +1243,7 @@ showMenu(const QPoint &p)
   addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
   addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
   addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
-  addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABSOLUTE     );
+  addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABS_POS      );
 
   keyLocationActionGroup->setExclusive(true);
 
@@ -1438,10 +1438,10 @@ showMenu(const QPoint &p)
     return action;
   };
 
-  addTitleLocationGroupAction("Top"     , CQChartsTitle::LocationType::TOP     );
-  addTitleLocationGroupAction("Center"  , CQChartsTitle::LocationType::CENTER  );
-  addTitleLocationGroupAction("Bottom"  , CQChartsTitle::LocationType::BOTTOM  );
-  addTitleLocationGroupAction("Absolute", CQChartsTitle::LocationType::ABSOLUTE);
+  addTitleLocationGroupAction("Top"     , CQChartsTitle::LocationType::TOP    );
+  addTitleLocationGroupAction("Center"  , CQChartsTitle::LocationType::CENTER );
+  addTitleLocationGroupAction("Bottom"  , CQChartsTitle::LocationType::BOTTOM );
+  addTitleLocationGroupAction("Absolute", CQChartsTitle::LocationType::ABS_POS);
 
   if (currentPlot && currentPlot->title())
     titleLocationActionMap[currentPlot->title()->location()]->setChecked(true);
@@ -1598,7 +1598,7 @@ keyPositionSlot(QAction *action)
     else if (action->text() == "Bottom Right" )
       currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
     else if (action->text() == "Absolute"     )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::ABSOLUTE     );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::ABS_POS      );
   }
 }
 
@@ -1694,7 +1694,7 @@ titleLocationSlot(QAction *action)
     else if (action->text() == "Bottom")
       currentPlot->title()->setLocation(CQChartsTitle::LocationType::BOTTOM);
     else if (action->text() == "Absolute")
-      currentPlot->title()->setLocation(CQChartsTitle::LocationType::ABSOLUTE);
+      currentPlot->title()->setLocation(CQChartsTitle::LocationType::ABS_POS);
   }
 }
 

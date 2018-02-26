@@ -36,10 +36,10 @@ class CQChartsPlotObjTree {
   static PlotObjTree *addObjectsASync(CQChartsPlot *plot, const Objs &objs);
 
  private:
-  CQChartsPlot*     plot_        { nullptr };
-  PlotObjTree*      plotObjTree_ { nullptr };
-  Objs              objs_;
-  PlotObjTreeFuture plotObjTreeFuture_;
+  CQChartsPlot*     plot_        { nullptr }; // parent plot
+  PlotObjTree*      plotObjTree_ { nullptr }; // object tree
+  Objs              objs_;                    // objects
+  PlotObjTreeFuture plotObjTreeFuture_;       // future
 };
 
 #endif

@@ -3,7 +3,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsColumn.h>
 #include <CQChartsRotatedText.h>
 #include <CQPropertyViewModel.h>
 #include <QPainter>
@@ -259,16 +258,13 @@ format() const
 
   //---
 
-  if (column() >= 0) {
-    CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
+  if (column().isValid()) {
+    QString typeStr;
 
-    CQBaseModel::Type  columnType;
-    CQChartsNameValues nameValues;
-
-    if (! columnTypeMgr->getModelColumnType(plot_->model(), column(), columnType, nameValues))
+    if (plot_->columnTypeStr(column(), typeStr))
       return "";
 
-    return columnTypeMgr->encodeTypeData(columnType, nameValues);
+    return typeStr;
   }
 
   //---
@@ -284,16 +280,8 @@ setFormat(const QString &typeStr)
 
   //---
 
-  if (column() >= 0) {
-    CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
-
-    CQChartsNameValues nameValues;
-
-    CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
-
-    CQBaseModel::Type columnType = typeData->type();
-
-    if (! columnTypeMgr->setModelColumnType(plot_->model(), column(), columnType, nameValues))
+  if (column().isValid()) {
+    if (! plot_->setColumnTypeStr(column(), typeStr))
       return false;
   }
 
@@ -1018,38 +1006,36 @@ valueStr(double pos) const
       return "";
   }
 
-  CQChartsColumnTypeMgr *columnTypeMgr = plot_->charts()->columnTypeMgr();
-
   if (formatStr_.length()) {
-    CQChartsNameValues nameValues;
+    QString str;
 
-    CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(formatStr_, nameValues);
-
-    if (typeData)
-      return typeData->dataName(pos, nameValues).toString();
+    if (CQChartsUtil::formatColumnTypeValue(plot_->charts(), formatStr_, pos, str))
+      return str;
   }
 
-  if (column() >= 0) {
-    CQBaseModel::Type  columnType;
-    CQChartsNameValues nameValues;
+  if (column().isValid()) {
+    QString str;
 
-    if (columnTypeMgr->getModelColumnType(plot_->model(), column(), columnType, nameValues)) {
-      CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+    if (CQChartsUtil::formatColumnValue(plot_->charts(), plot_->model(), column(), pos, str))
+      return str;
 
-      if (typeData)
-        return typeData->dataName(pos, nameValues).toString();
-    }
-    else if (isDataLabels()) {
+    if (isDataLabels()) {
       int row = int(pos);
 
       QModelIndex parent; // TODO: support parent
 
-      QModelIndex ind = plot_->model()->index(row, column(), parent);
+      bool ok;
 
-      QVariant header = plot_->model()->data(ind, Qt::DisplayRole);
+      QVariant header = CQChartsUtil::modelValue(plot_->model(), row, column(), parent, ok);
 
-      if (header.isValid())
-        return header.toString();
+      if (header.isValid()) {
+        QString headerStr;
+
+        bool rc = CQChartsUtil::variantToString(header, headerStr);
+        assert(rc);
+
+        return headerStr;
+      }
     }
   }
 
@@ -1718,8 +1704,7 @@ drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
 
 void
 CQChartsAxis::
-drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
-              bool inside)
+drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, bool inside)
 {
   int tgap  = 2;
   int tlen1 = majorTickLen();

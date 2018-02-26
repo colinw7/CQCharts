@@ -36,7 +36,7 @@ CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
 {
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
-  borderData_.alpha = 0.3;
+  setBorderAlpha(0.3);
 
   setLayerActive(Layer::FG, true);
 
@@ -74,8 +74,8 @@ addProperties()
   addProperty("", this, "innerRadius");
   addProperty("", this, "labelRadius");
 
-  addProperty("border", this, "borderColor", "color");
-  addProperty("border", this, "borderAlpha", "alpha");
+  addProperty("stroke", this, "borderColor", "color");
+  addProperty("stroke", this, "borderAlpha", "alpha");
 
   addProperty("segment", this, "segmentAlpha", "alpha");
 
@@ -151,7 +151,7 @@ initObjs()
 
   //---
 
-  if (valueColumn() >= 0)
+  if (valueColumn().isValid())
     return initHierObjs();
 
   return initTableObjs();
@@ -226,8 +226,8 @@ initTableObjs()
 
   int numExtraColumns = 0;
 
-  if (nameColumn () >= 0) ++numExtraColumns;
-  if (groupColumn() >= 0) ++numExtraColumns;
+  if (nameColumn ().isValid()) ++numExtraColumns;
+  if (groupColumn().isValid()) ++numExtraColumns;
 
   int nv = std::min(nr, nc - numExtraColumns);
 
@@ -241,11 +241,13 @@ initTableObjs()
 
   //---
 
-  CQChartsValueSet groupValues;
+  CQChartsValueSet groupValues(this);
 
-  if (groupColumn() >= 0 && groupColumn() < nv) {
+  if (groupColumn().isValid() && groupColumn().column() < nv) {
+    int igroup = groupColumn().column();
+
     for (int row = 0; row < nv; ++row) {
-      QVariant group = indRowDatas[row].rowData[groupColumn()];
+      QVariant group = indRowDatas[row].rowData[igroup];
 
       groupValues.addValue(group);
     }
@@ -266,11 +268,16 @@ initTableObjs()
 
     const QModelIndex &ind = indRowDatas[row].ind;
 
-    if (nameColumn() >= 0 && nameColumn() < nv) {
-      QModelIndex nameInd  = model->index(ind.row(), nameColumn(), ind.parent());
+    if (nameColumn().isValid() && nameColumn().column() < nv) {
+      QModelIndex nameInd  = model->index(ind.row(), nameColumn().column(), ind.parent());
       QModelIndex nameInd1 = normalizeIndex(nameInd);
 
-      QString name = indRowDatas[row].rowData[nameColumn()].toString();
+      QVariant var = indRowDatas[row].rowData[nameColumn().column()];
+
+      QString name;
+
+      bool rc = CQChartsUtil::variantToString(var, name);
+      assert(rc);
 
       data.setName(name);
 
@@ -279,11 +286,16 @@ initTableObjs()
 
     //---
 
-    if (groupColumn() >= 0 && groupColumn() < nv) {
-      QModelIndex groupInd  = model->index(ind.row(), groupColumn(), ind.parent());
+    if (groupColumn().isValid() && groupColumn().column() < nv) {
+      QModelIndex groupInd  = model->index(ind.row(), groupColumn().column(), ind.parent());
       QModelIndex groupInd1 = normalizeIndex(groupInd);
 
-      QString group = indRowDatas[row].rowData[groupColumn()].toString();
+      QVariant var = indRowDatas[row].rowData[groupColumn().column()];
+
+      QString group;
+
+      bool rc = CQChartsUtil::variantToString(var, group);
+      assert(rc);
 
       data.setGroup(CQChartsChordData::Group(group, groupValues.imap(row)));
 
@@ -393,9 +405,9 @@ initHierObjs()
 
   //---
 
-  CQChartsValueSet groupValues;
+  CQChartsValueSet groupValues(this);
 
-  if (groupColumn() >= 0)
+  if (groupColumn().isValid())
     addColumnValues(groupColumn(), groupValues);
 
   //---
@@ -411,15 +423,10 @@ initHierObjs()
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex linkInd  = model->index(row, plot_->nameColumn (), parent);
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
-      QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
-
       bool ok1, ok2;
 
-      QString linkStr = CQChartsUtil::modelString(model, linkInd , ok1);
-      double  value   = CQChartsUtil::modelReal  (model, valueInd, ok2);
+      QString linkStr = CQChartsUtil::modelString(model, row, plot_->nameColumn (), parent , ok1);
+      double  value   = CQChartsUtil::modelReal  (model, row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;
@@ -431,6 +438,9 @@ initHierObjs()
 
       if (pos == -1)
         return State::SKIP;
+
+      QModelIndex linkInd  = model->index(row, plot_->nameColumn().column(), parent);
+      QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
       QString srcStr  = linkStr.mid(0, pos ).simplified();
       QString destStr = linkStr.mid(pos + 1).simplified();
@@ -463,12 +473,10 @@ initHierObjs()
       //---
 
       // set group if specified
-      if (plot_->groupColumn() >= 0) {
-        QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
-
+      if (plot_->groupColumn().isValid()) {
         bool ok;
 
-        QString groupStr = CQChartsUtil::modelString(model, groupInd, ok);
+        QString groupStr = CQChartsUtil::modelString(model, row, plot_->groupColumn(), parent, ok);
 
         (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(row)));
       }

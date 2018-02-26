@@ -77,8 +77,8 @@ class CQChartsImagePlot : public CQChartsPlot {
   void addImageObj(double x, double y, double dx, double dy, int value, const QModelIndex &ind);
 
  private:
-  double minValue_ { 0.0 };
-  double maxValue_ { 0.0 };
+  double minValue_ { 0.0 }; // min value
+  double maxValue_ { 0.0 }; // max value
 };
 
 #endif

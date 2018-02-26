@@ -76,9 +76,9 @@ addProperties()
   addProperty("", this, "emptyCellColor", "");
   addProperty("", this, "margin"        , "");
 
-  addProperty("border", this, "borderColor", "color");
-  addProperty("border", this, "borderAlpha", "alpha");
-  addProperty("border", this, "cornerSize" , "cornerSize");
+  addProperty("stroke", this, "borderColor", "color");
+  addProperty("stroke", this, "borderAlpha", "alpha");
+  addProperty("stroke", this, "cornerSize" , "cornerSize");
 
   addProperty("text", this, "textColor", "color");
   addProperty("text", this, "font"     , "font" );
@@ -132,9 +132,9 @@ initObjs()
 
   //---
 
-  if      (nameColumn() >= 0 && valueColumn() >= 0)
+  if      (nameColumn().isValid() && valueColumn().isValid())
     return initHierObjs();
-  else if (connectionsColumn() >= 0)
+  else if (connectionsColumn().isValid())
     return initConnectionObjs();
   else
     return false;
@@ -162,24 +162,18 @@ initHierObjs()
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
-      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
-
       bool ok1;
 
-      QString linkStr = CQChartsUtil::modelString(model, nameInd, ok1);
+      QString linkStr = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok1);
 
       if (! ok1)
         return State::SKIP;
 
       //---
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model, valueInd, ok2);
+      double value = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok2);
 
       if (! ok2)
         return State::SKIP;
@@ -188,18 +182,19 @@ initHierObjs()
 
       int group = row;
 
-      if (plot_->groupColumn() >= 0) {
-        QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
-
+      if (plot_->groupColumn().isValid()) {
         bool ok3;
 
-        group = CQChartsUtil::modelInteger(model, groupInd, ok3);
+        group = CQChartsUtil::modelInteger(model, row, plot_->groupColumn(), parent, ok3);
 
         if (! ok3)
           group = row;
       }
 
       //---
+
+      QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+      QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       int pos = linkStr.indexOf("/");
 
@@ -332,18 +327,9 @@ initConnectionObjs()
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex nodeInd        = model->index(row, plot_->nodeColumn       (), parent);
-      QModelIndex connectionsInd = model->index(row, plot_->connectionsColumn(), parent);
-
-      QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
-
-      //---
-
       bool ok1;
 
-      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
-      int id = CQChartsUtil::modelInteger(model, nodeInd , ok1);
+      int id = CQChartsUtil::modelInteger(model, row, plot_->nodeColumn(), parent , ok1);
 
       if (! ok1) id = row;
 
@@ -351,9 +337,7 @@ initConnectionObjs()
 
       bool ok2;
 
-      QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
-
-      int group = CQChartsUtil::modelInteger(model, groupInd, ok2);
+      int group = CQChartsUtil::modelInteger(model, row, plot_->groupColumn(), parent, ok2);
 
       if (! ok2) group = row;
 
@@ -361,7 +345,8 @@ initConnectionObjs()
 
       bool ok3;
 
-      QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+      QString connectionsStr =
+        CQChartsUtil::modelString(model, row, plot_->connectionsColumn(), parent, ok3);
 
       if (! ok3)
         return State::SKIP;
@@ -370,12 +355,15 @@ initConnectionObjs()
 
       bool ok4;
 
-      QString name = CQChartsUtil::modelString(model, nameInd, ok4);
+      QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok4);
 
       if (! name.length())
         name = QString("%1").arg(id);
 
       //---
+
+      QModelIndex nodeInd  = model->index(row, plot_->nodeColumn().column(), parent);
+      QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
       ConnectionsData connections;
 
@@ -661,11 +649,19 @@ drawBackground(QPainter *painter)
 
   //---
 
+  QColor tc = interpTextColor(0, 1);
+
+  tc.setAlphaF(textAlpha());
+
+  QPen tpen(tc);
+
+  painter->setPen(tpen);
+
+  //---
+
   double twMax = 0.0;
 
   // draw row labels
-  painter->setPen(interpTextColor(0, 1));
-
   double px = pxo + margin();
   double py = pyo + margin() + yts;
 
@@ -729,7 +725,7 @@ drawBackground(QPainter *painter)
 
         double cs = 0; // cornerSize()
 
-        CQChartsRoundedPolygon::draw(painter, cellRect, cs);
+        CQChartsRoundedPolygon::draw(painter, cellRect, cs, cs);
       }
 
       px += pxs;
@@ -863,7 +859,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   plot_->windowToPixel(rect(), prect);
 
-  CQChartsRoundedPolygon::draw(painter, CQChartsUtil::toQRect(prect), plot_->cornerSize());
+  double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+  double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+
+  CQChartsRoundedPolygon::draw(painter, CQChartsUtil::toQRect(prect), cxs, cys);
 }
 
 bool

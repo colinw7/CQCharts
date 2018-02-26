@@ -1,5 +1,4 @@
 #include <CQChartsTsv.h>
-#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQTsvModel.h>
 #include <CQExprModel.h>
@@ -35,6 +34,13 @@ CQChartsTsv::
 setFirstLineHeader(bool b)
 {
   tsvModel_->setFirstLineHeader(b);
+}
+
+void
+CQChartsTsv::
+setFirstColumnHeader(bool b)
+{
+  tsvModel_->setFirstColumnHeader(b);
 }
 
 bool

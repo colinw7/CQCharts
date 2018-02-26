@@ -21,6 +21,7 @@ CQChartsJson.cpp \
 CQChartsGnuData.cpp \
 CQChartsExprModel.cpp \
 CQChartsColumn.cpp \
+CQChartsColumnType.cpp \
 \
 CQChartsTable.cpp \
 CQChartsTree.cpp \
@@ -114,6 +115,7 @@ CQPropertyViewType.cpp \
 \
 CQChartsColor.cpp \
 CQChartsDrawUtil.cpp \
+CQChartsPosition.cpp \
 CQChartsLength.cpp \
 CQChartsUtil.cpp \
 \
@@ -163,6 +165,7 @@ HEADERS += \
 ../include/CQChartsGnuData.h \
 ../include/CQChartsExprModel.h \
 ../include/CQChartsColumn.h \
+../include/CQChartsColumnType.h \
 \
 ../include/CQChartsTable.h \
 ../include/CQChartsTree.h \
@@ -219,6 +222,7 @@ HEADERS += \
 \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
+../include/CQChartsPosition.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \

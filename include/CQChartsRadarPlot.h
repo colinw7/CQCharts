@@ -5,8 +5,6 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 
-class CQChartsTextBoxObj;
-
 // TODO:
 //  Stacked
 //  mouse feedback depend on angle (actual value)
@@ -60,8 +58,8 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 class CQChartsRadarPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int            nameColumn   READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(int            valueColumn  READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn      WRITE setNameColumn     )
+  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
   Q_PROPERTY(double         angleStart   READ angleStart      WRITE setAngleStart     )
   Q_PROPERTY(double         angleExtent  READ angleExtent     WRITE setAngleExtent    )
@@ -75,8 +73,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColor  fillColor    READ fillColor       WRITE setFillColor      )
   Q_PROPERTY(double         fillAlpha    READ fillAlpha       WRITE setFillAlpha      )
   Q_PROPERTY(Pattern        fillPattern  READ fillPattern     WRITE setFillPattern    )
-  Q_PROPERTY(CQChartsColor  textColor    READ textColor       WRITE setTextColor      )
   Q_PROPERTY(QFont          textFont     READ textFont        WRITE setTextFont       )
+  Q_PROPERTY(CQChartsColor  textColor    READ textColor       WRITE setTextColor      )
+  Q_PROPERTY(double         textAlpha    READ textAlpha       WRITE setTextAlpha      )
 
   Q_ENUMS(Pattern)
 
@@ -96,17 +95,17 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
  ~CQChartsRadarPlot();
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
 
-  void setValueColumn(int i) {
-    valueColumn_ = i;
+  void setValueColumn(const CQChartsColumn &c) {
+    valueColumn_ = c;
 
     valueColumns_.clear();
 
-    if (valueColumn_ >= 0)
+    if (valueColumn_.isValid())
       valueColumns_.push_back(valueColumn_);
 
     updateRangeAndObjs();
@@ -114,7 +113,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   int numValueColumns() const { return valueColumns_.size(); }
 
-  int valueColumn(int i) const {
+  const CQChartsColumn &valueColumn(int i) const {
     assert(i >= 0 && i < numValueColumns());
 
     return valueColumns_[i];
@@ -156,13 +155,27 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   //---
 
+  bool isBorder() const;
+  void setBorder(bool b);
+
+  const CQChartsColor &borderColor() const;
+  void setBorderColor(const CQChartsColor &c);
+
+  double borderAlpha() const;
+  void setBorderAlpha(double a);
+
+  const CQChartsLength &borderWidth() const;
+  void setBorderWidth(const CQChartsLength &l);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  //---
+
   bool isFilled() const;
   void setFilled(bool b);
 
   const CQChartsColor &fillColor() const;
   void setFillColor(const CQChartsColor &c);
-
-  QColor interpFillColor(int i, int n);
 
   double fillAlpha() const;
   void setFillAlpha(double r);
@@ -170,21 +183,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Pattern fillPattern() const;
   void setFillPattern(Pattern pattern);
 
-  //---
-
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
+  QColor interpFillColor(int i, int n);
 
   //---
 
@@ -193,6 +192,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);
+
+  double textAlpha() const;
+  void setTextAlpha(double a);
 
   QColor interpTextColor(int i, int n) const;
 
@@ -254,15 +256,16 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   using ValueDatas = std::map<int,ValueData>;
 
-  int                 nameColumn_    { -1 };      // name column
-  int                 valueColumn_   { 1 };       // value column
-  Columns             valueColumns_;              // values column
-  double              angleStart_    { 90.0 };    // angle start
-  double              angleExtent_   { 360.0 };   // angle extent
-  CQChartsLineData    gridData_;                  // grid line data
-  CQChartsTextBoxObj* textBoxObj_    { nullptr }; // box object for fill and border
-  ValueDatas          valueDatas_;                // value
-  double              valueRadius_   { 1.0 };     // max value (radius)
+  CQChartsColumn    nameColumn_;              // name column
+  CQChartsColumn    valueColumn_   { 1 };     // value column
+  Columns           valueColumns_;            // values column
+  double            angleStart_    { 90.0 };  // angle start
+  double            angleExtent_   { 360.0 }; // angle extent
+  CQChartsLineData  gridData_;                // grid line data
+  CQChartsShapeData shapeData_;               // fill/border data
+  CQChartsTextData  textData_;                // text data
+  ValueDatas        valueDatas_;              // value
+  double            valueRadius_   { 1.0 };   // max value (radius)
 };
 
 #endif

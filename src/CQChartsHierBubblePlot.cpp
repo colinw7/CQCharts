@@ -33,20 +33,15 @@ CQChartsHierBubblePlot::
 CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("hierbubble"), model)
 {
-  textBoxObj_ = new CQChartsTextBoxObj(this);
-
-  textBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorder(true);
   setFilled(true);
 
   setTextContrast(true);
+  setTextFontSize(12.0);
 
-  textBoxObj_->setTextFontSize(12.0);
-
-  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
-
-  textBoxObj_->setTextColor(textColor);
+  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
 
   setMargins(1, 1, 1, 1);
 
@@ -56,8 +51,6 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
 CQChartsHierBubblePlot::
 ~CQChartsHierBubblePlot()
 {
-  delete textBoxObj_;
-
   delete root_;
 }
 
@@ -67,71 +60,76 @@ bool
 CQChartsHierBubblePlot::
 isFilled() const
 {
-  return textBoxObj_->isBackground();
+  return shapeData_.background.visible;
 }
 
 void
 CQChartsHierBubblePlot::
 setFilled(bool b)
 {
-  textBoxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsHierBubblePlot::
 fillColor() const
 {
-  return textBoxObj_->backgroundColor();
+  return shapeData_.background.color;
 }
 
 void
 CQChartsHierBubblePlot::
 setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsHierBubblePlot::
 interpFillColor(int i, int n) const
 {
-  return textBoxObj_->interpBackgroundColor(i, n);
+  return fillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsHierBubblePlot::
 fillAlpha() const
 {
-  return textBoxObj_->backgroundAlpha();
+  return shapeData_.background.alpha;
 }
 
 void
 CQChartsHierBubblePlot::
 setFillAlpha(double a)
 {
-  textBoxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsHierBubblePlot::Pattern
 CQChartsHierBubblePlot::
 fillPattern() const
 {
-  return (Pattern) textBoxObj_->backgroundPattern();
+  return (Pattern) shapeData_.background.pattern;
 }
 
 void
 CQChartsHierBubblePlot::
 setFillPattern(Pattern pattern)
 {
-  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) shapeData_.background.pattern) {
+    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
+}
+
+//---
+
+void
+CQChartsHierBubblePlot::
+setValueLabel(bool b)
+{
+  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { update(); } );
 }
 
 //---
@@ -140,71 +138,63 @@ bool
 CQChartsHierBubblePlot::
 isBorder() const
 {
-  return textBoxObj_->isBorder();
+  return shapeData_.border.visible;
 }
 
 void
 CQChartsHierBubblePlot::
 setBorder(bool b)
 {
-  textBoxObj_->setBorder(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsHierBubblePlot::
 borderColor() const
 {
-  return textBoxObj_->borderColor();
+  return shapeData_.border.color;
 }
 
 void
 CQChartsHierBubblePlot::
 setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsHierBubblePlot::
 interpBorderColor(int i, int n) const
 {
-  return textBoxObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsHierBubblePlot::
 borderAlpha() const
 {
-  return textBoxObj_->borderAlpha();
+  return shapeData_.border.alpha;
 }
 
 void
 CQChartsHierBubblePlot::
 setBorderAlpha(double a)
 {
-  textBoxObj_->setBorderAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsHierBubblePlot::
 borderWidth() const
 {
-  return textBoxObj_->borderWidth();
+  return shapeData_.border.width;
 }
 
 void
 CQChartsHierBubblePlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
 //---
@@ -213,55 +203,88 @@ const QFont &
 CQChartsHierBubblePlot::
 textFont() const
 {
-  return textBoxObj_->textFont();
+  return textData_.font;
 }
 
 void
 CQChartsHierBubblePlot::
 setTextFont(const QFont &f)
 {
-  textBoxObj_->setTextFont(f);
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+}
 
-  update();
+void
+CQChartsHierBubblePlot::
+setTextFontSize(double s)
+{
+  if (s != textData_.font.pointSizeF()) {
+    textData_.font.setPointSizeF(s);
+
+    update();
+  }
 }
 
 const CQChartsColor &
 CQChartsHierBubblePlot::
 textColor() const
 {
-  return textBoxObj_->textColor();
+  return textData_.color;
 }
 
 void
 CQChartsHierBubblePlot::
 setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsHierBubblePlot::
 interpTextColor(int i, int n) const
 {
-  return textBoxObj_->interpTextColor(i, n);
+  return textColor().interpColor(this, i, n);
+}
+
+double
+CQChartsHierBubblePlot::
+textAlpha() const
+{
+  return textData_.alpha;
+}
+
+void
+CQChartsHierBubblePlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
 }
 
 bool
 CQChartsHierBubblePlot::
 isTextContrast() const
 {
-  return textBoxObj_->isTextContrast();
+  return textData_.contrast;
 }
 
 void
 CQChartsHierBubblePlot::
 setTextContrast(bool b)
 {
-  textBoxObj_->setTextContrast(b);
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
+}
 
-  update();
+bool
+CQChartsHierBubblePlot::
+isTextScaled() const
+{
+  return textData_.scaled;
+}
+
+void
+CQChartsHierBubblePlot::
+setTextScaled(bool b)
+{
+  CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { update(); } );
 }
 
 //---
@@ -271,6 +294,8 @@ CQChartsHierBubblePlot::
 addProperties()
 {
   CQChartsHierPlot::addProperties();
+
+  addProperty("", this, "valueLabel");
 
   addProperty("stroke", this, "border"     , "visible");
   addProperty("stroke", this, "borderColor", "color"  );
@@ -284,7 +309,9 @@ addProperties()
 
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
+  addProperty("text", this, "textAlpha"   , "alpha"   );
   addProperty("text", this, "textContrast", "contrast");
+  addProperty("text", this, "textScaled"  , "scaled"  );
 }
 
 //------
@@ -602,10 +629,7 @@ loadHier()
      plot_(plot) {
       hierStack_.push_back(root);
 
-      QAbstractItemModel *model = plot_->model();
-      assert(model);
-
-      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
+      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -669,11 +693,11 @@ loadHier()
 
     bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
                  QString &name, QModelIndex &nameInd) const {
-      nameInd = model->index(row, plot_->nameColumn(), parent);
+      nameInd = model->index(row, plot_->nameColumn().column(), parent);
 
       bool ok;
 
-      name = CQChartsUtil::modelString(model, nameInd, ok);
+      name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
@@ -682,17 +706,15 @@ loadHier()
                  double &size) const {
       size = 1.0;
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
-      if (! valueInd.isValid())
+      if (! plot_->valueColumn().isValid())
         return true;
 
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, valueInd, ok);
+        size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, valueInd, ok);
+        size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok);
       else
         ok = false;
 
@@ -769,10 +791,7 @@ loadFlat()
    public:
     RowVisitor(CQChartsHierBubblePlot *plot) :
      plot_(plot) {
-      QAbstractItemModel *model = plot_->model();
-      assert(model);
-
-      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
+      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -809,17 +828,15 @@ loadFlat()
                  double &size) const {
       size = 1.0;
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
-      if (! valueInd.isValid())
+      if (! plot_->valueColumn().isValid())
         return true;
 
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, valueInd, ok);
+        size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, valueInd, ok);
+        size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok);
       else
         ok = false;
 
@@ -1280,16 +1297,15 @@ calcTipId() const
   tableTip.addTableRow("Name", node_->hierName());
   tableTip.addTableRow("Size", node_->hierSize());
 
-  if (plot_->colorColumn() >= 0) {
+  if (plot_->colorColumn().isValid()) {
     QAbstractItemModel *model = plot_->model();
 
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    QModelIndex colorInd = model->index(ind1.row(), plot_->colorColumn(), ind1.parent());
-
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, colorInd, ok);
+    QString colorStr =
+      CQChartsUtil::modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1314,17 +1330,13 @@ addSelectIndex()
 {
   const QModelIndex &ind = node_->ind();
 
-  QModelIndex nameInd  = plot_->selectIndex(ind.row(), plot_->nameColumn (), ind.parent());
-  QModelIndex valueInd = plot_->selectIndex(ind.row(), plot_->valueColumn(), ind.parent());
-  QModelIndex colorInd = plot_->selectIndex(ind.row(), plot_->colorColumn(), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
 
-  plot_->addSelectIndex(nameInd);
+  if (plot_->valueColumn().isValid())
+    plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
 
-  if (valueInd.isValid())
-    plot_->addSelectIndex(valueInd);
-
-  if (colorInd.isValid())
-    plot_->addSelectIndex(colorInd);
+  if (plot_->colorColumn().isValid())
+    plot_->addSelectIndex(ind.row(), plot_->colorColumn(), ind.parent());
 }
 
 bool
@@ -1389,6 +1401,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   QColor tc = plot_->interpTextColor(0, 1);
 
+  tc.setAlphaF(plot_->textAlpha());
+
   QPen tpen(tc);
 
   plot_->updateObjPenBrushState(this, tpen, brush);
@@ -1411,18 +1425,50 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
+  QStringList strs;
+
+  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
+
+  strs.push_back(name);
+
+  if (plot_->isValueLabel() && ! node_->isFiller()) {
+    strs.push_back(QString("%1").arg(node_->size()));
+  }
+
+  //---
+
   // set font
   QFont font = plot_->textFont();
 
   painter->setFont(font);
 
-  QFontMetricsF fm(painter->font());
+  if (plot_->isTextScaled()) {
+    QFontMetricsF fm(painter->font());
+
+    double tw = 0;
+
+    for (int i = 0; i < strs.size(); ++i)
+      tw = std::max(tw, fm.width(strs[i]));
+
+    double th = strs.size()*fm.height();
+
+    double sx = (tw > 0 ? qrect.width ()/tw : 1.0);
+    double sy = (th > 0 ? qrect.height()/th : 1.0);
+
+    double s = std::min(sx, sy);
+
+    double fs = painter->font().pointSizeF()*s;
+
+    QFont font1 = painter->font();
+
+    font1.setPointSizeF(fs);
+
+    painter->setFont(font1);
+  }
 
   //---
 
   // calc text size and position
-  QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
-
   plot_->windowToPixel(node_->x(), node_->y(), px1, py1);
 
   //---
@@ -1434,7 +1480,19 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   textOptions.contrast = plot_->isTextContrast();
 
-  plot_->drawTextAtPoint(painter, QPointF(px1, py1), name, tpen, textOptions);
+  if      (strs.size() == 1)
+    plot_->drawTextAtPoint(painter, QPointF(px1, py1), name, tpen, textOptions);
+  else if (strs.size() == 2) {
+    QFontMetricsF fm(painter->font());
+
+    double th = fm.height();
+
+    plot_->drawTextAtPoint(painter, QPointF(px1, py1 - th/2), strs[0], tpen, textOptions);
+    plot_->drawTextAtPoint(painter, QPointF(px1, py1 + th/2), strs[1], tpen, textOptions);
+  }
+  else {
+    assert(false);
+  }
 
   //---
 

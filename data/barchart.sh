@@ -32,4 +32,3 @@ CQChartsTest \
  -bool "range=1,horizontal=1" \
  -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
  -properties "key.visible=0,barMargin=12,fill.color=palette:0.2"
-

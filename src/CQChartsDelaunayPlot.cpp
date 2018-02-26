@@ -242,15 +242,10 @@ updateRange(bool apply)
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
-      QModelIndex yind = model->index(row, plot_->yColumn(), parent);
-
-      //---
-
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, xind, ok1);
-      double y = CQChartsUtil::modelReal(model, yind, ok2);
+      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -352,19 +347,18 @@ initObjs()
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
-      QModelIndex yind = model->index(row, plot_->yColumn(), parent);
-
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, xind, ok1);
-      double y = CQChartsUtil::modelReal(model, yind, ok2);
+      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
 
       if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
         return State::SKIP;
+
+      QModelIndex xind = model->index(row, plot_->xColumn().column(), parent);
 
       plot_->addPointObj(x, y, xind, ModelVisitor::row());
 
@@ -599,12 +593,11 @@ calcId() const
 {
   QString name1;
 
-  if (plot_->nameColumn() >= 0) {
-    QModelIndex nameInd = plot_->model()->index(ind_.row(), plot_->nameColumn(), ind_.parent());
-
+  if (plot_->nameColumn().isValid()) {
     bool ok;
 
-    name1 = CQChartsUtil::modelString(plot_->model(), nameInd, ok);
+    name1 =
+     CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
   }
   else
     name1 = plot_->yname();

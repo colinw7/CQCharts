@@ -77,16 +77,16 @@ class CQChartsPlotObj : public QObject {
  protected:
   using OptString = boost::optional<QString>;
 
-  CQChartsPlot*      plot_     { nullptr };
-  CQChartsGeom::BBox rect_;
-  OptString          id_;
-  OptString          tipId_;
-  int                colorInd_ { -1 };
-  bool               visible_  { true };
-  bool               selected_ { false };
-  bool               inside_   { false };
-  QBrush             fill_;
-  QPen               stroke_;
+  CQChartsPlot*      plot_     { nullptr }; // parent plot
+  CQChartsGeom::BBox rect_;                 // bbox
+  OptString          id_;                   // id
+  OptString          tipId_;                // tip id
+  int                colorInd_ { -1 };      // color index
+  bool               visible_  { true };    // is visible
+  bool               selected_ { false };   // is selected
+  bool               inside_   { false };   // is mouse inside
+  QBrush             fill_;                 // fill brush
+  QPen               stroke_;               // stroke pen
 };
 
 //------

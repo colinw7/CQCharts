@@ -24,6 +24,40 @@ addProperties(CQPropertyViewModel *, const QString &)
 {
 }
 
+void
+CQChartsAnnotation::
+addStrokeFillProperties(CQPropertyViewModel *model, const QString &path)
+{
+  addStrokeProperties(model, path);
+  addFillProperties  (model, path);
+}
+
+void
+CQChartsAnnotation::
+addStrokeProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString bgPath = path + "/background";
+
+  model->addProperty(bgPath, this, "background"       , "visible");
+  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
+  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
+  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
+}
+
+void
+CQChartsAnnotation::
+addFillProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString borderPath = path + "/border";
+
+  model->addProperty(borderPath, this, "border"     , "visible"   );
+  model->addProperty(borderPath, this, "borderColor", "color"     );
+  model->addProperty(borderPath, this, "borderAlpha", "alpha"     );
+  model->addProperty(borderPath, this, "borderWidth", "width"     );
+  model->addProperty(borderPath, this, "cornerSize" , "cornerSize");
+  model->addProperty(borderPath, this, "borderSides", "sides"     );
+}
+
 bool
 CQChartsAnnotation::
 contains(const CQChartsGeom::Point &p) const
@@ -49,14 +83,18 @@ bool
 CQChartsAnnotation::
 editMove(const CQChartsGeom::Point &p)
 {
-  const CQChartsGeom::Point &dragPos = editHandles_.dragPos();
+  const CQChartsGeom::Point        &dragPos  = editHandles_.dragPos();
+  const CQChartsResizeHandle::Side &dragSide = editHandles_.dragSide();
 
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
   editHandles_.updateBBox(dx, dy);
 
-  setBBox(editHandles_.bbox());
+  if (dragSide != CQChartsResizeHandle::Side::MOVE)
+    autoSize_ = false;
+
+  setBBox(editHandles_.bbox(), dragSide);
 
   editHandles_.setDragPos(p);
 
@@ -95,7 +133,8 @@ draw(QPainter *painter)
 //---
 
 CQChartsRectAnnotation::
-CQChartsRectAnnotation(CQChartsPlot *plot, const QPointF &start, const QPointF &end) :
+CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
+                       const CQChartsPosition &end) :
  CQChartsAnnotation(plot), start_(start), end_(end)
 {
   setObjectName(QString("rect.%1").arg(ind()));
@@ -124,49 +163,32 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "margin");
   model->addProperty(path1, this, "padding");
 
-  QString bgPath = path1 + "/background";
-
-  model->addProperty(bgPath, this, "background"       , "visible");
-  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
-
-  QString borderPath = path1 + "/border";
-
-  model->addProperty(borderPath, this, "border"     , "visible"   );
-  model->addProperty(borderPath, this, "borderColor", "color"     );
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"     );
-  model->addProperty(borderPath, this, "borderWidth", "width"     );
-  model->addProperty(borderPath, this, "cornerSize" , "cornerSize");
-  model->addProperty(borderPath, this, "borderSides", "sides"     );
+  addStrokeFillProperties(model, path1);
 }
 
 void
 CQChartsRectAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  double dx1 = bbox.getXMin() - bbox_.getXMin();
-  double dy1 = bbox.getYMin() - bbox_.getYMin();
-  double dx2 = bbox.getXMax() - bbox_.getXMax();
-  double dy2 = bbox.getYMax() - bbox_.getYMax();
+  QPointF start = plot_->positionToPlot(start_);
+  QPointF end   = plot_->positionToPlot(end_  );
 
-  if (start_.x() < end_.x()) {
-    start_.setX(start_.x() + dx1);
-    end_  .setX(end_  .x() + dx2);
-  }
-  else {
-    start_.setX(start_.x() + dx2);
-    end_  .setX(end_  .x() + dx1);
-  }
+  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
+  double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  if (start_.y() < end_.y()) {
-    start_.setY(start_.y() + dy1);
-    end_  .setY(end_  .y() + dy2);
-  }
-  else {
-    start_.setY(start_.y() + dy2);
-    end_  .setY(end_  .y() + dy1);
-  }
+  double xp = plot_->pixelToWindowWidth (padding());
+  double yp = plot_->pixelToWindowHeight(padding());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
+
+  x1 += xp + xm; y1 += yp + ym;
+  x2 -= xp + xm; y2 -= yp + ym;
+
+  start = QPointF(std::min(x1, x2), std::min(y1, y2));
+  end   = QPointF(std::max(x1, x2), std::max(y1, y2));
+
+  start_ = CQChartsPosition(start);
+  end_   = CQChartsPosition(end  );
 
   bbox_ = bbox;
 }
@@ -175,15 +197,18 @@ void
 CQChartsRectAnnotation::
 draw(QPainter *painter)
 {
+  QPointF start = plot_->positionToPlot(start_);
+  QPointF end   = plot_->positionToPlot(end_  );
+
   double xp = plot_->pixelToWindowWidth (padding());
   double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin());
-  double ym = plot_->pixelToWindowHeight(margin());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
 
-  double x1 = std::min(start_.x(), end_.x());
-  double y1 = std::min(start_.y(), end_.y());
-  double x2 = std::max(start_.x(), end_.x());
-  double y2 = std::max(start_.y(), end_.y());
+  double x1 = std::min(start.x(), end.x());
+  double y1 = std::min(start.y(), end.y());
+  double x2 = std::max(start.x(), end.x());
+  double y2 = std::max(start.y(), end.y());
 
   double x = x1 - xp - xm; // bottom
   double y = y1 - yp - ym; // top
@@ -208,7 +233,7 @@ draw(QPainter *painter)
 //---
 
 CQChartsEllipseAnnotation::
-CQChartsEllipseAnnotation(CQChartsPlot *plot, const QPointF &center,
+CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center,
                           double xRadius, double yRadius) :
  CQChartsAnnotation(plot), center_(center), xRadius_(xRadius), yRadius_(yRadius)
 {
@@ -236,29 +261,20 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "xRadius");
   model->addProperty(path1, this, "yRadius");
 
-  QString bgPath = path1 + "/background";
-
-  model->addProperty(bgPath, this, "background"       , "visible");
-  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
-
-  QString borderPath = path1 + "/border";
-
-  model->addProperty(borderPath, this, "border"     , "visible");
-  model->addProperty(borderPath, this, "borderColor", "color"  );
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"  );
-  model->addProperty(borderPath, this, "borderWidth", "width"  );
+  addStrokeFillProperties(model, path1);
 }
 
 void
 CQChartsEllipseAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
+  center_ = CQChartsPosition(CQChartsUtil::toQPoint(bbox.getCenter()));
 
-  center_ += QPointF(dx, dy);
+  double w = bbox.getWidth ();
+  double h = bbox.getHeight();
+
+  xRadius_ = w/2;
+  yRadius_ = h/2;
 
   bbox_ = bbox;
 }
@@ -267,12 +283,14 @@ void
 CQChartsEllipseAnnotation::
 draw(QPainter *painter)
 {
-  double x1 = center_.x() - xRadius_;
-  double y1 = center_.y() - yRadius_;
-  double x2 = center_.x() + xRadius_;
-  double y2 = center_.y() + yRadius_;
+  QPointF center = plot_->positionToPlot(center_);
 
-  bbox_ = CQChartsGeom::BBox(x1, y1, x2 - x1, y2 - y1);
+  double x1 = center.x() - xRadius_;
+  double y1 = center.y() - yRadius_;
+  double x2 = center.x() + xRadius_;
+  double y2 = center.y() + yRadius_;
+
+  bbox_ = CQChartsGeom::BBox(x1, y1, x2, y2);
 
   //---
 
@@ -324,8 +342,8 @@ draw(QPainter *painter)
 
 //---
 
-CQChartsPolyAnnotation::
-CQChartsPolyAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
+CQChartsPolygonAnnotation::
+CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
  CQChartsAnnotation(plot), points_(points)
 {
   setObjectName(QString("poly.%1").arg(ind()));
@@ -335,65 +353,46 @@ CQChartsPolyAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
   editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
-CQChartsPolyAnnotation::
-~CQChartsPolyAnnotation()
+CQChartsPolygonAnnotation::
+~CQChartsPolygonAnnotation()
 {
 }
 
 void
-CQChartsPolyAnnotation::
+CQChartsPolygonAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString path1 = path + QString("/polyAnnotation.%1").arg(ind());
 
   CQChartsAnnotation::addProperties(model, path1);
 
-  QString bgPath = path1 + "/background";
-
-  model->addProperty(bgPath, this, "background"       , "visible");
-  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
-
-  QString borderPath = path1 + "/border";
-
-  model->addProperty(borderPath, this, "border"     , "visible");
-  model->addProperty(borderPath, this, "borderColor", "color"  );
-  model->addProperty(borderPath, this, "borderAlpha", "alpha"  );
-  model->addProperty(borderPath, this, "borderWidth", "width"  );
+  addStrokeFillProperties(model, path1);
 }
 
 void
-CQChartsPolyAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+CQChartsPolygonAnnotation::
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
+  double sx = (bbox_.getWidth () > 0 ? bbox.getWidth ()/bbox_.getWidth () : 1.0);
+  double sy = (bbox_.getHeight() > 0 ? bbox.getHeight()/bbox_.getHeight() : 1.0);
+
+  double x1 = bbox_.getXMin();
+  double y1 = bbox_.getYMin();
+  double x2 = bbox .getXMin();
+  double y2 = bbox .getYMin();
 
   for (int i = 0; i < points_.length(); ++i) {
-    points_[i].setX(points_[i].x() + dx);
-    points_[i].setY(points_[i].x() + dy);
+    points_[i].setX(sx*(points_[i].x() - x1) + x2 + dx);
+    points_[i].setY(sy*(points_[i].y() - y1) + y2 + dy);
   }
 
   bbox_ = bbox;
 }
 
 void
-CQChartsPolyAnnotation::
-setData(const CQChartsShapeData &shape)
-{
-  CQChartsBoxData data;
-
-  data.background = shape.background;
-  data.border     = shape.border;
-
-  CQChartsAnnotation::setData(data);
-
-  emit dataChanged();
-}
-
-void
-CQChartsPolyAnnotation::
+CQChartsPolygonAnnotation::
 draw(QPainter *painter)
 {
   if (! points_.length())
@@ -466,15 +465,129 @@ draw(QPainter *painter)
 
 //---
 
+CQChartsPolylineAnnotation::
+CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
+ CQChartsAnnotation(plot), points_(points)
+{
+  setObjectName(QString("poly.%1").arg(ind()));
+
+  setBorder(true);
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
+
+CQChartsPolylineAnnotation::
+~CQChartsPolylineAnnotation()
+{
+}
+
+void
+CQChartsPolylineAnnotation::
+addProperties(CQPropertyViewModel *model, const QString &path)
+{
+  QString path1 = path + QString("/polyAnnotation.%1").arg(ind());
+
+  CQChartsAnnotation::addProperties(model, path1);
+
+  addStrokeProperties(model, path1);
+}
+
+void
+CQChartsPolylineAnnotation::
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
+{
+  double dx = bbox.getXMin() - bbox_.getXMin();
+  double dy = bbox.getYMin() - bbox_.getYMin();
+  double sx = (bbox_.getWidth () > 0 ? bbox.getWidth ()/bbox_.getWidth () : 1.0);
+  double sy = (bbox_.getHeight() > 0 ? bbox.getHeight()/bbox_.getHeight() : 1.0);
+
+  double x1 = bbox_.getXMin();
+  double y1 = bbox_.getYMin();
+
+  for (int i = 0; i < points_.length(); ++i) {
+    points_[i].setX(sx*(points_[i].x() - x1) + x1 + dx);
+    points_[i].setY(sy*(points_[i].y() - y1) + y1 + dy);
+  }
+
+  bbox_ = bbox;
+}
+
+void
+CQChartsPolylineAnnotation::
+draw(QPainter *painter)
+{
+  if (! points_.length())
+    return;
+
+  double x1 = points_[0].x();
+  double y1 = points_[0].y();
+  double x2 = x1;
+  double y2 = y1;
+
+  for (int i = 1; i < points_.size(); ++i) {
+    x1 = std::min(x1, points_[i].x());
+    y1 = std::min(y1, points_[i].y());
+    x2 = std::max(x2, points_[i].x());
+    y2 = std::max(y2, points_[i].y());
+  }
+
+  bbox_ = CQChartsGeom::BBox(x1, y1, x2, y2);
+
+  //---
+
+  QPainterPath path;
+
+  double px, py;
+
+  plot_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+
+  path.moveTo(px, py);
+
+  for (int i = 1; i < points_.size(); ++i) {
+    double px, py;
+
+    plot_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+
+    path.lineTo(px, py);
+  }
+
+  //---
+
+  QColor borderColor = interpBorderColor(0, 1);
+
+  borderColor.setAlphaF(borderAlpha());
+
+  QPen pen(borderColor);
+
+  double bw = plot_->lengthPixelWidth(borderWidth());
+
+  pen.setWidthF(bw);
+
+  painter->strokePath(path, pen);
+
+  //---
+
+  CQChartsAnnotation::draw(painter);
+}
+
+//---
+
 CQChartsTextAnnotation::
-CQChartsTextAnnotation(CQChartsPlot *plot, const QPointF &position, const QString &textStr) :
- CQChartsAnnotation(plot), position_(position), textStr_(textStr)
+CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
+                       const QString &textStr) :
+ CQChartsAnnotation(plot), position_(position)
 {
   setObjectName(QString("text.%1").arg(ind()));
 
   CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
 
+  setTextStr  (textStr);
   setTextColor(themeFg);
+
+  boxData_.shape.background.visible = false;
+  boxData_.shape.border    .visible = false;
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
 }
 
 CQChartsTextAnnotation::
@@ -497,16 +610,26 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "textAlpha"   , "alpha"   );
   model->addProperty(path1, this, "textAngle"   , "angle"   );
   model->addProperty(path1, this, "textContrast", "contrast");
+  model->addProperty(path1, this, "textAlign"   , "align"   );
+
+  addStrokeFillProperties(model, path1);
 }
 
 void
 CQChartsTextAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  double dx = bbox.getXMin() - bbox_.getXMin();
-  double dy = bbox.getYMin() - bbox_.getYMin();
+  double xp = plot_->pixelToWindowWidth (padding());
+  double yp = plot_->pixelToWindowHeight(padding());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
 
-  position_ += QPointF(dx, dy);
+  double x = bbox.getXMin() + xp + xm;
+  double y = bbox.getYMin() + yp + ym;
+
+  CQChartsGeom::Point vp = plot_->windowToView(CQChartsGeom::Point(x, y));
+
+  position_ = CQChartsPosition(CQChartsUtil::toQPoint(vp), CQChartsPosition::Units::VIEW);
 
   bbox_ = bbox;
 }
@@ -515,19 +638,23 @@ void
 CQChartsTextAnnotation::
 draw(QPainter *painter)
 {
-  QFontMetricsF fm(textFont());
+  if (autoSize_) {
+    QFontMetricsF fm(textFont());
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin());
-  double ym = plot_->pixelToWindowHeight(margin());
+    double xp = plot_->pixelToWindowWidth (padding());
+    double yp = plot_->pixelToWindowHeight(padding());
+    double xm = plot_->pixelToWindowWidth (margin ());
+    double ym = plot_->pixelToWindowHeight(margin ());
 
-  double x = position_.x() - xp - xm; // bottom
-  double y = position_.y() - yp - ym; // top
-  double w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
-  double h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+    QPointF p = plot_->positionToPlot(position_);
 
-  bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+    double x = p.x() - xp - xm; // bottom
+    double y = p.y() - yp - ym; // top
+    double w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
+    double h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+
+    bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+  }
 
   //---
 
@@ -557,8 +684,11 @@ draw(QPainter *painter)
 
   CQChartsTextOptions textOptions;
 
-  textOptions.angle    = textAngle();
-  textOptions.contrast = isTextContrast();
+  textOptions.angle     = textAngle();
+  textOptions.contrast  = isTextContrast();
+  textOptions.formatted = true;
+  textOptions.clipped   = false;
+  textOptions.align     = textAlign();
 
   plot_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
 
@@ -570,7 +700,8 @@ draw(QPainter *painter)
 //---
 
 CQChartsArrowAnnotation::
-CQChartsArrowAnnotation(CQChartsPlot *plot, const QPointF &start, const QPointF &end) :
+CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
+                        const CQChartsPosition &end) :
  CQChartsAnnotation(plot), start_(start), end_(end)
 {
   setObjectName(QString("arrow.%1").arg(ind()));
@@ -618,30 +749,30 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsArrowAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  double dx1 = bbox.getXMin() - bbox_.getXMin();
-  double dy1 = bbox.getYMin() - bbox_.getYMin();
-  double dx2 = bbox.getXMax() - bbox_.getXMax();
-  double dy2 = bbox.getYMax() - bbox_.getYMax();
+  QPointF start = plot_->positionToPlot(start_);
+  QPointF end   = plot_->positionToPlot(end_  );
 
-  if (start_.x() < end_.x()) {
-    start_.setX(start_.x() + dx1);
-    end_  .setX(end_  .x() + dx2);
-  }
-  else {
-    start_.setX(start_.x() + dx2);
-    end_  .setX(end_  .x() + dx1);
-  }
+  double x1 = bbox.getXMin(), y1 = bbox.getYMin();
+  double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  if (start_.y() < end_.y()) {
-    start_.setY(start_.y() + dy1);
-    end_  .setY(end_  .y() + dy2);
-  }
-  else {
-    start_.setY(start_.y() + dy2);
-    end_  .setY(end_  .y() + dy1);
-  }
+  double xp = plot_->pixelToWindowWidth (padding());
+  double yp = plot_->pixelToWindowHeight(padding());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
+
+  x1 += xp + xm; y1 += yp + ym;
+  x2 -= xp + xm; y2 -= yp + ym;
+
+  if (start.x() > end.x()) std::swap(x1, x2);
+  if (start.y() > end.y()) std::swap(y1, y2);
+
+  start.setX(x1); end.setX(x2);
+  start.setY(y1); end.setY(y2);
+
+  start_ = CQChartsPosition(start);
+  end_   = CQChartsPosition(end  );
 
   bbox_ = bbox;
 }
@@ -650,15 +781,18 @@ void
 CQChartsArrowAnnotation::
 draw(QPainter *painter)
 {
+  QPointF start = plot_->positionToPlot(start_);
+  QPointF end   = plot_->positionToPlot(end_  );
+
   double xp = plot_->pixelToWindowWidth (padding());
   double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin());
-  double ym = plot_->pixelToWindowHeight(margin());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
 
-  double x1 = std::min(start_.x(), end_.x());
-  double y1 = std::min(start_.y(), end_.y());
-  double x2 = std::max(start_.x(), end_.x());
-  double y2 = std::max(start_.y(), end_.y());
+  double x1 = std::min(start.x(), end.x());
+  double y1 = std::min(start.y(), end.y());
+  double x2 = std::max(start.x(), end.x());
+  double y2 = std::max(start.y(), end.y());
 
   double x = x1 - xp - xm; // bottom
   double y = y1 - yp - ym; // top
@@ -677,8 +811,8 @@ draw(QPainter *painter)
 
   //---
 
-  arrow_->setFrom(start_);
-  arrow_->setTo  (end_  );
+  arrow_->setFrom(start);
+  arrow_->setTo  (end  );
 
   arrow_->draw(painter);
 
@@ -690,7 +824,7 @@ draw(QPainter *painter)
 //---
 
 CQChartsPointAnnotation::
-CQChartsPointAnnotation(CQChartsPlot *plot, const QPointF &position,
+CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
                         const CQChartsPlotSymbol::Type &type) :
  CQChartsAnnotation(plot), position_(position)
 {
@@ -717,12 +851,16 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsPointAnnotation::
-setBBox(const CQChartsGeom::BBox &bbox)
+setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
+  QPointF position = plot_->positionToPlot(position_);
+
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
 
-  position_ += QPointF(dx, dy);
+  position += QPointF(dx, dy);
+
+  position_ = CQChartsPosition(position);
 
   bbox_ = bbox;
 }
@@ -731,16 +869,18 @@ void
 CQChartsPointAnnotation::
 draw(QPainter *painter)
 {
+  QPointF position = plot_->positionToPlot(position_);
+
   double xp = plot_->pixelToWindowWidth (padding());
   double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin());
-  double ym = plot_->pixelToWindowHeight(margin());
+  double xm = plot_->pixelToWindowWidth (margin ());
+  double ym = plot_->pixelToWindowHeight(margin ());
 
   double sw = plot_->pixelToWindowWidth (pointData_.size);
   double sh = plot_->pixelToWindowHeight(pointData_.size);
 
-  double x = position_.x() - xp - xm; // bottom
-  double y = position_.y() - yp - ym; // top
+  double x = position.x() - xp - xm; // bottom
+  double y = position.y() - yp - ym; // top
   double w = sw + 2*xp + 2*xm;
   double h = sh + 2*yp + 2*ym;
 

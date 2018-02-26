@@ -1,8 +1,8 @@
 #include <CQChartsTable.h>
 #include <CQCharts.h>
-#include <CQChartsColumn.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsUtil.h>
 #include <CQChartsRegExp.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -10,7 +10,9 @@
 #include <QHeaderView>
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
+#include <QItemDelegate>
 #include <QMenu>
+#include <QPainter>
 #include <QActionGroup>
 #include <cassert>
 
@@ -44,6 +46,80 @@ class CQChartsTableSelectionModel : public QItemSelectionModel {
 
 //------
 
+class CQChartsTableDelegate : public QItemDelegate {
+ public:
+  CQChartsTableDelegate(CQChartsTable *table) :
+   table_(table) {
+  }
+
+  void paint(QPainter *painter, const QStyleOptionViewItem &option,
+             const QModelIndex &index) const {
+    QAbstractItemModel *model = table_->model().data();
+
+    CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
+
+    auto p = th->columnTypeMap_.find(index.column());
+
+    if (p == th->columnTypeMap_.end()) {
+      CQBaseModel::Type  columnType;
+      CQChartsNameValues nameValues;
+
+      (void) CQChartsUtil::columnValueType(table_->charts(), model, index.column(),
+                                           columnType, nameValues);
+
+      p = th->columnTypeMap_.insert(p, ColumnTypeMap::value_type(index.column(), columnType));
+    }
+
+    CQBaseModel::Type columnType = (*p).second;
+
+    if (columnType == CQBaseModel::Type::COLOR) {
+      QVariant var = table_->model()->data(index);
+
+      drawColor(painter, option, var.value<QColor>(), index);
+    }
+    else {
+      QItemDelegate::paint(painter, option, index);
+    }
+  }
+
+  void drawColor(QPainter *painter, const QStyleOptionViewItem &option,
+                 const QColor &c, const QModelIndex &index) const {
+    QItemDelegate::drawBackground(painter, option, index);
+
+    QRect rect = option.rect;
+
+    rect.setWidth(option.rect.height());
+
+    rect.adjust(0, 1, -3, -2);
+
+    painter->fillRect(rect, QBrush(c));
+
+    painter->setPen(QColor(0,0,0)); // TODO: contrast border
+
+    painter->drawRect(rect);
+
+    QFontMetrics fm(painter->font());
+
+    int x = rect.right() + 2;
+  //int y = rect.top() + fm.ascent();
+
+    QRect rect1;
+
+    rect1.setCoords(x, option.rect.top(), option.rect.right(), option.rect.bottom());
+
+  //painter->drawText(x, y, c.name());
+    QItemDelegate::drawDisplay(painter, option, rect1, c.name());
+  }
+
+ private:
+  using ColumnTypeMap = std::map<int,CQBaseModel::Type>;
+
+  CQChartsTable* table_ { nullptr };
+  ColumnTypeMap  columnTypeMap_;
+};
+
+//------
+
 CQChartsTable::
 CQChartsTable(CQCharts *charts, QWidget *parent) :
  CQTableView(parent), charts_(charts)
@@ -60,6 +136,10 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
   setSelectionBehavior(SelectRows);
 
   connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickSlot(int)));
+
+  CQChartsTableDelegate *delegate = new CQChartsTableDelegate(this);
+
+  setItemDelegate(delegate);
 }
 
 CQChartsTable::
@@ -418,14 +498,16 @@ exportSlot(QAction *action)
   if      (action->text() == "CSV") {
     CQCsvModel csv;
 
-    csv.setFirstLineHeader(true);
+    csv.setFirstLineHeader  (true);
+    csv.setFirstColumnHeader(true);
 
     csv.save(model().data(), std::cout);
   }
   else if (action->text() == "TSV") {
     CQTsvModel tsv;
 
-    tsv.setFirstLineHeader(true);
+    tsv.setFirstLineHeader  (true);
+    tsv.setFirstColumnHeader(true);
 
     tsv.save(model().data(), std::cout);
   }

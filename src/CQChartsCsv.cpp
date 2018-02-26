@@ -36,6 +36,13 @@ setFirstLineHeader(bool b)
   csvModel_->setFirstLineHeader(b);
 }
 
+void
+CQChartsCsv::
+setFirstColumnHeader(bool b)
+{
+  csvModel_->setFirstColumnHeader(b);
+}
+
 bool
 CQChartsCsv::
 load(const QString &filename)

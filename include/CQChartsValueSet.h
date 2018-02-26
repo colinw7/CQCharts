@@ -39,7 +39,7 @@ class CQChartsRValues {
       setrval_[id] = r; // value for id
     }
 
-    return (*p).second;;
+    return (*p).second;
   }
 
   // real to id
@@ -122,7 +122,7 @@ class CQChartsIValues {
       setival_[id] = i; // value for id
     }
 
-    return (*p).second;;
+    return (*p).second;
   }
 
   // integer to id
@@ -213,7 +213,7 @@ class CQChartsSValues {
       setsval_[id] = s;
     }
 
-    return (*p).second;;
+    return (*p).second;
   }
 
   // string to id
@@ -332,31 +332,26 @@ class CQChartsSValues {
 class CQChartsValueSet : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(int    column     READ column       WRITE setColumn    )
-  Q_PROPERTY(bool   mapEnabled READ isMapEnabled WRITE setMapEnabled)
-  Q_PROPERTY(double mapMin     READ mapMin       WRITE setMapMin    )
-  Q_PROPERTY(double mapMax     READ mapMax       WRITE setMapMax    )
-  Q_PROPERTY(bool   allowNaN   READ isAllowNaN   WRITE setAllowNaN  )
+  Q_PROPERTY(CQChartsColumn column     READ column       WRITE setColumn    )
+  Q_PROPERTY(bool           mapEnabled READ isMapEnabled WRITE setMapEnabled)
+  Q_PROPERTY(double         mapMin     READ mapMin       WRITE setMapMin    )
+  Q_PROPERTY(double         mapMax     READ mapMax       WRITE setMapMax    )
+  Q_PROPERTY(bool           allowNaN   READ isAllowNaN   WRITE setAllowNaN  )
 
  public:
-  enum class Type {
-    NONE,
-    INTEGER,
-    REAL,
-    STRING
-  };
+  using Type = CQBaseModel::Type;
 
  public:
-  CQChartsValueSet();
+  CQChartsValueSet(CQChartsPlot *plot);
 
   //---
 
-  int column() const { return column_; }
-  void setColumn(int i) { column_ = i; }
+  const CQChartsColumn &column() const { return column_; }
+  void setColumn(const CQChartsColumn &c) { column_ = c; }
 
   //---
 
-  void addProperties(CQChartsPlot *plot, const QString &path);
+  void addProperties(const QString &path);
 
   //---
 
@@ -442,15 +437,17 @@ class CQChartsValueSet : public QObject {
   void init() const;
   void init();
 
- private:
+ protected:
   using Values = std::vector<QVariant>;
 
-  int column_ { -1 }; // associated model column
+  CQChartsPlot *plot_ { nullptr };
+
+  CQChartsColumn column_; // associated model column
 
   Values values_;                // input values
   bool   initialized_ { false }; // are real, integer, string values initialized
 
-  Type    type_ { Type::NONE }; // calculated type
+  Type type_ { Type::NONE }; // calculated type
 
   CQChartsIValues ivals_; // integer values
   CQChartsRValues rvals_; // real values

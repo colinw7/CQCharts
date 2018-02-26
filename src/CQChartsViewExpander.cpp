@@ -154,7 +154,7 @@ updateGeometry()
     raise();
   }
   else {
-    QFontMetrics fm(font());
+    QFontMetricsF fm(font());
 
     titleHeight_ = fm.height() + 2*border_;
 

@@ -125,32 +125,27 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      QModelIndex groupInd = model->index(row, plot_->groupColumn(), parent);
-
-      int group = CQChartsUtil::modelInteger(model, groupInd, ok1);
+      int group = CQChartsUtil::modelInteger(model, row, plot_->groupColumn(), parent, ok1);
 
       if (! ok1) group = row;
 
       //---
 
-      if (plot_->connectionsColumn() >= 0) {
-        QModelIndex nodeInd  = model->index(row, plot_->nodeColumn (), parent);
-
+      if (plot_->connectionsColumn().isValid()) {
         //---
 
         bool ok2;
 
-        int id = CQChartsUtil::modelInteger(model, nodeInd, ok2);
+        int id = CQChartsUtil::modelInteger(model, row, plot_->nodeColumn(), parent, ok2);
 
         if (! ok2) id = row;
 
         //---
 
-        QModelIndex connectionsInd = model->index(row, plot_->connectionsColumn(), parent);
-
         bool ok3;
 
-        QString connectionsStr = CQChartsUtil::modelString(model, connectionsInd, ok3);
+        QString connectionsStr =
+          CQChartsUtil::modelString(model, row, plot_->connectionsColumn(), parent, ok3);
 
         ConnectionDataArray connectionDataArray;
 
@@ -158,20 +153,21 @@ initObjs()
 
         //---
 
-        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
         bool ok4;
 
-        QString name = CQChartsUtil::modelString(model, nameInd, ok4);
+        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok4);
 
         if (! name.length())
           name = QString("%1").arg(id);
 
         //---
 
+        QModelIndex nodeInd  = model->index(row, plot_->nodeColumn().column(), parent);
+        QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
+
         ConnectionsData connectionsData;
 
-        connectionsData.ind         = plot_->normalizeIndex(nodeInd);
+        connectionsData.ind         = nodeInd1;
         connectionsData.node        = id;
         connectionsData.name        = name;
         connectionsData.group       = group;
@@ -180,11 +176,9 @@ initObjs()
         plot_->addConnections(id, connectionsData);
       }
       else {
-        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
         bool ok2;
 
-        QString linkStr = CQChartsUtil::modelString(model, nameInd, ok2);
+        QString linkStr = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok2);
 
         if (! ok2)
           return State::SKIP;
@@ -202,22 +196,23 @@ initObjs()
 
         //---
 
-        QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
         bool ok3;
 
-        int value = CQChartsUtil::modelInteger(model, valueInd, ok3);
+        int value = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok3);
 
         if (! ok3)
           value = 0;
 
         //---
 
+        QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+        QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
+
         ConnectionsData &srcConnectionsData = plot_->getConnections(srcId);
 
         (void) plot_->getConnections(destId);
 
-        srcConnectionsData.ind   = plot_->normalizeIndex(nameInd);
+        srcConnectionsData.ind   = nameInd1;
         srcConnectionsData.node  = srcId;
         srcConnectionsData.name  = srcStr;
         srcConnectionsData.group = group;
@@ -253,7 +248,7 @@ initObjs()
     }
 
    private:
-    typedef std::map<QString,int> StringIndMap;
+    using StringIndMap = std::map<QString,int>;
 
     CQChartsForceDirectedPlot *plot_     { nullptr };
     int                        maxGroup_ { 0 };

@@ -5,7 +5,8 @@
 
 namespace Util {
 
-void interpLine(const QPointF &p1, const QPointF &p2, double size, QPointF &pc1, QPointF &pc2) {
+void interpLine(const QPointF &p1, const QPointF &p2, double xsize, double ysize,
+                QPointF &pc1, QPointF &pc2) {
   double dx = p2.x() - p1.x();
   double dy = p2.y() - p1.y();
 
@@ -18,14 +19,17 @@ void interpLine(const QPointF &p1, const QPointF &p2, double size, QPointF &pc1,
     return;
   }
 
-  double m1 = std::min(l/2, size)/l;
-  double m2 = 1.0 - m1;
+  double mx1 = std::min(dx/2, xsize)/l;
+  double mx2 = 1.0 - mx1;
 
-  double x1 = p1.x() + m1*dx;
-  double y1 = p1.y() + m1*dy;
+  double my1 = std::min(dy/2, ysize)/l;
+  double my2 = 1.0 - my1;
 
-  double x2 = p1.x() + m2*dx;
-  double y2 = p1.y() + m2*dy;
+  double x1 = p1.x() + mx1*dx;
+  double y1 = p1.y() + my1*dy;
+
+  double x2 = p1.x() + mx2*dx;
+  double y2 = p1.y() + my2*dy;
 
   pc1 = QPointF(x1, y1);
   pc2 = QPointF(x2, y2);
@@ -38,16 +42,24 @@ void interpLine(const QPointF &p1, const QPointF &p2, double size, QPointF &pc1,
 namespace CQChartsRoundedPolygon {
 
 void
-draw(QPainter *painter, const QRectF &rect, double size)
+draw(QPainter *painter, const QRectF &rect, double xsize, double ysize)
 {
-  if (size > 0)
-    painter->drawRoundedRect(rect, size, size);
-  else
+  if (xsize > 0 || ysize > 0) {
+    QPainterPath path;
+
+    path.addRoundedRect(rect, xsize, ysize);
+
+    painter->drawPath(path);
+
+    //painter->drawRoundedRect(rect, xsize, ysize);
+  }
+  else {
     painter->drawRect(rect);
+  }
 }
 
 void
-draw(QPainter *painter, const QPolygonF &poly, double size)
+draw(QPainter *painter, const QPolygonF &poly, double xsize, double ysize)
 {
   QPainterPath path;
 
@@ -65,11 +77,11 @@ draw(QPainter *painter, const QPolygonF &poly, double size)
     const QPointF &p2 = poly[i2];
     const QPointF &p3 = poly[i3];
 
-    if (size > 0) {
+    if (xsize > 0 || ysize > 0) {
       QPointF p12s, p12e, p23s, p23e;
 
-      Util::interpLine(p1, p2, size, p12s, p12e);
-      Util::interpLine(p2, p3, size, p23s, p23e);
+      Util::interpLine(p1, p2, xsize, ysize, p12s, p12e);
+      Util::interpLine(p2, p3, xsize, ysize, p23s, p23e);
 
       if (i2 == 0)
         path.moveTo(p12s);

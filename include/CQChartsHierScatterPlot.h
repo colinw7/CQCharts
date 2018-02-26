@@ -206,14 +206,14 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 class CQChartsHierScatterPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int           xColumn           READ xColumn           WRITE setXColumn          )
-  Q_PROPERTY(int           yColumn           READ yColumn           WRITE setYColumn          )
-  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(QString       groupColumnStr    READ groupColumnStr    WRITE setGroupColumnStr   )
-  Q_PROPERTY(CQChartsColor symbolBorderColor READ symbolBorderColor WRITE setSymbolBorderColor)
-  Q_PROPERTY(double        symbolSize        READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(double        fontSize          READ fontSize          WRITE setFontSize         )
-  Q_PROPERTY(bool          textLabels        READ isTextLabels      WRITE setTextLabels       )
+  Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(CQChartsColumn yColumn           READ yColumn           WRITE setYColumn          )
+  Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(QString        groupColumnStr    READ groupColumnStr    WRITE setGroupColumnStr   )
+  Q_PROPERTY(CQChartsColor  symbolBorderColor READ symbolBorderColor WRITE setSymbolBorderColor)
+  Q_PROPERTY(double         symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(double         fontSize          READ fontSize          WRITE setFontSize         )
+  Q_PROPERTY(bool           textLabels        READ isTextLabels      WRITE setTextLabels       )
 
  public:
   using GroupValues    = std::vector<int>;
@@ -225,14 +225,14 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
 
   //---
 
-  int xColumn() const { return xColumn_; }
-  void setXColumn(int i);
+  const CQChartsColumn &xColumn() const { return xColumn_; }
+  void setXColumn(const CQChartsColumn &c);
 
-  int yColumn() const { return yColumn_; }
-  void setYColumn(int i);
+  const CQChartsColumn &yColumn() const { return yColumn_; }
+  void setYColumn(const CQChartsColumn &c);
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
 
   const QString &groupColumnStr() const { return groupColumnStr_; }
   void setGroupColumnStr(const QString &s);
@@ -309,20 +309,20 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   void resetCurrentGroup();
 
  private:
-  int                            xColumn_           { 0 };
-  int                            yColumn_           { 1 };
-  int                            nameColumn_        { -1 };
-  QString                        groupColumnStr_;
-  CQChartsSymbolData             symbolData_;
-  double                         fontSize_          { 8 };
-  CQChartsHierScatterPointGroup* rootGroup_         { nullptr };
-  CQChartsHierScatterPointGroup* currentGroup_      { nullptr };
-  QStringList                    filterNames_;
-  CQChartsDataLabel              dataLabel_;
-  QString                        xname_;
-  QString                        yname_;
-  GroupValues                    groupValues_;
-  GroupValueSets                 groupValueSets_;
+  CQChartsColumn                 xColumn_         { 0 };       // x column
+  CQChartsColumn                 yColumn_         { 1 };       // y column
+  CQChartsColumn                 nameColumn_;                  // name column
+  QString                        groupColumnStr_;              // group columns string
+  CQChartsSymbolData             symbolData_;                  // symbol style data
+  double                         fontSize_        { 8 };       // font size
+  CQChartsHierScatterPointGroup* rootGroup_       { nullptr }; // root group
+  CQChartsHierScatterPointGroup* currentGroup_    { nullptr }; // current group
+  QStringList                    filterNames_;                 // filter names
+  CQChartsDataLabel              dataLabel_;                   // data label style
+  QString                        xname_;                       // x name
+  QString                        yname_;                       // y name
+  GroupValues                    groupValues_;                 // group values
+  GroupValueSets                 groupValueSets_;              // group value sets
 };
 
 #endif

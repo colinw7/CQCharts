@@ -81,8 +81,8 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
 class CQChartsDistributionPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int            valueColumn     READ valueColumn       WRITE setValueColumn    )
-  Q_PROPERTY(int            colorColumn     READ colorColumn       WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn       WRITE setValueColumn    )
+  Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
   Q_PROPERTY(bool           autoRange       READ isAutoRange       WRITE setAutoRange      )
   Q_PROPERTY(double         startValue      READ startValue        WRITE setStartValue     )
   Q_PROPERTY(double         deltaValue      READ deltaValue        WRITE setDeltaValue     )
@@ -93,7 +93,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColor  borderColor     READ borderColor       WRITE setBorderColor    )
   Q_PROPERTY(double         borderAlpha     READ borderAlpha       WRITE setBorderAlpha    )
   Q_PROPERTY(CQChartsLength borderWidth     READ borderWidth       WRITE setBorderWidth    )
-  Q_PROPERTY(double         cornerSize      READ cornerSize        WRITE setCornerSize     )
+  Q_PROPERTY(CQChartsLength cornerSize      READ cornerSize        WRITE setCornerSize     )
   Q_PROPERTY(bool           barFill         READ isBarFill         WRITE setBarFill        )
   Q_PROPERTY(CQChartsColor  barColor        READ barColor          WRITE setBarColor       )
   Q_PROPERTY(double         barAlpha        READ barAlpha          WRITE setBarAlpha       )
@@ -157,8 +157,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  int valueColumn() const { return valueSetColumn("values"); }
-  void setValueColumn(int i) { setValueSetColumn("values", i); updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueSetColumn("values"); }
+  void setValueColumn(const CQChartsColumn &c) {
+    setValueSetColumn("values", c); updateRangeAndObjs(); }
 
   //---
 
@@ -233,8 +234,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
 
-  double cornerSize() const;
-  void setCornerSize(double r);
+  const CQChartsLength &cornerSize() const;
+  void setCornerSize(const CQChartsLength &r);
 
   //---
 
@@ -255,8 +256,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  int colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(const CQChartsColumn &c) {
+    setValueSetColumn("color", c); updateRangeAndObjs(); }
 
   bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
   void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
@@ -334,15 +336,14 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using FilterStack = std::vector<Filters>;
 
  private:
-  CategoryRange     categoryRange_;           // category range
-  bool              autoDelta_   { false };   // auto delta
-  IValues           ivalues_;                 // indexed values
-  bool              horizontal_  { false };   // horizontal bars
-  double            margin_      { 2 };       // bar margin
-  CQChartsBoxObj*   borderObj_   { nullptr }; // border object
-  CQChartsFillData  fillData_;                // fill data
-  CQChartsDataLabel dataLabel_;               // data label data
-  FilterStack       filterStack_;             // filter stack
+  CategoryRange     categoryRange_;         // category range
+  bool              autoDelta_   { false }; // auto delta
+  IValues           ivalues_;               // indexed values
+  bool              horizontal_  { false }; // horizontal bars
+  double            margin_      { 2 };     // bar margin
+  CQChartsBoxData   boxData_;               // border/fill data
+  CQChartsDataLabel dataLabel_;             // data label data
+  FilterStack       filterStack_;           // filter stack
 };
 
 #endif

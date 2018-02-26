@@ -1,5 +1,4 @@
 #include <CQChartsGnuData.h>
-#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQGnuDataModel.h>
 #include <CQExprModel.h>

@@ -5,7 +5,6 @@
 #include <CQCharts.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQStrParse.h>
 #include <QPainter>
 
 CQChartsSankeyPlotType::
@@ -36,22 +35,21 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 {
   setLayerActive(Layer::FG, true);
 
-  nodeBoxObj_ = new CQChartsTextBoxObj(this);
-  edgeBoxObj_ = new CQChartsBoxObj    (this);
-
   CQChartsColor bg(CQChartsColor::Type::PALETTE);
 
-  nodeBoxObj_->setBackground(true);
-  nodeBoxObj_->setBackgroundColor(bg);
-  edgeBoxObj_->setBackgroundAlpha(1.00);
-  nodeBoxObj_->setBorder(true);
-  nodeBoxObj_->setBorderAlpha(0.2);
+  setNodeFilled(true);
+  setNodeFillColor(bg);
+  setNodeFillAlpha(1.00);
 
-  edgeBoxObj_->setBackground(true);
-  edgeBoxObj_->setBackgroundColor(bg);
-  edgeBoxObj_->setBackgroundAlpha(0.25);
-  edgeBoxObj_->setBorder(true);
-  edgeBoxObj_->setBorderAlpha(0.2);
+  setNodeStroked(true);
+  setNodeStrokeAlpha(0.2);
+
+  setEdgeFilled(true);
+  setEdgeFillColor(bg);
+  setEdgeFillAlpha(0.25);
+
+  setEdgeStroked(true);
+  setEdgeStrokeAlpha(0.2);
 
   //---
 
@@ -61,9 +59,6 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
 CQChartsSankeyPlot::
 ~CQChartsSankeyPlot()
 {
-  delete nodeBoxObj_;
-  delete edgeBoxObj_;
-
   for (const auto &nameNode : nameNodeMap_)
     delete nameNode.second;
 
@@ -77,71 +72,67 @@ bool
 CQChartsSankeyPlot::
 isNodeFilled() const
 {
-  return nodeBoxObj_->isBackground();
+  return nodeData_.background.visible;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeFilled(bool b)
 {
-  nodeBoxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSankeyPlot::
 nodeFillColor() const
 {
-  return nodeBoxObj_->backgroundColor();
+  return nodeData_.background.color;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeFillColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSankeyPlot::
 interpNodeFillColor(int i, int n) const
 {
-  return nodeBoxObj_->interpBackgroundColor(i, n);
+  return nodeFillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSankeyPlot::
 nodeFillAlpha() const
 {
-  return nodeBoxObj_->backgroundAlpha();
+  return nodeData_.background.alpha;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeFillAlpha(double a)
 {
-  nodeBoxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsSankeyPlot::Pattern
 CQChartsSankeyPlot::
 nodeFillPattern() const
 {
-  return (Pattern) nodeBoxObj_->backgroundPattern();
+  return (Pattern) nodeData_.background.pattern;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeFillPattern(Pattern pattern)
 {
-  nodeBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) nodeData_.background.pattern) {
+    nodeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
 //---
@@ -150,69 +141,63 @@ bool
 CQChartsSankeyPlot::
 isNodeStroked() const
 {
-  return nodeBoxObj_->isBorder();
+  return nodeData_.border.visible;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeStroked(bool b)
 {
-  return nodeBoxObj_->setBorder(b);
+  CQChartsUtil::testAndSet(nodeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSankeyPlot::
 nodeStrokeColor() const
 {
-  return nodeBoxObj_->borderColor();
+  return nodeData_.border.color;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeStrokeColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSankeyPlot::
 interpNodeStrokeColor(int i, int n) const
 {
-  return nodeBoxObj_->interpBorderColor(i, n);
+  return nodeStrokeColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSankeyPlot::
 nodeStrokeAlpha() const
 {
-  return nodeBoxObj_->borderAlpha();
+  return nodeData_.border.alpha;
 }
 
 void
 CQChartsSankeyPlot::
-setNodeStrokeAlpha(double r)
+setNodeStrokeAlpha(double a)
 {
-  nodeBoxObj_->setBorderAlpha(r);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsSankeyPlot::
 nodeStrokeWidth() const
 {
-  return nodeBoxObj_->borderWidth();
+  return nodeData_.border.width;
 }
 
 void
 CQChartsSankeyPlot::
 setNodeStrokeWidth(const CQChartsLength &l)
 {
-  nodeBoxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { update(); } );
 }
 
 //---
@@ -221,71 +206,67 @@ bool
 CQChartsSankeyPlot::
 isEdgeFilled() const
 {
-  return edgeBoxObj_->isBackground();
+  return edgeData_.background.visible;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeFilled(bool b)
 {
-  edgeBoxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSankeyPlot::
 edgeFillColor() const
 {
-  return edgeBoxObj_->backgroundColor();
+  return edgeData_.background.color;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeFillColor(const CQChartsColor &c)
 {
-  edgeBoxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSankeyPlot::
 interpEdgeFillColor(int i, int n) const
 {
-  return edgeBoxObj_->interpBackgroundColor(i, n);
+  return edgeFillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSankeyPlot::
 edgeFillAlpha() const
 {
-  return edgeBoxObj_->backgroundAlpha();
+  return edgeData_.background.alpha;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeFillAlpha(double a)
 {
-  edgeBoxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsSankeyPlot::Pattern
 CQChartsSankeyPlot::
 edgeFillPattern() const
 {
-  return (Pattern) edgeBoxObj_->backgroundPattern();
+  return (Pattern) edgeData_.background.pattern;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeFillPattern(Pattern pattern)
 {
-  edgeBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) edgeData_.background.pattern) {
+    edgeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
 //---
@@ -294,69 +275,63 @@ bool
 CQChartsSankeyPlot::
 isEdgeStroked() const
 {
-  return edgeBoxObj_->isBorder();
+  return edgeData_.border.visible;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeStroked(bool b)
 {
-  return edgeBoxObj_->setBorder(b);
+  CQChartsUtil::testAndSet(edgeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSankeyPlot::
 edgeStrokeColor() const
 {
-  return edgeBoxObj_->borderColor();
+  return edgeData_.border.color;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeStrokeColor(const CQChartsColor &c)
 {
-  edgeBoxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSankeyPlot::
 interpEdgeStrokeColor(int i, int n) const
 {
-  return edgeBoxObj_->interpBorderColor(i, n);
+  return edgeStrokeColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSankeyPlot::
 edgeStrokeAlpha() const
 {
-  return edgeBoxObj_->borderAlpha();
+  return edgeData_.border.alpha;
 }
 
 void
 CQChartsSankeyPlot::
-setEdgeStrokeAlpha(double r)
+setEdgeStrokeAlpha(double a)
 {
-  edgeBoxObj_->setBorderAlpha(r);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsSankeyPlot::
 edgeStrokeWidth() const
 {
-  return edgeBoxObj_->borderWidth();
+  return edgeData_.border.width;
 }
 
 void
 CQChartsSankeyPlot::
 setEdgeStrokeWidth(const CQChartsLength &l)
 {
-  edgeBoxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(edgeData_.border.width, l, [&]() { update(); } );
 }
 
 //---
@@ -365,85 +340,77 @@ bool
 CQChartsSankeyPlot::
 isTextVisible() const
 {
-  return nodeBoxObj_->isTextVisible();
+  return textData_.visible;
 }
 
 void
 CQChartsSankeyPlot::
 setTextVisible(bool b)
 {
-  return nodeBoxObj_->setTextVisible(b);
+  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { update(); } );
 }
 
 const QFont &
 CQChartsSankeyPlot::
 textFont() const
 {
-  return nodeBoxObj_->textFont();
+  return textData_.font;
 }
 
 void
 CQChartsSankeyPlot::
 setTextFont(const QFont &f)
 {
-  nodeBoxObj_->setTextFont(f);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSankeyPlot::
 textColor() const
 {
-  return nodeBoxObj_->textColor();
+  return textData_.color;
 }
 
 void
 CQChartsSankeyPlot::
 setTextColor(const CQChartsColor &c)
 {
-  nodeBoxObj_->setTextColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSankeyPlot::
 interpTextColor(int i, int n) const
 {
-  return nodeBoxObj_->interpTextColor(i, n);
+  return textColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSankeyPlot::
 textAlpha() const
 {
-  return nodeBoxObj_->textAlpha();
+  return textData_.alpha;
 }
 
 void
 CQChartsSankeyPlot::
 setTextAlpha(double a)
 {
-  nodeBoxObj_->setTextAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
 }
 
 bool
 CQChartsSankeyPlot::
 isTextContrast() const
 {
-  return nodeBoxObj_->isTextContrast();
+  return textData_.contrast;
 }
 
 void
 CQChartsSankeyPlot::
 setTextContrast(bool b)
 {
-  nodeBoxObj_->setTextContrast(b);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
 }
 
 //---
@@ -553,13 +520,10 @@ initObjs()
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex linkInd  = model->index(row, plot_->linkColumn (), parent);
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
       bool ok1, ok2;
 
-      QString linkStr = CQChartsUtil::modelString(model, linkInd , ok1);
-      double  value   = CQChartsUtil::modelReal  (model, valueInd, ok2);
+      QString linkStr = CQChartsUtil::modelString(model, row, plot_->linkColumn (), parent, ok1);
+      double  value   = CQChartsUtil::modelReal  (model, row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;
@@ -1408,7 +1372,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     // set font
     QFont font = plot_->textFont();
 
-    QFontMetrics fm(font);
+    QFontMetricsF fm(font);
 
     painter->setFont(font);
 

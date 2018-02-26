@@ -3,6 +3,7 @@
 
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsPosition.h>
 #include <CQChartsGeom.h>
 #include <QPointF>
 #include <QSizeF>
@@ -15,56 +16,50 @@ class QPainter;
 class CQChartsTitle : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString location    READ locationStr WRITE setLocationStr)
-  Q_PROPERTY(QPointF absPosition READ absPosition WRITE setAbsPosition)
-  Q_PROPERTY(bool    inside      READ isInside    WRITE setInside     )
+  Q_PROPERTY(LocationType     location    READ location    WRITE setLocation   )
+  Q_PROPERTY(CQChartsPosition absPosition READ absPosition WRITE setAbsPosition)
+  Q_PROPERTY(QRectF           absRect     READ absRect     WRITE setAbsRect    )
+  Q_PROPERTY(bool             inside      READ isInside    WRITE setInside     )
+
+  Q_ENUMS(LocationType)
 
  public:
   enum LocationType {
     TOP,
     CENTER,
     BOTTOM,
-    ABSOLUTE
+    ABS_POS,
+    ABS_RECT
   };
 
  public:
   CQChartsTitle(CQChartsPlot *plot);
 
-  CQChartsPlot *plot() const { return plot_; }
-
   //---
-
-  void setMargin (double r) override { CQChartsBoxObj::setMargin (r); redraw(); }
-  void setPadding(double r) override { CQChartsBoxObj::setPadding(r); redraw(); }
-
-  void setTextStr(const QString &s) override { CQChartsTextBoxObj::setTextStr(s); redraw(); }
-  void setTextFont(const QFont &f) override { CQChartsTextBoxObj::setTextFont(f); redraw(); }
 
   const LocationType &location() const { return location_.location; }
   void setLocation(const LocationType &l) { location_.location = l; redraw(); }
 
-  QString locationStr() const;
-  void setLocationStr(const QString &s);
+  const CQChartsPosition &absPosition() const { return location_.absPosition; }
+  void setAbsPosition(const CQChartsPosition &p) { location_.absPosition = p; redraw(); }
 
-  const QPointF &absPosition() const { return location_.absPosition; }
-  void setAbsPosition(const QPointF &p) { location_.absPosition = p; redraw(); }
+  const QRectF &absRect() const { return location_.absRect; }
+  void setAbsRect(const QRectF &r) { location_.absRect = r; redraw(); }
 
   bool isInside() const { return location_.inside; }
   void setInside(bool b) { location_.inside = b; redraw(); }
 
   //---
 
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
-
-  //---
-
-  void addProperties(CQPropertyViewModel *model, const QString &path) override;
-
-  //---
-
   const QPointF &position() const { return position_; }
   void setPosition(const QPointF &p) { position_ = p; }
+
+  CQChartsEditHandles &editHandles() { return editHandles_; }
+
+  //---
+
+  QString locationStr() const;
+  void setLocationStr(const QString &s);
 
   //---
 
@@ -73,9 +68,20 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
-  QSizeF calcSize();
+  const CQChartsGeom::BBox &bbox() const { return bbox_; }
+  void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; }
 
-  CQChartsEditHandles &editHandles() { return editHandles_; }
+  //---
+
+  void redrawBoxObj() override { redraw(); }
+
+  //---
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  //---
+
+  QSizeF calcSize();
 
   //---
 
@@ -105,9 +111,10 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
  private:
   struct Location {
-    LocationType location    { LocationType::TOP};
-    QPointF      absPosition;
-    bool         inside      { false };
+    LocationType     location    { LocationType::TOP}; // loction
+    CQChartsPosition absPosition;                      // position (relative to plot box)
+    QRectF           absRect;                          // rect (relative to plot box)
+    bool             inside      { false };            // is inside
   };
 
   Location                   location_;

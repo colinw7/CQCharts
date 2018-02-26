@@ -36,18 +36,14 @@ CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("sunburst"), model)
 {
-  textBoxObj_ = new CQChartsTextBoxObj(this);
-
-  textBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorder(true);
   setFilled(true);
 
-  textBoxObj_->setTextFontSize(8.0);
+  setTextFontSize(8.0);
 
-  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
-
-  textBoxObj_->setTextColor(textColor);
+  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
 
   setMargins(1, 1, 1, 1);
 
@@ -59,8 +55,6 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 CQChartsSunburstPlot::
 ~CQChartsSunburstPlot()
 {
-  delete textBoxObj_;
-
   resetRoots();
 }
 
@@ -80,71 +74,67 @@ bool
 CQChartsSunburstPlot::
 isFilled() const
 {
-  return textBoxObj_->isBackground();
+  return shapeData_.background.visible;
 }
 
 void
 CQChartsSunburstPlot::
 setFilled(bool b)
 {
-  textBoxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSunburstPlot::
 fillColor() const
 {
-  return textBoxObj_->backgroundColor();
+  return shapeData_.background.color;
 }
 
 void
 CQChartsSunburstPlot::
 setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSunburstPlot::
 interpFillColor(int i, int n) const
 {
-  return textBoxObj_->interpBackgroundColor(i, n);
+  return fillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSunburstPlot::
 fillAlpha() const
 {
-  return textBoxObj_->backgroundAlpha();
+  return shapeData_.background.alpha;
 }
 
 void
 CQChartsSunburstPlot::
 setFillAlpha(double a)
 {
-  textBoxObj_->setBackgroundAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsSunburstPlot::Pattern
 CQChartsSunburstPlot::
 fillPattern() const
 {
-  return (Pattern) textBoxObj_->backgroundPattern();
+  return (Pattern) shapeData_.background.pattern;
 }
 
 void
 CQChartsSunburstPlot::
 setFillPattern(Pattern pattern)
 {
-  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) shapeData_.background.pattern) {
+    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
 //---
@@ -153,71 +143,63 @@ bool
 CQChartsSunburstPlot::
 isBorder() const
 {
-  return textBoxObj_->isBorder();
+  return shapeData_.border.visible;
 }
 
 void
 CQChartsSunburstPlot::
 setBorder(bool b)
 {
-  textBoxObj_->setBorder(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsSunburstPlot::
 borderColor() const
 {
-  return textBoxObj_->borderColor();
+  return shapeData_.border.color;
 }
 
 void
 CQChartsSunburstPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSunburstPlot::
 interpBorderColor(int i, int n) const
 {
-  return textBoxObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsSunburstPlot::
 borderAlpha() const
 {
-  return textBoxObj_->borderAlpha();
+  return shapeData_.border.alpha;
 }
 
 void
 CQChartsSunburstPlot::
 setBorderAlpha(double a)
 {
-  textBoxObj_->setBorderAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsSunburstPlot::
 borderWidth() const
 {
-  return textBoxObj_->borderWidth();
+  return shapeData_.border.width;
 }
 
 void
 CQChartsSunburstPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
 //---
@@ -226,55 +208,74 @@ const QFont &
 CQChartsSunburstPlot::
 textFont() const
 {
-  return textBoxObj_->textFont();
+  return textData_.font;
 }
 
 void
 CQChartsSunburstPlot::
 setTextFont(const QFont &f)
 {
-  textBoxObj_->setTextFont(f);
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+}
 
-  update();
+void
+CQChartsSunburstPlot::
+setTextFontSize(double s)
+{
+  if (s != textData_.font.pointSizeF()) {
+    textData_.font.setPointSizeF(s);
+
+    update();
+  }
 }
 
 const CQChartsColor &
 CQChartsSunburstPlot::
 textColor() const
 {
-  return textBoxObj_->textColor();
+  return textData_.color;
 }
 
 void
 CQChartsSunburstPlot::
 setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsSunburstPlot::
 interpTextColor(int i, int n) const
 {
-  return textBoxObj_->interpTextColor(i, n);
+  return textColor().interpColor(this, i, n);
+}
+
+double
+CQChartsSunburstPlot::
+textAlpha() const
+{
+  return textData_.alpha;
+}
+
+void
+CQChartsSunburstPlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
 }
 
 bool
 CQChartsSunburstPlot::
 isTextContrast() const
 {
-  return textBoxObj_->isTextContrast();
+  return textData_.contrast;
 }
 
 void
 CQChartsSunburstPlot::
 setTextContrast(bool b)
 {
-  textBoxObj_->setTextContrast(b);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
 }
 
 //---
@@ -297,10 +298,10 @@ addProperties()
   addProperty("", this, "startAngle" );
   addProperty("", this, "multiRoot"  );
 
-  addProperty("border", this, "border"     , "visible");
-  addProperty("border", this, "borderColor", "color"  );
-  addProperty("border", this, "borderAlpha", "alpha"  );
-  addProperty("border", this, "borderWidth", "width"  );
+  addProperty("stroke", this, "border"     , "visible");
+  addProperty("stroke", this, "borderColor", "color"  );
+  addProperty("stroke", this, "borderAlpha", "alpha"  );
+  addProperty("stroke", this, "borderWidth", "width"  );
 
   addProperty("fill", this, "filled"     , "visible");
   addProperty("fill", this, "fillColor"  , "color"  );
@@ -309,7 +310,12 @@ addProperties()
 
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
+  addProperty("text", this, "textAlpha"   , "alpha"   );
   addProperty("text", this, "textContrast", "contrast");
+
+  addProperty("color", this, "colorMapEnabled", "mapEnabled");
+  addProperty("color", this, "colorMapMin"    , "mapMin"    );
+  addProperty("color", this, "colorMapMax"    , "mapMax"    );
 }
 
 //------
@@ -597,27 +603,27 @@ loadHier(CQChartsSunburstHierNode *root)
 
     bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
                  QString &name, QModelIndex &nameInd) const {
-      nameInd = model->index(row, plot_->nameColumn(), parent);
+      nameInd = model->index(row, plot_->nameColumn().column(), parent);
 
       bool ok;
 
-      name = CQChartsUtil::modelString(model, nameInd, ok);
+      name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
 
     bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
                  double size, QModelIndex &valueInd) const {
+      valueInd = model->index(row, plot_->valueColumn().column(), parent);
+
       size = 1.0;
 
-      valueInd = model->index(row, plot_->valueColumn(), parent);
-
-      if (! valueInd.isValid())
+      if (! plot_->valueColumn().isValid())
         return true;
 
       bool ok = true;
 
-      size = CQChartsUtil::modelReal(model, valueInd, ok);
+      size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
 
       if (ok && size <= 0.0)
         ok = false;
@@ -690,10 +696,7 @@ loadFlat(CQChartsSunburstHierNode *root)
    public:
     RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
      plot_(plot), root_(root) {
-      QAbstractItemModel *model = plot_->model();
-      assert(model);
-
-      valueColumnType_ = plot_->columnValueType(model, plot_->valueColumn());
+      valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -710,15 +713,13 @@ loadFlat(CQChartsSunburstHierNode *root)
 
       double size = 1.0;
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
-      if (valueInd.isValid()) {
+      if (plot_->valueColumn().isValid()) {
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = CQChartsUtil::modelReal(model, valueInd, ok2);
+          size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = CQChartsUtil::modelInteger(model, valueInd, ok2);
+          size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 
@@ -730,6 +731,8 @@ loadFlat(CQChartsSunburstHierNode *root)
       }
 
       //---
+
+      QModelIndex valueInd = model->index(row, plot_->valueColumn().column(), parent);
 
       CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
@@ -1198,6 +1201,8 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   QColor tc = interpTextColor(0, 1);
 
+  tc.setAlphaF(textAlpha());
+
   QPen tpen(tc);
 
   if (nodeObj) {
@@ -1296,16 +1301,15 @@ calcTipId() const
   tableTip.addTableRow("Name", name);
   tableTip.addTableRow("Size", node_->hierSize());
 
-  if (plot_->colorColumn() >= 0) {
+  if (plot_->colorColumn().isValid()) {
     QAbstractItemModel *model = plot_->model();
 
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    QModelIndex colorInd = model->index(ind1.row(), plot_->colorColumn(), ind1.parent());
-
     bool ok;
 
-    QString colorStr = CQChartsUtil::modelString(model, colorInd, ok);
+    QString colorStr =
+      CQChartsUtil::modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }
@@ -1360,17 +1364,13 @@ addSelectIndex()
 {
   const QModelIndex &ind = node_->ind();
 
-  QModelIndex nameInd  = plot_->selectIndex(ind.row(), plot_->nameColumn (), ind.parent());
-  QModelIndex valueInd = plot_->selectIndex(ind.row(), plot_->valueColumn(), ind.parent());
-  QModelIndex colorInd = plot_->selectIndex(ind.row(), plot_->colorColumn(), ind.parent());
+  plot_->addSelectIndex(ind.row(), plot_->nameColumn(), ind.parent());
 
-  plot_->addSelectIndex(nameInd);
+  if (plot_->valueColumn().isValid())
+    plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
 
-  if (valueInd.isValid())
-    plot_->addSelectIndex(valueInd);
-
-  if (colorInd.isValid())
-    plot_->addSelectIndex(colorInd);
+  if (plot_->colorColumn().isValid())
+    plot_->addSelectIndex(ind.row(), plot_->colorColumn(), ind.parent());
 }
 
 bool

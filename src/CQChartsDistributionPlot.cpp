@@ -46,10 +46,8 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   (void) addValueSet("values");
   (void) addColorSet("color");
 
-  borderObj_ = new CQChartsBoxObj(this);
-
-  fillData_.visible = true;
-  fillData_.color   = CQChartsColor(CQChartsColor::Type::PALETTE);
+  setBarFill (true);
+  setBarColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   //---
 
@@ -67,7 +65,6 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 CQChartsDistributionPlot::
 ~CQChartsDistributionPlot()
 {
-  delete borderObj_;
 }
 
 void
@@ -127,77 +124,87 @@ bool
 CQChartsDistributionPlot::
 isBorder() const
 {
-  return borderObj_->isBorder();
+  return boxData_.shape.border.visible;
 }
 
 void
 CQChartsDistributionPlot::
 setBorder(bool b)
 {
-  borderObj_->setBorder(b); update();
+  boxData_.shape.border.visible = b;
+
+  update();
 }
 
 const CQChartsColor &
 CQChartsDistributionPlot::
 borderColor() const
 {
-  return borderObj_->borderColor();
+  return boxData_.shape.border.color;
 }
 
 void
 CQChartsDistributionPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  borderObj_->setBorderColor(c); update();
+  boxData_.shape.border.color = c;
+
+  update();
 }
 
 QColor
 CQChartsDistributionPlot::
 interpBorderColor(int i, int n) const
 {
-  return borderObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsDistributionPlot::
 borderAlpha() const
 {
-  return borderObj_->borderAlpha();
+  return boxData_.shape.border.alpha;
 }
 
 void
 CQChartsDistributionPlot::
-setBorderAlpha(double r)
+setBorderAlpha(double a)
 {
-  borderObj_->setBorderAlpha(r); update();
+  boxData_.shape.border.alpha = a;
+
+  update();
 }
 
 const CQChartsLength &
 CQChartsDistributionPlot::
 borderWidth() const
 {
-  return borderObj_->borderWidth();
+  return boxData_.shape.border.width;
 }
 
 void
 CQChartsDistributionPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  borderObj_->setBorderWidth(l); update();
+  boxData_.shape.border.width = l;
+
+  update();
 }
 
-double
+const CQChartsLength &
 CQChartsDistributionPlot::
 cornerSize() const
 {
-  return borderObj_->cornerSize();
+  return boxData_.cornerSize;
 }
 
 void
 CQChartsDistributionPlot::
-setCornerSize(double r)
+setCornerSize(const CQChartsLength &s)
 {
-  borderObj_->setCornerSize(r); update();
+  boxData_.cornerSize = s;
+
+  update();
 }
 
 //---
@@ -206,15 +213,15 @@ bool
 CQChartsDistributionPlot::
 isBarFill() const
 {
-  return fillData_.visible;
+  return boxData_.shape.background.visible;
 }
 
 void
 CQChartsDistributionPlot::
 setBarFill(bool b)
 {
-  if (b != fillData_.visible) {
-    fillData_.visible = b;
+  if (b != boxData_.shape.background.visible) {
+    boxData_.shape.background.visible = b;
 
     update();
   }
@@ -224,15 +231,15 @@ const CQChartsColor &
 CQChartsDistributionPlot::
 barColor() const
 {
-  return fillData_.color;
+  return boxData_.shape.background.color;
 }
 
 void
 CQChartsDistributionPlot::
 setBarColor(const CQChartsColor &c)
 {
-  if (c != fillData_.color) {
-    fillData_.color = c;
+  if (c != boxData_.shape.background.color) {
+    boxData_.shape.background.color = c;
 
     update();
   }
@@ -249,15 +256,15 @@ double
 CQChartsDistributionPlot::
 barAlpha() const
 {
-  return fillData_.alpha;
+  return boxData_.shape.background.alpha;
 }
 
 void
 CQChartsDistributionPlot::
 setBarAlpha(double a)
 {
-  if (a != fillData_.alpha) {
-    fillData_.alpha = a;
+  if (a != boxData_.shape.background.alpha) {
+    boxData_.shape.background.alpha = a;
 
     update();
   }
@@ -267,15 +274,15 @@ CQChartsDistributionPlot::Pattern
 CQChartsDistributionPlot::
 barPattern() const
 {
-  return (Pattern) fillData_.pattern;
+  return (Pattern) boxData_.shape.background.pattern;
 }
 
 void
 CQChartsDistributionPlot::
 setBarPattern(Pattern pattern)
 {
-  if (pattern != (Pattern) fillData_.pattern) {
-    fillData_.pattern = (CQChartsFillPattern::Type) pattern;
+  if (pattern != (Pattern) boxData_.shape.background.pattern) {
+    boxData_.shape.background.pattern = (CQChartsFillPattern::Type) pattern;
 
     update();
   }
@@ -311,7 +318,8 @@ updateRange(bool apply)
   if (hasRange) {
     class ColumnDetails : public CQChartsUtil::ModelColumnDetails {
      public:
-      ColumnDetails(CQChartsDistributionPlot *plot, QAbstractItemModel *model, int column) :
+      ColumnDetails(CQChartsDistributionPlot *plot, QAbstractItemModel *model,
+                    const CQChartsColumn &column) :
        CQChartsUtil::ModelColumnDetails(plot->charts(), model, column), plot_(plot) {
       }
 
@@ -345,8 +353,7 @@ updateRange(bool apply)
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex valueInd = model->index(row, plot_->valueColumn(), parent);
-
+      QModelIndex valueInd  = model->index(row, plot_->valueColumn().column(), parent);
       QModelIndex valueInd1 = plot_->normalizeIndex(valueInd);
 
       //---
@@ -356,7 +363,7 @@ updateRange(bool apply)
       if (hasRange_) {
         bool ok;
 
-        double value = CQChartsUtil::modelReal(model, valueInd, ok);
+        double value = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -376,7 +383,7 @@ updateRange(bool apply)
       else {
         bool ok;
 
-        QString value = CQChartsUtil::modelString(model, valueInd, ok);
+        QString value = CQChartsUtil::modelString(model, row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -1053,7 +1060,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     painter->setBrush(barBrush);
 
     if (! useLine) {
-      CQChartsRoundedPolygon::draw(painter, qrect, plot_->cornerSize());
+      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+
+      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }
     else {
       if (! plot_->isHorizontal())

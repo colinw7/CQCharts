@@ -10,6 +10,18 @@ High
  + Filter by Zoom
  + Key/Title should be positioned relative to plot
  + Annotation Layer
+ + Use Quad Tree to limit numbe of objects draw (min rect size)
+ + Position class for point position on view, plot, ... Use for annotations
+ + text format, flow or split
+ + use plot percent for key, title ? unzoomed ?
+ + custom editors for column, columns, position, length
+   + custom edit, use to/from string API's and custom contols
+ + column types to parse complex data like geometry plot (to variant ?)
+ + more standard code for column details (type, min, max, ..., bucket) and use in all plots
+ + jitter (peturb move overlapping points)
+ + add column details to model summary data
+ + more usage of CQChartsUtil::testAndSet
+ + add version to plot data, bump could when changed and updated cached values on version change
 
 Medium
  + Scroll by Single Large Tick Mark ?
@@ -32,6 +44,7 @@ Medium
  + Edit mode to edit plot positions (illustrator code ?)
  + Use Data not Obj to store data in objects (axis -> line obj ...)
  + rounded corner control
+ + overview window (timeline)
 
 + TOAST UI plots (tui)
   + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)

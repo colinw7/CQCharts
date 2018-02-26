@@ -1,290 +1,268 @@
 #ifndef CQChartsColumn_H
 #define CQChartsColumn_H
 
-#include <CQChartsUtil.h>
-#include <CQBaseModel.h>
 #include <QString>
+#include <QStringList>
+#include <iostream>
 
-using CQChartsNameValues = std::map<QString,QString>;
-
-class CQChartsColumnType {
+class CQChartsColumn {
  public:
-  CQChartsColumnType(CQBaseModel::Type type) :
-   type_(type) {
-  }
+  enum class Type {
+    NONE,
+    DATA,
+    VHEADER,
+    EXPR
+  };
 
-  virtual ~CQChartsColumnType() { }
-
-  CQBaseModel::Type type() const { return type_; }
-
-  virtual const char *name() const = 0;
-
-  // input variant to data variant
-  virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
-
-  // data variant to output variant
-  virtual QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
-
- private:
-  CQBaseModel::Type type_;
-};
-
-//---
-
-class CQChartsColumnStringType : public CQChartsColumnType {
  public:
-  CQChartsColumnStringType() :
-   CQChartsColumnType(CQBaseModel::Type::STRING) {
-  }
+  static void registerMetaType();
 
-  const char *name() const { return "string"; }
-
-  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return CQChartsUtil::toString(var.toDouble());
-
-    if (var.type() == QVariant::Int)
-      return CQChartsUtil::toString((long) var.toInt());
-
-    return var;
-  }
-
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return CQChartsUtil::toString(var.toDouble());
-
-    if (var.type() == QVariant::Int)
-      return CQChartsUtil::toString((long) var.toInt());
-
-    return var;
-  }
-};
-
-//---
-
-class CQChartsColumnRealType : public CQChartsColumnType {
  public:
-  CQChartsColumnRealType() :
-   CQChartsColumnType(CQBaseModel::Type::REAL) {
+  CQChartsColumn() = default;
+
+  CQChartsColumn(int column) :
+   type_(Type::DATA), column_(column) {
   }
 
-  const char *name() const { return "real"; }
-
-  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return var;
-
-    bool ok;
-
-    double r = CQChartsUtil::toReal(var, ok);
-
-    if (! ok)
-      return var;
-
-    return QVariant::fromValue<double>(r);
+  CQChartsColumn(const QString &s) {
+    setValue(s);
   }
 
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    double value = userData(var, nameValues).toDouble();
+  CQChartsColumn(const CQChartsColumn &rhs) :
+   type_(rhs.type_), column_(rhs.column_), expr_(nullptr) {
+    if (rhs.type_ == Type::EXPR && rhs.expr_) {
+      int len = strlen(rhs.expr_);
 
-    auto p1 = nameValues.find("format");
+      expr_ = new char [len + 1];
 
-    if (p1 != nameValues.end()) {
-      auto p2 = nameValues.find("format_scale");
-
-      if (p2 != nameValues.end()) {
-        bool ok;
-
-        double scale = CQChartsUtil::toReal((*p2).second, ok);
-
-        if (ok)
-          value *= scale;
-      }
-
-      return CQChartsUtil::toString(value, (*p1).second);
+      memcpy(expr_, rhs.expr_, len + 1);
     }
-    else
-      return CQChartsUtil::toString(value);
-  }
-};
-
-//---
-
-class CQChartsColumnIntegerType : public CQChartsColumnType {
- public:
-  CQChartsColumnIntegerType() :
-   CQChartsColumnType(CQBaseModel::Type::INTEGER) {
   }
 
-  const char *name() const { return "integer"; }
-
-  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Int)
-      return var;
-
-    bool ok;
-
-    long l = CQChartsUtil::toInt(var, ok);
-
-    if (! ok)
-      return var;
-
-    return QVariant::fromValue<int>(l);
+ ~CQChartsColumn() {
+    delete [] expr_;
   }
 
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    return CQChartsUtil::toString((long) userData(var, nameValues).toInt());
-  }
-};
+  CQChartsColumn &operator=(const CQChartsColumn &rhs) {
+    delete [] expr_;
 
-//---
+    type_   = rhs.type_;
+    column_ = rhs.column_;
+    expr_   = nullptr;
 
-class CQChartsColumnTimeType : public CQChartsColumnType {
- public:
-  CQChartsColumnTimeType() :
-   CQChartsColumnType(CQBaseModel::Type::TIME) {
-  }
+    if (rhs.type_ == Type::EXPR && rhs.expr_) {
+      int len = strlen(rhs.expr_);
 
-  const char *name() const { return "time"; }
+      expr_ = new char [len + 1];
 
-  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    auto p = nameValues.find("format");
-
-    if (p != nameValues.end()) {
-      double t;
-
-      if (! stringToTime((*p).second, var.toString(), t))
-        return var;
-
-      return QVariant::fromValue<double>(t);
+      memcpy(expr_, rhs.expr_, len + 1);
     }
 
-    return var;
+    return *this;
   }
 
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    bool ok;
+  Type type() const { return type_; }
 
-    double t = var.toDouble(&ok);
+  int column() const { return (type_ == Type::DATA ? column_ : -1); }
 
-    if (! ok)
-      return var;
+  QString expr() const { return (type_ == Type::EXPR && expr_ ? QString(expr_) : QString()); }
 
-    auto p = nameValues.find("oformat");
+  bool isValid() const { return type_ != Type::NONE; }
 
-    if (p != nameValues.end())
-      return timeToString((*p).second, t);
+  bool setValue(const QString &str) {
+    Type    type;
+    int     column;
+    QString expr;
 
-    auto p1 = nameValues.find("format");
-
-    if (p1 != nameValues.end())
-      return timeToString((*p1).second, t);
-
-    return QVariant::fromValue<double>(t);
-  }
-
- private:
-  static QString timeToString(const QString &fmt, double r) {
-    static char buffer[512];
-
-    time_t t(r);
-
-    struct tm *tm1 = localtime(&t);
-
-    (void) strftime(buffer, 512, fmt.toLatin1().constData(), tm1);
-
-    return buffer;
-  }
-
-  static bool stringToTime(const QString &fmt, const QString &str, double &t) {
-    struct tm tm1; memset(&tm1, 0, sizeof(tm));
-
-    char *p = strptime(str.toLatin1().constData(), fmt.toLatin1().constData(), &tm1);
-
-    if (! p)
+    if (! decodeString(str, type, column, expr))
       return false;
 
-    t = mktime(&tm1);
+    delete [] expr_;
+
+    type_   = type;
+    column_ = column;
+    expr_   = nullptr;
+
+    if (type == Type::EXPR) {
+      int len = expr.length();
+
+      expr_ = new char [len + 1];
+
+      memcpy(expr_, expr.toStdString().c_str(), len + 1);
+    }
 
     return true;
   }
 
-#if 0
-  QString calcTimeFmt() const {
-    if (timeFmt_ == "")
-      return "%d/%m/%y,%H:%M";
+  //---
 
-    return timeFmt_;
+  QString toString() const {
+    if      (type_ == Type::DATA)
+      return QString("%1").arg(column_);
+    else if (type_ == Type::EXPR)
+      return QString("(%1)").arg(expr_);
+    else if (type_ == Type::VHEADER)
+      return "#VH";
+
+    return "";
   }
-#endif
-};
 
-//---
+  void fromString(const QString &s) {
+    setValue(s);
+  }
 
-class CQChartsColumnTypeMgr {
- public:
-  CQChartsColumnTypeMgr();
- ~CQChartsColumnTypeMgr();
+  //---
 
-  void addType(CQBaseModel::Type type, CQChartsColumnType *data);
+  friend bool operator==(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
+    if (lhs.type_   != rhs.type_  ) return false;
+    if (lhs.column_ != rhs.column_) return false;
 
-  CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
+    if (lhs.expr_ != rhs.expr_) {
+      if ((lhs.expr_ && ! rhs.expr_) || (! lhs.expr_ && rhs.expr_))
+        return false;
 
-  QString encodeTypeData(CQBaseModel::Type type, const CQChartsNameValues &nameValues) const;
-
-  CQChartsColumnType *getType(CQBaseModel::Type type) const;
-
-  QVariant getUserData(const QAbstractItemModel *model, int column, const QVariant &var) const;
-
-  QVariant getDisplayData(const QAbstractItemModel *model, int column, const QVariant &var) const;
-
-  bool getModelColumnType(const QAbstractItemModel *model, int column, CQBaseModel::Type &type,
-                          CQChartsNameValues &nameValues) const;
-
-  bool setModelColumnType(QAbstractItemModel *model, int column, CQBaseModel::Type type,
-                          const CQChartsNameValues &nameValues);
-
- private:
-  using TypeData = std::map<CQBaseModel::Type,CQChartsColumnType*>;
-
-  TypeData typeData_;
-};
-
-//---
-
-class CQChartsColumn {
- public:
-  struct NameValue {
-    NameValue(const QString &name, const QString &value) :
-     name(name), value(value) {
+      if (strcmp(lhs.expr_, rhs.expr_) != 0)
+        return false;
     }
 
-    QString name;
-    QString value;
-  };
-
- public:
-  CQChartsColumn(const QString &name=QString()) :
-   name_(name) {
+    return true;
   }
 
-  const QString &name() const { return name_; }
-  void setName(const QString &s) { name_ = s; }
+  friend bool operator!=(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
+    return ! operator==(lhs, rhs);
+  }
 
-  const QString &type() const { return type_; }
-  void setType(const QString &s) { type_ = s; }
+  //---
 
-  bool decodeType(QString &baseType, CQChartsNameValues &nameValues) const;
+  void print(std::ostream &os) const {
+    os << toString().toStdString();
+  }
 
-  static bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &nameValues);
+  friend std::ostream &operator<<(std::ostream &os, const CQChartsColumn &l) {
+    l.print(os);
 
-  static bool decodeNameValues(const QString &str, CQChartsNameValues &nameValues);
+    return os;
+  }
 
-  static QString encodeNameValues(const CQChartsNameValues &nameValues);
+  //---
+
+ public:
+  static bool stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns) {
+    bool rc = true;
+
+    QStringList strs = str.split(" ", QString::SkipEmptyParts);
+
+    for (int i = 0; i < strs.length(); ++i) {
+      CQChartsColumn c(strs[i]);
+
+      if (! c.isValid())
+        rc = false;
+
+      columns.push_back(c);
+    }
+
+    return rc;
+  }
+
+  static QString columnsToString(const std::vector<CQChartsColumn> &columns) {
+    QString str;
+
+    for (const auto &c : columns) {
+      if (str.length())
+        str += " ";
+
+      str += c.toString();
+    }
+
+    return str;
+  }
 
  private:
-  QString name_;
-  QString type_ { "string" };
+  bool decodeString(const QString &str, Type &type, int &column, QString &expr) {
+    type   = Type::NONE;
+    column = -1;
+    expr   = "";
+
+    std::string sstr = str.toStdString();
+
+    const char *c_str = sstr.c_str();
+
+    int i = 0;
+
+    while (c_str[i] != 0 && ::isspace(c_str[i]))
+      ++i;
+
+    if (c_str[i] == '\0')
+      return false;
+
+    // expression
+    if (c_str[i] == '(') {
+      ++i;
+
+      QString str;
+
+      int nb = 1;
+
+      while (c_str[i] != 0) {
+        if      (c_str[i] == '(')
+          ++nb;
+        else if (c_str[i] == ')') {
+          --nb;
+
+          if (nb == 0)
+            break;
+        }
+
+        str += c_str[i++];
+      }
+
+      expr = str.simplified();
+      type = Type::EXPR;
+
+      return true;
+    }
+
+    if (strcmp(&c_str[i], "@VH") == 0) {
+      type = Type::VHEADER;
+
+      return true;
+    }
+
+    // TODO: support column name
+
+    // integer column number
+    const char *p;
+
+    errno = 0;
+
+    long value = strtol(&c_str[i], (char **) &p, 10);
+
+    if (errno == ERANGE)
+      return false;
+
+    while (*p != 0 && ::isspace(*p))
+      ++p;
+
+    if (*p == '\0') {
+      type   = Type::DATA;
+      column = value;
+    }
+    else
+      return false;
+
+    return true;
+  }
+
+ private:
+  Type   type_   { Type::NONE };
+  int    column_ { -1 };
+  char*  expr_   { nullptr };
 };
+
+//---
+
+#include <CQUtilMeta.h>
+
+CQUTIL_DCL_META_TYPE(CQChartsColumn)
 
 #endif

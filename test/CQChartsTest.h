@@ -22,6 +22,7 @@ class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
 class CQChartsGradientPalette;
+class CQChartsColumn;
 
 class CQExprModel;
 class CQFoldedModel;
@@ -70,9 +71,10 @@ class CQChartsTest : public CQAppWindow {
   using Vars       = std::vector<QString>;
 
   struct InputData {
-    bool    commentHeader   { false };
-    bool    firstLineHeader { false };
-    int     numRows         { 100 };
+    bool    commentHeader     { false };
+    bool    firstLineHeader   { false };
+    bool    firstColumnHeader { false };
+    int     numRows           { 100 };
     QString filter;
     QString fold;
     QString sort;
@@ -209,7 +211,7 @@ class CQChartsTest : public CQAppWindow {
   CQChartsPlot *initPlotView(const ViewData *viewData, const InitData &initData,
                              int i, const CQChartsGeom::BBox &bbox);
 
-  void setColumnFormats(const ModelP &model, const QString &columnType);
+  void setColumnFormats(const ViewData *viewData, const QString &columnType);
 
   QString fixTypeName(const QString &typeName) const;
 
@@ -227,7 +229,7 @@ class CQChartsTest : public CQAppWindow {
   QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
                          const QString &objName) const;
 
-  bool stringToColumn(const ModelP &model, const QString &str, int &column) const;
+  bool stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) const;
 
   CQChartsPlot *createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type,
                            const NameValueData &nameValueData, bool reuse,
@@ -279,40 +281,42 @@ class CQChartsTest : public CQAppWindow {
   using Args = std::vector<QString>;
 
 #ifdef CQ_CHARTS_CEIL
-  static void loadLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void modelLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void processLCmd     (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void sortLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void viewLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void plotLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void setPropertyLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getPropertyLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void themeLCmd       (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void paletteLCmd     (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void textShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void arrowShapeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void rectShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void ellipseShapeLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void polyShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void pointShapeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void loadLCmd         (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void modelLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void processLCmd      (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void sortLCmd         (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void viewLCmd         (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void plotLCmd         (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void setPropertyLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void getPropertyLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void themeLCmd        (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void paletteLCmd      (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void textShapeLCmd    (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void arrowShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void rectShapeLCmd    (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void ellipseShapeLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void polygonShapeLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void polylineShapeLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void pointShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
 #endif
 
-  bool loadCmd        (const Args &args);
-  void modelCmd       (const Args &args);
-  void processCmd     (const Args &args);
-  void sortCmd       (const Args &args);
-  void viewCmd        (const Args &args);
-  void plotCmd        (const Args &args);
-  void setPropertyCmd (const Args &args);
-  void getPropertyCmd (const Args &args);
-  void themeCmd       (const Args &args);
-  void paletteCmd     (const Args &args);
-  void textShapeCmd   (const Args &args);
-  void arrowShapeCmd  (const Args &args);
-  void rectShapeCmd   (const Args &args);
-  void ellipseShapeCmd(const Args &args);
-  void polyShapeCmd   (const Args &args);
-  void pointShapeCmd  (const Args &args);
+  bool loadCmd         (const Args &args);
+  void modelCmd        (const Args &args);
+  void processCmd      (const Args &args);
+  void sortCmd         (const Args &args);
+  void viewCmd         (const Args &args);
+  void plotCmd         (const Args &args);
+  void setPropertyCmd  (const Args &args);
+  void getPropertyCmd  (const Args &args);
+  void themeCmd        (const Args &args);
+  void paletteCmd      (const Args &args);
+  void textShapeCmd    (const Args &args);
+  void arrowShapeCmd   (const Args &args);
+  void rectShapeCmd    (const Args &args);
+  void ellipseShapeCmd (const Args &args);
+  void polygonShapeCmd (const Args &args);
+  void polylineShapeCmd(const Args &args);
+  void pointShapeCmd   (const Args &args);
 
   void overlayCmd    (const Args &args);
   void y1y2Cmd       (const Args &args);

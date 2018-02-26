@@ -160,30 +160,30 @@ class CQChartsChordPlotType : public CQChartsPlotType {
 class CQChartsChordPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int           nameColumn   READ nameColumn     WRITE setNameColumn  )
-  Q_PROPERTY(int           valueColumn  READ valueColumn    WRITE setValueColumn )
-  Q_PROPERTY(int           groupColumn  READ groupColumn    WRITE setGroupColumn )
-  Q_PROPERTY(bool          sorted       READ isSorted       WRITE setSorted      )
-  Q_PROPERTY(double        innerRadius  READ innerRadius    WRITE setInnerRadius )
-  Q_PROPERTY(double        labelRadius  READ labelRadius    WRITE setLabelRadius )
-  Q_PROPERTY(CQChartsColor borderColor  READ borderColor    WRITE setBorderColor )
-  Q_PROPERTY(double        borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
-  Q_PROPERTY(double        segmentAlpha READ segmentAlpha   WRITE setSegmentAlpha)
-  Q_PROPERTY(double        arcAlpha     READ arcAlpha       WRITE setArcAlpha    )
+  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn     WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn    WRITE setValueColumn )
+  Q_PROPERTY(CQChartsColumn groupColumn  READ groupColumn    WRITE setGroupColumn )
+  Q_PROPERTY(bool           sorted       READ isSorted       WRITE setSorted      )
+  Q_PROPERTY(double         innerRadius  READ innerRadius    WRITE setInnerRadius )
+  Q_PROPERTY(double         labelRadius  READ labelRadius    WRITE setLabelRadius )
+  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
+  Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
+  Q_PROPERTY(double         segmentAlpha READ segmentAlpha   WRITE setSegmentAlpha)
+  Q_PROPERTY(double         arcAlpha     READ arcAlpha       WRITE setArcAlpha    )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsChordPlot();
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
 
-  int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -245,17 +245,17 @@ class CQChartsChordPlot : public CQChartsPlot {
   bool initHierObjs();
 
  private:
-  int                        nameColumn_     { -1 };
-  int                        valueColumn_    { -1 };
-  int                        groupColumn_    { -1 };
-  bool                       sorted_         { false };
-  double                     innerRadius_    { 0.9 };
-  double                     labelRadius_    { 1.1 };
-  CQChartsStrokeData         borderData_;
-  double                     segmentAlpha_   { 0.7 };
-  double                     arcAlpha_       { 0.3 };
-  CQChartsRotatedTextBoxObj* textBox_;
-  double                     valueToDegrees_ { 1.0 };
+  CQChartsColumn             nameColumn_;               // name column
+  CQChartsColumn             valueColumn_;              // value column
+  CQChartsColumn             groupColumn_;              // group column
+  bool                       sorted_         { false }; // is sorted
+  double                     innerRadius_    { 0.9 };   // inner radius
+  double                     labelRadius_    { 1.1 };   // label radius
+  CQChartsStrokeData         borderData_;               // border style data
+  double                     segmentAlpha_   { 0.7 };   // segment alpha
+  double                     arcAlpha_       { 0.3 };   // arc alpha
+  CQChartsRotatedTextBoxObj* textBox_;                  // text box
+  double                     valueToDegrees_ { 1.0 };   // value to degrees scale
 };
 
 #endif

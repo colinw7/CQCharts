@@ -16,12 +16,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   QString msg = "NO DATA";
 
-  QFontMetrics fm(view->font());
+  QFontMetricsF fm(view->font());
 
-  int fw = fm.width(msg);
+  double fw = fm.width(msg);
 
-  int w = view->width ();
-  int h = view->height();
+  double w = view->width ();
+  double h = view->height();
 
   painter->drawText(QPointF(w/2 - fw, h/2 - fm.ascent()), msg);
 }

@@ -18,6 +18,7 @@ class CQChartsLoader : public QFrame {
 
   bool isCommentHeader() const;
   bool isFirstLineHeader() const;
+  bool isFirstColumnHeader() const;
 
   int numRows() const;
 
@@ -29,12 +30,13 @@ class CQChartsLoader : public QFrame {
   void cancelSlot();
 
  private:
-  CQCharts*   charts_               { nullptr };
-  QComboBox*  typeCombo_            { nullptr };
-  CQFilename* fileEdit_             { nullptr };
-  QCheckBox*  commentHeaderCheck_   { nullptr };
-  QCheckBox*  firstLineHeaderCheck_ { nullptr };
-  QLineEdit*  numberEdit_           { nullptr };
+  CQCharts*   charts_                 { nullptr };
+  QComboBox*  typeCombo_              { nullptr };
+  CQFilename* fileEdit_               { nullptr };
+  QCheckBox*  commentHeaderCheck_     { nullptr };
+  QCheckBox*  firstLineHeaderCheck_   { nullptr };
+  QCheckBox*  firstColumnHeaderCheck_ { nullptr };
+  QLineEdit*  numberEdit_             { nullptr };
 };
 
 #endif

@@ -1,5 +1,4 @@
 #include <CQChartsExprModel.h>
-#include <CQChartsColumn.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
 #include <CQExprModel.h>

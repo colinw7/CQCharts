@@ -11,7 +11,7 @@ rect_shape -x1 0 -y1 -60 -x2 100 -y2 -40 \
 rectId1 = _rc
 
 rect_shape -x1 0 -y1 -30 -x2 100 -y2 -10 \
-  -border_color green -border_alpha 0.5 -border_width 3 -border_corner_size 8
+  -border_color green -border_alpha 0.5 -border_width 3 -corner_size 8
 rectId2 = _rc
 
 rect_shape -x1 0 -y1   0 -x2 100 -y2  20 \

@@ -10,7 +10,6 @@
 
 class CQChartsHierBubblePlot;
 class CQChartsHierBubbleHierNode;
-class CQChartsTextBoxObj;
 
 class CQChartsHierBubbleNode : public CQChartsCircleNode {
  private:
@@ -232,6 +231,8 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 class CQChartsHierBubblePlot : public CQChartsHierPlot {
   Q_OBJECT
 
+  Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
+
   Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
   Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
   Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
@@ -242,7 +243,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
   Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
   Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
   Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
+  Q_PROPERTY(bool           textScaled   READ isTextScaled   WRITE setTextScaled  )
 
   Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
   Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
@@ -269,6 +272,11 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model);
 
  ~CQChartsHierBubblePlot();
+
+  //---
+
+  bool isValueLabel() const { return valueLabel_; }
+  void setValueLabel(bool b);
 
   //---
 
@@ -310,10 +318,18 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);
 
-  QColor interpTextColor(int i, int n) const;
+  double textAlpha() const;
+  void setTextAlpha(double a);
 
   bool isTextContrast() const;
   void setTextContrast(bool b);
+
+  bool isTextScaled() const;
+  void setTextScaled(bool b);
+
+  void setTextFontSize(double s);
+
+  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -439,7 +455,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   CQChartsHierBubbleHierNode* root_            { nullptr }; // root node
   CQChartsHierBubbleHierNode* firstHier_       { nullptr }; // first hier node
   QString                     currentRootName_;             // current root name
-  CQChartsTextBoxObj*         textBoxObj_      { nullptr }; // bubble fill/border/text object
+  bool                        valueLabel_      { false };   // draw value with name
+  CQChartsShapeData           shapeData_;                   // bubble fill/border data
+  CQChartsTextData            textData_;                    // bubble text data
   CQChartsGeom::Point         offset_          { 0, 0 };    // draw offset
   double                      scale_           { 1.0 };     // draw scale
   int                         colorId_         { -1 };      // current color id

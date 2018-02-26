@@ -288,9 +288,16 @@ bool
 CQBaseModel::
 isType(int type)
 {
-  if      (type == (int) Type::REAL   ) return true;
+  if      (type == (int) Type::BOOLEAN) return true;
   else if (type == (int) Type::INTEGER) return true;
+  else if (type == (int) Type::REAL   ) return true;
   else if (type == (int) Type::STRING ) return true;
+  else if (type == (int) Type::POINT  ) return true;
+  else if (type == (int) Type::LINE   ) return true;
+  else if (type == (int) Type::RECT   ) return true;
+  else if (type == (int) Type::SIZE   ) return true;
+  else if (type == (int) Type::POLYGON) return true;
+  else if (type == (int) Type::COLOR  ) return true;
   else if (type == (int) Type::TIME   ) return true;
 
   return false;
@@ -303,32 +310,36 @@ typeName(Type type)
   if (! isType((int) type))
     return "none";
 
-  if      (type == Type::REAL)
-    return "real";
-  else if (type == Type::INTEGER)
-    return "integer";
-  else if (type == Type::STRING)
-    return "string";
-  else if (type == Type::TIME)
-    return "time";
-  else
-    assert(false);
+  if      (type == Type::BOOLEAN) return "boolean";
+  else if (type == Type::INTEGER) return "integer";
+  else if (type == Type::REAL   ) return "real";
+  else if (type == Type::STRING ) return "string";
+  else if (type == Type::POINT  ) return "point";
+  else if (type == Type::LINE   ) return "line";
+  else if (type == Type::RECT   ) return "rect";
+  else if (type == Type::POLYGON) return "polygon";
+  else if (type == Type::SIZE   ) return "size";
+  else if (type == Type::COLOR  ) return "color";
+  else if (type == Type::TIME   ) return "time";
+  else                            assert(false);
 }
 
 CQBaseModel::Type
 CQBaseModel::
 nameType(const QString &name)
 {
-  if      (name == "real")
-    return Type::REAL;
-  else if (name == "integer")
-    return Type::INTEGER;
-  else if (name == "string")
-    return Type::STRING;
-  else if (name == "time")
-    return Type::TIME;
-  else
-    return Type::NONE;
+  if      (name == "boolean") return Type::BOOLEAN;
+  else if (name == "integer") return Type::INTEGER;
+  else if (name == "real"   ) return Type::REAL;
+  else if (name == "string" ) return Type::STRING;
+  else if (name == "point"  ) return Type::POINT;
+  else if (name == "line"   ) return Type::LINE;
+  else if (name == "rect"   ) return Type::RECT;
+  else if (name == "polygon") return Type::POLYGON;
+  else if (name == "size"   ) return Type::SIZE;
+  else if (name == "color"  ) return Type::COLOR;
+  else if (name == "time"   ) return Type::TIME;
+  else                        return Type::NONE;
 }
 
 double

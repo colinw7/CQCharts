@@ -9,7 +9,6 @@
 
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;
-class CQChartsTextBoxObj;
 
 class CQChartsTreeMapNode {
  private:
@@ -52,7 +51,7 @@ class CQChartsTreeMapNode {
   virtual void setColorId(int id) { colorId_ = id; }
 
   const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
 
   const QModelIndex &ind() const { return ind_; }
   void setInd(const QModelIndex &i) { ind_ = i; }
@@ -242,38 +241,52 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
 class CQChartsTreeMapPlot : public CQChartsHierPlot {
   Q_OBJECT
 
-  Q_PROPERTY(bool   titles         READ isTitles       WRITE setTitles        )
-  Q_PROPERTY(double titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
+  // title/header shown and height
+  Q_PROPERTY(bool           titles         READ isTitles       WRITE setTitles        )
+  Q_PROPERTY(double         titleMaxExtent READ titleMaxExtent WRITE setTitleMaxExtent)
+  Q_PROPERTY(CQChartsLength headerHeight   READ headerHeight   WRITE setHeaderHeight  )
 
-  Q_PROPERTY(CQChartsLength headerHeight       READ headerHeight      WRITE setHeaderHeight     )
-  Q_PROPERTY(bool           headerBorder       READ isHeaderBorder    WRITE setHeaderBorder     )
-  Q_PROPERTY(CQChartsColor  headerBorderColor  READ headerBorderColor WRITE setHeaderBorderColor)
-  Q_PROPERTY(double         headerBorderAlpha  READ headerBorderAlpha WRITE setHeaderBorderAlpha)
-  Q_PROPERTY(CQChartsLength headerBorderWidth  READ headerBorderWidth WRITE setHeaderBorderWidth)
-  Q_PROPERTY(bool           headerFilled       READ isHeaderFilled    WRITE setHeaderFilled     )
-  Q_PROPERTY(CQChartsColor  headerFillColor    READ headerFillColor   WRITE setHeaderFillColor  )
-  Q_PROPERTY(double         headerFillAlpha    READ headerFillAlpha   WRITE setHeaderFillAlpha  )
+  // header border, fill, font
+  Q_PROPERTY(bool             headerBorder      READ isHeaderBorder    WRITE setHeaderBorder     )
+  Q_PROPERTY(CQChartsColor    headerBorderColor READ headerBorderColor WRITE setHeaderBorderColor)
+  Q_PROPERTY(double           headerBorderAlpha READ headerBorderAlpha WRITE setHeaderBorderAlpha)
+  Q_PROPERTY(CQChartsLength   headerBorderWidth READ headerBorderWidth WRITE setHeaderBorderWidth)
+  Q_PROPERTY(CQChartsLineDash headerBorderDash  READ headerBorderDash  WRITE setHeaderBorderDash )
+
+  Q_PROPERTY(bool          headerFilled      READ isHeaderFilled    WRITE setHeaderFilled     )
+  Q_PROPERTY(CQChartsColor headerFillColor   READ headerFillColor   WRITE setHeaderFillColor  )
+  Q_PROPERTY(double        headerFillAlpha   READ headerFillAlpha   WRITE setHeaderFillAlpha  )
+  Q_PROPERTY(Pattern       headerFillPattern READ headerFillPattern WRITE setHeaderFillPattern)
 
   Q_PROPERTY(QFont         headerTextFont     READ headerTextFont       WRITE setHeaderTextFont    )
   Q_PROPERTY(CQChartsColor headerTextColor    READ headerTextColor      WRITE setHeaderTextColor   )
+  Q_PROPERTY(double        headerTextAlpha    READ headerTextAlpha      WRITE setHeaderTextAlpha   )
   Q_PROPERTY(bool          headerTextContrast READ isHeaderTextContrast WRITE setHeaderTextContrast)
+  Q_PROPERTY(Qt::Alignment headerTextAlign    READ headerTextAlign      WRITE setHeaderTextAlign   )
 
+  // box margin, border, fill, font
   Q_PROPERTY(CQChartsLength marginWidth READ marginWidth WRITE setMarginWidth)
 
-  Q_PROPERTY(bool           border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor  borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double         borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
 
   Q_PROPERTY(bool          filled      READ isFilled    WRITE setFilled     )
   Q_PROPERTY(CQChartsColor fillColor   READ fillColor   WRITE setFillColor  )
   Q_PROPERTY(double        fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
   Q_PROPERTY(Pattern       fillPattern READ fillPattern WRITE setFillPattern)
 
-  Q_PROPERTY(QFont         textFont     READ textFont       WRITE setTextFont    )
-  Q_PROPERTY(CQChartsColor textColor    READ textColor      WRITE setTextColor   )
-  Q_PROPERTY(bool          textContrast READ isTextContrast WRITE setTextContrast)
+  Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     )
+  Q_PROPERTY(CQChartsColor textColor     READ textColor       WRITE setTextColor    )
+  Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha    )
+  Q_PROPERTY(bool          textContrast  READ isTextContrast  WRITE setTextContrast )
+  Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign    )
+  Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatted)
+  Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
+  // color map
   Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
   Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
   Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
@@ -302,6 +315,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
 
   //---
 
+  // title/header shown and height
   bool isTitles() const { return titles_; }
   void setTitles(bool b) { titles_ = b; updateCurrentRoot(); }
 
@@ -313,21 +327,25 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
 
   double calcHeaderHeight() const;
 
-  //---
+  //------
 
+  // header border, fill, font
   bool isHeaderBorder() const;
   void setHeaderBorder(bool b);
 
   const CQChartsColor &headerBorderColor() const;
   void setHeaderBorderColor(const CQChartsColor &s);
 
-  QColor interpHeaderBorderColor(int i, int n) const;
-
   double headerBorderAlpha() const;
   void setHeaderBorderAlpha(double a);
 
   const CQChartsLength &headerBorderWidth() const;
   void setHeaderBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &headerBorderDash() const;
+  void setHeaderBorderDash(const CQChartsLineDash &d);
+
+  QColor interpHeaderBorderColor(int i, int n) const;
 
   //---
 
@@ -337,10 +355,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   const CQChartsColor &headerFillColor() const;
   void setHeaderFillColor(const CQChartsColor &c);
 
-  QColor interpHeaderFillColor(int i, int n) const;
-
   double headerFillAlpha() const;
   void setHeaderFillAlpha(double a);
+
+  Pattern headerFillPattern() const;
+  void setHeaderFillPattern(const Pattern &p);
+
+  QColor interpHeaderFillColor(int i, int n) const;
 
   //---
 
@@ -350,13 +371,22 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   const CQChartsColor &headerTextColor() const;
   void setHeaderTextColor(const CQChartsColor &c);
 
-  QColor interpHeaderTextColor(int i, int n) const;
+  double headerTextAlpha() const;
+  void setHeaderTextAlpha(double a);
 
   bool isHeaderTextContrast() const;
   void setHeaderTextContrast(bool b);
 
-  //---
+  const Qt::Alignment &headerTextAlign() const;
+  void setHeaderTextAlign(const Qt::Alignment &a);
 
+  void setHeaderTextFontSize(double s);
+
+  QColor interpHeaderTextColor(int i, int n) const;
+
+  //------
+
+  // box margin, border, fill, font
   const CQChartsLength &marginWidth() const { return marginWidth_; }
   void setMarginWidth(const CQChartsLength &l);
 
@@ -368,13 +398,16 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   const CQChartsColor &borderColor() const;
   void setBorderColor(const CQChartsColor &c);
 
-  QColor interpBorderColor(int i, int n) const;
-
   double borderAlpha() const;
   void setBorderAlpha(double a);
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const;
+  void setBorderDash(const CQChartsLineDash &d);
+
+  QColor interpBorderColor(int i, int n) const;
 
   //---
 
@@ -384,13 +417,13 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   const CQChartsColor &fillColor() const;
   void setFillColor(const CQChartsColor &c);
 
-  QColor interpFillColor(int i, int n) const;
-
   double fillAlpha() const;
   void setFillAlpha(double a);
 
   Pattern fillPattern() const;
   void setFillPattern(Pattern pattern);
+
+  QColor interpFillColor(int i, int n) const;
 
   //---
 
@@ -400,12 +433,26 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);
 
-  QColor interpTextColor(int i, int n) const;
+  double textAlpha() const;
+  void setTextAlpha(double r);
 
   bool isTextContrast() const;
   void setTextContrast(bool b);
 
-  //---
+  const Qt::Alignment &textAlign() const;
+  void setTextAlign(const Qt::Alignment &a);
+
+  bool isTextFormatted() const;
+  void setTextFormatted(bool b);
+
+  bool isTextScaled() const;
+  void setTextScaled(bool b);
+
+  void setTextFontSize(double s);
+
+  QColor interpTextColor(int i, int n) const;
+
+  //------
 
   CQChartsTreeMapHierNode *root() const { return root_; }
 
@@ -523,9 +570,11 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   bool                     titles_             { true };    // show title bar (header)
   double                   titleMaxExtent_     { 0.5 };     // title bar max extent (0-1)
   CQChartsLength           headerHeight_       { 0.0 };     // header height (should be font based)
-  CQChartsTextBoxObj*      headerTextBoxObj_   { nullptr }; // header fill/border/text object
+  CQChartsShapeData        headerShapeData_;                // header fill/border data
+  CQChartsTextData         headerTextData_;                 // header text data
   CQChartsLength           marginWidth_        { 2.0 };     // box margin
-  CQChartsTextBoxObj*      textBoxObj_         { nullptr }; // bubble fill/border/text object
+  CQChartsShapeData        shapeData_;                      // box fill/border data
+  CQChartsTextData         textData_;                       // box text data
   int                      colorId_            { -1 };      // current color id
   int                      numColorIds_        { 0 };       // num used color ids
   int                      maxDepth_           { 1 };       // max hier depth

@@ -3,17 +3,18 @@
 #include <CQChartsUtil.h>
 
 CQChartsValueSet::
-CQChartsValueSet()
+CQChartsValueSet(CQChartsPlot *plot) :
+ plot_(plot)
 {
 }
 
 void
 CQChartsValueSet::
-addProperties(CQChartsPlot *plot, const QString &path)
+addProperties(const QString &path)
 {
-  plot->addProperty(path, this, "mapEnabled", "mapEnabled");
-  plot->addProperty(path, this, "mapMin"    , "mapMin"    );
-  plot->addProperty(path, this, "mapMax"    , "mapMin"    );
+  plot_->addProperty(path, this, "mapEnabled", "mapEnabled");
+  plot_->addProperty(path, this, "mapMin"    , "mapMin"    );
+  plot_->addProperty(path, this, "mapMax"    , "mapMax"    );
 }
 
 void
@@ -47,14 +48,17 @@ hasInd(int i) const
   else if (type() == Type::STRING)
     return (i >= 0 && i < svals_.size());
   else
-    assert(false);
+    return (i >= 0 && i < svals_.size());
 }
 
 double
 CQChartsValueSet::
 imap(int i) const
 {
-  return imap(i, mapMin(), mapMax());
+  double min = mapMin();
+  double max = std::max(min, mapMax());
+
+  return imap(i, min, max);
 }
 
 double
@@ -107,8 +111,17 @@ imap(int i, double mapMin, double mapMax) const
     // map string using number of sets
     return svals_.map(sval, mapMin, mapMax);
   }
-  else
-    assert(false);
+  else {
+    // get nth string
+    QString sval = svals_.value(i);
+
+    // return string set index if mapping disabled
+    if (! isMapEnabled())
+      return svals_.id(sval);
+
+    // map string using number of sets
+    return svals_.map(sval, mapMin, mapMax);
+  }
 }
 
 int
@@ -120,7 +133,7 @@ sbucket(const QString &s) const
   if (type() == Type::STRING)
     return svals_.sbucket(s);
   else
-    assert(false);
+    return svals_.sbucket(s);
 }
 
 QString
@@ -132,7 +145,7 @@ buckets(int i) const
   if (type() == Type::STRING)
     return svals_.buckets(i);
   else
-    assert(false);
+    return svals_.buckets(i);
 }
 
 int
@@ -144,7 +157,7 @@ sind(const QString &s) const
   if (type() == Type::STRING)
     return svals_.id(s);
   else
-    assert(false);
+    return svals_.id(s);
 }
 
 QString
@@ -156,7 +169,7 @@ inds(int ind) const
   if (type() == Type::STRING)
     return svals_.ivalue(ind);
   else
-    assert(false);
+    return svals_.ivalue(ind);
 }
 
 int
@@ -168,7 +181,7 @@ snum() const
   if (type() == Type::STRING)
     return svals_.numUnique();
   else
-    assert(false);
+    return svals_.numUnique();
 }
 
 int
@@ -182,7 +195,7 @@ imin() const
   else if (type() == Type::STRING)
     return svals_.imin();
   else
-    assert(false);
+    return svals_.imin();
 }
 
 int
@@ -196,7 +209,7 @@ imax() const
   else if (type() == Type::STRING)
     return svals_.imax();
   else
-    assert(false);
+    return svals_.imax();
 }
 
 double
@@ -210,7 +223,7 @@ rmin() const
   else if (type() == Type::STRING)
     return svals_.imin();
   else
-    assert(false);
+    return svals_.imin();
 
   return 0.0;
 }
@@ -226,7 +239,7 @@ rmax() const
   else if (type() == Type::STRING)
     return svals_.imax();
   else
-    assert(false);
+    return svals_.imax();
 
   return 0.0;
 }
@@ -242,7 +255,7 @@ rmean() const
   else if (type() == Type::STRING)
     return (svals_.imin() + svals_.imax())/2.0;
   else
-    assert(false);
+    return (svals_.imin() + svals_.imax())/2.0;
 
   return 0.0;
 }
@@ -267,46 +280,53 @@ init()
 
   type_ = Type::NONE;
 
-  int ni = 0, nr = 0;
+  // get type from column values
+  if (column().isValid())
+    type_ = plot_->columnValueType(column());
 
-  for (const auto &value : values_) {
-    if      (value.type() == QVariant::Int)
-      ++ni;
-    else if (value.type() == QVariant::Double) {
-      ++nr;
+  // if no type then look at added value (TODO: always the same sas color values ?)
+  if (type_ == Type::NONE) {
+    int ni = 0, nr = 0;
 
-      bool ok;
-
-      double r = CQChartsUtil::toReal(value, ok);
-
-      if (CQChartsUtil::isInteger(r))
+    for (const auto &value : values_) {
+      if      (value.type() == QVariant::Int)
         ++ni;
-      else
+      else if (value.type() == QVariant::Double) {
         ++nr;
-    }
-    else {
-      bool ok;
 
-      double r = CQChartsUtil::toReal(value, ok);
+        bool ok;
 
-      if (ok) {
+        double r = CQChartsUtil::toReal(value, ok);
+
         if (CQChartsUtil::isInteger(r))
           ++ni;
         else
           ++nr;
       }
       else {
-        type_ = Type::STRING;
-        break;
+        bool ok;
+
+        double r = CQChartsUtil::toReal(value, ok);
+
+        if (ok) {
+          if (CQChartsUtil::isInteger(r))
+            ++ni;
+          else
+            ++nr;
+        }
+        else {
+          type_ = Type::STRING;
+          break;
+        }
       }
     }
-  }
 
-  if (type_ == Type::NONE) {
-    if (nr == 0)
-      type_ = Type::INTEGER;
-    else
-      type_ = Type::REAL;
+    if (type_ == Type::NONE) {
+      if (nr == 0)
+        type_ = Type::INTEGER;
+      else
+        type_ = Type::REAL;
+    }
   }
 
   //---
@@ -332,11 +352,20 @@ init()
       rvals_.addValue(r);
     }
     else if (type() == Type::STRING) {
-      QString s = value.toString();
+      QString s;
+
+      bool rc = CQChartsUtil::variantToString(value, s);
+      assert(rc);
 
       svals_.addValue(s);
     }
-    else
-      assert(false);
+    else {
+      QString s;
+
+      bool rc = CQChartsUtil::variantToString(value, s);
+      assert(rc);
+
+      svals_.addValue(s);
+    }
   }
 }

@@ -54,9 +54,10 @@ CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("xy"), model), fillUnderData_(this)
 {
-  pointData_        .visible = true;
   impulseData_      .visible = false;
   bivariateLineData_.visible = false;
+
+  lineData_.color = CQChartsColor(CQChartsColor::Type::PALETTE);
 
   arrowObj_ = new CQChartsArrow(this);
 
@@ -81,10 +82,10 @@ CQChartsXYPlot::
 
 void
 CQChartsXYPlot::
-setXColumn(int i)
+setXColumn(const CQChartsColumn &c)
 {
-  if (i != xColumn_) {
-    xColumn_ = i;
+  if (c != xColumn_) {
+    xColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -92,14 +93,14 @@ setXColumn(int i)
 
 void
 CQChartsXYPlot::
-setYColumn(int i)
+setYColumn(const CQChartsColumn &c)
 {
-  if (i != yColumn_) {
-    yColumn_ = i;
+  if (c != yColumn_) {
+    yColumn_ = c;
 
     yColumns_.clear();
 
-    if (yColumn_ >= 0)
+    if (yColumn_.isValid())
       yColumns_.push_back(yColumn_);
 
     updateRangeAndObjs();
@@ -124,7 +125,7 @@ QString
 CQChartsXYPlot::
 yColumnsStr() const
 {
-  return CQChartsUtil::toString(yColumns_);
+  return CQChartsColumn::columnsToString(yColumns_);
 }
 
 bool
@@ -132,9 +133,9 @@ CQChartsXYPlot::
 setYColumnsStr(const QString &s)
 {
   if (s != yColumnsStr()) {
-    std::vector<int> yColumns;
+    Columns yColumns;
 
-    if (! CQChartsUtil::fromString(s, yColumns))
+    if (! CQChartsColumn::stringToColumns(s, yColumns))
       return false;
 
     setYColumns(yColumns);
@@ -145,10 +146,10 @@ setYColumnsStr(const QString &s)
 
 void
 CQChartsXYPlot::
-setNameColumn(int i)
+setNameColumn(const CQChartsColumn &c)
 {
-  if (i != nameColumn_) {
-    nameColumn_ = i;
+  if (c != nameColumn_) {
+    nameColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -650,8 +651,8 @@ updateRange(bool apply)
     QString name = titleStr();
 
     if (! name.length()) {
-      int yColumn1 = getSetColumn(0);
-      int yColumn2 = getSetColumn(1);
+      CQChartsColumn yColumn1 = getSetColumn(0);
+      CQChartsColumn yColumn2 = getSetColumn(1);
 
       bool ok;
 
@@ -674,22 +675,23 @@ updateRange(bool apply)
   else if (isStacked()) {
   }
   else {
-    int yColumn = getSetColumn(0);
+    CQChartsColumn yColumn = getSetColumn(0);
 
     if (isOverlay()) {
       if (isFirstPlot())
         yAxis()->setColumn(yColumn);
     }
-    else {
+    else
       yAxis()->setColumn(yColumn);
-    }
 
     QString yname;
 
     for (int j = 0; j < numSets(); ++j) {
       bool ok;
 
-      QString yname1 = CQChartsUtil::modelHeaderString(model, getSetColumn(j), ok);
+      CQChartsColumn yColumn = getSetColumn(j);
+
+      QString yname1 = CQChartsUtil::modelHeaderString(model, yColumn, ok);
 
       if (yname.length())
         yname += ", ";
@@ -925,7 +927,9 @@ initObjs()
 
       //---
 
-      QModelIndex xind  = model->index(ip, xColumn()); // TODO: parent
+      QModelIndex parent; // TODO: parent
+
+      QModelIndex xind  = model->index(ip, xColumn().column(), parent);
       QModelIndex xind1 = normalizeIndex(xind);
 
       //---
@@ -966,8 +970,8 @@ initObjs()
       QString name = titleStr();
 
       if (! name.length()) {
-        int yColumn1 = getSetColumn(0);
-        int yColumn2 = getSetColumn(1);
+        CQChartsColumn yColumn1 = getSetColumn(0);
+        CQChartsColumn yColumn2 = getSetColumn(1);
 
         bool ok;
 
@@ -1097,7 +1101,7 @@ initObjs()
       //---
 
       // get column name
-      int yColumn = getSetColumn(j);
+      CQChartsColumn yColumn = getSetColumn(j);
 
       bool ok;
 
@@ -1134,12 +1138,12 @@ initObjs()
         // get point size
         double size = -1;
 
-        if (sizeColumn() >= 0) {
+        if (sizeColumn().isValid()) {
           bool ok;
 
-          QModelIndex sizeInd = model->index(ip, sizeColumn()); // TODO: parent
+          QModelIndex parent; // TODO: parent
 
-          size = CQChartsUtil::modelReal(model, sizeInd, ok);
+          size = CQChartsUtil::modelReal(model, ip, sizeColumn(), parent, ok);
 
           if (! ok)
             size = -1;
@@ -1148,7 +1152,9 @@ initObjs()
         //---
 
         // create point object
-        QModelIndex xind  = model->index(ip, xColumn()); // TODO: parent
+        QModelIndex parent; // TODO: parent
+
+        QModelIndex xind  = model->index(ip, xColumn().column()); // TODO: parent
         QModelIndex xind1 = normalizeIndex(xind);
 
         CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
@@ -1164,20 +1170,20 @@ initObjs()
         if (isVectors()) {
           double vx = 0.0, vy = 0.0;
 
-          if (vectorXColumn() >= 0) {
+          if (vectorXColumn().isValid()) {
             bool ok;
 
-            QModelIndex vectorXInd = model->index(ip, vectorXColumn()); // TODO: parent
+            QModelIndex parent; // TODO: parent
 
-            vx = CQChartsUtil::modelReal(model, vectorXInd, ok);
+            vx = CQChartsUtil::modelReal(model, ip, vectorXColumn(), parent, ok);
           }
 
-          if (vectorYColumn() >= 0) {
+          if (vectorYColumn().isValid()) {
             bool ok;
 
-            QModelIndex vectorYInd = model->index(ip, vectorYColumn()); // TODO: parent
+            QModelIndex parent; // TODO: parent
 
-            vy = CQChartsUtil::modelReal(model, vectorYInd, ok);
+            vy = CQChartsUtil::modelReal(model, ip, vectorYColumn(), parent, ok);
           }
 
           pointObj->setVector(vx, vy);
@@ -1186,34 +1192,37 @@ initObjs()
         //---
 
         // set optional point label, color and symbol
-        if (pointLabelColumn() >= 0) {
-          QModelIndex pointLabelInd = model->index(ip, pointLabelColumn()); // TODO: parent
+        if (pointLabelColumn().isValid()) {
+          QModelIndex parent; // TODO: parent
 
           bool ok;
 
-          QString pointLabelStr = CQChartsUtil::modelString(model, pointLabelInd, ok);
+          QString pointLabelStr =
+            CQChartsUtil::modelString(model, ip, pointLabelColumn(), parent, ok);
 
           if (ok && pointLabelStr.length())
             pointObj->setLabel(pointLabelStr);
         }
 
-        if (pointColorColumn() >= 0) {
-          QModelIndex pointColorInd = model->index(ip, pointColorColumn()); // TODO: parent
+        if (pointColorColumn().isValid()) {
+          QModelIndex parent; // TODO: parent
 
           bool ok;
 
-          QString pointColorStr = CQChartsUtil::modelString(model, pointColorInd, ok);
+          QString pointColorStr =
+            CQChartsUtil::modelString(model, ip, pointColorColumn(), parent, ok);
 
           if (ok && pointColorStr.length())
             pointObj->setColor(QColor(pointColorStr));
         }
 
-        if (pointSymbolColumn() >= 0) {
-          QModelIndex pointSymbolInd = model->index(ip, pointSymbolColumn()); // TODO: parent
+        if (pointSymbolColumn().isValid()) {
+          QModelIndex parent; // TODO: parent
 
           bool ok;
 
-          QString pointSymbolStr = CQChartsUtil::modelString(model, pointSymbolInd, ok);
+          QString pointSymbolStr =
+            CQChartsUtil::modelString(model, ip, pointSymbolColumn(), parent, ok);
 
           if (ok && pointSymbolStr.length())
             pointObj->setSymbol(CQChartsPlotSymbolMgr::nameToType(pointSymbolStr));
@@ -1324,9 +1333,9 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
   //---
 
-  ind = model->index(row, xColumn(), parent);
+  ind = model->index(row, xColumn().column(), parent);
 
-  bool ok1 = modelReal(model, ind, x, isLogX(), row);
+  bool ok1 = modelReal(model, row, xColumn(), parent, x, isLogX(), row);
 
   //---
 
@@ -1335,13 +1344,11 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
   int ns = numSets();
 
   for (int i = 0; i < ns; ++i) {
-    int yColumn = getSetColumn(i);
-
-    QModelIndex yind = model->index(row, yColumn, parent);
+    CQChartsColumn yColumn = getSetColumn(i);
 
     double y1;
 
-    bool ok3 = modelReal(model, yind, y1, isLogY(), row);
+    bool ok3 = modelReal(model, row, yColumn, parent, y1, isLogY(), row);
 
     if (! ok3) {
       if (skipBad)
@@ -1364,13 +1371,13 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
 bool
 CQChartsXYPlot::
-modelReal(QAbstractItemModel *model, const QModelIndex &ind,
-          double &r, bool log, double def) const
+modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+          const QModelIndex &parent, double &r, bool log, double def) const
 {
-  if (ind.isValid()) {
+  if (col.isValid()) {
     bool ok1;
 
-    r = CQChartsUtil::modelReal(model, ind, ok1);
+    r = CQChartsUtil::modelReal(model, row, col, parent, ok1);
 
     if (! ok1)
       r = def;
@@ -1486,19 +1493,19 @@ valueName(int iset, int irow) const
   QString name;
 
   if (iset >= 0) {
-    int yColumn = getSetColumn(iset);
+    CQChartsColumn yColumn = getSetColumn(iset);
 
     bool ok;
 
     name = CQChartsUtil::modelHeaderString(model(), yColumn, ok);
   }
 
-  if (nameColumn() >= 0) {
-    QModelIndex nameInd = model()->index(irow, nameColumn()); // TODO: parent
+  if (nameColumn().isValid()) {
+    QModelIndex parent; // TODO: parent
 
     bool ok;
 
-    QString name1 = CQChartsUtil::modelString(model(), nameInd, ok);
+    QString name1 = CQChartsUtil::modelString(model(), irow, nameColumn(), parent, ok);
 
     if (ok)
       return name1;
@@ -1533,8 +1540,8 @@ addKeyItems(CQChartsPlotKey *key)
     QString name = titleStr();
 
     if (! name.length()) {
-      int yColumn1 = getSetColumn(0);
-      int yColumn2 = getSetColumn(1);
+      CQChartsColumn yColumn1 = getSetColumn(0);
+      CQChartsColumn yColumn2 = getSetColumn(1);
 
       bool ok;
 
@@ -1552,7 +1559,7 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
-      int yColumn = getSetColumn(i);
+      CQChartsColumn yColumn = getSetColumn(i);
 
       bool ok;
 
@@ -1567,7 +1574,7 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else {
     for (int i = 0; i < ns; ++i) {
-      int yColumn = getSetColumn(i);
+      CQChartsColumn yColumn = getSetColumn(i);
 
       bool ok;
 
@@ -1615,12 +1622,12 @@ numSets() const
   return yColumns_.size();
 }
 
-int
+CQChartsColumn
 CQChartsXYPlot::
 getSetColumn(int i) const
 {
   if (i < 0 || (i > 1 && i >= int(yColumns_.size())))
-    return -1;
+    return CQChartsColumn();
 
   if (! yColumns_.empty())
     return yColumns_[i];
@@ -2059,10 +2066,13 @@ addSelectIndex()
   if (! visible())
     return;
 
-  int yColumn = plot_->getSetColumn(iset_);
+  CQChartsColumn yColumn = plot_->getSetColumn(iset_);
 
-  plot_->addSelectIndex(ind_.row(), plot_->xColumn());
-  plot_->addSelectIndex(ind_.row(), yColumn         );
+  if (plot_->xColumn().type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), plot_->xColumn());
+
+  if (yColumn.type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), yColumn);
 }
 
 bool

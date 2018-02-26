@@ -112,23 +112,23 @@ class CQChartsPlotDlg : public QDialog {
   using TypePlotData = std::map<QString,PlotData>;
   using TabTypeName  = std::map<int,QString>;
 
-  CQCharts*       charts_         { nullptr };
-  CQChartsModelP  model_;
-  SelectionModelP selectionModel_;
-  QComboBox*      combo_          { nullptr };
-  QStackedWidget* stack_          { nullptr };
-  QLineEdit*      viewEdit_       { nullptr };
-  QLineEdit*      posEdit_        { nullptr };
-  QLineEdit*      titleEdit_      { nullptr };
-  QLineEdit*      xminEdit_       { nullptr };
-  QLineEdit*      yminEdit_       { nullptr };
-  QLineEdit*      xmaxEdit_       { nullptr };
-  QLineEdit*      ymaxEdit_       { nullptr };
-  QCheckBox*      xintegralCheck_ { nullptr };
-  QCheckBox*      yintegralCheck_ { nullptr };
-  TypePlotData    typePlotData_;
-  TabTypeName     tabTypeName_;
-  CQChartsPlot*   plot_           { nullptr };
+  CQCharts*       charts_         { nullptr }; // parent charts
+  CQChartsModelP  model_;                      // model
+  SelectionModelP selectionModel_;             // selection model
+  QComboBox*      combo_          { nullptr }; // type combo
+  QStackedWidget* stack_          { nullptr }; // widget stack
+  QLineEdit*      viewEdit_       { nullptr }; // view name edit
+  QLineEdit*      posEdit_        { nullptr }; // position edit
+  QLineEdit*      titleEdit_      { nullptr }; // title edit
+  QLineEdit*      xminEdit_       { nullptr }; // xmin edit
+  QLineEdit*      yminEdit_       { nullptr }; // ymin edit
+  QLineEdit*      xmaxEdit_       { nullptr }; // xmax edit
+  QLineEdit*      ymaxEdit_       { nullptr }; // ymax edit
+  QCheckBox*      xintegralCheck_ { nullptr }; // x integral check
+  QCheckBox*      yintegralCheck_ { nullptr }; // y integral check
+  TypePlotData    typePlotData_;               // per type plot data
+  TabTypeName     tabTypeName_;                // tab type name map
+  CQChartsPlot*   plot_           { nullptr }; // created plot
 };
 
 #endif

@@ -6,7 +6,6 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQStrParse.h>
 #include <QPainter>
 
 CQChartsRadarPlotType::
@@ -37,17 +36,13 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
 {
   gridData_.color = CQChartsColor(CQChartsColor::Type::THEME_VALUE, 0.5);
 
-  textBoxObj_ = new CQChartsTextBoxObj(this);
-
-  textBoxObj_->setBackgroundColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  textBoxObj_->setBackgroundAlpha(0.5);
+  setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setFillAlpha(0.5);
 
   setBorder(true);
   setFilled(true);
 
-  CQChartsColor textColor(CQChartsColor::Type::THEME_VALUE, 1);
-
-  textBoxObj_->setTextColor(textColor);
+  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
 
   addKey();
 
@@ -57,7 +52,6 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
 CQChartsRadarPlot::
 ~CQChartsRadarPlot()
 {
-  delete textBoxObj_;
 }
 
 //------
@@ -66,16 +60,16 @@ QString
 CQChartsRadarPlot::
 valueColumnsStr() const
 {
-  return CQChartsUtil::toString(valueColumns());
+  return CQChartsColumn::columnsToString(valueColumns());
 }
 
 bool
 CQChartsRadarPlot::
 setValueColumnsStr(const QString &s)
 {
-  std::vector<int> valueColumns;
+  Columns valueColumns;
 
-  if (! CQChartsUtil::fromString(s, valueColumns))
+  if (! CQChartsColumn::stringToColumns(s, valueColumns))
     return false;
 
   setValueColumns(valueColumns);
@@ -89,144 +83,132 @@ bool
 CQChartsRadarPlot::
 isFilled() const
 {
-  return textBoxObj_->isBackground();
+  return shapeData_.background.visible;
 }
 
 void
 CQChartsRadarPlot::
 setFilled(bool b)
 {
-  textBoxObj_->setBackground(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsRadarPlot::
 fillColor() const
 {
-  return textBoxObj_->backgroundColor();
+  return shapeData_.background.color;
 }
 
 void
 CQChartsRadarPlot::
 setFillColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBackgroundColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsRadarPlot::
 interpFillColor(int i, int n)
 {
-  return textBoxObj_->interpBackgroundColor(i, n);
+  return fillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsRadarPlot::
 fillAlpha() const
 {
-  return textBoxObj_->backgroundAlpha();
+  return shapeData_.background.alpha;
 }
 
 void
 CQChartsRadarPlot::
-setFillAlpha(double r)
+setFillAlpha(double a)
 {
-  textBoxObj_->setBackgroundAlpha(r);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsRadarPlot::Pattern
 CQChartsRadarPlot::
 fillPattern() const
 {
-  return (Pattern) textBoxObj_->backgroundPattern();
+  return (Pattern) shapeData_.background.pattern;
 }
 
 void
 CQChartsRadarPlot::
 setFillPattern(Pattern pattern)
 {
-  textBoxObj_->setBackgroundPattern((CQChartsBoxObj::Pattern) pattern);
+  if (pattern != (Pattern) shapeData_.background.pattern) {
+    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-  update();
+    update();
+  }
 }
 
-//---
+//------
 
 bool
 CQChartsRadarPlot::
 isBorder() const
 {
-  return textBoxObj_->isBorder();
+  return shapeData_.border.visible;
 }
 
 void
 CQChartsRadarPlot::
 setBorder(bool b)
 {
-  textBoxObj_->setBorder(b);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsRadarPlot::
 borderColor() const
 {
-  return textBoxObj_->borderColor();
+  return shapeData_.border.color;
 }
 
 void
 CQChartsRadarPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  textBoxObj_->setBorderColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsRadarPlot::
 interpBorderColor(int i, int n) const
 {
-  return textBoxObj_->interpBorderColor(i, n);
+  return borderColor().interpColor(this, i, n);
 }
 
 double
 CQChartsRadarPlot::
 borderAlpha() const
 {
-  return textBoxObj_->borderAlpha();
+  return shapeData_.border.alpha;
 }
 
 void
 CQChartsRadarPlot::
 setBorderAlpha(double a)
 {
-  textBoxObj_->setBorderAlpha(a);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
 CQChartsRadarPlot::
 borderWidth() const
 {
-  return textBoxObj_->borderWidth();
+  return shapeData_.border.width;
 }
 
 void
 CQChartsRadarPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  textBoxObj_->setBorderWidth(l);
-
-  update();
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
 //---
@@ -235,39 +217,49 @@ const QFont &
 CQChartsRadarPlot::
 textFont() const
 {
-  return textBoxObj_->textFont();
+  return textData_.font;
 }
 
 void
 CQChartsRadarPlot::
 setTextFont(const QFont &f)
 {
-  textBoxObj_->setTextFont(f);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
 }
 
 const CQChartsColor &
 CQChartsRadarPlot::
 textColor() const
 {
-  return textBoxObj_->textColor();
+  return textData_.color;
 }
 
 void
 CQChartsRadarPlot::
 setTextColor(const CQChartsColor &c)
 {
-  textBoxObj_->setTextColor(c);
-
-  update();
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
 }
 
 QColor
 CQChartsRadarPlot::
 interpTextColor(int i, int n) const
 {
-  return textBoxObj_->interpTextColor(i, n);
+  return textColor().interpColor(this, i, n);
+}
+
+double
+CQChartsRadarPlot::
+textAlpha() const
+{
+  return textData_.alpha;
+}
+
+void
+CQChartsRadarPlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
 }
 
 //----
@@ -298,8 +290,9 @@ addProperties()
   addProperty("fill", this, "fillAlpha"  , "alpha"  );
   addProperty("fill", this, "fillPattern", "pattern");
 
-  addProperty("text", this, "textColor", "color");
   addProperty("text", this, "textFont" , "font" );
+  addProperty("text", this, "textColor", "color");
+  addProperty("text", this, "textAlpha", "alpha");
 }
 
 void
@@ -322,13 +315,11 @@ updateRange(bool apply)
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       for (int iv = 0; iv < nv_; ++iv) {
-        int column = plot_->valueColumn(iv);
-
-        QModelIndex valueInd = model->index(row, column, parent);
+        const CQChartsColumn &column = plot_->valueColumn(iv);
 
         bool ok;
 
-        double value = CQChartsUtil::modelReal(model, valueInd, ok);
+        double value = CQChartsUtil::modelReal(model, row, column, parent, ok);
 
         valueDatas_[iv].add(value);
       }
@@ -437,13 +428,9 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
 
   //---
 
-  QModelIndex nameInd = model->index(row, nameColumn(), parent);
-
-  QModelIndex nameInd1 = normalizeIndex(nameInd);
-
   bool ok;
 
-  QString name = CQChartsUtil::modelString(model, nameInd, ok);
+  QString name = CQChartsUtil::modelString(model, row, nameColumn(), parent, ok);
 
   //---
 
@@ -460,11 +447,9 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
   double a = angleStart();
 
   for (int iv = 0; iv < nv; ++iv) {
-    QModelIndex valueInd = model->index(row, valueColumns()[iv], parent);
-
     bool ok1;
 
-    double value = CQChartsUtil::modelReal(model, valueInd, ok1);
+    double value = CQChartsUtil::modelReal(model, row, valueColumns()[iv], parent, ok1);
 
     double scale = valueDatas_[iv].sum();
 
@@ -479,6 +464,9 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
   }
 
   //---
+
+  QModelIndex nameInd  = model->index(row, nameColumn().column(), parent);
+  QModelIndex nameInd1 = normalizeIndex(nameInd);
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
 
@@ -506,11 +494,9 @@ addKeyItems(CQChartsPlotKey *key)
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model, nameInd, ok);
+      QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
 
       //---
 
@@ -606,9 +592,13 @@ drawBackground(QPainter *painter)
 
   //---
 
-  QColor textColor = interpTextColor(0, 1);
+  QColor tc = interpTextColor(0, 1);
 
-  QPen tpen(textColor);
+  tc.setAlphaF(textAlpha());
+
+  QPen tpen(tc);
+
+  //---
 
   painter->setFont(textFont());
 

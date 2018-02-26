@@ -385,9 +385,9 @@ draw(const CQPropertyViewDelegate *delegate, QPainter *painter,
 
   QString str = dash.toString();
 
-  QFontMetrics fm(option.font);
+  QFontMetricsF fm(option.font);
 
-  int w = fm.width(str);
+  double w = fm.width(str);
 
   //---
 

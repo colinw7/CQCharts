@@ -3,23 +3,26 @@
 
 #include <CQChartsColor.h>
 #include <CQChartsLength.h>
+#include <CQChartsPosition.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
 #include <QFont>
 
 // Text Properties
-//   font, color, alpha, angle, contrast (shadow)
+//   font, color, alpha, angle, contrast (shadow), formatted, scaled
 //
 // TODO shadow properties
 struct CQChartsTextData {
-  bool          visible  { true };
+  bool          visible   { true };
   QFont         font;
-  CQChartsColor color    { CQChartsColor::Type::THEME_VALUE, 1.0 };
-  double        alpha    { 1.0 };
-  double        angle    { 0.0 };
-  bool          contrast { false };
-  Qt::Alignment align    { Qt::AlignLeft | Qt::AlignVCenter };
+  CQChartsColor color     { CQChartsColor::Type::THEME_VALUE, 1.0 };
+  double        alpha     { 1.0 };
+  double        angle     { 0.0 };
+  bool          contrast  { false };
+  Qt::Alignment align     { Qt::AlignLeft | Qt::AlignVCenter };
+  bool          formatted { false };
+  bool          scaled    { false };
 };
 
 // Line Properties
@@ -52,19 +55,25 @@ struct CQChartsStrokeData {
 
 // Shape Properties
 struct CQChartsShapeData {
-  CQChartsFillData   background;
-  CQChartsStrokeData border;
+  CQChartsFillData   background; // background data
+  CQChartsStrokeData border;     // border data
 };
 
 // Box Properties
 //  TODO: border corners
 struct CQChartsBoxData {
-  double             margin      { 4 };      // inside margin (pixels)
-  double             padding     { 0 };      // outside margin (pixels)
-  CQChartsFillData   background;             // background data
-  CQChartsStrokeData border;                 // border data
-  double             cornerSize  { 0.0 };    // border rounded corner size
-  QString            borderSides { "tlbr" }; // border sides to draw
+  bool              visible     { true };   // draw box
+  double            margin      { 4 };      // inside margin (pixels)
+  double            padding     { 0 };      // outside margin (pixels)
+  CQChartsShapeData shape;                  // shape data
+  CQChartsLength    cornerSize  { "0px" };  // border rounded corner size
+  QString           borderSides { "tlbr" }; // border sides to draw
+};
+
+// Text in Box Properties
+struct CQChartsTextBoxData {
+  CQChartsTextData text;
+  CQChartsBoxData  box;
 };
 
 struct CQChartsSymbolData {

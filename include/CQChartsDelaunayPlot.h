@@ -58,9 +58,9 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(int xColumn    READ xColumn    WRITE setXColumn   )
-  Q_PROPERTY(int yColumn    READ yColumn    WRITE setYColumn   )
-  Q_PROPERTY(int nameColumn READ nameColumn WRITE setNameColumn)
+  Q_PROPERTY(CQChartsColumn xColumn    READ xColumn    WRITE setXColumn   )
+  Q_PROPERTY(CQChartsColumn yColumn    READ yColumn    WRITE setYColumn   )
+  Q_PROPERTY(CQChartsColumn nameColumn READ nameColumn WRITE setNameColumn)
 
   // voronoi
   Q_PROPERTY(bool   voronoi          READ isVoronoi        WRITE setVoronoi         )
@@ -94,14 +94,14 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   //---
 
   // columns
-  int xColumn() const { return xColumn_; }
-  void setXColumn(int i) { xColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &xColumn() const { return xColumn_; }
+  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
 
-  int yColumn() const { return yColumn_; }
-  void setYColumn(int i) { yColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &yColumn() const { return yColumn_; }
+  void setYColumn(const CQChartsColumn &c) { yColumn_ = c; updateRangeAndObjs(); }
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -203,16 +203,16 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   void drawVoronoi (QPainter *p);
 
  private:
-  int                xColumn_          { 0 };
-  int                yColumn_          { 1 };
-  int                nameColumn_       { -1 };
-  CQChartsSymbolData pointData_;
-  CQChartsLineData   lineData_;
-  bool               voronoi_          { true };
-  double             voronoiPointSize_ { 2 };
-  int                nr_               { 0 };
-  CQChartsDelaunay*  delaunay_         { nullptr };
-  QString            yname_;
+  CQChartsColumn     xColumn_          { 0 };       // x column
+  CQChartsColumn     yColumn_          { 1 };       // y column
+  CQChartsColumn     nameColumn_;                   // name column
+  CQChartsSymbolData pointData_;                    // point style data
+  CQChartsLineData   lineData_;                     // line style data
+  bool               voronoi_          { true };    // is voronoi
+  double             voronoiPointSize_ { 2 };       // voronoi point size
+  int                nr_               { 0 };       // number of rows
+  CQChartsDelaunay*  delaunay_         { nullptr }; // delaunay data
+  QString            yname_;                        // y name
 };
 
 #endif

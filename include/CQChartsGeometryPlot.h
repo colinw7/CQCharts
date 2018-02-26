@@ -11,15 +11,29 @@ class CQChartsBoxObj;
 class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double        value READ value WRITE setValue)
+  Q_PROPERTY(QString       name  READ name  WRITE setName )
+  Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
+
  public:
   using Polygons = std::vector<QPolygonF>;
 
  public:
   CQChartsGeometryObj(CQChartsGeometryPlot *plot, const CQChartsGeom::BBox &rect,
-                      const Polygons &polygons, double value, const QString &name,
-                      const QModelIndex &ind, int i, int n);
+                      const Polygons &polygons, const QModelIndex &ind, int i, int n);
 
   QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  double value() const { return value_; }
+  void setValue(double r) { value_ = r; }
+
+  const QString &name() const { return name_; }
+  void setName(const QString &v) { name_ = v; }
+
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &v) { color_ = v; }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -34,6 +48,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Polygons              polygons_;          // geometry polygons
   double                value_ { 0.0 };     // geometry value
   QString               name_;              // geometry name
+  CQChartsColor         color_;             // optional color
   QModelIndex           ind_;               // model index
   int                   i_     { -1 };      // value index
   int                   n_     { -1 };      // value count
@@ -65,9 +80,10 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //  fill
   //   display, brush
 
-  Q_PROPERTY(int            nameColumn     READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(int            geometryColumn READ geometryColumn WRITE setGeometryColumn)
-  Q_PROPERTY(int            valueColumn    READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(CQChartsColumn nameColumn     READ nameColumn     WRITE setNameColumn    )
+  Q_PROPERTY(CQChartsColumn geometryColumn READ geometryColumn WRITE setGeometryColumn)
+  Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn    WRITE setValueColumn   )
+  Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn    WRITE setColorColumn   )
   Q_PROPERTY(double         minValue       READ minValue       WRITE setMinValue      )
   Q_PROPERTY(double         maxValue       READ maxValue       WRITE setMaxValue      )
   Q_PROPERTY(bool           border         READ isBorder       WRITE setBorder        )
@@ -98,6 +114,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
     QString            name;
     Polygons           polygons;
     double             value { 0.0 };
+    CQChartsColor      color;
     CQChartsGeom::BBox bbox;
     QModelIndex        ind;
   };
@@ -109,14 +126,17 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   //---
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
-  int geometryColumn() const { return geometryColumn_; }
-  void setGeometryColumn(int i) { geometryColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &geometryColumn() const { return geometryColumn_; }
+  void setGeometryColumn(const CQChartsColumn &c) { geometryColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+
+  const CQChartsColumn &colorColumn() const { return colorColumn_; }
+  void setColorColumn(const CQChartsColumn &c) { colorColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -181,20 +201,25 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
 
   bool decodePolygons(const QString &polysStr, Polygons &poly);
+
   bool decodePolygon(const QString &polyStr, QPolygonF &poly);
-  bool decodePoint(const QString &pointStr, QPointF &point, QString &poimtStr1);
+
+  //bool decodePoint(const QString &pointStr, QPointF &point, QString &poimtStr1);
 
  private:
   using Geometries = std::vector<Geometry>;
 
-  int               nameColumn_     { 0 };
-  int               geometryColumn_ { 1 };
-  int               valueColumn_    { -1 };
-  Geometries        geometries_;
-  double            minValue_       { 0.0 };
-  double            maxValue_       { 0.0 };
-  CQChartsBoxObj*   boxObj_         { nullptr }; // polygon fill/border object
-  CQChartsDataLabel dataLabel_;
+  CQChartsColumn    nameColumn_     { 0 };   // name column
+  CQChartsColumn    geometryColumn_ { 1 };   // geometry column
+  CQChartsColumn    valueColumn_;            // value column
+  CQChartsColumn    colorColumn_;            // color column
+  ColumnType        geometryColumnType_;     // geometry column type
+  ColumnType        colorColumnType_;        // color column type
+  Geometries        geometries_;             // geometry shapes
+  double            minValue_       { 0.0 }; // min value
+  double            maxValue_       { 0.0 }; // max value
+  CQChartsShapeData shapeData_;              // polygon fill/border object
+  CQChartsDataLabel dataLabel_;              // data label style
 };
 
 #endif

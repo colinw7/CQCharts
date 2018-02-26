@@ -1,7 +1,9 @@
 #include <CQChartsUtil.h>
-#include <CQChartsColumn.h>
+#include <CQChartsColumnType.h>
 #include <CQCharts.h>
-#include <QFontMetrics>
+#include <CExpr.h>
+#include <CQStrParse.h>
+#include <QFontMetricsF>
 
 namespace CQChartsUtil {
 
@@ -134,8 +136,227 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
 
 //------
 
+// get type and associated name values for column
+//  . column can be model column, header or custom expresssion
+bool
+columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                CQBaseModel::Type &columnType, CQChartsNameValues &nameValues)
+{
+  if (column.type() != CQChartsColumn::Type::DATA) {
+    // TODO: for custom expression should determine expression result type (if possible)
+    columnType = CQBaseModel::Type::STRING;
+    return true;
+  }
+
+  //---
+
+  // get column number and validate
+  assert(model);
+
+  int icolumn = column.column();
+
+  if (icolumn < 0 || icolumn >= model->columnCount()) {
+    columnType = CQBaseModel::Type::NONE;
+    return false;
+  }
+
+  //---
+
+  // use defined column type if available
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  if (columnTypeMgr->getModelColumnType(model, column, columnType, nameValues))
+    return true;
+
+  //---
+
+  // determine column type from values
+  // TODO: cache (in plot ?), max visited values
+
+  // process model data
+  class ColumnTypeVisitor : public ModelVisitor {
+   public:
+    ColumnTypeVisitor(int column) :
+     column_(column) {
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+       QModelIndex ind = model->index(row, column_, parent);
+
+      // if column can be integral, check if value is valid integer
+      if (isInt_) {
+        bool ok;
+
+        (void) CQChartsUtil::modelInteger(model, ind, ok);
+
+        if (ok)
+          return State::SKIP;
+
+        QString str = CQChartsUtil::modelString(model, ind, ok);
+
+        if (! str.length())
+          return State::SKIP;
+
+        isInt_ = false;
+      }
+
+      // if column can be real, check if value is valid real
+      if (isReal_) {
+        bool ok;
+
+        (void) CQChartsUtil::modelReal(model, ind, ok);
+
+        if (ok)
+          return State::SKIP;
+
+        QString str = CQChartsUtil::modelString(model, ind, ok);
+
+        if (! str.length())
+          return State::SKIP;
+
+        isReal_ = false;
+      }
+
+      // not value real or integer so assume string and we are done
+      return State::TERMINATE;
+    }
+
+    CQBaseModel::Type columnType() {
+      if      (isInt_ ) return CQBaseModel::Type::INTEGER;
+      else if (isReal_) return CQBaseModel::Type::REAL;
+      else              return CQBaseModel::Type::STRING;
+    }
+
+   private:
+    int  column_ { -1 };   // column to check
+    bool isInt_  { true }; // could be integeral
+    bool isReal_ { true }; // could be real
+  };
+
+  // determine column value type by looking at model values
+  ColumnTypeVisitor columnTypeVisitor(icolumn);
+
+  visitModel(model, columnTypeVisitor);
+
+  columnType = columnTypeVisitor.columnType();
+
+  return true;
+}
+
+// use column format string to format a value as data (used by axis)
+//  TODO: separate format string from column type to remove dependence
+bool
+formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str)
+{
+  CQChartsNameValues nameValues;
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+
+  if (! typeData)
+    return false;
+
+  QVariant var = typeData->dataName(value, nameValues);
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return true;
+}
+
+// use column type details to format an internal value (real) to a display value
+//  TODO: value should be variant ?
+bool
+formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  double value, QString &str)
+{
+  CQBaseModel::Type  columnType;
+  CQChartsNameValues nameValues;
+
+  if (! columnValueType(charts, model, column, columnType, nameValues))
+    return false;
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+  if (! typeData)
+    return false;
+
+  QVariant var = typeData->dataName(value, nameValues);
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return true;
+}
+
+// use column type details to format an internal model value (variant) to a display value
+QVariant
+columnDisplayData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                  const QVariant &var)
+{
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
+  return columnTypeMgr->getDisplayData(model, column, var);
+}
+
+// use column type details to format an internal model value (variant) to a editable value
+QVariant
+columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+               const QVariant &var)
+{
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
+  return columnTypeMgr->getUserData(model, column, var);
+}
+
+// get type string for column (type name and name values)
+bool
+columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
+              const CQChartsColumn &column, QString &typeStr)
+{
+  CQBaseModel::Type  columnType;
+  CQChartsNameValues nameValues;
+
+  if (! columnValueType(charts, model, column, columnType, nameValues))
+    return false;
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  typeStr = columnTypeMgr->encodeTypeData(columnType, nameValues);
+
+  return true;
+}
+
+// set type string for column (type name and name values)
+bool
+setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
+                 const CQChartsColumn &column, const QString &typeStr)
+{
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
+
+  // decode to type name and name values
+  CQChartsNameValues nameValues;
+
+  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
+
+  if (! typeData)
+    return false;
+
+  // store in model
+  CQBaseModel::Type columnType = typeData->type();
+
+  return columnTypeMgr->setModelColumnType(model, column, columnType, nameValues);
+}
+
+//------
+
 ModelColumnDetails::
-ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, int column) :
+ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column) :
  charts_(charts), model_(model), column_(column)
 {
 }
@@ -191,10 +412,15 @@ init()
   if (! model_)
     return false;
 
-  int numColumns = model_->columnCount(QModelIndex());
-
-  if (column_ < 0 || column_ >= numColumns)
+  if (! column_.isValid())
     return false;
+
+  if (column_.type() != CQChartsColumn::Type::DATA) {
+    int numColumns = model_->columnCount(QModelIndex());
+
+    if (column_.column() < 0 || column_.column() >= numColumns)
+      return false;
+  }
 
   //---
 
@@ -202,29 +428,28 @@ init()
    public:
     DetailVisitor(ModelColumnDetails *details) :
      details_(details) {
-      CQChartsColumnTypeMgr *columnTypeMgr = details_->charts()->columnTypeMgr();
-
       CQChartsNameValues nameValues;
 
-      if (columnTypeMgr->getModelColumnType(details_->model(), details_->column(),
-                                            type_, nameValues)) {
-        CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+      (void) columnValueType(details_->charts(), details_->model(), details_->column(),
+                             type_, nameValues);
 
-        if (columnType)
-          typeName_ = columnType->name();
-      }
+      CQChartsColumnTypeMgr *columnTypeMgr = details_->charts()->columnTypeMgr();
+
+      CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
+
+      if (columnType)
+        typeName_ = columnType->name();
       else {
-        type_ = CQBaseModel::Type::STRING;
+        typeName_ = "string";
+        type_     = CQBaseModel::Type::STRING;
       }
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex ind = model->index(row, details_->column(), parent);
-
       if      (type_ == CQBaseModel::Type::INTEGER) {
         bool ok;
 
-        long i = CQChartsUtil::modelInteger(model, ind, ok);
+        long i = CQChartsUtil::modelInteger(model, row, details_->column(), parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(int(i)))
@@ -238,7 +463,7 @@ init()
       else if (type_ == CQBaseModel::Type::REAL) {
         bool ok;
 
-        double r = CQChartsUtil::modelReal(model, ind, ok);
+        double r = CQChartsUtil::modelReal(model, row, details_->column(), parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(r))
@@ -252,7 +477,7 @@ init()
       else {
         bool ok;
 
-        QString s = CQChartsUtil::modelString(model, ind, ok);
+        QString s = CQChartsUtil::modelString(model, row, details_->column(), parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(s))
@@ -402,6 +627,75 @@ QString toString(const std::vector<int> &columns) {
   return str;
 }
 
+QString polygonToString(const QPolygonF &poly) {
+  int np = poly.length();
+
+  QString str;
+
+  for (int i = 0; i < np; ++i) {
+    const QPointF &p = poly[i];
+
+    str += QString("{%1 %2}").arg(p.x()).arg(p.y());
+  }
+
+  return str;
+}
+
+QString rectToString(const QRectF &rect) {
+  const QPointF &tl = rect.topLeft    ();
+  const QPointF &br = rect.bottomRight();
+
+  return QString("{%1 %2 %3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
+}
+
+bool variantToString(const QVariant &var, QString &str) {
+  if (var.canConvert(QVariant::String)) {
+    str = var.toString();
+    return true;
+  }
+
+  if      (var.type() == QVariant::PolygonF) {
+    QPolygonF poly = var.value<QPolygon>();
+
+    str = polygonToString(poly);
+
+    return true;
+  }
+  else if (var.type() == QVariant::RectF) {
+    QRectF rect = var.value<QRectF>();
+
+    str = rectToString(rect);
+
+    return true;
+  }
+
+  return false;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+bool evalExpr(int row, const QString &exprStr, double &r) {
+  CExpr expr;
+
+  expr.createVariable("x", expr.createRealValue(row));
+
+  CExprValuePtr value;
+
+  if (! expr.evaluateExpression(exprStr.toStdString(), value))
+    return false;
+
+  r = 0.0;
+
+  if (value->isRealValue())
+    value->getRealValue(r);
+
+  return true;
+}
+
 }
 
 //------
@@ -455,6 +749,237 @@ void findStringSplits3(const QString &str, std::vector<int> &splits) {
 namespace CQChartsUtil {
 
 bool
+stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons)
+{
+  CQStrParse parse(str);
+
+  parse.skipSpace();
+
+  int pos = parse.getPos();
+
+  bool braced = false;
+
+  if (parse.isChar('{')) {
+    parse.skipChar();
+
+    parse.skipSpace();
+
+    if (parse.isChar('{')) {
+      braced = true;
+    }
+    else
+      parse.setPos(pos);
+  }
+
+  while (! parse.eof()) {
+    parse.skipSpace();
+
+    QString polyStr;
+
+    if (! parse.readBracedString(polyStr, /*includeBraces*/false))
+      return false;
+
+    QPolygonF poly;
+
+    if (! stringToPolygon(polyStr, poly))
+      return false;
+
+    polygons.push_back(poly);
+
+    parse.skipSpace();
+
+    if (braced && parse.isChar('}')) {
+      parse.skipChar();
+
+      parse.skipSpace();
+
+      break;
+    }
+  }
+
+  return true;
+}
+
+bool
+stringToPolygon(const QString &str, QPolygonF &poly)
+{
+  CQStrParse parse(str);
+
+  parse.skipSpace();
+
+  int pos = parse.getPos();
+
+  bool braced = false;
+
+  if (parse.isChar('{')) {
+    parse.skipChar();
+
+    parse.skipSpace();
+
+    if (parse.isChar('{')) {
+      braced = true;
+    }
+    else
+      parse.setPos(pos);
+  }
+
+  while (! parse.eof()) {
+    parse.skipSpace();
+
+    QString pointStr;
+
+    if (! parse.readBracedString(pointStr, /*includeBraces*/false))
+      return false;
+
+    QPointF point;
+
+    if (! stringToPoint(pointStr, point))
+      return false;
+
+    poly.push_back(point);
+
+    parse.skipSpace();
+
+    if (braced && parse.isChar('}')) {
+      parse.skipChar();
+
+      parse.skipSpace();
+
+      break;
+    }
+  }
+
+  return true;
+}
+
+bool
+stringToRect(const QString &str, QRectF &rect)
+{
+  CQStrParse parse(str);
+
+  // read x1 y1 x2 y2 strings
+  // TODO: skip braces, commas ...
+
+  parse.skipSpace();
+
+  QString x1str, y1str, x2str, y2str;
+
+  if (! parse.readNonSpace(x1str))
+    return false;
+
+  parse.skipSpace();
+
+  if (! parse.readNonSpace(y1str))
+    return false;
+
+  parse.skipSpace();
+
+  if (! parse.readNonSpace(x2str))
+    return false;
+
+  parse.skipSpace();
+
+  if (! parse.readNonSpace(y2str))
+    return false;
+
+  parse.skipSpace();
+
+  // TODO: check for extra characters
+
+  //---
+
+  // get x1 y1 x2 y2 values
+  double x1, y1, x2, y2;
+
+  if (! CQChartsUtil::toReal(x1str, x1)) return false;
+  if (! CQChartsUtil::toReal(y1str, y1)) return false;
+  if (! CQChartsUtil::toReal(x2str, x2)) return false;
+  if (! CQChartsUtil::toReal(y2str, y2)) return false;
+
+  //---
+
+  rect = QRectF(x1, y1, x2 - x1, y2 - y1);
+
+  return true;
+}
+
+bool
+stringToPoint(const QString &str, QPointF &point)
+{
+  CQStrParse parse(str);
+
+  // read x y strings
+  // TODO: skip braces, commas ...
+
+  parse.skipSpace();
+
+  QString xstr, ystr;
+
+  if (! parse.readNonSpace(xstr))
+    return false;
+
+  parse.skipSpace();
+
+  if (! parse.readNonSpace(ystr))
+    return false;
+
+  parse.skipSpace();
+
+  // TODO: check for extra characters
+
+  //---
+
+  // get x y values
+  double x, y;
+
+  if (! CQChartsUtil::toReal(xstr, x)) return false;
+  if (! CQChartsUtil::toReal(ystr, y)) return false;
+
+  //---
+
+  point = QPointF(x, y);
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString timeToString(const QString &fmt, double r) {
+  static char buffer[512];
+
+  time_t t(r);
+
+  struct tm *tm1 = localtime(&t);
+
+  (void) strftime(buffer, 512, fmt.toLatin1().constData(), tm1);
+
+  return buffer;
+}
+
+bool stringToTime(const QString &fmt, const QString &str, double &t) {
+  struct tm tm1; memset(&tm1, 0, sizeof(tm));
+
+  char *p = strptime(str.toLatin1().constData(), fmt.toLatin1().constData(), &tm1);
+
+  if (! p)
+    return false;
+
+  t = mktime(&tm1);
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+bool
 formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QStringList &strs)
 {
   QString sstr = str.simplified();
@@ -470,14 +995,18 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   double w = fm.width(sstr);
 
-  if (w < rect.width()) { // fits
+  double dw = (rect.width() - w);
+
+  if (dw > 0 || isZero(dw)) { // fits
     strs.push_back(sstr);
     return false;
   }
 
   double h = fm.height();
 
-  if (h >= rect.height()) { // rect can only fit single line of text
+  double dh = (rect.height() - h);
+
+  if (dh < 0 || isZero(dh)) { // rect can only fit single line of text (TODO: factor)
     strs.push_back(sstr);
     return false;
   }

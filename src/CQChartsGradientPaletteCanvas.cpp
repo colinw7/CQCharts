@@ -304,10 +304,10 @@ drawAxis(QPainter *painter)
   painter->drawLine(QPointF(px1, py1), QPointF(px1 - 4, py1));
   painter->drawLine(QPointF(px1, py2), QPointF(px1 - 4, py2));
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
-  int tw  = fm.width("X.X");
-  int dty = (fm.ascent() - fm.descent())/2;
+  double tw  = fm.width("X.X");
+  double dty = (fm.ascent() - fm.descent())/2;
 
   painter->drawText(QPointF(px1 - tw - 4, py1 + dty), "0.0");
   painter->drawText(QPointF(px1 - tw - 4, py2 + dty), "1.0");

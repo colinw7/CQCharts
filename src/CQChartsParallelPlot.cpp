@@ -51,16 +51,16 @@ QString
 CQChartsParallelPlot::
 yColumnsStr() const
 {
-  return CQChartsUtil::toString(yColumns_);
+  return CQChartsColumn::columnsToString(yColumns_);
 }
 
 bool
 CQChartsParallelPlot::
 setYColumnsStr(const QString &s)
 {
-  std::vector<int> yColumns;
+  Columns yColumns;
 
-  if (! CQChartsUtil::fromString(s, yColumns))
+  if (! CQChartsColumn::stringToColumns(s, yColumns))
     return false;
 
   setYColumns(yColumns);
@@ -188,16 +188,14 @@ updateRange(bool apply)
       for (int i = 0; i < ns_; ++i) {
         CQChartsGeom::Range &range = yRanges_[i];
 
-        int yColumn = plot_->getSetColumn(i);
-
-        QModelIndex yind = model->index(row, yColumn, parent);
+        const CQChartsColumn &yColumn = plot_->getSetColumn(i);
 
         //---
 
         bool ok;
 
         double x = 0;
-        double y = CQChartsUtil::modelReal(model, yind, ok);
+        double y = CQChartsUtil::modelReal(model, row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -242,7 +240,7 @@ updateRange(bool apply)
   for (int j = 0; j < numSets(); ++j) {
     const CQChartsGeom::Range &range = yRange(j);
 
-    int yColumn = getSetColumn(j);
+    const CQChartsColumn &yColumn = getSetColumn(j);
 
     bool ok;
 
@@ -302,23 +300,21 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       QPolygonF poly;
 
-      QModelIndex xind = model->index(row, plot_->xColumn(), parent);
+      QModelIndex xind = model->index(row, plot_->xColumn().column(), parent);
 
       xinds_.push_back(xind);
 
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        int yColumn = plot_->getSetColumn(i);
-
-        QModelIndex yind = model->index(row, yColumn, parent);
+        const CQChartsColumn &yColumn = plot_->getSetColumn(i);
 
         //---
 
         bool ok;
 
         double x = i;
-        double y = CQChartsUtil::modelReal(model, yind, ok);
+        double y = CQChartsUtil::modelReal(model, row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -384,9 +380,9 @@ initObjs()
     int nl = poly.count();
 
     for (int j = 0; j < nl; ++j) {
-      int yColumn = getSetColumn(j);
+      const CQChartsColumn &yColumn = getSetColumn(j);
 
-      QModelIndex yind  = model->index(i, yColumn, xind.parent());
+      QModelIndex yind  = model->index(i, yColumn.column(), xind.parent());
       QModelIndex yind1 = normalizeIndex(yind);
 
       //---
@@ -429,7 +425,7 @@ numSets() const
   return yColumns_.size();
 }
 
-int
+const CQChartsColumn &
 CQChartsParallelPlot::
 getSetColumn(int i) const
 {
@@ -521,11 +517,10 @@ QString
 CQChartsParallelLineObj::
 calcId() const
 {
-  QModelIndex xind = plot_->model()->index(ind_.row(), plot_->xColumn(), ind_.parent());
-
   bool ok;
 
-  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+  QString xname =
+    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   return xname;
 }
@@ -534,11 +529,10 @@ QString
 CQChartsParallelLineObj::
 calcTipId() const
 {
-  QModelIndex xind = plot_->model()->index(ind_.row(), plot_->xColumn(), ind_.parent());
-
   bool ok;
 
-  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+  QString xname =
+    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   CQChartsTableTip tableTip;
 
@@ -547,7 +541,7 @@ calcTipId() const
   int nl = poly_.count();
 
   for (int j = 0; j < nl; ++j) {
-    int yColumn = plot_->getSetColumn(j);
+    const CQChartsColumn &yColumn = plot_->getSetColumn(j);
 
     bool ok;
 
@@ -692,13 +686,12 @@ QString
 CQChartsParallelPointObj::
 calcId() const
 {
-  QModelIndex xind = plot_->model()->index(ind_.row(), plot_->xColumn(), ind_.parent());
-
   bool ok;
 
-  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+  QString xname =
+    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
-  int yColumn = plot_->getSetColumn(i_);
+  const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
   QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 
@@ -711,15 +704,14 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QModelIndex xind = plot_->model()->index(ind_.row(), plot_->xColumn(), ind_.parent());
-
   bool ok;
 
-  QString xname = CQChartsUtil::modelString(plot_->model(), xind, ok);
+  QString xname =
+    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   tableTip.addBoldLine(xname);
 
-  int yColumn = plot_->getSetColumn(i_);
+  const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
   QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
 

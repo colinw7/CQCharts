@@ -39,7 +39,7 @@ class CQChartsKey : public CQChartsBoxObj {
     BOTTOM_LEFT,
     BOTTOM_CENTER,
     BOTTOM_RIGHT,
-    ABSOLUTE
+    ABS_POS
   };
 
  public:
@@ -412,14 +412,14 @@ class CQChartsKeyText : public CQChartsKeyItem {
 class CQChartsKeyColorBox : public CQChartsKeyItem {
   Q_OBJECT
 
-  Q_PROPERTY(double        cornerRadius READ cornerRadius WRITE setCornerRadius)
-  Q_PROPERTY(CQChartsColor borderColor  READ borderColor  WRITE setBorderColor )
+  Q_PROPERTY(CQChartsLength cornerRadius READ cornerRadius WRITE setCornerRadius)
+  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor  WRITE setBorderColor )
 
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
 
-  double cornerRadius() const { return boxData_.cornerSize; }
-  void setCornerRadius(double r) { boxData_.cornerSize = r; }
+  const CQChartsLength &cornerRadius() const { return boxData_.cornerSize; }
+  void setCornerRadius(const CQChartsLength &r) { boxData_.cornerSize = r; }
 
   QSizeF size() const override;
 
@@ -427,8 +427,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
 
   virtual QBrush fillBrush() const;
 
-  virtual const CQChartsColor &borderColor() const { return boxData_.border.color; }
-  virtual void setBorderColor(const CQChartsColor &c) { boxData_.border.color = c; }
+  virtual const CQChartsColor &borderColor() const { return boxData_.shape.border.color; }
+  virtual void setBorderColor(const CQChartsColor &c) { boxData_.shape.border.color = c; }
 
   QColor interpBorderColor(int i, int n) const;
 

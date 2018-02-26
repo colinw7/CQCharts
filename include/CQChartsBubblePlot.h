@@ -9,7 +9,6 @@
 #include <QModelIndex>
 
 class CQChartsBubblePlot;
-class CQChartsTextBoxObj;
 
 class CQChartsBubbleNode : public CQChartsCircleNode {
  private:
@@ -111,9 +110,9 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
 class CQChartsBubblePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int            nameColumn   READ nameColumn     WRITE setNameColumn  )
-  Q_PROPERTY(int            valueColumn  READ valueColumn    WRITE setValueColumn )
-  Q_PROPERTY(int            colorColumn  READ colorColumn    WRITE setColorColumn )
+  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn     WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn    WRITE setValueColumn )
+  Q_PROPERTY(CQChartsColumn colorColumn  READ colorColumn    WRITE setColorColumn )
   Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
   Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
   Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
@@ -124,6 +123,7 @@ class CQChartsBubblePlot : public CQChartsPlot {
   Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
   Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
   Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
   Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
 
   Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
@@ -156,11 +156,11 @@ class CQChartsBubblePlot : public CQChartsPlot {
 
   //---
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i);
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i);
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c);
 
   //---
 
@@ -170,13 +170,13 @@ class CQChartsBubblePlot : public CQChartsPlot {
   const CQChartsColor &borderColor() const;
   void setBorderColor(const CQChartsColor &c);
 
-  QColor interpBorderColor(int i, int n) const;
-
   double borderAlpha() const;
   void setBorderAlpha(double a);
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  QColor interpBorderColor(int i, int n) const;
 
   //---
 
@@ -186,13 +186,13 @@ class CQChartsBubblePlot : public CQChartsPlot {
   const CQChartsColor &fillColor() const;
   void setFillColor(const CQChartsColor &c);
 
-  QColor interpFillColor(int i, int n) const;
-
   double fillAlpha() const;
   void setFillAlpha(double a);
 
   Pattern fillPattern() const;
   void setFillPattern(Pattern pattern);
+
+  QColor interpFillColor(int i, int n) const;
 
   //---
 
@@ -202,15 +202,21 @@ class CQChartsBubblePlot : public CQChartsPlot {
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);
 
-  QColor interpTextColor(int i, int n) const;
+  double textAlpha() const;
+  void setTextAlpha(double a);
 
   bool isTextContrast() const;
   void setTextContrast(bool b);
 
+  void setTextFontSize(double s);
+
+  QColor interpTextColor(int i, int n) const;
+
   //---
 
-  int colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(int i) { setValueSetColumn("color", i); updateRangeAndObjs(); }
+  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
+  void setColorColumn(const CQChartsColumn &c) {
+    setValueSetColumn("color", c); updateRangeAndObjs(); }
 
   bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
   void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
@@ -285,15 +291,16 @@ class CQChartsBubblePlot : public CQChartsPlot {
   void loadModel();
 
  private:
-  int                 nameColumn_  { 0 };       // name column
-  int                 valueColumn_ { -1 };      // value column
-  Nodes               nodes_;                   // nodes
-  Pack                pack_;                    // packed nodes
-  CQChartsTextBoxObj* textBoxObj_  { nullptr }; // bubble fill/border/text object
-  CQChartsGeom::Point offset_      { 0, 0 };    // draw offset
-  double              scale_       { 1.0 };     // draw scale
-  int                 colorId_     { -1 };      // current color id
-  int                 numColorIds_ { 0 };       // num used color ids
+  CQChartsColumn      nameColumn_  { 0 };    // name column
+  CQChartsColumn      valueColumn_;          // value column
+  Nodes               nodes_;                // nodes
+  Pack                pack_;                 // packed nodes
+  CQChartsShapeData   shapeData_;            // bubble fill/border data
+  CQChartsTextData    textData_;             // bubble text data
+  CQChartsGeom::Point offset_      { 0, 0 }; // draw offset
+  double              scale_       { 1.0 };  // draw scale
+  int                 colorId_     { -1 };   // current color id
+  int                 numColorIds_ { 0 };    // num used color ids
 };
 
 #endif

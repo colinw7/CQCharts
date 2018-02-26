@@ -23,17 +23,17 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 class CQChartsForceDirectedPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int           nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
-  Q_PROPERTY(int           connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(int           valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(int           groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(bool          autoFit           READ isAutoFit         WRITE setAutoFit          )
-  Q_PROPERTY(bool          running           READ isRunning         WRITE setRunning          )
-  Q_PROPERTY(double        nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
-  Q_PROPERTY(CQChartsColor nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
-  Q_PROPERTY(CQChartsColor edgeColor         READ edgeColor         WRITE setEdgeColor        )
-  Q_PROPERTY(double        edgeAlpha         READ edgeAlpha         WRITE setEdgeAlpha        )
+  Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
+  Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
+  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(bool           autoFit           READ isAutoFit         WRITE setAutoFit          )
+  Q_PROPERTY(bool           running           READ isRunning         WRITE setRunning          )
+  Q_PROPERTY(double         nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
+  Q_PROPERTY(CQChartsColor  nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
+  Q_PROPERTY(CQChartsColor  edgeColor         READ edgeColor         WRITE setEdgeColor        )
+  Q_PROPERTY(double         edgeAlpha         READ edgeAlpha         WRITE setEdgeAlpha        )
 
  public:
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
@@ -42,20 +42,21 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  int nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
+  void setNodeColumn(const CQChartsColumn &c) { nodeColumn_ = c; updateRangeAndObjs(); }
 
-  int connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(int i) { connectionsColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
+  void setConnectionsColumn(const CQChartsColumn &c) {
+    connectionsColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
 
-  int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -143,11 +144,11 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
  private:
   using NodeMap = std::map<int,Springy::Node*>;
 
-  int                   nodeColumn_        { -1 };    // node column
-  int                   connectionsColumn_ { -1 };    // connections column
-  int                   valueColumn_       { -1 };    // value column
-  int                   groupColumn_       { -1 };    // group column
-  int                   nameColumn_        { -1 };    // name column
+  CQChartsColumn        nodeColumn_;                  // node column
+  CQChartsColumn        connectionsColumn_;           // connections column
+  CQChartsColumn        valueColumn_;                 // value column
+  CQChartsColumn        groupColumn_;                 // group column
+  CQChartsColumn        nameColumn_;                  // name column
   IdConnectionsData     idConnections_;               // id connections
   NodeMap               nodes_;                       // force directed nodes
   CQChartsForceDirected forceDirected_;               // force directed class

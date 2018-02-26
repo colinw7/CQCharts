@@ -1,6 +1,5 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
-#include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <QItemSelectionModel>
@@ -377,12 +376,12 @@ data(const QModelIndex &ind, int role) const
 
     assert(ind.column() == ind1.column());
 
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+    CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
 
     if (role == Qt::DisplayRole)
-      return columnTypeMgr->getDisplayData(this, ind1.column(), var);
+      return CQChartsUtil::columnDisplayData(charts_, th, ind1.column(), var);
     else
-      return columnTypeMgr->getUserData(this, ind1.column(), var);
+      return CQChartsUtil::columnUserData(charts_, th, ind1.column(), var);
   }
 
   return var;

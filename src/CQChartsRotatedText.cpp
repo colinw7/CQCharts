@@ -11,10 +11,10 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
 {
   painter->save();
 
-  QFontMetrics fm(painter->font());
+  QFontMetricsF fm(painter->font());
 
-  int th = fm.height();
-  int tw = fm.width(text);
+  double th = fm.height();
+  double tw = fm.width(text);
 
   double a1 = M_PI*angle/180.0;
 
@@ -109,12 +109,12 @@ void
 bboxData(double x, double y, const QString &text, const QFont &font, double angle,
          double border, QRectF &bbox, Points &points, Qt::Alignment align, bool alignBBox)
 {
-  QFontMetrics fm(font);
+  QFontMetricsF fm(font);
 
   //------
 
-  int th = fm.height()    + 2*border;
-  int tw = fm.width(text) + 2*border;
+  double th = fm.height()    + 2*border;
+  double tw = fm.width(text) + 2*border;
 
   double a1 = M_PI*angle/180.0;
 

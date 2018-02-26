@@ -26,6 +26,12 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  void addStrokeFillProperties(CQPropertyViewModel *model, const QString &path);
+
+  void addStrokeProperties(CQPropertyViewModel *model, const QString &path);
+
+  void addFillProperties(CQPropertyViewModel *model, const QString &path);
+
   bool contains(const CQChartsGeom::Point &p) const;
 
   //---
@@ -37,9 +43,11 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
-  virtual void setBBox(const CQChartsGeom::BBox &) { }
+  virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeHandle::Side &) { }
 
   //---
+
+  void redrawBoxObj() override { emit dataChanged(); }
 
   virtual void draw(QPainter *painter);
 
@@ -47,9 +55,10 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void dataChanged();
 
  protected:
-  int                 ind_ { 0 }; // unique ind
-  CQChartsGeom::BBox  bbox_;      // bbox (plot coords)
-  CQChartsEditHandles editHandles_;
+  int                 ind_         { 0 };    // unique ind
+  CQChartsGeom::BBox  bbox_;                 // bbox (plot coords)
+  CQChartsEditHandles editHandles_;          // edit handles
+  bool                autoSize_    { true }; // set bbox from contents
 };
 
 //---
@@ -57,30 +66,30 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 class CQChartsRectAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF start READ start WRITE setStart)
-  Q_PROPERTY(QPointF end   READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
+  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
 
  public:
-  CQChartsRectAnnotation(CQChartsPlot *plot, const QPointF &p1=QPointF(0, 0),
-                         const QPointF &p2=QPointF(1, 1));
+  CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &p1=CQChartsPosition(),
+                         const CQChartsPosition &p2=CQChartsPosition(QPointF(1, 1)));
 
   virtual ~CQChartsRectAnnotation();
 
-  const QPointF &start() const { return start_; }
-  void setStart(const QPointF &p) { start_ = p; emit dataChanged(); }
+  const CQChartsPosition &start() const { return start_; }
+  void setStart(const CQChartsPosition &p) { start_ = p; emit dataChanged(); }
 
-  const QPointF &end() const { return end_; }
-  void setEnd(const QPointF &p) { end_ = p; emit dataChanged(); }
+  const CQChartsPosition &end() const { return end_; }
+  void setEnd(const CQChartsPosition &p) { end_ = p; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
  private:
-  QPointF start_;
-  QPointF end_;
+  CQChartsPosition start_;
+  CQChartsPosition end_   { QPointF(1, 1) };
 };
 
 //---
@@ -88,18 +97,18 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF center  READ center  WRITE setCenter )
-  Q_PROPERTY(double  xRadius READ xRadius WRITE setXRadius)
-  Q_PROPERTY(double  yRadius READ yRadius WRITE setYRadius)
+  Q_PROPERTY(CQChartsPosition center  READ center  WRITE setCenter )
+  Q_PROPERTY(double           xRadius READ xRadius WRITE setXRadius)
+  Q_PROPERTY(double           yRadius READ yRadius WRITE setYRadius)
 
  public:
-  CQChartsEllipseAnnotation(CQChartsPlot *plot, const QPointF &center=QPointF(0, 0),
+  CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center=CQChartsPosition(),
                             double xRadius=1.0, double yRadius=1.0);
 
   virtual ~CQChartsEllipseAnnotation();
 
-  const QPointF &center() const { return center_; }
-  void setCenter(const QPointF &c) { center_ = c; emit dataChanged(); }
+  const CQChartsPosition &center() const { return center_; }
+  void setCenter(const CQChartsPosition &c) { center_ = c; emit dataChanged(); }
 
   int xRadius() const { return xRadius_; }
   void setXRadius(int i) { xRadius_ = i; }
@@ -109,34 +118,55 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
  private:
-  QPointF center_;
-  double  xRadius_ { 1.0 };
-  double  yRadius_ { 1.0 };
+  CQChartsPosition center_;
+  double           xRadius_ { 1.0 };
+  double           yRadius_ { 1.0 };
 };
 
 //---
 
-class CQChartsPolyAnnotation : public CQChartsAnnotation {
+class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
  public:
-  CQChartsPolyAnnotation(CQChartsPlot *plot, const QPolygonF &points);
+  CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points);
 
-  virtual ~CQChartsPolyAnnotation();
+  virtual ~CQChartsPolygonAnnotation();
 
   const QPolygonF &points() const { return points_; }
   void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
-  void setData(const CQChartsShapeData &data);
+  void draw(QPainter *painter) override;
+
+ private:
+  QPolygonF points_;
+};
+
+//---
+
+class CQChartsPolylineAnnotation : public CQChartsAnnotation {
+  Q_OBJECT
+
+ public:
+  CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points);
+
+  virtual ~CQChartsPolylineAnnotation();
+
+  const QPolygonF &points() const { return points_; }
+  void setPoints(const QPolygonF &points) { points_ = points; emit dataChanged(); }
+
+  void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
@@ -149,48 +179,29 @@ class CQChartsPolyAnnotation : public CQChartsAnnotation {
 class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF position READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
-  CQChartsTextAnnotation(CQChartsPlot *plot, const QPointF &p=QPointF(0, 0),
+  CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
                          const QString &text="");
 
   virtual ~CQChartsTextAnnotation();
 
-  const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &p) { position_ = p; emit dataChanged(); }
+  const CQChartsPosition &position() const { return position_; }
+  void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
-  const QString &textStr() const { return textStr_; }
-  void setTextStr(const QString &s) { textStr_ = s; emit dataChanged(); }
-
-  const QFont &textFont() const { return textData_.font; }
-  void setTextFont(const QFont &f) { textData_.font = f; emit dataChanged(); }
-
-  const CQChartsColor &textColor() const { return textData_.color; }
-  void setTextColor(const CQChartsColor &c) { textData_.color = c; emit dataChanged(); }
-
-  double textAlpha() const { return textData_.alpha; }
-  void setTextAlpha(double r) { textData_.alpha = r; emit dataChanged(); }
-
-  double textAngle() const { return textData_.angle; }
-  void setTextAngle(double a) { textData_.angle = a; emit dataChanged(); }
-
-  bool isTextContrast() const { return textData_.contrast; }
-  void setTextContrast(bool b) { textData_.contrast = b; emit dataChanged(); }
-
-  const CQChartsTextData &textData() const { return textData_; }
-  void setTextData(const CQChartsTextData &d) { textData_ = d; emit dataChanged(); }
+  //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  //---
+
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
  private:
-  QPointF          position_;
-  QString          textStr_;
-  CQChartsTextData textData_;
+  CQChartsPosition position_;
 };
 
 //---
@@ -200,33 +211,33 @@ class CQChartsArrow;
 class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF start READ start WRITE setStart)
-  Q_PROPERTY(QPointF end   READ end   WRITE setEnd  )
+  Q_PROPERTY(CQChartsPosition start READ start WRITE setStart)
+  Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
 
  public:
-  CQChartsArrowAnnotation(CQChartsPlot *plot, const QPointF &start=QPointF(0, 0),
-                          const QPointF &end=QPointF(1, 1));
+  CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start=CQChartsPosition(),
+                          const CQChartsPosition &end=CQChartsPosition(QPointF(1, 1)));
 
   virtual ~CQChartsArrowAnnotation();
 
-  const QPointF &start() const { return start_; }
-  void setStart(const QPointF &p) { start_ = p; emit dataChanged(); }
+  const CQChartsPosition &start() const { return start_; }
+  void setStart(const CQChartsPosition &p) { start_ = p; emit dataChanged(); }
 
-  const QPointF &end() const { return end_; }
-  void setEnd(const QPointF &p) { end_ = p; emit dataChanged(); }
+  const CQChartsPosition &end() const { return end_; }
+  void setEnd(const CQChartsPosition &p) { end_ = p; emit dataChanged(); }
 
   void setData(const CQChartsArrowData &data);
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
  private:
-  QPointF        start_ { 0, 0 };
-  QPointF        end_   { 1, 1 };
-  CQChartsArrow *arrow_ { nullptr };
+  CQChartsPosition start_;
+  CQChartsPosition end_   { QPointF(1, 1) };
+  CQChartsArrow*   arrow_ { nullptr };
 };
 
 //---
@@ -234,16 +245,16 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 class CQChartsPointAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF position READ position WRITE setPosition)
+  Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
-  CQChartsPointAnnotation(CQChartsPlot *plot, const QPointF &p=QPointF(0, 0),
+  CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
                           const CQChartsPlotSymbol::Type &type=CQChartsPlotSymbol::Type::CROSS);
 
   virtual ~CQChartsPointAnnotation();
 
-  const QPointF &position() const { return position_; }
-  void setPosition(const QPointF &p) { position_ = p; emit dataChanged(); }
+  const CQChartsPosition &position() const { return position_; }
+  void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
   const CQChartsPlotSymbol::Type &type() const { return pointData_.type; }
   void setType(const CQChartsPlotSymbol::Type &t) { pointData_.type = t; emit dataChanged(); }
@@ -253,12 +264,12 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
-  void setBBox(const CQChartsGeom::BBox &bbox) override;
+  void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
 
  private:
-  QPointF            position_  { 0, 0 };
+  CQChartsPosition   position_;
   CQChartsSymbolData pointData_;
 };
 

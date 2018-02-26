@@ -279,10 +279,10 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
   painter_->drawLine(px - 4, py    , px + 4, py    );
   painter_->drawLine(px    , py - 4, px    , py + 4);
 
-  QFontMetrics fm(painter_->font());
+  QFontMetricsF fm(painter_->font());
 
-  int w = fm.width(text);
-  int h = fm.height();
+  double w = fm.width(text);
+  double h = fm.height();
 
   painter_->drawText(px - w/2, py + (above ? -h : h), text);
 }

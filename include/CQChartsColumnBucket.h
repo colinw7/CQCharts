@@ -20,8 +20,8 @@ class CQChartsColumnBucket {
    columnType_(columnType) {
   }
 
-  int column() const { return column_; }
-  void setColumn(int i) { column_ = i; }
+  const CQChartsColumn &column() const { return column_; }
+  void setColumn(const CQChartsColumn &c) { column_ = c; }
 
   ColumnType columnType() const { return columnType_; }
 
@@ -174,9 +174,9 @@ class CQChartsColumnBucket {
   }
 
  private:
-  typedef std::map<int,QString> IndName;
+  using IndName = std::map<int,QString>;
 
-  int             column_      { -1 };
+  CQChartsColumn  column_;
   ColumnType      columnType_  { ColumnType::NONE };
   DataType        dataType_    { DataType::NONE };
   bool            rowGrouping_ { false };

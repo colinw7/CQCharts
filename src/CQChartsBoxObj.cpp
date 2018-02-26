@@ -78,7 +78,10 @@ draw(QPainter *painter, const QRectF &rect) const
     painter->setBrush(brush);
     painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cornerSize());
+    double cxs = plot_->lengthPixelWidth (cornerSize());
+    double cys = plot_->lengthPixelHeight(cornerSize());
+
+    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
   }
 
   if (isBorder()) {
@@ -95,7 +98,10 @@ draw(QPainter *painter, const QRectF &rect) const
     painter->setPen  (pen);
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(painter, rect, cornerSize());
+    double cxs = plot_->lengthPixelWidth (cornerSize());
+    double cys = plot_->lengthPixelHeight(cornerSize());
+
+    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
   }
 }
 
@@ -123,7 +129,10 @@ draw(QPainter *painter, const QPolygonF &poly) const
     painter->setBrush(brush);
     painter->setPen  (Qt::NoPen);
 
-    CQChartsRoundedPolygon::draw(painter, poly, cornerSize());
+    double cxs = plot_->lengthPixelWidth (cornerSize());
+    double cys = plot_->lengthPixelHeight(cornerSize());
+
+    CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
   }
 
   if (isBorder()) {
@@ -140,6 +149,9 @@ draw(QPainter *painter, const QPolygonF &poly) const
     painter->setPen  (pen);
     painter->setBrush(Qt::NoBrush);
 
-    CQChartsRoundedPolygon::draw(painter, poly, cornerSize());
+    double cxs = plot_->lengthPixelWidth (cornerSize());
+    double cys = plot_->lengthPixelHeight(cornerSize());
+
+    CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
   }
 }

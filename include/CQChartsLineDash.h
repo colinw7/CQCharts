@@ -34,6 +34,10 @@ class CQChartsLineDash {
 
   bool operator==(const CQChartsLineDash &dash) const;
 
+  bool operator!=(const CQChartsLineDash &dash) const {
+    return ! operator==(dash);
+  }
+
   void scale(double factor);
 
   CQChartsLineDash &copy(const CQChartsLineDash &dash);

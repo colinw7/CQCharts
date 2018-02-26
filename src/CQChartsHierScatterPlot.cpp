@@ -62,10 +62,10 @@ CQChartsHierScatterPlot::
 
 void
 CQChartsHierScatterPlot::
-setXColumn(int i)
+setXColumn(const CQChartsColumn &c)
 {
-  if (i != xColumn_) {
-    xColumn_ = i;
+  if (c != xColumn_) {
+    xColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -73,10 +73,10 @@ setXColumn(int i)
 
 void
 CQChartsHierScatterPlot::
-setYColumn(int i)
+setYColumn(const CQChartsColumn &c)
 {
-  if (i != yColumn_) {
-    yColumn_ = i;
+  if (c != yColumn_) {
+    yColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -84,10 +84,10 @@ setYColumn(int i)
 
 void
 CQChartsHierScatterPlot::
-setNameColumn(int i)
+setNameColumn(const CQChartsColumn &c)
 {
-  if (i != nameColumn_) {
-    nameColumn_ = i;
+  if (c != nameColumn_) {
+    nameColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -192,13 +192,10 @@ updateRange(bool apply)
       if (! plot_->acceptsRow(row, parent))
         return State::SKIP;
 
-      QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
-      QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
-
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, xInd, ok1);
-      double y = CQChartsUtil::modelReal(model, yInd, ok2);
+      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -318,7 +315,7 @@ initGroupValueSets()
   //---
 
   for (const auto &groupColumn : groupValues_)
-    groupValueSets_[groupColumn] = new CQChartsValueSet();
+    groupValueSets_[groupColumn] = new CQChartsValueSet(this);
 
   //---
 
@@ -425,13 +422,10 @@ initObjs()
         //---
 
         // get x, y value
-        QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
-        QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
-
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, xInd, ok1);
-        double y = CQChartsUtil::modelReal(model, yInd, ok2);
+        double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+        double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
         if (! ok1) x = row;
         if (! ok2) y = row;
@@ -442,11 +436,9 @@ initObjs()
         //---
 
         // get optional name
-        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
         bool ok;
 
-        QString name = CQChartsUtil::modelString(model, nameInd, ok);
+        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
 
         //---
 
@@ -565,8 +557,7 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
 
   //---
 
-  QModelIndex xInd = model->index(row, xColumn(), parent);
-
+  QModelIndex xInd  = model->index(row, xColumn().column(), parent);
   QModelIndex xInd1 = normalizeIndex(xInd);
 
   CQChartsHierScatterPoint point(group, x, y, name, row, xInd1);

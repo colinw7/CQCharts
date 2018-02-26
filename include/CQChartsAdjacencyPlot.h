@@ -122,20 +122,21 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(int           nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
-  Q_PROPERTY(int           connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(int           valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(int           groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(int           nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(SortType      sortType          READ sortType          WRITE setSortType         )
-  Q_PROPERTY(CQChartsColor bgColor           READ bgColor           WRITE setBgColor          )
-  Q_PROPERTY(CQChartsColor borderColor       READ borderColor       WRITE setBorderColor      )
-  Q_PROPERTY(double        borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
-  Q_PROPERTY(CQChartsColor emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
-  Q_PROPERTY(double        cornerSize        READ cornerSize        WRITE setCornerSize       )
-  Q_PROPERTY(CQChartsColor textColor         READ textColor         WRITE setTextColor        )
-  Q_PROPERTY(QFont         font              READ font              WRITE setFont             )
-  Q_PROPERTY(double        margin            READ margin            WRITE setMargin           )
+  Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
+  Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
+  Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
+  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(SortType       sortType          READ sortType          WRITE setSortType         )
+  Q_PROPERTY(CQChartsColor  bgColor           READ bgColor           WRITE setBgColor          )
+  Q_PROPERTY(CQChartsColor  borderColor       READ borderColor       WRITE setBorderColor      )
+  Q_PROPERTY(double         borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
+  Q_PROPERTY(CQChartsColor  emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
+  Q_PROPERTY(CQChartsLength cornerSize        READ cornerSize        WRITE setCornerSize       )
+  Q_PROPERTY(CQChartsColor  textColor         READ textColor         WRITE setTextColor        )
+  Q_PROPERTY(double         textAlpha         READ textAlpha         WRITE setTextAlpha        )
+  Q_PROPERTY(QFont          font              READ font              WRITE setFont             )
+  Q_PROPERTY(double         margin            READ margin            WRITE setMargin           )
 
   Q_ENUMS(SortType)
 
@@ -153,20 +154,21 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  int nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(int i) { nodeColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
+  void setNodeColumn(const CQChartsColumn &c) { nodeColumn_ = c; updateRangeAndObjs(); }
 
-  int connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(int i) { connectionsColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
+  void setConnectionsColumn(const CQChartsColumn &c) {
+    connectionsColumn_ = c; updateRangeAndObjs(); }
 
-  int valueColumn() const { return valueColumn_; }
-  void setValueColumn(int i) { valueColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
 
-  int groupColumn() const { return groupColumn_; }
-  void setGroupColumn(int i) { groupColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
 
-  int nameColumn() const { return nameColumn_; }
-  void setNameColumn(int i) { nameColumn_ = i; updateRangeAndObjs(); }
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -194,11 +196,14 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   QColor interpEmptyCellColor(int i, int n) const {
     return emptyCellBox_.interpBackgroundColor(i, n); }
 
-  double cornerSize() const { return cellBox_.cornerSize(); }
-  void setCornerSize(double r) { cellBox_.setCornerSize(r); update(); }
+  const CQChartsLength &cornerSize() const { return cellBox_.cornerSize(); }
+  void setCornerSize(const CQChartsLength &s) { cellBox_.setCornerSize(s); update(); }
 
   const CQChartsColor &textColor() const { return textData_.color; }
   void setTextColor(const CQChartsColor &c) { textData_.color = c; update(); }
+
+  double textAlpha() const { return textData_.alpha; }
+  void setTextAlpha(double a) { textData_.alpha = a; update(); }
 
   QColor interpTextColor(int i, int n) const { return textColor().interpColor(this, i, n); }
 
@@ -279,16 +284,16 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
   using NodeArray = std::vector<CQChartsAdjacencyNode*>;
 
-  int                   nodeColumn_        { -1 };              // node column
-  int                   connectionsColumn_ { -1 };              // connections column
-  int                   valueColumn_       { -1 };              // value column
-  int                   groupColumn_       { -1 };              // group column
-  int                   nameColumn_        { -1 };              // name column
+  CQChartsColumn        nodeColumn_;                            // node column
+  CQChartsColumn        connectionsColumn_;                     // connections column
+  CQChartsColumn        valueColumn_;                           // value column
+  CQChartsColumn        groupColumn_;                           // group column
+  CQChartsColumn        nameColumn_;                            // name column
   SortType              sortType_          { SortType::GROUP }; // sort type
   CQChartsBoxObj        bgBox_;                                 // background box data
   CQChartsBoxObj        cellBox_;                               // cell box data
   CQChartsBoxObj        emptyCellBox_;                          // empty cell box data
-  CQChartsTextData      textData_;
+  CQChartsTextData      textData_;                              // text style data
   IdConnectionsData     idConnections_;                         // connections by id
   NodeMap               nodes_;                                 // all nodes
   NodeArray             sortedNodes_;                           // sorted nodes

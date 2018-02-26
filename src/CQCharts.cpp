@@ -21,7 +21,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
-#include <CQChartsColumn.h>
+#include <CQChartsColumnType.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLength.h>
 #include <CQPropertyView.h>
@@ -30,7 +30,9 @@
 CQCharts::
 CQCharts()
 {
+  CQChartsColumn  ::registerMetaType();
   CQChartsLength  ::registerMetaType();
+  CQChartsPosition::registerMetaType();
   CQChartsLineDash::registerMetaType();
   CQChartsColor   ::registerMetaType();
 }
@@ -74,6 +76,9 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::REAL   , new CQChartsColumnRealType   );
   columnTypeMgr_->addType(CQBaseModel::Type::INTEGER, new CQChartsColumnIntegerType);
   columnTypeMgr_->addType(CQBaseModel::Type::STRING , new CQChartsColumnStringType );
+  columnTypeMgr_->addType(CQBaseModel::Type::RECT   , new CQChartsColumnRectType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON, new CQChartsColumnPolygonType);
+  columnTypeMgr_->addType(CQBaseModel::Type::COLOR  , new CQChartsColumnColorType  );
   columnTypeMgr_->addType(CQBaseModel::Type::TIME   , new CQChartsColumnTimeType   );
 
   //---

@@ -23,7 +23,7 @@ CQChartsKey(CQChartsPlot *plot) :
 {
   setObjectName("key");
 
-  boxData_.background.visible = false;
+  boxData_.shape.background.visible = false;
 }
 
 CQChartsKey::
@@ -45,7 +45,7 @@ locationStr() const
     case LocationType::BOTTOM_LEFT:   return "bl";
     case LocationType::BOTTOM_CENTER: return "bc";
     case LocationType::BOTTOM_RIGHT:  return "br";
-    case LocationType::ABSOLUTE:      return "abs";
+    case LocationType::ABS_POS:       return "abs";
     default:                          return "none";
   }
 }
@@ -65,7 +65,7 @@ setLocationStr(const QString &str)
   else if (lstr == "bl" ) location_ = LocationType::BOTTOM_LEFT;
   else if (lstr == "bc" ) location_ = LocationType::BOTTOM_CENTER;
   else if (lstr == "br" ) location_ = LocationType::BOTTOM_RIGHT;
-  else if (lstr == "abs") location_ = LocationType::ABSOLUTE;
+  else if (lstr == "abs") location_ = LocationType::ABS_POS;
 
   updatePosition();
 }
@@ -241,7 +241,7 @@ draw(QPainter *painter)
 
   painter->setFont(textFont());
 
-  QFontMetrics fm(textFont());
+  QFontMetricsF fm(textFont());
 
   double px1 = px + margin();
   double py1 = py + margin();
@@ -439,7 +439,7 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   QPointF kp(kx, ky);
 
-  if (location == LocationType::ABSOLUTE) {
+  if (location == LocationType::ABS_POS) {
     kp = absPlotPosition();
   }
 
@@ -738,7 +738,7 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_.setDragPos(p);
 
-  location_ = LocationType::ABSOLUTE;
+  location_ = LocationType::ABS_POS;
 
   setAbsPlotPosition(position_);
 
@@ -754,7 +754,7 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  location_ = LocationType::ABSOLUTE;
+  location_ = LocationType::ABS_POS;
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
@@ -895,7 +895,7 @@ draw(QPainter *painter)
   QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
 
-  if (location() != LocationType::ABSOLUTE) {
+  if (location() != LocationType::ABS_POS) {
     if (isInsideX()) {
       clipRect.setLeft (dataRect.left ());
       clipRect.setRight(dataRect.right());
@@ -972,7 +972,7 @@ interpBgColor() const
   if (isBackground())
     return interpBackgroundColor(0, 1);
 
-  if (location() != LocationType::ABSOLUTE) {
+  if (location() != LocationType::ABS_POS) {
     if      (isInsideX() && isInsideY()) {
       if (plot_->isDataBackground())
         return plot_->interpDataBackgroundColor(0, 1);
@@ -1145,7 +1145,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   painter->setPen  (bc);
   painter->setBrush(brush);
 
-  CQChartsRoundedPolygon::draw(painter, prect1, cornerRadius());
+  double cxs = plot->lengthPixelWidth (cornerRadius());
+  double cys = plot->lengthPixelHeight(cornerRadius());
+
+  CQChartsRoundedPolygon::draw(painter, prect1, cxs, cys);
 }
 
 QBrush

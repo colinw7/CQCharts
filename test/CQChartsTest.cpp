@@ -16,7 +16,6 @@
 #include <CQChartsKey.h>
 #include <CQChartsAnnotation.h>
 #include <CQChartsLoader.h>
-#include <CQChartsColumn.h>
 #include <CQChartsPlotDlg.h>
 #include <CQChartsArrow.h>
 
@@ -318,6 +317,8 @@ main(int argc, char **argv)
         initData.inputData.commentHeader = true;
       else if (arg == "first_line_header")
         initData.inputData.firstLineHeader = true;
+      else if (arg == "first_column_header")
+        initData.inputData.firstColumnHeader = true;
       else if (arg == "num_rows") {
         ++i;
 
@@ -1181,9 +1182,10 @@ loadFileSlot(const QString &type, const QString &filename)
 
   InputData inputData;
 
-  inputData.commentHeader   = loader_->isCommentHeader();
-  inputData.firstLineHeader = loader_->isFirstLineHeader();
-  inputData.numRows         = loader_->numRows();
+  inputData.commentHeader     = loader_->isCommentHeader();
+  inputData.firstLineHeader   = loader_->isFirstLineHeader();
+  inputData.firstColumnHeader = loader_->isFirstColumnHeader();
+  inputData.numRows           = loader_->numRows();
 
   return loadFileModel(filename, fileType, inputData);
 }
@@ -1524,16 +1526,9 @@ tableColumnClicked(int column)
 
   //---
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  QString typeStr;
 
-  CQBaseModel::Type  type;
-  CQChartsNameValues nameValues;
-
-  columnTypeMgr->getModelColumnType(model.data(), column, type, nameValues);
-
-  QString typeStr = columnTypeMgr->encodeTypeData(type, nameValues);
-
-  if (typeStr.length())
+  if (CQChartsUtil::columnTypeStr(charts_, model.data(), column, typeStr))
     columnTypeEdit_->setText(typeStr);
 }
 
@@ -1574,18 +1569,10 @@ typeSetSlot()
 
   QString typeStr = columnTypeEdit_->text();
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-  CQChartsNameValues nameValues;
-
-  CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
-
-  if (! typeData) {
+  if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
     errorMsg("Invalid type '" + typeStr + "'");
     return;
   }
-
-  columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues);
 
   //---
 
@@ -1645,7 +1632,7 @@ CQChartsTest::
 initPlotView(const ViewData *viewData, const InitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  setColumnFormats(viewData->model, initData.columnType);
+  setColumnFormats(viewData, initData.columnType);
 
   //---
 
@@ -1741,8 +1728,10 @@ initPlotView(const ViewData *viewData, const InitData &initData, int i,
 
 void
 CQChartsTest::
-setColumnFormats(const ModelP &model, const QString &columnType)
+setColumnFormats(const ViewData *viewData, const QString &columnType)
 {
+  ModelP model = viewData->model;
+
   // split into multiple column type definitions
   QStringList fstrs = columnType.split(";", QString::KeepEmptyParts);
 
@@ -1753,7 +1742,7 @@ setColumnFormats(const ModelP &model, const QString &columnType)
       continue;
 
     // default column to index
-    int column = i;
+    CQChartsColumn column(i);
 
     // if #<col> then use that for column index
     int pos = typeStr.indexOf("#");
@@ -1761,7 +1750,7 @@ setColumnFormats(const ModelP &model, const QString &columnType)
     if (pos >= 0) {
       QString columnStr = typeStr.mid(0, pos).simplified();
 
-      int column1;
+      CQChartsColumn column1;
 
       if (stringToColumn(model, columnStr, column1))
         column = column1;
@@ -1773,24 +1762,14 @@ setColumnFormats(const ModelP &model, const QString &columnType)
 
     //---
 
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-    // decode to type name and name values
-    CQChartsNameValues nameValues;
-
-    CQChartsColumnType *typeData = columnTypeMgr->decodeTypeData(typeStr, nameValues);
-
-    if (! typeData) {
-      errorMsg(QString("Invalid type '" + typeStr + "' for section '%1'").arg(column));
-      continue;
-    }
-
-    // store in model
-    if (! columnTypeMgr->setModelColumnType(model.data(), column, typeData->type(), nameValues)) {
-      errorMsg(QString("Failed to set column type '" + typeStr + "' for section '%1'").arg(column));
+    if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
+      errorMsg(QString("Invalid type '" + typeStr + "' for section '%1'").
+        arg(column.toString()));
       continue;
     }
   }
+
+  updateModelDetails(viewData);
 }
 
 QString
@@ -1840,14 +1819,16 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
       if (p == nameValueData.values.end())
         continue;
 
-      int column;
+      CQChartsColumn column;
 
       if (! stringToColumn(model, (*p).second, column)) {
         errorMsg("Bad column name '" + (*p).second + "'");
         column = -1;
       }
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
+      QString scol = column.toString();
+
+      if (! CQUtil::setProperty(plot, parameter.propName(), scol))
         errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "columns") {
@@ -1858,10 +1839,10 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
 
       QStringList strs = (*p).second.split(" ", QString::SkipEmptyParts);
 
-      std::vector<int> columns;
+      std::vector<CQChartsColumn> columns;
 
       for (int j = 0; j < strs.size(); ++j) {
-        int column;
+        CQChartsColumn column;
 
         if (! stringToColumn(model, strs[j], column)) {
           errorMsg("Bad column name '" + strs[j] + "'");
@@ -1871,7 +1852,7 @@ createPlot(const ViewData *viewData, const ModelP &model, CQChartsPlotType *type
         columns.push_back(column);
       }
 
-      QString s = CQChartsUtil::toString(columns);
+      QString s = CQChartsColumn::columnsToString(columns);
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
         errorMsg("Failed to set parameter " + parameter.propName());
@@ -1949,23 +1930,23 @@ setCeil(bool b)
 
     ClLanguageMgrInst->init(nullptr, nullptr);
 
-    ClLanguageMgrInst->defineCommand("load"         , CQChartsTest::loadLCmd        , this);
-    ClLanguageMgrInst->defineCommand("model"        , CQChartsTest::modelLCmd       , this);
-    ClLanguageMgrInst->defineCommand("process"      , CQChartsTest::processLCmd     , this);
-    ClLanguageMgrInst->defineCommand("sort"         , CQChartsTest::sortLCmd        , this);
-    ClLanguageMgrInst->defineCommand("view"         , CQChartsTest::viewLCmd        , this);
-    ClLanguageMgrInst->defineCommand("plot"         , CQChartsTest::plotLCmd        , this);
-    ClLanguageMgrInst->defineCommand("set_property" , CQChartsTest::setPropertyLCmd , this);
-    ClLanguageMgrInst->defineCommand("get_property" , CQChartsTest::getPropertyLCmd , this);
-    ClLanguageMgrInst->defineCommand("text_shape"   , CQChartsTest::textShapeLCmd   , this);
-    ClLanguageMgrInst->defineCommand("arrow_shape"  , CQChartsTest::arrowShapeLCmd  , this);
-    ClLanguageMgrInst->defineCommand("rect_shape"   , CQChartsTest::rectShapeLCmd   , this);
-    ClLanguageMgrInst->defineCommand("ellipse_shape", CQChartsTest::ellipseShapeLCmd, this);
-    ClLanguageMgrInst->defineCommand("poly_shape"   , CQChartsTest::polyShapeLCmd   , this);
-    ClLanguageMgrInst->defineCommand("point_shape"  , CQChartsTest::pointShapeLCmd  , this);
-    ClLanguageMgrInst->defineCommand("poly_shape"   , CQChartsTest::polyShapeLCmd   , this);
-    ClLanguageMgrInst->defineCommand("theme"        , CQChartsTest::themeLCmd       , this);
-    ClLanguageMgrInst->defineCommand("palette"      , CQChartsTest::paletteLCmd     , this);
+    ClLanguageMgrInst->defineCommand("load"          , CQChartsTest::loadLCmd         , this);
+    ClLanguageMgrInst->defineCommand("model"         , CQChartsTest::modelLCmd        , this);
+    ClLanguageMgrInst->defineCommand("process"       , CQChartsTest::processLCmd      , this);
+    ClLanguageMgrInst->defineCommand("sort"          , CQChartsTest::sortLCmd         , this);
+    ClLanguageMgrInst->defineCommand("view"          , CQChartsTest::viewLCmd         , this);
+    ClLanguageMgrInst->defineCommand("plot"          , CQChartsTest::plotLCmd         , this);
+    ClLanguageMgrInst->defineCommand("set_property"  , CQChartsTest::setPropertyLCmd  , this);
+    ClLanguageMgrInst->defineCommand("get_property"  , CQChartsTest::getPropertyLCmd  , this);
+    ClLanguageMgrInst->defineCommand("text_shape"    , CQChartsTest::textShapeLCmd    , this);
+    ClLanguageMgrInst->defineCommand("arrow_shape"   , CQChartsTest::arrowShapeLCmd   , this);
+    ClLanguageMgrInst->defineCommand("rect_shape"    , CQChartsTest::rectShapeLCmd    , this);
+    ClLanguageMgrInst->defineCommand("ellipse_shape" , CQChartsTest::ellipseShapeLCmd , this);
+    ClLanguageMgrInst->defineCommand("polygon_shape" , CQChartsTest::polygonShapeLCmd , this);
+    ClLanguageMgrInst->defineCommand("polyline_shape", CQChartsTest::polylineShapeLCmd, this);
+    ClLanguageMgrInst->defineCommand("point_shape"   , CQChartsTest::pointShapeLCmd   , this);
+    ClLanguageMgrInst->defineCommand("theme"         , CQChartsTest::themeLCmd        , this);
+    ClLanguageMgrInst->defineCommand("palette"       , CQChartsTest::paletteLCmd      , this);
   }
 
   ceil_ = b;
@@ -2052,10 +2033,12 @@ sortModel(const ViewData *viewData, const QString &args)
     columnStr = columnStr.mid(1);
   }
 
-  int column;
+  CQChartsColumn column;
 
-  if (stringToColumn(viewData->model, columnStr, column))
-    viewData->model->sort(column, order);
+  if (stringToColumn(viewData->model, columnStr, column)) {
+    if (column.type() == CQChartsColumn::Type::DATA)
+      viewData->model->sort(column.column(), order);
+  }
 }
 
 void
@@ -2138,8 +2121,9 @@ loadCsv(const QString &filename, const InputData &inputData)
 {
   CQChartsCsv *csv = new CQChartsCsv(charts_);
 
-  csv->setCommentHeader  (inputData.commentHeader);
-  csv->setFirstLineHeader(inputData.firstLineHeader);
+  csv->setCommentHeader    (inputData.commentHeader);
+  csv->setFirstLineHeader  (inputData.firstLineHeader);
+  csv->setFirstColumnHeader(inputData.firstColumnHeader);
 
   if (! csv->load(filename))
     errorMsg("Failed to load '" + filename + "'");
@@ -2156,8 +2140,9 @@ loadTsv(const QString &filename, const InputData &inputData)
 {
   CQChartsTsv *tsv = new CQChartsTsv(charts_);
 
-  tsv->setCommentHeader  (inputData.commentHeader);
-  tsv->setFirstLineHeader(inputData.firstLineHeader);
+  tsv->setCommentHeader    (inputData.commentHeader);
+  tsv->setFirstLineHeader  (inputData.firstLineHeader);
+  tsv->setFirstColumnHeader(inputData.firstColumnHeader);
 
   if (! tsv->load(filename))
     errorMsg("Failed to load '" + filename + "'");
@@ -2188,8 +2173,9 @@ loadData(const QString &filename, const InputData &inputData)
 {
   CQChartsGnuData *data = new CQChartsGnuData(charts_);
 
-  data->setCommentHeader  (inputData.commentHeader);
-  data->setFirstLineHeader(inputData.firstLineHeader);
+  data->setCommentHeader    (inputData.commentHeader);
+  data->setFirstLineHeader  (inputData.firstLineHeader);
+//data->setFirstColumnHeader(inputData.firstColumnHeader);
 
   if (! data->load(filename))
     errorMsg("Failed to load '" + filename + "'");
@@ -2323,13 +2309,11 @@ addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &obj
 
 bool
 CQChartsTest::
-stringToColumn(const ModelP &model, const QString &str, int &column) const
+stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) const
 {
-  bool ok = false;
+  CQChartsColumn column1(str);
 
-  int column1 = str.toInt(&ok);
-
-  if (ok) {
+  if (column1.isValid()) {
     column = column1;
 
     return true;
@@ -2347,7 +2331,7 @@ stringToColumn(const ModelP &model, const QString &str, int &column) const
       continue;
 
     if (var.toString() == str) {
-      column = column1;
+      column = CQChartsColumn(column1);
       return true;
     }
   }
@@ -2653,33 +2637,34 @@ parseLine(const QString &str)
 
   //---
 
-  if      (cmd == "load"         ) { loadCmd        (args); }
-  else if (cmd == "model"        ) { modelCmd       (args); }
-  else if (cmd == "process"      ) { processCmd     (args); }
-  else if (cmd == "sort"         ) { sortCmd        (args); }
-  else if (cmd == "view"         ) { viewCmd        (args); }
-  else if (cmd == "plot"         ) { plotCmd        (args); }
-  else if (cmd == "set_property" ) { setPropertyCmd (args); }
-  else if (cmd == "get_property" ) { getPropertyCmd (args); }
-  else if (cmd == "text_shape"   ) { textShapeCmd   (args); }
-  else if (cmd == "arrow_shape"  ) { arrowShapeCmd  (args); }
-  else if (cmd == "rect_shape"   ) { rectShapeCmd   (args); }
-  else if (cmd == "ellipse_shape") { ellipseShapeCmd(args); }
-  else if (cmd == "poly_shape"   ) { polyShapeCmd   (args); }
-  else if (cmd == "point_shape"  ) { pointShapeCmd  (args); }
-  else if (cmd == "overlay"      ) { overlayCmd     (args); }
-  else if (cmd == "y1y2"         ) { y1y2Cmd        (args); }
-  else if (cmd == "theme"        ) { themeCmd       (args); }
-  else if (cmd == "palette"      ) { paletteCmd     (args); }
+  if      (cmd == "load"          ) { loadCmd         (args); }
+  else if (cmd == "model"         ) { modelCmd        (args); }
+  else if (cmd == "process"       ) { processCmd      (args); }
+  else if (cmd == "sort"          ) { sortCmd         (args); }
+  else if (cmd == "view"          ) { viewCmd         (args); }
+  else if (cmd == "plot"          ) { plotCmd         (args); }
+  else if (cmd == "set_property"  ) { setPropertyCmd  (args); }
+  else if (cmd == "get_property"  ) { getPropertyCmd  (args); }
+  else if (cmd == "text_shape"    ) { textShapeCmd    (args); }
+  else if (cmd == "arrow_shape"   ) { arrowShapeCmd   (args); }
+  else if (cmd == "rect_shape"    ) { rectShapeCmd    (args); }
+  else if (cmd == "ellipse_shape" ) { ellipseShapeCmd (args); }
+  else if (cmd == "polygon_shape" ) { polygonShapeCmd (args); }
+  else if (cmd == "polyline_shape") { polylineShapeCmd(args); }
+  else if (cmd == "point_shape"   ) { pointShapeCmd   (args); }
+  else if (cmd == "overlay"       ) { overlayCmd      (args); }
+  else if (cmd == "y1y2"          ) { y1y2Cmd         (args); }
+  else if (cmd == "theme"         ) { themeCmd        (args); }
+  else if (cmd == "palette"       ) { paletteCmd      (args); }
 
-  else if (cmd == "@let"         ) { letCmd     (args); }
-  else if (cmd == "@if"          ) { ifCmd      (args); }
-  else if (cmd == "@while"       ) { whileCmd   (args); }
-  else if (cmd == "@continue"    ) { continueCmd(args); }
-  else if (cmd == "@print"       ) { printCmd   (args); }
+  else if (cmd == "@let"          ) { letCmd     (args); }
+  else if (cmd == "@if"           ) { ifCmd      (args); }
+  else if (cmd == "@while"        ) { whileCmd   (args); }
+  else if (cmd == "@continue"     ) { continueCmd(args); }
+  else if (cmd == "@print"        ) { printCmd   (args); }
 
-  else if (cmd == "source"       ) { sourceCmd(args); }
-  else if (cmd == "exit"         ) { exit(0); }
+  else if (cmd == "source"        ) { sourceCmd(args); }
+  else if (cmd == "exit"          ) { exit(0); }
 
   else { errorMsg("Invalid command '" + cmd + "'"); }
 }
@@ -2786,6 +2771,17 @@ class CQChartsTestArgs {
     return true;
   }
 
+  bool getOptValue(CQChartsPosition &p) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    p = CQChartsPosition(str);
+
+    return true;
+  }
+
   bool getOptValue(QFont &f) {
     QString str;
 
@@ -2804,6 +2800,17 @@ class CQChartsTestArgs {
       return false;
 
     c = CQChartsColor(str);
+
+    return true;
+  }
+
+  bool getOptValue(CQChartsLineDash &d) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    d = CQChartsLineDash(str);
 
     return true;
   }
@@ -2915,6 +2922,8 @@ loadCmd(const Args &args)
         inputData.commentHeader = true;
       else if (opt == "first_line_header")
         inputData.firstLineHeader = true;
+      else if (opt == "first_column_header")
+        inputData.firstColumnHeader = true;
       else if (opt == "num_rows") {
         int i;
 
@@ -3029,7 +3038,7 @@ modelCmd(const Args &args)
   }
 
   if (columnType != "")
-    setColumnFormats(viewData->model, columnType);
+    setColumnFormats(viewData, columnType);
 
   if (processExpr != "")
     processExpression(viewData->model, processExpr);
@@ -3447,7 +3456,7 @@ plotCmd(const Args &args)
   ModelP model = viewData->model;
 
   if (columnType != "")
-    setColumnFormats(viewData->model, columnType);
+    setColumnFormats(viewData, columnType);
 
   //------
 
@@ -4362,8 +4371,8 @@ rectShapeCmd(const Args &args)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.background;
-  CQChartsStrokeData &border     = boxData.border;
+  CQChartsFillData   &background = boxData.shape.background;
+  CQChartsStrokeData &border     = boxData.shape.border;
 
   border.visible = true;
 
@@ -4395,6 +4404,7 @@ rectShapeCmd(const Args &args)
       else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
       else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
       else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
+      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
 
       else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
       else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
@@ -4421,7 +4431,7 @@ rectShapeCmd(const Args &args)
 
   CQChartsRectAnnotation *annotation = plot->addRectAnnotation(start, end);
 
-  annotation->setData(boxData);
+  annotation->setBoxData(boxData);
 
   setCmdRc(annotation->ind());
 
@@ -4451,8 +4461,8 @@ ellipseShapeCmd(const Args &args)
 
   CQChartsBoxData boxData;
 
-  CQChartsFillData   &background = boxData.background;
-  CQChartsStrokeData &border     = boxData.border;
+  CQChartsFillData   &background = boxData.shape.background;
+  CQChartsStrokeData &border     = boxData.shape.border;
 
   border.visible = true;
 
@@ -4481,6 +4491,7 @@ ellipseShapeCmd(const Args &args)
       else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
       else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
       else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
+      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
 
       else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
       else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
@@ -4506,7 +4517,7 @@ ellipseShapeCmd(const Args &args)
 
   CQChartsEllipseAnnotation *annotation = plot->addEllipseAnnotation(center, rx, ry);
 
-  annotation->setData(boxData);
+  annotation->setBoxData(boxData);
 
   setCmdRc(annotation->ind());
 
@@ -4516,19 +4527,19 @@ ellipseShapeCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsTest::
-polyShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+polygonShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsTest *test = static_cast<CQChartsTest *>(data);
 
   Args args = test->parseCommandArgs(command, largs);
 
-  test->polyShapeCmd(args);
+  test->polygonShapeCmd(args);
 }
 #endif
 
 void
 CQChartsTest::
-polyShapeCmd(const Args &args)
+polygonShapeCmd(const Args &args)
 {
   QString viewName, plotName;
 
@@ -4563,6 +4574,7 @@ polyShapeCmd(const Args &args)
       else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
       else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
       else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
+      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
 
       else { argv.error(); }
     }
@@ -4581,9 +4593,87 @@ polyShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPolyAnnotation *annotation = plot->addPolyAnnotation(points);
+  CQChartsPolygonAnnotation *annotation = plot->addPolygonAnnotation(points);
 
-  annotation->setData(shapeData);
+  annotation->setShapeData(shapeData);
+
+  setCmdRc(annotation->ind());
+
+  return;
+}
+
+#ifdef CQ_CHARTS_CEIL
+void
+CQChartsTest::
+polylineShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+{
+  CQChartsTest *test = static_cast<CQChartsTest *>(data);
+
+  Args args = test->parseCommandArgs(command, largs);
+
+  test->polylineShapeCmd(args);
+}
+#endif
+
+void
+CQChartsTest::
+polylineShapeCmd(const Args &args)
+{
+  QString viewName, plotName;
+
+  QPolygonF points;
+
+  CQChartsShapeData shapeData;
+
+  CQChartsFillData   &background = shapeData.background;
+  CQChartsStrokeData &border     = shapeData.border;
+
+  border.visible = true;
+
+  CQChartsTestArgs argv(args);
+
+  while (! argv.eof()) {
+    const CQChartsTestArgs::Arg &arg = argv.getArg();
+
+    if (arg.isOpt()) {
+      QString opt = arg.opt();
+
+      if      (opt == "view") { (void) argv.getOptValue(viewName); }
+      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
+
+      else if (opt == "points") { (void) argv.getOptValue(points); }
+
+      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
+      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
+      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
+//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
+
+      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
+      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
+      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
+      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
+      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
+
+      else { argv.error(); }
+    }
+    else { argv.error(); }
+  }
+
+  //---
+
+  CQChartsView *view = getViewByName(viewName);
+  if (! view) return;
+
+  //---
+
+  CQChartsPlot *plot = getPlotByName(view, plotName);
+  if (! plot) return;
+
+  //---
+
+  CQChartsPolylineAnnotation *annotation = plot->addPolylineAnnotation(points);
+
+  annotation->setShapeData(shapeData);
 
   setCmdRc(annotation->ind());
 
@@ -4613,6 +4703,13 @@ textShapeCmd(const Args &args)
   QString text = "Annotation";
 
   CQChartsTextData textData;
+  CQChartsBoxData  boxData;
+
+  CQChartsFillData   &background = boxData.shape.background;
+  CQChartsStrokeData &border     = boxData.shape.border;
+
+  background.visible = false;
+  border    .visible = false;
 
   CQChartsTestArgs argv(args);
 
@@ -4625,14 +4722,31 @@ textShapeCmd(const Args &args)
       if      (opt == "view") { (void) argv.getOptValue(viewName); }
       else if (opt == "plot") { (void) argv.getOptValue(plotName); }
 
-      else if (opt == "x"   ) { (void) argv.getOptValue(x); }
-      else if (opt == "y"   ) { (void) argv.getOptValue(y); }
+      else if (opt == "x") { (void) argv.getOptValue(x); }
+      else if (opt == "y") { (void) argv.getOptValue(y); }
+
       else if (opt == "text") { (void) argv.getOptValue(text); }
 
-      else if (opt == "font" ) { (void) argv.getOptValue(textData.font ); }
-      else if (opt == "color") { (void) argv.getOptValue(textData.color); }
-      else if (opt == "alpha") { (void) argv.getOptValue(textData.alpha); }
-      else if (opt == "angle") { (void) argv.getOptValue(textData.angle); }
+      else if (opt == "font"    ) { (void) argv.getOptValue(textData.font ); }
+      else if (opt == "color"   ) { (void) argv.getOptValue(textData.color); }
+      else if (opt == "alpha"   ) { (void) argv.getOptValue(textData.alpha); }
+      else if (opt == "angle"   ) { (void) argv.getOptValue(textData.angle); }
+      else if (opt == "contrast") { (void) argv.getOptValue(textData.contrast); }
+//    else if (opt == "align"   ) { (void) argv.getOptValue(textData.align); }
+
+      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
+      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
+      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
+//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
+
+      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
+      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
+      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
+      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
+      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
+
+      else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
+      else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
 
       else { argv.error(); }
     }
@@ -4656,6 +4770,8 @@ textShapeCmd(const Args &args)
   CQChartsTextAnnotation *annotation = plot->addTextAnnotation(pos, text);
 
   annotation->setTextData(textData);
+
+  annotation->setBoxData(boxData);
 
   setCmdRc(annotation->ind());
 
@@ -4778,8 +4894,9 @@ pointShapeCmd(const Args &args)
       if      (opt == "view") { (void) argv.getOptValue(viewName); }
       else if (opt == "plot") { (void) argv.getOptValue(plotName); }
 
-      else if (opt == "x"   ) { (void) argv.getOptValue(x); }
-      else if (opt == "y"   ) { (void) argv.getOptValue(y); }
+      else if (opt == "x") { (void) argv.getOptValue(x); }
+      else if (opt == "y") { (void) argv.getOptValue(y); }
+
       else if (opt == "size") { (void) argv.getOptValue(pointData.size); }
 
       else if (opt == "type") {

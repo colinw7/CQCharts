@@ -63,10 +63,10 @@ CQChartsPiePlot::
 
 void
 CQChartsPiePlot::
-setLabelColumn(int i)
+setLabelColumn(const CQChartsColumn &c)
 {
-  if (i != labelColumn_) {
-    labelColumn_ = i;
+  if (c != labelColumn_) {
+    labelColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -74,14 +74,14 @@ setLabelColumn(int i)
 
 void
 CQChartsPiePlot::
-setDataColumn(int i)
+setDataColumn(const CQChartsColumn &c)
 {
-  if (i != dataColumn_) {
-    dataColumn_ = i;
+  if (c != dataColumn_) {
+    dataColumn_ = c;
 
     dataColumns_.clear();
 
-    if (dataColumn_ >= 0)
+    if (dataColumn_.isValid())
       dataColumns_.push_back(dataColumn_);
 
     updateRangeAndObjs();
@@ -108,16 +108,16 @@ QString
 CQChartsPiePlot::
 dataColumnsStr() const
 {
-  return CQChartsUtil::toString(dataColumns());
+  return CQChartsColumn::columnsToString(dataColumns());
 }
 
 bool
 CQChartsPiePlot::
 setDataColumnsStr(const QString &s)
 {
-  std::vector<int> dataColumns;
+  Columns dataColumns;
 
-  if (! CQChartsUtil::fromString(s, dataColumns))
+  if (! CQChartsColumn::stringToColumns(s, dataColumns))
     return false;
 
   setDataColumns(dataColumns);
@@ -127,10 +127,10 @@ setDataColumnsStr(const QString &s)
 
 void
 CQChartsPiePlot::
-setGroupColumn(int i)
+setGroupColumn(const CQChartsColumn &c)
 {
-  if (i != groupColumn_) {
-    groupColumn_ = i;
+  if (c != groupColumn_) {
+    groupColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -138,10 +138,10 @@ setGroupColumn(int i)
 
 void
 CQChartsPiePlot::
-setKeyLabelColumn(int i)
+setKeyLabelColumn(const CQChartsColumn &c)
 {
-  if (i != keyLabelColumn_) {
-    keyLabelColumn_ = i;
+  if (c != keyLabelColumn_) {
+    keyLabelColumn_ = c;
 
     updateRangeAndObjs();
   }
@@ -259,12 +259,12 @@ updateRange(bool apply)
   //   if row grouping we are creating a value set per row (1 value per data column)
   //   if column grouping we are creating a value set per data column (1 value per row)
   // otherwise (single data column) just use dummy group (column -1)
-  if      (groupColumn() > 0)
+  if      (groupColumn().isValid())
     initGroup(groupColumn());
   else if (dataColumns().size() > 1)
     initGroup(labelColumn(), dataColumns(), isRowGrouping());
   else
-    initGroup(-1);
+    initGroup();
 
   //---
 
@@ -404,7 +404,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
       addRowColumn(model, parent, row, column);
   }
   else {
-    int column = dataColumn();
+    const CQChartsColumn &column = dataColumn();
 
     addRowColumn(model, parent, row, column);
   }
@@ -412,7 +412,8 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
 void
 CQChartsPiePlot::
-addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int dataColumn)
+addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
+             const CQChartsColumn &dataColumn)
 {
   // get group ind
   int groupInd = rowGroupInd(model, parent, row, dataColumn);
@@ -428,11 +429,9 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
 
   //---
 
-  QModelIndex dataInd = model->index(row, dataColumn, parent);
-
   double value = row;
 
-  if (! getDataColumnValue(model, dataInd, value))
+  if (! getDataColumnValue(model, row, dataColumn, parent, value))
     return;
 
   //---
@@ -443,29 +442,23 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
 
   if (numGroups() > 1) {
     if (dataColumns().size() <= 1 || isRowGrouping()) {
-      QModelIndex labelInd = model->index(row, labelColumn(), parent);
-
-      label = CQChartsUtil::modelString(model, labelInd, ok);
+      label = CQChartsUtil::modelString(model, row, labelColumn(), parent, ok);
     }
     else
       label = CQChartsUtil::modelHeaderString(model, dataColumn, ok);
   }
   else {
-    QModelIndex labelInd = model->index(row, labelColumn(), parent);
-
-    label = CQChartsUtil::modelString(model, labelInd, ok);
+    label = CQChartsUtil::modelString(model, row, labelColumn(), parent, ok);
   }
 
   //---
 
   QString keyLabel = label;
 
-  if (keyLabelColumn() >= 0) {
+  if (keyLabelColumn().isValid()) {
     bool ok;
 
-    QModelIndex keyLabelInd = model->index(row, keyLabelColumn(), parent);
-
-    keyLabel = CQChartsUtil::modelString(model, keyLabelInd, ok);
+    keyLabel = CQChartsUtil::modelString(model, row, keyLabelColumn(), parent, ok);
   }
 
   //---
@@ -482,6 +475,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row, int 
 
   //---
 
+  QModelIndex dataInd  = model->index(row, dataColumn.column(), parent);
   QModelIndex dataInd1 = normalizeIndex(dataInd);
 
   //---
@@ -565,7 +559,7 @@ addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row)
       addRowColumnDataTotal(model, parent, row, column);
   }
   else {
-    int column = dataColumn();
+    const CQChartsColumn &column = dataColumn();
 
     addRowColumnDataTotal(model, parent, row, column);
   }
@@ -573,7 +567,8 @@ addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
 void
 CQChartsPiePlot::
-addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row, int dataColumn)
+addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
+                      const CQChartsColumn &dataColumn)
 {
   // get group ind
   int groupInd = rowGroupInd(model, parent, row, dataColumn);
@@ -589,11 +584,9 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
 
   //---
 
-  QModelIndex dataInd = model->index(row, dataColumn, parent);
-
   double value = row;
 
-  if (! getDataColumnValue(model, dataInd, value))
+  if (! getDataColumnValue(model, row, dataColumn, parent, value))
     return;
 
   //---
@@ -615,11 +608,12 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
 
 bool
 CQChartsPiePlot::
-getDataColumnValue(QAbstractItemModel *model, const QModelIndex &ind, double &value) const
+getDataColumnValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, double &value) const
 {
   bool ok;
 
-  value = CQChartsUtil::modelReal(model, ind, ok);
+  value = CQChartsUtil::modelReal(model, row, column, parent, ok);
 
   if (! ok)
     return true; // allow missing value
@@ -753,15 +747,13 @@ calcTipId() const
       label = CQChartsUtil::modelHeaderString(plot_->model(), ind.column(), ok);
     }
     else {
-      QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
-
-      label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+      label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
+                                        ind.parent(), ok);
     }
   }
   else {
-    QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
-
-    label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+    label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
+                                      ind.parent(), ok);
   }
 
   int dataColumn = ind_.column();
@@ -787,11 +779,10 @@ calcId() const
 {
   QModelIndex ind = plot_->unnormalizeIndex(ind_);
 
-  QModelIndex labelInd = plot_->model()->index(ind.row(), plot_->labelColumn(), ind.parent());
-
   bool ok;
 
-  QString label = CQChartsUtil::modelString(plot_->model(), labelInd, ok);
+  QString label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
+                                            ind.parent(), ok);
 
   int dataColumn = ind_.column();
 
@@ -846,8 +837,11 @@ void
 CQChartsPieObj::
 addSelectIndex()
 {
-  plot_->addSelectIndex(ind_.row(), plot_->labelColumn(), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->dataColumn (), ind_.parent());
+  if (plot_->labelColumn().type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), plot_->labelColumn(), ind_.parent());
+
+  if (plot_->dataColumn().type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), plot_->dataColumn(), ind_.parent());
 }
 
 bool

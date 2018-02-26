@@ -29,7 +29,7 @@ CQChartsViewStatus(CQChartsWindow *window) :
 
   selLabel_->setObjectName("sel");
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   QFrame *selSpacer = new QFrame;
   selSpacer->setFixedWidth(fm.width("XX"));

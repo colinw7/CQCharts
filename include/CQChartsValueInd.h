@@ -1,14 +1,11 @@
 #ifndef CQChartsValueInd_H
 #define CQChartsValueInd_H
 
+#include <CQChartsUtil.h>
+
 class CQChartsValueInd {
  public:
-  enum class Type {
-    NONE,
-    INTEGER,
-    REAL,
-    STRING
-  };
+  using Type = CQBaseModel::Type;
 
  public:
   CQChartsValueInd() { }

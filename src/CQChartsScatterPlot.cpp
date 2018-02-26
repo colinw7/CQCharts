@@ -116,13 +116,10 @@ updateRange(bool apply)
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
-      QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
-
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, xInd, ok1);
-      double y = CQChartsUtil::modelReal(model, yInd, ok2);
+      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -253,15 +250,13 @@ initObjs()
 
       State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
         // get x, y value
-        QModelIndex xInd = model->index(row, plot_->xColumn(), parent);
-        QModelIndex yInd = model->index(row, plot_->yColumn(), parent);
-
+        QModelIndex xInd  = model->index(row, plot_->xColumn().column(), parent);
         QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, xInd, ok1);
-        double y = CQChartsUtil::modelReal(model, yInd, ok2);
+        double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
+        double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
 
         if (! ok1) x = row;
         if (! ok2) y = row;
@@ -272,29 +267,26 @@ initObjs()
         //---
 
         // get optional name
-        QModelIndex nameInd = model->index(row, plot_->nameColumn(), parent);
-
         bool ok;
 
-        QString name = CQChartsUtil::modelString(model, nameInd, ok);
+        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
 
         //---
 
         // get symbol size, font size and color
-        QModelIndex symbolSizeInd = model->index(row, plot_->symbolSizeColumn(), parent);
-        QModelIndex fontSizeInd   = model->index(row, plot_->fontSizeColumn  (), parent);
-        QModelIndex colorInd      = model->index(row, plot_->colorColumn     (), parent);
-
         bool ok3, ok4, ok5;
 
         // get symbol size label (needed if not string ?)
-        QString symbolSizeStr = CQChartsUtil::modelString(model, symbolSizeInd, ok3);
+        QString symbolSizeStr =
+          CQChartsUtil::modelString(model, row, plot_->symbolSizeColumn(), parent, ok3);
 
         // get font size label (needed if not string ?)
-        QString fontSizeStr = CQChartsUtil::modelString(model, fontSizeInd, ok4);
+        QString fontSizeStr =
+          CQChartsUtil::modelString(model, row, plot_->fontSizeColumn(), parent, ok4);
 
         // get color label (needed if not string ?)
-        QString colorStr = CQChartsUtil::modelString(model, colorInd, ok5);
+        QString colorStr =
+          CQChartsUtil::modelString(model, row, plot_->colorColumn(), parent, ok5);
 
         //---
 
@@ -373,16 +365,16 @@ initObjs()
 
         double symbolSize = this->symbolSize();
 
-        if (symbolSizeColumn() >= 0)
+        if (symbolSizeColumn().isValid())
           symbolSize = symbolSizeSet->imap(valuePoint.i);
 
         OptReal  fontSize = boost::make_optional(false, 0.0);
         OptColor color    = boost::make_optional(false, CQChartsColor());
 
-        if (fontSizeColumn() >= 0)
+        if (fontSizeColumn().isValid())
           fontSize = fontSizeSet->imap(valuePoint.i);
 
-        if (colorColumn() >= 0)
+        if (colorColumn().isValid())
           (void) colorSetColor("color", valuePoint.i, color);
 
         double sw = pixelToWindowWidth (symbolSize);
@@ -473,7 +465,7 @@ void
 CQChartsScatterPlot::
 drawForeground(QPainter *painter)
 {
-  if (symbolSizeColumn() >= 0) {
+  if (symbolSizeColumn().isValid()) {
     CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
 
     double min  = symbolSizeSet->rmin();
@@ -513,7 +505,7 @@ drawForeground(QPainter *painter)
     painter->setBrush(fillColor3); painter->drawEllipse(r3);
 
     auto drawText = [&](QPainter *painter, const QPointF &p, const QString &text) {
-      QFontMetrics fm(painter->font());
+      QFontMetricsF fm(painter->font());
 
       painter->drawText(p.x() - fm.width(text)/2, p.y(), text);
     };
@@ -628,8 +620,11 @@ void
 CQChartsScatterPointObj::
 addSelectIndex()
 {
-  plot_->addSelectIndex(ind_.row(), plot_->xColumn());
-  plot_->addSelectIndex(ind_.row(), plot_->yColumn());
+  if (plot_->xColumn().type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), plot_->xColumn());
+
+  if (plot_->yColumn().type() == CQChartsColumn::Type::DATA)
+    plot_->addSelectIndex(ind_.row(), plot_->yColumn());
 }
 
 bool
@@ -643,7 +638,10 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  double s = this->symbolSize(); // TODO: ensure not a crazy number
+  double s = this->symbolSize();
+
+  // ensure not a crazy number : TODO: set limits
+  s = std::min(std::max(s, 1.0), 1000.0);
 
   //---
 
@@ -700,11 +698,14 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->drawEllipse(erect);
 
   if (plot_->isTextLabels()) {
-    int fontSize = (fontSize_ ? *fontSize_ : -1);
+    double fontSize = (fontSize_ ? *fontSize_ : -1);
 
     CQChartsDataLabel &dataLabel = plot_->dataLabel();
 
     if (fontSize > 0) {
+      // ensure not a crazy number : TODO: set limits
+      fontSize = std::min(std::max(fontSize, 1.0), 1000.0); // TODO: limit font size
+
       QFont font = dataLabel.textFont();
 
       QFont font1 = font;

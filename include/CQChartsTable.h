@@ -41,6 +41,8 @@ class CQChartsTable : public CQTableView {
   CQChartsTable(CQCharts *charts, QWidget *parent=nullptr);
  ~CQChartsTable();
 
+  CQCharts *charts() const { return charts_; }
+
   ModelP model() const {return model_; }
   void setModel(const ModelP &model);
 

@@ -26,7 +26,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
-  QFontMetrics fm(font());
+  QFontMetricsF fm(font());
 
   //---
 
