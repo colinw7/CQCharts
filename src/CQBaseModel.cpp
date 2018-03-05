@@ -2,9 +2,49 @@
 #include <cmath>
 #include <cassert>
 
+namespace {
+
+using TypeName = std::map<CQBaseModel::Type,QString>;
+using NameType = std::map<QString,CQBaseModel::Type>;
+
+static TypeName s_typeName;
+static NameType s_nameType;
+
+void addType(CQBaseModel::Type type, const QString &name) {
+  s_typeName[type] = name;
+  s_nameType[name] = type;
+}
+
+void initTypes() {
+  if (s_typeName.empty()) {
+    addType(CQBaseModel::Type::BOOLEAN, "boolean");
+    addType(CQBaseModel::Type::INTEGER, "integer");
+    addType(CQBaseModel::Type::REAL   , "real"   );
+    addType(CQBaseModel::Type::STRING , "string" );
+    addType(CQBaseModel::Type::STRINGS, "strings");
+    addType(CQBaseModel::Type::POINT  , "point"  );
+    addType(CQBaseModel::Type::LINE   , "line"   );
+    addType(CQBaseModel::Type::RECT   , "rect"   );
+    addType(CQBaseModel::Type::SIZE   , "size"   );
+    addType(CQBaseModel::Type::POLYGON, "polygon");
+    addType(CQBaseModel::Type::COLOR  , "color"  );
+    addType(CQBaseModel::Type::PEN    , "pen"    );
+    addType(CQBaseModel::Type::BRUSH  , "brush"  );
+    addType(CQBaseModel::Type::IMAGE  , "image"  );
+    addType(CQBaseModel::Type::TIME   , "time"   );
+    addType(CQBaseModel::Type::PATH   , "path"   );
+    addType(CQBaseModel::Type::STYLE  , "style"  );
+  }
+}
+
+};
+
+//---
+
 CQBaseModel::
 CQBaseModel()
 {
+  initTypes();
 }
 
 void
@@ -288,58 +328,31 @@ bool
 CQBaseModel::
 isType(int type)
 {
-  if      (type == (int) Type::BOOLEAN) return true;
-  else if (type == (int) Type::INTEGER) return true;
-  else if (type == (int) Type::REAL   ) return true;
-  else if (type == (int) Type::STRING ) return true;
-  else if (type == (int) Type::POINT  ) return true;
-  else if (type == (int) Type::LINE   ) return true;
-  else if (type == (int) Type::RECT   ) return true;
-  else if (type == (int) Type::SIZE   ) return true;
-  else if (type == (int) Type::POLYGON) return true;
-  else if (type == (int) Type::COLOR  ) return true;
-  else if (type == (int) Type::TIME   ) return true;
-
-  return false;
+  return (s_typeName.find((CQBaseModel::Type) type) != s_typeName.end());
 }
 
 QString
 CQBaseModel::
 typeName(Type type)
 {
-  if (! isType((int) type))
+  auto p = s_typeName.find(type);
+
+  if (p == s_typeName.end())
     return "none";
 
-  if      (type == Type::BOOLEAN) return "boolean";
-  else if (type == Type::INTEGER) return "integer";
-  else if (type == Type::REAL   ) return "real";
-  else if (type == Type::STRING ) return "string";
-  else if (type == Type::POINT  ) return "point";
-  else if (type == Type::LINE   ) return "line";
-  else if (type == Type::RECT   ) return "rect";
-  else if (type == Type::POLYGON) return "polygon";
-  else if (type == Type::SIZE   ) return "size";
-  else if (type == Type::COLOR  ) return "color";
-  else if (type == Type::TIME   ) return "time";
-  else                            assert(false);
+  return (*p).second;
 }
 
 CQBaseModel::Type
 CQBaseModel::
 nameType(const QString &name)
 {
-  if      (name == "boolean") return Type::BOOLEAN;
-  else if (name == "integer") return Type::INTEGER;
-  else if (name == "real"   ) return Type::REAL;
-  else if (name == "string" ) return Type::STRING;
-  else if (name == "point"  ) return Type::POINT;
-  else if (name == "line"   ) return Type::LINE;
-  else if (name == "rect"   ) return Type::RECT;
-  else if (name == "polygon") return Type::POLYGON;
-  else if (name == "size"   ) return Type::SIZE;
-  else if (name == "color"  ) return Type::COLOR;
-  else if (name == "time"   ) return Type::TIME;
-  else                        return Type::NONE;
+  auto p = s_nameType.find(name);
+
+  if (p == s_nameType.end())
+    return Type::NONE;
+
+  return (*p).second;
 }
 
 double

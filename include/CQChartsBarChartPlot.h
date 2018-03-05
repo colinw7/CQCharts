@@ -328,7 +328,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   // bar margin
   const CQChartsLength &margin() const { return margin_; }
-  void setMargin(const CQChartsLength &l) { margin_ = l; update(); }
+  void setMargin(const CQChartsLength &l);
 
   //---
 

@@ -2264,6 +2264,8 @@ CQChartsDefaultTheme()
 
   //---
 
+  setPalette(0, CQChartsThemeMgrInst->getNamedPalette("set2")->dup());
+
   selectColor_ = QColor("#71d852");
 }
 
@@ -2319,8 +2321,8 @@ CQChartsDarkTheme1()
 
   //---
 
-  setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette1"));
-  setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette2"));
+  setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette1")->dup());
+  setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette2")->dup());
 
   //---
 
@@ -2339,8 +2341,8 @@ CQChartsDarkTheme2()
 
   //---
 
-  setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette2"));
-  setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette1"));
+  setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette2")->dup());
+  setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette1")->dup());
 
   //---
 

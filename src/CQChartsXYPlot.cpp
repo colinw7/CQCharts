@@ -84,11 +84,7 @@ void
 CQChartsXYPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  if (c != xColumn_) {
-    xColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -148,11 +144,56 @@ void
 CQChartsXYPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  if (c != nameColumn_) {
-    nameColumn_ = c;
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
 
-    updateRangeAndObjs();
-  }
+void
+CQChartsXYPlot::
+setSizeColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(sizeColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointLabelColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(pointLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointColorColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(pointColorColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setPointSymbolColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(pointSymbolColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setVectorXColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(vectorXColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setVectorYColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(vectorYColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setBivariateLineWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(bivariateLineData_.width, l, [&]() { update(); } );
 }
 
 //---
@@ -241,44 +282,28 @@ void
 CQChartsXYPlot::
 setBivariate(bool b)
 {
-  if (b != isBivariate()) {
-    bivariateLineData_.visible = b;
-
-    updateObjs();
-  }
+  CQChartsUtil::testAndSet(bivariateLineData_.visible, b, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setStacked(bool b)
 {
-  if (b != isStacked()) {
-    stacked_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setCumulative(bool b)
 {
-  if (b != isCumulative()) {
-    cumulative_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(cumulative_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsXYPlot::
 setImpulse(bool b)
 {
-  if (b != isImpulse()) {
-    impulseData_.visible = b;
-
-    updateObjs();
-  }
+  CQChartsUtil::testAndSet(impulseData_.visible, b, [&]() { updateObjs(); } );
 }
 
 bool
@@ -303,11 +328,7 @@ void
 CQChartsXYPlot::
 setFillUnder(bool b)
 {
-  if (b != isFillUnder()) {
-    fillUnderData_.fillData.visible = b;
-
-    updateObjs();
-  }
+  CQChartsUtil::testAndSet(fillUnderData_.fillData.visible, b, [&]() { updateObjs(); } );
 }
 
 QString
@@ -761,6 +782,11 @@ initObjs()
 
   //---
 
+  if (pointColorColumn().isValid())
+    pointColorColumnType_ = columnValueType(pointColorColumn());
+
+  //---
+
   struct IndPoly {
     using Inds = std::vector<QModelIndex>;
 
@@ -1207,13 +1233,22 @@ initObjs()
         if (pointColorColumn().isValid()) {
           QModelIndex parent; // TODO: parent
 
+          QColor c;
+
           bool ok;
 
-          QString pointColorStr =
-            CQChartsUtil::modelString(model, ip, pointColorColumn(), parent, ok);
+          if (pointColorColumnType_ == CQBaseModel::Type::COLOR) {
+            c = CQChartsUtil::modelColor(model, ip, pointColorColumn(), parent, ok);
+          }
+          else {
+            QString str = CQChartsUtil::modelString(model, ip, pointColorColumn(), parent, ok);
 
-          if (ok && pointColorStr.length())
-            pointObj->setColor(QColor(pointColorStr));
+            if (ok && str.length())
+              c = QColor(str);
+          }
+
+          if (c.isValid())
+            pointObj->setColor(c);
         }
 
         if (pointSymbolColumn().isValid()) {

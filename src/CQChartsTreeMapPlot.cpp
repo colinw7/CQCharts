@@ -66,6 +66,29 @@ CQChartsTreeMapPlot::
 
 //----
 
+void
+CQChartsTreeMapPlot::
+setTitles(bool b)
+{
+  CQChartsUtil::testAndSet(titles_, b, [&]() { updateCurrentRoot(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setTitleMaxExtent(double r)
+{
+  CQChartsUtil::testAndSet(titleMaxExtent_, r, [&]() { update(); } );
+}
+
+void
+CQChartsTreeMapPlot::
+setHeaderHeight(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(headerHeight_, l, [&]() { updateCurrentRoot(); } );
+}
+
+//----
+
 bool
 CQChartsTreeMapPlot::
 isHeaderFilled() const
@@ -321,11 +344,7 @@ void
 CQChartsTreeMapPlot::
 setMarginWidth(const CQChartsLength &l)
 {
-  if (l != marginWidth_) {
-    marginWidth_ = l;
-
-    updateCurrentRoot();
-  }
+  CQChartsUtil::testAndSet(marginWidth_, l, [&]() { updateCurrentRoot(); } );
 }
 
 //----

@@ -34,7 +34,11 @@ class CQToolTipIFace {
 
   virtual bool outside() const { return false; }
 
+  virtual bool grabKey() const { return false; }
+
   virtual bool isHideKey(int, Qt::KeyboardModifiers) { return true; }
+
+  virtual bool keyPress(int, Qt::KeyboardModifiers) { return true; }
 
   virtual QSize sizeHint() const { return QSize(); }
 };
@@ -78,7 +82,7 @@ class CQToolTip : public QWidget {
   CQToolTip();
  ~CQToolTip();
 
-  void show(const QPoint &pos, CQToolTipIFace *tooltip, QWidget *parent);
+  bool show(const QPoint &pos, CQToolTipIFace *tooltip, QWidget *parent);
 
  private:
   void showAtPos(const QPoint &pos);
@@ -94,6 +98,11 @@ class CQToolTip : public QWidget {
   void hideLater();
 
   void startHideTimer();
+
+  void stopTimer();
+
+  bool showTip  (QWidget *w, const QPoint &gpos);
+  bool updateTip(QWidget *w, const QPoint &gpos);
 
   void updateSize();
 
@@ -122,6 +131,7 @@ class CQToolTip : public QWidget {
   int       hideTimer_ { 0 };
   int       margin_    { 1 };
   double    opacity_   { 0.8 };
+  QPoint    showPos_;
 };
 
 #endif

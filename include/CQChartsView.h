@@ -253,6 +253,8 @@ class CQChartsView : public QFrame {
 
   CQChartsPlot *getPlot(const QString &id) const;
 
+  void deselectAll();
+
   //---
 
   void initOverlay();

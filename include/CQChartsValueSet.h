@@ -27,8 +27,10 @@ class CQChartsRValues {
   double value(int i) const { return rvals_[i]; }
 
   int addValue(double r) {
+    // add to all values
     rvals_.push_back(r);
 
+    // add to unique values if new
     auto p = rvalset_.find(r);
 
     if (p == rvalset_.end()) {
@@ -63,6 +65,7 @@ class CQChartsRValues {
     return (*p).second;
   }
 
+  // map value into real in range
   double map(double r, double mapMin=0.0, double mapMax=1.0) const {
     // map value using real value range
     double rmin = this->min();
@@ -74,14 +77,17 @@ class CQChartsRValues {
     return CQChartsUtil::map(r, rmin, rmax, mapMin, mapMax);
   }
 
+  // min/max value
   double min() const { assert(! rvalset_.empty()); return rvalset_. begin()->first; }
   double max() const { assert(! rvalset_.empty()); return rvalset_.rbegin()->first; }
 
   double mean() const { assert(! rvalset_.empty()); return (min() + max())/2.0; }
 
+  // min/max index
   int imin() const { assert(! setrval_.empty()); return setrval_. begin()->first; }
   int imax() const { assert(! setrval_.empty()); return setrval_.rbegin()->first; }
 
+  // number of unique values
   int numUnique() const { return rvalset_.size(); }
 
  private:
@@ -93,6 +99,8 @@ class CQChartsRValues {
   RValSet rvalset_; // unique indexed real values
   SetRVal setrval_; // index to real map
 };
+
+//---
 
 class CQChartsIValues {
  public:
@@ -110,8 +118,10 @@ class CQChartsIValues {
   int value(int i) const { return ivals_[i]; }
 
   int addValue(int i) {
+    // add to all values
     ivals_.push_back(i);
 
+    // add to unique values if new
     auto p = ivalset_.find(i);
 
     if (p == ivalset_.end()) {
@@ -146,6 +156,7 @@ class CQChartsIValues {
     return (*p).second;
   }
 
+  // map value into real in range
   double map(int i, double mapMin=0.0, double mapMax=1.0) const {
     // map value using real value range
     double imin = this->min();
@@ -157,14 +168,17 @@ class CQChartsIValues {
     return CQChartsUtil::map(i, imin, imax, mapMin, mapMax);
   }
 
+  // min/max value
   int min() const { assert(! ivalset_.empty()); return ivalset_. begin()->first; }
   int max() const { assert(! ivalset_.empty()); return ivalset_.rbegin()->first; }
 
   double mean() const { assert(! ivalset_.empty()); return (min() + max())/2.0; }
 
+  // min/max index
   int imin() const { assert(! setival_.empty()); return setival_. begin()->first; }
   int imax() const { assert(! setival_.empty()); return setival_.rbegin()->first; }
 
+  // number of unique values
   int numUnique() const { return ivalset_.size(); }
 
  private:
@@ -176,6 +190,8 @@ class CQChartsIValues {
   IValSet ivalset_; // unique indexed integer values
   SetIVal setival_; // index to integer map
 };
+
+//---
 
 class CQChartsSValues {
  public:
@@ -199,10 +215,13 @@ class CQChartsSValues {
   const QString &value(int i) const { return svals_[i]; }
 
   int addValue(const QString &s) {
+    // add to trie
     trie_.addWord(s);
 
+    // add to all values
     svals_.push_back(s);
 
+    // add to unique values if new
     auto p = svalset_.find(s);
 
     if (p == svalset_.end()) {
@@ -238,22 +257,26 @@ class CQChartsSValues {
     return (*p).second;
   }
 
+  // min/max value
   QString min() const { assert(! svalset_.empty()); return svalset_. begin()->first; }
   QString max() const { assert(! svalset_.empty()); return svalset_.rbegin()->first; }
 
+  // min/max index
   int imin() const { assert(! setsval_.empty()); return setsval_. begin()->first; }
   int imax() const { assert(! setsval_.empty()); return setsval_.rbegin()->first; }
 
+  // number of unique values
   int numUnique() const { return svalset_.size(); }
 
+  // map value into real in range
   double map(const QString &s, double mapMin=0.0, double mapMax=1.0) const {
     // get string set index
     int i = id(s);
 
     // map string set index using 1 -> number of unique values
-    int slen = numUnique();
+    int n = numUnique();
 
-    if (! slen)
+    if (! n)
       return mapMin;
 
     return CQChartsUtil::map(i, imin(), imax(), mapMin, mapMax);
@@ -323,6 +346,98 @@ class CQChartsSValues {
   CQChartsTrie           trie_;                   // string trie
   CQChartsTrie::Patterns spatterns_;              // trie patterns
   bool                   spatternsSet_ { false }; // trie patterns set
+};
+
+//---
+
+class CQChartsCValues {
+ public:
+  CQChartsCValues() { }
+
+  void clear() {
+    cvals_  .clear();
+    cvalset_.clear();
+    setcval_.clear();
+  }
+
+  int size() const { return cvals_.size(); }
+
+  // get nth value (non-unique)
+  const QColor &value(int i) const { return cvals_[i]; }
+
+  int addValue(const QColor &c) {
+    // add to all values
+    cvals_.push_back(c);
+
+    // add to unique values if new
+    auto p = cvalset_.find(c);
+
+    if (p == cvalset_.end()) {
+      int id = cvalset_.size();
+
+      p = cvalset_.insert(p, CValSet::value_type(c, id));
+
+      setcval_[id] = c;
+    }
+
+    return (*p).second;
+  }
+
+  // color to id
+  int id(const QColor &c) const {
+    // get string set index
+    auto p = cvalset_.find(c);
+
+    if (p == cvalset_.end())
+      return -1;
+
+    return (*p).second;
+  }
+
+  // id to color
+  QColor ivalue(int i) const {
+    // get string for index
+    auto p = setcval_.find(i);
+
+    if (p == setcval_.end())
+      return "";
+
+    return (*p).second;
+  }
+
+  // min/max value
+  QColor min() const { assert(! cvalset_.empty()); return cvalset_. begin()->first; }
+  QColor max() const { assert(! cvalset_.empty()); return cvalset_.rbegin()->first; }
+
+  // min/max index
+  int imin() const { assert(! setcval_.empty()); return setcval_. begin()->first; }
+  int imax() const { assert(! setcval_.empty()); return setcval_.rbegin()->first; }
+
+  // number of unique values
+  int numUnique() const { return cvalset_.size(); }
+
+  // map value into real in range
+  double map(const QColor &c, double mapMin=0.0, double mapMax=1.0) const {
+    // get color set index
+    int i = id(c);
+
+    // map color set index using 1 -> number of unique values
+    int n = numUnique();
+
+    if (! n)
+      return mapMin;
+
+    return CQChartsUtil::map(i, imin(), imax(), mapMin, mapMax);
+  }
+
+ private:
+  using CVals   = std::vector<QColor>;
+  using CValSet = std::map<QColor,int,CQChartsUtil::ColorCmp>;
+  using SetCVal = std::map<int,QColor>;
+
+  CVals   cvals_;   // all color values
+  CValSet cvalset_; // unique indexed color values
+  SetCVal setcval_; // index to color map
 };
 
 //------
@@ -422,15 +537,15 @@ class CQChartsValueSet : public QObject {
   int imax() const;
 
   // get minimum real value
-  // (for integers and reals this is the minimum unique value, for string this is imin))
+  // (for integers and reals this is the minimum unique value, otherwise this  is imin))
   double rmin() const;
 
   // get maximum real value
-  // (for integers and reals this is the maximum unique value, for string this is imax))
+  // (for integers and reals this is the maximum unique value, otherwise this is imax))
   double rmax() const;
 
   // get mean real value
-  // (for integers and reals this is the mean value, for string this is imax/2))
+  // (for integers and reals this is the mean value, otherwise this is imax/2))
   double rmean() const;
 
  private:
@@ -452,6 +567,7 @@ class CQChartsValueSet : public QObject {
   CQChartsIValues ivals_; // integer values
   CQChartsRValues rvals_; // real values
   CQChartsSValues svals_; // string values
+  CQChartsCValues cvals_; // color values
 
   bool    mapEnabled_ { true };
   double  mapMin_     { 0.0 };

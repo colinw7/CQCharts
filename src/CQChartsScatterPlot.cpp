@@ -57,6 +57,94 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   addTitle();
 }
 
+//------
+
+void
+CQChartsScatterPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setXColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setYColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSize(double s)
+{
+  CQChartsUtil::testAndSet(symbolSize_, s, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolBorder(bool b)
+{
+  CQChartsUtil::testAndSet(symbolData_.border.visible, b, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolBorderColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(symbolData_.border.color, c, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolBorderAlpha(double a)
+{
+  CQChartsUtil::testAndSet(symbolData_.border.alpha, a, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolBorderWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(symbolData_.border.width, l, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolFilled(bool b)
+{
+  CQChartsUtil::testAndSet(symbolData_.background.visible, b, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolFillColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(symbolData_.background.color, c, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolFillAlpha(double a)
+{
+  CQChartsUtil::testAndSet(symbolData_.background.alpha, a, [&]() { update(); } );
+}
+
+void
+CQChartsScatterPlot::
+setFontSize(double s)
+{
+  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
+}
+
+//------
+
 void
 CQChartsScatterPlot::
 addProperties()
@@ -435,14 +523,30 @@ addKeyItems(CQChartsPlotKey *key)
 
   int i = 0;
 
-  for (const auto &nameValue: nameValues_) {
-    const QString &name = nameValue.first;
+  for (const auto &nameValue : nameValues_) {
+    const QString &name   = nameValue.first;
+    const Values  &values = nameValue.second;
 
-    CQChartsScatterKeyColor *color = new CQChartsScatterKeyColor(this, i, nv);
-    CQChartsKeyText         *text  = new CQChartsKeyText        (this, name);
+    CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, i, nv);
+    CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name);
 
-    key->addItem(color, i, 0);
-    key->addItem(text , i, 1);
+    key->addItem(colorItem, i, 0);
+    key->addItem(textItem , i, 1);
+
+    int nv1 = values.size();
+
+    if (nv1 > 0) {
+      const Point &valuePoint = values[0];
+
+      OptColor color = boost::make_optional(false, CQChartsColor());
+
+      if (colorColumn().isValid()) {
+        (void) colorSetColor("color", valuePoint.i, color);
+
+        if (color)
+          colorItem->setColor(*color);
+      }
+    }
 
     ++i;
   }
@@ -471,6 +575,19 @@ drawForeground(QPainter *painter)
     double min  = symbolSizeSet->rmin();
     double mean = symbolSizeSet->rmean();
     double max  = symbolSizeSet->rmax();
+
+    QString  typeName;
+    QVariant minValue, maxValue;
+
+    columnDetails(symbolSizeColumn(), typeName, minValue, maxValue);
+
+    bool ok;
+
+    if (minValue.isValid())
+      min = CQChartsUtil::toReal(minValue, ok);
+
+    if (maxValue.isValid())
+      max = CQChartsUtil::toReal(maxValue, ok);
 
     double px, py;
 
@@ -751,7 +868,12 @@ QBrush
 CQChartsScatterKeyColor::
 fillBrush() const
 {
-  QColor c = CQChartsKeyColorBox::fillBrush().color();
+  QColor c;
+
+  if (color_.isValid())
+    c = color_.interpColor(plot_, 0, 1);
+  else
+    c = CQChartsKeyColorBox::fillBrush().color();
 
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 

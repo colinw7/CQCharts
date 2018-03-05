@@ -39,6 +39,8 @@ CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("pie"), model)
 {
+  dataColumns_.push_back(CQChartsColumn(1));
+
   (void) addColorSet("color");
 
   textBox_ = new CQChartsPieTextObj(this);
@@ -65,24 +67,26 @@ void
 CQChartsPiePlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  if (c != labelColumn_) {
-    labelColumn_ = c;
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
 
-    updateRangeAndObjs();
-  }
+const CQChartsColumn &
+CQChartsPiePlot::
+dataColumn() const
+{
+  assert(! dataColumns_.empty());
+
+  return dataColumns_[0];
 }
 
 void
 CQChartsPiePlot::
 setDataColumn(const CQChartsColumn &c)
 {
-  if (c != dataColumn_) {
-    dataColumn_ = c;
-
+  if (dataColumns_.size() != 1 || c != dataColumn()) {
     dataColumns_.clear();
 
-    if (dataColumn_.isValid())
-      dataColumns_.push_back(dataColumn_);
+    dataColumns_.push_back(c);
 
     updateRangeAndObjs();
   }
@@ -95,10 +99,8 @@ setDataColumns(const Columns &dataColumns)
   if (dataColumns != dataColumns_) {
     dataColumns_ = dataColumns;
 
-    if (! dataColumns_.empty())
-      dataColumn_ = dataColumns_[0];
-    else
-      dataColumn_ = -1;
+    if (dataColumns_.empty())
+      dataColumns_.push_back(CQChartsColumn());
 
     updateRangeAndObjs();
   }
@@ -129,22 +131,14 @@ void
 CQChartsPiePlot::
 setGroupColumn(const CQChartsColumn &c)
 {
-  if (c != groupColumn_) {
-    groupColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsPiePlot::
 setKeyLabelColumn(const CQChartsColumn &c)
 {
-  if (c != keyLabelColumn_) {
-    keyLabelColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -153,11 +147,7 @@ void
 CQChartsPiePlot::
 setAngleExtent(double r)
 {
-  if (r != angleExtent_) {
-    angleExtent_ = r;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -255,16 +245,19 @@ updateRange(bool apply)
   //---
 
   // if group column defined use that
-  // if multiple data column then use label column and data labels
+  // if multiple data columns then use label column and data labels
   //   if row grouping we are creating a value set per row (1 value per data column)
   //   if column grouping we are creating a value set per data column (1 value per row)
   // otherwise (single data column) just use dummy group (column -1)
-  if      (groupColumn().isValid())
+  if      (groupColumn().isValid()) {
     initGroup(groupColumn());
-  else if (dataColumns().size() > 1)
+  }
+  else if (dataColumns().size() > 1) {
     initGroup(labelColumn(), dataColumns(), isRowGrouping());
-  else
+  }
+  else {
     initGroup();
+  }
 
   //---
 
@@ -399,15 +392,8 @@ void
 CQChartsPiePlot::
 addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
-  if (dataColumns().size() > 1) {
-    for (const auto &column : dataColumns())
-      addRowColumn(model, parent, row, column);
-  }
-  else {
-    const CQChartsColumn &column = dataColumn();
-
+  for (const auto &column : dataColumns())
     addRowColumn(model, parent, row, column);
-  }
 }
 
 void
@@ -554,15 +540,8 @@ void
 CQChartsPiePlot::
 addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
-  if (dataColumns().size() > 1) {
-    for (const auto &column : dataColumns())
-      addRowColumnDataTotal(model, parent, row, column);
-  }
-  else {
-    const CQChartsColumn &column = dataColumn();
-
+  for (const auto &column : dataColumns())
     addRowColumnDataTotal(model, parent, row, column);
-  }
 }
 
 void

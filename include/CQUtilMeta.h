@@ -60,13 +60,15 @@ QDebug operator<<(QDebug dbg, const TYPE &t) \
 
 #define CQUTIL_DEF_META_TYPE_REGISTER(TYPE) \
 namespace CQUtilMeta_##TYPE {\
-void registerMetaType() { \
+int registerMetaType() { \
   static bool registered; \
+  static int type = -1; \
   if (! registered) { \
-    qRegisterMetaType<TYPE>(#TYPE); \
+    type = qRegisterMetaType<TYPE>(#TYPE); \
     qRegisterMetaTypeStreamOperators<TYPE>(#TYPE); \
     registered = true; \
   } \
+  return type; \
 } \
 }
 

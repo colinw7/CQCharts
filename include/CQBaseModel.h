@@ -20,13 +20,19 @@ class CQBaseModel : public QAbstractItemModel {
     INTEGER = QVariant::Int,
     REAL    = QVariant::Double,
     STRING  = QVariant::String,
+    STRINGS = QVariant::StringList,
     POINT   = QVariant::PointF,
     LINE    = QVariant::LineF,
     RECT    = QVariant::RectF,
     SIZE    = QVariant::SizeF,
     POLYGON = QVariant::PolygonF,
     COLOR   = QVariant::Color,
-    TIME    = QVariant::Time
+    PEN     = QVariant::Pen,
+    BRUSH   = QVariant::Brush,
+    IMAGE   = QVariant::Image,
+    TIME    = QVariant::Time,
+    PATH    = QVariant::UserType + 101,
+    STYLE   = QVariant::UserType + 102
   };
 
  protected:

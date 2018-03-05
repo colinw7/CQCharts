@@ -379,25 +379,22 @@ class CQChartsXYPlot : public CQChartsPlot {
   void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &sizeColumn() const { return sizeColumn_; }
-  void setSizeColumn(const CQChartsColumn &c) { sizeColumn_ = c; updateRangeAndObjs(); }
+  void setSizeColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &pointLabelColumn() const { return pointLabelColumn_; }
-  void setPointLabelColumn(const CQChartsColumn &c) {
-    pointLabelColumn_ = c; updateRangeAndObjs(); }
+  void setPointLabelColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &pointColorColumn() const { return pointColorColumn_; }
-  void setPointColorColumn(const CQChartsColumn &c) {
-    pointColorColumn_ = c; updateRangeAndObjs(); }
+  void setPointColorColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &pointSymbolColumn() const { return pointSymbolColumn_; }
-  void setPointSymbolColumn(const CQChartsColumn &c) {
-    pointSymbolColumn_ = c; updateRangeAndObjs(); }
+  void setPointSymbolColumn(const CQChartsColumn &c);
 
   const CQChartsColumn & vectorXColumn() const { return vectorXColumn_; }
-  void setVectorXColumn(const CQChartsColumn &c) { vectorXColumn_ = c; updateRangeAndObjs(); }
+  void setVectorXColumn(const CQChartsColumn &c);
 
   const CQChartsColumn & vectorYColumn() const { return vectorYColumn_; }
-  void setVectorYColumn(const CQChartsColumn &c) { vectorYColumn_ = c; updateRangeAndObjs(); }
+  void setVectorYColumn(const CQChartsColumn &c);
 
   //---
 
@@ -405,7 +402,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool isBivariate() const { return bivariateLineData_.visible; }
 
   const CQChartsLength &bivariateLineWidth() const { return bivariateLineData_.width; }
-  void setBivariateLineWidth(const CQChartsLength &l) { bivariateLineData_.width = l; update(); }
+  void setBivariateLineWidth(const CQChartsLength &l);
 
   //---
 
@@ -638,6 +635,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   CQChartsArrow*     arrowObj_;                    // vectors data
   CQChartsTextData   dataLabelData_;               // data label text data
   CQChartsLineData   bivariateLineData_;           // bivariate line object
+  ColumnType         pointColorColumnType_;        // point color column type
   mutable double     symbolWidth_       { 1.0 };   // current symbol width
   mutable double     symbolHeight_      { 1.0 };   // current symbol height
 };

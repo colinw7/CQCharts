@@ -52,8 +52,8 @@ init()
 
   setMouseTracking(true);
 
-  gradientPalette()->addDefinedColor(0, QColor(0,0,0));
-  gradientPalette()->addDefinedColor(1, QColor(255,255,255));
+  //gradientPalette()->addDefinedColor(0, QColor(0,0,0));
+  //gradientPalette()->addDefinedColor(1, QColor(255,255,255));
 
   tipText_ = new QLabel(this);
 

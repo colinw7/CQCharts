@@ -14,6 +14,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_PROPERTY(double        value READ value WRITE setValue)
   Q_PROPERTY(QString       name  READ name  WRITE setName )
   Q_PROPERTY(CQChartsColor color READ color WRITE setColor)
+  Q_PROPERTY(CQChartsStyle style READ style WRITE setStyle)
 
  public:
   using Polygons = std::vector<QPolygonF>;
@@ -30,10 +31,13 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   void setValue(double r) { value_ = r; }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
+
+  const CQChartsStyle &style() const { return style_; }
+  void setStyle(const CQChartsStyle &s) { style_ = s; }
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -49,6 +53,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   double                value_ { 0.0 };     // geometry value
   QString               name_;              // geometry name
   CQChartsColor         color_;             // optional color
+  CQChartsStyle         style_;             // optional style
   QModelIndex           ind_;               // model index
   int                   i_     { -1 };      // value index
   int                   n_     { -1 };      // value count
@@ -84,6 +89,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn geometryColumn READ geometryColumn WRITE setGeometryColumn)
   Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn    WRITE setValueColumn   )
   Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn    WRITE setColorColumn   )
+  Q_PROPERTY(CQChartsColumn styleColumn    READ styleColumn    WRITE setStyleColumn   )
   Q_PROPERTY(double         minValue       READ minValue       WRITE setMinValue      )
   Q_PROPERTY(double         maxValue       READ maxValue       WRITE setMaxValue      )
   Q_PROPERTY(bool           border         READ isBorder       WRITE setBorder        )
@@ -115,6 +121,7 @@ class CQChartsGeometryPlot : public CQChartsPlot {
     Polygons           polygons;
     double             value { 0.0 };
     CQChartsColor      color;
+    CQChartsStyle      style;
     CQChartsGeom::BBox bbox;
     QModelIndex        ind;
   };
@@ -127,24 +134,27 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   //---
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &geometryColumn() const { return geometryColumn_; }
-  void setGeometryColumn(const CQChartsColumn &c) { geometryColumn_ = c; updateRangeAndObjs(); }
+  void setGeometryColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+  void setValueColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &colorColumn() const { return colorColumn_; }
-  void setColorColumn(const CQChartsColumn &c) { colorColumn_ = c; updateRangeAndObjs(); }
+  void setColorColumn(const CQChartsColumn &c);
+
+  const CQChartsColumn &styleColumn() const { return styleColumn_; }
+  void setStyleColumn(const CQChartsColumn &c);
 
   //---
 
   double minValue() const { return minValue_; }
-  void setMinValue(double r) { minValue_ = r; update(); }
+  void setMinValue(double r);
 
   double maxValue() const { return maxValue_; }
-  void setMaxValue(double r) { maxValue_ = r; update(); }
+  void setMaxValue(double r);
 
   //---
 
@@ -213,8 +223,10 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   CQChartsColumn    geometryColumn_ { 1 };   // geometry column
   CQChartsColumn    valueColumn_;            // value column
   CQChartsColumn    colorColumn_;            // color column
+  CQChartsColumn    styleColumn_;            // style column
   ColumnType        geometryColumnType_;     // geometry column type
   ColumnType        colorColumnType_;        // color column type
+  ColumnType        styleColumnType_;        // style column type
   Geometries        geometries_;             // geometry shapes
   double            minValue_       { 0.0 }; // min value
   double            maxValue_       { 0.0 }; // max value

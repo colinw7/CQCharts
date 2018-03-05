@@ -220,11 +220,7 @@ void
 CQChartsDistributionPlot::
 setBarFill(bool b)
 {
-  if (b != boxData_.shape.background.visible) {
-    boxData_.shape.background.visible = b;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -238,11 +234,7 @@ void
 CQChartsDistributionPlot::
 setBarColor(const CQChartsColor &c)
 {
-  if (c != boxData_.shape.background.color) {
-    boxData_.shape.background.color = c;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -263,11 +255,7 @@ void
 CQChartsDistributionPlot::
 setBarAlpha(double a)
 {
-  if (a != boxData_.shape.background.alpha) {
-    boxData_.shape.background.alpha = a;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsDistributionPlot::Pattern

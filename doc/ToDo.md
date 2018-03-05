@@ -1,8 +1,6 @@
 High
  + More common grouping column handling
  + equal scale should be quick adjust of dataRange (cached original)
- + support first header column in CSV/TSV others
- + Allow reference header data in chart (syntax ?, -1 already taken)
  + More variant properties to remove string conversion
  + More variant editors
  + More annotations (symbol, box, ...)
@@ -12,16 +10,20 @@ High
  + Annotation Layer
  + Use Quad Tree to limit numbe of objects draw (min rect size)
  + Position class for point position on view, plot, ... Use for annotations
- + text format, flow or split
+ + text format, flow or split, format to aspect and then scale
  + use plot percent for key, title ? unzoomed ?
  + custom editors for column, columns, position, length
    + custom edit, use to/from string API's and custom contols
- + column types to parse complex data like geometry plot (to variant ?)
  + more standard code for column details (type, min, max, ..., bucket) and use in all plots
  + jitter (peturb move overlapping points)
  + add column details to model summary data
  + more usage of CQChartsUtil::testAndSet
- + add version to plot data, bump could when changed and updated cached values on version change
+ + add version to plot data, bump count when changed and updated cached values on version change
+ + Remove color set. Store colors in palette ?
+ + More column details in type: min/max ...
+ + better default colors
+ + select plot updates current embedded table model
+ + select of plot in view with multiple plots deselects others
 
 Medium
  + Scroll by Single Large Tick Mark ?

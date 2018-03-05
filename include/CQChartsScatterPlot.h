@@ -64,9 +64,15 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
 
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &v) { color_ = v; }
+
   bool selectPress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
+
+ private:
+  CQChartsColor color_;
 };
 
 //---
@@ -158,32 +164,32 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
+  void setXColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &yColumn() const { return yColumn_; }
-  void setYColumn(const CQChartsColumn &c) { yColumn_ = c; updateRangeAndObjs(); }
+  void setYColumn(const CQChartsColumn &c);
 
   //---
 
   double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double s) { symbolSize_ = s; updateObjs(); }
+  void setSymbolSize(double s);
 
   //---
 
   bool isSymbolBorder() const { return symbolData_.border.visible; }
-  void setSymbolBorder(bool b) { symbolData_.border.visible = b; update(); }
+  void setSymbolBorder(bool b);
 
   const CQChartsColor &symbolBorderColor() const { return symbolData_.border.color; }
-  void setSymbolBorderColor(const CQChartsColor &c) { symbolData_.border.color = c; update(); }
+  void setSymbolBorderColor(const CQChartsColor &c);
 
   double symbolBorderAlpha() const { return symbolData_.border.alpha; }
-  void setSymbolBorderAlpha(double r) { symbolData_.border.alpha = r; update(); }
+  void setSymbolBorderAlpha(double a);
 
   const CQChartsLength &symbolBorderWidth() const { return symbolData_.border.width; }
-  void setSymbolBorderWidth(const CQChartsLength &l) { symbolData_.border.width = l; update(); }
+  void setSymbolBorderWidth(const CQChartsLength &l);
 
   QColor interpSymbolBorderColor(int i, int n) const {
     return symbolData_.border.color.interpColor(this, i, n); }
@@ -191,13 +197,13 @@ class CQChartsScatterPlot : public CQChartsPlot {
   //---
 
   bool isSymbolFilled() const { return symbolData_.background.visible; }
-  void setSymbolFilled(bool b) { symbolData_.background.visible = b; update(); }
+  void setSymbolFilled(bool b);
 
   const CQChartsColor &symbolFillColor() const { return symbolData_.background.color; }
-  void setSymbolFillColor(const CQChartsColor &c) { symbolData_.background.color = c; update(); }
+  void setSymbolFillColor(const CQChartsColor &c);
 
   double symbolFillAlpha() const { return symbolData_.background.alpha; }
-  void setSymbolFillAlpha(double r) { symbolData_.background.alpha = r; update(); }
+  void setSymbolFillAlpha(double a);
 
   Pattern symbolFillPattern() const { return (Pattern) symbolData_.background.pattern; }
   void setSymbolFillPattern(const Pattern &p) {
@@ -250,7 +256,7 @@ class CQChartsScatterPlot : public CQChartsPlot {
     if (setValueSetColumn("fontSize", c)) updateRangeAndObjs(); }
 
   double fontSize() const { return fontSize_; }
-  void setFontSize(double s) { fontSize_ = s; updateObjs(); }
+  void setFontSize(double s);
 
   bool isFontSizeMapEnabled() const { return isValueSetMapEnabled("fontSize"); }
   void setFontSizeMapEnabled(bool b) { setValueSetMapEnabled("fontSize", b); updateObjs(); }

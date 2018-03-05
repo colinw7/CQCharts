@@ -76,10 +76,10 @@ class CQChartsTheme : public QObject {
  protected:
   using Palettes = std::vector<CQChartsGradientPalette*>;
 
-  QString                  name_;
-  CQChartsGradientPalette* theme_       { nullptr };
-  Palettes                 palettes_;
-  QColor                   selectColor_ { Qt::yellow };
+  QString                  name_;                       // theme name
+  CQChartsGradientPalette* theme_       { nullptr };    // theme palette (dark/light)
+  Palettes                 palettes_;                   // theme palette list
+  QColor                   selectColor_ { Qt::yellow }; // selection color
 };
 
 class CQChartsDefaultTheme : public CQChartsTheme {

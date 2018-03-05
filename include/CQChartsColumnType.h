@@ -16,7 +16,7 @@ class CQChartsColumnType {
 
   CQBaseModel::Type type() const { return type_; }
 
-  virtual const char *name() const = 0;
+  virtual QString name() const { return CQBaseModel::typeName(type_); }
 
   // input variant to data variant for edit
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
@@ -24,8 +24,12 @@ class CQChartsColumnType {
   // data variant to output variant (string) for display
   virtual QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
+  // data min/max value
+  virtual QVariant minValue(const CQChartsNameValues &) const { return QVariant(); }
+  virtual QVariant maxValue(const CQChartsNameValues &) const { return QVariant(); }
+
  private:
-  CQBaseModel::Type type_;
+  CQBaseModel::Type type_; // base type
 };
 
 //---
@@ -37,28 +41,20 @@ class CQChartsColumnStringType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::STRING) {
   }
 
-  const char *name() const { return "string"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return CQChartsUtil::toString(var.toDouble());
+    if (var.type() == QVariant::String) return var;
 
-    if (var.type() == QVariant::Int)
-      return CQChartsUtil::toString((long) var.toInt());
+    QString str;
 
-    return var; // var.toString() ?
+    CQChartsUtil::variantToString(var, str);
+
+    return QVariant::fromValue<QString>(str);
   }
 
   // data variant to output variant (string) for display
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return CQChartsUtil::toString(var.toDouble());
-
-    if (var.type() == QVariant::Int)
-      return CQChartsUtil::toString((long) var.toInt());
-
-    return var; // var.toString() ?
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
+    return userData(var, nameValues);
   }
 };
 
@@ -71,47 +67,71 @@ class CQChartsColumnRealType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::REAL) {
   }
 
-  const char *name() const { return "real"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Double)
-      return var;
+    if (var.type() == QVariant::Double) return var;
 
     bool ok;
 
     double r = CQChartsUtil::toReal(var, ok);
-
-    if (! ok)
-      return var; // QVariant() ?
+    if (! ok) return var;
 
     return QVariant::fromValue<double>(r);
   }
 
   // data variant to output variant (string) for display
   QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    double value = userData(var, nameValues).toDouble();
+    bool ok;
 
+    double r = CQChartsUtil::toReal(var, ok);
+    if (! ok) return QVariant();
+
+    // optional format for real
     auto p1 = nameValues.find("format");
 
-    if (p1 != nameValues.end()) {
-      // support units suffix with scale factor and format
-      auto p2 = nameValues.find("format_scale");
+    if (p1 == nameValues.end())
+      return CQChartsUtil::toString(r);
 
-      if (p2 != nameValues.end()) {
-        bool ok;
+    // support units suffix with scale factor and format
+    auto p2 = nameValues.find("format_scale");
 
-        double scale = CQChartsUtil::toReal((*p2).second, ok);
+    if (p2 != nameValues.end()) {
+      bool ok1;
 
-        if (ok)
-          value *= scale;
-      }
+      double scale = CQChartsUtil::toReal((*p2).second, ok1);
 
-      // convert value using format
-      return CQChartsUtil::toString(value, (*p1).second);
+      if (ok1)
+        r *= scale;
     }
-    else
-      return CQChartsUtil::toString(value);
+
+    // convert value using format
+    return CQChartsUtil::toString(r, (*p1).second);
+  }
+
+  // get min value
+  QVariant minValue(const CQChartsNameValues &nameValues) const override {
+    auto p = nameValues.find("min");
+    if (p == nameValues.end()) return QVariant();
+
+    bool ok;
+
+    double r = CQChartsUtil::toReal((*p).second, ok);
+    if (! ok) return QVariant();
+
+    return QVariant(r);
+  }
+
+  // get min value
+  QVariant maxValue(const CQChartsNameValues &nameValues) const override {
+    auto p = nameValues.find("max");
+    if (p == nameValues.end()) return QVariant();
+
+    bool ok;
+
+    double r = CQChartsUtil::toReal((*p).second, ok);
+    if (! ok) return QVariant();
+
+    return QVariant(r);
   }
 };
 
@@ -124,26 +144,26 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::INTEGER) {
   }
 
-  const char *name() const { return "integer"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Int)
-      return var;
+    if (var.type() == QVariant::Int) return var;
 
     bool ok;
 
     long l = CQChartsUtil::toInt(var, ok);
-
-    if (! ok)
-      return var; // QVariant() ?
+    if (! ok) return var;
 
     return QVariant::fromValue<int>(l);
   }
 
   // data variant to output variant (string) for display
-  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues) const override {
-    return CQChartsUtil::toString((long) userData(var, nameValues).toInt());
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
+    bool ok;
+
+    long l = CQChartsUtil::toInt(var, ok);
+    if (! ok) return QVariant();
+
+    return CQChartsUtil::toString(l);
   }
 };
 
@@ -156,24 +176,21 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::TIME) {
   }
 
-  const char *name() const { return "time"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
     // use format string to convert model (input) string to time (double)
     // TODO: assert if no format ?
     auto p = nameValues.find("format");
 
-    if (p != nameValues.end()) {
-      double t;
+    if (p == nameValues.end())
+      return var;
 
-      if (! CQChartsUtil::stringToTime((*p).second, var.toString(), t))
-        return var;
+    double t;
 
-      return QVariant::fromValue<double>(t);
-    }
+    if (! CQChartsUtil::stringToTime((*p).second, var.toString(), t))
+      return var;
 
-    return var;
+    return QVariant::fromValue<double>(t);
   }
 
   // data variant to output variant (string) for display
@@ -181,10 +198,8 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
     // get time value (double)
     bool ok;
 
-    double t = var.toDouble(&ok);
-
-    if (! ok)
-      return var;
+    double r = CQChartsUtil::toReal(var, ok);
+    if (! ok) return var;
 
     //---
 
@@ -193,16 +208,16 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
     auto p = nameValues.find("oformat");
 
     if (p != nameValues.end())
-      return CQChartsUtil::timeToString((*p).second, t);
+      return CQChartsUtil::timeToString((*p).second, r);
 
     auto p1 = nameValues.find("format");
 
     if (p1 != nameValues.end())
-      return CQChartsUtil::timeToString((*p1).second, t);
+      return CQChartsUtil::timeToString((*p1).second, r);
 
     //---
 
-    return QVariant::fromValue<double>(t);
+    return CQChartsUtil::toString(r);
   }
 };
 
@@ -215,12 +230,9 @@ class CQChartsColumnRectType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::RECT) {
   }
 
-  const char *name() const { return "rect"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::RectF)
-      return var;
+    if (var.type() == QVariant::RectF) return var;
 
     QRectF r;
 
@@ -241,7 +253,7 @@ class CQChartsColumnRectType : public CQChartsColumnType {
     if (var.type() == QVariant::RectF) {
       QRectF r = var.value<QRectF>();
 
-      return QString("%1 %2 %3 %4").arg(r.left()).arg(r.top()).arg(r.right()).arg(r.bottom());
+      return CQChartsUtil::rectToString(r);
     }
 
     return var; // TODO: other var formats
@@ -257,12 +269,9 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::POLYGON) {
   }
 
-  const char *name() const { return "polygon"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::PolygonF)
-      return var;
+    if (var.type() == QVariant::PolygonF) return var;
 
     QPolygonF poly;
 
@@ -292,6 +301,74 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
 
 //---
 
+// path column type class
+class CQChartsColumnPathType : public CQChartsColumnType {
+ public:
+  CQChartsColumnPathType() :
+   CQChartsColumnType(CQBaseModel::Type::PATH) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.userType() == CQChartsPath::metaType()) return var;
+
+    QString str = var.toString();
+
+    CQChartsPath path;
+
+    (void) CQChartsUtil::stringToPath(str, path);
+
+    return QVariant::fromValue<CQChartsPath>(path);
+  }
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.userType() == CQChartsPath::metaType()) {
+      CQChartsPath path = var.value<CQChartsPath>();
+
+      return CQChartsUtil::pathToString(path);
+    }
+
+    return var; // TODO: other var formats
+  }
+};
+
+//---
+
+// style column type class
+class CQChartsColumnStyleType : public CQChartsColumnType {
+ public:
+  CQChartsColumnStyleType() :
+   CQChartsColumnType(CQBaseModel::Type::STYLE) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.userType() == CQChartsStyle::metaType()) return var;
+
+    QString str = var.toString();
+
+    CQChartsStyle style;
+
+    (void) CQChartsUtil::stringToStyle(str, style);
+
+    return QVariant::fromValue<CQChartsStyle>(style);
+  }
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &) const override {
+    if (var.userType() == CQChartsStyle::metaType()) {
+      CQChartsStyle style = var.value<CQChartsStyle>();
+
+      return CQChartsUtil::styleToString(style);
+    }
+
+    return var; // TODO: other var formats
+  }
+};
+
+//---
+
 // color column type class
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
@@ -299,12 +376,9 @@ class CQChartsColumnColorType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::COLOR) {
   }
 
-  const char *name() const { return "color"; }
-
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
-    if (var.type() == QVariant::Color)
-      return var;
+    if (var.type() == QVariant::Color) return var;
 
     QString str = var.toString();
 

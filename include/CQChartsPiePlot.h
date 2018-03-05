@@ -223,7 +223,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   const CQChartsColumn &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &dataColumn() const { return dataColumn_; }
+  const CQChartsColumn &dataColumn() const;
   void setDataColumn(const CQChartsColumn &c);
 
   const Columns &dataColumns() const { return dataColumns_; }
@@ -354,7 +354,6 @@ class CQChartsPiePlot : public CQChartsPlot {
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
   CQChartsColumn       labelColumn_     { 0 };       // label column
-  CQChartsColumn       dataColumn_      { 1 };       // data column
   Columns              dataColumns_;                 // data columns
   CQChartsColumn       groupColumn_;                 // group column
   CQChartsColumn       keyLabelColumn_;              // key label column

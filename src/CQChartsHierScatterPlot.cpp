@@ -64,33 +64,21 @@ void
 CQChartsHierScatterPlot::
 setXColumn(const CQChartsColumn &c)
 {
-  if (c != xColumn_) {
-    xColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setYColumn(const CQChartsColumn &c)
 {
-  if (c != yColumn_) {
-    yColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsHierScatterPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  if (c != nameColumn_) {
-    nameColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void

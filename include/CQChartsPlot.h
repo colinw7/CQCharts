@@ -708,6 +708,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  bool isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &col,
+                     const QModelIndex &parent=QModelIndex()) const;
+
+  bool isSelectIndex(const QModelIndex &ind, int row, int col,
+                     const QModelIndex &parent=QModelIndex()) const;
+
   QModelIndex selectIndex(int row, const CQChartsColumn &col,
                           const QModelIndex &parent=QModelIndex()) const;
 
@@ -1112,6 +1118,11 @@ class CQChartsPlot : public QObject {
   bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
 
   bool setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr);
+
+  bool columnDetails(const CQChartsColumn &column, QString &typeName,
+                     QVariant &minValue, QVariant &maxValue) const;
+
+  //---
 
   bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                           const QString &separator, QStringList &nameStrs, ModelIndices &nameInds);

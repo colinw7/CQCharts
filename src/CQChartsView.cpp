@@ -174,8 +174,7 @@ setMode(const Mode &mode)
     for (auto &probeBand : probeBands_)
       probeBand->hide();
 
-    for (auto &plotData : plotDatas_)
-      plotData.plot->deselectAll();
+    deselectAll();
 
     mode_ = mode;
 
@@ -192,6 +191,14 @@ setSelectMode(const SelectMode &selectMode)
 
     emit selectModeChanged();
   }
+}
+
+void
+CQChartsView::
+deselectAll()
+{
+  for (auto &plotData : plotDatas_)
+    plotData.plot->deselectAll();
 }
 
 void
@@ -496,6 +503,8 @@ bool
 CQChartsView::
 editMousePress(const QPointF &p)
 {
+  deselectAll();
+
   if (mouseData_.plot) {
     if (mouseData_.plot->editMousePress(p))
       return true;

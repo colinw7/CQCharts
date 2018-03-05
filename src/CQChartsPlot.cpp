@@ -913,10 +913,12 @@ void
 CQChartsPlot::
 propertyItemSelected(QObject *obj, const QString &)
 {
-  deselectAll();
+  view()->deselectAll();
 
   if      (obj == this) {
     setSelected(true);
+
+    view()->setCurrentPlotInd(view()->plotInd(this));
 
     update();
   }
@@ -1868,9 +1870,11 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   if (! objs.empty()) {
     if (! isSelected()) {
-      deselectAll();
+      view()->deselectAll();
 
       setSelected(true);
+
+      view()->setCurrentPlotInd(view()->plotInd(this));
 
       return true;
     }
@@ -3792,6 +3796,23 @@ setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
   return CQChartsUtil::setColumnTypeStr(charts(), model, column, typeStr);
 }
 
+bool
+CQChartsPlot::
+columnDetails(const CQChartsColumn &column, QString &typeName,
+              QVariant &minValue, QVariant &maxValue) const
+{
+  QAbstractItemModel *model = this->model();
+  assert(model);
+
+  CQChartsUtil::ModelColumnDetails columnDetails(charts(), model, column);
+
+  typeName = columnDetails.typeName();
+  minValue = columnDetails.minValue();
+  maxValue = columnDetails.maxValue();
+
+  return true;
+}
+
 //------
 
 bool
@@ -4222,6 +4243,10 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
 
 //------
 
+// init group buckets depending on:
+//  group column
+//  multiple value columns
+//  row grouping
 void
 CQChartsPlot::
 initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool rowGrouping)
@@ -4236,14 +4261,14 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
   // for row grouping we use the column header as the grouping id so all row
   // values in the column are added to the group
   if (valueColumns.size() > 1 && rowGrouping) {
-    groupBucket_.setColumnType (ColumnType::INTEGER);
     groupBucket_.setDataType   (CQChartsColumnBucket::DataType::HEADER);
+    groupBucket_.setColumnType (ColumnType::INTEGER);
     groupBucket_.setRowGrouping(true);
 
     for (const auto &column : valueColumns) {
       bool ok;
 
-      QString name = CQChartsUtil::modelHeaderString(model, column.column(), ok);
+      QString name = CQChartsUtil::modelHeaderString(model, column, ok);
 
       int ind = groupBucket_.addValue(column.column());
 
@@ -4255,19 +4280,21 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
 
   //---
 
+  // for specified group column set column and column type
   if (groupColumn.isValid()) {
     ColumnType columnType = CQBaseModel::Type::STRING;
 
     if (groupColumn.type() == CQChartsColumn::Type::DATA)
-      columnType = columnValueType(groupColumn.column());
+      columnType = columnValueType(groupColumn);
 
+    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
     groupBucket_.setColumnType(columnType);
     groupBucket_.setColumn    (groupColumn);
-    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
   }
+  // no group column then use parent path (hierarchical)
   else {
-    groupBucket_.setColumnType(ColumnType::STRING);
     groupBucket_.setDataType  (CQChartsColumnBucket::DataType::PATH);
+    groupBucket_.setColumnType(ColumnType::STRING);
   }
 
   // process model data
@@ -4278,17 +4305,22 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      if (bucket_->column().isValid()) {
+      // add column value
+      if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
         bool ok;
 
         QVariant value = CQChartsUtil::modelValue(model, row, bucket_->column(), parent, ok);
 
         bucket_->addValue(value);
       }
-      else {
+      // add parent path (hierarchical)
+      else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
         QString path = CQChartsUtil::parentPath(model, parent);
 
         bucket_->addString(path);
+      }
+      else {
+        assert(false);
       }
 
       return State::OK;
@@ -4309,23 +4341,26 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
             const CQChartsColumn &column) const
 {
   // header has multiple groups (one per column)
-  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
+  if      (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
     return groupBucket_.ind(column.column());
   }
-
   // get group id from value in group column
-  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
+  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
     QVariant value = CQChartsUtil::modelValue(model, row, groupBucket_.column(), parent, ok);
 
     return groupBucket_.ind(value);
   }
-
   // get group id from parent path name
-  QString path = CQChartsUtil::parentPath(model, parent);
+  else  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
+    QString path = CQChartsUtil::parentPath(model, parent);
 
-  return groupBucket_.ind(path);
+    return groupBucket_.ind(path);
+  }
+  else {
+    assert(false);
+  }
 }
 
 //------
@@ -4340,6 +4375,24 @@ visitModel(ModelVisitor &visitor)
 }
 
 //------
+
+bool
+CQChartsPlot::
+isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &col,
+              const QModelIndex &parent) const
+{
+  if (col.type() != CQChartsColumn::Type::DATA)
+    return false;
+
+  return isSelectIndex(ind, row, col.column(), parent);
+}
+
+bool
+CQChartsPlot::
+isSelectIndex(const QModelIndex &ind, int row, int col, const QModelIndex &parent) const
+{
+  return (ind == selectIndex(row, col, parent));
+}
 
 QModelIndex
 CQChartsPlot::
@@ -4391,7 +4444,13 @@ void
 CQChartsPlot::
 addSelectIndex(const QModelIndex &ind)
 {
+  if (! ind.isValid())
+    return;
+
   QModelIndex ind1 = unnormalizeIndex(ind);
+
+  if (! ind1.isValid())
+    return;
 
   // add to map ordered by parent, column, row
   selIndexColumnRows_[ind1.parent()][ind1.column()].insert(ind1.row());

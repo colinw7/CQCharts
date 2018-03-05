@@ -4,6 +4,8 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
+#include <CQChartsPath.h>
+#include <CQChartsStyle.h>
 #include <CQBaseModel.h>
 #include <COSNaN.h>
 
@@ -687,37 +689,60 @@ inline bool fileToLines(const QString &filename, QStringList &lines) {
 
 //------
 
+QString pointToString  (const QPointF   &point);
 QString rectToString   (const QRectF    &rect);
 QString polygonToString(const QPolygonF &poly);
 
 bool variantToString(const QVariant &var, QString &str);
 
-inline double toReal(const QVariant &var, bool &ok) {
+inline QString toString(const QVariant &var, bool &ok) {
+  ok = true;
+
   if (! var.isValid()) {
     ok = false;
 
-    return getNaN();
+    return "";
   }
 
   QString str;
 
   bool rc = variantToString(var, str);
   assert(rc);
+
+  return str;
+}
+
+inline double toReal(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Double)
+    return var.value<double>();
+
+  QString str = toString(var, ok);
+
+  if (! ok)
+    return getNaN();
 
   return toReal(str, ok);
 }
 
 inline long toInt(const QVariant &var, bool &ok) {
-  if (! var.isValid()) {
-    ok = false;
+  ok = true;
 
-    return 0;
+  if (var.type() == QVariant::Int)
+    return var.value<int>();
+
+  if (var.type() == QVariant::Double) {
+    double r = var.value<double>();
+
+    if (isInteger(r))
+      return int(r);
   }
 
-  QString str;
+  QString str = toString(var, ok);
 
-  bool rc = variantToString(var, str);
-  assert(rc);
+  if (! ok)
+    return 0;
 
   return toInt(str, ok);
 }
@@ -836,14 +861,6 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bo
   return var;
 }
 
-#if 0
-inline QVariant modelValue(QAbstractItemModel *model, int row, int col, bool &ok) {
-  QModelIndex ind = model->index(row, col);
-
-  return modelValue(model, ind, ok);
-}
-#endif
-
 inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                            const QModelIndex &parent, bool &ok) {
   if      (col.type() == CQChartsColumn::Type::DATA) {
@@ -865,6 +882,8 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
   }
 }
 
+//---
+
 inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
   if (! ok) return "";
@@ -876,14 +895,6 @@ inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bo
 
   return str;
 }
-
-#if 0
-inline QString modelString(QAbstractItemModel *model, int row, int col, bool &ok) {
-  QModelIndex ind = model->index(row, col);
-
-  return modelString(model, ind, ok);
-}
-#endif
 
 inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                            const QModelIndex &parent, bool &ok) {
@@ -911,20 +922,14 @@ inline QString modelString(QAbstractItemModel *model, int row, const CQChartsCol
   }
 }
 
+//---
+
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
   if (! ok) return 0.0;
 
   return varToReal(var, ok);
 }
-
-#if 0
-inline double modelReal(QAbstractItemModel *model, int row, int col, bool &ok) {
-  QModelIndex ind = model->index(row, col);
-
-  return modelReal(model, ind, ok);
-}
-#endif
 
 inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                         const QModelIndex &parent, bool &ok) {
@@ -947,20 +952,14 @@ inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn
   }
 }
 
+//---
+
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
   if (! ok) return 0;
 
   return varToInt(var, ok);
 }
-
-#if 0
-inline long modelInteger(QAbstractItemModel *model, int row, int col, bool &ok) {
-  QModelIndex ind = model->index(row, col);
-
-  return modelInteger(model, ind, ok);
-}
-#endif
 
 inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                          const QModelIndex &parent, bool &ok) {
@@ -980,6 +979,29 @@ inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColum
     ok = false;
 
     return 0;
+  }
+}
+
+//---
+
+inline QColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+  QVariant var = modelValue(model, ind, ok);
+  if (! ok) return QColor();
+
+  return var.value<QColor>();
+}
+
+inline QColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                         const QModelIndex &parent, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelColor(model, ind, ok);
+  }
+  else {
+    ok = false;
+
+    return QColor();
   }
 }
 
@@ -1049,6 +1071,20 @@ struct RealCmp {
   }
 };
 
+// compare colors
+struct ColorCmp {
+  bool operator()(const QColor &lhs, const QColor &rhs) const {
+    if (lhs.red  () < rhs.red  ()) return true;
+    if (lhs.red  () > rhs.red  ()) return false;
+    if (lhs.green() < rhs.green()) return true;
+    if (lhs.green() > rhs.green()) return false;
+    if (lhs.blue () < rhs.blue ()) return true;
+    if (lhs.blue () > rhs.blue ()) return false;
+
+    return false;
+  }
+};
+
 //------
 
 bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polys);
@@ -1056,6 +1092,16 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polys);
 bool stringToPolygon (const QString &str, QPolygonF &poly );
 bool stringToRect    (const QString &str, QRectF    &rect );
 bool stringToPoint   (const QString &str, QPointF   &point);
+
+//------
+
+QString pathToString(const CQChartsPath &path);
+bool stringToPath(const QString &str, CQChartsPath &path);
+
+//------
+
+QString styleToString(const CQChartsStyle &style);
+bool stringToStyle(const QString &str, CQChartsStyle &style);
 
 //------
 

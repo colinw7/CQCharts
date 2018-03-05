@@ -14,6 +14,7 @@
 #include <QBitmap>
 
 #include <cassert>
+#include <iostream>
 
 static CQToolTip *s_instance;
 
@@ -61,14 +62,14 @@ CQToolTip::
   qApp->removeEventFilter(this);
 }
 
-void
+bool
 CQToolTip::
 show(const QPoint &pos, CQToolTipIFace *tooltip, QWidget *parent)
 {
-  if (isVisible()) return;
+  if (isVisible()) return false;
 
   if (! tooltip->canTip(pos))
-    return;
+    return false;
 
   QDesktopWidget *desktop = QApplication::desktop();
 
@@ -86,7 +87,7 @@ show(const QPoint &pos, CQToolTipIFace *tooltip, QWidget *parent)
   QWidget *tipWidget = tooltip->showWidget(pos);
 
   if (! tipWidget)
-    return;
+    return false;
 
   tooltip_ = tipWidget;
   parent_  = parent;
@@ -97,11 +98,17 @@ show(const QPoint &pos, CQToolTipIFace *tooltip, QWidget *parent)
 
   showAtPos(pos);
 
+  showPos_ = pos;
+
   updateOpacity(tooltip);
+
+  assert(tooltip_);
 
   tooltip_->update();
 
   startHideTimer();
+
+  return true;
 }
 
 void
@@ -257,18 +264,29 @@ showAtPos(const QPoint &pos)
       pos1.setY(drect.top());
   }
 
+  //---
+
   move(pos1);
 
   updateSize();
 
   QWidget::show();
+
+  //---
+
+  if (tooltip->grabKey()) {
+    //qApp->setActiveWindow(this);
+
+    setFocus();
+  }
 }
 
 void
 CQToolTip::
 enterEvent(QEvent *)
 {
-  hideLater();
+  if (isVisible())
+    hideLater();
 }
 
 void
@@ -300,9 +318,9 @@ eventFilter(QObject *o, QEvent *e)
         int                   key = static_cast<QKeyEvent *>(e)->key();
         Qt::KeyboardModifiers mod = static_cast<QKeyEvent *>(e)->modifiers();
 
-        QWidget *parent = static_cast<QWidget *>(o);
+      //QWidget *parent = static_cast<QWidget *>(o);
 
-        CQToolTipIFace *tooltip = getToolTip(parent);
+        CQToolTipIFace *tooltip = getToolTip(parent_);
 
         // ignore modifier key presses
         if (key == Qt::Key_Shift || key == Qt::Key_Control ||
@@ -312,60 +330,103 @@ eventFilter(QObject *o, QEvent *e)
         if (tooltip) {
           if (tooltip->isHideKey(key, mod)) {
             hideLater();
+
+            // don't propagate escape
+            if (key == Qt::Key_Escape)
+              return true;
           }
           else {
-            QPoint gpos = QCursor::pos();
+            if (e->type() == QEvent::KeyRelease) {
+              if (tooltip->keyPress(key, mod)) {
+                QPoint gpos = QCursor::pos();
 
-            if (! tooltip->updateWidget(gpos)) {
-              hideLater();
+                if (! tooltip->trackMouse())
+                  gpos = showPos_;
 
-              return false;
+                if (! updateTip(parent_, gpos)) {
+                  hideLater();
+
+                  return false;
+                }
+
+                startHideTimer();
+
+                return true; // don't propagate key
+              }
+              else {
+                hideLater();
+
+                return false;
+              }
             }
-
-            showAtPos(gpos);
-
-            updateOpacity(tooltip);
-
-            tooltip_->update();
-
-            startHideTimer();
           }
         }
       }
 
       break;
     }
-    case QEvent::Leave:
+    case QEvent::Leave: {
+      if (isVisible()) {
+        hideLater();
+      }
+
+      break;
+    }
     case QEvent::WindowActivate:
-    case QEvent::WindowDeactivate:
+    case QEvent::WindowDeactivate: {
+      if (isVisible()) {
+        CQToolTipIFace *tooltip = getToolTip(parent_);
+
+        if (tooltip && ! tooltip->grabKey()) {
+          hideLater();
+        }
+      }
+
+      break;
+    }
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
     case QEvent::MouseButtonDblClick:
-    case QEvent::FocusIn:
-    case QEvent::FocusOut:
-    case QEvent::Wheel:
-      hideLater();
+    case QEvent::Wheel: {
+      if (isVisible()) {
+        hideLater();
+      }
+
       break;
+    }
+    case QEvent::FocusIn:
+    case QEvent::FocusOut: {
+      if (isVisible()) {
+      //QWidget     *parent     = static_cast<QWidget *>(o);
+      //QFocusEvent *focusEvent = static_cast<QFocusEvent *>(e);
+
+        CQToolTipIFace *tooltip = getToolTip(parent_);
+
+        if (tooltip && ! tooltip->grabKey()) {
+          hideLater();
+        }
+      }
+
+      break;
+    }
     case QEvent::MouseMove: {
       if (isVisible()) {
-        QWidget *parent = static_cast<QWidget *>(o);
+      //QWidget     *parent     = static_cast<QWidget *>(o);
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(e);
 
-        CQToolTipIFace *tooltip = getToolTip(parent);
+        CQToolTipIFace *tooltip = getToolTip(parent_);
 
-        if (tooltip) {
-          QPoint gpos = ((QMouseEvent *) e)->globalPos();
+        if (tooltip && ! tooltip->grabKey()) {
+          QPoint gpos = mouseEvent->globalPos();
 
-          if (! tooltip->updateWidget(gpos)) {
-            hideLater();
+          if (! tooltip->trackMouse())
+            gpos = showPos_;
+
+          if (! updateTip(parent_, gpos)) {
+            //hideLater();
 
             return false;
           }
-
-          showAtPos(gpos);
-
-          updateOpacity(tooltip);
-
-          tooltip_->update();
 
           startHideTimer();
         }
@@ -374,25 +435,64 @@ eventFilter(QObject *o, QEvent *e)
       break;
     }
     case QEvent::ToolTip: {
-      QWidget *parent = static_cast<QWidget *>(o);
+      QWidget    *parent    = static_cast<QWidget *>(o);
+      QHelpEvent *helpEvent = static_cast<QHelpEvent *>(e);
 
-      CQToolTipIFace *tooltip = getToolTip(parent);
-
-      if (tooltip && ! isVisible()) {
-        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(e);
-
-        show(helpEvent->globalPos(), tooltip, parent);
-
-        if (tooltip->trackMouse())
-          setMouseTracking(true);
-
+      if (showTip(parent, helpEvent->globalPos()))
         return true;
-      }
 
       break;
     }
     default:
       break;
+  }
+
+  return false;
+}
+
+bool
+CQToolTip::
+showTip(QWidget *parent, const QPoint &gpos)
+{
+  CQToolTipIFace *tooltip = getToolTip(parent);
+
+  if (tooltip && ! isVisible()) {
+    if (! show(gpos, tooltip, parent))
+      return true;
+
+    if (tooltip->trackMouse()) {
+      setMouseTracking(true);
+    }
+
+    if (tooltip->grabKey()) {
+      setFocusPolicy(Qt::StrongFocus);
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+CQToolTip::
+updateTip(QWidget *parent, const QPoint &gpos)
+{
+  CQToolTipIFace *tooltip = getToolTip(parent);
+
+  if (tooltip) {
+    if (! tooltip->updateWidget(gpos))
+      return false;
+
+    showAtPos(gpos);
+
+    updateOpacity(tooltip);
+
+    assert(tooltip_);
+
+    tooltip_->update();
+
+    return true;
   }
 
   return false;
@@ -410,13 +510,10 @@ void
 CQToolTip::
 hideLater()
 {
-  if (! isVisible()) return;
+  if (! isVisible())
+    return;
 
-  if (hideTimer_) {
-    killTimer(hideTimer_);
-
-    hideTimer_ = 0;
-  }
+  stopTimer();
 
   QTimer::singleShot(0, this, SLOT(hideSlot()));
 }
@@ -425,8 +522,7 @@ void
 CQToolTip::
 startHideTimer()
 {
-  if (hideTimer_)
-    killTimer(hideTimer_);
+  stopTimer();
 
   double hideSecs =  hideSecs_;
 
@@ -436,6 +532,17 @@ startHideTimer()
     hideSecs = tooltip->hideSecs();
 
   hideTimer_ = startTimer(hideSecs*1000);
+}
+
+void
+CQToolTip::
+stopTimer()
+{
+  if (hideTimer_) {
+    killTimer(hideTimer_);
+
+    hideTimer_ = 0;
+  }
 }
 
 void
@@ -451,6 +558,14 @@ hideSlot()
 
   if (tooltip)
     tooltip->hideWidget();
+
+  if (tooltip->grabKey()) {
+    if (parent_) {
+      //qApp->setActiveWindow(parent_);
+
+      parent_->setFocus();
+    }
+  }
 }
 
 CQToolTipIFace *
@@ -520,8 +635,11 @@ calcSize() const
 
   QSize s = tooltip->sizeHint();
 
-  if (! s.isValid())
+  if (! s.isValid()) {
+    assert(tooltip_);
+
     s = tooltip_->sizeHint();
+  }
 
   return s;
 }

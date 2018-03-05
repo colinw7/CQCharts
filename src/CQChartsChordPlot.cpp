@@ -276,8 +276,7 @@ initTableObjs()
 
       QString name;
 
-      bool rc = CQChartsUtil::variantToString(var, name);
-      assert(rc);
+      CQChartsUtil::variantToString(var, name);
 
       data.setName(name);
 
@@ -294,8 +293,7 @@ initTableObjs()
 
       QString group;
 
-      bool rc = CQChartsUtil::variantToString(var, group);
-      assert(rc);
+      CQChartsUtil::variantToString(var, group);
 
       data.setGroup(CQChartsChordData::Group(group, groupValues.imap(row)));
 

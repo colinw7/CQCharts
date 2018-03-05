@@ -335,3 +335,7 @@
  + Support scaled font in hier bubble plot
  + Support first column header in CSV reader
  + Support polyline annotation
+# 3/4/2018
+ + Use testAndSet in more code
+ + Add Path and Style columbn types to support SVG geometry
+ + Update default palette

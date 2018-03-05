@@ -35,6 +35,8 @@ CQCharts()
   CQChartsPosition::registerMetaType();
   CQChartsLineDash::registerMetaType();
   CQChartsColor   ::registerMetaType();
+  CQChartsPath    ::registerMetaType();
+  CQChartsStyle   ::registerMetaType();
 }
 
 CQCharts::
@@ -80,6 +82,8 @@ init()
   columnTypeMgr_->addType(CQBaseModel::Type::POLYGON, new CQChartsColumnPolygonType);
   columnTypeMgr_->addType(CQBaseModel::Type::COLOR  , new CQChartsColumnColorType  );
   columnTypeMgr_->addType(CQBaseModel::Type::TIME   , new CQChartsColumnTimeType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::PATH   , new CQChartsColumnPathType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::STYLE  , new CQChartsColumnStyleType  );
 
   //---
 

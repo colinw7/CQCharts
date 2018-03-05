@@ -4,6 +4,7 @@
 #include <CQChartsValueSet.h>
 #include <CQBaseModel.h>
 
+// bucket of values keyed off header, column or path
 class CQChartsColumnBucket {
  public:
   using ColumnType = CQBaseModel::Type;
@@ -65,7 +66,9 @@ class CQChartsColumnBucket {
       return addInteger(i);
     }
     else if (columnType() == ColumnType::STRING) {
-      QString s = value.toString();
+      QString s;
+
+      CQChartsUtil::variantToString(value, s);
 
       return addString(s);
     }
@@ -102,7 +105,9 @@ class CQChartsColumnBucket {
       return ivals_.id(i);
     }
     else if (columnType() == ColumnType::STRING) {
-      QString s = value.toString();
+      QString s;
+
+      CQChartsUtil::variantToString(value, s);
 
       return svals_.id(s);
     }
@@ -117,47 +122,31 @@ class CQChartsColumnBucket {
 
   // get name for index
   QString iname(int ind) const {
-    if      (columnType() == ColumnType::REAL)
-      return QString("%1").arg(rvals_.ivalue(ind));
-    else if (columnType() == ColumnType::INTEGER)
-      return QString("%1").arg(ivals_.ivalue(ind));
-    else if (columnType() == ColumnType::STRING)
-      return svals_.ivalue(ind);
-    else
-      return "";
+    if      (columnType() == ColumnType::REAL   ) return QString("%1").arg(rvals_.ivalue(ind));
+    else if (columnType() == ColumnType::INTEGER) return QString("%1").arg(ivals_.ivalue(ind));
+    else if (columnType() == ColumnType::STRING ) return svals_.ivalue(ind);
+    else                                          return "";
   }
 
   int numUnique() const {
-    if      (columnType() == ColumnType::REAL)
-      return rvals_.numUnique();
-    else if (columnType() == ColumnType::INTEGER)
-      return ivals_.numUnique();
-    else if (columnType() == ColumnType::STRING)
-      return svals_.numUnique();
-    else
-      return 0;
+    if      (columnType() == ColumnType::REAL   ) return rvals_.numUnique();
+    else if (columnType() == ColumnType::INTEGER) return ivals_.numUnique();
+    else if (columnType() == ColumnType::STRING ) return svals_.numUnique();
+    else                                          return 0;
   }
 
   int imin() const {
-    if      (columnType() == ColumnType::REAL)
-      return rvals_.imin();
-    else if (columnType() == ColumnType::INTEGER)
-      return ivals_.imin();
-    else if (columnType() == ColumnType::STRING)
-      return svals_.imin();
-    else
-      assert(false);
+    if      (columnType() == ColumnType::REAL   ) return rvals_.imin();
+    else if (columnType() == ColumnType::INTEGER) return ivals_.imin();
+    else if (columnType() == ColumnType::STRING ) return svals_.imin();
+    else                                          assert(false);
   }
 
   int imax() const {
-    if      (columnType() == ColumnType::REAL)
-      return rvals_.imax();
-    else if (columnType() == ColumnType::INTEGER)
-      return ivals_.imax();
-    else if (columnType() == ColumnType::STRING)
-      return svals_.imax();
-    else
-      assert(false);
+    if      (columnType() == ColumnType::REAL   ) return rvals_.imax();
+    else if (columnType() == ColumnType::INTEGER) return ivals_.imax();
+    else if (columnType() == ColumnType::STRING ) return svals_.imax();
+    else                                          assert(false);
   }
 
   void setIndName(int i, const QString &name) {
@@ -171,6 +160,29 @@ class CQChartsColumnBucket {
       return (*p).second;
 
     return iname(i);
+  }
+
+  void print(std::ostream &os) const {
+    os << "Bucket:\n";
+
+    if      (dataType() == DataType::HEADER) {
+      os << " Header:\n";
+    }
+    else if (dataType() == DataType::COLUMN) {
+      os << " Column:\n";
+      os << "  Type:   " << typeName().toStdString() << "\n";
+      os << "  Column: " << column_.column() << "\n";
+    }
+    else if (dataType() == DataType::COLUMN) {
+      os << " Path:\n";
+    }
+  }
+
+  QString typeName() const {
+    if      (columnType() == ColumnType::REAL   ) return "real";
+    else if (columnType() == ColumnType::INTEGER) return "integer";
+    else if (columnType() == ColumnType::STRING ) return "string";
+    else                                          assert(false);
   }
 
  private:

@@ -60,11 +60,7 @@ void
 CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
-  if (b != voronoi_) {
-    voronoi_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(voronoi_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

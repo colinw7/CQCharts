@@ -292,65 +292,65 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   //---
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; resetRoots(); updateObjs(); }
+  void setInnerRadius(double r);
 
   double outerRadius() const { return outerRadius_; }
-  void setOuterRadius(double r) { outerRadius_ = r; resetRoots(); updateObjs(); }
+  void setOuterRadius(double r);
 
   double startAngle() const { return startAngle_; }
-  void setStartAngle(double r) { startAngle_ = r; resetRoots(); updateObjs(); }
+  void setStartAngle(double a);
 
   //---
 
   const RootNodes &roots() const { return roots_; }
 
   bool isMultiRoot() const { return multiRoot_; }
-  void setMultiRoot(bool b) { multiRoot_ = b; resetRoots(); updateObjs(); }
+  void setMultiRoot(bool b);
 
   //---
 
-  bool isBorder() const;
+  bool isBorder() const { return shapeData_.border.visible; }
   void setBorder(bool b);
 
-  const CQChartsColor &borderColor() const;
+  const CQChartsColor &borderColor() const { return shapeData_.border.color; }
   void setBorderColor(const CQChartsColor &c);
+
+  double borderAlpha() const { return shapeData_.border.alpha; }
+  void setBorderAlpha(double a);
+
+  const CQChartsLength &borderWidth() const { return shapeData_.border.width; }
+  void setBorderWidth(const CQChartsLength &l);
 
   QColor interpBorderColor(int i, int n) const;
 
-  double borderAlpha() const;
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
   //---
 
-  bool isFilled() const;
+  bool isFilled() const { return shapeData_.background.visible; }
   void setFilled(bool b);
 
-  const CQChartsColor &fillColor() const;
+  const CQChartsColor &fillColor() const { return shapeData_.background.color; }
   void setFillColor(const CQChartsColor &c);
 
-  double fillAlpha() const;
+  double fillAlpha() const { return shapeData_.background.alpha; }
   void setFillAlpha(double a);
 
-  Pattern fillPattern() const;
+  Pattern fillPattern() const { return (Pattern) shapeData_.background.pattern; }
   void setFillPattern(Pattern pattern);
 
   QColor interpFillColor(int i, int n) const;
 
   //---
 
-  const QFont &textFont() const;
+  const QFont &textFont() const { return textData_.font; }
   void setTextFont(const QFont &f);
 
-  const CQChartsColor &textColor() const;
+  const CQChartsColor &textColor() const { return textData_.color; }
   void setTextColor(const CQChartsColor &c);
 
-  double textAlpha() const;
+  double textAlpha() const { return textData_.alpha; }
   void setTextAlpha(double a);
 
-  bool isTextContrast() const;
+  bool isTextContrast() const { return textData_.contrast; }
   void setTextContrast(bool b);
 
   void setTextFontSize(double s);

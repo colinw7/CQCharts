@@ -1031,8 +1031,7 @@ valueStr(double pos) const
       if (header.isValid()) {
         QString headerStr;
 
-        bool rc = CQChartsUtil::variantToString(header, headerStr);
-        assert(rc);
+        CQChartsUtil::variantToString(header, headerStr);
 
         return headerStr;
       }

@@ -136,8 +136,7 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   if (var2.isValid()) {
     QString str2;
 
-    bool rc = CQChartsUtil::variantToString(var2, str2);
-    assert(rc);
+    CQChartsUtil::variantToString(var2, str2);
 
     (void) CQChartsColumnUtil::decodeNameValues(str2, nameValues);
   }

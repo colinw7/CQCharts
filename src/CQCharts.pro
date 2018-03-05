@@ -117,6 +117,8 @@ CQChartsColor.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsPosition.cpp \
 CQChartsLength.cpp \
+CQChartsPath.cpp \
+CQChartsStyle.cpp \
 CQChartsUtil.cpp \
 \
 CQCsvModel.cpp \
@@ -223,6 +225,8 @@ HEADERS += \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsPosition.h \
+../include/CQChartsPath.h \
+../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \

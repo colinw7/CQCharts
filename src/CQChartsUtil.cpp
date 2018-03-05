@@ -259,8 +259,10 @@ formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QS
 
   QVariant var = typeData->dataName(value, nameValues);
 
-  bool rc = variantToString(var, str);
-  assert(rc);
+  if (! var.isValid())
+    return false;
+
+  variantToString(var, str);
 
   return true;
 }
@@ -286,8 +288,10 @@ formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
 
   QVariant var = typeData->dataName(value, nameValues);
 
-  bool rc = variantToString(var, str);
-  assert(rc);
+  if (! var.isValid())
+    return false;
+
+  variantToString(var, str);
 
   return true;
 }
@@ -415,10 +419,12 @@ init()
   if (! column_.isValid())
     return false;
 
-  if (column_.type() != CQChartsColumn::Type::DATA) {
+  if (column_.type() == CQChartsColumn::Type::DATA) {
+    int icolumn = column_.column();
+
     int numColumns = model_->columnCount(QModelIndex());
 
-    if (column_.column() < 0 || column_.column() >= numColumns)
+    if (icolumn < 0 || icolumn >= numColumns)
       return false;
   }
 
@@ -437,8 +443,13 @@ init()
 
       CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
 
-      if (columnType)
+      if (columnType) {
         typeName_ = columnType->name();
+        min_      = columnType->minValue(nameValues);
+        max_      = columnType->maxValue(nameValues);
+        visitMin_ = ! min_.isValid();
+        visitMax_ = ! max_.isValid();
+      }
       else {
         typeName_ = "string";
         type_     = CQBaseModel::Type::STRING;
@@ -449,16 +460,31 @@ init()
       if      (type_ == CQBaseModel::Type::INTEGER) {
         bool ok;
 
-        long i = CQChartsUtil::modelInteger(model, row, details_->column(), parent, ok);
+        int i = CQChartsUtil::modelInteger(model, row, details_->column(), parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(int(i)))
           return State::SKIP;
 
-        imin_ = (! iset_ ? i : std::min(imin_, i));
-        imax_ = (! iset_ ? i : std::max(imax_, i));
+        if (visitMin_) {
+          bool ok1;
 
-        iset_ = true;
+          int imin = CQChartsUtil::toInt(min_, ok1);
+
+          imin = (! ok1 ? i : std::min(imin, i));
+
+          min_ = QVariant(imin);
+        }
+
+        if (visitMax_) {
+          bool ok1;
+
+          int imax = CQChartsUtil::toInt(max_, ok1);
+
+          imax = (! ok1 ? i : std::max(imax, i));
+
+          max_ = QVariant(imax);
+        }
       }
       else if (type_ == CQBaseModel::Type::REAL) {
         bool ok;
@@ -469,10 +495,25 @@ init()
         if (! details_->checkRow(r))
           return State::SKIP;
 
-        rmin_ = (! rset_ ? r : std::min(rmin_, r));
-        rmax_ = (! rset_ ? r : std::max(rmax_, r));
+        if (visitMin_) {
+          bool ok1;
 
-        rset_ = true;
+          double rmin = CQChartsUtil::toReal(min_, ok1);
+
+          rmin = (! ok1 ? r : std::min(rmin, r));
+
+          min_ = QVariant(rmin);
+        }
+
+        if (visitMax_) {
+          bool ok1;
+
+          double rmax = CQChartsUtil::toReal(max_, ok1);
+
+          rmax = (! ok1 ? r : std::max(rmax, r));
+
+          max_ = QVariant(rmax);
+        }
       }
       else {
         bool ok;
@@ -483,10 +524,25 @@ init()
         if (! details_->checkRow(s))
           return State::SKIP;
 
-        smin_ = (! sset_ ? s : std::min(smin_, s));
-        smax_ = (! sset_ ? s : std::max(smax_, s));
+        if (visitMin_) {
+          bool ok1;
 
-        sset_ = true;
+          QString smin = CQChartsUtil::toString(min_, ok1);
+
+          smin = (! ok1 ? s : std::min(smin, s));
+
+          min_ = QVariant(smin);
+        }
+
+        if (visitMax_) {
+          bool ok1;
+
+          QString smax = CQChartsUtil::toString(max_, ok1);
+
+          smax = (! ok1 ? s : std::max(smax, s));
+
+          max_ = QVariant(smax);
+        }
       }
 
       return State::OK;
@@ -496,25 +552,15 @@ init()
 
     QString typeName() const { return typeName_; }
 
-    QVariant minValue() const {
-      if      (type_ == CQBaseModel::Type::INTEGER) return QVariant(int(imin_));
-      else if (type_ == CQBaseModel::Type::REAL   ) return QVariant(rmin_);
-      else                                          return QVariant(smin_);
-    }
-
-    QVariant maxValue() const {
-      if      (type_ == CQBaseModel::Type::INTEGER) return QVariant(int(imax_));
-      else if (type_ == CQBaseModel::Type::REAL   ) return QVariant(rmax_);
-      else                                          return QVariant(smax_);
-    }
+    QVariant minValue() const { return min_; }
+    QVariant maxValue() const { return max_; }
 
    private:
     ModelColumnDetails *details_ { nullptr };
     CQBaseModel::Type   type_;
     QString             typeName_;
-    long                imin_ { 0 }; long    imax_ { 0 }; bool iset_ { false };
-    double              rmin_ { 0 }; double  rmax_ { 0 }; bool rset_ { false };
-    QString             smin_      ; QString smax_      ; bool sset_ { false };
+    QVariant            min_, max_;
+    bool                visitMin_ { true }, visitMax_ { true };
   };
 
   //---
@@ -648,28 +694,55 @@ QString rectToString(const QRectF &rect) {
   return QString("{%1 %2 %3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
 }
 
-bool variantToString(const QVariant &var, QString &str) {
-  if (var.canConvert(QVariant::String)) {
-    str = var.toString();
-    return true;
-  }
+QString pointToString(const QPointF &p) {
+  return QString("%1 %2").arg(p.x()).arg(p.y());
+}
 
-  if      (var.type() == QVariant::PolygonF) {
+bool variantToString(const QVariant &var, QString &str) {
+  if      (var.type() == QVariant::String) {
+    str = var.toString();
+  }
+  else if (var.type() == QVariant::Double) {
+    str = toString(var.toDouble());
+  }
+  else if (var.type() == QVariant::Int) {
+    str = toString((long) var.toInt());
+  }
+  else if (var.canConvert(QVariant::String)) {
+    str = var.toString();
+  }
+  else if (var.type() == QVariant::PolygonF) {
     QPolygonF poly = var.value<QPolygon>();
 
     str = polygonToString(poly);
-
-    return true;
   }
   else if (var.type() == QVariant::RectF) {
     QRectF rect = var.value<QRectF>();
 
     str = rectToString(rect);
+  }
+  else if (var.type() == QVariant::UserType) {
+    if      (var.userType() == CQChartsPath::metaType()) {
+      CQChartsPath path = var.value<CQChartsPath>();
 
-    return true;
+      str = path.toString();
+    }
+    else if (var.userType() == CQChartsStyle::metaType()) {
+      CQChartsStyle style = var.value<CQChartsStyle>();
+
+      str = style.toString();
+    }
+    else {
+      assert(false);
+    }
+  }
+  else {
+    assert(false);
+
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 }
@@ -748,9 +821,7 @@ void findStringSplits3(const QString &str, std::vector<int> &splits) {
 
 namespace CQChartsUtil {
 
-bool
-stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons)
-{
+bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -800,9 +871,7 @@ stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons)
   return true;
 }
 
-bool
-stringToPolygon(const QString &str, QPolygonF &poly)
-{
+bool stringToPolygon(const QString &str, QPolygonF &poly) {
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -852,9 +921,7 @@ stringToPolygon(const QString &str, QPolygonF &poly)
   return true;
 }
 
-bool
-stringToRect(const QString &str, QRectF &rect)
-{
+bool stringToRect(const QString &str, QRectF &rect) {
   CQStrParse parse(str);
 
   // read x1 y1 x2 y2 strings
@@ -903,9 +970,7 @@ stringToRect(const QString &str, QRectF &rect)
   return true;
 }
 
-bool
-stringToPoint(const QString &str, QPointF &point)
-{
+bool stringToPoint(const QString &str, QPointF &point) {
   CQStrParse parse(str);
 
   // read x y strings
@@ -938,6 +1003,42 @@ stringToPoint(const QString &str, QPointF &point)
   //---
 
   point = QPointF(x, y);
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString pathToString(const CQChartsPath &path) {
+  return path.toString();
+}
+
+bool stringToPath(const QString &str, CQChartsPath &path) {
+  path = CQChartsPath();
+
+  path.fromString(str);
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString styleToString(const CQChartsStyle &style) {
+  return style.toString();
+}
+
+bool stringToStyle(const QString &str, CQChartsStyle &style) {
+  style = CQChartsStyle();
+
+  style.fromString(str);
 
   return true;
 }

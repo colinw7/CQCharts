@@ -170,6 +170,12 @@ CQChartsTest \
  -type geometry -columns "name=0,geometry=1,value=2" \
  -plot_title "choropeth"
 
+CQChartsTest \
+ -csv cities.csv -first_line_header \
+ -type scatter -columns "name=0,x=1,y=2,symbolSize=3,color=4" \
+ -column_type "4#color" \
+ -plot_title "Cities"
+
 # Image Plot
 
 CQChartsTest -csv mandelbrot.csv -type image

@@ -70,25 +70,41 @@ resetRoots()
 
 //----
 
-bool
+void
 CQChartsSunburstPlot::
-isFilled() const
+setInnerRadius(double r)
 {
-  return shapeData_.background.visible;
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { resetRoots(); updateObjs(); } );
 }
+
+void
+CQChartsSunburstPlot::
+setOuterRadius(double r)
+{
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { resetRoots(); updateObjs(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setStartAngle(double a)
+{
+  CQChartsUtil::testAndSet(startAngle_, a, [&]() { resetRoots(); updateObjs(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setMultiRoot(bool b)
+{
+  CQChartsUtil::testAndSet(multiRoot_, b, [&]() { resetRoots(); updateObjs(); } );
+}
+
+//----
 
 void
 CQChartsSunburstPlot::
 setFilled(bool b)
 {
   CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
-}
-
-const CQChartsColor &
-CQChartsSunburstPlot::
-fillColor() const
-{
-  return shapeData_.background.color;
 }
 
 void
@@ -98,32 +114,11 @@ setFillColor(const CQChartsColor &c)
   CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
 }
 
-QColor
-CQChartsSunburstPlot::
-interpFillColor(int i, int n) const
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSunburstPlot::
-fillAlpha() const
-{
-  return shapeData_.background.alpha;
-}
-
 void
 CQChartsSunburstPlot::
 setFillAlpha(double a)
 {
   CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
-}
-
-CQChartsSunburstPlot::Pattern
-CQChartsSunburstPlot::
-fillPattern() const
-{
-  return (Pattern) shapeData_.background.pattern;
 }
 
 void
@@ -137,27 +132,20 @@ setFillPattern(Pattern pattern)
   }
 }
 
-//---
-
-bool
+QColor
 CQChartsSunburstPlot::
-isBorder() const
+interpFillColor(int i, int n) const
 {
-  return shapeData_.border.visible;
+  return fillColor().interpColor(this, i, n);
 }
+
+//---
 
 void
 CQChartsSunburstPlot::
 setBorder(bool b)
 {
   CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
-}
-
-const CQChartsColor &
-CQChartsSunburstPlot::
-borderColor() const
-{
-  return shapeData_.border.color;
 }
 
 void
@@ -167,32 +155,11 @@ setBorderColor(const CQChartsColor &c)
   CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
 }
 
-QColor
-CQChartsSunburstPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSunburstPlot::
-borderAlpha() const
-{
-  return shapeData_.border.alpha;
-}
-
 void
 CQChartsSunburstPlot::
 setBorderAlpha(double a)
 {
   CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
-}
-
-const CQChartsLength &
-CQChartsSunburstPlot::
-borderWidth() const
-{
-  return shapeData_.border.width;
 }
 
 void
@@ -202,20 +169,48 @@ setBorderWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
-//---
-
-const QFont &
+QColor
 CQChartsSunburstPlot::
-textFont() const
+interpBorderColor(int i, int n) const
 {
-  return textData_.font;
+  return borderColor().interpColor(this, i, n);
 }
+
+//---
 
 void
 CQChartsSunburstPlot::
 setTextFont(const QFont &f)
 {
   CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setTextColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+}
+
+void
+CQChartsSunburstPlot::
+setTextContrast(bool b)
+{
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
+}
+
+QColor
+CQChartsSunburstPlot::
+interpTextColor(int i, int n) const
+{
+  return textColor().interpColor(this, i, n);
 }
 
 void
@@ -227,55 +222,6 @@ setTextFontSize(double s)
 
     update();
   }
-}
-
-const CQChartsColor &
-CQChartsSunburstPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsSunburstPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
-}
-
-QColor
-CQChartsSunburstPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSunburstPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsSunburstPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
-}
-
-bool
-CQChartsSunburstPlot::
-isTextContrast() const
-{
-  return textData_.contrast;
-}
-
-void
-CQChartsSunburstPlot::
-setTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
 }
 
 //---

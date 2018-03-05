@@ -74,11 +74,7 @@ void
 CQChartsBarChartPlot::
 setCategoryColumn(const CQChartsColumn &c)
 {
-  if (c != categoryColumn_) {
-    categoryColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(categoryColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -138,22 +134,14 @@ void
 CQChartsBarChartPlot::
 setNameColumn(const CQChartsColumn &c)
 {
-  if (c != nameColumn_) {
-    nameColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setLabelColumn(const CQChartsColumn &c)
 {
-  if (c != labelColumn_) {
-    labelColumn_ = c;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -204,33 +192,21 @@ void
 CQChartsBarChartPlot::
 setStacked(bool b)
 {
-  if (b != stacked_) {
-    stacked_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(stacked_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setRange(bool b)
 {
-  if (b != range_) {
-    range_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(range_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
 CQChartsBarChartPlot::
 setPercent(bool b)
 {
-  if (b != percent_) {
-    percent_ = b;
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(percent_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -249,6 +225,15 @@ setHorizontal(bool b)
 
 //---
 
+void
+CQChartsBarChartPlot::
+setMargin(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(margin_, l, [&]() { update(); } );
+}
+
+//---
+
 bool
 CQChartsBarChartPlot::
 isBorder() const
@@ -260,11 +245,7 @@ void
 CQChartsBarChartPlot::
 setBorder(bool b)
 {
-  if (b != boxData_.shape.border.visible) {
-    boxData_.shape.border.visible = b;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -278,11 +259,7 @@ void
 CQChartsBarChartPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  if (c != boxData_.shape.border.color) {
-    boxData_.shape.border.color = c;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -303,11 +280,7 @@ void
 CQChartsBarChartPlot::
 setBorderAlpha(double a)
 {
-  if (a != boxData_.shape.border.alpha) {
-    boxData_.shape.border.alpha = a;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
@@ -321,11 +294,7 @@ void
 CQChartsBarChartPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  if (l != boxData_.shape.border.width) {
-    boxData_.shape.border.width = l;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { update(); } );
 }
 
 const CQChartsLineDash &
@@ -339,11 +308,7 @@ void
 CQChartsBarChartPlot::
 setBorderDash(const CQChartsLineDash &d)
 {
-  if (d != boxData_.shape.border.dash) {
-    boxData_.shape.border.dash = d;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { update(); } );
 }
 
 const CQChartsLength &
@@ -357,11 +322,7 @@ void
 CQChartsBarChartPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  if (s != boxData_.cornerSize) {
-    boxData_.cornerSize = s;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { update(); } );
 }
 
 //---
@@ -377,11 +338,7 @@ void
 CQChartsBarChartPlot::
 setBarFill(bool b)
 {
-  if (b != boxData_.shape.background.visible) {
-    boxData_.shape.background.visible = b;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -395,11 +352,7 @@ void
 CQChartsBarChartPlot::
 setBarColor(const CQChartsColor &c)
 {
-  if (c != boxData_.shape.background.color) {
-    boxData_.shape.background.color = c;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -420,11 +373,7 @@ void
 CQChartsBarChartPlot::
 setBarAlpha(double a)
 {
-  if (a != boxData_.shape.background.alpha) {
-    boxData_.shape.background.alpha = a;
-
-    update();
-  }
+  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { update(); } );
 }
 
 CQChartsBarChartPlot::Pattern
@@ -479,20 +428,31 @@ updateRange(bool apply)
 
   //---
 
+  // non-range and multiple value columns use category or name column for grouping
   if      (! isRange() && valueColumns().size() > 1) {
     if (categoryColumn().isValid())
       initGroup(categoryColumn(), valueColumns(), isRowGrouping());
     else
       initGroup(nameColumn(), valueColumns(), isRowGrouping());
   }
-  else if (categoryColumn().isValid())
+  // if category column use that for group
+  else if (categoryColumn().isValid()) {
     initGroup(categoryColumn());
-  else if (isHierarchical())
+  }
+  // if hierarchical use parent path
+  else if (isHierarchical()) {
     initGroup();
-  else if (! isRange())
+  }
+  // if no range use name or value columns for group
+  else if (! isRange()) {
     initGroup(nameColumn(), valueColumns(), isRowGrouping());
-  else
+  }
+  // default no name column if defined
+  else {
     initGroup(nameColumn(), Columns(), isRowGrouping());
+  }
+
+  //groupBucket().print(std::cerr);
 
   //---
 
@@ -595,8 +555,9 @@ updateRange(bool apply)
 
   QString xname;
 
-  if (ns > 1 && isRowGrouping())
+  if (ns > 1 && isRowGrouping()) {
     xname = ""; // No name for row grouping
+  }
   else {
     if (categoryColumn().isValid()) {
       xname = CQChartsUtil::modelHeaderString(model, categoryColumn(), ok);
@@ -632,10 +593,9 @@ void
 CQChartsBarChartPlot::
 addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
-  if      (! isRange() && valueColumns().size() > 1) {
-    for (int i = 0; i < int(valueColumns().size()); ++i) {
-      const CQChartsColumn &column = this->valueColumnAt(i);
-
+  // add value for each column (non-range)
+  if (! isRange()) {
+    for (const auto &column : valueColumns()) {
       Columns columns;
 
       columns.push_back(column);
@@ -643,15 +603,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
       addRowColumn(model, parent, row, columns);
     }
   }
-  else if (! isRange()) {
-    const CQChartsColumn &column = this->valueColumn();
-
-    Columns columns;
-
-    columns.push_back(column);
-
-    addRowColumn(model, parent, row, columns);
-  }
+  // add all values for columns (range)
   else {
     addRowColumn(model, parent, row, this->valueColumns());
   }
@@ -662,25 +614,30 @@ CQChartsBarChartPlot::
 addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
              const Columns &valueColumns)
 {
-  assert(! valueColumns.empty());
-
-  const CQChartsColumn &valueColumn = valueColumns[0];
-
   // get group ind
   int groupInd = -1;
 
-  if (! isRange())
-    groupInd = rowGroupInd(model, parent, row, valueColumn);
-  else
-    groupInd = rowGroupInd(model, parent, row);
+  if (! isRange()) {
+    assert(! valueColumns.empty());
 
+    const CQChartsColumn &valueColumn = valueColumns[0];
+
+    groupInd = rowGroupInd(model, parent, row, valueColumn);
+  }
+  else {
+    groupInd = rowGroupInd(model, parent, row);
+  }
+
+  // get group name
   QString groupName = groupBucket_.indName(groupInd);
 
   //---
 
-  // category name
   QString categoryName;
 
+  //---
+
+  // get category string (if defined) and update category name
   QString category;
 
   if (categoryColumn().isValid()) {
@@ -693,7 +650,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
-  // optional name for category value
+  // get name string (if defined) and update category name
   QString name;
 
   if (nameColumn().isValid()) {
@@ -707,7 +664,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
-  // optional data label
+  // get optional data label string
   QString label;
 
   if (labelColumn().isValid()) {
@@ -718,6 +675,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
+  // get value set for group
   CQChartsBarChartValueSet *valueSet = groupValueSet(groupInd);
 
   using ValueInd  = CQChartsBarChartValue::ValueInd;
@@ -725,6 +683,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   ValueInds valueInds;
 
+  // add values for columns (1 column normally, all columns when grouped)
   for (const auto &valueColumn : valueColumns) {
     bool ok2;
 
@@ -736,9 +695,11 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     if (CQChartsUtil::isNaN(r))
       continue;
 
+    // get associated model index
     QModelIndex valInd  = model->index(row, valueColumn.column(), parent);
     QModelIndex valInd1 = normalizeIndex(valInd);
 
+    // add value and index
     ValueInd valueInd;
 
     valueInd.ind   = valInd1;
@@ -752,6 +713,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
+  // store values in data
   CQChartsBarChartValue valueData;
 
   for (const auto &valueInd : valueInds)
@@ -762,40 +724,57 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   int ns = (! isRange() ? numValueColumns() : 1);
 
   if (ns > 1) {
+    assert(! valueColumns.empty());
+
+    const CQChartsColumn &valueColumn = valueColumns[0];
+
+    //---
+
+    // set value data group name and value name
+
     if (groupName.length())
       valueData.setGroupName(groupName);
 
     QString valueName;
 
+    // not row grouping so value name is column header
     if (! isRowGrouping()) {
       bool ok;
 
       valueName = CQChartsUtil::modelHeaderString(model, valueColumn, ok);
     }
-    else
+    // row grouping so value name is category/name column name
+    else {
       valueName = categoryName;
+    }
 
+    // save value name
     valueData.setValueName(valueName);
   }
   else {
+    // if path grouping (hierarchical) then value name if group name
     if (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH) {
       if (groupName.length())
         valueData.setGroupName(groupName);
     }
 
+    // save other name values for tip
     if (category.length()) valueData.setNameValue("Category", category);
     if (name    .length()) valueData.setNameValue("Name"    , name);
     if (label   .length()) valueData.setNameValue("Label"   , label);
   }
 
+  // add value(s) to value set
   valueSet->addValue(valueData);
 
   //---
 
+  // calc pos/neg sums
   double posSum, negSum;
 
   valueSet->calcSums(posSum, negSum);
 
+  // scale for percent
   double scale = 1.0;
 
   if (isPercent()) {
@@ -804,6 +783,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     scale = (total > 0.0 ? 100.0/total : 1.0);
   }
 
+  // update range for scale and sums
   if (! isHorizontal()) {
     if (isStacked()) {
       dataRange_.updateRange(0, scale*posSum);
@@ -1537,7 +1517,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       double h1 = prect.getHeight() - 2*m;
 
       if (h1 < minWidth)
-        h1 = (prect.getHeight() - minWidth)/2.0;
+        m = (prect.getHeight() - minWidth)/2.0;
 
       prect.setYMin(prect.getYMin() + m);
       prect.setYMax(prect.getYMax() - m);
