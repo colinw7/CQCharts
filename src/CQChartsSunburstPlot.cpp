@@ -553,7 +553,7 @@ loadHier(CQChartsSunburstHierNode *root)
 
       bool ok;
 
-      name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
@@ -569,7 +569,7 @@ loadHier(CQChartsSunburstHierNode *root)
 
       bool ok = true;
 
-      size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
+      size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
 
       if (ok && size <= 0.0)
         ok = false;
@@ -663,9 +663,9 @@ loadFlat(CQChartsSunburstHierNode *root)
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 
@@ -1255,7 +1255,7 @@ calcTipId() const
     bool ok;
 
     QString colorStr =
-      CQChartsUtil::modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+      plot_->modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

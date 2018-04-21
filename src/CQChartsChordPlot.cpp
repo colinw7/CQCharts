@@ -198,7 +198,7 @@ initTableObjs()
 
         bool ok;
 
-        indRowData.rowData[col] = CQChartsUtil::modelValue(model, ind, ok);
+        indRowData.rowData[col] = plot_->modelValue(model, row, col, parent, ok);
       }
 
       indRowDatas_.push_back(indRowData);
@@ -423,8 +423,8 @@ initHierObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      QString linkStr = CQChartsUtil::modelString(model, row, plot_->nameColumn (), parent , ok1);
-      double  value   = CQChartsUtil::modelReal  (model, row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(model, row, plot_->nameColumn (), parent , ok1);
+      double  value   = plot_->modelReal  (model, row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;
@@ -474,7 +474,7 @@ initHierObjs()
       if (plot_->groupColumn().isValid()) {
         bool ok;
 
-        QString groupStr = CQChartsUtil::modelString(model, row, plot_->groupColumn(), parent, ok);
+        QString groupStr = plot_->modelString(model, row, plot_->groupColumn(), parent, ok);
 
         (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(row)));
       }

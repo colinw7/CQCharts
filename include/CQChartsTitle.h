@@ -102,6 +102,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
+  virtual void editMoveBy(const QPointF &d);
+
   //---
 
   void draw(QPainter *painter);

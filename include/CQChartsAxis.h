@@ -365,6 +365,8 @@ class CQChartsAxis : public QObject {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
+  virtual void editMoveBy(const QPointF &d);
+
   //---
 
   void drawGrid(CQChartsPlot *plot, QPainter *painter);

@@ -140,7 +140,6 @@ genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData)
   return done;
 }
 
-
 CQBaseModel::Type
 CQBaseModel::
 columnType(int column) const

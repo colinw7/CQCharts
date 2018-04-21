@@ -255,6 +255,17 @@ editRelease(const CQChartsGeom::Point &)
   return true;
 }
 
+void
+CQChartsTitle::
+editMoveBy(const QPointF &d)
+{
+  location_.location = LocationType::ABS_POS;
+
+  setAbsPlotPosition(position_ + d);
+
+  redraw();
+}
+
 //------
 
 void

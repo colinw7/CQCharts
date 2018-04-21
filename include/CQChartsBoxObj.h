@@ -46,7 +46,6 @@ class CQChartsBoxObj : public QObject {
   CQChartsBoxObj(CQChartsView *view);
   CQChartsBoxObj(CQChartsPlot *plot);
 
-
   virtual ~CQChartsBoxObj() { }
 
   //---

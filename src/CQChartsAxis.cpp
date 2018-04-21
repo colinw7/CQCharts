@@ -1026,7 +1026,7 @@ valueStr(double pos) const
 
       bool ok;
 
-      QVariant header = CQChartsUtil::modelValue(plot_->model(), row, column(), parent, ok);
+      QVariant header = plot_->modelValue(plot_->model(), row, column(), parent, ok);
 
       if (header.isValid()) {
         QString headerStr;
@@ -1125,6 +1125,22 @@ CQChartsAxis::
 editRelease(const CQChartsGeom::Point &)
 {
   return true;
+}
+
+void
+CQChartsAxis::
+editMoveBy(const QPointF &d)
+{
+  double apos1, apos2;
+
+  calcPos(apos1, apos2);
+
+  if (direction_ == Direction::HORIZONTAL)
+    pos_ = apos1 + d.y();
+  else
+    pos_ = apos1 + d.x();
+
+  redraw();
 }
 
 //---

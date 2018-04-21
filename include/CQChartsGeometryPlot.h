@@ -219,19 +219,19 @@ class CQChartsGeometryPlot : public CQChartsPlot {
  private:
   using Geometries = std::vector<Geometry>;
 
-  CQChartsColumn    nameColumn_     { 0 };   // name column
-  CQChartsColumn    geometryColumn_ { 1 };   // geometry column
-  CQChartsColumn    valueColumn_;            // value column
-  CQChartsColumn    colorColumn_;            // color column
-  CQChartsColumn    styleColumn_;            // style column
-  ColumnType        geometryColumnType_;     // geometry column type
-  ColumnType        colorColumnType_;        // color column type
-  ColumnType        styleColumnType_;        // style column type
-  Geometries        geometries_;             // geometry shapes
-  double            minValue_       { 0.0 }; // min value
-  double            maxValue_       { 0.0 }; // max value
-  CQChartsShapeData shapeData_;              // polygon fill/border object
-  CQChartsDataLabel dataLabel_;              // data label style
+  CQChartsColumn    nameColumn_         { 0 };                // name column
+  CQChartsColumn    geometryColumn_     { 1 };                // geometry column
+  CQChartsColumn    valueColumn_;                             // value column
+  CQChartsColumn    colorColumn_;                             // color column
+  CQChartsColumn    styleColumn_;                             // style column
+  ColumnType        geometryColumnType_ { ColumnType::NONE }; // geometry column type
+  ColumnType        colorColumnType_    { ColumnType::NONE }; // color column type
+  ColumnType        styleColumnType_    { ColumnType::NONE }; // style column type
+  Geometries        geometries_;                              // geometry shapes
+  double            minValue_           { 0.0 };              // min value
+  double            maxValue_           { 0.0 };              // max value
+  CQChartsShapeData shapeData_;                               // polygon fill/border object
+  CQChartsDataLabel dataLabel_;                               // data label style
 };
 
 #endif

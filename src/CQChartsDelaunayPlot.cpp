@@ -240,8 +240,8 @@ updateRange(bool apply)
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -275,13 +275,13 @@ updateRange(bool apply)
 
   xAxis_->setColumn(xColumn());
 
-  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), ok);
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+  QString yname = modelHeaderString(model, yColumn(), ok);
 
   yAxis_->setLabel(yname);
 
@@ -326,7 +326,7 @@ initObjs()
 
   bool ok;
 
-  yname_ = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+  yname_ = modelHeaderString(model, yColumn(), ok);
 
   //---
 
@@ -345,8 +345,8 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -592,8 +592,7 @@ calcId() const
   if (plot_->nameColumn().isValid()) {
     bool ok;
 
-    name1 =
-     CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
+    name1 = plot_->modelString(plot_->model(), ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
   }
   else
     name1 = plot_->yname();

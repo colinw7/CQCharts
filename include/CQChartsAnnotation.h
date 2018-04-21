@@ -43,6 +43,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
+  virtual void editMoveBy(const QPointF &d);
+
   virtual void setBBox(const CQChartsGeom::BBox &, const CQChartsResizeHandle::Side &) { }
 
   //---

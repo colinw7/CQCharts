@@ -182,8 +182,8 @@ updateRange(bool apply)
 
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -234,8 +234,8 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
-  QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), ok);
+  QString yname = modelHeaderString(model, yColumn(), ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -258,11 +258,9 @@ acceptsRow(int row, const QModelIndex &parent) const
   for (int i = 0; i < depth; ++i) {
     int column = groupValues_[i];
 
-    QModelIndex ind = model->index(row, column, parent);
-
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, ind, ok);
+    QString name = modelString(model, row, column, parent, ok);
 
     if (! ok)
       return false;
@@ -339,11 +337,9 @@ addRowGroupValueSets(const QModelIndex &parent, int row)
     int               groupColumn = groupValueSet.first;
     CQChartsValueSet *valueSet    = groupValueSet.second;
 
-    QModelIndex groupInd = model->index(row, groupColumn, parent);
-
     bool ok;
 
-    QVariant value = CQChartsUtil::modelValue(model, groupInd, ok);
+    QVariant value = modelValue(model, row, groupColumn, parent, ok);
 
     if (! ok)
       continue;
@@ -412,8 +408,8 @@ initObjs()
         // get x, y value
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-        double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+        double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+        double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
         if (! ok1) x = row;
         if (! ok2) y = row;
@@ -426,7 +422,7 @@ initObjs()
         // get optional name
         bool ok;
 
-        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
+        QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
 
         //---
 
@@ -453,8 +449,8 @@ initObjs()
   if (model) {
     bool ok;
 
-    xname_ = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
-    yname_ = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+    xname_ = modelHeaderString(model, xColumn(), ok);
+    yname_ = modelHeaderString(model, yColumn(), ok);
   }
   else {
     xname_ = "";
@@ -517,11 +513,9 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
     groupData.column   = groupValue;
     groupData.valueSet = groupValueSets_[groupData.column];
 
-    QModelIndex ind = model->index(row, groupData.column, parent);
-
     bool ok3;
 
-    groupData.str = CQChartsUtil::modelString(model, ind, ok3);
+    groupData.str = modelString(model, row, groupData.column, parent, ok3);
 
     groupData.ind = groupData.valueSet->sind(groupData.str);
 

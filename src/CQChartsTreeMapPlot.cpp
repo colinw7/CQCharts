@@ -1004,7 +1004,7 @@ loadHier()
 
       bool ok;
 
-      name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
@@ -1019,9 +1019,9 @@ loadHier()
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok);
       else
         ok = false;
 
@@ -1119,9 +1119,9 @@ loadFlat()
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 
@@ -1591,7 +1591,7 @@ calcId() const
     bool ok;
 
     QString idStr =
-      CQChartsUtil::modelString(model, ind1.row(), plot_->idColumn(), ind1.parent(), ok);
+      plot_->modelString(model, ind1.row(), plot_->idColumn(), ind1.parent(), ok);
 
     if (ok)
       return idStr;
@@ -1620,7 +1620,7 @@ calcTipId() const
     bool ok;
 
     QString colorStr =
-      CQChartsUtil::modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+      plot_->modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

@@ -1,11 +1,11 @@
 load -expr -num_rows 100000
 
-@let tableId = rc
+@let tableId = _rc
 
 process "+rand()"
 
 #plot -type xy -columns "category=0,value=1"
 
-#@let plot = rc
+#@let plot = _rc
 
 #set_property -view view1 -plot "${plot}" -name points.visible -value 0

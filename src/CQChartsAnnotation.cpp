@@ -117,6 +117,19 @@ editRelease(const CQChartsGeom::Point &)
   return true;
 }
 
+void
+CQChartsAnnotation::
+editMoveBy(const QPointF &f)
+{
+  editHandles_.setDragSide(CQChartsResizeHandle::Side::MOVE);
+
+  editHandles_.updateBBox(f.x(), f.y());
+
+  setBBox(editHandles_.bbox(), CQChartsResizeHandle::Side::MOVE);
+
+  plot_->update();
+}
+
 //------
 
 void

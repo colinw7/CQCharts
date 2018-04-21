@@ -1,3 +1,5 @@
 load -data chord-cities.data
+
 plot -type chord -columns "name=0,group=1"
-set_property -view view1 -plot chord1 -name visible -value 0
+
+#set_property -view view1 -plot chord1 -name visible -value 0

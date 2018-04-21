@@ -1,5 +1,6 @@
 #include <CQChartsColor.h>
 #include <CQChartsPlot.h>
+#include <CQChartsView.h>
 #include <CQChartsUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
@@ -113,6 +114,45 @@ interpColor(const CQChartsPlot *plot, double value) const
 
   if (type_ == Type::THEME_VALUE)
     return plot->interpThemeColor(value_);
+
+  return QColor(0, 0, 0);
+}
+
+QColor
+CQChartsColor::
+interpColor(const CQChartsView *view, int i, int n) const
+{
+  assert(isValid());
+
+  if (type_ == Type::THEME_VALUE) {
+    double r = CQChartsUtil::norm(i, 0, n);
+
+    return interpColor(view, r);
+  }
+  else {
+    double r = CQChartsUtil::norm(i + 1, 0, n + 1);
+
+    return interpColor(view, r);
+  }
+}
+
+QColor
+CQChartsColor::
+interpColor(const CQChartsView *view, double value) const
+{
+  assert(isValid());
+
+  if (type_ == Type::COLOR)
+    return color_;
+
+  if (type_ == Type::PALETTE)
+    return view->interpPaletteColor(value);
+
+  if (type_ == Type::PALETTE_VALUE)
+    return view->interpPaletteColor(value_, scale_);
+
+  if (type_ == Type::THEME_VALUE)
+    return view->interpThemeColor(value_);
 
   return QColor(0, 0, 0);
 }

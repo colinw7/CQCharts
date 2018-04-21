@@ -378,6 +378,9 @@ data(const QModelIndex &ind, int role) const
 
     CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
 
+    if (! var.isValid())
+      return var;
+
     if (role == Qt::DisplayRole)
       return CQChartsUtil::columnDisplayData(charts_, th, ind1.column(), var);
     else

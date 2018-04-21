@@ -12,11 +12,11 @@ set_property -name scroll.numPages -value 15
 
   load -csv population.csv -first_line_header -filter "sex:1,year:${year}" -title "Male ${year}"
 
-  @let tableId = rc
+  @let tableId = _rc
 
   get_property -model "${tableId}" -name num_rows
 
-  @let numRows = rc
+  @let numRows = _rc
 
   @if {numRows == 0} {
     @let year = year + 10
@@ -30,7 +30,7 @@ set_property -name scroll.numPages -value 15
 
   plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
-  @let plot1 = rc
+  @let plot1 = _rc
 
   set_property -view view1 -plot "${plot1}" -name fill.color -value blue
   set_property -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
@@ -44,7 +44,7 @@ set_property -name scroll.numPages -value 15
 
   plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
-  @let plot2 = rc
+  @let plot2 = _rc
 
   set_property -view view1 -plot "${plot2}" -name fill.color -value pink
   set_property -view view1 -plot "${plot2}" -name fill.alpha -value 0.5

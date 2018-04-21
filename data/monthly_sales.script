@@ -4,7 +4,7 @@ load -tsv monthly_sales.tsv -comment_header
 
 plot -type barchart -columns "category=0,value=1,label=4" -column_type "1#real:format=$%gK,format_scale=0.001;2#real:format=$%gK,format_scale=0.001;3#real:format=$%gK,format_scale=0.001" -title "Actual Sales" -ymax 80000
 
-@let plot1 = rc
+@let plot1 = _rc
 
 view -view view1 -title "Monthly Sales Data"
 
@@ -14,26 +14,26 @@ palette -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
 #theme -color_type defined -defined "0=#2a2a2a 1=#ffffff 2=#808080"
 
 palette -get_color 0 -get_color_scale
-@let color0 = rc
+@let color0 = _rc
 palette -get_color 1 -get_color_scale
-@let color1 = rc
+@let color1 = _rc
 palette -get_color 2 -get_color_scale
-@let color2 = rc
+@let color2 = _rc
 
-set_property -view view1 -name insideMode -value OUTLINE
+set_property -view view1 -name insideHighlight.mode -value OUTLINE
 
-set_property -view view1 -plot "${plot1}" -name barMargin                  -value 8
+set_property -view view1 -plot "${plot1}" -name barMargin                  -value 8px
 set_property -view view1 -plot "${plot1}" -name fill.color                 -value "palette:0:s"
-set_property -view view1 -plot "${plot1}" -name keySets                    -value 1
+set_property -view view1 -plot "${plot1}" -name colorBySet                 -value 1
 set_property -view view1 -plot "${plot1}" -name dataLabel.visible          -value 1
 set_property -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUTSIDE
 #set_property -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
 #set_property -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
 #set_property -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
-set_property -view view1 -plot "${plot1}" -name "xxis.majorIncrement"    -value 1
-set_property -view view1 -plot "${plot1}" -name "xxis.label.text"        -value ""
-#set_property -view view1 -plot "${plot1}" -name "xxis.label.color"       -value "theme:1"
-#set_property -view view1 -plot "${plot1}" -name "xxis.ticks.label.color" -value "theme:1"
+set_property -view view1 -plot "${plot1}" -name "xaxis.majorIncrement"    -value 1
+set_property -view view1 -plot "${plot1}" -name "xaxis.label.text"        -value ""
+#set_property -view view1 -plot "${plot1}" -name "xaxis.label.color"       -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "xaxis.ticks.label.color" -value "theme:1"
 set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
 #set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "theme:1"
 #set_property -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "theme:1"
@@ -50,27 +50,27 @@ set_property -view view1 -plot "${plot1}" -name title.text.font            -valu
 
 plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 
-@let plot2 = rc
+@let plot2 = _rc
 
 set_property -view view1 -plot "${plot2}" -name points.symbol         -value circle
 set_property -view view1 -plot "${plot2}" -name points.size           -value 6
 set_property -view view1 -plot "${plot2}" -name points.fill.visible   -value 1
 set_property -view view1 -plot "${plot2}" -name points.fill.color     -value "palette:1:s"
 set_property -view view1 -plot "${plot2}" -name points.stroke.visible -value 0
-set_property -view view1 -plot "${plot2}" -name lines.width           -value 3
+set_property -view view1 -plot "${plot2}" -name lines.width           -value 3px
 set_property -view view1 -plot "${plot2}" -name lines.rounded         -value 1
 set_property -view view1 -plot "${plot2}" -name lines.color           -value "palette:1:s"
 
 plot -type xy -columns "x=0,y=3"-title "Profit"
 
-@let plot3 = rc
+@let plot3 = _rc
 
 set_property -view view1 -plot "${plot3}" -name fillUnder.visible   -value 1
 set_property -view view1 -plot "${plot3}" -name fillUnder.color     -value "palette:2:s"
 set_property -view view1 -plot "${plot3}" -name points.symbol       -value circle
 set_property -view view1 -plot "${plot3}" -name points.size         -value 6
 set_property -view view1 -plot "${plot3}" -name points.stroke.color -value white
-set_property -view view1 -plot "${plot3}" -name points.stroke.width -value 3
+set_property -view view1 -plot "${plot3}" -name points.stroke.width -value 3px
 set_property -view view1 -plot "${plot3}" -name points.fill.visible -value 1
 set_property -view view1 -plot "${plot3}" -name points.fill.color   -value "palette:2:s"
 set_property -view view1 -plot "${plot3}" -name lines.rounded       -value 1

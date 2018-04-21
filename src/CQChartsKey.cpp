@@ -779,6 +779,17 @@ editRelease(const CQChartsGeom::Point &)
   return true;
 }
 
+void
+CQChartsPlotKey::
+editMoveBy(const QPointF &f)
+{
+  location_ = LocationType::ABS_POS;
+
+  setAbsPlotPosition(position_ + f);
+
+  updatePosition();
+}
+
 //------
 
 bool

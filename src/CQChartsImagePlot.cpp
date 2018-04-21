@@ -57,13 +57,9 @@ updateRange(bool apply)
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = model->index(row, col, parent);
-
-        //---
-
         bool ok;
 
-        double value = CQChartsUtil::modelReal(model, ind, ok);
+        double value = plot_->modelReal(model, row, col, parent, ok);
 
         if (! valueSet_) {
           minValue_ = value;
@@ -152,7 +148,7 @@ initObjs()
 
         bool ok;
 
-        int value = CQChartsUtil::modelInteger(model, ind, ok);
+        int value = plot_->modelInteger(model, row, col, parent, ok);
 
         //---
 

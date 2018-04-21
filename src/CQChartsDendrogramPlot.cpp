@@ -303,7 +303,7 @@ updateRange(bool apply)
 
       bool ok1;
 
-      QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok1);
+      QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok1);
 
       if (path.length())
         name = path + "/" + name;
@@ -312,7 +312,7 @@ updateRange(bool apply)
 
       bool ok2;
 
-      double value = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok2);
+      double value = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
 
       if (CQChartsUtil::isNaN(value))
         return State::SKIP;

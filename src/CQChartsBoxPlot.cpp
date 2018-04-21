@@ -385,8 +385,8 @@ updateRange(bool apply)
   if (model) {
     bool ok;
 
-    QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
-    QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+    QString xname = modelHeaderString(model, xColumn(), ok);
+    QString yname = modelHeaderString(model, yColumn(), ok);
 
     xAxis_->setLabel(xname);
     yAxis_->setLabel(yname);
@@ -473,14 +473,14 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     if      (groupType_ == ColumnType::INTEGER) {
       bool ok1;
 
-      int i = CQChartsUtil::modelInteger(model, row, groupColumn(), parent, ok1);
+      int i = modelInteger(model, row, groupColumn(), parent, ok1);
 
       groupId = groupValueInd_.calcId(i);
     }
     else if (groupType_ == ColumnType::REAL) {
       bool ok1;
 
-      double r = CQChartsUtil::modelReal(model, row, groupColumn(), parent, ok1);
+      double r = modelReal(model, row, groupColumn(), parent, ok1);
 
       if (CQChartsUtil::isNaN(r))
         return;
@@ -490,7 +490,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     else {
       bool ok1;
 
-      QString s = CQChartsUtil::modelString(model, row, groupColumn(), parent, ok1);
+      QString s = modelString(model, row, groupColumn(), parent, ok1);
 
       groupId = groupValueInd_.calcId(s);
     }
@@ -504,14 +504,14 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   if      (xType_ == ColumnType::INTEGER) {
     bool ok1;
 
-    int i = CQChartsUtil::modelInteger(model, row, xColumn(), parent, ok1);
+    int i = modelInteger(model, row, xColumn(), parent, ok1);
 
     setId = xValueInd_.calcId(i);
   }
   else if (xType_ == ColumnType::REAL) {
     bool ok1;
 
-    double r = CQChartsUtil::modelReal(model, row, xColumn(), parent, ok1);
+    double r = modelReal(model, row, xColumn(), parent, ok1);
 
     if (CQChartsUtil::isNaN(r))
       return;
@@ -521,7 +521,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   else {
     bool ok1;
 
-    QString s = CQChartsUtil::modelString(model, row, xColumn(), parent, ok1);
+    QString s = modelString(model, row, xColumn(), parent, ok1);
 
     setId = xValueInd_.calcId(s);
   }
@@ -531,7 +531,7 @@ addWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   // add value to set
   bool ok2;
 
-  double value = CQChartsUtil::modelReal(model, row, yColumn(), parent, ok2);
+  double value = modelReal(model, row, yColumn(), parent, ok2);
 
   if (! ok2) value = row;
 

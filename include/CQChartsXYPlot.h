@@ -556,8 +556,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &yv,
                QModelIndex &ind, bool skipBad) const;
 
-  bool modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                 const QModelIndex &ind, double &r, bool log, double def) const;
+  bool modelRowReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                    const QModelIndex &ind, double &r, bool log, double def) const;
 
   //---
 
@@ -614,30 +614,30 @@ class CQChartsXYPlot : public CQChartsPlot {
     bool visible { false };
   };
 
-  CQChartsColumn     xColumn_           { 0 };     // x column
-  CQChartsColumn     yColumn_           { 1 };     // y column
-  Columns            yColumns_;                    // multiple y columns
-  CQChartsColumn     nameColumn_;                  // name column
-  CQChartsColumn     sizeColumn_;                  // size column
-  CQChartsColumn     pointLabelColumn_;            // point label column
-  CQChartsColumn     pointColorColumn_;            // point color column
-  CQChartsColumn     pointSymbolColumn_;           // point symbol column
-  CQChartsColumn     vectorXColumn_;               // vector x direction column
-  CQChartsColumn     vectorYColumn_;               // vector y direction column
-  bool               stacked_           { false }; // is stacked
-  bool               cumulative_        { false }; // cumulate values
-  CQChartsSymbolData pointData_;                   // point data
-  bool               linesSelectable_   { false }; // are lines selectable
-  CQChartsLineData   lineData_;                    // line data
-  bool               roundedLines_      { false }; // draw rounded (smooth) lines
-  FillUnderData      fillUnderData_;               // fill under data
-  CQChartsLineData   impulseData_;                 // impulse line data
-  CQChartsArrow*     arrowObj_;                    // vectors data
-  CQChartsTextData   dataLabelData_;               // data label text data
-  CQChartsLineData   bivariateLineData_;           // bivariate line object
-  ColumnType         pointColorColumnType_;        // point color column type
-  mutable double     symbolWidth_       { 1.0 };   // current symbol width
-  mutable double     symbolHeight_      { 1.0 };   // current symbol height
+  CQChartsColumn     xColumn_              { 0 };                // x column
+  CQChartsColumn     yColumn_              { 1 };                // y column
+  Columns            yColumns_;                                  // multiple y columns
+  CQChartsColumn     nameColumn_;                                // name column
+  CQChartsColumn     sizeColumn_;                                // size column
+  CQChartsColumn     pointLabelColumn_;                          // point label column
+  CQChartsColumn     pointColorColumn_;                          // point color column
+  CQChartsColumn     pointSymbolColumn_;                         // point symbol column
+  CQChartsColumn     vectorXColumn_;                             // vector x direction column
+  CQChartsColumn     vectorYColumn_;                             // vector y direction column
+  bool               stacked_              { false };            // is stacked
+  bool               cumulative_           { false };            // cumulate values
+  CQChartsSymbolData pointData_;                                 // point data
+  bool               linesSelectable_      { false };            // are lines selectable
+  CQChartsLineData   lineData_;                                  // line data
+  bool               roundedLines_         { false };            // draw rounded (smooth) lines
+  FillUnderData      fillUnderData_;                             // fill under data
+  CQChartsLineData   impulseData_;                               // impulse line data
+  CQChartsArrow*     arrowObj_             { nullptr };          // vectors data
+  CQChartsTextData   dataLabelData_;                             // data label text data
+  CQChartsLineData   bivariateLineData_;                         // bivariate line object
+  ColumnType         pointColorColumnType_ { ColumnType::NONE }; // point color column type
+  mutable double     symbolWidth_          { 1.0 };              // current symbol width
+  mutable double     symbolHeight_         { 1.0 };              // current symbol height
 };
 
 #endif

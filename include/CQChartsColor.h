@@ -5,6 +5,7 @@
 #include <iostream>
 
 class CQChartsPlot;
+class CQChartsView;
 
 class CQChartsColor {
  public:
@@ -51,8 +52,10 @@ class CQChartsColor {
   void setColorStr(const QString &str);
 
   QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
-
   QColor interpColor(const CQChartsPlot *plot, double value) const;
+
+  QColor interpColor(const CQChartsView *view, int i, int n) const;
+  QColor interpColor(const CQChartsView *view, double value) const;
 
   //---
 

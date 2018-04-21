@@ -428,13 +428,13 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   if (numGroups() > 1) {
     if (dataColumns().size() <= 1 || isRowGrouping()) {
-      label = CQChartsUtil::modelString(model, row, labelColumn(), parent, ok);
+      label = modelString(model, row, labelColumn(), parent, ok);
     }
     else
-      label = CQChartsUtil::modelHeaderString(model, dataColumn, ok);
+      label = modelHeaderString(model, dataColumn, ok);
   }
   else {
-    label = CQChartsUtil::modelString(model, row, labelColumn(), parent, ok);
+    label = modelString(model, row, labelColumn(), parent, ok);
   }
 
   //---
@@ -444,7 +444,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (keyLabelColumn().isValid()) {
     bool ok;
 
-    keyLabel = CQChartsUtil::modelString(model, row, keyLabelColumn(), parent, ok);
+    keyLabel = modelString(model, row, keyLabelColumn(), parent, ok);
   }
 
   //---
@@ -592,7 +592,7 @@ getDataColumnValue(QAbstractItemModel *model, int row, const CQChartsColumn &col
 {
   bool ok;
 
-  value = CQChartsUtil::modelReal(model, row, column, parent, ok);
+  value = modelReal(model, row, column, parent, ok);
 
   if (! ok)
     return true; // allow missing value
@@ -723,16 +723,14 @@ calcTipId() const
     groupName = groupObj->name();
 
     if (! plot_->isRowGrouping()) {
-      label = CQChartsUtil::modelHeaderString(plot_->model(), ind.column(), ok);
+      label = plot_->modelHeaderString(plot_->model(), ind.column(), ok);
     }
     else {
-      label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
-                                        ind.parent(), ok);
+      label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(), ind.parent(), ok);
     }
   }
   else {
-    label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
-                                      ind.parent(), ok);
+    label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(), ind.parent(), ok);
   }
 
   int dataColumn = ind_.column();
@@ -760,8 +758,8 @@ calcId() const
 
   bool ok;
 
-  QString label = CQChartsUtil::modelString(plot_->model(), ind.row(), plot_->labelColumn(),
-                                            ind.parent(), ok);
+  QString label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(),
+                                     ind.parent(), ok);
 
   int dataColumn = ind_.column();
 

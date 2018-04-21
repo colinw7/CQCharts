@@ -275,6 +275,8 @@ class CQChartsPlotKey : public CQChartsKey {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
+  virtual void editMoveBy(const QPointF &f);
+
   //---
 
   bool setInside(CQChartsKeyItem *item);

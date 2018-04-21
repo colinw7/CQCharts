@@ -23,7 +23,7 @@ set_property -view $viewInd -plot $plotInd1 -name xaxis.ticks.label.angle -value
 set_property -view $viewInd -plot $plotInd1 -name yaxis.side -value TOP_RIGHT
 set_property -view $viewInd -plot $plotInd1 -name key.visible -value 0
 set_property -view $viewInd -plot $plotInd1 -name title.text.text -value "Male"
-set_property -view $viewInd -plot $plotInd1 -name title.location -value bottom
+set_property -view $viewInd -plot $plotInd1 -name title.location -value BOTTOM
 set_property -view $viewInd -plot $plotInd1 -name fill.color -value palette:0.5
 set_property -view $viewInd -plot $plotInd1 -name margin.right -value 0
 
@@ -39,6 +39,6 @@ set_property -view $viewInd -plot $plotInd2 -name xaxis.ticks.label.angle -value
 set_property -view $viewInd -plot $plotInd2 -name yaxis.side -value TOP_RIGHT
 set_property -view $viewInd -plot $plotInd2 -name key.visible -value 0
 set_property -view $viewInd -plot $plotInd2 -name title.text.text -value "Female"
-set_property -view $viewInd -plot $plotInd2 -name title.location -value bottom
+set_property -view $viewInd -plot $plotInd2 -name title.location -value BOTTOM
 set_property -view $viewInd -plot $plotInd2 -name fill.color -value palette:0.8
 set_property -view $viewInd -plot $plotInd2 -name margin.left -value 0

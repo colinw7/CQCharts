@@ -4421,8 +4421,12 @@ rectShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4508,8 +4512,12 @@ ellipseShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4588,8 +4596,12 @@ polygonShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4666,8 +4678,12 @@ polylineShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4760,8 +4776,12 @@ textShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4842,8 +4862,12 @@ arrowShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4928,8 +4952,12 @@ pointShapeCmd(const Args &args)
 
   //---
 
-  CQChartsPlot *plot = getPlotByName(view, plotName);
-  if (! plot) return;
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "")
+    plot = getPlotByName(view, plotName);
+  else
+    plot = view->currentPlot();
 
   //---
 
@@ -4978,25 +5006,13 @@ CQChartsPlot *
 CQChartsTest::
 getPlotByName(CQChartsView *view, const QString &plotName)
 {
-  CQChartsPlot *plot = nullptr;
-
   assert(view);
 
-  if (plotName != "") {
-    plot = view->getPlot(plotName);
+  CQChartsPlot *plot = view->getPlot(plotName);
 
-    if (! plot) {
-      errorMsg("No plot '" + plotName + "'");
-      return nullptr;
-    }
-  }
-  else {
-    plot = view->currentPlot();
-
-    if (! view) {
-      errorMsg("No plot");
-      return nullptr;
-    }
+  if (! plot) {
+    errorMsg("No plot '" + plotName + "'");
+    return nullptr;
   }
 
   return plot;

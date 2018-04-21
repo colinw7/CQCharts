@@ -265,6 +265,12 @@ class CQChartsView : public QFrame {
 
   //---
 
+  QColor interpPaletteColor(double r, bool scale=false) const;
+
+  QColor interpThemeColor(double r) const;
+
+  //---
+
   void mousePressEvent  (QMouseEvent *me) override;
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;

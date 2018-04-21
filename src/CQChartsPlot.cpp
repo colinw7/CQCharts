@@ -2055,6 +2055,41 @@ editRelease(const CQChartsGeom::Point & /*p*/, const CQChartsGeom::Point & /*w*/
   return true;
 }
 
+void
+CQChartsPlot::
+editMoveBy(const QPointF &d)
+{
+  QRectF r = this->range();
+
+  double dw = d.x()*r.width ();
+  double dh = d.y()*r.height();
+
+  QPointF dp(dw, dh);
+
+  if      (isSelected()) {
+  }
+  else if (key() && key()->isSelected()) {
+    key()->editMoveBy(dp);
+  }
+  else if (xAxis() && xAxis()->isSelected()) {
+    xAxis()->editMoveBy(dp);
+  }
+  else if (yAxis() && yAxis()->isSelected()) {
+    yAxis()->editMoveBy(dp);
+  }
+  else if (title() && title()->isSelected()) {
+    title()->editMoveBy(dp);
+  }
+  else {
+    for (const auto &annotation : annotations()) {
+      if (annotation->isSelected()) {
+        (void) annotation->editMoveBy(dp);
+        return;
+      }
+    }
+  }
+}
+
 //------
 
 bool
@@ -2246,16 +2281,30 @@ keyPress(int key, int modifier)
 
   if      (key == Qt::Key_Left || key == Qt::Key_Right ||
            key == Qt::Key_Up   || key == Qt::Key_Down) {
-    double f = (! is_shift ? 0.125 : 0.25);
+    if (view()->mode() != CQChartsView::Mode::EDIT) {
+      double f = (! is_shift ? 0.125 : 0.25);
 
-    if      (key == Qt::Key_Right)
-      panLeft(f);
-    else if (key == Qt::Key_Left)
-      panRight(f);
-    else if (key == Qt::Key_Up)
-      panDown(f);
-    else if ( key == Qt::Key_Down)
-      panUp(f);
+      if      (key == Qt::Key_Right)
+        panLeft(f);
+      else if (key == Qt::Key_Left)
+        panRight(f);
+      else if (key == Qt::Key_Up)
+        panDown(f);
+      else if (key == Qt::Key_Down)
+        panUp(f);
+    }
+    else {
+      double f = (! is_shift ? 0.025 : 0.05);
+
+      if      (key == Qt::Key_Right)
+        editMoveBy(QPointF( f, 0));
+      else if (key == Qt::Key_Left)
+        editMoveBy(QPointF(-f, 0));
+      else if (key == Qt::Key_Up)
+        editMoveBy(QPointF(0, f));
+      else if (key == Qt::Key_Down)
+        editMoveBy(QPointF(0, -f));
+    }
   }
   else if (key == Qt::Key_Plus || key == Qt::Key_Minus) {
     double f = (! is_shift ? 1.5 : 2.0);
@@ -3603,7 +3652,7 @@ CQChartsPlot::
 updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
 {
   // fill and stroke
-  if (brush.style() != Qt::NoBrush) {
+  if      (brush.style() != Qt::NoBrush) {
     if (view()->selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
 
@@ -3649,9 +3698,7 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
     }
   }
   // just stroke
-  else {
-    assert(pen.style() != Qt::NoPen);
-
+  else if (pen.style() != Qt::NoPen) {
     QColor pc = pen.color();
 
     QColor opc;
@@ -3732,13 +3779,6 @@ interpGroupPaletteColor(double r1, double r2, double dr) const
 
 QColor
 CQChartsPlot::
-textColor(const QColor &bg) const
-{
-  return CQChartsUtil::bwColor(bg);
-}
-
-QColor
-CQChartsPlot::
 interpThemeColor(double r) const
 {
   CQChartsTheme *theme = view()->theme();
@@ -3746,6 +3786,13 @@ interpThemeColor(double r) const
   QColor c = theme->theme()->getColor(r, /*scale*/true);
 
   return c;
+}
+
+QColor
+CQChartsPlot::
+textColor(const QColor &bg) const
+{
+  return CQChartsUtil::bwColor(bg);
 }
 
 //------
@@ -3831,7 +3878,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
     bool ok;
 
-    QString name = CQChartsUtil::modelString(model, row, nameColumn, parent, ok);
+    QString name = modelString(model, row, nameColumn, parent, ok);
 
     if (ok && ! name.simplified().length())
       ok = false;
@@ -3851,7 +3898,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
     for (auto &nameColumn : nameColumns) {
       bool ok;
 
-      QString name = CQChartsUtil::modelString(model, row, nameColumn, parent, ok);
+      QString name = modelString(model, row, nameColumn, parent, ok);
 
       if (ok && ! name.simplified().length())
         ok = false;
@@ -4201,7 +4248,7 @@ addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     if (column.isValid()) {
       bool ok;
 
-      QVariant value = CQChartsUtil::modelValue(model, row, column, parent, ok);
+      QVariant value = modelValue(model, row, column, parent, ok);
 
       valueSet.second->addValue(value); // always add some value
     }
@@ -4221,7 +4268,7 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok;
 
-      QVariant value = CQChartsUtil::modelValue(model, row, column_, parent, ok);
+      QVariant value = plot_->modelValue(model, row, column_, parent, ok);
 
       // TODO: skip if not ok ?
 
@@ -4268,7 +4315,7 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
     for (const auto &column : valueColumns) {
       bool ok;
 
-      QString name = CQChartsUtil::modelHeaderString(model, column, ok);
+      QString name = modelHeaderString(model, column, ok);
 
       int ind = groupBucket_.addValue(column.column());
 
@@ -4300,8 +4347,8 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
   // process model data
   class GroupVisitor : public ModelVisitor {
    public:
-    GroupVisitor(CQChartsColumnBucket *bucket) :
-     bucket_(bucket) {
+    GroupVisitor(CQChartsPlot *plot, CQChartsColumnBucket *bucket) :
+     plot_(plot), bucket_(bucket) {
     }
 
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -4309,7 +4356,7 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
       if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
         bool ok;
 
-        QVariant value = CQChartsUtil::modelValue(model, row, bucket_->column(), parent, ok);
+        QVariant value = plot_->modelValue(model, row, bucket_->column(), parent, ok);
 
         bucket_->addValue(value);
       }
@@ -4327,10 +4374,11 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
     }
 
    private:
-    CQChartsColumnBucket *bucket_ { nullptr };
+    CQChartsPlot*         plot_   { nullptr };
+    CQChartsColumnBucket* bucket_ { nullptr };
   };
 
-  GroupVisitor groupVisitor(&groupBucket_);
+  GroupVisitor groupVisitor(this, &groupBucket_);
 
   visitModel(groupVisitor);
 }
@@ -4348,7 +4396,7 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
-    QVariant value = CQChartsUtil::modelValue(model, row, groupBucket_.column(), parent, ok);
+    QVariant value = modelValue(model, row, groupBucket_.column(), parent, ok);
 
     return groupBucket_.ind(value);
   }
@@ -4376,15 +4424,64 @@ visitModel(ModelVisitor &visitor)
 
 //------
 
+QString
+CQChartsPlot::
+modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+{
+  return CQChartsUtil::modelHeaderString(model, column, ok);
+}
+
+QVariant
+CQChartsPlot::
+modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+           const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsUtil::modelValue(model, row, column, parent, ok);
+}
+
+QString
+CQChartsPlot::
+modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+            const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsUtil::modelString(model, row, column, parent, ok);
+}
+
+double
+CQChartsPlot::
+modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+          const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsUtil::modelReal(model, row, column, parent, ok);
+}
+
+long
+CQChartsPlot::
+modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+             const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsUtil::modelInteger(model, row, column, parent, ok);
+}
+
+QColor
+CQChartsPlot::
+modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+           const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsUtil::modelColor(model, row, column, parent, ok);
+}
+
+//------
+
 bool
 CQChartsPlot::
-isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &col,
+isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &column,
               const QModelIndex &parent) const
 {
-  if (col.type() != CQChartsColumn::Type::DATA)
+  if (column.type() != CQChartsColumn::Type::DATA)
     return false;
 
-  return isSelectIndex(ind, row, col.column(), parent);
+  return isSelectIndex(ind, row, column.column(), parent);
 }
 
 bool

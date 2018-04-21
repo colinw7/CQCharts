@@ -125,7 +125,7 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      int group = CQChartsUtil::modelInteger(model, row, plot_->groupColumn(), parent, ok1);
+      int group = plot_->modelInteger(model, row, plot_->groupColumn(), parent, ok1);
 
       if (! ok1) group = row;
 
@@ -136,7 +136,7 @@ initObjs()
 
         bool ok2;
 
-        int id = CQChartsUtil::modelInteger(model, row, plot_->nodeColumn(), parent, ok2);
+        int id = plot_->modelInteger(model, row, plot_->nodeColumn(), parent, ok2);
 
         if (! ok2) id = row;
 
@@ -145,7 +145,7 @@ initObjs()
         bool ok3;
 
         QString connectionsStr =
-          CQChartsUtil::modelString(model, row, plot_->connectionsColumn(), parent, ok3);
+          plot_->modelString(model, row, plot_->connectionsColumn(), parent, ok3);
 
         ConnectionDataArray connectionDataArray;
 
@@ -155,7 +155,7 @@ initObjs()
 
         bool ok4;
 
-        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok4);
+        QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok4);
 
         if (! name.length())
           name = QString("%1").arg(id);
@@ -178,7 +178,7 @@ initObjs()
       else {
         bool ok2;
 
-        QString linkStr = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok2);
+        QString linkStr = plot_->modelString(model, row, plot_->nameColumn(), parent, ok2);
 
         if (! ok2)
           return State::SKIP;
@@ -198,7 +198,7 @@ initObjs()
 
         bool ok3;
 
-        int value = CQChartsUtil::modelInteger(model, row, plot_->valueColumn(), parent, ok3);
+        int value = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok3);
 
         if (! ok3)
           value = 0;

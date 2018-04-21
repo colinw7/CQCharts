@@ -281,15 +281,15 @@ inline long toInt(const QString &str, bool &ok) {
     return integer;
   }
 
-  while (*p != 0 && ::isspace(*p))
-    ++p;
-
   if (*p == '.') {
     ++p;
 
     while (*p == '0')
       ++p;
   }
+
+  while (*p != 0 && ::isspace(*p))
+    ++p;
 
   if (*p != '\0') {
     ok = false;
@@ -785,6 +785,7 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
 
 inline QString modelHeaderString(QAbstractItemModel *model, int column, int role, bool &ok) {
   QVariant var = modelHeaderValue(model, column, role, ok);
+  if (! var.isValid()) return "";
 
   QString str;
 

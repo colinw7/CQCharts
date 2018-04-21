@@ -339,3 +339,6 @@
  + Use testAndSet in more code
  + Add Path and Style columbn types to support SVG geometry
  + Update default palette
+# 4/21/2018
+ + make plot model data access virtual
+ + add edit move using cursor keys

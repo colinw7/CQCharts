@@ -708,6 +708,23 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                    bool &ok) const;
+
+  virtual QVariant modelValue  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) const;
+  virtual QString  modelString (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) const;
+  virtual double   modelReal   (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) const;
+  virtual long     modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) const;
+  virtual QColor   modelColor  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) const;
+
+
+  //---
+
   bool isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &col,
                      const QModelIndex &parent=QModelIndex()) const;
 
@@ -908,6 +925,8 @@ class CQChartsPlot : public QObject {
   virtual bool editMotion (const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
   virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
 
+  virtual void editMoveBy(const QPointF &d);
+
   void deselectAll();
 
   // handle key press
@@ -1095,18 +1114,20 @@ class CQChartsPlot : public QObject {
   QColor insideColor(const QColor &c) const;
   QColor selectedColor(const QColor &c) const;
 
+  //---
+
   // get palette color for ith value of n values
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
-
-  virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
-
   QColor interpPaletteColor(double r, bool scale=false) const;
 
+  virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
 
-  QColor textColor(const QColor &bg) const;
-
   QColor interpThemeColor(double r) const;
+
+  //---
+
+  QColor textColor(const QColor &bg) const;
 
   //---
 

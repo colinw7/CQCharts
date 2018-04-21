@@ -485,7 +485,7 @@ updateRange(bool apply)
   for (const auto &valueColumn : valueColumns_) {
     bool ok;
 
-    QString valueName = CQChartsUtil::modelHeaderString(model, valueColumn, ok);
+    QString valueName = modelHeaderString(model, valueColumn, ok);
 
     valueNames_.push_back(valueName);
   }
@@ -560,10 +560,10 @@ updateRange(bool apply)
   }
   else {
     if (categoryColumn().isValid()) {
-      xname = CQChartsUtil::modelHeaderString(model, categoryColumn(), ok);
+      xname = modelHeaderString(model, categoryColumn(), ok);
     }
     else {
-      xname = CQChartsUtil::modelHeaderString(model, nameColumn(), ok);
+      xname = modelHeaderString(model, nameColumn(), ok);
     }
   }
 
@@ -578,7 +578,7 @@ updateRange(bool apply)
   if (valueColumns().size() <= 1) {
     bool ok;
 
-    yname = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
+    yname = modelHeaderString(model, valueColumn(), ok);
   }
 
   yAxis->setLabel(yname);
@@ -643,7 +643,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (categoryColumn().isValid()) {
     bool ok1;
 
-    category = CQChartsUtil::modelString(model, row, categoryColumn(), parent, ok1);
+    category = modelString(model, row, categoryColumn(), parent, ok1);
 
     categoryName = category;
   }
@@ -656,7 +656,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (nameColumn().isValid()) {
     bool ok2;
 
-    name = CQChartsUtil::modelString(model, row, nameColumn(), parent, ok2);
+    name = modelString(model, row, nameColumn(), parent, ok2);
 
     if (! categoryName.length())
       categoryName = name;
@@ -670,7 +670,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (labelColumn().isValid()) {
     bool ok3;
 
-    label = CQChartsUtil::modelString(model, row, labelColumn(), parent, ok3);
+    label = modelString(model, row, labelColumn(), parent, ok3);
   }
 
   //---
@@ -687,7 +687,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   for (const auto &valueColumn : valueColumns) {
     bool ok2;
 
-    double r = CQChartsUtil::modelReal(model, row, valueColumn, parent, ok2);
+    double r = modelReal(model, row, valueColumn, parent, ok2);
 
     if (! ok2)
       r = row;
@@ -741,7 +741,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     if (! isRowGrouping()) {
       bool ok;
 
-      valueName = CQChartsUtil::modelHeaderString(model, valueColumn, ok);
+      valueName = modelHeaderString(model, valueColumn, ok);
     }
     // row grouping so value name is category/name column name
     else {
@@ -1167,7 +1167,7 @@ addKeyItems(CQChartsPlotKey *key)
           OptColor color;
 
           if (colorColumn().isValid() && colorSetColor("color", ind.row(), color))
-            c = (*color).interpColor(0, 1);
+            c = (*color).interpColor(this, 0, 1);
         }
 
         addKeyRow(i, nv, valueSet.name(), c);
@@ -1179,7 +1179,7 @@ addKeyItems(CQChartsPlotKey *key)
       if (! title.length()) {
         bool ok;
 
-        QString yname = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
+        QString yname = modelHeaderString(model, valueColumn(), ok);
 
         title = yname;
       }

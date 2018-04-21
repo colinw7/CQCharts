@@ -206,8 +206,8 @@ updateRange(bool apply)
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -259,8 +259,8 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = CQChartsUtil::modelHeaderString(model, xColumn(), ok);
-  QString yname = CQChartsUtil::modelHeaderString(model, yColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), ok);
+  QString yname = modelHeaderString(model, yColumn(), ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -343,8 +343,8 @@ initObjs()
 
         bool ok1, ok2;
 
-        double x = CQChartsUtil::modelReal(model, row, plot_->xColumn(), parent, ok1);
-        double y = CQChartsUtil::modelReal(model, row, plot_->yColumn(), parent, ok2);
+        double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
+        double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
 
         if (! ok1) x = row;
         if (! ok2) y = row;
@@ -357,7 +357,7 @@ initObjs()
         // get optional name
         bool ok;
 
-        QString name = CQChartsUtil::modelString(model, row, plot_->nameColumn(), parent, ok);
+        QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
 
         //---
 
@@ -366,15 +366,15 @@ initObjs()
 
         // get symbol size label (needed if not string ?)
         QString symbolSizeStr =
-          CQChartsUtil::modelString(model, row, plot_->symbolSizeColumn(), parent, ok3);
+          plot_->modelString(model, row, plot_->symbolSizeColumn(), parent, ok3);
 
         // get font size label (needed if not string ?)
         QString fontSizeStr =
-          CQChartsUtil::modelString(model, row, plot_->fontSizeColumn(), parent, ok4);
+          plot_->modelString(model, row, plot_->fontSizeColumn(), parent, ok4);
 
         // get color label (needed if not string ?)
         QString colorStr =
-          CQChartsUtil::modelString(model, row, plot_->colorColumn(), parent, ok5);
+          plot_->modelString(model, row, plot_->colorColumn(), parent, ok5);
 
         //---
 
@@ -401,11 +401,11 @@ initObjs()
   if (model) {
     bool ok;
 
-    xname_          = CQChartsUtil::modelHeaderString(model, xColumn         (), ok);
-    yname_          = CQChartsUtil::modelHeaderString(model, yColumn         (), ok);
-    symbolSizeName_ = CQChartsUtil::modelHeaderString(model, symbolSizeColumn(), ok);
-    fontSizeName_   = CQChartsUtil::modelHeaderString(model, fontSizeColumn  (), ok);
-    colorName_      = CQChartsUtil::modelHeaderString(model, colorColumn     (), ok);
+    xname_          = modelHeaderString(model, xColumn         (), ok);
+    yname_          = modelHeaderString(model, yColumn         (), ok);
+    symbolSizeName_ = modelHeaderString(model, symbolSizeColumn(), ok);
+    fontSizeName_   = modelHeaderString(model, fontSizeColumn  (), ok);
+    colorName_      = modelHeaderString(model, colorColumn     (), ok);
   }
   else {
     xname_          = "";

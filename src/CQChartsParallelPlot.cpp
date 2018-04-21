@@ -195,7 +195,7 @@ updateRange(bool apply)
         bool ok;
 
         double x = 0;
-        double y = CQChartsUtil::modelReal(model, row, yColumn, parent, ok);
+        double y = plot_->modelReal(model, row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -244,7 +244,7 @@ updateRange(bool apply)
 
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model, yColumn, ok);
+    QString name = modelHeaderString(model, yColumn, ok);
 
     setDataRange(range);
 
@@ -314,7 +314,7 @@ initObjs()
         bool ok;
 
         double x = i;
-        double y = CQChartsUtil::modelReal(model, row, yColumn, parent, ok);
+        double y = plot_->modelReal(model, row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -366,7 +366,7 @@ initObjs()
 
     bool ok;
 
-    QString xname = CQChartsUtil::modelString(model, xind, ok);
+    QString xname = modelString(model, xind.row(), xind.column(), xind.parent(), ok);
 
     CQChartsGeom::BBox bbox(-0.5, 0, numSets() - 0.5, 1);
 
@@ -400,7 +400,7 @@ initObjs()
 
       bool ok;
 
-      QString yname = CQChartsUtil::modelHeaderString(model, yColumn, ok);
+      QString yname = modelHeaderString(model, yColumn, ok);
 
       QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 
@@ -520,7 +520,7 @@ calcId() const
   bool ok;
 
   QString xname =
-    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   return xname;
 }
@@ -532,7 +532,7 @@ calcTipId() const
   bool ok;
 
   QString xname =
-    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   CQChartsTableTip tableTip;
 
@@ -545,7 +545,7 @@ calcTipId() const
 
     bool ok;
 
-    QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
+    QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
 
     tableTip.addTableRow(yname, poly_[j].y());
   }
@@ -689,11 +689,11 @@ calcId() const
   bool ok;
 
   QString xname =
-    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
-  QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
+  QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
 
   return QString("%1:%2=%3").arg(xname).arg(yname).arg(y_);
 }
@@ -707,13 +707,13 @@ calcTipId() const
   bool ok;
 
   QString xname =
-    CQChartsUtil::modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   tableTip.addBoldLine(xname);
 
   const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
-  QString yname = CQChartsUtil::modelHeaderString(plot_->model(), yColumn, ok);
+  QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
 
   tableTip.addTableRow(yname, y_);
 

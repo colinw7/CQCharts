@@ -429,6 +429,28 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2)
   plot2->setDataBackground(false);
 }
 
+QColor
+CQChartsView::
+interpPaletteColor(double r, bool scale) const
+{
+  CQChartsGradientPalette *palette = this->themePalette();
+
+  QColor c = palette->getColor(r, scale);
+
+  return c;
+}
+
+QColor
+CQChartsView::
+interpThemeColor(double r) const
+{
+  CQChartsTheme *theme = const_cast<CQChartsView *>(this)->theme();
+
+  QColor c = theme->theme()->getColor(r, /*scale*/true);
+
+  return c;
+}
+
 void
 CQChartsView::
 mousePressEvent(QMouseEvent *me)
@@ -503,8 +525,6 @@ bool
 CQChartsView::
 editMousePress(const QPointF &p)
 {
-  deselectAll();
-
   if (mouseData_.plot) {
     if (mouseData_.plot->editMousePress(p))
       return true;
@@ -516,6 +536,8 @@ editMousePress(const QPointF &p)
     if (plot->editMousePress(p))
       return true;
   }
+
+  deselectAll();
 
   return false;
 }

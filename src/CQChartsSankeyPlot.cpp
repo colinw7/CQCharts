@@ -522,8 +522,8 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      QString linkStr = CQChartsUtil::modelString(model, row, plot_->linkColumn (), parent, ok1);
-      double  value   = CQChartsUtil::modelReal  (model, row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(model, row, plot_->linkColumn (), parent, ok1);
+      double  value   = plot_->modelReal  (model, row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;

@@ -351,7 +351,7 @@ updateRange(bool apply)
       if (hasRange_) {
         bool ok;
 
-        double value = CQChartsUtil::modelReal(model, row, plot_->valueColumn(), parent, ok);
+        double value = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -371,7 +371,7 @@ updateRange(bool apply)
       else {
         bool ok;
 
-        QString value = CQChartsUtil::modelString(model, row, plot_->valueColumn(), parent, ok);
+        QString value = plot_->modelString(model, row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -656,7 +656,7 @@ initObjs()
 
   bool ok;
 
-  QString valueName = CQChartsUtil::modelHeaderString(model, valueColumn(), ok);
+  QString valueName = modelHeaderString(model, valueColumn(), ok);
 
   valueAxis()->setLabel(valueName);
   countAxis()->setLabel("Count");
