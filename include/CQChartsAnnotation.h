@@ -12,13 +12,20 @@
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
+  Q_PROPERTY(int     ind READ ind WRITE setInd)
+  Q_PROPERTY(QString id  READ id  WRITE setId )
+
  public:
+  CQChartsAnnotation(CQChartsView *view);
   CQChartsAnnotation(CQChartsPlot *plot);
 
   virtual ~CQChartsAnnotation();
 
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
+
+  const QString &id() const { return id_; }
+  void setId(const QString &v) { id_ = v; }
 
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
 
@@ -32,11 +39,14 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addFillProperties(CQPropertyViewModel *model, const QString &path);
 
+  bool getProperty(const QString &name, QVariant &value);
+  bool setProperty(const QString &name, const QVariant &value);
+
   bool contains(const CQChartsGeom::Point &p) const;
 
   //---
 
-  virtual bool selectPress(const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress(const CQChartsGeom::Point &);
 
   virtual bool editPress  (const CQChartsGeom::Point &);
   virtual bool editMove   (const CQChartsGeom::Point &);
@@ -58,6 +68,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
  protected:
   int                 ind_         { 0 };    // unique ind
+  QString             id_;                   // id string
   CQChartsGeom::BBox  bbox_;                 // bbox (plot coords)
   CQChartsEditHandles editHandles_;          // edit handles
   bool                autoSize_    { true }; // set bbox from contents
@@ -72,6 +83,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
 
  public:
+  CQChartsRectAnnotation(CQChartsView *view, const CQChartsPosition &p1=CQChartsPosition(),
+                         const CQChartsPosition &p2=CQChartsPosition(QPointF(1, 1)));
   CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &p1=CQChartsPosition(),
                          const CQChartsPosition &p2=CQChartsPosition(QPointF(1, 1)));
 
@@ -90,7 +103,7 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsPosition start_;
+  CQChartsPosition start_ { QPointF(0, 0) };
   CQChartsPosition end_   { QPointF(1, 1) };
 };
 
@@ -104,6 +117,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(double           yRadius READ yRadius WRITE setYRadius)
 
  public:
+  CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center=CQChartsPosition(),
+                            double xRadius=1.0, double yRadius=1.0);
   CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center=CQChartsPosition(),
                             double xRadius=1.0, double yRadius=1.0);
 
@@ -135,7 +150,10 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(QPolygonF points READ points WRITE setPoints)
+
  public:
+  CQChartsPolygonAnnotation(CQChartsView *view, const QPolygonF &points);
   CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points);
 
   virtual ~CQChartsPolygonAnnotation();
@@ -158,7 +176,10 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 class CQChartsPolylineAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
+  Q_PROPERTY(QPolygonF points READ points WRITE setPoints)
+
  public:
+  CQChartsPolylineAnnotation(CQChartsView *view, const QPolygonF &points);
   CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points);
 
   virtual ~CQChartsPolylineAnnotation();
@@ -184,6 +205,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
+  CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
+                         const QString &text="");
   CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
                          const QString &text="");
 
@@ -217,6 +240,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition end   READ end   WRITE setEnd  )
 
  public:
+  CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start=CQChartsPosition(),
+                          const CQChartsPosition &end=CQChartsPosition(QPointF(1, 1)));
   CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start=CQChartsPosition(),
                           const CQChartsPosition &end=CQChartsPosition(QPointF(1, 1)));
 
@@ -237,7 +262,7 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   void draw(QPainter *painter) override;
 
  private:
-  CQChartsPosition start_;
+  CQChartsPosition start_ { QPointF(0, 0) };
   CQChartsPosition end_   { QPointF(1, 1) };
   CQChartsArrow*   arrow_ { nullptr };
 };
@@ -250,6 +275,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   Q_PROPERTY(CQChartsPosition position READ position WRITE setPosition)
 
  public:
+  CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
+                          const CQChartsPlotSymbol::Type &type=CQChartsPlotSymbol::Type::CROSS);
   CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
                           const CQChartsPlotSymbol::Type &type=CQChartsPlotSymbol::Type::CROSS);
 

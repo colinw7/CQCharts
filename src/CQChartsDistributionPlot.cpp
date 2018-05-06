@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
@@ -28,6 +29,8 @@ addParameters()
   addBoolParameter("autoRange", "Auto Range", "autoRange" , "optional", true);
   addRealParameter("start"    , "Start"     , "startValue", "optional");
   addRealParameter("delta"    , "Delta"     , "deltaValue", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -304,11 +307,11 @@ updateRange(bool apply)
   bool hasRange = valueSet->isNumeric();
 
   if (hasRange) {
-    class ColumnDetails : public CQChartsUtil::ModelColumnDetails {
+    class ColumnDetails : public CQChartsModelColumnDetails {
      public:
       ColumnDetails(CQChartsDistributionPlot *plot, QAbstractItemModel *model,
                     const CQChartsColumn &column) :
-       CQChartsUtil::ModelColumnDetails(plot->charts(), model, column), plot_(plot) {
+       CQChartsModelColumnDetails(plot->charts(), model, column), plot_(plot) {
       }
 
       bool checkRow(const QVariant &var) override {

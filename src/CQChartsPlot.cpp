@@ -13,11 +13,14 @@
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
 #include <CQChartsGradientPalette.h>
+
+#include <CHRTimer.h>
 
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
@@ -86,6 +89,8 @@ void
 CQChartsPlotType::
 addParameters()
 {
+  addColumnParameter("id", "Id", "idColumn", "optional");
+
   addBoolParameter("key", "Key", "keyVisible", "optional");
 }
 
@@ -106,6 +111,8 @@ addParameters()
   addColumnParameter ("color", "Color", "colorColumn", "optional");
 
   addStringParameter("separator", "Separator", "separator", "optional", "/");
+
+  CQChartsPlotType::addParameters();
 }
 
 //------
@@ -797,6 +804,8 @@ void
 CQChartsPlot::
 addProperties()
 {
+  addProperty("columns", this, "idColumn", "id");
+
   addProperty("", this, "visible"    );
   addProperty("", this, "rect"       );
   addProperty("", this, "range"      );
@@ -858,6 +867,9 @@ addProperties()
 
   if (title())
     title()->addProperties(propertyModel(), id() + "/" + "title");
+
+  addProperty("scaledFont", this, "minScaleFontSize", "minSize");
+  addProperty("scaledFont", this, "maxScaleFontSize", "maxSize");
 }
 
 bool
@@ -994,8 +1006,13 @@ void
 CQChartsPlot::
 resetKeyItems()
 {
-  // if first plot then add all chained plot items to this plot's key
-  if (! prevPlot()) {
+  if (isOverlay()) {
+    // if first plot then add all chained plot items to this plot's key
+    if (prevPlot())
+      return;
+
+    //---
+
     key()->clearItems();
 
     addKeyItems(key());
@@ -1007,6 +1024,11 @@ resetKeyItems()
 
       plot1 = plot1->nextPlot();
     }
+  }
+  else {
+    key()->clearItems();
+
+    addKeyItems(key());
   }
 }
 
@@ -1097,7 +1119,17 @@ applyDataRange(bool propagate)
   CQChartsGeom::BBox dataRange;
 
   if (propagate) {
-    if      (isOverlay()) {
+    if      (isX1X2()) {
+      CQChartsPlot *plot1 = firstPlot();
+
+      dataRange = plot1->calcDataRange();
+    }
+    else if (isY1Y2()) {
+      CQChartsPlot *plot1 = firstPlot();
+
+      dataRange = plot1->calcDataRange();
+    }
+    else if (isOverlay()) {
       CQChartsPlot *plot1 = firstPlot();
 
       while (plot1) {
@@ -1111,11 +1143,6 @@ applyDataRange(bool propagate)
 
         plot1 = plot1->nextPlot();
       }
-    }
-    else if (isY1Y2()) {
-      CQChartsPlot *plot1 = firstPlot();
-
-      dataRange = plot1->calcDataRange();
     }
     else
       dataRange = calcDataRange();
@@ -1135,29 +1162,38 @@ applyDataRange(bool propagate)
   if (propagate) {
     CQChartsPlot *plot1 = firstPlot();
 
-    if      (isOverlay()) {
+    if      (isX1X2()) {
       CQChartsGeom::Range dataRange1 =
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
-      if (plot1) {
-        //plot1->setDataRange (dataRange1);
-        //plot1->setDataScaleX(dataScaleX());
-        //plot1->setDataScaleY(dataScaleY());
-        //plot1->setDataOffset(dataOffset());
+      plot1->setDataScaleX(dataScaleX());
+      plot1->setDataScaleY(dataScaleY());
+      plot1->setDataOffset(dataOffset());
 
-        //plot1->applyDataRange(/*propagate*/false);
+      plot1->applyDataRange(/*propagate*/false);
 
-        while (plot1) {
-          plot1->setDataRange (dataRange1, /*update*/false);
-          plot1->setDataScaleX(dataScaleX());
-          plot1->setDataScaleY(dataScaleY());
-          plot1->setDataOffset(dataOffset());
+      //---
 
-          plot1->applyDataRange(/*propagate*/false);
+      CQChartsPlot *plot2 = plot1->nextPlot();
 
-          plot1 = plot1->nextPlot();
-        }
+      if (plot2) {
+        plot2->setDataRange(CQChartsGeom::Range(), /*update*/false);
+
+        plot2->updateRange(/*update*/false);
+
+        CQChartsGeom::BBox bbox2 = plot2->calcDataRange(/*adjust*/false);
+
+        CQChartsGeom::Range dataRange2 =
+          CQChartsGeom::Range(bbox2.getXMin(), dataRange1.bottom(),
+                              bbox2.getXMax(), dataRange1.top   ());
+
+        plot2->setDataRange (dataRange2, /*update*/false);
+        plot2->setDataScaleX(dataScaleX());
+        plot2->setDataScaleY(dataScaleY());
+        plot2->setDataOffset(dataOffset());
+
+        plot2->applyDataRange(/*propagate*/false);
       }
     }
     else if (isY1Y2()) {
@@ -1192,6 +1228,31 @@ applyDataRange(bool propagate)
         plot2->setDataOffset(dataOffset());
 
         plot2->applyDataRange(/*propagate*/false);
+      }
+    }
+    else if (isOverlay()) {
+      CQChartsGeom::Range dataRange1 =
+        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
+                            dataRange.getXMax(), dataRange.getYMax());
+
+      if (plot1) {
+        //plot1->setDataRange (dataRange1);
+        //plot1->setDataScaleX(dataScaleX());
+        //plot1->setDataScaleY(dataScaleY());
+        //plot1->setDataOffset(dataOffset());
+
+        //plot1->applyDataRange(/*propagate*/false);
+
+        while (plot1) {
+          plot1->setDataRange (dataRange1, /*update*/false);
+          plot1->setDataScaleX(dataScaleX());
+          plot1->setDataScaleY(dataScaleY());
+          plot1->setDataOffset(dataOffset());
+
+          plot1->applyDataRange(/*propagate*/false);
+
+          plot1 = plot1->nextPlot();
+        }
       }
     }
     else {
@@ -1248,11 +1309,15 @@ adjustDataRange()
   if (xmax_) dataRange_.setRight (*xmax_);
   if (ymax_) dataRange_.setTop   (*ymax_);
 
-  if (xAxis() && xAxis()->isIncludeZero())
-    dataRange_.updateRange(0, dataRange_.ymid());
+  if (xAxis() && xAxis()->isIncludeZero()) {
+    if (dataRange_.isSet())
+      dataRange_.updateRange(0, dataRange_.ymid());
+  }
 
-  if (yAxis() && yAxis()->isIncludeZero())
-    dataRange_.updateRange(dataRange_.xmid(), 0);
+  if (yAxis() && yAxis()->isIncludeZero()) {
+    if (dataRange_.isSet())
+      dataRange_.updateRange(dataRange_.xmid(), 0);
+  }
 }
 
 void
@@ -1294,19 +1359,21 @@ void
 CQChartsPlot::
 initObjTree()
 {
-  plotObjTree_->addObjects(plotObjs_);
+  plotObjTree_->addObjects();
 }
 
 void
 CQChartsPlot::
 clearPlotObjects()
 {
-  for (auto &plotObj : plotObjs_)
-    delete plotObj;
+  PlotObjs plotObjs;
 
-  plotObjs_.clear();
+  std::swap(plotObjs, plotObjs_);
 
   plotObjTree_->clearObjects();
+
+  for (auto &plotObj : plotObjs)
+    delete plotObj;
 
   insidePlotObjs_    .clear();
   sizeInsidePlotObjs_.clear();
@@ -1443,31 +1510,48 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
   if (key() && key()->contains(w)) {
     CQChartsKeyItem *item = key()->getItemAt(w);
 
-    bool handled = false;
+    if (item) {
+      bool handled = item->selectPress(w);
 
-    if (item)
-      handled = item->selectPress(w);
+      if (handled) {
+        emit keyItemPressed  (item);
+        emit keyItemIdPressed(item->id());
 
-    if (! handled)
-      handled = key()->selectPress(w);
+        return true;
+      }
+    }
 
-    if (handled)
+    bool handled = key()->selectPress(w);
+
+    if (handled) {
+      emit keyPressed  (key());
+      emit keyIdPressed(key()->id());
+
       return true;
+    }
   }
 
   //---
 
   if (title() && title()->contains(w)) {
-    if (title()->selectPress(w))
+    if (title()->selectPress(w)) {
+      emit titlePressed  (title());
+      emit titleIdPressed(title()->id());
+
       return true;
+    }
   }
 
   //---
 
   for (const auto &annotation : annotations()) {
     if (annotation->contains(w)) {
-      if (annotation->selectPress(w))
+      if (annotation->selectPress(w)) {
+        emit annotationPressed  (annotation);
+        emit annotationIdPressed(annotation->id());
+
         return true;
+      }
     }
   }
 
@@ -1522,10 +1606,7 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
     //---
 
-    selectObj->selectPress();
-
-    emit objPressed(selectObj);
-
+    emit objPressed  (selectObj);
     emit objIdPressed(selectObj->id());
 
     // potential crash if signals cause objects to be deleted (defer !!!)
@@ -2797,52 +2878,61 @@ void
 CQChartsPlot::
 autoFit()
 {
-  if (prevPlot())
-    return;
+  if (isOverlay()) {
+    if (prevPlot())
+      return;
 
-  //---
+    //---
 
-  CQChartsGeom::BBox bbox = fitBBox();
+    CQChartsGeom::BBox bbox = fitBBox();
 
-  //---
+    //---
 
-  CQChartsPlot *plot1 = nextPlot();
+    // combine bboxes of overlay plots
+    CQChartsPlot *plot1 = nextPlot();
 
-  while (plot1) {
-    CQChartsGeom::BBox bbox1 = plot1->fitBBox();
+    while (plot1) {
+      CQChartsGeom::BBox bbox1 = plot1->fitBBox();
 
-    CQChartsGeom::BBox bbox2;
+      CQChartsGeom::BBox bbox2;
 
-    plot1->windowToPixel(bbox1, bbox2);
+      plot1->windowToPixel(bbox1, bbox2);
 
-    pixelToWindow(bbox2, bbox1);
+      pixelToWindow(bbox2, bbox1);
 
-    bbox += bbox1;
+      bbox += bbox1;
 
-    plot1 = plot1->nextPlot();
+      plot1 = plot1->nextPlot();
+    }
+
+    //---
+
+    // set all overlay plot bboxes
+    plot1 = nextPlot();
+
+    while (plot1) {
+      CQChartsGeom::BBox bbox1;
+
+      windowToPixel(bbox, bbox1);
+
+      CQChartsGeom::BBox bbox2;
+
+      plot1->pixelToWindow(bbox1, bbox2);
+
+      plot1->setFitBBox(bbox2);
+
+      plot1 = plot1->nextPlot();
+    }
+
+    //---
+
+    setFitBBox(bbox);
   }
+  else {
+    CQChartsGeom::BBox bbox = fitBBox();
 
-  //---
-
-  plot1 = nextPlot();
-
-  while (plot1) {
-    CQChartsGeom::BBox bbox1;
-
-    windowToPixel(bbox, bbox1);
-
-    CQChartsGeom::BBox bbox2;
-
-    plot1->pixelToWindow(bbox1, bbox2);
-
-    plot1->setFitBBox(bbox2);
-
-    plot1 = plot1->nextPlot();
+    setFitBBox(bbox);
   }
-
-  //---
-
-  setFitBBox(bbox);
 }
 
 void
@@ -2983,11 +3073,7 @@ addTextAnnotation(const QPointF &pos, const QString &text)
 {
   CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
 
-  annotations_.push_back(textAnnotation);
-
-  connect(textAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  textAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(textAnnotation);
 
   return textAnnotation;
 }
@@ -2998,11 +3084,7 @@ addArrowAnnotation(const QPointF &start, const QPointF &end)
 {
   CQChartsArrowAnnotation *arrowAnnotation = new CQChartsArrowAnnotation(this, start, end);
 
-  annotations_.push_back(arrowAnnotation);
-
-  connect(arrowAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  arrowAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(arrowAnnotation);
 
   return arrowAnnotation;
 }
@@ -3013,11 +3095,7 @@ addRectAnnotation(const QPointF &start, const QPointF &end)
 {
   CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, start, end);
 
-  annotations_.push_back(rectAnnotation);
-
-  connect(rectAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  rectAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(rectAnnotation);
 
   return rectAnnotation;
 }
@@ -3029,11 +3107,7 @@ addEllipseAnnotation(const QPointF &center, double xRadius, double yRadius)
   CQChartsEllipseAnnotation *ellipseAnnotation =
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
 
-  annotations_.push_back(ellipseAnnotation);
-
-  connect(ellipseAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  ellipseAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(ellipseAnnotation);
 
   return ellipseAnnotation;
 }
@@ -3044,11 +3118,7 @@ addPolygonAnnotation(const QPolygonF &points)
 {
   CQChartsPolygonAnnotation *polyAnnotation = new CQChartsPolygonAnnotation(this, points);
 
-  annotations_.push_back(polyAnnotation);
-
-  connect(polyAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  polyAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(polyAnnotation);
 
   return polyAnnotation;
 }
@@ -3059,11 +3129,7 @@ addPolylineAnnotation(const QPolygonF &points)
 {
   CQChartsPolylineAnnotation *polyAnnotation = new CQChartsPolylineAnnotation(this, points);
 
-  annotations_.push_back(polyAnnotation);
-
-  connect(polyAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  polyAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(polyAnnotation);
 
   return polyAnnotation;
 }
@@ -3074,13 +3140,32 @@ addPointAnnotation(const QPointF &pos, const CQChartsPlotSymbol::Type &type)
 {
   CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
 
-  annotations_.push_back(pointAnnotation);
-
-  connect(pointAnnotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
-
-  pointAnnotation->addProperties(propertyModel(), id() + "/" + "annotations");
+  addAnnotation(pointAnnotation);
 
   return pointAnnotation;
+}
+
+void
+CQChartsPlot::
+addAnnotation(CQChartsAnnotation *annotation)
+{
+  annotations_.push_back(annotation);
+
+  connect(annotation, SIGNAL(dataChanged()), this, SLOT(updateSlot()));
+
+  annotation->addProperties(propertyModel(), id() + "/" + "annotations");
+}
+
+CQChartsAnnotation *
+CQChartsPlot::
+getAnnotationByName(const QString &id) const
+{
+  for (auto &annotation : annotations()) {
+    if (annotation->id() == id)
+      return annotation;
+  }
+
+  return nullptr;
 }
 
 //------
@@ -3242,9 +3327,11 @@ drawForeground(QPainter *painter)
     return;
 
   if (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    if (view()->mode() == CQChartsView::Mode::EDIT) {
+      editHandles_.setBBox(this->bbox());
 
-    editHandles_.draw(painter);
+      editHandles_.draw(painter);
+    }
   }
 }
 
@@ -3405,6 +3492,13 @@ CQChartsPlot::
 drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
               const QPen &pen, const CQChartsTextOptions &options) const
 {
+  CQChartsTextOptions options1 = options;
+
+  options1.minScaleFontSize = minScaleFontSize();
+  options1.maxScaleFontSize = maxScaleFontSize();
+
+  CQChartsView::drawTextInBox(painter, rect, text, pen, options1);
+#if 0
   painter->save();
 
   if (CQChartsUtil::isZero(options.angle)) {
@@ -3441,6 +3535,8 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
       double s = std::min(sx, sy);
 
       double fs = painter->font().pointSizeF()*s;
+
+      fs = std::min(std::max(fs, minScaleFontSize()), maxScaleFontSize());
 
       QFont font1 = painter->font();
 
@@ -3494,6 +3590,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
   }
 
   painter->restore();
+#endif
 }
 
 void
@@ -3501,6 +3598,8 @@ CQChartsPlot::
 drawContrastText(QPainter *painter, double x, double y, const QString &text,
                  const QPen &pen) const
 {
+  CQChartsView::drawContrastText(painter, x, y, text, pen);
+#if 0
   QColor icolor = CQChartsUtil::invColor(pen.color());
 
   icolor.setAlphaF(0.5);
@@ -3512,6 +3611,7 @@ drawContrastText(QPainter *painter, double x, double y, const QString &text,
   painter->setPen(pen);
 
   painter->drawText(QPointF(x, y), text);
+#endif
 }
 
 //------
@@ -3753,6 +3853,17 @@ interpPaletteColor(double r, bool scale) const
 
 QColor
 CQChartsPlot::
+interpIndPaletteColor(int ind, double r, bool scale) const
+{
+  CQChartsGradientPalette *palette = view()->themePalette(ind);
+
+  QColor c = palette->getColor(r, scale);
+
+  return c;
+}
+
+QColor
+CQChartsPlot::
 interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
   CQChartsGradientPalette *palette = view()->themeGroupPalette(ig, ng);
@@ -3851,7 +3962,7 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
   QAbstractItemModel *model = this->model();
   assert(model);
 
-  CQChartsUtil::ModelColumnDetails columnDetails(charts(), model, column);
+  CQChartsModelColumnDetails columnDetails(charts(), model, column);
 
   typeName = columnDetails.typeName();
   minValue = columnDetails.minValue();
@@ -4358,7 +4469,8 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
 
         QVariant value = plot_->modelValue(model, row, bucket_->column(), parent, ok);
 
-        bucket_->addValue(value);
+        if (value.isValid())
+          bucket_->addValue(value);
       }
       // add parent path (hierarchical)
       else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
@@ -4408,6 +4520,7 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
   }
   else {
     assert(false);
+    return -1;
   }
 }
 
@@ -4420,6 +4533,120 @@ visitModel(ModelVisitor &visitor)
   visitor.setPlot(this);
 
   (void) CQChartsUtil::visitModel(model(), visitor);
+}
+
+//------
+
+bool
+CQChartsPlot::
+modelMappedReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                const QModelIndex &parent, double &r, bool log, double def) const
+{
+  if (col.isValid()) {
+    bool ok1;
+
+    r = modelReal(model, row, col, parent, ok1);
+
+    if (! ok1)
+      r = def;
+
+    if (CQChartsUtil::isNaN(r) || CQChartsUtil::isInf(r))
+      return false;
+  }
+  else
+    r = def;
+
+  if (log)
+    r = logValue(r);
+
+  return true;
+}
+
+//------
+
+QVariant
+CQChartsPlot::
+getData(const QString &id, const CQChartsColumn &column, const QString &, bool &ok) const
+{
+  ok = false;
+
+  int row = getRowForId(id);
+
+  if (row < 0)
+    return QVariant();
+
+  return modelValue(model_.data(), row, column, QModelIndex(), ok);
+}
+
+int
+CQChartsPlot::
+getRowForId(const QString &id) const
+{
+  if (! idColumn().isValid())
+    return -1;
+
+  // process model data
+  class IdVisitor : public ModelVisitor {
+   public:
+    IdVisitor(CQChartsPlot *plot, const QString &id) :
+     plot_(plot), id_(id) {
+    }
+
+    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+      bool ok;
+
+      QString id = plot_->idColumnString(row, ind, ok);
+
+      if (ok && id == id_)
+        row_ = row;
+
+      return State::OK;
+    }
+
+    int row() const { return row_; }
+
+   private:
+    CQChartsPlot *plot_ { nullptr };
+    QString       id_;
+    int           row_ { -1 };
+  };
+
+  CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+
+  IdVisitor idVisitor(th, id);
+
+  th->visitModel(idVisitor);
+
+  return idVisitor.row();
+}
+
+QString
+CQChartsPlot::
+idColumnString(int row, const QModelIndex &parent, bool &ok) const
+{
+  ok = false;
+
+  if (! idColumn().isValid())
+    return "";
+
+  QVariant var = modelValue(model(), row, idColumn(), parent, ok);
+
+  if (! ok)
+    return "";
+
+  QString str;
+
+  double r;
+
+  if (CQChartsUtil::toReal(var, r))
+    str = columnStr(idColumn(), r);
+  else {
+    bool ok;
+
+    str = CQChartsUtil::toString(var, ok);
+  }
+
+  return str;
 }
 
 //------
@@ -4981,7 +5208,7 @@ windowToPixelHeight(double wh) const
 
 //------
 
-CQChartsUtil::ModelVisitor::State
+CQChartsPlot::ModelVisitor::State
 CQChartsPlot::ModelVisitor::
 preVisit(QAbstractItemModel *, const QModelIndex &, int)
 {
@@ -5094,6 +5321,8 @@ void
 CQChartsHierPlot::
 addProperties()
 {
+  CQChartsPlot::addProperties();
+
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");

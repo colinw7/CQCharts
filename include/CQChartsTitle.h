@@ -35,6 +35,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
  public:
   CQChartsTitle(CQChartsPlot *plot);
 
+  QString id() const;
+
   //---
 
   const LocationType &location() const { return location_.location; }

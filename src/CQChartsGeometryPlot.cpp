@@ -23,6 +23,8 @@ addParameters()
   addColumnParameter("name" , "Name" , "nameColumn" , "optional");
   addColumnParameter("color", "Color", "colorColumn", "optional");
   addColumnParameter("style", "Style", "styleColumn", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -525,131 +527,15 @@ bool
 CQChartsGeometryPlot::
 decodePolygons(const QString &str, Polygons &polys)
 {
-#if 0
-  CQStrParse parse(str);
-
-  parse.skipSpace();
-
-  if (! parse.isChar('{'))
-    return false;
-
-  parse.skipChar();
-
-  while (! parse.isChar('}')) {
-    parse.skipSpace();
-
-    QString polyStr;
-
-    if (! parse.readBracedString(polyStr, /*includeBraces*/true))
-      return false;
-
-    QPolygonF poly;
-
-    if (! decodePolygon(polyStr, poly))
-      return false;
-
-    polygons.push_back(poly);
-
-    parse.skipSpace();
-  }
-
-  if (parse.isChar('}'))
-    parse.skipChar();
-
-  return true;
-#else
   return CQChartsUtil::stringToPolygons(str, polys);
-#endif
 }
 
 bool
 CQChartsGeometryPlot::
 decodePolygon(const QString &str, QPolygonF &poly)
 {
-#if 0
-  CQStrParse parse(str);
-
-  parse.skipSpace();
-
-  if (! parse.isChar('{'))
-    return false;
-
-  parse.skipChar();
-
-  while (! parse.isChar('}')) {
-    parse.skipSpace();
-
-    QString pointStr;
-
-    if (! parse.readBracedString(pointStr, /*includeBraces*/false))
-      return false;
-
-    QString pointStr1;
-
-    QPointF point;
-
-    if (! decodePoint(pointStr, point, pointStr1))
-      return false;
-
-    poly.push_back(point);
-
-    while (pointStr1.length()) {
-      pointStr = pointStr1;
-
-      if (! decodePoint(pointStr, point, pointStr1))
-        break;
-
-      poly.push_back(point);
-    }
-  }
-
-  if (parse.isChar('}'))
-    parse.skipChar();
-
-  return true;
-#else
   return CQChartsUtil::stringToPolygon(str, poly);
-#endif
 }
-
-#if 0
-bool
-CQChartsGeometryPlot::
-decodePoint(const QString &str, QPointF &point, QString &pointStr1)
-{
-  CQStrParse parse(str);
-
-  parse.skipSpace();
-
-  QString xstr;
-
-  if (! parse.readNonSpace(xstr))
-    return false;
-
-  parse.skipSpace();
-
-  QString ystr;
-
-  if (! parse.readNonSpace(ystr))
-    return false;
-
-  parse.skipSpace();
-
-  double x, y;
-
-  if (! CQChartsUtil::toReal(xstr, x))
-    return false;
-
-  if (! CQChartsUtil::toReal(ystr, y))
-    return false;
-
-  point = QPointF(x, y);
-
-  pointStr1 = parse.getAt();
-
-  return true;
-}
-#endif
 
 bool
 CQChartsGeometryPlot::

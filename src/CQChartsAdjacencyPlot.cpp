@@ -22,6 +22,8 @@ addParameters()
   addColumnParameter("value"      , "Value"      , "valueColumn"      , "optional");
   addColumnParameter("group"      , "Group"      , "groupColumn"      , "optional");
   addColumnParameter("name"       , "Name"       , "nameColumn"       , "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -530,7 +532,7 @@ decodeConnections(const QString &str, ConnectionDataArray &connections)
 
     QString str1;
 
-    if (! parse.readBracedString(str1, /*includeBraces*/false))
+    if (! parse.readBracedString(str1))
       return false;
 
     ConnectionData connection;

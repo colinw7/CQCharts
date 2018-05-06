@@ -230,7 +230,7 @@ void
 CQChartsSunburstPlot::
 addProperties()
 {
-  CQChartsPlot::addProperties();
+  CQChartsHierPlot::addProperties();
 
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "nameColumns", "names");

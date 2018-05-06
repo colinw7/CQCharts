@@ -344,7 +344,7 @@ addReplaceSearch(const QString &text, bool add)
 
     keyColumn = proxyModel->filterKeyColumn();
 
-    class RowVisitor : public CQChartsUtil::ModelVisitor {
+    class RowVisitor : public CQChartsModelVisitor {
      public:
       RowVisitor(CQChartsTable *table, const QString &text, int column, Rows &rows) :
        table_(table), regexp_(text), column_(column), rows_(rows) {
@@ -373,7 +373,7 @@ addReplaceSearch(const QString &text, bool add)
 
     RowVisitor visitor(this, text1, keyColumn, rows);
 
-    (void) visitModel(model_.data(), visitor);
+    (void) CQChartsUtil::visitModel(model_.data(), visitor);
   }
   else {
     if (! match_)
@@ -385,7 +385,7 @@ addReplaceSearch(const QString &text, bool add)
 
     match_->initColumns();
 
-    class RowVisitor : public CQChartsUtil::ModelVisitor {
+    class RowVisitor : public CQChartsModelVisitor {
      public:
       RowVisitor(CQChartsTable *table, CQChartsModelExprMatch *match, const Matches &matches,
                  int column, Rows &rows) :
@@ -424,7 +424,7 @@ addReplaceSearch(const QString &text, bool add)
 
     RowVisitor visitor(this, match_, matches_, keyColumn, rows);
 
-    (void) visitModel(model_.data(), visitor);
+    (void) CQChartsUtil::visitModel(model_.data(), visitor);
   }
 
   //---
@@ -515,20 +515,9 @@ exportSlot(QAction *action)
 
 void
 CQChartsTable::
-calcDetails(Details &details)
+calcDetails(CQChartsModelDetails &details)
 {
-  details.numColumns = model_->columnCount();
-  details.numRows    = model_->rowCount   ();
-
-  for (int c = 0; c < details.numColumns; ++c) {
-    CQChartsUtil::ModelColumnDetails columnDetails(charts_, model_.data(), c);
-
-    QString  typeName = columnDetails.typeName();
-    QVariant minValue = columnDetails.minValue();
-    QVariant maxValue = columnDetails.maxValue();
-
-    details.columns.emplace_back(typeName, minValue, maxValue);
-  }
+  details.update(charts_, model_.data());
 }
 
 QSize

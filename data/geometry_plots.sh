@@ -1,9 +1,9 @@
 CQChartsTest \
- -tsv states.tsv -comment_header \
+ -tsv data/states.tsv -comment_header \
  -type geometry -columns "name=0,geometry=1" \
  -plot_title "geometry" \
 -and \
- -tsv choropeth.tsv \
+ -tsv data/choropeth.tsv \
  -type geometry -columns "name=0,geometry=1,value=2" \
- -plot_title "choropeth"
-
+ -plot_title "choropeth" \
+-close_app

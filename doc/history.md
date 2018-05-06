@@ -342,3 +342,16 @@
 # 4/21/2018
  + make plot model data access virtual
  + add edit move using cursor keys
+# 5/6/2018
+ + support annotations on view
+ + support bar chart log value
+ + support theme number in color spec
+ + use variant to string code in more places
+ + add min/max scaled font size
+ + allow combine y1/y2 and overlay and add x1/x2
+ + add signals for all object selections
+ + add id column support to more plots
+ + improve print support (auto size and set size)
+ + better size limits on expander
+ + support xy impulse as box as well as line
+ + rename commands for clearer usage and add more get/set support

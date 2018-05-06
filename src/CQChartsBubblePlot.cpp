@@ -18,6 +18,8 @@ addParameters()
   addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
   addColumnParameter("value", "Value", "valueColumn", "optional");
   addColumnParameter("color", "Color", "colorColumn", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

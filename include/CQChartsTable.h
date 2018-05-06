@@ -1,6 +1,7 @@
 #ifndef CQChartsTable_H
 #define CQChartsTable_H
 
+#include <CQChartsModelDetails.h>
 #include <CQTableView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
@@ -16,26 +17,6 @@ class CQChartsTable : public CQTableView {
 
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
-
-  struct ColumnDetails {
-    QString  typeName;
-    QVariant minValue;
-    QVariant maxValue;
-
-    ColumnDetails() = default;
-
-    ColumnDetails(const QString &typeName, const QVariant &minValue, const QVariant &maxValue) :
-     typeName(typeName), minValue(minValue), maxValue(maxValue) {
-    }
-  };
-
-  using DetailsColumns = std::vector<ColumnDetails>;
-
-  struct Details {
-    int            numColumns { 0 };
-    int            numRows    { 0 };
-    DetailsColumns columns;
-  };
 
  public:
   CQChartsTable(CQCharts *charts, QWidget *parent=nullptr);
@@ -55,7 +36,7 @@ class CQChartsTable : public CQTableView {
   void setSearch(const QString &text);
   void addSearch(const QString &text);
 
-  void calcDetails(Details &details);
+  void calcDetails(CQChartsModelDetails &details);
 
   QSize sizeHint() const override;
 

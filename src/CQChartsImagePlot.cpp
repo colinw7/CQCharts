@@ -14,6 +14,7 @@ void
 CQChartsImagePlotType::
 addParameters()
 {
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

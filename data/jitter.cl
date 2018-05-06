@@ -15,5 +15,5 @@ i = int(x)
 load -var i -var y
 modelId = _rc
 
-plot -type scatter -columns "x=0,y=1"
+add_plot -type scatter -columns "x=0,y=1"
 plotInd = _rc

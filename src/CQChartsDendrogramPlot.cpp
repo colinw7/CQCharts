@@ -16,6 +16,8 @@ addParameters()
 {
   addColumnParameter("name" , "name" , "nameColumn" , "", 0);
   addColumnParameter("value", "Value", "valueColumn", "", 1);
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

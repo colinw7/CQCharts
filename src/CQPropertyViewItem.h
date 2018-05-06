@@ -50,6 +50,8 @@ class CQPropertyViewItem : public QObject {
 
   void addChild(CQPropertyViewItem *row);
 
+  void removeChild(CQPropertyViewItem *row);
+
   bool isEditable() const { return editable_; }
   void setEditable(bool b) { editable_ = b; }
 

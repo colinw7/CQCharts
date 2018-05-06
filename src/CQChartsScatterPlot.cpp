@@ -173,7 +173,7 @@ addProperties()
   addProperty("symbol", this, "symbolSizeMapMin"    , "mapMin"    );
   addProperty("symbol", this, "symbolSizeMapMax"    , "mapMax"    );
 
-  addProperty("font", this, "fontSize"          , "font"      );
+  addProperty("font", this, "fontSize"          , "size"      );
   addProperty("font", this, "fontSizeMapEnabled", "mapEnabled");
   addProperty("font", this, "fontSizeMapMin"    , "mapMin"    );
   addProperty("font", this, "fontSizeMapMax"    , "mapMax"    );

@@ -48,6 +48,8 @@ class CQChartsKey : public CQChartsBoxObj {
 
   virtual ~CQChartsKey();
 
+  QString id() const;
+
   //---
 
   bool isHorizontal() const { return horizontal_; }
@@ -275,7 +277,7 @@ class CQChartsPlotKey : public CQChartsKey {
   virtual bool editMotion (const CQChartsGeom::Point &);
   virtual bool editRelease(const CQChartsGeom::Point &);
 
-  virtual void editMoveBy(const QPointF &f);
+  virtual void editMoveBy(const QPointF &d);
 
   //---
 
@@ -338,6 +340,8 @@ class CQChartsKeyItem : public QObject {
   virtual ~CQChartsKeyItem() { }
 
   virtual QSizeF size() const = 0;
+
+  virtual QString id() const { return ""; }
 
   const CQChartsPlotKey *key() const { return key_; }
   void setKey(CQChartsPlotKey *p) { key_ = p; }

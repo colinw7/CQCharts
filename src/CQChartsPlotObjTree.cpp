@@ -16,21 +16,19 @@ CQChartsPlotObjTree::
 
 void
 CQChartsPlotObjTree::
-addObjects(const Objs &objs)
+addObjects()
 {
   delete plotObjTree_;
 
   plotObjTree_ = nullptr;
 
-  objs_ = objs;
-
-  if (! objs_.empty())
-    plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_, objs);
+  if (! plot_->plotObjects().empty())
+    plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_);
 }
 
 CQChartsPlotObjTree::PlotObjTree *
 CQChartsPlotObjTree::
-addObjectsASync(CQChartsPlot *plot, const Objs &objs)
+addObjectsASync(CQChartsPlot *plot)
 {
   const CQChartsGeom::Range &range = plot->dataRange();
 
@@ -38,7 +36,7 @@ addObjectsASync(CQChartsPlot *plot, const Objs &objs)
 
   PlotObjTree *plotObjTree = new PlotObjTree(bbox);
 
-  for (const auto &obj : objs) {
+  for (const auto &obj : plot->plotObjects()) {
     if (obj->rect().isSet())
       plotObjTree->add(obj);
   }

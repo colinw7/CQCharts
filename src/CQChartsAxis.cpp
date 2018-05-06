@@ -1,6 +1,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsAxisObj.h>
 #include <CQChartsPlot.h>
+#include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
@@ -1533,9 +1534,11 @@ draw(CQChartsPlot *plot, QPainter *painter)
   //---
 
   if (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    if (plot_->view()->mode() == CQChartsView::Mode::EDIT) {
+      editHandles_.setBBox(this->bbox());
 
-    editHandles_.draw(painter);
+      editHandles_.draw(painter);
+    }
   }
 
   //---

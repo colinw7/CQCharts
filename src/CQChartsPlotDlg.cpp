@@ -348,7 +348,11 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
     addLineEdit(layout, row, column, parameter.desc(), parameter.name() + "Columns",
                 "Column Names or Numbers");
 
-  columnsEdit->setText(parameter.defValue().toString());
+  bool ok;
+
+  QString str = CQChartsUtil::toString(parameter.defValue(), ok);
+
+  columnsEdit->setText(str);
 
   plotData.columnsEdits[parameter.name()] = columnsEdit;
 
@@ -369,7 +373,9 @@ CQChartsPlotDlg::
 addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
                        const CQChartsPlotParameter &parameter)
 {
-  QString str = parameter.defValue().toString();
+  bool ok;
+
+  QString str = CQChartsUtil::toString(parameter.defValue(), ok);
 
   QHBoxLayout *editLayout = new QHBoxLayout;
 
@@ -521,16 +527,18 @@ applySlot()
       QString columnStr;
       QString columnTypeStr;
 
-      parseParameterColumnEdit(parameter, plotData, column, columnStr, columnTypeStr);
+      if (parseParameterColumnEdit(parameter, plotData, column, columnStr, columnTypeStr)) {
+        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(column)))
+          charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
-      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(column)))
-        charts()->errorMsg("Failed to set parameter " + parameter.propName());
-
-      if (columnTypeStr.length())
-        CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
+        if (columnTypeStr.length())
+          CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
+      }
     }
     else if (parameter.type() == "columns") {
-      QString columnsStr = parameter.defValue().toString();
+      bool ok;
+
+      QString columnsStr = CQChartsUtil::toString(parameter.defValue(), ok);
 
       std::vector<int> columns;
 
@@ -539,39 +547,41 @@ applySlot()
       QStringList columnStrs;
       QString     columnTypeStr;
 
-      parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr);
+      if (parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
+        QString s = CQChartsUtil::toString(columns);
 
-      QString s = CQChartsUtil::toString(columns);
+        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(s)))
+          charts()->errorMsg("Failed to set parameter " + parameter.propName());
 
-      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(s)))
-        charts()->errorMsg("Failed to set parameter " + parameter.propName());
-
-      if (columnTypeStr.length() && ! columns.empty())
-        CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
+        if (columnTypeStr.length() && ! columns.empty())
+          CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
+      }
     }
     else if (parameter.type() == "string") {
-      QString str = parameter.defValue().toString();
+      bool ok;
 
-      parseParameterStringEdit(parameter, plotData, str);
+      QString str = CQChartsUtil::toString(parameter.defValue(), ok);
 
-      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(str)))
-        charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      if (parseParameterStringEdit(parameter, plotData, str)) {
+        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(str)))
+          charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      }
     }
     else if (parameter.type() == "real") {
       double r = parameter.defValue().toDouble();
 
-      parseParameterRealEdit(parameter, plotData, r);
-
-      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(r)))
-        charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      if (parseParameterRealEdit(parameter, plotData, r)) {
+        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(r)))
+          charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      }
     }
     else if (parameter.type() == "bool") {
       bool b = parameter.defValue().toBool();
 
-      parseParameterBoolEdit(parameter, plotData, b);
-
-      if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(b)))
-        charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      if (parseParameterBoolEdit(parameter, plotData, b)) {
+        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(b)))
+          charts()->errorMsg("Failed to set parameter " + parameter.propName());
+      }
     }
     else
       assert(false);
@@ -895,7 +905,11 @@ stringToColumn(const QString &str, int &column) const
     if (! var.isValid())
       continue;
 
-    if (var.toString() == str) {
+    bool ok;
+
+    QString str1 = CQChartsUtil::toString(var, ok);
+
+    if (str1 == str) {
       column = column1;
       return true;
     }

@@ -22,6 +22,8 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn", "optional");
 
   addBoolParameter("voronoi", "Voronoi", "voronoi", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

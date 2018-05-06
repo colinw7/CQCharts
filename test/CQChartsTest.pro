@@ -10,10 +10,12 @@ QMAKE_CXXFLAGS += -std=c++14
 
 SOURCES += \
 CQChartsTest.cpp \
+CQChartsCmds.cpp \
 CQAppWindow.cpp \
 
 HEADERS += \
 CQChartsTest.h \
+CQChartsCmds.h \
 CQAppWindow.h \
 
 DESTDIR     = ../bin

@@ -848,9 +848,12 @@ class BBox {
 
 #if 0
   double getRadius() const {
-    Vector radius = 0.5*Vector(getMin(), getMax());
+    if (! set_) return 0.0;
 
-    return radius.length();
+    double dx = fabs(pmax_.x - pmin_.x);
+    double dy = fabs(pmax_.y - pmin_.y);
+
+    return 0.5*sqrt(dx*dx + dy*dy);
   }
 #endif
 

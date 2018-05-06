@@ -6,6 +6,18 @@
 #include <QPainter>
 
 CQChartsTextBoxObj::
+CQChartsTextBoxObj(CQChartsView *view) :
+ CQChartsBoxObj(view)
+{
+  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+
+  setTextColor(themeFg);
+
+  boxData_.shape.background.visible = false;
+  boxData_.shape.border    .visible = false;
+}
+
+CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
  CQChartsBoxObj(plot)
 {

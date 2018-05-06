@@ -18,8 +18,6 @@ CQChartsTreeMapPlotType::
 addParameters()
 {
   CQChartsHierPlotType::addParameters();
-
-  addColumnParameter("id", "Id", "idColumn", "optional");
 }
 
 CQChartsPlot *
@@ -39,6 +37,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setHeaderTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
 
   setHeaderTextFontSize(12.0);
+  setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
 
   setHeaderBorder(true);
   setHeaderFilled(true);
@@ -50,6 +49,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setFilled(true);
 
   setTextFontSize(14.0);
+  setTextAlign(Qt::AlignHCenter | Qt::AlignVCenter);
 
   setTextContrast(true);
 
@@ -619,15 +619,8 @@ void
 CQChartsTreeMapPlot::
 addProperties()
 {
-  CQChartsPlot::addProperties();
+  CQChartsHierPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "nameColumns", "names");
-  addProperty("columns", this, "valueColumn", "value");
-  addProperty("columns", this, "colorColumn", "color");
-  addProperty("columns", this, "idColumn"   , "id"   );
-
-  addProperty("", this, "separator"  );
   addProperty("", this, "marginWidth");
 
   addProperty("header", this, "titles"        , "visible"  );
@@ -1583,19 +1576,12 @@ calcId() const
   if (node_->isFiller())
     return hierObj_->calcId();
 
-  if (plot_->idColumn().isValid()) {
-    QAbstractItemModel *model = plot_->model();
+  QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
-    QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
+  QString idStr;
 
-    bool ok;
-
-    QString idStr =
-      plot_->modelString(model, ind1.row(), plot_->idColumn(), ind1.parent(), ok);
-
-    if (ok)
-      return idStr;
-  }
+  if (columnId(ind1, idStr))
+    return idStr;
 
   return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
 }

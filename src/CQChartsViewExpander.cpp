@@ -104,29 +104,45 @@ updateGeometry()
     w_->setVisible(isExpanded());
 
     if (isExpanded()) {
-      if      (side_ == Side::RIGHT) {
-        w_->move  (parent_->width() - w_->width() - r_, 0);
-        w_->resize(w_->width(), parent_->height());
+      int maxSize = this->maxSize();
 
-        move(parent_->width() - w_->width() - width() - r_, 0);
+      if (side_ == Side::LEFT || side_ == Side::RIGHT) {
+        int ww = w_->width();
+
+        if (ww > maxSize)
+          ww = maxSize;
+
+        if (side_ == Side::RIGHT) {
+          w_->move  (parent_->width() - ww - r_, 0);
+          w_->resize(ww, parent_->height());
+
+          move(parent_->width() - ww - width() - r_, 0);
+        }
+        else {
+          w_->move  (l_, 0);
+          w_->resize(ww, parent_->height());
+
+          move(ww + l_, 0);
+        }
       }
-      else if (side_ == Side::LEFT) {
-        w_->move  (l_, 0);
-        w_->resize(w_->width(), parent_->height());
+      else {
+        int wh = w_->height();
 
-        move(w_->width() + l_, 0);
-      }
-      else if (side_ == Side::BOTTOM) {
-        w_->move  (0, parent_->height() - w_->height() - b_);
-        w_->resize(parent_->width(), w_->height());
+        if (wh >= maxSize)
+          wh = maxSize;
 
-        move(0, parent_->height() - w_->height() - height() - b_);
-      }
-      else if (side_ == Side::TOP) {
-        w_->move  (0, t_);
-        w_->resize(parent_->width(), w_->height());
+        if (side_ == Side::BOTTOM) {
+          w_->move  (0, parent_->height() - wh - b_);
+          w_->resize(parent_->width(), wh);
 
-        move(0, w_->height() + t_);
+          move(0, parent_->height() - wh - height() - b_);
+        }
+        else {
+          w_->move  (0, t_);
+          w_->resize(parent_->width(), wh);
+
+          move(0, wh + t_);
+        }
       }
 
       w_->raise();
@@ -399,6 +415,8 @@ mouseReleaseEvent(QMouseEvent *me)
   mouseMoveEvent(me);
 
   pressed_ = false;
+
+  updateGeometry();
 }
 
 void
@@ -503,6 +521,16 @@ posToPressSide(const QPoint &pos)
     return PressSide::BOTTOM;
   else
     return PressSide::NONE;
+}
+
+int
+CQChartsViewExpander::
+maxSize() const
+{
+  if (side_ == Side::LEFT || side_ == Side::RIGHT)
+    return std::max(parent_->width() - l_ - r_ - 16, 1);
+  else
+    return std::max(parent_->height() - b_ - t_ - 16, 1);
 }
 
 void

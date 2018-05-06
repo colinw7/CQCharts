@@ -1,9 +1,7 @@
-load -csv arrowstyle.csv
-
+load -csv data/arrowstyle.csv
 modelId = _rc
 
-plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -130 -xmax -65 -ymin 24 -ymax 50
-
+add_plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -130 -xmax -65 -ymin 24 -ymax 50
 plotId = _rc
 
 # Alabama

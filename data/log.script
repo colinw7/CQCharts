@@ -3,4 +3,4 @@ load -expr -num_rows 100
 process -add "map(0.5,40)"
 process -add "1.2*@1**2.7"
 
-plot -type xy -columns "x=1,y=2" -ylog
+add_plot -type xy -columns "x=1,y=2" -ylog

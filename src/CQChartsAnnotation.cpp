@@ -1,8 +1,18 @@
 #include <CQChartsAnnotation.h>
 #include <CQChartsPlot.h>
+#include <CQChartsView.h>
 #include <CQChartsArrow.h>
 #include <CQPropertyViewModel.h>
 #include <QPainter>
+
+CQChartsAnnotation::
+CQChartsAnnotation(CQChartsView *view) :
+ CQChartsTextBoxObj(view), editHandles_(view, CQChartsEditHandles::Mode::MOVE)
+{
+  static int s_lastInd;
+
+  ind_ = ++s_lastInd;
+}
 
 CQChartsAnnotation::
 CQChartsAnnotation(CQChartsPlot *plot) :
@@ -60,12 +70,41 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
 
 bool
 CQChartsAnnotation::
+getProperty(const QString &name, QVariant &value)
+{
+  if (plot_)
+    return plot_->view()->propertyModel()->getProperty(this, name, value);
+  else
+    return view_->propertyModel()->getProperty(this, name, value);
+}
+
+bool
+CQChartsAnnotation::
+setProperty(const QString &name, const QVariant &value)
+{
+  if (plot_)
+    return plot_->view()->propertyModel()->setProperty(this, name, value);
+  else
+    return view_->propertyModel()->setProperty(this, name, value);
+}
+
+bool
+CQChartsAnnotation::
 contains(const CQChartsGeom::Point &p) const
 {
   if (! isVisible())
     return false;
 
   return bbox().inside(p);
+}
+
+//------
+
+bool
+CQChartsAnnotation::
+selectPress(const CQChartsGeom::Point &)
+{
+  return id().length();
 }
 
 //------
@@ -98,7 +137,10 @@ editMove(const CQChartsGeom::Point &p)
 
   editHandles_.setDragPos(p);
 
-  plot_->update();
+  if (plot_)
+    plot_->update();
+  else
+    view_->update();
 
   return true;
 }
@@ -127,7 +169,10 @@ editMoveBy(const QPointF &f)
 
   setBBox(editHandles_.bbox(), CQChartsResizeHandle::Side::MOVE);
 
-  plot_->update();
+  if (plot_)
+    plot_->update();
+  else
+    view_->update();
 }
 
 //------
@@ -137,13 +182,30 @@ CQChartsAnnotation::
 draw(QPainter *painter)
 {
   if (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    bool is_edit = (plot_ ? plot_->view()->mode() == CQChartsView::Mode::EDIT :
+                                   view_ ->mode() == CQChartsView::Mode::EDIT);
 
-    editHandles_.draw(painter);
+    if (is_edit) {
+      editHandles_.setBBox(this->bbox());
+
+      editHandles_.draw(painter);
+    }
   }
 }
 
 //---
+
+CQChartsRectAnnotation::
+CQChartsRectAnnotation(CQChartsView *view, const CQChartsPosition &start,
+                       const CQChartsPosition &end) :
+ CQChartsAnnotation(view), start_(start), end_(end)
+{
+  setObjectName(QString("rect.%1").arg(ind()));
+
+  setBorder(true);
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
 
 CQChartsRectAnnotation::
 CQChartsRectAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
@@ -183,16 +245,34 @@ void
 CQChartsRectAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  QPointF start = plot_->positionToPlot(start_);
-  QPointF end   = plot_->positionToPlot(end_  );
+  QPointF start, end;
+
+  if (plot_) {
+    start = plot_->positionToPlot(start_);
+    end   = plot_->positionToPlot(end_  );
+  }
+  else {
+    start = view_->positionToView(start_);
+    end   = view_->positionToView(end_  );
+  }
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
 
   x1 += xp + xm; y1 += yp + ym;
   x2 -= xp + xm; y2 -= yp + ym;
@@ -210,13 +290,31 @@ void
 CQChartsRectAnnotation::
 draw(QPainter *painter)
 {
-  QPointF start = plot_->positionToPlot(start_);
-  QPointF end   = plot_->positionToPlot(end_  );
+  QPointF start, end;
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  if (plot_) {
+    start = plot_->positionToPlot(start_);
+    end   = plot_->positionToPlot(end_  );
+  }
+  else {
+    start = view_->positionToView(start_);
+    end   = view_->positionToView(end_  );
+  }
+
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
 
   double x1 = std::min(start.x(), end.x());
   double y1 = std::min(start.y(), end.y());
@@ -234,7 +332,10 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect;
 
-  plot_->windowToPixel(bbox_, prect);
+  if (plot_)
+    plot_->windowToPixel(bbox_, prect);
+  else
+    prect = view_->windowToPixel(bbox_);
 
   CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
 
@@ -244,6 +345,18 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsEllipseAnnotation::
+CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center,
+                          double xRadius, double yRadius) :
+ CQChartsAnnotation(view), center_(center), xRadius_(xRadius), yRadius_(yRadius)
+{
+  setObjectName(QString("ellipse.%1").arg(ind()));
+
+  setBorder(true);
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
 
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center,
@@ -296,7 +409,12 @@ void
 CQChartsEllipseAnnotation::
 draw(QPainter *painter)
 {
-  QPointF center = plot_->positionToPlot(center_);
+  QPointF center;
+
+  if (plot_)
+    center = plot_->positionToPlot(center_);
+  else
+    center = view_->positionToView(center_);
 
   double x1 = center.x() - xRadius_;
   double y1 = center.y() - yRadius_;
@@ -309,7 +427,10 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect;
 
-  plot_->windowToPixel(bbox_, prect);
+  if (plot_)
+    plot_->windowToPixel(bbox_, prect);
+  else
+    prect = view_->windowToPixel(bbox_);
 
   //CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
 
@@ -341,7 +462,12 @@ draw(QPainter *painter)
 
     QPen pen(borderColor);
 
-    double bw = plot_->lengthPixelWidth(borderWidth());
+    double bw;
+
+    if (plot_)
+      bw = plot_->lengthPixelWidth(borderWidth());
+    else
+      bw = view_->lengthPixelWidth(borderWidth());
 
     pen.setWidthF(bw);
 
@@ -354,6 +480,17 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsPolygonAnnotation::
+CQChartsPolygonAnnotation(CQChartsView *view, const QPolygonF &points) :
+ CQChartsAnnotation(view), points_(points)
+{
+  setObjectName(QString("poly.%1").arg(ind()));
+
+  setBorder(true);
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
 
 CQChartsPolygonAnnotation::
 CQChartsPolygonAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
@@ -431,14 +568,20 @@ draw(QPainter *painter)
 
   double px, py;
 
-  plot_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+  if (plot_)
+    plot_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+  else
+    view_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
 
   path.moveTo(px, py);
 
   for (int i = 1; i < points_.size(); ++i) {
     double px, py;
 
-    plot_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+    if (plot_)
+      plot_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+    else
+      view_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
 
     path.lineTo(px, py);
   }
@@ -464,7 +607,12 @@ draw(QPainter *painter)
 
     QPen pen(borderColor);
 
-    double bw = plot_->lengthPixelWidth(borderWidth());
+    double bw;
+
+    if (plot_)
+      bw = plot_->lengthPixelWidth(borderWidth());
+    else
+      bw = view_->lengthPixelWidth(borderWidth());
 
     pen.setWidthF(bw);
 
@@ -477,6 +625,17 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsPolylineAnnotation::
+CQChartsPolylineAnnotation(CQChartsView *view, const QPolygonF &points) :
+ CQChartsAnnotation(view), points_(points)
+{
+  setObjectName(QString("poly.%1").arg(ind()));
+
+  setBorder(true);
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
 
 CQChartsPolylineAnnotation::
 CQChartsPolylineAnnotation(CQChartsPlot *plot, const QPolygonF &points) :
@@ -552,14 +711,20 @@ draw(QPainter *painter)
 
   double px, py;
 
-  plot_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+  if (plot_)
+    plot_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
+  else
+    view_->windowToPixel(points_[0].x(), points_[0].y(), px, py);
 
   path.moveTo(px, py);
 
   for (int i = 1; i < points_.size(); ++i) {
     double px, py;
 
-    plot_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+    if (plot_)
+      plot_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
+    else
+      view_->windowToPixel(points_[i].x(), points_[i].y(), px, py);
 
     path.lineTo(px, py);
   }
@@ -572,7 +737,12 @@ draw(QPainter *painter)
 
   QPen pen(borderColor);
 
-  double bw = plot_->lengthPixelWidth(borderWidth());
+  double bw;
+
+  if (plot_)
+    bw = plot_->lengthPixelWidth(borderWidth());
+  else
+    bw = view_->lengthPixelWidth(borderWidth());
 
   pen.setWidthF(bw);
 
@@ -584,6 +754,24 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsTextAnnotation::
+CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &position,
+                       const QString &textStr) :
+ CQChartsAnnotation(view), position_(position)
+{
+  setObjectName(QString("text.%1").arg(ind()));
+
+  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+
+  setTextStr  (textStr);
+  setTextColor(themeFg);
+
+  boxData_.shape.background.visible = false;
+  boxData_.shape.border    .visible = false;
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+}
 
 CQChartsTextAnnotation::
 CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
@@ -632,15 +820,30 @@ void
 CQChartsTextAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
 
   double x = bbox.getXMin() + xp + xm;
   double y = bbox.getYMin() + yp + ym;
 
-  CQChartsGeom::Point vp = plot_->windowToView(CQChartsGeom::Point(x, y));
+  CQChartsGeom::Point vp;
+
+  if (plot_)
+    vp = plot_->windowToView(CQChartsGeom::Point(x, y));
+  else
+    vp = CQChartsGeom::Point(x, y);
 
   position_ = CQChartsPosition(CQChartsUtil::toQPoint(vp), CQChartsPosition::Units::VIEW);
 
@@ -654,17 +857,41 @@ draw(QPainter *painter)
   if (autoSize_) {
     QFontMetricsF fm(textFont());
 
-    double xp = plot_->pixelToWindowWidth (padding());
-    double yp = plot_->pixelToWindowHeight(padding());
-    double xm = plot_->pixelToWindowWidth (margin ());
-    double ym = plot_->pixelToWindowHeight(margin ());
+    double xp, yp, xm, ym;
 
-    QPointF p = plot_->positionToPlot(position_);
+    if (plot_) {
+      xp = plot_->pixelToWindowWidth (padding());
+      yp = plot_->pixelToWindowHeight(padding());
+      xm = plot_->pixelToWindowWidth (margin ());
+      ym = plot_->pixelToWindowHeight(margin ());
+    }
+    else {
+      xp = view_->pixelToWindowWidth (padding());
+      yp = view_->pixelToWindowHeight(padding());
+      xm = view_->pixelToWindowWidth (margin ());
+      ym = view_->pixelToWindowHeight(margin ());
+    }
+
+    QPointF p;
+
+    if (plot_)
+      p = plot_->positionToPlot(position_);
+    else
+      p = view_->positionToView(position_);
 
     double x = p.x() - xp - xm; // bottom
     double y = p.y() - yp - ym; // top
-    double w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
-    double h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+
+    double w, h;
+
+    if (plot_) {
+      w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
+      h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+    }
+    else {
+      w = view_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
+      h = view_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+    }
 
     bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
   }
@@ -673,13 +900,21 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect;
 
-  plot_->windowToPixel(bbox_, prect);
+  if (plot_)
+    plot_->windowToPixel(bbox_, prect);
+  else
+    prect = view_->windowToPixel(bbox_);
 
   CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
 
   //---
 
-  QColor c = textColor().interpColor(plot_, 0, 1);
+  QColor c;
+
+  if (plot_)
+    c = textColor().interpColor(plot_, 0, 1);
+  else
+    c = textColor().interpColor(view_, 0, 1);
 
   c.setAlphaF(textAlpha());
 
@@ -703,7 +938,10 @@ draw(QPainter *painter)
   textOptions.clipped   = false;
   textOptions.align     = textAlign();
 
-  plot_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
+  if (plot_)
+    plot_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
+  else
+    view_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
 
   //---
 
@@ -711,6 +949,20 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsArrowAnnotation::
+CQChartsArrowAnnotation(CQChartsView *view, const CQChartsPosition &start,
+                        const CQChartsPosition &end) :
+ CQChartsAnnotation(view), start_(start), end_(end)
+{
+  setObjectName(QString("arrow.%1").arg(ind()));
+
+  editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
+
+  arrow_ = new CQChartsArrow(view_);
+
+  connect(arrow_, SIGNAL(dataChanged()), this, SIGNAL(dataChanged()));
+}
 
 CQChartsArrowAnnotation::
 CQChartsArrowAnnotation(CQChartsPlot *plot, const CQChartsPosition &start,
@@ -764,16 +1016,34 @@ void
 CQChartsArrowAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  QPointF start = plot_->positionToPlot(start_);
-  QPointF end   = plot_->positionToPlot(end_  );
+  QPointF start, end;
+
+  if (plot_) {
+    start = plot_->positionToPlot(start_);
+    end   = plot_->positionToPlot(end_  );
+  }
+  else {
+    start = view_->positionToView(start_);
+    end   = view_->positionToView(end_  );
+  }
 
   double x1 = bbox.getXMin(), y1 = bbox.getYMin();
   double x2 = bbox.getXMax(), y2 = bbox.getYMax();
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
 
   x1 += xp + xm; y1 += yp + ym;
   x2 -= xp + xm; y2 -= yp + ym;
@@ -794,13 +1064,31 @@ void
 CQChartsArrowAnnotation::
 draw(QPainter *painter)
 {
-  QPointF start = plot_->positionToPlot(start_);
-  QPointF end   = plot_->positionToPlot(end_  );
+  QPointF start, end;
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  if (plot_) {
+    start = plot_->positionToPlot(start_);
+    end   = plot_->positionToPlot(end_  );
+  }
+  else {
+    start = view_->positionToView(start_);
+    end   = view_->positionToView(end_  );
+  }
+
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
 
   double x1 = std::min(start.x(), end.x());
   double y1 = std::min(start.y(), end.y());
@@ -818,7 +1106,10 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect;
 
-  plot_->windowToPixel(bbox_, prect);
+  if (plot_)
+    plot_->windowToPixel(bbox_, prect);
+  else
+    prect = view_->windowToPixel(bbox_);
 
   //CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
 
@@ -835,6 +1126,16 @@ draw(QPainter *painter)
 }
 
 //---
+
+CQChartsPointAnnotation::
+CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &position,
+                        const CQChartsPlotSymbol::Type &type) :
+ CQChartsAnnotation(view), position_(position)
+{
+  setObjectName(QString("point.%1").arg(ind()));
+
+  pointData_.type = type;
+}
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
@@ -866,7 +1167,12 @@ void
 CQChartsPointAnnotation::
 setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
-  QPointF position = plot_->positionToPlot(position_);
+  QPointF position;
+
+  if (plot_)
+    position = plot_->positionToPlot(position_);
+  else
+    position = view_->positionToView(position_);
 
   double dx = bbox.getXMin() - bbox_.getXMin();
   double dy = bbox.getYMin() - bbox_.getYMin();
@@ -882,15 +1188,38 @@ void
 CQChartsPointAnnotation::
 draw(QPainter *painter)
 {
-  QPointF position = plot_->positionToPlot(position_);
+  QPointF position;
 
-  double xp = plot_->pixelToWindowWidth (padding());
-  double yp = plot_->pixelToWindowHeight(padding());
-  double xm = plot_->pixelToWindowWidth (margin ());
-  double ym = plot_->pixelToWindowHeight(margin ());
+  if (plot_)
+    position = plot_->positionToPlot(position_);
+  else
+    position = view_->positionToView(position_);
 
-  double sw = plot_->pixelToWindowWidth (pointData_.size);
-  double sh = plot_->pixelToWindowHeight(pointData_.size);
+  double xp, yp, xm, ym;
+
+  if (plot_) {
+    xp = plot_->pixelToWindowWidth (padding());
+    yp = plot_->pixelToWindowHeight(padding());
+    xm = plot_->pixelToWindowWidth (margin ());
+    ym = plot_->pixelToWindowHeight(margin ());
+  }
+  else {
+    xp = view_->pixelToWindowWidth (padding());
+    yp = view_->pixelToWindowHeight(padding());
+    xm = view_->pixelToWindowWidth (margin ());
+    ym = view_->pixelToWindowHeight(margin ());
+  }
+
+  double sw, sh;
+
+  if (plot_) {
+    sw = plot_->pixelToWindowWidth (pointData_.size);
+    sh = plot_->pixelToWindowHeight(pointData_.size);
+  }
+  else {
+    sw = view_->pixelToWindowWidth (pointData_.size);
+    sh = view_->pixelToWindowHeight(pointData_.size);
+  }
 
   double x = position.x() - xp - xm; // bottom
   double y = position.y() - yp - ym; // top
@@ -903,7 +1232,10 @@ draw(QPainter *painter)
 
   CQChartsGeom::BBox prect;
 
-  plot_->windowToPixel(bbox_, prect);
+  if (plot_)
+    plot_->windowToPixel(bbox_, prect);
+  else
+    prect = view_->windowToPixel(bbox_);
 
   //CQChartsBoxObj::draw(painter, CQChartsUtil::toQRect(prect));
 
@@ -912,8 +1244,16 @@ draw(QPainter *painter)
   double px = prect.getXMid();
   double py = prect.getYMid();
 
-  QColor lineColor = pointData_.stroke.color.interpColor(plot_, 0, 1);
-  QColor fillColor = pointData_.fill .color.interpColor(plot_, 0, 1);
+  QColor lineColor, fillColor;
+
+  if (plot_) {
+    lineColor = pointData_.stroke.color.interpColor(plot_, 0, 1);
+    fillColor = pointData_.fill  .color.interpColor(plot_, 0, 1);
+  }
+  else {
+    lineColor = pointData_.stroke.color.interpColor(view_, 0, 1);
+    fillColor = pointData_.fill  .color.interpColor(view_, 0, 1);
+  }
 
   lineColor.setAlphaF(pointData_.stroke.alpha);
   fillColor.setAlphaF(pointData_.fill  .alpha);
@@ -926,7 +1266,12 @@ draw(QPainter *painter)
   else
     pen.setStyle(Qt::NoPen);
 
-  double bw = plot_->lengthPixelWidth(pointData_.stroke.width);
+  double bw;
+
+  if (plot_)
+    bw = plot_->lengthPixelWidth(pointData_.stroke.width);
+  else
+    bw = view_->lengthPixelWidth(pointData_.stroke.width);
 
   pen.setWidthF(bw);
 

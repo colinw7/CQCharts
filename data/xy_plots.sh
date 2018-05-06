@@ -9,31 +9,32 @@
 #   Stacked   (Multiple Lines)
 
 CQChartsTest \
- -tsv multi_series.tsv -comment_header \
+ -tsv data/multi_series.tsv -comment_header \
  -type xy -columns "x=0,y=1" -column_type "time:format=%Y%m%d,oformat=%F" \
  -plot_title "simple xy - single line" \
 -and \
- -tsv multi_series.tsv -comment_header \
+ -tsv data/multi_series.tsv -comment_header \
  -type xy -columns "x=0,y=1 2 3" -column_type "time:format=%Y%m%d" \
  -plot_title "simple xy - multi line" \
 -and \
- -tsv bivariate.tsv -comment_header \
+ -tsv data/bivariate.tsv -comment_header \
  -type xy -columns "x=0,y=1 2" \
  -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate - single line" \
  -properties "yaxis.includeZero=1" \
 -and \
- -tsv multi_series.tsv -comment_header \
+ -tsv data/multi_series.tsv -comment_header \
  -type xy -columns "x=0,y=1 2 3" \
  -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate - multi line" \
 -and \
- -tsv stacked_area.tsv -comment_header \
+ -tsv data/stacked_area.tsv -comment_header \
  -type xy -columns "x=0,y=1" -column_type "time:format=%y-%b-%d" -stacked \
  -plot_title "stacked xy - single line" \
 -and \
- -tsv stacked_area.tsv -comment_header \
+ -tsv data/stacked_area.tsv -comment_header \
  -type xy -columns "x=0,y=1 2 3 4 5" -column_type "time:format=%y-%b-%d" -stacked \
- -plot_title "stacked xy - multi line"
+ -plot_title "stacked xy - multi line" \
+-close_app

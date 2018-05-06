@@ -1,9 +1,7 @@
-load -csv arrowstyle.csv
-
+load -csv data/arrowstyle.csv
 modelId = _rc
 
-plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -100 -xmax 100 -ymin -100 -ymax 100
-
+add_plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -100 -xmax 100 -ymin -100 -ymax 100
 plotId = _rc
 
 polyline_shape -points "-30 -30 -20 -20 -10 10 0 -10 10 -20 20 30 30 10" \

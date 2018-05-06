@@ -30,6 +30,8 @@ addParameters()
   addBoolParameter("percent"   , "Percent"     , "percent"   , "optional");
   addBoolParameter("range"     , "Range"       , "range"     , "optional");
   addBoolParameter("horizontal", "Horizontal"  , "horizontal", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -685,9 +687,9 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   // add values for columns (1 column normally, all columns when grouped)
   for (const auto &valueColumn : valueColumns) {
-    bool ok2;
+    double r;
 
-    double r = modelReal(model, row, valueColumn, parent, ok2);
+    bool ok2 = modelMappedReal(model, row, valueColumn, parent, r, isLogY(), row);
 
     if (! ok2)
       r = row;
@@ -1340,6 +1342,15 @@ QString
 CQChartsBarChartObj::
 calcId() const
 {
+  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+
+  QString idStr;
+
+  if (columnId(ind1, idStr))
+    return idStr;
+
+  //---
+
   const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ival_);
 
   const QString &setName   = valueSet.name();

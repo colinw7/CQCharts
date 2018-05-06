@@ -172,7 +172,6 @@ addProperties()
   addProperty("", this, "innerRadius");
   addProperty("", this, "startAngle" );
   addProperty("", this, "angleExtent");
-  addProperty("", this, "endAngle"   );
 
   addProperty("explode", this, "explodeSelected", "selected");
   addProperty("explode", this, "explodeRadius"  , "radius"  );
@@ -497,7 +496,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     groupObj->addObject(obj);
   }
   else {
-    obj->setValue (obj->value () + value);
+    obj->setValue(obj->value () + value);
 
     // TODO: add dataInd
   }
@@ -1116,9 +1115,9 @@ selectPress(const CQChartsGeom::Point &)
 
   int ih = 0;
 
-  if (group)
+  if      (group)
     ih = group->colorInd();
-  else
+  else if (obj)
     ih = obj->colorInd();
 
   plot->setSetHidden(ih, ! plot->isSetHidden(ih));
@@ -1141,7 +1140,7 @@ fillBrush() const
 
   QColor c;
 
-  if (group) {
+  if      (group) {
     int ig = group->colorInd();
 
     c = plot->interpGroupPaletteColor(ig, ng, 0, 1);
@@ -1149,11 +1148,11 @@ fillBrush() const
     if (plot->isSetHidden(ig))
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
   }
-  else {
+  else if (obj) {
     CQChartsPieGroupObj *group = obj->groupObj();
 
     int ig = group->colorInd();
-    int io = obj  ->colorInd();
+    int io = obj->colorInd();
     int no = group->numObjs();
 
     c = plot->interpGroupPaletteColor(ig, ng, io, no);
@@ -1193,12 +1192,12 @@ interpTextColor(int i, int n) const
 
   int ih = 0;
 
-  if (group)
+  if      (group)
     ih = group->colorInd();
-  else
+  else if (obj)
     ih = obj->colorInd();
 
-  if (plot->isSetHidden(ih))
+  if (plot && plot->isSetHidden(ih))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;

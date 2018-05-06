@@ -30,6 +30,8 @@ class CQChartsArrow : public QObject {
   Q_PROPERTY(CQChartsColor  strokeColor READ fillColor  WRITE setStrokeColor)
 
  public:
+  CQChartsArrow(CQChartsView *view, const QPointF &from=QPointF(0,0),
+                const QPointF &to=QPointF(1,1));
   CQChartsArrow(CQChartsPlot *plot, const QPointF &from=QPointF(0,0),
                 const QPointF &to=QPointF(1,1));
 
@@ -99,6 +101,7 @@ class CQChartsArrow : public QObject {
   void dataChanged();
 
  private:
+  CQChartsView*     view_    { nullptr };
   CQChartsPlot*     plot_    { nullptr };
   bool              visible_ { true };
   QPointF           from_    { 0, 0 };

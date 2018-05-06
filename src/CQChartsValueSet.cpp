@@ -363,7 +363,8 @@ init()
     else if (type_ == Type::STRING) {
       QString s;
 
-      CQChartsUtil::variantToString(value, s);
+      if (value.isValid())
+        CQChartsUtil::variantToString(value, s);
 
       svals_.addValue(s);
     }

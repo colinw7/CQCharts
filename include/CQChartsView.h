@@ -3,7 +3,10 @@
 
 #include <CQChartsTheme.h>
 #include <CQChartsGeom.h>
+#include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
+#include <CQChartsPosition.h>
+#include <CQChartsLength.h>
 #include <QFrame>
 #include <QTimer>
 #include <set>
@@ -11,12 +14,21 @@
 class CQCharts;
 class CQChartsPlot;
 class CQChartsViewKey;
+class CQChartsAnnotation;
+class CQChartsTextAnnotation;
+class CQChartsArrowAnnotation;
+class CQChartsRectAnnotation;
+class CQChartsEllipseAnnotation;
+class CQChartsPolygonAnnotation;
+class CQChartsPolylineAnnotation;
+class CQChartsPointAnnotation;
 class CQChartsProbeBand;
-class QPainter;
-class CQPropertyViewModel;
-class CQChartsDisplayRange;
-
 class CQChartsGradientPalette;
+class CQChartsDisplayRange;
+class CQChartsTextOptions;
+class CQPropertyViewModel;
+
+class QPainter;
 class QToolButton;
 class QRubberBand;
 class QLabel;
@@ -111,11 +123,15 @@ class CQChartsView : public QFrame {
   };
 
  public:
-  using Plots   = std::vector<CQChartsPlot*>;
-  using PlotSet = std::set<CQChartsPlot*>;
+  using Plots       = std::vector<CQChartsPlot*>;
+  using PlotSet     = std::set<CQChartsPlot*>;
+  using Annotations = std::vector<CQChartsAnnotation *>;
 
  public:
   static double viewportRange() { return 100.0; }
+
+  static QSize &getSizeHint() { return sizeHint_; }
+  static void setSizeHint(const QSize &s) { sizeHint_ = s; }
 
  public:
   CQChartsView(CQCharts *charts, QWidget *parent=nullptr);
@@ -223,8 +239,8 @@ class CQChartsView : public QFrame {
 
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
-  CQChartsGradientPalette *themePalette() const { return theme_->palette(); }
-  CQChartsGradientPalette *themeTheme  () const { return theme_->theme  (); }
+  CQChartsGradientPalette *themePalette(int ind=0) const { return theme_->palette(ind); }
+  CQChartsGradientPalette *themeTheme() const { return theme_->theme  (); }
 
   //---
 
@@ -253,7 +269,30 @@ class CQChartsView : public QFrame {
 
   CQChartsPlot *getPlot(const QString &id) const;
 
+  void removePlot(CQChartsPlot *plot);
+  void removeAllPlots();
+
   void deselectAll();
+
+  //---
+
+  // annotations
+
+  const Annotations &annotations() const { return annotations_; }
+
+  CQChartsTextAnnotation     *addTextAnnotation    (const QPointF &pos, const QString &text);
+  CQChartsArrowAnnotation    *addArrowAnnotation   (const QPointF &start, const QPointF &end);
+  CQChartsRectAnnotation     *addRectAnnotation    (const QPointF &start, const QPointF &end);
+  CQChartsEllipseAnnotation  *addEllipseAnnotation (const QPointF &center, double xRadius,
+                                                    double yRadius);
+  CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
+  CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
+  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos,
+                                                    const CQChartsPlotSymbol::Type &type);
+
+  void addAnnotation(CQChartsAnnotation *annotation);
+
+  CQChartsAnnotation *getAnnotationByName(const QString &id) const;
 
   //---
 
@@ -261,11 +300,13 @@ class CQChartsView : public QFrame {
   void initOverlay(const Plots &plots);
   void initOverlay(CQChartsPlot *firstPlot);
 
-  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2);
+  void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay);
+  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay);
 
   //---
 
   QColor interpPaletteColor(double r, bool scale=false) const;
+  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
 
   QColor interpThemeColor(double r) const;
 
@@ -284,6 +325,13 @@ class CQChartsView : public QFrame {
   void paintEvent(QPaintEvent *) override;
 
   void paint(QPainter *painter);
+
+  //---
+
+  static void drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
+                            const QPen &pen, const CQChartsTextOptions &options);
+  static void drawContrastText(QPainter *painter, double x, double y, const QString &text,
+                               const QPen &pen);
 
   //---
 
@@ -361,6 +409,14 @@ class CQChartsView : public QFrame {
 
   //---
 
+  QPointF positionToView(const CQChartsPosition &pos) const;
+  QPointF positionToPixel(const CQChartsPosition &pos) const;
+
+  double lengthPixelWidth (const CQChartsLength &len) const;
+  double lengthPixelHeight(const CQChartsLength &len) const;
+
+  //---
+
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
@@ -390,10 +446,11 @@ class CQChartsView : public QFrame {
 
   //---
 
-  QSize sizeHint() const override;
+  QSize sizeHint() const override { return CQChartsView::getSizeHint(); }
 
  signals:
   void modeChanged();
+
   void selectModeChanged();
 
   void themeChanged();
@@ -406,8 +463,13 @@ class CQChartsView : public QFrame {
 
   void currentPlotChanged();
 
+  void annotationPressed(CQChartsAnnotation *);
+  void annotationIdPressed(const QString &);
+
  public slots:
   void plotModelChanged();
+
+  void updateSlot();
 
   void searchSlot();
 
@@ -442,8 +504,10 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void printPNGSlot();
-  void printSVGSlot();
+  void printFile(const QString &filename);
+
+  void printPNGSlot(const QString &filename="charts.png");
+  void printSVGSlot(const QString &filename="charts.svg");
 
   //---
 
@@ -501,6 +565,8 @@ class CQChartsView : public QFrame {
 
   // TODO: view title, view key, view annotations
 
+  static QSize sizeHint_;
+
   CQCharts*             charts_         { nullptr };
   CQChartsDisplayRange* displayRange_   { nullptr };
   CQChartsTheme*        theme_          { nullptr };
@@ -511,6 +577,7 @@ class CQChartsView : public QFrame {
   CQChartsViewKey*      keyObj_         { nullptr };
   PlotDatas             plotDatas_;
   int                   currentPlotInd_ { -1 };
+  Annotations           annotations_;
   Mode                  mode_           { Mode::SELECT };
   SelectMode            selectMode_     { SelectMode::POINT };
   HighlightData         selectedHighlight_;

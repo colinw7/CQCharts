@@ -30,6 +30,8 @@ class CQChartsPlotObj : public QObject {
 
   virtual QString calcTipId() const { return calcId(); }
 
+  bool columnId(const QModelIndex &ind, QString &str) const;
+
   //---
 
   virtual int colorInd() const { return colorInd_; }

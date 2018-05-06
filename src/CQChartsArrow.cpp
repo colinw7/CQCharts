@@ -1,8 +1,15 @@
 #include <CQChartsArrow.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 
 #include <QPainter>
 #include <QPainterPath>
+
+CQChartsArrow::
+CQChartsArrow(CQChartsView *view, const QPointF &from, const QPointF &to) :
+ view_(view), from_(from), to_(to)
+{
+}
 
 CQChartsArrow::
 CQChartsArrow(CQChartsPlot *plot, const QPointF &from, const QPointF &to) :
@@ -23,18 +30,40 @@ draw(QPainter *painter)
 
   double fx, fy, tx, ty;
 
-  plot_->windowToPixel(from.x(), from.y(), fx, fy);
-  plot_->windowToPixel(to  .x(), to  .y(), tx, ty);
+  if (plot_) {
+    plot_->windowToPixel(from.x(), from.y(), fx, fy);
+    plot_->windowToPixel(to  .x(), to  .y(), tx, ty);
+  }
+  else {
+    view_->windowToPixel(from.x(), from.y(), fx, fy);
+    view_->windowToPixel(to  .x(), to  .y(), tx, ty);
+  }
 
-  double xw = (lineWidth().value() > 0 ? plot_->lengthPixelWidth (lineWidth()) : 4);
-  double yw = (lineWidth().value() > 0 ? plot_->lengthPixelHeight(lineWidth()) : 4);
+  double xw, yw;
+
+  if (plot_) {
+    xw = (lineWidth().value() > 0 ? plot_->lengthPixelWidth (lineWidth()) : 4);
+    yw = (lineWidth().value() > 0 ? plot_->lengthPixelHeight(lineWidth()) : 4);
+  }
+  else {
+    xw = (lineWidth().value() > 0 ? view_->lengthPixelWidth (lineWidth()) : 4);
+    yw = (lineWidth().value() > 0 ? view_->lengthPixelHeight(lineWidth()) : 4);
+  }
 
   double a = atan2(ty - fy, tx - fx);
 
   double aa = CQChartsUtil::Deg2Rad(angle() > 0 ? angle() : 45);
 
-  double xl = (length().value() > 0 ? plot_->lengthPixelWidth (length()) : 8);
-  double yl = (length().value() > 0 ? plot_->lengthPixelHeight(length()) : 8);
+  double xl, yl;
+
+  if (plot_) {
+    xl = (length().value() > 0 ? plot_->lengthPixelWidth (length()) : 8);
+    yl = (length().value() > 0 ? plot_->lengthPixelHeight(length()) : 8);
+  }
+  else {
+    xl = (length().value() > 0 ? view_->lengthPixelWidth (length()) : 8);
+    yl = (length().value() > 0 ? view_->lengthPixelHeight(length()) : 8);
+  }
 
   double xl1 = xl*cos(aa);
   double yl1 = yl*cos(aa);
@@ -210,7 +239,12 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
   path.closeSubpath();
 
   if (filled) {
-    QColor fc = fillColor().interpColor(plot_, 0, 1);
+    QColor fc;
+
+    if (plot_)
+      fc = fillColor().interpColor(plot_, 0, 1);
+    else
+      fc = fillColor().interpColor(view_, 0, 1);
 
     QBrush brush(fc);
 
@@ -218,7 +252,12 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
   }
 
   if (stroked) {
-    QColor sc = strokeColor().interpColor(plot_, 0, 1);
+    QColor sc;
+
+    if (plot_)
+      sc = strokeColor().interpColor(plot_, 0, 1);
+    else
+      sc = strokeColor().interpColor(view_, 0, 1);
 
     QPen pen(sc);
 
@@ -234,7 +273,12 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 {
   QPen p = painter_->pen();
 
-  QColor sc = strokeColor().interpColor(plot_, 0, 1);
+  QColor sc;
+
+  if (plot_)
+    sc = strokeColor().interpColor(plot_, 0, 1);
+  else
+    sc = strokeColor().interpColor(view_, 0, 1);
 
   p.setColor(sc);
   p.setWidthF(width);
@@ -244,8 +288,14 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
   double px1, py1, px2, py2;
 
   if (mapping) {
-    plot_->windowToPixel(point1.x(), point1.y(), px1, py1);
-    plot_->windowToPixel(point2.x(), point2.y(), px2, py2);
+    if (plot_) {
+      plot_->windowToPixel(point1.x(), point1.y(), px1, py1);
+      plot_->windowToPixel(point2.x(), point2.y(), px2, py2);
+    }
+    else {
+      view_->windowToPixel(point1.x(), point1.y(), px1, py1);
+      view_->windowToPixel(point2.x(), point2.y(), px2, py2);
+    }
   }
   else {
     px1 = point1.x();
@@ -263,8 +313,12 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
 {
   double px, py;
 
-  if (mapping)
-    plot_->windowToPixel(point.x(), point.y(), px, py);
+  if (mapping) {
+    if (plot_)
+      plot_->windowToPixel(point.x(), point.y(), px, py);
+    else
+      view_->windowToPixel(point.x(), point.y(), px, py);
+  }
   else {
     px = point.x();
     py = point.y();

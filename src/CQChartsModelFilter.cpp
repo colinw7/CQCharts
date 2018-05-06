@@ -129,7 +129,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
   QAbstractItemModel *model = sourceModel();
   assert(model);
 
-  class RowVisitor : public CQChartsUtil::ModelVisitor {
+  class RowVisitor : public CQChartsModelVisitor {
    public:
     RowVisitor(const CQChartsModelFilter *filter, int column) :
      filter_(filter), column_(column) {
@@ -168,7 +168,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 
   RowVisitor visitor(this, column);
 
-  (void) visitModel(model, parent, row, visitor);
+  (void) CQChartsUtil::visitModel(model, parent, row, visitor);
 
   // TODO: cache result for hier traversal
   return visitor.isAccepted();
@@ -225,7 +225,11 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     QAbstractItemModel *model = sourceModel();
     assert(model);
 
-    QString str = model->data(ind).toString();
+    QVariant var = model->data(ind);
+
+    bool ok;
+
+    QString str = CQChartsUtil::toString(var, ok);
 
     return filterData.regexp().match(str);
   }
@@ -236,9 +240,13 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
     for (const auto &columnFilter : filterData.columnFilterMap()) {
       QModelIndex ind1 = model->index(ind.row(), columnFilter.first, ind.parent());
 
-      QString str = model->data(ind1).toString();
+      QVariant var1 = model->data(ind1);
 
-      if (! columnFilter.second.match(str))
+      bool ok1;
+
+      QString str1 = CQChartsUtil::toString(var1, ok1);
+
+      if (! columnFilter.second.match(str1))
         return false;
     }
 

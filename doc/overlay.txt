@@ -1,0 +1,8 @@
+                           | overlay | x1x2 | y1y2
+---------------------------+---------+------+-----
+normal plot                |    .    |  .   |  .
+overlay plot               |    x    |  .   |  .
+overlay plot common y axis |    x    |  x   |  .
+overlay plot common x axis |    x    |  .   |  x
+normal plot common y axis  |    .    |  x   |  .
+normal plot common x axis  |    .    |  .   |  x

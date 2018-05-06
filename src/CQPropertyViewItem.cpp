@@ -33,6 +33,28 @@ addChild(CQPropertyViewItem *row)
   children_.push_back(row);
 }
 
+void
+CQPropertyViewItem::
+removeChild(CQPropertyViewItem *row)
+{
+  bool found = false;
+
+  Children children;
+
+  for (auto &child : children_) {
+    if (child != row)
+      children.push_back(child);
+    else
+      found = true;
+  }
+
+  if (found) {
+    std::swap(children_, children);
+
+    delete row;
+  }
+}
+
 QString
 CQPropertyViewItem::
 aliasName() const

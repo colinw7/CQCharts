@@ -65,6 +65,8 @@ class CQChartsViewExpander : public QFrame {
 
   PressSide posToPressSide(const QPoint &pos);
 
+  int maxSize() const;
+
  private slots:
   void leftSlot();
   void rightSlot();

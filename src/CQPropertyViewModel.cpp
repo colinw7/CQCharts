@@ -247,6 +247,20 @@ getProperty(QObject *object, const QString &path, QVariant &value)
   return true;
 }
 
+void
+CQPropertyViewModel::
+removeProperties(const QString &path, QObject *object)
+{
+  beginResetModel();
+
+  QStringList pathParts = path.split('/', QString::SkipEmptyParts);
+
+  CQPropertyViewItem *item = hierItem(pathParts, /*create*/false, /*alias*/false);
+
+  if (item && item->parent())
+    item->parent()->removeChild(item);
+}
+
 CQPropertyViewItem *
 CQPropertyViewModel::
 item(const QModelIndex &index) const

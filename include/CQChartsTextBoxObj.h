@@ -22,6 +22,7 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
  public:
+  CQChartsTextBoxObj(CQChartsView *view);
   CQChartsTextBoxObj(CQChartsPlot *plot);
 
   virtual ~CQChartsTextBoxObj() { }

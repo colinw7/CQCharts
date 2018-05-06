@@ -18,6 +18,8 @@ addParameters()
 {
   addColumnParameter ("x", "X", "xColumn" , "", 0);
   addColumnsParameter("y", "Y", "yColumns", "", "1");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

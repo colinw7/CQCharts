@@ -43,6 +43,8 @@ class CQPropertyViewModel : public QAbstractItemModel {
   bool setProperty(QObject *object, const QString &path, const QVariant &value);
   bool getProperty(QObject *object, const QString &path, QVariant &value);
 
+  void removeProperties(const QString &path, QObject *object);
+
   CQPropertyViewItem *propertyItem(QObject *object, const QString &path);
 
   CQPropertyViewItem *item(const QModelIndex &index, bool &ok) const;

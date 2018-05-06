@@ -147,7 +147,6 @@ hideTipText()
   tipText_->setVisible(false);
 }
 
-
 void
 CQChartsGradientPaletteCanvas::
 paintEvent(QPaintEvent *)

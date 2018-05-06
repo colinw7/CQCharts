@@ -13,7 +13,8 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
  public:
   CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x,
-                      double y1, double y2, const QModelIndex &ind, int i, int n);
+                      double y1, double y2, const QModelIndex &ind, int iset, int nset,
+                      int i, int n);
 
   QString calcId() const override;
 
@@ -33,6 +34,8 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
   double          y1_   { 0.0 };
   double          y2_   { 0.0 };
   QModelIndex     ind_;
+  int             iset_ { -1 };
+  int             nset_ { -1 };
   int             i_    { -1 };
   int             n_    { -1 };
 };
@@ -44,8 +47,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
  public:
   CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
-                           double x1, double y1, double x2, double y2,
-                           const QModelIndex &ind, int iset, int nset);
+                           double x1, double y1, double x2, double y2, const QModelIndex &ind,
+                           int iset, int nset, int i, int n);
 
   QString calcId() const override;
 
@@ -68,6 +71,8 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
   QModelIndex     ind_;
   int             iset_ { -1 };
   int             nset_ { -1 };
+  int             i_    { -1 };
+  int             n_    { -1 };
 };
 
 //---
@@ -285,6 +290,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(bool           cumulative         READ isCumulative       WRITE setCumulative        )
   Q_PROPERTY(bool           impulse            READ isImpulse          WRITE setImpulse           )
   Q_PROPERTY(CQChartsColor  impulseColor       READ impulseColor       WRITE setImpulseColor      )
+  Q_PROPERTY(double         impulseAlpha       READ impulseAlpha       WRITE setImpulseAlpha      )
   Q_PROPERTY(CQChartsLength impulseWidth       READ impulseWidth       WRITE setImpulseWidth      )
   Q_PROPERTY(bool           vectors            READ isVectors          WRITE setVectors           )
 
@@ -486,13 +492,16 @@ class CQChartsXYPlot : public CQChartsPlot {
   // impulse
   bool isImpulse() const { return impulseData_.visible; }
 
-  const CQChartsColor &impulseColor() const;
+  const CQChartsColor &impulseColor() const { return impulseData_.color; }
   void setImpulseColor(const CQChartsColor &c);
 
-  QColor interpImpulseColor(int i, int n) const;
+  double impulseAlpha() const { return impulseData_.alpha; }
+  void setImpulseAlpha(double a);
 
   const CQChartsLength &impulseWidth() const { return impulseData_.width; }
-  void setImpulseWidth(const CQChartsLength &l) { impulseData_.width = l; update(); }
+  void setImpulseWidth(const CQChartsLength &l);
+
+  QColor interpImpulseColor(int i, int n) const;
 
   //---
 
@@ -555,9 +564,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   bool rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &yv,
                QModelIndex &ind, bool skipBad) const;
-
-  bool modelRowReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                    const QModelIndex &ind, double &r, bool log, double def) const;
 
   //---
 

@@ -5,6 +5,7 @@
 #include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CHRTimer.h>
 #include <QPainter>
 
 CQChartsBoxPlotType::
@@ -19,6 +20,8 @@ addParameters()
   addColumnParameter("x"    , "X"    , "xColumn"    , "", 0);
   addColumnParameter("y"    , "Y"    , "yColumn"    , "", 1);
   addColumnParameter("group", "Group", "groupColumn", "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *

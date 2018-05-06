@@ -18,7 +18,7 @@ class CQChartsPlotObjTree {
 
  ~CQChartsPlotObjTree();
 
-  void addObjects(const Objs &objs);
+  void addObjects();
 
   void clearObjects();
 
@@ -33,12 +33,11 @@ class CQChartsPlotObjTree {
  private:
   void initTree() const;
 
-  static PlotObjTree *addObjectsASync(CQChartsPlot *plot, const Objs &objs);
+  static PlotObjTree *addObjectsASync(CQChartsPlot *plot);
 
  private:
   CQChartsPlot*     plot_        { nullptr }; // parent plot
   PlotObjTree*      plotObjTree_ { nullptr }; // object tree
-  Objs              objs_;                    // objects
   PlotObjTreeFuture plotObjTreeFuture_;       // future
 };
 

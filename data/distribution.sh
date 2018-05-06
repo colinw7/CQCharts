@@ -1,15 +1,16 @@
 CQChartsTest \
- -csv name_value.csv \
+ -csv data/name_value.csv \
  -type distribution -columns "value=0" \
 -and \
- -csv gaussian.txt -comment_header \
+ -csv data/gaussian.txt -comment_header \
  -type distribution -columns "value=0" \
  -bool "horizontal=1" \
 -and \
- -csv gaussian.txt -comment_header \
+ -csv data/gaussian.txt -comment_header \
  -type distribution -columns "value=0" \
  -bool "autoRange=0" -real "start=1.0,delta=0.1" \
 -and \
- -csv distribution_sparse.csv -first_line_header \
+ -csv data/distribution_sparse.csv -first_line_header \
  -type distribution -columns "value=0,color=1" \
  -real "autoRange=0,delta=1" \
+-close_app

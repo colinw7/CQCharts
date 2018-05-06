@@ -22,6 +22,8 @@ class CQChartsColumn {
 
   CQChartsColumn(int column) :
    type_(Type::DATA), column_(column) {
+    if (column_ < 0)
+      type_ = Type::NONE;
   }
 
   CQChartsColumn(const QString &s) {
@@ -102,7 +104,7 @@ class CQChartsColumn {
     else if (type_ == Type::EXPR)
       return QString("(%1)").arg(expr_);
     else if (type_ == Type::VHEADER)
-      return "#VH";
+      return "@VH";
 
     return "";
   }
@@ -119,6 +121,9 @@ class CQChartsColumn {
 
     if (lhs.expr_ != rhs.expr_) {
       if ((lhs.expr_ && ! rhs.expr_) || (! lhs.expr_ && rhs.expr_))
+        return false;
+
+      if (! lhs.expr_ || ! rhs.expr_)
         return false;
 
       if (strcmp(lhs.expr_, rhs.expr_) != 0)
@@ -244,6 +249,9 @@ class CQChartsColumn {
       ++p;
 
     if (*p == '\0') {
+      if (value < 0)
+        return false;
+
       type   = Type::DATA;
       column = value;
     }

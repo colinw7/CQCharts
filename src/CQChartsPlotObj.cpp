@@ -26,6 +26,17 @@ tipId() const
   return *tipId_;
 }
 
+bool
+CQChartsPlotObj::
+columnId(const QModelIndex &ind, QString &str) const
+{
+  bool ok;
+
+  str = plot_->idColumnString(ind.row(), ind.parent(), ok);
+
+  return ok;
+}
+
 //------
 
 CQChartsGroupObj::

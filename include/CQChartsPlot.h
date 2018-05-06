@@ -8,6 +8,8 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsData.h>
 #include <CQChartsPosition.h>
+#include <CQChartsModelVisitor.h>
+#include <CQChartsTextOptions.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -15,8 +17,6 @@
 #include <QItemSelection>
 #include <QFrame>
 #include <QTimer>
-
-#include <CHRTimer.h>
 
 #include <memory>
 #include <set>
@@ -28,8 +28,8 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsAxis;
 class CQChartsPlotKey;
+class CQChartsKeyItem;
 class CQChartsTitle;
-class CQChartsTheme;
 class CQChartsPlotObj;
 class CQChartsPlotObjTree;
 class CQChartsAnnotation;
@@ -56,19 +56,6 @@ class QMenu;
 //----
 
 #include <CQChartsEditHandles.h>
-
-//----
-
-struct CQChartsTextOptions {
-  double        angle     { 0.0 };
-  bool          contrast  { false };
-  bool          formatted { false };
-  bool          scaled    { false };
-  bool          clipped   { true };
-  Qt::Alignment align     { Qt::AlignHCenter | Qt::AlignVCenter };
-
-  CQChartsTextOptions() = default;
-};
 
 //----
 
@@ -234,10 +221,14 @@ class CQChartsPlot : public QObject {
   // key
   Q_PROPERTY(bool           keyVisible          READ isKeyVisible        WRITE setKeyVisible     )
 
+  Q_PROPERTY(double         minScaleFontSize    READ minScaleFontSize    WRITE setMinScaleFontSize)
+  Q_PROPERTY(double         maxScaleFontSize    READ maxScaleFontSize    WRITE setMaxScaleFontSize)
+
   // misc
   Q_PROPERTY(bool           equalScale          READ isEqualScale        WRITE setEqualScale     )
   Q_PROPERTY(bool           followMouse         READ isFollowMouse       WRITE setFollowMouse    )
   Q_PROPERTY(bool           overlay             READ isOverlay           WRITE setOverlay        )
+  Q_PROPERTY(bool           x1x2                READ isX1X2              WRITE setX1X2           )
   Q_PROPERTY(bool           y1y2                READ isY1Y2              WRITE setY1Y2           )
   Q_PROPERTY(bool           invertX             READ isInvertX           WRITE setInvertX        )
   Q_PROPERTY(bool           invertY             READ isInvertY           WRITE setInvertY        )
@@ -274,11 +265,14 @@ class CQChartsPlot : public QObject {
   using Columns = std::vector<CQChartsColumn>;
 
   // associated plot for overlay/y1y2
-  struct OtherPlot {
-    CQChartsPlot *next { nullptr };
-    CQChartsPlot *prev { nullptr };
+  struct ConnectData {
+    bool          x1x2    { false };   // is double x axis plot
+    bool          y1y2    { false };   // is double y axis plot
+    bool          overlay { false };   // is overlay plot
+    CQChartsPlot *next    { nullptr }; // next plot
+    CQChartsPlot *prev    { nullptr }; // previos plot
 
-    OtherPlot() { }
+    ConnectData() { }
   };
 
   struct ProbeValue {
@@ -312,15 +306,14 @@ class CQChartsPlot : public QObject {
   using ModelP          = CQChartsModelP;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
-  using PlotObjs = std::vector<CQChartsPlotObj*>;
+  using PlotObjs    = std::vector<CQChartsPlotObj*>;
+  using Annotations = std::vector<CQChartsAnnotation *>;
 
   using ModelIndices = std::vector<QModelIndex>;
 
   using ColumnType = CQBaseModel::Type;
 
   using OptColor = boost::optional<CQChartsColor>;
-
-  using Annotations = std::vector<CQChartsAnnotation *>;
 
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -482,6 +475,15 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  // scaled font size
+  double minScaleFontSize() const { return minScaleFontSize_; }
+  void setMinScaleFontSize(double r) { minScaleFontSize_ = r; }
+
+  double maxScaleFontSize() const { return maxScaleFontSize_; }
+  void setMaxScaleFontSize(double r) { maxScaleFontSize_ = r; }
+
+  //---
+
   // key
   bool isKeyVisible() const;
   void setKeyVisible(bool b);
@@ -545,11 +547,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  bool isOverlay() const { return overlay_; }
-  void setOverlay(bool b) { overlay_ = b; }
+  bool isOverlay() const { return connectData_.overlay; }
+  void setOverlay(bool b) { connectData_.overlay = b; }
 
-  bool isY1Y2() const { return y1y2_; }
-  void setY1Y2(bool b) { y1y2_ = b; }
+  bool isX1X2() const { return connectData_.x1x2; }
+  void setX1X2(bool b) { connectData_.x1x2 = b; }
+
+  bool isY1Y2() const { return connectData_.y1y2; }
+  void setY1Y2(bool b) { connectData_.y1y2 = b; }
 
   //---
 
@@ -569,31 +574,31 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  CQChartsPlot *prevPlot() const { return otherPlot_.prev; }
-  CQChartsPlot *nextPlot() const { return otherPlot_.next; }
+  CQChartsPlot *prevPlot() const { return connectData_.prev; }
+  CQChartsPlot *nextPlot() const { return connectData_.next; }
 
   void setNextPlot(CQChartsPlot *plot) {
-    assert(plot != this && ! otherPlot_.next);
+    assert(plot != this && ! connectData_.next);
 
-    otherPlot_.next = plot;
+    connectData_.next = plot;
   }
 
   void setPrevPlot(CQChartsPlot *plot) {
-    assert(plot != this && ! otherPlot_.prev);
+    assert(plot != this && ! connectData_.prev);
 
-    otherPlot_.prev = plot;
+    connectData_.prev = plot;
   }
 
   CQChartsPlot *firstPlot() {
-    if (otherPlot_.prev)
-      return otherPlot_.prev->firstPlot();
+    if (connectData_.prev)
+      return connectData_.prev->firstPlot();
 
     return this;
   }
 
   CQChartsPlot *lastPlot() {
-    if (otherPlot_.next)
-      return otherPlot_.next->lastPlot();
+    if (connectData_.next)
+      return connectData_.next->lastPlot();
 
     return this;
   }
@@ -688,7 +693,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  class ModelVisitor : public CQChartsUtil::ModelVisitor {
+  class ModelVisitor : public CQChartsModelVisitor {
    public:
     ModelVisitor() { }
 
@@ -708,6 +713,20 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  bool modelMappedReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                       const QModelIndex &ind, double &r, bool log, double def) const;
+
+  //---
+
+  QVariant getData(const QString &id, const CQChartsColumn &column,
+                   const QString &role, bool &ok) const;
+
+  int getRowForId(const QString &id) const;
+
+  QString idColumnString(int row, const QModelIndex &parent, bool &ok) const;
+
+  //---
+
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                     bool &ok) const;
 
@@ -721,7 +740,6 @@ class CQChartsPlot : public QObject {
                                 const QModelIndex &parent, bool &ok) const;
   virtual QColor   modelColor  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                 const QModelIndex &parent, bool &ok) const;
-
 
   //---
 
@@ -875,6 +893,8 @@ class CQChartsPlot : public QObject {
 
   CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
 
+  const PlotObjs &plotObjects() const { return plotObjs_; }
+
   //---
 
   const CQChartsColumn &xValueColumn() const { return xValueColumn_; }
@@ -898,7 +918,7 @@ class CQChartsPlot : public QObject {
   virtual QString posStr(const CQChartsGeom::Point &w) const;
 
   virtual QString xStr(double x) const;
-  virtual QString yStr(double x) const;
+  virtual QString yStr(double y) const;
 
   virtual QString columnStr(const CQChartsColumn &column, double x) const;
 
@@ -1035,6 +1055,10 @@ class CQChartsPlot : public QObject {
   CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos,
                                                     const CQChartsPlotSymbol::Type &type);
 
+  void addAnnotation(CQChartsAnnotation *annotation);
+
+  CQChartsAnnotation *getAnnotationByName(const QString &id) const;
+
   //---
 
   void setLayerActive(const Layer &layer, bool b);
@@ -1118,7 +1142,9 @@ class CQChartsPlot : public QObject {
 
   // get palette color for ith value of n values
   virtual QColor interpPaletteColor(int i, int n, bool scale=false) const;
+
   QColor interpPaletteColor(double r, bool scale=false) const;
+  QColor interpIndPaletteColor(int ind, double r, bool scale=false) const;
 
   virtual QColor interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale=false) const;
   QColor interpGroupPaletteColor(double r1, double r2, double dr) const;
@@ -1192,8 +1218,19 @@ class CQChartsPlot : public QObject {
  signals:
   void modelChanged();
 
-  void objPressed(CQChartsPlotObj *);
+  void keyItemPressed(CQChartsKeyItem *);
+  void keyItemIdPressed(const QString &);
 
+  void keyPressed(CQChartsPlotKey *);
+  void keyIdPressed(const QString &);
+
+  void titlePressed(CQChartsTitle *);
+  void titleIdPressed(const QString &);
+
+  void annotationPressed(CQChartsAnnotation *);
+  void annotationIdPressed(const QString &);
+
+  void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
  protected:
@@ -1282,18 +1319,18 @@ class CQChartsPlot : public QObject {
   CQChartsColumn            xValueColumn_;                    // x axis value column
   CQChartsColumn            yValueColumn_;                    // y axis value column
   CQChartsColumn            idColumn_;                        // unique data id column (signalled)
+  double                    minScaleFontSize_ { 6.0 };        // min scaled font size
+  double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
   bool                      rowGrouping_      { false };      // row grouping on/off
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
   bool                      autoFit_          { false };      // auto fit on data change
   bool                      showBoxes_        { false };      // show debug boxes
-  bool                      overlay_          { false };      // is overlay plot
-  bool                      y1y2_             { false };      // is double y axis plot
   bool                      invertX_          { false };      // x values inverted
   bool                      invertY_          { false };      // y values inverted
   bool                      logX_             { false };      // x values log scaled
   bool                      logY_             { false };      // y values log scaled
-  OtherPlot                 otherPlot_;                       // other associated plot
+  ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
   ValueSets                 valueSets_;                       // named value sets
   CQChartsColumnBucket      groupBucket_;                     // group value bucket

@@ -1,6 +1,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQCharts.h>
+#include <CQUtil.h>
 #include <CExpr.h>
 #include <CQStrParse.h>
 #include <QFontMetricsF>
@@ -26,20 +27,20 @@ bool isHierarchical(QAbstractItemModel *model) {
 }
 
 int hierRowCount(QAbstractItemModel *model) {
-  ModelVisitor visitor;
+  CQChartsModelVisitor visitor;
 
   visitModel(model, visitor);
 
   return visitor.numRows();
 }
 
-bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor) {
+bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
+  if (! model)
+    return false;
+
   int nc = model->columnCount(QModelIndex());
 
   visitor.init(nc);
-
-  if (! model)
-    return false;
 
   QModelIndex parent;
 
@@ -51,13 +52,13 @@ bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor) {
 }
 
 bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                ModelVisitor &visitor) {
+                CQChartsModelVisitor &visitor) {
+  if (! model)
+    return false;
+
   int nc = model->columnCount(QModelIndex());
 
   visitor.init(nc);
-
-  if (! model)
-    return false;
 
   (void) visitModelRow(model, parent, r, visitor);
 
@@ -66,48 +67,51 @@ bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
   return true;
 }
 
-ModelVisitor::State
-visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent, ModelVisitor &visitor) {
+CQChartsModelVisitor::State
+visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
+                CQChartsModelVisitor &visitor) {
   int nr = model->rowCount(parent);
 
   visitor.setNumRows(nr);
 
   for (int r = 0; r < nr; ++r) {
-    ModelVisitor::State state = visitModelRow(model, parent, r, visitor);
-    if (state == ModelVisitor::State::TERMINATE) return state;
-    if (state == ModelVisitor::State::SKIP     ) continue;
+    CQChartsModelVisitor::State state = visitModelRow(model, parent, r, visitor);
+
+    if (state == CQChartsModelVisitor::State::TERMINATE) return state;
+    if (state == CQChartsModelVisitor::State::SKIP     ) continue;
   }
 
-  return ModelVisitor::State::OK;
+  return CQChartsModelVisitor::State::OK;
 }
 
-ModelVisitor::State
-visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r, ModelVisitor &visitor) {
+CQChartsModelVisitor::State
+visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r,
+              CQChartsModelVisitor &visitor) {
   QModelIndex ind1 = model->index(r, 0, parent);
 
   if (model->hasChildren(ind1)) {
-    ModelVisitor::State state = visitor.hierVisit(model, parent, r);
-    if (state != ModelVisitor::State::OK) return state;
+    CQChartsModelVisitor::State state = visitor.hierVisit(model, parent, r);
+    if (state != CQChartsModelVisitor::State::OK) return state;
 
-    ModelVisitor::State iterState = visitModelIndex(model, ind1, visitor);
-    if (iterState != ModelVisitor::State::OK) return iterState;
+    CQChartsModelVisitor::State iterState = visitModelIndex(model, ind1, visitor);
+    if (iterState != CQChartsModelVisitor::State::OK) return iterState;
 
-    ModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
-    if (postState != ModelVisitor::State::OK) return postState;
+    CQChartsModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
+    if (postState != CQChartsModelVisitor::State::OK) return postState;
   }
   else {
-    ModelVisitor::State preState = visitor.preVisit(model, parent, r);
-    if (preState != ModelVisitor::State::OK) return preState;
+    CQChartsModelVisitor::State preState = visitor.preVisit(model, parent, r);
+    if (preState != CQChartsModelVisitor::State::OK) return preState;
 
-    ModelVisitor::State state = visitor.visit(model, parent, r);
-    if (state != ModelVisitor::State::OK) return state;
+    CQChartsModelVisitor::State state = visitor.visit(model, parent, r);
+    if (state != CQChartsModelVisitor::State::OK) return state;
 
     visitor.step();
 
     // postVisit ?
   }
 
-  return ModelVisitor::State::OK;
+  return CQChartsModelVisitor::State::OK;
 }
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
@@ -174,7 +178,7 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
   // TODO: cache (in plot ?), max visited values
 
   // process model data
-  class ColumnTypeVisitor : public ModelVisitor {
+  class ColumnTypeVisitor : public CQChartsModelVisitor {
    public:
     ColumnTypeVisitor(int column) :
      column_(column) {
@@ -357,228 +361,6 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
   return columnTypeMgr->setModelColumnType(model, column, columnType, nameValues);
 }
 
-//------
-
-ModelColumnDetails::
-ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column) :
- charts_(charts), model_(model), column_(column)
-{
-}
-
-QString
-ModelColumnDetails::
-typeName() const
-{
-  if (! initialized_)
-    (void) const_cast<ModelColumnDetails *>(this)->init();
-
-  return typeName_;
-}
-
-QVariant
-ModelColumnDetails::
-minValue() const
-{
-  if (! initialized_)
-    (void) const_cast<ModelColumnDetails *>(this)->init();
-
-  return minValue_;
-}
-
-QVariant
-ModelColumnDetails::
-maxValue() const
-{
-  if (! initialized_)
-    (void) const_cast<ModelColumnDetails *>(this)->init();
-
-  return maxValue_;
-}
-
-int
-ModelColumnDetails::
-numRows() const
-{
-  if (! initialized_)
-    (void) const_cast<ModelColumnDetails *>(this)->init();
-
-  return numRows_;
-}
-
-bool
-ModelColumnDetails::
-init()
-{
-  initialized_ = true;
-
-  //---
-
-  if (! model_)
-    return false;
-
-  if (! column_.isValid())
-    return false;
-
-  if (column_.type() == CQChartsColumn::Type::DATA) {
-    int icolumn = column_.column();
-
-    int numColumns = model_->columnCount(QModelIndex());
-
-    if (icolumn < 0 || icolumn >= numColumns)
-      return false;
-  }
-
-  //---
-
-  class DetailVisitor : public ModelVisitor {
-   public:
-    DetailVisitor(ModelColumnDetails *details) :
-     details_(details) {
-      CQChartsNameValues nameValues;
-
-      (void) columnValueType(details_->charts(), details_->model(), details_->column(),
-                             type_, nameValues);
-
-      CQChartsColumnTypeMgr *columnTypeMgr = details_->charts()->columnTypeMgr();
-
-      CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
-
-      if (columnType) {
-        typeName_ = columnType->name();
-        min_      = columnType->minValue(nameValues);
-        max_      = columnType->maxValue(nameValues);
-        visitMin_ = ! min_.isValid();
-        visitMax_ = ! max_.isValid();
-      }
-      else {
-        typeName_ = "string";
-        type_     = CQBaseModel::Type::STRING;
-      }
-    }
-
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      if      (type_ == CQBaseModel::Type::INTEGER) {
-        bool ok;
-
-        int i = CQChartsUtil::modelInteger(model, row, details_->column(), parent, ok);
-        if (! ok) return State::SKIP;
-
-        if (! details_->checkRow(int(i)))
-          return State::SKIP;
-
-        if (visitMin_) {
-          bool ok1;
-
-          int imin = CQChartsUtil::toInt(min_, ok1);
-
-          imin = (! ok1 ? i : std::min(imin, i));
-
-          min_ = QVariant(imin);
-        }
-
-        if (visitMax_) {
-          bool ok1;
-
-          int imax = CQChartsUtil::toInt(max_, ok1);
-
-          imax = (! ok1 ? i : std::max(imax, i));
-
-          max_ = QVariant(imax);
-        }
-      }
-      else if (type_ == CQBaseModel::Type::REAL) {
-        bool ok;
-
-        double r = CQChartsUtil::modelReal(model, row, details_->column(), parent, ok);
-        if (! ok) return State::SKIP;
-
-        if (! details_->checkRow(r))
-          return State::SKIP;
-
-        if (visitMin_) {
-          bool ok1;
-
-          double rmin = CQChartsUtil::toReal(min_, ok1);
-
-          rmin = (! ok1 ? r : std::min(rmin, r));
-
-          min_ = QVariant(rmin);
-        }
-
-        if (visitMax_) {
-          bool ok1;
-
-          double rmax = CQChartsUtil::toReal(max_, ok1);
-
-          rmax = (! ok1 ? r : std::max(rmax, r));
-
-          max_ = QVariant(rmax);
-        }
-      }
-      else {
-        bool ok;
-
-        QString s = CQChartsUtil::modelString(model, row, details_->column(), parent, ok);
-        if (! ok) return State::SKIP;
-
-        if (! details_->checkRow(s))
-          return State::SKIP;
-
-        if (visitMin_) {
-          bool ok1;
-
-          QString smin = CQChartsUtil::toString(min_, ok1);
-
-          smin = (! ok1 ? s : std::min(smin, s));
-
-          min_ = QVariant(smin);
-        }
-
-        if (visitMax_) {
-          bool ok1;
-
-          QString smax = CQChartsUtil::toString(max_, ok1);
-
-          smax = (! ok1 ? s : std::max(smax, s));
-
-          max_ = QVariant(smax);
-        }
-      }
-
-      return State::OK;
-    }
-
-    CQBaseModel::Type type() const { return type_; }
-
-    QString typeName() const { return typeName_; }
-
-    QVariant minValue() const { return min_; }
-    QVariant maxValue() const { return max_; }
-
-   private:
-    ModelColumnDetails *details_ { nullptr };
-    CQBaseModel::Type   type_;
-    QString             typeName_;
-    QVariant            min_, max_;
-    bool                visitMin_ { true }, visitMax_ { true };
-  };
-
-  //---
-
-  DetailVisitor detailVisitor(this);
-
-  visitModel(model_, detailVisitor);
-
-  //---
-
-  typeName_ = detailVisitor.typeName();
-  minValue_ = detailVisitor.minValue();
-  maxValue_ = detailVisitor.maxValue();
-  numRows_  = detailVisitor.numRows();
-
-  return true;
-}
-
 }
 
 //------
@@ -722,6 +504,7 @@ bool variantToString(const QVariant &var, QString &str) {
     str = rectToString(rect);
   }
   else if (var.type() == QVariant::UserType) {
+#if 0
     if      (var.userType() == CQChartsPath::metaType()) {
       CQChartsPath path = var.value<CQChartsPath>();
 
@@ -735,6 +518,10 @@ bool variantToString(const QVariant &var, QString &str) {
     else {
       assert(false);
     }
+#else
+    if (! CQUtil::userVariantToString(var, str))
+      assert(false);
+#endif
   }
   else {
     assert(false);
@@ -797,7 +584,7 @@ void findStringSplits2(const QString &str, std::vector<int> &splits) {
       while (i < len - 1 && str[i].isPunct())
         ++i;
 
-      if (i == 0 || i >= len) // don't break if at start or end
+      if (i1 == 0 || i >= len) // don't break if at start or end
         continue;
 
       splits.push_back(i1);
@@ -845,9 +632,12 @@ bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
   while (! parse.eof()) {
     parse.skipSpace();
 
+    if (! parse.isChar('{'))
+      return false;
+
     QString polyStr;
 
-    if (! parse.readBracedString(polyStr, /*includeBraces*/false))
+    if (! parse.readBracedString(polyStr))
       return false;
 
     QPolygonF poly;
@@ -895,9 +685,12 @@ bool stringToPolygon(const QString &str, QPolygonF &poly) {
   while (! parse.eof()) {
     parse.skipSpace();
 
+    if (! parse.isChar('{'))
+      return false;
+
     QString pointStr;
 
-    if (! parse.readBracedString(pointStr, /*includeBraces*/false))
+    if (! parse.readBracedString(pointStr))
       return false;
 
     QPointF point;
@@ -1083,10 +876,17 @@ namespace CQChartsUtil {
 bool
 formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QStringList &strs)
 {
+  auto addStr = [&](const QString &str) {
+    assert(str.length());
+    strs.push_back(str);
+  };
+
+  //---
+
   QString sstr = str.simplified();
 
   if (! sstr.length()) { // empty
-    strs.push_back(sstr);
+    addStr(sstr);
     return false;
   }
 
@@ -1099,7 +899,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   double dw = (rect.width() - w);
 
   if (dw > 0 || isZero(dw)) { // fits
-    strs.push_back(sstr);
+    addStr(sstr);
     return false;
   }
 
@@ -1108,7 +908,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   double dh = (rect.height() - h);
 
   if (dh < 0 || isZero(dh)) { // rect can only fit single line of text (TODO: factor)
-    strs.push_back(sstr);
+    addStr(sstr);
     return false;
   }
 
@@ -1126,7 +926,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
       findStringSplits3(sstr, splits);
 
     if (splits.empty()) {
-      strs.push_back(sstr);
+      addStr(sstr);
       return false;
     }
   }
@@ -1148,7 +948,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   }
 
   if (bestInd < 0) {
-    strs.push_back(sstr);
+    addStr(sstr);
     return false;
   }
 
@@ -1165,8 +965,8 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   // both fit so we are done
   if (w1 <= rect.width() && w2 <= rect.width()) {
-    strs.push_back(str1);
-    strs.push_back(str2);
+    addStr(str1);
+    addStr(str2);
 
     return true;
   }
@@ -1199,7 +999,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
     strs += strs1;
 
-    strs.push_back(str2);
+    addStr(str2);
   }
   else {
     double splitHeight = rect.height() - h;
@@ -1210,7 +1010,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
     formatStringInRect(str2, font, rect2, strs2);
 
-    strs.push_back(str1);
+    addStr(str1);
 
     strs += strs2;
   }

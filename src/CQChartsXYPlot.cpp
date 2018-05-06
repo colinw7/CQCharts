@@ -6,6 +6,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsArrow.h>
 #include <CQChartsSmooth.h>
+#include <CQChartsRoundedPolygon.h>
 #include <QMenu>
 #include <QPainter>
 
@@ -39,6 +40,8 @@ addParameters()
   addBoolParameter("fillUnder" , "FillUnder" , "fillUnder" , "optional");
   addBoolParameter("impulse"   , "Impulse"   , "impulse"   , "optional");
   addBoolParameter("vectors"   , "Vectors"   , "vectors"   , "optional");
+
+  CQChartsPlotType::addParameters();
 }
 
 CQChartsPlot *
@@ -257,6 +260,7 @@ addProperties()
   // impulse
   addProperty("impulse", this, "impulse"     , "visible");
   addProperty("impulse", this, "impulseColor", "color"  );
+  addProperty("impulse", this, "impulseAlpha", "alpha"  );
   addProperty("impulse", this, "impulseWidth", "width"  );
 
   // vectors
@@ -353,20 +357,25 @@ setSymbolName(const QString &s)
 
 //---
 
-const CQChartsColor &
-CQChartsXYPlot::
-impulseColor() const
-{
-  return impulseData_.color;
-}
-
 void
 CQChartsXYPlot::
 setImpulseColor(const CQChartsColor &c)
 {
-  impulseData_.color = c;
+  CQChartsUtil::testAndSet(impulseData_.color, c, [&]() { update(); } );
+}
 
-  update();
+void
+CQChartsXYPlot::
+setImpulseAlpha(double a)
+{
+  CQChartsUtil::testAndSet(impulseData_.alpha, a, [&]() { update(); } );
+}
+
+void
+CQChartsXYPlot::
+setImpulseWidth(const CQChartsLength &w)
+{
+  CQChartsUtil::testAndSet(impulseData_.width, w, [&]() { update(); } );
 }
 
 QColor
@@ -530,25 +539,30 @@ QColor
 CQChartsXYPlot::
 interpPaletteColor(int i, int n, bool scale) const
 {
-  if (prevPlot() || nextPlot()) {
+  if (isOverlay()) {
+    if (prevPlot() || nextPlot()) {
+      CQChartsPlot *plot1 = prevPlot();
+      CQChartsPlot *plot2 = nextPlot();
+
+      while (plot1) { ++n; plot1 = plot1->prevPlot(); }
+      while (plot2) { ++n; plot2 = plot2->nextPlot(); }
+    }
+
+    //---
+
     CQChartsPlot *plot1 = prevPlot();
-    CQChartsPlot *plot2 = nextPlot();
 
-    while (plot1) { ++n; plot1 = plot1->prevPlot(); }
-    while (plot2) { ++n; plot2 = plot2->nextPlot(); }
+    while (plot1) {
+      ++i;
+
+      plot1 = plot1->prevPlot();
+    }
+
+    return CQChartsPlot::interpPaletteColor(i, n, scale);
   }
-
-  //---
-
-  CQChartsPlot *plot1 = prevPlot();
-
-  while (plot1) {
-    ++i;
-
-    plot1 = plot1->prevPlot();
+  else {
+    return CQChartsPlot::interpPaletteColor(i, n, scale);
   }
-
-  return CQChartsPlot::interpPaletteColor(i, n, scale);
 }
 
 //---
@@ -972,7 +986,7 @@ initObjs()
         if (! isFillUnder()) {
           // use vertical line object for each point pair if not fill under
           CQChartsXYBiLineObj *lineObj =
-            new CQChartsXYBiLineObj(this, bbox, x, y1, y2, xind1, j - 1, ny1 - 1);
+            new CQChartsXYBiLineObj(this, bbox, x, y1, y2, xind1, j - 1, ny1 - 1, ip, np);
 
           addPlotObject(lineObj);
         }
@@ -1273,7 +1287,7 @@ initObjs()
           CQChartsGeom::BBox bbox(x - sw/2, ys, x + sw/2, ye);
 
           CQChartsXYImpulseLineObj *impulseObj =
-            new CQChartsXYImpulseLineObj(this, bbox, x, ys, x, ye, xind1, j, ns);
+            new CQChartsXYImpulseLineObj(this, bbox, x, ys, x, ye, xind1, j, ns, ip, np);
 
           addPlotObject(impulseObj);
         }
@@ -1370,7 +1384,7 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
   ind = model->index(row, xColumn().column(), parent);
 
-  bool ok1 = modelRowReal(model, row, xColumn(), parent, x, isLogX(), row);
+  bool ok1 = modelMappedReal(model, row, xColumn(), parent, x, isLogX(), row);
 
   //---
 
@@ -1383,7 +1397,7 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
     double y1;
 
-    bool ok3 = modelRowReal(model, row, yColumn, parent, y1, isLogY(), row);
+    bool ok3 = modelMappedReal(model, row, yColumn, parent, y1, isLogY(), row);
 
     if (! ok3) {
       if (skipBad)
@@ -1402,31 +1416,6 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
     return false;
 
   return (ok1 && ok2);
-}
-
-bool
-CQChartsXYPlot::
-modelRowReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-             const QModelIndex &parent, double &r, bool log, double def) const
-{
-  if (col.isValid()) {
-    bool ok1;
-
-    r = modelReal(model, row, col, parent, ok1);
-
-    if (! ok1)
-      r = def;
-
-    if (CQChartsUtil::isNaN(r) || CQChartsUtil::isInf(r))
-      return false;
-  }
-  else
-    r = def;
-
-  if (log)
-    r = logValue(r);
-
-  return true;
 }
 
 QPointF
@@ -1781,8 +1770,10 @@ drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2)
 
 CQChartsXYBiLineObj::
 CQChartsXYBiLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x,
-                    double y1, double y2, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), x_(x), y1_(y1), y2_(y2), ind_(ind), i_(i), n_(n)
+                    double y1, double y2, const QModelIndex &ind, int iset, int nset,
+                    int i, int n) :
+ CQChartsPlotObj(plot, rect), plot_(plot), x_(x), y1_(y1), y2_(y2), ind_(ind),
+ iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -1790,6 +1781,15 @@ QString
 CQChartsXYBiLineObj::
 calcId() const
 {
+  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+
+  QString idStr;
+
+  if (columnId(ind1, idStr))
+    return idStr;
+
+  //---
+
   QString name  = plot_->valueName(-1, ind_.row());
   QString y1str = plot_->yStr(y1_);
   QString y2str = plot_->yStr(y2_);
@@ -1865,7 +1865,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   plot_->windowToPixel(x_, y2_, px, py2);
 
   if (plot_->isLines()) {
-    QPen   pen  (plot_->interpFillUnderColor(i_, n_));
+    QPen   pen  (plot_->interpFillUnderColor(iset_, nset_));
     QBrush brush(Qt::NoBrush);
 
     plot_->updateObjPenBrushState(this, pen, brush);
@@ -1877,9 +1877,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     CQChartsPlotSymbol::Type symbol      = plot_->symbolType();
     double                   s           = plot_->symbolSize();
     bool                     stroked     = plot_->isSymbolStroked();
-    QColor                   strokeColor = plot_->interpPointStrokeColor(i_, n_);
+    QColor                   strokeColor = plot_->interpPointStrokeColor(iset_, nset_);
     bool                     filled      = plot_->isSymbolFilled();
-    QColor                   fillColor   = plot_->interpPointFillColor(i_, n_);
+    QColor                   fillColor   = plot_->interpPointFillColor(iset_, nset_);
 
     QPen   pen  (strokeColor);
     QBrush brush(fillColor);
@@ -1896,10 +1896,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 //------
 
 CQChartsXYImpulseLineObj::
-CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect, double x1, double y1,
-                         double x2, double y2, const QModelIndex &ind, int iset, int nset) :
+CQChartsXYImpulseLineObj(CQChartsXYPlot *plot, const CQChartsGeom::BBox &rect,
+                         double x1, double y1, double x2, double y2, const QModelIndex &ind,
+                         int iset, int nset, int i, int n) :
  CQChartsPlotObj(plot, rect), plot_(plot), x1_(x1), y1_(y1), x2_(x2), y2_(y2), ind_(ind),
- iset_(iset), nset_(nset)
+ iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -1907,6 +1908,15 @@ QString
 CQChartsXYImpulseLineObj::
 calcId() const
 {
+  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+
+  QString idStr;
+
+  if (columnId(ind1, idStr))
+    return idStr;
+
+  //---
+
   QString name = plot_->valueName(iset_, ind_.row());
   QString xstr = plot_->xStr(x2_);
   QString ystr = plot_->yStr(y2_);
@@ -1938,7 +1948,9 @@ inside(const CQChartsGeom::Point &p) const
 
   double b = 2;
 
-  CQChartsGeom::BBox pbbox(px1 - b, py1 - b, px2 + b, py2 + b);
+  double lw = std::max(plot_->lengthPixelWidth(plot_->impulseWidth()), 2*b);
+
+  CQChartsGeom::BBox pbbox(px1 - lw/2, py1 - b, px2 + lw/2, py2 + b);
 
   CQChartsGeom::Point pp;
 
@@ -1976,20 +1988,43 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   plot_->windowToPixel(x1_, y1_, px1, py1);
   plot_->windowToPixel(x2_, y2_, px2, py2);
 
-  QColor strokeColor = plot_->interpImpulseColor(iset_, nset_);
+  QColor strokeColor;
 
-  QBrush brush(Qt::NoBrush);
-  QPen   pen  (strokeColor);
+  if (nset_ > 1)
+    strokeColor = plot_->interpImpulseColor(iset_, nset_);
+  else
+    strokeColor = plot_->interpImpulseColor(i_, n_);
+
+  strokeColor.setAlphaF(plot_->impulseAlpha());
 
   double lw = plot_->lengthPixelWidth(plot_->impulseWidth());
 
-  pen.setWidthF(lw);
+  if (lw <= 1) {
+    QBrush brush(Qt::NoBrush);
+    QPen   pen  (strokeColor);
 
-  plot_->updateObjPenBrushState(this, pen, brush);
+    pen.setWidthF(lw);
 
-  painter->setPen(pen);
+    plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
+    painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+  }
+  else {
+    QBrush brush(strokeColor);
+    QPen   pen  (Qt::NoPen);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
+    QRectF qrect(px1 - lw/2, py1, lw, py2 - py1);
+
+    CQChartsRoundedPolygon::draw(painter, qrect, 0, 0);
+  }
 }
 
 //------
@@ -2012,6 +2047,15 @@ QString
 CQChartsXYPointObj::
 calcId() const
 {
+  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+
+  QString idStr;
+
+  if (columnId(ind1, idStr))
+    return idStr;
+
+  //---
+
   QString name = plot_->valueName(iset_, ind_.row());
   QString xstr = plot_->xStr(pos_.x());
   QString ystr = plot_->yStr(pos_.y());
@@ -2639,10 +2683,14 @@ fillBrush() const
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot->fillUnderPattern()));
   }
-  else if (plot->prevPlot() || plot->nextPlot()) {
-    c = plot->interpLinesColor(i_, n_);
+  else if (plot_->isOverlay()) {
+    if (plot->prevPlot() || plot->nextPlot()) {
+      c = plot->interpLinesColor(i_, n_);
 
-    c.setAlphaF(plot->linesAlpha());
+      c.setAlphaF(plot->linesAlpha());
+    }
+    else
+      c = CQChartsKeyColorBox::fillBrush().color();
   }
   else
     c = CQChartsKeyColorBox::fillBrush().color();
@@ -2734,7 +2782,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, 0.5);
   }
 
-  lineColor.setAlphaF(plot->linesAlpha());
+  lineColor   .setAlphaF(plot->linesAlpha());
+  impulseColor.setAlphaF(plot->impulseAlpha());
 
   if (plot->isFillUnder()) {
     QColor fillColor = plot->interpFillUnderColor(i_, n_);

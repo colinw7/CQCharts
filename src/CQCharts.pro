@@ -82,6 +82,7 @@ CQChartsLoader.cpp \
 CQChartsFilterEdit.cpp \
 CQChartsModelFilter.cpp \
 CQChartsModelExprMatch.cpp \
+CQChartsModelDetails.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
@@ -136,6 +137,8 @@ CQBaseModel.cpp \
 CQColorChooser.cpp \
 CQAlphaButton.cpp \
 CQFontChooser.cpp \
+CQFontDialog.cpp \
+CQFontListView.cpp \
 CQBBox2DEdit.cpp \
 CQPoint2DEdit.cpp \
 CQAlignEdit.cpp \
@@ -235,6 +238,7 @@ HEADERS += \
 ../include/CQChartsFilterEdit.h \
 ../include/CQChartsModelFilter.h \
 ../include/CQChartsModelExprMatch.h \
+../include/CQChartsModelDetails.h \
 \
 ../include/CQChartsPlotDlg.h \
 \
@@ -289,6 +293,8 @@ CQBBox2DEdit.h \
 CQColorChooser.h \
 CQFilename.h \
 CQFontChooser.h \
+CQFontDialog.h \
+CQFontListView.h \
 ../include/CQTreeView.h \
 ../include/CQTableView.h \
 CQHeaderView.h \

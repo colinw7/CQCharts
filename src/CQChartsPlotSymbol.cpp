@@ -41,11 +41,6 @@ class CQChartsPlotSymbolList {
 
     //---
 
-    if (type == CQChartsPlotSymbol::Type::DOT) {
-      renderer->drawPoint(0, 0);
-      return;
-    }
-
     if (type == CQChartsPlotSymbol::Type::CIRCLE) {
       renderer->strokeCircle(0, 0, 1);
       return;

@@ -7,7 +7,6 @@ High
  + Annotation tip, select, ..., widget (float widget in plot)
  + Filter by Zoom
  + Key/Title should be positioned relative to plot
- + Annotation Layer
  + Use Quad Tree to limit numbe of objects draw (min rect size)
  + Position class for point position on view, plot, ... Use for annotations
  + text format, flow or split, format to aspect and then scale
@@ -121,6 +120,19 @@ Grouping
 Coloring
  + Color Column for all plots
 
+Data Analysis
+ + Hierarchical Name (type support for separator)
+ + Number of data (integer/real/time/...) columns
+ + Column value grouping to generate hierarchy
+   + distribution
+ + 1D
+   + Single data column and single value column -> bar chart, pie chart, ...
+ + Allow combine/split columns
+   + multiple name columns -> hier
+   + two columns -> point (x,y)
+ + Common strings in columns -> hier
+ + Duplicate values in column -> grouping
+
 Fit Text
  + Support bubble fit
  + Test prog
@@ -137,6 +149,7 @@ Misc
  + OrderedMap/OrderedSet
    + Quick lookup of values in insertion order
    + Option list of values for common key (in insertion order)
+ + plot stacking order
 
 Theme
  + Allow disable theme for fixed color plot
@@ -149,6 +162,11 @@ Theme
 
 Filter
  + Generic Filter support (plugin)
+
+Annotations
+ + Annotation Layer
+ + Delete all
+ + Animate
 
 Functions
  + Improved Filter
@@ -203,6 +221,9 @@ Plots General
  + current plot
  + value set manager (by name) for plot
  + common menu code
+
+Combined Plots
+ + Better builtin support for split plots
 
 Adjacency Plot
  + X Border Width
@@ -277,6 +298,7 @@ Key
  + Hierarchical Key when groups or switch group/value color/sel ?
  + Optional column for label in all plots
  + Hierarchical
+ + Compress when all values are same color (bar chart)
 
 Expander
  + Better Title Bar
@@ -307,6 +329,9 @@ Mouse Tools
    + Meaning for different plot types
    + Allow non-square zoom
    + Mouse position update in zoom mode
+
+Interactivity
+ + Callbacks
 
 Parameters
  + Description

@@ -3,6 +3,7 @@
 
 #include <QColor>
 #include <iostream>
+#include <cassert>
 
 class CQChartsPlot;
 class CQChartsView;
@@ -37,19 +38,54 @@ class CQChartsColor {
 
   bool isValid() const { return type_ != Type::NONE; }
 
+  Type type() const { return type_; }
+  void setType(Type type) { type_  = type; }
+
+  int ind() const { return ind_; }
+  void setInd(int ind) { assert(ind_ >= 0); ind_ = ind; }
+
+  const QColor &color() const { return color_; }
+
+  double value() const { return value_; }
+
   void setColor(const QColor &color) {
     type_  = Type::COLOR;
     color_ = color;
   }
 
-  void setValue(Type type, double value=0.0) {
+  void setValue(Type type, double value) {
     type_  = type;
     value_ = value;
   }
 
-  QString colorStr() const;
+  void setIndValue(Type type, int ind, double value) {
+    type_  = type;
+    ind_   = ind;
+    value_ = value;
+  }
 
+  void setScaleValue(Type type, double value, bool scale) {
+    type_  = type;
+    value_ = value;
+    scale_ = scale;
+  }
+
+  void setIndScaleValue(Type type, int ind, double value, bool scale) {
+    type_  = type;
+    ind_   = ind;
+    value_ = value;
+    scale_ = scale;
+  }
+
+  bool isScale() const { return scale_; }
+  void setScale(bool scale) { scale_ = scale; }
+
+  //---
+
+  QString colorStr() const;
   void setColorStr(const QString &str);
+
+  //---
 
   QColor interpColor(const CQChartsPlot *plot, int i, int n) const;
   QColor interpColor(const CQChartsPlot *plot, double value) const;
@@ -67,6 +103,7 @@ class CQChartsColor {
 
   friend bool operator==(const CQChartsColor &lhs, const CQChartsColor &rhs) {
     if (lhs.type_  != rhs.type_ ) return false;
+    if (lhs.ind_   != rhs.ind_  ) return false;
     if (lhs.scale_ != rhs.scale_) return false;
 
     if (lhs.type_ == Type::COLOR) {
@@ -100,10 +137,11 @@ class CQChartsColor {
   //---
 
  private:
-  Type   type_  { Type::NONE };
-  double value_ { 0.0 };
-  QColor color_ { 0, 0, 0 };
-  bool   scale_ { false };
+  Type   type_  { Type::NONE }; // color type (palette, theme or color)
+  int    ind_   { 0 };          // palette index
+  double value_ { 0.0 };        // specific palette or theme value
+  QColor color_ { 0, 0, 0 };    // specific color
+  bool   scale_ { false };      // color scaled to palette defined color values (psuedo index)
 };
 
 //---

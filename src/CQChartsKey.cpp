@@ -26,6 +26,18 @@ CQChartsKey(CQChartsPlot *plot) :
   boxData_.shape.background.visible = false;
 }
 
+QString
+CQChartsKey::
+id() const
+{
+  if      (view_)
+    return view_->id();
+  else if (plot_)
+    return plot_->id();
+  else
+    return "";
+}
+
 CQChartsKey::
 ~CQChartsKey()
 {
@@ -966,9 +978,11 @@ draw(QPainter *painter)
   //---
 
   if (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    if (plot_->view()->mode() == CQChartsView::Mode::EDIT) {
+      editHandles_.setBBox(this->bbox());
 
-    editHandles_.draw(painter);
+      editHandles_.draw(painter);
+    }
   }
 
   //---

@@ -6,6 +6,7 @@
 #include <CQChartsGeom.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
+#include <CQChartsModelVisitor.h>
 #include <CQBaseModel.h>
 #include <COSNaN.h>
 
@@ -22,66 +23,20 @@ class CQCharts;
 
 namespace CQChartsUtil {
 
-class ModelVisitor {
- public:
-  enum class State {
-    OK,
-    SKIP,
-    TERMINATE
-  };
-
- public:
-  ModelVisitor() { }
-
-  virtual ~ModelVisitor() { }
-
-  int numCols() const { return numCols_; }
-
-  int row() const { return row_; }
-
-  int numRows() const { return numRows_; }
-  void setNumRows(int nr) { numRows_ = nr; }
-
-  void init(int nc) { numCols_ = nc; row_ = 0; numRows_ = 0; }
-
-  void step() { ++row_; }
-
-  void term() { numRows_ = row_; }
-
-  //---
-
-  virtual State hierVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
-
-  virtual State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
-
-  //---
-
-  virtual State preVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
-
-  virtual State visit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
-
-  //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
-
- protected:
-  int numCols_ { 0 };
-  int row_     { 0 };
-  int numRows_ { 0 };
-};
-
 bool isHierarchical(QAbstractItemModel *model);
 
 int hierRowCount(QAbstractItemModel *model);
 
-bool visitModel(QAbstractItemModel *model, ModelVisitor &visitor);
+bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
 
 bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                ModelVisitor &visitor);
+                CQChartsModelVisitor &visitor);
 
-ModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
-                                    ModelVisitor &visitor);
+CQChartsModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
+                                            CQChartsModelVisitor &visitor);
 
-ModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
-                                  int r, ModelVisitor &visitor);
+CQChartsModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
+                                          int r, CQChartsModelVisitor &visitor);
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 
@@ -106,43 +61,6 @@ bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
 
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                       const CQChartsColumn &column, const QString &typeStr);
-
-//------
-
-class ModelColumnDetails {
- public:
-  ModelColumnDetails(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column);
-
-  virtual ~ModelColumnDetails() { }
-
-  CQCharts *charts() const { return charts_; }
-
-  QAbstractItemModel *model() const { return model_; }
-
-  const CQChartsColumn &column() const { return column_; }
-
-  QString typeName() const;
-
-  QVariant minValue() const;
-  QVariant maxValue() const;
-
-  int numRows() const;
-
-  virtual bool checkRow(const QVariant &) { return true; }
-
- private:
-  bool init();
-
- private:
-  CQCharts           *charts_      { nullptr };
-  QAbstractItemModel *model_       { nullptr };
-  CQChartsColumn      column_;
-  QString             typeName_;
-  QVariant            minValue_;
-  QVariant            maxValue_;
-  int                 numRows_;
-  bool                initialized_ { false };
-};
 
 //------
 
@@ -724,6 +642,14 @@ inline double toReal(const QVariant &var, bool &ok) {
     return getNaN();
 
   return toReal(str, ok);
+}
+
+inline bool toReal(const QVariant &var, double &r) {
+  bool ok;
+
+  r = toReal(var, ok);
+
+  return ok;
 }
 
 inline long toInt(const QVariant &var, bool &ok) {

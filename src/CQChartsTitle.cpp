@@ -21,6 +21,13 @@ CQChartsTitle(CQChartsPlot *plot) :
   boxData_.shape.border    .visible = false;
 }
 
+QString
+CQChartsTitle::
+id() const
+{
+  return plot_->id();
+}
+
 void
 CQChartsTitle::
 redraw()
@@ -362,10 +369,12 @@ draw(QPainter *painter)
   //---
 
   if (isSelected()) {
-    if (location_.location != LocationType::ABS_RECT)
-      editHandles_.setBBox(this->bbox());
+    if (plot_->view()->mode() == CQChartsView::Mode::EDIT) {
+      if (location_.location != LocationType::ABS_RECT)
+        editHandles_.setBBox(this->bbox());
 
-    editHandles_.draw(painter);
+      editHandles_.draw(painter);
+    }
   }
 
   //---

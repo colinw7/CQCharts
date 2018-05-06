@@ -1,4 +1,5 @@
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsUtil.h>
 #include <COSNaN.h>
 #include <CQStrParse.h>
 
@@ -243,14 +244,18 @@ initColumns()
   int nc = model_->columnCount();
 
   for (int column = 0; column < nc; ++column) {
-    QString name = model_->headerData(column, Qt::Horizontal).toString();
+    QVariant var = model_->headerData(column, Qt::Horizontal);
 
-    CExprVariablePtr var;
+    bool ok;
+
+    QString name = CQChartsUtil::toString(var, ok);
+
+    CExprVariablePtr evar;
 
     if (isValidVariableName(name.toStdString()))
-      var = createVariable(name.toStdString(), CExprValuePtr());
+      evar = createVariable(name.toStdString(), CExprValuePtr());
 
-    columnVars_.push_back(var);
+    columnVars_.push_back(evar);
   }
 }
 
@@ -421,8 +426,13 @@ variantToValue(CExpr *expr, const QVariant &var)
     return expr->createRealValue(var.toDouble());
   else if (var.type() == QVariant::Int)
     return expr->createIntegerValue((long) var.toInt());
-  else
-    return expr->createStringValue(var.toString().toStdString());
+  else {
+    bool ok;
+
+    QString str = CQChartsUtil::toString(var, ok);
+
+    return expr->createStringValue(str.toStdString());
+  }
 }
 
 QVariant
