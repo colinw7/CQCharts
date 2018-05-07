@@ -96,24 +96,6 @@ CQChartsLineDashEdit.cpp \
 CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
 \
-CQPropertyView.cpp \
-CQPropertyViewDelegate.cpp \
-CQPropertyViewEditor.cpp \
-CQPropertyViewFilter.cpp \
-CQPropertyViewItem.cpp \
-CQPropertyViewModel.cpp \
-CQPropertyViewTree.cpp \
-\
-CQPropertyViewAlignType.cpp \
-CQPropertyViewColorType.cpp \
-CQPropertyViewFontType.cpp \
-CQPropertyViewIntegerType.cpp \
-CQPropertyViewPointFType.cpp \
-CQPropertyViewRealType.cpp \
-CQPropertyViewRectFType.cpp \
-CQPropertyViewSizeFType.cpp \
-CQPropertyViewType.cpp \
-\
 CQChartsColor.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsPosition.cpp \
@@ -134,25 +116,7 @@ CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
 \
-CQColorChooser.cpp \
-CQAlphaButton.cpp \
-CQFontChooser.cpp \
-CQFontDialog.cpp \
-CQFontListView.cpp \
-CQBBox2DEdit.cpp \
-CQPoint2DEdit.cpp \
-CQAlignEdit.cpp \
-CQRealSpin.cpp \
-CQToolTip.cpp \
-CQPixmapCache.cpp \
-CQUtil.cpp \
-CQWidgetMenu.cpp \
-CQIconCombo.cpp \
 CQHistoryLineEdit.cpp \
-\
-CQTreeView.cpp \
-CQTableView.cpp \
-CQHeaderView.cpp \
 CQFilename.cpp \
 CQStrParse.cpp \
 \
@@ -252,27 +216,6 @@ HEADERS += \
 ../include/CQChartsRotatedText.h \
 ../include/CQChartsRoundedPolygon.h \
 \
-CQPropertyView.h \
-CQPropertyViewDelegate.h \
-CQPropertyViewEditor.h \
-CQPropertyViewFilter.h \
-CQPropertyViewItem.h \
-CQPropertyViewModel.h \
-CQPropertyViewTree.h \
-\
-CQPropertyViewAlignType.h \
-CQPropertyViewAngleType.h \
-CQPropertyViewColorType.h \
-CQPropertyViewFontType.h \
-CQPropertyViewIntegerType.h \
-CQPropertyViewLineDashType.h \
-CQPropertyViewPaletteType.h \
-CQPropertyViewPointFType.h \
-CQPropertyViewRealType.h \
-CQPropertyViewRectFType.h \
-CQPropertyViewSizeFType.h \
-CQPropertyViewType.h \
-\
 ../include/CQChartsColor.h \
 ../include/CQChartsDrawUtil.h \
 \
@@ -288,26 +231,9 @@ CQExprModelExpr.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
 \
-CQAlphaButton.h \
-CQBBox2DEdit.h \
-CQColorChooser.h \
-CQFilename.h \
-CQFontChooser.h \
-CQFontDialog.h \
-CQFontListView.h \
-../include/CQTreeView.h \
-../include/CQTableView.h \
-CQHeaderView.h \
-CQPixmapCache.h \
-CQPoint2DEdit.h \
-CQAlignEdit.h \
-CQRealSpin.h \
-../include/CQStrParse.h \
-CQToolTip.h \
-../include/CQUtil.h \
-CQWidgetMenu.h \
-CQIconCombo.h \
 ../include/CQHistoryLineEdit.h \
+CQFilename.h \
+../include/CQStrParse.h \
 \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \
@@ -324,8 +250,13 @@ LIB_DIR     = ../lib
 INCLUDEPATH += \
 . \
 ../include \
+../../CQPropertyView/include \
+../../CQUtil/include \
 ../../CExpr/include \
+../../CImageLib/include \
+../../CFont/include \
 ../../CReadLine/include \
+../../CFile/include \
 ../../CMath/include \
 ../../CStrUtil/include \
 ../../CUtil/include \
