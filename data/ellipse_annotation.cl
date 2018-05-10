@@ -1,7 +1,7 @@
-load -csv data/arrowstyle.csv
+load_model -csv data/arrowstyle.csv
 modelId = _rc
 
-add_plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -100 -xmax 100 -ymin -100 -ymax 100
+create_plot -type xy -columns "x=0,y=1" -title "Annotations" -xmin -100 -xmax 100 -ymin -100 -ymax 100
 plotId = _rc
 
 ellipse_shape -xc 0 -yc -60 -rx 50 -ry 50 \

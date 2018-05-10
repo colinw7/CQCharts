@@ -27,12 +27,13 @@ proc plotYear(year)
   endif
 
   filter = "sex:1,year:%d" % year
-  title  = "Male %d" % year
 
-  load -csv data/population.csv -first_line_header -filter $filter -title $title
+  load_model -csv data/population.csv -first_line_header -filter $filter
   model1Id = _rc
 
-  add_plot -type barchart -columns "name=1,value=3" -title $title
+  title = "Male %d" % year
+
+  create_plot -type barchart -columns "name=1,value=3" -title $title
   _plot1Id = _rc
 
   set_property -view $_viewId -plot $_plot1Id -name fill.color -value "#4444aa"
@@ -40,12 +41,13 @@ proc plotYear(year)
   set_property -view $_viewId -plot $_plot1Id -name key.visible -value 0
 
   filter = "sex:2,year:%d" % year
-  title  = "Female %d" % year
 
-  load -csv data/population.csv -first_line_header -filter $filter -title $title
+  load_model -csv data/population.csv -first_line_header -filter $filter
   model2Id = _rc
 
-  add_plot -type barchart -columns "name=1,value=3" -title $title
+  title = "Female %d" % year
+
+  create_plot -type barchart -columns "name=1,value=3" -title $title
   _plot2Id = _rc
 
   set_property -view $_viewId -plot $_plot2Id -name fill.color -value "#aa4444"
@@ -53,13 +55,13 @@ proc plotYear(year)
   set_property -view $_viewId -plot $_plot2Id -name key.visible -value 0
 
   if     (_place == "sidebyside")
-    place -horizontal $_plot1Id $_plot2Id
+    place_plots -horizontal $_plot1Id $_plot2Id
   elseif (_place == "overlay")
-    group -overlay $_plot1Id $_plot2Id
+    group_plots -overlay $_plot1Id $_plot2Id
   endif
 endproc
 
-load -csv data/population.csv -first_line_header
+load_model -csv data/population.csv -first_line_header
 modelId = _rc
 print modelId
 

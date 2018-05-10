@@ -1,6 +1,6 @@
-load -expr -num_rows 100
+load_model -expr -num_rows 100
 
-process -add "map(0.5,40)"
-process -add "1.2*@1**2.7"
+process_model -add "map(0.5,40)"
+process_model -add "1.2*@1**2.7"
 
-add_plot -type xy -columns "x=1,y=2" -ylog
+create_plot -type xy -columns "x=1,y=2" -ylog

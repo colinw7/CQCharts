@@ -118,7 +118,6 @@ CQBaseModel.cpp \
 \
 CQHistoryLineEdit.cpp \
 CQFilename.cpp \
-CQStrParse.cpp \
 \
 CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
@@ -233,7 +232,6 @@ CQExprModelExpr.h \
 \
 ../include/CQHistoryLineEdit.h \
 CQFilename.h \
-../include/CQStrParse.h \
 \
 ../include/CQChartsDelaunay.h \
 ../include/CQChartsDendrogram.h \

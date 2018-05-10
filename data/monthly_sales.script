@@ -1,8 +1,8 @@
 # Bar chart key click should hide all
 
-load -tsv data/monthly_sales.tsv -comment_header
+load_model -tsv data/monthly_sales.tsv -comment_header
 
-add_plot -type barchart -columns "category=0,value=1,label=4" -column_type "1#real:format=$%gK,format_scale=0.001;2#real:format=$%gK,format_scale=0.001;3#real:format=$%gK,format_scale=0.001" -title "Actual Sales" -ymax 80000
+create_plot -type barchart -columns "category=0,value=1,label=4" -column_type "1#real:format=$%gK,format_scale=0.001;2#real:format=$%gK,format_scale=0.001;3#real:format=$%gK,format_scale=0.001" -title "Actual Sales" -ymax 80000
 
 @let plot1 = _rc
 
@@ -48,7 +48,7 @@ set_property -view view1 -plot "${plot1}" -name key.border.visible         -valu
 set_property -view view1 -plot "${plot1}" -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
 #set_property -view view1 -plot "${plot1}" -name title.text.color           -value "theme:1"
 
-add_plot -type xy -columns "x=0,y=2" -title "Expected Sales"
+create_plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 
 @let plot2 = _rc
 
@@ -61,7 +61,7 @@ set_property -view view1 -plot "${plot2}" -name lines.width           -value 3px
 set_property -view view1 -plot "${plot2}" -name lines.rounded         -value 1
 set_property -view view1 -plot "${plot2}" -name lines.color           -value "palette:1:s"
 
-add_plot -type xy -columns "x=0,y=3"-title "Profit"
+create_plot -type xy -columns "x=0,y=3"-title "Profit"
 
 @let plot3 = _rc
 

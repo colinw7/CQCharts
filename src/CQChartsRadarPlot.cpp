@@ -279,6 +279,7 @@ addProperties()
   addProperty("", this, "angleStart" );
   addProperty("", this, "angleExtent");
 
+  addProperty("grid", this, "grid"     , "visible");
   addProperty("grid", this, "gridColor", "color");
   addProperty("grid", this, "gridAlpha", "alpha");
 
@@ -556,38 +557,39 @@ drawBackground(QPainter *painter)
   //---
 
   // draw grid spokes
-  QColor gridColor1 = interpGridColor(0, 1);
+  if (isGrid()) {
+    QColor gridColor1 = interpGridColor(0, 1);
 
-  gridColor1.setAlphaF(gridAlpha());
+    gridColor1.setAlphaF(gridAlpha());
 
-  QPen gpen1(gridColor1);
+    QPen gpen1(gridColor1);
 
-  painter->setPen(gpen1);
+    painter->setPen(gpen1);
 
-  double px1, py1;
+    double px1, py1;
 
-  windowToPixel(0.0, 0.0, px1, py1);
+    windowToPixel(0.0, 0.0, px1, py1);
 
-  double a = angleStart();
+    double a = angleStart();
 
-  for (int iv = 0; iv < nv; ++iv) {
-    double ra = CQChartsUtil::Deg2Rad(a);
+    for (int iv = 0; iv < nv; ++iv) {
+      double ra = CQChartsUtil::Deg2Rad(a);
 
-    double x = valueRadius_*cos(ra);
-    double y = valueRadius_*sin(ra);
+      double x = valueRadius_*cos(ra);
+      double y = valueRadius_*sin(ra);
 
-    double px2, py2;
+      double px2, py2;
 
-    windowToPixel(x, y, px2, py2);
+      windowToPixel(x, y, px2, py2);
 
-    painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+      painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
 
-    a -= da;
+      a -= da;
+    }
   }
 
   //---
 
-  // draw grid polygons
   QColor gridColor2 = interpGridColor(0, 1);
 
   QPen gpen2(gridColor2);
@@ -657,9 +659,15 @@ drawBackground(QPainter *painter)
 
     poly << poly[0];
 
-    painter->setPen(gpen2);
+    //---
 
-    painter->drawPolygon(poly);
+    // draw grid polygon
+
+    if (isGrid()) {
+      painter->setPen(gpen2);
+
+      painter->drawPolygon(poly);
+    }
   }
 }
 

@@ -1,10 +1,10 @@
-load -csv data/split_bar.csv -first_line_header
+load_model -csv data/split_bar.csv -first_line_header
 modelInd = _rc
 
-add_plot -type bar -columns "category=0,value=1"
+create_plot -type bar -columns "category=0,value=1"
 plotInd1 = _rc
 
-add_plot -type bar -columns "category=0,value=2"
+create_plot -type bar -columns "category=0,value=2"
 plotInd2 = _rc
 
 viewInd = "view1"

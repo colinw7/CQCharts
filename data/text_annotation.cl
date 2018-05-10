@@ -8,10 +8,10 @@ proc annotationSlot(viewId, plotId, id)
   print _rc
 endproc
 
-load -csv data/arrowstyle.csv
+load_model -csv data/arrowstyle.csv
 modelId = _rc
 
-add_plot -type xy -columns "x=0,y=1" -title "This plot has a very long title which we might want to format on multiple lines"
+create_plot -type xy -columns "x=0,y=1" -title "This plot has a very long title which we might want to format on multiple lines"
 plotId = _rc
 
 text_shape -id one -x 0 -y -60 -text "One"

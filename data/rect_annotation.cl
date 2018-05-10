@@ -1,7 +1,7 @@
-load -csv data/arrowstyle.csv
+load_model -csv data/arrowstyle.csv
 modelId = _rc
 
-add_plot -type xy -columns "x=0,y=1" -title "Annotations"
+create_plot -type xy -columns "x=0,y=1" -title "Annotations"
 plotId = _rc
 
 rect_shape -x1 0 -y1 -60 -x2 100 -y2 -40 \

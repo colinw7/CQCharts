@@ -1,8 +1,8 @@
-load -expr -num_rows 100000
+load_model -expr -num_rows 100000
 
 @let tableId = _rc
 
-process "+rand()"
+process_model "+rand()"
 
 #plot -type xy -columns "category=0,value=1"
 

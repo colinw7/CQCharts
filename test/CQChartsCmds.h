@@ -62,13 +62,12 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
-  using Args       = std::vector<QString>;
-  using OptReal    = boost::optional<double>;
-  using ModelP     = QSharedPointer<QAbstractItemModel>;
-  using Vars       = std::vector<QString>;
-  using ViewP      = QPointer<CQChartsView>;
-  using ModelDatas = std::vector<CQChartsModelData *>;
-  using Plots      = std::vector<CQChartsPlot *>;
+  using Args    = std::vector<QString>;
+  using OptReal = boost::optional<double>;
+  using ModelP  = QSharedPointer<QAbstractItemModel>;
+  using Vars    = std::vector<QString>;
+  using ViewP   = QPointer<CQChartsView>;
+  using Plots   = std::vector<CQChartsPlot *>;
 
  public:
   CQChartsCmds(CQCharts *charts);
@@ -89,8 +88,6 @@ class CQChartsCmds : public QObject {
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   //---
-
-  void processExpression(const QString &expr);
 
   void processAddExpression(ModelP &model, const QString &expr);
 
@@ -119,9 +116,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  ModelDatas &modelDatas() { return modelDatas_; }
-
-  CQChartsModelData *addModelData(ModelP &model, bool hierarchical);
+  int addModelData(ModelP &model, bool hierarchical);
 
   CQChartsModelData *getModelDataOrCurrent(int ind);
 
@@ -150,11 +145,12 @@ class CQChartsCmds : public QObject {
 
  private:
 #ifdef CQ_CHARTS_CEIL
-  static void loadLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void processLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void sortLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void groupLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void placeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void loadModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void processModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void sortModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+
+  static void groupPlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void placePlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
   static void setModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void getModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
@@ -162,7 +158,7 @@ class CQChartsCmds : public QObject {
   static void setViewLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void getViewLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
-  static void addPlotLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void createPlotLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void removePlotLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
   static void setPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
@@ -185,11 +181,12 @@ class CQChartsCmds : public QObject {
   static void connectLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 #endif
 
-  bool loadCmd   (const Args &args);
-  void processCmd(const Args &args);
-  void sortCmd   (const Args &args);
-  void groupCmd  (const Args &args);
-  void placeCmd  (const Args &args);
+  bool loadModelCmd   (const Args &args);
+  void processModelCmd(const Args &args);
+  void sortModelCmd   (const Args &args);
+
+  void groupPlotsCmd(const Args &args);
+  void placePlotsCmd(const Args &args);
 
   void setModelCmd(const Args &args);
   void getModelCmd(const Args &args);
@@ -197,7 +194,7 @@ class CQChartsCmds : public QObject {
   void setViewCmd(const Args &args);
   void getViewCmd(const Args &args);
 
-  void addPlotCmd   (const Args &args);
+  void createPlotCmd(const Args &args);
   void removePlotCmd(const Args &args);
 
   void setPropertyCmd(const Args &args);
@@ -288,15 +285,14 @@ class CQChartsCmds : public QObject {
   void modelDataAdded(int ind);
 
  private:
-  CQCharts*  charts_       { nullptr };
-  CExpr*     expr_         { nullptr };
+  CQCharts* charts_       { nullptr };
+  CExpr*    expr_         { nullptr };
 #ifdef CQ_CHARTS_CEIL
-  bool       ceil_         { false };
+  bool      ceil_         { false };
 #endif
-  ViewP      view_;
-  ModelDatas modelDatas_;
-  int        currentInd_   { -1 };
-  bool       continueFlag_ { false };
+  ViewP     view_;
+  int       currentInd_   { -1 };
+  bool      continueFlag_ { false };
 };
 
 #endif

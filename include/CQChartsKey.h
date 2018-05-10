@@ -23,6 +23,7 @@ class CQChartsKey : public CQChartsBoxObj {
 
   Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal )
   Q_PROPERTY(bool          autoHide   READ isAutoHide   WRITE setAutoHide   )
+  Q_PROPERTY(bool          clipped    READ isClipped    WRITE setClipped    )
   Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr)
   Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont   )
   Q_PROPERTY(CQChartsColor textColor  READ textColor    WRITE setTextColor  )
@@ -104,6 +105,11 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
+  bool isClipped() const { return clipped_; }
+  void setClipped(bool b) { clipped_ = b; redraw(); }
+
+  //---
+
   // text
 
   const QFont &textFont() const { return textData_.font; }
@@ -125,6 +131,8 @@ class CQChartsKey : public CQChartsBoxObj {
 
   virtual void updateKeyItems() { }
 
+  virtual void redraw() = 0;
+
   //---
 
   virtual void draw(QPainter *painter);
@@ -133,6 +141,7 @@ class CQChartsKey : public CQChartsBoxObj {
   bool             horizontal_ { false };                   // is layed out horizontallly
   LocationType     location_   { LocationType::TOP_RIGHT }; // key placement
   bool             autoHide_   { true };                    // auto hide if too big
+  bool             clipped_    { true };                    // clipped to plot
   CQChartsTextData textData_;                               // text data
 };
 
@@ -157,6 +166,8 @@ class CQChartsViewKey : public CQChartsKey {
   bool isInside(const CQChartsGeom::Point &w) const;
 
   void selectPress(const CQChartsGeom::Point &w);
+
+  void redraw();
 
  private:
   void doLayout();

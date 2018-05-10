@@ -63,6 +63,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
   Q_PROPERTY(double         angleStart   READ angleStart      WRITE setAngleStart     )
   Q_PROPERTY(double         angleExtent  READ angleExtent     WRITE setAngleExtent    )
+  Q_PROPERTY(bool           grid         READ isGrid          WRITE setGrid           )
   Q_PROPERTY(CQChartsColor  gridColor    READ gridColor       WRITE setGridColor      )
   Q_PROPERTY(double         gridAlpha    READ gridAlpha       WRITE setGridAlpha      )
   Q_PROPERTY(bool           border       READ isBorder        WRITE setBorder         )
@@ -144,6 +145,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
   void setAngleExtent(double r) { angleExtent_ = r; updateRangeAndObjs(); }
 
   //----
+
+  bool isGrid() const { return gridData_.visible; }
+  void setGrid(bool b) { gridData_.visible = b; update(); }
 
   const CQChartsColor &gridColor() const { return gridData_.color; }
   void setGridColor(const CQChartsColor &c) { gridData_.color = c; update(); }

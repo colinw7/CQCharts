@@ -872,16 +872,6 @@ draw(QPainter *painter)
       ym = view_->pixelToWindowHeight(margin ());
     }
 
-    QPointF p;
-
-    if (plot_)
-      p = plot_->positionToPlot(position_);
-    else
-      p = view_->positionToView(position_);
-
-    double x = p.x() - xp - xm; // bottom
-    double y = p.y() - yp - ym; // top
-
     double w, h;
 
     if (plot_) {
@@ -891,6 +881,34 @@ draw(QPainter *painter)
     else {
       w = view_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
       h = view_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+    }
+
+    QPointF p;
+
+    if (plot_)
+      p = plot_->positionToPlot(position_);
+    else
+      p = view_->positionToView(position_);
+
+    double x = p.x();
+    double y = p.y();
+
+    if      (textAlign() & Qt::AlignLeft) {
+    }
+    else if (textAlign() & Qt::AlignHCenter) {
+      x -= w/2.0;
+    }
+    else if (textAlign() & Qt::AlignRight) {
+      x -= w - 2*xp - 2*xm;
+    }
+
+    if      (textAlign() & Qt::AlignTop) {
+      y -= h - 2*yp - 2*ym;
+    }
+    else if (textAlign() & Qt::AlignVCenter) {
+      y -= h/2;
+    }
+    else if (textAlign() & Qt::AlignBottom) {
     }
 
     bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);

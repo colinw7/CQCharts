@@ -10,7 +10,7 @@ set_property -name scroll.numPages -value 15
   @let x1 = x + w
   @let y1 = y + h
 
-  load -csv data/population.csv -first_line_header -filter "sex:1,year:${year}" -title "Male ${year}"
+  load_model -csv data/population.csv -first_line_header -filter "sex:1,year:${year}" -title "Male ${year}"
 
   @let tableId = _rc
 
@@ -24,11 +24,11 @@ set_property -name scroll.numPages -value 15
     @continue
   }
 
-  process "+key(@0,@0-@1)"
+  process_model "+key(@0,@0-@1)"
 
-  sort 4
+  sort_model 4
 
-  add_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
+  create_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
   @let plot1 = _rc
 
@@ -36,13 +36,13 @@ set_property -name scroll.numPages -value 15
   set_property -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
   set_property -view view1 -plot "${plot1}" -name key.visible -value 0
 
-  load -csv data/population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
+  load_model -csv data/population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
 
-  process "+key(@0,@0-@1)"
+  process_model "+key(@0,@0-@1)"
 
-  sort 4
+  sort_model 4
 
-  add_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
+  create_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
   @let plot2 = _rc
 

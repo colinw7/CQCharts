@@ -42,6 +42,9 @@ CQCharts()
 CQCharts::
 ~CQCharts()
 {
+  for (auto &modelData : modelDatas_)
+    delete modelData;
+
   delete plotTypeMgr_;
   delete columnTypeMgr_;
 }
@@ -109,6 +112,34 @@ CQCharts::
 getPlotTypeNames(QStringList &names, QStringList &descs) const
 {
   plotTypeMgr_->getTypeNames(names, descs);
+}
+
+int
+CQCharts::
+addModel(ModelP &model, bool hierarchical)
+{
+  int ind = modelDatas_.size() + 1;
+
+  CQChartsModelData *modelData = new CQChartsModelData;
+
+  modelData->ind          = ind;
+  modelData->model        = model;
+  modelData->hierarchical = hierarchical;
+
+  modelDatas_.push_back(modelData);
+
+  return modelData->ind;
+}
+
+CQChartsModelData *
+CQCharts::
+getModelData(int ind) const
+{
+  for (auto &modelData : modelDatas_)
+    if (modelData->ind == ind)
+      return modelData;
+
+  return nullptr;
 }
 
 CQChartsView *

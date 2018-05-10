@@ -3644,6 +3644,86 @@ drawColorBox(QPainter *painter, const CQChartsGeom::BBox &bbox, const QColor &c)
 
 void
 CQChartsPlot::
+drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
+             double ri, double ro, double a1, double a2) const
+{
+  CQChartsGeom::BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
+
+  CQChartsGeom::BBox pbbox;
+
+  windowToPixel(bbox, pbbox);
+
+  //---
+
+  QPainterPath path;
+
+  if (! CQChartsUtil::isZero(ri)) {
+    CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
+
+    CQChartsGeom::BBox pbbox1;
+
+    windowToPixel(bbox1, pbbox1);
+
+    //---
+
+    double ra1 = CQChartsUtil::Deg2Rad(a1);
+    double ra2 = CQChartsUtil::Deg2Rad(a2);
+
+    double x1 = c.x + ri*cos(ra1);
+    double y1 = c.y + ri*sin(ra1);
+    double x2 = c.x + ro*cos(ra1);
+    double y2 = c.y + ro*sin(ra1);
+
+    double x3 = c.x + ri*cos(ra2);
+    double y3 = c.y + ri*sin(ra2);
+    double x4 = c.x + ro*cos(ra2);
+    double y4 = c.y + ro*sin(ra2);
+
+    double px1, py1, px2, py2, px3, py3, px4, py4;
+
+    windowToPixel(x1, y1, px1, py1);
+    windowToPixel(x2, y2, px2, py2);
+    windowToPixel(x3, y3, px3, py3);
+    windowToPixel(x4, y4, px4, py4);
+
+    path.moveTo(px1, py1);
+    path.lineTo(px2, py2);
+
+    path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
+
+    path.lineTo(px4, py4);
+    path.lineTo(px3, py3);
+
+    path.arcTo(CQChartsUtil::toQRect(pbbox1), a2, a1 - a2);
+  }
+  else {
+    CQChartsGeom::Point pc;
+
+    windowToPixel(c, pc);
+
+    //---
+
+    double a21 = a2 - a1;
+
+    if (std::abs(a21) < 360.0) {
+      path.moveTo(QPointF(pc.x, pc.y));
+
+      path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
+    }
+    else {
+      path.addEllipse(CQChartsUtil::toQRect(pbbox));
+    }
+  }
+
+  path.closeSubpath();
+
+  painter->drawPath(path);
+}
+
+//------
+
+void
+CQChartsPlot::
 hiddenChanged()
 {
   updateObjs();

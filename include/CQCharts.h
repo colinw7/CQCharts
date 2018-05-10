@@ -1,7 +1,10 @@
 #ifndef CQCharts_H
 #define CQCharts_H
 
+#include <CQChartsModelData.h>
 #include <CQBaseModel.h>
+
+#include <QObject>
 #include <QAbstractItemModel>
 
 class CQChartsPlotTypeMgr;
@@ -9,7 +12,12 @@ class CQChartsPlotType;
 class CQChartsColumnTypeMgr;
 class CQChartsView;
 
-class CQCharts {
+class CQCharts : public QObject {
+  Q_OBJECT
+
+ public:
+  using ModelP = QSharedPointer<QAbstractItemModel>;
+
  public:
   CQCharts();
 
@@ -25,6 +33,14 @@ class CQCharts {
 
   CQChartsColumnTypeMgr *columnTypeMgr() const { return columnTypeMgr_; }
 
+  //---
+
+  int addModel(ModelP &model, bool hierarchical=false);
+
+  CQChartsModelData *getModelData(int ind) const;
+
+  //---
+
   CQChartsView *addView(const QString &id="");
 
   virtual CQChartsView *createView();
@@ -33,13 +49,17 @@ class CQCharts {
 
   void getViewIds(QStringList &names) const;
 
+  //---
+
   void errorMsg(const QString &msg);
 
  private:
-  using Views = std::map<QString,CQChartsView*>;
+  using Views      = std::map<QString,CQChartsView*>;
+  using ModelDatas = std::vector<CQChartsModelData*>;
 
   CQChartsPlotTypeMgr*   plotTypeMgr_   { nullptr };
   CQChartsColumnTypeMgr* columnTypeMgr_ { nullptr };
+  ModelDatas             modelDatas_;
   Views                  views_;
 };
 

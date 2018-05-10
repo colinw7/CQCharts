@@ -1,7 +1,7 @@
-load -csv data/arrowstyle.csv
+load_model -csv data/arrowstyle.csv
 modelId = _rc
 
-add_plot -type xy -columns "x=0,y=1" -title "Annotations"
+create_plot -type xy -columns "x=0,y=1" -title "Annotations"
 plotId = _rc
 
 point_shape -x 100 -y -60 -type dot       -size 16

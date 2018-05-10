@@ -28,6 +28,7 @@ class CQChartsPieGroupObj;
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
+  using OptReal  = boost::optional<double>;
   using OptColor = boost::optional<CQChartsColor>;
 
  public:
@@ -49,15 +50,22 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double outerRadius() const { return ro_; }
   void setOuterRadius(double r) { ro_ = r; }
 
+  double valueRadius() const { return rv_; }
+  void setValueRadius(double r) { rv_ = r; }
+
   const QString &label() const { return label_; }
   void setLabel(const QString &s) { label_ = s; }
 
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
+  const OptReal &radius() const { return radius_; }
+  void setRadius(const OptReal &r) { radius_ = r; }
+
   const QString &keyLabel() const { return keyLabel_; }
   void setKeyLabel(const QString &s) { keyLabel_ = s; }
 
+  const OptColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
 
   CQChartsPieGroupObj *groupObj() const { return groupObj_; }
@@ -87,8 +95,10 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double               angle2_   { 360 };     // wedge end angle
   double               ri_       { 0.0 };     // inner radius
   double               ro_       { 0.0 };     // outer radius
+  double               rv_       { 0.0 };     // value radius
   QString              label_    { "" };      // label
   double               value_    { 0 };       // value
+  OptReal              radius_   { 0 };       // radius
   QString              keyLabel_ { "" };      // key label
   OptColor             color_;                // color
   CQChartsPieGroupObj* groupObj_ { nullptr }; // parent group object
@@ -107,8 +117,14 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
-  double total() const { return total_; }
-  void setTotal(double r) { total_ = r; }
+  double dataTotal() const { return dataTotal_; }
+  void setDataTotal(double r) { dataTotal_ = r; }
+
+  double radiusMax() const { return radiusMax_; }
+  void setRadiusMax(double r) { radiusMax_ = r; }
+
+  bool isRadiusScaled() const { return radiusScaled_; }
+  void setRadiusScaled(bool b) { radiusScaled_ = b; }
 
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r) { innerRadius_ = r; }
@@ -129,12 +145,14 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   void draw(QPainter *, const CQChartsPlot::Layer &) override { }
 
  private:
-  CQChartsPiePlot* plot_        { nullptr }; // parent plot
-  QString          name_;                    // group name
-  double           total_       { 0.0 };     // value total
-  double           innerRadius_ { 0.0 };     // inner radius
-  double           outerRadius_ { 0.0 };     // outer radius
-  PieObjs          objs_;                    // objects
+  CQChartsPiePlot* plot_         { nullptr }; // parent plot
+  QString          name_;                     // group name
+  double           dataTotal_    { 0.0 };     // value data total
+  double           radiusMax_    { 0.0 };     // radius data max
+  bool             radiusScaled_ { false };   // radius scaled
+  double           innerRadius_  { 0.0 };     // inner radius
+  double           outerRadius_  { 0.0 };     // outer radius
+  PieObjs          objs_;                     // objects
 };
 
 //---
@@ -193,11 +211,15 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn labelColumn     READ labelColumn       WRITE setLabelColumn    )
   Q_PROPERTY(CQChartsColumn dataColumn      READ dataColumn        WRITE setDataColumn     )
   Q_PROPERTY(QString        dataColumns     READ dataColumnsStr    WRITE setDataColumnsStr )
+  Q_PROPERTY(CQChartsColumn radiusColumn    READ radiusColumn      WRITE setRadiusColumn   )
   Q_PROPERTY(CQChartsColumn groupColumn     READ groupColumn       WRITE setGroupColumn    )
   Q_PROPERTY(bool           rowGrouping     READ isRowGrouping     WRITE setRowGrouping    )
   Q_PROPERTY(CQChartsColumn keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
   Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
   Q_PROPERTY(bool           donut           READ isDonut           WRITE setDonut          )
+  Q_PROPERTY(bool           grid            READ isGrid            WRITE setGrid           )
+  Q_PROPERTY(CQChartsColor  gridColor       READ gridColor         WRITE setGridColor      )
+  Q_PROPERTY(double         gridAlpha       READ gridAlpha         WRITE setGridAlpha      )
   Q_PROPERTY(double         innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double         outerRadius     READ outerRadius       WRITE setOuterRadius    )
   Q_PROPERTY(double         labelRadius     READ labelRadius       WRITE setLabelRadius    )
@@ -238,6 +260,9 @@ class CQChartsPiePlot : public CQChartsPlot {
     return dataColumns_[i];
   }
 
+  const CQChartsColumn &radiusColumn() const { return radiusColumn_; }
+  void setRadiusColumn(const CQChartsColumn &c);
+
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
   void setGroupColumn(const CQChartsColumn &c);
 
@@ -248,6 +273,21 @@ class CQChartsPiePlot : public CQChartsPlot {
 
   bool isDonut() const { return donut_; }
   void setDonut(bool b) { donut_ = b; updateRangeAndObjs(); }
+
+  //---
+
+  bool isGrid() const { return gridData_.visible; }
+  void setGrid(bool b) { gridData_.visible = b; update(); }
+
+  const CQChartsColor &gridColor() const { return gridData_.color; }
+  void setGridColor(const CQChartsColor &c) { gridData_.color = c; update(); }
+
+  QColor interpGridColor(int i, int n) { return gridColor().interpColor(this, i, n); }
+
+  double gridAlpha() const { return gridData_.alpha; }
+  void setGridAlpha(double r) { gridData_.alpha = r; update(); }
+
+  //---
 
   double innerRadius() const { return innerRadius_; }
   void setInnerRadius(double r) { innerRadius_ = r; updateRangeAndObjs(); }
@@ -335,7 +375,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   void addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
                              const CQChartsColumn &column);
 
-  bool getDataColumnValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+  bool getColumnSizeValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                           const QModelIndex &parent, double &value) const;
 
  private:
@@ -344,9 +384,11 @@ class CQChartsPiePlot : public CQChartsPlot {
      name(name) {
     }
 
-    QString              name;                 // name
-    double               total    { 0.0 };     // total
-    CQChartsPieGroupObj *groupObj { nullptr }; // associated group obj
+    QString              name;                     // name
+    double               dataTotal    { 0.0 };     // data column value total
+    double               radiusMax    { 0.0 };     // radius column value max
+    bool                 radiusScaled { false };   // has radius column value max
+    CQChartsPieGroupObj *groupObj     { nullptr }; // associated group obj
   };
 
   using GroupInd   = std::map<QString,int>;
@@ -354,10 +396,12 @@ class CQChartsPiePlot : public CQChartsPlot {
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
   CQChartsColumn       labelColumn_     { 0 };       // label column
-  Columns              dataColumns_;                 // data columns
+  Columns              dataColumns_;                 // data value columns
+  CQChartsColumn       radiusColumn_;                // radius value column
   CQChartsColumn       groupColumn_;                 // group column
   CQChartsColumn       keyLabelColumn_;              // key label column
   bool                 donut_           { false };   // is donut
+  CQChartsLineData     gridData_;                    // grid line data
   double               innerRadius_     { 0.6 };     // relative inner donut radius
   double               outerRadius_     { 0.9 };     // relative outer donut radius
   double               labelRadius_     { 1.1 };     // label radus

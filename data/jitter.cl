@@ -12,8 +12,8 @@ endfor
 
 i = int(x)
 
-load -var i -var y
+load_model -var i -var y
 modelId = _rc
 
-add_plot -type scatter -columns "x=0,y=1"
+create_plot -type scatter -columns "x=0,y=1"
 plotInd = _rc

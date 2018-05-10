@@ -403,7 +403,6 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   if (currentPlotInd_ < 0)
     setCurrentPlotInd(0);
-
 }
 
 void

@@ -131,14 +131,14 @@ void
 CQChartsViewKey::
 updatePosition()
 {
-  view_->update();
+  redraw();
 }
 
 void
 CQChartsViewKey::
 updateLayout()
 {
-  view_->update();
+  redraw();
 }
 
 void
@@ -201,6 +201,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "location"  );
   model->addProperty(path, this, "horizontal");
   model->addProperty(path, this, "autoHide"  );
+  model->addProperty(path, this, "clipped"   );
 
   CQChartsBoxObj::addProperties(model, path);
 
@@ -340,6 +341,13 @@ selectPress(const CQChartsGeom::Point &w)
     }
   }
 
+  redraw();
+}
+
+void
+CQChartsViewKey::
+redraw()
+{
   view_->update();
 }
 
@@ -464,7 +472,8 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"    );
   model->addProperty(path, this, "location"   );
-  model->addProperty(path, this, "autoHide"  );
+  model->addProperty(path, this, "autoHide"   );
+  model->addProperty(path, this, "clipped"    );
   model->addProperty(path, this, "absPosition");
   model->addProperty(path, this, "insideX"    );
   model->addProperty(path, this, "insideY"    );
@@ -728,7 +737,7 @@ selectMove(const CQChartsGeom::Point &w)
     }
 
     if (changed)
-      plot_->update();
+      redraw();
 
     if (handled)
       return true;
@@ -737,7 +746,7 @@ selectMove(const CQChartsGeom::Point &w)
   changed = setInside(nullptr);
 
   if (changed)
-    plot_->update();
+    redraw();
 
   return false;
 }
@@ -930,7 +939,8 @@ draw(QPainter *painter)
     }
   }
 
-  painter->setClipRect(clipRect);
+  if (isClipped())
+    painter->setClipRect(clipRect);
 
   //---
 

@@ -1,9 +1,9 @@
-load -csv data/sea_level.csv -first_line_header
+load_model -csv data/sea_level.csv -first_line_header
 modelId = _rc
 
 set_model -ind $modelId -column_type "0#real:format=%gM"
 
-add_plot -type bar -columns "category=1,value=0,color=2,label=3" -ymax 8000
+create_plot -type bar -columns "category=1,value=0,color=2,label=3" -ymax 8000
 plotId = _rc
 
 set_property -view view1 -plot $plotId -name dataLabel.visible -value 1

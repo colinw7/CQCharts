@@ -18,6 +18,7 @@ addParameters()
   // name, desc, propName, attributes, default
   addColumnParameter ("label"      , "Label"       , "labelColumn"   , "", 0);
   addColumnsParameter("data"       , "Data"        , "dataColumns"   , "", "1");
+  addColumnsParameter("width"      , "Width"       , "radiusColumn"  , "optional");
   addColumnParameter ("group"      , "Group"       , "groupColumn"   , "optional");
   addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   , "optional");
   addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn", "optional");
@@ -42,6 +43,8 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
   dataColumns_.push_back(CQChartsColumn(1));
 
   (void) addColorSet("color");
+
+  gridData_.color = CQChartsColor(CQChartsColor::Type::THEME_VALUE, 0.5);
 
   textBox_ = new CQChartsPieTextObj(this);
 
@@ -129,6 +132,13 @@ setDataColumnsStr(const QString &s)
 
 void
 CQChartsPiePlot::
+setRadiusColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(radiusColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
 setGroupColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -162,6 +172,7 @@ addProperties()
   addProperty("columns", this, "labelColumn"   , "label"      );
   addProperty("columns", this, "dataColumn"    , "data"       );
   addProperty("columns", this, "dataColumns"   , "dataSet"    );
+  addProperty("columns", this, "radiusColumn"  , "radius"     );
   addProperty("columns", this, "groupColumn"   , "group"      );
   addProperty("columns", this, "rowGrouping"   , "rowGrouping");
   addProperty("columns", this, "keyLabelColumn", "keyLabel"   );
@@ -172,6 +183,10 @@ addProperties()
   addProperty("", this, "innerRadius");
   addProperty("", this, "startAngle" );
   addProperty("", this, "angleExtent");
+
+  addProperty("grid", this, "grid"     , "visible");
+  addProperty("grid", this, "gridColor", "color");
+  addProperty("grid", this, "gridAlpha", "alpha");
 
   addProperty("explode", this, "explodeSelected", "selected");
   addProperty("explode", this, "explodeRadius"  , "radius"  );
@@ -330,7 +345,10 @@ initObjs()
 
     groupObj->setColorInd(groupInd);
 
-    groupObj->setTotal(groupData.total);
+    groupObj->setDataTotal(groupData.dataTotal);
+
+    groupObj->setRadiusMax   (groupData.radiusMax);
+    groupObj->setRadiusScaled(groupData.radiusScaled);
 
     groupObj->setInnerRadius(r - dr);
     groupObj->setOuterRadius(r);
@@ -416,8 +434,14 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   double value = row;
 
-  if (! getDataColumnValue(model, row, dataColumn, parent, value))
+  if (! getColumnSizeValue(model, row, dataColumn, parent, value))
     return;
+
+  //---
+
+  double radius = 0.0;
+
+  bool hasRadius = getColumnSizeValue(model, row, radiusColumn(), parent, radius);
 
   //---
 
@@ -457,6 +481,14 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   double ri = groupObj->innerRadius();
   double ro = groupObj->outerRadius();
+  double rv = ro;
+
+  if (hasRadius && groupObj->isRadiusScaled()) {
+    double dr = ro - ri;
+    double s  = (groupObj->radiusMax() > 0.0 ? radius/groupObj->radiusMax() : 1.0);
+
+    rv = ri + s*dr;
+  }
 
   //---
 
@@ -481,9 +513,14 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
     obj->setInnerRadius(ri);
     obj->setOuterRadius(ro);
+    obj->setValueRadius(rv);
 
-    obj->setLabel   (label);
-    obj->setValue   (value);
+    obj->setLabel(label);
+    obj->setValue(value);
+
+    if (hasRadius)
+      obj->setRadius(radius);
+
     obj->setKeyLabel(keyLabel);
 
     OptColor color;
@@ -496,7 +533,10 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     groupObj->addObject(obj);
   }
   else {
-    obj->setValue(obj->value () + value);
+    obj->setValue(obj->value() + value);
+
+    if (hasRadius)
+      obj->setRadius(*obj->radius() + radius);
 
     // TODO: add dataInd
   }
@@ -564,7 +604,7 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
 
   double value = row;
 
-  if (! getDataColumnValue(model, row, dataColumn, parent, value))
+  if (! getColumnSizeValue(model, row, dataColumn, parent, value))
     return;
 
   //---
@@ -581,12 +621,25 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
   GroupData &groupData = (*pg).second;
 
   if (! hidden)
-    groupData.total += value;
+    groupData.dataTotal += value;
+
+  //---
+
+  if (radiusColumn().isValid()) {
+    double value = 0.0;
+
+    if (getColumnSizeValue(model, row, radiusColumn(), parent, value)) {
+      if (! hidden) {
+        groupData.radiusScaled = true;
+        groupData.radiusMax    = std::max(groupData.radiusMax, value);
+      }
+    }
+  }
 }
 
 bool
 CQChartsPiePlot::
-getDataColumnValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+getColumnSizeValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                    const QModelIndex &parent, double &value) const
 {
   bool ok;
@@ -610,9 +663,9 @@ CQChartsPiePlot::
 adjustObjAngles()
 {
   for (auto &groupObj : groupObjs_) {
-    double angle1 = startAngle();
-    double alen   = std::min(std::max(angleExtent(), -360.0), 360.0);
-    double total  = groupObj->total();
+    double angle1    = startAngle();
+    double alen      = std::min(std::max(angleExtent(), -360.0), 360.0);
+    double dataTotal = groupObj->dataTotal();
 
     for (auto &obj : groupObj->objs()) {
       if (! obj->isVisible())
@@ -620,7 +673,7 @@ adjustObjAngles()
 
       double value = obj->value();
 
-      double angle = (total > 0.0 ? alen*value/total : 0.0);
+      double angle = (dataTotal > 0.0 ? alen*value/dataTotal : 0.0);
 
       double angle2 = angle1 - angle;
 
@@ -746,6 +799,10 @@ calcTipId() const
   tableTip.addTableRow("Name" , tableTip.escapeText(label));
   tableTip.addTableRow("Value", valueStr);
 
+  if (radius()) {
+    tableTip.addTableRow("Radius", *radius());
+  }
+
   return tableTip.str();
 }
 
@@ -778,8 +835,8 @@ inside(const CQChartsGeom::Point &p) const
 
   double r = p.distanceTo(center);
 
-  double ro = outerRadius();
   double ri = innerRadius();
+  double ro = valueRadius();
 
   if (r < ri || r > ro)
     return false;
@@ -855,10 +912,14 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   CQChartsGeom::Point center(0.0, 0.0);
 
-  CQChartsGeom::Point c  = center;
-  double              ro = outerRadius();
-  double              a1 = angle1();
-  double              a2 = angle2();
+  CQChartsGeom::Point c = center;
+
+  double ri = innerRadius();
+  double ro = outerRadius();
+  double rv = valueRadius();
+
+  double a1 = angle1();
+  double a2 = angle2();
 
   //---
 
@@ -867,8 +928,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   if (isExploded) {
     double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
 
-    double dx = plot_->explodeRadius()*ro*cos(angle);
-    double dy = plot_->explodeRadius()*ro*sin(angle);
+    double dx = plot_->explodeRadius()*rv*cos(angle);
+    double dy = plot_->explodeRadius()*rv*sin(angle);
 
     c.x += dx;
     c.y += dy;
@@ -876,23 +937,59 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  CQChartsGeom::Point pc;
+  //CQChartsGeom::Point pc;
 
-  plot_->windowToPixel(c, pc);
+  //plot_->windowToPixel(c, pc);
 
   //---
 
-  CQChartsGeom::BBox bbox(c.x - ro, c.y - ro, c.x + ro, c.y + ro);
+  //CQChartsGeom::BBox bbox(c.x - rv, c.y - rv, c.x + rv, c.y + rv);
 
-  CQChartsGeom::BBox pbbox;
+  //CQChartsGeom::BBox pbbox;
 
-  plot_->windowToPixel(bbox, pbbox);
+  //plot_->windowToPixel(bbox, pbbox);
 
   //---
 
   if (layer == CQChartsPlot::Layer::MID) {
-    double ri = innerRadius();
+    if (plot_->isGrid()) {
+      QColor gridColor = plot_->interpGridColor(0, 1);
 
+      gridColor.setAlphaF(plot_->gridAlpha());
+
+      QPen   pen  (gridColor);
+      QBrush brush(Qt::NoBrush);
+
+      painter->setPen  (pen);
+      painter->setBrush(brush);
+
+      plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
+    }
+
+    //---
+
+    QColor bg;
+
+    if (color())
+      bg = color()->interpColor(plot_, colorInd(), no);
+    else
+      bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+
+    QColor fg = plot_->textColor(bg);
+
+    QPen   pen  (fg);
+    QBrush brush(bg);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
+    //---
+
+    plot_->drawPieSlice(painter, c, ri, rv, a1, a2);
+
+#if 0
     QPainterPath path;
 
     if (! CQChartsUtil::isZero(ri)) {
@@ -909,13 +1006,13 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
       double x1 = c.x + ri*cos(ra1);
       double y1 = c.y + ri*sin(ra1);
-      double x2 = c.x + ro*cos(ra1);
-      double y2 = c.y + ro*sin(ra1);
+      double x2 = c.x + rv*cos(ra1);
+      double y2 = c.y + rv*sin(ra1);
 
       double x3 = c.x + ri*cos(ra2);
       double y3 = c.y + ri*sin(ra2);
-      double x4 = c.x + ro*cos(ra2);
-      double y4 = c.y + ro*sin(ra2);
+      double x4 = c.x + rv*cos(ra2);
+      double y4 = c.y + rv*sin(ra2);
 
       double px1, py1, px2, py2, px3, py3, px4, py4;
 
@@ -949,26 +1046,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     path.closeSubpath();
 
-    //---
-
-    QColor bg;
-
-    if (color_)
-      bg = (*color_).interpColor(plot_, colorInd(), no);
-    else
-      bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
-
-    QColor fg = plot_->textColor(bg);
-
-    QPen   pen  (fg);
-    QBrush brush(bg);
-
-    plot_->updateObjPenBrushState(this, pen, brush);
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
     painter->drawPath(path);
+#endif
   }
 
   //---
@@ -997,8 +1076,9 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   int ng = plot_->numGroupObjs();
   int no = groupObj->numObjs();
 
-  double ro = outerRadius();
   double ri = innerRadius();
+  double ro = outerRadius();
+  double rv = valueRadius();
   double lr = plot_->labelRadius();
 
   double a1 = angle1();
@@ -1035,11 +1115,11 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   // draw on arc center line
   else {
     if (lr > 1.0) {
-      plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, label(),
+      plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
                                                 lpen, plot_->isRotatedText());
     }
     else {
-      //plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, label(),
+      //plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
       //                                          lpen, plot_->isRotatedText());
 
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
@@ -1139,11 +1219,14 @@ fillBrush() const
   int ng = plot->numGroups();
 
   QColor c;
+  int    no = 1;
 
   if      (group) {
     int ig = group->colorInd();
 
-    c = plot->interpGroupPaletteColor(ig, ng, 0, 1);
+    no = group->numObjs();
+
+    c = plot->interpGroupPaletteColor(ig, ng, 0, no);
 
     if (plot->isSetHidden(ig))
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
@@ -1151,15 +1234,19 @@ fillBrush() const
   else if (obj) {
     CQChartsPieGroupObj *group = obj->groupObj();
 
+    no = group->numObjs();
+
     int ig = group->colorInd();
     int io = obj->colorInd();
-    int no = group->numObjs();
 
     c = plot->interpGroupPaletteColor(ig, ng, io, no);
 
     if (plot->isSetHidden(io))
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
   }
+
+  if (obj->color())
+    c = obj->color()->interpColor(plot_, obj->colorInd(), no);
 
   return c;
 }

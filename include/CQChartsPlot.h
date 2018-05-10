@@ -1130,6 +1130,11 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  void drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
+                    double ri, double ro, double a1, double a2) const;
+
+  //---
+
   void updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
 
   void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush) const;

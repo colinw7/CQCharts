@@ -1,5 +1,5 @@
-#ifndef CQCHartsModelData_H
-#define CQCHartsModelData_H
+#ifndef CQChartsModelData_H
+#define CQChartsModelData_H
 
 #include <QSharedPointer>
 

@@ -25,6 +25,7 @@
 #include <CQDataModel.h>
 #include <CQFoldedModel.h>
 #include <CQSortModel.h>
+#include <CQAlignEdit.h>
 
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -80,9 +81,6 @@ CQChartsCmds(CQCharts *charts) :
 CQChartsCmds::
 ~CQChartsCmds()
 {
-  for (auto &modelData : modelDatas_)
-    delete modelData;
-
   delete expr_;
 }
 
@@ -96,15 +94,18 @@ setCeil(bool b)
 
     ClLanguageMgrInst->init(nullptr, nullptr);
 
-    ClLanguageMgrInst->defineCommand("load"   , CQChartsCmds::loadLCmd   , this);
-    ClLanguageMgrInst->defineCommand("process", CQChartsCmds::processLCmd, this);
-    ClLanguageMgrInst->defineCommand("sort"   , CQChartsCmds::sortLCmd   , this);
-    ClLanguageMgrInst->defineCommand("group"  , CQChartsCmds::groupLCmd  , this);
-    ClLanguageMgrInst->defineCommand("place"  , CQChartsCmds::placeLCmd  , this);
+    // load, process, sort model
+    ClLanguageMgrInst->defineCommand("load_model"   , CQChartsCmds::loadModelLCmd   , this);
+    ClLanguageMgrInst->defineCommand("process_model", CQChartsCmds::processModelLCmd, this);
+    ClLanguageMgrInst->defineCommand("sort_model"   , CQChartsCmds::sortModelLCmd   , this);
 
     // add/remove plot
-    ClLanguageMgrInst->defineCommand("add_plot"   , CQChartsCmds::addPlotLCmd   , this);
+    ClLanguageMgrInst->defineCommand("create_plot", CQChartsCmds::createPlotLCmd, this);
     ClLanguageMgrInst->defineCommand("remove_plot", CQChartsCmds::removePlotLCmd, this);
+
+    // group/place plots
+    ClLanguageMgrInst->defineCommand("group_plots", CQChartsCmds::groupPlotsLCmd, this);
+    ClLanguageMgrInst->defineCommand("place_plots", CQChartsCmds::placePlotsLCmd, this);
 
     // get/set model
     ClLanguageMgrInst->defineCommand("set_model", CQChartsCmds::setModelLCmd, this);
@@ -147,11 +148,10 @@ bool
 CQChartsCmds::
 processCmd(const QString &cmd, const Args &args)
 {
-  if      (cmd == "load"   ) { loadCmd   (args); }
-  else if (cmd == "process") { processCmd(args); }
-  else if (cmd == "sort"   ) { sortCmd   (args); }
-  else if (cmd == "group"  ) { groupCmd  (args); }
-  else if (cmd == "place"  ) { placeCmd  (args); }
+  // load, process, sort model
+  if      (cmd == "load_model"   ) { loadModelCmd   (args); }
+  else if (cmd == "process_model") { processModelCmd(args); }
+  else if (cmd == "sort_model"   ) { sortModelCmd   (args); }
 
   // get/set model
   else if (cmd == "set_model") { setModelCmd(args); }
@@ -161,8 +161,13 @@ processCmd(const QString &cmd, const Args &args)
   else if (cmd == "set_view") { setViewCmd(args); }
   else if (cmd == "get_view") { getViewCmd(args); }
 
-  else if (cmd == "add_plot"   ) { addPlotCmd   (args); }
+  // create/remove plot
+  else if (cmd == "create_plot") { createPlotCmd(args); }
   else if (cmd == "remove_plot") { removePlotCmd(args); }
+
+  // group/place plots
+  else if (cmd == "group_plots") { groupPlotsCmd(args); }
+  else if (cmd == "place_plots") { placePlotsCmd(args); }
 
   // get/set property
   else if (cmd == "set_property") { setPropertyCmd(args); }
@@ -276,6 +281,19 @@ class CQChartsCmdsArgs {
     return ok;
   }
 
+  bool getOptValue(boost::optional<double> &r) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    bool ok;
+
+    r = str.toDouble(&ok);
+
+    return ok;
+  }
+
   bool getOptValue(bool &b) {
     QString str;
 
@@ -349,6 +367,17 @@ class CQChartsCmdsArgs {
     return true;
   }
 
+  bool getOptValue(Qt::Alignment &a) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    a = CQAlignEdit::fromString(str);
+
+    return true;
+  }
+
   bool getOptValue(QPolygonF &poly) {
     QString str;
 
@@ -409,24 +438,25 @@ class CQChartsCmdsArgs {
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-loadLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+loadModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->loadCmd(args);
+  cmds->loadModelCmd(args);
 }
 #endif
 
+// load model from data
 bool
 CQChartsCmds::
-loadCmd(const Args &args)
+loadModelCmd(const Args &args)
 {
   QString           filename;
   CQChartsFileType  fileType { CQChartsFileType::NONE };
   CQChartsInputData inputData;
-  QString           title;
+  QString           columnType;
 
   CQChartsCmdsArgs argv(args);
 
@@ -461,9 +491,14 @@ loadCmd(const Args &args)
         if (argv.getOptValue(i))
           inputData.numRows = std::max(i, 1);
       }
+
       else if (opt == "filter") { (void) argv.getOptValue(inputData.filter); }
-      else if (opt == "title" ) { (void) argv.getOptValue(title); }
-      else                      { argv.error(); }
+
+      else if (opt == "column_type") { (void) argv.getOptValue(columnType); }
+
+      // TODO: columns (filter to columns)
+
+      else { argv.error(); }
     }
     else {
       if (filename == "")
@@ -497,8 +532,11 @@ loadCmd(const Args &args)
   if (! modelData)
     return false;
 
-  if (title.length())
-    emit titleChanged(modelData->ind, title);
+  if (columnType != "") {
+    ModelP model = modelData->model;
+
+    setColumnFormats(model, columnType);
+  }
 
   setCmdRc(modelData->ind);
 
@@ -520,6 +558,7 @@ setModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 }
 #endif
 
+// set model value
 void
 CQChartsCmds::
 setModelCmd(const Args &args)
@@ -587,6 +626,7 @@ CQChartsCmds::
 getModelCmd(const Args &args)
 {
   int     ind    = -1;
+  int     row    = -1;
   int     column = -1;
   QString name;
 
@@ -599,6 +639,7 @@ getModelCmd(const Args &args)
       QString opt = arg.opt();
 
       if      (opt == "ind"   ) { (void) argv.getOptValue(ind); }
+      else if (opt == "row"   ) { (void) argv.getOptValue(row); }
       else if (opt == "column") { (void) argv.getOptValue(column); }
       else if (opt == "name"  ) { (void) argv.getOptValue(name); }
       else                      { argv.error(); }
@@ -625,6 +666,15 @@ getModelCmd(const Args &args)
     setCmdRc(details.numRows());
   else if (name == "num_columns")
     setCmdRc(details.numColumns());
+  else if (name == "value") {
+    bool ok;
+
+    QModelIndex ind = modelData->model.data()->index(row, column);
+
+    QVariant var = CQChartsUtil::modelValue(modelData->model.data(), ind, ok);
+
+    setCmdRc(var);
+  }
   else if (name == "min") {
     if (column >= 0 && column < details.numColumns()) {
       CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
@@ -648,20 +698,21 @@ getModelCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-processLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+processModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->processCmd(args);
+  cmds->processModelCmd(args);
 }
 #endif
 
 void
 CQChartsCmds::
-processCmd(const Args &args)
+processModelCmd(const Args &args)
 {
+  int                   ind = -1;
   CQExprModel::Function function = CQExprModel::Function::EVAL;
   QString               header;
   int                   column   = -1;
@@ -675,7 +726,8 @@ processCmd(const Args &args)
     if (arg.isOpt()) {
       QString opt = arg.opt();
 
-      if      (opt == "add"   ) { function = CQExprModel::Function::ADD; }
+      if      (opt == "ind"   ) { (void) argv.getOptValue(ind); }
+      else if (opt == "add"   ) { function = CQExprModel::Function::ADD; }
       else if (opt == "delete") { function = CQExprModel::Function::DELETE; }
       else if (opt == "modify") { function = CQExprModel::Function::ASSIGN; }
       else if (opt == "header") { (void) argv.getOptValue(header); }
@@ -692,10 +744,13 @@ processCmd(const Args &args)
 
   //---
 
-  CQChartsModelData *modelData = currentModelData();
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(ind);
 
   if (! modelData)
     return;
+
+  //---
 
   ModelP model = modelData->model;
 
@@ -843,20 +898,21 @@ getViewCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-addPlotLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+createPlotLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->addPlotCmd(args);
+  cmds->createPlotCmd(args);
 }
 #endif
 
 void
 CQChartsCmds::
-addPlotCmd(const Args &args)
+createPlotCmd(const Args &args)
 {
+  int                   modelInd = -1;
   QString               typeName;
   QString               filterStr;
   CQChartsNameValueData nameValueData;
@@ -870,35 +926,26 @@ addPlotCmd(const Args &args)
   QString               positionStr;
   OptReal               xmin, ymin, xmax, ymax;
 
-  int argc = args.size();
+  CQChartsCmdsArgs argv(args);
 
-  for (int i = 0; i < argc; ++i) {
-    QString arg = args[i];
+  while (! argv.eof()) {
+    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
 
-    if (arg[0] == '-') {
-      QString opt = arg.mid(1);
+    if (arg.isOpt()) {
+      QString opt = arg.opt();
 
+      // model ind
+      if      (opt == "model") { (void) argv.getOptValue(modelInd); }
       // plot type
-      if      (opt == "type") {
-        ++i;
-
-        if (i < argc)
-          typeName = args[i];
-      }
+      else if (opt == "type" ) { (void) argv.getOptValue(typeName); }
       // plot filter
-      else if (opt == "where") {
-        ++i;
+      else if (opt == "where") { (void) argv.getOptValue(filterStr); }
 
-        if (i < argc)
-          filterStr = args[i];
-      }
       // plot columns
       else if (opt == "column" || opt == "columns") {
-        ++i;
+        QString columnsStr;
 
-        if (i < argc) {
-          QString columnsStr = args[i];
-
+        if (argv.getOptValue(columnsStr)) {
           QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
 
           for (int j = 0; j < strs.size(); ++j) {
@@ -913,18 +960,16 @@ addPlotCmd(const Args &args)
               nameValueData.values[name] = value;
             }
             else {
-              errorMsg("Invalid " + opt + " option '" + args[i] + "'");
+              errorMsg("Invalid " + opt + " option '" + arg.str() + "'");
             }
           }
         }
       }
       // plot bool parameters
       else if (opt == "bool") {
-        ++i;
+        QString nameValue;
 
-        if (i < argc) {
-          QString nameValue = args[i];
-
+        if (argv.getOptValue(nameValue)) {
           auto pos = nameValue.indexOf('=');
 
           QString name, value;
@@ -945,17 +990,15 @@ addPlotCmd(const Args &args)
           if (ok)
             nameValueData.bools[name] = b;
           else {
-            errorMsg("Invalid -bool option '" + args[i] + "'");
+            errorMsg("Invalid -bool option '" + arg.str() + "'");
           }
         }
       }
       // plot string parameters
       else if (opt == "string") {
-        ++i;
+        QString nameValue;
 
-        if (i < argc) {
-          QString nameValue = args[i];
-
+        if (argv.getOptValue(nameValue)) {
           auto pos = nameValue.indexOf('=');
 
           QString name, value;
@@ -974,11 +1017,9 @@ addPlotCmd(const Args &args)
       }
       // plot real parameters
       else if (opt == "real") {
-        ++i;
+        QString nameValue;
 
-        if (i < argc) {
-          QString nameValue = args[i];
-
+        if (argv.getOptValue(nameValue)) {
           auto pos = nameValue.indexOf('=');
 
           QString name;
@@ -1001,10 +1042,7 @@ addPlotCmd(const Args &args)
 
       // column types
       else if (opt == "column_type") {
-        ++i;
-
-        if (i < argc)
-          columnType = args[i];
+        (void) argv.getOptValue(columnType);
       }
 
       // axis type
@@ -1025,66 +1063,33 @@ addPlotCmd(const Args &args)
 
       // title
       else if (opt == "title") {
-        ++i;
-
-        if (i < argc)
-          title = args[i];
+        (void) argv.getOptValue(title);
       }
 
       // plot properties
       else if (opt == "properties") {
-        ++i;
-
-        if (i < argc)
-          properties = args[i];
+        (void) argv.getOptValue(properties);
       }
 
       // position
       else if (opt == "position") {
-        ++i;
-
-        if (i < argc)
-          positionStr = args[i];
+        (void) argv.getOptValue(positionStr);
       }
 
       // data range
-      else if (opt == "xmin") {
-        ++i;
+      else if (opt == "xmin") { (void) argv.getOptValue(xmin); }
+      else if (opt == "ymin") { (void) argv.getOptValue(ymin); }
+      else if (opt == "xmax") { (void) argv.getOptValue(xmax); }
+      else if (opt == "ymax") { (void) argv.getOptValue(ymax); }
 
-        if (i < argc)
-          xmin = args[i].toDouble();
-      }
-      else if (opt == "xmax") {
-        ++i;
-
-        if (i < argc)
-          xmax = args[i].toDouble();
-      }
-      else if (opt == "ymin") {
-        ++i;
-
-        if (i < argc)
-          ymin = args[i].toDouble();
-      }
-      else if (opt == "ymax") {
-        ++i;
-
-        if (i < argc)
-          ymax = args[i].toDouble();
-      }
-
-      else {
-        errorMsg("Invalid option '" + opt + "'");
-      }
+      else { argv.error(); }
     }
-    else {
-      errorMsg("Invalid arg '" + arg + "'");
-    }
+    else { argv.error(); }
   }
 
   //------
 
-  CQChartsModelData *modelData = currentModelData();
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
   if (! modelData) {
     errorMsg("No model data");
@@ -1598,53 +1603,27 @@ paletteCmd(const Args &args)
   QString                  viewName;
   CQChartsPaletteColorData paletteData;
 
-  int argc = args.size();
+  CQChartsCmdsArgs argv(args);
 
-  for (int i = 0; i < argc; ++i) {
-    QString arg = args[i];
+  while (! argv.eof()) {
+    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
 
-    if (arg[0] == '-') {
-      QString opt = arg.mid(1);
+    if (arg.isOpt()) {
+      QString opt = arg.opt();
 
       if      (opt == "view") {
-        ++i;
-
-        if (i < argc)
-          viewName = args[i];
+        (void) argv.getOptValue(viewName);
       }
       else if (opt == "color_type") {
-        ++i;
-
-        if (i >= argc) {
-          errorMsg("Missing color type");
-          continue;
-        }
-
-        paletteData.colorTypeStr = args[i];
+        (void) argv.getOptValue(paletteData.colorTypeStr);
       }
       else if (opt == "color_model") {
-        ++i;
-
-        if (i >= argc) {
-          errorMsg("Missing color model");
-          continue;
-        }
-
-        paletteData.colorModelStr = args[i];
+        (void) argv.getOptValue(paletteData.colorModelStr);
       }
       else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
-        ++i;
+        int model = -1;
 
-        if (i >= argc) {
-          errorMsg("Missing model number");
-          continue;
-        }
-
-        bool ok;
-
-        int model = args[i].toInt(&ok);
-
-        if (! ok) {
+        if (! argv.getOptValue(model)) {
           errorMsg("Invalid model number");
           continue;
         }
@@ -1654,18 +1633,9 @@ paletteCmd(const Args &args)
         else if (opt == "blueModel" ) paletteData.blueModel  = model;
       }
       else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
-        ++i;
+        bool b = false;
 
-        if (i >= argc) {
-          errorMsg("Missing model number");
-          continue;
-        }
-
-        bool ok;
-
-        bool b = stringToBool(args[i], &ok);
-
-        if (! ok) {
+        if (! argv.getOptValue(b)) {
           errorMsg("Invalid negate bool");
           continue;
         }
@@ -1677,18 +1647,9 @@ paletteCmd(const Args &args)
       else if (opt == "redMin"   || opt == "redMax"   ||
                opt == "greenMin" || opt == "greenMax" ||
                opt == "blueMin"  || opt == "blueMax") {
-        ++i;
+        double r = 0.0;
 
-        if (i >= argc) {
-          errorMsg("Missing min/max value");
-          continue;
-        }
-
-        bool ok;
-
-        double r = args[i].toDouble(&ok);
-
-        if (! ok) {
+        if (! argv.getOptValue(r)) {
           errorMsg("Invalid min/max value");
           continue;
         }
@@ -1701,14 +1662,11 @@ paletteCmd(const Args &args)
         else if (opt == "blueMax" ) paletteData.blueMax  = r;
       }
       else if (opt == "defined") {
-        ++i;
+        QString str;
 
-        if (i >= argc) {
-          errorMsg("Missing defined colors");
-          continue;
-        }
+        (void) argv.getOptValue(str);
 
-        QStringList strs = args[i].split(" ", QString::SkipEmptyParts);
+        QStringList strs = str.split(" ", QString::SkipEmptyParts);
 
         if (! strs.length())
           continue;
@@ -1739,25 +1697,25 @@ paletteCmd(const Args &args)
         }
       }
       else if (opt == "get_color") {
-        ++i;
+        double r;
 
-        if (i >= argc) {
+        if (! argv.getOptValue(r)) {
           errorMsg("Missing color value");
           continue;
         }
 
         paletteData.getColorFlag  = true;
-        paletteData.getColorValue = args[i].toDouble(&paletteData.getColorFlag);
+        paletteData.getColorValue = r;
       }
       else if (opt == "get_color_scale") {
         paletteData.getColorScale = true;
       }
       else {
-        errorMsg("Invalid option '" + opt + "'");
+        argv.error();
       }
     }
     else {
-      errorMsg("Invalid arg '" + arg + "'");
+      argv.error();
     }
   }
 
@@ -1787,19 +1745,19 @@ paletteCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-groupLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+groupPlotsLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->groupCmd(args);
+  cmds->groupPlotsCmd(args);
 }
 #endif
 
 void
 CQChartsCmds::
-groupCmd(const Args &args)
+groupPlotsCmd(const Args &args)
 {
   QString     viewName;
   QStringList plotNames;
@@ -1877,19 +1835,19 @@ groupCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-placeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+placePlotsLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->placeCmd(args);
+  cmds->placePlotsCmd(args);
 }
 #endif
 
 void
 CQChartsCmds::
-placeCmd(const Args &args)
+placePlotsCmd(const Args &args)
 {
   QString     viewName;
   QStringList plotNames;
@@ -1988,20 +1946,21 @@ placeCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-sortLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+sortModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
 
   Args args = cmds->parseCommandArgs(command, largs);
 
-  cmds->sortCmd(args);
+  cmds->sortModelCmd(args);
 }
 #endif
 
 void
 CQChartsCmds::
-sortCmd(const Args &args)
+sortModelCmd(const Args &args)
 {
+  int     modelInd = -1;
   QString sort;
 
   CQChartsCmdsArgs argv(args);
@@ -2010,9 +1969,11 @@ sortCmd(const Args &args)
     const CQChartsCmdsArgs::Arg &arg = argv.getArg();
 
     if (arg.isOpt()) {
-      //QString opt = arg.opt();
+      QString opt = arg.opt();
 
-      argv.error();
+      if (opt == "model") { (void) argv.getOptValue(modelInd); }
+
+      else { argv.error(); }
     }
     else {
       if (sort == "")
@@ -2022,7 +1983,7 @@ sortCmd(const Args &args)
     }
   }
 
-  CQChartsModelData *modelData = currentModelData();
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
 
   if (! modelData)
     return;
@@ -2529,7 +2490,7 @@ textShapeCmd(const Args &args)
       else if (opt == "alpha"   ) { (void) argv.getOptValue(textData.alpha); }
       else if (opt == "angle"   ) { (void) argv.getOptValue(textData.angle); }
       else if (opt == "contrast") { (void) argv.getOptValue(textData.contrast); }
-//    else if (opt == "align"   ) { (void) argv.getOptValue(textData.align); }
+      else if (opt == "align"   ) { (void) argv.getOptValue(textData.align); }
 
       else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
       else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
@@ -2841,19 +2802,19 @@ sourceCmd(const Args &args)
 {
   QString filename;
 
-  int argc = args.size();
+  CQChartsCmdsArgs argv(args);
 
-  for (int i = 0; i < argc; ++i) {
-    QString arg = args[i];
+  while (! argv.eof()) {
+    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
 
-    if (arg[0] == '-') {
-      QString opt = arg.mid(1);
+    if (arg.isOpt()) {
+      //QString opt = arg.opt();
 
-      errorMsg("Invalid option '" + opt + "'");
+      argv.error();
     }
     else {
       if (filename == "")
-        filename = arg;
+        filename = arg.str();
     }
   }
 
@@ -3350,20 +3311,6 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 void
 CQChartsCmds::
-processExpression(const QString &expr)
-{
-  CQChartsModelData *modelData = currentModelData();
-
-  if (! modelData)
-    return;
-
-  ModelP model = modelData->model;
-
-  processExpression(model, expr);
-}
-
-void
-CQChartsCmds::
 processAddExpression(ModelP &model, const QString &exprStr)
 {
   CQExprModel *exprModel = getExprModel(model);
@@ -3595,7 +3542,9 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   ModelP modelp(model);
 
-  CQChartsModelData *modelData = addModelData(modelp, hierarchical);
+  int modelInd = addModelData(modelp, hierarchical);
+
+  CQChartsModelData *modelData = getModelData(modelInd);
 
   //---
 
@@ -3985,25 +3934,17 @@ stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) 
 
 //------
 
-CQChartsModelData *
+int
 CQChartsCmds::
 addModelData(ModelP &model, bool hierarchical)
 {
-  int ind = modelDatas_.size() + 1;
+  int ind = charts_->addModel(model, hierarchical);
 
-  CQChartsModelData *modelData = new CQChartsModelData;
-
-  modelData->ind          = ind;
-  modelData->model        = model;
-  modelData->hierarchical = hierarchical;
-
-  modelDatas_.push_back(modelData);
-
-  emit modelDataAdded(modelData->ind);
+  emit modelDataAdded(ind);
 
   setCurrentInd(ind);
 
-  return modelDatas_.back();
+  return ind;
 }
 
 CQChartsModelData *
@@ -4020,27 +3961,16 @@ CQChartsModelData *
 CQChartsCmds::
 getModelData(int ind)
 {
-  for (auto &modelData : modelDatas_) {
-    if (modelData->ind == ind)
-      return modelData;
-  }
-
-  return nullptr;
+  return charts_->getModelData(ind);
 }
 
 CQChartsModelData *
 CQChartsCmds::
 currentModelData()
 {
-  if (modelDatas_.empty())
-    return nullptr;
-
   int ind = currentInd();
 
-  if (ind >= 0 && ind < int(modelDatas_.size()))
-    return modelDatas_[ind];
-
-  return modelDatas_.back();
+  return charts_->getModelData(ind);
 }
 
 CQChartsView *
