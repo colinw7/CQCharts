@@ -5,6 +5,9 @@
 #include <CQChartsUtil.h>
 
 class CQCharts;
+class CQChartsIValues;
+class CQChartsRValues;
+class CQChartsSValues;
 class QAbstractItemModel;
 
 class CQChartsModelColumnDetails {
@@ -12,7 +15,7 @@ class CQChartsModelColumnDetails {
   CQChartsModelColumnDetails(CQCharts *charts, QAbstractItemModel *model,
                              const CQChartsColumn &column);
 
-  virtual ~CQChartsModelColumnDetails() { }
+  virtual ~CQChartsModelColumnDetails();
 
   CQCharts *charts() const { return charts_; }
 
@@ -21,6 +24,11 @@ class CQChartsModelColumnDetails {
   const CQChartsColumn &column() const { return column_; }
 
   QString typeName() const;
+
+  CQBaseModel::Type type() const { return type_; }
+  void setType(CQBaseModel::Type type) { type_ = type; }
+
+  const CQChartsNameValues &nameValues() const { return nameValues_; }
 
   QVariant minValue() const;
   QVariant maxValue() const;
@@ -32,10 +40,18 @@ class CQChartsModelColumnDetails {
   bool isMonotonic () const { return monotonic_; }
   bool isIncreasing() const { return increasing_; }
 
+  int numUnique() const;
+
+  double map(const QVariant &var) const;
+
   virtual bool checkRow(const QVariant &) { return true; }
 
  private:
   bool init();
+
+  void addInt   (int i);
+  void addReal  (double r);
+  void addString(const QString &s);
 
  private:
   CQCharts*           charts_      { nullptr };
@@ -50,29 +66,35 @@ class CQChartsModelColumnDetails {
   bool                monotonic_   { true };
   bool                increasing_  { true };
   bool                initialized_ { false };
+  CQChartsIValues*    ivals_       { nullptr };
+  CQChartsRValues*    rvals_       { nullptr };
+  CQChartsSValues*    svals_       { nullptr };
 };
 
 //---
 
 class CQChartsModelDetails {
  public:
-  CQChartsModelDetails();
+  CQChartsModelDetails(CQCharts *charts=nullptr, QAbstractItemModel *model=nullptr);
 
-  int numColumns() const { return numColumns_; }
+  int numColumns() const { init(); return numColumns_; }
   void setNumColumns(int i) { numColumns_ = i; }
 
-  int numRows() const { return numRows_; }
+  int numRows() const { init(); return numRows_; }
   void setNumRows(int i) { numRows_ = i; }
 
   CQChartsModelColumnDetails &columnDetails(int i) { return columnDetails_[i]; }
 
-  void update(CQCharts *charts, QAbstractItemModel *model);
+  void init() const;
+
+  void update();
 
  private:
   using ColumnDetails = std::vector<CQChartsModelColumnDetails>;
 
   CQCharts*           charts_      { nullptr };
   QAbstractItemModel* model_       { nullptr };
+  bool                initialized_ { false };
   int                 numColumns_  { 0 };
   int                 numRows_     { 0 };
   ColumnDetails       columnDetails_;

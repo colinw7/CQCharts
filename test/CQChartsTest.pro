@@ -42,6 +42,7 @@ unix:LIBS += \
 -L../../CQPropertyView/lib \
 -L../../CQUtil/lib \
 -L../../CExpr/lib \
+-L../../CJson/lib \
 -L../../CConfig/lib \
 -L../../CImageLib/lib \
 -L../../CFont/lib \
@@ -54,7 +55,7 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQUtil \
--lCExpr -lCConfig -lCImageLib -lCFont -lCMath \
+-lCExpr -lCJson -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp -lCStrUtil \
 -lCUtil -lCOS \
 -lreadline -lpng -ljpeg -ltre

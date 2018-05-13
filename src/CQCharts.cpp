@@ -120,15 +120,31 @@ addModel(ModelP &model, bool hierarchical)
 {
   int ind = modelDatas_.size() + 1;
 
-  CQChartsModelData *modelData = new CQChartsModelData;
+  CQChartsModelData *modelData = new CQChartsModelData(this, model);
 
-  modelData->ind          = ind;
-  modelData->model        = model;
-  modelData->hierarchical = hierarchical;
+  model->setProperty("modelInd", ind);
+
+  modelData->setInd(ind);
+
+  modelData->setHierarchical(hierarchical);
 
   modelDatas_.push_back(modelData);
 
-  return modelData->ind;
+  return modelData->ind();
+}
+
+CQChartsModelData *
+CQCharts::
+getModelData(QAbstractItemModel *model) const
+{
+  bool ok;
+
+  int ind = model->property("modelInd").toInt(&ok);
+
+  if (! ok)
+    return nullptr;
+
+  return getModelData(ind);
 }
 
 CQChartsModelData *
@@ -136,7 +152,7 @@ CQCharts::
 getModelData(int ind) const
 {
   for (auto &modelData : modelDatas_)
-    if (modelData->ind == ind)
+    if (modelData->ind() == ind)
       return modelData;
 
   return nullptr;

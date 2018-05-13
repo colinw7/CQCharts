@@ -2,6 +2,7 @@
 #include <CQCharts.h>
 #include <CQTsvModel.h>
 #include <CQExprModel.h>
+#include <CQChartsModelFn.h>
 #include <cassert>
 
 CQChartsTsv::
@@ -11,6 +12,8 @@ CQChartsTsv(CQCharts *charts) :
   tsvModel_ = new CQTsvModel;
 
   exprModel_ = new CQExprModel(tsvModel_);
+
+  exprModel_->addFunction("remap", new CQChartsModelRemapFn(charts, this, exprModel_));
 
   setSourceModel(exprModel_);
 }

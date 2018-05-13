@@ -456,7 +456,7 @@ QString toString(const std::vector<int> &columns) {
 }
 
 QString polygonToString(const QPolygonF &poly) {
-  int np = poly.length();
+  int np = poly.size();
 
   QString str;
 

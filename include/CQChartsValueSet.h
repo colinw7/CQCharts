@@ -569,11 +569,11 @@ class CQChartsValueSet : public QObject {
   CQChartsSValues svals_; // string values
   CQChartsCValues cvals_; // color values
 
-  bool    mapEnabled_ { true };
-  double  mapMin_     { 0.0 };
-  double  mapMax_     { 1.0 };
+  bool   mapEnabled_ { true };
+  double mapMin_     { 0.0 };
+  double mapMax_     { 1.0 };
 
-  bool    allowNaN_ { false }; // allow NaN values
+  bool allowNaN_ { false }; // allow NaN values
 };
 
 #endif

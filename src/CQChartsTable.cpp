@@ -517,7 +517,7 @@ void
 CQChartsTable::
 calcDetails(CQChartsModelDetails &details)
 {
-  details.update(charts_, model_.data());
+  details = CQChartsModelDetails(charts_, model_.data());
 }
 
 QSize

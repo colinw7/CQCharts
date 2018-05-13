@@ -373,12 +373,27 @@ initObjs()
           plot_->modelString(model, row, plot_->fontSizeColumn(), parent, ok4);
 
         // get color label (needed if not string ?)
-        QString colorStr =
-          plot_->modelString(model, row, plot_->colorColumn(), parent, ok5);
+        QVariant colorVar =
+          plot_->modelValue(model, row, plot_->colorColumn(), parent, ok5);
+
+        CQChartsColor color;
+
+        if (CQChartsUtil::isReal(colorVar)) {
+          double r;
+
+          if (CQChartsUtil::toReal(colorVar, r))
+            color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
+        }
+        else {
+          QString str;
+
+          if (CQChartsUtil::toString(colorVar, str))
+            color = CQChartsColor(str);
+        }
 
         //---
 
-        plot_->addNameValue(name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, colorStr);
+        plot_->addNameValue(name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, color);
 
         return State::OK;
       }
@@ -487,8 +502,8 @@ initObjs()
         if (valuePoint.fontSizeStr != "")
           id += QString("\n  %1\t%2").arg(fontSizeName_).arg(valuePoint.fontSizeStr);
 
-        if (valuePoint.colorStr != "")
-          id += QString("\n  %1\t%2").arg(colorName_).arg(valuePoint.colorStr);
+        if (valuePoint.color.isValid())
+          id += QString("\n  %1\t%2").arg(colorName_).arg(valuePoint.color.colorStr());
 
         pointObj->setId(id);
 #endif
@@ -708,8 +723,8 @@ calcTipId() const
   if (valuePoint.fontSizeStr != "")
     tableTip.addTableRow(plot_->fontSizeName(), valuePoint.fontSizeStr);
 
-  if (valuePoint.colorStr != "")
-    tableTip.addTableRow(plot_->colorName(), valuePoint.colorStr);
+  if (valuePoint.color.isValid())
+    tableTip.addTableRow(plot_->colorName(), valuePoint.color.colorStr());
 
   return tableTip.str();
 }

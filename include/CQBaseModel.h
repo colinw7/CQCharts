@@ -10,7 +10,9 @@ class CQBaseModel : public QAbstractItemModel {
  public:
   enum class Role {
     Type       = Qt::UserRole + 1,
-    TypeValues = Type + 1
+    TypeValues = Type + 1,
+    Min        = Type + 2,
+    Max        = Type + 3
   };
 
   // use variant numbers where possible
@@ -46,10 +48,16 @@ class CQBaseModel : public QAbstractItemModel {
   CQBaseModel();
 
   Type columnType(int column) const;
-  void setColumnType(int column, Type t);
+  bool setColumnType(int column, Type t);
 
   QString columnTypeValues(int column) const;
-  void setColumnTypeValues(int column, const QString &str);
+  bool setColumnTypeValues(int column, const QString &str);
+
+  QVariant columnMin(int column) const;
+  bool setColumnMin(int column, const QVariant &v);
+
+  QVariant columnMax(int column) const;
+  bool setColumnMax(int column, const QVariant &v);
 
   void resetColumnTypes();
 
@@ -89,8 +97,10 @@ class CQBaseModel : public QAbstractItemModel {
 
  protected:
   struct ColumnData {
-    Type    type { Type::NONE };
-    QString typeValues;
+    Type     type { Type::NONE };
+    QString  typeValues;
+    QVariant min;
+    QVariant max;
   };
 
   using ColumnDatas = std::map<int,ColumnData>;

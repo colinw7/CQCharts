@@ -74,8 +74,11 @@ class CQChartsTest : public CQAppWindow {
   CQChartsPlot *initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData,
                              int i, const CQChartsGeom::BBox &bbox);
 
+  bool isGui() const { return gui_; }
+  void setGui(bool b) { gui_ = b; }
+
   bool isShow() const { return show_; }
-  void setShow(bool show) { show_ = show; }
+  void setShow(bool b) { show_ = b; }
 
   bool exec(const QString &filename);
 
@@ -163,6 +166,7 @@ class CQChartsTest : public CQAppWindow {
   CQChartsLoader*    loader_         { nullptr };
   CQChartsCmds*      cmds_           { nullptr };
 //QString            id_;
+  bool               gui_            { true };
   bool               show_           { true };
 };
 

@@ -533,7 +533,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   double x2 = bbox .getXMin();
   double y2 = bbox .getYMin();
 
-  for (int i = 0; i < points_.length(); ++i) {
+  for (int i = 0; i < points_.size(); ++i) {
     points_[i].setX(sx*(points_[i].x() - x1) + x2 + dx);
     points_[i].setY(sy*(points_[i].y() - y1) + y2 + dy);
   }
@@ -545,7 +545,7 @@ void
 CQChartsPolygonAnnotation::
 draw(QPainter *painter)
 {
-  if (! points_.length())
+  if (! points_.size())
     return;
 
   double x1 = points_[0].x();
@@ -676,7 +676,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
 
-  for (int i = 0; i < points_.length(); ++i) {
+  for (int i = 0; i < points_.size(); ++i) {
     points_[i].setX(sx*(points_[i].x() - x1) + x1 + dx);
     points_[i].setY(sy*(points_[i].y() - y1) + y1 + dy);
   }
@@ -688,7 +688,7 @@ void
 CQChartsPolylineAnnotation::
 draw(QPainter *painter)
 {
-  if (! points_.length())
+  if (! points_.size())
     return;
 
   double x1 = points_[0].x();

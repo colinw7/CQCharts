@@ -3,7 +3,6 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
-#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>

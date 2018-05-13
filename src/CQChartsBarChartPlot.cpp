@@ -1346,7 +1346,7 @@ calcId() const
 
   QString idStr;
 
-  if (columnId(ind1, idStr))
+  if (calcColumnId(ind1, idStr))
     return idStr;
 
   //---

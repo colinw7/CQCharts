@@ -28,7 +28,7 @@ tipId() const
 
 bool
 CQChartsPlotObj::
-columnId(const QModelIndex &ind, QString &str) const
+calcColumnId(const QModelIndex &ind, QString &str) const
 {
   bool ok;
 

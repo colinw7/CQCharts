@@ -1,5 +1,5 @@
 #include <CQExprModelExpr.h>
-#include <CQExprModelFn.h>
+#include <CQExprModelFnImpl.h>
 #include <COSNaN.h>
 #include <CQStrParse.h>
 

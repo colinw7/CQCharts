@@ -1580,7 +1580,7 @@ calcId() const
 
   QString idStr;
 
-  if (columnId(ind1, idStr))
+  if (calcColumnId(ind1, idStr))
     return idStr;
 
   return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());

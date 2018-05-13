@@ -355,7 +355,7 @@
  + better size limits on expander
  + support xy impulse as box as well as line
  + rename commands for clearer usage and add more get/set support
-# 5/9/2108
+# 5/9/2018
  + support align for text annotation
  + cache models from commands in charts instance
  + allow key to be optionally clipped
@@ -363,3 +363,11 @@
  + add grid to pie chart
  + make grid in radar plot optional
  + update command names and support model id
+# 5/13/2018
+ + allow looking model details from model
+ + add remap function for model process
+ + add num_unique and map support to model column details
+ + support color type in model details 
+ + support color column real value for scatter plot
+ + add name to role and role support on cli commands
+ + make gui display optional when getting model details

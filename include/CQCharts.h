@@ -37,6 +37,7 @@ class CQCharts : public QObject {
 
   int addModel(ModelP &model, bool hierarchical=false);
 
+  CQChartsModelData *getModelData(QAbstractItemModel *model) const;
   CQChartsModelData *getModelData(int ind) const;
 
   //---

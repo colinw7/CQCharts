@@ -141,6 +141,7 @@ main(int argc, char **argv)
 #endif
   OptString printFile;
 
+  bool      gui        = true;
   bool      closeApp   = false;
   bool      exit       = false;
   int       viewWidth  = CQChartsView::getSizeHint().width ();
@@ -609,6 +610,11 @@ main(int argc, char **argv)
         args.parseOpt(printFile);
       }
 
+      // no gui
+      else if (arg == "nogui" || arg == "no_gui") {
+        gui = false;
+      }
+
       // close app
       else if (arg == "close_app") {
         closeApp = true;
@@ -638,7 +644,10 @@ main(int argc, char **argv)
 
   CQChartsTest test;
 
-  if (printFile && exit)
+  if (! gui)
+    test.setGui(false);
+
+  if (! gui || (printFile && exit))
     test.setShow(false);
 
 #ifdef CQ_CHARTS_CEIL
@@ -910,17 +919,20 @@ void
 CQChartsTest::
 addViewWidgets(CQChartsModelData *modelData)
 {
+  if (! isGui())
+    return;
+
   CQChartsViewWidgetData *viewWidgetData = new CQChartsViewWidgetData;
 
-  viewWidgetData->ind = modelData->ind;
+  viewWidgetData->ind = modelData->ind();
 
-  viewWidgetDatas_[modelData->ind] = viewWidgetData;
+  viewWidgetDatas_[viewWidgetData->ind] = viewWidgetData;
 
   //---
 
   QTabWidget *tableTab = CQUtil::makeWidget<QTabWidget>("tableTab");
 
-  int tabInd = viewTab_->addTab(tableTab, QString("View %1").arg(modelData->ind));
+  int tabInd = viewTab_->addTab(tableTab, QString("Model %1").arg(viewWidgetData->ind));
 
   viewTab_->setCurrentIndex(viewTab_->count() - 1);
 
@@ -932,7 +944,7 @@ addViewWidgets(CQChartsModelData *modelData)
 
   QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
 
-  tableTab->addTab(viewFrame, "View");
+  tableTab->addTab(viewFrame, "Model");
 
   //---
 
@@ -1061,7 +1073,7 @@ initPlot(const CQChartsInitData &initData)
   //---
 
   if (initData.process.length()) {
-    ModelP model = modelData->model;
+    ModelP model = modelData->model();
 
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
@@ -1070,7 +1082,7 @@ initPlot(const CQChartsInitData &initData)
   }
 
   if (initData.processAdd.length()) {
-    ModelP model = modelData->model;
+    ModelP model = modelData->model();
 
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
@@ -1194,14 +1206,14 @@ createSlot()
   if (! modelData)
     return;
 
-  ModelP model = modelData->model;
+  ModelP model = modelData->model();
 
   //---
 
   CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
 
-  if (modelData->sm)
-    dlg->setSelectionModel(modelData->sm);
+  if (modelData->selectionModel())
+    dlg->setSelectionModel(modelData->selectionModel());
 
   connect(dlg, SIGNAL(plotCreated(CQChartsPlot *)),
           this, SLOT(plotDialogCreatedSlot(CQChartsPlot *)));
@@ -1285,7 +1297,7 @@ exprSlot()
     default:                                          break;
   }
 
-  ModelP model = modelData->model;
+  ModelP model = modelData->model();
 
   bool ok;
 
@@ -1349,7 +1361,7 @@ typeSetSlot()
   if (! modelData)
     return;
 
-  ModelP model = modelData->model;
+  ModelP model = modelData->model();
 
   //---
 
@@ -1382,16 +1394,18 @@ typeSetSlot()
 
   //---
 
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind);
-  assert(viewWidgetData);
+  if (isGui()) {
+    CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
+    assert(viewWidgetData);
 
-  if (viewWidgetData->stack->currentIndex() == 0) {
-    if (viewWidgetData->tree)
-      viewWidgetData->tree->update();
-  }
-  else {
-    if (viewWidgetData->table)
-      viewWidgetData->table->update();
+    if (viewWidgetData->stack->currentIndex() == 0) {
+      if (viewWidgetData->tree)
+        viewWidgetData->tree->update();
+    }
+    else {
+      if (viewWidgetData->table)
+        viewWidgetData->table->update();
+    }
   }
 }
 
@@ -1416,7 +1430,7 @@ CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  cmds_->setColumnFormats(modelData->model, initData.columnType);
+  cmds_->setColumnFormats(modelData->model(), initData.columnType);
 
   updateModelDetails(modelData);
 
@@ -1463,10 +1477,12 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
     sortModel->setFilter(initData.filterStr);
 
-    plot = cmds_->createPlot(sortModelP, modelData->sm, type, initData.nameValueData, reuse, bbox);
+    plot = cmds_->createPlot(sortModelP, modelData->selectionModel(), type,
+                             initData.nameValueData, reuse, bbox);
   }
   else {
-    plot = cmds_->createPlot(model, modelData->sm, type, initData.nameValueData, reuse, bbox);
+    plot = cmds_->createPlot(model, modelData->selectionModel(), type,
+                             initData.nameValueData, reuse, bbox);
   }
 
   assert(plot);
@@ -1527,19 +1543,21 @@ void
 CQChartsTest::
 titleChanged(int ind, const QString &title)
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(ind);
-  assert(viewWidgetData);
+  if (isGui()) {
+    CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(ind);
+    assert(viewWidgetData);
 
-  if (viewWidgetData->stack->currentIndex() == 0) {
-    if (viewWidgetData->tree)
-      viewWidgetData->tree->setWindowTitle(title);
-  }
-  else {
-    if (viewWidgetData->table)
-      viewWidgetData->table->setWindowTitle(title);
-  }
+    if (viewWidgetData->stack->currentIndex() == 0) {
+      if (viewWidgetData->tree)
+        viewWidgetData->tree->setWindowTitle(title);
+    }
+    else {
+      if (viewWidgetData->table)
+        viewWidgetData->table->setWindowTitle(title);
+    }
 
-  viewTab()->setTabText(viewWidgetData->tabInd, title);
+    viewTab()->setTabText(viewWidgetData->tabInd, title);
+  }
 }
 
 void
@@ -1566,44 +1584,46 @@ void
 CQChartsTest::
 updateModel(CQChartsModelData *modelData)
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind);
-  assert(viewWidgetData);
+  if (isGui()) {
+    CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
+    assert(viewWidgetData);
 
-  if (! modelData->foldedModels.empty()) {
-    if (viewWidgetData->table)
-      viewWidgetData->table->setModel(ModelP());
+    if (! modelData->foldedModels().empty()) {
+      if (viewWidgetData->table)
+        viewWidgetData->table->setModel(ModelP());
 
-    if (viewWidgetData->tree)
-      viewWidgetData->tree->setModel(modelData->foldProxyModel);
-
-    viewWidgetData->stack->setCurrentIndex(0);
-  }
-  else {
-    if (modelData->hierarchical) {
-      if (viewWidgetData->tree) {
-        viewWidgetData->tree->setModel(modelData->model);
-
-        modelData->sm = viewWidgetData->tree->selectionModel();
-      }
-      else
-        modelData->sm = nullptr;
+      if (viewWidgetData->tree)
+        viewWidgetData->tree->setModel(modelData->foldProxyModel());
 
       viewWidgetData->stack->setCurrentIndex(0);
     }
     else {
-      if (viewWidgetData->table) {
-        viewWidgetData->table->setModel(modelData->model);
+      if (modelData->isHierarchical()) {
+        if (viewWidgetData->tree) {
+          viewWidgetData->tree->setModel(modelData->model());
 
-        modelData->sm = viewWidgetData->table->selectionModel();
+          modelData->setSelectionModel(viewWidgetData->tree->selectionModel());
+        }
+        else
+          modelData->setSelectionModel(nullptr);
+
+        viewWidgetData->stack->setCurrentIndex(0);
       }
-      else
-        modelData->sm = nullptr;
+      else {
+        if (viewWidgetData->table) {
+          viewWidgetData->table->setModel(modelData->model());
 
-      viewWidgetData->stack->setCurrentIndex(1);
+          modelData->setSelectionModel(viewWidgetData->table->selectionModel());
+        }
+        else
+          modelData->setSelectionModel(nullptr);
+
+        viewWidgetData->stack->setCurrentIndex(1);
+      }
     }
-  }
 
-  updateModelDetails(modelData);
+    updateModelDetails(modelData);
+  }
 }
 
 void
@@ -1620,57 +1640,59 @@ void
 CQChartsTest::
 updateModelDetails(const CQChartsModelData *modelData)
 {
-  CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind);
-  assert(viewWidgetData);
+  if (isGui()) {
+    CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
+    assert(viewWidgetData);
 
-  CQChartsModelDetails details;
+    CQChartsModelDetails details;
 
-  if (viewWidgetData->stack->currentIndex() == 0) {
-    if (viewWidgetData->tree)
-      viewWidgetData->tree->calcDetails(details);
+    if (viewWidgetData->stack->currentIndex() == 0) {
+      if (viewWidgetData->tree)
+        viewWidgetData->tree->calcDetails(details);
+    }
+    else {
+      if (viewWidgetData->table)
+        viewWidgetData->table->calcDetails(details);
+    }
+
+    //---
+
+    QString text = "<b></b>";
+
+    text += "<table padding=\"4\">";
+    text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(details.numColumns());
+    text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(details.numRows());
+    text += "</table>";
+
+    text += "<br>";
+
+    text += "<table padding=\"4\">";
+    text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
+
+    for (int i = 0; i < details.numColumns(); ++i) {
+      const CQChartsModelColumnDetails &columnDetails = details.columnDetails(i);
+
+      text += "<tr>";
+
+      text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
+               arg(i + 1).
+               arg(columnDetails.typeName()).
+               arg(columnDetails.dataName(columnDetails.minValue()).toString()).
+               arg(columnDetails.dataName(columnDetails.maxValue()).toString());
+
+      if (columnDetails.isMonotonic())
+        text += QString("<td>%1</td>").
+          arg(columnDetails.isIncreasing() ? "Increasing" : "Decreasing");
+      else
+        text += QString("<td></td>");
+
+      text += "</tr>";
+    }
+
+    text += "</table>";
+
+    viewWidgetData->detailsText->setHtml(text);
   }
-  else {
-    if (viewWidgetData->table)
-      viewWidgetData->table->calcDetails(details);
-  }
-
-  //---
-
-  QString text = "<b></b>";
-
-  text += "<table padding=\"4\">";
-  text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(details.numColumns());
-  text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(details.numRows());
-  text += "</table>";
-
-  text += "<br>";
-
-  text += "<table padding=\"4\">";
-  text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
-
-  for (int i = 0; i < details.numColumns(); ++i) {
-    const CQChartsModelColumnDetails &columnDetails = details.columnDetails(i);
-
-    text += "<tr>";
-
-    text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
-             arg(i + 1).
-             arg(columnDetails.typeName()).
-             arg(columnDetails.dataName(columnDetails.minValue()).toString()).
-             arg(columnDetails.dataName(columnDetails.maxValue()).toString());
-
-    if (columnDetails.isMonotonic())
-      text += QString("<td>%1</td>").
-        arg(columnDetails.isIncreasing() ? "Increasing" : "Decreasing");
-    else
-      text += QString("<td></td>");
-
-    text += "</tr>";
-  }
-
-  text += "</table>";
-
-  viewWidgetData->detailsText->setHtml(text);
 }
 
 void

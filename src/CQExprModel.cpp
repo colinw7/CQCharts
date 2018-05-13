@@ -1,5 +1,6 @@
 #include <CQExprModel.h>
 #include <CQExprModelExpr.h>
+#include <CQExprModelFn.h>
 #include <CQBaseModel.h>
 
 //------
@@ -17,6 +18,13 @@ CQExprModel::
 ~CQExprModel()
 {
   delete expr_;
+}
+
+void
+CQExprModel::
+addFunction(const QString &name, CQExprModelFn *fn)
+{
+  expr_->addFunction(name.toStdString(), "...", fn);
 }
 
 bool

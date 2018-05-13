@@ -110,28 +110,46 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 
   // get min value
   QVariant minValue(const CQChartsNameValues &nameValues) const override {
-    auto p = nameValues.find("min");
-    if (p == nameValues.end()) return QVariant();
+    double r;
 
-    bool ok;
-
-    double r = CQChartsUtil::toReal((*p).second, ok);
-    if (! ok) return QVariant();
+    if (! rmin(nameValues, r))
+      return QVariant();
 
     return QVariant(r);
   }
 
   // get min value
   QVariant maxValue(const CQChartsNameValues &nameValues) const override {
-    auto p = nameValues.find("max");
-    if (p == nameValues.end()) return QVariant();
+    double r;
+
+    if (! rmax(nameValues, r))
+      return QVariant();
+
+    return QVariant(r);
+  }
+
+  bool rmin(const CQChartsNameValues &nameValues, double &r) const {
+    auto p = nameValues.find("min");
+    if (p == nameValues.end()) return false;
 
     bool ok;
 
-    double r = CQChartsUtil::toReal((*p).second, ok);
-    if (! ok) return QVariant();
+    r = CQChartsUtil::toReal((*p).second, ok);
+    if (! ok) return false;
 
-    return QVariant(r);
+    return true;
+  }
+
+  bool rmax(const CQChartsNameValues &nameValues, double &r) const {
+    auto p = nameValues.find("max");
+    if (p == nameValues.end()) return false;
+
+    bool ok;
+
+    r = CQChartsUtil::toReal((*p).second, ok);
+    if (! ok) return false;
+
+    return true;
   }
 };
 

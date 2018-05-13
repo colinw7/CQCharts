@@ -66,7 +66,7 @@ genColumnTypes()
     // if inderminate (no values or all reals or integers) then use real if any reals,
     // integer if any integers and string if no values.
     if (columnTypeData.type == Type::NONE) {
-      if     (columnTypeData.numReal)
+      if      (columnTypeData.numReal)
         columnTypeData.type = Type::REAL;
       else if (columnTypeData.numInt)
         columnTypeData.type = Type::INTEGER;
@@ -152,11 +152,13 @@ columnType(int column) const
   return (*p).second.type;
 }
 
-void
+bool
 CQBaseModel::
 setColumnType(int column, Type type)
 {
   columnDatas_[column].type = type;
+
+  return true;
 }
 
 QString
@@ -171,11 +173,55 @@ columnTypeValues(int column) const
   return (*p).second.typeValues;
 }
 
-void
+bool
 CQBaseModel::
 setColumnTypeValues(int column, const QString &str)
 {
   columnDatas_[column].typeValues = str;
+
+  return true;
+}
+
+QVariant
+CQBaseModel::
+columnMin(int column) const
+{
+  auto p = columnDatas_.find(column);
+
+  if (p == columnDatas_.end())
+    return QVariant();
+
+  return (*p).second.min;
+}
+
+bool
+CQBaseModel::
+setColumnMin(int column, const QVariant &v)
+{
+  columnDatas_[column].min = v;
+
+  return true;
+}
+
+QVariant
+CQBaseModel::
+columnMax(int column) const
+{
+  auto p = columnDatas_.find(column);
+
+  if (p == columnDatas_.end())
+    return QVariant();
+
+  return (*p).second.max;
+}
+
+bool
+CQBaseModel::
+setColumnMax(int column, const QVariant &v)
+{
+  columnDatas_[column].max = v;
+
+  return true;
 }
 
 void
@@ -195,14 +241,16 @@ headerData(int section, Qt::Orientation orientation, int role) const
     return QAbstractItemModel::headerData(section, orientation, role);
 
   if (role == static_cast<int>(Role::Type)) {
-    Type type = columnType(section);
-
-    return QVariant((int) type);
+    return QVariant((int) columnType(section));
   }
   else if (role == static_cast<int>(Role::TypeValues)) {
-    QString str = columnTypeValues(section);
-
-    return QVariant(str);
+    return QVariant(columnTypeValues(section));
+  }
+  else if (role == static_cast<int>(Role::Min)) {
+    return columnMin(section);
+  }
+  else if (role == static_cast<int>(Role::Max)) {
+    return columnMax(section);
   }
 
   return QVariant();
@@ -219,19 +267,20 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     bool ok;
 
     Type type = variantToType(value, &ok);
+    if (! ok) return false;
 
-    if (ok) {
-      setColumnType(section, type);
-
-      return true;
-    }
+    return setColumnType(section, type);
   }
   else if (role == static_cast<int>(Role::TypeValues)) {
     QString str = value.toString();
 
-    setColumnTypeValues(section, str);
-
-    return true;
+    return setColumnTypeValues(section, str);
+  }
+  else if (role == static_cast<int>(Role::Min)) {
+    return setColumnMin(section, value);
+  }
+  else if (role == static_cast<int>(Role::Max)) {
+    return setColumnMax(section, value);
   }
 
   return false;

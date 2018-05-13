@@ -106,7 +106,7 @@ class CQChartsCmds : public QObject {
 
   void foldModel(CQChartsModelData *modelData, const QString &str);
 
-  void sortModel(ModelP &mode, const QString &args);
+  void sortModel(ModelP &model, const QString &args);
 
   //---
 
@@ -167,8 +167,8 @@ class CQChartsCmds : public QObject {
   static void setDataLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void getDataLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
-  static void themeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void paletteLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void setThemeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void setPaletteLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
   static void textShapeLCmd    (ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void arrowShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
@@ -203,8 +203,8 @@ class CQChartsCmds : public QObject {
   void setDataCmd(const Args &args);
   void getDataCmd(const Args &args);
 
-  void themeCmd  (const Args &args);
-  void paletteCmd(const Args &args);
+  void setThemeCmd  (const Args &args);
+  void setPaletteCmd(const Args &args);
 
   void textShapeCmd    (const Args &args);
   void arrowShapeCmd   (const Args &args);
@@ -269,6 +269,7 @@ class CQChartsCmds : public QObject {
   CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name) const;
 
   void setCmdRc(int rc);
+  void setCmdRc(double rc);
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
 

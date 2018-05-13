@@ -221,6 +221,7 @@ class CQChartsPlot : public QObject {
   // key
   Q_PROPERTY(bool           keyVisible          READ isKeyVisible        WRITE setKeyVisible     )
 
+  // scaled fonts
   Q_PROPERTY(double         minScaleFontSize    READ minScaleFontSize    WRITE setMinScaleFontSize)
   Q_PROPERTY(double         maxScaleFontSize    READ maxScaleFontSize    WRITE setMaxScaleFontSize)
 

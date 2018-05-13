@@ -109,7 +109,7 @@ updateWidget(const QPoint &gpos)
 
 bool
 CQChartsViewToolTip::
-isHideKey(int key, Qt::KeyboardModifiers mod)
+isHideKey(int key, Qt::KeyboardModifiers mod) const
 {
   if (key == Qt::Key_Tab || key == Qt::Key_Backtab)
     return false;

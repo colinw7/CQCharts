@@ -107,7 +107,6 @@ CQChartsUtil.cpp \
 CQCsvModel.cpp \
 CQTsvModel.cpp \
 CQJsonModel.cpp \
-CJson.cpp \
 CQGnuDataModel.cpp \
 CQSortModel.cpp \
 CQExprModel.cpp \
@@ -122,7 +121,6 @@ CQFilename.cpp \
 CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
-COSNaN.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -221,7 +219,6 @@ HEADERS += \
 ../include/CQCsvModel.h \
 ../include/CQTsvModel.h \
 ../include/CQJsonModel.h \
-../include/CJson.h \
 ../include/CQGnuDataModel.h \
 ../include/CQSortModel.h \
 ../include/CQExprModel.h \
@@ -239,7 +236,6 @@ CQFilename.h \
 CListLink.h \
 CStateIterator.h \
 ../include/CUnixFile.h \
-../include/COSNaN.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj
@@ -251,6 +247,9 @@ INCLUDEPATH += \
 ../../CQPropertyView/include \
 ../../CQUtil/include \
 ../../CExpr/include \
+../../CJson/include \
+../../CTsv/include \
+../../CCsv/include \
 ../../CImageLib/include \
 ../../CFont/include \
 ../../CReadLine/include \

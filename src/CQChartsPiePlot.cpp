@@ -18,7 +18,7 @@ addParameters()
   // name, desc, propName, attributes, default
   addColumnParameter ("label"      , "Label"       , "labelColumn"   , "", 0);
   addColumnsParameter("data"       , "Data"        , "dataColumns"   , "", "1");
-  addColumnsParameter("width"      , "Width"       , "radiusColumn"  , "optional");
+  addColumnParameter ("radius"     , "Radius"      , "radiusColumn"  , "optional");
   addColumnParameter ("group"      , "Group"       , "groupColumn"   , "optional");
   addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   , "optional");
   addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn", "optional");

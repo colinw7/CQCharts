@@ -211,7 +211,6 @@ inline long toInt(const QString &str, bool &ok) {
 
   if (*p != '\0') {
     ok = false;
-
     return integer;
   }
 
@@ -630,6 +629,14 @@ inline QString toString(const QVariant &var, bool &ok) {
   return str;
 }
 
+inline bool toString(const QVariant &var, QString &str) {
+  bool ok;
+
+  str = toString(var, ok);
+
+  return ok;
+}
+
 inline double toReal(const QVariant &var, bool &ok) {
   ok = true;
 
@@ -676,6 +683,26 @@ inline long toInt(const QVariant &var, bool &ok) {
 //------
 
 bool evalExpr(int row, const QString &expr, double &r);
+
+//------
+
+inline int nameToRole(const QString &name) {
+  if      (name == "display"       ) return Qt::DisplayRole;
+  else if (name == "user"          ) return Qt::UserRole;
+  else if (name == "edit"          ) return Qt::EditRole;
+  else if (name == "font"          ) return Qt::FontRole;
+  else if (name == "size_hint"     ) return Qt::SizeHintRole;
+  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
+  else if (name == "background"    ) return Qt::BackgroundRole;
+  else if (name == "foreground"    ) return Qt::ForegroundRole;
+  else if (name == "text_alignment") return Qt::TextAlignmentRole;
+  else if (name == "text_color"    ) return Qt::TextColorRole;
+  else if (name == "decoration"    ) return Qt::DecorationRole;
+  else if (name == "type"          ) return (int) CQBaseModel::Role::Type;
+  else if (name == "type_values"   ) return (int) CQBaseModel::Role::TypeValues;
+
+  return -1;
+}
 
 //------
 
@@ -755,6 +782,10 @@ inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn 
 
 //------
 
+inline bool isReal(const QVariant &var) {
+  return (var.type() == QVariant::Double);
+}
+
 inline double varToReal(const QVariant &var, bool &ok) {
   ok = true;
 
@@ -762,6 +793,10 @@ inline double varToReal(const QVariant &var, bool &ok) {
     return var.toReal();
 
   return toReal(var, ok);
+}
+
+inline bool isInt(const QVariant &var) {
+  return (var.type() == QVariant::Int);
 }
 
 inline long varToInt(const QVariant &var, bool &ok) {
@@ -775,9 +810,15 @@ inline long varToInt(const QVariant &var, bool &ok) {
 
 //---
 
-inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  ok = true;
+inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+  QVariant var = model->data(ind, role);
 
+  ok = var.isValid();
+
+  return var;
+}
+
+inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = model->data(ind, Qt::EditRole);
 
   if (! var.isValid())
@@ -786,6 +827,27 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bo
   ok = var.isValid();
 
   return var;
+}
+
+inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                           const QModelIndex &parent, int role, bool &ok) {
+  if      (col.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, col.column(), parent);
+
+    return modelValue(model, ind, role, ok);
+  }
+  else if (col.type() == CQChartsColumn::Type::VHEADER) {
+    ok = true;
+
+    QVariant var = model->headerData(row, Qt::Vertical, role);
+
+    return var;
+  }
+  else {
+    ok = false;
+
+    return "";
+  }
 }
 
 inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
@@ -939,8 +1001,10 @@ inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
 }
 
 inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
+  int role = Qt::DisplayRole;
+
   for (int i = 0; i < model->columnCount(); ++i) {
-    QVariant var1 = model->headerData(i, Qt::Horizontal, Qt::DisplayRole);
+    QVariant var1 = model->headerData(i, Qt::Horizontal, role);
 
     QString name1;
 

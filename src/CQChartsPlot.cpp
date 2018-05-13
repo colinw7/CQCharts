@@ -13,7 +13,6 @@
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsRotatedText.h>
-#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
@@ -1605,6 +1604,8 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
       objsSelected[selectObj] = false;
 
     //---
+
+    //selectObj->selectPress();
 
     emit objPressed  (selectObj);
     emit objIdPressed(selectObj->id());

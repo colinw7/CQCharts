@@ -130,17 +130,17 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
  public:
   struct Point {
-    QPointF     p;
-    int         i;
-    QModelIndex ind;
-    QString     symbolSizeStr;
-    QString     fontSizeStr;
-    QString     colorStr;
+    QPointF       p;
+    int           i;
+    QModelIndex   ind;
+    QString       symbolSizeStr;
+    QString       fontSizeStr;
+    CQChartsColor color;
 
     Point(double x, double y, int i, const QModelIndex &ind, const QString &symbolSizeStr="",
-          const QString &fontSizeStr="", const QString &colorStr="") :
+          const QString &fontSizeStr="", const CQChartsColor &color=CQChartsColor()) :
      p(x, y), i(i), ind(ind), symbolSizeStr(symbolSizeStr), fontSizeStr(fontSizeStr),
-     colorStr(colorStr) {
+     color(color) {
     }
   };
 
@@ -271,8 +271,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   void addNameValue(const QString &name, double x, double y, int row, const QModelIndex &xind,
                     const QString &symbolSizeStr, const QString &fontSizeStr,
-                    const QString &colorStr) {
-    nameValues_[name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, colorStr);
+                    const CQChartsColor &color=CQChartsColor()) {
+    nameValues_[name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, color);
   }
 
   const NameValues &nameValues() const { return nameValues_; }

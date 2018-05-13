@@ -7,6 +7,7 @@
 #include <set>
 
 class CQExprModelExpr;
+class CQExprModelFn;
 
 class CQExprModel : public QAbstractProxyModel {
   Q_OBJECT
@@ -26,8 +27,14 @@ class CQExprModel : public QAbstractProxyModel {
 
   //---
 
+  QAbstractItemModel *model() const { return model_; }
+
   int debug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
+
+  //---
+
+  void addFunction(const QString &name, CQExprModelFn *fn);
 
   //---
 
