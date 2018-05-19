@@ -1,63 +1,109 @@
 #ifndef CQExprModelFn_H
 #define CQExprModelFn_H
 
-#include <CExpr.h>
 #include <CQExprModel.h>
 #include <QVariant>
 
+#ifdef CQExprModel_USE_CEXPR
+#include <CExpr.h>
+
 class CQExprModelFn : public CExprFunctionObj {
  public:
-  CQExprModelFn(CQExprModel *model) :
-   model_(model) {
+  using Vars = std::vector<QVariant>;
+
+ public:
+  CQExprModelFn(CQExprModel *model, const QString &name) :
+   model_(model), name_(name) {
   }
 
-  bool checkColumn(int col) const {
-    if (col < 0 || col >= model_->columnCount()) return false;
+  virtual ~CQExprModelFn() { }
 
-    return true;
+  CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
+    expr_ = expr;
+
+    Vars vars;
+
+    for (auto &value : values)
+      vars.push_back(valueToVariant(value));
+
+    QVariant var = exec(vars);
+
+    return variantToValue(var);
   }
 
-  bool checkIndex(int row, int col) const {
-    if (row < 0 || row >= model_->rowCount   ()) return false;
-    if (col < 0 || col >= model_->columnCount()) return false;
+  virtual QVariant exec(const Vars &vars) = 0;
 
-    return true;
+  bool checkColumn(int col) const { return model_->checkColumn(col); }
+
+  bool checkIndex(int row, int col) const { return model_->checkIndex(row, col); }
+
+  CExprValuePtr variantToValue(const QVariant &var) {
+    return variantToValue(expr_, var);
   }
 
-  CExprValuePtr variantToValue(CExpr *expr, const QVariant &var) const {
-    if (! var.isValid())
-      return CExprValuePtr();
+  CExprValuePtr variantToValue(CExpr *expr, const QVariant &var) {
+    CExprValuePtr value;
 
-    if      (var.type() == QVariant::Double)
-      return expr->createRealValue(var.toDouble());
-    else if (var.type() == QVariant::Int)
-      return expr->createIntegerValue((long) var.toInt());
-    else
-      return expr->createStringValue(var.toString().toStdString());
+    (void) model_->variantToValue(expr, var, value);
+
+    return value;
   }
 
-  QVariant valueToVariant(CExpr *, const CExprValuePtr &value) const {
-    if      (value->isRealValue()) {
-      double r = 0.0;
-      value->getRealValue(r);
-      return QVariant(r);
-    }
-    else if (value->isIntegerValue()) {
-      long i = 0;
-      value->getIntegerValue(i);
-      return QVariant((int) i);
-    }
-    else {
-      std::string s;
-      value->getStringValue(s);
-      return QVariant(s.c_str());
-    }
+  QVariant valueToVariant(const CExprValuePtr &value) const {
+    return valueToVariant(expr_, value);
+  }
 
-    return QVariant();
+  QVariant valueToVariant(CExpr *expr, const CExprValuePtr &value) const {
+    return model_->valueToVariant(expr, value);
   }
 
  protected:
-  CQExprModel *model_ { nullptr };
+  CQExprModel*   model_ { nullptr };
+  QString        name_;
+  mutable CExpr* expr_  { nullptr };
 };
+#elif CQExprModel_USE_TCL
+#include <tcl.h>
+
+class CQExprModelFn {
+ public:
+  using Vars = std::vector<QVariant>;
+
+ public:
+  CQExprModelFn(CQExprModel *model, const QString &name) :
+   model_(model), name_(name) {
+    Tcl_CreateCommand(model->tclInterp(), (char *) name_.toLatin1().constData(),
+                      (Tcl_CmdProc *) &CQExprModelFn::commandProc,
+                      (ClientData) this, nullptr);
+  }
+
+  virtual ~CQExprModelFn() { }
+
+  static int commandProc(ClientData clientData, Tcl_Interp *, int argc, const char **argv) {
+    CQExprModelFn *command = (CQExprModelFn *) clientData;
+
+    Vars vars;
+
+    for (int i = 1; i < argc; ++i)
+      vars.push_back(QVariant(QString(argv[i])));
+
+    QVariant var = command->exec(vars);
+
+    command->model_->setTclResult(var);
+
+    return TCL_OK;
+  }
+
+  virtual QVariant exec(const Vars &vars) = 0;
+
+  bool checkColumn(int col) const { return model_->checkColumn(col); }
+
+  bool checkIndex(int row, int col) const { return model_->checkIndex(row, col); }
+
+ protected:
+  CQExprModel* model_ { nullptr };
+  QString      name_;
+};
+#endif
 
 #endif

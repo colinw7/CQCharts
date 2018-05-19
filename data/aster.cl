@@ -1,7 +1,7 @@
 load_model -csv data/aster_data.csv -first_line_header
 modelId = _rc
 
-get_view -current
+get_view -name id
 viewId = _rc
 
 get_property -model $modelId -name num_rows

@@ -1,11 +1,11 @@
-#include <CQChartsExprModel.h>
+#include <CQChartsExprDataModel.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
 #include <CQExprModel.h>
 #include <cassert>
 
-CQChartsExprModel::
-CQChartsExprModel(CQCharts *charts, int nc, int nr) :
+CQChartsExprDataModel::
+CQChartsExprDataModel(CQCharts *charts, int nc, int nr) :
  CQChartsModelFilter(charts)
 {
   QModelIndex parent; // OK ?
@@ -25,8 +25,8 @@ CQChartsExprModel(CQCharts *charts, int nc, int nr) :
   setSourceModel(exprModel_);
 }
 
-CQChartsExprModel::
-~CQChartsExprModel()
+CQChartsExprDataModel::
+~CQChartsExprDataModel()
 {
   delete exprModel_;
   delete dataModel_;

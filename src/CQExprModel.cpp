@@ -1,7 +1,19 @@
 #include <CQExprModel.h>
-#include <CQExprModelExpr.h>
 #include <CQExprModelFn.h>
-#include <CQBaseModel.h>
+
+#include <CQStrParse.h>
+#include <COSNaN.h>
+#include <COSRand.h>
+#include <iostream>
+
+class CQExprModelNameFn : public CQExprModelFn {
+ public:
+  CQExprModelNameFn(CQExprModel *model, const QString &name) :
+   CQExprModelFn(model, name) {
+  }
+
+  QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
+};
 
 //------
 
@@ -9,7 +21,15 @@ CQExprModel::
 CQExprModel(QAbstractItemModel *model) :
  model_(model)
 {
-  expr_ = new CQExprModelExpr(this);
+#ifdef CQExprModel_USE_CEXPR
+  expr_ = new CExpr;
+#elif CQExprModel_USE_TCL
+  interp_ = Tcl_CreateInterp();
+#else
+  assert(false);
+#endif
+
+  addBuiltinFunctions();
 
   setSourceModel(model);
 }
@@ -17,35 +37,78 @@ CQExprModel(QAbstractItemModel *model) :
 CQExprModel::
 ~CQExprModel()
 {
+#ifdef CQExprModel_USE_CEXPR
   delete expr_;
+#elif CQExprModel_USE_TCL
+  Tcl_DeleteInterp(interp_);
+
+  for (auto &tclCmd : tclCmds_)
+    delete tclCmd;
+#else
+  assert(false);
+#endif
+}
+
+void
+CQExprModel::
+addBuiltinFunctions()
+{
+#ifdef CQExprModel_USE_CEXPR
+  expr_->createRealVariable("pi" , M_PI);
+  expr_->createRealVariable("NaN", COSNaN::get_nan());
+#endif
+
+  addFunction("column"   , new CQExprModelNameFn(this, "column"   ));
+  addFunction("row"      , new CQExprModelNameFn(this, "row"      ));
+  addFunction("cell"     , new CQExprModelNameFn(this, "cell"     ));
+  addFunction("setColumn", new CQExprModelNameFn(this, "setColumn"));
+  addFunction("setRow"   , new CQExprModelNameFn(this, "setRow"   ));
+  addFunction("setCell"  , new CQExprModelNameFn(this, "setCell"  ));
+  addFunction("header"   , new CQExprModelNameFn(this, "header"   ));
+  addFunction("setHeader", new CQExprModelNameFn(this, "setHeader"));
+  addFunction("type"     , new CQExprModelNameFn(this, "type"     ));
+  addFunction("setType"  , new CQExprModelNameFn(this, "setType"  ));
+  addFunction("map"      , new CQExprModelNameFn(this, "map"      ));
+  addFunction("bucket"   , new CQExprModelNameFn(this, "bucket"   ));
+  addFunction("norm"     , new CQExprModelNameFn(this, "norm"     ));
+  addFunction("key"      , new CQExprModelNameFn(this, "key"      ));
+  addFunction("rand"     , new CQExprModelNameFn(this, "rand"     ));
 }
 
 void
 CQExprModel::
 addFunction(const QString &name, CQExprModelFn *fn)
 {
-  expr_->addFunction(name.toStdString(), "...", fn);
+  assert(name.length());
+
+#ifdef CQExprModel_USE_CEXPR
+  expr_->addFunction(name.toLatin1().constData(), "...", fn);
+#elif CQExprModel_USE_TCL
+  tclCmds_.push_back(fn);
+#else
+  assert(false);
+#endif
 }
 
 bool
 CQExprModel::
-addExtraColumn(const QString &exprStr)
+addExtraColumn(const QString &exprStr, int &column)
 {
   QString header, expr;
 
   if (! decodeExpression(exprStr, header, expr))
     return false;
 
-  return addExtraColumn(header, expr);
+  return addExtraColumn(header, expr, column);
 }
 
 bool
 CQExprModel::
-addExtraColumn(const QString &header, const QString &expr)
+addExtraColumn(const QString &header, const QString &expr, int &column)
 {
-  int nc = columnCount(QModelIndex());
+  nc_ = columnCount(QModelIndex());
 
-  beginInsertColumns(QModelIndex(), nc, nc);
+  beginInsertColumns(QModelIndex(), nc_, nc_);
 
   //---
 
@@ -59,15 +122,17 @@ addExtraColumn(const QString &header, const QString &expr)
   // init calculated values in separate array
   ExtraColumn &extraColumn = extraColumns_[ecolumn];
 
-  extraColumn.values.resize(rowCount());
+  nr_ = rowCount();
 
-  for (int r = 0; r < rowCount(); ++r)
+  extraColumn.values.resize(nr_);
+
+  for (int r = 0; r < nr_; ++r)
     extraColumn.values[r] = QVariant();
 
   // calculate new values
   extraColumn.function = Function::ADD;
 
-  calcColumn(nc, ecolumn);
+  calcColumn(nc_, ecolumn);
 
   extraColumn.function = Function::EVAL;
 
@@ -78,6 +143,8 @@ addExtraColumn(const QString &header, const QString &expr)
 
   endInsertColumns();
 
+  column = columnCount(QModelIndex()) - 1;
+
   return true;
 }
 
@@ -85,7 +152,9 @@ bool
 CQExprModel::
 removeExtraColumn(int column)
 {
-  int numNonExtra = columnCount() - numExtraColumns();
+  nc_ = columnCount();
+
+  int numNonExtra = nc_ - numExtraColumns();
 
   int ecolumn = column - numNonExtra;
 
@@ -120,8 +189,10 @@ bool
 CQExprModel::
 assignExtraColumn(const QString &header, int column, const QString &expr)
 {
+  nc_ = columnCount();
+
   // set new expression and ensure all column values calculated
-  int numNonExtra = columnCount() - numExtraColumns();
+  int numNonExtra = nc_ - numExtraColumns();
 
   int ecolumn = column - numNonExtra;
 
@@ -133,9 +204,11 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   // store calculated values in separate array
   ExtraColumn &extraColumn = extraColumns_[ecolumn];
 
-  extraColumn.values.resize(rowCount());
+  nr_ = rowCount();
 
-  for (int r = 0; r < rowCount(); ++r)
+  extraColumn.values.resize(nr_);
+
+  for (int r = 0; r < nr_; ++r)
     extraColumn.values[r] = extraColumn.variantMap[r];
 
   // set new expression and ensure all column values calculated
@@ -155,8 +228,8 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
 
   //---
 
-  QModelIndex index1 = index(0             , column, QModelIndex());
-  QModelIndex index2 = index(rowCount() - 1, column, QModelIndex());
+  QModelIndex index1 = index(0      , column, QModelIndex());
+  QModelIndex index2 = index(nr_ - 1, column, QModelIndex());
 
   emit dataChanged(index1, index2);
 
@@ -167,8 +240,11 @@ void
 CQExprModel::
 calcColumn(int column, int ecolumn)
 {
+  nr_ = rowCount();
+  nc_ = columnCount();
+
   // ensure all values are evaluated
-  for (int r = 0; r < rowCount(); ++r) {
+  for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
     currentCol_ = column;
 
@@ -180,16 +256,19 @@ bool
 CQExprModel::
 processExpr(const QString &expr)
 {
+  nr_ = rowCount();
+  nc_ = columnCount();
+
   bool rc = true;
 
-  QString expr1 = expr_->replaceNumericColumns(expr, -1, -1);
+  QString expr1 = replaceNumericColumns(expr, -1, -1);
 
-  for (int r = 0; r < rowCount(); ++r) {
+  for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
 
-    CExprValuePtr value;
+    QVariant var;
 
-    if (! expr_->evaluateExpression(expr1.toStdString(), value)) {
+    if (! evaluateExpression(expr1, var)) {
       rc = false;
       continue;
     }
@@ -225,7 +304,9 @@ columnRange(int column, double &minVal, double &maxVal) const
     return true;
   }
 
-  for (int r = 0; r < rowCount(); ++r) {
+  nr_ = rowCount();
+
+  for (int r = 0; r < nr_; ++r) {
     QModelIndex ind = index(r, column, QModelIndex());
 
     QVariant var = data(ind, Qt::DisplayRole);
@@ -261,7 +342,9 @@ columnRange(int column, int &minVal, int &maxVal) const
     return true;
   }
 
-  for (int r = 0; r < rowCount(); ++r) {
+  nr_ = rowCount();
+
+  for (int r = 0; r < nr_; ++r) {
     QModelIndex ind = index(r, column, QModelIndex());
 
     QVariant var = data(ind, Qt::DisplayRole);
@@ -464,49 +547,42 @@ getExtraColumnValue(int row, int column, int ecolumn) const
 
     QString expr = extraColumn.expr;
 
-    expr = expr_->replaceNumericColumns(expr, row, column);
+    expr = replaceNumericColumns(expr, row, column);
 
     QVariant var;
 
-    CExprValuePtr value;
+    if (evaluateExpression(expr, var)) {
+      std::string str;
 
-    if (expr_->evaluateExpression(expr.toStdString(), value)) {
-      if (value.isValid()) {
-        std::string str;
+      if      (var.type() == QVariant::Double) {
+        double real = var.value<double>();
 
-        double real    = 0.0;
-        long   integer = 0;
+        bool isInt = CQBaseModel::isInteger(real);
 
-        if      (value->getRealValue(real)) {
-          var = QVariant(real);
-
-          bool isInt = CQBaseModel::isInteger(real);
-
-          if      (extraColumn.type == CQBaseModel::Type::NONE) {
-            if (CQBaseModel::isInteger(real))
-              extraColumn.type = CQBaseModel::Type::INTEGER;
-            else
-              extraColumn.type = CQBaseModel::Type::REAL;
-          }
-          else if (extraColumn.type == CQBaseModel::Type::INTEGER) {
-            if (! isInt)
-              extraColumn.type = CQBaseModel::Type::REAL;
-          }
-          else if (extraColumn.type == CQBaseModel::Type::REAL) {
-          }
-        }
-        else if (value->getIntegerValue(integer)) {
-          var = QVariant((int) integer);
-
-          if (extraColumn.type == CQBaseModel::Type::NONE)
+        if      (extraColumn.type == CQBaseModel::Type::NONE) {
+          if (CQBaseModel::isInteger(real))
             extraColumn.type = CQBaseModel::Type::INTEGER;
+          else
+            extraColumn.type = CQBaseModel::Type::REAL;
         }
-        else if (value->getStringValue(str)) {
-          var = QVariant(QString(str.c_str()));
-
-          if (extraColumn.type == CQBaseModel::Type::NONE)
-            extraColumn.type = CQBaseModel::Type::STRING;
+        else if (extraColumn.type == CQBaseModel::Type::INTEGER) {
+          if (! isInt)
+            extraColumn.type = CQBaseModel::Type::REAL;
         }
+        else if (extraColumn.type == CQBaseModel::Type::REAL) {
+        }
+      }
+      else if (var.type() == QVariant::Int) {
+        if (extraColumn.type == CQBaseModel::Type::NONE)
+          extraColumn.type = CQBaseModel::Type::INTEGER;
+      }
+      else if (var.type() == QVariant::Bool) {
+        if (extraColumn.type == CQBaseModel::Type::NONE)
+          extraColumn.type = CQBaseModel::Type::INTEGER;
+      }
+      else {
+        if (extraColumn.type == CQBaseModel::Type::NONE)
+          extraColumn.type = CQBaseModel::Type::STRING;
       }
     }
 
@@ -680,4 +756,881 @@ CQExprModel::
 mapFromSource(const QModelIndex &index) const
 {
   return createIndex(index.row(), index.column(), index.internalPointer());
+}
+
+//------
+
+class CQExprModelCmdValues {
+ public:
+  using Values = std::vector<QVariant>;
+
+ public:
+  CQExprModelCmdValues(const Values &values) :
+   values_(values) {
+    eind_ = numValues() - 1;
+  }
+
+  int ind() const { return ind_; }
+
+  int numValues() const { return values_.size(); }
+
+  QVariant popValue() { QVariant value = values_.back(); values_.pop_back(); return value; }
+
+  bool getInt(int &i) {
+    if (ind_ > eind_) return false;
+
+    bool ok;
+
+    int i1 = values_[ind_].toInt(&ok);
+
+    if (ok) {
+      i = i1;
+
+      ++ind_;
+    }
+
+    return ok;
+  }
+
+  bool getReal(double &r) {
+    if (ind_ > eind_) return false;
+
+    bool ok;
+
+    double r1 = values_[ind_].toDouble(&ok);
+
+    if (ok) {
+      r = r1;
+
+      ++ind_;
+    }
+
+    return ok;
+  }
+
+  bool getStr(QString &s) {
+    if (ind_ > eind_) return false;
+
+    s = values_[ind_++].toString();
+
+    return true;
+  }
+
+  //---
+
+ private:
+  Values values_;
+  int    ind_  { 0 };
+  int    eind_ { 0 };
+};
+
+QVariant
+CQExprModel::
+processCmd(const QString &name, const Values &values)
+{
+  if      (name == "column"   ) return columnCmd   (values);
+  else if (name == "row"      ) return rowCmd      (values);
+  else if (name == "cell"     ) return cellCmd     (values);
+  else if (name == "setColumn") return setColumnCmd(values);
+  else if (name == "setRow"   ) return setRowCmd   (values);
+  else if (name == "setCell"  ) return setCellCmd  (values);
+  else if (name == "header"   ) return headerCmd   (values);
+  else if (name == "setHeader") return setHeaderCmd(values);
+  else if (name == "type"     ) return typeCmd     (values);
+  else if (name == "setType"  ) return setTypeCmd  (values);
+  else if (name == "rand"     ) return randCmd     (values);
+  else if (name == "map"      ) return mapCmd      (values);
+  else if (name == "bucket"   ) return bucketCmd   (values);
+  else if (name == "norm"     ) return normCmd     (values);
+  else if (name == "key"      ) return keyCmd      (values);
+  else if (name == "rand"     ) return randCmd     (values);
+  else                          return QVariant(false);
+}
+
+//------
+
+// column(), column(col) : get column value
+QVariant
+CQExprModel::
+columnCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkIndex(row, col)) {
+    QString defStr;
+
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
+  }
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  return data(ind, Qt::DisplayRole);
+}
+
+// row(), row(row) : get row value
+QVariant
+CQExprModel::
+rowCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(row);
+
+  //---
+
+  if (! checkIndex(row, col)) {
+    QString defStr;
+
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
+  }
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  return data(ind, Qt::DisplayRole);
+}
+
+// cell(), cell(row,column) : get cell value
+QVariant
+CQExprModel::
+cellCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(row);
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkIndex(row, col)) {
+    QString defStr;
+
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
+  }
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  return data(ind, Qt::DisplayRole);
+}
+
+// setColumn(value), setColumn(col,value) : set column value
+QVariant
+CQExprModel::
+setColumnCmd(const Values &values)
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() < 1)
+    return QVariant();
+
+  QVariant var = cmdValues.popValue();
+
+  //---
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant();
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  bool b = setData(ind, var, Qt::DisplayRole);
+
+  return QVariant(b);
+}
+
+// setRow(value), setRow(row,value), setRow(row,col,value) : set row value
+QVariant
+CQExprModel::
+setRowCmd(const Values &values)
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() < 1)
+    return QVariant();
+
+  QVariant var = cmdValues.popValue();
+
+  //---
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(row);
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant();
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  bool b = setData(ind, var, Qt::DisplayRole);
+
+  return QVariant(b);
+}
+
+// setCell(value), setCell(row,col,value) : set row value
+QVariant
+CQExprModel::
+setCellCmd(const Values &values)
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() < 1)
+    return QVariant();
+
+  QVariant var = cmdValues.popValue();
+
+  //---
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(row);
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant();
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  bool b = setData(ind, var, Qt::DisplayRole);
+
+  return QVariant(b);
+}
+
+// header(), header(col)
+QVariant
+CQExprModel::
+headerCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkColumn(col))
+    return QVariant();
+
+  //---
+
+  return headerData(col, Qt::Horizontal, Qt::DisplayRole);
+}
+
+// setHeader(s), setHeader(col,s)
+QVariant
+CQExprModel::
+setHeaderCmd(const Values &values)
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() < 1)
+    return QVariant();
+
+  QVariant var = cmdValues.popValue();
+
+  //---
+
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkColumn(col))
+    return QVariant();
+
+  //---
+
+  return setHeaderData(col, Qt::Horizontal, var, Qt::DisplayRole);
+}
+
+// type(), type(col)
+QVariant
+CQExprModel::
+typeCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkColumn(col))
+    return QVariant();
+
+  //---
+
+  int role = static_cast<int>(CQBaseModel::Role::Type);
+
+  QVariant var = headerData(col, Qt::Horizontal, role);
+
+  QString typeName = CQBaseModel::typeName((CQBaseModel::Type) var.toInt());
+
+  return QVariant(typeName);
+}
+
+// setType(s), setType(col,s)
+QVariant
+CQExprModel::
+setTypeCmd(const Values &values)
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() < 1)
+    return QVariant();
+
+  QVariant var = cmdValues.popValue();
+
+  //---
+
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  //---
+
+  if (! checkColumn(col))
+    return QVariant();
+
+  //---
+
+  int role = static_cast<int>(CQBaseModel::Role::Type);
+
+  CQBaseModel::Type type = CQBaseModel::nameType(var.toString());
+
+  QVariant typeVar(static_cast<int>(type));
+
+  bool b = setHeaderData(col, Qt::Horizontal, typeVar, role);
+
+  return QVariant(b);
+}
+
+// map(), map(max), map(min,max)
+QVariant
+CQExprModel::
+mapCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  int row = currentRow();
+
+  double min = 0.0, max = 1.0;
+
+  if (cmdValues.numValues() == 0)
+    return QVariant(row);
+
+  if (cmdValues.numValues() == 1)
+    (void) cmdValues.getReal(max);
+
+  (void) cmdValues.getReal(min);
+  (void) cmdValues.getReal(max);
+
+  //---
+
+  // scale row number to 0->1
+  double x = 0.0;
+
+  if (rowCount())
+    x = (1.0*row)/rowCount();
+
+  // map 0->1 -> min->max
+  double x1 = x*(max - min) + min;
+
+  return QVariant(x1);
+}
+
+// bucket(col), bucket(col,min,max)
+QVariant
+CQExprModel::
+bucketCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() == 0)
+    return QVariant(0);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  if (col < 0 || col >= columnCount())
+    return QVariant(0.0);
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant();
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  QVariant var = data(ind, Qt::DisplayRole);
+
+  //---
+
+  if      (var.type() == QVariant::Double) {
+    double value = var.toDouble();
+
+    double minVal = 0;
+    double maxVal = 1;
+    int    scale  = 1;
+
+    if      (cmdValues.numValues() == 2) {
+      columnRange(col, minVal, maxVal);
+
+      (void) cmdValues.getInt(scale);
+    }
+    else if (cmdValues.numValues() == 3) {
+      (void) cmdValues.getReal(minVal);
+      (void) cmdValues.getReal(maxVal);
+    }
+    else {
+      return QVariant(0.0);
+    }
+
+    double d = maxVal - minVal;
+
+    int ind = 0;
+
+    if (d) {
+      double s = (value - minVal)/d;
+
+      ind = int(s*scale);
+    }
+
+    return QVariant(ind);
+  }
+  else if (var.type() == QVariant::Int) {
+    return QVariant(var.toInt());
+  }
+  else {
+    QString str = var.toString();
+
+    int ind = columnStringBucket(col, str);
+
+    return QVariant(ind);
+  }
+}
+
+// norm(col), norm(col,scale)
+QVariant
+CQExprModel::
+normCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  if (cmdValues.numValues() == 0)
+    return QVariant(0.0);
+
+  int row = currentRow();
+  int col = currentCol();
+
+  (void) cmdValues.getInt(col);
+
+  if (col < 0 || col >= columnCount())
+    return QVariant(0.0);
+
+  double scale = 1.0;
+
+  (void) cmdValues.getReal(scale);
+
+  //---
+
+  if (! checkIndex(row, col))
+    return QVariant();
+
+  //---
+
+  QModelIndex ind = index(row, col, QModelIndex());
+
+  QVariant var = data(ind, Qt::DisplayRole);
+
+  //---
+
+  if      (var.type() == QVariant::Double) {
+    double value = var.toDouble();
+
+    double minVal = 0;
+    double maxVal = 1;
+
+    columnRange(col, minVal, maxVal);
+
+    if (cmdValues.numValues() <= 3)
+      (void) cmdValues.getReal(maxVal);
+    else {
+      (void) cmdValues.getReal(minVal);
+      (void) cmdValues.getReal(maxVal);
+    }
+
+    double d = maxVal - minVal;
+    double s = 0.0;
+
+    if (d)
+      s = scale*(value - minVal)/d;
+
+    return QVariant(s);
+  }
+  else if (var.type() == QVariant::Int) {
+    int value = var.toInt();
+
+    int minVal = 0;
+    int maxVal = 1;
+
+    columnRange(col, minVal, maxVal);
+
+    if (cmdValues.numValues() <= 3)
+      (void) cmdValues.getInt(maxVal);
+    else {
+      (void) cmdValues.getInt(minVal);
+      (void) cmdValues.getInt(maxVal);
+    }
+
+    int    d = maxVal - minVal;
+    double s = 0.0;
+
+    if (d)
+      s = scale*double(value - minVal)/d;
+
+    return QVariant(s);
+  }
+  else {
+    return QVariant(0.0);
+  }
+}
+
+QVariant
+CQExprModel::
+keyCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  QString s;
+
+  QString key;
+
+  while (cmdValues.getStr(s)) {
+    if (s.size())
+      key += ":" + s;
+    else
+      key = s;
+  }
+
+  return QVariant(key);
+}
+
+QVariant
+CQExprModel::
+randCmd(const Values &values) const
+{
+  CQExprModelCmdValues cmdValues(values);
+
+  double min = 0.0;
+  double max = 1.0;
+
+  (void) cmdValues.getReal(min);
+  (void) cmdValues.getReal(max);
+
+  double r = COSRand::randIn(min, max);
+
+  return QVariant(r);
+}
+
+//---
+
+bool
+CQExprModel::
+evaluateExpression(const QString &expr, QVariant &var) const
+{
+#ifdef CQExprModel_USE_CEXPR
+  CExprValuePtr value;
+
+  if (! expr_->evaluateExpression(expr.toStdString(), value))
+    return false;
+
+  if (! value.isValid())
+    return false;
+
+  std::string str;
+
+  double real    = 0.0;
+  long   integer = 0;
+
+  if      (value->getRealValue(real))
+    var = QVariant(real);
+  else if (value->getIntegerValue(integer))
+    var = QVariant((int) integer);
+  else
+    var = QVariant(QString(str.c_str()));
+
+  return true;
+#elif CQExprModel_USE_TCL
+  QString cmd = "expr {" + expr + "}";
+
+  int rc = Tcl_EvalEx(interp_, cmd.toLatin1().constData(), -1, 0);
+
+  if (rc != TCL_OK) {
+    Tcl_Obj *options = Tcl_GetReturnOptions(interp_, rc);
+    Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
+    Tcl_Obj *stackTrace;
+    Tcl_IncrRefCount(key);
+    Tcl_DictObjGet(NULL, options, key, &stackTrace);
+    Tcl_DecrRefCount(key);
+    int len = 0;
+    std::cerr << Tcl_GetStringFromObj(stackTrace, &len);
+    Tcl_DecrRefCount(options);
+    return false;
+  }
+
+  return getTclResult(var);
+#else
+  assert(false && &expr && &var);
+
+  return false;
+#endif
+}
+
+bool
+CQExprModel::
+checkColumn(int col) const
+{
+  if (col < 0 || col >= columnCount()) return false;
+
+  return true;
+}
+
+bool
+CQExprModel::
+checkIndex(int row, int col) const
+{
+  if (row < 0 || row >= rowCount   ()) return false;
+  if (col < 0 || col >= columnCount()) return false;
+
+  return true;
+}
+
+bool
+CQExprModel::
+variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const
+{
+#ifdef CQExprModel_USE_CEXPR
+  if (! var.isValid()) {
+    value = CExprValuePtr();
+    return false;
+  }
+
+  if      (var.type() == QVariant::Double)
+    value = expr->createRealValue(var.toDouble());
+  else if (var.type() == QVariant::Int)
+    value = expr->createIntegerValue((long) var.toInt());
+  else if (var.type() == QVariant::Bool)
+    value = expr->createBooleanValue(var.toBool());
+  else
+    value = expr->createStringValue(var.toString().toStdString());
+
+  return true;
+#else
+  assert(false && expr && &var && &value);
+  return false;
+#endif
+}
+
+QVariant
+CQExprModel::
+valueToVariant(CExpr *, const CExprValuePtr &value) const
+{
+#ifdef CQExprModel_USE_CEXPR
+  if      (value->isRealValue()) {
+    double r = 0.0;
+    value->getRealValue(r);
+    return QVariant(r);
+  }
+  else if (value->isIntegerValue()) {
+    long i = 0;
+    value->getIntegerValue(i);
+    return QVariant((int) i);
+  }
+  else {
+    std::string s;
+    value->getStringValue(s);
+    return QVariant(s.c_str());
+  }
+
+  return QVariant();
+#else
+  assert(false && &value);
+  return QVariant();
+#endif
+}
+
+bool
+CQExprModel::
+setTclResult(const QVariant &rc)
+{
+#ifdef CQExprModel_USE_TCL
+  if      (rc.type() == QVariant::Double) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc.value<double>()));
+  }
+  else if (rc.type() == QVariant::Int) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc.value<int>()));
+  }
+  else if (rc.type() == QVariant::Bool) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewBooleanObj(rc.value<double>()));
+  }
+  else {
+    QString str = rc.toString();
+
+    Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(str.toLatin1().constData(), -1));
+  }
+
+  return true;
+#else
+  assert(false && &rc);
+  return false;
+#endif
+}
+
+bool
+CQExprModel::
+getTclResult(QVariant &var) const
+{
+#ifdef CQExprModel_USE_TCL
+  Tcl_Obj *res = Tcl_GetObjResult(interp_);
+
+  double real    = 0.0;
+  int    integer = 0;
+
+  Tcl_IncrRefCount(res);
+
+  if      (Tcl_GetIntFromObj(interp_, res, &integer) == TCL_OK)
+    var = QVariant(integer);
+  else if (Tcl_GetDoubleFromObj(interp_, res, &real) == TCL_OK)
+    var = QVariant(real);
+  else {
+    int len = 0;
+
+    char *str = Tcl_GetStringFromObj(res, &len);
+
+    std::string cstr(str, len);
+
+    var = QVariant(QString(cstr.c_str()));
+  }
+
+  Tcl_DecrRefCount(res);
+
+  return true;
+#else
+  assert(false && &var);
+  return false;
+#endif
+}
+
+QString
+CQExprModel::
+replaceNumericColumns(const QString &expr, int row, int column) const
+{
+  CQStrParse parse(expr);
+
+  QString expr1;
+
+  while (! parse.eof()) {
+    // @<n> get column value (current row)
+    if (parse.isChar('@')) {
+      parse.skipChar();
+
+      if (parse.isDigit()) {
+        int pos = parse.getPos();
+
+        while (parse.isDigit())
+          parse.skipChar();
+
+        QString str = parse.getBefore(pos);
+
+        int column1 = str.toInt();
+
+        expr1 += QString("column(%1)").arg(column1);
+      }
+      else if (parse.isChar('c')) {
+        parse.skipChar();
+
+        expr1 += QString("%1").arg(column);
+      }
+      else if (parse.isChar('r')) {
+        parse.skipChar();
+
+        expr1 += QString("%1").arg(row);
+      }
+      else if (parse.isChar('n')) {
+        parse.skipChar();
+
+        if (parse.isChar('c')) {
+          parse.skipChar();
+
+          expr1 += QString("%1").arg(nc_);
+        }
+        else if (parse.isChar('r')) {
+          parse.skipChar();
+
+          expr1 += QString("%1").arg(nr_);
+        }
+        else {
+          expr1 += "@nc";
+        }
+      }
+      else
+        expr1 += "@";
+    }
+    else
+      expr1 += parse.getChar();
+  }
+
+  return expr1;
 }

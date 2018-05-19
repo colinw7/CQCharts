@@ -1,4 +1,6 @@
 #include <CQChartsCmds.h>
+#include <CQChartsCmdsArgs.h>
+
 #include <CQChartsModelData.h>
 #include <CQChartsExpr.h>
 #include <CQCharts.h>
@@ -16,7 +18,7 @@
 #include <CQChartsTsv.h>
 #include <CQChartsJson.h>
 #include <CQChartsGnuData.h>
-#include <CQChartsExprModel.h>
+#include <CQChartsExprDataModel.h>
 #include <CQChartsDataModel.h>
 #include <CQChartsUtil.h>
 
@@ -25,7 +27,6 @@
 #include <CQDataModel.h>
 #include <CQFoldedModel.h>
 #include <CQSortModel.h>
-#include <CQAlignEdit.h>
 
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -33,6 +34,10 @@
 
 #ifdef CQ_CHARTS_CEIL
 #include <CCeil.h>
+#endif
+
+#ifdef CQ_CHARTS_TCL
+#include <tcl.h>
 #endif
 
 #include <QStackedWidget>
@@ -69,6 +74,37 @@ errorMsg(const QString &msg)
 
 }
 
+#ifdef CQ_CHARTS_TCL
+class CQChartsTclCmd {
+ public:
+  using Args = std::vector<QString>;
+
+ public:
+  CQChartsTclCmd(CQChartsCmds *cmds, const std::string &name) :
+   cmds_(cmds) {
+    Tcl_CreateCommand(cmds->tclInterp(), (char *) name.c_str(),
+                      (Tcl_CmdProc *) &CQChartsTclCmd::commandProc,
+                      (ClientData) this, nullptr);
+  }
+
+  static int commandProc(ClientData clientData, Tcl_Interp *, int argc, const char **argv) {
+    CQChartsTclCmd *command = (CQChartsTclCmd *) clientData;
+
+    Args args;
+
+    for (int i = 1; i < argc; ++i)
+      args.push_back(argv[i]);
+
+    command->cmds_->processCmd(argv[0], args);
+
+    return TCL_OK;
+  }
+
+ private:
+  CQChartsCmds *cmds_ { nullptr };
+};
+#endif
+
 //----
 
 CQChartsCmds::
@@ -76,73 +112,149 @@ CQChartsCmds(CQCharts *charts) :
  charts_(charts)
 {
   expr_ = new CExpr;
+
+#ifdef CQ_CHARTS_TCL
+  interp_ = Tcl_CreateInterp();
+#endif
 }
 
 CQChartsCmds::
 ~CQChartsCmds()
 {
+#ifdef CQ_CHARTS_TCL
+  Tcl_DeleteInterp(interp_);
+#endif
+
   delete expr_;
 }
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setCeil(bool b)
+setParserType(const ParserType &type)
 {
-  if (b) {
-    //ClParserInst->setDollarPrefix(true);
+  if (type == ParserType::CEIL) {
+#ifdef CQ_CHARTS_CEIL
+    static bool ceilCmdsAdded;
 
-    ClLanguageMgrInst->init(nullptr, nullptr);
+    if (! ceilCmdsAdded) {
+      //ClParserInst->setDollarPrefix(true);
 
-    // load, process, sort model
-    ClLanguageMgrInst->defineCommand("load_model"   , CQChartsCmds::loadModelLCmd   , this);
-    ClLanguageMgrInst->defineCommand("process_model", CQChartsCmds::processModelLCmd, this);
-    ClLanguageMgrInst->defineCommand("sort_model"   , CQChartsCmds::sortModelLCmd   , this);
+      ClLanguageMgrInst->init(nullptr, nullptr);
 
-    // get/set model
-    ClLanguageMgrInst->defineCommand("set_model", CQChartsCmds::setModelLCmd, this);
-    ClLanguageMgrInst->defineCommand("get_model", CQChartsCmds::getModelLCmd, this);
+      // load, process, sort model
+      ClLanguageMgrInst->defineCommand("load_model"   , CQChartsCmds::loadModelLCmd   , this);
+      ClLanguageMgrInst->defineCommand("process_model", CQChartsCmds::processModelLCmd, this);
+      ClLanguageMgrInst->defineCommand("sort_model"   , CQChartsCmds::sortModelLCmd   , this);
+      ClLanguageMgrInst->defineCommand("export_model" , CQChartsCmds::exportModelLCmd , this);
 
-    // get/set view
-    ClLanguageMgrInst->defineCommand("get_view", CQChartsCmds::getViewLCmd, this);
-    ClLanguageMgrInst->defineCommand("set_view", CQChartsCmds::getViewLCmd, this);
+      // get/set model data
+      ClLanguageMgrInst->defineCommand("set_model", CQChartsCmds::setModelLCmd, this);
+      ClLanguageMgrInst->defineCommand("get_model", CQChartsCmds::getModelLCmd, this);
 
-    // add/remove plot
-    ClLanguageMgrInst->defineCommand("create_plot", CQChartsCmds::createPlotLCmd, this);
-    ClLanguageMgrInst->defineCommand("remove_plot", CQChartsCmds::removePlotLCmd, this);
+      // get/set view data
+      ClLanguageMgrInst->defineCommand("get_view", CQChartsCmds::getViewLCmd, this);
+      ClLanguageMgrInst->defineCommand("set_view", CQChartsCmds::setViewLCmd, this);
 
-    // group/place plots
-    ClLanguageMgrInst->defineCommand("group_plots", CQChartsCmds::groupPlotsLCmd, this);
-    ClLanguageMgrInst->defineCommand("place_plots", CQChartsCmds::placePlotsLCmd, this);
+      // add/remove plot
+      ClLanguageMgrInst->defineCommand("create_plot", CQChartsCmds::createPlotLCmd, this);
+      ClLanguageMgrInst->defineCommand("remove_plot", CQChartsCmds::removePlotLCmd, this);
 
-    // get/set property
-    ClLanguageMgrInst->defineCommand("set_property", CQChartsCmds::setPropertyLCmd, this);
-    ClLanguageMgrInst->defineCommand("get_property", CQChartsCmds::getPropertyLCmd, this);
+      // group/place plots
+      ClLanguageMgrInst->defineCommand("group_plots", CQChartsCmds::groupPlotsLCmd, this);
+      ClLanguageMgrInst->defineCommand("place_plots", CQChartsCmds::placePlotsLCmd, this);
 
-    // get/set data
-    ClLanguageMgrInst->defineCommand("set_data", CQChartsCmds::setDataLCmd, this);
-    ClLanguageMgrInst->defineCommand("get_data", CQChartsCmds::getDataLCmd, this);
+      // get/set property
+      ClLanguageMgrInst->defineCommand("set_property", CQChartsCmds::setPropertyLCmd, this);
+      ClLanguageMgrInst->defineCommand("get_property", CQChartsCmds::getPropertyLCmd, this);
 
-    // annotations
-    ClLanguageMgrInst->defineCommand("text_shape"    , CQChartsCmds::textShapeLCmd    , this);
-    ClLanguageMgrInst->defineCommand("arrow_shape"   , CQChartsCmds::arrowShapeLCmd   , this);
-    ClLanguageMgrInst->defineCommand("rect_shape"    , CQChartsCmds::rectShapeLCmd    , this);
-    ClLanguageMgrInst->defineCommand("ellipse_shape" , CQChartsCmds::ellipseShapeLCmd , this);
-    ClLanguageMgrInst->defineCommand("polygon_shape" , CQChartsCmds::polygonShapeLCmd , this);
-    ClLanguageMgrInst->defineCommand("polyline_shape", CQChartsCmds::polylineShapeLCmd, this);
-    ClLanguageMgrInst->defineCommand("point_shape"   , CQChartsCmds::pointShapeLCmd   , this);
+      // get/set data
+      ClLanguageMgrInst->defineCommand("set_data", CQChartsCmds::setDataLCmd, this);
+      ClLanguageMgrInst->defineCommand("get_data", CQChartsCmds::getDataLCmd, this);
 
-    // theme/palette
-    ClLanguageMgrInst->defineCommand("set_theme"  , CQChartsCmds::setThemeLCmd  , this);
-    ClLanguageMgrInst->defineCommand("set_palette", CQChartsCmds::setPaletteLCmd, this);
+      // annotations
+      ClLanguageMgrInst->defineCommand("text_shape"    , CQChartsCmds::textShapeLCmd    , this);
+      ClLanguageMgrInst->defineCommand("arrow_shape"   , CQChartsCmds::arrowShapeLCmd   , this);
+      ClLanguageMgrInst->defineCommand("rect_shape"    , CQChartsCmds::rectShapeLCmd    , this);
+      ClLanguageMgrInst->defineCommand("ellipse_shape" , CQChartsCmds::ellipseShapeLCmd , this);
+      ClLanguageMgrInst->defineCommand("polygon_shape" , CQChartsCmds::polygonShapeLCmd , this);
+      ClLanguageMgrInst->defineCommand("polyline_shape", CQChartsCmds::polylineShapeLCmd, this);
+      ClLanguageMgrInst->defineCommand("point_shape"   , CQChartsCmds::pointShapeLCmd   , this);
 
-    // connect
-    ClLanguageMgrInst->defineCommand("connect", CQChartsCmds::connectLCmd, this);
+      // theme/palette
+      ClLanguageMgrInst->defineCommand("set_theme"  , CQChartsCmds::setThemeLCmd  , this);
+      ClLanguageMgrInst->defineCommand("set_palette", CQChartsCmds::setPaletteLCmd, this);
 
-    ceil_ = b;
-  }
-}
+      // connect
+      ClLanguageMgrInst->defineCommand("connect", CQChartsCmds::connectLCmd, this);
+
+      ceilCmdsAdded = true;
+    }
+#else
+    errorMsg("Ceil not supported");
+    return;
 #endif
+  }
+  else if (type == ParserType::TCL) {
+#ifdef CQ_CHARTS_TCL
+    static bool tclCmdsAdded;
+
+    if (! tclCmdsAdded) {
+      // load, process, sort model
+      new CQChartsTclCmd(this, "load_model"   );
+      new CQChartsTclCmd(this, "process_model");
+      new CQChartsTclCmd(this, "sort_model"   );
+      new CQChartsTclCmd(this, "export_model" );
+
+      // get/set model data
+      new CQChartsTclCmd(this, "set_model");
+      new CQChartsTclCmd(this, "get_model");
+
+      // get/set view data
+      new CQChartsTclCmd(this, "get_view");
+      new CQChartsTclCmd(this, "set_view");
+
+      // add/remove plot
+      new CQChartsTclCmd(this, "create_plot");
+      new CQChartsTclCmd(this, "remove_plot");
+
+      // group/place plots
+      new CQChartsTclCmd(this, "group_plots");
+      new CQChartsTclCmd(this, "place_plots");
+
+      // get/set property
+      new CQChartsTclCmd(this, "set_property");
+      new CQChartsTclCmd(this, "get_property");
+
+      // get/set data
+      new CQChartsTclCmd(this, "set_data");
+      new CQChartsTclCmd(this, "get_data");
+
+      // annotations
+      new CQChartsTclCmd(this, "text_shape"    );
+      new CQChartsTclCmd(this, "arrow_shape"   );
+      new CQChartsTclCmd(this, "rect_shape"    );
+      new CQChartsTclCmd(this, "ellipse_shape" );
+      new CQChartsTclCmd(this, "polygon_shape" );
+      new CQChartsTclCmd(this, "polyline_shape");
+      new CQChartsTclCmd(this, "point_shape"   );
+
+      // theme/palette
+      new CQChartsTclCmd(this, "set_theme"  );
+      new CQChartsTclCmd(this, "set_palette");
+
+      // connect
+      new CQChartsTclCmd(this, "connect");
+
+      tclCmdsAdded = true;
+    }
+#else
+    errorMsg("Tcl not supported");
+    return;
+#endif
+  }
+
+  parserType_ = type;
+}
 
 bool
 CQChartsCmds::
@@ -152,6 +264,7 @@ processCmd(const QString &cmd, const Args &args)
   if      (cmd == "load_model"   ) { loadModelCmd   (args); }
   else if (cmd == "process_model") { processModelCmd(args); }
   else if (cmd == "sort_model"   ) { sortModelCmd   (args); }
+  else if (cmd == "export_model" ) { exportModelCmd (args); }
 
   // get/set model
   else if (cmd == "set_model") { setModelCmd(args); }
@@ -210,414 +323,6 @@ processCmd(const QString &cmd, const Args &args)
 
 //------
 
-class CQChartsCmdArg {
- public:
-  enum class Type {
-    None,
-    Boolean,
-    Integer,
-    Real,
-    String
-  };
-
- public:
-  CQChartsCmdArg(int ind, const QString &name, Type type, const QString &argDesc="",
-                 const QString &desc="") :
-   ind_(ind), name_(name), type_(type), argDesc_(argDesc), desc_(desc) {
-    if (name_.left(1) == "-") {
-      isOpt_ = true;
-
-      name_ = name_.mid(1);
-    }
-  }
-
-  const QString &name() const { return name_; }
-
-  bool isOpt() const { return isOpt_; }
-
-  Type type() const { return type_; }
-
-  const QString &argDesc() const { return argDesc_; }
-
-  const QString &desc() const { return desc_; }
-
-  bool isRequired() const { return required_; }
-  CQChartsCmdArg &setRequired(bool b=true) { required_ = b; return *this; }
-
-  int groupInd() const { return groupInd_; }
-  void setGroupInd(int i) { groupInd_ = i; }
-
- private:
-  int     ind_ { -1 };
-  QString name_;
-  bool    isOpt_ { false };
-  Type    type_ { Type::None };
-  QString argDesc_;
-  QString desc_;
-  bool    required_ { false };
-  int     groupInd_ { -1 };
-};
-
-class CQChartsCmdGroup {
- public:
-  enum class Type {
-    None,
-    OneOpt,
-    OneReq
-  };
-
- public:
-  CQChartsCmdGroup(int ind, Type type) :
-   ind_(ind), type_(type) {
-  }
-
-  int ind() const { return ind_; }
-
-  bool isRequired() const { return (type_ == Type::OneReq); }
-
- private:
-  int  ind_ { -1 };
-  Type type_ { Type::None };
-};
-
-class CQChartsCmdsArgs {
- public:
-  using Args = std::vector<QString>;
-
-  class Arg {
-   public:
-    Arg(const QString &arg="") :
-     arg_(arg) {
-      isOpt_ = (arg_.length() && arg_[0] == '-');
-    }
-
-    QString str() const { assert(! isOpt_); return arg_; }
-
-    bool isOpt() const { return isOpt_; }
-
-    QString opt() const { assert(isOpt_); return arg_.mid(1); }
-
-   private:
-    QString arg_;
-    bool    isOpt_;
-  };
-
- public:
-  CQChartsCmdsArgs(const QString &cmdName, const Args &argv) :
-   cmdName_(cmdName), argv_(argv), argc_(argv_.size()) {
-  }
-
-  CQChartsCmdGroup &startCmdGroup(CQChartsCmdGroup::Type type) {
-    int ind = cmdGroups_.size() + 1;
-
-    cmdGroups_.emplace_back(ind, type);
-
-    groupInd_ = ind;
-
-    return cmdGroups_.back();
-  }
-
-  void endCmdGroup() {
-    groupInd_ = -1;
-  }
-
-  CQChartsCmdArg &addCmdArg(const QString &name, CQChartsCmdArg::Type type,
-                            const QString &argDesc="", const QString &desc="") {
-    int ind = cmdArgs_.size() + 1;
-
-    cmdArgs_.emplace_back(ind, name, type, argDesc, desc);
-
-    CQChartsCmdArg &cmdArg = cmdArgs_.back();
-
-    cmdArg.setGroupInd(groupInd_);
-
-    return cmdArg;
-  }
-
-  bool eof() const { return (i_ >= argc_); }
-
-  const Arg &getArg() {
-    assert(i_ < argc_);
-
-    lastArg_ = Arg(argv_[i_++]);
-
-    return lastArg_;
-  }
-
-  bool getOptValue(QString &str) {
-    if (eof()) return false;
-
-    str = argv_[i_++];
-
-    return true;
-  }
-
-  bool getOptValue(int &i) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    i = str.toInt(&ok);
-
-    return ok;
-  }
-
-  bool getOptValue(double &r) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    r = str.toDouble(&ok);
-
-    return ok;
-  }
-
-  bool getOptValue(boost::optional<double> &r) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    bool ok;
-
-    r = str.toDouble(&ok);
-
-    return ok;
-  }
-
-  bool getOptValue(bool &b) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    str = str.toLower();
-
-    if      (str == "0" || str == "no"  || str == "false" || str == "off") {
-      b = false; return true;
-    }
-    else if (str == "1" || str == "yes" || str == "true"  || str == "on" ) {
-      b = true; return true;
-    }
-
-    return false;
-  }
-
-  bool getOptValue(CQChartsLength &l) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    l = CQChartsLength(str);
-
-    return true;
-  }
-
-  bool getOptValue(CQChartsPosition &p) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    p = CQChartsPosition(str);
-
-    return true;
-  }
-
-  bool getOptValue(QFont &f) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    f = QFont(str);
-
-    return true;
-  }
-
-  bool getOptValue(CQChartsColor &c) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    c = CQChartsColor(str);
-
-    return true;
-  }
-
-  bool getOptValue(CQChartsLineDash &d) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    d = CQChartsLineDash(str);
-
-    return true;
-  }
-
-  bool getOptValue(Qt::Alignment &a) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    a = CQAlignEdit::fromString(str);
-
-    return true;
-  }
-
-  bool getOptValue(QPolygonF &poly) {
-    QString str;
-
-    if (! getOptValue(str))
-      return false;
-
-    CQStrParse parse(str);
-
-    while (! parse.eof()) {
-      parse.skipSpace();
-
-      QString xstr;
-
-      if (! parse.readNonSpace(xstr))
-        break;
-
-      parse.skipSpace();
-
-      QString ystr;
-
-      if (! parse.readNonSpace(ystr))
-        break;
-
-      parse.skipSpace();
-
-      double x, y;
-
-      if (! CQChartsUtil::toReal(xstr, x))
-        break;
-
-      if (! CQChartsUtil::toReal(ystr, y))
-        break;
-
-      QPointF p(x, y);
-
-      poly << p;
-    }
-
-    return poly.length();
-  }
-
-  void error() {
-    if (lastArg_.isOpt())
-      errorMsg("Invalid option '" + lastArg_.opt() + "'");
-    else
-      errorMsg("Invalid arg '" + lastArg_.str() + "'");
-  }
-
-  void help() const {
-    using GroupIds = std::set<int>;
-
-    GroupIds groupInds;
-
-    std::cerr << cmdName_.toStdString() << "\n";
-
-    for (auto &cmdArg : cmdArgs_) {
-      int groupInd = cmdArg.groupInd();
-
-      if (groupInd > 0) {
-        auto p = groupInds.find(groupInd);
-
-        if (p == groupInds.end()) {
-          std::cerr << "  ";
-
-          helpGroup(groupInd);
-
-          std::cerr << "\n";
-
-          groupInds.insert(groupInd);
-        }
-        else
-          continue;
-      }
-      else {
-        std::cerr << "  ";
-
-        if (! cmdArg.isRequired())
-         std::cerr << "[";
-
-        helpArg(cmdArg);
-
-        if (! cmdArg.isRequired())
-          std::cerr << "]";
-
-        std::cerr << "\n";
-      }
-    }
-  }
-
-  void helpGroup(int groupInd) const {
-    const CQChartsCmdGroup &cmdGroup = cmdGroups_[groupInd - 1];
-
-    if (! cmdGroup.isRequired())
-      std::cerr << "[";
-
-    int i = 0;
-
-    for (auto &cmdArg : cmdArgs_) {
-      int groupInd1 = cmdArg.groupInd();
-
-      if (groupInd1 != groupInd)
-        continue;
-
-      if (i > 0)
-        std::cerr << "|";
-
-      helpArg(cmdArg);
-
-      ++i;
-    }
-
-    if (! cmdGroup.isRequired())
-      std::cerr << "]";
-  }
-
-  void helpArg(const CQChartsCmdArg &cmdArg) const {
-    if (cmdArg.isOpt()) {
-      std::cerr << "-" << cmdArg.name().toStdString();
-
-      if (cmdArg.type() != CQChartsCmdArg::Type::Boolean)
-        std::cerr << " <" << cmdArg.argDesc().toStdString() << ">";
-    }
-    else {
-      std::cerr << "  <" << cmdArg.argDesc().toStdString() << ">";
-    }
-  }
-
- private:
-  using CmdArgs   = std::vector<CQChartsCmdArg>;
-  using CmdGroups = std::vector<CQChartsCmdGroup>;
-
-  QString   cmdName_;
-  Args      argv_;
-  int       i_    { 0 };
-  int       argc_ { 0 };
-  Arg       lastArg_;
-  CmdArgs   cmdArgs_;
-  CmdGroups cmdGroups_;
-  int       groupInd_ { -1 };
-};
-
-//------
-
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
@@ -636,65 +341,69 @@ bool
 CQChartsCmds::
 loadModelCmd(const Args &args)
 {
-  QString           filename;
-  CQChartsFileType  fileType { CQChartsFileType::NONE };
-  CQChartsInputData inputData;
-  QString           columnType;
-  bool              help { false };
-
   CQChartsCmdsArgs argv("load_model", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  // input data type
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-csv" , CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-tsv" , CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-json", CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-data", CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-expr", CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-var" , CQChartsCmdArg::Type::String, "variable name");
+  argv.endCmdGroup();
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  // input data control
+  argv.addCmdArg("-comment_header"     , CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean);
 
-      // input data type
-      if      (opt == "csv" ) fileType = CQChartsFileType::CSV;
-      else if (opt == "tsv" ) fileType = CQChartsFileType::TSV;
-      else if (opt == "json") fileType = CQChartsFileType::JSON;
-      else if (opt == "data") fileType = CQChartsFileType::DATA;
-      else if (opt == "expr") fileType = CQChartsFileType::EXPR;
-      else if (opt == "var" ) {
-        QString str;
+  argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
+  argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
+  argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
 
-        if (argv.getOptValue(str))
-          inputData.vars.push_back(str);
+  argv.addCmdArg("filename", CQChartsCmdArg::Type::String, "file name");
 
-        fileType = CQChartsFileType::VARS;
-      }
+  if (! argv.parse())
+    return false;
 
-      // input data control
-      else if (opt == "comment_header"     ) { inputData.commentHeader = true; }
-      else if (opt == "first_line_header"  ) { inputData.firstLineHeader = true; }
-      else if (opt == "first_column_header") { inputData.firstColumnHeader = true; }
-      else if (opt == "num_rows") {
-        int i;
+  //---
 
-        if (argv.getOptValue(i))
-          inputData.numRows = std::max(i, 1);
-      }
+  CQChartsInputData inputData;
 
-      else if (opt == "filter") { (void) argv.getOptValue(inputData.filter); }
+  CQChartsFileType fileType { CQChartsFileType::NONE };
 
-      else if (opt == "column_type") { (void) argv.getOptValue(columnType); }
+  if      (argv.getParseBool("csv" )) fileType = CQChartsFileType::CSV;
+  else if (argv.getParseBool("tsv" )) fileType = CQChartsFileType::TSV;
+  else if (argv.getParseBool("json")) fileType = CQChartsFileType::JSON;
+  else if (argv.getParseBool("data")) fileType = CQChartsFileType::DATA;
+  else if (argv.getParseBool("expr")) fileType = CQChartsFileType::EXPR;
+  else if (argv.hasParseArg ("var") ) {
+    QStringList strs = argv.getParseStrs("var");
 
-      // TODO: columns (filter to columns)
+    for (int i = 0; i < strs.length(); ++i)
+      inputData.vars.push_back(strs[i]);
 
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else {
-      if (filename == "")
-        filename = arg.str();
-    }
+    fileType = CQChartsFileType::VARS;
   }
 
-  if (help) {
-    return true;
-  }
+  inputData.commentHeader     = argv.getParseBool("comment_header"     );
+  inputData.firstLineHeader   = argv.getParseBool("first_line_header"  );
+  inputData.firstColumnHeader = argv.getParseBool("first_column_header");
+
+  inputData.numRows = std::max(argv.getParseInt("num_rows"), 1);
+
+  inputData.filter = argv.getParseStr("filter");
+
+  QString columnType = argv.getParseStr("column_type");
+
+  // TODO: columns (filter to columns)
+
+  const Args &filenameArgs = argv.getParseArgs();
+
+  QString filename = (! filenameArgs.empty() ? filenameArgs[0] : "");
+
+  //---
 
   if (fileType == CQChartsFileType::NONE) {
     errorMsg("No file type");
@@ -753,33 +462,20 @@ void
 CQChartsCmds::
 setModelCmd(const Args &args)
 {
-  int     ind = -1;
-  QString columnType;
-  QString processExpr;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("set_model", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-ind"        , CQChartsCmdArg::Type::Integer, "model index");
+  argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
+  argv.addCmdArg("-process"    , CQChartsCmdArg::Type::String , "process expression");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "ind"        ) { (void) argv.getOptValue(ind); }
-      else if (opt == "column_type") { (void) argv.getOptValue(columnType); }
-      else if (opt == "process"    ) { (void) argv.getOptValue(processExpr); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  int     ind         = argv.getParseInt("ind", -1);
+  QString columnType  = argv.getParseStr("column_type");
+  QString processExpr = argv.getParseStr("process");
 
   //---
 
@@ -824,39 +520,26 @@ void
 CQChartsCmds::
 getModelCmd(const Args &args)
 {
-  int     ind    = -1;
-  bool    header = false;
-  int     row    = -1;
-  int     column = -1;
-  QString roleName;
-  QString name { "value" };
-  bool    help { false };
-
   CQChartsCmdsArgs argv("get_model", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::Integer, "model index");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number");
+  argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean);
+  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Integer, "row number");
+  argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String , "role id");
+  argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "option name");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "ind"   ) { (void) argv.getOptValue(ind); }
-      else if (opt == "column") { (void) argv.getOptValue(column); }
-      else if (opt == "header") { header = true; }
-      else if (opt == "row"   ) { (void) argv.getOptValue(row); }
-      else if (opt == "role"  ) { (void) argv.getOptValue(roleName); }
-      else if (opt == "name"  ) { (void) argv.getOptValue(name); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  int     ind      = argv.getParseInt ("ind"   , -1);
+  int     column   = argv.getParseInt ("column", -1);
+  bool    header   = argv.getParseBool("header");
+  int     row      = argv.getParseInt ("row"   , -1);
+  QString roleName = argv.getParseStr ("role"  );
+  QString name     = argv.getParseStr ("name"  , "value");
 
   //---
 
@@ -956,18 +639,9 @@ void
 CQChartsCmds::
 processModelCmd(const Args &args)
 {
-  int                   ind = -1;
-  CQExprModel::Function function = CQExprModel::Function::EVAL;
-  QString               header;
-  QString               type;
-  int                   column   = -1;
-  QString               expr;
-  bool                  help { false };
-
   CQChartsCmdsArgs argv("process_model", args);
 
-  argv.addCmdArg("-ind", CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
-
+  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "number");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -976,40 +650,30 @@ processModelCmd(const Args &args)
   argv.addCmdArg("-modify", CQChartsCmdArg::Type::Boolean);
   argv.endCmdGroup();
 
-  argv.addCmdArg("-header", CQChartsCmdArg::Type::String , "label");
-  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String , "number");
-  argv.addCmdArg("expr"   , CQChartsCmdArg::Type::String , "expression");
+  argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "label");
+  argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "number");
+  argv.addCmdArg("expr"   , CQChartsCmdArg::Type::String, "expression");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
-
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "ind"   ) { (void) argv.getOptValue(ind); }
-      else if (opt == "column") { (void) argv.getOptValue(column); }
-      else if (opt == "add"   ) { function = CQExprModel::Function::ADD; }
-      else if (opt == "delete") { function = CQExprModel::Function::DELETE; }
-      else if (opt == "modify") { function = CQExprModel::Function::ASSIGN; }
-      else if (opt == "header") { (void) argv.getOptValue(header); }
-      else if (opt == "type"  ) { (void) argv.getOptValue(type); }
-
-      else if (opt == "help") { help = true; }
-
-      else argv.error();
-    }
-    else {
-      if (expr == "")
-        expr = arg.str();
-      else
-        argv.error();
-    }
-  }
-
-  if (help) {
-    argv.help();
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  int ind    = argv.getParseInt("ind"   , -1);
+  int column = argv.getParseInt("column", -1);
+
+  CQExprModel::Function function = CQExprModel::Function::EVAL;
+
+  if      (argv.getParseBool("add"   )) function = CQExprModel::Function::ADD;
+  else if (argv.getParseBool("delete")) function = CQExprModel::Function::DELETE;
+  else if (argv.getParseBool("modify")) function = CQExprModel::Function::ASSIGN;
+
+  QString header = argv.getParseStr("header");
+  QString type   = argv.getParseStr("type");
+
+  const Args &exprArgs = argv.getParseArgs();
+
+  QString expr = (! exprArgs.empty() ? exprArgs[0] : "");
 
   //---
 
@@ -1033,9 +697,20 @@ processModelCmd(const Args &args)
   }
 
   if      (function == CQExprModel::Function::ADD) {
-    if (! exprModel->addExtraColumn(header, expr)) {
+    int column;
+
+    if (! exprModel->addExtraColumn(header, expr, column)) {
       errorMsg("Failed to add column");
       return;
+    }
+
+    //---
+
+    if (type.length()) {
+      if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
+        errorMsg(QString("Invalid type '" + type + "' for column '%1'").arg(column));
+        return;
+      }
     }
   }
   else if (function == CQExprModel::Function::DELETE) {
@@ -1074,33 +749,20 @@ void
 CQChartsCmds::
 setViewCmd(const Args &args)
 {
-  QString viewName;
-  QString title;
-  QString properties;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("set_view", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "view title");
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "properies name values");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"      ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "title"     ) { (void) argv.getOptValue(title); }
-      else if (opt == "properties") { (void) argv.getOptValue(properties); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName   = argv.getParseStr("view");
+  QString title      = argv.getParseStr("title");
+  QString properties = argv.getParseStr("properties");
 
   //---
 
@@ -1139,41 +801,51 @@ void
 CQChartsCmds::
 getViewCmd(const Args &args)
 {
-  QString viewName;
-  bool    current = false;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("get_view", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name");
+  argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "data");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"   ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "current") { current = true; }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
 
   //---
 
-  if (current) {
-    if (view_)
-      setCmdRc(view_->id());
-    else
-      setCmdRc(QString());
+  QString viewName = argv.getParseStr("view");
+  QString name     = argv.getParseStr("name");
+  QString data     = argv.getParseStr("data");
 
+  //---
+
+  CQChartsView *view = nullptr;
+
+  if (viewName != "")
+    view = getViewByName(viewName);
+  else
+    view = view_;
+
+  if (! view) {
+    errorMsg("Invalid view");
     return;
+  }
+
+  if      (name == "id") {
+    setCmdRc(view->id());
+  }
+  else if (name == "text_width") {
+    QFontMetricsF fm(view->font());
+
+    double w = view->pixelToWindowWidth(fm.width(data));
+
+    setCmdRc(w);
+  }
+  else if (name == "text_height") {
+    QFontMetricsF fm(view->font());
+
+    double h = view->pixelToWindowHeight(fm.height());
+
+    setCmdRc(h);
   }
   else {
     setCmdRc(QString());
@@ -1199,27 +871,12 @@ void
 CQChartsCmds::
 createPlotCmd(const Args &args)
 {
-  int                   modelInd = -1;
-  QString               typeName;
-  QString               filterStr;
-  CQChartsNameValueData nameValueData;
-  QString               columnType;
-  bool                  xintegral { false };
-  bool                  yintegral { false };
-  bool                  xlog { false };
-  bool                  ylog { false };
-  QString               title;
-  QString               properties;
-  QString               positionStr;
-  OptReal               xmin, ymin, xmax, ymax;
-  bool                  help { false };
-
   CQChartsCmdsArgs argv("create_plot", args);
 
   argv.addCmdArg("-model"      , CQChartsCmdArg::Type::Integer, "model_ind");
   argv.addCmdArg("-type"       , CQChartsCmdArg::Type::String , "typr");
   argv.addCmdArg("-where"      , CQChartsCmdArg::Type::String , "filter");
-  argv.addCmdArg("-column"     , CQChartsCmdArg::Type::String , "column");
+  argv.addCmdArg("-columns"    , CQChartsCmdArg::Type::String , "columns");
   argv.addCmdArg("-bool"       , CQChartsCmdArg::Type::String , "name_values");
   argv.addCmdArg("-string"     , CQChartsCmdArg::Type::String , "name_values");
   argv.addCmdArg("-real"       , CQChartsCmdArg::Type::String , "name_values");
@@ -1236,176 +893,121 @@ createPlotCmd(const Args &args)
   argv.addCmdArg("-xmax"       , CQChartsCmdArg::Type::Real   , "x");
   argv.addCmdArg("-ymax"       , CQChartsCmdArg::Type::Real   , "y");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  if (! argv.parse())
+    return;
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  //---
 
-      // model ind
-      if      (opt == "model") { (void) argv.getOptValue(modelInd); }
-      // plot type
-      else if (opt == "type" ) { (void) argv.getOptValue(typeName); }
-      // plot filter
-      else if (opt == "where") { (void) argv.getOptValue(filterStr); }
+  CQChartsNameValueData nameValueData;
 
-      // plot columns
-      else if (opt == "column" || opt == "columns") {
-        QString columnsStr;
+  int     modelInd    = argv.getParseInt    ("model", -1);
+  QString typeName    = argv.getParseStr    ("type");
+  QString filterStr   = argv.getParseStr    ("where");
+  QString columnType  = argv.getParseStr    ("column_type");
+  bool    xintegral   = argv.getParseBool   ("xintegral");
+  bool    yintegral   = argv.getParseBool   ("yintegral");
+  bool    xlog        = argv.getParseBool   ("xlog");
+  bool    ylog        = argv.getParseBool   ("ylog");
+  QString title       = argv.getParseStr    ("title");
+  QString properties  = argv.getParseStr    ("properties");
+  QString positionStr = argv.getParseStr    ("position");
+  OptReal xmin        = argv.getParseOptReal("xmin");
+  OptReal ymin        = argv.getParseOptReal("ymin");
+  OptReal xmax        = argv.getParseOptReal("xmax");
+  OptReal ymax        = argv.getParseOptReal("ymax");
 
-        if (argv.getOptValue(columnsStr)) {
-          QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
+  // parse plot columns
+  QString columnsStr = argv.getParseStr("columns");
 
-          for (int j = 0; j < strs.size(); ++j) {
-            const QString &nameValue = strs[j];
+  if (columnsStr.length()) {
+    QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
 
-            auto pos = nameValue.indexOf('=');
+    for (int j = 0; j < strs.size(); ++j) {
+      const QString &nameValue = strs[j];
 
-            if (pos >= 0) {
-              auto name  = nameValue.mid(0, pos).simplified();
-              auto value = nameValue.mid(pos + 1).simplified();
+      auto pos = nameValue.indexOf('=');
 
-              nameValueData.values[name] = value;
-            }
-            else {
-              errorMsg("Invalid " + opt + " option '" + arg.str() + "'");
-            }
-          }
-        }
+      if (pos >= 0) {
+        auto name  = nameValue.mid(0, pos).simplified();
+        auto value = nameValue.mid(pos + 1).simplified();
+
+        nameValueData.values[name] = value;
       }
-      // plot bool parameters
-      else if (opt == "bool") {
-        QString nameValue;
-
-        if (argv.getOptValue(nameValue)) {
-          auto pos = nameValue.indexOf('=');
-
-          QString name, value;
-
-          if (pos >= 0) {
-            name  = nameValue.mid(0, pos).simplified();
-            value = nameValue.mid(pos + 1).simplified();
-          }
-          else {
-            name  = nameValue;
-            value = "true";
-          }
-
-          bool ok;
-
-          bool b = stringToBool(value, &ok);
-
-          if (ok)
-            nameValueData.bools[name] = b;
-          else {
-            errorMsg("Invalid -bool option '" + arg.str() + "'");
-          }
-        }
+      else {
+        errorMsg("Invalid -columns option '" + columnsStr + "'");
       }
-      // plot string parameters
-      else if (opt == "string") {
-        QString nameValue;
-
-        if (argv.getOptValue(nameValue)) {
-          auto pos = nameValue.indexOf('=');
-
-          QString name, value;
-
-          if (pos >= 0) {
-            name  = nameValue.mid(0, pos).simplified();
-            value = nameValue.mid(pos + 1).simplified();
-          }
-          else {
-            name  = nameValue;
-            value = "";
-          }
-
-          nameValueData.strings[name] = value;
-        }
-      }
-      // plot real parameters
-      else if (opt == "real") {
-        QString nameValue;
-
-        if (argv.getOptValue(nameValue)) {
-          auto pos = nameValue.indexOf('=');
-
-          QString name;
-          double  value = 0.0;
-
-          if (pos >= 0) {
-            bool ok;
-
-            name  = nameValue.mid(0, pos).simplified();
-            value = nameValue.mid(pos + 1).simplified().toDouble(&ok);
-          }
-          else {
-            name  = nameValue;
-            value = 0.0;
-          }
-
-          nameValueData.reals[name] = value;
-        }
-      }
-
-      // column types
-      else if (opt == "column_type") {
-        (void) argv.getOptValue(columnType);
-      }
-
-      // axis type
-      else if (opt == "xintegral") {
-        xintegral = true;
-      }
-      else if (opt == "yintegral") {
-        yintegral = true;
-      }
-
-      // log scale
-      else if (opt == "xlog") {
-        xlog = true;
-      }
-      else if (opt == "ylog") {
-        ylog = true;
-      }
-
-      // title
-      else if (opt == "title") {
-        (void) argv.getOptValue(title);
-      }
-
-      // plot properties
-      else if (opt == "properties") {
-        (void) argv.getOptValue(properties);
-      }
-
-      // position
-      else if (opt == "position") {
-        (void) argv.getOptValue(positionStr);
-      }
-
-      // data range
-      else if (opt == "xmin") { (void) argv.getOptValue(xmin); }
-      else if (opt == "ymin") { (void) argv.getOptValue(ymin); }
-      else if (opt == "xmax") { (void) argv.getOptValue(xmax); }
-      else if (opt == "ymax") { (void) argv.getOptValue(ymax); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
     }
-    else { argv.error(); }
   }
 
-  if (help) {
-    std::cerr << "create_plot "
-      "[-xintegral] [-yintegral] "
-      "[-xlog] [-ylog] "
-      "[-title <title>] "
-      "[-position <position>] "
-      "[-xmin <xmin>] [-ymin <ymin>] [-xmax <xmax>] [-ymax <ymax>]"
-      "\n";
-    return;
+  // plot bool parameters
+  QString boolStr = argv.getParseStr("bool");
+
+  if (boolStr.length()) {
+    auto pos = boolStr.indexOf('=');
+
+    QString name, value;
+
+    if (pos >= 0) {
+      name  = boolStr.mid(0, pos).simplified();
+      value = boolStr.mid(pos + 1).simplified();
+    }
+    else {
+      name  = boolStr;
+      value = "true";
+    }
+
+    bool ok;
+
+    bool b = stringToBool(value, &ok);
+
+    if (ok)
+      nameValueData.bools[name] = b;
+    else {
+      errorMsg("Invalid -bool option '" + boolStr + "'");
+    }
+  }
+
+  QString stringStr = argv.getParseStr("string");
+
+  // plot string parameters
+  if (stringStr.length()) {
+    auto pos = stringStr.indexOf('=');
+
+    QString name, value;
+
+    if (pos >= 0) {
+      name  = stringStr.mid(0, pos).simplified();
+      value = stringStr.mid(pos + 1).simplified();
+    }
+    else {
+      name  = stringStr;
+      value = "";
+    }
+
+    nameValueData.strings[name] = value;
+  }
+
+  QString realStr = argv.getParseStr("real");
+
+  // plot real parameters
+  if (realStr.length()) {
+    auto pos = realStr.indexOf('=');
+
+    QString name;
+    double  value = 0.0;
+
+    if (pos >= 0) {
+      bool ok;
+
+      name  = realStr.mid(0, pos).simplified();
+      value = realStr.mid(pos + 1).simplified().toDouble(&ok);
+    }
+    else {
+      name  = realStr;
+      value = 0.0;
+    }
+
+    nameValueData.reals[name] = value;
   }
 
   //------
@@ -1530,37 +1132,20 @@ void
 CQChartsCmds::
 removePlotCmd(const Args &args)
 {
-  QString viewName;
-  QString plotName;
-  bool    all = false;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("remove_plot", args);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String , "view_id");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String , "plot_id");
   argv.addCmdArg("-all" , CQChartsCmdArg::Type::Boolean);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
-
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "all" ) { all = true; }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName = argv.getParseStr ("view");
+  QString plotName = argv.getParseStr ("plot");
+  bool    all      = argv.getParseBool("all");
 
   //---
 
@@ -1597,37 +1182,24 @@ void
 CQChartsCmds::
 getPropertyCmd(const Args &args)
 {
-  QString modelId;
-  QString viewName;
-  QString plotName;
-  QString annotationName;
-  QString name;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("get_property", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model name");
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.addCmdArg("-name"      , CQChartsCmdArg::Type::String, "property name");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "model"     ) { (void) argv.getOptValue(modelId); }
-      else if (opt == "view"      ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot"      ) { (void) argv.getOptValue(plotName); }
-      else if (opt == "annotation") { (void) argv.getOptValue(annotationName); }
-      else if (opt == "name"      ) { (void) argv.getOptValue(name); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString modelId        = argv.getParseStr("model");
+  QString viewName       = argv.getParseStr("view");
+  QString plotName       = argv.getParseStr("plot");
+  QString annotationName = argv.getParseStr("annotation");
+  QString name           = argv.getParseStr("name");
 
   //---
 
@@ -1718,69 +1290,73 @@ void
 CQChartsCmds::
 setPropertyCmd(const Args &args)
 {
-  QString viewName;
-  QString plotName;
-  QString annotationName;
-  QString name;
-  QString value;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("set_property", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model name");
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot"      , CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-annotation", CQChartsCmdArg::Type::String, "annotation name");
+  argv.addCmdArg("-name"      , CQChartsCmdArg::Type::String, "property name");
+  argv.addCmdArg("-value"     , CQChartsCmdArg::Type::String, "property view");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"      ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot"      ) { (void) argv.getOptValue(plotName); }
-      else if (opt == "annotation") { (void) argv.getOptValue(annotationName); }
-      else if (opt == "name"      ) { (void) argv.getOptValue(name); }
-      else if (opt == "value"     ) { (void) argv.getOptValue(value); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
 
   //---
 
-  CQChartsView *view = getViewByName(viewName);
-  if (! view) return;
+  QString modelId        = argv.getParseStr("model");
+  QString viewName       = argv.getParseStr("view");
+  QString plotName       = argv.getParseStr("plot");
+  QString annotationName = argv.getParseStr("annotation");
+  QString name           = argv.getParseStr("name");
+  QString value          = argv.getParseStr("value");
 
   //---
 
-  if (plotName != "") {
-    CQChartsPlot *plot = getPlotByName(view, plotName);
-    if (! plot) return;
+  if (modelId != "") {
+    bool ok;
 
-    if (annotationName != "") {
-      CQChartsAnnotation *annotation = plot->getAnnotationByName(annotationName);
-      if (! annotation) return;
+    int ind = modelId.toInt(&ok);
 
-      if (! annotation->setProperty(name, value)) {
-        errorMsg("Failed to set annotation parameter '" + name + "'");
-        return;
-      }
-    }
-    else {
-      if (! plot->setProperty(name, value)) {
-        errorMsg("Failed to set plot parameter '" + name + "'");
-        return;
-      }
+    CQChartsModelData *modelData = getModelData(ind);
+
+    if (modelData) {
+      //CQChartsModelDetails &details = modelData->details();
+
+      // TODO
     }
   }
   else {
-    if (! view->setProperty(name, value)) {
-      errorMsg("Failed to set view parameter '" + name + "'");
-      return;
+    CQChartsView *view = getViewByName(viewName);
+    if (! view) return;
+
+    //---
+
+    if (plotName != "") {
+      CQChartsPlot *plot = getPlotByName(view, plotName);
+      if (! plot) return;
+
+      if (annotationName != "") {
+        CQChartsAnnotation *annotation = plot->getAnnotationByName(annotationName);
+        if (! annotation) return;
+
+        if (! annotation->setProperty(name, value)) {
+          errorMsg("Failed to set annotation parameter '" + name + "'");
+          return;
+        }
+      }
+      else {
+        if (! plot->setProperty(name, value)) {
+          errorMsg("Failed to set plot parameter '" + name + "'");
+          return;
+        }
+      }
+    }
+    else {
+      if (! view->setProperty(name, value)) {
+        errorMsg("Failed to set view parameter '" + name + "'");
+        return;
+      }
     }
   }
 }
@@ -1804,120 +1380,97 @@ void
 CQChartsCmds::
 setThemeCmd(const Args &args)
 {
-  QString                  viewName;
-  CQChartsPaletteColorData paletteData;
-  bool                     help { false };
-
   CQChartsCmdsArgs argv("set_theme", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"           , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-color_type"     , CQChartsCmdArg::Type::String , "color type");
+  argv.addCmdArg("-color_model"    , CQChartsCmdArg::Type::String , "color model");
+  argv.addCmdArg("-red_model"      , CQChartsCmdArg::Type::Integer, "red model");
+  argv.addCmdArg("-green_model"    , CQChartsCmdArg::Type::Integer, "green model");
+  argv.addCmdArg("-blue_model"     , CQChartsCmdArg::Type::Integer, "blue model");
+  argv.addCmdArg("-negate_red"     , CQChartsCmdArg::Type::Boolean, "negate red");
+  argv.addCmdArg("-negate_green"   , CQChartsCmdArg::Type::Boolean, "negate green");
+  argv.addCmdArg("-negate_blue"    , CQChartsCmdArg::Type::Boolean, "negate blue");
+  argv.addCmdArg("-red_min"        , CQChartsCmdArg::Type::Real   , "red min value");
+  argv.addCmdArg("-green_min"      , CQChartsCmdArg::Type::Real   , "green min value");
+  argv.addCmdArg("-blue_min"       , CQChartsCmdArg::Type::Real   , "blue min value");
+  argv.addCmdArg("-red_max"        , CQChartsCmdArg::Type::Real   , "red max value");
+  argv.addCmdArg("-green_max"      , CQChartsCmdArg::Type::Real   , "green max value");
+  argv.addCmdArg("-blue_max"       , CQChartsCmdArg::Type::Real   , "blue max value");
+  argv.addCmdArg("-defined"        , CQChartsCmdArg::Type::String , "defined values");
+  argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
+  argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view") {
-        (void) argv.getOptValue(viewName);
-      }
-      else if (opt == "color_type") {
-        (void) argv.getOptValue(paletteData.colorTypeStr);
-      }
-      else if (opt == "color_model") {
-        (void) argv.getOptValue(paletteData.colorModelStr);
-      }
-      else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
-        int model;
-
-        if (argv.getOptValue(model)) {
-          if      (opt == "redModel"  ) paletteData.redModel   = model;
-          else if (opt == "greenModel") paletteData.greenModel = model;
-          else if (opt == "blueModel" ) paletteData.blueModel  = model;
-        }
-      }
-      else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
-        bool b;
-
-        if (argv.getOptValue(b)) {
-          if      (opt == "negateRed"  ) paletteData.negateRed   = b;
-          else if (opt == "negateGreen") paletteData.negateGreen = b;
-          else if (opt == "negateBlue" ) paletteData.negateBlue  = b;
-        }
-      }
-      else if (opt == "redMin"   || opt == "redMax"   ||
-               opt == "greenMin" || opt == "greenMax" ||
-               opt == "blueMin"  || opt == "blueMax") {
-        double r;
-
-        if (argv.getOptValue(r)) {
-          if      (opt == "redMin"  ) paletteData.redMin   = r;
-          else if (opt == "greenMin") paletteData.greenMin = r;
-          else if (opt == "blueMin" ) paletteData.blueMin  = r;
-          else if (opt == "redMax"  ) paletteData.redMax   = r;
-          else if (opt == "greenMax") paletteData.greenMax = r;
-          else if (opt == "blueMax" ) paletteData.blueMax  = r;
-        }
-      }
-      else if (opt == "defined") {
-        QString str;
-
-        if (argv.getOptValue(str)) {
-          QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-          if (! strs.length())
-            continue;
-
-          double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
-
-          paletteData.definedColors.clear();
-
-          for (int j = 0; j < strs.length(); ++j) {
-            int pos = strs[j].indexOf('=');
-
-            double v = j*dv;
-            QColor c;
-
-            if (pos > 0) {
-              QString lhs = strs[j].mid(0, pos).simplified();
-              QString rhs = strs[j].mid(pos + 1).simplified();
-
-              bool ok;
-
-              v = lhs.toDouble(&ok);
-              c = QColor(rhs);
-            }
-            else
-              c = QColor(strs[j]);
-
-            paletteData.definedColors.push_back(CQChartsDefinedColor(v, c));
-          }
-        }
-      }
-      else if (opt == "get_color") {
-        double r;
-
-        if (argv.getOptValue(r)) {
-          paletteData.getColorFlag  = true;
-          paletteData.getColorValue = r;
-        }
-      }
-      else if (opt == "get_color_scale") {
-        paletteData.getColorScale = true;
-      }
-
-      else if (opt == "help") { help = true; }
-
-      else {
-        argv.error();
-      }
-    }
-    else {
-      argv.error();
-    }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
+
+  //---
+
+  CQChartsPaletteColorData paletteData;
+
+  QString viewName = argv.getParseStr("view");
+
+  paletteData.colorTypeStr  = argv.getParseStr("color_type" , paletteData.colorTypeStr );
+  paletteData.colorModelStr = argv.getParseStr("color_model", paletteData.colorModelStr);
+
+  // alias for redModel, greenModel, blueModel
+  paletteData.redModel   = argv.getParseOptInt("red_model"  );
+  paletteData.greenModel = argv.getParseOptInt("green_model");
+  paletteData.blueModel  = argv.getParseOptInt("blue_model" );
+
+  // alias for negateRedm negateGreenm negateBlue
+  paletteData.negateRed  = argv.getParseOptBool("negate_red"  );
+  paletteData.negateGreen= argv.getParseOptBool("negate_green");
+  paletteData.negateBlue = argv.getParseOptBool("negate_blue" );
+
+  // alias for redMin, greenMin, blueMin, redMax, greenMax, blue_max
+  paletteData.redMin   = argv.getParseOptReal("red_min"  );
+  paletteData.greenMin = argv.getParseOptReal("green_min");
+  paletteData.blueMin  = argv.getParseOptReal("green_min");
+
+  paletteData.redMax   = argv.getParseOptReal("red_max"  );
+  paletteData.greenMax = argv.getParseOptReal("green_max");
+  paletteData.blueMax  = argv.getParseOptReal("green_max");
+
+  QString definedStr = argv.getParseStr("defined");
+
+  if (definedStr.length()) {
+    QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
+
+    if (strs.length()) {
+      double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
+
+      paletteData.definedColors.clear();
+
+      for (int j = 0; j < strs.length(); ++j) {
+        int pos = strs[j].indexOf('=');
+
+        double v = j*dv;
+        QColor c;
+
+        if (pos > 0) {
+          QString lhs = strs[j].mid(0, pos).simplified();
+          QString rhs = strs[j].mid(pos + 1).simplified();
+
+          bool ok;
+
+          v = lhs.toDouble(&ok);
+          c = QColor(rhs);
+        }
+        else
+          c = QColor(strs[j]);
+
+        paletteData.definedColors.push_back(CQChartsDefinedColor(v, c));
+      }
+    }
   }
+
+  if (argv.hasParseArg("get_color")) {
+    paletteData.getColorFlag  = true;
+    paletteData.getColorValue = argv.getParseReal("get_color");
+  }
+
+  paletteData.getColorScale = argv.getParseBool("get_color_scale");
 
   //---
 
@@ -1959,132 +1512,97 @@ void
 CQChartsCmds::
 setPaletteCmd(const Args &args)
 {
-  QString                  viewName;
-  CQChartsPaletteColorData paletteData;
-  bool                     help { false };
-
   CQChartsCmdsArgs argv("set_palette", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"           , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-color_type"     , CQChartsCmdArg::Type::String , "color type");
+  argv.addCmdArg("-color_model"    , CQChartsCmdArg::Type::String , "color model");
+  argv.addCmdArg("-red_model"      , CQChartsCmdArg::Type::Integer, "red model");
+  argv.addCmdArg("-green_model"    , CQChartsCmdArg::Type::Integer, "green model");
+  argv.addCmdArg("-blue_model"     , CQChartsCmdArg::Type::Integer, "blue model");
+  argv.addCmdArg("-negate_red"     , CQChartsCmdArg::Type::Boolean, "negate red");
+  argv.addCmdArg("-negate_green"   , CQChartsCmdArg::Type::Boolean, "negate green");
+  argv.addCmdArg("-negate_blue"    , CQChartsCmdArg::Type::Boolean, "negate blue");
+  argv.addCmdArg("-red_min"        , CQChartsCmdArg::Type::Real   , "red min value");
+  argv.addCmdArg("-green_min"      , CQChartsCmdArg::Type::Real   , "green min value");
+  argv.addCmdArg("-blue_min"       , CQChartsCmdArg::Type::Real   , "blue min value");
+  argv.addCmdArg("-red_max"        , CQChartsCmdArg::Type::Real   , "red max value");
+  argv.addCmdArg("-green_max"      , CQChartsCmdArg::Type::Real   , "green max value");
+  argv.addCmdArg("-blue_max"       , CQChartsCmdArg::Type::Real   , "blue max value");
+  argv.addCmdArg("-defined"        , CQChartsCmdArg::Type::String , "defined values");
+  argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
+  argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view") {
-        (void) argv.getOptValue(viewName);
-      }
-      else if (opt == "color_type") {
-        (void) argv.getOptValue(paletteData.colorTypeStr);
-      }
-      else if (opt == "color_model") {
-        (void) argv.getOptValue(paletteData.colorModelStr);
-      }
-      else if (opt == "redModel" || opt == "greenModel" || opt == "blueModel") {
-        int model = -1;
-
-        if (! argv.getOptValue(model)) {
-          errorMsg("Invalid model number");
-          continue;
-        }
-
-        if      (opt == "redModel"  ) paletteData.redModel   = model;
-        else if (opt == "greenModel") paletteData.greenModel = model;
-        else if (opt == "blueModel" ) paletteData.blueModel  = model;
-      }
-      else if (opt == "negateRed" || opt == "negateGreen" || opt == "negateBlue") {
-        bool b = false;
-
-        if (! argv.getOptValue(b)) {
-          errorMsg("Invalid negate bool");
-          continue;
-        }
-
-        if      (opt == "negateRed"  ) paletteData.negateRed   = b;
-        else if (opt == "negateGreen") paletteData.negateGreen = b;
-        else if (opt == "negateBlue" ) paletteData.negateBlue  = b;
-      }
-      else if (opt == "redMin"   || opt == "redMax"   ||
-               opt == "greenMin" || opt == "greenMax" ||
-               opt == "blueMin"  || opt == "blueMax") {
-        double r = 0.0;
-
-        if (! argv.getOptValue(r)) {
-          errorMsg("Invalid min/max value");
-          continue;
-        }
-
-        if      (opt == "redMin"  ) paletteData.redMin   = r;
-        else if (opt == "greenMin") paletteData.greenMin = r;
-        else if (opt == "blueMin" ) paletteData.blueMin  = r;
-        else if (opt == "redMax"  ) paletteData.redMax   = r;
-        else if (opt == "greenMax") paletteData.greenMax = r;
-        else if (opt == "blueMax" ) paletteData.blueMax  = r;
-      }
-      else if (opt == "defined") {
-        QString str;
-
-        (void) argv.getOptValue(str);
-
-        QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-        if (! strs.length())
-          continue;
-
-        double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
-
-        paletteData.definedColors.clear();
-
-        for (int j = 0; j < strs.length(); ++j) {
-          int pos = strs[j].indexOf('=');
-
-          double v = j*dv;
-          QColor c;
-
-          if (pos > 0) {
-            QString lhs = strs[j].mid(0, pos).simplified();
-            QString rhs = strs[j].mid(pos + 1).simplified();
-
-            bool ok;
-
-            v = lhs.toDouble(&ok);
-            c = QColor(rhs);
-          }
-          else
-            c = QColor(strs[j]);
-
-          paletteData.definedColors.push_back(CQChartsDefinedColor(v, c));
-        }
-      }
-      else if (opt == "get_color") {
-        double r;
-
-        if (! argv.getOptValue(r)) {
-          errorMsg("Missing color value");
-          continue;
-        }
-
-        paletteData.getColorFlag  = true;
-        paletteData.getColorValue = r;
-      }
-      else if (opt == "get_color_scale") {
-        paletteData.getColorScale = true;
-      }
-
-      else if (opt == "help") { help = true; }
-
-      else {
-        argv.error();
-      }
-    }
-    else {
-      argv.error();
-    }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
+
+  //---
+
+  CQChartsPaletteColorData paletteData;
+
+  QString viewName = argv.getParseStr("view");
+
+  paletteData.colorTypeStr  = argv.getParseStr("color_type" , paletteData.colorTypeStr );
+  paletteData.colorModelStr = argv.getParseStr("color_model", paletteData.colorModelStr);
+
+  // alias for redModel, greenModel, blueModel
+  paletteData.redModel   = argv.getParseOptInt("red_model"  );
+  paletteData.greenModel = argv.getParseOptInt("green_model");
+  paletteData.blueModel  = argv.getParseOptInt("blue_model" );
+
+  // alias for negateRedm negateGreenm negateBlue
+  paletteData.negateRed  = argv.getParseOptBool("negate_red"  );
+  paletteData.negateGreen= argv.getParseOptBool("negate_green");
+  paletteData.negateBlue = argv.getParseOptBool("negate_blue" );
+
+  // alias for redMin, greenMin, blueMin, redMax, greenMax, blue_max
+  paletteData.redMin   = argv.getParseOptReal("red_min"  );
+  paletteData.greenMin = argv.getParseOptReal("green_min");
+  paletteData.blueMin  = argv.getParseOptReal("green_min");
+
+  paletteData.redMax   = argv.getParseOptReal("red_max"  );
+  paletteData.greenMax = argv.getParseOptReal("green_max");
+  paletteData.blueMax  = argv.getParseOptReal("green_max");
+
+  QString definedStr = argv.getParseStr("defined");
+
+  if (definedStr.length()) {
+    QStringList strs = definedStr.split(" ", QString::SkipEmptyParts);
+
+    if (strs.length()) {
+      double dv = (strs.length() > 1 ? 1.0/(strs.length() - 1) : 0.0);
+
+      paletteData.definedColors.clear();
+
+      for (int j = 0; j < strs.length(); ++j) {
+        int pos = strs[j].indexOf('=');
+
+        double v = j*dv;
+        QColor c;
+
+        if (pos > 0) {
+          QString lhs = strs[j].mid(0, pos).simplified();
+          QString rhs = strs[j].mid(pos + 1).simplified();
+
+          bool ok;
+
+          v = lhs.toDouble(&ok);
+          c = QColor(rhs);
+        }
+        else
+          c = QColor(strs[j]);
+
+        paletteData.definedColors.push_back(CQChartsDefinedColor(v, c));
+      }
+    }
   }
+
+  if (argv.hasParseArg("get_color")) {
+    paletteData.getColorFlag  = true;
+    paletteData.getColorValue = argv.getParseReal("get_color");
+  }
+
+  paletteData.getColorScale = argv.getParseBool("get_color_scale");
 
   //---
 
@@ -2126,41 +1644,24 @@ void
 CQChartsCmds::
 groupPlotsCmd(const Args &args)
 {
-  QString     viewName;
-  QStringList plotNames;
-
-  bool x1x2    = false;
-  bool y1y2    = false;
-  bool overlay = false;
-  bool help { false };
-
   CQChartsCmdsArgs argv("group_plots", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"   , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-x1x2"   , CQChartsCmdArg::Type::Boolean, "shared x axis");
+  argv.addCmdArg("-y1y2"   , CQChartsCmdArg::Type::Boolean, "shared y axis");
+  argv.addCmdArg("-overlay", CQChartsCmdArg::Type::Boolean, "overlay");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"   ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "x1x2"   ) { x1x2 = true; }
-      else if (opt == "y1y2"   ) { y1y2 = true; }
-      else if (opt == "overlay") { overlay = true; }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else {
-      QString str = arg.str();
-
-      plotNames.push_back(str);
-    }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName = argv.getParseStr ("view");
+  bool    x1x2     = argv.getParseBool("x1x2");
+  bool    y1y2     = argv.getParseBool("y1y2");
+  bool    overlay  = argv.getParseBool("overlay");
+
+  const Args &plotNames = argv.getParseArgs();
 
   //---
 
@@ -2224,43 +1725,26 @@ void
 CQChartsCmds::
 placePlotsCmd(const Args &args)
 {
-  QString     viewName;
-  QStringList plotNames;
-
-  bool horizontal = false;
-  bool vertical   = false;
-  int  rows       = -1;
-  int  columns    = -1;
-  bool help { false };
-
   CQChartsCmdsArgs argv("place_plots", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-vertical"  , CQChartsCmdArg::Type::Boolean, "place vertical");
+  argv.addCmdArg("-horizontal", CQChartsCmdArg::Type::Boolean, "place horizontal");
+  argv.addCmdArg("-rows"      , CQChartsCmdArg::Type::Integer, "place using n rows");
+  argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::Integer, "place using n columns");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"      ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "vertical"  ) { vertical = true; }
-      else if (opt == "horizontal") { horizontal = true; }
-      else if (opt == "rows"      ) { (void) argv.getOptValue(rows); }
-      else if (opt == "columns"   ) { (void) argv.getOptValue(columns); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else {
-      QString str = arg.str();
-
-      plotNames.push_back(str);
-    }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName   = argv.getParseStr ("view");
+  bool    vertical   = argv.getParseBool("x1x2");
+  bool    horizontal = argv.getParseBool("y1y2");
+  int     rows       = argv.getParseBool("rows"   , -1);
+  int     columns    = argv.getParseBool("columns", -1);
+
+  const Args &plotNames = argv.getParseArgs();
 
   //---
 
@@ -2343,35 +1827,20 @@ void
 CQChartsCmds::
 sortModelCmd(const Args &args)
 {
-  int     modelInd = -1;
-  QString sort;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("sort_model", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if (opt == "model") { (void) argv.getOptValue(modelInd); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else {
-      if (sort == "")
-        sort = arg.str();
-      else
-        argv.error();
-    }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  int modelInd = argv.getParseInt("model", -1);
+
+  const Args &sortArgs = argv.getParseArgs();
+
+  QString sort = (! sortArgs.empty() ? sortArgs[0] : "");
 
   //------
 
@@ -2393,6 +1862,70 @@ sortModelCmd(const Args &args)
 #ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
+exportModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+{
+  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
+
+  Args args = cmds->parseCommandArgs(command, largs);
+
+  cmds->exportModelCmd(args);
+}
+#endif
+
+void
+CQChartsCmds::
+exportModelCmd(const Args &args)
+{
+  CQChartsCmdsArgs argv("export_model", args);
+
+  argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-to"     , CQChartsCmdArg::Type::String , "destination format");
+  argv.addCmdArg("-file"   , CQChartsCmdArg::Type::String , "file name");
+  argv.addCmdArg("-hheader", CQChartsCmdArg::Type::SBool  , "output horizontal header");
+  argv.addCmdArg("-vheader", CQChartsCmdArg::Type::SBool  , "output vertical header");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  int     modelInd = argv.getParseInt ("model", -1);
+  QString toName   = argv.getParseStr ("to");
+  QString filename = argv.getParseStr ("file");
+  bool    hheader  = argv.getParseBool("hheader", true);
+  bool    vheader  = argv.getParseBool("vheader", false);
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    errorMsg("No model data");
+    return;
+  }
+
+  ModelP model = modelData->model();
+
+  if      (toName.toLower() == "csv") {
+    CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::CSV,
+                              hheader, vheader);
+  }
+  else if (toName.toLower() == "tsv") {
+    CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::TSV,
+                              hheader, vheader);
+  }
+  else {
+    errorMsg("Invalid output format");
+    return;
+  }
+}
+
+//------
+
+#ifdef CQ_CHARTS_CEIL
+void
+CQChartsCmds::
 getDataLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
 {
   CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
@@ -2407,37 +1940,24 @@ void
 CQChartsCmds::
 getDataCmd(const Args &args)
 {
-  QString viewName;
-  QString plotName;
-  QString idName;
-  QString columnName;
-  QString roleName;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("get_data", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view"  , CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot"  , CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"    , CQChartsCmdArg::Type::String, "row id");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::String, "column number");
+  argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String, "role name");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view"  ) { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot"  ) { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"    ) { (void) argv.getOptValue(idName); }
-      else if (opt == "column") { (void) argv.getOptValue(columnName); }
-      else if (opt == "role"  ) { (void) argv.getOptValue(roleName); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName   = argv.getParseStr("view");
+  QString plotName   = argv.getParseStr("plot");
+  QString idName     = argv.getParseStr("id");
+  QString columnName = argv.getParseStr("column");
+  QString roleName   = argv.getParseStr("role");
 
   //---
 
@@ -2479,29 +1999,16 @@ void
 CQChartsCmds::
 setDataCmd(const Args &args)
 {
-  QString plotName;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("set_data", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if (opt == "plot") { (void) argv.getOptValue(plotName); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  //QString plotName = argv.getParseStr("plot");
 }
 
 //------
@@ -2523,10 +2030,38 @@ void
 CQChartsCmds::
 rectShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("rect_shape", args);
 
-  double x1 { 0.0 }, y1 { 0.0 }, x2 { 0.0 }, y2 { 0.0 };
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-x1", CQChartsCmdArg::Type::Real  , "x1 value");
+  argv.addCmdArg("-y1", CQChartsCmdArg::Type::Real  , "y1 value");
+  argv.addCmdArg("-x2", CQChartsCmdArg::Type::Real  , "x2 value");
+  argv.addCmdArg("-y2", CQChartsCmdArg::Type::Real  , "y2 value");
+
+  argv.addCmdArg("-margin" , CQChartsCmdArg::Type::String, "margin");
+  argv.addCmdArg("-padding", CQChartsCmdArg::Type::String, "padding");
+
+  argv.addCmdArg("-background"        , CQChartsCmdArg::Type::Boolean, "background visible");
+  argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color  , "background color");
+  argv.addCmdArg("-background_alpha"  , CQChartsCmdArg::Type::Real   , "background alpha");
+//argv.addCmdArg("-background_pattern", CQChartsCmdArg::Type::String , "background pattern");
+
+  argv.addCmdArg("-border"      , CQChartsCmdArg::Type::Boolean , "border visible");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color   , "border color");
+  argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::Length  , "border width");
+  argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsBoxData boxData;
 
@@ -2535,50 +2070,31 @@ rectShapeCmd(const Args &args)
 
   border.visible = true;
 
-  CQChartsCmdsArgs argv("rect_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  double x1 = argv.getParseReal("x1");
+  double y1 = argv.getParseReal("y1");
+  double x2 = argv.getParseReal("x2");
+  double y2 = argv.getParseReal("y2");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  boxData.margin  = argv.getParseReal("margin" , boxData.margin);
+  boxData.padding = argv.getParseReal("padding", boxData.padding);
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
+  background.visible = argv.getParseBool ("background"        , background.visible);
+  background.color   = argv.getParseColor("background_color"  , background.color);
+  background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
+//background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-      else if (opt == "x1") { (void) argv.getOptValue(x1); }
-      else if (opt == "y1") { (void) argv.getOptValue(y1); }
-      else if (opt == "x2") { (void) argv.getOptValue(x2); }
-      else if (opt == "y2") { (void) argv.getOptValue(y2); }
+  border.visible = argv.getParseBool    ("border"      , border.visible);
+  border.color   = argv.getParseColor   ("border_color", border.color  );
+  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width   = argv.getParseLength  ("border_width", border.width  );
+  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
 
-      else if (opt == "margin" ) { (void) argv.getOptValue(boxData.margin); }
-      else if (opt == "padding") { (void) argv.getOptValue(boxData.padding); }
-
-      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
-      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
-      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
-//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
-
-      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
-      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
-      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
-      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
-      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
-
-      else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
-      else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  boxData.cornerSize  = argv.getParseLength("corner_size" , boxData.cornerSize);
+  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
 
   //---
 
@@ -2621,10 +2137,35 @@ void
 CQChartsCmds::
 ellipseShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("ellipse_shape", args);
 
-  double xc { 0.0 }, yc { 0.0 }, rx { 0.0 }, ry { 0.0 };
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-xc", CQChartsCmdArg::Type::Real  , "center x");
+  argv.addCmdArg("-yc", CQChartsCmdArg::Type::Real  , "center y");
+  argv.addCmdArg("-rx", CQChartsCmdArg::Type::Real  , "x radius");
+  argv.addCmdArg("-ry", CQChartsCmdArg::Type::Real  , "y radius");
+
+  argv.addCmdArg("-background"        , CQChartsCmdArg::Type::Boolean, "background visible");
+  argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color  , "background color");
+  argv.addCmdArg("-background_alpha"  , CQChartsCmdArg::Type::Real   , "background alpha");
+//argv.addCmdArg("-background_pattern", CQChartsCmdArg::Type::String , "background pattern");
+
+  argv.addCmdArg("-border"      , CQChartsCmdArg::Type::Boolean , "border visible");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color   , "border color");
+  argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::String  , "border width");
+  argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsBoxData boxData;
 
@@ -2633,47 +2174,28 @@ ellipseShapeCmd(const Args &args)
 
   border.visible = true;
 
-  CQChartsCmdsArgs argv("ellipse_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  double xc = argv.getParseReal("xc");
+  double yc = argv.getParseReal("yc");
+  double rx = argv.getParseReal("rx");
+  double ry = argv.getParseReal("ry");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  background.visible = argv.getParseBool ("background"        , background.visible);
+  background.color   = argv.getParseColor("background_color"  , background.color);
+  background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
+//background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
+  border.visible = argv.getParseBool    ("border"      , border.visible);
+  border.color   = argv.getParseColor   ("border_color", border.color  );
+  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width   = argv.getParseLength  ("border_width", border.width  );
+  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
 
-      else if (opt == "xc") { (void) argv.getOptValue(xc); }
-      else if (opt == "yc") { (void) argv.getOptValue(yc); }
-      else if (opt == "rx") { (void) argv.getOptValue(rx); }
-      else if (opt == "ry") { (void) argv.getOptValue(ry); }
-
-      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
-      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
-      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
-//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
-
-      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
-      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
-      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
-      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
-      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
-
-      else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
-      else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  boxData.cornerSize  = argv.getParseLength("corner_size" , boxData.cornerSize);
+  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
 
   //---
 
@@ -2715,10 +2237,32 @@ void
 CQChartsCmds::
 polygonShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("polygon_shape", args);
 
-  QPolygonF points;
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
+
+  argv.addCmdArg("-background"        , CQChartsCmdArg::Type::Boolean, "background visible");
+  argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color  , "background color");
+  argv.addCmdArg("-background_alpha"  , CQChartsCmdArg::Type::Real   , "background alpha");
+//argv.addCmdArg("-background_pattern", CQChartsCmdArg::Type::String , "background pattern");
+
+  argv.addCmdArg("-border"      , CQChartsCmdArg::Type::Boolean , "border visible");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color   , "border color");
+  argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::String  , "border width");
+  argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsShapeData shapeData;
 
@@ -2727,41 +2271,22 @@ polygonShapeCmd(const Args &args)
 
   border.visible = true;
 
-  CQChartsCmdsArgs argv("polygon_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  QPolygonF points = argv.getParsePoly("points");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  background.visible = argv.getParseBool ("background"        , background.visible);
+  background.color   = argv.getParseColor("background_color"  , background.color);
+  background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
+//background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
-
-      else if (opt == "points") { (void) argv.getOptValue(points); }
-
-      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
-      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
-      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
-//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
-
-      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
-      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
-      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
-      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
-      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  border.visible = argv.getParseBool    ("border"      , border.visible);
+  border.color   = argv.getParseColor   ("border_color", border.color  );
+  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width   = argv.getParseLength  ("border_width", border.width  );
+  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
 
   //---
 
@@ -2801,10 +2326,29 @@ void
 CQChartsCmds::
 polylineShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("polyline_shape", args);
 
-  QPolygonF points;
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
+
+  argv.addCmdArg("-background"        , CQChartsCmdArg::Type::Boolean, "background visible");
+  argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color  , "background color");
+  argv.addCmdArg("-background_alpha"  , CQChartsCmdArg::Type::Real   , "background alpha");
+//argv.addCmdArg("-background_pattern", CQChartsCmdArg::Type::String , "background pattern");
+
+  argv.addCmdArg("-border"      , CQChartsCmdArg::Type::Boolean , "border visible");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color   , "border color");
+  argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::String  , "border width");
+  argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsShapeData shapeData;
 
@@ -2813,41 +2357,22 @@ polylineShapeCmd(const Args &args)
 
   border.visible = true;
 
-  CQChartsCmdsArgs argv("polyline_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  QPolygonF points = argv.getParsePoly("points");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  background.visible = argv.getParseBool ("background"        , background.visible);
+  background.color   = argv.getParseColor("background_color"  , background.color);
+  background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
+//background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
-
-      else if (opt == "points") { (void) argv.getOptValue(points); }
-
-      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
-      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
-      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
-//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
-
-      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
-      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
-      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
-      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
-      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  border.visible = argv.getParseBool    ("border"      , border.visible);
+  border.color   = argv.getParseColor   ("border_color", border.color  );
+  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width   = argv.getParseLength  ("border_width", border.width  );
+  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
 
   //---
 
@@ -2887,11 +2412,42 @@ void
 CQChartsCmds::
 textShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("text_shape", args);
 
-  double  x = 0.0, y = 0.0;
-  QString text = "Annotation";
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-x", CQChartsCmdArg::Type::Real, "x position");
+  argv.addCmdArg("-y", CQChartsCmdArg::Type::Real, "y position");
+
+  argv.addCmdArg("-text", CQChartsCmdArg::Type::String, "text");
+
+  argv.addCmdArg("-font"    , CQChartsCmdArg::Type::String , "font");
+  argv.addCmdArg("-color"   , CQChartsCmdArg::Type::Color  , "color");
+  argv.addCmdArg("-alpha"   , CQChartsCmdArg::Type::Real   , "alpha");
+  argv.addCmdArg("-angle"   , CQChartsCmdArg::Type::Real   , "angle");
+  argv.addCmdArg("-contrast", CQChartsCmdArg::Type::Boolean, "contrast");
+  argv.addCmdArg("-align"   , CQChartsCmdArg::Type::Align  , "align string");
+
+  argv.addCmdArg("-background"        , CQChartsCmdArg::Type::Boolean, "background visible");
+  argv.addCmdArg("-background_color"  , CQChartsCmdArg::Type::Color  , "background color");
+  argv.addCmdArg("-background_alpha"  , CQChartsCmdArg::Type::Real   , "background alpha");
+//argv.addCmdArg("-background_pattern", CQChartsCmdArg::Type::String , "background pattern");
+
+  argv.addCmdArg("-border"      , CQChartsCmdArg::Type::Boolean , "border visible");
+  argv.addCmdArg("-border_color", CQChartsCmdArg::Type::Color   , "border color");
+  argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
+  argv.addCmdArg("-border_width", CQChartsCmdArg::Type::String  , "border width");
+  argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
+
+  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsTextData textData;
   CQChartsBoxData  boxData;
@@ -2902,54 +2458,35 @@ textShapeCmd(const Args &args)
   background.visible = false;
   border    .visible = false;
 
-  CQChartsCmdsArgs argv("text_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  double x = argv.getParseReal("x");
+  double y = argv.getParseReal("y");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  QString text = argv.getParseStr("text", "Annotation");
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
+  textData.font     = argv.getParseFont ("font", textData.font    );
+  textData.color    = argv.getParseColor("font", textData.color   );
+  textData.alpha    = argv.getParseReal ("font", textData.alpha   );
+  textData.angle    = argv.getParseReal ("font", textData.angle   );
+  textData.contrast = argv.getParseBool ("font", textData.contrast);
+  textData.align    = argv.getParseAlign("font", textData.align   );
 
-      else if (opt == "x") { (void) argv.getOptValue(x); }
-      else if (opt == "y") { (void) argv.getOptValue(y); }
+  background.visible = argv.getParseBool ("background"        , background.visible);
+  background.color   = argv.getParseColor("background_color"  , background.color);
+  background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
+//background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-      else if (opt == "text") { (void) argv.getOptValue(text); }
+  border.visible = argv.getParseBool    ("border"      , border.visible);
+  border.color   = argv.getParseColor   ("border_color", border.color  );
+  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width   = argv.getParseLength  ("border_width", border.width  );
+  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
 
-      else if (opt == "font"    ) { (void) argv.getOptValue(textData.font ); }
-      else if (opt == "color"   ) { (void) argv.getOptValue(textData.color); }
-      else if (opt == "alpha"   ) { (void) argv.getOptValue(textData.alpha); }
-      else if (opt == "angle"   ) { (void) argv.getOptValue(textData.angle); }
-      else if (opt == "contrast") { (void) argv.getOptValue(textData.contrast); }
-      else if (opt == "align"   ) { (void) argv.getOptValue(textData.align); }
-
-      else if (opt == "background"        ) { (void) argv.getOptValue(background.visible); }
-      else if (opt == "background_color"  ) { (void) argv.getOptValue(background.color  ); }
-      else if (opt == "background_alpha"  ) { (void) argv.getOptValue(background.alpha  ); }
-//    else if (opt == "background_pattern") { (void) argv.getOptValue(background.pattern); }
-
-      else if (opt == "border"      ) { (void) argv.getOptValue(border.visible); }
-      else if (opt == "border_color") { (void) argv.getOptValue(border.color  ); }
-      else if (opt == "border_alpha") { (void) argv.getOptValue(border.alpha  ); }
-      else if (opt == "border_width") { (void) argv.getOptValue(border.width  ); }
-      else if (opt == "border_dash" ) { (void) argv.getOptValue(border.dash   ); }
-
-      else if (opt == "corner_size" ) { (void) argv.getOptValue(boxData.cornerSize ); }
-      else if (opt == "border_sides") { (void) argv.getOptValue(boxData.borderSides); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  boxData.cornerSize  = argv.getParseLength("corner_size" , boxData.cornerSize);
+  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
 
   //---
 
@@ -2999,53 +2536,56 @@ void
 CQChartsCmds::
 arrowShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
+  CQChartsCmdsArgs argv("arrow_shape", args);
 
-  double x1 { 0.0 }; double y1 { 0.0 };
-  double x2 { 0.0 }; double y2 { 0.0 };
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
+
+  argv.addCmdArg("-x1", CQChartsCmdArg::Type::Real, "start x");
+  argv.addCmdArg("-y1", CQChartsCmdArg::Type::Real, "start y");
+  argv.addCmdArg("-x2", CQChartsCmdArg::Type::Real, "end x");
+  argv.addCmdArg("-y2", CQChartsCmdArg::Type::Real, "end y");
+
+  argv.addCmdArg("-length"      , CQChartsCmdArg::Type::Length , "line length");
+  argv.addCmdArg("-angle"       , CQChartsCmdArg::Type::Real   , "line angle");
+  argv.addCmdArg("-back_angle"  , CQChartsCmdArg::Type::Real   , "arrow back angle");
+  argv.addCmdArg("-fhead"       , CQChartsCmdArg::Type::Boolean, "show start arrow");
+  argv.addCmdArg("-thead"       , CQChartsCmdArg::Type::Boolean, "show end arrow");
+  argv.addCmdArg("-empty"       , CQChartsCmdArg::Type::Boolean, "empty arrows");
+  argv.addCmdArg("-line_width"  , CQChartsCmdArg::Type::Length , "line width");
+  argv.addCmdArg("-stroke_color", CQChartsCmdArg::Type::Color  , "stroke color");
+  argv.addCmdArg("-filled"      , CQChartsCmdArg::Type::Boolean, "arrow filled");
+  argv.addCmdArg("-fill_color"  , CQChartsCmdArg::Type::Color  , "fill color");
+  argv.addCmdArg("-labels"      , CQChartsCmdArg::Type::Boolean, "debug labels");
+
+  if (! argv.parse())
+    return;
+
+  //---
 
   CQChartsArrowData arrowData;
 
-  CQChartsCmdsArgs argv("arrow_shape", args);
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  double x1 = argv.getParseReal("x1");
+  double y1 = argv.getParseReal("y1");
+  double x2 = argv.getParseReal("x2");
+  double y2 = argv.getParseReal("y2");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
-
-      else if (opt == "x1") { (void) argv.getOptValue(x1); }
-      else if (opt == "y1") { (void) argv.getOptValue(y1); }
-      else if (opt == "x2") { (void) argv.getOptValue(x2); }
-      else if (opt == "y2") { (void) argv.getOptValue(y2); }
-
-      else if (opt == "length"      ) { (void) argv.getOptValue(arrowData.length      ); }
-      else if (opt == "angle"       ) { (void) argv.getOptValue(arrowData.angle       ); }
-      else if (opt == "back_angle"  ) { (void) argv.getOptValue(arrowData.backAngle   ); }
-      else if (opt == "fhead"       ) { (void) argv.getOptValue(arrowData.fhead       ); }
-      else if (opt == "thead"       ) { (void) argv.getOptValue(arrowData.thead       ); }
-      else if (opt == "empty"       ) { (void) argv.getOptValue(arrowData.empty       ); }
-      else if (opt == "line_width"  ) { (void) argv.getOptValue(arrowData.stroke.width); }
-      else if (opt == "stroke_color") { (void) argv.getOptValue(arrowData.stroke.color); }
-      else if (opt == "filled"      ) { (void) argv.getOptValue(arrowData.fill.visible); }
-      else if (opt == "fill_color"  ) { (void) argv.getOptValue(arrowData.fill.color  ); }
-      else if (opt == "labels"      ) { (void) argv.getOptValue(arrowData.labels      ); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
-    return;
-  }
+  arrowData.length       = argv.getParseLength("length"      , arrowData.length);
+  arrowData.angle        = argv.getParseReal  ("angle"       , arrowData.angle);
+  arrowData.backAngle    = argv.getParseReal  ("back_angle"  , arrowData.backAngle);
+  arrowData.fhead        = argv.getParseBool  ("fhead"       , arrowData.fhead);
+  arrowData.thead        = argv.getParseBool  ("thead"       , arrowData.thead);
+  arrowData.empty        = argv.getParseBool  ("empty"       , arrowData.empty);
+  arrowData.stroke.width = argv.getParseLength("line_width"  , arrowData.stroke.width);
+  arrowData.stroke.color = argv.getParseColor ("stroke_color", arrowData.stroke.color);
+  arrowData.fill.visible = argv.getParseBool  ("filled"      , arrowData.fill.visible);
+  arrowData.fill.color   = argv.getParseColor ("fill_color"  , arrowData.fill.color);
+  arrowData.labels       = argv.getParseBool  ("labels"      , arrowData.labels);
 
   //---
 
@@ -3095,56 +2635,58 @@ void
 CQChartsCmds::
 pointShapeCmd(const Args &args)
 {
-  QString viewName, plotName, id;
-  bool    help { false };
-
-  CQChartsSymbolData pointData;
-  double             x = 0.0, y = 0.0;
-
   CQChartsCmdsArgs argv("point_shape", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-id"  , CQChartsCmdArg::Type::String, "annotation id");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
+  argv.addCmdArg("-x", CQChartsCmdArg::Type::Real, "point x");
+  argv.addCmdArg("-y", CQChartsCmdArg::Type::Real, "point y");
 
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-      else if (opt == "id"  ) { (void) argv.getOptValue(id); }
+  argv.addCmdArg("-size", CQChartsCmdArg::Type::Real  , "point size");
+  argv.addCmdArg("-type", CQChartsCmdArg::Type::String, "point type");
 
-      else if (opt == "x") { (void) argv.getOptValue(x); }
-      else if (opt == "y") { (void) argv.getOptValue(y); }
+  argv.addCmdArg("-stroked", CQChartsCmdArg::Type::Boolean, "stroke visible");
+  argv.addCmdArg("-filled" , CQChartsCmdArg::Type::Boolean, "fill visible");
 
-      else if (opt == "size") { (void) argv.getOptValue(pointData.size); }
+  argv.addCmdArg("-line_width", CQChartsCmdArg::Type::String, "stroke width");
+  argv.addCmdArg("-line_color", CQChartsCmdArg::Type::Color , "stroke color");
+  argv.addCmdArg("-line_alpha", CQChartsCmdArg::Type::Real  , "stroke alpha");
 
-      else if (opt == "type") {
-        QString typeStr;
+  argv.addCmdArg("-fill_color", CQChartsCmdArg::Type::Color  , "fill color");
+  argv.addCmdArg("-fill_alpha", CQChartsCmdArg::Type::Real   , "fill alpha");
 
-        if (argv.getOptValue(typeStr))
-          pointData.type = CQChartsPlotSymbolMgr::nameToType(typeStr);
-      }
-
-      else if (opt == "stroked") { (void) argv.getOptValue(pointData.stroke.visible); }
-      else if (opt == "filled" ) { (void) argv.getOptValue(pointData.fill  .visible); }
-
-      else if (opt == "line_width") { (void) argv.getOptValue(pointData.stroke.width); }
-      else if (opt == "line_color") { (void) argv.getOptValue(pointData.stroke.color); }
-      else if (opt == "line_alpha") { (void) argv.getOptValue(pointData.stroke.alpha); }
-
-      else if (opt == "fill_color") { (void) argv.getOptValue(pointData.fill.color); }
-      else if (opt == "fill_alpha") { (void) argv.getOptValue(pointData.fill.alpha); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  CQChartsSymbolData pointData;
+
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString id       = argv.getParseStr("id");
+
+  double x = argv.getParseReal("x");
+  double y = argv.getParseReal("y");
+
+  pointData.size = argv.getParseReal("size", pointData.size);
+
+  QString typeStr = argv.getParseStr("type");
+
+  if (typeStr.length())
+    pointData.type = CQChartsPlotSymbolMgr::nameToType(typeStr);
+
+  pointData.stroke.visible = argv.getParseBool("stroked", pointData.stroke.visible);
+  pointData.fill  .visible = argv.getParseBool("filled" , pointData.fill  .visible);
+
+  pointData.stroke.width = argv.getParseLength("line_width", pointData.stroke.width);
+  pointData.stroke.color = argv.getParseColor ("line_color", pointData.stroke.color);
+  pointData.stroke.alpha = argv.getParseReal  ("line_alpha", pointData.stroke.alpha);
+
+  pointData.fill.color = argv.getParseColor("fill_color", pointData.fill.color);
+  pointData.fill.alpha = argv.getParseReal ("fill_alpha", pointData.fill.alpha);
 
   //---
 
@@ -3186,34 +2728,22 @@ void
 CQChartsCmds::
 connectCmd(const Args &args)
 {
-  QString viewName, plotName;
-  QString fromName, toName;
-  bool    help { false };
-
   CQChartsCmdsArgs argv("connect", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
+  argv.addCmdArg("-from", CQChartsCmdArg::Type::String, "from connection name");
+  argv.addCmdArg("-to"  , CQChartsCmdArg::Type::String, "to procedure name");
 
-    if (arg.isOpt()) {
-      QString opt = arg.opt();
-
-      if      (opt == "view") { (void) argv.getOptValue(viewName); }
-      else if (opt == "plot") { (void) argv.getOptValue(plotName); }
-
-      else if (opt == "from") { (void) argv.getOptValue(fromName); }
-      else if (opt == "to"  ) { (void) argv.getOptValue(toName); }
-
-      else if (opt == "help") { help = true; }
-
-      else { argv.error(); }
-    }
-    else { argv.error(); }
-  }
-
-  if (help) {
+  if (! argv.parse())
     return;
-  }
+
+  //---
+
+  QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
+  QString fromName = argv.getParseStr("from");
+  QString toName   = argv.getParseStr("to"  );
 
   //---
 
@@ -3261,23 +2791,18 @@ void
 CQChartsCmds::
 sourceCmd(const Args &args)
 {
-  QString filename;
-
   CQChartsCmdsArgs argv("source", args);
 
-  while (! argv.eof()) {
-    const CQChartsCmdsArgs::Arg &arg = argv.getArg();
+  if (! argv.parse())
+    return;
 
-    if (arg.isOpt()) {
-      //QString opt = arg.opt();
+  //---
 
-      argv.error();
-    }
-    else {
-      if (filename == "")
-        filename = arg.str();
-    }
-  }
+  const Args &fileArgs = argv.getParseArgs();
+
+  QString filename = (! fileArgs.empty() ? fileArgs[0] : "");
+
+  //---
 
   if (filename == "") {
     errorMsg("No filename");
@@ -3308,7 +2833,7 @@ sourceCmd(const Args &args)
       qline += "\n" + qline1;
     }
 
-    parseLine(qline);
+    parseScriptLine(qline);
   }
 }
 
@@ -3345,7 +2870,7 @@ ifCmd(const Args &args)
 
   if (CQChartsExpr::processBoolExpression(expr(), args[0], b) && b) { // test
     for (int i = 0; i < lines.length(); ++i) {
-      parseLine(lines[i]); // body
+      parseScriptLine(lines[i]); // body
     }
   }
 }
@@ -3369,7 +2894,7 @@ whileCmd(const Args &args)
     for (int i = 0; i < lines.length(); ++i) {
       continueFlag_ = false;
 
-      parseLine(lines[i]); // body
+      parseScriptLine(lines[i]); // body
 
       if (continueFlag_)
         break;
@@ -3561,8 +3086,15 @@ CQChartsCmds::
 setCmdRc(int rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (isCeil()) {
+  if (parseType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue((long) rc));
+    return;
+  }
+#endif
+
+#ifdef CQ_CHARTS_TCL
+  if (parseType() == ParserType::TCL) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc));
     return;
   }
 #endif
@@ -3577,8 +3109,15 @@ CQChartsCmds::
 setCmdRc(double rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (isCeil()) {
+  if (parseType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc));
+    return;
+  }
+#endif
+
+#ifdef CQ_CHARTS_TCL
+  if (parseType() == ParserType::TCL) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc));
     return;
   }
 #endif
@@ -3593,8 +3132,15 @@ CQChartsCmds::
 setCmdRc(const QString &rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (isCeil()) {
+  if (parseType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc.toStdString()));
+    return;
+  }
+#endif
+
+#ifdef CQ_CHARTS_TCL
+  if (parseType() == ParserType::TCL) {
+    Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(rc.toLatin1().constData(), -1));
     return;
   }
 #endif
@@ -3609,7 +3155,7 @@ CQChartsCmds::
 setCmdRc(const QVariant &rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (isCeil()) {
+  if (parseType() == ParserType::CEIL) {
     if      (rc.type() == QVariant::Int)
       ClParserInst->setVariableValue("_rc",
         ClParserValueMgrInst->createValue((long) rc.value<int>()));
@@ -3621,6 +3167,26 @@ setCmdRc(const QVariant &rc)
 
       ClParserInst->setVariableValue("_rc",
         ClParserValueMgrInst->createValue(CQChartsUtil::toString(rc, ok).toStdString()));
+    }
+
+    return;
+  }
+#endif
+
+#ifdef CQ_CHARTS_TCL
+  if (parseType() == ParserType::TCL) {
+    if      (rc.type() == QVariant::Int) {
+      Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc.value<int>()));
+    }
+    else if (rc.type() == QVariant::Double) {
+      Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc.value<double>()));
+    }
+    else {
+      bool ok;
+
+      QString str = CQChartsUtil::toString(rc, ok);
+
+      Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(str.toLatin1().constData(), -1));
     }
 
     return;
@@ -3797,7 +3363,9 @@ processAddExpression(ModelP &model, const QString &exprStr)
     return;
   }
 
-  exprModel->addExtraColumn(exprStr);
+  int column;
+
+  exprModel->addExtraColumn(exprStr, column);
 }
 
 void
@@ -3836,7 +3404,9 @@ processExpression(ModelP &model, CQExprModel::Function function, int column, con
 
   // add column <expr>
   if      (function == CQExprModel::Function::ADD) {
-    exprModel->addExtraColumn(expr);
+    int column1;
+
+    exprModel->addExtraColumn(expr, column1);
   }
   // delete column <n>
   else if (function == CQExprModel::Function::DELETE) {
@@ -3893,8 +3463,7 @@ setColumnFormats(const ModelP &model, const QString &columnType)
     //---
 
     if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
-      errorMsg(QString("Invalid type '" + typeStr + "' for section '%1'").
-                 arg(column.toString()));
+      errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").arg(column.toString()));
       continue;
     }
   }
@@ -3938,13 +3507,11 @@ getViewByName(const QString &viewName) const
 
 bool
 CQChartsCmds::
-getPlotsByName(CQChartsView *view, QStringList &plotNames, Plots &plots) const
+getPlotsByName(CQChartsView *view, const Args &plotNames, Plots &plots) const
 {
   bool rc = true;
 
-  for (int i = 0; i < plotNames.length(); ++i) {
-    QString plotName = plotNames[i];
-
+  for (const auto &plotName : plotNames) {
     CQChartsPlot *plot = getPlotByName(view, plotName);
 
     if (plot)
@@ -4151,7 +3718,7 @@ createExprModel(int n)
   int nc = 1;
   int nr = n;
 
-  CQChartsExprModel *data = new CQChartsExprModel(charts_, nc, nr);
+  CQChartsExprDataModel *data = new CQChartsExprDataModel(charts_, nc, nr);
 
   return data;
 }
@@ -4243,7 +3810,7 @@ createVarsModel(const Vars &vars)
   int nc = vars.size();
   int nr = 100;
 
-  CQChartsExprModel *model = new CQChartsExprModel(charts_, nc, nr);
+  CQChartsExprDataModel *model = new CQChartsExprDataModel(charts_, nc, nr);
 
   return model;
 #endif
@@ -4543,7 +4110,31 @@ isCompleteLine(QString &str) const
 
 void
 CQChartsCmds::
-parseLine(const QString &str)
+parseLine(const QString &line)
+{
+#ifdef CQ_CHARTS_CEIL
+  if (parseType() == ParserType::CEIL) {
+    bool exitFlag = ClLanguageMgrInst->runCommand(line.toStdString());
+
+    if (exitFlag)
+      exit(0);
+  }
+#endif
+
+#ifdef CQ_CHARTS_TCL
+  if (parseType() == ParserType::TCL) {
+    Tcl_Eval(tclInterp(), line.toLatin1().constData());
+
+    return;
+  }
+#endif
+
+  parseScriptLine(line);
+}
+
+void
+CQChartsCmds::
+parseScriptLine(const QString &str)
 {
   CQStrParse line(str);
 

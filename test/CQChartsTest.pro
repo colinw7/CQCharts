@@ -6,7 +6,7 @@ QT += widgets svg
 
 DEPENDPATH += .
 
-QMAKE_CXXFLAGS += -std=c++14
+QMAKE_CXXFLAGS += -std=c++14 -DCQ_CHARTS_TCL
 
 MOC_DIR = .moc
 
@@ -36,6 +36,7 @@ INCLUDEPATH += \
 ../../CStrUtil/include \
 ../../CUtil/include \
 ../../COS/include \
+/usr/include/tcl \
 
 unix:LIBS += \
 -L../lib \
@@ -58,4 +59,4 @@ unix:LIBS += \
 -lCExpr -lCJson -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp -lCStrUtil \
 -lCUtil -lCOS \
--lreadline -lpng -ljpeg -ltre
+-lreadline -lpng -ljpeg -ltre -ltcl

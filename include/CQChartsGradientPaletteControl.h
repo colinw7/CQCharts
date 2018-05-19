@@ -102,7 +102,8 @@ class CQChartsGradientPaletteControl : public QFrame {
   void createModelCombo(QGridLayout *grid, int row, const QString &label,
                         QLabel **modelLabel, CQChartsGradientPaletteModel **modelCombo);
 
-  void createFunctionEdit(QGridLayout *grid, int row, const QString &label, QLineEdit **edit);
+  void createFunctionEdit(QGridLayout *grid, int row, const QString &label,
+                          QLabel **functionLabel, QLineEdit **functionEdit);
 
   void createRealEdit(QGridLayout *grid, int row, const QString &label, CQRealSpin **edit);
 
@@ -132,9 +133,12 @@ class CQChartsGradientPaletteControl : public QFrame {
   CQRealSpin*                           greenMax_            { nullptr };
   CQRealSpin*                           blueMin_             { nullptr };
   CQRealSpin*                           blueMax_             { nullptr };
-  QLineEdit*                            redFunction_         { nullptr };
-  QLineEdit*                            greenFunction_       { nullptr };
-  QLineEdit*                            blueFunction_        { nullptr };
+  QLabel*                               redFunctionLabel_    { nullptr };
+  QLabel*                               greenFunctionLabel_  { nullptr };
+  QLabel*                               blueFunctionLabel_   { nullptr };
+  QLineEdit*                            redFunctionEdit_     { nullptr };
+  QLineEdit*                            greenFunctionEdit_   { nullptr };
+  QLineEdit*                            blueFunctionEdit_    { nullptr };
   CQChartsGradientPaletteDefinedColors* definedColors_       { nullptr };
   QPushButton*                          addColorButton_      { nullptr };
   QPushButton*                          loadColorsButton_    { nullptr };

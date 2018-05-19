@@ -80,6 +80,25 @@ addMenuActions(QMenu *menu)
           this, SLOT(selectionBehaviorSlot(QAction *)));
 
   menu->addActions(actionGroup->actions());
+
+  //---
+
+  QMenu *exportMenu = new QMenu("Export");
+
+  QActionGroup *exportActionGroup = new QActionGroup(exportMenu);
+
+  QAction *exportCSV = new QAction("CSV", exportMenu);
+  QAction *exportTSV = new QAction("TSV", exportMenu);
+
+  exportActionGroup->addAction(exportCSV);
+  exportActionGroup->addAction(exportTSV);
+
+  connect(exportActionGroup, SIGNAL(triggered(QAction *)),
+          this, SLOT(exportSlot(QAction *)));
+
+  exportMenu->addActions(exportActionGroup->actions());
+
+  menu->addMenu(exportMenu);
 }
 
 void
@@ -152,6 +171,21 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectRows);
   else if (action->text() == "Select Columns")
     setSelectionBehavior(SelectColumns);
+}
+
+void
+CQChartsTree::
+exportSlot(QAction *action)
+{
+  QString type = action->text();
+
+  if      (type == "CSV")
+    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::CSV);
+  else if (type == "TSV")
+    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::TSV);
+  else {
+    std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
+  }
 }
 
 void

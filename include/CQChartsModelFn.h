@@ -5,26 +5,30 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
 
-// remap(color), remap(column,max), remap(column,min,max) remap column value
+// remap(column), remap(column,max), remap(column,min,max) remap column value
 class CQChartsModelRemapFn : public CQExprModelFn {
  public:
   CQChartsModelRemapFn(CQCharts *charts, QAbstractItemModel *model, CQExprModel *exprModel) :
-   CQExprModelFn(exprModel), charts_(charts), model_(model), exprModel_(exprModel) {
+   CQExprModelFn(exprModel, "remap"), charts_(charts), model_(model), exprModel_(exprModel) {
   }
 
-  CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
-    long row = exprModel_->currentRow(), col = exprModel_->currentCol();
+  QVariant exec(const Vars &vars) {
+    if (vars.size() == 0)
+      return QVariant(0.0);
 
-    if (values.size() == 0)
-      return mapValue(expr, 0.0);
+    bool ok;
 
-    if (! values[0]->getIntegerValue(col))
-      return mapValue(expr, 0.0);
+    int col = vars[0].toInt(&ok);
+
+    if (! ok)
+      return QVariant(0.0);
 
     //---
 
+    int row = exprModel_->currentRow();
+
     if (! checkIndex(row, col))
-      return mapValue(expr, 0.0);
+      return QVariant(0.0);
 
     QModelIndex ind = exprModel_->index(row, col, QModelIndex());
 
@@ -38,34 +42,35 @@ class CQChartsModelRemapFn : public CQExprModelFn {
 
     double r1 = 0.0, r2 = 1.0;
 
-    if      (values.size() > 2) {
-      double r;
+    if      (vars.size() > 2) {
+      bool ok1, ok2;
 
-      if (values[1]->getRealValue(r))
-        r1 = r;
+      double r1t = vars[1].toDouble(&ok1);
+      double r2t = vars[2].toDouble(&ok2);
 
-      if (values[2]->getRealValue(r))
-        r2 = r;
+      if (ok1) r1 = r1t;
+      if (ok2) r2 = r2t;
     }
-    else if (values.size() > 1) {
-      double r;
+    else if (vars.size() > 1) {
+      bool ok2;
 
-      if (values[1]->getRealValue(r))
-        r2 = r;
+      double r2t = vars[2].toDouble(&ok2);
+
+      if (ok2) r2 = r2t;
     }
 
     //---
 
-    bool ok;
+    bool ok3;
 
-    double r = CQChartsUtil::modelReal(exprModel_, ind, ok);
+    double r = CQChartsUtil::modelReal(exprModel_, ind, ok3);
 
-    if (! ok)
-      return mapValue(expr, 0.0);
+    if (! ok3)
+      return QVariant(0.0);
 
     double rm = CQChartsUtil::map(r, rmin, rmax, r1, r2);
 
-    return mapValue(expr, rm);
+    return QVariant(rm);
   }
 
   bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax) {
@@ -105,10 +110,6 @@ class CQChartsModelRemapFn : public CQExprModelFn {
     }
 
     return true;
-  }
-
-  CExprValuePtr mapValue(CExpr *expr, double r) {
-    return expr->createRealValue(r);
   }
 
  private:

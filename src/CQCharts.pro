@@ -6,7 +6,7 @@ QT += widgets svg
 
 DEPENDPATH += .
 
-QMAKE_CXXFLAGS += -std=c++14
+QMAKE_CXXFLAGS += -std=c++14 -DCQExprModel_USE_TCL
 
 MOC_DIR = .moc
 
@@ -19,7 +19,6 @@ CQChartsCsv.cpp \
 CQChartsTsv.cpp \
 CQChartsJson.cpp \
 CQChartsGnuData.cpp \
-CQChartsExprModel.cpp \
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
 \
@@ -83,6 +82,7 @@ CQChartsFilterEdit.cpp \
 CQChartsModelFilter.cpp \
 CQChartsModelExprMatch.cpp \
 CQChartsModelDetails.cpp \
+CQChartsExprDataModel.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
@@ -110,7 +110,6 @@ CQJsonModel.cpp \
 CQGnuDataModel.cpp \
 CQSortModel.cpp \
 CQExprModel.cpp \
-CQExprModelExpr.cpp \
 CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
@@ -200,6 +199,7 @@ HEADERS += \
 ../include/CQChartsModelFilter.h \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelDetails.h \
+../include/CQChartsExprDataModel.h \
 \
 ../include/CQChartsPlotDlg.h \
 \
@@ -258,3 +258,4 @@ INCLUDEPATH += \
 ../../CStrUtil/include \
 ../../CUtil/include \
 ../../COS/include \
+/usr/include/tcl \

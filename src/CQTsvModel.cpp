@@ -118,20 +118,53 @@ CQTsvModel::
 save(QAbstractItemModel *model, std::ostream &os)
 {
   int nc = model->columnCount();
+  int nr = model->rowCount();
+
+  //---
+
+  bool hasHHeader = false;
 
   if (isFirstLineHeader()) {
+    for (int c = 0; c < nc; ++c) {
+      QVariant var = model->headerData(c, Qt::Horizontal);
+
+      if (var.isValid()) {
+        hasHHeader = true;
+        break;
+      }
+    }
+  }
+
+  bool hasVHeader = false;
+
+  if (isFirstColumnHeader()) {
+    for (int r = 0; r < nr; ++r) {
+      QVariant var = model->headerData(r, Qt::Vertical);
+
+      if (var.isValid()) {
+        hasVHeader = true;
+        break;
+      }
+    }
+  }
+
+  //---
+
+  // output horizontal header on first line if enabled and model has horizontal header data
+  if (isFirstLineHeader() && hasHHeader) {
     bool output = false;
 
-    if (isFirstColumnHeader())
+    // if vertical header then add empty cell
+    if (isFirstColumnHeader() && hasVHeader)
       output = true;
 
     for (int c = 0; c < nc; ++c) {
-      QString str = model->headerData(c, Qt::Horizontal).toString();
+      QVariant var = model->headerData(c, Qt::Horizontal);
 
       if (output)
         os << "\t";
 
-      os << str.toStdString();
+      os << encodeVariant(var);
 
       output = true;
     }
@@ -139,32 +172,67 @@ save(QAbstractItemModel *model, std::ostream &os)
     os << "\n";
   }
 
-  int nr = model->rowCount();
-
+  // output rows
   for (int r = 0; r < nr; ++r) {
     bool output = false;
 
-    if (isFirstColumnHeader()) {
-      QString str = model->headerData(r, Qt::Vertical).toString();
+    // output vertical header value if enabled and model has vertical header data
+    if (isFirstColumnHeader() && hasVHeader) {
+      QVariant var = model->headerData(r, Qt::Vertical);
 
-      os << str.toStdString();
+      os << encodeVariant(var);
 
       output = true;
     }
+
+    //---
 
     for (int c = 0; c < nc; ++c) {
       QModelIndex ind = model->index(r, c);
 
-      QString str = model->data(ind).toString();
+      QVariant var = model->data(ind);
 
       if (output)
         os << "\t";
 
-      os << str.toStdString();
+      os << encodeVariant(var);
 
       output = true;
     }
 
     os << "\n";
   }
+}
+
+std::string
+CQTsvModel::
+encodeVariant(const QVariant &var) const
+{
+  std::string str;
+
+  if      (var.type() == QVariant::Double) {
+    double r = var.value<double>();
+
+    str = std::to_string(r);
+  }
+  else if (var.type() == QVariant::Int) {
+    int i = var.value<int>();
+
+    str = std::to_string(i);
+  }
+  else {
+    QString qstr = var.toString();
+
+    str = encodeString(qstr).toStdString();
+  }
+
+  return str;
+}
+
+QString
+CQTsvModel::
+encodeString(const QString &str) const
+{
+  // TOD0: handle tab in string
+  return str;
 }

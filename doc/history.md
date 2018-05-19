@@ -371,3 +371,7 @@
  + support color column real value for scatter plot
  + add name to role and role support on cli commands
  + make gui display optional when getting model details
+# 5/19/2018
+ + Add export to CSV/TSV
+ + Support Tcl in CLI and process expression
+ + More standard command arg processing

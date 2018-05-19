@@ -124,7 +124,7 @@ class CQChartsGradientPalette {
 
  public:
 #ifdef CGRADIENT_EXPR
-  CQChartsGradientPalette(CExpr *expr);
+  CQChartsGradientPalette(CExpr *expr=nullptr);
 #else
   CQChartsGradientPalette();
 #endif

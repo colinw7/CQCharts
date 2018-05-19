@@ -33,6 +33,8 @@ class CExpr;
 class QAbstractItemModel;
 class QItemSelectionModel;
 
+class Tcl_Interp;
+
 //---
 
 class CQChartsCmdsSlot : public QObject {
@@ -62,6 +64,12 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
+  enum class ParserType {
+    SCRIPT,
+    CEIL,
+    TCL
+  };
+
   using Args    = std::vector<QString>;
   using OptReal = boost::optional<double>;
   using ModelP  = QSharedPointer<QAbstractItemModel>;
@@ -75,10 +83,8 @@ class CQChartsCmds : public QObject {
 
   CExpr* expr() const { return expr_; }
 
-#ifdef CQ_CHARTS_CEIL
-  void setCeil(bool b);
-  bool isCeil() const { return ceil_; }
-#endif
+  const ParserType &parseType() const { return parserType_; }
+  void setParserType(const ParserType &type);
 
   bool processCmd(const QString &cmd, const Args &args);
 
@@ -143,11 +149,16 @@ class CQChartsCmds : public QObject {
 
   void parseLine(const QString &line);
 
+  void parseScriptLine(const QString &line);
+
+  Tcl_Interp* tclInterp() const { return interp_; }
+
  private:
 #ifdef CQ_CHARTS_CEIL
   static void loadModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void processModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void sortModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  static void exportModelLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
 
   static void groupPlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
   static void placePlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
@@ -184,6 +195,7 @@ class CQChartsCmds : public QObject {
   bool loadModelCmd   (const Args &args);
   void processModelCmd(const Args &args);
   void sortModelCmd   (const Args &args);
+  void exportModelCmd (const Args &args);
 
   void groupPlotsCmd(const Args &args);
   void placePlotsCmd(const Args &args);
@@ -262,7 +274,7 @@ class CQChartsCmds : public QObject {
 
   CQChartsView *getViewByName(const QString &viewName) const;
 
-  bool getPlotsByName(CQChartsView *view, QStringList &plotNames, Plots &plot) const;
+  bool getPlotsByName(CQChartsView *view, const Args &plotNames, Plots &plot) const;
 
   CQChartsPlot *getOptPlotByName(CQChartsView *view, const QString &name) const;
 
@@ -286,14 +298,13 @@ class CQChartsCmds : public QObject {
   void modelDataAdded(int ind);
 
  private:
-  CQCharts* charts_       { nullptr };
-  CExpr*    expr_         { nullptr };
-#ifdef CQ_CHARTS_CEIL
-  bool      ceil_         { false };
-#endif
-  ViewP     view_;
-  int       currentInd_   { -1 };
-  bool      continueFlag_ { false };
+  CQCharts*   charts_       { nullptr };
+  CExpr*      expr_         { nullptr };
+  ParserType  parserType_   { ParserType::SCRIPT };
+  ViewP       view_;
+  int         currentInd_   { -1 };
+  bool        continueFlag_ { false };
+  Tcl_Interp* interp_       { nullptr };
 };
 
 #endif

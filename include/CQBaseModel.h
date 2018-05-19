@@ -8,6 +8,14 @@ class CQBaseModel : public QAbstractItemModel {
   Q_OBJECT
 
  public:
+  enum class DataType {
+    CSV,
+    TSV,
+    XML,
+    JSON,
+    GNUPLOT
+  };
+
   enum class Role {
     Type       = Qt::UserRole + 1,
     TypeValues = Type + 1,

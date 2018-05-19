@@ -1,5 +1,5 @@
 proc annotationSlot(viewId, id)
-  print viewId, id
+  #print viewId, id
 
   #get_property -view $viewId -annotation $id -name position
   #get_property -view $viewId -annotation $id -name text
@@ -63,12 +63,12 @@ endproc
 
 load_model -csv data/population.csv -first_line_header
 modelId = _rc
-print modelId
+#print modelId
 
 get_model -ind $modelId -name num_rows
-print _rc
+#print _rc
 get_model -ind $modelId -name num_columns
-print _rc
+#print _rc
 
 get_model -ind $modelId -column 0 -name min
 _minYear = _rc
@@ -83,18 +83,37 @@ _place = "overlay"
 
 plotYear(_year)
 
-get_view -current
+get_view -name id
 _viewId = _rc
 
-text_shape -id prev -x 10 -y 95 -text "Prev" -border 1 -background 1
+get_view -view $_viewId -name text_width -data "xx"
+dtx = _rc
+print dtx
+
+tx = 2*dtx
+print tx
+
+text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1
 text1Id = _rc
 
-text_shape -id next -x 20 -y 95 -text "Next" -border 1 -background 1
+get_view -view $_viewId -name text_width -data "Prev"
+tx = tx + _rc + dtx
+print tx
+
+text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1
 text2Id = _rc
 
-text_shape -id overlay -x 30 -y 95 -text "Overlay" -border 1 -background 1
+get_view -view $_viewId -name text_width -data "Next"
+tx = tx + _rc + 2*dtx
+print tx
+
+text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1
 text3Id = _rc
 
-text_shape -id sidebyside -x 40 -y 95 -text "Side By Side" -border 1 -background 1
+get_view -view $_viewId -name text_width -data "Overlay"
+tx = tx + _rc + dtx
+print tx
+
+text_shape -id sidebyside -x $tx -y 95 -text "Side By Side" -border 1 -background 1
 text4Id = _rc
 connect -view $_viewId -from annotationIdPressed -to annotationSlot

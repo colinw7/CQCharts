@@ -495,21 +495,14 @@ void
 CQChartsTable::
 exportSlot(QAction *action)
 {
-  if      (action->text() == "CSV") {
-    CQCsvModel csv;
+  QString type = action->text();
 
-    csv.setFirstLineHeader  (true);
-    csv.setFirstColumnHeader(true);
-
-    csv.save(model().data(), std::cout);
-  }
-  else if (action->text() == "TSV") {
-    CQTsvModel tsv;
-
-    tsv.setFirstLineHeader  (true);
-    tsv.setFirstColumnHeader(true);
-
-    tsv.save(model().data(), std::cout);
+  if      (type == "CSV")
+    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::CSV);
+  else if (type == "TSV")
+    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::TSV);
+  else {
+    std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }
 }
 

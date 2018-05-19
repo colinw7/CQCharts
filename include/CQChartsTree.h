@@ -35,6 +35,8 @@ class CQChartsTree : public CQTreeView {
 
   void selectionBehaviorSlot(QAction *action);
 
+  void exportSlot(QAction *action);
+
  signals:
   void filterChanged();
 

@@ -62,6 +62,9 @@ CQChartsGradientPalette::
 CQChartsGradientPalette(CExpr *expr) :
  expr_(expr)
 {
+  if (! expr_)
+    expr_ = new CExpr;
+
   init();
 }
 #else

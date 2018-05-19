@@ -8,6 +8,8 @@
 #include <CQChartsStyle.h>
 #include <CQChartsModelVisitor.h>
 #include <CQBaseModel.h>
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -1048,6 +1050,31 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
   filter1 = strs[1];
 
   return true;
+}
+
+//------
+
+inline void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
+                        bool hheader=true, bool vheader=false) {
+  if      (type == CQBaseModel::DataType::CSV) {
+    CQCsvModel csv;
+
+    csv.setFirstLineHeader  (hheader);
+    csv.setFirstColumnHeader(vheader);
+
+    csv.save(model, std::cout);
+  }
+  else if (type == CQBaseModel::DataType::TSV) {
+    CQTsvModel tsv;
+
+    tsv.setFirstLineHeader  (hheader);
+    tsv.setFirstColumnHeader(vheader);
+
+    tsv.save(model, std::cout);
+  }
+  else {
+    assert(false);
+  }
 }
 
 //------

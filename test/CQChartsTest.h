@@ -1,6 +1,7 @@
 #ifndef CQChartsTest_H
 #define CQChartsTest_H
 
+#include <CQChartsCmds.h>
 #include <CQChartsModelData.h>
 #include <CQChartsInitData.h>
 #include <CQAppWindow.h>
@@ -21,7 +22,6 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsPlotType;
 class CQChartsPlotObj;
-class CQChartsCmds;
 class CQChartsTable;
 class CQChartsTree;
 class CQExprModel;
@@ -57,17 +57,16 @@ class CQChartsTest : public CQAppWindow {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
-  using Args = std::vector<QString>;
-  using Vars = std::vector<QString>;
+  using ParserType = CQChartsCmds::ParserType;
+  using Args       = std::vector<QString>;
+  using Vars       = std::vector<QString>;
 
  public:
   CQChartsTest();
 
  ~CQChartsTest();
 
-#ifdef CQ_CHARTS_CEIL
-  void setCeil(bool b);
-#endif
+  void setParserType(const ParserType &type);
 
   bool initPlot(const CQChartsInitData &initData);
 
@@ -89,7 +88,7 @@ class CQChartsTest : public CQAppWindow {
   void timeout();
 
  private:
-  friend class CQChartsCmds;
+  //friend class CQChartsCmds;
 
  private:
   CQCharts *charts() const { return charts_; }

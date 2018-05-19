@@ -58,13 +58,11 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   stack_ = new QStackedWidget;
-
   stack_->setObjectName("stack");
 
   //---
 
   QFrame *modelFrame = new QFrame;
-
   modelFrame->setObjectName("modelFrame");
 
   QVBoxLayout *modelLayout = new QVBoxLayout(modelFrame);
@@ -74,6 +72,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   // red, green, blue function combos
   QGroupBox *functionGroupBox = new QGroupBox("Function");
+  functionGroupBox->setObjectName("functionGroup");
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -100,6 +99,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   // red, green, blue negative check boxes
   QGroupBox *negateGroupBox = new QGroupBox("Negate");
+  negateGroupBox->setObjectName("negateGroup");
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -111,11 +111,12 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   modelLayout->addWidget(negateGroupBox);
 
   modelRNegativeCheck_ = new QCheckBox("R");
-  modelGNegativeCheck_ = new QCheckBox("G");
-  modelBNegativeCheck_ = new QCheckBox("B");
-
   modelRNegativeCheck_->setObjectName("rnegative");
+
+  modelGNegativeCheck_ = new QCheckBox("G");
   modelGNegativeCheck_->setObjectName("gnegative");
+
+  modelBNegativeCheck_ = new QCheckBox("B");
   modelBNegativeCheck_->setObjectName("bnegative");
 
   connect(modelRNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(modelRNegativeChecked(int)));
@@ -131,6 +132,7 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   // red, green, blue min/max edits
   QGroupBox *rangeGroupBox = new QGroupBox("Range");
+  rangeGroupBox->setObjectName("range");
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
 
@@ -143,9 +145,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   QGridLayout *rangeGridLayout = new QGridLayout;
 
-  redMinMaxLabel_   = new QLabel("R");
-  greenMinMaxLabel_ = new QLabel("G");
-  blueMinMaxLabel_  = new QLabel("B");
+  redMinMaxLabel_   = new QLabel("R"); redMinMaxLabel_  ->setObjectName("r");
+  greenMinMaxLabel_ = new QLabel("G"); greenMinMaxLabel_->setObjectName("g");
+  blueMinMaxLabel_  = new QLabel("B"); blueMinMaxLabel_ ->setObjectName("b");
 
   rangeGridLayout->addWidget(redMinMaxLabel_  , 0, 0);
   rangeGridLayout->addWidget(greenMinMaxLabel_, 1, 0);
@@ -184,7 +186,6 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   QFrame *definedFrame = new QFrame;
-
   definedFrame->setObjectName("definedFrame");
 
   QVBoxLayout *definedFrameLayout = new QVBoxLayout(definedFrame);
@@ -199,16 +200,15 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   connect(definedColors_, SIGNAL(colorsChanged()), this, SLOT(colorsChanged()));
 
   QFrame *definedButtonsFrame = new QFrame;
-
   definedButtonsFrame->setObjectName("definedButtonsFrame");
 
   QHBoxLayout *definedButtonsLayout = new QHBoxLayout(definedButtonsFrame);
   definedButtonsLayout->setMargin(2); definedButtonsLayout->setSpacing(2);
 
-  addColorButton_   = new QPushButton("Add");
-  loadColorsButton_ = new QPushButton("Load");
+  addColorButton_ = new QPushButton("Add");
+  addColorButton_->setObjectName("add");
 
-  addColorButton_  ->setObjectName("add");
+  loadColorsButton_ = new QPushButton("Load");
   loadColorsButton_->setObjectName("load");
 
   definedButtonsLayout->addWidget(addColorButton_);
@@ -225,15 +225,14 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   QFrame *functionsFrame = new QFrame;
-
   functionsFrame->setObjectName("functionsFrame");
 
   QGridLayout *functionsGridLayout = new QGridLayout(functionsFrame);
   functionsGridLayout->setMargin(2); functionsGridLayout->setSpacing(2);
 
-  createFunctionEdit(functionsGridLayout, 0, "R", &redFunction_  );
-  createFunctionEdit(functionsGridLayout, 1, "G", &greenFunction_);
-  createFunctionEdit(functionsGridLayout, 2, "B", &blueFunction_ );
+  createFunctionEdit(functionsGridLayout, 0, "R", &redFunctionLabel_  , &redFunctionEdit_  );
+  createFunctionEdit(functionsGridLayout, 1, "G", &greenFunctionLabel_, &greenFunctionEdit_);
+  createFunctionEdit(functionsGridLayout, 2, "B", &blueFunctionLabel_ , &blueFunctionEdit_ );
 
   functionsGridLayout->setRowStretch(3, 1);
 
@@ -241,16 +240,15 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   setGreenFunction(pal->greenFunction());
   setBlueFunction (pal->blueFunction ());
 
-  connect(redFunction_  , SIGNAL(editingFinished()), this, SLOT(functionChanged()));
-  connect(greenFunction_, SIGNAL(editingFinished()), this, SLOT(functionChanged()));
-  connect(blueFunction_ , SIGNAL(editingFinished()), this, SLOT(functionChanged()));
+  connect(redFunctionEdit_  , SIGNAL(editingFinished()), this, SLOT(functionChanged()));
+  connect(greenFunctionEdit_, SIGNAL(editingFinished()), this, SLOT(functionChanged()));
+  connect(blueFunctionEdit_ , SIGNAL(editingFinished()), this, SLOT(functionChanged()));
 
   stack_->addWidget(functionsFrame);
 
   //---
 
   QFrame *cubeFrame = new QFrame;
-
   cubeFrame->setObjectName("cubeFrame");
 
   QGridLayout *cubeGridLayout = new QGridLayout(cubeFrame);
@@ -261,7 +259,6 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   createRealEdit(cubeGridLayout, 2, "Saturation", &cubeSaturation_);
 
   cubeNegativeCheck_ = new QCheckBox("Negative");
-
   cubeNegativeCheck_->setObjectName("negative");
 
   connect(cubeNegativeCheck_, SIGNAL(stateChanged(int)), this, SLOT(cubeNegativeChecked(int)));
@@ -407,6 +404,10 @@ setColorModel(CQChartsGradientPalette::ColorModel colorModel)
     redMinMaxLabel_  ->setText("R");
     greenMinMaxLabel_->setText("G");
     blueMinMaxLabel_ ->setText("B");
+
+    redFunctionLabel_  ->setText("R");
+    greenFunctionLabel_->setText("G");
+    blueFunctionLabel_ ->setText("B");
   }
   else if (colorModel == CQChartsGradientPalette::ColorModel::HSV) {
     colorModel_->setCurrentIndex(1);
@@ -422,6 +423,10 @@ setColorModel(CQChartsGradientPalette::ColorModel colorModel)
     redMinMaxLabel_  ->setText("H");
     greenMinMaxLabel_->setText("S");
     blueMinMaxLabel_ ->setText("V");
+
+    redFunctionLabel_  ->setText("H");
+    greenFunctionLabel_->setText("S");
+    blueFunctionLabel_ ->setText("V");
   }
 
   emit stateChanged();
@@ -648,42 +653,42 @@ std::string
 CQChartsGradientPaletteControl::
 redFunction() const
 {
-  return redFunction_->text().toStdString();
+  return redFunctionEdit_->text().toStdString();
 }
 
 void
 CQChartsGradientPaletteControl::
 setRedFunction(const std::string &fn)
 {
-  redFunction_->setText(fn.c_str());
+  redFunctionEdit_->setText(fn.c_str());
 }
 
 std::string
 CQChartsGradientPaletteControl::
 greenFunction() const
 {
-  return greenFunction_->text().toStdString();
+  return greenFunctionEdit_->text().toStdString();
 }
 
 void
 CQChartsGradientPaletteControl::
 setGreenFunction(const std::string &fn)
 {
-  greenFunction_->setText(fn.c_str());
+  greenFunctionEdit_->setText(fn.c_str());
 }
 
 std::string
 CQChartsGradientPaletteControl::
 blueFunction() const
 {
-  return blueFunction_->text().toStdString();
+  return blueFunctionEdit_->text().toStdString();
 }
 
 void
 CQChartsGradientPaletteControl::
 setBlueFunction(const std::string &fn)
 {
-  blueFunction_->setText(fn.c_str());
+  blueFunctionEdit_->setText(fn.c_str());
 }
 
 void
@@ -695,11 +700,11 @@ functionChanged()
 
   CQChartsGradientPalette *pal = palette_->gradientPalette();
 
-  if      (le == redFunction_)
+  if      (le == redFunctionEdit_)
     pal->setRedFunction  (le->text().toStdString());
-  else if (le == greenFunction_)
+  else if (le == greenFunctionEdit_)
     pal->setGreenFunction(le->text().toStdString());
-  else if (le == blueFunction_)
+  else if (le == blueFunctionEdit_)
     pal->setBlueFunction (le->text().toStdString());
 
   emit stateChanged();
@@ -771,7 +776,6 @@ CQChartsGradientPaletteControl::
 createColorTypeCombo(const QString &label, CQChartsGradientPaletteColorType **type)
 {
   QFrame *frame = new QFrame;
-
   frame->setObjectName("frame");
 
   QHBoxLayout *layout = new QHBoxLayout(frame);
@@ -779,7 +783,10 @@ createColorTypeCombo(const QString &label, CQChartsGradientPaletteColorType **ty
 
   *type = new CQChartsGradientPaletteColorType;
 
-  layout->addWidget(new QLabel(label));
+  QLabel *colorLabel = new QLabel(label);
+  colorLabel->setObjectName("label");
+
+  layout->addWidget(colorLabel);
   layout->addWidget(*type);
   layout->addStretch(1);
 
@@ -791,7 +798,6 @@ CQChartsGradientPaletteControl::
 createColorModelCombo(const QString &label, CQChartsGradientPaletteColorModel **model)
 {
   QFrame *frame = new QFrame;
-
   frame->setObjectName("frame");
 
   QHBoxLayout *layout = new QHBoxLayout(frame);
@@ -799,7 +805,10 @@ createColorModelCombo(const QString &label, CQChartsGradientPaletteColorModel **
 
   *model = new CQChartsGradientPaletteColorModel;
 
-  layout->addWidget(new QLabel(label));
+  QLabel *colorLabel = new QLabel(label);
+  colorLabel->setObjectName("label");
+
+  layout->addWidget(colorLabel);
   layout->addWidget(*model);
   layout->addStretch(1);
 
@@ -812,7 +821,10 @@ createModelCombo(QGridLayout *grid, int row, const QString &label,
                  QLabel **modelLabel, CQChartsGradientPaletteModel **modelCombo)
 {
   *modelLabel = new QLabel(label);
+  (*modelLabel)->setObjectName("label");
+
   *modelCombo = new CQChartsGradientPaletteModel;
+  (*modelCombo)->setObjectName("combo");
 
   grid->addWidget(*modelLabel, row, 0);
   grid->addWidget(*modelCombo, row, 1);
@@ -822,12 +834,17 @@ createModelCombo(QGridLayout *grid, int row, const QString &label,
 
 void
 CQChartsGradientPaletteControl::
-createFunctionEdit(QGridLayout *grid, int row, const QString &label, QLineEdit **edit)
+createFunctionEdit(QGridLayout *grid, int row, const QString &label,
+                   QLabel **functionLabel, QLineEdit **functionEdit)
 {
-  *edit = new QLineEdit;
+  *functionLabel = new QLabel(label);
+  (*functionLabel)->setObjectName("label");
 
-  grid->addWidget(new QLabel(label), row, 0);
-  grid->addWidget(*edit, row, 1);
+  *functionEdit  = new QLineEdit;
+  (*functionEdit )->setObjectName("edit");
+
+  grid->addWidget(*functionLabel, row, 0);
+  grid->addWidget(*functionEdit , row, 1);
 
   grid->setColumnStretch(2, true);
 }
@@ -845,9 +862,13 @@ createRealEdit(QGridLayout *grid, int row, int col, bool stretch,
                const QString &label, CQRealSpin **edit)
 {
   *edit = new CQRealSpin;
+  (*edit)->setObjectName("spin");
 
-  grid->addWidget(new QLabel(label), row, col);
-  grid->addWidget(*edit, row, col + 1);
+  QLabel *editLabel = new QLabel(label);
+  editLabel->setObjectName("label");
+
+  grid->addWidget(editLabel, row, col);
+  grid->addWidget(*edit    , row, col + 1);
 
   if (stretch)
     grid->setColumnStretch(col + 2, true);
@@ -1044,6 +1065,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIn
 
   if       (ind.column() == 0) {
     CQRealSpin *edit = new CQRealSpin(parent);
+    edit->setObjectName("spin");
 
     edit->setValue(realColor.r);
 
@@ -1051,6 +1073,7 @@ createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIn
   }
   else if (ind.column() == 1) {
     CQColorChooser *edit = new CQColorChooser(parent);
+    edit->setObjectName("color");
 
     edit->setStyles(CQColorChooser::Text | CQColorChooser::ColorButton);
 

@@ -62,7 +62,7 @@ class CQChartsModelColumnDetails {
   CQChartsNameValues  nameValues_;
   QVariant            minValue_;
   QVariant            maxValue_;
-  int                 numRows_;
+  int                 numRows_     { 0 };
   bool                monotonic_   { true };
   bool                increasing_  { true };
   bool                initialized_ { false };

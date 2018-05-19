@@ -1245,7 +1245,7 @@ fillBrush() const
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
   }
 
-  if (obj->color())
+  if (obj && obj->color())
     c = obj->color()->interpColor(plot_, obj->colorInd(), no);
 
   return c;

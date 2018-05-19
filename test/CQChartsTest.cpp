@@ -23,10 +23,6 @@
 #include <QApplication>
 #endif
 
-#ifdef CQ_CHARTS_CEIL
-#include <CCeil.h>
-#endif
-
 #include <CQUtil.h>
 #include <CReadLine.h>
 
@@ -112,8 +108,9 @@ errorMsg(const QString &msg)
 int
 main(int argc, char **argv)
 {
-  using OptString = boost::optional<QString>;
-  using OptReal   = boost::optional<double>;
+  using ParserType = CQChartsCmds::ParserType;
+  using OptString  = boost::optional<QString>;
+  using OptReal    = boost::optional<double>;
 
   qInstallMessageHandler(myMessageOutput);
 
@@ -130,22 +127,23 @@ main(int argc, char **argv)
   QString execFile;
   QString viewTitle;
 
-  bool      overlay    = false;
-  bool      x1x2       = false;
-  bool      y1y2       = false;
-  bool      horizontal = false;
-  bool      vertical   = false;
-  bool      loop       = false;
+  bool       overlay    = false;
+  bool       x1x2       = false;
+  bool       y1y2       = false;
+  bool       horizontal = false;
+  bool       vertical   = false;
+  bool       loop       = false;
 #ifdef CQ_CHARTS_CEIL
-  bool      ceil       = false;
+  ParserType parserType = ParserType::CEIL;
+#else
+  ParserType parserType = ParserType::SCRIPT;
 #endif
-  OptString printFile;
-
-  bool      gui        = true;
-  bool      closeApp   = false;
-  bool      exit       = false;
-  int       viewWidth  = CQChartsView::getSizeHint().width ();
-  int       viewHeight = CQChartsView::getSizeHint().height();
+  OptString  printFile;
+  bool       gui        = true;
+  bool       closeApp   = false;
+  bool       exit       = false;
+  int        viewWidth  = CQChartsView::getSizeHint().width ();
+  int        viewHeight = CQChartsView::getSizeHint().height();
 
   OptReal xmin1 = boost::make_optional(false, 0.0);
   OptReal xmax1 = boost::make_optional(false, 0.0);
@@ -589,12 +587,18 @@ main(int argc, char **argv)
       else if (arg == "loop") {
         loop = true;
       }
-#ifdef CQ_CHARTS_CEIL
       // ceil
       else if (arg == "ceil") {
-        ceil = true;
+        parserType = ParserType::CEIL;
       }
-#endif
+      // tcl
+      else if (arg == "tcl") {
+        parserType = ParserType::TCL;
+      }
+      // script
+      else if (arg == "script") {
+        parserType = ParserType::SCRIPT;
+      }
 
       // view_width
       else if (arg == "view_width") {
@@ -650,9 +654,7 @@ main(int argc, char **argv)
   if (! gui || (printFile && exit))
     test.setShow(false);
 
-#ifdef CQ_CHARTS_CEIL
-  test.setCeil(ceil);
-#endif
+  test.setParserType(parserType);
 
   int nd = initDatas.size();
 
@@ -1530,14 +1532,12 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsTest::
-setCeil(bool b)
+setParserType(const ParserType &type)
 {
-  cmds_->setCeil(b);
+  cmds_->setParserType(type);
 }
-#endif
 
 void
 CQChartsTest::
@@ -1766,19 +1766,7 @@ exec(const QString &filename)
       line += "\n" + line1;
     }
 
-#ifdef CQ_CHARTS_CEIL
-    if (! cmds_->isCeil()) {
-      cmds_->parseLine(line);
-    }
-    else {
-      bool exitFlag = ClLanguageMgrInst->runCommand(line.toStdString());
-
-      if (exitFlag)
-        break;
-    }
-#else
     cmds_->parseLine(line);
-#endif
   }
 
   file.close();
@@ -1841,19 +1829,7 @@ loop()
       line += "\n" + line1;
     }
 
-#ifdef CQ_CHARTS_CEIL
-    if (! cmds_->isCeil()) {
-      cmds_->parseLine(line);
-    }
-    else {
-      bool exitFlag = ClLanguageMgrInst->runCommand(line.toStdString());
-
-      if (exitFlag)
-        break;
-    }
-#else
     cmds_->parseLine(line);
-#endif
 
     readLine->addHistory(line.toStdString());
   }
