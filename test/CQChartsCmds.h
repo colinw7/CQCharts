@@ -29,11 +29,10 @@ class ClLanguageArgs;
 class CQChartsCmds;
 
 class CExpr;
+class CQTcl;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
-
-class Tcl_Interp;
 
 //---
 
@@ -45,7 +44,8 @@ class CQChartsCmdsSlot : public QObject {
                    const QString &procName);
 
  private:
-  std::string getCmd(const QString &id) const;
+  QString getCeilCmd(const QString &id) const;
+  QString getTclCmd(const QString &id) const;
 
  public slots:
   void objIdPressed       (const QString &);
@@ -71,9 +71,10 @@ class CQChartsCmds : public QObject {
   };
 
   using Args    = std::vector<QString>;
+  using Vars    = std::vector<QVariant>;
   using OptReal = boost::optional<double>;
   using ModelP  = QSharedPointer<QAbstractItemModel>;
-  using Vars    = std::vector<QString>;
+  using Strs    = std::vector<QString>;
   using ViewP   = QPointer<CQChartsView>;
   using Plots   = std::vector<CQChartsPlot *>;
 
@@ -83,10 +84,15 @@ class CQChartsCmds : public QObject {
 
   CExpr* expr() const { return expr_; }
 
-  const ParserType &parseType() const { return parserType_; }
+  const ParserType &parserType() const { return parserType_; }
   void setParserType(const ParserType &type);
 
-  bool processCmd(const QString &cmd, const Args &args);
+  void addCeilCommand(const QString &name);
+  void addTclCommand(const QString &name);
+  void addCommand(const QString &name);
+  void addCommands();
+
+  bool processCmd(const QString &cmd, const Vars &vars);
 
   QString fixTypeName(const QString &typeName) const;
 
@@ -151,99 +157,65 @@ class CQChartsCmds : public QObject {
 
   void parseScriptLine(const QString &line);
 
-  Tcl_Interp* tclInterp() const { return interp_; }
+  CQTcl *qtcl() const { return qtcl_; }
 
  private:
-#ifdef CQ_CHARTS_CEIL
-  static void loadModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void processModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void sortModelLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void exportModelLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  friend class CQChartsCeilCmd;
 
-  static void groupPlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void placePlotsLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  bool loadModelCmd   (const Vars &vars);
+  void processModelCmd(const Vars &vars);
+  void sortModelCmd   (const Vars &vars);
+  void exportModelCmd (const Vars &vars);
 
-  static void setModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getModelLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void groupPlotsCmd(const Vars &vars);
+  void placePlotsCmd(const Vars &vars);
 
-  static void setViewLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getViewLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void setModelCmd(const Vars &vars);
+  void getModelCmd(const Vars &vars);
 
-  static void createPlotLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void removePlotLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void setViewCmd(const Vars &vars);
+  void getViewCmd(const Vars &vars);
 
-  static void setPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getPropertyLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void createPlotCmd(const Vars &vars);
+  void removePlotCmd(const Vars &vars);
 
-  static void setDataLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void getDataLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void setPropertyCmd(const Vars &vars);
+  void getPropertyCmd(const Vars &vars);
 
-  static void setThemeLCmd  (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void setPaletteLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void setDataCmd(const Vars &vars);
+  void getDataCmd(const Vars &vars);
 
-  static void textShapeLCmd    (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void arrowShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void rectShapeLCmd    (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void ellipseShapeLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void polygonShapeLCmd (ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void polylineShapeLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-  static void pointShapeLCmd   (ClLanguageCommand *, ClLanguageArgs *args, void *data);
+  void setThemeCmd  (const Vars &vars);
+  void getThemeCmd  (const Vars &vars);
+  void setPaletteCmd(const Vars &vars);
+  void getPaletteCmd(const Vars &vars);
 
-  static void connectLCmd(ClLanguageCommand *, ClLanguageArgs *args, void *data);
-#endif
+  void textShapeCmd    (const Vars &vars);
+  void arrowShapeCmd   (const Vars &vars);
+  void rectShapeCmd    (const Vars &vars);
+  void ellipseShapeCmd (const Vars &vars);
+  void polygonShapeCmd (const Vars &vars);
+  void polylineShapeCmd(const Vars &vars);
+  void pointShapeCmd   (const Vars &vars);
 
-  bool loadModelCmd   (const Args &args);
-  void processModelCmd(const Args &args);
-  void sortModelCmd   (const Args &args);
-  void exportModelCmd (const Args &args);
+  void connectCmd(const Vars &vars);
 
-  void groupPlotsCmd(const Args &args);
-  void placePlotsCmd(const Args &args);
-
-  void setModelCmd(const Args &args);
-  void getModelCmd(const Args &args);
-
-  void setViewCmd(const Args &args);
-  void getViewCmd(const Args &args);
-
-  void createPlotCmd(const Args &args);
-  void removePlotCmd(const Args &args);
-
-  void setPropertyCmd(const Args &args);
-  void getPropertyCmd(const Args &args);
-
-  void setDataCmd(const Args &args);
-  void getDataCmd(const Args &args);
-
-  void setThemeCmd  (const Args &args);
-  void setPaletteCmd(const Args &args);
-
-  void textShapeCmd    (const Args &args);
-  void arrowShapeCmd   (const Args &args);
-  void rectShapeCmd    (const Args &args);
-  void ellipseShapeCmd (const Args &args);
-  void polygonShapeCmd (const Args &args);
-  void polylineShapeCmd(const Args &args);
-  void pointShapeCmd   (const Args &args);
-
-  void connectCmd(const Args &args);
-
-  void letCmd     (const Args &args);
-  void ifCmd      (const Args &args);
-  void whileCmd   (const Args &args);
-  void continueCmd(const Args &args);
-  void printCmd   (const Args &args);
-  void sourceCmd  (const Args &args);
+  void letCmd     (const Vars &vars);
+  void ifCmd      (const Vars &vars);
+  void whileCmd   (const Vars &vars);
+  void continueCmd(const Vars &vars);
+  void printCmd   (const Vars &vars);
+  void sourceCmd  (const Vars &vars);
 
   //---
 
-  void setPaleteData(CQChartsGradientPalette *palette,
-                     const CQChartsPaletteColorData &paletteData);
+  void setPaletteData(CQChartsGradientPalette *palette,
+                      const CQChartsPaletteColorData &paletteData);
 
   QStringList stringToCmds(const QString &str) const;
 
 #ifdef CQ_CHARTS_CEIL
-  Args parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs);
+  Vars parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs);
 #endif
 
   //---
@@ -274,7 +246,7 @@ class CQChartsCmds : public QObject {
 
   CQChartsView *getViewByName(const QString &viewName) const;
 
-  bool getPlotsByName(CQChartsView *view, const Args &plotNames, Plots &plot) const;
+  bool getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plot) const;
 
   CQChartsPlot *getOptPlotByName(CQChartsView *view, const QString &name) const;
 
@@ -304,7 +276,7 @@ class CQChartsCmds : public QObject {
   ViewP       view_;
   int         currentInd_   { -1 };
   bool        continueFlag_ { false };
-  Tcl_Interp* interp_       { nullptr };
+  CQTcl*      qtcl_         { nullptr };
 };
 
 #endif

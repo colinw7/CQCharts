@@ -131,7 +131,7 @@ class CQChartsGradientPalette {
 
   CQChartsGradientPalette(const CQChartsGradientPalette &palette);
 
-  virtual ~CQChartsGradientPalette() { }
+  virtual ~CQChartsGradientPalette();
 
   //---
 
@@ -359,6 +359,7 @@ class CQChartsGradientPalette {
   // Misc
 #ifdef CGRADIENT_EXPR
   CExpr*     expr_          { nullptr };
+  bool       exprOwned_     { false };
 #endif
   double     gamma_         { 1.5 };
 #if 0

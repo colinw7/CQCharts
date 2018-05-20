@@ -7,16 +7,19 @@
 #ifdef CQExprModel_USE_CEXPR
 #include <CExpr.h>
 
-class CQExprModelFn : public CExprFunctionObj {
+class CQExprModelExprFn : public CExprFunctionObj {
  public:
   using Vars = std::vector<QVariant>;
 
  public:
-  CQExprModelFn(CQExprModel *model, const QString &name) :
+  CQExprModelExprFn(CQExprModel *model, const QString &name) :
    model_(model), name_(name) {
+    CExpr *expr = model->expr();
+
+    expr->addFunction(name_.toLatin1().constData(), "...", this);
   }
 
-  virtual ~CQExprModelFn() { }
+  virtual ~CQExprModelExprFn() { }
 
   CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
     expr_ = expr;
@@ -62,30 +65,35 @@ class CQExprModelFn : public CExprFunctionObj {
   QString        name_;
   mutable CExpr* expr_  { nullptr };
 };
-#elif CQExprModel_USE_TCL
-#include <tcl.h>
+#endif
 
-class CQExprModelFn {
+#ifdef CQExprModel_USE_TCL
+#include <CQTclUtil.h>
+
+class CQExprModelTclFn {
  public:
   using Vars = std::vector<QVariant>;
 
  public:
-  CQExprModelFn(CQExprModel *model, const QString &name) :
+  CQExprModelTclFn(CQExprModel *model, const QString &name) :
    model_(model), name_(name) {
-    Tcl_CreateCommand(model->tclInterp(), (char *) name_.toLatin1().constData(),
-                      (Tcl_CmdProc *) &CQExprModelFn::commandProc,
-                      (ClientData) this, nullptr);
+    cmdId_ = model->qtcl()->createObjCommand(name_,
+               (CQTcl::ObjCmdProc) &CQExprModelTclFn::commandProc,
+               (CQTcl::ObjCmdData) this);
   }
 
-  virtual ~CQExprModelFn() { }
+  virtual ~CQExprModelTclFn() { }
 
-  static int commandProc(ClientData clientData, Tcl_Interp *, int argc, const char **argv) {
-    CQExprModelFn *command = (CQExprModelFn *) clientData;
+  static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
+    CQExprModelTclFn *command = (CQExprModelTclFn *) clientData;
 
     Vars vars;
 
-    for (int i = 1; i < argc; ++i)
-      vars.push_back(QVariant(QString(argv[i])));
+    for (int i = 1; i < objc; ++i) {
+      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
+
+      vars.push_back(CQTclUtil::variantFromObj(command->model_->qtcl()->interp(), obj));
+    }
 
     QVariant var = command->exec(vars);
 
@@ -103,6 +111,7 @@ class CQExprModelFn {
  protected:
   CQExprModel* model_ { nullptr };
   QString      name_;
+  Tcl_Command  cmdId_ { nullptr };
 };
 #endif
 

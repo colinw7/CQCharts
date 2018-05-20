@@ -67,6 +67,7 @@ class CQChartsTest : public CQAppWindow {
  ~CQChartsTest();
 
   void setParserType(const ParserType &type);
+  const ParserType &parserType() const;
 
   bool initPlot(const CQChartsInitData &initData);
 

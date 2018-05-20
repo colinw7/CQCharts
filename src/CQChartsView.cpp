@@ -1634,7 +1634,7 @@ showMenu(const QPoint &p)
   addKeyLocationGroupAction("Center Center", CQChartsPlotKey::LocationType::CENTER_CENTER);
   addKeyLocationGroupAction("Center Right" , CQChartsPlotKey::LocationType::CENTER_RIGHT );
   addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
-  addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+  addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_CENTER);
   addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
   addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABS_POS      );
 

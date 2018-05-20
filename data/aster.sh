@@ -1,3 +1,5 @@
+CQChartsTest -tcl -exec aster.tcl
+
 CQChartsTest -ceil -exec aster.cl
 
 CQChartsTest -csv data/aster_data.csv -first_line_header \

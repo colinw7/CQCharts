@@ -1,4 +1,6 @@
 High
+ + More share model details
+ + Support Tcl everywhere
  + More common grouping column handling
  + equal scale should be quick adjust of dataRange (cached original)
  + More variant properties to remove string conversion
@@ -53,8 +55,7 @@ Medium
   + Scatter Plot Circle Size Key (Min, Max, Mean)
 
 Scripting
- + Interface language (Ceil, Tcl, QtScript, ...)
- + support data from script (Ceil)
+ + Other interface languages (QtScript, Javascript, ...)
 
 Common Properties
  + Fill

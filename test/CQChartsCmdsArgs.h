@@ -96,7 +96,7 @@ class CQChartsCmdGroup {
 
 class CQChartsCmdsArgs {
  public:
-  using Args    = std::vector<QString>;
+  using Args    = std::vector<QVariant>;
   using OptReal = boost::optional<double>;
   using OptInt  = boost::optional<int>;
   using OptBool = boost::optional<bool>;
@@ -158,7 +158,7 @@ class CQChartsCmdsArgs {
   const Arg &getArg() {
     assert(i_ < argc_);
 
-    lastArg_ = Arg(argv_[i_++]);
+    lastArg_ = Arg(argv_[i_++].toString());
 
     return lastArg_;
   }
@@ -166,7 +166,7 @@ class CQChartsCmdsArgs {
   bool getOptValue(QString &str) {
     if (eof()) return false;
 
-    str = argv_[i_++];
+    str = argv_[i_++].toString();
 
     return true;
   }
@@ -497,7 +497,7 @@ class CQChartsCmdsArgs {
         std::cerr << ps.first.toStdString() << "=" << ps.second << "\n";
       }
       for (auto &a : parseArgs_) {
-        std::cerr << a.toStdString() << "\n";
+        std::cerr << a.toString().toStdString() << "\n";
       }
     }
 

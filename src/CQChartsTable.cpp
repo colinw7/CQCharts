@@ -137,14 +137,15 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
 
   connect(horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(headerClickSlot(int)));
 
-  CQChartsTableDelegate *delegate = new CQChartsTableDelegate(this);
+  delegate_ = new CQChartsTableDelegate(this);
 
-  setItemDelegate(delegate);
+  setItemDelegate(delegate_);
 }
 
 CQChartsTable::
 ~CQChartsTable()
 {
+  delete delegate_;
   delete match_;
 }
 

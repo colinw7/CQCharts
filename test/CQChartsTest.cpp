@@ -978,8 +978,6 @@ addViewWidgets(CQChartsModelData *modelData)
 
   CQChartsTree *tree = new CQChartsTree(charts_);
 
-  tree = new CQChartsTree(charts_);
-
   stack->addWidget(tree);
 
   //---
@@ -1539,6 +1537,13 @@ setParserType(const ParserType &type)
   cmds_->setParserType(type);
 }
 
+const CQChartsTest::ParserType &
+CQChartsTest::
+parserType() const
+{
+  return cmds_->parserType();
+}
+
 void
 CQChartsTest::
 titleChanged(int ind, const QString &title)
@@ -1763,7 +1768,10 @@ exec(const QString &filename)
 
       QString line1 = in.readLine();
 
-      line += "\n" + line1;
+      if (parserType() == ParserType::TCL)
+        line += line1;
+      else
+        line += "\n" + line1;
     }
 
     cmds_->parseLine(line);

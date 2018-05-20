@@ -6,7 +6,8 @@
 #include <boost/optional.hpp>
 #include <set>
 
-class CQExprModelFn;
+class CQExprModelExprFn;
+class CQExprModelTclFn;
 
 class CExpr;
 #ifdef CQExprModel_USE_CEXPR
@@ -17,7 +18,7 @@ class CExprValue;
 typedef CRefPtr<CExprValue> CExprValuePtr;
 #endif
 
-class Tcl_Interp;
+class CQTcl;
 
 //---
 
@@ -25,12 +26,20 @@ class CQExprModel : public QAbstractProxyModel {
   Q_OBJECT
 
  public:
+  enum class ExprType {
+    NONE,
+    EXPR,
+    TCL
+  };
+
   enum class Function {
     EVAL,
     ADD,
     DELETE,
     ASSIGN
   };
+
+  using Values = std::vector<QVariant>;
 
  public:
   CQExprModel(QAbstractItemModel *model);
@@ -46,7 +55,15 @@ class CQExprModel : public QAbstractProxyModel {
 
   //---
 
-  void addFunction(const QString &name, CQExprModelFn *fn);
+  const ExprType &exprType() const { return exprType_; }
+  void setExprType(const ExprType &t) { exprType_ = t; }
+
+  //---
+
+  void addFunction(const QString &name);
+
+  void addExprFunction(const QString &name, CQExprModelExprFn *fn);
+  void addTclFunction (const QString &name, CQExprModelTclFn *fn);
 
   bool decodeExpressionFn(const QString &exprStr, Function &function,
                           int &column, QString &expr) const;
@@ -99,17 +116,16 @@ class CQExprModel : public QAbstractProxyModel {
   int currentRow() const { return currentRow_; }
   int currentCol() const { return currentCol_; }
 
- private:
-  void addBuiltinFunctions();
+  bool checkColumn(int col) const;
+  bool checkIndex(int row, int col) const;
 
-  Tcl_Interp* tclInterp() const { return interp_; }
+  QVariant processCmd(const QString &name, const Values &values);
 
  private:
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
   using StringMap  = std::map<QString,int>;
   using VariantMap = std::map<int,QVariant>;
-  using Values     = std::vector<QVariant>;
   using Args       = std::vector<QString>;
 
   struct ExtraColumn {
@@ -137,12 +153,20 @@ class CQExprModel : public QAbstractProxyModel {
 
   typedef std::map<int,ColumnData> ColumnDatas;
 
-  using TclCmds = std::vector<CQExprModelFn *>;
+  using ExprCmds = std::vector<CQExprModelExprFn *>;
+  using TclCmds  = std::vector<CQExprModelTclFn *>;
 
-  friend class CQExprModelFn;
+  friend class CQExprModelExprFn;
+  friend class CQExprModelTclFn;
   friend class CQExprModelNameFn;
 
  private:
+  void addBuiltinFunctions();
+
+  CExpr *expr() const { return expr_; }
+
+  CQTcl *qtcl() const { return qtcl_; }
+
   int numExtraColumns() const { return extraColumns_.size(); }
 
   const ExtraColumn &extraColumn(int i) const { return extraColumns_[i]; }
@@ -156,8 +180,6 @@ class CQExprModel : public QAbstractProxyModel {
   bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
 
   bool evaluateExpression(const QString &expr, QVariant &var) const;
-
-  QVariant processCmd(const QString &name, const Values &values);
 
   QVariant columnCmd   (const Values &values) const;
   QVariant rowCmd      (const Values &values) const;
@@ -177,9 +199,6 @@ class CQExprModel : public QAbstractProxyModel {
 
   QString replaceNumericColumns(const QString &expr, int row, int column) const;
 
-  bool checkColumn(int col) const;
-  bool checkIndex(int row, int col) const;
-
   QVariant valueToVariant(CExpr *expr, const CExprValuePtr &value) const;
 
   bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const;
@@ -189,8 +208,10 @@ class CQExprModel : public QAbstractProxyModel {
 
  private:
   QAbstractItemModel* model_      { nullptr };
+  ExprType            exprType_   { ExprType::NONE };
   CExpr*              expr_       { nullptr };
-  Tcl_Interp*         interp_     { nullptr };
+  CQTcl*              qtcl_       { nullptr };
+  ExprCmds            exprCmds_;
   TclCmds             tclCmds_;
   bool                debug_      { false };
   ExtraColumns        extraColumns_;

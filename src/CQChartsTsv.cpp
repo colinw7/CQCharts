@@ -13,7 +13,12 @@ CQChartsTsv(CQCharts *charts) :
 
   exprModel_ = new CQExprModel(tsvModel_);
 
-  exprModel_->addFunction("remap", new CQChartsModelRemapFn(charts, this, exprModel_));
+#ifdef CQExprModel_USE_CEXPR
+  exprModel_->addExprFunction("remap", new CQChartsModelRemapExprFn(charts, this, exprModel_));
+#endif
+#ifdef CQExprModel_USE_TCL
+  exprModel_->addTclFunction ("remap", new CQChartsModelRemapTclFn (charts, this, exprModel_));
+#endif
 
   setSourceModel(exprModel_);
 }

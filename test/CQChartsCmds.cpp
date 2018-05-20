@@ -37,7 +37,7 @@
 #endif
 
 #ifdef CQ_CHARTS_TCL
-#include <tcl.h>
+#include <CQTclUtil.h>
 #endif
 
 #include <QStackedWidget>
@@ -77,31 +77,35 @@ errorMsg(const QString &msg)
 #ifdef CQ_CHARTS_TCL
 class CQChartsTclCmd {
  public:
-  using Args = std::vector<QString>;
+  using Vars = std::vector<QVariant>;
 
  public:
-  CQChartsTclCmd(CQChartsCmds *cmds, const std::string &name) :
-   cmds_(cmds) {
-    Tcl_CreateCommand(cmds->tclInterp(), (char *) name.c_str(),
-                      (Tcl_CmdProc *) &CQChartsTclCmd::commandProc,
-                      (ClientData) this, nullptr);
+  CQChartsTclCmd(CQChartsCmds *cmds, const QString &name) :
+   cmds_(cmds), name_(name) {
+    cmdId_ = cmds_->qtcl()->createObjCommand(name_,
+               (CQTcl::ObjCmdProc) &CQChartsTclCmd::commandProc, (CQTcl::ObjCmdData) this);
   }
 
-  static int commandProc(ClientData clientData, Tcl_Interp *, int argc, const char **argv) {
+  static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
     CQChartsTclCmd *command = (CQChartsTclCmd *) clientData;
 
-    Args args;
+    Vars vars;
 
-    for (int i = 1; i < argc; ++i)
-      args.push_back(argv[i]);
+    for (int i = 1; i < objc; ++i) {
+      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
 
-    command->cmds_->processCmd(argv[0], args);
+      vars.push_back(CQTclUtil::variantFromObj(command->cmds_->qtcl()->interp(), obj));
+    }
+
+    command->cmds_->processCmd(command->name_, vars);
 
     return TCL_OK;
   }
 
  private:
-  CQChartsCmds *cmds_ { nullptr };
+  CQChartsCmds *cmds_  { nullptr };
+  QString       name_;
+  Tcl_Command   cmdId_ { nullptr };
 };
 #endif
 
@@ -111,27 +115,145 @@ CQChartsCmds::
 CQChartsCmds(CQCharts *charts) :
  charts_(charts)
 {
+#ifdef CQ_CHARTS_CEIL
   expr_ = new CExpr;
+#endif
 
 #ifdef CQ_CHARTS_TCL
-  interp_ = Tcl_CreateInterp();
+  qtcl_ = new CQTcl();
 #endif
 }
 
 CQChartsCmds::
 ~CQChartsCmds()
 {
-#ifdef CQ_CHARTS_TCL
-  Tcl_DeleteInterp(interp_);
+#ifdef CQ_CHARTS_CEIL
+  delete expr_;
 #endif
 
-  delete expr_;
+#ifdef CQ_CHARTS_TCL
+  delete qtcl_;
+#endif
+}
+
+#ifdef CQ_CHARTS_CEIL
+class CQChartsCeilCmd {
+ public:
+  using Vars = std::vector<QVariant>;
+
+ public:
+  CQChartsCeilCmd(CQChartsCmds *cmds, const QString &name) :
+   cmds_(cmds), name_(name) {
+    ClLanguageMgrInst->defineCommand(name.toStdString(), CQChartsCeilCmd::cmdProc, this);
+  }
+
+  static void cmdProc(ClLanguageCommand *command, ClLanguageArgs *largs, void *data) {
+    CQChartsCeilCmd *ceilCmd = static_cast<CQChartsCeilCmd *>(data);
+
+    Vars vars = ceilCmd->cmds_->parseCommandArgs(command, largs);
+
+    ceilCmd->cmds_->processCmd(ceilCmd->name_, vars);
+  }
+
+ private:
+  CQChartsCmds* cmds_ { nullptr };
+  QString       name_;
+};
+#endif
+
+void
+CQChartsCmds::
+addCeilCommand(const QString &name)
+{
+#ifdef CQ_CHARTS_CEIL
+  new CQChartsCeilCmd(this, name);
+#else
+  assert(false && &name);
+#endif
+}
+
+void
+CQChartsCmds::
+addTclCommand(const QString &name)
+{
+#ifdef CQ_CHARTS_TCL
+  new CQChartsTclCmd(this, name);
+#else
+  assert(false && &name);
+#endif
+}
+
+void
+CQChartsCmds::
+addCommand(const QString &name)
+{
+  if      (parserType() == ParserType::CEIL) {
+    addCeilCommand(name);
+  }
+  else if (parserType() == ParserType::TCL) {
+    addTclCommand(name);
+  }
+}
+
+void
+CQChartsCmds::
+addCommands()
+{
+  // load, process, sort model
+  addCommand("load_model");
+  addCommand("process_model");
+  addCommand("sort_model"   );
+  addCommand("export_model" );
+
+  // get/set model data
+  addCommand("set_model");
+  addCommand("get_model");
+
+  // get/set view data
+  addCommand("get_view");
+  addCommand("set_view");
+
+  // add/remove plot
+  addCommand("create_plot");
+  addCommand("remove_plot");
+
+  // group/place plots
+  addCommand("group_plots");
+  addCommand("place_plots");
+
+  // get/set property
+  addCommand("set_property");
+  addCommand("get_property");
+
+  // get/set data
+  addCommand("set_data");
+  addCommand("get_data");
+
+  // annotations
+  addCommand("text_shape"    );
+  addCommand("arrow_shape"   );
+  addCommand("rect_shape"    );
+  addCommand("ellipse_shape" );
+  addCommand("polygon_shape" );
+  addCommand("polyline_shape");
+  addCommand("point_shape"   );
+
+  // theme/palette
+  addCommand("set_theme"  );
+  addCommand("get_theme"  );
+  addCommand("set_palette");
+  addCommand("get_palette");
+
+  // connect
+  addCommand("connect");
 }
 
 void
 CQChartsCmds::
 setParserType(const ParserType &type)
 {
+  parserType_ = type;
+
   if (type == ParserType::CEIL) {
 #ifdef CQ_CHARTS_CEIL
     static bool ceilCmdsAdded;
@@ -141,51 +263,7 @@ setParserType(const ParserType &type)
 
       ClLanguageMgrInst->init(nullptr, nullptr);
 
-      // load, process, sort model
-      ClLanguageMgrInst->defineCommand("load_model"   , CQChartsCmds::loadModelLCmd   , this);
-      ClLanguageMgrInst->defineCommand("process_model", CQChartsCmds::processModelLCmd, this);
-      ClLanguageMgrInst->defineCommand("sort_model"   , CQChartsCmds::sortModelLCmd   , this);
-      ClLanguageMgrInst->defineCommand("export_model" , CQChartsCmds::exportModelLCmd , this);
-
-      // get/set model data
-      ClLanguageMgrInst->defineCommand("set_model", CQChartsCmds::setModelLCmd, this);
-      ClLanguageMgrInst->defineCommand("get_model", CQChartsCmds::getModelLCmd, this);
-
-      // get/set view data
-      ClLanguageMgrInst->defineCommand("get_view", CQChartsCmds::getViewLCmd, this);
-      ClLanguageMgrInst->defineCommand("set_view", CQChartsCmds::setViewLCmd, this);
-
-      // add/remove plot
-      ClLanguageMgrInst->defineCommand("create_plot", CQChartsCmds::createPlotLCmd, this);
-      ClLanguageMgrInst->defineCommand("remove_plot", CQChartsCmds::removePlotLCmd, this);
-
-      // group/place plots
-      ClLanguageMgrInst->defineCommand("group_plots", CQChartsCmds::groupPlotsLCmd, this);
-      ClLanguageMgrInst->defineCommand("place_plots", CQChartsCmds::placePlotsLCmd, this);
-
-      // get/set property
-      ClLanguageMgrInst->defineCommand("set_property", CQChartsCmds::setPropertyLCmd, this);
-      ClLanguageMgrInst->defineCommand("get_property", CQChartsCmds::getPropertyLCmd, this);
-
-      // get/set data
-      ClLanguageMgrInst->defineCommand("set_data", CQChartsCmds::setDataLCmd, this);
-      ClLanguageMgrInst->defineCommand("get_data", CQChartsCmds::getDataLCmd, this);
-
-      // annotations
-      ClLanguageMgrInst->defineCommand("text_shape"    , CQChartsCmds::textShapeLCmd    , this);
-      ClLanguageMgrInst->defineCommand("arrow_shape"   , CQChartsCmds::arrowShapeLCmd   , this);
-      ClLanguageMgrInst->defineCommand("rect_shape"    , CQChartsCmds::rectShapeLCmd    , this);
-      ClLanguageMgrInst->defineCommand("ellipse_shape" , CQChartsCmds::ellipseShapeLCmd , this);
-      ClLanguageMgrInst->defineCommand("polygon_shape" , CQChartsCmds::polygonShapeLCmd , this);
-      ClLanguageMgrInst->defineCommand("polyline_shape", CQChartsCmds::polylineShapeLCmd, this);
-      ClLanguageMgrInst->defineCommand("point_shape"   , CQChartsCmds::pointShapeLCmd   , this);
-
-      // theme/palette
-      ClLanguageMgrInst->defineCommand("set_theme"  , CQChartsCmds::setThemeLCmd  , this);
-      ClLanguageMgrInst->defineCommand("set_palette", CQChartsCmds::setPaletteLCmd, this);
-
-      // connect
-      ClLanguageMgrInst->defineCommand("connect", CQChartsCmds::connectLCmd, this);
+      addCommands();
 
       ceilCmdsAdded = true;
     }
@@ -199,51 +277,7 @@ setParserType(const ParserType &type)
     static bool tclCmdsAdded;
 
     if (! tclCmdsAdded) {
-      // load, process, sort model
-      new CQChartsTclCmd(this, "load_model"   );
-      new CQChartsTclCmd(this, "process_model");
-      new CQChartsTclCmd(this, "sort_model"   );
-      new CQChartsTclCmd(this, "export_model" );
-
-      // get/set model data
-      new CQChartsTclCmd(this, "set_model");
-      new CQChartsTclCmd(this, "get_model");
-
-      // get/set view data
-      new CQChartsTclCmd(this, "get_view");
-      new CQChartsTclCmd(this, "set_view");
-
-      // add/remove plot
-      new CQChartsTclCmd(this, "create_plot");
-      new CQChartsTclCmd(this, "remove_plot");
-
-      // group/place plots
-      new CQChartsTclCmd(this, "group_plots");
-      new CQChartsTclCmd(this, "place_plots");
-
-      // get/set property
-      new CQChartsTclCmd(this, "set_property");
-      new CQChartsTclCmd(this, "get_property");
-
-      // get/set data
-      new CQChartsTclCmd(this, "set_data");
-      new CQChartsTclCmd(this, "get_data");
-
-      // annotations
-      new CQChartsTclCmd(this, "text_shape"    );
-      new CQChartsTclCmd(this, "arrow_shape"   );
-      new CQChartsTclCmd(this, "rect_shape"    );
-      new CQChartsTclCmd(this, "ellipse_shape" );
-      new CQChartsTclCmd(this, "polygon_shape" );
-      new CQChartsTclCmd(this, "polyline_shape");
-      new CQChartsTclCmd(this, "point_shape"   );
-
-      // theme/palette
-      new CQChartsTclCmd(this, "set_theme"  );
-      new CQChartsTclCmd(this, "set_palette");
-
-      // connect
-      new CQChartsTclCmd(this, "connect");
+      addCommands();
 
       tclCmdsAdded = true;
     }
@@ -252,68 +286,70 @@ setParserType(const ParserType &type)
     return;
 #endif
   }
-
-  parserType_ = type;
 }
 
 bool
 CQChartsCmds::
-processCmd(const QString &cmd, const Args &args)
+processCmd(const QString &cmd, const Vars &vars)
 {
   // load, process, sort model
-  if      (cmd == "load_model"   ) { loadModelCmd   (args); }
-  else if (cmd == "process_model") { processModelCmd(args); }
-  else if (cmd == "sort_model"   ) { sortModelCmd   (args); }
-  else if (cmd == "export_model" ) { exportModelCmd (args); }
+  if      (cmd == "load_model"   ) { loadModelCmd   (vars); }
+  else if (cmd == "process_model") { processModelCmd(vars); }
+  else if (cmd == "sort_model"   ) { sortModelCmd   (vars); }
+  else if (cmd == "export_model" ) { exportModelCmd (vars); }
 
   // get/set model
-  else if (cmd == "set_model") { setModelCmd(args); }
-  else if (cmd == "get_model") { getModelCmd(args); }
+  else if (cmd == "set_model") { setModelCmd(vars); }
+  else if (cmd == "get_model") { getModelCmd(vars); }
 
   // get/set view
-  else if (cmd == "set_view") { setViewCmd(args); }
-  else if (cmd == "get_view") { getViewCmd(args); }
+  else if (cmd == "set_view") { setViewCmd(vars); }
+  else if (cmd == "get_view") { getViewCmd(vars); }
 
   // create/remove plot
-  else if (cmd == "create_plot") { createPlotCmd(args); }
-  else if (cmd == "remove_plot") { removePlotCmd(args); }
+  else if (cmd == "create_plot") { createPlotCmd(vars); }
+  else if (cmd == "remove_plot") { removePlotCmd(vars); }
 
   // group/place plots
-  else if (cmd == "group_plots") { groupPlotsCmd(args); }
-  else if (cmd == "place_plots") { placePlotsCmd(args); }
+  else if (cmd == "group_plots") { groupPlotsCmd(vars); }
+  else if (cmd == "place_plots") { placePlotsCmd(vars); }
 
   // get/set property
-  else if (cmd == "set_property") { setPropertyCmd(args); }
-  else if (cmd == "get_property") { getPropertyCmd(args); }
+  else if (cmd == "set_property") { setPropertyCmd(vars); }
+  else if (cmd == "get_property") { getPropertyCmd(vars); }
 
   // get/set data
-  else if (cmd == "set_data") { setDataCmd(args); }
-  else if (cmd == "get_data") { getDataCmd(args); }
+  else if (cmd == "set_data") { setDataCmd(vars); }
+  else if (cmd == "get_data") { getDataCmd(vars); }
 
   // annotations
-  else if (cmd == "text_shape"    ) { textShapeCmd    (args); }
-  else if (cmd == "arrow_shape"   ) { arrowShapeCmd   (args); }
-  else if (cmd == "rect_shape"    ) { rectShapeCmd    (args); }
-  else if (cmd == "ellipse_shape" ) { ellipseShapeCmd (args); }
-  else if (cmd == "polygon_shape" ) { polygonShapeCmd (args); }
-  else if (cmd == "polyline_shape") { polylineShapeCmd(args); }
-  else if (cmd == "point_shape"   ) { pointShapeCmd   (args); }
+  else if (cmd == "text_shape"    ) { textShapeCmd    (vars); }
+  else if (cmd == "arrow_shape"   ) { arrowShapeCmd   (vars); }
+  else if (cmd == "rect_shape"    ) { rectShapeCmd    (vars); }
+  else if (cmd == "ellipse_shape" ) { ellipseShapeCmd (vars); }
+  else if (cmd == "polygon_shape" ) { polygonShapeCmd (vars); }
+  else if (cmd == "polyline_shape") { polylineShapeCmd(vars); }
+  else if (cmd == "point_shape"   ) { pointShapeCmd   (vars); }
 
   // them/palette
-  else if (cmd == "set_theme"  ) { setThemeCmd  (args); }
-  else if (cmd == "set_palette") { setPaletteCmd(args); }
+  else if (cmd == "set_theme"  ) { setThemeCmd  (vars); }
+  else if (cmd == "get_theme"  ) { getThemeCmd  (vars); }
+  else if (cmd == "set_palette") { setPaletteCmd(vars); }
+  else if (cmd == "get_palette") { getPaletteCmd(vars); }
 
   // connect
-  else if (cmd == "connect") { connectCmd(args); }
+  else if (cmd == "connect") { connectCmd(vars); }
 
   // control
-  else if (cmd == "@let"     ) { letCmd     (args); }
-  else if (cmd == "@if"      ) { ifCmd      (args); }
-  else if (cmd == "@while"   ) { whileCmd   (args); }
-  else if (cmd == "@continue") { continueCmd(args); }
-  else if (cmd == "@print"   ) { printCmd   (args); }
+#ifdef CQ_CHARTS_CEIL
+  else if (cmd == "@let"     ) { letCmd     (vars); }
+  else if (cmd == "@if"      ) { ifCmd      (vars); }
+  else if (cmd == "@while"   ) { whileCmd   (vars); }
+  else if (cmd == "@continue") { continueCmd(vars); }
+  else if (cmd == "@print"   ) { printCmd   (vars); }
+#endif
 
-  else if (cmd == "source") { sourceCmd(args); }
+  else if (cmd == "source") { sourceCmd(vars); }
   else if (cmd == "exit"  ) { exit(0); }
 
   else return false;
@@ -323,25 +359,12 @@ processCmd(const QString &cmd, const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
-void
-CQChartsCmds::
-loadModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
-{
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->loadModelCmd(args);
-}
-#endif
-
 // load model from data
 bool
 CQChartsCmds::
-loadModelCmd(const Args &args)
+loadModelCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("load_model", args);
+  CQChartsCmdsArgs argv("load_model", vars);
 
   // input data type
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
@@ -399,9 +422,9 @@ loadModelCmd(const Args &args)
 
   // TODO: columns (filter to columns)
 
-  const Args &filenameArgs = argv.getParseArgs();
+  const Vars &filenameArgs = argv.getParseArgs();
 
-  QString filename = (! filenameArgs.empty() ? filenameArgs[0] : "");
+  QString filename = (! filenameArgs.empty() ? filenameArgs[0].toString() : "");
 
   //---
 
@@ -444,25 +467,12 @@ loadModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
-void
-CQChartsCmds::
-setModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
-{
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setModelCmd(args);
-}
-#endif
-
 // set model value
 void
 CQChartsCmds::
-setModelCmd(const Args &args)
+setModelCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("set_model", args);
+  CQChartsCmdsArgs argv("set_model", vars);
 
   argv.addCmdArg("-ind"        , CQChartsCmdArg::Type::Integer, "model index");
   argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
@@ -503,24 +513,11 @@ setModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-getModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getModelCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->getModelCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-getModelCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("get_model", args);
+  CQChartsCmdsArgs argv("get_model", vars);
 
   argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::Integer, "model index");
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number");
@@ -622,24 +619,11 @@ getModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-processModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+processModelCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->processModelCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-processModelCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("process_model", args);
+  CQChartsCmdsArgs argv("process_model", vars);
 
   argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "number");
@@ -671,9 +655,9 @@ processModelCmd(const Args &args)
   QString header = argv.getParseStr("header");
   QString type   = argv.getParseStr("type");
 
-  const Args &exprArgs = argv.getParseArgs();
+  const Vars &exprArgs = argv.getParseArgs();
 
-  QString expr = (! exprArgs.empty() ? exprArgs[0] : "");
+  QString expr = (! exprArgs.empty() ? exprArgs[0].toString() : "");
 
   //---
 
@@ -732,24 +716,11 @@ processModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setViewLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+setViewCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setViewCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-setViewCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("set_view", args);
+  CQChartsCmdsArgs argv("set_view", vars);
 
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "view title");
@@ -784,24 +755,11 @@ setViewCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-getViewLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getViewCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->getViewCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-getViewCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("get_view", args);
+  CQChartsCmdsArgs argv("get_view", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name");
@@ -854,24 +812,11 @@ getViewCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-createPlotLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+createPlotCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->createPlotCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-createPlotCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("create_plot", args);
+  CQChartsCmdsArgs argv("create_plot", vars);
 
   argv.addCmdArg("-model"      , CQChartsCmdArg::Type::Integer, "model_ind");
   argv.addCmdArg("-type"       , CQChartsCmdArg::Type::String , "typr");
@@ -1115,24 +1060,11 @@ createPlotCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-removePlotLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+removePlotCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->removePlotCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-removePlotCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("remove_plot", args);
+  CQChartsCmdsArgs argv("remove_plot", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String , "view_id");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String , "plot_id");
@@ -1165,24 +1097,11 @@ removePlotCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-getPropertyLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getPropertyCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->getPropertyCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-getPropertyCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("get_property", args);
+  CQChartsCmdsArgs argv("get_property", vars);
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model name");
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -1273,24 +1192,11 @@ getPropertyCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setPropertyLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+setPropertyCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setPropertyCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-setPropertyCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("set_property", args);
+  CQChartsCmdsArgs argv("set_property", vars);
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::String, "model name");
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -1363,43 +1269,28 @@ setPropertyCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setThemeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+setThemeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
+  CQChartsCmdsArgs argv("set_theme", vars);
 
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setThemeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-setThemeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("set_theme", args);
-
-  argv.addCmdArg("-view"           , CQChartsCmdArg::Type::String , "view name");
-  argv.addCmdArg("-color_type"     , CQChartsCmdArg::Type::String , "color type");
-  argv.addCmdArg("-color_model"    , CQChartsCmdArg::Type::String , "color model");
-  argv.addCmdArg("-red_model"      , CQChartsCmdArg::Type::Integer, "red model");
-  argv.addCmdArg("-green_model"    , CQChartsCmdArg::Type::Integer, "green model");
-  argv.addCmdArg("-blue_model"     , CQChartsCmdArg::Type::Integer, "blue model");
-  argv.addCmdArg("-negate_red"     , CQChartsCmdArg::Type::Boolean, "negate red");
-  argv.addCmdArg("-negate_green"   , CQChartsCmdArg::Type::Boolean, "negate green");
-  argv.addCmdArg("-negate_blue"    , CQChartsCmdArg::Type::Boolean, "negate blue");
-  argv.addCmdArg("-red_min"        , CQChartsCmdArg::Type::Real   , "red min value");
-  argv.addCmdArg("-green_min"      , CQChartsCmdArg::Type::Real   , "green min value");
-  argv.addCmdArg("-blue_min"       , CQChartsCmdArg::Type::Real   , "blue min value");
-  argv.addCmdArg("-red_max"        , CQChartsCmdArg::Type::Real   , "red max value");
-  argv.addCmdArg("-green_max"      , CQChartsCmdArg::Type::Real   , "green max value");
-  argv.addCmdArg("-blue_max"       , CQChartsCmdArg::Type::Real   , "blue max value");
-  argv.addCmdArg("-defined"        , CQChartsCmdArg::Type::String , "defined values");
-  argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
-  argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
+  argv.addCmdArg("-view"        , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-color_type"  , CQChartsCmdArg::Type::String , "color type");
+  argv.addCmdArg("-color_model" , CQChartsCmdArg::Type::String , "color model");
+  argv.addCmdArg("-red_model"   , CQChartsCmdArg::Type::Integer, "red model");
+  argv.addCmdArg("-green_model" , CQChartsCmdArg::Type::Integer, "green model");
+  argv.addCmdArg("-blue_model"  , CQChartsCmdArg::Type::Integer, "blue model");
+  argv.addCmdArg("-negate_red"  , CQChartsCmdArg::Type::Boolean, "negate red");
+  argv.addCmdArg("-negate_green", CQChartsCmdArg::Type::Boolean, "negate green");
+  argv.addCmdArg("-negate_blue" , CQChartsCmdArg::Type::Boolean, "negate blue");
+  argv.addCmdArg("-red_min"     , CQChartsCmdArg::Type::Real   , "red min value");
+  argv.addCmdArg("-green_min"   , CQChartsCmdArg::Type::Real   , "green min value");
+  argv.addCmdArg("-blue_min"    , CQChartsCmdArg::Type::Real   , "blue min value");
+  argv.addCmdArg("-red_max"     , CQChartsCmdArg::Type::Real   , "red max value");
+  argv.addCmdArg("-green_max"   , CQChartsCmdArg::Type::Real   , "green max value");
+  argv.addCmdArg("-blue_max"    , CQChartsCmdArg::Type::Real   , "blue max value");
+  argv.addCmdArg("-defined"     , CQChartsCmdArg::Type::String , "defined values");
 
   if (! argv.parse())
     return;
@@ -1464,13 +1355,6 @@ setThemeCmd(const Args &args)
       }
     }
   }
-
-  if (argv.hasParseArg("get_color")) {
-    paletteData.getColorFlag  = true;
-    paletteData.getColorValue = argv.getParseReal("get_color");
-  }
-
-  paletteData.getColorScale = argv.getParseBool("get_color_scale");
 
   //---
 
@@ -1481,7 +1365,7 @@ setThemeCmd(const Args &args)
 
   CQChartsGradientPalette *theme = view->theme()->theme();
 
-  setPaleteData(theme, paletteData);
+  setPaletteData(theme, paletteData);
 
   //---
 
@@ -1495,43 +1379,67 @@ setThemeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setPaletteLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getThemeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setPaletteCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-setPaletteCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("set_palette", args);
+  CQChartsCmdsArgs argv("set_theme", vars);
 
   argv.addCmdArg("-view"           , CQChartsCmdArg::Type::String , "view name");
-  argv.addCmdArg("-color_type"     , CQChartsCmdArg::Type::String , "color type");
-  argv.addCmdArg("-color_model"    , CQChartsCmdArg::Type::String , "color model");
-  argv.addCmdArg("-red_model"      , CQChartsCmdArg::Type::Integer, "red model");
-  argv.addCmdArg("-green_model"    , CQChartsCmdArg::Type::Integer, "green model");
-  argv.addCmdArg("-blue_model"     , CQChartsCmdArg::Type::Integer, "blue model");
-  argv.addCmdArg("-negate_red"     , CQChartsCmdArg::Type::Boolean, "negate red");
-  argv.addCmdArg("-negate_green"   , CQChartsCmdArg::Type::Boolean, "negate green");
-  argv.addCmdArg("-negate_blue"    , CQChartsCmdArg::Type::Boolean, "negate blue");
-  argv.addCmdArg("-red_min"        , CQChartsCmdArg::Type::Real   , "red min value");
-  argv.addCmdArg("-green_min"      , CQChartsCmdArg::Type::Real   , "green min value");
-  argv.addCmdArg("-blue_min"       , CQChartsCmdArg::Type::Real   , "blue min value");
-  argv.addCmdArg("-red_max"        , CQChartsCmdArg::Type::Real   , "red max value");
-  argv.addCmdArg("-green_max"      , CQChartsCmdArg::Type::Real   , "green max value");
-  argv.addCmdArg("-blue_max"       , CQChartsCmdArg::Type::Real   , "blue max value");
-  argv.addCmdArg("-defined"        , CQChartsCmdArg::Type::String , "defined values");
   argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
   argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  QString viewName = argv.getParseStr("view");
+
+  bool   getColorFlag  = argv.hasParseArg("get_color");
+  double getColorValue = argv.getParseReal("get_color");
+  bool   getColorScale = argv.getParseBool("get_color_scale");
+
+  //---
+
+  CQChartsView *view = getViewByName(viewName);
+  if (! view) return;
+
+  //---
+
+  CQChartsGradientPalette *theme = view->theme()->theme();
+
+  if (getColorFlag) {
+    QColor c = theme->getColor(getColorValue, getColorScale);
+
+    setCmdRc(c.name());
+  }
+}
+
+//------
+
+void
+CQChartsCmds::
+setPaletteCmd(const Vars &vars)
+{
+  CQChartsCmdsArgs argv("set_palette", vars);
+
+  argv.addCmdArg("-view"        , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-color_type"  , CQChartsCmdArg::Type::String , "color type");
+  argv.addCmdArg("-color_model" , CQChartsCmdArg::Type::String , "color model");
+  argv.addCmdArg("-red_model"   , CQChartsCmdArg::Type::Integer, "red model");
+  argv.addCmdArg("-green_model" , CQChartsCmdArg::Type::Integer, "green model");
+  argv.addCmdArg("-blue_model"  , CQChartsCmdArg::Type::Integer, "blue model");
+  argv.addCmdArg("-negate_red"  , CQChartsCmdArg::Type::Boolean, "negate red");
+  argv.addCmdArg("-negate_green", CQChartsCmdArg::Type::Boolean, "negate green");
+  argv.addCmdArg("-negate_blue" , CQChartsCmdArg::Type::Boolean, "negate blue");
+  argv.addCmdArg("-red_min"     , CQChartsCmdArg::Type::Real   , "red min value");
+  argv.addCmdArg("-green_min"   , CQChartsCmdArg::Type::Real   , "green min value");
+  argv.addCmdArg("-blue_min"    , CQChartsCmdArg::Type::Real   , "blue min value");
+  argv.addCmdArg("-red_max"     , CQChartsCmdArg::Type::Real   , "red max value");
+  argv.addCmdArg("-green_max"   , CQChartsCmdArg::Type::Real   , "green max value");
+  argv.addCmdArg("-blue_max"    , CQChartsCmdArg::Type::Real   , "blue max value");
+  argv.addCmdArg("-defined"     , CQChartsCmdArg::Type::String , "defined values");
 
   if (! argv.parse())
     return;
@@ -1597,13 +1505,6 @@ setPaletteCmd(const Args &args)
     }
   }
 
-  if (argv.hasParseArg("get_color")) {
-    paletteData.getColorFlag  = true;
-    paletteData.getColorValue = argv.getParseReal("get_color");
-  }
-
-  paletteData.getColorScale = argv.getParseBool("get_color_scale");
-
   //---
 
   CQChartsView *view = getViewByName(viewName);
@@ -1613,7 +1514,7 @@ setPaletteCmd(const Args &args)
 
   CQChartsGradientPalette *palette = view->theme()->palette();
 
-  setPaleteData(palette, paletteData);
+  setPaletteData(palette, paletteData);
 
   //---
 
@@ -1627,24 +1528,50 @@ setPaletteCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-groupPlotsLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getPaletteCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
+  CQChartsCmdsArgs argv("set_palette", vars);
 
-  Args args = cmds->parseCommandArgs(command, largs);
+  argv.addCmdArg("-view"           , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-get_color"      , CQChartsCmdArg::Type::Real   , "get color value");
+  argv.addCmdArg("-get_color_scale", CQChartsCmdArg::Type::Boolean, "defined values");
 
-  cmds->groupPlotsCmd(args);
+  if (! argv.parse())
+    return;
+
+  //---
+
+  QString viewName = argv.getParseStr("view");
+
+  bool   getColorFlag  = argv.hasParseArg("get_color");
+  double getColorValue = argv.getParseReal("get_color");
+  bool   getColorScale = argv.getParseBool("get_color_scale");
+
+  //---
+
+  CQChartsView *view = getViewByName(viewName);
+  if (! view) return;
+
+  //---
+
+  CQChartsGradientPalette *palette = view->theme()->palette();
+
+  if (getColorFlag) {
+    QColor c = palette->getColor(getColorValue, getColorScale);
+
+    setCmdRc(c.name());
+  }
 }
-#endif
+
+//------
 
 void
 CQChartsCmds::
-groupPlotsCmd(const Args &args)
+groupPlotsCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("group_plots", args);
+  CQChartsCmdsArgs argv("group_plots", vars);
 
   argv.addCmdArg("-view"   , CQChartsCmdArg::Type::String , "view name");
   argv.addCmdArg("-x1x2"   , CQChartsCmdArg::Type::Boolean, "shared x axis");
@@ -1661,7 +1588,7 @@ groupPlotsCmd(const Args &args)
   bool    y1y2     = argv.getParseBool("y1y2");
   bool    overlay  = argv.getParseBool("overlay");
 
-  const Args &plotNames = argv.getParseArgs();
+  const Vars &plotNames = argv.getParseArgs();
 
   //---
 
@@ -1708,24 +1635,11 @@ groupPlotsCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-placePlotsLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+placePlotsCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->placePlotsCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-placePlotsCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("place_plots", args);
+  CQChartsCmdsArgs argv("place_plots", vars);
 
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String , "view name");
   argv.addCmdArg("-vertical"  , CQChartsCmdArg::Type::Boolean, "place vertical");
@@ -1739,12 +1653,12 @@ placePlotsCmd(const Args &args)
   //---
 
   QString viewName   = argv.getParseStr ("view");
-  bool    vertical   = argv.getParseBool("x1x2");
-  bool    horizontal = argv.getParseBool("y1y2");
+  bool    vertical   = argv.getParseBool("vertical");
+  bool    horizontal = argv.getParseBool("horizontal");
   int     rows       = argv.getParseBool("rows"   , -1);
   int     columns    = argv.getParseBool("columns", -1);
 
-  const Args &plotNames = argv.getParseArgs();
+  const Vars &plotNames = argv.getParseArgs();
 
   //---
 
@@ -1810,24 +1724,11 @@ placePlotsCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-sortModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+sortModelCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->sortModelCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-sortModelCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("sort_model", args);
+  CQChartsCmdsArgs argv("sort_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
 
@@ -1838,9 +1739,9 @@ sortModelCmd(const Args &args)
 
   int modelInd = argv.getParseInt("model", -1);
 
-  const Args &sortArgs = argv.getParseArgs();
+  const Vars &sortArgs = argv.getParseArgs();
 
-  QString sort = (! sortArgs.empty() ? sortArgs[0] : "");
+  QString sort = (! sortArgs.empty() ? sortArgs[0].toString() : "");
 
   //------
 
@@ -1859,24 +1760,11 @@ sortModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-exportModelLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+exportModelCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->exportModelCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-exportModelCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("export_model", args);
+  CQChartsCmdsArgs argv("export_model", vars);
 
   argv.addCmdArg("-model"  , CQChartsCmdArg::Type::Integer, "model id");
   argv.addCmdArg("-to"     , CQChartsCmdArg::Type::String , "destination format");
@@ -1923,24 +1811,11 @@ exportModelCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-getDataLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+getDataCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->getDataCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-getDataCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("get_data", args);
+  CQChartsCmdsArgs argv("get_data", vars);
 
   argv.addCmdArg("-view"  , CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot"  , CQChartsCmdArg::Type::String, "plot name");
@@ -1982,24 +1857,11 @@ getDataCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-setDataLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+setDataCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->setDataCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-setDataCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("set_data", args);
+  CQChartsCmdsArgs argv("set_data", vars);
 
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
 
@@ -2013,24 +1875,11 @@ setDataCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-rectShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+rectShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->rectShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-rectShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("rect_shape", args);
+  CQChartsCmdsArgs argv("rect_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2120,24 +1969,11 @@ rectShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-ellipseShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+ellipseShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->ellipseShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-ellipseShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("ellipse_shape", args);
+  CQChartsCmdsArgs argv("ellipse_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2220,24 +2056,11 @@ ellipseShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-polygonShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+polygonShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->polygonShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-polygonShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("polygon_shape", args);
+  CQChartsCmdsArgs argv("polygon_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2309,24 +2132,11 @@ polygonShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-polylineShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+polylineShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->polylineShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-polylineShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("polyline_shape", args);
+  CQChartsCmdsArgs argv("polyline_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2395,24 +2205,11 @@ polylineShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-textShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+textShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->textShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-textShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("text_shape", args);
+  CQChartsCmdsArgs argv("text_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2519,24 +2316,11 @@ textShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-arrowShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+arrowShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->arrowShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-arrowShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("arrow_shape", args);
+  CQChartsCmdsArgs argv("arrow_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2618,24 +2402,11 @@ arrowShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-pointShapeLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+pointShapeCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->pointShapeCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-pointShapeCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("point_shape", args);
+  CQChartsCmdsArgs argv("point_shape", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2711,24 +2482,11 @@ pointShapeCmd(const Args &args)
 
 //------
 
-#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
-connectLCmd(ClLanguageCommand *command, ClLanguageArgs *largs, void *data)
+connectCmd(const Vars &vars)
 {
-  CQChartsCmds *cmds = static_cast<CQChartsCmds *>(data);
-
-  Args args = cmds->parseCommandArgs(command, largs);
-
-  cmds->connectCmd(args);
-}
-#endif
-
-void
-CQChartsCmds::
-connectCmd(const Args &args)
-{
-  CQChartsCmdsArgs argv("connect", args);
+  CQChartsCmdsArgs argv("connect", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
@@ -2789,18 +2547,18 @@ connectCmd(const Args &args)
 
 void
 CQChartsCmds::
-sourceCmd(const Args &args)
+sourceCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("source", args);
+  CQChartsCmdsArgs argv("source", vars);
 
   if (! argv.parse())
     return;
 
   //---
 
-  const Args &fileArgs = argv.getParseArgs();
+  const Vars &fileArgs = argv.getParseArgs();
 
-  QString filename = (! fileArgs.empty() ? fileArgs[0] : "");
+  QString filename = (! fileArgs.empty() ? fileArgs[0].toString() : "");
 
   //---
 
@@ -2839,9 +2597,9 @@ sourceCmd(const Args &args)
 
 void
 CQChartsCmds::
-letCmd(const Args &args)
+letCmd(const Vars &vars)
 {
-  int argc = args.size();
+  int argc = vars.size();
 
   if (argc != 1) {
     errorMsg("let requires 1 args");
@@ -2850,25 +2608,25 @@ letCmd(const Args &args)
 
   CExprValuePtr value;
 
-  CQChartsExpr::processAssignExpression(expr(), args[0], value); //init
+  CQChartsExpr::processAssignExpression(expr(), vars[0].toString(), value); //init
 }
 
 void
 CQChartsCmds::
-ifCmd(const Args &args)
+ifCmd(const Vars &vars)
 {
-  int argc = args.size();
+  int argc = vars.size();
 
   if (argc != 2) {
     errorMsg("syntax error : @if {expr} {statement}");
     return;
   }
 
-  QStringList lines = stringToCmds(args[1]);
+  QStringList lines = stringToCmds(vars[1].toString());
 
   bool b;
 
-  if (CQChartsExpr::processBoolExpression(expr(), args[0], b) && b) { // test
+  if (CQChartsExpr::processBoolExpression(expr(), vars[0].toString(), b) && b) { // test
     for (int i = 0; i < lines.length(); ++i) {
       parseScriptLine(lines[i]); // body
     }
@@ -2877,20 +2635,20 @@ ifCmd(const Args &args)
 
 void
 CQChartsCmds::
-whileCmd(const Args &args)
+whileCmd(const Vars &vars)
 {
-  int argc = args.size();
+  int argc = vars.size();
 
   if (argc != 2) {
     errorMsg("syntax error : @while {expr} {statement}");
     return;
   }
 
-  QStringList lines = stringToCmds(args[1]);
+  QStringList lines = stringToCmds(vars[1].toString());
 
   bool b;
 
-  while (CQChartsExpr::processBoolExpression(expr(), args[0], b) && b) { // test
+  while (CQChartsExpr::processBoolExpression(expr(), vars[0].toString(), b) && b) { // test
     for (int i = 0; i < lines.length(); ++i) {
       continueFlag_ = false;
 
@@ -2904,21 +2662,21 @@ whileCmd(const Args &args)
 
 void
 CQChartsCmds::
-continueCmd(const Args &)
+continueCmd(const Vars &)
 {
   continueFlag_ = true;
 }
 
 void
 CQChartsCmds::
-printCmd(const Args &args)
+printCmd(const Vars &vars)
 {
-  int argc = args.size();
+  int argc = vars.size();
 
   for (int i = 0; i < argc; ++i) {
     CExprValuePtr value;
 
-    CQChartsExpr::processExpression(expr(), args[i], value);
+    CQChartsExpr::processExpression(expr(), vars[i].toString(), value);
 
     if (value.isValid()) {
       value->print(std::cout);
@@ -2932,7 +2690,7 @@ printCmd(const Args &args)
 
 void
 CQChartsCmds::
-setPaleteData(CQChartsGradientPalette *palette, const CQChartsPaletteColorData &paletteData)
+setPaletteData(CQChartsGradientPalette *palette, const CQChartsPaletteColorData &paletteData)
 {
   if (paletteData.colorTypeStr != "") {
     CQChartsGradientPalette::ColorType colorType = CQChartsGradientPalette::ColorType::MODEL;
@@ -2993,14 +2751,6 @@ setPaleteData(CQChartsGradientPalette *palette, const CQChartsPaletteColorData &
     for (const auto &definedColor : paletteData.definedColors)
       palette->addDefinedColor(definedColor.v, definedColor.c);
   }
-
-  //---
-
-  if (paletteData.getColorFlag) {
-    QColor c = palette->getColor(paletteData.getColorValue, paletteData.getColorScale);
-
-    setCmdRc(c.name());
-  }
 }
 
 //------
@@ -3038,7 +2788,7 @@ stringToCmds(const QString &str) const
 //------
 
 #ifdef CQ_CHARTS_CEIL
-CQChartsCmds::Args
+CQChartsCmds::Vars
 CQChartsCmds::
 parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs)
 {
@@ -3049,7 +2799,7 @@ parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs)
 
   uint num_args = largs->getNumArgs();
 
-  Args args;
+  Vars vars;
 
   for (uint i = 0; i < num_args; ++i) {
     int error_code;
@@ -3071,13 +2821,13 @@ parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs)
           str = value->asString();
       }
 
-      args.push_back(str.c_str());
+      vars.push_back(str.c_str());
     }
     else
-      args.push_back(arg.c_str());
+      vars.push_back(arg.c_str());
   }
 
-  return args;
+  return vars;
 }
 #endif
 
@@ -3086,15 +2836,15 @@ CQChartsCmds::
 setCmdRc(int rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (parseType() == ParserType::CEIL) {
+  if (parserType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue((long) rc));
     return;
   }
 #endif
 
 #ifdef CQ_CHARTS_TCL
-  if (parseType() == ParserType::TCL) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc));
+  if (parserType() == ParserType::TCL) {
+    qtcl()->setResult(rc);
     return;
   }
 #endif
@@ -3109,15 +2859,15 @@ CQChartsCmds::
 setCmdRc(double rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (parseType() == ParserType::CEIL) {
+  if (parserType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc));
     return;
   }
 #endif
 
 #ifdef CQ_CHARTS_TCL
-  if (parseType() == ParserType::TCL) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc));
+  if (parserType() == ParserType::TCL) {
+    qtcl()->setResult(rc);
     return;
   }
 #endif
@@ -3132,15 +2882,15 @@ CQChartsCmds::
 setCmdRc(const QString &rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (parseType() == ParserType::CEIL) {
+  if (parserType() == ParserType::CEIL) {
     ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc.toStdString()));
     return;
   }
 #endif
 
 #ifdef CQ_CHARTS_TCL
-  if (parseType() == ParserType::TCL) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(rc.toLatin1().constData(), -1));
+  if (parserType() == ParserType::TCL) {
+    qtcl()->setResult(rc);
     return;
   }
 #endif
@@ -3155,7 +2905,7 @@ CQChartsCmds::
 setCmdRc(const QVariant &rc)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (parseType() == ParserType::CEIL) {
+  if (parserType() == ParserType::CEIL) {
     if      (rc.type() == QVariant::Int)
       ClParserInst->setVariableValue("_rc",
         ClParserValueMgrInst->createValue((long) rc.value<int>()));
@@ -3174,21 +2924,8 @@ setCmdRc(const QVariant &rc)
 #endif
 
 #ifdef CQ_CHARTS_TCL
-  if (parseType() == ParserType::TCL) {
-    if      (rc.type() == QVariant::Int) {
-      Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc.value<int>()));
-    }
-    else if (rc.type() == QVariant::Double) {
-      Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc.value<double>()));
-    }
-    else {
-      bool ok;
-
-      QString str = CQChartsUtil::toString(rc, ok);
-
-      Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(str.toLatin1().constData(), -1));
-    }
-
+  if (parserType() == ParserType::TCL) {
+    qtcl()->setResult(rc);
     return;
   }
 #endif
@@ -3507,12 +3244,12 @@ getViewByName(const QString &viewName) const
 
 bool
 CQChartsCmds::
-getPlotsByName(CQChartsView *view, const Args &plotNames, Plots &plots) const
+getPlotsByName(CQChartsView *view, const Vars &plotNames, Plots &plots) const
 {
   bool rc = true;
 
   for (const auto &plotName : plotNames) {
-    CQChartsPlot *plot = getPlotByName(view, plotName);
+    CQChartsPlot *plot = getPlotByName(view, plotName.toString());
 
     if (plot)
       plots.push_back(plot);
@@ -3649,6 +3386,11 @@ loadCsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQChartsCsv *csv = new CQChartsCsv(charts_);
 
+  if      (parserType() == ParserType::CEIL)
+    csv->exprModel()->setExprType(CQExprModel::ExprType::EXPR);
+  else if (parserType() == ParserType::TCL)
+    csv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
+
   csv->setCommentHeader    (inputData.commentHeader);
   csv->setFirstLineHeader  (inputData.firstLineHeader);
   csv->setFirstColumnHeader(inputData.firstColumnHeader);
@@ -3667,6 +3409,11 @@ CQChartsCmds::
 loadTsv(const QString &filename, const CQChartsInputData &inputData)
 {
   CQChartsTsv *tsv = new CQChartsTsv(charts_);
+
+  if      (parserType() == ParserType::CEIL)
+    tsv->exprModel()->setExprType(CQExprModel::ExprType::EXPR);
+  else if (parserType() == ParserType::TCL)
+    tsv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
 
   tsv->setCommentHeader    (inputData.commentHeader);
   tsv->setFirstLineHeader  (inputData.firstLineHeader);
@@ -3738,7 +3485,7 @@ createVarsModel(const Vars &vars)
   int nr = -1;
 
   for (int i = 0; i < nv; ++i) {
-    const QString &var = vars[i];
+    QString var = vars[i].toString();
 
     ClParserValuePtr value = ClParserInst->getVariableValue(var.toStdString());
     if (! value.isValid()) continue;
@@ -4113,17 +3860,22 @@ CQChartsCmds::
 parseLine(const QString &line)
 {
 #ifdef CQ_CHARTS_CEIL
-  if (parseType() == ParserType::CEIL) {
+  if (parserType() == ParserType::CEIL) {
     bool exitFlag = ClLanguageMgrInst->runCommand(line.toStdString());
 
     if (exitFlag)
       exit(0);
+
+    return;
   }
 #endif
 
 #ifdef CQ_CHARTS_TCL
-  if (parseType() == ParserType::TCL) {
-    Tcl_Eval(tclInterp(), line.toLatin1().constData());
+  if (parserType() == ParserType::TCL) {
+    int rc = qtcl()->eval(line, /*showError*/true);
+
+    if (rc != TCL_OK)
+      errorMsg("Invalid line: '" + line + "'");
 
     return;
   }
@@ -4163,7 +3915,7 @@ parseScriptLine(const QString &str)
 
   //---
 
-  Args args;
+  Vars vars;
 
   if (hasArgs) {
     while (! line.eof()) {
@@ -4180,7 +3932,7 @@ parseScriptLine(const QString &str)
         if (keepQuotes)
           str1 = "\"" + str1 + "\"";
 
-        args.push_back(str1);
+        vars.push_back(str1);
       }
       else if (line.isChar('{')) {
         QString str1;
@@ -4188,13 +3940,13 @@ parseScriptLine(const QString &str)
         if (! line.readBracedString(str1, /*includeBraces*/false))
           errorMsg("Invalid braced string '" + str1 + "'");
 
-        args.push_back(str1);
+        vars.push_back(str1);
       }
       else {
         QString arg;
 
         if (line.readNonSpace(arg))
-          args.push_back(arg);
+          vars.push_back(arg);
       }
     }
   }
@@ -4203,12 +3955,12 @@ parseScriptLine(const QString &str)
 
     QString arg = line.getAt();
 
-    args.push_back(arg);
+    vars.push_back(arg);
   }
 
   //---
 
-  if (! processCmd(cmd, args))
+  if (! processCmd(cmd, vars))
     errorMsg("Invalid command '" + cmd + "'");
 }
 
@@ -4225,48 +3977,82 @@ void
 CQChartsCmdsSlot::
 objIdPressed(const QString &id)
 {
-  std::string cmd = getCmd(id);
-
+  if      (cmds_->parserType() == CQChartsCmds::ParserType::CEIL) {
 #ifdef CQ_CHARTS_CEIL
-  ClLanguageMgrInst->runCommand(cmd);
-#else
-  std::cerr << cmd << "\n";
+    QString cmd = getCeilCmd(id);
+
+    ClLanguageMgrInst->runCommand(cmd.toStdString());
 #endif
+  }
+  else if (cmds_->parserType() == CQChartsCmds::ParserType::TCL) {
+#ifdef CQ_CHARTS_TCL
+    QString cmd = getTclCmd(id);
+
+    cmds_->qtcl()->eval(cmd);
+#endif
+  }
+  else {
+    std::cerr << "objIdPressed: " << id.toStdString() << "\n";
+  }
 }
 
 void
 CQChartsCmdsSlot::
 annotationIdPressed(const QString &id)
 {
-  std::string cmd = getCmd(id);
-
+  if      (cmds_->parserType() == CQChartsCmds::ParserType::CEIL) {
 #ifdef CQ_CHARTS_CEIL
-  ClLanguageMgrInst->runCommand(cmd);
-#else
-  std::cerr << cmd << "\n";
+    QString cmd = getCeilCmd(id);
+
+    ClLanguageMgrInst->runCommand(cmd.toStdString());
 #endif
+  }
+  else if (cmds_->parserType() == CQChartsCmds::ParserType::TCL) {
+#ifdef CQ_CHARTS_TCL
+    QString cmd = getTclCmd(id);
+
+    cmds_->qtcl()->eval(cmd);
+#endif
+  }
+  else {
+    std::cerr << "annotationIdPressed: " << id.toStdString() << "\n";
+  }
 }
 
-std::string
+QString
 CQChartsCmdsSlot::
-getCmd(const QString &id) const
+getCeilCmd(const QString &id) const
 {
-  std::string cmd;
-
   QString viewName = view_->id();
 
-  if (plot_) {
-    QString plotName = plot_->id();
+  QString cmd = procName_ + "(";
 
-    cmd = procName_.toStdString() + "(" +
-           "\"" + viewName.toStdString() + "\", " +
-           "\"" + plotName.toStdString() + "\", " +
-           "\"" + id      .toStdString() + "\")";
-  }
-  else
-    cmd = procName_.toStdString() + "(" +
-           "\"" + viewName.toStdString() + "\", " +
-           "\"" + id      .toStdString() + "\")";
+  cmd += "\"" + viewName + "\"";
+
+  if (plot_)
+    cmd += ", \"" + plot_->id() + "\"";
+
+  cmd += ", \"" + id + "\"";
+
+  cmd += ")";
+
+  return cmd;
+}
+
+QString
+CQChartsCmdsSlot::
+getTclCmd(const QString &id) const
+{
+  QString viewName = view_->id();
+
+  QString cmd = procName_;
+
+  cmd += " \"" + viewName + "\"";
+
+  if (plot_)
+    cmd += " \"" + plot_->id() + "\"";
+
+  cmd += " \"" + id + "\"";
 
   return cmd;
 }

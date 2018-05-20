@@ -1,19 +1,33 @@
 #include <CQExprModel.h>
 #include <CQExprModelFn.h>
+#include <CQTclUtil.h>
 
 #include <CQStrParse.h>
 #include <COSNaN.h>
 #include <COSRand.h>
 #include <iostream>
 
-class CQExprModelNameFn : public CQExprModelFn {
+#ifdef CQExprModel_USE_CEXPR
+class CQExprModelExprNameFn : public CQExprModelExprFn {
  public:
-  CQExprModelNameFn(CQExprModel *model, const QString &name) :
-   CQExprModelFn(model, name) {
+  CQExprModelExprNameFn(CQExprModel *model, const QString &name) :
+   CQExprModelExprFn(model, name) {
   }
 
   QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
 };
+#endif
+
+#ifdef CQExprModel_USE_TCL
+class CQExprModelTclNameFn : public CQExprModelTclFn {
+ public:
+  CQExprModelTclNameFn(CQExprModel *model, const QString &name) :
+   CQExprModelTclFn(model, name) {
+  }
+
+  QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
+};
+#endif
 
 //------
 
@@ -23,10 +37,10 @@ CQExprModel(QAbstractItemModel *model) :
 {
 #ifdef CQExprModel_USE_CEXPR
   expr_ = new CExpr;
-#elif CQExprModel_USE_TCL
-  interp_ = Tcl_CreateInterp();
-#else
-  assert(false);
+#endif
+
+#ifdef CQExprModel_USE_TCL
+  qtcl_ = new CQTcl;
 #endif
 
   addBuiltinFunctions();
@@ -38,14 +52,17 @@ CQExprModel::
 ~CQExprModel()
 {
 #ifdef CQExprModel_USE_CEXPR
-  delete expr_;
-#elif CQExprModel_USE_TCL
-  Tcl_DeleteInterp(interp_);
+  //for (auto &exprCmd : exprCmds_)
+  //  delete exprCmd;
 
+  delete expr_;
+#endif
+
+#ifdef CQExprModel_USE_TCL
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
-#else
-  assert(false);
+
+  delete qtcl_;
 #endif
 }
 
@@ -58,35 +75,55 @@ addBuiltinFunctions()
   expr_->createRealVariable("NaN", COSNaN::get_nan());
 #endif
 
-  addFunction("column"   , new CQExprModelNameFn(this, "column"   ));
-  addFunction("row"      , new CQExprModelNameFn(this, "row"      ));
-  addFunction("cell"     , new CQExprModelNameFn(this, "cell"     ));
-  addFunction("setColumn", new CQExprModelNameFn(this, "setColumn"));
-  addFunction("setRow"   , new CQExprModelNameFn(this, "setRow"   ));
-  addFunction("setCell"  , new CQExprModelNameFn(this, "setCell"  ));
-  addFunction("header"   , new CQExprModelNameFn(this, "header"   ));
-  addFunction("setHeader", new CQExprModelNameFn(this, "setHeader"));
-  addFunction("type"     , new CQExprModelNameFn(this, "type"     ));
-  addFunction("setType"  , new CQExprModelNameFn(this, "setType"  ));
-  addFunction("map"      , new CQExprModelNameFn(this, "map"      ));
-  addFunction("bucket"   , new CQExprModelNameFn(this, "bucket"   ));
-  addFunction("norm"     , new CQExprModelNameFn(this, "norm"     ));
-  addFunction("key"      , new CQExprModelNameFn(this, "key"      ));
-  addFunction("rand"     , new CQExprModelNameFn(this, "rand"     ));
+#ifdef CQExprModel_USE_TCL
+  qtcl_->createVar("pi" , QVariant(M_PI));
+  qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
+#endif
+
+  addFunction("column"   );
+  addFunction("row"      );
+  addFunction("cell"     );
+  addFunction("setColumn");
+  addFunction("setRow"   );
+  addFunction("setCell"  );
+  addFunction("header"   );
+  addFunction("setHeader");
+  addFunction("type"     );
+  addFunction("setType"  );
+  addFunction("map"      );
+  addFunction("bucket"   );
+  addFunction("norm"     );
+  addFunction("key"      );
+  addFunction("rand"     );
 }
 
 void
 CQExprModel::
-addFunction(const QString &name, CQExprModelFn *fn)
+addFunction(const QString &name)
+{
+  addExprFunction(name, new CQExprModelExprNameFn(this, name));
+  addTclFunction (name, new CQExprModelTclNameFn (this, name));
+}
+
+void
+CQExprModel::
+addExprFunction(const QString &name, CQExprModelExprFn *fn)
 {
   assert(name.length());
 
-#ifdef CQExprModel_USE_CEXPR
-  expr_->addFunction(name.toLatin1().constData(), "...", fn);
-#elif CQExprModel_USE_TCL
+#ifdef CQExprModel_USE_TCL
+  exprCmds_.push_back(fn);
+#endif
+}
+
+void
+CQExprModel::
+addTclFunction(const QString &name, CQExprModelTclFn *fn)
+{
+  assert(name.length());
+
+#ifdef CQExprModel_USE_TCL
   tclCmds_.push_back(fn);
-#else
-  assert(false);
 #endif
 }
 
@@ -1390,52 +1427,52 @@ bool
 CQExprModel::
 evaluateExpression(const QString &expr, QVariant &var) const
 {
+  if      (exprType_ == ExprType::EXPR) {
 #ifdef CQExprModel_USE_CEXPR
-  CExprValuePtr value;
+    CExprValuePtr value;
 
-  if (! expr_->evaluateExpression(expr.toStdString(), value))
+    if (! expr_->evaluateExpression(expr.toStdString(), value))
+      return false;
+
+    if (! value.isValid())
+      return false;
+
+    std::string str;
+
+    double real    = 0.0;
+    long   integer = 0;
+
+    if      (value->getRealValue(real))
+      var = QVariant(real);
+    else if (value->getIntegerValue(integer))
+      var = QVariant((int) integer);
+    else
+      var = QVariant(QString(str.c_str()));
+
+    return true;
+#else
     return false;
+#endif
+  }
+  else if (exprType_ == ExprType::TCL) {
+#ifdef CQExprModel_USE_TCL
+    QString cmd = "expr {" + expr + "}";
 
-  if (! value.isValid())
+    int rc = qtcl_->eval(cmd);
+
+    if (rc != TCL_OK) {
+      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+      return false;
+    }
+
+    return getTclResult(var);
+#else
     return false;
-
-  std::string str;
-
-  double real    = 0.0;
-  long   integer = 0;
-
-  if      (value->getRealValue(real))
-    var = QVariant(real);
-  else if (value->getIntegerValue(integer))
-    var = QVariant((int) integer);
-  else
-    var = QVariant(QString(str.c_str()));
-
-  return true;
-#elif CQExprModel_USE_TCL
-  QString cmd = "expr {" + expr + "}";
-
-  int rc = Tcl_EvalEx(interp_, cmd.toLatin1().constData(), -1, 0);
-
-  if (rc != TCL_OK) {
-    Tcl_Obj *options = Tcl_GetReturnOptions(interp_, rc);
-    Tcl_Obj *key = Tcl_NewStringObj("-errorinfo", -1);
-    Tcl_Obj *stackTrace;
-    Tcl_IncrRefCount(key);
-    Tcl_DictObjGet(NULL, options, key, &stackTrace);
-    Tcl_DecrRefCount(key);
-    int len = 0;
-    std::cerr << Tcl_GetStringFromObj(stackTrace, &len);
-    Tcl_DecrRefCount(options);
+#endif
+  }
+  else {
     return false;
   }
-
-  return getTclResult(var);
-#else
-  assert(false && &expr && &var);
-
-  return false;
-#endif
 }
 
 bool
@@ -1516,25 +1553,8 @@ CQExprModel::
 setTclResult(const QVariant &rc)
 {
 #ifdef CQExprModel_USE_TCL
-  if      (rc.type() == QVariant::Double) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewDoubleObj(rc.value<double>()));
-  }
-  else if (rc.type() == QVariant::Int) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewIntObj(rc.value<int>()));
-  }
-  else if (rc.type() == QVariant::Bool) {
-    Tcl_SetObjResult(tclInterp(), Tcl_NewBooleanObj(rc.value<double>()));
-  }
-  else {
-    QString str = rc.toString();
-
-    Tcl_SetObjResult(tclInterp(), Tcl_NewStringObj(str.toLatin1().constData(), -1));
-  }
-
+  qtcl_->setResult(rc);
   return true;
-#else
-  assert(false && &rc);
-  return false;
 #endif
 }
 
@@ -1543,33 +1563,8 @@ CQExprModel::
 getTclResult(QVariant &var) const
 {
 #ifdef CQExprModel_USE_TCL
-  Tcl_Obj *res = Tcl_GetObjResult(interp_);
-
-  double real    = 0.0;
-  int    integer = 0;
-
-  Tcl_IncrRefCount(res);
-
-  if      (Tcl_GetIntFromObj(interp_, res, &integer) == TCL_OK)
-    var = QVariant(integer);
-  else if (Tcl_GetDoubleFromObj(interp_, res, &real) == TCL_OK)
-    var = QVariant(real);
-  else {
-    int len = 0;
-
-    char *str = Tcl_GetStringFromObj(res, &len);
-
-    std::string cstr(str, len);
-
-    var = QVariant(QString(cstr.c_str()));
-  }
-
-  Tcl_DecrRefCount(res);
-
+  var = qtcl_->getResult();
   return true;
-#else
-  assert(false && &var);
-  return false;
 #endif
 }
 

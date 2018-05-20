@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 
 class CQCharts;
+class CQChartsTableDelegate;
 class CQChartsTableSelectionModel;
 class CQChartsModelExprMatch;
 
@@ -66,6 +67,7 @@ class CQChartsTable : public CQTableView {
   CQCharts*                    charts_       { nullptr };
   ModelP                       model_;
   CQChartsTableSelectionModel* sm_           { nullptr };
+  CQChartsTableDelegate*       delegate_     { nullptr };
   bool                         isExprFilter_ { true };
   CQChartsModelExprMatch*      match_        { nullptr };
   Matches                      matches_;

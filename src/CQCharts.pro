@@ -6,7 +6,7 @@ QT += widgets svg
 
 DEPENDPATH += .
 
-QMAKE_CXXFLAGS += -std=c++14 -DCQExprModel_USE_TCL
+QMAKE_CXXFLAGS += -std=c++14 -DCQExprModel_USE_CEXPR -DCQExprModel_USE_TCL
 
 MOC_DIR = .moc
 
@@ -222,7 +222,6 @@ HEADERS += \
 ../include/CQGnuDataModel.h \
 ../include/CQSortModel.h \
 ../include/CQExprModel.h \
-CQExprModelExpr.h \
 ../include/CQFoldedModel.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \

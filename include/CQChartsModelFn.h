@@ -5,12 +5,55 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
 
-// remap(column), remap(column,max), remap(column,min,max) remap column value
-class CQChartsModelRemapFn : public CQExprModelFn {
+class CQChartsModelRemapImpl {
  public:
-  CQChartsModelRemapFn(CQCharts *charts, QAbstractItemModel *model, CQExprModel *exprModel) :
-   CQExprModelFn(exprModel, "remap"), charts_(charts), model_(model), exprModel_(exprModel) {
+  using Vars = std::vector<QVariant>;
+
+ public:
+  CQChartsModelRemapImpl(CQCharts *charts, QAbstractItemModel *model, CQExprModel *exprModel) :
+   charts_(charts), model_(model), exprModel_(exprModel) {
   }
+
+  bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax) {
+    CQChartsColumn column(ind.column());
+
+    CQBaseModel::Type  type;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsUtil::columnValueType(charts_, exprModel_, column, type, nameValues))
+      return false;
+
+    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+    CQChartsColumnType *typeData = columnTypeMgr->getType(type);
+
+    CQChartsColumnRealType *rtypeData = dynamic_cast<CQChartsColumnRealType *>(typeData);
+
+    if (! rtypeData)
+      return false;
+
+    CQChartsModelData *modelData = charts_->getModelData(model_);
+
+    if (! modelData) {
+      //int modelInd = charts_->addModel(model_);
+
+      //modelData = charts_->getModelData(modelInd);
+    }
+
+    if (! rtypeData->rmin(nameValues, rmin)) {
+      if (modelData)
+        rmin = modelData->details().columnDetails(ind.column()).minValue().toReal();
+    }
+
+    if (! rtypeData->rmax(nameValues, rmax)) {
+      if (modelData)
+        rmax = modelData->details().columnDetails(ind.column()).maxValue().toReal();
+    }
+
+    return true;
+  }
+
+  //---
 
   QVariant exec(const Vars &vars) {
     if (vars.size() == 0)
@@ -27,7 +70,7 @@ class CQChartsModelRemapFn : public CQExprModelFn {
 
     int row = exprModel_->currentRow();
 
-    if (! checkIndex(row, col))
+    if (! exprModel_->checkIndex(row, col))
       return QVariant(0.0);
 
     QModelIndex ind = exprModel_->index(row, col, QModelIndex());
@@ -73,49 +116,58 @@ class CQChartsModelRemapFn : public CQExprModelFn {
     return QVariant(rm);
   }
 
-  bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax) {
-    CQChartsColumn column(ind.column());
-
-    CQBaseModel::Type  type;
-    CQChartsNameValues nameValues;
-
-    if (! CQChartsUtil::columnValueType(charts_, exprModel_, column, type, nameValues))
-      return false;
-
-    CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
-
-    CQChartsColumnType *typeData = columnTypeMgr->getType(type);
-
-    CQChartsColumnRealType *rtypeData = dynamic_cast<CQChartsColumnRealType *>(typeData);
-
-    if (! rtypeData)
-      return false;
-
-    CQChartsModelData *modelData = charts_->getModelData(model_);
-
-    if (! modelData) {
-      //int modelInd = charts_->addModel(model_);
-
-      //modelData = charts_->getModelData(modelInd);
-    }
-
-    if (! rtypeData->rmin(nameValues, rmin)) {
-      if (modelData)
-        rmin = modelData->details().columnDetails(ind.column()).minValue().toReal();
-    }
-
-    if (! rtypeData->rmax(nameValues, rmax)) {
-      if (modelData)
-        rmax = modelData->details().columnDetails(ind.column()).maxValue().toReal();
-    }
-
-    return true;
-  }
-
  private:
   CQCharts*           charts_    { nullptr };
   QAbstractItemModel* model_     { nullptr };
   CQExprModel*        exprModel_ { nullptr };
 };
+
+//---
+
+#ifdef CQExprModel_USE_CEXPR
+// remap(column), remap(column,max), remap(column,min,max) remap column value
+class CQChartsModelRemapExprFn : public CQExprModelExprFn {
+ public:
+  CQChartsModelRemapExprFn(CQCharts *charts, QAbstractItemModel *model, CQExprModel *exprModel) :
+   CQExprModelExprFn(exprModel, "remap") {
+    impl_ = new CQChartsModelRemapImpl(charts, model, exprModel);
+  }
+
+ ~CQChartsModelRemapExprFn() {
+    delete impl_;
+  }
+
+  QVariant exec(const Vars &vars) {
+    return impl_->exec(vars);
+  }
+
+ private:
+  CQChartsModelRemapImpl *impl_ { nullptr };
+};
+#endif
+
+//---
+
+#ifdef CQExprModel_USE_TCL
+// remap(column), remap(column,max), remap(column,min,max) remap column value
+class CQChartsModelRemapTclFn : public CQExprModelTclFn {
+ public:
+  CQChartsModelRemapTclFn(CQCharts *charts, QAbstractItemModel *model, CQExprModel *exprModel) :
+   CQExprModelTclFn(exprModel, "remap") {
+    impl_ = new CQChartsModelRemapImpl(charts, model, exprModel);
+  }
+
+ ~CQChartsModelRemapTclFn() {
+    delete impl_;
+  }
+
+  QVariant exec(const Vars &vars) {
+    return impl_->exec(vars);
+  }
+
+ private:
+  CQChartsModelRemapImpl *impl_ { nullptr };
+};
+#endif
 
 #endif

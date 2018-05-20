@@ -1,24 +1,20 @@
-proc plotSlot(viewId, plotId, rowId)
-  print "plotSlot", viewId, plotId, rowId
+proc plotSlot { viewId  plotId rowId } {
+  puts "plotSlot: $viewId, $plotId, $rowId"
 
-  get_data -view $viewId -plot $plotId -id $rowId -column 1
+  set rc [get_data -view $viewId -plot $plotId -id $rowId -column 1]
 
-  print _rc
-endproc
+  puts $rc
+}
 
-load_model -csv data/coverage.csv -first_line_header
-modelId = _rc
+set modelId [load_model -csv data/coverage.csv -first_line_header]
 
 set_model -ind $modelId -column_type "0#time:format=%m/%d/%Y,oformat=%F"
 
-create_plot -type xy -columns "id=0,x=0,y=1"
-plotId1 = _rc
+set plotId1 [create_plot -type xy -columns "id=0,x=0,y=1"]
 
-get_view -name id
-viewId = _rc
+set viewId [get_view -name id]
 
-create_plot -type xy -columns "id=0,x=0,y=2"
-plotId2 = _rc
+set plotId2 [create_plot -type xy -columns "id=0,x=0,y=2"]
 
 set_property -view $viewId -plot $plotId1 -name impulse.visible -value 1
 set_property -view $viewId -plot $plotId1 -name impulse.color   -value palette

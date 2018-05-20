@@ -105,10 +105,20 @@ CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 
 #ifdef CGRADIENT_EXPR
   if (palette.expr_) {
-    expr_ = new CExpr;
+    expr_      = new CExpr;
+    exprOwned_ = true;
 
     expr_->createRealVariable("pi", M_PI);
   }
+#endif
+}
+
+CQChartsGradientPalette::
+~CQChartsGradientPalette()
+{
+#ifdef CGRADIENT_EXPR
+  if (exprOwned_)
+    delete expr_;
 #endif
 }
 

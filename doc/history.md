@@ -375,3 +375,6 @@
  + Add export to CSV/TSV
  + Support Tcl in CLI and process expression
  + More standard command arg processing
+# 5/20/2018
+ + Cleanup tcl support code
+ + Fix some memory leaks

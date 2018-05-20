@@ -109,7 +109,7 @@ setColorStr(const QString &str)
       if (rhs == "s")
         scale = true;
 
-      rhs = rhs1.mid(0, pos);
+      rhs = rhs.mid(0, pos);
     }
 
     bool ok;
