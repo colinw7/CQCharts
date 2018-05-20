@@ -236,7 +236,7 @@ updateRange(bool apply)
   //---
 
   // update data range if unset
-  if (CQChartsUtil::isZero(dataRange_.xsize())) {
+  if (dataRange_.isSet() && CQChartsUtil::isZero(dataRange_.xsize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 
@@ -244,7 +244,7 @@ updateRange(bool apply)
     dataRange_.updateRange(x + 1, y);
   }
 
-  if (CQChartsUtil::isZero(dataRange_.ysize())) {
+  if (dataRange_.isSet() && CQChartsUtil::isZero(dataRange_.ysize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 

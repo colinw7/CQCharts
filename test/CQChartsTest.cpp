@@ -1762,16 +1762,18 @@ exec(const QString &filename)
   while (! in.atEnd()) {
     QString line = in.readLine();
 
-    while (! cmds_->isCompleteLine(line)) {
+    bool join;
+
+    while (! cmds_->isCompleteLine(line, join)) {
       if (in.atEnd())
         break;
 
       QString line1 = in.readLine();
 
-      if (parserType() == ParserType::TCL)
-        line += line1;
-      else
+      if (! join)
         line += "\n" + line1;
+      else
+        line += line1;
     }
 
     cmds_->parseLine(line);
@@ -1829,12 +1831,17 @@ loop()
 
     QString line = readLine->readLine().c_str();
 
-    while (! cmds_->isCompleteLine(line)) {
+    bool join;
+
+    while (! cmds_->isCompleteLine(line, join)) {
       readLine->setPrompt("+> ");
 
       QString line1 = readLine->readLine().c_str();
 
-      line += "\n" + line1;
+      if (! join)
+        line += "\n" + line1;
+      else
+        line += line1;
     }
 
     cmds_->parseLine(line);

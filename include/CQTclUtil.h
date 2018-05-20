@@ -5,6 +5,8 @@
 
 namespace CQTclUtil {
 
+using Vars = std::vector<QVariant>;
+
 inline int eval(Tcl_Interp *interp, const QString &str) {
   return Tcl_EvalEx(interp, str.toLatin1().constData(), -1, 0);
 }
@@ -17,7 +19,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *, const QVariant &var) {
     return Tcl_NewIntObj(var.value<int>());
   }
   else if (var.type() == QVariant::Bool) {
-    return Tcl_NewBooleanObj(var.value<double>());
+    return Tcl_NewBooleanObj(var.value<bool>());
   }
   else {
     QString str = var.toString();
@@ -58,6 +60,38 @@ inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &v
                  variantToObj(interp, var), TCL_GLOBAL_ONLY);
 }
 
+inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
+  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, variantToObj(interp, name), nullptr, TCL_GLOBAL_ONLY);
+
+  if (! obj)
+    return QVariant();
+
+  return variantFromObj(interp, obj);
+}
+
+inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
+  Tcl_Obj *obj = Tcl_ObjGetVar2(interp, variantToObj(interp, name), nullptr, TCL_GLOBAL_ONLY);
+
+  if (! obj)
+    return Vars();
+
+  int       n = 0;
+  Tcl_Obj **objs = nullptr;
+
+  int rc = Tcl_ListObjGetElements(interp, obj, &n, &objs);
+
+  if (rc != TCL_OK)
+    return Vars();
+
+  Vars vars;
+
+  for (int i = 0; i < n; ++i) {
+    vars.push_back(variantFromObj(interp, objs[i]));
+  }
+
+  return vars;
+}
+
 inline void setResult(Tcl_Interp *interp, const QVariant &var) {
   Tcl_SetObjResult(interp, variantToObj(interp, var));
 }
@@ -74,6 +108,7 @@ inline QVariant getResult(Tcl_Interp *interp) {
 
 class CQTcl : public CTcl {
  public:
+  using Vars       = std::vector<QVariant>;
   using ObjCmdProc = Tcl_ObjCmdProc *;
   using ObjCmdData = ClientData;
 
@@ -82,6 +117,14 @@ class CQTcl : public CTcl {
 
   void createVar(const QString &name, const QVariant &var) {
     CQTclUtil::createVar(interp(), name, var);
+  }
+
+  QVariant getVar(const QString &name) const {
+    return CQTclUtil::getVar(interp(), name);
+  }
+
+  Vars getListVar(const QString &name) const {
+    return CQTclUtil::getListVar(interp(), name);
   }
 
   Tcl_Command createObjCommand(const QString &name, Tcl_ObjCmdProc *proc, ClientData data) {

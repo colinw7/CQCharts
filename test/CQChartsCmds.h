@@ -151,7 +151,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  bool isCompleteLine(QString &line) const;
+  bool isCompleteLine(QString &line, bool &join) const;
 
   void parseLine(const QString &line);
 

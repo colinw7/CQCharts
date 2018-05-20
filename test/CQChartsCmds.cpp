@@ -33,7 +33,7 @@
 #include <CHRTimer.h>
 
 #ifdef CQ_CHARTS_CEIL
-#include <CCeil.h>
+#include <CQChartsCeilUtil.h>
 #endif
 
 #ifdef CQ_CHARTS_TCL
@@ -259,9 +259,7 @@ setParserType(const ParserType &type)
     static bool ceilCmdsAdded;
 
     if (! ceilCmdsAdded) {
-      //ClParserInst->setDollarPrefix(true);
-
-      ClLanguageMgrInst->init(nullptr, nullptr);
+      CQChartsCeilUtil::init();
 
       addCommands();
 
@@ -2580,7 +2578,9 @@ sourceCmd(const Vars &vars)
   while (file.readLine(line)) {
     QString qline = line.c_str();
 
-    while (! isCompleteLine(qline)) {
+    bool join;
+
+    while (! isCompleteLine(qline, join)) {
       std::string line1;
 
       if (! file.readLine(line1))
@@ -2588,7 +2588,10 @@ sourceCmd(const Vars &vars)
 
       QString qline1 = line1.c_str();
 
-      qline += "\n" + qline1;
+      if (! join)
+        qline += "\n" + qline1;
+      else
+        qline += qline1;
     }
 
     parseScriptLine(qline);
@@ -2768,7 +2771,9 @@ stringToCmds(const QString &str) const
   for ( ; i < lines.size(); ++i) {
     QString line = lines[i];
 
-    while (! isCompleteLine(line)) {
+    bool join;
+
+    while (! isCompleteLine(line, join)) {
       ++i;
 
       if (i >= lines.size())
@@ -2776,7 +2781,10 @@ stringToCmds(const QString &str) const
 
       const QString &line1 = lines[i];
 
-      line += "\n" + line1;
+      if (! join)
+        line += "\n" + line1;
+      else
+        line += line1;
     }
 
     lines1.push_back(line);
@@ -2808,20 +2816,11 @@ parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs)
     assert(! arg.empty());
 
     if (arg[0] == '$') {
-      std::string var = arg.substr(1);
+      std::string varName = arg.substr(1);
 
-      ClParserValuePtr value = ClParserInst->getVariableValue(var);
+      QVariant var = CQChartsCeilUtil::varValue(varName.c_str());
 
-      std::string str;
-
-      if (value.isValid()) {
-        if (value->isString())
-          str = value->getString()->getText();
-        else
-          str = value->asString();
-      }
-
-      vars.push_back(str.c_str());
+      vars.push_back(var);
     }
     else
       vars.push_back(arg.c_str());
@@ -2837,7 +2836,7 @@ setCmdRc(int rc)
 {
 #ifdef CQ_CHARTS_CEIL
   if (parserType() == ParserType::CEIL) {
-    ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue((long) rc));
+    CQChartsCeilUtil::setResult(rc);
     return;
   }
 #endif
@@ -2860,7 +2859,7 @@ setCmdRc(double rc)
 {
 #ifdef CQ_CHARTS_CEIL
   if (parserType() == ParserType::CEIL) {
-    ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc));
+    CQChartsCeilUtil::setResult(rc);
     return;
   }
 #endif
@@ -2883,7 +2882,7 @@ setCmdRc(const QString &rc)
 {
 #ifdef CQ_CHARTS_CEIL
   if (parserType() == ParserType::CEIL) {
-    ClParserInst->setVariableValue("_rc", ClParserValueMgrInst->createValue(rc.toStdString()));
+    CQChartsCeilUtil::setResult(rc);
     return;
   }
 #endif
@@ -2907,16 +2906,15 @@ setCmdRc(const QVariant &rc)
 #ifdef CQ_CHARTS_CEIL
   if (parserType() == ParserType::CEIL) {
     if      (rc.type() == QVariant::Int)
-      ClParserInst->setVariableValue("_rc",
-        ClParserValueMgrInst->createValue((long) rc.value<int>()));
+      CQChartsCeilUtil::setResult(rc);
     else if (rc.type() == QVariant::Double)
-      ClParserInst->setVariableValue("_rc",
-        ClParserValueMgrInst->createValue(rc.value<double>()));
+      CQChartsCeilUtil::setResult(rc);
     else {
       bool ok;
 
-      ClParserInst->setVariableValue("_rc",
-        ClParserValueMgrInst->createValue(CQChartsUtil::toString(rc, ok).toStdString()));
+      QString str = CQChartsUtil::toString(rc, ok);
+
+      CQChartsCeilUtil::setResult(str);
     }
 
     return;
@@ -2926,6 +2924,7 @@ setCmdRc(const QVariant &rc)
 #ifdef CQ_CHARTS_TCL
   if (parserType() == ParserType::TCL) {
     qtcl()->setResult(rc);
+
     return;
   }
 #endif
@@ -3474,7 +3473,7 @@ QAbstractItemModel *
 CQChartsCmds::
 createVarsModel(const Vars &vars)
 {
-#ifdef CQ_CHARTS_CEIL
+#if defined(CQ_CHARTS_CEIL) || defined(CQ_CHARTS_TCL)
   using ColumnValues = std::vector<QVariant>;
   using VarColumns   = std::vector<ColumnValues>;
 
@@ -3485,46 +3484,26 @@ createVarsModel(const Vars &vars)
   int nr = -1;
 
   for (int i = 0; i < nv; ++i) {
-    QString var = vars[i].toString();
-
-    ClParserValuePtr value = ClParserInst->getVariableValue(var.toStdString());
-    if (! value.isValid()) continue;
-
-    ClParserValueArray values;
-
-    value->toSubValues(values);
-
-    int nv1 = values.size();
+    QString varName = vars[i].toString();
 
     ColumnValues columnValues;
 
-    columnValues.resize(nv1);
-
-    for (int j = 0; j < nv1; ++j) {
-      const ClParserValuePtr &value = values[j];
-
-      if      (value->getType() == CL_PARSER_VALUE_TYPE_INTEGER) {
-        long l;
-
-        (void) value->integerValue(&l);
-
-        columnValues[j] = QVariant(int(l));
-      }
-      else if (value->getType() == CL_PARSER_VALUE_TYPE_REAL) {
-        double r;
-
-        (void) value->realValue(&r);
-
-        columnValues[j] = QVariant(r);
-      }
-      else if (value->getType() == CL_PARSER_VALUE_TYPE_STRING) {
-        std::string s;
-
-        (void) value->stringValue(s);
-
-        columnValues[j] = QVariant(s.c_str());
-      }
+    if      (parserType() == ParserType::CEIL) {
+#ifdef CQ_CHARTS_CEIL
+      columnValues = CQChartsCeilUtil::varArrayValue(varName);
+#else
+      continue;
+#endif
     }
+    else if (parserType() == ParserType::TCL) {
+#ifdef CQ_CHARTS_TCL
+      columnValues = qtcl_->getListVar(varName);
+#else
+      continue;
+#endif
+    }
+
+    int nv1 = columnValues.size();
 
     if (nr < 0)
       nr = nv1;
@@ -3533,6 +3512,9 @@ createVarsModel(const Vars &vars)
 
     varColumns.push_back(columnValues);
   }
+
+  if (nr < 0)
+    return nullptr;
 
   int nc = varColumns.size();
 
@@ -3820,13 +3802,16 @@ currentView() const
 
 bool
 CQChartsCmds::
-isCompleteLine(QString &str) const
+isCompleteLine(QString &str, bool &join) const
 {
+  join = false;
+
   if (! str.length())
     return true;
 
   if (str[str.size() - 1] == '\\') {
     str = str.mid(0, str.length() - 1);
+    join = true;
     return false;
   }
 

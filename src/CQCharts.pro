@@ -83,6 +83,7 @@ CQChartsModelFilter.cpp \
 CQChartsModelExprMatch.cpp \
 CQChartsModelDetails.cpp \
 CQChartsExprDataModel.cpp \
+CQChartsDataModel.cpp \
 \
 CQChartsPlotDlg.cpp \
 \
@@ -200,6 +201,7 @@ HEADERS += \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelDetails.h \
 ../include/CQChartsExprDataModel.h \
+../include/CQChartsDataModel.h \
 \
 ../include/CQChartsPlotDlg.h \
 \
