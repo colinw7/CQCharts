@@ -198,6 +198,13 @@ CQChartsPlot::
   delete updateTimer_;
 }
 
+QString
+CQChartsPlot::
+viewId() const
+{
+  return view_->id();
+}
+
 //---
 
 void
@@ -803,6 +810,8 @@ void
 CQChartsPlot::
 addProperties()
 {
+  addProperty("", this, "viewId");
+
   addProperty("columns", this, "idColumn", "id");
 
   addProperty("", this, "visible"    );

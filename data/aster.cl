@@ -1,9 +1,6 @@
 load_model -csv data/aster_data.csv -first_line_header
 modelId = _rc
 
-get_view -name id
-viewId = _rc
-
 get_property -model $modelId -name num_rows
 nr = _rc
 
@@ -25,6 +22,9 @@ set_model -ind $modelId -column_type "4#color"
 
 create_plot -type pie -columns "id=0,radius=2,data=3,label=5,color=4" -title "Aster"
 plotId = _rc
+
+get_property -plot $plotId -name viewId
+viewId = _rc
 
 set_property -view $viewId -plot $plotId -name donut -value 1
 set_property -view $viewId -plot $plotId -name grid.visible -value 1

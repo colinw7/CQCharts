@@ -43,6 +43,7 @@
 #include <QStackedWidget>
 #include <QSortFilterProxyModel>
 #include <QFont>
+#include <fstream>
 
 //----
 
@@ -64,12 +65,6 @@ bool stringToBool(const QString &str, bool *ok) {
   *ok = false;
 
   return false;
-}
-
-void
-errorMsg(const QString &msg)
-{
-  std::cerr << msg.toStdString() << "\n";
 }
 
 }
@@ -209,9 +204,8 @@ addCommands()
   addCommand("set_model");
   addCommand("get_model");
 
-  // get/set view data
-  addCommand("get_view");
-  addCommand("set_view");
+  // measure text
+  addCommand("measure_text");
 
   // add/remove plot
   addCommand("create_plot");
@@ -300,9 +294,8 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "set_model") { setModelCmd(vars); }
   else if (cmd == "get_model") { getModelCmd(vars); }
 
-  // get/set view
-  else if (cmd == "set_view") { setViewCmd(vars); }
-  else if (cmd == "get_view") { getViewCmd(vars); }
+  // measure text
+  else if (cmd == "measure_text") { measureTextCmd(vars); }
 
   // create/remove plot
   else if (cmd == "create_plot") { createPlotCmd(vars); }
@@ -716,50 +709,12 @@ processModelCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-setViewCmd(const Vars &vars)
+measureTextCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("set_view", vars);
-
-  argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
-  argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "view title");
-  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "properies name values");
-
-  if (! argv.parse())
-    return;
-
-  //---
-
-  QString viewName   = argv.getParseStr("view");
-  QString title      = argv.getParseStr("title");
-  QString properties = argv.getParseStr("properties");
-
-  //---
-
-  CQChartsView *view = getViewByName(viewName);
-  if (! view) return;
-
-  //---
-
-  if (title.length())
-    view->setTitle(title);
-
-  if (properties.length())
-    setViewProperties(view, properties);
-
-  //---
-
-  setCmdRc(view->id());
-}
-
-//------
-
-void
-CQChartsCmds::
-getViewCmd(const Vars &vars)
-{
-  CQChartsCmdsArgs argv("get_view", vars);
+  CQChartsCmdsArgs argv("measure_text", vars);
 
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
+  argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "value name");
   argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "data");
 
@@ -769,43 +724,50 @@ getViewCmd(const Vars &vars)
   //---
 
   QString viewName = argv.getParseStr("view");
+  QString plotName = argv.getParseStr("plot");
   QString name     = argv.getParseStr("name");
   QString data     = argv.getParseStr("data");
 
   //---
 
-  CQChartsView *view = nullptr;
+  CQChartsView *view = getViewByName(viewName);
+  if (! view) return;
 
-  if (viewName != "")
-    view = getViewByName(viewName);
+  QFontMetricsF fm(view->font());
+
+  CQChartsPlot *plot = nullptr;
+
+  if (plotName != "") {
+    plot = getPlotByName(view, plotName);
+    if (! plot) return;
+  }
+
+  if      (name == "width") {
+    if (plot)
+      setCmdRc(plot->pixelToWindowWidth(fm.width(data)));
+    else
+      setCmdRc(view->pixelToWindowWidth(fm.width(data)));
+  }
+  else if (name == "height") {
+    if (plot)
+      setCmdRc(plot->pixelToWindowHeight(fm.height()));
+    else
+      setCmdRc(view->pixelToWindowHeight(fm.height()));
+  }
+  else if (name == "ascent") {
+    if (plot)
+      setCmdRc(plot->pixelToWindowHeight(fm.height()));
+    else
+      setCmdRc(view->pixelToWindowHeight(fm.height()));
+  }
+  else if (name == "descent") {
+    if (plot)
+      setCmdRc(plot->pixelToWindowHeight(fm.descent()));
+    else
+      setCmdRc(view->pixelToWindowHeight(fm.descent()));
+  }
   else
-    view = view_;
-
-  if (! view) {
-    errorMsg("Invalid view");
-    return;
-  }
-
-  if      (name == "id") {
-    setCmdRc(view->id());
-  }
-  else if (name == "text_width") {
-    QFontMetricsF fm(view->font());
-
-    double w = view->pixelToWindowWidth(fm.width(data));
-
-    setCmdRc(w);
-  }
-  else if (name == "text_height") {
-    QFontMetricsF fm(view->font());
-
-    double h = view->pixelToWindowHeight(fm.height());
-
-    setCmdRc(h);
-  }
-  else {
     setCmdRc(QString());
-  }
 }
 
 //------
@@ -1791,15 +1753,22 @@ exportModelCmd(const Vars &vars)
     return;
   }
 
+  std::ofstream fos; bool isFile = false;
+
+  if (filename.length()) {
+    fos.open(filename.toLatin1().constData());
+    isFile = true;
+  }
+
   ModelP model = modelData->model();
 
   if      (toName.toLower() == "csv") {
     CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::CSV,
-                              hheader, vheader);
+                              hheader, vheader, (isFile ? fos : std::cout));
   }
   else if (toName.toLower() == "tsv") {
     CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::TSV,
-                              hheader, vheader);
+                              hheader, vheader, (isFile ? fos : std::cout));
   }
   else {
     errorMsg("Invalid output format");
@@ -3948,6 +3917,14 @@ parseScriptLine(const QString &str)
   if (! processCmd(cmd, vars))
     errorMsg("Invalid command '" + cmd + "'");
 }
+
+void
+CQChartsCmds::
+errorMsg(const QString &msg) const
+{
+  std::cerr << msg.toStdString() << "\n";
+}
+
 
 //------
 

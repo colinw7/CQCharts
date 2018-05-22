@@ -4,9 +4,9 @@ set model [load_model -tsv data/monthly_sales.tsv -comment_header]
 
 set plot1 [create_plot -type barchart -columns "category=0,value=1,label=4" -column_type "1#real:format=$%gK,format_scale=0.001;2#real:format=$%gK,format_scale=0.001;3#real:format=$%gK,format_scale=0.001" -title "Actual Sales" -ymax 80000]
 
-set view [get_view -name id]
+set view [get_property -plot $plot1 -name viewId]
 
-set_view -view $view -title "Monthly Sales Data"
+set_property -view $view -name title -value "Monthly Sales Data"
 
 set_palette -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
 #set_palette -color_type defined -defined "0=#4d81bc 1=#c0504e 2=#9bbb58"

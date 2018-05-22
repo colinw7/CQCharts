@@ -173,8 +173,7 @@ class CQChartsCmds : public QObject {
   void setModelCmd(const Vars &vars);
   void getModelCmd(const Vars &vars);
 
-  void setViewCmd(const Vars &vars);
-  void getViewCmd(const Vars &vars);
+  void measureTextCmd(const Vars &vars);
 
   void createPlotCmd(const Vars &vars);
   void removePlotCmd(const Vars &vars);
@@ -256,6 +255,8 @@ class CQChartsCmds : public QObject {
   void setCmdRc(double rc);
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
+
+  void errorMsg(const QString &msg) const;
 
  signals:
   void titleChanged(int ind, const QString &title);

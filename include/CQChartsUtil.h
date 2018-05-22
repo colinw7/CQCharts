@@ -1055,14 +1055,15 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
 //------
 
 inline void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
-                        bool hheader=true, bool vheader=false) {
+                        bool hheader=true, bool vheader=false,
+                        std::ostream &os=std::cout) {
   if      (type == CQBaseModel::DataType::CSV) {
     CQCsvModel csv;
 
     csv.setFirstLineHeader  (hheader);
     csv.setFirstColumnHeader(vheader);
 
-    csv.save(model, std::cout);
+    csv.save(model, os);
   }
   else if (type == CQBaseModel::DataType::TSV) {
     CQTsvModel tsv;
@@ -1070,7 +1071,7 @@ inline void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
     tsv.setFirstLineHeader  (hheader);
     tsv.setFirstColumnHeader(vheader);
 
-    tsv.save(model, std::cout);
+    tsv.save(model, os);
   }
   else {
     assert(false);

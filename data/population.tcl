@@ -76,9 +76,9 @@ set ::place "overlay"
 
 plotYear $::year
 
-set ::viewId [get_view -name id]
+set ::viewId [get_property -plot $::plot1Id -name viewId]
 
-set dtx [get_view -view $::viewId -name text_width -data "xx"]
+set dtx [measure_text -view $::viewId -name width -data "xx"]
 puts $dtx
 
 set tx [expr {2*$dtx}]
@@ -86,19 +86,19 @@ puts $tx
 
 set text1Id [text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1]
 
-set tw [get_view -view $::viewId -name text_width -data "Prev"]
+set tw [measure_text -view $::viewId -name width -data "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
 set text2Id [text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1]
 
-set tw [get_view -view $::viewId -name text_width -data "Next"]
+set tw [measure_text -view $::viewId -name width -data "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
 set text3Id [text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1]
 
-set tw [get_view -view $::viewId -name text_width -data "Overlay"]
+set tw [measure_text -view $::viewId -name width -data "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 

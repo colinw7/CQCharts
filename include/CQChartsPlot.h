@@ -172,6 +172,9 @@ class CQChartsPlotUpdateTimer : public QTimer {
 class CQChartsPlot : public QObject {
   Q_OBJECT
 
+  // view
+  Q_PROPERTY(QString        viewId              READ viewId                                      )
+
   // generic columns and control
   Q_PROPERTY(CQChartsColumn idColumn            READ idColumn            WRITE setIdColumn       )
 
@@ -326,6 +329,8 @@ class CQChartsPlot : public QObject {
   CQChartsView *view() const { return view_; }
 
   CQChartsPlotType *type() const { return type_; }
+
+  QString viewId() const;
 
   //---
 

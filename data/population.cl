@@ -83,10 +83,10 @@ _place = "overlay"
 
 plotYear(_year)
 
-get_view -name id
+get_property -plot $_plot1Id -name viewId
 _viewId = _rc
 
-get_view -view $_viewId -name text_width -data "xx"
+measure_text -view $_viewId -name width -data "xx"
 dtx = _rc
 print dtx
 
@@ -96,21 +96,21 @@ print tx
 text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1
 text1Id = _rc
 
-get_view -view $_viewId -name text_width -data "Prev"
+measure_text -view $_viewId -name width -data "Prev"
 tx = tx + _rc + dtx
 print tx
 
 text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1
 text2Id = _rc
 
-get_view -view $_viewId -name text_width -data "Next"
+measure_text -view $_viewId -name width -data "Next"
 tx = tx + _rc + 2*dtx
 print tx
 
 text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1
 text3Id = _rc
 
-get_view -view $_viewId -name text_width -data "Overlay"
+measure_text -view $_viewId -name width -data "Overlay"
 tx = tx + _rc + dtx
 print tx
 

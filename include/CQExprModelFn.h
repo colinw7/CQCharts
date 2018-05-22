@@ -77,7 +77,9 @@ class CQExprModelTclFn {
  public:
   CQExprModelTclFn(CQExprModel *model, const QString &name) :
    model_(model), name_(name) {
-    cmdId_ = model->qtcl()->createObjCommand(name_,
+    QString mathName = "tcl::mathfunc::" + name_;
+
+    cmdId_ = model->qtcl()->createObjCommand(mathName,
                (CQTcl::ObjCmdProc) &CQExprModelTclFn::commandProc,
                (CQTcl::ObjCmdData) this);
   }

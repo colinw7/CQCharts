@@ -7,10 +7,10 @@ process_model -add -header Percent "100.0*column(1)/cell(@nr-1,2)" -type "real:f
 create_plot -type bar -columns "name=0,value=1" -ymax 150000
 plot1 = _rc
 
-get_view -name id
+get_property -plot $plot1 -name viewId
 view = _rc
 
-set_view -view $view -title "Popular Fast Food Chains"
+set_property -view $view -name title -value "Popular Fast Food Chains"
 
 set_property -view $view -plot $plot1 -name "yaxis.grid.line.major.visible" -value 1
 

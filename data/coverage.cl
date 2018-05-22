@@ -14,7 +14,7 @@ set_model -ind $modelId -column_type "0#time:format=%m/%d/%Y,oformat=%F"
 create_plot -type xy -columns "id=0,x=0,y=1"
 plotId1 = _rc
 
-get_view -name id
+get_property -plot $plotId1 -name viewId
 viewId = _rc
 
 create_plot -type xy -columns "id=0,x=0,y=2"

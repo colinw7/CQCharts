@@ -378,3 +378,8 @@
 # 5/20/2018
  + Cleanup tcl support code
  + Fix some memory leaks
+# 5/2/2018
+ + export to file
+ + remove get_view/set_view commands
+ + add measure_text command
+ + use tcl::mathfunc for model expressions

@@ -246,10 +246,36 @@ encodeString(const QString &str) const
 
     if (i >= 0)
       quote = true;
+    else {
+      i = str.indexOf('\"');
+
+      quote = true;
+    }
   }
 
-  if (quote)
-    return "\"" + str + "\"";
+  if (quote) {
+    int pos = str.indexOf('\"');
+
+    if (pos >= 0) {
+      QString str1 = str;
+      QString str2;
+
+      while (pos >= 0) {
+        str2 += str1.mid(0, pos) + "\"\"";
+
+        str1 = str1.mid(pos + 1);
+
+        pos = str1.indexOf('\"');
+      }
+
+      str2 += str1;
+
+      return str2;
+    }
+    else {
+      return "\"" + str + "\"";
+    }
+  }
   else
     return str;
 }

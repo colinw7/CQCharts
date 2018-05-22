@@ -12,7 +12,7 @@ set_model -ind $modelId -column_type "0#time:format=%m/%d/%Y,oformat=%F"
 
 set plotId1 [create_plot -type xy -columns "id=0,x=0,y=1"]
 
-set viewId [get_view -name id]
+set viewId [get_property -plot $plotId1 -name viewId]
 
 set plotId2 [create_plot -type xy -columns "id=0,x=0,y=2"]
 

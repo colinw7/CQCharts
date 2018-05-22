@@ -18,7 +18,7 @@ set_model -ind $modelId -column_type "4#color"
 
 set plotId [create_plot -type pie -columns "id=0,radius=2,data=3,label=5,color=4" -title "Aster"]
 
-set viewId [get_view -name id]
+set viewId [get_property -plot $plotId -name viewId]
 
 set_property -view $viewId -plot $plotId -name donut -value 1
 set_property -view $viewId -plot $plotId -name grid.visible -value 1

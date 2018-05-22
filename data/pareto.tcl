@@ -1,13 +1,13 @@
 set model [load_model -csv data/pareto.csv -comment_header]
 
-process_model -add -header Sum "\[cell @r 1\] + \[cell \[expr {@r-1}\] @c 0\]" -type "real"
-process_model -add -header Percent "100.0*\[column 1\]/\[cell \[expr {@nr-1}\] 2\]" -type "real:format=%g%%"
+process_model -add -header Sum "cell(@r,1)+cell(@r-1,@c,0)" -type "real"
+process_model -add -header Percent "100.0*column(1)/cell(@nr-1,2)" -type "real:format=%g%%"
 
 set plot1 [create_plot -type bar -columns "name=0,value=1" -ymax 150000]
 
-set view [get_view -name id]
+set view [get_property -plot $plot1 -name viewId]
 
-set_view -view $view -title "Popular Fast Food Chains"
+set_property -view $view -name title -value "Popular Fast Food Chains"
 
 set_property -view $view -plot $plot1 -name "yaxis.grid.line.major.visible" -value 1
 

@@ -457,8 +457,19 @@ class CQChartsCmdsArgs {
               continue;
             }
           }
+          else if (cmdArg->type() == CQChartsCmdArg::Type::Align) {
+            QString str;
+
+            if (getOptValue(str)) {
+              parseStr_[opt].push_back(str);
+            }
+            else {
+              std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+              continue;
+            }
+          }
           else {
-            std::cerr << "Invalid type\n";
+            std::cerr << "Invalid type for '" << opt.toStdString() << "'\n";
             continue;
           }
         }
