@@ -17,8 +17,8 @@ void
 CQChartsRadarPlotType::
 addParameters()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn"  , "optional");
-  addColumnsParameter("value", "Value", "valueColumns", "", "1");
+  addColumnParameter ("name" , "Name" , "nameColumn"  );
+  addColumnsParameter("value", "Value", "valueColumns", "1").setRequired();
 
   CQChartsPlotType::addParameters();
 }
@@ -36,7 +36,7 @@ CQChartsRadarPlot::
 CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("radar"), model)
 {
-  gridData_.color = CQChartsColor(CQChartsColor::Type::THEME_VALUE, 0.5);
+  gridData_.color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5);
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setFillAlpha(0.5);
@@ -44,7 +44,7 @@ CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
   setBorder(true);
   setFilled(true);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   addKey();
 

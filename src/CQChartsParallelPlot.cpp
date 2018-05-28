@@ -16,8 +16,8 @@ void
 CQChartsParallelPlotType::
 addParameters()
 {
-  addColumnParameter ("x", "X", "xColumn" , "", 0);
-  addColumnsParameter("y", "Y", "yColumns", "", "1");
+  addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired();
+  addColumnsParameter("y", "Y", "yColumns", "1").setRequired();
 
   CQChartsPlotType::addParameters();
 }

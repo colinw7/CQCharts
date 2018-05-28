@@ -53,6 +53,8 @@ class CQChartsTable : public CQTableView {
   void filterChanged();
 
  private slots:
+  void modelTypeChangedSlot(int);
+
   void selectionSlot();
 
   void headerClickSlot(int section);

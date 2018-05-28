@@ -9,6 +9,7 @@ class CQBaseModel : public QAbstractItemModel {
 
  public:
   enum class DataType {
+    NONE,
     CSV,
     TSV,
     XML,

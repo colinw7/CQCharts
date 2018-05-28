@@ -16,7 +16,9 @@
 #include <boost/optional.hpp>
 
 class CQCharts;
-class CQChartsLoader;
+class CQChartsModelControl;
+class CQChartsModelList;
+class CQChartsLoadDlg;
 class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
@@ -29,24 +31,14 @@ class CQExprModel;
 class CQHistoryLineEdit;
 
 class QItemSelectionModel;
+class QLabel;
 class QLineEdit;
 class QTextEdit;
 class QTabWidget;
 class QComboBox;
 class QGridLayout;
+class QVBoxLayout;
 class QStackedWidget;
-
-//------
-
-struct CQChartsViewWidgetData {
-  int             ind          { -1 };
-  int             tabInd       { -1 };
-  QStackedWidget* stack        { nullptr };
-  CQChartsTable*  table        { nullptr };
-  CQChartsTree*   tree         { nullptr };
-  QLineEdit*      filterEdit   { nullptr };
-  QTextEdit*      detailsText  { nullptr };
-};
 
 //------
 
@@ -80,6 +72,14 @@ class CQChartsTest : public CQAppWindow {
   bool isShow() const { return show_; }
   void setShow(bool b) { show_ = b; }
 
+  CQCharts *charts() const { return charts_; }
+
+  CQChartsModelList *modelList() const { return modelList_; }
+
+  CQChartsModelControl *modelControl() const { return control_; }
+
+  CQChartsCmds *cmds() const { return cmds_; }
+
   bool exec(const QString &filename);
 
   void print(const QString &filename);
@@ -88,47 +88,27 @@ class CQChartsTest : public CQAppWindow {
 
   void timeout();
 
- private:
-  //friend class CQChartsCmds;
-
- private:
-  CQCharts *charts() const { return charts_; }
-
-  void addMenus();
-
-  void addViewWidgets(CQChartsModelData *modelData);
-
-  QLineEdit *addLineEdit(QGridLayout *grid, int &row, const QString &name,
-                         const QString &objName) const;
+  void redrawModel(CQChartsModelData *modelData);
 
   void updateModel(CQChartsModelData *modelData);
+
+  void errorMsg(const QString &msg);
+
+ private:
+  void addControlWidgets(QVBoxLayout *layout);
+
+  void addMenus();
 
   void updateModelDetails(const CQChartsModelData *modelData);
 
   QSize sizeHint() const;
 
-  QTabWidget *viewTab() const { return viewTab_; }
-
-  CQChartsViewWidgetData *viewWidgetData(int ind) const;
-
  private slots:
-  void loadSlot();
+  void loadModelSlot();
 
   bool loadFileSlot(const QString &type, const QString &filename);
 
-  void createSlot();
-
-  void filterSlot();
-
-  void exprSlot();
-
-  void foldSlot();
-
-  void tableColumnClicked(int column);
-
-  void typeSetSlot();
-
-  void currentTabChanged(int);
+  void createPlotSlot();
 
   void plotDialogCreatedSlot(CQChartsPlot *plot);
 
@@ -142,32 +122,22 @@ class CQChartsTest : public CQAppWindow {
   void windowCreated(CQChartsWindow *window);
   void plotCreated(CQChartsPlot *plot);
 
+  void updateModelControl();
+
   void modelDataAdded(int ind);
 
  private:
   using Plots   = std::vector<CQChartsPlot*>;
   using WindowP = QPointer<CQChartsWindow>;
 
-  using ViewWidgetDatas = std::map<int,CQChartsViewWidgetData*>;
-
  private:
-//Plots              plots_;
-//CQChartsPlot*      rootPlot_       { nullptr };
-  CQCharts*          charts_         { nullptr };
-  QLineEdit*         foldEdit_       { nullptr };
-  QLineEdit*         columnNumEdit_  { nullptr };
-  QLineEdit*         columnNameEdit_ { nullptr };
-  QLineEdit*         columnTypeEdit_ { nullptr };
-  QTabWidget*        viewTab_        { nullptr };
-  ViewWidgetDatas    viewWidgetDatas_;
-  QComboBox*         exprCombo_      { nullptr };
-  CQHistoryLineEdit* exprEdit_       { nullptr };
-  QLineEdit*         exprColumn_     { nullptr };
-  CQChartsLoader*    loader_         { nullptr };
-  CQChartsCmds*      cmds_           { nullptr };
-//QString            id_;
-  bool               gui_            { true };
-  bool               show_           { true };
+  CQCharts*             charts_    { nullptr };
+  CQChartsModelList*    modelList_ { nullptr };
+  CQChartsModelControl* control_   { nullptr };
+  CQChartsLoadDlg*      loadDlg_   { nullptr };
+  CQChartsCmds*         cmds_      { nullptr };
+  bool                  gui_       { true };
+  bool                  show_      { true };
 };
 
 #endif

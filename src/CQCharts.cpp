@@ -54,7 +54,7 @@ CQCharts::
 init()
 {
   plotTypeMgr_   = new CQChartsPlotTypeMgr;
-  columnTypeMgr_ = new CQChartsColumnTypeMgr;
+  columnTypeMgr_ = new CQChartsColumnTypeMgr(this);
 
   plotTypeMgr_->addType("adjacency"    , new CQChartsAdjacencyPlotType    );
   plotTypeMgr_->addType("barchart"     , new CQChartsBarChartPlotType     );
@@ -114,23 +114,18 @@ getPlotTypeNames(QStringList &names, QStringList &descs) const
   plotTypeMgr_->getTypeNames(names, descs);
 }
 
-int
+CQChartsModelData *
 CQCharts::
-addModel(ModelP &model, bool hierarchical)
+initModelData(ModelP &model)
 {
-  int ind = modelDatas_.size() + 1;
+  bool ok;
 
-  CQChartsModelData *modelData = new CQChartsModelData(this, model);
+  int ind = model->property("modelInd").toInt(&ok);
 
-  model->setProperty("modelInd", ind);
+  if (! ok)
+    ind = addModelData(model);
 
-  modelData->setInd(ind);
-
-  modelData->setHierarchical(hierarchical);
-
-  modelDatas_.push_back(modelData);
-
-  return modelData->ind();
+  return getModelData(ind);
 }
 
 CQChartsModelData *
@@ -145,6 +140,23 @@ getModelData(QAbstractItemModel *model) const
     return nullptr;
 
   return getModelData(ind);
+}
+
+int
+CQCharts::
+addModelData(ModelP &model)
+{
+  int ind = modelDatas_.size() + 1;
+
+  CQChartsModelData *modelData = new CQChartsModelData(this, model);
+
+  model->setProperty("modelInd", ind);
+
+  modelData->setInd(ind);
+
+  modelDatas_.push_back(modelData);
+
+  return modelData->ind();
 }
 
 CQChartsModelData *
@@ -207,6 +219,13 @@ getViewIds(QStringList &names) const
 {
   for (const auto &view : views_)
     names.push_back(view.second->id());
+}
+
+void
+CQCharts::
+emitModelTypeChanged(int modelId)
+{
+  emit modelTypeChanged(modelId);
 }
 
 void

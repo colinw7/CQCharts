@@ -17,12 +17,12 @@ void
 CQChartsHierScatterPlotType::
 addParameters()
 {
-  addColumnParameter ("x"    , "X"    , "xColumn"       , "", 0);
-  addColumnParameter ("y"    , "Y"    , "yColumn"       , "", 1);
-  addColumnParameter ("name" , "Name" , "nameColumn"    , "optional");
-  addColumnsParameter("group", "Group", "groupColumnStr", "optional");
+  addColumnParameter ("x"    , "X"    , "xColumn"       , 0).setRequired();
+  addColumnParameter ("y"    , "Y"    , "yColumn"       , 1).setRequired();
+  addColumnParameter ("name" , "Name" , "nameColumn"    );
+  addColumnsParameter("group", "Group", "groupColumnStr");
 
-  addBoolParameter("textLabels", "Text Labels", "textLabels", "optional");
+  addBoolParameter("textLabels", "Text Labels", "textLabels");
 
   CQChartsPlotType::addParameters();
 }

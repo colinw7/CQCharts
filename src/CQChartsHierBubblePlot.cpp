@@ -41,7 +41,7 @@ CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
   setTextContrast(true);
   setTextFontSize(12.0);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   setMargins(1, 1, 1, 1);
 

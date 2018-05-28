@@ -4,6 +4,7 @@
 // TODO: See CTclValue.h
 
 #include <tcl.h>
+#include <iostream>
 
 namespace CTclUtil {
 

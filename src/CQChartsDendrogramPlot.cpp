@@ -14,8 +14,8 @@ void
 CQChartsDendrogramPlotType::
 addParameters()
 {
-  addColumnParameter("name" , "name" , "nameColumn" , "", 0);
-  addColumnParameter("value", "Value", "valueColumn", "", 1);
+  addColumnParameter("name" , "name" , "nameColumn" , 0).setRequired();
+  addColumnParameter("value", "Value", "valueColumn", 1).setRequired();
 
   CQChartsPlotType::addParameters();
 }

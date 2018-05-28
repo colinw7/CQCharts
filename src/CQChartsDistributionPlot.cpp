@@ -20,14 +20,14 @@ void
 CQChartsDistributionPlotType::
 addParameters()
 {
-  addColumnParameter("value", "Value", "valueColumn", "", 0);
-  addColumnParameter("color", "Color", "colorColumn", "optional");
+  addColumnParameter("value", "Value", "valueColumn", 0).setRequired();
+  addColumnParameter("color", "Color", "colorColumn");
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal", "optional");
+  addBoolParameter("horizontal", "Horizontal", "horizontal");
 
-  addBoolParameter("autoRange", "Auto Range", "autoRange" , "optional", true);
-  addRealParameter("start"    , "Start"     , "startValue", "optional");
-  addRealParameter("delta"    , "Delta"     , "deltaValue", "optional");
+  addBoolParameter("autoRange", "Auto Range", "autoRange" , true);
+  addRealParameter("start"    , "Start"     , "startValue");
+  addRealParameter("delta"    , "Delta"     , "deltaValue");
 
   CQChartsPlotType::addParameters();
 }
@@ -99,9 +99,9 @@ addProperties()
 
   dataLabel_.addProperties("dataLabel");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }
 
 //---

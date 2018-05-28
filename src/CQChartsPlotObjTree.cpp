@@ -22,7 +22,7 @@ addObjects()
 
   plotObjTree_ = nullptr;
 
-  if (! plot_->plotObjects().empty())
+  if (! plot_->plotObjects().empty() && ! plot_->isNoData())
     plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_);
 }
 

@@ -15,9 +15,9 @@ void
 CQChartsBubblePlotType::
 addParameters()
 {
-  addColumnParameter("name" , "Name" , "nameColumn" , "", 0);
-  addColumnParameter("value", "Value", "valueColumn", "optional");
-  addColumnParameter("color", "Color", "colorColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" , 0).setRequired();
+  addColumnParameter("value", "Value", "valueColumn");
+  addColumnParameter("color", "Color", "colorColumn");
 
   CQChartsPlotType::addParameters();
 }
@@ -45,7 +45,7 @@ CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
   setTextContrast(true);
   setTextFontSize(12.0);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   setMargins(1, 1, 1, 1);
 
@@ -312,9 +312,9 @@ addProperties()
   addProperty("text", this, "textAlpha"   , "alpha"   );
   addProperty("text", this, "textContrast", "contrast");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }
 
 //---

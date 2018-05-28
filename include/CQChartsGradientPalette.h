@@ -1,7 +1,7 @@
 #ifndef CQChartsGradientPalette_H
 #define CQChartsGradientPalette_H
 
-#ifdef CGRADIENT_EXPR
+#ifdef CQCharts_USE_CEXPR
 #include <CExpr.h>
 #endif
 
@@ -10,6 +10,8 @@
 #include <string>
 #include <map>
 #include <memory>
+
+class CQTcl;
 
 //---
 
@@ -120,14 +122,16 @@ class CQChartsGradientPalette {
     XYZ,
   };
 
+  enum class ExprType {
+    NONE,
+    CEXPR,
+    TCL
+  };
+
   using ColorMap = std::map<double,QColor>;
 
  public:
-#ifdef CGRADIENT_EXPR
-  CQChartsGradientPalette(CExpr *expr=nullptr);
-#else
   CQChartsGradientPalette();
-#endif
 
   CQChartsGradientPalette(const CQChartsGradientPalette &palette);
 
@@ -140,16 +144,9 @@ class CQChartsGradientPalette {
 
   //---
 
-  CQChartsGradientPalette *dup() const {
-    return new CQChartsGradientPalette(*this);
-  }
+  CQChartsGradientPalette *dup() const { return new CQChartsGradientPalette(*this); }
 
   //---
-
-#ifdef CGRADIENT_EXPR
-  CExpr *expr() const { return expr_; }
-  void setExpr(CExpr *expr);
-#endif
 
   // color calculation type
   ColorType colorType() const { return colorType_; }
@@ -158,6 +155,12 @@ class CQChartsGradientPalette {
   // color model
   ColorModel colorModel() const { return colorModel_; }
   void setColorModel(ColorModel m) { colorModel_ = m; }
+
+  //---
+
+  // expression type
+  const ExprType &exprType() const { return exprType_; }
+  void setExprType(const ExprType &type);
 
   //---
 
@@ -310,10 +313,12 @@ class CQChartsGradientPalette {
  private:
   void init();
 
+  void initFunctions();
+
  private:
   struct ColorFn {
     std::string     fn;
-#ifdef CGRADIENT_EXPR
+#ifdef CQCharts_USE_CEXPR
     CExprTokenStack stack;
 #endif
   };
@@ -325,6 +330,14 @@ class CQChartsGradientPalette {
 
   // Color Model
   ColorModel colorModel_    { ColorModel::RGB };
+
+#if defined(CQCharts_USE_TCL)
+  ExprType   exprType_      { ExprType::TCL };
+#elif defined(CQCharts_USE_CEXPR)
+  ExprType   exprType_      { ExprType::CEXPR };
+#else
+  ExprType   exprType_      { ExprType::NONE };
+#endif
 
   // Model
   int        rModel_        { 7 };
@@ -357,9 +370,11 @@ class CQChartsGradientPalette {
   double     colorsMax_     { 0.0 };
 
   // Misc
-#ifdef CGRADIENT_EXPR
+#ifdef CQCharts_USE_CEXPR
   CExpr*     expr_          { nullptr };
-  bool       exprOwned_     { false };
+#endif
+#ifdef CQCharts_USE_TCL
+  CQTcl*     qtcl_          { nullptr };
 #endif
   double     gamma_         { 1.5 };
 #if 0

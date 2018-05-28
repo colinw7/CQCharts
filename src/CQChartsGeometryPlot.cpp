@@ -17,12 +17,12 @@ void
 CQChartsGeometryPlotType::
 addParameters()
 {
-  addColumnParameter("geometry", "Geometry", "geometryColumn", "", 0);
-  addColumnParameter("value"   , "Value"   , "valueColumn"   , "", 1);
+  addColumnParameter("geometry", "Geometry", "geometryColumn", 0).setRequired();
+  addColumnParameter("value"   , "Value"   , "valueColumn"   , 1).setRequired();
 
-  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
-  addColumnParameter("color", "Color", "colorColumn", "optional");
-  addColumnParameter("style", "Style", "styleColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" );
+  addColumnParameter("color", "Color", "colorColumn");
+  addColumnParameter("style", "Style", "styleColumn");
 
   CQChartsPlotType::addParameters();
 }
@@ -425,9 +425,9 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     bool ok4;
 
     if (colorColumnType_ == ColumnType::COLOR) {
-      QColor c = modelColor(model, row, colorColumn(), parent, ok4);
+      CQChartsColor c = modelColor(model, row, colorColumn(), parent, ok4);
 
-      geometry.color = CQChartsColor(c);
+      geometry.color = c;
     }
     else {
       QString str = modelString(model, row, colorColumn(), parent, ok4);

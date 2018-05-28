@@ -16,8 +16,8 @@ void
 CQChartsSankeyPlotType::
 addParameters()
 {
-  addColumnParameter("link" , "Source/Target", "linkColumn" , "", 0);
-  addColumnParameter("value", "Value"        , "valueColumn", "", 1);
+  addColumnParameter("link" , "Source/Target", "linkColumn" , 0).setRequired();
+  addColumnParameter("value", "Value"        , "valueColumn", 1).setRequired();
 
   CQChartsPlotType::addParameters();
 }
@@ -466,11 +466,13 @@ updateRange(bool apply)
 
   dataRange_.reset();
 
-  double xm = bbox_.getHeight()*0.01;
-  double ym = bbox_.getWidth ()*0.01;
+  if (bbox_.isSet()) {
+    double xm = bbox_.getHeight()*0.01;
+    double ym = bbox_.getWidth ()*0.01;
 
-  dataRange_.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
-  dataRange_.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+    dataRange_.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
+    dataRange_.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+  }
 
   //---
 

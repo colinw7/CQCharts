@@ -656,7 +656,7 @@ setData(const QModelIndex &index, const QVariant &value, int role)
 
   ExtraColumn &extraColumn = this->extraColumn(column);
 
-  if (role == Qt::DisplayRole) {
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
     extraColumn.variantMap[index.row()] = value;
 
     emit dataChanged(index, index);
@@ -680,11 +680,6 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
   if (section < nc)
     return sourceModel()->headerData(section, orientation, role);
-
-  //---
-
-  if (orientation != Qt::Horizontal)
-    return QAbstractProxyModel::headerData(section, orientation, role);
 
   //---
 
@@ -750,7 +745,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
 
   ExtraColumn &extraColumn = this->extraColumn(column);
 
-  if      (role == Qt::DisplayRole) {
+  if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     extraColumn.header = value.toString();
 
     return true;
@@ -778,7 +773,12 @@ flags(const QModelIndex &index) const
   if (! index.isValid() || index.column() < nc)
     return sourceModel()->flags(mapToSource(index));
 
-  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
+  if (editable_)
+    flags |= Qt::ItemIsEditable;
+
+  return flags;
 }
 
 QModelIndex
@@ -1456,9 +1456,7 @@ evaluateExpression(const QString &expr, QVariant &var) const
   }
   else if (exprType_ == ExprType::TCL) {
 #ifdef CQExprModel_USE_TCL
-    QString cmd = "expr {" + expr + "}";
-
-    int rc = qtcl_->eval(cmd);
+    int rc = qtcl_->evalExpr(expr);
 
     if (rc != TCL_OK) {
       std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;

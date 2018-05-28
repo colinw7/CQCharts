@@ -13,7 +13,7 @@ class CQChartsColorSet : public CQChartsValueSet {
    CQChartsValueSet(plot) {
   }
 
-  bool icolor(int i, OptColor &color) {
+  bool icolor(int i, OptColor &optColor) {
     if (empty())
       return false;
 
@@ -29,7 +29,7 @@ class CQChartsColorSet : public CQChartsValueSet {
       QColor c(colorVar.toString());
 
       if (c.isValid()) {
-        color = c;
+        optColor = c;
 
         return true;
       }
@@ -39,14 +39,26 @@ class CQChartsColorSet : public CQChartsValueSet {
         return false;
     }
     else if (type() == Type::COLOR) {
-      color = value(i).value<QColor>();
+      bool ok;
 
-      return true;
+      CQChartsColor c = CQChartsUtil::varToColor(value(i), ok);
+
+      if (c.isValid()) {
+        optColor = c;
+
+        return true;
+      }
+
+      return false;
     }
+
+    //---
 
     double value = imap(i);
 
-    color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, value);
+    CQChartsColor c = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, value);
+
+    optColor = c;
 
     return true;
   }

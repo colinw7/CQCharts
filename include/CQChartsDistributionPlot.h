@@ -81,26 +81,26 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
 class CQChartsDistributionPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn       WRITE setValueColumn    )
-  Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
-  Q_PROPERTY(bool           autoRange       READ isAutoRange       WRITE setAutoRange      )
-  Q_PROPERTY(double         startValue      READ startValue        WRITE setStartValue     )
-  Q_PROPERTY(double         deltaValue      READ deltaValue        WRITE setDeltaValue     )
-  Q_PROPERTY(int            numAuto         READ numAuto           WRITE setNumAuto        )
-  Q_PROPERTY(bool           horizontal      READ isHorizontal      WRITE setHorizontal     )
-  Q_PROPERTY(double         margin          READ margin            WRITE setMargin         )
-  Q_PROPERTY(bool           border          READ isBorder          WRITE setBorder         )
-  Q_PROPERTY(CQChartsColor  borderColor     READ borderColor       WRITE setBorderColor    )
-  Q_PROPERTY(double         borderAlpha     READ borderAlpha       WRITE setBorderAlpha    )
-  Q_PROPERTY(CQChartsLength borderWidth     READ borderWidth       WRITE setBorderWidth    )
-  Q_PROPERTY(CQChartsLength cornerSize      READ cornerSize        WRITE setCornerSize     )
-  Q_PROPERTY(bool           barFill         READ isBarFill         WRITE setBarFill        )
-  Q_PROPERTY(CQChartsColor  barColor        READ barColor          WRITE setBarColor       )
-  Q_PROPERTY(double         barAlpha        READ barAlpha          WRITE setBarAlpha       )
-  Q_PROPERTY(Pattern        barPattern      READ barPattern        WRITE setBarPattern     )
-  Q_PROPERTY(bool           colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
-  Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
-  Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
+  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn   WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn colorColumn READ colorColumn   WRITE setColorColumn)
+  Q_PROPERTY(bool           autoRange   READ isAutoRange   WRITE setAutoRange  )
+  Q_PROPERTY(double         startValue  READ startValue    WRITE setStartValue )
+  Q_PROPERTY(double         deltaValue  READ deltaValue    WRITE setDeltaValue )
+  Q_PROPERTY(int            numAuto     READ numAuto       WRITE setNumAuto    )
+  Q_PROPERTY(bool           horizontal  READ isHorizontal  WRITE setHorizontal )
+  Q_PROPERTY(double         margin      READ margin        WRITE setMargin     )
+  Q_PROPERTY(bool           border      READ isBorder      WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor  borderColor READ borderColor   WRITE setBorderColor)
+  Q_PROPERTY(double         borderAlpha READ borderAlpha   WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength borderWidth READ borderWidth   WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLength cornerSize  READ cornerSize    WRITE setCornerSize )
+  Q_PROPERTY(bool           barFill     READ isBarFill     WRITE setBarFill    )
+  Q_PROPERTY(CQChartsColor  barColor    READ barColor      WRITE setBarColor   )
+  Q_PROPERTY(double         barAlpha    READ barAlpha      WRITE setBarAlpha   )
+  Q_PROPERTY(Pattern        barPattern  READ barPattern    WRITE setBarPattern )
+  Q_PROPERTY(bool           colorMapped READ isColorMapped WRITE setColorMapped)
+  Q_PROPERTY(double         colorMapMin READ colorMapMin   WRITE setColorMapMin)
+  Q_PROPERTY(double         colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
   Q_ENUMS(Pattern)
 
@@ -260,8 +260,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   void setColorColumn(const CQChartsColumn &c) {
     setValueSetColumn("color", c); updateRangeAndObjs(); }
 
-  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
-  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
+  bool isColorMapped() const { return isValueSetMapped("color"); }
+  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
 
   double colorMapMin() const { return valueSetMapMin("color"); }
   void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }

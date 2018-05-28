@@ -4,10 +4,82 @@
 #include <QString>
 #include <QVariant>
 
+class CQChartsPlotParameterAttributes {
+ public:
+  enum Flags {
+    REQUIRED  = (1<<0),
+    MONOTONIC = (1<<1),
+    NUMERIC   = (1<<2),
+    STRING    = (1<<3),
+    COLOR     = (1<<4),
+    GROUPABLE = (1<<5),
+    MAPPED    = (1<<6)
+  };
+
+ public:
+  CQChartsPlotParameterAttributes() { }
+
+  bool isOptional() const { return ! isRequired(); }
+  CQChartsPlotParameterAttributes &setOptional () { flags_ &= ~REQUIRED ; return *this; }
+
+  bool isRequired() const { return (flags_ & REQUIRED); }
+  CQChartsPlotParameterAttributes &setRequired() { flags_ |= REQUIRED; return *this; }
+
+  bool isMonotonic() const { return (flags_ & MONOTONIC); }
+  CQChartsPlotParameterAttributes &setMonotonic() { flags_ |= MONOTONIC; return *this; }
+
+  bool isNumeric() const { return (flags_ & NUMERIC); }
+  CQChartsPlotParameterAttributes &setNumeric() { flags_ |= NUMERIC; return *this; }
+
+  bool isString() const { return (flags_ & STRING); }
+  CQChartsPlotParameterAttributes &setString() { flags_ |= STRING; return *this; }
+
+  bool isColor() const { return (flags_ & COLOR); }
+  CQChartsPlotParameterAttributes &setColor() { flags_ |= COLOR; return *this; }
+
+  bool isGroupable() const { return (flags_ & GROUPABLE); }
+  CQChartsPlotParameterAttributes &setGroupable() { flags_ |= GROUPABLE; return *this; }
+
+  bool isMapped() const { return (flags_ & MAPPED); }
+  CQChartsPlotParameterAttributes &setMapped() { flags_ |= MAPPED; return *this; }
+
+  double mapMin() const { return mapMin_; }
+  CQChartsPlotParameterAttributes &setMapMin(double r) { mapMin_ = r; return *this; }
+
+  double mapMax() const { return mapMax_; }
+  CQChartsPlotParameterAttributes &setMapMax(double r) { mapMax_ = r; return *this; }
+
+  CQChartsPlotParameterAttributes &setMapMinMax(double min, double max) {
+    mapMin_ = min; mapMax_ = max; return *this;
+  }
+
+  QString summary() const {
+    QString str = (isOptional() ? "optional" : "required");
+
+    str += (isMonotonic() ? "|monotonic" : "");
+
+    str += (isNumeric() ? "|numeric" : "");
+    str += (isString () ? "|string"  : "");
+    str += (isColor  () ? "|color"   : "");
+
+    str += (isGroupable() ? "|groupable" : "");
+
+    return str;
+  }
+
+ private:
+  unsigned int flags_  { 0 };   //! flags
+  double       mapMin_ { 0.0 }; //! map min
+  double       mapMax_ { 1.0 }; //! map max
+};
+
 class CQChartsPlotParameter {
  public:
+  using Attributes = CQChartsPlotParameterAttributes;
+
+ public:
   CQChartsPlotParameter(const QString &name, const QString &desc, const QString &type,
-                        const QString &propName, const QString &attributes="",
+                        const QString &propName, const Attributes &attributes=Attributes(),
                         const QVariant &defValue=QVariant()) :
    name_(name), desc_(desc), type_(type), propName_(propName), attributes_(attributes),
    defValue_(defValue) {
@@ -27,8 +99,8 @@ class CQChartsPlotParameter {
   const QString &propName() const { return propName_; }
   CQChartsPlotParameter &setPropName(const QString &s) { propName_ = s; return *this; }
 
-  const QString &attributes() const { return attributes_; }
-  CQChartsPlotParameter &setAttributes(const QString &s) { attributes_ = s; return *this; }
+  const Attributes &attributes() const { return attributes_; }
+  CQChartsPlotParameter &setAttributes(const Attributes &s) { attributes_ = s; return *this; }
 
   const QVariant &defValue() const { return defValue_; }
   CQChartsPlotParameter &setDefValue(const QVariant &v) { defValue_ = v; return *this; }
@@ -36,14 +108,42 @@ class CQChartsPlotParameter {
   const QString &tip() const { return tip_; }
   CQChartsPlotParameter &setTip(const QString &s) { tip_ = s; return *this; }
 
+  CQChartsPlotParameter &setOptional () { attributes_.setOptional (); return *this; }
+  CQChartsPlotParameter &setRequired () { attributes_.setRequired (); return *this; }
+  CQChartsPlotParameter &setMonotonic() { attributes_.setMonotonic(); return *this; }
+  CQChartsPlotParameter &setNumeric  () { attributes_.setNumeric  (); return *this; }
+  CQChartsPlotParameter &setString   () { attributes_.setString   (); return *this; }
+  CQChartsPlotParameter &setColor    () { attributes_.setColor    (); return *this; }
+  CQChartsPlotParameter &setGroupable() { attributes_.setGroupable(); return *this; }
+  CQChartsPlotParameter &setMapped   () { attributes_.setMapped   (); return *this; }
+
+  CQChartsPlotParameter &setMapMin(double r) { attributes_.setMapMin(r); return *this; }
+  CQChartsPlotParameter &setMapMax(double r) { attributes_.setMapMax(r); return *this; }
+
+  CQChartsPlotParameter &setMapMinMax(double min, double max) {
+    attributes_.setMapMinMax(min, max); return *this; }
+
+  bool mapPropNames(QString &mappedName, QString &mapMinName, QString &mapMaxName) const {
+    QString columnPropName = this->propName();
+
+    int pos = columnPropName.indexOf("Column");
+    if (pos < 0) return false;
+
+    mappedName = columnPropName.mid(0, pos) + "Mapped";
+    mapMinName = columnPropName.mid(0, pos) + "MapMin";
+    mapMaxName = columnPropName.mid(0, pos) + "MapMax";
+
+    return true;
+  }
+
  private:
-  QString  name_;       //! name
-  QString  desc_;       //! description
-  QString  type_;       //! type
-  QString  propName_;   //! property name
-  QString  attributes_; //! attributes
-  QVariant defValue_;   //! default value
-  QString  tip_;        //! tip
+  QString    name_;       //! name
+  QString    desc_;       //! description
+  QString    type_;       //! type
+  QString    propName_;   //! property name
+  Attributes attributes_; //! attributes
+  QVariant   defValue_;   //! default value
+  QString    tip_;        //! tip
 };
 
 //---
@@ -51,7 +151,7 @@ class CQChartsPlotParameter {
 class CQChartsColumnParameter : public CQChartsPlotParameter {
  public:
   CQChartsColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                          const QString &attributes="", int defValue=-1) :
+                          const Attributes &attributes=Attributes(), int defValue=-1) :
    CQChartsPlotParameter(name, desc, "column", propName, attributes,
                          (defValue >= 0 ? QVariant(defValue) : QVariant())) {
   }
@@ -62,7 +162,7 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
 class CQChartsColumnsParameter : public CQChartsPlotParameter {
  public:
   CQChartsColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                           const QString &attributes="", const QString &defValue="") :
+                           const Attributes &attributes=Attributes(), const QString &defValue="") :
    CQChartsPlotParameter(name, desc, "columns", propName, attributes,
                          (defValue != "" ? QVariant(defValue) : QVariant())) {
   }
@@ -73,7 +173,7 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
 class CQChartsStringParameter : public CQChartsPlotParameter {
  public:
   CQChartsStringParameter(const QString &name, const QString &desc, const QString &propName,
-                          const QString &attributes="", const QString &defValue="") :
+                          const Attributes &attributes=Attributes(), const QString &defValue="") :
    CQChartsPlotParameter(name, desc, "string", propName, attributes, QVariant(defValue)) {
   }
 };
@@ -83,7 +183,7 @@ class CQChartsStringParameter : public CQChartsPlotParameter {
 class CQChartsRealParameter : public CQChartsPlotParameter {
  public:
   CQChartsRealParameter(const QString &name, const QString &desc, const QString &propName,
-                        const QString &attributes="", double defValue=0.0) :
+                        const Attributes &attributes=Attributes(), double defValue=0.0) :
    CQChartsPlotParameter(name, desc, "real", propName, attributes, QVariant(defValue)) {
   }
 };
@@ -93,7 +193,7 @@ class CQChartsRealParameter : public CQChartsPlotParameter {
 class CQChartsBoolParameter : public CQChartsPlotParameter {
  public:
   CQChartsBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                        const QString &attributes="", bool defValue=false) :
+                        const Attributes &attributes=Attributes(), bool defValue=false) :
    CQChartsPlotParameter(name, desc, "bool", propName, attributes, QVariant(defValue)) {
   }
 };

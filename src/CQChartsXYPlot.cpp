@@ -20,26 +20,26 @@ CQChartsXYPlotType::
 addParameters()
 {
   // columns
-  addColumnParameter ("x", "X", "xColumn" , "", 0);
-  addColumnsParameter("y", "Y", "yColumns", "", "1");
+  addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired().setMonotonic().setNumeric();
+  addColumnsParameter("y", "Y", "yColumns", "1").setRequired().setNumeric();
 
-  addColumnParameter("name", "Name", "nameColumn", "optional");
-  addColumnParameter("size", "Size", "sizeColumn", "optional");
+  addColumnParameter("name", "Name", "nameColumn").setString();
+  addColumnParameter("size", "Size", "sizeColumn").setNumeric();
 
-  addColumnParameter("pointLabel" , "PointLabel" , "pointLabelColumn" , "optional");
-  addColumnParameter("pointColor" , "PointColor" , "pointColorColumn" , "optional");
-  addColumnParameter("pointSymbol", "PointSymbol", "pointSymbolColumn", "optional");
+  addColumnParameter("pointLabel" , "PointLabel" , "pointLabelColumn" ).setString();
+  addColumnParameter("pointColor" , "PointColor" , "pointColorColumn" ).setColor ();
+  addColumnParameter("pointSymbol", "PointSymbol", "pointSymbolColumn").setString();
 
-  addColumnParameter("vectorX", "VectorX", "vectorXColumn", "optional");
-  addColumnParameter("vectorY", "VectorY", "vectorYColumn", "optional");
+  addColumnParameter("vectorX", "VectorX", "vectorXColumn").setNumeric();
+  addColumnParameter("vectorY", "VectorY", "vectorYColumn").setNumeric();
 
   // bool parameters
-  addBoolParameter("bivariate" , "Bivariate" , "bivariate" , "optional");
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"   , "optional");
-  addBoolParameter("cumulative", "Cumulative", "cumulative", "optional");
-  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder" , "optional");
-  addBoolParameter("impulse"   , "Impulse"   , "impulse"   , "optional");
-  addBoolParameter("vectors"   , "Vectors"   , "vectors"   , "optional");
+  addBoolParameter("bivariate" , "Bivariate" , "bivariate" );
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"   );
+  addBoolParameter("cumulative", "Cumulative", "cumulative");
+  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder" );
+  addBoolParameter("impulse"   , "Impulse"   , "impulse"   );
+  addBoolParameter("vectors"   , "Vectors"   , "vectors"   );
 
   CQChartsPlotType::addParameters();
 }
@@ -1247,7 +1247,7 @@ initObjs()
         if (pointColorColumn().isValid()) {
           QModelIndex parent; // TODO: parent
 
-          QColor c;
+          CQChartsColor c;
 
           bool ok;
 
@@ -2078,12 +2078,12 @@ setLabel(const QString &label)
 
 void
 CQChartsXYPointObj::
-setColor(const QColor &c)
+setColor(const CQChartsColor &c)
 {
   if (! edata_)
     edata_ = new ExtraData;
 
-  edata_->color = CQChartsColor(c);
+  edata_->color = c;
 }
 
 void

@@ -3,6 +3,7 @@
 
 #include <CQChartsUtil.h>
 #include <CQBaseModel.h>
+#include <QObject>
 #include <QString>
 
 // column type base class
@@ -420,9 +421,11 @@ class CQChartsColumnColorType : public CQChartsColumnType {
 //---
 
 // column type manager
-class CQChartsColumnTypeMgr {
+class CQChartsColumnTypeMgr : public QObject {
+  Q_OBJECT
+
  public:
-  CQChartsColumnTypeMgr();
+  CQChartsColumnTypeMgr(CQCharts *charts);
  ~CQChartsColumnTypeMgr();
 
   void addType(CQBaseModel::Type type, CQChartsColumnType *data);
@@ -448,7 +451,8 @@ class CQChartsColumnTypeMgr {
  private:
   using TypeData = std::map<CQBaseModel::Type,CQChartsColumnType*>;
 
-  TypeData typeData_;
+  CQCharts* charts_ { nullptr };
+  TypeData  typeData_;
 };
 
 //---

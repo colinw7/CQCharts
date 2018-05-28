@@ -35,7 +35,7 @@ class CQCharts : public QObject {
 
   //---
 
-  int addModel(ModelP &model, bool hierarchical=false);
+  CQChartsModelData *initModelData(ModelP &model);
 
   CQChartsModelData *getModelData(QAbstractItemModel *model) const;
   CQChartsModelData *getModelData(int ind) const;
@@ -52,7 +52,17 @@ class CQCharts : public QObject {
 
   //---
 
+  void emitModelTypeChanged(int modelId);
+
+  //---
+
   void errorMsg(const QString &msg);
+
+ signals:
+  void modelTypeChanged(int);
+
+ private:
+  int addModelData(ModelP &model);
 
  private:
   using Views      = std::map<QString,CQChartsView*>;

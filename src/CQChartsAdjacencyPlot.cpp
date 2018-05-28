@@ -17,11 +17,11 @@ void
 CQChartsAdjacencyPlotType::
 addParameters()
 {
-  addColumnParameter("node"       , "Node"       , "nodeColumn"       , "optional");
-  addColumnParameter("connections", "Connections", "connectionsColumn", "optional");
-  addColumnParameter("value"      , "Value"      , "valueColumn"      , "optional");
-  addColumnParameter("group"      , "Group"      , "groupColumn"      , "optional");
-  addColumnParameter("name"       , "Name"       , "nameColumn"       , "optional");
+  addColumnParameter("node"       , "Node"       , "nodeColumn"       );
+  addColumnParameter("connections", "Connections", "connectionsColumn");
+  addColumnParameter("value"      , "Value"      , "valueColumn"      );
+  addColumnParameter("group"      , "Group"      , "groupColumn"      );
+  addColumnParameter("name"       , "Name"       , "nameColumn"       );
 
   CQChartsPlotType::addParameters();
 }
@@ -40,9 +40,9 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
  bgBox_(this), cellBox_(this), emptyCellBox_(this)
 {
-  CQChartsColor bg         (CQChartsColor::Type::THEME_VALUE, 0.2);
-  CQChartsColor border     (CQChartsColor::Type::THEME_VALUE, 1.0);
-  CQChartsColor emptyCellBg(CQChartsColor::Type::THEME_VALUE, 0.1);
+  CQChartsColor bg         (CQChartsColor::Type::INTERFACE_VALUE, 0.2);
+  CQChartsColor border     (CQChartsColor::Type::INTERFACE_VALUE, 1.0);
+  CQChartsColor emptyCellBg(CQChartsColor::Type::INTERFACE_VALUE, 0.1);
 
   bgBox_       .setBackgroundColor(bg);
   cellBox_     .setBorderColor    (border);

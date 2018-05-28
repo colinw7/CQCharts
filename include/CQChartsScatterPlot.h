@@ -114,22 +114,22 @@ class CQChartsScatterPlot : public CQChartsPlot {
   Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
 
-  Q_PROPERTY(bool   symbolSizeMapEnabled READ isSymbolSizeMapEnabled WRITE setSymbolSizeMapEnabled)
-  Q_PROPERTY(double symbolSizeMapMin     READ symbolSizeMapMin       WRITE setSymbolSizeMapMin    )
-  Q_PROPERTY(double symbolSizeMapMax     READ symbolSizeMapMax       WRITE setSymbolSizeMapMax    )
+  Q_PROPERTY(bool   symbolSizeMapped READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
+  Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
+  Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
 
-  Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
-  Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
-  Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
+  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
+  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
+  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
-  Q_PROPERTY(bool   fontSizeMapEnabled READ isFontSizeMapEnabled WRITE setFontSizeMapEnabled)
-  Q_PROPERTY(double fontSizeMapMin     READ fontSizeMapMin       WRITE setFontSizeMapMin    )
-  Q_PROPERTY(double fontSizeMapMax     READ fontSizeMapMax       WRITE setFontSizeMapMax    )
+  Q_PROPERTY(bool   fontSizeMapped READ isFontSizeMapped WRITE setFontSizeMapped)
+  Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)
+  Q_PROPERTY(double fontSizeMapMax READ fontSizeMapMax   WRITE setFontSizeMapMax)
 
   Q_ENUMS(Pattern)
 
  public:
-  struct Point {
+  struct ValueData {
     QPointF       p;
     int           i;
     QModelIndex   ind;
@@ -137,14 +137,14 @@ class CQChartsScatterPlot : public CQChartsPlot {
     QString       fontSizeStr;
     CQChartsColor color;
 
-    Point(double x, double y, int i, const QModelIndex &ind, const QString &symbolSizeStr="",
-          const QString &fontSizeStr="", const CQChartsColor &color=CQChartsColor()) :
+    ValueData(double x, double y, int i, const QModelIndex &ind, const QString &symbolSizeStr="",
+              const QString &fontSizeStr="", const CQChartsColor &color=CQChartsColor()) :
      p(x, y), i(i), ind(ind), symbolSizeStr(symbolSizeStr), fontSizeStr(fontSizeStr),
      color(color) {
     }
   };
 
-  using Values     = std::vector<Point>;
+  using Values     = std::vector<ValueData>;
   using NameValues = std::map<QString,Values>;
   using OptColor   = boost::optional<CQChartsColor>;
 
@@ -220,8 +220,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void setSymbolSizeColumn(const CQChartsColumn &c) {
     if (setValueSetColumn("symbolSize", c)) updateRangeAndObjs(); }
 
-  bool isSymbolSizeMapEnabled() const { return isValueSetMapEnabled("symbolSize"); }
-  void setSymbolSizeMapEnabled(bool b) { setValueSetMapEnabled("symbolSize", b); updateObjs(); }
+  bool isSymbolSizeMapped() const { return isValueSetMapped("symbolSize"); }
+  void setSymbolSizeMapped(bool b) { setValueSetMapped("symbolSize", b); updateObjs(); }
 
   double symbolSizeMapMin() const { return valueSetMapMin("symbolSize"); }
   void setSymbolSizeMapMin(double r) { setValueSetMapMin("symbolSize", r); updateObjs(); }
@@ -235,8 +235,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void setColorColumn(const CQChartsColumn &c) {
     if (setValueSetColumn("color", c)) updateRangeAndObjs(); }
 
-  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
-  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
+  bool isColorMapped() const { return isValueSetMapped("color"); }
+  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
 
   double colorMapMin() const { return valueSetMapMin("color"); }
   void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
@@ -258,8 +258,8 @@ class CQChartsScatterPlot : public CQChartsPlot {
   double fontSize() const { return fontSize_; }
   void setFontSize(double s);
 
-  bool isFontSizeMapEnabled() const { return isValueSetMapEnabled("fontSize"); }
-  void setFontSizeMapEnabled(bool b) { setValueSetMapEnabled("fontSize", b); updateObjs(); }
+  bool isFontSizeMapped() const { return isValueSetMapped("fontSize"); }
+  void setFontSizeMapped(bool b) { setValueSetMapped("fontSize", b); updateObjs(); }
 
   double fontSizeMapMin() const { return valueSetMapMin("fontSize"); }
   void setFontSizeMapMin(double r) { setValueSetMapMin("fontSize", r); updateObjs(); }

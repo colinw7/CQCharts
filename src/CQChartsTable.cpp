@@ -75,7 +75,10 @@ class CQChartsTableDelegate : public QItemDelegate {
     if (columnType == CQBaseModel::Type::COLOR) {
       QVariant var = table_->model()->data(index);
 
-      drawColor(painter, option, var.value<QColor>(), index);
+      if (var.isValid())
+        drawColor(painter, option, var.value<QColor>(), index);
+      else
+        QItemDelegate::paint(painter, option, index);
     }
     else {
       QItemDelegate::paint(painter, option, index);
@@ -111,6 +114,8 @@ class CQChartsTableDelegate : public QItemDelegate {
     QItemDelegate::drawDisplay(painter, option, rect1, c.name());
   }
 
+  void clearColumnTypes() { columnTypeMap_.clear(); }
+
  private:
   using ColumnTypeMap = std::map<int,CQBaseModel::Type>;
 
@@ -140,6 +145,8 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
   delegate_ = new CQChartsTableDelegate(this);
 
   setItemDelegate(delegate_);
+
+  connect(charts_, SIGNAL(modelTypeChanged(int)), this, SLOT(modelTypeChangedSlot(int)));
 }
 
 CQChartsTable::
@@ -147,6 +154,16 @@ CQChartsTable::
 {
   delete delegate_;
   delete match_;
+}
+
+void
+CQChartsTable::
+modelTypeChangedSlot(int modelId)
+{
+  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+
+  if (modelData && modelData->ind() == modelId)
+    delegate_->clearColumnTypes();
 }
 
 void

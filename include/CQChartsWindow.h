@@ -45,7 +45,8 @@ class CQChartsWindow : public QFrame {
 
   CQChartsView *view() const { return view_; }
 
-  void updatePalette();
+  void updateInterfacePalette();
+  void updateThemePalettes();
 
   //---
 

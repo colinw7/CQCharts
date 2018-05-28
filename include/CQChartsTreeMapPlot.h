@@ -287,9 +287,9 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
   // color map
-  Q_PROPERTY(bool   colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
-  Q_PROPERTY(double colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
-  Q_PROPERTY(double colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
+  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
+  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
+  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
   Q_ENUMS(Pattern)
 

@@ -40,6 +40,9 @@ class CQChartsColumnBucket {
   bool isRowGrouping() const { return rowGrouping_; }
   void setRowGrouping(bool b) { rowGrouping_ = b; }
 
+  bool isDefaultRow() const { return defaultRow_; }
+  void setDefaultRow(bool b) { defaultRow_ = b; }
+
   void clear() {
     rvals_.clear();
     ivals_.clear();
@@ -192,6 +195,7 @@ class CQChartsColumnBucket {
   ColumnType      columnType_  { ColumnType::NONE };
   DataType        dataType_    { DataType::NONE };
   bool            rowGrouping_ { false };
+  bool            defaultRow_  { false };
   CQChartsRValues rvals_;
   CQChartsIValues ivals_;
   CQChartsSValues svals_;

@@ -72,11 +72,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   // red, green, blue function combos
   QGroupBox *functionGroupBox = new QGroupBox("Function");
-  functionGroupBox->setObjectName("functionGroup");
+  functionGroupBox->setObjectName("function");
 
   functionGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
-
-  functionGroupBox->setObjectName("function");
 
   QGridLayout *functionGroupLayout = new QGridLayout(functionGroupBox);
   functionGroupLayout->setMargin(0); functionGroupLayout->setSpacing(2);
@@ -99,11 +97,9 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   // red, green, blue negative check boxes
   QGroupBox *negateGroupBox = new QGroupBox("Negate");
-  negateGroupBox->setObjectName("negateGroup");
+  negateGroupBox->setObjectName("negate");
 
   negateGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
-
-  negateGroupBox->setObjectName("negate");
 
   QHBoxLayout *negateGroupLayout = new QHBoxLayout(negateGroupBox);
   negateGroupLayout->setMargin(0); negateGroupLayout->setSpacing(2);
@@ -135,8 +131,6 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   rangeGroupBox->setObjectName("range");
 
   rangeGroupBox->setContentsMargins(2, fm.height() + 2, 0, 0);
-
-  rangeGroupBox->setObjectName("range");
 
   QHBoxLayout *rangeGroupLayout = new QHBoxLayout(rangeGroupBox);
   rangeGroupLayout->setMargin(0); rangeGroupLayout->setSpacing(2);
@@ -285,6 +279,11 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   //---
 
   connect(this, SIGNAL(stateChanged()), palette, SLOT(update()));
+
+  //---
+
+  updateColorType ();
+  updateColorModel();
 }
 
 void
@@ -346,6 +345,17 @@ setColorType(CQChartsGradientPalette::ColorType colorType)
 
   pal->setColorType(colorType);
 
+  updateColorType();
+
+  emit stateChanged();
+}
+
+void
+CQChartsGradientPaletteControl::
+updateColorType()
+{
+  CQChartsGradientPalette::ColorType colorType = this->colorType();
+
   if      (colorType == CQChartsGradientPalette::ColorType::MODEL) {
     colorType_->setCurrentIndex(0);
     stack_    ->setCurrentIndex(0);
@@ -362,8 +372,6 @@ setColorType(CQChartsGradientPalette::ColorType colorType)
     colorType_->setCurrentIndex(3);
     stack_    ->setCurrentIndex(3);
   }
-
-  emit stateChanged();
 }
 
 void
@@ -389,6 +397,17 @@ setColorModel(CQChartsGradientPalette::ColorModel colorModel)
   CQChartsGradientPalette *pal = palette_->gradientPalette();
 
   pal->setColorModel(colorModel);
+
+  updateColorModel();
+
+  emit stateChanged();
+}
+
+void
+CQChartsGradientPaletteControl::
+updateColorModel()
+{
+  CQChartsGradientPalette::ColorModel colorModel = this->colorModel();
 
   if      (colorModel == CQChartsGradientPalette::ColorModel::RGB) {
     colorModel_->setCurrentIndex(0);
@@ -428,8 +447,6 @@ setColorModel(CQChartsGradientPalette::ColorModel colorModel)
     greenFunctionLabel_->setText("S");
     blueFunctionLabel_ ->setText("V");
   }
-
-  emit stateChanged();
 }
 
 int

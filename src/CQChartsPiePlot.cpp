@@ -16,13 +16,13 @@ CQChartsPiePlotType::
 addParameters()
 {
   // name, desc, propName, attributes, default
-  addColumnParameter ("label"      , "Label"       , "labelColumn"   , "", 0);
-  addColumnsParameter("data"       , "Data"        , "dataColumns"   , "", "1");
-  addColumnParameter ("radius"     , "Radius"      , "radiusColumn"  , "optional");
-  addColumnParameter ("group"      , "Group"       , "groupColumn"   , "optional");
-  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   , "optional");
-  addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn", "optional");
-  addColumnParameter ("color"      , "Color"       , "colorColumn"   , "optional");
+  addColumnParameter ("label"      , "Label"       , "labelColumn"   , 0  ).setRequired();
+  addColumnsParameter("data"       , "Data"        , "dataColumns"   , "1").setRequired();
+  addColumnParameter ("radius"     , "Radius"      , "radiusColumn"  );
+  addColumnParameter ("group"      , "Group"       , "groupColumn"   );
+  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   );
+  addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn");
+  addColumnParameter ("color"      , "Color"       , "colorColumn"   );
 
   CQChartsPlotType::addParameters();
 }
@@ -44,7 +44,7 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 
   (void) addColorSet("color");
 
-  gridData_.color = CQChartsColor(CQChartsColor::Type::THEME_VALUE, 0.5);
+  gridData_.color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5);
 
   textBox_ = new CQChartsPieTextObj(this);
 
@@ -204,9 +204,9 @@ addProperties()
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 
   // colormap
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }
 
 void
@@ -263,15 +263,18 @@ updateRange(bool apply)
   //   if row grouping we are creating a value set per row (1 value per data column)
   //   if column grouping we are creating a value set per data column (1 value per row)
   // otherwise (single data column) just use dummy group (column -1)
+  CQChartsPlot::GroupData groupData;
+
   if      (groupColumn().isValid()) {
-    initGroup(groupColumn());
+    groupData.column = groupColumn();
   }
   else if (dataColumns().size() > 1) {
-    initGroup(labelColumn(), dataColumns(), isRowGrouping());
+    groupData.column      = labelColumn();
+    groupData.columns     = dataColumns();
+    groupData.rowGrouping = isRowGrouping();
   }
-  else {
-    initGroup();
-  }
+
+  initGroup(groupData);
 
   //---
 

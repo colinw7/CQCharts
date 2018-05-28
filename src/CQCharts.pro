@@ -77,15 +77,18 @@ CQChartsResizeHandle.cpp \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
-CQChartsLoader.cpp \
-CQChartsFilterEdit.cpp \
-CQChartsModelFilter.cpp \
-CQChartsModelExprMatch.cpp \
-CQChartsModelDetails.cpp \
-CQChartsExprDataModel.cpp \
-CQChartsDataModel.cpp \
-\
+CQChartsLoadDlg.cpp \
 CQChartsPlotDlg.cpp \
+\
+CQChartsFilterEdit.cpp \
+\
+CQChartsDataModel.cpp \
+CQChartsExprDataModel.cpp \
+CQChartsModelData.cpp \
+CQChartsModelDetails.cpp \
+CQChartsModelExprMatch.cpp \
+CQChartsModelFilter.cpp \
+CQChartsModelVisitor.cpp \
 \
 CQChartsGradientPaletteCanvas.cpp \
 CQChartsGradientPalette.cpp \
@@ -129,7 +132,7 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsGnuData.h \
-../include/CQChartsExprModel.h \
+../include/CQChartsExprDataModel.h \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
 \
@@ -195,15 +198,20 @@ HEADERS += \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \
 \
-../include/CQChartsLoader.h \
-../include/CQChartsFilterEdit.h \
-../include/CQChartsModelFilter.h \
-../include/CQChartsModelExprMatch.h \
-../include/CQChartsModelDetails.h \
-../include/CQChartsExprDataModel.h \
-../include/CQChartsDataModel.h \
-\
+../include/CQChartsLoadDlg.h \
 ../include/CQChartsPlotDlg.h \
+\
+../include/CQChartsFilterEdit.h \
+\
+../include/CQChartsDataModel.h \
+../include/CQChartsExprDataModel.h \
+../include/CQChartsModelData.h \
+../include/CQChartsModelDetails.h \
+../include/CQChartsModelExprMatch.h \
+../include/CQChartsModelFilter.h \
+../include/CQChartsModelFn.h \
+../include/CQChartsModelP.h \
+../include/CQChartsModelVisitor.h \
 \
 ../include/CQChartsGradientPaletteCanvas.h \
 ../include/CQChartsGradientPalette.h \
@@ -246,6 +254,7 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQPropertyView/include \
+../../CQDividedArea/include \
 ../../CQUtil/include \
 ../../CExpr/include \
 ../../CJson/include \

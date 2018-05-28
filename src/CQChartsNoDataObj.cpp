@@ -23,5 +23,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   double w = view->width ();
   double h = view->height();
 
+  painter->setFont(view->font());
+
   painter->drawText(QPointF(w/2 - fw, h/2 - fm.ascent()), msg);
 }

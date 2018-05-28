@@ -378,8 +378,24 @@
 # 5/20/2018
  + Cleanup tcl support code
  + Fix some memory leaks
-# 5/2/2018
+# 5/21/2018
  + export to file
  + remove get_view/set_view commands
  + add measure_text command
  + use tcl::mathfunc for model expressions
+# 5/28/2018
+ + add attributes to column parameters and use to improve plot dialog input
+ + move interface palette to separate structure and separate tab in view settings
+ + init group supports auto group by row number
+ + add plots list and place, group and modify functions to view settings tab
+ + support tcl in gradient palette defined functions
+ + add preview plot to plot dialog
+ + add simple validation to plot parameters
+ + don't build object tree for single no data object
+ + support optional double and color values in value set
+ + signals on view plots changed for view settings update
+ + add text and icon for title bar in expander
+ + move mapped and map min/max options into column parameter definition
+ + preview file and analyze contents in load dialog for easier loading
+ + combine set_theme/set_palette and get_theme/get_palette commands
+ + improve expression model operators to allow header type and type to be set

@@ -228,7 +228,7 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(bool           rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool           explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double         explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
-  Q_PROPERTY(bool           colorMapEnabled READ isColorMapEnabled WRITE setColorMapEnabled)
+  Q_PROPERTY(bool           colorMapped     READ isColorMapped     WRITE setColorMapped    )
   Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
   Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
 
@@ -325,8 +325,8 @@ class CQChartsPiePlot : public CQChartsPlot {
   void setColorColumn(const CQChartsColumn &c) {
     setValueSetColumn("color", c); updateRangeAndObjs(); }
 
-  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
-  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
+  bool isColorMapped() const { return isValueSetMapped("color"); }
+  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
 
   double colorMapMin() const { return valueSetMapMin("color"); }
   void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }

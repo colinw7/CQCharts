@@ -8,6 +8,7 @@ class CQChartsTheme;
 
 #define CQChartsThemeMgrInst CQChartsThemeMgr::instance()
 
+// manager class for named palettes and named themes
 class CQChartsThemeMgr {
  public:
   static CQChartsThemeMgr *instance();
@@ -33,12 +34,13 @@ class CQChartsThemeMgr {
   using ThemeMap      = std::map<QString,CQChartsTheme*>;
   using NamedPalettes = std::map<QString,CQChartsGradientPalette*>;
 
-  NamedPalettes namedPalettes_;
-  ThemeMap      themes_;
+  NamedPalettes namedPalettes_; //! named palettes
+  ThemeMap      themes_;        //! named themes
 };
 
 //------
 
+// theme (ordered set of named palettes)
 class CQChartsTheme : public QObject {
   Q_OBJECT
 
@@ -46,65 +48,58 @@ class CQChartsTheme : public QObject {
   CQChartsTheme();
  ~CQChartsTheme();
 
+  // get/set theme name
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
-  CQChartsGradientPalette *theme() { return theme_; }
+  // number of palettes
+  int numPalettes() const { return palettes_.size(); }
 
+  // get/set nth palette
   CQChartsGradientPalette *palette(int i=0);
   void setPalette(int i, CQChartsGradientPalette *palette);
 
-  void addNamedPalettes();
-
-  void addNamedPalette(const QString &name);
-
+  // set nth palette to palette of specified name
   void setNamedPalette(int i, const QString &name);
 
-  int numPalettes() const { return palettes_.size(); }
-
+  // shif palettes by n palces
   void shiftPalettes(int n);
 
+  // get/set select color
   const QColor &selectColor() const { return selectColor_; }
   void setSelectColor(const QColor &v) { selectColor_ = v; }
 
  protected:
-  void initPalette(CQChartsGradientPalette *palette);
+  // initialize with all named palettes
+  void addNamedPalettes();
 
-  void initPalette1(CQChartsGradientPalette *palette);
-  void initPalette2(CQChartsGradientPalette *palette);
+  // add named palette
+  void addNamedPalette(const QString &name);
 
  protected:
   using Palettes = std::vector<CQChartsGradientPalette*>;
 
-  QString                  name_;                       // theme name
-  CQChartsGradientPalette* theme_       { nullptr };    // theme palette (dark/light)
-  Palettes                 palettes_;                   // theme palette list
-  QColor                   selectColor_ { Qt::yellow }; // selection color
+  QString  name_;                       // theme name
+  Palettes palettes_;                   // theme palette list
+  QColor   selectColor_ { Qt::yellow }; // selection color
 };
 
+// default theme
 class CQChartsDefaultTheme : public CQChartsTheme {
  public:
   CQChartsDefaultTheme();
 };
 
-class CQChartsLightTheme1 : public CQChartsTheme {
+// theme 1
+class CQChartsTheme1 : public CQChartsTheme {
  public:
-  CQChartsLightTheme1();
+  CQChartsTheme1();
 };
 
-class CQChartsLightTheme2 : public CQChartsTheme {
+// theme 2
+class CQChartsTheme2 : public CQChartsTheme {
  public:
-  CQChartsLightTheme2();
-};
-
-class CQChartsDarkTheme1 : public CQChartsTheme {
- public:
-  CQChartsDarkTheme1();
-};
-
-class CQChartsDarkTheme2 : public CQChartsTheme {
- public:
-  CQChartsDarkTheme2();
+  CQChartsTheme2();
 };
 
 #endif

@@ -6,12 +6,16 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <boost/optional.hpp>
 
 class CQChartsPlot;
 
 //------
 
 class CQChartsRValues {
+ public:
+  using OptReal = boost::optional<double>;
+
  public:
   CQChartsRValues() { }
 
@@ -21,27 +25,35 @@ class CQChartsRValues {
     setrval_.clear();
   }
 
+  bool isValid() const { return ! rvals_.empty(); }
+
+  bool canMap() const { return ! rvalset_.empty(); }
+
   int size() const { return rvals_.size(); }
 
   // get nth value (non-unique)
-  double value(int i) const { return rvals_[i]; }
+  const OptReal &value(int i) const { return rvals_[i]; }
 
-  int addValue(double r) {
+  int addValue(const OptReal &r) {
     // add to all values
     rvals_.push_back(r);
 
     // add to unique values if new
-    auto p = rvalset_.find(r);
+    if (r) {
+      auto p = rvalset_.find(*r);
 
-    if (p == rvalset_.end()) {
-      int id = rvalset_.size();
+      if (p == rvalset_.end()) {
+        int id = rvalset_.size();
 
-      p = rvalset_.insert(p, RValSet::value_type(r, id)); // id for value
+        p = rvalset_.insert(p, RValSet::value_type(*r, id)); // id for value
 
-      setrval_[id] = r; // value for id
+        setrval_[id] = *r; // value for id
+      }
+
+      return (*p).second;
     }
-
-    return (*p).second;
+    else
+      return -1;
   }
 
   // real to id
@@ -91,7 +103,7 @@ class CQChartsRValues {
   int numUnique() const { return rvalset_.size(); }
 
  private:
-  using RVals   = std::vector<double>;
+  using RVals   = std::vector<OptReal>;
   using RValSet = std::map<double,int,CQChartsUtil::RealCmp>;
   using SetRVal = std::map<int,double>;
 
@@ -104,6 +116,9 @@ class CQChartsRValues {
 
 class CQChartsIValues {
  public:
+  using OptInt = boost::optional<int>;
+
+ public:
   CQChartsIValues() { }
 
   void clear() {
@@ -112,27 +127,35 @@ class CQChartsIValues {
     setival_.clear();
   }
 
+  bool isValid() const { return ! ivals_.empty(); }
+
+  bool canMap() const { return ! ivalset_.empty(); }
+
   int size() const { return ivals_.size(); }
 
   // get nth value (non-unique)
-  int value(int i) const { return ivals_[i]; }
+  const OptInt &value(int i) const { return ivals_[i]; }
 
-  int addValue(int i) {
+  int addValue(const OptInt &i) {
     // add to all values
     ivals_.push_back(i);
 
-    // add to unique values if new
-    auto p = ivalset_.find(i);
+    if (i) {
+      // add to unique values if new
+      auto p = ivalset_.find(*i);
 
-    if (p == ivalset_.end()) {
-      int id = ivalset_.size();
+      if (p == ivalset_.end()) {
+        int id = ivalset_.size();
 
-      p = ivalset_.insert(p, IValSet::value_type(i, id)); // id for value
+        p = ivalset_.insert(p, IValSet::value_type(*i, id)); // id for value
 
-      setival_[id] = i; // value for id
+        setival_[id] = *i; // value for id
+      }
+
+      return (*p).second;
     }
-
-    return (*p).second;
+    else
+      return -1;
   }
 
   // integer to id
@@ -182,7 +205,7 @@ class CQChartsIValues {
   int numUnique() const { return ivalset_.size(); }
 
  private:
-  using IVals   = std::vector<int>;
+  using IVals   = std::vector<OptInt>;
   using IValSet = std::map<int,int>;
   using SetIVal = std::map<int,int>;
 
@@ -194,6 +217,9 @@ class CQChartsIValues {
 //---
 
 class CQChartsSValues {
+ public:
+  using OptString = boost::optional<QString>;
+
  public:
   CQChartsSValues() { }
 
@@ -209,30 +235,38 @@ class CQChartsSValues {
     spatternsSet_ = false;
   }
 
+  bool isValid() const { return ! svals_.empty(); }
+
+  bool canMap() const { return ! svalset_.empty(); }
+
   int size() const { return svals_.size(); }
 
   // get nth value (non-unique)
-  const QString &value(int i) const { return svals_[i]; }
+  const OptString &value(int i) const { return svals_[i]; }
 
-  int addValue(const QString &s) {
-    // add to trie
-    trie_.addWord(s);
-
+  int addValue(const OptString &s) {
     // add to all values
     svals_.push_back(s);
 
-    // add to unique values if new
-    auto p = svalset_.find(s);
+    if (s) {
+      // add to trie
+      trie_.addWord(*s);
 
-    if (p == svalset_.end()) {
-      int id = svalset_.size();
+      // add to unique values if new
+      auto p = svalset_.find(*s);
 
-      p = svalset_.insert(p, SValSet::value_type(s, id));
+      if (p == svalset_.end()) {
+        int id = svalset_.size();
 
-      setsval_[id] = s;
+        p = svalset_.insert(p, SValSet::value_type(*s, id));
+
+        setsval_[id] = *s;
+      }
+
+      return (*p).second;
     }
-
-    return (*p).second;
+    else
+      return -1;
   }
 
   // string to id
@@ -334,7 +368,7 @@ class CQChartsSValues {
   }
 
  private:
-  using SVals   = std::vector<QString>;
+  using SVals   = std::vector<OptString>;
   using SValSet = std::map<QString,int>;
   using SetSVal = std::map<int,QString>;
 
@@ -360,12 +394,16 @@ class CQChartsCValues {
     setcval_.clear();
   }
 
+  bool isValid() const { return ! cvals_.empty(); }
+
+  bool canMap() const { return ! cvalset_.empty(); }
+
   int size() const { return cvals_.size(); }
 
   // get nth value (non-unique)
-  const QColor &value(int i) const { return cvals_[i]; }
+  const CQChartsColor &value(int i) const { return cvals_[i]; }
 
-  int addValue(const QColor &c) {
+  int addValue(const CQChartsColor &c) {
     // add to all values
     cvals_.push_back(c);
 
@@ -384,7 +422,7 @@ class CQChartsCValues {
   }
 
   // color to id
-  int id(const QColor &c) const {
+  int id(const CQChartsColor &c) const {
     // get string set index
     auto p = cvalset_.find(c);
 
@@ -395,19 +433,19 @@ class CQChartsCValues {
   }
 
   // id to color
-  QColor ivalue(int i) const {
+  CQChartsColor ivalue(int i) const {
     // get string for index
     auto p = setcval_.find(i);
 
     if (p == setcval_.end())
-      return "";
+      return CQChartsColor();
 
     return (*p).second;
   }
 
   // min/max value
-  QColor min() const { assert(! cvalset_.empty()); return cvalset_. begin()->first; }
-  QColor max() const { assert(! cvalset_.empty()); return cvalset_.rbegin()->first; }
+  CQChartsColor min() const { assert(! cvalset_.empty()); return cvalset_. begin()->first; }
+  CQChartsColor max() const { assert(! cvalset_.empty()); return cvalset_.rbegin()->first; }
 
   // min/max index
   int imin() const { assert(! setcval_.empty()); return setcval_. begin()->first; }
@@ -417,7 +455,7 @@ class CQChartsCValues {
   int numUnique() const { return cvalset_.size(); }
 
   // map value into real in range
-  double map(const QColor &c, double mapMin=0.0, double mapMax=1.0) const {
+  double map(const CQChartsColor &c, double mapMin=0.0, double mapMax=1.0) const {
     // get color set index
     int i = id(c);
 
@@ -431,9 +469,9 @@ class CQChartsCValues {
   }
 
  private:
-  using CVals   = std::vector<QColor>;
-  using CValSet = std::map<QColor,int,CQChartsUtil::ColorCmp>;
-  using SetCVal = std::map<int,QColor>;
+  using CVals   = std::vector<CQChartsColor>;
+  using CValSet = std::map<CQChartsColor,int,CQChartsUtil::ColorCmp>;
+  using SetCVal = std::map<int,CQChartsColor>;
 
   CVals   cvals_;   // all color values
   CValSet cvalset_; // unique indexed color values
@@ -447,14 +485,17 @@ class CQChartsCValues {
 class CQChartsValueSet : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn column     READ column       WRITE setColumn    )
-  Q_PROPERTY(bool           mapEnabled READ isMapEnabled WRITE setMapEnabled)
-  Q_PROPERTY(double         mapMin     READ mapMin       WRITE setMapMin    )
-  Q_PROPERTY(double         mapMax     READ mapMax       WRITE setMapMax    )
-  Q_PROPERTY(bool           allowNaN   READ isAllowNaN   WRITE setAllowNaN  )
+  Q_PROPERTY(CQChartsColumn column   READ column      WRITE setColumn  )
+  Q_PROPERTY(bool           mappped  READ isMapped    WRITE setMapped  )
+  Q_PROPERTY(double         mapMin   READ mapMin      WRITE setMapMin  )
+  Q_PROPERTY(double         mapMax   READ mapMax      WRITE setMapMax  )
+  Q_PROPERTY(bool           allowNaN READ isAllowNaN  WRITE setAllowNaN)
 
  public:
-  using Type = CQBaseModel::Type;
+  using Type      = CQBaseModel::Type;
+  using OptInt    = boost::optional<int>;
+  using OptReal   = boost::optional<double>;
+  using OptString = boost::optional<QString>;
 
  public:
   CQChartsValueSet(CQChartsPlot *plot);
@@ -463,6 +504,18 @@ class CQChartsValueSet : public QObject {
 
   const CQChartsColumn &column() const { return column_; }
   void setColumn(const CQChartsColumn &c) { column_ = c; }
+
+  // get/set mapping enabled
+  bool isMapped() const { return column_.isMapped(); }
+  void setMapped(bool b) { column_.setMapped(b); }
+
+  // get/set map min value
+  double mapMin() const { return column_.mapMin(); }
+  void setMapMin(double r) { column_.setMapMin(r); }
+
+  // get/set map max value
+  double mapMax() const { return column_.mapMax(); }
+  void setMapMax(double r) { column_.setMapMax(r); }
 
   //---
 
@@ -490,6 +543,10 @@ class CQChartsValueSet : public QObject {
 
   bool isNumeric() const { return (type() == Type::REAL || type() == Type::INTEGER); }
 
+  bool isValid() const;
+
+  bool canMap() const;
+
   // check if has value for specified index
   bool hasInd(int i) const;
 
@@ -498,18 +555,6 @@ class CQChartsValueSet : public QObject {
 
   // map nth value to real range (min->max)
   double imap(int i, double min, double max) const;
-
-  // get/set mapping enabled
-  bool isMapEnabled() const { return mapEnabled_; }
-  void setMapEnabled(bool b) { mapEnabled_ = b; }
-
-  // get/set map min value
-  double mapMin() const { return mapMin_; }
-  void setMapMin(double r) { mapMin_ = r; }
-
-  // get/set map max value
-  double mapMax() const { return mapMax_; }
-  void setMapMax(double r) { mapMax_ = r; }
 
   // get/set allow nam values
   bool isAllowNaN() const { return allowNaN_; }
@@ -568,10 +613,6 @@ class CQChartsValueSet : public QObject {
   CQChartsRValues rvals_; // real values
   CQChartsSValues svals_; // string values
   CQChartsCValues cvals_; // color values
-
-  bool   mapEnabled_ { true };
-  double mapMin_     { 0.0 };
-  double mapMax_     { 1.0 };
 
   bool allowNaN_ { false }; // allow NaN values
 };

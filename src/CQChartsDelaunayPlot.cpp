@@ -16,12 +16,12 @@ void
 CQChartsDelaunayPlotType::
 addParameters()
 {
-  addColumnParameter("x", "X", "xColumn", "", 0);
-  addColumnParameter("y", "Y", "yColumn", "", 1);
+  addColumnParameter("x", "X", "xColumn", 0).setRequired();
+  addColumnParameter("y", "Y", "yColumn", 1).setRequired();
 
-  addColumnParameter("name", "Name", "nameColumn", "optional");
+  addColumnParameter("name", "Name", "nameColumn");
 
-  addBoolParameter("voronoi", "Voronoi", "voronoi", "optional");
+  addBoolParameter("voronoi", "Voronoi", "voronoi");
 
   CQChartsPlotType::addParameters();
 }

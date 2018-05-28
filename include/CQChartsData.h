@@ -16,7 +16,7 @@
 struct CQChartsTextData {
   bool          visible   { true };
   QFont         font;
-  CQChartsColor color     { CQChartsColor::Type::THEME_VALUE, 1.0 };
+  CQChartsColor color     { CQChartsColor::Type::INTERFACE_VALUE, 1.0 };
   double        alpha     { 1.0 };
   double        angle     { 0.0 };
   bool          contrast  { false };
@@ -28,7 +28,7 @@ struct CQChartsTextData {
 // Line Properties
 struct CQChartsLineData {
   bool             visible { true };
-  CQChartsColor    color   { CQChartsColor::Type::THEME_VALUE, 1.0 };
+  CQChartsColor    color   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 };
   double           alpha   { 1.0 };
   CQChartsLength   width   { "0px" };
   CQChartsLineDash dash    { };
@@ -38,19 +38,19 @@ struct CQChartsLineData {
 struct CQChartsFillData {
   using Pattern = CQChartsFillPattern::Type;
 
-  bool          visible { true };                                  // draw bg
-  CQChartsColor color   { CQChartsColor::Type::THEME_VALUE, 0.0 }; // bg fill color
-  double        alpha   { 1.0 };                                   // bg fill color alpha
-  Pattern       pattern { Pattern::SOLID };                        // bg fill pattern
+  bool          visible { true };                                      // draw bg
+  CQChartsColor color   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; // bg fill color
+  double        alpha   { 1.0 };                                       // bg fill color alpha
+  Pattern       pattern { Pattern::SOLID };                            // bg fill pattern
 };
 
 // Stroke Properties
 struct CQChartsStrokeData {
-  bool             visible { true };                                  // draw border
-  CQChartsColor    color   { CQChartsColor::Type::THEME_VALUE, 1.0 }; // border color
-  double           alpha   { 1.0 };                                   // border color alpha
-  CQChartsLength   width   { "0px" };                                 // stroke width
-  CQChartsLineDash dash    { };                                       // stroke dash
+  bool             visible { true };                                      // draw border
+  CQChartsColor    color   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; // border color
+  double           alpha   { 1.0 };                                       // border color alpha
+  CQChartsLength   width   { "0px" };                                     // stroke width
+  CQChartsLineDash dash    { };                                           // stroke dash
 };
 
 // Shape Properties

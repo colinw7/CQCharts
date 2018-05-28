@@ -1,7 +1,10 @@
 #include <CQChartsColumnType.h>
+#include <CQChartsModelData.h>
+#include <CQCharts.h>
 
 CQChartsColumnTypeMgr::
-CQChartsColumnTypeMgr()
+CQChartsColumnTypeMgr(CQCharts *charts) :
+ charts_(charts)
 {
 }
 
@@ -160,6 +163,15 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   QString str = CQChartsColumnUtil::encodeNameValues(nameValues);
 
   bool rc2 = CQChartsUtil::setModelHeaderValue(model, column, str, vrole);
+
+  //---
+
+  if (rc1 || rc2) {
+    CQChartsModelData *modelData = charts_->getModelData(model);
+
+    if (modelData)
+      charts_->emitModelTypeChanged(modelData->ind());
+  }
 
   return rc1 && rc2;
 }

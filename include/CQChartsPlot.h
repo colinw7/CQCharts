@@ -84,8 +84,9 @@ class CQChartsPlotTypeMgr {
 
 class CQChartsPlotType {
  public:
-  using Parameters = std::vector<CQChartsPlotParameter>;
-  using ModelP     = CQChartsModelP;
+  using Parameters          = std::vector<CQChartsPlotParameter>;
+  using ParameterAttributes = CQChartsPlotParameterAttributes;
+  using ModelP              = CQChartsModelP;
 
  public:
   CQChartsPlotType();
@@ -104,31 +105,65 @@ class CQChartsPlotType {
 
   CQChartsPlotParameter &
   addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     const QString &attributes="", int defValue=-1) {
+                     int defValue=-1) {
+    return addColumnParameter(name, desc, propName, ParameterAttributes(), defValue);
+  }
+
+  CQChartsPlotParameter &
+  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                     const ParameterAttributes &attributes, int defValue=-1) {
     return addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
   }
 
   CQChartsPlotParameter &
   addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const QString &attributes="", const QString &defValue="") {
+                      const QString &defValue="") {
+    return addParameter(CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(),
+                                                 defValue));
+  }
+
+  CQChartsPlotParameter &
+  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
+                      const ParameterAttributes &attributes, const QString &defValue) {
     return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
   }
 
   CQChartsPlotParameter &
   addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const QString &attributes="", const QString &defValue="") {
+                     const QString &defValue="") {
+    return addParameter(CQChartsStringParameter(name, desc, propName, ParameterAttributes(),
+                                                defValue));
+  }
+
+  CQChartsPlotParameter &
+  addStringParameter(const QString &name, const QString &desc, const QString &propName,
+                     const ParameterAttributes &attributes, const QString &defValue) {
     return addParameter(CQChartsStringParameter(name, desc, propName, attributes, defValue));
   }
 
   CQChartsPlotParameter &
   addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   const QString &attributes="", double defValue=0.0) {
+                   double defValue=0.0) {
+    return addParameter(CQChartsRealParameter(name, desc, propName, ParameterAttributes(),
+                                              defValue));
+  }
+
+  CQChartsPlotParameter &
+  addRealParameter(const QString &name, const QString &desc, const QString &propName,
+                   const ParameterAttributes &attributes, double defValue) {
     return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
   }
 
   CQChartsPlotParameter &
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   const QString &attributes="", bool defValue=false) {
+                   bool defValue=false) {
+    return addParameter(CQChartsBoolParameter(name, desc, propName, ParameterAttributes(),
+                                              defValue));
+  }
+
+  CQChartsPlotParameter &
+  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
+                   const ParameterAttributes &attributes, bool defValue) {
     return addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
   }
 
@@ -239,6 +274,7 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool           logX                READ isLogX              WRITE setLogX           )
   Q_PROPERTY(bool           logY                READ isLogY              WRITE setLogY           )
   Q_PROPERTY(bool           autoFit             READ isAutoFit           WRITE setAutoFit        )
+  Q_PROPERTY(bool           preview             READ isPreview           WRITE setPreview        )
   Q_PROPERTY(bool           showBoxes           READ showBoxes           WRITE setShowBoxes      )
 
  public:
@@ -277,6 +313,14 @@ class CQChartsPlot : public QObject {
     CQChartsPlot *prev    { nullptr }; // previos plot
 
     ConnectData() { }
+
+    void reset() {
+      x1x2    = false;
+      y1y2    = false;
+      overlay = false;
+      next    = nullptr;
+      prev    = nullptr;
+    }
   };
 
   struct ProbeValue {
@@ -505,6 +549,9 @@ class CQChartsPlot : public QObject {
   bool isAutoFit() const { return autoFit_; }
   void setAutoFit(bool b) { autoFit_ = b; }
 
+  bool isPreview() const { return preview_; }
+  void setPreview(bool b) { preview_ = b; }
+
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b) { showBoxes_ = b; update(); }
 
@@ -554,13 +601,13 @@ class CQChartsPlot : public QObject {
   //---
 
   bool isOverlay() const { return connectData_.overlay; }
-  void setOverlay(bool b) { connectData_.overlay = b; }
+  void setOverlay(bool b, bool notify=true);
 
   bool isX1X2() const { return connectData_.x1x2; }
-  void setX1X2(bool b) { connectData_.x1x2 = b; }
+  void setX1X2(bool b, bool notify=true);
 
   bool isY1Y2() const { return connectData_.y1y2; }
-  void setY1Y2(bool b) { connectData_.y1y2 = b; }
+  void setY1Y2(bool b, bool notify=true);
 
   //---
 
@@ -583,17 +630,8 @@ class CQChartsPlot : public QObject {
   CQChartsPlot *prevPlot() const { return connectData_.prev; }
   CQChartsPlot *nextPlot() const { return connectData_.next; }
 
-  void setNextPlot(CQChartsPlot *plot) {
-    assert(plot != this && ! connectData_.next);
-
-    connectData_.next = plot;
-  }
-
-  void setPrevPlot(CQChartsPlot *plot) {
-    assert(plot != this && ! connectData_.prev);
-
-    connectData_.prev = plot;
-  }
+  void setNextPlot(CQChartsPlot *plot, bool notify=true);
+  void setPrevPlot(CQChartsPlot *plot, bool notify=true);
 
   CQChartsPlot *firstPlot() {
     if (connectData_.prev)
@@ -620,6 +658,8 @@ class CQChartsPlot : public QObject {
   bool isOverlayOtherPlot() const {
     return (isOverlay() && ! isFirstPlot());
   }
+
+  void resetConnectData(bool notify=true);
 
   //---
 
@@ -672,8 +712,8 @@ class CQChartsPlot : public QObject {
   const CQChartsColumn &valueSetColumn(const QString &name) const;
   bool setValueSetColumn(const QString &name, const CQChartsColumn &column);
 
-  bool isValueSetMapEnabled(const QString &name) const;
-  void setValueSetMapEnabled(const QString &name, bool b);
+  bool isValueSetMapped(const QString &name) const;
+  void setValueSetMapped(const QString &name, bool b);
 
   double valueSetMapMin(const QString &name) const;
   void setValueSetMapMin(const QString &name, double min);
@@ -691,8 +731,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void initGroup(const CQChartsColumn &column=CQChartsColumn(), const Columns &columns=Columns(),
-                 bool rowGrouping=false);
+  struct GroupData {
+    CQChartsColumn column;
+    Columns        columns;
+    bool           rowGrouping { false };
+    bool           defaultRow  { false };
+  };
+
+  void initGroup(const GroupData &data);
 
   int rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent,
                   int row, const CQChartsColumn &column=CQChartsColumn()) const;
@@ -744,8 +790,9 @@ class CQChartsPlot : public QObject {
                                 const QModelIndex &parent, bool &ok) const;
   virtual long     modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                 const QModelIndex &parent, bool &ok) const;
-  virtual QColor   modelColor  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                const QModelIndex &parent, bool &ok) const;
+
+  virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                   const QModelIndex &parent, bool &ok) const;
 
   //---
 
@@ -900,6 +947,9 @@ class CQChartsPlot : public QObject {
   CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
 
   const PlotObjs &plotObjects() const { return plotObjs_; }
+
+  bool isNoData() const { return noData_; }
+  void setNoData(bool b) { noData_ = b; }
 
   //---
 
@@ -1229,6 +1279,8 @@ class CQChartsPlot : public QObject {
  signals:
   void modelChanged();
 
+  void connectDataChanged();
+
   void keyItemPressed(CQChartsKeyItem *);
   void keyItemIdPressed(const QString &);
 
@@ -1336,11 +1388,13 @@ class CQChartsPlot : public QObject {
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
   bool                      autoFit_          { false };      // auto fit on data change
+  bool                      preview_          { false };      // is preview plot
   bool                      showBoxes_        { false };      // show debug boxes
   bool                      invertX_          { false };      // x values inverted
   bool                      invertY_          { false };      // y values inverted
   bool                      logX_             { false };      // x values log scaled
   bool                      logY_             { false };      // y values log scaled
+  bool                      noData_           { false };      // is no data
   ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
   ValueSets                 valueSets_;                       // named value sets
@@ -1398,8 +1452,8 @@ class CQChartsHierPlot : public CQChartsPlot {
   void setColorColumn(const CQChartsColumn &c) {
     setValueSetColumn("color", c); updateRangeAndObjs(); }
 
-  bool isColorMapEnabled() const { return isValueSetMapEnabled("color"); }
-  void setColorMapEnabled(bool b) { setValueSetMapEnabled("color", b); updateObjs(); }
+  bool isColorMapped() const { return isValueSetMapped("color"); }
+  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
 
   double colorMapMin() const { return valueSetMapMin("color"); }
   void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }

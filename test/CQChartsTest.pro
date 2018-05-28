@@ -12,11 +12,15 @@ MOC_DIR = .moc
 
 SOURCES += \
 CQChartsTest.cpp \
+CQChartsModelList.cpp \
+CQChartsModelControl.cpp \
 CQChartsCmds.cpp \
 CQAppWindow.cpp \
 
 HEADERS += \
 CQChartsTest.h \
+CQChartsModelList.h \
+CQChartsModelControl.h \
 CQChartsCmds.h \
 CQAppWindow.h \
 
@@ -41,6 +45,7 @@ INCLUDEPATH += \
 unix:LIBS += \
 -L../lib \
 -L../../CQPropertyView/lib \
+-L../../CQDividedArea/lib \
 -L../../CQUtil/lib \
 -L../../CExpr/lib \
 -L../../CJson/lib \
@@ -55,7 +60,7 @@ unix:LIBS += \
 -L../../CRegExp/lib \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
--lCQCharts -lCQPropertyView -lCQUtil \
+-lCQCharts -lCQPropertyView -lCQDividedArea -lCQUtil \
 -lCExpr -lCJson -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp -lCStrUtil \
 -lCUtil -lCOS \

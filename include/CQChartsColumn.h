@@ -19,49 +19,14 @@ class CQChartsColumn {
 
  public:
   CQChartsColumn() = default;
+  CQChartsColumn(int column);
+  CQChartsColumn(const QString &s);
 
-  CQChartsColumn(int column) :
-   type_(Type::DATA), column_(column) {
-    if (column_ < 0)
-      type_ = Type::NONE;
-  }
+  CQChartsColumn(const CQChartsColumn &rhs);
 
-  CQChartsColumn(const QString &s) {
-    setValue(s);
-  }
+ ~CQChartsColumn();
 
-  CQChartsColumn(const CQChartsColumn &rhs) :
-   type_(rhs.type_), column_(rhs.column_), expr_(nullptr) {
-    if (rhs.type_ == Type::EXPR && rhs.expr_) {
-      int len = strlen(rhs.expr_);
-
-      expr_ = new char [len + 1];
-
-      memcpy(expr_, rhs.expr_, len + 1);
-    }
-  }
-
- ~CQChartsColumn() {
-    delete [] expr_;
-  }
-
-  CQChartsColumn &operator=(const CQChartsColumn &rhs) {
-    delete [] expr_;
-
-    type_   = rhs.type_;
-    column_ = rhs.column_;
-    expr_   = nullptr;
-
-    if (rhs.type_ == Type::EXPR && rhs.expr_) {
-      int len = strlen(rhs.expr_);
-
-      expr_ = new char [len + 1];
-
-      memcpy(expr_, rhs.expr_, len + 1);
-    }
-
-    return *this;
-  }
+  CQChartsColumn &operator=(const CQChartsColumn &rhs);
 
   Type type() const { return type_; }
 
@@ -71,66 +36,29 @@ class CQChartsColumn {
 
   bool isValid() const { return type_ != Type::NONE; }
 
-  bool setValue(const QString &str) {
-    Type    type;
-    int     column;
-    QString expr;
+  bool setValue(const QString &str);
 
-    if (! decodeString(str, type, column, expr))
-      return false;
+  bool isMapped() const { return mapped_; }
+  void setMapped(bool b) { mapped_ = b; }
 
-    delete [] expr_;
+  double mapMin() const { return mapMin_; }
+  void setMapMin(double r) { mapMin_ = r; }
 
-    type_   = type;
-    column_ = column;
-    expr_   = nullptr;
-
-    if (type == Type::EXPR) {
-      int len = expr.length();
-
-      expr_ = new char [len + 1];
-
-      memcpy(expr_, expr.toStdString().c_str(), len + 1);
-    }
-
-    return true;
-  }
+  double mapMax() const { return mapMax_; }
+  void setMapMax(double r) { mapMax_ = r; }
 
   //---
 
-  QString toString() const {
-    if      (type_ == Type::DATA)
-      return QString("%1").arg(column_);
-    else if (type_ == Type::EXPR)
-      return QString("(%1)").arg(expr_);
-    else if (type_ == Type::VHEADER)
-      return "@VH";
+  QString toString() const;
 
-    return "";
-  }
-
-  void fromString(const QString &s) {
-    setValue(s);
-  }
+  void fromString(const QString &s);
 
   //---
+
+  static bool equals(const CQChartsColumn &lhs, const CQChartsColumn &rhs);
 
   friend bool operator==(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
-    if (lhs.type_   != rhs.type_  ) return false;
-    if (lhs.column_ != rhs.column_) return false;
-
-    if (lhs.expr_ != rhs.expr_) {
-      if ((lhs.expr_ && ! rhs.expr_) || (! lhs.expr_ && rhs.expr_))
-        return false;
-
-      if (! lhs.expr_ || ! rhs.expr_)
-        return false;
-
-      if (strcmp(lhs.expr_, rhs.expr_) != 0)
-        return false;
-    }
-
-    return true;
+    return equals(lhs, rhs);
   }
 
   friend bool operator!=(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
@@ -139,9 +67,7 @@ class CQChartsColumn {
 
   //---
 
-  void print(std::ostream &os) const {
-    os << toString().toStdString();
-  }
+  void print(std::ostream &os) const;
 
   friend std::ostream &operator<<(std::ostream &os, const CQChartsColumn &l) {
     l.print(os);
@@ -152,119 +78,20 @@ class CQChartsColumn {
   //---
 
  public:
-  static bool stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns) {
-    bool rc = true;
+  static bool stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns);
 
-    QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-    for (int i = 0; i < strs.length(); ++i) {
-      CQChartsColumn c(strs[i]);
-
-      if (! c.isValid())
-        rc = false;
-
-      columns.push_back(c);
-    }
-
-    return rc;
-  }
-
-  static QString columnsToString(const std::vector<CQChartsColumn> &columns) {
-    QString str;
-
-    for (const auto &c : columns) {
-      if (str.length())
-        str += " ";
-
-      str += c.toString();
-    }
-
-    return str;
-  }
+  static QString columnsToString(const std::vector<CQChartsColumn> &columns);
 
  private:
-  bool decodeString(const QString &str, Type &type, int &column, QString &expr) {
-    type   = Type::NONE;
-    column = -1;
-    expr   = "";
-
-    std::string sstr = str.toStdString();
-
-    const char *c_str = sstr.c_str();
-
-    int i = 0;
-
-    while (c_str[i] != 0 && ::isspace(c_str[i]))
-      ++i;
-
-    if (c_str[i] == '\0')
-      return false;
-
-    // expression
-    if (c_str[i] == '(') {
-      ++i;
-
-      QString str;
-
-      int nb = 1;
-
-      while (c_str[i] != 0) {
-        if      (c_str[i] == '(')
-          ++nb;
-        else if (c_str[i] == ')') {
-          --nb;
-
-          if (nb == 0)
-            break;
-        }
-
-        str += c_str[i++];
-      }
-
-      expr = str.simplified();
-      type = Type::EXPR;
-
-      return true;
-    }
-
-    if (strcmp(&c_str[i], "@VH") == 0) {
-      type = Type::VHEADER;
-
-      return true;
-    }
-
-    // TODO: support column name
-
-    // integer column number
-    const char *p;
-
-    errno = 0;
-
-    long value = strtol(&c_str[i], (char **) &p, 10);
-
-    if (errno == ERANGE)
-      return false;
-
-    while (*p != 0 && ::isspace(*p))
-      ++p;
-
-    if (*p == '\0') {
-      if (value < 0)
-        return false;
-
-      type   = Type::DATA;
-      column = value;
-    }
-    else
-      return false;
-
-    return true;
-  }
+  bool decodeString(const QString &str, Type &type, int &column, QString &expr);
 
  private:
   Type   type_   { Type::NONE };
   int    column_ { -1 };
   char*  expr_   { nullptr };
+  bool   mapped_ { false };
+  double mapMin_ { 0.0 };
+  double mapMax_ { 1.0 };
 };
 
 //---

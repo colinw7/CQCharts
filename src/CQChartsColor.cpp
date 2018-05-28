@@ -41,8 +41,8 @@ colorStr() const
     }
   }
 
-  if (type() == Type::THEME_VALUE)
-    return QString("theme:%1").arg(value());
+  if (type() == Type::INTERFACE_VALUE)
+    return QString("interface:%1").arg(value());
 
   return color().name();
 }
@@ -118,14 +118,14 @@ setColorStr(const QString &str)
 
     setScaleValue(Type::PALETTE_VALUE, value, scale);
   }
-  else if (str.startsWith("theme:")) {
+  else if (str.startsWith("interface:")) {
     QString rhs = str.mid(6);
 
     bool ok;
 
     double value = rhs.toDouble(&ok);
 
-    setValue(Type::THEME_VALUE, value);
+    setValue(Type::INTERFACE_VALUE, value);
   }
   else {
     QColor c(str);
@@ -141,7 +141,7 @@ interpColor(const CQChartsPlot *plot, int i, int n) const
 {
   assert(isValid());
 
-  if (type() == Type::THEME_VALUE) {
+  if (type() == Type::INTERFACE_VALUE) {
     double r = CQChartsUtil::norm(i, 0, n);
 
     return interpColor(plot, r);
@@ -176,7 +176,7 @@ interpColor(const CQChartsPlot *plot, double value) const
       return plot->interpIndPaletteColor(ind(), this->value(), isScale());
   }
 
-  if (type() == Type::THEME_VALUE)
+  if (type() == Type::INTERFACE_VALUE)
     return plot->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
@@ -188,7 +188,7 @@ interpColor(const CQChartsView *view, int i, int n) const
 {
   assert(isValid());
 
-  if (type() == Type::THEME_VALUE) {
+  if (type() == Type::INTERFACE_VALUE) {
     double r = CQChartsUtil::norm(i, 0, n);
 
     return interpColor(view, r);
@@ -223,7 +223,7 @@ interpColor(const CQChartsView *view, double value) const
       return view->interpIndPaletteColor(ind(), this->value(), isScale());
   }
 
-  if (type() == Type::THEME_VALUE)
+  if (type() == Type::INTERFACE_VALUE)
     return view->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);

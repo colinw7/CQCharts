@@ -18,15 +18,13 @@ CQChartsTest \
  -plot_title "simple xy - multi line" \
 -and \
  -tsv data/bivariate.tsv -comment_header \
- -type xy -columns "x=0,y=1 2" \
- -column_type "time:format=%Y%m%d,oformat=%F" \
+ -type xy -columns "x=0,y=1 2" -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate - single line" \
  -properties "yaxis.includeZero=1" \
 -and \
  -tsv data/multi_series.tsv -comment_header \
- -type xy -columns "x=0,y=1 2 3" \
- -column_type "time:format=%Y%m%d,oformat=%F" \
+ -type xy -columns "x=0,y=1 2 3" -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate - multi line" \
 -and \

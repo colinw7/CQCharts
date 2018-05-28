@@ -6,12 +6,14 @@
 #include <CQChartsAxis.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
+#include <CQDividedArea.h>
+#include <CQRealSpin.h>
 #include <CQUtil.h>
 
 #include <QItemSelectionModel>
 #include <QGridLayout>
 #include <QHBoxLayout>
-#include <QGroupBox>
+#include <QSplitter>
 #include <QComboBox>
 #include <QStackedWidget>
 #include <QLineEdit>
@@ -24,6 +26,18 @@ CQChartsPlotDlg::
 CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
  charts_(charts), model_(model)
 {
+  auto createSep = [](const QString &name) -> QFrame * {
+    QFrame *sep = new QFrame;
+    sep->setObjectName(name);
+
+    sep->setFixedHeight(4);
+    sep->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+
+    return sep;
+  };
+
+  //---
+
   setObjectName("plotDlg");
 
   setWindowTitle("Create Plot");
@@ -34,30 +48,33 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   //----
 
-  QGroupBox *typeGroup = new QGroupBox("Type Data");
+  CQDividedArea *area = new CQDividedArea;
+  area->setObjectName("area");
 
-  typeGroup->setObjectName("typeGroup");
+  layout->addWidget(area);
 
-  QVBoxLayout *typeLayout = new QVBoxLayout(typeGroup);
+  //----
 
-  layout->addWidget(typeGroup);
+  QFrame *typeFrame = new QFrame;
+  typeFrame->setObjectName("type");
+
+  QVBoxLayout *typeLayout = new QVBoxLayout(typeFrame);
+
+  area->addWidget(typeFrame, "Type Data");
 
   //--
 
+  // type combo
   QHBoxLayout *typeComboLayout = new QHBoxLayout;
 
   typeLayout->addLayout(typeComboLayout);
 
   QLabel *typeLabel = new QLabel("Type");
-
   typeLabel->setObjectName("typeLabel");
 
   typeComboLayout->addWidget(typeLabel);
 
-  //--
-
   QComboBox *typeCombo = new QComboBox;
-
   typeCombo->setObjectName("typeCombo");
 
   typeComboLayout->addWidget(typeCombo);
@@ -70,14 +87,11 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   connect(typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(comboSlot(int)));
 
-  //--
-
   typeComboLayout->addStretch(1);
 
   //----
 
   stack_ = new QStackedWidget;
-
   stack_->setObjectName("stack");
 
   typeLayout->addWidget(stack_);
@@ -87,23 +101,30 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   //----
 
-  QFrame *sep1 = new QFrame;
+  QHBoxLayout *whereLayout = new QHBoxLayout;
 
-  sep1->setObjectName("sep1");
-  sep1->setFixedHeight(4);
-  sep1->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+  typeLayout->addLayout(whereLayout);
 
-  layout->addWidget(sep1);
+  QLabel *whereLabel = new QLabel("Where");
+  whereLabel->setObjectName("whereLabel");
+
+  whereLayout->addWidget(whereLabel);
+
+  whereEdit_ = new QLineEdit;
+  whereEdit_->setObjectName("whereEdit");
+
+  whereLayout->addWidget(whereEdit_);
+
+  whereLayout->addStretch(1);
 
   //----
 
-  QGroupBox *genGroup = new QGroupBox("General Data");
+  QFrame *genFrame = new QFrame;
+  genFrame->setObjectName("general");
 
-  genGroup->setObjectName("genGroup");
+  QGridLayout *genLayout = new QGridLayout(genFrame);
 
-  QGridLayout *genLayout = new QGridLayout(genGroup);
-
-  layout->addWidget(genGroup);
+  area->addWidget(genFrame, "General Data");
 
   //--
 
@@ -142,9 +163,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   ++row; column = 0;
 
   xintegralCheck_ = new QCheckBox("X Integral");
-  yintegralCheck_ = new QCheckBox("Y Integral");
-
   xintegralCheck_->setObjectName("xintegralCheck");
+
+  yintegralCheck_ = new QCheckBox("Y Integral");
   yintegralCheck_->setObjectName("yintegralCheck");
 
   genLayout->addWidget(xintegralCheck_, row, column); ++column;
@@ -152,44 +173,87 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   //----
 
-  QFrame *sep2 = new QFrame;
+  ++row; column = 0;
 
-  sep2->setObjectName("sep2");
-  sep2->setFixedHeight(4);
-  sep2->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+  xlogCheck_ = new QCheckBox("X Log");
+  xlogCheck_->setObjectName("xlogCheck");
 
-  layout->addWidget(sep2);
+  ylogCheck_ = new QCheckBox("Y Log");
+  ylogCheck_->setObjectName("ylogCheck");
+
+  genLayout->addWidget(xlogCheck_, row, column); ++column;
+  genLayout->addWidget(ylogCheck_, row, column);
+
+  //--
+
+  ++row;
+
+  genLayout->setRowStretch(row, 1);
 
   //----
 
+  QFrame *previewFrame = new QFrame;
+  previewFrame->setObjectName("preview");
+
+  QVBoxLayout *previewLayout = new QVBoxLayout(previewFrame);
+
+  area->addWidget(previewFrame, "Preview");
+
+  //--
+
+  previewView_ = charts_->createView();
+
+  previewView_->setPreview(true);
+
+  previewLayout->addWidget(previewView_);
+
+  //----
+
+  QFrame *sep1 = createSep("sep1");
+
+  layout->addWidget(sep1);
+
+  //----
+
+  msgLabel_ = new QLabel;
+  msgLabel_->setObjectName("msgLabel");
+
+  layout->addWidget(msgLabel_);
+
+  //----
+
+  QFrame *sep2 = createSep("sep2");
+
+  layout->addWidget(sep2);
+
+  //-------
+
+  // OK, Apply, Cancel Buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
 
   layout->addLayout(buttonLayout);
 
   //--
 
-  QPushButton *okButton = new QPushButton("OK");
+  okButton_ = new QPushButton("OK");
+  okButton_->setObjectName("ok");
 
-  okButton->setObjectName("ok");
+  connect(okButton_, SIGNAL(clicked()), this, SLOT(okSlot()));
 
-  connect(okButton, SIGNAL(clicked()), this, SLOT(okSlot()));
-
-  buttonLayout->addWidget(okButton);
+  buttonLayout->addWidget(okButton_);
 
   //--
 
-  QPushButton *applyButton = new QPushButton("Apply");
+  applyButton_ = new QPushButton("Apply");
+  applyButton_->setObjectName("apply");
 
-  applyButton->setObjectName("apply");
+  connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
 
-  connect(applyButton, SIGNAL(clicked()), this, SLOT(applySlot()));
-
-  buttonLayout->addWidget(applyButton);
+  buttonLayout->addWidget(applyButton_);
 
   //--
 
   QPushButton *cancelButton = new QPushButton("Cancel");
-
   cancelButton->setObjectName("cancel");
 
   connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
@@ -199,6 +263,12 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   //--
 
   buttonLayout->addStretch(1);
+
+  //--
+
+  initialized_ = true;
+
+  validateSlot();
 }
 
 void
@@ -225,7 +295,6 @@ addPlotWidgets(const QString &typeName, int ind)
   //
 
   QFrame *frame = new QFrame;
-
   frame->setObjectName("frame");
 
   stack_->addWidget(frame);
@@ -325,6 +394,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   plotData.columnEdits[parameter.name()] = columnEdit;
 
+  connect(columnEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
   //---
 
   QLineEdit *formatEdit =
@@ -332,9 +403,62 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   plotData.formatEdits[parameter.name()] = formatEdit;
 
+  connect(formatEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  //---
+
+  QLabel *attributesLabel = new QLabel;
+  attributesLabel->setObjectName("attributesLabel");
+
+  attributesLabel->setText(parameter.attributes().summary());
+
+  layout->addWidget(attributesLabel, row, column); ++column;
+
   //---
 
   ++row;
+
+  //---
+
+  if (parameter.attributes().isMapped()) {
+    MapEditData mapEditData;
+
+    column = 1;
+
+    QHBoxLayout *mapLayout = new QHBoxLayout;
+
+    mapEditData.mappedCheck = new QCheckBox("Mapped");
+    mapEditData.mappedCheck->setObjectName("mapped");
+
+    connect(mapEditData.mappedCheck, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+
+    mapEditData.mapMinSpin = new CQRealSpin;
+    mapEditData.mapMinSpin->setObjectName("mapMin");
+
+    mapEditData.mapMaxSpin = new CQRealSpin;
+    mapEditData.mapMaxSpin->setObjectName("mapMax");
+
+    connect(mapEditData.mapMinSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
+    connect(mapEditData.mapMaxSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
+
+    mapLayout->addWidget(mapEditData.mappedCheck);
+    mapLayout->addWidget(mapEditData.mapMinSpin);
+    mapLayout->addWidget(mapEditData.mapMaxSpin);
+    mapLayout->addStretch(1);
+
+    plotData.mappedEdits[parameter.name()] = mapEditData;
+
+    layout->addLayout(mapLayout, row, column, 1, 2);
+
+    ++row;
+
+    //---
+
+    mapEditData.mappedCheck->setChecked(false);
+
+    mapEditData.mapMinSpin ->setValue(parameter.attributes().mapMin());
+    mapEditData.mapMaxSpin ->setValue(parameter.attributes().mapMax());
+  }
 }
 
 void
@@ -356,12 +480,16 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   plotData.columnsEdits[parameter.name()] = columnsEdit;
 
+  connect(columnsEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
   //---
 
   QLineEdit *formatEdit =
     addLineEdit(layout, row, column, "", parameter.name() + "Format", "Columns Format");
 
   plotData.formatEdits[parameter.name()] = formatEdit;
+
+  connect(formatEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 
   //---
 
@@ -379,11 +507,11 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QHBoxLayout *editLayout = new QHBoxLayout;
 
-  QLabel    *label = new QLabel(parameter.desc());
-  QLineEdit *edit  = new QLineEdit;
-
+  QLabel *label = new QLabel(parameter.desc());
   label->setObjectName(parameter.name() + "_label");
-  label->setObjectName(parameter.name() + "_edit");
+
+  QLineEdit *edit  = new QLineEdit;
+  edit->setObjectName(parameter.name() + "_edit");
 
   edit->setText(str);
 
@@ -393,6 +521,8 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
   layout->addLayout(editLayout);
 
   plotData.stringEdits[parameter.name()] = edit;
+
+  connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 }
 
 void
@@ -404,11 +534,11 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QHBoxLayout *editLayout = new QHBoxLayout;
 
-  QLabel    *label = new QLabel(parameter.desc());
-  QLineEdit *edit  = new QLineEdit;
-
+  QLabel *label = new QLabel(parameter.desc());
   label->setObjectName(parameter.name() + "_label");
-  label->setObjectName(parameter.name() + "_edit");
+
+  QLineEdit *edit  = new QLineEdit;
+  edit->setObjectName(parameter.name() + "_edit");
 
   edit->setText(QString("%1").arg(r));
 
@@ -418,6 +548,8 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
   layout->addLayout(editLayout);
 
   plotData.realEdits[parameter.name()] = edit;
+
+  connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 }
 
 void
@@ -428,7 +560,6 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
   bool b = parameter.defValue().toBool();
 
   QCheckBox *checkBox = new QCheckBox(parameter.desc());
-
   checkBox->setObjectName(parameter.name());
 
   checkBox->setChecked(b);
@@ -436,6 +567,8 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
   layout->addWidget(checkBox);
 
   plotData.boolEdits[parameter.name()] = checkBox;
+
+  connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 }
 
 QLineEdit *
@@ -445,14 +578,12 @@ addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
 {
   if (name != "") {
     QLabel *label = new QLabel(name);
-
     label->setObjectName(objName + "Label");
 
     grid->addWidget(label, row, column); ++column;
   }
 
   QLineEdit *edit = new QLineEdit;
-
   edit->setObjectName(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
@@ -467,6 +598,145 @@ CQChartsPlotDlg::
 comboSlot(int ind)
 {
   stack_->setCurrentIndex(ind);
+
+  validateSlot();
+}
+
+void
+CQChartsPlotDlg::
+validateSlot()
+{
+  if (! initialized_)
+    return;
+
+  QString msg;
+
+  bool ok = validate(msg);
+
+  okButton_   ->setEnabled(ok);
+  applyButton_->setEnabled(ok);
+
+  if (! ok) {
+    msgLabel_->setText(msg);
+    msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
+    return;
+  }
+
+  msgLabel_->setText(" ");
+  msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
+
+  // create plot for typename of current tab
+  int ind = stack_->currentIndex();
+
+  QString typeName = tabTypeName_[ind];
+
+  CQChartsPlotType *type = charts()->plotType(typeName);
+  assert(type);
+
+  if (! previewPlot_ || previewPlot_->type() != type) {
+    previewView_->removeAllPlots();
+
+    previewPlot_ = type->create(previewView_, model_);
+
+    previewPlot_->setPreview(true);
+
+    double vr = CQChartsView::viewportRange();
+
+    CQChartsGeom::BBox bbox(0, 0, vr, vr);
+
+    previewPlot_->setId("Preview");
+
+    previewView_->addPlot(previewPlot_, bbox);
+  }
+
+  applyPlot(previewPlot_, /*preview*/true);
+}
+
+bool
+CQChartsPlotDlg::
+validate(QString &msg)
+{
+  msg = "";
+
+  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  if (! modelData) { msg = "no model data"; return false; }
+
+  const CQChartsModelDetails &details = modelData->details();
+
+  //---
+
+  // create plot for typename of current tab
+  int ind = stack_->currentIndex();
+
+  QString typeName = tabTypeName_[ind];
+
+  if (! charts()->isPlotType(typeName)) {
+    msg = "invalid plot type";
+    return false;
+  }
+
+  CQChartsPlotType *type = charts()->plotType(typeName);
+  assert(type);
+
+  // set plot property for widgets for plot parameters
+  PlotData &plotData = typePlotData_[type->name()];
+
+  bool rc = true;
+
+  for (const auto &parameter : type->parameters()) {
+    if      (parameter.type() == "column") {
+      bool ok;
+
+      int column = parameter.defValue().toInt(&ok);
+
+      if (! ok)
+        column = -1;
+
+      QString      columnStr;
+      QString      columnTypeStr;
+      MapValueData mapValueData;
+
+      if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
+                                     columnTypeStr, mapValueData)) {
+        if (parameter.attributes().isRequired()) {
+          msg += "missing required column value\n";
+          rc = false;
+        }
+
+        continue;
+      }
+
+      if (column < 0 || column >= details.numColumns()) {
+        msg += "invalid column number\n";
+        rc = false;
+        continue;
+      }
+
+      const CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
+
+      if (parameter.attributes().isMonotonic()) {
+        if (! columnDetails.isMonotonic())
+          msg += "non-monotonic column\n";
+      }
+
+      if      (parameter.attributes().isNumeric()) {
+        if (columnDetails.type() != CQBaseModel::Type::INTEGER &&
+            columnDetails.type() != CQBaseModel::Type::REAL &&
+            columnDetails.type() != CQBaseModel::Type::TIME)
+          msg += "non-numeric column\n";
+      }
+      else if (parameter.attributes().isString()) {
+        if (columnDetails.type() != CQBaseModel::Type::STRING)
+          msg += "non-string column\n";
+      }
+      else if (parameter.attributes().isColor()) {
+        if (columnDetails.type() != CQBaseModel::Type::COLOR)
+          msg += "non-color column\n";
+      }
+    }
+  }
+
+  return rc;
 }
 
 void
@@ -489,7 +759,7 @@ applySlot()
   if (! charts()->isPlotType(typeName))
     return false;
 
-  // TODO: get view from name
+  // get or create view
   QString viewId = viewEdit_->text();
 
   CQChartsView *view = charts()->getView(viewId);
@@ -500,8 +770,11 @@ applySlot()
     CQChartsWindow *window = new CQChartsWindow(view);
 
     window->show();
+
+    viewEdit_->setText(view->id());
   }
 
+  // create plot
   CQChartsPlotType *type = charts()->plotType(typeName);
   assert(type);
 
@@ -512,123 +785,17 @@ applySlot()
 
   //---
 
-  // set plot property for widgets for plot parameters
-  PlotData &plotData = typePlotData_[type->name()];
-
-  for (const auto &parameter : type->parameters()) {
-    if      (parameter.type() == "column") {
-      bool ok;
-
-      int column = parameter.defValue().toInt(&ok);
-
-      if (! ok)
-        column = -1;
-
-      QString columnStr;
-      QString columnTypeStr;
-
-      if (parseParameterColumnEdit(parameter, plotData, column, columnStr, columnTypeStr)) {
-        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(column)))
-          charts()->errorMsg("Failed to set parameter " + parameter.propName());
-
-        if (columnTypeStr.length())
-          CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
-      }
-    }
-    else if (parameter.type() == "columns") {
-      bool ok;
-
-      QString columnsStr = CQChartsUtil::toString(parameter.defValue(), ok);
-
-      std::vector<int> columns;
-
-      (void) CQChartsUtil::fromString(columnsStr, columns);
-
-      QStringList columnStrs;
-      QString     columnTypeStr;
-
-      if (parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
-        QString s = CQChartsUtil::toString(columns);
-
-        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(s)))
-          charts()->errorMsg("Failed to set parameter " + parameter.propName());
-
-        if (columnTypeStr.length() && ! columns.empty())
-          CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
-      }
-    }
-    else if (parameter.type() == "string") {
-      bool ok;
-
-      QString str = CQChartsUtil::toString(parameter.defValue(), ok);
-
-      if (parseParameterStringEdit(parameter, plotData, str)) {
-        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(str)))
-          charts()->errorMsg("Failed to set parameter " + parameter.propName());
-      }
-    }
-    else if (parameter.type() == "real") {
-      double r = parameter.defValue().toDouble();
-
-      if (parseParameterRealEdit(parameter, plotData, r)) {
-        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(r)))
-          charts()->errorMsg("Failed to set parameter " + parameter.propName());
-      }
-    }
-    else if (parameter.type() == "bool") {
-      bool b = parameter.defValue().toBool();
-
-      if (parseParameterBoolEdit(parameter, plotData, b)) {
-        if (! CQUtil::setProperty(plot_, parameter.propName(), QVariant(b)))
-          charts()->errorMsg("Failed to set parameter " + parameter.propName());
-      }
-    }
-    else
-      assert(false);
-  }
-
-  //---
-
-  double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
-
-  parsePosition(xmin, ymin, xmax, ymax);
-
-  //---
-
-  if (titleEdit_->text().length())
-    plot_->setTitleStr(titleEdit_->text());
-
-  if (xintegralCheck_->isChecked())
-    plot_->xAxis()->setIntegral(true);
-
-  if (yintegralCheck_->isChecked())
-    plot_->yAxis()->setIntegral(true);
-
-  if (xminEdit_->text().length()) {
-    bool ok; double xmin = xminEdit_->text().toDouble(&ok);
-    if (ok) plot_->setXMin(xmin);
-  }
-
-  if (yminEdit_->text().length()) {
-    bool ok; double ymin = yminEdit_->text().toDouble(&ok);
-    if (ok) plot_->setYMin(ymin);
-  }
-
-  if (xmaxEdit_->text().length()) {
-    bool ok; double xmax = xmaxEdit_->text().toDouble(&ok);
-    if (ok) plot_->setXMax(xmax);
-  }
-
-  if (ymaxEdit_->text().length()) {
-    bool ok; double ymax = ymaxEdit_->text().toDouble(&ok);
-    if (ok) plot_->setYMax(ymax);
-  }
+  applyPlot(plot_);
 
   //---
 
   double vr = CQChartsView::viewportRange();
 
   int n = view->numPlots();
+
+  double xmin = 0.0, ymin = 0.0, xmax = 1.0, ymax = 1.0;
+
+  parsePosition(xmin, ymin, xmax, ymax);
 
   CQChartsGeom::BBox bbox(vr*xmin, vr*ymin, vr*xmax, vr*ymax);
 
@@ -641,6 +808,170 @@ applySlot()
   emit plotCreated(plot_);
 
   return true;
+}
+
+void
+CQChartsPlotDlg::
+applyPlot(CQChartsPlot *plot, bool preview)
+{
+  CQChartsPlotType *type = plot->type();
+
+  // set plot property for widgets for plot parameters
+  PlotData &plotData = typePlotData_[type->name()];
+
+  for (const auto &parameter : type->parameters()) {
+    if      (parameter.type() == "column") {
+      bool ok;
+
+      int defValue = parameter.defValue().toInt(&ok);
+
+      if (! ok)
+        defValue = -1;
+
+      int column = defValue;
+
+      QString      columnStr;
+      QString      columnTypeStr;
+      MapValueData mapValueData;
+
+      if (parseParameterColumnEdit(parameter, plotData, column, columnStr,
+                                   columnTypeStr, mapValueData)) {
+        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
+          charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
+
+        if (columnTypeStr.length())
+          CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
+
+        if (parameter.attributes().isMapped()) {
+          QString mappedPropName, mapMinPropName, mapMaxPropName;
+
+          if (parameter.mapPropNames(mappedPropName, mapMinPropName, mapMaxPropName)) {
+            if (! CQUtil::setProperty(plot, mappedPropName, QVariant(mapValueData.mapped)))
+              charts()->errorMsg("Failed to set parameter '" + mappedPropName + "'");
+
+            if (! CQUtil::setProperty(plot, mapMinPropName, QVariant(mapValueData.min)))
+              charts()->errorMsg("Failed to set parameter '" + mapMinPropName + "'");
+
+            if (! CQUtil::setProperty(plot, mapMaxPropName, QVariant(mapValueData.max)))
+              charts()->errorMsg("Failed to set parameter '" + mapMaxPropName + "'");
+          }
+          else {
+            charts()->errorMsg("Invalid column parameter name '" + parameter.propName() + "'");
+          }
+        }
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter.propName(), QVariant(defValue));
+      }
+    }
+    else if (parameter.type() == "columns") {
+      bool ok;
+
+      QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
+
+      std::vector<int> columns;
+
+      (void) CQChartsUtil::fromString(defValue, columns);
+
+      QStringList columnStrs;
+      QString     columnTypeStr;
+
+      if (parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
+        QString s = CQChartsUtil::toString(columns);
+
+        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
+          charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
+
+        if (columnTypeStr.length() && ! columns.empty())
+          CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter.propName(), defValue);
+      }
+    }
+    else if (parameter.type() == "string") {
+      bool ok;
+
+      QString defStr = CQChartsUtil::toString(parameter.defValue(), ok);
+
+      QString str = defStr;
+
+      if (parseParameterStringEdit(parameter, plotData, str)) {
+        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(str)))
+          charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter.propName(), QVariant(defStr));
+      }
+    }
+    else if (parameter.type() == "real") {
+      double defValue = parameter.defValue().toDouble();
+
+      double r = defValue;
+
+      if (parseParameterRealEdit(parameter, plotData, r)) {
+        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(r)))
+          charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter.propName(), QVariant(defValue));
+      }
+    }
+    else if (parameter.type() == "bool") {
+      bool defValue = parameter.defValue().toBool();
+
+      bool b = defValue;
+
+      if (parseParameterBoolEdit(parameter, plotData, b)) {
+        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(b)))
+          charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter.propName(), QVariant(defValue));
+      }
+    }
+    else
+      assert(false);
+  }
+
+  //---
+
+  if (titleEdit_->text().length())
+    plot->setTitleStr(titleEdit_->text());
+
+  if (plot->xAxis())
+    plot->xAxis()->setIntegral(xintegralCheck_->isChecked());
+
+  if (plot->yAxis())
+    plot->yAxis()->setIntegral(yintegralCheck_->isChecked());
+
+  plot->setLogX(xlogCheck_->isChecked());
+  plot->setLogY(ylogCheck_->isChecked());
+
+  if (xminEdit_->text().length()) {
+    bool ok; double xmin = xminEdit_->text().toDouble(&ok);
+    if (ok) plot->setXMin(xmin);
+  }
+
+  if (yminEdit_->text().length()) {
+    bool ok; double ymin = yminEdit_->text().toDouble(&ok);
+    if (ok) plot->setYMin(ymin);
+  }
+
+  if (xmaxEdit_->text().length()) {
+    bool ok; double xmax = xmaxEdit_->text().toDouble(&ok);
+    if (ok) plot->setXMax(xmax);
+  }
+
+  if (ymaxEdit_->text().length()) {
+    bool ok; double ymax = ymaxEdit_->text().toDouble(&ok);
+    if (ok) plot->setYMax(ymax);
+  }
 }
 
 bool
@@ -684,7 +1015,8 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 bool
 CQChartsPlotDlg::
 parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                         int &column, QString &columnStr, QString &columnType)
+                         int &column, QString &columnStr, QString &columnType,
+                         MapValueData &mapValueData)
 {
   auto pf = plotData.formatEdits.find(parameter.name());
   assert(pf != plotData.formatEdits.end());
@@ -708,6 +1040,19 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
 
   if (! lineEditValue((*pe).second, column, columnStr, columnType, defColumn))
     return false;
+
+  auto pm = plotData.mappedEdits.find(parameter.name());
+
+  if (pm != plotData.mappedEdits.end()) {
+    const MapEditData &mapEditData = (*pm).second;
+
+    mapValueData.mapped = mapEditData.mappedCheck->isChecked();
+    mapValueData.min    = mapEditData.mapMinSpin ->value();
+    mapValueData.max    = mapEditData.mapMaxSpin ->value();
+  }
+  else {
+    mapValueData.mapped = false;
+  }
 
   return true;
 }

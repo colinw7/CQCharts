@@ -45,6 +45,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(SelectMode selectMode     READ selectMode     WRITE setSelectMode    )
   Q_PROPERTY(QString    themeName      READ themeName      WRITE setThemeName     )
 
+  // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode               READ selectedMode
                                                           WRITE setSelectedMode)
   Q_PROPERTY(bool              selectedStrokeColorEnabled READ isSelectedStrokeColorEnabled
@@ -60,6 +61,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(QColor            selectedFillColor          READ selectedFillColor
                                                           WRITE setSelectedFillColor)
 
+  // inside appearance
   Q_PROPERTY(HighlightDataMode insideMode               READ insideMode
                                                         WRITE setInsideMode)
   Q_PROPERTY(bool              insideStrokeColorEnabled READ isInsideStrokeColorEnabled
@@ -81,6 +83,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(int         scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
   Q_PROPERTY(int         scrollPage     READ scrollPage     WRITE setScrollPage    )
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias     )
+  Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType   )
 
   Q_ENUMS(Mode)
@@ -226,10 +229,16 @@ class CQChartsView : public QFrame {
   bool isAntiAlias() const { return antiAlias_; }
   void setAntiAlias(bool b) { antiAlias_ = b; updatePlots(); }
 
+  bool isPreview() const { return preview_; }
+  void setPreview(bool b) { preview_ = b; updatePlots(); }
+
   const PosTextType &posTextType() const { return posTextType_; }
   void setPosTextType(const PosTextType &v) { posTextType_ = v; }
 
   //---
+
+  CQChartsGradientPalette *interfacePalette() { return interfacePalette_; }
+  const CQChartsGradientPalette *interfacePalette() const { return interfacePalette_; }
 
   CQChartsTheme *theme() { return theme_; }
   const CQChartsTheme *theme() const { return theme_; }
@@ -240,7 +249,8 @@ class CQChartsView : public QFrame {
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
   CQChartsGradientPalette *themePalette(int ind=0) const { return theme_->palette(ind); }
-  CQChartsGradientPalette *themeTheme() const { return theme_->theme  (); }
+
+  bool isDark() const { return isDark_; }
 
   //---
 
@@ -269,7 +279,13 @@ class CQChartsView : public QFrame {
 
   CQChartsPlot *getPlot(const QString &id) const;
 
+  void getPlots(Plots &plots) const;
+
+  void raisePlot(CQChartsPlot *plot);
+  void lowerPlot(CQChartsPlot *plot);
+
   void removePlot(CQChartsPlot *plot);
+
   void removeAllPlots();
 
   void deselectAll();
@@ -296,12 +312,16 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void initOverlay();
-  void initOverlay(const Plots &plots);
-  void initOverlay(CQChartsPlot *firstPlot);
+  void resetGrouping();
 
-  void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay);
-  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay);
+  void initOverlay(const Plots &plots, bool reset=false);
+
+  void initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
+  void initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset=false);
+
+  //---
+
+  void placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns);
 
   //---
 
@@ -463,11 +483,20 @@ class CQChartsView : public QFrame {
 
   void currentPlotChanged();
 
+  void plotAdded(const QString &id);
+  void plotsReordered();
+  void plotRemoved(const QString &id);
+  void allPlotsRemoved();
+
+  void plotConnectDataChanged(const QString &id);
+  void connectDataChanged();
+
   void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
  public slots:
   void plotModelChanged();
+  void plotConnectDataChangedSlot();
 
   void updateSlot();
 
@@ -494,11 +523,12 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void lightPaletteSlot();
+  void darkPaletteSlot();
+
   void defaultThemeSlot();
-  void light1ThemeSlot();
-  void light2ThemeSlot();
-  void dark1ThemeSlot();
-  void dark2ThemeSlot();
+  void palette1Slot();
+  void palette2Slot();
 
   void themeSlot(const QString &name);
 
@@ -516,6 +546,13 @@ class CQChartsView : public QFrame {
   //---
 
   void currentPlotSlot();
+
+ private:
+  void resetConnections(bool notify);
+
+  void initOverlayPlot(CQChartsPlot *firstPlot);
+
+  int plotPos(CQChartsPlot *plot) const;
 
  private:
   struct PlotData {
@@ -567,37 +604,40 @@ class CQChartsView : public QFrame {
 
   static QSize sizeHint_;
 
-  CQCharts*             charts_         { nullptr };
-  CQChartsDisplayRange* displayRange_   { nullptr };
-  CQChartsTheme*        theme_          { nullptr };
-  CQPropertyViewModel*  propertyModel_  { nullptr };
-  QString               id_;
-  QString               title_;
-  QColor                background_     { 255, 255, 255 };
-  CQChartsViewKey*      keyObj_         { nullptr };
-  PlotDatas             plotDatas_;
-  int                   currentPlotInd_ { -1 };
-  Annotations           annotations_;
-  Mode                  mode_           { Mode::SELECT };
-  SelectMode            selectMode_     { SelectMode::POINT };
-  HighlightData         selectedHighlight_;
-  HighlightData         insideHighlight_;
-  bool                  zoomData_       { true };
-  bool                  scrolled_       { false };
-  double                scrollDelta_    { 100 };
-  int                   scrollNumPages_ { 1 };
-  int                   scrollPage_     { 0 };
-  bool                  antiAlias_      { true };
-  PosTextType           posTextType_    { PosTextType::PLOT };
-  CQChartsGeom::BBox    prect_          { 0, 0, 100, 100 };
-  double                aspect_         { 1.0 };
-  MouseData             mouseData_;
-  QTimer                searchTimer_;
-  QPointF               searchPos_;
-  QRubberBand*          regionBand_     { nullptr };
-  ProbeBands            probeBands_;
-  QMenu*                popupMenu_      { nullptr };
-  ThemeType             themeType_      { ThemeType::NONE };
+  CQCharts*                charts_           { nullptr };
+  CQChartsDisplayRange*    displayRange_     { nullptr };
+  CQChartsGradientPalette* interfacePalette_ { nullptr };
+  CQChartsTheme*           theme_            { nullptr };
+  bool                     isDark_           { false };
+  CQPropertyViewModel*     propertyModel_    { nullptr };
+  QString                  id_;
+  QString                  title_;
+  QColor                   background_       { 255, 255, 255 };
+  CQChartsViewKey*         keyObj_           { nullptr };
+  PlotDatas                plotDatas_;
+  int                      currentPlotInd_   { -1 };
+  Annotations              annotations_;
+  Mode                     mode_             { Mode::SELECT };
+  SelectMode               selectMode_       { SelectMode::POINT };
+  HighlightData            selectedHighlight_;
+  HighlightData            insideHighlight_;
+  bool                     zoomData_         { true };
+  bool                     scrolled_         { false };
+  double                   scrollDelta_      { 100 };
+  int                      scrollNumPages_   { 1 };
+  int                      scrollPage_       { 0 };
+  bool                     antiAlias_        { true };
+  bool                     preview_          { false };
+  PosTextType              posTextType_      { PosTextType::PLOT };
+  CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };
+  double                   aspect_           { 1.0 };
+  MouseData                mouseData_;
+  QTimer                   searchTimer_;
+  QPointF                  searchPos_;
+  QRubberBand*             regionBand_       { nullptr };
+  ProbeBands               probeBands_;
+  QMenu*                   popupMenu_        { nullptr };
+  ThemeType                themeType_        { ThemeType::NONE };
 };
 
 #endif

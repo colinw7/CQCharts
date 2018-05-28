@@ -2,6 +2,7 @@
 #define CQTclUtil_H
 
 #include <CTclUtil.h>
+#include <QVariant>
 
 namespace CQTclUtil {
 
@@ -130,6 +131,25 @@ class CQTcl : public CTcl {
   Tcl_Command createObjCommand(const QString &name, Tcl_ObjCmdProc *proc, ClientData data) {
     return Tcl_CreateObjCommand(interp(), (char *) name.toLatin1().constData(),
                                 proc, data, nullptr);
+  }
+
+  bool evalExpr(const QString &expr, QVariant &res, bool showError=false) {
+    return eval("expr {" + expr + "}", res, showError);
+  }
+
+  int evalExpr(const QString &expr, bool showError=false) {
+    return eval("expr {" + expr + "}", showError);
+  }
+
+  bool eval(const QString &cmd, QVariant &res, bool showError=false) {
+    int rc = eval(cmd, showError);
+
+    if (rc != TCL_OK)
+      return false;
+
+    res = getResult();
+
+    return true;
   }
 
   int eval(const QString &cmd, bool showError=false) {

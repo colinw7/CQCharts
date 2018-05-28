@@ -475,9 +475,50 @@ paintEvent(QPaintEvent *)
     p.drawPolygon(poly);
   }
   else {
-    for (int y = border_; y <= titleHeight_ - border_; y += 3) {
-      p.drawLine(border_, y, width() - border_, y);
+    QRect titleRect(0, 0, width(), titleHeight_);
+
+    drawTitleLines(&p, titleRect);
+
+    QFontMetrics fm(font());
+
+    int tw = (title_.length() ? fm.width(title_) : 0);
+
+    int is = (! icon_.isNull() ? fm.ascent() : 0);
+
+    QRect clearRect(border_, 0, is + tw + 2*border_ + (is > 0 ? border_ : 0), titleHeight_);
+
+    p.fillRect(clearRect, QBrush(palette().window().color()));
+
+    double x = border_;
+
+    if (! icon_.isNull()) {
+      int iy = (titleHeight_ - is)/2;
+
+      p.drawPixmap(x, iy, icon_.pixmap(QSize(is, is)));
+
+      x += is + border_;
     }
+
+    if (title_.length()) {
+      p.drawText(x, border_ + fm.ascent(), title_);
+    }
+  }
+}
+
+// draw title lines
+void
+CQChartsViewExpander::
+drawTitleLines(QPainter *p, const QRect &r)
+{
+  int left  = r.left () + border_;
+  int right = r.right() - border_;
+
+  int y = r.center().y() - 3;
+
+  for (int i = 0; i < 4; ++i) {
+    int y1 = y + 2*i;
+
+    p->drawLine(left, y1, right, y1);
   }
 }
 

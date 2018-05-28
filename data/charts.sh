@@ -251,8 +251,7 @@ CQChartsTest \
 
 CQChartsTest \
  -tsv data/bivariate.tsv -comment_header \
- -type xy -columns "x=0,y=1 2" \
- -column_type "time:format=%Y%m%d,oformat=%F" \
+ -type xy -columns "x=0,y=1 2" -column_type "time:format=%Y%m%d,oformat=%F" \
  -bivariate \
  -plot_title "bivariate" \
  -properties "yaxis.includeZero=1"

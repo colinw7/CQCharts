@@ -2042,11 +2042,9 @@ init()
 
   //---
 
-  addTheme("default", new CQChartsDefaultTheme);
-  addTheme("light1" , new CQChartsLightTheme1 );
-  addTheme("light2" , new CQChartsLightTheme2 );
-  addTheme("dark1"  , new CQChartsDarkTheme1  );
-  addTheme("dark2"  , new CQChartsDarkTheme2  );
+  addTheme("default" , new CQChartsDefaultTheme);
+  addTheme("palette1", new CQChartsTheme1);
+  addTheme("palette2", new CQChartsTheme2);
 }
 
 CQChartsThemeMgr::
@@ -2121,8 +2119,6 @@ CQChartsTheme::
 CQChartsTheme()
 {
   addNamedPalettes();
-
-  theme_ = new CQChartsGradientPalette;
 }
 
 void
@@ -2192,8 +2188,6 @@ CQChartsTheme::
 {
   for (auto &palette : palettes_)
     delete palette;
-
-  delete theme_;
 }
 
 CQChartsGradientPalette *
@@ -2255,72 +2249,14 @@ shiftPalettes(int n)
 CQChartsDefaultTheme::
 CQChartsDefaultTheme()
 {
-  theme_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#ffffff"));
-  theme_->addDefinedColor(1.0, QColor("#000000"));
-
-  //---
-
   setPalette(0, CQChartsThemeMgrInst->getNamedPalette("set2")->dup());
 
   selectColor_ = QColor("#71d852");
 }
 
-CQChartsLightTheme1::
-CQChartsLightTheme1()
+CQChartsTheme1::
+CQChartsTheme1()
 {
-  theme_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#ffffff"));
-  theme_->addDefinedColor(1.0, QColor("#000000"));
-
-  //---
-
-  shiftPalettes(1);
-
-  //---
-
-  selectColor_ = QColor("#b60000");
-}
-
-CQChartsLightTheme2::
-CQChartsLightTheme2()
-{
-  theme_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#ffffff"));
-  theme_->addDefinedColor(1.0, QColor("#000000"));
-
-  //---
-
-  shiftPalettes(2);
-
-  //---
-
-  selectColor_ = QColor("#cccc00");
-}
-
-//------
-
-CQChartsDarkTheme1::
-CQChartsDarkTheme1()
-{
-  theme_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#222222"));
-  theme_->addDefinedColor(1.0, QColor("#dddddd"));
-
-  //---
-
   setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette1")->dup());
   setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette2")->dup());
 
@@ -2329,18 +2265,9 @@ CQChartsDarkTheme1()
   selectColor_ = QColor("#b60000");
 }
 
-CQChartsDarkTheme2::
-CQChartsDarkTheme2()
+CQChartsTheme2::
+CQChartsTheme2()
 {
-  theme_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  theme_->resetDefinedColors();
-
-  theme_->addDefinedColor(0.0, QColor("#222222"));
-  theme_->addDefinedColor(1.0, QColor("#dddddd"));
-
-  //---
-
   setPalette(0, CQChartsThemeMgrInst->getNamedPalette("palette2")->dup());
   setPalette(1, CQChartsThemeMgrInst->getNamedPalette("palette1")->dup());
 

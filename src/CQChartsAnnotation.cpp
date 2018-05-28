@@ -766,7 +766,7 @@ CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &position,
 {
   setObjectName(QString("text.%1").arg(ind()));
 
-  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   setTextStr  (textStr);
   setTextColor(themeFg);
@@ -784,7 +784,7 @@ CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
 {
   setObjectName(QString("text.%1").arg(ind()));
 
-  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   setTextStr  (textStr);
   setTextColor(themeFg);

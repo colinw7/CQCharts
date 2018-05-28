@@ -7,15 +7,16 @@
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
 #include <CQChartsModelVisitor.h>
+#include <CQChartsColor.h>
 #include <CQBaseModel.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
+#include <CQStrParse.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
 #include <QVariant>
 #include <QPen>
-#include <QColor>
 #include <QStringList>
 #include <QRectF>
 
@@ -738,7 +739,13 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
   return modelHeaderValue(model, column, Qt::DisplayRole, ok);
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, int column, int role, bool &ok) {
+//--
+
+inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 int role, bool &ok) {
+  if (! column.isValid())
+    return "";
+
   QVariant var = modelHeaderValue(model, column, role, ok);
   if (! var.isValid()) return "";
 
@@ -750,22 +757,20 @@ inline QString modelHeaderString(QAbstractItemModel *model, int column, int role
   return str;
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
-  return modelHeaderString(model, column, Qt::DisplayRole, ok);
+inline QString modelHeaderString(QAbstractItemModel *model, int column, int role, bool &ok) {
+  return modelHeaderString(model, CQChartsColumn(column), role, ok);
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                 int role, bool &ok) {
-  if (column.type() != CQChartsColumn::Type::DATA)
-    return "";
-
-  return modelHeaderString(model, column.column(), role, ok);
+inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
+  return modelHeaderString(model, CQChartsColumn(column), Qt::DisplayRole, ok);
 }
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
   return modelHeaderString(model, column, Qt::DisplayRole, ok);
 }
+
+//--
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, int column,
                                 const QVariant &var, int role)
@@ -783,6 +788,35 @@ inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn 
 }
 
 //------
+
+inline bool stringToBool(const QString &str, bool *ok) {
+  QString lstr = str.toLower();
+
+  if (lstr == "0" || lstr == "false" || lstr == "no") {
+    *ok = true;
+    return false;
+  }
+
+  if (lstr == "1" || lstr == "true" || lstr == "yes") {
+    *ok = true;
+    return true;
+  }
+
+  *ok = false;
+
+  return false;
+}
+
+//------
+
+inline bool varToBool(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Bool)
+    return var.toBool();
+
+  return false;
+}
 
 inline bool isReal(const QVariant &var) {
   return (var.type() == QVariant::Double);
@@ -810,9 +844,35 @@ inline long varToInt(const QVariant &var, bool &ok) {
   return toInt(var, ok);
 }
 
+inline bool isColor(const QVariant &var) {
+  return (var.type() == QVariant::Color);
+}
+
+inline CQChartsColor varToColor(const QVariant &var, bool &ok) {
+  ok = true;
+
+  if (var.type() == QVariant::Color)
+    return var.value<QColor>();
+
+  QColor c(var.toString());
+
+  if (c.isValid())
+    return CQChartsColor(c);
+
+  ok = false;
+
+  return CQChartsColor();
+}
+
 //---
 
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+  if (! ind.isValid()) {
+    ok = false;
+
+    return QVariant();
+  }
+
   QVariant var = model->data(ind, role);
 
   ok = var.isValid();
@@ -821,6 +881,12 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, in
 }
 
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+  if (! ind.isValid()) {
+    ok = false;
+
+    return QVariant();
+  }
+
   QVariant var = model->data(ind, Qt::EditRole);
 
   if (! var.isValid())
@@ -833,6 +899,12 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bo
 
 inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                            const QModelIndex &parent, int role, bool &ok) {
+  if (! col.isValid()) {
+    ok = false;
+
+    return QVariant();
+  }
+
   if      (col.type() == CQChartsColumn::Type::DATA) {
     QModelIndex ind = model->index(row, col.column(), parent);
 
@@ -848,12 +920,18 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
   else {
     ok = false;
 
-    return "";
+    return QVariant();
   }
 }
 
 inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                            const QModelIndex &parent, bool &ok) {
+  if (! col.isValid()) {
+    ok = false;
+
+    return QVariant();
+  }
+
   if      (col.type() == CQChartsColumn::Type::DATA) {
     QModelIndex ind = model->index(row, col.column(), parent);
 
@@ -869,7 +947,7 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
   else {
     ok = false;
 
-    return "";
+    return QVariant();
   }
 }
 
@@ -975,15 +1053,39 @@ inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColum
 
 //---
 
-inline QColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+inline CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
-  if (! ok) return QColor();
+  if (! ok) return CQChartsColor();
 
-  return var.value<QColor>();
+  if (isColor(var))
+    return CQChartsColor(var.value<QColor>());
+
+  CQChartsColor color;
+
+  if (isReal(var)) {
+    double r;
+
+    if (toReal(var, r))
+      color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
+  }
+  else {
+    QString str;
+
+    if (CQChartsUtil::toString(var, str))
+      color = CQChartsColor(str);
+  }
+
+  return color;
 }
 
-inline QColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                         const QModelIndex &parent, bool &ok) {
+inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                                const QModelIndex &parent, bool &ok) {
+  if (! col.isValid()) {
+    ok = false;
+
+    return CQChartsColor();
+  }
+
   if      (col.type() == CQChartsColumn::Type::DATA) {
     QModelIndex ind = model->index(row, col.column(), parent);
 
@@ -992,7 +1094,7 @@ inline QColor modelColor(QAbstractItemModel *model, int row, const CQChartsColum
   else {
     ok = false;
 
-    return QColor();
+    return CQChartsColor();
   }
 }
 
@@ -1007,6 +1109,9 @@ inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) 
 
   for (int i = 0; i < model->columnCount(); ++i) {
     QVariant var1 = model->headerData(i, Qt::Horizontal, role);
+
+    if (! var1.isValid())
+      continue;
 
     QString name1;
 
@@ -1054,6 +1159,153 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
 
 //------
 
+inline bool fileToLines(const QString &filename, std::vector<QString> &lines, int maxLines=-1) {
+  auto open = [&](FILE* &fp, const QString &filename) -> bool {
+    fp = fopen(filename.toStdString().c_str(), "r");
+    if (! fp) return false;
+
+    return true;
+  };
+
+  auto readLine = [](FILE *fp, QString &line) {
+    line = "";
+
+    if (feof(fp)) return false;
+
+    int c = fgetc(fp);
+
+    if (c == EOF)
+      return false;
+
+    while (! feof(fp) && c != '\n') {
+      line += c;
+
+      c = fgetc(fp);
+    }
+
+    return true;
+  };
+
+  auto close = [](FILE* &fp) {
+    if (fp)
+      fclose(fp);
+
+    fp = 0;
+  };
+
+  //---
+
+  FILE *fp = nullptr;
+
+  if (! open(fp, filename))
+    return false;
+
+  QString line;
+
+  while (readLine(fp, line)) {
+    lines.push_back(line);
+
+    if (maxLines >= 0 && int(lines.size()) > maxLines)
+      break;
+  }
+
+  close(fp);
+
+  //---
+
+  return true;
+}
+
+inline bool analyzeFile(const QString &filename, CQBaseModel::DataType &dataType,
+                        bool &commentHeader, bool &firstLineHeader,
+                        bool &firstColumnHeader) {
+  dataType = CQBaseModel::DataType::NONE;
+
+  commentHeader     = false;
+  firstLineHeader   = false;
+  firstColumnHeader = false;
+
+  //---
+
+  int maxLines = 10;
+
+  std::vector<QString> lines;
+
+  if (! fileToLines(filename, lines, maxLines))
+    return false;
+
+  //---
+
+  std::size_t lineNum = 0;
+
+  // check for comment first line
+  if (lineNum < lines.size()) {
+    QString line = lines[lineNum];
+
+    CQStrParse parse(line);
+
+    parse.skipSpace();
+
+    if (parse.getChar() == '#') {
+      commentHeader = true;
+
+      ++lineNum;
+
+      // skip subsequent comment lines
+      while (true) {
+        QString line = lines[lineNum];
+
+        CQStrParse parse(line);
+
+        parse.skipSpace();
+
+        if (parse.getChar() != '#')
+          break;
+
+        ++lineNum;
+      }
+    }
+  }
+
+  // check line for comma, tab, space separators
+  // TODO: combine multiple lines
+  if (lineNum < lines.size()) {
+    QString line = lines[lineNum];
+
+    int commaPos = line.indexOf(',');
+    int tabPos   = line.indexOf('\t');
+    int spacePos = line.indexOf(' ');
+
+    CQStrParse parse(line);
+
+    QStringList commaStrs, tabStrs, spaceStrs;
+
+    if (commaPos >= 0) commaStrs = line.split(',' , QString::KeepEmptyParts);
+    if (tabPos   >= 0) tabStrs   = line.split('\t', QString::KeepEmptyParts);
+    if (spacePos >= 0) spaceStrs = line.split(' ' , QString::SkipEmptyParts);
+
+    int nc = commaStrs.length();
+    int nt = tabStrs  .length();
+    int ns = spaceStrs.length();
+
+    if      (nc > 0 && nc > nt)
+      dataType = CQBaseModel::DataType::CSV;
+    else if (nt > 0 && nt > nc)
+      dataType = CQBaseModel::DataType::TSV;
+    else if (ns > 0)
+      dataType = CQBaseModel::DataType::GNUPLOT;
+  }
+
+  // TODO: auto determine column type from first few lines ?
+
+  // TODO: if no header then check first line again (using data type) for column heade like
+  // line (string and different type from other lines)
+
+  return true;
+}
+
+//------
+
 inline void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
                         bool hheader=true, bool vheader=false,
                         std::ostream &os=std::cout) {
@@ -1092,15 +1344,12 @@ struct RealCmp {
 
 // compare colors
 struct ColorCmp {
-  bool operator()(const QColor &lhs, const QColor &rhs) const {
-    if (lhs.red  () < rhs.red  ()) return true;
-    if (lhs.red  () > rhs.red  ()) return false;
-    if (lhs.green() < rhs.green()) return true;
-    if (lhs.green() > rhs.green()) return false;
-    if (lhs.blue () < rhs.blue ()) return true;
-    if (lhs.blue () > rhs.blue ()) return false;
+  bool operator()(const CQChartsColor &lhs, const CQChartsColor &rhs) const {
+    return (CQChartsColor::cmp(lhs, rhs) < 0);
+  }
 
-    return false;
+  bool operator()(const QColor &lhs, const QColor &rhs) const {
+    return (CQChartsColor::cmp(lhs, rhs) < 0);
   }
 };
 

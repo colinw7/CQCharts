@@ -88,9 +88,9 @@ void
 CQChartsPlotType::
 addParameters()
 {
-  addColumnParameter("id", "Id", "idColumn", "optional");
+  addColumnParameter("id", "Id", "idColumn");
 
-  addBoolParameter("key", "Key", "keyVisible", "optional");
+  addBoolParameter("key", "Key", "keyVisible");
 }
 
 //------
@@ -104,12 +104,12 @@ void
 CQChartsHierPlotType::
 addParameters()
 {
-  addColumnParameter ("name" , "Name" , "nameColumn" , "", 0);
-  addColumnsParameter("names", "Names", "nameColumns", "optional");
-  addColumnParameter ("value", "Value", "valueColumn", "optional");
-  addColumnParameter ("color", "Color", "colorColumn", "optional");
+  addColumnParameter ("name" , "Name" , "nameColumn" , 0).setRequired();
+  addColumnsParameter("names", "Names", "nameColumns");
+  addColumnParameter ("value", "Value", "valueColumn");
+  addColumnParameter ("color", "Color", "colorColumn");
 
-  addStringParameter("separator", "Separator", "separator", "optional", "/");
+  addStringParameter("separator", "Separator", "separator", "/");
 
   CQChartsPlotType::addParameters();
 }
@@ -143,8 +143,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   setDataClip(true);
 
-  CQChartsColor plotThemeBg(CQChartsColor::Type::THEME_VALUE, 0.0);
-  CQChartsColor dataThemeBg(CQChartsColor::Type::THEME_VALUE, 0.1);
+  CQChartsColor plotThemeBg(CQChartsColor::Type::INTERFACE_VALUE, 0.0);
+  CQChartsColor dataThemeBg(CQChartsColor::Type::INTERFACE_VALUE, 0.1);
 
   borderObj_    ->setBackgroundColor(plotThemeBg);
   dataBorderObj_->setBackgroundColor(dataThemeBg);
@@ -775,6 +775,72 @@ aspect() const
 
 void
 CQChartsPlot::
+setOverlay(bool b, bool notify)
+{
+  connectData_.overlay = b;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+setX1X2(bool b, bool notify)
+{
+  connectData_.x1x2 = b;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+setY1Y2(bool b, bool notify)
+{
+  connectData_.y1y2 = b;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+setNextPlot(CQChartsPlot *plot, bool notify)
+{
+  assert(plot != this && ! connectData_.next);
+
+  connectData_.next = plot;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+setPrevPlot(CQChartsPlot *plot, bool notify)
+{
+  assert(plot != this && ! connectData_.prev);
+
+  connectData_.prev = plot;
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+void
+CQChartsPlot::
+resetConnectData(bool notify)
+{
+  connectData_.reset();
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+//------
+
+void
+CQChartsPlot::
 setLogX(bool b)
 {
   logX_ = b;
@@ -1348,10 +1414,14 @@ initPlotObjs()
     changed = true;
   }
 
+  noData_ = false;
+
   if (plotObjs_.empty()) {
     CQChartsNoDataObj *obj = new CQChartsNoDataObj(this);
 
     addPlotObject(obj);
+
+    noData_ = true;
 
     changed = true;
   }
@@ -3982,9 +4052,9 @@ QColor
 CQChartsPlot::
 interpThemeColor(double r) const
 {
-  CQChartsTheme *theme = view()->theme();
+  CQChartsGradientPalette *palette = view()->interfacePalette();
 
-  QColor c = theme->theme()->getColor(r, /*scale*/true);
+  QColor c = palette->getColor(r, /*scale*/true);
 
   return c;
 }
@@ -4314,22 +4384,22 @@ setValueSetColumn(const QString &name, const CQChartsColumn &c)
 
 bool
 CQChartsPlot::
-isValueSetMapEnabled(const QString &name) const
+isValueSetMapped(const QString &name) const
 {
   CQChartsValueSet *valueSet = getValueSet(name);
   assert(valueSet);
 
-  return valueSet->isMapEnabled();
+  return valueSet->isMapped();
 }
 
 void
 CQChartsPlot::
-setValueSetMapEnabled(const QString &name, bool b)
+setValueSetMapped(const QString &name, bool b)
 {
   CQChartsValueSet *valueSet = getValueSet(name);
   assert(valueSet);
 
-  valueSet->setMapEnabled(b);
+  valueSet->setMapped(b);
 }
 
 double
@@ -4497,7 +4567,7 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
 //  row grouping
 void
 CQChartsPlot::
-initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool rowGrouping)
+initGroup(const GroupData &data)
 {
   groupBucket_.clear();
 
@@ -4508,12 +4578,12 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
 
   // for row grouping we use the column header as the grouping id so all row
   // values in the column are added to the group
-  if (valueColumns.size() > 1 && rowGrouping) {
+  if (data.columns.size() > 1 && data.rowGrouping) {
     groupBucket_.setDataType   (CQChartsColumnBucket::DataType::HEADER);
     groupBucket_.setColumnType (ColumnType::INTEGER);
     groupBucket_.setRowGrouping(true);
 
-    for (const auto &column : valueColumns) {
+    for (const auto &column : data.columns) {
       bool ok;
 
       QString name = modelHeaderString(model, column, ok);
@@ -4529,21 +4599,26 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
   //---
 
   // for specified group column set column and column type
-  if (groupColumn.isValid()) {
+  if      (data.column.isValid()) {
     ColumnType columnType = CQBaseModel::Type::STRING;
 
-    if (groupColumn.type() == CQChartsColumn::Type::DATA)
-      columnType = columnValueType(groupColumn);
+    if (data.column.type() == CQChartsColumn::Type::DATA)
+      columnType = columnValueType(data.column);
 
     groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
     groupBucket_.setColumnType(columnType);
-    groupBucket_.setColumn    (groupColumn);
+    groupBucket_.setColumn    (data.column);
   }
   // no group column then use parent path (hierarchical)
-  else {
+  else if (isHierarchical()) {
     groupBucket_.setDataType  (CQChartsColumnBucket::DataType::PATH);
     groupBucket_.setColumnType(ColumnType::STRING);
   }
+  else {
+    groupBucket_.setColumnType(ColumnType::STRING);
+  }
+
+  groupBucket_.setDefaultRow(data.defaultRow);
 
   // process model data
   class GroupVisitor : public ModelVisitor {
@@ -4568,8 +4643,11 @@ initGroup(const CQChartsColumn &groupColumn, const Columns &valueColumns, bool r
 
         bucket_->addString(path);
       }
+      else if (bucket_->isDefaultRow()) {
+        bucket_->addValue(row); // default to row
+      }
       else {
-        assert(false);
+        bucket_->addString(""); // no bucket
       }
 
       return State::OK;
@@ -4603,14 +4681,16 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
     return groupBucket_.ind(value);
   }
   // get group id from parent path name
-  else  if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
+  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
     QString path = CQChartsUtil::parentPath(model, parent);
 
     return groupBucket_.ind(path);
   }
+  else if (groupBucket_.isDefaultRow()) {
+    return row; // default to row
+  }
   else {
-    assert(false);
-    return -1;
+    return 0; // no bucket
   }
 }
 
@@ -4780,7 +4860,7 @@ modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
   return CQChartsUtil::modelInteger(model, row, column, parent, ok);
 }
 
-QColor
+CQChartsColor
 CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
@@ -5420,7 +5500,7 @@ addProperties()
 
   addProperty("", this, "separator");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }

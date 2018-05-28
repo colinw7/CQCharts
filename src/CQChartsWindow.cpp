@@ -9,6 +9,9 @@
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
 #include <CQChartsGradientPaletteControl.h>
+#include <CQPixmapCache.h>
+
+#include <svg/charts_svg.h>
 
 #include <QStackedWidget>
 #include <QVBoxLayout>
@@ -65,7 +68,8 @@ CQChartsWindow::
 CQChartsWindow(CQChartsView *view) :
  QFrame(nullptr), view_(view)
 {
-  setWindowTitle("CQChartsWindow");
+  setWindowTitle("Window: View " + view->id());
+  setWindowIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   setObjectName("window");
 
@@ -83,9 +87,13 @@ CQChartsWindow(CQChartsView *view) :
           this, SLOT(propertyItemSelected(QObject *, const QString &)));
 
   settingsExpander_ =
-   new CQChartsViewExpander(this, settings_, CQChartsViewExpander::Side::RIGHT);
+    new CQChartsViewExpander(this, settings_, CQChartsViewExpander::Side::RIGHT);
 
   settingsExpander_->setObjectName("settingsExpander");
+
+  settingsExpander_->setTitle("Settings");
+
+  settingsExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   //---
 
@@ -330,9 +338,16 @@ selectModeSlot()
 
 void
 CQChartsWindow::
-updatePalette()
+updateInterfacePalette()
 {
-  settings_->paletteControl()->updateState();
+  settings_->interfaceControl()->updateState();
+}
+
+void
+CQChartsWindow::
+updateThemePalettes()
+{
+  settings_->palettesControl()->updateState();
 }
 
 void

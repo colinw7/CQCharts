@@ -18,18 +18,18 @@ void
 CQChartsBarChartPlotType::
 addParameters()
 {
-  addColumnParameter ("category"   , "Category"    , "categoryColumn", "optional");
-  addColumnsParameter("value"      , "Value"       , "valueColumns"  , "", "1");
-  addColumnParameter ("name"       , "Name"        , "nameColumn"    , "optional");
-  addColumnParameter ("label"      , "Label"       , "labelColumn"   , "optional");
-  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   , "optional");
-  addColumnParameter ("color"      , "Color"       , "colorColumn"   , "optional");
+  addColumnParameter ("category"   , "Category"    , "categoryColumn");
+  addColumnsParameter("value"      , "Value"       , "valueColumns"  , "1").setRequired();
+  addColumnParameter ("name"       , "Name"        , "nameColumn"    );
+  addColumnParameter ("label"      , "Label"       , "labelColumn"   );
+  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   );
+  addColumnParameter ("color"      , "Color"       , "colorColumn"   );
 
-  addBoolParameter("colorBySet", "Color by Set", "colorBySet", "optional");
-  addBoolParameter("stacked"   , "Stacked"     , "stacked"   , "optional");
-  addBoolParameter("percent"   , "Percent"     , "percent"   , "optional");
-  addBoolParameter("range"     , "Range"       , "range"     , "optional");
-  addBoolParameter("horizontal", "Horizontal"  , "horizontal", "optional");
+  addBoolParameter("colorBySet", "Color by Set", "colorBySet");
+  addBoolParameter("stacked"   , "Stacked"     , "stacked"   );
+  addBoolParameter("percent"   , "Percent"     , "percent"   );
+  addBoolParameter("range"     , "Range"       , "range"     );
+  addBoolParameter("horizontal", "Horizontal"  , "horizontal");
 
   CQChartsPlotType::addParameters();
 }
@@ -183,9 +183,9 @@ addProperties()
 
   dataLabel_.addProperties("dataLabel");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }
 
 //---
@@ -431,28 +431,40 @@ updateRange(bool apply)
   //---
 
   // non-range and multiple value columns use category or name column for grouping
+  GroupData groupData;
+
+  groupData.defaultRow = true;
+
   if      (! isRange() && valueColumns().size() > 1) {
+    groupData.columns     = valueColumns();
+    groupData.rowGrouping = isRowGrouping();
+
     if (categoryColumn().isValid())
-      initGroup(categoryColumn(), valueColumns(), isRowGrouping());
+      groupData.column = categoryColumn();
     else
-      initGroup(nameColumn(), valueColumns(), isRowGrouping());
+      groupData.column = nameColumn();
   }
   // if category column use that for group
   else if (categoryColumn().isValid()) {
-    initGroup(categoryColumn());
+    groupData.column = categoryColumn();
   }
   // if hierarchical use parent path
   else if (isHierarchical()) {
-    initGroup();
+    initGroup(groupData);
   }
   // if no range use name or value columns for group
   else if (! isRange()) {
-    initGroup(nameColumn(), valueColumns(), isRowGrouping());
+    groupData.column      = nameColumn();
+    groupData.columns     = valueColumns();
+    groupData.rowGrouping = isRowGrouping();
   }
   // default no name column if defined
   else {
-    initGroup(nameColumn(), Columns(), isRowGrouping());
+    groupData.column      = nameColumn();
+    groupData.rowGrouping = isRowGrouping();
   }
+
+  initGroup(groupData);
 
   //groupBucket().print(std::cerr);
 

@@ -68,6 +68,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   //---
 
+  interfacePalette_ = new CQChartsGradientPalette;
+
+  lightPaletteSlot();
+
   themeSlot("default");
 
   //---
@@ -137,6 +141,8 @@ CQChartsView::
     delete probeBand;
 
   delete popupMenu_;
+
+  delete interfacePalette_;
 
   CQToolTip::unsetToolTip(this);
 }
@@ -399,16 +405,63 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   connect(plot, SIGNAL(modelChanged()), this, SLOT(plotModelChanged()));
 
+  connect(plot, SIGNAL(connectDataChanged()), this, SLOT(plotConnectDataChangedSlot()));
+
   //---
 
   if (currentPlotInd_ < 0)
     setCurrentPlotInd(0);
+
+  //---
+
+  emit plotAdded(plot->id());
+}
+
+void
+CQChartsView::
+raisePlot(CQChartsPlot *plot)
+{
+  int pos = plotPos(plot);
+
+  if (pos > 0)
+    std::swap(plotDatas_[pos - 1], plotDatas_[pos]);
+
+  update();
+
+  emit plotsReordered();
+}
+
+void
+CQChartsView::
+lowerPlot(CQChartsPlot *plot)
+{
+  int pos = plotPos(plot);
+
+  if (pos < int(plotDatas_.size()) - 1)
+    std::swap(plotDatas_[pos + 1], plotDatas_[pos]);
+
+  update();
+
+  emit plotsReordered();
+}
+
+int
+CQChartsView::
+plotPos(CQChartsPlot *plot) const
+{
+  for (std::size_t i = 0; i < plotDatas_.size(); ++i) {
+    if (plotDatas_[i].plot == plot)
+      return i;
+  }
+
+  return -1;
 }
 
 void
 CQChartsView::
 removePlot(CQChartsPlot *plot)
 {
+  // build new list of plots without plot and check for match
   PlotDatas plotDatas;
 
   bool found = false;
@@ -420,10 +473,16 @@ removePlot(CQChartsPlot *plot)
       found = true;
   }
 
+  // skip if no match found
   if (! found)
     return;
 
-  propertyModel()->removeProperties(plot->id(), plot);
+  //---
+
+  // remove plot
+  QString id = plot->id();
+
+  propertyModel()->removeProperties(id, plot);
 
   std::swap(plotDatas, plotDatas_);
 
@@ -431,6 +490,10 @@ removePlot(CQChartsPlot *plot)
     mouseData_.reset();
 
   delete plot;
+
+  //---
+
+  emit plotRemoved(id);
 }
 
 void
@@ -449,6 +512,8 @@ removeAllPlots()
   plotDatas_.clear();
 
   mouseData_.reset();
+
+  emit allPlotsRemoved();
 }
 
 CQChartsPlot *
@@ -461,6 +526,14 @@ getPlot(const QString &id) const
   }
 
   return nullptr;
+}
+
+void
+CQChartsView::
+getPlots(Plots &plots) const
+{
+  for (const auto &plotData : plotDatas_)
+    plots.push_back(plotData.plot);
 }
 
 //---
@@ -477,6 +550,66 @@ plotModelChanged()
 
 void
 CQChartsView::
+plotConnectDataChangedSlot()
+{
+  CQChartsPlot *plot = qobject_cast<CQChartsPlot *>(sender());
+
+  if (plot)
+    emit plotConnectDataChanged(plot->id());
+
+  emit connectDataChanged();
+}
+
+//---
+
+void
+CQChartsView::
+resetGrouping()
+{
+  resetConnections(/*notify*/false);
+
+  for (auto &plotData : plotDatas_) {
+    CQChartsPlot *plot = plotData.plot;
+
+    if (plot->xAxis()) {
+      plot->xAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      plot->xAxis()->setVisible(true);
+    }
+
+    if (plot->yAxis()) {
+      plot->yAxis()->setSide(CQChartsAxis::Side::BOTTOM_LEFT);
+      plot->yAxis()->setVisible(true);
+    }
+
+    if (plot->key())
+      plot->key()->setVisible(true);
+
+    if (plot->title())
+      plot->title()->setVisible(true);
+
+    plot->setBackground    (true);
+    plot->setDataBackground(true);
+
+    plot->resetKeyItems();
+  }
+
+  emit connectDataChanged();
+}
+
+void
+CQChartsView::
+resetConnections(bool notify)
+{
+  for (const auto &plotData : plotDatas_)
+    plotData.plot->resetConnectData(/*notify*/false);
+
+  if (notify)
+    emit connectDataChanged();
+}
+
+#if 0
+void
+CQChartsView::
 initOverlay()
 {
   if (! numPlots())
@@ -484,21 +617,25 @@ initOverlay()
 
   CQChartsPlot *firstPlot = plot(0)->firstPlot();
 
-  initOverlay(firstPlot);
+  initOverlayPlot(firstPlot);
 }
+#endif
 
 void
 CQChartsView::
-initOverlay(const Plots &plots)
+initOverlay(const Plots &plots, bool reset)
 {
   assert(plots.size() >= 2);
+
+  if (reset)
+    resetConnections(/*notify*/false);
 
   CQChartsPlot *rootPlot = plots[0]->firstPlot();
 
   for (std::size_t i = 0; i < plots.size(); ++i) {
     CQChartsPlot *plot = plots[i];
 
-    plot->setOverlay(true);
+    plot->setOverlay(true, /*notify*/false);
 
     if (i > 0) {
       CQChartsPlot *prevPlot = plots[i - 1];
@@ -512,14 +649,16 @@ initOverlay(const Plots &plots)
     }
   }
 
-  initOverlay(rootPlot);
+  initOverlayPlot(rootPlot);
+
+  emit connectDataChanged();
 }
 
 void
 CQChartsView::
-initOverlay(CQChartsPlot *firstPlot)
+initOverlayPlot(CQChartsPlot *firstPlot)
 {
-  firstPlot->setOverlay(true);
+  firstPlot->setOverlay(true, /*notify*/false);
 
   if (firstPlot->title() && title().length())
     firstPlot->title()->setTextStr(title());
@@ -529,7 +668,7 @@ initOverlay(CQChartsPlot *firstPlot)
   CQChartsPlot *plot = firstPlot->nextPlot();
 
   while (plot) {
-    plot->setOverlay(true);
+    plot->setOverlay(true, /*notify*/false);
 
     //---
 
@@ -564,18 +703,21 @@ initOverlay(CQChartsPlot *firstPlot)
 
 void
 CQChartsView::
-initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay)
+initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 {
+  if (reset)
+    resetConnections(/*notify*/false);
+
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
 
   if (plot1->title() && title().length())
     plot1->title()->setTextStr(title());
 
-  plot1->setX1X2(true);
-  plot2->setX1X2(true);
+  plot1->setX1X2(true, /*notify*/false);
+  plot2->setX1X2(true, /*notify*/false);
 
-  plot1->setOverlay(overlay);
-  plot2->setOverlay(overlay);
+  plot1->setOverlay(overlay, /*notify*/false);
+  plot2->setOverlay(overlay, /*notify*/false);
 
   plot1->setNextPlot(plot2);
   plot2->setPrevPlot(plot1);
@@ -598,22 +740,27 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay)
     plot2->setBackground    (false);
     plot2->setDataBackground(false);
   }
+
+  emit connectDataChanged();
 }
 
 void
 CQChartsView::
-initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay)
+initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
 {
+  if (reset)
+    resetConnections(/*notify*/false);
+
   assert(plot1 != plot2 && ! plot1->isOverlay() && ! plot2->isOverlay());
 
   if (plot1->title() && title().length())
     plot1->title()->setTextStr(title());
 
-  plot1->setY1Y2(true);
-  plot2->setY1Y2(true);
+  plot1->setY1Y2(true, /*notify*/false);
+  plot2->setY1Y2(true, /*notify*/false);
 
-  plot1->setOverlay(overlay);
-  plot2->setOverlay(overlay);
+  plot1->setOverlay(overlay, /*notify*/false);
+  plot2->setOverlay(overlay, /*notify*/false);
 
   plot1->setNextPlot(plot2);
   plot2->setPrevPlot(plot1);
@@ -636,7 +783,82 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay)
     plot2->setBackground    (false);
     plot2->setDataBackground(false);
   }
+
+  emit connectDataChanged();
 }
+
+//------
+
+void
+CQChartsView::
+placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int columns)
+{
+  int np = plots.size();
+
+  if (np <= 0)
+    return;
+
+  int  nr = 1, nc = 1;
+  bool overlay = false;
+
+  if     (horizontal)
+    nc = np;
+  else if (vertical)
+    nr = np;
+  else if (rows > 0) {
+    overlay = (rows <= 1 && columns <= 1);
+
+    nr = rows;
+    nc = (np + nr - 1)/nr;
+  }
+  else if (columns > 0) {
+    overlay = (rows <= 1 && columns <= 1);
+
+    nc = columns;
+    nr = (np + nc - 1)/nc;
+  }
+  else {
+    nr = std::max(int(sqrt(np)), 1);
+    nc = (np + nr - 1)/nr;
+  }
+
+  double vr = CQChartsView::viewportRange();
+
+  if (overlay) {
+    for (int i = 0; i < np; ++i) {
+      CQChartsPlot *plot = plots[i];
+
+      CQChartsGeom::BBox bbox(0, 0, vr, vr);
+
+      plot->setBBox(bbox);
+    }
+  }
+  else {
+    double dx = vr/nc;
+    double dy = vr/nr;
+
+    int    i = 0;
+    double y = vr;
+
+    for (int r = 0; r < nr; ++r) {
+      double x = 0.0;
+
+      for (int c = 0; c < nc; ++c, ++i) {
+        CQChartsPlot *plot = plots[i];
+
+        CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
+
+        plot->setBBox(bbox);
+
+        x += dx;
+      }
+
+      y -= dy;
+    }
+  }
+}
+
+//------
 
 QColor
 CQChartsView::
@@ -664,9 +886,9 @@ QColor
 CQChartsView::
 interpThemeColor(double r) const
 {
-  CQChartsTheme *theme = const_cast<CQChartsView *>(this)->theme();
+  //CQChartsView *th = const_cast<CQChartsView *>(this);
 
-  QColor c = theme->theme()->getColor(r, /*scale*/true);
+  QColor c = interfacePalette()->getColor(r, /*scale*/true);
 
   return c;
 }
@@ -675,6 +897,9 @@ void
 CQChartsView::
 mousePressEvent(QMouseEvent *me)
 {
+  if (isPreview())
+    return;
+
   mouseData_.reset();
 
   mouseData_.pressPoint = me->pos();
@@ -779,6 +1004,9 @@ void
 CQChartsView::
 mouseMoveEvent(QMouseEvent *me)
 {
+  if (isPreview())
+    return;
+
   // select mode and move (not pressed) - update plot positions
   if (mode() == Mode::SELECT && ! mouseData_.pressed) {
     updatePosText(me->pos());
@@ -1023,6 +1251,9 @@ void
 CQChartsView::
 mouseReleaseEvent(QMouseEvent *me)
 {
+  if (isPreview())
+    return;
+
   CQChartsScopeGuard resetMouseData([&]() { mouseData_.reset(); });
 
   //CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
@@ -1118,6 +1349,9 @@ void
 CQChartsView::
 keyPressEvent(QKeyEvent *ke)
 {
+  if (isPreview())
+    return;
+
   if      (ke->key() == Qt::Key_Escape) {
     mouseData_.escape = true;
 
@@ -1881,7 +2115,20 @@ showMenu(const QPoint &p)
 
   QMenu *themeMenu = new QMenu("Theme", popupMenu_);
 
-  QActionGroup *themeGroup = new QActionGroup(themeMenu);
+  QActionGroup *interfaceGroup = new QActionGroup(themeMenu);
+  QActionGroup *themeGroup     = new QActionGroup(themeMenu);
+
+  auto addInterfaceAction =
+   [&](const QString &label, const char *slotName) {
+    QAction *action = new QAction(label, themeMenu);
+
+    action->setCheckable(true);
+
+    interfaceGroup->addAction(action);
+
+    connect(action, SIGNAL(triggered()), this, slotName);
+    return action;
+  };
 
   auto addThemeAction =
    [&](const QString &label, const char *slotName) {
@@ -1895,17 +2142,21 @@ showMenu(const QPoint &p)
     return action;
   };
 
-  QAction *defaultThemeAction = addThemeAction("Default", SLOT(defaultThemeSlot()));
-  QAction *light1ThemeAction  = addThemeAction("Light 1", SLOT(light1ThemeSlot()));
-  QAction *light2ThemeAction  = addThemeAction("Light 2", SLOT(light2ThemeSlot()));
-  QAction *dark1ThemeAction   = addThemeAction("Dark 1" , SLOT(dark1ThemeSlot()));
-  QAction *dark2ThemeAction   = addThemeAction("Dark 2" , SLOT(dark2ThemeSlot()));
+  QAction *lightPaletteAction = addInterfaceAction("Light", SLOT(lightPaletteSlot()));
+  QAction *darkPaletteAction  = addInterfaceAction("Dark" , SLOT(darkPaletteSlot()));
 
-  defaultThemeAction->setChecked(themeName() == "default");
-  light1ThemeAction ->setChecked(themeName() == "light1" );
-  light2ThemeAction ->setChecked(themeName() == "light2" );
-  dark1ThemeAction  ->setChecked(themeName() == "dark1"  );
-  dark2ThemeAction  ->setChecked(themeName() == "dark2"  );
+  lightPaletteAction->setChecked(! isDark());
+  darkPaletteAction ->setChecked(isDark());
+
+  themeMenu->addActions(interfaceGroup->actions());
+
+  QAction *defaultThemeAction = addThemeAction("Default"  , SLOT(defaultThemeSlot()));
+  QAction *palette1Action     = addThemeAction("Palette 1", SLOT(palette1Slot()));
+  QAction *palette2Action     = addThemeAction("Palette 2", SLOT(palette2Slot()));
+
+  defaultThemeAction->setChecked(themeName() == "default" );
+  palette1Action    ->setChecked(themeName() == "palette1");
+  palette2Action    ->setChecked(themeName() == "palette2");
 
   themeMenu->addActions(themeGroup->actions());
 
@@ -2124,6 +2375,34 @@ fitSlot()
 
 void
 CQChartsView::
+lightPaletteSlot()
+{
+  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+
+  interfacePalette_->resetDefinedColors();
+
+  interfacePalette_->addDefinedColor(0.0, QColor("#ffffff"));
+  interfacePalette_->addDefinedColor(1.0, QColor("#000000"));
+
+  isDark_ = false;
+}
+
+void
+CQChartsView::
+darkPaletteSlot()
+{
+  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+
+  interfacePalette_->resetDefinedColors();
+
+  interfacePalette_->addDefinedColor(0.0, QColor("#222222"));
+  interfacePalette_->addDefinedColor(1.0, QColor("#dddddd"));
+
+  isDark_ = true;
+}
+
+void
+CQChartsView::
 defaultThemeSlot()
 {
   themeSlot("default");
@@ -2131,30 +2410,16 @@ defaultThemeSlot()
 
 void
 CQChartsView::
-light1ThemeSlot()
+palette1Slot()
 {
-  themeSlot("light1");
+  themeSlot("palette1");
 }
 
 void
 CQChartsView::
-light2ThemeSlot()
+palette2Slot()
 {
-  themeSlot("light2");
-}
-
-void
-CQChartsView::
-dark1ThemeSlot()
-{
-  themeSlot("dark1");
-}
-
-void
-CQChartsView::
-dark2ThemeSlot()
-{
-  themeSlot("dark2");
+  themeSlot("palette2");
 }
 
 void

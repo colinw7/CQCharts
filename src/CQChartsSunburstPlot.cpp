@@ -43,7 +43,7 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 
   setTextFontSize(8.0);
 
-  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   setMargins(1, 1, 1, 1);
 
@@ -259,9 +259,9 @@ addProperties()
   addProperty("text", this, "textAlpha"   , "alpha"   );
   addProperty("text", this, "textContrast", "contrast");
 
-  addProperty("color", this, "colorMapEnabled", "mapEnabled");
-  addProperty("color", this, "colorMapMin"    , "mapMin"    );
-  addProperty("color", this, "colorMapMax"    , "mapMax"    );
+  addProperty("color", this, "colorMapped", "mapped");
+  addProperty("color", this, "colorMapMin", "mapMin");
+  addProperty("color", this, "colorMapMax", "mapMax");
 }
 
 //------

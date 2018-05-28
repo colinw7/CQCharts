@@ -64,10 +64,10 @@ CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) 
 {
   setObjectName("axis");
 
-  CQChartsColor themeFg   (CQChartsColor::Type::THEME_VALUE, 1);
-  CQChartsColor themeGray1(CQChartsColor::Type::THEME_VALUE, 0.7);
-  CQChartsColor themeGray2(CQChartsColor::Type::THEME_VALUE, 0.3);
-  CQChartsColor themeGray3(CQChartsColor::Type::THEME_VALUE, 0.3);
+  CQChartsColor themeFg   (CQChartsColor::Type::INTERFACE_VALUE, 1);
+  CQChartsColor themeGray1(CQChartsColor::Type::INTERFACE_VALUE, 0.7);
+  CQChartsColor themeGray2(CQChartsColor::Type::INTERFACE_VALUE, 0.3);
+  CQChartsColor themeGray3(CQChartsColor::Type::INTERFACE_VALUE, 0.3);
 
   label_     = new CQChartsAxisLabel(this);
   tickLabel_ = new CQChartsAxisTickLabel(this);

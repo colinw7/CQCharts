@@ -95,6 +95,9 @@ class CQChartsGradientPaletteControl : public QFrame {
   void cubeValueChanged(double r);
 
  private:
+  void updateColorType ();
+  void updateColorModel();
+
   QFrame *createColorTypeCombo(const QString &label, CQChartsGradientPaletteColorType **type);
 
   QFrame *createColorModelCombo(const QString &label, CQChartsGradientPaletteColorModel **model);

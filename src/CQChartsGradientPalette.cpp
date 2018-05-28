@@ -1,4 +1,5 @@
 #include <CQChartsGradientPalette.h>
+#include <CQTclUtil.h>
 #include <CUnixFile.h>
 #include <COSNaN.h>
 
@@ -21,7 +22,7 @@ namespace Util {
     return lerp(low2, high2, norm(value, low1, high1));
   }
 
-#ifdef CGRADIENT_EXPR
+#ifdef CQCharts_USE_CEXPR
   CExprTokenStack compileExpression(CExpr *expr, const std::string &str) {
     CExprTokenStack pstack = expr->parseLine(str);
     CExprITokenPtr  itoken = expr->interpPTokenStack(pstack);
@@ -57,69 +58,90 @@ namespace Util {
 
 //------
 
-#ifdef CGRADIENT_EXPR
-CQChartsGradientPalette::
-CQChartsGradientPalette(CExpr *expr) :
- expr_(expr)
-{
-  if (! expr_)
-    expr_ = new CExpr;
-
-  init();
-}
-#else
 CQChartsGradientPalette::
 CQChartsGradientPalette()
 {
+#ifdef CQCharts_USE_CEXPR
+  expr_ = new CExpr;
+#endif
+
+#ifdef CQCharts_USE_TCL
+  qtcl_ = new CQTcl;
+#endif
+
   init();
 }
-#endif
 
 void
 CQChartsGradientPalette::
 init()
 {
-#ifdef CGRADIENT_EXPR
-  if (expr_)
-    expr_->createRealVariable("pi", M_PI);
+#ifdef CQCharts_USE_CEXPR
+  expr_->createRealVariable("pi", M_PI);
 #endif
 
-  setRedFunction  ("gray");
-  setGreenFunction("gray");
-  setBlueFunction ("gray");
+#ifdef CQCharts_USE_TCL
+  qtcl_->createVar("pi", M_PI);
+#endif
+
+  initFunctions();
 }
 
-#ifdef CGRADIENT_EXPR
 void
 CQChartsGradientPalette::
-setExpr(CExpr *expr)
+initFunctions()
 {
-  expr_ = expr;
+  if      (exprType_ == ExprType::CEXPR) {
+    setRedFunction  ("gray");
+    setGreenFunction("gray");
+    setBlueFunction ("gray");
+  }
+  else if (exprType_ == ExprType::TCL) {
+    setRedFunction  ("$gray");
+    setGreenFunction("$gray");
+    setBlueFunction ("$gray");
+  }
 }
-#endif
 
 CQChartsGradientPalette::
 CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 {
   *this = palette;
 
-#ifdef CGRADIENT_EXPR
-  if (palette.expr_) {
-    expr_      = new CExpr;
-    exprOwned_ = true;
-
-    expr_->createRealVariable("pi", M_PI);
-  }
+#ifdef CQCharts_USE_CEXPR
+  expr_ = new CExpr;
 #endif
+
+#ifdef CQCharts_USE_TCL
+  qtcl_ = new CQTcl;
+#endif
+
+  init();
 }
 
 CQChartsGradientPalette::
 ~CQChartsGradientPalette()
 {
-#ifdef CGRADIENT_EXPR
-  if (exprOwned_)
-    delete expr_;
+#ifdef CQCharts_USE_CEXPR
+  delete expr_;
 #endif
+
+#ifdef CQCharts_USE_TCL
+  delete qtcl_;
+#endif
+}
+
+//---
+
+void
+CQChartsGradientPalette::
+setExprType(const ExprType &type)
+{
+  if (type != exprType_) {
+    exprType_ = type;
+
+    initFunctions();
+  }
 }
 
 //---
@@ -130,10 +152,11 @@ setRedFunction(const std::string &fn)
 {
   rf_.fn = fn;
 
-#ifdef CGRADIENT_EXPR
-  if (expr_)
+  if (exprType_ == ExprType::CEXPR) {
+#ifdef CQCharts_USE_CEXPR
     rf_.stack = Util::compileExpression(expr_, fn);
 #endif
+  }
 }
 
 void
@@ -142,10 +165,11 @@ setGreenFunction(const std::string &fn)
 {
   gf_.fn = fn;
 
-#ifdef CGRADIENT_EXPR
-  if (expr_)
+  if (exprType_ == ExprType::CEXPR) {
+#ifdef CQCharts_USE_CEXPR
     gf_.stack = Util::compileExpression(expr_, fn);
 #endif
+  }
 }
 
 void
@@ -154,10 +178,11 @@ setBlueFunction(const std::string &fn)
 {
   bf_.fn = fn;
 
-#ifdef CGRADIENT_EXPR
-  if (expr_)
+  if (exprType_ == ExprType::CEXPR) {
+#ifdef CQCharts_USE_CEXPR
     bf_.stack = Util::compileExpression(expr_, fn);
 #endif
+  }
 }
 
 void
@@ -317,37 +342,57 @@ getColor(double x, bool scale) const
     return c;
   }
   else if (colorType() == ColorType::FUNCTIONS) {
-#ifdef CGRADIENT_EXPR
-    if (! expr_)
-      return QColor(0,0,0);
+    double r = 0.0, g = 0.0, b = 0.0;
 
-    (void) expr_->createRealVariable("gray", x);
+    if      (exprType_ == ExprType::CEXPR) {
+#ifdef CQCharts_USE_CEXPR
+      (void) expr_->createRealVariable("gray", x);
 
-    bool oldQuiet = expr_->getQuiet();
+      bool oldQuiet = expr_->getQuiet();
 
-    expr_->setQuiet(true);
+      expr_->setQuiet(true);
 
-    double r, g, b;
+      CExprValuePtr value;
 
-    CExprValuePtr value;
+      if (! expr_->executeCTokenStack(rf_.stack, value) ||
+          ! value.isValid() || ! value->getRealValue(r))
+        r = 0.0;
 
-    if (! expr_->executeCTokenStack(rf_.stack, value) ||
-        ! value.isValid() || ! value->getRealValue(r))
-      r = 0.0;
+      if (! expr_->executeCTokenStack(gf_.stack, value) ||
+          ! value.isValid() || ! value->getRealValue(g))
+        g = 0.0;
 
-    if (! expr_->executeCTokenStack(gf_.stack, value) ||
-        ! value.isValid() || ! value->getRealValue(g))
-      g = 0.0;
+      if (! expr_->executeCTokenStack(bf_.stack, value) ||
+          ! value.isValid() || ! value->getRealValue(b))
+        b = 0.0;
 
-    if (! expr_->executeCTokenStack(bf_.stack, value) ||
-        ! value.isValid() || ! value->getRealValue(b))
-      b = 0.0;
+      expr_->setQuiet(oldQuiet);
+#endif
+    }
+    else if (exprType_ == ExprType::TCL) {
+#ifdef CQCharts_USE_TCL
+      qtcl_->createVar("gray", x);
+
+      QVariant res;
+
+      if (qtcl_->evalExpr(rf_.fn.c_str(), res))
+        r = res.toDouble();
+
+      if (qtcl_->evalExpr(gf_.fn.c_str(), res))
+        g = res.toDouble();
+
+      if (qtcl_->evalExpr(bf_.fn.c_str(), res))
+        b = res.toDouble();
+#endif
+    }
+
+    //---
+
+    QColor c;
 
     r = Util::clamp(r, 0, 1);
     g = Util::clamp(g, 0, 1);
     b = Util::clamp(b, 0, 1);
-
-    QColor c;
 
     if      (colorModel() == ColorModel::RGB)
       c = QColor::fromRgbF(r, g, b);
@@ -356,12 +401,7 @@ getColor(double x, bool scale) const
     else
       c = QColor::fromRgbF(r, g, b);
 
-    expr_->setQuiet(oldQuiet);
-
     return c;
-#else
-    return QColor(0,0,0);
-#endif
   }
   else if (colorType() == ColorType::CUBEHELIX) {
     return QColor(cubeHelix_.interp(x, isCubeNegative()));
@@ -568,9 +608,7 @@ unset()
   resetDefinedColors();
 
   // Functions
-  setRedFunction  ("gray");
-  setGreenFunction("gray");
-  setBlueFunction ("gray");
+  initFunctions();
 
   // CubeHelix
   cubeHelix_.reset();

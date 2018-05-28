@@ -25,10 +25,10 @@ class CQChartsModelColumnDetails {
 
   QString typeName() const;
 
-  CQBaseModel::Type type() const { return type_; }
-  void setType(CQBaseModel::Type type) { type_ = type; }
+  CQBaseModel::Type type() const;
+  void setType(CQBaseModel::Type type);
 
-  const CQChartsNameValues &nameValues() const { return nameValues_; }
+  const CQChartsNameValues &nameValues() const;
 
   QVariant minValue() const;
   QVariant maxValue() const;
@@ -37,8 +37,8 @@ class CQChartsModelColumnDetails {
 
   int numRows() const;
 
-  bool isMonotonic () const { return monotonic_; }
-  bool isIncreasing() const { return increasing_; }
+  bool isMonotonic () const;
+  bool isIncreasing() const;
 
   int numUnique() const;
 
@@ -78,25 +78,29 @@ class CQChartsModelDetails {
   CQChartsModelDetails(CQCharts *charts=nullptr, QAbstractItemModel *model=nullptr);
 
   int numColumns() const { init(); return numColumns_; }
-  void setNumColumns(int i) { numColumns_ = i; }
 
   int numRows() const { init(); return numRows_; }
-  void setNumRows(int i) { numRows_ = i; }
 
-  CQChartsModelColumnDetails &columnDetails(int i) { return columnDetails_[i]; }
+  bool isHierarchical() const { init(); return hierarchical_; }
+
+  const CQChartsModelColumnDetails &columnDetails(int i) const { init(); return columnDetails_[i]; }
+  CQChartsModelColumnDetails &columnDetails(int i) { init(); return columnDetails_[i]; }
 
   void init() const;
+
+  void reset();
 
   void update();
 
  private:
   using ColumnDetails = std::vector<CQChartsModelColumnDetails>;
 
-  CQCharts*           charts_      { nullptr };
-  QAbstractItemModel* model_       { nullptr };
-  bool                initialized_ { false };
-  int                 numColumns_  { 0 };
-  int                 numRows_     { 0 };
+  CQCharts*           charts_       { nullptr };
+  QAbstractItemModel* model_        { nullptr };
+  bool                initialized_  { false };
+  int                 numColumns_   { 0 };
+  int                 numRows_      { 0 };
+  bool                hierarchical_ { false };
   ColumnDetails       columnDetails_;
 };
 

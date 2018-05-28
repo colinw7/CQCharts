@@ -26,8 +26,17 @@ init() const
 
 void
 CQChartsModelDetails::
+reset()
+{
+  initialized_ = false;
+}
+
+void
+CQChartsModelDetails::
 update()
 {
+  hierarchical_ = CQChartsUtil::isHierarchical(model_);
+
   numColumns_ = model_->columnCount();
   numRows_    = model_->rowCount   ();
 
@@ -67,6 +76,27 @@ typeName() const
     (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
 
   return typeName_;
+}
+
+CQBaseModel::Type
+CQChartsModelColumnDetails::
+type() const
+{
+  return type_;
+}
+
+void
+CQChartsModelColumnDetails::
+setType(CQBaseModel::Type type)
+{
+  type_ = type;
+}
+
+const CQChartsNameValues &
+CQChartsModelColumnDetails::
+nameValues() const
+{
+  return nameValues_;
 }
 
 QVariant
@@ -114,6 +144,26 @@ numRows() const
     (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
 
   return numRows_;
+}
+
+bool
+CQChartsModelColumnDetails::
+isMonotonic() const
+{
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+
+  return monotonic_;
+}
+
+bool
+CQChartsModelColumnDetails::
+isIncreasing() const
+{
+  if (! initialized_)
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+
+  return increasing_;
 }
 
 int

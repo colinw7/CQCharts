@@ -8,13 +8,35 @@ CQChartsValueSet(CQChartsPlot *plot) :
 {
 }
 
+bool
+CQChartsValueSet::
+isValid() const
+{
+  if      (type() == Type::INTEGER) return ivals_.isValid();
+  else if (type() == Type::REAL   ) return rvals_.isValid();
+  else if (type() == Type::STRING ) return svals_.isValid();
+  else if (type() == Type::COLOR  ) return cvals_.isValid();
+  else                              return false;
+}
+
+bool
+CQChartsValueSet::
+canMap() const
+{
+  if      (type() == Type::INTEGER) return ivals_.canMap();
+  else if (type() == Type::REAL   ) return rvals_.canMap();
+  else if (type() == Type::STRING ) return svals_.canMap();
+  else if (type() == Type::COLOR  ) return cvals_.canMap();
+  else                              return false;
+}
+
 void
 CQChartsValueSet::
 addProperties(const QString &path)
 {
-  plot_->addProperty(path, this, "mapEnabled", "mapEnabled");
-  plot_->addProperty(path, this, "mapMin"    , "mapMin"    );
-  plot_->addProperty(path, this, "mapMax"    , "mapMax"    );
+  plot_->addProperty(path, this, "mapped", "mapped");
+  plot_->addProperty(path, this, "mapMin", "mapMin");
+  plot_->addProperty(path, this, "mapMax", "mapMax");
 }
 
 void
@@ -71,11 +93,14 @@ imap(int i, double mapMin, double mapMax) const
 
   if      (type() == Type::INTEGER) {
     // get nth integer
-    int ival = ivals_.value(i);
+    OptInt ival = ivals_.value(i);
+
+    if (! ival)
+      return mapMin;
 
     // return actual value if mapping disabled
-    if (! isMapEnabled())
-      return ival;
+    if (! isMapped())
+      return *ival;
 
 #if 0
     // map value using integer value range
@@ -83,49 +108,58 @@ imap(int i, double mapMin, double mapMax) const
     int imax = ivals_.imax();
 
     if (imin != imax)
-      return CQChartsUtil::map(ival, imin, imax, mapMin, mapMax);
+      return CQChartsUtil::map(*ival, imin, imax, mapMin, mapMax);
     else
       return mapMin;
 #endif
 
     // map value using real value range
-    return ivals_.map(ival, mapMin, mapMax);
+    return ivals_.map(*ival, mapMin, mapMax);
   }
   else if (type() == Type::REAL) {
     // get nth real
-    double rval = rvals_.value(i);
+    OptReal rval = rvals_.value(i);
+
+    if (! rval)
+      return mapMin;
 
     // return actual value if mapping disabled
-    if (! isMapEnabled())
-      return rval;
+    if (! isMapped())
+      return *rval;
 
     // map value using real value range
-    return rvals_.map(rval, mapMin, mapMax);
+    return rvals_.map(*rval, mapMin, mapMax);
   }
   else if (type() == Type::STRING) {
     // get nth string
-    QString sval = svals_.value(i);
+    OptString sval = svals_.value(i);
+
+    if (! sval)
+      return mapMin;
 
     // return string set index if mapping disabled
-    if (! isMapEnabled())
-      return svals_.id(sval);
+    if (! isMapped())
+      return svals_.id(*sval);
 
     // map string using number of sets
-    return svals_.map(sval, mapMin, mapMax);
+    return svals_.map(*sval, mapMin, mapMax);
   }
   else if (type() == Type::COLOR) {
     // get nth color
-    QColor cval = cvals_.value(i);
+    CQChartsColor cval = cvals_.value(i);
+
+    if (! cval.isValid())
+      return mapMin;
 
     // return color set index if mapping disabled
-    if (! isMapEnabled())
+    if (! isMapped())
       return cvals_.id(cval);
 
     // map string using number of sets
     return cvals_.map(cval, mapMin, mapMax);
   }
   else {
-    return 0.0;
+    return mapMin;
   }
 }
 
@@ -350,26 +384,31 @@ init()
     if      (type_ == Type::INTEGER) {
       int i = CQChartsUtil::toInt(value, ok);
 
-      ivals_.addValue(i);
+      ivals_.addValue(ok ? OptInt(i) : OptInt());
     }
     else if (type_ == Type::REAL) {
       double r = CQChartsUtil::toReal(value, ok);
 
       if (! isAllowNaN() && CQChartsUtil::isNaN(r))
-        continue;
+        ok = false;
 
-      rvals_.addValue(r);
+      rvals_.addValue(ok ? OptReal(r) : OptReal());
     }
     else if (type_ == Type::STRING) {
       QString s;
 
-      if (value.isValid())
+      bool ok = false;
+
+      if (value.isValid()) {
         CQChartsUtil::variantToString(value, s);
 
-      svals_.addValue(s);
+        ok = true;
+      }
+
+      svals_.addValue(ok ? OptString(s) : OptString());
     }
     else if (type_ == Type::COLOR) {
-      QColor c = value.value<QColor>();
+      CQChartsColor c = CQChartsUtil::varToColor(value, ok);
 
       cvals_.addValue(c);
     }

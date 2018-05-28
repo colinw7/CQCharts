@@ -9,7 +9,7 @@ CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsView *view) :
  CQChartsBoxObj(view)
 {
-  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   setTextColor(themeFg);
 
@@ -21,7 +21,7 @@ CQChartsTextBoxObj::
 CQChartsTextBoxObj(CQChartsPlot *plot) :
  CQChartsBoxObj(plot)
 {
-  CQChartsColor themeFg(CQChartsColor::Type::THEME_VALUE, 1);
+  CQChartsColor themeFg(CQChartsColor::Type::INTERFACE_VALUE, 1);
 
   setTextColor(themeFg);
 

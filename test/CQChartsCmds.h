@@ -104,8 +104,8 @@ class CQChartsCmds : public QObject {
   void processAddExpression(ModelP &model, const QString &expr);
 
   void processExpression(ModelP &model, const QString &expr);
-  void processExpression(ModelP &model, CQExprModel::Function function,
-                         int column, const QString &expr);
+  int  processExpression(ModelP &model, CQExprModel::Function function,
+                         const CQChartsColumn &column, const QString &expr);
 
   //---
 
@@ -128,7 +128,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  int addModelData(ModelP &model, bool hierarchical);
+  int initModelData(ModelP &model);
 
   CQChartsModelData *getModelDataOrCurrent(int ind);
 
@@ -157,6 +157,10 @@ class CQChartsCmds : public QObject {
 
   void parseScriptLine(const QString &line);
 
+  bool stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) const;
+
+  //---
+
   CQTcl *qtcl() const { return qtcl_; }
 
  private:
@@ -184,8 +188,6 @@ class CQChartsCmds : public QObject {
   void setDataCmd(const Vars &vars);
   void getDataCmd(const Vars &vars);
 
-  void setThemeCmd  (const Vars &vars);
-  void getThemeCmd  (const Vars &vars);
   void setPaletteCmd(const Vars &vars);
   void getPaletteCmd(const Vars &vars);
 
@@ -236,10 +238,6 @@ class CQChartsCmds : public QObject {
   CQExprModel *getExprModel(ModelP &model) const;
 
   void foldClear(CQChartsModelData *modelData);
-
-  //---
-
-  bool stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) const;
 
   //---
 

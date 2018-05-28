@@ -14,7 +14,7 @@ class CQChartsColor {
     NONE,
     PALETTE,
     PALETTE_VALUE,
-    THEME_VALUE,
+    INTERFACE_VALUE,
     COLOR
   };
 
@@ -101,25 +101,38 @@ class CQChartsColor {
 
   //---
 
-  friend bool operator==(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    if (lhs.type_  != rhs.type_ ) return false;
-    if (lhs.ind_   != rhs.ind_  ) return false;
-    if (lhs.scale_ != rhs.scale_) return false;
+  static int cmp(const QColor &lhs, const QColor &rhs) {
+    if (lhs.red  () < rhs.red  ()) return -1;
+    if (lhs.red  () > rhs.red  ()) return  1;
+    if (lhs.green() < rhs.green()) return -1;
+    if (lhs.green() > rhs.green()) return  1;
+    if (lhs.blue () < rhs.blue ()) return -1;
+    if (lhs.blue () > rhs.blue ()) return  1;
+
+    return 0;
+  }
+
+  static int cmp(const CQChartsColor &lhs, const CQChartsColor &rhs) {
+    if (lhs.type_  != rhs.type_ ) return (lhs.type_  < rhs.type_  ? -1 : 1);
+    if (lhs.ind_   != rhs.ind_  ) return (lhs.ind_   < rhs.ind_   ? -1 : 1);
+    if (lhs.scale_ != rhs.scale_) return (lhs.scale_ < rhs.scale_ ? -1 : 1);
 
     if (lhs.type_ == Type::COLOR) {
-      if (lhs.color_ != rhs.color_)
-        return false;
+      return cmp(lhs.color_, rhs.color_);
     }
     else {
-      if (lhs.value_ != rhs.value_)
-        return false;
+      if (lhs.value_ != rhs.value_) return (lhs.value_ < rhs.value_ ? -1 : 1);
     }
 
-    return true;
+    return 0;
+  }
+
+  friend bool operator==(const CQChartsColor &lhs, const CQChartsColor &rhs) {
+    return (cmp(lhs, rhs) == 0);
   }
 
   friend bool operator!=(const CQChartsColor &lhs, const CQChartsColor &rhs) {
-    return ! operator==(lhs, rhs);
+    return (cmp(lhs, rhs) != 0);
   }
 
   //---

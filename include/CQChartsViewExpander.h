@@ -2,14 +2,17 @@
 #define CQChartsViewExpander_H
 
 #include <QFrame>
+#include <QIcon>
 #include <QPointer>
 
 class CQChartsViewExpander : public QFrame {
   Q_OBJECT
 
-  Q_PROPERTY(Side side     READ side       WRITE setSide    )
-  Q_PROPERTY(bool expanded READ isExpanded WRITE setExpanded)
-  Q_PROPERTY(bool detached READ isDetached WRITE setDetached)
+  Q_PROPERTY(Side    side     READ side       WRITE setSide    )
+  Q_PROPERTY(bool    expanded READ isExpanded WRITE setExpanded)
+  Q_PROPERTY(bool    detached READ isDetached WRITE setDetached)
+  Q_PROPERTY(QString title    READ title      WRITE setTitle   )
+  Q_PROPERTY(QIcon   icon     READ icon       WRITE setIcon    )
 
   Q_ENUMS(Side)
 
@@ -46,6 +49,12 @@ class CQChartsViewExpander : public QFrame {
   bool isDetached() const { return detached_; }
   void setDetached(bool b);
 
+  const QString &title() const { return title_; }
+  void setTitle(const QString &v) { title_ = v; }
+
+  const QIcon &icon() const { return icon_; }
+  void setIcon(const QIcon &v) { icon_ = v; }
+
   void setMargins(int l, int b, int r, int t);
 
   bool isVertical() const;
@@ -61,6 +70,8 @@ class CQChartsViewExpander : public QFrame {
   void paintEvent(QPaintEvent *) override;
 
  private:
+  void drawTitleLines(QPainter *p, const QRect &r);
+
   QRect handleRect() const;
 
   PressSide posToPressSide(const QPoint &pos);
@@ -81,6 +92,8 @@ class CQChartsViewExpander : public QFrame {
   QWidget*        parent_      { nullptr };
   WidgetP         w_;
   Side            side_        { Side::RIGHT };
+  QString         title_;
+  QIcon           icon_;
   int             l_           { 0 };
   int             b_           { 0 };
   int             r_           { 0 };

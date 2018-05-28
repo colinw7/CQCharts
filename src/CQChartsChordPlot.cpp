@@ -16,9 +16,9 @@ void
 CQChartsChordPlotType::
 addParameters()
 {
-  addColumnParameter("name" , "Name" , "nameColumn" , "optional");
-  addColumnParameter("value", "Value", "valueColumn", "optional");
-  addColumnParameter("group", "Group", "groupColumn", "optional");
+  addColumnParameter("name" , "Name" , "nameColumn" );
+  addColumnParameter("value", "Value", "valueColumn");
+  addColumnParameter("group", "Group", "groupColumn");
 
   CQChartsPlotType::addParameters();
 }

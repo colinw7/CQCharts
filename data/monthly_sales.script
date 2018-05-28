@@ -8,10 +8,11 @@ create_plot -type barchart -columns "category=0,value=1,label=4" -column_type "1
 
 view -view view1 -title "Monthly Sales Data"
 
-palette -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
-#palette -color_type defined -defined "0=#4d81bc 1=#c0504e 2=#9bbb58"
-#theme -color_type defined -defined "0=#ffffff 1=#000000 2=#808080"
-#theme -color_type defined -defined "0=#2a2a2a 1=#ffffff 2=#808080"
+set_palette -palette 0 -color_type defined -defined "0=#6d78ad 1=#51cda0 2=#df7970"
+#set_palette -palette 0 -color_type defined -defined "0=#4d81bc 1=#c0504e 2=#9bbb58"
+
+#set_palette -interface -color_type defined -defined "0=#ffffff 1=#000000 2=#808080"
+#set_palette -interface -color_type defined -defined "0=#2a2a2a 1=#ffffff 2=#808080"
 
 palette -get_color 0 -get_color_scale
 @let color0 = _rc
@@ -27,26 +28,26 @@ set_property -view view1 -plot "${plot1}" -name fill.color                 -valu
 set_property -view view1 -plot "${plot1}" -name colorBySet                 -value 1
 set_property -view view1 -plot "${plot1}" -name dataLabel.visible          -value 1
 set_property -view view1 -plot "${plot1}" -name dataLabel.position         -value TOP_OUTSIDE
-#set_property -view view1 -plot "${plot1}" -name dataLabel.color            -value "theme:1"
-#set_property -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "theme:0"
-#set_property -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "theme:0"
+#set_property -view view1 -plot "${plot1}" -name dataLabel.color            -value "interface:1"
+#set_property -view view1 -plot "${plot1}" -name plotStyle.fill.color       -value "interface:0"
+#set_property -view view1 -plot "${plot1}" -name dataStyle.fill.color       -value "interface:0"
 set_property -view view1 -plot "${plot1}" -name "xaxis.majorIncrement"    -value 1
 set_property -view view1 -plot "${plot1}" -name "xaxis.label.text"        -value ""
-#set_property -view view1 -plot "${plot1}" -name "xaxis.label.color"       -value "theme:1"
-#set_property -view view1 -plot "${plot1}" -name "xaxis.ticks.label.color" -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "xaxis.label.color"       -value "interface:1"
+#set_property -view view1 -plot "${plot1}" -name "xaxis.ticks.label.color" -value "interface:1"
 set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.visible" -value 1
-#set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "theme:1"
-#set_property -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "theme:1"
-#set_property -view view1 -plot "${plot1}" -name "yaxis.ticks.label.color" -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name "yaxis.grid.line.major.color"   -value "interface:1"
+#set_property -view view1 -plot "${plot1}" -name "yaxis.label.color"       -value "interface:1"
+#set_property -view view1 -plot "${plot1}" -name "yaxis.ticks.label.color" -value "interface:1"
 #set_property -view view1 -plot "${plot1}" -name key.visible                -value 0
 set_property -view view1 -plot "${plot1}" -name key.insideY                -value 0
 set_property -view view1 -plot "${plot1}" -name key.location               -value bc
 set_property -view view1 -plot "${plot1}" -name key.horizontal             -value 1
 set_property -view view1 -plot "${plot1}" -name key.background.visible     -value 0
 set_property -view view1 -plot "${plot1}" -name key.border.visible         -value 0
-#set_property -view view1 -plot "${plot1}" -name key.text.color             -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name key.text.color             -value "interface:1"
 set_property -view view1 -plot "${plot1}" -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
-#set_property -view view1 -plot "${plot1}" -name title.text.color           -value "theme:1"
+#set_property -view view1 -plot "${plot1}" -name title.text.color           -value "interface:1"
 
 create_plot -type xy -columns "x=0,y=2" -title "Expected Sales"
 

@@ -33,8 +33,8 @@ CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("treemap"), model)
 {
-  setHeaderFillColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 0.4));
-  setHeaderTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setHeaderFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.4));
+  setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   setHeaderTextFontSize(12.0);
   setHeaderTextAlign(Qt::AlignLeft | Qt::AlignVCenter);
@@ -43,7 +43,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
   setHeaderFilled(true);
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-  setTextColor(CQChartsColor(CQChartsColor::Type::THEME_VALUE, 1));
+  setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
   setBorder(true);
   setFilled(true);

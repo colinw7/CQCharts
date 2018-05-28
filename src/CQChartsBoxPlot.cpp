@@ -17,9 +17,9 @@ void
 CQChartsBoxPlotType::
 addParameters()
 {
-  addColumnParameter("x"    , "X"    , "xColumn"    , "", 0);
-  addColumnParameter("y"    , "Y"    , "yColumn"    , "", 1);
-  addColumnParameter("group", "Group", "groupColumn", "optional");
+  addColumnParameter("x"    , "X"    , "xColumn"    , 0).setRequired();
+  addColumnParameter("y"    , "Y"    , "yColumn"    , 1).setRequired();
+  addColumnParameter("group", "Group", "groupColumn");
 
   CQChartsPlotType::addParameters();
 }

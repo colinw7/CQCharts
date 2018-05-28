@@ -90,7 +90,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void setLabel(const QString &label);
 
-  void setColor(const QColor &c);
+  void setColor(const CQChartsColor &c);
 
   void setSymbol(CQChartsPlotSymbol::Type type);
 

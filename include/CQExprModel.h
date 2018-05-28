@@ -213,6 +213,7 @@ class CQExprModel : public QAbstractProxyModel {
   CQTcl*              qtcl_       { nullptr };
   ExprCmds            exprCmds_;
   TclCmds             tclCmds_;
+  bool                editable_   { true };
   bool                debug_      { false };
   ExtraColumns        extraColumns_;
   mutable int         nr_         { 0 };
