@@ -19,8 +19,11 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QToolButton>
 #include <QLabel>
 #include <cassert>
+
+#include <svg/refresh_svg.h>
 
 CQChartsPlotDlg::
 CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
@@ -79,6 +82,8 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   typeComboLayout->addWidget(typeCombo);
 
+  typeCombo->setToolTip("Plot Type");
+
   QStringList names, descs;
 
   this->charts()->getPlotTypeNames(names, descs);
@@ -117,6 +122,8 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   whereLayout->addStretch(1);
 
+  whereEdit_->setToolTip("Filter for input data");
+
   //----
 
   QFrame *genFrame = new QFrame;
@@ -132,19 +139,25 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   viewEdit_ = addLineEdit(genLayout, row, column, "View Name", "viewEdit", "View Name");
 
+  viewEdit_->setToolTip("View to add plot to. If empty create new view");
+
   //--
 
   ++row; column = 0;
 
-  posEdit_ = addLineEdit(genLayout, row, column, "Position", "position", "Position");
+  posEdit_ = addLineEdit(genLayout, row, column, "Plot Position", "position", "Position");
 
   posEdit_->setText("0 0 1 1");
 
+  posEdit_->setToolTip("Position and size of plot in view (values in range 0->1)");
+
   //--
 
   ++row; column = 0;
 
-  titleEdit_ = addLineEdit(genLayout, row, column, "Title", "title", "Title");
+  titleEdit_ = addLineEdit(genLayout, row, column, "Plot Title", "title", "Title");
+
+  titleEdit_->setToolTip("Plot Title");
 
   //--
 
@@ -153,10 +166,16 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   xminEdit_ = addLineEdit(genLayout, row, column, "XMin", "xmin", "X Axis Minimum Value");
   yminEdit_ = addLineEdit(genLayout, row, column, "YMin", "ymin", "Y Axis Minimum Value");
 
+  xminEdit_->setToolTip("Custom X Axis Minimum Value");
+  yminEdit_->setToolTip("Custom Y Axis Minimum Value");
+
   ++row; column = 0;
 
   xmaxEdit_ = addLineEdit(genLayout, row, column, "XMax", "xmax", "X Axis Maximum Value");
   ymaxEdit_ = addLineEdit(genLayout, row, column, "YMax", "ymax", "Y Axis Maximum Value");
+
+  xmaxEdit_->setToolTip("Custom X Axis Maximum Value");
+  ymaxEdit_->setToolTip("Custom Y Axis Maximum Value");
 
   //--
 
@@ -171,6 +190,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   genLayout->addWidget(xintegralCheck_, row, column); ++column;
   genLayout->addWidget(yintegralCheck_, row, column);
 
+  xintegralCheck_->setToolTip("X values are Integral");
+  yintegralCheck_->setToolTip("Y values are Integral");
+
   //----
 
   ++row; column = 0;
@@ -183,6 +205,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   genLayout->addWidget(xlogCheck_, row, column); ++column;
   genLayout->addWidget(ylogCheck_, row, column);
+
+  xlogCheck_->setToolTip("Use log scale for X Axis");
+  ylogCheck_->setToolTip("Use log scale for Y Axis");
 
   //--
 
@@ -396,16 +421,36 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(columnEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 
-  //---
+  QString tip = parameter.tip();
 
-  QLineEdit *formatEdit =
+  if (tip.length())
+    columnEdit->setToolTip(tip);
+
+  //----
+
+  FormatEditData formatEditData;
+
+  formatEditData.formatEdit =
     addLineEdit(layout, row, column, "", parameter.name() + "Format", "Column Format");
 
-  plotData.formatEdits[parameter.name()] = formatEdit;
+  connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
+          this, SLOT(validateSlot()));
 
-  connect(formatEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  //--
 
-  //---
+  formatEditData.formatUpdate = new QToolButton;
+  formatEditData.formatUpdate->setObjectName("formatUpdate");
+
+  formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
+
+  connect(formatEditData.formatUpdate, SIGNAL(clicked()),
+          this, SLOT(updateFormatSlot()));
+
+  layout->addWidget(formatEditData.formatUpdate, row, column); ++column;
+
+  plotData.formatEdits[parameter.name()] = formatEditData;
+
+  //----
 
   QLabel *attributesLabel = new QLabel;
   attributesLabel->setObjectName("attributesLabel");
@@ -414,11 +459,11 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   layout->addWidget(attributesLabel, row, column); ++column;
 
-  //---
+  //----
 
   ++row;
 
-  //---
+  //----
 
   if (parameter.attributes().isMapped()) {
     MapEditData mapEditData;
@@ -432,6 +477,10 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     connect(mapEditData.mappedCheck, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
+    mapEditData.mappedCheck->setToolTip("Remap column values from actual range to specific range");
+
+    //--
+
     mapEditData.mapMinSpin = new CQRealSpin;
     mapEditData.mapMinSpin->setObjectName("mapMin");
 
@@ -440,6 +489,11 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     connect(mapEditData.mapMinSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
     connect(mapEditData.mapMaxSpin, SIGNAL(valueChanged(double)), this, SLOT(validateSlot()));
+
+    mapEditData.mapMinSpin->setToolTip("Min value for mapped values");
+    mapEditData.mapMaxSpin->setToolTip("Max value for mapped values");
+
+    //--
 
     mapLayout->addWidget(mapEditData.mappedCheck);
     mapLayout->addWidget(mapEditData.mapMinSpin);
@@ -482,16 +536,36 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(columnsEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 
-  //---
+  QString tip = parameter.tip();
 
-  QLineEdit *formatEdit =
+  if (tip.length())
+    columnsEdit->setToolTip(tip);
+
+  //----
+
+  FormatEditData formatEditData;
+
+  formatEditData.formatEdit =
     addLineEdit(layout, row, column, "", parameter.name() + "Format", "Columns Format");
 
-  plotData.formatEdits[parameter.name()] = formatEdit;
+  connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
+          this, SLOT(validateSlot()));
 
-  connect(formatEdit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  //--
 
-  //---
+  formatEditData.formatUpdate = new QToolButton;
+  formatEditData.formatUpdate->setObjectName("formatUpdate");
+
+  formatEditData.formatUpdate->setIcon(CQPixmapCacheInst->getIcon("REFRESH"));
+
+  connect(formatEditData.formatUpdate, SIGNAL(clicked()),
+          this, SLOT(updateFormatSlot()));
+
+  layout->addWidget(formatEditData.formatUpdate, row, column); ++column;
+
+  plotData.formatEdits[parameter.name()] = formatEditData;
+
+  //----
 
   ++row;
 }
@@ -523,6 +597,11 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
   plotData.stringEdits[parameter.name()] = edit;
 
   connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  QString tip = parameter.tip();
+
+  if (tip.length())
+    edit->setToolTip(tip);
 }
 
 void
@@ -550,6 +629,11 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
   plotData.realEdits[parameter.name()] = edit;
 
   connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  QString tip = parameter.tip();
+
+  if (tip.length())
+    edit->setToolTip(tip);
 }
 
 void
@@ -569,6 +653,11 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
   plotData.boolEdits[parameter.name()] = checkBox;
 
   connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+
+  QString tip = parameter.tip();
+
+  if (tip.length())
+    checkBox->setToolTip(tip);
 }
 
 QLineEdit *
@@ -650,6 +739,70 @@ validateSlot()
   }
 
   applyPlot(previewPlot_, /*preview*/true);
+}
+
+void
+CQChartsPlotDlg::
+updateFormatSlot()
+{
+  QToolButton *formatUpdate = qobject_cast<QToolButton *>(sender());
+
+  if (! formatUpdate)
+    return;
+
+  int ind = stack_->currentIndex();
+
+  QString typeName = tabTypeName_[ind];
+
+  PlotData &plotData = typePlotData_[typeName];
+
+  QString    parameterName;
+  QLineEdit *formatEdit { nullptr };
+
+  for (const auto &fe : plotData.formatEdits) {
+    const FormatEditData &formatEditData = fe.second;
+
+    if (formatUpdate == formatEditData.formatUpdate) {
+      parameterName = fe.first;
+      formatEdit    = formatEditData.formatEdit;
+      break;
+    }
+  }
+
+  if (! parameterName.length())
+    return;
+
+  int     column;
+  QString columnStr;
+  QString columnType;
+  int     defColumn = -1;
+
+  auto pce = plotData.columnEdits.find(parameterName);
+
+  if (pce != plotData.columnEdits.end()) {
+    if (! lineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+      return;
+  }
+  else {
+    auto pce = plotData.columnsEdits.find(parameterName);
+
+    if (pce != plotData.columnEdits.end()) {
+      if (! lineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+        return;
+    }
+  }
+
+  if (column < 0)
+    return;
+
+  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  if (! modelData) return;
+
+  CQChartsModelDetails &details = modelData->details();
+
+  const CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
+
+  formatEdit->setText(columnDetails.typeName());
 }
 
 bool
@@ -953,24 +1106,37 @@ applyPlot(CQChartsPlot *plot, bool preview)
   plot->setLogX(xlogCheck_->isChecked());
   plot->setLogY(ylogCheck_->isChecked());
 
+  //---
+
+  bool xminOk = false, yminOk = false, xmaxOk = false, ymaxOk = false;
+
   if (xminEdit_->text().length()) {
-    bool ok; double xmin = xminEdit_->text().toDouble(&ok);
-    if (ok) plot->setXMin(xmin);
+    double xmin = xminEdit_->text().toDouble(&xminOk);
+    if (xminOk) plot->setXMin(xmin);
   }
 
   if (yminEdit_->text().length()) {
-    bool ok; double ymin = yminEdit_->text().toDouble(&ok);
-    if (ok) plot->setYMin(ymin);
+    double ymin = yminEdit_->text().toDouble(&yminOk);
+    if (yminOk) plot->setYMin(ymin);
   }
 
   if (xmaxEdit_->text().length()) {
-    bool ok; double xmax = xmaxEdit_->text().toDouble(&ok);
-    if (ok) plot->setXMax(xmax);
+    double xmax = xmaxEdit_->text().toDouble(&xmaxOk);
+    if (xmaxOk) plot->setXMax(xmax);
   }
 
   if (ymaxEdit_->text().length()) {
-    bool ok; double ymax = ymaxEdit_->text().toDouble(&ok);
-    if (ok) plot->setYMax(ymax);
+    double ymax = ymaxEdit_->text().toDouble(&ymaxOk);
+    if (ymaxOk) plot->setYMax(ymax);
+  }
+
+  if (preview) {
+    using OptReal = CQChartsPlot::OptReal;
+
+    if (! xminOk) plot->setXMin(OptReal());
+    if (! yminOk) plot->setYMin(OptReal());
+    if (! xmaxOk) plot->setXMax(OptReal());
+    if (! ymaxOk) plot->setYMax(OptReal());
   }
 }
 
@@ -1021,7 +1187,9 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
   auto pf = plotData.formatEdits.find(parameter.name());
   assert(pf != plotData.formatEdits.end());
 
-  QString format = (*pf).second->text();
+  const FormatEditData &formatEditData = (*pf).second;
+
+  QString format = formatEditData.formatEdit->text();
 
   if (format != "")
     columnType = format;
@@ -1065,7 +1233,9 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
   auto pf = plotData.formatEdits.find(parameter.name());
   assert(pf != plotData.formatEdits.end());
 
-  QString format = (*pf).second->text();
+  const FormatEditData &formatEditData = (*pf).second;
+
+  QString format = formatEditData.formatEdit->text();
 
   if (format != "")
     columnType = format;

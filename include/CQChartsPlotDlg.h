@@ -19,6 +19,7 @@ class QComboBox;
 class QStackedWidget;
 class QLineEdit;
 class QCheckBox;
+class QToolButton;
 class QLabel;
 
 class CQChartsPlotDlg : public QDialog {
@@ -51,15 +52,21 @@ class CQChartsPlotDlg : public QDialog {
     CQRealSpin *mapMaxSpin  { nullptr };
   };
 
+  struct FormatEditData {
+    QLineEdit   *formatEdit;
+    QToolButton *formatUpdate;
+  };
+
   struct PlotData {
-    using LineEdits  = std::map<QString,QLineEdit*>;
-    using CheckBoxes = std::map<QString,QCheckBox*>;
-    using MapEdits   = std::map<QString,MapEditData>;
+    using LineEdits   = std::map<QString,QLineEdit*>;
+    using FormatEdits = std::map<QString,FormatEditData>;
+    using CheckBoxes  = std::map<QString,QCheckBox*>;
+    using MapEdits    = std::map<QString,MapEditData>;
 
     LineEdits    columnEdits;
     LineEdits    columnsEdits;
     MapEdits     mappedEdits;
-    LineEdits    formatEdits;
+    FormatEdits  formatEdits;
     CheckBoxes   boolEdits;
     LineEdits    stringEdits;
     LineEdits    realEdits;
@@ -128,6 +135,8 @@ class CQChartsPlotDlg : public QDialog {
   void comboSlot(int ind);
 
   void validateSlot();
+
+  void updateFormatSlot();
 
   bool applySlot();
 

@@ -1,6 +1,6 @@
 #include <CQChartsGradientPalette.h>
+#include <CQChartsUtil.h>
 #include <CQTclUtil.h>
-#include <CUnixFile.h>
 #include <COSNaN.h>
 
 namespace Util {
@@ -42,10 +42,8 @@ namespace Util {
     return M_PI*d/180.0;
   }
 
-  void addWords(const std::string &str, std::vector<std::string> &words) {
-    QString str1 = str.c_str();
-
-    QStringList strs = str1.split(" ", QString::SkipEmptyParts);
+  void addWords(const QString &str, std::vector<std::string> &words) {
+    QStringList strs = str.split(" ", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.length(); ++i)
       words.push_back(strs[i].toStdString());
@@ -520,21 +518,11 @@ bool
 CQChartsGradientPalette::
 readFile(const std::string &filename)
 {
-  using Lines = std::vector<std::string>;
+  QStringList lines;
 
-  Lines lines;
-
-  CUnixFile file(filename);
-
-  if (! file.open()) {
-    std::cerr << "can't open file \"" << filename << "\"" << std::endl;
+  if (! CQChartsUtil::fileToLines(filename.c_str(), lines)) {
+    std::cerr << "can't read file \"" << filename << "\"" << std::endl;
     return false;
-  }
-
-  std::string line;
-
-  while (file.readLine(line)) {
-    lines.push_back(line);
   }
 
   if (! readFileLines(lines))
@@ -545,7 +533,7 @@ readFile(const std::string &filename)
 
 bool
 CQChartsGradientPalette::
-readFileLines(const std::vector<std::string> &lines)
+readFileLines(const QStringList &lines)
 {
   setColorType(CQChartsGradientPalette::ColorType::DEFINED);
 
@@ -554,7 +542,7 @@ readFileLines(const std::vector<std::string> &lines)
   int i = 0;
 
   for (const auto &line : lines) {
-    if (line.empty()) continue;
+    if (line.length() == 0) continue;
 
     std::vector<std::string> words;
 

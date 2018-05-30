@@ -1,6 +1,6 @@
 set model [load_model -csv data/pareto.csv -comment_header]
 
-process_model -add -header Sum "cell(@r,1)+cell(@r-1,@c,0)" -type "real"
+process_model -add -header Sum "column(1)+cell(@r-1,@c,0)" -type "real"
 process_model -add -header Percent "100.0*column(1)/cell(@nr-1,2)" -type "real:format=%g%%"
 
 set nr [get_property -model $model -name num_rows]

@@ -9,9 +9,6 @@
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColor.h>
 #include <CQBaseModel.h>
-#include <CQCsvModel.h>
-#include <CQTsvModel.h>
-#include <CQStrParse.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -587,25 +584,7 @@ inline bool PointLineDistance(const CQChartsGeom::Point &point,
 
 //------
 
-#if 0
-#include <CUnixFile.h>
-
-inline bool fileToLines(const QString &filename, QStringList &lines) {
-  // open file
-  CUnixFile file(filename.toStdString());
-
-  if (! file.open())
-    return false;
-
-  // read lines
-  std::string line;
-
-  while (file.readLine(line))
-    lines.push_back(line.c_str());
-
-  return true;
-}
-#endif
+bool fileToLines(const QString &filename, QStringList &lines, int maxLines=-1);
 
 //------
 
@@ -1159,176 +1138,9 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
 
 //------
 
-inline bool fileToLines(const QString &filename, std::vector<QString> &lines, int maxLines=-1) {
-  auto open = [&](FILE* &fp, const QString &filename) -> bool {
-    fp = fopen(filename.toStdString().c_str(), "r");
-    if (! fp) return false;
-
-    return true;
-  };
-
-  auto readLine = [](FILE *fp, QString &line) {
-    line = "";
-
-    if (feof(fp)) return false;
-
-    int c = fgetc(fp);
-
-    if (c == EOF)
-      return false;
-
-    while (! feof(fp) && c != '\n') {
-      line += c;
-
-      c = fgetc(fp);
-    }
-
-    return true;
-  };
-
-  auto close = [](FILE* &fp) {
-    if (fp)
-      fclose(fp);
-
-    fp = 0;
-  };
-
-  //---
-
-  FILE *fp = nullptr;
-
-  if (! open(fp, filename))
-    return false;
-
-  QString line;
-
-  while (readLine(fp, line)) {
-    lines.push_back(line);
-
-    if (maxLines >= 0 && int(lines.size()) > maxLines)
-      break;
-  }
-
-  close(fp);
-
-  //---
-
-  return true;
-}
-
-inline bool analyzeFile(const QString &filename, CQBaseModel::DataType &dataType,
-                        bool &commentHeader, bool &firstLineHeader,
-                        bool &firstColumnHeader) {
-  dataType = CQBaseModel::DataType::NONE;
-
-  commentHeader     = false;
-  firstLineHeader   = false;
-  firstColumnHeader = false;
-
-  //---
-
-  int maxLines = 10;
-
-  std::vector<QString> lines;
-
-  if (! fileToLines(filename, lines, maxLines))
-    return false;
-
-  //---
-
-  std::size_t lineNum = 0;
-
-  // check for comment first line
-  if (lineNum < lines.size()) {
-    QString line = lines[lineNum];
-
-    CQStrParse parse(line);
-
-    parse.skipSpace();
-
-    if (parse.getChar() == '#') {
-      commentHeader = true;
-
-      ++lineNum;
-
-      // skip subsequent comment lines
-      while (true) {
-        QString line = lines[lineNum];
-
-        CQStrParse parse(line);
-
-        parse.skipSpace();
-
-        if (parse.getChar() != '#')
-          break;
-
-        ++lineNum;
-      }
-    }
-  }
-
-  // check line for comma, tab, space separators
-  // TODO: combine multiple lines
-  if (lineNum < lines.size()) {
-    QString line = lines[lineNum];
-
-    int commaPos = line.indexOf(',');
-    int tabPos   = line.indexOf('\t');
-    int spacePos = line.indexOf(' ');
-
-    CQStrParse parse(line);
-
-    QStringList commaStrs, tabStrs, spaceStrs;
-
-    if (commaPos >= 0) commaStrs = line.split(',' , QString::KeepEmptyParts);
-    if (tabPos   >= 0) tabStrs   = line.split('\t', QString::KeepEmptyParts);
-    if (spacePos >= 0) spaceStrs = line.split(' ' , QString::SkipEmptyParts);
-
-    int nc = commaStrs.length();
-    int nt = tabStrs  .length();
-    int ns = spaceStrs.length();
-
-    if      (nc > 0 && nc > nt)
-      dataType = CQBaseModel::DataType::CSV;
-    else if (nt > 0 && nt > nc)
-      dataType = CQBaseModel::DataType::TSV;
-    else if (ns > 0)
-      dataType = CQBaseModel::DataType::GNUPLOT;
-  }
-
-  // TODO: auto determine column type from first few lines ?
-
-  // TODO: if no header then check first line again (using data type) for column heade like
-  // line (string and different type from other lines)
-
-  return true;
-}
-
-//------
-
-inline void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
-                        bool hheader=true, bool vheader=false,
-                        std::ostream &os=std::cout) {
-  if      (type == CQBaseModel::DataType::CSV) {
-    CQCsvModel csv;
-
-    csv.setFirstLineHeader  (hheader);
-    csv.setFirstColumnHeader(vheader);
-
-    csv.save(model, os);
-  }
-  else if (type == CQBaseModel::DataType::TSV) {
-    CQTsvModel tsv;
-
-    tsv.setFirstLineHeader  (hheader);
-    tsv.setFirstColumnHeader(vheader);
-
-    tsv.save(model, os);
-  }
-  else {
-    assert(false);
-  }
-}
+void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
+                 bool hheader=true, bool vheader=false,
+                 std::ostream &os=std::cout);
 
 //------
 

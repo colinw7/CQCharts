@@ -281,7 +281,7 @@ class CQChartsGradientPalette {
 
   bool readFile(const std::string &filename);
 
-  bool readFileLines(const std::vector<std::string> &lines);
+  bool readFileLines(const QStringList &lines);
 
   void unset();
 

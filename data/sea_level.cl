@@ -8,5 +8,5 @@ plotId = _rc
 
 set_property -view view1 -plot $plotId -name dataLabel.visible -value 1
 set_property -view view1 -plot $plotId -name dataLabel.position -value TOP_OUTSIDE
-set_property -view view1 -plot $plotId -name invertY -value 1
+set_property -view view1 -plot $plotId -name invert.y -value 1
 set_property -view view1 -plot $plotId -name "yaxis.grid.line.major.visible" -value 1

@@ -245,7 +245,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn   colorColumn    READ colorColumn     WRITE setColorColumn    )
   Q_PROPERTY(bool             stacked        READ isStacked       WRITE setStacked        )
   Q_PROPERTY(bool             percent        READ isPercent       WRITE setPercent        )
-  Q_PROPERTY(bool             range          READ isRange         WRITE setRange          )
+  Q_PROPERTY(bool             rangeBar       READ isRangeBar      WRITE setRangeBar       )
   Q_PROPERTY(bool             horizontal     READ isHorizontal    WRITE setHorizontal     )
   Q_PROPERTY(CQChartsLength   margin         READ margin          WRITE setMargin         )
   Q_PROPERTY(bool             border         READ isBorder        WRITE setBorder         )
@@ -318,7 +318,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   bool isStacked() const { return stacked_; }
 
-  bool isRange() const { return range_; }
+  bool isRangeBar() const { return rangeBar_; }
 
   bool isPercent() const { return percent_; }
 
@@ -429,8 +429,8 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   // set stacked
   void setStacked(bool b);
 
-  // set range
-  void setRange(bool b);
+  // set range bar
+  void setRangeBar(bool b);
 
   // set percent
   void setPercent(bool b);
@@ -473,7 +473,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool               colorBySet_     { false }; // color bars by set or value
   bool               stacked_        { false }; // stacked bars
   bool               percent_        { false }; // percent values
-  bool               range_          { false }; // bar of value range
+  bool               rangeBar_       { false }; // bar of value range
   bool               horizontal_     { false }; // horizontal bars
   CQChartsLength     margin_         { "2px" }; // bar margin
   CQChartsBoxData    boxData_;                  // box style data

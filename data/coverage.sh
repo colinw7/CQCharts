@@ -10,7 +10,7 @@ CQChartsTest -vertical -y1y2 \
   -properties "impulse.color=palette,impulse.alpha=0.5,impulse.width=20px" \
 -and \
   -type xy -impulse -columns "id=0,x=0,y=2" \
-  -properties "invertY=1" \
+  -properties "invert.y=1" \
   -properties "impulse.color=palette#1,impulse.alpha=0.5,impulse.width=20px" \
 
 CQChartsTest -vertical -overlay -y1y2 \

@@ -23,7 +23,7 @@ puts $color2
 
 set_property -view $view -name insideHighlight.mode -value OUTLINE
 
-set_property -view $view -plot $plot1 -name barMargin                  -value 8px
+set_property -view $view -plot $plot1 -name options.barMargin          -value 8px
 set_property -view $view -plot $plot1 -name fill.color                 -value "palette:0:s"
 set_property -view $view -plot $plot1 -name colorBySet                 -value 1
 set_property -view $view -plot $plot1 -name dataLabel.visible          -value 1

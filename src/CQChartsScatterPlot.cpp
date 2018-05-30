@@ -16,18 +16,22 @@ void
 CQChartsScatterPlotType::
 addParameters()
 {
-  addColumnParameter("x"   , "X"   , "xColumn"   , 0).setRequired();
-  addColumnParameter("y"   , "Y"   , "yColumn"   , 1).setRequired();
-  addColumnParameter("name", "Name", "nameColumn");
+  addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
+  addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
+
+  addColumnParameter("name", "Name", "nameColumn"   ).setTip("Value Name");
 
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-   setMapped().setMapMinMax(8, 64);
-  addColumnParameter("fontSize"  , "Font Size"  , "fontSizeColumn"  ).
-   setMapped().setMapMinMax(8, 48);
+   setTip("Point Size").setMapped().setMapMinMax(8, 64);
 
-  addColumnParameter("color", "Color", "colorColumn").setMapped();
+  addColumnParameter("fontSize", "Font Size", "fontSizeColumn"  ).
+   setTip("Font Size for Text Label").setMapped().setMapMinMax(8, 48);
 
-  addBoolParameter("textLabels", "Text Labels", "textLabels");
+  addColumnParameter("color", "Color", "colorColumn").
+   setTip("Point Fill Color").setMapped();
+
+  addBoolParameter("textLabels", "Text Labels", "textLabels").
+   setTip("Show Text Label at Point");
 
   CQChartsPlotType::addParameters();
 }

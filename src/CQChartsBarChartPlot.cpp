@@ -25,11 +25,11 @@ addParameters()
   addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   );
   addColumnParameter ("color"      , "Color"       , "colorColumn"   );
 
-  addBoolParameter("colorBySet", "Color by Set", "colorBySet");
-  addBoolParameter("stacked"   , "Stacked"     , "stacked"   );
-  addBoolParameter("percent"   , "Percent"     , "percent"   );
-  addBoolParameter("range"     , "Range"       , "range"     );
-  addBoolParameter("horizontal", "Horizontal"  , "horizontal");
+  addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
+  addBoolParameter("stacked"   , "Stacked"     , "stacked"   ).setTip("Stack grouped values");
+  addBoolParameter("percent"   , "Percent"     , "percent"   ).setTip("Show value is percentage");
+  addBoolParameter("rangeBar"  , "Range Bar"   , "rangeBar"  ).setTip("show value range in bar");
+  addBoolParameter("horizontal", "Horizontal"  , "horizontal").setTip("draw bars horizontal");
 
   CQChartsPlotType::addParameters();
 }
@@ -162,12 +162,12 @@ addProperties()
   addProperty("columns", this, "rowGrouping"   , "rowGrouping");
   addProperty("columns", this, "colorColumn"   , "color"      );
 
-  addProperty("", this, "colorBySet");
-  addProperty("", this, "stacked"   );
-  addProperty("", this, "percent"   );
-  addProperty("", this, "range"     );
-  addProperty("", this, "horizontal");
-  addProperty("", this, "margin"    , "barMargin");
+  addProperty("options", this, "colorBySet");
+  addProperty("options", this, "stacked"   );
+  addProperty("options", this, "percent"   );
+  addProperty("options", this, "range"     );
+  addProperty("options", this, "horizontal");
+  addProperty("options", this, "margin"    , "barMargin");
 
   addProperty("stroke", this, "border"     , "visible"   );
   addProperty("stroke", this, "borderColor", "color"     );
@@ -199,9 +199,9 @@ setStacked(bool b)
 
 void
 CQChartsBarChartPlot::
-setRange(bool b)
+setRangeBar(bool b)
 {
-  CQChartsUtil::testAndSet(range_, b, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(rangeBar_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -435,7 +435,7 @@ updateRange(bool apply)
 
   groupData.defaultRow = true;
 
-  if      (! isRange() && valueColumns().size() > 1) {
+  if      (! isRangeBar() && valueColumns().size() > 1) {
     groupData.columns     = valueColumns();
     groupData.rowGrouping = isRowGrouping();
 
@@ -453,7 +453,7 @@ updateRange(bool apply)
     initGroup(groupData);
   }
   // if no range use name or value columns for group
-  else if (! isRange()) {
+  else if (! isRangeBar()) {
     groupData.column      = nameColumn();
     groupData.columns     = valueColumns();
     groupData.rowGrouping = isRowGrouping();
@@ -555,7 +555,7 @@ updateRange(bool apply)
   //---
 
   // set axis column and labels
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   CQChartsAxis *xAxis = (! isHorizontal() ? xAxis_ : yAxis_);
   CQChartsAxis *yAxis = (! isHorizontal() ? yAxis_ : xAxis_);
@@ -608,7 +608,7 @@ CQChartsBarChartPlot::
 addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
   // add value for each column (non-range)
-  if (! isRange()) {
+  if (! isRangeBar()) {
     for (const auto &column : valueColumns()) {
       Columns columns;
 
@@ -631,7 +631,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   // get group ind
   int groupInd = -1;
 
-  if (! isRange()) {
+  if (! isRangeBar()) {
     assert(! valueColumns.empty());
 
     const CQChartsColumn &valueColumn = valueColumns[0];
@@ -735,7 +735,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   if (ns > 1) {
     assert(! valueColumns.empty());
@@ -935,7 +935,7 @@ initObjs()
 
   //---
 
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   // start at px1 - bar width
   double bx = -0.5;
@@ -1015,7 +1015,7 @@ initObjs()
 
       double value1, value2;
 
-      if (! isRange()) {
+      if (! isRangeBar()) {
         if (isStacked()) {
           if (minInd.value >= 0) {
             value1 = lastPosValue;
@@ -1075,7 +1075,7 @@ initObjs()
 
       //---
 
-      if (! isRange()) {
+      if (! isRangeBar()) {
         if (minInd.value >= 0) {
           lastPosValue = lastPosValue + scale*minInd.value;
         }
@@ -1139,7 +1139,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   //---
 
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   if (ns > 1) {
     if (isColorBySet()) {
@@ -1211,7 +1211,7 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   if (ns > 1) {
     // if color by set then key hides set
@@ -1243,7 +1243,7 @@ bool
 CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
-  int ns = (! isRange() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   if (ns > 1) {
     // if not color by set then key hides set values
@@ -1306,14 +1306,14 @@ addMenuItems(QMenu *menu)
   percentAction->setChecked(isPercent());
 
   rangeAction->setCheckable(true);
-  rangeAction->setChecked(isRange());
+  rangeAction->setChecked(isRangeBar());
 
   horizontalAction->setCheckable(true);
   horizontalAction->setChecked(isHorizontal());
 
   connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
   connect(percentAction   , SIGNAL(triggered(bool)), this, SLOT(setPercent(bool)));
-  connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRange(bool)));
+  connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRangeBar(bool)));
   connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
 
   menu->addSeparator();
@@ -1374,7 +1374,7 @@ calcId() const
 
   QString valueStr;
 
-  if (! plot_->isRange()) {
+  if (! plot_->isRangeBar()) {
     valueStr = plot_->valueStr(minInd.value);
   }
   else {
@@ -1408,7 +1408,7 @@ calcTipId() const
 
   QString valueStr;
 
-  if (! plot_->isRange()) {
+  if (! plot_->isRangeBar()) {
     valueStr = plot_->valueStr(minInd.value);
   }
   else {
@@ -1717,7 +1717,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
 
   double posSum = 0.0, negSum = 0.0;
 
-  int ns = (! plot_->isRange() ? plot_->numValueColumns() : 1);
+  int ns = (! plot_->isRangeBar() ? plot_->numValueColumns() : 1);
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {

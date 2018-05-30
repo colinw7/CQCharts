@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <vector>
 #include <iostream>
 
 class CQChartsColumn {

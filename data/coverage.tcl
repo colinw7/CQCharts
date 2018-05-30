@@ -21,7 +21,7 @@ set_property -view $viewId -plot $plotId1 -name impulse.color   -value palette
 set_property -view $viewId -plot $plotId1 -name impulse.alpha   -value 0.5
 set_property -view $viewId -plot $plotId1 -name impulse.width   -value 20px
 
-set_property -view $viewId -plot $plotId2 -name invertY         -value 1
+set_property -view $viewId -plot $plotId2 -name invert.y        -value 1
 set_property -view $viewId -plot $plotId2 -name impulse.visible -value 1
 set_property -view $viewId -plot $plotId2 -name impulse.color   -value palette#1
 set_property -view $viewId -plot $plotId2 -name impulse.alpha   -value 0.5

@@ -142,7 +142,9 @@ struct MainData {
   bool             horizontal { false };
   bool             vertical   { false };
   bool             loop       { false };
-#ifdef CQ_CHARTS_CEIL
+#if   defined(CQ_CHARTS_TCL)
+  ParserType       parserType { ParserType::TCL };
+#elif defined(CQ_CHARTS_CEIL
   ParserType       parserType { ParserType::CEIL };
 #else
   ParserType       parserType { ParserType::SCRIPT };

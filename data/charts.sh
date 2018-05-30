@@ -531,9 +531,9 @@ CQChartsTest -ceil -exec split_bar_separated.cl
 CQChartsTest \
  -csv data/temp_bar_range.csv -first_line_header \
  -type barchart -columns "category=0,value=2 3" \
- -bool "range=1,horizontal=1" \
+ -bool "rangeBar=1,horizontal=1" \
  -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
- -properties "key.visible=0,barMargin=12px,fill.color=palette:0.2"
+ -properties "key.visible=0,options.barMargin=12px,fill.color=palette:0.2"
 
 #----
 

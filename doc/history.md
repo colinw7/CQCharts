@@ -399,3 +399,9 @@
  + preview file and analyze contents in load dialog for easier loading
  + combine set_theme/set_palette and get_theme/get_palette commands
  + improve expression model operators to allow header type and type to be set
+# 5/29/2018
+ + add tips to some parameters
+ + support auto set of format from model in plot dialog
+ + move some plot properties in hierarchy
+ + rename range property to rangeBar in bar chart (duplicate name)
+ + move file load and analyze to separate file

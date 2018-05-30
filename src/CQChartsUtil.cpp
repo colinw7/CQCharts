@@ -1,6 +1,9 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
+#include <CQCsvModel.h>
+#include <CQTsvModel.h>
 #include <CQCharts.h>
+
 #include <CQUtil.h>
 #include <CExpr.h>
 #include <CQStrParse.h>
@@ -144,8 +147,7 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
 //  . column can be model column, header or custom expresssion
 bool
 columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                CQBaseModel::Type &columnType, CQChartsNameValues &nameValues)
-{
+                CQBaseModel::Type &columnType, CQChartsNameValues &nameValues) {
   if (column.type() != CQChartsColumn::Type::DATA) {
     // TODO: for custom expression should determine expression result type (if possible)
     columnType = CQBaseModel::Type::STRING;
@@ -250,8 +252,7 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
 // use column format string to format a value as data (used by axis)
 //  TODO: separate format string from column type to remove dependence
 bool
-formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str)
-{
+formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QString &str) {
   CQChartsNameValues nameValues;
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
@@ -275,8 +276,7 @@ formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QS
 //  TODO: value should be variant ?
 bool
 formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                  double value, QString &str)
-{
+                  double value, QString &str) {
   CQBaseModel::Type  columnType;
   CQChartsNameValues nameValues;
 
@@ -303,8 +303,7 @@ formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
 // use column type details to format an internal model value (variant) to a display value
 QVariant
 columnDisplayData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                  const QVariant &var)
-{
+                  const QVariant &var) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
@@ -314,8 +313,7 @@ columnDisplayData(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
 // use column type details to format an internal model value (variant) to a editable value
 QVariant
 columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-               const QVariant &var)
-{
+               const QVariant &var) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
@@ -325,8 +323,7 @@ columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn
 // get type string for column (type name and name values)
 bool
 columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-              const CQChartsColumn &column, QString &typeStr)
-{
+              const CQChartsColumn &column, QString &typeStr) {
   CQBaseModel::Type  columnType;
   CQChartsNameValues nameValues;
 
@@ -343,8 +340,7 @@ columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
 // set type string for column (type name and name values)
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                 const CQChartsColumn &column, const QString &typeStr)
-{
+                 const CQChartsColumn &column, const QString &typeStr) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // decode to type name and name values
@@ -528,6 +524,69 @@ bool variantToString(const QVariant &var, QString &str) {
 
     return false;
   }
+
+  return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
+  auto open = [&](FILE* &fp, const QString &filename) -> bool {
+    fp = fopen(filename.toStdString().c_str(), "r");
+    if (! fp) return false;
+
+    return true;
+  };
+
+  auto readLine = [](FILE *fp, QString &line) {
+    line = "";
+
+    if (feof(fp)) return false;
+
+    int c = fgetc(fp);
+
+    if (c == EOF)
+      return false;
+
+    while (! feof(fp) && c != '\n') {
+      line += c;
+
+      c = fgetc(fp);
+    }
+
+    return true;
+  };
+
+  auto close = [](FILE* &fp) {
+    if (fp)
+      fclose(fp);
+
+    fp = 0;
+  };
+
+  //---
+
+  FILE *fp = nullptr;
+
+  if (! open(fp, filename))
+    return false;
+
+  QString line;
+
+  while (readLine(fp, line)) {
+    lines.push_back(line);
+
+    if (maxLines >= 0 && int(lines.size()) > maxLines)
+      break;
+  }
+
+  close(fp);
+
+  //---
 
   return true;
 }
@@ -874,8 +933,7 @@ bool stringToTime(const QString &fmt, const QString &str, double &t) {
 namespace CQChartsUtil {
 
 bool
-formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QStringList &strs)
-{
+formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QStringList &strs) {
   auto addStr = [&](const QString &str) {
     assert(str.length());
     strs.push_back(str);
@@ -1016,6 +1074,36 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
   }
 
   return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+void
+exportModel(QAbstractItemModel *model, CQBaseModel::DataType type, bool hheader,
+            bool vheader, std::ostream &os) {
+  if      (type == CQBaseModel::DataType::CSV) {
+    CQCsvModel csv;
+
+    csv.setFirstLineHeader  (hheader);
+    csv.setFirstColumnHeader(vheader);
+
+    csv.save(model, os);
+  }
+  else if (type == CQBaseModel::DataType::TSV) {
+    CQTsvModel tsv;
+
+    tsv.setFirstLineHeader  (hheader);
+    tsv.setFirstColumnHeader(vheader);
+
+    tsv.save(model, os);
+  }
+  else {
+    assert(false);
+  }
 }
 
 }

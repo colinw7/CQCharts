@@ -132,6 +132,9 @@ CQChartsModelData *
 CQCharts::
 getModelData(QAbstractItemModel *model) const
 {
+  if (! model)
+    return nullptr;
+
   bool ok;
 
   int ind = model->property("modelInd").toInt(&ok);

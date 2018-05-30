@@ -88,9 +88,9 @@ void
 CQChartsPlotType::
 addParameters()
 {
-  addColumnParameter("id", "Id", "idColumn");
+  addColumnParameter("id", "Id", "idColumn").setTip("Unique row id");
 
-  addBoolParameter("key", "Key", "keyVisible");
+  addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
 }
 
 //------
@@ -880,21 +880,28 @@ addProperties()
 
   addProperty("columns", this, "idColumn", "id");
 
-  addProperty("", this, "visible"    );
-  addProperty("", this, "rect"       );
-  addProperty("", this, "range"      );
-  addProperty("", this, "dataScaleX" );
-  addProperty("", this, "dataScaleY" );
-  addProperty("", this, "equalScale" );
+  addProperty("", this, "visible");
   addProperty("", this, "followMouse");
-  addProperty("", this, "overlay"    );
-  addProperty("", this, "y1y2"       );
-  addProperty("", this, "invertX"    );
-  addProperty("", this, "invertY"    );
-  addProperty("", this, "logX"       );
-  addProperty("", this, "logY"       );
-  addProperty("", this, "autoFit"    );
-  addProperty("", this, "showBoxes"  );
+
+  addProperty("range", this, "rect" , "view");
+  addProperty("range", this, "range", "data");
+
+  addProperty("scaling", this, "dataScaleX", "dataX");
+  addProperty("scaling", this, "dataScaleY", "dataY");
+  addProperty("scaling", this, "equalScale", "equal");
+
+  addProperty("grouping", this, "overlay");
+  addProperty("grouping", this, "x1x2"   );
+  addProperty("grouping", this, "y1y2"   );
+
+  addProperty("invert", this, "invertX", "x");
+  addProperty("invert", this, "invertY", "y");
+
+  addProperty("log", this, "logX", "x");
+  addProperty("log", this, "logY", "y");
+
+  addProperty("", this, "autoFit"  );
+  addProperty("", this, "showBoxes");
 
   QString plotStyleStr       = "plotStyle";
   QString plotStyleFillStr   = plotStyleStr + "/fill";

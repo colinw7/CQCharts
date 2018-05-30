@@ -19,15 +19,22 @@ class CQChartsPlotParameterAttributes {
  public:
   CQChartsPlotParameterAttributes() { }
 
+  // optional/required
   bool isOptional() const { return ! isRequired(); }
   CQChartsPlotParameterAttributes &setOptional () { flags_ &= ~REQUIRED ; return *this; }
 
   bool isRequired() const { return (flags_ & REQUIRED); }
   CQChartsPlotParameterAttributes &setRequired() { flags_ |= REQUIRED; return *this; }
 
+  //---
+
+  // monotonic
   bool isMonotonic() const { return (flags_ & MONOTONIC); }
   CQChartsPlotParameterAttributes &setMonotonic() { flags_ |= MONOTONIC; return *this; }
 
+  //---
+
+  // value types
   bool isNumeric() const { return (flags_ & NUMERIC); }
   CQChartsPlotParameterAttributes &setNumeric() { flags_ |= NUMERIC; return *this; }
 
@@ -37,9 +44,15 @@ class CQChartsPlotParameterAttributes {
   bool isColor() const { return (flags_ & COLOR); }
   CQChartsPlotParameterAttributes &setColor() { flags_ |= COLOR; return *this; }
 
+  //---
+
+  // groupable
   bool isGroupable() const { return (flags_ & GROUPABLE); }
   CQChartsPlotParameterAttributes &setGroupable() { flags_ |= GROUPABLE; return *this; }
 
+  //---
+
+  // mapping (normalize 0->1 to min/max)
   bool isMapped() const { return (flags_ & MAPPED); }
   CQChartsPlotParameterAttributes &setMapped() { flags_ |= MAPPED; return *this; }
 
@@ -68,9 +81,9 @@ class CQChartsPlotParameterAttributes {
   }
 
  private:
-  unsigned int flags_  { 0 };   //! flags
-  double       mapMin_ { 0.0 }; //! map min
-  double       mapMax_ { 1.0 }; //! map max
+  unsigned int flags_  { 0 };   // flags
+  double       mapMin_ { 0.0 }; // map min
+  double       mapMax_ { 1.0 }; // map max
 };
 
 class CQChartsPlotParameter {

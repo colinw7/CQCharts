@@ -1,4 +1,5 @@
 #include <CQChartsLoadDlg.h>
+#include <CQChartsAnalyzeFile.h>
 #include <CQChartsUtil.h>
 #include <CQDividedArea.h>
 #include <CQFilename.h>
@@ -249,14 +250,16 @@ previewFileSlot()
 
   std::size_t maxLines = 10;
 
-  std::vector<QString> lines;
+  QStringList lines;
 
   if (! CQChartsUtil::fileToLines(fileName, lines, maxLines))
     return;
 
   QString text;
 
-  for (auto &line : lines) {
+  for (int i = 0; i < lines.length(); ++i) {
+    const QString &line = lines[i];
+
     if (text.length())
       text += "\n";
 
@@ -273,8 +276,9 @@ previewFileSlot()
   bool firstLineHeader   = false;
   bool firstColumnHeader = false;
 
-  if (! CQChartsUtil::analyzeFile(fileName, dataType, commentHeader,
-                                  firstLineHeader, firstColumnHeader))
+  CQChartsAnalyzeFile analyzeFile(fileName);
+
+  if (! analyzeFile.getDetails(dataType, commentHeader, firstLineHeader, firstColumnHeader))
     return;
 
   commentHeaderCheck_    ->setChecked(commentHeader);

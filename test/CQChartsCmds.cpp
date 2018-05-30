@@ -522,7 +522,7 @@ getModelCmd(const Vars &vars)
   bool    header   = argv.getParseBool("header");
   int     row      = argv.getParseInt ("row"   , -1);
   QString roleName = argv.getParseStr ("role"  );
-  QString name     = argv.getParseStr ("name"  , "value");
+  QString name     = argv.getParseStr ("name"  , "current");
 
   //---
 
@@ -550,10 +550,20 @@ getModelCmd(const Vars &vars)
     bool ok;
 
     if (header) {
+      if (column < 0) {
+        errorMsg("Invalid header column specified");
+        setCmdRc(QString());
+      }
+
       var = CQChartsUtil::modelHeaderValue(modelData->model().data(), column, role, ok);
     }
     else {
       QModelIndex ind = modelData->model().data()->index(row, column);
+
+      if (! ind.isValid()) {
+        errorMsg("Invalid data row/column specified");
+        setCmdRc(QString());
+      }
 
       var = CQChartsUtil::modelValue(modelData->model().data(), ind, role, ok);
     }
@@ -581,6 +591,10 @@ getModelCmd(const Vars &vars)
       else if (name == "num_unique")
         setCmdRc(columnDetails.numUnique());
     }
+    else {
+      errorMsg("Invalid column specified");
+      setCmdRc(QString());
+    }
   }
   else if (name == "map") {
     CQChartsModelDetails &details = modelData->details();
@@ -598,9 +612,18 @@ getModelCmd(const Vars &vars)
 
       setCmdRc(r);
     }
+    else {
+      errorMsg("Invalid column specified");
+      setCmdRc(QString());
+    }
   }
-  else
+  else if (name == "current") {
+    setCmdRc(modelData->ind());
+  }
+  else {
+    errorMsg("No value name specified");
     setCmdRc(QString());
+  }
 }
 
 //------

@@ -106,6 +106,7 @@ CQChartsPosition.cpp \
 CQChartsLength.cpp \
 CQChartsPath.cpp \
 CQChartsStyle.cpp \
+CQChartsAnalyzeFile.cpp \
 CQChartsUtil.cpp \
 \
 CQCsvModel.cpp \
@@ -195,6 +196,7 @@ HEADERS += \
 ../include/CQChartsPath.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \
+../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \
 \
