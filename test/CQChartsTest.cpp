@@ -324,7 +324,7 @@ main(int argc, char **argv)
 
   // close test widget
   if (mainData.closeApp)
-    test.close();
+    test.closeSlot();
 
   //---
 
@@ -830,6 +830,12 @@ addMenus()
 
   fileMenu->addAction(loadAction);
 
+  QAction *closeAction = new QAction("Close", menuBar);
+
+  connect(closeAction, SIGNAL(triggered()), this, SLOT(closeSlot()));
+
+  fileMenu->addAction(closeAction);
+
   //---
 
   QMenu *plotMenu = menuBar->addMenu("&Plot");
@@ -985,6 +991,15 @@ initPlot(const CQChartsInitData &initData)
   //---
 
   return true;
+}
+
+//------
+
+void
+CQChartsTest::
+closeSlot()
+{
+  close();
 }
 
 //------

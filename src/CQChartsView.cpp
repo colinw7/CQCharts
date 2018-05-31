@@ -2188,7 +2188,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  if (getenv("CQCHARTS_DEBUG_MENU")) {
+  if (getenv("CQCHARTS_DEBUG")) {
     QAction *showBoxesAction = new QAction("Show Boxes", popupMenu_);
 
     showBoxesAction->setCheckable(true);

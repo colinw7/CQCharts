@@ -11,8 +11,8 @@ viewInd = "view1"
 
 set_property -view $viewInd -name key.visible -value 1
 
-set_property -view $viewInd -plot $plotInd1 -name rect -value {0 0 50 100}
-set_property -view $viewInd -plot $plotInd1 -name horizontal -value 1
+set_property -view $viewInd -plot $plotInd1 -name range.view -value {0 0 50 100}
+set_property -view $viewInd -plot $plotInd1 -name options.horizontal -value 1
 set_property -view $viewInd -plot $plotInd1 -name invert.x -value 1
 set_property -view $viewInd -plot $plotInd1 -name invert.y -value 1
 set_property -view $viewInd -plot $plotInd1 -name plotStyle.fill.visible -value 0
@@ -28,8 +28,8 @@ set_property -view $viewInd -plot $plotInd1 -name fill.color -value palette:0.5
 set_property -view $viewInd -plot $plotInd1 -name margin.right -value 5
 set_property -view $viewInd -plot $plotInd1 -name options.barMargin -value 12px
 
-set_property -view $viewInd -plot $plotInd2 -name rect -value {50 0 100 100}
-set_property -view $viewInd -plot $plotInd2 -name horizontal -value 1
+set_property -view $viewInd -plot $plotInd2 -name range.view -value {50 0 100 100}
+set_property -view $viewInd -plot $plotInd2 -name options.horizontal -value 1
 set_property -view $viewInd -plot $plotInd2 -name invert.y -value 1
 set_property -view $viewInd -plot $plotInd2 -name plotStyle.fill.visible -value 0
 set_property -view $viewInd -plot $plotInd2 -name dataStyle.fill.visible -value 0

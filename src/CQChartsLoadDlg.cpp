@@ -40,6 +40,8 @@ CQChartsLoadDlg::
 CQChartsLoadDlg(CQCharts *charts) :
  charts_(charts)
 {
+  setObjectName("loadDlg");
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   //---

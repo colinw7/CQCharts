@@ -92,6 +92,9 @@ visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r,
               CQChartsModelVisitor &visitor) {
   QModelIndex ind1 = model->index(r, 0, parent);
 
+  if (visitor.maxRows() > 0 && r > visitor.maxRows())
+    return CQChartsModelVisitor::State::TERMINATE;
+
   if (model->hasChildren(ind1)) {
     CQChartsModelVisitor::State state = visitor.hierVisit(model, parent, r);
     if (state != CQChartsModelVisitor::State::OK) return state;

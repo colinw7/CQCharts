@@ -1,7 +1,7 @@
 #ifndef CQChartsTreeMapPlot_H
 #define CQChartsTreeMapPlot_H
 
-#include <CQChartsPlot.h>
+#include <CQChartsHierPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsData.h>

@@ -4,7 +4,7 @@ set plotInd1 [create_plot -type bar -columns "category=0,value=1"]
 
 set plotInd2 [create_plot -type bar -columns "category=0,value=2"]
 
-set viewInd view1
+set viewInd [get_property -plot $plotInd1 -name viewId]
 
 set_property -view $viewInd -name key.visible -value 1
 

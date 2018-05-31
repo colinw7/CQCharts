@@ -74,13 +74,13 @@ class CQChartsPlotDlg : public QDialog {
     int          ind      { -1 };
   };
 
- private:
   struct MapValueData {
     bool   mapped { false };
     double min    { 0.0 };
     double max    { 1.0 };
   };
 
+ private:
   void addPlotWidgets(const QString &typeName, int ind);
 
   void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,

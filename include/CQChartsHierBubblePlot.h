@@ -1,7 +1,7 @@
 #ifndef CQChartsHierBubblePlot_H
 #define CQChartsHierBubblePlot_H
 
-#include <CQChartsPlot.h>
+#include <CQChartsHierPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>

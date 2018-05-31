@@ -405,3 +405,6 @@
  + move some plot properties in hierarchy
  + rename range property to rangeBar in bar chart (duplicate name)
  + move file load and analyze to separate file
+# 5/30/2018
+ + more CQChartsHierPlot to separate file
+ + add max rows for preview plot

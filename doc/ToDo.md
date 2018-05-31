@@ -1,6 +1,7 @@
 High
+ + Notifications on mouse enter/leave (others)
+ + More signals in view settings to reduce dependencies
  + More share model details
- + Support Tcl everywhere
  + More common grouping column handling
  + equal scale should be quick adjust of dataRange (cached original)
  + More variant properties to remove string conversion

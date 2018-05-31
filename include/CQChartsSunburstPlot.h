@@ -1,7 +1,7 @@
 #ifndef CQChartsSunburstPlot_H
 #define CQChartsSunburstPlot_H
 
-#include <CQChartsPlot.h>
+#include <CQChartsHierPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <QModelIndex>

@@ -165,7 +165,7 @@ addProperties()
   addProperty("options", this, "colorBySet");
   addProperty("options", this, "stacked"   );
   addProperty("options", this, "percent"   );
-  addProperty("options", this, "range"     );
+  addProperty("options", this, "rangeBar"  );
   addProperty("options", this, "horizontal");
   addProperty("options", this, "margin"    , "barMargin");
 

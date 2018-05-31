@@ -103,6 +103,9 @@ class CQChartsTest : public CQAppWindow {
 
   QSize sizeHint() const;
 
+ public slots:
+  void closeSlot();
+
  private slots:
   void loadModelSlot();
 

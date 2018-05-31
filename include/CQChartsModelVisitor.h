@@ -25,6 +25,11 @@ class CQChartsModelVisitor {
   int numRows() const { return numRows_; }
   void setNumRows(int nr) { numRows_ = nr; }
 
+  int maxRows() const { return maxRows_; }
+  void setMaxRows(int i) { maxRows_ = i; }
+
+  //---
+
   void init(int nc) { numCols_ = nc; row_ = 0; numRows_ = 0; }
 
   void step() { ++row_; }
@@ -49,6 +54,7 @@ class CQChartsModelVisitor {
   int numCols_ { 0 };
   int row_     { 0 };
   int numRows_ { 0 };
+  int maxRows_ { -1 };
 };
 
 #endif
