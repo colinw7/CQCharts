@@ -78,6 +78,8 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
  ~CQChartsModelFilter();
 
+  CQChartsModelExprMatch *exprMatch() const { return expr_; }
+
   QItemSelectionModel *selectionModel() const { return selectionModel_; }
   void setSelectionModel(QItemSelectionModel *sm) { selectionModel_ = sm; }
 

@@ -1,6 +1,7 @@
 #ifndef CQChartsCmds_H
 #define CQChartsCmds_H
 
+#include <CQCharts.h>
 #include <CQChartsInitData.h>
 #include <CQChartsGeom.h>
 #include <CQExprModel.h>
@@ -11,7 +12,6 @@
 
 #include <boost/optional.hpp>
 
-class CQCharts;
 class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
@@ -20,6 +20,7 @@ class CQChartsPaletteColorData;
 class CQChartsColumn;
 class CQChartsModelData;
 class CQChartsPlotType;
+class CQChartsAnnotation;
 
 #ifdef CQ_CHARTS_CEIL
 class ClLanguageCommand;
@@ -64,52 +65,51 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
-  enum class ParserType {
-    SCRIPT,
-    CEIL,
-    TCL
-  };
-
-  using Args    = std::vector<QString>;
-  using Vars    = std::vector<QVariant>;
-  using OptReal = boost::optional<double>;
-  using ModelP  = QSharedPointer<QAbstractItemModel>;
-  using Strs    = std::vector<QString>;
-  using ViewP   = QPointer<CQChartsView>;
-  using Plots   = std::vector<CQChartsPlot *>;
+  using ParserType = CQCharts::ParserType;
+  using Args       = std::vector<QString>;
+  using Vars       = std::vector<QVariant>;
+  using OptReal    = boost::optional<double>;
+  using ModelP     = QSharedPointer<QAbstractItemModel>;
+  using Strs       = std::vector<QString>;
+  using ViewP      = QPointer<CQChartsView>;
+  using Plots      = std::vector<CQChartsPlot *>;
 
  public:
   CQChartsCmds(CQCharts *charts);
  ~CQChartsCmds();
 
+  CQCharts *charts() const { return charts_; }
+
   CExpr* expr() const { return expr_; }
 
-  const ParserType &parserType() const { return parserType_; }
+  const ParserType &parserType() const;
   void setParserType(const ParserType &type);
 
   void addCeilCommand(const QString &name);
-  void addTclCommand(const QString &name);
+  void addTclCommand (const QString &name);
+
   void addCommand(const QString &name);
   void addCommands();
 
   bool processCmd(const QString &cmd, const Vars &vars);
 
-  QString fixTypeName(const QString &typeName) const;
+  static QString fixTypeName(const QString &typeName);
 
   void setViewProperties(CQChartsView *view, const QString &properties);
   void setPlotProperties(CQChartsPlot *plot, const QString &properties);
 
   //---
 
-  void processAddExpression(ModelP &model, const QString &expr);
+  static void processAddExpression(ModelP &model, const QString &expr);
 
-  void processExpression(ModelP &model, const QString &expr);
-  int  processExpression(ModelP &model, CQExprModel::Function function,
-                         const CQChartsColumn &column, const QString &expr);
+  static void processExpression(ModelP &model, const QString &expr);
+
+  static int  processExpression(ModelP &model, CQExprModel::Function function,
+                                const CQChartsColumn &column, const QString &expr);
 
   //---
 
-  void setColumnFormats(const ModelP &model, const QString &columnType);
+  static void setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnType);
 
   bool loadFileModel(const QString &filename, CQChartsFileType type,
                      const CQChartsInputData &inputData);
@@ -118,7 +118,8 @@ class CQChartsCmds : public QObject {
 
   void foldModel(CQChartsModelData *modelData, const QString &str);
 
-  void sortModel(ModelP &model, const QString &args);
+  bool sortModel(ModelP &model, const QString &args);
+  bool sortModel(ModelP &model, int column, Qt::SortOrder order);
 
   //---
 
@@ -134,11 +135,6 @@ class CQChartsCmds : public QObject {
 
   CQChartsModelData *getModelData(int ind);
 
-  CQChartsModelData *currentModelData();
-
-  int currentInd() const { return currentInd_; }
-  void setCurrentInd(int i) { currentInd_ = i; }
-
   //---
 
   CQChartsView *view() const;
@@ -147,17 +143,16 @@ class CQChartsCmds : public QObject {
 
   CQChartsView *addView();
 
-  CQChartsView *currentView() const;
-
   //---
 
-  bool isCompleteLine(QString &line, bool &join) const;
+  static bool isCompleteLine(QString &line, bool &join);
 
-  void parseLine(const QString &line);
+  void parseLine(const QString &line, bool log=true);
 
   void parseScriptLine(const QString &line);
 
-  bool stringToColumn(const ModelP &model, const QString &str, CQChartsColumn &column) const;
+  static bool stringToColumn(QAbstractItemModel *model, const QString &str,
+                             CQChartsColumn &column);
 
   //---
 
@@ -169,37 +164,38 @@ class CQChartsCmds : public QObject {
   bool loadModelCmd   (const Vars &vars);
   void processModelCmd(const Vars &vars);
   void sortModelCmd   (const Vars &vars);
+  void filterModelCmd (const Vars &vars);
   void exportModelCmd (const Vars &vars);
 
   void groupPlotsCmd(const Vars &vars);
   void placePlotsCmd(const Vars &vars);
-
-  void setModelCmd(const Vars &vars);
-  void getModelCmd(const Vars &vars);
 
   void measureTextCmd(const Vars &vars);
 
   void createPlotCmd(const Vars &vars);
   void removePlotCmd(const Vars &vars);
 
-  void setPropertyCmd(const Vars &vars);
   void getPropertyCmd(const Vars &vars);
+  void setPropertyCmd(const Vars &vars);
 
-  void setDataCmd(const Vars &vars);
-  void getDataCmd(const Vars &vars);
+  void getChartsDataCmd(const Vars &vars);
+  void setChartsDataCmd(const Vars &vars);
 
-  void setPaletteCmd(const Vars &vars);
   void getPaletteCmd(const Vars &vars);
+  void setPaletteCmd(const Vars &vars);
 
-  void textShapeCmd    (const Vars &vars);
-  void arrowShapeCmd   (const Vars &vars);
-  void rectShapeCmd    (const Vars &vars);
-  void ellipseShapeCmd (const Vars &vars);
-  void polygonShapeCmd (const Vars &vars);
-  void polylineShapeCmd(const Vars &vars);
-  void pointShapeCmd   (const Vars &vars);
+  void createTextShapeCmd    (const Vars &vars);
+  void createArrowShapeCmd   (const Vars &vars);
+  void createRectShapeCmd    (const Vars &vars);
+  void createEllipseShapeCmd (const Vars &vars);
+  void createPolygonShapeCmd (const Vars &vars);
+  void createPolylineShapeCmd(const Vars &vars);
+  void createPointShapeCmd   (const Vars &vars);
 
-  void connectCmd(const Vars &vars);
+  void connectChartCmd(const Vars &vars);
+
+  void loadModelDlgCmd (const Vars &vars);
+  void createPlotDlgCmd(const Vars &vars);
 
   void letCmd     (const Vars &vars);
   void ifCmd      (const Vars &vars);
@@ -235,7 +231,7 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  CQExprModel *getExprModel(ModelP &model) const;
+  static CQExprModel *getExprModel(ModelP &model);
 
   void foldClear(CQChartsModelData *modelData);
 
@@ -249,33 +245,29 @@ class CQChartsCmds : public QObject {
 
   CQChartsPlot *getPlotByName(CQChartsView *view, const QString &name) const;
 
+  CQChartsAnnotation *getAnnotationByName(CQChartsView *view, const QString &name) const;
+  CQChartsAnnotation *getAnnotationByName(CQChartsPlot *plot, const QString &name) const;
+
+  //---
+
   void setCmdRc(int rc);
   void setCmdRc(double rc);
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
+  void setCmdRc(const QList<QVariant> &rc);
 
-  void errorMsg(const QString &msg) const;
+  static void errorMsg(const QString &msg);
 
  signals:
-  void titleChanged(int ind, const QString &title);
-
   void updateModelDetails(int ind);
   void updateModel(int ind);
 
-  void windowCreated(CQChartsWindow *window);
-  void viewCreated(CQChartsView *window);
-  void plotCreated(CQChartsPlot *plot);
-
-  void modelDataAdded(int ind);
-
  private:
-  CQCharts*   charts_       { nullptr };
-  CExpr*      expr_         { nullptr };
-  ParserType  parserType_   { ParserType::SCRIPT };
-  ViewP       view_;
-  int         currentInd_   { -1 };
-  bool        continueFlag_ { false };
-  CQTcl*      qtcl_         { nullptr };
+  CQCharts* charts_       { nullptr };
+  CExpr*    expr_         { nullptr };
+  ViewP     view_;
+  bool      continueFlag_ { false };
+  CQTcl*    qtcl_         { nullptr };
 };
 
 #endif

@@ -108,22 +108,19 @@ class CQChartsTest : public CQAppWindow {
 
  private slots:
   void loadModelSlot();
-
-  bool loadFileSlot(const QString &type, const QString &filename);
+  void modelLoadedSlot(int);
 
   void createPlotSlot();
-
   void plotDialogCreatedSlot(CQChartsPlot *plot);
 
   void plotObjPressedSlot(CQChartsPlotObj *obj);
-
-  void titleChanged(int ind, const QString &title);
 
   void updateModel(int ind);
   void updateModelDetails(int ind);
 
   void windowCreated(CQChartsWindow *window);
-  void plotCreated(CQChartsPlot *plot);
+
+  void plotAdded(CQChartsPlot *plot);
 
   void updateModelControl();
 

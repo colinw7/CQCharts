@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QMenu>
+#include <QTimer>
 
 #include <iostream>
 
@@ -17,6 +18,10 @@ CQChartsViewExpander(QWidget *parent, QWidget *w, const Side &side) :
   setAutoFillBackground(true);
 
   windowFlags_ = this->windowFlags();
+
+  detachTimer_ = new QTimer(this); detachTimer_->setSingleShot(true);
+
+  connect(detachTimer_, SIGNAL(timeout()), this, SLOT(detachSlot()));
 
   updateGeometry();
 }
@@ -258,7 +263,7 @@ mousePressEvent(QMouseEvent *me)
 
     QAction *detachAction = new QAction((! isDetached() ? "Detach" : "Attach"), menu);
 
-    connect(detachAction, SIGNAL(triggered()), this, SLOT(detachSlot()));
+    connect(detachAction, SIGNAL(triggered()), this, SLOT(detachLaterSlot()));
 
     menu->addAction(detachAction);
 
@@ -510,13 +515,19 @@ void
 CQChartsViewExpander::
 drawTitleLines(QPainter *p, const QRect &r)
 {
+  int num_lines = 4;
+
+  int h = r.height();
+
+  int gap = h/(num_lines + 2);
+
   int left  = r.left () + border_;
   int right = r.right() - border_;
 
-  int y = r.center().y() - 3;
+  int y = r.center().y() - gap*num_lines/2;
 
-  for (int i = 0; i < 4; ++i) {
-    int y1 = y + 2*i;
+  for (int i = 0; i < num_lines; ++i) {
+    int y1 = y + gap*i;
 
     p->drawLine(left, y1, right, y1);
   }
@@ -600,6 +611,13 @@ CQChartsViewExpander::
 bottomSlot()
 {
   setSide(Side::BOTTOM);
+}
+
+void
+CQChartsViewExpander::
+detachLaterSlot()
+{
+  detachTimer_->start(10);
 }
 
 void

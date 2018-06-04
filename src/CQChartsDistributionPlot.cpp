@@ -20,14 +20,19 @@ void
 CQChartsDistributionPlotType::
 addParameters()
 {
-  addColumnParameter("value", "Value", "valueColumn", 0).setRequired();
-  addColumnParameter("color", "Color", "colorColumn");
+  addColumnParameter("value", "Value", "valueColumn", 0).setRequired().
+    setTip("values to group");
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal");
+  addColumnParameter("color", "Color", "colorColumn").
+    setTip("Color column");
 
-  addBoolParameter("autoRange", "Auto Range", "autoRange" , true);
-  addRealParameter("start"    , "Start"     , "startValue");
-  addRealParameter("delta"    , "Delta"     , "deltaValue");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
+
+  addBoolParameter("autoRange", "Auto Range", "autoRange" , true).
+   setTip("automatically determine value range");
+
+  addRealParameter("start", "Start", "startValue").setTip("Start value for manual range");
+  addRealParameter("delta", "Delta", "deltaValue").setTip("Delta value for manual range");
 
   CQChartsPlotType::addParameters();
 }
@@ -378,7 +383,10 @@ updateRange(bool apply)
         if (! ok)
           return State::SKIP;
 
-        bucket = valueSet_->sbucket(value);
+        if (plot_->isAutoRange())
+          bucket = valueSet_->sbucket(value);
+        else
+          bucket = valueSet_->sind(value);
 
         ivalues_[bucket].emplace_back(valueInd1);
       }
@@ -735,7 +743,10 @@ bucketValuesStr(int bucket, BucketValueType type) const
       return QString("%1").arg(value2);
   }
   else {
-    return valueSet->buckets(bucket);
+    if (isAutoRange())
+      return valueSet->buckets(bucket);
+    else
+      return valueSet->inds(bucket);
   }
 }
 

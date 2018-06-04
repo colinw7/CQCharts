@@ -16,8 +16,11 @@ CQFilename(QWidget *parent) :
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
-  edit_   = new QLineEdit;
+  edit_ = new QLineEdit;
+  edit_->setObjectName("edit");
+
   button_ = new QToolButton;
+  button_->setObjectName("button");
 
   button_->setIcon(CQPixmapCacheInst->getIcon("FILE_DIALOG"));
 

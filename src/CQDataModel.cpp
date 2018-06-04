@@ -279,6 +279,22 @@ data(const QModelIndex &index, int role) const
 
     return var;
   }
+  else {
+    auto p1 = extraData_.find(index.row());
+    if (p1 == extraData_.end()) return QVariant();
+
+    const ColumnRoleVariant &columnRoleVariant = (*p1).second;
+
+    auto p2 = columnRoleVariant.find(index.column());
+    if (p2 == columnRoleVariant.end()) return QVariant();
+
+    const RoleVariant &roleVariant = (*p2).second;
+
+    auto p3 = roleVariant.find(index.column());
+    if (p3 == roleVariant.end()) return QVariant();
+
+    return (*p3).second;
+  }
 
   return CQBaseModel::data(index, role);
 }
@@ -293,23 +309,29 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (! index.isValid())
     return false;
 
-  if (role == Qt::DisplayRole) {
-    if (index.row() >= int(data_.size()))
-      return false;
+  if (index.row() >= int(data_.size()))
+    return false;
 
-    Cells &cells = data_[index.row()];
+  Cells &cells = data_[index.row()];
 
-    if (index.column() >= int(cells.size()))
-      return false;
+  if (index.column() >= int(cells.size()))
+    return false;
 
+  if      (role == Qt::DisplayRole) {
     //Type type = columnType(index.column());
 
     cells[index.column()] = value;
+  }
+  else if (role == Qt::EditRole) {
+    //Type type = columnType(index.column());
 
-    return true;
+    cells[index.column()] = value;
+  }
+  else {
+    extraData_[index.row()][index.column()][role] = value;
   }
 
-  return false;
+  return true;
 }
 
 QModelIndex

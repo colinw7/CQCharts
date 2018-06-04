@@ -391,6 +391,8 @@ class CQChartsPlot : public QObject {
   const QString &id() const { return id_; }
   void setId(const QString &s) { id_ = s; }
 
+  QString pathId() const;
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; update(); }
 
@@ -767,9 +769,6 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  QVariant getData(const QString &id, const CQChartsColumn &column,
-                   const QString &role, bool &ok) const;
-
   int getRowForId(const QString &id) const;
 
   QString idColumnString(int row, const QModelIndex &parent, bool &ok) const;
@@ -779,8 +778,11 @@ class CQChartsPlot : public QObject {
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                     bool &ok) const;
 
-  virtual QVariant modelValue  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                const QModelIndex &parent, bool &ok) const;
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, int role, bool &ok) const;
+  virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                              const QModelIndex &parent, bool &ok) const;
+
   virtual QString  modelString (QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                 const QModelIndex &parent, bool &ok) const;
   virtual double   modelReal   (QAbstractItemModel *model, int row, const CQChartsColumn &column,

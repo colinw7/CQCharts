@@ -58,6 +58,10 @@ class CQChartsWindow : public QFrame {
 
   QSize sizeHint() const;
 
+ signals:
+  void interfacePaletteChanged();
+  void themePalettesChanged();
+
  private slots:
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);

@@ -95,6 +95,7 @@ addBuiltinFunctions()
   addFunction("norm"     );
   addFunction("key"      );
   addFunction("rand"     );
+  addFunction("concat"   );
 }
 
 void
@@ -111,7 +112,7 @@ addExprFunction(const QString &name, CQExprModelExprFn *fn)
 {
   assert(name.length());
 
-#ifdef CQExprModel_USE_TCL
+#ifdef CQExprModel_USE_CEXPR
   exprCmds_.push_back(fn);
 #endif
 }
@@ -271,6 +272,35 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   emit dataChanged(index1, index2);
 
   return true;
+}
+
+bool
+CQExprModel::
+queryColumn(int column, const QString &expr, Rows &rows) const
+{
+  nr_ = rowCount();
+  nc_ = columnCount();
+
+  bool rc = true;
+
+  for (int r = 0; r < nr_; ++r) {
+    currentRow_ = r;
+    currentCol_ = column;
+
+    QVariant var;
+
+    QString expr1 = replaceNumericColumns(expr, currentRow_, currentCol_).simplified();
+
+    if (! evaluateExpression(expr1, var)) {
+      rc = false;
+      continue;
+    }
+
+    if (var.toBool())
+      rows.push_back(r);
+  }
+
+  return rc;
 }
 
 void
@@ -459,7 +489,7 @@ data(const QModelIndex &index, int role) const
 
   int column = index.column() - nc;
 
-  if (role == Qt::DisplayRole) {
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
     currentRow_ = index.row();
     currentCol_ = index.column();
 
@@ -584,7 +614,7 @@ getExtraColumnValue(int row, int column, int ecolumn) const
 
     QString expr = extraColumn.expr;
 
-    expr = replaceNumericColumns(expr, row, column);
+    expr = replaceNumericColumns(expr, row, column).simplified();
 
     QVariant var;
 
@@ -690,7 +720,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
   const ExtraColumn &extraColumn = this->extraColumn(column);
 
-  if      (role == Qt::DisplayRole) {
+  if      (role == Qt::DisplayRole || role == Qt::EditRole) {
     if (extraColumn.header.length())
       return extraColumn.header;
 
@@ -875,12 +905,12 @@ processCmd(const QString &name, const Values &values)
   else if (name == "setHeader") return setHeaderCmd(values);
   else if (name == "type"     ) return typeCmd     (values);
   else if (name == "setType"  ) return setTypeCmd  (values);
-  else if (name == "rand"     ) return randCmd     (values);
   else if (name == "map"      ) return mapCmd      (values);
   else if (name == "bucket"   ) return bucketCmd   (values);
   else if (name == "norm"     ) return normCmd     (values);
   else if (name == "key"      ) return keyCmd      (values);
   else if (name == "rand"     ) return randCmd     (values);
+  else if (name == "concat"   ) return concatCmd   (values);
   else                          return QVariant(false);
 }
 
@@ -1421,12 +1451,27 @@ randCmd(const Values &values) const
   return QVariant(r);
 }
 
+QVariant
+CQExprModel::
+concatCmd(const Values &values) const
+{
+  QString str;
+
+  for (std::size_t i = 0; i < values.size(); ++i)
+    str += values[i].toString();
+
+  return QVariant(str);
+}
+
 //---
 
 bool
 CQExprModel::
 evaluateExpression(const QString &expr, QVariant &var) const
 {
+  if (expr.length() == 0)
+    return false;
+
   if      (exprType_ == ExprType::EXPR) {
 #ifdef CQExprModel_USE_CEXPR
     CExprValuePtr value;
@@ -1550,7 +1595,7 @@ bool
 CQExprModel::
 setTclResult(const QVariant &rc)
 {
-#ifdef CQExprModel_USE_TCL
+#ifdef CQExprModel_USE_CEXPR
   qtcl_->setResult(rc);
   return true;
 #endif

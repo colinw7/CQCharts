@@ -35,6 +35,9 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(view, SIGNAL(connectDataChanged()), this, SLOT(updatePlots()));
 
+  connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
+  connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
+
   //---
 
   setObjectName("settings");
@@ -122,8 +125,13 @@ CQChartsViewSettings(CQChartsWindow *window) :
   groupPlotsGroupLayout->addLayout(groupPlotsCheckLayout);
 
   plotsWidgets_.overlayCheck = new QCheckBox("Overlay");
-  plotsWidgets_.x1x2Check    = new QCheckBox("X1/X2");
-  plotsWidgets_.y1y2Check    = new QCheckBox("Y1/Y2");
+  plotsWidgets_.overlayCheck->setObjectName("overlay");
+
+  plotsWidgets_.x1x2Check = new QCheckBox("X1/X2");
+  plotsWidgets_.overlayCheck->setObjectName("x1x2");
+
+  plotsWidgets_.y1y2Check = new QCheckBox("Y1/Y2");
+  plotsWidgets_.overlayCheck->setObjectName("y1y2");
 
   groupPlotsCheckLayout->addWidget(plotsWidgets_.overlayCheck);
   groupPlotsCheckLayout->addWidget(plotsWidgets_.x1x2Check);
@@ -137,6 +145,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   groupPlotsGroupLayout->addLayout(groupPlotsButtonsLayout);
 
   QPushButton *groupApplyButton = new QPushButton("Apply");
+  groupApplyButton->setObjectName("apply");
 
   groupPlotsButtonsLayout->addWidget(groupApplyButton);
   groupPlotsButtonsLayout->addStretch(1);
@@ -158,9 +167,14 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   placePlotsGroupLayout->addLayout(placePlotsCheckLayout);
 
-  plotsWidgets_.placeVerticalRadio   = new QRadioButton("Vertical");
+  plotsWidgets_.placeVerticalRadio = new QRadioButton("Vertical");
+  plotsWidgets_.placeVerticalRadio->setObjectName("vertical");
+
   plotsWidgets_.placeHorizontalRadio = new QRadioButton("Horizontal");
-  plotsWidgets_.placeGridRadio       = new QRadioButton("Grid");
+  plotsWidgets_.placeHorizontalRadio->setObjectName("horizontal");
+
+  plotsWidgets_.placeGridRadio = new QRadioButton("Grid");
+  plotsWidgets_.placeGridRadio->setObjectName("grid");
 
   plotsWidgets_.placeVerticalRadio->setChecked(true);
 
@@ -175,8 +189,11 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   placePlotsGroupLayout->addLayout(placePlotsGridLayout);
 
-  plotsWidgets_.placeRowsEdit    = new CQIntegerSpin;
+  plotsWidgets_.placeRowsEdit = new CQIntegerSpin;
+  plotsWidgets_.placeRowsEdit->setObjectName("rowsEdit");
+
   plotsWidgets_.placeColumnsEdit = new CQIntegerSpin;
+  plotsWidgets_.placeColumnsEdit->setObjectName("columnsEdit");
 
   plotsWidgets_.placeRowsEdit   ->setValue(1);
   plotsWidgets_.placeColumnsEdit->setValue(1);
@@ -197,6 +214,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   placePlotsGroupLayout->addLayout(placePlotsButtonsLayout);
 
   QPushButton *placeApplyButton = new QPushButton("Apply");
+  placeApplyButton->setObjectName("apply");
 
   placePlotsButtonsLayout->addWidget(placeApplyButton);
   placePlotsButtonsLayout->addStretch(1);
@@ -212,9 +230,14 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QHBoxLayout *stackPlotsGroupLayout = new QHBoxLayout(stackPlotsGroup);
 
-  plotsWidgets_.raiseButton  = new QPushButton("Raise");
-  plotsWidgets_.lowerButton  = new QPushButton("Lower");
+  plotsWidgets_.raiseButton = new QPushButton("Raise");
+  plotsWidgets_.raiseButton->setObjectName("raise");
+
+  plotsWidgets_.lowerButton = new QPushButton("Lower");
+  plotsWidgets_.lowerButton->setObjectName("lower");
+
   plotsWidgets_.removeButton = new QPushButton("Remove");
+  plotsWidgets_.removeButton->setObjectName("remove");
 
   plotsWidgets_.raiseButton ->setEnabled(false);
   plotsWidgets_.lowerButton ->setEnabled(false);
@@ -242,6 +265,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   //---
 
   QTabWidget *themeSubTab = new QTabWidget;
+  themeSubTab->setObjectName("themeSubTab");
 
   themeFrameLayout->addWidget(themeSubTab);
 
@@ -269,8 +293,11 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QGridLayout *themeColorsLayout = new QGridLayout(themeColorsFrame);
 
-  QLabel    *selColorLabel = new QLabel("Selection");
-  QLineEdit *selColorEdit  = new QLineEdit;
+  QLabel *selColorLabel = new QLabel("Selection");
+  selColorLabel->setObjectName("selColorLabel");
+
+  QLineEdit *selColorEdit = new QLineEdit;
+  selColorEdit->setObjectName("selColorEdit");
 
   themeColorsLayout->addWidget(selColorLabel, 0, 0);
   themeColorsLayout->addWidget(selColorEdit , 0, 1);
@@ -286,8 +313,10 @@ CQChartsViewSettings(CQChartsWindow *window) :
   QHBoxLayout *palettesControlFrameLayout = new QHBoxLayout(palettesControlFrame);
 
   QLabel *spinLabel = new QLabel("Index");
+  spinLabel->setObjectName("indexLabel");
 
   themeWidgets_.palettesSpin = new QSpinBox;
+  themeWidgets_.palettesSpin->setObjectName("indexSpin");
 
   int np = view->theme()->numPalettes();
 
@@ -299,8 +328,10 @@ CQChartsViewSettings(CQChartsWindow *window) :
   palettesControlFrameLayout->addWidget(themeWidgets_.palettesSpin);
 
   QLabel *paletteNameLabel = new QLabel("Name");
+  paletteNameLabel->setObjectName("paletteNameLabel");
 
   themeWidgets_.palettesCombo = new QComboBox;
+  themeWidgets_.palettesCombo->setObjectName("palettesCombo");
 
   QStringList paletteNames;
 
@@ -312,6 +343,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   palettesControlFrameLayout->addWidget(themeWidgets_.palettesCombo);
 
   themeWidgets_.palettesLoadButton = new QPushButton("Load");
+  themeWidgets_.palettesLoadButton->setObjectName("load");
 
   connect(themeWidgets_.palettesLoadButton, SIGNAL(clicked()), this, SLOT(loadPaletteNameSlot()));
 
@@ -493,6 +525,8 @@ updateInterface()
   CQChartsGradientPalette *palette = view->interfacePalette();
 
   themeWidgets_.interfacePlot->setGradientPalette(palette);
+
+  themeWidgets_.interfaceControl->updateState();
 }
 
 void

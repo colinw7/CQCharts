@@ -385,6 +385,13 @@ charts() const
   return view_->charts();
 }
 
+QString
+CQChartsPlot::
+pathId() const
+{
+  return view_->id() + ":" + id();
+}
+
 //---
 
 const CQChartsDisplayRange &
@@ -4725,20 +4732,6 @@ modelMappedReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
 
 //------
 
-QVariant
-CQChartsPlot::
-getData(const QString &id, const CQChartsColumn &column, const QString &, bool &ok) const
-{
-  ok = false;
-
-  int row = getRowForId(id);
-
-  if (row < 0)
-    return QVariant();
-
-  return modelValue(model_.data(), row, column, QModelIndex(), ok);
-}
-
 int
 CQChartsPlot::
 getRowForId(const QString &id) const
@@ -4817,6 +4810,14 @@ CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
 {
   return CQChartsUtil::modelHeaderString(model, column, ok);
+}
+
+QVariant
+CQChartsPlot::
+modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+           const QModelIndex &parent, int role, bool &ok) const
+{
+  return CQChartsUtil::modelValue(model, row, column, parent, role, ok);
 }
 
 QVariant

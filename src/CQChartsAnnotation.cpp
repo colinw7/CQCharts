@@ -28,6 +28,20 @@ CQChartsAnnotation::
 {
 }
 
+QString
+CQChartsAnnotation::
+pathId() const
+{
+  QString id = QString("%1").arg(ind_);
+
+  if      (plot_)
+    return plot_->pathId() + ":" + id;
+  else if (view_)
+    return view_->id() + ":" + id;
+  else
+    return id;
+}
+
 void
 CQChartsAnnotation::
 addProperties(CQPropertyViewModel *, const QString &)

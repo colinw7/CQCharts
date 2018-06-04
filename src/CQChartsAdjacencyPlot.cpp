@@ -17,11 +17,17 @@ void
 CQChartsAdjacencyPlotType::
 addParameters()
 {
-  addColumnParameter("node"       , "Node"       , "nodeColumn"       );
-  addColumnParameter("connections", "Connections", "connectionsColumn");
-  addColumnParameter("value"      , "Value"      , "valueColumn"      );
-  addColumnParameter("group"      , "Group"      , "groupColumn"      );
-  addColumnParameter("name"       , "Name"       , "nameColumn"       );
+  // connections are list of node ids
+  addColumnParameter("node"       , "Node"       , "nodeColumn"       ).
+   setTip("Unique Node Id");
+  addColumnParameter("connections", "Connections", "connectionsColumn").
+   setTip("List of Connection Pairs (Node Ids)");
+
+  // connections are name pairs and counts
+  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name Pairs (<name1>/<name2>)");
+  addColumnParameter("value", "Value", "valueColumn").setTip("Connection Count");
+
+  addColumnParameter("group", "Group", "groupColumn").setTip("Group Id for Color");
 
   CQChartsPlotType::addParameters();
 }

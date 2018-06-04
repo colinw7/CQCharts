@@ -38,6 +38,8 @@ class CQChartsPlotDlg : public QDialog {
 
   QAbstractItemModel *model() const { return model_.data(); }
 
+  void setViewName(const QString &viewName);
+
   int exec();
 
   CQChartsPlot *plot() const { return plot_; }
@@ -138,9 +140,9 @@ class CQChartsPlotDlg : public QDialog {
 
   void updateFormatSlot();
 
-  bool applySlot();
-
   void okSlot();
+  bool applySlot();
+  void cancelSlot();
 
  private:
   using TypePlotData = std::map<QString,PlotData>;

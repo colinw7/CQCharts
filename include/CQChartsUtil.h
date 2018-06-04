@@ -766,6 +766,17 @@ inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn 
   return setModelHeaderValue(model, column.column(), var, role);
 }
 
+inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                          const QVariant &var, int role)
+{
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return false;
+
+  QModelIndex ind = model->index(row, column.column(), QModelIndex());
+
+  return model->setData(ind, var, role);
+}
+
 //------
 
 inline bool stringToBool(const QString &str, bool *ok) {

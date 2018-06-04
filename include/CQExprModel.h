@@ -40,6 +40,7 @@ class CQExprModel : public QAbstractProxyModel {
   };
 
   using Values = std::vector<QVariant>;
+  using Rows   = std::vector<int>;
 
  public:
   CQExprModel(QAbstractItemModel *model);
@@ -49,6 +50,8 @@ class CQExprModel : public QAbstractProxyModel {
   //---
 
   QAbstractItemModel *model() const { return model_; }
+
+  //---
 
   int debug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
@@ -65,6 +68,8 @@ class CQExprModel : public QAbstractProxyModel {
   void addExprFunction(const QString &name, CQExprModelExprFn *fn);
   void addTclFunction (const QString &name, CQExprModelTclFn *fn);
 
+  //---
+
   bool decodeExpressionFn(const QString &exprStr, Function &function,
                           int &column, QString &expr) const;
 
@@ -75,6 +80,8 @@ class CQExprModel : public QAbstractProxyModel {
 
   bool assignExtraColumn(int column, const QString &expr);
   bool assignExtraColumn(const QString &header, int column, const QString &expr);
+
+  bool queryColumn(int column, const QString &expr, Rows &rows) const;
 
   bool processExpr(const QString &expr);
 
@@ -167,6 +174,8 @@ class CQExprModel : public QAbstractProxyModel {
 
   CQTcl *qtcl() const { return qtcl_; }
 
+  //---
+
   int numExtraColumns() const { return extraColumns_.size(); }
 
   const ExtraColumn &extraColumn(int i) const { return extraColumns_[i]; }
@@ -176,6 +185,8 @@ class CQExprModel : public QAbstractProxyModel {
   void calcColumn(int column, int ecolumn);
 
   QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
+
+  //---
 
   bool decodeExpression(const QString &exprStr, QString &header, QString &expr) const;
 
@@ -196,6 +207,7 @@ class CQExprModel : public QAbstractProxyModel {
   QVariant normCmd     (const Values &values) const;
   QVariant keyCmd      (const Values &values) const;
   QVariant randCmd     (const Values &values) const;
+  QVariant concatCmd   (const Values &values) const;
 
   QString replaceNumericColumns(const QString &expr, int row, int column) const;
 

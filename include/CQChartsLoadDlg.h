@@ -1,18 +1,26 @@
 #ifndef CQChartsLoadDlg_H
 #define CQChartsLoadDlg_H
 
-#include <QFrame>
+#include <CQChartsFileType.h>
+#include <QDialog>
+#include <QSharedPointer>
 
 class CQCharts;
+class CQChartsInputData;
 class CQFilename;
+
+class QAbstractItemModel;
 class QComboBox;
 class QCheckBox;
 class QLineEdit;
 class QTextEdit;
 class QPushButton;
 
-class CQChartsLoadDlg : public QFrame {
+class CQChartsLoadDlg : public QDialog {
   Q_OBJECT
+
+ public:
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsLoadDlg(CQCharts *charts);
@@ -26,19 +34,30 @@ class CQChartsLoadDlg : public QFrame {
 
   QString filterStr() const;
 
+  int modelInd() const { return modelInd_; }
+
  signals:
-  void loadFile(const QString &type, const QString &filename);
+  void modelLoaded(int);
 
  private slots:
   void previewFileSlot();
   void typeSlot();
 
   void okSlot();
-  void applySlot();
+  bool applySlot();
   void cancelSlot();
 
  private:
+  bool loadFileModel(const QString &filename, CQChartsFileType type,
+                     const CQChartsInputData &inputData);
+
+  QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
+                               const CQChartsInputData &inputData, bool &hierarchical);
+
+ private:
   CQCharts*    charts_                 { nullptr };
+  bool         emitLoadSignal_         { false };
+  int          modelInd_               { -1 };
   QComboBox*   typeCombo_              { nullptr };
   CQFilename*  fileEdit_               { nullptr };
   QCheckBox*   commentHeaderCheck_     { nullptr };

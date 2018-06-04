@@ -5,6 +5,8 @@
 #include <QIcon>
 #include <QPointer>
 
+class QTimer;
+
 class CQChartsViewExpander : public QFrame {
   Q_OBJECT
 
@@ -85,6 +87,7 @@ class CQChartsViewExpander : public QFrame {
   void bottomSlot();
 
   void detachSlot();
+  void detachLaterSlot();
 
  private:
   using WidgetP = QPointer<QWidget>;
@@ -99,6 +102,7 @@ class CQChartsViewExpander : public QFrame {
   int             r_           { 0 };
   int             t_           { 0 };
   Qt::WindowFlags windowFlags_ { 0 };
+  QTimer*         detachTimer_ { nullptr };
   bool            expanded_    { false };
   bool            pressed_     { false };
   QPoint          pressPos_;

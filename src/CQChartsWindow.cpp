@@ -91,8 +91,7 @@ CQChartsWindow(CQChartsView *view) :
 
   settingsExpander_->setObjectName("settingsExpander");
 
-  settingsExpander_->setTitle("Settings");
-
+  settingsExpander_->setTitle(view->id() + ": Settings");
   settingsExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   //---
@@ -139,6 +138,9 @@ CQChartsWindow(CQChartsView *view) :
    new CQChartsViewExpander(this, tableFrame, CQChartsViewExpander::Side::BOTTOM);
 
   tableExpander_->setObjectName("tableExpander");
+
+  tableExpander_->setTitle(view_->id() + ": Model");
+  tableExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   //---
 
@@ -340,14 +342,14 @@ void
 CQChartsWindow::
 updateInterfacePalette()
 {
-  settings_->interfaceControl()->updateState();
+  emit interfacePaletteChanged();
 }
 
 void
 CQChartsWindow::
 updateThemePalettes()
 {
-  settings_->palettesControl()->updateState();
+  emit themePalettesChanged();
 }
 
 void

@@ -6,7 +6,10 @@ QT += widgets svg
 
 DEPENDPATH += .
 
-QMAKE_CXXFLAGS += -std=c++14 -DCQExprModel_USE_CEXPR -DCQExprModel_USE_TCL
+QMAKE_CXXFLAGS += \
+-std=c++14 \
+-DCQExprModel_USE_CEXPR -DCQExprModel_USE_TCL \
+-DCQChartsModelExprMatch_USE_CEXPR -DCQChartsModelExprMatch_USE_TCL \
 
 MOC_DIR = .moc
 
@@ -36,6 +39,7 @@ CQChartsViewToolTip.cpp \
 CQChartsProbeBand.cpp \
 \
 CQChartsPlot.cpp \
+CQChartsHierPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
@@ -79,6 +83,7 @@ CQChartsPlotSymbol.cpp \
 \
 CQChartsLoadDlg.cpp \
 CQChartsPlotDlg.cpp \
+CQChartsLoader.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -133,7 +138,6 @@ HEADERS += \
 ../include/CQChartsTsv.h \
 ../include/CQChartsJson.h \
 ../include/CQChartsGnuData.h \
-../include/CQChartsExprDataModel.h \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
 \
@@ -151,6 +155,7 @@ HEADERS += \
 ../include/CQChartsProbeBand.h \
 \
 ../include/CQChartsPlot.h \
+../include/CQChartsHierPlot.h \
 ../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxPlot.h \
@@ -202,6 +207,7 @@ HEADERS += \
 \
 ../include/CQChartsLoadDlg.h \
 ../include/CQChartsPlotDlg.h \
+../include/CQChartsLoader.h \
 \
 ../include/CQChartsFilterEdit.h \
 \

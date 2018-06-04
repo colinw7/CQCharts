@@ -9,20 +9,20 @@ proc modelDetails { modelId } {
   for {set c 0} {$c < $nc} {incr c} {
     puts "Column: $c"
 
-    set type [get_model -ind $modelId -column $c -name type]
-    set minv [get_model -ind $modelId -column $c -name min]
-    set maxv [get_model -ind $modelId -column $c -name max]
+    set type [get_charts_data -model $modelId -column $c -name type]
+    set minv [get_charts_data -model $modelId -column $c -name min]
+    set maxv [get_charts_data -model $modelId -column $c -name max]
 
     puts "  Type: $type"
     puts "  Range: $minv, $maxv"
 
-    set monotonic  [get_model -ind $modelId -column $c -name monotonic]
-    set increasing [get_model -ind $modelId -column $c -name increasing]
+    set monotonic  [get_charts_data -model $modelId -column $c -name monotonic]
+    set increasing [get_charts_data -model $modelId -column $c -name increasing]
 
     puts "  Monotonic: $monotonic"
     puts "  Increasing: $increasing"
 
-    set num_unique [get_model -ind $modelId -column $c -name num_unique]
+    set num_unique [get_charts_data -model $modelId -column $c -name num_unique]
 
     puts "  Num Unique: $num_unique"
   }
@@ -40,7 +40,7 @@ proc modelCells { modelId } {
 
   for {set r 0} {$r < $nr} {incr r} {
     for {set c 0} {$c < $nc} {incr c} {
-      set value [get_model -ind $modelId -column $c -row $r -name value -role display]
+      set value [get_charts_data -model $modelId -column $c -row $r -name value -role display]
 
       if {$c == 0} {
         puts -nonewline "  $value"
@@ -61,9 +61,9 @@ proc mapValues { modelId } {
 
   for {set r 0} {$r < $nr} {incr r} {
     for {set c 0} {$c < $nc} {incr c} {
-      set value [get_model -ind $modelId -column $c -row $r -name value]
+      set value [get_charts_data -model $modelId -column $c -row $r -name value]
 
-      set map [get_model -ind $modelId -column $c -row $r -name map]
+      set map [get_charts_data -model $modelId -column $c -row $r -name map]
 
       puts "  Map: $r,$c,$value,$map"
     }
@@ -78,6 +78,6 @@ set modelId [load_model -tsv data/multi_series.tsv -comment_header -column_type 
 
 modelDetails $modelId
 
-process_model -ind $modelId -add "(column(1)+column(2)+column(3))/3" -header "Average"
+process_model -model $modelId -add -expr "(column(1)+column(2)+column(3))/3" -header "Average"
 
 modelDetails $modelId

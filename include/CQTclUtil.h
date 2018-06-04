@@ -37,11 +37,20 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
 
   QVariant var;
 
-  if      (Tcl_GetIntFromObj(interp, obj, &integer) == TCL_OK)
-    var = QVariant(integer);
-  else if (Tcl_GetDoubleFromObj(interp, obj, &real) == TCL_OK)
-    var = QVariant(real);
-  else {
+  const Tcl_ObjType *type = obj->typePtr;
+
+  if (type) {
+    if      (strcmp(type->name, "int") == 0) {
+      if (Tcl_GetIntFromObj(interp, obj, &integer) == TCL_OK)
+        var = QVariant(integer);
+    }
+    else if (strcmp(type->name, "real") == 0) {
+      if (Tcl_GetDoubleFromObj(interp, obj, &real) == TCL_OK)
+        var = QVariant(real);
+    }
+  }
+
+  if (! var.isValid()) {
     int len = 0;
 
     char *str = Tcl_GetStringFromObj(obj, &len);
@@ -97,10 +106,30 @@ inline void setResult(Tcl_Interp *interp, const QVariant &var) {
   Tcl_SetObjResult(interp, variantToObj(interp, var));
 }
 
+inline void setResult(Tcl_Interp *interp, const QList<QVariant> &vars) {
+  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+  int nv = vars.length();
+
+  for (int i = 0; i < nv; ++i) {
+    Tcl_Obj *sobj = variantToObj(interp, vars[i]);
+
+    Tcl_ListObjAppendElement(interp, obj, sobj);
+  }
+
+  Tcl_SetObjResult(interp, obj);
+}
+
 inline QVariant getResult(Tcl_Interp *interp) {
   Tcl_Obj *res = Tcl_GetObjResult(interp);
 
-  return variantFromObj(interp, res);
+  Tcl_Obj *res1 = Tcl_DuplicateObj(res);
+
+  QVariant var = variantFromObj(interp, res);
+
+  Tcl_SetObjResult(interp, res1);
+
+  return var;
 }
 
 }
@@ -152,7 +181,7 @@ class CQTcl : public CTcl {
     return true;
   }
 
-  int eval(const QString &cmd, bool showError=false) {
+  int eval(const QString &cmd, bool showError=false, bool showResult=false) {
     int rc = CQTclUtil::eval(interp(), cmd);
 
     if (rc != TCL_OK) {
@@ -160,10 +189,25 @@ class CQTcl : public CTcl {
         std::cerr << errorInfo(rc).toStdString() << std::endl;
     }
 
+    if (showResult) {
+      QVariant res = getResult();
+
+      if (res.isValid()) {
+        QString resStr = res.toString();
+
+        if (resStr.length())
+          std::cout << resStr.toStdString() << "\n";
+      }
+    }
+
     return rc;
   }
 
   void setResult(const QVariant &rc) {
+    CQTclUtil::setResult(interp(), rc);
+  }
+
+  void setResult(const QList<QVariant> &rc) {
     CQTclUtil::setResult(interp(), rc);
   }
 

@@ -483,7 +483,9 @@ class CQChartsView : public QFrame {
 
   void currentPlotChanged();
 
+  void plotAdded(CQChartsPlot *);
   void plotAdded(const QString &id);
+
   void plotsReordered();
   void plotRemoved(const QString &id);
   void allPlotsRemoved();

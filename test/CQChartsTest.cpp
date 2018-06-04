@@ -787,18 +787,15 @@ CQChartsTest() :
   // create commands
   cmds_ = new CQChartsCmds(charts_);
 
-  connect(cmds_, SIGNAL(titleChanged(int, const QString &)),
-          this, SLOT(titleChanged(int, const QString &)));
-
   connect(cmds_, SIGNAL(updateModelDetails(int)), this, SLOT(updateModelDetails(int)));
   connect(cmds_, SIGNAL(updateModel(int)), this, SLOT(updateModel(int)));
 
-  connect(cmds_, SIGNAL(windowCreated(CQChartsWindow *)),
+  connect(charts_, SIGNAL(windowCreated(CQChartsWindow *)),
           this, SLOT(windowCreated(CQChartsWindow *)));
-  connect(cmds_, SIGNAL(plotCreated(CQChartsPlot *)),
-          this, SLOT(plotCreated(CQChartsPlot *)));
+  connect(charts_, SIGNAL(plotAdded(CQChartsPlot *)),
+          this, SLOT(plotAdded(CQChartsPlot *)));
 
-  connect(cmds_, SIGNAL(modelDataAdded(int)), this, SLOT(modelDataAdded(int)));
+  connect(charts_, SIGNAL(modelDataAdded(int)), this, SLOT(modelDataAdded(int)));
 
   //---
 
@@ -826,6 +823,8 @@ addMenus()
 
   QAction *loadAction = new QAction("Load Model", menuBar);
 
+  loadAction->setShortcut(QKeySequence("Ctrl+L"));
+
   connect(loadAction, SIGNAL(triggered()), this, SLOT(loadModelSlot()));
 
   fileMenu->addAction(loadAction);
@@ -841,6 +840,8 @@ addMenus()
   QMenu *plotMenu = menuBar->addMenu("&Plot");
 
   QAction *createAction = new QAction("Create Plot", menuBar);
+
+  createAction->setShortcut(QKeySequence("Ctrl+P"));
 
   connect(createAction, SIGNAL(triggered()), this, SLOT(createPlotSlot()));
 
@@ -861,7 +862,7 @@ bool
 CQChartsTest::
 initPlot(const CQChartsInitData &initData)
 {
-  CQChartsView *view = cmds_->currentView();
+  CQChartsView *view = charts_->currentView();
 
   //---
 
@@ -907,7 +908,7 @@ initPlot(const CQChartsInitData &initData)
 
   //---
 
-  CQChartsModelData *modelData = cmds_->currentModelData();
+  CQChartsModelData *modelData = charts_->currentModelData();
 
   if (! modelData)
     return false;
@@ -920,7 +921,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      cmds_->processExpression(model, strs[i]);
+      CQChartsCmds::processExpression(model, strs[i]);
   }
 
   if (initData.processAdd.length()) {
@@ -929,7 +930,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      cmds_->processAddExpression(model, strs[i]);
+      CQChartsCmds::processAddExpression(model, strs[i]);
   }
 
   //---
@@ -1011,35 +1012,19 @@ loadModelSlot()
   if (! loadDlg_) {
     loadDlg_ = new CQChartsLoadDlg(charts_);
 
-    connect(loadDlg_, SIGNAL(loadFile(const QString &, const QString &)),
-            this, SLOT(loadFileSlot(const QString &, const QString &)));
+    connect(loadDlg_, SIGNAL(modelLoaded(int)), this, SLOT(modelLoadedSlot(int)));
   }
 
-  loadDlg_->show();
+  loadDlg_->exec();
 }
 
-bool
+void
 CQChartsTest::
-loadFileSlot(const QString &type, const QString &filename)
+modelLoadedSlot(int ind)
 {
-  CQChartsFileType fileType = stringToFileType(type);
+  updateModel(ind);
 
-  if (fileType == CQChartsFileType::NONE) {
-    errorMsg("Bad type specified '" + type + "'");
-    return false;
-  }
-
-  //---
-
-  CQChartsInputData inputData;
-
-  inputData.commentHeader     = loadDlg_->isCommentHeader();
-  inputData.firstLineHeader   = loadDlg_->isFirstLineHeader();
-  inputData.firstColumnHeader = loadDlg_->isFirstColumnHeader();
-  inputData.numRows           = loadDlg_->numRows();
-  inputData.filter            = loadDlg_->filterStr();
-
-  return cmds_->loadFileModel(filename, fileType, inputData);
+  charts_->setCurrentModelInd(ind);
 }
 
 //------
@@ -1048,7 +1033,7 @@ void
 CQChartsTest::
 createPlotSlot()
 {
-  CQChartsModelData *modelData = cmds_->currentModelData();
+  CQChartsModelData *modelData = charts_->currentModelData();
 
   if (! modelData)
     return;
@@ -1100,13 +1085,13 @@ CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  cmds_->setColumnFormats(modelData->model(), initData.columnType);
+  CQChartsCmds::setColumnFormats(charts_, modelData->model(), initData.columnType);
 
   updateModelDetails(modelData);
 
   //---
 
-  QString typeName = cmds_->fixTypeName(initData.typeName);
+  QString typeName = CQChartsCmds::fixTypeName(initData.typeName);
 
   if (typeName == "")
     return nullptr;
@@ -1192,8 +1177,10 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
   //---
 
-  if (initData.plotProperties != "")
-    cmds_->setPlotProperties(plot, initData.plotProperties);
+  if (initData.plotProperties != "") {
+    if (! plot->setProperties(initData.plotProperties))
+      errorMsg("Failed to set plot properties '" + initData.plotProperties + "'");
+  }
 
   return plot;
 }
@@ -1216,14 +1203,6 @@ parserType() const
 
 void
 CQChartsTest::
-titleChanged(int ind, const QString &title)
-{
-  if (isGui())
-    modelList_->setTabTitle(ind, title);
-}
-
-void
-CQChartsTest::
 redrawModel(CQChartsModelData *modelData)
 {
   modelList_->redrawView(modelData);
@@ -1233,7 +1212,7 @@ void
 CQChartsTest::
 modelDataAdded(int ind)
 {
-  CQChartsModelData *modelData = cmds_->getModelData(ind);
+  CQChartsModelData *modelData = charts_->getModelData(ind);
   assert(modelData);
 
   modelList_->addModelData(modelData);
@@ -1252,7 +1231,7 @@ void
 CQChartsTest::
 updateModel(int ind)
 {
-  CQChartsModelData *modelData = cmds_->getModelData(ind);
+  CQChartsModelData *modelData = charts_->getModelData(ind);
   assert(modelData);
 
   updateModel(modelData);
@@ -1273,7 +1252,7 @@ void
 CQChartsTest::
 updateModelDetails(int ind)
 {
-  CQChartsModelData *modelData = cmds_->getModelData(ind);
+  CQChartsModelData *modelData = charts_->getModelData(ind);
   assert(modelData);
 
   updateModelDetails(modelData);
@@ -1297,7 +1276,7 @@ windowCreated(CQChartsWindow *window)
 
 void
 CQChartsTest::
-plotCreated(CQChartsPlot *plot)
+plotAdded(CQChartsPlot *plot)
 {
   connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
@@ -1332,7 +1311,7 @@ exec(const QString &filename)
 
     bool join;
 
-    while (! cmds_->isCompleteLine(line, join)) {
+    while (! CQChartsCmds::isCompleteLine(line, join)) {
       if (in.atEnd())
         break;
 
@@ -1344,7 +1323,7 @@ exec(const QString &filename)
         line += line1;
     }
 
-    cmds_->parseLine(line);
+    cmds_->parseLine(line, /*log*/false);
   }
 
   file.close();
@@ -1358,16 +1337,18 @@ void
 CQChartsTest::
 print(const QString &filename)
 {
-  if (! cmds_->view())
+  CQChartsView *view = cmds_->view();
+
+  if (! view)
     return;
 
   if (! isShow()) {
-    cmds_->view()->resize(cmds_->view()->sizeHint());
+    view->resize(view->sizeHint());
 
-    cmds_->view()->resizeEvent(0);
+    view->resizeEvent(0);
   }
 
-  cmds_->view()->printFile(filename);
+  view->printFile(filename);
 }
 
 //------
@@ -1401,7 +1382,7 @@ loop()
 
     bool join;
 
-    while (! cmds_->isCompleteLine(line, join)) {
+    while (! CQChartsCmds::isCompleteLine(line, join)) {
       readLine->setPrompt("+> ");
 
       QString line1 = readLine->readLine().c_str();

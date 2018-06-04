@@ -377,7 +377,8 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     QString geomStr = modelString(model, row, geometryColumn(), parent, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
-      charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
+      if (! isPreview())
+        charts()->errorMsg("Invalid geometry '" + geomStr + "' for '" + geometry.name + "'");
       return;
     }
   }

@@ -27,6 +27,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   const QString &id() const { return id_; }
   void setId(const QString &v) { id_ = v; }
 
+  QString pathId() const;
+
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
 
   CQChartsEditHandles &editHandles() { return editHandles_; }

@@ -2,10 +2,10 @@ load_model -expr -num_rows 100000
 
 @let tableId = _rc
 
-process_model "+rand()"
+process_model -add -expr "rand()"
 
 #plot -type xy -columns "category=0,value=1"
 
 #@let plot = _rc
 
-#set_property -view view1 -plot "${plot}" -name points.visible -value 0
+#set_property -plot "${plot}" -name points.visible -value 0

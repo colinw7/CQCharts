@@ -9,9 +9,9 @@ nr = _rc
 get_property -model $modelId -name num_columns
 nc = _rc
 
-#process_model -ind $modelId -add "column(2)/20000.0"
-process_model -ind $modelId -add "remap(2,0,36)" -header "symbol size"
-process_model -ind $modelId -add "remap(2,0,1)" -header color
+#process_model -model $modelId -add -expr "column(2)/20000.0"
+process_model -model $modelId -add -expr "remap(2,0,36)" -header "symbol size"
+process_model -model $modelId -add -expr "remap(2,0,1)" -header color
 
 # columns x, y, name symbolSize, fontSize, color, id
 #remove_plot -view view1 -all

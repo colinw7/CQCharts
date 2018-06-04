@@ -1,4 +1,6 @@
 High
+ + Qtcl class belongs to CQCharts not Cmds
+ + Ceil/Expr/Tcl abstract classes
  + Notifications on mouse enter/leave (others)
  + More signals in view settings to reduce dependencies
  + More share model details
@@ -241,6 +243,7 @@ Box Plot
  + Color String (palette or QColor)
  + Better tooltip for connected
  + interp connected
+ + extra column for x label
 
 Distribution Plot
  + Push/Pop save restore ranges

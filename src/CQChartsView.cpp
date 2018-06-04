@@ -7,6 +7,7 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAnnotation.h>
+#include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsRotatedText.h>
@@ -125,6 +126,10 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
+  charts_->removeView(this);
+
+  //---
+
   delete propertyModel_;
 
   delete keyObj_;
@@ -414,6 +419,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 
   //---
 
+  emit plotAdded(plot);
   emit plotAdded(plot->id());
 }
 

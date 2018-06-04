@@ -6,7 +6,9 @@ QT += widgets svg
 
 DEPENDPATH += .
 
-QMAKE_CXXFLAGS += -std=c++14 -DCQ_CHARTS_TCL
+QMAKE_CXXFLAGS += \
+-std=c++14 \
+-DCQ_CHARTS_TCL
 
 MOC_DIR = .moc
 

@@ -31,25 +31,12 @@ class CQChartsViewSettings : public QFrame {
   CQChartsViewSettings(CQChartsWindow *window);
  ~CQChartsViewSettings();
 
-  CQPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
-
-  CQChartsGradientPaletteCanvas  *interfacePlot   () const {
-    return themeWidgets_.interfacePlot; }
-  CQChartsGradientPaletteControl *interfaceControl() const {
-    return themeWidgets_.interfaceControl; }
-
-  CQChartsGradientPaletteCanvas  *palettesPlot   () const {
-    return themeWidgets_.palettesPlot; }
-  CQChartsGradientPaletteControl *palettesControl() const {
-    return themeWidgets_.palettesControl; }
-
  signals:
   void propertyItemSelected(QObject *obj, const QString &path);
 
- public slots:
+ private slots:
   void updatePlots();
 
- private slots:
   void paletteIndexSlot(int ind);
 
   void loadPaletteNameSlot();
@@ -71,9 +58,21 @@ class CQChartsViewSettings : public QFrame {
 
   void removePlotsSlot();
 
- private:
   void updatePalettes();
   void updateInterface();
+
+ private:
+  CQPropertyViewTree *propertyTree() const { return propertiesWidgets_.propertyTree; }
+
+  CQChartsGradientPaletteCanvas  *interfacePlot   () const {
+    return themeWidgets_.interfacePlot; }
+  CQChartsGradientPaletteControl *interfaceControl() const {
+    return themeWidgets_.interfaceControl; }
+
+  CQChartsGradientPaletteCanvas  *palettesPlot   () const {
+    return themeWidgets_.palettesPlot; }
+  CQChartsGradientPaletteControl *palettesControl() const {
+    return themeWidgets_.palettesControl; }
 
   CQChartsPlot *getSelectedPlot() const;
 

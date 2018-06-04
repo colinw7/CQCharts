@@ -169,6 +169,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   xminEdit_->setToolTip("Custom X Axis Minimum Value");
   yminEdit_->setToolTip("Custom Y Axis Minimum Value");
 
+  connect(xminEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  connect(yminEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
   ++row; column = 0;
 
   xmaxEdit_ = addLineEdit(genLayout, row, column, "XMax", "xmax", "X Axis Maximum Value");
@@ -177,9 +180,19 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   xmaxEdit_->setToolTip("Custom X Axis Maximum Value");
   ymaxEdit_->setToolTip("Custom Y Axis Maximum Value");
 
-  //--
+  connect(xmaxEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+  connect(ymaxEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  //----
 
   ++row; column = 0;
+
+  QFrame *xyFrame = new QFrame;
+  xyFrame->setObjectName("xyFrame");
+
+  QHBoxLayout *xyFrameLayout = new QHBoxLayout(xyFrame);
+
+  genLayout->addWidget(xyFrame, row, column, 1, 4);
 
   xintegralCheck_ = new QCheckBox("X Integral");
   xintegralCheck_->setObjectName("xintegralCheck");
@@ -187,15 +200,22 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   yintegralCheck_ = new QCheckBox("Y Integral");
   yintegralCheck_->setObjectName("yintegralCheck");
 
-  genLayout->addWidget(xintegralCheck_, row, column); ++column;
-  genLayout->addWidget(yintegralCheck_, row, column);
-
   xintegralCheck_->setToolTip("X values are Integral");
   yintegralCheck_->setToolTip("Y values are Integral");
 
-  //----
+  xyFrameLayout->addWidget(xintegralCheck_);
+  xyFrameLayout->addWidget(yintegralCheck_);
 
-  ++row; column = 0;
+  //--
+
+  QFrame *xySpacer = new QFrame;
+  xySpacer->setObjectName("xySpacer");
+
+  xySpacer->setFixedWidth(8);
+
+  xyFrameLayout->addWidget(xySpacer);
+
+  //--
 
   xlogCheck_ = new QCheckBox("X Log");
   xlogCheck_->setObjectName("xlogCheck");
@@ -203,13 +223,17 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   ylogCheck_ = new QCheckBox("Y Log");
   ylogCheck_->setObjectName("ylogCheck");
 
-  genLayout->addWidget(xlogCheck_, row, column); ++column;
-  genLayout->addWidget(ylogCheck_, row, column);
-
   xlogCheck_->setToolTip("Use log scale for X Axis");
   ylogCheck_->setToolTip("Use log scale for Y Axis");
 
+  xyFrameLayout->addWidget(xlogCheck_);
+  xyFrameLayout->addWidget(ylogCheck_);
+
   //--
+
+  xyFrameLayout->addStretch(1);
+
+  //----
 
   ++row;
 
@@ -281,7 +305,7 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   QPushButton *cancelButton = new QPushButton("Cancel");
   cancelButton->setObjectName("cancel");
 
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
 
   buttonLayout->addWidget(cancelButton);
 
@@ -378,7 +402,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
 
     strLayout->addStretch(1);
 
-    layout->addLayout(strLayout, row, 0, 1, 2);
+    layout->addLayout(strLayout, row, 0, 1, 4);
 
     ++row;
   }
@@ -393,7 +417,7 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
 
     boolLayout->addStretch(1);
 
-    layout->addLayout(boolLayout, row, 0, 1, 2);
+    layout->addLayout(boolLayout, row, 0, 1, 4);
 
     ++row;
   }
@@ -795,6 +819,9 @@ updateFormatSlot()
   if (column < 0)
     return;
 
+  QString typeStr;
+
+#if 0
   CQChartsModelData *modelData = charts_->getModelData(model_.data());
   if (! modelData) return;
 
@@ -802,7 +829,13 @@ updateFormatSlot()
 
   const CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
 
-  formatEdit->setText(columnDetails.typeName());
+  typeStr = columnDetails.typeName();
+#else
+  if (! CQChartsUtil::columnTypeStr(charts_, model_.data(), column, typeStr))
+    return;
+#endif
+
+  formatEdit->setText(typeStr);
 }
 
 bool
@@ -904,6 +937,8 @@ bool
 CQChartsPlotDlg::
 applySlot()
 {
+  plot_ = nullptr;
+
   int ind = stack_->currentIndex();
 
   // create plot for typename of current tab
@@ -1138,6 +1173,15 @@ applyPlot(CQChartsPlot *plot, bool preview)
     if (! xmaxOk) plot->setXMax(OptReal());
     if (! ymaxOk) plot->setYMax(OptReal());
   }
+}
+
+void
+CQChartsPlotDlg::
+cancelSlot()
+{
+  plot_ = nullptr;
+
+  reject();
 }
 
 bool
@@ -1431,6 +1475,14 @@ stringToColumn(const QString &str, int &column) const
   }
 
   return false;
+}
+
+void
+CQChartsPlotDlg::
+setViewName(const QString &viewName)
+{
+  if (viewEdit_)
+    viewEdit_->setText(viewName);
 }
 
 int

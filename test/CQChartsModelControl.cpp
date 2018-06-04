@@ -241,11 +241,13 @@ void
 CQChartsModelControl::
 exprSlot()
 {
+  CQCharts *charts = test_->charts();
+
   QString expr = exprValueEdit_->text().simplified();
 
   //---
 
-  CQChartsModelData *modelData = test_->cmds()->currentModelData();
+  CQChartsModelData *modelData = charts->currentModelData();
 
   if (! modelData) {
     test_->errorMsg("No model data");
@@ -267,7 +269,7 @@ exprSlot()
 
   CQChartsColumn column;
 
-  if (! test_->cmds()->stringToColumn(model, columnStr, column)) {
+  if (! test_->cmds()->stringToColumn(model.data(), columnStr, column)) {
     bool ok;
 
     int icolumn = columnStr.toInt(&ok);
@@ -291,7 +293,7 @@ exprSlot()
       model->setHeaderData(column1, Qt::Horizontal, nameStr, Qt::DisplayRole);
 
     if (typeStr.length()) {
-      if (! CQChartsUtil::setColumnTypeStr(test_->charts(), model.data(), column1, typeStr)) {
+      if (! CQChartsUtil::setColumnTypeStr(charts, model.data(), column1, typeStr)) {
         test_->errorMsg("Invalid type '" + typeStr + "'");
         return;
       }
@@ -303,7 +305,9 @@ void
 CQChartsModelControl::
 foldSlot()
 {
-  CQChartsModelData *modelData = test_->cmds()->currentModelData();
+  CQCharts *charts = test_->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
 
   if (! modelData)
     return;
@@ -319,7 +323,9 @@ void
 CQChartsModelControl::
 typeSetSlot()
 {
-  CQChartsModelData *modelData = test_->cmds()->currentModelData();
+  CQCharts *charts = test_->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
 
   if (! modelData)
     return;
@@ -350,7 +356,7 @@ typeSetSlot()
 
   QString typeStr = columnTypeEdit_->text();
 
-  if (! CQChartsUtil::setColumnTypeStr(test_->charts(), model.data(), column, typeStr)) {
+  if (! CQChartsUtil::setColumnTypeStr(charts, model.data(), column, typeStr)) {
     test_->errorMsg("Invalid type '" + typeStr + "'");
     return;
   }

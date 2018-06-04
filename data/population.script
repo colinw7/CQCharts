@@ -24,31 +24,31 @@ set_property -name scroll.numPages -value 15
     @continue
   }
 
-  process_model "+key(@0,@0-@1)"
+  process_model -add -expr "key(@0,@0-@1)"
 
-  sort_model 4
+  sort_model -column 4
 
   create_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
   @let plot1 = _rc
 
-  set_property -view view1 -plot "${plot1}" -name fill.color -value blue
-  set_property -view view1 -plot "${plot1}" -name fill.alpha -value 0.5
-  set_property -view view1 -plot "${plot1}" -name key.visible -value 0
+  set_property -plot "${plot1}" -name fill.color -value blue
+  set_property -plot "${plot1}" -name fill.alpha -value 0.5
+  set_property -plot "${plot1}" -name key.visible -value 0
 
   load_model -csv data/population.csv -first_line_header -filter "sex:2,year:${year}" -title "Female ${year}"
 
-  process_model "+key(@0,@0-@1)"
+  process_model -add -expr "key(@0,@0-@1)"
 
-  sort_model 4
+  sort_model -column 4
 
   create_plot -type barchart -columns "category=4,value=3,name=1" -position "${x} ${y} ${x1} ${y1}" -title "${year}"
 
   @let plot2 = _rc
 
-  set_property -view view1 -plot "${plot2}" -name fill.color -value pink
-  set_property -view view1 -plot "${plot2}" -name fill.alpha -value 0.5
-  set_property -view view1 -plot "${plot2}" -name key.visible -value 0
+  set_property -plot "${plot2}" -name fill.color -value pink
+  set_property -plot "${plot2}" -name fill.alpha -value 0.5
+  set_property -plot "${plot2}" -name key.visible -value 0
 
   group -overlay "${plot1}" "${plot2}"
 

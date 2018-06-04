@@ -408,3 +408,9 @@
 # 5/30/2018
  + more CQChartsHierPlot to separate file
  + add max rows for preview plot
+# 6/4/2018
+ + add support for current model data and current view to charts class
+ + allow disable auto range for distribution plot for string keys
+ + move load model code to Loader class
+ + Add tcl support for CQChartsModelExprMatch
+ + Add missing object names for widgets

@@ -67,6 +67,8 @@ class CQExprModelExprFn : public CExprFunctionObj {
 };
 #endif
 
+//---
+
 #ifdef CQExprModel_USE_TCL
 #include <CQTclUtil.h>
 

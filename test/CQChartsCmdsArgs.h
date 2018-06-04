@@ -342,6 +342,11 @@ class CQChartsCmdsArgs {
     parseBool_.clear();
     parseArgs_.clear();
 
+    using Args      = std::vector<QString>;
+    using GroupArgs = std::map<int,Args>;
+
+    GroupArgs groupArgs;
+
     bool help = false;
 
     while (! eof()) {
@@ -355,6 +360,11 @@ class CQChartsCmdsArgs {
         CQChartsCmdArg *cmdArg = getCmdOpt(opt);
 
         if (cmdArg) {
+          if (cmdArg->groupInd() >= 0)
+            groupArgs[cmdArg->groupInd()].push_back(cmdArg->name());
+
+          //---
+
           if      (cmdArg->type() == CQChartsCmdArg::Type::Boolean) {
             parseBool_[opt] = true;
           }
@@ -482,12 +492,41 @@ class CQChartsCmdsArgs {
       }
     }
 
+    //---
+
     if (help) {
       this->help();
 
       if (! debug)
         return false;
     }
+
+    //---
+
+    for (const auto &cmdGroup : cmdGroups_) {
+      int groupInd = cmdGroup.ind();
+
+      auto p = groupArgs.find(groupInd);
+
+      if (p == groupArgs.end()) {
+        if (cmdGroup.isRequired()) {
+          std::string names = getGroupCmdNames(groupInd).join(", ").toStdString();
+          std::cerr << "One of " << names << "required\n";
+          return false;
+        }
+      }
+      else {
+        const Args &args = (*p).second;
+
+        if (args.size() > 1) {
+          std::string names = getGroupCmdNames(groupInd).join(", ").toStdString();
+          std::cerr << "Only one of " << names << " allowed\n";
+          return false;
+        }
+      }
+    }
+
+    //---
 
     if (debug) {
       for (auto &pi : parseInt_) {
@@ -733,14 +772,13 @@ class CQChartsCmdsArgs {
     if (! cmdGroup.isRequired())
       std::cerr << "[";
 
+    CmdArgs cmdArgs;
+
+    getGroupCmds(groupInd, cmdArgs);
+
     int i = 0;
 
-    for (auto &cmdArg : cmdArgs_) {
-      int groupInd1 = cmdArg.groupInd();
-
-      if (groupInd1 != groupInd)
-        continue;
-
+    for (const auto &cmdArg : cmdArgs) {
       if (i > 0)
         std::cerr << "|";
 
@@ -766,11 +804,6 @@ class CQChartsCmdsArgs {
   }
 
  private:
-  void errorMsg(const QString &msg) {
-    std::cerr << msg.toStdString() << "\n";
-  }
-
- private:
   using CmdArgs     = std::vector<CQChartsCmdArg>;
   using CmdGroups   = std::vector<CQChartsCmdGroup>;
   using NameInt     = std::map<QString,int>;
@@ -779,6 +812,37 @@ class CQChartsCmdsArgs {
   using NameStrings = std::map<QString,QStringList>;
   using NameBool    = std::map<QString,bool>;
 
+ private:
+  QStringList getGroupCmdNames(int groupInd) const {
+    CmdArgs cmdArgs;
+
+    getGroupCmds(groupInd, cmdArgs);
+
+    QStringList names;
+
+    for (const auto &cmdArg : cmdArgs)
+      names << cmdArg.name();
+
+    return names;
+  }
+
+  void getGroupCmds(int groupInd, CmdArgs &cmdArgs) const {
+    for (auto &cmdArg : cmdArgs_) {
+      int groupInd1 = cmdArg.groupInd();
+
+      if (groupInd1 != groupInd)
+        continue;
+
+      cmdArgs.push_back(cmdArg);
+    }
+  }
+
+ private:
+  void errorMsg(const QString &msg) {
+    std::cerr << msg.toStdString() << "\n";
+  }
+
+ private:
   QString     cmdName_;
   Args        argv_;
   int         i_    { 0 };

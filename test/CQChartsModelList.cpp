@@ -41,6 +41,10 @@ addModelData(CQChartsModelData *modelData)
   if (! test_->isGui())
     return;
 
+  CQCharts *charts = test_->charts();
+
+  //---
+
   CQChartsViewWidgetData *viewWidgetData = new CQChartsViewWidgetData;
 
   viewWidgetData->ind = modelData->ind();
@@ -93,13 +97,13 @@ addModelData(CQChartsModelData *modelData)
 
   //---
 
-  CQChartsTree *tree = new CQChartsTree(test_->charts());
+  CQChartsTree *tree = new CQChartsTree(charts);
 
   stack->addWidget(tree);
 
   //---
 
-  CQChartsTable *table = new CQChartsTable(test_->charts());
+  CQChartsTable *table = new CQChartsTable(charts);
 
   stack->addWidget(table);
 
@@ -122,11 +126,13 @@ void
 CQChartsModelList::
 currentTabChanged(int ind)
 {
+  CQCharts *charts = test_->charts();
+
   for (auto &p : viewWidgetDatas_) {
     CQChartsViewWidgetData *viewWidgetDatas = p.second;
 
     if (viewWidgetDatas->tabInd == ind)
-      test_->cmds()->setCurrentInd(viewWidgetDatas->ind);
+      charts->setCurrentModelInd(viewWidgetDatas->ind);
   }
 }
 
@@ -158,6 +164,8 @@ tableColumnClicked(int column)
 {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
+  CQCharts *charts = test_->charts();
+
   CQChartsTable *table = qobject_cast<CQChartsTable *>(sender());
 
   ModelP model = table->model();
@@ -166,7 +174,7 @@ tableColumnClicked(int column)
 
   QString typeStr;
 
-  if (! CQChartsUtil::columnTypeStr(test_->charts(), model.data(), column, typeStr))
+  if (! CQChartsUtil::columnTypeStr(charts, model.data(), column, typeStr))
     typeStr = "";
 
   //---
@@ -261,13 +269,15 @@ setDetailsText(const CQChartsModelData *modelData)
   CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
   assert(viewWidgetData);
 
+  CQCharts *charts = test_->charts();
+
   CQChartsModelData *modelData1 = nullptr;
 
   CQChartsModelDetails details;
 
   if (viewWidgetData->stack->currentIndex() == 0) {
     if (viewWidgetData->tree) {
-      modelData1 = test_->charts()->getModelData(viewWidgetData->tree->model().data());
+      modelData1 = charts->getModelData(viewWidgetData->tree->model().data());
       assert(modelData1);
 
       details = modelData1->details();
@@ -275,7 +285,7 @@ setDetailsText(const CQChartsModelData *modelData)
   }
   else {
     if (viewWidgetData->table) {
-      modelData1 = test_->charts()->getModelData(viewWidgetData->table->model().data());
+      modelData1 = charts->getModelData(viewWidgetData->table->model().data());
       assert(modelData1);
 
       details = modelData1->details();

@@ -25,6 +25,7 @@
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLength.h>
 #include <CQPropertyView.h>
+#include <CQChartsWindow.h>
 #include <iostream>
 
 CQCharts::
@@ -122,8 +123,11 @@ initModelData(ModelP &model)
 
   int ind = model->property("modelInd").toInt(&ok);
 
-  if (! ok)
+  if (! ok) {
     ind = addModelData(model);
+
+    emit modelDataAdded(ind);
+  }
 
   return getModelData(ind);
 }
@@ -143,6 +147,30 @@ getModelData(QAbstractItemModel *model) const
     return nullptr;
 
   return getModelData(ind);
+}
+
+void
+CQCharts::
+setCurrentModelInd(int ind)
+{
+  currentModelInd_ = ind;
+}
+
+CQChartsModelData *
+CQCharts::
+currentModelData() const
+{
+  if (modelDatas_.empty())
+    return nullptr;
+
+  if (currentModelInd_ >= 0 ) {
+    for (auto &modelData : modelDatas_) {
+      if (modelData->ind() == currentModelInd_)
+        return modelData;
+    }
+  }
+
+  return modelDatas_.back();
 }
 
 int
@@ -173,6 +201,15 @@ getModelData(int ind) const
   return nullptr;
 }
 
+void
+CQCharts::
+getModelDatas(ModelDatas &modelDatas) const
+{
+  modelDatas = modelDatas_;
+}
+
+//---
+
 CQChartsView *
 CQCharts::
 addView(const QString &id)
@@ -192,6 +229,8 @@ addView(const QString &id)
 
   views_[id1] = view;
 
+  emit viewAdded(view);
+
   return view;
 }
 
@@ -200,6 +239,8 @@ CQCharts::
 createView()
 {
   CQChartsView *view = new CQChartsView(this);
+
+  connect(view, SIGNAL(plotAdded(CQChartsPlot *)), this, SIGNAL(plotAdded(CQChartsPlot *)));
 
   return view;
 }
@@ -216,6 +257,24 @@ getView(const QString &id) const
   return (*p).second;
 }
 
+CQChartsView *
+CQCharts::
+currentView() const
+{
+  if (views_.empty())
+    return nullptr;
+
+  return views_.rbegin()->second;
+}
+
+void
+CQCharts::
+getViews(Views &views) const
+{
+  for (const auto &view : views_)
+    views.push_back(view.second);
+}
+
 void
 CQCharts::
 getViewIds(QStringList &names) const
@@ -226,10 +285,34 @@ getViewIds(QStringList &names) const
 
 void
 CQCharts::
+removeView(CQChartsView *view)
+{
+  views_.erase(view->id());
+}
+
+//---
+
+CQChartsWindow *
+CQCharts::
+createWindow(CQChartsView *view)
+{
+  CQChartsWindow *window = CQChartsWindowMgrInst->createWindow(view);
+
+  emit windowCreated(window);
+
+  return window;
+}
+
+//---
+
+void
+CQCharts::
 emitModelTypeChanged(int modelId)
 {
   emit modelTypeChanged(modelId);
 }
+
+//---
 
 void
 CQCharts::

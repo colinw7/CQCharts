@@ -18,26 +18,26 @@ print nr,nc
 for (c = 0; c < nc; ++c)
   print "Column", c
 
-  get_model -ind $modelId -column $c -name type 
+  get_charts_data -model $modelId -column $c -name type 
   type = _rc
-  get_model -ind $modelId -column $c -name min
+  get_charts_data -model $modelId -column $c -name min
   minv = _rc
-  get_model -ind $modelId -column $c -name max
+  get_charts_data -model $modelId -column $c -name max
   maxv = _rc
 
   print "  Type",type
   print "  Range",minv,maxv
 
-  get_model -ind $modelId -column $c -name monotonic 
+  get_charts_data -model $modelId -column $c -name monotonic 
   monotonic = _rc
 
-  get_model -ind $modelId -column $c -name increasing
+  get_charts_data -model $modelId -column $c -name increasing
   increasing = _rc
 
   print "  Monotonic",monotonic
   print "  Increasing",increasing
 
-  get_model -ind $modelId -column $c -name num_unique
+  get_charts_data -model $modelId -column $c -name num_unique
   num_unique = _rc
 
   print "  Num Unique",num_unique
@@ -49,10 +49,10 @@ endif
 
 for (r = 0; r < nr; ++r)
   for (c = 0; c < nc; ++c)
-    get_model -ind $modelId -column $c -row $r -name value
+    get_charts_data -model $modelId -column $c -row $r -name value
     value = _rc
 
-    get_model -ind $modelId -column $c -row $r -name map
+    get_charts_data -model $modelId -column $c -row $r -name map
     map = _rc
 
     print "  Map",r,c,value,map

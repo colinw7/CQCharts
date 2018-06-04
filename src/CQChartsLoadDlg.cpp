@@ -1,5 +1,9 @@
 #include <CQChartsLoadDlg.h>
 #include <CQChartsAnalyzeFile.h>
+#include <CQChartsLoader.h>
+#include <CQChartsInputData.h>
+#include <CQChartsModelData.h>
+#include <CQCharts.h>
 #include <CQChartsUtil.h>
 #include <CQDividedArea.h>
 #include <CQFilename.h>
@@ -310,23 +314,83 @@ void
 CQChartsLoadDlg::
 okSlot()
 {
-  applySlot();
-
-  hide();
+  if (applySlot())
+    hide();
 }
 
-void
+bool
 CQChartsLoadDlg::
 applySlot()
 {
-  QString filename = fileEdit_->name();
+  modelInd_ = -1;
 
-  emit loadFile(typeCombo_->currentText(), filename);
+  //----
+
+  QString filename = fileEdit_->name();
+  QString type     = typeCombo_->currentText();
+
+  //----
+
+  CQChartsFileType fileType = stringToFileType(type);
+
+  if (fileType == CQChartsFileType::NONE)
+    return false;
+
+  //---
+
+  CQChartsInputData inputData;
+
+  inputData.commentHeader     = this->isCommentHeader();
+  inputData.firstLineHeader   = this->isFirstLineHeader();
+  inputData.firstColumnHeader = this->isFirstColumnHeader();
+  inputData.numRows           = this->numRows();
+  inputData.filter            = this->filterStr();
+
+  if (! loadFileModel(filename, fileType, inputData))
+    return false;
+
+  return true;
+}
+
+bool
+CQChartsLoadDlg::
+loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData)
+{
+  bool hierarchical;
+
+  QAbstractItemModel *model = loadFile(filename, type, inputData, hierarchical);
+
+  if (! model)
+    return false;
+
+  ModelP modelp(model);
+
+  CQChartsModelData *modelData = charts_->initModelData(modelp);
+
+  modelInd_ = modelData->ind();
+
+  emit modelLoaded(modelInd_);
+
+  return true;
+}
+
+QAbstractItemModel *
+CQChartsLoadDlg::
+loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData,
+         bool &hierarchical)
+{
+  CQChartsLoader loader(charts_);
+
+  //loader.setQtcl(qtcl());
+
+  return loader.loadFile(filename, type, inputData, hierarchical);
 }
 
 void
 CQChartsLoadDlg::
 cancelSlot()
 {
+  modelInd_ = -1;
+
   hide();
 }

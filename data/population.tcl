@@ -1,8 +1,8 @@
 proc annotationSlot { viewId id } {
   #puts "$viewId, $id"
 
-  #get_property -view $viewId -annotation $id -name position
-  #get_property -view $viewId -annotation $id -name text
+  #get_property -annotation $id -name position
+  #get_property -annotation $id -name text
 
   if       {$id == "next"} {
     if {$::year < $::maxYear} {
@@ -34,9 +34,9 @@ proc plotYear { year } {
 
   set ::plot1Id [create_plot -type barchart -columns "name=1,value=3" -title $title]
 
-  set_property -view $::viewId -plot $::plot1Id -name fill.color -value "#4444aa"
-  set_property -view $::viewId -plot $::plot1Id -name fill.alpha -value 0.5
-  set_property -view $::viewId -plot $::plot1Id -name key.visible -value 0
+  set_property -plot $::plot1Id -name fill.color -value "#4444aa"
+  set_property -plot $::plot1Id -name fill.alpha -value 0.5
+  set_property -plot $::plot1Id -name key.visible -value 0
 
   set filter "sex:2,year:$year"
 
@@ -46,9 +46,9 @@ proc plotYear { year } {
 
   set ::plot2Id [create_plot -type barchart -columns "name=1,value=3" -title $title]
 
-  set_property -view $::viewId -plot $::plot2Id -name fill.color -value "#aa4444"
-  set_property -view $::viewId -plot $::plot2Id -name fill.alpha -value 0.5
-  set_property -view $::viewId -plot $::plot2Id -name key.visible -value 0
+  set_property -plot $::plot2Id -name fill.color -value "#aa4444"
+  set_property -plot $::plot2Id -name fill.alpha -value 0.5
+  set_property -plot $::plot2Id -name key.visible -value 0
 
   if       {$::place == "sidebyside"} {
     place_plots -horizontal $::plot1Id $::plot2Id
@@ -60,13 +60,13 @@ proc plotYear { year } {
 set modelId [load_model -csv data/population.csv -first_line_header]
 #puts $modelId
 
-set nr [get_model -ind $modelId -name num_rows]
+set nr [get_charts_data -model $modelId -name num_rows]
 #puts $nr
-set nc [get_model -ind $modelId -name num_columns]
+set nc [get_charts_data -model $modelId -name num_columns]
 #puts $nc
 
-set ::minYear [get_model -ind $modelId -column 0 -name min]
-set ::maxYear [get_model -ind $modelId -column 0 -name max]
+set ::minYear [get_charts_data -model $modelId -column 0 -name min]
+set ::maxYear [get_charts_data -model $modelId -column 0 -name max]
 
 set ::year $::minYear
 
@@ -84,23 +84,23 @@ puts $dtx
 set tx [expr {2*$dtx}]
 puts $tx
 
-set text1Id [text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1]
+set text1Id [create_text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text2Id [text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1]
+set text2Id [create_text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
-set text3Id [text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1]
+set text3Id [create_text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text4Id [text_shape -id sidebyside -x $tx -y 95 -text "Side By Side" -border 1 -background 1]
-connect -view $::viewId -from annotationIdPressed -to annotationSlot
+set text4Id [create_text_shape -id sidebyside -x $tx -y 95 -text "Side By Side" -border 1 -background 1]
+connect_chart -view $::viewId -from annotationIdPressed -to annotationSlot
