@@ -30,7 +30,11 @@ proc plotYear { year } {
 
   set model1Id [load_model -csv data/population.csv -first_line_header -filter $filter]
 
-  set title "Male %year"
+  if       {$::place == "sidebyside"} {
+    set title "Male $year"
+  } elseif {$::place == "overlay"} {
+    set title "Male and Female $year"
+  }
 
   set ::plot1Id [create_plot -type barchart -columns "name=1,value=3" -title $title]
 
@@ -42,7 +46,11 @@ proc plotYear { year } {
 
   set model2Id [load_model -csv data/population.csv -first_line_header -filter $filter]
 
-  set title "Female $year"
+  if       {$::place == "sidebyside"} {
+    set title "Female $year"
+  } elseif {$::place == "overlay"} {
+    set title ""
+  }
 
   set ::plot2Id [create_plot -type barchart -columns "name=1,value=3" -title $title]
 
@@ -84,23 +92,25 @@ puts $dtx
 set tx [expr {2*$dtx}]
 puts $tx
 
-set text1Id [create_text_shape -id prev -x $tx -y 95 -text "Prev" -border 1 -background 1]
+set ty 97
+
+set text1Id [create_text_shape -id prev -x $tx -y $ty -text "Prev" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Prev"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text2Id [create_text_shape -id next -x $tx -y 95 -text "Next" -border 1 -background 1]
+set text2Id [create_text_shape -id next -x $tx -y $ty -text "Next" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Next"]
 set tx [expr {$tx + $tw + 2*$dtx}]
 puts $tx
 
-set text3Id [create_text_shape -id overlay -x $tx -y 95 -text "Overlay" -border 1 -background 1]
+set text3Id [create_text_shape -id overlay -x $tx -y $ty -text "Overlay" -border 1 -background 1]
 
 set tw [measure_text -view $::viewId -name width -data "Overlay"]
 set tx [expr {$tx + $tw + $dtx}]
 puts $tx
 
-set text4Id [create_text_shape -id sidebyside -x $tx -y 95 -text "Side By Side" -border 1 -background 1]
+set text4Id [create_text_shape -id sidebyside -x $tx -y $ty -text "Side By Side" -border 1 -background 1]
 connect_chart -view $::viewId -from annotationIdPressed -to annotationSlot

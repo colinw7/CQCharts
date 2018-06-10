@@ -18,6 +18,8 @@ class CQChartsModelData : public QObject {
  public:
   CQChartsModelData(CQCharts *charts, ModelP &model);
 
+ ~CQChartsModelData();
+
   CQCharts *charts() const { return charts_; }
 
   // get model
@@ -32,6 +34,10 @@ class CQChartsModelData : public QObject {
   QItemSelectionModel *selectionModel() const { return selectionModel_; }
   void setSelectionModel(QItemSelectionModel *p) { selectionModel_ = p; }
 
+  // get/set name
+  const QString &name() const { return name_; }
+  void setName(const QString &v) { name_ = v; }
+
   // get associated fold models
   ModelP foldProxyModel() const { return foldProxyModel_; }
   void setFoldProxyModel(ModelP &model) { foldProxyModel_ = model; }
@@ -43,9 +49,8 @@ class CQChartsModelData : public QObject {
   void clearFoldedModels() { foldedModels_.clear(); }
 
   // get details
-  CQChartsModelDetails &details() { return details_; }
-  const CQChartsModelDetails &details() const { return details_; }
-  void setDetails(const CQChartsModelDetails &v) { details_ = v; }
+  CQChartsModelDetails *details();
+  const CQChartsModelDetails *details() const;
 
   ModelP currentModel() const;
 
@@ -67,13 +72,14 @@ class CQChartsModelData : public QObject {
   void modelChanged();
 
  private:
-  CQCharts*            charts_         { nullptr };
-  ModelP               model_;
-  int                  ind_            { -1 };
-  QItemSelectionModel* selectionModel_ { nullptr };
-  ModelP               foldProxyModel_;
-  FoldedModels         foldedModels_;
-  CQChartsModelDetails details_;
+  CQCharts*             charts_         { nullptr };
+  ModelP                model_;
+  int                   ind_            { -1 };
+  QItemSelectionModel*  selectionModel_ { nullptr };
+  QString               name_;
+  ModelP                foldProxyModel_;
+  FoldedModels          foldedModels_;
+  CQChartsModelDetails* details_        { nullptr };
 };
 
 #endif

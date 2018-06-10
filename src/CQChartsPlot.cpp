@@ -208,6 +208,11 @@ connectModel()
   if (! model_.data())
     return;
 
+  CQChartsModelData *modelData = charts()->getModelData(model_.data());
+
+  if (modelData)
+    modelData->setName(this->id());
+
   connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   connect(model_.data(), SIGNAL(layoutChanged()),
@@ -229,6 +234,11 @@ disconnectModel()
 {
   if (! model_.data())
     return;
+
+  CQChartsModelData *modelData = charts()->getModelData(model_.data());
+
+  if (modelData)
+    modelData->setName("");
 
   disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
              this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
@@ -366,7 +376,7 @@ selectionSlot()
     QModelIndex ind1 = normalizeIndex(ind);
 
     for (auto &plotObj : plotObjs_) {
-      if (plotObj->isIndex(ind1))
+      if (plotObj->isSelectIndex(ind1))
         plotObj->setSelected(true);
     }
   }
@@ -827,6 +837,62 @@ resetConnectData(bool notify)
 
 void
 CQChartsPlot::
+setInvertX(bool b)
+{
+  if (isOverlay()) {
+    // if first plot then set all plots to same invert value
+    if (prevPlot())
+      return;
+
+    //---
+
+    invertX_ = b;
+
+    CQChartsPlot *plot1 = nextPlot();
+
+    while (plot1) {
+      plot1->invertX_ = b;
+
+      plot1 = plot1->nextPlot();
+    }
+  }
+  else {
+    invertX_ = b;
+  }
+
+  update();
+}
+
+void
+CQChartsPlot::
+setInvertY(bool b)
+{
+  if (isOverlay()) {
+    // if first plot then set all plots to same invert value
+    if (prevPlot())
+      return;
+
+    //---
+
+    invertY_ = b;
+
+    CQChartsPlot *plot1 = nextPlot();
+
+    while (plot1) {
+      plot1->invertY_ = b;
+
+      plot1 = plot1->nextPlot();
+    }
+  }
+  else {
+    invertY_ = b;
+
+    update();
+  }
+}
+
+void
+CQChartsPlot::
 setLogX(bool b)
 {
   logX_ = b;
@@ -863,14 +929,13 @@ CQChartsPlot::
 addProperties()
 {
   addProperty("", this, "viewId");
+  addProperty("", this, "visible");
 
   addProperty("columns", this, "idColumn", "id");
 
-  addProperty("", this, "visible");
-  addProperty("", this, "followMouse");
-
-  addProperty("range", this, "rect" , "view");
-  addProperty("range", this, "range", "data");
+  addProperty("range", this, "rect"   , "view"   );
+  addProperty("range", this, "range"  , "data"   );
+  addProperty("range", this, "autoFit", "autoFit");
 
   addProperty("scaling", this, "dataScaleX", "dataX");
   addProperty("scaling", this, "dataScaleY", "dataY");
@@ -886,10 +951,10 @@ addProperties()
   addProperty("log", this, "logX", "x");
   addProperty("log", this, "logY", "y");
 
-  addProperty("", this, "autoFit"  );
-
-  if (getenv("CQCHARTS_DEBUG"))
+  if (CQChartsUtil::getBoolEnv("CQCHARTS_DEBUG", true)) {
     addProperty("debug", this, "showBoxes");
+    addProperty("debug", this, "followMouse");
+  }
 
   QString plotStyleStr       = "plotStyle";
   QString plotStyleFillStr   = plotStyleStr + "/fill";
@@ -999,7 +1064,7 @@ propertyItemSelected(QObject *obj, const QString &)
   if      (obj == this) {
     setSelected(true);
 
-    view()->setCurrentPlotInd(view()->plotInd(this));
+    view()->setCurrentPlot(this);
 
     update();
   }
@@ -1443,10 +1508,10 @@ clearPlotObjects()
 
   std::swap(plotObjs, plotObjs_);
 
-  plotObjTree_->clearObjects();
-
   for (auto &plotObj : plotObjs)
     delete plotObj;
+
+  plotObjTree_->clearObjects();
 
   insidePlotObjs_    .clear();
   sizeInsidePlotObjs_.clear();
@@ -1707,9 +1772,10 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
   if (changed) {
     beginSelect();
 
-    for (const auto &objSelected : objsSelected)
+    for (const auto &objSelected : objsSelected) {
       if (objSelected.first->isSelected())
-        objSelected.first->addSelectIndex();
+        objSelected.first->addSelectIndices();
+    }
 
     endSelect();
 
@@ -2030,7 +2096,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
       setSelected(true);
 
-      view()->setCurrentPlotInd(view()->plotInd(this));
+      view()->setCurrentPlot(this);
 
       return true;
     }
@@ -2304,9 +2370,10 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
   if (changed) {
     beginSelect();
 
-    for (const auto &objSelected : objsSelected)
+    for (const auto &objSelected : objsSelected) {
       if (objSelected.first->isSelected())
-        objSelected.first->addSelectIndex();
+        objSelected.first->addSelectIndices();
+    }
 
     endSelect();
 
@@ -4909,14 +4976,6 @@ beginSelect()
   selIndexColumnRows_.clear();
 
 //itemSelection_ = QItemSelection();
-}
-
-void
-CQChartsPlot::
-addSelectIndex(int row, const CQChartsColumn &col, const QModelIndex &parent)
-{
-  if (col.type() == CQChartsColumn::Type::DATA)
-    addSelectIndex(selectIndex(row, col.column(), parent));
 }
 
 void

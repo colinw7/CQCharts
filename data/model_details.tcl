@@ -1,6 +1,6 @@
 proc modelDetails { modelId } {
-  set nr [get_property -model $modelId -name num_rows]
-  set nc [get_property -model $modelId -name num_columns]
+  set nr [get_charts_data -model $modelId -name num_rows]
+  set nc [get_charts_data -model $modelId -name num_columns]
 
   set hier [get_property -model $modelId -name hierarchical]
 
@@ -35,8 +35,8 @@ proc modelDetails { modelId } {
 proc modelCells { modelId } {
   puts "Model Cells"
 
-  set nr [get_property -model $modelId -name num_rows]
-  set nc [get_property -model $modelId -name num_columns]
+  set nr [get_charts_data -model $modelId -name num_rows]
+  set nc [get_charts_data -model $modelId -name num_columns]
 
   for {set r 0} {$r < $nr} {incr r} {
     for {set c 0} {$c < $nc} {incr c} {
@@ -56,8 +56,8 @@ proc modelCells { modelId } {
 proc mapValues { modelId } {
   puts "Map Values"
 
-  set nr [get_property -model $modelId -name num_rows]
-  set nc [get_property -model $modelId -name num_columns]
+  set nr [get_charts_data -model $modelId -name num_rows]
+  set nc [get_charts_data -model $modelId -name num_columns]
 
   for {set r 0} {$r < $nr} {incr r} {
     for {set c 0} {$c < $nc} {incr c} {

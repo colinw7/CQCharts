@@ -51,6 +51,13 @@ setFirstColumnHeader(bool b)
   csvModel_->setFirstColumnHeader(b);
 }
 
+void
+CQChartsCsv::
+setSeparator(char c)
+{
+  csvModel_->setSeparator(c);
+}
+
 bool
 CQChartsCsv::
 load(const QString &filename)

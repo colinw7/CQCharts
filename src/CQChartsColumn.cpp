@@ -112,25 +112,24 @@ fromString(const QString &s)
   setValue(s);
 }
 
-bool
+int
 CQChartsColumn::
-equals(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
+cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
 {
-  if (lhs.type_   != rhs.type_  ) return false;
-  if (lhs.column_ != rhs.column_) return false;
+  if (lhs.type_ < rhs.type_) return -1;
+  if (lhs.type_ > rhs.type_) return  1;
+
+  if (lhs.column_ < rhs.column_) return -1;
+  if (lhs.column_ > rhs.column_) return  1;
 
   if (lhs.expr_ != rhs.expr_) {
-    if ((lhs.expr_ && ! rhs.expr_) || (! lhs.expr_ && rhs.expr_))
-      return false;
+    if (! lhs.expr_ &&   rhs.expr_) return -1;
+    if (  lhs.expr_ && ! rhs.expr_) return  1;
 
-    if (! lhs.expr_ || ! rhs.expr_)
-      return false;
-
-    if (strcmp(lhs.expr_, rhs.expr_) != 0)
-      return false;
+    return strcmp(lhs.expr_, rhs.expr_);
   }
 
-  return true;
+  return 0;
 }
 
 void

@@ -710,16 +710,9 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsRadarObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_);
-}
-
-bool
-CQChartsRadarObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_);
 }
 
 void

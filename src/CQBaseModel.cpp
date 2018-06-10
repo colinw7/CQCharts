@@ -240,7 +240,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (orientation != Qt::Horizontal)
     return QAbstractItemModel::headerData(section, orientation, role);
 
-  if (role == static_cast<int>(Role::Type)) {
+  if      (role == static_cast<int>(Role::Type)) {
     return QVariant((int) columnType(section));
   }
   else if (role == static_cast<int>(Role::TypeValues)) {
@@ -263,7 +263,7 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   if (orientation != Qt::Horizontal)
     return false;
 
-  if (role == static_cast<int>(Role::Type)) {
+  if      (role == static_cast<int>(Role::Type)) {
     bool ok;
 
     Type type = variantToType(value, &ok);

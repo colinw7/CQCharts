@@ -48,6 +48,25 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
       if (Tcl_GetDoubleFromObj(interp, obj, &real) == TCL_OK)
         var = QVariant(real);
     }
+    else if (strcmp(type->name, "list") == 0) {
+      QList<QVariant> lvars;
+
+      int len = 0;
+
+      if (Tcl_ListObjLength(interp, obj, &len) == TCL_OK) {
+        for (int i = 0; i < len; ++i) {
+          Tcl_Obj *lobj;
+
+          if (Tcl_ListObjIndex(interp, obj, i, &lobj) == TCL_OK) {
+            QVariant lvar = variantFromObj(interp, lobj);
+
+            lvars.push_back(lvar);
+          }
+        }
+
+        var = lvars;
+      }
+    }
   }
 
   if (! var.isValid()) {

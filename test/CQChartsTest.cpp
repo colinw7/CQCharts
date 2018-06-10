@@ -1132,18 +1132,19 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 
     sortModel->setFilter(initData.filterStr);
 
-    plot = cmds_->createPlot(sortModelP, modelData->selectionModel(), type,
+    plot = cmds_->createPlot(nullptr, sortModelP, modelData->selectionModel(), type,
                              initData.nameValueData, reuse, bbox);
   }
   else {
-    plot = cmds_->createPlot(model, modelData->selectionModel(), type,
+    plot = cmds_->createPlot(nullptr, model, modelData->selectionModel(), type,
                              initData.nameValueData, reuse, bbox);
   }
 
   assert(plot);
 
-  if (initData.viewProperties != "")
+  if (initData.viewProperties != "") {
     plot->view()->setProperties(initData.viewProperties);
+  }
 
   //---
 
@@ -1337,7 +1338,7 @@ void
 CQChartsTest::
 print(const QString &filename)
 {
-  CQChartsView *view = cmds_->view();
+  CQChartsView *view = charts_->currentView();
 
   if (! view)
     return;

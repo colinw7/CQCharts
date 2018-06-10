@@ -123,9 +123,9 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  CQChartsPlot *createPlot(const ModelP &model, QItemSelectionModel *sm, CQChartsPlotType *type,
-                           const CQChartsNameValueData &nameValueData, bool reuse,
-                           const CQChartsGeom::BBox &bbox);
+  CQChartsPlot *createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
+                           CQChartsPlotType *type, const CQChartsNameValueData &nameValueData,
+                           bool reuse, const CQChartsGeom::BBox &bbox);
 
   //---
 
@@ -136,8 +136,6 @@ class CQChartsCmds : public QObject {
   CQChartsModelData *getModelData(int ind);
 
   //---
-
-  CQChartsView *view() const;
 
   CQChartsView *getView(bool reuse=true);
 
@@ -165,12 +163,16 @@ class CQChartsCmds : public QObject {
   void processModelCmd(const Vars &vars);
   void sortModelCmd   (const Vars &vars);
   void filterModelCmd (const Vars &vars);
-  void exportModelCmd (const Vars &vars);
+
+  void correlationModelCmd(const Vars &vars);
+  void exportModelCmd     (const Vars &vars);
 
   void groupPlotsCmd(const Vars &vars);
   void placePlotsCmd(const Vars &vars);
 
   void measureTextCmd(const Vars &vars);
+
+  void createViewCmd(const Vars &vars);
 
   void createPlotCmd(const Vars &vars);
   void removePlotCmd(const Vars &vars);
@@ -263,11 +265,13 @@ class CQChartsCmds : public QObject {
   void updateModel(int ind);
 
  private:
-  CQCharts* charts_       { nullptr };
-  CExpr*    expr_         { nullptr };
-  ViewP     view_;
-  bool      continueFlag_ { false };
-  CQTcl*    qtcl_         { nullptr };
+  using CommandNames = std::vector<QString>;
+
+  CQCharts*    charts_       { nullptr };
+  CExpr*       expr_         { nullptr };
+  bool         continueFlag_ { false };
+  CQTcl*       qtcl_         { nullptr };
+  CommandNames commandNames_;
 };
 
 #endif

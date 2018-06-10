@@ -12,6 +12,9 @@ class QAbstractItemModel;
 
 class CQChartsModelColumnDetails {
  public:
+  using VariantList = QList<QVariant>;
+
+ public:
   CQChartsModelColumnDetails(CQCharts *charts, QAbstractItemModel *model,
                              const CQChartsColumn &column);
 
@@ -33,6 +36,8 @@ class CQChartsModelColumnDetails {
   QVariant minValue() const;
   QVariant maxValue() const;
 
+  QVariant meanValue() const;
+
   QVariant dataName(const QVariant &v) const;
 
   int numRows() const;
@@ -42,16 +47,29 @@ class CQChartsModelColumnDetails {
 
   int numUnique() const;
 
+  VariantList uniqueValues() const;
+  VariantList uniqueCounts() const;
+
+  int numNull() const;
+
+  QVariant medianValue() const;
+  QVariant lowerMedianValue() const;
+  QVariant upperMedianValue() const;
+
   double map(const QVariant &var) const;
 
   virtual bool checkRow(const QVariant &) { return true; }
 
  private:
-  bool init();
+  bool initData();
 
   void addInt   (int i);
   void addReal  (double r);
   void addString(const QString &s);
+
+ private:
+  CQChartsModelColumnDetails(const CQChartsModelColumnDetails &) = delete;
+  CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
 
  private:
   CQCharts*           charts_      { nullptr };
@@ -77,23 +95,30 @@ class CQChartsModelDetails {
  public:
   CQChartsModelDetails(CQCharts *charts=nullptr, QAbstractItemModel *model=nullptr);
 
-  int numColumns() const { init(); return numColumns_; }
+ ~CQChartsModelDetails();
 
-  int numRows() const { init(); return numRows_; }
+  int numColumns() const { initData(); return numColumns_; }
 
-  bool isHierarchical() const { init(); return hierarchical_; }
+  int numRows() const { initData(); return numRows_; }
 
-  const CQChartsModelColumnDetails &columnDetails(int i) const { init(); return columnDetails_[i]; }
-  CQChartsModelColumnDetails &columnDetails(int i) { init(); return columnDetails_[i]; }
+  bool isHierarchical() const { initData(); return hierarchical_; }
 
-  void init() const;
+  CQChartsModelColumnDetails *columnDetails(int i);
+  const CQChartsModelColumnDetails *columnDetails(int i) const;
 
   void reset();
 
   void update();
 
  private:
-  using ColumnDetails = std::vector<CQChartsModelColumnDetails>;
+  void initData() const;
+
+ private:
+  CQChartsModelDetails(const CQChartsModelDetails &) = delete;
+  CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
+
+ private:
+  using ColumnDetails = std::vector<CQChartsModelColumnDetails *>;
 
   CQCharts*           charts_       { nullptr };
   QAbstractItemModel* model_        { nullptr };

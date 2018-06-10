@@ -1,7 +1,6 @@
 #ifndef CQChartsTable_H
 #define CQChartsTable_H
 
-#include <CQChartsModelDetails.h>
 #include <CQTableView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
@@ -10,6 +9,7 @@ class CQCharts;
 class CQChartsTableDelegate;
 class CQChartsTableSelectionModel;
 class CQChartsModelExprMatch;
+class CQChartsModelDetails;
 
 class CQChartsTable : public CQTableView {
   Q_OBJECT
@@ -37,7 +37,7 @@ class CQChartsTable : public CQTableView {
   void setSearch(const QString &text);
   void addSearch(const QString &text);
 
-  void calcDetails(CQChartsModelDetails &details);
+  CQChartsModelDetails *getDetails();
 
   QSize sizeHint() const override;
 

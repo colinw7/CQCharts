@@ -782,6 +782,9 @@ bool
 CQChartsDistributionPlot::
 probe(ProbeData &probeData) const
 {
+  if (! dataRange_.isSet())
+    return false;
+
   if (! isHorizontal()) {
     probeData.direction = ProbeData::Direction::VERTICAL;
 
@@ -962,23 +965,11 @@ dataLabelRect() const
 
 void
 CQChartsDistributionBarObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   for (const auto &value : values_) {
-    plot_->addSelectIndex(value);
+    addSelectIndex(inds, value);
   }
-}
-
-bool
-CQChartsDistributionBarObj::
-isIndex(const QModelIndex &ind) const
-{
-  for (const auto &value : values_) {
-    if (ind == value)
-      return true;
-  }
-
-  return false;
 }
 
 void

@@ -30,9 +30,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox dataLabelRect() const;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

@@ -256,7 +256,7 @@ acceptsRow(int row, const QModelIndex &parent) const
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
-    int column = groupValues_[i];
+    const CQChartsColumn &column = groupValues_[i];
 
     bool ok;
 
@@ -334,7 +334,7 @@ addRowGroupValueSets(const QModelIndex &parent, int row)
   assert(model);
 
   for (const auto &groupValueSet : groupValueSets_) {
-    int               groupColumn = groupValueSet.first;
+    CQChartsColumn    groupColumn = groupValueSet.first;
     CQChartsValueSet *valueSet    = groupValueSet.second;
 
     bool ok;
@@ -494,7 +494,7 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
 {
   // get point groups
   struct GroupData {
-    int               column   { -1 };
+    CQChartsColumn    column;
     CQChartsValueSet* valueSet { nullptr };
     QString           str;
     int               ind      { -1 };
@@ -699,17 +699,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsHierScatterPointObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_.row(), plot_->xColumn());
-  plot_->addSelectIndex(ind_.row(), plot_->yColumn());
-}
-
-bool
-CQChartsHierScatterPointObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_.row(), plot_->xColumn());
+  addSelectIndex(inds, ind_.row(), plot_->yColumn());
 }
 
 void

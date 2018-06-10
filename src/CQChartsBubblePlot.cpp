@@ -647,26 +647,21 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsBubbleObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   const QModelIndex &ind = node_->ind();
 
-  plot_->addSelectIndex(ind.row(), plot_->nameColumn(), ind.parent());
+  addSelectIndex(inds, ind.row(), plot_->nameColumn(), ind.parent());
 
   if (plot_->valueColumn().isValid())
-    plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
+    addSelectIndex(inds, ind.row(), plot_->valueColumn(), ind.parent());
 
   if (plot_->colorColumn().isValid())
-    plot_->addSelectIndex(ind.row(), plot_->colorColumn(), ind.parent());
-}
+    addSelectIndex(inds, ind.row(), plot_->colorColumn(), ind.parent());
 
-bool
-CQChartsBubbleObj::
-isIndex(const QModelIndex &ind) const
-{
-  const QModelIndex &nind = node_->ind();
+  if (plot_->idColumn().isValid())
+    addSelectIndex(inds, ind.row(), plot_->idColumn(), ind.parent());
 
-  return (ind == nind);
 }
 
 void

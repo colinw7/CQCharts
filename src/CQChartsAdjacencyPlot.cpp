@@ -283,7 +283,10 @@ initHierObjs()
 
   int nn = numNodes();
 
-  scale_ = (1.0 - 2*std::max(xb, yb))/(nn + maxLen_*factor_);
+  if (nn + maxLen_*factor_ > 0)
+    scale_ = (1.0 - 2*std::max(xb, yb))/(nn + maxLen_*factor_);
+  else
+    scale_ = 1.0;
 
   double tsize = maxLen_*factor_*scale_;
 
@@ -802,17 +805,10 @@ calcTipId() const
 
 void
 CQChartsAdjacencyObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(node1_->ind());
-  plot_->addSelectIndex(node2_->ind());
-}
-
-bool
-CQChartsAdjacencyObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == node1_->ind() || ind == node2_->ind());
+  inds.insert(node1_->ind());
+  inds.insert(node2_->ind());
 }
 
 void

@@ -41,9 +41,7 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   QString calcId() const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -72,6 +70,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  void getSelectIndices(Indices &) const override { }
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -152,8 +152,10 @@ class CQChartsBoxPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsLength borderWidth      READ borderWidth      WRITE setBorderWidth     )
   Q_PROPERTY(CQChartsLength cornerSize       READ cornerSize       WRITE setCornerSize      )
   Q_PROPERTY(CQChartsColor  whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
+  Q_PROPERTY(double         whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
   Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
   Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+  Q_PROPERTY(bool           textVisible      READ isTextVisible    WRITE setTextVisible     )
   Q_PROPERTY(CQChartsColor  textColor        READ textColor        WRITE setTextColor       )
   Q_PROPERTY(double         textAlpha        READ textAlpha        WRITE setTextAlpha       )
   Q_PROPERTY(QFont          textFont         READ textFont         WRITE setTextFont        )
@@ -246,6 +248,9 @@ class CQChartsBoxPlot : public CQChartsPlot {
   const CQChartsColor &whiskerColor() const;
   void setWhiskerColor(const CQChartsColor &c);
 
+  double whiskerAlpha() const;
+  void setWhiskerAlpha(double a);
+
   const CQChartsLength &whiskerLineWidth() const { return whiskerData_.width; }
   void setWhiskerLineWidth(const CQChartsLength &l) { whiskerData_.width = l; update(); }
 
@@ -255,6 +260,9 @@ class CQChartsBoxPlot : public CQChartsPlot {
   QColor interpWhiskerColor(int i, int n) const;
 
   //---
+
+  bool isTextVisible() const;
+  void setTextVisible(bool b);
 
   const CQChartsColor &textColor() const;
   void setTextColor(const CQChartsColor &c);

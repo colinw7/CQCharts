@@ -223,6 +223,20 @@ setWhiskerColor(const CQChartsColor &c)
   update();
 }
 
+double
+CQChartsBoxPlot::
+whiskerAlpha() const
+{
+  return whiskerData_.alpha;
+}
+
+void
+CQChartsBoxPlot::
+setWhiskerAlpha(double a)
+{
+  CQChartsUtil::testAndSet(whiskerData_.alpha, a, [&]() { update(); } );
+}
+
 QColor
 CQChartsBoxPlot::
 interpWhiskerColor(int i, int n) const
@@ -231,6 +245,20 @@ interpWhiskerColor(int i, int n) const
 }
 
 //------
+
+bool
+CQChartsBoxPlot::
+isTextVisible() const
+{
+  return textData_.visible;
+}
+
+void
+CQChartsBoxPlot::
+setTextVisible(bool b)
+{
+  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { update(); } );
+}
 
 const CQChartsColor &
 CQChartsBoxPlot::
@@ -293,32 +321,42 @@ addProperties()
   addProperty("columns", this, "yColumn"    , "y"    );
   addProperty("columns", this, "groupColumn", "group");
 
-  addProperty("", this, "skipOutliers", "skipOutliers");
-  addProperty("", this, "connected"   , "connected"   );
-  addProperty("", this, "whiskerRange", "whiskerRange");
-  addProperty("", this, "boxWidth"    , "boxWidth"    );
+  // connect multiple whiskers
+  addProperty("", this, "connected", "connected");
 
-  addProperty("stroke", this, "boxStroked" , "visible"   );
-  addProperty("stroke", this, "borderColor", "color"     );
-  addProperty("stroke", this, "borderAlpha", "alpha"     );
-  addProperty("stroke", this, "borderWidth", "width"     );
-  addProperty("stroke", this, "cornerSize" , "cornerSize");
+  // whisker box
+  addProperty("box", this, "whiskerRange", "range" );
+  addProperty("box", this, "boxWidth"    , "width" );
+  addProperty("box", this, "boxLabels"   , "labels");
 
-  addProperty("fill", this, "boxFilled" , "visible");
-  addProperty("fill", this, "boxColor"  , "color"  );
-  addProperty("fill", this, "boxAlpha"  , "alpha"  );
-  addProperty("fill", this, "boxPattern", "pattern");
+  // whisker box stroke
+  addProperty("box/stroke", this, "boxStroked" , "visible"   );
+  addProperty("box/stroke", this, "borderColor", "color"     );
+  addProperty("box/stroke", this, "borderAlpha", "alpha"     );
+  addProperty("box/stroke", this, "borderWidth", "width"     );
+  addProperty("box/stroke", this, "cornerSize" , "cornerSize");
 
+  // whisker box fill
+  addProperty("box/fill", this, "boxFilled" , "visible");
+  addProperty("box/fill", this, "boxColor"  , "color"  );
+  addProperty("box/fill", this, "boxAlpha"  , "alpha"  );
+  addProperty("box/fill", this, "boxPattern", "pattern");
+
+  // whisker line
   addProperty("whisker", this, "whiskerColor"    , "color" );
+  addProperty("whisker", this, "whiskerAlpha"    , "alpha" );
   addProperty("whisker", this, "whiskerLineWidth", "width" );
   addProperty("whisker", this, "whiskerExtent"   , "extent");
 
-  addProperty("text", this, "textFont"  , "font"  );
-  addProperty("text", this, "textColor" , "color" );
-  addProperty("text", this, "textAlpha" , "alpha" );
-  addProperty("text", this, "textMargin", "margin");
+  // value labels
+  addProperty("labels", this, "textVisible", "visible");
+  addProperty("labels", this, "textFont"   , "font"   );
+  addProperty("labels", this, "textColor"  , "color"  );
+  addProperty("labels", this, "textAlpha"  , "alpha"  );
+  addProperty("labels", this, "textMargin" , "margin" );
 
-  addProperty("outlier", this, "symbolSize", "size");
+  addProperty("outlier", this, "skipOutliers", "skip");
+  addProperty("outlier", this, "symbolSize"  , "size");
 }
 
 void
@@ -757,24 +795,12 @@ calcId() const
 
 void
 CQChartsBoxPlotObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   for (auto value : whisker_.values()) {
-    plot_->addSelectIndex(value.ind.row(), plot_->xColumn(), value.ind.parent());
-    plot_->addSelectIndex(value.ind.row(), plot_->yColumn(), value.ind.parent());
+    addSelectIndex(inds, value.ind.row(), plot_->xColumn(), value.ind.parent());
+    addSelectIndex(inds, value.ind.row(), plot_->yColumn(), value.ind.parent());
   }
-}
-
-bool
-CQChartsBoxPlotObj::
-isIndex(const QModelIndex &ind) const
-{
-  for (auto value : whisker_.values()) {
-    if (ind == value.ind)
-      return true;
-  }
-
-  return false;
 }
 
 void
@@ -800,7 +826,10 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-  QColor whiskerColor     = plot_->interpWhiskerColor(0, 1);
+  QColor whiskerColor = plot_->interpWhiskerColor(0, 1);
+
+  whiskerColor.setAlphaF(plot_->whiskerAlpha());
+
   double whiskerLineWidth = plot_->lengthPixelWidth(plot_->whiskerLineWidth());
 
   //---
@@ -877,27 +906,29 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // draw labels
-  double margin = plot_->textMargin();
+  if (plot_->isTextVisible()) {
+    double margin = plot_->textMargin();
 
-  painter->setFont(plot_->textFont());
+    painter->setFont(plot_->textFont());
 
-  QColor tc = plot_->interpTextColor(0, 1);
+    QColor tc = plot_->interpTextColor(0, 1);
 
-  tc.setAlphaF(plot_->textAlpha());
+    tc.setAlphaF(plot_->textAlpha());
 
-  painter->setPen(tc);
+    painter->setPen(tc);
 
-  QString strl = QString("%1").arg(whisker_.min   ());
-  QString lstr = QString("%1").arg(whisker_.lower ());
-  QString mstr = QString("%1").arg(whisker_.median());
-  QString ustr = QString("%1").arg(whisker_.upper ());
-  QString strh = QString("%1").arg(whisker_.max   ());
+    QString strl = QString("%1").arg(whisker_.min   ());
+    QString lstr = QString("%1").arg(whisker_.lower ());
+    QString mstr = QString("%1").arg(whisker_.median());
+    QString ustr = QString("%1").arg(whisker_.upper ());
+    QString strh = QString("%1").arg(whisker_.max   ());
 
-  painter->drawText(QPointF(px5 + margin                 , py1 + yf), strl);
-  painter->drawText(QPointF(px2 - margin - fm.width(lstr), py2 + yf), lstr);
-  painter->drawText(QPointF(px4 + margin                 , py3 + yf), mstr);
-  painter->drawText(QPointF(px2 - margin - fm.width(ustr), py4 + yf), ustr);
-  painter->drawText(QPointF(px5 + margin                 , py5 + yf), strh);
+    painter->drawText(QPointF(px5 + margin                 , py1 + yf), strl);
+    painter->drawText(QPointF(px2 - margin - fm.width(lstr), py2 + yf), lstr);
+    painter->drawText(QPointF(px4 + margin                 , py3 + yf), mstr);
+    painter->drawText(QPointF(px2 - margin - fm.width(ustr), py4 + yf), ustr);
+    painter->drawText(QPointF(px5 + margin                 , py5 + yf), strh);
+  }
 
   //---
 
@@ -926,16 +957,6 @@ CQChartsGeom::BBox
 CQChartsBoxPlotObj::
 annotationBBox() const
 {
-  double margin = plot_->textMargin();
-
-  QFontMetricsF fm(plot_->textFont());
-
-  double fa = fm.ascent ();
-  double fd = fm.descent();
-  double yf = (fa - fd)/2.0;
-
-  //---
-
   double wd1 = plot_->whiskerExtent()/2.0;
   double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
 
@@ -949,19 +970,36 @@ annotationBBox() const
 
   //---
 
-  QString strl = QString("%1").arg(whisker_.min   ());
-  QString lstr = QString("%1").arg(whisker_.lower ());
-  QString mstr = QString("%1").arg(whisker_.median());
-  QString ustr = QString("%1").arg(whisker_.upper ());
-  QString strh = QString("%1").arg(whisker_.max   ());
-
   CQChartsGeom::BBox pbbox;
 
-  pbbox += CQChartsGeom::Point(px5 + margin + fm.width(strl), py1 + yf + fd);
-  pbbox += CQChartsGeom::Point(px2 - margin - fm.width(lstr), py2 + yf + fd);
-  pbbox += CQChartsGeom::Point(px4 + margin + fm.width(mstr), py3 + yf);
-  pbbox += CQChartsGeom::Point(px2 - margin - fm.width(ustr), py4 + yf - fa);
-  pbbox += CQChartsGeom::Point(px5 + margin + fm.width(strh), py5 + yf - fa);
+  if (plot_->isTextVisible()) {
+    double margin = plot_->textMargin();
+
+    QFontMetricsF fm(plot_->textFont());
+
+    double fa = fm.ascent ();
+    double fd = fm.descent();
+    double yf = (fa - fd)/2.0;
+
+    QString strl = QString("%1").arg(whisker_.min   ());
+    QString lstr = QString("%1").arg(whisker_.lower ());
+    QString mstr = QString("%1").arg(whisker_.median());
+    QString ustr = QString("%1").arg(whisker_.upper ());
+    QString strh = QString("%1").arg(whisker_.max   ());
+
+    pbbox += CQChartsGeom::Point(px5 + margin + fm.width(strl), py1 + yf + fd);
+    pbbox += CQChartsGeom::Point(px2 - margin - fm.width(lstr), py2 + yf + fd);
+    pbbox += CQChartsGeom::Point(px4 + margin + fm.width(mstr), py3 + yf);
+    pbbox += CQChartsGeom::Point(px2 - margin - fm.width(ustr), py4 + yf - fa);
+    pbbox += CQChartsGeom::Point(px5 + margin + fm.width(strh), py5 + yf - fa);
+  }
+  else {
+    pbbox += CQChartsGeom::Point(px5, py1);
+    pbbox += CQChartsGeom::Point(px2, py2);
+    pbbox += CQChartsGeom::Point(px4, py3);
+    pbbox += CQChartsGeom::Point(px2, py4);
+    pbbox += CQChartsGeom::Point(px5, py5);
+  }
 
   //---
 

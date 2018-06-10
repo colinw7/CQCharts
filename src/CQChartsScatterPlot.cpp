@@ -765,20 +765,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsScatterPointObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  if (plot_->xColumn().type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), plot_->xColumn());
-
-  if (plot_->yColumn().type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), plot_->yColumn());
-}
-
-bool
-CQChartsScatterPointObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_.row(), plot_->xColumn());
+  addSelectIndex(inds, ind_.row(), plot_->yColumn());
 }
 
 void

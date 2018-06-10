@@ -1,4 +1,6 @@
 #include <CQChartsTree.h>
+#include <CQChartsModelData.h>
+#include <CQCharts.h>
 #include <CQChartsUtil.h>
 
 #include <QHeaderView>
@@ -171,6 +173,8 @@ selectionBehaviorSlot(QAction *action)
     setSelectionBehavior(SelectRows);
   else if (action->text() == "Select Columns")
     setSelectionBehavior(SelectColumns);
+  else
+    assert(false);
 }
 
 void
@@ -188,11 +192,14 @@ exportSlot(QAction *action)
   }
 }
 
-void
+CQChartsModelDetails *
 CQChartsTree::
-calcDetails(CQChartsModelDetails &details)
+getDetails()
 {
-  details = CQChartsModelDetails(charts_, model_.data());
+  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  assert(modelData);
+
+  return modelData->details();
 }
 
 QSize

@@ -605,17 +605,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsParallelLineObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
-}
-
-bool
-CQChartsParallelLineObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_.row(), plot_->xColumn(), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->yColumn(), ind_.parent());
 }
 
 void
@@ -756,16 +749,9 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsParallelPointObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_);
-}
-
-bool
-CQChartsParallelPointObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_);
 }
 
 void

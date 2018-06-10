@@ -14,11 +14,11 @@ class CQChartsImageObj : public CQChartsPlotObj {
   CQChartsImageObj(CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
                    double value, const QModelIndex &ind);
 
-  QString calcId() const;
+  QString calcId() const override;
 
-  void addSelectIndex() override;
+  QString calcTipId() const override;
 
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -47,8 +47,14 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 class CQChartsImagePlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
-  Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
+  Q_PROPERTY(double        minValue   READ minValue     WRITE setMinValue  )
+  Q_PROPERTY(double        maxValue   READ maxValue     WRITE setMaxValue  )
+  Q_PROPERTY(bool          xLabels    READ isXLabels    WRITE setXLabels   )
+  Q_PROPERTY(bool          yLabels    READ isYLabels    WRITE setYLabels   )
+  Q_PROPERTY(bool          cellLabels READ isCellLabels WRITE setCellLabels)
+  Q_PROPERTY(CQChartsColor textColor  READ textColor    WRITE setTextColor )
+  Q_PROPERTY(double        textAlpha  READ textAlpha    WRITE setTextAlpha )
+  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont  )
 
  public:
   CQChartsImagePlot(CQChartsView *view, const ModelP &model);
@@ -63,6 +69,30 @@ class CQChartsImagePlot : public CQChartsPlot {
 
   //---
 
+  bool isXLabels() const { return xLabels_; }
+  void setXLabels(bool b) { xLabels_ = b; update(); }
+
+  bool isYLabels() const { return yLabels_; }
+  void setYLabels(bool b) { yLabels_ = b; update(); }
+
+  bool isCellLabels() const { return cellLabels_; }
+  void setCellLabels(bool b) { cellLabels_ = b; update(); }
+
+  //---
+
+  const CQChartsColor &textColor() const;
+  void setTextColor(const CQChartsColor &c);
+
+  double textAlpha() const;
+  void setTextAlpha(double a);
+
+  const QFont &textFont() const;
+  void setTextFont(const QFont &f);
+
+  QColor interpTextColor(int i, int n) const;
+
+  //---
+
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
@@ -74,11 +104,20 @@ class CQChartsImagePlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  void addImageObj(double x, double y, double dx, double dy, int value, const QModelIndex &ind);
+  void addImageObj(double x, double y, double dx, double dy, double value, const QModelIndex &ind);
+
+  void drawXLabels(QPainter *);
+  void drawYLabels(QPainter *);
 
  private:
-  double minValue_ { 0.0 }; // min value
-  double maxValue_ { 0.0 }; // max value
+  double           minValue_   { 0.0 };   // min value
+  double           maxValue_   { 0.0 };   // max value
+  bool             xLabels_    { false }; // x labels
+  bool             yLabels_    { false }; // y labels
+  bool             cellLabels_ { false }; // cell labels
+  CQChartsTextData textData_;             // text style
+  int              nc_         { 0 };     // number of grid columns
+  int              nr_         { 0 };     // number of grid rows
 };
 
 #endif

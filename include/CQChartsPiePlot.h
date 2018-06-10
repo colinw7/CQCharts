@@ -80,9 +80,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -141,6 +139,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   const PieObjs &objs() const { return objs_; }
 
   QString calcId() const override { return name_; }
+
+  void getSelectIndices(Indices &) const override { }
 
   void draw(QPainter *, const CQChartsPlot::Layer &) override { }
 

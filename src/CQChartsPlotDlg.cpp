@@ -203,6 +203,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   xintegralCheck_->setToolTip("X values are Integral");
   yintegralCheck_->setToolTip("Y values are Integral");
 
+  connect(xintegralCheck_, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+  connect(yintegralCheck_, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+
   xyFrameLayout->addWidget(xintegralCheck_);
   xyFrameLayout->addWidget(yintegralCheck_);
 
@@ -225,6 +228,9 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   xlogCheck_->setToolTip("Use log scale for X Axis");
   ylogCheck_->setToolTip("Use log scale for Y Axis");
+
+  connect(xlogCheck_, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
+  connect(ylogCheck_, SIGNAL(stateChanged(int)), this, SLOT(validateSlot()));
 
   xyFrameLayout->addWidget(xlogCheck_);
   xyFrameLayout->addWidget(ylogCheck_);
@@ -796,27 +802,27 @@ updateFormatSlot()
   if (! parameterName.length())
     return;
 
-  int     column;
-  QString columnStr;
-  QString columnType;
-  int     defColumn = -1;
+  CQChartsColumn column;
+  QString        columnStr;
+  QString        columnType;
+  CQChartsColumn defColumn;
 
   auto pce = plotData.columnEdits.find(parameterName);
 
   if (pce != plotData.columnEdits.end()) {
-    if (! lineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+    if (! columnLineEditValue((*pce).second, column, columnStr, columnType, defColumn))
       return;
   }
   else {
     auto pce = plotData.columnsEdits.find(parameterName);
 
     if (pce != plotData.columnEdits.end()) {
-      if (! lineEditValue((*pce).second, column, columnStr, columnType, defColumn))
+      if (! columnLineEditValue((*pce).second, column, columnStr, columnType, defColumn))
         return;
     }
   }
 
-  if (column < 0)
+  if (! column.isValid())
     return;
 
   QString typeStr;
@@ -847,7 +853,7 @@ validate(QString &msg)
   CQChartsModelData *modelData = charts_->getModelData(model_.data());
   if (! modelData) { msg = "no model data"; return false; }
 
-  const CQChartsModelDetails &details = modelData->details();
+  const CQChartsModelDetails *details = modelData->details();
 
   //---
 
@@ -871,12 +877,14 @@ validate(QString &msg)
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
+      CQChartsColumn column;
+
       bool ok;
 
-      int column = parameter.defValue().toInt(&ok);
+      int icolumn = parameter.defValue().toInt(&ok);
 
-      if (! ok)
-        column = -1;
+      if (ok)
+        column = icolumn;
 
       QString      columnStr;
       QString      columnTypeStr;
@@ -892,32 +900,34 @@ validate(QString &msg)
         continue;
       }
 
-      if (column < 0 || column >= details.numColumns()) {
-        msg += "invalid column number\n";
+      if (! column.isValid()) {
+        msg += "invalid column value\n";
         rc = false;
         continue;
       }
 
-      const CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
+      if (column.type() == CQChartsColumn::Type::DATA) {
+        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
-      if (parameter.attributes().isMonotonic()) {
-        if (! columnDetails.isMonotonic())
-          msg += "non-monotonic column\n";
-      }
+        if (parameter.attributes().isMonotonic()) {
+          if (! columnDetails->isMonotonic())
+            msg += "non-monotonic column\n";
+        }
 
-      if      (parameter.attributes().isNumeric()) {
-        if (columnDetails.type() != CQBaseModel::Type::INTEGER &&
-            columnDetails.type() != CQBaseModel::Type::REAL &&
-            columnDetails.type() != CQBaseModel::Type::TIME)
-          msg += "non-numeric column\n";
-      }
-      else if (parameter.attributes().isString()) {
-        if (columnDetails.type() != CQBaseModel::Type::STRING)
-          msg += "non-string column\n";
-      }
-      else if (parameter.attributes().isColor()) {
-        if (columnDetails.type() != CQBaseModel::Type::COLOR)
-          msg += "non-color column\n";
+        if      (parameter.attributes().isNumeric()) {
+          if (columnDetails->type() != CQBaseModel::Type::INTEGER &&
+              columnDetails->type() != CQBaseModel::Type::REAL &&
+              columnDetails->type() != CQBaseModel::Type::TIME)
+            msg += "non-numeric column\n";
+        }
+        else if (parameter.attributes().isString()) {
+          if (columnDetails->type() != CQBaseModel::Type::STRING)
+            msg += "non-string column\n";
+        }
+        else if (parameter.attributes().isColor()) {
+          if (columnDetails->type() != CQBaseModel::Type::COLOR)
+            msg += "non-color column\n";
+        }
       }
     }
   }
@@ -1009,14 +1019,14 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
+      CQChartsColumn column;
+
       bool ok;
 
-      int defValue = parameter.defValue().toInt(&ok);
+      int icolumn = parameter.defValue().toInt(&ok);
 
-      if (! ok)
-        defValue = -1;
-
-      int column = defValue;
+      if (ok)
+        column = icolumn;
 
       QString      columnStr;
       QString      columnTypeStr;
@@ -1024,7 +1034,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
       if (parseParameterColumnEdit(parameter, plotData, column, columnStr,
                                    columnTypeStr, mapValueData)) {
-        if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(column)))
+        if (! CQUtil::setProperty(plot, parameter.propName(), column.toString()))
           charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
 
         if (columnTypeStr.length())
@@ -1050,7 +1060,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
       }
       else {
         if (preview)
-          CQUtil::setProperty(plot, parameter.propName(), QVariant(defValue));
+          CQUtil::setProperty(plot, parameter.propName(), QVariant(icolumn));
       }
     }
     else if (parameter.type() == "columns") {
@@ -1058,7 +1068,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
       QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
 
-      std::vector<int> columns;
+      std::vector<CQChartsColumn> columns;
 
       (void) CQChartsUtil::fromString(defValue, columns);
 
@@ -1225,7 +1235,7 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
 bool
 CQChartsPlotDlg::
 parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                         int &column, QString &columnStr, QString &columnType,
+                         CQChartsColumn &column, QString &columnStr, QString &columnType,
                          MapValueData &mapValueData)
 {
   auto pf = plotData.formatEdits.find(parameter.name());
@@ -1240,17 +1250,19 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
 
   //---
 
+  CQChartsColumn defColumn;
+
   bool ok;
 
-  int defColumn = parameter.defValue().toInt(&ok);
+  int icolumn = parameter.defValue().toInt(&ok);
 
-  if (! ok)
-    defColumn = -1;
+  if (ok)
+    defColumn = icolumn;
 
   auto pe = plotData.columnEdits.find(parameter.name());
   assert(pe != plotData.columnEdits.end());
 
-  if (! lineEditValue((*pe).second, column, columnStr, columnType, defColumn))
+  if (! columnLineEditValue((*pe).second, column, columnStr, columnType, defColumn))
     return false;
 
   auto pm = plotData.mappedEdits.find(parameter.name());
@@ -1272,7 +1284,8 @@ parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData 
 bool
 CQChartsPlotDlg::
 parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                          std::vector<int> &columns, QStringList &columnStrs, QString &columnType)
+                          std::vector<CQChartsColumn> &columns, QStringList &columnStrs,
+                          QString &columnType)
 {
   auto pf = plotData.formatEdits.find(parameter.name());
   assert(pf != plotData.formatEdits.end());
@@ -1291,10 +1304,10 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
   auto pe = plotData.columnsEdits.find(parameter.name());
   assert(pe != plotData.columnsEdits.end());
 
-  int     column;
-  QString columnStr;
+  CQChartsColumn column;
+  QString        columnStr;
 
-  bool ok = lineEditValue((*pe).second, column, columnStr, columnType, -1);
+  bool ok = columnLineEditValue((*pe).second, column, columnStr, columnType);
 
   if (ok) {
     columns   .push_back(column);
@@ -1303,7 +1316,7 @@ parseParameterColumnsEdit(const CQChartsPlotParameter &parameter, const PlotData
     return true;
   }
 
-  return lineEditValues((*pe).second, columns, columnStrs, columnType);
+  return columnLineEditValues((*pe).second, columns, columnStrs, columnType);
 }
 
 bool
@@ -1348,24 +1361,27 @@ parseParameterBoolEdit(const CQChartsPlotParameter &parameter, const PlotData &p
 
 bool
 CQChartsPlotDlg::
-lineEditValue(QLineEdit *le, int &i, QString &columnStr, QString &columnType, int defi) const
+columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr, QString &columnType,
+                    const CQChartsColumn &defColumn) const
 {
-  QString str = le->text();
+  QString str = le->text().simplified();
+
+  if (! str.length())
+    return false;
 
   //--
 
-  int pos = str.indexOf(":");
+  if (str.left(1) != "(") {
+    int pos = str.indexOf(":");
 
-  if (pos >= 0) {
-    str = str.mid(0, pos).simplified();
-
-    columnType = str.mid(pos + 1).simplified();
+    if (pos >= 0) {
+      str        = str.mid(0, pos).simplified();
+      columnType = str.mid(pos + 1).simplified();
+    }
   }
-  else
-    str = str.simplified();
 
-  if (! stringToColumn(str, i)) {
-    i = defi;
+  if (! stringToColumn(str, column)) {
+    column = defColumn;
 
     return false;
   }
@@ -1377,57 +1393,72 @@ lineEditValue(QLineEdit *le, int &i, QString &columnStr, QString &columnType, in
 
 bool
 CQChartsPlotDlg::
-lineEditValues(QLineEdit *le, std::vector<int> &columns, QStringList &columnStrs,
-               QString &columnType) const
+columnLineEditValues(QLineEdit *le, std::vector<CQChartsColumn> &columns, QStringList &columnStrs,
+                     QString &columnType) const
 {
   bool ok = true;
 
+  // TODO: better split to handle spaces in column names/expressions
   QStringList strs = le->text().split(" ", QString::SkipEmptyParts);
 
   for (int i = 0; i < strs.size(); ++i) {
-    int pos = strs[i].indexOf(":");
+    const QString &str = strs[i];
 
-    QString lhs, rhs;
+    if (str.left(1) != "(") {
+      int pos = str.indexOf(":");
 
-    if (pos > 0) {
-      lhs = strs[i].mid(0, pos).simplified();
-      rhs = strs[i].mid(pos + 1).simplified();
-    }
-    else
-      lhs = strs[i].simplified();
+      QString lhs, rhs;
 
-    //---
-
-    // support column numeric range <n>-<m>
-    QStringList strs1 = lhs.split("-", QString::SkipEmptyParts);
-
-    if (strs1.size() == 2) {
-      bool ok1, ok2;
-
-      int startCol = strs1[0].toInt(&ok1);
-      int endCol   = strs1[1].toInt(&ok2);
-
-      if (ok1 && ok2) {
-        for (int col = startCol; col <= endCol; ++col) {
-          columns   .push_back(col);
-          columnStrs.push_back(QString("%1").arg(col));
-        }
-
-        if (rhs.length())
-          columnType = rhs;
+      if (pos > 0) {
+        lhs = str.mid(0, pos).simplified();
+        rhs = str.mid(pos + 1).simplified();
       }
       else
-        ok = false;
+        lhs = str.simplified();
+
+      //---
+
+      // support column numeric range <n>-<m>
+      QStringList strs1 = lhs.split("-", QString::SkipEmptyParts);
+
+      if (strs1.size() == 2) {
+        bool ok1, ok2;
+
+        int startCol = strs1[0].toInt(&ok1);
+        int endCol   = strs1[1].toInt(&ok2);
+
+        if (ok1 && ok2) {
+          for (int col = startCol; col <= endCol; ++col) {
+            columns   .push_back(col);
+            columnStrs.push_back(QString("%1").arg(col));
+          }
+
+          if (rhs.length())
+            columnType = rhs;
+        }
+        else
+          ok = false;
+      }
+      else {
+        CQChartsColumn col;
+
+        if (stringToColumn(lhs, col)) {
+          columns   .push_back(col);
+          columnStrs.push_back(lhs);
+
+          if (rhs.length())
+            columnType = rhs;
+        }
+        else
+          ok = false;
+      }
     }
     else {
-      int col;
+      CQChartsColumn col;
 
-      if (stringToColumn(lhs, col)) {
+      if (stringToColumn(str, col)) {
         columns   .push_back(col);
-        columnStrs.push_back(lhs);
-
-        if (rhs.length())
-          columnType = rhs;
+        columnStrs.push_back(str);
       }
       else
         ok = false;
@@ -1439,13 +1470,23 @@ lineEditValues(QLineEdit *le, std::vector<int> &columns, QStringList &columnStrs
 
 bool
 CQChartsPlotDlg::
-stringToColumn(const QString &str, int &column) const
+stringToColumn(const QString &str, CQChartsColumn &column) const
 {
+  if (! str.length())
+    return false;
+
+  //---
+
+  int nc = model()->columnCount();
+
+  //---
+
+  // check if positive integer (column number)
   bool ok = false;
 
   int column1 = str.toInt(&ok);
 
-  if (ok) {
+  if (ok && column1 >= 0 && column1 < nc) {
     column = column1;
 
     return true;
@@ -1453,11 +1494,7 @@ stringToColumn(const QString &str, int &column) const
 
   //---
 
-  if (! str.length())
-    return false;
-
-  int nc = model()->columnCount();
-
+  // check exact match for column name
   for (int column1 = 0; column1 < nc; ++column1) {
     QVariant var = model()->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
 
@@ -1473,6 +1510,18 @@ stringToColumn(const QString &str, int &column) const
       return true;
     }
   }
+
+  //---
+
+  // expression column
+  if (str.left(1) == "(") {
+    column = CQChartsColumn(str);
+
+    if (column.isValid())
+      return true;
+  }
+
+  //---
 
   return false;
 }

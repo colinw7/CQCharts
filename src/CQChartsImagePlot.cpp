@@ -37,7 +37,67 @@ CQChartsImagePlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
+
+  addProperty("labels", this, "xLabels"   , "x"    );
+  addProperty("labels", this, "yLabels"   , "y"    );
+  addProperty("labels", this, "cellLabels", "cell" );
+  addProperty("labels", this, "textFont"  , "font" );
+  addProperty("labels", this, "textColor" , "color");
+  addProperty("labels", this, "textAlpha" , "alpha");
 }
+
+//------
+
+const CQChartsColor &
+CQChartsImagePlot::
+textColor() const
+{
+  return textData_.color;
+}
+
+void
+CQChartsImagePlot::
+setTextColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+}
+
+double
+CQChartsImagePlot::
+textAlpha() const
+{
+  return textData_.alpha;
+}
+
+void
+CQChartsImagePlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+}
+
+QColor
+CQChartsImagePlot::
+interpTextColor(int i, int n) const
+{
+  return textColor().interpColor(this, i, n);
+}
+
+const QFont &
+CQChartsImagePlot::
+textFont() const
+{
+  return textData_.font;
+}
+
+void
+CQChartsImagePlot::
+setTextFont(const QFont &f)
+{
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+}
+
+//------
 
 void
 CQChartsImagePlot::
@@ -93,16 +153,26 @@ updateRange(bool apply)
 
   //---
 
+  // set value range
   minValue_ = visitor.minValue();
+
+  if (xmin())
+    minValue_ = *xmin();
+
   maxValue_ = visitor.maxValue();
+
+  if (xmax())
+    maxValue_ = *xmax();
+
+  //---
 
   dataRange_.reset();
 
-  int nr = visitor.numRows();
-  int nc = visitor.numCols();
+  nr_ = visitor.numRows();
+  nc_ = visitor.numCols();
 
-  dataRange_.updateRange( 0,  0);
-  dataRange_.updateRange(nc, nr);
+  dataRange_.updateRange(  0,   0);
+  dataRange_.updateRange(nc_, nr_);
 
   //---
 
@@ -149,7 +219,7 @@ initObjs()
 
         bool ok;
 
-        int value = plot_->modelInteger(model, row, col, parent, ok);
+        double value = plot_->modelReal(model, row, col, parent, ok);
 
         //---
 
@@ -184,7 +254,7 @@ initObjs()
 
 void
 CQChartsImagePlot::
-addImageObj(double x, double y, double dx, double dy, int value, const QModelIndex &ind)
+addImageObj(double x, double y, double dx, double dy, double value, const QModelIndex &ind)
 {
   QModelIndex ind1 = normalizeIndex(ind);
 
@@ -204,6 +274,121 @@ draw(QPainter *painter)
   //---
 
   drawParts(painter);
+
+  //---
+
+  if (isXLabels())
+    drawXLabels(painter);
+
+  if (isYLabels())
+    drawYLabels(painter);
+}
+
+void
+CQChartsImagePlot::
+drawXLabels(QPainter *painter)
+{
+  painter->setFont(textFont());
+
+  QColor tc = interpTextColor(0, 1);
+
+  tc.setAlphaF(textAlpha());
+
+  QPen tpen(tc);
+
+  painter->setPen(tpen);
+
+  CQChartsTextOptions textOptions;
+
+//textOptions.contrast  = isTextContrast();
+//textOptions.formatted = isTextFormatted();
+//textOptions.scaled    = isTextScaled();
+  textOptions.align     = Qt::AlignRight;
+  textOptions.angle     = 90;
+
+  QFontMetricsF fm(textFont());
+
+  double tw = 0.0;
+//double th = fm.height();
+  double tm = 4;
+
+  for (int col = 0; col < nc_; ++col) {
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+    if (! name.length()) continue;
+
+    tw = std::max(tw, fm.width(name));
+  }
+
+  for (int col = 0; col < nc_; ++col) {
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+    if (! name.length()) continue;
+
+    double tw1 = fm.width(name);
+
+    QPointF p(col + 0.5, 0);
+
+    QPointF p1 = windowToPixel(p);
+
+    QRectF trect(p1.x() - tw/2, p1.y() - tw1 - tm, tw, tw1);
+
+    drawTextInBox(painter, trect, name, tpen, textOptions);
+  }
+}
+
+void
+CQChartsImagePlot::
+drawYLabels(QPainter *painter)
+{
+  painter->setFont(textFont());
+
+  QColor tc = interpTextColor(0, 1);
+
+  tc.setAlphaF(textAlpha());
+
+  QPen tpen(tc);
+
+  painter->setPen(tpen);
+
+  CQChartsTextOptions textOptions;
+
+//textOptions.contrast  = isTextContrast();
+//textOptions.formatted = isTextFormatted();
+//textOptions.scaled    = isTextScaled();
+  textOptions.align     = Qt::AlignRight;
+
+  QFontMetricsF fm(textFont());
+
+  double tw = 0.0;
+  double th = fm.height();
+  double tm = 4;
+
+  for (int row = 0; row < nr_; ++row) {
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+    if (! name.length()) continue;
+
+    tw = std::max(tw, fm.width(name));
+  }
+
+  for (int row = 0; row < nr_; ++row) {
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+    if (! name.length()) continue;
+
+    QPointF p(0, row + 0.5);
+
+    QPointF p1 = windowToPixel(p);
+
+    QRectF trect(p1.x() - tw - tm, p1.y() - th/2.0, tw, th);
+
+    drawTextInBox(painter, trect, name, tpen, textOptions);
+  }
 }
 
 //------
@@ -222,18 +407,35 @@ calcId() const
   return QString("%1").arg(value_);
 }
 
-void
+QString
 CQChartsImageObj::
-addSelectIndex()
+calcTipId() const
 {
-  plot_->addSelectIndex(ind_);
+  bool ok;
+
+  QString xname =
+    CQChartsUtil::modelHeaderString(plot_->model(), ind_.column(), Qt::Horizontal, ok);
+  QString yname =
+    CQChartsUtil::modelHeaderString(plot_->model(), ind_.row   (), Qt::Vertical , ok);
+
+  QString tipStr;
+
+  if (xname.length())
+    tipStr += xname + " ";
+
+  if (yname.length())
+    tipStr += yname + " ";
+
+  tipStr += QString("%1").arg(value_);
+
+  return tipStr.simplified();
 }
 
-bool
+void
 CQChartsImageObj::
-isIndex(const QModelIndex &ind) const
+getSelectIndices(Indices &inds) const
 {
-  return (ind == ind_);
+  addSelectIndex(inds, ind_);
 }
 
 void
@@ -250,5 +452,36 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   QColor c = plot_->interpPaletteColor(v);
 
-  painter->fillRect(qrect, c);
+  QPen   pen;
+  QBrush brush(c);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->fillRect(qrect, brush);
+
+  if (plot_->isCellLabels()) {
+    painter->setFont(plot_->textFont());
+
+    QColor tc = plot_->interpTextColor(0, 1);
+
+    tc.setAlphaF(plot_->textAlpha());
+
+    QPen   tpen(tc);
+    QBrush tbrush;
+
+    plot_->updateObjPenBrushState(this, tpen, tbrush);
+
+    painter->setPen(tpen);
+
+    QString valueStr = CQChartsUtil::toString(value_);
+
+    CQChartsTextOptions textOptions;
+
+    //textOptions.contrast  = plot_->isTextContrast();
+    //textOptions.formatted = plot_->isTextFormatted();
+    //textOptions.scaled    = plot_->isTextScaled();
+    //textOptions.align     = plot_->textAlign();
+
+    plot_->drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
+  }
 }

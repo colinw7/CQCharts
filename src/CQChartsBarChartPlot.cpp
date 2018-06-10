@@ -573,12 +573,10 @@ updateRange(bool apply)
     xname = ""; // No name for row grouping
   }
   else {
-    if (categoryColumn().isValid()) {
+    if (categoryColumn().isValid())
       xname = modelHeaderString(model, categoryColumn(), ok);
-    }
-    else {
+    else
       xname = modelHeaderString(model, nameColumn(), ok);
-    }
   }
 
   xAxis->setLabel(xname);
@@ -1457,28 +1455,24 @@ dataLabelRect() const
 
 void
 CQChartsBarChartObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  const CQChartsColumn &yColumn = plot_->valueColumnAt(iset_);
+  if (plot_->categoryColumn().isValid())
+    addSelectIndex(inds, ind_.row(), plot_->categoryColumn(), ind_.parent());
 
-  if (plot_->categoryColumn().isValid()) {
-    if (plot_->categoryColumn().type() == CQChartsColumn::Type::DATA)
-      plot_->addSelectIndex(ind_.row(), plot_->categoryColumn(), ind_.parent());
-  }
-  else {
-    if (plot_->nameColumn().type() == CQChartsColumn::Type::DATA)
-      plot_->addSelectIndex(ind_.row(), plot_->nameColumn(), ind_.parent());
-  }
+  addSelectIndex(inds, ind_.row(), plot_->valueColumnAt(iset_), ind_.parent());
 
-  if (yColumn.type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), yColumn, ind_.parent());
-}
+  if (plot_->nameColumn().isValid())
+    addSelectIndex(inds, ind_.row(), plot_->nameColumn(), ind_.parent());
 
-bool
-CQChartsBarChartObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  if (plot_->labelColumn().isValid())
+    addSelectIndex(inds, ind_.row(), plot_->labelColumn(), ind_.parent());
+
+  if (plot_->colorColumn().isValid())
+    addSelectIndex(inds, ind_.row(), plot_->colorColumn(), ind_.parent());
+
+  if (plot_->idColumn().isValid())
+    addSelectIndex(inds, ind_.row(), plot_->idColumn(), ind_.parent());
 }
 
 #if 0

@@ -9,7 +9,9 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
  public:
   CQChartsNoDataObj(CQChartsPlot *plot);
 
-  QString calcId() const { return "No Data"; }
+  QString calcId() const override { return "No Data"; }
+
+  void getSelectIndices(Indices &) const override { }
 
   void draw(QPainter *, const CQChartsPlot::Layer &);
 };

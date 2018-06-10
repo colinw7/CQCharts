@@ -441,18 +441,43 @@ QString toString(long i, const QString &fmt) {
   return buffer;
 }
 
-QString toString(const std::vector<int> &columns) {
+//---
+
+QString toString(const std::vector<CQChartsColumn> &columns) {
   QString str;
 
   for (std::size_t i = 0; i < columns.size(); ++i) {
     if (str.length())
       str += " ";
 
-    str += QString("%1").arg(columns[i]);
+    str += QString("%1").arg(columns[i].toString());
   }
 
   return str;
 }
+
+bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
+  bool ok = true;
+
+  columns.clear();
+
+  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.size(); ++i) {
+    bool ok1;
+
+    int col = strs[i].toInt(&ok1);
+
+    if (ok1)
+      columns.push_back(col);
+    else
+      ok = false;
+  }
+
+  return ok;
+}
+
+//---
 
 QString polygonToString(const QPolygonF &poly) {
   int np = poly.size();

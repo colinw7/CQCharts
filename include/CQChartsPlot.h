@@ -556,15 +556,21 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  // bbox in view range
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &bbox);
 
+  // bbox in view range (as QRectF)
   QRectF rect() const;
   void setRect(const QRectF &r);
 
+  // data range
   QRectF range() const;
   void setRange(const QRectF &r);
 
+  //---
+
+  // margins
   double marginLeft() const { return margin_.left; }
   void setMarginLeft(double r) { margin_.left = r; updateMargin(); }
 
@@ -586,6 +592,7 @@ class CQChartsPlot : public QObject {
     updateMargin();
   }
 
+  // aspect ration
   double aspect() const;
 
   //---
@@ -611,10 +618,10 @@ class CQChartsPlot : public QObject {
   //---
 
   bool isInvertX() const { return invertX_; }
-  void setInvertX(bool b) { invertX_ = b; update(); }
+  void setInvertX(bool b);
 
   bool isInvertY() const { return invertY_; }
-  void setInvertY(bool b) { invertY_ = b; update(); }
+  void setInvertY(bool b);
 
   //---
 

@@ -21,6 +21,7 @@ load(const QString &filename)
 
   csv.setCommentHeader  (isCommentHeader());
   csv.setFirstLineHeader(isFirstLineHeader());
+  csv.setSeparator      (separator());
 
   if (! csv.load())
     return false;
@@ -237,7 +238,7 @@ encodeString(const QString &str) const
 {
   bool quote = false;
 
-  int i = str.indexOf(',');
+  int i = str.indexOf(separator());
 
   if (i >= 0)
     quote = true;
@@ -249,7 +250,8 @@ encodeString(const QString &str) const
     else {
       i = str.indexOf('\"');
 
-      quote = true;
+      if (i >= 0)
+        quote = true;
     }
   }
 

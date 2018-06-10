@@ -341,6 +341,8 @@ class CQChartsAxis : public QObject {
 
   QString valueStr(double pos) const;
 
+  QString valueStr(CQChartsPlot *plot, double pos) const;
+
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &b) { bbox_ = b; redraw(); }
 
@@ -373,7 +375,7 @@ class CQChartsAxis : public QObject {
 
   void draw(CQChartsPlot *plot, QPainter *painter);
 
-  void calcPos(double &apos1, double &apos2) const;
+  void calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const;
 
   void drawLine(CQChartsPlot *plot, QPainter *painter,
                 double apos, double amin, double amax);

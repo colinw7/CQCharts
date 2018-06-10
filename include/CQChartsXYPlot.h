@@ -22,9 +22,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -56,9 +54,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -100,9 +96,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -149,9 +143,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   bool interpY(double x, std::vector<double> &yvals) const;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -184,9 +176,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

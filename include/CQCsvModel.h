@@ -9,6 +9,7 @@ class CQCsvModel : public CQDataModel {
   Q_PROPERTY(bool commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
   Q_PROPERTY(bool firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
   Q_PROPERTY(bool firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
+  Q_PROPERTY(char separator         READ separator           WRITE setSeparator        )
 
  public:
   CQCsvModel();
@@ -21,6 +22,9 @@ class CQCsvModel : public CQDataModel {
 
   bool isFirstColumnHeader() const { return firstColumnHeader_; }
   void setFirstColumnHeader(bool b) { firstColumnHeader_ = b; }
+
+  const char &separator() const { return separator_; }
+  void setSeparator(const char &v) { separator_ = v; }
 
   bool load(const QString &filename);
 
@@ -37,6 +41,7 @@ class CQCsvModel : public CQDataModel {
   bool    commentHeader_     { false }; // first comment line has column names
   bool    firstLineHeader_   { false }; // first non-comment line has column names
   bool    firstColumnHeader_ { false }; // first column in each line is row name
+  char    separator_         { ',' };   // field separator
 };
 
 #endif

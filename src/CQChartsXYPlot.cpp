@@ -1837,19 +1837,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYBiLineObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   if (! visible())
     return;
 
-  plot_->addSelectIndex(ind_);
-}
-
-bool
-CQChartsXYBiLineObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_);
 }
 
 void
@@ -1961,19 +1954,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYImpulseLineObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   if (! visible())
     return;
 
-  plot_->addSelectIndex(ind_);
-}
-
-bool
-CQChartsXYImpulseLineObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_);
 }
 
 void
@@ -2140,25 +2126,15 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYPointObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   if (! visible())
     return;
 
   CQChartsColumn yColumn = plot_->getSetColumn(iset_);
 
-  if (plot_->xColumn().type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), plot_->xColumn());
-
-  if (yColumn.type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), yColumn);
-}
-
-bool
-CQChartsXYPointObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_.row(), plot_->xColumn());
+  addSelectIndex(inds, ind_.row(), yColumn);
 }
 
 void
@@ -2314,18 +2290,12 @@ interpY(double x, std::vector<double> &yvals) const
 
 void
 CQChartsXYPolylineObj::
-addSelectIndex()
+getSelectIndices(Indices &) const
 {
   if (! visible())
     return;
-}
 
-bool
-CQChartsXYPolylineObj::
-isIndex(const QModelIndex &) const
-{
   // all objects part of line (dont support select)
-  return false;
 }
 
 void
@@ -2494,18 +2464,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsXYPolygonObj::
-addSelectIndex()
+getSelectIndices(Indices &) const
 {
   if (! visible())
     return;
-}
 
-bool
-CQChartsXYPolygonObj::
-isIndex(const QModelIndex &) const
-{
   // all objects part of polygon (dont support select)
-  return false;
 }
 
 void

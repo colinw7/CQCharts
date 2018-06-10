@@ -119,7 +119,7 @@ setColorStr(const QString &str)
     setScaleValue(Type::PALETTE_VALUE, value, scale);
   }
   else if (str.startsWith("interface:")) {
-    QString rhs = str.mid(6);
+    QString rhs = str.mid(10);
 
     bool ok;
 

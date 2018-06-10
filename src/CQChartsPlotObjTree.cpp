@@ -30,13 +30,18 @@ CQChartsPlotObjTree::PlotObjTree *
 CQChartsPlotObjTree::
 addObjectsASync(CQChartsPlot *plot)
 {
+  CQChartsPlot::PlotObjs plotObjs = plot->plotObjects();
+
+  if (plotObjs.empty() || plot->isNoData())
+    return nullptr;
+
   const CQChartsGeom::Range &range = plot->dataRange();
 
   CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
 
   PlotObjTree *plotObjTree = new PlotObjTree(bbox);
 
-  for (const auto &obj : plot->plotObjects()) {
+  for (const auto &obj : plotObjs) {
     if (obj->rect().isSet())
       plotObjTree->add(obj);
   }

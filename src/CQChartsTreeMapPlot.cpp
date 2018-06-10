@@ -1438,13 +1438,13 @@ inside(const CQChartsGeom::Point &p) const
   return false;
 }
 
-bool
+void
 CQChartsTreeMapHierObj::
-isIndex(const QModelIndex &ind) const
+getSelectIndices(Indices &inds) const
 {
-  const QModelIndex &nind = hier_->ind();
+  const QModelIndex &ind = hier_->ind();
 
-  return (ind == nind);
+  return addSelectIndex(inds, ind);
 }
 
 void
@@ -1628,26 +1628,17 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsTreeMapObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   const QModelIndex &ind = node_->ind();
 
-  plot_->addSelectIndex(ind.row(), plot_->nameColumn(), ind.parent());
+  addSelectIndex(inds, ind.row(), plot_->nameColumn(), ind.parent());
 
   if (plot_->valueColumn().isValid())
-    plot_->addSelectIndex(ind.row(), plot_->valueColumn(), ind.parent());
+    addSelectIndex(inds, ind.row(), plot_->valueColumn(), ind.parent());
 
   if (plot_->colorColumn().isValid())
-    plot_->addSelectIndex(ind.row(), plot_->colorColumn(), ind.parent());
-}
-
-bool
-CQChartsTreeMapObj::
-isIndex(const QModelIndex &ind) const
-{
-  const QModelIndex &nind = node_->ind();
-
-  return (ind == nind);
+    addSelectIndex(inds, ind.row(), plot_->colorColumn(), ind.parent());
 }
 
 void

@@ -1,13 +1,13 @@
 #ifndef CQChartsTree_H
 #define CQChartsTree_H
 
-#include <CQChartsModelDetails.h>
 #include <CQTreeView.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 
 class CQCharts;
 class CQChartsTreeSelectionModel;
+class CQChartsModelDetails;
 
 class CQChartsTree : public CQTreeView {
   Q_OBJECT
@@ -23,7 +23,7 @@ class CQChartsTree : public CQTreeView {
 
   void setFilter(const QString &filter);
 
-  void calcDetails(CQChartsModelDetails &details);
+  CQChartsModelDetails *getDetails();
 
   QSize sizeHint() const override;
 

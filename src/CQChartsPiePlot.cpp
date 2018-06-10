@@ -871,20 +871,13 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsPieObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   if (plot_->labelColumn().type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), plot_->labelColumn(), ind_.parent());
+    addSelectIndex(inds, ind_.row(), plot_->labelColumn(), ind_.parent());
 
   if (plot_->dataColumn().type() == CQChartsColumn::Type::DATA)
-    plot_->addSelectIndex(ind_.row(), plot_->dataColumn(), ind_.parent());
-}
-
-bool
-CQChartsPieObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+    addSelectIndex(inds, ind_.row(), plot_->dataColumn(), ind_.parent());
 }
 
 bool

@@ -501,12 +501,14 @@ void
 CQChartsTable::
 selectionBehaviorSlot(QAction *action)
 {
-  if      (action->text() == "Select Items")
+  if      (action->text() == "Items")
     setSelectionBehavior(SelectItems);
-  else if (action->text() == "Select Rows")
+  else if (action->text() == "Rows")
     setSelectionBehavior(SelectRows);
-  else if (action->text() == "Select Columns")
+  else if (action->text() == "Columns")
     setSelectionBehavior(SelectColumns);
+  else
+    assert(false);
 }
 
 void
@@ -524,11 +526,14 @@ exportSlot(QAction *action)
   }
 }
 
-void
+CQChartsModelDetails *
 CQChartsTable::
-calcDetails(CQChartsModelDetails &details)
+getDetails()
 {
-  details = CQChartsModelDetails(charts_, model_.data());
+  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  assert(modelData);
+
+  return modelData->details();
 }
 
 QSize

@@ -664,19 +664,12 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsChordObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
   const QModelIndex &ind = data_.ind();
 
-  plot_->addSelectIndex(ind.row(), plot_->nameColumn (), ind.parent());
-  plot_->addSelectIndex(ind.row(), plot_->groupColumn(), ind.parent());
-}
-
-bool
-CQChartsChordObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == data_.ind());
+  addSelectIndex(inds, ind.row(), plot_->nameColumn (), ind.parent());
+  addSelectIndex(inds, ind.row(), plot_->groupColumn(), ind.parent());
 }
 
 void

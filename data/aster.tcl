@@ -24,4 +24,8 @@ set_property -plot $plotId -name donut -value 1
 set_property -plot $plotId -name grid.visible -value 1
 set_property -plot $plotId -name innerRadius -value 0.2
 
-set textId [create_text_shape -plot $plotId -x 0 -y 0 -text $average -align center]
+set averageStr [format "%.0f" $average]
+
+set textId [create_text_shape -plot $plotId -x 0 -y 0 -text $averageStr -align aligncenter]
+
+#set_property -annotation $textId -name textAlign -value aligncenter

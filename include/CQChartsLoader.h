@@ -27,22 +27,16 @@ class CQChartsLoader {
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
 
-  CQChartsCsv *loadCsv(const QString &filename, bool commentHeader=false,
-                       bool firstLineHeader=false, bool firstColumnHeader=false,
-                       const QString &filter="");
-
-  CQChartsTsv *loadTsv(const QString &filename, bool commentHeader=false,
-                       bool firstLineHeader=false, bool firstColumnHeader=false,
-                       const QString &filter="");
-
-  CQChartsJson *loadJson(const QString &filename);
-
-  CQChartsGnuData *loadData(const QString &filename, bool commentHeader=false,
-                            bool firstLineHeader=false );
+  CQChartsCsv*     loadCsv (const QString &filename, const CQChartsInputData &inputData);
+  CQChartsTsv*     loadTsv (const QString &filename, const CQChartsInputData &inputData);
+  CQChartsJson*    loadJson(const QString &filename, const CQChartsInputData &inputData);
+  CQChartsGnuData* loadData(const QString &filename, const CQChartsInputData &inputData);
 
   QAbstractItemModel *createExprModel(int n);
 
-  QAbstractItemModel *createVarsModel(const Vars &vars);
+  QAbstractItemModel *createVarsModel(const CQChartsInputData &inputData);
+
+  QAbstractItemModel *createCorrelationModel(QAbstractItemModel *model);
 
   void errorMsg(const QString &msg) const;
 

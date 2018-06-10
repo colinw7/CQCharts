@@ -42,12 +42,12 @@ class CQChartsModelRemapImpl {
 
     if (! rtypeData->rmin(nameValues, rmin)) {
       if (modelData)
-        rmin = modelData->details().columnDetails(ind.column()).minValue().toReal();
+        rmin = modelData->details()->columnDetails(ind.column())->minValue().toReal();
     }
 
     if (! rtypeData->rmax(nameValues, rmax)) {
       if (modelData)
-        rmax = modelData->details().columnDetails(ind.column()).maxValue().toReal();
+        rmax = modelData->details()->columnDetails(ind.column())->maxValue().toReal();
     }
 
     return true;

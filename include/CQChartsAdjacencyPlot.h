@@ -81,9 +81,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

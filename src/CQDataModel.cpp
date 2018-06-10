@@ -163,7 +163,10 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return QVariant(str);
     }
     else if (role == Qt::EditRole) {
-      return QVariant();
+      if (hheader_[section].toString().length())
+        return hheader_[section];
+      else
+        return CQBaseModel::headerData(section, orientation, role);
     }
     else {
       return CQBaseModel::headerData(section, orientation, role);
@@ -188,7 +191,10 @@ headerData(int section, Qt::Orientation orientation, int role) const
       return vheader_[section];
     }
     else if (role == Qt::EditRole) {
-      return QVariant();
+      if (vheader_[section].toString().length())
+        return vheader_[section];
+      else
+        return CQBaseModel::headerData(section, orientation, role);
     }
     else {
       return CQBaseModel::headerData(section, orientation, role);

@@ -58,10 +58,10 @@ class CQChartsCmdArg {
   void setGroupInd(int i) { groupInd_ = i; }
 
  private:
-  int     ind_ { -1 };
+  int     ind_      { -1 };
   QString name_;
-  bool    isOpt_ { false };
-  Type    type_ { Type::None };
+  bool    isOpt_    { false };
+  Type    type_     { Type::None };
   QString argDesc_;
   QString desc_;
   bool    required_ { false };
@@ -103,20 +103,23 @@ class CQChartsCmdsArgs {
 
   class Arg {
    public:
-    Arg(const QString &arg="") :
-     arg_(arg) {
-      isOpt_ = (arg_.length() && arg_[0] == '-');
+    Arg(const QVariant &var=QVariant()) :
+     var_(var) {
+      QString varStr = var_.toString();
+
+      isOpt_ = (varStr.length() && varStr[0] == '-');
     }
 
-    QString str() const { assert(! isOpt_); return arg_; }
+  //QString  str() const { assert(! isOpt_); return var_.toString(); }
+    QVariant var() const { assert(! isOpt_); return var_; }
 
     bool isOpt() const { return isOpt_; }
 
-    QString opt() const { assert(isOpt_); return arg_.mid(1); }
+    QString opt() const { assert(isOpt_); return var_.toString().mid(1); }
 
    private:
-    QString arg_;
-    bool    isOpt_;
+    QVariant var_;
+    bool     isOpt_ { false };
   };
 
  public:
@@ -158,7 +161,7 @@ class CQChartsCmdsArgs {
   const Arg &getArg() {
     assert(i_ < argc_);
 
-    lastArg_ = Arg(argv_[i_++].toString());
+    lastArg_ = Arg(argv_[i_++]);
 
     return lastArg_;
   }
@@ -342,7 +345,7 @@ class CQChartsCmdsArgs {
     parseBool_.clear();
     parseArgs_.clear();
 
-    using Args      = std::vector<QString>;
+    using Args      = std::vector<QVariant>;
     using GroupArgs = std::map<int,Args>;
 
     GroupArgs groupArgs;
@@ -488,7 +491,7 @@ class CQChartsCmdsArgs {
         }
       }
       else {
-        parseArgs_.push_back(arg.str());
+        parseArgs_.push_back(arg.var());
       }
     }
 
@@ -511,7 +514,7 @@ class CQChartsCmdsArgs {
       if (p == groupArgs.end()) {
         if (cmdGroup.isRequired()) {
           std::string names = getGroupCmdNames(groupInd).join(", ").toStdString();
-          std::cerr << "One of " << names << "required\n";
+          std::cerr << "One of " << names << " required\n";
           return false;
         }
       }
@@ -720,7 +723,7 @@ class CQChartsCmdsArgs {
     if (lastArg_.isOpt())
       errorMsg("Invalid option '" + lastArg_.opt() + "'");
     else
-      errorMsg("Invalid arg '" + lastArg_.str() + "'");
+      errorMsg("Invalid arg '" + lastArg_.var().toString() + "'");
   }
 
   void help() const {

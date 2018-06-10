@@ -56,14 +56,18 @@ class CQChartsColumn {
 
   //---
 
-  static bool equals(const CQChartsColumn &lhs, const CQChartsColumn &rhs);
+  static int cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs);
 
   friend bool operator==(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
-    return equals(lhs, rhs);
+    return cmp(lhs, rhs) == 0;
   }
 
   friend bool operator!=(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
     return ! operator==(lhs, rhs);
+  }
+
+  friend bool operator<(const CQChartsColumn &lhs, const CQChartsColumn &rhs) {
+    return cmp(lhs, rhs) < 0;
   }
 
   //---

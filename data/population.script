@@ -14,7 +14,7 @@ set_property -name scroll.numPages -value 15
 
   @let tableId = _rc
 
-  get_property -model "${tableId}" -name num_rows
+  get_charts_data -model "${tableId}" -name num_rows
 
   @let numRows = _rc
 

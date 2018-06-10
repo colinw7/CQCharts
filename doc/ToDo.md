@@ -28,6 +28,7 @@ High
  + better default colors
  + select plot updates current embedded table model
  + select of plot in view with multiple plots deselects others
+ + remove big model data
 
 Medium
  + Scroll by Single Large Tick Mark ?

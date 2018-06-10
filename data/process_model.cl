@@ -3,10 +3,10 @@ modelId = _rc
 
 print modelId
 
-get_property -model $modelId -name num_rows
+get_charts_data -model $modelId -name num_rows
 nr = _rc
 
-get_property -model $modelId -name num_columns
+get_charts_data -model $modelId -name num_columns
 nc = _rc
 
 #process_model -model $modelId -add -expr "column(2)/20000.0"

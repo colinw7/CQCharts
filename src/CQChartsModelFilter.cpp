@@ -374,6 +374,9 @@ data(const QModelIndex &ind, int role) const
   if (role == Qt::EditRole && ! var.isValid())
     var = QSortFilterProxyModel::data(ind, Qt::DisplayRole);
 
+  if (! var.isValid())
+    return QVariant();
+
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
     if (! ind.isValid())
       return QVariant();

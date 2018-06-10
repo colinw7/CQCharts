@@ -641,26 +641,13 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsGeometryObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_.row(), plot_->nameColumn    (), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->geometryColumn(), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->valueColumn   (), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->colorColumn   (), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->styleColumn   (), ind_.parent());
-}
-
-bool
-CQChartsGeometryObj::
-isIndex(const QModelIndex &ind) const
-{
-  if (ind.row() != ind_.row()) return false;
-
-  return (plot_->isSelectIndex(ind, ind_.row(), plot_->nameColumn    (), ind_.parent()) ||
-          plot_->isSelectIndex(ind, ind_.row(), plot_->geometryColumn(), ind_.parent()) ||
-          plot_->isSelectIndex(ind, ind_.row(), plot_->valueColumn   (), ind_.parent()) ||
-          plot_->isSelectIndex(ind, ind_.row(), plot_->colorColumn   (), ind_.parent()) ||
-          plot_->isSelectIndex(ind, ind_.row(), plot_->styleColumn   (), ind_.parent()));
+  addSelectIndex(inds, ind_.row(), plot_->nameColumn    (), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->geometryColumn(), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->valueColumn   (), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->colorColumn   (), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->styleColumn   (), ind_.parent());
 }
 
 void

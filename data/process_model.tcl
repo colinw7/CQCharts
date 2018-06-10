@@ -1,9 +1,8 @@
 set modelId [load_model -tsv data/cities1.dat -comment_header -column_type "2#real:min=0"]
 puts $modelId
 
-set nr [get_property -model $modelId -name num_rows]
-
-set rc [get_property -model $modelId -name num_columns]
+set nr [get_charts_data -model $modelId -name num_rows]
+set nc [get_charts_data -model $modelId -name num_columns]
 
 #process_model -model $modelId -add -expr "column(2)/20000.0"
 process_model -model $modelId -add -expr "remap(2,0,36)" -header "symbol size"

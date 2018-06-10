@@ -701,15 +701,8 @@ textRect() const
 
 void
 CQChartsDendrogramNodeObj::
-addSelectIndex()
+getSelectIndices(Indices &) const
 {
-}
-
-bool
-CQChartsDendrogramNodeObj::
-isIndex(const QModelIndex &) const
-{
-  return false;
 }
 
 void

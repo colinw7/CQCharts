@@ -2,9 +2,32 @@
 
 CQChartsModelData::
 CQChartsModelData(CQCharts *charts, ModelP &model) :
- charts_(charts), model_(model), details_(charts, model_.data())
+ charts_(charts), model_(model)
 {
   connectModel();
+}
+
+CQChartsModelData::
+~CQChartsModelData()
+{
+  delete details_;
+}
+
+CQChartsModelDetails *
+CQChartsModelData::
+details()
+{
+  if (! details_)
+    details_ = new CQChartsModelDetails(charts_, model_.data());
+
+  return details_;
+}
+
+const CQChartsModelDetails *
+CQChartsModelData::
+details() const
+{
+  return const_cast<CQChartsModelData *>(this)->details();
 }
 
 void
@@ -59,7 +82,8 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
   //int column1 = tl.column();
   //int column2 = br.column();
 
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }
@@ -68,7 +92,8 @@ void
 CQChartsModelData::
 modelLayoutChangedSlot()
 {
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }
@@ -77,7 +102,8 @@ void
 CQChartsModelData::
 modelRowsInsertedSlot()
 {
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }
@@ -86,7 +112,8 @@ void
 CQChartsModelData::
 modelRowsRemovedSlot()
 {
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }
@@ -95,7 +122,8 @@ void
 CQChartsModelData::
 modelColumnsInsertedSlot()
 {
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }
@@ -104,7 +132,8 @@ void
 CQChartsModelData::
 modelColumnsRemovedSlot()
 {
-  details_.reset();
+  if (details_)
+    details_->reset();
 
   emit modelChanged();
 }

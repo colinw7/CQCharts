@@ -505,6 +505,10 @@ paintEvent(QPaintEvent *)
     }
 
     if (title_.length()) {
+      QColor c = this->palette().color(QPalette::WindowText);
+
+      p.setPen(c);
+
       p.drawText(x, border_ + fm.ascent(), title_);
     }
   }
@@ -515,7 +519,7 @@ void
 CQChartsViewExpander::
 drawTitleLines(QPainter *p, const QRect &r)
 {
-  int num_lines = 4;
+  int num_lines = (r.height() - 4)/4;
 
   int h = r.height();
 
@@ -526,10 +530,20 @@ drawTitleLines(QPainter *p, const QRect &r)
 
   int y = r.center().y() - gap*num_lines/2;
 
+  QColor c1 = this->palette().color(QPalette::WindowText);
+  QColor c2 = c1;
+
+  c1.setAlphaF(0.6);
+  c2.setAlphaF(0.4);
+
   for (int i = 0; i < num_lines; ++i) {
     int y1 = y + gap*i;
 
-    p->drawLine(left, y1, right, y1);
+    p->setPen(c1);
+    p->drawLine(left, y1    , right, y1    );
+
+    p->setPen(c2);
+    p->drawLine(left, y1 + 1, right, y1 + 1);
   }
 }
 

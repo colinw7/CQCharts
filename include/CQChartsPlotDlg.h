@@ -2,6 +2,7 @@
 #define CQChartsPlotDlg_H
 
 #include <CQChartsModelP.h>
+#include <CQChartsColumn.h>
 #include <QDialog>
 
 class CQCharts;
@@ -109,10 +110,10 @@ class CQChartsPlotDlg : public QDialog {
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
   bool parseParameterColumnEdit(const CQChartsPlotParameter &parameter, const PlotData &plotData,
-                                int &column, QString &columnStr, QString &columnType,
+                                CQChartsColumn &column, QString &columnStr, QString &columnType,
                                 MapValueData &mapValueData);
   bool parseParameterColumnsEdit(const CQChartsPlotParameter &parameter,
-                                 const PlotData &plotData, std::vector<int> &columns,
+                                 const PlotData &plotData, std::vector<CQChartsColumn> &columns,
                                  QStringList &columnStrs, QString &columnType);
   bool parseParameterStringEdit(const CQChartsPlotParameter &parameter,
                                 const PlotData &plotData, QString &str);
@@ -121,13 +122,14 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
-  bool lineEditValue(QLineEdit *le, int &column, QString &columnStr,
-                     QString &columnType, int defi=0) const;
+  bool columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr,
+                           QString &columnType,
+                           const CQChartsColumn &defColumn=CQChartsColumn()) const;
 
-  bool lineEditValues(QLineEdit *le, std::vector<int> &columns,
-                      QStringList &columnStrs, QString &columnType) const;
+  bool columnLineEditValues(QLineEdit *le, std::vector<CQChartsColumn> &columns,
+                            QStringList &columnStrs, QString &columnType) const;
 
-  bool stringToColumn(const QString &str, int &column) const;
+  bool stringToColumn(const QString &str, CQChartsColumn &column) const;
 
   bool validate(QString &msg);
 

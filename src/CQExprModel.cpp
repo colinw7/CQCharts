@@ -815,6 +815,9 @@ QModelIndex
 CQExprModel::
 mapToSource(const QModelIndex &index) const
 {
+  if (! index.isValid())
+    return QModelIndex();
+
   return model_->index(index.row(), index.column(), QModelIndex());
 }
 
@@ -822,6 +825,9 @@ QModelIndex
 CQExprModel::
 mapFromSource(const QModelIndex &index) const
 {
+  if (! index.isValid())
+    return QModelIndex();
+
   return createIndex(index.row(), index.column(), index.internalPointer());
 }
 
@@ -1624,7 +1630,7 @@ replaceNumericColumns(const QString &expr, int row, int column) const
     if (parse.isChar('@')) {
       parse.skipChar();
 
-      if (parse.isDigit()) {
+      if      (parse.isDigit()) {
         int pos = parse.getPos();
 
         while (parse.isDigit())
@@ -1649,7 +1655,7 @@ replaceNumericColumns(const QString &expr, int row, int column) const
       else if (parse.isChar('n')) {
         parse.skipChar();
 
-        if (parse.isChar('c')) {
+        if      (parse.isChar('c')) {
           parse.skipChar();
 
           expr1 += QString("%1").arg(nc_);
@@ -1660,7 +1666,7 @@ replaceNumericColumns(const QString &expr, int row, int column) const
           expr1 += QString("%1").arg(nr_);
         }
         else {
-          expr1 += "@nc";
+          expr1 += "@n";
         }
       }
       else

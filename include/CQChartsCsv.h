@@ -19,6 +19,7 @@ class CQChartsCsv : public CQChartsModelFilter {
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
   void setFirstColumnHeader(bool b);
+  void setSeparator(char c);
 
   bool load(const QString &filename);
 

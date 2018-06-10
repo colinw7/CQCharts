@@ -152,9 +152,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
@@ -216,8 +214,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   Q_PROPERTY(bool           textLabels        READ isTextLabels      WRITE setTextLabels       )
 
  public:
-  using GroupValues    = std::vector<int>;
-  using GroupValueSets = std::map<int,CQChartsValueSet *>;
+  using GroupValues    = std::vector<CQChartsColumn>;
+  using GroupValueSets = std::map<CQChartsColumn,CQChartsValueSet *>;
 
  public:
   CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model);

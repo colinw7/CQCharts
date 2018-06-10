@@ -52,10 +52,10 @@ class CQChartsViewExpander : public QFrame {
   void setDetached(bool b);
 
   const QString &title() const { return title_; }
-  void setTitle(const QString &v) { title_ = v; }
+  void setTitle(const QString &v) { title_ = v; update(); }
 
   const QIcon &icon() const { return icon_; }
-  void setIcon(const QIcon &v) { icon_ = v; }
+  void setIcon(const QIcon &v) { icon_ = v; update(); }
 
   void setMargins(int l, int b, int r, int t);
 

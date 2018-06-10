@@ -11,14 +11,40 @@ CQChartsModelDetails(CQCharts *charts, QAbstractItemModel *model) :
 {
 }
 
+CQChartsModelDetails::
+~CQChartsModelDetails()
+{
+  reset();
+}
+
+const CQChartsModelColumnDetails *
+CQChartsModelDetails::
+columnDetails(int i) const
+{
+  initData();
+
+  assert(i >= 0 && i < int(columnDetails_.size()));
+
+  return columnDetails_[i];
+}
+
+CQChartsModelColumnDetails *
+CQChartsModelDetails::
+columnDetails(int i)
+{
+  initData();
+
+  assert(i >= 0 && i < int(columnDetails_.size()));
+
+  return columnDetails_[i];
+}
+
 void
 CQChartsModelDetails::
-init() const
+initData() const
 {
   if (! initialized_) {
     CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
-
-    th->initialized_ = true;
 
     th->update();
   }
@@ -28,27 +54,37 @@ void
 CQChartsModelDetails::
 reset()
 {
-  initialized_ = false;
+  initialized_  = false;
+  numColumns_   = 0;
+  numRows_      = 0;
+  hierarchical_ = false;
+
+  for (auto &columnDetails : columnDetails_)
+    delete columnDetails;
+
+  columnDetails_.clear();
 }
 
 void
 CQChartsModelDetails::
 update()
 {
+  reset();
+
   hierarchical_ = CQChartsUtil::isHierarchical(model_);
 
   numColumns_ = model_->columnCount();
   numRows_    = model_->rowCount   ();
 
-  columnDetails_.clear();
-
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails columnDetails(charts_, model_, c);
+    CQChartsModelColumnDetails *columnDetails = new CQChartsModelColumnDetails(charts_, model_, c);
 
     columnDetails_.push_back(columnDetails);
 
-    numRows_ = std::max(numRows_, columnDetails.numRows());
+    numRows_ = std::max(numRows_, columnDetails->numRows());
   }
+
+  initialized_ = true;
 }
 
 //------
@@ -73,7 +109,7 @@ CQChartsModelColumnDetails::
 typeName() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return typeName_;
 }
@@ -104,7 +140,7 @@ CQChartsModelColumnDetails::
 minValue() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return minValue_;
 }
@@ -114,9 +150,32 @@ CQChartsModelColumnDetails::
 maxValue() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return maxValue_;
+}
+
+QVariant
+CQChartsModelColumnDetails::
+meanValue() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->mean();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->mean();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) svals_->mean();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->mean();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) svals_->mean();
+  }
+
+  return QVariant();
 }
 
 QVariant
@@ -124,7 +183,7 @@ CQChartsModelColumnDetails::
 dataName(const QVariant &v) const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
@@ -141,7 +200,7 @@ CQChartsModelColumnDetails::
 numRows() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return numRows_;
 }
@@ -151,7 +210,7 @@ CQChartsModelColumnDetails::
 isMonotonic() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return monotonic_;
 }
@@ -161,7 +220,7 @@ CQChartsModelColumnDetails::
 isIncreasing() const
 {
   if (! initialized_)
-    (void) const_cast<CQChartsModelColumnDetails *>(this)->init();
+    (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return increasing_;
 }
@@ -188,6 +247,188 @@ numUnique() const
   else {
     return 0;
   }
+}
+
+CQChartsModelColumnDetails::VariantList
+CQChartsModelColumnDetails::
+uniqueValues() const
+{
+  VariantList vars;
+
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) {
+      CQChartsIValues::Values values;
+
+      ivals_->uniqueValues(values);
+
+      for (const auto &v : values)
+        vars.push_back(v);
+    }
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) {
+      CQChartsRValues::Values values;
+
+      rvals_->uniqueValues(values);
+
+      for (const auto &v : values)
+        vars.push_back(v);
+    }
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    if (svals_) {
+      CQChartsSValues::Values values;
+
+      svals_->uniqueValues(values);
+
+      for (const auto &v : values)
+        vars.push_back(v);
+    }
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) {
+      CQChartsIValues::Values values;
+
+      ivals_->uniqueValues(values);
+
+      for (const auto &v : values)
+        vars.push_back(v);
+    }
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    if (svals_) {
+      CQChartsSValues::Values values;
+
+      svals_->uniqueValues(values);
+
+      for (const auto &v : values)
+        vars.push_back(v);
+    }
+  }
+
+  return vars;
+}
+
+CQChartsModelColumnDetails::VariantList
+CQChartsModelColumnDetails::
+uniqueCounts() const
+{
+   CQChartsIValues::Counts counts;
+
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) ivals_->uniqueCounts(counts);
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) rvals_->uniqueCounts(counts);
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    if (svals_) svals_->uniqueCounts(counts);
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) ivals_->uniqueCounts(counts);
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    if (svals_) svals_->uniqueCounts(counts);
+  }
+
+  VariantList vars;
+
+  for (const auto &c : counts)
+    vars.push_back(c);
+
+  return vars;
+}
+
+int
+CQChartsModelColumnDetails::
+numNull() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->numNull();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->numNull();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) return svals_->numNull();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->numNull();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) return svals_->numNull();
+  }
+
+  return 0;
+}
+
+QVariant
+CQChartsModelColumnDetails::
+medianValue() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->median();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->median();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) return svals_->median();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->median();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) return svals_->median();
+  }
+
+  return QVariant();
+}
+
+QVariant
+CQChartsModelColumnDetails::
+lowerMedianValue() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->lowerMedian();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->lowerMedian();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) return svals_->lowerMedian();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->lowerMedian();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) return svals_->lowerMedian();
+  }
+
+  return QVariant();
+}
+
+QVariant
+CQChartsModelColumnDetails::
+upperMedianValue() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->upperMedian();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->upperMedian();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) return svals_->upperMedian();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->upperMedian();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) return svals_->upperMedian();
+  }
+
+  return QVariant();
 }
 
 double
@@ -224,7 +465,7 @@ map(const QVariant &var) const
 
 bool
 CQChartsModelColumnDetails::
-init()
+initData()
 {
   initialized_ = true;
 
@@ -511,6 +752,8 @@ init()
     QVariant minValue() const { return min_; }
     QVariant maxValue() const { return max_; }
 
+    QVariant meanValue() const { return mean_; }
+
     bool isMonotonic () const { return monotonic_; }
     bool isIncreasing() const { return increasing_; }
 
@@ -519,6 +762,7 @@ init()
     QString                     typeName_;
     QVariant                    min_;
     QVariant                    max_;
+    QVariant                    mean_;
     bool                        visitMin_     { true };
     bool                        visitMax_     { true };
     QVariant                    lastValue1_;

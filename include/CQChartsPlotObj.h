@@ -11,9 +11,14 @@ class CQChartsPlotObj : public QObject {
   Q_OBJECT
 
  public:
+  using Indices = std::set<QModelIndex>;
+
+ public:
   CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect=CQChartsGeom::BBox());
 
   virtual ~CQChartsPlotObj() { }
+
+  CQChartsPlot *plot() const { return plot_; }
 
   const CQChartsGeom::BBox &rect() const { return rect_; }
   void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
@@ -66,13 +71,22 @@ class CQChartsPlotObj : public QObject {
   // is rect touching (override if not simple rect shape)
   virtual bool touching(const CQChartsGeom::BBox &r) const { return rect_.overlaps(r); }
 
-  virtual bool isIndex(const QModelIndex &) const { return false; }
-
   virtual void handleResize() { }
 
   virtual void selectPress() { }
 
-  virtual void addSelectIndex() { }
+  //---
+
+  bool isSelectIndex(const QModelIndex &ind) const;
+  void addSelectIndices();
+
+  virtual void getSelectIndices(Indices &inds) const = 0;
+
+  void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
+                      const QModelIndex &parent=QModelIndex()) const;
+  void addSelectIndex(Indices &inds, const QModelIndex &ind) const;
+
+  //---
 
   virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
 

@@ -639,17 +639,10 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsDelaunayPointObj::
-addSelectIndex()
+getSelectIndices(Indices &inds) const
 {
-  plot_->addSelectIndex(ind_.row(), plot_->xColumn(), ind_.parent());
-  plot_->addSelectIndex(ind_.row(), plot_->yColumn(), ind_.parent());
-}
-
-bool
-CQChartsDelaunayPointObj::
-isIndex(const QModelIndex &ind) const
-{
-  return (ind == ind_);
+  addSelectIndex(inds, ind_.row(), plot_->xColumn(), ind_.parent());
+  addSelectIndex(inds, ind_.row(), plot_->yColumn(), ind_.parent());
 }
 
 void

@@ -414,3 +414,15 @@
  + move load model code to Loader class
  + Add tcl support for CQChartsModelExprMatch
  + Add missing object names for widgets
+# 6/10/2018
+ + use single getSelectIndices API for plot object for cross selection
+ + fix invert x/y axis drawing for x1x2 y1y1
+ + add alpha for box plot lines and update property names
+ + allow box plot labels to be skipped
+ + support expression columns in plot dialog input fields
+ + add x/y and cell labels to image plot
+ + add generation of correlation model from model
+ + support list or lists for tcl var in var model and header rows/columns
+ + add median calculation into column details and get data command
+ + add unique value and unique value counts to column details
+ + auto select plot when plot object selected

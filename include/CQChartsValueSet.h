@@ -15,63 +15,80 @@ class CQChartsPlot;
 class CQChartsRValues {
  public:
   using OptReal = boost::optional<double>;
+  using Values  = std::vector<double>;
+  using Counts  = std::vector<int>;
 
  public:
   CQChartsRValues() { }
 
   void clear() {
-    rvals_  .clear();
-    rvalset_.clear();
-    setrval_.clear();
+    values_ .clear();
+    svalues_.clear();
+    valset_ .clear();
+    setvals_.clear();
+
+    numNull_    = 0;
+    calculated_ = false;
   }
 
-  bool isValid() const { return ! rvals_.empty(); }
+  bool isValid() const { return ! values_.empty(); }
 
-  bool canMap() const { return ! rvalset_.empty(); }
+  bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return rvals_.size(); }
+  int size() const { return values_.size(); }
 
   // get nth value (non-unique)
-  const OptReal &value(int i) const { return rvals_[i]; }
+  const OptReal &value(int i) const { return values_[i]; }
 
   int addValue(const OptReal &r) {
     // add to all values
-    rvals_.push_back(r);
+    values_.push_back(r);
+
+    calculated_ = false;
+
+    // TODO: assert
+    if (! r) {
+      ++numNull_;
+
+      return -1;
+    }
 
     // add to unique values if new
-    if (r) {
-      auto p = rvalset_.find(*r);
+    auto p = valset_.find(*r);
 
-      if (p == rvalset_.end()) {
-        int id = rvalset_.size();
+    if (p == valset_.end()) {
+      int id = valset_.size();
 
-        p = rvalset_.insert(p, RValSet::value_type(*r, id)); // id for value
+      p = valset_.insert(p, ValueSet::value_type(*r, KeyCount(id, 1))); // id for value
 
-        setrval_[id] = *r; // value for id
-      }
-
-      return (*p).second;
+      setvals_[id] = *r; // value for id
     }
-    else
-      return -1;
+    else {
+      ++(*p).second.second; // increment count
+    }
+
+    return (*p).second.first; // return key
   }
+
+  int numNull() const { return numNull_; }
 
   // real to id
   int id(double r) const {
-    auto p = rvalset_.find(r);
+    // get real set index
+    auto p = valset_.find(r);
 
-    if (p == rvalset_.end())
+    if (p == valset_.end())
       return -1;
 
-    return (*p).second;
+    return (*p).second.first;
   }
 
   // id to real
   double ivalue(int i) const {
     // get real for index
-    auto p = setrval_.find(i);
+    auto p = setvals_.find(i);
 
-    if (p == setrval_.end())
+    if (p == setvals_.end())
       return 0.0;
 
     return (*p).second;
@@ -90,26 +107,169 @@ class CQChartsRValues {
   }
 
   // min/max value
-  double min() const { assert(! rvalset_.empty()); return rvalset_. begin()->first; }
-  double max() const { assert(! rvalset_.empty()); return rvalset_.rbegin()->first; }
-
-  double mean() const { assert(! rvalset_.empty()); return (min() + max())/2.0; }
+  double min() const { assert(! valset_.empty()); return valset_. begin()->first; }
+  double max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
 
   // min/max index
-  int imin() const { assert(! setrval_.empty()); return setrval_. begin()->first; }
-  int imax() const { assert(! setrval_.empty()); return setrval_.rbegin()->first; }
+  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
+  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
 
   // number of unique values
-  int numUnique() const { return rvalset_.size(); }
+  int numUnique() const { return valset_.size(); }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
+  }
+
+  void uniqueCounts(Counts &counts) {
+    for (const auto &vi : valset_)
+      counts.push_back(vi.second.second);
+  }
+
+  // calculated stats
+  double sum () const { const_calc(); return sum_ ; }
+  double mean() const { const_calc(); return mean_; }
+
+  double median() const { const_calc(); return median_; }
+
+  double lowerMedian() const { const_calc(); return lowerMedian_; }
+  double upperMedian() const { const_calc(); return upperMedian_; }
 
  private:
-  using RVals   = std::vector<OptReal>;
-  using RValSet = std::map<double,int,CQChartsUtil::RealCmp>;
-  using SetRVal = std::map<int,double>;
+  void const_calc() const {
+    const_cast<CQChartsRValues *>(this)->calc();
+  }
 
-  RVals   rvals_;   // all real values
-  RValSet rvalset_; // unique indexed real values
-  SetRVal setrval_; // index to real map
+  void calc() {
+    if (calculated_)
+      return;
+
+    calculated_ = true;
+
+    //---
+
+    // init statistics
+    sum_         = 0.0;
+    mean_        = 0.0;
+    median_      = 0.0;
+    lowerMedian_ = 0.0;
+    upperMedian_ = 0.0;
+
+    outliers_.clear();
+
+    svalues_.clear();
+
+    //---
+
+    // no values then nothing to do
+    if (values_.empty())
+      return;
+
+    //---
+
+    // get value to sort (skip null values)
+    for (auto &v : values_) {
+      if (! v) continue;
+
+      double r = *v;
+
+      sum_ += r;
+
+      svalues_.push_back(r);
+    }
+
+    if (svalues_.empty())
+      return;
+
+    mean_ = sum_ / svalues_.size();
+
+    // sort values
+    std::sort(svalues_.begin(), svalues_.end());
+
+    int nv = svalues_.size();
+
+    //---
+
+    // calc median
+    int nv1, nv2;
+
+    medianInd(0, nv - 1, nv1, nv2);
+
+    median_ = (svalues_[nv1] + svalues_[nv2])/2.0;
+
+    // calc lower median
+    if (nv1 > 0) {
+      int nl1, nl2;
+
+      medianInd(0, nv1 - 1, nl1, nl2);
+
+      lowerMedian_ = (svalues_[nl1] + svalues_[nl2])/2.0;
+    }
+    else
+      lowerMedian_ = svalues_[0];
+
+    // calc upper median
+    if (nv2 < nv - 1) {
+      int nu1, nu2;
+
+      medianInd(nv2 + 1, nv - 1, nu1, nu2);
+
+      upperMedian_ = (svalues_[nu1] + svalues_[nu2])/2.0;
+    }
+    else
+      upperMedian_ = svalues_[nv - 1];
+
+    //---
+
+    // calc outliers outside range()*(upper - lower)
+    double routlier = upperMedian_ - lowerMedian_;
+    double loutlier = lowerMedian_ - outlierRange_*routlier;
+    double uoutlier = upperMedian_ + outlierRange_*routlier;
+
+    int i = 0;
+
+    for (auto v : svalues_) {
+      if (v < loutlier || v > uoutlier)
+        outliers_.push_back(i);
+
+      ++i;
+    }
+  }
+
+  void medianInd(int i1, int i2, int &n1, int &n2) {
+    int n = i2 - i1 + 1;
+
+    if (n & 1) {
+      n1 = i1 + n/2;
+      n2 = n1;
+    }
+    else {
+      n2 = i1 + n/2;
+      n1 = n2 - 1;
+    }
+  }
+
+ private:
+  using OptValues = std::vector<OptReal>;
+  using Indices   = std::vector<int>;
+  using KeyCount  = std::pair<int,int>;
+  using ValueSet  = std::map<double,KeyCount,CQChartsUtil::RealCmp>;
+  using SetValues = std::map<int,double>;
+
+  OptValues values_;                 // all real values
+  Values    svalues_;                // sorted real values
+  ValueSet  valset_;                 // unique indexed real values
+  SetValues setvals_;                // index to real map
+  int       numNull_      { 0 };     // number of null values
+  bool      calculated_   { false }; // are stats calculated
+  double    sum_          { 0.0 };
+  double    mean_         { 0.0 };
+  double    median_       { 0.0 };
+  double    lowerMedian_  { 0.0 };
+  double    upperMedian_  { 0.0 };
+  double    outlierRange_ { 1.5 };
+  Indices   outliers_;
 };
 
 //---
@@ -117,63 +277,80 @@ class CQChartsRValues {
 class CQChartsIValues {
  public:
   using OptInt = boost::optional<int>;
+  using Values = std::vector<double>;
+  using Counts = std::vector<int>;
 
  public:
   CQChartsIValues() { }
 
   void clear() {
-    ivals_  .clear();
-    ivalset_.clear();
-    setival_.clear();
+    values_ .clear();
+    svalues_.clear();
+    valset_ .clear();
+    setvals_.clear();
+
+    numNull_    = 0;
+    calculated_ = false;
   }
 
-  bool isValid() const { return ! ivals_.empty(); }
+  bool isValid() const { return ! values_.empty(); }
 
-  bool canMap() const { return ! ivalset_.empty(); }
+  bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return ivals_.size(); }
+  int size() const { return values_.size(); }
 
   // get nth value (non-unique)
-  const OptInt &value(int i) const { return ivals_[i]; }
+  const OptInt &value(int i) const { return values_[i]; }
 
   int addValue(const OptInt &i) {
     // add to all values
-    ivals_.push_back(i);
+    values_.push_back(i);
 
-    if (i) {
-      // add to unique values if new
-      auto p = ivalset_.find(*i);
+    calculated_ = false;
 
-      if (p == ivalset_.end()) {
-        int id = ivalset_.size();
+    // TODO: assert
+    if (! i) {
+      ++numNull_;
 
-        p = ivalset_.insert(p, IValSet::value_type(*i, id)); // id for value
-
-        setival_[id] = *i; // value for id
-      }
-
-      return (*p).second;
-    }
-    else
       return -1;
+    }
+
+    // add to unique values if new
+    auto p = valset_.find(*i);
+
+    if (p == valset_.end()) {
+      int id = valset_.size();
+
+      p = valset_.insert(p, ValueSet::value_type(*i, KeyCount(id, 1))); // id for value
+
+      setvals_[id] = *i; // value for id
+    }
+    else {
+      ++(*p).second.second; // increment count
+    }
+
+    return (*p).second.first; // return key
   }
+
+  int numNull() const { return numNull_; }
 
   // integer to id
   int id(int i) const {
-    auto p = ivalset_.find(i);
+    // get integer set index
+    auto p = valset_.find(i);
 
-    if (p == ivalset_.end())
+    if (p == valset_.end())
       return -1;
 
-    return (*p).second;
+    return (*p).second.first;
   }
 
   // id to integer
   int ivalue(int i) const {
     // get integer for index
-    auto p = setival_.find(i);
+    auto p = setvals_.find(i);
 
-    if (p == setival_.end())
+    if (p == setvals_.end())
       return 0;
 
     return (*p).second;
@@ -192,26 +369,169 @@ class CQChartsIValues {
   }
 
   // min/max value
-  int min() const { assert(! ivalset_.empty()); return ivalset_. begin()->first; }
-  int max() const { assert(! ivalset_.empty()); return ivalset_.rbegin()->first; }
-
-  double mean() const { assert(! ivalset_.empty()); return (min() + max())/2.0; }
+  int min() const { assert(! valset_.empty()); return valset_. begin()->first; }
+  int max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
 
   // min/max index
-  int imin() const { assert(! setival_.empty()); return setival_. begin()->first; }
-  int imax() const { assert(! setival_.empty()); return setival_.rbegin()->first; }
+  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
+  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
 
   // number of unique values
-  int numUnique() const { return ivalset_.size(); }
+  int numUnique() const { return valset_.size(); }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
+  }
+
+  void uniqueCounts(Counts &counts) {
+    for (const auto &vi : valset_)
+      counts.push_back(vi.second.second);
+  }
+
+  // calculated stats
+  double sum () const { const_calc(); return sum_ ; }
+  double mean() const { const_calc(); return mean_; }
+
+  double median() const { const_calc(); return median_; }
+
+  double lowerMedian() const { const_calc(); return lowerMedian_; }
+  double upperMedian() const { const_calc(); return upperMedian_; }
 
  private:
-  using IVals   = std::vector<OptInt>;
-  using IValSet = std::map<int,int>;
-  using SetIVal = std::map<int,int>;
+  void const_calc() const {
+    const_cast<CQChartsIValues *>(this)->calc();
+  }
 
-  IVals   ivals_;   // all integer values
-  IValSet ivalset_; // unique indexed integer values
-  SetIVal setival_; // index to integer map
+  void calc() {
+    if (calculated_)
+      return;
+
+    calculated_ = true;
+
+    //---
+
+    // init statistics
+    sum_         = 0.0;
+    mean_        = 0.0;
+    median_      = 0.0;
+    lowerMedian_ = 0.0;
+    upperMedian_ = 0.0;
+
+    outliers_.clear();
+
+    svalues_.clear();
+
+    //---
+
+    // no values then nothing to do
+    if (values_.empty())
+      return;
+
+    //---
+
+    // get value to sort (skip null values)
+    for (auto &v : values_) {
+      if (! v) continue;
+
+      int i = *v;
+
+      sum_ += i;
+
+      svalues_.push_back(i);
+    }
+
+    if (svalues_.empty())
+      return;
+
+    mean_ = sum_/svalues_.size();
+
+    // sort values
+    std::sort(svalues_.begin(), svalues_.end());
+
+    int nv = svalues_.size();
+
+    //---
+
+    // calc median
+    int nv1, nv2;
+
+    medianInd(0, nv - 1, nv1, nv2);
+
+    median_ = (svalues_[nv1] + svalues_[nv2])/2.0;
+
+    // calc lower median
+    if (nv1 > 0) {
+      int nl1, nl2;
+
+      medianInd(0, nv1 - 1, nl1, nl2);
+
+      lowerMedian_ = (svalues_[nl1] + svalues_[nl2])/2.0;
+    }
+    else
+      lowerMedian_ = svalues_[0];
+
+    // calc upper median
+    if (nv2 < nv - 1) {
+      int nu1, nu2;
+
+      medianInd(nv2 + 1, nv - 1, nu1, nu2);
+
+      upperMedian_ = (svalues_[nu1] + svalues_[nu2])/2.0;
+    }
+    else
+      upperMedian_ = svalues_[nv - 1];
+
+    //---
+
+    // calc outliers outside range()*(upper - lower)
+    double routlier = upperMedian_ - lowerMedian_;
+    double loutlier = lowerMedian_ - outlierRange_*routlier;
+    double uoutlier = upperMedian_ + outlierRange_*routlier;
+
+    int i = 0;
+
+    for (auto v : svalues_) {
+      if (v < loutlier || v > uoutlier)
+        outliers_.push_back(i);
+
+      ++i;
+    }
+  }
+
+  void medianInd(int i1, int i2, int &n1, int &n2) {
+    int n = i2 - i1 + 1;
+
+    if (n & 1) {
+      n1 = i1 + n/2;
+      n2 = n1;
+    }
+    else {
+      n2 = i1 + n/2;
+      n1 = n2 - 1;
+    }
+  }
+
+ private:
+  using OptValues = std::vector<OptInt>;
+  using Indices   = std::vector<int>;
+  using KeyCount  = std::pair<int,int>;
+  using ValueSet  = std::map<int,KeyCount>;
+  using SetValues = std::map<int,int>;
+
+  OptValues values_;                 // all integer values
+  Values    svalues_;                // sorted integer values
+  ValueSet  valset_;                 // unique indexed integer values
+  SetValues setvals_;                // index to integr map
+  int       numNull_      { 0 };     // number of null values
+  bool      calculated_   { false }; // are stats calculated
+  double    sum_          { 0.0 };
+  double    mean_         { 0.0 };
+  double    median_       { 0.0 };
+  double    lowerMedian_  { 0.0 };
+  double    upperMedian_  { 0.0 };
+  double    outlierRange_ { 1.5 };
+  Indices   outliers_;
 };
 
 //---
@@ -219,14 +539,18 @@ class CQChartsIValues {
 class CQChartsSValues {
  public:
   using OptString = boost::optional<QString>;
+  using Values    = std::vector<QString>;
+  using Counts    = std::vector<int>;
 
  public:
   CQChartsSValues() { }
 
   void clear() {
-    svals_  .clear();
-    svalset_.clear();
-    setsval_.clear();
+    values_ .clear();
+    valset_ .clear();
+    setvals_.clear();
+
+    numNull_ = 0;
 
     trie_.clear();
 
@@ -235,72 +559,90 @@ class CQChartsSValues {
     spatternsSet_ = false;
   }
 
-  bool isValid() const { return ! svals_.empty(); }
+  bool isValid() const { return ! values_.empty(); }
 
-  bool canMap() const { return ! svalset_.empty(); }
+  bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return svals_.size(); }
+  int size() const { return values_.size(); }
 
   // get nth value (non-unique)
-  const OptString &value(int i) const { return svals_[i]; }
+  const OptString &value(int i) const { return values_[i]; }
 
   int addValue(const OptString &s) {
     // add to all values
-    svals_.push_back(s);
+    values_.push_back(s);
 
-    if (s) {
-      // add to trie
-      trie_.addWord(*s);
+    // TODO: assert
+    if (! s) {
+      ++numNull_;
 
-      // add to unique values if new
-      auto p = svalset_.find(*s);
-
-      if (p == svalset_.end()) {
-        int id = svalset_.size();
-
-        p = svalset_.insert(p, SValSet::value_type(*s, id));
-
-        setsval_[id] = *s;
-      }
-
-      return (*p).second;
-    }
-    else
       return -1;
+    }
+
+    // add to trie
+    trie_.addWord(*s);
+
+    // add to unique values if new
+    auto p = valset_.find(*s);
+
+    if (p == valset_.end()) {
+      int id = valset_.size();
+
+      p = valset_.insert(p, ValueSet::value_type(*s, KeyCount(id, 1))); // id for value
+
+      setvals_[id] = *s; // value for id
+    }
+    else {
+      ++(*p).second.second; // increment count
+    }
+
+    return (*p).second.first; // return key
   }
+
+  int numNull() const { return numNull_; }
 
   // string to id
   int id(const QString &s) const {
     // get string set index
-    auto p = svalset_.find(s);
+    auto p = valset_.find(s);
 
-    if (p == svalset_.end())
+    if (p == valset_.end())
       return -1;
 
-    return (*p).second;
+    return (*p).second.first;
   }
 
   // id to string
   QString ivalue(int i) const {
     // get string for index
-    auto p = setsval_.find(i);
+    auto p = setvals_.find(i);
 
-    if (p == setsval_.end())
+    if (p == setvals_.end())
       return "";
 
     return (*p).second;
   }
 
   // min/max value
-  QString min() const { assert(! svalset_.empty()); return svalset_. begin()->first; }
-  QString max() const { assert(! svalset_.empty()); return svalset_.rbegin()->first; }
+  QString min() const { assert(! valset_.empty()); return valset_. begin()->first; }
+  QString max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
 
   // min/max index
-  int imin() const { assert(! setsval_.empty()); return setsval_. begin()->first; }
-  int imax() const { assert(! setsval_.empty()); return setsval_.rbegin()->first; }
+  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
+  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
 
   // number of unique values
-  int numUnique() const { return svalset_.size(); }
+  int numUnique() const { return valset_.size(); }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
+  }
+
+  void uniqueCounts(Counts &counts) {
+    for (const auto &vi : valset_)
+      counts.push_back(vi.second.second);
+  }
 
   // map value into real in range
   double map(const QString &s, double mapMin=0.0, double mapMax=1.0) const {
@@ -368,13 +710,15 @@ class CQChartsSValues {
   }
 
  private:
-  using SVals   = std::vector<OptString>;
-  using SValSet = std::map<QString,int>;
-  using SetSVal = std::map<int,QString>;
+  using OptValues = std::vector<OptString>;
+  using KeyCount  = std::pair<int,int>;
+  using ValueSet  = std::map<QString,KeyCount>;
+  using SetValues = std::map<int,QString>;
 
-  SVals   svals_;   // all string values
-  SValSet svalset_; // unique indexed string values
-  SetSVal setsval_; // index to string map
+  OptValues values_;        // all string values
+  ValueSet  valset_;        // unique indexed string values
+  SetValues setvals_;       // index to string map
+  int       numNull_ { 0 }; // number of null values
 
   int                    initBuckets_  { 10 };
   CQChartsTrie           trie_;                   // string trie
@@ -386,73 +730,101 @@ class CQChartsSValues {
 
 class CQChartsCValues {
  public:
+  using Values = std::vector<CQChartsColor>;
+  using Counts = std::vector<int>;
+
+ public:
   CQChartsCValues() { }
 
   void clear() {
-    cvals_  .clear();
-    cvalset_.clear();
-    setcval_.clear();
+    values_ .clear();
+    valset_ .clear();
+    setvals_.clear();
+
+    numNull_ = 0;
   }
 
-  bool isValid() const { return ! cvals_.empty(); }
+  bool isValid() const { return ! values_.empty(); }
 
-  bool canMap() const { return ! cvalset_.empty(); }
+  bool canMap() const { return ! valset_.empty(); }
 
-  int size() const { return cvals_.size(); }
+  int size() const { return values_.size(); }
 
   // get nth value (non-unique)
-  const CQChartsColor &value(int i) const { return cvals_[i]; }
+  const CQChartsColor &value(int i) const { return values_[i]; }
 
   int addValue(const CQChartsColor &c) {
     // add to all values
-    cvals_.push_back(c);
+    values_.push_back(c);
 
-    // add to unique values if new
-    auto p = cvalset_.find(c);
+    // TODO: assert
+    if (! c.isValid()) {
+      ++numNull_;
 
-    if (p == cvalset_.end()) {
-      int id = cvalset_.size();
-
-      p = cvalset_.insert(p, CValSet::value_type(c, id));
-
-      setcval_[id] = c;
+      return -1;
     }
 
-    return (*p).second;
+    // add to unique values if new
+    auto p = valset_.find(c);
+
+    if (p == valset_.end()) {
+      int id = valset_.size();
+
+      p = valset_.insert(p, ValueSet::value_type(c, KeyCount(id, 1))); // id for value
+
+      setvals_[id] = c; // value for id
+    }
+    else {
+      ++(*p).second.second; // increment count
+    }
+
+    return (*p).second.first; // return key
   }
+
+  int numNull() const { return numNull_; }
 
   // color to id
   int id(const CQChartsColor &c) const {
-    // get string set index
-    auto p = cvalset_.find(c);
+    // get color set index
+    auto p = valset_.find(c);
 
-    if (p == cvalset_.end())
+    if (p == valset_.end())
       return -1;
 
-    return (*p).second;
+    return (*p).second.first;
   }
 
   // id to color
   CQChartsColor ivalue(int i) const {
     // get string for index
-    auto p = setcval_.find(i);
+    auto p = setvals_.find(i);
 
-    if (p == setcval_.end())
+    if (p == setvals_.end())
       return CQChartsColor();
 
     return (*p).second;
   }
 
   // min/max value
-  CQChartsColor min() const { assert(! cvalset_.empty()); return cvalset_. begin()->first; }
-  CQChartsColor max() const { assert(! cvalset_.empty()); return cvalset_.rbegin()->first; }
+  CQChartsColor min() const { assert(! valset_.empty()); return valset_. begin()->first; }
+  CQChartsColor max() const { assert(! valset_.empty()); return valset_.rbegin()->first; }
 
   // min/max index
-  int imin() const { assert(! setcval_.empty()); return setcval_. begin()->first; }
-  int imax() const { assert(! setcval_.empty()); return setcval_.rbegin()->first; }
+  int imin() const { assert(! setvals_.empty()); return setvals_. begin()->first; }
+  int imax() const { assert(! setvals_.empty()); return setvals_.rbegin()->first; }
 
   // number of unique values
-  int numUnique() const { return cvalset_.size(); }
+  int numUnique() const { return valset_.size(); }
+
+  void uniqueValues(Values &values) {
+    for (const auto &vi : valset_)
+      values.push_back(vi.first);
+  }
+
+  void uniqueCounts(Counts &counts) {
+    for (const auto &vi : valset_)
+      counts.push_back(vi.second.second);
+  }
 
   // map value into real in range
   double map(const CQChartsColor &c, double mapMin=0.0, double mapMax=1.0) const {
@@ -469,13 +841,14 @@ class CQChartsCValues {
   }
 
  private:
-  using CVals   = std::vector<CQChartsColor>;
-  using CValSet = std::map<CQChartsColor,int,CQChartsUtil::ColorCmp>;
-  using SetCVal = std::map<int,CQChartsColor>;
+  using KeyCount  = std::pair<int,int>;
+  using ValueSet  = std::map<CQChartsColor,KeyCount,CQChartsUtil::ColorCmp>;
+  using SetValues = std::map<int,CQChartsColor>;
 
-  CVals   cvals_;   // all color values
-  CValSet cvalset_; // unique indexed color values
-  SetCVal setcval_; // index to color map
+  Values    values_;        // all color values
+  ValueSet  valset_;        // unique indexed color values
+  SetValues setvals_;       // index to color map
+  int       numNull_ { 0 }; // number of null values
 };
 
 //------

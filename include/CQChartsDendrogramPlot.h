@@ -18,9 +18,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox textRect() const;
 
-  void addSelectIndex() override;
-
-  bool isIndex(const QModelIndex &) const override;
+  void getSelectIndices(Indices &inds) const override;
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

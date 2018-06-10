@@ -167,6 +167,10 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void setCurrentPlot(CQChartsPlot *plot);
+
+  //---
+
   const HighlightDataMode &selectedMode() const { return selectedHighlight_.mode; }
   void setSelectedMode(const HighlightDataMode &mode) { selectedHighlight_.mode = mode; }
 
@@ -274,8 +278,9 @@ class CQChartsView : public QFrame {
 
   void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(0, 0, 1, 1));
 
-  int numPlots() const { return plotDatas_.size(); }
-  CQChartsPlot *plot(int i) { return plotDatas_[i].plot; }
+  int numPlots() const { return plots_.size(); }
+
+  CQChartsPlot *plot(int i) { assert(i >= 0 && i < int(plots_.size())); return plots_[i]; }
 
   CQChartsPlot *getPlot(const QString &id) const;
 
@@ -473,7 +478,8 @@ class CQChartsView : public QFrame {
 
   void selectModeChanged();
 
-  void themeChanged();
+  void interfacePaletteChanged();
+  void themePalettesChanged();
 
   void statusTextChanged(const QString &text);
 
@@ -557,17 +563,6 @@ class CQChartsView : public QFrame {
   int plotPos(CQChartsPlot *plot) const;
 
  private:
-  struct PlotData {
-    CQChartsPlot*      plot { nullptr };
-    CQChartsGeom::BBox bbox;
-
-    PlotData(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) :
-     plot(plot), bbox(bbox) {
-    }
-  };
-
-  using PlotDatas = std::vector<PlotData>;
-
   struct MouseData {
     Plots         plots;
     CQChartsPlot* plot      { nullptr };
@@ -616,7 +611,7 @@ class CQChartsView : public QFrame {
   QString                  title_;
   QColor                   background_       { 255, 255, 255 };
   CQChartsViewKey*         keyObj_           { nullptr };
-  PlotDatas                plotDatas_;
+  Plots                    plots_;
   int                      currentPlotInd_   { -1 };
   Annotations              annotations_;
   Mode                     mode_             { Mode::SELECT };

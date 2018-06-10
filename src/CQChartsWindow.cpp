@@ -154,6 +154,9 @@ CQChartsWindow(CQChartsView *view) :
   connect(view_, SIGNAL(modeChanged()), this, SLOT(modeSlot()));
   connect(view_, SIGNAL(selectModeChanged()), this, SLOT(selectModeSlot()));
 
+  connect(view_, SIGNAL(interfacePaletteChanged()), this, SIGNAL(interfacePaletteChanged()));
+  connect(view_, SIGNAL(themePalettesChanged()), this, SIGNAL(themePalettesChanged()));
+
   connect(view_, SIGNAL(posTextChanged(const QString &)),
           this, SLOT(setPosText(const QString &)));
   connect(view_, SIGNAL(statusTextChanged(const QString &)),
@@ -293,7 +296,7 @@ void
 CQChartsWindow::
 filterChangedSlot()
 {
-  //CQChartsPlot *plot = view_->currentPlot();
+  //CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   //if (! plot) return;
 
   //plot->updateRangeAndObjs();
@@ -303,7 +306,7 @@ void
 CQChartsWindow::
 plotSlot()
 {
-  CQChartsPlot *plot = view_->currentPlot();
+  CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   if (! plot) return;
 
   if (! plot->isHierarchical()) {
@@ -322,6 +325,8 @@ plotSlot()
 
     viewStack_->setCurrentIndex(1);
   }
+
+  tableExpander_->setTitle(view_->id() + ": Model (" + plot->id() + ")");
 }
 
 void

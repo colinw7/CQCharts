@@ -4,7 +4,7 @@ model = _rc
 process_model -add -header Sum -expr "cell(@r,1)+cell(@r-1,@c,0)" -type "real"
 process_model -add -header Percent -expr "100.0*column(1)/cell(@nr-1,2)" -type "real:format=%g%%"
 
-get_property -model $model -name num_rows
+get_charts_data -model $model -name num_rows
 nr = _rc
 
 get_charts_data -model $model -column 2 -row [expr {$nr - 1}] -name value

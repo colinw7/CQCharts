@@ -37,6 +37,56 @@ calcColumnId(const QModelIndex &ind, QString &str) const
   return ok;
 }
 
+bool
+CQChartsPlotObj::
+isSelectIndex(const QModelIndex &ind) const
+{
+  Indices inds;
+
+  getSelectIndices(inds);
+
+  for (auto &ind1 : inds) {
+    QModelIndex ind2 = plot_->normalizeIndex(ind1);
+
+    if (ind == ind2)
+      return true;
+  }
+
+  return false;
+}
+
+void
+CQChartsPlotObj::
+addSelectIndices()
+{
+  Indices inds;
+
+  getSelectIndices(inds);
+
+  for (const auto &ind : inds)
+    plot_->addSelectIndex(ind);
+}
+
+void
+CQChartsPlotObj::
+addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
+               const QModelIndex &parent) const
+{
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return;
+
+  QModelIndex ind = plot_->selectIndex(row, column.column(), parent);
+
+  addSelectIndex(inds, ind);
+}
+
+void
+CQChartsPlotObj::
+addSelectIndex(Indices &inds, const QModelIndex &ind) const
+{
+  inds.insert(ind);
+}
+
 //------
 
 CQChartsGroupObj::

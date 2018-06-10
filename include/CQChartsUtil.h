@@ -230,30 +230,11 @@ inline bool toInt(const QString &str, long &i) {
 QString toString(double r, const QString &fmt="%g" );
 QString toString(long   i, const QString &fmt="%ld");
 
-QString toString(const std::vector<int> &columns);
-
 //------
 
-inline bool fromString(const QString &str, std::vector<int> &columns) {
-  bool ok = true;
+QString toString(const std::vector<CQChartsColumn> &columns);
 
-  columns.clear();
-
-  QStringList strs = str.split(" ", QString::SkipEmptyParts);
-
-  for (int i = 0; i < strs.size(); ++i) {
-    bool ok1;
-
-    int col = strs[i].toInt(&ok1);
-
-    if (ok1)
-      columns.push_back(col);
-    else
-      ok = false;
-  }
-
-  return ok;
-}
+bool fromString(const QString &str, std::vector<CQChartsColumn> &columns);
 
 //------
 
@@ -688,44 +669,50 @@ inline int nameToRole(const QString &name) {
 
 //------
 
-inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, int role, bool &ok) {
+inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 Qt::Orientation orientation, int role, bool &ok) {
   ok = false;
 
-  if (column < 0)
+  if (column.type() != CQChartsColumn::Type::DATA)
     return QVariant();
 
-  QVariant var = model->headerData(column, Qt::Horizontal, role);
+  int icolumn = column.column();
+
+  if (icolumn < 0)
+    return QVariant();
+
+  QVariant var = model->headerData(icolumn, orientation, role);
 
   ok = var.isValid();
 
   return var;
 }
 
-inline QVariant modelHeaderValue(QAbstractItemModel *model, int column, bool &ok) {
-  return modelHeaderValue(model, column, Qt::DisplayRole, ok);
+inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 Qt::Orientation orientation, bool &ok) {
+  return modelHeaderValue(model, column, orientation, Qt::DisplayRole, ok);
 }
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  int role, bool &ok) {
-  if (column.type() != CQChartsColumn::Type::DATA)
-    return QVariant();
-
-  return modelHeaderValue(model, column.column(), role, ok);
+  return modelHeaderValue(model, column, Qt::Horizontal, role, ok);
 }
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderValue(model, column, Qt::DisplayRole, ok);
+  return modelHeaderValue(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
 }
 
 //--
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                 int role, bool &ok) {
+                                 Qt::Orientation orient, int role, bool &ok) {
+  ok = false;
+
   if (! column.isValid())
     return "";
 
-  QVariant var = modelHeaderValue(model, column, role, ok);
+  QVariant var = modelHeaderValue(model, column, orient, role, ok);
   if (! var.isValid()) return "";
 
   QString str;
@@ -736,35 +723,45 @@ inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn
   return str;
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, int column, int role, bool &ok) {
-  return modelHeaderString(model, CQChartsColumn(column), role, ok);
+inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 Qt::Orientation orient, bool &ok) {
+  return modelHeaderString(model, column, orient, Qt::DisplayRole, ok);
 }
 
-inline QString modelHeaderString(QAbstractItemModel *model, int column, bool &ok) {
-  return modelHeaderString(model, CQChartsColumn(column), Qt::DisplayRole, ok);
+inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                                 int role, bool &ok) {
+  return modelHeaderString(model, column, Qt::Horizontal, role, ok);
 }
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderString(model, column, Qt::DisplayRole, ok);
+  return modelHeaderString(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
 }
 
 //--
 
-inline bool setModelHeaderValue(QAbstractItemModel *model, int column,
-                                const QVariant &var, int role)
+inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                Qt::Orientation orient, const QVariant &var, int role)
 {
-  return model->setHeaderData(column, Qt::Horizontal, var, role);
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return false;
+
+  return model->setHeaderData(column.column(), orient, var, role);
+}
+
+inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                Qt::Orientation orientation, const QVariant &var)
+{
+  return setModelHeaderValue(model, column, orientation, var, Qt::DisplayRole);
 }
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                 const QVariant &var, int role)
 {
-  if (column.type() != CQChartsColumn::Type::DATA)
-    return false;
-
-  return setModelHeaderValue(model, column.column(), var, role);
+  return setModelHeaderValue(model, column, Qt::Horizontal, var, role);
 }
+
+//--
 
 inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                           const QVariant &var, int role)
@@ -775,6 +772,12 @@ inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColu
   QModelIndex ind = model->index(row, column.column(), QModelIndex());
 
   return model->setData(ind, var, role);
+}
+
+inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                          const QVariant &var)
+{
+  return setModelValue(model, row, column, var, Qt::DisplayRole);
 }
 
 //------
@@ -1249,6 +1252,28 @@ void testAndSet(T &t, const T &v, Callable &&f) {
 
     f();
   }
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+inline bool getBoolEnv(const char *name, bool def=false) {
+  char *env = getenv(name);
+
+  if (! env)
+    return def;
+
+  if      (strcmp(env, "0") == 0 || strcmp(env, "false") == 0 || strcmp(env, "no" ) == 0)
+    return false;
+  else if (strcmp(env, "1") == 0 || strcmp(env, "true" ) == 0 || strcmp(env, "yes") == 0)
+    return true;
+
+  assert(false);
+
+  return true;
 }
 
 }

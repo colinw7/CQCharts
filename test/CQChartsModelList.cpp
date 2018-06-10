@@ -237,7 +237,7 @@ reloadModel(CQChartsModelData *modelData)
     viewWidgetData->stack->setCurrentIndex(0);
   }
   else {
-    if (modelData->details().isHierarchical()) {
+    if (modelData->details()->isHierarchical()) {
       if (viewWidgetData->tree) {
         viewWidgetData->tree->setModel(modelData->model());
 
@@ -273,7 +273,7 @@ setDetailsText(const CQChartsModelData *modelData)
 
   CQChartsModelData *modelData1 = nullptr;
 
-  CQChartsModelDetails details;
+  CQChartsModelDetails *details = nullptr;
 
   if (viewWidgetData->stack->currentIndex() == 0) {
     if (viewWidgetData->tree) {
@@ -292,13 +292,16 @@ setDetailsText(const CQChartsModelData *modelData)
     }
   }
 
+  if (! details)
+    return;
+
   //---
 
   QString text = "<b></b>";
 
   text += "<table padding=\"4\">";
-  text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(details.numColumns());
-  text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(details.numRows());
+  text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(details->numColumns());
+  text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(details->numRows());
   text += "</table>";
 
   text += "<br>";
@@ -306,20 +309,20 @@ setDetailsText(const CQChartsModelData *modelData)
   text += "<table padding=\"4\">";
   text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
 
-  for (int i = 0; i < details.numColumns(); ++i) {
-    const CQChartsModelColumnDetails &columnDetails = details.columnDetails(i);
+  for (int i = 0; i < details->numColumns(); ++i) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(i);
 
     text += "<tr>";
 
     text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
              arg(i + 1).
-             arg(columnDetails.typeName()).
-             arg(columnDetails.dataName(columnDetails.minValue()).toString()).
-             arg(columnDetails.dataName(columnDetails.maxValue()).toString());
+             arg(columnDetails->typeName()).
+             arg(columnDetails->dataName(columnDetails->minValue()).toString()).
+             arg(columnDetails->dataName(columnDetails->maxValue()).toString());
 
-    if (columnDetails.isMonotonic())
+    if (columnDetails->isMonotonic())
       text += QString("<td>%1</td>").
-        arg(columnDetails.isIncreasing() ? "Increasing" : "Decreasing");
+        arg(columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
     else
       text += QString("<td></td>");
 

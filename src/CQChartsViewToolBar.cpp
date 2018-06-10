@@ -197,7 +197,7 @@ void
 CQChartsViewToolBar::
 zoomFullSlot()
 {
-  CQChartsPlot *plot = window_->view()->currentPlot();
+  CQChartsPlot *plot = window_->view()->currentPlot(/*remap*/true);
 
   if (plot)
     plot->zoomFull();

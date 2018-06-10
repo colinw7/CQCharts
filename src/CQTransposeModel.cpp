@@ -19,9 +19,7 @@ QAbstractItemModel *
 CQTransposeModel::
 sourceModel() const
 {
-  QAbstractItemModel *sourceModel = QAbstractProxyModel::sourceModel();
-
-  return sourceModel;
+  return QAbstractProxyModel::sourceModel();
 }
 
 void
