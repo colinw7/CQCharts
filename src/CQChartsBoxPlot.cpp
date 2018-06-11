@@ -752,6 +752,9 @@ bool
 CQChartsBoxPlot::
 probe(ProbeData &probeData) const
 {
+  if (! dataRange_.isSet())
+    return false;
+
   if (probeData.x < dataRange_.xmin() + 0.5)
     probeData.x = dataRange_.xmin() + 0.5;
 

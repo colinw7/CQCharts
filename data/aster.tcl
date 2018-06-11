@@ -1,6 +1,6 @@
 set modelId [load_model -csv data/aster_data.csv -first_line_header]
 
-set nr [get_property -model $modelId -name num_rows]
+set nr [get_charts_data -model $modelId -name num_rows]
 
 set total 0.0
 

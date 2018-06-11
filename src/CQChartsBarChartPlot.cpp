@@ -1260,6 +1260,9 @@ bool
 CQChartsBarChartPlot::
 probe(ProbeData &probeData) const
 {
+  if (! dataRange_.isSet())
+    return false;
+
   if (! isHorizontal()) {
     probeData.direction = ProbeData::Direction::VERTICAL;
 

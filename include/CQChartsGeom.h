@@ -340,10 +340,10 @@ class Range {
   double right () const { assert(set_); return x2_; }
   double top   () const { assert(set_); return y2_; }
 
-  void setLeft  (const double &t) { set_ = true; x1_ = t; }
-  void setBottom(const double &t) { set_ = true; y1_ = t; }
-  void setRight (const double &t) { set_ = true; x2_ = t; }
-  void setTop   (const double &t) { set_ = true; y2_ = t; }
+  void setLeft  (double t) { set_ = true; x1_ = t; }
+  void setBottom(double t) { set_ = true; y1_ = t; }
+  void setRight (double t) { set_ = true; x2_ = t; }
+  void setTop   (double t) { set_ = true; y2_ = t; }
 
   double xsize() const { assert(set_); return fabs(x2_ - x1_); }
   double ysize() const { assert(set_); return fabs(y2_ - y1_); }

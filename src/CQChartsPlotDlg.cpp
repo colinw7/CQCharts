@@ -6,9 +6,13 @@
 #include <CQChartsAxis.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
+#include <CQChartsColumnEdit.h>
+#include <CQChartsModelView.h>
 #include <CQDividedArea.h>
+#include <CQIntegerSpin.h>
 #include <CQRealSpin.h>
 #include <CQUtil.h>
+#include <CQSummaryModel.h>
 
 #include <QItemSelectionModel>
 #include <QGridLayout>
@@ -44,6 +48,12 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   setObjectName("plotDlg");
 
   setWindowTitle("Create Plot");
+
+  //----
+
+  summaryModel_ = new CQSummaryModel(model_.data());
+
+  summaryModelP_ = ModelP(summaryModel_);
 
   //----
 
@@ -137,7 +147,7 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   int row = 0, column = 0;
 
-  viewEdit_ = addLineEdit(genLayout, row, column, "View Name", "viewEdit", "View Name");
+  viewEdit_ = addStringEdit(genLayout, row, column, "View Name", "viewEdit", "View Name");
 
   viewEdit_->setToolTip("View to add plot to. If empty create new view");
 
@@ -145,7 +155,7 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   ++row; column = 0;
 
-  posEdit_ = addLineEdit(genLayout, row, column, "Plot Position", "position", "Position");
+  posEdit_ = addStringEdit(genLayout, row, column, "Plot Position", "position", "Position");
 
   posEdit_->setText("0 0 1 1");
 
@@ -155,7 +165,7 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   ++row; column = 0;
 
-  titleEdit_ = addLineEdit(genLayout, row, column, "Plot Title", "title", "Title");
+  titleEdit_ = addStringEdit(genLayout, row, column, "Plot Title", "title", "Title");
 
   titleEdit_->setToolTip("Plot Title");
 
@@ -163,8 +173,8 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   ++row; column = 0;
 
-  xminEdit_ = addLineEdit(genLayout, row, column, "XMin", "xmin", "X Axis Minimum Value");
-  yminEdit_ = addLineEdit(genLayout, row, column, "YMin", "ymin", "Y Axis Minimum Value");
+  xminEdit_ = addRealEdit(genLayout, row, column, "XMin", "xmin", "X Axis Minimum Value");
+  yminEdit_ = addRealEdit(genLayout, row, column, "YMin", "ymin", "Y Axis Minimum Value");
 
   xminEdit_->setToolTip("Custom X Axis Minimum Value");
   yminEdit_->setToolTip("Custom Y Axis Minimum Value");
@@ -174,8 +184,8 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   ++row; column = 0;
 
-  xmaxEdit_ = addLineEdit(genLayout, row, column, "XMax", "xmax", "X Axis Maximum Value");
-  ymaxEdit_ = addLineEdit(genLayout, row, column, "YMax", "ymax", "Y Axis Maximum Value");
+  xmaxEdit_ = addRealEdit(genLayout, row, column, "XMax", "xmax", "X Axis Maximum Value");
+  ymaxEdit_ = addRealEdit(genLayout, row, column, "YMax", "ymax", "Y Axis Maximum Value");
 
   xmaxEdit_->setToolTip("Custom X Axis Maximum Value");
   ymaxEdit_->setToolTip("Custom Y Axis Maximum Value");
@@ -256,11 +266,58 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   //--
 
+  QFrame *previewControl = new QFrame;
+
+  QHBoxLayout *previewControlLayout = new QHBoxLayout(previewControl);
+
+  previewCheck_ = new QCheckBox("Enabled");
+
+  previewCheck_->setObjectName("previewCheck");
+  previewCheck_->setLayoutDirection(Qt::RightToLeft);
+
+  connect(previewCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewCheckSlot()));
+
+  previewMaxRows_ = new CQIntegerSpin;
+
+  previewMaxRows_->setObjectName("previewMaxRows");
+
+  previewMaxRows_->setMinimum(1);
+  previewMaxRows_->setMaximum(model_.data()->rowCount());
+
+  connect(previewMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(previewMaxRowsSlot(int)));
+
+  previewMaxRows_->setValue(summaryModel_->maxRows());
+
+  previewControlLayout->addWidget(previewCheck_);
+  previewControlLayout->addWidget(new QLabel("Max Rows"));
+  previewControlLayout->addWidget(previewMaxRows_);
+  previewControlLayout->addStretch(1);
+
+  previewLayout->addWidget(previewControl);
+
+  //--
+
+  QTabWidget *previewTab = new QTabWidget;
+
+  previewTab->setObjectName("previewTab");
+
+  previewLayout->addWidget(previewTab);
+
+  //--
+
+  previewTable_ = new CQChartsModelView(charts_);
+
+  previewTab->addTab(previewTable_, "Data");
+
+  previewTable_->setModel(summaryModelP_, CQChartsUtil::isHierarchical(summaryModel_));
+
+  //--
+
   previewView_ = charts_->createView();
 
   previewView_->setPreview(true);
 
-  previewLayout->addWidget(previewView_);
+  previewTab->addTab(previewView_, "Chart");
 
   //----
 
@@ -324,6 +381,12 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   initialized_ = true;
 
   validateSlot();
+}
+
+CQChartsPlotDlg::
+~CQChartsPlotDlg()
+{
+  delete summaryModel_;
 }
 
 void
@@ -440,9 +503,11 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   int pColumn = parameter.defValue().toInt(&ok);
 
-  QLineEdit *columnEdit =
-    addLineEdit(layout, row, column, parameter.desc(), parameter.name() + "Column",
-                "Column Name or Number");
+  CQChartsColumnEdit *columnEdit =
+    addColumnEdit(layout, row, column, parameter.desc(), parameter.name() + "Column",
+                  "Column Name or Number");
+
+  columnEdit->setModel(model_.data());
 
   if (ok)
     columnEdit->setText(QString("%1").arg(pColumn));
@@ -461,7 +526,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   FormatEditData formatEditData;
 
   formatEditData.formatEdit =
-    addLineEdit(layout, row, column, "", parameter.name() + "Format", "Column Format");
+    addStringEdit(layout, row, column, "", parameter.name() + "Format", "Column Format");
 
   connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
           this, SLOT(validateSlot()));
@@ -540,8 +605,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
     mapEditData.mappedCheck->setChecked(false);
 
-    mapEditData.mapMinSpin ->setValue(parameter.attributes().mapMin());
-    mapEditData.mapMaxSpin ->setValue(parameter.attributes().mapMax());
+    mapEditData.mapMinSpin->setValue(parameter.attributes().mapMin());
+    mapEditData.mapMaxSpin->setValue(parameter.attributes().mapMax());
   }
 }
 
@@ -553,8 +618,8 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   int column = 0;
 
   QLineEdit *columnsEdit =
-    addLineEdit(layout, row, column, parameter.desc(), parameter.name() + "Columns",
-                "Column Names or Numbers");
+    addStringEdit(layout, row, column, parameter.desc(), parameter.name() + "Columns",
+                  "Column Names or Numbers");
 
   bool ok;
 
@@ -576,7 +641,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   FormatEditData formatEditData;
 
   formatEditData.formatEdit =
-    addLineEdit(layout, row, column, "", parameter.name() + "Format", "Columns Format");
+    addStringEdit(layout, row, column, "", parameter.name() + "Format", "Columns Format");
 
   connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
           this, SLOT(validateSlot()));
@@ -692,8 +757,8 @@ addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
 
 QLineEdit *
 CQChartsPlotDlg::
-addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
-            const QString &objName, const QString &placeholderText) const
+addStringEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+              const QString &objName, const QString &placeholderText) const
 {
   if (name != "") {
     QLabel *label = new QLabel(name);
@@ -703,6 +768,36 @@ addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
   }
 
   QLineEdit *edit = new QLineEdit;
+  edit->setObjectName(objName + "Edit" );
+
+  edit->setPlaceholderText(placeholderText);
+
+  grid->addWidget(edit, row, column); ++column;
+
+  return edit;
+}
+
+QLineEdit *
+CQChartsPlotDlg::
+addRealEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+            const QString &objName, const QString &placeholderText) const
+{
+  return addStringEdit(grid, row, column, name, objName, placeholderText);
+}
+
+CQChartsColumnEdit *
+CQChartsPlotDlg::
+addColumnEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+              const QString &objName, const QString &placeholderText) const
+{
+  if (name != "") {
+    QLabel *label = new QLabel(name);
+    label->setObjectName(objName + "Label");
+
+    grid->addWidget(label, row, column); ++column;
+  }
+
+  CQChartsColumnEdit *edit = new CQChartsColumnEdit;
   edit->setObjectName(objName + "Edit" );
 
   edit->setPlaceholderText(placeholderText);
@@ -744,31 +839,51 @@ validateSlot()
   msgLabel_->setText(" ");
   msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
 
-  // create plot for typename of current tab
-  int ind = stack_->currentIndex();
+  //---
 
-  QString typeName = tabTypeName_[ind];
+  updatePreviewPlot();
+}
 
-  CQChartsPlotType *type = charts()->plotType(typeName);
-  assert(type);
+void
+CQChartsPlotDlg::
+updatePreviewPlot()
+{
+  if (previewCheck_->isChecked()) {
+    // create plot for typename of current tab
+    int ind = stack_->currentIndex();
 
-  if (! previewPlot_ || previewPlot_->type() != type) {
-    previewView_->removeAllPlots();
+    QString typeName = tabTypeName_[ind];
 
-    previewPlot_ = type->create(previewView_, model_);
+    CQChartsPlotType *type = charts()->plotType(typeName);
+    assert(type);
 
-    previewPlot_->setPreview(true);
+    if (! previewPlot_ || previewPlot_->type() != type) {
+      previewView_->removeAllPlots();
 
-    double vr = CQChartsView::viewportRange();
+      previewPlot_ = type->create(previewView_, summaryModelP_);
 
-    CQChartsGeom::BBox bbox(0, 0, vr, vr);
+      previewPlot_->setPreview(true);
 
-    previewPlot_->setId("Preview");
+      double vr = CQChartsView::viewportRange();
 
-    previewView_->addPlot(previewPlot_, bbox);
+      CQChartsGeom::BBox bbox(0, 0, vr, vr);
+
+      previewPlot_->setId("Preview");
+
+      previewView_->addPlot(previewPlot_, bbox);
+    }
+
+    applyPlot(previewPlot_, /*preview*/true);
   }
+  else {
+    if (previewPlot_) {
+      previewView_->removeAllPlots();
 
-  applyPlot(previewPlot_, /*preview*/true);
+      previewPlot_ = nullptr;
+
+      previewView_->update();
+    }
+  }
 }
 
 void
@@ -816,7 +931,7 @@ updateFormatSlot()
   else {
     auto pce = plotData.columnsEdits.find(parameterName);
 
-    if (pce != plotData.columnEdits.end()) {
+    if (pce != plotData.columnsEdits.end()) {
       if (! columnLineEditValue((*pce).second, column, columnStr, columnType, defColumn))
         return;
     }
@@ -933,6 +1048,24 @@ validate(QString &msg)
   }
 
   return rc;
+}
+
+void
+CQChartsPlotDlg::
+previewCheckSlot()
+{
+  updatePreviewPlot();
+}
+
+void
+CQChartsPlotDlg::
+previewMaxRowsSlot(int n)
+{
+  if (n <= 0) return;
+
+  summaryModel_->setMaxRows(n);
+
+  updatePreviewPlot();
 }
 
 void
@@ -1059,7 +1192,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
         }
       }
       else {
-        if (preview)
+        if (preview && ok)
           CQUtil::setProperty(plot, parameter.propName(), QVariant(icolumn));
       }
     }
@@ -1085,7 +1218,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
       }
       else {
-        if (preview)
+        if (preview && ok)
           CQUtil::setProperty(plot, parameter.propName(), defValue);
       }
     }
@@ -1101,12 +1234,14 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
       }
       else {
-        if (preview)
+        if (preview && ok)
           CQUtil::setProperty(plot, parameter.propName(), QVariant(defStr));
       }
     }
     else if (parameter.type() == "real") {
-      double defValue = parameter.defValue().toDouble();
+      bool ok;
+
+      double defValue = parameter.defValue().toDouble(&ok);
 
       double r = defValue;
 
@@ -1115,7 +1250,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
       }
       else {
-        if (preview)
+        if (preview && ok)
           CQUtil::setProperty(plot, parameter.propName(), QVariant(defValue));
       }
     }
@@ -1361,8 +1496,8 @@ parseParameterBoolEdit(const CQChartsPlotParameter &parameter, const PlotData &p
 
 bool
 CQChartsPlotDlg::
-columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr, QString &columnType,
-                    const CQChartsColumn &defColumn) const
+columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column, QString &columnStr,
+                    QString &columnType, const CQChartsColumn &defColumn) const
 {
   QString str = le->text().simplified();
 
@@ -1371,6 +1506,29 @@ columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr, Q
 
   //--
 
+  return columnTextValue(str, column, columnStr, columnType, defColumn);
+}
+
+bool
+CQChartsPlotDlg::
+columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr,
+                    QString &columnType, const CQChartsColumn &defColumn) const
+{
+  QString str = le->text().simplified();
+
+  if (! str.length())
+    return false;
+
+  //--
+
+  return columnTextValue(str, column, columnStr, columnType, defColumn);
+}
+
+bool
+CQChartsPlotDlg::
+columnTextValue(QString &str, CQChartsColumn &column, QString &columnStr,
+                QString &columnType, const CQChartsColumn &defColumn) const
+{
   if (str.left(1) != "(") {
     int pos = str.indexOf(":");
 

@@ -9,6 +9,7 @@
 #include <CQChartsModelVisitor.h>
 #include <CQChartsColor.h>
 #include <CQBaseModel.h>
+#include <CQExprModel.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -473,6 +474,39 @@ inline int RoundDown(double x) {
     errno = ERANGE;
 
   return int(x1);
+}
+
+inline double RoundNearestF(double x) {
+  double x1;
+
+  if (x <= 0.0)
+    x1 = (x - 0.499999);
+  else
+    x1 = (x + 0.500001);
+
+  return std::trunc(x1);
+}
+
+inline double RoundUpF(double x) {
+  double x1;
+
+  if (x <= 0.0)
+    x1 = (x       - 1E-6);
+  else
+    x1 = (x + 1.0 - 1E-6);
+
+  return std::trunc(x1);
+}
+
+inline double RoundDownF(double x) {
+  double x1;
+
+  if (x >= 0.0)
+    x1 = (x       + 1E-6);
+  else
+    x1 = (x - 1.0 + 1E-6);
+
+  return std::trunc(x1);
 }
 
 inline int Round(double x, Rounding rounding=ROUND_NEAREST) {
@@ -1100,20 +1134,24 @@ inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
 inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
   int role = Qt::DisplayRole;
 
-  for (int i = 0; i < model->columnCount(); ++i) {
-    QVariant var1 = model->headerData(i, Qt::Horizontal, role);
+  for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
+    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
 
-    if (! var1.isValid())
+    if (! var.isValid())
       continue;
+
+    //QString name1 = CQChartsUtil::toString(var, rc);
 
     QString name1;
 
-    bool rc = variantToString(var1, name1);
+    bool rc = variantToString(var, name1);
     assert(rc);
 
     if (name == name1)
-      return i;
+      return icolumn;
   }
+
+  //---
 
   bool ok;
 
@@ -1123,6 +1161,31 @@ inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) 
     return column;
 
   return -1;
+}
+
+inline bool stringToColumn(QAbstractItemModel *model, const QString &str, CQChartsColumn &column)
+{
+  CQChartsColumn column1(str);
+
+  if (column1.isValid()) {
+    column = column1;
+
+    return true;
+  }
+
+  //---
+
+  if (! str.length())
+    return false;
+
+  int icolumn = modelColumnNameToInd(model, str);
+
+  if (icolumn >= 0) {
+    column = CQChartsColumn(icolumn);
+    return true;
+  }
+
+  return false;
 }
 
 //------
@@ -1156,7 +1219,26 @@ void exportModel(QAbstractItemModel *model, CQBaseModel::DataType type,
                  bool hheader=true, bool vheader=false,
                  std::ostream &os=std::cout);
 
+}
+
 //------
+
+namespace CQChartsUtil {
+
+void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
+
+int processExpression(QAbstractItemModel *model, const QString &exprStr);
+
+int processExpression(QAbstractItemModel *model, CQExprModel::Function function,
+                      const CQChartsColumn &column, const QString &expr);
+
+CQExprModel *getExprModel(QAbstractItemModel *model);
+
+}
+
+//------
+
+namespace CQChartsUtil {
 
 // compare reals with tolerance
 struct RealCmp {

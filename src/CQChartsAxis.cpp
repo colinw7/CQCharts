@@ -849,8 +849,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 {
   // Calculate New Start and End implied by the Test Increment
 
-  double newStart = CQChartsUtil::RoundDown(start/testIncrement)*testIncrement;
-  double newEnd   = CQChartsUtil::RoundUp  (end  /testIncrement)*testIncrement;
+  double newStart = CQChartsUtil::RoundDownF(start/testIncrement)*testIncrement;
+  double newEnd   = CQChartsUtil::RoundUpF  (end  /testIncrement)*testIncrement;
 
   while (newStart > start)
     newStart -= testIncrement;

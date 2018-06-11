@@ -2,7 +2,7 @@ proc modelDetails { modelId } {
   set nr [get_charts_data -model $modelId -name num_rows]
   set nc [get_charts_data -model $modelId -name num_columns]
 
-  set hier [get_property -model $modelId -name hierarchical]
+  set hier [get_charts_data -model $modelId -name hierarchical]
 
   puts $nr,$nc,$hier
 

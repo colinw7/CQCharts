@@ -20,12 +20,12 @@
 #include <CQChartsUtil.h>
 
 #include <CQChartsLoadDlg.h>
+#include <CQChartsModelDlg.h>
 #include <CQChartsPlotDlg.h>
 
 #include <CQChartsTree.h>
 #include <CQChartsTable.h>
 #include <CQDataModel.h>
-#include <CQFoldedModel.h>
 #include <CQSortModel.h>
 
 #include <CQUtil.h>
@@ -248,8 +248,9 @@ addCommands()
   addCommand("connect_chart");
 
   // dialogs
-  addCommand("load_model_dlg" );
-  addCommand("create_plot_dlg");
+  addCommand("load_model_dlg"  );
+  addCommand("create_model_dlg");
+  addCommand("create_plot_dlg" );
 }
 
 const CQChartsCmds::ParserType &
@@ -357,8 +358,9 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "connect_chart") { connectChartCmd(vars); }
 
   // dialogs
-  else if (cmd == "load_model_dlg" ) { loadModelDlgCmd (vars); }
-  else if (cmd == "create_plot_dlg") { createPlotDlgCmd(vars); }
+  else if (cmd == "load_model_dlg"  ) { loadModelDlgCmd  (vars); }
+  else if (cmd == "create_model_dlg") { createModelDlgCmd(vars); }
+  else if (cmd == "create_plot_dlg" ) { createPlotDlgCmd (vars); }
 
   // control
 #ifdef CQ_CHARTS_CEIL
@@ -535,7 +537,7 @@ processModelCmd(const Vars &vars)
 
   ModelP model = modelData->model();
 
-  CQExprModel *exprModel = getExprModel(model);
+  CQExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -619,7 +621,7 @@ processModelCmd(const Vars &vars)
     //CQExprModel::Function function = CQExprModel::Function::EVAL;
 
     //if (expr.simplified().length())
-    //  processExpression(model, expr);
+    //  processExpression(model.data(), expr);
   }
 }
 
@@ -1809,7 +1811,7 @@ getChartsDataCmd(const Vars &vars)
     else if (name == "column") {
       CQChartsColumn column;
 
-      if (! stringToColumn(model.data(), data, column))
+      if (! CQChartsUtil::stringToColumn(model.data(), data, column))
         column = -1;
 
       setCmdRc(column.column());
@@ -2111,7 +2113,7 @@ setChartsDataCmd(const Vars &vars)
       modelData->setName(value);
     }
     else if (name == "process") {
-      processExpression(model, value);
+      CQChartsUtil::processExpression(model.data(), value);
     }
     else {
       errorMsg("Invalid name '" + name + "' specified");
@@ -2832,8 +2834,24 @@ loadModelDlgCmd(const Vars &vars)
   dlg->exec();
 
   setCmdRc(dlg->modelInd());
+}
 
-  return;
+//------
+
+void
+CQChartsCmds::
+createModelDlgCmd(const Vars &vars)
+{
+  CQChartsCmdsArgs argv("create_model_dlg", vars);
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  CQChartsModelDlg *dlg = new CQChartsModelDlg(charts_);
+
+  dlg->exec();
 }
 
 //------
@@ -3342,7 +3360,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       CQChartsColumn column;
 
-      if (! stringToColumn(model.data(), (*p).second, column)) {
+      if (! CQChartsUtil::stringToColumn(model.data(), (*p).second, column)) {
         errorMsg("Bad column name '" + (*p).second + "'");
         column = -1;
       }
@@ -3365,7 +3383,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       for (int j = 0; j < strs.size(); ++j) {
         CQChartsColumn column;
 
-        if (! stringToColumn(model.data(), strs[j], column)) {
+        if (! CQChartsUtil::stringToColumn(model.data(), strs[j], column)) {
           errorMsg("Bad column name '" + strs[j] + "'");
           continue;
         }
@@ -3467,109 +3485,6 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 void
 CQChartsCmds::
-processAddExpression(ModelP &model, const QString &exprStr)
-{
-  CQExprModel *exprModel = getExprModel(model);
-
-  if (! exprModel) {
-    errorMsg("Expression not supported for model");
-    return;
-  }
-
-  int column;
-
-  exprModel->addExtraColumn(exprStr, column);
-}
-
-void
-CQChartsCmds::
-processExpression(ModelP &model, const QString &exprStr)
-{
-  CQExprModel *exprModel = getExprModel(model);
-
-  if (! exprModel) {
-    errorMsg("Expression not supported for model");
-    return;
-  }
-
-  CQExprModel::Function function { CQExprModel::Function::EVAL };
-  int                   icolumn  { -1 };
-  QString               expr;
-
-  if (! exprModel->decodeExpressionFn(exprStr, function, icolumn, expr)) {
-    errorMsg("Invalid expression '" + exprStr + "'");
-    return;
-  }
-
-  CQChartsColumn column(icolumn);
-
-  processExpression(model, function, column, expr);
-}
-
-int
-CQChartsCmds::
-processExpression(ModelP &model, CQExprModel::Function function, const CQChartsColumn &column,
-                  const QString &expr)
-{
-  CQExprModel *exprModel = getExprModel(model);
-
-  if (! exprModel) {
-    errorMsg("Expression not supported for model");
-    return -1;
-  }
-
-  // add column <expr>
-  if      (function == CQExprModel::Function::ADD) {
-    int column1;
-
-    if (! exprModel->addExtraColumn(expr, column1))
-      return -1;
-
-    return column1;
-  }
-  // delete column <n>
-  else if (function == CQExprModel::Function::DELETE) {
-    int icolumn = column.column();
-
-    if (icolumn < 0) {
-      errorMsg("Inavlid column");
-      return -1;
-    }
-
-    bool rc = exprModel->removeExtraColumn(icolumn);
-
-    if (! rc) {
-      errorMsg(QString("Failed to delete column '%1'").arg(icolumn));
-      return -1;
-    }
-
-    return icolumn;
-  }
-  // modify column <n>:<expr>
-  else if (function == CQExprModel::Function::ASSIGN) {
-    int icolumn = column.column();
-
-    if (icolumn < 0) {
-      errorMsg("Inavlid column");
-      return -1;
-    }
-
-    if (! exprModel->assignExtraColumn(icolumn, expr))
-      return -1;
-
-    return icolumn;
-  }
-  else {
-    exprModel->processExpr(expr);
-
-    return -1;
-  }
-}
-
-//------
-
-void
-CQChartsCmds::
 setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnType)
 {
   // split into multiple column type definitions
@@ -3592,7 +3507,7 @@ setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnTyp
 
       CQChartsColumn column1;
 
-      if (stringToColumn(model.data(), columnStr, column1))
+      if (CQChartsUtil::stringToColumn(model.data(), columnStr, column1))
         column = column1;
       else
         errorMsg("Bad column name '" + columnStr + "'");
@@ -3834,22 +3749,6 @@ getAnnotationByName(CQChartsPlot *plot, const QString &name) const
 
 //------
 
-CQExprModel *
-CQChartsCmds::
-getExprModel(ModelP &model)
-{
-  CQExprModel *exprModel = qobject_cast<CQExprModel *>(model.data());
-
-  if (! exprModel) {
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model.data());
-
-    if (proxyModel)
-      exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
-  }
-
-  return exprModel;
-}
-
 bool
 CQChartsCmds::
 loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData)
@@ -3870,7 +3769,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   //---
 
   if (inputData.fold.length())
-    foldModel(modelData, inputData.fold);
+    modelData->foldModel(inputData.fold);
 
   //---
 
@@ -3897,101 +3796,6 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 
 //------
 
-void
-CQChartsCmds::
-foldModel(CQChartsModelData *modelData, const QString &str)
-{
-  foldClear(modelData);
-
-  //---
-
-  using FoldDatas = std::vector<CQFoldData>;
-
-  FoldDatas foldDatas;
-
-  QStringList strs = str.split(",", QString::SkipEmptyParts);
-
-  for (int i = 0; i < strs.length(); ++i) {
-    QStringList strs1 = strs[i].split(":", QString::SkipEmptyParts);
-
-    if (strs1.length() == 0)
-      continue;
-
-    bool ok;
-
-    int column = strs1[0].toInt(&ok);
-
-    if (! ok)
-      continue;
-
-    CQFoldData foldData(column);
-
-    if (strs1.length() > 1) {
-      CQFoldData::Type type = CQFoldData::Type::REAL_RANGE;
-
-      int i = 1;
-
-      if (strs1.length() > 2) {
-        if (strs1[1] == "i")
-          type = CQFoldData::Type::INTEGER_RANGE;
-
-        ++i;
-      }
-
-      double delta = strs1[i].toDouble(&ok);
-
-      if (! ok)
-        continue;
-
-      foldData.setType (type);
-      foldData.setDelta(delta);
-    }
-
-    foldDatas.push_back(foldData);
-  }
-
-  //---
-
-  ModelP modelp = modelData->model();
-
-  for (const auto &foldData : foldDatas) {
-    QAbstractItemModel *model = modelp.data();
-
-    CQFoldedModel *foldedModel = new CQFoldedModel(model, foldData);
-
-    modelp = ModelP(foldedModel);
-
-    modelData->addFoldedModel(modelp);
-  }
-
-  if (! modelData->foldedModels().empty()) {
-    QAbstractItemModel *model = modelp.data();
-
-    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
-
-    if (! proxyModel) {
-      QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
-
-      foldProxyModel->setSourceModel(model);
-
-      modelp = ModelP(foldProxyModel);
-    }
-
-    modelData->setFoldProxyModel(modelp);
-  }
-}
-
-void
-CQChartsCmds::
-foldClear(CQChartsModelData *modelData)
-{
-  modelData->clearFoldedModels();
-
-  modelData->resetFoldProxyModel();
-}
-
-//------
-
 bool
 CQChartsCmds::
 sortModel(ModelP &model, const QString &args)
@@ -4011,7 +3815,7 @@ sortModel(ModelP &model, const QString &args)
 
   CQChartsColumn column;
 
-  if (! stringToColumn(model.data(), columnStr, column))
+  if (! CQChartsUtil::stringToColumn(model.data(), columnStr, column))
     return false;
 
   if (column.type() != CQChartsColumn::Type::DATA)
@@ -4027,44 +3831,6 @@ sortModel(ModelP &model, int column, Qt::SortOrder order)
   model->sort(column, order);
 
   return true;
-}
-
-//------
-
-bool
-CQChartsCmds::
-stringToColumn(QAbstractItemModel *model, const QString &str, CQChartsColumn &column)
-{
-  CQChartsColumn column1(str);
-
-  if (column1.isValid()) {
-    column = column1;
-
-    return true;
-  }
-
-  //---
-
-  if (! str.length())
-    return false;
-
-  for (int column1 = 0; column1 < model->columnCount(); ++column1) {
-    QVariant var = model->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
-
-    if (! var.isValid())
-      continue;
-
-    bool rc;
-
-    QString str1 = CQChartsUtil::toString(var, rc);
-
-    if (str1 == str) {
-      column = CQChartsColumn(column1);
-      return true;
-    }
-  }
-
-  return false;
 }
 
 //------

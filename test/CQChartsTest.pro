@@ -14,15 +14,11 @@ MOC_DIR = .moc
 
 SOURCES += \
 CQChartsTest.cpp \
-CQChartsModelList.cpp \
-CQChartsModelControl.cpp \
 CQChartsCmds.cpp \
 CQAppWindow.cpp \
 
 HEADERS += \
 CQChartsTest.h \
-CQChartsModelList.h \
-CQChartsModelControl.h \
 CQChartsCmds.h \
 CQAppWindow.h \
 

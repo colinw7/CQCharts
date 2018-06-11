@@ -771,16 +771,21 @@ CQChartsTest() :
   //---
 
   // create models list
-  modelList_ = new CQChartsModelList(this);
+  modelList_ = new CQChartsModelList(charts_);
 
   layout->addWidget(modelList_);
 
   //---
 
   // create current model control
-  control_ = new CQChartsModelControl(this);
+  modelControl_ = new CQChartsModelControl(charts_);
 
-  layout->addWidget(control_);
+  layout->addWidget(modelControl_);
+
+  //---
+
+  modelList_   ->setModelControl(modelControl_);
+  modelControl_->setModelList   (modelList_);
 
   //---
 
@@ -794,8 +799,6 @@ CQChartsTest() :
           this, SLOT(windowCreated(CQChartsWindow *)));
   connect(charts_, SIGNAL(plotAdded(CQChartsPlot *)),
           this, SLOT(plotAdded(CQChartsPlot *)));
-
-  connect(charts_, SIGNAL(modelDataAdded(int)), this, SLOT(modelDataAdded(int)));
 
   //---
 
@@ -921,7 +924,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      CQChartsCmds::processExpression(model, strs[i]);
+      CQChartsUtil::processExpression(model.data(), strs[i]);
   }
 
   if (initData.processAdd.length()) {
@@ -930,7 +933,7 @@ initPlot(const CQChartsInitData &initData)
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
     for (int i = 0; i < strs.size(); ++i)
-      CQChartsCmds::processAddExpression(model, strs[i]);
+      CQChartsUtil::processAddExpression(model.data(), strs[i]);
   }
 
   //---
@@ -1204,28 +1207,9 @@ parserType() const
 
 void
 CQChartsTest::
-redrawModel(CQChartsModelData *modelData)
-{
-  modelList_->redrawView(modelData);
-}
-
-void
-CQChartsTest::
-modelDataAdded(int ind)
-{
-  CQChartsModelData *modelData = charts_->getModelData(ind);
-  assert(modelData);
-
-  modelList_->addModelData(modelData);
-
-  updateModelControl();
-}
-
-void
-CQChartsTest::
 updateModelControl()
 {
-  control_->setEnabled(modelList_->numModels() > 0);
+  modelControl_->setEnabled(modelList_->numModels() > 0);
 }
 
 void
@@ -1242,11 +1226,8 @@ void
 CQChartsTest::
 updateModel(CQChartsModelData *modelData)
 {
-  if (isGui()) {
-    modelList_->reloadModel(modelData);
-
-    updateModelDetails(modelData);
-  }
+  if (isGui())
+    modelControl_->updateModel(modelData);
 }
 
 void

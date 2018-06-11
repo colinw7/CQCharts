@@ -76,7 +76,7 @@ class CQChartsTest : public CQAppWindow {
 
   CQChartsModelList *modelList() const { return modelList_; }
 
-  CQChartsModelControl *modelControl() const { return control_; }
+  CQChartsModelControl *modelControl() const { return modelControl_; }
 
   CQChartsCmds *cmds() const { return cmds_; }
 
@@ -87,8 +87,6 @@ class CQChartsTest : public CQAppWindow {
   void loop();
 
   void timeout();
-
-  void redrawModel(CQChartsModelData *modelData);
 
   void updateModel(CQChartsModelData *modelData);
 
@@ -124,20 +122,18 @@ class CQChartsTest : public CQAppWindow {
 
   void updateModelControl();
 
-  void modelDataAdded(int ind);
-
  private:
   using Plots   = std::vector<CQChartsPlot*>;
   using WindowP = QPointer<CQChartsWindow>;
 
  private:
-  CQCharts*             charts_    { nullptr };
-  CQChartsModelList*    modelList_ { nullptr };
-  CQChartsModelControl* control_   { nullptr };
-  CQChartsLoadDlg*      loadDlg_   { nullptr };
-  CQChartsCmds*         cmds_      { nullptr };
-  bool                  gui_       { true };
-  bool                  show_      { true };
+  CQCharts*             charts_        { nullptr };
+  CQChartsModelList*    modelList_     { nullptr };
+  CQChartsModelControl* modelControl_  { nullptr };
+  CQChartsLoadDlg*      loadDlg_       { nullptr };
+  CQChartsCmds*         cmds_          { nullptr };
+  bool                  gui_           { true };
+  bool                  show_          { true };
 };
 
 #endif

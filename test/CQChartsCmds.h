@@ -100,23 +100,12 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  static void processAddExpression(ModelP &model, const QString &expr);
-
-  static void processExpression(ModelP &model, const QString &expr);
-
-  static int  processExpression(ModelP &model, CQExprModel::Function function,
-                                const CQChartsColumn &column, const QString &expr);
-
-  //---
-
   static void setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnType);
 
   bool loadFileModel(const QString &filename, CQChartsFileType type,
                      const CQChartsInputData &inputData);
 
   //---
-
-  void foldModel(CQChartsModelData *modelData, const QString &str);
 
   bool sortModel(ModelP &model, const QString &args);
   bool sortModel(ModelP &model, int column, Qt::SortOrder order);
@@ -196,8 +185,9 @@ class CQChartsCmds : public QObject {
 
   void connectChartCmd(const Vars &vars);
 
-  void loadModelDlgCmd (const Vars &vars);
-  void createPlotDlgCmd(const Vars &vars);
+  void loadModelDlgCmd  (const Vars &vars);
+  void createModelDlgCmd(const Vars &vars);
+  void createPlotDlgCmd (const Vars &vars);
 
   void letCmd     (const Vars &vars);
   void ifCmd      (const Vars &vars);
@@ -230,12 +220,6 @@ class CQChartsCmds : public QObject {
   QAbstractItemModel *createExprModel(int n=100);
 
   QAbstractItemModel *createVarsModel(const Vars &vars);
-
-  //---
-
-  static CQExprModel *getExprModel(ModelP &model);
-
-  void foldClear(CQChartsModelData *modelData);
 
   //---
 

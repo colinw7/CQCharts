@@ -33,12 +33,13 @@ class CQChartsPlotObjTree {
  private:
   void initTree() const;
 
-  static PlotObjTree *addObjectsASync(CQChartsPlot *plot);
+  static PlotObjTree *addObjectsASync(CQChartsPlotObjTree *plotObjTree);
 
  private:
-  CQChartsPlot*     plot_        { nullptr }; // parent plot
-  PlotObjTree*      plotObjTree_ { nullptr }; // object tree
-  PlotObjTreeFuture plotObjTreeFuture_;       // future
+  CQChartsPlot*      plot_        { nullptr }; // parent plot
+  PlotObjTree*       plotObjTree_ { nullptr }; // object tree
+  PlotObjTreeFuture  plotObjTreeFuture_;       // future
+  mutable std::mutex lock_;
 };
 
 #endif

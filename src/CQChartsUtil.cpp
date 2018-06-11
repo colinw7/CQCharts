@@ -7,7 +7,18 @@
 #include <CQUtil.h>
 #include <CExpr.h>
 #include <CQStrParse.h>
+#include <QSortFilterProxyModel>
 #include <QFontMetricsF>
+
+namespace {
+
+void errorMsg(const QString &msg) {
+  std::cerr << msg.toStdString() << std::endl;
+}
+
+}
+
+//---
 
 namespace CQChartsUtil {
 
@@ -1132,6 +1143,125 @@ exportModel(QAbstractItemModel *model, CQBaseModel::DataType type, bool hheader,
   else {
     assert(false);
   }
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+void
+processAddExpression(QAbstractItemModel *model, const QString &exprStr)
+{
+  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+
+  if (! exprModel) {
+    errorMsg("Expression not supported for model");
+    return;
+  }
+
+  int column;
+
+  exprModel->addExtraColumn(exprStr, column);
+}
+
+int
+processExpression(QAbstractItemModel *model, const QString &exprStr)
+{
+  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+
+  if (! exprModel) {
+    errorMsg("Expression not supported for model");
+    return -1;
+  }
+
+  CQExprModel::Function function { CQExprModel::Function::EVAL };
+  int                   icolumn  { -1 };
+  QString               expr;
+
+  if (! exprModel->decodeExpressionFn(exprStr, function, icolumn, expr)) {
+    errorMsg("Invalid expression '" + exprStr + "'");
+    return -1;
+  }
+
+  CQChartsColumn column(icolumn);
+
+  return processExpression(model, function, column, expr);
+}
+
+int
+processExpression(QAbstractItemModel *model, CQExprModel::Function function,
+                  const CQChartsColumn &column, const QString &expr)
+{
+  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+
+  if (! exprModel) {
+    errorMsg("Expression not supported for model");
+    return -1;
+  }
+
+  // add column <expr>
+  if      (function == CQExprModel::Function::ADD) {
+    int column1;
+
+    if (! exprModel->addExtraColumn(expr, column1))
+      return -1;
+
+    return column1;
+  }
+  // delete column <n>
+  else if (function == CQExprModel::Function::DELETE) {
+    int icolumn = column.column();
+
+    if (icolumn < 0) {
+      errorMsg("Inavlid column");
+      return -1;
+    }
+
+    bool rc = exprModel->removeExtraColumn(icolumn);
+
+    if (! rc) {
+      errorMsg(QString("Failed to delete column '%1'").arg(icolumn));
+      return -1;
+    }
+
+    return icolumn;
+  }
+  // modify column <n>:<expr>
+  else if (function == CQExprModel::Function::ASSIGN) {
+    int icolumn = column.column();
+
+    if (icolumn < 0) {
+      errorMsg("Inavlid column");
+      return -1;
+    }
+
+    if (! exprModel->assignExtraColumn(icolumn, expr))
+      return -1;
+
+    return icolumn;
+  }
+
+  else {
+    exprModel->processExpr(expr);
+
+    return -1;
+  }
+}
+
+CQExprModel *
+getExprModel(QAbstractItemModel *model) {
+  CQExprModel *exprModel = qobject_cast<CQExprModel *>(model);
+
+  if (! exprModel) {
+    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
+
+    if (proxyModel)
+      exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
+  }
+
+  return exprModel;
 }
 
 }

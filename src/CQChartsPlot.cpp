@@ -3808,8 +3808,10 @@ drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
 
     //---
 
-    double ra1 = CQChartsUtil::Deg2Rad(a1);
-    double ra2 = CQChartsUtil::Deg2Rad(a2);
+    double da = (isInvertX() != isInvertY() ? -1 : 1);
+
+    double ra1 = da*CQChartsUtil::Deg2Rad(a1);
+    double ra2 = da*CQChartsUtil::Deg2Rad(a2);
 
     double x1 = c.x + ri*cos(ra1);
     double y1 = c.y + ri*sin(ra1);
@@ -4764,8 +4766,8 @@ visitModel(ModelVisitor &visitor)
 {
   visitor.setPlot(this);
 
-  if (isPreview())
-    visitor.setMaxRows(previewMaxRows());
+  //if (isPreview())
+  //  visitor.setMaxRows(previewMaxRows());
 
   (void) CQChartsUtil::visitModel(model(), visitor);
 }
@@ -5061,7 +5063,8 @@ endSelect()
     }
   }
 
-  sm->select(optItemSelection, QItemSelectionModel::ClearAndSelect);
+  if (optItemSelection.length())
+    sm->select(optItemSelection, QItemSelectionModel::ClearAndSelect);
 
 //sm->select(itemSelection_, QItemSelectionModel::ClearAndSelect);
 

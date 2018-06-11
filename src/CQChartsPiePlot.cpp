@@ -16,7 +16,7 @@ CQChartsPiePlotType::
 addParameters()
 {
   // name, desc, propName, attributes, default
-  addColumnParameter ("label"      , "Label"       , "labelColumn"   , 0  ).setRequired();
+  addColumnParameter ("label"      , "Label"       , "labelColumn"   , 0);
   addColumnsParameter("data"       , "Data"        , "dataColumns"   , "1").setRequired();
   addColumnParameter ("radius"     , "Radius"      , "radiusColumn"  );
   addColumnParameter ("group"      , "Group"       , "groupColumn"   );
@@ -233,7 +233,7 @@ updateRange(bool apply)
   dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
   dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
 
-  double a1 = 90.0*CQChartsUtil::RoundDown(angle1/90.0);
+  double a1 = 90.0*CQChartsUtil::RoundDownF(angle1/90.0);
 
   if (angle1 < angle2) {
     for (double a = a1; a < angle2; a += 90.0) {
@@ -984,66 +984,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
     //---
 
     plot_->drawPieSlice(painter, c, ri, rv, a1, a2);
-
-#if 0
-    QPainterPath path;
-
-    if (! CQChartsUtil::isZero(ri)) {
-      CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
-
-      CQChartsGeom::BBox pbbox1;
-
-      plot_->windowToPixel(bbox1, pbbox1);
-
-      //---
-
-      double ra1 = CQChartsUtil::Deg2Rad(a1);
-      double ra2 = CQChartsUtil::Deg2Rad(a2);
-
-      double x1 = c.x + ri*cos(ra1);
-      double y1 = c.y + ri*sin(ra1);
-      double x2 = c.x + rv*cos(ra1);
-      double y2 = c.y + rv*sin(ra1);
-
-      double x3 = c.x + ri*cos(ra2);
-      double y3 = c.y + ri*sin(ra2);
-      double x4 = c.x + rv*cos(ra2);
-      double y4 = c.y + rv*sin(ra2);
-
-      double px1, py1, px2, py2, px3, py3, px4, py4;
-
-      plot_->windowToPixel(x1, y1, px1, py1);
-      plot_->windowToPixel(x2, y2, px2, py2);
-      plot_->windowToPixel(x3, y3, px3, py3);
-      plot_->windowToPixel(x4, y4, px4, py4);
-
-      path.moveTo(px1, py1);
-      path.lineTo(px2, py2);
-
-      path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
-
-      path.lineTo(px4, py4);
-      path.lineTo(px3, py3);
-
-      path.arcTo(CQChartsUtil::toQRect(pbbox1), a2, a1 - a2);
-    }
-    else {
-      double a21 = a2 - a1;
-
-      if (std::abs(a21) < 360.0) {
-        path.moveTo(QPointF(pc.x, pc.y));
-
-        path.arcTo(CQChartsUtil::toQRect(pbbox), a1, a2 - a1);
-      }
-      else {
-        path.addEllipse(CQChartsUtil::toQRect(pbbox));
-      }
-    }
-
-    path.closeSubpath();
-
-    painter->drawPath(path);
-#endif
   }
 
   //---

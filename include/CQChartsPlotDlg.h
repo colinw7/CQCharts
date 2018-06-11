@@ -10,6 +10,10 @@ class CQChartsPlotType;
 class CQChartsPlotParameter;
 class CQChartsView;
 class CQChartsPlot;
+class CQChartsColumnEdit;
+class CQChartsModelView;
+class CQSummaryModel;
+class CQIntegerSpin;
 class CQRealSpin;
 
 class QAbstractItemModel;
@@ -27,10 +31,12 @@ class CQChartsPlotDlg : public QDialog {
   Q_OBJECT
 
  public:
+  using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
   CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model);
+ ~CQChartsPlotDlg();
 
   void setSelectionModel(QItemSelectionModel *sm);
   QItemSelectionModel *selectionModel() const;
@@ -61,12 +67,13 @@ class CQChartsPlotDlg : public QDialog {
   };
 
   struct PlotData {
+    using ColumnEdits = std::map<QString,CQChartsColumnEdit*>;
     using LineEdits   = std::map<QString,QLineEdit*>;
     using FormatEdits = std::map<QString,FormatEditData>;
     using CheckBoxes  = std::map<QString,QCheckBox*>;
     using MapEdits    = std::map<QString,MapEditData>;
 
-    LineEdits    columnEdits;
+    ColumnEdits  columnEdits;
     LineEdits    columnsEdits;
     MapEdits     mappedEdits;
     FormatEdits  formatEdits;
@@ -104,8 +111,12 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
                             const CQChartsPlotParameter &parameter);
 
-  QLineEdit *addLineEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+  QLineEdit *addStringEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+                           const QString &objName, const QString &placeholderText) const;
+  QLineEdit *addRealEdit(QGridLayout *grid, int &row, int &column, const QString &name,
                          const QString &objName, const QString &placeholderText) const;
+  CQChartsColumnEdit *addColumnEdit(QGridLayout *grid, int &row, int &column, const QString &name,
+                                    const QString &objName, const QString &placeholderText) const;
 
   bool parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const;
 
@@ -122,9 +133,15 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
+  bool columnLineEditValue(CQChartsColumnEdit *le, CQChartsColumn &column, QString &columnStr,
+                           QString &columnType,
+                           const CQChartsColumn &defColumn=CQChartsColumn()) const;
   bool columnLineEditValue(QLineEdit *le, CQChartsColumn &column, QString &columnStr,
                            QString &columnType,
                            const CQChartsColumn &defColumn=CQChartsColumn()) const;
+  bool columnTextValue(QString &str, CQChartsColumn &column, QString &columnStr,
+                       QString &columnType,
+                       const CQChartsColumn &defColumn=CQChartsColumn()) const;
 
   bool columnLineEditValues(QLineEdit *le, std::vector<CQChartsColumn> &columns,
                             QStringList &columnStrs, QString &columnType) const;
@@ -132,6 +149,8 @@ class CQChartsPlotDlg : public QDialog {
   bool stringToColumn(const QString &str, CQChartsColumn &column) const;
 
   bool validate(QString &msg);
+
+  void updatePreviewPlot();
 
   void applyPlot(CQChartsPlot *plot, bool preview=false);
 
@@ -142,6 +161,9 @@ class CQChartsPlotDlg : public QDialog {
 
   void updateFormatSlot();
 
+  void previewCheckSlot();
+  void previewMaxRowsSlot(int n);
+
   void okSlot();
   bool applySlot();
   void cancelSlot();
@@ -150,32 +172,37 @@ class CQChartsPlotDlg : public QDialog {
   using TypePlotData = std::map<QString,PlotData>;
   using TabTypeName  = std::map<int,QString>;
 
-  CQCharts*       charts_         { nullptr }; // parent charts
-  CQChartsModelP  model_;                      // model
-  SelectionModelP selectionModel_;             // selection model
-  QComboBox*      combo_          { nullptr }; // type combo
-  QStackedWidget* stack_          { nullptr }; // widget stack
-  QLineEdit*      whereEdit_      { nullptr }; // where edit
-  QLineEdit*      viewEdit_       { nullptr }; // view name edit
-  QLineEdit*      posEdit_        { nullptr }; // position edit
-  QLineEdit*      titleEdit_      { nullptr }; // title edit
-  QLineEdit*      xminEdit_       { nullptr }; // xmin edit
-  QLineEdit*      yminEdit_       { nullptr }; // ymin edit
-  QLineEdit*      xmaxEdit_       { nullptr }; // xmax edit
-  QLineEdit*      ymaxEdit_       { nullptr }; // ymax edit
-  QCheckBox*      xintegralCheck_ { nullptr }; // x integral check
-  QCheckBox*      yintegralCheck_ { nullptr }; // y integral check
-  QCheckBox*      xlogCheck_      { nullptr }; // x log check
-  QCheckBox*      ylogCheck_      { nullptr }; // y log check
-  TypePlotData    typePlotData_;               // per type plot data
-  QLabel*         msgLabel_       { nullptr }; // message label
-  QPushButton*    okButton_       { nullptr }; // ok button
-  QPushButton*    applyButton_    { nullptr }; // apply button
-  TabTypeName     tabTypeName_;                // tab type name map
-  CQChartsView*   previewView_    { nullptr };
-  CQChartsPlot*   previewPlot_    { nullptr };
-  CQChartsPlot*   plot_           { nullptr }; // created plot
-  bool            initialized_    { false   };
+  CQCharts*          charts_         { nullptr }; // parent charts
+  CQChartsModelP     model_;                      // model
+  SelectionModelP    selectionModel_;             // selection model
+  CQSummaryModel*    summaryModel_   { nullptr }; // summary model
+  ModelP             summaryModelP_;
+  QComboBox*         combo_          { nullptr }; // type combo
+  QStackedWidget*    stack_          { nullptr }; // widget stack
+  QLineEdit*         whereEdit_      { nullptr }; // where edit
+  QLineEdit*         viewEdit_       { nullptr }; // view name edit
+  QLineEdit*         posEdit_        { nullptr }; // position edit
+  QLineEdit*         titleEdit_      { nullptr }; // title edit
+  QLineEdit*         xminEdit_       { nullptr }; // xmin edit
+  QLineEdit*         yminEdit_       { nullptr }; // ymin edit
+  QLineEdit*         xmaxEdit_       { nullptr }; // xmax edit
+  QLineEdit*         ymaxEdit_       { nullptr }; // ymax edit
+  QCheckBox*         xintegralCheck_ { nullptr }; // x integral check
+  QCheckBox*         yintegralCheck_ { nullptr }; // y integral check
+  QCheckBox*         xlogCheck_      { nullptr }; // x log check
+  QCheckBox*         ylogCheck_      { nullptr }; // y log check
+  TypePlotData       typePlotData_;               // per type plot data
+  QLabel*            msgLabel_       { nullptr }; // message label
+  QPushButton*       okButton_       { nullptr }; // ok button
+  QPushButton*       applyButton_    { nullptr }; // apply button
+  TabTypeName        tabTypeName_;                // tab type name map
+  QCheckBox*         previewCheck_   { nullptr };
+  CQIntegerSpin*     previewMaxRows_ { nullptr };
+  CQChartsModelView* previewTable_   { nullptr };
+  CQChartsView*      previewView_    { nullptr };
+  CQChartsPlot*      previewPlot_    { nullptr };
+  CQChartsPlot*      plot_           { nullptr }; // created plot
+  bool               initialized_    { false   };
 };
 
 #endif

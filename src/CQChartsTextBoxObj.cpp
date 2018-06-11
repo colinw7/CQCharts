@@ -280,7 +280,12 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
 
     int tickSize = 16;
 
-    if (tc >= 0) {
+    bool labelRight = (tc >= 0);
+
+    if (plot_->isInvertX())
+      labelRight = ! labelRight;
+
+    if (labelRight) {
       dx    = tickSize;
       align = Qt::AlignLeft | Qt::AlignVCenter;
     }

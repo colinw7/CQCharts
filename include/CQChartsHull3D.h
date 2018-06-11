@@ -194,7 +194,9 @@ class CQChartsHull3D {
       onHull_    = false;
       mark_      = false;
 
+#ifdef CQChartsHull3D_CheckSafe
       checkSafe();
+#endif
     }
 
     void assignNum() {
@@ -241,15 +243,17 @@ class CQChartsHull3D {
     }
 
    private:
+#ifdef CQChartsHull3D_CheckSafe
     void checkSafe() const {
       /* Range of safe coord values. */
       static int SAFE = INT_MAX;
 
       if ((fabs(x()) > SAFE) || (fabs(y()) > SAFE) || (fabs(z()) > SAFE)) {
-        printf("Coordinate of vertex below might be too large: run with -c flag\n");
+        printf("Coordinate of vertex below might be too large\n");
         print();
       }
     }
+#endif
 
    private:
     static uint count_;

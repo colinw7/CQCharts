@@ -82,8 +82,12 @@ CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
 CQChartsLoadDlg.cpp \
+CQChartsModelDlg.cpp \
 CQChartsPlotDlg.cpp \
 CQChartsLoader.cpp \
+CQChartsModelList.cpp \
+CQChartsModelControl.cpp \
+CQChartsModelView.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -94,6 +98,7 @@ CQChartsModelDetails.cpp \
 CQChartsModelExprMatch.cpp \
 CQChartsModelFilter.cpp \
 CQChartsModelVisitor.cpp \
+CQChartsColumnEdit.cpp \
 \
 CQChartsGradientPaletteCanvas.cpp \
 CQChartsGradientPalette.cpp \
@@ -123,6 +128,7 @@ CQExprModel.cpp \
 CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
+CQSummaryModel.cpp \
 \
 CQHistoryLineEdit.cpp \
 CQFilename.cpp \
@@ -206,8 +212,12 @@ HEADERS += \
 ../include/CQChartsQuadTree.h \
 \
 ../include/CQChartsLoadDlg.h \
+../include/CQChartsModelDlg.h \
 ../include/CQChartsPlotDlg.h \
 ../include/CQChartsLoader.h \
+../include/CQChartsModelList.h \
+../include/CQChartsModelControl.h \
+../include/CQChartsModelView.h \
 \
 ../include/CQChartsFilterEdit.h \
 \
@@ -220,6 +230,7 @@ HEADERS += \
 ../include/CQChartsModelFn.h \
 ../include/CQChartsModelP.h \
 ../include/CQChartsModelVisitor.h \
+../include/CQChartsColumnEdit.h \
 \
 ../include/CQChartsGradientPaletteCanvas.h \
 ../include/CQChartsGradientPalette.h \
@@ -243,6 +254,7 @@ HEADERS += \
 ../include/CQFoldedModel.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
+../include/CQSummaryModel.h \
 \
 ../include/CQHistoryLineEdit.h \
 CQFilename.h \

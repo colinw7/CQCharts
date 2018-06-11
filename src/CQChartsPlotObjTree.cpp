@@ -18,32 +18,42 @@ void
 CQChartsPlotObjTree::
 addObjects()
 {
+  lock_.lock();
+
   delete plotObjTree_;
 
   plotObjTree_ = nullptr;
 
-  if (! plot_->plotObjects().empty() && ! plot_->isNoData())
-    plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, plot_);
+  if (! plot_->plotObjects().empty() && ! plot_->isNoData()) {
+    plotObjTreeFuture_ = std::async(std::launch::async, addObjectsASync, this);
+  }
+
+  lock_.unlock();
 }
 
 CQChartsPlotObjTree::PlotObjTree *
 CQChartsPlotObjTree::
-addObjectsASync(CQChartsPlot *plot)
+addObjectsASync(CQChartsPlotObjTree *th)
 {
-  CQChartsPlot::PlotObjs plotObjs = plot->plotObjects();
+  th->lock_.lock();
 
-  if (plotObjs.empty() || plot->isNoData())
-    return nullptr;
+  PlotObjTree *plotObjTree = nullptr;
 
-  const CQChartsGeom::Range &range = plot->dataRange();
+  CQChartsPlot::PlotObjs plotObjs = th->plot_->plotObjects();
 
-  CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+  if (! plotObjs.empty() && ! th->plot_->isNoData()) {
+    const CQChartsGeom::Range &range = th->plot_->dataRange();
 
-  PlotObjTree *plotObjTree = new PlotObjTree(bbox);
+    CQChartsGeom::BBox bbox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
 
-  for (const auto &obj : plotObjs) {
-    if (obj->rect().isSet())
-      plotObjTree->add(obj);
+    plotObjTree = new PlotObjTree(bbox);
+
+    for (const auto &obj : plotObjs) {
+      if (obj->rect().isSet())
+        plotObjTree->add(obj);
+    }
+
+    th->lock_.unlock();
   }
 
   return plotObjTree;
@@ -53,6 +63,8 @@ void
 CQChartsPlotObjTree::
 initTree() const
 {
+  lock_.lock();
+
   if (! plotObjTree_ && plotObjTreeFuture_.valid()) {
     CQChartsPlotObjTree *th = const_cast<CQChartsPlotObjTree *>(this);
 
@@ -60,6 +72,8 @@ initTree() const
 
     th->plotObjTree_ = th->plotObjTreeFuture_.get();
   }
+
+  lock_.unlock();
 }
 
 void
@@ -68,9 +82,13 @@ clearObjects()
 {
   initTree();
 
+  lock_.lock();
+
   delete plotObjTree_;
 
   plotObjTree_ = nullptr;
+
+  lock_.unlock();
 }
 
 void
@@ -79,17 +97,20 @@ objectsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
 {
   initTree();
 
-  if (! plotObjTree_)
-    return;
+  lock_.lock();
 
-  PlotObjTree::DataList dataList;
+  if (plotObjTree_) {
+    PlotObjTree::DataList dataList;
 
-  static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
+    static_cast<PlotObjTree *>(plotObjTree_)->dataAtPoint(p.x, p.y, dataList);
 
-  for (const auto &obj : dataList) {
-    if (obj->inside(p))
-      objs.push_back(obj);
+    for (const auto &obj : dataList) {
+      if (obj->inside(p))
+        objs.push_back(obj);
+    }
   }
+
+  lock_.unlock();
 }
 
 void
@@ -98,15 +119,18 @@ objectsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
 {
   initTree();
 
-  if (! plotObjTree_)
-    return;
+  lock_.lock();
 
-  PlotObjTree::DataList dataList;
+  if (plotObjTree_) {
+    PlotObjTree::DataList dataList;
 
-  static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
+    static_cast<PlotObjTree *>(plotObjTree_)->dataTouchingRect(r, dataList);
 
-  for (const auto &obj : dataList) {
-    if (obj->touching(r))
-      objs.push_back(obj);
+    for (const auto &obj : dataList) {
+      if (obj->touching(r))
+        objs.push_back(obj);
+    }
   }
+
+  lock_.unlock();
 }

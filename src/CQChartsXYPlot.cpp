@@ -653,6 +653,20 @@ updateRange(bool apply)
 
   adjustDataRange();
 
+  if (dataRange_.dx() < 1E-6) {
+    double xm = dataRange_.xmid();
+
+    dataRange_.setLeft (xm + 1.0);
+    dataRange_.setRight(xm + 1.0);
+  }
+
+  if (dataRange_.dy() < 1E-6) {
+    double ym = dataRange_.ymid();
+
+    dataRange_.setBottom(ym - 1.0);
+    dataRange_.setTop   (ym + 1.0);
+  }
+
   //---
 
   setXValueColumn(xColumn());
@@ -1436,10 +1450,14 @@ fillUnderPos(double x, double y) const
     const QString &xstr = strs[0];
     const QString &ystr = strs[1];
 
-    if      (xstr == "min" || xstr == "xmin")
-      x1 = dataRange_.xmin();
-    else if (xstr == "max" || xstr == "xmax")
-      x1 = dataRange_.xmax();
+    if      (xstr == "min" || xstr == "xmin") {
+      if (dataRange_.isSet())
+        x1 = dataRange_.xmin();
+    }
+    else if (xstr == "max" || xstr == "xmax") {
+      if (dataRange_.isSet())
+        x1 = dataRange_.xmax();
+    }
     else {
       bool ok;
 
@@ -1449,10 +1467,14 @@ fillUnderPos(double x, double y) const
         x1 = x;
     }
 
-    if      (ystr == "min" || ystr == "ymin")
-      y1 = dataRange_.ymin();
-    else if (ystr == "max" || ystr == "ymax")
-      y1 = dataRange_.ymax();
+    if      (ystr == "min" || ystr == "ymin") {
+      if (dataRange_.isSet())
+        y1 = dataRange_.ymin();
+    }
+    else if (ystr == "max" || ystr == "ymax") {
+      if (dataRange_.isSet())
+        y1 = dataRange_.ymax();
+    }
     else {
       bool ok;
 
@@ -1465,14 +1487,22 @@ fillUnderPos(double x, double y) const
   else {
     const QString &str = strs[0];
 
-    if      (str == "xmin")
-      x1 = dataRange_.xmin();
-    else if (str == "xmax")
-      x1 = dataRange_.xmax();
-    else if (str == "min" || str == "ymin")
-      y1 = dataRange_.ymin();
-    else if (str == "max" || str == "ymax")
-      y1 = dataRange_.ymax();
+    if      (str == "xmin") {
+      if (dataRange_.isSet())
+        x1 = dataRange_.xmin();
+    }
+    else if (str == "xmax") {
+      if (dataRange_.isSet())
+        x1 = dataRange_.xmax();
+    }
+    else if (str == "min" || str == "ymin") {
+      if (dataRange_.isSet())
+        y1 = dataRange_.ymin();
+    }
+    else if (str == "max" || str == "ymax") {
+      if (dataRange_.isSet())
+        y1 = dataRange_.ymax();
+    }
     else {
       bool ok;
 

@@ -8,6 +8,7 @@
 #include <CQChartsViewStatus.h>
 #include <CQChartsViewToolBar.h>
 #include <CQChartsFilterEdit.h>
+#include <CQChartsModelView.h>
 #include <CQChartsGradientPaletteControl.h>
 #include <CQPixmapCache.h>
 
@@ -68,7 +69,7 @@ CQChartsWindow::
 CQChartsWindow(CQChartsView *view) :
  QFrame(nullptr), view_(view)
 {
-  setWindowTitle("Window: View " + view->id());
+  setWindowTitle("Window: View " + view_->id());
   setWindowIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   setObjectName("window");
@@ -77,7 +78,7 @@ CQChartsWindow(CQChartsView *view) :
 
   //---
 
-  view->setParent(this);
+  view_->setParent(this);
 
   //---
 
@@ -91,7 +92,7 @@ CQChartsWindow(CQChartsView *view) :
 
   settingsExpander_->setObjectName("settingsExpander");
 
-  settingsExpander_->setTitle(view->id() + ": Settings");
+  settingsExpander_->setTitle(view_->id() + ": Settings");
   settingsExpander_->setIcon(CQPixmapCacheInst->getIcon("CHARTS"));
 
   //---
@@ -119,20 +120,11 @@ CQChartsWindow(CQChartsView *view) :
 
   tableLayout->addWidget(filterEdit);
 
-  viewStack_ = new QStackedWidget;
+  modelView_ = new CQChartsModelView(view_->charts());
 
-  viewStack_->setObjectName("viewStack");
+  connect(modelView_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
 
-  table_ = new CQChartsTable(view->charts(), this);
-
-  connect(table_, SIGNAL(filterChanged()), this, SLOT(filterChangedSlot()));
-
-  tree_ = new CQChartsTree(view->charts(), this);
-
-  viewStack_->addWidget(table_);
-  viewStack_->addWidget(tree_ );
-
-  tableLayout->addWidget(viewStack_);
+  tableLayout->addWidget(modelView_);
 
   tableExpander_ =
    new CQChartsViewExpander(this, tableFrame, CQChartsViewExpander::Side::BOTTOM);
@@ -176,8 +168,6 @@ CQChartsWindow::
   delete tableExpander_;
 
   delete settings_;
-  delete table_;
-  delete tree_;
   delete status_;
   delete toolbar_;
 }
@@ -268,28 +258,28 @@ void
 CQChartsWindow::
 replaceFilterSlot(const QString &text)
 {
-  table_->setFilter(text);
+  modelView_->setFilter(text);
 }
 
 void
 CQChartsWindow::
 addFilterSlot(const QString &text)
 {
-  table_->addFilter(text);
+  modelView_->addFilter(text);
 }
 
 void
 CQChartsWindow::
 replaceSearchSlot(const QString &text)
 {
-  table_->setSearch(text);
+  modelView_->setSearch(text);
 }
 
 void
 CQChartsWindow::
 addSearchSlot(const QString &text)
 {
-  table_->addSearch(text);
+  modelView_->addSearch(text);
 }
 
 void
@@ -309,22 +299,9 @@ plotSlot()
   CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   if (! plot) return;
 
-  if (! plot->isHierarchical()) {
-    table_->setModel(plot->modelp());
-    tree_ ->setModel(CQChartsTree::ModelP());
+  modelView_->setModel(plot->modelp(), plot->isHierarchical());
 
-    plot->setSelectionModel(table_->selectionModel());
-
-    viewStack_->setCurrentIndex(0);
-  }
-  else {
-    tree_ ->setModel(plot->modelp());
-    table_->setModel(CQChartsTable::ModelP());
-
-    plot->setSelectionModel(tree_->selectionModel());
-
-    viewStack_->setCurrentIndex(1);
-  }
+  plot->setSelectionModel(modelView_->selectionModel());
 
   tableExpander_->setTitle(view_->id() + ": Model (" + plot->id() + ")");
 }

@@ -48,6 +48,10 @@ class CQChartsModelData : public QObject {
   void addFoldedModel(ModelP &model) { foldedModels_.push_back(model); }
   void clearFoldedModels() { foldedModels_.clear(); }
 
+  // fold model
+  void foldModel(const QString &str);
+  void foldClear();
+
   // get details
   CQChartsModelDetails *details();
   const CQChartsModelDetails *details() const;

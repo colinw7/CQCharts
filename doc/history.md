@@ -426,3 +426,8 @@
  + add median calculation into column details and get data command
  + add unique value and unique value counts to column details
  + auto select plot when plot object selected
+# 6/10/2018
+ + move fold code into CQChartsModelData
+ + add model dialog (to replace main window one)
+ + add column editor
+ + add more locks to obj tree
