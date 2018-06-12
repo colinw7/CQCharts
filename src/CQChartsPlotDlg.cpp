@@ -270,12 +270,12 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   QHBoxLayout *previewControlLayout = new QHBoxLayout(previewControl);
 
-  previewCheck_ = new QCheckBox("Enabled");
+  previewEnabledCheck_ = new QCheckBox("Enabled");
 
-  previewCheck_->setObjectName("previewCheck");
-  previewCheck_->setLayoutDirection(Qt::RightToLeft);
+  previewEnabledCheck_->setObjectName("previewEnabled");
+  //previewEnabledCheck_->setLayoutDirection(Qt::RightToLeft);
 
-  connect(previewCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewCheckSlot()));
+  connect(previewEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewEnabledSlot()));
 
   previewMaxRows_ = new CQIntegerSpin;
 
@@ -288,9 +288,17 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   previewMaxRows_->setValue(summaryModel_->maxRows());
 
-  previewControlLayout->addWidget(previewCheck_);
+  previewRandomCheck_ = new QCheckBox("Random");
+
+  previewRandomCheck_->setObjectName("previewRandom");
+  //previewRandomCheck_->setLayoutDirection(Qt::RightToLeft);
+
+  connect(previewRandomCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewRandomSlot(int)));
+
+  previewControlLayout->addWidget(previewEnabledCheck_);
   previewControlLayout->addWidget(new QLabel("Max Rows"));
   previewControlLayout->addWidget(previewMaxRows_);
+  previewControlLayout->addWidget(previewRandomCheck_);
   previewControlLayout->addStretch(1);
 
   previewLayout->addWidget(previewControl);
@@ -848,7 +856,7 @@ void
 CQChartsPlotDlg::
 updatePreviewPlot()
 {
-  if (previewCheck_->isChecked()) {
+  if (previewEnabledCheck_->isChecked()) {
     // create plot for typename of current tab
     int ind = stack_->currentIndex();
 
@@ -1052,7 +1060,7 @@ validate(QString &msg)
 
 void
 CQChartsPlotDlg::
-previewCheckSlot()
+previewEnabledSlot()
 {
   updatePreviewPlot();
 }
@@ -1064,6 +1072,15 @@ previewMaxRowsSlot(int n)
   if (n <= 0) return;
 
   summaryModel_->setMaxRows(n);
+
+  updatePreviewPlot();
+}
+
+void
+CQChartsPlotDlg::
+previewRandomSlot(int state)
+{
+  summaryModel_->setRandom(state);
 
   updatePreviewPlot();
 }

@@ -653,18 +653,20 @@ updateRange(bool apply)
 
   adjustDataRange();
 
-  if (dataRange_.dx() < 1E-6) {
-    double xm = dataRange_.xmid();
+  if (dataRange_.isSet()) {
+    if (dataRange_.dx() < 1E-6) {
+      double xm = dataRange_.xmid();
 
-    dataRange_.setLeft (xm + 1.0);
-    dataRange_.setRight(xm + 1.0);
-  }
+      dataRange_.setLeft (xm + 1.0);
+      dataRange_.setRight(xm + 1.0);
+    }
 
-  if (dataRange_.dy() < 1E-6) {
-    double ym = dataRange_.ymid();
+    if (dataRange_.dy() < 1E-6) {
+      double ym = dataRange_.ymid();
 
-    dataRange_.setBottom(ym - 1.0);
-    dataRange_.setTop   (ym + 1.0);
+      dataRange_.setBottom(ym - 1.0);
+      dataRange_.setTop   (ym + 1.0);
+    }
   }
 
   //---

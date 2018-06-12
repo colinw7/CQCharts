@@ -161,8 +161,9 @@ class CQChartsPlotDlg : public QDialog {
 
   void updateFormatSlot();
 
-  void previewCheckSlot();
+  void previewEnabledSlot();
   void previewMaxRowsSlot(int n);
+  void previewRandomSlot(int state);
 
   void okSlot();
   bool applySlot();
@@ -172,37 +173,38 @@ class CQChartsPlotDlg : public QDialog {
   using TypePlotData = std::map<QString,PlotData>;
   using TabTypeName  = std::map<int,QString>;
 
-  CQCharts*          charts_         { nullptr }; // parent charts
-  CQChartsModelP     model_;                      // model
-  SelectionModelP    selectionModel_;             // selection model
-  CQSummaryModel*    summaryModel_   { nullptr }; // summary model
+  CQCharts*          charts_              { nullptr }; // parent charts
+  CQChartsModelP     model_;                           // model
+  SelectionModelP    selectionModel_;                  // selection model
+  CQSummaryModel*    summaryModel_        { nullptr }; // summary model
   ModelP             summaryModelP_;
-  QComboBox*         combo_          { nullptr }; // type combo
-  QStackedWidget*    stack_          { nullptr }; // widget stack
-  QLineEdit*         whereEdit_      { nullptr }; // where edit
-  QLineEdit*         viewEdit_       { nullptr }; // view name edit
-  QLineEdit*         posEdit_        { nullptr }; // position edit
-  QLineEdit*         titleEdit_      { nullptr }; // title edit
-  QLineEdit*         xminEdit_       { nullptr }; // xmin edit
-  QLineEdit*         yminEdit_       { nullptr }; // ymin edit
-  QLineEdit*         xmaxEdit_       { nullptr }; // xmax edit
-  QLineEdit*         ymaxEdit_       { nullptr }; // ymax edit
-  QCheckBox*         xintegralCheck_ { nullptr }; // x integral check
-  QCheckBox*         yintegralCheck_ { nullptr }; // y integral check
-  QCheckBox*         xlogCheck_      { nullptr }; // x log check
-  QCheckBox*         ylogCheck_      { nullptr }; // y log check
-  TypePlotData       typePlotData_;               // per type plot data
-  QLabel*            msgLabel_       { nullptr }; // message label
-  QPushButton*       okButton_       { nullptr }; // ok button
-  QPushButton*       applyButton_    { nullptr }; // apply button
-  TabTypeName        tabTypeName_;                // tab type name map
-  QCheckBox*         previewCheck_   { nullptr };
-  CQIntegerSpin*     previewMaxRows_ { nullptr };
-  CQChartsModelView* previewTable_   { nullptr };
-  CQChartsView*      previewView_    { nullptr };
-  CQChartsPlot*      previewPlot_    { nullptr };
-  CQChartsPlot*      plot_           { nullptr }; // created plot
-  bool               initialized_    { false   };
+  QComboBox*         combo_               { nullptr }; // type combo
+  QStackedWidget*    stack_               { nullptr }; // widget stack
+  QLineEdit*         whereEdit_           { nullptr }; // where edit
+  QLineEdit*         viewEdit_            { nullptr }; // view name edit
+  QLineEdit*         posEdit_             { nullptr }; // position edit
+  QLineEdit*         titleEdit_           { nullptr }; // title edit
+  QLineEdit*         xminEdit_            { nullptr }; // xmin edit
+  QLineEdit*         yminEdit_            { nullptr }; // ymin edit
+  QLineEdit*         xmaxEdit_            { nullptr }; // xmax edit
+  QLineEdit*         ymaxEdit_            { nullptr }; // ymax edit
+  QCheckBox*         xintegralCheck_      { nullptr }; // x integral check
+  QCheckBox*         yintegralCheck_      { nullptr }; // y integral check
+  QCheckBox*         xlogCheck_           { nullptr }; // x log check
+  QCheckBox*         ylogCheck_           { nullptr }; // y log check
+  TypePlotData       typePlotData_;                    // per type plot data
+  QLabel*            msgLabel_            { nullptr }; // message label
+  QPushButton*       okButton_            { nullptr }; // ok button
+  QPushButton*       applyButton_         { nullptr }; // apply button
+  TabTypeName        tabTypeName_;                     // tab type name map
+  QCheckBox*         previewEnabledCheck_ { nullptr };
+  CQIntegerSpin*     previewMaxRows_      { nullptr };
+  QCheckBox*         previewRandomCheck_  { nullptr };
+  CQChartsModelView* previewTable_        { nullptr };
+  CQChartsView*      previewView_         { nullptr };
+  CQChartsPlot*      previewPlot_         { nullptr };
+  CQChartsPlot*      plot_                { nullptr }; // created plot
+  bool               initialized_         { false   };
 };
 
 #endif

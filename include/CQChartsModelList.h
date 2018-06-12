@@ -57,6 +57,8 @@ class CQChartsModelList : public QFrame {
  private slots:
   void addModelData(int ind);
 
+  void updateModelType(int ind);
+
  private:
   QTabWidget *viewTab() const { return viewTab_; }
 

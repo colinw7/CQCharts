@@ -4,8 +4,7 @@
 #include <QDialog>
 
 class CQCharts;
-class CQChartsModelList;
-class CQChartsModelControl;
+class CQChartsModelWidgets;
 
 class CQChartsModelDlg : public QDialog {
   Q_OBJECT
@@ -19,8 +18,7 @@ class CQChartsModelDlg : public QDialog {
 
  private:
   CQCharts*             charts_       { nullptr };
-  CQChartsModelList*    modelList_    { nullptr };
-  CQChartsModelControl* modelControl_ { nullptr };
+  CQChartsModelWidgets* modelWidgets_ { nullptr };
 };
 
 #endif

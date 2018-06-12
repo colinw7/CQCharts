@@ -7,7 +7,6 @@
 
 #include <vector>
 #include <sstream>
-#include <cassert>
 
 class CQChartsLineDash {
  public:

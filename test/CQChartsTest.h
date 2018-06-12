@@ -16,8 +16,7 @@
 #include <boost/optional.hpp>
 
 class CQCharts;
-class CQChartsModelControl;
-class CQChartsModelList;
+class CQChartsModelWidgets;
 class CQChartsLoadDlg;
 class CQChartsWindow;
 class CQChartsView;
@@ -74,9 +73,7 @@ class CQChartsTest : public CQAppWindow {
 
   CQCharts *charts() const { return charts_; }
 
-  CQChartsModelList *modelList() const { return modelList_; }
-
-  CQChartsModelControl *modelControl() const { return modelControl_; }
+  CQChartsModelWidgets *modelWidgets() const { return modelWidgets_; }
 
   CQChartsCmds *cmds() const { return cmds_; }
 
@@ -88,16 +85,12 @@ class CQChartsTest : public CQAppWindow {
 
   void timeout();
 
-  void updateModel(CQChartsModelData *modelData);
-
   void errorMsg(const QString &msg);
 
  private:
   void addControlWidgets(QVBoxLayout *layout);
 
   void addMenus();
-
-  void updateModelDetails(const CQChartsModelData *modelData);
 
   QSize sizeHint() const;
 
@@ -113,27 +106,21 @@ class CQChartsTest : public CQAppWindow {
 
   void plotObjPressedSlot(CQChartsPlotObj *obj);
 
-  void updateModel(int ind);
-  void updateModelDetails(int ind);
-
   void windowCreated(CQChartsWindow *window);
 
   void plotAdded(CQChartsPlot *plot);
-
-  void updateModelControl();
 
  private:
   using Plots   = std::vector<CQChartsPlot*>;
   using WindowP = QPointer<CQChartsWindow>;
 
  private:
-  CQCharts*             charts_        { nullptr };
-  CQChartsModelList*    modelList_     { nullptr };
-  CQChartsModelControl* modelControl_  { nullptr };
-  CQChartsLoadDlg*      loadDlg_       { nullptr };
-  CQChartsCmds*         cmds_          { nullptr };
-  bool                  gui_           { true };
-  bool                  show_          { true };
+  CQCharts*             charts_       { nullptr };
+  CQChartsModelWidgets* modelWidgets_ { nullptr };
+  CQChartsLoadDlg*      loadDlg_      { nullptr };
+  CQChartsCmds*         cmds_         { nullptr };
+  bool                  gui_          { true };
+  bool                  show_         { true };
 };
 
 #endif

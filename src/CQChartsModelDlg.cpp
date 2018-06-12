@@ -1,6 +1,5 @@
 #include <CQChartsModelDlg.h>
-#include <CQChartsModelList.h>
-#include <CQChartsModelControl.h>
+#include <CQChartsModelWidgets.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 
@@ -18,24 +17,12 @@ CQChartsModelDlg(CQCharts *charts) :
 
   //---
 
-  // create models list
-  modelList_ = new CQChartsModelList(charts_);
+  // create model widgets
+  modelWidgets_ = new CQChartsModelWidgets(charts_);
 
-  layout->addWidget(modelList_);
-
-  //---
-
-  // create current model control
-  modelControl_ = new CQChartsModelControl(charts_);
-
-  layout->addWidget(modelControl_);
+  layout->addWidget(modelWidgets_);
 
   //---
-
-  modelList_   ->setModelControl(modelControl_);
-  modelControl_->setModelList   (modelList_);
-
-  //----
 
   // Bottom Buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
@@ -58,7 +45,7 @@ CQChartsModelDlg(CQCharts *charts) :
   charts_->getModelDatas(modelDatas);
 
   for (const auto &modelData : modelDatas)
-    modelList_->addModelData(modelData);
+    modelWidgets_->addModelData(modelData);
 }
 
 CQChartsModelDlg::

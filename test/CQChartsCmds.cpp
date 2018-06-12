@@ -15,8 +15,7 @@
 #include <CQChartsColor.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsPaletteColorData.h>
-#include <CQChartsExprDataModel.h>
-#include <CQChartsDataModel.h>
+#include <CQChartsModelFilter.h>
 #include <CQChartsUtil.h>
 
 #include <CQChartsLoadDlg.h>
@@ -249,7 +248,7 @@ addCommands()
 
   // dialogs
   addCommand("load_model_dlg"  );
-  addCommand("create_model_dlg");
+  addCommand("manage_model_dlg");
   addCommand("create_plot_dlg" );
 }
 
@@ -359,7 +358,7 @@ processCmd(const QString &cmd, const Vars &vars)
 
   // dialogs
   else if (cmd == "load_model_dlg"  ) { loadModelDlgCmd  (vars); }
-  else if (cmd == "create_model_dlg") { createModelDlgCmd(vars); }
+  else if (cmd == "manage_model_dlg") { manageModelDlgCmd(vars); }
   else if (cmd == "create_plot_dlg" ) { createPlotDlgCmd (vars); }
 
   // control
@@ -480,9 +479,7 @@ loadModelCmd(const Vars &vars)
     return false;
 
   if (columnType != "") {
-    ModelP model = modelData->model();
-
-    setColumnFormats(charts_, model, columnType);
+    setColumnFormats(charts_, modelData, columnType);
   }
 
   setCmdRc(modelData->ind());
@@ -871,10 +868,10 @@ createPlotCmd(const Vars &vars)
 
   ModelP model = modelData->model();
 
-  if (columnType != "") {
-    setColumnFormats(charts_, model, columnType);
+  //------
 
-    emit updateModelDetails(modelData->ind());
+  if (columnType != "") {
+    setColumnFormats(charts_, modelData, columnType);
   }
 
   //------
@@ -1562,13 +1559,9 @@ correlationModelCmd(const Vars &vars)
 
   ModelP modelp1(model1);
 
-  int modelInd1 = initModelData(modelp1);
-
-  CQChartsModelData *modelData1 = getModelData(modelInd1);
+  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
 
   //---
-
-  emit updateModel(modelData1->ind());
 
   setCmdRc(modelData1->ind());
 }
@@ -2105,9 +2098,7 @@ setChartsDataCmd(const Vars &vars)
       }
     }
     else if (name == "column_type") {
-      setColumnFormats(charts_, model, value);
-
-      emit updateModelDetails(modelData->ind());
+      setColumnFormats(charts_, modelData, value);
     }
     else if (name == "name") {
       modelData->setName(value);
@@ -2824,14 +2815,21 @@ loadModelDlgCmd(const Vars &vars)
 {
   CQChartsCmdsArgs argv("load_model_dlg", vars);
 
+  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
+
   if (! argv.parse())
     return;
+
+  bool modal = argv.getParseBool("modal");
 
   //---
 
   CQChartsLoadDlg *dlg = new CQChartsLoadDlg(charts_);
 
-  dlg->exec();
+  if (modal)
+    dlg->exec();
+  else
+    dlg->show();
 
   setCmdRc(dlg->modelInd());
 }
@@ -2840,18 +2838,25 @@ loadModelDlgCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-createModelDlgCmd(const Vars &vars)
+manageModelDlgCmd(const Vars &vars)
 {
-  CQChartsCmdsArgs argv("create_model_dlg", vars);
+  CQChartsCmdsArgs argv("manage_model_dlg", vars);
+
+  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
   if (! argv.parse())
     return;
+
+  bool modal = argv.getParseBool("modal");
 
   //---
 
   CQChartsModelDlg *dlg = new CQChartsModelDlg(charts_);
 
-  dlg->exec();
+  if (modal)
+    dlg->exec();
+  else
+    dlg->show();
 }
 
 //------
@@ -2862,11 +2867,14 @@ createPlotDlgCmd(const Vars &vars)
 {
   CQChartsCmdsArgs argv("create_plot_dlg", vars);
 
-  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind");
-  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind" );
+  argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name" );
+  argv.addCmdArg("-modal", CQChartsCmdArg::Type::Boolean, "show modal");
 
   if (! argv.parse())
     return;
+
+  bool modal = argv.getParseBool("modal");
 
   //---
 
@@ -2891,7 +2899,10 @@ createPlotDlgCmd(const Vars &vars)
 
   dlg->setViewName(viewName);
 
-  dlg->exec();
+  if (modal)
+    dlg->exec();
+  else
+    dlg->show();
 
   CQChartsPlot *plot = dlg->plot();
 
@@ -3485,43 +3496,11 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 
 void
 CQChartsCmds::
-setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnType)
+setColumnFormats(CQCharts *charts, CQChartsModelData *modelData, const QString &columnTypes)
 {
-  // split into multiple column type definitions
-  QStringList fstrs = columnType.split(";", QString::KeepEmptyParts);
+  ModelP model = modelData->model();
 
-  for (int i = 0; i < fstrs.length(); ++i) {
-    QString typeStr = fstrs[i].simplified();
-
-    if (! typeStr.length())
-      continue;
-
-    // default column to index
-    CQChartsColumn column(i);
-
-    // if #<col> then use that for column index
-    int pos = typeStr.indexOf("#");
-
-    if (pos >= 0) {
-      QString columnStr = typeStr.mid(0, pos).simplified();
-
-      CQChartsColumn column1;
-
-      if (CQChartsUtil::stringToColumn(model.data(), columnStr, column1))
-        column = column1;
-      else
-        errorMsg("Bad column name '" + columnStr + "'");
-
-      typeStr = typeStr.mid(pos + 1).simplified();
-    }
-
-    //---
-
-    if (! CQChartsUtil::setColumnTypeStr(charts, model.data(), column, typeStr)) {
-      errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").arg(column.toString()));
-      continue;
-    }
-  }
+  CQChartsUtil::setColumnTypeStrs(charts, model.data(), columnTypes);
 }
 
 //------
@@ -3762,9 +3741,7 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   ModelP modelp(model);
 
-  int modelInd = initModelData(modelp);
-
-  CQChartsModelData *modelData = getModelData(modelInd);
+  CQChartsModelData *modelData = charts_->initModelData(modelp);
 
   //---
 
@@ -3776,8 +3753,6 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   sortModel(modelData->model(), inputData.sort);
 
   //---
-
-  emit updateModel(modelData->ind());
 
   return true;
 }
@@ -3834,15 +3809,6 @@ sortModel(ModelP &model, int column, Qt::SortOrder order)
 }
 
 //------
-
-int
-CQChartsCmds::
-initModelData(ModelP &model)
-{
-  CQChartsModelData *modelData = charts_->initModelData(model);
-
-  return modelData->ind();
-}
 
 CQChartsModelData *
 CQChartsCmds::

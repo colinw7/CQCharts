@@ -265,6 +265,8 @@ addImageObj(double x, double y, double dx, double dy, double value, const QModel
   addPlotObject(imageObj);
 }
 
+//------
+
 void
 CQChartsImagePlot::
 draw(QPainter *painter)
@@ -389,6 +391,59 @@ drawYLabels(QPainter *painter)
 
     drawTextInBox(painter, trect, name, tpen, textOptions);
   }
+}
+
+//------
+
+CQChartsGeom::BBox
+CQChartsImagePlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  QFontMetricsF fm(textFont());
+
+  double tm = 4;
+
+  if (isXLabels()) {
+    double tw = 0.0;
+
+    for (int col = 0; col < nc_; ++col) {
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+      if (! name.length()) continue;
+
+      tw = std::max(tw, fm.width(name));
+    }
+
+    double tw1 = pixelToWindowHeight(tw + tm);
+
+    CQChartsGeom::BBox tbbox(0, -tw1, nc_, 0);
+
+    bbox += tbbox;
+  }
+
+  if (isYLabels()) {
+    double tw = 0.0;
+
+    for (int row = 0; row < nr_; ++row) {
+      bool ok;
+
+      QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+      if (! name.length()) continue;
+
+      tw = std::max(tw, fm.width(name));
+    }
+
+    double tw1 = pixelToWindowWidth(tw + tm);
+
+    CQChartsGeom::BBox tbbox(-tw1, 0, 0, nr_);
+
+    bbox += tbbox;
+  }
+
+  return bbox;
 }
 
 //------

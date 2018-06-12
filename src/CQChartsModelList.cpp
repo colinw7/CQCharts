@@ -28,6 +28,8 @@ CQChartsModelList(CQCharts *charts) :
   //---
 
   connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(addModelData(int)));
+
+  connect(charts, SIGNAL(modelTypeChanged(int)), this, SLOT(updateModelType(int)));
 }
 
 CQChartsModelList::
@@ -66,6 +68,18 @@ CQChartsModelList::
 updateModel(CQChartsModelData *modelData)
 {
   reloadModel(modelData);
+
+  setDetailsText(modelData);
+}
+
+void
+CQChartsModelList::
+updateModelType(int ind)
+{
+  CQChartsModelData *modelData = charts_->getModelData(ind);
+
+  if (! modelData)
+    return;
 
   setDetailsText(modelData);
 }

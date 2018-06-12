@@ -645,15 +645,25 @@ initObjs()
 
     //---
 
-    QString bucketStr1 = bucketValuesStr(bucket, BucketValueType::START);
-    QString bucketStr2 = bucketValuesStr(bucket, BucketValueType::END  );
-
     if (hasRange) {
-      valueAxis()->setTickLabel(bucket    , bucketStr1);
-      valueAxis()->setTickLabel(bucket + 1, bucketStr2);
+      if (valueAxis()->tickLabelPlacement() == CQChartsAxis::TickLabelPlacement::MIDDLE) {
+        QString bucketStr = bucketValuesStr(bucket, BucketValueType::ALL);
+
+        valueAxis()->setTickLabel(bucket, bucketStr);
+      }
+      else {
+        QString bucketStr1 = bucketValuesStr(bucket, BucketValueType::START);
+        QString bucketStr2 = bucketValuesStr(bucket, BucketValueType::END  );
+
+        valueAxis()->setTickLabel(bucket    , bucketStr1);
+        valueAxis()->setTickLabel(bucket + 1, bucketStr2);
+      }
     }
-    else
-      valueAxis()->setTickLabel(bucket, bucketStr1);
+    else {
+      QString bucketStr = bucketValuesStr(bucket, BucketValueType::START);
+
+      valueAxis()->setTickLabel(bucket, bucketStr);
+    }
 
     //---
 

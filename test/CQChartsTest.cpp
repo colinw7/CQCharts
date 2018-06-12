@@ -1,6 +1,5 @@
 #include <CQChartsTest.h>
-#include <CQChartsModelList.h>
-#include <CQChartsModelControl.h>
+#include <CQChartsModelWidgets.h>
 
 #include <CQCharts.h>
 #include <CQChartsTable.h>
@@ -770,40 +769,20 @@ CQChartsTest() :
 
   //---
 
-  // create models list
-  modelList_ = new CQChartsModelList(charts_);
+  // create model widgets
+  modelWidgets_ = new CQChartsModelWidgets(charts_);
 
-  layout->addWidget(modelList_);
-
-  //---
-
-  // create current model control
-  modelControl_ = new CQChartsModelControl(charts_);
-
-  layout->addWidget(modelControl_);
-
-  //---
-
-  modelList_   ->setModelControl(modelControl_);
-  modelControl_->setModelList   (modelList_);
+  layout->addWidget(modelWidgets_);
 
   //---
 
   // create commands
   cmds_ = new CQChartsCmds(charts_);
 
-  connect(cmds_, SIGNAL(updateModelDetails(int)), this, SLOT(updateModelDetails(int)));
-  connect(cmds_, SIGNAL(updateModel(int)), this, SLOT(updateModel(int)));
-
   connect(charts_, SIGNAL(windowCreated(CQChartsWindow *)),
           this, SLOT(windowCreated(CQChartsWindow *)));
   connect(charts_, SIGNAL(plotAdded(CQChartsPlot *)),
           this, SLOT(plotAdded(CQChartsPlot *)));
-
-  //---
-
-  // update control
-  updateModelControl();
 }
 
 CQChartsTest::
@@ -1025,8 +1004,6 @@ void
 CQChartsTest::
 modelLoadedSlot(int ind)
 {
-  updateModel(ind);
-
   charts_->setCurrentModelInd(ind);
 }
 
@@ -1088,9 +1065,7 @@ CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  CQChartsCmds::setColumnFormats(charts_, modelData->model(), initData.columnType);
-
-  updateModelDetails(modelData);
+  CQChartsUtil::setColumnTypeStrs(charts_, modelData->model().data(), initData.columnType);
 
   //---
 
@@ -1203,49 +1178,6 @@ CQChartsTest::
 parserType() const
 {
   return cmds_->parserType();
-}
-
-void
-CQChartsTest::
-updateModelControl()
-{
-  modelControl_->setEnabled(modelList_->numModels() > 0);
-}
-
-void
-CQChartsTest::
-updateModel(int ind)
-{
-  CQChartsModelData *modelData = charts_->getModelData(ind);
-  assert(modelData);
-
-  updateModel(modelData);
-}
-
-void
-CQChartsTest::
-updateModel(CQChartsModelData *modelData)
-{
-  if (isGui())
-    modelControl_->updateModel(modelData);
-}
-
-void
-CQChartsTest::
-updateModelDetails(int ind)
-{
-  CQChartsModelData *modelData = charts_->getModelData(ind);
-  assert(modelData);
-
-  updateModelDetails(modelData);
-}
-
-void
-CQChartsTest::
-updateModelDetails(const CQChartsModelData *modelData)
-{
-  if (isGui())
-    modelList_->setDetailsText(modelData);
 }
 
 void

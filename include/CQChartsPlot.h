@@ -592,7 +592,7 @@ class CQChartsPlot : public QObject {
     updateMargin();
   }
 
-  // aspect ration
+  // aspect ratio
   double aspect() const;
 
   //---
@@ -1099,6 +1099,7 @@ class CQChartsPlot : public QObject {
   CQChartsGeom::BBox keyFitBBox  () const;
   CQChartsGeom::BBox titleFitBBox() const;
 
+  // get bounding box of annotations outside plot area
   virtual CQChartsGeom::BBox annotationBBox() const { return CQChartsGeom::BBox(); }
 
   //---

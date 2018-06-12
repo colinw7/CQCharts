@@ -92,7 +92,7 @@ class CQCharts : public QObject {
 
   //---
 
-  void errorMsg(const QString &msg);
+  void errorMsg(const QString &msg) const;
 
  signals:
   void modelDataAdded(int);

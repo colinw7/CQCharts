@@ -100,7 +100,8 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  static void setColumnFormats(CQCharts *charts, const ModelP &model, const QString &columnType);
+  void setColumnFormats(CQCharts *charts, CQChartsModelData *modelData,
+                        const QString &columnType);
 
   bool loadFileModel(const QString &filename, CQChartsFileType type,
                      const CQChartsInputData &inputData);
@@ -117,8 +118,6 @@ class CQChartsCmds : public QObject {
                            bool reuse, const CQChartsGeom::BBox &bbox);
 
   //---
-
-  int initModelData(ModelP &model);
 
   CQChartsModelData *getModelDataOrCurrent(int ind);
 
@@ -186,7 +185,7 @@ class CQChartsCmds : public QObject {
   void connectChartCmd(const Vars &vars);
 
   void loadModelDlgCmd  (const Vars &vars);
-  void createModelDlgCmd(const Vars &vars);
+  void manageModelDlgCmd(const Vars &vars);
   void createPlotDlgCmd (const Vars &vars);
 
   void letCmd     (const Vars &vars);
@@ -243,10 +242,6 @@ class CQChartsCmds : public QObject {
   void setCmdRc(const QList<QVariant> &rc);
 
   static void errorMsg(const QString &msg);
-
- signals:
-  void updateModelDetails(int ind);
-  void updateModel(int ind);
 
  private:
   using CommandNames = std::vector<QString>;

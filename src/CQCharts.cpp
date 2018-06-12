@@ -316,7 +316,7 @@ emitModelTypeChanged(int modelId)
 
 void
 CQCharts::
-errorMsg(const QString &msg)
+errorMsg(const QString &msg) const
 {
   std::cerr << msg.toStdString() << "\n";
 }

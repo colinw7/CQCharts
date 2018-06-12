@@ -14,16 +14,6 @@
 #include <QLabel>
 #include <QPushButton>
 
-namespace {
-
-void errorMsg(const QString &msg) {
-  std::cerr << msg.toStdString() << std::endl;
-}
-
-}
-
-//---
-
 CQChartsModelControl::
 CQChartsModelControl(CQCharts *charts) :
  charts_(charts)
@@ -46,7 +36,7 @@ CQChartsModelControl(CQCharts *charts) :
 
   //--
 
-  QFrame *exprModeFrame = new QFrame;
+  QFrame *exprModeFrame = CQUtil::makeWidget<QFrame>("exprMode");
 
   QHBoxLayout *exprModeLayout = new QHBoxLayout(exprModeFrame);
 
@@ -82,7 +72,9 @@ CQChartsModelControl(CQCharts *charts) :
   //---
 
   exprValueLabel_ = new QLabel("Expression");
-  exprValueEdit_  = CQUtil::makeWidget<QLineEdit>("exprEdit");
+  exprValueLabel_->setObjectName("exprValueLabel");
+
+  exprValueEdit_ = CQUtil::makeWidget<QLineEdit>("exprValueEdit");
 
   exprValueEdit_->setToolTip("+<expr> OR -<column> OR =<column>:<expr>\n"
                              "Use: @<number> as shorthand for column(<number>)\n"
@@ -97,7 +89,9 @@ CQChartsModelControl(CQCharts *charts) :
   //----
 
   exprColumnLabel_ = new QLabel("Column");
-  exprColumnEdit_  = CQUtil::makeWidget<QLineEdit>("exprColumn");
+  exprColumnLabel_->setObjectName("exprEditLabel");
+
+  exprColumnEdit_ = CQUtil::makeWidget<QLineEdit>("exprColumnEdit");
 
   exprColumnEdit_->setToolTip("Column to Modify");
 
@@ -109,7 +103,9 @@ CQChartsModelControl(CQCharts *charts) :
   //----
 
   exprNameLabel_ = new QLabel("Name");
-  exprNameEdit_  = CQUtil::makeWidget<QLineEdit>("exprName");
+  exprNameLabel_->setObjectName("exprNameLabel");
+
+  exprNameEdit_ = CQUtil::makeWidget<QLineEdit>("exprNameEdit");
 
   exprNameEdit_->setToolTip("Column Name");
 
@@ -121,7 +117,9 @@ CQChartsModelControl(CQCharts *charts) :
   //--
 
   exprTypeLabel_ = new QLabel("Type");
-  exprTypeEdit_  = CQUtil::makeWidget<QLineEdit>("exprType");
+  exprTypeLabel_->setObjectName("exprTypeLabel");
+
+  exprTypeEdit_ = CQUtil::makeWidget<QLineEdit>("exprTypeEdit");
 
   exprTypeEdit_->setToolTip("Column Type");
 
@@ -260,7 +258,7 @@ exprSlot()
   CQChartsModelData *modelData = charts_->currentModelData();
 
   if (! modelData) {
-    errorMsg("No model data");
+    charts_->errorMsg("No model data");
     return;
   }
 
@@ -295,7 +293,7 @@ exprSlot()
     QString typeStr = exprTypeEdit_->text();
 
     if (column1 < 0) {
-      errorMsg("Invalid column");
+      charts_->errorMsg("Invalid column");
       return;
     }
 
@@ -304,7 +302,7 @@ exprSlot()
 
     if (typeStr.length()) {
       if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column1, typeStr)) {
-        errorMsg("Invalid type '" + typeStr + "'");
+        charts_->errorMsg("Invalid type '" + typeStr + "'");
         return;
       }
     }
@@ -363,7 +361,7 @@ typeSetSlot()
   int column = numStr.toInt(&ok);
 
   if (! ok) {
-    errorMsg("Invalid column number '" + numStr + "'");
+    charts_->errorMsg("Invalid column number '" + numStr + "'");
     return;
   }
 
@@ -379,7 +377,7 @@ typeSetSlot()
   QString typeStr = columnTypeEdit_->text();
 
   if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, typeStr)) {
-    errorMsg("Invalid type '" + typeStr + "'");
+    charts_->errorMsg("Invalid type '" + typeStr + "'");
     return;
   }
 

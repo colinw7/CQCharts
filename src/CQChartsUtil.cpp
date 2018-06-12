@@ -351,6 +351,54 @@ columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
   return true;
 }
 
+bool
+setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
+{
+  bool rc = true;
+
+  // split into multiple column type definitions
+  QStringList fstrs = columnTypes.split(";", QString::KeepEmptyParts);
+
+  for (int i = 0; i < fstrs.length(); ++i) {
+    QString typeStr = fstrs[i].simplified();
+
+    if (! typeStr.length())
+      continue;
+
+    // default column to index
+    CQChartsColumn column(i);
+
+    // if #<col> then use that for column index
+    int pos = typeStr.indexOf("#");
+
+    if (pos >= 0) {
+      QString columnStr = typeStr.mid(0, pos).simplified();
+
+      CQChartsColumn column1;
+
+      if (stringToColumn(model, columnStr, column1))
+        column = column1;
+      else {
+        charts->errorMsg("Bad column name '" + columnStr + "'");
+        rc = false;
+      }
+
+      typeStr = typeStr.mid(pos + 1).simplified();
+    }
+
+    //---
+
+    if (! setColumnTypeStr(charts, model, column, typeStr)) {
+      charts->errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").
+                         arg(column.toString()));
+      rc = false;
+      continue;
+    }
+  }
+
+  return rc;
+}
+
 // set type string for column (type name and name values)
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,

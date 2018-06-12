@@ -18,10 +18,13 @@ CONFIG += staticlib
 SOURCES += \
 CQCharts.cpp \
 \
-CQChartsCsv.cpp \
-CQChartsTsv.cpp \
-CQChartsJson.cpp \
-CQChartsGnuData.cpp \
+CQChartsCsvFilterModel.cpp \
+CQChartsTsvFilterModel.cpp \
+CQChartsJsonFilterModel.cpp \
+CQChartsGnuDataFilterModel.cpp \
+CQChartsDataFilterModel.cpp \
+CQChartsExprDataFilterModel.cpp \
+\
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
 \
@@ -82,17 +85,16 @@ CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
 CQChartsLoadDlg.cpp \
-CQChartsModelDlg.cpp \
 CQChartsPlotDlg.cpp \
 CQChartsLoader.cpp \
+CQChartsModelDlg.cpp \
+CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
 CQChartsModelView.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
-CQChartsDataModel.cpp \
-CQChartsExprDataModel.cpp \
 CQChartsModelData.cpp \
 CQChartsModelDetails.cpp \
 CQChartsModelExprMatch.cpp \
@@ -140,10 +142,13 @@ CQChartsHull3D.cpp \
 HEADERS += \
 ../include/CQCharts.h \
 \
-../include/CQChartsCsv.h \
-../include/CQChartsTsv.h \
-../include/CQChartsJson.h \
-../include/CQChartsGnuData.h \
+../include/CQChartsCsvFilterModel.h \
+../include/CQChartsTsvFilterModel.h \
+../include/CQChartsJsonFilterModel.h \
+../include/CQChartsGnuDataFilterModel.h \
+../include/CQChartsDataFilterModel.h \
+../include/CQChartsExprDataFilterModel.h \
+\
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
 \
@@ -212,17 +217,16 @@ HEADERS += \
 ../include/CQChartsQuadTree.h \
 \
 ../include/CQChartsLoadDlg.h \
-../include/CQChartsModelDlg.h \
 ../include/CQChartsPlotDlg.h \
 ../include/CQChartsLoader.h \
+../include/CQChartsModelDlg.h \
+../include/CQChartsModelWidgets.h \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
 ../include/CQChartsModelView.h \
 \
 ../include/CQChartsFilterEdit.h \
 \
-../include/CQChartsDataModel.h \
-../include/CQChartsExprDataModel.h \
 ../include/CQChartsModelData.h \
 ../include/CQChartsModelDetails.h \
 ../include/CQChartsModelExprMatch.h \

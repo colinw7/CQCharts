@@ -1,5 +1,27 @@
 #include <CQSummaryModel.h>
+#include <random>
+#include <set>
 #include <cassert>
+
+namespace {
+
+class RandInRange {
+ public:
+  RandInRange(int min, int max) :
+   eng_(rd_()), idis_(min, max) {
+  }
+
+  int gen() {
+    return idis_(eng_);
+  }
+
+ private:
+  std::random_device                 rd_;
+  std::default_random_engine         eng_;
+  std::uniform_int_distribution<int> idis_;
+};
+
+}
 
 //------
 
@@ -55,12 +77,68 @@ void
 CQSummaryModel::
 setRandom(bool b)
 {
-  beginResetModel();
+  if (b != random_) {
+    beginResetModel();
 
-  random_ = b;
+    random_ = b;
 
-  endResetModel();
+    initRandom();
+
+    endResetModel();
+  }
 }
+
+void
+CQSummaryModel::
+initRandom()
+{
+  rowInds_.clear();
+
+  if (! random_)
+    return;
+
+  //---
+
+  QAbstractItemModel *model = this->sourceModel();
+
+  int nr = model->rowCount();
+
+  if (maxRows_ >= nr)
+    return;
+
+  //---
+
+  using RowSet = std::set<int>;
+
+  RandInRange rand(0, nr - 1);
+
+  RowSet rowSet;
+
+  int numRandom = 0;
+
+  while (numRandom < maxRows_) {
+    int r = rand.gen();
+
+    auto p = rowSet.find(r);
+
+    if (p == rowSet.end()) {
+      rowSet.insert(r);
+
+      ++numRandom;
+    }
+  }
+
+  //---
+
+  rowInds_.resize(maxRows_);
+
+  int i = 0;
+
+  for (const auto &r : rowSet)
+    rowInds_[i++] = r;
+}
+
+//------
 
 // get number of columns
 int
@@ -160,6 +238,8 @@ QModelIndex
 CQSummaryModel::
 mapFromSource(const QModelIndex &sourceIndex) const
 {
+  assert(false);
+
   if (! sourceIndex.isValid())
     return QModelIndex();
 
@@ -185,6 +265,10 @@ mapToSource(const QModelIndex &proxyIndex) const
 
   if (r < 0 || r >= maxRows())
     return QModelIndex();
+
+  if (random_ && int(rowInds_.size()) == maxRows()) {
+    r = rowInds_[r];
+  }
 
   QAbstractItemModel *model = this->sourceModel();
 

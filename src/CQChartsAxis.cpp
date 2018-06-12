@@ -1372,7 +1372,7 @@ draw(CQChartsPlot *plot, QPainter *painter)
   }
 #endif
 
-  double dt = (tickLabelPlacement_ == TickLabelPlacement::BETWEEN ? -0.5 : 0.0);
+  double dt = (tickLabelPlacement() == TickLabelPlacement::BETWEEN ? -0.5 : 0.0);
 
   for (uint i = 0; i < numMajorTicks() + 1; i++) {
     double pos2 = pos1 + dt;
@@ -1684,7 +1684,7 @@ drawTickLine(CQChartsPlot *plot, QPainter *painter, double apos, double tpos,
 
   double ppx, ppy;
 
-  if (major && tickLabelPlacement_ == TickLabelPlacement::BETWEEN) {
+  if (major && tickLabelPlacement() == TickLabelPlacement::BETWEEN) {
     if (direction_ == Direction::HORIZONTAL)
       plot->windowToPixel(tpos - 0.5, apos, ppx, ppy);
     else
@@ -1781,7 +1781,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
     double tyo = 0.0;
 
-    if (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+    if (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
       if (inside)
         tyo = tgap;
       else
@@ -1821,7 +1821,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
         double atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowHeight(tgap);
           else
@@ -1849,13 +1849,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
         double xpos = 0.0;
         double ypos = apos - wth - atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
           xpos = tpos - atw/2;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+        else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
           xpos = tpos - atw;
-        else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+        else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
           xpos = tpos;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+        else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
           xpos = tpos - 0.5;
 
         tbbox = CQChartsGeom::BBox(xpos, ypos, xpos + atw, ypos + wth);
@@ -1887,13 +1887,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
           QPointF p;
 
-          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+          if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
             p = QPointF(pt.x() - tw/2                         , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+          else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(pt.x() - tw                           , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+          else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
             p = QPointF(pt.x()                                , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+          else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
             p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
 
           painter->drawText(p, text);
@@ -1930,7 +1930,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
         double atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowHeight(tgap);
           else
@@ -1956,13 +1956,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
         double xpos = 0.0;
         double ypos = apos + atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
           xpos = tpos - atw/2;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+        else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
           xpos = tpos - atw;
-        else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+        else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
           xpos = tpos;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+        else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
           xpos = tpos - 0.5;
 
         tbbox = CQChartsGeom::BBox(xpos, ypos, xpos + atw, ypos + wth);
@@ -1994,13 +1994,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
           QPointF p;
 
-          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+          if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
             p = QPointF(pt.x() - tw/2                         , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+          else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(pt.x() - tw                           , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+          else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
             p = QPointF(pt.x()                                , ty);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+          else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
             p = QPointF(pt.x() - plot->windowToPixelWidth(0.5), ty);
 
           painter->drawText(p, text);
@@ -2025,7 +2025,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
     double txo = 0.0;
 
-    if (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+    if (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
       if (inside)
         txo = tgap;
       else
@@ -2065,7 +2065,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
         double atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowWidth(tgap);
           else
@@ -2093,13 +2093,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
         double xpos = apos - atw - atm;
         double ypos = 0.0;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
           ypos = tpos - wth/2;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+        else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
           ypos = tpos - wth;
-        else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+        else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
           ypos = tpos;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+        else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
         tbbox = CQChartsGeom::BBox(xpos, ypos, xpos + atw, ypos + wth);
@@ -2131,13 +2131,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
           QPointF p;
 
-          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+          if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
             p = QPointF(tx, pt.y() + ta/2);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+          else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
-          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+          else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
             p = QPointF(tx, pt.y() - td  );
-          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+          else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
             p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
 
           painter->drawText(p, text);
@@ -2174,7 +2174,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
         double atm;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE) {
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE) {
           if (inside)
             atm = plot->pixelToWindowWidth(tgap);
           else
@@ -2200,13 +2200,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
         double xpos = apos + atm;
         double ypos = 0.0;
 
-        if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+        if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
           ypos = tpos - wth/2;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+        else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
           ypos = tpos - wth;
-        else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+        else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
           ypos = tpos;
-        else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+        else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
           ypos = tpos - 0.5 - wta;
 
         tbbox = CQChartsGeom::BBox(xpos, ypos, xpos + atw, ypos + wth);
@@ -2238,13 +2238,13 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
           QPointF p;
 
-          if      (tickLabelPlacement_ == TickLabelPlacement::MIDDLE)
+          if      (tickLabelPlacement() == TickLabelPlacement::MIDDLE)
             p = QPointF(tx, pt.y() + ta/2);
-          else if (tickLabelPlacement_ == TickLabelPlacement::BOTTOM_LEFT)
+          else if (tickLabelPlacement() == TickLabelPlacement::BOTTOM_LEFT)
             p = QPointF(tx, pt.y() + ta  );
-          else if (tickLabelPlacement_ == TickLabelPlacement::TOP_RIGHT)
+          else if (tickLabelPlacement() == TickLabelPlacement::TOP_RIGHT)
             p = QPointF(tx, pt.y() - td  );
-          else if (tickLabelPlacement_ == TickLabelPlacement::BETWEEN)
+          else if (tickLabelPlacement() == TickLabelPlacement::BETWEEN)
             p = QPointF(tx, pt.y() - plot->windowToPixelHeight(0.5) + ta);
 
           painter->drawText(p, text);

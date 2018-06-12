@@ -77,9 +77,15 @@ class CQSummaryModel : public QAbstractProxyModel {
   QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
 
  private:
-  int  maxRows_ { 1000 };
-  bool sorted_  { false };
-  bool random_  { false };
+  void initRandom();
+
+ private:
+  using RowInds = std::vector<int>;
+
+  int     maxRows_ { 1000 };
+  bool    sorted_  { false };
+  bool    random_  { false };
+  RowInds rowInds_;
 };
 
 #endif

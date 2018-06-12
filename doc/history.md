@@ -431,3 +431,9 @@
  + add model dialog (to replace main window one)
  + add column editor
  + add more locks to obj tree
+# 6/11/2018
+ + distribution plot use range label for middle axis label placement
+ + add annotation bbox for image plot
+ + update filter model class names
+ + more cleanup of model list/control class/dialog
+ + Add random indices to summary model

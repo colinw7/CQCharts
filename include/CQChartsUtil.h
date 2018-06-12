@@ -60,6 +60,8 @@ QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model,
 bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                    const CQChartsColumn &column, QString &typeStr);
 
+bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
+
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                       const CQChartsColumn &column, const QString &typeStr);
 
@@ -476,6 +478,14 @@ inline int RoundDown(double x) {
   return int(x1);
 }
 
+inline int Round(double x, Rounding rounding=ROUND_NEAREST) {
+  switch (rounding) {
+    case ROUND_UP  : return RoundUp(x);
+    case ROUND_DOWN: return RoundDown(x);
+    default        : return RoundNearest(x);
+  }
+}
+
 inline double RoundNearestF(double x) {
   double x1;
 
@@ -509,11 +519,11 @@ inline double RoundDownF(double x) {
   return std::trunc(x1);
 }
 
-inline int Round(double x, Rounding rounding=ROUND_NEAREST) {
+inline double RoundF(double x, Rounding rounding=ROUND_NEAREST) {
   switch (rounding) {
-    case ROUND_UP  : return RoundUp(x);
-    case ROUND_DOWN: return RoundDown(x);
-    default        : return RoundNearest(x);
+    case ROUND_UP  : return RoundUpF(x);
+    case ROUND_DOWN: return RoundDownF(x);
+    default        : return RoundNearestF(x);
   }
 }
 
@@ -1131,7 +1141,7 @@ inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
   return (column >= 0 && column < model->columnCount());
 }
 
-inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) {
+inline int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
   int role = Qt::DisplayRole;
 
   for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
@@ -1163,7 +1173,8 @@ inline int modelColumnNameToInd(QAbstractItemModel *model, const QString &name) 
   return -1;
 }
 
-inline bool stringToColumn(QAbstractItemModel *model, const QString &str, CQChartsColumn &column)
+inline bool stringToColumn(const QAbstractItemModel *model, const QString &str,
+                           CQChartsColumn &column)
 {
   CQChartsColumn column1(str);
 
@@ -1203,7 +1214,7 @@ inline bool decodeModelFilterStr(QAbstractItemModel *model, const QString &filte
   if (strs.size() != 2)
     return false;
 
-  column = CQChartsUtil::modelColumnNameToInd(model, strs[0]);
+  column = modelColumnNameToInd(model, strs[0]);
 
   if (column < 0)
     return false;

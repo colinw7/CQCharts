@@ -103,6 +103,8 @@ class CQChartsImagePlot : public CQChartsPlot {
 
   void draw(QPainter *) override;
 
+  CQChartsGeom::BBox annotationBBox() const override;
+
  private:
   void addImageObj(double x, double y, double dx, double dy, double value, const QModelIndex &ind);
 
