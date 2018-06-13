@@ -22,6 +22,7 @@
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QRadioButton>
 #include <QPushButton>
 #include <QToolButton>
 #include <QLabel>
@@ -32,6 +33,13 @@
 CQChartsPlotDlg::
 CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
  charts_(charts), model_(model)
+{
+  init();
+}
+
+void
+CQChartsPlotDlg::
+init()
 {
   auto createSep = [](const QString &name) -> QFrame * {
     QFrame *sep = new QFrame;
@@ -48,12 +56,15 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   setObjectName("plotDlg");
 
   setWindowTitle("Create Plot");
+  //setWindowIcon(QIcon()); TODO
 
   //----
 
   summaryModel_ = new CQSummaryModel(model_.data());
 
   summaryModelP_ = ModelP(summaryModel_);
+
+  summaryModelData_ = new CQChartsModelData(charts_, summaryModelP_);
 
   //----
 
@@ -266,39 +277,55 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
 
   //--
 
+  int nr = model_.data()->rowCount();
+  int nc = model_.data()->columnCount();
+
   QFrame *previewControl = new QFrame;
 
   QHBoxLayout *previewControlLayout = new QHBoxLayout(previewControl);
 
   previewEnabledCheck_ = new QCheckBox("Enabled");
-
   previewEnabledCheck_->setObjectName("previewEnabled");
-  //previewEnabledCheck_->setLayoutDirection(Qt::RightToLeft);
 
   connect(previewEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewEnabledSlot()));
 
   previewMaxRows_ = new CQIntegerSpin;
-
   previewMaxRows_->setObjectName("previewMaxRows");
 
-  previewMaxRows_->setMinimum(1);
-  previewMaxRows_->setMaximum(model_.data()->rowCount());
-
-  connect(previewMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(previewMaxRowsSlot(int)));
+  previewMaxRows_->setRange(1, nr);
+  previewMaxRows_->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
 
   previewMaxRows_->setValue(summaryModel_->maxRows());
 
-  previewRandomCheck_ = new QCheckBox("Random");
+  previewNormalRadio_ = new QRadioButton("Normal");
+  previewNormalRadio_->setObjectName("previewNormal");
+  previewNormalRadio_->setChecked(true);
 
-  previewRandomCheck_->setObjectName("previewRandom");
-  //previewRandomCheck_->setLayoutDirection(Qt::RightToLeft);
+  previewRandomRadio_ = new QRadioButton("Random");
+  previewRandomRadio_->setObjectName("previewRandom");
 
-  connect(previewRandomCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewRandomSlot(int)));
+  previewSortedRadio_ = new QRadioButton("Sorted");
+  previewSortedRadio_->setObjectName("previewSorted");
+
+  previewSortedColumnEdit_ = new CQIntegerSpin;
+  previewSortedColumnEdit_->setObjectName("previewSortedColumn");
+
+  previewSortedColumnEdit_->setRange(0, nc - 1);
+  previewSortedColumnEdit_->setToolTip(QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
+
+  connect(previewMaxRows_         , SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+  connect(previewRandomRadio_     , SIGNAL(toggled(bool))    , this, SLOT(updatePreviewSlot()));
+  connect(previewSortedRadio_     , SIGNAL(toggled(bool))    , this, SLOT(updatePreviewSlot()));
+  connect(previewSortedColumnEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
   previewControlLayout->addWidget(previewEnabledCheck_);
   previewControlLayout->addWidget(new QLabel("Max Rows"));
   previewControlLayout->addWidget(previewMaxRows_);
-  previewControlLayout->addWidget(previewRandomCheck_);
+  previewControlLayout->addWidget(previewNormalRadio_);
+  previewControlLayout->addWidget(previewRandomRadio_);
+  previewControlLayout->addWidget(previewSortedRadio_);
+  previewControlLayout->addWidget(new QLabel("Sort Column"));
+  previewControlLayout->addWidget(previewSortedColumnEdit_);
   previewControlLayout->addStretch(1);
 
   previewLayout->addWidget(previewControl);
@@ -306,7 +333,6 @@ CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
   //--
 
   QTabWidget *previewTab = new QTabWidget;
-
   previewTab->setObjectName("previewTab");
 
   previewLayout->addWidget(previewTab);
@@ -395,6 +421,7 @@ CQChartsPlotDlg::
 ~CQChartsPlotDlg()
 {
   delete summaryModel_;
+  delete summaryModelData_;
 }
 
 void
@@ -515,7 +542,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
     addColumnEdit(layout, row, column, parameter.desc(), parameter.name() + "Column",
                   "Column Name or Number");
 
-  columnEdit->setModel(model_.data());
+  columnEdit->setModel(summaryModel_);
 
   if (ok)
     columnEdit->setText(QString("%1").arg(pColumn));
@@ -831,15 +858,15 @@ validateSlot()
   if (! initialized_)
     return;
 
-  QString msg;
+  QStringList msgs;
 
-  bool ok = validate(msg);
+  bool ok = validate(msgs);
 
   okButton_   ->setEnabled(ok);
   applyButton_->setEnabled(ok);
 
   if (! ok) {
-    msgLabel_->setText(msg);
+    msgLabel_->setText(msgs.at(0));
     msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
     return;
   }
@@ -951,16 +978,16 @@ updateFormatSlot()
   QString typeStr;
 
 #if 0
-  CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  CQChartsModelData *modelData = charts_->getModelData(summaryModel_);
   if (! modelData) return;
 
-  CQChartsModelDetails &details = modelData->details();
+  CQChartsModelDetails *details = modelData->details();
 
-  const CQChartsModelColumnDetails &columnDetails = details.columnDetails(column);
+  const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
-  typeStr = columnDetails.typeName();
+  typeStr = columnDetails->typeName();
 #else
-  if (! CQChartsUtil::columnTypeStr(charts_, model_.data(), column, typeStr))
+  if (! CQChartsUtil::columnTypeStr(charts_, summaryModel_, column, typeStr))
     return;
 #endif
 
@@ -969,12 +996,13 @@ updateFormatSlot()
 
 bool
 CQChartsPlotDlg::
-validate(QString &msg)
+validate(QStringList &msgs)
 {
-  msg = "";
+  msgs.clear();
 
-  CQChartsModelData *modelData = charts_->getModelData(model_.data());
-  if (! modelData) { msg = "no model data"; return false; }
+//CQChartsModelData *modelData = charts_->getModelData(model_.data());
+  CQChartsModelData *modelData = summaryModelData_;
+  if (! modelData) { msgs << "no model data"; return false; }
 
   const CQChartsModelDetails *details = modelData->details();
 
@@ -986,7 +1014,7 @@ validate(QString &msg)
   QString typeName = tabTypeName_[ind];
 
   if (! charts()->isPlotType(typeName)) {
-    msg = "invalid plot type";
+    msgs << "invalid plot type";
     return false;
   }
 
@@ -997,6 +1025,8 @@ validate(QString &msg)
   PlotData &plotData = typePlotData_[type->name()];
 
   bool rc = true;
+
+  int num_valid = 0;
 
   for (const auto &parameter : type->parameters()) {
     if      (parameter.type() == "column") {
@@ -1016,7 +1046,7 @@ validate(QString &msg)
       if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
                                      columnTypeStr, mapValueData)) {
         if (parameter.attributes().isRequired()) {
-          msg += "missing required column value\n";
+          msgs << "missing required column value";
           rc = false;
         }
 
@@ -1024,35 +1054,55 @@ validate(QString &msg)
       }
 
       if (! column.isValid()) {
-        msg += "invalid column value\n";
+        msgs << "invalid column value";
         rc = false;
         continue;
       }
+
+      bool rc1 = true;
 
       if (column.type() == CQChartsColumn::Type::DATA) {
         const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
         if (parameter.attributes().isMonotonic()) {
-          if (! columnDetails->isMonotonic())
-            msg += "non-monotonic column\n";
+          if (! columnDetails->isMonotonic()) {
+            msgs << "non-monotonic column";
+            rc1 = false;
+          }
         }
 
         if      (parameter.attributes().isNumeric()) {
           if (columnDetails->type() != CQBaseModel::Type::INTEGER &&
               columnDetails->type() != CQBaseModel::Type::REAL &&
-              columnDetails->type() != CQBaseModel::Type::TIME)
-            msg += "non-numeric column\n";
+              columnDetails->type() != CQBaseModel::Type::TIME) {
+            msgs << "non-numeric column";
+            rc1 = false;
+          }
         }
         else if (parameter.attributes().isString()) {
-          if (columnDetails->type() != CQBaseModel::Type::STRING)
-            msg += "non-string column\n";
+          if (columnDetails->type() != CQBaseModel::Type::STRING) {
+            msgs << "non-string column";
+            rc1 = false;
+          }
         }
         else if (parameter.attributes().isColor()) {
-          if (columnDetails->type() != CQBaseModel::Type::COLOR)
-            msg += "non-color column\n";
+          if (columnDetails->type() != CQBaseModel::Type::COLOR) {
+            msgs << "non-color column";
+            rc1 = false;
+          }
         }
       }
+
+      if (rc1)
+        ++num_valid;
+      else
+        rc = rc1;
     }
+  }
+
+  if (num_valid == 0) {
+    msgs << "no columns specified";
+    rc = false;
   }
 
   return rc;
@@ -1062,27 +1112,37 @@ void
 CQChartsPlotDlg::
 previewEnabledSlot()
 {
-  updatePreviewPlot();
+  validateSlot();
 }
 
 void
 CQChartsPlotDlg::
-previewMaxRowsSlot(int n)
+updatePreviewSlot()
 {
+  int  n       = previewMaxRows_->value();
+  bool random  = previewRandomRadio_->isChecked();
+  bool sorted  = previewSortedRadio_->isChecked();
+  int  sortCol = previewSortedColumnEdit_->value();
+
   if (n <= 0) return;
 
-  summaryModel_->setMaxRows(n);
+  if (n != summaryModel_->maxRows()) {
+    summaryModel_->setMode(CQSummaryModel::Mode::NORMAL);
+    summaryModel_->setMaxRows(n);
+  }
 
-  updatePreviewPlot();
-}
+  if      (random) {
+    summaryModel_->setRandom(true);
+  }
+  else if (sorted) {
+    summaryModel_->setSortColumn(sortCol);
+    summaryModel_->setSorted(true);
+  }
+  else {
+    summaryModel_->setMode(CQSummaryModel::Mode::NORMAL);
+  }
 
-void
-CQChartsPlotDlg::
-previewRandomSlot(int state)
-{
-  summaryModel_->setRandom(state);
-
-  updatePreviewPlot();
+  validateSlot();
 }
 
 void

@@ -814,8 +814,6 @@ class CQChartsPlot : public QObject {
   QModelIndex selectIndex(int row, int col, const QModelIndex &parent=QModelIndex()) const;
 
   void beginSelect();
-  void addSelectIndex(int row, const CQChartsColumn &col,
-                      const QModelIndex &parent=QModelIndex());
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
   void endSelect();

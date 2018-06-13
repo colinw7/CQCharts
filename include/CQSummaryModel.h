@@ -7,8 +7,15 @@ class CQSummaryModel : public QAbstractProxyModel {
   Q_OBJECT
 
   Q_PROPERTY(int  maxRows READ maxRows  WRITE setMaxRows)
-  Q_PROPERTY(bool sorted  READ isSorted WRITE setSorted )
   Q_PROPERTY(bool random  READ isRandom WRITE setRandom )
+  Q_PROPERTY(bool sorted  READ isSorted WRITE setSorted )
+
+ public:
+  enum class Mode {
+    NORMAL,
+    RANDOM,
+    SORTED
+  };
 
  public:
   CQSummaryModel(QAbstractItemModel *model, int maxRows=1000);
@@ -23,14 +30,23 @@ class CQSummaryModel : public QAbstractProxyModel {
 
   //---
 
+  const Mode &mode() const { return mode_; }
+  void setMode(const Mode &m);
+
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i);
 
-  bool isSorted() const { return sorted_; }
-  void setSorted(bool b);
+  bool isRandom() const { return mode_ == Mode::RANDOM; }
+  void setRandom(bool b) { setMode(b ? Mode::RANDOM : Mode::NORMAL); }
 
-  bool isRandom() const { return random_; }
-  void setRandom(bool b);
+  bool isSorted() const { return mode_ == Mode::SORTED; }
+  void setSorted(bool b) { setMode(b ? Mode::SORTED : Mode::NORMAL); }
+
+  int sortColumn() const { return sortColumn_; }
+  void setSortColumn(int i);
+
+  int sortRole() const { return sortRole_; }
+  void setSortRole(int r);
 
   //---
 
@@ -77,15 +93,21 @@ class CQSummaryModel : public QAbstractProxyModel {
   QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
 
  private:
-  void initRandom();
+  void resetMapping();
+
+  void initMapping();
 
  private:
   using RowInds = std::vector<int>;
+  using RowMap  = std::map<int,int>;
 
-  int     maxRows_ { 1000 };
-  bool    sorted_  { false };
-  bool    random_  { false };
+  Mode    mode_       { Mode::NORMAL };
+  int     maxRows_    { 1000 };
+  int     sortColumn_ { 0 };
+  int     sortRole_   { Qt::EditRole };
   RowInds rowInds_;
+  RowMap  indRows_;
+  bool    mapValid_   { false };
 };
 
 #endif

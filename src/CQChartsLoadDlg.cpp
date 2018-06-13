@@ -46,6 +46,9 @@ CQChartsLoadDlg(CQCharts *charts) :
 {
   setObjectName("loadDlg");
 
+  setWindowTitle("Load Model");
+  //setWindowIcon(QIcon()); TODO
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   //---

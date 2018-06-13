@@ -44,6 +44,8 @@ connectModel()
           this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   connect(model_.data(), SIGNAL(layoutChanged()),
           this, SLOT(modelLayoutChangedSlot()));
+  connect(model_.data(), SIGNAL(modelReset()),
+          this, SLOT(modelResetSlot()));
 
   connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
           this, SLOT(modelRowsInsertedSlot()));
@@ -66,6 +68,8 @@ disconnectModel()
              this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   disconnect(model_.data(), SIGNAL(layoutChanged()),
              this, SLOT(modelLayoutChangedSlot()));
+  disconnect(model_.data(), SIGNAL(modelReset()),
+             this, SLOT(modelResetSlot()));
 
   disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
              this, SLOT(modelRowsInsertedSlot()));
@@ -94,6 +98,16 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 void
 CQChartsModelData::
 modelLayoutChangedSlot()
+{
+  if (details_)
+    details_->reset();
+
+  emit modelChanged();
+}
+
+void
+CQChartsModelData::
+modelResetSlot()
 {
   if (details_)
     details_->reset();

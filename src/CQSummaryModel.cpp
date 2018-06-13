@@ -21,6 +21,28 @@ class RandInRange {
   std::uniform_int_distribution<int> idis_;
 };
 
+inline bool variantReal(const QVariant &var, double &r) {
+  if (var.type() == QVariant::Int   ) { r = var.toInt   (); return true; }
+  if (var.type() == QVariant::Double) { r = var.toDouble(); return true; }
+  return false;
+}
+
+int variantCmp(const QVariant &lhs, const QVariant &rhs) {
+  double r1, r2;
+
+  bool lnumeric = variantReal(lhs, r1);
+  bool rnumeric = variantReal(rhs, r2);
+
+  if (lnumeric && rnumeric) {
+    if (r1 < r2) return -1;
+    if (r1 > r2) return  1;
+    return 0;
+  }
+  else {
+    return lhs.toString().compare(rhs.toString());
+  };
+}
+
 }
 
 //------
@@ -55,50 +77,75 @@ void
 CQSummaryModel::
 setMaxRows(int maxRows)
 {
-  beginResetModel();
+  if (maxRows != maxRows_) {
+    maxRows_ = std::max(maxRows, 1);
 
-  maxRows_ = std::max(maxRows, 1);
-
-  endResetModel();
-}
-
-void
-CQSummaryModel::
-setSorted(bool b)
-{
-  beginResetModel();
-
-  sorted_ = b;
-
-  endResetModel();
-}
-
-void
-CQSummaryModel::
-setRandom(bool b)
-{
-  if (b != random_) {
-    beginResetModel();
-
-    random_ = b;
-
-    initRandom();
-
-    endResetModel();
+    if (mode_ != Mode::NORMAL)
+      resetMapping();
   }
 }
 
 void
 CQSummaryModel::
-initRandom()
+setMode(const Mode &m)
 {
-  rowInds_.clear();
+  if (m != mode_) {
+    mode_ = m;
 
-  if (! random_)
+    resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
+setSortColumn(int c)
+{
+  if (c != sortColumn_) {
+    sortColumn_ = c;
+
+    if (mode_ == Mode::SORTED)
+      resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
+setSortRole(int r)
+{
+  if (r != sortRole_) {
+    sortRole_ = r;
+
+    if (mode_ == Mode::SORTED)
+      resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
+resetMapping()
+{
+  beginResetModel();
+
+  initMapping();
+
+  endResetModel();
+}
+
+void
+CQSummaryModel::
+initMapping()
+{
+  mapValid_ = false;
+
+  rowInds_.clear();
+  indRows_.clear();
+
+  if (mode_ == Mode::NORMAL)
     return;
 
   //---
 
+  // if summary count greater or equal to actual count then nothing to do
   QAbstractItemModel *model = this->sourceModel();
 
   int nr = model->rowCount();
@@ -108,34 +155,96 @@ initRandom()
 
   //---
 
-  using RowSet = std::set<int>;
+  if      (mode_ == Mode::RANDOM) {
+    // create set of random rows (sorted)
+    using RowSet = std::set<int>;
 
-  RandInRange rand(0, nr - 1);
+    RandInRange rand(0, nr - 1);
 
-  RowSet rowSet;
+    RowSet rowSet;
 
-  int numRandom = 0;
+    int numRandom = 0;
 
-  while (numRandom < maxRows_) {
-    int r = rand.gen();
+    while (numRandom < maxRows_) {
+      int r = rand.gen();
 
-    auto p = rowSet.find(r);
+      auto p = rowSet.find(r);
 
-    if (p == rowSet.end()) {
-      rowSet.insert(r);
+      if (p == rowSet.end()) {
+        rowSet.insert(r);
 
-      ++numRandom;
+        ++numRandom;
+      }
     }
+
+    //---
+
+    // create mapping
+    rowInds_.resize(maxRows_);
+
+    int i = 0;
+
+    for (const auto &r : rowSet) {
+      rowInds_[i] = r;
+      indRows_[r] = i;
+
+      ++i;
+    }
+
+    mapValid_ = true;
   }
+  else if (mode_ == Mode::SORTED) {
+    int nc = model->columnCount();
 
-  //---
+    if (sortColumn_ < 0 || sortColumn_ >= nc)
+      return;
 
-  rowInds_.resize(maxRows_);
+    // get array of values and row numbers
+    using ValueRow  = std::pair<QVariant,int>;
+    using RowValues = std::vector<ValueRow>;
 
-  int i = 0;
+    RowValues rowValues;
 
-  for (const auto &r : rowSet)
-    rowInds_[i++] = r;
+    rowValues.resize(nr);
+
+    for (int r = 0; r < nr; ++r) {
+      QModelIndex ind = model->index(r, sortColumn_, QModelIndex());
+
+      QVariant value = model->data(ind, sortRole_);
+
+      rowValues[r] = ValueRow(value, r);
+    }
+
+    // sort summary size
+    std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows_, rowValues.end(),
+                      [](const ValueRow &lhs, const ValueRow &rhs) {
+                        return variantCmp(lhs.first, rhs.first) < 0;
+                      });
+
+    //---
+
+    // create mapping
+    rowInds_.resize(maxRows_);
+
+    int i = 0;
+
+    for (const auto &rv : rowValues) {
+      int r = rv.second;
+
+      rowInds_[i] = r;
+      indRows_[r] = i;
+
+      ++i;
+
+      if (i >= maxRows_)
+        break;
+    }
+
+    mapValid_ = true;
+  }
+  else {
+    assert(false);
+  }
 }
 
 //------
@@ -238,16 +347,25 @@ QModelIndex
 CQSummaryModel::
 mapFromSource(const QModelIndex &sourceIndex) const
 {
-  assert(false);
-
   if (! sourceIndex.isValid())
     return QModelIndex();
 
   int r = sourceIndex.row   ();
   int c = sourceIndex.column();
 
-  if (r < 0 || r >= maxRows())
+  QAbstractItemModel *model = this->sourceModel();
+
+  if (r < 0 || r >= model->rowCount())
     return QModelIndex();
+
+  if (mapValid_) {
+    auto p = indRows_.find(r);
+
+    if (p == indRows_.end())
+      return QModelIndex();
+
+    r = (*p).second;
+  }
 
   return this->index(r, c);
 }
@@ -266,7 +384,7 @@ mapToSource(const QModelIndex &proxyIndex) const
   if (r < 0 || r >= maxRows())
     return QModelIndex();
 
-  if (random_ && int(rowInds_.size()) == maxRows()) {
+  if (mapValid_) {
     r = rowInds_[r];
   }
 

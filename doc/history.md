@@ -437,3 +437,5 @@
  + update filter model class names
  + more cleanup of model list/control class/dialog
  + Add random indices to summary model
+# 6/12/2018
+ + add sorting to summary model

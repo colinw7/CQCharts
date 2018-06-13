@@ -13,6 +13,9 @@ CQChartsModelDlg(CQCharts *charts) :
 {
   setObjectName("modelDlg");
 
+  setWindowTitle("Manage Models");
+  //setWindowIcon(QIcon()); TODO
+
   QVBoxLayout *layout = new QVBoxLayout(this);
 
   //---

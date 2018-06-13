@@ -66,6 +66,7 @@ class CQChartsModelData : public QObject {
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
 
   void modelLayoutChangedSlot();
+  void modelResetSlot();
 
   void modelRowsInsertedSlot();
   void modelRowsRemovedSlot();

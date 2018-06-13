@@ -12,6 +12,7 @@ class CQChartsView;
 class CQChartsPlot;
 class CQChartsColumnEdit;
 class CQChartsModelView;
+class CQChartsModelData;
 class CQSummaryModel;
 class CQIntegerSpin;
 class CQRealSpin;
@@ -24,6 +25,7 @@ class QComboBox;
 class QStackedWidget;
 class QLineEdit;
 class QCheckBox;
+class QRadioButton;
 class QToolButton;
 class QLabel;
 
@@ -91,6 +93,8 @@ class CQChartsPlotDlg : public QDialog {
   };
 
  private:
+  void init();
+
   void addPlotWidgets(const QString &typeName, int ind);
 
   void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
@@ -148,7 +152,7 @@ class CQChartsPlotDlg : public QDialog {
 
   bool stringToColumn(const QString &str, CQChartsColumn &column) const;
 
-  bool validate(QString &msg);
+  bool validate(QStringList &msgs);
 
   void updatePreviewPlot();
 
@@ -162,8 +166,7 @@ class CQChartsPlotDlg : public QDialog {
   void updateFormatSlot();
 
   void previewEnabledSlot();
-  void previewMaxRowsSlot(int n);
-  void previewRandomSlot(int state);
+  void updatePreviewSlot();
 
   void okSlot();
   bool applySlot();
@@ -178,6 +181,7 @@ class CQChartsPlotDlg : public QDialog {
   SelectionModelP    selectionModel_;                  // selection model
   CQSummaryModel*    summaryModel_        { nullptr }; // summary model
   ModelP             summaryModelP_;
+  CQChartsModelData* summaryModelData_    { nullptr };
   QComboBox*         combo_               { nullptr }; // type combo
   QStackedWidget*    stack_               { nullptr }; // widget stack
   QLineEdit*         whereEdit_           { nullptr }; // where edit
@@ -199,7 +203,10 @@ class CQChartsPlotDlg : public QDialog {
   TabTypeName        tabTypeName_;                     // tab type name map
   QCheckBox*         previewEnabledCheck_ { nullptr };
   CQIntegerSpin*     previewMaxRows_      { nullptr };
-  QCheckBox*         previewRandomCheck_  { nullptr };
+  QRadioButton*      previewNormalRadio_  { nullptr };
+  QRadioButton*      previewRandomRadio_  { nullptr };
+  QRadioButton*      previewSortedRadio_  { nullptr };
+  CQIntegerSpin*     previewSortedColumnEdit_ { nullptr };
   CQChartsModelView* previewTable_        { nullptr };
   CQChartsView*      previewView_         { nullptr };
   CQChartsPlot*      previewPlot_         { nullptr };
