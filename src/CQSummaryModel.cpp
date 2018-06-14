@@ -2,6 +2,7 @@
 #include <random>
 #include <set>
 #include <cassert>
+#include <iostream>
 
 namespace {
 
@@ -145,51 +146,61 @@ initMapping()
 
   //---
 
-  // if summary count greater or equal to actual count then nothing to do
   QAbstractItemModel *model = this->sourceModel();
 
   int nr = model->rowCount();
 
-  if (maxRows_ >= nr)
-    return;
-
   //---
 
   if      (mode_ == Mode::RANDOM) {
-    // create set of random rows (sorted)
-    using RowSet = std::set<int>;
+    // if summary count greater or equal to actual count then nothing to do
+    if (maxRows_ >= nr)
+      return;
 
-    RandInRange rand(0, nr - 1);
+    // create set of random rows (sorted)
+    int nr1 = nr - maxRows_;
+
+    bool invert = (nr1 < nr/2);
 
     RowSet rowSet;
 
-    int numRandom = 0;
-
-    while (numRandom < maxRows_) {
-      int r = rand.gen();
-
-      auto p = rowSet.find(r);
-
-      if (p == rowSet.end()) {
-        rowSet.insert(r);
-
-        ++numRandom;
-      }
-    }
+    if (! invert)
+      randRows(rowSet, maxRows_, nr);
+    else
+      randRows(rowSet, nr1, nr);
 
     //---
 
     // create mapping
     rowInds_.resize(maxRows_);
 
-    int i = 0;
+    if (! invert) {
+      int i = 0;
 
-    for (const auto &r : rowSet) {
-      rowInds_[i] = r;
-      indRows_[r] = i;
+      for (const auto &r : rowSet) {
+        rowInds_[i] = r;
+        indRows_[r] = i;
 
-      ++i;
+        ++i;
+      }
     }
+    else {
+      int i = 0;
+
+      for (int r = 0; r < nr; ++r) {
+        auto p = rowSet.find(r);
+
+        if (p != rowSet.end())
+          continue;
+
+        rowInds_[i] = r;
+        indRows_[r] = i;
+
+        ++i;
+      }
+    }
+
+    assert(int(indRows_.size()) == maxRows_);
 
     mapValid_ = true;
   }
@@ -245,6 +256,33 @@ initMapping()
   else {
     assert(false);
   }
+}
+
+void
+CQSummaryModel::
+randRows(RowSet &rowSet, int n, int nr) const
+{
+  // create set of random rows (sorted)
+  RandInRange rand(0, nr - 1);
+
+  int numRandom = 0;
+
+  int iters = 0;
+
+  while (numRandom < n) {
+    int r = rand.gen();
+
+    auto p = rowSet.find(r);
+
+    if (p == rowSet.end()) {
+      rowSet.insert(r);
+
+      ++numRandom;
+    }
+
+    ++iters;
+  }
+std::cerr << "Iters: " << iters << "\n";
 }
 
 //------

@@ -152,7 +152,7 @@ bool
 CQChartsAdjacencyPlot::
 initHierObjs()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -324,7 +324,7 @@ bool
 CQChartsAdjacencyPlot::
 initConnectionObjs()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;

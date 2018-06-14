@@ -31,7 +31,7 @@
 #include <svg/refresh_svg.h>
 
 CQChartsPlotDlg::
-CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model) :
+CQChartsPlotDlg(CQCharts *charts, const ModelP &model) :
  charts_(charts), model_(model)
 {
   init();
@@ -79,12 +79,90 @@ init()
 
   //----
 
+  QFrame *typeFrame = createTypeDataFrame();
+
+  area->addWidget(typeFrame, "Type Data");
+
+  QFrame *genFrame = createGeneralDataFrame();
+
+  area->addWidget(genFrame, "General Data");
+
+  QFrame *previewFrame = createPreviewFrame();
+
+  area->addWidget(previewFrame, "Preview");
+
+  //----
+
+  QFrame *sep1 = createSep("sep1");
+
+  layout->addWidget(sep1);
+
+  //----
+
+  msgLabel_ = new QLabel;
+  msgLabel_->setObjectName("msgLabel");
+
+  layout->addWidget(msgLabel_);
+
+  //----
+
+  QFrame *sep2 = createSep("sep2");
+
+  layout->addWidget(sep2);
+
+  //-------
+
+  // OK, Apply, Cancel Buttons
+  QHBoxLayout *buttonLayout = new QHBoxLayout;
+
+  layout->addLayout(buttonLayout);
+
+  //--
+
+  okButton_ = new QPushButton("OK");
+  okButton_->setObjectName("ok");
+
+  connect(okButton_, SIGNAL(clicked()), this, SLOT(okSlot()));
+
+  buttonLayout->addWidget(okButton_);
+
+  //--
+
+  applyButton_ = new QPushButton("Apply");
+  applyButton_->setObjectName("apply");
+
+  connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
+
+  buttonLayout->addWidget(applyButton_);
+
+  //--
+
+  QPushButton *cancelButton = new QPushButton("Cancel");
+  cancelButton->setObjectName("cancel");
+
+  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
+
+  buttonLayout->addWidget(cancelButton);
+
+  //--
+
+  buttonLayout->addStretch(1);
+
+  //--
+
+  initialized_ = true;
+
+  validateSlot();
+}
+
+QFrame *
+CQChartsPlotDlg::
+createTypeDataFrame()
+{
   QFrame *typeFrame = new QFrame;
   typeFrame->setObjectName("type");
 
   QVBoxLayout *typeLayout = new QVBoxLayout(typeFrame);
-
-  area->addWidget(typeFrame, "Type Data");
 
   //--
 
@@ -145,14 +223,19 @@ init()
 
   whereEdit_->setToolTip("Filter for input data");
 
-  //----
+  //---
 
+  return typeFrame;
+}
+
+QFrame *
+CQChartsPlotDlg::
+createGeneralDataFrame()
+{
   QFrame *genFrame = new QFrame;
   genFrame->setObjectName("general");
 
   QGridLayout *genLayout = new QGridLayout(genFrame);
-
-  area->addWidget(genFrame, "General Data");
 
   //--
 
@@ -266,14 +349,19 @@ init()
 
   genLayout->setRowStretch(row, 1);
 
-  //----
+  //---
 
+  return genFrame;
+}
+
+QFrame *
+CQChartsPlotDlg::
+createPreviewFrame()
+{
   QFrame *previewFrame = new QFrame;
   previewFrame->setObjectName("preview");
 
   QVBoxLayout *previewLayout = new QVBoxLayout(previewFrame);
-
-  area->addWidget(previewFrame, "Preview");
 
   //--
 
@@ -355,72 +443,12 @@ init()
 
   //----
 
-  QFrame *sep1 = createSep("sep1");
-
-  layout->addWidget(sep1);
-
-  //----
-
-  msgLabel_ = new QLabel;
-  msgLabel_->setObjectName("msgLabel");
-
-  layout->addWidget(msgLabel_);
-
-  //----
-
-  QFrame *sep2 = createSep("sep2");
-
-  layout->addWidget(sep2);
-
-  //-------
-
-  // OK, Apply, Cancel Buttons
-  QHBoxLayout *buttonLayout = new QHBoxLayout;
-
-  layout->addLayout(buttonLayout);
-
-  //--
-
-  okButton_ = new QPushButton("OK");
-  okButton_->setObjectName("ok");
-
-  connect(okButton_, SIGNAL(clicked()), this, SLOT(okSlot()));
-
-  buttonLayout->addWidget(okButton_);
-
-  //--
-
-  applyButton_ = new QPushButton("Apply");
-  applyButton_->setObjectName("apply");
-
-  connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
-
-  buttonLayout->addWidget(applyButton_);
-
-  //--
-
-  QPushButton *cancelButton = new QPushButton("Cancel");
-  cancelButton->setObjectName("cancel");
-
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
-
-  buttonLayout->addWidget(cancelButton);
-
-  //--
-
-  buttonLayout->addStretch(1);
-
-  //--
-
-  initialized_ = true;
-
-  validateSlot();
+  return previewFrame;
 }
 
 CQChartsPlotDlg::
 ~CQChartsPlotDlg()
 {
-  delete summaryModel_;
   delete summaryModelData_;
 }
 
@@ -860,30 +888,28 @@ validateSlot()
 
   QStringList msgs;
 
-  bool ok = validate(msgs);
+  bool valid = validate(msgs);
 
-  okButton_   ->setEnabled(ok);
-  applyButton_->setEnabled(ok);
+  okButton_   ->setEnabled(valid);
+  applyButton_->setEnabled(valid);
 
-  if (! ok) {
+  if (! valid)
     msgLabel_->setText(msgs.at(0));
-    msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
-    return;
-  }
+  else
+    msgLabel_->setText(" ");
 
-  msgLabel_->setText(" ");
   msgLabel_->setFixedHeight(msgLabel_->sizeHint().height());
 
   //---
 
-  updatePreviewPlot();
+  updatePreviewPlot(valid);
 }
 
 void
 CQChartsPlotDlg::
-updatePreviewPlot()
+updatePreviewPlot(bool valid)
 {
-  if (previewEnabledCheck_->isChecked()) {
+  if (valid && previewEnabledCheck_->isChecked()) {
     // create plot for typename of current tab
     int ind = stack_->currentIndex();
 
@@ -1098,6 +1124,31 @@ validate(QStringList &msgs)
       else
         rc = rc1;
     }
+    else if (parameter.type() == "columns") {
+      bool ok;
+
+      QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
+
+      std::vector<CQChartsColumn> columns;
+
+      (void) CQChartsUtil::fromString(defValue, columns);
+
+      QStringList columnStrs;
+      QString     columnTypeStr;
+
+      if (! parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
+        if (parameter.attributes().isRequired()) {
+          msgs << "missing required column value";
+          rc = false;
+        }
+
+        continue;
+      }
+
+      if (! columns.empty()) {
+        ++num_valid;
+      }
+    }
   }
 
   if (num_valid == 0) {
@@ -1222,6 +1273,8 @@ void
 CQChartsPlotDlg::
 applyPlot(CQChartsPlot *plot, bool preview)
 {
+  ModelP model = plot->model();
+
   CQChartsPlotType *type = plot->type();
 
   // set plot property for widgets for plot parameters
@@ -1248,7 +1301,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
 
         if (columnTypeStr.length())
-          CQChartsUtil::setColumnTypeStr(charts_, model(), column, columnTypeStr);
+          CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, columnTypeStr);
 
         if (parameter.attributes().isMapped()) {
           QString mappedPropName, mapMinPropName, mapMaxPropName;
@@ -1292,7 +1345,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter.propName() + "'");
 
         if (columnTypeStr.length() && ! columns.empty())
-          CQChartsUtil::setColumnTypeStr(charts_, model(), columns[0], columnTypeStr);
+          CQChartsUtil::setColumnTypeStr(charts_, model.data(), columns[0], columnTypeStr);
       }
       else {
         if (preview && ok)

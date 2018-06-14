@@ -302,7 +302,7 @@ void
 CQChartsRadarPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -483,7 +483,7 @@ void
 CQChartsRadarPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -637,7 +637,7 @@ drawBackground(QPainter *painter)
 
         bool ok;
 
-        QString name = modelHeaderString(model(), valueColumns()[iv], ok);
+        QString name = modelHeaderString(valueColumns()[iv], ok);
 
         Qt::Alignment align = 0;
 
@@ -712,7 +712,15 @@ void
 CQChartsRadarObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_);
+  addColumnSelectIndex(inds, ind_.column());
+}
+
+void
+CQChartsRadarObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

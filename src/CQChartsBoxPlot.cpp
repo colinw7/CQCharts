@@ -422,13 +422,13 @@ updateRange(bool apply)
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (model) {
     bool ok;
 
-    QString xname = modelHeaderString(model, xColumn(), ok);
-    QString yname = modelHeaderString(model, yColumn(), ok);
+    QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+    QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
     xAxis_->setLabel(xname);
     yAxis_->setLabel(yname);
@@ -452,7 +452,7 @@ updateWhiskers()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -800,9 +800,18 @@ void
 CQChartsBoxPlotObj::
 getSelectIndices(Indices &inds) const
 {
-  for (auto value : whisker_.values()) {
-    addSelectIndex(inds, value.ind.row(), plot_->xColumn(), value.ind.parent());
-    addSelectIndex(inds, value.ind.row(), plot_->yColumn(), value.ind.parent());
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->yColumn());
+}
+
+void
+CQChartsBoxPlotObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    for (auto value : whisker_.values()) {
+      addSelectIndex(inds, value.ind.row(), column, value.ind.parent());
+    }
   }
 }
 

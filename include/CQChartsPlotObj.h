@@ -78,9 +78,12 @@ class CQChartsPlotObj : public QObject {
   //---
 
   bool isSelectIndex(const QModelIndex &ind) const;
+
   void addSelectIndices();
 
   virtual void getSelectIndices(Indices &inds) const = 0;
+
+  virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const = 0;
 
   void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                       const QModelIndex &parent=QModelIndex()) const;

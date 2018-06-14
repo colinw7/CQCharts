@@ -217,6 +217,8 @@ connectModel()
           this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   connect(model_.data(), SIGNAL(layoutChanged()),
           this, SLOT(modelLayoutChangedSlot()));
+  connect(model_.data(), SIGNAL(modelReset()),
+          this, SLOT(modelResetSlot()));
 
   connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
           this, SLOT(modelRowsInsertedSlot()));
@@ -244,6 +246,8 @@ disconnectModel()
              this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
   disconnect(model_.data(), SIGNAL(layoutChanged()),
              this, SLOT(modelLayoutChangedSlot()));
+  disconnect(model_.data(), SIGNAL(modelReset()),
+             this, SLOT(modelResetSlot()));
 
   disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
              this, SLOT(modelRowsInsertedSlot()));
@@ -291,6 +295,13 @@ modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
 void
 CQChartsPlot::
 modelLayoutChangedSlot()
+{
+  updateRangeAndObjs();
+}
+
+void
+CQChartsPlot::
+modelResetSlot()
 {
   updateRangeAndObjs();
 }
@@ -2482,7 +2493,7 @@ columnStr(const CQChartsColumn &column, double x) const
   if (! column.isValid())
     return CQChartsUtil::toString(x);
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return CQChartsUtil::toString(x);
@@ -4149,7 +4160,7 @@ CQChartsPlot::
 columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
                 CQChartsNameValues &nameValues) const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   if (! column.isValid())
@@ -4162,7 +4173,7 @@ bool
 CQChartsPlot::
 columnTypeStr(const CQChartsColumn &column, QString &typeStr) const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   return CQChartsUtil::columnTypeStr(charts(), model, column, typeStr);
@@ -4172,7 +4183,7 @@ bool
 CQChartsPlot::
 setColumnTypeStr(const CQChartsColumn &column, const QString &typeStr)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   return CQChartsUtil::setColumnTypeStr(charts(), model, column, typeStr);
@@ -4183,7 +4194,7 @@ CQChartsPlot::
 columnDetails(const CQChartsColumn &column, QString &typeName,
               QVariant &minValue, QVariant &maxValue) const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   CQChartsModelColumnDetails columnDetails(charts(), model, column);
@@ -4202,7 +4213,7 @@ CQChartsPlot::
 getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
                    const QString &separator, QStringList &nameStrs, ModelIndices &nameInds)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   // single column (seprated names)
@@ -4258,7 +4269,7 @@ CQChartsPlot::
 normalizeIndex(const QModelIndex &ind) const
 {
   // map index in proxy model, to source model (non-proxy model)
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
@@ -4286,7 +4297,7 @@ CQChartsPlot::
 unnormalizeIndex(const QModelIndex &ind) const
 {
   // map index in source model (non-proxy model), to proxy model
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   std::vector<QSortFilterProxyModel *> proxyModels;
@@ -4315,7 +4326,7 @@ proxyModels(std::vector<QSortFilterProxyModel *> &proxyModels,
             QAbstractItemModel* &sourceModel) const
 {
   // map index in source model (non-proxy model), to proxy model
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
@@ -4337,7 +4348,7 @@ bool
 CQChartsPlot::
 isHierarchical() const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   return CQChartsUtil::isHierarchical(model);
 }
@@ -4635,7 +4646,7 @@ initGroup(const GroupData &data)
 {
   groupBucket_.clear();
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   if (! model) return;
 
   //---
@@ -4650,7 +4661,7 @@ initGroup(const GroupData &data)
     for (const auto &column : data.columns) {
       bool ok;
 
-      QString name = modelHeaderString(model, column, ok);
+      QString name = modelHeaderString(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
 
       int ind = groupBucket_.addValue(column.column());
 
@@ -4769,7 +4780,7 @@ visitModel(ModelVisitor &visitor)
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
 
-  (void) CQChartsUtil::visitModel(model(), visitor);
+  (void) CQChartsUtil::visitModel(model().data(), visitor);
 }
 
 //------
@@ -4852,7 +4863,7 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
   if (! idColumn().isValid())
     return "";
 
-  QVariant var = modelValue(model(), row, idColumn(), parent, ok);
+  QVariant var = modelValue(row, idColumn(), parent, ok);
 
   if (! ok)
     return "";
@@ -4876,9 +4887,83 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 
 QString
 CQChartsPlot::
-modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column, bool &ok) const
+modelHeaderString(const CQChartsColumn &column, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, column, ok);
+  return modelHeaderString(model().data(), column, Qt::Horizontal, Qt::DisplayRole, ok);
+}
+
+QString
+CQChartsPlot::
+modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const
+{
+  return modelHeaderString(model().data(), column, Qt::Horizontal, role, ok);
+}
+
+QString
+CQChartsPlot::
+modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient, int role, bool &ok) const
+{
+  return modelHeaderString(model().data(), column, orient, role, ok);
+}
+
+QString
+CQChartsPlot::
+modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient, bool &ok) const
+{
+  return modelHeaderString(model().data(), column, orient, Qt::DisplayRole, ok);
+}
+
+QVariant
+CQChartsPlot::
+modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
+           int role, bool &ok) const
+{
+  return modelValue(model().data(), row, column, parent, role, ok);
+}
+
+QVariant
+CQChartsPlot::
+modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return modelValue(model().data(), row, column, parent, ok);
+}
+
+QString
+CQChartsPlot::
+modelString(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return modelString(model().data(), row, column, parent, ok);
+}
+
+double
+CQChartsPlot::
+modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return modelReal(model().data(), row, column, parent, ok);
+}
+
+long
+CQChartsPlot::
+modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return modelInteger(model().data(), row, column, parent, ok);
+}
+
+CQChartsColor
+CQChartsPlot::
+modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return modelColor(model().data(), row, column, parent, ok);
+}
+
+//------
+
+QString
+CQChartsPlot::
+modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
+                  Qt::Orientation orientation, int role, bool &ok) const
+{
+  return CQChartsUtil::modelHeaderString(model, column, orientation, role, ok);
 }
 
 QVariant
@@ -5017,7 +5102,7 @@ endSelect()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   QItemSelection optItemSelection;

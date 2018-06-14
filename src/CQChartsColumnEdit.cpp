@@ -28,6 +28,8 @@ CQChartsColumnEdit(QWidget *parent) :
 
   edit_ = new QLineEdit;
 
+  edit_->setFrame(false);
+
   connect(edit_, SIGNAL(textChanged(const QString &)),
           this, SIGNAL(textChanged(const QString &)));
 

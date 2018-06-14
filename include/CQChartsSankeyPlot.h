@@ -124,6 +124,8 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override { }
 
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
+
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
@@ -152,6 +154,8 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   bool inside(const CQChartsGeom::Point &p) const;
 
   void getSelectIndices(Indices &) const override { }
+
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

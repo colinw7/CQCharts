@@ -12,8 +12,11 @@ class CQChartsModelData : public QObject {
   Q_OBJECT
 
  public:
-  using ModelP       = QSharedPointer<QAbstractItemModel>;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
+
+#ifdef CQCHARTS_FOLDED_MODEL
   using FoldedModels = std::vector<ModelP>;
+#endif
 
  public:
   CQChartsModelData(CQCharts *charts, ModelP &model);
@@ -38,6 +41,7 @@ class CQChartsModelData : public QObject {
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
 
+#ifdef CQCHARTS_FOLDED_MODEL
   // get associated fold models
   ModelP foldProxyModel() const { return foldProxyModel_; }
   void setFoldProxyModel(ModelP &model) { foldProxyModel_ = model; }
@@ -51,6 +55,7 @@ class CQChartsModelData : public QObject {
   // fold model
   void foldModel(const QString &str);
   void foldClear();
+#endif
 
   // get details
   CQChartsModelDetails *details();
@@ -82,9 +87,11 @@ class CQChartsModelData : public QObject {
   int                   ind_            { -1 };
   QItemSelectionModel*  selectionModel_ { nullptr };
   QString               name_;
+  CQChartsModelDetails* details_        { nullptr };
+#ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;
   FoldedModels          foldedModels_;
-  CQChartsModelDetails* details_        { nullptr };
+#endif
 };
 
 #endif

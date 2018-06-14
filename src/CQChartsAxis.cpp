@@ -1024,7 +1024,7 @@ valueStr(CQChartsPlot *plot, double pos) const
   if (column().isValid()) {
     QString str;
 
-    if (CQChartsUtil::formatColumnValue(plot->charts(), plot->model(), column(), pos, str))
+    if (CQChartsUtil::formatColumnValue(plot->charts(), plot->model().data(), column(), pos, str))
       return str;
 
     if (isDataLabels()) {
@@ -1034,7 +1034,7 @@ valueStr(CQChartsPlot *plot, double pos) const
 
       bool ok;
 
-      QVariant header = plot->modelValue(plot->model(), row, column(), parent, ok);
+      QVariant header = plot->modelValue(row, column(), parent, ok);
 
       if (header.isValid()) {
         QString headerStr;
@@ -2127,7 +2127,8 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       if (visible) {
         if (CQChartsUtil::isZero(angle)) {
-          double tx = pt.x() - (isPixelLeft ? tw : 0.0);
+          //double tx = pt.x() - (isPixelLeft ? tw : 0.0);
+          double tx = pt.x() - tw;
 
           QPointF p;
 

@@ -457,7 +457,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
       label = modelString(model, row, labelColumn(), parent, ok);
     }
     else
-      label = modelHeaderString(model, dataColumn, ok);
+      label = modelHeaderString(model, dataColumn, Qt::Horizontal, Qt::DisplayRole, ok);
   }
   else {
     label = modelString(model, row, labelColumn(), parent, ok);
@@ -549,7 +549,7 @@ void
 CQChartsPiePlot::
 calcDataTotal()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -778,14 +778,14 @@ calcTipId() const
     groupName = groupObj->name();
 
     if (! plot_->isRowGrouping()) {
-      label = plot_->modelHeaderString(plot_->model(), ind.column(), ok);
+      label = plot_->modelHeaderString(ind.column(), ok);
     }
     else {
-      label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(), ind.parent(), ok);
+      label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
     }
   }
   else {
-    label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(), ind.parent(), ok);
+    label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
   }
 
   int dataColumn = ind_.column();
@@ -817,8 +817,7 @@ calcId() const
 
   bool ok;
 
-  QString label = plot_->modelString(plot_->model(), ind.row(), plot_->labelColumn(),
-                                     ind.parent(), ok);
+  QString label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
 
   int dataColumn = ind_.column();
 
@@ -873,11 +872,16 @@ void
 CQChartsPieObj::
 getSelectIndices(Indices &inds) const
 {
-  if (plot_->labelColumn().type() == CQChartsColumn::Type::DATA)
-    addSelectIndex(inds, ind_.row(), plot_->labelColumn(), ind_.parent());
+  addColumnSelectIndex(inds, plot_->labelColumn());
+  addColumnSelectIndex(inds, plot_->dataColumn ());
+}
 
-  if (plot_->dataColumn().type() == CQChartsColumn::Type::DATA)
-    addSelectIndex(inds, ind_.row(), plot_->dataColumn(), ind_.parent());
+void
+CQChartsPieObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 bool

@@ -1861,7 +1861,7 @@ getChartsDataCmd(const Vars &vars)
 
     // get model ind
     if      (name == "model") {
-      CQChartsModelData *modelData = charts_->getModelData(plot->model());
+      CQChartsModelData *modelData = charts_->getModelData(plot->model().data());
 
       if (! modelData) {
         errorMsg("No model data");
@@ -1882,7 +1882,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        var = CQChartsUtil::modelHeaderValue(plot->model(), icolumn, role, ok);
+        var = CQChartsUtil::modelHeaderValue(plot->model().data(), icolumn, role, ok);
 
         if (! var.isValid()) {
           errorMsg("Invalid header value");
@@ -1905,7 +1905,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool ok;
 
-        QVariant var = plot->modelValue(plot->model(), row, column, QModelIndex(), role, ok);
+        QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
 
         bool rc;
 
@@ -1913,7 +1913,7 @@ getChartsDataCmd(const Vars &vars)
       }
     }
     else if (name == "map") {
-      CQChartsModelData *modelData = charts_->getModelData(plot->model());
+      CQChartsModelData *modelData = charts_->getModelData(plot->model().data());
 
       if (! modelData) {
         errorMsg("No model data");
@@ -1931,7 +1931,7 @@ getChartsDataCmd(const Vars &vars)
 
       bool ok;
 
-      QVariant var = plot->modelValue(plot->model(), row, column, QModelIndex(), role, ok);
+      QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(icolumn);
 
@@ -3745,8 +3745,10 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   //---
 
+#ifdef CQCHARTS_FOLDED_MODEL
   if (inputData.fold.length())
     modelData->foldModel(inputData.fold);
+#endif
 
   //---
 

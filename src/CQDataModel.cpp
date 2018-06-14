@@ -285,7 +285,7 @@ data(const QModelIndex &index, int role) const
 
     return var;
   }
-  else {
+  else if (! isReadOnly()) {
     auto p1 = extraData_.find(index.row());
     if (p1 == extraData_.end()) return QVariant();
 

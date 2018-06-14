@@ -916,7 +916,7 @@ void
 CQChartsTreeMapPlot::
 loadHier()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -1080,7 +1080,7 @@ void
 CQChartsTreeMapPlot::
 loadFlat()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -1442,9 +1442,18 @@ void
 CQChartsTreeMapHierObj::
 getSelectIndices(Indices &inds) const
 {
-  const QModelIndex &ind = hier_->ind();
+  return addColumnSelectIndex(inds, plot_->valueColumn());
+}
 
-  return addSelectIndex(inds, ind);
+void
+CQChartsTreeMapHierObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    const QModelIndex &ind = hier_->ind();
+
+    addSelectIndex(inds, ind.row(), column, ind.parent());
+  }
 }
 
 void
@@ -1599,7 +1608,7 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QAbstractItemModel *model = plot_->model();
+    QAbstractItemModel *model = plot_->model().data();
 
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
@@ -1630,15 +1639,20 @@ void
 CQChartsTreeMapObj::
 getSelectIndices(Indices &inds) const
 {
-  const QModelIndex &ind = node_->ind();
+  addColumnSelectIndex(inds, plot_->nameColumn ());
+  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, plot_->colorColumn());
+}
 
-  addSelectIndex(inds, ind.row(), plot_->nameColumn(), ind.parent());
+void
+CQChartsTreeMapObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    const QModelIndex &ind = node_->ind();
 
-  if (plot_->valueColumn().isValid())
-    addSelectIndex(inds, ind.row(), plot_->valueColumn(), ind.parent());
-
-  if (plot_->colorColumn().isValid())
-    addSelectIndex(inds, ind.row(), plot_->colorColumn(), ind.parent());
+    addSelectIndex(inds, ind.row(), column, ind.parent());
+  }
 }
 
 void

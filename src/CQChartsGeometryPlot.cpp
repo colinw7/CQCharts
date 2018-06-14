@@ -278,7 +278,7 @@ void
 CQChartsGeometryPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -643,11 +643,19 @@ void
 CQChartsGeometryObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_.row(), plot_->nameColumn    (), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->geometryColumn(), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->valueColumn   (), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->colorColumn   (), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->styleColumn   (), ind_.parent());
+  addColumnSelectIndex(inds, plot_->nameColumn    ());
+  addColumnSelectIndex(inds, plot_->geometryColumn());
+  addColumnSelectIndex(inds, plot_->valueColumn   ());
+  addColumnSelectIndex(inds, plot_->colorColumn   ());
+  addColumnSelectIndex(inds, plot_->styleColumn   ());
+}
+
+void
+CQChartsGeometryObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

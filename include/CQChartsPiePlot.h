@@ -82,6 +82,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
   void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c);
@@ -141,6 +143,8 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   QString calcId() const override { return name_; }
 
   void getSelectIndices(Indices &) const override { }
+
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *, const CQChartsPlot::Layer &) override { }
 

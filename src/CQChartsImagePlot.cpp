@@ -103,7 +103,7 @@ void
 CQChartsImagePlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -198,7 +198,7 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -317,7 +317,7 @@ drawXLabels(QPainter *painter)
   for (int col = 0; col < nc_; ++col) {
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+    QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
     tw = std::max(tw, fm.width(name));
@@ -326,7 +326,7 @@ drawXLabels(QPainter *painter)
   for (int col = 0; col < nc_; ++col) {
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+    QString name = modelHeaderString(col, Qt::Horizontal, ok);
     if (! name.length()) continue;
 
     double tw1 = fm.width(name);
@@ -371,7 +371,7 @@ drawYLabels(QPainter *painter)
   for (int row = 0; row < nr_; ++row) {
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+    QString name = modelHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     tw = std::max(tw, fm.width(name));
@@ -380,7 +380,7 @@ drawYLabels(QPainter *painter)
   for (int row = 0; row < nr_; ++row) {
     bool ok;
 
-    QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+    QString name = modelHeaderString(row, Qt::Vertical, ok);
     if (! name.length()) continue;
 
     QPointF p(0, row + 0.5);
@@ -411,7 +411,7 @@ annotationBBox() const
     for (int col = 0; col < nc_; ++col) {
       bool ok;
 
-      QString name = CQChartsUtil::modelHeaderString(model(), col, Qt::Horizontal, ok);
+      QString name = modelHeaderString(col, Qt::Horizontal, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -430,7 +430,7 @@ annotationBBox() const
     for (int row = 0; row < nr_; ++row) {
       bool ok;
 
-      QString name = CQChartsUtil::modelHeaderString(model(), row, Qt::Vertical, ok);
+      QString name = modelHeaderString(row, Qt::Vertical, ok);
       if (! name.length()) continue;
 
       tw = std::max(tw, fm.width(name));
@@ -468,10 +468,8 @@ calcTipId() const
 {
   bool ok;
 
-  QString xname =
-    CQChartsUtil::modelHeaderString(plot_->model(), ind_.column(), Qt::Horizontal, ok);
-  QString yname =
-    CQChartsUtil::modelHeaderString(plot_->model(), ind_.row   (), Qt::Vertical , ok);
+  QString xname = plot_->modelHeaderString(ind_.column(), Qt::Horizontal, ok);
+  QString yname = plot_->modelHeaderString(ind_.row   (), Qt::Vertical , ok);
 
   QString tipStr;
 
@@ -490,7 +488,15 @@ void
 CQChartsImageObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_);
+  addColumnSelectIndex(inds, ind_.column());
+}
+
+void
+CQChartsImageObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

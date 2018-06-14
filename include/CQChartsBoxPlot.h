@@ -43,6 +43,8 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
   CQChartsGeom::BBox annotationBBox() const;
@@ -72,6 +74,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &) const override { }
+
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 

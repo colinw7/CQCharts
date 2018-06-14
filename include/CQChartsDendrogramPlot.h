@@ -20,6 +20,8 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
+
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:

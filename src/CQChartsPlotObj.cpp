@@ -45,6 +45,9 @@ isSelectIndex(const QModelIndex &ind) const
 
   getSelectIndices(inds);
 
+  if (plot_->idColumn().isValid())
+    addColumnSelectIndex(inds, plot_->idColumn());
+
   for (auto &ind1 : inds) {
     QModelIndex ind2 = plot_->normalizeIndex(ind1);
 

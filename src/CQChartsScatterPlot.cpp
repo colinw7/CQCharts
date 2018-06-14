@@ -197,7 +197,7 @@ void
 CQChartsScatterPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -267,8 +267,8 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = modelHeaderString(model, xColumn(), ok);
-  QString yname = modelHeaderString(model, yColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -333,7 +333,7 @@ initObjs()
 
   // init name values
   if (nameValues_.empty()) {
-    QAbstractItemModel *model = this->model();
+    QAbstractItemModel *model = this->model().data();
 
     if (! model)
       return false;
@@ -413,18 +413,23 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   //---
 
   if (model) {
     bool ok;
 
-    xname_          = modelHeaderString(model, xColumn         (), ok);
-    yname_          = modelHeaderString(model, yColumn         (), ok);
-    symbolSizeName_ = modelHeaderString(model, symbolSizeColumn(), ok);
-    fontSizeName_   = modelHeaderString(model, fontSizeColumn  (), ok);
-    colorName_      = modelHeaderString(model, colorColumn     (), ok);
+    xname_          =
+      modelHeaderString(model, xColumn         (), Qt::Horizontal, Qt::DisplayRole, ok);
+    yname_          =
+      modelHeaderString(model, yColumn         (), Qt::Horizontal, Qt::DisplayRole, ok);
+    symbolSizeName_ =
+      modelHeaderString(model, symbolSizeColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+    fontSizeName_   =
+      modelHeaderString(model, fontSizeColumn  (), Qt::Horizontal, Qt::DisplayRole, ok);
+    colorName_      =
+      modelHeaderString(model, colorColumn     (), Qt::Horizontal, Qt::DisplayRole, ok);
   }
   else {
     xname_          = "";
@@ -767,8 +772,16 @@ void
 CQChartsScatterPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_.row(), plot_->xColumn());
-  addSelectIndex(inds, ind_.row(), plot_->yColumn());
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->yColumn());
+}
+
+void
+CQChartsScatterPointObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

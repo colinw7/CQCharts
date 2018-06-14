@@ -402,7 +402,7 @@ void
 CQChartsBarChartPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -499,7 +499,8 @@ updateRange(bool apply)
   for (const auto &valueColumn : valueColumns_) {
     bool ok;
 
-    QString valueName = modelHeaderString(model, valueColumn, ok);
+    QString valueName =
+      modelHeaderString(model, valueColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
     valueNames_.push_back(valueName);
   }
@@ -574,9 +575,9 @@ updateRange(bool apply)
   }
   else {
     if (categoryColumn().isValid())
-      xname = modelHeaderString(model, categoryColumn(), ok);
+      xname = modelHeaderString(model, categoryColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
     else
-      xname = modelHeaderString(model, nameColumn(), ok);
+      xname = modelHeaderString(model, nameColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
   }
 
   xAxis->setLabel(xname);
@@ -590,7 +591,7 @@ updateRange(bool apply)
   if (valueColumns().size() <= 1) {
     bool ok;
 
-    yname = modelHeaderString(model, valueColumn(), ok);
+    yname = modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
   }
 
   yAxis->setLabel(yname);
@@ -753,7 +754,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     if (! isRowGrouping()) {
       bool ok;
 
-      valueName = modelHeaderString(model, valueColumn, ok);
+      valueName = modelHeaderString(model, valueColumn, Qt::Horizontal, Qt::DisplayRole, ok);
     }
     // row grouping so value name is category/name column name
     else {
@@ -1113,7 +1114,7 @@ void
 CQChartsBarChartPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -1191,7 +1192,8 @@ addKeyItems(CQChartsPlotKey *key)
       if (! title.length()) {
         bool ok;
 
-        QString yname = modelHeaderString(model, valueColumn(), ok);
+        QString yname =
+          modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
         title = yname;
       }
@@ -1460,22 +1462,19 @@ void
 CQChartsBarChartObj::
 getSelectIndices(Indices &inds) const
 {
-  if (plot_->categoryColumn().isValid())
-    addSelectIndex(inds, ind_.row(), plot_->categoryColumn(), ind_.parent());
+  addColumnSelectIndex(inds, plot_->categoryColumn());
+  addColumnSelectIndex(inds, plot_->valueColumnAt(iset_));
+  addColumnSelectIndex(inds, plot_->nameColumn());
+  addColumnSelectIndex(inds, plot_->labelColumn());
+  addColumnSelectIndex(inds, plot_->colorColumn());
+}
 
-  addSelectIndex(inds, ind_.row(), plot_->valueColumnAt(iset_), ind_.parent());
-
-  if (plot_->nameColumn().isValid())
-    addSelectIndex(inds, ind_.row(), plot_->nameColumn(), ind_.parent());
-
-  if (plot_->labelColumn().isValid())
-    addSelectIndex(inds, ind_.row(), plot_->labelColumn(), ind_.parent());
-
-  if (plot_->colorColumn().isValid())
-    addSelectIndex(inds, ind_.row(), plot_->colorColumn(), ind_.parent());
-
-  if (plot_->idColumn().isValid())
-    addSelectIndex(inds, ind_.row(), plot_->idColumn(), ind_.parent());
+void
+CQChartsBarChartObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 #if 0

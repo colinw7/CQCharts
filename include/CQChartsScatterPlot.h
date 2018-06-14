@@ -36,6 +36,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &inds) const override;
 
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:

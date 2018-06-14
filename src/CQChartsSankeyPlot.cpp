@@ -459,7 +459,7 @@ void
 CQChartsSankeyPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -510,7 +510,7 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;

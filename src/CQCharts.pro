@@ -232,7 +232,6 @@ HEADERS += \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelFilter.h \
 ../include/CQChartsModelFn.h \
-../include/CQChartsModelP.h \
 ../include/CQChartsModelVisitor.h \
 ../include/CQChartsColumnEdit.h \
 \

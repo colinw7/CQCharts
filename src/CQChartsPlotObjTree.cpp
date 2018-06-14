@@ -52,9 +52,9 @@ addObjectsASync(CQChartsPlotObjTree *th)
       if (obj->rect().isSet())
         plotObjTree->add(obj);
     }
-
-    th->lock_.unlock();
   }
+
+  th->lock_.unlock();
 
   return plotObjTree;
 }

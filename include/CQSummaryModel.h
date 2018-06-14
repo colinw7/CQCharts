@@ -2,6 +2,8 @@
 #define CQSummaryModel_H
 
 #include <QSortFilterProxyModel>
+#include <vector>
+#include <set>
 
 class CQSummaryModel : public QAbstractProxyModel {
   Q_OBJECT
@@ -93,9 +95,13 @@ class CQSummaryModel : public QAbstractProxyModel {
   QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
 
  private:
+  using RowSet = std::set<int>;
+
   void resetMapping();
 
   void initMapping();
+
+  void randRows(RowSet &rowSet, int n, int nr) const;
 
  private:
   using RowInds = std::vector<int>;

@@ -1,5 +1,8 @@
 #include <CQChartsModelData.h>
+
+#ifdef CQCHARTS_FOLDED_MODEL
 #include <CQFoldedModel.h>
+#endif
 
 #include <QSortFilterProxyModel>
 
@@ -159,12 +162,15 @@ CQChartsModelData::ModelP
 CQChartsModelData::
 currentModel() const
 {
+#ifdef CQCHARTS_FOLDED_MODEL
   if (! foldedModels_.empty())
     return foldProxyModel_;
+#endif
 
   return model_;
 }
 
+#ifdef CQCHARTS_FOLDED_MODEL
 void
 CQChartsModelData::
 foldModel(const QString &str)
@@ -257,3 +263,4 @@ foldClear()
 
   resetFoldProxyModel();
 }
+#endif

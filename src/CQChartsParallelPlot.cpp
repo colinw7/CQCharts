@@ -163,7 +163,7 @@ void
 CQChartsParallelPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -246,7 +246,7 @@ updateRange(bool apply)
 
     bool ok;
 
-    QString name = modelHeaderString(model, yColumn, ok);
+    QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
     setDataRange(range);
 
@@ -282,7 +282,7 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -402,7 +402,7 @@ initObjs()
 
       bool ok;
 
-      QString yname = modelHeaderString(model, yColumn, ok);
+      QString yname = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
       QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 
@@ -521,8 +521,7 @@ calcId() const
 {
   bool ok;
 
-  QString xname =
-    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   return xname;
 }
@@ -533,8 +532,7 @@ calcTipId() const
 {
   bool ok;
 
-  QString xname =
-    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   CQChartsTableTip tableTip;
 
@@ -547,7 +545,7 @@ calcTipId() const
 
     bool ok;
 
-    QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
+    QString yname = plot_->modelHeaderString(yColumn, ok);
 
     tableTip.addTableRow(yname, poly_[j].y());
   }
@@ -607,8 +605,16 @@ void
 CQChartsParallelLineObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_.row(), plot_->xColumn(), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->yColumn(), ind_.parent());
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->yColumn());
+}
+
+void
+CQChartsParallelLineObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void
@@ -683,12 +689,11 @@ calcId() const
 {
   bool ok;
 
-  QString xname =
-    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
-  QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
+  QString yname = plot_->modelHeaderString(yColumn, ok);
 
   return QString("%1:%2=%3").arg(xname).arg(yname).arg(y_);
 }
@@ -701,14 +706,13 @@ calcTipId() const
 
   bool ok;
 
-  QString xname =
-    plot_->modelString(plot_->model(), ind_.row(), plot_->xColumn(), ind_.parent(), ok);
+  QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
   tableTip.addBoldLine(xname);
 
   const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
 
-  QString yname = plot_->modelHeaderString(plot_->model(), yColumn, ok);
+  QString yname = plot_->modelHeaderString(yColumn, ok);
 
   tableTip.addTableRow(yname, y_);
 
@@ -751,7 +755,15 @@ void
 CQChartsParallelPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_);
+  addColumnSelectIndex(inds, ind_.column());
+}
+
+void
+CQChartsParallelPointObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

@@ -149,6 +149,7 @@ CQChartsModelControl(CQCharts *charts) :
 
   //------
 
+#ifdef CQCHARTS_FOLDED_MODEL
   QFrame *foldFrame = CQUtil::makeWidget<QFrame>("foldFrame");
 
   controlTab->addTab(foldFrame, "Fold");
@@ -181,6 +182,7 @@ CQChartsModelControl(CQCharts *charts) :
 
   foldButtonLayout->addWidget(foldApplyButton);
   foldButtonLayout->addStretch(1);
+#endif
 
   //------
 
@@ -313,6 +315,7 @@ void
 CQChartsModelControl::
 foldSlot()
 {
+#ifdef CQCHARTS_FOLDED_MODEL
   CQChartsModelData *modelData = charts_->currentModelData();
 
   if (! modelData)
@@ -323,6 +326,7 @@ foldSlot()
   modelData->foldModel(text);
 
   updateModel(modelData);
+#endif
 }
 
 void

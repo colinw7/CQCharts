@@ -13,6 +13,8 @@ class CQChartsNoDataObj : public CQChartsPlotObj {
 
   void getSelectIndices(Indices &) const override { }
 
+  void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
+
   void draw(QPainter *, const CQChartsPlot::Layer &);
 };
 

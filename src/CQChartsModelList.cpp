@@ -264,10 +264,11 @@ void
 CQChartsModelList::
 reloadModel(CQChartsModelData *modelData)
 {
-  using ModelP = QSharedPointer<QAbstractItemModel>;
-
   CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
   assert(viewWidgetData);
+
+#ifdef CQCHARTS_FOLDED_MODEL
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
   if (! modelData->foldedModels().empty()) {
     if (viewWidgetData->table)
@@ -278,7 +279,9 @@ reloadModel(CQChartsModelData *modelData)
 
     viewWidgetData->stack->setCurrentIndex(0);
   }
-  else {
+  else
+#endif
+  {
     if (modelData->details()->isHierarchical()) {
       if (viewWidgetData->tree) {
         viewWidgetData->tree->setModel(modelData->model());

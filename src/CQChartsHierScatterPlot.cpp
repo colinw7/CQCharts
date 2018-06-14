@@ -162,7 +162,7 @@ void
 CQChartsHierScatterPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -234,8 +234,8 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = modelHeaderString(model, xColumn(), ok);
-  QString yname = modelHeaderString(model, yColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -250,7 +250,7 @@ int
 CQChartsHierScatterPlot::
 acceptsRow(int row, const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   int depth = filterNames_.size();
@@ -293,7 +293,7 @@ initGroupValueSets()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -330,7 +330,7 @@ void
 CQChartsHierScatterPlot::
 addRowGroupValueSets(const QModelIndex &parent, int row)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   for (const auto &groupValueSet : groupValueSets_) {
@@ -388,7 +388,7 @@ initObjs()
 
     //---
 
-    QAbstractItemModel *model = this->model();
+    QAbstractItemModel *model = this->model().data();
 
     if (! model)
       return false;
@@ -442,15 +442,15 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   //---
 
   if (model) {
     bool ok;
 
-    xname_ = modelHeaderString(model, xColumn(), ok);
-    yname_ = modelHeaderString(model, yColumn(), ok);
+    xname_ = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+    yname_ = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
   }
   else {
     xname_ = "";
@@ -500,7 +500,7 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
     int               ind      { -1 };
   };
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   //---
@@ -701,8 +701,16 @@ void
 CQChartsHierScatterPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_.row(), plot_->xColumn());
-  addSelectIndex(inds, ind_.row(), plot_->yColumn());
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->yColumn());
+}
+
+void
+CQChartsHierScatterPointObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

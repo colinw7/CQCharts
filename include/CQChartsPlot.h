@@ -2,7 +2,6 @@
 #define CQChartsPlot_H
 
 #include <CQChartsPlotParameter.h>
-#include <CQChartsModelP.h>
 #include <CQChartsColor.h>
 #include <CQChartsColumnBucket.h>
 #include <CQChartsPlotSymbol.h>
@@ -17,6 +16,7 @@
 #include <QItemSelection>
 #include <QFrame>
 #include <QTimer>
+#include <QPointer>
 
 #include <memory>
 #include <set>
@@ -86,7 +86,7 @@ class CQChartsPlotType {
  public:
   using Parameters          = std::vector<CQChartsPlotParameter>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
-  using ModelP              = CQChartsModelP;
+  using ModelP              = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsPlotType();
@@ -343,7 +343,7 @@ class CQChartsPlot : public QObject {
 
   using OptReal = boost::optional<double>;
 
-  using ModelP          = CQChartsModelP;
+  using ModelP          = QSharedPointer<QAbstractItemModel>;
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
   using PlotObjs    = std::vector<CQChartsPlotObj*>;
@@ -370,9 +370,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  QAbstractItemModel *model() const { return model_.data(); }
-  CQChartsModelP::ModelP modelp() const { return model_.modelp; }
-
+  ModelP model() const { return model_; }
   void setModel(const ModelP &model);
 
   void setSelectionModel(QItemSelectionModel *sm);
@@ -782,20 +780,44 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  QString modelHeaderString(const CQChartsColumn &column, bool &ok) const;
+  QString modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const;
+  QString modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient,
+                            int role, bool &ok) const;
+  QString modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient,
+                            bool &ok) const;
+
+  QVariant modelValue(int row, const CQChartsColumn &column,
+                      const QModelIndex &parent, int role, bool &ok) const;
+  QVariant modelValue(int row, const CQChartsColumn &column,
+                      const QModelIndex &parent, bool &ok) const;
+
+  QString modelString (int row, const CQChartsColumn &column,
+                       const QModelIndex &parent, bool &ok) const;
+  double  modelReal   (int row, const CQChartsColumn &column,
+                       const QModelIndex &parent, bool &ok) const;
+  long    modelInteger(int row, const CQChartsColumn &column,
+                        const QModelIndex &parent, bool &ok) const;
+
+  CQChartsColor modelColor(int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, bool &ok) const;
+
+  //---
+
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                                    bool &ok) const;
+                                    Qt::Orientation orient, int role, bool &ok) const;
 
   virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                               const QModelIndex &parent, int role, bool &ok) const;
   virtual QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                               const QModelIndex &parent, bool &ok) const;
 
-  virtual QString  modelString (QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                const QModelIndex &parent, bool &ok) const;
-  virtual double   modelReal   (QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                const QModelIndex &parent, bool &ok) const;
-  virtual long     modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                                const QModelIndex &parent, bool &ok) const;
+  virtual QString modelString (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                               const QModelIndex &parent, bool &ok) const;
+  virtual double  modelReal   (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                               const QModelIndex &parent, bool &ok) const;
+  virtual long    modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                               const QModelIndex &parent, bool &ok) const;
 
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, bool &ok) const;
@@ -1271,6 +1293,7 @@ class CQChartsPlot : public QObject {
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
 
   void modelLayoutChangedSlot();
+  void modelResetSlot();
 
   void modelRowsInsertedSlot();
   void modelRowsRemovedSlot();

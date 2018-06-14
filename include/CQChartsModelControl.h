@@ -65,7 +65,9 @@ class CQChartsModelControl : public QFrame {
   QLineEdit*         exprNameEdit_    { nullptr };
   QLabel*            exprTypeLabel_   { nullptr };
   QLineEdit*         exprTypeEdit_    { nullptr };
+#ifdef CQCHARTS_FOLDED_MODEL
   QLineEdit*         foldEdit_        { nullptr };
+#endif
   QLineEdit*         columnNumEdit_   { nullptr };
   QLineEdit*         columnNameEdit_  { nullptr };
   QLineEdit*         columnTypeEdit_  { nullptr };

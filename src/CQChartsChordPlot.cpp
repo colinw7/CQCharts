@@ -163,7 +163,7 @@ bool
 CQChartsChordPlot::
 initTableObjs()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -398,7 +398,7 @@ bool
 CQChartsChordPlot::
 initHierObjs()
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -666,10 +666,19 @@ void
 CQChartsChordObj::
 getSelectIndices(Indices &inds) const
 {
-  const QModelIndex &ind = data_.ind();
+  addColumnSelectIndex(inds, plot_->nameColumn ());
+  addColumnSelectIndex(inds, plot_->groupColumn());
+}
 
-  addSelectIndex(inds, ind.row(), plot_->nameColumn (), ind.parent());
-  addSelectIndex(inds, ind.row(), plot_->groupColumn(), ind.parent());
+void
+CQChartsChordObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    const QModelIndex &ind = data_.ind();
+
+    addSelectIndex(inds, ind.row(), column, ind.parent());
+  }
 }
 
 void

@@ -571,7 +571,7 @@ void
 CQChartsXYPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -686,7 +686,7 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = modelHeaderString(model, xColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   if (isOverlay()) {
     if (isFirstPlot())
@@ -707,8 +707,8 @@ updateRange(bool apply)
 
       bool ok;
 
-      QString yname1 = modelHeaderString(model, yColumn1, ok);
-      QString yname2 = modelHeaderString(model, yColumn2, ok);
+      QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -742,7 +742,7 @@ updateRange(bool apply)
 
       CQChartsColumn yColumn = getSetColumn(j);
 
-      QString yname1 = modelHeaderString(model, yColumn, ok);
+      QString yname1 = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
       if (yname.length())
         yname += ", ";
@@ -799,7 +799,7 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -1031,8 +1031,8 @@ initObjs()
 
         bool ok;
 
-        QString yname1 = modelHeaderString(model, yColumn1, ok);
-        QString yname2 = modelHeaderString(model, yColumn2, ok);
+        QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
+        QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
 
         name = QString("%1-%2").arg(yname1).arg(yname2);
       }
@@ -1161,7 +1161,7 @@ initObjs()
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, ok);
+      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
       //---
 
@@ -1393,7 +1393,7 @@ CQChartsXYPlot::
 rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
   assert(model);
 
   //---
@@ -1553,7 +1553,7 @@ valueName(int iset, int irow) const
 
     bool ok;
 
-    name = modelHeaderString(model(), yColumn, ok);
+    name = modelHeaderString(yColumn, ok);
   }
 
   if (nameColumn().isValid()) {
@@ -1561,7 +1561,7 @@ valueName(int iset, int irow) const
 
     bool ok;
 
-    QString name1 = modelString(model(), irow, nameColumn(), parent, ok);
+    QString name1 = modelString(irow, nameColumn(), parent, ok);
 
     if (ok)
       return name1;
@@ -1574,7 +1574,7 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -1601,8 +1601,8 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString yname1 = modelHeaderString(model, yColumn1, ok);
-      QString yname2 = modelHeaderString(model, yColumn2, ok);
+      QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1619,7 +1619,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, ok);
+      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
       CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
@@ -1634,7 +1634,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, ok);
+      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
 
 #if 0
       if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {
@@ -1874,7 +1874,15 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addSelectIndex(inds, ind_);
+  addColumnSelectIndex(inds, ind_.column());
+}
+
+void
+CQChartsXYBiLineObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void
@@ -1991,7 +1999,15 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  addSelectIndex(inds, ind_);
+  addColumnSelectIndex(inds, ind_.column());
+}
+
+void
+CQChartsXYImpulseLineObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void
@@ -2163,10 +2179,16 @@ getSelectIndices(Indices &inds) const
   if (! visible())
     return;
 
-  CQChartsColumn yColumn = plot_->getSetColumn(iset_);
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->getSetColumn(iset_));
+}
 
-  addSelectIndex(inds, ind_.row(), plot_->xColumn());
-  addSelectIndex(inds, ind_.row(), yColumn);
+void
+CQChartsXYPointObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

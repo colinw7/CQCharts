@@ -225,7 +225,7 @@ void
 CQChartsDelaunayPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -277,13 +277,13 @@ updateRange(bool apply)
 
   xAxis_->setColumn(xColumn());
 
-  QString xname = modelHeaderString(model, xColumn(), ok);
+  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = modelHeaderString(model, yColumn(), ok);
+  QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   yAxis_->setLabel(yname);
 
@@ -319,7 +319,7 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return false;
@@ -328,7 +328,7 @@ initObjs()
 
   bool ok;
 
-  yname_ = modelHeaderString(model, yColumn(), ok);
+  yname_ = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   //---
 
@@ -594,7 +594,7 @@ calcId() const
   if (plot_->nameColumn().isValid()) {
     bool ok;
 
-    name1 = plot_->modelString(plot_->model(), ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
+    name1 = plot_->modelString(ind_.row(), plot_->nameColumn(), ind_.parent(), ok);
   }
   else
     name1 = plot_->yname();
@@ -641,8 +641,16 @@ void
 CQChartsDelaunayPointObj::
 getSelectIndices(Indices &inds) const
 {
-  addSelectIndex(inds, ind_.row(), plot_->xColumn(), ind_.parent());
-  addSelectIndex(inds, ind_.row(), plot_->yColumn(), ind_.parent());
+  addColumnSelectIndex(inds, plot_->xColumn());
+  addColumnSelectIndex(inds, plot_->yColumn());
+}
+
+void
+CQChartsDelaunayPointObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
 }
 
 void

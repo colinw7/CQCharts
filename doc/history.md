@@ -439,3 +439,8 @@
  + Add random indices to summary model
 # 6/12/2018
  + add sorting to summary model
+# 6/13/2018
+ + Remove CQChartsModelP
+ + support idColumn cross selecton for all plots
+ + Fix create plot dialog column check to include column arrays
+ + Speed up random row selection in summary model

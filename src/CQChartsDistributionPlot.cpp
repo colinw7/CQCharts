@@ -289,7 +289,7 @@ void
 CQChartsDistributionPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   if (! model)
     return;
@@ -672,11 +672,12 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model();
+  QAbstractItemModel *model = this->model().data();
 
   bool ok;
 
-  QString valueName = modelHeaderString(model, valueColumn(), ok);
+  QString valueName =
+    modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
 
   valueAxis()->setLabel(valueName);
   countAxis()->setLabel("Count");
@@ -977,8 +978,17 @@ void
 CQChartsDistributionBarObj::
 getSelectIndices(Indices &inds) const
 {
-  for (const auto &value : values_) {
-    addSelectIndex(inds, value);
+  addColumnSelectIndex(inds, plot_->valueColumn());
+}
+
+void
+CQChartsDistributionBarObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid()) {
+    for (const auto &value : values_) {
+      addSelectIndex(inds, value.row(), column, value.parent());
+    }
   }
 }
 

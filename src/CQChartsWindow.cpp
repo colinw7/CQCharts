@@ -299,7 +299,7 @@ plotSlot()
   CQChartsPlot *plot = view_->currentPlot(/*remap*/false);
   if (! plot) return;
 
-  modelView_->setModel(plot->modelp(), plot->isHierarchical());
+  modelView_->setModel(plot->model(), plot->isHierarchical());
 
   plot->setSelectionModel(modelView_->selectionModel());
 

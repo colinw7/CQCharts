@@ -377,9 +377,11 @@ parseArgs(int argc, char **argv, MainData &mainData)
       else if (arg == "filter") {
         args.parseOpt(mainData.initData.inputData.filter);
       }
+#ifdef CQCHARTS_FOLDED_MODEL
       else if (arg == "fold") {
         args.parseOpt(mainData.initData.inputData.fold);
       }
+#endif
 
       // process data
       else if (arg == "process") {

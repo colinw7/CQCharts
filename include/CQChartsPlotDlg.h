@@ -1,9 +1,9 @@
 #ifndef CQChartsPlotDlg_H
 #define CQChartsPlotDlg_H
 
-#include <CQChartsModelP.h>
 #include <CQChartsColumn.h>
 #include <QDialog>
+#include <QPointer>
 
 class CQCharts;
 class CQChartsPlotType;
@@ -19,6 +19,7 @@ class CQRealSpin;
 
 class QAbstractItemModel;
 class QItemSelectionModel;
+class QFrame;
 class QGridLayout;
 class QHBoxLayout;
 class QComboBox;
@@ -37,7 +38,7 @@ class CQChartsPlotDlg : public QDialog {
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
-  CQChartsPlotDlg(CQCharts *charts, const CQChartsModelP &model);
+  CQChartsPlotDlg(CQCharts *charts, const ModelP &model);
  ~CQChartsPlotDlg();
 
   void setSelectionModel(QItemSelectionModel *sm);
@@ -94,6 +95,10 @@ class CQChartsPlotDlg : public QDialog {
 
  private:
   void init();
+
+  QFrame *createTypeDataFrame();
+  QFrame *createGeneralDataFrame();
+  QFrame *createPreviewFrame();
 
   void addPlotWidgets(const QString &typeName, int ind);
 
@@ -154,7 +159,7 @@ class CQChartsPlotDlg : public QDialog {
 
   bool validate(QStringList &msgs);
 
-  void updatePreviewPlot();
+  void updatePreviewPlot(bool valid);
 
   void applyPlot(CQChartsPlot *plot, bool preview=false);
 
@@ -177,7 +182,7 @@ class CQChartsPlotDlg : public QDialog {
   using TabTypeName  = std::map<int,QString>;
 
   CQCharts*          charts_              { nullptr }; // parent charts
-  CQChartsModelP     model_;                           // model
+  ModelP             model_;                           // model
   SelectionModelP    selectionModel_;                  // selection model
   CQSummaryModel*    summaryModel_        { nullptr }; // summary model
   ModelP             summaryModelP_;
