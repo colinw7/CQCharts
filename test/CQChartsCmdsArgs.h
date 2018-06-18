@@ -27,7 +27,8 @@ class CQChartsCmdArg {
     Length,
     Position,
     Polygon,
-    Align
+    Align,
+    Column
   };
 
  public:
@@ -481,6 +482,17 @@ class CQChartsCmdsArgs {
               continue;
             }
           }
+          else if (cmdArg->type() == CQChartsCmdArg::Type::Column) {
+            QString str;
+
+            if (getOptValue(str)) {
+              parseStr_[opt].push_back(str);
+            }
+            else {
+              std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+              continue;
+            }
+          }
           else {
             std::cerr << "Invalid type for '" << opt.toStdString() << "'\n";
             continue;
@@ -708,6 +720,18 @@ class CQChartsCmdsArgs {
     return CQAlignEdit::fromString((*p).second[0]);
   }
 
+  CQChartsColumn getParseColumn(const QString &name, QAbstractItemModel *model) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return CQChartsColumn();
+
+    CQChartsColumn column;
+
+    if (! CQChartsUtil::stringToColumn(model, (*p).second[0], column))
+      return CQChartsColumn();
+
+    return column;
+  }
+
   const Args &getParseArgs() const { return parseArgs_; }
 
   CQChartsCmdArg *getCmdOpt(const QString &name) {
@@ -796,13 +820,13 @@ class CQChartsCmdsArgs {
 
   void helpArg(const CQChartsCmdArg &cmdArg) const {
     if (cmdArg.isOpt()) {
-      std::cerr << "-" << cmdArg.name().toStdString();
+      std::cerr << "-" << cmdArg.name().toStdString() << " ";
 
       if (cmdArg.type() != CQChartsCmdArg::Type::Boolean)
-        std::cerr << " <" << cmdArg.argDesc().toStdString() << ">";
+        std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
     }
     else {
-      std::cerr << "  <" << cmdArg.argDesc().toStdString() << ">";
+      std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
     }
   }
 

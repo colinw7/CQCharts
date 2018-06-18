@@ -2,9 +2,32 @@
 #define CQChartsChordPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
 #include <QModelIndex>
+
+//---
+
+class CQChartsChordPlotType : public CQChartsPlotType {
+ public:
+  CQChartsChordPlotType();
+
+  QString name() const override { return "chord"; }
+  QString desc() const override { return "Chord"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsChordPlot;
 
@@ -139,20 +162,6 @@ class CQChartsChordObj : public CQChartsPlotObj {
   CQChartsChordData  data_;
   int                i_    { 0 };
   int                n_    { 1 };
-};
-
-//---
-
-class CQChartsChordPlotType : public CQChartsPlotType {
- public:
-  CQChartsChordPlotType();
-
-  QString name() const override { return "chord"; }
-  QString desc() const override { return "Chord"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

@@ -24,7 +24,7 @@ addParameters()
     setTip("values to group");
 
   addColumnParameter("color", "Color", "colorColumn").
-    setTip("Color column");
+    setTip("Custom bar color");
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
@@ -330,12 +330,8 @@ updateRange(bool apply)
 
     ColumnDetails columnDetails(this, model, valueColumn());
 
-    categoryRange_.minValue = columnDetails.minValue().toReal();
-    categoryRange_.maxValue = columnDetails.maxValue().toReal();
-
-    //---
-
-    calcCategoryRange();
+    bucketer_.setRMin(columnDetails.minValue().toReal());
+    bucketer_.setRMax(columnDetails.maxValue().toReal());
   }
 
   //---
@@ -500,76 +496,16 @@ checkFilter(double value) const
   return false;
 }
 
-void
-CQChartsDistributionPlot::
-calcCategoryRange()
-{
-  double length = categoryRange_.maxValue - categoryRange_.minValue;
-
-  double length1 = length/categoryRange_.numAuto;
-
-  // Calculate nearest Power of Ten to Length
-  int power = (length1 > 0 ? CQChartsUtil::RoundDown(log10(length1)) : 1);
-
-  //if (isIntegral()) {
-  //  if (power < 0)
-  //    power = 1;
-  //}
-
-  categoryRange_.increment = 1;
-
-  if      (power < 0) {
-    for (int i = 0; i < -power; i++)
-      categoryRange_.increment /= 10.0;
-  }
-  else if (power > 0) {
-    for (int i = 0; i <  power; i++)
-      categoryRange_.increment *= 10.0;
-  }
-
-  // round min value to increment
-  if (length1 > 0) {
-    categoryRange_.increment =
-      categoryRange_.increment*CQChartsUtil::Round(length1/categoryRange_.increment);
-
-    categoryRange_.calcMinValue = categoryRange_.increment*
-      CQChartsUtil::RoundDown(categoryRange_.minValue/categoryRange_.increment);
-  }
-  else {
-    categoryRange_.calcMinValue = categoryRange_.minValue;
-  }
-}
-
 int
 CQChartsDistributionPlot::
 calcBucket(double value) const
 {
-  int bucket = 0;
-
   bool isAuto = (! filterStack_.empty() || isAutoRange());
 
-  if (isAuto) {
-    if (categoryRange_.increment > 0.0)
-      bucket = std::floor((value - categoryRange_.calcMinValue)/categoryRange_.increment);
-  }
-  else {
-    if (deltaValue() > 0.0)
-      bucket = std::floor((value - calcStartValue())/deltaValue());
-  }
-
-  return bucket;
-}
-
-double
-CQChartsDistributionPlot::
-calcStartValue() const
-{
-  double startVal = std::min(categoryRange_.minValue, startValue());
-
-  if (deltaValue() > 0.0)
-    startVal = deltaValue()*CQChartsUtil::RoundDown(startVal/deltaValue());
-
-  return startVal;
+  if (isAuto)
+    return bucketer_.autoRealBucket(value);
+  else
+    return bucketer_.realBucket(value);
 }
 
 //------
@@ -765,23 +701,12 @@ void
 CQChartsDistributionPlot::
 bucketValues(int bucket, double &value1, double &value2) const
 {
-  value1 = 0.0;
-  value2 = 0.0;
-
   bool isAuto = (! filterStack_.empty() || isAutoRange());
 
-  if (isAuto) {
-    if (categoryRange_.increment > 0.0) {
-      value1 = bucket*categoryRange_.increment + categoryRange_.calcMinValue;
-      value2 = value1 + categoryRange_.increment;
-    }
-  }
-  else {
-    if (deltaValue() > 0.0) {
-      value1 = bucket*deltaValue() + calcStartValue();
-      value2 = value1 + deltaValue();
-    }
-  }
+  if (isAuto)
+    bucketer_.autoBucketValues(bucket, value1, value2);
+  else
+    bucketer_.bucketRValues(bucket, value1, value2);
 
   if (CQChartsUtil::isZero(value1)) value1 = 0.0;
   if (CQChartsUtil::isZero(value2)) value2 = 0.0;

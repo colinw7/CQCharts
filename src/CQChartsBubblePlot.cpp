@@ -17,7 +17,7 @@ addParameters()
 {
   addColumnParameter("name" , "Name" , "nameColumn" , 0).setRequired();
   addColumnParameter("value", "Value", "valueColumn");
-  addColumnParameter("color", "Color", "colorColumn");
+  addColumnParameter("color", "Color", "colorColumn").setTip("Custom bubble color");
 
   CQChartsPlotType::addParameters();
 }

@@ -16,13 +16,14 @@ CQChartsPiePlotType::
 addParameters()
 {
   // name, desc, propName, attributes, default
-  addColumnParameter ("label"      , "Label"       , "labelColumn"   , 0);
-  addColumnsParameter("data"       , "Data"        , "dataColumns"   , "1").setRequired();
-  addColumnParameter ("radius"     , "Radius"      , "radiusColumn"  );
-  addColumnParameter ("group"      , "Group"       , "groupColumn"   );
-  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   );
-  addColumnParameter ("keyLabel"   , "Key Label"   , "keyLabelColumn");
-  addColumnParameter ("color"      , "Color"       , "colorColumn"   );
+  addColumnsParameter("data"    , "Data"     , "dataColumns"   , "1").setRequired();
+  addColumnParameter ("label"   , "Label"    , "labelColumn"   , 0);
+  addColumnParameter ("radius"  , "Radius"   , "radiusColumn"  );
+  addColumnParameter ("group"   , "Group"    , "groupColumn"   );
+  addColumnParameter ("keyLabel", "Key Label", "keyLabelColumn");
+  addColumnParameter ("color"   , "Color"    , "colorColumn"   ).setTip("Custom slice color");
+
+  addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping");
 
   CQChartsPlotType::addParameters();
 }
@@ -169,16 +170,16 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "labelColumn"   , "label"      );
-  addProperty("columns", this, "dataColumn"    , "data"       );
-  addProperty("columns", this, "dataColumns"   , "dataSet"    );
-  addProperty("columns", this, "radiusColumn"  , "radius"     );
-  addProperty("columns", this, "groupColumn"   , "group"      );
-  addProperty("columns", this, "rowGrouping"   , "rowGrouping");
-  addProperty("columns", this, "keyLabelColumn", "keyLabel"   );
-  addProperty("columns", this, "colorColumn"   , "color"      );
+  addProperty("columns", this, "dataColumn"    , "data"    );
+  addProperty("columns", this, "dataColumns"   , "dataSet" );
+  addProperty("columns", this, "labelColumn"   , "label"   );
+  addProperty("columns", this, "radiusColumn"  , "radius"  );
+  addProperty("columns", this, "groupColumn"   , "group"   );
+  addProperty("columns", this, "keyLabelColumn", "keyLabel");
+  addProperty("columns", this, "colorColumn"   , "color"   );
 
   // general
+  addProperty("", this, "rowGrouping", "rowGrouping");
   addProperty("", this, "donut"      );
   addProperty("", this, "innerRadius");
   addProperty("", this, "startAngle" );

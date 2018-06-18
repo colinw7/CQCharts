@@ -41,16 +41,14 @@ class QStackedWidget;
 
 //------
 
-class CQChartsTest : public CQAppWindow {
+class CQChartsTest : public QObject {
   Q_OBJECT
-
- public:
-  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   using ParserType = CQChartsCmds::ParserType;
   using Args       = std::vector<QString>;
   using Vars       = std::vector<QString>;
+  using ModelP     = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsTest();
@@ -71,9 +69,10 @@ class CQChartsTest : public CQAppWindow {
   bool isShow() const { return show_; }
   void setShow(bool b) { show_ = b; }
 
-  CQCharts *charts() const { return charts_; }
+  bool isShowApp() const { return showApp_; }
+  void setShowApp(bool b) { showApp_ = b; }
 
-  CQChartsModelWidgets *modelWidgets() const { return modelWidgets_; }
+  CQCharts *charts() const { return charts_; }
 
   CQChartsCmds *cmds() const { return cmds_; }
 
@@ -87,23 +86,7 @@ class CQChartsTest : public CQAppWindow {
 
   void errorMsg(const QString &msg);
 
- private:
-  void addControlWidgets(QVBoxLayout *layout);
-
-  void addMenus();
-
-  QSize sizeHint() const;
-
- public slots:
-  void closeSlot();
-
  private slots:
-  void loadModelSlot();
-  void modelLoadedSlot(int);
-
-  void createPlotSlot();
-  void plotDialogCreatedSlot(CQChartsPlot *plot);
-
   void plotObjPressedSlot(CQChartsPlotObj *obj);
 
   void windowCreated(CQChartsWindow *window);
@@ -111,16 +94,11 @@ class CQChartsTest : public CQAppWindow {
   void plotAdded(CQChartsPlot *plot);
 
  private:
-  using Plots   = std::vector<CQChartsPlot*>;
-  using WindowP = QPointer<CQChartsWindow>;
-
- private:
-  CQCharts*             charts_       { nullptr };
-  CQChartsModelWidgets* modelWidgets_ { nullptr };
-  CQChartsLoadDlg*      loadDlg_      { nullptr };
-  CQChartsCmds*         cmds_         { nullptr };
-  bool                  gui_          { true };
-  bool                  show_         { true };
+  CQCharts*     charts_  { nullptr };
+  CQChartsCmds* cmds_    { nullptr };
+  bool          gui_     { true };
+  bool          show_    { true };
+  bool          showApp_ { false };
 };
 
 #endif

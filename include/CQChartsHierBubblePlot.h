@@ -8,6 +8,28 @@
 #include <CQChartsData.h>
 #include <QModelIndex>
 
+//---
+
+class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
+ public:
+  CQChartsHierBubblePlotType();
+
+  QString name() const override { return "hierbubble"; }
+  QString desc() const override { return "HierBubble"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
+
 class CQChartsHierBubblePlot;
 class CQChartsHierBubbleHierNode;
 
@@ -212,20 +234,6 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 
  private:
   CQChartsHierBubbleHierNode* hier_ { nullptr }; // associated hier node
-};
-
-//---
-
-class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
- public:
-  CQChartsHierBubblePlotType();
-
-  QString name() const override { return "hierbubble"; }
-  QString desc() const override { return "HierBubble"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

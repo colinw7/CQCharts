@@ -2,6 +2,7 @@
 #define CQChartsForceDirectedPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <CQChartsForceDirected.h>
@@ -14,6 +15,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
   QString desc() const override { return "ForceDirected"; }
 
   void addParameters() override;
+
+  bool hasAxes() const override { return false; }
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };

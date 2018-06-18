@@ -2,9 +2,34 @@
 #define CQChartsDistributionPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
+#include <CQBucketer.h>
+
+//---
+
+// distribution plot type
+class CQChartsDistributionPlotType : public CQChartsPlotType {
+ public:
+  CQChartsDistributionPlotType();
+
+  QString name() const override { return "distribution"; }
+  QString desc() const override { return "Distribution"; }
+
+  const char *yColumnName() const override { return "value"; }
+
+  bool allowXAxisIntegral() const override { return false; }
+
+  bool allowXLog() const override { return false; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsDistributionPlot;
 class CQChartsBoxObj;
@@ -62,21 +87,6 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 
 //---
 
-// distribution plot type
-class CQChartsDistributionPlotType : public CQChartsPlotType {
- public:
-  CQChartsDistributionPlotType();
-
-  QString name() const override { return "distribution"; }
-  QString desc() const override { return "Distribution"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
-};
-
-//---
-
 // distribution plot
 class CQChartsDistributionPlot : public CQChartsPlot {
   Q_OBJECT
@@ -117,22 +127,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   using OptColor = boost::optional<CQChartsColor>;
 
-  struct CategoryRange {
-    enum class Type {
-      DEFINED,
-      AUTO
-    };
-
-    Type   type         { Type::AUTO };
-    double start        { 0.0 };
-    double delta        { 1.0 };
-    double minValue     { 0.0 };
-    double maxValue     { 0.0 };
-    int    numAuto      { 10 };
-    double increment    { 1 };
-    double calcMinValue { 1 };
-  };
-
   struct Filter {
     Filter(double min, double max) :
      minValue(min), maxValue(max) {
@@ -163,28 +157,22 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  bool isAutoRange() const { return categoryRange_.type == CategoryRange::Type::AUTO; }
+  bool isAutoRange() const { return bucketer_.type() == CQBucketer::Type::REAL_AUTO; }
 
   void setAutoRange(bool b) {
-    if (! b)
-      categoryRange_.delta = categoryRange_.increment;
-
-    categoryRange_.type = (b ? CategoryRange::Type::AUTO : CategoryRange::Type::DEFINED);
+    bucketer_.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
 
     updateRangeAndObjs();
   }
 
-  double startValue() const { return categoryRange_.start; }
-  void setStartValue(double r) { categoryRange_.start = r; updateRangeAndObjs(); }
+  double startValue() const { return bucketer_.rstart(); }
+  void setStartValue(double r) { bucketer_.setRStart(r); updateRangeAndObjs(); }
 
-  double deltaValue() const { return categoryRange_.delta; }
-  void setDeltaValue(double r) { categoryRange_.delta = r; updateRangeAndObjs(); }
+  double deltaValue() const { return bucketer_.rdelta(); }
+  void setDeltaValue(double r) { bucketer_.setRDelta(r); updateRangeAndObjs(); }
 
-  int numAuto() const { return categoryRange_.numAuto; }
-
-  void setNumAuto(int i) {
-    categoryRange_.numAuto = i; calcCategoryRange(); updateRangeAndObjs();
-  }
+  int numAuto() const { return bucketer_.numAuto(); }
+  void setNumAuto(int i) { bucketer_.setNumAuto(i); updateRangeAndObjs(); }
 
   //---
 
@@ -195,10 +183,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool checkFilter(double value) const;
 
   int calcBucket(double v) const;
-
-  double calcStartValue() const;
-
-  void calcCategoryRange();
 
   //---
 
@@ -336,7 +320,7 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using FilterStack = std::vector<Filters>;
 
  private:
-  CategoryRange     categoryRange_;         // category range
+  CQBucketer        bucketer_;
   bool              autoDelta_   { false }; // auto delta
   IValues           ivalues_;               // indexed values
   bool              horizontal_  { false }; // horizontal bars

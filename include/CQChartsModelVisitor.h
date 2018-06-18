@@ -1,6 +1,7 @@
 #ifndef CQChartsModelVisitor_H
 #define CQChartsModelVisitor_H
 
+#include <QAbstractItemModel>
 #include <QModelIndex>
 
 class QAbstractItemModel;
@@ -28,9 +29,11 @@ class CQChartsModelVisitor {
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i) { maxRows_ = i; }
 
+  bool isHierarchical() const { return hierarchical_; }
+
   //---
 
-  void init(int nc) { numCols_ = nc; row_ = 0; numRows_ = 0; }
+  void init(QAbstractItemModel *model);
 
   void step() { ++row_; }
 
@@ -51,10 +54,11 @@ class CQChartsModelVisitor {
   //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
 
  protected:
-  int numCols_ { 0 };
-  int row_     { 0 };
-  int numRows_ { 0 };
-  int maxRows_ { -1 };
+  int  numCols_      { 0 };
+  int  row_          { 0 };
+  int  numRows_      { 0 };
+  int  maxRows_      { -1 };
+  bool hierarchical_ { false };
 };
 
 #endif

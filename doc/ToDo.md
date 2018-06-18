@@ -12,7 +12,7 @@ High
  + Annotation tip, select, ..., widget (float widget in plot)
  + Filter by Zoom
  + Key/Title should be positioned relative to plot
- + Use Quad Tree to limit numbe of objects draw (min rect size)
+ + Use Quad Tree to limit number of objects draw (min rect size)
  + Position class for point position on view, plot, ... Use for annotations
  + text format, flow or split, format to aspect and then scale
  + use plot percent for key, title ? unzoomed ?
@@ -33,7 +33,6 @@ High
 Medium
  + Scroll by Single Large Tick Mark ?
  + Documentation
- + Use CQChartsModelP everywhere !!!!
  + More testing of x/y flip for axis/key/...
  + Radial Coords/Plot
  + More annotation range support (bar chart, pie ...)
@@ -234,6 +233,8 @@ Adjacency Plot
  + X Border Width
  + Better Text Placement/Sizing
  + Hierarchical Adjacency (H/V headers are hierarchical trees)
+ + Labels in Box (count)
+ + Allow urn off row/column labels
 
 Bar Chart
  + Allow hide sets as well as individual sub set types

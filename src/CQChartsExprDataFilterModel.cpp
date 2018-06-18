@@ -1,7 +1,7 @@
 #include <CQChartsExprDataFilterModel.h>
+#include <CQChartsExprModel.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
-#include <CQExprModel.h>
 #include <cassert>
 
 CQChartsExprDataFilterModel::
@@ -20,7 +20,7 @@ CQChartsExprDataFilterModel(CQCharts *charts, int nc, int nr) :
     }
   }
 
-  exprModel_ = new CQExprModel(dataModel_);
+  exprModel_ = new CQChartsExprModel(charts_, dataModel_);
 
   setSourceModel(exprModel_);
 }
@@ -30,4 +30,11 @@ CQChartsExprDataFilterModel::
 {
   delete exprModel_;
   delete dataModel_;
+}
+
+QAbstractItemModel *
+CQChartsExprDataFilterModel::
+baseModel() const
+{
+  return dataModel_;
 }

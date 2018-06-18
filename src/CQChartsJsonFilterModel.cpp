@@ -1,4 +1,5 @@
 #include <CQChartsJsonFilterModel.h>
+#include <CQChartsExprModel.h>
 #include <CQJsonModel.h>
 
 CQChartsJsonFilterModel::
@@ -7,13 +8,22 @@ CQChartsJsonFilterModel(CQCharts *charts) :
 {
   jsonModel_ = new CQJsonModel;
 
-  setSourceModel(jsonModel_);
+  exprModel_ = new CQChartsExprModel(charts_, jsonModel_);
+
+  setSourceModel(exprModel_);
 }
 
 CQChartsJsonFilterModel::
 ~CQChartsJsonFilterModel()
 {
   delete jsonModel_;
+}
+
+QAbstractItemModel *
+CQChartsJsonFilterModel::
+baseModel() const
+{
+  return jsonModel_;
 }
 
 bool

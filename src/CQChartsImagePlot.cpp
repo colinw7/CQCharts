@@ -30,6 +30,7 @@ CQChartsImagePlot::
 CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("image"), model)
 {
+  addTitle();
 }
 
 void

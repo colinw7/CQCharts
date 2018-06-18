@@ -17,8 +17,20 @@ class CQBucketer {
 
   //---
 
+  // get/set value type
   const Type &type() const { return type_; }
-  void setType(const Type &t) { type_ = t; }
+
+  void setType(const Type &t) {
+    if (type_ != t) {
+      // use auto delete for fixed delta if switching from auto to fixed
+      if (type_ == Type::REAL_AUTO && t == Type::REAL_RANGE)
+        setRDelta(calcDelta());
+
+      type_ = t;
+
+      needsCalc_ = true;
+    }
+  }
 
   //---
 
@@ -57,6 +69,10 @@ class CQBucketer {
 
   //---
 
+  double calcDelta() const { return calcDelta_; }
+
+  //---
+
   // get bucket for generic value
   int bucket(const QVariant &var) const {
     int n = INT_MIN; // optional ?
@@ -91,26 +107,46 @@ class CQBucketer {
   }
 
   bool bucketValues(int bucket, double &min, double &max) const {
-    if      (type() == Type::INTEGER_RANGE) {
-      int idelta = this->idelta();
+    if      (type() == Type::INTEGER_RANGE)
+      bucketIValues(bucket, min, max);
+    else if (type() == Type::REAL_RANGE)
+      bucketRValues(bucket, min, max);
+    else if (type() == Type::REAL_AUTO)
+      autoBucketValues(bucket, min, max);
+    else
+      return false;
 
+    return true;
+  }
+
+  bool bucketIValues(int bucket, double &min, double &max) const {
+    int idelta = this->idelta();
+
+    if (idelta > 0) {
       min = bucket*idelta + calcIStart();
       max = min + idelta;
     }
-    else if (type() == Type::REAL_RANGE) {
-      double rdelta = this->rdelta();
 
+    return true;
+  }
+
+  bool bucketRValues(int bucket, double &min, double &max) const {
+    double rdelta = this->rdelta();
+
+    if (rdelta > 0.0) {
       min = bucket*rdelta + calcRStart();
       max = min + rdelta;
     }
-    else if (type() == Type::REAL_AUTO) {
-      double rdelta = calcDelta_;
 
+    return true;
+  }
+
+  bool autoBucketValues(int bucket, double &min, double &max) const {
+    double rdelta = calcDelta_;
+
+    if (rdelta > 0.0) {
       min = bucket*rdelta + calcMin_;
       max = min + rdelta;
-    }
-    else {
-      return false;
     }
 
     return true;
@@ -176,6 +212,12 @@ class CQBucketer {
       // Calculate nearest Power of Ten to Length
       int power = (length1 > 0 ? roundNearest(log10(length1)) : 1);
 
+      //if (isIntegral()) {
+      //  if (power < 0)
+      //    power = 1;
+      //}
+
+      // calcDelta_ = 1;
       calcDelta_ = 0.1;
 
       if      (power < 0) {
@@ -189,9 +231,9 @@ class CQBucketer {
 
       // round min value to increment
       if (length1 > 0) {
-        calcDelta_ = calcDelta_*roundNearest(length1/calcDelta_);
+        calcDelta_ = calcDelta_*roundNearestF(length1/calcDelta_);
 
-        calcMin_ = calcDelta_*roundDown(rmin()/calcDelta_);
+        calcMin_ = calcDelta_*roundDownF(rmin()/calcDelta_);
       }
       else {
         calcMin_ = rmin();
@@ -203,7 +245,6 @@ class CQBucketer {
 
   //----
 
- private:
   int stringBucket(const QString &str) const {
     auto p = stringInd_.find(str);
 
@@ -237,7 +278,7 @@ class CQBucketer {
     double rstart = this->calcRStart();
 
     if (rdelta > 0)
-      n = std::floor(r - rstart)/rdelta;
+      n = std::floor((r - rstart)/rdelta);
 
     return n;
   }
@@ -255,11 +296,14 @@ class CQBucketer {
     return n;
   }
 
+  //----
+
+ private:
   double calcRStart() const {
     double rstart = std::min(rmin(), this->rstart());
 
     if (rdelta() > 0.0)
-      rstart = rdelta()*roundDown(rstart/rdelta());
+      rstart = rdelta()*roundDownF(rstart/rdelta());
 
     return rstart;
   }
@@ -268,7 +312,7 @@ class CQBucketer {
     int istart = std::min(imin(), this->istart());
 
     if (idelta() > 0)
-      istart = idelta()*roundDown(istart/idelta());
+      istart = idelta()*roundDownF(istart/idelta());
 
     return istart;
   }
@@ -301,6 +345,28 @@ class CQBucketer {
     return int(x1);
   }
 
+  double roundNearestF(double x) const {
+    double x1;
+
+    if (x <= 0.0)
+      x1 = (x - 0.499999);
+    else
+      x1 = (x + 0.500001);
+
+    return std::trunc(x1);
+  }
+
+  double roundDownF(double x) const {
+    double x1;
+
+    if (x >= 0.0)
+      x1 = (x       + 1E-6);
+    else
+      x1 = (x - 1.0 + 1E-6);
+
+    return std::trunc(x1);
+  }
+
  private:
   using StringInd = std::map<QString,int>;
   using IndString = std::map<int,QString>;
@@ -318,12 +384,12 @@ class CQBucketer {
   int numAuto_ { 10 }; // num auto
 
   // cached data
-  mutable bool       needsCalc_ { true }; // needs auto calc
-  mutable double     calcMin_   { 0.0 };  // calculated min value
-  mutable double     calcMax_   { 1.0 };  // calculated max value
-  mutable double     calcDelta_ { 1.0 };  // calculated delta value
-  mutable StringInd stringInd_;           // string to ind map
-  mutable IndString indString_;           // ind to string map
+  mutable bool      needsCalc_ { true }; // needs auto calc
+  mutable double    calcMin_   { 0.0 };  // calculated min value
+  mutable double    calcMax_   { 1.0 };  // calculated max value
+  mutable double    calcDelta_ { 1.0 };  // calculated delta value
+  mutable StringInd stringInd_;          // string to ind map
+  mutable IndString indString_;          // ind to string map
 };
 
 #endif

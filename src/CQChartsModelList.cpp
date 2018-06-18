@@ -321,17 +321,17 @@ setDetailsText(const CQChartsModelData *modelData)
   if (viewWidgetData->stack->currentIndex() == 0) {
     if (viewWidgetData->tree) {
       modelData1 = charts_->getModelData(viewWidgetData->tree->model().data());
-      assert(modelData1);
 
-      details = modelData1->details();
+      if (modelData1)
+        details = modelData1->details();
     }
   }
   else {
     if (viewWidgetData->table) {
       modelData1 = charts_->getModelData(viewWidgetData->table->model().data());
-      assert(modelData1);
 
-      details = modelData1->details();
+      if (modelData1)
+        details = modelData1->details();
     }
   }
 

@@ -25,10 +25,10 @@ addParameters()
    setTip("Point Size").setMapped().setMapMinMax(8, 64);
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn"  ).
-   setTip("Font Size for Text Label").setMapped().setMapMinMax(8, 48);
+   setTip("Custom Font Size for Text Label").setMapped().setMapMinMax(8, 48);
 
   addColumnParameter("color", "Color", "colorColumn").
-   setTip("Point Fill Color").setMapped();
+   setTip("Custom Point Fill color").setMapped();
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
    setTip("Show Text Label at Point");

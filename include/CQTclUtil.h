@@ -181,6 +181,12 @@ class CQTcl : public CTcl {
                                 proc, data, nullptr);
   }
 
+  int createAlias(const QString &newName, const QString &oldName) {
+    return Tcl_CreateAlias(interp(), newName.toLatin1().constData(),
+                           interp(), oldName.toLatin1().constData(),
+                           0, nullptr);
+  }
+
   bool evalExpr(const QString &expr, QVariant &res, bool showError=false) {
     return eval("expr {" + expr + "}", res, showError);
   }
@@ -212,7 +218,7 @@ class CQTcl : public CTcl {
       QVariant res = getResult();
 
       if (res.isValid()) {
-        QString resStr = res.toString();
+        QString resStr = resToString(res);
 
         if (resStr.length())
           std::cout << resStr.toStdString() << "\n";
@@ -220,6 +226,24 @@ class CQTcl : public CTcl {
     }
 
     return rc;
+  }
+
+  QString resToString(const QVariant &res) {
+    if (res.type() == QVariant::List) {
+      QList<QVariant> vars = res.toList();
+
+      QStringList strs;
+
+      for (int i = 0; i < vars.length(); ++i) {
+        QString str = resToString(vars[i]);
+
+        strs.push_back(str);
+      }
+
+      return "{" + strs.join(" ") + "}";
+    }
+    else
+      return res.toString();
   }
 
   void setResult(const QVariant &rc) {

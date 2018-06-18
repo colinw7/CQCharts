@@ -26,6 +26,7 @@ bool varToInt(const QVariant &var, int &i) {
 //---
 
 #ifdef CQChartsModelExprMatch_USE_CEXPR
+#include <CQExprUtil.h>
 #include <CExpr.h>
 
 class CQChartsModelExprMatchExprFn : public CExprFunctionObj {
@@ -691,22 +692,7 @@ CQChartsModelExprMatch::
 variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value)
 {
 #ifdef CQChartsModelExprMatch_USE_CEXPR
-  if (! var.isValid())
-    return false;
-
-  if      (var.type() == QVariant::Double)
-    value = expr->createRealValue(var.toDouble());
-  else if (var.type() == QVariant::Int)
-    value = expr->createIntegerValue((long) var.toInt());
-  else {
-    bool ok;
-
-    QString str = CQChartsUtil::toString(var, ok);
-
-    value = expr->createStringValue(str.toStdString());
-  }
-
-  return true;
+  return CQExprUtil::variantToValue(expr, var, value);
 #else
   assert(false && expr && &var && &value);
   return false;
@@ -715,26 +701,10 @@ variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value)
 
 QVariant
 CQChartsModelExprMatch::
-valueToVariant(CExpr *, const CExprValuePtr &value)
+valueToVariant(CExpr *expr, const CExprValuePtr &value)
 {
 #ifdef CQChartsModelExprMatch_USE_CEXPR
-  if      (value->isRealValue()) {
-    double r = 0.0;
-    value->getRealValue(r);
-    return QVariant(r);
-  }
-  else if (value->isIntegerValue()) {
-    long i = 0;
-    value->getIntegerValue(i);
-    return QVariant((int) i);
-  }
-  else {
-    std::string s;
-    value->getStringValue(s);
-    return QVariant(s.c_str());
-  }
-
-  return QVariant();
+  return CQExprUtil::valueToVariant(expr, value);
 #else
   assert(false && &value);
   return QVariant();

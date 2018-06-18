@@ -3,8 +3,8 @@
 
 #include <CQChartsModelFilter.h>
 
+class CQChartsExprModel;
 class CQTsvModel;
-class CQExprModel;
 
 class CQChartsTsvFilterModel : public CQChartsModelFilter {
   Q_OBJECT
@@ -13,8 +13,10 @@ class CQChartsTsvFilterModel : public CQChartsModelFilter {
   CQChartsTsvFilterModel(CQCharts *charts);
  ~CQChartsTsvFilterModel();
 
-  CQTsvModel  *tsvModel () const { return tsvModel_ ; }
-  CQExprModel *exprModel() const { return exprModel_; }
+  CQTsvModel *tsvModel() const { return tsvModel_; }
+
+  CQChartsExprModel  *exprModel() const override { return exprModel_; }
+  QAbstractItemModel *baseModel() const override;
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
@@ -23,8 +25,8 @@ class CQChartsTsvFilterModel : public CQChartsModelFilter {
   bool load(const QString &filename);
 
  private:
-  CQTsvModel*  tsvModel_  { nullptr };
-  CQExprModel* exprModel_ { nullptr };
+  CQTsvModel*        tsvModel_  { nullptr };
+  CQChartsExprModel* exprModel_ { nullptr };
 };
 
 #endif

@@ -871,7 +871,7 @@ class CQChartsValueSet : public QObject {
   using OptString = boost::optional<QString>;
 
  public:
-  CQChartsValueSet(CQChartsPlot *plot);
+  CQChartsValueSet(CQChartsPlot *plot=nullptr);
 
   //---
 
@@ -961,6 +961,10 @@ class CQChartsValueSet : public QObject {
   // get maximum real value
   // (for integers and reals this is the maximum unique value, otherwise this is imax))
   double rmax() const;
+
+  // get sum real value
+  // (for integers and reals this is the sum value, otherwise this is 0.0))
+  double rsum() const;
 
   // get mean real value
   // (for integers and reals this is the mean value, otherwise this is imax/2))

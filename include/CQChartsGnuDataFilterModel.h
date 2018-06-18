@@ -3,8 +3,8 @@
 
 #include <CQChartsModelFilter.h>
 
+class CQChartsExprModel;
 class CQGnuDataModel;
-class CQExprModel;
 
 class CQChartsGnuDataFilterModel : public CQChartsModelFilter {
   Q_OBJECT
@@ -14,7 +14,9 @@ class CQChartsGnuDataFilterModel : public CQChartsModelFilter {
  ~CQChartsGnuDataFilterModel();
 
   CQGnuDataModel *dataModel() const { return dataModel_; }
-  CQExprModel    *exprModel() const { return exprModel_; }
+
+  CQChartsExprModel  *exprModel() const override { return exprModel_; }
+  QAbstractItemModel *baseModel() const override;
 
   void setCommentHeader(bool b);
   void setFirstLineHeader(bool b);
@@ -22,8 +24,8 @@ class CQChartsGnuDataFilterModel : public CQChartsModelFilter {
   bool load(const QString &filename);
 
  private:
-  CQGnuDataModel* dataModel_ { nullptr };
-  CQExprModel*    exprModel_ { nullptr };
+  CQGnuDataModel*    dataModel_ { nullptr };
+  CQChartsExprModel* exprModel_ { nullptr };
 };
 
 #endif

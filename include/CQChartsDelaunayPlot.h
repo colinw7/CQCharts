@@ -2,8 +2,25 @@
 #define CQChartsDelaunayPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+
+//---
+
+class CQChartsDelaunayPlotType : public CQChartsPlotType {
+ public:
+  CQChartsDelaunayPlotType();
+
+  QString name() const override { return "delaunay"; }
+  QString desc() const override { return "Delaunay"; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsDelaunayPlot;
 class CQChartsDelaunay;
@@ -36,20 +53,6 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
   QModelIndex           ind_;
   int                   i_    { -1 };
   int                   n_    { -1 };
-};
-
-//---
-
-class CQChartsDelaunayPlotType : public CQChartsPlotType {
- public:
-  CQChartsDelaunayPlotType();
-
-  QString name() const override { return "delaunay"; }
-  QString desc() const override { return "Delaunay"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

@@ -2,6 +2,7 @@
 #define CQChartsPiePlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsColumnBucket.h>
@@ -9,6 +10,24 @@
 
 #include <boost/optional.hpp>
 #include <string>
+
+//---
+
+class CQChartsPiePlotType : public CQChartsPlotType {
+ public:
+  CQChartsPiePlotType();
+
+  QString name() const override { return "pie"; }
+  QString desc() const override { return "Pie"; }
+
+  void addParameters() override;
+
+  bool hasAxes() const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsPiePlot;
 
@@ -187,20 +206,6 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
  private:
   CQChartsPlotObj *obj_ { nullptr };
-};
-
-//---
-
-class CQChartsPiePlotType : public CQChartsPlotType {
- public:
-  CQChartsPiePlotType();
-
-  QString name() const override { return "pie"; }
-  QString desc() const override { return "Pie"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

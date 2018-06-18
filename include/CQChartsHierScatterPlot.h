@@ -2,8 +2,25 @@
 #define CQChartsHierScatterPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+
+//---
+
+class CQChartsHierScatterPlotType : public CQChartsPlotType {
+ public:
+  CQChartsHierScatterPlotType();
+
+  QString name() const override { return "hierscatter"; }
+  QString desc() const override { return "HierScatter"; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsHierScatterPlot;
 
@@ -185,20 +202,6 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
 
  private:
   CQChartsHierScatterPointGroup *group_ { nullptr };
-};
-
-//---
-
-class CQChartsHierScatterPlotType : public CQChartsPlotType {
- public:
-  CQChartsHierScatterPlotType();
-
-  QString name() const override { return "hierscatter"; }
-  QString desc() const override { return "HierScatter"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

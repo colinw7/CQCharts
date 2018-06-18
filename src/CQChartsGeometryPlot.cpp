@@ -21,7 +21,7 @@ addParameters()
   addColumnParameter("value"   , "Value"   , "valueColumn"   , 1).setRequired();
 
   addColumnParameter("name" , "Name" , "nameColumn" );
-  addColumnParameter("color", "Color", "colorColumn");
+  addColumnParameter("color", "Color", "colorColumn").setTip("Custom shape color");
   addColumnParameter("style", "Style", "styleColumn");
 
   CQChartsPlotType::addParameters();

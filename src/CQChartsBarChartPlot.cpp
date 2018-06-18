@@ -18,13 +18,15 @@ void
 CQChartsBarChartPlotType::
 addParameters()
 {
-  addColumnParameter ("category"   , "Category"    , "categoryColumn");
-  addColumnsParameter("value"      , "Value"       , "valueColumns"  , "1").setRequired();
-  addColumnParameter ("name"       , "Name"        , "nameColumn"    );
-  addColumnParameter ("label"      , "Label"       , "labelColumn"   );
-  addBoolParameter   ("rowGrouping", "Row Grouping", "rowGrouping"   );
-  addColumnParameter ("color"      , "Color"       , "colorColumn"   );
+  addColumnsParameter("value"   , "Value"   , "valueColumns", "1").
+    setRequired().setTip("Distribution value columns");
+  addColumnParameter ("category", "Category", "categoryColumn").setTip("Grouping category");
+  addColumnParameter ("name"    , "Name"    , "nameColumn"    ).setTip("Grouping name");
+  addColumnParameter ("label"   , "Label"   , "labelColumn"   ).setTip("Bar data label");
+  addColumnParameter ("color"   , "Color"   , "colorColumn"   ).setTip("Custom bar color");
 
+  addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
+    setTip("Group by value column instead of category");
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
   addBoolParameter("stacked"   , "Stacked"     , "stacked"   ).setTip("Stack grouped values");
   addBoolParameter("percent"   , "Percent"     , "percent"   ).setTip("Show value is percentage");
@@ -154,14 +156,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "categoryColumn", "category"   );
   addProperty("columns", this, "valueColumn"   , "value"      );
   addProperty("columns", this, "valueColumns"  , "valuesSet"  );
+  addProperty("columns", this, "categoryColumn", "category"   );
   addProperty("columns", this, "nameColumn"    , "name"       );
   addProperty("columns", this, "labelColumn"   , "label"      );
-  addProperty("columns", this, "rowGrouping"   , "rowGrouping");
   addProperty("columns", this, "colorColumn"   , "color"      );
 
+  addProperty("columns", this, "rowGrouping", "rowGrouping");
   addProperty("options", this, "colorBySet");
   addProperty("options", this, "stacked"   );
   addProperty("options", this, "percent"   );
@@ -450,7 +452,7 @@ updateRange(bool apply)
   }
   // if hierarchical use parent path
   else if (isHierarchical()) {
-    initGroup(groupData);
+    //initGroup(groupData);
   }
   // if no range use name or value columns for group
   else if (! isRangeBar()) {
@@ -656,7 +658,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (categoryColumn().isValid()) {
     bool ok1;
 
-    category = modelString(model, row, categoryColumn(), parent, ok1);
+    category = modelHierString(model, row, categoryColumn(), parent, ok1);
 
     categoryName = category;
   }
@@ -765,7 +767,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     valueData.setValueName(valueName);
   }
   else {
-    // if path grouping (hierarchical) then value name if group name
+    // if path grouping (hierarchical) then value name is group name
     if (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH) {
       if (groupName.length())
         valueData.setGroupName(groupName);
@@ -984,7 +986,7 @@ initObjs()
     double bw1 = 1.0;
 
     if (! isStacked()) {
-      if (ns > 1)
+      if (numVisible1 > 0)
         bw1 = 1.0/numVisible1;
     }
 
@@ -1063,7 +1065,7 @@ initObjs()
       CQChartsBarChartObj *barObj = nullptr;
 
       if (ns > 1)
-        barObj = new CQChartsBarChartObj(this, brect, i, ns, j, nv, 0, 1, &ivalue, minInd.ind);
+        barObj = new CQChartsBarChartObj(this, brect, i, nvs, j, nv, 0, 1, &ivalue, minInd.ind);
       else
         barObj = new CQChartsBarChartObj(this, brect, 0, 1, j, nv, i, nvs, &ivalue, minInd.ind);
 
@@ -1351,6 +1353,9 @@ CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
  CQChartsPlotObj(plot, rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
  isval_(isval), nsval_(nsval), value_(value), ind_(ind)
 {
+  assert(iset  >= 0 && iset  < nset);
+  assert(ival  >= 0 && ival  < nval);
+  assert(isval >= 0 && isval < nsval);
 }
 
 QString

@@ -2,8 +2,27 @@
 #define CQChartsImagePlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+
+//---
+
+class CQChartsImagePlotType : public CQChartsPlotType {
+ public:
+  CQChartsImagePlotType();
+
+  QString name() const override { return "image"; }
+  QString desc() const override { return "Image"; }
+
+  void addParameters() override;
+
+  bool hasAxes() const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsImagePlot;
 
@@ -28,20 +47,6 @@ class CQChartsImageObj : public CQChartsPlotObj {
   CQChartsImagePlot *plot_  { nullptr };
   double             value_ { 0.0 };
   QModelIndex        ind_;
-};
-
-//---
-
-class CQChartsImagePlotType : public CQChartsPlotType {
- public:
-  CQChartsImagePlotType();
-
-  QString name() const override { return "image"; }
-  QString desc() const override { return "Image"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

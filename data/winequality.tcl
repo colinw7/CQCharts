@@ -1,53 +1,18 @@
 set model [load_model -csv data/winequality-white.csv -first_line_header -separator {;}]
 
-set nr [get_charts_data -model $model -name num_rows]
-set nc [get_charts_data -model $model -name num_columns]
+#---
 
-puts "($nr, $nc)"
+source describe_model.tcl
 
-for {set c 0} {$c < $nc} {incr c} {
-  set name [get_charts_data -model $model -column $c -header -name value]
+describe_model $model
 
-  set num_null [get_charts_data -model $model -column $c -name num_null]
+#---
 
-  set num_non_null [expr {$nr - $num_null}]
+source create_stat_model.tcl
 
-  set type [get_charts_data -model $model -column $c -name type]
+set stat_model [create_stat_model $model]
 
-  puts "$name\t$num_non_null non-null $type"
-}
-
-puts ""
-
-set stat_column(-1) [list {} mean min lower_median median upper_median max]
-
-for {set c 0} {$c < $nc} {incr c} {
-  set name [get_charts_data -model $model -column $c -header -name value]
-
-  set stat_column($c) {}
-
-  lappend stat_column($c) $name
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name mean]
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name min]
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name lower_median]
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name median]
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name upper_median]
-  lappend stat_column($c) [get_charts_data -model $model -column $c -name max]
-
-  puts "$stat_column($c)"
-}
-
-set stat_columns {}
-
-lappend stat_columns $stat_column(-1)
-
-for {set c 0} {$c < $nc} {incr c} {
-  lappend stat_columns $stat_column($c)
-}
-
-set stat_model [load_model -var stat_columns -first_line_header -first_column_header]
-
-puts ""
+#---
 
 set unique [get_charts_data -model $model -column 11 -name unique_values]
 set counts [get_charts_data -model $model -column 11 -name unique_counts]
@@ -56,6 +21,9 @@ puts $unique
 puts $counts
 
 #---
+
+set nr [get_charts_data -model $model -name num_rows]
+set nc [get_charts_data -model $model -name num_columns]
 
 set view1 [create_view]
 

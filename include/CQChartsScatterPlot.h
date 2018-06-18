@@ -2,8 +2,25 @@
 #define CQChartsScatterPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+
+//---
+
+class CQChartsScatterPlotType : public CQChartsPlotType {
+ public:
+  CQChartsScatterPlotType();
+
+  QString name() const override { return "scatter"; }
+  QString desc() const override { return "Scatter"; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsScatterPlot;
 
@@ -73,20 +90,6 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 
  private:
   CQChartsColor color_;
-};
-
-//---
-
-class CQChartsScatterPlotType : public CQChartsPlotType {
- public:
-  CQChartsScatterPlotType();
-
-  QString name() const override { return "scatter"; }
-  QString desc() const override { return "Scatter"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

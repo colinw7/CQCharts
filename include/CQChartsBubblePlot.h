@@ -2,11 +2,34 @@
 #define CQChartsBubblePlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsCirclePack.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsData.h>
 #include <QModelIndex>
+
+//---
+
+class CQChartsBubblePlotType : public CQChartsPlotType {
+ public:
+  CQChartsBubblePlotType();
+
+  QString name() const override { return "bubble"; }
+  QString desc() const override { return "Bubble"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsBubblePlot;
 
@@ -89,20 +112,6 @@ class CQChartsBubbleObj : public CQChartsPlotObj {
   CQChartsBubbleNode *node_ { nullptr }; // associated node
   int                 i_    { 0 };       // data index
   int                 n_    { 0 };       // data count
-};
-
-//---
-
-class CQChartsBubblePlotType : public CQChartsPlotType {
- public:
-  CQChartsBubblePlotType();
-
-  QString name() const override { return "bubble"; }
-  QString desc() const override { return "Bubble"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

@@ -2,8 +2,25 @@
 #define CQChartsGeometryPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+
+//---
+
+class CQChartsGeometryPlotType : public CQChartsPlotType {
+ public:
+  CQChartsGeometryPlotType();
+
+  QString name() const override { return "geometry"; }
+  QString desc() const override { return "Geometry"; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsGeometryPlot;
 class CQChartsBoxObj;
@@ -58,20 +75,6 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
   int                   i_     { -1 };      // value index
   int                   n_     { -1 };      // value count
   Polygons              ppolygons_;         // pixel polygons
-};
-
-//---
-
-class CQChartsGeometryPlotType : public CQChartsPlotType {
- public:
-  CQChartsGeometryPlotType();
-
-  QString name() const override { return "geometry"; }
-  QString desc() const override { return "Geometry"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

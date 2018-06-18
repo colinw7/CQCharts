@@ -66,6 +66,8 @@ class CQChartsModelFilterData {
 
 //------
 
+class CQChartsExprModel;
+
 class CQChartsModelFilter : public QSortFilterProxyModel {
   Q_OBJECT
 
@@ -79,6 +81,9 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
  ~CQChartsModelFilter();
 
   CQChartsModelExprMatch *exprMatch() const { return expr_; }
+
+  virtual CQChartsExprModel  *exprModel() const = 0;
+  virtual QAbstractItemModel *baseModel() const = 0;
 
   QItemSelectionModel *selectionModel() const { return selectionModel_; }
   void setSelectionModel(QItemSelectionModel *sm) { selectionModel_ = sm; }
@@ -96,6 +101,9 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   bool isInvert() const { return currentFilterData().isInvert(); }
   void setInvert(bool b) { currentFilterData().setInvert(b); }
+
+  bool isConvert() const { return convert_; }
+  void setConvert(bool b) { convert_ = b; }
 
   void resetFilterData();
 
@@ -121,6 +129,8 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   //---
 
   void addExpand(const QModelIndex &ind) const { expand_.insert(ind); }
+
+  void sort(int column, Qt::SortOrder order) override;
 
  protected:
   const CQChartsModelFilterData &currentFilterData() const {
@@ -159,6 +169,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   FilterDatas             filterDatas_;
   mutable IndexMatches    matches_;
   mutable ExpandInds      expand_;
+  bool                    convert_        { true };
 };
 
 #endif

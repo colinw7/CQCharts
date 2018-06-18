@@ -34,9 +34,11 @@ void
 CQChartsValueSet::
 addProperties(const QString &path)
 {
-  plot_->addProperty(path, this, "mapped", "mapped");
-  plot_->addProperty(path, this, "mapMin", "mapMin");
-  plot_->addProperty(path, this, "mapMax", "mapMax");
+  if (plot_) {
+    plot_->addProperty(path, this, "mapped", "mapped");
+    plot_->addProperty(path, this, "mapMin", "mapMin");
+    plot_->addProperty(path, this, "mapMax", "mapMax");
+  }
 }
 
 void
@@ -289,6 +291,22 @@ rmax() const
 
 double
 CQChartsValueSet::
+rsum() const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.sum();
+  else if (type() == Type::REAL)
+    return rvals_.sum();
+  else if (type() == Type::STRING)
+    return 0.0;
+  else if (type() == Type::COLOR)
+    return 0.0;
+  else
+    return 0.0;
+}
+
+double
+CQChartsValueSet::
 rmean() const
 {
   if      (type() == Type::INTEGER)
@@ -324,7 +342,7 @@ init()
   type_ = Type::NONE;
 
   // get type from column values
-  if (column().isValid())
+  if (column().isValid() && plot_)
     type_ = plot_->columnValueType(column());
 
   // if no type then look at added value (TODO: always the same sas color values ?)

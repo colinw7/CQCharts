@@ -2,9 +2,34 @@
 #define CQChartsBarChartPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
+
+//---
+
+// bar chart plot type
+class CQChartsBarChartPlotType : public CQChartsPlotType {
+ public:
+  CQChartsBarChartPlotType();
+
+  QString name() const override { return "barchart"; }
+  QString desc() const override { return "BarChart"; }
+
+  const char *yColumnName() const override { return "value"; }
+
+  bool allowXAxisIntegral() const override { return false; }
+  bool allowYAxisIntegral() const override { return false; }
+
+  bool allowXLog() const override { return false; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsBarChartPlot;
 class CQChartsBoxObj;
@@ -209,21 +234,6 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 
  private:
   int i_ { 0 }; // set id
-};
-
-//---
-
-// bar chart plot type
-class CQChartsBarChartPlotType : public CQChartsPlotType {
- public:
-  CQChartsBarChartPlotType();
-
-  QString name() const override { return "barchart"; }
-  QString desc() const override { return "BarChart"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

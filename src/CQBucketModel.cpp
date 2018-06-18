@@ -66,21 +66,23 @@ connectSlots()
 {
   QAbstractItemModel *model = this->sourceModel();
 
-  connect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-          this, SLOT(bucket()));
-  connect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-          this, SLOT(bucket()));
-  connect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-          this, SLOT(bucket()));
+  if (model) {
+    connect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
+            this, SLOT(bucket()));
+    connect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+            this, SLOT(bucket()));
+    connect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
+            this, SLOT(bucket()));
 
-  connect(model, SIGNAL(modelReset()), this, SLOT(bucket()));
+    connect(model, SIGNAL(modelReset()), this, SLOT(bucket()));
 
-  connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-          this, SLOT(bucket()));
-  connect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-          this, SLOT(bucket()));
-  connect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-          this, SLOT(bucket()));
+    connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
+            this, SLOT(bucket()));
+    connect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+            this, SLOT(bucket()));
+    connect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
+            this, SLOT(bucket()));
+  }
 }
 
 void
@@ -89,21 +91,23 @@ disconnectSlots()
 {
   QAbstractItemModel *model = this->sourceModel();
 
-  disconnect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
-             this, SLOT(bucket()));
-  disconnect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-             this, SLOT(bucket()));
-  disconnect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
-             this, SLOT(bucket()));
+  if (model) {
+    disconnect(model, SIGNAL(columnsInserted(const QModelIndex &, int, int)),
+               this, SLOT(bucket()));
+    disconnect(model, SIGNAL(columnsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+               this, SLOT(bucket()));
+    disconnect(model, SIGNAL(columnsRemoved(const QModelIndex &, int, int)),
+               this, SLOT(bucket()));
 
-  disconnect(model, SIGNAL(modelReset()), this, SLOT(bucket()));
+    disconnect(model, SIGNAL(modelReset()), this, SLOT(bucket()));
 
-  disconnect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
-             this, SLOT(bucket()));
-  disconnect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-             this, SLOT(bucket()));
-  disconnect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-             this, SLOT(bucket()));
+    disconnect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)),
+               this, SLOT(bucket()));
+    disconnect(model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+               this, SLOT(bucket()));
+    disconnect(model, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
+               this, SLOT(bucket()));
+  }
 }
 
 void
@@ -116,6 +120,9 @@ bucket()
 
   // check column valid
   QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return;
 
   int numColumns = model->columnCount();
 
@@ -170,6 +177,9 @@ columnCount(const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->sourceModel();
 
+  if (! model)
+    return 0;
+
   return model->columnCount(parent) + 1;
 }
 
@@ -179,6 +189,9 @@ CQBucketModel::
 rowCount(const QModelIndex &parent) const
 {
   QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return 0;
 
   return model->rowCount(parent);
 }
@@ -220,6 +233,9 @@ data(const QModelIndex &index, int role) const
     return QVariant();
 
   QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return QVariant();
 
   if (c < bucketPos()) {
     QModelIndex ind = model->index(r, c);
@@ -265,6 +281,9 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (c < bucketPos()) {
     QAbstractItemModel *model = this->sourceModel();
 
+    if (! model)
+      return false;
+
     QModelIndex ind = model->index(r, c);
 
     return model->setData(ind, value, role);
@@ -280,6 +299,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
   if (orientation == Qt::Vertical) {
     QAbstractItemModel *model = this->sourceModel();
 
+    if (! model)
+      return QVariant();
+
     return model->headerData(section, orientation, role);
   }
 
@@ -287,6 +309,9 @@ headerData(int section, Qt::Orientation orientation, int role) const
     return QVariant();
 
   QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return QVariant();
 
   if (section < bucketPos())
     return model->headerData(section, orientation, role);
@@ -307,6 +332,9 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
   if (orientation == Qt::Vertical) {
     QAbstractItemModel *model = this->sourceModel();
 
+    if (! model)
+      return false;
+
     return model->setHeaderData(section, orientation, role);
   }
 
@@ -315,6 +343,9 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
 
   if (section < bucketPos()) {
     QAbstractItemModel *model = this->sourceModel();
+
+    if (! model)
+      return false;
 
     return model->setHeaderData(section, orientation, value, role);
   }
@@ -334,6 +365,9 @@ flags(const QModelIndex &index) const
 
   if (c < bucketPos()) {
     QAbstractItemModel *model = this->sourceModel();
+
+    if (! model)
+      return 0;
 
     QModelIndex ind = model->index(r, c);
 
@@ -373,6 +407,9 @@ mapToSource(const QModelIndex &proxyIndex) const
 
   if (c >= 0 && c < bucketPos()) {
     QAbstractItemModel *model = this->sourceModel();
+
+    if (! model)
+      return QModelIndex();
 
     return model->index(r, c);
   }

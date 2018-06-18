@@ -8,6 +8,7 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsAxis.h>
 #include <CQChartsAnnotation.h>
 #include <CQChartsLength.h>
@@ -16,6 +17,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsPaletteColorData.h>
 #include <CQChartsModelFilter.h>
+#include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
 
 #include <CQChartsLoadDlg.h>
@@ -24,8 +26,11 @@
 
 #include <CQChartsTree.h>
 #include <CQChartsTable.h>
+#include <CQChartsDataFilterModel.h>
+
 #include <CQDataModel.h>
 #include <CQSortModel.h>
+#include <CQFoldedModel.h>
 
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -202,7 +207,9 @@ addCommands()
   addCommand("load_model"   );
   addCommand("process_model");
   addCommand("sort_model"   );
+  addCommand("fold_model"   );
   addCommand("filter_model" );
+  addCommand("flatten_model");
 
   // correlation, export
   addCommand("correlation_model");
@@ -250,6 +257,10 @@ addCommands()
   addCommand("load_model_dlg"  );
   addCommand("manage_model_dlg");
   addCommand("create_plot_dlg" );
+
+#ifdef CQ_CHARTS_TCL
+  qtcl()->createAlias("echo", "puts");
+#endif
 }
 
 const CQChartsCmds::ParserType &
@@ -312,7 +323,9 @@ processCmd(const QString &cmd, const Vars &vars)
   if      (cmd == "load_model"   ) { loadModelCmd   (vars); }
   else if (cmd == "process_model") { processModelCmd(vars); }
   else if (cmd == "sort_model"   ) { sortModelCmd   (vars); }
+  else if (cmd == "fold_model"   ) { foldModelCmd   (vars); }
   else if (cmd == "filter_model" ) { filterModelCmd (vars); }
+  else if (cmd == "flatten_model") { flattenModelCmd(vars); }
 
   // correlation, export
   else if (cmd == "correlation_model") { correlationModelCmd(vars); }
@@ -442,7 +455,7 @@ loadModelCmd(const Vars &vars)
 
   inputData.filter = argv.getParseStr("filter");
 
-  QString columnType = argv.getParseStr("column_type");
+  QString columnTypes = argv.getParseStr("column_type");
 
   // TODO: columns (filter to columns)
 
@@ -478,8 +491,10 @@ loadModelCmd(const Vars &vars)
   if (! modelData)
     return false;
 
-  if (columnType != "") {
-    setColumnFormats(charts_, modelData, columnType);
+  if (columnTypes != "") {
+    ModelP model = modelData->model();
+
+    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes, /*remap*/true);
   }
 
   setCmdRc(modelData->ind());
@@ -502,12 +517,13 @@ processModelCmd(const Vars &vars)
   argv.addCmdArg("-add"   , CQChartsCmdArg::Type::Boolean, "add column");
   argv.addCmdArg("-delete", CQChartsCmdArg::Type::Boolean, "delete column");
   argv.addCmdArg("-modify", CQChartsCmdArg::Type::Boolean, "modify column values");
+  argv.addCmdArg("-calc"  , CQChartsCmdArg::Type::Boolean, "calc column");
   argv.addCmdArg("-query" , CQChartsCmdArg::Type::Boolean, "query column");
   argv.endCmdGroup();
 
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
   argv.addCmdArg("-type"  , CQChartsCmdArg::Type::String, "type data for add/modify");
-  argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify");
+  argv.addCmdArg("-expr"  , CQChartsCmdArg::Type::String, "expression for add/modify/calc/query");
 
   if (! argv.parse())
     return;
@@ -597,6 +613,20 @@ processModelCmd(const Vars &vars)
     }
 
     setCmdRc(column);
+  }
+  else if (argv.getParseBool("calc")) {
+    int column = argv.getParseInt("column", -1);
+
+    CQExprModel::Values values;
+
+    exprModel->calcColumn(column, expr, values);
+
+    QVariantList vars;
+
+    for (const auto &var : values)
+      vars.push_back(var);
+
+    setCmdRc(vars);
   }
   else if (argv.getParseBool("query")) {
     int column = argv.getParseInt("column", -1);
@@ -741,11 +771,11 @@ createPlotCmd(const Vars &vars)
 
   //---
 
-  QString viewName    = argv.getParseStr ("view");
+  QString viewName    = argv.getParseStr    ("view");
   int     modelInd    = argv.getParseInt    ("model", -1);
   QString typeName    = argv.getParseStr    ("type");
   QString filterStr   = argv.getParseStr    ("where");
-  QString columnType  = argv.getParseStr    ("column_type");
+  QString columnTypes = argv.getParseStr    ("column_type");
   bool    xintegral   = argv.getParseBool   ("xintegral");
   bool    yintegral   = argv.getParseBool   ("yintegral");
   bool    xlog        = argv.getParseBool   ("xlog");
@@ -870,8 +900,10 @@ createPlotCmd(const Vars &vars)
 
   //------
 
-  if (columnType != "") {
-    setColumnFormats(charts_, modelData, columnType);
+  if (columnTypes != "") {
+    ModelP model = modelData->model();
+
+    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes, /*remap*/true);
   }
 
   //------
@@ -922,7 +954,11 @@ createPlotCmd(const Vars &vars)
   // create plot from init (argument) data
   CQChartsPlot *plot = createPlot(view, model, modelData->selectionModel(), type,
                                   nameValueData, true, bbox);
-  assert(plot);
+
+  if (! plot) {
+    errorMsg("Failed to create plot");
+    return;
+  }
 
   //------
 
@@ -1449,6 +1485,299 @@ placePlotsCmd(const Vars &vars)
 
 void
 CQChartsCmds::
+foldModelCmd(const Vars &vars)
+{
+  CQChartsCmdsArgs argv("fold_model", vars);
+
+  argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number to fold");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  int modelInd = argv.getParseInt("model" , -1);
+  int column   = argv.getParseInt("column", -1);
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    errorMsg("No model data");
+    return;
+  }
+
+  ModelP model = modelData->model();
+
+  CQFoldData foldData(column);
+
+  CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
+
+  QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
+
+  foldProxyModel->setSourceModel(foldedModel);
+
+  ModelP foldedModelP(foldProxyModel);
+
+  CQChartsModelData *foldedModelData = charts_->initModelData(foldedModelP);
+
+  //---
+
+  setCmdRc(foldedModelData->ind());
+}
+
+//------
+
+void
+CQChartsCmds::
+flattenModelCmd(const Vars &vars)
+{
+  CQChartsCmdsArgs argv("fold_model", vars);
+
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-group", CQChartsCmdArg::Type::Column , "grouping column id");
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.addCmdArg("-mean" , CQChartsCmdArg::Type::Boolean, "calc mean of column values");
+  argv.addCmdArg("-sum"  , CQChartsCmdArg::Type::Boolean, "calc sum of column values");
+  argv.endCmdGroup();
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  int  modelInd = argv.getParseInt ("model" , -1);
+  bool meanFlag = argv.getParseBool("mean");
+  bool sumFlag  = argv.getParseBool("sum");
+
+  //------
+
+  // get model
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    errorMsg("No model data");
+    return;
+  }
+
+  //---
+
+  ModelP model = modelData->model();
+
+  CQChartsColumn groupColumn = argv.getParseColumn("group", model.data());
+
+  //---
+
+  class FlattenVisitor : public CQChartsModelVisitor {
+   public:
+    FlattenVisitor(const CQChartsColumn &groupColumn) :
+     groupColumn_(groupColumn) {
+    }
+
+    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      ++hierRow_;
+
+      bool ok;
+
+      groupValue_[hierRow_] = CQChartsUtil::modelValue(model, row, 0, parent, ok);
+
+      return State::OK;
+    }
+
+    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      int nc = numCols();
+
+      if (isHierarchical()) {
+        for (int c = 1; c < nc; ++c) {
+          bool ok;
+
+          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+
+          if (ok)
+            rowColValueSet_[hierRow_][c - 1].addValue(var);
+        }
+      }
+      else if (groupColumn_.isValid()) {
+        bool ok;
+
+        QVariant groupVar = CQChartsUtil::modelValue(model, row, groupColumn_, parent, ok);
+
+        auto p = valueGroup_.find(groupVar);
+
+        if (p == valueGroup_.end()) {
+          int group = valueGroup_.size();
+
+          p = valueGroup_.insert(p, ValueGroup::value_type(groupVar, group));
+
+          groupValue_[group] = groupVar;
+        }
+
+        int group = (*p).second;
+
+        for (int c = 0; c < nc; ++c) {
+          bool ok;
+
+          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+
+          if (ok)
+            rowColValueSet_[group][c].addValue(var);
+        }
+      }
+      else {
+        for (int c = 0; c < nc; ++c) {
+          bool ok;
+
+          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+
+          if (ok)
+            rowColValueSet_[0][c].addValue(var);
+        }
+      }
+
+      return State::OK;
+    }
+
+    int numHierColumns() const { return (isHierarchical() ? 1 : 0); }
+
+    int numFlatColumns() const { return numCols() - numHierColumns(); }
+
+    int numHierRows() const { return rowColValueSet_.size(); }
+
+    QVariant groupValue(int row) {
+      assert(row >= 0 && row <= int(groupValue_.size()));
+
+      return groupValue_[row];
+    }
+
+    double hierSum(int r, int c) const {
+      return valueSet(r, c).rsum();
+    }
+
+    double hierMean(int r, int c) const {
+      return valueSet(r, c).rmean();
+    }
+
+   private:
+    CQChartsValueSet &valueSet(int r, int c) const {
+      assert(r >= 0 && r <= int(rowColValueSet_.size()));
+      assert(c >= 0 && c <= numFlatColumns());
+
+      FlattenVisitor *th = const_cast<FlattenVisitor *>(this);
+
+      return th->rowColValueSet_[r][c];
+    }
+
+   private:
+    using ValueGroup     = std::map<QVariant,int>;
+    using GroupValue     = std::map<int,QVariant>;
+    using ColValueSet    = std::map<int,CQChartsValueSet>;
+    using RowColValueSet = std::map<QVariant,ColValueSet>;
+
+    CQChartsColumn groupColumn_;
+    int            hierRow_ { -1 };
+    ValueGroup     valueGroup_;
+    GroupValue     groupValue_;
+    RowColValueSet rowColValueSet_;
+  };
+
+  FlattenVisitor flattenVisitor(groupColumn);
+
+  CQChartsUtil::visitModel(model.data(), flattenVisitor);
+
+  int nh = flattenVisitor.numHierColumns();
+  int nc = flattenVisitor.numFlatColumns();
+  int nr = flattenVisitor.numHierRows();
+
+  //---
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
+  CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nc + nh, nr);
+
+  CQDataModel *model1 = dataModel->dataModel();
+
+  // set hierarchical column
+  if (flattenVisitor.isHierarchical()) {
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model.data(), 0, Qt::Horizontal, ok);
+
+    CQChartsUtil::setModelHeaderValue(model1, 0, Qt::Horizontal, name);
+  }
+
+  // set other columns and types
+  for (int c = 0; c < nc; ++c) {
+    bool isGroup = (groupColumn.column() == c);
+
+    bool ok;
+
+    QString name = CQChartsUtil::modelHeaderString(model.data(), c + nh, Qt::Horizontal, ok);
+
+    CQChartsUtil::setModelHeaderValue(model1, c + nh, Qt::Horizontal, name);
+
+    CQBaseModel::Type  columnType;
+    CQChartsNameValues nameValues;
+
+    if (! CQChartsUtil::columnValueType(charts_, model.data(), c, columnType, nameValues))
+      continue;
+
+    CQChartsColumnType *typeData = columnTypeMgr->getType(columnType);
+
+    if (! typeData)
+      continue;
+
+    if (isGroup || typeData->isNumeric()) {
+      if (! columnTypeMgr->setModelColumnType(model1, c + nh, columnType, nameValues))
+        continue;
+    }
+  }
+
+  //--
+
+  for (int r = 0; r < nr; ++r) {
+    if (flattenVisitor.isHierarchical()) {
+      QVariant var = flattenVisitor.groupValue(r);
+
+      CQChartsUtil::setModelValue(model1, r, 0, var);
+    }
+
+    for (int c = 0; c < nc; ++c) {
+      bool isGroup = (groupColumn.column() == c);
+
+      if (! isGroup) {
+        double v = 0.0;
+
+        if      (sumFlag)
+          v = flattenVisitor.hierSum(r, c);
+        else if (meanFlag)
+          v = flattenVisitor.hierMean(r, c);
+
+        CQChartsUtil::setModelValue(model1, r, c + nh, v);
+      }
+      else {
+        QVariant v = flattenVisitor.groupValue(r);
+
+        CQChartsUtil::setModelValue(model1, r, c + nh, v);
+      }
+    }
+  }
+
+  ModelP dataModelP(dataModel);
+
+  CQChartsModelData *dataModelData = charts_->initModelData(dataModelP);
+
+  //---
+
+  setCmdRc(dataModelData->ind());
+}
+
+//------
+
+void
+CQChartsCmds::
 sortModelCmd(const Vars &vars)
 {
   CQChartsCmdsArgs argv("sort_model", vars);
@@ -1586,8 +1915,8 @@ exportModelCmd(const Vars &vars)
   //---
 
   int     modelInd = argv.getParseInt ("model", -1);
-  QString toName   = argv.getParseStr ("to");
-  QString filename = argv.getParseStr ("file");
+  QString toName   = argv.getParseStr ("to", "csv");
+  QString filename = argv.getParseStr ("file", "");
   bool    hheader  = argv.getParseBool("hheader", true);
   bool    vheader  = argv.getParseBool("vheader", false);
 
@@ -1605,6 +1934,12 @@ exportModelCmd(const Vars &vars)
 
   if (filename.length()) {
     fos.open(filename.toLatin1().constData());
+
+    if (fos.fail()) {
+      errorMsg("Failed to open '" + filename + "'");
+      return;
+    }
+
     isFile = true;
   }
 
@@ -2098,7 +2433,9 @@ setChartsDataCmd(const Vars &vars)
       }
     }
     else if (name == "column_type") {
-      setColumnFormats(charts_, modelData, value);
+      ModelP model = modelData->model();
+
+      CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value, /*remap*/true);
     }
     else if (name == "name") {
       modelData->setName(value);
@@ -3490,17 +3827,6 @@ setPlotProperties(CQChartsPlot *plot, const QString &properties)
 {
   if (! plot->setProperties(properties))
     errorMsg("Failed to set plot properties '" + properties + "'");
-}
-
-//------
-
-void
-CQChartsCmds::
-setColumnFormats(CQCharts *charts, CQChartsModelData *modelData, const QString &columnTypes)
-{
-  ModelP model = modelData->model();
-
-  CQChartsUtil::setColumnTypeStrs(charts, model.data(), columnTypes);
 }
 
 //------

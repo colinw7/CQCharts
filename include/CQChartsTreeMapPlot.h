@@ -7,6 +7,27 @@
 #include <CQChartsData.h>
 #include <QModelIndex>
 
+//---
+
+class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
+ public:
+  CQChartsTreeMapPlotType();
+
+  QString name() const override { return "treemap"; }
+  QString desc() const override { return "TreeMap"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
+
 class CQChartsTreeMapPlot;
 class CQChartsTreeMapHierNode;
 
@@ -222,20 +243,6 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
 
  private:
   CQChartsTreeMapHierNode* hier_ { nullptr };
-};
-
-//---
-
-class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
- public:
-  CQChartsTreeMapPlotType();
-
-  QString name() const override { return "treemap"; }
-  QString desc() const override { return "TreeMap"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

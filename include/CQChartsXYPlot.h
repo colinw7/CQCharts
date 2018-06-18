@@ -2,11 +2,31 @@
 #define CQChartsXYPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
 class CQChartsArrow;
+
+//---
+
+class CQChartsXYPlotType : public CQChartsPlotType {
+ public:
+  CQChartsXYPlotType();
+
+  QString name() const override { return "xy"; }
+  QString desc() const override { return "XY"; }
+
+  void addParameters() override;
+
+  const char *xColumnName() const override { return "x"; }
+  const char *yColumnName() const override { return "y"; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsXYBiLineObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -249,20 +269,6 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
  private:
   int i_ { 0 };
-};
-
-//---
-
-class CQChartsXYPlotType : public CQChartsPlotType {
- public:
-  CQChartsXYPlotType();
-
-  QString name() const override { return "xy"; }
-  QString desc() const override { return "XY"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

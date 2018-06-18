@@ -34,6 +34,8 @@ addParameters()
   addColumnParameter("vectorY", "VectorY", "vectorYColumn").setNumeric();
 
   // bool parameters
+  addBoolParameter("lines"     , "Lines"     , "lines"     , true);
+  addBoolParameter("points"    , "Points"    , "points"    );
   addBoolParameter("bivariate" , "Bivariate" , "bivariate" );
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   );
   addBoolParameter("cumulative", "Cumulative", "cumulative");

@@ -13,6 +13,22 @@ class CQChartsSunburstNode;
 
 //---
 
+class CQChartsSunburstPlotType : public CQChartsHierPlotType {
+ public:
+  CQChartsSunburstPlotType();
+
+  QString name() const override { return "sunburst"; }
+  QString desc() const override { return "Sunburst"; }
+
+  void addParameters() override;
+
+  bool hasAxes() const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
+
 class CQChartsSunburstNodeObj : public CQChartsPlotObj {
   Q_OBJECT
 
@@ -225,20 +241,6 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
  private:
   bool  sort_  { true };        // is sorted
   Order order_ { Order::SIZE }; // sort order
-};
-
-//---
-
-class CQChartsSunburstPlotType : public CQChartsHierPlotType {
- public:
-  CQChartsSunburstPlotType();
-
-  QString name() const override { return "sunburst"; }
-  QString desc() const override { return "Sunburst"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

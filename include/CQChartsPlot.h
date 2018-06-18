@@ -1,7 +1,6 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
-#include <CQChartsPlotParameter.h>
 #include <CQChartsColor.h>
 #include <CQChartsColumnBucket.h>
 #include <CQChartsPlotSymbol.h>
@@ -25,6 +24,7 @@
 
 class CQCharts;
 class CQChartsView;
+class CQChartsPlotType;
 class CQChartsPlot;
 class CQChartsAxis;
 class CQChartsPlotKey;
@@ -56,129 +56,6 @@ class QMenu;
 //----
 
 #include <CQChartsEditHandles.h>
-
-//----
-
-class CQChartsPlotType;
-
-class CQChartsPlotTypeMgr {
- public:
-  CQChartsPlotTypeMgr();
- ~CQChartsPlotTypeMgr();
-
-  void addType(const QString &name, CQChartsPlotType *type);
-
-  bool isType(const QString &name) const;
-
-  CQChartsPlotType *type(const QString &name) const;
-
-  void getTypeNames(QStringList &names, QStringList &descs) const;
-
- private:
-  using Types = std::map<QString,CQChartsPlotType*>;
-
-  Types types_;
-};
-
-//----
-
-class CQChartsPlotType {
- public:
-  using Parameters          = std::vector<CQChartsPlotParameter>;
-  using ParameterAttributes = CQChartsPlotParameterAttributes;
-  using ModelP              = QSharedPointer<QAbstractItemModel>;
-
- public:
-  CQChartsPlotType();
-
-  virtual ~CQChartsPlotType() { }
-
-  // type name and description
-  virtual QString name() const = 0;
-  virtual QString desc() const = 0;
-
-  // plot parameters
-  // (required/key options to initialize plot)
-  virtual void addParameters() = 0;
-
-  const Parameters &parameters() const { return parameters_; }
-
-  CQChartsPlotParameter &
-  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     int defValue=-1) {
-    return addColumnParameter(name, desc, propName, ParameterAttributes(), defValue);
-  }
-
-  CQChartsPlotParameter &
-  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, int defValue=-1) {
-    return addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
-  }
-
-  CQChartsPlotParameter &
-  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const QString &defValue="") {
-    return addParameter(CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(),
-                                                 defValue));
-  }
-
-  CQChartsPlotParameter &
-  addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const ParameterAttributes &attributes, const QString &defValue) {
-    return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
-  }
-
-  CQChartsPlotParameter &
-  addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const QString &defValue="") {
-    return addParameter(CQChartsStringParameter(name, desc, propName, ParameterAttributes(),
-                                                defValue));
-  }
-
-  CQChartsPlotParameter &
-  addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, const QString &defValue) {
-    return addParameter(CQChartsStringParameter(name, desc, propName, attributes, defValue));
-  }
-
-  CQChartsPlotParameter &
-  addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   double defValue=0.0) {
-    return addParameter(CQChartsRealParameter(name, desc, propName, ParameterAttributes(),
-                                              defValue));
-  }
-
-  CQChartsPlotParameter &
-  addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, double defValue) {
-    return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
-  }
-
-  CQChartsPlotParameter &
-  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   bool defValue=false) {
-    return addParameter(CQChartsBoolParameter(name, desc, propName, ParameterAttributes(),
-                                              defValue));
-  }
-
-  CQChartsPlotParameter &
-  addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, bool defValue) {
-    return addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
-  }
-
-  CQChartsPlotParameter &addParameter(const CQChartsPlotParameter &parameter) {
-    parameters_.push_back(parameter);
-
-    return parameters_.back();
-  }
-
-  // create plot
-  virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
-
- protected:
-  Parameters parameters_;
-};
 
 //----
 
@@ -384,7 +261,7 @@ class CQChartsPlot : public QObject {
 
   CQCharts *charts() const;
 
-  QString typeName() const { return type()->name(); }
+  QString typeName() const;
 
   const QString &id() const { return id_; }
   void setId(const QString &s) { id_ = s; }
@@ -821,6 +698,17 @@ class CQChartsPlot : public QObject {
 
   virtual CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                    const QModelIndex &parent, bool &ok) const;
+
+  //---
+
+  QVariant modelHierValue  (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, bool &ok) const;
+  QString  modelHierString (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, bool &ok) const;
+  double   modelHierReal   (QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, bool &ok) const;
+  long     modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, bool &ok) const;
 
   //---
 
@@ -1416,6 +1304,7 @@ class CQChartsPlot : public QObject {
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
   bool                      autoFit_          { false };      // auto fit on data change
+  bool                      needsAutoFit_     { false };      // needs auto fit on next draw
   bool                      preview_          { false };      // is preview plot
   int                       previewMaxRows_   { 1000 };       // preview max rows
   bool                      showBoxes_        { false };      // show debug boxes

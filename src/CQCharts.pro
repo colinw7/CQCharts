@@ -24,6 +24,7 @@ CQChartsJsonFilterModel.cpp \
 CQChartsGnuDataFilterModel.cpp \
 CQChartsDataFilterModel.cpp \
 CQChartsExprDataFilterModel.cpp \
+CQChartsExprModel.cpp \
 \
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
@@ -41,6 +42,7 @@ CQChartsViewToolBar.cpp \
 CQChartsViewToolTip.cpp \
 CQChartsProbeBand.cpp \
 \
+CQChartsPlotType.cpp \
 CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
@@ -148,6 +150,7 @@ HEADERS += \
 ../include/CQChartsGnuDataFilterModel.h \
 ../include/CQChartsDataFilterModel.h \
 ../include/CQChartsExprDataFilterModel.h \
+../include/CQChartsExprModel.h \
 \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
@@ -165,6 +168,7 @@ HEADERS += \
 ../include/CQChartsViewToolTip.h \
 ../include/CQChartsProbeBand.h \
 \
+../include/CQChartsPlotType.h \
 ../include/CQChartsPlot.h \
 ../include/CQChartsHierPlot.h \
 ../include/CQChartsAdjacencyPlot.h \
@@ -231,7 +235,6 @@ HEADERS += \
 ../include/CQChartsModelDetails.h \
 ../include/CQChartsModelExprMatch.h \
 ../include/CQChartsModelFilter.h \
-../include/CQChartsModelFn.h \
 ../include/CQChartsModelVisitor.h \
 ../include/CQChartsColumnEdit.h \
 \

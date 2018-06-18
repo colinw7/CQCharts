@@ -12,6 +12,8 @@ CQChartsModelFilter(CQCharts *charts) :
   expr_ = new CQChartsModelExprMatch;
 
   resetFilterData();
+
+  setSortRole(Qt::EditRole);
 }
 
 CQChartsModelFilter::
@@ -369,6 +371,9 @@ QVariant
 CQChartsModelFilter::
 data(const QModelIndex &ind, int role) const
 {
+  if (! ind.isValid())
+    return QVariant();
+
   QVariant var = QSortFilterProxyModel::data(ind, role);
 
   if (role == Qt::EditRole && ! var.isValid())
@@ -377,10 +382,15 @@ data(const QModelIndex &ind, int role) const
   if (! var.isValid())
     return QVariant();
 
-  if (role == Qt::DisplayRole || role == Qt::EditRole) {
-    if (! ind.isValid())
-      return QVariant();
+  //---
 
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+    if (! isConvert())
+      return var;
+
+    //---
+
+    // convert variant using column type data
     assert(ind.model() == this);
 
     QModelIndex ind1 = mapToSource(ind);
@@ -399,4 +409,11 @@ data(const QModelIndex &ind, int role) const
   }
 
   return var;
+}
+
+void
+CQChartsModelFilter::
+sort(int column, Qt::SortOrder order)
+{
+  QSortFilterProxyModel::sort(column, order);
 }

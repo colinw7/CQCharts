@@ -444,3 +444,11 @@
  + support idColumn cross selecton for all plots
  + Fix create plot dialog column check to include column arrays
  + Speed up random row selection in summary model
+# 6/17/2018
+ + Add more plot type parameters for axes, key, title support, log support, description
+ + Improve value lookup for group value in hier column
+ + Better box plot when single value in range
+ + Add more functions to expression model
+ + Support fold and collapse commands
+ + Use CQBucketer class in distributon plot and bucket model function
+ + Always store time values as doubles in model (convert values when format set)

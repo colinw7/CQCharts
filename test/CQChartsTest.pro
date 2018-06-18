@@ -15,11 +15,13 @@ MOC_DIR = .moc
 SOURCES += \
 CQChartsTest.cpp \
 CQChartsCmds.cpp \
+CQChartsAppWindow.cpp \
 CQAppWindow.cpp \
 
 HEADERS += \
 CQChartsTest.h \
 CQChartsCmds.h \
+CQChartsAppWindow.h \
 CQAppWindow.h \
 
 DESTDIR     = ../bin

@@ -1,20 +1,13 @@
 #include <CQChartsTest.h>
-#include <CQChartsModelWidgets.h>
-
-#include <CQCharts.h>
-#include <CQChartsTable.h>
-#include <CQChartsTree.h>
+#include <CQChartsAppWindow.h>
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsAxis.h>
-#include <CQChartsKey.h>
-#include <CQChartsLoadDlg.h>
-#include <CQChartsPlotDlg.h>
 #include <CQChartsCmds.h>
+#include <CQCharts.h>
 
-#include <CQExprModel.h>
 #include <CQSortModel.h>
 
 #ifdef CQ_APP_H
@@ -27,11 +20,6 @@
 #include <CQUtil.h>
 #include <CReadLine.h>
 
-#include <QMenuBar>
-#include <QMenu>
-#include <QAction>
-#include <QStackedWidget>
-#include <QVBoxLayout>
 #include <QFile>
 #include <QTextStream>
 
@@ -150,7 +138,7 @@ struct MainData {
 #endif
   OptString        printFile;
   bool             gui        { true };
-  bool             closeApp   { false };
+  bool             showApp    { false };
   bool             exit       { false };
   int              viewWidth  { 100 };
   int              viewHeight { 100 };
@@ -209,14 +197,14 @@ main(int argc, char **argv)
 
   //---
 
-  // create test widget and show if needed
+  // create test object
   CQChartsTest test;
 
   if (! mainData.gui)
     test.setGui(false);
 
-  if (! mainData.gui || (mainData.printFile && mainData.exit))
-    test.setShow(false);
+  if (mainData.showApp)
+    test.setShowApp(true);
 
   // set parse type
   test.setParserType(mainData.parserType);
@@ -308,22 +296,20 @@ main(int argc, char **argv)
   //---
 
   // show test widget
-  if (test.isShow()) {
-    test.show();
+  CQChartsAppWindow *appWindow = nullptr;
 
-    if (test.window())
-      test.window()->raise();
+  if (test.isShowApp()) {
+    appWindow = new CQChartsAppWindow(test.charts());
+
+    appWindow->show();
+
+    if (appWindow->window())
+      appWindow->window()->raise();
   }
 
   // print plot
   if (mainData.printFile)
     test.print(*mainData.printFile);
-
-  //---
-
-  // close test widget
-  if (mainData.closeApp)
-    test.closeSlot();
 
   //---
 
@@ -729,8 +715,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
       }
 
       // close app
-      else if (arg == "close_app") {
-        mainData.closeApp = true;
+      else if (arg == "show_app") {
+        mainData.showApp = true;
       }
 
       // exit
@@ -754,27 +740,11 @@ parseArgs(int argc, char **argv, MainData &mainData)
 
 CQChartsTest::
 CQChartsTest() :
- CQAppWindow()
+ QObject()
 {
   charts_ = new CQCharts;
 
   charts_->init();
-
-  //---
-
-  // add menus
-  addMenus();
-
-  //---
-
-  QVBoxLayout *layout = CQUtil::makeLayout<QVBoxLayout>(centralWidget(), 0, 0);
-
-  //---
-
-  // create model widgets
-  modelWidgets_ = new CQChartsModelWidgets(charts_);
-
-  layout->addWidget(modelWidgets_);
 
   //---
 
@@ -790,54 +760,8 @@ CQChartsTest() :
 CQChartsTest::
 ~CQChartsTest()
 {
-  delete charts_;
-  delete loadDlg_;
   delete cmds_;
-}
-
-//------
-
-void
-CQChartsTest::
-addMenus()
-{
-  QMenuBar *menuBar = addMenuBar();
-
-  QMenu *fileMenu = menuBar->addMenu("&File");
-
-  QAction *loadAction = new QAction("Load Model", menuBar);
-
-  loadAction->setShortcut(QKeySequence("Ctrl+L"));
-
-  connect(loadAction, SIGNAL(triggered()), this, SLOT(loadModelSlot()));
-
-  fileMenu->addAction(loadAction);
-
-  QAction *closeAction = new QAction("Close", menuBar);
-
-  connect(closeAction, SIGNAL(triggered()), this, SLOT(closeSlot()));
-
-  fileMenu->addAction(closeAction);
-
-  //---
-
-  QMenu *plotMenu = menuBar->addMenu("&Plot");
-
-  QAction *createAction = new QAction("Create Plot", menuBar);
-
-  createAction->setShortcut(QKeySequence("Ctrl+P"));
-
-  connect(createAction, SIGNAL(triggered()), this, SLOT(createPlotSlot()));
-
-  plotMenu->addAction(createAction);
-
-  //---
-
-  QMenu *helpMenu = menuBar->addMenu("&Help");
-
-  QAction *helpAction = new QAction("Help"  , menuBar);
-
-  helpMenu->addAction(helpAction);
+  delete charts_;
 }
 
 //------
@@ -980,88 +904,6 @@ initPlot(const CQChartsInitData &initData)
 
 //------
 
-void
-CQChartsTest::
-closeSlot()
-{
-  close();
-}
-
-//------
-
-void
-CQChartsTest::
-loadModelSlot()
-{
-  if (! loadDlg_) {
-    loadDlg_ = new CQChartsLoadDlg(charts_);
-
-    connect(loadDlg_, SIGNAL(modelLoaded(int)), this, SLOT(modelLoadedSlot(int)));
-  }
-
-  loadDlg_->exec();
-}
-
-void
-CQChartsTest::
-modelLoadedSlot(int ind)
-{
-  charts_->setCurrentModelInd(ind);
-}
-
-//------
-
-void
-CQChartsTest::
-createPlotSlot()
-{
-  CQChartsModelData *modelData = charts_->currentModelData();
-
-  if (! modelData)
-    return;
-
-  ModelP model = modelData->model();
-
-  //---
-
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
-
-  if (modelData->selectionModel())
-    dlg->setSelectionModel(modelData->selectionModel());
-
-  connect(dlg, SIGNAL(plotCreated(CQChartsPlot *)),
-          this, SLOT(plotDialogCreatedSlot(CQChartsPlot *)));
-
-  if (! dlg->exec())
-    return;
-
-  //---
-
-  delete dlg;
-}
-
-void
-CQChartsTest::
-plotDialogCreatedSlot(CQChartsPlot *plot)
-{
-  connect(plot, SIGNAL(objPressed(CQChartsPlotObj *)),
-          this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
-}
-
-//------
-
-void
-CQChartsTest::
-plotObjPressedSlot(CQChartsPlotObj *obj)
-{
-  QString id = obj->id();
-
-  if (id.length())
-    errorMsg(id);
-}
-
-//------
-
 CQChartsPlot *
 CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
@@ -1120,7 +962,10 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
                              initData.nameValueData, reuse, bbox);
   }
 
-  assert(plot);
+  if (! plot) {
+    errorMsg("Create plot failed");
+    return nullptr;
+  }
 
   if (initData.viewProperties != "") {
     plot->view()->setProperties(initData.viewProperties);
@@ -1198,13 +1043,14 @@ plotAdded(CQChartsPlot *plot)
           this, SLOT(plotObjPressedSlot(CQChartsPlotObj *)));
 }
 
-//------
-
-QSize
+void
 CQChartsTest::
-sizeHint() const
+plotObjPressedSlot(CQChartsPlotObj *obj)
 {
-  return QSize(1024, 1024);
+  QString id = obj->id();
+
+  if (id.length())
+    errorMsg(id);
 }
 
 //------

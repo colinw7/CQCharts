@@ -6,7 +6,6 @@
 #include <CQChartsGeom.h>
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
-#include <CQChartsModelVisitor.h>
 #include <CQChartsColor.h>
 #include <CQBaseModel.h>
 #include <CQExprModel.h>
@@ -21,23 +20,13 @@
 using CQChartsNameValues = std::map<QString,QString>;
 
 class CQCharts;
+class CQChartsColumnType;
 
 namespace CQChartsUtil {
 
 bool isHierarchical(QAbstractItemModel *model);
 
 int hierRowCount(QAbstractItemModel *model);
-
-bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
-
-bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                CQChartsModelVisitor &visitor);
-
-CQChartsModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
-                                            CQChartsModelVisitor &visitor);
-
-CQChartsModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
-                                          int r, CQChartsModelVisitor &visitor);
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent);
 
@@ -60,10 +49,14 @@ QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model,
 bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                    const CQChartsColumn &column, QString &typeStr);
 
-bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
+bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
+                       const QString &columnTypes, bool remap=false);
 
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                      const CQChartsColumn &column, const QString &typeStr);
+                      const CQChartsColumn &column, const QString &typeStr, bool remap=false);
+
+void remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
+                     CQChartsColumnType *typeData, const CQChartsNameValues &nameValues);
 
 //------
 
@@ -689,7 +682,7 @@ inline long toInt(const QVariant &var, bool &ok) {
 
 //------
 
-bool evalExpr(int row, const QString &expr, double &r);
+bool evalExpr(int row, const QString &expr, QVariant &var);
 
 //------
 
@@ -918,18 +911,10 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, in
 }
 
 inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  if (! ind.isValid()) {
-    ok = false;
+  QVariant var = modelValue(model, ind, Qt::EditRole, ok);
 
-    return QVariant();
-  }
-
-  QVariant var = model->data(ind, Qt::EditRole);
-
-  if (! var.isValid())
-    var = model->data(ind, Qt::DisplayRole);
-
-  ok = var.isValid();
+  if (! ok)
+    var = modelValue(model, ind, Qt::DisplayRole, ok);
 
   return var;
 }
@@ -948,9 +933,9 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
     return modelValue(model, ind, role, ok);
   }
   else if (col.type() == CQChartsColumn::Type::VHEADER) {
-    ok = true;
-
     QVariant var = model->headerData(row, Qt::Vertical, role);
+
+    ok = var.isValid();
 
     return var;
   }
@@ -975,9 +960,16 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
     return modelValue(model, ind, ok);
   }
   else if (col.type() == CQChartsColumn::Type::VHEADER) {
-    ok = true;
-
     QVariant var = model->headerData(row, Qt::Vertical);
+
+    ok = var.isValid();
+
+    return var;
+  }
+  else if (col.type() == CQChartsColumn::Type::EXPR) {
+    QVariant var;
+
+    ok = CQChartsUtil::evalExpr(row, col.expr(), var);
 
     return var;
   }
@@ -1004,31 +996,44 @@ inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bo
 
 inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                            const QModelIndex &parent, bool &ok) {
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
+  QVariant var = modelValue(model, row, col, parent, ok);
+  if (! ok) return "";
 
-    return modelString(model, ind, ok);
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return str;
+}
+
+inline QString modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                               const QModelIndex &parent, bool &ok) {
+  QString s = modelString(model, row, col, parent, ok);
+
+  if (! ok && col.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      s = modelString(model, row1, col, parent1, ok);
+    }
   }
-  else if (col.type() == CQChartsColumn::Type::VHEADER) {
-    ok = true;
 
-    QVariant var = model->headerData(row, Qt::Vertical);
-
-    QString str;
-
-    bool rc = variantToString(var, str);
-    assert(rc);
-
-    return str;
-  }
-  else {
-    ok = false;
-
-    return "";
-  }
+  return s;
 }
 
 //---
+
+inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+   QVariant var = modelValue(model, ind, role, ok);
+  if (! ok) return 0.0;
+
+  return varToReal(var, ok);
+}
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
   QVariant var = modelValue(model, ind, ok);
@@ -1039,23 +1044,28 @@ inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool 
 
 inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                         const QModelIndex &parent, bool &ok) {
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
+  QVariant var = modelValue(model, row, col, parent, ok);
 
-    return modelReal(model, ind, ok);
+  return varToReal(var, ok);
+}
+
+inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                            const QModelIndex &parent, bool &ok) {
+  double r = modelReal(model, row, col, parent, ok);
+
+  if (! ok && col.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      r = modelReal(model, row1, col, parent1, ok);
+    }
   }
-  else if (col.type() == CQChartsColumn::Type::EXPR) {
-    double r = 0.0;
 
-    ok = CQChartsUtil::evalExpr(row, col.expr(), r);
-
-    return r;
-  }
-  else {
-    ok = false;
-
-    return 0.0;
-  }
+  return r;
 }
 
 //---
@@ -1069,23 +1079,29 @@ inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool
 
 inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
                          const QModelIndex &parent, bool &ok) {
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
+  QVariant var = modelValue(model, row, col, parent, ok);
+  if (! ok) return 0;
 
-    return modelInteger(model, ind, ok);
+  return varToInt(var, ok);
+}
+
+inline long modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+                             const QModelIndex &parent, bool &ok) {
+  int i = modelInteger(model, row, col, parent, ok);
+
+  if (! ok && col.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      i = modelInteger(model, row1, col, parent1, ok);
+    }
   }
-  else if (col.type() == CQChartsColumn::Type::EXPR) {
-    double r = 0.0;
 
-    ok = CQChartsUtil::evalExpr(row, col.expr(), r);
-
-    return r;
-  }
-  else {
-    ok = false;
-
-    return 0;
-  }
+  return i;
 }
 
 //---
@@ -1373,51 +1389,23 @@ inline bool getBoolEnv(const char *name, bool def=false) {
 
 //------
 
-#if 0
-template<typename KEY>
-class CQChartsOrderedSet {
- public:
-  CQChartsOrderedSet() { }
+#include <CQChartsModelVisitor.h>
 
-  void add(const KEY &key) {
-    auto p = keySet_.find(key);
+namespace CQChartsUtil {
 
-    if (p == keySet_.end()) {
-      keySet_.insert(key);
+bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
 
-      keys_.push_back(key);
-    }
-  }
+bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
+                CQChartsModelVisitor &visitor);
 
- private:
-  using KeySet = std::set<KEY>;
-  using Keys   = std::vector<KEY>;
+CQChartsModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
+                                            CQChartsModelVisitor &visitor);
 
-  KeySet keySet_;
-  Keys   keys_;
-};
+CQChartsModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
+                                          int r, CQChartsModelVisitor &visitor);
 
-template<typename KEY, typename VALUE>
-class CQChartsOrderedMap {
- public:
-  CQChartsOrderedMap() { }
+}
 
-  void add(const KEY &key, const VALUE &value) {
-    auto p = keyValues_.find(key);
-
-    if (p == keyValues_.end())
-      p = keyValues_.insert(p, KeyValues::value_type(key, value));
-
-    p.second.add(value);
-  }
-
- private:
-  using ValueSet = CQChartsOrderedSet<VALUE>;
-  using KeyMap   = std::map<KEY,ValueSet>;
-
-  KeyMap keyMap_;
-  Keys   keys_;
-};
-#endif
+//------
 
 #endif

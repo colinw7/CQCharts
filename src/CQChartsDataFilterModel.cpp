@@ -1,4 +1,5 @@
 #include <CQChartsDataFilterModel.h>
+#include <CQChartsExprModel.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
 #include <cassert>
@@ -21,11 +22,20 @@ CQChartsDataFilterModel(CQCharts *charts, int nc, int nr, bool fill) :
     }
   }
 
-  setSourceModel(dataModel_);
+  exprModel_ = new CQChartsExprModel(charts_, dataModel_);
+
+  setSourceModel(exprModel_);
 }
 
 CQChartsDataFilterModel::
 ~CQChartsDataFilterModel()
 {
   delete dataModel_;
+}
+
+QAbstractItemModel *
+CQChartsDataFilterModel::
+baseModel() const
+{
+  return dataModel_;
 }

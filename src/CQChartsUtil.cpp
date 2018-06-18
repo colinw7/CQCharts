@@ -1,9 +1,12 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsModelFilter.h>
+#include <CQCharts.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
-#include <CQCharts.h>
+#include <CQDataModel.h>
 
+#include <CQExprUtil.h>
 #include <CQUtil.h>
 #include <CExpr.h>
 #include <CQStrParse.h>
@@ -52,9 +55,7 @@ bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
   if (! model)
     return false;
 
-  int nc = model->columnCount(QModelIndex());
-
-  visitor.init(nc);
+  visitor.init(model);
 
   QModelIndex parent;
 
@@ -70,9 +71,7 @@ bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
   if (! model)
     return false;
 
-  int nc = model->columnCount(QModelIndex());
-
-  visitor.init(nc);
+  visitor.init(model);
 
   (void) visitModelRow(model, parent, r, visitor);
 
@@ -352,7 +351,8 @@ columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
 }
 
 bool
-setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
+setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
+                  const QString &columnTypes, bool remap)
 {
   bool rc = true;
 
@@ -388,7 +388,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
 
     //---
 
-    if (! setColumnTypeStr(charts, model, column, typeStr)) {
+    if (! setColumnTypeStr(charts, model, column, typeStr, remap)) {
       charts->errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").
                          arg(column.toString()));
       rc = false;
@@ -401,8 +401,8 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &co
 
 // set type string for column (type name and name values)
 bool
-setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                 const CQChartsColumn &column, const QString &typeStr) {
+setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                 const QString &typeStr, bool remap) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // decode to type name and name values
@@ -416,7 +416,63 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
   // store in model
   CQBaseModel::Type columnType = typeData->type();
 
-  return columnTypeMgr->setModelColumnType(model, column, columnType, nameValues);
+  if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues))
+    return false;
+
+  if (remap) {
+    if (columnType == CQBaseModel::Type::TIME)
+      remapColumnTime(model, column, typeData, nameValues);
+  }
+
+  return true;
+}
+
+void
+remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
+                CQChartsColumnType *typeData, const CQChartsNameValues &nameValues) {
+  if (column.type() != CQChartsColumn::Type::DATA)
+    return;
+
+  CQChartsModelFilter *modelFilter =  dynamic_cast<CQChartsModelFilter *>(model);
+  if (! modelFilter) return;
+
+  CQChartsColumnTimeType *timeTypeData = dynamic_cast<CQChartsColumnTimeType *>(typeData);
+  assert(timeTypeData);
+
+  QString fmt = timeTypeData->getIFormat(nameValues);
+  if (! fmt.length()) return;
+
+  modelFilter->setConvert(false);
+
+  CQDataModel *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
+
+  if (dataModel)
+    dataModel->setReadOnly(false);
+
+  int nr = modelFilter->rowCount();
+
+  int c = column.column();
+
+  for (int r = 0; r < nr; ++r) {
+    QModelIndex ind = modelFilter->index(r, c);
+
+    QVariant var = modelFilter->data(ind, Qt::EditRole);
+
+    if (var.type() != QVariant::String)
+      continue;
+
+    double t = 0.0;
+
+    if (! stringToTime(fmt, var.toString(), t))
+      continue;
+
+    modelFilter->setData(ind, QVariant(t), Qt::EditRole);
+  }
+
+  modelFilter->setConvert(true);
+
+  if (dataModel)
+    dataModel->setReadOnly(true);
 }
 
 }
@@ -684,7 +740,8 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
 
 namespace CQChartsUtil {
 
-bool evalExpr(int row, const QString &exprStr, double &r) {
+bool evalExpr(int row, const QString &exprStr, QVariant &var) {
+#ifdef CQCharts_USE_CEXPR
   CExpr expr;
 
   expr.createVariable("x", expr.createRealValue(row));
@@ -694,12 +751,16 @@ bool evalExpr(int row, const QString &exprStr, double &r) {
   if (! expr.evaluateExpression(exprStr.toStdString(), value))
     return false;
 
-  r = 0.0;
+  var = CQExprUtil::valueToVariant(&expr, value);
 
-  if (value->isRealValue())
-    value->getRealValue(r);
+  if (! var.isValid())
+    return false;
 
   return true;
+#else
+  assert(row > 0 && &exprStr && &var);
+  return false;
+#endif
 }
 
 }
@@ -994,6 +1055,9 @@ QString timeToString(const QString &fmt, double r) {
   time_t t(r);
 
   struct tm *tm1 = localtime(&t);
+
+  if (! tm1)
+    return "<no_time>";
 
   (void) strftime(buffer, 512, fmt.toLatin1().constData(), tm1);
 

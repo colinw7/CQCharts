@@ -19,6 +19,8 @@ class CQChartsColumnType {
 
   virtual QString name() const { return CQBaseModel::typeName(type_); }
 
+  virtual bool isNumeric() const { return false; }
+
   // input variant to data variant for edit
   virtual QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const = 0;
 
@@ -44,6 +46,8 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
+    if (! var.isValid()) return var;
+
     if (var.type() == QVariant::String) return var;
 
     QString str;
@@ -67,6 +71,8 @@ class CQChartsColumnRealType : public CQChartsColumnType {
   CQChartsColumnRealType() :
    CQChartsColumnType(CQBaseModel::Type::REAL) {
   }
+
+  bool isNumeric() const override { return true; }
 
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
@@ -163,6 +169,8 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::INTEGER) {
   }
 
+  bool isNumeric() const override { return true; }
+
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &) const override {
     if (var.type() == QVariant::Int) return var;
@@ -195,19 +203,26 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
    CQChartsColumnType(CQBaseModel::Type::TIME) {
   }
 
+  bool isNumeric() const override { return true; }
+
   // input variant to data variant for edit
   QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues) const override {
     // use format string to convert model (input) string to time (double)
     // TODO: assert if no format ?
-    auto p = nameValues.find("format");
+    QString fmt = getIFormat(nameValues);
 
-    if (p == nameValues.end())
+    if (! fmt.length())
       return var;
 
     double t;
 
-    if (! CQChartsUtil::stringToTime((*p).second, var.toString(), t))
-      return var;
+    if (var.type() == QVariant::Double) {
+      t = var.toDouble();
+    }
+    else {
+      if (! CQChartsUtil::stringToTime(fmt, var.toString(), t))
+        return var;
+    }
 
     return QVariant::fromValue<double>(t);
   }
@@ -222,21 +237,42 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
     //---
 
-    // use oformat (optional) or format (required ?) to convert time format
-    // to user (display) string
-    auto p = nameValues.find("oformat");
+    // use format string to convert time (double) to model (output) string
+    // TODO: assert if no format ?
+    QString fmt = getOFormat(nameValues);
 
-    if (p != nameValues.end())
-      return CQChartsUtil::timeToString((*p).second, r);
+    if (! fmt.length())
+      return CQChartsUtil::toString(r);
 
-    auto p1 = nameValues.find("format");
+    return CQChartsUtil::timeToString(fmt, r);
+  }
+
+  QString getIFormat(const CQChartsNameValues &nameValues) const {
+    auto p1 = nameValues.find("iformat");
 
     if (p1 != nameValues.end())
-      return CQChartsUtil::timeToString((*p1).second, r);
+      return (*p1).second;
 
-    //---
+    auto p2 = nameValues.find("format");
 
-    return CQChartsUtil::toString(r);
+    if (p2 != nameValues.end())
+      return (*p2).second;
+
+    return "";
+  }
+
+  QString getOFormat(const CQChartsNameValues &nameValues) const {
+    auto p1 = nameValues.find("oformat");
+
+    if (p1 != nameValues.end())
+      return (*p1).second;
+
+    auto p2 = nameValues.find("format");
+
+    if (p2 != nameValues.end())
+      return (*p2).second;
+
+    return "";
   }
 };
 

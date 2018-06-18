@@ -100,9 +100,6 @@ class CQChartsCmds : public QObject {
 
   //---
 
-  void setColumnFormats(CQCharts *charts, CQChartsModelData *modelData,
-                        const QString &columnType);
-
   bool loadFileModel(const QString &filename, CQChartsFileType type,
                      const CQChartsInputData &inputData);
 
@@ -150,7 +147,9 @@ class CQChartsCmds : public QObject {
   bool loadModelCmd   (const Vars &vars);
   void processModelCmd(const Vars &vars);
   void sortModelCmd   (const Vars &vars);
+  void foldModelCmd   (const Vars &vars);
   void filterModelCmd (const Vars &vars);
+  void flattenModelCmd(const Vars &vars);
 
   void correlationModelCmd(const Vars &vars);
   void exportModelCmd     (const Vars &vars);

@@ -1,5 +1,7 @@
 #include <CQExprModel.h>
 #include <CQExprModelFn.h>
+#include <CQExprModelCmdValues.h>
+#include <CQExprUtil.h>
 #include <CQTclUtil.h>
 
 #include <CQStrParse.h>
@@ -274,6 +276,27 @@ assignExtraColumn(const QString &header, int column, const QString &expr)
   return true;
 }
 
+void
+CQExprModel::
+calcColumn(int column, const QString &expr, Values &values) const
+{
+  nr_ = rowCount();
+  nc_ = columnCount();
+
+  for (int r = 0; r < nr_; ++r) {
+    currentRow_ = r;
+    currentCol_ = column;
+
+    QVariant var;
+
+    QString expr1 = replaceNumericColumns(expr, currentRow_, currentCol_).simplified();
+
+    (void) evaluateExpression(expr1, var);
+
+    values.push_back(var);
+  }
+}
+
 bool
 CQExprModel::
 queryColumn(int column, const QString &expr, Rows &rows) const
@@ -342,20 +365,6 @@ processExpr(const QString &expr)
   }
 
   return rc;
-}
-
-int
-CQExprModel::
-columnStringBucket(int column, const QString &value) const
-{
-  ColumnData &columnData = columnDatas_[column];
-
-  auto p = columnData.stringMap.find(value);
-
-  if (p == columnData.stringMap.end())
-    p = columnData.stringMap.insert(p, StringMap::value_type(value, columnData.stringMap.size()));
-
-  return (*p).second;
 }
 
 bool
@@ -833,70 +842,6 @@ mapFromSource(const QModelIndex &index) const
 
 //------
 
-class CQExprModelCmdValues {
- public:
-  using Values = std::vector<QVariant>;
-
- public:
-  CQExprModelCmdValues(const Values &values) :
-   values_(values) {
-    eind_ = numValues() - 1;
-  }
-
-  int ind() const { return ind_; }
-
-  int numValues() const { return values_.size(); }
-
-  QVariant popValue() { QVariant value = values_.back(); values_.pop_back(); return value; }
-
-  bool getInt(int &i) {
-    if (ind_ > eind_) return false;
-
-    bool ok;
-
-    int i1 = values_[ind_].toInt(&ok);
-
-    if (ok) {
-      i = i1;
-
-      ++ind_;
-    }
-
-    return ok;
-  }
-
-  bool getReal(double &r) {
-    if (ind_ > eind_) return false;
-
-    bool ok;
-
-    double r1 = values_[ind_].toDouble(&ok);
-
-    if (ok) {
-      r = r1;
-
-      ++ind_;
-    }
-
-    return ok;
-  }
-
-  bool getStr(QString &s) {
-    if (ind_ > eind_) return false;
-
-    s = values_[ind_++].toString();
-
-    return true;
-  }
-
-  //---
-
- private:
-  Values values_;
-  int    ind_  { 0 };
-  int    eind_ { 0 };
-};
-
 QVariant
 CQExprModel::
 processCmd(const QString &name, const Values &values)
@@ -1023,7 +968,7 @@ setColumnCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant();
 
-  QVariant var = cmdValues.popValue();
+  QVariant var = cmdValues.popValue(); // last value
 
   //---
 
@@ -1056,7 +1001,7 @@ setRowCmd(const Values &values)
   if (cmdValues.numValues() < 1)
     return QVariant();
 
-  QVariant var = cmdValues.popValue();
+  QVariant var = cmdValues.popValue(); // last value
 
   //---
 
@@ -1259,7 +1204,7 @@ mapCmd(const Values &values) const
   return QVariant(x1);
 }
 
-// bucket(col), bucket(col,min,max)
+// bucket(col,delta), bucket(col,start,delta)
 QVariant
 CQExprModel::
 bucketCmd(const Values &values) const
@@ -1290,37 +1235,39 @@ bucketCmd(const Values &values) const
 
   //---
 
+  int bucket = -1;
+
+  CQBucketer &bucketer = columnDatas_[col].bucketer;
+
   if      (var.type() == QVariant::Double) {
     double value = var.toDouble();
 
-    double minVal = 0;
-    double maxVal = 1;
-    int    scale  = 1;
+    double start = 0;
+    double delta = 1;
 
     if      (cmdValues.numValues() == 2) {
+      double minVal, maxVal;
+
       columnRange(col, minVal, maxVal);
 
-      (void) cmdValues.getInt(scale);
+      start = minVal;
+
+      (void) cmdValues.getReal(delta);
     }
     else if (cmdValues.numValues() == 3) {
-      (void) cmdValues.getReal(minVal);
-      (void) cmdValues.getReal(maxVal);
+      (void) cmdValues.getReal(start);
+      (void) cmdValues.getReal(delta);
     }
     else {
-      return QVariant(0.0);
+      return QVariant(-1);
     }
 
-    double d = maxVal - minVal;
+    bucketer.setType(CQBucketer::Type::REAL_RANGE);
 
-    int ind = 0;
+    bucketer.setRStart(start);
+    bucketer.setRDelta(delta);
 
-    if (d) {
-      double s = (value - minVal)/d;
-
-      ind = int(s*scale);
-    }
-
-    return QVariant(ind);
+    bucket = bucketer.realBucket(value);
   }
   else if (var.type() == QVariant::Int) {
     return QVariant(var.toInt());
@@ -1328,10 +1275,10 @@ bucketCmd(const Values &values) const
   else {
     QString str = var.toString();
 
-    int ind = columnStringBucket(col, str);
-
-    return QVariant(ind);
+    bucket = bucketer.stringBucket(str);
   }
+
+  return QVariant(bucket);
 }
 
 // norm(col), norm(col,scale)
@@ -1488,17 +1435,7 @@ evaluateExpression(const QString &expr, QVariant &var) const
     if (! value.isValid())
       return false;
 
-    std::string str;
-
-    double real    = 0.0;
-    long   integer = 0;
-
-    if      (value->getRealValue(real))
-      var = QVariant(real);
-    else if (value->getIntegerValue(integer))
-      var = QVariant((int) integer);
-    else
-      var = QVariant(QString(str.c_str()));
+    var = CQExprUtil::valueToVariant(expr_, value);
 
     return true;
 #else
@@ -1548,21 +1485,7 @@ CQExprModel::
 variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const
 {
 #ifdef CQExprModel_USE_CEXPR
-  if (! var.isValid()) {
-    value = CExprValuePtr();
-    return false;
-  }
-
-  if      (var.type() == QVariant::Double)
-    value = expr->createRealValue(var.toDouble());
-  else if (var.type() == QVariant::Int)
-    value = expr->createIntegerValue((long) var.toInt());
-  else if (var.type() == QVariant::Bool)
-    value = expr->createBooleanValue(var.toBool());
-  else
-    value = expr->createStringValue(var.toString().toStdString());
-
-  return true;
+  return CQExprUtil::variantToValue(expr, var, value);
 #else
   assert(false && expr && &var && &value);
   return false;
@@ -1571,26 +1494,10 @@ variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const
 
 QVariant
 CQExprModel::
-valueToVariant(CExpr *, const CExprValuePtr &value) const
+valueToVariant(CExpr *expr, const CExprValuePtr &value) const
 {
 #ifdef CQExprModel_USE_CEXPR
-  if      (value->isRealValue()) {
-    double r = 0.0;
-    value->getRealValue(r);
-    return QVariant(r);
-  }
-  else if (value->isIntegerValue()) {
-    long i = 0;
-    value->getIntegerValue(i);
-    return QVariant((int) i);
-  }
-  else {
-    std::string s;
-    value->getStringValue(s);
-    return QVariant(s.c_str());
-  }
-
-  return QVariant();
+  return CQExprUtil::valueToVariant(expr, value);
 #else
   assert(false && &value);
   return QVariant();
@@ -1668,6 +1575,15 @@ replaceNumericColumns(const QString &expr, int row, int column) const
         else {
           expr1 += "@n";
         }
+      }
+      else if (parse.isChar('v')) {
+        QModelIndex ind = index(row, column, QModelIndex());
+
+        QVariant var = data(ind, Qt::DisplayRole);
+
+        parse.skipChar();
+
+        expr1 += var.toString();
       }
       else
         expr1 += "@";

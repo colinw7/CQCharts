@@ -2,12 +2,36 @@
 #define CQChartsBoxPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsUtil.h>
 #include <CQChartsValueInd.h>
 #include <CQChartsBoxWhisker.h>
 
 #include <map>
+
+//---
+
+// box plot type
+class CQChartsBoxPlotType : public CQChartsPlotType {
+ public:
+  CQChartsBoxPlotType();
+
+  QString name() const override { return "box"; }
+  QString desc() const override { return "BoxPlot"; }
+
+  const char *yColumnName() const override { return "y"; }
+
+  bool allowXAxisIntegral() const override { return false; }
+
+  bool allowXLog() const override { return false; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsBoxPlot;
 
@@ -116,21 +140,6 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
  private:
   int i_ { 0 };
-};
-
-//---
-
-// box plot type
-class CQChartsBoxPlotType : public CQChartsPlotType {
- public:
-  CQChartsBoxPlotType();
-
-  QString name() const override { return "box"; }
-  QString desc() const override { return "BoxPlot"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

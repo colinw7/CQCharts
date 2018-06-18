@@ -2,6 +2,7 @@
 #define CQExprModel_H
 
 #include <CQBaseModel.h>
+#include <CQBucketer.h>
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
 #include <set>
@@ -45,7 +46,7 @@ class CQExprModel : public QAbstractProxyModel {
  public:
   CQExprModel(QAbstractItemModel *model);
 
- ~CQExprModel();
+  virtual ~CQExprModel();
 
   //---
 
@@ -80,6 +81,8 @@ class CQExprModel : public QAbstractProxyModel {
 
   bool assignExtraColumn(int column, const QString &expr);
   bool assignExtraColumn(const QString &header, int column, const QString &expr);
+
+  void calcColumn(int column, const QString &expr, Values &values) const;
 
   bool queryColumn(int column, const QString &expr, Rows &rows) const;
 
@@ -126,12 +129,11 @@ class CQExprModel : public QAbstractProxyModel {
   bool checkColumn(int col) const;
   bool checkIndex(int row, int col) const;
 
-  QVariant processCmd(const QString &name, const Values &values);
+  virtual QVariant processCmd(const QString &name, const Values &values);
 
  private:
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
-  using StringMap  = std::map<QString,int>;
   using VariantMap = std::map<int,QVariant>;
   using Args       = std::vector<QString>;
 
@@ -150,15 +152,11 @@ class CQExprModel : public QAbstractProxyModel {
     }
   };
 
-  typedef std::vector<ExtraColumn> ExtraColumns;
-
   struct ColumnData {
-    StringMap stringMap;  // uniquified strings and ids
-    OptInt    imin, imax; // integer range
-    OptReal   rmin, rmax; // real range
+    CQBucketer bucketer;   // bucketer
+    OptInt     imin, imax; // integer range
+    OptReal    rmin, rmax; // real range
   };
-
-  typedef std::map<int,ColumnData> ColumnDatas;
 
   using ExprCmds = std::vector<CQExprModelExprFn *>;
   using TclCmds  = std::vector<CQExprModelTclFn *>;
@@ -218,7 +216,10 @@ class CQExprModel : public QAbstractProxyModel {
   bool setTclResult(const QVariant &rc);
   bool getTclResult(QVariant &rc) const;
 
- private:
+ protected:
+  typedef std::vector<ExtraColumn> ExtraColumns;
+  typedef std::map<int,ColumnData> ColumnDatas;
+
   QAbstractItemModel* model_      { nullptr };
   ExprType            exprType_   { ExprType::NONE };
   CExpr*              expr_       { nullptr };

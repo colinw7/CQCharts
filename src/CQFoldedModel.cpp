@@ -420,7 +420,13 @@ data(const QModelIndex &index, int role) const
     if (nodeData.child->isFolded()) {
       // return fold text in fold column for display role
       // TODO: other roles
-      if (role == Qt::DisplayRole) {
+      if      (role == Qt::DisplayRole) {
+        if (c == foldPos_)
+          return nodeData.child->str;
+
+        return "";
+      }
+      else if (role == Qt::EditRole) {
         if (c == foldPos_)
           return nodeData.child->str;
 

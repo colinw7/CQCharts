@@ -2,10 +2,31 @@
 #define CQChartsDendrogramPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDendrogram.h>
 
 class CQChartsDendrogramPlot;
+
+//---
+
+class CQChartsDendrogramPlotType : public CQChartsPlotType {
+ public:
+  CQChartsDendrogramPlotType();
+
+  QString name() const override { return "dendrogram"; }
+  QString desc() const override { return "Dendrogram"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
 
 //---
 
@@ -27,20 +48,6 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
  private:
   CQChartsDendrogramPlot*   plot_ { nullptr };
   CQChartsDendrogram::Node* node_ { nullptr };
-};
-
-//---
-
-class CQChartsDendrogramPlotType : public CQChartsPlotType {
- public:
-  CQChartsDendrogramPlotType();
-
-  QString name() const override { return "dendrogram"; }
-  QString desc() const override { return "Dendrogram"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

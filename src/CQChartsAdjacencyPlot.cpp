@@ -17,19 +17,37 @@ void
 CQChartsAdjacencyPlotType::
 addParameters()
 {
-  // connections are list of node ids
-  addColumnParameter("node"       , "Node"       , "nodeColumn"       ).
-   setTip("Unique Node Id");
+  // connections are list of node ids/counts
   addColumnParameter("connections", "Connections", "connectionsColumn").
-   setTip("List of Connection Pairs (Node Ids)");
+   setTip("List of Connection Pairs (Ids from id column and connection count)");
 
-  // connections are name pairs and counts
-  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name Pairs (<name1>/<name2>)");
-  addColumnParameter("value", "Value", "valueColumn").setTip("Connection Count");
+  // connections are id pairs and counts
+  addColumnParameter("namePair", "NamePair", "namePairColumn").
+    setTip("Name Pairs (<name1>/<name2>)");
+  addColumnParameter("count", "Count", "countColumn").setTip("Connection Count");
 
+  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name For Id");
   addColumnParameter("group", "Group", "groupColumn").setTip("Group Id for Color");
 
   CQChartsPlotType::addParameters();
+}
+
+QString
+CQChartsAdjacencyPlotType::
+description() const
+{
+  return "<p>Draws connectivity information between two different sets of data as a "
+         "matrix where the color of the cells represents the group and connectivity.</p>\n"
+         "<p>Connection information can be supplied using:</p>\n"
+         "<ul>\n"
+         "<li>A list of connections in the <b>Connections</b> column of the form "
+         "{{&lt;id&gt; &lt;count&gt;} ...}.</li>\n"
+         "<li>A name pair using <b>NamePair</b> column in the form &lt;id1&gt;/&lt;id2&gt; "
+         "and a count using the <b>Count</b> column.</li>\n"
+         "</ul>\n"
+         "<p>The column id is taken from the <b>Id</b> column and an optional "
+         "name for the id can be supplied in the <b>Name</b> column.</p>"
+         "<p>The group is specified using the <b>Group</b> column.</p>";
 }
 
 CQChartsPlot *
@@ -73,11 +91,11 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nodeColumn"       , "node"      );
-  addProperty("columns", this, "connectionsColumn", "connection");
-  addProperty("columns", this, "valueColumn"      , "value"     );
-  addProperty("columns", this, "groupColumn"      , "group"     );
-  addProperty("columns", this, "nameColumn"       , "name"      );
+  addProperty("columns", this, "connectionsColumn", "connections");
+  addProperty("columns", this, "namePairColumn"   , "namePair"   );
+  addProperty("columns", this, "countColumn"      , "count"      );
+  addProperty("columns", this, "nameColumn"       , "name"       );
+  addProperty("columns", this, "groupColumn"      , "group"      );
 
   addProperty("", this, "sortType"      , "");
   addProperty("", this, "bgColor"       , "");
@@ -140,7 +158,7 @@ initObjs()
 
   //---
 
-  if      (nameColumn().isValid() && valueColumn().isValid())
+  if      (namePairColumn().isValid() && countColumn().isValid())
     return initHierObjs();
   else if (connectionsColumn().isValid())
     return initConnectionObjs();
@@ -172,7 +190,7 @@ initHierObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      QString linkStr = plot_->modelString(model, row, plot_->nameColumn(), parent, ok1);
+      QString linkStr = plot_->modelString(model, row, plot_->namePairColumn(), parent, ok1);
 
       if (! ok1)
         return State::SKIP;
@@ -181,7 +199,7 @@ initHierObjs()
 
       bool ok2;
 
-      double value = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
+      double value = plot_->modelReal(model, row, plot_->countColumn(), parent, ok2);
 
       if (! ok2)
         return State::SKIP;
@@ -340,7 +358,7 @@ initConnectionObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      int id = plot_->modelInteger(model, row, plot_->nodeColumn(), parent , ok1);
+      int id = plot_->modelInteger(model, row, plot_->idColumn(), parent , ok1);
 
       if (! ok1) id = row;
 
@@ -373,7 +391,7 @@ initConnectionObjs()
 
       //---
 
-      QModelIndex nodeInd  = model->index(row, plot_->nodeColumn().column(), parent);
+      QModelIndex nodeInd  = model->index(row, plot_->idColumn().column(), parent);
       QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
       ConnectionsData connections;
@@ -527,6 +545,7 @@ bool
 CQChartsAdjacencyPlot::
 decodeConnections(const QString &str, ConnectionDataArray &connections)
 {
+  // connections are { <connection> <connection> ... }
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -564,6 +583,7 @@ bool
 CQChartsAdjacencyPlot::
 decodeConnection(const QString &str, ConnectionData &connection)
 {
+  // connection is { <node> <count> }
   CQStrParse parse(str);
 
   parse.skipSpace();
@@ -835,11 +855,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
     double s = (1.0*plot_->maxValue() - value_)/plot_->maxValue();
 
-    int r = (c1.red  () + c2.red  () + s*bc.red  ())/3;
-    int g = (c1.green() + c2.green() + s*bc.green())/3;
-    int b = (c1.blue () + c2.blue () + s*bc.blue ())/3;
+    double r = (c1.redF  () + c2.redF  () + s*bc.redF  ())/3;
+    double g = (c1.greenF() + c2.greenF() + s*bc.greenF())/3;
+    double b = (c1.blueF () + c2.blueF () + s*bc.blueF ())/3;
 
-    bc = QColor(r, g, b);
+    bc = QColor::fromRgbF(r, g, b);
   }
 
   //---

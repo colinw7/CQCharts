@@ -2,8 +2,27 @@
 #define CQChartsSankeyPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+
+//---
+
+class CQChartsSankeyPlotType : public CQChartsPlotType {
+ public:
+  CQChartsSankeyPlotType();
+
+  QString name() const override { return "sankey"; }
+  QString desc() const override { return "Sankey"; }
+
+  void addParameters() override;
+
+  bool hasAxes() const { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsSankeyPlot;
 class CQChartsSankeyPlotNode;
@@ -165,20 +184,6 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   CQChartsGeom::BBox      srcRect_;
   CQChartsGeom::BBox      destRect_;
   QPainterPath            path_;
-};
-
-//---
-
-class CQChartsSankeyPlotType : public CQChartsPlotType {
- public:
-  CQChartsSankeyPlotType();
-
-  QString name() const override { return "sankey"; }
-  QString desc() const override { return "Sankey"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

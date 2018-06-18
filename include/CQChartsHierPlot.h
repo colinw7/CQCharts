@@ -1,6 +1,7 @@
 #ifndef CQChartsHierPlot_H
 #define CQChartsHierPlot_H
 
+#include <CQChartsPlotType.h>
 #include <CQChartsPlot.h>
 
 class CQChartsHierPlotType : public CQChartsPlotType {

@@ -2,8 +2,32 @@
 #define CQChartsAdjacencyPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsBoxObj.h>
+
+//------
+
+// adjacency plot type
+class CQChartsAdjacencyPlotType : public CQChartsPlotType {
+ public:
+  CQChartsAdjacencyPlotType();
+
+  QString name() const override { return "adjacency"; }
+  QString desc() const override { return "Adjacency"; }
+
+  void addParameters() override;
+
+  bool customXRange() const override { return false; }
+  bool customYRange() const override { return false; }
+
+  bool hasAxes() const override { return false; }
+  bool hasKey () const override { return false; } // TODO: value range key
+
+  QString description() const override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
 
 //------
 
@@ -96,21 +120,6 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
 //---
 
-// connectivity plot type
-class CQChartsAdjacencyPlotType : public CQChartsPlotType {
- public:
-  CQChartsAdjacencyPlotType();
-
-  QString name() const override { return "adjacency"; }
-  QString desc() const override { return "Adjacency"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
-};
-
-//---
-
 // connectivity plot:
 //   nodes             : number, name(opt), group(opt)
 //   connections       : node->node
@@ -122,11 +131,11 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
+  Q_PROPERTY(CQChartsColumn namePairColumn    READ namePairColumn    WRITE setNamePairColumn   )
+  Q_PROPERTY(CQChartsColumn countColumn       READ countColumn       WRITE setCountColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
   Q_PROPERTY(SortType       sortType          READ sortType          WRITE setSortType         )
   Q_PROPERTY(CQChartsColor  bgColor           READ bgColor           WRITE setBgColor          )
   Q_PROPERTY(CQChartsColor  borderColor       READ borderColor       WRITE setBorderColor      )
@@ -154,21 +163,21 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(const CQChartsColumn &c) { nodeColumn_ = c; updateRangeAndObjs(); }
-
   const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
   void setConnectionsColumn(const CQChartsColumn &c) {
     connectionsColumn_ = c; updateRangeAndObjs(); }
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+  const CQChartsColumn &namePairColumn() const { return namePairColumn_; }
+  void setNamePairColumn(const CQChartsColumn &c) { namePairColumn_ = c; updateRangeAndObjs(); }
 
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
+  const CQChartsColumn &countColumn() const { return countColumn_; }
+  void setCountColumn(const CQChartsColumn &c) { countColumn_ = c; updateRangeAndObjs(); }
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+
+  const CQChartsColumn &groupColumn() const { return groupColumn_; }
+  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
 
   //---
 
@@ -284,9 +293,9 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
   using NodeArray = std::vector<CQChartsAdjacencyNode*>;
 
-  CQChartsColumn        nodeColumn_;                            // node column
   CQChartsColumn        connectionsColumn_;                     // connections column
-  CQChartsColumn        valueColumn_;                           // value column
+  CQChartsColumn        namePairColumn_;                        // name pairs column
+  CQChartsColumn        countColumn_;                           // count column
   CQChartsColumn        groupColumn_;                           // group column
   CQChartsColumn        nameColumn_;                            // name column
   SortType              sortType_          { SortType::GROUP }; // sort type

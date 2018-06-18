@@ -8,7 +8,7 @@
 #include <CQChartsJsonFilterModel.h>
 #include <CQChartsTsvFilterModel.h>
 #include <CQChartsModelExprMatch.h>
-#include <CQExprModel.h>
+#include <CQChartsExprModel.h>
 #include <CQDataModel.h>
 #ifdef CQ_CHARTS_CEIL
 #include <CQChartsCeilUtil.h>

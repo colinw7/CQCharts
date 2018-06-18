@@ -3,8 +3,8 @@
 
 #include <CQChartsModelFilter.h>
 
+class CQChartsExprModel;
 class CQDataModel;
-class CQExprModel;
 
 class CQChartsExprDataFilterModel : public CQChartsModelFilter {
   Q_OBJECT
@@ -14,11 +14,13 @@ class CQChartsExprDataFilterModel : public CQChartsModelFilter {
  ~CQChartsExprDataFilterModel();
 
   CQDataModel *dataModel() const { return dataModel_; }
-  CQExprModel *exprModel() const { return exprModel_; }
+
+  CQChartsExprModel  *exprModel() const override { return exprModel_; }
+  QAbstractItemModel *baseModel() const override;
 
  private:
-  CQDataModel* dataModel_ { nullptr };
-  CQExprModel* exprModel_ { nullptr };
+  CQDataModel*       dataModel_ { nullptr };
+  CQChartsExprModel* exprModel_ { nullptr };
 };
 
 #endif

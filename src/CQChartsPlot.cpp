@@ -1,4 +1,5 @@
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
@@ -24,74 +25,6 @@
 #include <QItemSelectionModel>
 #include <QSortFilterProxyModel>
 #include <QPainter>
-
-//------
-
-CQChartsPlotTypeMgr::
-CQChartsPlotTypeMgr()
-{
-}
-
-CQChartsPlotTypeMgr::
-~CQChartsPlotTypeMgr()
-{
-  for (auto &type : types_)
-    delete type.second;
-}
-
-void
-CQChartsPlotTypeMgr::
-addType(const QString &name, CQChartsPlotType *type)
-{
-  types_[name] = type;
-
-  type->addParameters();
-}
-
-bool
-CQChartsPlotTypeMgr::
-isType(const QString &name) const
-{
-  auto p = types_.find(name);
-
-  return (p != types_.end());
-}
-
-CQChartsPlotType *
-CQChartsPlotTypeMgr::
-type(const QString &name) const
-{
-  auto p = types_.find(name);
-  assert(p != types_.end());
-
-  return (*p).second;
-}
-
-void
-CQChartsPlotTypeMgr::
-getTypeNames(QStringList &names, QStringList &descs) const
-{
-  for (const auto &type : types_) {
-    names.push_back(type.second->name());
-    descs.push_back(type.second->desc());
-  }
-}
-
-//------
-
-CQChartsPlotType::
-CQChartsPlotType()
-{
-}
-
-void
-CQChartsPlotType::
-addParameters()
-{
-  addColumnParameter("id", "Id", "idColumn").setTip("Unique row id");
-
-  addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
-}
 
 //------
 
@@ -404,6 +337,13 @@ CQChartsPlot::
 charts() const
 {
   return view_->charts();
+}
+
+QString
+CQChartsPlot::
+typeName() const
+{
+  return type()->name();
 }
 
 QString
@@ -1449,10 +1389,10 @@ void
 CQChartsPlot::
 adjustDataRange()
 {
-  if (xmin_) dataRange_.setLeft  (*xmin_);
-  if (ymin_) dataRange_.setBottom(*ymin_);
-  if (xmax_) dataRange_.setRight (*xmax_);
-  if (ymax_) dataRange_.setTop   (*ymax_);
+  if (xmin()) dataRange_.setLeft  (*xmin());
+  if (ymin()) dataRange_.setBottom(*ymin());
+  if (xmax()) dataRange_.setRight (*xmax());
+  if (ymax()) dataRange_.setTop   (*ymax());
 
   if (xAxis() && xAxis()->isIncludeZero()) {
     if (dataRange_.isSet())
@@ -1500,15 +1440,17 @@ initPlotObjs()
   if (changed)
     initObjTree();
 
-  if (changed && isAutoFit())
-    autoFit();
+  if (changed && isAutoFit()) {
+    needsAutoFit_ = true;
+  }
 }
 
 void
 CQChartsPlot::
 initObjTree()
 {
-  plotObjTree_->addObjects();
+  if (! isPreview())
+    plotObjTree_->addObjects();
 }
 
 void
@@ -3216,6 +3158,14 @@ drawParts(QPainter *painter)
     drawWindowColorBox(painter, titleFitBBox  ());
     drawWindowColorBox(painter, annotationBBox());
   }
+
+  //---
+
+  if (needsAutoFit_) {
+    needsAutoFit_ = false;
+
+    autoFit();
+  }
 }
 
 //------
@@ -4707,7 +4657,7 @@ initGroup(const GroupData &data)
       if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
         bool ok;
 
-        QVariant value = plot_->modelValue(model, row, bucket_->column(), parent, ok);
+        QVariant value = plot_->modelHierValue(model, row, bucket_->column(), parent, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
@@ -4751,7 +4701,7 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
-    QVariant value = modelValue(model, row, groupBucket_.column(), parent, ok);
+    QVariant value = modelHierValue(model, row, groupBucket_.column(), parent, ok);
 
     return groupBucket_.ind(value);
   }
@@ -5012,6 +4962,96 @@ modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
   return CQChartsUtil::modelColor(model, row, column, parent, ok);
+}
+
+//------
+
+QVariant
+CQChartsPlot::
+modelHierValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                const QModelIndex &parent, bool &ok) const
+{
+  QVariant v = modelValue(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      v = modelValue(model, row1, column, parent1, ok);
+    }
+  }
+
+  return v;
+}
+
+QString
+CQChartsPlot::
+modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                const QModelIndex &parent, bool &ok) const
+{
+  QString s = modelString(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      s = modelString(model, row1, column, parent1, ok);
+    }
+  }
+
+  return s;
+}
+
+double
+CQChartsPlot::
+modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+              const QModelIndex &parent, bool &ok) const
+{
+  double r = modelReal(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      r = modelReal(model, row1, column, parent1, ok);
+    }
+  }
+
+  return r;
+}
+
+long
+CQChartsPlot::
+modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                 const QModelIndex &parent, bool &ok) const
+{
+  int i = modelInteger(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      i = modelInteger(model, row1, column, parent1, ok);
+    }
+  }
+
+  return i;
 }
 
 //------

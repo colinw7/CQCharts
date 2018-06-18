@@ -1,14 +1,3 @@
-# Adjacency
-
-CQChartsTest \
- -tsv data/adjacency.tsv -comment_header \
- -type adjacency -columns "node=1,connections=3,name=0,group=2" \
- -plot_title "adjacency"
-CQChartsTest \
- -csv data/adjacency.csv \
- -type adjacency -columns "name=0,value=1,group=2" \
- -plot_title "adjacency"
-
 # Bar Chart
 
 CQChartsTest \

@@ -3,7 +3,7 @@
 
 #include <CQChartsModelFilter.h>
 
-class CQCharts;
+class CQChartsExprModel;
 class CQJsonModel;
 
 class CQChartsJsonFilterModel : public CQChartsModelFilter {
@@ -15,6 +15,9 @@ class CQChartsJsonFilterModel : public CQChartsModelFilter {
 
   CQJsonModel *jsonModel() const { return jsonModel_; }
 
+  CQChartsExprModel  *exprModel() const override { return exprModel_; }
+  QAbstractItemModel *baseModel() const override;
+
   bool load(const QString &filename);
 
   bool isHierarchical() const;
@@ -22,7 +25,8 @@ class CQChartsJsonFilterModel : public CQChartsModelFilter {
   //---
 
  private:
-  CQJsonModel* jsonModel_ { nullptr };
+  CQJsonModel*       jsonModel_ { nullptr };
+  CQChartsExprModel* exprModel_ { nullptr };
 };
 
 #endif

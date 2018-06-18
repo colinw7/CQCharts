@@ -1,7 +1,7 @@
 #include <CQChartsGnuDataFilterModel.h>
 #include <CQGnuDataModel.h>
+#include <CQChartsExprModel.h>
 #include <CQCharts.h>
-#include <CQExprModel.h>
 #include <cassert>
 
 CQChartsGnuDataFilterModel::
@@ -10,7 +10,7 @@ CQChartsGnuDataFilterModel(CQCharts *charts) :
 {
   dataModel_ = new CQGnuDataModel;
 
-  exprModel_ = new CQExprModel(dataModel_);
+  exprModel_ = new CQChartsExprModel(charts_, dataModel_);
 
   setSourceModel(exprModel_);
 }
@@ -20,6 +20,13 @@ CQChartsGnuDataFilterModel::
 {
   delete exprModel_;
   delete dataModel_;
+}
+
+QAbstractItemModel *
+CQChartsGnuDataFilterModel::
+baseModel() const
+{
+  return dataModel_;
 }
 
 void

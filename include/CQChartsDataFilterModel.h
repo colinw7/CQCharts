@@ -3,6 +3,7 @@
 
 #include <CQChartsModelFilter.h>
 
+class CQChartsExprModel;
 class CQDataModel;
 
 class CQChartsDataFilterModel : public CQChartsModelFilter {
@@ -14,8 +15,12 @@ class CQChartsDataFilterModel : public CQChartsModelFilter {
 
   CQDataModel *dataModel() const { return dataModel_; }
 
+  CQChartsExprModel  *exprModel() const override { return exprModel_; }
+  QAbstractItemModel *baseModel() const override;
+
  private:
-  CQDataModel* dataModel_ { nullptr };
+  CQDataModel*       dataModel_ { nullptr };
+  CQChartsExprModel* exprModel_ { nullptr };
 };
 
 #endif

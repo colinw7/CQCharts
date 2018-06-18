@@ -2,6 +2,7 @@
 #define CQChartsRadarPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 
@@ -49,6 +50,8 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
   QString desc() const override { return "Radar"; }
 
   void addParameters() override;
+
+  bool hasAxes() const override { return false; }
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };

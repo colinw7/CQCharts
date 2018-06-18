@@ -2,8 +2,25 @@
 #define CQChartsParallelPlot_H
 
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
+
+//---
+
+class CQChartsParallelPlotType : public CQChartsPlotType {
+ public:
+  CQChartsParallelPlotType();
+
+  QString name() const override { return "parallel"; }
+  QString desc() const override { return "Parallel"; }
+
+  void addParameters() override;
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
 
 class CQChartsParallelPlot;
 
@@ -69,20 +86,6 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
   int                   nset_  { -1 };
   int                   i_     { -1 };
   int                   n_     { -1 };
-};
-
-//---
-
-class CQChartsParallelPlotType : public CQChartsPlotType {
- public:
-  CQChartsParallelPlotType();
-
-  QString name() const override { return "parallel"; }
-  QString desc() const override { return "Parallel"; }
-
-  void addParameters() override;
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

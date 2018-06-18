@@ -2,7 +2,6 @@
 #include <random>
 #include <set>
 #include <cassert>
-#include <iostream>
 
 namespace {
 
@@ -282,7 +281,6 @@ randRows(RowSet &rowSet, int n, int nr) const
 
     ++iters;
   }
-std::cerr << "Iters: " << iters << "\n";
 }
 
 //------

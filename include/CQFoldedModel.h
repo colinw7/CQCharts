@@ -20,15 +20,19 @@ class CQFoldData {
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }
 
+  // get/set column to fold
   int column() const { return column_; }
   void setColumn(int i) { column_ = i; }
 
+  // get/set show column data in child column
   bool showColumnData() const { return showColumnData_; }
   void setShowColumnData(bool b) { showColumnData_ = b; }
 
+  // get/set keep fold column
   bool isKeepColumn() const { return keepColumn_; }
   void setKeepColumn(bool b) { keepColumn_ = b; }
 
+  // get/set delta for real number range
   double delta() const { return delta_; }
   void setDelta(double r) { delta_ = r; }
 

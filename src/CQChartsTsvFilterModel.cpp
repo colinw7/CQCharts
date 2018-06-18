@@ -1,8 +1,7 @@
 #include <CQChartsTsvFilterModel.h>
+#include <CQChartsExprModel.h>
 #include <CQCharts.h>
 #include <CQTsvModel.h>
-#include <CQExprModel.h>
-#include <CQChartsModelFn.h>
 #include <cassert>
 
 CQChartsTsvFilterModel::
@@ -11,14 +10,7 @@ CQChartsTsvFilterModel(CQCharts *charts) :
 {
   tsvModel_ = new CQTsvModel;
 
-  exprModel_ = new CQExprModel(tsvModel_);
-
-#ifdef CQExprModel_USE_CEXPR
-  exprModel_->addExprFunction("remap", new CQChartsModelRemapExprFn(charts, this, exprModel_));
-#endif
-#ifdef CQExprModel_USE_TCL
-  exprModel_->addTclFunction ("remap", new CQChartsModelRemapTclFn (charts, this, exprModel_));
-#endif
+  exprModel_ = new CQChartsExprModel(charts_, tsvModel_);
 
   setSourceModel(exprModel_);
 }
@@ -28,6 +20,13 @@ CQChartsTsvFilterModel::
 {
   delete exprModel_;
   delete tsvModel_;
+}
+
+QAbstractItemModel *
+CQChartsTsvFilterModel::
+baseModel() const
+{
+  return tsvModel_;
 }
 
 void

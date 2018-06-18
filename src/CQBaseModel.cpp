@@ -345,6 +345,9 @@ isSameType(const QVariant &var, Type type)
   if (type == Type::INTEGER && var.type() == QVariant::Int)
     return true;
 
+  if (type == Type::TIME && var.type() == QVariant::Double)
+    return true;
+
   return false;
 }
 
@@ -367,6 +370,14 @@ typeStringToVariant(const QString &str, Type type)
 
     if (ok)
       return QVariant(int(integer));
+  }
+  else if (type == Type::TIME) {
+    bool ok;
+
+    double real = toReal(str, ok);
+
+    if (ok)
+      return QVariant(real);
   }
 
   return QVariant(str);
