@@ -10,6 +10,7 @@ struct CQChartsInputData {
   bool    commentHeader     { false };
   bool    firstLineHeader   { false };
   bool    firstColumnHeader { false };
+  bool    transpose         { false };
   QString separator;
   int     numRows           { 100 };
   QString filter;

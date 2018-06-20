@@ -46,7 +46,7 @@ description() const
          "and a count using the <b>Count</b> column.</li>\n"
          "</ul>\n"
          "<p>The column id is taken from the <b>Id</b> column and an optional "
-         "name for the id can be supplied in the <b>Name</b> column.</p>"
+         "name for the id can be supplied in the <b>Name</b> column.</p>\n"
          "<p>The group is specified using the <b>Group</b> column.</p>";
 }
 
@@ -97,10 +97,10 @@ addProperties()
   addProperty("columns", this, "nameColumn"       , "name"       );
   addProperty("columns", this, "groupColumn"      , "group"      );
 
-  addProperty("", this, "sortType"      , "");
-  addProperty("", this, "bgColor"       , "");
-  addProperty("", this, "emptyCellColor", "");
-  addProperty("", this, "margin"        , "");
+  addProperty("options", this, "sortType"      , "");
+  addProperty("options", this, "bgColor"       , "");
+  addProperty("options", this, "emptyCellColor", "");
+  addProperty("options", this, "margin"        , "");
 
   addProperty("stroke", this, "borderColor", "color");
   addProperty("stroke", this, "borderAlpha", "alpha");
@@ -190,7 +190,7 @@ initHierObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      QString linkStr = plot_->modelString(model, row, plot_->namePairColumn(), parent, ok1);
+      QString linkStr = plot_->modelString(row, plot_->namePairColumn(), parent, ok1);
 
       if (! ok1)
         return State::SKIP;
@@ -199,7 +199,7 @@ initHierObjs()
 
       bool ok2;
 
-      double value = plot_->modelReal(model, row, plot_->countColumn(), parent, ok2);
+      double value = plot_->modelReal(row, plot_->countColumn(), parent, ok2);
 
       if (! ok2)
         return State::SKIP;
@@ -211,7 +211,7 @@ initHierObjs()
       if (plot_->groupColumn().isValid()) {
         bool ok3;
 
-        group = plot_->modelInteger(model, row, plot_->groupColumn(), parent, ok3);
+        group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok3);
 
         if (! ok3)
           group = row;
@@ -358,7 +358,7 @@ initConnectionObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      int id = plot_->modelInteger(model, row, plot_->idColumn(), parent , ok1);
+      int id = plot_->modelInteger(row, plot_->idColumn(), parent , ok1);
 
       if (! ok1) id = row;
 
@@ -366,7 +366,7 @@ initConnectionObjs()
 
       bool ok2;
 
-      int group = plot_->modelInteger(model, row, plot_->groupColumn(), parent, ok2);
+      int group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok2);
 
       if (! ok2) group = row;
 
@@ -374,8 +374,7 @@ initConnectionObjs()
 
       bool ok3;
 
-      QString connectionsStr =
-        plot_->modelString(model, row, plot_->connectionsColumn(), parent, ok3);
+      QString connectionsStr = plot_->modelString(row, plot_->connectionsColumn(), parent, ok3);
 
       if (! ok3)
         return State::SKIP;
@@ -384,7 +383,7 @@ initConnectionObjs()
 
       bool ok4;
 
-      QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok4);
+      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok4);
 
       if (! name.length())
         name = QString("%1").arg(id);

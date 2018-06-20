@@ -53,6 +53,7 @@ class CQDataModel : public CQBaseModel {
  protected:
   typedef std::vector<QVariant>           Cells;
   typedef std::vector<Cells>              Data;
+  typedef std::map<int,Cells>             ColData;
   typedef std::map<int,QVariant>          RoleVariant;
   typedef std::map<int,RoleVariant>       ColumnRoleVariant;
   typedef std::map<int,ColumnRoleVariant> RowColumnRoleVariant;
@@ -83,6 +84,7 @@ class CQDataModel : public CQBaseModel {
   Cells                hheader_;                // horizontal header values
   Cells                vheader_;                // vertical header values
   Data                 data_;                   // row values
+  mutable ColData      colData_;                // converted column data
   RowColumnRoleVariant extraData_;              // extra row values
   QString              filter_;                 // filter text
   bool                 filterInited_ { false }; // filter initialized

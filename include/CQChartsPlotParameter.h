@@ -115,6 +115,9 @@ class CQChartsPlotParameter {
   const Attributes &attributes() const { return attributes_; }
   CQChartsPlotParameter &setAttributes(const Attributes &s) { attributes_ = s; return *this; }
 
+  int groupId() const { return groupId_; }
+  void setGroupId(int i) { groupId_ = i; }
+
   const QVariant &defValue() const { return defValue_; }
   CQChartsPlotParameter &setDefValue(const QVariant &v) { defValue_ = v; return *this; }
 
@@ -150,13 +153,14 @@ class CQChartsPlotParameter {
   }
 
  private:
-  QString    name_;       //! name
-  QString    desc_;       //! description
-  QString    type_;       //! type
-  QString    propName_;   //! property name
-  Attributes attributes_; //! attributes
-  QVariant   defValue_;   //! default value
-  QString    tip_;        //! tip
+  QString    name_;           //! name
+  QString    desc_;           //! description
+  QString    type_;           //! type
+  QString    propName_;       //! property name
+  Attributes attributes_;     //! attributes
+  int        groupId_ { -1 }; //! group id
+  QVariant   defValue_;       //! default value
+  QString    tip_;            //! tip
 };
 
 //---
@@ -209,6 +213,25 @@ class CQChartsBoolParameter : public CQChartsPlotParameter {
                         const Attributes &attributes=Attributes(), bool defValue=false) :
    CQChartsPlotParameter(name, desc, "bool", propName, attributes, QVariant(defValue)) {
   }
+};
+
+//------
+
+class CQChartsPlotParameterGroup {
+ public:
+  CQChartsPlotParameterGroup(const QString &name="", int groupId=-1) :
+   name_(name), groupId_(groupId) {
+  }
+
+  const QString &name() const { return name_; }
+  void setName(const QString &v) { name_ = v; }
+
+  int groupId() const { return groupId_; }
+  void setGroupId(int i) { groupId_ = i; }
+
+ private:
+  QString name_;
+  int     groupId_ { -1 };
 };
 
 #endif

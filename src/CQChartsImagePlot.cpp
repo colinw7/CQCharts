@@ -117,11 +117,11 @@ updateRange(bool apply)
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       for (int col = 0; col < numCols(); ++col) {
         bool ok;
 
-        double value = plot_->modelReal(model, row, col, parent, ok);
+        double value = plot_->modelReal(row, col, parent, ok);
 
         if (! valueSet_) {
           minValue_ = value;
@@ -220,7 +220,7 @@ initObjs()
 
         bool ok;
 
-        double value = plot_->modelReal(model, row, col, parent, ok);
+        double value = plot_->modelReal(row, col, parent, ok);
 
         //---
 
@@ -469,8 +469,8 @@ calcTipId() const
 {
   bool ok;
 
-  QString xname = plot_->modelHeaderString(ind_.column(), Qt::Horizontal, ok);
-  QString yname = plot_->modelHeaderString(ind_.row   (), Qt::Vertical , ok);
+  QString xname = plot_->modelHeaderString(ind_.column(), ok);
+  QString yname = plot_->modelHeaderString(ind_.row(), Qt::Vertical, ok);
 
   QString tipStr;
 

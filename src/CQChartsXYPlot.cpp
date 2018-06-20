@@ -688,7 +688,7 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString xname = modelHeaderString(xColumn(), ok);
 
   if (isOverlay()) {
     if (isFirstPlot())
@@ -709,8 +709,8 @@ updateRange(bool apply)
 
       bool ok;
 
-      QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
-      QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname1 = modelHeaderString(yColumn1, ok);
+      QString yname2 = modelHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -744,7 +744,7 @@ updateRange(bool apply)
 
       CQChartsColumn yColumn = getSetColumn(j);
 
-      QString yname1 = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname1 = modelHeaderString(yColumn, ok);
 
       if (yname.length())
         yname += ", ";
@@ -1033,8 +1033,8 @@ initObjs()
 
         bool ok;
 
-        QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
-        QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
+        QString yname1 = modelHeaderString(yColumn1, ok);
+        QString yname2 = modelHeaderString(yColumn2, ok);
 
         name = QString("%1-%2").arg(yname1).arg(yname2);
       }
@@ -1163,7 +1163,7 @@ initObjs()
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString name = modelHeaderString(yColumn, ok);
 
       //---
 
@@ -1201,7 +1201,7 @@ initObjs()
 
           QModelIndex parent; // TODO: parent
 
-          size = modelReal(model, ip, sizeColumn(), parent, ok);
+          size = modelReal(ip, sizeColumn(), parent, ok);
 
           if (! ok)
             size = -1;
@@ -1233,7 +1233,7 @@ initObjs()
 
             QModelIndex parent; // TODO: parent
 
-            vx = modelReal(model, ip, vectorXColumn(), parent, ok);
+            vx = modelReal(ip, vectorXColumn(), parent, ok);
           }
 
           if (vectorYColumn().isValid()) {
@@ -1241,7 +1241,7 @@ initObjs()
 
             QModelIndex parent; // TODO: parent
 
-            vy = modelReal(model, ip, vectorYColumn(), parent, ok);
+            vy = modelReal(ip, vectorYColumn(), parent, ok);
           }
 
           pointObj->setVector(vx, vy);
@@ -1255,8 +1255,7 @@ initObjs()
 
           bool ok;
 
-          QString pointLabelStr =
-            modelString(model, ip, pointLabelColumn(), parent, ok);
+          QString pointLabelStr = modelString(ip, pointLabelColumn(), parent, ok);
 
           if (ok && pointLabelStr.length())
             pointObj->setLabel(pointLabelStr);
@@ -1270,10 +1269,10 @@ initObjs()
           bool ok;
 
           if (pointColorColumnType_ == CQBaseModel::Type::COLOR) {
-            c = modelColor(model, ip, pointColorColumn(), parent, ok);
+            c = modelColor(ip, pointColorColumn(), parent, ok);
           }
           else {
-            QString str = modelString(model, ip, pointColorColumn(), parent, ok);
+            QString str = modelString(ip, pointColorColumn(), parent, ok);
 
             if (ok && str.length())
               c = QColor(str);
@@ -1288,8 +1287,7 @@ initObjs()
 
           bool ok;
 
-          QString pointSymbolStr =
-            modelString(model, ip, pointSymbolColumn(), parent, ok);
+          QString pointSymbolStr = modelString(ip, pointSymbolColumn(), parent, ok);
 
           if (ok && pointSymbolStr.length())
             pointObj->setSymbol(CQChartsPlotSymbolMgr::nameToType(pointSymbolStr));
@@ -1402,7 +1400,7 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
   ind = model->index(row, xColumn().column(), parent);
 
-  bool ok1 = modelMappedReal(model, row, xColumn(), parent, x, isLogX(), row);
+  bool ok1 = modelMappedReal(row, xColumn(), parent, x, isLogX(), row);
 
   //---
 
@@ -1415,7 +1413,7 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
     double y1;
 
-    bool ok3 = modelMappedReal(model, row, yColumn, parent, y1, isLogY(), row);
+    bool ok3 = modelMappedReal(row, yColumn, parent, y1, isLogY(), row);
 
     if (! ok3) {
       if (skipBad)
@@ -1603,8 +1601,8 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString yname1 = modelHeaderString(model, yColumn1, Qt::Horizontal, Qt::DisplayRole, ok);
-      QString yname2 = modelHeaderString(model, yColumn2, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname1 = modelHeaderString(yColumn1, ok);
+      QString yname2 = modelHeaderString(yColumn2, ok);
 
       name = QString("%1-%2").arg(yname1).arg(yname2);
     }
@@ -1621,7 +1619,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString name = modelHeaderString(yColumn, ok);
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
       CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
@@ -1636,7 +1634,7 @@ addKeyItems(CQChartsPlotKey *key)
 
       bool ok;
 
-      QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString name = modelHeaderString(yColumn, ok);
 
 #if 0
       if (ns == 1 && (name == "" || name == QString("%1").arg(yColumn + 1))) {

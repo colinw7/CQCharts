@@ -68,7 +68,12 @@ initTree() const
   if (! plotObjTree_ && plotObjTreeFuture_.valid()) {
     CQChartsPlotObjTree *th = const_cast<CQChartsPlotObjTree *>(this);
 
-    plotObjTreeFuture_.wait();
+    // unlock during sync
+    th->lock_.unlock();
+
+    th->plotObjTreeFuture_.wait();
+
+    th->lock_.lock();
 
     th->plotObjTree_ = th->plotObjTreeFuture_.get();
   }

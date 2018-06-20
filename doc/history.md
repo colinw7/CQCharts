@@ -452,3 +452,9 @@
  + Support fold and collapse commands
  + Use CQBucketer class in distributon plot and bucket model function
  + Always store time values as doubles in model (convert values when format set)
+# 6/19/2018
+ + Add raw values for box plot
+ + Add support for rol in column definition
+ + Allow transpose of list order in tcl loader
+ + Add parameter groups
+ + Cache converted column type in mode

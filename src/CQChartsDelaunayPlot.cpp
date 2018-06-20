@@ -239,11 +239,11 @@ updateRange(bool apply)
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -277,13 +277,13 @@ updateRange(bool apply)
 
   xAxis_->setColumn(xColumn());
 
-  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString xname = modelHeaderString(xColumn(), ok);
 
   xAxis_->setLabel(xname);
 
   yAxis_->setColumn(yColumn());
 
-  QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString yname = modelHeaderString(yColumn(), ok);
 
   yAxis_->setLabel(yname);
 
@@ -328,7 +328,7 @@ initObjs()
 
   bool ok;
 
-  yname_ = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  yname_ = modelHeaderString(yColumn(), ok);
 
   //---
 
@@ -347,8 +347,8 @@ initObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;

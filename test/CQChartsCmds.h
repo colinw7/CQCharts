@@ -215,10 +215,6 @@ class CQChartsCmds : public QObject {
   QAbstractItemModel *loadJson(const QString &filename, bool &hierarchical);
   QAbstractItemModel *loadData(const QString &filename, const CQChartsInputData &inputData);
 
-  QAbstractItemModel *createExprModel(int n=100);
-
-  QAbstractItemModel *createVarsModel(const Vars &vars);
-
   //---
 
   CQChartsView *getViewByName(const QString &viewName) const;

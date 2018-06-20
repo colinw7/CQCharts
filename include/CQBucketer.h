@@ -217,8 +217,8 @@ class CQBucketer {
       //    power = 1;
       //}
 
-      // calcDelta_ = 1;
-      calcDelta_ = 0.1;
+      calcDelta_ = 1;
+      //calcDelta_ = 0.1;
 
       if      (power < 0) {
         for (int i = 0; i < -power; i++)

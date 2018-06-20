@@ -336,7 +336,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   // get geometry name
   bool ok1;
 
-  geometry.name = modelString(model, row, nameColumn(), parent, ok1);
+  geometry.name = modelString(row, nameColumn(), parent, ok1);
 
   //---
 
@@ -346,7 +346,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
       geometryColumnType_ == ColumnType::PATH) {
     bool ok2;
 
-    QVariant var = modelValue(model, row, geometryColumn(), parent, ok2);
+    QVariant var = modelValue(row, geometryColumn(), parent, ok2);
 
     QVariant rvar = CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var);
 
@@ -374,7 +374,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   else {
     bool ok2;
 
-    QString geomStr = modelString(model, row, geometryColumn(), parent, ok2);
+    QString geomStr = modelString(row, geometryColumn(), parent, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
       if (! isPreview())
@@ -401,7 +401,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   // get geometry associated value
   bool ok3;
 
-  geometry.value = modelReal(model, row, valueColumn(), parent, ok3);
+  geometry.value = modelReal(row, valueColumn(), parent, ok3);
 
   if (! ok3)
     geometry.value = row;
@@ -426,12 +426,12 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     bool ok4;
 
     if (colorColumnType_ == ColumnType::COLOR) {
-      CQChartsColor c = modelColor(model, row, colorColumn(), parent, ok4);
+      CQChartsColor c = modelColor(row, colorColumn(), parent, ok4);
 
       geometry.color = c;
     }
     else {
-      QString str = modelString(model, row, colorColumn(), parent, ok4);
+      QString str = modelString(row, colorColumn(), parent, ok4);
 
       geometry.color = CQChartsColor(str);
     }
@@ -444,7 +444,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     bool ok4;
 
     if (styleColumnType_ == ColumnType::STYLE) {
-      QString str = modelString(model, row, styleColumn(), parent, ok4);
+      QString str = modelString(row, styleColumn(), parent, ok4);
 
       geometry.style = CQChartsStyle(str);
     }

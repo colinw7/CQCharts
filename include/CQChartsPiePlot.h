@@ -384,8 +384,8 @@ class CQChartsPiePlot : public CQChartsPlot {
   void addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
                              const CQChartsColumn &column);
 
-  bool getColumnSizeValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                          const QModelIndex &parent, double &value) const;
+  bool getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
+                          double &value) const;
 
  private:
   struct GroupData {

@@ -426,7 +426,7 @@ addProperties()
   addProperty("columns", this, "linkColumn" , "link" );
   addProperty("columns", this, "valueColumn", "value");
 
-  addProperty("", this, "align", "align");
+  addProperty("options", this, "align", "align");
 
   addProperty("node/stroke", this, "nodeStroked"    , "visible");
   addProperty("node/stroke", this, "nodeStrokeColor", "color"  );
@@ -523,11 +523,11 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(model, row, plot_->linkColumn (), parent, ok1);
-      double  value   = plot_->modelReal  (model, row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(row, plot_->linkColumn (), parent, ok1);
+      double  value   = plot_->modelReal  (row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;

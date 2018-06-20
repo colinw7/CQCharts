@@ -56,6 +56,8 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   setBarFill (true);
   setBarColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
+  bucketer_.setType(CQBucketer::Type::REAL_AUTO);
+
   //---
 
   setBorder(true);
@@ -88,8 +90,8 @@ addProperties()
   addProperty("value", this, "deltaValue", "delta"    );
   addProperty("value", this, "numAuto"   , "numAuto"  );
 
-  addProperty("", this, "horizontal");
-  addProperty("", this, "margin"    );
+  addProperty("options", this, "horizontal");
+  addProperty("options", this, "margin"    );
 
   addProperty("stroke", this, "border"     , "visible"   );
   addProperty("stroke", this, "borderColor", "color"     );
@@ -354,7 +356,7 @@ updateRange(bool apply)
       if (hasRange_) {
         bool ok;
 
-        double value = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
+        double value = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -374,7 +376,7 @@ updateRange(bool apply)
       else {
         bool ok;
 
-        QString value = plot_->modelString(model, row, plot_->valueColumn(), parent, ok);
+        QString value = plot_->modelString(row, plot_->valueColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -608,12 +610,9 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
   bool ok;
 
-  QString valueName =
-    modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString valueName = modelHeaderString(valueColumn(), ok);
 
   valueAxis()->setLabel(valueName);
   countAxis()->setLabel("Count");

@@ -237,12 +237,11 @@ addProperties()
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
 
-  addProperty("", this, "separator");
-
-  addProperty("", this, "innerRadius");
-  addProperty("", this, "outerRadius");
-  addProperty("", this, "startAngle" );
-  addProperty("", this, "multiRoot"  );
+  addProperty("options", this, "separator");
+  addProperty("options", this, "innerRadius");
+  addProperty("options", this, "outerRadius");
+  addProperty("options", this, "startAngle" );
+  addProperty("options", this, "multiRoot"  );
 
   addProperty("stroke", this, "border"     , "visible");
   addProperty("stroke", this, "borderColor", "color"  );
@@ -553,7 +552,7 @@ loadHier(CQChartsSunburstHierNode *root)
 
       bool ok;
 
-      name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
@@ -569,7 +568,7 @@ loadHier(CQChartsSunburstHierNode *root)
 
       bool ok = true;
 
-      size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
+      size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
 
       if (ok && size <= 0.0)
         ok = false;
@@ -663,9 +662,9 @@ loadFlat(CQChartsSunburstHierNode *root)
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 
@@ -1248,14 +1247,11 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QAbstractItemModel *model = plot_->model().data();
-
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
     bool ok;
 
-    QString colorStr =
-      plot_->modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

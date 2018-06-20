@@ -482,7 +482,8 @@ class CQChartsColumnTypeMgr : public QObject {
                           CQBaseModel::Type &type, CQChartsNameValues &nameValues) const;
 
   bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                          CQBaseModel::Type type, const CQChartsNameValues &nameValues);
+                          CQBaseModel::Type type,
+                          const CQChartsNameValues &nameValues=CQChartsNameValues());
 
  private:
   using TypeData = std::map<CQBaseModel::Type,CQChartsColumnType*>;

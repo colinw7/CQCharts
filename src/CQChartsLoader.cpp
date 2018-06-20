@@ -9,6 +9,7 @@
 #include <CQChartsTsvFilterModel.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsExprModel.h>
+#include <CQChartsColumnType.h>
 #include <CQDataModel.h>
 #ifdef CQ_CHARTS_CEIL
 #include <CQChartsCeilUtil.h>
@@ -245,29 +246,71 @@ createVarsModel(const CQChartsInputData &inputData)
 #endif
     }
 
-    int nc = columnValues.size();
+    if (! inputData.transpose) {
+      int nc = columnValues.size();
 
-    for (int c = 0; c < nc; ++c) {
-      ColumnValues columnValues1;
+      for (int c = 0; c < nc; ++c) {
+        ColumnValues columnValues1;
 
-      if (columnValues[c].type() == QVariant::List) {
-        QList<QVariant> rowVars = columnValues[c].toList();
+        if (columnValues[c].type() == QVariant::List) {
+          QList<QVariant> rowVars = columnValues[c].toList();
 
-        for (int i = 0; i < rowVars.length(); ++i)
-          columnValues1.push_back(rowVars[i]);
+          for (int i = 0; i < rowVars.length(); ++i)
+            columnValues1.push_back(rowVars[i]);
+        }
+        else {
+          columnValues1.push_back(columnValues[c]);
+        }
+
+        int nv1 = columnValues1.size();
+
+        if (nr < 0)
+          nr = nv1;
+        else
+          nr = std::min(nr, nv1);
+
+        varColumns.push_back(columnValues1);
       }
-      else {
-        columnValues1.push_back(columnValues[c]);
+    }
+    else {
+      using IndColumnValues = std::map<int,ColumnValues>;
+
+      IndColumnValues indColumnValues;
+
+      nr = columnValues.size();
+
+      for (int r = 0; r < nr; ++r) {
+        if (columnValues[r].type() == QVariant::List) {
+          QList<QVariant> columnVars = columnValues[r].toList();
+
+          for (int c = 0; c < columnVars.length(); ++c)
+            indColumnValues[c].push_back(columnVars[c]);
+        }
+        else {
+          indColumnValues[0].push_back(columnValues[r]);
+        }
       }
 
-      int nv1 = columnValues1.size();
+      nr = 0;
 
-      if (nr < 0)
-        nr = nv1;
-      else
-        nr = std::min(nr, nv1);
+      for (auto &i : indColumnValues) {
+        ColumnValues &columnValues = i.second;
 
-      varColumns.push_back(columnValues1);
+        nr = std::max(nr, int(columnValues.size()));
+      }
+
+      for (auto &i : indColumnValues) {
+        ColumnValues &columnValues = i.second;
+
+        while (int(columnValues.size()) < nr)
+          columnValues.push_back("");
+      }
+
+      for (auto &i : indColumnValues) {
+        ColumnValues &columnValues = i.second;
+
+        varColumns.push_back(columnValues);
+      }
     }
   }
   else {
@@ -400,7 +443,12 @@ createCorrelationModel(QAbstractItemModel *model)
 
   CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nc, nc);
 
+  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+
   CQDataModel *model1 = dataModel->dataModel();
+
+  for (int c = 0; c < nc; ++c)
+    (void) columnTypeMgr->setModelColumnType(model1, c, CQBaseModel::Type::REAL);
 
   for (int c = 0; c < nc; ++c) {
     CQChartsUtil::setModelHeaderValue(model1, c, Qt::Horizontal, columnNames[c]);

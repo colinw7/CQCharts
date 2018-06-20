@@ -186,7 +186,7 @@ updateRange(bool apply)
         yRanges_.emplace_back();
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       for (int i = 0; i < ns_; ++i) {
         CQChartsGeom::Range &range = yRanges_[i];
 
@@ -197,7 +197,7 @@ updateRange(bool apply)
         bool ok;
 
         double x = 0;
-        double y = plot_->modelReal(model, row, yColumn, parent, ok);
+        double y = plot_->modelReal(row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -246,7 +246,7 @@ updateRange(bool apply)
 
     bool ok;
 
-    QString name = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+    QString name = modelHeaderString(yColumn, ok);
 
     setDataRange(range);
 
@@ -316,7 +316,7 @@ initObjs()
         bool ok;
 
         double x = i;
-        double y = plot_->modelReal(model, row, yColumn, parent, ok);
+        double y = plot_->modelReal(row, yColumn, parent, ok);
 
         if (! ok)
           y = i;
@@ -368,7 +368,7 @@ initObjs()
 
     bool ok;
 
-    QString xname = modelString(model, xind.row(), xind.column(), xind.parent(), ok);
+    QString xname = modelString(xind.row(), xind.column(), xind.parent(), ok);
 
     CQChartsGeom::BBox bbox(-0.5, 0, numSets() - 0.5, 1);
 
@@ -402,7 +402,7 @@ initObjs()
 
       bool ok;
 
-      QString yname = modelHeaderString(model, yColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString yname = modelHeaderString(yColumn, ok);
 
       QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 

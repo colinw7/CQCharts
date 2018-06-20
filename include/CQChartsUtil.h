@@ -9,6 +9,7 @@
 #include <CQChartsColor.h>
 #include <CQBaseModel.h>
 #include <CQExprModel.h>
+#include <CQChartsEval.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -339,8 +340,7 @@ inline bool intersectLines(const QPointF &l1s, const QPointF &l1e,
 
 inline bool intersectLines(double x11, double y11, double x21, double y21,
                            double x12, double y12, double x22, double y22,
-                           double &xi, double &yi)
-{
+                           double &xi, double &yi) {
   QPointF pi;
 
   bool rc = intersectLines(QPointF(x11, y11), QPointF(x21, y21),
@@ -682,10 +682,6 @@ inline long toInt(const QVariant &var, bool &ok) {
 
 //------
 
-bool evalExpr(int row, const QString &expr, QVariant &var);
-
-//------
-
 inline int nameToRole(const QString &name) {
   if      (name == "display"       ) return Qt::DisplayRole;
   else if (name == "user"          ) return Qt::UserRole;
@@ -727,7 +723,7 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  Qt::Orientation orientation, bool &ok) {
-  return modelHeaderValue(model, column, orientation, Qt::DisplayRole, ok);
+  return modelHeaderValue(model, column, orientation, column.role(), ok);
 }
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -737,7 +733,7 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderValue(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
+  return modelHeaderValue(model, column, Qt::Horizontal, column.role(), ok);
 }
 
 //--
@@ -762,7 +758,7 @@ inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  Qt::Orientation orient, bool &ok) {
-  return modelHeaderString(model, column, orient, Qt::DisplayRole, ok);
+  return modelHeaderString(model, column, orient, column.role(), ok);
 }
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -772,14 +768,13 @@ inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderString(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
+  return modelHeaderString(model, column, Qt::Horizontal, column.role(), ok);
 }
 
 //--
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                Qt::Orientation orient, const QVariant &var, int role)
-{
+                                Qt::Orientation orient, const QVariant &var, int role) {
   if (column.type() != CQChartsColumn::Type::DATA)
     return false;
 
@@ -787,22 +782,19 @@ inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn 
 }
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                Qt::Orientation orientation, const QVariant &var)
-{
-  return setModelHeaderValue(model, column, orientation, var, Qt::DisplayRole);
+                                Qt::Orientation orientation, const QVariant &var) {
+  return setModelHeaderValue(model, column, orientation, var, column.role());
 }
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
-                                const QVariant &var, int role)
-{
+                                const QVariant &var, int role) {
   return setModelHeaderValue(model, column, Qt::Horizontal, var, role);
 }
 
 //--
 
 inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                          const QVariant &var, int role)
-{
+                          const QVariant &var, int role) {
   if (column.type() != CQChartsColumn::Type::DATA)
     return false;
 
@@ -812,9 +804,8 @@ inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColu
 }
 
 inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                          const QVariant &var)
-{
-  return setModelValue(model, row, column, var, Qt::DisplayRole);
+                          const QVariant &var) {
+  return setModelValue(model, row, column, var, column.role());
 }
 
 //------
@@ -919,26 +910,33 @@ inline QVariant modelValue(QAbstractItemModel *model, const QModelIndex &ind, bo
   return var;
 }
 
-inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                            const QModelIndex &parent, int role, bool &ok) {
-  if (! col.isValid()) {
+  if (! column.isValid()) {
     ok = false;
 
     return QVariant();
   }
 
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
+  if      (column.type() == CQChartsColumn::Type::DATA) {
+    QModelIndex ind = model->index(row, column.column(), parent);
 
     return modelValue(model, ind, role, ok);
   }
-  else if (col.type() == CQChartsColumn::Type::VHEADER) {
+  else if (column.type() == CQChartsColumn::Type::VHEADER) {
     QVariant var = model->headerData(row, Qt::Vertical, role);
 
     ok = var.isValid();
 
     return var;
   }
+  else if (column.type() == CQChartsColumn::Type::EXPR) {
+    QVariant var;
+
+    ok = CQChartsEvalInst->evalExpr(row, column.expr(), var);
+
+    return var;
+  }
   else {
     ok = false;
 
@@ -946,44 +944,50 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
   }
 }
 
-inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                            const QModelIndex &parent, bool &ok) {
-  if (! col.isValid()) {
-    ok = false;
+  int role = column.role(-1);
 
-    return QVariant();
+  QVariant var;
+
+  if (role < 0) {
+    var = modelValue(model, row, column, parent, Qt::EditRole, ok);
+
+    if (! ok)
+      var = modelValue(model, row, column, parent, Qt::DisplayRole, ok);
   }
+  else
+    var = modelValue(model, row, column, parent, role, ok);
 
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
-
-    return modelValue(model, ind, ok);
-  }
-  else if (col.type() == CQChartsColumn::Type::VHEADER) {
-    QVariant var = model->headerData(row, Qt::Vertical);
-
-    ok = var.isValid();
-
-    return var;
-  }
-  else if (col.type() == CQChartsColumn::Type::EXPR) {
-    QVariant var;
-
-    ok = CQChartsUtil::evalExpr(row, col.expr(), var);
-
-    return var;
-  }
-  else {
-    ok = false;
-
-    return QVariant();
-  }
+  return var;
 }
 
 //---
 
+inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+  QVariant var = modelValue(model, ind, role, ok);
+  if (! ok) return "";
+
+  QString str;
+
+  bool rc = variantToString(var, str);
+  assert(rc);
+
+  return str;
+}
+
 inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QVariant var = modelValue(model, ind, ok);
+  QString str = modelString(model, ind, Qt::EditRole, ok);
+
+  if (! ok)
+    str = modelString(model, ind, Qt::DisplayRole, ok);
+
+  return str;
+}
+
+inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                           const QModelIndex &parent, int role, bool &ok) {
+  QVariant var = modelValue(model, row, column, parent, role, ok);
   if (! ok) return "";
 
   QString str;
@@ -994,24 +998,29 @@ inline QString modelString(QAbstractItemModel *model, const QModelIndex &ind, bo
   return str;
 }
 
-inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                            const QModelIndex &parent, bool &ok) {
-  QVariant var = modelValue(model, row, col, parent, ok);
-  if (! ok) return "";
+  int role = column.role(-1);
 
   QString str;
 
-  bool rc = variantToString(var, str);
-  assert(rc);
+  if (role < 0) {
+    str = modelString(model, row, column, parent, Qt::EditRole, ok);
+
+    if (! ok)
+      str = modelString(model, row, column, parent, Qt::DisplayRole, ok);
+  }
+  else
+    str = modelString(model, row, column, parent, role, ok);
 
   return str;
 }
 
-inline QString modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                               const QModelIndex &parent, bool &ok) {
-  QString s = modelString(model, row, col, parent, ok);
+inline QString modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                               const QModelIndex &parent, int role, bool &ok) {
+  QString s = modelString(model, row, column, parent, role, ok);
 
-  if (! ok && col.column() == 0 && parent.isValid()) {
+  if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
     int         row1    = row;
 
@@ -1019,7 +1028,26 @@ inline QString modelHierString(QAbstractItemModel *model, int row, const CQChart
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      s = modelString(model, row1, col, parent1, ok);
+      s = modelString(model, row1, column, parent1, role, ok);
+    }
+  }
+
+  return s;
+}
+
+inline QString modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                               const QModelIndex &parent, bool &ok) {
+  QString s = modelString(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      s = modelString(model, row1, column, parent1, ok);
     }
   }
 
@@ -1036,24 +1064,45 @@ inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int r
 }
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QVariant var = modelValue(model, ind, ok);
+  double r = modelReal(model, ind, Qt::EditRole, ok);
+
+  if (! ok)
+    r = modelReal(model, ind, Qt::DisplayRole, ok);
+
+  return r;
+}
+
+inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                        const QModelIndex &parent, int role, bool &ok) {
+  QVariant var = modelValue(model, row, column, parent, role, ok);
   if (! ok) return 0.0;
 
   return varToReal(var, ok);
 }
 
-inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                         const QModelIndex &parent, bool &ok) {
-  QVariant var = modelValue(model, row, col, parent, ok);
+  int role = column.role(-1);
 
-  return varToReal(var, ok);
+  double r;
+
+  if (role < 0) {
+    r = modelReal(model, row, column, parent, Qt::EditRole, ok);
+
+    if (! ok)
+      r = modelReal(model, row, column, parent, Qt::DisplayRole, ok);
+  }
+  else
+    r = modelReal(model, row, column, parent, role, ok);
+
+  return r;
 }
 
-inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                            const QModelIndex &parent, bool &ok) {
-  double r = modelReal(model, row, col, parent, ok);
+inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, int role, bool &ok) {
+  double r = modelReal(model, row, column, parent, role, ok);
 
-  if (! ok && col.column() == 0 && parent.isValid()) {
+  if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
     int         row1    = row;
 
@@ -1061,7 +1110,26 @@ inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsCo
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      r = modelReal(model, row1, col, parent1, ok);
+      r = modelReal(model, row1, column, parent1, role, ok);
+    }
+  }
+
+  return r;
+}
+
+inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                            const QModelIndex &parent, bool &ok) {
+  double r = modelReal(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      r = modelReal(model, row1, column, parent1, ok);
     }
   }
 
@@ -1070,26 +1138,53 @@ inline double modelHierReal(QAbstractItemModel *model, int row, const CQChartsCo
 
 //---
 
+inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
+  QVariant var = modelValue(model, ind, role, ok);
+  if (! ok) return 0;
+
+  return varToInt(var, ok);
+}
+
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QVariant var = modelValue(model, ind, ok);
+  long l = modelInteger(model, ind, Qt::EditRole, ok);
+
+  if (! ok)
+    l = modelInteger(model, ind, Qt::DisplayRole, ok);
+
+  return l;
+}
+
+inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                         const QModelIndex &parent, int role, bool &ok) {
+  QVariant var = modelValue(model, row, column, parent, role, ok);
   if (! ok) return 0;
 
   return varToInt(var, ok);
 }
 
-inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
+inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                          const QModelIndex &parent, bool &ok) {
-  QVariant var = modelValue(model, row, col, parent, ok);
-  if (! ok) return 0;
+  int role = column.role(-1);
 
-  return varToInt(var, ok);
+  long l;
+
+  if (role < 0) {
+    l = modelInteger(model, row, column, parent, Qt::EditRole, ok);
+
+    if (! ok)
+      l = modelInteger(model, row, column, parent, Qt::DisplayRole, ok);
+  }
+  else
+    l = modelInteger(model, row, column, parent, role, ok);
+
+  return l;
 }
 
-inline long modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                             const QModelIndex &parent, bool &ok) {
-  int i = modelInteger(model, row, col, parent, ok);
+inline long modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                             const QModelIndex &parent, int role, bool &ok) {
+  long l = modelInteger(model, row, column, parent, role, ok);
 
-  if (! ok && col.column() == 0 && parent.isValid()) {
+  if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
     int         row1    = row;
 
@@ -1097,17 +1192,37 @@ inline long modelHierInteger(QAbstractItemModel *model, int row, const CQChartsC
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      i = modelInteger(model, row1, col, parent1, ok);
+      l = modelInteger(model, row1, column, parent1, role, ok);
     }
   }
 
-  return i;
+  return l;
+}
+
+inline long modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                             const QModelIndex &parent, bool &ok) {
+  long l = modelInteger(model, row, column, parent, ok);
+
+  if (! ok && column.column() == 0 && parent.isValid()) {
+    QModelIndex parent1 = parent;
+    int         row1    = row;
+
+    while (! ok && parent1.isValid()) {
+      row1    = parent1.row();
+      parent1 = parent1.parent();
+
+      l = modelInteger(model, row1, column, parent1, ok);
+    }
+  }
+
+  return l;
 }
 
 //---
 
-inline CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
-  QVariant var = modelValue(model, ind, ok);
+inline CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind,
+                                int role, bool &ok) {
+  QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return CQChartsColor();
 
   if (isColor(var))
@@ -1131,24 +1246,57 @@ inline CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &in
   return color;
 }
 
-inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                                const QModelIndex &parent, bool &ok) {
-  if (! col.isValid()) {
-    ok = false;
+inline CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
+  CQChartsColor c = modelColor(model, ind, Qt::EditRole, ok);
 
-    return CQChartsColor();
-  }
+  if (! ok)
+    c = modelColor(model, ind, Qt::DisplayRole, ok);
 
-  if      (col.type() == CQChartsColumn::Type::DATA) {
-    QModelIndex ind = model->index(row, col.column(), parent);
+  return c;
+}
 
-    return modelColor(model, ind, ok);
+inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, int role, bool &ok) {
+  QVariant var = modelValue(model, row, column, parent, role, ok);
+  if (! ok) return CQChartsColor();
+
+  if (isColor(var))
+    return CQChartsColor(var.value<QColor>());
+
+  CQChartsColor color;
+
+  if (isReal(var)) {
+    double r;
+
+    if (toReal(var, r))
+      color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
   }
   else {
-    ok = false;
+    QString str;
 
-    return CQChartsColor();
+    if (CQChartsUtil::toString(var, str))
+      color = CQChartsColor(str);
   }
+
+  return color;
+}
+
+inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
+                                const QModelIndex &parent, bool &ok) {
+  int role = column.role(-1);
+
+  CQChartsColor c;
+
+  if (role < 0) {
+    c = modelColor(model, row, column, parent, Qt::EditRole, ok);
+
+    if (! ok)
+      c = modelColor(model, row, column, parent, Qt::DisplayRole, ok);
+  }
+  else
+    c = modelColor(model, row, column, parent, role, ok);
+
+  return c;
 }
 
 //------
@@ -1190,8 +1338,7 @@ inline int modelColumnNameToInd(const QAbstractItemModel *model, const QString &
 }
 
 inline bool stringToColumn(const QAbstractItemModel *model, const QString &str,
-                           CQChartsColumn &column)
-{
+                           CQChartsColumn &column) {
   CQChartsColumn column1(str);
 
   if (column1.isValid()) {

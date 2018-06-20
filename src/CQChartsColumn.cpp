@@ -10,8 +10,8 @@ registerMetaType()
 }
 
 CQChartsColumn::
-CQChartsColumn(int column) :
- type_(Type::DATA), column_(column)
+CQChartsColumn(int column, int role) :
+ type_(Type::DATA), column_(column), role_(role)
 {
   if (column_ < 0)
     type_ = Type::NONE;
@@ -25,7 +25,7 @@ CQChartsColumn(const QString &s)
 
 CQChartsColumn::
 CQChartsColumn(const CQChartsColumn &rhs) :
- type_(rhs.type_), column_(rhs.column_), expr_(nullptr), mapped_(rhs.mapped_)
+ type_(rhs.type_), column_(rhs.column_), role_(rhs.role_), expr_(nullptr), mapped_(rhs.mapped_)
 {
   if (rhs.type_ == Type::EXPR && rhs.expr_) {
     int len = strlen(rhs.expr_);
@@ -50,6 +50,7 @@ operator=(const CQChartsColumn &rhs)
 
   type_   = rhs.type_;
   column_ = rhs.column_;
+  role_   = rhs.role_;
   expr_   = nullptr;
 
   if (rhs.type_ == Type::EXPR && rhs.expr_) {
@@ -69,15 +70,17 @@ setValue(const QString &str)
 {
   Type    type;
   int     column;
+  int     role;
   QString expr;
 
-  if (! decodeString(str, type, column, expr))
+  if (! decodeString(str, type, column, role, expr))
     return false;
 
   delete [] expr_;
 
   type_   = type;
   column_ = column;
+  role_   = role;
   expr_   = nullptr;
 
   if (type == Type::EXPR) {
@@ -95,8 +98,12 @@ QString
 CQChartsColumn::
 toString() const
 {
-  if      (type_ == Type::DATA)
-    return QString("%1").arg(column_);
+  if      (type_ == Type::DATA) {
+    if (role_ >= 0)
+      return QString("%1@%2").arg(column_).arg(role_);
+    else
+      return QString("%1").arg(column_);
+  }
   else if (type_ == Type::EXPR)
     return QString("(%1)").arg(expr_);
   else if (type_ == Type::VHEADER)
@@ -121,6 +128,9 @@ cmp(const CQChartsColumn &lhs, const CQChartsColumn &rhs)
 
   if (lhs.column_ < rhs.column_) return -1;
   if (lhs.column_ > rhs.column_) return  1;
+
+  if (lhs.role_ < rhs.role_) return -1;
+  if (lhs.role_ > rhs.role_) return  1;
 
   if (lhs.expr_ != rhs.expr_) {
     if (! lhs.expr_ &&   rhs.expr_) return -1;
@@ -177,10 +187,11 @@ columnsToString(const std::vector<CQChartsColumn> &columns)
 
 bool
 CQChartsColumn::
-decodeString(const QString &str, Type &type, int &column, QString &expr)
+decodeString(const QString &str, Type &type, int &column, int &role, QString &expr)
 {
   type   = Type::NONE;
   column = -1;
+  role   = -1;
   expr   = "";
 
   std::string sstr = str.toStdString();
@@ -228,7 +239,7 @@ decodeString(const QString &str, Type &type, int &column, QString &expr)
     return true;
   }
 
-  // TODO: support column name
+  // TODO: support column name (need model)
 
   // integer column number
   const char *p;
@@ -240,18 +251,44 @@ decodeString(const QString &str, Type &type, int &column, QString &expr)
   if (errno == ERANGE)
     return false;
 
-  while (*p != 0 && ::isspace(*p))
+  if (*p == '@') {
     ++p;
 
-  if (*p == '\0') {
+    const char *p1;
+
+    errno = 0;
+
+    long value1 = strtol(p, (char **) &p1, 10);
+
+    if (errno == ERANGE)
+      return false;
+
+    while (*p1 != 0 && ::isspace(*p1))
+      ++p1;
+
+    if (*p1 != '\0')
+      return false;
+
+    if (value < 0 || value1 < 0)
+      return false;
+
+    type   = Type::DATA;
+    column = value;
+    role   = value1;
+  }
+  else {
+    while (*p != 0 && ::isspace(*p))
+      ++p;
+
+    if (*p != '\0')
+      return false;
+
     if (value < 0)
       return false;
 
     type   = Type::DATA;
     column = value;
   }
-  else
-    return false;
 
   return true;
 }

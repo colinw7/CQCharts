@@ -20,7 +20,7 @@ class CQChartsColumn {
 
  public:
   CQChartsColumn() = default;
-  CQChartsColumn(int column);
+  CQChartsColumn(int column, int role=-1);
   CQChartsColumn(const QString &s);
 
   CQChartsColumn(const CQChartsColumn &rhs);
@@ -32,6 +32,12 @@ class CQChartsColumn {
   Type type() const { return type_; }
 
   int column() const { return (type_ == Type::DATA ? column_ : -1); }
+
+  int role(int defRole=Qt::DisplayRole) const {
+    if (type_ != Type::DATA) return -1;
+
+    return (role_ >= 0 ? role_ : defRole);
+  }
 
   QString expr() const { return (type_ == Type::EXPR && expr_ ? QString(expr_) : QString()); }
 
@@ -88,11 +94,12 @@ class CQChartsColumn {
   static QString columnsToString(const std::vector<CQChartsColumn> &columns);
 
  private:
-  bool decodeString(const QString &str, Type &type, int &column, QString &expr);
+  bool decodeString(const QString &str, Type &type, int &column, int &role, QString &expr);
 
  private:
   Type   type_   { Type::NONE };
   int    column_ { -1 };
+  int    role_   { -1 };
   char*  expr_   { nullptr };
   bool   mapped_ { false };
   double mapMin_ { 0.0 };

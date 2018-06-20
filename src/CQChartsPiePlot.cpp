@@ -179,11 +179,11 @@ addProperties()
   addProperty("columns", this, "colorColumn"   , "color"   );
 
   // general
-  addProperty("", this, "rowGrouping", "rowGrouping");
-  addProperty("", this, "donut"      );
-  addProperty("", this, "innerRadius");
-  addProperty("", this, "startAngle" );
-  addProperty("", this, "angleExtent");
+  addProperty("options", this, "rowGrouping");
+  addProperty("options", this, "donut"      );
+  addProperty("options", this, "innerRadius");
+  addProperty("options", this, "startAngle" );
+  addProperty("options", this, "angleExtent");
 
   addProperty("grid", this, "grid"     , "visible");
   addProperty("grid", this, "gridColor", "color");
@@ -438,14 +438,14 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   double value = row;
 
-  if (! getColumnSizeValue(model, row, dataColumn, parent, value))
+  if (! getColumnSizeValue(row, dataColumn, parent, value))
     return;
 
   //---
 
   double radius = 0.0;
 
-  bool hasRadius = getColumnSizeValue(model, row, radiusColumn(), parent, radius);
+  bool hasRadius = getColumnSizeValue(row, radiusColumn(), parent, radius);
 
   //---
 
@@ -455,13 +455,13 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   if (numGroups() > 1) {
     if (dataColumns().size() <= 1 || isRowGrouping()) {
-      label = modelString(model, row, labelColumn(), parent, ok);
+      label = modelString(row, labelColumn(), parent, ok);
     }
     else
-      label = modelHeaderString(model, dataColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      label = modelHeaderString(dataColumn, ok);
   }
   else {
-    label = modelString(model, row, labelColumn(), parent, ok);
+    label = modelString(row, labelColumn(), parent, ok);
   }
 
   //---
@@ -471,7 +471,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (keyLabelColumn().isValid()) {
     bool ok;
 
-    keyLabel = modelString(model, row, keyLabelColumn(), parent, ok);
+    keyLabel = modelString(row, keyLabelColumn(), parent, ok);
   }
 
   //---
@@ -608,7 +608,7 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
 
   double value = row;
 
-  if (! getColumnSizeValue(model, row, dataColumn, parent, value))
+  if (! getColumnSizeValue(row, dataColumn, parent, value))
     return;
 
   //---
@@ -632,7 +632,7 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
   if (radiusColumn().isValid()) {
     double value = 0.0;
 
-    if (getColumnSizeValue(model, row, radiusColumn(), parent, value)) {
+    if (getColumnSizeValue(row, radiusColumn(), parent, value)) {
       if (! hidden) {
         groupData.radiusScaled = true;
         groupData.radiusMax    = std::max(groupData.radiusMax, value);
@@ -643,12 +643,12 @@ addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int 
 
 bool
 CQChartsPiePlot::
-getColumnSizeValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                   const QModelIndex &parent, double &value) const
+getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
+                   double &value) const
 {
   bool ok;
 
-  value = modelReal(model, row, column, parent, ok);
+  value = modelReal(row, column, parent, ok);
 
   if (! ok)
     return true; // allow missing value

@@ -57,7 +57,7 @@ addProperties()
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "valueColumn", "value");
 
-  addProperty("", this, "textMargin", "textMargin");
+  addProperty("options", this, "textMargin", "textMargin");
 
   addProperty("node", this, "circleSize", "circleSize");
 
@@ -305,7 +305,7 @@ updateRange(bool apply)
 
       bool ok1;
 
-      QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok1);
+      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok1);
 
       if (path.length())
         name = path + "/" + name;
@@ -314,7 +314,7 @@ updateRange(bool apply)
 
       bool ok2;
 
-      double value = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
+      double value = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
 
       if (CQChartsUtil::isNaN(value))
         return State::SKIP;

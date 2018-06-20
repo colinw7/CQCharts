@@ -131,7 +131,7 @@ struct MainData {
   bool             loop       { false };
 #if   defined(CQ_CHARTS_TCL)
   ParserType       parserType { ParserType::TCL };
-#elif defined(CQ_CHARTS_CEIL
+#elif defined(CQ_CHARTS_CEIL)
   ParserType       parserType { ParserType::CEIL };
 #else
   ParserType       parserType { ParserType::SCRIPT };

@@ -8,7 +8,6 @@
 
 #include <CQExprUtil.h>
 #include <CQUtil.h>
-#include <CExpr.h>
 #include <CQStrParse.h>
 #include <QSortFilterProxyModel>
 #include <QFontMetricsF>
@@ -732,35 +731,6 @@ bool fileToLines(const QString &filename, QStringList &lines, int maxLines) {
   //---
 
   return true;
-}
-
-}
-
-//------
-
-namespace CQChartsUtil {
-
-bool evalExpr(int row, const QString &exprStr, QVariant &var) {
-#ifdef CQCharts_USE_CEXPR
-  CExpr expr;
-
-  expr.createVariable("x", expr.createRealValue(row));
-
-  CExprValuePtr value;
-
-  if (! expr.evaluateExpression(exprStr.toStdString(), value))
-    return false;
-
-  var = CQExprUtil::valueToVariant(&expr, value);
-
-  if (! var.isValid())
-    return false;
-
-  return true;
-#else
-  assert(row > 0 && &exprStr && &var);
-  return false;
-#endif
 }
 
 }

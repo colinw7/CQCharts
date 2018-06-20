@@ -2235,7 +2235,8 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       if (visible) {
         if (CQChartsUtil::isZero(angle)) {
-          double tx = pt.x() - (! isPixelLeft ? 0.0 : tw);
+          //double tx = pt.x() - (! isPixelLeft ? 0.0 : tw);
+          double tx = pt.x();
 
           QPointF p;
 

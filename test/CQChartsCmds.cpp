@@ -415,6 +415,7 @@ loadModelCmd(const Vars &vars)
   argv.addCmdArg("-first_line_header"  , CQChartsCmdArg::Type::Boolean);
   argv.addCmdArg("-first_column_header", CQChartsCmdArg::Type::Boolean);
   argv.addCmdArg("-separator"          , CQChartsCmdArg::Type::String );
+  argv.addCmdArg("-transpose"          , CQChartsCmdArg::Type::Boolean);
 
   argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
   argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
@@ -450,6 +451,8 @@ loadModelCmd(const Vars &vars)
   inputData.firstColumnHeader = argv.getParseBool("first_column_header");
 
   inputData.separator = argv.getParseStr("separator");
+
+  inputData.transpose = argv.getParseBool("transpose");
 
   inputData.numRows = std::max(argv.getParseInt("num_rows"), 1);
 
@@ -914,12 +917,13 @@ createPlotCmd(const Vars &vars)
     return;
 
   // ignore if bad type
-  CQChartsPlotType *type = charts_->plotType(typeName);
-
-  if (! type) {
+  if (! charts_->isPlotType(typeName)) {
     errorMsg("Invalid type '" + typeName + "' for plot");
     return;
   }
+
+  CQChartsPlotType *type = charts_->plotType(typeName);
+  assert(type);
 
   //------
 
@@ -2364,7 +2368,7 @@ setChartsDataCmd(const Vars &vars)
   argv.addCmdArg("-plot"  , CQChartsCmdArg::Type::String , "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to set");
   argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
   argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Integer, "row number");
   argv.addCmdArg("-row_id", CQChartsCmdArg::Type::String , "row id");
@@ -2377,15 +2381,14 @@ setChartsDataCmd(const Vars &vars)
 
   //---
 
-  int     icolumn = argv.getParseInt ("column"); // support column name
-  bool    header  = argv.getParseBool("header");
-  int     row     = argv.getParseInt ("row");
-  QString name    = argv.getParseStr ("name");
-  QString value   = argv.getParseStr ("value");
+  bool    header = argv.getParseBool  ("header");
+  int     row    = argv.getParseInt   ("row");
+  QString name   = argv.getParseStr   ("name");
+  QString value  = argv.getParseStr   ("value");
 
   //---
 
-  QString roleName = argv.getParseStr ("role");
+  QString roleName = argv.getParseStr("role");
 
   int role = Qt::EditRole;
 
@@ -2409,33 +2412,38 @@ setChartsDataCmd(const Vars &vars)
 
     //---
 
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
+
     // set column header or row, column value
     if      (name == "value") {
       if (header) {
-        if (icolumn < 0) {
+        if (! column.isValid()) {
           errorMsg("Invalid header column specified");
           setCmdRc(QString());
         }
 
-        if (! CQChartsUtil::setModelHeaderValue(model.data(), icolumn, value, role))
+        if (! CQChartsUtil::setModelHeaderValue(model.data(), column, value, role))
           errorMsg("Failed to set header value");
       }
       else {
-        QModelIndex ind = modelData->model().data()->index(row, icolumn);
+        QModelIndex ind = modelData->model().data()->index(row, column.column());
 
         if (! ind.isValid()) {
           errorMsg("Invalid data row/column specified");
           setCmdRc(QString());
         }
 
-        if (! CQChartsUtil::setModelValue(modelData->model().data(), row, icolumn, value, role))
+        if (! CQChartsUtil::setModelValue(modelData->model().data(), row, column, value, role))
           errorMsg("Failed to set row value");
       }
     }
     else if (name == "column_type") {
       ModelP model = modelData->model();
 
-      CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value, /*remap*/true);
+      if (column.isValid())
+        CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, value, /*remap*/true);
+      else
+        CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value, /*remap*/true);
     }
     else if (name == "name") {
       modelData->setName(value);

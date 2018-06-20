@@ -158,15 +158,6 @@ headerData(int section, Qt::Orientation orientation, int role) const
 
       return "";
     }
-    else if (role == Qt::ToolTipRole) {
-      QVariant var = hheader_[section];
-
-      Type type = columnType(section);
-
-      QString str = var.toString() + ":" + typeName(type);
-
-      return QVariant(str);
-    }
     else if (role == Qt::EditRole) {
       if (hheader_[section].toString().length())
         return hheader_[section];
@@ -177,6 +168,15 @@ headerData(int section, Qt::Orientation orientation, int role) const
         return var;
 
       return "";
+    }
+    else if (role == Qt::ToolTipRole) {
+      QVariant var = hheader_[section];
+
+      Type type = columnType(section);
+
+      QString str = var.toString() + ":" + typeName(type);
+
+      return QVariant(str);
     }
     else {
       return CQBaseModel::headerData(section, orientation, role);
@@ -197,14 +197,14 @@ headerData(int section, Qt::Orientation orientation, int role) const
       else
         return CQBaseModel::headerData(section, orientation, role);
     }
-    else if (role == Qt::ToolTipRole) {
-      return vheader_[section];
-    }
     else if (role == Qt::EditRole) {
       if (vheader_[section].toString().length())
         return vheader_[section];
       else
         return CQBaseModel::headerData(section, orientation, role);
+    }
+    else if (role == Qt::ToolTipRole) {
+      return vheader_[section];
     }
     else {
       return CQBaseModel::headerData(section, orientation, role);
@@ -270,28 +270,53 @@ data(const QModelIndex &index, int role) const
     if (index.column() < 0 || index.column() >= int(cells.size()))
       return QVariant();
 
-    QVariant var = cells[index.column()];
-
-    Type type = columnType(index.column());
-
-    if (type == Type::NONE)
-      return var;
-
-    if (! isSameType(var, type))
-      return typeStringToVariant(var.toString(), type);
-
-    return var;
+    return cells[index.column()];
   }
   else if (role == Qt::EditRole) {
-    if (index.row() < 0 || index.row() >= int(data_.size()))
+    int nr = data_.size();
+
+    if (index.row() < 0 || index.row() >= nr)
       return QVariant();
 
     const Cells &cells = data_[index.row()];
 
-    if (index.column() < 0 || index.column() >= int(cells.size()))
+    int nc = int(cells.size());
+
+    if (index.column() < 0 || index.column() >= nc)
       return QVariant();
 
+    Type type = columnType(index.column());
+
+    // check in cached converted values
+    auto p = colData_.find(index.column());
+
+    if (p != colData_.end()) {
+      Cells &cells = (*p).second;
+
+      if (index.row() < int(cells.size())) {
+        QVariant var = cells[index.row()];
+
+        if (isSameType(var, type))
+          return var;
+      }
+    }
+
     QVariant var = cells[index.column()];
+
+    if (type == Type::NONE)
+      return var;
+
+    // cache converted value
+    if (! isSameType(var, type)) {
+      var = typeStringToVariant(var.toString(), type);
+
+      Cells &cells = colData_[index.column()];
+
+      if (int(cells.size()) != nr)
+        cells.resize(nr);
+
+      cells[index.row()] = var;
+    }
 
     return var;
   }

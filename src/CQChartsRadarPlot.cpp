@@ -276,8 +276,8 @@ addProperties()
   addProperty("columns", this, "valueColumn" , "value"    );
   addProperty("columns", this, "valueColumns", "valuesSet");
 
-  addProperty("", this, "angleStart" );
-  addProperty("", this, "angleExtent");
+  addProperty("options", this, "angleStart" );
+  addProperty("options", this, "angleExtent");
 
   addProperty("grid", this, "grid"     , "visible");
   addProperty("grid", this, "gridColor", "color");
@@ -316,13 +316,13 @@ updateRange(bool apply)
       nv_ = plot_->numValueColumns();
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       for (int iv = 0; iv < nv_; ++iv) {
         const CQChartsColumn &column = plot_->valueColumn(iv);
 
         bool ok;
 
-        double value = plot_->modelReal(model, row, column, parent, ok);
+        double value = plot_->modelReal(row, column, parent, ok);
 
         valueDatas_[iv].add(value);
       }
@@ -433,7 +433,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
 
   bool ok;
 
-  QString name = modelString(model, row, nameColumn(), parent, ok);
+  QString name = modelString(row, nameColumn(), parent, ok);
 
   //---
 
@@ -452,7 +452,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
   for (int iv = 0; iv < nv; ++iv) {
     bool ok1;
 
-    double value = modelReal(model, row, valueColumns()[iv], parent, ok1);
+    double value = modelReal(row, valueColumns()[iv], parent, ok1);
 
     double scale = valueDatas_[iv].sum();
 
@@ -496,10 +496,10 @@ addKeyItems(CQChartsPlotKey *key)
      plot_(plot), key_(key) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok;
 
-      QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
+      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
 
       //---
 

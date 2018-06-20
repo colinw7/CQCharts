@@ -503,7 +503,7 @@ loadModel()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1;
 
-      QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok1);
+      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok1);
 
       //---
 
@@ -513,9 +513,9 @@ loadModel()
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 

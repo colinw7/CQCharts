@@ -35,6 +35,7 @@ class CQChartsPlotTypeMgr {
 class CQChartsPlotType {
  public:
   using Parameters          = std::vector<CQChartsPlotParameter>;
+  using ParameterGroups     = std::map<int,CQChartsPlotParameterGroup>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
 
@@ -55,75 +56,47 @@ class CQChartsPlotType {
 
   //---
 
-  CQChartsPlotParameter &
-  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     int defValue=-1) {
-    return addColumnParameter(name, desc, propName, ParameterAttributes(), defValue);
-  }
+  void startParameterGroup(const QString &name);
+  void endParameterGroup();
+
+  //---
 
   CQChartsPlotParameter &
   addColumnParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, int defValue=-1) {
-    return addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
-  }
+                     int defValue=-1);
+  CQChartsPlotParameter &
+  addColumnParameter(const QString &name, const QString &desc, const QString &propName,
+                     const ParameterAttributes &attributes, int defValue=-1);
 
   CQChartsPlotParameter &
   addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const QString &defValue="") {
-    return addParameter(CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(),
-                                                 defValue));
-  }
-
+                      const QString &defValue="");
   CQChartsPlotParameter &
   addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
-                      const ParameterAttributes &attributes, const QString &defValue) {
-    return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
-  }
+                      const ParameterAttributes &attributes, const QString &defValue);
 
   CQChartsPlotParameter &
   addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const QString &defValue="") {
-    return addParameter(CQChartsStringParameter(name, desc, propName, ParameterAttributes(),
-                                                defValue));
-  }
-
+                     const QString &defValue="");
   CQChartsPlotParameter &
   addStringParameter(const QString &name, const QString &desc, const QString &propName,
-                     const ParameterAttributes &attributes, const QString &defValue) {
-    return addParameter(CQChartsStringParameter(name, desc, propName, attributes, defValue));
-  }
+                     const ParameterAttributes &attributes, const QString &defValue);
 
   CQChartsPlotParameter &
   addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   double defValue=0.0) {
-    return addParameter(CQChartsRealParameter(name, desc, propName, ParameterAttributes(),
-                                              defValue));
-  }
-
+                   double defValue=0.0);
   CQChartsPlotParameter &
   addRealParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, double defValue) {
-    return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
-  }
+                   const ParameterAttributes &attributes, double defValue);
 
   CQChartsPlotParameter &
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   bool defValue=false) {
-    return addParameter(CQChartsBoolParameter(name, desc, propName, ParameterAttributes(),
-                                              defValue));
-  }
-
+                   bool defValue=false);
   CQChartsPlotParameter &
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,
-                   const ParameterAttributes &attributes, bool defValue) {
-    return addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
-  }
+                   const ParameterAttributes &attributes, bool defValue);
 
-  CQChartsPlotParameter &addParameter(const CQChartsPlotParameter &parameter) {
-    parameters_.push_back(parameter);
-
-    return parameters_.back();
-  }
+  CQChartsPlotParameter &addParameter(const CQChartsPlotParameter &parameter);
 
   //---
 
@@ -151,7 +124,9 @@ class CQChartsPlotType {
   virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
 
  protected:
-  Parameters parameters_;
+  Parameters      parameters_;
+  ParameterGroups parameterGroups_;
+  int             parameterGroupId_ { -1 };
 };
 
 #endif

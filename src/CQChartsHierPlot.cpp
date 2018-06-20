@@ -112,7 +112,7 @@ addProperties()
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
 
-  addProperty("", this, "separator");
+  addProperty("options", this, "separator");
 
   addProperty("color", this, "colorMapped", "mapped");
   addProperty("color", this, "colorMapMin", "mapMin");

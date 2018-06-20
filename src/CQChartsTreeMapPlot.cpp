@@ -621,7 +621,7 @@ addProperties()
 {
   CQChartsHierPlot::addProperties();
 
-  addProperty("", this, "marginWidth");
+  addProperty("options", this, "marginWidth");
 
   addProperty("header", this, "titles"        , "visible"  );
   addProperty("header", this, "titleMaxExtent", "maxExtent");
@@ -967,7 +967,7 @@ loadHier()
 
       double size = 1.0;
 
-      if (! getSize(model, parent, row, size))
+      if (! getSize(parent, row, size))
         return State::SKIP;
 
       //---
@@ -997,13 +997,12 @@ loadHier()
 
       bool ok;
 
-      name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
 
       return ok;
     }
 
-    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                 double &size) const {
+    bool getSize(const QModelIndex &parent, int row, double &size) const {
       size = 1.0;
 
       if (! plot_->valueColumn().isValid())
@@ -1012,9 +1011,9 @@ loadHier()
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok);
       else
         ok = false;
 
@@ -1094,7 +1093,7 @@ loadFlat()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QStringList  nameStrs;
       ModelIndices nameInds;
 
@@ -1112,9 +1111,9 @@ loadFlat()
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(model, row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok2);
         else
           ok2 = false;
 
@@ -1608,14 +1607,11 @@ calcTipId() const
   tableTip.addTableRow("Size", node_->hierSize());
 
   if (plot_->colorColumn().isValid()) {
-    QAbstractItemModel *model = plot_->model().data();
-
     QModelIndex ind1 = plot_->unnormalizeIndex(node_->ind());
 
     bool ok;
 
-    QString colorStr =
-      plot_->modelString(model, ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
+    QString colorStr = plot_->modelString(ind1.row(), plot_->colorColumn(), ind1.parent(), ok);
 
     tableTip.addTableRow("Color", colorStr);
   }

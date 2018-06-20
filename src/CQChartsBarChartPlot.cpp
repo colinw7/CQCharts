@@ -163,7 +163,7 @@ addProperties()
   addProperty("columns", this, "labelColumn"   , "label"      );
   addProperty("columns", this, "colorColumn"   , "color"      );
 
-  addProperty("columns", this, "rowGrouping", "rowGrouping");
+  addProperty("options", this, "rowGrouping");
   addProperty("options", this, "colorBySet");
   addProperty("options", this, "stacked"   );
   addProperty("options", this, "percent"   );
@@ -501,8 +501,7 @@ updateRange(bool apply)
   for (const auto &valueColumn : valueColumns_) {
     bool ok;
 
-    QString valueName =
-      modelHeaderString(model, valueColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+    QString valueName = modelHeaderString(valueColumn, ok);
 
     valueNames_.push_back(valueName);
   }
@@ -577,9 +576,9 @@ updateRange(bool apply)
   }
   else {
     if (categoryColumn().isValid())
-      xname = modelHeaderString(model, categoryColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+      xname = modelHeaderString(categoryColumn(), ok);
     else
-      xname = modelHeaderString(model, nameColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+      xname = modelHeaderString(nameColumn(), ok);
   }
 
   xAxis->setLabel(xname);
@@ -593,7 +592,7 @@ updateRange(bool apply)
   if (valueColumns().size() <= 1) {
     bool ok;
 
-    yname = modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+    yname = modelHeaderString(valueColumn(), ok);
   }
 
   yAxis->setLabel(yname);
@@ -658,7 +657,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (categoryColumn().isValid()) {
     bool ok1;
 
-    category = modelHierString(model, row, categoryColumn(), parent, ok1);
+    category = modelHierString(row, categoryColumn(), parent, ok1);
 
     categoryName = category;
   }
@@ -671,7 +670,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (nameColumn().isValid()) {
     bool ok2;
 
-    name = modelString(model, row, nameColumn(), parent, ok2);
+    name = modelString(row, nameColumn(), parent, ok2);
 
     if (! categoryName.length())
       categoryName = name;
@@ -685,7 +684,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   if (labelColumn().isValid()) {
     bool ok3;
 
-    label = modelString(model, row, labelColumn(), parent, ok3);
+    label = modelString(row, labelColumn(), parent, ok3);
   }
 
   //---
@@ -702,7 +701,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
   for (const auto &valueColumn : valueColumns) {
     double r;
 
-    bool ok2 = modelMappedReal(model, row, valueColumn, parent, r, isLogY(), row);
+    bool ok2 = modelMappedReal(row, valueColumn, parent, r, isLogY(), row);
 
     if (! ok2)
       r = row;
@@ -756,7 +755,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
     if (! isRowGrouping()) {
       bool ok;
 
-      valueName = modelHeaderString(model, valueColumn, Qt::Horizontal, Qt::DisplayRole, ok);
+      valueName = modelHeaderString(valueColumn, ok);
     }
     // row grouping so value name is category/name column name
     else {
@@ -1194,8 +1193,7 @@ addKeyItems(CQChartsPlotKey *key)
       if (! title.length()) {
         bool ok;
 
-        QString yname =
-          modelHeaderString(model, valueColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+        QString yname = modelHeaderString(valueColumn(), ok);
 
         title = yname;
       }

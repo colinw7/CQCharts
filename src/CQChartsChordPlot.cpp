@@ -72,9 +72,9 @@ addProperties()
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "groupColumn", "group");
 
-  addProperty("", this, "sorted"     );
-  addProperty("", this, "innerRadius");
-  addProperty("", this, "labelRadius");
+  addProperty("options", this, "sorted"     );
+  addProperty("options", this, "innerRadius");
+  addProperty("options", this, "labelRadius");
 
   addProperty("stroke", this, "borderColor", "color");
   addProperty("stroke", this, "borderAlpha", "alpha");
@@ -200,7 +200,7 @@ initTableObjs()
 
         bool ok;
 
-        indRowData.rowData[col] = plot_->modelValue(model, row, col, parent, ok);
+        indRowData.rowData[col] = plot_->modelValue(row, col, parent, ok);
       }
 
       indRowDatas_.push_back(indRowData);
@@ -425,8 +425,8 @@ initHierObjs()
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(model, row, plot_->nameColumn (), parent , ok1);
-      double  value   = plot_->modelReal  (model, row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(row, plot_->nameColumn (), parent , ok1);
+      double  value   = plot_->modelReal  (row, plot_->valueColumn(), parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;
@@ -476,7 +476,7 @@ initHierObjs()
       if (plot_->groupColumn().isValid()) {
         bool ok;
 
-        QString groupStr = plot_->modelString(model, row, plot_->groupColumn(), parent, ok);
+        QString groupStr = plot_->modelString(row, plot_->groupColumn(), parent, ok);
 
         (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(row)));
       }

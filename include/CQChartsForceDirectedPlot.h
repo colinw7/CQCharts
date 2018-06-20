@@ -31,7 +31,6 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(bool           autoFit           READ isAutoFit         WRITE setAutoFit          )
   Q_PROPERTY(bool           running           READ isRunning         WRITE setRunning          )
   Q_PROPERTY(double         nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
   Q_PROPERTY(CQChartsColor  nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
@@ -62,9 +61,6 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
 
   //---
-
-  bool isAutoFit() const { return autoFit_; }
-  void setAutoFit(bool b) { autoFit_ = b; }
 
   bool isRunning() const { return running_; }
   void setRunning(bool b) { running_ = b; }
@@ -155,7 +151,6 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   IdConnectionsData     idConnections_;               // id connections
   NodeMap               nodes_;                       // force directed nodes
   CQChartsForceDirected forceDirected_;               // force directed class
-  bool                  autoFit_           { true };  // is auto fit
   bool                  running_           { true };  // is running
   bool                  pressed_           { false }; // is pressed
   double                rangeSize_         { 20.0 };  // range size

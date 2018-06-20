@@ -4174,7 +4174,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
 
     bool ok;
 
-    QString name = modelString(model, row, nameColumn, parent, ok);
+    QString name = modelString(row, nameColumn, parent, ok);
 
     if (ok && ! name.simplified().length())
       ok = false;
@@ -4194,7 +4194,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
     for (auto &nameColumn : nameColumns) {
       bool ok;
 
-      QString name = modelString(model, row, nameColumn, parent, ok);
+      QString name = modelString(row, nameColumn, parent, ok);
 
       if (ok && ! name.simplified().length())
         ok = false;
@@ -4519,8 +4519,8 @@ initValueSets()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
-      plot_->addValueSetRow(model, ind, row);
+    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+      plot_->addValueSetRow(ind, row);
 
       return State::OK;
     }
@@ -4536,7 +4536,7 @@ initValueSets()
 
 void
 CQChartsPlot::
-addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addValueSetRow(const QModelIndex &parent, int row)
 {
   for (auto &valueSet : valueSets_) {
     const CQChartsColumn &column = valueSet.second->column();
@@ -4544,7 +4544,7 @@ addValueSetRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     if (column.isValid()) {
       bool ok;
 
-      QVariant value = modelValue(model, row, column, parent, ok);
+      QVariant value = modelValue(row, column, parent, ok);
 
       valueSet.second->addValue(value); // always add some value
     }
@@ -4561,10 +4561,10 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
      plot_(plot), column_(column), valueSet_(valueSet) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok;
 
-      QVariant value = plot_->modelValue(model, row, column_, parent, ok);
+      QVariant value = plot_->modelValue(row, column_, parent, ok);
 
       // TODO: skip if not ok ?
 
@@ -4611,7 +4611,7 @@ initGroup(const GroupData &data)
     for (const auto &column : data.columns) {
       bool ok;
 
-      QString name = modelHeaderString(model, column, Qt::Horizontal, Qt::DisplayRole, ok);
+      QString name = modelHeaderString(column, ok);
 
       int ind = groupBucket_.addValue(column.column());
 
@@ -4657,7 +4657,7 @@ initGroup(const GroupData &data)
       if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
         bool ok;
 
-        QVariant value = plot_->modelHierValue(model, row, bucket_->column(), parent, ok);
+        QVariant value = plot_->modelHierValue(row, bucket_->column(), parent, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
@@ -4701,7 +4701,7 @@ rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
-    QVariant value = modelHierValue(model, row, groupBucket_.column(), parent, ok);
+    QVariant value = modelHierValue(row, groupBucket_.column(), parent, ok);
 
     return groupBucket_.ind(value);
   }
@@ -4737,13 +4737,13 @@ visitModel(ModelVisitor &visitor)
 
 bool
 CQChartsPlot::
-modelMappedReal(QAbstractItemModel *model, int row, const CQChartsColumn &col,
-                const QModelIndex &parent, double &r, bool log, double def) const
+modelMappedReal(int row, const CQChartsColumn &col, const QModelIndex &parent,
+                double &r, bool log, double def) const
 {
   if (col.isValid()) {
     bool ok1;
 
-    r = modelReal(model, row, col, parent, ok1);
+    r = modelReal(row, col, parent, ok1);
 
     if (! ok1)
       r = def;
@@ -4839,28 +4839,28 @@ QString
 CQChartsPlot::
 modelHeaderString(const CQChartsColumn &column, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, Qt::Horizontal, Qt::DisplayRole, ok);
+  return modelHeaderString(model().data(), column, column.role(), ok);
 }
 
 QString
 CQChartsPlot::
 modelHeaderString(const CQChartsColumn &column, int role, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, Qt::Horizontal, role, ok);
+  return modelHeaderString(model().data(), column, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient, int role, bool &ok) const
+modelHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, orient, role, ok);
+  return modelHeaderString(model().data(), section, orient, role, ok);
 }
 
 QString
 CQChartsPlot::
-modelHeaderString(const CQChartsColumn &column, Qt::Orientation orient, bool &ok) const
+modelHeaderString(int section, Qt::Orientation orient, bool &ok) const
 {
-  return modelHeaderString(model().data(), column, orient, Qt::DisplayRole, ok);
+  return modelHeaderString(model().data(), section, orient, Qt::DisplayRole, ok);
 }
 
 QVariant
@@ -4875,35 +4875,67 @@ QVariant
 CQChartsPlot::
 modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelValue(model().data(), row, column, parent, ok);
+  return modelValue(model().data(), row, column, parent, column.role(), ok);
+}
+
+QString
+CQChartsPlot::
+modelString(int row, const CQChartsColumn &column, const QModelIndex &parent,
+            int role, bool &ok) const
+{
+  return modelString(model().data(), row, column, parent, role, ok);
 }
 
 QString
 CQChartsPlot::
 modelString(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelString(model().data(), row, column, parent, ok);
+  return modelString(model().data(), row, column, parent, column.role(), ok);
+}
+
+double
+CQChartsPlot::
+modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
+          int role, bool &ok) const
+{
+  return modelReal(model().data(), row, column, parent, role, ok);
 }
 
 double
 CQChartsPlot::
 modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelReal(model().data(), row, column, parent, ok);
+  return modelReal(model().data(), row, column, parent, column.role(), ok);
+}
+
+long
+CQChartsPlot::
+modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent,
+             int role, bool &ok) const
+{
+  return modelInteger(model().data(), row, column, parent, role, ok);
 }
 
 long
 CQChartsPlot::
 modelInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelInteger(model().data(), row, column, parent, ok);
+  return modelInteger(model().data(), row, column, parent, column.role(), ok);
+}
+
+CQChartsColor
+CQChartsPlot::
+modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent,
+           int role, bool &ok) const
+{
+  return modelColor(model().data(), row, column, parent, role, ok);
 }
 
 CQChartsColor
 CQChartsPlot::
 modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  return modelColor(model().data(), row, column, parent, ok);
+  return modelColor(model().data(), row, column, parent, column.role(), ok);
 }
 
 //------
@@ -4911,9 +4943,17 @@ modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
 QString
 CQChartsPlot::
 modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
-                  Qt::Orientation orientation, int role, bool &ok) const
+                  int role, bool &ok) const
 {
-  return CQChartsUtil::modelHeaderString(model, column, orientation, role, ok);
+  return CQChartsUtil::modelHeaderString(model, column, role, ok);
+}
+
+QString
+CQChartsPlot::
+modelHeaderString(QAbstractItemModel *model, int section, Qt::Orientation orientation,
+                  int role, bool &ok) const
+{
+  return CQChartsUtil::modelHeaderString(model, section, orientation, role, ok);
 }
 
 QVariant
@@ -4924,54 +4964,76 @@ modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
   return CQChartsUtil::modelValue(model, row, column, parent, role, ok);
 }
 
-QVariant
-CQChartsPlot::
-modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-           const QModelIndex &parent, bool &ok) const
-{
-  return CQChartsUtil::modelValue(model, row, column, parent, ok);
-}
-
 QString
 CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-            const QModelIndex &parent, bool &ok) const
+            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelString(model, row, column, parent, ok);
+  return CQChartsUtil::modelString(model, row, column, parent, role, ok);
 }
 
 double
 CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-          const QModelIndex &parent, bool &ok) const
+          const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelReal(model, row, column, parent, ok);
+  return CQChartsUtil::modelReal(model, row, column, parent, role, ok);
 }
 
 long
 CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-             const QModelIndex &parent, bool &ok) const
+             const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelInteger(model, row, column, parent, ok);
+  return CQChartsUtil::modelInteger(model, row, column, parent, role, ok);
 }
 
 CQChartsColor
 CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-           const QModelIndex &parent, bool &ok) const
+           const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelColor(model, row, column, parent, ok);
+  return CQChartsUtil::modelColor(model, row, column, parent, role, ok);
 }
 
 //------
 
 QVariant
 CQChartsPlot::
-modelHierValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                const QModelIndex &parent, bool &ok) const
+modelHierValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
-  QVariant v = modelValue(model, row, column, parent, ok);
+  return CQChartsPlot::modelHierValue(row, column, parent, column.role(), ok);
+}
+
+QString
+CQChartsPlot::
+modelHierString(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsPlot::modelHierString(row, column, parent, column.role(), ok);
+}
+
+double
+CQChartsPlot::
+modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsPlot::modelHierReal(row, column, parent, column.role(), ok);
+}
+
+long
+CQChartsPlot::
+modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  return CQChartsPlot::modelHierInteger(row, column, parent, column.role(), ok);
+}
+
+//------
+
+QVariant
+CQChartsPlot::
+modelHierValue(int row, const CQChartsColumn &column,
+               const QModelIndex &parent, int role, bool &ok) const
+{
+  QVariant v = modelValue(row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
@@ -4981,7 +5043,7 @@ modelHierValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      v = modelValue(model, row1, column, parent1, ok);
+      v = modelValue(row1, column, parent1, role, ok);
     }
   }
 
@@ -4990,10 +5052,10 @@ modelHierValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 QString
 CQChartsPlot::
-modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                const QModelIndex &parent, bool &ok) const
+modelHierString(int row, const CQChartsColumn &column,
+                const QModelIndex &parent, int role, bool &ok) const
 {
-  QString s = modelString(model, row, column, parent, ok);
+  QString s = modelString(row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
@@ -5003,7 +5065,7 @@ modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      s = modelString(model, row1, column, parent1, ok);
+      s = modelString(row1, column, parent1, role, ok);
     }
   }
 
@@ -5012,10 +5074,10 @@ modelHierString(QAbstractItemModel *model, int row, const CQChartsColumn &column
 
 double
 CQChartsPlot::
-modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-              const QModelIndex &parent, bool &ok) const
+modelHierReal(int row, const CQChartsColumn &column,
+              const QModelIndex &parent, int role, bool &ok) const
 {
-  double r = modelReal(model, row, column, parent, ok);
+  double r = modelReal(row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
@@ -5025,7 +5087,7 @@ modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      r = modelReal(model, row1, column, parent1, ok);
+      r = modelReal(row1, column, parent1, role, ok);
     }
   }
 
@@ -5034,10 +5096,10 @@ modelHierReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
 
 long
 CQChartsPlot::
-modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
-                 const QModelIndex &parent, bool &ok) const
+modelHierInteger(int row, const CQChartsColumn &column,
+                 const QModelIndex &parent, int role, bool &ok) const
 {
-  int i = modelInteger(model, row, column, parent, ok);
+  int i = modelInteger(row, column, parent, role, ok);
 
   if (! ok && column.column() == 0 && parent.isValid()) {
     QModelIndex parent1 = parent;
@@ -5047,7 +5109,7 @@ modelHierInteger(QAbstractItemModel *model, int row, const CQChartsColumn &colum
       row1    = parent1.row();
       parent1 = parent1.parent();
 
-      i = modelInteger(model, row1, column, parent1, ok);
+      i = modelInteger(row1, column, parent1, role, ok);
     }
   }
 

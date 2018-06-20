@@ -211,11 +211,11 @@ updateRange(bool apply)
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
-      double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
 
       if (! ok1) x = row;
       if (! ok2) y = row;
@@ -267,8 +267,8 @@ updateRange(bool apply)
 
   bool ok;
 
-  QString xname = modelHeaderString(model, xColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
-  QString yname = modelHeaderString(model, yColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
+  QString xname = modelHeaderString(xColumn(), ok);
+  QString yname = modelHeaderString(yColumn(), ok);
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
@@ -351,8 +351,8 @@ initObjs()
 
         bool ok1, ok2;
 
-        double x = plot_->modelReal(model, row, plot_->xColumn(), parent, ok1);
-        double y = plot_->modelReal(model, row, plot_->yColumn(), parent, ok2);
+        double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
+        double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
 
         if (! ok1) x = row;
         if (! ok2) y = row;
@@ -365,7 +365,7 @@ initObjs()
         // get optional name
         bool ok;
 
-        QString name = plot_->modelString(model, row, plot_->nameColumn(), parent, ok);
+        QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
 
         //---
 
@@ -378,21 +378,21 @@ initObjs()
         if (plot_->symbolSizeColumn().isValid()) {
           bool ok3;
 
-          symbolSizeStr = plot_->modelString(model, row, plot_->symbolSizeColumn(), parent, ok3);
+          symbolSizeStr = plot_->modelString(row, plot_->symbolSizeColumn(), parent, ok3);
         }
 
         // get font size label (needed if not string ?)
         if (plot_->fontSizeColumn().isValid()) {
           bool ok4;
 
-          fontSizeStr = plot_->modelString(model, row, plot_->fontSizeColumn(), parent, ok4);
+          fontSizeStr = plot_->modelString(row, plot_->fontSizeColumn(), parent, ok4);
         }
 
         // get color label (needed if not string ?)
         if (plot_->colorColumn().isValid()) {
           bool ok5;
 
-          color = plot_->modelColor(model, row, plot_->colorColumn(), parent, ok5);
+          color = plot_->modelColor(row, plot_->colorColumn(), parent, ok5);
         }
 
         //---
@@ -420,16 +420,11 @@ initObjs()
   if (model) {
     bool ok;
 
-    xname_          =
-      modelHeaderString(model, xColumn         (), Qt::Horizontal, Qt::DisplayRole, ok);
-    yname_          =
-      modelHeaderString(model, yColumn         (), Qt::Horizontal, Qt::DisplayRole, ok);
-    symbolSizeName_ =
-      modelHeaderString(model, symbolSizeColumn(), Qt::Horizontal, Qt::DisplayRole, ok);
-    fontSizeName_   =
-      modelHeaderString(model, fontSizeColumn  (), Qt::Horizontal, Qt::DisplayRole, ok);
-    colorName_      =
-      modelHeaderString(model, colorColumn     (), Qt::Horizontal, Qt::DisplayRole, ok);
+    xname_          = modelHeaderString(xColumn         (), ok);
+    yname_          = modelHeaderString(yColumn         (), ok);
+    symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
+    fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
+    colorName_      = modelHeaderString(colorColumn     (), ok);
   }
   else {
     xname_          = "";
