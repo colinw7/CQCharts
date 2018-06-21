@@ -1057,7 +1057,7 @@ inline QString modelHierString(QAbstractItemModel *model, int row, const CQChart
 //---
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int role, bool &ok) {
-   QVariant var = modelValue(model, ind, role, ok);
+  QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return 0.0;
 
   return varToReal(var, ok);
