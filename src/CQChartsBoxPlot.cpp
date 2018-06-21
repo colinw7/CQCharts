@@ -417,7 +417,6 @@ CQChartsBoxPlot::
 updateRawRange()
 {
   yAxis()->setVisible(true);
-  yAxis()->setVisible(true);
 
   //---
 
@@ -494,7 +493,6 @@ void
 CQChartsBoxPlot::
 updateCalcRange()
 {
-  yAxis()->setVisible(false);
   yAxis()->setVisible(false);
 
   //---

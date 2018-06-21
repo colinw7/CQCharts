@@ -462,3 +462,6 @@
  + add plot method to get model index and cleanup unused model pointer variables
  + update plot dialog to layout widgets in parameter groups
  + improve box plot with precalculated values in rows
+# 6/21/2018
+ + cleanup handling of column role
+ + clear data model cache when type changes

@@ -124,8 +124,7 @@ class CQChartsBoxPlotDataObj : public CQChartsPlotObj {
  private:
   CQChartsBoxPlot*       plot_    { nullptr }; // parent plot
   CQChartsBoxWhiskerData data_;              // whisker data
-  mutable double         yrange_  { 1.0 };
-  mutable double         ymargin_ { 0.05 };
+  double                 ymargin_ { 0.05 };
 };
 
 //---

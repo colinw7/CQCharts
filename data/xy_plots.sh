@@ -34,5 +34,4 @@ CQChartsTest \
 -and \
  -tsv data/stacked_area.tsv -comment_header \
  -type xy -columns "x=0,y=1 2 3 4 5" -column_type "time:format=%y-%b-%d" -stacked \
- -plot_title "stacked xy - multi line" \
--close_app
+ -plot_title "stacked xy - multi line"

@@ -55,9 +55,6 @@ class CQChartsPlotDlg : public QDialog {
 
   CQChartsPlot *plot() const { return plot_; }
 
- signals:
-  void plotCreated(CQChartsPlot *plot);
-
  private:
   struct MapEditData {
     QCheckBox  *mappedCheck { nullptr };

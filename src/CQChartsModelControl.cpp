@@ -230,7 +230,6 @@ addLineEdit(QGridLayout *grid, int &row, const QString &name, const QString &obj
   return edit;
 }
 
-
 void
 CQChartsModelControl::
 expressionModeSlot()

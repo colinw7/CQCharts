@@ -51,36 +51,44 @@ void
 CQBaseModel::
 genColumnTypes()
 {
-  int nc = columnCount();
-
   resetColumnTypes();
 
   // auto determine type for each column. Do column by column to allow early out
-  for (int c = 0; c < nc; ++c) {
-    ColumnTypeData columnTypeData;
+  int nc = columnCount();
 
-    QModelIndex parent;
+  for (int c = 0; c < nc; ++c)
+    genColumnType(c);
+}
 
-    (void) genColumnTypes(parent, c, columnTypeData);
+CQBaseModel::Type
+CQBaseModel::
+genColumnType(int c)
+{
+  ColumnTypeData columnTypeData;
 
-    // if inderminate (no values or all reals or integers) then use real if any reals,
-    // integer if any integers and string if no values.
-    if (columnTypeData.type == Type::NONE) {
-      if      (columnTypeData.numReal)
-        columnTypeData.type = Type::REAL;
-      else if (columnTypeData.numInt)
-        columnTypeData.type = Type::INTEGER;
-      else
-        columnTypeData.type = Type::STRING;
-    }
+  QModelIndex parent;
 
-    setColumnType(c, columnTypeData.type);
+  (void) genColumnType(parent, c, columnTypeData);
+
+  // if inderminate (no values or all reals or integers) then use real if any reals,
+  // integer if any integers and string if no values.
+  if (columnTypeData.type == Type::NONE) {
+    if      (columnTypeData.numReal)
+      columnTypeData.type = Type::REAL;
+    else if (columnTypeData.numInt)
+      columnTypeData.type = Type::INTEGER;
+    else
+      columnTypeData.type = Type::STRING;
   }
+
+  setColumnType(c, columnTypeData.type);
+
+  return columnTypeData.type;
 }
 
 bool
 CQBaseModel::
-genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData)
+genColumnType(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData)
 {
   bool done = false;
 
@@ -90,7 +98,7 @@ genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData)
     QModelIndex ind0 = index(r, 0, parent);
 
     if (rowCount(ind0) > 0) {
-      if (genColumnTypes(ind0, c, columnTypeData)) {
+      if (genColumnType(ind0, c, columnTypeData)) {
         done = true;
         break;
       }
@@ -146,10 +154,15 @@ columnType(int column) const
 {
   auto p = columnDatas_.find(column);
 
-  if (p == columnDatas_.end())
+  if (p != columnDatas_.end())
+    return (*p).second.type;
+
+  if (column < 0 || column >= columnCount())
     return Type::NONE;
 
-  return (*p).second.type;
+  CQBaseModel *th = const_cast<CQBaseModel *>(this);
+
+  return th->genColumnType(column);
 }
 
 bool
@@ -157,6 +170,8 @@ CQBaseModel::
 setColumnType(int column, Type type)
 {
   columnDatas_[column].type = type;
+
+  emit columnTypeChanged(column);
 
   return true;
 }
@@ -179,6 +194,8 @@ setColumnTypeValues(int column, const QString &str)
 {
   columnDatas_[column].typeValues = str;
 
+  emit columnTypeChanged(column);
+
   return true;
 }
 
@@ -200,6 +217,8 @@ setColumnMin(int column, const QVariant &v)
 {
   columnDatas_[column].min = v;
 
+  emit columnRangeChanged(column);
+
   return true;
 }
 
@@ -220,6 +239,8 @@ CQBaseModel::
 setColumnMax(int column, const QVariant &v)
 {
   columnDatas_[column].max = v;
+
+  emit columnRangeChanged(column);
 
   return true;
 }

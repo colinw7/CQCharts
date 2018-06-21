@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 class CQChartsColumn {
  public:
@@ -29,19 +30,33 @@ class CQChartsColumn {
 
   CQChartsColumn &operator=(const CQChartsColumn &rhs);
 
-  Type type() const { return type_; }
-
-  int column() const { return (type_ == Type::DATA ? column_ : -1); }
-
-  int role(int defRole=Qt::DisplayRole) const {
-    if (type_ != Type::DATA) return -1;
-
-    return (role_ >= 0 ? role_ : defRole);
-  }
-
-  QString expr() const { return (type_ == Type::EXPR && expr_ ? QString(expr_) : QString()); }
+  //--
 
   bool isValid() const { return type_ != Type::NONE; }
+
+  Type type() const { return type_; }
+
+  //--
+
+  bool hasColumn() const { return (type_ == Type::DATA && column_ >= 0); }
+
+  int column() const { return (hasColumn() ? column_ : -1); }
+
+  //--
+
+  bool hasRole() const { return (type_ == Type::DATA && role_ >= 0); }
+
+  int role() const { return (hasRole() ? role_ : -1); }
+
+  int role(int defRole) const { return (hasRole() ? role_ : defRole); }
+
+  //--
+
+  bool hasExpr() const { return (type_ == Type::EXPR && expr_); }
+
+  QString expr() const { return QString(hasExpr() ? expr_ : ""); }
+
+  //--
 
   bool setValue(const QString &str);
 

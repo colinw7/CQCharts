@@ -468,7 +468,7 @@ createPreviewFrame()
   int nc = model_.data()->columnCount();
 
   QFrame *previewControl = new QFrame;
-  setObjectName("previewControl");
+  previewControl->setObjectName("previewControl");
 
   QHBoxLayout *previewControlLayout = new QHBoxLayout(previewControl);
   previewControlLayout->setMargin(2); previewControlLayout->setSpacing(2);
@@ -548,7 +548,7 @@ createPreviewFrame()
 
   previewTab->addTab(previewModelView_, "Data");
 
-  if (summaryEnabledCheck_->isChecked() && summaryModel_)
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
     previewModelView_->setModel(summaryModelP_, CQChartsUtil::isHierarchical(summaryModel_));
   else
     previewModelView_->setModel(model_, CQChartsUtil::isHierarchical(model_.data()));
@@ -1341,7 +1341,7 @@ updatePreviewPlot(bool valid)
 
     ModelP previewModel;
 
-    if (summaryEnabledCheck_->isChecked() && summaryModel_)
+    if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
       previewModel = summaryModelP_;
     else
       previewModel = model_;
@@ -1434,7 +1434,7 @@ updateFormatSlot()
 
   QString typeStr;
 
-  if (summaryEnabledCheck_->isChecked() && summaryModel_) {
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_) {
     if (! CQChartsUtil::columnTypeStr(charts_, summaryModel_, column, typeStr))
       return;
   }
@@ -1454,7 +1454,7 @@ validate(QStringList &msgs)
 
   CQChartsModelData *modelData = nullptr;
 
-  if (summaryEnabledCheck_->isChecked() && summaryModel_)
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
     modelData = summaryModelData_;
   else
     modelData = modelData_;
@@ -1596,7 +1596,7 @@ void
 CQChartsPlotDlg::
 updatePreviewSlot()
 {
-  if (summaryEnabledCheck_->isChecked() && summaryModel_) {
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_) {
     int  n       = previewMaxRows_->value();
     bool random  = previewRandomRadio_->isChecked();
     bool sorted  = previewSortedRadio_->isChecked();
@@ -1684,10 +1684,6 @@ applySlot()
   plot_->setId(QString("Chart.%1").arg(n + 1));
 
   view->addPlot(plot_, bbox);
-
-  //---
-
-  emit plotCreated(plot_);
 
   return true;
 }
@@ -2201,58 +2197,7 @@ bool
 CQChartsPlotDlg::
 stringToColumn(const QString &str, CQChartsColumn &column) const
 {
-  if (! str.length())
-    return false;
-
-  //---
-
-  int nc = model()->columnCount();
-
-  //---
-
-  // check if positive integer (column number)
-  bool ok = false;
-
-  int column1 = str.toInt(&ok);
-
-  if (ok && column1 >= 0 && column1 < nc) {
-    column = column1;
-
-    return true;
-  }
-
-  //---
-
-  // check exact match for column name
-  for (int column1 = 0; column1 < nc; ++column1) {
-    QVariant var = model()->headerData(column1, Qt::Horizontal, Qt::DisplayRole);
-
-    if (! var.isValid())
-      continue;
-
-    bool ok;
-
-    QString str1 = CQChartsUtil::toString(var, ok);
-
-    if (str1 == str) {
-      column = column1;
-      return true;
-    }
-  }
-
-  //---
-
-  // expression column
-  if (str.left(1) == "(") {
-    column = CQChartsColumn(str);
-
-    if (column.isValid())
-      return true;
-  }
-
-  //---
-
-  return false;
+  return CQChartsUtil::stringToColumn(model(), str, column);
 }
 
 void

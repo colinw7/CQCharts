@@ -4377,7 +4377,6 @@ errorMsg(const QString &msg)
   std::cerr << msg.toStdString() << "\n";
 }
 
-
 //------
 
 CQChartsCmdsSlot::

@@ -2,6 +2,7 @@
 #define CQBucketer_H
 
 #include <QVariant>
+#include <cmath>
 
 class CQBucketer {
  public:

@@ -56,6 +56,10 @@ class CQBaseModel : public QAbstractItemModel {
  public:
   CQBaseModel();
 
+  virtual ~CQBaseModel() { }
+
+  //---
+
   Type columnType(int column) const;
   bool setColumnType(int column, Type t);
 
@@ -99,10 +103,17 @@ class CQBaseModel : public QAbstractItemModel {
 
   static bool isInteger(double r);
 
+ signals:
+  void columnTypeChanged(int column);
+
+  void columnRangeChanged(int column);
+
  protected:
   void genColumnTypes();
 
-  bool genColumnTypes(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
+  Type genColumnType(int c);
+
+  bool genColumnType(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
 
  protected:
   struct ColumnData {

@@ -3,6 +3,7 @@
 CQDataModel::
 CQDataModel()
 {
+  connect(this, SIGNAL(columnTypeChanged(int)), this, SLOT(resetColumnCache(int)));
 }
 
 CQDataModel::
@@ -308,14 +309,16 @@ data(const QModelIndex &index, int role) const
 
     // cache converted value
     if (! isSameType(var, type)) {
-      var = typeStringToVariant(var.toString(), type);
+      if (var.type() == QVariant::String) {
+        var = typeStringToVariant(var.toString(), type);
 
-      Cells &cells = colData_[index.column()];
+        Cells &cells = colData_[index.column()];
 
-      if (int(cells.size()) != nr)
-        cells.resize(nr);
+        if (int(cells.size()) != nr)
+          cells.resize(nr);
 
-      cells[index.row()] = var;
+        cells[index.row()] = var;
+      }
     }
 
     return var;
@@ -400,4 +403,14 @@ flags(const QModelIndex &index) const
     return 0;
 
   return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+void
+CQDataModel::
+resetColumnCache(int column)
+{
+  auto p = colData_.find(column);
+
+  if (p != colData_.end())
+    colData_.erase(p);
 }

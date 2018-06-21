@@ -455,7 +455,7 @@ remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
   for (int r = 0; r < nr; ++r) {
     QModelIndex ind = modelFilter->index(r, c);
 
-    QVariant var = modelFilter->data(ind, Qt::EditRole);
+    QVariant var = modelFilter->data(ind, Qt::DisplayRole);
 
     if (var.type() != QVariant::String)
       continue;
@@ -465,7 +465,7 @@ remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
     if (! stringToTime(fmt, var.toString(), t))
       continue;
 
-    modelFilter->setData(ind, QVariant(t), Qt::EditRole);
+    modelFilter->setData(ind, QVariant(t), Qt::DisplayRole);
   }
 
   modelFilter->setConvert(true);

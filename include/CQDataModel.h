@@ -50,6 +50,9 @@ class CQDataModel : public CQBaseModel {
 
   Qt::ItemFlags flags(const QModelIndex &index) const;
 
+ protected slots:
+  void resetColumnCache(int column);
+
  protected:
   typedef std::vector<QVariant>           Cells;
   typedef std::vector<Cells>              Data;

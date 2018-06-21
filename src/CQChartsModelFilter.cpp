@@ -410,10 +410,3 @@ data(const QModelIndex &ind, int role) const
 
   return var;
 }
-
-void
-CQChartsModelFilter::
-sort(int column, Qt::SortOrder order)
-{
-  QSortFilterProxyModel::sort(column, order);
-}

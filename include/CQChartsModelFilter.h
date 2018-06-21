@@ -130,8 +130,6 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   void addExpand(const QModelIndex &ind) const { expand_.insert(ind); }
 
-  void sort(int column, Qt::SortOrder order) override;
-
  protected:
   const CQChartsModelFilterData &currentFilterData() const {
     assert(! filterDatas_.empty());

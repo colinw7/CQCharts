@@ -723,7 +723,7 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  Qt::Orientation orientation, bool &ok) {
-  return modelHeaderValue(model, column, orientation, column.role(), ok);
+  return modelHeaderValue(model, column, orientation, column.role(Qt::DisplayRole), ok);
 }
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -733,7 +733,7 @@ inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn
 
 inline QVariant modelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderValue(model, column, Qt::Horizontal, column.role(), ok);
+  return modelHeaderValue(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
 //--
@@ -758,7 +758,7 @@ inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  Qt::Orientation orient, bool &ok) {
-  return modelHeaderString(model, column, orient, column.role(), ok);
+  return modelHeaderString(model, column, orient, column.role(Qt::DisplayRole), ok);
 }
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -768,7 +768,7 @@ inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn
 
 inline QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
                                  bool &ok) {
-  return modelHeaderString(model, column, Qt::Horizontal, column.role(), ok);
+  return modelHeaderString(model, column, Qt::Horizontal, column.role(Qt::DisplayRole), ok);
 }
 
 //--
@@ -783,12 +783,17 @@ inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn 
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                 Qt::Orientation orientation, const QVariant &var) {
-  return setModelHeaderValue(model, column, orientation, var, column.role());
+  return setModelHeaderValue(model, column, orientation, var, column.role(Qt::EditRole));
 }
 
 inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
                                 const QVariant &var, int role) {
   return setModelHeaderValue(model, column, Qt::Horizontal, var, role);
+}
+
+inline bool setModelHeaderValue(QAbstractItemModel *model, const CQChartsColumn &column,
+                                const QVariant &var) {
+  return setModelHeaderValue(model, column, Qt::Horizontal, var, column.role(Qt::EditRole));
 }
 
 //--
@@ -805,7 +810,7 @@ inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColu
 
 inline bool setModelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                           const QVariant &var) {
-  return setModelValue(model, row, column, var, column.role());
+  return setModelValue(model, row, column, var, column.role(Qt::EditRole));
 }
 
 //------
@@ -946,18 +951,16 @@ inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsCol
 
 inline QVariant modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                            const QModelIndex &parent, bool &ok) {
-  int role = column.role(-1);
-
   QVariant var;
 
-  if (role < 0) {
+  if (! column.hasRole()) {
     var = modelValue(model, row, column, parent, Qt::EditRole, ok);
 
     if (! ok)
       var = modelValue(model, row, column, parent, Qt::DisplayRole, ok);
   }
   else
-    var = modelValue(model, row, column, parent, role, ok);
+    var = modelValue(model, row, column, parent, column.role(), ok);
 
   return var;
 }
@@ -1000,18 +1003,16 @@ inline QString modelString(QAbstractItemModel *model, int row, const CQChartsCol
 
 inline QString modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                            const QModelIndex &parent, bool &ok) {
-  int role = column.role(-1);
-
   QString str;
 
-  if (role < 0) {
+  if (! column.hasRole()) {
     str = modelString(model, row, column, parent, Qt::EditRole, ok);
 
     if (! ok)
       str = modelString(model, row, column, parent, Qt::DisplayRole, ok);
   }
   else
-    str = modelString(model, row, column, parent, role, ok);
+    str = modelString(model, row, column, parent, column.role(), ok);
 
   return str;
 }
@@ -1082,18 +1083,16 @@ inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn
 
 inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                         const QModelIndex &parent, bool &ok) {
-  int role = column.role(-1);
-
   double r;
 
-  if (role < 0) {
+  if (! column.hasRole()) {
     r = modelReal(model, row, column, parent, Qt::EditRole, ok);
 
     if (! ok)
       r = modelReal(model, row, column, parent, Qt::DisplayRole, ok);
   }
   else
-    r = modelReal(model, row, column, parent, role, ok);
+    r = modelReal(model, row, column, parent, column.role(), ok);
 
   return r;
 }
@@ -1164,18 +1163,16 @@ inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColum
 
 inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                          const QModelIndex &parent, bool &ok) {
-  int role = column.role(-1);
-
   long l;
 
-  if (role < 0) {
+  if (! column.hasRole()) {
     l = modelInteger(model, row, column, parent, Qt::EditRole, ok);
 
     if (! ok)
       l = modelInteger(model, row, column, parent, Qt::DisplayRole, ok);
   }
   else
-    l = modelInteger(model, row, column, parent, role, ok);
+    l = modelInteger(model, row, column, parent, column.role(), ok);
 
   return l;
 }
@@ -1283,18 +1280,16 @@ inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChar
 
 inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
                                 const QModelIndex &parent, bool &ok) {
-  int role = column.role(-1);
-
   CQChartsColor c;
 
-  if (role < 0) {
+  if (! column.hasRole()) {
     c = modelColor(model, row, column, parent, Qt::EditRole, ok);
 
     if (! ok)
       c = modelColor(model, row, column, parent, Qt::DisplayRole, ok);
   }
   else
-    c = modelColor(model, row, column, parent, role, ok);
+    c = modelColor(model, row, column, parent, column.role(), ok);
 
   return c;
 }
