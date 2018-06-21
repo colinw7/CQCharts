@@ -486,13 +486,6 @@ void
 CQChartsBubblePlot::
 loadModel()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsBubblePlot *plot) :
@@ -500,7 +493,7 @@ loadModel()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1;
 
       QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok1);
@@ -528,7 +521,7 @@ loadModel()
 
       //---
 
-      QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+      QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       CQChartsBubbleNode *node = plot_->addNode(name, size, nameInd1);

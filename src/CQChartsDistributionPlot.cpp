@@ -291,13 +291,6 @@ void
 CQChartsDistributionPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   dataRange_.reset();
 
   //---
@@ -330,10 +323,14 @@ updateRange(bool apply)
 
     //---
 
-    ColumnDetails columnDetails(this, model, valueColumn());
+    QAbstractItemModel *model = this->model().data();
 
-    bucketer_.setRMin(columnDetails.minValue().toReal());
-    bucketer_.setRMax(columnDetails.maxValue().toReal());
+    if (model) {
+      ColumnDetails columnDetails(this, model, valueColumn());
+
+      bucketer_.setRMin(columnDetails.minValue().toReal());
+      bucketer_.setRMax(columnDetails.maxValue().toReal());
+    }
   }
 
   //---
@@ -345,8 +342,8 @@ updateRange(bool apply)
       hasRange_ = valueSet->isNumeric();
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QModelIndex valueInd  = model->index(row, plot_->valueColumn().column(), parent);
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      QModelIndex valueInd  = plot_->modelIndex(row, plot_->valueColumn(), parent);
       QModelIndex valueInd1 = plot_->normalizeIndex(valueInd);
 
       //---

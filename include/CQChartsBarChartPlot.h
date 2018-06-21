@@ -449,10 +449,9 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   void setHorizontal(bool b);
 
  private:
-  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
+  void addRow(const QModelIndex &parent, int r);
 
-  void addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                    const Columns &valueColumns);
+  void addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns);
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;

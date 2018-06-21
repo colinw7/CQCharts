@@ -162,13 +162,6 @@ void
 CQChartsHierScatterPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -250,9 +243,6 @@ int
 CQChartsHierScatterPlot::
 acceptsRow(int row, const QModelIndex &parent) const
 {
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
@@ -293,13 +283,6 @@ initGroupValueSets()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   for (const auto &groupColumn : groupValues_)
     groupValueSets_[groupColumn] = new CQChartsValueSet(this);
 
@@ -330,9 +313,6 @@ void
 CQChartsHierScatterPlot::
 addRowGroupValueSets(const QModelIndex &parent, int row)
 {
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
   for (const auto &groupValueSet : groupValueSets_) {
     CQChartsColumn    groupColumn = groupValueSet.first;
     CQChartsValueSet *valueSet    = groupValueSet.second;
@@ -388,11 +368,6 @@ initObjs()
 
     //---
 
-    QAbstractItemModel *model = this->model().data();
-
-    if (! model)
-      return false;
-
     class RowVisitor : public ModelVisitor {
      public:
       RowVisitor(CQChartsHierScatterPlot *plot) :
@@ -442,20 +417,10 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
+  bool ok1, ok2;
 
-  //---
-
-  if (model) {
-    bool ok;
-
-    xname_ = modelHeaderString(xColumn(), ok);
-    yname_ = modelHeaderString(yColumn(), ok);
-  }
-  else {
-    xname_ = "";
-    yname_ = "";
-  }
+  xname_ = modelHeaderString(xColumn(), ok1);
+  yname_ = modelHeaderString(yColumn(), ok2);
 
   if (! xname_.length()) xname_ = "x";
   if (! yname_.length()) yname_ = "y";
@@ -500,9 +465,6 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
     int               ind      { -1 };
   };
 
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
   //---
 
   std::vector<GroupData> groupDatas;
@@ -539,7 +501,7 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
 
   //---
 
-  QModelIndex xInd  = model->index(row, xColumn().column(), parent);
+  QModelIndex xInd  = modelIndex(row, xColumn(), parent);
   QModelIndex xInd1 = normalizeIndex(xInd);
 
   CQChartsHierScatterPoint point(group, x, y, name, row, xInd1);

@@ -55,6 +55,20 @@ struct CQChartsBoxPlotValue {
 
 using CQChartsBoxPlotWhisker = CQChartsBoxWhiskerT<CQChartsBoxPlotValue>;
 
+struct CQChartsBoxWhiskerData {
+  using Outliers = std::vector<double>;
+
+  QModelIndex ind;
+  QString     name;
+  double      x      { 0.0 };
+  double      min    { 0.0 };
+  double      lower  { 0.0 };
+  double      median { 0.0 };
+  double      upper  { 0.0 };
+  double      max    { 0.0 };
+  Outliers    outliers;
+};
+
 //---
 
 // box plot whisker object
@@ -105,9 +119,13 @@ class CQChartsBoxPlotDataObj : public CQChartsPlotObj {
 
   CQChartsGeom::BBox annotationBBox() const;
 
+  double remapY(double y) const;
+
  private:
-  CQChartsBoxPlot*       plot_  { nullptr }; // parent plot
+  CQChartsBoxPlot*       plot_    { nullptr }; // parent plot
   CQChartsBoxWhiskerData data_;              // whisker data
+  mutable double         yrange_  { 1.0 };
+  mutable double         ymargin_ { 0.05 };
 };
 
 //---
@@ -371,8 +389,8 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   void updateRange(bool apply=true) override;
 
-  void updateRawRange (bool apply);
-  void updateCalcRange(bool apply);
+  void updateRawRange ();
+  void updateCalcRange();
 
   void updateRawWhiskers();
 
@@ -392,7 +410,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  void addRawWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
+  void addRawWhiskerRow(const QModelIndex &parent, int r);
 
  private:
   CQChartsColumn     xColumn_;                             // x column

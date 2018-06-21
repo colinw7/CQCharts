@@ -18,13 +18,17 @@ CQChartsAdjacencyPlotType::
 addParameters()
 {
   // connections are list of node ids/counts
+  startParameterGroup("Connection List");
   addColumnParameter("connections", "Connections", "connectionsColumn").
    setTip("List of Connection Pairs (Ids from id column and connection count)");
+  endParameterGroup();
 
   // connections are id pairs and counts
+  startParameterGroup("Name Pair/Count");
   addColumnParameter("namePair", "NamePair", "namePairColumn").
     setTip("Name Pairs (<name1>/<name2>)");
   addColumnParameter("count", "Count", "countColumn").setTip("Connection Count");
+  endParameterGroup();
 
   addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name For Id");
   addColumnParameter("group", "Group", "groupColumn").setTip("Group Id for Color");
@@ -170,13 +174,6 @@ bool
 CQChartsAdjacencyPlot::
 initHierObjs()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
 
   //---
@@ -187,7 +184,7 @@ initHierObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1;
 
       QString linkStr = plot_->modelString(row, plot_->namePairColumn(), parent, ok1);
@@ -219,7 +216,7 @@ initHierObjs()
 
       //---
 
-      QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+      QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       int pos = linkStr.indexOf("/");
@@ -342,20 +339,13 @@ bool
 CQChartsAdjacencyPlot::
 initConnectionObjs()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsAdjacencyPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1;
 
       int id = plot_->modelInteger(row, plot_->idColumn(), parent , ok1);
@@ -390,7 +380,7 @@ initConnectionObjs()
 
       //---
 
-      QModelIndex nodeInd  = model->index(row, plot_->idColumn().column(), parent);
+      QModelIndex nodeInd  = plot_->modelIndex(row, plot_->idColumn(), parent);
       QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
       ConnectionsData connections;

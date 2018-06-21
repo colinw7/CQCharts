@@ -226,7 +226,7 @@ class CQChartsRadarPlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r, int nr);
+  void addRow(const QModelIndex &parent, int r, int nr);
 
  private:
   class ValueData {

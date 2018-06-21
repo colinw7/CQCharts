@@ -302,13 +302,6 @@ void
 CQChartsRadarPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsRadarPlot *plot) :
@@ -397,8 +390,8 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
-      plot_->addRow(model, ind, row, numRows());
+    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+      plot_->addRow(ind, row, numRows());
 
       return State::OK;
     }
@@ -422,7 +415,7 @@ initObjs()
 
 void
 CQChartsRadarPlot::
-addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
+addRow(const QModelIndex &parent, int row, int nr)
 {
   bool hidden = isSetHidden(row);
 
@@ -468,7 +461,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row, int nr)
 
   //---
 
-  QModelIndex nameInd  = model->index(row, nameColumn().column(), parent);
+  QModelIndex nameInd  = modelIndex(row, nameColumn(), parent);
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
@@ -483,13 +476,6 @@ void
 CQChartsRadarPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsRadarPlot *plot, CQChartsPlotKey *key) :

@@ -453,7 +453,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   //---
 
   // save model index for geometry
-  QModelIndex geomInd  = model->index(row, geometryColumn().column(), parent);
+  QModelIndex geomInd  = modelIndex(row, geometryColumn(), parent);
   QModelIndex geomInd1 = normalizeIndex(geomInd);
 
   geometry.ind = geomInd1;

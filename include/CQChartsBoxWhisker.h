@@ -194,15 +194,4 @@ class CQChartsBoxWhiskerT {
   Outliers outliers_;
 };
 
-//---
-
-struct CQChartsBoxWhiskerData {
-  double  x      { 0.0 };
-  double  min    { 0.0 };
-  double  lower  { 0.0 };
-  double  median { 0.0 };
-  double  upper  { 0.0 };
-  double  max    { 0.0 };
-};
-
 #endif

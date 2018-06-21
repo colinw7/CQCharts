@@ -304,7 +304,7 @@ createGeneralDataFrame()
   QHBoxLayout *xRangeFrameLayout = new QHBoxLayout(xRangeFrame);
   xRangeFrameLayout->setMargin(0); xRangeFrameLayout->setSpacing(2);
 
-  genLayout->addWidget(xRangeFrame, row, column, 1, 4);
+  genLayout->addWidget(xRangeFrame, row, column, 1, 5);
 
   //--
 
@@ -349,7 +349,7 @@ createGeneralDataFrame()
   QHBoxLayout *yRangeFrameLayout = new QHBoxLayout(yRangeFrame);
   yRangeFrameLayout->setMargin(0); yRangeFrameLayout->setSpacing(2);
 
-  genLayout->addWidget(yRangeFrame, row, column, 1, 4);
+  genLayout->addWidget(yRangeFrame, row, column, 1, 5);
 
   //--
 
@@ -394,7 +394,7 @@ createGeneralDataFrame()
   QHBoxLayout *xyFrameLayout = new QHBoxLayout(xyFrame);
   xyFrameLayout->setMargin(0); xyFrameLayout->setSpacing(2);
 
-  genLayout->addWidget(xyFrame, row, column, 1, 4);
+  genLayout->addWidget(xyFrame, row, column, 1, 5);
 
   xintegralCheck_ = new QCheckBox("X Integral");
   xintegralCheck_->setObjectName("xintegralCheck");
@@ -611,8 +611,6 @@ addPlotWidgets(const QString &typeName, int ind)
 
   addParameterEdits(type, plotData, frameLayout, row);
 
-  frameLayout->setRowStretch(row, 1);
-
   //---
 
   plotData.ind = ind;
@@ -624,15 +622,59 @@ void
 CQChartsPlotDlg::
 addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layout, int &row)
 {
+  QTabWidget *parameterGroupTab = nullptr;
+
+  for (const auto &p : type->parameterGroups()) {
+    const CQChartsPlotParameterGroup &parameterGroup = p.second;
+
+    CQChartsPlotType::Parameters parameters = type->groupParameters(parameterGroup.groupId());
+    assert(! parameters.empty());
+
+    if (! parameterGroupTab) {
+      parameterGroupTab = new QTabWidget;
+      parameterGroupTab->setObjectName("parameterGroupTab");
+
+      layout->addWidget(parameterGroupTab, row, 0, 1, 5);
+
+      ++row;
+    }
+
+    QFrame *parameterGroupFrame = new QFrame;
+    parameterGroupFrame->setObjectName(parameterGroup.name());
+
+    QGridLayout *parameterGroupLayout = new QGridLayout(parameterGroupFrame);
+
+    parameterGroupTab->addTab(parameterGroupFrame, parameterGroup.name());
+
+    int row1 = 0;
+
+    addParameterEdits(parameters, plotData, parameterGroupLayout, row1);
+
+    parameterGroupLayout->setRowStretch(row1, 1);
+  }
+
+  //---
+
+  CQChartsPlotType::Parameters parameters = type->nonGroupParameters();
+
+  addParameterEdits(parameters, plotData, layout, row);
+
+  layout->setRowStretch(row, 1);
+}
+
+void
+CQChartsPlotDlg::
+addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plotData,
+                  QGridLayout *layout, int &row)
+{
+  // add column edits first
   int nbool = 0;
   int nstr  = 0;
   int nreal = 0;
 
-  for (const auto &parameter : type->parameters()) {
-    if      (parameter.type() == "column")
-      addParameterColumnEdit(plotData, layout, row, parameter);
-    else if (parameter.type() == "columns")
-      addParameterColumnsEdit(plotData, layout, row, parameter);
+  for (const auto &parameter : parameters) {
+    if      (parameter.type() == "column" || parameter.type() == "columns")
+      addParameterEdit(plotData, layout, row, parameter);
     else if (parameter.type() == "string")
       ++nstr;
     else if (parameter.type() == "real")
@@ -643,39 +685,67 @@ addParameterEdits(CQChartsPlotType *type, PlotData &plotData, QGridLayout *layou
       assert(false);
   }
 
+  // add string and real edits
   if (nstr > 0 || nreal > 0) {
     QHBoxLayout *strLayout = new QHBoxLayout;
     strLayout->setMargin(0); strLayout->setSpacing(2);
 
-    for (const auto &parameter : type->parameters()) {
-      if      (parameter.type() == "string")
-        addParameterStringEdit(plotData, strLayout, parameter);
-      else if (parameter.type() == "real")
-        addParameterRealEdit(plotData, strLayout, parameter);
+    for (const auto &parameter : parameters) {
+      if (parameter.type() == "string" || parameter.type() == "real")
+        addParameterEdit(plotData, strLayout, parameter);
     }
 
     strLayout->addStretch(1);
 
-    layout->addLayout(strLayout, row, 0, 1, 4);
+    layout->addLayout(strLayout, row, 0, 1, 5);
 
     ++row;
   }
 
+  // add bool edits
   if (nbool > 0) {
     QHBoxLayout *boolLayout = new QHBoxLayout;
     boolLayout->setMargin(0); boolLayout->setSpacing(2);
 
-    for (const auto &parameter : type->parameters()) {
+    for (const auto &parameter : parameters) {
       if (parameter.type() == "bool")
-        addParameterBoolEdit(plotData, boolLayout, parameter);
+        addParameterEdit(plotData, boolLayout, parameter);
     }
 
     boolLayout->addStretch(1);
 
-    layout->addLayout(boolLayout, row, 0, 1, 4);
+    layout->addLayout(boolLayout, row, 0, 1, 5);
 
     ++row;
   }
+}
+
+void
+CQChartsPlotDlg::
+addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                 const CQChartsPlotParameter &parameter)
+{
+  if      (parameter.type() == "column")
+    addParameterColumnEdit(plotData, layout, row, parameter);
+  else if (parameter.type() == "columns")
+    addParameterColumnsEdit(plotData, layout, row, parameter);
+  else
+    assert(false);
+}
+
+void
+CQChartsPlotDlg::
+addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
+                 const CQChartsPlotParameter &parameter)
+{
+  if      (parameter.type() == "string")
+    addParameterStringEdit(plotData, layout, parameter);
+  else if (parameter.type() == "real")
+    addParameterRealEdit(plotData, layout, parameter);
+  else if (parameter.type() == "bool")
+    addParameterBoolEdit(plotData, layout, parameter);
+  else
+    assert(false);
 }
 
 void

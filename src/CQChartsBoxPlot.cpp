@@ -49,8 +49,8 @@ description() const
          "of y values for rows with identical x values.\n"
          "<p>Values can be supplied using:</p>\n"
          "<ul>\n"
-         "<li>X and Y values in <b>x</b> and <b>y</b> columns.</li>\n"
-         "<li>Individual values in the <b>min</b>, <b>lowerMedian</b>, <b>median</b>, "
+         "<li>Raw Values with X and Y values in <b>x</b> and <b>y</b> columns.</li>\n"
+         "<li>Calculated Values in the <b>min</b>, <b>lowerMedian</b>, <b>median</b>, "
          "<b>upperMedian</b>, <b>max</b> and <b>outliers</b> columns.</li>\n"
          "</ul>";
 }
@@ -79,7 +79,8 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 
   addTitle();
 
-  xAxis_->setIntegral(true);
+  xAxis()->setIntegral(true);
+  xAxis()->setMajorIncrement(1);
 }
 
 CQChartsBoxPlot::
@@ -403,22 +404,30 @@ updateRange(bool apply)
   bool isRaw = (xColumn().isValid() && yColumn().isValid());
 
   if (isRaw)
-    updateRawRange(apply);
+    updateRawRange();
   else
-    updateCalcRange(apply);
+    updateCalcRange();
+
+  if (apply)
+    applyDataRange();
 }
 
 void
 CQChartsBoxPlot::
-updateRawRange(bool apply)
+updateRawRange()
 {
+  yAxis()->setVisible(true);
+  yAxis()->setVisible(true);
+
+  //---
+
   updateRawWhiskers();
 
   //---
 
   dataRange_.reset();
 
-  xAxis_->clearTickLabels();
+  xAxis()->clearTickLabels();
 
   int x  = 0;
   int ig = 0;
@@ -436,7 +445,7 @@ updateRawRange(bool apply)
 
         QString setIdName = this->setIdName(setId);
 
-        xAxis_->setTickLabel(setId, setIdName);
+        xAxis()->setTickLabel(setId, setIdName);
 
         //---
 
@@ -467,31 +476,29 @@ updateRawRange(bool apply)
 
   //---
 
-//xAxis_->setColumn(xColumn());
-  yAxis_->setColumn(yColumn());
-
-  QAbstractItemModel *model = this->model().data();
-
-  if (model) {
-    bool ok;
-
-    QString xname = modelHeaderString(xColumn(), ok);
-    QString yname = modelHeaderString(yColumn(), ok);
-
-    xAxis_->setLabel(xname);
-    yAxis_->setLabel(yname);
-  }
+//xAxis()->setColumn(xColumn());
+  yAxis()->setColumn(yColumn());
 
   //---
 
-  if (apply)
-    applyDataRange();
+  bool ok1, ok2;
+
+  QString xname = modelHeaderString(xColumn(), ok1);
+  QString yname = modelHeaderString(yColumn(), ok2);
+
+  if (ok1) xAxis()->setLabel(xname);
+  if (ok2) yAxis()->setLabel(yname);
 }
 
 void
 CQChartsBoxPlot::
-updateCalcRange(bool apply)
+updateCalcRange()
 {
+  yAxis()->setVisible(false);
+  yAxis()->setVisible(false);
+
+  //---
+
   dataRange_.reset();
 
   //---
@@ -511,6 +518,7 @@ updateCalcRange(bool apply)
 
       bool ok;
 
+      data.ind    = ind;
       data.x      = plot_->modelReal(row, plot_->xColumn          (), ind, ok);
       data.min    = plot_->modelReal(row, plot_->minColumn        (), ind, ok);
       data.lower  = plot_->modelReal(row, plot_->lowerMedianColumn(), ind, ok);
@@ -526,6 +534,26 @@ updateCalcRange(bool apply)
         min_ = std::min(min_, data.min);
         max_ = std::max(max_, data.max);
       }
+
+      //---
+
+      bool nameValid = true;
+
+      data.name = plot_->modelHeaderString(row, Qt::Vertical, ok);
+
+      if (! ok || ! data.name.length()) {
+        data.name = plot_->modelString(row, plot_->idColumn(), ind, ok);
+
+        if (! ok || ! data.name.length()) {
+          data.name = QString("%1").arg(row);
+          nameValid = false;
+        }
+      }
+
+      if (nameValid)
+        plot_->xAxis()->setTickLabel(row, data.name);
+
+      //---
 
       dataList_.push_back(data);
 
@@ -554,13 +582,22 @@ updateCalcRange(bool apply)
 
   int n = whiskerDataList_.size();
 
-  dataRange_.updateRange(  - 0.5, boxPlotVisitor.min());
-  dataRange_.updateRange(n + 0.5, boxPlotVisitor.max());
+  if (n > 0) {
+    dataRange_.updateRange(  - 0.5, 0.0);
+    dataRange_.updateRange(n - 0.5, 1.0);
+  }
+  else {
+    dataRange_.updateRange(0.0, 0.0);
+    dataRange_.updateRange(1.0, 1.0);
+  }
 
   //---
 
-  if (apply)
-    applyDataRange();
+  bool ok;
+
+  QString xname = modelHeaderString(xColumn(), ok);
+
+  if (ok) xAxis()->setLabel(xname);
 }
 
 void
@@ -568,13 +605,6 @@ CQChartsBoxPlot::
 updateRawWhiskers()
 {
   groupWhiskers_.clear();
-
-  //---
-
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
 
   //---
 
@@ -596,8 +626,8 @@ updateRawWhiskers()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
-      plot_->addRawWhiskerRow(model, ind, row);
+    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+      plot_->addRawWhiskerRow(ind, row);
 
       return State::OK;
     }
@@ -626,7 +656,7 @@ updateRawWhiskers()
 
 void
 CQChartsBoxPlot::
-addRawWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addRawWhiskerRow(const QModelIndex &parent, int row)
 {
   // get group
   int groupId = -1;
@@ -701,7 +731,7 @@ addRawWhiskerRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   if (CQChartsUtil::isNaN(value))
     return;
 
-  QModelIndex xind  = model->index(row, xColumn().column(), parent);
+  QModelIndex xind  = modelIndex(row, xColumn(), parent);
   QModelIndex xind1 = normalizeIndex(xind);
 
   CQChartsBoxPlotValue wv(value, xind1);
@@ -847,7 +877,7 @@ initCalcObjs()
   int x = 0;
 
   for (const auto &whiskerData : whiskerDataList_) {
-    CQChartsGeom::BBox rect(x - 0.10, whiskerData.lower, x + 0.10, whiskerData.upper);
+    CQChartsGeom::BBox rect(x - 0.10, 0.0, x + 0.10, 1.0);
 
     CQChartsBoxPlotDataObj *boxObj = new CQChartsBoxPlotDataObj(this, rect, whiskerData);
 
@@ -1224,7 +1254,7 @@ QString
 CQChartsBoxPlotDataObj::
 calcId() const
 {
-  return "";
+  return data_.name;
 }
 
 void
@@ -1244,8 +1274,7 @@ CQChartsBoxPlotDataObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
   if (column.isValid()) {
-    addSelectIndex(inds, 0, column, QModelIndex());
-    //addSelectIndex(inds, value.ind.row(), column, value.ind.parent());
+    addSelectIndex(inds, data_.ind.row(), column, data_.ind.parent());
   }
 }
 
@@ -1266,11 +1295,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
-  plot_->windowToPixel(x - wd1, data_.min   , px1, py1);
-  plot_->windowToPixel(x - wd2, data_.lower , px2, py2);
-  plot_->windowToPixel(x      , data_.median, px3, py3);
-  plot_->windowToPixel(x + wd2, data_.upper , px4, py4);
-  plot_->windowToPixel(x + wd1, data_.max   , px5, py5);
+  plot_->windowToPixel(x - wd1, remapY(data_.min   ), px1, py1);
+  plot_->windowToPixel(x - wd2, remapY(data_.lower ), px2, py2);
+  plot_->windowToPixel(x      , remapY(data_.median), px3, py3);
+  plot_->windowToPixel(x + wd2, remapY(data_.upper ), px4, py4);
+  plot_->windowToPixel(x + wd1, remapY(data_.max   ), px5, py5);
 
   //---
 
@@ -1378,7 +1407,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   //---
 
-#if 0
   // draw outlier symbols
   if (! plot_->isSkipOutliers()) {
     painter->setPen(QPen(whiskerColor, whiskerLineWidth, Qt::SolidLine));
@@ -1391,14 +1419,13 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     for (auto o : data_.outliers) {
       double px1, py1;
 
-      plot_->windowToPixel(x, data_.rvalue(o), px1, py1);
+      plot_->windowToPixel(x, remapY(o), px1, py1);
 
       QRectF rect(px1 - symbolSize, py1 - symbolSize, 2*symbolSize, 2*symbolSize);
 
       painter->drawEllipse(rect);
     }
   }
-#endif
 }
 
 CQChartsGeom::BBox
@@ -1412,11 +1439,11 @@ annotationBBox() const
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
-  plot_->windowToPixel(x - wd1, data_.min   , px1, py1);
-  plot_->windowToPixel(x - wd2, data_.lower , px2, py2);
-  plot_->windowToPixel(x      , data_.median, px3, py3);
-  plot_->windowToPixel(x + wd2, data_.upper , px4, py4);
-  plot_->windowToPixel(x + wd1, data_.max   , px5, py5);
+  plot_->windowToPixel(x - wd1, remapY(data_.min   ), px1, py1);
+  plot_->windowToPixel(x - wd2, remapY(data_.lower ), px2, py2);
+  plot_->windowToPixel(x      , remapY(data_.median), px3, py3);
+  plot_->windowToPixel(x + wd2, remapY(data_.upper ), px4, py4);
+  plot_->windowToPixel(x + wd1, remapY(data_.max   ), px5, py5);
 
   //---
 
@@ -1458,6 +1485,14 @@ annotationBBox() const
   plot_->pixelToWindow(pbbox, bbox);
 
   return bbox;
+}
+
+double
+CQChartsBoxPlotDataObj::
+remapY(double y) const
+{
+  // remap to margin -> 1.0 - margin
+  return CQChartsUtil::map(y, data_.min, data_.max, ymargin_, 1.0 - ymargin_);
 }
 
 //------

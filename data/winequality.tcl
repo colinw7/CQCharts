@@ -30,7 +30,7 @@ set view1 [create_view]
 set box_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
-  set plot [create_plot -view $view1 -model $model -type boxplot -columns "x=(0),y=$c" -xintegral 1]
+  set plot [create_plot -view $view1 -model $model -type boxplot -columns "x=(0),y=$c"]
 
   lappend box_plots $plot
 

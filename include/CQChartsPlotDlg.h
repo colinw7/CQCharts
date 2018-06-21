@@ -1,12 +1,12 @@
 #ifndef CQChartsPlotDlg_H
 #define CQChartsPlotDlg_H
 
+#include <CQChartsPlotType.h>
 #include <CQChartsColumn.h>
 #include <QDialog>
 #include <QPointer>
 
 class CQCharts;
-class CQChartsPlotType;
 class CQChartsPlotParameter;
 class CQChartsView;
 class CQChartsPlot;
@@ -105,6 +105,13 @@ class CQChartsPlotDlg : public QDialog {
 
   void addParameterEdits(CQChartsPlotType *type, PlotData &plotData,
                          QGridLayout *layout, int &row);
+  void addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plotData,
+                         QGridLayout *layout, int &row);
+
+  void addParameterEdit(PlotData &plotData, QGridLayout *layout, int &row,
+                        const CQChartsPlotParameter &parameter);
+  void addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
+                        const CQChartsPlotParameter &parameter);
 
   void addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
                               const CQChartsPlotParameter &parameter);

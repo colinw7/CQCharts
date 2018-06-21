@@ -372,17 +372,15 @@ class CQChartsPiePlot : public CQChartsPlot {
   void draw(QPainter *) override;
 
  private:
-  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int r);
+  void addRow(const QModelIndex &parent, int r);
 
-  void addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                    const CQChartsColumn &column);
+  void addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &column);
 
   void calcDataTotal();
 
-  void addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row);
+  void addRowDataTotal(const QModelIndex &parent, int row);
 
-  void addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                             const CQChartsColumn &column);
+  void addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &column);
 
   bool getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
                           double &value) const;

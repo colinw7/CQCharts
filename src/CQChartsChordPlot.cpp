@@ -163,13 +163,6 @@ bool
 CQChartsChordPlot::
 initTableObjs()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   using RowData = std::vector<QVariant>;
 
   struct IndRowData {
@@ -185,7 +178,7 @@ initTableObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       int nc = numCols();
 
       IndRowData indRowData;
@@ -193,7 +186,7 @@ initTableObjs()
       indRowData.rowData.resize(nc);
 
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = model->index(row, col, parent);
+        QModelIndex ind = plot_->modelIndex(row, col, parent);
 
         if (col == 0)
           indRowData.ind = ind;
@@ -271,7 +264,7 @@ initTableObjs()
     const QModelIndex &ind = indRowDatas[row].ind;
 
     if (nameColumn().isValid() && nameColumn().column() < nv) {
-      QModelIndex nameInd  = model->index(ind.row(), nameColumn().column(), ind.parent());
+      QModelIndex nameInd  = modelIndex(ind.row(), nameColumn(), ind.parent());
       QModelIndex nameInd1 = normalizeIndex(nameInd);
 
       QVariant var = indRowDatas[row].rowData[nameColumn().column()];
@@ -288,7 +281,7 @@ initTableObjs()
     //---
 
     if (groupColumn().isValid() && groupColumn().column() < nv) {
-      QModelIndex groupInd  = model->index(ind.row(), groupColumn().column(), ind.parent());
+      QModelIndex groupInd  = modelIndex(ind.row(), groupColumn(), ind.parent());
       QModelIndex groupInd1 = normalizeIndex(groupInd);
 
       QVariant var = indRowDatas[row].rowData[groupColumn().column()];
@@ -398,13 +391,6 @@ bool
 CQChartsChordPlot::
 initHierObjs()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   CQChartsValueSet groupValues(this);
 
   if (groupColumn().isValid())
@@ -422,7 +408,7 @@ initHierObjs()
      plot_(plot), groupValues_(groupValues) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
       QString linkStr = plot_->modelString(row, plot_->nameColumn (), parent , ok1);
@@ -439,7 +425,7 @@ initHierObjs()
       if (pos == -1)
         return State::SKIP;
 
-      QModelIndex linkInd  = model->index(row, plot_->nameColumn().column(), parent);
+      QModelIndex linkInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
       QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
       QString srcStr  = linkStr.mid(0, pos ).simplified();

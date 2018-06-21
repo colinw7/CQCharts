@@ -104,13 +104,6 @@ void
 CQChartsImagePlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsImagePlot *plot) :
@@ -199,24 +192,17 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsImagePlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       x_ = 0.0;
 
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = model->index(row, col, parent);
+        QModelIndex ind = plot_->modelIndex(row, col, parent);
 
         bool ok;
 

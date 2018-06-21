@@ -573,13 +573,6 @@ void
 CQChartsXYPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -801,13 +794,6 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   // TODO: use actual symbol size
   symbolWidth_  = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   symbolHeight_ = (dataRange_.ymax() - dataRange_.ymin())/100.0;
@@ -987,7 +973,7 @@ initObjs()
 
       QModelIndex parent; // TODO: parent
 
-      QModelIndex xind  = model->index(ip, xColumn().column(), parent);
+      QModelIndex xind  = modelIndex(ip, xColumn(), parent);
       QModelIndex xind1 = normalizeIndex(xind);
 
       //---
@@ -1212,7 +1198,7 @@ initObjs()
         // create point object
         QModelIndex parent; // TODO: parent
 
-        QModelIndex xind  = model->index(ip, xColumn().column()); // TODO: parent
+        QModelIndex xind  = modelIndex(ip, xColumn()); // TODO: parent
         QModelIndex xind1 = normalizeIndex(xind);
 
         CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
@@ -1393,12 +1379,7 @@ CQChartsXYPlot::
 rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
-  //---
-
-  ind = model->index(row, xColumn().column(), parent);
+  ind = modelIndex(row, xColumn(), parent);
 
   bool ok1 = modelMappedReal(row, xColumn(), parent, x, isLogX(), row);
 
@@ -1574,11 +1555,6 @@ void
 CQChartsXYPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
   int row, col;
 
   if (! key->isHorizontal()) {

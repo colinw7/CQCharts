@@ -382,8 +382,8 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      plot_->addRow(model, parent, row);
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      plot_->addRow(parent, row);
 
       return State::OK;
     }
@@ -411,19 +411,18 @@ initObjs()
 
 void
 CQChartsPiePlot::
-addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addRow(const QModelIndex &parent, int row)
 {
   for (const auto &column : dataColumns())
-    addRowColumn(model, parent, row, column);
+    addRowColumn(parent, row, column);
 }
 
 void
 CQChartsPiePlot::
-addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
-             const CQChartsColumn &dataColumn)
+addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColumn)
 {
   // get group ind
-  int groupInd = rowGroupInd(model, parent, row, dataColumn);
+  int groupInd = rowGroupInd(parent, row, dataColumn);
 
   //---
 
@@ -496,7 +495,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
   //---
 
-  QModelIndex dataInd  = model->index(row, dataColumn.column(), parent);
+  QModelIndex dataInd  = modelIndex(row, dataColumn, parent);
   QModelIndex dataInd1 = normalizeIndex(dataInd);
 
   //---
@@ -550,11 +549,6 @@ void
 CQChartsPiePlot::
 calcDataTotal()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
   groupDatas_.clear();
 
   // process model data
@@ -564,8 +558,8 @@ calcDataTotal()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      plot_->addRowDataTotal(model, parent, row);
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      plot_->addRowDataTotal(parent, row);
 
       return State::OK;
     }
@@ -581,19 +575,18 @@ calcDataTotal()
 
 void
 CQChartsPiePlot::
-addRowDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addRowDataTotal(const QModelIndex &parent, int row)
 {
   for (const auto &column : dataColumns())
-    addRowColumnDataTotal(model, parent, row, column);
+    addRowColumnDataTotal(parent, row, column);
 }
 
 void
 CQChartsPiePlot::
-addRowColumnDataTotal(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                      const CQChartsColumn &dataColumn)
+addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &dataColumn)
 {
   // get group ind
-  int groupInd = rowGroupInd(model, parent, row, dataColumn);
+  int groupInd = rowGroupInd(parent, row, dataColumn);
 
   //---
 

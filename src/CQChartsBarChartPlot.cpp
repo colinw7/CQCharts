@@ -404,13 +404,6 @@ void
 CQChartsBarChartPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   dataRange_.reset();
 
   if (! isHorizontal())
@@ -479,8 +472,8 @@ updateRange(bool apply)
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
-      plot_->addRow(model, ind, row);
+    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+      plot_->addRow(ind, row);
 
       return State::OK;
     }
@@ -605,7 +598,7 @@ updateRange(bool apply)
 
 void
 CQChartsBarChartPlot::
-addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addRow(const QModelIndex &parent, int row)
 {
   // add value for each column (non-range)
   if (! isRangeBar()) {
@@ -614,19 +607,18 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
       columns.push_back(column);
 
-      addRowColumn(model, parent, row, columns);
+      addRowColumn(parent, row, columns);
     }
   }
   // add all values for columns (range)
   else {
-    addRowColumn(model, parent, row, this->valueColumns());
+    addRowColumn(parent, row, this->valueColumns());
   }
 }
 
 void
 CQChartsBarChartPlot::
-addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
-             const Columns &valueColumns)
+addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
 {
   // get group ind
   int groupInd = -1;
@@ -636,10 +628,10 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
 
     const CQChartsColumn &valueColumn = valueColumns[0];
 
-    groupInd = rowGroupInd(model, parent, row, valueColumn);
+    groupInd = rowGroupInd(parent, row, valueColumn);
   }
   else {
-    groupInd = rowGroupInd(model, parent, row);
+    groupInd = rowGroupInd(parent, row);
   }
 
   // get group name
@@ -710,7 +702,7 @@ addRowColumn(QAbstractItemModel *model, const QModelIndex &parent, int row,
       continue;
 
     // get associated model index
-    QModelIndex valInd  = model->index(row, valueColumn.column(), parent);
+    QModelIndex valInd  = modelIndex(row, valueColumn, parent);
     QModelIndex valInd1 = normalizeIndex(valInd);
 
     // add value and index
@@ -1115,13 +1107,6 @@ void
 CQChartsBarChartPlot::
 addKeyItems(CQChartsPlotKey *key)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   int row = key->maxRow();
 
   auto addKeyRow = [&](int i, int n, const QString &name, const QColor &c=QColor()) {

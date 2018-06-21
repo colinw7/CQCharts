@@ -163,11 +163,6 @@ void
 CQChartsParallelPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
   for (int j = 0; j < numSets(); ++j) {
     CQChartsAxis *axis = new CQChartsAxis(this, CQChartsAxis::Direction::VERTICAL, 0, 1);
 
@@ -282,13 +277,6 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   using Polygons = std::vector<QPolygonF>;
   using Indices  = std::vector<QModelIndex>;
 
@@ -299,10 +287,10 @@ initObjs()
       ns_ = plot_->numSets();
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QPolygonF poly;
 
-      QModelIndex xind = model->index(row, plot_->xColumn().column(), parent);
+      QModelIndex xind = plot_->modelIndex(row, plot_->xColumn(), parent);
 
       xinds_.push_back(xind);
 
@@ -384,7 +372,7 @@ initObjs()
     for (int j = 0; j < nl; ++j) {
       const CQChartsColumn &yColumn = getSetColumn(j);
 
-      QModelIndex yind  = model->index(i, yColumn.column(), xind.parent());
+      QModelIndex yind  = modelIndex(i, yColumn, xind.parent());
       QModelIndex yind1 = normalizeIndex(yind);
 
       //---

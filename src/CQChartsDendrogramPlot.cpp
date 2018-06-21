@@ -273,13 +273,6 @@ void
 CQChartsDendrogramPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   delete dendrogram_;
 
   dendrogram_ = new CQChartsDendrogram;
@@ -298,7 +291,7 @@ updateRange(bool apply)
 
       //---
 
-      //QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+      //QModelIndex nameInd  = modelIndex(row, plot_->nameColumn(), parent);
       //QModelIndex nameInd1 = normalizeIndex(nameInd);
 
       //---

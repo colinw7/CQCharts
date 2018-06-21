@@ -68,6 +68,34 @@ addParameters()
     addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
 }
 
+CQChartsPlotType::Parameters
+CQChartsPlotType::
+groupParameters(int groupId) const
+{
+  Parameters parameters;
+
+  for (auto &parameter : parameters_) {
+    if (parameter.groupId() == groupId)
+      parameters.push_back(parameter);
+  }
+
+  return parameters;
+}
+
+CQChartsPlotType::Parameters
+CQChartsPlotType::
+nonGroupParameters() const
+{
+  Parameters parameters;
+
+  for (auto &parameter : parameters_) {
+    if (parameter.groupId() == -1)
+      parameters.push_back(parameter);
+  }
+
+  return parameters;
+}
+
 void
 CQChartsPlotType::
 startParameterGroup(const QString &name)

@@ -458,3 +458,7 @@
  + Allow transpose of list order in tcl loader
  + Add parameter groups
  + Cache converted column type in mode
+# 6/20/2018
+ + add plot method to get model index and cleanup unused model pointer variables
+ + update plot dialog to layout widgets in parameter groups
+ + improve box plot with precalculated values in rows

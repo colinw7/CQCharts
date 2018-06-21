@@ -197,13 +197,6 @@ void
 CQChartsScatterPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -333,20 +326,15 @@ initObjs()
 
   // init name values
   if (nameValues_.empty()) {
-    QAbstractItemModel *model = this->model().data();
-
-    if (! model)
-      return false;
-
     class RowVisitor : public ModelVisitor {
      public:
       RowVisitor(CQChartsScatterPlot *plot) :
        plot_(plot) {
       }
 
-      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+      State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
         // get x, y value
-        QModelIndex xInd  = model->index(row, plot_->xColumn().column(), parent);
+        QModelIndex xInd  = plot_->modelIndex(row, plot_->xColumn(), parent);
         QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
         bool ok1, ok2;
@@ -413,26 +401,13 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
+  bool ok;
 
-  //---
-
-  if (model) {
-    bool ok;
-
-    xname_          = modelHeaderString(xColumn         (), ok);
-    yname_          = modelHeaderString(yColumn         (), ok);
-    symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
-    fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
-    colorName_      = modelHeaderString(colorColumn     (), ok);
-  }
-  else {
-    xname_          = "";
-    yname_          = "";
-    symbolSizeName_ = "";
-    fontSizeName_   = "";
-    colorName_      = "";
-  }
+  xname_          = modelHeaderString(xColumn         (), ok);
+  yname_          = modelHeaderString(yColumn         (), ok);
+  symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
+  fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
+  colorName_      = modelHeaderString(colorColumn     (), ok);
 
   if (! xname_         .length()) xname_          = "x";
   if (! yname_         .length()) yname_          = "y";

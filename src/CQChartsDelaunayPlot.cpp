@@ -225,13 +225,6 @@ void
 CQChartsDelaunayPlot::
 updateRange(bool apply)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -319,13 +312,6 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   bool ok;
 
   yname_ = modelHeaderString(yColumn(), ok);
@@ -344,7 +330,7 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1, ok2;
 
       double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
@@ -356,7 +342,7 @@ initObjs()
       if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
         return State::SKIP;
 
-      QModelIndex xind = model->index(row, plot_->xColumn().column(), parent);
+      QModelIndex xind = plot_->modelIndex(row, plot_->xColumn(), parent);
 
       plot_->addPointObj(x, y, xind, ModelVisitor::row());
 

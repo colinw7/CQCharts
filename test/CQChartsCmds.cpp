@@ -779,10 +779,6 @@ createPlotCmd(const Vars &vars)
   QString typeName    = argv.getParseStr    ("type");
   QString filterStr   = argv.getParseStr    ("where");
   QString columnTypes = argv.getParseStr    ("column_type");
-  bool    xintegral   = argv.getParseBool   ("xintegral");
-  bool    yintegral   = argv.getParseBool   ("yintegral");
-  bool    xlog        = argv.getParseBool   ("xlog");
-  bool    ylog        = argv.getParseBool   ("ylog");
   QString title       = argv.getParseStr    ("title");
   QString properties  = argv.getParseStr    ("properties");
   QString positionStr = argv.getParseStr    ("position");
@@ -972,14 +968,45 @@ createPlotCmd(const Vars &vars)
 
   //---
 
-  plot->setLogX(xlog);
-  plot->setLogY(ylog);
+  // set x/y log if allowed)
+  if (argv.hasParseArg("xlog")) {
+    bool xlog = argv.getParseBool("xlog");
 
-  if (plot->xAxis())
-    plot->xAxis()->setIntegral(xintegral);
+    if (type->allowXLog())
+      plot->setLogX(xlog);
+    else
+      errorMsg("plot type does not support x log option");
+  }
 
-  if (plot->yAxis())
-    plot->yAxis()->setIntegral(yintegral);
+  if (argv.hasParseArg("ylog")) {
+    bool ylog = argv.getParseBool("ylog");
+
+    if (type->allowYLog())
+      plot->setLogY(ylog);
+    else
+      errorMsg("plot type does not support y log option");
+  }
+
+  //---
+
+  // set x/y integral if allowed)
+  if (argv.hasParseArg("xintegral")) {
+    bool xintegral = argv.getParseBool("xintegral");
+
+    if (type->allowXAxisIntegral() && plot->xAxis())
+      plot->xAxis()->setIntegral(xintegral);
+    else
+      errorMsg("plot type does not support x integral option");
+  }
+
+  if (argv.hasParseArg("yintegral")) {
+    bool yintegral = argv.getParseBool("yintegral");
+
+    if (type->allowYAxisIntegral() && plot->yAxis())
+      plot->yAxis()->setIntegral(yintegral);
+    else
+      errorMsg("plot type does not support y integral option");
+  }
 
   //---
 

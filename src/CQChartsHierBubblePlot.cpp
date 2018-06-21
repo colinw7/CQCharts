@@ -616,13 +616,6 @@ void
 CQChartsHierBubblePlot::
 loadHier()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsHierBubblePlot *plot, CQChartsHierBubbleHierNode *root) :
@@ -632,11 +625,11 @@ loadHier()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State hierVisit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(model, parent, row, name, nameInd);
+      (void) getName(parent, row, name, nameInd);
 
       //---
 
@@ -657,11 +650,11 @@ loadHier()
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(model, parent, row, name, nameInd);
+      (void) getName(parent, row, name, nameInd);
 
       //---
 
@@ -691,9 +684,8 @@ loadHier()
       return hierStack_.back();
     }
 
-    bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                 QString &name, QModelIndex &nameInd) const {
-      nameInd = model->index(row, plot_->nameColumn().column(), parent);
+    bool getName(const QModelIndex &parent, int row, QString &name, QModelIndex &nameInd) const {
+      nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
 
       bool ok;
 
@@ -779,13 +771,6 @@ void
 CQChartsHierBubblePlot::
 loadFlat()
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsHierBubblePlot *plot) :

@@ -479,13 +479,6 @@ void
 CQChartsSunburstPlot::
 loadHier(CQChartsSunburstHierNode *root)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
@@ -493,11 +486,11 @@ loadHier(CQChartsSunburstHierNode *root)
       hierStack_.push_back(root);
     }
 
-    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State hierVisit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(model, parent, row, name, nameInd);
+      (void) getName(parent, row, name, nameInd);
 
       //---
 
@@ -518,18 +511,18 @@ loadHier(CQChartsSunburstHierNode *root)
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(model, parent, row, name, nameInd);
+      (void) getName(parent, row, name, nameInd);
 
       //---
 
       double      size = 1.0;
       QModelIndex valueInd;
 
-      if (! getSize(model, parent, row, size, valueInd))
+      if (! getSize(parent, row, size, valueInd))
         return State::SKIP;
 
       //---
@@ -546,9 +539,8 @@ loadHier(CQChartsSunburstHierNode *root)
       return hierStack_.back();
     }
 
-    bool getName(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                 QString &name, QModelIndex &nameInd) const {
-      nameInd = model->index(row, plot_->nameColumn().column(), parent);
+    bool getName(const QModelIndex &parent, int row, QString &name, QModelIndex &nameInd) const {
+      nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
 
       bool ok;
 
@@ -557,9 +549,8 @@ loadHier(CQChartsSunburstHierNode *root)
       return ok;
     }
 
-    bool getSize(QAbstractItemModel *model, const QModelIndex &parent, int row,
-                 double size, QModelIndex &valueInd) const {
-      valueInd = model->index(row, plot_->valueColumn().column(), parent);
+    bool getSize(const QModelIndex &parent, int row, double size, QModelIndex &valueInd) const {
+      valueInd = plot_->modelIndex(row, plot_->valueColumn(), parent);
 
       size = 1.0;
 
@@ -630,13 +621,6 @@ void
 CQChartsSunburstPlot::
 loadFlat(CQChartsSunburstHierNode *root)
 {
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsSunburstPlot *plot, CQChartsSunburstHierNode *root) :
@@ -644,7 +628,7 @@ loadFlat(CQChartsSunburstHierNode *root)
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       QStringList  nameStrs;
       ModelIndices nameInds;
 
@@ -677,7 +661,7 @@ loadFlat(CQChartsSunburstHierNode *root)
 
       //---
 
-      QModelIndex valueInd = model->index(row, plot_->valueColumn().column(), parent);
+      QModelIndex valueInd = plot_->modelIndex(row, plot_->valueColumn(), parent);
 
       CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 

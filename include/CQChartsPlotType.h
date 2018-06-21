@@ -54,6 +54,12 @@ class CQChartsPlotType {
 
   const Parameters &parameters() const { return parameters_; }
 
+  const ParameterGroups &parameterGroups() const { return parameterGroups_; }
+
+  Parameters groupParameters(int groupId) const;
+
+  Parameters nonGroupParameters() const;
+
   //---
 
   void startParameterGroup(const QString &name);

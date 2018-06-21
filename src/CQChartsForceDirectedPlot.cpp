@@ -110,20 +110,13 @@ initObjs()
 
   //---
 
-  QAbstractItemModel *model = this->model().data();
-
-  if (! model)
-    return false;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsForceDirectedPlot *plot) :
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       bool ok1;
 
       int group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok1);
@@ -162,7 +155,7 @@ initObjs()
 
         //---
 
-        QModelIndex nodeInd  = model->index(row, plot_->nodeColumn().column(), parent);
+        QModelIndex nodeInd  = plot_->modelIndex(row, plot_->nodeColumn(), parent);
         QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
         ConnectionsData connectionsData;
@@ -205,7 +198,7 @@ initObjs()
 
         //---
 
-        QModelIndex nameInd  = model->index(row, plot_->nameColumn().column(), parent);
+        QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
         QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
         ConnectionsData &srcConnectionsData = plot_->getConnections(srcId);

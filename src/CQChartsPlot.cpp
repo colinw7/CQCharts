@@ -4186,7 +4186,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
         nameStrs << name;
     }
 
-    QModelIndex nameInd = model->index(row, nameColumn.column(), parent);
+    QModelIndex nameInd = modelIndex(row, nameColumn, parent);
 
     nameInds.push_back(nameInd);
   }
@@ -4202,7 +4202,7 @@ getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumn
       if (ok) {
         nameStrs << name;
 
-        QModelIndex nameInd = model->index(row, nameColumn.column(), parent);
+        QModelIndex nameInd = modelIndex(row, nameColumn, parent);
 
         nameInds.push_back(nameInd);
       }
@@ -4690,9 +4690,11 @@ initGroup(const GroupData &data)
 
 int
 CQChartsPlot::
-rowGroupInd(QAbstractItemModel *model, const QModelIndex &parent, int row,
-            const CQChartsColumn &column) const
+rowGroupInd(const QModelIndex &parent, int row, const CQChartsColumn &column) const
 {
+  QAbstractItemModel *model = this->model().data();
+  if (! model) return -1;
+
   // header has multiple groups (one per column)
   if      (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
     return groupBucket_.ind(column.column());
@@ -4831,6 +4833,25 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
   }
 
   return str;
+}
+
+//------
+
+QModelIndex
+CQChartsPlot::
+modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
+{
+  return modelIndex(row, column.column(), parent);
+}
+
+QModelIndex
+CQChartsPlot::
+modelIndex(int row, int column, const QModelIndex &parent) const
+{
+  QAbstractItemModel *model = this->model().data();
+  if (! model) return QModelIndex();
+
+  return model->index(row, column, parent);
 }
 
 //------
@@ -5231,8 +5252,8 @@ endSelect()
           endRow = row;
         }
         else {
-          QModelIndex ind1 = model->index(startRow, column, parent);
-          QModelIndex ind2 = model->index(endRow  , column, parent);
+          QModelIndex ind1 = modelIndex(startRow, column, parent);
+          QModelIndex ind2 = modelIndex(endRow  , column, parent);
 
           optItemSelection.select(ind1, ind2);
 
@@ -5242,8 +5263,8 @@ endSelect()
       }
 
       if (startRow >= 0) {
-        QModelIndex ind1 = model->index(startRow, column, parent);
-        QModelIndex ind2 = model->index(endRow  , column, parent);
+        QModelIndex ind1 = modelIndex(startRow, column, parent);
+        QModelIndex ind2 = modelIndex(endRow  , column, parent);
 
         optItemSelection.select(ind1, ind2);
       }

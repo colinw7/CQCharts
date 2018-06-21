@@ -115,6 +115,8 @@ class CQChartsPlotParameter {
   const Attributes &attributes() const { return attributes_; }
   CQChartsPlotParameter &setAttributes(const Attributes &s) { attributes_ = s; return *this; }
 
+  bool inGroup() const { return groupId_ > 0; }
+
   int groupId() const { return groupId_; }
   void setGroupId(int i) { groupId_ = i; }
 
