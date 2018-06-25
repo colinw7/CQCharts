@@ -40,6 +40,7 @@ for {set c 0} {$c < $nc} {incr c} {
   set_property -plot $plot -name key.visible                   -value 0
   set_property -plot $plot -name labels.visible                -value 0
   set_property -plot $plot -name box.fill.color                -value green
+  set_property -plot $plot -name outlier.fill.color            -value green
 }
 
 place_plots -horizontal $box_plots

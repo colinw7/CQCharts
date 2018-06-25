@@ -15,6 +15,8 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
   QString name() const override { return "delaunay"; }
   QString desc() const override { return "Delaunay"; }
 
+  Dimension dimension() const override { return Dimension::TWO_D; }
+
   void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
@@ -72,15 +74,15 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   // point:
   //  display, color, symbol, size
   Q_PROPERTY(bool           points             READ isPoints          WRITE setPoints           )
-  Q_PROPERTY(QString        symbolName         READ symbolName        WRITE setSymbolName       )
+  Q_PROPERTY(CQChartsSymbol symbolType         READ symbolType        WRITE setSymbolType       )
   Q_PROPERTY(double         symbolSize         READ symbolSize        WRITE setSymbolSize       )
   Q_PROPERTY(bool           symbolStroked      READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  pointsStrokeColor  READ pointsStrokeColor WRITE setPointsStrokeColor)
-  Q_PROPERTY(double         pointsStrokeAlpha  READ pointsStrokeAlpha WRITE setPointsStrokeAlpha)
+  Q_PROPERTY(CQChartsColor  symbolStrokeColor  READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double         symbolStrokeAlpha  READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
   Q_PROPERTY(CQChartsLength symbolLineWidth    READ symbolLineWidth   WRITE setSymbolLineWidth  )
   Q_PROPERTY(bool           symbolFilled       READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  pointsFillColor    READ pointsFillColor   WRITE setPointsFillColor  )
-  Q_PROPERTY(double         pointsFillAlpha    READ pointsFillAlpha   WRITE setPointsFillAlpha  )
+  Q_PROPERTY(CQChartsColor  symbolFillColor    READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(double         symbolFillAlpha    READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
 
   // line:
   //  display, stroke
@@ -120,21 +122,21 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   bool isPoints() const { return pointData_.visible; }
   void setPoints(bool b) { pointData_.visible = b; update(); }
 
-  const CQChartsColor &pointsStrokeColor() const;
-  void setPointsStrokeColor(const CQChartsColor &c);
+  const CQChartsColor &symbolStrokeColor() const;
+  void setSymbolStrokeColor(const CQChartsColor &c);
 
   QColor interpPointStrokeColor(int i, int n) const;
 
-  double pointsStrokeAlpha() const;
-  void setPointsStrokeAlpha(double a);
+  double symbolStrokeAlpha() const;
+  void setSymbolStrokeAlpha(double a);
 
-  const CQChartsColor &pointsFillColor() const;
-  void setPointsFillColor(const CQChartsColor &c);
+  const CQChartsColor &symbolFillColor() const;
+  void setSymbolFillColor(const CQChartsColor &c);
 
   QColor interpPointFillColor(int i, int n) const;
 
-  double pointsFillAlpha() const;
-  void setPointsFillAlpha(double a);
+  double symbolFillAlpha() const;
+  void setSymbolFillAlpha(double a);
 
   //---
 
@@ -156,11 +158,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   //---
 
   // symbol
-  QString symbolName() const;
-  void setSymbolName(const QString &s);
-
-  CQChartsPlotSymbol::Type symbolType() const { return pointData_.type; }
-  void setSymbolType(CQChartsPlotSymbol::Type t) { pointData_.type = t; update(); }
+  const CQChartsSymbol &symbolType() const { return pointData_.type; }
+  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
 
   double symbolSize() const { return pointData_.size; }
   void setSymbolSize(double s) { pointData_.size = s; update(); }

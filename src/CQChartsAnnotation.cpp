@@ -1165,7 +1165,7 @@ draw(QPainter *painter)
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &position,
-                        const CQChartsPlotSymbol::Type &type) :
+                        const CQChartsSymbol &type) :
  CQChartsAnnotation(view), position_(position)
 {
   setObjectName(QString("point.%1").arg(ind()));
@@ -1175,7 +1175,7 @@ CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &position,
 
 CQChartsPointAnnotation::
 CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
-                        const CQChartsPlotSymbol::Type &type) :
+                        const CQChartsSymbol &type) :
  CQChartsAnnotation(plot), position_(position)
 {
   setObjectName(QString("point.%1").arg(ind()));

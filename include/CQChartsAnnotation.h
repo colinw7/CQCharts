@@ -278,17 +278,17 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
 
  public:
   CQChartsPointAnnotation(CQChartsView *view, const CQChartsPosition &p=CQChartsPosition(),
-                          const CQChartsPlotSymbol::Type &type=CQChartsPlotSymbol::Type::CROSS);
+                          const CQChartsSymbol &type=CQChartsSymbol::Type::CROSS);
   CQChartsPointAnnotation(CQChartsPlot *plot, const CQChartsPosition &p=CQChartsPosition(),
-                          const CQChartsPlotSymbol::Type &type=CQChartsPlotSymbol::Type::CROSS);
+                          const CQChartsSymbol &type=CQChartsSymbol::Type::CROSS);
 
   virtual ~CQChartsPointAnnotation();
 
   const CQChartsPosition &position() const { return position_; }
   void setPosition(const CQChartsPosition &p) { position_ = p; emit dataChanged(); }
 
-  const CQChartsPlotSymbol::Type &type() const { return pointData_.type; }
-  void setType(const CQChartsPlotSymbol::Type &t) { pointData_.type = t; emit dataChanged(); }
+  const CQChartsSymbol &type() const { return pointData_.type; }
+  void setType(const CQChartsSymbol &t) { pointData_.type = t; emit dataChanged(); }
 
   const CQChartsSymbolData &pointData() const { return pointData_; }
   void setPointData(const CQChartsSymbolData &v) { pointData_ = v; emit dataChanged(); }

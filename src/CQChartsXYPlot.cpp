@@ -233,15 +233,15 @@ addProperties()
 
   // points
   addProperty("points"       , this, "points"           , "visible");
-  addProperty("points"       , this, "symbolName"       , "symbol" );
+  addProperty("points"       , this, "symbolType"       , "symbol" );
   addProperty("points"       , this, "symbolSize"       , "size"   );
   addProperty("points/stroke", this, "symbolStroked"    , "visible");
-  addProperty("points/stroke", this, "pointsStrokeColor", "color"  );
-  addProperty("points/stroke", this, "pointsStrokeAlpha", "alpha"  );
+  addProperty("points/stroke", this, "symbolStrokeColor", "color"  );
+  addProperty("points/stroke", this, "symbolStrokeAlpha", "alpha"  );
   addProperty("points/stroke", this, "symbolLineWidth"  , "width"  );
   addProperty("points/fill"  , this, "symbolFilled"     , "visible");
-  addProperty("points/fill"  , this, "pointsFillColor"  , "color"  );
-  addProperty("points/fill"  , this, "pointsFillAlpha"  , "alpha"  );
+  addProperty("points/fill"  , this, "symbolFillColor"  , "color"  );
+  addProperty("points/fill"  , this, "symbolFillAlpha"  , "alpha"  );
 
   // lines
   addProperty("lines", this, "lines"          , "visible"   );
@@ -337,26 +337,6 @@ setFillUnder(bool b)
   CQChartsUtil::testAndSet(fillUnderData_.fillData.visible, b, [&]() { updateObjs(); } );
 }
 
-QString
-CQChartsXYPlot::
-symbolName() const
-{
-  return CQChartsPlotSymbolMgr::typeToName(pointData_.type);
-}
-
-void
-CQChartsXYPlot::
-setSymbolName(const QString &s)
-{
-  CQChartsPlotSymbol::Type type = CQChartsPlotSymbolMgr::nameToType(s);
-
-  if (type != CQChartsPlotSymbol::Type::NONE) {
-    pointData_.type = type;
-
-    update();
-  }
-}
-
 //---
 
 void
@@ -391,14 +371,14 @@ interpImpulseColor(int i, int n) const
 
 const CQChartsColor &
 CQChartsXYPlot::
-pointsStrokeColor() const
+symbolStrokeColor() const
 {
   return pointData_.stroke.color;
 }
 
 void
 CQChartsXYPlot::
-setPointsStrokeColor(const CQChartsColor &c)
+setSymbolStrokeColor(const CQChartsColor &c)
 {
   pointData_.stroke.color = c;
 
@@ -407,21 +387,21 @@ setPointsStrokeColor(const CQChartsColor &c)
 
 QColor
 CQChartsXYPlot::
-interpPointStrokeColor(int i, int n) const
+interpSymbolStrokeColor(int i, int n) const
 {
-  return pointsStrokeColor().interpColor(this, i, n);
+  return symbolStrokeColor().interpColor(this, i, n);
 }
 
 double
 CQChartsXYPlot::
-pointsStrokeAlpha() const
+symbolStrokeAlpha() const
 {
   return pointData_.stroke.alpha;
 }
 
 void
 CQChartsXYPlot::
-setPointsStrokeAlpha(double a)
+setSymbolStrokeAlpha(double a)
 {
   pointData_.stroke.alpha = a;
 
@@ -430,14 +410,14 @@ setPointsStrokeAlpha(double a)
 
 const CQChartsColor &
 CQChartsXYPlot::
-pointsFillColor() const
+symbolFillColor() const
 {
   return pointData_.fill.color;
 }
 
 void
 CQChartsXYPlot::
-setPointsFillColor(const CQChartsColor &c)
+setSymbolFillColor(const CQChartsColor &c)
 {
   pointData_.fill.color = c;
 
@@ -446,21 +426,21 @@ setPointsFillColor(const CQChartsColor &c)
 
 QColor
 CQChartsXYPlot::
-interpPointFillColor(int i, int n) const
+interpSymbolFillColor(int i, int n) const
 {
-  return pointsFillColor().interpColor(this, i, n);
+  return symbolFillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsXYPlot::
-pointsFillAlpha() const
+symbolFillAlpha() const
 {
   return pointData_.fill.alpha;
 }
 
 void
 CQChartsXYPlot::
-setPointsFillAlpha(double a)
+setSymbolFillAlpha(double a)
 {
   pointData_.fill.alpha = a;
 
@@ -1276,7 +1256,7 @@ initObjs()
           QString pointSymbolStr = modelString(ip, pointSymbolColumn(), parent, ok);
 
           if (ok && pointSymbolStr.length())
-            pointObj->setSymbol(CQChartsPlotSymbolMgr::nameToType(pointSymbolStr));
+            pointObj->setSymbol(CQChartsSymbol::nameToType(pointSymbolStr));
         }
 
         //---
@@ -1883,12 +1863,12 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   }
 
   if (plot_->isPoints()) {
-    CQChartsPlotSymbol::Type symbol      = plot_->symbolType();
-    double                   s           = plot_->symbolSize();
-    bool                     stroked     = plot_->isSymbolStroked();
-    QColor                   strokeColor = plot_->interpPointStrokeColor(iset_, nset_);
-    bool                     filled      = plot_->isSymbolFilled();
-    QColor                   fillColor   = plot_->interpPointFillColor(iset_, nset_);
+    CQChartsSymbol symbol      = plot_->symbolType();
+    double         s           = plot_->symbolSize();
+    bool           stroked     = plot_->isSymbolStroked();
+    QColor         strokeColor = plot_->interpSymbolStrokeColor(iset_, nset_);
+    bool           filled      = plot_->isSymbolFilled();
+    QColor         fillColor   = plot_->interpSymbolFillColor(iset_, nset_);
 
     QPen   pen  (strokeColor);
     QBrush brush(fillColor);
@@ -2098,7 +2078,7 @@ setColor(const CQChartsColor &c)
 
 void
 CQChartsXYPointObj::
-setSymbol(CQChartsPlotSymbol::Type symbol)
+setSymbol(CQChartsSymbol symbol)
 {
   if (! edata_)
     edata_ = new ExtraData;
@@ -2174,17 +2154,17 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  CQChartsPlotSymbol::Type symbol      = plot_->symbolType();
-  bool                     stroked     = plot_->isSymbolStroked();
-  QColor                   strokeColor = plot_->interpPointStrokeColor(iset_, nset_);
-  double                   lineWidth   = plot_->lengthPixelWidth(plot_->symbolLineWidth());
-  bool                     filled      = plot_->isSymbolFilled();
-  QColor                   fillColor   = plot_->interpPointFillColor(iset_, nset_);
+  CQChartsSymbol symbol      = plot_->symbolType();
+  bool           stroked     = plot_->isSymbolStroked();
+  QColor         strokeColor = plot_->interpSymbolStrokeColor(iset_, nset_);
+  double         lineWidth   = plot_->lengthPixelWidth(plot_->symbolLineWidth());
+  bool           filled      = plot_->isSymbolFilled();
+  QColor         fillColor   = plot_->interpSymbolFillColor(iset_, nset_);
 
-  strokeColor.setAlphaF(plot_->pointsStrokeAlpha());
-  fillColor  .setAlphaF(plot_->pointsFillAlpha());
+  strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
+  fillColor  .setAlphaF(plot_->symbolFillAlpha());
 
-  if (edata_ && edata_->symbol != CQChartsPlotSymbol::Type::NONE)
+  if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
     symbol = edata_->symbol;
 
   if (edata_ && edata_->color)
@@ -2762,10 +2742,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   painter->setClipRect(prect1);
 
-  QColor pointStrokeColor = plot->interpPointStrokeColor(i_, n_);
-  QColor pointFillColor   = plot->interpPointFillColor  (i_, n_);
-  QColor lineColor        = plot->interpLinesColor      (i_, n_);
-  QColor impulseColor     = plot->interpImpulseColor    (i_, n_);
+  QColor pointStrokeColor = plot->interpSymbolStrokeColor(i_, n_);
+  QColor pointFillColor   = plot->interpSymbolFillColor  (i_, n_);
+  QColor lineColor        = plot->interpLinesColor       (i_, n_);
+  QColor impulseColor     = plot->interpImpulseColor     (i_, n_);
 
   if (plot->isSetHidden(i_)) {
     QColor bg = key_->interpBgColor();
@@ -2825,10 +2805,10 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     keyPlot->windowToPixel(x1, y, px1, py);
     keyPlot->windowToPixel(x2, y, px2, py);
 
-    CQChartsPlotSymbol::Type symbol  = plot->symbolType();
-    double                   s       = plot->symbolSize();
-    bool                     stroked = plot->isSymbolStroked();
-    bool                     filled  = plot->isSymbolFilled();
+    CQChartsSymbol symbol  = plot->symbolType();
+    double         s       = plot->symbolSize();
+    bool           stroked = plot->isSymbolStroked();
+    bool           filled  = plot->isSymbolFilled();
 
     if (plot->isLines() || plot->isImpulse()) {
       plot_->drawSymbol(painter, QPointF(px1, py), symbol, s,

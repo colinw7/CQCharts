@@ -13,6 +13,9 @@ class CQChartsPlot;
 
 class CQChartsPlotTypeMgr {
  public:
+  using Types = std::vector<CQChartsPlotType*>;
+
+ public:
   CQChartsPlotTypeMgr();
  ~CQChartsPlotTypeMgr();
 
@@ -24,10 +27,12 @@ class CQChartsPlotTypeMgr {
 
   void getTypeNames(QStringList &names, QStringList &descs) const;
 
- private:
-  using Types = std::map<QString,CQChartsPlotType*>;
+  void getTypes(Types &types) const;
 
-  Types types_;
+ private:
+  using NameTypes = std::map<QString,CQChartsPlotType*>;
+
+  NameTypes nameTypes_;
 };
 
 //----
@@ -39,6 +44,12 @@ class CQChartsPlotType {
   using ParameterAttributes = CQChartsPlotParameterAttributes;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
 
+  enum Dimension {
+    NONE,
+    ONE_D,
+    TWO_D,
+  };
+
  public:
   CQChartsPlotType();
 
@@ -47,6 +58,8 @@ class CQChartsPlotType {
   // type name and description
   virtual QString name() const = 0;
   virtual QString desc() const = 0;
+
+  virtual Dimension dimension() const = 0;
 
   // plot parameters
   // (required/key options to initialize plot)
@@ -116,6 +129,7 @@ class CQChartsPlotType {
   virtual bool hasKey  () const { return true; }
   virtual bool hasTitle() const { return true; }
 
+  // TODO: use plot first then default to type
   virtual bool allowXAxisIntegral() const { return true; }
   virtual bool allowYAxisIntegral() const { return true; }
 
@@ -123,6 +137,8 @@ class CQChartsPlotType {
   virtual bool allowYLog() const { return true; }
 
   virtual QString description() const { return QString(); }
+
+  virtual bool isHierarchical() const { return false; }
 
   //---
 

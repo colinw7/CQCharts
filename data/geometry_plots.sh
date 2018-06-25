@@ -5,5 +5,4 @@ CQChartsTest \
 -and \
  -tsv data/choropeth.tsv \
  -type geometry -columns "name=0,geometry=1,value=2" \
- -plot_title "choropeth" \
--close_app
+ -plot_title "choropeth"

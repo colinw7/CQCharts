@@ -49,6 +49,9 @@ class CQBucketer {
   double idelta() const { return int(rdelta_); }
   void setIDelta(int i) { rdelta_ = i; }
 
+  bool isIntegral() const { return integral_; }
+  void setIntegral(bool b) { integral_ = b; }
+
   //---
 
   // auto bucket delta
@@ -213,13 +216,16 @@ class CQBucketer {
       // Calculate nearest Power of Ten to Length
       int power = (length1 > 0 ? roundNearest(log10(length1)) : 1);
 
-      //if (isIntegral()) {
-      //  if (power < 0)
-      //    power = 1;
-      //}
+      // prefer integral values
+      if (isIntegral()) {
+        if (power < 0) {
+          length1 = 1.0;
+          power   = 0;
+        }
+      }
 
       calcDelta_ = 1;
-      //calcDelta_ = 0.1;
+    //calcDelta_ = 0.1;
 
       if      (power < 0) {
         for (int i = 0; i < -power; i++)
@@ -376,6 +382,7 @@ class CQBucketer {
   Type   type_ { Type::STRING }; // data type
   double rmin_ { 0.0 };          // actual min value
   double rmax_ { 1.0 };          // actual max value
+  bool   integral_ { false };    // prefer integral buckets
 
   // manual
   double rstart_  { 0.0 }; // manual bucktet start value

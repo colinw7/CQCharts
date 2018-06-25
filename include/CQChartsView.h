@@ -308,8 +308,7 @@ class CQChartsView : public QFrame {
                                                     double yRadius);
   CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
   CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
-  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos,
-                                                    const CQChartsPlotSymbol::Type &type);
+  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos, const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 

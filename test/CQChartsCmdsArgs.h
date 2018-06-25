@@ -1,6 +1,7 @@
 #ifndef CQChartsCmdsArgs_H
 #define CQChartsCmdsArgs_H
 
+#include <CQChartsPlot.h>
 #include <CQChartsLength.h>
 #include <CQChartsPosition.h>
 #include <CQChartsColor.h>
@@ -28,7 +29,8 @@ class CQChartsCmdArg {
     Position,
     Polygon,
     Align,
-    Column
+    Column,
+    Row
   };
 
  public:
@@ -493,6 +495,17 @@ class CQChartsCmdsArgs {
               continue;
             }
           }
+          else if (cmdArg->type() == CQChartsCmdArg::Type::Row) {
+            QString str;
+
+            if (getOptValue(str)) {
+              parseStr_[opt].push_back(str);
+            }
+            else {
+              std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+              continue;
+            }
+          }
           else {
             std::cerr << "Invalid type for '" << opt.toStdString() << "'\n";
             continue;
@@ -730,6 +743,26 @@ class CQChartsCmdsArgs {
       return CQChartsColumn();
 
     return column;
+  }
+
+  int getParseRow(const QString &name, CQChartsPlot *plot=nullptr) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return -1;
+
+    QString rowName = (*p).second[0];
+
+    bool ok;
+
+    int row = rowName.toInt(&ok);
+
+    if (! ok) {
+      if (plot)
+        row = plot->getRowForId(rowName);
+      else
+        row = -1;
+    }
+
+    return row;
   }
 
   const Args &getParseArgs() const { return parseArgs_; }

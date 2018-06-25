@@ -2,6 +2,7 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CQDataModel.h>
 #include <QItemSelectionModel>
 #include <cassert>
 
@@ -374,6 +375,23 @@ data(const QModelIndex &ind, int role) const
   if (! ind.isValid())
     return QVariant();
 
+  if (role == Qt::DisplayRole || role == Qt::EditRole) {
+    if (role == Qt::DisplayRole) {
+      QVariant var = QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::OutputValue));
+
+      if (var.isValid())
+        return var;
+    }
+    else {
+      QVariant var = QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::IntermediateValue));
+
+      if (var.isValid())
+        return var;
+    }
+  }
+
+  //---
+
   QVariant var = QSortFilterProxyModel::data(ind, role);
 
   if (role == Qt::EditRole && ! var.isValid())
@@ -385,27 +403,56 @@ data(const QModelIndex &ind, int role) const
   //---
 
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
-    if (! isConvert())
-      return var;
-
-    //---
-
-    // convert variant using column type data
     assert(ind.model() == this);
 
     QModelIndex ind1 = mapToSource(ind);
 
     assert(ind.column() == ind1.column());
 
-    CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
-
     if (! var.isValid())
       return var;
 
-    if (role == Qt::DisplayRole)
-      return CQChartsUtil::columnDisplayData(charts_, th, ind1.column(), var);
-    else
-      return CQChartsUtil::columnUserData(charts_, th, ind1.column(), var);
+    //---
+
+    // convert variant using column type data
+    CQChartsModelFilter *th = const_cast<CQChartsModelFilter *>(this);
+
+    bool converted;
+
+    QVariant var1;
+
+    if (role == Qt::DisplayRole) {
+      var1 = CQChartsUtil::columnDisplayData(charts_, th, ind1.column(), var, converted);
+
+      if (converted) {
+        CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+
+        if (dataModel) {
+          dataModel->setReadOnly(false);
+
+          th->setData(ind, var1, int(CQBaseModel::Role::OutputValue));
+
+          dataModel->setReadOnly(true);
+        }
+      }
+    }
+    else {
+      var1 = CQChartsUtil::columnUserData(charts_, th, ind1.column(), var, converted);
+
+      if (converted) {
+        CQDataModel *dataModel = dynamic_cast<CQDataModel *>(th->baseModel());
+
+        if (dataModel) {
+          dataModel->setReadOnly(false);
+
+          th->setData(ind, var1, int(CQBaseModel::Role::IntermediateValue));
+
+          dataModel->setReadOnly(true);
+        }
+      }
+    }
+
+    return var1;
   }
 
   return var;

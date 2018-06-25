@@ -808,13 +808,13 @@ initNodeObjs(CQChartsTreeMapHierNode *hier, CQChartsTreeMapHierObj *parentObj, i
 
   //---
 
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     initNodeObjs(hierNode, hierObj, depth + 1);
   }
 
   //---
 
-  for (auto node : hier->getNodes()) {
+  for (auto &node : hier->getNodes()) {
     if (! node->placed()) continue;
 
     //---

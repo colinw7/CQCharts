@@ -21,6 +21,8 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   bool hasAxes() const override { return false; }
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

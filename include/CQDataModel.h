@@ -54,12 +54,8 @@ class CQDataModel : public CQBaseModel {
   void resetColumnCache(int column);
 
  protected:
-  typedef std::vector<QVariant>           Cells;
-  typedef std::vector<Cells>              Data;
-  typedef std::map<int,Cells>             ColData;
-  typedef std::map<int,QVariant>          RoleVariant;
-  typedef std::map<int,RoleVariant>       ColumnRoleVariant;
-  typedef std::map<int,ColumnRoleVariant> RowColumnRoleVariant;
+  typedef std::vector<QVariant> Cells;
+  typedef std::vector<Cells>    Data;
 
  protected:
   void init(int numCols, int numRows);
@@ -84,14 +80,12 @@ class CQDataModel : public CQBaseModel {
 
   bool readOnly_ { false };
 
-  Cells                hheader_;                // horizontal header values
-  Cells                vheader_;                // vertical header values
-  Data                 data_;                   // row values
-  mutable ColData      colData_;                // converted column data
-  RowColumnRoleVariant extraData_;              // extra row values
-  QString              filter_;                 // filter text
-  bool                 filterInited_ { false }; // filter initialized
-  FilterDatas          filterDatas_;            // filter datas
+  Cells       hheader_;                // horizontal header values
+  Cells       vheader_;                // vertical header values
+  Data        data_;                   // row values
+  QString     filter_;                 // filter text
+  bool        filterInited_ { false }; // filter initialized
+  FilterDatas filterDatas_;            // filter datas
 };
 
 #endif

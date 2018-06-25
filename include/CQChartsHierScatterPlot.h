@@ -15,6 +15,10 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
   QString name() const override { return "hierscatter"; }
   QString desc() const override { return "HierScatter"; }
 
+  bool isHierarchical() const override { return true; }
+
+  Dimension dimension() const override { return Dimension::TWO_D; }
+
   void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

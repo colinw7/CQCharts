@@ -37,6 +37,25 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsDistributionPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws bars with heights for the counts of set of values.</p>\n"
+         "<h2>Columns</h2>\n"
+         "<p>The values to be counted are taken from the <b>Value</b> column "
+         "and grouped depending on the column value type. By default integer "
+         "values are grouped by matching value, real values are automatically "
+         "bucketed into ranges and strings are grouped by matching value.</p>\n"
+         "<p>The color of the bar can be overridden using the <b>Color</b> column.</p>\n"
+         "<h2>Parameters</h2>\n"
+         "<p>Setting the <b>Horizontal</b> parameter draws the bars horizontally.</p>"
+         "<p>The automatic bucketing of real values can overridden by turning off "
+         "the <b>autoRange</b> parameter and specifying the <b>startValue</b> and "
+         "<b>deltaValue</b> parameters.</p>";
+}
+
 CQChartsPlot *
 CQChartsDistributionPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -323,11 +342,14 @@ updateRange(bool apply)
 
     //---
 
+    bool isIntegral = (valueSet->type() == CQChartsValueSet::Type::INTEGER);
+
     QAbstractItemModel *model = this->model().data();
 
     if (model) {
       ColumnDetails columnDetails(this, model, valueColumn());
 
+      bucketer_.setIntegral(isIntegral);
       bucketer_.setRMin(columnDetails.minValue().toReal());
       bucketer_.setRMax(columnDetails.maxValue().toReal());
     }
@@ -863,6 +885,22 @@ draw(QPainter *painter)
 
 //------
 
+double
+CQChartsDistributionPlot::
+getPanX(bool is_shift) const
+{
+  return windowToViewWidth(is_shift ? 2.0 : 1.0);
+}
+
+double
+CQChartsDistributionPlot::
+getPanY(bool is_shift) const
+{
+  return windowToViewHeight(is_shift ? 2.0 : 1.0);
+}
+
+//------
+
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                            int bucket, const Values &values, int i, int n) :
@@ -932,77 +970,140 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   //---
 
   if (layer == CQChartsPlot::Layer::MID) {
-    // calc pen (stroke)
-    QPen pen;
+    // get bar colors
+    CQChartsColor barColor = plot_->interpBarColor(i_, n_);
 
-    if (plot_->isBorder()) {
-      QColor c = plot_->interpBorderColor(0, 1);
+    using ColorCount = std::map<int,int>;
+    using ColorSet   = std::map<CQChartsColor,int>;
 
-      c.setAlphaF(plot_->borderAlpha());
+    ColorCount colorCount;
+    ColorSet   colorSet;
+    int        nv = 0;
 
-      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+    if (plot_->colorColumn().isValid()) {
+      for (const auto &value : values_) {
+        QModelIndex colorInd = plot_->unnormalizeIndex(value);
 
-      pen.setColor (c);
-      pen.setWidthF(bw);
-    }
-    else {
-      pen.setStyle(Qt::NoPen);
-    }
+        OptColor optColor;
 
-    // calc brush (fill)
-    QBrush barBrush;
+        if (! plot_->colorSetColor("color", colorInd.row(), optColor))
+          optColor = barColor;
 
-    if (plot_->isBarFill()) {
-      QColor barColor = plot_->interpBarColor(i_, n_);
+        CQChartsColor color = *optColor;
 
-      OptColor color;
+        auto p = colorSet.find(color);
 
-      if (! values_.empty()) {
-        QModelIndex colorInd = plot_->unnormalizeIndex(values_[0]);
+        if (p == colorSet.end()) {
+          int ind = colorSet.size();
 
-        (void) plot_->colorSetColor("color", colorInd.row(), color);
-      }
+          p = colorSet.insert(p, ColorSet::value_type(color, ind));
+        }
 
-      if (color)
-        barColor = color->interpColor(plot_, 0, 1);
+        ++colorCount[(*p).second];
 
-      barColor.setAlphaF(plot_->barAlpha());
-
-      barBrush.setColor(barColor);
-      barBrush.setStyle(CQChartsFillPattern::toStyle(
-       (CQChartsFillPattern::Type) plot_->barPattern()));
-
-      if (useLine) {
-        pen.setColor (barColor);
-        pen.setWidthF(0);
+        ++nv;
       }
     }
-    else {
-      barBrush.setStyle(Qt::NoBrush);
 
-      if (useLine)
-        pen.setWidthF(0);
+    if (colorSet.empty()) {
+      colorSet[barColor] = 0;
+
+      colorCount[0] = 1;
+
+      nv = 1;
     }
-
-    plot_->updateObjPenBrushState(this, pen, barBrush);
 
     //---
 
-    // draw rect
-    painter->setPen(pen);
-    painter->setBrush(barBrush);
+    double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
 
-    if (! useLine) {
-      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+    double dsize = size/nv;
 
-      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
-    }
-    else {
+    double pos1 = 0.0, pos2 = 0.0;
+
+    for (auto &p : colorSet) {
+      const CQChartsColor &color = p.first;
+      int                  n     = colorCount[p.second];
+
+      pos1 = pos2;
+      pos2 = pos1 + dsize*n;
+
+      QRectF qrect1;
+
       if (! plot_->isHorizontal())
-        painter->drawLine(qrect.center().x(), qrect.bottom(), qrect.center().x(), qrect.top());
+        qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
       else
-        painter->drawLine(qrect.left(), qrect.center().y(), qrect.right(), qrect.center().y());
+        qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+
+      //---
+
+      // calc pen (stroke)
+      QPen pen;
+
+      if (plot_->isBorder()) {
+        QColor c = plot_->interpBorderColor(0, 1);
+
+        c.setAlphaF(plot_->borderAlpha());
+
+        double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
+        pen.setColor (c);
+        pen.setWidthF(bw);
+      }
+      else {
+        pen.setStyle(Qt::NoPen);
+      }
+
+      // calc brush (fill)
+      QBrush barBrush;
+
+      if (plot_->isBarFill()) {
+        QColor barColor = color.interpColor(plot_, 0, 1);
+
+        barColor.setAlphaF(plot_->barAlpha());
+
+        barBrush.setColor(barColor);
+        barBrush.setStyle(CQChartsFillPattern::toStyle(
+         (CQChartsFillPattern::Type) plot_->barPattern()));
+
+        if (useLine) {
+          pen.setColor (barColor);
+          pen.setWidthF(0);
+        }
+      }
+      else {
+        barBrush.setStyle(Qt::NoBrush);
+
+        if (useLine)
+          pen.setWidthF(0);
+      }
+
+      plot_->updateObjPenBrushState(this, pen, barBrush);
+
+      //---
+
+      // draw rect
+      painter->setPen(pen);
+      painter->setBrush(barBrush);
+
+      if (! useLine) {
+        double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+        double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+
+        CQChartsRoundedPolygon::draw(painter, qrect1, cxs, cys);
+      }
+      else {
+        if (! plot_->isHorizontal()) {
+          double xc = qrect1.center().x();
+
+          painter->drawLine(xc, qrect1.bottom(), xc, qrect1.top());
+        }
+        else {
+          double yc = qrect1.center().y();
+
+          painter->drawLine(qrect1.left(), yc, qrect1.right(), yc);
+        }
+      }
     }
   }
   else {

@@ -21,7 +21,7 @@ CQChartsTest \
  -csv data/multi_bar.csv -first_line_header \
  -type bar -columns "category=0,value=1 2 3 4 5 6 7" \
  -plot_title "row grouping" -column_type "1#integer" \
- -properties "columns.rowGrouping=1" \
+ -properties "options.rowGrouping=1" \
 -and \
  -csv data/money_bar_stack_neg.csv -first_line_header \
  -type barchart -columns "category=0,value=1 2 3 4" \

@@ -56,6 +56,8 @@ class CQChartsModelColumnDetails {
   QVariant lowerMedianValue() const;
   QVariant upperMedianValue() const;
 
+  QVariantList outlierValues() const;
+
   double map(const QVariant &var) const;
 
   virtual bool checkRow(const QVariant &) { return true; }

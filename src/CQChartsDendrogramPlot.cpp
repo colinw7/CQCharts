@@ -472,7 +472,7 @@ addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth)
 {
   const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
 
-  for (auto hierNode : children) {
+  for (auto &hierNode : children) {
     addNodeObj(hierNode);
 
     addNodeObjs(hierNode, depth + 1);
@@ -482,7 +482,7 @@ addNodeObjs(CQChartsDendrogram::HierNode *hier, int depth)
 
   const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
 
-  for (auto node : nodes)
+  for (auto &node : nodes)
     addNodeObj(node);
 }
 
@@ -539,7 +539,7 @@ drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth)
 {
   const CQChartsDendrogram::HierNode::Children &children = hier->getChildren();
 
-  for (auto hierNode : children) {
+  for (auto &hierNode : children) {
     drawNode(painter, hier, hierNode);
 
     drawNodes(painter, hierNode, depth + 1);
@@ -549,7 +549,7 @@ drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth)
 
   const CQChartsDendrogram::Nodes &nodes = hier->getNodes();
 
-  for (auto node : nodes)
+  for (auto &node : nodes)
     drawNode(painter, hier, node);
 }
 

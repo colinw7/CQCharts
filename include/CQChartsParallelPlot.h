@@ -15,6 +15,8 @@ class CQChartsParallelPlotType : public CQChartsPlotType {
   QString name() const override { return "parallel"; }
   QString desc() const override { return "Parallel"; }
 
+  Dimension dimension() const override { return Dimension::TWO_D; }
+
   void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
@@ -111,7 +113,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
   Q_PROPERTY(bool           lines        READ isLines        WRITE setLines       )
   Q_PROPERTY(CQChartsColor  linesColor   READ linesColor     WRITE setLinesColor  )
   Q_PROPERTY(CQChartsLength linesWidth   READ linesWidth     WRITE setLinesWidth  )
-  Q_PROPERTY(QString        symbolName   READ symbolName     WRITE setSymbolName  )
+  Q_PROPERTY(CQChartsSymbol symbolType   READ symbolType     WRITE setSymbolType  )
   Q_PROPERTY(double         symbolSize   READ symbolSize     WRITE setSymbolSize  )
   Q_PROPERTY(bool           symbolFilled READ isSymbolFilled WRITE setSymbolFilled)
 
@@ -184,14 +186,11 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //---
 
   // symbol
+  const CQChartsSymbol &symbolType() const { return pointData_.type; }
+  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
+
   double symbolSize() const { return pointData_.size; }
   void setSymbolSize(double s) { pointData_.size = s; update(); }
-
-  CQChartsPlotSymbol::Type symbolType() const { return pointData_.type; }
-  void setSymbolType(CQChartsPlotSymbol::Type t) { pointData_.type = t; update(); }
-
-  QString symbolName() const;
-  void setSymbolName(const QString &s);
 
   bool isSymbolFilled() const { return pointData_.fill.visible; }
   void setSymbolFilled(bool b) { pointData_.fill.visible = b; update(); }

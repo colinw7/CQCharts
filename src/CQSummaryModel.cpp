@@ -80,7 +80,7 @@ setMaxRows(int maxRows)
   if (maxRows != maxRows_) {
     maxRows_ = std::max(maxRows, 1);
 
-    if (mode_ != Mode::NORMAL)
+    if (mode() != Mode::NORMAL && mode() != Mode::PAGED)
       resetMapping();
   }
 }
@@ -89,7 +89,7 @@ void
 CQSummaryModel::
 setMode(const Mode &m)
 {
-  if (m != mode_) {
+  if (m != mode()) {
     mode_ = m;
 
     resetMapping();
@@ -103,7 +103,7 @@ setSortColumn(int c)
   if (c != sortColumn_) {
     sortColumn_ = c;
 
-    if (mode_ == Mode::SORTED)
+    if (mode() == Mode::SORTED)
       resetMapping();
   }
 }
@@ -115,7 +115,31 @@ setSortRole(int r)
   if (r != sortRole_) {
     sortRole_ = r;
 
-    if (mode_ == Mode::SORTED)
+    if (mode() == Mode::SORTED)
+      resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
+setPageSize(int i)
+{
+  if (i != pageSize_) {
+    pageSize_ = i;
+
+    if (mode() == Mode::PAGED)
+      resetMapping();
+  }
+}
+
+void
+CQSummaryModel::
+setCurrentPage(int i)
+{
+  if (i != currentPage_) {
+    currentPage_ = i;
+
+    if (mode() == Mode::PAGED)
       resetMapping();
   }
 }
@@ -140,7 +164,7 @@ initMapping()
   rowInds_.clear();
   indRows_.clear();
 
-  if (mode_ == Mode::NORMAL)
+  if (mode() == Mode::NORMAL || mode() == Mode::PAGED)
     return;
 
   //---
@@ -151,27 +175,27 @@ initMapping()
 
   //---
 
-  if      (mode_ == Mode::RANDOM) {
+  if      (mode() == Mode::RANDOM) {
     // if summary count greater or equal to actual count then nothing to do
-    if (maxRows_ >= nr)
+    if (maxRows() >= nr)
       return;
 
     // create set of random rows (sorted)
-    int nr1 = nr - maxRows_;
+    int nr1 = nr - maxRows();
 
     bool invert = (nr1 < nr/2);
 
     RowSet rowSet;
 
     if (! invert)
-      randRows(rowSet, maxRows_, nr);
+      randRows(rowSet, maxRows(), nr);
     else
       randRows(rowSet, nr1, nr);
 
     //---
 
     // create mapping
-    rowInds_.resize(maxRows_);
+    rowInds_.resize(maxRows());
 
     if (! invert) {
       int i = 0;
@@ -199,11 +223,11 @@ initMapping()
       }
     }
 
-    assert(int(indRows_.size()) == maxRows_);
+    assert(int(indRows_.size()) == maxRows());
 
     mapValid_ = true;
   }
-  else if (mode_ == Mode::SORTED) {
+  else if (mode() == Mode::SORTED) {
     int nc = model->columnCount();
 
     if (sortColumn_ < 0 || sortColumn_ >= nc)
@@ -226,7 +250,7 @@ initMapping()
     }
 
     // sort summary size
-    std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows_, rowValues.end(),
+    std::partial_sort(rowValues.begin(), rowValues.begin() + maxRows(), rowValues.end(),
                       [](const ValueRow &lhs, const ValueRow &rhs) {
                         return variantCmp(lhs.first, rhs.first) < 0;
                       });
@@ -234,7 +258,7 @@ initMapping()
     //---
 
     // create mapping
-    rowInds_.resize(maxRows_);
+    rowInds_.resize(maxRows());
 
     int i = 0;
 
@@ -246,7 +270,7 @@ initMapping()
 
       ++i;
 
-      if (i >= maxRows_)
+      if (i >= maxRows())
         break;
     }
 
@@ -304,15 +328,18 @@ rowCount(const QModelIndex &parent) const
 
   int nr = model->rowCount(parent);
 
-  return std::min(nr, maxRows());
+  if (mode() == Mode::PAGED)
+    return std::min(nr, pageSize());
+  else
+    return std::min(nr, maxRows());
 }
 
 // get child node for row/column of parent
 QModelIndex
 CQSummaryModel::
-index(int row, int column, const QModelIndex &) const
+index(int row, int column, const QModelIndex &parent) const
 {
-  if (row < 0 || row >= maxRows())
+  if (row < 0 || row >= rowCount(parent))
     return QModelIndex();
 
   return createIndex(row, column);
@@ -323,6 +350,7 @@ QModelIndex
 CQSummaryModel::
 parent(const QModelIndex &) const
 {
+  // flat - no parent
   return QModelIndex();
 }
 
@@ -330,6 +358,7 @@ bool
 CQSummaryModel::
 hasChildren(const QModelIndex &) const
 {
+  // flat - no children
   return false;
 }
 
@@ -391,10 +420,22 @@ mapFromSource(const QModelIndex &sourceIndex) const
 
   QAbstractItemModel *model = this->sourceModel();
 
-  if (r < 0 || r >= model->rowCount())
-    return QModelIndex();
+  if      (mode() == Mode::NORMAL) {
+    if (r < 0 || r >= model->rowCount())
+      return QModelIndex();
+  }
+  else if (mode() == Mode::PAGED) {
+    int r1 = currentPage()*pageSize();
+    int r2 = r1 + pageSize();
 
-  if (mapValid_) {
+    if (r < r1 || r >= r2)
+      return QModelIndex();
+
+    r = r - r1;
+  }
+  else {
+    assert(mapValid_);
+
     auto p = indRows_.find(r);
 
     if (p == indRows_.end())
@@ -417,10 +458,19 @@ mapToSource(const QModelIndex &proxyIndex) const
   int r = proxyIndex.row   ();
   int c = proxyIndex.column();
 
-  if (r < 0 || r >= maxRows())
+  if (r < 0 || r >= rowCount())
     return QModelIndex();
 
-  if (mapValid_) {
+  if      (mode() == Mode::NORMAL) {
+  }
+  else if (mode() == Mode::PAGED) {
+    int r1 = currentPage()*pageSize();
+
+    r = r1 + r;
+  }
+  else {
+    assert(mapValid_);
+
     r = rowInds_[r];
   }
 

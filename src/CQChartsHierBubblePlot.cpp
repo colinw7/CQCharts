@@ -458,13 +458,13 @@ initNodeObjs(CQChartsHierBubbleHierNode *hier, CQChartsHierBubbleHierObj *parent
 
   //---
 
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     initNodeObjs(hierNode, hierObj, depth + 1);
   }
 
   //---
 
-  for (auto node : hier->getNodes()) {
+  for (auto &node : hier->getNodes()) {
     if (! node->placed()) continue;
 
     //---
@@ -553,7 +553,7 @@ void
 CQChartsHierBubblePlot::
 initNodes(CQChartsHierBubbleHierNode *hier)
 {
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     hierNode->initRadius();
 
     initNodes(hierNode);
@@ -561,7 +561,7 @@ initNodes(CQChartsHierBubbleHierNode *hier)
 
   //---
 
-  for (auto node : hier->getNodes())
+  for (auto &node : hier->getNodes())
     node->initRadius();
 }
 
@@ -569,7 +569,7 @@ void
 CQChartsHierBubblePlot::
 transformNodes(CQChartsHierBubbleHierNode *hier)
 {
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     hierNode->setX((hierNode->x() - offset_.x)*scale_);
     hierNode->setY((hierNode->y() - offset_.y)*scale_);
 
@@ -580,7 +580,7 @@ transformNodes(CQChartsHierBubbleHierNode *hier)
 
   //---
 
-  for (auto node : hier->getNodes()) {
+  for (auto &node : hier->getNodes()) {
     node->setX((node->x() - offset_.x)*scale_);
     node->setY((node->y() - offset_.y)*scale_);
 

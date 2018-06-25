@@ -274,14 +274,7 @@ formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double value, QS
   if (! typeData)
     return false;
 
-  QVariant var = typeData->dataName(value, nameValues);
-
-  if (! var.isValid())
-    return false;
-
-  variantToString(var, str);
-
-  return true;
+  return formatColumnTypeValue(typeData, nameValues, value, str);
 }
 
 // use column type details to format an internal value (real) to a display value
@@ -302,7 +295,15 @@ formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
   if (! typeData)
     return false;
 
-  QVariant var = typeData->dataName(value, nameValues);
+  return formatColumnTypeValue(typeData, nameValues, value, str);
+}
+
+bool
+formatColumnTypeValue(CQChartsColumnType *typeData, const CQChartsNameValues &nameValues,
+                      double value, QString &str) {
+  bool converted;
+
+  QVariant var = typeData->dataName(value, nameValues, converted);
 
   if (! var.isValid())
     return false;
@@ -315,21 +316,25 @@ formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsCol
 // use column type details to format an internal model value (variant) to a display value
 QVariant
 columnDisplayData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                  const QVariant &var) {
+                  const QVariant &var, bool &converted) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
-  return columnTypeMgr->getDisplayData(model, column, var);
+  QVariant var1 = columnTypeMgr->getDisplayData(model, column, var, converted);
+
+  return var1;
 }
 
 // use column type details to format an internal model value (variant) to a editable value
 QVariant
 columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-               const QVariant &var) {
+               const QVariant &var, bool &converted) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // TODO: use columnValueType not CQChartsColumnTypeMgr::getModelColumnType
-  return columnTypeMgr->getUserData(model, column, var);
+  QVariant var1 = columnTypeMgr->getUserData(model, column, var, converted);
+
+  return var1;
 }
 
 // get type string for column (type name and name values)
@@ -350,8 +355,7 @@ columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
 }
 
 bool
-setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
-                  const QString &columnTypes, bool remap)
+setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
 {
   bool rc = true;
 
@@ -387,7 +391,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
 
     //---
 
-    if (! setColumnTypeStr(charts, model, column, typeStr, remap)) {
+    if (! setColumnTypeStr(charts, model, column, typeStr)) {
       charts->errorMsg(QString("Invalid type '" + typeStr + "' for column '%1'").
                          arg(column.toString()));
       rc = false;
@@ -401,7 +405,7 @@ setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
 // set type string for column (type name and name values)
 bool
 setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
-                 const QString &typeStr, bool remap) {
+                 const QString &typeStr) {
   CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   // decode to type name and name values
@@ -418,22 +422,18 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
   if (! columnTypeMgr->setModelColumnType(model, column, columnType, nameValues))
     return false;
 
-  if (remap) {
-    if (columnType == CQBaseModel::Type::TIME)
-      remapColumnTime(model, column, typeData, nameValues);
-  }
-
   return true;
 }
 
+#if 0
 void
 remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
                 CQChartsColumnType *typeData, const CQChartsNameValues &nameValues) {
   if (column.type() != CQChartsColumn::Type::DATA)
     return;
 
-  CQChartsModelFilter *modelFilter =  dynamic_cast<CQChartsModelFilter *>(model);
-  if (! modelFilter) return;
+  CQDataModel *dataModel = getDataModel(model);
+  if (! dataModel) return;
 
   CQChartsColumnTimeType *timeTypeData = dynamic_cast<CQChartsColumnTimeType *>(typeData);
   assert(timeTypeData);
@@ -441,21 +441,16 @@ remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
   QString fmt = timeTypeData->getIFormat(nameValues);
   if (! fmt.length()) return;
 
-  modelFilter->setConvert(false);
+  dataModel->setReadOnly(false);
 
-  CQDataModel *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
-
-  if (dataModel)
-    dataModel->setReadOnly(false);
-
-  int nr = modelFilter->rowCount();
+  int nr = model->rowCount();
 
   int c = column.column();
 
   for (int r = 0; r < nr; ++r) {
-    QModelIndex ind = modelFilter->index(r, c);
+    QModelIndex ind = model->index(r, c);
 
-    QVariant var = modelFilter->data(ind, Qt::DisplayRole);
+    QVariant var = model->data(ind, Qt::DisplayRole);
 
     if (var.type() != QVariant::String)
       continue;
@@ -465,14 +460,12 @@ remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
     if (! stringToTime(fmt, var.toString(), t))
       continue;
 
-    modelFilter->setData(ind, QVariant(t), Qt::DisplayRole);
+    model->setData(ind, QVariant(t), int(CQBaseModel::Role::RawValue));
   }
 
-  modelFilter->setConvert(true);
-
-  if (dataModel)
-    dataModel->setReadOnly(true);
+  dataModel->setReadOnly(true);
 }
+#endif
 
 }
 
@@ -661,6 +654,22 @@ bool variantToString(const QVariant &var, QString &str) {
       assert(false);
 #endif
   }
+  else if (var.type() == QVariant::List) {
+    QList<QVariant> vars = var.toList();
+
+    QStringList strs;
+
+    for (int i = 0; i < vars.length(); ++i) {
+      QString str1;
+
+      if (variantToString(vars[i], str1))
+        strs.push_back(str1);
+    }
+
+    str = "{" + strs.join(" ") + "}";
+
+    return true;
+  }
   else {
     assert(false);
 
@@ -777,6 +786,86 @@ void findStringSplits3(const QString &str, std::vector<int> &splits) {
     if (str[i - 1].isLower() && str[i].isUpper())
       splits.push_back(i);
   }
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+int nameToRole(const QString &name) {
+  if      (name == "display"       ) return Qt::DisplayRole;
+  else if (name == "edit"          ) return Qt::EditRole;
+  else if (name == "user"          ) return Qt::UserRole;
+  else if (name == "font"          ) return Qt::FontRole;
+  else if (name == "size_hint"     ) return Qt::SizeHintRole;
+  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
+  else if (name == "background"    ) return Qt::BackgroundRole;
+  else if (name == "foreground"    ) return Qt::ForegroundRole;
+  else if (name == "text_alignment") return Qt::TextAlignmentRole;
+  else if (name == "text_color"    ) return Qt::TextColorRole;
+  else if (name == "decoration"    ) return Qt::DecorationRole;
+
+  else if (name == "type"              ) return (int) CQBaseModel::Role::Type;
+  else if (name == "type_values"       ) return (int) CQBaseModel::Role::TypeValues;
+  else if (name == "min"               ) return (int) CQBaseModel::Role::Min;
+  else if (name == "max"               ) return (int) CQBaseModel::Role::Max;
+  else if (name == "raw_value"         ) return (int) CQBaseModel::Role::RawValue;
+  else if (name == "intermediate_value") return (int) CQBaseModel::Role::IntermediateValue;
+  else if (name == "cached_value"      ) return (int) CQBaseModel::Role::CachedValue;
+  else if (name == "output_value"      ) return (int) CQBaseModel::Role::OutputValue;
+
+  return -1;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+std::vector<double> varToReals(const QVariant &var, bool &ok) {
+  std::vector<double> reals;
+
+  QString str;
+
+  if (! variantToString(var, str))
+    return reals;
+
+  return stringToReals(str, ok);
+}
+
+std::vector<double> stringToReals(const QString &str, bool &ok) {
+  std::vector<double> reals;
+
+  CQStrParse parse(str);
+
+  parse.skipSpace();
+
+  if (parse.isChar('{')) {
+    QString str1;
+
+    if (! parse.readBracedString(str1)) {
+      ok = false;
+      return reals;
+    }
+
+    return stringToReals(str1, ok);
+  }
+
+  while (! parse.eof()) {
+    parse.skipSpace();
+
+    double r;
+
+    if (! parse.readReal(&r))
+      break;
+
+    reals.push_back(r);
+  }
+
+  return reals;
 }
 
 }
@@ -1344,6 +1433,17 @@ getExprModel(QAbstractItemModel *model) {
   }
 
   return exprModel;
+}
+
+CQDataModel *
+getDataModel(QAbstractItemModel *model) {
+  CQChartsModelFilter *modelFilter = dynamic_cast<CQChartsModelFilter *>(model);
+  if (! modelFilter) return nullptr;
+
+  CQDataModel *dataModel = dynamic_cast<CQDataModel *>(modelFilter->baseModel());
+  if (! dataModel) return nullptr;
+
+  return dataModel;
 }
 
 }

@@ -17,6 +17,8 @@ class CQChartsDendrogramPlotType : public CQChartsPlotType {
   QString name() const override { return "dendrogram"; }
   QString desc() const override { return "Dendrogram"; }
 
+  Dimension dimension() const override { return Dimension::NONE; }
+
   void addParameters() override;
 
   bool customXRange() const override { return false; }

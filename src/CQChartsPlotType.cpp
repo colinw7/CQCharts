@@ -9,7 +9,7 @@ CQChartsPlotTypeMgr()
 CQChartsPlotTypeMgr::
 ~CQChartsPlotTypeMgr()
 {
-  for (auto &type : types_)
+  for (auto &type : nameTypes_)
     delete type.second;
 }
 
@@ -17,7 +17,7 @@ void
 CQChartsPlotTypeMgr::
 addType(const QString &name, CQChartsPlotType *type)
 {
-  types_[name] = type;
+  nameTypes_[name] = type;
 
   type->addParameters();
 }
@@ -26,26 +26,34 @@ bool
 CQChartsPlotTypeMgr::
 isType(const QString &name) const
 {
-  auto p = types_.find(name);
+  auto p = nameTypes_.find(name);
 
-  return (p != types_.end());
+  return (p != nameTypes_.end());
 }
 
 CQChartsPlotType *
 CQChartsPlotTypeMgr::
 type(const QString &name) const
 {
-  auto p = types_.find(name);
-  assert(p != types_.end());
+  auto p = nameTypes_.find(name);
+  assert(p != nameTypes_.end());
 
   return (*p).second;
 }
 
 void
 CQChartsPlotTypeMgr::
+getTypes(Types &types) const
+{
+  for (const auto &type : nameTypes_)
+    types.push_back(type.second);
+}
+
+void
+CQChartsPlotTypeMgr::
 getTypeNames(QStringList &names, QStringList &descs) const
 {
-  for (const auto &type : types_) {
+  for (const auto &type : nameTypes_) {
     names.push_back(type.second->name());
     descs.push_back(type.second->desc());
   }

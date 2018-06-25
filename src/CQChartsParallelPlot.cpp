@@ -116,26 +116,6 @@ interpLinesColor(int i, int n) const
   return linesColor().interpColor(this, i, n);
 }
 
-QString
-CQChartsParallelPlot::
-symbolName() const
-{
-  return CQChartsPlotSymbolMgr::typeToName(pointData_.type);
-}
-
-void
-CQChartsParallelPlot::
-setSymbolName(const QString &s)
-{
-  CQChartsPlotSymbol::Type type = CQChartsPlotSymbolMgr::nameToType(s);
-
-  if (type != CQChartsPlotSymbol::Type::NONE) {
-    pointData_.type = type;
-
-    update();
-  }
-}
-
 //------
 
 void
@@ -149,8 +129,8 @@ addProperties()
   addProperty("columns", this, "yColumns", "yset");
 
   addProperty("points" , this, "points"      , "visible");
+  addProperty("points" , this, "symbolType"  , "symbol" );
   addProperty("points" , this, "pointsColor" , "color"  );
-  addProperty("points" , this, "symbolName"  , "symbol" );
   addProperty("points" , this, "symbolSize"  , "size"   );
   addProperty("points" , this, "symbolFilled", "filled" );
 
@@ -761,9 +741,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (! visible())
     return;
 
-  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
-  bool                     filled = plot_->isSymbolFilled();
-  double                   s      = plot_->symbolSize();
+  CQChartsSymbol symbol = plot_->symbolType();
+  bool           filled = plot_->isSymbolFilled();
+  double         s      = plot_->symbolSize();
 
   QColor c = plot_->interpPaletteColor(i_, n_, /*scale*/false);
 

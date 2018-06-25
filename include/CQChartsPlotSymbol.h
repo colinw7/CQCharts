@@ -1,6 +1,7 @@
 #ifndef CQChartsPlotSymbol_H
 #define CQChartsPlotSymbol_H
 
+#include <CQChartsSymbol.h>
 #include <QString>
 #include <QBrush>
 #include <QPen>
@@ -11,23 +12,6 @@ class CQChartsPlotSymbolRenderer;
 //---
 
 struct CQChartsPlotSymbol {
-  enum class Type {
-    NONE,
-    DOT,
-    CROSS,
-    PLUS,
-    Y,
-    TRIANGLE,
-    ITRIANGLE,
-    BOX,
-    DIAMOND,
-    STAR5,
-    STAR6,
-    CIRCLE,
-    PENTAGON,
-    IPENTAGON
-  };
-
   enum class Connect {
     NONE,
     LINE,
@@ -57,11 +41,11 @@ struct CQChartsPlotSymbol {
 
   using Lines = std::vector<Line>;
 
-  Type  type { Type::NONE };
-  Lines lines;
-  Lines fillLines;
+  CQChartsSymbol type { CQChartsSymbol::Type::NONE };
+  Lines          lines;
+  Lines          fillLines;
 
-  CQChartsPlotSymbol(Type type, std::initializer_list<Line> lines,
+  CQChartsPlotSymbol(CQChartsSymbol type, std::initializer_list<Line> lines,
                      std::initializer_list<Line> fillLines) :
    type(type), lines(lines), fillLines(fillLines) {
   }
@@ -70,17 +54,13 @@ struct CQChartsPlotSymbol {
 //---
 
 namespace CQChartsPlotSymbolMgr {
-  bool isSymbol(CQChartsPlotSymbol::Type type);
+  bool isSymbol(CQChartsSymbol type);
 
-  const CQChartsPlotSymbol &getSymbol(CQChartsPlotSymbol::Type type);
+  const CQChartsPlotSymbol &getSymbol(CQChartsSymbol type);
 
-  void drawSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
-  void strokeSymbol(CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
-  void fillSymbol  (CQChartsPlotSymbol::Type type, CQChartsPlotSymbolRenderer *renderer);
-
-  QString typeToName(CQChartsPlotSymbol::Type type);
-
-  CQChartsPlotSymbol::Type nameToType(const QString &str);
+  void drawSymbol  (CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
+  void strokeSymbol(CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
+  void fillSymbol  (CQChartsSymbol type, CQChartsPlotSymbolRenderer *renderer);
 }
 
 //---
@@ -105,9 +85,9 @@ class CQChartsPlotSymbolRenderer {
 
   virtual double lineWidth() const { return 0.0; }
 
-  void drawSymbol  (CQChartsPlotSymbol::Type type);
-  void strokeSymbol(CQChartsPlotSymbol::Type type);
-  void fillSymbol  (CQChartsPlotSymbol::Type type);
+  void drawSymbol  (CQChartsSymbol type);
+  void strokeSymbol(CQChartsSymbol type);
+  void fillSymbol  (CQChartsSymbol type);
 };
 
 //------

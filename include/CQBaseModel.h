@@ -7,6 +7,8 @@
 class CQBaseModel : public QAbstractItemModel {
   Q_OBJECT
 
+  Q_PROPERTY(int maxTypeRows READ maxTypeRows WRITE setMaxTypeRows)
+
  public:
   enum class DataType {
     NONE,
@@ -18,10 +20,14 @@ class CQBaseModel : public QAbstractItemModel {
   };
 
   enum class Role {
-    Type       = Qt::UserRole + 1,
-    TypeValues = Type + 1,
-    Min        = Type + 2,
-    Max        = Type + 3
+    Type              = Qt::UserRole + 1, // column type role
+    TypeValues        = Type + 1,         // column type values role
+    Min               = Type + 2,         // column user min role
+    Max               = Type + 3,         // column user max role
+    RawValue          = Type + 4,         // raw value by role
+    IntermediateValue = Type + 5,         // intermediate value role
+    CachedValue       = Type + 6,         // cached value role
+    OutputValue       = Type + 7          // output value role
   };
 
   // use variant numbers where possible
@@ -36,7 +42,11 @@ class CQBaseModel : public QAbstractItemModel {
     LINE    = QVariant::LineF,
     RECT    = QVariant::RectF,
     SIZE    = QVariant::SizeF,
+#if QT_VERSION >= 0x050000
     POLYGON = QVariant::PolygonF,
+#else
+    POLYGON = QVariant::UserType + 103
+#endif
     COLOR   = QVariant::Color,
     PEN     = QVariant::Pen,
     BRUSH   = QVariant::Brush,
@@ -85,6 +95,11 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
+  int maxTypeRows() const { return maxTypeRows_; }
+  void setMaxTypeRows(int i) { maxTypeRows_ = i; }
+
+  //---
+
   static Type variantToType(const QVariant &var, bool *ok=nullptr);
   static QVariant typeToVariant(Type type);
 
@@ -109,24 +124,36 @@ class CQBaseModel : public QAbstractItemModel {
   void columnRangeChanged(int column);
 
  protected:
-  void genColumnTypes();
+  using RowValues     = std::map<int,QVariant>;
+  using RoleRowValues = std::map<int,RowValues>;
 
-  Type genColumnType(int c);
-
-  bool genColumnType(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
-
- protected:
   struct ColumnData {
-    Type     type { Type::NONE };
-    QString  typeValues;
-    QVariant min;
-    QVariant max;
+    ColumnData(int column=-1) :
+      column(column) {
+    }
+
+    int           column { -1 };       // column
+    Type          type { Type::NONE }; // auto or assigned type
+    QString       typeValues;          // type values
+    QVariant      min;
+    QVariant      max;
+    RoleRowValues roleRowValues;
   };
 
   using ColumnDatas = std::map<int,ColumnData>;
 
  protected:
+  void genColumnTypes();
+
+  void genColumnType(int c);
+  void genColumnType(ColumnData &columnData);
+  bool genColumnType(const QModelIndex &parent, int c, ColumnTypeData &columnTypeData);
+
+  ColumnData &getColumnData(int column) const;
+
+ protected:
   ColumnDatas columnDatas_;
+  int         maxTypeRows_ { 1000 };
 };
 
 #endif

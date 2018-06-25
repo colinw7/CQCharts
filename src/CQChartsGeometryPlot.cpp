@@ -348,7 +348,9 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
 
     QVariant var = modelValue(row, geometryColumn(), parent, ok2);
 
-    QVariant rvar = CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var);
+    bool converted;
+
+    QVariant rvar = CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
 
     QPolygonF poly;
 

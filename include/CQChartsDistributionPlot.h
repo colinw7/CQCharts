@@ -18,6 +18,8 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   const char *yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
@@ -25,6 +27,8 @@ class CQChartsDistributionPlotType : public CQChartsPlotType {
   bool allowXLog() const override { return false; }
 
   void addParameters() override;
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -300,6 +304,11 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   bool addMenuItems(QMenu *) override;
 
   void draw(QPainter *) override;
+
+  //---
+
+  double getPanX(bool is_shift) const override;
+  double getPanY(bool is_shift) const override;
 
   //---
 

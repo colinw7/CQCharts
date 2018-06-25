@@ -35,7 +35,7 @@ load(const QString &filename)
 
   //---
 
-  genColumnTypes();
+  resetColumnTypes();
 
   return true;
 }
@@ -164,7 +164,7 @@ applyMatch(const QString &match)
 
   //---
 
-  genColumnTypes();
+  resetColumnTypes();
 
   return true;
 }

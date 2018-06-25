@@ -2,7 +2,7 @@ proc create_stat_model { model } {
   set nr [get_charts_data -model $model -name num_rows]
   set nc [get_charts_data -model $model -name num_columns]
 
-  set stat_column(-1) [list {} mean min lower_median median upper_median max]
+  set stat_column(-1) [list {} mean min lower_median median upper_median max outliers]
 
   set c1 0
 
@@ -24,6 +24,7 @@ proc create_stat_model { model } {
     lappend stat_column($c1) [get_charts_data -model $model -column $c -name median]
     lappend stat_column($c1) [get_charts_data -model $model -column $c -name upper_median]
     lappend stat_column($c1) [get_charts_data -model $model -column $c -name max]
+    lappend stat_column($c1) [get_charts_data -model $model -column $c -name outliers]
 
     incr c1
   }

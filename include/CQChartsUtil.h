@@ -22,6 +22,7 @@ using CQChartsNameValues = std::map<QString,QString>;
 
 class CQCharts;
 class CQChartsColumnType;
+class CQDataModel;
 
 namespace CQChartsUtil {
 
@@ -41,23 +42,27 @@ bool formatColumnTypeValue(CQCharts *charts, const QString &typeStr, double valu
 bool formatColumnValue(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
                        double value, QString &str);
 
-QVariant columnDisplayData(CQCharts *charts, QAbstractItemModel *model,
-                           const CQChartsColumn &column, const QVariant &var);
+bool formatColumnTypeValue(CQChartsColumnType *typeData, const CQChartsNameValues &nameValues,
+                           double value, QString &str);
 
-QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model,
-                        const CQChartsColumn &column, const QVariant &var);
+QVariant columnDisplayData(CQCharts *charts, QAbstractItemModel *model,
+                           const CQChartsColumn &column, const QVariant &var, bool &converted);
+
+QVariant columnUserData(CQCharts *charts, QAbstractItemModel *model, const CQChartsColumn &column,
+                        const QVariant &var, bool &converted);
 
 bool columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
                    const CQChartsColumn &column, QString &typeStr);
 
-bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model,
-                       const QString &columnTypes, bool remap=false);
+bool setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes);
 
 bool setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model,
-                      const CQChartsColumn &column, const QString &typeStr, bool remap=false);
+                      const CQChartsColumn &column, const QString &typeStr);
 
+#if 0
 void remapColumnTime(QAbstractItemModel *model, const CQChartsColumn &column,
                      CQChartsColumnType *typeData, const CQChartsNameValues &nameValues);
+#endif
 
 //------
 
@@ -637,6 +642,10 @@ inline bool toString(const QVariant &var, QString &str) {
   return ok;
 }
 
+inline bool isReal(const QVariant &var) {
+  return (var.type() == QVariant::Double);
+}
+
 inline double toReal(const QVariant &var, bool &ok) {
   ok = true;
 
@@ -657,6 +666,12 @@ inline bool toReal(const QVariant &var, double &r) {
   r = toReal(var, ok);
 
   return ok;
+}
+
+inline bool isInt(const QVariant &var) {
+  return (var.type() == QVariant::Bool || var.type() == QVariant::Char ||
+          var.type() == QVariant::Int  || var.type() == QVariant::LongLong ||
+          var.type() == QVariant::UInt);
 }
 
 inline long toInt(const QVariant &var, bool &ok) {
@@ -682,23 +697,7 @@ inline long toInt(const QVariant &var, bool &ok) {
 
 //------
 
-inline int nameToRole(const QString &name) {
-  if      (name == "display"       ) return Qt::DisplayRole;
-  else if (name == "user"          ) return Qt::UserRole;
-  else if (name == "edit"          ) return Qt::EditRole;
-  else if (name == "font"          ) return Qt::FontRole;
-  else if (name == "size_hint"     ) return Qt::SizeHintRole;
-  else if (name == "tool_tip"      ) return Qt::ToolTipRole;
-  else if (name == "background"    ) return Qt::BackgroundRole;
-  else if (name == "foreground"    ) return Qt::ForegroundRole;
-  else if (name == "text_alignment") return Qt::TextAlignmentRole;
-  else if (name == "text_color"    ) return Qt::TextColorRole;
-  else if (name == "decoration"    ) return Qt::DecorationRole;
-  else if (name == "type"          ) return (int) CQBaseModel::Role::Type;
-  else if (name == "type_values"   ) return (int) CQBaseModel::Role::TypeValues;
-
-  return -1;
-}
+int nameToRole(const QString &name);
 
 //------
 
@@ -844,32 +843,6 @@ inline bool varToBool(const QVariant &var, bool &ok) {
   return false;
 }
 
-inline bool isReal(const QVariant &var) {
-  return (var.type() == QVariant::Double);
-}
-
-inline double varToReal(const QVariant &var, bool &ok) {
-  ok = true;
-
-  if (var.type() == QVariant::Double)
-    return var.toReal();
-
-  return toReal(var, ok);
-}
-
-inline bool isInt(const QVariant &var) {
-  return (var.type() == QVariant::Int);
-}
-
-inline long varToInt(const QVariant &var, bool &ok) {
-  ok = true;
-
-  if (var.type() == QVariant::Int)
-    return var.toInt();
-
-  return toInt(var, ok);
-}
-
 inline bool isColor(const QVariant &var) {
   return (var.type() == QVariant::Color);
 }
@@ -889,6 +862,20 @@ inline CQChartsColor varToColor(const QVariant &var, bool &ok) {
 
   return CQChartsColor();
 }
+
+//---
+
+inline QString varToString(const QVariant &var, bool &ok) {
+  QString str;
+
+  ok = variantToString(var, str);
+
+  return str;
+}
+
+std::vector<double> varToReals(const QVariant &var, bool &ok);
+
+std::vector<double> stringToReals(const QString &str, bool &ok);
 
 //---
 
@@ -1061,7 +1048,7 @@ inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int r
   QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return 0.0;
 
-  return varToReal(var, ok);
+  return toReal(var, ok);
 }
 
 inline double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -1078,7 +1065,7 @@ inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn
   QVariant var = modelValue(model, row, column, parent, role, ok);
   if (! ok) return 0.0;
 
-  return varToReal(var, ok);
+  return toReal(var, ok);
 }
 
 inline double modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
@@ -1141,7 +1128,7 @@ inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, int 
   QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return 0;
 
-  return varToInt(var, ok);
+  return toInt(var, ok);
 }
 
 inline long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -1158,7 +1145,7 @@ inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColum
   QVariant var = modelValue(model, row, column, parent, role, ok);
   if (! ok) return 0;
 
-  return varToInt(var, ok);
+  return toInt(var, ok);
 }
 
 inline long modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
@@ -1402,6 +1389,7 @@ int processExpression(QAbstractItemModel *model, CQExprModel::Function function,
                       const CQChartsColumn &column, const QString &expr);
 
 CQExprModel *getExprModel(QAbstractItemModel *model);
+CQDataModel *getDataModel(QAbstractItemModel *model);
 
 }
 

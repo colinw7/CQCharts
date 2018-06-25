@@ -24,6 +24,7 @@ class CQCharts : public QObject {
     TCL
   };
 
+  using PlotTypes  = std::vector<CQChartsPlotType *>;
   using ModelP     = QSharedPointer<QAbstractItemModel>;
   using ModelDatas = std::vector<CQChartsModelData *>;
   using Views      = std::vector<CQChartsView *>;
@@ -47,6 +48,8 @@ class CQCharts : public QObject {
   CQChartsPlotType *plotType(const QString &name) const;
 
   void getPlotTypeNames(QStringList &names, QStringList &descs) const;
+
+  void getPlotTypes(PlotTypes &types) const;
 
   //---
 

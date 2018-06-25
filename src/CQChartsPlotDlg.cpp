@@ -178,6 +178,43 @@ createTypeDataFrame()
 
   //--
 
+  CQCharts::PlotTypes plotTypes;
+
+  this->charts()->getPlotTypes(plotTypes);
+
+  // create ordered list of types (1D, 2D, other, hierarchical)
+
+  using DimPlotTypesMap     = std::map<int,CQCharts::PlotTypes>;
+  using HierDimPlotsTypeMap = std::map<bool,DimPlotTypesMap>;
+
+  HierDimPlotsTypeMap hierDimPlotsTypeMap;
+
+  for (auto &plotType : plotTypes) {
+    CQChartsPlotType::Dimension dim = plotType->dimension();
+
+    int dim1 = 999;
+
+    if (dim != CQChartsPlotType::Dimension::NONE)
+      dim1 = int(dim);
+
+    hierDimPlotsTypeMap[plotType->isHierarchical()][dim1].push_back(plotType);
+  }
+
+  CQCharts::PlotTypes plotTypes1;
+
+  for (auto &p1 : hierDimPlotsTypeMap) {
+    const DimPlotTypesMap &dimPlotTypesMap = p1.second;
+
+    for (auto &p2 : dimPlotTypesMap) {
+      const CQCharts::PlotTypes &plotTypes = p2.second;
+
+      for (auto &plotType : plotTypes)
+        plotTypes1.push_back(plotType);
+    }
+  }
+
+  //---
+
   // type combo
   QHBoxLayout *typeComboLayout = new QHBoxLayout;
   typeComboLayout->setMargin(0); typeComboLayout->setSpacing(2);
@@ -196,11 +233,12 @@ createTypeDataFrame()
 
   typeCombo->setToolTip("Plot Type");
 
-  QStringList names, descs;
+  QStringList items;
 
-  this->charts()->getPlotTypeNames(names, descs);
+  for (auto &plotType : plotTypes1)
+    items << plotType->desc();
 
-  typeCombo->addItems(descs);
+  typeCombo->addItems(items);
 
   connect(typeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(comboSlot(int)));
 
@@ -217,8 +255,8 @@ createTypeDataFrame()
   stack_ = new QStackedWidget;
   stack_->setObjectName("stack");
 
-  for (int i = 0; i < names.size(); ++i)
-    addPlotWidgets(names[i], i);
+  for (std::size_t i = 0; i < plotTypes1.size(); ++i)
+    addPlotWidgets(plotTypes1[i], i);
 
   typeTab->addTab(stack_, "Input Data");
 
@@ -501,6 +539,13 @@ createPreviewFrame()
     if (summaryModel_)
       previewMaxRows_->setValue(summaryModel_->maxRows());
 
+    connect(previewMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    previewControlLayout->addWidget(new QLabel("Max Rows"));
+    previewControlLayout->addWidget(previewMaxRows_);
+
+    //--
+
     previewNormalRadio_ = new QRadioButton("Normal");
     previewNormalRadio_->setObjectName("previewNormal");
     previewNormalRadio_->setChecked(true);
@@ -511,24 +556,60 @@ createPreviewFrame()
     previewSortedRadio_ = new QRadioButton("Sorted");
     previewSortedRadio_->setObjectName("previewSorted");
 
+    previewPagedRadio_ = new QRadioButton("Paged");
+    previewPagedRadio_->setObjectName("previewPaged");
+
+    connect(previewNormalRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
+    connect(previewRandomRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
+    connect(previewSortedRadio_, SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
+    connect(previewPagedRadio_ , SIGNAL(toggled(bool)), this, SLOT(updatePreviewSlot()));
+
+    previewControlLayout->addWidget(previewNormalRadio_);
+    previewControlLayout->addWidget(previewRandomRadio_);
+    previewControlLayout->addWidget(previewSortedRadio_);
+    previewControlLayout->addWidget(previewPagedRadio_);
+
+    //--
+
     previewSortedColEdit_ = new CQIntegerSpin;
     previewSortedColEdit_->setObjectName("previewSortedColEdit");
 
     previewSortedColEdit_->setRange(0, nc - 1);
     previewSortedColEdit_->setToolTip(QString("Set Preview Sort Column (0 -> %1)").arg(nc - 1));
 
-    connect(previewMaxRows_      , SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
-    connect(previewRandomRadio_  , SIGNAL(toggled(bool))    , this, SLOT(updatePreviewSlot()));
-    connect(previewSortedRadio_  , SIGNAL(toggled(bool))    , this, SLOT(updatePreviewSlot()));
     connect(previewSortedColEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
-    previewControlLayout->addWidget(new QLabel("Max Rows"));
-    previewControlLayout->addWidget(previewMaxRows_);
-    previewControlLayout->addWidget(previewNormalRadio_);
-    previewControlLayout->addWidget(previewRandomRadio_);
-    previewControlLayout->addWidget(previewSortedRadio_);
     previewControlLayout->addWidget(new QLabel("Sort Column"));
     previewControlLayout->addWidget(previewSortedColEdit_);
+
+    //---
+
+    previewPageSizeEdit_ = new CQIntegerSpin;
+    previewPageSizeEdit_->setObjectName("previewPageSizeEdit");
+
+    previewPageSizeEdit_->setRange(1, nr);
+    previewPageSizeEdit_->setValue(100);
+    previewPageSizeEdit_->setToolTip(QString("Set Preview Page Size (1 -> %1)").arg(nr));
+
+    connect(previewPageSizeEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    previewControlLayout->addWidget(new QLabel("Page Size"));
+    previewControlLayout->addWidget(previewPageSizeEdit_);
+
+    //--
+
+    previewCurrentPageEdit_ = new CQIntegerSpin;
+    previewCurrentPageEdit_->setObjectName("previewCurrentPageEdit");
+
+    int np = (nr + previewPageSizeEdit_->value() - 1)/previewPageSizeEdit_->value();
+
+    previewCurrentPageEdit_->setRange(0, np - 1);
+    previewCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np - 1));
+
+    connect(previewCurrentPageEdit_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
+
+    previewControlLayout->addWidget(new QLabel("Current Page"));
+    previewControlLayout->addWidget(previewCurrentPageEdit_);
   }
 
   previewControlLayout->addStretch(1);
@@ -588,13 +669,8 @@ selectionModel() const
 
 void
 CQChartsPlotDlg::
-addPlotWidgets(const QString &typeName, int ind)
+addPlotWidgets(CQChartsPlotType *type, int ind)
 {
-  CQChartsPlotType *type = charts()->plotType(typeName);
-  assert(type);
-
-  //
-
   QFrame *frame = new QFrame;
   frame->setObjectName("frame");
 
@@ -615,7 +691,7 @@ addPlotWidgets(const QString &typeName, int ind)
 
   plotData.ind = ind;
 
-  tabTypeName_[plotData.ind] = type->name();
+  tabType_[plotData.ind] = type;
 }
 
 void
@@ -1597,10 +1673,11 @@ CQChartsPlotDlg::
 updatePreviewSlot()
 {
   if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_) {
-    int  n       = previewMaxRows_->value();
-    bool random  = previewRandomRadio_->isChecked();
-    bool sorted  = previewSortedRadio_->isChecked();
-    int  sortCol = previewSortedColEdit_->value();
+    int  n = previewMaxRows_->value();
+
+    bool random = previewRandomRadio_->isChecked();
+    bool sorted = previewSortedRadio_->isChecked();
+    bool paged  = previewPagedRadio_ ->isChecked();
 
     if (n <= 0) return;
 
@@ -1613,8 +1690,27 @@ updatePreviewSlot()
       summaryModel_->setRandom(true);
     }
     else if (sorted) {
+      int sortCol = previewSortedColEdit_->value();
+
       summaryModel_->setSortColumn(sortCol);
       summaryModel_->setSorted(true);
+    }
+    else if (paged) {
+      int ps = previewPageSizeEdit_   ->value();
+      int np = previewCurrentPageEdit_->value();
+
+      int nr = model_.data()->rowCount();
+
+      int np1 = (nr + ps - 1)/ps;
+
+      np = std::min(np, np1 - 1);
+
+      previewCurrentPageEdit_->setRange(0, np1 - 1);
+      previewCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np1 - 1));
+
+      summaryModel_->setPageSize(ps);
+      summaryModel_->setCurrentPage(np);
+      summaryModel_->setPaged(true);
     }
     else {
       summaryModel_->setMode(CQSummaryModel::Mode::NORMAL);
@@ -1694,14 +1790,12 @@ getPlotType() const
 {
   int ind = stack_->currentIndex();
 
-  auto p = tabTypeName_.find(ind);
+  auto p = tabType_.find(ind);
 
-  if (p == tabTypeName_.end())
+  if (p == tabType_.end())
     return nullptr;
 
-  const QString &typeName = (*p).second;
-
-  CQChartsPlotType *type = charts()->plotType(typeName);
+  CQChartsPlotType *type = (*p).second;
 
   return type;
 }

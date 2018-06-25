@@ -23,7 +23,8 @@ columnDetails(int i) const
 {
   initData();
 
-  assert(i >= 0 && i < int(columnDetails_.size()));
+  if (i < 0 || i >= int(columnDetails_.size()))
+    return nullptr;
 
   return columnDetails_[i];
 }
@@ -34,7 +35,8 @@ columnDetails(int i)
 {
   initData();
 
-  assert(i >= 0 && i < int(columnDetails_.size()));
+  if (i < 0 || i >= int(columnDetails_.size()))
+    return nullptr;
 
   return columnDetails_[i];
 }
@@ -192,7 +194,11 @@ dataName(const QVariant &v) const
   if (! columnType)
     return v;
 
-  return columnType->dataName(v, nameValues_);
+  bool converted;
+
+  QVariant v1 = columnType->dataName(v, nameValues_, converted);
+
+  return v1;
 }
 
 int
@@ -429,6 +435,50 @@ upperMedianValue() const
   }
 
   return QVariant();
+}
+
+QVariantList
+CQChartsModelColumnDetails::
+outlierValues() const
+{
+  QVariantList vars;
+
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) {
+      const CQChartsIValues::Indices &outliers = ivals_->outliers();
+
+      for (auto &o : outliers)
+        vars.push_back(ivals_->svalue(o));
+    }
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) {
+      const CQChartsRValues::Indices &outliers = rvals_->outliers();
+
+      for (auto &o : outliers)
+        vars.push_back(rvals_->svalue(o));
+    }
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    if (svals_) {
+      //return svals_->outliers();
+    }
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) {
+      const CQChartsIValues::Indices &outliers = ivals_->outliers();
+
+      for (auto &o : outliers)
+        vars.push_back(ivals_->svalue(o));
+    }
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    if (svals_) {
+      //return svals_->outliers();
+    }
+  }
+
+  return vars;
 }
 
 double

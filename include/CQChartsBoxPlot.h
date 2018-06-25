@@ -26,6 +26,8 @@ class CQChartsBoxPlotType : public CQChartsPlotType {
 
   bool allowXLog() const override { return false; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
 
   QString description() const override;
@@ -60,13 +62,15 @@ struct CQChartsBoxWhiskerData {
 
   QModelIndex ind;
   QString     name;
-  double      x      { 0.0 };
-  double      min    { 0.0 };
-  double      lower  { 0.0 };
-  double      median { 0.0 };
-  double      upper  { 0.0 };
-  double      max    { 0.0 };
+  double      x       { 0.0 };
+  double      min     { 0.0 };
+  double      lower   { 0.0 };
+  double      median  { 0.5 };
+  double      upper   { 0.0 };
+  double      max     { 1.0 };
   Outliers    outliers;
+  double      dataMin { 0.0 };
+  double      dataMax { 1.0 };
 };
 
 //---
@@ -202,9 +206,11 @@ class CQChartsBoxPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn maxColumn         READ maxColumn         WRITE setMaxColumn        )
   Q_PROPERTY(CQChartsColumn outliersColumn    READ outliersColumn    WRITE setOutliersColumn   )
 
-  Q_PROPERTY(bool           skipOutliers     READ isSkipOutliers   WRITE setSkipOutliers    )
+  Q_PROPERTY(bool           showOutliers     READ isShowOutliers   WRITE setShowOutliers    )
   Q_PROPERTY(bool           connected        READ isConnected      WRITE setConnected       )
   Q_PROPERTY(double         whiskerRange     READ whiskerRange     WRITE setWhiskerRange    )
+
+  // box
   Q_PROPERTY(CQChartsLength boxWidth         READ boxWidth         WRITE setBoxWidth        )
   Q_PROPERTY(bool           boxFilled        READ isBoxFilled      WRITE setBoxFilled       )
   Q_PROPERTY(CQChartsColor  boxColor         READ boxColor         WRITE setBoxColor        )
@@ -219,12 +225,24 @@ class CQChartsBoxPlot : public CQChartsPlot {
   Q_PROPERTY(double         whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
   Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
   Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+
+  // labels
   Q_PROPERTY(bool           textVisible      READ isTextVisible    WRITE setTextVisible     )
   Q_PROPERTY(CQChartsColor  textColor        READ textColor        WRITE setTextColor       )
   Q_PROPERTY(double         textAlpha        READ textAlpha        WRITE setTextAlpha       )
   Q_PROPERTY(QFont          textFont         READ textFont         WRITE setTextFont        )
   Q_PROPERTY(double         textMargin       READ textMargin       WRITE setTextMargin      )
-  Q_PROPERTY(double         symbolSize       READ symbolSize       WRITE setSymbolSize      )
+
+  // outliers
+  Q_PROPERTY(CQChartsSymbol symbolType         READ symbolType        WRITE setSymbolType       )
+  Q_PROPERTY(double         symbolSize         READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(bool           symbolStroked      READ isSymbolStroked   WRITE setSymbolStroked    )
+  Q_PROPERTY(CQChartsColor  symbolStrokeColor  READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double         symbolStrokeAlpha  READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
+  Q_PROPERTY(CQChartsLength symbolLineWidth    READ symbolLineWidth   WRITE setSymbolLineWidth  )
+  Q_PROPERTY(bool           symbolFilled       READ isSymbolFilled    WRITE setSymbolFilled     )
+  Q_PROPERTY(CQChartsColor  symbolFillColor    READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(double         symbolFillAlpha    READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
 
   Q_ENUMS(Pattern)
 
@@ -283,8 +301,8 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   //---
 
-  bool isSkipOutliers() const { return skipOutliers_; }
-  void setSkipOutliers(bool b) { skipOutliers_ = b; updateRangeAndObjs(); }
+  bool isShowOutliers() const { return showOutliers_; }
+  void setShowOutliers(bool b) { showOutliers_ = b; updateRangeAndObjs(); }
 
   bool isConnected() const { return connected_; }
   void setConnected(bool b) { connected_ = b; updateRangeAndObjs(); }
@@ -297,6 +315,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   //---
 
+  // whisker box
   bool isBoxFilled() const;
   void setBoxFilled(bool b);
 
@@ -348,6 +367,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   //---
 
+  // label
   bool isTextVisible() const;
   void setTextVisible(bool b);
 
@@ -367,8 +387,37 @@ class CQChartsBoxPlot : public CQChartsPlot {
 
   //---
 
-  double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double r) { symbolSize_ = r; update(); }
+  // symbol
+  const CQChartsSymbol &symbolType() const { return symbolData_.type; }
+  void setSymbolType(const CQChartsSymbol &t) { symbolData_.type = t; update(); }
+
+  double symbolSize() const { return symbolData_.size; }
+  void setSymbolSize(double s) { symbolData_.size = s; update(); }
+
+  bool isSymbolStroked() const { return symbolData_.stroke.visible; }
+  void setSymbolStroked(bool b) { symbolData_.stroke.visible = b; update(); }
+
+  const CQChartsColor &symbolStrokeColor() const;
+  void setSymbolStrokeColor(const CQChartsColor &c);
+
+  QColor interpSymbolStrokeColor(int i, int n) const;
+
+  double symbolStrokeAlpha() const;
+  void setSymbolStrokeAlpha(double a);
+
+  const CQChartsLength &symbolLineWidth() const { return symbolData_.stroke.width; }
+  void setSymbolLineWidth(const CQChartsLength &l) { symbolData_.stroke.width = l; update(); }
+
+  bool isSymbolFilled() const { return symbolData_.fill.visible; }
+  void setSymbolFilled(bool b) { symbolData_.fill.visible = b; update(); }
+
+  const CQChartsColor &symbolFillColor() const;
+  void setSymbolFillColor(const CQChartsColor &c);
+
+  QColor interpSymbolFillColor(int i, int n) const;
+
+  double symbolFillAlpha() const;
+  void setSymbolFillAlpha(double a);
 
   //---
 
@@ -421,7 +470,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
   CQChartsColumn     upperMedianColumn_;                   // upper median column
   CQChartsColumn     maxColumn_;                           // max column
   CQChartsColumn     outliersColumn_;                      // outliers column
-  bool               skipOutliers_   { false };            // skip outliers
+  bool               showOutliers_   { true };             // show outliers
   bool               connected_      { false };            // connect boxes
   double             whiskerRange_   { 1.5 };              // whisker range
   CQChartsLength     boxWidth_       { 0.2 };              // box width
@@ -430,7 +479,7 @@ class CQChartsBoxPlot : public CQChartsPlot {
   CQChartsBoxData    boxData_;                             // shape fill/border style
   CQChartsTextData   textData_;                            // text style
   double             textMargin_     { 2 };                // text margin
-  double             symbolSize_     { 4 };                // symbol size
+  CQChartsSymbolData symbolData_;                          // outlier symbol data
   ColumnType         groupType_      { ColumnType::NONE }; // group column data type
   ColumnType         xType_          { ColumnType::NONE }; // x column data type
   GroupSetWhiskerMap groupWhiskers_;                       // whisker data

@@ -262,82 +262,95 @@ data(const QModelIndex &index, int role) const
   if (! index.isValid())
     return QVariant();
 
+  int nr = data_.size();
+
+  if (index.row() < 0 || index.row() >= nr)
+    return QVariant();
+
+  const Cells &cells = data_[index.row()];
+
+  int nc = int(cells.size());
+
+  if (index.column() < 0 || index.column() >= nc)
+    return QVariant();
+
+  ColumnData &columnData = getColumnData(index.column());
+
   if      (role == Qt::DisplayRole) {
-    if (index.row() < 0 || index.row() >= int(data_.size()))
-      return QVariant();
-
-    const Cells &cells = data_[index.row()];
-
-    if (index.column() < 0 || index.column() >= int(cells.size()))
-      return QVariant();
-
     return cells[index.column()];
   }
   else if (role == Qt::EditRole) {
-    int nr = data_.size();
-
-    if (index.row() < 0 || index.row() >= nr)
-      return QVariant();
-
-    const Cells &cells = data_[index.row()];
-
-    int nc = int(cells.size());
-
-    if (index.column() < 0 || index.column() >= nc)
-      return QVariant();
-
     Type type = columnType(index.column());
 
-    // check in cached converted values
-    auto p = colData_.find(index.column());
+    // check in cached values
+    auto pr = columnData.roleRowValues.find(int(Role::CachedValue));
 
-    if (p != colData_.end()) {
-      Cells &cells = (*p).second;
+    if (pr != columnData.roleRowValues.end()) {
+      RowValues &rowValues = (*pr).second;
 
-      if (index.row() < int(cells.size())) {
-        QVariant var = cells[index.row()];
+      auto pr1 = rowValues.find(index.row());
 
-        if (isSameType(var, type))
+      if (pr1 != rowValues.end()) {
+        QVariant &var = (*pr1).second;
+
+        if (type == Type::NONE || isSameType(var, type))
           return var;
       }
     }
 
+    // not cached so get raw value
     QVariant var = cells[index.column()];
 
-    if (type == Type::NONE)
+    // column has no type or already correct type then just return
+    if (type == Type::NONE || isSameType(var, type))
       return var;
 
     // cache converted value
-    if (! isSameType(var, type)) {
-      if (var.type() == QVariant::String) {
-        var = typeStringToVariant(var.toString(), type);
+    if (var.type() == QVariant::String) {
+      QVariant var1 = typeStringToVariant(var.toString(), type);
 
-        Cells &cells = colData_[index.column()];
+      columnData.roleRowValues[int(Role::CachedValue)][index.row()] = var1;
 
-        if (int(cells.size()) != nr)
-          cells.resize(nr);
-
-        cells[index.row()] = var;
-      }
+      return var1;
     }
 
     return var;
   }
+  else if (role == int(Role::RawValue) ||
+           role == int(Role::IntermediateValue) ||
+           role == int(Role::CachedValue) ||
+           role == int(Role::OutputValue)) {
+    auto pr = columnData.roleRowValues.find(role);
+
+    if (pr != columnData.roleRowValues.end()) {
+      RowValues &rowValues = (*pr).second;
+
+      auto pr1 = rowValues.find(index.row());
+
+      if (pr1 != rowValues.end())
+        return (*pr1).second;
+    }
+
+    if (role == int(Role::RawValue)) {
+      return cells[index.column()];
+    }
+
+    return QVariant();
+  }
   else if (! isReadOnly()) {
-    auto p1 = extraData_.find(index.row());
-    if (p1 == extraData_.end()) return QVariant();
+    auto pr = columnData.roleRowValues.find(role);
 
-    const ColumnRoleVariant &columnRoleVariant = (*p1).second;
+    if (pr == columnData.roleRowValues.end())
+      return QVariant();
 
-    auto p2 = columnRoleVariant.find(index.column());
-    if (p2 == columnRoleVariant.end()) return QVariant();
+    RowValues &rowValues = (*pr).second;
 
-    const RoleVariant &roleVariant = (*p2).second;
+    auto pr1 = rowValues.find(index.row());
 
-    auto p3 = roleVariant.find(index.column());
-    if (p3 == roleVariant.end()) return QVariant();
+    if (pr1 == rowValues.end())
+      return QVariant();
 
-    return (*p3).second;
+    return (*pr1).second;
   }
 
   return CQBaseModel::data(index, role);
@@ -361,6 +374,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   if (index.column() >= int(cells.size()))
     return false;
 
+  ColumnData &columnData = getColumnData(index.column());
+
   if      (role == Qt::DisplayRole) {
     //Type type = columnType(index.column());
 
@@ -371,8 +386,14 @@ setData(const QModelIndex &index, const QVariant &value, int role)
 
     cells[index.column()] = value;
   }
+  else if (role == int(Role::RawValue) ||
+           role == int(Role::IntermediateValue) ||
+           role == int(Role::CachedValue) ||
+           role == int(Role::OutputValue)) {
+    columnData.roleRowValues[role][index.row()] = value;
+  }
   else {
-    extraData_[index.row()][index.column()][role] = value;
+    columnData.roleRowValues[role][index.row()] = value;
   }
 
   return true;
@@ -409,8 +430,7 @@ void
 CQDataModel::
 resetColumnCache(int column)
 {
-  auto p = colData_.find(column);
+  ColumnData &columnData = getColumnData(column);
 
-  if (p != colData_.end())
-    colData_.erase(p);
+  columnData.roleRowValues.clear();
 }

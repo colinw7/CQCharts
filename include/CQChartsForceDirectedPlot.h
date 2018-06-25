@@ -14,6 +14,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
   QString name() const override { return "forcedirected"; }
   QString desc() const override { return "ForceDirected"; }
 
+  Dimension dimension() const override { return Dimension::NONE; }
+
   void addParameters() override;
 
   bool hasAxes() const override { return false; }

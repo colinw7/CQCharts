@@ -307,7 +307,7 @@ initTableObjs()
 
       bool ok;
 
-      double value = CQChartsUtil::varToReal(indRowDatas[row].rowData[col], ok);
+      double value = CQChartsUtil::toReal(indRowDatas[row].rowData[col], ok);
 
       //---
 

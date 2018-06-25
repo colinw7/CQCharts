@@ -15,6 +15,8 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
   QString name() const override { return "sankey"; }
   QString desc() const override { return "Sankey"; }
 
+  Dimension dimension() const override { return Dimension::NONE; }
+
   void addParameters() override;
 
   bool hasAxes() const { return false; }

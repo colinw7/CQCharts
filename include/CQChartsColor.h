@@ -135,6 +135,10 @@ class CQChartsColor {
     return (cmp(lhs, rhs) != 0);
   }
 
+  friend bool operator<(const CQChartsColor &lhs, const CQChartsColor &rhs) {
+    return (cmp(lhs, rhs) < 0);
+  }
+
   //---
 
   void print(std::ostream &os) const {

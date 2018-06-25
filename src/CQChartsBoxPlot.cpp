@@ -45,8 +45,10 @@ QString
 CQChartsBoxPlotType::
 description() const
 {
-  return "<p>Draws box and whiskers for the min, max, median and outlier values of the set "
+  return "<h2>Summary</h2>\n"
+         "<p>Draws box and whiskers for the min, max, median and outlier values of the set "
          "of y values for rows with identical x values.\n"
+         "<h2>Columns</h2>\n"
          "<p>Values can be supplied using:</p>\n"
          "<ul>\n"
          "<li>Raw Values with X and Y values in <b>x</b> and <b>y</b> columns.</li>\n"
@@ -72,6 +74,11 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
 
   setBorderStroked(true);
   setBoxFilled    (true);
+
+  setSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setSymbolSize(4);
+  setSymbolFilled(true);
+  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   addAxes();
 
@@ -342,6 +349,86 @@ setTextFont(const QFont &f)
 
 //---
 
+const CQChartsColor &
+CQChartsBoxPlot::
+symbolStrokeColor() const
+{
+  return symbolData_.stroke.color;
+}
+
+void
+CQChartsBoxPlot::
+setSymbolStrokeColor(const CQChartsColor &c)
+{
+  symbolData_.stroke.color = c;
+
+  update();
+}
+
+QColor
+CQChartsBoxPlot::
+interpSymbolStrokeColor(int i, int n) const
+{
+  return symbolStrokeColor().interpColor(this, i, n);
+}
+
+double
+CQChartsBoxPlot::
+symbolStrokeAlpha() const
+{
+  return symbolData_.stroke.alpha;
+}
+
+void
+CQChartsBoxPlot::
+setSymbolStrokeAlpha(double a)
+{
+  symbolData_.stroke.alpha = a;
+
+  update();
+}
+
+const CQChartsColor &
+CQChartsBoxPlot::
+symbolFillColor() const
+{
+  return symbolData_.fill.color;
+}
+
+void
+CQChartsBoxPlot::
+setSymbolFillColor(const CQChartsColor &c)
+{
+  symbolData_.fill.color = c;
+
+  update();
+}
+
+QColor
+CQChartsBoxPlot::
+interpSymbolFillColor(int i, int n) const
+{
+  return symbolFillColor().interpColor(this, i, n);
+}
+
+double
+CQChartsBoxPlot::
+symbolFillAlpha() const
+{
+  return symbolData_.fill.alpha;
+}
+
+void
+CQChartsBoxPlot::
+setSymbolFillAlpha(double a)
+{
+  symbolData_.fill.alpha = a;
+
+  update();
+}
+
+//---
+
 void
 CQChartsBoxPlot::
 addProperties()
@@ -393,8 +480,16 @@ addProperties()
   addProperty("labels", this, "textAlpha"  , "alpha"  );
   addProperty("labels", this, "textMargin" , "margin" );
 
-  addProperty("outlier", this, "skipOutliers", "skip");
-  addProperty("outlier", this, "symbolSize"  , "size");
+  addProperty("outlier"       , this, "showOutliers"     , "visible");
+  addProperty("outlier"       , this, "symbolType"       , "symbol" );
+  addProperty("outlier"       , this, "symbolSize"       , "size"   );
+  addProperty("outlier/stroke", this, "symbolStroked"    , "visible");
+  addProperty("outlier/stroke", this, "symbolStrokeColor", "color"  );
+  addProperty("outlier/stroke", this, "symbolStrokeAlpha", "alpha"  );
+  addProperty("outlier/stroke", this, "symbolLineWidth"  , "width"  );
+  addProperty("outlier/fill"  , this, "symbolFilled"     , "visible");
+  addProperty("outlier/fill"  , this, "symbolFillColor"  , "color"  );
+  addProperty("outlier/fill"  , this, "symbolFillAlpha"  , "alpha"  );
 }
 
 void
@@ -452,7 +547,7 @@ updateRawRange()
 
         double min, max;
 
-        if (! isSkipOutliers()) {
+        if (isShowOutliers()) {
           min = whisker.rvalue(0);
           max = whisker.rvalue(whisker.numValues() - 1);
         }
@@ -524,13 +619,16 @@ updateCalcRange()
       data.upper  = plot_->modelReal(row, plot_->upperMedianColumn(), ind, ok);
       data.max    = plot_->modelReal(row, plot_->maxColumn        (), ind, ok);
 
-      if (dataList_.empty()) {
-        min_ = data.min;
-        max_ = data.max;
-      }
-      else {
-        min_ = std::min(min_, data.min);
-        max_ = std::max(max_, data.max);
+      data.dataMin = data.min;
+      data.dataMax = data.max;
+
+      if (plot_->isShowOutliers()) {
+        data.outliers = plot_->modelReals(row, plot_->outliersColumn(), ind, ok);
+
+        for (auto &o : data.outliers) {
+          data.dataMin = std::min(data.dataMin, o);
+          data.dataMax = std::max(data.dataMax, o);
+        }
       }
 
       //---
@@ -560,14 +658,9 @@ updateCalcRange()
 
     const DataList &dataList() const { return dataList_; }
 
-    double min() const { return min_; }
-    double max() const { return max_; }
-
    private:
     CQChartsBoxPlot *plot_ { nullptr };
     DataList         dataList_;
-    double           min_ { 0.0 };
-    double           max_ { 1.0 };
   };
 
   BoxPlotVisitor boxPlotVisitor(this);
@@ -1000,7 +1093,7 @@ CQChartsBoxPlotWhiskerObj::
 addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
   if (column.isValid()) {
-    for (auto value : whisker_.values()) {
+    for (auto &value : whisker_.values()) {
       addSelectIndex(inds, value.ind.row(), column, value.ind.parent());
     }
   }
@@ -1149,22 +1242,26 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // draw outlier symbols
-  if (! plot_->isSkipOutliers()) {
-    painter->setPen(QPen(whiskerColor, whiskerLineWidth, Qt::SolidLine));
+  if (plot_->isShowOutliers()) {
+    CQChartsSymbol symbol      = plot_->symbolType();
+    double         symbolSize  = plot_->symbolSize();
+    bool           stroked     = plot_->isSymbolStroked();
+    QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
+    bool           filled      = plot_->isSymbolFilled();
+    QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
 
-    painter->setBrush(brush);
-    painter->setPen  (pen);
+    QPen   pen  (strokeColor);
+    QBrush brush(fillColor);
 
-    double symbolSize = plot_->symbolSize();
+    plot_->updateObjPenBrushState(this, pen, brush);
 
-    for (auto o : whisker_.outliers()) {
+    for (auto &o : whisker_.outliers()) {
       double px1, py1;
 
       plot_->windowToPixel(x, whisker_.rvalue(o), px1, py1);
 
-      QRectF rect(px1 - symbolSize, py1 - symbolSize, 2*symbolSize, 2*symbolSize);
-
-      painter->drawEllipse(rect);
+      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
+                        stroked, pen.color(), 1, filled, brush.color());
     }
   }
 }
@@ -1259,6 +1356,7 @@ void
 CQChartsBoxPlotDataObj::
 getSelectIndices(Indices &inds) const
 {
+  addColumnSelectIndex(inds, plot_->xColumn          ());
   addColumnSelectIndex(inds, plot_->minColumn        ());
   addColumnSelectIndex(inds, plot_->lowerMedianColumn());
   addColumnSelectIndex(inds, plot_->medianColumn     ());
@@ -1406,22 +1504,26 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // draw outlier symbols
-  if (! plot_->isSkipOutliers()) {
-    painter->setPen(QPen(whiskerColor, whiskerLineWidth, Qt::SolidLine));
+  if (plot_->isShowOutliers()) {
+    CQChartsSymbol symbol      = plot_->symbolType();
+    double         symbolSize  = plot_->symbolSize();
+    bool           stroked     = plot_->isSymbolStroked();
+    QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
+    bool           filled      = plot_->isSymbolFilled();
+    QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
 
-    painter->setBrush(brush);
-    painter->setPen  (pen);
+    QPen   pen  (strokeColor);
+    QBrush brush(fillColor);
 
-    double symbolSize = plot_->symbolSize();
+    plot_->updateObjPenBrushState(this, pen, brush);
 
-    for (auto o : data_.outliers) {
+    for (auto &o : data_.outliers) {
       double px1, py1;
 
       plot_->windowToPixel(x, remapY(o), px1, py1);
 
-      QRectF rect(px1 - symbolSize, py1 - symbolSize, 2*symbolSize, 2*symbolSize);
-
-      painter->drawEllipse(rect);
+      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
+                        stroked, pen.color(), 1, filled, brush.color());
     }
   }
 }
@@ -1490,7 +1592,7 @@ CQChartsBoxPlotDataObj::
 remapY(double y) const
 {
   // remap to margin -> 1.0 - margin
-  return CQChartsUtil::map(y, data_.min, data_.max, ymargin_, 1.0 - ymargin_);
+  return CQChartsUtil::map(y, data_.dataMin, data_.dataMax, ymargin_, 1.0 - ymargin_);
 }
 
 //------

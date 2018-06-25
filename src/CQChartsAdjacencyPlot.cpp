@@ -40,8 +40,10 @@ QString
 CQChartsAdjacencyPlotType::
 description() const
 {
-  return "<p>Draws connectivity information between two different sets of data as a "
+  return "<h2>Summary</h2>\n"
+         "<p>Draws connectivity information between two different sets of data as a "
          "matrix where the color of the cells represents the group and connectivity.</p>\n"
+         "<h2>Columns</h2>\n"
          "<p>Connection information can be supplied using:</p>\n"
          "<ul>\n"
          "<li>A list of connections in the <b>Connections</b> column of the form "
@@ -85,7 +87,7 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
 CQChartsAdjacencyPlot::
 ~CQChartsAdjacencyPlot()
 {
-  for (auto pnode : nodes_)
+  for (auto &pnode : nodes_)
     delete pnode.second;
 }
 
@@ -155,7 +157,7 @@ initObjs()
 
   //---
 
-  for (auto pnode : nodes_)
+  for (auto &pnode : nodes_)
     delete pnode.second;
 
   nodes_.clear();
@@ -292,7 +294,7 @@ initHierObjs()
 
   maxLen_ = 0;
 
-  for (auto node1 : sortedNodes_) {
+  for (auto &node1 : sortedNodes_) {
     maxLen_ = std::max(maxLen_, int(node1->name().size()));
   }
 
@@ -309,10 +311,10 @@ initHierObjs()
 
   double y = 1.0 - tsize - yb;
 
-  for (auto node1 : sortedNodes_) {
+  for (auto &node1 : sortedNodes_) {
     double x = tsize + xb;
 
-    for (auto node2 : sortedNodes_) {
+    for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
 
       // skip unconnected
@@ -449,7 +451,7 @@ initConnectionObjs()
 
   maxLen_ = 0;
 
-  for (auto node1 : sortedNodes_) {
+  for (auto &node1 : sortedNodes_) {
     maxLen_ = std::max(maxLen_, int(node1->name().size()));
   }
 
@@ -463,10 +465,10 @@ initConnectionObjs()
 
   double y = 1.0 - tsize - yb;
 
-  for (auto node1 : sortedNodes_) {
+  for (auto &node1 : sortedNodes_) {
     double x = tsize + xb;
 
-    for (auto node2 : sortedNodes_) {
+    for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
 
       // skip unconnected
@@ -498,7 +500,7 @@ sortNodes()
 
   sortedNodes_.clear();
 
-  for (auto pnode : nodes_) {
+  for (auto &pnode : nodes_) {
     CQChartsAdjacencyNode *node = pnode.second;
 
     sortedNodes_.push_back(node);
@@ -685,7 +687,7 @@ drawBackground(QPainter *painter)
   double px = pxo + margin();
   double py = pyo + margin() + yts;
 
-  for (auto node : sortedNodes_) {
+  for (auto &node : sortedNodes_) {
     const QString &str = node->name();
 
     double tw = fm.width(str) + 4;
@@ -703,7 +705,7 @@ drawBackground(QPainter *painter)
   px = pxo + margin() + xts;
   py = pyo + margin() + yts;
 
-  for (auto node : sortedNodes_) {
+  for (auto &node : sortedNodes_) {
     CQChartsRotatedText::drawRotatedText(painter, px + pxs/2, py - 2, node->name(), 90,
                                          Qt::AlignHCenter | Qt::AlignBottom, /*alignBox*/true);
 
@@ -727,10 +729,10 @@ drawBackground(QPainter *painter)
 
   py = pyo + margin() + yts;
 
-  for (auto node1 : sortedNodes_) {
+  for (auto &node1 : sortedNodes_) {
     double px = pxo + margin() + xts;
 
-    for (auto node2 : sortedNodes_) {
+    for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
 
       bool empty = (node1 != node2 && CQChartsUtil::isZero(value));

@@ -20,6 +20,8 @@ class CQChartsSunburstPlotType : public CQChartsHierPlotType {
   QString name() const override { return "sunburst"; }
   QString desc() const override { return "Sunburst"; }
 
+  Dimension dimension() const override { return Dimension::NONE; }
+
   void addParameters() override;
 
   bool hasAxes() const override { return false; }

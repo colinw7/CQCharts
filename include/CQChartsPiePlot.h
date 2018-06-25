@@ -20,6 +20,8 @@ class CQChartsPiePlotType : public CQChartsPlotType {
   QString name() const override { return "pie"; }
   QString desc() const override { return "Pie"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
 
   bool hasAxes() const override { return false; }

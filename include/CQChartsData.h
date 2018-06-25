@@ -77,11 +77,11 @@ struct CQChartsTextBoxData {
 };
 
 struct CQChartsSymbolData {
-  bool                     visible { true };
-  CQChartsPlotSymbol::Type type    { CQChartsPlotSymbol::Type::CROSS };
-  double                   size    { 5.0 };
-  CQChartsStrokeData       stroke;
-  CQChartsFillData         fill;
+  bool               visible { true };
+  CQChartsSymbol     type;
+  double             size    { 5.0 };
+  CQChartsStrokeData stroke;
+  CQChartsFillData   fill;
 
   CQChartsSymbolData() {
     fill.visible = false;

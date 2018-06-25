@@ -364,7 +364,7 @@ addPolylineAnnotation(const QPolygonF &points)
 
 CQChartsPointAnnotation *
 CQChartsView::
-addPointAnnotation(const QPointF &pos, const CQChartsPlotSymbol::Type &type)
+addPointAnnotation(const QPointF &pos, const CQChartsSymbol &type)
 {
   CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
 

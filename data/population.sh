@@ -1,5 +1,5 @@
-CQChartsTest -tcl -exec population.tcl -close_app
+CQChartsTest -tcl -exec population.tcl
 
-#CQChartsTest -ceil -exec population.cl -close_app
+#CQChartsTest -ceil -exec population.cl
 
 #CQChartsTest -exec population.script

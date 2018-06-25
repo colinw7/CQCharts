@@ -22,6 +22,15 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsBubblePlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws circles represent a set of data values and packs then into the "
+         "smallest enclosing circle.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsBubblePlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -404,7 +413,7 @@ initNodeObjs()
   int i = 0;
   int n = nodes_.size();
 
-  for (auto node : nodes_) {
+  for (auto &node : nodes_) {
     if (! node->placed()) continue;
 
     //---
@@ -448,7 +457,7 @@ placeNodes()
 {
   pack_.reset();
 
-  for (auto node : nodes_)
+  for (auto &node : nodes_)
     pack_.addNode(node);
 
   //---
@@ -466,7 +475,7 @@ placeNodes()
 
   //---
 
-  for (auto node : nodes_) {
+  for (auto &node : nodes_) {
     node->setX((node->x() - offset_.x)*scale_);
     node->setY((node->y() - offset_.y)*scale_);
 

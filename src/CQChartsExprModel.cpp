@@ -120,12 +120,14 @@ timevalCmd(const Values &values)
 
   CQChartsColumn column(col);
 
-  QVariant var1 = CQChartsUtil::columnUserData(charts_, this, column, var);
+  bool converted;
+
+  QVariant var1 = CQChartsUtil::columnUserData(charts_, this, column, var, converted);
 
   if (var1.isValid())
     var = var1;
 
-  double t = CQChartsUtil::varToReal(var1, ok);
+  double t = CQChartsUtil::toReal(var1, ok);
   if (! ok) return QVariant();
 
   return CQChartsUtil::timeToString(fmt, t);

@@ -23,6 +23,8 @@ class CQChartsXYPlotType : public CQChartsPlotType {
   const char *xColumnName() const override { return "x"; }
   const char *yColumnName() const override { return "y"; }
 
+  Dimension dimension() const override { return Dimension::TWO_D; }
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -112,7 +114,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void setColor(const CQChartsColor &c);
 
-  void setSymbol(CQChartsPlotSymbol::Type type);
+  void setSymbol(CQChartsSymbol type);
 
   void setVector(double vx, double vy);
 
@@ -131,10 +133,10 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using OptPoint = boost::optional<QPointF>;
 
   struct ExtraData {
-    QString                  label;
-    OptColor                 color;
-    CQChartsPlotSymbol::Type symbol { CQChartsPlotSymbol::Type::NONE };
-    OptPoint                 vector;
+    QString        label;
+    OptColor       color;
+    CQChartsSymbol symbol { CQChartsSymbol::Type::NONE };
+    OptPoint       vector;
   };
 
   CQChartsXYPlot* plot_  { nullptr }; // parent plot
@@ -303,15 +305,15 @@ class CQChartsXYPlot : public CQChartsPlot {
   // point:
   //  display, color, symbol, size
   Q_PROPERTY(bool           points             READ isPoints          WRITE setPoints           )
-  Q_PROPERTY(QString        symbolName         READ symbolName        WRITE setSymbolName       )
+  Q_PROPERTY(CQChartsSymbol symbolType         READ symbolType        WRITE setSymbolType       )
   Q_PROPERTY(double         symbolSize         READ symbolSize        WRITE setSymbolSize       )
   Q_PROPERTY(bool           symbolStroked      READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  pointsStrokeColor  READ pointsStrokeColor WRITE setPointsStrokeColor)
-  Q_PROPERTY(double         pointsStrokeAlpha  READ pointsStrokeAlpha WRITE setPointsStrokeAlpha)
+  Q_PROPERTY(CQChartsColor  symbolStrokeColor  READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double         symbolStrokeAlpha  READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
   Q_PROPERTY(CQChartsLength symbolLineWidth    READ symbolLineWidth   WRITE setSymbolLineWidth  )
   Q_PROPERTY(bool           symbolFilled       READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  pointsFillColor    READ pointsFillColor   WRITE setPointsFillColor  )
-  Q_PROPERTY(double         pointsFillAlpha    READ pointsFillAlpha   WRITE setPointsFillAlpha  )
+  Q_PROPERTY(CQChartsColor  symbolFillColor    READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(double         symbolFillAlpha    READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
 
   // line:
   //  display, stroke
@@ -429,21 +431,21 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool isPoints() const { return pointData_.visible; }
   void setPoints(bool b) { pointData_.visible = b; updateObjs(); }
 
-  const CQChartsColor &pointsStrokeColor() const;
-  void setPointsStrokeColor(const CQChartsColor &c);
+  const CQChartsColor &symbolStrokeColor() const;
+  void setSymbolStrokeColor(const CQChartsColor &c);
 
-  QColor interpPointStrokeColor(int i, int n) const;
+  QColor interpSymbolStrokeColor(int i, int n) const;
 
-  double pointsStrokeAlpha() const;
-  void setPointsStrokeAlpha(double a);
+  double symbolStrokeAlpha() const;
+  void setSymbolStrokeAlpha(double a);
 
-  const CQChartsColor &pointsFillColor() const;
-  void setPointsFillColor(const CQChartsColor &c);
+  const CQChartsColor &symbolFillColor() const;
+  void setSymbolFillColor(const CQChartsColor &c);
 
-  QColor interpPointFillColor(int i, int n) const;
+  QColor interpSymbolFillColor(int i, int n) const;
 
-  double pointsFillAlpha() const;
-  void setPointsFillAlpha(double a);
+  double symbolFillAlpha() const;
+  void setSymbolFillAlpha(double a);
 
   //---
 
@@ -517,11 +519,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   //---
 
   // symbol
-  QString symbolName() const;
-  void setSymbolName(const QString &s);
-
-  CQChartsPlotSymbol::Type symbolType() const { return pointData_.type; }
-  void setSymbolType(CQChartsPlotSymbol::Type t) { pointData_.type = t; update(); }
+  const CQChartsSymbol &symbolType() const { return pointData_.type; }
+  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
 
   double symbolSize() const { return pointData_.size; }
   void setSymbolSize(double s) { pointData_.size = s; update(); }

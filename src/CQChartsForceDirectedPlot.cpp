@@ -528,7 +528,7 @@ draw(QPainter *painter)
 
   edgePen.setColor(edgeColor);
 
-  for (auto edge : forceDirected_.edges()) {
+  for (auto &edge : forceDirected_.edges()) {
     bool isTemp = false;
 
     auto spring = forceDirected_.spring(edge, isTemp);
@@ -554,7 +554,7 @@ draw(QPainter *painter)
   }
 
   // draw nodes
-  for (auto node : forceDirected_.nodes()) {
+  for (auto &node : forceDirected_.nodes()) {
     auto point = forceDirected_.point(node);
 
     const Springy::Vector &p1 = point->p();

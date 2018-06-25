@@ -15,6 +15,8 @@ class CQChartsImagePlotType : public CQChartsPlotType {
   QString name() const override { return "image"; }
   QString desc() const override { return "Image"; }
 
+  Dimension dimension() const override { return Dimension::NONE; }
+
   void addParameters() override;
 
   bool hasAxes() const override { return false; }

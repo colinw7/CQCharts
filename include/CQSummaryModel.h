@@ -8,15 +8,19 @@
 class CQSummaryModel : public QAbstractProxyModel {
   Q_OBJECT
 
-  Q_PROPERTY(int  maxRows READ maxRows  WRITE setMaxRows)
-  Q_PROPERTY(bool random  READ isRandom WRITE setRandom )
-  Q_PROPERTY(bool sorted  READ isSorted WRITE setSorted )
+  Q_PROPERTY(int  maxRows     READ maxRows     WRITE setMaxRows    )
+  Q_PROPERTY(bool random      READ isRandom    WRITE setRandom     )
+  Q_PROPERTY(bool sorted      READ isSorted    WRITE setSorted     )
+  Q_PROPERTY(bool paged       READ isPaged     WRITE setPaged      )
+  Q_PROPERTY(int  pageSize    READ pageSize    WRITE setPageSize   )
+  Q_PROPERTY(int  currentPage READ currentPage WRITE setCurrentPage)
 
  public:
   enum class Mode {
     NORMAL,
     RANDOM,
-    SORTED
+    SORTED,
+    PAGED
   };
 
  public:
@@ -44,11 +48,20 @@ class CQSummaryModel : public QAbstractProxyModel {
   bool isSorted() const { return mode_ == Mode::SORTED; }
   void setSorted(bool b) { setMode(b ? Mode::SORTED : Mode::NORMAL); }
 
+  bool isPaged() const { return mode_ == Mode::PAGED; }
+  void setPaged(bool b) { setMode(b ? Mode::PAGED : Mode::NORMAL); }
+
   int sortColumn() const { return sortColumn_; }
   void setSortColumn(int i);
 
   int sortRole() const { return sortRole_; }
   void setSortRole(int r);
+
+  int pageSize() const { return pageSize_; }
+  void setPageSize(int i);
+
+  int currentPage() const { return currentPage_; }
+  void setCurrentPage(int i);
 
   //---
 
@@ -107,13 +120,15 @@ class CQSummaryModel : public QAbstractProxyModel {
   using RowInds = std::vector<int>;
   using RowMap  = std::map<int,int>;
 
-  Mode    mode_       { Mode::NORMAL };
-  int     maxRows_    { 1000 };
-  int     sortColumn_ { 0 };
-  int     sortRole_   { Qt::EditRole };
+  Mode    mode_        { Mode::NORMAL };
+  int     maxRows_     { 1000 };
+  int     sortColumn_  { 0 };
+  int     sortRole_    { Qt::EditRole };
+  int     pageSize_    { 100 };
+  int     currentPage_ { 0 };
   RowInds rowInds_;
   RowMap  indRows_;
-  bool    mapValid_   { false };
+  bool    mapValid_    { false };
 };
 
 #endif

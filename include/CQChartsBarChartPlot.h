@@ -24,7 +24,11 @@ class CQChartsBarChartPlotType : public CQChartsPlotType {
 
   bool allowXLog() const override { return false; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -404,6 +408,14 @@ class CQChartsBarChartPlot : public CQChartsPlot {
 
   //---
 
+  bool allowZoomX() const override { return ! isHorizontal(); }
+  bool allowZoomY() const override { return   isHorizontal(); }
+
+  bool allowPanX() const override { return ! isHorizontal(); }
+  bool allowPanY() const override { return   isHorizontal(); }
+
+  //---
+
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
@@ -432,6 +444,11 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   bool addMenuItems(QMenu *menu) override;
 
   void draw(QPainter *) override;
+
+  //---
+
+  double getPanX(bool is_shift) const override;
+  double getPanY(bool is_shift) const override;
 
   //---
 
@@ -491,6 +508,7 @@ class CQChartsBarChartPlot : public CQChartsPlot {
   ValueNames         valueNames_;               // value names
   ValueGroupInd      valueGroupInd_;            // group ind to value index map
   int                numVisible_     { 0 };     // number of visible bars
+  mutable double     barWidth_       { 1.0 };   // bar width
 };
 
 #endif

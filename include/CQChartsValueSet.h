@@ -17,6 +17,7 @@ class CQChartsRValues {
   using OptReal = boost::optional<double>;
   using Values  = std::vector<double>;
   using Counts  = std::vector<int>;
+  using Indices = std::vector<int>;
 
  public:
   CQChartsRValues() { }
@@ -136,6 +137,10 @@ class CQChartsRValues {
   double lowerMedian() const { const_calc(); return lowerMedian_; }
   double upperMedian() const { const_calc(); return upperMedian_; }
 
+  const Indices &outliers() const { const_calc(); return outliers_; }
+
+  double svalue(int i) const { return svalues_[i]; }
+
  private:
   void const_calc() const {
     const_cast<CQChartsRValues *>(this)->calc();
@@ -252,7 +257,6 @@ class CQChartsRValues {
 
  private:
   using OptValues = std::vector<OptReal>;
-  using Indices   = std::vector<int>;
   using KeyCount  = std::pair<int,int>;
   using ValueSet  = std::map<double,KeyCount,CQChartsUtil::RealCmp>;
   using SetValues = std::map<int,double>;
@@ -276,9 +280,10 @@ class CQChartsRValues {
 
 class CQChartsIValues {
  public:
-  using OptInt = boost::optional<int>;
-  using Values = std::vector<double>;
-  using Counts = std::vector<int>;
+  using OptInt  = boost::optional<int>;
+  using Values  = std::vector<double>;
+  using Counts  = std::vector<int>;
+  using Indices = std::vector<int>;
 
  public:
   CQChartsIValues() { }
@@ -398,6 +403,10 @@ class CQChartsIValues {
   double lowerMedian() const { const_calc(); return lowerMedian_; }
   double upperMedian() const { const_calc(); return upperMedian_; }
 
+  const Indices &outliers() const { const_calc(); return outliers_; }
+
+  double svalue(int i) const { return svalues_[i]; }
+
  private:
   void const_calc() const {
     const_cast<CQChartsIValues *>(this)->calc();
@@ -514,7 +523,6 @@ class CQChartsIValues {
 
  private:
   using OptValues = std::vector<OptInt>;
-  using Indices   = std::vector<int>;
   using KeyCount  = std::pair<int,int>;
   using ValueSet  = std::map<int,KeyCount>;
   using SetValues = std::map<int,int>;

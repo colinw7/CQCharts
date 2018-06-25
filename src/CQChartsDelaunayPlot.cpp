@@ -69,14 +69,14 @@ setVoronoi(bool b)
 
 const CQChartsColor &
 CQChartsDelaunayPlot::
-pointsStrokeColor() const
+symbolStrokeColor() const
 {
   return pointData_.stroke.color;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsStrokeColor(const CQChartsColor &c)
+setSymbolStrokeColor(const CQChartsColor &c)
 {
   pointData_.stroke.color = c;
 
@@ -87,19 +87,19 @@ QColor
 CQChartsDelaunayPlot::
 interpPointStrokeColor(int i, int n) const
 {
-  return pointsStrokeColor().interpColor(this, i, n);
+  return symbolStrokeColor().interpColor(this, i, n);
 }
 
 double
 CQChartsDelaunayPlot::
-pointsStrokeAlpha() const
+symbolStrokeAlpha() const
 {
   return pointData_.stroke.alpha;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsStrokeAlpha(double a)
+setSymbolStrokeAlpha(double a)
 {
   pointData_.stroke.alpha = a;
 
@@ -108,14 +108,14 @@ setPointsStrokeAlpha(double a)
 
 const CQChartsColor &
 CQChartsDelaunayPlot::
-pointsFillColor() const
+symbolFillColor() const
 {
   return pointData_.fill.color;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsFillColor(const CQChartsColor &c)
+setSymbolFillColor(const CQChartsColor &c)
 {
   pointData_.fill.color = c;
 
@@ -126,19 +126,19 @@ QColor
 CQChartsDelaunayPlot::
 interpPointFillColor(int i, int n) const
 {
-  return pointsFillColor().interpColor(this, i, n);
+  return symbolFillColor().interpColor(this, i, n);
 }
 
 double
 CQChartsDelaunayPlot::
-pointsFillAlpha() const
+symbolFillAlpha() const
 {
   return pointData_.fill.alpha;
 }
 
 void
 CQChartsDelaunayPlot::
-setPointsFillAlpha(double a)
+setSymbolFillAlpha(double a)
 {
   pointData_.fill.alpha = a;
 
@@ -170,26 +170,6 @@ interpLinesColor(int i, int n) const
   return linesColor().interpColor(this, i, n);
 }
 
-QString
-CQChartsDelaunayPlot::
-symbolName() const
-{
-  return CQChartsPlotSymbolMgr::typeToName(pointData_.type);
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolName(const QString &s)
-{
-  CQChartsPlotSymbol::Type type = CQChartsPlotSymbolMgr::nameToType(s);
-
-  if (type != CQChartsPlotSymbol::Type::NONE) {
-    pointData_.type = type;
-
-    update();
-  }
-}
-
 //---
 
 void
@@ -205,15 +185,15 @@ addProperties()
   addProperty("voronoi", this, "voronoiPointSize", "pointSize");
 
   addProperty("points"       , this, "points"           , "visible");
-  addProperty("points"       , this, "symbolName"       , "symbol" );
+  addProperty("points"       , this, "symbolType"       , "symbol" );
   addProperty("points"       , this, "symbolSize"       , "size"   );
   addProperty("points/stroke", this, "symbolStroked"    , "visible");
-  addProperty("points/stroke", this, "pointsStrokeColor", "color"  );
-  addProperty("points/stroke", this, "pointsStrokeAlpha", "alpha"  );
+  addProperty("points/stroke", this, "symbolStrokeColor", "color"  );
+  addProperty("points/stroke", this, "symbolStrokeAlpha", "alpha"  );
   addProperty("points/stroke", this, "symbolLineWidth"  , "width"  );
   addProperty("points/fill"  , this, "symbolFilled"     , "visible");
-  addProperty("points/fill"  , this, "pointsFillColor"  , "color"  );
-  addProperty("points/fill"  , this, "pointsFillAlpha"  , "alpha"  );
+  addProperty("points/fill"  , this, "symbolFillColor"  , "color"  );
+  addProperty("points/fill"  , this, "symbolFillAlpha"  , "alpha"  );
 
   addProperty("lines", this, "lines"     , "visible");
   addProperty("lines", this, "linesColor", "color"  );
@@ -494,7 +474,7 @@ drawVoronoi(QPainter *painter)
     if (isSymbolStroked()) {
       QColor pc = interpPointStrokeColor(0, 1);
 
-      pc.setAlphaF(pointsStrokeAlpha());
+      pc.setAlphaF(symbolStrokeAlpha());
 
       pen.setColor(pc);
     }
@@ -508,7 +488,7 @@ drawVoronoi(QPainter *painter)
     if (isSymbolFilled()) {
       QColor bc = interpPointFillColor(0, 1);
 
-      bc.setAlphaF(pointsFillAlpha());
+      bc.setAlphaF(symbolFillAlpha());
 
       brush.setStyle(Qt::SolidPattern);
       brush.setColor(bc);
@@ -652,7 +632,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (plot_->isSymbolStroked()) {
     QColor pc = plot_->interpPointStrokeColor(0, 1);
 
-    pc.setAlphaF(plot_->pointsStrokeAlpha());
+    pc.setAlphaF(plot_->symbolStrokeAlpha());
 
     pen.setColor(pc);
   }
@@ -666,7 +646,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (plot_->isSymbolFilled()) {
     QColor bc = plot_->interpPointFillColor(0, 1);
 
-    bc.setAlphaF(plot_->pointsFillAlpha());
+    bc.setAlphaF(plot_->symbolFillAlpha());
 
     brush.setStyle(Qt::SolidPattern);
     brush.setColor(bc);
@@ -681,7 +661,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   double s = plot_->symbolSize();
 
-  CQChartsPlotSymbol::Type symbol = plot_->symbolType();
+  CQChartsSymbol symbol = plot_->symbolType();
 
   //---
 

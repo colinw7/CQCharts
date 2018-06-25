@@ -6,6 +6,26 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 
+//---
+
+class CQChartsRadarPlotType : public CQChartsPlotType {
+ public:
+  CQChartsRadarPlotType();
+
+  QString name() const override { return "radar"; }
+  QString desc() const override { return "Radar"; }
+
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
+  void addParameters() override;
+
+  bool hasAxes() const override { return false; }
+
+  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+};
+
+//---
+
 // TODO:
 //  Stacked
 //  mouse feedback depend on angle (actual value)
@@ -38,22 +58,6 @@ class CQChartsRadarObj : public CQChartsPlotObj {
   QModelIndex        ind_;               // data index
   int                i_     { 0 };       // value ind
   int                n_     { 1 };       // value count
-};
-
-//---
-
-class CQChartsRadarPlotType : public CQChartsPlotType {
- public:
-  CQChartsRadarPlotType();
-
-  QString name() const override { return "radar"; }
-  QString desc() const override { return "Radar"; }
-
-  void addParameters() override;
-
-  bool hasAxes() const override { return false; }
-
-  CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---

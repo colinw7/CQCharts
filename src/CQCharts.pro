@@ -47,6 +47,7 @@ CQChartsProbeBand.cpp \
 CQChartsPlotType.cpp \
 CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
+CQChartsHierPlotType.cpp \
 CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
@@ -119,6 +120,7 @@ CQChartsRoundedPolygon.cpp \
 CQChartsColor.cpp \
 CQChartsDrawUtil.cpp \
 CQChartsPosition.cpp \
+CQChartsSymbol.cpp \
 CQChartsLength.cpp \
 CQChartsPath.cpp \
 CQChartsStyle.cpp \
@@ -173,6 +175,7 @@ HEADERS += \
 ../include/CQChartsPlotType.h \
 ../include/CQChartsPlot.h \
 ../include/CQChartsHierPlot.h \
+../include/CQChartsHierPlotType.h \
 ../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxPlot.h \
@@ -215,6 +218,7 @@ HEADERS += \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsPosition.h \
+../include/CQChartsSymbol.h \
 ../include/CQChartsPath.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \

@@ -465,3 +465,12 @@
 # 6/21/2018
  + cleanup handling of column role
  + clear data model cache when type changes
+# 6/24/2018
+ + Add more plot type descriptions
+ + Order plot types in dialog using new dimension and hierarchical properties
+ + Add pan by bar width support for bar and distribution plots
+ + Support full customization of outlier symbol in box plot
+ + Cache formatted model values
+ + Add pages to summary model and support in plot dialog
+ + Make symbol a variant and use in plot properties
+ + Support cached converted and formatted values in data model

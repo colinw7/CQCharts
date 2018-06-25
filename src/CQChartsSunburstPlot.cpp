@@ -857,11 +857,11 @@ void
 CQChartsSunburstPlot::
 addPlotObjs(CQChartsSunburstHierNode *hier)
 {
-  for (auto node : hier->getNodes()) {
+  for (auto &node : hier->getNodes()) {
     addPlotObj(node);
   }
 
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     addPlotObj(hierNode);
 
     addPlotObjs(hierNode);
@@ -1004,12 +1004,12 @@ void
 CQChartsSunburstPlot::
 drawNodes(QPainter *painter, CQChartsSunburstHierNode *hier)
 {
-  for (auto node : hier->getNodes())
+  for (auto &node : hier->getNodes())
     drawNode(painter, nullptr, node);
 
   //------
 
-  for (auto hierNode : hier->getChildren()) {
+  for (auto &hierNode : hier->getChildren()) {
     drawNode(painter, nullptr, hierNode);
 
     drawNodes(painter, hierNode);

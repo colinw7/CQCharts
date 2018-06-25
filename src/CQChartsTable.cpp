@@ -81,7 +81,17 @@ class CQChartsTableDelegate : public QItemDelegate {
         QItemDelegate::paint(painter, option, index);
     }
     else {
-      QItemDelegate::paint(painter, option, index);
+      QVariant var = table_->model()->data(index);
+
+      if (var.type() == QVariant::List) {
+        QString str;
+
+        CQChartsUtil::variantToString(var, str);
+
+        drawString(painter, option, str, index);
+      }
+      else
+        QItemDelegate::paint(painter, option, index);
     }
   }
 
@@ -112,6 +122,13 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   //painter->drawText(x, y, c.name());
     QItemDelegate::drawDisplay(painter, option, rect1, c.name());
+  }
+
+  void drawString(QPainter *painter, const QStyleOptionViewItem &option, const QString &str,
+                  const QModelIndex &index) const {
+    QItemDelegate::drawBackground(painter, option, index);
+
+    QItemDelegate::drawDisplay(painter, option, option.rect, str);
   }
 
   void clearColumnTypes() { columnTypeMap_.clear(); }

@@ -38,6 +38,7 @@ CQCharts()
   CQChartsColor   ::registerMetaType();
   CQChartsPath    ::registerMetaType();
   CQChartsStyle   ::registerMetaType();
+  CQChartsSymbol  ::registerMetaType();
 }
 
 CQCharts::
@@ -106,6 +107,13 @@ CQCharts::
 plotType(const QString &name) const
 {
   return plotTypeMgr_->type(name);
+}
+
+void
+CQCharts::
+getPlotTypes(PlotTypes &types) const
+{
+  plotTypeMgr_->getTypes(types);
 }
 
 void

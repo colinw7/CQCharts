@@ -909,8 +909,7 @@ CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  CQChartsUtil::setColumnTypeStrs(charts_, modelData->model().data(),
-                                  initData.columnType, /*remap*/true);
+  CQChartsUtil::setColumnTypeStrs(charts_, modelData->model().data(), initData.columnType);
 
   //---
 

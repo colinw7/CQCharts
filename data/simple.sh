@@ -10,8 +10,7 @@ CQChartsTest \
  -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
  -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
  -properties "key.location=tl,key.flipped=1" \
- -properties "title.text.font=+8" \
- -close_app
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 100 \
@@ -24,8 +23,7 @@ CQChartsTest \
  -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
  -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
  -properties "key.flipped=1,key.border.visible=0" \
- -properties "title.text.font=+8" \
- -close_app
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 200 \
@@ -39,8 +37,7 @@ CQChartsTest \
  -properties "xaxis.ticks.inside=1,xaxis.line.visible=0,xaxis.ticks.mirror=1" \
  -properties "yaxis.ticks.inside=1,yaxis.line.visible=0,yaxis.ticks.mirror=1" \
  -properties "key.location=tl,key.flipped=1" \
- -properties "title.text.font=+8" \
- -close_app
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 500 \
@@ -52,8 +49,7 @@ CQChartsTest \
  -xmin -16 -xmax 16 -ymin -5 -ymax 5 \
  -properties "points.visible=0" \
  -properties "key.location=bc,key.insideY=0" \
- -properties "title.text.font=+8" \
- -close_app
+ -properties "title.text.font=+8"
 
 CQChartsTest \
  -expr -num_rows 800 \
@@ -63,5 +59,4 @@ CQChartsTest \
  -plot_title "Simple Plots" \
  -properties "points.visible=0" \
  -properties "key.location=bl,key.insideY=0,key.flipped=1" \
- -properties "title.text.font=+8" \
- -close_app
+ -properties "title.text.font=+8"

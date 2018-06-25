@@ -102,9 +102,6 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   bool isInvert() const { return currentFilterData().isInvert(); }
   void setInvert(bool b) { currentFilterData().setInvert(b); }
 
-  bool isConvert() const { return convert_; }
-  void setConvert(bool b) { convert_ = b; }
-
   void resetFilterData();
 
   void pushFilterData();
@@ -167,7 +164,6 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   FilterDatas             filterDatas_;
   mutable IndexMatches    matches_;
   mutable ExpandInds      expand_;
-  bool                    convert_        { true };
 };
 
 #endif

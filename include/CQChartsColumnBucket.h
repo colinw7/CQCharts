@@ -57,13 +57,13 @@ class CQChartsColumnBucket {
     bool ok;
 
     if      (columnType() == ColumnType::REAL) {
-      double r = CQChartsUtil::varToReal(value, ok);
+      double r = CQChartsUtil::toReal(value, ok);
       if (! ok) return -1;
 
       return addReal(r);
     }
     else if (columnType() == ColumnType::INTEGER) {
-      long i = CQChartsUtil::varToInt(value, ok);
+      long i = CQChartsUtil::toInt(value, ok);
       if (! ok) return -1;
 
       return addInteger(i);
@@ -96,13 +96,13 @@ class CQChartsColumnBucket {
     bool ok;
 
     if      (columnType() == ColumnType::REAL) {
-      double r = CQChartsUtil::varToReal(value, ok);
+      double r = CQChartsUtil::toReal(value, ok);
       if (! ok) return 0;
 
       return rvals_.id(r);
     }
     else if (columnType() == ColumnType::INTEGER) {
-      long i = CQChartsUtil::varToInt(value, ok);
+      long i = CQChartsUtil::toInt(value, ok);
       if (! ok) return 0;
 
       return ivals_.id(i);

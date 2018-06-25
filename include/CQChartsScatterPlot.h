@@ -15,6 +15,8 @@ class CQChartsScatterPlotType : public CQChartsPlotType {
   QString name() const override { return "scatter"; }
   QString desc() const override { return "Scatter"; }
 
+  Dimension dimension() const override { return Dimension::TWO_D; }
+
   void addParameters() override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;

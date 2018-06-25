@@ -36,6 +36,37 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsBarChartPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws bars with heights from a set of values.</p>\n"
+         "<h2>Columns</h2>\n"
+         "<p>The bar heights are taken from the values in the <b>Value</b> column.</p>\n"
+         "<p>Bars can be grouped using an extra <b>Category</b> column so sets of "
+         "related values can be placed next to each other.</p>\n"
+         "<p>An optional name can be supplied in the <b>Name</b> column to specify the label "
+         "to use on the axis below the bar.</p>\n"
+         "<p>An optional label can be drawn with the bar to show extra values using "
+         "the <b>Label</b> column.</p>\n"
+         "<p>The color of the bar can be customized using the <b>Color</b> column.</p>\n"
+         "<p>The extra id can specified using the <b>Id</b> column.</p>"
+         "<h2>Options</h2>\n"
+         "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
+         "instead of the normal <b>Category</b> column.</p>\n"
+         "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
+         "color instead using different colors for each bar in the group.</p>\n"
+         "<p>Enabling the <b>Stacked</b> option places grouped bars on top of each other "
+         "instead of the normal side by side placement.</p>\n"
+         "<p>Enabling the <b>Percent</b> option rescales the values to a percentage of the "
+         "maximum and minimum of the values.</p>\n"
+         "<p>Enabling the <b>Range Bar</b> option draws a bar for the range (min/max) of "
+         "the grouped values.</p>\n"
+         "<p>Enabling the <b>Horizontal</b> option draws the bars horizontally instead "
+         "of vertically.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsBarChartPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -927,6 +958,8 @@ initObjs()
 
   //---
 
+  barWidth_ = 1.0;
+
   int ns = (! isRangeBar() ? numValueColumns() : 1);
 
   // start at px1 - bar width
@@ -1045,12 +1078,16 @@ initObjs()
           brect = CQChartsGeom::BBox(bx, value1, bx + 1.0, value2);
         else
           brect = CQChartsGeom::BBox(bx1, value1, bx1 + bw1, value2);
+
+        barWidth_ = std::min(barWidth_, brect.getWidth());
       }
       else {
         if (isStacked())
           brect = CQChartsGeom::BBox(value1, bx, value2, bx + 1.0);
         else
           brect = CQChartsGeom::BBox(value1, bx1, value2, bx1 + bw1);
+
+        barWidth_ = std::min(barWidth_, brect.getHeight());
       }
 
       CQChartsBarChartObj *barObj = nullptr;
@@ -1325,6 +1362,22 @@ draw(QPainter *painter)
   //---
 
   drawParts(painter);
+}
+
+//------
+
+double
+CQChartsBarChartPlot::
+getPanX(bool is_shift) const
+{
+  return windowToViewWidth(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
+}
+
+double
+CQChartsBarChartPlot::
+getPanY(bool is_shift) const
+{
+  return windowToViewHeight(is_shift ? 2.0*barWidth_ : 1.0*barWidth_);
 }
 
 //------

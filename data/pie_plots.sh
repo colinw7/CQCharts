@@ -27,4 +27,4 @@ CQChartsTest \
  -csv data/multi_bar.csv -first_line_header \
  -type pie -columns "label=0,data=1 2 3 4 5 6 7" \
  -plot_title "multi column pie chart" \
- -properties "columns.rowGrouping=1"
+ -properties "options.rowGrouping=1"

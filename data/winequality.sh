@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec winequality.tcl
+CQChartsTest -tcl -exec winequality.tcl -loop

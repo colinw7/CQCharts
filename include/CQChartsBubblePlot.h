@@ -18,7 +18,11 @@ class CQChartsBubblePlotType : public CQChartsPlotType {
   QString name() const override { return "bubble"; }
   QString desc() const override { return "Bubble"; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
+
+  QString description() const override;
 
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }

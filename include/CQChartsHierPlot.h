@@ -1,15 +1,8 @@
 #ifndef CQChartsHierPlot_H
 #define CQChartsHierPlot_H
 
-#include <CQChartsPlotType.h>
+#include <CQChartsHierPlotType.h>
 #include <CQChartsPlot.h>
-
-class CQChartsHierPlotType : public CQChartsPlotType {
- public:
-  CQChartsHierPlotType();
-
-  void addParameters() override;
-};
 
 //----
 

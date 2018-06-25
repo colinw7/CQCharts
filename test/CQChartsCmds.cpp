@@ -497,7 +497,7 @@ loadModelCmd(const Vars &vars)
   if (columnTypes != "") {
     ModelP model = modelData->model();
 
-    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes, /*remap*/true);
+    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
   }
 
   setCmdRc(modelData->ind());
@@ -514,7 +514,8 @@ processModelCmd(const Vars &vars)
   CQChartsCmdsArgs argv("process_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model index").setRequired();
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number for delete");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column ,
+                 "column for delete, modify, calc, query");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-add"   , CQChartsCmdArg::Type::Boolean, "add column");
@@ -589,9 +590,9 @@ processModelCmd(const Vars &vars)
     setCmdRc(column);
   }
   else if (argv.getParseBool("delete")) {
-    int column = argv.getParseInt("column", -1);
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    if (! exprModel->removeExtraColumn(column)) {
+    if (! exprModel->removeExtraColumn(column.column())) {
       errorMsg("Failed to delete column");
       return;
     }
@@ -599,9 +600,9 @@ processModelCmd(const Vars &vars)
     setCmdRc(-1);
   }
   else if (argv.getParseBool("modify")) {
-    int column = argv.getParseInt("column", -1);
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    if (! exprModel->assignExtraColumn(header, column, expr)) {
+    if (! exprModel->assignExtraColumn(header, column.column(), expr)) {
       errorMsg("Failed to modify column");
       return;
     }
@@ -610,19 +611,19 @@ processModelCmd(const Vars &vars)
 
     if (type.length()) {
       if (! CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, type)) {
-        errorMsg(QString("Invalid type '" + type + "' for column '%1'").arg(column));
+        errorMsg(QString("Invalid type '" + type + "' for column '%1'").arg(column.column()));
         return;
       }
     }
 
-    setCmdRc(column);
+    setCmdRc(column.column());
   }
   else if (argv.getParseBool("calc")) {
-    int column = argv.getParseInt("column", -1);
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
 
     CQExprModel::Values values;
 
-    exprModel->calcColumn(column, expr, values);
+    exprModel->calcColumn(column.column(), expr, values);
 
     QVariantList vars;
 
@@ -632,11 +633,11 @@ processModelCmd(const Vars &vars)
     setCmdRc(vars);
   }
   else if (argv.getParseBool("query")) {
-    int column = argv.getParseInt("column", -1);
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
 
     CQExprModel::Rows rows;
 
-    exprModel->queryColumn(column, expr, rows);
+    exprModel->queryColumn(column.column(), expr, rows);
 
     using QVariantList = QList<QVariant>;
 
@@ -902,7 +903,7 @@ createPlotCmd(const Vars &vars)
   if (columnTypes != "") {
     ModelP model = modelData->model();
 
-    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes, /*remap*/true);
+    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
   }
 
   //------
@@ -1521,15 +1522,14 @@ foldModelCmd(const Vars &vars)
   CQChartsCmdsArgs argv("fold_model", vars);
 
   argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number to fold");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to fold");
 
   if (! argv.parse())
     return;
 
   //---
 
-  int modelInd = argv.getParseInt("model" , -1);
-  int column   = argv.getParseInt("column", -1);
+  int modelInd = argv.getParseInt("model", -1);
 
   //------
 
@@ -1543,7 +1543,11 @@ foldModelCmd(const Vars &vars)
 
   ModelP model = modelData->model();
 
-  CQFoldData foldData(column);
+  CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+  //---
+
+  CQFoldData foldData(column.column());
 
   CQFoldedModel *foldedModel = new CQFoldedModel(model.data(), foldData);
 
@@ -1814,7 +1818,7 @@ sortModelCmd(const Vars &vars)
   CQChartsCmdsArgs argv("sort_model", vars);
 
   argv.addCmdArg("-model"     , CQChartsCmdArg::Type::Integer, "model id");
-  argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Integer, "column number to sort");
+  argv.addCmdArg("-column"    , CQChartsCmdArg::Type::Column , "column to sort");
   argv.addCmdArg("-decreasing", CQChartsCmdArg::Type::Boolean, "invert sort");
 
   if (! argv.parse())
@@ -1822,9 +1826,8 @@ sortModelCmd(const Vars &vars)
 
   //---
 
-  int modelInd    = argv.getParseInt ("model" , -1);
-  int column      = argv.getParseInt ("column", -1);
-  bool decreasing = argv.getParseBool("decreasing");
+  int  modelInd   = argv.getParseInt   ("model" , -1);
+  bool decreasing = argv.getParseBool  ("decreasing");
 
   //------
 
@@ -1838,9 +1841,13 @@ sortModelCmd(const Vars &vars)
 
   ModelP model = modelData->model();
 
+  CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+  //---
+
   Qt::SortOrder order = (decreasing ? Qt::DescendingOrder : Qt::AscendingOrder);
 
-  sortModel(model, column, order);
+  sortModel(model, column.column(), order);
 }
 
 //------
@@ -2007,10 +2014,9 @@ getChartsDataCmd(const Vars &vars)
   argv.addCmdArg("-plot"  , CQChartsCmdArg::Type::String , "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-column", CQChartsCmdArg::Type::Integer, "column number");
+  argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column");
   argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
-  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Integer, "row number");
-  argv.addCmdArg("-row_id", CQChartsCmdArg::Type::String , "row id");
+  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
   argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String , "role id");
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "option name");
   argv.addCmdArg("-data"  , CQChartsCmdArg::Type::String , "option data");
@@ -2020,11 +2026,9 @@ getChartsDataCmd(const Vars &vars)
 
   //---
 
-  int     icolumn = argv.getParseInt ("column"); // support column name
-  bool    header  = argv.getParseBool("header");
-  int     row     = argv.getParseInt ("row");
-  QString name    = argv.getParseStr ("name", "current");
-  QString data    = argv.getParseStr ("data", "");
+  bool    header = argv.getParseBool("header");
+  QString name   = argv.getParseStr ("name");
+  QString data   = argv.getParseStr ("data", "");
 
   //---
 
@@ -2052,19 +2056,25 @@ getChartsDataCmd(const Vars &vars)
 
     //---
 
+    CQChartsColumn column = argv.getParseColumn("column", model.data());
+
+    int row = argv.getParseRow("row");
+
+    //---
+
     // get column header or row, column value
     if      (name == "value") {
       QVariant var;
 
       if (header) {
-        if (icolumn < 0) {
+        if (! column.isValid()) {
           errorMsg("Invalid header column specified");
           setCmdRc(QString());
         }
 
         bool ok;
 
-        var = CQChartsUtil::modelHeaderValue(model.data(), icolumn, role, ok);
+        var = CQChartsUtil::modelHeaderValue(model.data(), column, role, ok);
 
         if (! var.isValid()) {
           errorMsg("Invalid header value");
@@ -2072,7 +2082,7 @@ getChartsDataCmd(const Vars &vars)
         }
       }
       else {
-        QModelIndex ind = model.data()->index(row, icolumn);
+        QModelIndex ind = model.data()->index(row, column.column());
 
         if (! ind.isValid()) {
           errorMsg("Invalid data row/column specified");
@@ -2106,15 +2116,16 @@ getChartsDataCmd(const Vars &vars)
              name == "monotonic" || name == "increasing" ||
              name == "num_unique" || name == "unique_values" || name == "unique_counts" ||
              name == "num_null" ||
-             name == "median" || name == "lower_median" || name == "upper_median") {
+             name == "median" || name == "lower_median" || name == "upper_median" ||
+             name == "outliers") {
       const CQChartsModelDetails *details = modelData->details();
 
-      if (icolumn < 0 || icolumn >= details->numColumns()) {
+      if (! column.isValid() || column.column() >= details->numColumns()) {
         errorMsg("Invalid column specified");
         setCmdRc(QString());
       }
 
-      const CQChartsModelColumnDetails *columnDetails = details->columnDetails(icolumn);
+      const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
       if      (name == "type")
         setCmdRc(columnDetails->typeName());
@@ -2146,22 +2157,25 @@ getChartsDataCmd(const Vars &vars)
         setCmdRc(columnDetails->lowerMedianValue());
       else if (name == "upper_median")
         setCmdRc(columnDetails->upperMedianValue());
+
+      else if (name == "outliers")
+        setCmdRc(columnDetails->outlierValues());
     }
     else if (name == "map") {
       CQChartsModelDetails *details = modelData->details();
 
-      if (icolumn < 0 || icolumn >= details->numColumns()) {
+      if (! column.isValid() || column.column() >= details->numColumns()) {
         errorMsg("Invalid column specified");
         setCmdRc(QString());
       }
 
-      QModelIndex ind = model.data()->index(row, icolumn);
+      QModelIndex ind = model.data()->index(row, column.column());
 
       bool ok;
 
       QVariant var = CQChartsUtil::modelValue(model.data(), ind, role, ok);
 
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(icolumn);
+      CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
       double r = columnDetails->map(var);
 
@@ -2223,6 +2237,8 @@ getChartsDataCmd(const Vars &vars)
     CQChartsPlot *plot = getPlotByName(view, plotName);
     if (! plot) return;
 
+    int row = argv.getParseRow("row", plot);
+
     //---
 
     // get model ind
@@ -2238,17 +2254,21 @@ getChartsDataCmd(const Vars &vars)
     }
     // get column header or row, column value
     else if (name == "value") {
+      CQChartsColumn column = argv.getParseColumn("column", plot->model().data());
+
+      //---
+
       QVariant var;
 
       if (header) {
-        if (icolumn < 0) {
+        if (! column.isValid()) {
           errorMsg("Invalid header column specified");
           setCmdRc(QString());
         }
 
         bool ok;
 
-        var = CQChartsUtil::modelHeaderValue(plot->model().data(), icolumn, role, ok);
+        var = CQChartsUtil::modelHeaderValue(plot->model().data(), column, role, ok);
 
         if (! var.isValid()) {
           errorMsg("Invalid header value");
@@ -2256,19 +2276,6 @@ getChartsDataCmd(const Vars &vars)
         }
       }
       else {
-        QString rowId = argv.getParseStr("row_id");
-
-        if (rowId != "") {
-          row = plot->getRowForId(rowId);
-
-          if (row < 0) {
-            errorMsg("Invalid row id '" + rowId + "' specified");
-            setCmdRc(QString());
-          }
-        }
-
-        CQChartsColumn column(icolumn);
-
         bool ok;
 
         QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
@@ -2286,20 +2293,22 @@ getChartsDataCmd(const Vars &vars)
         return;
       }
 
+      CQChartsColumn column = argv.getParseColumn("column", plot->model().data());
+
+      //---
+
       CQChartsModelDetails *details = modelData->details();
 
-      if (icolumn < 0 || icolumn >= details->numColumns()) {
+      if (! column.isValid() || column.column() >= details->numColumns()) {
         errorMsg("Invalid column specified");
         setCmdRc(QString());
       }
-
-      CQChartsColumn column(icolumn);
 
       bool ok;
 
       QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
 
-      CQChartsModelColumnDetails *columnDetails = details->columnDetails(icolumn);
+      CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
       double r = columnDetails->map(var);
 
@@ -2397,8 +2406,7 @@ setChartsDataCmd(const Vars &vars)
 
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column to set");
   argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
-  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Integer, "row number");
-  argv.addCmdArg("-row_id", CQChartsCmdArg::Type::String , "row id");
+  argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
   argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String , "role id");
   argv.addCmdArg("-name"  , CQChartsCmdArg::Type::String , "data name");
   argv.addCmdArg("-value" , CQChartsCmdArg::Type::String , "data value");
@@ -2408,10 +2416,9 @@ setChartsDataCmd(const Vars &vars)
 
   //---
 
-  bool    header = argv.getParseBool  ("header");
-  int     row    = argv.getParseInt   ("row");
-  QString name   = argv.getParseStr   ("name");
-  QString value  = argv.getParseStr   ("value");
+  bool    header = argv.getParseBool("header");
+  QString name   = argv.getParseStr ("name");
+  QString value  = argv.getParseStr ("value");
 
   //---
 
@@ -2441,6 +2448,8 @@ setChartsDataCmd(const Vars &vars)
 
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
+    int row = argv.getParseRow("row");
+
     // set column header or row, column value
     if      (name == "value") {
       if (header) {
@@ -2468,9 +2477,9 @@ setChartsDataCmd(const Vars &vars)
       ModelP model = modelData->model();
 
       if (column.isValid())
-        CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, value, /*remap*/true);
+        CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, value);
       else
-        CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value, /*remap*/true);
+        CQChartsUtil::setColumnTypeStrs(charts_, model.data(), value);
     }
     else if (name == "name") {
       modelData->setName(value);
@@ -3083,7 +3092,7 @@ createPointShapeCmd(const Vars &vars)
   QString typeStr = argv.getParseStr("type");
 
   if (typeStr.length())
-    pointData.type = CQChartsPlotSymbolMgr::nameToType(typeStr);
+    pointData.type = CQChartsSymbol::nameToType(typeStr);
 
   pointData.stroke.visible = argv.getParseBool("stroked", pointData.stroke.visible);
   pointData.fill  .visible = argv.getParseBool("filled" , pointData.fill  .visible);

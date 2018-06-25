@@ -2458,37 +2458,31 @@ keyPress(int key, int modifier)
   if      (key == Qt::Key_Left || key == Qt::Key_Right ||
            key == Qt::Key_Up   || key == Qt::Key_Down) {
     if (view()->mode() != CQChartsView::Mode::EDIT) {
-      double f = (! is_shift ? 0.125 : 0.25);
-
       if      (key == Qt::Key_Right)
-        panLeft(f);
+        panLeft(getPanX(is_shift));
       else if (key == Qt::Key_Left)
-        panRight(f);
+        panRight(getPanX(is_shift));
       else if (key == Qt::Key_Up)
-        panDown(f);
+        panDown(getPanY(is_shift));
       else if (key == Qt::Key_Down)
-        panUp(f);
+        panUp(getPanY(is_shift));
     }
     else {
-      double f = (! is_shift ? 0.025 : 0.05);
-
       if      (key == Qt::Key_Right)
-        editMoveBy(QPointF( f, 0));
+        editMoveBy(QPointF( getMoveX(is_shift), 0));
       else if (key == Qt::Key_Left)
-        editMoveBy(QPointF(-f, 0));
+        editMoveBy(QPointF(-getMoveX(is_shift), 0));
       else if (key == Qt::Key_Up)
-        editMoveBy(QPointF(0, f));
+        editMoveBy(QPointF(0, getMoveY(is_shift)));
       else if (key == Qt::Key_Down)
-        editMoveBy(QPointF(0, -f));
+        editMoveBy(QPointF(0, -getMoveY(is_shift)));
     }
   }
   else if (key == Qt::Key_Plus || key == Qt::Key_Minus) {
-    double f = (! is_shift ? 1.5 : 2.0);
-
     if (key == Qt::Key_Plus)
-      zoomIn(f);
+      zoomIn(getZoomFactor(is_shift));
     else
-      zoomOut(f);
+      zoomOut(getZoomFactor(is_shift));
   }
   else if (key == Qt::Key_Home) {
     zoomFull();
@@ -2501,6 +2495,41 @@ keyPress(int key, int modifier)
   }
   else
     return;
+}
+
+double
+CQChartsPlot::
+getPanX(bool is_shift) const
+{
+  return (! is_shift ? 0.125 : 0.25);
+}
+
+double
+CQChartsPlot::
+getPanY(bool is_shift) const
+{
+  return (! is_shift ? 0.125 : 0.25);
+}
+
+double
+CQChartsPlot::
+getMoveX(bool is_shift) const
+{
+  return (! is_shift ? 0.025 : 0.05);
+}
+
+double
+CQChartsPlot::
+getMoveY(bool is_shift) const
+{
+  return (! is_shift ? 0.025 : 0.05);
+}
+
+double
+CQChartsPlot::
+getZoomFactor(bool is_shift) const
+{
+  return (! is_shift ? 1.5 : 2.0);
 }
 
 void
@@ -2552,9 +2581,9 @@ panLeft(double f)
     return;
 
   if (view_->isZoomData()) {
-    CQChartsGeom::BBox dataRange = calcDataRange();
+    double dx = viewToWindowWidth(f);
 
-    dataOffset_.setX(dataOffset_.x - f*dataRange.getWidth());
+    dataOffset_.setX(dataOffset_.x - dx);
 
     applyDataRange();
 
@@ -2575,9 +2604,9 @@ panRight(double f)
     return;
 
   if (view_->isZoomData()) {
-    CQChartsGeom::BBox dataRange = calcDataRange();
+    double dx = viewToWindowWidth(f);
 
-    dataOffset_.setX(dataOffset_.x + f*dataRange.getWidth());
+    dataOffset_.setX(dataOffset_.x + dx);
 
     applyDataRange();
 
@@ -2598,9 +2627,9 @@ panUp(double f)
     return;
 
   if (view_->isZoomData()) {
-    CQChartsGeom::BBox dataRange = calcDataRange();
+    double dy = viewToWindowHeight(f);
 
-    dataOffset_.setY(dataOffset_.y + f*dataRange.getHeight());
+    dataOffset_.setY(dataOffset_.y + dy);
 
     applyDataRange();
 
@@ -2621,9 +2650,9 @@ panDown(double f)
     return;
 
   if (view_->isZoomData()) {
-    CQChartsGeom::BBox dataRange = calcDataRange();
+    double dy = viewToWindowHeight(f);
 
-    dataOffset_.setY(dataOffset_.y - f*dataRange.getHeight());
+    dataOffset_.setY(dataOffset_.y - dy);
 
     applyDataRange();
 
@@ -3239,7 +3268,7 @@ addPolylineAnnotation(const QPolygonF &points)
 
 CQChartsPointAnnotation *
 CQChartsPlot::
-addPointAnnotation(const QPointF &pos, const CQChartsPlotSymbol::Type &type)
+addPointAnnotation(const QPointF &pos, const CQChartsSymbol &type)
 {
   CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
 
@@ -3509,7 +3538,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
 
 void
 CQChartsPlot::
-drawSymbol(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
+drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
            double size, bool stroked, const QColor &strokeColor, double lineWidth,
            bool filled, const QColor &fillColor)
 {
@@ -3538,7 +3567,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &
 
 void
 CQChartsPlot::
-drawSymbol(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol, double size)
+drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size)
 {
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
 
@@ -4959,6 +4988,47 @@ modelColor(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
   return modelColor(model().data(), row, column, parent, ok);
 }
 
+//---
+
+std::vector<double>
+CQChartsPlot::
+modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
+{
+  QVariant var = modelValue(model().data(), row, column, parent, ok);
+
+  std::vector<double> reals;
+
+  if (var.type() == QVariant::List) {
+    QList<QVariant> vars = var.toList();
+
+    for (int i = 0; i < vars.length(); ++i) {
+      bool ok1;
+
+      double r = CQChartsUtil::toReal(vars[i], ok1);
+
+      if (! ok1) {
+        ok = false;
+        continue;
+      }
+
+      reals.push_back(r);
+    }
+  }
+  else if (var.type() == QVariant::Double) {
+    double r = CQChartsUtil::toReal(var, ok);
+
+    reals.push_back(r);
+  }
+  else {
+    std::vector<double> reals1 = CQChartsUtil::varToReals(var, ok);
+
+    if (ok)
+      reals = reals1;
+  }
+
+  return reals;
+}
+
 //------
 
 QString
@@ -5168,7 +5238,7 @@ modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, 
   if (! ok)
     return 0.0;
 
-  return CQChartsUtil::varToReal(var, ok);
+  return CQChartsUtil::toReal(var, ok);
 }
 
 double
@@ -5181,7 +5251,7 @@ modelHierReal(int row, const CQChartsColumn &column,
   if (! ok)
     return 0.0;
 
-  return CQChartsUtil::varToReal(var, ok);
+  return CQChartsUtil::toReal(var, ok);
 }
 
 //--
@@ -5195,7 +5265,7 @@ modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &paren
   if (! ok)
     return 0;
 
-  return CQChartsUtil::varToInt(var, ok);
+  return CQChartsUtil::toInt(var, ok);
 }
 
 long
@@ -5208,7 +5278,7 @@ modelHierInteger(int row, const CQChartsColumn &column,
   if (! ok)
     return 0;
 
-  return CQChartsUtil::varToInt(var, ok);
+  return CQChartsUtil::toInt(var, ok);
 }
 
 //------
@@ -5493,6 +5563,30 @@ windowToPixel(double wx, double wy, double &px, double &py) const
   view_->windowToPixel(vx, vy, px, py);
 }
 
+double
+CQChartsPlot::
+windowToViewWidth(double wx) const
+{
+  double vx1, vy1, vx2, vy2;
+
+  windowToView(0.0, 0.0, vx1, vy1);
+  windowToView(wx , wx , vx2, vy2);
+
+  return fabs(vx2 - vx1);
+}
+
+double
+CQChartsPlot::
+windowToViewHeight(double wy) const
+{
+  double vx1, vy1, vx2, vy2;
+
+  windowToView(0.0, 0.0, vx1, vy1);
+  windowToView(wy , wy , vx2, vy2);
+
+  return fabs(vy2 - vy1);
+}
+
 void
 CQChartsPlot::
 windowToView(double wx, double wy, double &vx, double &vy) const
@@ -5522,6 +5616,30 @@ pixelToWindow(double px, double py, double &wx, double &wy) const
   view_->pixelToWindow(px, py, vx, vy);
 
   viewToWindow(vx, vy, wx, wy);
+}
+
+double
+CQChartsPlot::
+viewToWindowWidth(double vx) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  viewToWindow(0.0, 0.0, wx1, wy1);
+  viewToWindow(vx , vx , wx2, wy2);
+
+  return fabs(wx2 - wx1);
+}
+
+double
+CQChartsPlot::
+viewToWindowHeight(double vy) const
+{
+  double wx1, wy1, wx2, wy2;
+
+  viewToWindow(0.0, 0.0, wx1, wy1);
+  viewToWindow(vy , vy , wx2, wy2);
+
+  return fabs(wy2 - wy1);
 }
 
 void

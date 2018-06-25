@@ -694,6 +694,9 @@ class CQChartsPlot : public QObject {
   CQChartsColor modelColor(int row, const CQChartsColumn &column,
                            const QModelIndex &parent, int role, bool &ok) const;
 
+  std::vector<double> modelReals(int row, const CQChartsColumn &column,
+                                 const QModelIndex &parent, bool &ok) const;
+
   //---
 
   virtual QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &column,
@@ -789,6 +792,12 @@ class CQChartsPlot : public QObject {
 
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void windowToView (double wx, double wy, double &vx, double &vy) const;
+
+  double windowToViewWidth (double wx) const;
+  double windowToViewHeight(double wy) const;
+
+  double viewToWindowWidth (double vx) const;
+  double viewToWindowHeight(double vy) const;
 
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
   void viewToWindow (double vx, double vy, double &wx, double &wy) const;
@@ -973,6 +982,14 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  virtual double getPanX(bool is_shift) const;
+  virtual double getPanY(bool is_shift) const;
+
+  virtual double getMoveX(bool is_shift) const;
+  virtual double getMoveY(bool is_shift) const;
+
+  virtual double getZoomFactor(bool is_shift) const;
+
  public slots:
   void updateSlot();
 
@@ -1062,8 +1079,7 @@ class CQChartsPlot : public QObject {
                                                     double yRadius);
   CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
   CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
-  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos,
-                                                    const CQChartsPlotSymbol::Type &type);
+  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos, const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -1111,12 +1127,11 @@ class CQChartsPlot : public QObject {
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data);
 
-  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsPlotSymbol::Type &symbol,
+  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
                   double size, bool stroked, const QColor &strokeColor, double lineWidth,
                   bool filled, const QColor &fillColor);
 
-  void drawSymbol(QPainter *painter, const QPointF &p,
-                  const CQChartsPlotSymbol::Type &symbol, double size);
+  void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size);
 
   void drawTextAtPoint(QPainter *painter, const QPointF &point,
                        const QString &text, const QPen &pen,

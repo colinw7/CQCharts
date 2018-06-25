@@ -102,7 +102,7 @@ load(const QString &filename)
 
   //---
 
-  genColumnTypes();
+  resetColumnTypes();
 
   return true;
 }
