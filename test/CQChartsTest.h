@@ -69,9 +69,6 @@ class CQChartsTest : public QObject {
   bool isShow() const { return show_; }
   void setShow(bool b) { show_ = b; }
 
-  bool isShowApp() const { return showApp_; }
-  void setShowApp(bool b) { showApp_ = b; }
-
   CQCharts *charts() const { return charts_; }
 
   CQChartsCmds *cmds() const { return cmds_; }
@@ -94,11 +91,10 @@ class CQChartsTest : public QObject {
   void plotAdded(CQChartsPlot *plot);
 
  private:
-  CQCharts*     charts_  { nullptr };
-  CQChartsCmds* cmds_    { nullptr };
-  bool          gui_     { true };
-  bool          show_    { true };
-  bool          showApp_ { false };
+  CQCharts*     charts_ { nullptr };
+  CQChartsCmds* cmds_   { nullptr };
+  bool          gui_    { true };
+  bool          show_   { true };
 };
 
 #endif

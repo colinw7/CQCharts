@@ -2,44 +2,44 @@
 
 CQChartsTest \
  -csv data/multi_bar.csv -first_line_header \
- -type barchart -columns "category=0,value=1" -column_type "1#integer" \
+ -type barchart -columns "group=0,value=1" -column_type "1#integer" \
  -plot_title "bar chart"
 
 CQChartsTest \
  -csv data/multi_bar.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3 4 5 6 7" \
+ -type barchart -columns "group=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer"
 CQChartsTest \
  -csv data/multi_bar.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3 4 5 6 7" \
+ -type barchart -columns "group=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer" \
- -properties "options.rowGrouping=1"
+ -properties "grouping.rowGrouping=1"
 
 CQChartsTest \
  -csv data/group.csv -comment_header \
- -type barchart -columns "category=1,value=2,name=0"
+ -type barchart -columns "group=1,value=2,name=0"
 
 #--
 
 CQChartsTest \
  -csv data/ages.csv -first_line_header \
- -type barchart -columns "category=0,value=1" \
+ -type barchart -columns "group=0,value=1" \
  -plot_title "bar chart" -column_type "1#integer"
 
 CQChartsTest \
  -csv data/group_ages.csv -first_line_header \
- -type barchart -columns "category=0,name=1,value=2" \
+ -type barchart -columns "group=0,name=1,value=2" \
  -plot_title "grouped bar chart" -column_type "2#integer"
 CQChartsTest \
  -csv data/group_ages.csv -first_line_header -fold 0 \
- -type barchart -columns "category=1,value=2" \
+ -type barchart -columns "group=1,value=2" \
  -plot_title "folded bar chart" -column_type "2#integer"
 
 # Box Plot
 
 CQChartsTest \
  -csv data/boxplot.csv -first_line_header \
- -type box -columns "x=0,y=2" \
+ -type box -columns "group=0,value=2" \
  -plot_title "boxplot"
 
 # Bubble/Hier Bubble Plot
@@ -47,10 +47,10 @@ CQChartsTest \
 CQChartsTest -json data/flare.json \
  -type bubble -columns "name=0,value=1" \
  -plot_title "bubble"
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type bubble -columns "name=0,value=1" -column_type "1#real" \
  -plot_title "bubble"
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type bubble -columns "name=0,value=1" \
  -plot_title "bubble"
 CQChartsTest -csv data/pareto.csv -comment_header \
@@ -60,7 +60,7 @@ CQChartsTest -csv data/pareto.csv -comment_header \
 CQChartsTest -json data/flare.json \
  -type hierbubble -columns "name=0,value=1" \
  -plot_title "hierarchical bubble (hier data)"
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type hierbubble -columns "name=0,value=1" \
  -plot_title "hierarchical bubble (flat data)"
 CQChartsTest -csv data/hier.csv -comment_header \
@@ -101,7 +101,7 @@ CQChartsTest \
 
 # Dendrogram
 
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type dendrogram -columns "name=0,value=1" \
  -plot_title "dendrogram"
 CQChartsTest -json data/flare.json \
@@ -198,7 +198,7 @@ CQChartsTest \
 CQChartsTest -json data/flare.json \
  -type sunburst -columns "name=0,value=1" \
  -plot_title "sunburst"
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type sunburst -columns "name=0,value=1" \
  -plot_title "sunburst"
 CQChartsTest -tsv data/coffee.tsv -first_line_header \
@@ -214,7 +214,7 @@ CQChartsTest -csv data/book_revenue.csv -first_line_header \
 CQChartsTest -json data/flare.json \
  -type treemap -columns "name=0,value=1" \
  -plot_title "tree map"
-CQChartsTest -csv data/flare.csv \
+CQChartsTest -csv data/flare.csv -comment_header \
  -type treemap -columns "name=0,value=1" \
  -plot_title "tree map"
 CQChartsTest -tsv data/coffee.tsv -first_line_header \
@@ -501,17 +501,17 @@ CQChartsTest -y1y2 \
 
 CQChartsTest \
  -csv data/money_bar.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3 4" \
+ -type barchart -columns "group=0,value=1 2 3 4" \
  -bool "horizontal=1"
 CQChartsTest \
  -csv data/money_bar_neg.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3" \
+ -type barchart -columns "group=0,value=1 2 3" \
  -bool "horizontal=1" \
  -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
  -properties "xaxis.format=real:format=%T"
 CQChartsTest \
  -csv data/money_bar_stack.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3 4" \
+ -type barchart -columns "group=0,value=1 2 3 4" \
  -bool "horizontal=1,stacked=1"
 
 CQChartsTest -ceil -exec split_bar_connected.cl
@@ -519,7 +519,7 @@ CQChartsTest -ceil -exec split_bar_separated.cl
 
 CQChartsTest \
  -csv data/temp_bar_range.csv -first_line_header \
- -type barchart -columns "category=0,value=2 3" \
+ -type barchart -columns "group=0,value=2 3" \
  -bool "rangeBar=1,horizontal=1" \
  -properties "dataLabel.visible=1,dataLabel.position=TOP_OUTSIDE" \
  -properties "key.visible=0,options.barMargin=12px,fill.color=palette:0.2"
@@ -528,5 +528,5 @@ CQChartsTest \
 
 CQChartsTest \
  -csv data/money_bar_stack_neg.csv -first_line_header \
- -type barchart -columns "category=0,value=1 2 3 4" \
+ -type barchart -columns "group=0,value=1 2 3 4" \
  -bool "stacked=1,percent=1"

@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
@@ -17,12 +18,18 @@ void
 CQChartsHierScatterPlotType::
 addParameters()
 {
+  startParameterGroup("Hier Scatter");
+
   addColumnParameter ("x"    , "X"    , "xColumn"       , 0).setRequired();
   addColumnParameter ("y"    , "Y"    , "yColumn"       , 1).setRequired();
   addColumnParameter ("name" , "Name" , "nameColumn"    );
   addColumnsParameter("group", "Group", "groupColumnStr");
 
   addBoolParameter("textLabels", "Text Labels", "textLabels");
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

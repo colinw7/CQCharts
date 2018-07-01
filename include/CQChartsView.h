@@ -276,7 +276,7 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox(0, 0, 1, 1));
+  void addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox());
 
   int numPlots() const { return plots_.size(); }
 

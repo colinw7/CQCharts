@@ -16,8 +16,14 @@ void
 CQChartsSankeyPlotType::
 addParameters()
 {
+  startParameterGroup("Sankey");
+
   addColumnParameter("link" , "Source/Target", "linkColumn" , 0).setRequired();
   addColumnParameter("value", "Value"        , "valueColumn", 1).setRequired();
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

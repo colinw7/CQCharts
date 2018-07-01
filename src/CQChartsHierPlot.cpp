@@ -41,7 +41,7 @@ setNameColumns(const Columns &nameColumns)
   if (! nameColumns_.empty())
     nameColumn_ = nameColumns_[0];
   else
-    nameColumn_ = -1;
+    nameColumn_ = CQChartsColumn();
 
   updateRangeAndObjs();
 }

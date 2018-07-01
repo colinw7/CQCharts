@@ -68,10 +68,11 @@ class CQChartsGradientPaletteControl : public QFrame {
 
   void readFile(const QString &fileName);
 
-  void updateState();
-
  signals:
   void stateChanged();
+
+ public slots:
+  void updateState();
 
  private slots:
   void colorTypeChanged(int);

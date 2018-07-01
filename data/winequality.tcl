@@ -30,7 +30,7 @@ set view1 [create_view]
 set box_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
-  set plot [create_plot -view $view1 -model $model -type boxplot -columns "x=(0),y=$c"]
+  set plot [create_plot -view $view1 -model $model -type boxplot -columns "group=(0),value=$c"]
 
   lappend box_plots $plot
 
@@ -52,7 +52,7 @@ set view2 [create_view]
 set dist_plots {}
 
 for {set c 0} {$c < $nc} {incr c} {
-  set plot [create_plot -view $view2 -model $model -type distribution -columns "value=$c"]
+  set plot [create_plot -view $view2 -model $model -type distribution -columns "group=$c"]
 
   lappend dist_plots $plot
 

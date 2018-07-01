@@ -85,22 +85,6 @@ init()
   initFunctions();
 }
 
-void
-CQChartsGradientPalette::
-initFunctions()
-{
-  if      (exprType_ == ExprType::CEXPR) {
-    setRedFunction  ("gray");
-    setGreenFunction("gray");
-    setBlueFunction ("gray");
-  }
-  else if (exprType_ == ExprType::TCL) {
-    setRedFunction  ("$gray");
-    setGreenFunction("$gray");
-    setBlueFunction ("$gray");
-  }
-}
-
 CQChartsGradientPalette::
 CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 {
@@ -127,6 +111,24 @@ CQChartsGradientPalette::
 #ifdef CQCharts_USE_TCL
   delete qtcl_;
 #endif
+}
+
+//---
+
+void
+CQChartsGradientPalette::
+initFunctions()
+{
+  if      (exprType_ == ExprType::CEXPR) {
+    setRedFunction  ("gray");
+    setGreenFunction("gray");
+    setBlueFunction ("gray");
+  }
+  else if (exprType_ == ExprType::TCL) {
+    setRedFunction  ("$gray");
+    setGreenFunction("$gray");
+    setBlueFunction ("$gray");
+  }
 }
 
 //---

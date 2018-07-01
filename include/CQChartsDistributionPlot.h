@@ -1,17 +1,15 @@
 #ifndef CQChartsDistributionPlot_H
 #define CQChartsDistributionPlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
-#include <CQBucketer.h>
 
 //---
 
 // distribution plot type
-class CQChartsDistributionPlotType : public CQChartsPlotType {
+class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsDistributionPlotType();
 
@@ -92,29 +90,33 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 //---
 
 // distribution plot
-class CQChartsDistributionPlot : public CQChartsPlot {
+class CQChartsDistributionPlot : public CQChartsGroupPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn   WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn colorColumn READ colorColumn   WRITE setColorColumn)
-  Q_PROPERTY(bool           autoRange   READ isAutoRange   WRITE setAutoRange  )
-  Q_PROPERTY(double         startValue  READ startValue    WRITE setStartValue )
-  Q_PROPERTY(double         deltaValue  READ deltaValue    WRITE setDeltaValue )
-  Q_PROPERTY(int            numAuto     READ numAuto       WRITE setNumAuto    )
-  Q_PROPERTY(bool           horizontal  READ isHorizontal  WRITE setHorizontal )
-  Q_PROPERTY(double         margin      READ margin        WRITE setMargin     )
-  Q_PROPERTY(bool           border      READ isBorder      WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor  borderColor READ borderColor   WRITE setBorderColor)
-  Q_PROPERTY(double         borderAlpha READ borderAlpha   WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength borderWidth READ borderWidth   WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLength cornerSize  READ cornerSize    WRITE setCornerSize )
-  Q_PROPERTY(bool           barFill     READ isBarFill     WRITE setBarFill    )
-  Q_PROPERTY(CQChartsColor  barColor    READ barColor      WRITE setBarColor   )
-  Q_PROPERTY(double         barAlpha    READ barAlpha      WRITE setBarAlpha   )
-  Q_PROPERTY(Pattern        barPattern  READ barPattern    WRITE setBarPattern )
-  Q_PROPERTY(bool           colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double         colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double         colorMapMax READ colorMapMax   WRITE setColorMapMax)
+  Q_PROPERTY(CQChartsColumn   colorColumn  READ colorColumn     WRITE setColorColumn    )
+
+  // options
+  Q_PROPERTY(bool             horizontal   READ isHorizontal    WRITE setHorizontal     )
+  Q_PROPERTY(CQChartsLength   margin       READ margin          WRITE setMargin         )
+
+  // bar border
+  Q_PROPERTY(bool             border       READ isBorder        WRITE setBorder         )
+  Q_PROPERTY(CQChartsColor    borderColor  READ borderColor     WRITE setBorderColor    )
+  Q_PROPERTY(double           borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
+  Q_PROPERTY(CQChartsLength   borderWidth  READ borderWidth     WRITE setBorderWidth    )
+  Q_PROPERTY(CQChartsLineDash borderDash   READ borderDash      WRITE setBorderDash     )
+  Q_PROPERTY(CQChartsLength   cornerSize   READ cornerSize      WRITE setCornerSize     )
+
+  // bar fill
+  Q_PROPERTY(bool             barFill      READ isBarFill       WRITE setBarFill        )
+  Q_PROPERTY(CQChartsColor    barColor     READ barColor        WRITE setBarColor       )
+  Q_PROPERTY(double           barAlpha     READ barAlpha        WRITE setBarAlpha       )
+  Q_PROPERTY(Pattern          barPattern   READ barPattern      WRITE setBarPattern     )
+
+  // color map
+  Q_PROPERTY(bool             colorMapped  READ isColorMapped   WRITE setColorMapped    )
+  Q_PROPERTY(double           colorMapMin  READ colorMapMin     WRITE setColorMapMin    )
+  Q_PROPERTY(double           colorMapMax  READ colorMapMax     WRITE setColorMapMax    )
 
   Q_ENUMS(Pattern)
 
@@ -129,8 +131,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     BDIAG
   };
 
-  using OptColor = boost::optional<CQChartsColor>;
-
   struct Filter {
     Filter(double min, double max) :
      minValue(min), maxValue(max) {
@@ -140,7 +140,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
     double maxValue { 1.0 };
   };
 
-  using Values = std::vector<QModelIndex>;
+  using Columns = std::vector<CQChartsColumn>;
+  using Values  = std::vector<QModelIndex>;
 
   enum class BucketValueType {
     START,
@@ -155,31 +156,6 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsColumn &valueColumn() const { return valueSetColumn("values"); }
-  void setValueColumn(const CQChartsColumn &c) {
-    setValueSetColumn("values", c); updateRangeAndObjs(); }
-
-  //---
-
-  bool isAutoRange() const { return bucketer_.type() == CQBucketer::Type::REAL_AUTO; }
-
-  void setAutoRange(bool b) {
-    bucketer_.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
-
-    updateRangeAndObjs();
-  }
-
-  double startValue() const { return bucketer_.rstart(); }
-  void setStartValue(double r) { bucketer_.setRStart(r); updateRangeAndObjs(); }
-
-  double deltaValue() const { return bucketer_.rdelta(); }
-  void setDeltaValue(double r) { bucketer_.setRDelta(r); updateRangeAndObjs(); }
-
-  int numAuto() const { return bucketer_.numAuto(); }
-  void setNumAuto(int i) { bucketer_.setNumAuto(i); updateRangeAndObjs(); }
-
-  //---
-
   bool isHorizontal() const { return horizontal_; }
 
   //---
@@ -191,8 +167,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   //---
 
   // bar margin
-  int margin() const { return margin_; }
-  void setMargin(int i) { margin_ = i; update(); }
+  const CQChartsLength &margin() const { return margin_; }
+  void setMargin(const CQChartsLength &l);
 
   //---
 
@@ -221,6 +197,9 @@ class CQChartsDistributionPlot : public CQChartsPlot {
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const;
+  void setBorderDash(const CQChartsLineDash &v);
 
   const CQChartsLength &cornerSize() const;
   void setCornerSize(const CQChartsLength &r);
@@ -289,6 +268,8 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   CQChartsAxis *valueAxis() const;
   CQChartsAxis *countAxis() const;
 
+  //---
+
   void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
@@ -329,13 +310,11 @@ class CQChartsDistributionPlot : public CQChartsPlot {
   using FilterStack = std::vector<Filters>;
 
  private:
-  CQBucketer        bucketer_;
-  bool              autoDelta_   { false }; // auto delta
-  IValues           ivalues_;               // indexed values
   bool              horizontal_  { false }; // horizontal bars
-  double            margin_      { 2 };     // bar margin
+  CQChartsLength    margin_      { "2px" }; // bar margin
   CQChartsBoxData   boxData_;               // border/fill data
   CQChartsDataLabel dataLabel_;             // data label data
+  IValues           ivalues_;               // indexed values
   FilterStack       filterStack_;           // filter stack
 };
 

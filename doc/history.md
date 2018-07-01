@@ -474,3 +474,13 @@
  + Add pages to summary model and support in plot dialog
  + Make symbol a variant and use in plot properties
  + Support cached converted and formatted values in data model
+# 7/01/2018
+ + draw grid lines between ticks for bar chart groups
+ + make new plot base class for grouping of row/column data
+ + support horizontal box plot bars
+ + support grouping in bubble plot
+ + support edit of palette defined colors
+ + handle less than three values sets in radar plot
+ + add integer plot parameter types and improved editor for required values
+ + add more parameter groups
+ + skip unsupported items from plot context menu

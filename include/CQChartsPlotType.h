@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include <QString>
 #include <map>
+#include <vector>
 
 class CQChartsPlotType;
 class CQChartsView;
@@ -107,6 +108,13 @@ class CQChartsPlotType {
   CQChartsPlotParameter &
   addRealParameter(const QString &name, const QString &desc, const QString &propName,
                    const ParameterAttributes &attributes, double defValue);
+
+  CQChartsPlotParameter &
+  addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                  int defValue=0);
+  CQChartsPlotParameter &
+  addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                  const ParameterAttributes &attributes, int defValue);
 
   CQChartsPlotParameter &
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,

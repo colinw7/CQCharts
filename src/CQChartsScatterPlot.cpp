@@ -2,6 +2,7 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
@@ -16,6 +17,8 @@ void
 CQChartsScatterPlotType::
 addParameters()
 {
+  startParameterGroup("Scatter");
+
   addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
   addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
 
@@ -32,6 +35,10 @@ addParameters()
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
    setTip("Show Text Label at Point");
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

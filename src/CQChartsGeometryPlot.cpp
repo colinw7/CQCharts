@@ -17,12 +17,18 @@ void
 CQChartsGeometryPlotType::
 addParameters()
 {
+  startParameterGroup("Geometry");
+
   addColumnParameter("geometry", "Geometry", "geometryColumn", 0).setRequired();
   addColumnParameter("value"   , "Value"   , "valueColumn"   , 1).setRequired();
 
   addColumnParameter("name" , "Name" , "nameColumn" );
   addColumnParameter("color", "Color", "colorColumn").setTip("Custom shape color");
   addColumnParameter("style", "Style", "styleColumn");
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

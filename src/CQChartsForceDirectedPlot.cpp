@@ -16,11 +16,17 @@ void
 CQChartsForceDirectedPlotType::
 addParameters()
 {
+  startParameterGroup("Force Directed");
+
   addColumnParameter("node"       , "Node"       , "nodeColumn"       );
   addColumnParameter("connections", "Connections", "connectionsColumn");
   addColumnParameter("value"      , "Value"      , "valueColumn"      );
   addColumnParameter("group"      , "Group"      , "groupColumn"      );
   addColumnParameter("name"       , "Name"       , "nameColumn"       );
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

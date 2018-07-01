@@ -187,12 +187,16 @@ class CQChartsCmds : public QObject {
   void manageModelDlgCmd(const Vars &vars);
   void createPlotDlgCmd (const Vars &vars);
 
+#ifdef CQ_CHARTS_CEIL
   void letCmd     (const Vars &vars);
   void ifCmd      (const Vars &vars);
   void whileCmd   (const Vars &vars);
   void continueCmd(const Vars &vars);
   void printCmd   (const Vars &vars);
-  void sourceCmd  (const Vars &vars);
+#endif
+
+  void shellCmd (const Vars &vars);
+  void sourceCmd(const Vars &vars);
 
   //---
 
@@ -235,6 +239,8 @@ class CQChartsCmds : public QObject {
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
   void setCmdRc(const QList<QVariant> &rc);
+
+  QStringList stringToColumns(const QString &str) const;
 
   static void errorMsg(const QString &msg);
 

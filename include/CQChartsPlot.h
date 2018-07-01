@@ -2,12 +2,13 @@
 #define CQChartsPlot_H
 
 #include <CQChartsColor.h>
-#include <CQChartsColumnBucket.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsData.h>
+#include <CQChartsGroupData.h>
 #include <CQChartsPosition.h>
 #include <CQChartsModelVisitor.h>
 #include <CQChartsTextOptions.h>
+#include <CQChartsUtil.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -544,10 +545,6 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
-
-  //---
-
   void startAnimateTimer();
 
   virtual void animateStep() { }
@@ -609,20 +606,6 @@ class CQChartsPlot : public QObject {
   void addValueSetRow(const QModelIndex &parent, int r);
 
   void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
-
-  //---
-
-  struct GroupData {
-    CQChartsColumn column;
-    Columns        columns;
-    bool           rowGrouping { false };
-    bool           defaultRow  { false };
-  };
-
-  void initGroup(const GroupData &data);
-
-  int rowGroupInd(const QModelIndex &parent, int row,
-                  const CQChartsColumn &column=CQChartsColumn()) const;
 
   //---
 
@@ -785,6 +768,8 @@ class CQChartsPlot : public QObject {
   double lengthPlotWidth (const CQChartsLength &len) const;
   double lengthPlotHeight(const CQChartsLength &len) const;
 
+  double lengthPixelSize(const CQChartsLength &len, bool horizontal) const;
+
   double lengthPixelWidth (const CQChartsLength &len) const;
   double lengthPixelHeight(const CQChartsLength &len) const;
 
@@ -923,9 +908,6 @@ class CQChartsPlot : public QObject {
 
   const CQChartsColumn &idColumn() const { return idColumn_; }
   void setIdColumn(const CQChartsColumn &column);
-
-  bool isRowGrouping() const { return rowGrouping_; }
-  void setRowGrouping(bool b) { rowGrouping_ = b; updateRangeAndObjs(); }
 
   //---
 
@@ -1354,7 +1336,6 @@ class CQChartsPlot : public QObject {
   CQChartsColumn            idColumn_;                        // unique data id column (signalled)
   double                    minScaleFontSize_ { 6.0 };        // min scaled font size
   double                    maxScaleFontSize_ { 48.0 };       // max scaled font size
-  bool                      rowGrouping_      { false };      // row grouping on/off
   bool                      equalScale_       { false };      // equal scaled
   bool                      followMouse_      { true };       // track object under mouse
   bool                      autoFit_          { false };      // auto fit on data change
@@ -1370,7 +1351,6 @@ class CQChartsPlot : public QObject {
   ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
   ValueSets                 valueSets_;                       // named value sets
-  CQChartsColumnBucket      groupBucket_;                     // group value bucket
   int                       insidePlotInd_    { 0 };          // current inside plot object ind
   PlotObjSet                insidePlotObjs_;                  // inside plot objects
   SizePlotObjSet            sizeInsidePlotObjs_;              // inside plot objects (szie sorted)

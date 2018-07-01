@@ -20,19 +20,48 @@ void
 CQChartsDistributionPlotType::
 addParameters()
 {
-  addColumnParameter("value", "Value", "valueColumn", 0).setRequired().
-    setTip("values to group");
+  startParameterGroup("Distribution");
 
   addColumnParameter("color", "Color", "colorColumn").
     setTip("Custom bar color");
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
-  addBoolParameter("autoRange", "Auto Range", "autoRange" , true).
+  endParameterGroup();
+
+  //---
+
+  // group data
+  startParameterGroup("Grouping");
+
+  addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
+
+//addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
+//  setTip("Group by group columns header instead of values");
+
+//addBoolParameter("usePath", "Use Path", "usePath").
+//  setTip("Use hierarchical path as group");
+
+//addBoolParameter("useRow", "Use Row", "useRow").
+//  setTip("Use row number for group");
+
+  addBoolParameter("exactValue", "Exact Value", "exactValue", false).
+   setTip("use exact value for grouping");
+
+  addBoolParameter("autoRange", "Auto Range", "autoRange", true).
    setTip("automatically determine value range");
 
-  addRealParameter("start", "Start", "startValue").setTip("Start value for manual range");
-  addRealParameter("delta", "Delta", "deltaValue").setTip("Delta value for manual range");
+  addRealParameter("start", "Start", "startValue", 0.0).
+    setRequired().setTip("Start value for manual range");
+  addRealParameter("delta", "Delta", "deltaValue", 1.0).
+    setRequired().setTip("Delta value for manual range");
+
+  addIntParameter("numAuto", "Num Auto", "numAuto", 10).
+    setRequired().setTip("Number of auto buckets");
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }
@@ -67,7 +96,7 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
+ CQChartsGroupPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
 {
   (void) addValueSet("values");
   (void) addColorSet("color");
@@ -75,7 +104,11 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
   setBarFill (true);
   setBarColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  bucketer_.setType(CQBucketer::Type::REAL_AUTO);
+  //---
+
+  setGroupColumn(0);
+
+  setExactValue(false);
 
   //---
 
@@ -95,27 +128,34 @@ CQChartsDistributionPlot::
 {
 }
 
+//---
+
 void
 CQChartsDistributionPlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
 
-  addProperty("value", this, "autoRange" , "autoRange");
-  addProperty("value", this, "startValue", "start"    );
-  addProperty("value", this, "deltaValue", "delta"    );
-  addProperty("value", this, "numAuto"   , "numAuto"  );
+  addProperty("grouping"       , this, "groupColumn" , "group"    );
+//addProperty("grouping"       , this, "rowGrouping" , "groupRows");
+//addProperty("grouping"       , this, "usePath"     , "path"     );
+//addProperty("grouping"       , this, "useRow"      , "row"      );
+  addProperty("grouping/bucket", this, "exactValue"  , "exact"    );
+  addProperty("grouping/bucket", this, "autoRange"   , "auto"     );
+  addProperty("grouping/bucket", this, "startValue"  , "start"    );
+  addProperty("grouping/bucket", this, "deltaValue"  , "delta"    );
+  addProperty("grouping/bucket", this, "numAuto"     , "numAuto"  );
 
   addProperty("options", this, "horizontal");
-  addProperty("options", this, "margin"    );
+  addProperty("options", this, "margin"    , "barMargin");
 
   addProperty("stroke", this, "border"     , "visible"   );
   addProperty("stroke", this, "borderColor", "color"     );
   addProperty("stroke", this, "borderAlpha", "alpha"     );
   addProperty("stroke", this, "borderWidth", "width"     );
+  addProperty("stroke", this, "borderDash" , "dash"      );
   addProperty("stroke", this, "cornerSize" , "cornerSize");
 
   addProperty("fill", this, "barFill"   , "visible");
@@ -148,6 +188,15 @@ setHorizontal(bool b)
 
 //---
 
+void
+CQChartsDistributionPlot::
+setMargin(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(margin_, l, [&]() { update(); } );
+}
+
+//---
+
 bool
 CQChartsDistributionPlot::
 isBorder() const
@@ -159,9 +208,7 @@ void
 CQChartsDistributionPlot::
 setBorder(bool b)
 {
-  boxData_.shape.border.visible = b;
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -175,9 +222,7 @@ void
 CQChartsDistributionPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  boxData_.shape.border.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -198,9 +243,7 @@ void
 CQChartsDistributionPlot::
 setBorderAlpha(double a)
 {
-  boxData_.shape.border.alpha = a;
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsLength &
@@ -214,9 +257,21 @@ void
 CQChartsDistributionPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  boxData_.shape.border.width = l;
+  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { update(); } );
+}
 
-  update();
+const CQChartsLineDash &
+CQChartsDistributionPlot::
+borderDash() const
+{
+  return boxData_.shape.border.dash;
+}
+
+void
+CQChartsDistributionPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { update(); } );
 }
 
 const CQChartsLength &
@@ -230,9 +285,7 @@ void
 CQChartsDistributionPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  boxData_.cornerSize = s;
-
-  update();
+  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { update(); } );
 }
 
 //---
@@ -347,11 +400,11 @@ updateRange(bool apply)
     QAbstractItemModel *model = this->model().data();
 
     if (model) {
-      ColumnDetails columnDetails(this, model, valueColumn());
+      ColumnDetails columnDetails(this, model, groupColumn());
 
-      bucketer_.setIntegral(isIntegral);
-      bucketer_.setRMin(columnDetails.minValue().toReal());
-      bucketer_.setRMax(columnDetails.maxValue().toReal());
+      groupData_.bucketer.setIntegral(isIntegral);
+      groupData_.bucketer.setRMin(columnDetails.minValue().toReal());
+      groupData_.bucketer.setRMax(columnDetails.maxValue().toReal());
     }
   }
 
@@ -365,7 +418,7 @@ updateRange(bool apply)
     }
 
     State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      QModelIndex valueInd  = plot_->modelIndex(row, plot_->valueColumn(), parent);
+      QModelIndex valueInd  = plot_->modelIndex(row, plot_->groupColumn(), parent);
       QModelIndex valueInd1 = plot_->normalizeIndex(valueInd);
 
       //---
@@ -375,7 +428,7 @@ updateRange(bool apply)
       if (hasRange_) {
         bool ok;
 
-        double value = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
+        double value = plot_->modelReal(row, plot_->groupColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
@@ -388,19 +441,28 @@ updateRange(bool apply)
 
         //----
 
-        bucket = plot_->calcBucket(value);
+        if (plot_->isExactValue()) {
+          if      (valueSet_->isReal())
+            bucket = valueSet_->rid(value);
+          else if (valueSet_->isInteger())
+            bucket = valueSet_->iid(value);
+        }
+        else
+          bucket = plot_->calcBucket(value);
 
         ivalues_[bucket].emplace_back(valueInd1);
       }
       else {
         bool ok;
 
-        QString value = plot_->modelString(row, plot_->valueColumn(), parent, ok);
+        QString value = plot_->modelString(row, plot_->groupColumn(), parent, ok);
 
         if (! ok)
           return State::SKIP;
 
-        if (plot_->isAutoRange())
+        if      (plot_->isExactValue())
+          bucket = valueSet_->sind(value);
+        else if (plot_->isAutoRange())
           bucket = valueSet_->sbucket(value);
         else
           bucket = valueSet_->sind(value);
@@ -477,6 +539,8 @@ updateRange(bool apply)
     applyDataRange();
 }
 
+//------
+
 CQChartsGeom::BBox
 CQChartsDistributionPlot::
 annotationBBox() const
@@ -521,12 +585,15 @@ int
 CQChartsDistributionPlot::
 calcBucket(double value) const
 {
-  bool isAuto = (! filterStack_.empty() || isAutoRange());
-
-  if (isAuto)
-    return bucketer_.autoRealBucket(value);
-  else
-    return bucketer_.realBucket(value);
+  if (filterStack_.empty()) {
+    if (isAutoRange())
+      return groupData_.bucketer.autoRealBucket(value);
+    else
+      return groupData_.bucketer.realBucket(value);
+  }
+  else {
+    return groupData_.bucketer.autoRealBucket(value);
+  }
 }
 
 //------
@@ -563,16 +630,17 @@ initObjs()
 
   //---
 
-  xAxis_->clearTickLabels();
-  yAxis_->clearTickLabels();
+  valueAxis()->clearTickLabels();
+  countAxis()->clearTickLabels();
 
-  xAxis()->setIntegral(true);
-  yAxis()->setIntegral(true);
-
-  valueAxis()->setMajorIncrement(1);
-  countAxis()->setMajorIncrement(0);
-
+  valueAxis()->setIntegral        (true);
+  valueAxis()->setGridMid         (true);
+  valueAxis()->setMajorIncrement  (1);
   valueAxis()->setRequireTickLabel(true );
+
+  countAxis()->setIntegral        (true);
+  valueAxis()->setGridMid         (false);
+  countAxis()->setMajorIncrement  (0);
   countAxis()->setRequireTickLabel(false);
 
   //---
@@ -631,7 +699,7 @@ initObjs()
 
   bool ok;
 
-  QString valueName = modelHeaderString(valueColumn(), ok);
+  QString valueName = modelHeaderString(groupColumn(), ok);
 
   valueAxis()->setLabel(valueName);
   countAxis()->setLabel("Count");
@@ -690,25 +758,41 @@ bucketValuesStr(int bucket, BucketValueType type) const
 {
   CQChartsValueSet *valueSet = getValueSet("values");
 
+  //---
+
   bool hasRange = valueSet->isNumeric();
 
   if (hasRange) {
+    if (isExactValue()) {
+      if      (valueSet->isReal()) {
+        double r = valueSet->idr(bucket);
+
+        return QString("%1").arg(r);
+      }
+      else if (valueSet->isInteger()) {
+        int i = valueSet->idi(bucket);
+
+        return QString("%1").arg(i);
+      }
+    }
+
+    //--
+
     double value1, value2;
 
     bucketValues(bucket, value1, value2);
 
-    if      (type == BucketValueType::ALL) {
-      QChar arrowChar(0x2192);
-
-      return QString("%1%2%3").arg(value1).arg(arrowChar).arg(value2);
-    }
+    if      (type == BucketValueType::ALL)
+      return groupData_.bucketer.bucketName(value1, value2, /*arrow*/true);
     else if (type == BucketValueType::START)
       return QString("%1").arg(value1);
     else
       return QString("%1").arg(value2);
   }
   else {
-    if (isAutoRange())
+    if      (isExactValue())
+      return valueSet->inds(bucket);
+    else if (isAutoRange())
       return valueSet->buckets(bucket);
     else
       return valueSet->inds(bucket);
@@ -722,9 +806,9 @@ bucketValues(int bucket, double &value1, double &value2) const
   bool isAuto = (! filterStack_.empty() || isAutoRange());
 
   if (isAuto)
-    bucketer_.autoBucketValues(bucket, value1, value2);
+    groupData_.bucketer.autoBucketValues(bucket, value1, value2);
   else
-    bucketer_.bucketRValues(bucket, value1, value2);
+    groupData_.bucketer.bucketRValues(bucket, value1, value2);
 
   if (CQChartsUtil::isZero(value1)) value1 = 0.0;
   if (CQChartsUtil::isZero(value2)) value2 = 0.0;
@@ -765,7 +849,7 @@ probe(ProbeData &probeData) const
   return true;
 }
 
-//---
+//------
 
 bool
 CQChartsDistributionPlot::
@@ -807,6 +891,8 @@ addMenuItems(QMenu *menu)
 
   return true;
 }
+
+//---
 
 void
 CQChartsDistributionPlot::
@@ -906,6 +992,7 @@ CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::B
                            int bucket, const Values &values, int i, int n) :
  CQChartsPlotObj(plot, rect), plot_(plot), bucket_(bucket), values_(values), i_(i), n_(n)
 {
+  assert(i >= 0 && i < n);
 }
 
 QString
@@ -937,7 +1024,7 @@ void
 CQChartsDistributionBarObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->valueColumn());
+  addColumnSelectIndex(inds, plot_->groupColumn());
 }
 
 void
@@ -1041,14 +1128,16 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
       QPen pen;
 
       if (plot_->isBorder()) {
-        QColor c = plot_->interpBorderColor(0, 1);
+        QColor bc = plot_->interpBorderColor(0, 1);
 
-        c.setAlphaF(plot_->borderAlpha());
+        bc.setAlphaF(plot_->borderAlpha());
 
         double bw = plot_->lengthPixelWidth(plot_->borderWidth());
 
-        pen.setColor (c);
+        pen.setColor (bc);
         pen.setWidthF(bw);
+
+        CQChartsUtil::penSetLineDash(pen, plot_->borderDash());
       }
       else {
         pen.setStyle(Qt::NoPen);
@@ -1121,12 +1210,7 @@ calcRect() const
 {
   CQChartsGeom::BBox bbox;
 
-  double m;
-
-  if (! plot_->isHorizontal())
-    m = plot_->pixelToWindowWidth (plot_->margin());
-  else
-    m = plot_->pixelToWindowHeight(plot_->margin());
+  double m = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
 
   if (2*m > 1)
     m = m/2;

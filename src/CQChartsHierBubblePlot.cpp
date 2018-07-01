@@ -20,6 +20,15 @@ addParameters()
   CQChartsHierPlotType::addParameters();
 }
 
+QString
+CQChartsHierBubblePlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws circles represent a set of data values and packs then into the "
+         "smallest enclosing circle.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsHierBubblePlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -685,11 +694,17 @@ loadHier()
     }
 
     bool getName(const QModelIndex &parent, int row, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
+      if (plot_->nameColumn().isValid())
+        nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
+      else
+        nameInd = plot_->modelIndex(row, plot_->idColumn(), parent);
 
       bool ok;
 
-      name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      if (plot_->nameColumn().isValid())
+        name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      else
+        name = plot_->modelString(row, plot_->idColumn(), parent, ok);
 
       return ok;
     }
@@ -1108,6 +1123,8 @@ drawBounds(QPainter *painter, CQChartsHierBubbleHierNode *hier)
   double xc = hier->x();
   double yc = hier->y();
   double r  = hier->radius();
+
+  //---
 
   double px1, py1, px2, py2;
 

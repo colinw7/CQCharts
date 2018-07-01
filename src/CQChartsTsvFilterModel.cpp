@@ -2,7 +2,6 @@
 #include <CQChartsExprModel.h>
 #include <CQCharts.h>
 #include <CQTsvModel.h>
-#include <cassert>
 
 CQChartsTsvFilterModel::
 CQChartsTsvFilterModel(CQCharts *charts) :

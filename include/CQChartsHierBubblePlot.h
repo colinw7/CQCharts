@@ -21,6 +21,8 @@ class CQChartsHierBubblePlotType : public CQChartsHierPlotType {
 
   void addParameters() override;
 
+  QString description() const override;
+
   bool customXRange() const override { return false; }
   bool customYRange() const override { return false; }
 
@@ -36,7 +38,7 @@ class CQChartsHierBubblePlot;
 class CQChartsHierBubbleHierNode;
 
 class CQChartsHierBubbleNode : public CQChartsCircleNode {
- private:
+ protected:
   static uint nextId() {
     static int lastId = 0;
 
@@ -113,7 +115,7 @@ class CQChartsHierBubbleNode : public CQChartsCircleNode {
   QString                     name_;                // node name
   double                      size_    { 0.0 };     // node size
   int                         colorId_ { -1 };      // node color index
-  CQChartsColor               color_   { };         // node explicit color
+  CQChartsColor               color_;               // node explicit color
   QModelIndex                 ind_;                 // node model index
   int                         depth_   { 0 };       // node depth
   bool                        filler_  { false };   // is filler
@@ -171,7 +173,7 @@ class CQChartsHierBubbleHierNode : public CQChartsHierBubbleNode {
 
   QColor interpColor(CQChartsHierBubblePlot *plot, int n) const override;
 
- private:
+ protected:
   Nodes    nodes_;          // child nodes
   Pack     pack_;           // circle pack
   Children children_;       // child hier nodes
@@ -234,7 +236,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
- private:
+ protected:
   CQChartsHierBubbleHierNode* hier_ { nullptr }; // associated hier node
 };
 
@@ -243,22 +245,29 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 class CQChartsHierBubblePlot : public CQChartsHierPlot {
   Q_OBJECT
 
+  // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
 
+  // border
   Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
   Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
   Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
   Q_PROPERTY(CQChartsLength borderWidth  READ borderWidth    WRITE setBorderWidth )
+
+  // fill
   Q_PROPERTY(bool           filled       READ isFilled       WRITE setFilled      )
   Q_PROPERTY(CQChartsColor  fillColor    READ fillColor      WRITE setFillColor   )
   Q_PROPERTY(double         fillAlpha    READ fillAlpha      WRITE setFillAlpha   )
   Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
+
+  // text
   Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
   Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
   Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
   Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
   Q_PROPERTY(bool           textScaled   READ isTextScaled   WRITE setTextScaled  )
 
+  // color map
   Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
   Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
   Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)

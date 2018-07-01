@@ -33,6 +33,8 @@ addParameters()
   addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name For Id");
   addColumnParameter("group", "Group", "groupColumn").setTip("Group Id for Color");
 
+  //---
+
   CQChartsPlotType::addParameters();
 }
 

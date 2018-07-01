@@ -84,47 +84,185 @@ leaveEvent(QEvent *)
 
 void
 CQChartsGradientPaletteCanvas::
-mousePressEvent(QMouseEvent *)
+mousePressEvent(QMouseEvent *me)
 {
-  pressed_ = true;
+  mouseData_.pressed  = true;
+  mouseData_.pressPos = pixelToWindow(me->pos());
+  mouseData_.movePos  = mouseData_.pressPos;
+
+  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+    NearestColor nearestColor;
+
+    nearestDefinedColor(mouseData_.movePos, nearestColor);
+
+    if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
+      nearestColor_ = nearestColor;
+
+      update();
+    }
+  }
 }
 
 void
 CQChartsGradientPaletteCanvas::
 mouseMoveEvent(QMouseEvent *me)
 {
-  int x = me->pos().x();
-  int y = me->pos().y();
+  mouseData_.movePos = pixelToWindow(me->pos());
 
-  double wx, wy;
+  //---
 
-  pixelToWindow(x, y, wx, wy);
+  if (mouseData_.movePos.x() >= 0.0 && mouseData_.movePos.x() <= 1.0) {
+    QColor bg = gradientPalette()->getColor(mouseData_.movePos.x());
+    QColor fg = CQChartsUtil::bwColor(bg);
 
-  if (wx < 0.0 || wx > 1.0) {
+    tipText_->setText(QString("%1,%2").arg(mouseData_.movePos.x()).arg(mouseData_.movePos.y()));
+
+    QPalette palette = tipText_->palette();
+
+    palette.setColor(tipText_->backgroundRole(), bg);
+    palette.setColor(tipText_->foregroundRole(), fg);
+
+    tipText_->setPalette(palette);
+
+    showTipText();
+  }
+  else {
     hideTipText();
-    return;
   }
 
-  QColor bg = gradientPalette()->getColor(wx);
-  QColor fg = CQChartsUtil::bwColor(bg);
+  //---
 
-  tipText_->setText(QString("%1,%2").arg(wx).arg(wy));
+  if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+    if (mouseData_.pressed) {
+      double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
+std::cerr << dy << std::endl;
 
-  QPalette palette = tipText_->palette();
+      moveNearestDefinedColor(nearestColor_, dy);
 
-  palette.setColor(tipText_->backgroundRole(), bg);
-  palette.setColor(tipText_->foregroundRole(), fg);
+      update();
+    }
+    else {
+      NearestColor nearestColor;
 
-  tipText_->setPalette(palette);
+      nearestDefinedColor(mouseData_.movePos, nearestColor);
 
-  showTipText();
+      if (nearestColor.i != nearestColor_.i || nearestColor.c != nearestColor_.c) {
+        nearestColor_ = nearestColor;
+
+        update();
+      }
+    }
+  }
 }
 
 void
 CQChartsGradientPaletteCanvas::
 mouseReleaseEvent(QMouseEvent *)
 {
-  pressed_ = false;
+  mouseData_.pressed = false;
+}
+
+void
+CQChartsGradientPaletteCanvas::
+nearestDefinedColor(const QPointF &p, NearestColor &nearestColor)
+{
+  double mx = p.x();
+  double my = p.y();
+
+  nearestColor.i     = -1;
+  nearestColor.d     = 0.0;
+  nearestColor.c     = 0;
+  nearestColor.color = QColor();
+
+  int i = 0;
+
+  for (const auto &c : gradientPalette()->colors()) {
+    double x = gradientPalette()->mapDefinedColorX(c.first);
+
+    const QColor &c1 = c.second;
+
+    double y[3];
+
+    if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
+      y[0] = c1.hueF       ();
+      y[1] = c1.saturationF();
+      y[2] = c1.valueF     ();
+    }
+    else {
+      y[0] = c1.redF  ();
+      y[1] = c1.greenF();
+      y[2] = c1.blueF ();
+    }
+
+    for (int j = 0; j < 3; ++j) {
+      double d = std::hypot(mx - x, my - y[j]);
+
+      if (nearestColor.i < 0 || d < nearestColor.d) {
+        nearestColor.i     = i;
+        nearestColor.d     = d;
+        nearestColor.c     = j;
+        nearestColor.color = c1;
+      }
+    }
+
+    ++i;
+  }
+}
+
+void
+CQChartsGradientPaletteCanvas::
+moveNearestDefinedColor(const NearestColor &nearestColor, double dy)
+{
+  QColor newColor = nearestColor.color;
+
+  if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
+    double h = newColor.hueF       ();
+    double s = newColor.saturationF();
+    double v = newColor.valueF     ();
+
+    if      (nearestColor.c == 0) h += dy;
+    else if (nearestColor.c == 1) s += dy;
+    else if (nearestColor.c == 2) v += dy;
+
+    h = CQChartsUtil::clamp(h, 0.0, 1.0);
+    s = CQChartsUtil::clamp(s, 0.0, 1.0);
+    v = CQChartsUtil::clamp(v, 0.0, 1.0);
+
+    newColor.setHsvF(h, s, v);
+  }
+  else {
+    double r = newColor.redF  ();
+    double g = newColor.greenF();
+    double b = newColor.blueF ();
+
+    if      (nearestColor.c == 0) r += dy;
+    else if (nearestColor.c == 1) g += dy;
+    else if (nearestColor.c == 2) b += dy;
+
+    r = CQChartsUtil::clamp(r, 0.0, 1.0);
+    g = CQChartsUtil::clamp(g, 0.0, 1.0);
+    b = CQChartsUtil::clamp(b, 0.0, 1.0);
+
+    newColor.setRgbF(r, g, b);
+  }
+
+  //--
+
+  int i = 0;
+
+  for (auto &c : gradientPalette()->colors()) {
+    if (i == nearestColor.i) {
+      QColor &c1 = c.second;
+
+      c1 = newColor;
+
+      break;
+    }
+
+    ++i;
+  }
+
+  emit colorsChanged();
 }
 
 void
@@ -164,10 +302,11 @@ paintEvent(QPaintEvent *)
   //---
 
   // draw graph
-  QPen redPen  (Qt::red  ); redPen  .setWidth(0);
-  QPen greenPen(Qt::green); greenPen.setWidth(0);
-  QPen bluePen (Qt::blue ); bluePen .setWidth(0);
-  QPen blackPen(Qt::black); blackPen.setWidth(0);
+  QPen redPen   (Qt::red   ); redPen   .setWidth(0);
+  QPen greenPen (Qt::green ); greenPen .setWidth(0);
+  QPen bluePen  (Qt::blue  ); bluePen  .setWidth(0);
+  QPen blackPen (Qt::black ); blackPen .setWidth(0);
+  QPen yellowPen(Qt::yellow); yellowPen.setWidth(2);
 
   QPainterPath redPath, greenPath, bluePath, blackPath;
 
@@ -263,20 +402,30 @@ paintEvent(QPaintEvent *)
   //---
 
   if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
+    int i = 0;
+
     for (const auto &c : gradientPalette()->colors()) {
       double x  = gradientPalette()->mapDefinedColorX(c.first);
       QColor c1 = c.second;
 
       if (gradientPalette()->colorModel() == CQChartsGradientPalette::ColorModel::HSV) {
-        drawSymbol(&painter, x, c1.hueF       (), redPen  );
-        drawSymbol(&painter, x, c1.saturationF(), greenPen);
-        drawSymbol(&painter, x, c1.valueF     (), bluePen );
+        drawSymbol(&painter, x, c1.hueF       (),
+                   (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
+        drawSymbol(&painter, x, c1.saturationF(),
+                   (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
+        drawSymbol(&painter, x, c1.valueF     (),
+                   (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
       }
       else {
-        drawSymbol(&painter, x, c1.redF  (), redPen  );
-        drawSymbol(&painter, x, c1.greenF(), greenPen);
-        drawSymbol(&painter, x, c1.blueF (), bluePen );
+        drawSymbol(&painter, x, c1.redF  (),
+                   (nearestColor_.i == i && nearestColor_.c == 0 ? yellowPen : redPen  ));
+        drawSymbol(&painter, x, c1.greenF(),
+                   (nearestColor_.i == i && nearestColor_.c == 1 ? yellowPen : greenPen));
+        drawSymbol(&painter, x, c1.blueF (),
+                   (nearestColor_.i == i && nearestColor_.c == 2 ? yellowPen : bluePen ));
       }
+
+      ++i;
     }
   }
 }
@@ -346,6 +495,17 @@ windowToPixel(double wx, double wy, double &px, double &py) const
 {
   px = Util::map(wx, -margin_.left  , 1 + margin_.right, 0, width () - 1);
   py = Util::map(wy, -margin_.bottom, 1 + margin_.top  , height() - 1, 0);
+}
+
+QPointF
+CQChartsGradientPaletteCanvas::
+pixelToWindow(const QPoint &p)
+{
+  double wx, wy;
+
+  pixelToWindow(p.x(), p.y(), wx, wy);
+
+  return QPointF(wx, wy);
 }
 
 void

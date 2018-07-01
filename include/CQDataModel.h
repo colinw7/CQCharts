@@ -2,6 +2,7 @@
 #define CQDataModel_H
 
 #include <CQBaseModel.h>
+#include <QRegExp>
 #include <vector>
 
 class CQDataModel : public CQBaseModel {

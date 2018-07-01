@@ -209,6 +209,16 @@ class CQChartsRealParameter : public CQChartsPlotParameter {
 
 //---
 
+class CQChartsIntParameter : public CQChartsPlotParameter {
+ public:
+  CQChartsIntParameter(const QString &name, const QString &desc, const QString &propName,
+                       const Attributes &attributes=Attributes(), int defValue=0) :
+   CQChartsPlotParameter(name, desc, "int", propName, attributes, QVariant(defValue)) {
+  }
+};
+
+//---
+
 class CQChartsBoolParameter : public CQChartsPlotParameter {
  public:
   CQChartsBoolParameter(const QString &name, const QString &desc, const QString &propName,

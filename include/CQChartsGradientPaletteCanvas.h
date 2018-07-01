@@ -40,6 +40,14 @@ class CQChartsGradientPaletteCanvas : public QFrame {
   QSize sizeHint() const override;
 
  private:
+  struct NearestColor {
+    int    i = -1;
+    double d = 0.0;
+    int    c = 0;
+    QColor color;
+  };
+
+ private:
   void init();
 
   void showTipText();
@@ -51,14 +59,30 @@ class CQChartsGradientPaletteCanvas : public QFrame {
 
   void drawSymbol(QPainter *painter, double x, double y, const QPen &pen);
 
+  void nearestDefinedColor(const QPointF &p, NearestColor &nearestColor);
+
+  void moveNearestDefinedColor(const NearestColor &nearestColor, double dy);
+
+  QPointF pixelToWindow(const QPoint &p);
+
   void windowToPixel(double wx, double wy, double &px, double &py) const;
   void pixelToWindow(double px, double py, double &wx, double &wy) const;
 
+ signals:
+  void colorsChanged();
+
  private:
+  struct MouseData {
+    bool    pressed { false };
+    QPointF pressPos;
+    QPointF movePos;
+  };
+
   CQChartsGradientPalette* palette_ { nullptr };
   Margin                   margin_;
   QLabel*                  tipText_ { nullptr };
-  bool                     pressed_ { false };
+  MouseData                mouseData_;
+  NearestColor             nearestColor_;
 };
 
 #endif

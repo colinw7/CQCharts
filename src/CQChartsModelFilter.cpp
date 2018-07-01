@@ -377,13 +377,15 @@ data(const QModelIndex &ind, int role) const
 
   if (role == Qt::DisplayRole || role == Qt::EditRole) {
     if (role == Qt::DisplayRole) {
-      QVariant var = QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::OutputValue));
+      QVariant var =
+        QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::OutputValue));
 
       if (var.isValid())
         return var;
     }
     else {
-      QVariant var = QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::IntermediateValue));
+      QVariant var =
+        QSortFilterProxyModel::data(ind, int(CQBaseModel::Role::IntermediateValue));
 
       if (var.isValid())
         return var;

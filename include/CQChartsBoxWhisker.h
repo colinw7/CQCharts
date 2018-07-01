@@ -19,6 +19,9 @@ class CQChartsBoxWhiskerT {
     invalidate();
   }
 
+  const QString &name() const { return name_; }
+  void setName(const QString &s) { name_ = s; }
+
   int numValues() const { return int(values_.size()); }
 
   const Values &values() const { return values_; }
@@ -182,6 +185,7 @@ class CQChartsBoxWhiskerT {
   }
 
  private:
+  QString  name_;
   Values   values_;
   bool     valid_    { false };
   double   range_    { 1.5 };

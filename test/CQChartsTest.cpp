@@ -23,6 +23,8 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <mcheck.h>
+
 namespace {
 
 void errorMsg(const QString &msg) {
@@ -139,6 +141,7 @@ struct MainData {
   OptString        printFile;
   bool             gui        { true };
   bool             showApp    { false };
+  bool             showAppSet { false };
   bool             exit       { false };
   int              viewWidth  { 100 };
   int              viewHeight { 100 };
@@ -161,6 +164,10 @@ void parseArgs(int argc, char **argv, MainData &mainData);
 int
 main(int argc, char **argv)
 {
+  mtrace();
+
+  //---
+
   CQMsgHandler::install();
 
 #ifdef CQ_APP_H
@@ -203,10 +210,7 @@ main(int argc, char **argv)
   if (! mainData.gui)
     test.setGui(false);
 
-  if (mainData.showApp)
-    test.setShowApp(true);
-
-  // set parse type
+  // set parser type
   test.setParserType(mainData.parserType);
 
   //---
@@ -295,10 +299,18 @@ main(int argc, char **argv)
 
   //---
 
+  // no plots and app state no specified so show if no plots
+  if (! mainData.showAppSet) {
+    if (! mainData.execFile.length() && mainData.initDatas.empty())
+      mainData.showApp = true;
+  }
+
+  //---
+
   // show test widget
   CQChartsAppWindow *appWindow = nullptr;
 
-  if (test.isShowApp()) {
+  if (mainData.showApp) {
     appWindow = new CQChartsAppWindow(test.charts());
 
     appWindow->show();
@@ -714,9 +726,15 @@ parseArgs(int argc, char **argv, MainData &mainData)
         mainData.gui = false;
       }
 
-      // close app
+      // show app
       else if (arg == "show_app") {
-        mainData.showApp = true;
+        mainData.showApp    = true;
+        mainData.showAppSet = true;
+      }
+      // hide app
+      else if (arg == "hide_app") {
+        mainData.showApp    = false;
+        mainData.showAppSet = true;
       }
 
       // exit
@@ -733,7 +751,8 @@ parseArgs(int argc, char **argv, MainData &mainData)
     }
   }
 
-  mainData.initDatas.push_back(mainData.initData);
+  if (mainData.initData.fileType != CQChartsFileType::NONE)
+    mainData.initDatas.push_back(mainData.initData);
 }
 
 //-----
@@ -1133,9 +1152,11 @@ void
 CQChartsTest::
 loop()
 {
+  int rlTimeout = 10;
+
   CQChartsReadLine *readLine = new CQChartsReadLine(this);
 
-  readLine->enableTimeoutHook(1);
+  readLine->enableTimeoutHook(rlTimeout);
 
   for (;;) {
     readLine->setPrompt("> ");

@@ -2,7 +2,6 @@
 #include <CQGnuDataModel.h>
 #include <CQChartsExprModel.h>
 #include <CQCharts.h>
-#include <cassert>
 
 CQChartsGnuDataFilterModel::
 CQChartsGnuDataFilterModel(CQCharts *charts) :

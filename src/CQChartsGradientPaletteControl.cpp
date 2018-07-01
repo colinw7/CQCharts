@@ -280,6 +280,8 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
 
   connect(this, SIGNAL(stateChanged()), palette, SLOT(update()));
 
+  connect(palette, SIGNAL(colorsChanged()), this, SLOT(updateState()));
+
   //---
 
   updateColorType ();

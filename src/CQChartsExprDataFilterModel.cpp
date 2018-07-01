@@ -2,7 +2,6 @@
 #include <CQChartsExprModel.h>
 #include <CQCharts.h>
 #include <CQDataModel.h>
-#include <cassert>
 
 CQChartsExprDataFilterModel::
 CQChartsExprDataFilterModel(CQCharts *charts, int nc, int nr) :

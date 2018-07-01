@@ -16,8 +16,14 @@ void
 CQChartsParallelPlotType::
 addParameters()
 {
+  startParameterGroup("Parallel");
+
   addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired();
   addColumnsParameter("y", "Y", "yColumns", "1").setRequired();
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }
@@ -81,9 +87,7 @@ void
 CQChartsParallelPlot::
 setPointsColor(const CQChartsColor &c)
 {
-  pointData_.stroke.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -104,9 +108,7 @@ void
 CQChartsParallelPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  lineData_.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
 }
 
 QColor

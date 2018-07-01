@@ -321,6 +321,70 @@ rmean() const
     return 0.0;
 }
 
+int
+CQChartsValueSet::
+rid(double r) const
+{
+  if      (type() == Type::INTEGER)
+    return -1;
+  else if (type() == Type::REAL)
+    return rvals_.id(r);
+  else if (type() == Type::STRING)
+    return -1;
+  else if (type() == Type::COLOR)
+    return -1;
+  else
+    return -1;
+}
+
+double
+CQChartsValueSet::
+idr(int i) const
+{
+  if      (type() == Type::INTEGER)
+    return 0.0;
+  else if (type() == Type::REAL)
+    return rvals_.ivalue(i);
+  else if (type() == Type::STRING)
+    return 0.0;
+  else if (type() == Type::COLOR)
+    return 0.0;
+  else
+    return 0.0;
+}
+
+int
+CQChartsValueSet::
+iid(int i) const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.id(i);
+  else if (type() == Type::REAL)
+    return -1;
+  else if (type() == Type::STRING)
+    return -1;
+  else if (type() == Type::COLOR)
+    return -1;
+  else
+    return -1;
+}
+
+int
+CQChartsValueSet::
+idi(int i) const
+{
+  if      (type() == Type::INTEGER)
+    return ivals_.ivalue(i);
+  else if (type() == Type::REAL)
+    return 0.0;
+  else if (type() == Type::STRING)
+    return 0.0;
+  else if (type() == Type::COLOR)
+    return 0.0;
+  else
+    return 0.0;
+}
+
 void
 CQChartsValueSet::
 init() const

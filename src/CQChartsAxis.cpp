@@ -165,18 +165,22 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString gridMinorLinePath = gridLinePath + "/minor";
   QString gridFillPath      = gridPath + "/fill";
 
-  model->addProperty(gridPath         , this, "gridAbove"         , "above"  );
+  model->addProperty(gridPath, this, "gridMid"  , "middle");
+  model->addProperty(gridPath, this, "gridAbove", "above" );
+
   model->addProperty(gridMajorLinePath, this, "gridMajorDisplayed", "visible");
   model->addProperty(gridMajorLinePath, this, "gridMajorColor"    , "color"  );
   model->addProperty(gridMajorLinePath, this, "gridMajorWidth"    , "width"  );
   model->addProperty(gridMajorLinePath, this, "gridMajorDash"     , "dash"   );
+
   model->addProperty(gridMinorLinePath, this, "gridMinorDisplayed", "visible");
   model->addProperty(gridMinorLinePath, this, "gridMinorColor"    , "color"  );
   model->addProperty(gridMinorLinePath, this, "gridMinorWidth"    , "width"  );
   model->addProperty(gridMinorLinePath, this, "gridMinorDash"     , "dash"   );
-  model->addProperty(gridFillPath     , this, "gridFill"          , "visible");
-  model->addProperty(gridFillPath     , this, "gridFillColor"     , "color"  );
-  model->addProperty(gridFillPath     , this, "gridFillAlpha"     , "alpha"  );
+
+  model->addProperty(gridFillPath, this, "gridFill"     , "visible");
+  model->addProperty(gridFillPath, this, "gridFillColor", "color"  );
+  model->addProperty(gridFillPath, this, "gridFillAlpha", "alpha"  );
 }
 
 void
@@ -195,22 +199,14 @@ void
 CQChartsAxis::
 setMajorIncrement(double i)
 {
-  majorIncrement_ = i;
-
-  calc();
-
-  redraw();
+  CQChartsUtil::testAndSet(majorIncrement_, i, [&]() { calc(); redraw(); } );
 }
 
 void
 CQChartsAxis::
-setTickIncrement(uint tickIncrement)
+setTickIncrement(uint i)
 {
-  tickIncrement_ = tickIncrement;
-
-  calc();
-
-  redraw();
+  CQChartsUtil::testAndSet(tickIncrement_, i, [&]() { calc(); redraw(); } );
 }
 
 //---
@@ -226,9 +222,7 @@ void
 CQChartsAxis::
 setTickLabel(long i, const QString &label)
 {
-  tickLabels_[i] = label;
-
-  redraw();
+  CQChartsUtil::testAndSet(tickLabels_[i], label, [&]() { redraw(); } );
 }
 
 bool
@@ -302,9 +296,7 @@ void
 CQChartsAxis::
 setLabelDisplayed(bool b)
 {
-  labelDisplayed_ = b;
-
-  redraw();
+  CQChartsUtil::testAndSet(labelDisplayed_, b, [&]() { redraw(); } );
 }
 
 const QString &
@@ -373,7 +365,7 @@ void
 CQChartsAxis::
 setLineDisplayed(bool b)
 {
-  lineData_.visible = b; redraw();
+  CQChartsUtil::testAndSet(lineData_.visible, b, [&]() { redraw(); } );
 }
 
 const CQChartsLength &
@@ -387,7 +379,7 @@ void
 CQChartsAxis::
 setLineWidth(const CQChartsLength &l)
 {
-  lineData_.width = l; redraw();
+  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { redraw(); } );
 }
 
 const CQChartsLineDash &
@@ -399,9 +391,9 @@ lineDash() const
 
 void
 CQChartsAxis::
-setLineDash(const CQChartsLineDash &dash)
+setLineDash(const CQChartsLineDash &d)
 {
-  lineData_.dash = dash; redraw();
+  CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { redraw(); } );
 }
 
 const CQChartsColor &
@@ -415,7 +407,7 @@ void
 CQChartsAxis::
 setLineColor(const CQChartsColor &c)
 {
-  lineData_.color = c;
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { redraw(); } );
 }
 
 QColor
@@ -438,7 +430,7 @@ void
 CQChartsAxis::
 setGridMajorDisplayed(bool b)
 {
-  majorGridLineData_.visible = b; redraw();
+  CQChartsUtil::testAndSet(majorGridLineData_.visible, b, [&]() { redraw(); } );
 }
 
 const CQChartsColor &
@@ -452,7 +444,7 @@ void
 CQChartsAxis::
 setGridMajorColor(const CQChartsColor &c)
 {
-  majorGridLineData_.color = c;
+  CQChartsUtil::testAndSet(majorGridLineData_.color, c, [&]() { redraw(); } );
 }
 
 QColor
@@ -473,7 +465,7 @@ void
 CQChartsAxis::
 setGridMajorWidth(const CQChartsLength &l)
 {
-  majorGridLineData_.width = l; redraw();
+  CQChartsUtil::testAndSet(majorGridLineData_.width, l, [&]() { redraw(); } );
 }
 
 const CQChartsLineDash &
@@ -485,9 +477,9 @@ gridMajorDash() const
 
 void
 CQChartsAxis::
-setGridMajorDash(const CQChartsLineDash &dash)
+setGridMajorDash(const CQChartsLineDash &d)
 {
-  majorGridLineData_.dash = dash; redraw();
+  CQChartsUtil::testAndSet(majorGridLineData_.dash, d, [&]() { redraw(); } );
 }
 
 bool
@@ -501,7 +493,7 @@ void
 CQChartsAxis::
 setGridMinorDisplayed(bool b)
 {
-  minorGridLineData_.visible = b; redraw();
+  CQChartsUtil::testAndSet(minorGridLineData_.visible, b, [&]() { redraw(); } );
 }
 
 const CQChartsColor &
@@ -515,7 +507,7 @@ void
 CQChartsAxis::
 setGridMinorColor(const CQChartsColor &c)
 {
-  minorGridLineData_.color = c;
+  CQChartsUtil::testAndSet(minorGridLineData_.color, c, [&]() { redraw(); } );
 }
 
 const CQChartsLength &
@@ -529,7 +521,7 @@ void
 CQChartsAxis::
 setGridMinorWidth(const CQChartsLength &l)
 {
-  minorGridLineData_.width = l; redraw();
+  CQChartsUtil::testAndSet(minorGridLineData_.width, l, [&]() { redraw(); } );
 }
 
 const CQChartsLineDash &
@@ -541,9 +533,9 @@ gridMinorDash() const
 
 void
 CQChartsAxis::
-setGridMinorDash(const CQChartsLineDash &dash)
+setGridMinorDash(const CQChartsLineDash &d)
 {
-  minorGridLineData_.dash = dash; redraw();
+  CQChartsUtil::testAndSet(minorGridLineData_.dash, d, [&]() { redraw(); } );
 }
 
 bool
@@ -557,7 +549,7 @@ void
 CQChartsAxis::
 setGridFill(bool b)
 {
-  gridFill_.visible = b; redraw();
+  CQChartsUtil::testAndSet(gridFill_.visible, b, [&]() { redraw(); } );
 }
 
 double
@@ -571,7 +563,7 @@ void
 CQChartsAxis::
 setGridFillAlpha(double a)
 {
-  gridFill_.alpha = a; redraw();
+  CQChartsUtil::testAndSet(gridFill_.alpha, a, [&]() { redraw(); } );
 }
 
 const CQChartsColor &
@@ -585,7 +577,7 @@ void
 CQChartsAxis::
 setGridFillColor(const CQChartsColor &c)
 {
-  gridFill_.color = c;
+  CQChartsUtil::testAndSet(gridFill_.color, c, [&]() { redraw(); } );
 }
 
 QColor
@@ -619,9 +611,7 @@ void
 CQChartsAxis::
 setTickLabelDisplayed(bool b)
 {
-  tickLabelDisplayed_ = b;
-
-  redraw();
+  CQChartsUtil::testAndSet(tickLabelDisplayed_, b, [&]() { redraw(); } );
 }
 
 const QFont &
@@ -683,22 +673,14 @@ void
 CQChartsAxis::
 setIntegral(bool b)
 {
-  integral_ = b;
-
-  calc();
-
-  redraw();
+  CQChartsUtil::testAndSet(integral_, b, [&]() { calc(); redraw(); } );
 }
 
 void
 CQChartsAxis::
 setLog(bool b)
 {
-  log_ = b;
-
-  calc();
-
-  redraw();
+  CQChartsUtil::testAndSet(log_, b, [&]() { calc(); redraw(); } );
 }
 
 //---
@@ -1218,6 +1200,10 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
     //---
 
     double pos1 = start1_;
+
+    if (isGridMid())
+      pos1 += inc/2.0;
+
     double pos2 = pos1;
 
     for (uint i = 0; i < numMajorTicks() + 1; i++) {
@@ -1255,6 +1241,9 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
   // draw grid lines
   if (isGridMajorDisplayed() || isGridMinorDisplayed()) {
     double pos1 = start1_;
+
+    if (isGridMid())
+      pos1 += inc/2.0;
 
     for (uint i = 0; i < numMajorTicks() + 1; i++) {
       // draw major line (grid and tick)

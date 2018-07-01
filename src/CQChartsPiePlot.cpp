@@ -15,17 +15,33 @@ void
 CQChartsPiePlotType::
 addParameters()
 {
+  startParameterGroup("Pie");
+
   // name, desc, propName, attributes, default
   addColumnsParameter("data"    , "Data"     , "dataColumns"   , "1").setRequired();
   addColumnParameter ("label"   , "Label"    , "labelColumn"   , 0);
   addColumnParameter ("radius"  , "Radius"   , "radiusColumn"  );
-  addColumnParameter ("group"   , "Group"    , "groupColumn"   );
   addColumnParameter ("keyLabel", "Key Label", "keyLabelColumn");
   addColumnParameter ("color"   , "Color"    , "colorColumn"   ).setTip("Custom slice color");
+  addBoolParameter   ("donut"   , "Donut"    , "donut"         ).setTip("Draw donut");
 
-  addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping");
+  endParameterGroup();
+
+  //---
+
+  CQChartsGroupPlotType::addParameters();
+
+  //---
 
   CQChartsPlotType::addParameters();
+}
+
+QString
+CQChartsPiePlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw circle segments with diameter from a set of values.</p>\n";
 }
 
 CQChartsPlot *
@@ -35,15 +51,17 @@ create(CQChartsView *view, const ModelP &model) const
   return new CQChartsPiePlot(view, model);
 }
 
-//---
+//------
 
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("pie"), model)
+ CQChartsGroupPlot(view, view->charts()->plotType("pie"), model)
 {
-  dataColumns_.push_back(CQChartsColumn(1));
-
   (void) addColorSet("color");
+
+  //---
+
+  setDataColumnsStr("1");
 
   gridData_.color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5);
 
@@ -140,13 +158,6 @@ setRadiusColumn(const CQChartsColumn &c)
 
 void
 CQChartsPiePlot::
-setGroupColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsPiePlot::
 setKeyLabelColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(keyLabelColumn_, c, [&]() { updateRangeAndObjs(); } );
@@ -156,9 +167,99 @@ setKeyLabelColumn(const CQChartsColumn &c)
 
 void
 CQChartsPiePlot::
+setDonut(bool b)
+{
+  CQChartsUtil::testAndSet(donut_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
+setGrid(bool b)
+{
+  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { update(); } );
+}
+
+void
+CQChartsPiePlot::
+setGridColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { update(); } );
+}
+
+QColor
+CQChartsPiePlot::
+interpGridColor(int i, int n)
+{
+  return gridColor().interpColor(this, i, n);
+}
+
+void
+CQChartsPiePlot::
+setGridAlpha(double r)
+{
+  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { update(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
+setInnerRadius(double r)
+{
+  CQChartsUtil::testAndSet(innerRadius_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setOuterRadius(double r)
+{
+  CQChartsUtil::testAndSet(outerRadius_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setLabelRadius(double r)
+{
+  CQChartsUtil::testAndSet(labelRadius_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
+setStartAngle(double r)
+{
+  CQChartsUtil::testAndSet(startAngle_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsPiePlot::
 setAngleExtent(double r)
 {
   CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsPiePlot::
+setRotatedText(bool b)
+{
+  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { update(); } );
+}
+
+void
+CQChartsPiePlot::
+setExplodeSelected(bool b)
+{
+  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { update(); } );
+}
+
+void
+CQChartsPiePlot::
+setExplodeRadius(double r)
+{
+  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { update(); } );
 }
 
 //---
@@ -174,21 +275,23 @@ addProperties()
   addProperty("columns", this, "dataColumns"   , "dataSet" );
   addProperty("columns", this, "labelColumn"   , "label"   );
   addProperty("columns", this, "radiusColumn"  , "radius"  );
-  addProperty("columns", this, "groupColumn"   , "group"   );
   addProperty("columns", this, "keyLabelColumn", "keyLabel");
   addProperty("columns", this, "colorColumn"   , "color"   );
 
+  CQChartsGroupPlot::addProperties();
+
   // general
-  addProperty("options", this, "rowGrouping");
   addProperty("options", this, "donut"      );
   addProperty("options", this, "innerRadius");
   addProperty("options", this, "startAngle" );
   addProperty("options", this, "angleExtent");
 
+  // grid
   addProperty("grid", this, "grid"     , "visible");
   addProperty("grid", this, "gridColor", "color");
   addProperty("grid", this, "gridAlpha", "alpha");
 
+  // explode
   addProperty("explode", this, "explodeSelected", "selected");
   addProperty("explode", this, "explodeRadius"  , "radius"  );
 
@@ -210,6 +313,8 @@ addProperties()
   addProperty("color", this, "colorMapMax", "mapMax");
 }
 
+//---
+
 void
 CQChartsPiePlot::
 updateRange(bool apply)
@@ -226,6 +331,8 @@ updateRange(bool apply)
   //dataRange_.updateRange( r,  r);
 
   dataRange_.updateRange(c);
+
+  //---
 
   double angle1 = startAngle();
   double alen   = std::min(std::max(angleExtent(), -360.0), 360.0);
@@ -259,23 +366,62 @@ updateRange(bool apply)
 
   //---
 
+  initGroupData(dataColumns(), labelColumn());
+
+#if 0
   // if group column defined use that
   // if multiple data columns then use label column and data labels
   //   if row grouping we are creating a value set per row (1 value per data column)
   //   if column grouping we are creating a value set per data column (1 value per row)
   // otherwise (single data column) just use dummy group (column -1)
-  CQChartsPlot::GroupData groupData;
+  CQChartsGroupData groupData;
 
-  if      (groupColumn().isValid()) {
+  groupData.exactValue = isExactValue();
+  groupData.bucketer   = groupData_.bucketer;
+  groupData.usePath    = false;
+
+  // use multiple group columns
+  if      (dataColumns().size() > 1) {
+    groupData.columns     = dataColumns();
+    groupData.rowGrouping = isRowGrouping(); // only used if multiple groups
+
+    if      (groupColumn().isValid())
+      groupData.column = groupColumn();
+    else if (labelColumn().isValid())
+      groupData.column = labelColumn();
+  }
+  // use single group column
+  else if (groupColumn().isValid()) {
     groupData.column = groupColumn();
   }
-  else if (dataColumns().size() > 1) {
-    groupData.column      = labelColumn();
-    groupData.columns     = dataColumns();
-    groupData.rowGrouping = isRowGrouping();
+  // use path and hierarchical
+  else if (isUsePath() && isHierarchical()) {
+    groupData.usePath = true;
+  }
+  // use row
+  else if (isUseRow()) {
+    groupData.useRow = true;
+  }
+  // default use label column if defined
+  else if (labelColumn().isValid()) {
+    //groupData.column = labelColumn();
   }
 
   initGroup(groupData);
+#endif
+
+#if 0
+  if      (dataColumns().size() > 1) {
+    groupData.columns     = dataColumns();
+    groupData.rowGrouping = isRowGrouping();
+    groupData.column      = labelColumn();
+  }
+  else if (groupColumn().isValid()) {
+    groupData.column = groupColumn();
+  }
+
+  initGroup(groupData);
+#endif
 
   //---
 
@@ -338,7 +484,9 @@ initObjs()
 
   for (int groupInd = groupBucket_.imin(); groupInd <= groupBucket_.imax(); ++groupInd) {
     auto pg = groupDatas_.find(groupInd);
-    assert(pg != groupDatas_.end());
+
+    if (pg == groupDatas_.end()) continue;
+    //assert(pg != groupDatas_.end());
 
     GroupData &groupData = (*pg).second;
 
@@ -448,20 +596,23 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
   //---
 
+  // get value label (used for unique values in group)
   bool ok;
 
   QString label;
 
   if (numGroups() > 1) {
-    if (dataColumns().size() <= 1 || isRowGrouping()) {
-      label = modelString(row, labelColumn(), parent, ok);
-    }
-    else
+    if (dataColumns().size() > 1 && ! isRowGrouping())
       label = modelHeaderString(dataColumn, ok);
+    else
+      label = modelString(row, labelColumn(), parent, ok);
   }
   else {
     label = modelString(row, labelColumn(), parent, ok);
   }
+
+  if (! label.length())
+    label = QString("%1").arg(row);
 
   //---
 
@@ -610,7 +761,7 @@ addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &
   auto pg = groupDatas_.find(groupInd);
 
   if (pg == groupDatas_.end()) {
-    QString groupName = groupBucket_.indName(groupInd);
+    QString groupName = groupIndName(groupInd);
 
     pg = groupDatas_.insert(pg, GroupDatas::value_type(groupInd, GroupData(groupName)));
   }
@@ -1048,7 +1199,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   }
   // draw on arc center line
   else {
-    if (lr > 1.0) {
+    if (plot_->numGroups() == 1 && lr > 1.0) {
       plot_->textBox()->drawConnectedRadialText(painter, center, rv, lr1, ta, label(),
                                                 lpen, plot_->isRotatedText());
     }

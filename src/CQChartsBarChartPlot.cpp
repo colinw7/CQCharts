@@ -6,6 +6,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
+
 #include <QPainter>
 #include <QMenu>
 
@@ -18,20 +19,28 @@ void
 CQChartsBarChartPlotType::
 addParameters()
 {
-  addColumnsParameter("value"   , "Value"   , "valueColumns", "1").
-    setRequired().setTip("Distribution value columns");
-  addColumnParameter ("category", "Category", "categoryColumn").setTip("Grouping category");
-  addColumnParameter ("name"    , "Name"    , "nameColumn"    ).setTip("Grouping name");
-  addColumnParameter ("label"   , "Label"   , "labelColumn"   ).setTip("Bar data label");
-  addColumnParameter ("color"   , "Color"   , "colorColumn"   ).setTip("Custom bar color");
+  startParameterGroup("Bar Chart");
 
-  addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
-    setTip("Group by value column instead of category");
+  addColumnsParameter("value", "Value", "valueColumns", "1").
+    setRequired().setTip("Distribution value column(s)");
+
+  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Grouping name");
+  addColumnParameter("label", "Label", "labelColumn").setTip("Bar data label");
+  addColumnParameter("color", "Color", "colorColumn").setTip("Custom bar color");
+
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
   addBoolParameter("stacked"   , "Stacked"     , "stacked"   ).setTip("Stack grouped values");
   addBoolParameter("percent"   , "Percent"     , "percent"   ).setTip("Show value is percentage");
   addBoolParameter("rangeBar"  , "Range Bar"   , "rangeBar"  ).setTip("show value range in bar");
   addBoolParameter("horizontal", "Horizontal"  , "horizontal").setTip("draw bars horizontal");
+
+  endParameterGroup();
+
+  //---
+
+  CQChartsGroupPlotType::addParameters();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }
@@ -44,7 +53,7 @@ description() const
          "<p>Draws bars with heights from a set of values.</p>\n"
          "<h2>Columns</h2>\n"
          "<p>The bar heights are taken from the values in the <b>Value</b> column.</p>\n"
-         "<p>Bars can be grouped using an extra <b>Category</b> column so sets of "
+         "<p>Bars can be grouped using extra <b>Group</b> columns so sets of "
          "related values can be placed next to each other.</p>\n"
          "<p>An optional name can be supplied in the <b>Name</b> column to specify the label "
          "to use on the axis below the bar.</p>\n"
@@ -54,7 +63,7 @@ description() const
          "<p>The extra id can specified using the <b>Id</b> column.</p>"
          "<h2>Options</h2>\n"
          "<p>Enabling the <b>Row Grouping</b> option groups bars by column header name "
-         "instead of the normal <b>Category</b> column.</p>\n"
+         "instead of the normal <b>Group</b> columns.</p>\n"
          "<p>Enabling the <b>Color by Set</b> option colors bars in the same group the same "
          "color instead using different colors for each bar in the group.</p>\n"
          "<p>Enabling the <b>Stacked</b> option places grouped bars on top of each other "
@@ -74,16 +83,16 @@ create(CQChartsView *view, const ModelP &model) const
   return new CQChartsBarChartPlot(view, model);
 }
 
-//---
+//------
 
 CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
+ CQChartsGroupPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
 {
   (void) addColorSet("color");
 
-  boxData_.shape.background.visible = true;
-  boxData_.shape.background.color   = CQChartsColor(CQChartsColor::Type::PALETTE);
+  setBarFill (true);
+  setBarColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   //---
 
@@ -104,13 +113,6 @@ CQChartsBarChartPlot::
 }
 
 //---
-
-void
-CQChartsBarChartPlot::
-setCategoryColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(categoryColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
 
 void
 CQChartsBarChartPlot::
@@ -138,7 +140,7 @@ setValueColumns(const Columns &valueColumns)
     if (! valueColumns_.empty())
       valueColumn_ = valueColumnAt(0);
     else
-      valueColumn_ = -1;
+      valueColumn_ = CQChartsColumn();
 
     updateRangeAndObjs();
   }
@@ -165,6 +167,8 @@ setValueColumnsStr(const QString &s)
   return true;
 }
 
+//---
+
 void
 CQChartsBarChartPlot::
 setNameColumn(const CQChartsColumn &c)
@@ -187,20 +191,19 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "valueColumn"   , "value"      );
-  addProperty("columns", this, "valueColumns"  , "valuesSet"  );
-  addProperty("columns", this, "categoryColumn", "category"   );
-  addProperty("columns", this, "nameColumn"    , "name"       );
-  addProperty("columns", this, "labelColumn"   , "label"      );
-  addProperty("columns", this, "colorColumn"   , "color"      );
+  addProperty("columns", this, "valueColumns", "values");
+  addProperty("columns", this, "nameColumn"  , "name"  );
+  addProperty("columns", this, "labelColumn" , "label" );
+  addProperty("columns", this, "colorColumn" , "color" );
 
-  addProperty("options", this, "rowGrouping");
-  addProperty("options", this, "colorBySet");
-  addProperty("options", this, "stacked"   );
-  addProperty("options", this, "percent"   );
-  addProperty("options", this, "rangeBar"  );
-  addProperty("options", this, "horizontal");
-  addProperty("options", this, "margin"    , "barMargin");
+  CQChartsGroupPlot::addProperties();
+
+  addProperty("options", this, "colorBySet" );
+  addProperty("options", this, "stacked"    );
+  addProperty("options", this, "percent"    );
+  addProperty("options", this, "rangeBar"   );
+  addProperty("options", this, "horizontal" );
+  addProperty("options", this, "margin"     , "barMargin");
 
   addProperty("stroke", this, "border"     , "visible"   );
   addProperty("stroke", this, "borderColor", "color"     );
@@ -265,6 +268,13 @@ CQChartsBarChartPlot::
 setMargin(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(margin_, l, [&]() { update(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setGroupMargin(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(groupMargin_, l, [&]() { update(); } );
 }
 
 //---
@@ -444,55 +454,62 @@ updateRange(bool apply)
 
   //---
 
-  xAxis_->clearTickLabels();
-  yAxis_->clearTickLabels();
-
   valueSets_    .clear();
   valueGroupInd_.clear();
 
   //---
 
-  clearPlotObjects();
+  // non-range use group columns for grouping
+  CQChartsGroupData groupData;
 
-  //---
+  groupData.exactValue = isExactValue();
+  groupData.bucketer   = groupData_.bucketer;
+  groupData.usePath    = false;
 
-  // non-range and multiple value columns use category or name column for grouping
-  GroupData groupData;
-
-  groupData.defaultRow = true;
-
-  if      (! isRangeBar() && valueColumns().size() > 1) {
-    groupData.columns     = valueColumns();
-    groupData.rowGrouping = isRowGrouping();
-
-    if (categoryColumn().isValid())
-      groupData.column = categoryColumn();
-    else
+  if (! isRangeBar()) {
+    // use multiple group columns
+    if      (valueColumns().size() > 1) {
+      groupData.columns     = valueColumns();
+      groupData.rowGrouping = isRowGrouping(); // only used if multiple groups
+      groupData.column      = groupColumn();
+    }
+    // use single group column
+    else if (groupColumn().isValid()) {
+      groupData.column = groupColumn();
+    }
+    // use path and hierarchical
+    else if (isUsePath() && isHierarchical()) {
+      groupData.usePath = true;
+    }
+    // use row
+    else if (isUseRow()) {
+      groupData.useRow = true;
+    }
+    // default use name column if defined
+    else {
       groupData.column = nameColumn();
+    }
   }
-  // if category column use that for group
-  else if (categoryColumn().isValid()) {
-    groupData.column = categoryColumn();
-  }
-  // if hierarchical use parent path
-  else if (isHierarchical()) {
-    //initGroup(groupData);
-  }
-  // if no range use name or value columns for group
-  else if (! isRangeBar()) {
-    groupData.column      = nameColumn();
-    groupData.columns     = valueColumns();
-    groupData.rowGrouping = isRowGrouping();
-  }
-  // default no name column if defined
   else {
-    groupData.column      = nameColumn();
-    groupData.rowGrouping = isRowGrouping();
+    // use single group column
+    if (groupColumn().isValid()) {
+      groupData.column = groupColumn();
+    }
+    // use path and hierarchical
+    else if (isUsePath() && isHierarchical()) {
+      groupData.usePath = true;
+    }
+    // use row
+    else if (isUseRow()) {
+      groupData.useRow = true;
+    }
+    // default use name column if defined
+    else {
+      groupData.column = nameColumn();
+    }
   }
 
   initGroup(groupData);
-
-  //groupBucket().print(std::cerr);
 
   //---
 
@@ -526,6 +543,9 @@ updateRange(bool apply)
     bool ok;
 
     QString valueName = modelHeaderString(valueColumn, ok);
+
+    if (! valueName.length())
+      valueName = QString("%1").arg(valueColumn.column());
 
     valueNames_.push_back(valueName);
   }
@@ -562,16 +582,16 @@ updateRange(bool apply)
 
   // needed ?
   if (! isHorizontal()) {
-    if (categoryColumn().isValid())
-      setXValueColumn(categoryColumn());
+    if (groupColumn().isValid())
+      setXValueColumn(groupColumn());
     else
       setXValueColumn(nameColumn());
 
     setYValueColumn(valueColumn());
   }
   else {
-    if (categoryColumn().isValid())
-      setYValueColumn(categoryColumn());
+    if (groupColumn().isValid())
+      setYValueColumn(groupColumn());
     else
       setYValueColumn(nameColumn());
 
@@ -583,11 +603,11 @@ updateRange(bool apply)
   // set axis column and labels
   int ns = (! isRangeBar() ? numValueColumns() : 1);
 
-  CQChartsAxis *xAxis = (! isHorizontal() ? xAxis_ : yAxis_);
-  CQChartsAxis *yAxis = (! isHorizontal() ? yAxis_ : xAxis_);
+  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
+  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
 
-  if (categoryColumn().isValid())
-    xAxis->setColumn(categoryColumn());
+  if (groupColumn().isValid())
+    xAxis->setColumn(groupColumn());
   else
     xAxis->setColumn(nameColumn());
 
@@ -599,8 +619,8 @@ updateRange(bool apply)
     xname = ""; // No name for row grouping
   }
   else {
-    if (categoryColumn().isValid())
-      xname = modelHeaderString(categoryColumn(), ok);
+    if (groupColumn().isValid())
+      xname = modelHeaderString(groupColumn(), ok);
     else
       xname = modelHeaderString(nameColumn(), ok);
   }
@@ -666,7 +686,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   }
 
   // get group name
-  QString groupName = groupBucket_.indName(groupInd);
+  QString groupName = groupIndName(groupInd);
 
   //---
 
@@ -674,20 +694,20 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
 
   //---
 
-  // get category string (if defined) and update category name
-  QString category;
+  // get group string (if defined) and update group name
+  QString group;
 
-  if (categoryColumn().isValid()) {
+  if (groupColumn().isValid()) {
     bool ok1;
 
-    category = modelHierString(row, categoryColumn(), parent, ok1);
+    group = modelHierString(row, groupColumn(), parent, ok1);
 
-    categoryName = category;
+    categoryName = group;
   }
 
   //---
 
-  // get name string (if defined) and update category name
+  // get name string (if defined) and update group name
   QString name;
 
   if (nameColumn().isValid()) {
@@ -780,7 +800,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
 
       valueName = modelHeaderString(valueColumn, ok);
     }
-    // row grouping so value name is category/name column name
+    // row grouping so value name is group/name column name
     else {
       valueName = categoryName;
     }
@@ -790,15 +810,15 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   }
   else {
     // if path grouping (hierarchical) then value name is group name
-    if (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH) {
+    if (isGroupPathType()) {
       if (groupName.length())
         valueData.setGroupName(groupName);
     }
 
     // save other name values for tip
-    if (category.length()) valueData.setNameValue("Category", category);
-    if (name    .length()) valueData.setNameValue("Name"    , name);
-    if (label   .length()) valueData.setNameValue("Label"   , label);
+    if (group.length()) valueData.setNameValue("Group", group);
+    if (name .length()) valueData.setNameValue("Name" , name);
+    if (label.length()) valueData.setNameValue("Label", label);
   }
 
   // add value(s) to value set
@@ -859,7 +879,7 @@ groupValueSet(int groupInd)
 
   int ind = numValueSets();
 
-  QString name = groupBucket_.indName(groupInd);
+  QString name = groupIndName(groupInd);
 
   valueSets_.emplace_back(name, ind);
 
@@ -925,14 +945,21 @@ initObjs()
 
   //---
 
-  CQChartsAxis *xAxis = (! isHorizontal() ? xAxis_ : yAxis_);
-  CQChartsAxis *yAxis = (! isHorizontal() ? yAxis_ : xAxis_);
+  CQChartsAxis *xAxis = (! isHorizontal() ? this->xAxis() : this->yAxis());
+  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
+
+  xAxis->clearTickLabels();
+  yAxis->clearTickLabels();
 
   xAxis->setIntegral           (true);
+  xAxis->setGridMid            (true);
+  xAxis->setMajorIncrement     (1);
 //xAxis->setDataLabels         (true);
   xAxis->setMinorTicksDisplayed(false);
 
   yAxis->setIntegral           (false);
+  yAxis->setGridMid            (false);
+  yAxis->setMajorIncrement     (0);
 //yAxis->setDataLabels         (true);
   xAxis->setMinorTicksDisplayed(true);
 
@@ -1135,7 +1162,7 @@ QString
 CQChartsBarChartPlot::
 valueStr(double v) const
 {
-  CQChartsAxis *yAxis = (! isHorizontal() ? yAxis_ : xAxis_);
+  CQChartsAxis *yAxis = (! isHorizontal() ? this->yAxis() : this->xAxis());
 
   return yAxis->valueStr(v);
 }
@@ -1503,7 +1530,7 @@ void
 CQChartsBarChartObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->categoryColumn());
+  addColumnSelectIndex(inds, plot_->groupColumn());
   addColumnSelectIndex(inds, plot_->valueColumnAt(iset_));
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
@@ -1555,47 +1582,52 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  static double minWidth = 4.0;
+  static double minBorderSize = 5.0;
+  static double minSize       = 3.0;
+
+  bool skipBorder = false;
 
   if (layer == CQChartsPlot::Layer::MID) {
-    if (! plot_->isHorizontal()) {
-      double m = plot_->lengthPixelWidth(plot_->margin());
+    double m;
 
-      double w1 = prect.getWidth() - 2*m;
-
-      if (w1 < minWidth)
-        m = (prect.getWidth() - minWidth)/2.0;
-
-      prect.setXMin(prect.getXMin() + m);
-      prect.setXMax(prect.getXMax() - m);
-
-      qrect = CQChartsUtil::toQRect(prect);
+    if (nset_ > 1) {
+      if (ival_ == 0 || ival_ == nval_ - 1)
+        m = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+      else
+        m = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
     }
     else {
-      double m = plot_->lengthPixelHeight(plot_->margin());
-
-      double h1 = prect.getHeight() - 2*m;
-
-      if (h1 < minWidth)
-        m = (prect.getHeight() - minWidth)/2.0;
-
-      prect.setYMin(prect.getYMin() + m);
-      prect.setYMax(prect.getYMax() - m);
-
-      qrect = CQChartsUtil::toQRect(prect);
+      if (nval_ > 1 && (isval_ == 0 || isval_ == nsval_ - 1))
+        m = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+      else
+        m = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
     }
+
+    double rs = prect.getSize(! plot_->isHorizontal());
+
+    if (rs < minBorderSize)
+      skipBorder = true;
+
+    double s1 = rs - 2*m;
+
+    if (s1 < minSize)
+      m = (rs - minSize)/2.0;
+
+    prect.expandExtent(-m, -m, ! plot_->isHorizontal());
+
+    qrect = CQChartsUtil::toQRect(prect);
 
     //---
 
     // calc pen (stroke)
     QPen pen;
 
-    if (plot_->isBorder()) {
+    if (plot_->isBorder() && ! skipBorder) {
       QColor bc = plot_->interpBorderColor(0, 1);
 
       bc.setAlphaF(plot_->borderAlpha());
 
-      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+      double bw = plot_->lengthPixelWidth(plot_->borderWidth()); // TODO: width, height or both
 
       pen.setColor (bc);
       pen.setWidthF(bw);

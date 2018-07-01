@@ -5,7 +5,6 @@
 #include <QStringList>
 #include <vector>
 #include <iostream>
-#include <cassert>
 
 class CQChartsColumn {
  public:

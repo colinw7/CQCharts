@@ -20,7 +20,8 @@ CQChartsColumn(int column, int role) :
 CQChartsColumn::
 CQChartsColumn(const QString &s)
 {
-  setValue(s);
+  if (! setValue(s))
+    type_ = Type::NONE;
 }
 
 CQChartsColumn::
@@ -116,7 +117,8 @@ void
 CQChartsColumn::
 fromString(const QString &s)
 {
-  setValue(s);
+  if (! setValue(s))
+    type_ = Type::NONE;
 }
 
 int

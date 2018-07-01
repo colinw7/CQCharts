@@ -79,11 +79,14 @@ class CQChartsAxis : public QObject {
   Q_PROPERTY(CQChartsColor    gridMajorColor     READ  gridMajorColor    WRITE setGridMajorColor)
   Q_PROPERTY(CQChartsLength   gridMajorWidth     READ  gridMajorWidth    WRITE setGridMajorWidth)
   Q_PROPERTY(CQChartsLineDash gridMajorDash      READ  gridMajorDash     WRITE setGridMajorDash )
+
   Q_PROPERTY(bool             gridMinorDisplayed READ  isGridMinorDisplayed
                                                  WRITE setGridMinorDisplayed)
   Q_PROPERTY(CQChartsColor    gridMinorColor     READ  gridMinorColor    WRITE setGridMinorColor)
   Q_PROPERTY(CQChartsLength   gridMinorWidth     READ  gridMinorWidth    WRITE setGridMinorWidth)
   Q_PROPERTY(CQChartsLineDash gridMinorDash      READ  gridMinorDash     WRITE setGridMinorDash )
+
+  Q_PROPERTY(bool             gridMid            READ  isGridMid         WRITE setGridMid       )
   Q_PROPERTY(bool             gridAbove          READ  isGridAbove       WRITE setGridAbove     )
   Q_PROPERTY(bool             gridFill           READ  isGridFill        WRITE setGridFill      )
   Q_PROPERTY(CQChartsColor    gridFillColor      READ  gridFillColor     WRITE setGridFillColor )
@@ -193,9 +196,10 @@ class CQChartsAxis : public QObject {
 
   QColor interpLineColor(int i, int n) const;
 
-  //---
+  //----
 
   // grid
+
   bool isGridMajorDisplayed() const;
   void setGridMajorDisplayed(bool b);
 
@@ -209,6 +213,8 @@ class CQChartsAxis : public QObject {
 
   const CQChartsLineDash &gridMajorDash() const;
   void setGridMajorDash(const CQChartsLineDash &dash);
+
+  //--
 
   bool isGridMinorDisplayed() const;
   void setGridMinorDisplayed(bool b);
@@ -224,6 +230,11 @@ class CQChartsAxis : public QObject {
   const CQChartsLineDash &gridMinorDash() const;
   void setGridMinorDash(const CQChartsLineDash &dash);
 
+  //--
+
+  bool isGridMid() const { return gridMid_; }
+  void setGridMid(bool b) { gridMid_ = b; redraw(); }
+
   bool isGridAbove() const { return gridAbove_; }
   void setGridAbove(bool b) { gridAbove_ = b; redraw(); }
 
@@ -238,7 +249,7 @@ class CQChartsAxis : public QObject {
 
   QColor interpGridFillColor(int i, int n) const;
 
-  //---
+  //----
 
   // ticks
   bool isMinorTicksDisplayed() const { return minorTicksDisplayed_; }
@@ -441,6 +452,7 @@ class CQChartsAxis : public QObject {
   CQChartsLineData           lineData_;
 
   // grid (lines and gap fill)
+  bool                       gridMid_             { false };
   bool                       gridAbove_           { false };
   CQChartsLineData           majorGridLineData_;
   CQChartsLineData           minorGridLineData_;

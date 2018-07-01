@@ -695,6 +695,10 @@ inline long toInt(const QVariant &var, bool &ok) {
   return toInt(str, ok);
 }
 
+inline bool isNumeric(const QVariant &var) {
+  return isReal(var) || isInt(var);
+}
+
 //------
 
 int nameToRole(const QString &name);

@@ -3,6 +3,7 @@
 
 #include <CQChartsValueSet.h>
 #include <CQBaseModel.h>
+#include <CQBucketer.h>
 
 // bucket of values keyed off header, column or path
 class CQChartsColumnBucket {
@@ -11,182 +12,73 @@ class CQChartsColumnBucket {
 
   enum class DataType {
     NONE,
-    HEADER,
-    COLUMN,
-    PATH
+    HEADER, // bucket by header name
+    COLUMN, // bucket by column value
+    PATH    // bucket by hierarchical path
   };
 
  public:
-  CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE) :
-   columnType_(columnType) {
-  }
+  CQChartsColumnBucket(ColumnType columnType=ColumnType::NONE);
 
   const CQChartsColumn &column() const { return column_; }
-  void setColumn(const CQChartsColumn &c) { column_ = c; }
+  void setColumn(const CQChartsColumn &c);
 
   ColumnType columnType() const { return columnType_; }
-
-  void setColumnType(ColumnType columnType) {
-    if (columnType != columnType_) {
-      columnType_ = columnType;
-
-      clear();
-    }
-  }
+  void setColumnType(ColumnType columnType);
 
   const DataType &dataType() const { return dataType_; }
-  void setDataType(const DataType &v) { dataType_ = v; }
+  void setDataType(const DataType &v);
 
   bool isRowGrouping() const { return rowGrouping_; }
-  void setRowGrouping(bool b) { rowGrouping_ = b; }
+  void setRowGrouping(bool b);
 
-  bool isDefaultRow() const { return defaultRow_; }
-  void setDefaultRow(bool b) { defaultRow_ = b; }
+  // default to row number
+  bool isUseRow() const { return useRow_; }
+  void setUseRow(bool b);
 
-  void clear() {
-    rvals_.clear();
-    ivals_.clear();
-    svals_.clear();
+  bool isExactValue() const { return exactValue_; }
+  void setExactValue(bool b);
 
-    indName_.clear();
-  }
+  const CQBucketer &bucketer() const { return bucketer_; }
+  void setBucketer(const CQBucketer &v);
 
-  int addValue(const QVariant &value) {
-    assert(columnType() != ColumnType::NONE);
+  void reset();
 
-    bool ok;
+  void clear();
 
-    if      (columnType() == ColumnType::REAL) {
-      double r = CQChartsUtil::toReal(value, ok);
-      if (! ok) return -1;
+  int addValue(const QVariant &value);
 
-      return addReal(r);
-    }
-    else if (columnType() == ColumnType::INTEGER) {
-      long i = CQChartsUtil::toInt(value, ok);
-      if (! ok) return -1;
+  int addReal(double r);
 
-      return addInteger(i);
-    }
-    else if (columnType() == ColumnType::STRING) {
-      QString s;
+  int addInteger(int i);
 
-      CQChartsUtil::variantToString(value, s);
-
-      return addString(s);
-    }
-
-    return -1;
-  }
-
-  int addReal(double r) {
-    return rvals_.addValue(r);
-  }
-
-  int addInteger(int i) {
-    return ivals_.addValue(i);
-  }
-
-  int addString(const QString &s) {
-    return svals_.addValue(s);
-  }
+  int addString(const QString &s);
 
   // get index for value
-  int ind(const QVariant &value) const {
-    bool ok;
-
-    if      (columnType() == ColumnType::REAL) {
-      double r = CQChartsUtil::toReal(value, ok);
-      if (! ok) return 0;
-
-      return rvals_.id(r);
-    }
-    else if (columnType() == ColumnType::INTEGER) {
-      long i = CQChartsUtil::toInt(value, ok);
-      if (! ok) return 0;
-
-      return ivals_.id(i);
-    }
-    else if (columnType() == ColumnType::STRING) {
-      QString s;
-
-      CQChartsUtil::variantToString(value, s);
-
-      return svals_.id(s);
-    }
-    else
-      return 0;
-  }
+  int ind(const QVariant &value) const;
 
   // get index for string
-  int ind(const QString &s) const {
-    return svals_.id(s);
-  }
+  int ind(const QString &s) const;
 
   // get name for index
-  QString iname(int ind) const {
-    if      (columnType() == ColumnType::REAL   ) return QString("%1").arg(rvals_.ivalue(ind));
-    else if (columnType() == ColumnType::INTEGER) return QString("%1").arg(ivals_.ivalue(ind));
-    else if (columnType() == ColumnType::STRING ) return svals_.ivalue(ind);
-    else                                          return "";
-  }
+  QString iname(int ind) const;
 
-  int numUnique() const {
-    if      (columnType() == ColumnType::REAL   ) return rvals_.numUnique();
-    else if (columnType() == ColumnType::INTEGER) return ivals_.numUnique();
-    else if (columnType() == ColumnType::STRING ) return svals_.numUnique();
-    else                                          return 0;
-  }
+  int bucket(double value) const;
 
-  int imin() const {
-    if      (columnType() == ColumnType::REAL   ) return rvals_.imin();
-    else if (columnType() == ColumnType::INTEGER) return ivals_.imin();
-    else if (columnType() == ColumnType::STRING ) return svals_.imin();
-    else                                          assert(false);
-  }
+  QString bucketName(int ind) const;
 
-  int imax() const {
-    if      (columnType() == ColumnType::REAL   ) return rvals_.imax();
-    else if (columnType() == ColumnType::INTEGER) return ivals_.imax();
-    else if (columnType() == ColumnType::STRING ) return svals_.imax();
-    else                                          assert(false);
-  }
+  int numUnique() const;
 
-  void setIndName(int i, const QString &name) {
-    indName_[i] = name;
-  }
+  int imin() const;
+  int imax() const;
 
-  QString indName(int i) const {
-    auto p = indName_.find(i);
+  void setIndName(int i, const QString &name);
 
-    if (p != indName_.end())
-      return (*p).second;
+  QString indName(int i) const;
 
-    return iname(i);
-  }
+  void print(std::ostream &os) const;
 
-  void print(std::ostream &os) const {
-    os << "Bucket:\n";
-
-    if      (dataType() == DataType::HEADER) {
-      os << " Header:\n";
-    }
-    else if (dataType() == DataType::COLUMN) {
-      os << " Column:\n";
-      os << "  Type:   " << typeName().toStdString() << "\n";
-      os << "  Column: " << column_.column() << "\n";
-    }
-    else if (dataType() == DataType::COLUMN) {
-      os << " Path:\n";
-    }
-  }
-
-  QString typeName() const {
-    if      (columnType() == ColumnType::REAL   ) return "real";
-    else if (columnType() == ColumnType::INTEGER) return "integer";
-    else if (columnType() == ColumnType::STRING ) return "string";
-    else                                          assert(false);
-  }
+  QString typeName() const;
 
  private:
   using IndName = std::map<int,QString>;
@@ -195,7 +87,9 @@ class CQChartsColumnBucket {
   ColumnType      columnType_  { ColumnType::NONE };
   DataType        dataType_    { DataType::NONE };
   bool            rowGrouping_ { false };
-  bool            defaultRow_  { false };
+  bool            useRow_      { false };
+  bool            exactValue_  { false };
+  CQBucketer      bucketer_;
   CQChartsRValues rvals_;
   CQChartsIValues ivals_;
   CQChartsSValues svals_;

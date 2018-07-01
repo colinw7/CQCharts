@@ -20,6 +20,8 @@ class CQChartsXYPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  QString description() const override;
+
   const char *xColumnName() const override { return "x"; }
   const char *yColumnName() const override { return "y"; }
 

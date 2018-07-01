@@ -17,8 +17,14 @@ void
 CQChartsRadarPlotType::
 addParameters()
 {
+  startParameterGroup("Radar");
+
   addColumnParameter ("name" , "Name" , "nameColumn"  );
   addColumnsParameter("value", "Value", "valueColumns", "1").setRequired();
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }
@@ -434,13 +440,13 @@ addRow(const QModelIndex &parent, int row, int nr)
 
   double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
 
-  double da = (nv > 0 ? alen/nv : 0.0);
+  double da = (nv > 2 ? alen/nv : 90.0);
 
   //---
 
   QPolygonF poly;
 
-  double a = angleStart();
+  double a = (nv > 2 ? angleStart() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
     bool ok1;
@@ -536,123 +542,133 @@ drawBackground(QPainter *painter)
   if (! nv)
     return;
 
-  double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
-
-  double da = alen/nv;
-
   //---
 
-  // draw grid spokes
-  if (isGrid()) {
-    QColor gridColor1 = interpGridColor(0, 1);
-
-    gridColor1.setAlphaF(gridAlpha());
-
-    QPen gpen1(gridColor1);
-
-    painter->setPen(gpen1);
-
-    double px1, py1;
-
-    windowToPixel(0.0, 0.0, px1, py1);
-
-    double a = angleStart();
-
-    for (int iv = 0; iv < nv; ++iv) {
-      double ra = CQChartsUtil::Deg2Rad(a);
-
-      double x = valueRadius_*cos(ra);
-      double y = valueRadius_*sin(ra);
-
-      double px2, py2;
-
-      windowToPixel(x, y, px2, py2);
-
-      painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
-
-      a -= da;
-    }
+  if      (nv == 1) {
+    // TODO
   }
+  else if (nv == 2) {
+    // TODO
+  }
+  else if (nv > 2) {
+    double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
 
-  //---
-
-  QColor gridColor2 = interpGridColor(0, 1);
-
-  QPen gpen2(gridColor2);
-
-  //---
-
-  QColor tc = interpTextColor(0, 1);
-
-  tc.setAlphaF(textAlpha());
-
-  QPen tpen(tc);
-
-  //---
-
-  painter->setFont(textFont());
-
-  int    nl = 5;
-  double dr = valueRadius_/nl;
-
-  for (int i = 0; i <= nl; ++i) {
-    double r = dr*i;
-
-    double a = angleStart();
-
-    QPolygonF poly;
-
-    for (int iv = 0; iv < nv; ++iv) {
-      double ra = CQChartsUtil::Deg2Rad(a);
-
-      double x = r*cos(ra);
-      double y = r*sin(ra);
-
-      double px, py;
-
-      windowToPixel(x, y, px, py);
-
-      poly << QPointF(px, py);
-
-      //---
-
-      if (i == nl) {
-        painter->setPen(tpen);
-
-        //---
-
-        bool ok;
-
-        QString name = modelHeaderString(valueColumns()[iv], ok);
-
-        Qt::Alignment align = 0;
-
-        if      (CQChartsUtil::isZero(x)) align |= Qt::AlignHCenter;
-        else if (x > 0)                   align |= Qt::AlignLeft;
-        else if (x < 0)                   align |= Qt::AlignRight;
-
-        if      (CQChartsUtil::isZero(y)) align |= Qt::AlignVCenter;
-        else if (y > 0)                   align |= Qt::AlignBottom;
-        else if (y < 0)                   align |= Qt::AlignTop;
-
-        CQChartsDrawUtil::drawAlignedText(painter, px, py, name, align, 2, 2);
-      }
-
-      //---
-
-      a -= da;
-    }
-
-    poly << poly[0];
+    double da = alen/nv;
 
     //---
 
-    // draw grid polygon
-
+    // draw grid spokes
     if (isGrid()) {
-      painter->setPen(gpen2);
+      QColor gridColor1 = interpGridColor(0, 1);
 
-      painter->drawPolygon(poly);
+      gridColor1.setAlphaF(gridAlpha());
+
+      QPen gpen1(gridColor1);
+
+      painter->setPen(gpen1);
+
+      double px1, py1;
+
+      windowToPixel(0.0, 0.0, px1, py1);
+
+      double a = angleStart();
+
+      for (int iv = 0; iv < nv; ++iv) {
+        double ra = CQChartsUtil::Deg2Rad(a);
+
+        double x = valueRadius_*cos(ra);
+        double y = valueRadius_*sin(ra);
+
+        double px2, py2;
+
+        windowToPixel(x, y, px2, py2);
+
+        painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
+
+        a -= da;
+      }
+    }
+
+    //---
+
+    QColor gridColor2 = interpGridColor(0, 1);
+
+    QPen gpen2(gridColor2);
+
+    //---
+
+    QColor tc = interpTextColor(0, 1);
+
+    tc.setAlphaF(textAlpha());
+
+    QPen tpen(tc);
+
+    //---
+
+    painter->setFont(textFont());
+
+    int    nl = 5;
+    double dr = valueRadius_/nl;
+
+    for (int i = 0; i <= nl; ++i) {
+      double r = dr*i;
+
+      double a = angleStart();
+
+      QPolygonF poly;
+
+      for (int iv = 0; iv < nv; ++iv) {
+        double ra = CQChartsUtil::Deg2Rad(a);
+
+        double x = r*cos(ra);
+        double y = r*sin(ra);
+
+        double px, py;
+
+        windowToPixel(x, y, px, py);
+
+        poly << QPointF(px, py);
+
+        //---
+
+        if (i == nl) {
+          painter->setPen(tpen);
+
+          //---
+
+          bool ok;
+
+          QString name = modelHeaderString(valueColumns()[iv], ok);
+
+          Qt::Alignment align = 0;
+
+          if      (CQChartsUtil::isZero(x)) align |= Qt::AlignHCenter;
+          else if (x > 0)                   align |= Qt::AlignLeft;
+          else if (x < 0)                   align |= Qt::AlignRight;
+
+          if      (CQChartsUtil::isZero(y)) align |= Qt::AlignVCenter;
+          else if (y > 0)                   align |= Qt::AlignBottom;
+          else if (y < 0)                   align |= Qt::AlignTop;
+
+          CQChartsDrawUtil::drawAlignedText(painter, px, py, name, align, 2, 2);
+        }
+
+        //---
+
+        a -= da;
+      }
+
+      poly << poly[0];
+
+      //---
+
+      // draw grid polygon
+
+      if (isGrid()) {
+        painter->setPen(gpen2);
+
+        painter->drawPolygon(poly);
+      }
     }
   }
 }
@@ -691,7 +707,27 @@ inside(const CQChartsGeom::Point &p) const
   if (! visible())
     return false;
 
-  return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  if      (poly_.size() == 1) {
+    const QPointF &p1 = poly_[0]; // circle radius p1.x()
+
+    double r  = std::hypot(p .x  , p .y  );
+    double r1 = std::hypot(p1.x(), p1.x());
+
+    return (r < r1);
+  }
+  else if (poly_.size() == 2) {
+    const QPointF &p1 = poly_[0]; // circle radius p1.x() and p2.y()
+    const QPointF &p2 = poly_[1];
+
+    double r  = std::hypot(p .x  , p .y  );
+    double r1 = std::hypot(p1.x(), p2.y());
+
+    return (r < r1);
+  }
+  else if (poly_.size() >= 3)
+    return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);
+  else
+    return false;
 }
 
 void
@@ -716,6 +752,16 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (! poly_.size())
     return;
 
+  //---
+
+  // get pixel origin
+  double pxo, pyo;
+
+  plot_->windowToPixel(0.0, 0.0, pxo, pyo);
+
+  //---
+
+  // create pixel polygon
   QPolygonF ppoly;
 
   for (int i = 0; i < poly_.size(); ++i) {
@@ -770,5 +816,22 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  painter->drawPolygon(ppoly);
+  if      (poly_.size() == 1) {
+    const QPointF &p1 = ppoly[0]; // circle radius p1.x()
+
+    double r = p1.x() - pxo;
+
+    painter->drawEllipse(QRectF(pxo - r, pyo - r, 2*r, 2*r));
+  }
+  else if (poly_.size() == 2) {
+    const QPointF &p1 = ppoly[0]; // circle radius p1.x() and p2.y()
+    const QPointF &p2 = ppoly[1];
+
+    double xr = p1.x() - pxo;
+    double yr = p2.y() - pyo;
+
+    painter->drawEllipse(QRectF(pxo - xr, pyo - yr, 2*xr, 2*yr));
+  }
+  else if (poly_.size() >= 3)
+    painter->drawPolygon(ppoly);
 }

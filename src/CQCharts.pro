@@ -48,6 +48,7 @@ CQChartsPlotType.cpp \
 CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
+CQChartsGroupPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
@@ -86,6 +87,7 @@ CQChartsArrow.cpp \
 CQChartsEditHandles.cpp \
 CQChartsResizeHandle.cpp \
 \
+CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
@@ -97,6 +99,7 @@ CQChartsModelWidgets.cpp \
 CQChartsModelList.cpp \
 CQChartsModelControl.cpp \
 CQChartsModelView.cpp \
+CQChartsEval.cpp \
 \
 CQChartsFilterEdit.cpp \
 \
@@ -137,6 +140,7 @@ CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
 CQSummaryModel.cpp \
+CQBucketer.cpp \
 \
 CQHistoryLineEdit.cpp \
 CQFilename.cpp \
@@ -176,6 +180,7 @@ HEADERS += \
 ../include/CQChartsPlot.h \
 ../include/CQChartsHierPlot.h \
 ../include/CQChartsHierPlotType.h \
+../include/CQChartsGroupPlot.h \
 ../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxPlot.h \
@@ -215,6 +220,7 @@ HEADERS += \
 ../include/CQChartsEditHandles.h \
 ../include/CQChartsResizeHandle.h \
 \
+../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsPosition.h \
@@ -234,6 +240,7 @@ HEADERS += \
 ../include/CQChartsModelList.h \
 ../include/CQChartsModelControl.h \
 ../include/CQChartsModelView.h \
+../include/CQChartsEval.h \
 \
 ../include/CQChartsFilterEdit.h \
 \
@@ -267,6 +274,7 @@ HEADERS += \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
 ../include/CQSummaryModel.h \
+../include/CQBucketer.h \
 \
 ../include/CQHistoryLineEdit.h \
 CQFilename.h \
@@ -287,6 +295,7 @@ INCLUDEPATH += \
 ../include \
 ../../CQPropertyView/include \
 ../../CQDividedArea/include \
+../../CQCustomCombo/include \
 ../../CQUtil/include \
 ../../CExpr/include \
 ../../CJson/include \

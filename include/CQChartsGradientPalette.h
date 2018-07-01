@@ -223,6 +223,8 @@ class CQChartsGradientPalette {
 
   const ColorMap &colors() const { return colors_; }
 
+  ColorMap &colors() { return colors_; }
+
   void addDefinedColor(double v, const QColor &c);
 
   void resetDefinedColors();

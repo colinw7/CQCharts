@@ -19,6 +19,8 @@ void
 CQChartsXYPlotType::
 addParameters()
 {
+  startParameterGroup("XY");
+
   // columns
   addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired().setMonotonic().setNumeric();
   addColumnsParameter("y", "Y", "yColumns", "1").setRequired().setNumeric();
@@ -43,7 +45,50 @@ addParameters()
   addBoolParameter("impulse"   , "Impulse"   , "impulse"   );
   addBoolParameter("vectors"   , "Vectors"   , "vectors"   );
 
+  endParameterGroup();
+
+  //---
+
   CQChartsPlotType::addParameters();
+}
+
+QString
+CQChartsXYPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws points at x and y coordinate pairs an connects then with a continuous "
+         "line.</p>\n"
+         "<p>The x coordinates should be monotonic.</p>\n"
+         "<h2>Columns</h2>\n"
+         "<p>The x and y values come from the values in the <b>X</b> and <b>Y</b> columns. "
+         "Multiple <b>Y</b> columns can be specified to create a stack of lines.</p>\n"
+         "<p>An optional <b>Name</b> column can be specified to supply and name for the "
+         " coordinate.</p>\n"
+         "<p>An optional <b>Size</b> column can be specified to supply the size of the symbol "
+         "drawn at the point.</p>\n"
+         "<p>An optional <b>PointLabel</b> column can be specified to add a label next to a "
+         "point.</p>\n"
+         "<p>An optional <b>PointColor</b> column can be specified to specify the color of "
+         "the point symbol.</p>\n"
+         "<p>An optional <b>PointSymbol</b> column can be specified to specify the symbol of "
+         "the point.</p>\n"
+         "<p>Optional <b>VectorX</b> and <b>VectorY</b> columns can be specified to draw a "
+         "vector at the point.</p>\n"
+         "<h2>Options</h2>\n"
+         "<p>The <b>Lines</b> option determines whether the points are connected with a line.</p>"
+         "<p>The <b>Points</b> option determines whether the points are drawn.</p>"
+         "<p>Enabling the <b>Bivariate</b> option fills the area between adjacent sets of x, y "
+         "coordinates (two or more y column values should be specified).</p>"
+         "<p>Enabling the <b>Stacked</b> option stacks the y values on top of each other "
+         "so the next set of y values adds onto the previous set of y values.</p>\n"
+         "<p>Enabling the <b>Cumulative</b> option treats the y values as an increment "
+         "from the previews y value (in each set).</p>\n"
+         "<p>Enabling the <b>FillUnder</b> option fills the area under the plot.<p>\n"
+         "<p>Enabling the <b>Impulse</b> option draws a line from zero ot the "
+         "points y value.</p> "
+         "<p>The <b>Vectors</b> option detemines whether the vector specified by the "
+         "<b>VectorX</b> and <b>VectorY</b> columns is drawn.</p>\n";
 }
 
 CQChartsPlot *
@@ -117,7 +162,7 @@ setYColumns(const Columns &yColumns)
   if (! yColumns_.empty())
     yColumn_ = yColumns_[0];
   else
-    yColumn_ = -1;
+    yColumn_ = CQChartsColumn();
 
   updateRangeAndObjs();
 }
@@ -380,9 +425,7 @@ void
 CQChartsXYPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  pointData_.stroke.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -403,9 +446,7 @@ void
 CQChartsXYPlot::
 setSymbolStrokeAlpha(double a)
 {
-  pointData_.stroke.alpha = a;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -419,9 +460,7 @@ void
 CQChartsXYPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  pointData_.fill.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -442,9 +481,7 @@ void
 CQChartsXYPlot::
 setSymbolFillAlpha(double a)
 {
-  pointData_.fill.alpha = a;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
 }
 
 //---
@@ -460,9 +497,7 @@ void
 CQChartsXYPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  lineData_.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -485,9 +520,7 @@ void
 CQChartsXYPlot::
 setFillUnderColor(const CQChartsColor &c)
 {
-  fillUnderData_.fillData.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(fillUnderData_.fillData.color, c, [&]() { update(); } );
 }
 
 QColor

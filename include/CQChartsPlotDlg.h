@@ -3,6 +3,7 @@
 
 #include <CQChartsPlotType.h>
 #include <CQChartsColumn.h>
+#include <CQCharts.h>
 #include <QDialog>
 #include <QPointer>
 
@@ -70,6 +71,7 @@ class CQChartsPlotDlg : public QDialog {
   struct PlotData {
     using ColumnEdits = std::map<QString,CQChartsColumnEdit*>;
     using LineEdits   = std::map<QString,QLineEdit*>;
+    using WidgetEdits = std::map<QString,QWidget*>;
     using FormatEdits = std::map<QString,FormatEditData>;
     using CheckBoxes  = std::map<QString,QCheckBox*>;
     using MapEdits    = std::map<QString,MapEditData>;
@@ -80,7 +82,8 @@ class CQChartsPlotDlg : public QDialog {
     FormatEdits  formatEdits;
     CheckBoxes   boolEdits;
     LineEdits    stringEdits;
-    LineEdits    realEdits;
+    WidgetEdits  realEdits;
+    WidgetEdits  intEdits;
     QPushButton* okButton { nullptr };
     int          ind      { -1 };
   };
@@ -97,6 +100,8 @@ class CQChartsPlotDlg : public QDialog {
   QFrame *createTypeDataFrame();
   QFrame *createGeneralDataFrame();
   QFrame *createPreviewFrame();
+
+  void sortedPlotTypes(CQCharts::PlotTypes &sortedPlotTypes);
 
   void addPlotWidgets(CQChartsPlotType *type, int ind);
 
@@ -125,6 +130,9 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
                             const CQChartsPlotParameter &parameter);
 
+  void addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
+                           const CQChartsPlotParameter &parameter);
+
   QLineEdit *addRealEdit(QLayout *grid, int &row, int &column, const QString &name,
                          const QString &objName, const QString &placeholderText) const;
   CQChartsColumnEdit *addColumnEdit(QLayout *grid, int &row, int &column, const QString &name,
@@ -143,7 +151,9 @@ class CQChartsPlotDlg : public QDialog {
   bool parseParameterStringEdit(const CQChartsPlotParameter &parameter,
                                 const PlotData &plotData, QString &str);
   bool parseParameterRealEdit(const CQChartsPlotParameter &parameter,
-                              const PlotData &plotData, double &rtr);
+                              const PlotData &plotData, double &r);
+  bool parseParameterIntEdit(const CQChartsPlotParameter &parameter,
+                             const PlotData &plotData, int &i);
   bool parseParameterBoolEdit(const CQChartsPlotParameter &parameter,
                               const PlotData &plotData, bool &b);
 
@@ -173,7 +183,7 @@ class CQChartsPlotDlg : public QDialog {
   CQChartsPlotType *getPlotType() const;
 
  private slots:
-  void comboSlot(int ind);
+  void comboSlot(const QString &desc);
 
   void xminSlot();
   void yminSlot();

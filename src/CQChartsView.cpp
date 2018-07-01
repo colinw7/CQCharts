@@ -2,6 +2,7 @@
 #include <CQChartsViewToolTip.h>
 #include <CQChartsProbeBand.h>
 #include <CQChartsPlot.h>
+#include <CQChartsPlotType.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
@@ -402,6 +403,11 @@ void
 CQChartsView::
 addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 {
+  CQChartsGeom::BBox bbox1 = bbox;
+
+  if (! bbox.isSet())
+    bbox1 = CQChartsGeom::BBox(0, 0, viewportRange(), viewportRange());
+
   if (! plot->id().length()) {
     QString id(QString("%1").arg(numPlots() + 1));
 
@@ -410,7 +416,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
     plot->setObjectName(plot->id());
   }
 
-  plot->setBBox(bbox);
+  plot->setBBox(bbox1);
 
   plots_.push_back(plot);
 
@@ -1814,6 +1820,8 @@ showMenu(const QPoint &p)
 
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
+  CQChartsPlotType *plotType = (currentPlot ? currentPlot->type() : nullptr);
+
   //---
 
   // Add plots
@@ -1848,71 +1856,73 @@ showMenu(const QPoint &p)
 
   //------
 
-  QMenu *keyMenu = new QMenu("Key", popupMenu_);
+  if (plotType && plotType->hasKey()) {
+    QMenu *keyMenu = new QMenu("Key", popupMenu_);
 
-  QAction *keyVisibleAction = new QAction("Visible", popupMenu_);
+    QAction *keyVisibleAction = new QAction("Visible", popupMenu_);
 
-  keyVisibleAction->setCheckable(true);
+    keyVisibleAction->setCheckable(true);
 
-  if (currentPlot && currentPlot->key())
-    keyVisibleAction->setChecked(currentPlot->key()->isVisible());
+    if (currentPlot && currentPlot->key())
+      keyVisibleAction->setChecked(currentPlot->key()->isVisible());
 
-  connect(keyVisibleAction, SIGNAL(triggered(bool)), this, SLOT(keyVisibleSlot(bool)));
+    connect(keyVisibleAction, SIGNAL(triggered(bool)), this, SLOT(keyVisibleSlot(bool)));
 
-  keyMenu->addAction(keyVisibleAction);
+    keyMenu->addAction(keyVisibleAction);
 
-  //---
+    //---
 
-  using KeyLocationActionMap = std::map<CQChartsPlotKey::LocationType, QAction *>;
+    using KeyLocationActionMap = std::map<CQChartsPlotKey::LocationType, QAction *>;
 
-  KeyLocationActionMap keyLocationActionMap;
+    KeyLocationActionMap keyLocationActionMap;
 
-  QMenu *keyLocationMenu = new QMenu("Location", keyMenu);
+    QMenu *keyLocationMenu = new QMenu("Location", keyMenu);
 
-  QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
+    QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
 
-  auto addKeyLocationGroupAction =
-   [&](const QString &label, const CQChartsPlotKey::LocationType &location) {
-    QAction *action = new QAction(label, keyLocationMenu);
+    auto addKeyLocationGroupAction =
+     [&](const QString &label, const CQChartsPlotKey::LocationType &location) {
+      QAction *action = new QAction(label, keyLocationMenu);
 
-    action->setCheckable(true);
+      action->setCheckable(true);
 
-    keyLocationActionMap[location] = action;
+      keyLocationActionMap[location] = action;
 
-    keyLocationActionGroup->addAction(action);
+      keyLocationActionGroup->addAction(action);
 
-    return action;
-  };
+      return action;
+    };
 
-  addKeyLocationGroupAction("Top Left"     , CQChartsPlotKey::LocationType::TOP_LEFT     );
-  addKeyLocationGroupAction("Top Center"   , CQChartsPlotKey::LocationType::TOP_CENTER   );
-  addKeyLocationGroupAction("Top Right"    , CQChartsPlotKey::LocationType::TOP_RIGHT    );
-  addKeyLocationGroupAction("Center Left"  , CQChartsPlotKey::LocationType::CENTER_LEFT  );
-  addKeyLocationGroupAction("Center Center", CQChartsPlotKey::LocationType::CENTER_CENTER);
-  addKeyLocationGroupAction("Center Right" , CQChartsPlotKey::LocationType::CENTER_RIGHT );
-  addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
-  addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_CENTER);
-  addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
-  addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABS_POS      );
+    addKeyLocationGroupAction("Top Left"     , CQChartsPlotKey::LocationType::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"   , CQChartsPlotKey::LocationType::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"    , CQChartsPlotKey::LocationType::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"  , CQChartsPlotKey::LocationType::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center", CQChartsPlotKey::LocationType::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right" , CQChartsPlotKey::LocationType::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABS_POS      );
 
-  keyLocationActionGroup->setExclusive(true);
+    keyLocationActionGroup->setExclusive(true);
 
-  if (currentPlot && currentPlot->key()) {
-    CQChartsPlotKey::LocationType location = currentPlot->key()->location();
+    if (currentPlot && currentPlot->key()) {
+      CQChartsPlotKey::LocationType location = currentPlot->key()->location();
 
-    keyLocationActionMap[location]->setChecked(true);
+      keyLocationActionMap[location]->setChecked(true);
+    }
+
+    connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
+            this, SLOT(keyPositionSlot(QAction *)));
+
+    keyLocationMenu->addActions(keyLocationActionGroup->actions());
+
+    keyMenu->addMenu(keyLocationMenu);
+
+    //---
+
+    popupMenu_->addMenu(keyMenu);
   }
-
-  connect(keyLocationActionGroup, SIGNAL(triggered(QAction *)),
-          this, SLOT(keyPositionSlot(QAction *)));
-
-  keyLocationMenu->addActions(keyLocationActionGroup->actions());
-
-  keyMenu->addMenu(keyLocationMenu);
-
-  //---
-
-  popupMenu_->addMenu(keyMenu);
 
   //------
 
@@ -1920,192 +1930,196 @@ showMenu(const QPoint &p)
 
   //------
 
-  QMenu *xAxisMenu = new QMenu("X Axis", popupMenu_);
+  if (plotType && plotType->hasAxes()) {
+    QMenu *xAxisMenu = new QMenu("X Axis", popupMenu_);
+
+    //---
+
+    QAction *xAxisVisibleAction = new QAction("Visible", popupMenu_);
+
+    xAxisVisibleAction->setCheckable(true);
+
+    if (currentPlot && currentPlot->xAxis())
+      xAxisVisibleAction->setChecked(currentPlot->xAxis()->isVisible());
+
+    connect(xAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(xAxisVisibleSlot(bool)));
+
+    xAxisMenu->addAction(xAxisVisibleAction);
+
+    //---
+
+    QAction *xAxisGridAction = new QAction("Grid", popupMenu_);
+
+    xAxisGridAction->setCheckable(true);
+
+    if (currentPlot && currentPlot->xAxis())
+      xAxisGridAction->setChecked(currentPlot->xAxis()->isGridMajorDisplayed());
+
+    connect(xAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(xAxisGridSlot(bool)));
+
+    xAxisMenu->addAction(xAxisGridAction);
+
+    //---
+
+    AxisSideActionMap xAxisSideActionMap;
+
+    QMenu *xAxisSideMenu = new QMenu("Side", xAxisMenu);
+
+    QActionGroup *xAxisSideGroup = new QActionGroup(xAxisMenu);
+
+    auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
+      QAction *action = new QAction(label, xAxisSideMenu);
+
+      action->setCheckable(true);
+
+      xAxisSideActionMap[side] = action;
+
+      xAxisSideGroup->addAction(action);
+
+      return action;
+    };
+
+    addXAxisSideGroupAction("Bottom", CQChartsAxis::Side::BOTTOM_LEFT);
+    addXAxisSideGroupAction("Top"   , CQChartsAxis::Side::TOP_RIGHT  );
+
+    if (currentPlot && currentPlot->xAxis())
+      xAxisSideActionMap[currentPlot->xAxis()->side()]->setChecked(true);
+
+    connect(xAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(xAxisSideSlot(QAction *)));
+
+    xAxisSideMenu->addActions(xAxisSideGroup->actions());
+
+    xAxisMenu->addMenu(xAxisSideMenu);
+
+    //---
+
+    popupMenu_->addMenu(xAxisMenu);
+
+    //------
+
+    QMenu *yAxisMenu = new QMenu("Y Axis", popupMenu_);
+
+    //---
+
+    QAction *yAxisVisibleAction = new QAction("Visible", popupMenu_);
+
+    yAxisVisibleAction->setCheckable(true);
+
+    if (currentPlot && currentPlot->yAxis())
+      yAxisVisibleAction->setChecked(currentPlot->yAxis()->isVisible());
+
+    connect(yAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(yAxisVisibleSlot(bool)));
+
+    yAxisMenu->addAction(yAxisVisibleAction);
+
+    //---
+
+    QAction *yAxisGridAction = new QAction("Grid", popupMenu_);
+
+    yAxisGridAction->setCheckable(true);
+
+    if (currentPlot && currentPlot->yAxis())
+      yAxisGridAction->setChecked(currentPlot->yAxis()->isGridMajorDisplayed());
+
+    connect(yAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(yAxisGridSlot(bool)));
+
+    yAxisMenu->addAction(yAxisGridAction);
+
+    //---
+
+    AxisSideActionMap yAxisSideActionMap;
+
+    QMenu *yAxisSideMenu = new QMenu("Side", yAxisMenu);
+
+    QActionGroup *yAxisSideGroup = new QActionGroup(yAxisMenu);
+
+    auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
+      QAction *action = new QAction(label, yAxisSideMenu);
+
+      action->setCheckable(true);
+
+      yAxisSideActionMap[side] = action;
+
+      yAxisSideGroup->addAction(action);
+
+      return action;
+    };
+
+    addYAxisSideGroupAction("Left" , CQChartsAxis::Side::BOTTOM_LEFT);
+    addYAxisSideGroupAction("Right", CQChartsAxis::Side::TOP_RIGHT  );
+
+    if (currentPlot && currentPlot->yAxis())
+      yAxisSideActionMap[currentPlot->yAxis()->side()]->setChecked(true);
+
+    connect(yAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(yAxisSideSlot(QAction *)));
+
+    yAxisSideMenu->addActions(yAxisSideGroup->actions());
+
+    yAxisMenu->addMenu(yAxisSideMenu);
+
+    //---
+
+    popupMenu_->addMenu(yAxisMenu);
+  }
 
   //---
 
-  QAction *xAxisVisibleAction = new QAction("Visible", popupMenu_);
+  if (plotType && plotType->hasTitle()) {
+    QMenu *titleMenu = new QMenu("Title", popupMenu_);
 
-  xAxisVisibleAction->setCheckable(true);
+    QAction *titleVisibleAction = new QAction("Visible", popupMenu_);
 
-  if (currentPlot && currentPlot->xAxis())
-    xAxisVisibleAction->setChecked(currentPlot->xAxis()->isVisible());
+    titleVisibleAction->setCheckable(true);
 
-  connect(xAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(xAxisVisibleSlot(bool)));
+    if (currentPlot && currentPlot->title())
+      titleVisibleAction->setChecked(currentPlot->title()->isVisible());
 
-  xAxisMenu->addAction(xAxisVisibleAction);
+    connect(titleVisibleAction, SIGNAL(triggered(bool)), this, SLOT(titleVisibleSlot(bool)));
 
-  //---
+    titleMenu->addAction(titleVisibleAction);
 
-  QAction *xAxisGridAction = new QAction("Grid", popupMenu_);
+    //---
 
-  xAxisGridAction->setCheckable(true);
+    using TitleLocationActionMap = std::map<CQChartsTitle::LocationType, QAction *>;
 
-  if (currentPlot && currentPlot->xAxis())
-    xAxisGridAction->setChecked(currentPlot->xAxis()->isGridMajorDisplayed());
+    TitleLocationActionMap titleLocationActionMap;
 
-  connect(xAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(xAxisGridSlot(bool)));
+    QMenu *titleLocationMenu = new QMenu("Location", titleMenu);
 
-  xAxisMenu->addAction(xAxisGridAction);
+    QActionGroup *titleLocationGroup = new QActionGroup(titleMenu);
 
-  //---
+    auto addTitleLocationGroupAction =
+     [&](const QString &label, const CQChartsTitle::LocationType &location) {
+      QAction *action = new QAction(label, titleLocationMenu);
 
-  AxisSideActionMap xAxisSideActionMap;
+      action->setCheckable(true);
 
-  QMenu *xAxisSideMenu = new QMenu("Side", xAxisMenu);
+      titleLocationActionMap[location] = action;
 
-  QActionGroup *xAxisSideGroup = new QActionGroup(xAxisMenu);
+      titleLocationGroup->addAction(action);
 
-  auto addXAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
-    QAction *action = new QAction(label, xAxisSideMenu);
+      return action;
+    };
 
-    action->setCheckable(true);
+    addTitleLocationGroupAction("Top"     , CQChartsTitle::LocationType::TOP    );
+    addTitleLocationGroupAction("Center"  , CQChartsTitle::LocationType::CENTER );
+    addTitleLocationGroupAction("Bottom"  , CQChartsTitle::LocationType::BOTTOM );
+    addTitleLocationGroupAction("Absolute", CQChartsTitle::LocationType::ABS_POS);
 
-    xAxisSideActionMap[side] = action;
+    if (currentPlot && currentPlot->title())
+      titleLocationActionMap[currentPlot->title()->location()]->setChecked(true);
 
-    xAxisSideGroup->addAction(action);
+    connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
+            this, SLOT(titleLocationSlot(QAction *)));
 
-    return action;
-  };
+    titleLocationMenu->addActions(titleLocationGroup->actions());
 
-  addXAxisSideGroupAction("Bottom", CQChartsAxis::Side::BOTTOM_LEFT);
-  addXAxisSideGroupAction("Top"   , CQChartsAxis::Side::TOP_RIGHT  );
+    titleMenu->addMenu(titleLocationMenu);
 
-  if (currentPlot && currentPlot->xAxis())
-    xAxisSideActionMap[currentPlot->xAxis()->side()]->setChecked(true);
+    //---
 
-  connect(xAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(xAxisSideSlot(QAction *)));
-
-  xAxisSideMenu->addActions(xAxisSideGroup->actions());
-
-  xAxisMenu->addMenu(xAxisSideMenu);
-
-  //---
-
-  popupMenu_->addMenu(xAxisMenu);
-
-  //------
-
-  QMenu *yAxisMenu = new QMenu("Y Axis", popupMenu_);
-
-  //---
-
-  QAction *yAxisVisibleAction = new QAction("Visible", popupMenu_);
-
-  yAxisVisibleAction->setCheckable(true);
-
-  if (currentPlot && currentPlot->yAxis())
-    yAxisVisibleAction->setChecked(currentPlot->yAxis()->isVisible());
-
-  connect(yAxisVisibleAction, SIGNAL(triggered(bool)), this, SLOT(yAxisVisibleSlot(bool)));
-
-  yAxisMenu->addAction(yAxisVisibleAction);
-
-  //---
-
-  QAction *yAxisGridAction = new QAction("Grid", popupMenu_);
-
-  yAxisGridAction->setCheckable(true);
-
-  if (currentPlot && currentPlot->yAxis())
-    yAxisGridAction->setChecked(currentPlot->yAxis()->isGridMajorDisplayed());
-
-  connect(yAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(yAxisGridSlot(bool)));
-
-  yAxisMenu->addAction(yAxisGridAction);
-
-  //---
-
-  AxisSideActionMap yAxisSideActionMap;
-
-  QMenu *yAxisSideMenu = new QMenu("Side", yAxisMenu);
-
-  QActionGroup *yAxisSideGroup = new QActionGroup(yAxisMenu);
-
-  auto addYAxisSideGroupAction = [&](const QString &label, const CQChartsAxis::Side &side) {
-    QAction *action = new QAction(label, yAxisSideMenu);
-
-    action->setCheckable(true);
-
-    yAxisSideActionMap[side] = action;
-
-    yAxisSideGroup->addAction(action);
-
-    return action;
-  };
-
-  addYAxisSideGroupAction("Left" , CQChartsAxis::Side::BOTTOM_LEFT);
-  addYAxisSideGroupAction("Right", CQChartsAxis::Side::TOP_RIGHT  );
-
-  if (currentPlot && currentPlot->yAxis())
-    yAxisSideActionMap[currentPlot->yAxis()->side()]->setChecked(true);
-
-  connect(yAxisSideGroup, SIGNAL(triggered(QAction *)), this, SLOT(yAxisSideSlot(QAction *)));
-
-  yAxisSideMenu->addActions(yAxisSideGroup->actions());
-
-  yAxisMenu->addMenu(yAxisSideMenu);
-
-  //---
-
-  popupMenu_->addMenu(yAxisMenu);
-
-  //---
-
-  QMenu *titleMenu = new QMenu("Title", popupMenu_);
-
-  QAction *titleVisibleAction = new QAction("Visible", popupMenu_);
-
-  titleVisibleAction->setCheckable(true);
-
-  if (currentPlot && currentPlot->title())
-    titleVisibleAction->setChecked(currentPlot->title()->isVisible());
-
-  connect(titleVisibleAction, SIGNAL(triggered(bool)), this, SLOT(titleVisibleSlot(bool)));
-
-  titleMenu->addAction(titleVisibleAction);
-
-  //---
-
-  using TitleLocationActionMap = std::map<CQChartsTitle::LocationType, QAction *>;
-
-  TitleLocationActionMap titleLocationActionMap;
-
-  QMenu *titleLocationMenu = new QMenu("Location", titleMenu);
-
-  QActionGroup *titleLocationGroup = new QActionGroup(titleMenu);
-
-  auto addTitleLocationGroupAction =
-   [&](const QString &label, const CQChartsTitle::LocationType &location) {
-    QAction *action = new QAction(label, titleLocationMenu);
-
-    action->setCheckable(true);
-
-    titleLocationActionMap[location] = action;
-
-    titleLocationGroup->addAction(action);
-
-    return action;
-  };
-
-  addTitleLocationGroupAction("Top"     , CQChartsTitle::LocationType::TOP    );
-  addTitleLocationGroupAction("Center"  , CQChartsTitle::LocationType::CENTER );
-  addTitleLocationGroupAction("Bottom"  , CQChartsTitle::LocationType::BOTTOM );
-  addTitleLocationGroupAction("Absolute", CQChartsTitle::LocationType::ABS_POS);
-
-  if (currentPlot && currentPlot->title())
-    titleLocationActionMap[currentPlot->title()->location()]->setChecked(true);
-
-  connect(titleLocationGroup, SIGNAL(triggered(QAction *)),
-          this, SLOT(titleLocationSlot(QAction *)));
-
-  titleLocationMenu->addActions(titleLocationGroup->actions());
-
-  titleMenu->addMenu(titleLocationMenu);
-
-  //---
-
-  popupMenu_->addMenu(titleMenu);
+    popupMenu_->addMenu(titleMenu);
+  }
 
   //------
 

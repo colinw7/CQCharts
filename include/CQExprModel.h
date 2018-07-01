@@ -206,6 +206,7 @@ class CQExprModel : public QAbstractProxyModel {
   QVariant keyCmd      (const Values &values) const;
   QVariant randCmd     (const Values &values) const;
   QVariant concatCmd   (const Values &values) const;
+  QVariant colorCmd    (const Values &values) const;
 
   QString replaceNumericColumns(const QString &expr, int row, int column) const;
 

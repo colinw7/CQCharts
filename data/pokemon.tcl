@@ -24,7 +24,7 @@ set legendaryExpr "column($legendaryColumn) == {True}"
 set legendaryColumn1 [process_model -model $model -add -expr "column($legendaryColumn) == {True}" -header "Legendary(bool)"]
 
 # use box plot
-set plot1 [create_plot -type boxplot -columns "x=$legendaryColumn1,y=$totalColumn" -xintegral 1]
+set plot1 [create_plot -type boxplot -columns "group=$legendaryColumn1,value=$totalColumn"]
 
 set_property -plot $plot1 -name "xaxis.label.text" -value "is Legendary"
 set_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
@@ -38,6 +38,6 @@ sort_model -model $model -column $totalColumn
 
 filter_model -model $model -expr "column($legendaryColumn1) == 1"
 
-set plot2 [create_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -bool "autoRange=0" -bool "horizontal=1" -xintegral 1]
+set plot2 [create_plot -type distribution -columns "group=$type12Column,color=$generationColumn" -bool "autoRange=0" -bool "horizontal=1"]
 
 set_property -plot $plot2 -name "color.mapped" -value 1

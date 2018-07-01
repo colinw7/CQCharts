@@ -1979,6 +1979,16 @@ CQChartsThemeMgr()
 {
 }
 
+CQChartsThemeMgr::
+~CQChartsThemeMgr()
+{
+  for (auto &namedPalette : namedPalettes_)
+    delete namedPalette.second;
+
+  for (auto &nameTheme : themes_)
+    delete nameTheme.second;
+}
+
 void
 CQChartsThemeMgr::
 init()
@@ -2045,16 +2055,6 @@ init()
   addTheme("default" , new CQChartsDefaultTheme);
   addTheme("palette1", new CQChartsTheme1);
   addTheme("palette2", new CQChartsTheme2);
-}
-
-CQChartsThemeMgr::
-~CQChartsThemeMgr()
-{
-  for (auto &namedPalette : namedPalettes_)
-    delete namedPalette.second;
-
-  for (auto &nameTheme : themes_)
-    delete nameTheme.second;
 }
 
 void

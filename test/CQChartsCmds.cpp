@@ -18,6 +18,7 @@
 #include <CQChartsPaletteColorData.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 
 #include <CQChartsLoadDlg.h>
@@ -261,6 +262,8 @@ addCommands()
 #ifdef CQ_CHARTS_TCL
   qtcl()->createAlias("echo", "puts");
 #endif
+
+  addCommand("sh");
 }
 
 const CQChartsCmds::ParserType &
@@ -382,6 +385,8 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "@continue") { continueCmd(vars); }
   else if (cmd == "@print"   ) { printCmd   (vars); }
 #endif
+
+  else if (cmd == "sh") { shellCmd(vars); }
 
   else if (cmd == "source") { sourceCmd(vars); }
   else if (cmd == "exit"  ) { exit(0); }
@@ -796,7 +801,7 @@ createPlotCmd(const Vars &vars)
   QString columnsStr = argv.getParseStr("columns");
 
   if (columnsStr.length()) {
-    QStringList strs = columnsStr.split(",", QString::SkipEmptyParts);
+    QStringList strs = stringToColumns(columnsStr);
 
     for (int j = 0; j < strs.size(); ++j) {
       const QString &nameValue = strs[j];
@@ -814,6 +819,8 @@ createPlotCmd(const Vars &vars)
       }
     }
   }
+
+  //--
 
   // plot bool parameters
   QString boolStr = argv.getParseStr("bool");
@@ -843,9 +850,11 @@ createPlotCmd(const Vars &vars)
     }
   }
 
-  QString stringStr = argv.getParseStr("string");
+  //--
 
   // plot string parameters
+  QString stringStr = argv.getParseStr("string");
+
   if (stringStr.length()) {
     auto pos = stringStr.indexOf('=');
 
@@ -863,9 +872,11 @@ createPlotCmd(const Vars &vars)
     nameValueData.strings[name] = value;
   }
 
-  QString realStr = argv.getParseStr("real");
+  //--
 
   // plot real parameters
+  QString realStr = argv.getParseStr("real");
+
   if (realStr.length()) {
     auto pos = realStr.indexOf('=');
 
@@ -884,6 +895,31 @@ createPlotCmd(const Vars &vars)
     }
 
     nameValueData.reals[name] = value;
+  }
+
+  //--
+
+  // plot integer parameters
+  QString intStr = argv.getParseStr("int");
+
+  if (intStr.length()) {
+    auto pos = intStr.indexOf('=');
+
+    QString name;
+    int     value = 0;
+
+    if (pos >= 0) {
+      bool ok;
+
+      name  = intStr.mid(0, pos).simplified();
+      value = intStr.mid(pos + 1).simplified().toInt(&ok);
+    }
+    else {
+      name  = intStr;
+      value = 0.0;
+    }
+
+    nameValueData.ints[name] = value;
   }
 
   //------
@@ -3288,8 +3324,33 @@ createPlotDlgCmd(const Vars &vars)
   CQChartsPlot *plot = dlg->plot();
 
   setCmdRc(plot ? plot->id() : "");
+}
 
-  return;
+//------
+
+void
+CQChartsCmds::
+shellCmd(const Vars &vars)
+{
+  CQChartsCmdsArgs argv("sh", vars);
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  const Vars &shArgs = argv.getParseArgs();
+
+  QString cmd = (! shArgs.empty() ? shArgs[0].toString() : "");
+
+  //---
+
+  if (cmd == "") {
+    errorMsg("No command");
+    return;
+  }
+
+  system(cmd.toLatin1().constData());
 }
 
 //------
@@ -3349,6 +3410,9 @@ sourceCmd(const Vars &vars)
   }
 }
 
+//-----
+
+#ifdef CQ_CHARTS_CEIL
 void
 CQChartsCmds::
 letCmd(const Vars &vars)
@@ -3442,6 +3506,7 @@ printCmd(const Vars &vars)
     }
   }
 }
+#endif
 
 //------
 
@@ -3808,6 +3873,17 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       double r = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(r)))
+        errorMsg("Failed to set parameter " + parameter.propName());
+    }
+    else if (parameter.type() == "int") {
+      auto p = nameValueData.ints.find(parameter.name());
+
+      if (p == nameValueData.ints.end())
+        continue;
+
+      int i = (*p).second;
+
+      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(i)))
         errorMsg("Failed to set parameter " + parameter.propName());
     }
     else if (parameter.type() == "bool") {
@@ -4377,6 +4453,78 @@ parseScriptLine(const QString &str)
 
   if (! processCmd(cmd, vars))
     errorMsg("Invalid command '" + cmd + "'");
+}
+
+QStringList
+CQChartsCmds::
+stringToColumns(const QString &str) const
+{
+  //QStringList strs = str.split(",", QString::SkipEmptyParts);
+
+  QStringList words;
+
+  CQStrParse parse(str);
+
+  QString word;
+  int     num_rbrackets = 0;
+  int     num_sbrackets = 0;
+  int     num_cbrackets = 0;
+
+  while (! parse.eof()) {
+    if      (parse.isChar(',') && num_rbrackets == 0 && num_sbrackets == 0 && num_cbrackets == 0) {
+      if (word.length())
+        words.push_back(word);
+
+      parse.skipChar();
+
+      word = "";
+    }
+    else if (parse.isChar('[')) {
+      ++num_sbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar(']')) {
+      --num_sbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar('(')) {
+      ++num_rbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar(')')) {
+      --num_rbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar('{')) {
+      ++num_cbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar('}')) {
+      --num_cbrackets;
+
+      word += parse.getChar();
+    }
+    else if (parse.isChar('\"') || parse.isChar('\'')) {
+      int pos = parse.getPos();
+
+      parse.skipString();
+
+      word += parse.getBefore(pos);
+    }
+    else {
+      word += parse.getChar();
+    }
+  }
+
+  if (word.length())
+    words.push_back(word);
+
+  return words;
 }
 
 void

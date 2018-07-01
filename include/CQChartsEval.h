@@ -1,9 +1,9 @@
 #ifndef CQChartsEval_H
 #define CQChartsEval_H
 
-#include <CExpr.h>
-#include <CQExprUtil.h>
 #include <CQTclUtil.h>
+
+class CExpr;
 
 #define CQChartsEvalInst CQChartsEval::instance()
 
@@ -16,70 +16,26 @@ class CQChartsEval {
   };
 
  public:
-  static CQChartsEval *instance() {
-    static CQChartsEval *inst;
+  static CQChartsEval *instance();
 
-    if (! inst)
-      inst = new CQChartsEval;
-
-    return inst;
-  }
-
- ~CQChartsEval() {
-#ifdef CQCharts_USE_CEXPR
-    delete expr_;
-#endif
-#ifdef CQCharts_USE_TCL
-    delete qtcl_;
-#endif
-  }
+ ~CQChartsEval();
 
   const ExprType &exprType() const { return exprType_; }
   void setExprType(const ExprType &type) { exprType_ = type; }
 
-  bool evalExpr(int row, const QString &exprStr, QVariant &var) {
-    if (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-      expr_->createVariable("x", expr_->createRealValue(row));
+  bool evalExpr(int row, const QString &exprStr, QVariant &var);
 
-      CExprValuePtr value;
-
-      if (! expr_->evaluateExpression(exprStr.toStdString(), value))
-        return false;
-
-      var = CQExprUtil::valueToVariant(expr_, value);
-
-      if (! var.isValid())
-        return false;
-
-      return true;
-#else
-      return false;
-#endif
-    }
-    else if (exprType_ == ExprType::TCL) {
 #ifdef CQCharts_USE_TCL
-      qtcl_->createVar("x", row);
-
-      return qtcl_->evalExpr(exprStr, var);
-#else
-      return false;
+  CQTcl* qtcl() const { return qtcl_; }
 #endif
-    }
-    else {
-      return false;
-    }
-  }
 
  private:
-  CQChartsEval() {
-#ifdef CQCharts_USE_CEXPR
-    expr_ = new CExpr;
-#endif
-#ifdef CQCharts_USE_TCL
-    qtcl_ = new CQTcl;
-#endif
-  }
+  CQChartsEval();
+
+  void addFunc(const QString &name, CQTcl::ObjCmdProc proc);
+
+ private:
+  static int colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
  private:
 #if defined(CQCharts_USE_TCL)

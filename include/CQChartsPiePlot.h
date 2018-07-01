@@ -1,8 +1,7 @@
 #ifndef CQChartsPiePlot_H
 #define CQChartsPiePlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsColumnBucket.h>
@@ -13,7 +12,7 @@
 
 //---
 
-class CQChartsPiePlotType : public CQChartsPlotType {
+class CQChartsPiePlotType : public CQChartsGroupPlotType {
  public:
   CQChartsPiePlotType();
 
@@ -25,6 +24,8 @@ class CQChartsPiePlotType : public CQChartsPlotType {
   void addParameters() override;
 
   bool hasAxes() const override { return false; }
+
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -212,7 +213,7 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
 //---
 
-class CQChartsPiePlot : public CQChartsPlot {
+class CQChartsPiePlot : public CQChartsGroupPlot {
   Q_OBJECT
 
   // properties
@@ -223,14 +224,11 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn dataColumn      READ dataColumn        WRITE setDataColumn     )
   Q_PROPERTY(QString        dataColumns     READ dataColumnsStr    WRITE setDataColumnsStr )
   Q_PROPERTY(CQChartsColumn radiusColumn    READ radiusColumn      WRITE setRadiusColumn   )
-  Q_PROPERTY(CQChartsColumn groupColumn     READ groupColumn       WRITE setGroupColumn    )
-  Q_PROPERTY(bool           rowGrouping     READ isRowGrouping     WRITE setRowGrouping    )
   Q_PROPERTY(CQChartsColumn keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
   Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
+
+  // options
   Q_PROPERTY(bool           donut           READ isDonut           WRITE setDonut          )
-  Q_PROPERTY(bool           grid            READ isGrid            WRITE setGrid           )
-  Q_PROPERTY(CQChartsColor  gridColor       READ gridColor         WRITE setGridColor      )
-  Q_PROPERTY(double         gridAlpha       READ gridAlpha         WRITE setGridAlpha      )
   Q_PROPERTY(double         innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double         outerRadius     READ outerRadius       WRITE setOuterRadius    )
   Q_PROPERTY(double         labelRadius     READ labelRadius       WRITE setLabelRadius    )
@@ -239,6 +237,13 @@ class CQChartsPiePlot : public CQChartsPlot {
   Q_PROPERTY(bool           rotatedText     READ isRotatedText     WRITE setRotatedText    )
   Q_PROPERTY(bool           explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double         explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
+
+  // grid
+  Q_PROPERTY(bool           grid            READ isGrid            WRITE setGrid           )
+  Q_PROPERTY(CQChartsColor  gridColor       READ gridColor         WRITE setGridColor      )
+  Q_PROPERTY(double         gridAlpha       READ gridAlpha         WRITE setGridAlpha      )
+
+  // color map
   Q_PROPERTY(bool           colorMapped     READ isColorMapped     WRITE setColorMapped    )
   Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
   Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
@@ -248,7 +253,6 @@ class CQChartsPiePlot : public CQChartsPlot {
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
-
  ~CQChartsPiePlot();
 
   //---
@@ -274,43 +278,40 @@ class CQChartsPiePlot : public CQChartsPlot {
   const CQChartsColumn &radiusColumn() const { return radiusColumn_; }
   void setRadiusColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c);
-
   const CQChartsColumn &keyLabelColumn() const { return keyLabelColumn_; }
   void setKeyLabelColumn(const CQChartsColumn &c);
 
   //---
 
   bool isDonut() const { return donut_; }
-  void setDonut(bool b) { donut_ = b; updateRangeAndObjs(); }
+  void setDonut(bool b);
 
   //---
 
   bool isGrid() const { return gridData_.visible; }
-  void setGrid(bool b) { gridData_.visible = b; update(); }
+  void setGrid(bool b);
 
   const CQChartsColor &gridColor() const { return gridData_.color; }
-  void setGridColor(const CQChartsColor &c) { gridData_.color = c; update(); }
+  void setGridColor(const CQChartsColor &c);
 
-  QColor interpGridColor(int i, int n) { return gridColor().interpColor(this, i, n); }
+  QColor interpGridColor(int i, int n);
 
   double gridAlpha() const { return gridData_.alpha; }
-  void setGridAlpha(double r) { gridData_.alpha = r; update(); }
+  void setGridAlpha(double r);
 
   //---
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; updateRangeAndObjs(); }
+  void setInnerRadius(double r);
 
   double outerRadius() const { return outerRadius_; }
-  void setOuterRadius(double r) { outerRadius_ = r; updateRangeAndObjs(); }
+  void setOuterRadius(double r);
 
   double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; updateRangeAndObjs(); }
+  void setLabelRadius(double r);
 
   double startAngle() const { return startAngle_; }
-  void setStartAngle(double r) { startAngle_ = r; updateRangeAndObjs(); }
+  void setStartAngle(double r);
 
   double angleExtent() const { return angleExtent_; }
   void setAngleExtent(double r);
@@ -318,13 +319,13 @@ class CQChartsPiePlot : public CQChartsPlot {
   //---
 
   bool isRotatedText() const { return rotatedText_; }
-  void setRotatedText(bool b) { rotatedText_ = b; update(); }
+  void setRotatedText(bool b);
 
   bool isExplodeSelected() const { return explodeSelected_; }
-  void setExplodeSelected(bool b) { explodeSelected_ = b; update(); }
+  void setExplodeSelected(bool b);
 
   double explodeRadius() const { return explodeRadius_; }
-  void setExplodeRadius(double r) { explodeRadius_ = r; update(); }
+  void setExplodeRadius(double r);
 
   //---
 
@@ -404,25 +405,24 @@ class CQChartsPiePlot : public CQChartsPlot {
   using GroupDatas = std::map<int,GroupData>;
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
-  CQChartsColumn       labelColumn_     { 0 };       // label column
-  Columns              dataColumns_;                 // data value columns
-  CQChartsColumn       radiusColumn_;                // radius value column
-  CQChartsColumn       groupColumn_;                 // group column
-  CQChartsColumn       keyLabelColumn_;              // key label column
-  bool                 donut_           { false };   // is donut
-  CQChartsLineData     gridData_;                    // grid line data
-  double               innerRadius_     { 0.6 };     // relative inner donut radius
-  double               outerRadius_     { 0.9 };     // relative outer donut radius
-  double               labelRadius_     { 1.1 };     // label radus
-  double               startAngle_      { 90 };      // first pie start angle
-  double               angleExtent_     { 360.0 };   // pie angle extent
-  bool                 rotatedText_     { false };   // is label rotated
-  bool                 explodeSelected_ { true };    // explode selected pie
-  double               explodeRadius_   { 0.05 };    // expose radus
-  GroupDatas           groupDatas_;                  // data per group
-  CQChartsPieTextObj*  textBox_         { nullptr }; // text box
-  CQChartsGeom::Point  center_;                      // center point
-  GroupObjs            groupObjs_;                   // group objects
+  CQChartsColumn      labelColumn_     { 0 };       // label column
+  Columns             dataColumns_;                 // data value columns
+  CQChartsColumn      radiusColumn_;                // radius value column
+  CQChartsColumn      keyLabelColumn_;              // key label column
+  bool                donut_           { false };   // is donut
+  double              innerRadius_     { 0.6 };     // relative inner donut radius
+  double              outerRadius_     { 0.9 };     // relative outer donut radius
+  double              labelRadius_     { 1.1 };     // label radus
+  double              startAngle_      { 90 };      // first pie start angle
+  double              angleExtent_     { 360.0 };   // pie angle extent
+  bool                rotatedText_     { false };   // is label rotated
+  bool                explodeSelected_ { true };    // explode selected pie
+  double              explodeRadius_   { 0.05 };    // expose radus
+  CQChartsLineData    gridData_;                    // grid line data
+  GroupDatas          groupDatas_;                  // data per group
+  CQChartsPieTextObj* textBox_         { nullptr }; // text box
+  CQChartsGeom::Point center_;                      // center point
+  GroupObjs           groupObjs_;                   // group objects
 };
 
 #endif

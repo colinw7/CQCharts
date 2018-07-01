@@ -4615,143 +4615,6 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
 
 //------
 
-// init group buckets depending on:
-//  group column
-//  multiple value columns
-//  row grouping
-void
-CQChartsPlot::
-initGroup(const GroupData &data)
-{
-  groupBucket_.clear();
-
-  QAbstractItemModel *model = this->model().data();
-  if (! model) return;
-
-  //---
-
-  // for row grouping we use the column header as the grouping id so all row
-  // values in the column are added to the group
-  if (data.columns.size() > 1 && data.rowGrouping) {
-    groupBucket_.setDataType   (CQChartsColumnBucket::DataType::HEADER);
-    groupBucket_.setColumnType (ColumnType::INTEGER);
-    groupBucket_.setRowGrouping(true);
-
-    for (const auto &column : data.columns) {
-      bool ok;
-
-      QString name = modelHeaderString(column, ok);
-
-      int ind = groupBucket_.addValue(column.column());
-
-      groupBucket_.setIndName(ind, name);
-    }
-
-    return;
-  }
-
-  //---
-
-  // for specified group column set column and column type
-  if      (data.column.isValid()) {
-    ColumnType columnType = CQBaseModel::Type::STRING;
-
-    if (data.column.type() == CQChartsColumn::Type::DATA)
-      columnType = columnValueType(data.column);
-
-    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
-    groupBucket_.setColumnType(columnType);
-    groupBucket_.setColumn    (data.column);
-  }
-  // no group column then use parent path (hierarchical)
-  else if (isHierarchical()) {
-    groupBucket_.setDataType  (CQChartsColumnBucket::DataType::PATH);
-    groupBucket_.setColumnType(ColumnType::STRING);
-  }
-  else {
-    groupBucket_.setColumnType(ColumnType::STRING);
-  }
-
-  groupBucket_.setDefaultRow(data.defaultRow);
-
-  // process model data
-  class GroupVisitor : public ModelVisitor {
-   public:
-    GroupVisitor(CQChartsPlot *plot, CQChartsColumnBucket *bucket) :
-     plot_(plot), bucket_(bucket) {
-    }
-
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      // add column value
-      if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
-        bool ok;
-
-        QVariant value = plot_->modelHierValue(row, bucket_->column(), parent, ok);
-
-        if (value.isValid())
-          bucket_->addValue(value);
-      }
-      // add parent path (hierarchical)
-      else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-        QString path = CQChartsUtil::parentPath(model, parent);
-
-        bucket_->addString(path);
-      }
-      else if (bucket_->isDefaultRow()) {
-        bucket_->addValue(row); // default to row
-      }
-      else {
-        bucket_->addString(""); // no bucket
-      }
-
-      return State::OK;
-    }
-
-   private:
-    CQChartsPlot*         plot_   { nullptr };
-    CQChartsColumnBucket* bucket_ { nullptr };
-  };
-
-  GroupVisitor groupVisitor(this, &groupBucket_);
-
-  visitModel(groupVisitor);
-}
-
-int
-CQChartsPlot::
-rowGroupInd(const QModelIndex &parent, int row, const CQChartsColumn &column) const
-{
-  QAbstractItemModel *model = this->model().data();
-  if (! model) return -1;
-
-  // header has multiple groups (one per column)
-  if      (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
-    return groupBucket_.ind(column.column());
-  }
-  // get group id from value in group column
-  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
-    bool ok;
-
-    QVariant value = modelHierValue(row, groupBucket_.column(), parent, ok);
-
-    return groupBucket_.ind(value);
-  }
-  // get group id from parent path name
-  else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsUtil::parentPath(model, parent);
-
-    return groupBucket_.ind(path);
-  }
-  else if (groupBucket_.isDefaultRow()) {
-    return row; // default to row
-  }
-  else {
-    return 0; // no bucket
-  }
-}
-
-//------
-
 void
 CQChartsPlot::
 visitModel(ModelVisitor &visitor)
@@ -4994,9 +4857,12 @@ std::vector<double>
 CQChartsPlot::
 modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
+  std::vector<double> reals;
+
   QVariant var = modelValue(model().data(), row, column, parent, ok);
 
-  std::vector<double> reals;
+  if (! ok)
+    return reals;
 
   if (var.type() == QVariant::List) {
     QList<QVariant> vars = var.toList();
@@ -5516,6 +5382,13 @@ lengthPlotHeight(const CQChartsLength &len) const
     return len.value()*displayRangeBBox().getHeight()/100.0;
   else
     return len.value();
+}
+
+double
+CQChartsPlot::
+lengthPixelSize(const CQChartsLength &len, bool horizontal) const
+{
+  return (horizontal ? lengthPixelWidth(len) : lengthPixelHeight(len));
 }
 
 double

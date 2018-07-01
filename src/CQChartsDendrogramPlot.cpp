@@ -14,8 +14,14 @@ void
 CQChartsDendrogramPlotType::
 addParameters()
 {
+  startParameterGroup("Dendogram");
+
   addColumnParameter("name" , "name" , "nameColumn" , 0).setRequired();
   addColumnParameter("value", "Value", "valueColumn", 1).setRequired();
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }

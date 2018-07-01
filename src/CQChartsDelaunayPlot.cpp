@@ -16,12 +16,18 @@ void
 CQChartsDelaunayPlotType::
 addParameters()
 {
+  startParameterGroup("Delaunay");
+
   addColumnParameter("x", "X", "xColumn", 0).setRequired();
   addColumnParameter("y", "Y", "yColumn", 1).setRequired();
 
   addColumnParameter("name", "Name", "nameColumn");
 
   addBoolParameter("voronoi", "Voronoi", "voronoi");
+
+  endParameterGroup();
+
+  //---
 
   CQChartsPlotType::addParameters();
 }
@@ -78,9 +84,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  pointData_.stroke.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -101,9 +105,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolStrokeAlpha(double a)
 {
-  pointData_.stroke.alpha = a;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { update(); } );
 }
 
 const CQChartsColor &
@@ -117,9 +119,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  pointData_.fill.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { update(); } );
 }
 
 QColor
@@ -140,9 +140,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolFillAlpha(double a)
 {
-  pointData_.fill.alpha = a;
-
-  update();
+  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
 }
 
 //---
@@ -158,9 +156,7 @@ void
 CQChartsDelaunayPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  lineData_.color = c;
-
-  update();
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
 }
 
 QColor

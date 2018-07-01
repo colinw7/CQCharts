@@ -45,7 +45,7 @@ class CQBaseModel : public QAbstractItemModel {
 #if QT_VERSION >= 0x050000
     POLYGON = QVariant::PolygonF,
 #else
-    POLYGON = QVariant::UserType + 103
+    POLYGON = QVariant::UserType + 199,
 #endif
     COLOR   = QVariant::Color,
     PEN     = QVariant::Pen,

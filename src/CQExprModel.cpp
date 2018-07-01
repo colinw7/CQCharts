@@ -7,6 +7,7 @@
 #include <CQStrParse.h>
 #include <COSNaN.h>
 #include <COSRand.h>
+#include <QColor>
 #include <iostream>
 
 #ifdef CQExprModel_USE_CEXPR
@@ -98,6 +99,7 @@ addBuiltinFunctions()
   addFunction("key"      );
   addFunction("rand"     );
   addFunction("concat"   );
+  addFunction("color"    );
 }
 
 void
@@ -862,6 +864,7 @@ processCmd(const QString &name, const Values &values)
   else if (name == "key"      ) return keyCmd      (values);
   else if (name == "rand"     ) return randCmd     (values);
   else if (name == "concat"   ) return concatCmd   (values);
+  else if (name == "color"    ) return colorCmd    (values);
   else                          return QVariant(false);
 }
 
@@ -1414,6 +1417,16 @@ concatCmd(const Values &values) const
     str += values[i].toString();
 
   return QVariant(str);
+}
+
+QVariant
+CQExprModel::
+colorCmd(const Values &values) const
+{
+  if (values.size() == 1)
+    return QVariant(QColor(values[0].toString()));
+
+  return QVariant();
 }
 
 //---

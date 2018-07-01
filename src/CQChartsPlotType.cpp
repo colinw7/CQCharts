@@ -1,4 +1,5 @@
 #include <CQChartsPlotType.h>
+#include <QStringList>
 #include <cassert>
 
 CQChartsPlotTypeMgr::
@@ -70,10 +71,14 @@ void
 CQChartsPlotType::
 addParameters()
 {
+  startParameterGroup("Common");
+
   addColumnParameter("id", "Id", "idColumn").setTip("Unique row id");
 
   if (hasKey())
     addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
+
+  endParameterGroup();
 }
 
 CQChartsPlotType::Parameters
@@ -185,6 +190,23 @@ addRealParameter(const QString &name, const QString &desc, const QString &propNa
                  const ParameterAttributes &attributes, double defValue)
 {
   return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
+}
+
+CQChartsPlotParameter &
+CQChartsPlotType::
+addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                int defValue)
+{
+  return addParameter(CQChartsIntParameter(name, desc, propName, ParameterAttributes(),
+                                           defValue));
+}
+
+CQChartsPlotParameter &
+CQChartsPlotType::
+addIntParameter(const QString &name, const QString &desc, const QString &propName,
+                const ParameterAttributes &attributes, int defValue)
+{
+  return addParameter(CQChartsIntParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &

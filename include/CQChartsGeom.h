@@ -797,30 +797,33 @@ class BBox {
     set_    = true;
   }
 
+  double getMinExtent(bool horizontal) { return (horizontal ? getXMin() : getYMin()); }
+  double getMaxExtent(bool horizontal) { return (horizontal ? getXMax() : getYMax()); }
+
+  void setExtent(double smin, double smax, bool horizontal) {
+    (horizontal ? setXRange(smin, smax) : setYRange(smin, smax));
+  }
+
+  void expandExtent(double emin, double emax, bool horizontal) {
+    if (horizontal)
+      setXRange(getXMin() - emin, getXMax() + emax);
+    else
+      setYRange(getYMin() - emin, getYMax() + emax);
+  }
+
+  void setXRange(double xl, double xr) { setXMin(xl); setXMax(xr); }
+  void setYRange(double yb, double yt) { setYMin(yb); setYMax(yt); }
+
   void setLeft  (double x) { setXMin(x); }
   void setBottom(double y) { setYMin(y); }
   void setRight (double x) { setXMax(x); }
   void setTop   (double y) { setYMax(y); }
 
-  void setXMin(double x) {
-    pmin_.x = x;
-    set_    = true;
-  }
+  void setXMin(double x) { pmin_.x = x; set_ = true; }
+  void setYMin(double y) { pmin_.y = y; set_ = true; }
 
-  void setYMin(double y) {
-    pmin_.y = y;
-    set_    = true;
-  }
-
-  void setXMax(double x) {
-    pmax_.x = x;
-    set_    = true;
-  }
-
-  void setYMax(double y) {
-    pmax_.y = y;
-    set_    = true;
-  }
+  void setXMax(double x) { pmax_.x = x; set_ = true; }
+  void setYMax(double y) { pmax_.y = y; set_ = true; }
 
 #if 0
   void setSize(const Size &size) {
@@ -856,6 +859,10 @@ class BBox {
     return 0.5*sqrt(dx*dx + dy*dy);
   }
 #endif
+
+  double getSize(bool horizontal) const {
+    return (horizontal ? getWidth() : getHeight());
+  }
 
   double getWidth() const {
     return fabs(getXMax() - getXMin());

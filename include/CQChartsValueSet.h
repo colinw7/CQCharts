@@ -922,7 +922,11 @@ class CQChartsValueSet : public QObject {
   // get type
   Type type() const { init(); return type_; }
 
-  bool isNumeric() const { return (type() == Type::REAL || type() == Type::INTEGER); }
+  bool isReal   () const { return (type() == Type::REAL   ); }
+  bool isInteger() const { return (type() == Type::INTEGER); }
+  bool isString () const { return (type() == Type::STRING ); }
+  bool isColor  () const { return (type() == Type::COLOR  ); }
+  bool isNumeric() const { return (isReal() || isInteger()); }
 
   bool isValid() const;
 
@@ -977,6 +981,12 @@ class CQChartsValueSet : public QObject {
   // get mean real value
   // (for integers and reals this is the mean value, otherwise this is imax/2))
   double rmean() const;
+
+  int    rid(double r) const;
+  double idr(int i) const;
+
+  int iid(int i) const;
+  int idi(int i) const;
 
  private:
   void init() const;
