@@ -81,6 +81,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double value() const { return value_; }
   void setValue(double r) { value_ = r; }
 
+  bool isMissing() const { return missing_; }
+  void setMissing(bool b) { missing_ = b; }
+
   const OptReal &radius() const { return radius_; }
   void setRadius(const OptReal &r) { radius_ = r; }
 
@@ -120,6 +123,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   double               rv_       { 0.0 };     // value radius
   QString              label_    { "" };      // label
   double               value_    { 0 };       // value
+  bool                 missing_  { false };   // value missing
   OptReal              radius_   { 0 };       // radius
   QString              keyLabel_ { "" };      // key label
   OptColor             color_;                // color
@@ -362,8 +366,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
   //---
 
-  int numGroups() const { return groupBucket_.numUnique(); }
-
   int numGroupObjs() const { return groupObjs_.size(); }
 
   //---
@@ -386,7 +388,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   void addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &column);
 
   bool getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-                          double &value) const;
+                          double &value, bool &missing) const;
 
  private:
   struct GroupData {

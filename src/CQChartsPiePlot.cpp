@@ -366,7 +366,8 @@ updateRange(bool apply)
 
   //---
 
-  initGroupData(dataColumns(), labelColumn());
+  //initGroupData(dataColumns(), labelColumn());
+  initGroupData(dataColumns(), CQChartsColumn());
 
 #if 0
   // if group column defined use that
@@ -482,11 +483,18 @@ initObjs()
 
   double r = ro;
 
-  for (int groupInd = groupBucket_.imin(); groupInd <= groupBucket_.imax(); ++groupInd) {
+  std::vector<int> groupInds;
+
+  this->getGroupInds(groupInds);
+
+  for (const auto &groupInd : groupInds) {
     auto pg = groupDatas_.find(groupInd);
 
-    if (pg == groupDatas_.end()) continue;
-    //assert(pg != groupDatas_.end());
+    if (pg == groupDatas_.end()) {
+      pg = groupDatas_.find(-1); // no group ind is (-1)
+
+      assert(pg != groupDatas_.end());
+    }
 
     GroupData &groupData = (*pg).second;
 
@@ -583,16 +591,21 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
   //---
 
-  double value = row;
+  double value        = 1.0;
+  bool   valueMissing = false;
 
-  if (! getColumnSizeValue(row, dataColumn, parent, value))
+  if (! getColumnSizeValue(row, dataColumn, parent, value, valueMissing))
     return;
 
   //---
 
-  double radius = 0.0;
+  double radius        = 0.0;
+  bool   radiusMissing = false;
 
-  bool hasRadius = getColumnSizeValue(row, radiusColumn(), parent, radius);
+  bool hasRadius = false;
+
+  if (radiusColumn().isValid())
+    hasRadius = getColumnSizeValue(row, radiusColumn(), parent, radius, radiusMissing);
 
   //---
 
@@ -633,11 +646,11 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
   CQChartsPieGroupObj *groupObj = groupData.groupObj;
 
-  double ri = groupObj->innerRadius();
-  double ro = groupObj->outerRadius();
+  double ri = (groupObj ? groupObj->innerRadius() : innerRadius());
+  double ro = (groupObj ? groupObj->outerRadius() : outerRadius());
   double rv = ro;
 
-  if (hasRadius && groupObj->isRadiusScaled()) {
+  if (hasRadius && groupObj && groupObj->isRadiusScaled()) {
     double dr = ro - ri;
     double s  = (groupObj->radiusMax() > 0.0 ? radius/groupObj->radiusMax() : 1.0);
 
@@ -651,12 +664,12 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
   //---
 
-  CQChartsPieObj *obj = groupObj->lookupObj(label);
+  CQChartsPieObj *obj = (groupObj ? groupObj->lookupObj(label) : nullptr);
 
   if (! obj) {
     CQChartsGeom::BBox rect(center_.x - ro, center_.y - ro, center_.x + ro, center_.y + ro);
 
-    int objInd = groupObj->numObjs();
+    int objInd = (groupObj ? groupObj->numObjs() : 0);
 
     obj = new CQChartsPieObj(this, rect, dataInd1);
 
@@ -669,8 +682,9 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
     obj->setOuterRadius(ro);
     obj->setValueRadius(rv);
 
-    obj->setLabel(label);
-    obj->setValue(value);
+    obj->setLabel  (label);
+    obj->setValue  (value);
+    obj->setMissing(valueMissing);
 
     if (hasRadius)
       obj->setRadius(radius);
@@ -684,10 +698,12 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
     addPlotObject(obj);
 
-    groupObj->addObject(obj);
+    if (groupObj)
+      groupObj->addObject(obj);
   }
   else {
-    obj->setValue(obj->value() + value);
+    if (! valueMissing)
+      obj->setValue(obj->value() + value);
 
     if (hasRadius)
       obj->setRadius(*obj->radius() + radius);
@@ -750,9 +766,10 @@ addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &
 
   //---
 
-  double value = row;
+  double value        = 1.0;
+  bool   valueMissing = false;
 
-  if (! getColumnSizeValue(row, dataColumn, parent, value))
+  if (! getColumnSizeValue(row, dataColumn, parent, value, valueMissing))
     return;
 
   //---
@@ -774,12 +791,13 @@ addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &
   //---
 
   if (radiusColumn().isValid()) {
-    double value = 0.0;
+    double radius        = 0.0;
+    bool   radiusMissing = false;
 
-    if (getColumnSizeValue(row, radiusColumn(), parent, value)) {
+    if (getColumnSizeValue(row, radiusColumn(), parent, radius, radiusMissing)) {
       if (! hidden) {
         groupData.radiusScaled = true;
-        groupData.radiusMax    = std::max(groupData.radiusMax, value);
+        groupData.radiusMax    = std::max(groupData.radiusMax, radius);
       }
     }
   }
@@ -788,20 +806,37 @@ addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &
 bool
 CQChartsPiePlot::
 getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-                   double &value) const
+                   double &value, bool &missing) const
 {
-  bool ok;
+  missing = false;
 
-  value = modelReal(row, column, parent, ok);
+  ColumnType columnType = columnValueType(column);
 
-  if (! ok)
-    return true; // allow missing value
+  if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
+    bool ok;
 
-  if (CQChartsUtil::isNaN(value))
-    return false;
+    value = modelReal(row, column, parent, ok);
 
-  if (value <= 0.0)
-    return false;
+    if (! ok)
+      missing = true; // allow missing value
+
+    if (CQChartsUtil::isNaN(value))
+      return false;
+
+    if (value <= 0.0)
+      return false;
+  }
+  else {
+    bool ok;
+
+    value = modelReal(row, column, parent, ok);
+
+    if (! ok)
+      value = 1.0; // string non-real -> 1.0
+
+    if (value <= 0.0)
+      value = 1.0;
+  }
 
   return true;
 }
@@ -1051,7 +1086,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
   CQChartsPieGroupObj *groupObj = this->groupObj();
 
   int ng = plot_->numGroupObjs();
-  int no = groupObj->numObjs();
+  int no = (groupObj ? groupObj->numObjs() : 0);
 
   //---
 
@@ -1115,9 +1150,9 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
     QColor bg;
 
-    if (color())
+    if      (color())
       bg = color()->interpColor(plot_, colorInd(), no);
-    else
+    else if (groupObj)
       bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
     QColor fg = plot_->textColor(bg);
@@ -1159,7 +1194,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   QPointF center(c.x, c.y);
 
   int ng = plot_->numGroupObjs();
-  int no = groupObj->numObjs();
+  int no = (groupObj ? groupObj->numObjs() : 0);
 
   double ri = innerRadius();
   double ro = outerRadius();
@@ -1181,7 +1216,10 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
 
   double ta = CQChartsUtil::avg(a1, a2);
 
-  QColor bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+  QColor bg;
+
+  if (groupObj)
+    bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
   QPen lpen(bg);
 

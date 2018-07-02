@@ -232,6 +232,9 @@ class CQChartsRadarPlot : public CQChartsPlot {
  private:
   void addRow(const QModelIndex &parent, int r, int nr);
 
+  bool columnValue(int row, const CQChartsColumn &column,
+                   const QModelIndex &parent, double &value) const;
+
  private:
   class ValueData {
    public:

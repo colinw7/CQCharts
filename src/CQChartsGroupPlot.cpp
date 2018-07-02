@@ -11,16 +11,22 @@ addParameters()
 {
   startParameterGroup("Grouping");
 
-  addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
+  if (isGroupRequired())
+    addColumnParameter("group", "Group", "groupColumn", 0).setRequired().setTip("Group column");
+  else
+    addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
 
-  addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
-    setTip("Group by group columns header instead of values");
+  if (allowRowGrouping())
+    addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
+      setTip("Group by group columns header instead of values");
 
-  addBoolParameter("usePath", "Use Path", "usePath").
-    setTip("Use hierarchical path as group");
+  if (allowUsePath())
+    addBoolParameter("usePath", "Use Path", "usePath").
+      setTip("Use hierarchical path as group");
 
-  addBoolParameter("useRow", "Use Row", "useRow").
-    setTip("Use row number for group");
+  if (allowUseRow())
+    addBoolParameter("useRow", "Use Row", "useRow").
+      setTip("Use row number for group");
 
   addBoolParameter("exactValue", "Exact Value", "exactValue", true).
    setTip("use exact value for grouping");
@@ -63,10 +69,20 @@ void
 CQChartsGroupPlot::
 addProperties()
 {
-  addProperty("grouping"       , this, "groupColumn" , "group"    );
-  addProperty("grouping"       , this, "rowGrouping" , "rowGroups");
-  addProperty("grouping"       , this, "usePath"     , "path"     );
-  addProperty("grouping"       , this, "useRow"      , "row"      );
+  CQChartsGroupPlotType *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
+  assert(type);
+
+  addProperty("grouping", this, "groupColumn", "group");
+
+  if (type->allowRowGrouping())
+    addProperty("grouping", this, "rowGrouping", "rowGroups");
+
+  if (type->allowUsePath())
+    addProperty("grouping", this, "usePath", "path");
+
+  if (type->allowUseRow())
+    addProperty("grouping", this, "useRow", "row");
+
   addProperty("grouping/bucket", this, "exactValue"  , "exact"    );
   addProperty("grouping/bucket", this, "autoRange"   , "auto"     );
   addProperty("grouping/bucket", this, "startValue"  , "start"    );
@@ -398,6 +414,16 @@ pathStrs(const QString &path) const
   }
 
   return paths;
+}
+
+//---
+
+void
+CQChartsGroupPlot::
+getGroupInds(std::vector<int> &inds) const
+{
+  for (int groupInd = groupBucket_.imin(); groupInd <= groupBucket_.imax(); ++groupInd)
+    inds.push_back(groupInd);
 }
 
 //---

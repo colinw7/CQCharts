@@ -32,34 +32,7 @@ addParameters()
   //---
 
   // group data
-  startParameterGroup("Grouping");
-
-  addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
-
-//addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
-//  setTip("Group by group columns header instead of values");
-
-//addBoolParameter("usePath", "Use Path", "usePath").
-//  setTip("Use hierarchical path as group");
-
-//addBoolParameter("useRow", "Use Row", "useRow").
-//  setTip("Use row number for group");
-
-  addBoolParameter("exactValue", "Exact Value", "exactValue", false).
-   setTip("use exact value for grouping");
-
-  addBoolParameter("autoRange", "Auto Range", "autoRange", true).
-   setTip("automatically determine value range");
-
-  addRealParameter("start", "Start", "startValue", 0.0).
-    setRequired().setTip("Start value for manual range");
-  addRealParameter("delta", "Delta", "deltaValue", 1.0).
-    setRequired().setTip("Delta value for manual range");
-
-  addIntParameter("numAuto", "Num Auto", "numAuto", 10).
-    setRequired().setTip("Number of auto buckets");
-
-  endParameterGroup();
+  CQChartsGroupPlotType::addParameters();
 
   //---
 
@@ -132,21 +105,24 @@ CQChartsDistributionPlot::
 
 void
 CQChartsDistributionPlot::
+setGroupColumn(const CQChartsColumn &c)
+{
+  setValueSetColumn("values", c);
+
+  CQChartsGroupPlot::setGroupColumn(c);
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
 
   addProperty("columns", this, "colorColumn", "color");
 
-  addProperty("grouping"       , this, "groupColumn" , "group"    );
-//addProperty("grouping"       , this, "rowGrouping" , "groupRows");
-//addProperty("grouping"       , this, "usePath"     , "path"     );
-//addProperty("grouping"       , this, "useRow"      , "row"      );
-  addProperty("grouping/bucket", this, "exactValue"  , "exact"    );
-  addProperty("grouping/bucket", this, "autoRange"   , "auto"     );
-  addProperty("grouping/bucket", this, "startValue"  , "start"    );
-  addProperty("grouping/bucket", this, "deltaValue"  , "delta"    );
-  addProperty("grouping/bucket", this, "numAuto"     , "numAuto"  );
+  CQChartsGroupPlot::addProperties();
 
   addProperty("options", this, "horizontal");
   addProperty("options", this, "margin"    , "barMargin");

@@ -12,6 +12,18 @@ class CQChartsGroupPlotType : public CQChartsPlotType {
  public:
   CQChartsGroupPlotType();
 
+  //---
+
+  virtual bool isGroupRequired() const { return false; }
+
+  virtual bool allowRowGrouping() const { return true; }
+
+  virtual bool allowUsePath() const { return true; }
+
+  virtual bool allowUseRow() const { return true; }
+
+  //---
+
   void addParameters() override;
 };
 
@@ -39,7 +51,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
   //---
 
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c);
+
+  virtual void setGroupColumn(const CQChartsColumn &c);
 
   //---
 
@@ -89,6 +102,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
   int rowGroupInd(const QModelIndex &parent, int row,
                   const CQChartsColumn &column=CQChartsColumn()) const;
 
+  void getGroupInds(std::vector<int> &inds) const;
+
   QString groupIndName(int ind, bool hier=false) const;
 
   void printGroup() const;
@@ -99,6 +114,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
     return (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH);
   }
 
+  int numGroups() const { return groupBucket_.numUnique(); }
+
  private:
   bool rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
                     std::vector<int> &ids, bool hier) const;
@@ -107,7 +124,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   QStringList pathStrs(const QString &path) const;
 
- protected:
+ protected: // TODO: make private
   CQChartsColumn       groupColumn_; // group column
   CQChartsGroupData    groupData_;   // grouping data
   CQChartsColumnBucket groupBucket_; // group value bucket

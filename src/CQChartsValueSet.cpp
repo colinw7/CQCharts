@@ -447,10 +447,12 @@ init()
     }
 
     if (type_ == Type::NONE) {
-      if (nr == 0)
+      if      (nr == 0 && ni > 0)
         type_ = Type::INTEGER;
-      else
+      else if (nr > 0)
         type_ = Type::REAL;
+      else
+        type_ = Type::STRING;
     }
   }
 

@@ -319,9 +319,10 @@ updateRange(bool apply)
       for (int iv = 0; iv < nv_; ++iv) {
         const CQChartsColumn &column = plot_->valueColumn(iv);
 
-        bool ok;
+        double value;
 
-        double value = plot_->modelReal(row, column, parent, ok);
+        if (! plot_->columnValue(row, column, parent, value))
+          continue;
 
         valueDatas_[iv].add(value);
       }
@@ -449,9 +450,12 @@ addRow(const QModelIndex &parent, int row, int nr)
   double a = (nv > 2 ? angleStart() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
-    bool ok1;
+    const CQChartsColumn &valueColumn = valueColumns()[iv];
 
-    double value = modelReal(row, valueColumns()[iv], parent, ok1);
+    double value;
+
+    if (! columnValue(row, valueColumn, parent, value))
+      continue;
 
     double scale = valueDatas_[iv].sum();
 
@@ -476,6 +480,40 @@ addRow(const QModelIndex &parent, int row, int nr)
     new CQChartsRadarObj(this, bbox, name, poly, nameInd1, row, nr);
 
   addPlotObject(radarObj);
+}
+
+bool
+CQChartsRadarPlot::
+columnValue(int row, const CQChartsColumn &column, const QModelIndex &parent, double &value) const
+{
+  ColumnType columnType = columnValueType(column);
+
+  value = 1.0;
+
+  if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
+    bool ok;
+
+    value = modelReal(row, column, parent, ok);
+
+    if (! ok || CQChartsUtil::isNaN(value))
+      return false;
+
+    if (value <= 0.0)
+      return false;
+  }
+  else {
+    bool ok;
+
+    value = modelReal(row, column, parent, ok);
+
+    if (! ok)
+      value = 1.0; // string non-real -> 1.0
+
+    if (value <= 0.0)
+      value = 1.0;
+  }
+
+  return true;
 }
 
 void
@@ -636,9 +674,11 @@ drawBackground(QPainter *painter)
 
           //---
 
+          const CQChartsColumn &valueColumn = valueColumns()[iv];
+
           bool ok;
 
-          QString name = modelHeaderString(valueColumns()[iv], ok);
+          QString name = modelHeaderString(valueColumn, ok);
 
           Qt::Alignment align = 0;
 

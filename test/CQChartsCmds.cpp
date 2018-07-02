@@ -3350,7 +3350,7 @@ shellCmd(const Vars &vars)
     return;
   }
 
-  system(cmd.toLatin1().constData());
+  (void) system(cmd.toLatin1().constData());
 }
 
 //------

@@ -129,6 +129,7 @@ class CQSummaryModel : public QAbstractProxyModel {
   RowInds rowInds_;
   RowMap  indRows_;
   bool    mapValid_    { false };
+  bool    mapNone_     { false };
 };
 
 #endif

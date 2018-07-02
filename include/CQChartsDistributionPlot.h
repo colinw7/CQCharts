@@ -29,6 +29,16 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
+
+  //---
+
+  bool isGroupRequired() const override { return true; }
+
+  bool allowRowGrouping() const override { return false; }
+
+  bool allowUsePath() const override { return false; }
+
+  bool allowUseRow() const override { return false; }
 };
 
 //---
@@ -153,6 +163,10 @@ class CQChartsDistributionPlot : public CQChartsGroupPlot {
   CQChartsDistributionPlot(CQChartsView *view, const ModelP &model);
 
   virtual ~CQChartsDistributionPlot();
+
+  //---
+
+  void setGroupColumn(const CQChartsColumn &c) override;
 
   //---
 

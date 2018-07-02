@@ -694,6 +694,8 @@ loadModel()
         size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
         size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok);
+      else if (valueColumnType_ == ColumnType::STRING)
+        size = 1.0;
       else
         ok = false;
 

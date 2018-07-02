@@ -160,6 +160,7 @@ CQSummaryModel::
 initMapping()
 {
   mapValid_ = false;
+  mapNone_  = false;
 
   rowInds_.clear();
   indRows_.clear();
@@ -177,8 +178,11 @@ initMapping()
 
   if      (mode() == Mode::RANDOM) {
     // if summary count greater or equal to actual count then nothing to do
-    if (maxRows() >= nr)
+    if (maxRows() >= nr) {
+      mapValid_ = true;
+      mapNone_  = true;
       return;
+    }
 
     // create set of random rows (sorted)
     int nr1 = nr - maxRows();
@@ -230,8 +234,11 @@ initMapping()
   else if (mode() == Mode::SORTED) {
     int nc = model->columnCount();
 
-    if (sortColumn_ < 0 || sortColumn_ >= nc)
+    if (sortColumn_ < 0 || sortColumn_ >= nc) {
+      mapValid_ = true;
+      mapNone_  = true;
       return;
+    }
 
     // get array of values and row numbers
     using ValueRow  = std::pair<QVariant,int>;
@@ -436,12 +443,14 @@ mapFromSource(const QModelIndex &sourceIndex) const
   else {
     assert(mapValid_);
 
-    auto p = indRows_.find(r);
+    if (! mapNone_) {
+      auto p = indRows_.find(r);
 
-    if (p == indRows_.end())
-      return QModelIndex();
+      if (p == indRows_.end())
+        return QModelIndex();
 
-    r = (*p).second;
+      r = (*p).second;
+    }
   }
 
   return this->index(r, c);
@@ -471,7 +480,8 @@ mapToSource(const QModelIndex &proxyIndex) const
   else {
     assert(mapValid_);
 
-    r = rowInds_[r];
+    if (! mapNone_)
+      r = rowInds_[r];
   }
 
   QAbstractItemModel *model = this->sourceModel();
