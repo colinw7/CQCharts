@@ -105,7 +105,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
                             const CQChartsBoxPlotWhisker &whisker, int ig, int ng, int is, int ns);
 
-  QString calcId() const override;
+  QString calcId   () const override;
+  QString calcTipId() const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -134,7 +135,8 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
   CQChartsBoxPlotDataObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
                          const CQChartsBoxWhiskerData &data);
 
-  QString calcId() const override;
+  QString calcId   () const override;
+  QString calcTipId() const override;
 
   void getSelectIndices(Indices &inds) const override;
 
@@ -161,7 +163,8 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   CQChartsBoxPlotConnectedObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
                               int groupId, int i, int n);
 
-  QString calcId() const override;
+  QString calcId   () const override;
+  QString calcTipId() const override;
 
   bool inside(const CQChartsGeom::Point &p) const override;
 
@@ -486,6 +489,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   void updateRawRange ();
   void updateCalcRange();
+
+  bool hasSets() const;
 
   void updateRawWhiskers();
 

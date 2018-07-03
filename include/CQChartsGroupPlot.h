@@ -110,6 +110,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
 
+  bool isGroupHeaders() const {
+    return (groupBucket().dataType() == CQChartsColumnBucket::DataType::HEADER);
+  }
+
   bool isGroupPathType() const {
     return (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH);
   }

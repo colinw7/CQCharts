@@ -460,56 +460,10 @@ updateRange(bool apply)
   //---
 
   // non-range use group columns for grouping
-  CQChartsGroupData groupData;
-
-  groupData.exactValue = isExactValue();
-  groupData.bucketer   = groupData_.bucketer;
-  groupData.usePath    = false;
-
-  if (! isRangeBar()) {
-    // use multiple group columns
-    if      (valueColumns().size() > 1) {
-      groupData.columns     = valueColumns();
-      groupData.rowGrouping = isRowGrouping(); // only used if multiple groups
-      groupData.column      = groupColumn();
-    }
-    // use single group column
-    else if (groupColumn().isValid()) {
-      groupData.column = groupColumn();
-    }
-    // use path and hierarchical
-    else if (isUsePath() && isHierarchical()) {
-      groupData.usePath = true;
-    }
-    // use row
-    else if (isUseRow()) {
-      groupData.useRow = true;
-    }
-    // default use name column if defined
-    else {
-      groupData.column = nameColumn();
-    }
-  }
-  else {
-    // use single group column
-    if (groupColumn().isValid()) {
-      groupData.column = groupColumn();
-    }
-    // use path and hierarchical
-    else if (isUsePath() && isHierarchical()) {
-      groupData.usePath = true;
-    }
-    // use row
-    else if (isUseRow()) {
-      groupData.useRow = true;
-    }
-    // default use name column if defined
-    else {
-      groupData.column = nameColumn();
-    }
-  }
-
-  initGroup(groupData);
+  if (! isRangeBar())
+    initGroupData(valueColumns(), nameColumn());
+  else
+    initGroupData(Columns(), nameColumn());
 
   //---
 
@@ -795,7 +749,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
     QString valueName;
 
     // not row grouping so value name is column header
-    if (! isRowGrouping()) {
+    if (isGroupHeaders()) {
       bool ok;
 
       valueName = modelHeaderString(valueColumn, ok);
@@ -1211,7 +1165,7 @@ addKeyItems(CQChartsPlotKey *key)
     }
   }
   else {
-    if (! isRowGrouping()) {
+    if (isGroupHeaders()) {
       int nv = numValueSets();
 
       for (int i = 0; i < nv; ++i) {

@@ -124,7 +124,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   QString              label_    { "" };      // label
   double               value_    { 0 };       // value
   bool                 missing_  { false };   // value missing
-  OptReal              radius_   { 0 };       // radius
+  OptReal              radius_;               // radius
   QString              keyLabel_ { "" };      // key label
   OptColor             color_;                // color
   CQChartsPieGroupObj* groupObj_ { nullptr }; // parent group object

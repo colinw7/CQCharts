@@ -615,7 +615,7 @@ initObjs()
   valueAxis()->setRequireTickLabel(true );
 
   countAxis()->setIntegral        (true);
-  valueAxis()->setGridMid         (false);
+  countAxis()->setGridMid         (false);
   countAxis()->setMajorIncrement  (0);
   countAxis()->setRequireTickLabel(false);
 
@@ -779,6 +779,9 @@ void
 CQChartsDistributionPlot::
 bucketValues(int bucket, double &value1, double &value2) const
 {
+  value1 = 0.0;
+  value2 = 0.0;
+
   bool isAuto = (! filterStack_.empty() || isAutoRange());
 
   if (isAuto)

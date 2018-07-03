@@ -61,7 +61,7 @@ CQBucketer::
 bucketValues(int bucket, double &min, double &max) const
 {
   if      (type() == Type::INTEGER_RANGE) {
-    int imin, imax;
+    int imin = 0, imax = 0;
 
     bucketIValues(bucket, imin, imax);
 
@@ -161,21 +161,21 @@ bucketName(int bucket, bool utfArrow) const
     return (*p).second;
   }
   else if (type() == Type::INTEGER_RANGE) {
-    int imin, imax;
+    int imin = 0, imax = 0;
 
     bucketIValues(bucket, imin, imax);
 
     return bucketName(imin, imax, utfArrow);
   }
   else if (type() == Type::REAL_RANGE) {
-    double rmin, rmax;
+    double rmin = 0.0, rmax = 0.0;
 
     bucketRValues(bucket, rmin, rmax);
 
     return bucketName(rmin, rmax, utfArrow);
   }
   else if (type() == Type::REAL_AUTO) {
-    double rmin, rmax;
+    double rmin = 0.0, rmax = 0.0;
 
     autoBucketValues(bucket, rmin, rmax);
 

@@ -103,30 +103,30 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 class CQChartsDistributionPlot : public CQChartsGroupPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn   colorColumn  READ colorColumn     WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn   colorColumn READ colorColumn   WRITE setColorColumn)
 
   // options
-  Q_PROPERTY(bool             horizontal   READ isHorizontal    WRITE setHorizontal     )
-  Q_PROPERTY(CQChartsLength   margin       READ margin          WRITE setMargin         )
+  Q_PROPERTY(bool             horizontal  READ isHorizontal  WRITE setHorizontal )
+  Q_PROPERTY(CQChartsLength   margin      READ margin        WRITE setMargin     )
 
   // bar border
-  Q_PROPERTY(bool             border       READ isBorder        WRITE setBorder         )
-  Q_PROPERTY(CQChartsColor    borderColor  READ borderColor     WRITE setBorderColor    )
-  Q_PROPERTY(double           borderAlpha  READ borderAlpha     WRITE setBorderAlpha    )
-  Q_PROPERTY(CQChartsLength   borderWidth  READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(CQChartsLineDash borderDash   READ borderDash      WRITE setBorderDash     )
-  Q_PROPERTY(CQChartsLength   cornerSize   READ cornerSize      WRITE setCornerSize     )
+  Q_PROPERTY(bool             border      READ isBorder      WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor   WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha   WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth   WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash    WRITE setBorderDash )
+  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize    WRITE setCornerSize )
 
   // bar fill
-  Q_PROPERTY(bool             barFill      READ isBarFill       WRITE setBarFill        )
-  Q_PROPERTY(CQChartsColor    barColor     READ barColor        WRITE setBarColor       )
-  Q_PROPERTY(double           barAlpha     READ barAlpha        WRITE setBarAlpha       )
-  Q_PROPERTY(Pattern          barPattern   READ barPattern      WRITE setBarPattern     )
+  Q_PROPERTY(bool             barFill     READ isBarFill     WRITE setBarFill    )
+  Q_PROPERTY(CQChartsColor    barColor    READ barColor      WRITE setBarColor   )
+  Q_PROPERTY(double           barAlpha    READ barAlpha      WRITE setBarAlpha   )
+  Q_PROPERTY(Pattern          barPattern  READ barPattern    WRITE setBarPattern )
 
   // color map
-  Q_PROPERTY(bool             colorMapped  READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double           colorMapMin  READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double           colorMapMax  READ colorMapMax     WRITE setColorMapMax    )
+  Q_PROPERTY(bool             colorMapped READ isColorMapped WRITE setColorMapped)
+  Q_PROPERTY(double           colorMapMin READ colorMapMin   WRITE setColorMapMin)
+  Q_PROPERTY(double           colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
   Q_ENUMS(Pattern)
 

@@ -366,63 +366,7 @@ updateRange(bool apply)
 
   //---
 
-  //initGroupData(dataColumns(), labelColumn());
   initGroupData(dataColumns(), CQChartsColumn());
-
-#if 0
-  // if group column defined use that
-  // if multiple data columns then use label column and data labels
-  //   if row grouping we are creating a value set per row (1 value per data column)
-  //   if column grouping we are creating a value set per data column (1 value per row)
-  // otherwise (single data column) just use dummy group (column -1)
-  CQChartsGroupData groupData;
-
-  groupData.exactValue = isExactValue();
-  groupData.bucketer   = groupData_.bucketer;
-  groupData.usePath    = false;
-
-  // use multiple group columns
-  if      (dataColumns().size() > 1) {
-    groupData.columns     = dataColumns();
-    groupData.rowGrouping = isRowGrouping(); // only used if multiple groups
-
-    if      (groupColumn().isValid())
-      groupData.column = groupColumn();
-    else if (labelColumn().isValid())
-      groupData.column = labelColumn();
-  }
-  // use single group column
-  else if (groupColumn().isValid()) {
-    groupData.column = groupColumn();
-  }
-  // use path and hierarchical
-  else if (isUsePath() && isHierarchical()) {
-    groupData.usePath = true;
-  }
-  // use row
-  else if (isUseRow()) {
-    groupData.useRow = true;
-  }
-  // default use label column if defined
-  else if (labelColumn().isValid()) {
-    //groupData.column = labelColumn();
-  }
-
-  initGroup(groupData);
-#endif
-
-#if 0
-  if      (dataColumns().size() > 1) {
-    groupData.columns     = dataColumns();
-    groupData.rowGrouping = isRowGrouping();
-    groupData.column      = labelColumn();
-  }
-  else if (groupColumn().isValid()) {
-    groupData.column = groupColumn();
-  }
-
-  initGroup(groupData);
-#endif
 
   //---
 
@@ -582,6 +526,7 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
 
   //---
 
+  // hide all objects of group or individual objects of single group
   bool hidden = false;
 
   if (numGroups() > 1)
@@ -615,7 +560,7 @@ addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &dataColum
   QString label;
 
   if (numGroups() > 1) {
-    if (dataColumns().size() > 1 && ! isRowGrouping())
+    if (dataColumns().size() > 1 && ! isGroupHeaders())
       label = modelHeaderString(dataColumn, ok);
     else
       label = modelString(row, labelColumn(), parent, ok);
@@ -757,6 +702,7 @@ addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &
 
   //---
 
+  // hide all objects of group or individual objects of single group
   bool hidden = false;
 
   if (numGroups() > 1)
@@ -845,7 +791,48 @@ void
 CQChartsPiePlot::
 adjustObjAngles()
 {
+  double ro = outerRadius();
+  double ri = 0.0;
+
+  if (isDonut())
+    ri = innerRadius()*outerRadius();
+
+  bool isGrouped = (numGroups() > 1);
+
+  int ng = 1, nh = 0;
+
+  if (isGrouped) {
+    ng = 0;
+
+    for (auto &groupObj : groupObjs_) {
+      if (! isSetHidden(groupObj->colorInd()))
+        ++ng;
+      else
+        ++nh;
+    }
+  }
+
+  double dr = (ng > 0 ? (ro - ri)/ng : 0.0);
+
+  //---
+
+  double r = ro;
+
   for (auto &groupObj : groupObjs_) {
+    if (isGrouped && nh > 0) {
+      if (isSetHidden(groupObj->colorInd()))
+        continue;
+    }
+
+    //---
+
+    if (isGrouped && nh > 0) {
+      groupObj->setInnerRadius(r - dr);
+      groupObj->setOuterRadius(r);
+    }
+
+    //---
+
     double angle1    = startAngle();
     double alen      = std::min(std::max(angleExtent(), -360.0), 360.0);
     double dataTotal = groupObj->dataTotal();
@@ -863,8 +850,26 @@ adjustObjAngles()
       obj->setAngle1(angle1);
       obj->setAngle2(angle2);
 
+      if (isGrouped && nh > 0) {
+        obj->setInnerRadius(r - dr);
+        obj->setOuterRadius(r);
+
+        double rv = r;
+
+        if (obj->radius() && groupObj->isRadiusScaled()) {
+          double s = (groupObj->radiusMax() > 0.0 ? *obj->radius()/groupObj->radiusMax() : 1.0);
+
+          rv = r + (s - 1)*dr;
+        }
+
+        obj->setValueRadius(rv);
+      }
+
       angle1 = angle2;
     }
+
+    if (isGrouped && nh > 0)
+      r -= dr;
   }
 }
 
@@ -948,21 +953,21 @@ calcTipId() const
 {
   QModelIndex ind = plot_->unnormalizeIndex(ind_);
 
+  bool hasGroup = (plot_->numGroups() > 1 && groupObj_);
+
   QString groupName, label;
 
   bool ok;
 
-  if (plot_->dataColumns().size() > 1) {
+  if (hasGroup) {
     CQChartsPieGroupObj *groupObj = this->groupObj();
 
     groupName = groupObj->name();
 
-    if (! plot_->isRowGrouping()) {
+    if (plot_->isGroupHeaders())
       label = plot_->modelHeaderString(ind.column(), ok);
-    }
-    else {
+    else
       label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
-    }
   }
   else {
     label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
@@ -976,7 +981,7 @@ calcTipId() const
 
   CQChartsTableTip tableTip;
 
-  if (plot_->dataColumns().size() > 1)
+  if (groupName.length())
     tableTip.addTableRow("Group", tableTip.escapeText(groupName));
 
   tableTip.addTableRow("Name" , tableTip.escapeText(label));
