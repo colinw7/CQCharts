@@ -249,10 +249,11 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
 
   // border
-  Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
-  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
-  Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
-  Q_PROPERTY(CQChartsLength borderWidth  READ borderWidth    WRITE setBorderWidth )
+  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
 
   // fill
   Q_PROPERTY(bool           filled       READ isFilled       WRITE setFilled      )
@@ -314,6 +315,9 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const;
+  void setBorderDash(const CQChartsLineDash &l);
 
   //---
 

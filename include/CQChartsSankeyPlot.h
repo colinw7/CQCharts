@@ -21,6 +21,8 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 
   bool hasAxes() const { return false; }
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

@@ -241,6 +241,20 @@ setBorderWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
+const CQChartsLineDash &
+CQChartsBubblePlot::
+borderDash() const
+{
+  return shapeData_.border.dash;
+}
+
+void
+CQChartsBubblePlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+}
+
 //---
 
 const QFont &
@@ -350,16 +364,14 @@ addProperties()
   addProperty("options", this, "valueLabel");
 
   // stroke
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
 
   // fill
-  addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   // text
   addProperty("text", this, "textFont"    , "font"    );
@@ -641,7 +653,9 @@ loadModel()
     }
 
     State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      std::vector<int> groupInds = plot_->rowHierGroupInds(parent, row, plot_->valueColumn());
+      CQChartsModelIndex ind(row, plot_->valueColumn(), parent);
+
+      std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
 
       CQChartsBubbleHierNode *hierNode = plot_->currentRoot();
 
@@ -983,7 +997,7 @@ calcId() const
   if (node_->isFiller())
     return hierObj_->calcId();
 
-  return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
+  return QString("bubble::%1:%2").arg(node_->name()).arg(node_->hierSize());
 }
 
 QString

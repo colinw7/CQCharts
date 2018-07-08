@@ -16,6 +16,7 @@ isValid() const
   else if (type() == Type::REAL   ) return rvals_.isValid();
   else if (type() == Type::STRING ) return svals_.isValid();
   else if (type() == Type::COLOR  ) return cvals_.isValid();
+  else if (type() == Type::TIME   ) return tvals_.isValid();
   else                              return false;
 }
 
@@ -27,6 +28,7 @@ canMap() const
   else if (type() == Type::REAL   ) return rvals_.canMap();
   else if (type() == Type::STRING ) return svals_.canMap();
   else if (type() == Type::COLOR  ) return cvals_.canMap();
+  else if (type() == Type::TIME   ) return tvals_.canMap();
   else                              return false;
 }
 
@@ -73,6 +75,8 @@ hasInd(int i) const
     return (i >= 0 && i < svals_.size());
   else if (type() == Type::COLOR)
     return (i >= 0 && i < cvals_.size());
+  else if (type() == Type::TIME)
+    return (i >= 0 && i < tvals_.size());
   else
     return false;
 }
@@ -160,6 +164,20 @@ imap(int i, double mapMin, double mapMax) const
     // map string using number of sets
     return cvals_.map(cval, mapMin, mapMax);
   }
+  else if (type() == Type::TIME) {
+    // get nth ti,e
+    OptReal tval = tvals_.value(i);
+
+    if (! tval)
+      return mapMin;
+
+    // return actual value if mapping disabled
+    if (! isMapped())
+      return *tval;
+
+    // map value using time value range
+    return tvals_.map(*tval, mapMin, mapMax);
+  }
   else {
     return mapMin;
   }
@@ -237,6 +255,8 @@ imin() const
     return svals_.imin();
   else if (type() == Type::COLOR)
     return cvals_.imin();
+  else if (type() == Type::TIME)
+    return tvals_.imin();
   else
     return -1;
 }
@@ -253,6 +273,8 @@ imax() const
     return svals_.imax();
   else if (type() == Type::COLOR)
     return cvals_.imax();
+  else if (type() == Type::TIME)
+    return tvals_.imax();
   else
     return -1;
 }
@@ -269,6 +291,8 @@ rmin() const
     return svals_.imin();
   else if (type() == Type::COLOR)
     return cvals_.imin();
+  else if (type() == Type::TIME)
+    return tvals_.min();
   else
     return 0.0;
 }
@@ -285,6 +309,8 @@ rmax() const
     return svals_.imax();
   else if (type() == Type::COLOR)
     return cvals_.imax();
+  else if (type() == Type::TIME)
+    return tvals_.max();
   else
     return 0.0;
 }
@@ -300,6 +326,8 @@ rsum() const
   else if (type() == Type::STRING)
     return 0.0;
   else if (type() == Type::COLOR)
+    return 0.0;
+  else if (type() == Type::TIME)
     return 0.0;
   else
     return 0.0;
@@ -317,6 +345,8 @@ rmean() const
     return (svals_.imin() + svals_.imax())/2.0;
   else if (type() == Type::COLOR)
     return (cvals_.imin() + cvals_.imax())/2.0;
+  else if (type() == Type::TIME)
+    return 0.0;
   else
     return 0.0;
 }
@@ -333,6 +363,8 @@ rid(double r) const
     return -1;
   else if (type() == Type::COLOR)
     return -1;
+  else if (type() == Type::TIME)
+    return tvals_.id(r);
   else
     return -1;
 }
@@ -349,6 +381,8 @@ idr(int i) const
     return 0.0;
   else if (type() == Type::COLOR)
     return 0.0;
+  else if (type() == Type::TIME)
+    return tvals_.ivalue(i);
   else
     return 0.0;
 }
@@ -365,6 +399,8 @@ iid(int i) const
     return -1;
   else if (type() == Type::COLOR)
     return -1;
+  else if (type() == Type::TIME)
+    return -1;
   else
     return -1;
 }
@@ -376,13 +412,15 @@ idi(int i) const
   if      (type() == Type::INTEGER)
     return ivals_.ivalue(i);
   else if (type() == Type::REAL)
-    return 0.0;
+    return 0;
   else if (type() == Type::STRING)
-    return 0.0;
+    return 0;
   else if (type() == Type::COLOR)
-    return 0.0;
+    return 0;
+  else if (type() == Type::TIME)
+    return 0;
   else
-    return 0.0;
+    return 0;
 }
 
 void
@@ -403,13 +441,13 @@ init()
 {
   initialized_ = true;
 
-  type_ = Type::NONE;
+  if (type_ == Type::NONE) {
+    // get type from column values
+    if (column().isValid() && plot_)
+      type_ = plot_->columnValueType(column());
+  }
 
-  // get type from column values
-  if (column().isValid() && plot_)
-    type_ = plot_->columnValueType(column());
-
-  // if no type then look at added value (TODO: always the same sas color values ?)
+  // if no type then look at added value (TODO: always the same as color values ?)
   if (type_ == Type::NONE) {
     int ni = 0, nr = 0;
 
@@ -465,12 +503,12 @@ init()
   bool ok;
 
   for (const auto &value : values_) {
-    if      (type_ == Type::INTEGER) {
+    if      (type() == Type::INTEGER) {
       int i = CQChartsUtil::toInt(value, ok);
 
       ivals_.addValue(ok ? OptInt(i) : OptInt());
     }
-    else if (type_ == Type::REAL) {
+    else if (type() == Type::REAL) {
       double r = CQChartsUtil::toReal(value, ok);
 
       if (! isAllowNaN() && CQChartsUtil::isNaN(r))
@@ -478,7 +516,7 @@ init()
 
       rvals_.addValue(ok ? OptReal(r) : OptReal());
     }
-    else if (type_ == Type::STRING) {
+    else if (type() == Type::STRING) {
       QString s;
 
       bool ok = false;
@@ -491,10 +529,18 @@ init()
 
       svals_.addValue(ok ? OptString(s) : OptString());
     }
-    else if (type_ == Type::COLOR) {
+    else if (type() == Type::COLOR) {
       CQChartsColor c = CQChartsUtil::varToColor(value, ok);
 
       cvals_.addValue(c);
+    }
+    else if (type() == Type::TIME) {
+      double t = CQChartsUtil::toReal(value, ok);
+
+      if (! isAllowNaN() && CQChartsUtil::isNaN(t))
+        ok = false;
+
+      tvals_.addValue(ok ? OptReal(t) : OptReal());
     }
   }
 }

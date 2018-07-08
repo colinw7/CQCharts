@@ -21,6 +21,8 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -218,7 +220,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
   Q_PROPERTY(QString        groupColumnStr    READ groupColumnStr    WRITE setGroupColumnStr   )
   Q_PROPERTY(CQChartsColor  symbolBorderColor READ symbolBorderColor WRITE setSymbolBorderColor)
-  Q_PROPERTY(double         symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
   Q_PROPERTY(double         fontSize          READ fontSize          WRITE setFontSize         )
   Q_PROPERTY(bool           textLabels        READ isTextLabels      WRITE setTextLabels       )
 
@@ -252,8 +254,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   QColor interpSymbolBorderColor(int i, int n) const {
     return symbolBorderColor().interpColor(this, i, n); }
 
-  double symbolSize() const { return symbolData_.size; }
-  void setSymbolSize(double s) { symbolData_.size = s; updateObjs(); }
+  const CQChartsLength &symbolSize() const { return symbolData_.size; }
+  void setSymbolSize(const CQChartsLength &s) { symbolData_.size = s; updateObjs(); }
 
   //---
 

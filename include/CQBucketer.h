@@ -38,27 +38,29 @@ class CQBucketer {
   double idelta() const { return int(rdelta_); }
   void setIDelta(int i) { rdelta_ = i; }
 
+  //---
+
   bool isIntegral() const { return integral_; }
-  void setIntegral(bool b) { integral_ = b; }
+  void setIntegral(bool b) { if (b != integral_) { integral_ = b; needsCalc_ = true; } }
 
   //---
 
   // auto bucket delta
 
   double rmin() const { return rmin_; }
-  void setRMin(double r) { rmin_ = r; needsCalc_ = true; }
+  void setRMin(double r) { if (r != rmin_) { rmin_ = r; needsCalc_ = true; } }
 
   double rmax() const { return rmax_; }
-  void setRMax(double r) { rmax_ = r; needsCalc_ = true; }
+  void setRMax(double r) { if (r != rmax_) { rmax_ = r; needsCalc_ = true; } }
 
   double imin() const { return int(rmin_); }
-  void setIMin(int i) { rmin_ = i; needsCalc_ = true; }
+  void setIMin(int i) { if (i != rmin_) { rmin_ = i; needsCalc_ = true; } }
 
   double imax() const { return int(rmax_); }
-  void setIMax(int i) { rmax_ = i; needsCalc_ = true; }
+  void setIMax(int i) { if (i != rmax_) { rmax_ = i; needsCalc_ = true; } }
 
   int numAuto() const { return numAuto_; }
-  void setNumAuto(int i) { numAuto_ = i; needsCalc_ = true; }
+  void setNumAuto(int i) { if (i != numAuto_) { numAuto_ = i; needsCalc_ = true; } }
 
   //---
 

@@ -49,6 +49,7 @@ CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
 CQChartsGroupPlot.cpp \
+CQChartsBarPlot.cpp \
 CQChartsAdjacencyPlot.cpp \
 CQChartsBarChartPlot.cpp \
 CQChartsBoxPlot.cpp \
@@ -181,6 +182,7 @@ HEADERS += \
 ../include/CQChartsHierPlot.h \
 ../include/CQChartsHierPlotType.h \
 ../include/CQChartsGroupPlot.h \
+../include/CQChartsBarPlot.h \
 ../include/CQChartsAdjacencyPlot.h \
 ../include/CQChartsBarChartPlot.h \
 ../include/CQChartsBoxPlot.h \

@@ -153,7 +153,7 @@ print(std::ostream &os) const
 
 bool
 CQChartsColumn::
-stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns)
+stringToColumns(const QString &str, Columns &columns)
 {
   bool rc = true;
 
@@ -173,7 +173,7 @@ stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns)
 
 QString
 CQChartsColumn::
-columnsToString(const std::vector<CQChartsColumn> &columns)
+columnsToString(const Columns &columns)
 {
   QString str;
 

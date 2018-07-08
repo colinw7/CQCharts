@@ -219,6 +219,8 @@ class CQChartsPlotDlg : public QDialog {
   QLineEdit*         viewEdit_               { nullptr }; // view name edit
   QLineEdit*         posEdit_                { nullptr }; // position edit
   QLineEdit*         titleEdit_              { nullptr }; // title edit
+  QLineEdit*         xLabelEdit_             { nullptr }; // x label edit
+  QLineEdit*         yLabelEdit_             { nullptr }; // y label edit
   QLineEdit*         xminEdit_               { nullptr }; // xmin edit
   QToolButton*       xminButton_             { nullptr }; // xmin load button
   QLineEdit*         yminEdit_               { nullptr }; // ymin edit

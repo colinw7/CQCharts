@@ -1249,12 +1249,12 @@ draw(QPainter *painter)
   double sw = 0.0, sh = 0.0;
 
   if      (plot_) {
-    sw = plot_->pixelToWindowWidth (pointData_.size);
-    sh = plot_->pixelToWindowHeight(pointData_.size);
+    sw = plot_->lengthPlotWidth (pointData_.size);
+    sh = plot_->lengthPlotHeight(pointData_.size);
   }
   else if (view_) {
-    sw = view_->pixelToWindowWidth (pointData_.size);
-    sh = view_->pixelToWindowHeight(pointData_.size);
+    sw = view_->lengthViewWidth (pointData_.size);
+    sh = view_->lengthViewHeight(pointData_.size);
   }
 
   double x = position.x() - xp - xm; // bottom
@@ -1321,7 +1321,8 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py), pointData_.size);
+  CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
+                                     CQChartsUtil::avg(sw, sh));
 
   if (painter->brush().style() != Qt::NoBrush)
     CQChartsPlotSymbolMgr::fillSymbol(pointData_.type, &srenderer);

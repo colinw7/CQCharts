@@ -242,8 +242,6 @@ class CQChartsCmds : public QObject {
 
   QStringList stringToColumns(const QString &str) const;
 
-  static void errorMsg(const QString &msg);
-
  private:
   using CommandNames = std::vector<QString>;
 

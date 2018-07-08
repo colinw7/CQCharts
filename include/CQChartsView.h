@@ -436,6 +436,9 @@ class CQChartsView : public QFrame {
   QPointF positionToView(const CQChartsPosition &pos) const;
   QPointF positionToPixel(const CQChartsPosition &pos) const;
 
+  double lengthViewWidth (const CQChartsLength &len) const;
+  double lengthViewHeight(const CQChartsLength &len) const;
+
   double lengthPixelWidth (const CQChartsLength &len) const;
   double lengthPixelHeight(const CQChartsLength &len) const;
 

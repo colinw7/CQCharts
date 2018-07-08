@@ -26,6 +26,8 @@ class CQChartsChordPlotType : public CQChartsPlotType {
   bool hasAxes() const override { return false; }
   bool hasKey () const override { return false; }
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -171,16 +173,19 @@ class CQChartsChordObj : public CQChartsPlotObj {
 class CQChartsChordPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn     WRITE setNameColumn  )
-  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn    WRITE setValueColumn )
-  Q_PROPERTY(CQChartsColumn groupColumn  READ groupColumn    WRITE setGroupColumn )
-  Q_PROPERTY(bool           sorted       READ isSorted       WRITE setSorted      )
-  Q_PROPERTY(double         innerRadius  READ innerRadius    WRITE setInnerRadius )
-  Q_PROPERTY(double         labelRadius  READ labelRadius    WRITE setLabelRadius )
-  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
-  Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
-  Q_PROPERTY(double         segmentAlpha READ segmentAlpha   WRITE setSegmentAlpha)
-  Q_PROPERTY(double         arcAlpha     READ arcAlpha       WRITE setArcAlpha    )
+  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn groupColumn  READ groupColumn WRITE setGroupColumn)
+  Q_PROPERTY(bool           sorted       READ isSorted    WRITE setSorted     )
+  Q_PROPERTY(double         innerRadius  READ innerRadius WRITE setInnerRadius)
+  Q_PROPERTY(double         labelRadius  READ labelRadius WRITE setLabelRadius)
+
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+
+  Q_PROPERTY(double segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
+  Q_PROPERTY(double arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
 
  public:
   CQChartsChordPlot(CQChartsView *view, const ModelP &model);
@@ -216,6 +221,9 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   double borderAlpha() const { return borderData_.alpha; }
   void setBorderAlpha(double r) { borderData_.alpha = r; update(); }
+
+  const CQChartsLineDash &borderDash() const { return borderData_.dash; }
+  void setBorderDash(const CQChartsLineDash &l) { borderData_.dash = l; update(); }
 
   //---
 

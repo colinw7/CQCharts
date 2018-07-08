@@ -14,11 +14,12 @@
 #include <CQChartsDisplayTransform.h>
 #include <CQChartsDisplayRange.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
-#include <CQChartsGradientPalette.h>
+#include <CQUtil.h>
 
 #include <CHRTimer.h>
 
@@ -941,11 +942,17 @@ addProperties()
   addProperty("every", this, "everyEnd"    , "end"    );
   addProperty("every", this, "everyStep"   , "step"   );
 
-  if (xAxis())
+  if (xAxis()) {
     xAxis()->addProperties(propertyModel(), id() + "/" + "xaxis");
 
-  if (yAxis())
+    addProperty("xaxis", this, "xLabel", "userLabel");
+  }
+
+  if (yAxis()) {
     yAxis()->addProperties(propertyModel(), id() + "/" + "yaxis");
+
+    addProperty("yaxis", this, "yLabel", "userLabel");
+  }
 
   if (key())
     key()->addProperties(propertyModel(), id() + "/" + "key");
@@ -955,6 +962,44 @@ addProperties()
 
   addProperty("scaledFont", this, "minScaleFontSize", "minSize");
   addProperty("scaledFont", this, "maxScaleFontSize", "maxSize");
+}
+
+void
+CQChartsPlot::
+addSymbolProperties(const QString &path)
+{
+  QString strokePath = path + "/stroke";
+  QString fillPath   = path + "/fill";
+
+  addProperty(path      , this, "symbolType"       , "type"   );
+  addProperty(path      , this, "symbolSize"       , "size"   );
+  addProperty(strokePath, this, "symbolStroked"    , "visible");
+  addProperty(strokePath, this, "symbolStrokeColor", "color"  );
+  addProperty(strokePath, this, "symbolStrokeAlpha", "alpha"  );
+  addProperty(strokePath, this, "symbolStrokeWidth", "width"  );
+  addProperty(fillPath  , this, "symbolFilled"     , "visible");
+  addProperty(fillPath  , this, "symbolFillColor"  , "color"  );
+  addProperty(fillPath  , this, "symbolFillAlpha"  , "alpha"  );
+  addProperty(fillPath  , this, "symbolFillPattern", "pattern");
+}
+
+void
+CQChartsPlot::
+addLineProperties(const QString &path, const QString &prefix)
+{
+  addProperty(path, this, prefix + "Color", "color");
+  addProperty(path, this, prefix + "Alpha", "alpha");
+  addProperty(path, this, prefix + "Width", "width");
+  addProperty(path, this, prefix + "Dash" , "dash" );
+}
+
+void
+CQChartsPlot::
+addFillProperties(const QString &path, const QString &prefix)
+{
+  addProperty(path, this, prefix + "Color"  , "color"  );
+  addProperty(path, this, prefix + "Alpha"  , "alpha"  );
+  addProperty(path, this, prefix + "Pattern", "pattern");
 }
 
 bool
@@ -998,6 +1043,8 @@ void
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
+  assert(CQUtil::hasProperty(object, name));
+
   QString path1 = id();
 
   if (path.length())
@@ -3114,10 +3161,10 @@ axesFitBBox() const
   CQChartsGeom::BBox bbox;
 
   if (xAxis() && xAxis()->isVisible())
-    bbox += xAxis()->bbox();
+    bbox += xAxis()->fitBBox();
 
   if (yAxis() && yAxis()->isVisible())
-    bbox += yAxis()->bbox();
+    bbox += yAxis()->fitBBox();
 
   return bbox;
 }
@@ -3128,8 +3175,15 @@ keyFitBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  if (key() && key()->isVisible())
-    bbox += key()->bbox();
+  if (key() && key()->isVisible()) {
+    CQChartsGeom::BBox bbox = key()->bbox();
+
+    if (! key()->isPixelWidthExceeded())
+      bbox.addX(bbox);
+
+    if (! key()->isPixelHeightExceeded())
+      bbox.addY(bbox);
+  }
 
   return bbox;
 }
@@ -3298,6 +3352,42 @@ getAnnotationByName(const QString &id) const
   }
 
   return nullptr;
+}
+
+//------
+
+CQChartsPlotObj *
+CQChartsPlot::
+getObject(const QString &objectId) const
+{
+  QList<QModelIndex> inds;
+
+  for (const auto &plotObj : plotObjs_) {
+    if (plotObj->id() == objectId)
+      return plotObj;
+  }
+
+  return nullptr;
+}
+
+QList<QModelIndex>
+CQChartsPlot::
+getObjectInds(const QString &objectId) const
+{
+  QList<QModelIndex> inds;
+
+  CQChartsPlotObj *plotObj = getObject(objectId);
+
+  if (plotObj) {
+    CQChartsPlotObj::Indices inds1;
+
+    plotObj->getSelectIndices(inds1);
+
+    for (auto &ind1 : inds1)
+      inds.push_back(ind1);
+  }
+
+  return inds;
 }
 
 //------
@@ -3527,7 +3617,11 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), data.size);
+  double sx = lengthPixelWidth (data.size);
+  double sy = lengthPixelHeight(data.size);
+
+  CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p),
+                                     CQChartsUtil::avg(sx, sy));
 
   if (data.fill.visible)
     CQChartsPlotSymbolMgr::fillSymbol(data.type, &srenderer);
@@ -3874,7 +3968,7 @@ update()
 
 void
 CQChartsPlot::
-updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
+updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
 {
   // inside and selected
   if      (obj->isInside() && obj->isSelected()) {
@@ -5687,6 +5781,24 @@ windowToPixelHeight(double wh) const
   windowToPixel(0, wh, px2, py2);
 
   return std::abs(py2 - py1);
+}
+
+//------
+
+double
+CQChartsPlot::
+limitSymbolSize(double s) const
+{
+  // ensure not a crazy number : TODO: property for limits
+  return std::min(std::max(s, 1.0), 1000.0);
+}
+
+double
+CQChartsPlot::
+limitFontSize(double s) const
+{
+  // ensure not a crazy number : TODO: property for limits
+  return std::min(std::max(s, 1.0), 1000.0); 
 }
 
 //------

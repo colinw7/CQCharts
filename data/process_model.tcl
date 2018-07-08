@@ -10,10 +10,10 @@ process_model -model $modelId -add -expr "remap(2,0,1)" -header color
 
 # columns x, y, name symbolSize, fontSize, color, id
 #remove_plot -view view1 -all
-#create_plot -model $modelId -type scatter -columns "x=3,y=4,symbolSize=5"
+#create_plot -model $modelId -type scatter -columns "x=3,y=4,symbolSize=5px"
 
 #remove_plot -view view1 -all
-create_plot -model $modelId -type scatter -columns "x=3,y=4,symbolSize=5,color=6"
+create_plot -model $modelId -type scatter -columns "x=3,y=4,symbolSize=5px,color=6"
 
 process_model -model $modelId -add -expr "cell(@r,2)>100000 ? {red} : {green}" -header Color -type color
 

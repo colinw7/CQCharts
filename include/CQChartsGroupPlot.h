@@ -96,11 +96,9 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   void initGroup(const CQChartsGroupData &data);
 
-  std::vector<int> rowHierGroupInds(const QModelIndex &parent, int row,
-                                    const CQChartsColumn &column) const;
+  std::vector<int> rowHierGroupInds(const CQChartsModelIndex &ind) const;
 
-  int rowGroupInd(const QModelIndex &parent, int row,
-                  const CQChartsColumn &column=CQChartsColumn()) const;
+  int rowGroupInd(const CQChartsModelIndex &ind) const;
 
   void getGroupInds(std::vector<int> &inds) const;
 
@@ -121,8 +119,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
   int numGroups() const { return groupBucket_.numUnique(); }
 
  private:
-  bool rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
-                    std::vector<int> &ids, bool hier) const;
+  bool rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &ids, bool hier) const;
 
   std::vector<int> pathInds(const QString &path) const;
 

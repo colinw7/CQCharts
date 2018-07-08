@@ -3,6 +3,7 @@
 
 #include <QVariant>
 #include <QString>
+#include <vector>
 
 struct CQChartsInputData {
   using Vars = std::vector<QVariant>;

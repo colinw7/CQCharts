@@ -29,6 +29,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsChordPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw connections using radial plot with sized path arcs.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsChordPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -82,8 +90,7 @@ addProperties()
   addProperty("options", this, "innerRadius");
   addProperty("options", this, "labelRadius");
 
-  addProperty("stroke", this, "borderColor", "color");
-  addProperty("stroke", this, "borderAlpha", "alpha");
+  addLineProperties("stroke", "border");
 
   addProperty("segment", this, "segmentAlpha", "alpha");
 
@@ -612,9 +619,9 @@ CQChartsChordObj::
 calcId() const
 {
   if (data_.group().str != "")
-    return QString("%1:%2:%3").arg(data_.name()).arg(data_.group().str).arg(data_.total());
+    return QString("chord:%1:%2:%3").arg(data_.name()).arg(data_.group().str).arg(data_.total());
   else
-    return QString("%1:%2").arg(data_.name()).arg(data_.total());
+    return QString("chord:%1:%2").arg(data_.name()).arg(data_.total());
 }
 
 bool

@@ -103,7 +103,8 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
  public:
   CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
-                            const CQChartsBoxPlotWhisker &whisker, int ig, int ng, int is, int ns);
+                            int groupInd, const CQChartsBoxPlotWhisker &whisker,
+                            int ig, int ng, int is, int ns);
 
   QString calcId   () const override;
   QString calcTipId() const override;
@@ -117,12 +118,13 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   CQChartsGeom::BBox annotationBBox() const;
 
  private:
-  int                    setId_   { 0 };  // set id
-  CQChartsBoxPlotWhisker whisker_;        // whisker data
-  int                    ig_      { -1 }; // group index
-  int                    ng_      { 0 };  // group count
-  int                    is_      { -1 }; // value set index
-  int                    ns_      { 0 };  // value set count
+  int                    setId_    { 0 };  // set id
+  int                    groupInd_ { 0 };  // set id
+  CQChartsBoxPlotWhisker whisker_;         // whisker data
+  int                    ig_       { -1 }; // group index
+  int                    ng_       { 0 };  // group count
+  int                    is_       { -1 }; // value set index
+  int                    ns_       { 0 };  // value set count
 };
 
 //---
@@ -175,6 +177,10 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
   void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
 
  private:
+  using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker>;
+
+  const SetWhiskerMap &setWhiskerMap() const;
+
   void initPolygon();
 
  private:
@@ -220,9 +226,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_OBJECT
 
   // data
-  Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(QString        valueColumns      READ valueColumnsStr   WRITE setValueColumnsStr  )
-  Q_PROPERTY(CQChartsColumn setColumn         READ setColumn         WRITE setSetColumn        )
+  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
+  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn      WRITE setNameColumn     )
+  Q_PROPERTY(CQChartsColumn setColumn    READ setColumn       WRITE setSetColumn      )
 
   Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
   Q_PROPERTY(CQChartsColumn minColumn         READ minColumn         WRITE setMinColumn        )
@@ -239,38 +246,42 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_PROPERTY(bool   horizontal   READ isHorizontal   WRITE setHorizontal  )
 
   // box
-  Q_PROPERTY(CQChartsLength boxWidth         READ boxWidth         WRITE setBoxWidth        )
-  Q_PROPERTY(bool           boxFilled        READ isBoxFilled      WRITE setBoxFilled       )
-  Q_PROPERTY(CQChartsColor  boxColor         READ boxColor         WRITE setBoxColor        )
-  Q_PROPERTY(double         boxAlpha         READ boxAlpha         WRITE setBoxAlpha        )
-  Q_PROPERTY(Pattern        boxPattern       READ boxPattern       WRITE setBoxPattern      )
-  Q_PROPERTY(bool           boxStroked       READ isBorderStroked  WRITE setBorderStroked   )
-  Q_PROPERTY(CQChartsColor  borderColor      READ borderColor      WRITE setBorderColor     )
-  Q_PROPERTY(double         borderAlpha      READ borderAlpha      WRITE setBorderAlpha     )
-  Q_PROPERTY(CQChartsLength borderWidth      READ borderWidth      WRITE setBorderWidth     )
-  Q_PROPERTY(CQChartsLength cornerSize       READ cornerSize       WRITE setCornerSize      )
-  Q_PROPERTY(CQChartsColor  whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
-  Q_PROPERTY(double         whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
-  Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
-  Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+  Q_PROPERTY(CQChartsLength   boxWidth    READ boxWidth        WRITE setBoxWidth     )
+  Q_PROPERTY(bool             boxFilled   READ isBoxFilled     WRITE setBoxFilled    )
+  Q_PROPERTY(CQChartsColor    boxColor    READ boxColor        WRITE setBoxColor     )
+  Q_PROPERTY(double           boxAlpha    READ boxAlpha        WRITE setBoxAlpha     )
+  Q_PROPERTY(Pattern          boxPattern  READ boxPattern      WRITE setBoxPattern   )
+  Q_PROPERTY(bool             boxStroked  READ isBorderStroked WRITE setBorderStroked)
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor     WRITE setBorderColor  )
+  Q_PROPERTY(double           borderAlpha READ borderAlpha     WRITE setBorderAlpha  )
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth     WRITE setBorderWidth  )
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash      WRITE setBorderDash   )
+  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize      WRITE setCornerSize   )
+
+  // whisker
+  Q_PROPERTY(CQChartsColor    whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
+  Q_PROPERTY(double           whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
+  Q_PROPERTY(CQChartsLength   whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
+  Q_PROPERTY(double           whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
 
   // labels
-  Q_PROPERTY(bool           textVisible      READ isTextVisible    WRITE setTextVisible     )
-  Q_PROPERTY(CQChartsColor  textColor        READ textColor        WRITE setTextColor       )
-  Q_PROPERTY(double         textAlpha        READ textAlpha        WRITE setTextAlpha       )
-  Q_PROPERTY(QFont          textFont         READ textFont         WRITE setTextFont        )
-  Q_PROPERTY(double         textMargin       READ textMargin       WRITE setTextMargin      )
+  Q_PROPERTY(bool          textVisible READ isTextVisible WRITE setTextVisible)
+  Q_PROPERTY(CQChartsColor textColor   READ textColor     WRITE setTextColor  )
+  Q_PROPERTY(double        textAlpha   READ textAlpha     WRITE setTextAlpha  )
+  Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
+  Q_PROPERTY(double        textMargin  READ textMargin    WRITE setTextMargin )
 
   // outliers
-  Q_PROPERTY(CQChartsSymbol symbolType         READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(double         symbolSize         READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked      READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor  READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha  READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolLineWidth    READ symbolLineWidth   WRITE setSymbolLineWidth  )
-  Q_PROPERTY(bool           symbolFilled       READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor    READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha    READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
+  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
+  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
+  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
+  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
+  Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
+  Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
+  Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
   Q_ENUMS(Pattern)
 
@@ -296,66 +307,63 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   //---
 
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
+  const CQChartsColumn &valueColumn() const { return valueColumns_.column(); }
   void setValueColumn(const CQChartsColumn &c);
 
-  const Columns &valueColumns() const { return valueColumns_; }
+  const Columns &valueColumns() const { return valueColumns_.columns(); }
   void setValueColumns(const Columns &valueColumns);
 
   QString valueColumnsStr() const;
   bool setValueColumnsStr(const QString &s);
 
-  const CQChartsColumn &valueColumnAt(int i) {
-    assert(i >= 0 && i < int(valueColumns_.size()));
+  const CQChartsColumn &valueColumnAt(int i) const;
 
-    return valueColumns_[i];
-  }
-
-  int numValueColumns() const { return std::max(int(valueColumns_.size()), 1); }
+  int numValueColumns() const;
 
   //---
 
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
+
   const CQChartsColumn &setColumn() const { return setColumn_; }
-  void setSetColumn(const CQChartsColumn &c) { setColumn_ = c; updateRangeAndObjs(); }
+  void setSetColumn(const CQChartsColumn &c);
 
   //---
 
   const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
+  void setXColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &minColumn() const { return minColumn_; }
-  void setMinColumn(const CQChartsColumn &c) { minColumn_ = c; updateRangeAndObjs(); }
+  void setMinColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &lowerMedianColumn() const { return lowerMedianColumn_; }
-  void setLowerMedianColumn(const CQChartsColumn &c) { lowerMedianColumn_ = c;
-    updateRangeAndObjs(); }
+  void setLowerMedianColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &medianColumn() const { return medianColumn_; }
-  void setMedianColumn(const CQChartsColumn &c) { medianColumn_ = c; updateRangeAndObjs(); }
+  void setMedianColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &upperMedianColumn() const { return upperMedianColumn_; }
-  void setUpperMedianColumn(const CQChartsColumn &c) { upperMedianColumn_ = c;
-    updateRangeAndObjs(); }
+  void setUpperMedianColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &maxColumn() const { return maxColumn_; }
-  void setMaxColumn(const CQChartsColumn &c) { maxColumn_ = c; updateRangeAndObjs(); }
+  void setMaxColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &outliersColumn() const { return outliersColumn_; }
-  void setOutliersColumn(const CQChartsColumn &c) { outliersColumn_ = c; updateRangeAndObjs(); }
+  void setOutliersColumn(const CQChartsColumn &c);
 
   //---
 
   bool isShowOutliers() const { return showOutliers_; }
-  void setShowOutliers(bool b) { showOutliers_ = b; updateRangeAndObjs(); }
+  void setShowOutliers(bool b);
 
   bool isConnected() const { return connected_; }
-  void setConnected(bool b) { connected_ = b; updateRangeAndObjs(); }
+  void setConnected(bool b);
 
   double whiskerRange() const { return whiskerRange_; }
-  void setWhiskerRange(double r) { whiskerRange_ = r; updateRangeAndObjs(); }
+  void setWhiskerRange(double r);
 
   const CQChartsLength &boxWidth() const { return boxWidth_; }
-  void setBoxWidth(const CQChartsLength &l) { boxWidth_ = l; update(); }
+  void setBoxWidth(const CQChartsLength &l);
 
   bool isHorizontal() const { return horizontal_; }
 
@@ -389,6 +397,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const;
+  void setBorderDash(const CQChartsLineDash &l);
 
   const CQChartsLength &cornerSize() const;
   void setCornerSize(const CQChartsLength &r);
@@ -437,8 +448,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   const CQChartsSymbol &symbolType() const { return symbolData_.type; }
   void setSymbolType(const CQChartsSymbol &t) { symbolData_.type = t; update(); }
 
-  double symbolSize() const { return symbolData_.size; }
-  void setSymbolSize(double s) { symbolData_.size = s; update(); }
+  const CQChartsLength &symbolSize() const { return symbolData_.size; }
+  void setSymbolSize(const CQChartsLength &s) { symbolData_.size = s; update(); }
+
+  //--
 
   bool isSymbolStroked() const { return symbolData_.stroke.visible; }
   void setSymbolStroked(bool b) { symbolData_.stroke.visible = b; update(); }
@@ -451,8 +464,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   double symbolStrokeAlpha() const;
   void setSymbolStrokeAlpha(double a);
 
-  const CQChartsLength &symbolLineWidth() const { return symbolData_.stroke.width; }
-  void setSymbolLineWidth(const CQChartsLength &l) { symbolData_.stroke.width = l; update(); }
+  const CQChartsLength &symbolStrokeWidth() const { return symbolData_.stroke.width; }
+  void setSymbolStrokeWidth(const CQChartsLength &l) { symbolData_.stroke.width = l; update(); }
+
+  //--
 
   bool isSymbolFilled() const { return symbolData_.fill.visible; }
   void setSymbolFilled(bool b) { symbolData_.fill.visible = b; update(); }
@@ -464,6 +479,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   double symbolFillAlpha() const;
   void setSymbolFillAlpha(double a);
+
+  Pattern symbolFillPattern() const;
+  void setSymbolFillPattern(const Pattern &p);
 
   //---
 
@@ -490,7 +508,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   void updateRawRange ();
   void updateCalcRange();
 
-  bool hasSets() const;
+  bool hasSets  () const;
+  bool hasGroups() const;
 
   void updateRawWhiskers();
 
@@ -519,8 +538,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   void addRawWhiskerRow(const QModelIndex &parent, int r);
 
  private:
-  CQChartsColumn     valueColumn_    { 1 };                // value column
-  Columns            valueColumns_;                        // value columns
+  CQChartsColumns    valueColumns_   { 1 };                // value columns
+  CQChartsColumn     nameColumn_;                          // name column
   CQChartsColumn     setColumn_;                           // set column
 
   CQChartsColumn     xColumn_;                             // x column

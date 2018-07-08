@@ -6,6 +6,8 @@
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsTip.h>
+
 #include <QPainter>
 
 CQChartsRadarPlotType::
@@ -27,6 +29,17 @@ addParameters()
   //---
 
   CQChartsPlotType::addParameters();
+}
+
+QString
+CQChartsRadarPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws polygon for each row with a point for each value column.<p>\n"
+         "<h2>Columns</h2>\n"
+         "<p>The <b>Name</b> column specifies the name for the value set.</p>\n"
+         "<p>The column headers specify the name of the indiviidual values.</p>\n";
 }
 
 CQChartsPlot *
@@ -64,25 +77,71 @@ CQChartsRadarPlot::
 
 //------
 
+void
+CQChartsRadarPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//------
+
+void
+CQChartsRadarPlot::
+setValueColumn(const CQChartsColumn &c)
+{
+  if (c != valueColumns_.column()) {
+    valueColumns_.setColumn(c);
+
+    updateRangeAndObjs();
+  }
+}
+
+void
+CQChartsRadarPlot::
+setValueColumns(const Columns &cols)
+{
+  if (cols != valueColumns_.columns()) {
+    valueColumns_.setColumns(cols);
+
+    updateRangeAndObjs();
+  }
+}
+
 QString
 CQChartsRadarPlot::
 valueColumnsStr() const
 {
-  return CQChartsColumn::columnsToString(valueColumns());
+  return valueColumns_.columnsStr();
 }
 
 bool
 CQChartsRadarPlot::
 setValueColumnsStr(const QString &s)
 {
-  Columns valueColumns;
+  bool rc = true;
 
-  if (! CQChartsColumn::stringToColumns(s, valueColumns))
-    return false;
+  if (s != valueColumnsStr()) {
+    rc = valueColumns_.setColumnsStr(s);
 
-  setValueColumns(valueColumns);
+    updateRangeAndObjs();
+  }
 
-  return true;
+  return rc;
+}
+
+const CQChartsColumn &
+CQChartsRadarPlot::
+valueColumnAt(int i) const
+{
+  return valueColumns_.getColumn(i);
+}
+
+int
+CQChartsRadarPlot::
+numValueColumns() const
+{
+  return valueColumns_.count();
 }
 
 //------
@@ -156,6 +215,52 @@ setFillPattern(Pattern pattern)
 
 //------
 
+void
+CQChartsRadarPlot::
+setAngleStart(double r)
+{
+  CQChartsUtil::testAndSet(angleStart_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsRadarPlot::
+setAngleExtent(double r)
+{
+  CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+//----
+
+void
+CQChartsRadarPlot::
+setGrid(bool b)
+{
+  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { update(); } );
+}
+
+void
+CQChartsRadarPlot::
+setGridColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { update(); } );
+}
+
+QColor
+CQChartsRadarPlot::
+interpGridColor(int i, int n)
+{
+  return gridColor().interpColor(this, i, n);
+}
+
+void
+CQChartsRadarPlot::
+setGridAlpha(double r)
+{
+  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { update(); } );
+}
+
+//------
+
 bool
 CQChartsRadarPlot::
 isBorder() const
@@ -217,6 +322,20 @@ CQChartsRadarPlot::
 setBorderWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
+}
+
+const CQChartsLineDash &
+CQChartsRadarPlot::
+borderDash() const
+{
+  return shapeData_.border.dash;
+}
+
+void
+CQChartsRadarPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
 }
 
 //---
@@ -285,19 +404,17 @@ addProperties()
   addProperty("options", this, "angleStart" );
   addProperty("options", this, "angleExtent");
 
-  addProperty("grid", this, "grid"     , "visible");
-  addProperty("grid", this, "gridColor", "color");
-  addProperty("grid", this, "gridAlpha", "alpha");
+  addProperty("grid", this, "grid", "visible");
 
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
+  addLineProperties("grid", "grid");
 
-  addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
+
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   addProperty("text", this, "textFont" , "font" );
   addProperty("text", this, "textColor", "color");
@@ -308,6 +425,7 @@ void
 CQChartsRadarPlot::
 updateRange(bool apply)
 {
+  // get values for each row
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsRadarPlot *plot) :
@@ -317,11 +435,13 @@ updateRange(bool apply)
 
     State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
       for (int iv = 0; iv < nv_; ++iv) {
-        const CQChartsColumn &column = plot_->valueColumn(iv);
+        const CQChartsColumn &column = plot_->valueColumnAt(iv);
+
+        CQChartsModelIndex ind(row, column, parent);
 
         double value;
 
-        if (! plot_->columnValue(row, column, parent, value))
+        if (! plot_->columnValue(ind, value))
           continue;
 
         valueDatas_[iv].add(value);
@@ -346,6 +466,7 @@ updateRange(bool apply)
 
   //---
 
+  // calc max radius (normalized values)
   valueRadius_ = 0.0;
 
   int nv = numValueColumns();
@@ -355,6 +476,7 @@ updateRange(bool apply)
 
   //---
 
+  // set range
   double r = valueRadius_;
 
   dataRange_.updateRange(-r, -r);
@@ -371,6 +493,26 @@ updateRange(bool apply)
   if (apply)
     applyDataRange();
 }
+
+//------
+
+CQChartsGeom::BBox
+CQChartsRadarPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsRadarObj *obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
+
+    if (obj)
+      bbox += obj->annotationBBox();
+  }
+
+  return bbox;
+}
+
+//------
 
 bool
 CQChartsRadarPlot::
@@ -431,12 +573,14 @@ addRow(const QModelIndex &parent, int row, int nr)
 
   //---
 
+  // get row name
   bool ok;
 
   QString name = modelString(row, nameColumn(), parent, ok);
 
   //---
 
+  // calc polygon angle
   int nv = valueColumns().size();
 
   double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
@@ -445,18 +589,33 @@ addRow(const QModelIndex &parent, int row, int nr)
 
   //---
 
-  QPolygonF poly;
+  // calc polygon points
+  QPolygonF                    poly;
+  CQChartsRadarObj::NameValues nameValues;
 
   double a = (nv > 2 ? angleStart() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
     const CQChartsColumn &valueColumn = valueColumns()[iv];
 
+    //---
+
+    // get column value
+    CQChartsModelIndex ind(row, valueColumn, parent);
+
     double value;
 
-    if (! columnValue(row, valueColumn, parent, value))
+    if (! columnValue(ind, value))
       continue;
 
+    //---
+
+    // get column name
+    QString name = modelHeaderString(valueColumn, ok);
+
+    //---
+
+    // set point
     double scale = valueDatas_[iv].sum();
 
     double ra = CQChartsUtil::Deg2Rad(a);
@@ -466,34 +625,41 @@ addRow(const QModelIndex &parent, int row, int nr)
 
     poly << QPointF(x, y);
 
+    //---
+
+    nameValues[name] = value;
+
+    //---
+
     a -= da;
   }
 
   //---
 
+  // create object
   QModelIndex nameInd  = modelIndex(row, nameColumn(), parent);
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
 
   CQChartsRadarObj *radarObj =
-    new CQChartsRadarObj(this, bbox, name, poly, nameInd1, row, nr);
+    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, row, nr);
 
   addPlotObject(radarObj);
 }
 
 bool
 CQChartsRadarPlot::
-columnValue(int row, const CQChartsColumn &column, const QModelIndex &parent, double &value) const
+columnValue(const CQChartsModelIndex &ind, double &value) const
 {
-  ColumnType columnType = columnValueType(column);
+  ColumnType columnType = columnValueType(ind.column);
 
   value = 1.0;
 
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;
 
-    value = modelReal(row, column, parent, ok);
+    value = modelReal(ind.row, ind.column, ind.parent, ok);
 
     if (! ok || CQChartsUtil::isNaN(value))
       return false;
@@ -504,7 +670,7 @@ columnValue(int row, const CQChartsColumn &column, const QModelIndex &parent, do
   else {
     bool ok;
 
-    value = modelReal(row, column, parent, ok);
+    value = modelReal(ind.row, ind.column, ind.parent, ok);
 
     if (! ok)
       value = 1.0; // string non-real -> 1.0
@@ -728,16 +894,33 @@ draw(QPainter *painter)
 
 CQChartsRadarObj::
 CQChartsRadarObj(CQChartsRadarPlot *plot, const CQChartsGeom::BBox &rect, const QString &name,
-                 const QPolygonF &poly, const QModelIndex &ind, int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), name_(name), poly_(poly), ind_(ind), i_(i), n_(n)
+                 const QPolygonF &poly, const NameValues &nameValues, const QModelIndex &ind,
+                 int i, int n) :
+ CQChartsPlotObj(plot, rect), plot_(plot), name_(name), poly_(poly), nameValues_(nameValues),
+ ind_(ind), i_(i), n_(n)
 {
+  assert(i_ >= 0 && i < n_);
 }
 
 QString
 CQChartsRadarObj::
 calcId() const
 {
-  return QString("%1").arg(name_);
+  return QString("poly:%1").arg(i_);
+}
+
+QString
+CQChartsRadarObj::
+calcTipId() const
+{
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Name", name_);
+
+  for (const auto &nameValue : nameValues_)
+    tableTip.addTableRow(nameValue.first, nameValue.second);
+
+  return tableTip.str();
 }
 
 bool
@@ -770,10 +953,22 @@ inside(const CQChartsGeom::Point &p) const
     return false;
 }
 
+CQChartsGeom::BBox
+CQChartsRadarObj::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  return bbox;
+}
+
 void
 CQChartsRadarObj::
 getSelectIndices(Indices &inds) const
 {
+  for (const auto &valueColumn : plot_->valueColumns())
+    addColumnSelectIndex(inds, valueColumn);
+
   addColumnSelectIndex(inds, ind_.column());
 }
 

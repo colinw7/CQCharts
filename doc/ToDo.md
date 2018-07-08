@@ -29,6 +29,7 @@ High
  + select plot updates current embedded table model
  + select of plot in view with multiple plots deselects others
  + remove big model data
+ + use model index for values so when model changes object can update without reload (if possible) ?
 
 Medium
  + Scroll by Single Large Tick Mark ?
@@ -146,7 +147,7 @@ Fit Text
 Misc
  + Cache plot pixmaps
  + Draw inside/selected to overlay pixmap
- + Use QScript/Tcl for expression evaluation
+ + Use QScript for expression evaluation
    + Plugable evaluation engine
  + Animation
  + Custom editor for column (name or number)
@@ -194,6 +195,7 @@ Axes
  + Handle overlapping labels
    + Auto Hide, Resize, Rotate
  + Scale break
+ + limit number of ticks (bad increment)
 
 Title
  + Default to larger font
@@ -207,7 +209,6 @@ Plots to Add
  + Step Line (Left/Center/Right) (Fill Under)
  + Vector
  + Contour
- + Arrow at points
 
 Plots General
  + Restrict which plots can be combined
@@ -259,7 +260,7 @@ Hier Bubble Plot
 
 Parallel Plot
  + Parallel needs x axis labels
- + Allow horizontal
+ + Optional label on axis or title
 
 Pie Chart
  + Stacked (multiple categories)

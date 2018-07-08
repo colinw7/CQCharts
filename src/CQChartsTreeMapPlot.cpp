@@ -20,6 +20,14 @@ addParameters()
   CQChartsHierPlotType::addParameters();
 }
 
+QString
+CQChartsTreeMapPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw hierarchical data values using sized boxes.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsTreeMapPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -627,16 +635,13 @@ addProperties()
   addProperty("header", this, "titleMaxExtent", "maxExtent");
   addProperty("header", this, "headerHeight"  , "height"   );
 
-  addProperty("header/stroke", this, "headerBorder"     , "visible");
-  addProperty("header/stroke", this, "headerBorderColor", "color"  );
-  addProperty("header/stroke", this, "headerBorderAlpha", "alpha"  );
-  addProperty("header/stroke", this, "headerBorderWidth", "width"  );
-  addProperty("header/stroke", this, "headerBorderDash" , "dash"   );
+  addProperty("header/stroke", this, "headerBorder", "visible");
 
-  addProperty("header/fill", this, "headerFilled"     , "visible");
-  addProperty("header/fill", this, "headerFillColor"  , "color"  );
-  addProperty("header/fill", this, "headerFillAlpha"  , "alpha"  );
-  addProperty("header/fill", this, "headerFillPattern", "pattern");
+  addLineProperties("header/stroke", "headerBorder");
+
+  addProperty("header/fill", this, "headerFilled", "visible");
+
+  addFillProperties("header/fill", "headerFill");
 
   addProperty("header/text", this, "headerTextFont"    , "font"    );
   addProperty("header/text", this, "headerTextColor"   , "color"   );
@@ -644,16 +649,13 @@ addProperties()
   addProperty("header/text", this, "headerTextContrast", "contrast");
   addProperty("header/text", this, "headerTextAlign"   , "align"   );
 
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
-  addProperty("stroke", this, "borderDash" , "dash"   );
+  addProperty("stroke", this, "border", "visible");
 
-  addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+  addLineProperties("stroke", "border");
+
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   addProperty("text", this, "textFont"     , "font"     );
   addProperty("text", this, "textColor"    , "color"    );
@@ -1576,7 +1578,7 @@ calcId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
+  return QString("cell:%1:%2").arg(node_->name()).arg(node_->hierSize());
 }
 
 QString

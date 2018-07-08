@@ -484,3 +484,14 @@
  + add integer plot parameter types and improved editor for required values
  + add more parameter groups
  + skip unsupported items from plot context menu
+# 7/08/2018
+ + support length units for symbols
+ + improve auto fit so pixel sized objects too big to fit are ignored
+ + add bar plot base class for bar type plots
+ + improve tips for scatter and parallel plots
+ + support any symbol type for scatter
+ + improve grouping for distribution plot
+ + support overlay and range bar for grouped distribution plot
+ + support query of plot object properties and get associated inds from tcl
+ + add x/y axis label user overrides
+ + add more descriptions

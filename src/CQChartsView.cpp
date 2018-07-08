@@ -2846,6 +2846,34 @@ positionToPixel(const CQChartsPosition &pos) const
 
 double
 CQChartsView::
+lengthViewWidth(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsLength::Units::PIXEL)
+    return pixelToWindowWidth(len.value());
+  else if (len.units() == CQChartsLength::Units::VIEW)
+    return len.value();
+  else if (len.units() == CQChartsLength::Units::PERCENT)
+    return len.value()*viewportRange()/100.0;
+  else
+    return len.value();
+}
+
+double
+CQChartsView::
+lengthViewHeight(const CQChartsLength &len) const
+{
+  if      (len.units() == CQChartsLength::Units::PIXEL)
+    return pixelToWindowHeight(len.value());
+  else if (len.units() == CQChartsLength::Units::VIEW)
+    return len.value();
+  else if (len.units() == CQChartsLength::Units::PERCENT)
+    return len.value()*viewportRange()/100.0;
+  else
+    return len.value();
+}
+
+double
+CQChartsView::
 lengthPixelWidth(const CQChartsLength &len) const
 {
   if      (len.units() == CQChartsLength::Units::PIXEL)
@@ -2936,7 +2964,7 @@ pixelToWindow(const CQChartsGeom::BBox &prect) const
 
 double
 CQChartsView::
-pixelToSignedWindowWidth (double ww) const
+pixelToSignedWindowWidth(double ww) const
 {
   return CQChartsUtil::sign(ww)*pixelToWindowWidth(ww);
 }

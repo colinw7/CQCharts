@@ -4,7 +4,6 @@
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsTextBoxObj.h>
-#include <CQChartsColumnBucket.h>
 #include <CQChartsGeom.h>
 
 #include <boost/optional.hpp>
@@ -225,8 +224,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   //   explode/explode radius
 
   Q_PROPERTY(CQChartsColumn labelColumn     READ labelColumn       WRITE setLabelColumn    )
-  Q_PROPERTY(CQChartsColumn dataColumn      READ dataColumn        WRITE setDataColumn     )
-  Q_PROPERTY(QString        dataColumns     READ dataColumnsStr    WRITE setDataColumnsStr )
+  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn       WRITE setValueColumn    )
+  Q_PROPERTY(QString        valueColumns    READ valueColumnsStr   WRITE setValueColumnsStr)
   Q_PROPERTY(CQChartsColumn radiusColumn    READ radiusColumn      WRITE setRadiusColumn   )
   Q_PROPERTY(CQChartsColumn keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
   Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
@@ -264,20 +263,20 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   const CQChartsColumn &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &dataColumn() const;
-  void setDataColumn(const CQChartsColumn &c);
+  //---
 
-  const Columns &dataColumns() const { return dataColumns_; }
-  void setDataColumns(const Columns &dataColumns);
+  const CQChartsColumn &valueColumn() const;
+  void setValueColumn(const CQChartsColumn &c);
 
-  QString dataColumnsStr() const;
-  bool setDataColumnsStr(const QString &s);
+  const Columns &valueColumns() const { return valueColumns_.columns(); }
+  void setValueColumns(const Columns &valueColumns);
 
-  const CQChartsColumn &dataColumnAt(int i) const {
-    assert(i >= 0 && i < int(dataColumns_.size()));
+  QString valueColumnsStr() const;
+  bool setValueColumnsStr(const QString &s);
 
-    return dataColumns_[i];
-  }
+  const CQChartsColumn &valueColumnAt(int i) const;
+
+  //---
 
   const CQChartsColumn &radiusColumn() const { return radiusColumn_; }
   void setRadiusColumn(const CQChartsColumn &c);
@@ -379,16 +378,15 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
  private:
   void addRow(const QModelIndex &parent, int r);
 
-  void addRowColumn(const QModelIndex &parent, int row, const CQChartsColumn &column);
+  void addRowColumn(const CQChartsModelIndex &ind);
 
   void calcDataTotal();
 
   void addRowDataTotal(const QModelIndex &parent, int row);
 
-  void addRowColumnDataTotal(const QModelIndex &parent, int row, const CQChartsColumn &column);
+  void addRowColumnDataTotal(const CQChartsModelIndex &ind);
 
-  bool getColumnSizeValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
-                          double &value, bool &missing) const;
+  bool getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) const;
 
  private:
   struct GroupData {
@@ -408,7 +406,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
   CQChartsColumn      labelColumn_     { 0 };       // label column
-  Columns             dataColumns_;                 // data value columns
+  CQChartsColumns     valueColumns_;                // value columns
   CQChartsColumn      radiusColumn_;                // radius value column
   CQChartsColumn      keyLabelColumn_;              // key label column
   bool                donut_           { false };   // is donut

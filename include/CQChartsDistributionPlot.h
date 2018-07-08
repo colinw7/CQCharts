@@ -1,7 +1,7 @@
 #ifndef CQChartsDistributionPlot_H
 #define CQChartsDistributionPlot_H
 
-#include <CQChartsGroupPlot.h>
+#include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
@@ -16,29 +16,19 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
 
-  Dimension dimension() const override { return Dimension::ONE_D; }
-
   const char *yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
 
   bool allowXLog() const override { return false; }
 
+  Dimension dimension() const override { return Dimension::ONE_D; }
+
   void addParameters() override;
 
   QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
-
-  //---
-
-  bool isGroupRequired() const override { return true; }
-
-  bool allowRowGrouping() const override { return false; }
-
-  bool allowUsePath() const override { return false; }
-
-  bool allowUseRow() const override { return false; }
 };
 
 //---
@@ -51,19 +41,27 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using Values = std::vector<QModelIndex>;
+  using ColorCount = std::map<int,int>;
+  using ColorSet   = std::map<CQChartsColor,int>;
 
-  using OptColor = boost::optional<CQChartsColor>;
+  struct ColorData {
+    ColorCount colorCount;
+    ColorSet   colorSet;
+    int        nv { 0 };
+  };
 
  public:
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                             int bucket, const Values &value, int i, int n);
+                          int groupInd, int bucket, double n1, double n2,
+                          int is, int ns, int iv, int nv);
+
+  int groupInd() const { return groupInd_; }
 
   int bucket() const { return bucket_; }
 
-  const Values &values() const { return values_; }
-
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   CQChartsGeom::BBox dataLabelRect() const;
 
@@ -76,11 +74,23 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   CQChartsGeom::BBox calcRect() const;
 
  private:
-  CQChartsDistributionPlot *plot_   { nullptr };
-  int                       bucket_ { 0 };
-  Values                    values_;
-  int                       i_      { -1 };
-  int                       n_      { -1 };
+  bool getBarColoredRects(ColorData &colorData) const;
+
+  void drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color,
+                bool useLine) const;
+
+  QColor barColor() const;
+
+ private:
+  CQChartsDistributionPlot *plot_     { nullptr };
+  int                    groupInd_ { -1 };
+  int                    bucket_   { -1 };
+  double                 n1_       { 0.0 };
+  double                 n2_       { 0.0 };
+  int                    is_       { -1 };
+  int                    ns_       { -1 };
+  int                    iv_       { -1 };
+  int                    nv_       { -1 };
 };
 
 //---
@@ -94,64 +104,49 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
  public:
   CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n);
 
+  bool selectPress(const CQChartsGeom::Point &p) override;
+
   QBrush fillBrush() const override;
+
+  bool isSetHidden() const;
+
+  void setSetHidden(bool b);
+
+ private:
+  CQChartsDistributionPlot *plot_;  // plot
 };
 
 //---
 
 // distribution plot
-class CQChartsDistributionPlot : public CQChartsGroupPlot {
+class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn   colorColumn READ colorColumn   WRITE setColorColumn)
+  // style
+  Q_PROPERTY(CQChartsColumn nameColumn READ nameColumn WRITE setNameColumn)
+
+  // bucketer
+  Q_PROPERTY(bool   bucketed         READ isBucketed        WRITE setBucketed        )
+  Q_PROPERTY(bool   autoBucket       READ isAutoBucket      WRITE setAutoBucket      )
+  Q_PROPERTY(double startBucketValue READ startBucketValue  WRITE setStartBucketValue)
+  Q_PROPERTY(double deltaBucketValue READ deltaBucketValue  WRITE setDeltaBucketValue)
+  Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets    WRITE setNumAutoBuckets  )
 
   // options
-  Q_PROPERTY(bool             horizontal  READ isHorizontal  WRITE setHorizontal )
-  Q_PROPERTY(CQChartsLength   margin      READ margin        WRITE setMargin     )
-
-  // bar border
-  Q_PROPERTY(bool             border      READ isBorder      WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor   WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha   WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth   WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash    WRITE setBorderDash )
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize    WRITE setCornerSize )
-
-  // bar fill
-  Q_PROPERTY(bool             barFill     READ isBarFill     WRITE setBarFill    )
-  Q_PROPERTY(CQChartsColor    barColor    READ barColor      WRITE setBarColor   )
-  Q_PROPERTY(double           barAlpha    READ barAlpha      WRITE setBarAlpha   )
-  Q_PROPERTY(Pattern          barPattern  READ barPattern    WRITE setBarPattern )
-
-  // color map
-  Q_PROPERTY(bool             colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double           colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double           colorMapMax READ colorMapMax   WRITE setColorMapMax)
-
-  Q_ENUMS(Pattern)
+  Q_PROPERTY(bool overlay   READ isOverlay   WRITE setOverlay  )
+  Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
+  Q_PROPERTY(bool rangeBar  READ isRangeBar  WRITE setRangeBar )
 
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
   struct Filter {
-    Filter(double min, double max) :
-     minValue(min), maxValue(max) {
+    Filter(int groupInd, double min, double max) :
+     groupInd(groupInd), minValue(min), maxValue(max) {
     }
 
+    int    groupInd { -1 };
     double minValue { 1.0 };
     double maxValue { 1.0 };
   };
-
-  using Columns = std::vector<CQChartsColumn>;
-  using Values  = std::vector<QModelIndex>;
 
   enum class BucketValueType {
     START,
@@ -166,114 +161,54 @@ class CQChartsDistributionPlot : public CQChartsGroupPlot {
 
   //---
 
-  void setGroupColumn(const CQChartsColumn &c) override;
+  const CQChartsColumn &nameColumn() const { return nameColumn_; }
+  void setNameColumn(const CQChartsColumn &c);
 
   //---
 
-  bool isHorizontal() const { return horizontal_; }
+  bool isBucketed() const { return bucketed_; }
+  void setBucketed(bool b) { bucketed_ = b; }
+
+  bool isAutoBucket() const { return bucketer_.type() == CQBucketer::Type::REAL_AUTO; }
+  void setAutoBucket(bool b) {
+    bucketer_.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
+    updateRangeAndObjs(); }
+
+  double startBucketValue() const { return bucketer_.rstart(); }
+  void setStartBucketValue(double r) { bucketer_.setRStart(r); updateRangeAndObjs(); }
+
+  double deltaBucketValue() const { return bucketer_.rdelta(); }
+  void setDeltaBucketValue(double r) { bucketer_.setRDelta(r); updateRangeAndObjs(); }
+
+  int numAutoBuckets() const { return bucketer_.numAuto(); }
+  void setNumAutoBuckets(int i) { bucketer_.setNumAuto(i); updateRangeAndObjs(); }
 
   //---
 
-  bool checkFilter(double value) const;
+  bool isOverlay() const { return overlay_; }
+
+  bool isSkipEmpty() const { return skipEmpty_; }
+
+  bool isRangeBar() const { return rangeBar_; }
+
+  //---
+
+  bool checkFilter(int groupInd, const QVariant &value) const;
 
   int calcBucket(double v) const;
-
-  //---
-
-  // bar margin
-  const CQChartsLength &margin() const { return margin_; }
-  void setMargin(const CQChartsLength &l);
-
-  //---
-
-  int numValues() const { return ivalues_.size(); }
-
-  const Values &ivalues(int i) const {
-    auto p = ivalues_.find(i);
-    assert(p != ivalues_.end());
-
-    return (*p).second;
-  }
-
-  //---
-
-  // bar stroke
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double r);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &v);
-
-  const CQChartsLength &cornerSize() const;
-  void setCornerSize(const CQChartsLength &r);
-
-  //---
-
-  // bar fill
-  bool isBarFill() const;
-  void setBarFill(bool b);
-
-  const CQChartsColor &barColor() const;
-  void setBarColor(const CQChartsColor &c);
-
-  QColor interpBarColor(int i, int n) const;
-
-  double barAlpha() const;
-  void setBarAlpha(double a);
-
-  Pattern barPattern() const;
-  void setBarPattern(Pattern pattern);
-
-  //---
-
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    setValueSetColumn("color", c); updateRangeAndObjs(); }
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
 
   //---
 
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
   CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
-  //---
-
   CQChartsGeom::BBox annotationBBox() const override;
-
-  //---
-
-  bool allowZoomX() const override { return ! isHorizontal(); }
-  bool allowZoomY() const override { return   isHorizontal(); }
-
-  bool allowPanX() const override { return ! isHorizontal(); }
-  bool allowPanY() const override { return   isHorizontal(); }
 
   //---
 
   void addProperties() override;
 
   void updateRange(bool apply=true) override;
-
-  void updateObjs() override;
 
   bool initObjs() override;
 
@@ -288,28 +223,85 @@ class CQChartsDistributionPlot : public CQChartsGroupPlot {
 
   //---
 
-  QString bucketValuesStr(int bucket, BucketValueType valueType=BucketValueType::ALL) const;
-
-  void bucketValues(int bucket, double &value1, double &value2) const;
-
-  //---
-
-  bool probe(ProbeData &probeData) const;
-
   bool addMenuItems(QMenu *) override;
 
   void draw(QPainter *) override;
 
   //---
 
-  double getPanX(bool is_shift) const override;
-  double getPanY(bool is_shift) const override;
+  QString bucketValuesStr(int groupInd, int bucket, BucketValueType type) const;
+
+ public:
+  struct VariantInd {
+    QVariant           var;
+    CQChartsModelIndex ind;
+
+    VariantInd(const QVariant &var, const CQChartsModelIndex &ind) :
+     var(var), ind(ind) {
+    }
+  };
+
+  using VariantInds = std::vector<VariantInd>;
+
+  struct VariantIndsData {
+    VariantInds inds;
+    double      min { 0.0 };
+    double      max { 0.0 };
+  };
+
+ public:
+  void getInds(int groupInd, int bucket, VariantInds &inds) const;
+
+ private:
+  using ValueSet     = CQChartsValueSet;
+  using Inds         = std::vector<CQChartsModelIndex>;
+  using BucketValues = std::map<int,VariantIndsData>;
+
+  struct Values {
+    Inds         inds;
+    ValueSet*    valueSet { nullptr };
+    BucketValues bucketValues;         // bucketed values
+
+    Values(ValueSet *valueSet) :
+     valueSet(valueSet) {
+    }
+
+   ~Values() {
+      delete valueSet;
+    }
+  };
+
+  using GroupValues = std::map<int,Values *>;
+
+  using Filters     = std::vector<Filter>;
+  using FilterStack = std::vector<Filters>;
+
+  using GroupBucketRange = std::map<int,CQChartsGeom::IMinMax>;
+
+ private:
+  void clearGroupValues();
+
+  void addRow(const QModelIndex &parent, int row);
+  void addRowColumn(const CQChartsModelIndex &ind);
 
   //---
 
+  QString bucketValuesStr(int bucket, const Values *values, BucketValueType type) const;
+
+  void bucketValues(int bucket, double &value1, double &value2) const;
+
  private slots:
   // set horizontal
-  void setHorizontal(bool b);
+  void setHorizontal(bool b) override;
+
+  // set overlay
+  void setOverlay(bool b);
+
+  // set skip empty
+  void setSkipEmpty(bool b);
+
+  // set range bar
+  void setRangeBar(bool b);
 
   // push to bar range
   void pushSlot();
@@ -319,17 +311,16 @@ class CQChartsDistributionPlot : public CQChartsGroupPlot {
   void popTopSlot();
 
  private:
-  using IValues     = std::map<int,Values>;
-  using Filters     = std::vector<Filter>;
-  using FilterStack = std::vector<Filters>;
-
- private:
-  bool              horizontal_  { false }; // horizontal bars
-  CQChartsLength    margin_      { "2px" }; // bar margin
-  CQChartsBoxData   boxData_;               // border/fill data
-  CQChartsDataLabel dataLabel_;             // data label data
-  IValues           ivalues_;               // indexed values
-  FilterStack       filterStack_;           // filter stack
+  CQChartsColumn    nameColumn_;             // name column
+  bool              overlay_      { false }; // overlay groups
+  bool              skipEmpty_    { false }; // skip empty buckets
+  bool              rangeBar_     { false }; // show range bar
+  CQChartsDataLabel dataLabel_;              // data label data
+  GroupValues       groupValues_;            // grouped value sets
+  bool              bucketed_     { true };  // is bucketed
+  CQBucketer        bucketer_;               // bucketer
+  FilterStack       filterStack_;            // filter stack
+  GroupBucketRange  groupBucketRange_;
 };
 
 #endif

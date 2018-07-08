@@ -21,13 +21,14 @@ class QPainter;
 class CQChartsKey : public CQChartsBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool          horizontal READ isHorizontal WRITE setHorizontal )
-  Q_PROPERTY(bool          autoHide   READ isAutoHide   WRITE setAutoHide   )
-  Q_PROPERTY(bool          clipped    READ isClipped    WRITE setClipped    )
-  Q_PROPERTY(QString       location   READ locationStr  WRITE setLocationStr)
-  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont   )
-  Q_PROPERTY(CQChartsColor textColor  READ textColor    WRITE setTextColor  )
-  Q_PROPERTY(Qt::Alignment textAlign  READ textAlign    WRITE setTextAlign  )
+  Q_PROPERTY(bool          horizontal  READ isHorizontal  WRITE setHorizontal )
+  Q_PROPERTY(bool          autoHide    READ isAutoHide    WRITE setAutoHide   )
+  Q_PROPERTY(bool          clipped     READ isClipped     WRITE setClipped    )
+  Q_PROPERTY(bool          interactive READ isInteractive WRITE setInteractive)
+  Q_PROPERTY(QString       location    READ locationStr   WRITE setLocationStr)
+  Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
+  Q_PROPERTY(CQChartsColor textColor   READ textColor     WRITE setTextColor  )
+  Q_PROPERTY(Qt::Alignment textAlign   READ textAlign     WRITE setTextAlign  )
 
  public:
   enum LocationType {
@@ -110,6 +111,19 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
+  bool isPixelWidthExceeded() const { return pixelWidthExceeded_; }
+  void setPixelWidthExceeded(bool b) { pixelWidthExceeded_ = b; }
+
+  bool isPixelHeightExceeded() const { return pixelHeightExceeded_; }
+  void setPixelHeightExceeded(bool b) { pixelHeightExceeded_ = b; }
+
+  //---
+
+  bool isInteractive() const { return interactive_; }
+  void setInteractive(bool b) { interactive_ = b; }
+
+  //---
+
   // text
 
   const QFont &textFont() const { return textData_.font; }
@@ -138,11 +152,14 @@ class CQChartsKey : public CQChartsBoxObj {
   virtual void draw(QPainter *painter);
 
  protected:
-  bool             horizontal_ { false };                   // is layed out horizontallly
-  LocationType     location_   { LocationType::TOP_RIGHT }; // key placement
-  bool             autoHide_   { true };                    // auto hide if too big
-  bool             clipped_    { true };                    // clipped to plot
-  CQChartsTextData textData_;                               // text data
+  bool             horizontal_          { false };                   // is layed out horizontallly
+  LocationType     location_            { LocationType::TOP_RIGHT }; // key placement
+  bool             autoHide_            { true };                    // auto hide if too big
+  bool             clipped_             { true };                    // clipped to plot
+  bool             pixelWidthExceeded_  { true };                    // pixel height too big
+  bool             pixelHeightExceeded_ { true };                    // pixel width too big
+  bool             interactive_         { true };                    // is interactive
+  CQChartsTextData textData_;                                        // text data
 };
 
 //------

@@ -26,6 +26,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsDendrogramPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw hierarchical data using collapsible tree.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsDendrogramPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -67,16 +75,9 @@ addProperties()
 
   addProperty("node", this, "circleSize", "circleSize");
 
-  addProperty("node/stroke", this, "nodeBorderColor", "color");
-  addProperty("node/stroke", this, "nodeBorderAlpha", "alpha");
-  addProperty("node/stroke", this, "nodeBorderWidth", "width");
-
-  addProperty("node/fill", this, "nodeFillColor", "color");
-  addProperty("node/fill", this, "nodeFillAlpha", "alpha");
-
-  addProperty("edge/stroke", this, "edgeLineColor", "color");
-  addProperty("edge/stroke", this, "edgeLineAlpha", "alpha");
-  addProperty("edge/stroke", this, "edgeLineWidth", "width");
+  addLineProperties("node/stroke", "nodeBorder");
+  addFillProperties("node/fill"  , "nodeFill"  );
+  addLineProperties("edge/stroke", "edgeLine"  );
 
   addProperty("text", this, "textFont" , "font" );
   addProperty("text", this, "textColor", "color");
@@ -652,7 +653,7 @@ QString
 CQChartsDendrogramNodeObj::
 calcId() const
 {
-  return node_->name();
+  return QString("node:%1").arg(node_->name());
 }
 
 CQChartsGeom::BBox

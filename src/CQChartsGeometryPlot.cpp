@@ -33,6 +33,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsGeometryPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw polygon shapes.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsGeometryPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -181,6 +189,20 @@ setBorderWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
+const CQChartsLineDash &
+CQChartsGeometryPlot::
+borderDash() const
+{
+  return shapeData_.border.dash;
+}
+
+void
+CQChartsGeometryPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+}
+
 //------
 
 bool
@@ -264,15 +286,13 @@ addProperties()
   addProperty("columns", this, "colorColumn"   , "color"   );
   addProperty("columns", this, "styleColumn"   , "style"   );
 
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
+  addProperty("stroke", this, "border", "visible");
 
-  addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+  addLineProperties("stroke", "border");
+
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   dataLabel_.addProperties("dataLabel");
 
@@ -618,7 +638,7 @@ calcId() const
   if (! plot_->valueColumn().isValid())
     return name();
 
-  return QString("%1:%2").arg(name()).arg(value());
+  return QString("geom:%1:%2").arg(name()).arg(value());
 }
 
 QString

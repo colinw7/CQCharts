@@ -206,6 +206,20 @@ setBorderWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
 }
 
+const CQChartsLineDash &
+CQChartsHierBubblePlot::
+borderDash() const
+{
+  return shapeData_.border.dash;
+}
+
+void
+CQChartsHierBubblePlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+}
+
 //---
 
 const QFont &
@@ -306,15 +320,13 @@ addProperties()
 
   addProperty("options", this, "valueLabel");
 
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
+  addProperty("stroke", this, "border", "visible");
+
+  addLineProperties("stroke", "border");
 
   addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+
+  addFillProperties("fill", "fill");
 
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
@@ -1290,7 +1302,7 @@ calcId() const
   if (node_->isFiller())
     return hierObj_->calcId();
 
-  return QString("%1:%2").arg(node_->name()).arg(node_->hierSize());
+  return QString("bubble:%1:%2").arg(node_->name()).arg(node_->hierSize());
 }
 
 QString

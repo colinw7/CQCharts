@@ -19,6 +19,8 @@ class CQChartsScatterPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -35,11 +37,12 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect,
-                          const QPointF &p, double symbolSize, const OptReal &fontSize,
-                          const OptColor &color, int is, int ns, int iv, int nv);
+                          const QPointF &p, const CQChartsLength &symbolSize,
+                          const OptReal &fontSize, const OptColor &color,
+                          int is, int ns, int iv, int nv);
 
-  double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double s) { symbolSize_ = s; }
+  const CQChartsLength &symbolSize() const { return symbolSize_; }
+  void setSymbolSize(const CQChartsLength &s) { symbolSize_ = s; }
 
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
@@ -62,7 +65,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
  private:
   CQChartsScatterPlot* plot_       { nullptr };
   QPointF              p_;
-  double               symbolSize_;
+  CQChartsLength       symbolSize_;
   OptReal              fontSize_;
   OptColor             color_;
   int                  is_         { -1 };
@@ -99,6 +102,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 class CQChartsScatterPlot : public CQChartsPlot {
   Q_OBJECT
 
+  // columns
   Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
   Q_PROPERTY(CQChartsColumn xColumn          READ xColumn          WRITE setXColumn         )
   Q_PROPERTY(CQChartsColumn yColumn          READ yColumn          WRITE setYColumn         )
@@ -106,27 +110,33 @@ class CQChartsScatterPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
   Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
 
-  Q_PROPERTY(bool           symbolBorder      READ isSymbolBorder    WRITE setSymbolBorder     )
-  Q_PROPERTY(CQChartsColor  symbolBorderColor READ symbolBorderColor WRITE setSymbolBorderColor)
-  Q_PROPERTY(double         symbolBorderAlpha READ symbolBorderAlpha WRITE setSymbolBorderAlpha)
-  Q_PROPERTY(CQChartsLength symbolBorderWidth READ symbolBorderWidth WRITE setSymbolBorderWidth)
+  // symbol
+  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
+  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
+  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
+  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
   Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
   Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
   Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
   Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
-  Q_PROPERTY(double         symbolSize        READ symbolSize        WRITE setSymbolSize       )
 
+  // labels
   Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
 
+  // symbol size map
   Q_PROPERTY(bool   symbolSizeMapped READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
   Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
   Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
 
+  // color map
   Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
   Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
   Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
+  // font size map
   Q_PROPERTY(bool   fontSizeMapped READ isFontSizeMapped WRITE setFontSizeMapped)
   Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)
   Q_PROPERTY(double fontSizeMapMax READ fontSizeMapMax   WRITE setFontSizeMapMax)
@@ -177,42 +187,45 @@ class CQChartsScatterPlot : public CQChartsPlot {
   const CQChartsColumn &yColumn() const { return yColumn_; }
   void setYColumn(const CQChartsColumn &c);
 
-  //---
+  //----
 
-  double symbolSize() const { return symbolSize_; }
-  void setSymbolSize(double s);
+  // symbol
+  const CQChartsSymbol &symbolType() const { return symbolData_.type; }
+  void setSymbolType(const CQChartsSymbol &t) { symbolData_.type = t; update(); }
 
-  //---
+  const CQChartsLength &symbolSize() const { return symbolData_.size; }
+  void setSymbolSize(const CQChartsLength &s);
 
-  bool isSymbolBorder() const { return symbolData_.border.visible; }
-  void setSymbolBorder(bool b);
+  //--
 
-  const CQChartsColor &symbolBorderColor() const { return symbolData_.border.color; }
-  void setSymbolBorderColor(const CQChartsColor &c);
+  bool isSymbolStroked() const { return symbolData_.stroke.visible; }
+  void setSymbolStroked(bool b);
 
-  double symbolBorderAlpha() const { return symbolData_.border.alpha; }
-  void setSymbolBorderAlpha(double a);
+  const CQChartsColor &symbolStrokeColor() const { return symbolData_.stroke.color; }
+  void setSymbolStrokeColor(const CQChartsColor &c);
 
-  const CQChartsLength &symbolBorderWidth() const { return symbolData_.border.width; }
-  void setSymbolBorderWidth(const CQChartsLength &l);
+  double symbolStrokeAlpha() const { return symbolData_.stroke.alpha; }
+  void setSymbolStrokeAlpha(double a);
 
-  QColor interpSymbolBorderColor(int i, int n) const {
-    return symbolData_.border.color.interpColor(this, i, n); }
+  const CQChartsLength &symbolStrokeWidth() const { return symbolData_.stroke.width; }
+  void setSymbolStrokeWidth(const CQChartsLength &l);
 
-  //---
+  QColor interpSymbolStrokeColor(int i, int n) const {
+    return symbolData_.stroke.color.interpColor(this, i, n); }
 
-  bool isSymbolFilled() const { return symbolData_.background.visible; }
+  //--
+
+  bool isSymbolFilled() const { return symbolData_.fill.visible; }
   void setSymbolFilled(bool b);
 
-  const CQChartsColor &symbolFillColor() const { return symbolData_.background.color; }
+  const CQChartsColor &symbolFillColor() const { return symbolData_.fill.color; }
   void setSymbolFillColor(const CQChartsColor &c);
 
-  double symbolFillAlpha() const { return symbolData_.background.alpha; }
+  double symbolFillAlpha() const { return symbolData_.fill.alpha; }
   void setSymbolFillAlpha(double a);
 
-  Pattern symbolFillPattern() const { return (Pattern) symbolData_.background.pattern; }
-  void setSymbolFillPattern(const Pattern &p) {
-    symbolData_.background.pattern = (CQChartsFillPattern::Type) p; update(); }
+  Pattern symbolFillPattern() const;
+  void setSymbolFillPattern(const Pattern &p);
 
   QColor interpSymbolFillColor(int i, int n) const {
     return symbolFillColor().interpColor(this, i, n); }
@@ -318,19 +331,18 @@ class CQChartsScatterPlot : public CQChartsPlot {
   void drawForeground(QPainter *) override;
 
  private:
-  CQChartsColumn    nameColumn_;           // name column
-  CQChartsColumn    xColumn_      { 0 };   // x column
-  CQChartsColumn    yColumn_      { 1 };   // y column
-  double            symbolSize_   { 4.0 }; // symbol size
-  CQChartsShapeData symbolData_;           // symbl draw data
-  double            fontSize_     { 8.0 }; // font size
-  NameValues        nameValues_;           // name values
-  CQChartsDataLabel dataLabel_;            // data label style
-  QString           xname_;                // x column header
-  QString           yname_;                // y column header
-  QString           symbolSizeName_;       // symbol size column header
-  QString           fontSizeName_;         // font size column header
-  QString           colorName_;            // color column header
+  CQChartsColumn     nameColumn_;           // name column
+  CQChartsColumn     xColumn_      { 0 };   // x column
+  CQChartsColumn     yColumn_      { 1 };   // y column
+  CQChartsSymbolData symbolData_;           // symbl draw data
+  double             fontSize_     { 8.0 }; // font size
+  NameValues         nameValues_;           // name values
+  CQChartsDataLabel  dataLabel_;            // data label style
+  QString            xname_;                // x column header
+  QString            yname_;                // y column header
+  QString            symbolSizeName_;       // symbol size column header
+  QString            fontSizeName_;         // font size column header
+  QString            colorName_;            // color column header
 };
 
 #endif

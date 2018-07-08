@@ -331,8 +331,11 @@ calcRStart() const
 {
   double rstart = std::min(rmin(), this->rstart());
 
-  if (rdelta() > 0.0)
-    rstart = rdelta()*roundDownF(rstart/rdelta());
+  double d = rdelta()/100;
+
+  if (d > 0.0) {
+    rstart = d*roundDownF(rstart/d);
+  }
 
   return rstart;
 }

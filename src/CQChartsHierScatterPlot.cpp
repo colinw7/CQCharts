@@ -34,6 +34,15 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsHierScatterPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws scatter plot x, y points with support for customization of"
+         "point size, color and label font.\n";
+}
+
 CQChartsPlot *
 CQChartsHierScatterPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -528,7 +537,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPoin
 
   //---
 
-  double symbolSize = this->symbolSize();
+  double symbolSize = lengthPixelWidth(this->symbolSize());
 
   double sw = pixelToWindowWidth (symbolSize);
   double sh = pixelToWindowHeight(symbolSize);
@@ -651,7 +660,9 @@ bool
 CQChartsHierScatterPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  double s = plot_->symbolSize(); // TODO: ensure not a crazy number
+  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+
+  s = plot_->limitSymbolSize(s);
 
   double px, py;
 
@@ -686,7 +697,9 @@ void
 CQChartsHierScatterPointObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  double s = plot_->symbolSize(); // TODO: ensure not a crazy number
+  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+
+  s = plot_->limitSymbolSize(s);
 
   QColor fillColor   = plot_->interpPaletteColor(i_, n_);
   QColor strokeColor = plot_->interpPaletteColor(i_, n_);

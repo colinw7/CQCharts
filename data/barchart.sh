@@ -14,14 +14,14 @@ CQChartsTest \
  -plot_title "bar chart" \
 -and \
  -csv data/multi_bar.csv -first_line_header \
- -type bar -columns "group=0,value=1 2 3 4 5 6 7" \
+ -type bar -columns "name=0,value=1 2 3 4 5 6 7" \
  -plot_title "multiple bar chart" -column_type "1#integer" \
  -bool "horizontal=1" \
 -and \
  -csv data/multi_bar.csv -first_line_header \
  -type bar -columns "group=0,value=1 2 3 4 5 6 7" \
  -plot_title "row grouping" -column_type "1#integer" \
- -properties "grouping.rowGrouping=1" \
+ -properties "dataGrouping.rowGrouping=1" \
 -and \
  -csv data/money_bar_stack_neg.csv -first_line_header \
  -type barchart -columns "group=0,value=1 2 3 4" \

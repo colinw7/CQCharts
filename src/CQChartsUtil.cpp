@@ -1292,6 +1292,119 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
 namespace CQChartsUtil {
 
+bool isValidModelColumn(QAbstractItemModel *model, int column) {
+  return (column >= 0 && column < model->columnCount());
+}
+
+int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
+  int role = Qt::DisplayRole;
+
+  for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
+    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
+
+    if (! var.isValid())
+      continue;
+
+    //QString name1 = CQChartsUtil::toString(var, rc);
+
+    QString name1;
+
+    bool rc = variantToString(var, name1);
+    assert(rc);
+
+    if (name == name1)
+      return icolumn;
+  }
+
+  //---
+
+  bool ok;
+
+  int column = name.toInt(&ok);
+
+  if (ok)
+    return column;
+
+  return -1;
+}
+
+bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChartsColumn &column) {
+  CQChartsColumn column1(str);
+
+  if (column1.isValid()) {
+    column = column1;
+
+    return true;
+  }
+
+  //---
+
+  if (! str.length())
+    return false;
+
+  int icolumn = modelColumnNameToInd(model, str);
+
+  if (icolumn >= 0) {
+    column = CQChartsColumn(icolumn);
+    return true;
+  }
+
+  return false;
+}
+
+bool stringToColumns(const QAbstractItemModel *model, const QString &str,
+                     std::vector<CQChartsColumn> &columns) {
+  bool rc = true;
+
+  QStringList strs = str.split(" ", QString::SkipEmptyParts);
+
+  for (int i = 0; i < strs.length(); ++i) {
+    const QString &str = strs[i];
+
+    int pos = str.indexOf('~');
+
+    if (pos >= 0) {
+      QString lhs = str.mid(0, pos);
+      QString rhs = str.mid(pos + 1);
+
+      CQChartsColumn c1, c2;
+
+      if (stringToColumn(model, lhs, c1) && stringToColumn(model, rhs, c2)) {
+        if (c1.hasColumn() && c2.hasColumn()) {
+          int col1 = c1.column();
+          int col2 = c2.column();
+
+          if (col1 > col2)
+            std::swap(col1, col2);
+
+          for (int c = col1; c <= col2; ++c)
+            columns.push_back(c);
+        }
+        else
+          rc = false;
+      }
+      else
+        rc = false;
+    }
+    else {
+      CQChartsColumn c;
+
+      if (! stringToColumn(model, str, c))
+        rc = false;
+
+      columns.push_back(c);
+    }
+  }
+
+  return rc;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
 void
 exportModel(QAbstractItemModel *model, CQBaseModel::DataType type, bool hheader,
             bool vheader, std::ostream &os) {

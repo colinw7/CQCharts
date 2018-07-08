@@ -21,6 +21,8 @@ class CQChartsImagePlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -33,7 +35,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
  public:
   CQChartsImageObj(CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                   double value, const QModelIndex &ind);
+                   int row, int col, double value, const QModelIndex &ind);
 
   QString calcId() const override;
 
@@ -47,6 +49,8 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
  private:
   CQChartsImagePlot *plot_  { nullptr };
+  int                row_   { -1 };
+  int                col_   { -1 };
   double             value_ { 0.0 };
   QModelIndex        ind_;
 };
@@ -115,7 +119,8 @@ class CQChartsImagePlot : public CQChartsPlot {
   CQChartsGeom::BBox annotationBBox() const override;
 
  private:
-  void addImageObj(double x, double y, double dx, double dy, double value, const QModelIndex &ind);
+  void addImageObj(int row, int col, double x, double y, double dx, double dy,
+                   double value, const QModelIndex &ind);
 
   void drawXLabels(QPainter *);
   void drawYLabels(QPainter *);

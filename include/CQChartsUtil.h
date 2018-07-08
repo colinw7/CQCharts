@@ -1287,66 +1287,14 @@ inline CQChartsColor modelColor(QAbstractItemModel *model, int row, const CQChar
 
 //------
 
-inline bool isValidModelColumn(QAbstractItemModel *model, int column) {
-  return (column >= 0 && column < model->columnCount());
-}
+bool isValidModelColumn(QAbstractItemModel *model, int column);
 
-inline int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
-  int role = Qt::DisplayRole;
+int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name);
 
-  for (int icolumn = 0; icolumn < model->columnCount(); ++icolumn) {
-    QVariant var = model->headerData(icolumn, Qt::Horizontal, role);
+bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChartsColumn &column);
 
-    if (! var.isValid())
-      continue;
-
-    //QString name1 = CQChartsUtil::toString(var, rc);
-
-    QString name1;
-
-    bool rc = variantToString(var, name1);
-    assert(rc);
-
-    if (name == name1)
-      return icolumn;
-  }
-
-  //---
-
-  bool ok;
-
-  int column = name.toInt(&ok);
-
-  if (ok)
-    return column;
-
-  return -1;
-}
-
-inline bool stringToColumn(const QAbstractItemModel *model, const QString &str,
-                           CQChartsColumn &column) {
-  CQChartsColumn column1(str);
-
-  if (column1.isValid()) {
-    column = column1;
-
-    return true;
-  }
-
-  //---
-
-  if (! str.length())
-    return false;
-
-  int icolumn = modelColumnNameToInd(model, str);
-
-  if (icolumn >= 0) {
-    column = CQChartsColumn(icolumn);
-    return true;
-  }
-
-  return false;
-}
+bool stringToColumns(const QAbstractItemModel *model, const QString &str,
+                     std::vector<CQChartsColumn> &columns);
 
 //------
 

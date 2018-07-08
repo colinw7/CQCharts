@@ -519,16 +519,17 @@ void
 CQChartsViewExpander::
 drawTitleLines(QPainter *p, const QRect &r)
 {
-  int num_lines = (r.height() - 4)/4;
+  int num_lines = (r.height() - 4)/5;
 
-  int h = r.height();
+//int h = r.height();
 
-  int gap = h/(num_lines + 2);
+//int gap = h/(num_lines + 2);
+  int gap = 3;
 
   int left  = r.left () + border_;
   int right = r.right() - border_;
 
-  int y = r.center().y() - gap*num_lines/2;
+  int y = r.center().y() - (gap + 1)*num_lines/2;
 
   QColor c1 = this->palette().color(QPalette::WindowText);
   QColor c2 = c1;

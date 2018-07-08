@@ -19,6 +19,8 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -97,14 +99,17 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn styleColumn    READ styleColumn    WRITE setStyleColumn   )
   Q_PROPERTY(double         minValue       READ minValue       WRITE setMinValue      )
   Q_PROPERTY(double         maxValue       READ maxValue       WRITE setMaxValue      )
-  Q_PROPERTY(bool           border         READ isBorder       WRITE setBorder        )
-  Q_PROPERTY(CQChartsColor  borderColor    READ borderColor    WRITE setBorderColor   )
-  Q_PROPERTY(double         borderAlpha    READ borderAlpha    WRITE setBorderAlpha   )
-  Q_PROPERTY(CQChartsLength borderWidth    READ borderWidth    WRITE setBorderWidth   )
-  Q_PROPERTY(bool           filled         READ isFilled       WRITE setFilled        )
-  Q_PROPERTY(CQChartsColor  fillColor      READ fillColor      WRITE setFillColor     )
-  Q_PROPERTY(double         fillAlpha      READ fillAlpha      WRITE setFillAlpha     )
-  Q_PROPERTY(Pattern        fillPattern    READ fillPattern    WRITE setFillPattern   )
+
+  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+
+  Q_PROPERTY(bool          filled      READ isFilled    WRITE setFilled     )
+  Q_PROPERTY(CQChartsColor fillColor   READ fillColor   WRITE setFillColor  )
+  Q_PROPERTY(double        fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
+  Q_PROPERTY(Pattern       fillPattern READ fillPattern WRITE setFillPattern)
 
   Q_ENUMS(Pattern)
 
@@ -176,6 +181,9 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   const CQChartsLength &borderWidth() const;
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const;
+  void setBorderDash(const CQChartsLineDash &l);
 
   //---
 

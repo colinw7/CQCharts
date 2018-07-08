@@ -105,6 +105,8 @@ class CQChartsPlot : public QObject {
   // title and associated filename (if any)
   Q_PROPERTY(QString        title               READ titleStr            WRITE setTitleStr       )
   Q_PROPERTY(QString        fileName            READ fileName            WRITE setFileName       )
+  Q_PROPERTY(QString        xLabel              READ xLabel              WRITE setXLabel         )
+  Q_PROPERTY(QString        yLabel              READ yLabel              WRITE setYLabel         )
 
   // plot area
   Q_PROPERTY(bool           background          READ isBackground        WRITE setBackground     )
@@ -337,6 +339,12 @@ class CQChartsPlot : public QObject {
   const QString &fileName() const { return fileName_; }
   void setFileName(const QString &s) { fileName_ = s; }
 
+  const QString &xLabel() const { return xLabel_; }
+  void setXLabel(const QString &v) { xLabel_ = v; }
+
+  const QString &yLabel() const { return yLabel_; }
+  void setYLabel(const QString &v) { yLabel_ = v; }
+
   //---
 
   // plot area
@@ -555,6 +563,11 @@ class CQChartsPlot : public QObject {
 
   // add plot properties to model
   virtual void addProperties();
+
+  void addSymbolProperties(const QString &path);
+
+  void addLineProperties(const QString &path, const QString &prefix);
+  void addFillProperties(const QString &path, const QString &prefix);
 
   bool setProperties(const QString &properties);
 
@@ -810,6 +823,11 @@ class CQChartsPlot : public QObject {
 
   double windowToPixelWidth (double ww) const;
   double windowToPixelHeight(double wh) const;
+
+  //---
+
+  double limitSymbolSize(double s) const;
+  double limitFontSize(double s) const;
 
   //---
 
@@ -1069,6 +1087,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  CQChartsPlotObj *getObject(const QString &objectId) const;
+
+  QList<QModelIndex> getObjectInds(const QString &objectId) const;
+
+  //---
+
   void setLayerActive(const Layer &layer, bool b);
   bool isLayerActive(const Layer &layer) const;
 
@@ -1110,8 +1134,8 @@ class CQChartsPlot : public QObject {
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data);
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-                  double size, bool stroked, const QColor &strokeColor, double lineWidth,
-                  bool filled, const QColor &fillColor);
+                  double size, bool stroked, const QColor &strokeColor,
+                  double lineWidth, bool filled, const QColor &fillColor);
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size);
 
@@ -1142,7 +1166,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void updateObjPenBrushState(CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
+  void updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
 
   void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush) const;
   void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const;
@@ -1327,6 +1351,8 @@ class CQChartsPlot : public QObject {
   bool                      dataClip_         { false };      // is clipped at data limits
   QString                   titleStr_;                        // title string
   QString                   fileName_;                        // associated data filename
+  QString                   xLabel_;                          // x label override
+  QString                   yLabel_;                          // y label override
   CQChartsAxis*             xAxis_            { nullptr };    // x axis object
   CQChartsAxis*             yAxis_            { nullptr };    // y axis object
   CQChartsPlotKey*          keyObj_           { nullptr };    // key object

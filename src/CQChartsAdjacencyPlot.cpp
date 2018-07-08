@@ -93,6 +93,172 @@ CQChartsAdjacencyPlot::
     delete pnode.second;
 }
 
+//---
+
+void
+CQChartsAdjacencyPlot::
+setConnectionsColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setNamePairColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(namePairColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setCountColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(countColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setGroupColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+setSortType(const SortType &v)
+{
+  CQChartsUtil::testAndSet(sortType_, v, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+setBgColor(const CQChartsColor &c)
+{
+  bgBox_.setBackgroundColor(c);
+
+  update();
+}
+
+QColor
+CQChartsAdjacencyPlot::
+interpBgColor(int i, int n) const
+{
+  return bgBox_.interpBackgroundColor(i, n);
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+setBorderColor(const CQChartsColor &c)
+{
+  cellBox_.setBorderColor(c);
+
+  update();
+}
+
+QColor
+CQChartsAdjacencyPlot::
+interpBorderColor(int i, int n) const
+{
+  return cellBox_.interpBorderColor(i, n);
+}
+
+void
+CQChartsAdjacencyPlot::
+setBorderAlpha(double r)
+{
+  cellBox_.setBorderAlpha(r);
+
+  update();
+}
+
+void
+CQChartsAdjacencyPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  cellBox_.setBorderDash(d);
+
+  update();
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
+setEmptyCellColor(const CQChartsColor &s)
+{
+  emptyCellBox_.setBackgroundColor(s);
+
+  update();
+}
+
+QColor
+CQChartsAdjacencyPlot::
+interpEmptyCellColor(int i, int n) const
+{
+  return emptyCellBox_.interpBackgroundColor(i, n);
+}
+
+void
+CQChartsAdjacencyPlot::
+setCornerSize(const CQChartsLength &s)
+{
+  cellBox_.setCornerSize(s);
+
+  update();
+}
+
+void
+CQChartsAdjacencyPlot::
+setTextColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setTextAlpha(double a)
+{
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+}
+
+QColor
+CQChartsAdjacencyPlot::
+interpTextColor(int i, int n) const
+{
+  return textColor().interpColor(this, i, n);
+}
+
+void
+CQChartsAdjacencyPlot::
+setFont(const QFont &f)
+{
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setMargin(double r)
+{
+  bgBox_.setMargin(r);
+
+  updateObjs();
+}
+
+//---
+
 void
 CQChartsAdjacencyPlot::
 addProperties()

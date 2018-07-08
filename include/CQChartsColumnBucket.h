@@ -65,6 +65,9 @@ class CQChartsColumnBucket {
 
   int bucket(double value) const;
 
+  int     sbucket(const QVariant &value) const;
+  QString buckets(int i) const;
+
   QString bucketName(int ind) const;
 
   int numUnique() const;

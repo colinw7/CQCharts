@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <vector>
 #include <iostream>
+#include <cassert>
 
 class CQChartsColumn {
  public:
@@ -103,9 +104,11 @@ class CQChartsColumn {
   //---
 
  public:
-  static bool stringToColumns(const QString &str, std::vector<CQChartsColumn> &columns);
+  using Columns = std::vector<CQChartsColumn>;
 
-  static QString columnsToString(const std::vector<CQChartsColumn> &columns);
+  static bool stringToColumns(const QString &str, Columns &columns);
+
+  static QString columnsToString(const Columns &columns);
 
  private:
   bool decodeString(const QString &str, Type &type, int &column, int &role, QString &expr);
@@ -118,6 +121,125 @@ class CQChartsColumn {
   bool   mapped_ { false };
   double mapMin_ { 0.0 };
   double mapMax_ { 1.0 };
+};
+
+//---
+
+// manage list of columns or single column
+class CQChartsColumns {
+ public:
+  using Columns = std::vector<CQChartsColumn>;
+
+ public:
+  CQChartsColumns() { }
+
+  CQChartsColumns(const CQChartsColumn &c) {
+    setColumn(c);
+  }
+
+  // get single column
+  const CQChartsColumn &column() const { return column_; }
+
+  // set single column (multiple columns empty if column invalid)
+  void setColumn(const CQChartsColumn &c) {
+    column_ = c;
+
+    columns_.clear();
+
+    if (column_.isValid())
+      columns_.push_back(column_);
+  }
+
+  // get multiple columns
+  const Columns &columns() const { return columns_; }
+
+  // set multiple columns (single column is invalid if columns empty)
+  void setColumns(const Columns &columns) {
+    columns_ = columns;
+
+    if (! columns_.empty())
+      column_ = columns_[0];
+    else
+      column_ = CQChartsColumn();
+  }
+
+  QString columnsStr() const {
+    return CQChartsColumn::columnsToString(columns_);
+  }
+
+  bool setColumnsStr(const QString &s) {
+    Columns cols;
+
+    if (! CQChartsColumn::stringToColumns(s, cols))
+      return false;
+
+    setColumns(cols);
+
+    return true;
+  }
+
+  // return number of columns (minumum is one as single invalid counts)
+  int count() const {
+    if (columns_.empty())
+      return 1;
+
+    return columns_.size();
+  }
+
+  const CQChartsColumn &getColumn(int i) const {
+    if (! columns_.empty()) {
+      assert(i >= 0 && i < int(columns_.size()));
+
+      return columns_[i];
+    }
+
+    assert(i == 0);
+
+    return column_;
+  }
+
+  friend bool operator==(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {
+    int nl = lhs.columns_.size();
+    int nr = rhs.columns_.size();
+
+    if (nl != nr)
+      return false;
+
+    if (! nl)
+      return (lhs.column_ == rhs.column_);
+
+    for (int i = 0; i < nl; ++i) {
+      if (lhs.columns_[i] != rhs.columns_[i])
+        return false;
+    }
+
+    return true;
+  }
+
+  friend bool operator!=(const CQChartsColumns &lhs, const CQChartsColumns &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
+ private:
+  CQChartsColumn column_;  // single column
+  Columns        columns_; // multiple columns
+};
+
+//---
+
+#include <QModelIndex>
+
+struct CQChartsModelIndex {
+  int            row { -1 };
+  CQChartsColumn column;
+  QModelIndex    parent;
+
+  CQChartsModelIndex() = default;
+
+  CQChartsModelIndex(int row, const CQChartsColumn &column,
+                     const QModelIndex &parent=QModelIndex()) :
+   row(row), column(column), parent(parent) {
+  }
 };
 
 //---

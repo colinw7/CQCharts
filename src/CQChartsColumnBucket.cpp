@@ -181,6 +181,44 @@ bucket(double value) const
   return bucketer_.bucket(value);
 }
 
+int
+CQChartsColumnBucket::
+sbucket(const QVariant &value) const
+{
+  if      (columnType() == ColumnType::REAL) {
+    return -1;
+  }
+  else if (columnType() == ColumnType::INTEGER) {
+    return -1;
+  }
+  else if (columnType() == ColumnType::STRING) {
+    QString s;
+
+    CQChartsUtil::variantToString(value, s);
+
+    return svals_.sbucket(s);
+  }
+  else
+    return -1;
+}
+
+QString
+CQChartsColumnBucket::
+buckets(int ind) const
+{
+  if      (columnType() == ColumnType::REAL) {
+    return "";
+  }
+  else if (columnType() == ColumnType::INTEGER) {
+    return "";
+  }
+  else if (columnType() == ColumnType::STRING) {
+    return svals_.buckets(ind);
+  }
+  else
+    return "";
+}
+
 QString
 CQChartsColumnBucket::
 bucketName(int ind) const

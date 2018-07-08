@@ -17,6 +17,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsImagePlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw 2d grid of 'pixels' from values in 2d table.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsImagePlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -210,7 +218,7 @@ initObjs()
 
         //---
 
-        plot_->addImageObj(x_, y_, dx_, dy_, value, ind);
+        plot_->addImageObj(row, col, x_, y_, dx_, dy_, value, ind);
 
         //---
 
@@ -241,13 +249,14 @@ initObjs()
 
 void
 CQChartsImagePlot::
-addImageObj(double x, double y, double dx, double dy, double value, const QModelIndex &ind)
+addImageObj(int row, int col, double x, double y, double dx, double dy, double value,
+            const QModelIndex &ind)
 {
   QModelIndex ind1 = normalizeIndex(ind);
 
   CQChartsGeom::BBox bbox(x, y, x + dx, y + dy);
 
-  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, value, ind1);
+  CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1);
 
   addPlotObject(imageObj);
 }
@@ -437,8 +446,8 @@ annotationBBox() const
 
 CQChartsImageObj::
 CQChartsImageObj(CQChartsImagePlot *plot, const CQChartsGeom::BBox &rect,
-                 double value, const QModelIndex &ind) :
- CQChartsPlotObj(plot, rect), plot_(plot), value_(value), ind_(ind)
+                 int row, int col, double value, const QModelIndex &ind) :
+ CQChartsPlotObj(plot, rect), plot_(plot), row_(row), col_(col), value_(value), ind_(ind)
 {
 }
 
@@ -446,7 +455,7 @@ QString
 CQChartsImageObj::
 calcId() const
 {
-  return QString("%1").arg(value_);
+  return QString("image:%1").arg(row_).arg(col_);
 }
 
 QString

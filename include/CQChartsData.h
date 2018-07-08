@@ -79,7 +79,7 @@ struct CQChartsTextBoxData {
 struct CQChartsSymbolData {
   bool               visible { true };
   CQChartsSymbol     type;
-  double             size    { 5.0 };
+  CQChartsLength     size    { "5px" };
   CQChartsStrokeData stroke;
   CQChartsFillData   fill;
 

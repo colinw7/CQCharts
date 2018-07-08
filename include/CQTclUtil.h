@@ -2,7 +2,9 @@
 #define CQTclUtil_H
 
 #include <CTclUtil.h>
+#include <QModelIndex>
 #include <QVariant>
+#include <cassert>
 
 namespace CQTclUtil {
 
@@ -22,8 +24,24 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *, const QVariant &var) {
   else if (var.type() == QVariant::Bool) {
     return Tcl_NewBooleanObj(var.value<bool>());
   }
+  else if (var.type() == QVariant::String) {
+    QString str = var.toString();
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::ModelIndex) {
+    QModelIndex ind = var.value<QModelIndex>();
+
+    int row = ind.row   ();
+    int col = ind.column();
+
+    QString str = QString("%1:%2").arg(row).arg(col);
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
   else {
     QString str = var.toString();
+    assert(str.length());
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
   }

@@ -90,13 +90,22 @@ init()
 
   //----
 
+  QTabWidget *dataTab = new QTabWidget;
+  dataTab->setObjectName("dataTab");
+
   QFrame *typeFrame = createTypeDataFrame();
 
-  area->addWidget(typeFrame, "Type Data");
+  dataTab->addTab(typeFrame, "Type");
 
   QFrame *genFrame = createGeneralDataFrame();
 
-  area->addWidget(genFrame, "General Data");
+  dataTab->addTab(genFrame, "General");
+
+  //--
+
+  area->addWidget(dataTab, "Input Data");
+
+  //----
 
   QFrame *previewFrame = createPreviewFrame();
 
@@ -369,6 +378,22 @@ createGeneralDataFrame()
   titleEdit_->setToolTip("Plot Title");
 
   connect(titleEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  //----
+
+  ++row; column = 0;
+
+  xLabelEdit_ = addStringEdit(genLayout, row, column, "X Label", "xlabel", "Label");
+
+  xLabelEdit_->setToolTip("X Axis Label");
+
+  connect(xLabelEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
+
+  yLabelEdit_ = addStringEdit(genLayout, row, column, "Y Label", "ylabel", "Label");
+
+  yLabelEdit_->setToolTip("Y Axis Label");
+
+  connect(yLabelEdit_, SIGNAL(textChanged(const QString &)), this, SLOT(validateSlot()));
 
   //----
 
@@ -1345,7 +1370,7 @@ comboSlot(const QString &desc)
     ++ind1;
   }
 
-  if (ind > 0) {
+  if (ind >= 0) {
     stack_->setCurrentIndex(ind);
 
     validateSlot();
@@ -1508,7 +1533,9 @@ validateSlot()
   xmaxButton_->setEnabled(xcolName);
   ymaxButton_->setEnabled(ycolName);
 
-  titleEdit_->setEnabled(type->hasTitle());
+  titleEdit_ ->setEnabled(type->hasTitle());
+  xLabelEdit_->setEnabled(type->hasAxes());
+  yLabelEdit_->setEnabled(type->hasAxes());
 
   xintegralCheck_->setEnabled(type->hasAxes() && type->allowXAxisIntegral());
   yintegralCheck_->setEnabled(type->hasAxes() && type->allowYAxisIntegral());
@@ -2099,6 +2126,12 @@ applyPlot(CQChartsPlot *plot, bool preview)
 
   if (titleEdit_->text().length())
     plot->setTitleStr(titleEdit_->text());
+
+  if (xLabelEdit_->text().length())
+    plot->setXLabel(xLabelEdit_->text());
+
+  if (yLabelEdit_->text().length())
+    plot->setYLabel(yLabelEdit_->text());
 
   if (plot->xAxis() && type->allowXAxisIntegral())
     plot->xAxis()->setIntegral(xintegralCheck_->isChecked());

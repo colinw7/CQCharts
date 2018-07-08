@@ -1,7 +1,7 @@
 #ifndef CQChartsBarChartPlot_H
 #define CQChartsBarChartPlot_H
 
-#include <CQChartsGroupPlot.h>
+#include <CQChartsBarPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
@@ -37,7 +37,8 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 class CQChartsBarChartPlot;
 class CQChartsBoxObj;
 
-// bar value
+// values for bar (normal: 1 value : range bar: multiple values)
+// ToDo: handle range bar in distribution plot
 class CQChartsBarChartValue {
  public:
   using NameValues = std::map<QString,QString>;
@@ -105,6 +106,7 @@ class CQChartsBarChartValue {
 
 //------
 
+// set of value bars for group
 class CQChartsBarChartValueSet {
  public:
   using Values = std::vector<CQChartsBarChartValue>;
@@ -119,6 +121,9 @@ class CQChartsBarChartValueSet {
   const QString &name() const { return name_; }
 
   int ind() const { return ind_; }
+
+  int groupInd() const { return groupInd_; }
+  void setGroupInd(int i) { groupInd_ = i; }
 
   int numValues() const { return values_.size(); }
 
@@ -149,9 +154,10 @@ class CQChartsBarChartValueSet {
   }
 
  private:
-  QString name_;
-  int     ind_ { 0 };
-  Values  values_;
+  QString name_;            // group name
+  int     ind_      { 0 };  // index
+  int     groupInd_ { -1 }; // group ind
+  Values  values_;          // value bars
 };
 
 //------
@@ -246,83 +252,22 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 //  y     : value(s)
 //  group : group(s)
 //  bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
-class CQChartsBarChartPlot : public CQChartsGroupPlot {
+class CQChartsBarChartPlot : public CQChartsBarPlot {
   Q_OBJECT
 
-  // data
-  Q_PROPERTY(CQChartsColumn   valueColumn    READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString          valueColumns   READ valueColumnsStr WRITE setValueColumnsStr)
-
   // style
-  Q_PROPERTY(CQChartsColumn   nameColumn     READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(CQChartsColumn   labelColumn    READ labelColumn     WRITE setLabelColumn    )
-  Q_PROPERTY(bool             colorBySet     READ isColorBySet    WRITE setColorBySet     )
-  Q_PROPERTY(CQChartsColumn   colorColumn    READ colorColumn     WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn   WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn  WRITE setLabelColumn)
+  Q_PROPERTY(bool           colorBySet  READ isColorBySet WRITE setColorBySet )
 
   // options
-  Q_PROPERTY(bool             stacked        READ isStacked       WRITE setStacked        )
-  Q_PROPERTY(bool             percent        READ isPercent       WRITE setPercent        )
-  Q_PROPERTY(bool             rangeBar       READ isRangeBar      WRITE setRangeBar       )
-  Q_PROPERTY(bool             horizontal     READ isHorizontal    WRITE setHorizontal     )
-  Q_PROPERTY(CQChartsLength   margin         READ margin          WRITE setMargin         )
-  Q_PROPERTY(CQChartsLength   groupMargin    READ groupMargin     WRITE setGroupMargin    )
-
-  // bar border
-  Q_PROPERTY(bool             border         READ isBorder        WRITE setBorder         )
-  Q_PROPERTY(CQChartsColor    borderColor    READ borderColor     WRITE setBorderColor    )
-  Q_PROPERTY(double           borderAlpha    READ borderAlpha     WRITE setBorderAlpha    )
-  Q_PROPERTY(CQChartsLength   borderWidth    READ borderWidth     WRITE setBorderWidth    )
-  Q_PROPERTY(CQChartsLineDash borderDash     READ borderDash      WRITE setBorderDash     )
-  Q_PROPERTY(CQChartsLength   cornerSize     READ cornerSize      WRITE setCornerSize     )
-
-  // bar fill
-  Q_PROPERTY(bool             barFill        READ isBarFill       WRITE setBarFill        )
-  Q_PROPERTY(CQChartsColor    barColor       READ barColor        WRITE setBarColor       )
-  Q_PROPERTY(double           barAlpha       READ barAlpha        WRITE setBarAlpha       )
-  Q_PROPERTY(Pattern          barPattern     READ barPattern      WRITE setBarPattern     )
-
-  // color map
-  Q_PROPERTY(bool             colorMapped    READ isColorMapped   WRITE setColorMapped    )
-  Q_PROPERTY(double           colorMapMin    READ colorMapMin     WRITE setColorMapMin    )
-  Q_PROPERTY(double           colorMapMax    READ colorMapMax     WRITE setColorMapMax    )
-
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
-  using Columns = std::vector<CQChartsColumn>;
+  Q_PROPERTY(bool stacked  READ isStacked  WRITE setStacked )
+  Q_PROPERTY(bool percent  READ isPercent  WRITE setPercent )
+  Q_PROPERTY(bool rangeBar READ isRangeBar WRITE setRangeBar)
 
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsBarChartPlot();
-
-  //---
-
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c);
-
-  const Columns &valueColumns() const { return valueColumns_; }
-  void setValueColumns(const Columns &valueColumns);
-
-  QString valueColumnsStr() const;
-  bool setValueColumnsStr(const QString &s);
-
-  const CQChartsColumn &valueColumnAt(int i) {
-    assert(i >= 0 && i < int(valueColumns_.size()));
-
-    return valueColumns_[i];
-  }
-
-  int numValueColumns() const { return std::max(int(valueColumns_.size()), 1); }
 
   //---
 
@@ -345,73 +290,6 @@ class CQChartsBarChartPlot : public CQChartsGroupPlot {
 
   bool isPercent() const { return percent_; }
 
-  bool isHorizontal() const { return horizontal_; }
-
-  //---
-
-  // bar margin
-  const CQChartsLength &margin() const { return margin_; }
-  void setMargin(const CQChartsLength &l);
-
-  // group margin
-  const CQChartsLength &groupMargin() const { return groupMargin_; }
-  void setGroupMargin(const CQChartsLength &l);
-
-  //---
-
-  // bar stroke
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double r);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &v);
-
-  const CQChartsLength &cornerSize() const;
-  void setCornerSize(const CQChartsLength &s);
-
-  //---
-
-  // bar fill
-  bool isBarFill() const;
-  void setBarFill(bool b);
-
-  const CQChartsColor &barColor() const;
-  void setBarColor(const CQChartsColor &c);
-
-  QColor interpBarColor(int i, int n) const;
-
-  double barAlpha() const;
-  void setBarAlpha(double a);
-
-  Pattern barPattern() const;
-  void setBarPattern(Pattern pattern);
-
-  //---
-
-  const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    setValueSetColumn("color", c); updateRangeAndObjs(); }
-
-  bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
-
-  double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
-
-  double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
-
   //---
 
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
@@ -420,14 +298,6 @@ class CQChartsBarChartPlot : public CQChartsGroupPlot {
   //---
 
   CQChartsGeom::BBox annotationBBox() const override;
-
-  //---
-
-  bool allowZoomX() const override { return ! isHorizontal(); }
-  bool allowZoomY() const override { return   isHorizontal(); }
-
-  bool allowPanX() const override { return ! isHorizontal(); }
-  bool allowPanY() const override { return   isHorizontal(); }
 
   //---
 
@@ -452,8 +322,6 @@ class CQChartsBarChartPlot : public CQChartsGroupPlot {
 
   //---
 
-  bool probe(ProbeData &probeData) const override;
-
   bool addMenuItems(QMenu *menu) override;
 
   void draw(QPainter *) override;
@@ -476,7 +344,7 @@ class CQChartsBarChartPlot : public CQChartsGroupPlot {
   void setPercent(bool b);
 
   // set horizontal
-  void setHorizontal(bool b);
+  void setHorizontal(bool b) override;
 
  private:
   void addRow(const QModelIndex &parent, int r);
@@ -499,26 +367,17 @@ class CQChartsBarChartPlot : public CQChartsGroupPlot {
   int numSetValues() const { return (! valueSets_.empty() ? valueSets_[0].numValues() : 0); }
 
  private:
-  const QString &valueName(int i) const { return valueNames_[i]; }
-
   CQChartsBarChartValueSet *groupValueSet(int groupId);
 
  private:
-  CQChartsColumn    valueColumn_    { 1 };     // value column
-  Columns           valueColumns_;             // value columns
   CQChartsColumn    nameColumn_;               // name column
   CQChartsColumn    labelColumn_;              // data label column
   bool              colorBySet_     { false }; // color bars by set or value
   bool              stacked_        { false }; // stacked bars
   bool              percent_        { false }; // percent values
   bool              rangeBar_       { false }; // bar of value range
-  bool              horizontal_     { false }; // horizontal bars
-  CQChartsLength    margin_         { "2px" }; // bar margin
-  CQChartsLength    groupMargin_    { "4px" }; // bar group margin
-  CQChartsBoxData   boxData_;                  // box style data
   CQChartsDataLabel dataLabel_;                // data label data
   ValueSets         valueSets_;                // value sets
-  ValueNames        valueNames_;               // value names
   ValueGroupInd     valueGroupInd_;            // group ind to value index map
   int               numVisible_     { 0 };     // number of visible bars
   mutable double    barWidth_       { 1.0 };   // bar width

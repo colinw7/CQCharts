@@ -28,6 +28,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsSankeyPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw connected objects as a connected flow graph.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsSankeyPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -434,25 +442,21 @@ addProperties()
 
   addProperty("options", this, "align", "align");
 
-  addProperty("node/stroke", this, "nodeStroked"    , "visible");
-  addProperty("node/stroke", this, "nodeStrokeColor", "color"  );
-  addProperty("node/stroke", this, "nodeStrokeAlpha", "alpha"  );
-  addProperty("node/stroke", this, "nodeStrokeWidth", "width"  );
+  addProperty("node/stroke", this, "nodeStroked", "visible");
 
-  addProperty("node/fill", this, "nodeFilled"     , "visible");
-  addProperty("node/fill", this, "nodeFillColor"  , "color"  );
-  addProperty("node/fill", this, "nodeFillAlpha"  , "alpha"  );
-  addProperty("node/fill", this, "nodeFillPattern", "pattern");
+  addLineProperties("node/stroke", "nodeStroke");
 
-  addProperty("edge/stroke", this, "edgeStroked"    , "visible");
-  addProperty("edge/stroke", this, "edgeStrokeColor", "color"  );
-  addProperty("edge/stroke", this, "edgeStrokeAlpha", "alpha"  );
-  addProperty("edge/stroke", this, "edgeStrokeWidth", "width"  );
+  addProperty("node/fill", this, "nodeFilled", "visible");
 
-  addProperty("edge/fill", this, "edgeFilled"     , "visible");
-  addProperty("edge/fill", this, "edgeFillColor"  , "color"  );
-  addProperty("edge/fill", this, "edgeFillAlpha"  , "alpha"  );
-  addProperty("edge/fill", this, "edgeFillPattern", "pattern");
+  addFillProperties("node/fill", "nodeFill");
+
+  addProperty("edge/stroke", this, "edgeStroked", "visible");
+
+  addLineProperties("edge/stroke", "edgeStroke");
+
+  addProperty("edge/fill", this, "edgeFilled", "visible");
+
+  addFillProperties("edge/fill", "edgeFill");
 
   addProperty("text", this, "textVisible" , "visible" );
   addProperty("text", this, "textFont"    , "font"    );
@@ -1295,7 +1299,7 @@ calcId() const
 {
   double value = node_->edgeSum();
 
-  return QString("%1 : %2").arg(node_->str()).arg(value);
+  return QString("node:%1:%2").arg(node_->str()).arg(value);
 }
 
 void
@@ -1422,7 +1426,7 @@ QString
 CQChartsSankeyEdgeObj::
 calcId() const
 {
-  return QString("%1->%2 : %3").arg(edge_->srcNode()->str()).
+  return QString("edge:%1:%2:%3").arg(edge_->srcNode()->str()).
           arg(edge_->destNode()->str()).arg(edge_->value());
 }
 

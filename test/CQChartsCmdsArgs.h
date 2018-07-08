@@ -1,5 +1,5 @@
-#ifndef CQChartsCmdsArgs_H
-#define CQChartsCmdsArgs_H
+#ifndef CQChartsCmdArgs_H
+#define CQChartsCmdArgs_H
 
 #include <CQChartsPlot.h>
 #include <CQChartsLength.h>
@@ -97,7 +97,7 @@ class CQChartsCmdGroup {
 
 //------
 
-class CQChartsCmdsArgs {
+class CQChartsCmdArgs {
  public:
   using Args    = std::vector<QVariant>;
   using OptReal = boost::optional<double>;
@@ -126,7 +126,7 @@ class CQChartsCmdsArgs {
   };
 
  public:
-  CQChartsCmdsArgs(const QString &cmdName, const Args &argv) :
+  CQChartsCmdArgs(const QString &cmdName, const Args &argv) :
    cmdName_(cmdName), argv_(argv), argc_(argv_.size()) {
   }
 

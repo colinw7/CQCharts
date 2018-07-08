@@ -913,10 +913,13 @@ draw(QPainter *painter)
 
   //---
 
-  if (isAutoHide()) {
-    CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
+  CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
 
-    if (rect.width() > pixelRect.getWidth() || rect.height() > pixelRect.getHeight())
+  pixelWidthExceeded_  = (rect.width() > pixelRect.getWidth());
+  pixelHeightExceeded_ = rect.height() > pixelRect.getHeight();
+
+  if (isAutoHide()) {
+    if (pixelWidthExceeded_ || pixelHeightExceeded_)
       return;
   }
 

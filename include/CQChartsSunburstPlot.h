@@ -26,6 +26,8 @@ class CQChartsSunburstPlotType : public CQChartsHierPlotType {
 
   bool hasAxes() const override { return false; }
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -250,22 +252,26 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 class CQChartsSunburstPlot : public CQChartsHierPlot {
   Q_OBJECT
 
-  Q_PROPERTY(double         innerRadius  READ innerRadius    WRITE setInnerRadius )
-  Q_PROPERTY(double         outerRadius  READ outerRadius    WRITE setOuterRadius )
-  Q_PROPERTY(double         startAngle   READ startAngle     WRITE setStartAngle  )
-  Q_PROPERTY(bool           multiRoot    READ isMultiRoot    WRITE setMultiRoot   )
-  Q_PROPERTY(bool           border       READ isBorder       WRITE setBorder      )
-  Q_PROPERTY(CQChartsColor  borderColor  READ borderColor    WRITE setBorderColor )
-  Q_PROPERTY(double         borderAlpha  READ borderAlpha    WRITE setBorderAlpha )
-  Q_PROPERTY(CQChartsLength borderWidth  READ borderWidth    WRITE setBorderWidth )
-  Q_PROPERTY(bool           filled       READ isFilled       WRITE setFilled      )
-  Q_PROPERTY(CQChartsColor  fillColor    READ fillColor      WRITE setFillColor   )
-  Q_PROPERTY(double         fillAlpha    READ fillAlpha      WRITE setFillAlpha   )
-  Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
-  Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
-  Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
-  Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
-  Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
+  Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
+  Q_PROPERTY(double outerRadius READ outerRadius WRITE setOuterRadius)
+  Q_PROPERTY(double startAngle  READ startAngle  WRITE setStartAngle )
+  Q_PROPERTY(bool   multiRoot   READ isMultiRoot WRITE setMultiRoot  )
+
+  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+
+  Q_PROPERTY(bool          filled      READ isFilled     WRITE setFilled     )
+  Q_PROPERTY(CQChartsColor fillColor   READ fillColor    WRITE setFillColor  )
+  Q_PROPERTY(double        fillAlpha   READ fillAlpha    WRITE setFillAlpha  )
+  Q_PROPERTY(Pattern       fillPattern READ fillPattern  WRITE setFillPattern)
+
+  Q_PROPERTY(QFont         textFont     READ textFont       WRITE setTextFont    )
+  Q_PROPERTY(CQChartsColor textColor    READ textColor      WRITE setTextColor   )
+  Q_PROPERTY(double        textAlpha    READ textAlpha      WRITE setTextAlpha   )
+  Q_PROPERTY(bool          textContrast READ isTextContrast WRITE setTextContrast)
 
   Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
   Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
@@ -324,6 +330,9 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
 
   const CQChartsLength &borderWidth() const { return shapeData_.border.width; }
   void setBorderWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &borderDash() const { return shapeData_.border.dash; }
+  void setBorderDash(const CQChartsLineDash &l);
 
   QColor interpBorderColor(int i, int n) const;
 

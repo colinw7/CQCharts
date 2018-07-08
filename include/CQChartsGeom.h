@@ -548,6 +548,24 @@ class BBox {
     }
   }
 
+  void addX(const BBox &bbox) {
+    assert(set_);
+
+    if (! bbox.set_) return;
+
+    pmin_.x = std::min(pmin_.x, bbox.pmin_.x);
+    pmax_.x = std::max(pmax_.x, bbox.pmax_.x);
+  }
+
+  void addY(const BBox &bbox) {
+    assert(set_);
+
+    if (! bbox.set_) return;
+
+    pmin_.y = std::min(pmin_.y, bbox.pmin_.y);
+    pmax_.y = std::max(pmax_.y, bbox.pmax_.y);
+  }
+
   bool overlaps(const BBox &bbox) const {
     if (! set_ || ! bbox.set_) return false;
 
@@ -727,6 +745,8 @@ class BBox {
 
   double getXMid() const { return (getXMin() + getXMax())/2; }
   double getYMid() const { return (getYMin() + getYMax())/2; }
+
+  double getXYMid(bool horizontal) const { return (horizontal ? getXMid() : getYMid()); }
 
   Point getCenter() const {
     return 0.5*(getMin() + getMax());
@@ -958,6 +978,10 @@ class BBox {
     return (lhs.pmin_ == rhs.pmin_ && lhs.pmax_ == rhs.pmax_);
   }
 
+  friend bool operator!=(const BBox &lhs, const BBox &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
 #if 0
   void print(std::ostream &os) const {
     if (! set_)
@@ -986,6 +1010,55 @@ class BBox {
   Point pmax_;
   bool  set_ { false };
 };
+
+}
+
+//------
+
+namespace CQChartsGeom {
+
+template<typename T>
+class MinMax {
+ public:
+  MinMax() { }
+
+  MinMax(const T &t) {
+    add(t);
+  }
+
+  MinMax(const T &t1, const T &t2) {
+    add(t1);
+    add(t2);
+  }
+
+  void add(const T &t) {
+    if (! set_) {
+      min_ = t;
+      max_ = t;
+      set_ = true;
+    }
+    else {
+      min_ = std::min(t, min_);
+      max_ = std::max(t, max_);
+    }
+  }
+
+  bool isSet() const { return set_; }
+
+  const T &min() const { assert(set_); return min_; }
+  const T &max() const { assert(set_); return max_; }
+
+  T min(const T &t) const { return (set_ ? min_ : t); }
+  T max(const T &t) const { return (set_ ? max_ : t); }
+
+ private:
+  T    min_ { };
+  T    max_ { };
+  bool set_ { false };
+};
+
+using RMinMax = MinMax<double>;
+using IMinMax = MinMax<int>;
 
 }
 

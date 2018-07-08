@@ -32,6 +32,14 @@ addParameters()
   CQChartsPlotType::addParameters();
 }
 
+QString
+CQChartsDelaunayPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draws delaunay triangulation for a set of points.<p>\n";
+}
+
 CQChartsPlot *
 CQChartsDelaunayPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -143,6 +151,24 @@ setSymbolFillAlpha(double a)
   CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
 }
 
+CQChartsDelaunayPlot::Pattern
+CQChartsDelaunayPlot::
+symbolFillPattern() const
+{
+  return (Pattern) pointData_.fill.pattern;
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolFillPattern(const Pattern &pattern)
+{
+  if (pattern != (Pattern) pointData_.fill.pattern) {
+    pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
+
+    update();
+  }
+}
+
 //---
 
 const CQChartsColor &
@@ -180,21 +206,15 @@ addProperties()
   addProperty("voronoi", this, "voronoi"         , "enabled"  );
   addProperty("voronoi", this, "voronoiPointSize", "pointSize");
 
-  addProperty("points"       , this, "points"           , "visible");
-  addProperty("points"       , this, "symbolType"       , "symbol" );
-  addProperty("points"       , this, "symbolSize"       , "size"   );
-  addProperty("points/stroke", this, "symbolStroked"    , "visible");
-  addProperty("points/stroke", this, "symbolStrokeColor", "color"  );
-  addProperty("points/stroke", this, "symbolStrokeAlpha", "alpha"  );
-  addProperty("points/stroke", this, "symbolLineWidth"  , "width"  );
-  addProperty("points/fill"  , this, "symbolFilled"     , "visible");
-  addProperty("points/fill"  , this, "symbolFillColor"  , "color"  );
-  addProperty("points/fill"  , this, "symbolFillAlpha"  , "alpha"  );
+  // points
+  addProperty("points", this, "points", "visible");
 
-  addProperty("lines", this, "lines"     , "visible");
-  addProperty("lines", this, "linesColor", "color"  );
-  addProperty("lines", this, "linesAlpha", "alpha"  );
-  addProperty("lines", this, "linesWidth", "width"  );
+  addSymbolProperties("points/symbol");
+
+  // lines
+  addProperty("lines", this, "lines", "visible");
+
+  addLineProperties("lines", "lines");
 }
 
 void
@@ -477,7 +497,7 @@ drawVoronoi(QPainter *painter)
     else
       pen.setStyle(Qt::NoPen);
 
-    double lw = lengthPixelWidth(symbolLineWidth());
+    double lw = lengthPixelWidth(symbolStrokeWidth());
 
     pen.setWidthF(lw);
 
@@ -562,9 +582,9 @@ calcId() const
     name1 = plot_->yname();
 
   if (name1.length())
-    return QString("%1:%2:%3").arg(name1).arg(x_).arg(y_);
+    return QString("point:%1:%2:%3").arg(name1).arg(x_).arg(y_);
   else
-    return QString("%1:%2:%3").arg(i_).arg(x_).arg(y_);
+    return QString("point:%1:%2:%3").arg(i_).arg(x_).arg(y_);
 }
 
 bool
@@ -588,7 +608,7 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  double s = plot_->symbolSize();
+  double s = plot_->lengthPixelWidth(plot_->symbolSize());
 
   CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
 
@@ -635,7 +655,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   else
     pen.setStyle(Qt::NoPen);
 
-  double lw = plot_->lengthPixelWidth(plot_->symbolLineWidth());
+  double lw = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
 
   pen.setWidthF(lw);
 
@@ -655,7 +675,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  double s = plot_->symbolSize();
+  double s = plot_->lengthPixelWidth(plot_->symbolSize());
 
   CQChartsSymbol symbol = plot_->symbolType();
 

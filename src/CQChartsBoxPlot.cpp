@@ -21,7 +21,7 @@ addParameters()
 {
   startParameterGroup("Box Plot");
 
-  addBoolParameter("horizontal", "Horizontal"  , "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
 
   endParameterGroup();
 
@@ -30,6 +30,7 @@ addParameters()
   startParameterGroup("Raw Values");
 
   addColumnsParameter("value", "Value", "valueColumns", "1").setTip("value column(s)");
+  addColumnParameter ("name" , "Name" , "nameColumn"       ).setTip("Name column");
   addColumnParameter ("set"  , "Set"  , "setColumn"        ).setTip("X Values");
 
   endParameterGroup();
@@ -95,7 +96,7 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
   setBoxFilled    (true);
 
   setSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setSymbolSize(4);
+  setSymbolSize(CQChartsLength("4px"));
   setSymbolFilled(true);
   setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -117,13 +118,8 @@ void
 CQChartsBoxPlot::
 setValueColumn(const CQChartsColumn &c)
 {
-  if (c != valueColumn_) {
-    valueColumn_ = c;
-
-    valueColumns_.clear();
-
-    if (valueColumn_.isValid())
-      valueColumns_.push_back(valueColumn_);
+  if (c != valueColumns_.column()) {
+    valueColumns_.setColumn(c);
 
     updateRangeAndObjs();
   }
@@ -131,15 +127,10 @@ setValueColumn(const CQChartsColumn &c)
 
 void
 CQChartsBoxPlot::
-setValueColumns(const Columns &valueColumns)
+setValueColumns(const Columns &cols)
 {
-  if (valueColumns != valueColumns_) {
-    valueColumns_ = valueColumns;
-
-    if (! valueColumns_.empty())
-      valueColumn_ = valueColumnAt(0);
-    else
-      valueColumn_ = CQChartsColumn();
+  if (cols != valueColumns_.columns()) {
+    valueColumns_.setColumns(cols);
 
     updateRangeAndObjs();
   }
@@ -149,21 +140,139 @@ QString
 CQChartsBoxPlot::
 valueColumnsStr() const
 {
-  return CQChartsColumn::columnsToString(valueColumns());
+  return valueColumns_.columnsStr();
 }
 
 bool
 CQChartsBoxPlot::
 setValueColumnsStr(const QString &s)
 {
-  Columns valueColumns;
+  bool rc = true;
 
-  if (! CQChartsColumn::stringToColumns(s, valueColumns))
-    return false;
+  if (s != valueColumnsStr()) {
+    CQChartsColumns::Columns columns;
 
-  setValueColumns(valueColumns);
+    rc = CQChartsUtil::stringToColumns(model_.data(), s, columns);
 
-  return true;
+    if (rc) {
+      valueColumns_.setColumns(columns);
+
+      updateRangeAndObjs();
+    }
+  }
+
+  return rc;
+}
+
+const CQChartsColumn &
+CQChartsBoxPlot::
+valueColumnAt(int i) const
+{
+  return valueColumns_.getColumn(i);
+}
+
+int
+CQChartsBoxPlot::
+numValueColumns() const
+{
+  return valueColumns_.count();
+}
+
+//---
+
+void
+CQChartsBoxPlot::
+setSetColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(setColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsBoxPlot::
+setXColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setMinColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(minColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setLowerMedianColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(lowerMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setMedianColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(medianColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setUpperMedianColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(upperMedianColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setMaxColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(maxColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setOutliersColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(outliersColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsBoxPlot::
+setShowOutliers(bool b)
+{
+  CQChartsUtil::testAndSet(showOutliers_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setConnected(bool b)
+{
+  CQChartsUtil::testAndSet(connected_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setWhiskerRange(double r)
+{
+  CQChartsUtil::testAndSet(whiskerRange_, r, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBoxPlot::
+setBoxWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(boxWidth_, l, [&]() { update(); } );
 }
 
 //---
@@ -298,6 +407,20 @@ CQChartsBoxPlot::
 setBorderWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { update(); } );
+}
+
+const CQChartsLineDash &
+CQChartsBoxPlot::
+borderDash() const
+{
+  return boxData_.shape.border.dash;
+}
+
+void
+CQChartsBoxPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { update(); } );
 }
 
 const CQChartsLength &
@@ -488,6 +611,24 @@ setSymbolFillAlpha(double a)
   CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { update(); } );
 }
 
+CQChartsBoxPlot::Pattern
+CQChartsBoxPlot::
+symbolFillPattern() const
+{
+  return (Pattern) symbolData_.fill.pattern;
+}
+
+void
+CQChartsBoxPlot::
+setSymbolFillPattern(const Pattern &pattern)
+{
+  if (pattern != (Pattern) symbolData_.fill.pattern) {
+    symbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
+
+    update();
+  }
+}
+
 //---
 
 void
@@ -497,6 +638,7 @@ addProperties()
   CQChartsPlot::addProperties();
 
   addProperty("columns/raw", this, "valueColumns", "values");
+  addProperty("columns/raw", this, "nameColumn"  , "name"  );
   addProperty("columns/raw", this, "setColumn"   , "set"   );
 
   addProperty("columns/calculated", this, "minColumn"        , "min"        );
@@ -513,22 +655,19 @@ addProperties()
   addProperty("options", this, "horizontal", "horizontal");
 
   // whisker box
-  addProperty("box", this, "whiskerRange", "range" );
-  addProperty("box", this, "boxWidth"    , "width" );
-  addProperty("box", this, "boxLabels"   , "labels");
+  addProperty("box", this, "whiskerRange", "range");
+  addProperty("box", this, "boxWidth"    , "width");
 
   // whisker box stroke
   addProperty("box/stroke", this, "boxStroked" , "visible"   );
-  addProperty("box/stroke", this, "borderColor", "color"     );
-  addProperty("box/stroke", this, "borderAlpha", "alpha"     );
-  addProperty("box/stroke", this, "borderWidth", "width"     );
   addProperty("box/stroke", this, "cornerSize" , "cornerSize");
+
+  addLineProperties("box/stroke", "border");
 
   // whisker box fill
   addProperty("box/fill", this, "boxFilled" , "visible");
-  addProperty("box/fill", this, "boxColor"  , "color"  );
-  addProperty("box/fill", this, "boxAlpha"  , "alpha"  );
-  addProperty("box/fill", this, "boxPattern", "pattern");
+
+  addFillProperties("box/fill", "box");
 
   // whisker line
   addProperty("whisker", this, "whiskerColor"    , "color" );
@@ -543,16 +682,10 @@ addProperties()
   addProperty("labels", this, "textAlpha"  , "alpha"  );
   addProperty("labels", this, "textMargin" , "margin" );
 
-  addProperty("outlier"       , this, "showOutliers"     , "visible");
-  addProperty("outlier"       , this, "symbolType"       , "symbol" );
-  addProperty("outlier"       , this, "symbolSize"       , "size"   );
-  addProperty("outlier/stroke", this, "symbolStroked"    , "visible");
-  addProperty("outlier/stroke", this, "symbolStrokeColor", "color"  );
-  addProperty("outlier/stroke", this, "symbolStrokeAlpha", "alpha"  );
-  addProperty("outlier/stroke", this, "symbolLineWidth"  , "width"  );
-  addProperty("outlier/fill"  , this, "symbolFilled"     , "visible");
-  addProperty("outlier/fill"  , this, "symbolFillColor"  , "color"  );
-  addProperty("outlier/fill"  , this, "symbolFillAlpha"  , "alpha"  );
+  // outlier
+  addProperty("outlier", this, "showOutliers", "visible");
+
+  addSymbolProperties("outlier/symbol");
 }
 
 //---
@@ -613,7 +746,7 @@ updateRawRange()
 
   //---
 
-  initGroupData(valueColumns(), CQChartsColumn());
+  initGroupData(valueColumns(), nameColumn());
 
   //---
 
@@ -627,9 +760,8 @@ updateRawRange()
 
   //---
 
-  bool hasGroups = (this->groupWhiskers().size() > 1);
-
-  bool hasSets = this->hasSets();
+  bool hasSets   = this->hasSets();
+  bool hasGroups = this->hasGroups();
 
   //---
 
@@ -640,71 +772,71 @@ updateRawRange()
     int            groupInd      = groupIdWhiskers.first;
     SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
 
-    int is = 0;
+    if (! isGrouped() || ! isSetHidden(ig)) {
+      int is = 0;
 
-    for (auto &setWhiskers : setWhiskerMap) {
-      bool hidden = (isGrouped() ? isSetHidden(ig) : isSetHidden(is));
+      for (auto &setWhiskers : setWhiskerMap) {
+        if (isGrouped() || ! isSetHidden(is)) {
+          int                     setId   = setWhiskers.first;
+          CQChartsBoxPlotWhisker &whisker = setWhiskers.second;
 
-      if (! hidden) {
-        int                     setId   = setWhiskers.first;
-        CQChartsBoxPlotWhisker &whisker = setWhiskers.second;
+          //---
 
-        //---
+          QString name;
 
-        QString name;
+          if      (isGroupHeaders()) {
+            name = whisker.name();
+          }
+          else if (hasSets) {
+            name = this->setIdName(setId);
+          }
+          else if (hasGroups) {
+            name = groupIndName(groupInd);
+          }
 
-        if      (isGroupHeaders()) {
-          name = whisker.name();
+          whisker.setName(name);
+
+          //---
+
+          int x;
+
+          if (hasSets && isConnected())
+            x = setId;
+          else
+            x = pos;
+
+          //---
+
+          if (name.length())
+            xAxis->setTickLabel(x, name);
+
+          //---
+
+          double min, max;
+
+          if (isShowOutliers()) {
+            min = whisker.rvalue(0);
+            max = whisker.rvalue(whisker.numValues() - 1);
+          }
+          else {
+            min = whisker.min();
+            max = whisker.max();
+          }
+
+          if (! isHorizontal()) {
+            dataRange_.updateRange(x - 0.5, min);
+            dataRange_.updateRange(x + 0.5, max);
+          }
+          else {
+            dataRange_.updateRange(min, x - 0.5);
+            dataRange_.updateRange(max, x + 0.5);
+          }
+
+          ++pos;
         }
-        else if (hasSets) {
-          name = this->setIdName(setId);
-        }
-        else if (hasGroups) {
-          name = groupIndName(groupInd);
-        }
 
-        whisker.setName(name);
-
-        //---
-
-        int x;
-
-        if (! hasSets)
-          x = pos;
-        else
-          x = setId;
-
-        //---
-
-        if (name.length())
-          xAxis->setTickLabel(x, name);
-
-        //---
-
-        double min, max;
-
-        if (isShowOutliers()) {
-          min = whisker.rvalue(0);
-          max = whisker.rvalue(whisker.numValues() - 1);
-        }
-        else {
-          min = whisker.min();
-          max = whisker.max();
-        }
-
-        if (! isHorizontal()) {
-          dataRange_.updateRange(x - 0.5, min);
-          dataRange_.updateRange(x + 0.5, max);
-        }
-        else {
-          dataRange_.updateRange(min, x - 0.5);
-          dataRange_.updateRange(max, x + 0.5);
-        }
-
-        ++pos;
+        ++is;
       }
-
-      ++is;
     }
 
     ++ig;
@@ -719,15 +851,16 @@ updateRawRange()
 
   bool ok;
 
-  QString xname = modelHeaderString(setColumn(), ok);
+  QString xname = (xLabel().length() ? xLabel() : modelHeaderString(setColumn(), ok));
 
   xAxis->setLabel(xname);
 
-  if (valueColumns().size() == 1) {
-    QString yname = modelHeaderString(valueColumn(), ok);
+  QString yname = yLabel();
 
-    yAxis->setLabel(yname);
-  }
+  if (valueColumns().size() == 1 && ! yname.length())
+    yname = modelHeaderString(valueColumn(), ok);
+
+  yAxis->setLabel(yname);
 }
 
 bool
@@ -742,6 +875,13 @@ hasSets() const
   }
 
   return false;
+}
+
+bool
+CQChartsBoxPlot::
+hasGroups() const
+{
+  return (groupWhiskers().size() > 1);
 }
 
 // calculate box plot from pre-calculated values
@@ -857,7 +997,7 @@ updateCalcRange()
 
   bool ok;
 
-  QString xname = modelHeaderString(xColumn(), ok);
+  QString xname = (xLabel().length() ? xLabel() : modelHeaderString(xColumn(), ok));
 
   xAxis->setLabel(xname);
 }
@@ -917,40 +1057,48 @@ CQChartsBoxPlot::
 addRawWhiskerRow(const QModelIndex &parent, int row)
 {
   // get value set id
-  int setId = -1;
+  int      setId = -1;
+  QVariant setVal;
 
   if (setColumn().isValid()) {
-    if      (setType_ == ColumnType::INTEGER) {
-      bool ok1;
+    bool ok1;
 
-      int i = modelHierInteger(row, setColumn(), parent, ok1);
+    setVal = modelHierValue(row, setColumn(), parent, ok1);
 
-      setId = setValueInd_.calcId(i);
-    }
-    else if (setType_ == ColumnType::REAL) {
-      bool ok1;
+    if (ok1) {
+      if      (setType_ == ColumnType::INTEGER) {
+        int i = CQChartsUtil::toInt(setVal, ok1);
 
-      double r = modelHierReal(row, setColumn(), parent, ok1);
+        if (ok1)
+          setId = setValueInd_.calcId(i);
+      }
+      else if (setType_ == ColumnType::REAL) {
+        double r = CQChartsUtil::toReal(setVal, ok1);
 
-      if (CQChartsUtil::isNaN(r))
-        return;
+        if (ok1 && ! CQChartsUtil::isNaN(r))
+          setId = setValueInd_.calcId(r);
+      }
+      else {
+        QString s;
 
-      setId = setValueInd_.calcId(r);
-    }
-    else {
-      bool ok1;
+        ok1 = CQChartsUtil::variantToString(setVal, s);
 
-      QString s = modelHierString(row, setColumn(), parent, ok1);
-
-      setId = setValueInd_.calcId(s);
+        if (ok1)
+          setId = setValueInd_.calcId(s);
+      }
     }
   }
 
   //---
 
+  //QModelIndex xind  = modelIndex(row, setColumn(), parent);
+  //QModelIndex xind1 = normalizeIndex(xind);
+
   for (const auto &valueColumn : valueColumns()) {
+    CQChartsModelIndex ind(row, valueColumn, parent);
+
     // get group
-    int groupInd = rowGroupInd(parent, row, valueColumn);
+    int groupInd = rowGroupInd(ind);
 
     //---
 
@@ -964,10 +1112,10 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
     if (CQChartsUtil::isNaN(value))
       return;
 
-    QModelIndex xind  = modelIndex(row, setColumn(), parent);
-    QModelIndex xind1 = normalizeIndex(xind);
+    QModelIndex yind  = modelIndex(row, valueColumn, parent);
+    QModelIndex yind1 = normalizeIndex(yind);
 
-    CQChartsBoxPlotValue wv(value, xind1);
+    CQChartsBoxPlotValue wv(value, yind1);
 
     auto p = groupWhiskers_.find(groupInd);
 
@@ -986,14 +1134,18 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
 
       whisker.setRange(whiskerRange());
 
-      if (isGroupHeaders()) {
-        bool ok;
+      QString name;
+      bool    ok;
 
-        QString name = modelHeaderString(valueColumn, ok);
-
-        if (ok && name.length())
-          whisker.setName(name);
+      if      (isGroupHeaders()) {
+        name = modelHeaderString(valueColumn, ok);
       }
+      else if (setColumn().isValid()) {
+        ok = CQChartsUtil::variantToString(setVal, name);
+      }
+
+      if (ok && name.length())
+        whisker.setName(name);
 
       p1 = setWhiskerMap.insert(p1, SetWhiskerMap::value_type(setId, whisker));
     }
@@ -1078,7 +1230,7 @@ initRawObjs()
             rect = CQChartsGeom::BBox(whisker.lower(), pos - 0.10, whisker.upper(), pos + 0.10);
 
           CQChartsBoxPlotWhiskerObj *boxObj =
-            new CQChartsBoxPlotWhiskerObj(this, rect, setId, whisker, ig, ng, is, ns);
+            new CQChartsBoxPlotWhiskerObj(this, rect, setId, groupInd, whisker, ig, ng, is, ns);
 
           addPlotObject(boxObj);
 
@@ -1260,8 +1412,9 @@ draw(QPainter *painter)
 
 CQChartsBoxPlotWhiskerObj::
 CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
-                          const CQChartsBoxPlotWhisker &whisker, int ig, int ng, int is, int ns) :
- CQChartsBoxPlotObj(plot, rect), setId_(setId), whisker_(whisker),
+                          int groupInd, const CQChartsBoxPlotWhisker &whisker,
+                          int ig, int ng, int is, int ns) :
+ CQChartsBoxPlotObj(plot, rect), setId_(setId), groupInd_(groupInd), whisker_(whisker),
  ig_(ig), ng_(ng), is_(is), ns_(ns)
 {
 }
@@ -1270,22 +1423,35 @@ QString
 CQChartsBoxPlotWhiskerObj::
 calcId() const
 {
-  //QString name = plot_->setIdName(setId_);
-  QString name = whisker_.name();
-
-  return QString("%1:%2:%3").arg(name).arg(whisker_.lower()).arg(whisker_.upper());
+  return QString("box:%1:%2").arg(setId_).arg(groupInd_);
 }
 
 QString
 CQChartsBoxPlotWhiskerObj::
 calcTipId() const
 {
-  //QString name = plot_->setIdName(setId_);
-  QString name = whisker_.name();
+  QString setName, groupName, name;
+
+  if (plot_->hasSets())
+    setName = plot_->setIdName(setId_);
+
+  if (plot_->hasGroups())
+    groupName = plot_->groupIndName(groupInd_);
+
+  if (! setName.length() && ! groupName.length())
+    name = whisker_.name();
 
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name"  , name);
+  if (setName.length())
+    tableTip.addTableRow("Set", setName);
+
+  if (groupName.length())
+    tableTip.addTableRow("Group", groupName);
+
+  if (name.length())
+    tableTip.addTableRow("Name", name);
+
   tableTip.addTableRow("Min"   , whisker_.min   ());
   tableTip.addTableRow("Lower" , whisker_.lower ());
   tableTip.addTableRow("Median", whisker_.median());
@@ -1300,8 +1466,10 @@ CQChartsBoxPlotWhiskerObj::
 getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->setColumn  ());
-  addColumnSelectIndex(inds, plot_->valueColumn());
   addColumnSelectIndex(inds, plot_->groupColumn());
+
+  for (auto &value : whisker_.values())
+    addSelectIndex(inds, value.ind.row(), value.ind.column(), value.ind.parent());
 }
 
 void
@@ -1319,12 +1487,7 @@ void
 CQChartsBoxPlotWhiskerObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  double pos;
-
-  if (! plot_->isHorizontal())
-    pos = rect_.getXMid();
-  else
-    pos = rect_.getYMid();
+  double pos = rect_.getXYMid(! plot_->isHorizontal());
 
   double wd1 = plot_->whiskerExtent()/2.0;
   double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
@@ -1356,12 +1519,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   whiskerColor.setAlphaF(plot_->whiskerAlpha());
 
-  double whiskerLineSize;
-
-  if (! plot_->isHorizontal())
-    whiskerLineSize = plot_->lengthPixelWidth (plot_->whiskerLineWidth());
-  else
-    whiskerLineSize = plot_->lengthPixelHeight(plot_->whiskerLineWidth());
+  double whiskerLineSize =
+    plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
 
   //---
 
@@ -1495,11 +1654,19 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // draw outlier symbols
   if (plot_->isShowOutliers()) {
     CQChartsSymbol symbol      = plot_->symbolType();
-    double         symbolSize  = plot_->symbolSize();
+    double         symbolSize  = plot_->lengthPixelWidth(plot_->symbolSize());
     bool           stroked     = plot_->isSymbolStroked();
     QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
+    double         strokeAlpha = plot_->symbolStrokeAlpha();
+    double         strokeWidth = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
     bool           filled      = plot_->isSymbolFilled();
     QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
+    double         fillAlpha   = plot_->symbolFillAlpha();
+
+    symbolSize = plot_->limitSymbolSize(symbolSize);
+
+    strokeColor.setAlphaF(strokeAlpha);
+    fillColor  .setAlphaF(fillAlpha);
 
     QPen   pen  (strokeColor);
     QBrush brush(fillColor);
@@ -1515,7 +1682,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
         plot_->windowToPixel(whisker_.rvalue(o), pos, px1, py1);
 
       plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
-                        stroked, pen.color(), 1, filled, brush.color());
+                        stroked, pen.color(), strokeWidth, filled, brush.color());
     }
   }
 }
@@ -1524,12 +1691,7 @@ CQChartsGeom::BBox
 CQChartsBoxPlotWhiskerObj::
 annotationBBox() const
 {
-  double pos;
-
-  if (! plot_->isHorizontal())
-    pos = rect_.getXMid();
-  else
-    pos = rect_.getYMid();
+  double pos = rect_.getXYMid(! plot_->isHorizontal());
 
   double wd1 = plot_->whiskerExtent()/2.0;
   double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
@@ -1630,7 +1792,7 @@ QString
 CQChartsBoxPlotDataObj::
 calcId() const
 {
-  return data_.name;
+  return QString("data:%1").arg(data_.name);
 }
 
 QString
@@ -1675,12 +1837,7 @@ void
 CQChartsBoxPlotDataObj::
 draw(QPainter *painter, const CQChartsPlot::Layer &)
 {
-  double pos;
-
-  if (! plot_->isHorizontal())
-    pos = rect_.getXMid();
-  else
-    pos = rect_.getYMid();
+  double pos = rect_.getXYMid(! plot_->isHorizontal());
 
   double wd1 = plot_->whiskerExtent()/2.0;
   double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
@@ -1708,12 +1865,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   whiskerColor.setAlphaF(plot_->whiskerAlpha());
 
-  double whiskerLineSize;
-
-  if (! plot_->isHorizontal())
-    whiskerLineSize = plot_->lengthPixelWidth (plot_->whiskerLineWidth());
-  else
-    whiskerLineSize = plot_->lengthPixelHeight(plot_->whiskerLineWidth());
+  double whiskerLineSize =
+    plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
 
   //---
 
@@ -1835,11 +1988,17 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   // draw outlier symbols
   if (plot_->isShowOutliers()) {
     CQChartsSymbol symbol      = plot_->symbolType();
-    double         symbolSize  = plot_->symbolSize();
+    double         symbolSize  = plot_->lengthPixelWidth(plot_->symbolSize());
     bool           stroked     = plot_->isSymbolStroked();
     QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
+    double         strokeAlpha = plot_->symbolStrokeAlpha();
+    double         strokeWidth = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
     bool           filled      = plot_->isSymbolFilled();
     QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
+    double         fillAlpha   = plot_->symbolFillAlpha();
+
+    strokeColor.setAlphaF(strokeAlpha);
+    fillColor  .setAlphaF(fillAlpha);
 
     QPen   pen  (strokeColor);
     QBrush brush(fillColor);
@@ -1855,7 +2014,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
         plot_->windowToPixel(remapPos(o), pos, px1, py1);
 
       plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
-                        stroked, pen.color(), 1, filled, brush.color());
+                        stroked, pen.color(), strokeWidth, filled, brush.color());
     }
   }
 }
@@ -1864,12 +2023,7 @@ CQChartsGeom::BBox
 CQChartsBoxPlotDataObj::
 annotationBBox() const
 {
-  double pos;
-
-  if (! plot_->isHorizontal())
-    pos = rect_.getXMid();
-  else
-    pos = rect_.getYMid();
+  double pos = rect_.getXYMid(! plot_->isHorizontal());
 
   double wd1 = plot_->whiskerExtent()/2.0;
   double wd2 = plot_->lengthPlotWidth(plot_->boxWidth())/2;
@@ -1967,16 +2121,23 @@ calcId() const
 {
   QString groupName = plot_->groupIndName(groupId_);
 
-  return QString("%1").arg(groupName);
+  return QString("connected:%1").arg(groupName);
 }
 
 QString
 CQChartsBoxPlotConnectedObj::
 calcTipId() const
 {
+  QString groupName = plot_->groupIndName(groupId_);
+
+  const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
+
+  int ns = setWhiskerMap.size();
+
   CQChartsTableTip tableTip;
 
-  tableTip.addTableRow("Name", calcId());
+  tableTip.addTableRow("Group"   , groupName);
+  tableTip.addTableRow("Num Sets", ns);
 
   return tableTip.str();
 }
@@ -1987,31 +2148,23 @@ initPolygon()
 {
   QPolygonF maxPoly, minPoly;
 
-  int i = 0;
+  const CQChartsBoxPlotConnectedObj::SetWhiskerMap &setWhiskerMap = this->setWhiskerMap();
 
-  for (const auto &groupIdWhiskers : plot_->groupWhiskers()) {
-    const CQChartsBoxPlot::SetWhiskerMap &setWhiskerMap = groupIdWhiskers.second;
+  for (const auto &setWhiskers : setWhiskerMap) {
+    int                           setId   = setWhiskers.first;
+    const CQChartsBoxPlotWhisker &whisker = setWhiskers.second;
 
-    if (i == i_) {
-      for (const auto &setWhiskers : setWhiskerMap) {
-        int                           setId   = setWhiskers.first;
-        const CQChartsBoxPlotWhisker &whisker = setWhiskers.second;
+    double min    = whisker.min   ();
+    double max    = whisker.max   ();
+    double median = whisker.median();
 
-        double min    = whisker.min   ();
-        double max    = whisker.max   ();
-        double median = whisker.median();
+    line_ << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, median));
 
-        line_ << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, median));
-
-        maxPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, max));
-        minPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, min));
-      }
-
-      break;
-    }
-
-    ++i;
+    maxPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, max));
+    minPoly << CQChartsUtil::toQPoint(CQChartsGeom::Point(setId, min));
   }
+
+  //---
 
   int np = maxPoly.count();
 
@@ -2020,6 +2173,26 @@ initPolygon()
 
   for (int i = 0; i < np; ++i)
     poly_ << minPoly.at(np - 1 - i);
+}
+
+const CQChartsBoxPlotConnectedObj::SetWhiskerMap &
+CQChartsBoxPlotConnectedObj::
+setWhiskerMap() const
+{
+  static CQChartsBoxPlotConnectedObj::SetWhiskerMap dummy;
+
+  int i = 0;
+
+  for (const auto &groupIdWhiskers : plot_->groupWhiskers()) {
+    if (i == i_)
+      return groupIdWhiskers.second;
+
+    ++i;
+  }
+
+  assert(false);
+
+  return dummy;
 }
 
 bool
@@ -2244,7 +2417,7 @@ selectPress(const CQChartsGeom::Point &)
 
   plot->setSetHidden(i_, ! plot->isSetHidden(i_));
 
-  plot->updateObjs();
+  plot->updateRangeAndObjs();
 
   return true;
 }

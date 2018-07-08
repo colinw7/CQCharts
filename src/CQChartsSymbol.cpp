@@ -76,5 +76,8 @@ void
 CQChartsSymbol::
 fromString(const QString &s)
 {
-  type_ = nameToType(s);
+  Type type = nameToType(s);
+
+  if (type != CQChartsSymbol::Type::NONE)
+    type_ = nameToType(s);
 }

@@ -18,7 +18,7 @@ addParameters()
 
   if (allowRowGrouping())
     addBoolParameter("rowGrouping", "Row Grouping", "rowGrouping").
-      setTip("Group by group columns header instead of values");
+      setTip("Group by rows instead of column headers");
 
   if (allowUsePath())
     addBoolParameter("usePath", "Use Path", "usePath").
@@ -40,7 +40,7 @@ addParameters()
     setRequired().setTip("Delta value for manual range");
 
   addIntParameter("numAuto", "Num Auto", "numAuto", 10).
-    setRequired().setTip("Number of auto buckets");
+    setRequired().setTip("Number of auto groups");
 
   endParameterGroup();
 }
@@ -72,22 +72,22 @@ addProperties()
   CQChartsGroupPlotType *type = dynamic_cast<CQChartsGroupPlotType *>(this->type());
   assert(type);
 
-  addProperty("grouping", this, "groupColumn", "group");
+  addProperty("dataGrouping", this, "groupColumn", "group");
 
   if (type->allowRowGrouping())
-    addProperty("grouping", this, "rowGrouping", "rowGroups");
+    addProperty("dataGrouping", this, "rowGrouping", "rowGroups");
 
   if (type->allowUsePath())
-    addProperty("grouping", this, "usePath", "path");
+    addProperty("dataGrouping", this, "usePath", "path");
 
   if (type->allowUseRow())
-    addProperty("grouping", this, "useRow", "row");
+    addProperty("dataGrouping", this, "useRow", "row");
 
-  addProperty("grouping/bucket", this, "exactValue"  , "exact"    );
-  addProperty("grouping/bucket", this, "autoRange"   , "auto"     );
-  addProperty("grouping/bucket", this, "startValue"  , "start"    );
-  addProperty("grouping/bucket", this, "deltaValue"  , "delta"    );
-  addProperty("grouping/bucket", this, "numAuto"     , "numAuto"  );
+  addProperty("dataGrouping/bucket", this, "exactValue", "exact"  );
+  addProperty("dataGrouping/bucket", this, "autoRange" , "auto"   );
+  addProperty("dataGrouping/bucket", this, "startValue", "start"  );
+  addProperty("dataGrouping/bucket", this, "deltaValue", "delta"  );
+  addProperty("dataGrouping/bucket", this, "numAuto"   , "numAuto");
 }
 
 void
@@ -128,10 +128,12 @@ initGroupData(const Columns &dataColumns, const CQChartsColumn &nameColumn, bool
   else if (isUseRow()) {
     groupData.useRow = true;
   }
-  // default use label column if defined
+#if 0
+  // default use name column if defined (?? enables grouping when no groupiing wanted)
   else if (nameColumn.isValid()) {
-    groupData.column = nameColumn; // ??
+    groupData.column = nameColumn;
   }
+#endif
 
   initGroup(groupData);
 }
@@ -180,9 +182,16 @@ initGroup(const CQChartsGroupData &data)
 
   // for specified grouping columns, set column and column type
   if      (data.columns.size() > 1) {
-    // TODO: combine multiple column values
-    CQChartsColumn column = data.columns[0];
-    assert(column.isValid());
+    CQChartsColumn column;
+
+    if (data.column.isValid())
+      column = data.column;
+
+    if (! data.column.isValid()) {
+      // TODO: combine multiple column values
+      column = data.columns[0];
+      assert(column.isValid());
+    }
 
     ColumnType columnType = CQBaseModel::Type::STRING;
 
@@ -278,11 +287,11 @@ initGroup(const CQChartsGroupData &data)
 
 std::vector<int>
 CQChartsGroupPlot::
-rowHierGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column) const
+rowHierGroupInds(const CQChartsModelIndex &ind) const
 {
   std::vector<int> inds;
 
-  if (! rowGroupInds(parent, row, column, inds, /*hier*/true))
+  if (! rowGroupInds(ind, inds, /*hier*/true))
     return inds;
 
   return inds;
@@ -290,11 +299,11 @@ rowHierGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &colum
 
 int
 CQChartsGroupPlot::
-rowGroupInd(const QModelIndex &parent, int row, const CQChartsColumn &column) const
+rowGroupInd(const CQChartsModelIndex &ind) const
 {
   std::vector<int> inds;
 
-  if (! rowGroupInds(parent, row, column, inds, /*hier*/false))
+  if (! rowGroupInds(ind, inds, /*hier*/false))
     return -1;
 
   assert(inds.size() == 1);
@@ -304,15 +313,14 @@ rowGroupInd(const QModelIndex &parent, int row, const CQChartsColumn &column) co
 
 bool
 CQChartsGroupPlot::
-rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
-             std::vector<int> &inds, bool hier) const
+rowGroupInds(const CQChartsModelIndex &index, std::vector<int> &inds, bool hier) const
 {
   QAbstractItemModel *model = this->model().data();
   if (! model) return false;
 
   // header has multiple groups (one per column)
   if      (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
-    int ind = groupBucket_.ind(column.column());
+    int ind = groupBucket_.ind(index.column.column());
 
     inds.push_back(ind);
   }
@@ -320,7 +328,7 @@ rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
-    QVariant value = modelHierValue(row, groupBucket_.column(), parent, ok);
+    QVariant value = modelHierValue(index.row, groupBucket_.column(), index.parent, ok);
 
     int ind = -1;
 
@@ -343,7 +351,7 @@ rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
         inds = pathInds(value.toString());
       }
       else {
-        ind = groupBucket_.ind(value);
+        ind = groupBucket_.sbucket(value);
 
         inds.push_back(ind);
       }
@@ -351,7 +359,7 @@ rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
   }
   // get group id from parent path name
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsUtil::parentPath(model, parent);
+    QString path = CQChartsUtil::parentPath(model, index.parent);
 
     if (hier) {
       inds = pathInds(path);
@@ -363,7 +371,7 @@ rowGroupInds(const QModelIndex &parent, int row, const CQChartsColumn &column,
     }
   }
   else if (groupBucket_.isUseRow()) {
-    int ind = row; // default to row
+    int ind = index.row; // default to row
 
     inds.push_back(ind);
   }
@@ -433,14 +441,19 @@ CQChartsGroupPlot::
 groupIndName(int ind, bool hier) const
 {
   if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
-    if (! groupBucket_.isExactValue()) {
+    if      (groupBucket_.isExactValue()) {
+      return groupBucket_.indName(ind);
+    }
+    else if (groupBucket_.columnType() == ColumnType::REAL ||
+             groupBucket_.columnType() == ColumnType::INTEGER) {
+      return groupBucket_.bucketName(ind);
+    }
+    else {
       if (hier)
         return groupBucket_.iname(ind);
       else
-        return groupBucket_.bucketName(ind);
+        return groupBucket_.buckets(ind);
     }
-    else
-      return groupBucket_.indName(ind);
   }
   else {
     return groupBucket_.indName(ind);

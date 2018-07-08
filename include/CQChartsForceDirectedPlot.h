@@ -20,6 +20,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
+  QString description() const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

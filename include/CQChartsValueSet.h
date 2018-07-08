@@ -47,6 +47,8 @@ class CQChartsRValues {
 
     calculated_ = false;
 
+    // TODO: don't calc key unless needed
+
     // TODO: assert
     if (! r) {
       ++numNull_;
@@ -312,6 +314,8 @@ class CQChartsIValues {
     values_.push_back(i);
 
     calculated_ = false;
+
+    // TODO: don't calc key unless needed
 
     // TODO: assert
     if (! i) {
@@ -580,6 +584,8 @@ class CQChartsSValues {
     // add to all values
     values_.push_back(s);
 
+    // TODO: don't calc key unless needed
+
     // TODO: assert
     if (! s) {
       ++numNull_;
@@ -765,6 +771,8 @@ class CQChartsCValues {
     // add to all values
     values_.push_back(c);
 
+    // TODO: don't calc key unless needed
+
     // TODO: assert
     if (! c.isValid()) {
       ++numNull_;
@@ -921,14 +929,26 @@ class CQChartsValueSet : public QObject {
 
   // get type
   Type type() const { init(); return type_; }
+  void setType(const Type &type) { type_ = type; }
 
   bool isReal   () const { return (type() == Type::REAL   ); }
   bool isInteger() const { return (type() == Type::INTEGER); }
   bool isString () const { return (type() == Type::STRING ); }
   bool isColor  () const { return (type() == Type::COLOR  ); }
+  bool isTime   () const { return (type() == Type::TIME   ); }
   bool isNumeric() const { return (isReal() || isInteger()); }
 
   bool isValid() const;
+
+  //---
+
+  const CQChartsIValues &ivals() const { return ivals_; };
+  const CQChartsRValues &rvals() const { return rvals_; };
+  const CQChartsSValues &svals() const { return svals_; };
+  const CQChartsCValues &cvals() const { return cvals_; };
+  const CQChartsRValues &tvals() const { return tvals_; };
+
+  //---
 
   bool canMap() const;
 
@@ -1008,6 +1028,7 @@ class CQChartsValueSet : public QObject {
   CQChartsRValues rvals_; // real values
   CQChartsSValues svals_; // string values
   CQChartsCValues cvals_; // color values
+  CQChartsRValues tvals_; // time values
 
   bool allowNaN_ { false }; // allow NaN values
 };

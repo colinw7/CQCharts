@@ -138,16 +138,20 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn countColumn       READ countColumn       WRITE setCountColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
-  Q_PROPERTY(SortType       sortType          READ sortType          WRITE setSortType         )
-  Q_PROPERTY(CQChartsColor  bgColor           READ bgColor           WRITE setBgColor          )
-  Q_PROPERTY(CQChartsColor  borderColor       READ borderColor       WRITE setBorderColor      )
-  Q_PROPERTY(double         borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
-  Q_PROPERTY(CQChartsColor  emptyCellColor    READ emptyCellColor    WRITE setEmptyCellColor   )
-  Q_PROPERTY(CQChartsLength cornerSize        READ cornerSize        WRITE setCornerSize       )
-  Q_PROPERTY(CQChartsColor  textColor         READ textColor         WRITE setTextColor        )
-  Q_PROPERTY(double         textAlpha         READ textAlpha         WRITE setTextAlpha        )
-  Q_PROPERTY(QFont          font              READ font              WRITE setFont             )
-  Q_PROPERTY(double         margin            READ margin            WRITE setMargin           )
+
+  Q_PROPERTY(SortType      sortType       READ sortType       WRITE setSortType      )
+  Q_PROPERTY(CQChartsColor bgColor        READ bgColor        WRITE setBgColor       )
+  Q_PROPERTY(CQChartsColor emptyCellColor READ emptyCellColor WRITE setEmptyCellColor)
+  Q_PROPERTY(double        margin         READ margin         WRITE setMargin        )
+
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
+
+  Q_PROPERTY(CQChartsColor textColor READ textColor WRITE setTextColor)
+  Q_PROPERTY(double        textAlpha READ textAlpha WRITE setTextAlpha)
+  Q_PROPERTY(QFont         font      READ font      WRITE setFont     )
 
   Q_ENUMS(SortType)
 
@@ -166,63 +170,70 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   //---
 
   const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(const CQChartsColumn &c) {
-    connectionsColumn_ = c; updateRangeAndObjs(); }
+  void setConnectionsColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &namePairColumn() const { return namePairColumn_; }
-  void setNamePairColumn(const CQChartsColumn &c) { namePairColumn_ = c; updateRangeAndObjs(); }
+  void setNamePairColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &countColumn() const { return countColumn_; }
-  void setCountColumn(const CQChartsColumn &c) { countColumn_ = c; updateRangeAndObjs(); }
+  void setCountColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
+  void setGroupColumn(const CQChartsColumn &c);
 
   //---
 
   const SortType &sortType() const { return sortType_; }
-  void setSortType(const SortType &v) { sortType_ = v; updateRangeAndObjs(); }
+  void setSortType(const SortType &v);
 
   //---
 
   const CQChartsColor &bgColor() const { return bgBox_.backgroundColor(); }
-  void setBgColor(const CQChartsColor &c) { bgBox_.setBackgroundColor(c); update(); }
+  void setBgColor(const CQChartsColor &c);
 
-  QColor interpBgColor(int i, int n) const { return bgBox_.interpBackgroundColor(i, n); }
-
-  const CQChartsColor &borderColor() const { return cellBox_.borderColor(); }
-  void setBorderColor(const CQChartsColor &c) { cellBox_.setBorderColor(c); update(); }
-
-  QColor interpBorderColor(int i, int n) const { return cellBox_.interpBorderColor(i, n); }
-
-  double borderAlpha() const { return cellBox_.borderAlpha(); }
-  void setBorderAlpha(double r) { cellBox_.setBorderAlpha(r); update(); }
+  QColor interpBgColor(int i, int n) const;
 
   const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
-  void setEmptyCellColor(const CQChartsColor &s) { emptyCellBox_.setBackgroundColor(s); update(); }
+  void setEmptyCellColor(const CQChartsColor &s);
 
-  QColor interpEmptyCellColor(int i, int n) const {
-    return emptyCellBox_.interpBackgroundColor(i, n); }
+  QColor interpEmptyCellColor(int i, int n) const;
+
+  //---
+
+  const CQChartsColor &borderColor() const { return cellBox_.borderColor(); }
+  void setBorderColor(const CQChartsColor &c);
+
+  QColor interpBorderColor(int i, int n) const;
+
+  double borderAlpha() const { return cellBox_.borderAlpha(); }
+  void setBorderAlpha(double r);
+
+  const CQChartsLineDash &borderDash() const { return cellBox_.borderDash(); }
+  void setBorderDash(const CQChartsLineDash &v);
 
   const CQChartsLength &cornerSize() const { return cellBox_.cornerSize(); }
-  void setCornerSize(const CQChartsLength &s) { cellBox_.setCornerSize(s); update(); }
+  void setCornerSize(const CQChartsLength &s);
+
+  //---
 
   const CQChartsColor &textColor() const { return textData_.color; }
-  void setTextColor(const CQChartsColor &c) { textData_.color = c; update(); }
+  void setTextColor(const CQChartsColor &c);
 
   double textAlpha() const { return textData_.alpha; }
-  void setTextAlpha(double a) { textData_.alpha = a; update(); }
+  void setTextAlpha(double a);
 
-  QColor interpTextColor(int i, int n) const { return textColor().interpColor(this, i, n); }
+  QColor interpTextColor(int i, int n) const;
 
   const QFont &font() const { return textData_.font; }
-  void setFont(const QFont &f) { textData_.font = f; update(); }
+  void setFont(const QFont &f);
+
+  //---
 
   double margin() const { return bgBox_.margin(); }
-  void setMargin(double r) { bgBox_.setMargin(r); updateObjs(); }
+  void setMargin(double r);
 
   //---
 

@@ -23,6 +23,14 @@ addParameters()
   CQChartsHierPlotType::addParameters();
 }
 
+QString
+CQChartsSunburstPlotType::
+description() const
+{
+  return "<h2>Summary</h2>\n"
+         "<p>Draw hierarchical data as segments of concentric circles.</p>\n";
+}
+
 CQChartsPlot *
 CQChartsSunburstPlotType::
 create(CQChartsView *view, const ModelP &model) const
@@ -176,6 +184,13 @@ interpBorderColor(int i, int n) const
   return borderColor().interpColor(this, i, n);
 }
 
+void
+CQChartsSunburstPlot::
+setBorderDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+}
+
 //---
 
 void
@@ -243,15 +258,13 @@ addProperties()
   addProperty("options", this, "startAngle" );
   addProperty("options", this, "multiRoot"  );
 
-  addProperty("stroke", this, "border"     , "visible");
-  addProperty("stroke", this, "borderColor", "color"  );
-  addProperty("stroke", this, "borderAlpha", "alpha"  );
-  addProperty("stroke", this, "borderWidth", "width"  );
+  addProperty("stroke", this, "border", "visible");
 
-  addProperty("fill", this, "filled"     , "visible");
-  addProperty("fill", this, "fillColor"  , "color"  );
-  addProperty("fill", this, "fillAlpha"  , "alpha"  );
-  addProperty("fill", this, "fillPattern", "pattern");
+  addLineProperties("stroke", "border");
+
+  addProperty("fill", this, "filled", "visible");
+
+  addFillProperties("fill", "fill");
 
   addProperty("text", this, "textFont"    , "font"    );
   addProperty("text", this, "textColor"   , "color"   );
@@ -1214,7 +1227,7 @@ calcId() const
 {
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
-  return QString("%1:%2").arg(name).arg(node_->hierSize());
+  return QString("node:%1:%2").arg(name).arg(node_->hierSize());
 }
 
 QString
