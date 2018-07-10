@@ -47,6 +47,7 @@ class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
 class CQChartsValueSet;
 class CQChartsColorSet;
+class CQChartsModelExprMatch;
 class QPainter;
 
 class QSortFilterProxyModel;
@@ -95,6 +96,9 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(int            everyStart          READ everyStart          WRITE setEveryStart     )
   Q_PROPERTY(int            everyEnd            READ everyEnd            WRITE setEveryEnd       )
   Q_PROPERTY(int            everyStep           READ everyStep           WRITE setEveryStep      )
+
+  // filter
+  Q_PROPERTY(QString        filterStr           READ filterStr           WRITE setFilterStr      )
 
   // margin
   Q_PROPERTY(double         marginLeft          READ marginLeft          WRITE setMarginLeft     )
@@ -330,6 +334,11 @@ class CQChartsPlot : public QObject {
 
   int everyStep() const { return everyData_.step; }
   void setEveryStep(int i) { everyData_.step = i; updateObjs(); }
+
+  //---
+
+  const QString &filterStr() const { return filterStr_; }
+  void setFilterStr(const QString &v) { filterStr_ = v; }
 
   //---
 
@@ -624,18 +633,21 @@ class CQChartsPlot : public QObject {
 
   class ModelVisitor : public CQChartsModelVisitor {
    public:
-    ModelVisitor() { }
+    ModelVisitor();
 
-    virtual ~ModelVisitor() { }
+    virtual ~ModelVisitor();
 
     CQChartsPlot *plot() const { return plot_; }
     void setPlot(CQChartsPlot *p) { plot_ = p; }
 
+    void init();
+
     State preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override;
 
    private:
-    CQChartsPlot *plot_ { nullptr };
-    int           vrow_ { 0 };
+    CQChartsPlot*           plot_ { nullptr };
+    int                     vrow_ { 0 };
+    CQChartsModelExprMatch* expr_ { nullptr };
   };
 
   void visitModel(ModelVisitor &visitor);
@@ -1345,6 +1357,7 @@ class CQChartsPlot : public QObject {
   OptReal                   xmax_;                            // xmax override
   OptReal                   ymax_;                            // ymax override
   EveryData                 everyData_;                       // every data
+  QString                   filterStr_;                       // filter
   CQChartsBoxObj*           borderObj_        { nullptr };    // plot border display object
   bool                      clip_             { true };       // is clipped at plot limits
   CQChartsBoxObj*           dataBorderObj_    { nullptr };    // data border display object

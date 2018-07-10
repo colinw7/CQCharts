@@ -2,11 +2,15 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsTitle.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
+#include <CLeastSquaresFit.h>
+
 #include <QPainter>
+#include <QMenu>
 
 CQChartsScatterPlotType::
 CQChartsScatterPlotType()
@@ -46,6 +50,10 @@ addParameters()
 
   //---
 
+  CQChartsGroupPlotType::addParameters();
+
+  //---
+
   CQChartsPlotType::addParameters();
 }
 
@@ -69,17 +77,17 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("scatter"), model), dataLabel_(this)
+ CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model), dataLabel_(this)
 {
   // set mapped range
   (void) addValueSet("symbolSize", 8, 64);
   (void) addValueSet("fontSize"  , 8, 48);
   (void) addColorSet("color");
 
-  symbolData_.type           = CQChartsSymbol::Type::CIRCLE;
-  symbolData_.stroke.visible = true;
-  symbolData_.fill.visible   = true;
-  symbolData_.fill.color     = CQChartsColor(CQChartsColor::Type::PALETTE);
+  setSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setSymbolStroked(true);
+  setSymbolFilled (true);
+  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   addAxes();
 
@@ -110,6 +118,8 @@ setYColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
+
+//---
 
 void
 CQChartsScatterPlot::
@@ -202,14 +212,21 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  addProperty("columns", this, "xColumn", "x");
+  addProperty("columns", this, "yColumn", "y");
+
   addProperty("columns", this, "nameColumn"      , "name"      );
-  addProperty("columns", this, "xColumn"         , "x"         );
-  addProperty("columns", this, "yColumn"         , "y"         );
   addProperty("columns", this, "symbolSizeColumn", "symbolSize");
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
   addProperty("columns", this, "colorColumn"     , "color"     );
 
+  addProperty("options", this, "bestFit", "bestFit");
+
+  CQChartsGroupPlot::addProperties();
+
   addSymbolProperties("symbol");
+
+  dataLabel_.addProperties("dataLabel");
 
   addProperty("symbol/map", this, "symbolSizeMapped", "enabled");
   addProperty("symbol/map", this, "symbolSizeMapMin", "min"    );
@@ -220,17 +237,21 @@ addProperties()
   addProperty("font/map", this, "fontSizeMapMin", "min"    );
   addProperty("font/map", this, "fontSizeMapMax", "max"    );
 
-  dataLabel_.addProperties("dataLabel");
-
   addProperty("color/map", this, "colorMapped", "enabled");
   addProperty("color/map", this, "colorMapMin", "min"    );
   addProperty("color/map", this, "colorMapMax", "max"    );
 }
 
+//---
+
 void
 CQChartsScatterPlot::
 updateRange(bool apply)
 {
+  initGroupData(Columns(), CQChartsColumn());
+
+  //---
+
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
    public:
@@ -306,29 +327,13 @@ updateRange(bool apply)
     applyDataRange();
 }
 
-int
-CQChartsScatterPlot::
-nameIndex(const QString &name) const
-{
-  int i = 0;
-
-  for (const auto &nv : nameValues_) {
-    if (nv.first == name)
-      return i;
-
-    ++i;
-  }
-
-  return 0;
-}
-
 //------
 
 void
 CQChartsScatterPlot::
 updateObjs()
 {
-  nameValues_.clear();
+  groupNameValues_.clear();
 
   clearValueSets();
 
@@ -359,82 +364,16 @@ initObjs()
   //---
 
   // init name values
-  if (nameValues_.empty()) {
-    class RowVisitor : public ModelVisitor {
-     public:
-      RowVisitor(CQChartsScatterPlot *plot) :
-       plot_(plot) {
-      }
+  if (groupNameValues_.empty())
+    addNameValues();
 
-      State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-        // get x, y value
-        QModelIndex xInd  = plot_->modelIndex(row, plot_->xColumn(), parent);
-        QModelIndex xInd1 = plot_->normalizeIndex(xInd);
+  fitData_.reset();
 
-        bool ok1, ok2;
-
-        double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-        double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
-
-        if (! ok1) x = row;
-        if (! ok2) y = row;
-
-        if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
-          return State::SKIP;
-
-        //---
-
-        // get optional name
-        bool ok;
-
-        QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
-
-        //---
-
-        // get symbol size, font size and color
-        QString       symbolSizeStr;
-        QString       fontSizeStr;
-        CQChartsColor color;
-
-        // get symbol size label (needed if not string ?)
-        if (plot_->symbolSizeColumn().isValid()) {
-          bool ok3;
-
-          symbolSizeStr = plot_->modelString(row, plot_->symbolSizeColumn(), parent, ok3);
-        }
-
-        // get font size label (needed if not string ?)
-        if (plot_->fontSizeColumn().isValid()) {
-          bool ok4;
-
-          fontSizeStr = plot_->modelString(row, plot_->fontSizeColumn(), parent, ok4);
-        }
-
-        // get color label (needed if not string ?)
-        if (plot_->colorColumn().isValid()) {
-          bool ok5;
-
-          color = plot_->modelColor(row, plot_->colorColumn(), parent, ok5);
-        }
-
-        //---
-
-        plot_->addNameValue(name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, color);
-
-        return State::OK;
-      }
-
-     private:
-      CQChartsScatterPlot *plot_ { nullptr };
-    };
-
-    RowVisitor visitor(this);
-
-    visitModel(visitor);
-  }
+  points_.clear();
 
   //---
 
+  // get column titles
   bool ok;
 
   xname_          = modelHeaderString(xColumn         (), ok);
@@ -461,21 +400,36 @@ initObjs()
   //double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
   //double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
 
-  int nv = nameValues_.size();
+  int ig = 0;
+  int ng = groupNameValues_.size();
 
-  int r = 0;
+  for (const auto &groupNameValue : groupNameValues_) {
+    bool hidden = (ng > 1 && isSetHidden(ig));
 
-  for (const auto &nameValues : nameValues_) {
-    bool hidden = isSetHidden(r);
+    if (hidden) { ++ig; continue; }
 
-    if (! hidden) {
-      const QString &name   = nameValues.first;
-      const Values  &values = nameValues.second;
+    //---
 
-      int nv1 = values.size();
+    int               groupInd   = groupNameValue.first;
+    const NameValues &nameValues = groupNameValue.second;
 
-      for (int j = 0; j < nv1; ++j) {
-        const ValueData &valuePoint = values[j];
+    int is = 0;
+    int ns = nameValues.size();
+
+    for (const auto &nameValue : nameValues) {
+      bool hidden = (ng == 1 && isSetHidden(is));
+
+      if (hidden) { ++is; continue; }
+
+      //---
+
+      const QString &name   = nameValue.first;
+      const Values  &values = nameValue.second;
+
+      int nv = values.size();
+
+      for (int iv = 0; iv < nv; ++iv) {
+        const ValueData &valuePoint = values[iv];
 
         const QPointF &p = valuePoint.p;
 
@@ -500,27 +454,8 @@ initObjs()
         CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, bbox, p, symbolSize, fontSize, color, r, nv, j, nv1);
-
-        //---
-
-#if 0
-        QString id = name;
-
-        id += QString("\n  %1\t%2").arg(xname_).arg(p.x());
-        id += QString("\n  %1\t%2").arg(yname_).arg(p.y());
-
-        if (valuePoint.symbolSizeStr != "")
-          id += QString("\n  %1\t%2").arg(symbolSizeName_).arg(valuePoint.symbolSizeStr);
-
-        if (valuePoint.fontSizeStr != "")
-          id += QString("\n  %1\t%2").arg(fontSizeName_).arg(valuePoint.fontSizeStr);
-
-        if (valuePoint.color.isValid())
-          id += QString("\n  %1\t%2").arg(colorName_).arg(valuePoint.color.colorStr());
-
-        pointObj->setId(id);
-#endif
+          new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolSize, fontSize, color,
+                                      ig, ng, is, ns, iv, nv);
 
         //---
 
@@ -529,10 +464,16 @@ initObjs()
         pointObj->setInd(valuePoint.ind);
 
         addPlotObject(pointObj);
+
+        //---
+
+        points_.push_back(p);
       }
+
+      ++is;
     }
 
-    ++r;
+    ++ig;
   }
 
   //---
@@ -546,41 +487,246 @@ initObjs()
 
 void
 CQChartsScatterPlot::
-addKeyItems(CQChartsPlotKey *key)
+addNameValues()
 {
-  int nv = nameValues_.size();
-
-  int i = 0;
-
-  for (const auto &nameValue : nameValues_) {
-    const QString &name   = nameValue.first;
-    const Values  &values = nameValue.second;
-
-    CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, i, nv);
-    CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name);
-
-    key->addItem(colorItem, i, 0);
-    key->addItem(textItem , i, 1);
-
-    int nv1 = values.size();
-
-    if (nv1 > 0) {
-      const ValueData &valuePoint = values[0];
-
-      OptColor color = boost::make_optional(false, CQChartsColor());
-
-      if (colorColumn().isValid()) {
-        (void) colorSetColor("color", valuePoint.i, color);
-
-        if (color)
-          colorItem->setColor(*color);
-      }
+  class RowVisitor : public ModelVisitor {
+   public:
+    RowVisitor(CQChartsScatterPlot *plot) :
+     plot_(plot) {
     }
 
-    ++i;
+    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+
+      // get group
+      int groupInd = plot_->rowGroupInd(ind);
+
+      //---
+
+      // get x, y value
+      QModelIndex xInd  = plot_->modelIndex(row, plot_->xColumn(), parent);
+      QModelIndex xInd1 = plot_->normalizeIndex(xInd);
+
+      bool ok1, ok2;
+
+      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
+      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+
+      if (! ok1) x = row;
+      if (! ok2) y = row;
+
+      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        return State::SKIP;
+
+      //---
+
+      // get optional name
+      QString name;
+
+      if (plot_->nameColumn().isValid()) {
+        bool ok;
+
+        name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      }
+
+      if (! name.length())
+        name = plot_->title()->textStr();
+
+      if (! name.length())
+        name = plot_->xAxis()->label();
+
+      //---
+
+      // get symbol size, font size and color
+      QString       symbolSizeStr;
+      QString       fontSizeStr;
+      CQChartsColor color;
+
+      // get symbol size label (needed if not string ?)
+      if (plot_->symbolSizeColumn().isValid()) {
+        bool ok3;
+
+        symbolSizeStr = plot_->modelString(row, plot_->symbolSizeColumn(), parent, ok3);
+      }
+
+      // get font size label (needed if not string ?)
+      if (plot_->fontSizeColumn().isValid()) {
+        bool ok4;
+
+        fontSizeStr = plot_->modelString(row, plot_->fontSizeColumn(), parent, ok4);
+      }
+
+      // get color label (needed if not string ?)
+      if (plot_->colorColumn().isValid()) {
+        bool ok5;
+
+        color = plot_->modelColor(row, plot_->colorColumn(), parent, ok5);
+      }
+
+      //---
+
+      plot_->addNameValue(groupInd, name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, color);
+
+      return State::OK;
+    }
+
+   private:
+    CQChartsScatterPlot *plot_ { nullptr };
+  };
+
+  RowVisitor visitor(this);
+
+  visitModel(visitor);
+}
+
+void
+CQChartsScatterPlot::
+addNameValue(int groupInd, const QString &name, double x, double y, int row,
+             const QModelIndex &xind, const QString &symbolSizeStr, const QString &fontSizeStr,
+             const CQChartsColor &color)
+{
+  groupNameValues_[groupInd][name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, color);
+}
+
+void
+CQChartsScatterPlot::
+addKeyItems(CQChartsPlotKey *key)
+{
+  int ng = groupNameValues_.size();
+
+  // multiple group - key item per group
+  if (ng > 1) {
+    int ig = 0;
+
+    for (const auto &groupNameValue : groupNameValues_) {
+      int groupInd = groupNameValue.first;
+
+      QString groupName = groupIndName(groupInd);
+
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, ig, ng);
+      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName);
+
+      key->addItem(colorItem, ig, 0);
+      key->addItem(textItem , ig, 1);
+
+      ++ig;
+    }
+  }
+  // single group - key item per value set
+  else {
+    const NameValues &nameValues = (*groupNameValues_.begin()).second;
+
+    int is = 0;
+    int ns = nameValues.size();
+
+    for (const auto &nameValue : nameValues) {
+      const QString &name   = nameValue.first;
+      const Values  &values = nameValue.second;
+
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, is, ns);
+      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name);
+
+      key->addItem(colorItem, is, 0);
+      key->addItem(textItem , is, 1);
+
+      int nv = values.size();
+
+      if (nv > 0) {
+        const ValueData &valuePoint = values[0];
+
+        OptColor color = boost::make_optional(false, CQChartsColor());
+
+        if (colorColumn().isValid()) {
+          (void) colorSetColor("color", valuePoint.i, color);
+
+          if (color)
+            colorItem->setColor(*color);
+        }
+      }
+
+      ++is;
+    }
   }
 
   key->plot()->updateKeyPosition(/*force*/true);
+}
+
+//------
+
+bool
+CQChartsScatterPlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *bestFitAction = new QAction("Best Fit", menu);
+
+  bestFitAction->setCheckable(true);
+  bestFitAction->setChecked(isBestFit());
+
+  connect(bestFitAction, SIGNAL(triggered(bool)), this, SLOT(setBestFit(bool)));
+
+  menu->addSeparator();
+
+  menu->addAction(bestFitAction);
+
+  return true;
+}
+
+//------
+
+void
+CQChartsScatterPlot::
+drawBackground(QPainter *painter)
+{
+  CQChartsPlot::drawBackground(painter);
+
+  //---
+
+  if (isBestFit()) {
+    if (! fitData_.fitted) {
+      int np = points_.size();;
+
+      std::vector<double> x, y;
+
+      for (const auto &p : points_) {
+        x.push_back(p.x());
+        y.push_back(p.y());
+      }
+
+      double deviation;
+      int    return_code;
+
+      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
+                                        fitData_.coeffs, fitData_.coeffs_free, fitData_.num_coeffs,
+                                        &deviation, &return_code);
+
+      fitData_.fitted = true;
+    }
+
+    //---
+
+    CQChartsGeom::BBox pbbox = calcDataPixelRect();
+
+    double py1 = 0.0;
+
+    for (int px = pbbox.getXMin(); px <= pbbox.getXMax(); ++px) {
+      double x, y;
+
+      pixelToWindow(px, 0.0, x, y);
+
+      double y2 = fitData_.coeffs[0] + x*(fitData_.coeffs[1] + x*fitData_.coeffs[2]);
+
+      double px2, py2;
+
+      windowToPixel(x, y2, px2, py2);
+
+      if (x > pbbox.getXMin())
+        painter->drawLine(QPointF(px - 1, py1), QPointF(px, py2));
+      else
+        painter->drawPoint(QPointF(px, py2));
+
+      py1 = py2;
+    }
+  }
 }
 
 void
@@ -678,51 +824,25 @@ drawForeground(QPainter *painter)
   CQChartsPlot::drawForeground(painter);
 }
 
-#if 0
-void
-CQChartsScatterPlot::
-drawDataLabel(QPainter *painter, const QRectF &qrect, const QString &str, double fontSize)
-{
-  if (fontSize > 0) {
-    QFont font = dataLabel_.textFont();
-
-    QFont font1 = font;
-
-    font1.setPointSizeF(fontSize);
-
-    dataLabel_.setTextFont(font1);
-
-    dataLabel_.draw(painter, qrect, str);
-
-    dataLabel_.setTextFont(font);
-  }
-  else {
-    dataLabel_.draw(painter, qrect, str);
-  }
-}
-#endif
-
 //------
 
 CQChartsScatterPointObj::
-CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect, const QPointF &p,
-                        const CQChartsLength &symbolSize, const OptReal &fontSize,
-                        const OptColor &color, int is, int ns, int iv, int nv) :
- CQChartsPlotObj(plot, rect), plot_(plot), p_(p), symbolSize_(symbolSize), fontSize_(fontSize),
- color_(color), is_(is), ns_(ns), iv_(iv), nv_(nv)
+CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+                        const QPointF &p, const CQChartsLength &symbolSize, const OptReal &fontSize,
+                        const OptColor &color, int ig, int ng, int is, int ns, int iv, int nv) :
+ CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), p_(p), symbolSize_(symbolSize),
+ fontSize_(fontSize), color_(color), ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
+  assert(ig >= 0 && ig < ng);
+  assert(is >= 0 && is < ns);
+  assert(iv >= 0 && iv < nv);
 }
 
 QString
 CQChartsScatterPointObj::
 calcId() const
 {
-  QString id = name_;
-
-  id += QString(" %1=%2").arg(plot_->xname()).arg(p_.x());
-  id += QString(" %1=%2").arg(plot_->yname()).arg(p_.y());
-
-  return id;
+  return QString("point:%1:%2:%3").arg(ig_).arg(is_).arg(iv_);
 }
 
 QString
@@ -733,11 +853,20 @@ calcTipId() const
 
   tableTip.addBoldLine(name_);
 
+  if (ng_ > 1) {
+    QString groupName = plot_->groupIndName(groupInd_);
+
+    tableTip.addTableRow("Group", groupName);
+  }
+
   tableTip.addTableRow(plot_->xname(), p_.x());
   tableTip.addTableRow(plot_->yname(), p_.y());
 
-  auto p = plot_->nameValues().find(name_);
-  assert(p != plot_->nameValues().end());
+  auto pg = plot_->groupNameValues().find(groupInd_);
+  assert(pg != plot_->groupNameValues().end());
+
+  auto p = (*pg).second.find(name_);
+  assert(p != (*pg).second.end());
 
   const CQChartsScatterPlot::Values &values = (*p).second;
 
@@ -813,10 +942,18 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   if (filled) {
     QColor c;
 
-    if (color_)
-      c = (*color_).interpColor(plot_, is_, ns_);
-    else
-      c = plot_->interpSymbolFillColor(is_, ns_);
+    if (ng_ > 0) {
+      if (color_)
+        c = (*color_).interpColor(plot_, ig_, ng_);
+      else
+        c = plot_->interpSymbolFillColor(ig_, ng_);
+    }
+    else {
+      if (color_)
+        c = (*color_).interpColor(plot_, is_, ns_);
+      else
+        c = plot_->interpSymbolFillColor(is_, ns_);
+    }
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
@@ -889,8 +1026,6 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     else {
       dataLabel.draw(painter, erect, name_);
     }
-
-    //plot_->drawDataLabel(painter, erect, name_, (fontSize_ ? *fontSize_ : -1));
   }
 }
 
@@ -919,14 +1054,17 @@ QBrush
 CQChartsScatterKeyColor::
 fillBrush() const
 {
+  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+
   QColor c;
 
   if (color_.isValid())
     c = color_.interpColor(plot_, 0, 1);
-  else
-    c = CQChartsKeyColorBox::fillBrush().color();
+  else {
+    c = plot->interpSymbolFillColor(i_, n_);
 
-  CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
+    //c = CQChartsKeyColorBox::fillBrush().color();
+  }
 
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);

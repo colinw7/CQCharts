@@ -1,14 +1,13 @@
 #ifndef CQChartsScatterPlot_H
 #define CQChartsScatterPlot_H
 
-#include <CQChartsPlot.h>
-#include <CQChartsPlotType.h>
+#include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 
 //---
 
-class CQChartsScatterPlotType : public CQChartsPlotType {
+class CQChartsScatterPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsScatterPlotType();
 
@@ -36,10 +35,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   using OptColor = boost::optional<CQChartsColor>;
 
  public:
-  CQChartsScatterPointObj(CQChartsScatterPlot *plot, const CQChartsGeom::BBox &rect,
+  CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
                           const QPointF &p, const CQChartsLength &symbolSize,
                           const OptReal &fontSize, const OptColor &color,
-                          int is, int ns, int iv, int nv);
+                          int ig, int ng, int is, int ns, int iv, int nv);
 
   const CQChartsLength &symbolSize() const { return symbolSize_; }
   void setSymbolSize(const CQChartsLength &s) { symbolSize_ = s; }
@@ -64,10 +63,13 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
+  int                  groupInd_   { -1 };
   QPointF              p_;
   CQChartsLength       symbolSize_;
   OptReal              fontSize_;
   OptColor             color_;
+  int                  ig_         { -1 };
+  int                  ng_         { -1 };
   int                  is_         { -1 };
   int                  ns_         { -1 };
   int                  iv_         { -1 };
@@ -99,16 +101,19 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 
 //---
 
-class CQChartsScatterPlot : public CQChartsPlot {
+class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
   Q_PROPERTY(CQChartsColumn xColumn          READ xColumn          WRITE setXColumn         )
   Q_PROPERTY(CQChartsColumn yColumn          READ yColumn          WRITE setYColumn         )
+  Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
   Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
+
+  // options
+  Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
 
   // symbol
   Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
@@ -159,9 +164,9 @@ class CQChartsScatterPlot : public CQChartsPlot {
     }
   };
 
-  using Values     = std::vector<ValueData>;
-  using NameValues = std::map<QString,Values>;
-  using OptColor   = boost::optional<CQChartsColor>;
+  using Values          = std::vector<ValueData>;
+  using NameValues      = std::map<QString,Values>;
+  using GroupNameValues = std::map<int,NameValues>;
 
   enum class Pattern {
     SOLID,
@@ -186,6 +191,10 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   const CQChartsColumn &yColumn() const { return yColumn_; }
   void setYColumn(const CQChartsColumn &c);
+
+  //----
+
+  bool isBestFit() const { return bestFit_; }
 
   //----
 
@@ -287,13 +296,13 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   //---
 
-  void addNameValue(const QString &name, double x, double y, int row, const QModelIndex &xind,
-                    const QString &symbolSizeStr, const QString &fontSizeStr,
-                    const CQChartsColor &color=CQChartsColor()) {
-    nameValues_[name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, color);
-  }
+  void addNameValue(int groupInd, const QString &name, double x, double y, int row,
+                    const QModelIndex &xind, const QString &symbolSizeStr,
+                    const QString &fontSizeStr, const CQChartsColor &color=CQChartsColor());
 
-  const NameValues &nameValues() const { return nameValues_; }
+  const GroupNameValues &groupNameValues() const { return groupNameValues_; }
+
+  //---
 
   const QString &xname         () const { return xname_         ; }
   const QString &yname         () const { return yname_         ; }
@@ -316,33 +325,56 @@ class CQChartsScatterPlot : public CQChartsPlot {
 
   bool initObjs() override;
 
+  void addNameValues();
+
   //---
 
   int numRows() const;
-
-  int nameIndex(const QString &name) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
   //---
 
+  bool addMenuItems(QMenu *menu) override;
+
+  //---
+
+  void drawBackground(QPainter *painter) override;
+
   void draw(QPainter *) override;
 
   void drawForeground(QPainter *) override;
 
+ public slots:
+  void setBestFit(bool b) { bestFit_ = b; update(); }
+
  private:
-  CQChartsColumn     nameColumn_;           // name column
-  CQChartsColumn     xColumn_      { 0 };   // x column
-  CQChartsColumn     yColumn_      { 1 };   // y column
-  CQChartsSymbolData symbolData_;           // symbl draw data
-  double             fontSize_     { 8.0 }; // font size
-  NameValues         nameValues_;           // name values
-  CQChartsDataLabel  dataLabel_;            // data label style
-  QString            xname_;                // x column header
-  QString            yname_;                // y column header
-  QString            symbolSizeName_;       // symbol size column header
-  QString            fontSizeName_;         // font size column header
-  QString            colorName_;            // color column header
+  struct FitData {
+    bool   fitted         { false };
+    double coeffs     [8] {0, 0, 0, 0, 0, 0, 0, 0};
+    int    coeffs_free[8] {1, 1, 1, 1, 1, 1, 1, 1};
+    int    num_coeffs     { 3 };
+
+    void reset() { fitted = false; }
+  };
+
+  using Points = std::vector<QPointF>;
+
+  CQChartsColumn     nameColumn_;             // name column
+  CQChartsColumn     xColumn_      { 0 };     // x column
+  CQChartsColumn     yColumn_      { 1 };     // y column
+  bool               bestFit_      { false }; // best fit
+  CQChartsSymbolData symbolData_;             // symbol draw data
+  double             fontSize_     { 8.0 };   // font size
+  GroupNameValues    groupNameValues_;        // name values
+  CQChartsDataLabel  dataLabel_;              // data label style
+  QString            xname_;                  // x column header
+  QString            yname_;                  // y column header
+  QString            symbolSizeName_;         // symbol size column header
+  QString            fontSizeName_;           // font size column header
+  QString            colorName_;              // color column header
+  Points             points_;
+  FitData            fitData_;
 };
 
 #endif

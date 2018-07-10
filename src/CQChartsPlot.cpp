@@ -15,6 +15,7 @@
 #include <CQChartsDisplayRange.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsGradientPalette.h>
+#include <CQChartsModelExprMatch.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 
@@ -4715,6 +4716,8 @@ visitModel(ModelVisitor &visitor)
 {
   visitor.setPlot(this);
 
+  visitor.init();
+
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
 
@@ -5803,11 +5806,54 @@ limitFontSize(double s) const
 
 //------
 
+CQChartsPlot::ModelVisitor::
+ModelVisitor()
+{
+}
+
+CQChartsPlot::ModelVisitor::
+~ModelVisitor()
+{
+  delete expr_;
+}
+
+void
+CQChartsPlot::ModelVisitor::
+init()
+{
+  assert(plot_);
+
+  if (plot_->filterStr().length()) {
+    expr_ = new CQChartsModelExprMatch;
+
+    expr_->setExprType(CQChartsModelExprMatch::ExprType::TCL);
+
+    expr_->setModel(plot_->model().data());
+
+    expr_->initMatch(plot_->filterStr());
+
+    expr_->initColumns();
+  }
+}
+
 CQChartsPlot::ModelVisitor::State
 CQChartsPlot::ModelVisitor::
-preVisit(QAbstractItemModel *, const QModelIndex &, int)
+preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row)
 {
   int vrow = vrow_++;
+
+  //---
+
+  if (expr_) {
+    bool ok;
+
+    QModelIndex ind = model->index(row, 0, parent);
+
+    if (! expr_->match(ind, ok))
+      return State::SKIP;
+  }
+
+  //---
 
   if (! plot_->isEveryEnabled())
     return State::OK;

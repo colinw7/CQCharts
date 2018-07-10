@@ -149,6 +149,8 @@ CQFilename.cpp \
 CQChartsDelaunay.cpp \
 CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
+\
+CLeastSquaresFit.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \

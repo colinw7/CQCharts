@@ -495,3 +495,8 @@
  + support query of plot object properties and get associated inds from tcl
  + add x/y axis label user overrides
  + add more descriptions
+# 8/09/2018
+ + enable plot model filter
+ + support column name in filter expression
+ + improve grouping for scatter plot
+ + add best fit for scatter plot points

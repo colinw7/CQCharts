@@ -121,11 +121,11 @@ class CQChartsTitle : public CQChartsTextBoxObj {
     bool             inside      { false };            // is inside
   };
 
-  Location                   location_;
-  QPointF                    position_ { 0, 0 };
-  QSizeF                     size_;
-  mutable CQChartsGeom::BBox bbox_;
-  CQChartsEditHandles        editHandles_;
+  Location                   location_;          // location
+  QPointF                    position_ { 0, 0 }; // position
+  QSizeF                     size_;              // size
+  mutable CQChartsGeom::BBox bbox_;              // bbox
+  CQChartsEditHandles        editHandles_;       // edit handles
 };
 
 #endif

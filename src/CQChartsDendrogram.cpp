@@ -1,5 +1,6 @@
 #include <CQChartsDendrogram.h>
 #include <iostream>
+#include <cmath>
 #include <cassert>
 
 struct NodeCmp {
@@ -85,7 +86,7 @@ bool
 CQChartsDendrogram::Node::
 isNodeAtPoint(double x, double y, double tol) const
 {
-  double d = hypot(this->x() - x, this->yc() - y);
+  double d = std::hypot(this->x() - x, this->yc() - y);
 
   return (d <= tol);
 }

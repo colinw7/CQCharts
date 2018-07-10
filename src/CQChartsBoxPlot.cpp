@@ -2,10 +2,10 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
-#include <CQCharts.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
+#include <CQCharts.h>
 
 #include <QPainter>
 #include <QMenu>

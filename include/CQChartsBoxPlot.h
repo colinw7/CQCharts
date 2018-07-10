@@ -16,7 +16,7 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
  public:
   CQChartsBoxPlotType();
 
-  QString name() const override { return "box"; }
+  QString name() const override { return "boxplot"; }
   QString desc() const override { return "BoxPlot"; }
 
   const char *yColumnName() const override { return "value"; }
@@ -526,7 +526,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   bool probe(ProbeData &probeData) const override;
 
+  //---
+
   bool addMenuItems(QMenu *menu) override;
+
+  //---
 
   void draw(QPainter *) override;
 

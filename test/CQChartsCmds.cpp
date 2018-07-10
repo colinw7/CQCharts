@@ -1057,6 +1057,9 @@ createPlotCmd(const Vars &vars)
 
   //---
 
+  if (filterStr.length())
+    plot->setFilterStr(filterStr);
+
   if (xmin) plot->setXMin(xmin);
   if (ymin) plot->setYMin(ymin);
   if (xmax) plot->setXMax(xmax);

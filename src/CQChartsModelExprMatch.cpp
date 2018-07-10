@@ -530,6 +530,9 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
     qtcl_->createVar("column", currentCol_);
 #endif
   }
+  else {
+    assert(false);
+  }
 
   //---
 
@@ -565,6 +568,9 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
       qtcl_->createVar(columnNames_[column], var);
 #endif
     }
+    else {
+      assert(false);
+    }
   }
 
   if      (exprType_ == ExprType::EXPR) {
@@ -597,7 +603,7 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
 #endif
   }
   else {
-    return false;
+    assert(false);
   }
 
   return true;
@@ -636,7 +642,7 @@ replaceNumericColumns(const QString &expr, const QModelIndex &ind) const
     if (parse.isChar('@')) {
       parse.skipChar();
 
-      if (parse.isDigit()) {
+      if      (parse.isDigit()) {
         int pos = parse.getPos();
 
         while (parse.isDigit())
@@ -657,6 +663,29 @@ replaceNumericColumns(const QString &expr, const QModelIndex &ind) const
         parse.skipChar();
 
         expr1 += QString("%1").arg(ind.row());
+      }
+      else if (parse.isChar('{')) {
+        int pos = parse.getPos();
+
+        parse.skipChar();
+
+        while (! parse.eof() && ! parse.isChar('}'))
+          parse.skipChar();
+
+        QString str = parse.getBefore(pos + 1);
+
+        if (parse.isChar('}'))
+          parse.skipChar();
+
+        CQChartsColumn c;
+
+        if (CQChartsUtil::stringToColumn(model_, str, c))
+          expr1 += QString("column(%1)").arg(c.column());
+        else {
+          parse.setPos(pos);
+
+         expr1 += "@";
+        }
       }
       else
         expr1 += "@";

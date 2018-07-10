@@ -103,8 +103,9 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
 }
 
 inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &var) {
-  Tcl_ObjSetVar2(interp, variantToObj(interp, name), nullptr,
-                 variantToObj(interp, var), TCL_GLOBAL_ONLY);
+  if (var.isValid())
+    Tcl_ObjSetVar2(interp, variantToObj(interp, name), nullptr,
+                   variantToObj(interp, var), TCL_GLOBAL_ONLY);
 }
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
@@ -140,7 +141,8 @@ inline Vars getListVar(Tcl_Interp *interp, const QString &name) {
 }
 
 inline void setResult(Tcl_Interp *interp, const QVariant &var) {
-  Tcl_SetObjResult(interp, variantToObj(interp, var));
+  if (var.isValid())
+    Tcl_SetObjResult(interp, variantToObj(interp, var));
 }
 
 inline void setResult(Tcl_Interp *interp, const QList<QVariant> &vars) {
@@ -149,6 +151,9 @@ inline void setResult(Tcl_Interp *interp, const QList<QVariant> &vars) {
   int nv = vars.length();
 
   for (int i = 0; i < nv; ++i) {
+    if (! vars[i].isValid())
+      continue;
+
     Tcl_Obj *sobj = variantToObj(interp, vars[i]);
 
     Tcl_ListObjAppendElement(interp, obj, sobj);
