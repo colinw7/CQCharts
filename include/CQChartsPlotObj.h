@@ -42,7 +42,7 @@ class CQChartsPlotObj : public QObject {
   // calculate unique id of object (on demand)
   virtual QString calcId() const = 0;
 
-  // tip id for object (strign to display in tooltip)
+  // tip id for object (string to display in tooltip)
   const QString &tipId() const;
   void setTipId(const QString &s) { tipId_ = s; }
 
@@ -108,7 +108,10 @@ class CQChartsPlotObj : public QObject {
 
   //---
 
-  virtual void draw(QPainter *, const CQChartsPlot::Layer &) = 0;
+  virtual void drawBg(QPainter *) { }
+  virtual void drawFg(QPainter *) { }
+
+  virtual void draw(QPainter *) = 0;
 
  protected:
   using OptString = boost::optional<QString>;

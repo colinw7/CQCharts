@@ -45,18 +45,14 @@ class CQChartsTest : public QObject {
   Q_OBJECT
 
  public:
-  using ParserType = CQChartsCmds::ParserType;
-  using Args       = std::vector<QString>;
-  using Vars       = std::vector<QString>;
-  using ModelP     = QSharedPointer<QAbstractItemModel>;
+  using Args   = std::vector<QString>;
+  using Vars   = std::vector<QString>;
+  using ModelP = QSharedPointer<QAbstractItemModel>;
 
  public:
   CQChartsTest();
 
  ~CQChartsTest();
-
-  void setParserType(const ParserType &type);
-  const ParserType &parserType() const;
 
   bool initPlot(const CQChartsInitData &initData);
 

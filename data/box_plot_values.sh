@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec box_plot_values.tcl -loop
+CQChartsTest -exec box_plot_values.tcl -loop

@@ -48,6 +48,10 @@ class CQChartsSymbol {
     return (lhs.type_ == rhs.type_);
   }
 
+  friend bool operator!=(const CQChartsSymbol &lhs, const CQChartsSymbol &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
  private:
   Type type_ { Type::CROSS };
 };

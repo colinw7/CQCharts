@@ -117,10 +117,9 @@ class MainArgs {
 };
 
 struct MainData {
-  using InitDatas  = std::vector<CQChartsInitData>;
-  using ParserType = CQChartsCmds::ParserType;
-  using OptString  = boost::optional<QString>;
-  using OptReal    = boost::optional<double>;
+  using InitDatas = std::vector<CQChartsInitData>;
+  using OptString = boost::optional<QString>;
+  using OptReal   = boost::optional<double>;
 
   bool             dark       { false };
   QString          execFile;
@@ -131,13 +130,6 @@ struct MainData {
   bool             horizontal { false };
   bool             vertical   { false };
   bool             loop       { false };
-#if   defined(CQ_CHARTS_TCL)
-  ParserType       parserType { ParserType::TCL };
-#elif defined(CQ_CHARTS_CEIL)
-  ParserType       parserType { ParserType::CEIL };
-#else
-  ParserType       parserType { ParserType::SCRIPT };
-#endif
   OptString        printFile;
   bool             gui        { true };
   bool             showApp    { false };
@@ -209,9 +201,6 @@ main(int argc, char **argv)
 
   if (! mainData.gui)
     test.setGui(false);
-
-  // set parser type
-  test.setParserType(mainData.parserType);
 
   //---
 
@@ -694,18 +683,6 @@ parseArgs(int argc, char **argv, MainData &mainData)
       else if (arg == "loop") {
         mainData.loop = true;
       }
-      // ceil
-      else if (arg == "ceil") {
-        mainData.parserType = MainData::ParserType::CEIL;
-      }
-      // tcl
-      else if (arg == "tcl") {
-        mainData.parserType = MainData::ParserType::TCL;
-      }
-      // script
-      else if (arg == "script") {
-        mainData.parserType = MainData::ParserType::SCRIPT;
-      }
 
       // view_width
       else if (arg == "view_width") {
@@ -1031,20 +1008,6 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
 }
 
 //------
-
-void
-CQChartsTest::
-setParserType(const ParserType &type)
-{
-  cmds_->setParserType(type);
-}
-
-const CQChartsTest::ParserType &
-CQChartsTest::
-parserType() const
-{
-  return cmds_->parserType();
-}
 
 void
 CQChartsTest::

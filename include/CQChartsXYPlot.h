@@ -81,7 +81,7 @@ class CQChartsXYBiLineObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -146,7 +146,7 @@ class CQChartsXYImpulseLineObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsXYPlot *plot_ { nullptr };
@@ -220,7 +220,7 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   using OptColor = boost::optional<CQChartsColor>;
@@ -287,7 +287,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   void initSmooth();
@@ -340,7 +340,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   void initSmooth();
@@ -426,11 +426,13 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsLength bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
   Q_PROPERTY(bool           stacked            READ isStacked          WRITE setStacked           )
   Q_PROPERTY(bool           cumulative         READ isCumulative       WRITE setCumulative        )
-  Q_PROPERTY(bool           impulse            READ isImpulse          WRITE setImpulse           )
-  Q_PROPERTY(CQChartsColor  impulseColor       READ impulseColor       WRITE setImpulseColor      )
-  Q_PROPERTY(double         impulseAlpha       READ impulseAlpha       WRITE setImpulseAlpha      )
-  Q_PROPERTY(CQChartsLength impulseWidth       READ impulseWidth       WRITE setImpulseWidth      )
   Q_PROPERTY(bool           vectors            READ isVectors          WRITE setVectors           )
+
+  Q_PROPERTY(bool             impulse      READ isImpulse    WRITE setImpulse     )
+  Q_PROPERTY(CQChartsColor    impulseColor READ impulseColor WRITE setImpulseColor)
+  Q_PROPERTY(double           impulseAlpha READ impulseAlpha WRITE setImpulseAlpha)
+  Q_PROPERTY(CQChartsLength   impulseWidth READ impulseWidth WRITE setImpulseWidth)
+  Q_PROPERTY(CQChartsLineDash impulseDash  READ impulseDash  WRITE setImpulseDash )
 
   // point:
   //  display, color, symbol, size
@@ -448,12 +450,13 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // line:
   //  display, stroke
-  Q_PROPERTY(bool           lines           READ isLines           WRITE setLines          )
-  Q_PROPERTY(bool           linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
-  Q_PROPERTY(CQChartsColor  linesColor      READ linesColor        WRITE setLinesColor     )
-  Q_PROPERTY(double         linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
-  Q_PROPERTY(CQChartsLength linesWidth      READ linesWidth        WRITE setLinesWidth     )
-  Q_PROPERTY(bool           roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
+  Q_PROPERTY(bool             lines           READ isLines           WRITE setLines          )
+  Q_PROPERTY(bool             linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
+  Q_PROPERTY(CQChartsColor    linesColor      READ linesColor        WRITE setLinesColor     )
+  Q_PROPERTY(double           linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
+  Q_PROPERTY(CQChartsLength   linesWidth      READ linesWidth        WRITE setLinesWidth     )
+  Q_PROPERTY(CQChartsLineDash linesDash       READ linesDash         WRITE setLinesDash      )
+  Q_PROPERTY(bool             roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
 
   // fill under:
   //  display, brush
@@ -599,6 +602,9 @@ class CQChartsXYPlot : public CQChartsPlot {
   const CQChartsLength &linesWidth() const { return lineData_.width; }
   void setLinesWidth(const CQChartsLength &l);
 
+  const CQChartsLineDash &linesDash() const { return lineData_.dash; }
+  void setLinesDash(const CQChartsLineDash &d);
+
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
 
@@ -640,6 +646,9 @@ class CQChartsXYPlot : public CQChartsPlot {
   const CQChartsLength &impulseWidth() const { return impulseData_.width; }
   void setImpulseWidth(const CQChartsLength &l);
 
+  const CQChartsLineDash &impulseDash() const { return impulseData_.dash; }
+  void setImpulseDash(const CQChartsLineDash &d);
+
   QColor interpImpulseColor(int i, int n) const;
 
   //---
@@ -651,30 +660,30 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // symbol
   const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
+  void setSymbolType(const CQChartsSymbol &t);
 
   const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s) { pointData_.size = s; update(); }
+  void setSymbolSize(const CQChartsLength &s);
 
   bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b) { pointData_.stroke.visible = b; update(); }
+  void setSymbolStroked(bool b);
 
   const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l) { pointData_.stroke.width = l; update(); }
+  void setSymbolStrokeWidth(const CQChartsLength &l);
 
   bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b) { pointData_.fill.visible = b; update(); }
+  void setSymbolFilled(bool b);
 
   //---
 
   // data label
   const CQChartsColor &dataLabelColor() const { return dataLabelData_.color; }
-  void setDataLabelColor(const CQChartsColor &c) { dataLabelData_.color = c; update(); }
+  void setDataLabelColor(const CQChartsColor &c);
 
   QColor interpDataLabelColor(int i, int n);
 
   double dataLabelAngle() const { return dataLabelData_.angle; }
-  void setDataLabelAngle(double r) { dataLabelData_.angle = r; }
+  void setDataLabelAngle(double r);
 
   //---
 
@@ -727,8 +736,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool interpY(double x, std::vector<double> &yvals) const;
 
   bool addMenuItems(QMenu *menu) override;
-
-  void draw(QPainter *) override;
 
   void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2);
 

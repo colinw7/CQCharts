@@ -1,7 +1,7 @@
 #/bin/csh -f
 
 set tests1 = ( \
-annotations.sh \
+annotation.sh \
 arrow_annotation.sh \
 arrow_style.sh \
 color_bar.sh \

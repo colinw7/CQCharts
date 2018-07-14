@@ -24,6 +24,7 @@ class CQChartsKey : public CQChartsBoxObj {
   Q_PROPERTY(bool          horizontal  READ isHorizontal  WRITE setHorizontal )
   Q_PROPERTY(bool          autoHide    READ isAutoHide    WRITE setAutoHide   )
   Q_PROPERTY(bool          clipped     READ isClipped     WRITE setClipped    )
+  Q_PROPERTY(bool          above       READ isAbove       WRITE setAbove      )
   Q_PROPERTY(bool          interactive READ isInteractive WRITE setInteractive)
   Q_PROPERTY(QString       location    READ locationStr   WRITE setLocationStr)
   Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
@@ -56,6 +57,11 @@ class CQChartsKey : public CQChartsBoxObj {
 
   bool isHorizontal() const { return horizontal_; }
   void setHorizontal(bool b) { horizontal_ = b; updateKeyItems(); }
+
+  //---
+
+  bool isAbove() const { return above_; }
+  void setAbove(bool b) { above_ = b; redraw(); }
 
   //---
 
@@ -153,6 +159,7 @@ class CQChartsKey : public CQChartsBoxObj {
 
  protected:
   bool             horizontal_          { false };                   // is layed out horizontallly
+  bool             above_               { true };                    // draw above view/plot
   LocationType     location_            { LocationType::TOP_RIGHT }; // key placement
   bool             autoHide_            { true };                    // auto hide if too big
   bool             clipped_             { true };                    // clipped to plot
@@ -207,7 +214,6 @@ class CQChartsPlotKey : public CQChartsKey {
   Q_PROPERTY(bool    insideX     READ isInsideX    WRITE setInsideX    )
   Q_PROPERTY(bool    insideY     READ isInsideY    WRITE setInsideY    )
   Q_PROPERTY(int     spacing     READ spacing      WRITE setSpacing    )
-  Q_PROPERTY(bool    above       READ isAbove      WRITE setAbove      )
   Q_PROPERTY(bool    flipped     READ isFlipped    WRITE setFlipped    )
 
  public:
@@ -231,9 +237,6 @@ class CQChartsPlotKey : public CQChartsKey {
   void setSpacing(int i) { spacing_ = i; updateLayout(); }
 
   //---
-
-  bool isAbove() const { return above_; }
-  void setAbove(bool b) { above_ = b; redraw(); }
 
   bool isFlipped() const { return flipped_; }
   void setFlipped(bool b);
@@ -342,7 +345,6 @@ class CQChartsPlotKey : public CQChartsKey {
 
   Location                   locationData_;
   int                        spacing_     { 2 };
-  bool                       above_       { true };
   bool                       flipped_     { false };
   Items                      items_;
   int                        maxRow_      { 0 };

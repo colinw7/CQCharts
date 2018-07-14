@@ -152,7 +152,9 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
   CQChartsGeom::BBox textBBox() const;
 
@@ -193,45 +195,45 @@ class CQChartsChordPlot : public CQChartsPlot {
  ~CQChartsChordPlot();
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+  void setValueColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
+  void setGroupColumn(const CQChartsColumn &c);
 
   //---
 
   bool isSorted() const { return sorted_; }
-  void setSorted(bool b) { sorted_ = b; updateObjs(); }
+  void setSorted(bool b);
 
   double innerRadius() const { return innerRadius_; }
-  void setInnerRadius(double r) { innerRadius_ = r; update(); }
+  void setInnerRadius(double r);
 
   double labelRadius() const { return labelRadius_; }
-  void setLabelRadius(double r) { labelRadius_ = r; update(); }
+  void setLabelRadius(double r);
 
   //---
 
   const CQChartsColor &borderColor() const { return borderData_.color; }
-  void setBorderColor(const CQChartsColor &c) { borderData_.color = c; update(); }
+  void setBorderColor(const CQChartsColor &c);
 
   QColor interpBorderColor(int i, int n) const;
 
   double borderAlpha() const { return borderData_.alpha; }
-  void setBorderAlpha(double r) { borderData_.alpha = r; update(); }
+  void setBorderAlpha(double r);
 
   const CQChartsLineDash &borderDash() const { return borderData_.dash; }
-  void setBorderDash(const CQChartsLineDash &l) { borderData_.dash = l; update(); }
+  void setBorderDash(const CQChartsLineDash &l);
 
   //---
 
   double segmentAlpha() const { return segmentAlpha_; }
-  void setSegmentAlpha(double r) { segmentAlpha_ = r; update(); }
+  void setSegmentAlpha(double r);
 
   double arcAlpha() const { return arcAlpha_; }
-  void setArcAlpha(double r) { arcAlpha_ = r; update(); }
+  void setArcAlpha(double r);
 
   //---
 
@@ -256,8 +258,6 @@ class CQChartsChordPlot : public CQChartsPlot {
   void handleResize() override;
 
   //---
-
-  void draw(QPainter *) override;
 
  private:
   bool initTableObjs();

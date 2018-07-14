@@ -1,6 +1,4 @@
-CQChartsTest -tcl -exec coverage.tcl
-
-#CQChartsTest -ceil -exec coverage.cl
+CQChartsTest -exec coverage.tcl
 
 if (0) then
 CQChartsTest -vertical -y1y2 \

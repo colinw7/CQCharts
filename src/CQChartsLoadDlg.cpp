@@ -368,7 +368,9 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
 
   ModelP modelp(model);
 
-  CQChartsModelData *modelData = charts_->initModelData(modelp);
+  CQChartsModelData *modelData = charts()->initModelData(modelp);
+
+  charts()->setModelName(modelData, filename);
 
   modelInd_ = modelData->ind();
 
@@ -382,7 +384,7 @@ CQChartsLoadDlg::
 loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData &inputData,
          bool &hierarchical)
 {
-  CQChartsLoader loader(charts_);
+  CQChartsLoader loader(charts());
 
   //loader.setQtcl(qtcl());
 

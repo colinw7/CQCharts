@@ -514,9 +514,6 @@ CQChartsTest \
  -type barchart -columns "group=0,value=1 2 3 4" \
  -bool "horizontal=1,stacked=1"
 
-CQChartsTest -ceil -exec split_bar_connected.cl
-CQChartsTest -ceil -exec split_bar_separated.cl
-
 CQChartsTest \
  -csv data/temp_bar_range.csv -first_line_header \
  -type barchart -columns "group=0,value=2 3" \

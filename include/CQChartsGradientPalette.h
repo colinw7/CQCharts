@@ -1,17 +1,16 @@
 #ifndef CQChartsGradientPalette_H
 #define CQChartsGradientPalette_H
 
-#ifdef CQCharts_USE_CEXPR
-#include <CExpr.h>
-#endif
-
 #include <QColor>
 #include <COSNaN.h>
 #include <string>
 #include <map>
 #include <memory>
+#include <cmath>
 
+#ifdef CQCharts_USE_TCL
 class CQTcl;
+#endif
 
 //---
 
@@ -122,12 +121,6 @@ class CQChartsGradientPalette {
     XYZ,
   };
 
-  enum class ExprType {
-    NONE,
-    CEXPR,
-    TCL
-  };
-
   using ColorMap = std::map<double,QColor>;
 
  public:
@@ -155,12 +148,6 @@ class CQChartsGradientPalette {
   // color model
   ColorModel colorModel() const { return colorModel_; }
   void setColorModel(ColorModel m) { colorModel_ = m; }
-
-  //---
-
-  // expression type
-  const ExprType &exprType() const { return exprType_; }
-  void setExprType(const ExprType &type);
 
   //---
 
@@ -319,10 +306,7 @@ class CQChartsGradientPalette {
 
  private:
   struct ColorFn {
-    std::string     fn;
-#ifdef CQCharts_USE_CEXPR
-    CExprTokenStack stack;
-#endif
+    std::string fn;
   };
 
   QString    name_;
@@ -332,14 +316,6 @@ class CQChartsGradientPalette {
 
   // Color Model
   ColorModel colorModel_    { ColorModel::RGB };
-
-#if defined(CQCharts_USE_TCL)
-  ExprType   exprType_      { ExprType::TCL };
-#elif defined(CQCharts_USE_CEXPR)
-  ExprType   exprType_      { ExprType::CEXPR };
-#else
-  ExprType   exprType_      { ExprType::NONE };
-#endif
 
   // Model
   int        rModel_        { 7 };
@@ -372,9 +348,6 @@ class CQChartsGradientPalette {
   double     colorsMax_     { 0.0 };
 
   // Misc
-#ifdef CQCharts_USE_CEXPR
-  CExpr*     expr_          { nullptr };
-#endif
 #ifdef CQCharts_USE_TCL
   CQTcl*     qtcl_          { nullptr };
 #endif

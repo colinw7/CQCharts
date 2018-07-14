@@ -156,7 +156,7 @@ editMove(const CQChartsGeom::Point &p)
   editHandles_.setDragPos(p);
 
   if      (plot_)
-    plot_->update();
+    plot_->invalidateLayer(CQChartsLayer::Type::ANNOTATION);
   else if (view_)
     view_->update();
 
@@ -188,7 +188,7 @@ editMoveBy(const QPointF &f)
   setBBox(editHandles_.bbox(), CQChartsResizeHandle::Side::MOVE);
 
   if      (plot_)
-    plot_->update();
+    plot_->invalidateLayer(CQChartsLayer::Type::ANNOTATION);
   else if (view_)
     view_->update();
 }

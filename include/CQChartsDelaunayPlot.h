@@ -48,7 +48,7 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsDelaunayPlot *plot_ { nullptr };
@@ -117,13 +117,13 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   // columns
   const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
+  void setXColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &yColumn() const { return yColumn_; }
-  void setYColumn(const CQChartsColumn &c) { yColumn_ = c; updateRangeAndObjs(); }
+  void setYColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   //---
 
@@ -131,13 +131,13 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   bool isVoronoi() const { return voronoi_; }
 
   double voronoiPointSize() const { return voronoiPointSize_; }
-  void setVoronoiPointSize(double r) { voronoiPointSize_ = r; update(); }
+  void setVoronoiPointSize(double r);
 
   //---
 
   // points
   bool isPoints() const { return pointData_.visible; }
-  void setPoints(bool b) { pointData_.visible = b; update(); }
+  void setPoints(bool b);
 
   const CQChartsColor &symbolStrokeColor() const;
   void setSymbolStrokeColor(const CQChartsColor &c);
@@ -162,7 +162,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   // lines
   bool isLines() const { return lineData_.visible; }
-  void setLines(bool b) { lineData_.visible = b; update(); }
+  void setLines(bool b);
 
   const CQChartsColor &linesColor() const;
   void setLinesColor(const CQChartsColor &c);
@@ -170,28 +170,28 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   QColor interpLinesColor(int i, int n) const;
 
   double linesAlpha() const { return lineData_.alpha; }
-  void setLinesAlpha(double a) { lineData_.alpha = a; update(); }
+  void setLinesAlpha(double a);
 
   const CQChartsLength &linesWidth() const { return lineData_.width; }
-  void setLinesWidth(const CQChartsLength &l) { lineData_.width = l; update(); }
+  void setLinesWidth(const CQChartsLength &l);
 
   //---
 
   // symbol
   const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
+  void setSymbolType(const CQChartsSymbol &t);
 
   const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s) { pointData_.size = s; update(); }
+  void setSymbolSize(const CQChartsLength &s);
 
   bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b) { pointData_.stroke.visible = b; update(); }
+  void setSymbolStroked(bool b);
 
   const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l) { pointData_.stroke.width = l; update(); }
+  void setSymbolStrokeWidth(const CQChartsLength &l);
 
   bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b) { pointData_.fill.visible = b; update(); }
+  void setSymbolFilled(bool b);
 
   //---
 
@@ -212,8 +212,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   bool addMenuItems(QMenu *menu);
 
   //---
-
-  void draw(QPainter *) override;
 
   void drawForeground(QPainter *painter) override;
 

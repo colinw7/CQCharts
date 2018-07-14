@@ -204,7 +204,7 @@ class CQChartsHierBubbleObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  protected:
   CQChartsHierBubblePlot*    plot_    { nullptr }; // parent plot
@@ -234,7 +234,7 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  protected:
   CQChartsHierBubbleHierNode* hier_ { nullptr }; // associated hier node
@@ -285,8 +285,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
     FDIAG,
     BDIAG
   };
-
-  using OptColor = boost::optional<CQChartsColor>;
 
   using Nodes = std::vector<CQChartsHierBubbleNode*>;
 
@@ -412,8 +410,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   void handleResize() override;
 
   //---
-
-  void draw(QPainter *) override;
 
   void drawForeground(QPainter *) override;
 

@@ -66,7 +66,9 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
  private:
   CQChartsGeometryPlot *plot_  { nullptr }; // parent plot
@@ -215,8 +217,6 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   bool initObjs() override;
 
   //---
-
-  void draw(QPainter *) override;
 
  private:
   void addRow(QAbstractItemModel *model, const QModelIndex &parent, int row);

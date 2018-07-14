@@ -1,6 +1,10 @@
 #include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
+
+#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
+#endif
+
 #include <COSNaN.h>
 
 namespace Util {
@@ -21,22 +25,6 @@ namespace Util {
   double map(double value, double low1, double high1, double low2, double high2) {
     return lerp(low2, high2, norm(value, low1, high1));
   }
-
-#ifdef CQCharts_USE_CEXPR
-  CExprTokenStack compileExpression(CExpr *expr, const std::string &str) {
-    CExprTokenStack pstack = expr->parseLine(str);
-    CExprITokenPtr  itoken = expr->interpPTokenStack(pstack);
-
-    CExprTokenStack cstack;
-
-    if (itoken.isValid())
-      cstack = expr->compileIToken(itoken);
-    else
-      expr->errorMsg("Eval failed: '" + str + "'");
-
-    return cstack;
-  }
-#endif
 
   double Deg2Rad(double d) {
     return M_PI*d/180.0;
@@ -59,10 +47,6 @@ namespace Util {
 CQChartsGradientPalette::
 CQChartsGradientPalette()
 {
-#ifdef CQCharts_USE_CEXPR
-  expr_ = new CExpr;
-#endif
-
 #ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 #endif
@@ -74,10 +58,6 @@ void
 CQChartsGradientPalette::
 init()
 {
-#ifdef CQCharts_USE_CEXPR
-  expr_->createRealVariable("pi", M_PI);
-#endif
-
 #ifdef CQCharts_USE_TCL
   qtcl_->createVar("pi", M_PI);
 #endif
@@ -90,10 +70,6 @@ CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 {
   *this = palette;
 
-#ifdef CQCharts_USE_CEXPR
-  expr_ = new CExpr;
-#endif
-
 #ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 #endif
@@ -104,10 +80,6 @@ CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 CQChartsGradientPalette::
 ~CQChartsGradientPalette()
 {
-#ifdef CQCharts_USE_CEXPR
-  delete expr_;
-#endif
-
 #ifdef CQCharts_USE_TCL
   delete qtcl_;
 #endif
@@ -119,29 +91,9 @@ void
 CQChartsGradientPalette::
 initFunctions()
 {
-  if      (exprType_ == ExprType::CEXPR) {
-    setRedFunction  ("gray");
-    setGreenFunction("gray");
-    setBlueFunction ("gray");
-  }
-  else if (exprType_ == ExprType::TCL) {
-    setRedFunction  ("$gray");
-    setGreenFunction("$gray");
-    setBlueFunction ("$gray");
-  }
-}
-
-//---
-
-void
-CQChartsGradientPalette::
-setExprType(const ExprType &type)
-{
-  if (type != exprType_) {
-    exprType_ = type;
-
-    initFunctions();
-  }
+  setRedFunction  ("$gray");
+  setGreenFunction("$gray");
+  setBlueFunction ("$gray");
 }
 
 //---
@@ -151,12 +103,6 @@ CQChartsGradientPalette::
 setRedFunction(const std::string &fn)
 {
   rf_.fn = fn;
-
-  if (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-    rf_.stack = Util::compileExpression(expr_, fn);
-#endif
-  }
 }
 
 void
@@ -164,12 +110,6 @@ CQChartsGradientPalette::
 setGreenFunction(const std::string &fn)
 {
   gf_.fn = fn;
-
-  if (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-    gf_.stack = Util::compileExpression(expr_, fn);
-#endif
-  }
 }
 
 void
@@ -177,12 +117,6 @@ CQChartsGradientPalette::
 setBlueFunction(const std::string &fn)
 {
   bf_.fn = fn;
-
-  if (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-    bf_.stack = Util::compileExpression(expr_, fn);
-#endif
-  }
 }
 
 void
@@ -344,47 +278,20 @@ getColor(double x, bool scale) const
   else if (colorType() == ColorType::FUNCTIONS) {
     double r = 0.0, g = 0.0, b = 0.0;
 
-    if      (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-      (void) expr_->createRealVariable("gray", x);
-
-      bool oldQuiet = expr_->getQuiet();
-
-      expr_->setQuiet(true);
-
-      CExprValuePtr value;
-
-      if (! expr_->executeCTokenStack(rf_.stack, value) ||
-          ! value.isValid() || ! value->getRealValue(r))
-        r = 0.0;
-
-      if (! expr_->executeCTokenStack(gf_.stack, value) ||
-          ! value.isValid() || ! value->getRealValue(g))
-        g = 0.0;
-
-      if (! expr_->executeCTokenStack(bf_.stack, value) ||
-          ! value.isValid() || ! value->getRealValue(b))
-        b = 0.0;
-
-      expr_->setQuiet(oldQuiet);
-#endif
-    }
-    else if (exprType_ == ExprType::TCL) {
 #ifdef CQCharts_USE_TCL
-      qtcl_->createVar("gray", x);
+    qtcl_->createVar("gray", x);
 
-      QVariant res;
+    QVariant res;
 
-      if (qtcl_->evalExpr(rf_.fn.c_str(), res))
-        r = res.toDouble();
+    if (qtcl_->evalExpr(rf_.fn.c_str(), res))
+      r = res.toDouble();
 
-      if (qtcl_->evalExpr(gf_.fn.c_str(), res))
-        g = res.toDouble();
+    if (qtcl_->evalExpr(gf_.fn.c_str(), res))
+      g = res.toDouble();
 
-      if (qtcl_->evalExpr(bf_.fn.c_str(), res))
-        b = res.toDouble();
+    if (qtcl_->evalExpr(bf_.fn.c_str(), res))
+      b = res.toDouble();
 #endif
-    }
 
     //---
 

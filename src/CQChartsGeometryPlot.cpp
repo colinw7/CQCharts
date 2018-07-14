@@ -59,7 +59,7 @@ CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
   setFilled(true);
   setBorder(true);
 
-  setLayerActive(Layer::FG, true);
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   addAxes();
 
@@ -114,14 +114,14 @@ void
 CQChartsGeometryPlot::
 setMinValue(double r)
 {
-  CQChartsUtil::testAndSet(minValue_, r, [&]() { update(); } );
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsGeometryPlot::
 setMaxValue(double r)
 {
-  CQChartsUtil::testAndSet(maxValue_, r, [&]() { update(); } );
+  CQChartsUtil::testAndSet(maxValue_, r, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -137,7 +137,7 @@ void
 CQChartsGeometryPlot::
 setBorder(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -151,7 +151,7 @@ void
 CQChartsGeometryPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -172,7 +172,7 @@ void
 CQChartsGeometryPlot::
 setBorderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -186,7 +186,7 @@ void
 CQChartsGeometryPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLineDash &
@@ -200,7 +200,7 @@ void
 CQChartsGeometryPlot::
 setBorderDash(const CQChartsLineDash &d)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -216,7 +216,7 @@ void
 CQChartsGeometryPlot::
 setFilled(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -230,7 +230,7 @@ void
 CQChartsGeometryPlot::
 setFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -251,7 +251,7 @@ void
 CQChartsGeometryPlot::
 setFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsGeometryPlot::Pattern
@@ -268,7 +268,7 @@ setFillPattern(Pattern pattern)
   if (pattern != (Pattern) shapeData_.background.pattern) {
     shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -611,17 +611,6 @@ initObjs()
   return true;
 }
 
-void
-CQChartsGeometryPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
 //------
 
 CQChartsGeometryObj::
@@ -688,115 +677,114 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsGeometryObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter)
 {
-  if (layer == CQChartsPlot::Layer::MID) {
-    ppolygons_.clear();
+  ppolygons_.clear();
 
-    for (const auto &poly : polygons_) {
-      QPolygonF ppoly;
+  for (const auto &poly : polygons_) {
+    QPolygonF ppoly;
 
-      for (int i = 0; i < poly.count(); ++i) {
-        double px, py;
+    for (int i = 0; i < poly.count(); ++i) {
+      double px, py;
 
-        plot_->windowToPixel(poly[i].x(), poly[i].y(), px, py);
+      plot_->windowToPixel(poly[i].x(), poly[i].y(), px, py);
 
-        ppoly << QPointF(px, py);
-      }
-
-      ppolygons_.push_back(ppoly);
+      ppoly << QPointF(px, py);
     }
 
-    //---
-
-    // set polygon pen/brush
-    QPen pen;
-
-    if (plot_->isBorder()) {
-      QColor bc = plot_->interpBorderColor(0, 1);
-
-      bc.setAlphaF(plot_->borderAlpha());
-
-      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-      pen.setColor (bc);
-      pen.setWidthF(bw);
-    }
-    else {
-      pen = QPen(Qt::NoPen);
-    }
-
-    QBrush brush;
-
-    if (plot_->isFilled()) {
-      QColor fc;
-
-      double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
-
-      if (color().isValid()) {
-        if (n_ > 0)
-          fc = color().interpColor(plot_, i_, n_);
-        else
-          fc = color().interpColor(plot_, dv);
-      }
-      else {
-        if (n_ > 0)
-          fc = plot_->interpFillColor(i_, n_);
-        else
-          fc = plot_->interpPaletteColor(dv);
-      }
-
-      fc.setAlphaF(plot_->fillAlpha());
-
-      brush.setColor(fc);
-      brush.setStyle(CQChartsFillPattern::toStyle(
-        (CQChartsFillPattern::Type) plot_->fillPattern()));
-    }
-    else {
-      brush.setStyle(Qt::NoBrush);
-    }
-
-    if (style().isValid()) {
-      pen   = style().pen  ();
-      brush = style().brush();
-    }
-
-    plot_->updateObjPenBrushState(this, pen, brush);
-
-    //---
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
-    for (const auto &ppoly : ppolygons_) {
-      QPainterPath path;
-
-      int i = 0;
-
-      for (const auto &ppoint : ppoly) {
-        if (i == 0)
-          path.moveTo(ppoint);
-        else
-          path.lineTo(ppoint);
-
-        ++i;
-      }
-
-      path.closeSubpath();
-
-      painter->drawPath(path);
-    }
+    ppolygons_.push_back(ppoly);
   }
 
   //---
 
-  if (layer == CQChartsPlot::Layer::FG) {
-    CQChartsGeom::BBox prect;
+  // set polygon pen/brush
+  QPen pen;
 
-    plot_->windowToPixel(rect(), prect);
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
 
-    QRectF qrect = CQChartsUtil::toQRect(prect);
+    bc.setAlphaF(plot_->borderAlpha());
 
-    plot_->dataLabel().draw(painter, qrect, name());
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+
+    pen.setColor (bc);
+    pen.setWidthF(bw);
   }
+  else {
+    pen = QPen(Qt::NoPen);
+  }
+
+  QBrush brush;
+
+  if (plot_->isFilled()) {
+    QColor fc;
+
+    double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+
+    if (color().isValid()) {
+      if (n_ > 0)
+        fc = color().interpColor(plot_, i_, n_);
+      else
+        fc = color().interpColor(plot_, dv);
+    }
+    else {
+      if (n_ > 0)
+        fc = plot_->interpFillColor(i_, n_);
+      else
+        fc = plot_->interpPaletteColor(dv);
+    }
+
+    fc.setAlphaF(plot_->fillAlpha());
+
+    brush.setColor(fc);
+    brush.setStyle(CQChartsFillPattern::toStyle(
+      (CQChartsFillPattern::Type) plot_->fillPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
+
+  if (style().isValid()) {
+    pen   = style().pen  ();
+    brush = style().brush();
+  }
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  for (const auto &ppoly : ppolygons_) {
+    QPainterPath path;
+
+    int i = 0;
+
+    for (const auto &ppoint : ppoly) {
+      if (i == 0)
+        path.moveTo(ppoint);
+      else
+        path.lineTo(ppoint);
+
+      ++i;
+    }
+
+    path.closeSubpath();
+
+    painter->drawPath(path);
+  }
+}
+
+void
+CQChartsGeometryObj::
+drawFg(QPainter *painter)
+{
+  CQChartsGeom::BBox prect;
+
+  plot_->windowToPixel(rect(), prect);
+
+  QRectF qrect = CQChartsUtil::toQRect(prect);
+
+  plot_->dataLabel().draw(painter, qrect, name());
 }

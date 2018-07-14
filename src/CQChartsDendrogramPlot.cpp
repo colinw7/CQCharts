@@ -86,6 +86,38 @@ addProperties()
 
 //---
 
+void
+CQChartsDendrogramPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setValueColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(valueColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsDendrogramPlot::
+setCircleSize(double r)
+{
+  CQChartsUtil::testAndSet(circleSize_, r, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDendrogramPlot::
+setTextMargin(double r)
+{
+  CQChartsUtil::testAndSet(textMargin_, r, [&]() { invalidateLayers(); } );
+}
+
+//---
+
 const CQChartsColor &
 CQChartsDendrogramPlot::
 nodeBorderColor() const
@@ -97,7 +129,7 @@ void
 CQChartsDendrogramPlot::
 setNodeBorderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -118,7 +150,7 @@ void
 CQChartsDendrogramPlot::
 setNodeBorderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -132,7 +164,7 @@ void
 CQChartsDendrogramPlot::
 setNodeBorderWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -148,7 +180,7 @@ void
 CQChartsDendrogramPlot::
 setNodeFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -169,7 +201,7 @@ void
 CQChartsDendrogramPlot::
 setNodeFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -185,7 +217,7 @@ void
 CQChartsDendrogramPlot::
 setEdgeLineColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(edgeData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -206,7 +238,7 @@ void
 CQChartsDendrogramPlot::
 setEdgeLineAlpha(double a)
 {
-  CQChartsUtil::testAndSet(edgeData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -220,7 +252,7 @@ void
 CQChartsDendrogramPlot::
 setEdgeLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(edgeData_.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.width, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -236,7 +268,7 @@ void
 CQChartsDendrogramPlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -250,7 +282,7 @@ void
 CQChartsDendrogramPlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -271,7 +303,7 @@ void
 CQChartsDendrogramPlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -521,15 +553,8 @@ addNodeObj(CQChartsDendrogram::Node *node)
 
 void
 CQChartsDendrogramPlot::
-draw(QPainter *painter)
+drawForeground(QPainter *painter)
 {
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-
-  //---
 
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
@@ -707,7 +732,7 @@ getSelectIndices(Indices &) const
 
 void
 CQChartsDendrogramNodeObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! node_->isPlaced()) return;
 

@@ -179,7 +179,7 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsHierScatterPlot*       plot_ { nullptr };
@@ -249,21 +249,21 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   //---
 
   const CQChartsColor &symbolBorderColor() const { return symbolData_.stroke.color; }
-  void setSymbolBorderColor(const CQChartsColor &c) { symbolData_.stroke.color = c; update(); }
+  void setSymbolBorderColor(const CQChartsColor &c);
 
   QColor interpSymbolBorderColor(int i, int n) const {
     return symbolBorderColor().interpColor(this, i, n); }
 
   const CQChartsLength &symbolSize() const { return symbolData_.size; }
-  void setSymbolSize(const CQChartsLength &s) { symbolData_.size = s; updateObjs(); }
+  void setSymbolSize(const CQChartsLength &s);
 
   //---
 
   bool isTextLabels() const { return dataLabel_.isVisible(); }
-  void setTextLabels(bool b) { dataLabel_.setVisible(b); }
+  void setTextLabels(bool b);
 
   double fontSize() const { return fontSize_; }
-  void setFontSize(double s) { fontSize_ = s; updateObjs(); }
+  void setFontSize(double s);
 
   //---
 
@@ -309,8 +309,6 @@ class CQChartsHierScatterPlot : public CQChartsPlot {
   //---
 
   bool addMenuItems(QMenu *menu) override;
-
-  void draw(QPainter *) override;
 
  private slots:
   void popCurrentGroup();

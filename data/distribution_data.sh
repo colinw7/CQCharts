@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec distribution_data.tcl -loop
+CQChartsTest -exec distribution_data.tcl -loop

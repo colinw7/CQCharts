@@ -6,6 +6,9 @@
 #include <CQPropertyViewTree.h>
 #include <CQChartsGradientPaletteCanvas.h>
 #include <CQChartsGradientPaletteControl.h>
+#include <CQChartsLoadDlg.h>
+#include <CQChartsPlotDlg.h>
+#include <CQCharts.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
@@ -27,6 +30,11 @@ CQChartsViewSettings(CQChartsWindow *window) :
  QFrame(window), window_(window)
 {
   CQChartsView *view = window_->view();
+
+  CQCharts *charts = view->charts();
+
+  connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(updateModels()));
+  connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
 
   connect(view, SIGNAL(plotAdded(const QString &)), this, SLOT(updatePlots()));
   connect(view, SIGNAL(plotsReordered()), this, SLOT(updatePlots()));
@@ -88,6 +96,40 @@ CQChartsViewSettings(CQChartsWindow *window) :
   viewLayout->addWidget(propertiesWidgets_.propertyTree);
 
   //------
+
+  // Models Tab
+  QFrame *modelsFrame = new QFrame;
+  modelsFrame->setObjectName("modelsFrame");
+
+  tab_->addTab(modelsFrame, "Models");
+
+  QVBoxLayout *modelsFrameLayout = new QVBoxLayout(modelsFrame);
+
+  modelsWidgets_.modelTable = new QTableWidget;
+  modelsWidgets_.modelTable->setObjectName("modelTable");
+
+  modelsWidgets_.modelTable->horizontalHeader()->setStretchLastSection(true);
+
+  modelsWidgets_.modelTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  modelsFrameLayout->addWidget(modelsWidgets_.modelTable);
+
+  connect(modelsWidgets_.modelTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(modelsSelectionChangeSlot()));
+
+  QHBoxLayout *modelControlLayout = new QHBoxLayout;
+
+  modelsFrameLayout->addLayout(modelControlLayout);
+
+  QPushButton *loadModelButton = new QPushButton("Load");
+  loadModelButton->setObjectName("load");
+
+  connect(loadModelButton, SIGNAL(clicked()), this, SLOT(loadModelSlot()));
+
+  modelControlLayout->addWidget(loadModelButton);
+  modelControlLayout->addStretch(1);
+
+  //--
 
   // Plots Tab
   QFrame *plotsFrame = new QFrame;
@@ -252,6 +294,23 @@ CQChartsViewSettings(CQChartsWindow *window) :
   stackPlotsGroupLayout->addWidget(plotsWidgets_.removeButton);
   stackPlotsGroupLayout->addStretch(1);
 
+  //----
+
+  QGroupBox *controlPlotsGroup = new QGroupBox("Control");
+  controlPlotsGroup->setObjectName("controlPlotsGroup");
+
+  plotsFrameLayout->addWidget(controlPlotsGroup);
+
+  QHBoxLayout *controlPlotsGroupLayout = new QHBoxLayout(controlPlotsGroup);
+
+  QPushButton *createPlotButton = new QPushButton("Create");
+  createPlotButton->setObjectName("create");
+
+  connect(createPlotButton, SIGNAL(clicked()), this, SLOT(createPlotSlot()));
+
+  controlPlotsGroupLayout->addWidget(createPlotButton);
+  controlPlotsGroupLayout->addStretch(1);
+
   //------
 
   // Theme Tab
@@ -390,11 +449,47 @@ CQChartsViewSettings(CQChartsWindow *window) :
   interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(update()));
+
+  //---
+
+  updateModels();
 }
 
 CQChartsViewSettings::
 ~CQChartsViewSettings()
 {
+}
+
+void
+CQChartsViewSettings::
+updateModels()
+{
+  CQChartsView *view = window_->view();
+
+  CQCharts *charts = view->charts();
+
+  CQCharts::ModelDatas modelDatas;
+
+  charts->getModelDatas(modelDatas);
+
+  modelsWidgets_.modelTable->clear();
+
+  modelsWidgets_.modelTable->setColumnCount(1);
+  modelsWidgets_.modelTable->setRowCount(modelDatas.size());
+
+  modelsWidgets_.modelTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+
+  int i = 0;
+
+  for (const auto &modelData : modelDatas) {
+    QTableWidgetItem *idItem = new QTableWidgetItem(modelData->id());
+
+    modelsWidgets_.modelTable->setItem(i, 0, idItem);
+
+    idItem->setData(Qt::UserRole, modelData->ind());
+
+    ++i;
+  }
 }
 
 void
@@ -561,6 +656,42 @@ addSearchSlot(const QString &text)
 
 void
 CQChartsViewSettings::
+modelsSelectionChangeSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  QList<QTableWidgetItem *> items = modelsWidgets_.modelTable->selectedItems();
+
+  for (int i = 0; i < items.length(); ++i) {
+    QTableWidgetItem *item = items[i];
+
+    bool ok;
+
+    int ind = item->data(Qt::UserRole).toInt(&ok);
+
+    if (ok) {
+      charts->setCurrentModelInd(ind);
+      return;
+    }
+  }
+}
+
+void
+CQChartsViewSettings::
+loadModelSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  if (loadDlg_)
+    delete loadDlg_;
+
+  loadDlg_ = new CQChartsLoadDlg(charts);
+
+  loadDlg_->show();
+}
+
+void
+CQChartsViewSettings::
 plotsSelectionChangeSlot()
 {
   Plots plots;
@@ -670,4 +801,25 @@ removePlotsSlot()
 
   for (auto &plot : plots)
     view->removePlot(plot);
+}
+
+void
+CQChartsViewSettings::
+createPlotSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
+
+  if (! modelData)
+    return;
+
+  if (plotDlg_)
+    delete plotDlg_;
+
+  plotDlg_ = new CQChartsPlotDlg(charts, modelData->model());
+
+  plotDlg_->setViewName(window_->view()->id());
+
+  plotDlg_->show();
 }

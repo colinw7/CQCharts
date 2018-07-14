@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec bubble_group.tcl
+CQChartsTest -exec bubble_group.tcl

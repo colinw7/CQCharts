@@ -80,9 +80,52 @@ CQChartsParallelPlot::
 
 void
 CQChartsParallelPlot::
+setXColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsParallelPlot::
+setYColumn(const CQChartsColumn &c)
+{
+  yColumns_.setColumn(c);
+
+  updateRangeAndObjs();
+}
+
+void
+CQChartsParallelPlot::
+setYColumns(const Columns &cols)
+{
+  yColumns_.setColumns(cols);
+
+  updateRangeAndObjs();
+}
+
+bool
+CQChartsParallelPlot::
+setYColumnsStr(const QString &s)
+{
+  return yColumns_.setColumnsStr(s);
+}
+
+//---
+
+void
+CQChartsParallelPlot::
 setHorizontal(bool b)
 {
   CQChartsUtil::testAndSet(horizontal_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsParallelPlot::
+setPoints(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.visible, b, [&]() { updateObjs(); } );
 }
 
 //---
@@ -98,7 +141,7 @@ void
 CQChartsParallelPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -119,7 +162,7 @@ void
 CQChartsParallelPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -133,7 +176,7 @@ void
 CQChartsParallelPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -154,7 +197,7 @@ void
 CQChartsParallelPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsParallelPlot::Pattern
@@ -171,11 +214,25 @@ setSymbolFillPattern(const Pattern &pattern)
   if (pattern != (Pattern) pointData_.fill.pattern) {
     pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
 //---
+
+void
+CQChartsParallelPlot::
+setLines(bool b)
+{
+  CQChartsUtil::testAndSet(lineData_.visible, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsParallelPlot::
+setLinesSelectable(bool b)
+{
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { invalidateLayers(); } );
+}
 
 const CQChartsColor &
 CQChartsParallelPlot::
@@ -188,7 +245,7 @@ void
 CQChartsParallelPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -196,6 +253,64 @@ CQChartsParallelPlot::
 interpLinesColor(int i, int n) const
 {
   return linesColor().interpColor(this, i, n);
+}
+
+void
+CQChartsParallelPlot::
+setLinesAlpha(double a)
+{
+  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setLinesWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setLinesDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { invalidateLayers(); } );
+}
+
+//------
+
+void
+CQChartsParallelPlot::
+setSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(pointData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(pointData_.size, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setSymbolStroked(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.visible, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setSymbolStrokeWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsParallelPlot::
+setSymbolFilled(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -622,23 +737,15 @@ addMenuItems(QMenu *menu)
 
 void
 CQChartsParallelPlot::
-draw(QPainter *painter)
+drawParts(QPainter *painter)
 {
-  initPlotObjs();
-
-  //---
-
-  drawBackground(painter);
-
-  //---
-
   // set display range to data range
   if (! isHorizontal())
     displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
   else
     displayRange_->setWindowRange(0, dataRange_.ymin(), 1, dataRange_.ymax());
 
-  drawObjs(painter, Layer::MID);
+  drawObjs(painter, CQChartsLayer::Type::MID_PLOT);
 
   //---
 
@@ -804,7 +911,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsParallelLineObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
@@ -967,7 +1074,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsParallelPointObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;

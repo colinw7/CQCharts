@@ -186,7 +186,9 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
  private:
   CQChartsBarChartPlot*        plot_  { nullptr }; // parent plot
@@ -228,8 +230,8 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   void setSetHidden(bool b);
 
  private:
-  CQChartsBarChartPlot *plot_;  // plot
-  OptColor              color_; // custom color
+  CQChartsBarChartPlot *plot_  { nullptr }; // plot
+  OptColor              color_;             // custom color
 };
 
 // key text
@@ -323,8 +325,6 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   //---
 
   bool addMenuItems(QMenu *menu) override;
-
-  void draw(QPainter *) override;
 
   //---
 

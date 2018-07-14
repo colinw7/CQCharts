@@ -48,7 +48,7 @@ class CQChartsParallelLineObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   void getPolyLine(QPolygonF &poly) const;
@@ -83,7 +83,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsParallelPlot* plot_  { nullptr };
@@ -118,11 +118,12 @@ class CQChartsParallelPlot : public CQChartsPlot {
   Q_PROPERTY(bool           horizontal   READ isHorizontal   WRITE setHorizontal)
 
   // lines
-  Q_PROPERTY(bool           lines           READ isLines           WRITE setLines          )
-  Q_PROPERTY(bool           linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
-  Q_PROPERTY(CQChartsColor  linesColor      READ linesColor        WRITE setLinesColor     )
-  Q_PROPERTY(double         linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
-  Q_PROPERTY(CQChartsLength linesWidth      READ linesWidth        WRITE setLinesWidth     )
+  Q_PROPERTY(bool             lines           READ isLines           WRITE setLines          )
+  Q_PROPERTY(bool             linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
+  Q_PROPERTY(CQChartsColor    linesColor      READ linesColor        WRITE setLinesColor     )
+  Q_PROPERTY(double           linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
+  Q_PROPERTY(CQChartsLength   linesWidth      READ linesWidth        WRITE setLinesWidth     )
+  Q_PROPERTY(CQChartsLineDash linesDash       READ linesDash         WRITE setLinesDash      )
 
   // points
   Q_PROPERTY(bool           points            READ isPoints          WRITE setPoints           )
@@ -160,16 +161,16 @@ class CQChartsParallelPlot : public CQChartsPlot {
   // columns
 
   const CQChartsColumn &xColumn() const { return xColumn_; }
-  void setXColumn(const CQChartsColumn &c) { xColumn_ = c; updateRangeAndObjs(); }
+  void setXColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &yColumn() const { return yColumns_.column(); }
-  void setYColumn(const CQChartsColumn &c) { yColumns_.setColumn(c); updateRangeAndObjs(); }
+  void setYColumn(const CQChartsColumn &c);
 
   const Columns &yColumns() const { return yColumns_.columns(); }
-  void setYColumns(const Columns &cols) { yColumns_.setColumns(cols); updateRangeAndObjs(); }
+  void setYColumns(const Columns &cols);
 
   QString yColumnsStr() const { return yColumns_.columnsStr(); }
-  bool setYColumnsStr(const QString &s) { return yColumns_.setColumnsStr(s); }
+  bool setYColumnsStr(const QString &s);
 
   //---
 
@@ -179,7 +180,7 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   // points
   bool isPoints() const { return pointData_.visible; }
-  void setPoints(bool b) { pointData_.visible = b; updateObjs(); }
+  void setPoints(bool b);
 
   const CQChartsColor &symbolStrokeColor() const;
   void setSymbolStrokeColor(const CQChartsColor &c);
@@ -204,10 +205,10 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   // lines
   bool isLines() const { return lineData_.visible; }
-  void setLines(bool b) { lineData_.visible = b; updateObjs(); }
+  void setLines(bool b);
 
   bool isLinesSelectable() const { return linesSelectable_; }
-  void setLinesSelectable(bool b) { linesSelectable_ = b; update(); }
+  void setLinesSelectable(bool b);
 
   const CQChartsColor &linesColor() const;
   void setLinesColor(const CQChartsColor &c);
@@ -215,28 +216,31 @@ class CQChartsParallelPlot : public CQChartsPlot {
   QColor interpLinesColor(int i, int n) const;
 
   double linesAlpha() const { return lineData_.alpha; }
-  void setLinesAlpha(double a) { lineData_.alpha = a; update(); }
+  void setLinesAlpha(double a);
 
   const CQChartsLength &linesWidth() const { return lineData_.width; }
-  void setLinesWidth(const CQChartsLength &l) { lineData_.width = l; update(); }
+  void setLinesWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &linesDash() const { return lineData_.dash; }
+  void setLinesDash(const CQChartsLineDash &d);
 
   //---
 
   // symbol
   const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t) { pointData_.type = t; update(); }
+  void setSymbolType(const CQChartsSymbol &t);
 
   const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s) { pointData_.size = s; update(); }
+  void setSymbolSize(const CQChartsLength &s);
 
   bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b) { pointData_.stroke.visible = b; update(); }
+  void setSymbolStroked(bool b);
 
   const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l) { pointData_.stroke.width = l; update(); }
+  void setSymbolStrokeWidth(const CQChartsLength &l);
 
   bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b) { pointData_.fill.visible = b; update(); }
+  void setSymbolFilled(bool b);
 
   //---
 
@@ -267,7 +271,9 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
-  void draw(QPainter *) override;
+  //---
+
+  void drawParts(QPainter *painter) override;
 
  public slots:
   // set horizontal

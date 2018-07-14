@@ -111,7 +111,7 @@ void
 CQChartsBubblePlot::
 setFilled(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -125,7 +125,7 @@ void
 CQChartsBubblePlot::
 setFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -146,7 +146,7 @@ void
 CQChartsBubblePlot::
 setFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsBubblePlot::Pattern
@@ -163,7 +163,7 @@ setFillPattern(Pattern pattern)
   if (pattern != (Pattern) shapeData_.background.pattern) {
     shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -173,7 +173,7 @@ void
 CQChartsBubblePlot::
 setValueLabel(bool b)
 {
-  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(valueLabel_, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -189,7 +189,7 @@ void
 CQChartsBubblePlot::
 setBorder(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -203,7 +203,7 @@ void
 CQChartsBubblePlot::
 setBorderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -224,7 +224,7 @@ void
 CQChartsBubblePlot::
 setBorderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -238,7 +238,7 @@ void
 CQChartsBubblePlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLineDash &
@@ -252,7 +252,7 @@ void
 CQChartsBubblePlot::
 setBorderDash(const CQChartsLineDash &d)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -268,7 +268,7 @@ void
 CQChartsBubblePlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 void
@@ -278,7 +278,7 @@ setTextFontSize(double s)
   if (s != textData_.font.pointSizeF()) {
     textData_.font.setPointSizeF(s);
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -293,7 +293,7 @@ void
 CQChartsBubblePlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -314,7 +314,7 @@ void
 CQChartsBubblePlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 bool
@@ -328,7 +328,7 @@ void
 CQChartsBubblePlot::
 setTextContrast(bool b)
 {
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
 }
 
 bool
@@ -342,7 +342,7 @@ void
 CQChartsBubblePlot::
 setTextScaled(bool b)
 {
-  CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -803,17 +803,6 @@ handleResize()
 
 void
 CQChartsBubblePlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-void
-CQChartsBubblePlot::
 drawForeground(QPainter *painter)
 {
   drawBounds(painter, currentRoot());
@@ -913,7 +902,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsBubbleHierObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   CQChartsBubbleHierNode *root = hier_->parent();
 
@@ -1060,7 +1049,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsBubbleObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   double r = node_->radius();
 

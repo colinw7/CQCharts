@@ -26,6 +26,8 @@ class CQChartsLoadDlg : public QDialog {
   CQChartsLoadDlg(CQCharts *charts);
  ~CQChartsLoadDlg();
 
+  CQCharts *charts() const { return charts_; }
+
   bool isCommentHeader() const;
   bool isFirstLineHeader() const;
   bool isFirstColumnHeader() const;

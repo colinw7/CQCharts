@@ -1,3 +1,1 @@
-CQChartsTest -tcl -exec process_model.tcl -loop
-
-#CQChartsTest -ceil -exec process_model.cl -loop
+CQChartsTest -exec process_model.tcl -loop

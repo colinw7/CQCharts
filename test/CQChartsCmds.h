@@ -22,15 +22,11 @@ class CQChartsModelData;
 class CQChartsPlotType;
 class CQChartsAnnotation;
 
-#ifdef CQ_CHARTS_CEIL
-class ClLanguageCommand;
-class ClLanguageArgs;
-#endif
-
 class CQChartsCmds;
 
-class CExpr;
+#ifdef CQCharts_USE_TCL
 class CQTcl;
+#endif
 
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -45,7 +41,6 @@ class CQChartsCmdsSlot : public QObject {
                    const QString &procName);
 
  private:
-  QString getCeilCmd(const QString &id) const;
   QString getTclCmd(const QString &id) const;
 
  public slots:
@@ -65,14 +60,13 @@ class CQChartsCmds : public QObject {
   Q_OBJECT
 
  public:
-  using ParserType = CQCharts::ParserType;
-  using Args       = std::vector<QString>;
-  using Vars       = std::vector<QVariant>;
-  using OptReal    = boost::optional<double>;
-  using ModelP     = QSharedPointer<QAbstractItemModel>;
-  using Strs       = std::vector<QString>;
-  using ViewP      = QPointer<CQChartsView>;
-  using Plots      = std::vector<CQChartsPlot *>;
+  using Args    = std::vector<QString>;
+  using Vars    = std::vector<QVariant>;
+  using OptReal = boost::optional<double>;
+  using ModelP  = QSharedPointer<QAbstractItemModel>;
+  using Strs    = std::vector<QString>;
+  using ViewP   = QPointer<CQChartsView>;
+  using Plots   = std::vector<CQChartsPlot *>;
 
  public:
   CQChartsCmds(CQCharts *charts);
@@ -80,16 +74,9 @@ class CQChartsCmds : public QObject {
 
   CQCharts *charts() const { return charts_; }
 
-  CExpr* expr() const { return expr_; }
-
-  const ParserType &parserType() const;
-  void setParserType(const ParserType &type);
-
-  void addCeilCommand(const QString &name);
-  void addTclCommand (const QString &name);
+  void addCommands();
 
   void addCommand(const QString &name);
-  void addCommands();
 
   bool processCmd(const QString &cmd, const Vars &vars);
 
@@ -139,11 +126,11 @@ class CQChartsCmds : public QObject {
 
   //---
 
+#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
+#endif
 
  private:
-  friend class CQChartsCeilCmd;
-
   bool loadModelCmd   (const Vars &vars);
   void processModelCmd(const Vars &vars);
   void sortModelCmd   (const Vars &vars);
@@ -183,20 +170,13 @@ class CQChartsCmds : public QObject {
 
   void connectChartCmd(const Vars &vars);
 
+  void printChartCmd(const Vars &vars);
+
   void loadModelDlgCmd  (const Vars &vars);
   void manageModelDlgCmd(const Vars &vars);
   void createPlotDlgCmd (const Vars &vars);
 
-#ifdef CQ_CHARTS_CEIL
-  void letCmd     (const Vars &vars);
-  void ifCmd      (const Vars &vars);
-  void whileCmd   (const Vars &vars);
-  void continueCmd(const Vars &vars);
-  void printCmd   (const Vars &vars);
-#endif
-
-  void shellCmd (const Vars &vars);
-  void sourceCmd(const Vars &vars);
+  void shellCmd(const Vars &vars);
 
   //---
 
@@ -204,10 +184,6 @@ class CQChartsCmds : public QObject {
                       const CQChartsPaletteColorData &paletteData);
 
   QStringList stringToCmds(const QString &str) const;
-
-#ifdef CQ_CHARTS_CEIL
-  Vars parseCommandArgs(ClLanguageCommand *command, ClLanguageArgs *largs);
-#endif
 
   //---
 
@@ -246,9 +222,10 @@ class CQChartsCmds : public QObject {
   using CommandNames = std::vector<QString>;
 
   CQCharts*    charts_       { nullptr };
-  CExpr*       expr_         { nullptr };
   bool         continueFlag_ { false };
+#ifdef CQCharts_USE_TCL
   CQTcl*       qtcl_         { nullptr };
+#endif
   CommandNames commandNames_;
 };
 

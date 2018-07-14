@@ -19,6 +19,16 @@ CQChartsModelData::
   delete details_;
 }
 
+QString
+CQChartsModelData::
+id() const
+{
+  if (name().length())
+    return name();
+
+  return QString("%1").arg(ind());
+}
+
 CQChartsModelDetails *
 CQChartsModelData::
 details()

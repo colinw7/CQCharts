@@ -1009,19 +1009,6 @@ popTopSlot()
 
 //------
 
-void
-CQChartsDistributionPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-//------
-
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
                         int groupInd, int bucket, double n1, double n2,
@@ -1129,7 +1116,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsDistributionBarObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter)
 {
   painter->save();
 
@@ -1145,54 +1132,64 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  if (layer == CQChartsPlot::Layer::MID) {
-    // get bar colors
-    ColorData colorData;
+  // get bar colors
+  ColorData colorData;
 
-    if (getBarColoredRects(colorData)) {
-      double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
+  if (getBarColoredRects(colorData)) {
+    double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
 
-      double dsize = size/colorData.nv;
+    double dsize = size/colorData.nv;
 
-      double pos1 = 0.0, pos2 = 0.0;
+    double pos1 = 0.0, pos2 = 0.0;
 
-      for (auto &p : colorData.colorSet) {
-        const CQChartsColor &color = p.first;
-        int                  n     = colorData.colorCount[p.second];
+    for (auto &p : colorData.colorSet) {
+      const CQChartsColor &color = p.first;
+      int                  n     = colorData.colorCount[p.second];
 
-        pos1 = pos2;
-        pos2 = pos1 + dsize*n;
+      pos1 = pos2;
+      pos2 = pos1 + dsize*n;
 
-        QRectF qrect1;
+      QRectF qrect1;
 
-        if (! plot_->isHorizontal())
-          qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
-        else
-          qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
+      if (! plot_->isHorizontal())
+        qrect1 = QRectF(qrect.x(), qrect.bottom() - pos2, qrect.width(), pos2 - pos1);
+      else
+        qrect1 = QRectF(qrect.left() + pos1, qrect.y(), pos2 - pos1, qrect.height());
 
-        //---
+      //---
 
-        drawRect(painter, qrect1, color, useLine);
-      }
-    }
-    else {
-      QColor barColor = this->barColor();
-
-      drawRect(painter, qrect, barColor, useLine);
+      drawRect(painter, qrect1, color, useLine);
     }
   }
   else {
-    QString ystr;
+    QColor barColor = this->barColor();
 
-    if (plot_->isRangeBar())
-      ystr = QString("%1-%2").arg(n1_).arg(n2_);
-    else
-      ystr = QString("%1").arg(n2_);
-
-    plot_->dataLabel().draw(painter, qrect, ystr);
+    drawRect(painter, qrect, barColor, useLine);
   }
 
+  //---
+
   painter->restore();
+}
+
+void
+CQChartsDistributionBarObj::
+drawFg(QPainter *painter)
+{
+  CQChartsGeom::BBox pbbox = calcRect();
+
+  QRectF qrect = CQChartsUtil::toQRect(pbbox);
+
+  //---
+
+  QString ystr;
+
+  if (plot_->isRangeBar())
+    ystr = QString("%1-%2").arg(n1_).arg(n2_);
+  else
+    ystr = QString("%1").arg(n2_);
+
+  plot_->dataLabel().draw(painter, qrect, ystr);
 }
 
 bool

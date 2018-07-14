@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec pokemon.tcl -loop
+CQChartsTest -exec pokemon.tcl -loop

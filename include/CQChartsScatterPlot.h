@@ -41,7 +41,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           int ig, int ng, int is, int ns, int iv, int nv);
 
   const CQChartsLength &symbolSize() const { return symbolSize_; }
-  void setSymbolSize(const CQChartsLength &s) { symbolSize_ = s; }
+  void setSymbolSize(const CQChartsLength &s);
 
   const QString &name() const { return name_; }
   void setName(const QString &v) { name_ = v; }
@@ -59,7 +59,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
@@ -132,6 +132,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
 
   // symbol size map
+  Q_PROPERTY(bool   symbolMapKey     READ isSymbolMapKey     WRITE setSymbolMapKey    )
   Q_PROPERTY(bool   symbolSizeMapped READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
   Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
   Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
@@ -200,7 +201,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   // symbol
   const CQChartsSymbol &symbolType() const { return symbolData_.type; }
-  void setSymbolType(const CQChartsSymbol &t) { symbolData_.type = t; update(); }
+  void setSymbolType(const CQChartsSymbol &t);
 
   const CQChartsLength &symbolSize() const { return symbolData_.size; }
   void setSymbolSize(const CQChartsLength &s);
@@ -243,56 +244,56 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   //---
 
+  bool isSymbolMapKey() const { return symbolMapKey_; }
+  void setSymbolMapKey(bool b);
+
   const CQChartsColumn &symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
-  void setSymbolSizeColumn(const CQChartsColumn &c) {
-    if (setValueSetColumn("symbolSize", c)) updateRangeAndObjs(); }
+  void setSymbolSizeColumn(const CQChartsColumn &c);
 
   bool isSymbolSizeMapped() const { return isValueSetMapped("symbolSize"); }
-  void setSymbolSizeMapped(bool b) { setValueSetMapped("symbolSize", b); updateObjs(); }
+  void setSymbolSizeMapped(bool b);
 
   double symbolSizeMapMin() const { return valueSetMapMin("symbolSize"); }
-  void setSymbolSizeMapMin(double r) { setValueSetMapMin("symbolSize", r); updateObjs(); }
+  void setSymbolSizeMapMin(double r);
 
   double symbolSizeMapMax() const { return valueSetMapMax("symbolSize"); }
-  void setSymbolSizeMapMax(double r) { setValueSetMapMax("symbolSize", r); updateObjs(); }
+  void setSymbolSizeMapMax(double r);
 
   //---
 
   const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
-  void setColorColumn(const CQChartsColumn &c) {
-    if (setValueSetColumn("color", c)) updateRangeAndObjs(); }
+  void setColorColumn(const CQChartsColumn &c);
 
   bool isColorMapped() const { return isValueSetMapped("color"); }
-  void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }
+  void setColorMapped(bool b);
 
   double colorMapMin() const { return valueSetMapMin("color"); }
-  void setColorMapMin(double r) { setValueSetMapMin("color", r); updateObjs(); }
+  void setColorMapMin(double r);
 
   double colorMapMax() const { return valueSetMapMax("color"); }
-  void setColorMapMax(double r) { setValueSetMapMax("color", r); updateObjs(); }
+  void setColorMapMax(double r);
 
   //---
 
   bool isTextLabels() const { return dataLabel_.isVisible(); }
-  void setTextLabels(bool b) { dataLabel_.setVisible(b); }
+  void setTextLabels(bool b);
 
   //---
 
   const CQChartsColumn &fontSizeColumn() const { return valueSetColumn("fontSize"); }
-  void setFontSizeColumn(const CQChartsColumn &c) {
-    if (setValueSetColumn("fontSize", c)) updateRangeAndObjs(); }
+  void setFontSizeColumn(const CQChartsColumn &c);
 
   double fontSize() const { return fontSize_; }
   void setFontSize(double s);
 
   bool isFontSizeMapped() const { return isValueSetMapped("fontSize"); }
-  void setFontSizeMapped(bool b) { setValueSetMapped("fontSize", b); updateObjs(); }
+  void setFontSizeMapped(bool b);
 
   double fontSizeMapMin() const { return valueSetMapMin("fontSize"); }
-  void setFontSizeMapMin(double r) { setValueSetMapMin("fontSize", r); updateObjs(); }
+  void setFontSizeMapMin(double r);
 
   double fontSizeMapMax() const { return valueSetMapMax("fontSize"); }
-  void setFontSizeMapMax(double r) { setValueSetMapMax("fontSize", r); updateObjs(); }
+  void setFontSizeMapMax(double r);
 
   //---
 
@@ -340,13 +341,14 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   //---
 
   void drawBackground(QPainter *painter) override;
+  void drawForeground(QPainter *painter) override;
 
-  void draw(QPainter *) override;
-
-  void drawForeground(QPainter *) override;
+ private:
+  void drawBestFit     (QPainter *painter);
+  void drawSymbolMapKey(QPainter *painter);
 
  public slots:
-  void setBestFit(bool b) { bestFit_ = b; update(); }
+  void setBestFit(bool b);
 
  private:
   struct FitData {
@@ -370,6 +372,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   CQChartsDataLabel  dataLabel_;              // data label style
   QString            xname_;                  // x column header
   QString            yname_;                  // y column header
+  bool               symbolMapKey_ { true };  // draw symbol map key
   QString            symbolSizeName_;         // symbol size column header
   QString            fontSizeName_;           // font size column header
   QString            colorName_;              // color column header

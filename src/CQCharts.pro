@@ -8,9 +8,7 @@ DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
 -std=c++14 \
--DCQCharts_USE_CEXPR -DCQCharts_USE_TCL \
--DCQExprModel_USE_CEXPR -DCQExprModel_USE_TCL \
--DCQChartsModelExprMatch_USE_CEXPR -DCQChartsModelExprMatch_USE_TCL \
+-DCQCharts_USE_TCL \
 -DCQCHARTS_FOLDED_MODEL \
 
 MOC_DIR = .moc
@@ -301,7 +299,6 @@ INCLUDEPATH += \
 ../../CQDividedArea/include \
 ../../CQCustomCombo/include \
 ../../CQUtil/include \
-../../CExpr/include \
 ../../CJson/include \
 ../../CTsv/include \
 ../../CCsv/include \

@@ -1,20 +1,13 @@
-CQChartsTest -tcl -exec arrow_annotation.tcl
-#CQChartsTest -ceil -exec arrow_annotation.cl
+CQChartsTest -exec arrow_annotation.tcl
 
-CQChartsTest -tcl -exec ellipse_annotation.tcl
-#CQChartsTest -ceil -exec ellipse_annotation.cl
+CQChartsTest -exec ellipse_annotation.tcl
 
-CQChartsTest -tcl -exec point_annotation.tcl
-#CQChartsTest -ceil -exec point_annotation.cl
+CQChartsTest -exec point_annotation.tcl
 
-CQChartsTest -tcl -exec polygon_annotation.tcl
-#CQChartsTest -ceil -exec polygon_annotation.cl
+CQChartsTest -exec polygon_annotation.tcl
 
-CQChartsTest -tcl -exec polyline_annotation.tcl
-#CQChartsTest -ceil -exec polyline_annotation.cl
+CQChartsTest -exec polyline_annotation.tcl
 
-CQChartsTest -tcl -exec rect_annotation.tcl
-#CQChartsTest -ceil -exec rect_annotation.cl
+CQChartsTest -exec rect_annotation.tcl
 
-CQChartsTest -tcl -exec text_annotation.tcl
-#CQChartsTest -ceil -exec text_annotation.cl
+CQChartsTest -exec text_annotation.tcl

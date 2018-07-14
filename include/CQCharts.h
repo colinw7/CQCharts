@@ -18,12 +18,6 @@ class CQCharts : public QObject {
   Q_OBJECT
 
  public:
-  enum class ParserType {
-    SCRIPT,
-    CEIL,
-    TCL
-  };
-
   using PlotTypes  = std::vector<CQChartsPlotType *>;
   using ModelP     = QSharedPointer<QAbstractItemModel>;
   using ModelDatas = std::vector<CQChartsModelData *>;
@@ -35,11 +29,6 @@ class CQCharts : public QObject {
   virtual ~CQCharts();
 
   void init();
-
-  //---
-
-  const ParserType &parserType() const { return parserType_; }
-  void setParserType(const ParserType &type) { parserType_ = type; }
 
   //---
 
@@ -68,6 +57,8 @@ class CQCharts : public QObject {
   CQChartsModelData *currentModelData() const;
 
   void getModelDatas(ModelDatas &modelDatas) const;
+
+  void setModelName(CQChartsModelData *modelData, const QString &name);
 
   //---
 
@@ -100,6 +91,8 @@ class CQCharts : public QObject {
  signals:
   void modelDataAdded(int);
 
+  void modelNameChanged(const QString &);
+
   void modelTypeChanged(int);
 
   void windowCreated(CQChartsWindow *window);
@@ -114,7 +107,6 @@ class CQCharts : public QObject {
  private:
   using NameViews = std::map<QString,CQChartsView*>;
 
-  ParserType             parserType_      { ParserType::TCL };
   CQChartsPlotTypeMgr*   plotTypeMgr_     { nullptr };
   CQChartsColumnTypeMgr* columnTypeMgr_   { nullptr };
   int                    currentModelInd_ { -1 };

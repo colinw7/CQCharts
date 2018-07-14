@@ -59,7 +59,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsRadarPlot *plot_       { nullptr }; // parent plot
@@ -76,27 +76,36 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 class CQChartsRadarPlot : public CQChartsPlot {
   Q_OBJECT
 
+  // columns
   Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn      WRITE setNameColumn     )
   Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
   Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(double         angleStart   READ angleStart      WRITE setAngleStart     )
-  Q_PROPERTY(double         angleExtent  READ angleExtent     WRITE setAngleExtent    )
 
-  Q_PROPERTY(bool          grid      READ isGrid    WRITE setGrid     )
-  Q_PROPERTY(CQChartsColor gridColor READ gridColor WRITE setGridColor)
-  Q_PROPERTY(double        gridAlpha READ gridAlpha WRITE setGridAlpha)
+  // options
+  Q_PROPERTY(double angleStart  READ angleStart  WRITE setAngleStart )
+  Q_PROPERTY(double angleExtent READ angleExtent WRITE setAngleExtent)
 
+  // grid
+  Q_PROPERTY(bool             grid      READ isGrid    WRITE setGrid     )
+  Q_PROPERTY(CQChartsColor    gridColor READ gridColor WRITE setGridColor)
+  Q_PROPERTY(double           gridAlpha READ gridAlpha WRITE setGridAlpha)
+  Q_PROPERTY(CQChartsLength   gridWidth READ gridWidth WRITE setGridWidth)
+  Q_PROPERTY(CQChartsLineDash gridDash  READ gridDash  WRITE setGridDash )
+
+  // border
   Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
   Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
   Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
   Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
   Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
 
+  // fill
   Q_PROPERTY(bool          filled      READ isFilled    WRITE setFilled     )
   Q_PROPERTY(CQChartsColor fillColor   READ fillColor   WRITE setFillColor  )
   Q_PROPERTY(double        fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
   Q_PROPERTY(Pattern       fillPattern READ fillPattern WRITE setFillPattern)
 
+  // text
   Q_PROPERTY(QFont          textFont     READ textFont        WRITE setTextFont       )
   Q_PROPERTY(CQChartsColor  textColor    READ textColor       WRITE setTextColor      )
   Q_PROPERTY(double         textAlpha    READ textAlpha       WRITE setTextAlpha      )
@@ -159,6 +168,12 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   double gridAlpha() const { return gridData_.alpha; }
   void setGridAlpha(double r);
+
+  const CQChartsLength &gridWidth() const { return gridData_.width; }
+  void setGridWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &gridDash() const { return gridData_.dash; }
+  void setGridDash(const CQChartsLineDash &l);
 
   //---
 
@@ -227,8 +242,6 @@ class CQChartsRadarPlot : public CQChartsPlot {
   //---
 
   void drawBackground(QPainter *) override;
-
-  void draw(QPainter *) override;
 
  private:
   void addRow(const QModelIndex &parent, int r, int nr);

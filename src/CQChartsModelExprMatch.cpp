@@ -11,10 +11,8 @@ namespace {
 bool varToInt(const QVariant &var, int &i) {
   bool ok;
 
-  int i1 = var.toInt(&ok);
-
-  if (! ok)
-    return false;
+  long i1 = CQChartsUtil::toInt(var, ok);
+  if (! ok) return false;
 
   i = i1;
 
@@ -25,74 +23,7 @@ bool varToInt(const QVariant &var, int &i) {
 
 //---
 
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-#include <CQExprUtil.h>
-#include <CExpr.h>
-
-class CQChartsModelExprMatchExprFn : public CExprFunctionObj {
- public:
-  using Vars = std::vector<QVariant>;
-
- public:
-  CQChartsModelExprMatchExprFn(CQChartsModelExprMatch *match, const QString &name) :
-   match_(match), name_(name) {
-    CExpr *expr = match->expr();
-
-    expr->addFunction(name_.toLatin1().constData(), "...", this);
-  }
-
-  virtual ~CQChartsModelExprMatchExprFn() { }
-
-  CExprValuePtr operator()(CExpr *expr, const CExprValueArray &values) {
-    expr_ = expr;
-
-    Vars vars;
-
-    for (auto &value : values)
-      vars.push_back(valueToVariant(value));
-
-    QVariant var = exec(vars);
-
-    CExprValuePtr value;
-
-    if (! variantToValue(var, value))
-      return CExprValuePtr();
-
-    return value;
-  }
-
-  virtual QVariant exec(const Vars &vars) = 0;
-
-  bool checkColumn(int col) const { return match_->checkColumn(col); }
-
-  bool checkIndex(int row, int col) const { return match_->checkIndex(row, col); }
-
-  bool variantToValue(const QVariant &var, CExprValuePtr &value) {
-    return variantToValue(expr_, var, value);
-  }
-
-  bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) {
-    return match_->variantToValue(expr, var, value);
-  }
-
-  QVariant valueToVariant(const CExprValuePtr &value) const {
-    return valueToVariant(expr_, value);
-  }
-
-  QVariant valueToVariant(CExpr *expr, const CExprValuePtr &value) const {
-    return match_->valueToVariant(expr, value);
-  }
-
- protected:
-  CQChartsModelExprMatch *match_ { nullptr };
-  QString                 name_;
-  mutable CExpr*          expr_  { nullptr };
-};
-#endif
-
-//---
-
-#ifdef CQChartsModelExprMatch_USE_TCL
+#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
 
 class CQChartsModelExprMatchTclFn {
@@ -102,14 +33,16 @@ class CQChartsModelExprMatchTclFn {
  public:
   CQChartsModelExprMatchTclFn(CQChartsModelExprMatch *model, const QString &name) :
    model_(model), name_(name) {
-    QString mathName = "tcl::mathfunc::" + name_;
+    qtcl_ = model->qtcl();
 
-    cmdId_ = model->qtcl()->createObjCommand(mathName,
+    cmdId_ = qtcl()->createExprCommand(name_,
                (CQTcl::ObjCmdProc) &CQChartsModelExprMatchTclFn::commandProc,
                (CQTcl::ObjCmdData) this);
   }
 
   virtual ~CQChartsModelExprMatchTclFn() { }
+
+  CQTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
     CQChartsModelExprMatchTclFn *command = (CQChartsModelExprMatchTclFn *) clientData;
@@ -119,17 +52,17 @@ class CQChartsModelExprMatchTclFn {
     for (int i = 1; i < objc; ++i) {
       Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
 
-      vars.push_back(CQTclUtil::variantFromObj(command->model_->qtcl()->interp(), obj));
+      vars.push_back(CQTclUtil::variantFromObj(command->qtcl()->interp(), obj));
     }
 
     QVariant var = command->exec(vars);
 
-    command->model_->setTclResult(var);
+    command->qtcl()->setResult(var);
 
     return TCL_OK;
   }
 
-  virtual QVariant exec(const Vars &vars) = 0;
+  QVariant exec(const Vars &vars) { return model_->processCmd(name_, vars); }
 
   bool checkColumn(int col) const { return model_->checkColumn(col); }
 
@@ -138,31 +71,8 @@ class CQChartsModelExprMatchTclFn {
  protected:
   CQChartsModelExprMatch* model_ { nullptr };
   QString                 name_;
+  CQTcl*                  qtcl_  { nullptr };
   Tcl_Command             cmdId_ { nullptr };
-};
-#endif
-
-//---
-
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-class CQChartsModelExprMatchExprNameFn : public CQChartsModelExprMatchExprFn {
- public:
-  CQChartsModelExprMatchExprNameFn(CQChartsModelExprMatch *match, const QString &name) :
-   CQChartsModelExprMatchExprFn(match, name) {
-  }
-
-  QVariant exec(const Vars &vars) override { return match_->processCmd(name_, vars); }
-};
-#endif
-
-#ifdef CQChartsModelExprMatch_USE_TCL
-class CQChartsModelExprMatchTclNameFn : public CQChartsModelExprMatchTclFn {
- public:
-  CQChartsModelExprMatchTclNameFn(CQChartsModelExprMatch *model, const QString &name) :
-   CQChartsModelExprMatchTclFn(model, name) {
-  }
-
-  QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
 };
 #endif
 
@@ -172,11 +82,7 @@ CQChartsModelExprMatch::
 CQChartsModelExprMatch(QAbstractItemModel *model) :
  model_(model)
 {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  expr_ = new CExpr;
-#endif
-
-#ifdef CQChartsModelExprMatch_USE_TCL
+#ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 #endif
 
@@ -186,14 +92,7 @@ CQChartsModelExprMatch(QAbstractItemModel *model) :
 CQChartsModelExprMatch::
 ~CQChartsModelExprMatch()
 {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  //for (auto &exprCmd : exprCmds_)
-  //  delete exprCmd;
-
-  delete expr_;
-#endif
-
-#ifdef CQChartsModelExprMatch_USE_TCL
+#ifdef CQCharts_USE_TCL
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
 
@@ -205,12 +104,7 @@ void
 CQChartsModelExprMatch::
 addBuiltinFunctions()
 {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  expr_->createRealVariable("pi" , M_PI);
-  expr_->createRealVariable("NaN", COSNaN::get_nan());
-#endif
-
-#ifdef CQChartsModelExprMatch_USE_TCL
+#ifdef CQCharts_USE_TCL
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
 #endif
@@ -225,32 +119,11 @@ void
 CQChartsModelExprMatch::
 addFunction(const QString &name)
 {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  addExprFunction(name, new CQChartsModelExprMatchExprNameFn(this, name));
-#endif
-#ifdef CQChartsModelExprMatch_USE_TCL
-  addTclFunction (name, new CQChartsModelExprMatchTclNameFn (this, name));
-#endif
-}
-
-void
-CQChartsModelExprMatch::
-addExprFunction(const QString &name, CQChartsModelExprMatchExprFn *fn)
-{
   assert(name.length());
 
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  exprCmds_.push_back(fn);
-#endif
-}
+#ifdef CQCharts_USE_TCL
+  CQChartsModelExprMatchTclFn *fn = new CQChartsModelExprMatchTclFn(this, name);
 
-void
-CQChartsModelExprMatch::
-addTclFunction(const QString &name, CQChartsModelExprMatchTclFn *fn)
-{
-  assert(name.length());
-
-#ifdef CQChartsModelExprMatch_USE_TCL
   tclCmds_.push_back(fn);
 #endif
 }
@@ -268,18 +141,7 @@ initColumns()
 {
   assert(model_);
 
-  if (exprType_ == ExprType::EXPR) {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-    rowValue_ = expr_->createIntegerValue(-1);
-    colValue_ = expr_->createIntegerValue(-1);
-
-    rowVar_ = expr_->createVariable("row", rowValue_);
-    colVar_ = expr_->createVariable("col", colValue_);
-#endif
-  }
-
   columnNames_.clear();
-  columnVars_ .clear();
 
   int nc = model_->columnCount();
 
@@ -291,17 +153,6 @@ initColumns()
     QString name = CQChartsUtil::toString(var, ok);
 
     columnNames_[column] = name;
-
-    if      (exprType_ == ExprType::EXPR) {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-      CExprVariablePtr evar;
-
-      if (expr_->isValidVariableName(name.toStdString()))
-        evar = expr_->createVariable(name.toStdString(), CExprValuePtr());
-
-      columnVars_[column] = evar;
-#endif
-    }
   }
 }
 
@@ -515,24 +366,9 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
   currentRow_ = ind.row   ();
   currentCol_ = ind.column();
 
-  if      (exprType_ == ExprType::EXPR) {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-    if (rowValue_.isValid())
-      rowValue_->setIntegerValue(currentRow_);
-
-    if (colValue_.isValid())
-      colValue_->setIntegerValue(currentCol_);
-#endif
-  }
-  else if (exprType_ == ExprType::TCL) {
-#ifdef CQChartsModelExprMatch_USE_TCL
-    qtcl_->createVar("row"   , currentRow_);
-    qtcl_->createVar("column", currentCol_);
-#endif
-  }
-  else {
-    assert(false);
-  }
+#ifdef CQCharts_USE_TCL
+  qtcl_->createVar("row"   , currentRow_);
+  qtcl_->createVar("column", currentCol_);
 
   //---
 
@@ -550,70 +386,27 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
     QVariant var = model_->data(ind1, Qt::EditRole);
 
     // store value in column variable
-    if      (exprType_ == ExprType::EXPR) {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-      CExprVariablePtr columnVar = columnVars_[column];
-
-      if (! columnVar.isValid())
-        continue;
-
-      CExprValuePtr value;
-
-      if (variantToValue(expr_, var, value))
-        columnVar->setValue(value);
-#endif
-    }
-    else if (exprType_ == ExprType::TCL) {
-#ifdef CQChartsModelExprMatch_USE_TCL
-      qtcl_->createVar(columnNames_[column], var);
-#endif
-    }
-    else {
-      assert(false);
-    }
+    qtcl_->createVar(columnNames_[column], var);
   }
 
-  if      (exprType_ == ExprType::EXPR) {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-    CExprValuePtr evalue;
+  int rc = qtcl_->evalExpr(expr1);
 
-    if (! expr_->evaluateExpression(expr1.toStdString(), evalue))
-      return false;
-
-    if (! evalue.isValid())
-      return false;
-
-    value = valueToVariant(expr_, evalue);
-#else
+  if (rc != TCL_OK) {
+    std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
     return false;
-#endif
   }
-  else if (exprType_ == ExprType::TCL) {
-#ifdef CQChartsModelExprMatch_USE_TCL
-    int rc = qtcl_->evalExpr(expr1);
 
-    if (rc != TCL_OK) {
-      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
-      return false;
-    }
-
-    return getTclResult(value);
+  return getTclResult(value);
 #else
-    return false;
+  return false;
 #endif
-  }
-  else {
-    assert(false);
-  }
-
-  return true;
 }
 
 bool
 CQChartsModelExprMatch::
 setTclResult(const QVariant &rc)
 {
-#ifdef CQChartsModelExprMatch_USE_CEXPR
+#ifdef CQCharts_USE_TCL
   qtcl_->setResult(rc);
   return true;
 #endif
@@ -623,7 +416,7 @@ bool
 CQChartsModelExprMatch::
 getTclResult(QVariant &var) const
 {
-#ifdef CQChartsModelExprMatch_USE_TCL
+#ifdef CQCharts_USE_TCL
   var = qtcl_->getResult();
   return true;
 #endif
@@ -684,7 +477,7 @@ replaceNumericColumns(const QString &expr, const QModelIndex &ind) const
         else {
           parse.setPos(pos);
 
-         expr1 += "@";
+          expr1 += "@";
         }
       }
       else
@@ -714,28 +507,4 @@ checkIndex(int row, int col) const
   if (col < 0 || col >= model_->columnCount()) return false;
 
   return true;
-}
-
-bool
-CQChartsModelExprMatch::
-variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value)
-{
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  return CQExprUtil::variantToValue(expr, var, value);
-#else
-  assert(false && expr && &var && &value);
-  return false;
-#endif
-}
-
-QVariant
-CQChartsModelExprMatch::
-valueToVariant(CExpr *expr, const CExprValuePtr &value)
-{
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  return CQExprUtil::valueToVariant(expr, value);
-#else
-  assert(false && &value);
-  return QVariant();
-#endif
 }

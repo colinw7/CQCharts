@@ -57,6 +57,45 @@ addProperties()
 
 //------
 
+void
+CQChartsImagePlot::
+setMinValue(double r)
+{
+  CQChartsUtil::testAndSet(minValue_, r, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsImagePlot::
+setMaxValue(double r)
+{
+  CQChartsUtil::testAndSet(maxValue_, r, [&]() { invalidateLayers(); } );
+}
+
+//---
+
+void
+CQChartsImagePlot::
+setXLabels(bool b)
+{
+  CQChartsUtil::testAndSet(xLabels_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsImagePlot::
+setYLabels(bool b)
+{
+  CQChartsUtil::testAndSet(yLabels_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsImagePlot::
+setCellLabels(bool b)
+{
+  CQChartsUtil::testAndSet(cellLabels_, b, [&]() { invalidateLayers(); } );
+}
+
+//---
+
 const CQChartsColor &
 CQChartsImagePlot::
 textColor() const
@@ -68,7 +107,7 @@ void
 CQChartsImagePlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 double
@@ -82,7 +121,7 @@ void
 CQChartsImagePlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -103,7 +142,7 @@ void
 CQChartsImagePlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -265,16 +304,8 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
 void
 CQChartsImagePlot::
-draw(QPainter *painter)
+drawForeground(QPainter *painter)
 {
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-
-  //---
-
   if (isXLabels())
     drawXLabels(painter);
 
@@ -455,7 +486,7 @@ QString
 CQChartsImageObj::
 calcId() const
 {
-  return QString("image:%1").arg(row_).arg(col_);
+  return QString("image:%1:%2").arg(row_).arg(col_);
 }
 
 QString
@@ -497,7 +528,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsImageObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   CQChartsGeom::BBox prect;
 

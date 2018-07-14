@@ -199,7 +199,13 @@ class CQTcl : public CTcl {
     return CQTclUtil::getListVar(interp(), name);
   }
 
-  Tcl_Command createObjCommand(const QString &name, Tcl_ObjCmdProc *proc, ClientData data) {
+  Tcl_Command createExprCommand(const QString &name, ObjCmdProc proc, ObjCmdData data) {
+    QString mathName = "tcl::mathfunc::" + name;
+
+    return createObjCommand(mathName, proc, data);
+  }
+
+  Tcl_Command createObjCommand(const QString &name, ObjCmdProc proc, ObjCmdData data) {
     return Tcl_CreateObjCommand(interp(), (char *) name.toLatin1().constData(),
                                 proc, data, nullptr);
   }

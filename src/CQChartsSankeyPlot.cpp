@@ -49,7 +49,7 @@ CQChartsSankeyPlot::
 CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("sankey"), model)
 {
-  setLayerActive(Layer::FG, true);
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   CQChartsColor bg(CQChartsColor::Type::PALETTE);
 
@@ -95,7 +95,7 @@ void
 CQChartsSankeyPlot::
 setNodeFilled(bool b)
 {
-  CQChartsUtil::testAndSet(nodeData_.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -109,7 +109,7 @@ void
 CQChartsSankeyPlot::
 setNodeFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -130,7 +130,7 @@ void
 CQChartsSankeyPlot::
 setNodeFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsSankeyPlot::Pattern
@@ -147,7 +147,7 @@ setNodeFillPattern(Pattern pattern)
   if (pattern != (Pattern) nodeData_.background.pattern) {
     nodeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -164,7 +164,7 @@ void
 CQChartsSankeyPlot::
 setNodeStroked(bool b)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -178,7 +178,7 @@ void
 CQChartsSankeyPlot::
 setNodeStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -199,7 +199,7 @@ void
 CQChartsSankeyPlot::
 setNodeStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -213,7 +213,7 @@ void
 CQChartsSankeyPlot::
 setNodeStrokeWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -229,7 +229,7 @@ void
 CQChartsSankeyPlot::
 setEdgeFilled(bool b)
 {
-  CQChartsUtil::testAndSet(edgeData_.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -243,7 +243,7 @@ void
 CQChartsSankeyPlot::
 setEdgeFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(edgeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -264,7 +264,7 @@ void
 CQChartsSankeyPlot::
 setEdgeFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(edgeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsSankeyPlot::Pattern
@@ -281,7 +281,7 @@ setEdgeFillPattern(Pattern pattern)
   if (pattern != (Pattern) edgeData_.background.pattern) {
     edgeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -298,7 +298,7 @@ void
 CQChartsSankeyPlot::
 setEdgeStroked(bool b)
 {
-  CQChartsUtil::testAndSet(edgeData_.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -312,7 +312,7 @@ void
 CQChartsSankeyPlot::
 setEdgeStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(edgeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -333,7 +333,7 @@ void
 CQChartsSankeyPlot::
 setEdgeStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(edgeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -347,7 +347,7 @@ void
 CQChartsSankeyPlot::
 setEdgeStrokeWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(edgeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(edgeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -363,7 +363,7 @@ void
 CQChartsSankeyPlot::
 setTextVisible(bool b)
 {
-  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const QFont &
@@ -377,7 +377,7 @@ void
 CQChartsSankeyPlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -391,7 +391,7 @@ void
 CQChartsSankeyPlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -412,7 +412,7 @@ void
 CQChartsSankeyPlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 bool
@@ -426,7 +426,7 @@ void
 CQChartsSankeyPlot::
 setTextContrast(bool b)
 {
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -573,17 +573,6 @@ initObjs()
   createGraph();
 
   return true;
-}
-
-void
-CQChartsSankeyPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
 }
 
 void
@@ -1045,7 +1034,7 @@ keyPress(int key, int modifier)
   if (key == Qt::Key_A) {
     adjustNodes();
 
-    update();
+    invalidateLayers();
   }
   else
     CQChartsPlot::keyPress(key, modifier);
@@ -1319,7 +1308,7 @@ moveBy(const CQChartsGeom::Point &delta)
 
 void
 CQChartsSankeyNodeObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter)
 {
   CQChartsGeom::BBox prect;
 
@@ -1327,90 +1316,101 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   int numNodes = plot_->numNodes();
 
-  if (layer == CQChartsPlot::Layer::MID) {
-    double px1 = prect.getXMin();
-    double py1 = prect.getYMin();
-    double px2 = prect.getXMax();
-    double py2 = prect.getYMax();
+  double px1 = prect.getXMin();
+  double py1 = prect.getYMin();
+  double px2 = prect.getXMax();
+  double py2 = prect.getYMax();
 
-    QPainterPath path;
+  QPainterPath path;
 
-    path.moveTo(QPointF(px1, py1));
-    path.lineTo(QPointF(px2, py1));
-    path.lineTo(QPointF(px2, py2));
-    path.lineTo(QPointF(px1, py2));
+  path.moveTo(QPointF(px1, py1));
+  path.lineTo(QPointF(px2, py1));
+  path.lineTo(QPointF(px2, py2));
+  path.lineTo(QPointF(px1, py2));
 
-    path.closeSubpath();
+  path.closeSubpath();
 
-    // set fill and stroke
-    QBrush brush;
+  // set fill and stroke
+  QBrush brush;
 
-    if (plot_->isNodeFilled()) {
-      QColor c = plot_->interpNodeFillColor(node_->ind(), numNodes);
+  if (plot_->isNodeFilled()) {
+    QColor c = plot_->interpNodeFillColor(node_->ind(), numNodes);
 
-      c.setAlphaF(plot_->nodeFillAlpha());
+    c.setAlphaF(plot_->nodeFillAlpha());
 
-      brush.setColor(c);
-      brush.setStyle(CQChartsFillPattern::toStyle(
-       (CQChartsFillPattern::Type) plot_->nodeFillPattern()));
-    }
-    else {
-      brush.setStyle(Qt::NoBrush);
-    }
-
-    QPen pen;
-
-    if (plot_->isNodeStroked()) {
-      QColor c = plot_->interpNodeStrokeColor(node_->ind(), numNodes);
-
-      c.setAlphaF(plot_->nodeStrokeAlpha());
-
-      double lw = plot_->lengthPixelWidth(plot_->nodeStrokeWidth());
-
-      pen.setColor (c);
-      pen.setWidthF(lw);
-    }
-    else {
-      pen.setStyle(Qt::NoPen);
-    }
-
-    plot_->updateObjPenBrushState(this, pen, brush);
-
-    painter->setBrush(brush);
-    painter->setPen(pen);
-
-    painter->drawPath(path);
+    brush.setColor(c);
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->nodeFillPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
   }
 
-  if (layer == CQChartsPlot::Layer::FG && plot_->isTextVisible()) {
-    // set font
-    QFont font = plot_->textFont();
+  QPen pen;
 
-    QFontMetricsF fm(font);
+  if (plot_->isNodeStroked()) {
+    QColor c = plot_->interpNodeStrokeColor(node_->ind(), numNodes);
 
-    painter->setFont(font);
+    c.setAlphaF(plot_->nodeStrokeAlpha());
 
-    // set color
-    QColor c = plot_->interpTextColor(node_->ind(), numNodes);
+    double lw = plot_->lengthPixelWidth(plot_->nodeStrokeWidth());
 
-    c.setAlphaF(plot_->textAlpha());
-
-    QPen pen(c);
-
-    painter->setPen(pen);
-
-    //double value = node_->edgeSum();
-
-    QString str = node_->str();
-
-    double tx = (rect_.getXMid() < 0.5 ? prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
-    double ty = prect.getYMid() + fm.ascent()/2;
-
-    if (plot_->isTextContrast())
-      plot_->drawContrastText(painter, tx, ty, str, pen);
-    else
-      painter->drawText(tx, ty, str);
+    pen.setColor (c);
+    pen.setWidthF(lw);
   }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setBrush(brush);
+  painter->setPen(pen);
+
+  painter->drawPath(path);
+}
+
+void
+CQChartsSankeyNodeObj::
+drawFg(QPainter *painter)
+{
+  if (! plot_->isTextVisible())
+    return;
+
+  CQChartsGeom::BBox prect;
+
+  plot_->windowToPixel(rect_, prect);
+
+  int numNodes = plot_->numNodes();
+
+  // set font
+  QFont font = plot_->textFont();
+
+  QFontMetricsF fm(font);
+
+  painter->setFont(font);
+
+  // set color
+  QColor c = plot_->interpTextColor(node_->ind(), numNodes);
+
+  c.setAlphaF(plot_->textAlpha());
+
+  QPen pen(c);
+
+  painter->setPen(pen);
+
+  //double value = node_->edgeSum();
+
+  QString str = node_->str();
+
+  double tx = (rect_.getXMid() < 0.5 ?
+    prect.getXMax() + 4 : prect.getXMin() - 4 - fm.width(str));
+  double ty = prect.getYMid() + fm.ascent()/2;
+
+  if (plot_->isTextContrast())
+    plot_->drawContrastText(painter, tx, ty, str, pen);
+  else
+    painter->drawText(tx, ty, str);
 }
 
 //------
@@ -1443,84 +1443,82 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsSankeyEdgeObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter)
 {
-  if (layer == CQChartsPlot::Layer::MID) {
-    const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
-    const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
+  const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
+  const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
-    CQChartsGeom::BBox psrcRect, pdestRect;
+  CQChartsGeom::BBox psrcRect, pdestRect;
 
-    plot_->windowToPixel(srcRect , psrcRect );
-    plot_->windowToPixel(destRect, pdestRect);
+  plot_->windowToPixel(srcRect , psrcRect );
+  plot_->windowToPixel(destRect, pdestRect);
 
-    int numNodes = plot_->numNodes();
+  int numNodes = plot_->numNodes();
 
-    double px1 = psrcRect .getXMax();
-    double px2 = pdestRect.getXMin();
+  double px1 = psrcRect .getXMax();
+  double px2 = pdestRect.getXMin();
 
-    double py11 = psrcRect .getYMax();
-    double py12 = psrcRect .getYMin();
-    double py21 = pdestRect.getYMax();
-    double py22 = pdestRect.getYMin();
+  double py11 = psrcRect .getYMax();
+  double py12 = psrcRect .getYMin();
+  double py21 = pdestRect.getYMax();
+  double py22 = pdestRect.getYMin();
 
-    path_ = QPainterPath();
+  path_ = QPainterPath();
 
-    double px3 = px1 + (px2 - px1)/3.0;
-    double px4 = px2 - (px2 - px1)/3.0;
+  double px3 = px1 + (px2 - px1)/3.0;
+  double px4 = px2 - (px2 - px1)/3.0;
 
-    path_.moveTo (QPointF(px1, py11));
-    path_.cubicTo(QPointF(px3, py11), QPointF(px4, py21), QPointF(px2, py21));
-    path_.lineTo (QPointF(px2, py22));
-    path_.cubicTo(QPointF(px4, py22), QPointF(px3, py12), QPointF(px1, py12));
+  path_.moveTo (QPointF(px1, py11));
+  path_.cubicTo(QPointF(px3, py11), QPointF(px4, py21), QPointF(px2, py21));
+  path_.lineTo (QPointF(px2, py22));
+  path_.cubicTo(QPointF(px4, py22), QPointF(px3, py12), QPointF(px1, py12));
 
-    path_.closeSubpath();
+  path_.closeSubpath();
 
-    //---
+  //---
 
-    // set fill and stroke
-    QBrush brush;
+  // set fill and stroke
+  QBrush brush;
 
-    if (plot_->isEdgeFilled()) {
-      QColor c1 = plot_->interpEdgeFillColor(edge_->srcNode ()->ind(), numNodes);
-      QColor c2 = plot_->interpEdgeFillColor(edge_->destNode()->ind(), numNodes);
+  if (plot_->isEdgeFilled()) {
+    QColor c1 = plot_->interpEdgeFillColor(edge_->srcNode ()->ind(), numNodes);
+    QColor c2 = plot_->interpEdgeFillColor(edge_->destNode()->ind(), numNodes);
 
-      QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
+    QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
 
-      c.setAlphaF(plot_->edgeFillAlpha());
+    c.setAlphaF(plot_->edgeFillAlpha());
 
-      brush.setColor(c);
-      brush.setStyle(CQChartsFillPattern::toStyle(
-       (CQChartsFillPattern::Type) plot_->edgeFillPattern()));
-    }
-    else {
-      brush.setStyle(Qt::NoBrush);
-    }
-
-    QPen pen;
-
-    if (plot_->isEdgeStroked()) {
-      QColor c1 = plot_->interpEdgeStrokeColor(edge_->srcNode ()->ind(), numNodes);
-      QColor c2 = plot_->interpEdgeStrokeColor(edge_->destNode()->ind(), numNodes);
-
-      QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
-
-      c.setAlphaF(plot_->edgeStrokeAlpha());
-
-      double lw = plot_->lengthPixelWidth(plot_->edgeStrokeWidth());
-
-      pen.setColor (c);
-      pen.setWidthF(lw);
-    }
-    else {
-      pen.setStyle(Qt::NoPen);
-    }
-
-    plot_->updateObjPenBrushState(this, pen, brush);
-
-    painter->setBrush(brush);
-    painter->setPen(pen);
-
-    painter->drawPath(path_);
+    brush.setColor(c);
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->edgeFillPattern()));
   }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
+
+  QPen pen;
+
+  if (plot_->isEdgeStroked()) {
+    QColor c1 = plot_->interpEdgeStrokeColor(edge_->srcNode ()->ind(), numNodes);
+    QColor c2 = plot_->interpEdgeStrokeColor(edge_->destNode()->ind(), numNodes);
+
+    QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
+
+    c.setAlphaF(plot_->edgeStrokeAlpha());
+
+    double lw = plot_->lengthPixelWidth(plot_->edgeStrokeWidth());
+
+    pen.setColor (c);
+    pen.setWidthF(lw);
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setBrush(brush);
+  painter->setPen(pen);
+
+  painter->drawPath(path_);
 }

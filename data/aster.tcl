@@ -16,13 +16,13 @@ set average [expr {$total/$nr}]
 
 set_charts_data -model $modelId -name column_type -value "4#color"
 
-set plotId [create_plot -type pie -columns "id=0,radius=2,data=3,label=5,color=4" -title "Aster"]
+set plotId [create_plot -type pie -columns "id=0,radius=2,value=3,label=5,color=4" -title "Aster"]
 
 set viewId [get_property -plot $plotId -name viewId]
 
-set_property -plot $plotId -name donut -value 1
-set_property -plot $plotId -name grid.visible -value 1
-set_property -plot $plotId -name innerRadius -value 0.2
+set_property -plot $plotId -name options.donut       -value 1
+set_property -plot $plotId -name grid.visible        -value 1
+set_property -plot $plotId -name options.innerRadius -value 0.2
 
 set averageStr [format "%.0f" $average]
 

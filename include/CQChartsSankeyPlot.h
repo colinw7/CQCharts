@@ -149,7 +149,9 @@ class CQChartsSankeyNodeObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
  private:
   using EdgeRect = std::map<CQChartsSankeyPlotEdge *,CQChartsGeom::BBox>;
@@ -180,7 +182,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsSankeyPlot*     plot_     { nullptr }; // parent plot
@@ -371,8 +373,6 @@ class CQChartsSankeyPlot : public CQChartsPlot {
   void keyPress(int key, int modifier);
 
   //---
-
-  void draw(QPainter *) override;
 
  private:
   CQChartsSankeyPlotNode *findNode(const QString &name);

@@ -45,7 +45,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsImagePlot *plot_  { nullptr };
@@ -75,21 +75,21 @@ class CQChartsImagePlot : public CQChartsPlot {
   //---
 
   double minValue() const { return minValue_; }
-  void setMinValue(double r) { minValue_ = r; update(); }
+  void setMinValue(double r);
 
   double maxValue() const { return maxValue_; }
-  void setMaxValue(double r) { maxValue_ = r; update(); }
+  void setMaxValue(double r);
 
   //---
 
   bool isXLabels() const { return xLabels_; }
-  void setXLabels(bool b) { xLabels_ = b; update(); }
+  void setXLabels(bool b);
 
   bool isYLabels() const { return yLabels_; }
-  void setYLabels(bool b) { yLabels_ = b; update(); }
+  void setYLabels(bool b);
 
   bool isCellLabels() const { return cellLabels_; }
-  void setCellLabels(bool b) { cellLabels_ = b; update(); }
+  void setCellLabels(bool b);
 
   //---
 
@@ -114,7 +114,9 @@ class CQChartsImagePlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void drawForeground(QPainter *) override;
+
+  //---
 
   CQChartsGeom::BBox annotationBBox() const override;
 

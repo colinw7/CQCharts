@@ -130,51 +130,58 @@ setSymbolSize(const CQChartsLength &s)
 
 void
 CQChartsScatterPlot::
+setSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(symbolData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
 setSymbolStroked(bool b)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.visible, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolStrokeWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolFilled(bool b)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsScatterPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsScatterPlot::Pattern
@@ -191,7 +198,7 @@ setSymbolFillPattern(const Pattern &pattern)
   if (pattern != (Pattern) symbolData_.fill.pattern) {
     symbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -199,9 +206,141 @@ setSymbolFillPattern(const Pattern &pattern)
 
 void
 CQChartsScatterPlot::
+setSymbolMapKey(bool b)
+{
+  CQChartsUtil::testAndSet(symbolMapKey_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSizeColumn(const CQChartsColumn &c)
+{
+  if (setValueSetColumn("symbolSize", c))
+    updateRangeAndObjs();
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSizeMapped(bool b)
+{
+  setValueSetMapped("symbolSize", b);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setSymbolSizeMapMin(double r)
+{
+  setValueSetMapMin("symbolSize", r); updateObjs(); }
+
+void
+CQChartsScatterPlot::
+setSymbolSizeMapMax(double r)
+{
+  setValueSetMapMax("symbolSize", r);
+
+  updateObjs();
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+setColorColumn(const CQChartsColumn &c)
+{
+  if (setValueSetColumn("color", c))
+    updateRangeAndObjs();
+}
+
+void
+CQChartsScatterPlot::
+setColorMapped(bool b)
+{
+  setValueSetMapped("color", b);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setColorMapMin(double r)
+{
+  setValueSetMapMin("color", r);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setColorMapMax(double r)
+{
+  setValueSetMapMax("color", r);
+
+  updateObjs();
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+setTextLabels(bool b)
+{
+  dataLabel_.setVisible(b);
+
+  invalidateLayers();
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+setFontSizeColumn(const CQChartsColumn &c)
+{
+  if (setValueSetColumn("fontSize", c))
+
+  updateRangeAndObjs();
+}
+
+void
+CQChartsScatterPlot::
 setFontSize(double s)
 {
   CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setFontSizeMapped(bool b)
+{
+  setValueSetMapped("fontSize", b);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setFontSizeMapMin(double r)
+{
+  setValueSetMapMin("fontSize", r);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setFontSizeMapMax(double r)
+{
+  setValueSetMapMax("fontSize", r);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setBestFit(bool b)
+{
+  CQChartsUtil::testAndSet(bestFit_, b, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -679,8 +818,22 @@ drawBackground(QPainter *painter)
 {
   CQChartsPlot::drawBackground(painter);
 
-  //---
+  drawBestFit(painter);
+}
 
+void
+CQChartsScatterPlot::
+drawForeground(QPainter *painter)
+{
+  drawSymbolMapKey(painter);
+
+  CQChartsPlot::drawForeground(painter);
+}
+
+void
+CQChartsScatterPlot::
+drawBestFit(QPainter *painter)
+{
   if (isBestFit()) {
     if (! fitData_.fitted) {
       int np = points_.size();;
@@ -731,21 +884,10 @@ drawBackground(QPainter *painter)
 
 void
 CQChartsScatterPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-void
-CQChartsScatterPlot::
-drawForeground(QPainter *painter)
+drawSymbolMapKey(QPainter *painter)
 {
   // draw size key
-  if (symbolSizeColumn().isValid()) {
+  if (symbolSizeColumn().isValid() && isSymbolMapKey()) {
     CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
 
     OptReal min  = boost::make_optional(false, 0.0);
@@ -818,10 +960,6 @@ drawForeground(QPainter *painter)
     if (min)
       drawText(painter, QPointF(r3.center().x(), r3.top()), QString("%1").arg(*min));
   }
-
-  //---
-
-  CQChartsPlot::drawForeground(painter);
 }
 
 //------
@@ -924,7 +1062,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsScatterPointObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   CQChartsSymbol        symbol  = plot_->symbolType();
   const CQChartsLength &size    = this->symbolSize();
@@ -997,8 +1135,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
-                    stroked, pen.color(), pen.widthF(), filled, brush.color());
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
 
   //---
 

@@ -33,13 +33,15 @@ class CQChartsModelData : public QObject {
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
 
+  QString id() const;
+
   // get/set selection model
   QItemSelectionModel *selectionModel() const { return selectionModel_; }
   void setSelectionModel(QItemSelectionModel *p) { selectionModel_ = p; }
 
   // get/set name
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
 #ifdef CQCHARTS_FOLDED_MODEL
   // get associated fold models

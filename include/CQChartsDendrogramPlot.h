@@ -47,7 +47,7 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsDendrogramPlot*   plot_ { nullptr };
@@ -83,18 +83,18 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
   //---
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
+  void setValueColumn(const CQChartsColumn &c);
 
   //---
 
   double circleSize() const { return circleSize_; }
-  void setCircleSize(double r) { circleSize_ = r; update(); }
+  void setCircleSize(double r);
 
   double textMargin() const { return textMargin_; }
-  void setTextMargin(double r) { textMargin_ = r; update(); }
+  void setTextMargin(double r);
 
   //---
 
@@ -170,7 +170,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void drawForeground(QPainter *) override;
 
   void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth);
 

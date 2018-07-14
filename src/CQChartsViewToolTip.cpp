@@ -47,6 +47,15 @@ updateWidget(const QPoint &gpos)
   if (view_->mode() != CQChartsView::Mode::SELECT)
     return false;
 
+  gpos_ = gpos;
+
+  return showTip(gpos);
+}
+
+bool
+CQChartsViewToolTip::
+showTip(const QPoint &gpos)
+{
   QPoint p = view_->mapFromGlobal(gpos);
 
   double wx, wy;

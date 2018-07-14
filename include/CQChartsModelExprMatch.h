@@ -4,21 +4,11 @@
 #include <QVariant>
 #include <QString>
 
-class CQChartsModelExprMatchExprFn;
 class CQChartsModelExprMatchTclFn;
 
-class CExpr;
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-#include <CExpr.h>
-#else
-#include <CRefPtr.h>
-class CExprValue;
-class CExprVariable;
-typedef CRefPtr<CExprValue> CExprValuePtr;
-typedef CRefPtr<CExprVariable> CExprVariablePtr;
-#endif
-
+#ifdef CQCharts_USE_TCL
 class CQTcl;
+#endif
 
 class QAbstractItemModel;
 
@@ -26,12 +16,6 @@ class QAbstractItemModel;
 
 class CQChartsModelExprMatch {
  public:
-  enum class ExprType {
-    NONE,
-    EXPR,
-    TCL
-  };
-
   using Vars = std::vector<QVariant>;
 
  public:
@@ -51,15 +35,7 @@ class CQChartsModelExprMatch {
 
   //---
 
-  const ExprType &exprType() const { return exprType_; }
-  void setExprType(const ExprType &t) { exprType_ = t; }
-
-  //---
-
   void addFunction(const QString &name);
-
-  void addExprFunction(const QString &name, CQChartsModelExprMatchExprFn *fn);
-  void addTclFunction (const QString &name, CQChartsModelExprMatchTclFn *fn);
 
   //---
 
@@ -75,23 +51,18 @@ class CQChartsModelExprMatch {
   bool checkColumn(int col) const;
   bool checkIndex(int row, int col) const;
 
-  static bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value);
-  static QVariant valueToVariant(CExpr *, const CExprValuePtr &value);
-
  private:
-  using ExprCmds = std::vector<CQChartsModelExprMatchExprFn *>;
   using TclCmds  = std::vector<CQChartsModelExprMatchTclFn *>;
 
-  friend class CQChartsModelExprMatchExprFn;
   friend class CQChartsModelExprMatchTclFn;
   friend class CQChartsModelExprMatchNameFn;
 
  private:
   void addBuiltinFunctions();
 
-  CExpr *expr() const { return expr_; }
-
+#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
+#endif
 
   QVariant columnCmd(const Vars &vars) const;
   QVariant rowCmd   (const Vars &vars) const;
@@ -110,26 +81,14 @@ class CQChartsModelExprMatch {
   QString replaceNumericColumns(const QString &expr, const QModelIndex &ind) const;
 
  private:
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  using Variables = std::map<int,CExprVariablePtr>;
-#endif
-
   using ColumnNames = std::map<int,QString>;
 
   QAbstractItemModel *model_      { nullptr };
-  ExprType            exprType_   { ExprType::NONE };
-  CExpr*              expr_       { nullptr };
+#ifdef CQCharts_USE_TCL
   CQTcl*              qtcl_       { nullptr };
-  ExprCmds            exprCmds_;
+#endif
   TclCmds             tclCmds_;
   bool                debug_      { false };
-#ifdef CQChartsModelExprMatch_USE_CEXPR
-  CExprValuePtr       rowValue_;
-  CExprValuePtr       colValue_;
-  CExprVariablePtr    rowVar_;
-  CExprVariablePtr    colVar_;
-  Variables           columnVars_;
-#endif
   ColumnNames         columnNames_;
   mutable int         currentRow_ { 0 };
   mutable int         currentCol_ { 0 };

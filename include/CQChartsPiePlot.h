@@ -108,9 +108,13 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
   void drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c);
+
+  CQChartsGeom::Point getCenter() const;
 
  protected:
   CQChartsPiePlot*     plot_     { nullptr }; // parent plot
@@ -171,7 +175,7 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *, const CQChartsPlot::Layer &) override { }
+  void draw(QPainter *) override { }
 
  private:
   CQChartsPiePlot* plot_         { nullptr }; // parent plot
@@ -223,36 +227,35 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   //   donut, inner radius, outer radius, label radius, start angle, end angle,
   //   explode/explode radius
 
-  Q_PROPERTY(CQChartsColumn labelColumn     READ labelColumn       WRITE setLabelColumn    )
-  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn       WRITE setValueColumn    )
-  Q_PROPERTY(QString        valueColumns    READ valueColumnsStr   WRITE setValueColumnsStr)
-  Q_PROPERTY(CQChartsColumn radiusColumn    READ radiusColumn      WRITE setRadiusColumn   )
-  Q_PROPERTY(CQChartsColumn keyLabelColumn  READ keyLabelColumn    WRITE setKeyLabelColumn )
-  Q_PROPERTY(CQChartsColumn colorColumn     READ colorColumn       WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn labelColumn    READ labelColumn     WRITE setLabelColumn    )
+  Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn     WRITE setValueColumn    )
+  Q_PROPERTY(QString        valueColumns   READ valueColumnsStr WRITE setValueColumnsStr)
+  Q_PROPERTY(CQChartsColumn radiusColumn   READ radiusColumn    WRITE setRadiusColumn   )
+  Q_PROPERTY(CQChartsColumn keyLabelColumn READ keyLabelColumn  WRITE setKeyLabelColumn )
+  Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn     WRITE setColorColumn    )
 
   // options
-  Q_PROPERTY(bool           donut           READ isDonut           WRITE setDonut          )
-  Q_PROPERTY(double         innerRadius     READ innerRadius       WRITE setInnerRadius    )
-  Q_PROPERTY(double         outerRadius     READ outerRadius       WRITE setOuterRadius    )
-  Q_PROPERTY(double         labelRadius     READ labelRadius       WRITE setLabelRadius    )
-  Q_PROPERTY(double         startAngle      READ startAngle        WRITE setStartAngle     )
-  Q_PROPERTY(double         angleExtent     READ angleExtent       WRITE setAngleExtent    )
-  Q_PROPERTY(bool           rotatedText     READ isRotatedText     WRITE setRotatedText    )
-  Q_PROPERTY(bool           explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
-  Q_PROPERTY(double         explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
+  Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
+  Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
+  Q_PROPERTY(double outerRadius     READ outerRadius       WRITE setOuterRadius    )
+  Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
+  Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
+  Q_PROPERTY(double angleExtent     READ angleExtent       WRITE setAngleExtent    )
+  Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
+  Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
+  Q_PROPERTY(double explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
 
   // grid
-  Q_PROPERTY(bool           grid            READ isGrid            WRITE setGrid           )
-  Q_PROPERTY(CQChartsColor  gridColor       READ gridColor         WRITE setGridColor      )
-  Q_PROPERTY(double         gridAlpha       READ gridAlpha         WRITE setGridAlpha      )
+  Q_PROPERTY(bool             grid      READ isGrid    WRITE setGrid     )
+  Q_PROPERTY(CQChartsColor    gridColor READ gridColor WRITE setGridColor)
+  Q_PROPERTY(double           gridAlpha READ gridAlpha WRITE setGridAlpha)
+  Q_PROPERTY(CQChartsLength   gridWidth READ gridWidth WRITE setGridWidth)
+  Q_PROPERTY(CQChartsLineDash gridDash  READ gridDash  WRITE setGridDash )
 
   // color map
-  Q_PROPERTY(bool           colorMapped     READ isColorMapped     WRITE setColorMapped    )
-  Q_PROPERTY(double         colorMapMin     READ colorMapMin       WRITE setColorMapMin    )
-  Q_PROPERTY(double         colorMapMax     READ colorMapMax       WRITE setColorMapMax    )
-
- public:
-  using OptColor = boost::optional<CQChartsColor>;
+  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
+  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
+  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
@@ -301,6 +304,12 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
   double gridAlpha() const { return gridData_.alpha; }
   void setGridAlpha(double r);
+
+  const CQChartsLength &gridWidth() const { return gridData_.width; }
+  void setGridWidth(const CQChartsLength &l);
+
+  const CQChartsLineDash &gridDash() const { return gridData_.dash; }
+  void setGridDash(const CQChartsLineDash &l);
 
   //---
 
@@ -372,8 +381,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   void handleResize() override;
 
   //---
-
-  void draw(QPainter *) override;
 
  private:
   void addRow(const QModelIndex &parent, int r);

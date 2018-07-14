@@ -74,12 +74,49 @@ CQChartsDelaunayPlot::
 
 void
 CQChartsDelaunayPlot::
+setXColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(xColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setYColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(yColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsDelaunayPlot::
 setVoronoi(bool b)
 {
   CQChartsUtil::testAndSet(voronoi_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
+
+void
+CQChartsDelaunayPlot::
+setVoronoiPointSize(double r)
+{
+  CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setPoints(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.visible, b, [&]() { invalidateLayers(); } );
+}
 
 const CQChartsColor &
 CQChartsDelaunayPlot::
@@ -92,7 +129,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -113,7 +150,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -127,7 +164,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -148,7 +185,7 @@ void
 CQChartsDelaunayPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsDelaunayPlot::Pattern
@@ -165,11 +202,18 @@ setSymbolFillPattern(const Pattern &pattern)
   if (pattern != (Pattern) pointData_.fill.pattern) {
     pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
 //---
+
+void
+CQChartsDelaunayPlot::
+setLines(bool b)
+{
+  CQChartsUtil::testAndSet(lineData_.visible, b, [&]() { invalidateLayers(); } );
+}
 
 const CQChartsColor &
 CQChartsDelaunayPlot::
@@ -182,7 +226,7 @@ void
 CQChartsDelaunayPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -190,6 +234,57 @@ CQChartsDelaunayPlot::
 interpLinesColor(int i, int n) const
 {
   return linesColor().interpColor(this, i, n);
+}
+
+void
+CQChartsDelaunayPlot::
+setLinesAlpha(double a)
+{
+  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setLinesWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+//---
+
+void
+CQChartsDelaunayPlot::
+setSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(pointData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(pointData_.size, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolStroked(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.visible, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolStrokeWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDelaunayPlot::
+setSymbolFilled(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -404,17 +499,6 @@ addMenuItems(QMenu *menu)
 }
 
 //------
-
-void
-CQChartsDelaunayPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
 
 void
 CQChartsDelaunayPlot::
@@ -637,7 +721,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsDelaunayPointObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;

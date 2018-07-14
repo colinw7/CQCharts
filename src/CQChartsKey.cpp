@@ -375,7 +375,8 @@ void
 CQChartsPlotKey::
 redraw()
 {
-  plot_->update();
+  plot_->invalidateLayer(CQChartsLayer::Type::BG_KEY);
+  plot_->invalidateLayer(CQChartsLayer::Type::FG_KEY);
 }
 
 void

@@ -32,7 +32,7 @@ void
 CQChartsTitle::
 redraw()
 {
-  plot_->update();
+  plot_->invalidateLayer(CQChartsLayer::Type::TITLE);
 }
 
 QString

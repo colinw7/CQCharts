@@ -71,7 +71,7 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 
   textBox_ = new CQChartsPieTextObj(this);
 
-  setLayerActive(Layer::FG, true);
+  setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
   addKey();
 
@@ -180,14 +180,14 @@ void
 CQChartsPiePlot::
 setGrid(bool b)
 {
-  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsPiePlot::
 setGridColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -201,7 +201,21 @@ void
 CQChartsPiePlot::
 setGridAlpha(double r)
 {
-  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsPiePlot::
+setGridWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(gridData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsPiePlot::
+setGridDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(gridData_.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -247,21 +261,21 @@ void
 CQChartsPiePlot::
 setRotatedText(bool b)
 {
-  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(rotatedText_, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeSelected(bool b)
 {
-  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(explodeSelected_, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsPiePlot::
 setExplodeRadius(double r)
 {
-  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { update(); } );
+  CQChartsUtil::testAndSet(explodeRadius_, r, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -273,7 +287,7 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "valueColumn"   , "value"    );
+  addProperty("columns", this, "valueColumn"   , "value"   );
   addProperty("columns", this, "valueColumns"  , "valueSet");
   addProperty("columns", this, "labelColumn"   , "label"   );
   addProperty("columns", this, "radiusColumn"  , "radius"  );
@@ -512,7 +526,7 @@ CQChartsPiePlot::
 addRow(const QModelIndex &parent, int row)
 {
   for (const auto &column : valueColumns()) {
-   CQChartsModelIndex ind(row, column, parent);
+    CQChartsModelIndex ind(row, column, parent);
 
     addRowColumn(ind);
   }
@@ -944,17 +958,6 @@ handleResize()
   dataRange_.reset();
 }
 
-void
-CQChartsPiePlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
 //------
 
 CQChartsPieObj::
@@ -1014,17 +1017,7 @@ QString
 CQChartsPieObj::
 calcId() const
 {
-  QModelIndex ind = plot_->unnormalizeIndex(ind_);
-
-  bool ok;
-
-  QString label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
-
-  int valueColumn = ind_.column();
-
-  QString valueStr = plot_->columnStr(valueColumn, value_);
-
-  return QString("pie:%1:%2").arg(label).arg(valueStr);
+  return QString("pie:%1").arg(colorInd());
 }
 
 bool
@@ -1099,7 +1092,7 @@ calcExploded() const
 
 void
 CQChartsPieObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &layer)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
@@ -1111,9 +1104,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  CQChartsGeom::Point center(0.0, 0.0);
-
-  CQChartsGeom::Point c = center;
+  CQChartsGeom::Point c = getCenter();
 
   double ri = innerRadius();
   double ro = outerRadius();
@@ -1124,78 +1115,88 @@ draw(QPainter *painter, const CQChartsPlot::Layer &layer)
 
   //---
 
-  bool isExploded = calcExploded();
+  if (plot_->isGrid()) {
+    QColor gridColor = plot_->interpGridColor(0, 1);
 
-  if (isExploded) {
-    double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
+    gridColor.setAlphaF(plot_->gridAlpha());
 
-    double dx = plot_->explodeRadius()*rv*cos(angle);
-    double dy = plot_->explodeRadius()*rv*sin(angle);
+    double lw = plot()->lengthPixelWidth(plot_->gridWidth());
 
-    c.x += dx;
-    c.y += dy;
-  }
+    QPen   pen  (gridColor);
+    QBrush brush(Qt::NoBrush);
 
-  //---
+    pen.setWidthF(lw);
 
-  //CQChartsGeom::Point pc;
-
-  //plot_->windowToPixel(c, pc);
-
-  //---
-
-  //CQChartsGeom::BBox bbox(c.x - rv, c.y - rv, c.x + rv, c.y + rv);
-
-  //CQChartsGeom::BBox pbbox;
-
-  //plot_->windowToPixel(bbox, pbbox);
-
-  //---
-
-  if (layer == CQChartsPlot::Layer::MID) {
-    if (plot_->isGrid()) {
-      QColor gridColor = plot_->interpGridColor(0, 1);
-
-      gridColor.setAlphaF(plot_->gridAlpha());
-
-      QPen   pen  (gridColor);
-      QBrush brush(Qt::NoBrush);
-
-      painter->setPen  (pen);
-      painter->setBrush(brush);
-
-      plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
-    }
-
-    //---
-
-    QColor bg;
-
-    if      (color())
-      bg = color()->interpColor(plot_, colorInd(), no);
-    else if (groupObj)
-      bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
-
-    QColor fg = plot_->textColor(bg);
-
-    QPen   pen  (fg);
-    QBrush brush(bg);
-
-    plot_->updateObjPenBrushState(this, pen, brush);
+    CQChartsUtil::penSetLineDash(pen, plot_->gridDash());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    //---
-
-    plot_->drawPieSlice(painter, c, ri, rv, a1, a2);
+    plot_->drawPieSlice(painter, c, ri, ro, a1, a2);
   }
 
   //---
 
-  if (layer == CQChartsPlot::Layer::FG) {
-    drawSegmentLabel(painter, c);
-  }
+  QColor bg;
+
+  if      (color())
+    bg = color()->interpColor(plot_, colorInd(), no);
+  else if (groupObj)
+    bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
+
+  QColor fg = plot_->textColor(bg);
+
+  QPen   pen  (fg);
+  QBrush brush(bg);
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  //---
+
+  plot_->drawPieSlice(painter, c, ri, rv, a1, a2);
+}
+
+void
+CQChartsPieObj::
+drawFg(QPainter *painter)
+{
+  CQChartsGeom::Point c = getCenter();
+
+  drawSegmentLabel(painter, c);
+}
+
+CQChartsGeom::Point
+CQChartsPieObj::
+getCenter() const
+{
+  CQChartsGeom::Point c(0.0, 0.0);
+
+  //---
+
+  bool isExploded = calcExploded();
+
+  if (! isExploded)
+    return c;
+
+  //---
+
+  double rv = valueRadius();
+
+  double a1 = angle1();
+  double a2 = angle2();
+
+  double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
+
+  double dx = plot_->explodeRadius()*rv*cos(angle);
+  double dy = plot_->explodeRadius()*rv*sin(angle);
+
+  c.x += dx;
+  c.y += dy;
+
+  return c;
 }
 
 void

@@ -435,7 +435,7 @@ animateStep()
     applyDataRange();
   }
 
-  update();
+  invalidateLayers();
 }
 
 bool
@@ -449,7 +449,7 @@ selectPress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
 
   pressed_ = true;
 
-  update();
+  invalidateLayers();
 
   return true;
 }
@@ -459,10 +459,11 @@ CQChartsForceDirectedPlot::
 selectMove(const CQChartsGeom::Point &p, bool first)
 {
   if (pressed_) {
+std::cerr << p.x << " " << p.y << "\n";
     if (forceDirected_.currentPoint())
       forceDirected_.currentPoint()->setP(Springy::Vector(p.x, p.y));
 
-    update();
+    invalidateLayers();
 
     return true;
   }
@@ -488,7 +489,7 @@ selectRelease(const CQChartsGeom::Point &p)
 
   pressed_ = false;
 
-  update();
+  invalidateLayers();
 
   return true;
 }
@@ -523,16 +524,8 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
 void
 CQChartsForceDirectedPlot::
-draw(QPainter *painter)
+drawParts(QPainter *painter)
 {
-  initPlotObjs();
-
-  //---
-
-  drawBackground(painter);
-
-  //---
-
   // draw edges
   QPen edgePen;
 

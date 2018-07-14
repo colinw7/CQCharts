@@ -5,18 +5,18 @@ CQChartsTest \
  -type scatter -columns "name=0,x=1,y=2,symbolSize=3,color=4" \
  -column_type "4#color" \
  -plot_title "Cities" \
- -properties "symbol.mapped=1"
+ -properties "symbol.map.enabled=1"
 
 CQChartsTest \
  -tsv data/scatter.tsv -first_line_header \
- -type scatter -columns "name=4,x=0,y=1,symbolSize=2" \
+ -type scatter -columns "name=4,x=0,y=1,symbolSize=2px" \
  -plot_title "scatter" \
  -properties "symbol.mapped=1,symbol.size=12,symbol.stroke.alpha=0.3,symbol.fill.alpha=0.5" \
  -view_properties "selectedHighlight.fill.enabled=1"
 
 CQChartsTest \
  -csv data/bubble.csv -comment_header \
- -type scatter -columns "name=0,x=1,y=2,color=3,symbolSize=4" \
+ -type scatter -columns "name=0,x=1,y=2,color=3,symbolSize=4px" \
  -plot_title "Scatter Plot" \
  -properties "symbol.mapped=1,color.mapped=1"
 

@@ -249,7 +249,7 @@ class CQChartsHull3D {
       static int SAFE = INT_MAX;
 
       if ((fabs(x()) > SAFE) || (fabs(y()) > SAFE) || (fabs(z()) > SAFE)) {
-        printf("Coordinate of vertex below might be too large\n");
+        std::cout << "Coordinate of vertex below might be too large\n";
         print();
       }
     }

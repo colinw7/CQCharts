@@ -1,8 +1,8 @@
 #include <CQChartsEval.h>
 
-#include <CExpr.h>
-#include <CQExprUtil.h>
+#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
+#endif
 
 #include <QColor>
 
@@ -21,9 +21,6 @@ instance()
 CQChartsEval::
 CQChartsEval()
 {
-#ifdef CQCharts_USE_CEXPR
-  expr_ = new CExpr;
-#endif
 #ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 
@@ -34,9 +31,6 @@ CQChartsEval()
 CQChartsEval::
 ~CQChartsEval()
 {
-#ifdef CQCharts_USE_CEXPR
-  delete expr_;
-#endif
 #ifdef CQCharts_USE_TCL
   delete qtcl_;
 #endif
@@ -46,37 +40,13 @@ bool
 CQChartsEval::
 evalExpr(int row, const QString &exprStr, QVariant &var)
 {
-  if (exprType_ == ExprType::CEXPR) {
-#ifdef CQCharts_USE_CEXPR
-    expr_->createVariable("x", expr_->createRealValue(row));
-
-    CExprValuePtr value;
-
-    if (! expr_->evaluateExpression(exprStr.toStdString(), value))
-      return false;
-
-    var = CQExprUtil::valueToVariant(expr_, value);
-
-    if (! var.isValid())
-      return false;
-
-    return true;
-#else
-    return false;
-#endif
-  }
-  else if (exprType_ == ExprType::TCL) {
 #ifdef CQCharts_USE_TCL
-    qtcl()->createVar("x", row);
+  qtcl()->createVar("x", row);
 
-    return qtcl()->evalExpr(exprStr, var);
+  return qtcl()->evalExpr(exprStr, var);
 #else
-    return false;
+  return false;
 #endif
-  }
-  else {
-    return false;
-  }
 }
 
 void

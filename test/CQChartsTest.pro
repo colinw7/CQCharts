@@ -8,8 +8,7 @@ DEPENDPATH += .
 
 QMAKE_CXXFLAGS += \
 -std=c++14 \
--DCQ_CHARTS_TCL \
--DCQCharts_USE_CEXPR -DCQCharts_USE_TCL \
+-DCQCharts_USE_TCL \
 -DCQCHARTS_FOLDED_MODEL \
 
 MOC_DIR = .moc
@@ -33,7 +32,6 @@ INCLUDEPATH += \
 . \
 ../include \
 ../../CQUtil/include \
-../../CExpr/include \
 ../../CImageLib/include \
 ../../CFont/include \
 ../../CReadLine/include \
@@ -50,7 +48,6 @@ unix:LIBS += \
 -L../../CQDividedArea/lib \
 -L../../CQCustomCombo/lib \
 -L../../CQUtil/lib \
--L../../CExpr/lib \
 -L../../CJson/lib \
 -L../../CConfig/lib \
 -L../../CImageLib/lib \
@@ -64,7 +61,7 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQDividedArea -lCQCustomCombo -lCQUtil \
--lCExpr -lCJson -lCConfig -lCImageLib -lCFont -lCMath \
+-lCJson -lCConfig -lCImageLib -lCFont -lCMath \
 -lCReadLine -lCFileUtil -lCFile -lCRegExp -lCStrUtil \
 -lCUtil -lCOS \
 -lreadline -lpng -ljpeg -ltre -ltcl

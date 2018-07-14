@@ -11,7 +11,10 @@ class CQChartsCsvFilterModel;
 class CQChartsTsvFilterModel;
 class CQChartsJsonFilterModel;
 class CQChartsGnuDataFilterModel;
+
+#if defined(CQCharts_USE_TCL)
 class CQTcl;
+#endif
 
 class QAbstractItemModel;
 
@@ -22,7 +25,9 @@ class CQChartsLoader {
  public:
   CQChartsLoader(CQCharts *charts);
 
+#if defined(CQCharts_USE_TCL)
   void setQtcl(CQTcl *qtcl);
+#endif
 
   QAbstractItemModel *loadFile(const QString &filename, CQChartsFileType type,
                                const CQChartsInputData &inputData, bool &hierarchical);
@@ -40,7 +45,9 @@ class CQChartsLoader {
 
  private:
   CQCharts* charts_ { nullptr };
+#if defined(CQCharts_USE_TCL)
   CQTcl*    qtcl_   { nullptr };
+#endif
 };
 
 #endif

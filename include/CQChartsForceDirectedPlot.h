@@ -112,7 +112,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
-  void draw(QPainter *) override;
+  void drawParts(QPainter *painter) override;
 
  private:
   struct ConnectionData {

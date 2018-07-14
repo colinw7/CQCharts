@@ -11,11 +11,10 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsColumnType.h>
 #include <CQDataModel.h>
-#ifdef CQ_CHARTS_CEIL
-#include <CQChartsCeilUtil.h>
-#endif
 #include <CQCharts.h>
+#if defined(CQCharts_USE_TCL)
 #include <CQTclUtil.h>
+#endif
 #include <CMathCorrelation.h>
 
 CQChartsLoader::
@@ -24,12 +23,14 @@ CQChartsLoader(CQCharts *charts) :
 {
 }
 
+#if defined(CQCharts_USE_TCL)
 void
 CQChartsLoader::
 setQtcl(CQTcl *qtcl)
 {
   qtcl_ = qtcl;
 }
+#endif
 
 QAbstractItemModel *
 CQChartsLoader::
@@ -48,14 +49,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
       return nullptr;
     }
 
-    if      (charts_->parserType() == CQCharts::ParserType::CEIL) {
-      csv->exprModel()->setExprType(CQExprModel           ::ExprType::EXPR);
-      csv->exprMatch()->setExprType(CQChartsModelExprMatch::ExprType::EXPR);
-    }
-    else if (charts_->parserType() == CQCharts::ParserType::TCL) {
-      csv->exprModel()->setExprType(CQExprModel           ::ExprType::TCL);
-      csv->exprMatch()->setExprType(CQChartsModelExprMatch::ExprType::TCL);
-    }
+    csv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
 
     return csv;
   }
@@ -67,14 +61,7 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
       return nullptr;
     }
 
-    if      (charts_->parserType() == CQCharts::ParserType::CEIL) {
-      tsv->exprModel()->setExprType(CQExprModel           ::ExprType::EXPR);
-      tsv->exprMatch()->setExprType(CQChartsModelExprMatch::ExprType::EXPR);
-    }
-    else if (charts_->parserType() == CQCharts::ParserType::TCL) {
-      tsv->exprModel()->setExprType(CQExprModel           ::ExprType::TCL);
-      tsv->exprMatch()->setExprType(CQChartsModelExprMatch::ExprType::TCL);
-    }
+    tsv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
 
     return tsv;
   }
@@ -219,7 +206,7 @@ QAbstractItemModel *
 CQChartsLoader::
 createVarsModel(const CQChartsInputData &inputData)
 {
-#if defined(CQCharts_USE_CEIL) || defined(CQCharts_USE_TCL)
+#if defined(CQCharts_USE_TCL)
   using ColumnValues = std::vector<QVariant>;
   using VarColumns   = std::vector<ColumnValues>;
 
@@ -234,17 +221,8 @@ createVarsModel(const CQChartsInputData &inputData)
 
     ColumnValues columnValues;
 
-    if      (charts_->parserType() == CQCharts::ParserType::CEIL) {
-#ifdef CQCharts_USE_CEIL
-      columnValues = CQChartsCeilUtil::varArrayValue(varName);
-#endif
-    }
-    else if (charts_->parserType() == CQCharts::ParserType::TCL) {
-#ifdef CQCharts_USE_TCL
-      if (qtcl_)
-        columnValues = qtcl_->getListVar(varName);
-#endif
-    }
+    if (qtcl_)
+      columnValues = qtcl_->getListVar(varName);
 
     if (! inputData.transpose) {
       int nc = columnValues.size();
@@ -319,21 +297,8 @@ createVarsModel(const CQChartsInputData &inputData)
 
       ColumnValues columnValues;
 
-      if      (charts_->parserType() == CQCharts::ParserType::CEIL) {
-#ifdef CQCharts_USE_CEIL
-        columnValues = CQChartsCeilUtil::varArrayValue(varName);
-#else
-        continue;
-#endif
-      }
-      else if (charts_->parserType() == CQCharts::ParserType::TCL) {
-#ifdef CQCharts_USE_TCL
-        if (qtcl_)
-          columnValues = qtcl_->getListVar(varName);
-#else
-        continue;
-#endif
-      }
+      if (qtcl_)
+        columnValues = qtcl_->getListVar(varName);
 
       int nv1 = columnValues.size();
 

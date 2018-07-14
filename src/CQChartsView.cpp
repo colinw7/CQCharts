@@ -1083,7 +1083,6 @@ mouseMoveEvent(QMouseEvent *me)
   if      (mouseData_.button == Qt::LeftButton) {
     // select plot object
     if      (mode() == Mode::SELECT) {
-
       if (selectMode_ == SelectMode::POINT) {
         if (mouseData_.plot) {
           (void) mouseData_.plot->selectMouseMove(searchPos_, true);
@@ -1104,6 +1103,8 @@ mouseMoveEvent(QMouseEvent *me)
         else
           updateRegionBand(mouseData_.pressPoint, mouseData_.movePoint);
       }
+
+      searchPos_ = me->pos();
     }
     // draw zoom rectangle
     else if (mode() == Mode::ZOOM) {
@@ -1597,7 +1598,7 @@ paintEvent(QPaintEvent *)
 
 void
 CQChartsView::
-paint(QPainter *painter)
+paint(QPainter *painter, CQChartsPlot *plot)
 {
   if (isAntiAlias())
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
@@ -1608,17 +1609,22 @@ paint(QPainter *painter)
 
   //---
 
-  for (const auto &plot : plots_) {
-    if (plot->isVisible())
-      plot->draw(painter);
+  if (plot) {
+    plot->draw(painter);
   }
+  else {
+    for (const auto &plot : plots_) {
+      if (plot->isVisible())
+        plot->draw(painter);
+    }
 
-  for (auto &annotation : annotations())
-    annotation->draw(painter);
+    for (auto &annotation : annotations())
+      annotation->draw(painter);
 
-  //---
+    //---
 
-  key()->draw(painter);
+    key()->draw(painter);
+  }
 }
 
 //------
@@ -2236,6 +2242,19 @@ showMenu(const QPoint &p)
     popupMenu_->addAction(showBoxesAction);
 
     connect(showBoxesAction, SIGNAL(triggered(bool)), this, SLOT(showBoxesSlot(bool)));
+
+    //---
+
+    QAction *bufferLayersAction = new QAction("Buffer Layers", popupMenu_);
+
+    bufferLayersAction->setCheckable(true);
+
+    if (currentPlot)
+      bufferLayersAction->setChecked(currentPlot->isBufferLayers());
+
+    popupMenu_->addAction(bufferLayersAction);
+
+    connect(bufferLayersAction, SIGNAL(triggered(bool)), this, SLOT(bufferLayersSlot(bool)));
   }
 
   //---
@@ -2430,6 +2449,8 @@ lightPaletteSlot()
 
   isDark_ = false;
 
+  updatePlots();
+
   emit interfacePaletteChanged();
 }
 
@@ -2445,6 +2466,8 @@ darkPaletteSlot()
   interfacePalette_->addDefinedColor(1.0, QColor("#dddddd"));
 
   isDark_ = true;
+
+  updatePlots();
 
   emit interfacePaletteChanged();
 }
@@ -2492,7 +2515,7 @@ themeSlot(const QString &name)
 
 void
 CQChartsView::
-printFile(const QString &filename)
+printFile(const QString &filename, CQChartsPlot *plot)
 {
   auto p = filename.lastIndexOf(".");
 
@@ -2500,11 +2523,11 @@ printFile(const QString &filename)
     QString suffix = filename.mid(p + 1).toLower();
 
     if      (suffix == "png")
-      printPNGSlot(filename);
+      printPNG(filename, plot);
     else if (suffix == "svg")
-      printSVGSlot(filename);
+      printSVG(filename, plot);
     else
-      printPNGSlot(filename);
+      printPNG(filename, plot);
   }
   else {
     printPNGSlot(filename);
@@ -2515,6 +2538,20 @@ void
 CQChartsView::
 printPNGSlot(const QString &filename)
 {
+  printPNG(filename);
+}
+
+void
+CQChartsView::
+printSVGSlot(const QString &filename)
+{
+  printSVG(filename);
+}
+
+void
+CQChartsView::
+printPNG(const QString &filename, CQChartsPlot *plot)
+{
   int w = width ();
   int h = height();
 
@@ -2524,7 +2561,7 @@ printPNGSlot(const QString &filename)
 
   painter.begin(&image);
 
-  paint(&painter);
+  paint(&painter, plot);
 
   painter.end();
 
@@ -2533,7 +2570,7 @@ printPNGSlot(const QString &filename)
 
 void
 CQChartsView::
-printSVGSlot(const QString &filename)
+printSVG(const QString &filename, CQChartsPlot *plot)
 {
   QSvgGenerator generator;
 
@@ -2543,7 +2580,7 @@ printSVGSlot(const QString &filename)
 
   painter.begin(&generator);
 
-  paint(&painter);
+  paint(&painter, plot);
 
   painter.end();
 }
@@ -2558,6 +2595,16 @@ showBoxesSlot(bool b)
 
   if (currentPlot)
     currentPlot->setShowBoxes(b);
+}
+
+void
+CQChartsView::
+bufferLayersSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+
+  if (currentPlot)
+    currentPlot->setBufferLayers(b);
 }
 
 //------
@@ -2578,7 +2625,7 @@ CQChartsView::
 updatePlots()
 {
   for (auto &plot : plots_) {
-    plot->update();
+    plot->invalidateLayers();
   }
 }
 

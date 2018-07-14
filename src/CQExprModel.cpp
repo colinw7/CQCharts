@@ -1,8 +1,9 @@
 #include <CQExprModel.h>
 #include <CQExprModelFn.h>
 #include <CQExprModelCmdValues.h>
-#include <CQExprUtil.h>
+#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
+#endif
 
 #include <CQStrParse.h>
 #include <COSNaN.h>
@@ -10,18 +11,7 @@
 #include <QColor>
 #include <iostream>
 
-#ifdef CQExprModel_USE_CEXPR
-class CQExprModelExprNameFn : public CQExprModelExprFn {
- public:
-  CQExprModelExprNameFn(CQExprModel *model, const QString &name) :
-   CQExprModelExprFn(model, name) {
-  }
-
-  QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
-};
-#endif
-
-#ifdef CQExprModel_USE_TCL
+#ifdef CQCharts_USE_TCL
 class CQExprModelTclNameFn : public CQExprModelTclFn {
  public:
   CQExprModelTclNameFn(CQExprModel *model, const QString &name) :
@@ -38,11 +28,7 @@ CQExprModel::
 CQExprModel(QAbstractItemModel *model) :
  model_(model)
 {
-#ifdef CQExprModel_USE_CEXPR
-  expr_ = new CExpr;
-#endif
-
-#ifdef CQExprModel_USE_TCL
+#ifdef CQCharts_USE_TCL
   qtcl_ = new CQTcl;
 #endif
 
@@ -54,14 +40,7 @@ CQExprModel(QAbstractItemModel *model) :
 CQExprModel::
 ~CQExprModel()
 {
-#ifdef CQExprModel_USE_CEXPR
-  //for (auto &exprCmd : exprCmds_)
-  //  delete exprCmd;
-
-  delete expr_;
-#endif
-
-#ifdef CQExprModel_USE_TCL
+#ifdef CQCharts_USE_TCL
   for (auto &tclCmd : tclCmds_)
     delete tclCmd;
 
@@ -73,12 +52,7 @@ void
 CQExprModel::
 addBuiltinFunctions()
 {
-#ifdef CQExprModel_USE_CEXPR
-  expr_->createRealVariable("pi" , M_PI);
-  expr_->createRealVariable("NaN", COSNaN::get_nan());
-#endif
-
-#ifdef CQExprModel_USE_TCL
+#ifdef CQCharts_USE_TCL
   qtcl_->createVar("pi" , QVariant(M_PI));
   qtcl_->createVar("NaN", QVariant(COSNaN::get_nan()));
 #endif
@@ -106,28 +80,11 @@ void
 CQExprModel::
 addFunction(const QString &name)
 {
-  addExprFunction(name, new CQExprModelExprNameFn(this, name));
-  addTclFunction (name, new CQExprModelTclNameFn (this, name));
-}
-
-void
-CQExprModel::
-addExprFunction(const QString &name, CQExprModelExprFn *fn)
-{
   assert(name.length());
 
-#ifdef CQExprModel_USE_CEXPR
-  exprCmds_.push_back(fn);
-#endif
-}
+#ifdef CQCharts_USE_TCL
+  CQExprModelTclNameFn *fn = new CQExprModelTclNameFn(this, name);
 
-void
-CQExprModel::
-addTclFunction(const QString &name, CQExprModelTclFn *fn)
-{
-  assert(name.length());
-
-#ifdef CQExprModel_USE_TCL
   tclCmds_.push_back(fn);
 #endif
 }
@@ -1438,40 +1395,18 @@ evaluateExpression(const QString &expr, QVariant &var) const
   if (expr.length() == 0)
     return false;
 
-  if      (exprType_ == ExprType::EXPR) {
-#ifdef CQExprModel_USE_CEXPR
-    CExprValuePtr value;
+#ifdef CQCharts_USE_TCL
+  int rc = qtcl_->evalExpr(expr);
 
-    if (! expr_->evaluateExpression(expr.toStdString(), value))
-      return false;
+  if (rc != TCL_OK) {
+    std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
+    return false;
+  }
 
-    if (! value.isValid())
-      return false;
-
-    var = CQExprUtil::valueToVariant(expr_, value);
-
-    return true;
+  return getTclResult(var);
 #else
-    return false;
+  return false;
 #endif
-  }
-  else if (exprType_ == ExprType::TCL) {
-#ifdef CQExprModel_USE_TCL
-    int rc = qtcl_->evalExpr(expr);
-
-    if (rc != TCL_OK) {
-      std::cerr << qtcl_->errorInfo(rc).toStdString() << std::endl;
-      return false;
-    }
-
-    return getTclResult(var);
-#else
-    return false;
-#endif
-  }
-  else {
-    return false;
-  }
 }
 
 bool
@@ -1495,33 +1430,9 @@ checkIndex(int row, int col) const
 
 bool
 CQExprModel::
-variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const
-{
-#ifdef CQExprModel_USE_CEXPR
-  return CQExprUtil::variantToValue(expr, var, value);
-#else
-  assert(false && expr && &var && &value);
-  return false;
-#endif
-}
-
-QVariant
-CQExprModel::
-valueToVariant(CExpr *expr, const CExprValuePtr &value) const
-{
-#ifdef CQExprModel_USE_CEXPR
-  return CQExprUtil::valueToVariant(expr, value);
-#else
-  assert(false && &value);
-  return QVariant();
-#endif
-}
-
-bool
-CQExprModel::
 setTclResult(const QVariant &rc)
 {
-#ifdef CQExprModel_USE_CEXPR
+#ifdef CQCharts_USE_TCL
   qtcl_->setResult(rc);
   return true;
 #endif
@@ -1531,7 +1442,7 @@ bool
 CQExprModel::
 getTclResult(QVariant &var) const
 {
-#ifdef CQExprModel_USE_TCL
+#ifdef CQCharts_USE_TCL
   var = qtcl_->getResult();
   return true;
 #endif

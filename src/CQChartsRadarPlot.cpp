@@ -157,7 +157,7 @@ void
 CQChartsRadarPlot::
 setFilled(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -171,7 +171,7 @@ void
 CQChartsRadarPlot::
 setFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -192,7 +192,7 @@ void
 CQChartsRadarPlot::
 setFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsRadarPlot::Pattern
@@ -209,7 +209,7 @@ setFillPattern(Pattern pattern)
   if (pattern != (Pattern) shapeData_.background.pattern) {
     shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -235,14 +235,14 @@ void
 CQChartsRadarPlot::
 setGrid(bool b)
 {
-  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsRadarPlot::
 setGridColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -256,7 +256,21 @@ void
 CQChartsRadarPlot::
 setGridAlpha(double r)
 {
-  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { update(); } );
+  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsRadarPlot::
+setGridWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(gridData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsRadarPlot::
+setGridDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(gridData_.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -272,7 +286,7 @@ void
 CQChartsRadarPlot::
 setBorder(bool b)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -286,7 +300,7 @@ void
 CQChartsRadarPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -307,7 +321,7 @@ void
 CQChartsRadarPlot::
 setBorderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -321,7 +335,7 @@ void
 CQChartsRadarPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLineDash &
@@ -335,7 +349,7 @@ void
 CQChartsRadarPlot::
 setBorderDash(const CQChartsLineDash &d)
 {
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { update(); } );
+  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -351,7 +365,7 @@ void
 CQChartsRadarPlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -365,7 +379,7 @@ void
 CQChartsRadarPlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -386,7 +400,7 @@ void
 CQChartsRadarPlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 //----
@@ -397,25 +411,31 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  // columns
   addProperty("columns", this, "nameColumn"  , "name"     );
   addProperty("columns", this, "valueColumn" , "value"    );
   addProperty("columns", this, "valueColumns", "valuesSet");
 
+  // options
   addProperty("options", this, "angleStart" );
   addProperty("options", this, "angleExtent");
 
+  // grid
   addProperty("grid", this, "grid", "visible");
 
   addLineProperties("grid", "grid");
 
+  // stroke
   addProperty("stroke", this, "border", "visible");
 
   addLineProperties("stroke", "border");
 
+  // fill
   addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
+  // text
   addProperty("text", this, "textFont" , "font" );
   addProperty("text", this, "textColor", "color");
   addProperty("text", this, "textAlpha", "alpha");
@@ -767,9 +787,17 @@ drawBackground(QPainter *painter)
 
       gridColor1.setAlphaF(gridAlpha());
 
+      double lw = lengthPixelWidth(gridWidth());
+
       QPen gpen1(gridColor1);
 
+      gpen1.setWidthF(lw);
+
+      CQChartsUtil::penSetLineDash(gpen1, gridDash());
+
       painter->setPen(gpen1);
+
+      //---
 
       double px1, py1;
 
@@ -879,17 +907,6 @@ drawBackground(QPainter *painter)
   }
 }
 
-void
-CQChartsRadarPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
 //------
 
 CQChartsRadarObj::
@@ -982,7 +999,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsRadarObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! poly_.size())
     return;

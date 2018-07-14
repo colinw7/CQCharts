@@ -114,6 +114,40 @@ setGroupColumnStr(const QString &s)
 
 void
 CQChartsHierScatterPlot::
+setSymbolBorderColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsHierScatterPlot::
+setSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(symbolData_.size, s, [&]() { updateObjs(); } );
+}
+
+//---
+
+void
+CQChartsHierScatterPlot::
+setTextLabels(bool b)
+{
+  dataLabel_.setVisible(b);
+
+  invalidateLayers();
+}
+
+void
+CQChartsHierScatterPlot::
+setFontSize(double s)
+{
+  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
+}
+
+//------
+
+void
+CQChartsHierScatterPlot::
 popCurrentGroup()
 {
   if (! currentGroup_)
@@ -615,19 +649,6 @@ addMenuItems(QMenu *menu)
 
 //------
 
-void
-CQChartsHierScatterPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-//------
-
 CQChartsHierScatterPointObj::
 CQChartsHierScatterPointObj(CQChartsHierScatterPlot *plot, const CQChartsGeom::BBox &rect,
                             const QPointF &p, int i, int n) :
@@ -695,7 +716,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsHierScatterPointObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   double s = plot_->lengthPixelWidth(plot_->symbolSize());
 

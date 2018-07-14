@@ -52,7 +52,7 @@ class CQChartsSunburstNodeObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsSunburstPlot *plot_ { nullptr };
@@ -290,8 +290,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
     BDIAG
   };
 
-  using OptColor = boost::optional<CQChartsColor>;
-
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
  public:
@@ -410,8 +408,6 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   void handleResize() override;
 
   //---
-
-  void draw(QPainter *) override;
 
   void drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj,
                 CQChartsSunburstNode *node);

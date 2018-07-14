@@ -6,9 +6,11 @@
 class CQChartsWindow;
 class CQChartsPlot;
 class CQChartsFilterEdit;
-class CQPropertyViewTree;
 class CQChartsGradientPaletteCanvas;
 class CQChartsGradientPaletteControl;
+class CQChartsLoadDlg;
+class CQChartsPlotDlg;
+class CQPropertyViewTree;
 class CQIntegerSpin;
 
 class QTabWidget;
@@ -35,7 +37,8 @@ class CQChartsViewSettings : public QFrame {
   void propertyItemSelected(QObject *obj, const QString &path);
 
  private slots:
-  void updatePlots();
+  void updateModels();
+  void updatePlots ();
 
   void paletteIndexSlot(int ind);
 
@@ -47,6 +50,10 @@ class CQChartsViewSettings : public QFrame {
   void replaceSearchSlot(const QString &text);
   void addSearchSlot(const QString &text);
 
+  void modelsSelectionChangeSlot();
+
+  void loadModelSlot();
+
   void plotsSelectionChangeSlot();
 
   void groupPlotsSlot();
@@ -57,6 +64,8 @@ class CQChartsViewSettings : public QFrame {
   void lowerPlotSlot();
 
   void removePlotsSlot();
+
+  void createPlotSlot();
 
   void updatePalettes();
   void updateInterface();
@@ -82,6 +91,10 @@ class CQChartsViewSettings : public QFrame {
   struct PropertiesWidgets {
     CQChartsFilterEdit* filterEdit   { nullptr }; // settings filter
     CQPropertyViewTree* propertyTree { nullptr }; // settings tree
+  };
+
+  struct ModelsWidgets {
+    QTableWidget*  modelTable { nullptr };
   };
 
   struct PlotsWidgets {
@@ -112,8 +125,11 @@ class CQChartsViewSettings : public QFrame {
   CQChartsWindow*   window_       { nullptr }; // parent window
   QTabWidget*       tab_          { nullptr }; // settings/palette tab
   PropertiesWidgets propertiesWidgets_;
+  ModelsWidgets     modelsWidgets_;
   PlotsWidgets      plotsWidgets_;
   ThemeWidgets      themeWidgets_;
+  CQChartsLoadDlg*  loadDlg_      { nullptr };
+  CQChartsPlotDlg*  plotDlg_      { nullptr };
 };
 
 #endif

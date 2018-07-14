@@ -272,7 +272,7 @@ void
 CQChartsBoxPlot::
 setBoxWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(boxWidth_, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxWidth_, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -288,7 +288,7 @@ void
 CQChartsBoxPlot::
 setBoxFilled(bool b)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -302,7 +302,7 @@ void
 CQChartsBoxPlot::
 setBoxColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -323,7 +323,7 @@ void
 CQChartsBoxPlot::
 setBoxAlpha(double a)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsBoxPlot::Pattern
@@ -340,7 +340,7 @@ setBoxPattern(Pattern pattern)
   if (pattern != (Pattern) boxData_.shape.background.pattern) {
     boxData_.shape.background.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -357,7 +357,7 @@ void
 CQChartsBoxPlot::
 setBorderStroked(bool b)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -371,7 +371,7 @@ void
 CQChartsBoxPlot::
 setBorderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -392,7 +392,7 @@ void
 CQChartsBoxPlot::
 setBorderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -406,7 +406,7 @@ void
 CQChartsBoxPlot::
 setBorderWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLineDash &
@@ -420,7 +420,7 @@ void
 CQChartsBoxPlot::
 setBorderDash(const CQChartsLineDash &d)
 {
-  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsLength &
@@ -434,7 +434,7 @@ void
 CQChartsBoxPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { update(); } );
+  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -450,7 +450,7 @@ void
 CQChartsBoxPlot::
 setWhiskerColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(whiskerData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(whiskerData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 double
@@ -464,7 +464,7 @@ void
 CQChartsBoxPlot::
 setWhiskerAlpha(double a)
 {
-  CQChartsUtil::testAndSet(whiskerData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(whiskerData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -472,6 +472,20 @@ CQChartsBoxPlot::
 interpWhiskerColor(int i, int n) const
 {
   return whiskerColor().interpColor(this, i, n);
+}
+
+void
+CQChartsBoxPlot::
+setWhiskerLineWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(whiskerData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setWhiskerExtent(double r)
+{
+  CQChartsUtil::testAndSet(whiskerExtent_, r, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -487,7 +501,7 @@ void
 CQChartsBoxPlot::
 setTextVisible(bool b)
 {
-  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -501,7 +515,7 @@ void
 CQChartsBoxPlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 double
@@ -515,7 +529,7 @@ void
 CQChartsBoxPlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -536,10 +550,38 @@ void
 CQChartsBoxPlot::
 setTextFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setTextMargin(double r)
+{
+  CQChartsUtil::testAndSet(textMargin_, r, [&]() { invalidateLayers(); } );
 }
 
 //---
+
+void
+CQChartsBoxPlot::
+setSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(symbolData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(symbolData_.size, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setSymbolStroked(bool b)
+{
+  CQChartsUtil::testAndSet(symbolData_.stroke.visible, b, [&]() { invalidateLayers(); } );
+}
 
 const CQChartsColor &
 CQChartsBoxPlot::
@@ -552,7 +594,7 @@ void
 CQChartsBoxPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -573,7 +615,7 @@ void
 CQChartsBoxPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -585,9 +627,23 @@ symbolFillColor() const
 
 void
 CQChartsBoxPlot::
+setSymbolStrokeWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(symbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setSymbolFilled(bool b)
+{
+  CQChartsUtil::testAndSet(symbolData_.fill.visible, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -608,7 +664,7 @@ void
 CQChartsBoxPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsBoxPlot::Pattern
@@ -625,7 +681,7 @@ setSymbolFillPattern(const Pattern &pattern)
   if (pattern != (Pattern) symbolData_.fill.pattern) {
     symbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -1397,19 +1453,6 @@ addMenuItems(QMenu *menu)
 
 //------
 
-void
-CQChartsBoxPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-//------
-
 CQChartsBoxPlotWhiskerObj::
 CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
                           int groupInd, const CQChartsBoxPlotWhisker &whisker,
@@ -1485,7 +1528,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsBoxPlotWhiskerObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   double pos = rect_.getXYMid(! plot_->isHorizontal());
 
@@ -1549,7 +1592,7 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   //---
 
   // draw box
-  QRectF rect = QRectF(px2, py2, px4 - px2, py4 - py2);
+  QRectF rect(px2, py2, px4 - px2, py4 - py2);
 
   // set fill and stroke
   QBrush brush;
@@ -1835,7 +1878,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsBoxPlotDataObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   double pos = rect_.getXYMid(! plot_->isHorizontal());
 
@@ -1997,6 +2040,8 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
     QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
     double         fillAlpha   = plot_->symbolFillAlpha();
 
+    symbolSize = plot_->limitSymbolSize(symbolSize);
+
     strokeColor.setAlphaF(strokeAlpha);
     fillColor  .setAlphaF(fillAlpha);
 
@@ -2119,9 +2164,7 @@ QString
 CQChartsBoxPlotConnectedObj::
 calcId() const
 {
-  QString groupName = plot_->groupIndName(groupId_);
-
-  return QString("connected:%1").arg(groupName);
+  return QString("connected:%1").arg(i_);
 }
 
 QString
@@ -2204,7 +2247,7 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsBoxPlotConnectedObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   // draw range polygon
   int np = poly_.count();

@@ -1055,7 +1055,8 @@ void
 CQChartsAxis::
 redraw()
 {
-  plot_->update();
+  plot_->invalidateLayer(CQChartsLayer::Type::BG_AXES);
+  plot_->invalidateLayer(CQChartsLayer::Type::FG_AXES);
 }
 
 void

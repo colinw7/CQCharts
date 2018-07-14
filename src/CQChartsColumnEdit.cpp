@@ -27,6 +27,7 @@ CQChartsColumnEdit(QWidget *parent) :
   layout->setMargin(0); layout->setSpacing(2);
 
   edit_ = new QLineEdit;
+  edit_->setObjectName("edit");
 
   edit_->setFrame(false);
 
@@ -36,6 +37,7 @@ CQChartsColumnEdit(QWidget *parent) :
   layout->addWidget(edit_);
 
   button_ = new CQChartsColumnEditMenuButton;
+  button_->setObjectName("button");
 
   QStyleOptionComboBox opt;
 

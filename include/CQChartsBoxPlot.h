@@ -113,7 +113,7 @@ class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
   CQChartsGeom::BBox annotationBBox() const;
 
@@ -144,7 +144,7 @@ class CQChartsBoxPlotDataObj : public CQChartsBoxPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
   CQChartsGeom::BBox annotationBBox() const;
 
@@ -174,7 +174,7 @@ class CQChartsBoxPlotConnectedObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   using SetWhiskerMap = std::map<int,CQChartsBoxPlotWhisker>;
@@ -415,10 +415,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   void setWhiskerAlpha(double a);
 
   const CQChartsLength &whiskerLineWidth() const { return whiskerData_.width; }
-  void setWhiskerLineWidth(const CQChartsLength &l) { whiskerData_.width = l; update(); }
+  void setWhiskerLineWidth(const CQChartsLength &l);
 
   double whiskerExtent() const { return whiskerExtent_; }
-  void setWhiskerExtent(double r) { whiskerExtent_ = r; update(); }
+  void setWhiskerExtent(double r);
 
   QColor interpWhiskerColor(int i, int n) const;
 
@@ -438,7 +438,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   void setTextFont(const QFont &f);
 
   double textMargin() const { return textMargin_; }
-  void setTextMargin(double r) { textMargin_ = r; update(); }
+  void setTextMargin(double r);
 
   QColor interpTextColor(int i, int n) const;
 
@@ -446,15 +446,15 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   // symbol
   const CQChartsSymbol &symbolType() const { return symbolData_.type; }
-  void setSymbolType(const CQChartsSymbol &t) { symbolData_.type = t; update(); }
+  void setSymbolType(const CQChartsSymbol &t);
 
   const CQChartsLength &symbolSize() const { return symbolData_.size; }
-  void setSymbolSize(const CQChartsLength &s) { symbolData_.size = s; update(); }
+  void setSymbolSize(const CQChartsLength &s);
 
   //--
 
   bool isSymbolStroked() const { return symbolData_.stroke.visible; }
-  void setSymbolStroked(bool b) { symbolData_.stroke.visible = b; update(); }
+  void setSymbolStroked(bool b);
 
   const CQChartsColor &symbolStrokeColor() const;
   void setSymbolStrokeColor(const CQChartsColor &c);
@@ -465,12 +465,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   void setSymbolStrokeAlpha(double a);
 
   const CQChartsLength &symbolStrokeWidth() const { return symbolData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l) { symbolData_.stroke.width = l; update(); }
+  void setSymbolStrokeWidth(const CQChartsLength &l);
 
   //--
 
   bool isSymbolFilled() const { return symbolData_.fill.visible; }
-  void setSymbolFilled(bool b) { symbolData_.fill.visible = b; update(); }
+  void setSymbolFilled(bool b);
 
   const CQChartsColor &symbolFillColor() const;
   void setSymbolFillColor(const CQChartsColor &c);
@@ -531,8 +531,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   bool addMenuItems(QMenu *menu) override;
 
   //---
-
-  void draw(QPainter *) override;
 
  public slots:
   // set horizontal

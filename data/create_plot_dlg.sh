@@ -1,1 +1,1 @@
-CQChartsTest -tcl -exec create_plot_dlg.tcl -loop
+CQChartsTest -exec create_plot_dlg.tcl -loop

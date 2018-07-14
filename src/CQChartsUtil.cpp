@@ -6,7 +6,6 @@
 #include <CQTsvModel.h>
 #include <CQDataModel.h>
 
-#include <CQExprUtil.h>
 #include <CQUtil.h>
 #include <CQStrParse.h>
 #include <QSortFilterProxyModel>

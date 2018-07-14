@@ -114,7 +114,7 @@ CQChartsBoxObj::
 redrawBoxObj()
 {
   if      (plot_)
-    plot_->update();
+    plot_->invalidateLayers();
   else if (view_)
     view_->update();
 }

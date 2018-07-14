@@ -216,6 +216,15 @@ getModelDatas(ModelDatas &modelDatas) const
   modelDatas = modelDatas_;
 }
 
+void
+CQCharts::
+setModelName(CQChartsModelData *modelData, const QString &name)
+{
+  modelData->setName(name);
+
+  emit modelNameChanged(name);
+}
+
 //---
 
 CQChartsView *

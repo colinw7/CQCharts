@@ -147,7 +147,7 @@ setBgColor(const CQChartsColor &c)
 {
   bgBox_.setBackgroundColor(c);
 
-  update();
+  invalidateLayers();
 }
 
 QColor
@@ -165,7 +165,7 @@ setBorderColor(const CQChartsColor &c)
 {
   cellBox_.setBorderColor(c);
 
-  update();
+  invalidateLayers();
 }
 
 QColor
@@ -181,7 +181,7 @@ setBorderAlpha(double r)
 {
   cellBox_.setBorderAlpha(r);
 
-  update();
+  invalidateLayers();
 }
 
 void
@@ -190,7 +190,7 @@ setBorderDash(const CQChartsLineDash &d)
 {
   cellBox_.setBorderDash(d);
 
-  update();
+  invalidateLayers();
 }
 
 //---
@@ -201,7 +201,7 @@ setEmptyCellColor(const CQChartsColor &s)
 {
   emptyCellBox_.setBackgroundColor(s);
 
-  update();
+  invalidateLayers();
 }
 
 QColor
@@ -217,21 +217,21 @@ setCornerSize(const CQChartsLength &s)
 {
   cellBox_.setCornerSize(s);
 
-  update();
+  invalidateLayers();
 }
 
 void
 CQChartsAdjacencyPlot::
 setTextColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsAdjacencyPlot::
 setTextAlpha(double a)
 {
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -245,7 +245,7 @@ void
 CQChartsAdjacencyPlot::
 setFont(const QFont &f)
 {
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { update(); } );
+  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
 }
 
 void
@@ -798,17 +798,6 @@ handleResize()
 
 void
 CQChartsAdjacencyPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
-
-void
-CQChartsAdjacencyPlot::
 drawBackground(QPainter *painter)
 {
   CQChartsPlot::drawBackground(painter);
@@ -932,7 +921,7 @@ CQChartsAdjacencyPlot::
 drawForeground(QPainter *painter)
 {
   if (insideObj())
-    insideObj()->draw(painter, CQChartsPlot::Layer::FG);
+    insideObj()->draw(painter);
 
   //---
 
@@ -992,7 +981,7 @@ getSelectIndices(Indices &inds) const
 
 void
 CQChartsAdjacencyObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (isInside())
     plot_->setInsideObj(this);

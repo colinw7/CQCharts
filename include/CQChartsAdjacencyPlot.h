@@ -111,7 +111,7 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsAdjacencyPlot *plot_  { nullptr }; // parent plot
@@ -265,8 +265,6 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   void handleResize() override;
 
   //---
-
-  void draw(QPainter *) override;
 
   void drawBackground(QPainter *) override;
   void drawForeground(QPainter *) override;

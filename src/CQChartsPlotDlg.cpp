@@ -735,7 +735,7 @@ CQChartsPlotDlg::
 addPlotWidgets(CQChartsPlotType *type, int ind)
 {
   QFrame *frame = new QFrame;
-  frame->setObjectName("frame");
+  frame->setObjectName(type->name() + "_frame");
 
   stack_->addWidget(frame);
 

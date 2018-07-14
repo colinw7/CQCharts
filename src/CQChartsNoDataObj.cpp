@@ -10,7 +10,7 @@ CQChartsNoDataObj(CQChartsPlot *plot) :
 
 void
 CQChartsNoDataObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   CQChartsView *view = plot_->view();
 

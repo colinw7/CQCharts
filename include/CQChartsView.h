@@ -348,7 +348,12 @@ class CQChartsView : public QFrame {
 
   void paintEvent(QPaintEvent *) override;
 
-  void paint(QPainter *painter);
+  void paint(QPainter *painter, CQChartsPlot *plot=nullptr);
+
+  //---
+
+  void printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
+  void printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
 
   //---
 
@@ -544,7 +549,7 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void printFile(const QString &filename);
+  void printFile(const QString &filename, CQChartsPlot *plot=nullptr);
 
   void printPNGSlot(const QString &filename="charts.png");
   void printSVGSlot(const QString &filename="charts.svg");
@@ -552,6 +557,8 @@ class CQChartsView : public QFrame {
   //---
 
   void showBoxesSlot(bool b);
+
+  void bufferLayersSlot(bool b);
 
   //---
 

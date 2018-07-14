@@ -17,10 +17,13 @@ while ($#argv > 0)
   endif
 end
 
+setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
+setenv QT_SCALE_FACTOR 0
+
 if ($debug == 1) then
-  Dbx CQChartsTest -tcl -exec $args $opts
+  Dbx CQChartsTest -exec $args $opts
 else
-  CQChartsTest -tcl -exec $args $opts
+  CQChartsTest -exec $args $opts
 endif
 
 exit 0

@@ -36,7 +36,7 @@ CQChartsDataLabel::
 update()
 {
   // update range ?
-  plot_->update();
+  plot_->invalidateLayers();
 }
 
 void

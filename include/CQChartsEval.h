@@ -1,27 +1,17 @@
 #ifndef CQChartsEval_H
 #define CQChartsEval_H
 
+#ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
-
-class CExpr;
+#endif
 
 #define CQChartsEvalInst CQChartsEval::instance()
 
 class CQChartsEval {
  public:
-  enum class ExprType {
-    NONE,
-    CEXPR,
-    TCL
-  };
-
- public:
   static CQChartsEval *instance();
 
  ~CQChartsEval();
-
-  const ExprType &exprType() const { return exprType_; }
-  void setExprType(const ExprType &type) { exprType_ = type; }
 
   bool evalExpr(int row, const QString &exprStr, QVariant &var);
 
@@ -38,17 +28,6 @@ class CQChartsEval {
   static int colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
 
  private:
-#if defined(CQCharts_USE_TCL)
-  ExprType   exprType_      { ExprType::TCL };
-#elif defined(CQCharts_USE_CEXPR)
-  ExprType   exprType_      { ExprType::CEXPR };
-#else
-  ExprType   exprType_      { ExprType::NONE };
-#endif
-
-#ifdef CQCharts_USE_CEXPR
-  CExpr* expr_ { nullptr };
-#endif
 #ifdef CQCharts_USE_TCL
   CQTcl* qtcl_ { nullptr };
 #endif

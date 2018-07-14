@@ -7,19 +7,11 @@
 #include <boost/optional.hpp>
 #include <set>
 
-class CQExprModelExprFn;
 class CQExprModelTclFn;
 
-class CExpr;
-#ifdef CQExprModel_USE_CEXPR
-#include <CExpr.h>
-#else
-#include <CRefPtr.h>
-class CExprValue;
-typedef CRefPtr<CExprValue> CExprValuePtr;
-#endif
-
+#ifdef CQCharts_USE_TCL
 class CQTcl;
+#endif
 
 //---
 
@@ -65,9 +57,6 @@ class CQExprModel : public QAbstractProxyModel {
   //---
 
   void addFunction(const QString &name);
-
-  void addExprFunction(const QString &name, CQExprModelExprFn *fn);
-  void addTclFunction (const QString &name, CQExprModelTclFn *fn);
 
   //---
 
@@ -158,19 +147,17 @@ class CQExprModel : public QAbstractProxyModel {
     OptReal    rmin, rmax; // real range
   };
 
-  using ExprCmds = std::vector<CQExprModelExprFn *>;
-  using TclCmds  = std::vector<CQExprModelTclFn *>;
+  using TclCmds = std::vector<CQExprModelTclFn *>;
 
-  friend class CQExprModelExprFn;
   friend class CQExprModelTclFn;
   friend class CQExprModelNameFn;
 
  private:
   void addBuiltinFunctions();
 
-  CExpr *expr() const { return expr_; }
-
+#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
+#endif
 
   //---
 
@@ -210,10 +197,6 @@ class CQExprModel : public QAbstractProxyModel {
 
   QString replaceNumericColumns(const QString &expr, int row, int column) const;
 
-  QVariant valueToVariant(CExpr *expr, const CExprValuePtr &value) const;
-
-  bool variantToValue(CExpr *expr, const QVariant &var, CExprValuePtr &value) const;
-
   bool setTclResult(const QVariant &rc);
   bool getTclResult(QVariant &rc) const;
 
@@ -223,9 +206,9 @@ class CQExprModel : public QAbstractProxyModel {
 
   QAbstractItemModel* model_      { nullptr };
   ExprType            exprType_   { ExprType::NONE };
-  CExpr*              expr_       { nullptr };
+#ifdef CQCharts_USE_TCL
   CQTcl*              qtcl_       { nullptr };
-  ExprCmds            exprCmds_;
+#endif
   TclCmds             tclCmds_;
   bool                editable_   { true };
   bool                debug_      { false };

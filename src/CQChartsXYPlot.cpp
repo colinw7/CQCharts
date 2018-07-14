@@ -240,7 +240,7 @@ void
 CQChartsXYPlot::
 setBivariateLineWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(bivariateLineData_.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(bivariateLineData_.width, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -375,21 +375,28 @@ void
 CQChartsXYPlot::
 setImpulseColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(impulseData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(impulseData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsXYPlot::
 setImpulseAlpha(double a)
 {
-  CQChartsUtil::testAndSet(impulseData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(impulseData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsXYPlot::
 setImpulseWidth(const CQChartsLength &w)
 {
-  CQChartsUtil::testAndSet(impulseData_.width, w, [&]() { update(); } );
+  CQChartsUtil::testAndSet(impulseData_.width, w, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setImpulseDash(const CQChartsLineDash &l)
+{
+  CQChartsUtil::testAndSet(impulseData_.dash, l, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -397,6 +404,57 @@ CQChartsXYPlot::
 interpImpulseColor(int i, int n) const
 {
   return impulseColor().interpColor(this, i, n);
+}
+
+//---
+
+void
+CQChartsXYPlot::
+setSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(pointData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(pointData_.size, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setSymbolStroked(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.visible, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setSymbolStrokeWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(pointData_.stroke.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setSymbolFilled(bool b)
+{
+  CQChartsUtil::testAndSet(pointData_.fill.visible, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setDataLabelColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(dataLabelData_.color, c, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setDataLabelAngle(double a)
+{
+  CQChartsUtil::testAndSet(dataLabelData_.angle, a, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -419,7 +477,7 @@ void
 CQChartsXYPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -440,7 +498,7 @@ void
 CQChartsXYPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -454,7 +512,7 @@ void
 CQChartsXYPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -475,7 +533,7 @@ void
 CQChartsXYPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsXYPlot::Pattern
@@ -492,7 +550,7 @@ setSymbolFillPattern(const Pattern &pattern)
   if (pattern != (Pattern) pointData_.fill.pattern) {
     pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -509,7 +567,7 @@ void
 CQChartsXYPlot::
 setLinesSelectable(bool b)
 {
-  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
@@ -523,7 +581,7 @@ void
 CQChartsXYPlot::
 setLinesColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -537,21 +595,28 @@ void
 CQChartsXYPlot::
 setLinesAlpha(double a)
 {
-  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsXYPlot::
 setLinesWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { update(); } );
+  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsXYPlot::
+setLinesDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsXYPlot::
 setRoundedLines(bool b)
 {
-  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { update(); } );
+  CQChartsUtil::testAndSet(roundedLines_, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -567,7 +632,7 @@ void
 CQChartsXYPlot::
 setFillUnderColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(fillUnderData_.fillData.color, c, [&]() { update(); } );
+  CQChartsUtil::testAndSet(fillUnderData_.fillData.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -581,7 +646,7 @@ void
 CQChartsXYPlot::
 setFillUnderAlpha(double a)
 {
-  CQChartsUtil::testAndSet(fillUnderData_.fillData.alpha, a, [&]() { update(); } );
+  CQChartsUtil::testAndSet(fillUnderData_.fillData.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 void
@@ -591,7 +656,7 @@ setFillUnderPattern(const Pattern &p)
   if (fillUnderData_.fillData.pattern == (CQChartsFillPattern::Type) p) {
     fillUnderData_.fillData.pattern = (CQChartsFillPattern::Type) p;
 
-    update();
+    invalidateLayers();
   }
 }
 
@@ -1810,7 +1875,7 @@ addMenuItems(QMenu *menu)
     bivariateAction->setCheckable(true);
     bivariateAction->setChecked(isBivariate());
 
-    connect(bivariateAction , SIGNAL(triggered(bool)), this, SLOT(setBivariate(bool)));
+    connect(bivariateAction, SIGNAL(triggered(bool)), this, SLOT(setBivariate(bool)));
 
     menu->addAction(bivariateAction);
   }
@@ -1848,17 +1913,6 @@ addMenuItems(QMenu *menu)
 }
 
 //------
-
-void
-CQChartsXYPlot::
-draw(QPainter *painter)
-{
-  initPlotObjs();
-
-  //---
-
-  drawParts(painter);
-}
 
 void
 CQChartsXYPlot::
@@ -1967,7 +2021,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsXYBiLineObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
@@ -2039,7 +2093,7 @@ calcTipId() const
 
   QString name = plot()->valueName(iset(), ind().row());
   QString xstr = plot()->xStr(x());
-  QString ystr = plot()->yStr(y2()) + "-" + plot()->yStr(y2());
+  QString ystr = plot()->yStr(y1()) + "-" + plot()->yStr(y2());
 
   if (name.length())
     return QString("%1:%2:%3").arg(name).arg(xstr).arg(ystr);
@@ -2099,7 +2153,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsXYImpulseLineObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
@@ -2108,6 +2162,11 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
 
   plot()->windowToPixel(x(), y1(), px1, py1);
   plot()->windowToPixel(x(), y2(), px2, py2);
+
+  //---
+
+  QPen   pen;
+  QBrush brush;
 
   QColor strokeColor;
 
@@ -2121,27 +2180,29 @@ draw(QPainter *painter, const CQChartsPlot::Layer &)
   double lw = plot()->lengthPixelWidth(plot()->impulseWidth());
 
   if (lw <= 1) {
-    QBrush brush(Qt::NoBrush);
-    QPen   pen  (strokeColor);
+    brush.setStyle(Qt::NoBrush);
 
+    pen.setColor(strokeColor);
     pen.setWidthF(lw);
 
-    plot()->updateObjPenBrushState(this, pen, brush);
+    CQChartsUtil::penSetLineDash(pen, plot()->impulseDash());
+  }
+  else {
+    brush.setColor(strokeColor);
+    brush.setStyle(Qt::SolidPattern);
 
-    painter->setPen  (pen);
-    painter->setBrush(brush);
+    pen.setStyle(Qt::NoPen);
+  }
 
+  plot()->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  if (lw <= 1) {
     painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
   }
   else {
-    QBrush brush(strokeColor);
-    QPen   pen  (Qt::NoPen);
-
-    plot()->updateObjPenBrushState(this, pen, brush);
-
-    painter->setPen  (pen);
-    painter->setBrush(brush);
-
     QRectF qrect(px1 - lw/2, py1, lw, py2 - py1);
 
     CQChartsRoundedPolygon::draw(painter, qrect, 0, 0);
@@ -2295,7 +2356,7 @@ addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 
 void
 CQChartsXYPointObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
@@ -2377,7 +2438,11 @@ QString
 CQChartsXYPolylineObj::
 calcTipId() const
 {
-  return QString("%1").arg(name());
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Name", name());
+
+  return tableTip.str();
 }
 
 bool
@@ -2484,42 +2549,53 @@ initSmooth()
 
 void
 CQChartsXYPolylineObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;
 
   //---
 
+  // set pen
+  QPen pen;
+
   QColor c;
 
   if      (plot()->isBivariate())
     c = plot()->interpThemeColor(1);
-  else if (plot()->isStacked()) {
+  else if (plot()->isStacked())
+    c = plot()->interpLinesColor(i(), n());
+  else
     c = plot()->interpLinesColor(i(), n());
 
-    c.setAlphaF(plot()->linesAlpha());
-  }
-  else {
-    c = plot()->interpLinesColor(i(), n());
+  c.setAlphaF(plot()->linesAlpha());
 
-    c.setAlphaF(plot()->linesAlpha());
-  }
+  double lw;
 
-  QPen   pen  (c);
+  if (! isInside())
+    lw = plot()->lengthPixelWidth(plot()->linesWidth());
+  else
+    lw = 3;
+
+  pen.setColor(c);
+
+  if (lw > 0)
+    pen.setWidthF(lw);
+
+  CQChartsUtil::penSetLineDash(pen, plot_->linesDash());
+
+  //---
+
+  // set brush (none)
   QBrush brush(Qt::NoBrush);
 
-  if (isInside())
-    pen.setWidthF(3);
-  else {
-    double lw = plot()->lengthPixelWidth(plot()->linesWidth());
-
-    if (lw > 0)
-      pen.setWidthF(lw);
-  }
+  //---
 
   plot()->updateObjPenBrushState(this, pen, brush);
 
+  //---
+
+  // draw lines
   if (plot()->isRoundedLines()) {
     initSmooth();
 
@@ -2666,7 +2742,7 @@ initSmooth()
 
 void
 CQChartsXYPolygonObj::
-draw(QPainter *painter, const CQChartsPlot::Layer &)
+draw(QPainter *painter)
 {
   if (! visible())
     return;

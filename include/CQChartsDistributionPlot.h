@@ -52,8 +52,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
  public:
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                          int groupInd, int bucket, double n1, double n2,
-                          int is, int ns, int iv, int nv);
+                             int groupInd, int bucket, double n1, double n2,
+                             int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
 
@@ -69,7 +69,9 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
 
   CQChartsGeom::BBox calcRect() const;
 
@@ -224,8 +226,6 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   //---
 
   bool addMenuItems(QMenu *) override;
-
-  void draw(QPainter *) override;
 
   //---
 

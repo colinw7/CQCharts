@@ -213,7 +213,7 @@ class CQChartsTreeMapObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  protected:
   CQChartsTreeMapPlot*    plot_    { nullptr };
@@ -243,7 +243,7 @@ class CQChartsTreeMapHierObj : public CQChartsTreeMapObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
-  void draw(QPainter *painter, const CQChartsPlot::Layer &) override;
+  void draw(QPainter *painter) override;
 
  private:
   CQChartsTreeMapHierNode* hier_ { nullptr };
@@ -316,8 +316,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
     FDIAG,
     BDIAG
   };
-
-  using OptColor = boost::optional<CQChartsColor>;
 
   using Nodes = std::vector<CQChartsTreeMapNode*>;
 
@@ -516,10 +514,6 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot {
   //---
 
   void handleResize() override;
-
-  //---
-
-  void draw(QPainter *) override;
 
   //---
 
