@@ -31,14 +31,17 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using OptReal  = boost::optional<double>;
-  using OptColor = boost::optional<CQChartsColor>;
+  using OptReal = boost::optional<double>;
 
  public:
   CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                          const QPointF &p, const CQChartsLength &symbolSize,
-                          const OptReal &fontSize, const OptColor &color,
+                          const QPointF &p, const CQChartsSymbol &symbolType,
+                          const CQChartsLength &symbolSize, const OptReal &fontSize,
+                          const CQChartsColor &color,
                           int ig, int ng, int is, int ns, int iv, int nv);
+
+  const CQChartsSymbol &symbolType() const { return symbolType_; }
+  void setSymbolType(const CQChartsSymbol &s) { symbolType_ = s; }
 
   const CQChartsLength &symbolSize() const { return symbolSize_; }
   void setSymbolSize(const CQChartsLength &s);
@@ -65,9 +68,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   CQChartsScatterPlot* plot_       { nullptr };
   int                  groupInd_   { -1 };
   QPointF              p_;
+  CQChartsSymbol       symbolType_;
   CQChartsLength       symbolSize_;
   OptReal              fontSize_;
-  OptColor             color_;
+  CQChartsColor        color_;
   int                  ig_         { -1 };
   int                  ng_         { -1 };
   int                  is_         { -1 };
@@ -108,6 +112,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsColumn xColumn          READ xColumn          WRITE setXColumn         )
   Q_PROPERTY(CQChartsColumn yColumn          READ yColumn          WRITE setYColumn         )
   Q_PROPERTY(CQChartsColumn nameColumn       READ nameColumn       WRITE setNameColumn      )
+  Q_PROPERTY(CQChartsColumn symbolTypeColumn READ symbolTypeColumn WRITE setSymbolTypeColumn)
   Q_PROPERTY(CQChartsColumn symbolSizeColumn READ symbolSizeColumn WRITE setSymbolSizeColumn)
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
   Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
@@ -131,8 +136,14 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
 
+  Q_PROPERTY(bool symbolMapKey READ isSymbolMapKey WRITE setSymbolMapKey)
+
+  // symbol type map
+  Q_PROPERTY(bool   symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
+  Q_PROPERTY(double symbolTypeMapMin READ symbolTypeMapMin   WRITE setSymbolTypeMapMin)
+  Q_PROPERTY(double symbolTypeMapMax READ symbolTypeMapMax   WRITE setSymbolTypeMapMax)
+
   // symbol size map
-  Q_PROPERTY(bool   symbolMapKey     READ isSymbolMapKey     WRITE setSymbolMapKey    )
   Q_PROPERTY(bool   symbolSizeMapped READ isSymbolSizeMapped WRITE setSymbolSizeMapped)
   Q_PROPERTY(double symbolSizeMapMin READ symbolSizeMapMin   WRITE setSymbolSizeMapMin)
   Q_PROPERTY(double symbolSizeMapMax READ symbolSizeMapMax   WRITE setSymbolSizeMapMax)
@@ -154,14 +165,16 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
     QPointF       p;
     int           i;
     QModelIndex   ind;
+    QString       symbolTypeStr;
     QString       symbolSizeStr;
     QString       fontSizeStr;
     CQChartsColor color;
 
-    ValueData(double x, double y, int i, const QModelIndex &ind, const QString &symbolSizeStr="",
-              const QString &fontSizeStr="", const CQChartsColor &color=CQChartsColor()) :
-     p(x, y), i(i), ind(ind), symbolSizeStr(symbolSizeStr), fontSizeStr(fontSizeStr),
-     color(color) {
+    ValueData(double x, double y, int i, const QModelIndex &ind, const QString &symbolTypeStr="",
+              const QString &symbolSizeStr="", const QString &fontSizeStr="",
+              const CQChartsColor &color=CQChartsColor()) :
+     p(x, y), i(i), ind(ind), symbolTypeStr(symbolTypeStr), symbolSizeStr(symbolSizeStr),
+     fontSizeStr(fontSizeStr), color(color) {
     }
   };
 
@@ -247,6 +260,22 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   bool isSymbolMapKey() const { return symbolMapKey_; }
   void setSymbolMapKey(bool b);
 
+  //---
+
+  const CQChartsColumn &symbolTypeColumn() const { return valueSetColumn("symbolType"); }
+  void setSymbolTypeColumn(const CQChartsColumn &c);
+
+  bool isSymbolTypeMapped() const { return isValueSetMapped("symbolType"); }
+  void setSymbolTypeMapped(bool b);
+
+  double symbolTypeMapMin() const { return valueSetMapMin("symbolType"); }
+  void setSymbolTypeMapMin(double r);
+
+  double symbolTypeMapMax() const { return valueSetMapMax("symbolType"); }
+  void setSymbolTypeMapMax(double r);
+
+  //---
+
   const CQChartsColumn &symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
   void setSymbolSizeColumn(const CQChartsColumn &c);
 
@@ -298,8 +327,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   //---
 
   void addNameValue(int groupInd, const QString &name, double x, double y, int row,
-                    const QModelIndex &xind, const QString &symbolSizeStr,
-                    const QString &fontSizeStr, const CQChartsColor &color=CQChartsColor());
+                    const QModelIndex &xind, const QString &symbolTypeStr,
+                    const QString &symbolSizeStr, const QString &fontSizeStr,
+                    const CQChartsColor &color=CQChartsColor());
 
   const GroupNameValues &groupNameValues() const { return groupNameValues_; }
 
@@ -307,6 +337,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   const QString &xname         () const { return xname_         ; }
   const QString &yname         () const { return yname_         ; }
+  const QString &symbolTypeName() const { return symbolTypeName_; }
   const QString &symbolSizeName() const { return symbolSizeName_; }
   const QString &fontSizeName  () const { return fontSizeName_  ; }
   const QString &colorName     () const { return colorName_     ; }
@@ -373,6 +404,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   QString            xname_;                  // x column header
   QString            yname_;                  // y column header
   bool               symbolMapKey_ { true };  // draw symbol map key
+  QString            symbolTypeName_;         // symbol type column header
   QString            symbolSizeName_;         // symbol size column header
   QString            fontSizeName_;           // font size column header
   QString            colorName_;              // color column header

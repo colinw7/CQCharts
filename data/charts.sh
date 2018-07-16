@@ -1,12 +1,16 @@
 #!/bin/csh -f
 
-set args  = ()
-set opts  = ()
-set debug = 0
+set args     = ()
+set opts     = ()
+set debug    = 0
+set valgrind = 0
 
 while ($#argv > 0)
   if      ("$1" == "-dbx") then
     set debug = 1
+    shift
+  else if ("$1" == "-valgrind") then
+    set valgrind = 1
     shift
   else if ("$1" == "-loop") then
     set opts = ($opts -loop)
@@ -20,8 +24,10 @@ end
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
 
-if ($debug == 1) then
+if      ($debug == 1) then
   Dbx CQChartsTest -exec $args $opts
+else if ($valgrind == 1) then
+  Valgrind CQChartsTest -exec $args $opts
 else
   CQChartsTest -exec $args $opts
 endif

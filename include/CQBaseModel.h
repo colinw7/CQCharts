@@ -27,7 +27,8 @@ class CQBaseModel : public QAbstractItemModel {
     RawValue          = Type + 4,         // raw value by role
     IntermediateValue = Type + 5,         // intermediate value role
     CachedValue       = Type + 6,         // cached value role
-    OutputValue       = Type + 7          // output value role
+    OutputValue       = Type + 7,         // output value role
+    Group             = Type + 8          // group role
   };
 
   // use variant numbers where possible
@@ -86,6 +87,11 @@ class CQBaseModel : public QAbstractItemModel {
 
   //---
 
+  QVariant rowGroup(int row) const;
+  bool setRowGroup(int row, const QVariant &v);
+
+  //---
+
   QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
   bool setHeaderData(int section, Qt::Orientation orientation,
@@ -129,7 +135,7 @@ class CQBaseModel : public QAbstractItemModel {
 
   struct ColumnData {
     ColumnData(int column=-1) :
-      column(column) {
+     column(column) {
     }
 
     int           column { -1 };       // column
@@ -142,6 +148,17 @@ class CQBaseModel : public QAbstractItemModel {
 
   using ColumnDatas = std::map<int,ColumnData>;
 
+  struct RowData {
+    RowData(int row=-1) :
+     row(row) {
+    }
+
+    int      row { -1 }; // row
+    QVariant group;
+  };
+
+  using RowDatas = std::map<int,RowData>;
+
  protected:
   void genColumnTypes();
 
@@ -151,8 +168,11 @@ class CQBaseModel : public QAbstractItemModel {
 
   ColumnData &getColumnData(int column) const;
 
+  RowData &getRowData(int column) const;
+
  protected:
   ColumnDatas columnDatas_;
+  RowDatas    rowDatas_;
   int         maxTypeRows_ { 1000 };
 };
 

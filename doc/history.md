@@ -503,3 +503,7 @@
 # 7/14/2018
  + add plot layer buffering for faster repaint
  + remove cexpr/ceil (support only tcl)
+# 7/15/2018
+ + add density plot
+ + support associated group for column
+ + support custom symbol type in scatter plot

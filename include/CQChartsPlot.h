@@ -565,6 +565,9 @@ class CQChartsPlot : public QObject {
 
   void overlayPlots(Plots &plots);
 
+  void x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
+  void y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
+
   void resetConnectData(bool notify=true);
 
   //---
@@ -628,6 +631,7 @@ class CQChartsPlot : public QObject {
   double valueSetMapMax(const QString &name) const;
   void setValueSetMapMax(const QString &name, double max);
 
+  bool colorSetColor(const QString &name, int i, CQChartsColor &color);
   bool colorSetColor(const QString &name, int i, OptColor &color);
 
   void initValueSets();
@@ -1233,10 +1237,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  ColumnType columnValueType(const CQChartsColumn &column) const;
+  ColumnType columnValueType(const CQChartsColumn &column,
+                             const ColumnType &defType=ColumnType::STRING) const;
 
   bool columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
-                       CQChartsNameValues &nameValues) const;
+                       CQChartsNameValues &nameValues,
+                       const ColumnType &defType=ColumnType::STRING) const;
 
   bool columnTypeStr(const CQChartsColumn &column, QString &typeStr) const;
 

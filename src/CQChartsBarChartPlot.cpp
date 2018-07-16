@@ -231,19 +231,13 @@ updateRange(bool apply)
   int numVisible = 0;
 
   if      (ns > 1) {
-    for (int iv = 0; iv < nv; ++iv)
-      numVisible += ! isSetHidden(iv);
+    for (int is = 0; is < ns; ++is)
+      numVisible += ! isSetHidden(is);
   }
   else if (ns == 1) {
     if      (nv > 1) {
-      for (int iv = 0; iv < nv; ++iv) {
-        const CQChartsBarChartValueSet &valueSet = this->valueSet(iv);
-
-        int nvs = valueSet.numValues();
-
-        for (int ivs = 0; ivs < nvs; ++ivs)
-          numVisible += ! isValueHidden(ivs);
-      }
+      for (int iv = 0; iv < nv; ++iv)
+        numVisible += ! isSetHidden(iv);
     }
     else if (nv == 1) {
       const CQChartsBarChartValueSet &valueSet = this->valueSet(0);
@@ -744,15 +738,17 @@ initObjs()
 
     int nvs = valueSet.numValues();
 
+    // get num visible in each set
     int numVisible1 = 0;
 
-    if (ns > 1) {
+    if      (ns > 1) {
       for (int ivs = 0; ivs < nvs; ++ivs)
         numVisible1 += ! isValueHidden(ivs);
     }
-    else {
+    else if (nv > 1)
       numVisible1 = nvs;
-    }
+    else
+      numVisible1 = 1;
 
     //---
 
@@ -774,10 +770,8 @@ initObjs()
 
     double bw1 = 1.0;
 
-    if (! isStacked()) {
-      if (ns > 1 && numVisible1 > 0)
-        bw1 = 1.0/numVisible1;
-    }
+    if (! isStacked())
+      bw1 = 1.0/numVisible1;
 
     double lastPosValue = 0.0, lastNegValue = 0.0;
 

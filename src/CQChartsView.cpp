@@ -690,9 +690,11 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
   //---
 
-  CQChartsPlot *plot = firstPlot->nextPlot();
+  CQChartsPlot::Plots plots;
 
-  while (plot) {
+  firstPlot->overlayPlots(plots);
+
+  for (auto &plot : plots) {
     plot->setOverlay(true, /*notify*/false);
 
     //---
@@ -713,8 +715,6 @@ initOverlayPlot(CQChartsPlot *firstPlot)
 
     plot->setBackground    (false);
     plot->setDataBackground(false);
-
-    plot = plot->nextPlot();
   }
 
   //---

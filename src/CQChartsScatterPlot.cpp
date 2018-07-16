@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsTitle.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
@@ -34,14 +35,17 @@ addParameters()
 
   startParameterGroup("Points");
 
+  addColumnParameter("symbolType", "Symbol Size", "symbolTypeColumn").
+   setTip("Custom Symbol Type").setMapped().setMapMinMax(5, 13);
+
   addColumnParameter("symbolSize", "Symbol Size", "symbolSizeColumn").
-   setTip("Point Size").setMapped().setMapMinMax(8, 64);
+   setTip("Custom Symbol Size").setMapped().setMapMinMax(8, 64);
+
+  addColumnParameter("color", "Color", "colorColumn").
+   setTip("Custom Symbol Fill Color").setMapped();
 
   addColumnParameter("fontSize", "Font Size", "fontSizeColumn"  ).
    setTip("Custom Font Size for Text Label").setMapped().setMapMinMax(8, 48);
-
-  addColumnParameter("color", "Color", "colorColumn").
-   setTip("Custom Point Fill color").setMapped();
 
   addBoolParameter("textLabels", "Text Labels", "textLabels").
    setTip("Show Text Label at Point");
@@ -80,9 +84,13 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model), dataLabel_(this)
 {
   // set mapped range
-  (void) addValueSet("symbolSize", 8, 64);
-  (void) addValueSet("fontSize"  , 8, 48);
-  (void) addColorSet("color");
+  addValueSet("symbolType", 5, 13)->setMapped(true);
+  addValueSet("symbolSize", 8, 64)->setMapped(true);
+  addValueSet("fontSize"  , 8, 48)->setMapped(true);
+
+  (void) addColorSet("color")->setMapped(true);
+
+  //---
 
   setSymbolType(CQChartsSymbol::Type::CIRCLE);
   setSymbolStroked(true);
@@ -210,6 +218,42 @@ setSymbolMapKey(bool b)
 {
   CQChartsUtil::testAndSet(symbolMapKey_, b, [&]() { invalidateLayers(); } );
 }
+
+//---
+
+void
+CQChartsScatterPlot::
+setSymbolTypeColumn(const CQChartsColumn &c)
+{
+  if (setValueSetColumn("symbolType", c))
+    updateRangeAndObjs();
+}
+
+void
+CQChartsScatterPlot::
+setSymbolTypeMapped(bool b)
+{
+  setValueSetMapped("symbolType", b);
+
+  updateObjs();
+}
+
+void
+CQChartsScatterPlot::
+setSymbolTypeMapMin(double r)
+{
+  setValueSetMapMin("symbolType", r); updateObjs(); }
+
+void
+CQChartsScatterPlot::
+setSymbolTypeMapMax(double r)
+{
+  setValueSetMapMax("symbolType", r);
+
+  updateObjs();
+}
+
+//---
 
 void
 CQChartsScatterPlot::
@@ -355,6 +399,7 @@ addProperties()
   addProperty("columns", this, "yColumn", "y");
 
   addProperty("columns", this, "nameColumn"      , "name"      );
+  addProperty("columns", this, "symbolTypeColumn", "symbolType");
   addProperty("columns", this, "symbolSizeColumn", "symbolSize");
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
   addProperty("columns", this, "colorColumn"     , "color"     );
@@ -367,14 +412,19 @@ addProperties()
 
   dataLabel_.addProperties("dataLabel");
 
-  addProperty("symbol/map", this, "symbolSizeMapped", "enabled");
-  addProperty("symbol/map", this, "symbolSizeMapMin", "min"    );
-  addProperty("symbol/map", this, "symbolSizeMapMax", "max"    );
+  addProperty("font", this, "fontSize", "size");
 
-  addProperty("font"    , this, "fontSize"      , "size"   );
-  addProperty("font/map", this, "fontSizeMapped", "enabled");
-  addProperty("font/map", this, "fontSizeMapMin", "min"    );
-  addProperty("font/map", this, "fontSizeMapMax", "max"    );
+  addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
+  addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
+  addProperty("symbol/map/type", this, "symbolTypeMapMax", "max"    );
+
+  addProperty("symbol/map/size", this, "symbolSizeMapped", "enabled");
+  addProperty("symbol/map/size", this, "symbolSizeMapMin", "min"    );
+  addProperty("symbol/map/size", this, "symbolSizeMapMax", "max"    );
+
+  addProperty("font/map/size", this, "fontSizeMapped", "enabled");
+  addProperty("font/map/size", this, "fontSizeMapMin", "min"    );
+  addProperty("font/map/size", this, "fontSizeMapMax", "max"    );
 
   addProperty("color/map", this, "colorMapped", "enabled");
   addProperty("color/map", this, "colorMapMin", "min"    );
@@ -399,6 +449,13 @@ updateRange(bool apply)
     }
 
     State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+
+      // init group
+      (void) plot_->rowGroupInd(ind);
+
+      //---
+
       bool ok1, ok2;
 
       double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
@@ -517,22 +574,25 @@ initObjs()
 
   xname_          = modelHeaderString(xColumn         (), ok);
   yname_          = modelHeaderString(yColumn         (), ok);
+  symbolTypeName_ = modelHeaderString(symbolTypeColumn(), ok);
   symbolSizeName_ = modelHeaderString(symbolSizeColumn(), ok);
   fontSizeName_   = modelHeaderString(fontSizeColumn  (), ok);
   colorName_      = modelHeaderString(colorColumn     (), ok);
 
   if (! xname_         .length()) xname_          = "x";
   if (! yname_         .length()) yname_          = "y";
+  if (! symbolTypeName_.length()) symbolTypeName_ = "symbolType";
   if (! symbolSizeName_.length()) symbolSizeName_ = "symbolSize";
   if (! fontSizeName_  .length()) fontSizeName_   = "fontSize";
   if (! colorName_     .length()) colorName_      = "color";
 
   //---
 
+  CQChartsValueSet *symbolTypeSet = getValueSet("symbolType");
   CQChartsValueSet *symbolSizeSet = getValueSet("symbolSize");
   CQChartsValueSet *fontSizeSet   = getValueSet("fontSize");
 
-  assert(symbolSizeSet && fontSizeSet);
+  assert(symbolTypeSet && symbolSizeSet && fontSizeSet);
 
   //---
 
@@ -572,17 +632,27 @@ initObjs()
 
         const QPointF &p = valuePoint.p;
 
+        CQChartsSymbol symbolType = this->symbolType();
+
+        if (symbolTypeColumn().isValid() && symbolTypeSet->hasInd(valuePoint.i)) {
+          int ival = symbolTypeSet->imap(valuePoint.i);
+
+          if (ival >= CQChartsSymbol::minValue() && ival <= CQChartsSymbol::maxValue())
+            symbolType = CQChartsSymbol((CQChartsSymbol::Type) ival);
+        }
+
         CQChartsLength symbolSize = this->symbolSize();
 
         if (symbolSizeColumn().isValid() && symbolSizeSet->hasInd(valuePoint.i))
           symbolSize = CQChartsLength(symbolSizeSet->imap(valuePoint.i),
                                       CQChartsLength::Units::PIXEL);
 
-        OptReal  fontSize = boost::make_optional(false, 0.0);
-        OptColor color    = boost::make_optional(false, CQChartsColor());
+        OptReal fontSize = boost::make_optional(false, 0.0);
 
         if (fontSizeColumn().isValid() && fontSizeSet->hasInd(valuePoint.i))
           fontSize = fontSizeSet->imap(valuePoint.i);
+
+        CQChartsColor color;
 
         if (colorColumn().isValid())
           (void) colorSetColor("color", valuePoint.i, color);
@@ -593,8 +663,8 @@ initObjs()
         CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
 
         CQChartsScatterPointObj *pointObj =
-          new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolSize, fontSize, color,
-                                      ig, ng, is, ns, iv, nv);
+          new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolType, symbolSize,
+                                      fontSize, color, ig, ng, is, ns, iv, nv);
 
         //---
 
@@ -676,10 +746,18 @@ addNameValues()
 
       //---
 
-      // get symbol size, font size and color
+      // get symbol type, size, font size and color
+      QString       symbolTypeStr;
       QString       symbolSizeStr;
       QString       fontSizeStr;
       CQChartsColor color;
+
+      // get symbol type label (needed if not string ?)
+      if (plot_->symbolTypeColumn().isValid()) {
+        bool ok3;
+
+        symbolTypeStr = plot_->modelString(row, plot_->symbolTypeColumn(), parent, ok3);
+      }
 
       // get symbol size label (needed if not string ?)
       if (plot_->symbolSizeColumn().isValid()) {
@@ -704,7 +782,8 @@ addNameValues()
 
       //---
 
-      plot_->addNameValue(groupInd, name, x, y, row, xInd1, symbolSizeStr, fontSizeStr, color);
+      plot_->addNameValue(groupInd, name, x, y, row, xInd1, symbolTypeStr,
+                          symbolSizeStr, fontSizeStr, color);
 
       return State::OK;
     }
@@ -721,10 +800,11 @@ addNameValues()
 void
 CQChartsScatterPlot::
 addNameValue(int groupInd, const QString &name, double x, double y, int row,
-             const QModelIndex &xind, const QString &symbolSizeStr, const QString &fontSizeStr,
-             const CQChartsColor &color)
+             const QModelIndex &xind, const QString &symbolTypeStr, const QString &symbolSizeStr,
+             const QString &fontSizeStr, const CQChartsColor &color)
 {
-  groupNameValues_[groupInd][name].emplace_back(x, y, row, xind, symbolSizeStr, fontSizeStr, color);
+  groupNameValues_[groupInd][name].emplace_back(x, y, row, xind, symbolTypeStr, symbolSizeStr,
+                                                fontSizeStr, color);
 }
 
 void
@@ -748,6 +828,25 @@ addKeyItems(CQChartsPlotKey *key)
       key->addItem(colorItem, ig, 0);
       key->addItem(textItem , ig, 1);
 
+      //--
+
+      if (colorColumn().isValid() && colorColumn().isGroup()) {
+        CQChartsColorSet *colorSet = getColorSet("color");
+        assert(colorSet);
+
+        if (colorSet->isMapped()) {
+          double r = CQChartsUtil::map(groupInd, colorSet->imin(), colorSet->imax(),
+                                       colorSet->mapMin(), colorSet->mapMax());
+
+          CQChartsColor color = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, r);
+
+          if (color.isValid())
+            colorItem->setColor(color);
+        }
+      }
+
+      //--
+
       ++ig;
     }
   }
@@ -768,20 +867,24 @@ addKeyItems(CQChartsPlotKey *key)
       key->addItem(colorItem, is, 0);
       key->addItem(textItem , is, 1);
 
-      int nv = values.size();
+      //--
 
-      if (nv > 0) {
-        const ValueData &valuePoint = values[0];
+      if (colorColumn().isValid()) {
+        int nv = values.size();
 
-        OptColor color = boost::make_optional(false, CQChartsColor());
+        if (nv > 0) {
+          const ValueData &valuePoint = values[0];
 
-        if (colorColumn().isValid()) {
+          CQChartsColor color;
+
           (void) colorSetColor("color", valuePoint.i, color);
 
-          if (color)
-            colorItem->setColor(*color);
+          if (color.isValid())
+            colorItem->setColor(color);
         }
       }
+
+      //--
 
       ++is;
     }
@@ -966,10 +1069,13 @@ drawSymbolMapKey(QPainter *painter)
 
 CQChartsScatterPointObj::
 CQChartsScatterPointObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                        const QPointF &p, const CQChartsLength &symbolSize, const OptReal &fontSize,
-                        const OptColor &color, int ig, int ng, int is, int ns, int iv, int nv) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), p_(p), symbolSize_(symbolSize),
- fontSize_(fontSize), color_(color), ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
+                        const QPointF &p, const CQChartsSymbol &symbolType,
+                        const CQChartsLength &symbolSize, const OptReal &fontSize,
+                        const CQChartsColor &color,
+                        int ig, int ng, int is, int ns, int iv, int nv) :
+ CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), p_(p), symbolType_(symbolType),
+ symbolSize_(symbolSize), fontSize_(fontSize), color_(color),
+ ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
   assert(ig >= 0 && ig < ng);
   assert(is >= 0 && is < ns);
@@ -1009,6 +1115,9 @@ calcTipId() const
   const CQChartsScatterPlot::Values &values = (*p).second;
 
   const CQChartsScatterPlot::ValueData &valuePoint = values[iv_];
+
+  if (valuePoint.symbolTypeStr != "")
+    tableTip.addTableRow(plot_->symbolTypeName(), valuePoint.symbolTypeStr);
 
   if (valuePoint.symbolSizeStr != "")
     tableTip.addTableRow(plot_->symbolSizeName(), valuePoint.symbolSizeStr);
@@ -1064,7 +1173,11 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *painter)
 {
-  CQChartsSymbol        symbol  = plot_->symbolType();
+  CQChartsSymbol symbol = this->symbolType();
+
+  if (symbol == CQChartsSymbol::Type::NONE)
+    symbol = plot_->symbolType();
+
   const CQChartsLength &size    = this->symbolSize();
   bool                  stroked = plot_->isSymbolStroked();
   bool                  filled  = plot_->isSymbolFilled();
@@ -1081,14 +1194,14 @@ draw(QPainter *painter)
     QColor c;
 
     if (ng_ > 0) {
-      if (color_)
-        c = (*color_).interpColor(plot_, ig_, ng_);
+      if (color_.isValid())
+        c = color_.interpColor(plot_, ig_, ng_);
       else
         c = plot_->interpSymbolFillColor(ig_, ng_);
     }
     else {
-      if (color_)
-        c = (*color_).interpColor(plot_, is_, ns_);
+      if (color_.isValid())
+        c = color_.interpColor(plot_, is_, ns_);
       else
         c = plot_->interpSymbolFillColor(is_, ns_);
     }

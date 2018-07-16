@@ -308,7 +308,11 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
   assert(inds.size() == 1);
 
-  return inds[0];
+  int groupInd = inds[0];
+
+  const_cast<CQChartsGroupPlot *>(this)->setModelGroupInd(ind, groupInd);
+
+  return groupInd;
 }
 
 bool
@@ -422,6 +426,20 @@ pathStrs(const QString &path) const
   }
 
   return paths;
+}
+
+void
+CQChartsGroupPlot::
+setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
+{
+  QAbstractItemModel *model = this->model().data();
+  assert(model);
+
+  QVariant var(groupInd);
+
+  int role = (int) CQBaseModel::Role::Group;
+
+  model->setHeaderData(ind.row, Qt::Vertical, var, role);
 }
 
 //---

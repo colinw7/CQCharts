@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsColor.h>
+#include <CQChartsDensity.h>
 
 //---
 
@@ -85,14 +86,50 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
  private:
   CQChartsDistributionPlot *plot_     { nullptr };
-  int                    groupInd_ { -1 };
-  int                    bucket_   { -1 };
-  double                 n1_       { 0.0 };
-  double                 n2_       { 0.0 };
-  int                    is_       { -1 };
-  int                    ns_       { -1 };
-  int                    iv_       { -1 };
-  int                    nv_       { -1 };
+  int                       groupInd_ { -1 };
+  int                       bucket_   { -1 };
+  double                    n1_       { 0.0 };
+  double                    n2_       { 0.0 };
+  int                       is_       { -1 };
+  int                       ns_       { -1 };
+  int                       iv_       { -1 };
+  int                       nv_       { -1 };
+};
+
+// density object
+class CQChartsDistributionDensityObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  using Points = std::vector<QPointF>;
+
+ public:
+  CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+                                 int groupInd, const Points &points, int is, int ns);
+
+  int groupInd() const { return groupInd_; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  bool inside(const CQChartsGeom::Point &p) const;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
+  void draw(QPainter *painter) override;
+
+  CQChartsGeom::BBox calcRect() const;
+
+ private:
+  CQChartsDistributionPlot *plot_     { nullptr };
+  int                       groupInd_ { -1 };
+  Points                    points_;
+  QPolygonF                 poly_;
+  int                       is_       { -1 };
+  int                       ns_       { -1 };
 };
 
 //---
@@ -138,6 +175,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(bool overlay   READ isOverlay   WRITE setOverlay  )
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
   Q_PROPERTY(bool rangeBar  READ isRangeBar  WRITE setRangeBar )
+  Q_PROPERTY(bool density   READ isDensity   WRITE setDensity  )
 
  public:
   struct Filter {
@@ -192,6 +230,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool isSkipEmpty() const { return skipEmpty_; }
 
   bool isRangeBar() const { return rangeBar_; }
+
+  bool isDensity() const { return density_; }
 
   //---
 
@@ -258,9 +298,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   using BucketValues = std::map<int,VariantIndsData>;
 
   struct Values {
-    Inds         inds;
-    ValueSet*    valueSet { nullptr };
-    BucketValues bucketValues;         // bucketed values
+    Inds            inds;
+    ValueSet*       valueSet { nullptr };
+    BucketValues    bucketValues;         // bucketed values
+    CQChartsDensity densityData;
 
     Values(ValueSet *valueSet) :
      valueSet(valueSet) {
@@ -303,6 +344,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   // set range bar
   void setRangeBar(bool b);
 
+  // set density
+  void setDensity(bool b);
+
   // push to bar range
   void pushSlot();
   // pop out of bar range
@@ -315,6 +359,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool              overlay_      { false }; // overlay groups
   bool              skipEmpty_    { false }; // skip empty buckets
   bool              rangeBar_     { false }; // show range bar
+  bool              density_      { false }; // show density
   CQChartsDataLabel dataLabel_;              // data label data
   GroupValues       groupValues_;            // grouped value sets
   bool              bucketed_     { true };  // is bucketed

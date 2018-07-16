@@ -109,6 +109,8 @@ toString() const
     return QString("(%1)").arg(expr_);
   else if (type_ == Type::VHEADER)
     return "@VH";
+  else if (type_ == Type::GROUP)
+    return "@GROUP";
 
   return "";
 }
@@ -235,8 +237,14 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
     return true;
   }
 
-  if (strcmp(&c_str[i], "@VH") == 0) {
+  if (strcmp(&c_str[i], "@VH") == 0 || strcmp(&c_str[i], "@VHEADER") == 0) {
     type = Type::VHEADER;
+
+    return true;
+  }
+
+  if (strcmp(&c_str[i], "@GROUP") == 0) {
+    type = Type::GROUP;
 
     return true;
   }

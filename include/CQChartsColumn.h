@@ -13,6 +13,7 @@ class CQChartsColumn {
     NONE,
     DATA,
     VHEADER,
+    GROUP,
     EXPR
   };
 
@@ -55,6 +56,10 @@ class CQChartsColumn {
   bool hasExpr() const { return (type_ == Type::EXPR && expr_); }
 
   QString expr() const { return QString(hasExpr() ? expr_ : ""); }
+
+  //--
+
+  bool isGroup() const { return (type_ == Type::GROUP); }
 
   //--
 

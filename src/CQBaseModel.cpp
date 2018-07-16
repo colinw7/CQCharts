@@ -317,52 +317,133 @@ resetColumnTypes()
 
 QVariant
 CQBaseModel::
+rowGroup(int row) const
+{
+  if (row < 0 || row >= rowCount())
+    return QVariant();
+
+  RowData &rowData = getRowData(row);
+
+  return rowData.group;
+}
+
+bool
+CQBaseModel::
+setRowGroup(int row, const QVariant &v)
+{
+  if (row < 0 || row >= rowCount())
+    return false;
+
+  RowData &rowData = getRowData(row);
+
+  rowData.group = v;
+
+  return true;
+}
+
+CQBaseModel::RowData &
+CQBaseModel::
+getRowData(int row) const
+{
+  auto p = rowDatas_.find(row);
+
+  if (p != rowDatas_.end()) {
+    const RowData &rowData = (*p).second;
+
+    assert(rowData.row == row);
+
+    return const_cast<CQBaseModel::RowData &>(rowData);
+  }
+
+  assert(row >= 0 || row < rowCount());
+
+  CQBaseModel *th = const_cast<CQBaseModel *>(this);
+
+  auto p1 = th->rowDatas_.insert(p, RowDatas::value_type(row, RowData(row)));
+
+  return (*p1).second;
+}
+
+//------
+
+QVariant
+CQBaseModel::
 headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (orientation != Qt::Horizontal)
-    return QAbstractItemModel::headerData(section, orientation, role);
+  // generic column data
+  if      (orientation == Qt::Horizontal) {
+    if      (role == static_cast<int>(Role::Type)) {
+      return QVariant((int) columnType(section));
+    }
+    else if (role == static_cast<int>(Role::TypeValues)) {
+      return QVariant(columnTypeValues(section));
+    }
+    else if (role == static_cast<int>(Role::Min)) {
+      return columnMin(section);
+    }
+    else if (role == static_cast<int>(Role::Max)) {
+      return columnMax(section);
+    }
+    else {
+      return QAbstractItemModel::headerData(section, orientation, role);
+    }
+  }
+  // generic row data
+  else if (orientation == Qt::Vertical) {
+    if (role == static_cast<int>(Role::Group)) {
+      return rowGroup(section);
+    }
+    else {
+      return QAbstractItemModel::headerData(section, orientation, role);
+    }
+  }
+  else {
+    assert(false);
+  }
 
-  if      (role == static_cast<int>(Role::Type)) {
-    return QVariant((int) columnType(section));
-  }
-  else if (role == static_cast<int>(Role::TypeValues)) {
-    return QVariant(columnTypeValues(section));
-  }
-  else if (role == static_cast<int>(Role::Min)) {
-    return columnMin(section);
-  }
-  else if (role == static_cast<int>(Role::Max)) {
-    return columnMax(section);
-  }
-
-  return QVariant();
+  return false;
 }
 
 bool
 CQBaseModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  if (orientation != Qt::Horizontal)
-    return false;
+  // generic column data
+  if      (orientation == Qt::Horizontal) {
+    if      (role == static_cast<int>(Role::Type)) {
+      bool ok;
 
-  if      (role == static_cast<int>(Role::Type)) {
-    bool ok;
+      Type type = variantToType(value, &ok);
+      if (! ok) return false;
 
-    Type type = variantToType(value, &ok);
-    if (! ok) return false;
+      return setColumnType(section, type);
+    }
+    else if (role == static_cast<int>(Role::TypeValues)) {
+      QString str = value.toString();
 
-    return setColumnType(section, type);
+      return setColumnTypeValues(section, str);
+    }
+    else if (role == static_cast<int>(Role::Min)) {
+      return setColumnMin(section, value);
+    }
+    else if (role == static_cast<int>(Role::Max)) {
+      return setColumnMax(section, value);
+    }
+    else {
+      return QAbstractItemModel::setHeaderData(section, orientation, role);
+    }
   }
-  else if (role == static_cast<int>(Role::TypeValues)) {
-    QString str = value.toString();
-
-    return setColumnTypeValues(section, str);
+  // generic row data
+  else if (orientation == Qt::Vertical) {
+    if (role == static_cast<int>(Role::Group)) {
+      return setRowGroup(section, value);
+    }
+    else {
+      return QAbstractItemModel::setHeaderData(section, orientation, role);
+    }
   }
-  else if (role == static_cast<int>(Role::Min)) {
-    return setColumnMin(section, value);
-  }
-  else if (role == static_cast<int>(Role::Max)) {
-    return setColumnMax(section, value);
+  else {
+    assert(false);
   }
 
   return false;

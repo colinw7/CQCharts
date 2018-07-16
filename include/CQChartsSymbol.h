@@ -28,6 +28,9 @@ class CQChartsSymbol {
   static QString typeToName(Type type);
   static Type nameToType(const QString &str);
 
+  static int minValue() { return (int) Type::DOT      ; }
+  static int maxValue() { return (int) Type::IPENTAGON; }
+
  public:
   CQChartsSymbol() = default;
   CQChartsSymbol(Type type) : type_(type) { }
@@ -35,6 +38,8 @@ class CQChartsSymbol {
 
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }
+
+  //---
 
   //---
 

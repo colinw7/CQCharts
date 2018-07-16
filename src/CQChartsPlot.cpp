@@ -974,6 +974,22 @@ overlayPlots(Plots &plots)
 
 void
 CQChartsPlot::
+x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
+{
+  plot1 = firstPlot();
+  plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+}
+
+void
+CQChartsPlot::
+y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2)
+{
+  plot1 = firstPlot();
+  plot2 = (plot1 ? plot1->nextPlot() : nullptr);
+}
+
+void
+CQChartsPlot::
 resetConnectData(bool notify)
 {
   connectData_.reset();
@@ -995,15 +1011,12 @@ setInvertX(bool b)
 
     //---
 
-    invertX_ = b;
+    Plots plots;
 
-    CQChartsPlot *plot1 = nextPlot();
+    overlayPlots(plots);
 
-    while (plot1) {
-      plot1->invertX_ = b;
-
-      plot1 = plot1->nextPlot();
-    }
+    for (auto &plot : plots)
+      plot->invertX_ = b;
   }
   else {
     invertX_ = b;
@@ -1023,15 +1036,12 @@ setInvertY(bool b)
 
     //---
 
-    invertY_ = b;
+    Plots plots;
 
-    CQChartsPlot *plot1 = nextPlot();
+    overlayPlots(plots);
 
-    while (plot1) {
-      plot1->invertY_ = b;
-
-      plot1 = plot1->nextPlot();
-    }
+    for (auto &plot : plots)
+      plot->invertY_ = b;
   }
   else {
     invertY_ = b;
@@ -1346,15 +1356,12 @@ resetKeyItems()
 
     key()->clearItems();
 
-    addKeyItems(key());
+    Plots plots;
 
-    CQChartsPlot *plot1 = nextPlot();
+    overlayPlots(plots);
 
-    while (plot1) {
-      plot1->addKeyItems(key());
-
-      plot1 = plot1->nextPlot();
-    }
+    for (auto &plot : plots)
+      plot->addKeyItems(key());
   }
   else {
     key()->clearItems();
@@ -1461,18 +1468,18 @@ applyDataRange(bool propagate)
       dataRange = plot1->calcDataRange();
     }
     else if (isOverlay()) {
-      CQChartsPlot *plot1 = firstPlot();
+      Plots plots;
 
-      while (plot1) {
-        plot1->setDataRange(CQChartsGeom::Range(), /*update*/false);
+      overlayPlots(plots);
 
-        plot1->updateRange(/*update*/false);
+      for (auto &plot : plots) {
+        plot->setDataRange(CQChartsGeom::Range(), /*update*/false);
 
-        CQChartsGeom::BBox dataRange1 = plot1->calcDataRange(/*adjust*/false);
+        plot->updateRange(/*update*/false);
+
+        CQChartsGeom::BBox dataRange1 = plot->calcDataRange(/*adjust*/false);
 
         dataRange += dataRange1;
-
-        plot1 = plot1->nextPlot();
       }
     }
     else
@@ -1491,22 +1498,24 @@ applyDataRange(bool propagate)
   }
 
   if (propagate) {
-    CQChartsPlot *plot1 = firstPlot();
-
     if      (isX1X2()) {
       CQChartsGeom::Range dataRange1 =
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
-      plot1->setDataScaleX(dataScaleX());
-      plot1->setDataScaleY(dataScaleY());
-      plot1->setDataOffset(dataOffset());
+      CQChartsPlot *plot1, *plot2;
 
-      plot1->applyDataRange(/*propagate*/false);
+      x1x2Plots(plot1, plot2);
+
+      if (plot1) {
+        plot1->setDataScaleX(dataScaleX());
+        plot1->setDataScaleY(dataScaleY());
+        plot1->setDataOffset(dataOffset());
+
+        plot1->applyDataRange(/*propagate*/false);
+      }
 
       //---
-
-      CQChartsPlot *plot2 = plot1->nextPlot();
 
       if (plot2) {
         plot2->setDataRange(CQChartsGeom::Range(), /*update*/false);
@@ -1532,15 +1541,19 @@ applyDataRange(bool propagate)
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
-      plot1->setDataScaleX(dataScaleX());
-      plot1->setDataScaleY(dataScaleY());
-      plot1->setDataOffset(dataOffset());
+      CQChartsPlot *plot1, *plot2;
 
-      plot1->applyDataRange(/*propagate*/false);
+      x1x2Plots(plot1, plot2);
+
+      if (plot1) {
+        plot1->setDataScaleX(dataScaleX());
+        plot1->setDataScaleY(dataScaleY());
+        plot1->setDataOffset(dataOffset());
+
+        plot1->applyDataRange(/*propagate*/false);
+      }
 
       //---
-
-      CQChartsPlot *plot2 = plot1->nextPlot();
 
       if (plot2) {
         plot2->setDataRange(CQChartsGeom::Range(), /*update*/false);
@@ -1566,39 +1579,32 @@ applyDataRange(bool propagate)
         CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
                             dataRange.getXMax(), dataRange.getYMax());
 
-      if (plot1) {
-        //plot1->setDataRange (dataRange1);
-        //plot1->setDataScaleX(dataScaleX());
-        //plot1->setDataScaleY(dataScaleY());
-        //plot1->setDataOffset(dataOffset());
+      Plots plots;
 
-        //plot1->applyDataRange(/*propagate*/false);
+      overlayPlots(plots);
 
-        while (plot1) {
-          plot1->setDataRange (dataRange1, /*update*/false);
+      for (auto &plot : plots) {
+        plot->setDataRange (dataRange1, /*update*/false);
+        plot->setDataScaleX(dataScaleX());
+        plot->setDataScaleY(dataScaleY());
+        plot->setDataOffset(dataOffset());
+
+        plot->applyDataRange(/*propagate*/false);
+      }
+    }
+    else {
+      CQChartsPlot *plot1 = firstPlot();
+
+      while (plot1) {
+        if (plot1 != this) {
           plot1->setDataScaleX(dataScaleX());
           plot1->setDataScaleY(dataScaleY());
           plot1->setDataOffset(dataOffset());
 
           plot1->applyDataRange(/*propagate*/false);
-
-          plot1 = plot1->nextPlot();
         }
-      }
-    }
-    else {
-      if (plot1) {
-        while (plot1) {
-          if (plot1 != this) {
-            plot1->setDataScaleX(dataScaleX());
-            plot1->setDataScaleY(dataScaleY());
-            plot1->setDataOffset(dataOffset());
 
-            plot1->applyDataRange(/*propagate*/false);
-          }
-
-          plot1 = plot1->nextPlot();
-        }
+        plot1 = plot1->nextPlot();
       }
     }
   }
@@ -1612,20 +1618,14 @@ applyDisplayTransform(bool propagate)
 {
   if (propagate) {
     if (isOverlay()) {
-      CQChartsPlot *plot1 = firstPlot();
+      Plots plots;
 
-      if (plot1) {
-        plot1->setDisplayTransform(*displayTransform_);
+      overlayPlots(plots);
 
-        plot1->applyDisplayTransform(/*propagate*/false);
+      for (auto &plot : plots) {
+        plot->setDisplayTransform(*displayTransform_);
 
-        while (plot1) {
-          plot1->setDisplayTransform(*displayTransform_);
-
-          plot1->applyDisplayTransform(/*propagate*/false);
-
-          plot1 = plot1->nextPlot();
-        }
+        plot->applyDisplayTransform(/*propagate*/false);
       }
     }
   }
@@ -3385,40 +3385,36 @@ autoFit()
 
     //---
 
-    // combine bboxes of overlay plots
-    CQChartsPlot *plot1 = nextPlot();
+    Plots plots;
 
-    while (plot1) {
-      CQChartsGeom::BBox bbox1 = plot1->fitBBox();
+    overlayPlots(plots);
+
+    // combine bboxes of overlay plots
+    for (auto &plot : plots) {
+      CQChartsGeom::BBox bbox1 = plot->fitBBox();
 
       CQChartsGeom::BBox bbox2;
 
-      plot1->windowToPixel(bbox1, bbox2);
+      plot->windowToPixel(bbox1, bbox2);
 
       pixelToWindow(bbox2, bbox1);
 
       bbox += bbox1;
-
-      plot1 = plot1->nextPlot();
     }
 
     //---
 
     // set all overlay plot bboxes
-    plot1 = nextPlot();
-
-    while (plot1) {
+    for (auto &plot : plots) {
       CQChartsGeom::BBox bbox1;
 
       windowToPixel(bbox, bbox1);
 
       CQChartsGeom::BBox bbox2;
 
-      plot1->pixelToWindow(bbox1, bbox2);
+      plot->pixelToWindow(bbox1, bbox2);
 
-      plot1->setFitBBox(bbox2);
-
-      plot1 = plot1->nextPlot();
+      plot->setFitBBox(bbox2);
     }
 
     //---
@@ -4801,12 +4797,12 @@ textColor(const QColor &bg) const
 
 CQChartsPlot::ColumnType
 CQChartsPlot::
-columnValueType(const CQChartsColumn &column) const
+columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
 {
   CQBaseModel::Type  columnType;
   CQChartsNameValues nameValues;
 
-  (void) columnValueType(column, columnType, nameValues);
+  (void) columnValueType(column, columnType, nameValues, defType);
 
   return columnType;
 }
@@ -4814,15 +4810,22 @@ columnValueType(const CQChartsColumn &column) const
 bool
 CQChartsPlot::
 columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
-                CQChartsNameValues &nameValues) const
+                CQChartsNameValues &nameValues, const ColumnType &defType) const
 {
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  if (! column.isValid())
+  if (! column.isValid()) {
+    columnType = defType;
     return false;
+  }
 
-  return CQChartsUtil::columnValueType(charts(), model, column, columnType, nameValues);
+  if (! CQChartsUtil::columnValueType(charts(), model, column, columnType, nameValues)) {
+    columnType = defType;
+    return false;
+  }
+
+  return true;
 }
 
 bool
@@ -5074,16 +5077,22 @@ void
 CQChartsPlot::
 clearValueSets()
 {
-  for (auto &valueSet : valueSets_)
-    valueSet.second->clear();
+  for (auto &pvs : valueSets_) {
+    CQChartsValueSet *valueSet = pvs.second;
+
+    valueSet->clear();
+  }
 }
 
 void
 CQChartsPlot::
 deleteValueSets()
 {
-  for (auto &valueSet : valueSets_)
-    delete valueSet.second;
+  for (auto &pvs : valueSets_) {
+    CQChartsValueSet *valueSet = pvs.second;
+
+    delete valueSet;
+  }
 
   valueSets_.clear();
 }
@@ -5175,6 +5184,20 @@ setValueSetMapMax(const QString &name, double max)
 
 bool
 CQChartsPlot::
+colorSetColor(const QString &name, int i, CQChartsColor &color)
+{
+  OptColor optColor;
+
+  if (! colorSetColor(name, i, optColor))
+    return false;
+
+  color = *optColor;
+
+  return true;
+}
+
+bool
+CQChartsPlot::
 colorSetColor(const QString &name, int i, OptColor &color)
 {
   CQChartsColorSet *colorSet = getColorSet(name);
@@ -5190,8 +5213,10 @@ initValueSets()
   // if no columns set then skip
   bool anyColumn = false;
 
-  for (auto &valueSet : valueSets_) {
-    if (valueSet.second->column().isValid()) {
+  for (auto &pvs : valueSets_) {
+    CQChartsValueSet *valueSet = pvs.second;
+
+    if (valueSet->column().isValid()) {
       anyColumn = true;
       break;
     }
@@ -5206,8 +5231,10 @@ initValueSets()
   // TODO: only check active and fill all empty ?
   bool empty = true;
 
-  for (auto &valueSet : valueSets_) {
-    if (! valueSet.second->empty()) {
+  for (auto &pvs : valueSets_) {
+    CQChartsValueSet *valueSet = pvs.second;
+
+    if (! valueSet->empty()) {
       empty = false;
       break;
     }
@@ -5244,15 +5271,17 @@ void
 CQChartsPlot::
 addValueSetRow(const QModelIndex &parent, int row)
 {
-  for (auto &valueSet : valueSets_) {
-    const CQChartsColumn &column = valueSet.second->column();
+  for (auto &pvs : valueSets_) {
+    CQChartsValueSet *valueSet = pvs.second;
+
+    const CQChartsColumn &column = valueSet->column();
 
     if (column.isValid()) {
       bool ok;
 
       QVariant value = modelValue(row, column, parent, ok);
 
-      valueSet.second->addValue(value); // always add some value
+      valueSet->addValue(value); // always add some value
     }
   }
 }

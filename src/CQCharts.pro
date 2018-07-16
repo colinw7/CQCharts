@@ -127,6 +127,7 @@ CQChartsLength.cpp \
 CQChartsPath.cpp \
 CQChartsStyle.cpp \
 CQChartsAnalyzeFile.cpp \
+CQChartsDensity.cpp \
 CQChartsUtil.cpp \
 \
 CQCsvModel.cpp \
@@ -231,6 +232,7 @@ HEADERS += \
 ../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsAnalyzeFile.h \
+../include/CQChartsDensity.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsQuadTree.h \
 \

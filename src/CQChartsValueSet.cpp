@@ -444,7 +444,7 @@ init()
   if (type_ == Type::NONE) {
     // get type from column values
     if (column().isValid() && plot_)
-      type_ = plot_->columnValueType(column());
+      type_ = plot_->columnValueType(column(), Type::NONE);
   }
 
   // if no type then look at added value (TODO: always the same as color values ?)

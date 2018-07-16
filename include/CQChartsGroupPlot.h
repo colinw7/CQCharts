@@ -104,6 +104,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   QString groupIndName(int ind, bool hier=false) const;
 
+  void setModelGroupInd(const CQChartsModelIndex &ind, int groupInd);
+
   void printGroup() const;
 
   const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
