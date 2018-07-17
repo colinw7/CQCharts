@@ -679,10 +679,10 @@ loadFlat(CQChartsSunburstHierNode *root)
       CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
       if (node) {
-        OptColor color;
+        CQChartsColor color;
 
         if (plot_->colorSetColor("color", row, color))
-          node->setColor(*color);
+          node->setColor(color);
       }
 
       return State::OK;
@@ -801,10 +801,10 @@ addExtraNodes(CQChartsSunburstHierNode *hier)
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
-    OptColor color;
+    CQChartsColor color;
 
     if (colorSetColor("color", ind1.row(), color))
-      node->setColor(*color);
+      node->setColor(color);
 
     node->setSize(hier->size());
     node->setInd (hier->ind());

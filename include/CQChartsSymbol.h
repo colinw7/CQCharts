@@ -41,8 +41,6 @@ class CQChartsSymbol {
 
   //---
 
-  //---
-
   QString toString() const;
 
   void fromString(const QString &s);

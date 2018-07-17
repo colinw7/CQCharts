@@ -223,12 +223,11 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   void draw(QPainter *painter) override;
 
  private:
-  using OptColor = boost::optional<CQChartsColor>;
   using OptPoint = boost::optional<QPointF>;
 
   struct ExtraData {
     QString        label;
-    OptColor       color;
+    CQChartsColor  color;
     CQChartsSymbol symbol { CQChartsSymbol::Type::NONE };
     OptPoint       vector;
   };

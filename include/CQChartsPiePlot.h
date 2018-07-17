@@ -49,8 +49,7 @@ class CQChartsPieGroupObj;
 
 class CQChartsPieObj : public CQChartsPlotObj {
  public:
-  using OptReal  = boost::optional<double>;
-  using OptColor = boost::optional<CQChartsColor>;
+  using OptReal = boost::optional<double>;
 
  public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind);
@@ -89,7 +88,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   const QString &keyLabel() const { return keyLabel_; }
   void setKeyLabel(const QString &s) { keyLabel_ = s; }
 
-  const OptColor &color() const { return color_; }
+  const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
 
   CQChartsPieGroupObj *groupObj() const { return groupObj_; }
@@ -129,7 +128,7 @@ class CQChartsPieObj : public CQChartsPlotObj {
   bool                 missing_  { false };   // value missing
   OptReal              radius_;               // radius
   QString              keyLabel_ { "" };      // key label
-  OptColor             color_;                // color
+  CQChartsColor        color_;                // color
   CQChartsPieGroupObj* groupObj_ { nullptr }; // parent group object
   bool                 exploded_ { false };   // exploded
 };

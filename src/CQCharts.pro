@@ -69,6 +69,7 @@ CQChartsScatterPlot.cpp \
 CQChartsSunburstPlot.cpp \
 CQChartsTreeMapPlot.cpp \
 CQChartsXYPlot.cpp \
+CQChartsLayer.cpp \
 \
 CQChartsNoDataObj.cpp \
 CQChartsPlotObj.cpp \
@@ -205,6 +206,7 @@ HEADERS += \
 ../include/CQChartsSunburstPlot.h \
 ../include/CQChartsTreeMapPlot.h \
 ../include/CQChartsXYPlot.h \
+../include/CQChartsLayer.h \
 \
 ../include/CQChartsNoDataObj.h \
 ../include/CQChartsPlotObj.h \

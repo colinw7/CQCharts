@@ -833,7 +833,7 @@ setBBox(const CQChartsGeom::BBox &bbox)
 
 void
 CQChartsPlot::
-updateMargin()
+updateMargin(bool update)
 {
   double xml = bbox_.getWidth ()*marginLeft  ()/100.0;
   double ymt = bbox_.getHeight()*marginTop   ()/100.0;
@@ -845,7 +845,8 @@ updateMargin()
 
   updateKeyPosition(/*force*/true);
 
-  invalidateLayers();
+  if (update)
+    invalidateLayers();
 }
 
 QRectF
@@ -1111,9 +1112,8 @@ addProperties()
   addProperty("log", this, "logY", "y");
 
   if (CQChartsUtil::getBoolEnv("CQCHARTS_DEBUG", true)) {
-    addProperty("debug", this, "showBoxes"   );
-    addProperty("debug", this, "followMouse" );
-    addProperty("debug", this, "bufferLayers");
+    addProperty("debug", this, "showBoxes"  );
+    addProperty("debug", this, "followMouse");
   }
 
   QString plotStyleStr       = "plotStyle";
@@ -2080,12 +2080,12 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
     CQChartsGeom::Point v = windowToView(w);
 
     // to edit must be in handle
-    CQChartsResizeHandle::Side side = editHandles_.inside(v);
+    mouseData_.dragSide = editHandles_.inside(v);
 
-    if (side != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
       mouseData_.dragObj = DragObj::PLOT_HANDLE;
 
-      editHandles_.setDragSide(side);
+      editHandles_.setDragSide(mouseData_.dragSide);
       editHandles_.setDragPos (w);
 
       return true;
@@ -2094,14 +2094,14 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected key handle
   if (key() && key()->isSelected()) {
-    CQChartsResizeHandle::Side side = key()->editHandles().inside(w);
+    mouseData_.dragSide = key()->editHandles().inside(w);
 
-    if (side != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
       mouseData_.dragObj = DragObj::KEY;
 
       key()->editPress(w);
 
-      key()->editHandles().setDragSide(side);
+      key()->editHandles().setDragSide(mouseData_.dragSide);
       key()->editHandles().setDragPos (w);
 
       return true;
@@ -2110,14 +2110,14 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected x axis handle
   if (xAxis() && xAxis()->isSelected()) {
-    CQChartsResizeHandle::Side side = xAxis()->editHandles().inside(w);
+    mouseData_.dragSide = xAxis()->editHandles().inside(w);
 
-    if (side != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
       mouseData_.dragObj = DragObj::XAXIS;
 
       xAxis()->editPress(w);
 
-      xAxis()->editHandles().setDragSide(side);
+      xAxis()->editHandles().setDragSide(mouseData_.dragSide);
       xAxis()->editHandles().setDragPos (w);
 
       return true;
@@ -2126,14 +2126,14 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected y axis handle
   if (yAxis() && yAxis()->isSelected()) {
-    CQChartsResizeHandle::Side side = yAxis()->editHandles().inside(w);
+    mouseData_.dragSide = yAxis()->editHandles().inside(w);
 
-    if (side != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
       mouseData_.dragObj = DragObj::YAXIS;
 
       yAxis()->editPress(w);
 
-      yAxis()->editHandles().setDragSide(side);
+      yAxis()->editHandles().setDragSide(mouseData_.dragSide);
       yAxis()->editHandles().setDragPos (w);
 
       return true;
@@ -2142,14 +2142,14 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // start drag on already selected title handle
   if (title() && title()->isSelected()) {
-    CQChartsResizeHandle::Side side = title()->editHandles().inside(w);
+    mouseData_.dragSide = title()->editHandles().inside(w);
 
-    if (side != CQChartsResizeHandle::Side::NONE) {
+    if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
       mouseData_.dragObj = DragObj::TITLE;
 
       title()->editPress(w);
 
-      title()->editHandles().setDragSide(side);
+      title()->editHandles().setDragSide(mouseData_.dragSide);
       title()->editHandles().setDragPos (w);
 
       return true;
@@ -2159,12 +2159,12 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
   // start drag on already selected annotation handle
   for (const auto &annotation : annotations()) {
     if (annotation->isSelected()) {
-      CQChartsResizeHandle::Side side = annotation->editHandles().inside(w);
+      mouseData_.dragSide = annotation->editHandles().inside(w);
 
-      if (side != CQChartsResizeHandle::Side::NONE) {
+      if (mouseData_.dragSide != CQChartsResizeHandle::Side::NONE) {
         mouseData_.dragObj = DragObj::ANNOTATION;
 
-        annotation->editHandles().setDragSide(side);
+        annotation->editHandles().setDragSide(mouseData_.dragSide);
         annotation->editHandles().setDragPos (w);
 
         return true;
@@ -2386,7 +2386,13 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
     bbox_.moveBy(CQChartsGeom::Point(dx1, dy1));
 
-    updateMargin();
+    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE) {
+      updateMargin(false);
+
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+    }
+    else
+      updateMargin();
 
     return true;
   }
@@ -2401,7 +2407,13 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
     bbox_ = editHandles_.bbox();
 
-    updateMargin();
+    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE) {
+      updateMargin(false);
+
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+    }
+    else
+      updateMargin();
 
     return true;
   }
@@ -2427,7 +2439,7 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
     CQChartsGeom::Point v = windowToView(w);
 
     if (editHandles_.selectInside(v))
-      invalidateLayers();
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
   }
   else if (key() && key()->isSelected()) {
     if (key()->editMotion(w)) {
@@ -3277,10 +3289,7 @@ drawBackground(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BACKGROUND);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   if (painter1) {
     if (hasPlotBackground) {
@@ -3314,8 +3323,7 @@ drawBackground(QPainter *painter)
     }
   }
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -3685,8 +3693,7 @@ void
 CQChartsPlot::
 invalidateLayers()
 {
-  //std::cerr << "invalidateLayers\n";
-
+//std::cerr << "invalidateLayers\n";
   if (isOverlay()) {
     Plots plots;
 
@@ -3711,8 +3718,7 @@ void
 CQChartsPlot::
 invalidateLayer(const CQChartsLayer::Type &layerType)
 {
-  //std::cerr << "invalidateLayer " << CQChartsLayer::typeName(layerType) << "\n";
-
+//std::cerr << "invalidateLayer " << CQChartsLayer::typeName(layerType) << "\n";
   CQChartsLayer *layer = getLayer(layerType);
 
   layer->setValid(false);
@@ -3754,12 +3760,10 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 
   QPainter *painter1 = painter;
 
-  if (isBufferLayers()) {
-    if (layerType == CQChartsLayer::Type::BG_PLOT  ||
-        layerType == CQChartsLayer::Type::MID_PLOT ||
-        layerType == CQChartsLayer::Type::FG_PLOT) {
-      painter1 = layer->beginPaint(painter);
-    }
+  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
+      layerType == CQChartsLayer::Type::MID_PLOT ||
+      layerType == CQChartsLayer::Type::FG_PLOT) {
+    painter1 = beginPaint(layer, painter);
   }
 
   //---
@@ -3797,12 +3801,10 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 
   //---
 
-  if (isBufferLayers()) {
-    if (layerType == CQChartsLayer::Type::BG_PLOT  ||
-        layerType == CQChartsLayer::Type::MID_PLOT ||
-        layerType == CQChartsLayer::Type::FG_PLOT) {
-      layer->endPaint();
-    }
+  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
+      layerType == CQChartsLayer::Type::MID_PLOT ||
+      layerType == CQChartsLayer::Type::FG_PLOT) {
+    endPaint(layer);
   }
 }
 
@@ -3846,10 +3848,7 @@ drawBgAxes(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_AXES);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -3863,8 +3862,7 @@ drawBgAxes(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -3884,10 +3882,7 @@ drawFgAxes(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_AXES);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -3909,8 +3904,7 @@ drawFgAxes(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -3939,10 +3933,7 @@ drawBgKey(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_KEY);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -3951,8 +3942,7 @@ drawBgKey(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -3981,10 +3971,7 @@ drawFgKey(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_KEY);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -3993,8 +3980,7 @@ drawFgKey(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -4008,10 +3994,7 @@ drawTitle(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::TITLE);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -4020,8 +4003,7 @@ drawTitle(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -4035,10 +4017,7 @@ drawAnnotations(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::ANNOTATION);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -4049,8 +4028,7 @@ drawAnnotations(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -4070,10 +4048,7 @@ drawBoxes(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BOXES);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -4089,8 +4064,7 @@ drawBoxes(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
 }
 
 void
@@ -4107,10 +4081,7 @@ drawEditHandles(QPainter *painter)
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
-  QPainter *painter1 = painter;
-
-  if (isBufferLayers())
-    painter1 = layer->beginPaint(painter);
+  QPainter *painter1 = beginPaint(layer, painter);
 
   //---
 
@@ -4122,8 +4093,29 @@ drawEditHandles(QPainter *painter)
 
   //---
 
-  if (isBufferLayers())
-    layer->endPaint();
+  endPaint(layer);
+}
+
+QPainter *
+CQChartsPlot::
+beginPaint(CQChartsLayer *layer, QPainter *painter)
+{
+  if (! view_->isBufferLayers())
+    return painter;
+
+  QRectF rect = CQChartsUtil::toQRect(calcPixelRect());
+
+  return layer->beginPaint(painter, rect);
+}
+
+void
+CQChartsPlot::
+endPaint(CQChartsLayer *layer)
+{
+  if (! view_->isBufferLayers())
+    return;
+
+  layer->endPaint();
 }
 
 //------
@@ -5185,20 +5177,6 @@ setValueSetMapMax(const QString &name, double max)
 bool
 CQChartsPlot::
 colorSetColor(const QString &name, int i, CQChartsColor &color)
-{
-  OptColor optColor;
-
-  if (! colorSetColor(name, i, optColor))
-    return false;
-
-  color = *optColor;
-
-  return true;
-}
-
-bool
-CQChartsPlot::
-colorSetColor(const QString &name, int i, OptColor &color)
 {
   CQChartsColorSet *colorSet = getColorSet(name);
   assert(colorSet);

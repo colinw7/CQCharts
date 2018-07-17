@@ -2374,8 +2374,8 @@ draw(QPainter *painter)
   if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
     symbol = edata_->symbol;
 
-  if (edata_ && edata_->color)
-    strokeColor = edata_->color->interpColor(plot_, 0, 1);
+  if (edata_ && edata_->color.isValid())
+    strokeColor = edata_->color.interpColor(plot_, 0, 1);
 
   double sx = (size() <= 0 ? plot()->lengthPixelWidth (plot()->symbolSize()) : size());
   double sy = (size() <= 0 ? plot()->lengthPixelHeight(plot()->symbolSize()) : size());

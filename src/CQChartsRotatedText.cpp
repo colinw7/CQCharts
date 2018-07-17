@@ -68,7 +68,7 @@ drawRotatedText(QPainter *painter, double x, double y, const QString &text,
 
   //------
 
-  QTransform t;
+  QTransform t = painter->transform();
 
   t.translate(x + tx - ax, y + ty - ay);
   t.rotate(-angle);

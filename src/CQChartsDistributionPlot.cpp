@@ -146,6 +146,7 @@ addProperties()
   addProperty("options", this, "skipEmpty");
   addProperty("options", this, "rangeBar" );
   addProperty("options", this, "density"  );
+  addProperty("options", this, "showMean" );
 
   CQChartsGroupPlot::addProperties();
 
@@ -364,6 +365,8 @@ updateRange(bool apply)
 
       for (const auto &p : opoints)
         densityBBox.add(p.x(), p.y());
+
+      values->mean = rvals.mean();
     }
   }
 
@@ -746,7 +749,7 @@ initObjs()
         bbox.add(p.x(), p.y());
 
       CQChartsDistributionDensityObj *barObj =
-        new CQChartsDistributionDensityObj(this, bbox, groupInd, opoints, is, ns);
+        new CQChartsDistributionDensityObj(this, bbox, groupInd, opoints, values->mean, is, ns);
 
       addPlotObject(barObj);
     }
@@ -1189,10 +1192,6 @@ void
 CQChartsDistributionBarObj::
 draw(QPainter *painter)
 {
-  painter->save();
-
-  //---
-
   CQChartsGeom::BBox pbbox = calcRect();
 
   QRectF qrect = CQChartsUtil::toQRect(pbbox);
@@ -1237,10 +1236,6 @@ draw(QPainter *painter)
 
     drawRect(painter, qrect, barColor, useLine);
   }
-
-  //---
-
-  painter->restore();
 }
 
 void
@@ -1284,12 +1279,10 @@ getBarColoredRects(ColorData &colorData) const
   for (const auto &vind : vinds) {
     const CQChartsModelIndex &ind = vind.ind;
 
-    CQChartsDistributionPlot::OptColor optColor;
+    CQChartsColor color;
 
-    if (! plot_->colorSetColor("color", ind.row, optColor))
-      optColor = barColor;
-
-    CQChartsColor color = *optColor;
+    if (! plot_->colorSetColor("color", ind.row, color))
+      color = barColor;
 
     auto p = colorData.colorSet.find(color);
 
@@ -1444,8 +1437,9 @@ calcRect() const
 
 CQChartsDistributionDensityObj::
 CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                               int groupInd, const Points &points, int is, int ns) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), points_(points), is_(is), ns_(ns)
+                               int groupInd, const Points &points, double mean, int is, int ns) :
+ CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), points_(points),
+ mean_(mean), is_(is), ns_(ns)
 {
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
@@ -1539,36 +1533,21 @@ draw(QPainter *painter)
 
   //---
 
-#if 0
-  int np = points_.size();
+  if (plot_->isShowMean()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
 
-  double x1 = 0.0;
-  double y1 = 0.0;
+    QPen pen(bc);
 
-  for (int i = 0; i < np; ++i) {
-    double x2 = points_[i].x();
-    double y2 = points_[i].y();
+    painter->setPen(pen);
 
-    if (i > 0)
-      drawLine(painter, QPointF(x1, y1), QPointF(x2, y2));
+    const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-    x1 = x2;
-    y1 = y2;
+    QPointF p1 = plot()->windowToPixel(QPointF(mean_, dataRange.ymin()));
+    QPointF p2 = plot()->windowToPixel(QPointF(mean_, dataRange.ymax()));
+
+    painter->drawLine(p1, p2);
   }
-#endif
 }
-
-#if 0
-void
-CQChartsDistributionDensityObj::
-drawLine(QPainter *painter, const QPointF &w1, const QPointF &w2)
-{
-  QPointF p1 = plot_->windowToPixel(w1);
-  QPointF p2 = plot_->windowToPixel(w2);
-
-  painter->drawLine(p1, p2);
-}
-#endif
 
 //------
 

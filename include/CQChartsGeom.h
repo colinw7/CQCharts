@@ -44,7 +44,7 @@ class Point {
     switch (i) {
       case 0 : return x;
       case 1 : return y;
-      default: assert(false);
+      default: { assert(false); return 0.0; }
     }
   }
 
@@ -52,7 +52,8 @@ class Point {
     switch (i) {
       case 0 : return x;
       case 1 : return y;
-      default: assert(false); }
+      default: { assert(false); return x; }
+    }
   }
 
   void setX(double x1) { x = x1; }

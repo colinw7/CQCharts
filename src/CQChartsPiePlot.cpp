@@ -662,10 +662,10 @@ addRowColumn(const CQChartsModelIndex &ind)
 
     obj->setKeyLabel(keyLabel);
 
-    OptColor color;
+    CQChartsColor color;
 
     if (colorSetColor("color", ind.row, color))
-      obj->setColor(*color);
+      obj->setColor(color);
 
     addPlotObject(obj);
 
@@ -1139,8 +1139,8 @@ draw(QPainter *painter)
 
   QColor bg;
 
-  if      (color())
-    bg = color()->interpColor(plot_, colorInd(), no);
+  if      (color().isValid())
+    bg = color().interpColor(plot_, colorInd(), no);
   else if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
@@ -1390,8 +1390,8 @@ fillBrush() const
       c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
   }
 
-  if (obj && obj->color())
-    c = obj->color()->interpColor(plot_, obj->colorInd(), no);
+  if (obj && obj->color().isValid())
+    c = obj->color().interpColor(plot_, obj->colorInd(), no);
 
   return c;
 }

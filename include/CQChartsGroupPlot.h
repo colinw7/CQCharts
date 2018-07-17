@@ -72,7 +72,8 @@ class CQChartsGroupPlot : public CQChartsPlot {
     return groupData_.bucketer.type() == CQBucketer::Type::REAL_AUTO; }
 
   void setAutoRange(bool b) {
-    groupData_.bucketer.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
+    groupData_.bucketer.setType(b ? CQBucketer::Type::REAL_AUTO :
+                                    CQBucketer::Type::REAL_RANGE);
     updateRangeAndObjs();
   }
 

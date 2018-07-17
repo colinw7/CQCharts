@@ -41,8 +41,12 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(QString    title          READ title          WRITE setTitle         )
   Q_PROPERTY(QColor     background     READ background     WRITE setBackground    )
   Q_PROPERTY(int        currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+
+  // edit, select mode
   Q_PROPERTY(Mode       mode           READ mode           WRITE setMode          )
   Q_PROPERTY(SelectMode selectMode     READ selectMode     WRITE setSelectMode    )
+
+  // theme
   Q_PROPERTY(QString    themeName      READ themeName      WRITE setThemeName     )
 
   // selection appearance
@@ -77,12 +81,18 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(QColor            insideFillColor          READ insideFillColor
                                                         WRITE setInsideFillColor)
 
+  // zoom to data
   Q_PROPERTY(bool        zoomData       READ isZoomData     WRITE setZoomData      )
+
+  // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
   Q_PROPERTY(double      scrollDelta    READ scrollDelta    WRITE setScrollDelta   )
   Q_PROPERTY(int         scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
   Q_PROPERTY(int         scrollPage     READ scrollPage     WRITE setScrollPage    )
+
+  // alias, buffer, previws, pos text type
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias     )
+  Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers  )
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview       )
   Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType   )
 
@@ -218,20 +228,27 @@ class CQChartsView : public QFrame {
   bool isZoomData() const { return zoomData_; }
   void setZoomData(bool b) { zoomData_ = b; }
 
-  bool isScrolled() const { return scrolled_; }
-  void setScrolled(bool b) { scrolled_ = b; }
+  //---
 
-  double scrollDelta() const { return scrollDelta_; }
-  void setScrollDelta(double r) { scrollDelta_ = r; }
+  bool isScrolled() const { return scrollData_.active; }
+  void setScrolled(bool b) { scrollData_.active = b; }
 
-  int scrollNumPages() const { return scrollNumPages_; }
-  void setScrollNumPages(int i) { scrollNumPages_ = i; }
+  double scrollDelta() const { return scrollData_.delta; }
+  void setScrollDelta(double r) { scrollData_.delta = r; }
 
-  int scrollPage() const { return scrollPage_; }
-  void setScrollPage(int i) { scrollPage_ = i; }
+  int scrollNumPages() const { return scrollData_.numPages; }
+  void setScrollNumPages(int i) { scrollData_.numPages = i; }
+
+  int scrollPage() const { return scrollData_.page; }
+  void setScrollPage(int i) { scrollData_.page = i; }
+
+  //---
 
   bool isAntiAlias() const { return antiAlias_; }
   void setAntiAlias(bool b) { antiAlias_ = b; updatePlots(); }
+
+  bool isBufferLayers() const { return bufferLayers_; }
+  void setBufferLayers(bool b) { bufferLayers_ = b; }
 
   bool isPreview() const { return preview_; }
   void setPreview(bool b) { preview_ = b; updatePlots(); }
@@ -604,46 +621,51 @@ class CQChartsView : public QFrame {
     bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
   };
 
+  struct ScrollData {
+    bool   active   { false }; // active
+    double delta    { 100 };   // delta
+    int    numPages { 1 };     // num pages
+    int    page     { 0 };     // current page
+  };
+
   using ProbeBands = std::vector<CQChartsProbeBand*>;
 
   // TODO: view title, view key, view annotations
 
   static QSize sizeHint_;
 
-  CQCharts*                charts_           { nullptr };
-  CQChartsDisplayRange*    displayRange_     { nullptr };
-  CQChartsGradientPalette* interfacePalette_ { nullptr };
-  CQChartsTheme*           theme_            { nullptr };
-  bool                     isDark_           { false };
-  CQPropertyViewModel*     propertyModel_    { nullptr };
-  QString                  id_;
-  QString                  title_;
-  QColor                   background_       { 255, 255, 255 };
-  CQChartsViewKey*         keyObj_           { nullptr };
-  Plots                    plots_;
-  int                      currentPlotInd_   { -1 };
-  Annotations              annotations_;
-  Mode                     mode_             { Mode::SELECT };
-  SelectMode               selectMode_       { SelectMode::POINT };
-  HighlightData            selectedHighlight_;
-  HighlightData            insideHighlight_;
-  bool                     zoomData_         { true };
-  bool                     scrolled_         { false };
-  double                   scrollDelta_      { 100 };
-  int                      scrollNumPages_   { 1 };
-  int                      scrollPage_       { 0 };
-  bool                     antiAlias_        { true };
-  bool                     preview_          { false };
-  PosTextType              posTextType_      { PosTextType::PLOT };
-  CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };
-  double                   aspect_           { 1.0 };
-  MouseData                mouseData_;
-  QTimer                   searchTimer_;
-  QPointF                  searchPos_;
-  QRubberBand*             regionBand_       { nullptr };
-  ProbeBands               probeBands_;
-  QMenu*                   popupMenu_        { nullptr };
-  ThemeType                themeType_        { ThemeType::NONE };
+  CQCharts*                charts_           { nullptr };           // parent charts
+  CQChartsDisplayRange*    displayRange_     { nullptr };           // display range
+  CQChartsGradientPalette* interfacePalette_ { nullptr };           // interface palette
+  CQChartsTheme*           theme_            { nullptr };           // theme
+  bool                     isDark_           { false };             // is dark
+  CQPropertyViewModel*     propertyModel_    { nullptr };           // property model
+  QString                  id_;                                     // view id
+  QString                  title_;                                  // view title
+  QColor                   background_       { 255, 255, 255 };     // background color
+  CQChartsViewKey*         keyObj_           { nullptr };           // key object
+  Plots                    plots_;                                  // child plots
+  int                      currentPlotInd_   { -1 };                // current plot index
+  Annotations              annotations_;                            // annotations
+  Mode                     mode_             { Mode::SELECT };      // mouse mode
+  SelectMode               selectMode_       { SelectMode::POINT }; // selection sub mode
+  HighlightData            selectedHighlight_;                      // select highlight
+  HighlightData            insideHighlight_;                        // inside highlight
+  bool                     zoomData_         { true };              // zoom data
+  ScrollData               scrollData_;                             // scroll data
+  bool                     antiAlias_        { true };              // anit alias
+  bool                     bufferLayers_     { true };              // buffer draw layers
+  bool                     preview_          { false };             // preview
+  PosTextType              posTextType_      { PosTextType::PLOT }; // position text ty[e
+  CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };    // plot rect
+  double                   aspect_           { 1.0 };               // current aspect
+  MouseData                mouseData_;                              // mouse data
+  QTimer                   searchTimer_;                            // search timer
+  QPointF                  searchPos_;                              // search pos
+  QRubberBand*             regionBand_       { nullptr };           // zoom region rubberband
+  ProbeBands               probeBands_;                             // probe lines
+  QMenu*                   popupMenu_        { nullptr };           // context menu
+  ThemeType                themeType_        { ThemeType::NONE };   // theme type
 };
 
 #endif

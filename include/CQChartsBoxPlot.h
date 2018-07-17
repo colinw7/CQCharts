@@ -101,10 +101,22 @@ class CQChartsBoxPlotObj : public CQChartsPlotObj {
 class CQChartsBoxPlotWhiskerObj : public CQChartsBoxPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(double min    READ min   )
+  Q_PROPERTY(double lower  READ lower )
+  Q_PROPERTY(double median READ median)
+  Q_PROPERTY(double upper  READ upper )
+  Q_PROPERTY(double max    READ max   )
+
  public:
   CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect, int setId,
                             int groupInd, const CQChartsBoxPlotWhisker &whisker,
                             int ig, int ng, int is, int ns);
+
+  double min   () const;
+  double lower () const;
+  double median() const;
+  double upper () const;
+  double max   () const;
 
   QString calcId   () const override;
   QString calcTipId() const override;
@@ -259,10 +271,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize      WRITE setCornerSize   )
 
   // whisker
-  Q_PROPERTY(CQChartsColor    whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
-  Q_PROPERTY(double           whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
-  Q_PROPERTY(CQChartsLength   whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
-  Q_PROPERTY(double           whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+  Q_PROPERTY(CQChartsColor  whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
+  Q_PROPERTY(double         whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
+  Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
+  Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
 
   // labels
   Q_PROPERTY(bool          textVisible READ isTextVisible WRITE setTextVisible)

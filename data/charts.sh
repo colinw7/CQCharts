@@ -3,6 +3,7 @@
 set args     = ()
 set opts     = ()
 set debug    = 0
+set timer    = 0
 set valgrind = 0
 
 while ($#argv > 0)
@@ -15,6 +16,9 @@ while ($#argv > 0)
   else if ("$1" == "-loop") then
     set opts = ($opts -loop)
     shift
+  else if ("$1" == "-timer") then
+    set timer = 1
+    shift
   else
     set args = ($args $1)
     shift
@@ -23,6 +27,10 @@ end
 
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
+
+if ($timer == 1) then
+  setenv HRTIMER_ACTIVE 1
+endif
 
 if      ($debug == 1) then
   Dbx CQChartsTest -exec $args $opts

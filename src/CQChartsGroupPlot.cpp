@@ -334,6 +334,9 @@ rowGroupInds(const CQChartsModelIndex &index, std::vector<int> &inds, bool hier)
 
     QVariant value = modelHierValue(index.row, groupBucket_.column(), index.parent, ok);
 
+    if (! value.isValid())
+      return false;
+
     int ind = -1;
 
     if      (groupBucket_.isExactValue()) {

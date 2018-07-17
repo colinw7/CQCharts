@@ -156,7 +156,6 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(bool           preview             READ isPreview           WRITE setPreview        )
   Q_PROPERTY(int            previewMaxRows      READ previewMaxRows      WRITE setPreviewMaxRows )
   Q_PROPERTY(bool           showBoxes           READ showBoxes           WRITE setShowBoxes      )
-  Q_PROPERTY(bool           bufferLayers        READ isBufferLayers      WRITE setBufferLayers   )
 
  public:
   // selection modifier type
@@ -234,8 +233,6 @@ class CQChartsPlot : public QObject {
   using ModelIndices = std::vector<QModelIndex>;
 
   using ColumnType = CQBaseModel::Type;
-
-  using OptColor = boost::optional<CQChartsColor>;
 
   using Plots = std::vector<CQChartsPlot*>;
 
@@ -449,9 +446,6 @@ class CQChartsPlot : public QObject {
   bool showBoxes() const { return showBoxes_; }
   void setShowBoxes(bool b);
 
-  bool isBufferLayers() const { return bufferLayers_; }
-  void setBufferLayers(bool b) { bufferLayers_ = b; }
-
   //---
 
   // bbox in view range
@@ -597,7 +591,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void updateMargin();
+  void updateMargin(bool update=true);
 
   //---
 
@@ -632,7 +626,6 @@ class CQChartsPlot : public QObject {
   void setValueSetMapMax(const QString &name, double max);
 
   bool colorSetColor(const QString &name, int i, CQChartsColor &color);
-  bool colorSetColor(const QString &name, int i, OptColor &color);
 
   void initValueSets();
 
@@ -1160,8 +1153,13 @@ class CQChartsPlot : public QObject {
   // draw debug boxes
   virtual void drawBoxes(QPainter *painter);
 
-  // draw foreground
+  // draw edit handles
   virtual void drawEditHandles(QPainter *painter);
+
+  //---
+
+  QPainter *beginPaint(CQChartsLayer *layer, QPainter *painter);
+  void      endPaint  (CQChartsLayer *layer);
 
   //---
 
@@ -1366,10 +1364,11 @@ class CQChartsPlot : public QObject {
   };
 
   struct MouseData {
-    QPointF pressPoint { 0, 0 };
-    QPointF movePoint  { 0, 0 };
-    bool    pressed    { false };
-    DragObj dragObj    { DragObj::NONE };
+    QPointF                    pressPoint { 0, 0 };
+    QPointF                    movePoint  { 0, 0 };
+    bool                       pressed    { false };
+    DragObj                    dragObj    { DragObj::NONE };
+    CQChartsResizeHandle::Side dragSide   { CQChartsResizeHandle::Side::NONE };
   };
 
   struct AnimateData {
@@ -1425,7 +1424,6 @@ class CQChartsPlot : public QObject {
   bool                      preview_          { false };      // is preview plot
   int                       previewMaxRows_   { 1000 };       // preview max rows
   bool                      showBoxes_        { false };      // show debug boxes
-  bool                      bufferLayers_     { true };       // buffer draw layers
   bool                      invertX_          { false };      // x values inverted
   bool                      invertY_          { false };      // y values inverted
   bool                      logX_             { false };      // x values log scaled

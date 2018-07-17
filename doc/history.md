@@ -507,3 +507,7 @@
  + add density plot
  + support associated group for column
  + support custom symbol type in scatter plot
+# 7/16/2018
+ + add mean line to density
+ + buffer plots to actual pixel size
+ + reduce redraws on drag

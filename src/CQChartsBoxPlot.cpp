@@ -38,6 +38,8 @@ addParameters()
   //---
 
   startParameterGroup("Calculated Values");
+  addColumnParameter("x"          , "X"          , "xColumn"          ).
+    setTip("X Value");
   addColumnParameter("min"        , "Min"        , "minColumn"        ).
     setTip("Min Value");
   addColumnParameter("lowerMedian", "LowerMedian", "lowerMedianColumn").
@@ -697,6 +699,7 @@ addProperties()
   addProperty("columns/raw", this, "nameColumn"  , "name"  );
   addProperty("columns/raw", this, "setColumn"   , "set"   );
 
+  addProperty("columns/calculated", this, "xColumn"          , "x"          );
   addProperty("columns/calculated", this, "minColumn"        , "min"        );
   addProperty("columns/calculated", this, "lowerMedianColumn", "lowerMedian");
   addProperty("columns/calculated", this, "medianColumn"     , "media"      );
@@ -1462,6 +1465,41 @@ CQChartsBoxPlotWhiskerObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
 {
 }
 
+double
+CQChartsBoxPlotWhiskerObj::
+min() const
+{
+  return whisker_.min();
+}
+
+double
+CQChartsBoxPlotWhiskerObj::
+lower() const
+{
+  return whisker_.lower();
+}
+
+double
+CQChartsBoxPlotWhiskerObj::
+median() const
+{
+  return whisker_.median();
+}
+
+double
+CQChartsBoxPlotWhiskerObj::
+upper() const
+{
+  return whisker_.upper();
+}
+
+double
+CQChartsBoxPlotWhiskerObj::
+max() const
+{
+  return whisker_.max();
+}
+
 QString
 CQChartsBoxPlotWhiskerObj::
 calcId() const
@@ -1495,11 +1533,11 @@ calcTipId() const
   if (name.length())
     tableTip.addTableRow("Name", name);
 
-  tableTip.addTableRow("Min"   , whisker_.min   ());
-  tableTip.addTableRow("Lower" , whisker_.lower ());
-  tableTip.addTableRow("Median", whisker_.median());
-  tableTip.addTableRow("Upper" , whisker_.upper ());
-  tableTip.addTableRow("Max"   , whisker_.max   ());
+  tableTip.addTableRow("Min"   , min   ());
+  tableTip.addTableRow("Lower" , lower ());
+  tableTip.addTableRow("Median", median());
+  tableTip.addTableRow("Upper" , upper ());
+  tableTip.addTableRow("Max"   , max   ());
 
   return tableTip.str();
 }
@@ -1538,23 +1576,23 @@ draw(QPainter *painter)
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
   if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, whisker_.min   (), px1, py1);
-    plot_->windowToPixel(pos - wd2, whisker_.lower (), px2, py2);
-    plot_->windowToPixel(pos      , whisker_.median(), px3, py3);
-    plot_->windowToPixel(pos + wd2, whisker_.upper (), px4, py4);
-    plot_->windowToPixel(pos + wd1, whisker_.max   (), px5, py5);
+    plot_->windowToPixel(pos - wd1, min   (), px1, py1);
+    plot_->windowToPixel(pos - wd2, lower (), px2, py2);
+    plot_->windowToPixel(pos      , median(), px3, py3);
+    plot_->windowToPixel(pos + wd2, upper (), px4, py4);
+    plot_->windowToPixel(pos + wd1, max   (), px5, py5);
   }
   else {
-    plot_->windowToPixel(whisker_.min   (), pos - wd1, px1, py1);
-    plot_->windowToPixel(whisker_.lower (), pos - wd2, px2, py2);
-    plot_->windowToPixel(whisker_.median(), pos      , px3, py3);
-    plot_->windowToPixel(whisker_.upper (), pos + wd2, px4, py4);
-    plot_->windowToPixel(whisker_.max   (), pos + wd1, px5, py5);
+    plot_->windowToPixel(min   (), pos - wd1, px1, py1);
+    plot_->windowToPixel(lower (), pos - wd2, px2, py2);
+    plot_->windowToPixel(median(), pos      , px3, py3);
+    plot_->windowToPixel(upper (), pos + wd2, px4, py4);
+    plot_->windowToPixel(max   (), pos + wd1, px5, py5);
   }
 
   //---
 
-  bool hasRange = (fabs(whisker_.max() - whisker_.min()) > 1E-6);
+  bool hasRange = (fabs(max() - min()) > 1E-6);
 
   //---
 
@@ -1661,11 +1699,11 @@ draw(QPainter *painter)
     painter->setPen(tc);
 
     if (hasRange) {
-      QString strl = QString("%1").arg(whisker_.min   ());
-      QString lstr = QString("%1").arg(whisker_.lower ());
-      QString mstr = QString("%1").arg(whisker_.median());
-      QString ustr = QString("%1").arg(whisker_.upper ());
-      QString strh = QString("%1").arg(whisker_.max   ());
+      QString strl = QString("%1").arg(min   ());
+      QString lstr = QString("%1").arg(lower ());
+      QString mstr = QString("%1").arg(median());
+      QString ustr = QString("%1").arg(upper ());
+      QString strh = QString("%1").arg(max   ());
 
       if (! plot_->isHorizontal()) {
         drawHText(painter, px1, px5, py1, strl, /*onLeft*/true );
@@ -1683,7 +1721,7 @@ draw(QPainter *painter)
       }
     }
     else {
-      QString strl = QString("%1").arg(whisker_.min());
+      QString strl = QString("%1").arg(min());
 
       if (! plot_->isHorizontal())
         drawHText(painter, px1, px5, py1, strl, /*onLeft*/true);
@@ -1742,23 +1780,23 @@ annotationBBox() const
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
   if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, whisker_.min   (), px1, py1);
-    plot_->windowToPixel(pos - wd2, whisker_.lower (), px2, py2);
-    plot_->windowToPixel(pos      , whisker_.median(), px3, py3);
-    plot_->windowToPixel(pos + wd2, whisker_.upper (), px4, py4);
-    plot_->windowToPixel(pos + wd1, whisker_.max   (), px5, py5);
+    plot_->windowToPixel(pos - wd1, min   (), px1, py1);
+    plot_->windowToPixel(pos - wd2, lower (), px2, py2);
+    plot_->windowToPixel(pos      , median(), px3, py3);
+    plot_->windowToPixel(pos + wd2, upper (), px4, py4);
+    plot_->windowToPixel(pos + wd1, max   (), px5, py5);
   }
   else {
-    plot_->windowToPixel(whisker_.min   (), pos - wd1, px1, py1);
-    plot_->windowToPixel(whisker_.lower (), pos - wd2, px2, py2);
-    plot_->windowToPixel(whisker_.median(), pos      , px3, py3);
-    plot_->windowToPixel(whisker_.upper (), pos + wd2, px4, py4);
-    plot_->windowToPixel(whisker_.max   (), pos + wd1, px5, py5);
+    plot_->windowToPixel(min   (), pos - wd1, px1, py1);
+    plot_->windowToPixel(lower (), pos - wd2, px2, py2);
+    plot_->windowToPixel(median(), pos      , px3, py3);
+    plot_->windowToPixel(upper (), pos + wd2, px4, py4);
+    plot_->windowToPixel(max   (), pos + wd1, px5, py5);
   }
 
   //---
 
-  bool hasRange = (fabs(whisker_.max() - whisker_.min()) > 1E-6);
+  bool hasRange = (fabs(max() - min()) > 1E-6);
 
   //---
 
@@ -1766,11 +1804,11 @@ annotationBBox() const
 
   if (plot_->isTextVisible()) {
     if (hasRange) {
-      QString strl = QString("%1").arg(whisker_.min   ());
-      QString lstr = QString("%1").arg(whisker_.lower ());
-      QString mstr = QString("%1").arg(whisker_.median());
-      QString ustr = QString("%1").arg(whisker_.upper ());
-      QString strh = QString("%1").arg(whisker_.max   ());
+      QString strl = QString("%1").arg(min   ());
+      QString lstr = QString("%1").arg(lower ());
+      QString mstr = QString("%1").arg(median());
+      QString ustr = QString("%1").arg(upper ());
+      QString strh = QString("%1").arg(max   ());
 
       if (! plot_->isHorizontal()) {
         addHBBox(pbbox, px1, px5, py1, strl, /*onLeft*/false);
@@ -1788,7 +1826,7 @@ annotationBBox() const
       }
     }
     else {
-      QString strl = QString("%1").arg(whisker_.min   ());
+      QString strl = QString("%1").arg(min());
 
       if (! plot_->isHorizontal())
         addHBBox(pbbox, px1, px5, py1, strl, /*onLeft*/false);

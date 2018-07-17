@@ -63,20 +63,20 @@ void
 CQChartsEditHandles::
 updateBBox(double dx, double dy)
 {
-  if      (dragSide_ == CQChartsResizeHandle::Side::MOVE) {
+  if      (dragSide() == CQChartsResizeHandle::Side::MOVE) {
     bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
     bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide_ == CQChartsResizeHandle::Side::LL) {
+  else if (dragSide() == CQChartsResizeHandle::Side::LL) {
     bbox_.setLL(bbox_.getLL() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide_ == CQChartsResizeHandle::Side::LR) {
+  else if (dragSide() == CQChartsResizeHandle::Side::LR) {
     bbox_.setLR(bbox_.getLR() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide_ == CQChartsResizeHandle::Side::UL) {
+  else if (dragSide() == CQChartsResizeHandle::Side::UL) {
     bbox_.setUL(bbox_.getUL() + CQChartsGeom::Point(dx, dy));
   }
-  else if (dragSide_ == CQChartsResizeHandle::Side::UR) {
+  else if (dragSide() == CQChartsResizeHandle::Side::UR) {
     bbox_.setUR(bbox_.getUR() + CQChartsGeom::Point(dx, dy));
   }
 }

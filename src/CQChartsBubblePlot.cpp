@@ -686,10 +686,10 @@ loadModel()
       CQChartsBubbleNode *node = plot_->addNode(hierNode, name, size, nameInd1);
 
       if (node) {
-        OptColor color;
+        CQChartsColor color;
 
         if (plot_->colorSetColor("color", row, color))
-          node->setColor(*color);
+          node->setColor(color);
       }
 
       return State::OK;

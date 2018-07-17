@@ -167,9 +167,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  using OptColor = boost::optional<CQChartsColor>;
-
- public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                       int iset, int nset, int ival, int nval, int isval, int nsval,
                       const CQChartsBarChartValue *value, const QModelIndex &ind);
@@ -200,7 +197,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   int                          nsval_ { -1 };      // number of sub sets
   const CQChartsBarChartValue* value_ { nullptr }; // value data
   QModelIndex                  ind_;               // model index
-  OptColor                     color_;             // custom color
+  CQChartsColor                color_;             // custom color
 };
 
 //---
@@ -210,9 +207,6 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 // key color box
 class CQChartsBarKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
-
- public:
-  using OptColor = boost::optional<CQChartsColor>;
 
  public:
   CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n);
@@ -231,7 +225,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
  private:
   CQChartsBarChartPlot *plot_  { nullptr }; // plot
-  OptColor              color_;             // custom color
+  CQChartsColor         color_;             // custom color
 };
 
 // key text

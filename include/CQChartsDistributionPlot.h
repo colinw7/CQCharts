@@ -96,6 +96,8 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   int                       nv_       { -1 };
 };
 
+//---
+
 // density object
 class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_OBJECT
@@ -105,7 +107,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
  public:
   CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                                 int groupInd, const Points &points, int is, int ns);
+                                 int groupInd, const Points &points, double mean, int is, int ns);
 
   int groupInd() const { return groupInd_; }
 
@@ -127,9 +129,10 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   CQChartsDistributionPlot *plot_     { nullptr };
   int                       groupInd_ { -1 };
   Points                    points_;
-  QPolygonF                 poly_;
+  double                    mean_     { 0.0 };
   int                       is_       { -1 };
   int                       ns_       { -1 };
+  QPolygonF                 poly_;
 };
 
 //---
@@ -176,6 +179,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
   Q_PROPERTY(bool rangeBar  READ isRangeBar  WRITE setRangeBar )
   Q_PROPERTY(bool density   READ isDensity   WRITE setDensity  )
+  Q_PROPERTY(bool showMean  READ isShowMean  WRITE setShowMean )
 
  public:
   struct Filter {
@@ -232,6 +236,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool isRangeBar() const { return rangeBar_; }
 
   bool isDensity() const { return density_; }
+
+  //---
+
+  bool isShowMean() const { return showMean_; }
+  void setShowMean(bool b) { showMean_ = b; updateRangeAndObjs(); }
 
   //---
 
@@ -298,10 +307,11 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   using BucketValues = std::map<int,VariantIndsData>;
 
   struct Values {
-    Inds            inds;
-    ValueSet*       valueSet { nullptr };
-    BucketValues    bucketValues;         // bucketed values
-    CQChartsDensity densityData;
+    Inds            inds;                      // value indices
+    ValueSet*       valueSet      { nullptr }; // value set
+    BucketValues    bucketValues;              // bucketed values
+    CQChartsDensity densityData;               // density data
+    double          mean          { 0.0 };     // mean
 
     Values(ValueSet *valueSet) :
      valueSet(valueSet) {
@@ -360,6 +370,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool              skipEmpty_    { false }; // skip empty buckets
   bool              rangeBar_     { false }; // show range bar
   bool              density_      { false }; // show density
+  bool              showMean_     { false }; // show mean
   CQChartsDataLabel dataLabel_;              // data label data
   GroupValues       groupValues_;            // grouped value sets
   bool              bucketed_     { true };  // is bucketed

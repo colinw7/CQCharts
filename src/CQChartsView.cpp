@@ -87,6 +87,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "themeName"     );
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
+  addProperty("", this, "bufferLayers"  );
   addProperty("", this, "posTextType"   );
 
   addProperty("selectedHighlight"       , this, "selectedMode"              , "mode");
@@ -2248,9 +2249,7 @@ showMenu(const QPoint &p)
     QAction *bufferLayersAction = new QAction("Buffer Layers", popupMenu_);
 
     bufferLayersAction->setCheckable(true);
-
-    if (currentPlot)
-      bufferLayersAction->setChecked(currentPlot->isBufferLayers());
+    bufferLayersAction->setChecked(isBufferLayers());
 
     popupMenu_->addAction(bufferLayersAction);
 
@@ -2601,10 +2600,7 @@ void
 CQChartsView::
 bufferLayersSlot(bool b)
 {
-  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
-
-  if (currentPlot)
-    currentPlot->setBufferLayers(b);
+  setBufferLayers(b);
 }
 
 //------
@@ -2816,8 +2812,8 @@ void
 CQChartsView::
 scrollLeft()
 {
-  if (scrollPage_ > 0) {
-    --scrollPage_;
+  if (scrollData_.page > 0) {
+    --scrollData_.page;
 
     updateScroll();
   }
@@ -2827,8 +2823,8 @@ void
 CQChartsView::
 scrollRight()
 {
-  if (scrollPage_ < scrollNumPages_ - 1) {
-    ++scrollPage_;
+  if (scrollData_.page < scrollNumPages() - 1) {
+    ++scrollData_.page;
 
     updateScroll();
   }
@@ -2838,7 +2834,7 @@ void
 CQChartsView::
 updateScroll()
 {
-  double dx = scrollPage_*scrollDelta_;
+  double dx = scrollData_.page*scrollData_.delta;
 
   double vr = viewportRange();
 

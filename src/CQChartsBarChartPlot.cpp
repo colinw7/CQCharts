@@ -785,7 +785,7 @@ initObjs()
 
       ivalue.calcRange(minInd, maxInd);
 
-      OptColor color;
+      CQChartsColor color;
 
       if (colorColumn().isValid())
         (void) colorSetColor("color", minInd.ind.row(), color);
@@ -854,8 +854,8 @@ initObjs()
       else
         barObj = new CQChartsBarChartObj(this, brect, 0, 1, iv, nv, ivs, nvs, &ivalue, minInd.ind);
 
-      if (color)
-        barObj->setColor(*color);
+      if (color.isValid())
+        barObj->setColor(color);
 
       addPlotObject(barObj);
 
@@ -959,10 +959,10 @@ addKeyItems(CQChartsPlotKey *key)
 
           const QModelIndex &ind = valueInds[0].ind;
 
-          OptColor color;
+          CQChartsColor color;
 
           if (colorColumn().isValid() && colorSetColor("color", ind.row(), color))
-            c = (*color).interpColor(this, 0, 1);
+            c = color.interpColor(this, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -997,10 +997,10 @@ addKeyItems(CQChartsPlotKey *key)
 
           const QModelIndex &ind = valueInds[0].ind;
 
-          OptColor color;
+          CQChartsColor color;
 
           if (colorColumn().isValid() && colorSetColor("color", ind.row(), color))
-            c = (*color).interpColor(this, 0, 1);
+            c = color.interpColor(this, 0, 1);
         }
 
         addKeyRow(iv, nv, valueSet.name(), c);
@@ -1353,7 +1353,7 @@ draw(QPainter *painter)
         barColor = plot_->interpBarColor(iset_, nset_);
     }
     else {
-      if (! color_) {
+      if (! color_.isValid()) {
         if      (nval_ > 1)
           barColor = plot_->interpBarColor(ival_, nval_);
         else if (nsval_ > 1)
@@ -1368,7 +1368,7 @@ draw(QPainter *painter)
         }
       }
       else {
-        barColor = (*color_).interpColor(plot_, 0.0);
+        barColor = color_.interpColor(plot_, 0.0);
       }
     }
 
@@ -1483,8 +1483,8 @@ fillBrush() const
 {
   QColor c;
 
-  if (color_)
-    c = (*color_).interpColor(plot_, 0.0);
+  if (color_.isValid())
+    c = color_.interpColor(plot_, 0.0);
   else
     c = plot_->interpBarColor(i_, n_);
 

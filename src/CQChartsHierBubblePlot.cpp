@@ -689,10 +689,10 @@ loadHier()
       CQChartsHierBubbleNode *node = plot_->addNode(parentHier(), name, size, nameInd);
 
       if (node) {
-        OptColor color;
+        CQChartsColor color;
 
         if (plot_->colorSetColor("color", row, color))
-          node->setColor(*color);
+          node->setColor(color);
       }
 
       return State::OK;
@@ -825,10 +825,10 @@ loadFlat()
       CQChartsHierBubbleNode *node = plot_->addNode(nameStrs, size, nameInds[0]);
 
       if (node) {
-        OptColor color;
+        CQChartsColor color;
 
         if (plot_->colorSetColor("color", row, color))
-          node->setColor(*color);
+          node->setColor(color);
       }
 
       return State::OK;
@@ -953,10 +953,10 @@ addExtraNodes(CQChartsHierBubbleHierNode *hier)
 
     QModelIndex ind1 = unnormalizeIndex(hier->ind());
 
-    OptColor color;
+    CQChartsColor color;
 
     if (colorSetColor("color", ind1.row(), color))
-      node->setColor(*color);
+      node->setColor(color);
 
     node->setDepth (hier->depth() + 1);
     node->setFiller(true);

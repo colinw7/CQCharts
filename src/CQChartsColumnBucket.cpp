@@ -253,7 +253,7 @@ imin() const
   if      (columnType() == ColumnType::REAL   ) return rvals_.imin();
   else if (columnType() == ColumnType::INTEGER) return ivals_.imin();
   else if (columnType() == ColumnType::STRING ) return svals_.imin();
-  else                                          assert(false);
+  else                                          { assert(false); return 0; }
 }
 
 int
@@ -263,7 +263,7 @@ imax() const
   if      (columnType() == ColumnType::REAL   ) return rvals_.imax();
   else if (columnType() == ColumnType::INTEGER) return ivals_.imax();
   else if (columnType() == ColumnType::STRING ) return svals_.imax();
-  else                                          assert(false);
+  else                                          { assert(false); return 0; }
 }
 
 void
@@ -311,5 +311,5 @@ typeName() const
   if      (columnType() == ColumnType::REAL   ) return "real";
   else if (columnType() == ColumnType::INTEGER) return "integer";
   else if (columnType() == ColumnType::STRING ) return "string";
-  else                                          assert(false);
+  else                                          { assert(false); return ""; }
 }

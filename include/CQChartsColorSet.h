@@ -6,14 +6,11 @@
 
 class CQChartsColorSet : public CQChartsValueSet {
  public:
-  using OptColor = boost::optional<CQChartsColor>;
-
- public:
   CQChartsColorSet(CQChartsPlot *plot) :
    CQChartsValueSet(plot) {
   }
 
-  bool icolor(int i, OptColor &optColor) {
+  bool icolor(int i, CQChartsColor &color) {
     if (empty())
       return false;
 
@@ -29,7 +26,7 @@ class CQChartsColorSet : public CQChartsValueSet {
       QColor c(colorVar.toString());
 
       if (c.isValid()) {
-        optColor = c;
+        color = c;
 
         return true;
       }
@@ -44,7 +41,7 @@ class CQChartsColorSet : public CQChartsValueSet {
       CQChartsColor c = CQChartsUtil::varToColor(value(i), ok);
 
       if (c.isValid()) {
-        optColor = c;
+        color = c;
 
         return true;
       }
@@ -58,7 +55,7 @@ class CQChartsColorSet : public CQChartsValueSet {
 
     CQChartsColor c = CQChartsColor(CQChartsColor::Type::PALETTE_VALUE, value);
 
-    optColor = c;
+    color = c;
 
     return true;
   }
