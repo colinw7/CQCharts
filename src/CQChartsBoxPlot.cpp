@@ -1194,7 +1194,7 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
       whisker.setRange(whiskerRange());
 
       QString name;
-      bool    ok;
+      bool    ok = false;
 
       if      (isGroupHeaders()) {
         name = modelHeaderString(valueColumn, ok);

@@ -26,7 +26,7 @@ class CQChartsSunburstPlotType : public CQChartsHierPlotType {
 
   bool hasAxes() const override { return false; }
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -191,9 +191,9 @@ class CQChartsSunburstHierNode : public CQChartsSunburstNode {
 
   double hierSize() const override;
 
-  int depth() const;
+  int depth() const override;
 
-  int numNodes() const;
+  int numNodes() const override;
 
   bool hasNodes() const { return ! nodes_.empty(); }
 

@@ -263,7 +263,7 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   CQChartsXYPlot *plot() const { return plot_; }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   int i() const { return i_; }
   int n() const { return n_; }
@@ -318,7 +318,7 @@ class CQChartsXYPolygonObj : public CQChartsPlotObj {
   CQChartsXYPlot *plot() const { return plot_; }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   int i() const { return i_; }
   int n() const { return n_; }
@@ -763,7 +763,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   };
 
   CQChartsColumn     xColumn_              { 0 };                // x column
-  CQChartsColumns    yColumns_;                                  // y columns
+  CQChartsColumns    yColumns_             { 1 };                // y columns
   CQChartsColumn     nameColumn_;                                // name column
   CQChartsColumn     sizeColumn_;                                // size column
   CQChartsColumn     pointLabelColumn_;                          // point label column

@@ -21,7 +21,7 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 
   bool hasAxes() const override { return false; }
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -51,7 +51,7 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   CQChartsGeom::BBox annotationBBox() const;
 

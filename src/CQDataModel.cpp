@@ -229,6 +229,8 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
     if (role == Qt::DisplayRole) {
       hheader_[section] = value;
 
+      emit headerDataChanged(orientation, section, section);
+
       return true;
     }
     else {
@@ -246,6 +248,8 @@ setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, i
 
     if (role == Qt::DisplayRole) {
       vheader_[section] = value;
+
+      emit headerDataChanged(orientation, section, section);
 
       return true;
     }
@@ -395,6 +399,8 @@ setData(const QModelIndex &index, const QVariant &value, int role)
   else {
     columnData.roleRowValues[role][index.row()] = value;
   }
+
+  emit dataChanged(index, index, QVector<int>(1, role));
 
   return true;
 }

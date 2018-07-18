@@ -114,7 +114,7 @@ inline void createVar(Tcl_Interp *interp, const QString &name, const QVariant &v
 }
 
 inline QVariant getVar(Tcl_Interp *interp, const QString &name) {
-  Tcl_Obj *nameObj  = variantToObj(interp, name);
+  Tcl_Obj *nameObj = variantToObj(interp, name);
 
   Tcl_Obj *obj = Tcl_ObjGetVar2(interp, nameObj, nullptr, TCL_GLOBAL_ONLY);
 

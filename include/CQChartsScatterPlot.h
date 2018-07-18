@@ -18,7 +18,7 @@ class CQChartsScatterPlotType : public CQChartsGroupPlotType {
 
   void addParameters() override;
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -47,10 +47,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void setSymbolSize(const CQChartsLength &s);
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &v) { ind_ = v; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
 
   QString calcId() const override;
 
@@ -93,7 +93,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
 
   const CQChartsColor &color() const { return color_; }
-  void setColor(const CQChartsColor &v) { color_ = v; }
+  void setColor(const CQChartsColor &c) { color_ = c; }
 
   bool selectPress(const CQChartsGeom::Point &p) override;
 

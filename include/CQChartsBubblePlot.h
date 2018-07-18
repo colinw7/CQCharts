@@ -98,7 +98,7 @@ class CQChartsBubbleNode : public CQChartsCircleNode {
     //placed_ = false;
   }
 
-  virtual void setPosition(double x, double y) override;
+  void setPosition(double x, double y) override;
 
   virtual bool placed() const { return placed_; }
 
@@ -173,7 +173,7 @@ class CQChartsBubbleHierNode : public CQChartsBubbleNode {
 
   void removeNode(CQChartsBubbleNode *node);
 
-  void setPosition(double x, double y);
+  void setPosition(double x, double y) override;
 
   QColor interpColor(CQChartsBubblePlot *plot, int n) const override;
 

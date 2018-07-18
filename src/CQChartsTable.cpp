@@ -385,6 +385,8 @@ addReplaceSearch(const QString &text, bool add)
        table_(table), regexp_(text), column_(column), rows_(rows) {
       }
 
+      CQChartsTable *table() const { return table_; }
+
       State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
         QModelIndex ind = model->index(row, column_, parent);
 
@@ -426,6 +428,8 @@ addReplaceSearch(const QString &text, bool add)
                  int column, Rows &rows) :
        table_(table), match_(match), matches_(matches), column_(column), rows_(rows) {
       }
+
+      CQChartsTable *table() const { return table_; }
 
       State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
         QModelIndex ind = model->index(row, column_, parent);

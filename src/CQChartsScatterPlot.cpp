@@ -410,7 +410,7 @@ addProperties()
 
   addSymbolProperties("symbol");
 
-  dataLabel_.addProperties("dataLabel");
+  dataLabel_.addPathProperties("dataLabel");
 
   addProperty("font", this, "fontSize", "size");
 

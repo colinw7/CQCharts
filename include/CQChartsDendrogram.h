@@ -102,7 +102,7 @@ class CQChartsDendrogram {
 
    ~HierNode();
 
-    double size() const;
+    double size() const override;
 
     const Nodes    &getNodes   () const { return nodes_; }
     const Children &getChildren() const { return children_; }
@@ -111,19 +111,19 @@ class CQChartsDendrogram {
 
     int numNodes() const;
 
-    int maxNodes();
+    int maxNodes() override;
 
-    bool hasChildren() const;
+    bool hasChildren() const override;
 
     HierNode *findChild(const QString &name) const;
 
-    void resetPlaced();
+    void resetPlaced() override;
 
     void placeSubNodes(RootNode *root, int depth, double row);
 
     void addNode(Node *node);
 
-    void compressNode(double d);
+    void compressNode(double d) override;
 
     Node *getNodeAtPoint(double x, double y, double tol) const;
 
@@ -172,7 +172,7 @@ class CQChartsDendrogram {
     void openNode(int depth, const QString &name);
 
     // compress node and children
-    void compressNode(Node *node, const Nodes &lowestChildren, double d);
+    void compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d);
 
     //void moveChildNodes(HierNode *hierNode, double d);
 

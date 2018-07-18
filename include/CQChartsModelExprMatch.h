@@ -1,8 +1,10 @@
 #ifndef CQChartsModelExprMatch_H
 #define CQChartsModelExprMatch_H
 
+#include <QModelIndex>
 #include <QVariant>
 #include <QString>
+#include <vector>
 
 class CQChartsModelExprMatchTclFn;
 
@@ -52,7 +54,7 @@ class CQChartsModelExprMatch {
   bool checkIndex(int row, int col) const;
 
  private:
-  using TclCmds  = std::vector<CQChartsModelExprMatchTclFn *>;
+  using TclCmds = std::vector<CQChartsModelExprMatchTclFn *>;
 
   friend class CQChartsModelExprMatchTclFn;
   friend class CQChartsModelExprMatchNameFn;

@@ -134,7 +134,7 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  dataLabel_.addProperties("dataLabel");
+  dataLabel_.addPathProperties("dataLabel");
 }
 
 //---
@@ -1167,17 +1167,52 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  if (value_->groupName().length())
-    tableTip.addTableRow("Group", tableTip.escapeText(value_->groupName()));
+  QString nameStr  = this->nameStr ();
+  QString groupStr = this->groupStr();
+  QString valueStr = this->valueStr();
 
-  if (value_->valueName().length())
-    tableTip.addTableRow("Name", tableTip.escapeText(value_->valueName()));
+  if (groupStr.length())
+    tableTip.addTableRow("Group", tableTip.escapeText(groupStr));
+
+  if (nameStr.length())
+    tableTip.addTableRow("Name", tableTip.escapeText(nameStr));
+
+  tableTip.addTableRow("Value", valueStr);
+
+  for (const auto &nameValue : value_->nameValues()) {
+    const QString &name  = nameValue.first;
+    const QString &value = nameValue.second;
+
+    if (value.length())
+      tableTip.addTableRow(name, tableTip.escapeText(value));
+  }
+
+  return tableTip.str();
+}
+
+QString
+CQChartsBarChartObj::
+groupStr() const
+{
+  return value_->groupName();
+}
+
+QString
+CQChartsBarChartObj::
+nameStr() const
+{
+  return value_->valueName();
+}
+
+QString
+CQChartsBarChartObj::
+valueStr() const
+{
+  QString valueStr;
 
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
   value_->calcRange(minInd, maxInd);
-
-  QString valueStr;
 
   if (! plot_->isRangeBar()) {
     valueStr = plot_->valueStr(minInd.value);
@@ -1189,14 +1224,7 @@ calcTipId() const
     valueStr = QString("%1-%2").arg(minValueStr).arg(maxValueStr);
   }
 
-  tableTip.addTableRow("Value", valueStr);
-
-  for (const auto &nameValue : value_->nameValues()) {
-    if (nameValue.second.length())
-      tableTip.addTableRow(nameValue.first, tableTip.escapeText(nameValue.second));
-  }
-
-  return tableTip.str();
+  return valueStr;
 }
 
 CQChartsGeom::BBox

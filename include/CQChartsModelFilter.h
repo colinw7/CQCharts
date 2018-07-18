@@ -121,7 +121,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
 
   //---
 
-  QVariant data(const QModelIndex &index, int role) const;
+  QVariant data(const QModelIndex &index, int role) const override;
 
   //---
 

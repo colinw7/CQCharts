@@ -69,6 +69,8 @@ class CQChartsPlotUpdateTimer : public QTimer {
     setSingleShot(true);
   }
 
+  CQChartsPlot *plot() const { return plot_; }
+
  private:
   CQChartsPlot *plot_ { nullptr };
 };
@@ -337,7 +339,7 @@ class CQChartsPlot : public QObject {
   //---
 
   const QString &filterStr() const { return filterStr_; }
-  void setFilterStr(const QString &v) { filterStr_ = v; }
+  void setFilterStr(const QString &s) { filterStr_ = s; }
 
   //---
 
@@ -348,10 +350,10 @@ class CQChartsPlot : public QObject {
   void setFileName(const QString &s) { fileName_ = s; }
 
   const QString &xLabel() const { return xLabel_; }
-  void setXLabel(const QString &v) { xLabel_ = v; }
+  void setXLabel(const QString &s) { xLabel_ = s; }
 
   const QString &yLabel() const { return yLabel_; }
-  void setYLabel(const QString &v) { yLabel_ = v; }
+  void setYLabel(const QString &s) { yLabel_ = s; }
 
   //---
 

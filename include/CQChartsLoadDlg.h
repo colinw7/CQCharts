@@ -6,8 +6,9 @@
 #include <QSharedPointer>
 
 class CQCharts;
-class CQChartsInputData;
 class CQFilename;
+
+struct CQChartsInputData;
 
 class QAbstractItemModel;
 class QComboBox;

@@ -401,7 +401,7 @@ headerData(int section, Qt::Orientation orientation, int role) const
     assert(false);
   }
 
-  return false;
+  return QVariant();
 }
 
 bool

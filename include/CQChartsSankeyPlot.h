@@ -19,9 +19,9 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
-  bool hasAxes() const { return false; }
+  bool hasAxes() const override { return false; }
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -176,7 +176,7 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
   void setSrcRect (const CQChartsGeom::BBox &rect) { srcRect_  = rect; }
   void setDestRect(const CQChartsGeom::BBox &rect) { destRect_ = rect; }
 
-  bool inside(const CQChartsGeom::Point &p) const;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &) const override { }
 
@@ -370,7 +370,7 @@ class CQChartsSankeyPlot : public CQChartsPlot {
 
   //---
 
-  void keyPress(int key, int modifier);
+  void keyPress(int key, int modifier) override;
 
   //---
 

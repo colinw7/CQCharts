@@ -25,7 +25,7 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   void setInd(int i) { ind_ = i; }
 
   const QString &id() const { return id_; }
-  void setId(const QString &v) { id_ = v; }
+  void setId(const QString &s) { id_ = s; }
 
   QString pathId() const;
 
@@ -291,7 +291,7 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   void setType(const CQChartsSymbol &t) { pointData_.type = t; emit dataChanged(); }
 
   const CQChartsSymbolData &pointData() const { return pointData_; }
-  void setPointData(const CQChartsSymbolData &v) { pointData_ = v; emit dataChanged(); }
+  void setPointData(const CQChartsSymbolData &p) { pointData_ = p; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 

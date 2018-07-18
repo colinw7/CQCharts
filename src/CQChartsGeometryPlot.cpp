@@ -294,7 +294,7 @@ addProperties()
 
   addFillProperties("fill", "fill");
 
-  dataLabel_.addProperties("dataLabel");
+  dataLabel_.addPathProperties("dataLabel");
 
   addProperty("value", this, "minValue", "min");
   addProperty("value", this, "maxValue", "max");

@@ -419,7 +419,7 @@ class CQChartsTrie {
       }
 
       void visit(const String &str, int n) {
-        std::cerr << str.toStdString() << "(#" << n << ")\n";
+        os_ << str.toStdString() << "(#" << n << ")\n";
       }
 
      private:

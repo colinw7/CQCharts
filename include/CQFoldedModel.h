@@ -122,12 +122,12 @@ class CQFoldedModel : public QAbstractProxyModel {
   // # Abstarct Proxy Model APIS
 
   // map source index to proxy index
-  QModelIndex mapFromSource(const QModelIndex &sourceIndex) const;
+  QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;
   // map proxy index to source index
-  QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
+  QModelIndex mapToSource(const QModelIndex &proxyIndex) const override;
 
  private:
-  class Node;
+  struct Node;
 
   using RowArray      = std::vector<int>;
   using RowSet        = std::set<int>;

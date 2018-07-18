@@ -477,7 +477,7 @@ compressNodes()
       // if can move node, children and parent then compress node
       // (move node and parents down)
       if      (move_gap1 > 0)
-        compressNode(node, lowestChildren, move_gap1);
+        compressNodeAndChildren(node, lowestChildren, move_gap1);
       // if can't move parent but can move node and children, and
       // node is not the first child of it's parent, then move node
       // and higher child nodes
@@ -619,7 +619,7 @@ openNode(int depth, const QString &name)
 // compress node and children
 void
 CQChartsDendrogram::RootNode::
-compressNode(Node *node, const Nodes &lowestChildren, double d)
+compressNodeAndChildren(Node *node, const Nodes &lowestChildren, double d)
 {
   if (debug()) {
     std::cerr << "Compress " << node->name().toStdString() << " by " << d;

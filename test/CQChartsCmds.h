@@ -16,11 +16,12 @@ class CQChartsWindow;
 class CQChartsView;
 class CQChartsPlot;
 class CQChartsGradientPalette;
-class CQChartsPaletteColorData;
 class CQChartsColumn;
 class CQChartsModelData;
 class CQChartsPlotType;
 class CQChartsAnnotation;
+
+struct CQChartsPaletteColorData;
 
 class CQChartsCmds;
 

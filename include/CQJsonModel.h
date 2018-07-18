@@ -44,7 +44,7 @@ class CQJsonModel : public CQBaseModel {
 
   QModelIndex parent(const QModelIndex &index) const override;
 
-  Qt::ItemFlags flags(const QModelIndex &index) const;
+  Qt::ItemFlags flags(const QModelIndex &index) const override;
 
  private:
   typedef std::map<int,QString> ColumnMap;

@@ -1870,8 +1870,14 @@ showMenu(const QPoint &p)
 
     keyVisibleAction->setCheckable(true);
 
-    if (currentPlot && currentPlot->key())
+    if (currentPlot && currentPlot->key()) {
       keyVisibleAction->setChecked(currentPlot->key()->isVisible());
+
+      if (currentPlot->key()->isEmpty())
+        keyVisibleAction->setEnabled(false);
+    }
+    else
+      keyVisibleAction->setEnabled(false);
 
     connect(keyVisibleAction, SIGNAL(triggered(bool)), this, SLOT(keyVisibleSlot(bool)));
 

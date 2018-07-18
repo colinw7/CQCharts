@@ -697,7 +697,7 @@ bool
 CQChartsPlotKey::
 contains(const CQChartsGeom::Point &p) const
 {
-  if (! isVisible())
+  if (! isVisible() || isEmpty())
     return false;
 
   return bbox().inside(p);
@@ -716,6 +716,13 @@ getItemAt(const CQChartsGeom::Point &p) const
   }
 
   return nullptr;
+}
+
+bool
+CQChartsPlotKey::
+isEmpty() const
+{
+  return items_.empty();
 }
 
 //------
@@ -886,7 +893,7 @@ void
 CQChartsPlotKey::
 draw(QPainter *painter)
 {
-  if (! isVisible())
+  if (! isVisible() || isEmpty())
     return;
 
   //---

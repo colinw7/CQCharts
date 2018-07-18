@@ -134,9 +134,9 @@ setGroupColumn(const CQChartsColumn &c)
 
 void
 CQChartsAdjacencyPlot::
-setSortType(const SortType &v)
+setSortType(const SortType &t)
 {
-  CQChartsUtil::testAndSet(sortType_, v, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(sortType_, t, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

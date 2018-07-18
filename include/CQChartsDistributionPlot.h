@@ -115,7 +115,7 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   QString calcTipId() const override;
 
-  bool inside(const CQChartsGeom::Point &p) const;
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void getSelectIndices(Indices &inds) const override;
 

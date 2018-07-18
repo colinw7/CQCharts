@@ -19,7 +19,7 @@ class CQChartsDelaunayPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -209,7 +209,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   //---
 
-  bool addMenuItems(QMenu *menu);
+  bool addMenuItems(QMenu *menu) override;
 
   //---
 

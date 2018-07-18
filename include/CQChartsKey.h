@@ -191,7 +191,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   void selectPress(const CQChartsGeom::Point &w);
 
-  void redraw();
+  void redraw() override;
 
  private:
   void doLayout();
@@ -279,7 +279,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void redrawBoxObj() override { redraw(); }
 
-  void redraw();
+  void redraw() override;
 
   //---
 
@@ -290,6 +290,8 @@ class CQChartsPlotKey : public CQChartsKey {
   bool contains(const CQChartsGeom::Point &p) const;
 
   CQChartsKeyItem *getItemAt(const CQChartsGeom::Point &p) const;
+
+  bool isEmpty() const;
 
   //---
 

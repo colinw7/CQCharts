@@ -150,7 +150,7 @@ addProperties()
 
   CQChartsGroupPlot::addProperties();
 
-  dataLabel_.addProperties("dataLabel");
+  dataLabel_.addPathProperties("dataLabel");
 }
 
 //---
@@ -1502,16 +1502,39 @@ draw(QPainter *painter)
 {
   QBrush brush;
 
-  QColor fillColor = plot_->interpBarColor(is_, ns_);
+  if (plot_->isBarFill()) {
+    QColor fillColor = plot_->interpBarColor(is_, ns_);
 
-  fillColor.setAlphaF(plot_->barAlpha());
+    fillColor.setAlphaF(plot_->barAlpha());
 
-  brush.setColor(fillColor);
+    brush.setColor(fillColor);
 
-  brush.setStyle(CQChartsFillPattern::toStyle(
-   (CQChartsFillPattern::Type) plot_->barPattern()));
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) plot_->barPattern()));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
 
-  QPen pen(Qt::NoPen);
+  //---
+
+  QPen pen;
+
+  if (plot_->isBorder()) {
+    QColor bc = plot_->interpBorderColor(0, 1);
+
+    bc.setAlphaF(plot_->borderAlpha());
+
+    double bw = plot_->lengthPixelWidth(plot_->borderWidth()); // TODO: width, height or both
+
+    pen.setColor (bc);
+    pen.setWidthF(bw);
+
+    CQChartsUtil::penSetLineDash(pen, plot_->borderDash());
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

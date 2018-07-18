@@ -236,7 +236,7 @@ class CQChartsPlotParameterGroup {
   }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   int groupId() const { return groupId_; }
   void setGroupId(int i) { groupId_ = i; }

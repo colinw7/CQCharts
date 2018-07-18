@@ -61,10 +61,10 @@ class CQChartsBarChartValue {
   const ValueInds &valueInds() const { return valueInds_; }
 
   const QString &valueName() const { return valueName_; }
-  void setValueName(const QString &v) { valueName_ = v; }
+  void setValueName(const QString &s) { valueName_ = s; }
 
   const QString &groupName() const { return groupName_; }
-  void setGroupName(const QString &v) { groupName_ = v; }
+  void setGroupName(const QString &s) { groupName_ = s; }
 
   const NameValues &nameValues() const { return nameValues_; }
   void setNameValues(const NameValues &v) { nameValues_ = v; }
@@ -166,6 +166,10 @@ class CQChartsBarChartValueSet {
 class CQChartsBarChartObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString group READ groupStr)
+  Q_PROPERTY(QString name  READ nameStr )
+  Q_PROPERTY(QString value READ valueStr)
+
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                       int iset, int nset, int ival, int nval, int isval, int nsval,
@@ -174,6 +178,10 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
   QString calcId() const override;
 
   QString calcTipId() const override;
+
+  QString groupStr() const;
+  QString nameStr () const;
+  QString valueStr() const;
 
   void setColor(const CQChartsColor &color) { color_ = color; }
 

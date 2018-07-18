@@ -25,8 +25,9 @@ class CQChartsPointAnnotation;
 class CQChartsProbeBand;
 class CQChartsGradientPalette;
 class CQChartsDisplayRange;
-class CQChartsTextOptions;
 class CQPropertyViewModel;
+
+struct CQChartsTextOptions;
 
 class QPainter;
 class QToolButton;
@@ -159,7 +160,7 @@ class CQChartsView : public QFrame {
   void setId(const QString &s);
 
   const QString &title() const { return title_; }
-  void setTitle(const QString &v);
+  void setTitle(const QString &s);
 
   //---
 
@@ -254,7 +255,7 @@ class CQChartsView : public QFrame {
   void setPreview(bool b) { preview_ = b; updatePlots(); }
 
   const PosTextType &posTextType() const { return posTextType_; }
-  void setPosTextType(const PosTextType &v) { posTextType_ = v; }
+  void setPosTextType(const PosTextType &t) { posTextType_ = t; }
 
   //---
 

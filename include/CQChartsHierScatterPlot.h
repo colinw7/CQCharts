@@ -21,7 +21,7 @@ class CQChartsHierScatterPlotType : public CQChartsPlotType {
 
   void addParameters() override;
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -68,7 +68,7 @@ class CQChartsHierScatterPointGroup {
   void setI(int i) { i_ = i; }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   int numGroups() const { return groups_.size(); }
 
@@ -161,10 +161,10 @@ class CQChartsHierScatterPointObj : public CQChartsPlotObj {
                               const QPointF &p, int i, int n);
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &v) { ind_ = v; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
 
   CQChartsHierScatterPointGroup *group() const { return group_; }
   void setGroup(CQChartsHierScatterPointGroup *p) { group_ = p; }

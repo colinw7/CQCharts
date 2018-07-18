@@ -13,7 +13,7 @@ CQChartsDataLabel(CQChartsPlot *plot) :
 
 void
 CQChartsDataLabel::
-addProperties(const QString &path)
+addPathProperties(const QString &path)
 {
   plot_->addProperty(path, this, "visible" );
   plot_->addProperty(path, this, "position");

@@ -94,7 +94,7 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    QTableWidget*  modelTable { nullptr };
+    QTableWidget* modelTable { nullptr };
   };
 
   struct PlotsWidgets {

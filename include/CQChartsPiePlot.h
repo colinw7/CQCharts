@@ -39,6 +39,8 @@ class CQChartsPieTextObj : public CQChartsRotatedTextBoxObj {
  public:
   CQChartsPieTextObj(CQChartsPiePlot *plot);
 
+  CQChartsPiePlot *plot() const { return plot_; }
+
  private:
   CQChartsPiePlot* plot_ { nullptr };
 };
@@ -142,8 +144,10 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
  public:
   CQChartsPieGroupObj(CQChartsPiePlot *plot, const QString &name);
 
+  CQChartsPiePlot *plot() const { return plot_; }
+
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   double dataTotal() const { return dataTotal_; }
   void setDataTotal(double r) { dataTotal_ = r; }
@@ -378,8 +382,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   //---
 
   void handleResize() override;
-
-  //---
 
  private:
   void addRow(const QModelIndex &parent, int r);

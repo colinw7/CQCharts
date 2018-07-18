@@ -205,7 +205,7 @@ addProperties()
 
   addProperty("font", this, "fontSize", "font");
 
-  dataLabel_.addProperties("dataLabel");
+  dataLabel_.addPathProperties("dataLabel");
 }
 
 void

@@ -49,8 +49,6 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
       return nullptr;
     }
 
-    csv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
-
     return csv;
   }
   else if (type == CQChartsFileType::TSV) {
@@ -60,8 +58,6 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
       charts_->errorMsg("Failed to load '" + filename + "'");
       return nullptr;
     }
-
-    tsv->exprModel()->setExprType(CQExprModel::ExprType::TCL);
 
     return tsv;
   }

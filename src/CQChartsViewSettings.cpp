@@ -46,7 +46,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
   connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
 
-  //---
+  //--
 
   setObjectName("settings");
 
@@ -61,16 +61,16 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   tab_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  //------
+  //----
 
-  // Palettes Tab
-  QFrame *viewFrame = new QFrame;
-  viewFrame->setObjectName("viewFrame");
+  // Properties Tab
+  QFrame *propertiesFrame = new QFrame;
+  propertiesFrame->setObjectName("propertiesFrame");
 
-  tab_->addTab(viewFrame, "Properties");
+  tab_->addTab(propertiesFrame, "Properties");
 
-  QVBoxLayout *viewLayout = new QVBoxLayout(viewFrame);
-  viewLayout->setMargin(0); viewLayout->setSpacing(2);
+  QVBoxLayout *propertiesLayout = new QVBoxLayout(propertiesFrame);
+  propertiesLayout->setMargin(0); propertiesLayout->setSpacing(2);
 
   //--
 
@@ -86,16 +86,16 @@ CQChartsViewSettings(CQChartsWindow *window) :
   connect(propertiesWidgets_.filterEdit, SIGNAL(addSearch(const QString &)),
           this, SLOT(addSearchSlot(const QString &)));
 
-  viewLayout->addWidget(propertiesWidgets_.filterEdit);
+  propertiesLayout->addWidget(propertiesWidgets_.filterEdit);
 
   propertiesWidgets_.propertyTree = new CQPropertyViewTree(this, view->propertyModel());
 
   connect(propertiesWidgets_.propertyTree, SIGNAL(itemSelected(QObject *, const QString &)),
           this, SIGNAL(propertyItemSelected(QObject *, const QString &)));
 
-  viewLayout->addWidget(propertiesWidgets_.propertyTree);
+  propertiesLayout->addWidget(propertiesWidgets_.propertyTree);
 
-  //------
+  //----
 
   // Models Tab
   QFrame *modelsFrame = new QFrame;
@@ -129,7 +129,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   modelControlLayout->addWidget(loadModelButton);
   modelControlLayout->addStretch(1);
 
-  //--
+  //----
 
   // Plots Tab
   QFrame *plotsFrame = new QFrame;
@@ -311,7 +311,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   controlPlotsGroupLayout->addWidget(createPlotButton);
   controlPlotsGroupLayout->addStretch(1);
 
-  //------
+  //----
 
   // Theme Tab
   QFrame *themeFrame = new QFrame;
@@ -321,7 +321,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   QVBoxLayout *themeFrameLayout = new QVBoxLayout(themeFrame);
 
-  //---
+  //--
 
   QTabWidget *themeSubTab = new QTabWidget;
   themeSubTab->setObjectName("themeSubTab");
@@ -344,7 +344,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   themeSubTab->addTab(interfaceFrame, "Interface");
 
-  //---
+  //--
 
 #if 0
   QFrame *themeColorsFrame = new QFrame;
@@ -364,7 +364,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   paletteLayout->addWidget(themeColorsFrame);
 #endif
 
-  //---
+  //--
 
   QFrame *palettesControlFrame = new QFrame;
   palettesControlFrame->setObjectName("control");
@@ -412,7 +412,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   palettesFrameLayout->addWidget(palettesControlFrame);
 
-  //---
+  //--
 
   QSplitter *palettesSplitter = new QSplitter;
   palettesSplitter->setObjectName("splitter");
@@ -431,7 +431,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(themeWidgets_.palettesControl, SIGNAL(stateChanged()), view, SLOT(update()));
 
-  //---
+  //--
 
   QSplitter *interfaceSplitter = new QSplitter;
   interfaceSplitter->setObjectName("splitter");
@@ -450,7 +450,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(update()));
 
-  //---
+  //----
 
   updateModels();
 }

@@ -26,7 +26,7 @@ class CQChartsChordPlotType : public CQChartsPlotType {
   bool hasAxes() const override { return false; }
   bool hasKey () const override { return false; }
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -66,7 +66,7 @@ class CQChartsChordData {
   void setFrom(int i) { from_ = i; }
 
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   const Group &group() const { return group_; }
   void setGroup(const Group &group) { group_ = group; }
@@ -80,7 +80,7 @@ class CQChartsChordData {
   }
 
   const QModelIndex &ind() const { return ind_; }
-  void setInd(const QModelIndex &v) { ind_ = v; }
+  void setInd(const QModelIndex &i) { ind_ = i; }
 
   double total() const {
     if (totalValid_)

@@ -25,7 +25,7 @@ class CQChartsTreeMapPlotType : public CQChartsHierPlotType {
 
   bool hasAxes() const override { return false; }
 
-  QString description() const;
+  QString description() const override;
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
@@ -177,7 +177,7 @@ class CQChartsTreeMapHierNode : public CQChartsTreeMapNode {
 
   void packSubNodes(double x, double y, double w, double h, const Nodes &nodes);
 
-  void setPosition(double x, double y, double w, double h);
+  void setPosition(double x, double y, double w, double h) override;
 
   void addNode(CQChartsTreeMapNode *node);
 

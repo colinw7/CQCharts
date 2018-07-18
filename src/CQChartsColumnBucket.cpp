@@ -26,9 +26,9 @@ setColumnType(ColumnType columnType)
 
 void
 CQChartsColumnBucket::
-setDataType(const DataType &v)
+setDataType(const DataType &t)
 {
-  dataType_ = v;
+  dataType_ = t;
 }
 
 void
@@ -54,9 +54,9 @@ setExactValue(bool b)
 
 void
 CQChartsColumnBucket::
-setBucketer(const CQBucketer &v)
+setBucketer(const CQBucketer &b)
 {
-  bucketer_ = v;
+  bucketer_ = b;
 }
 
 void

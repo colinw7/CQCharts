@@ -19,12 +19,6 @@ class CQExprModel : public QAbstractProxyModel {
   Q_OBJECT
 
  public:
-  enum class ExprType {
-    NONE,
-    EXPR,
-    TCL
-  };
-
   enum class Function {
     EVAL,
     ADD,
@@ -48,11 +42,6 @@ class CQExprModel : public QAbstractProxyModel {
 
   int debug() const { return debug_; }
   void setDebug(int i) { debug_ = i; }
-
-  //---
-
-  const ExprType &exprType() const { return exprType_; }
-  void setExprType(const ExprType &t) { exprType_ = t; }
 
   //---
 
@@ -106,9 +95,9 @@ class CQExprModel : public QAbstractProxyModel {
 
   Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-  QModelIndex mapToSource(const QModelIndex &index) const;
+  QModelIndex mapToSource(const QModelIndex &index) const override;
 
-  QModelIndex mapFromSource(const QModelIndex &index) const;
+  QModelIndex mapFromSource(const QModelIndex &index) const override;
 
   //---
 
@@ -205,7 +194,6 @@ class CQExprModel : public QAbstractProxyModel {
   typedef std::map<int,ColumnData> ColumnDatas;
 
   QAbstractItemModel* model_      { nullptr };
-  ExprType            exprType_   { ExprType::NONE };
 #ifdef CQCharts_USE_TCL
   CQTcl*              qtcl_       { nullptr };
 #endif

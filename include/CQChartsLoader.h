@@ -6,11 +6,12 @@
 #include <vector>
 
 class CQCharts;
-class CQChartsInputData;
 class CQChartsCsvFilterModel;
 class CQChartsTsvFilterModel;
 class CQChartsJsonFilterModel;
 class CQChartsGnuDataFilterModel;
+
+struct CQChartsInputData;
 
 #if defined(CQCharts_USE_TCL)
 class CQTcl;

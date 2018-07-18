@@ -50,7 +50,7 @@ class CQChartsTheme : public QObject {
 
   // get/set theme name
   const QString &name() const { return name_; }
-  void setName(const QString &v) { name_ = v; }
+  void setName(const QString &s) { name_ = s; }
 
   // number of palettes
   int numPalettes() const { return palettes_.size(); }
@@ -67,7 +67,7 @@ class CQChartsTheme : public QObject {
 
   // get/set select color
   const QColor &selectColor() const { return selectColor_; }
-  void setSelectColor(const QColor &v) { selectColor_ = v; }
+  void setSelectColor(const QColor &c) { selectColor_ = c; }
 
  protected:
   // initialize with all named palettes
