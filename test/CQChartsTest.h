@@ -6,7 +6,6 @@
 #include <CQChartsInitData.h>
 #include <CQAppWindow.h>
 #include <CQChartsGeom.h>
-#include <CQExprModel.h>
 
 #include <QAbstractItemModel>
 #include <QPointer>

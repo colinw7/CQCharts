@@ -54,9 +54,7 @@ CQChartsEval::
 addFunc(const QString &name, CQTcl::ObjCmdProc proc)
 {
 #ifdef CQCharts_USE_TCL
-  QString mathName = "tcl::mathfunc::" + name;
-
-  qtcl_->createObjCommand(mathName, proc, (CQTcl::ObjCmdData) this);
+  qtcl_->createExprCommand(name, proc, (CQTcl::ObjCmdData) this);
 #endif
 }
 
@@ -73,7 +71,7 @@ colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
   for (int i = 1; i < objc; ++i) {
     Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
 
-    vars.push_back(CQTclUtil::variantFromObj(eval->qtcl()->interp(), obj));
+    vars.push_back(eval->qtcl()->variantFromObj(obj));
   }
 
   if      (vars.size() == 1) {

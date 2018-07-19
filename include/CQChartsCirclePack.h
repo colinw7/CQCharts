@@ -1,15 +1,15 @@
 #ifndef CQChartsCirclePack_H
 #define CQChartsCirclePack_H
 
+#include <CQChartsEnclosingCircle.h>
+#include <COSNaN.h>
+
 #include <set>
 #include <map>
 #include <vector>
 #include <cmath>
 #include <cassert>
 #include <sys/types.h>
-
-#include <CQChartsEnclosingCircle.h>
-#include <COSNaN.h>
 
 class CQChartsCircleNode {
   public:

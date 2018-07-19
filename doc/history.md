@@ -516,3 +516,5 @@
  + don't store value ref in CQChartsBarChartObj
  + add bar chart and distribution plot object properties 
  + update current plot in view setting when changed in view
+# 7/19/2018
+ + Merge CQChartsExprModel and CQExprModel classes

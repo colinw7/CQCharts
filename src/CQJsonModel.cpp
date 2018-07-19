@@ -344,9 +344,6 @@ bool
 CQJsonModel::
 setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
 {
-  if (orientation != Qt::Horizontal)
-    return false;
-
   return CQBaseModel::setHeaderData(section, orientation, value, role);
 }
 

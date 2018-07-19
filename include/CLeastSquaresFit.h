@@ -1,5 +1,5 @@
-#ifndef leastSquaresFit_H
-#define leastSquaresFit_H
+#ifndef CLeastSquaresFit_H
+#define CLeastSquaresFit_H
 
 namespace CLeastSquaresFit {
 

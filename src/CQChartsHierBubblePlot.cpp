@@ -324,7 +324,7 @@ addProperties()
 
   addLineProperties("stroke", "border");
 
-  addProperty("fill", this, "filled"     , "visible");
+  addProperty("fill", this, "filled", "visible");
 
   addFillProperties("fill", "fill");
 
@@ -1235,7 +1235,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->fillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->fillPattern()));
   }
@@ -1375,7 +1377,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->fillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->fillPattern()));
   }

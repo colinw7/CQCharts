@@ -2188,8 +2188,8 @@ draw(QPainter *painter)
     CQChartsUtil::penSetLineDash(pen, plot()->impulseDash());
   }
   else {
-    brush.setColor(strokeColor);
     brush.setStyle(Qt::SolidPattern);
+    brush.setColor(strokeColor);
 
     pen.setStyle(Qt::NoPen);
   }
@@ -2760,6 +2760,7 @@ draw(QPainter *painter)
 
   fillColor.setAlphaF(plot()->fillUnderAlpha());
 
+  brush.setStyle(Qt::SolidPattern);
   brush.setColor(fillColor);
 
   brush.setStyle(CQChartsFillPattern::toStyle(
@@ -2909,6 +2910,7 @@ fillBrush() const
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
+  brush.setStyle(Qt::SolidPattern);
   brush.setColor(c);
 
   return brush;

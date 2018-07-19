@@ -191,7 +191,7 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
       }
 
       State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-         QModelIndex ind = model->index(row, column_, parent);
+        QModelIndex ind = model->index(row, column_, parent);
 
         // if column can be integral, check if value is valid integer
         if (isInt_) {
@@ -2250,7 +2250,7 @@ namespace CQChartsUtil {
 void
 processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -2265,16 +2265,16 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 int
 processExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
     return -1;
   }
 
-  CQExprModel::Function function { CQExprModel::Function::EVAL };
-  int                   icolumn  { -1 };
-  QString               expr;
+  CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
+  int                         icolumn  { -1 };
+  QString                     expr;
 
   if (! exprModel->decodeExpressionFn(exprStr, function, icolumn, expr)) {
     errorMsg("Invalid expression '" + exprStr + "'");
@@ -2287,10 +2287,10 @@ processExpression(QAbstractItemModel *model, const QString &exprStr)
 }
 
 int
-processExpression(QAbstractItemModel *model, CQExprModel::Function function,
+processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
                   const CQChartsColumn &column, const QString &expr)
 {
-  CQExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -2298,7 +2298,7 @@ processExpression(QAbstractItemModel *model, CQExprModel::Function function,
   }
 
   // add column <expr>
-  if      (function == CQExprModel::Function::ADD) {
+  if      (function == CQChartsExprModel::Function::ADD) {
     int column1;
 
     if (! exprModel->addExtraColumn(expr, column1))
@@ -2307,7 +2307,7 @@ processExpression(QAbstractItemModel *model, CQExprModel::Function function,
     return column1;
   }
   // delete column <n>
-  else if (function == CQExprModel::Function::DELETE) {
+  else if (function == CQChartsExprModel::Function::DELETE) {
     int icolumn = column.column();
 
     if (icolumn < 0) {
@@ -2325,7 +2325,7 @@ processExpression(QAbstractItemModel *model, CQExprModel::Function function,
     return icolumn;
   }
   // modify column <n>:<expr>
-  else if (function == CQExprModel::Function::ASSIGN) {
+  else if (function == CQChartsExprModel::Function::ASSIGN) {
     int icolumn = column.column();
 
     if (icolumn < 0) {
@@ -2346,15 +2346,15 @@ processExpression(QAbstractItemModel *model, CQExprModel::Function function,
   }
 }
 
-CQExprModel *
+CQChartsExprModel *
 getExprModel(QAbstractItemModel *model) {
-  CQExprModel *exprModel = qobject_cast<CQExprModel *>(model);
+  CQChartsExprModel *exprModel = qobject_cast<CQChartsExprModel *>(model);
 
   if (! exprModel) {
     QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
 
     if (proxyModel)
-      exprModel = qobject_cast<CQExprModel *>(proxyModel->sourceModel());
+      exprModel = qobject_cast<CQChartsExprModel *>(proxyModel->sourceModel());
   }
 
   return exprModel;

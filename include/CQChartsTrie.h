@@ -153,16 +153,34 @@ class CQChartsTrie {
         for (const auto &node : nodes_) {
           String prefix1 = prefix;
 
-          QChar c = node.first;
+          QChar c     = node.first;
+          Node *child = node.second;
 
           String pattern = prefix1;
 
           if (! c.isNull()) {
             pattern += escapeChar(c);
-            pattern += "*";
+
+            Node *node1 = child;
+
+            while (node1 && node1->nodes_.size() == 1) {
+              auto p = *node1->nodes_.begin();
+
+              QChar c1 = p.first;
+
+              if (c1.isNull())
+                break;
+
+              pattern += escapeChar(c1);
+
+              node1 = p.second;
+            }
+
+            if (node1 && node1->nodes_.size() > 1)
+              pattern += "*";
           }
 
-          patterns.addPattern(node.second, pattern);
+          patterns.addPattern(child, pattern);
         }
       }
       else {

@@ -284,6 +284,10 @@ class CQTcl : public CTcl {
       return res.toString();
   }
 
+  QVariant variantFromObj(Tcl_Obj *obj) {
+    return CQTclUtil::variantFromObj(interp(), obj);
+  }
+
   void setResult(const QVariant &rc) {
     CQTclUtil::setResult(interp(), rc);
   }

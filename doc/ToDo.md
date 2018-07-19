@@ -251,6 +251,7 @@ Box Plot
 Distribution Plot
  + Push/Pop save restore ranges
  + Draw data label inside bar if fits
+ + Cross select slow with large number of values (allow disable ?)
 
 Hier Bubble Plot
  + Pop to top
@@ -276,6 +277,7 @@ Radar Plot
 
 Scatter
  + Use FillObj for circles
+ + support best fit per group
 
 Sunburst
  + Flat coloring

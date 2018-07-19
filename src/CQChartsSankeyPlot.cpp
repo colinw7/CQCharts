@@ -1338,7 +1338,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->nodeFillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->nodeFillPattern()));
   }
@@ -1488,7 +1490,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->edgeFillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->edgeFillPattern()));
   }

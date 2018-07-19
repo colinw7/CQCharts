@@ -136,7 +136,6 @@ CQTsvModel.cpp \
 CQJsonModel.cpp \
 CQGnuDataModel.cpp \
 CQSortModel.cpp \
-CQExprModel.cpp \
 CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
@@ -275,7 +274,6 @@ HEADERS += \
 ../include/CQJsonModel.h \
 ../include/CQGnuDataModel.h \
 ../include/CQSortModel.h \
-../include/CQExprModel.h \
 ../include/CQFoldedModel.h \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \

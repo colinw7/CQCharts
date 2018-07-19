@@ -1039,7 +1039,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->fillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->fillPattern()));
   }

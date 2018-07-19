@@ -263,13 +263,13 @@ exprSlot()
     return;
   }
 
-  CQExprModel::Function function { CQExprModel::Function::EVAL };
+  CQChartsExprModel::Function function { CQChartsExprModel::Function::EVAL };
 
   switch (mode_) {
-    case Mode::ADD   : function = CQExprModel::Function::ADD   ; break;
-    case Mode::REMOVE: function = CQExprModel::Function::DELETE; break;
-    case Mode::MODIFY: function = CQExprModel::Function::ASSIGN; break;
-    default:                                                     break;
+    case Mode::ADD   : function = CQChartsExprModel::Function::ADD   ; break;
+    case Mode::REMOVE: function = CQChartsExprModel::Function::DELETE; break;
+    case Mode::MODIFY: function = CQChartsExprModel::Function::ASSIGN; break;
+    default:                                                           break;
   }
 
   ModelP model = modelData->model();
@@ -289,7 +289,8 @@ exprSlot()
 
   int column1 = CQChartsUtil::processExpression(model.data(), function, column, expr);
 
-  if (function == CQExprModel::Function::ADD || function == CQExprModel::Function::ASSIGN) {
+  if (function == CQChartsExprModel::Function::ADD ||
+      function == CQChartsExprModel::Function::ASSIGN) {
     QString nameStr = exprNameEdit_->text();
     QString typeStr = exprTypeEdit_->text();
 

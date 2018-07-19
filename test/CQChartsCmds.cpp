@@ -460,7 +460,7 @@ processModelCmd(const Vars &vars)
 
   ModelP model = modelData->model();
 
-  CQExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
+  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
 
   if (! exprModel) {
     charts_->errorMsg("Expression not supported for model");
@@ -528,7 +528,7 @@ processModelCmd(const Vars &vars)
   else if (argv.getParseBool("calc")) {
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    CQExprModel::Values values;
+    CQChartsExprModel::Values values;
 
     exprModel->calcColumn(column.column(), expr, values);
 
@@ -542,7 +542,7 @@ processModelCmd(const Vars &vars)
   else if (argv.getParseBool("query")) {
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
-    CQExprModel::Rows rows;
+    CQChartsExprModel::Rows rows;
 
     exprModel->queryColumn(column.column(), expr, rows);
 
@@ -556,7 +556,7 @@ processModelCmd(const Vars &vars)
     setCmdRc(vars);
   }
   else {
-    //CQExprModel::Function function = CQExprModel::Function::EVAL;
+    //CQChartsExprModel::Function function = CQChartsExprModel::Function::EVAL;
 
     //if (expr.simplified().length())
     //  processExpression(model.data(), expr);

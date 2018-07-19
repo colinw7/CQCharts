@@ -7,9 +7,9 @@
 #include <CQChartsPath.h>
 #include <CQChartsStyle.h>
 #include <CQChartsColor.h>
-#include <CQBaseModel.h>
-#include <CQExprModel.h>
+#include <CQChartsExprModel.h>
 #include <CQChartsEval.h>
+#include <CQBaseModel.h>
 #include <COSNaN.h>
 
 #include <QAbstractItemModel>
@@ -669,10 +669,11 @@ void processAddExpression(QAbstractItemModel *model, const QString &exprStr);
 
 int processExpression(QAbstractItemModel *model, const QString &exprStr);
 
-int processExpression(QAbstractItemModel *model, CQExprModel::Function function,
+int processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
                       const CQChartsColumn &column, const QString &expr);
 
-CQExprModel *getExprModel(QAbstractItemModel *model);
+CQChartsExprModel *getExprModel(QAbstractItemModel *model);
+
 CQDataModel *getDataModel(QAbstractItemModel *model);
 
 }

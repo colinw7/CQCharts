@@ -1106,7 +1106,9 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
     fillColor.setAlphaF(fillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) fillPattern()));
   }

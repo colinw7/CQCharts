@@ -1810,7 +1810,9 @@ draw(QPainter *painter)
 
     boxColor.setAlphaF(plot_->boxAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(boxColor);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->boxPattern()));
   }
@@ -2168,7 +2170,9 @@ draw(QPainter *painter)
 
     boxColor.setAlphaF(plot_->boxAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(boxColor);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->boxPattern()));
   }
@@ -2492,7 +2496,9 @@ draw(QPainter *painter)
     if (plot_->isBoxFilled()) {
       fillColor.setAlphaF(plot_->boxAlpha());
 
+      pbrush.setStyle(Qt::SolidPattern);
       pbrush.setColor(fillColor);
+
       pbrush.setStyle(CQChartsFillPattern::toStyle(
        (CQChartsFillPattern::Type) plot_->boxPattern()));
     }
@@ -2696,6 +2702,7 @@ calcTipId() const
 
   tableTip.addTableRow("Set"  , setId_);
   tableTip.addTableRow("Group", groupInd_);
+  tableTip.addTableRow("Ind"  , iv_);
 
   return tableTip.str();
 }
@@ -2749,13 +2756,14 @@ draw(QPainter *painter)
   if (filled) {
     QColor c;
 
-    if (ng_ > 0)
-      c = plot_->interpBackgroundColor(ig_, ng_);
+    if (ng_ > 1)
+      c = plot_->interpBoxColor(ig_, ng_);
     else
-      c = plot_->interpBackgroundColor(is_, ns_);
+      c = plot_->interpBoxColor(is_, ns_);
 
     c.setAlphaF(1.0);
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
 
     //brush.setStyle(CQChartsFillPattern::toStyle(

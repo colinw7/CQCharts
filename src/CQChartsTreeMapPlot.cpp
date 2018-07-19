@@ -1456,8 +1456,8 @@ draw(QPainter *painter)
 
     c1.setAlphaF(plot_->headerFillAlpha());
 
-    brush.setColor(c1);
     brush.setStyle(Qt::SolidPattern);
+    brush.setColor(c1);
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -1648,7 +1648,9 @@ draw(QPainter *painter)
 
     c.setAlphaF(plot_->fillAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
+
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) plot_->fillPattern()));
   }

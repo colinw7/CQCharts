@@ -2463,14 +2463,12 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
   else if (title() && title()->isSelected()) {
     if (title()->editMotion(w)) {
       invalidateLayer(CQChartsLayer::Type::TITLE);
-      invalidateLayer(CQChartsLayer::Type::TITLE);
     }
   }
   else {
     for (const auto &annotation : annotations()) {
       if (annotation->isSelected()) {
         if (annotation->editMotion(w)) {
-          invalidateLayer(CQChartsLayer::Type::ANNOTATION);
           invalidateLayer(CQChartsLayer::Type::ANNOTATION);
         }
       }
@@ -6285,7 +6283,7 @@ CQChartsPlot::
 limitFontSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return std::min(std::max(s, 1.0), 1000.0); 
+  return std::min(std::max(s, 1.0), 1000.0);
 }
 
 //------

@@ -1560,6 +1560,7 @@ draw(QPainter *painter)
 
     fillColor.setAlphaF(plot_->barAlpha());
 
+    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
