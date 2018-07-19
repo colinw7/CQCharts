@@ -161,7 +161,6 @@
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
 #define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
 #define __SIZEOF_PTRDIFF_T__ 8
-#define CQ_CHARTS_TCL 1
 #define __x86_64__ 1
 #define __DEC32_SUBNORMAL_MIN__ 0.000001E-95DF
 #define __INT_FAST16_MAX__ 0x7fffffffffffffffL
@@ -189,7 +188,6 @@
 #define __INT_FAST8_MAX__ 0x7f
 #define __INTPTR_MAX__ 0x7fffffffffffffffL
 #define linux 1
-#define CQCharts_USE_CEXPR 1
 #define __cpp_range_based_for 200907
 #define __SSE2__ 1
 #define __EXCEPTIONS 1

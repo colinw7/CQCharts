@@ -850,9 +850,9 @@ initObjs()
       CQChartsBarChartObj *barObj = nullptr;
 
       if (ns > 1)
-        barObj = new CQChartsBarChartObj(this, brect, ivs, nvs, iv, nv, 0, 1, &ivalue, minInd.ind);
+        barObj = new CQChartsBarChartObj(this, brect, ivs, nvs, iv, nv, 0, 1, minInd.ind);
       else
-        barObj = new CQChartsBarChartObj(this, brect, 0, 1, iv, nv, ivs, nvs, &ivalue, minInd.ind);
+        barObj = new CQChartsBarChartObj(this, brect, 0, 1, iv, nv, ivs, nvs, minInd.ind);
 
       if (color.isValid())
         barObj->setColor(color);
@@ -1145,9 +1145,9 @@ getPanY(bool is_shift) const
 CQChartsBarChartObj::
 CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                     int iset, int nset, int ival, int nval, int isval, int nsval,
-                    const CQChartsBarChartValue *value, const QModelIndex &ind) :
+                    const QModelIndex &ind) :
  CQChartsPlotObj(plot, rect), plot_(plot), iset_(iset), nset_(nset), ival_(ival), nval_(nval),
- isval_(isval), nsval_(nsval), value_(value), ind_(ind)
+ isval_(isval), nsval_(nsval), ind_(ind)
 {
   assert(iset  >= 0 && iset  < nset);
   assert(ival  >= 0 && ival  < nval);
@@ -1179,7 +1179,9 @@ calcTipId() const
 
   tableTip.addTableRow("Value", valueStr);
 
-  for (const auto &nameValue : value_->nameValues()) {
+  const CQChartsBarChartValue *value = this->value();
+
+  for (const auto &nameValue : value->nameValues()) {
     const QString &name  = nameValue.first;
     const QString &value = nameValue.second;
 
@@ -1194,14 +1196,18 @@ QString
 CQChartsBarChartObj::
 groupStr() const
 {
-  return value_->groupName();
+  const CQChartsBarChartValue *value = this->value();
+
+  return value->groupName();
 }
 
 QString
 CQChartsBarChartObj::
 nameStr() const
 {
-  return value_->valueName();
+  const CQChartsBarChartValue *value = this->value();
+
+  return value->valueName();
 }
 
 QString
@@ -1210,9 +1216,11 @@ valueStr() const
 {
   QString valueStr;
 
+  const CQChartsBarChartValue *value = this->value();
+
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
-  value_->calcRange(minInd, maxInd);
+  value->calcRange(minInd, maxInd);
 
   if (! plot_->isRangeBar()) {
     valueStr = plot_->valueStr(minInd.value);
@@ -1240,10 +1248,12 @@ dataLabelRect() const
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
-  QString label = value_->getNameValue("Label");
+  const CQChartsBarChartValue *value = this->value();
+
+  QString label = value->getNameValue("Label");
 
   if (! plot_->labelColumn().isValid()) {
-    const CQChartsBarChartValue::ValueInds &valueInds = value_->valueInds();
+    const CQChartsBarChartValue::ValueInds &valueInds = value->valueInds();
     assert(! valueInds.empty());
 
     double value = valueInds[0].value;
@@ -1447,12 +1457,14 @@ drawFg(QPainter *painter)
 
   //---
 
-  QString minLabel = value_->getNameValue("Label");
+  const CQChartsBarChartValue *value = this->value();
+
+  QString minLabel = value->getNameValue("Label");
   QString maxLabel = minLabel;
 
   CQChartsBarChartValue::ValueInd minInd, maxInd;
 
-  value_->calcRange(minInd, maxInd);
+  value->calcRange(minInd, maxInd);
 
   if (! plot_->labelColumn().isValid()) {
     minLabel = plot_->valueStr(minInd.value);
@@ -1482,6 +1494,26 @@ drawFg(QPainter *painter)
       plot_->dataLabel().draw(painter, qrect, minLabel, minPos);
       plot_->dataLabel().draw(painter, qrect, maxLabel, maxPos);
     }
+  }
+}
+
+const CQChartsBarChartValue *
+CQChartsBarChartObj::
+value() const
+{
+  if (nset_ > 1) {
+    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ival_);
+
+    const CQChartsBarChartValue &ivalue = valueSet.value(iset_);
+
+    return &ivalue;
+  }
+  else {
+    const CQChartsBarChartValueSet &valueSet = plot_->valueSet(ival_);
+
+    const CQChartsBarChartValue &ivalue = valueSet.value(isval_);
+
+    return &ivalue;
   }
 }
 

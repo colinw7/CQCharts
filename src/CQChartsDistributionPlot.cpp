@@ -1105,18 +1105,8 @@ QString
 CQChartsDistributionBarObj::
 calcTipId() const
 {
-  QString groupName;
-
-  if (ns_ > 1)
-    groupName = plot_->groupIndName(groupInd_);
-
-  QString bucketStr;
-
-  if (! plot_->isBucketed())
-    bucketStr = plot_->groupIndName(groupInd_);
-  else
-    bucketStr =
-      plot_->bucketValuesStr(groupInd_, bucket_, CQChartsDistributionPlot::BucketValueType::ALL);
+  QString groupName = this->groupName();
+  QString bucketStr = this->bucketStr();
 
   CQChartsTableTip tableTip;
 
@@ -1126,13 +1116,61 @@ calcTipId() const
   tableTip.addTableRow("Bucket", bucketStr);
 
   if (plot_->isRangeBar()) {
-    tableTip.addTableRow("Min", n1_);
-    tableTip.addTableRow("Max", n2_);
+    tableTip.addTableRow("Min", minValue());
+    tableTip.addTableRow("Max", maxValue());
   }
   else
-    tableTip.addTableRow("Count", n2_);
+    tableTip.addTableRow("Count", count());
 
   return tableTip.str();
+}
+
+QString
+CQChartsDistributionBarObj::
+groupName() const
+{
+  QString groupName;
+
+  if (ns_ > 1)
+    groupName = plot_->groupIndName(groupInd_);
+
+  return groupName;
+}
+
+QString
+CQChartsDistributionBarObj::
+bucketStr() const
+{
+  QString bucketStr;
+
+  if (! plot_->isBucketed())
+    bucketStr = plot_->groupIndName(groupInd_);
+  else
+    bucketStr =
+      plot_->bucketValuesStr(groupInd_, bucket_, CQChartsDistributionPlot::BucketValueType::ALL);
+
+  return bucketStr;
+}
+
+int
+CQChartsDistributionBarObj::
+count() const
+{
+  return n2_;
+}
+
+int
+CQChartsDistributionBarObj::
+minValue() const
+{
+  return n1_;
+}
+
+int
+CQChartsDistributionBarObj::
+maxValue() const
+{
+  return n2_;
 }
 
 CQChartsGeom::BBox
@@ -1149,9 +1187,9 @@ dataLabelRect() const
   QString ystr;
 
   if (plot_->isRangeBar())
-    ystr = QString("%1-%2").arg(n1_).arg(n2_);
+    ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
   else
-    ystr = QString("%1").arg(n2_);
+    ystr = QString("%1").arg(count());
 
   return plot_->dataLabel().calcRect(qrect, ystr);
 }
@@ -1251,9 +1289,9 @@ drawFg(QPainter *painter)
   QString ystr;
 
   if (plot_->isRangeBar())
-    ystr = QString("%1-%2").arg(n1_).arg(n2_);
+    ystr = QString("%1-%2").arg(minValue()).arg(maxValue());
   else
-    ystr = QString("%1").arg(n2_);
+    ystr = QString("%1").arg(count());
 
   plot_->dataLabel().draw(painter, qrect, ystr);
 }
@@ -1466,12 +1504,27 @@ calcTipId() const
 {
   CQChartsTableTip tableTip;
 
-  QString groupName = plot_->groupIndName(groupInd_);
+  QString groupName = this->groupName();
+  int     ns        = this->numSamples();
 
   tableTip.addTableRow("Name"   , groupName);
-  tableTip.addTableRow("Samples", points_.size());
+  tableTip.addTableRow("Samples", ns);
 
   return tableTip.str();
+}
+
+QString
+CQChartsDistributionDensityObj::
+groupName() const
+{
+  return plot_->groupIndName(groupInd_);
+}
+
+int
+CQChartsDistributionDensityObj::
+numSamples() const
+{
+  return points_.size();
 }
 
 bool

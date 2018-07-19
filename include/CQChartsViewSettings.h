@@ -40,6 +40,8 @@ class CQChartsViewSettings : public QFrame {
   void updateModels();
   void updatePlots ();
 
+  void updateCurrentPlot();
+
   void paletteIndexSlot(int ind);
 
   void loadPaletteNameSlot();

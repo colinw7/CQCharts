@@ -511,3 +511,8 @@
  + add mean line to density
  + buffer plots to actual pixel size
  + reduce redraws on drag
+# 7/18/2018
+ + add optional normalized and jitter points to box plot
+ + don't store value ref in CQChartsBarChartObj
+ + add bar chart and distribution plot object properties 
+ + update current plot in view setting when changed in view

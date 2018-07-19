@@ -41,6 +41,12 @@ class CQChartsBoxObj;
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString groupName READ groupName)
+  Q_PROPERTY(QString bucketStr READ bucketStr)
+  Q_PROPERTY(int     count     READ count    )
+  Q_PROPERTY(int     minValue  READ minValue )
+  Q_PROPERTY(int     maxValue  READ maxValue )
+
  public:
   using ColorCount = std::map<int,int>;
   using ColorSet   = std::map<CQChartsColor,int>;
@@ -60,19 +66,40 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 
   int bucket() const { return bucket_; }
 
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
 
+  //---
+
+  QString groupName() const;
+
+  QString bucketStr() const;
+
+  int count() const;
+
+  int minValue() const;
+  int maxValue() const;
+
+  //---
+
   CQChartsGeom::BBox dataLabelRect() const;
+
+  //---
 
   void getSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
+  //---
+
   void draw(QPainter *painter) override;
 
   void drawFg(QPainter *painter) override;
+
+  //---
 
   CQChartsGeom::BBox calcRect() const;
 
@@ -102,6 +129,9 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
 class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString groupName  READ groupName )
+  Q_PROPERTY(int     numSamples READ numSamples)
+
  public:
   using Points = std::vector<QPointF>;
 
@@ -111,17 +141,33 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
   int groupInd() const { return groupInd_; }
 
+  //---
+
   QString calcId() const override;
 
   QString calcTipId() const override;
 
+  //---
+
+  QString groupName() const;
+
+  int numSamples() const;
+
+  //---
+
   bool inside(const CQChartsGeom::Point &p) const override;
+
+  //---
 
   void getSelectIndices(Indices &inds) const override;
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
+  //---
+
   void draw(QPainter *painter) override;
+
+  //---
 
   CQChartsGeom::BBox calcRect() const;
 

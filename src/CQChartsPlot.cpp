@@ -1088,7 +1088,8 @@ void
 CQChartsPlot::
 addProperties()
 {
-  addProperty("", this, "viewId");
+  addProperty("", this, "viewId" );
+  addProperty("", this, "typeStr");
   addProperty("", this, "visible");
 
   addProperty("columns", this, "idColumn", "id");
@@ -4293,99 +4294,6 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
   options1.maxScaleFontSize = maxScaleFontSize();
 
   CQChartsView::drawTextInBox(painter, rect, text, pen, options1);
-#if 0
-  painter->save();
-
-  if (CQChartsUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
-
-    if (options.clipped)
-      painter->setClipRect(rect);
-
-    if (! options.contrast)
-      painter->setPen(pen);
-
-    //---
-
-    QStringList strs;
-
-    if (options.formatted)
-      CQChartsUtil::formatStringInRect(text, painter->font(), rect, strs);
-    else
-      strs << text;
-
-    //---
-
-    double tw = 0;
-
-    for (int i = 0; i < strs.size(); ++i)
-      tw = std::max(tw, fm.width(strs[i]));
-
-    double th = strs.size()*fm.height();
-
-    if (options.scaled) {
-      double sx = (tw > 0 ? rect.width ()/tw : 1);
-      double sy = (th > 0 ? rect.height()/th : 1);
-
-      double s = std::min(sx, sy);
-
-      double fs = painter->font().pointSizeF()*s;
-
-      fs = std::min(std::max(fs, minScaleFontSize()), maxScaleFontSize());
-
-      QFont font1 = painter->font();
-
-      font1.setPointSizeF(fs);
-
-      painter->setFont(font1);
-
-      fm = QFontMetricsF(painter->font());
-
-      th = strs.size()*fm.height();
-    }
-
-    //---
-
-    double dy = 0.0;
-
-    if      (options.align & Qt::AlignVCenter)
-      dy = (rect.height() - th)/2.0;
-    else if (options.align & Qt::AlignBottom)
-      dy = rect.height() - th;
-
-    double y = rect.top() + dy + fm.ascent();
-
-    for (int i = 0; i < strs.size(); ++i) {
-      double dx = 0.0;
-
-      double tw = fm.width(strs[i]);
-
-      if      (options.align & Qt::AlignHCenter)
-         dx = (rect.width() - tw)/2;
-      else if (options.align & Qt::AlignRight)
-         dx = rect.width() - tw;
-
-      double x = rect.left() + dx;
-
-      if (options.contrast)
-        drawContrastText(painter, x, y, strs[i], pen);
-      else
-        painter->drawText(x, y, strs[i]);
-
-      y += fm.height();
-    }
-  }
-  else {
-    painter->setPen(pen);
-
-    // TODO: support align and contrast
-    CQChartsRotatedText::drawRotatedText(painter, rect.center().x(), rect.center().y(),
-                                         text, options.angle, Qt::AlignHCenter | Qt::AlignVCenter,
-                                         /*alignBox*/false);
-  }
-
-  painter->restore();
-#endif
 }
 
 void
@@ -4394,19 +4302,6 @@ drawContrastText(QPainter *painter, double x, double y, const QString &text,
                  const QPen &pen) const
 {
   CQChartsView::drawContrastText(painter, x, y, text, pen);
-#if 0
-  QColor icolor = CQChartsUtil::invColor(pen.color());
-
-  icolor.setAlphaF(0.5);
-
-  painter->setPen(icolor);
-
-  painter->drawText(QPointF(x + 1, y + 1), text);
-
-  painter->setPen(pen);
-
-  painter->drawText(QPointF(x, y), text);
-#endif
 }
 
 //------

@@ -173,7 +173,7 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
  public:
   CQChartsBarChartObj(CQChartsBarChartPlot *plot, const CQChartsGeom::BBox &rect,
                       int iset, int nset, int ival, int nval, int isval, int nsval,
-                      const CQChartsBarChartValue *value, const QModelIndex &ind);
+                      const QModelIndex &ind);
 
   QString calcId() const override;
 
@@ -195,17 +195,18 @@ class CQChartsBarChartObj : public CQChartsPlotObj {
 
   void drawFg(QPainter *painter) override;
 
+  const CQChartsBarChartValue *value() const;
+
  private:
-  CQChartsBarChartPlot*        plot_  { nullptr }; // parent plot
-  int                          iset_  { -1 };      // set number
-  int                          nset_  { -1 };      // number of sets
-  int                          ival_  { -1 };      // value number
-  int                          nval_  { -1 };      // number of values
-  int                          isval_ { -1 };      // sub set number
-  int                          nsval_ { -1 };      // number of sub sets
-  const CQChartsBarChartValue* value_ { nullptr }; // value data
-  QModelIndex                  ind_;               // model index
-  CQChartsColor                color_;             // custom color
+  CQChartsBarChartPlot* plot_  { nullptr }; // parent plot
+  int                   iset_  { -1 };      // set number
+  int                   nset_  { -1 };      // number of sets
+  int                   ival_  { -1 };      // value number
+  int                   nval_  { -1 };      // number of values
+  int                   isval_ { -1 };      // sub set number
+  int                   nsval_ { -1 };      // number of sub sets
+  QModelIndex           ind_;               // model index
+  CQChartsColor         color_;             // custom color
 };
 
 //---

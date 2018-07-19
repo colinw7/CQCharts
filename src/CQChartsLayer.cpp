@@ -66,7 +66,7 @@ updateSize()
 {
   QSizeF fsize = rect_.size();
 
-  QSize size(CQChartsUtil::RoundUp(fsize.width()), CQChartsUtil::RoundUp(fsize.width()));
+  QSize size(CQChartsUtil::RoundUp(fsize.width()), CQChartsUtil::RoundUp(fsize.height()));
 
   if (! image_ || size_ != size) {
     delete image_;

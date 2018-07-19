@@ -1572,7 +1572,7 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  prect_ = CQChartsGeom::BBox(0, 0, width(), height());
+  prect_ = CQChartsGeom::BBox(0, 0, width() - 1, height() - 1);
 
   if (prect().getHeight() > 0)
     aspect_ = (1.0*prect().getWidth())/prect().getHeight();

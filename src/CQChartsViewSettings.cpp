@@ -43,6 +43,8 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(view, SIGNAL(connectDataChanged()), this, SLOT(updatePlots()));
 
+  connect(view, SIGNAL(currentPlotChanged()), this, SLOT(updateCurrentPlot()));
+
   connect(window, SIGNAL(themePalettesChanged()), this, SLOT(updatePalettes()));
   connect(window, SIGNAL(interfacePaletteChanged()), this, SLOT(updateInterface()));
 
@@ -515,6 +517,10 @@ updatePlots()
 
     plotsWidgets_.plotTable->setItem(i, 0, idItem);
 
+    int ind = view->plotInd(plot);
+
+    idItem->setData(Qt::UserRole, ind);
+
     QStringList states;
 
     if (plot->isOverlay()) states += "overlay";
@@ -524,6 +530,27 @@ updatePlots()
     QTableWidgetItem *stateItem = new QTableWidgetItem(states.join("|"));
 
     plotsWidgets_.plotTable->setItem(i, 1, stateItem);
+  }
+}
+
+void
+CQChartsViewSettings::
+updateCurrentPlot()
+{
+  CQChartsView *view = window_->view();
+
+  int ind = view->currentPlotInd();
+
+  int nr = plotsWidgets_.plotTable->rowCount();
+
+  for (int i = 0; i < nr; ++i) {
+    QTableWidgetItem *item = plotsWidgets_.plotTable->item(i, 0);
+
+    bool ok;
+
+    int ind1 = item->data(Qt::UserRole).toInt(&ok);
+
+    item->setSelected(ind1 == ind);
   }
 }
 
