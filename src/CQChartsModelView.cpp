@@ -71,14 +71,14 @@ setModel(ModelP model, bool hierarchical)
   hierarchical_ = hierarchical;
 
   if (! hierarchical_) {
-    table_->setModel(model);
-    tree_ ->setModel(CQChartsTree::ModelP());
+    table_->setModelP(model);
+    tree_ ->setModelP(CQChartsTree::ModelP());
 
     stack_->setCurrentIndex(0);
   }
   else {
-    tree_ ->setModel(model);
-    table_->setModel(CQChartsTable::ModelP());
+    tree_ ->setModelP(model);
+    table_->setModelP(CQChartsTable::ModelP());
 
     stack_->setCurrentIndex(1);
   }

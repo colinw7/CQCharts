@@ -54,7 +54,7 @@ class CQChartsTableDelegate : public QItemDelegate {
 
   void paint(QPainter *painter, const QStyleOptionViewItem &option,
              const QModelIndex &index) const {
-    QAbstractItemModel *model = table_->model().data();
+    QAbstractItemModel *model = table_->modelP().data();
 
     CQChartsTableDelegate *th = const_cast<CQChartsTableDelegate *>(this);
 
@@ -73,7 +73,7 @@ class CQChartsTableDelegate : public QItemDelegate {
     CQBaseModel::Type columnType = (*p).second;
 
     if (columnType == CQBaseModel::Type::COLOR) {
-      QVariant var = table_->model()->data(index);
+      QVariant var = table_->modelP()->data(index);
 
       if (var.isValid())
         drawColor(painter, option, var.value<QColor>(), index);
@@ -81,7 +81,7 @@ class CQChartsTableDelegate : public QItemDelegate {
         QItemDelegate::paint(painter, option, index);
     }
     else {
-      QVariant var = table_->model()->data(index);
+      QVariant var = table_->modelP()->data(index);
 
       if (var.type() == QVariant::List) {
         QString str;
@@ -240,7 +240,7 @@ addMenuActions(QMenu *menu)
 
 void
 CQChartsTable::
-setModel(const ModelP &model)
+setModelP(const ModelP &model)
 {
   if (sm_)
     disconnect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -539,9 +539,9 @@ exportSlot(QAction *action)
   QString type = action->text();
 
   if      (type == "CSV")
-    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::CSV);
+    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::CSV);
   else if (type == "TSV")
-    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::TSV);
+    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::TSV);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

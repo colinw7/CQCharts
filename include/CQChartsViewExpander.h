@@ -67,7 +67,7 @@ class CQChartsViewExpander : public QFrame {
   void mouseMoveEvent   (QMouseEvent *) override;
   void mouseReleaseEvent(QMouseEvent *) override;
 
-  void resizeEvent(QResizeEvent *);
+  void resizeEvent(QResizeEvent *) override;
 
   void paintEvent(QPaintEvent *) override;
 

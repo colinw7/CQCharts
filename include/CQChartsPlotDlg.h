@@ -209,9 +209,6 @@ class CQChartsPlotDlg : public QDialog {
   ModelP             model_;                              // model
   CQChartsModelData* modelData_              { nullptr }; // model data
   SelectionModelP    selectionModel_;                     // selection model
-  CQSummaryModel*    summaryModel_           { nullptr }; // summary model
-  ModelP             summaryModelP_;                      // summary model (shared pointer)
-  CQChartsModelData* summaryModelData_       { nullptr }; // summary model data
   QComboBox*         combo_                  { nullptr }; // type combo
   QStackedWidget*    stack_                  { nullptr }; // widget stack
   QTextEdit*         descText_               { nullptr }; // type description

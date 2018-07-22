@@ -18,8 +18,8 @@ class CQChartsTree : public CQTreeView {
  public:
   CQChartsTree(CQCharts *charts, QWidget *parent=nullptr);
 
-  ModelP model() const {return model_; }
-  void setModel(const ModelP &model);
+  ModelP modelP() const { return model_; }
+  void setModelP(const ModelP &model);
 
   void setFilter(const QString &filter);
 

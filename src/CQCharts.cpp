@@ -162,6 +162,8 @@ CQCharts::
 setCurrentModelInd(int ind)
 {
   currentModelInd_ = ind;
+
+  emit currentModelChanged(currentModelInd_);
 }
 
 CQChartsModelData *

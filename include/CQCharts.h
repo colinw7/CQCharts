@@ -91,6 +91,8 @@ class CQCharts : public QObject {
  signals:
   void modelDataAdded(int);
 
+  void currentModelChanged(int);
+
   void modelNameChanged(const QString &);
 
   void modelTypeChanged(int);

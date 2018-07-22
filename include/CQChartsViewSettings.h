@@ -15,6 +15,7 @@ class CQIntegerSpin;
 
 class QTabWidget;
 class QTableWidget;
+class QTextBrowser;
 class QComboBox;
 class QSpinBox;
 class QPushButton;
@@ -38,10 +39,12 @@ class CQChartsViewSettings : public QFrame {
 
  private slots:
   void updateModels();
-  void updatePlots ();
-  void updateLayers();
+  void updateModelDetails();
 
+  void updatePlots();
   void updateCurrentPlot();
+
+  void updateLayers();
 
   void paletteIndexSlot(int ind);
 
@@ -100,7 +103,8 @@ class CQChartsViewSettings : public QFrame {
   };
 
   struct ModelsWidgets {
-    QTableWidget* modelTable { nullptr };
+    QTableWidget* modelTable       { nullptr };
+    QTextBrowser* modelDetailsText { nullptr };
   };
 
   struct PlotsWidgets {

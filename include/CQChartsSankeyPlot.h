@@ -101,6 +101,8 @@ class CQChartsSankeyPlotEdge {
 
  ~CQChartsSankeyPlotEdge();
 
+  CQChartsSankeyPlot *plot() const { return plot_; }
+
   double value() const { return value_; }
 
   CQChartsSankeyPlotNode *srcNode () const { return srcNode_ ; }

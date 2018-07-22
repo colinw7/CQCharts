@@ -1012,10 +1012,8 @@ void
 CQChartsDistributionPlot::
 getInds(int groupInd, int bucket, VariantInds &inds) const
 {
-  auto pg = groupValues_.find(groupInd);
-  if (pg == groupValues_.end()) return;
-
-  const Values *values = (*pg).second;
+  const Values *values = getValues(groupInd);
+  if (! values) return;
 
   auto pb = values->bucketValues.find(bucket);
   if (pb == values->bucketValues.end()) return;
@@ -1025,7 +1023,7 @@ getInds(int groupInd, int bucket, VariantInds &inds) const
 
 void
 CQChartsDistributionPlot::
-getXVals(int groupInd, int bucket, std::vector<double> &xvals)
+getXVals(int groupInd, int bucket, std::vector<double> &xvals) const
 {
   CQChartsDistributionPlot::VariantInds vinds;
 
@@ -1043,6 +1041,26 @@ getXVals(int groupInd, int bucket, std::vector<double> &xvals)
     if (ok)
       xvals.push_back(r);
   }
+}
+
+const CQChartsRValues *
+CQChartsDistributionPlot::
+getRValues(int groupInd) const
+{
+  const Values *values = getValues(groupInd);
+  if (! values) return nullptr;
+
+  return &values->valueSet->rvals();
+}
+
+const CQChartsDistributionPlot::Values *
+CQChartsDistributionPlot::
+getValues(int groupInd) const
+{
+  auto pg = groupValues_.find(groupInd);
+  if (pg == groupValues_.end()) return nullptr;
+
+  return (*pg).second;
 }
 
 CQChartsAxis *
@@ -2176,10 +2194,12 @@ drawRug(QPainter *painter)
 
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-  for (const auto &p : points_) {
-    QPointF p1;
+  const CQChartsRValues *rvals = plot_->getRValues(groupInd_);
 
-    double x1 = p.x();
+  for (int i = 0; i < rvals->size(); ++i) {
+    double x1 = *rvals->value(i);
+
+    QPointF p1;
 
     if (! plot_->isHorizontal())
       p1 = QPointF(x1, dataRange.ymin());

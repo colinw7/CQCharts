@@ -410,7 +410,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
  public:
   void getInds(int groupInd, int bucket, VariantInds &inds) const;
 
-  void getXVals(int groupInd, int bucket, std::vector<double> &xvals);
+  void getXVals(int groupInd, int bucket, std::vector<double> &xvals) const;
+
+  const CQChartsRValues *getRValues(int groupInd) const;
 
  private:
   using ValueSet     = CQChartsValueSet;
@@ -451,6 +453,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   QString bucketValuesStr(int groupInd, int bucket, const Values *values,
                           BucketValueType type) const;
+
+  const Values *getValues(int groupInd) const;
 
  private slots:
   // set horizontal

@@ -1016,8 +1016,8 @@ updateCalcRange()
     using DataList = CQChartsBoxPlot::WhiskerDataList;
 
    public:
-    BoxPlotVisitor(CQChartsBoxPlot *plot, CQChartsAxis *xAxis) :
-     plot_(plot), xAxis_(xAxis) {
+    BoxPlotVisitor(CQChartsBoxPlot *plot) :
+     plot_(plot) {
     }
 
     State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
@@ -1029,12 +1029,11 @@ updateCalcRange()
     const DataList &dataList() const { return dataList_; }
 
    private:
-    CQChartsBoxPlot *plot_  { nullptr };
-    CQChartsAxis    *xAxis_ { nullptr };
+    CQChartsBoxPlot *plot_ { nullptr };
     DataList         dataList_;
   };
 
-  BoxPlotVisitor boxPlotVisitor(this, xAxis);
+  BoxPlotVisitor boxPlotVisitor(this);
 
   visitModel(boxPlotVisitor);
 

@@ -25,8 +25,8 @@ class CQChartsTable : public CQTableView {
 
   CQCharts *charts() const { return charts_; }
 
-  ModelP model() const {return model_; }
-  void setModel(const ModelP &model);
+  ModelP modelP() const { return model_; }
+  void setModelP(const ModelP &model);
 
   bool isExprFilter() const { return isExprFilter_; }
   void setIsExprFilter(bool b) { isExprFilter_ = b; }

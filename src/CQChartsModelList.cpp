@@ -209,7 +209,7 @@ tableColumnClicked(int column)
 
   CQChartsTable *table = qobject_cast<CQChartsTable *>(sender());
 
-  ModelP model = table->model();
+  ModelP model = table->modelP();
 
   QString headerStr = model->headerData(column, Qt::Horizontal).toString();
 
@@ -272,10 +272,10 @@ reloadModel(CQChartsModelData *modelData)
 
   if (! modelData->foldedModels().empty()) {
     if (viewWidgetData->table)
-      viewWidgetData->table->setModel(ModelP());
+      viewWidgetData->table->setModelP(ModelP());
 
     if (viewWidgetData->tree)
-      viewWidgetData->tree->setModel(modelData->foldProxyModel());
+      viewWidgetData->tree->setModelP(modelData->foldProxyModel());
 
     viewWidgetData->stack->setCurrentIndex(0);
   }
@@ -284,7 +284,7 @@ reloadModel(CQChartsModelData *modelData)
   {
     if (modelData->details()->isHierarchical()) {
       if (viewWidgetData->tree) {
-        viewWidgetData->tree->setModel(modelData->model());
+        viewWidgetData->tree->setModelP(modelData->model());
 
         modelData->setSelectionModel(viewWidgetData->tree->selectionModel());
       }
@@ -295,7 +295,7 @@ reloadModel(CQChartsModelData *modelData)
     }
     else {
       if (viewWidgetData->table) {
-        viewWidgetData->table->setModel(modelData->model());
+        viewWidgetData->table->setModelP(modelData->model());
 
         modelData->setSelectionModel(viewWidgetData->table->selectionModel());
       }
@@ -320,7 +320,7 @@ setDetailsText(const CQChartsModelData *modelData)
 
   if (viewWidgetData->stack->currentIndex() == 0) {
     if (viewWidgetData->tree) {
-      modelData1 = charts_->getModelData(viewWidgetData->tree->model().data());
+      modelData1 = charts_->getModelData(viewWidgetData->tree->modelP().data());
 
       if (modelData1)
         details = modelData1->details();
@@ -328,7 +328,7 @@ setDetailsText(const CQChartsModelData *modelData)
   }
   else {
     if (viewWidgetData->table) {
-      modelData1 = charts_->getModelData(viewWidgetData->table->model().data());
+      modelData1 = charts_->getModelData(viewWidgetData->table->modelP().data());
 
       if (modelData1)
         details = modelData1->details();

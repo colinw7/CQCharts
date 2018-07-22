@@ -105,7 +105,7 @@ addMenuActions(QMenu *menu)
 
 void
 CQChartsTree::
-setModel(const ModelP &model)
+setModelP(const ModelP &model)
 {
   if (sm_)
     disconnect(sm_, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -184,9 +184,9 @@ exportSlot(QAction *action)
   QString type = action->text();
 
   if      (type == "CSV")
-    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::CSV);
+    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::CSV);
   else if (type == "TSV")
-    CQChartsUtil::exportModel(model().data(), CQBaseModel::DataType::TSV);
+    CQChartsUtil::exportModel(modelP().data(), CQBaseModel::DataType::TSV);
   else {
     std::cerr << "Invalid export type '" << type.toStdString() << "'\n";
   }

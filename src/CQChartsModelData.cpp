@@ -1,4 +1,5 @@
 #include <CQChartsModelData.h>
+#include <CQSummaryModel.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
 #include <CQFoldedModel.h>
@@ -17,6 +18,7 @@ CQChartsModelData::
 ~CQChartsModelData()
 {
   delete details_;
+  delete summaryModelData_;
 }
 
 QString
@@ -274,3 +276,18 @@ foldClear()
   resetFoldProxyModel();
 }
 #endif
+
+CQSummaryModel *
+CQChartsModelData::
+addSummaryModel()
+{
+  if (! summaryModel_) {
+    summaryModel_ = new CQSummaryModel(model_.data());
+
+    summaryModelP_ = ModelP(summaryModel_);
+
+    summaryModelData_ = new CQChartsModelData(charts_, summaryModelP_);
+  }
+
+  return summaryModel_;
+}

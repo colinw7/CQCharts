@@ -1,4 +1,4 @@
-set model [load_model -expr -num_rows 200]
+set model [load_model -expr -num_rows 200 -name "male/female distribution"]
 
 process_model -model $model -add -expr "rnorm(55)" -header "F"
 process_model -model $model -add -expr "rnorm(58)" -header "M"

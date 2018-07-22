@@ -14,6 +14,7 @@
 #include <CQUtil.h>
 
 #include <QTabWidget>
+#include <QTextBrowser>
 #include <QHeaderView>
 #include <QGroupBox>
 #include <QLineEdit>
@@ -34,6 +35,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   CQCharts *charts = view->charts();
 
   connect(charts, SIGNAL(modelDataAdded(int)), this, SLOT(updateModels()));
+  connect(charts, SIGNAL(currentModelChanged(int)), this, SLOT(updateModelDetails()));
   connect(charts, SIGNAL(modelNameChanged(const QString &)), this, SLOT(updateModels()));
 
   connect(view, SIGNAL(plotAdded(const QString &)), this, SLOT(updatePlots()));
@@ -118,6 +120,15 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   connect(modelsWidgets_.modelTable, SIGNAL(itemSelectionChanged()),
           this, SLOT(modelsSelectionChangeSlot()));
+
+  //--
+
+  modelsWidgets_.modelDetailsText = new QTextBrowser;
+  modelsWidgets_.modelDetailsText->setObjectName("modelDetailsText");
+
+  modelsFrameLayout->addWidget(modelsWidgets_.modelDetailsText);
+
+  //--
 
   QHBoxLayout *modelControlLayout = new QHBoxLayout;
 
@@ -516,6 +527,61 @@ updateModels()
 
     ++i;
   }
+
+  //---
+
+  updateModelDetails();
+}
+
+void
+CQChartsViewSettings::
+updateModelDetails()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  CQChartsModelData *modelData = charts->currentModelData();
+  if (! modelData) return;
+
+  CQChartsModelDetails *details = modelData->details();
+  if (! details) return;
+
+  //---
+
+  QString text = "<b></b>";
+
+  text += "<table padding=\"4\">";
+  text += QString("<tr><td>Columns</td><td>%1</td></tr>").arg(details->numColumns());
+  text += QString("<tr><td>Rows</td><td>%1</td></tr>").arg(details->numRows());
+  text += "</table>";
+
+  text += "<br>";
+
+  text += "<table padding=\"4\">";
+  text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
+
+  for (int i = 0; i < details->numColumns(); ++i) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(i);
+
+    text += "<tr>";
+
+    text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
+             arg(i + 1).
+             arg(columnDetails->typeName()).
+             arg(columnDetails->dataName(columnDetails->minValue()).toString()).
+             arg(columnDetails->dataName(columnDetails->maxValue()).toString());
+
+    if (columnDetails->isMonotonic())
+      text += QString("<td>%1</td>").
+        arg(columnDetails->isIncreasing() ? "Increasing" : "Decreasing");
+    else
+      text += QString("<td></td>");
+
+    text += "</tr>";
+  }
+
+  text += "</table>";
+
+  modelsWidgets_.modelDetailsText->setHtml(text);
 }
 
 void

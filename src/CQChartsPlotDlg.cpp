@@ -69,11 +69,7 @@ init()
   //----
 
   if (! CQChartsUtil::isHierarchical(model_.data())) {
-    summaryModel_ = new CQSummaryModel(model_.data());
-
-    summaryModelP_ = ModelP(summaryModel_);
-
-    summaryModelData_ = new CQChartsModelData(charts_, summaryModelP_);
+    (void) modelData_->addSummaryModel();
   }
 
   //----
@@ -581,7 +577,9 @@ createPreviewFrame()
 
   previewControlLayout->addWidget(previewEnabledCheck_);
 
-  if (summaryModel_) {
+  CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+  if (summaryModel) {
     summaryEnabledCheck_ = new QCheckBox("Summary");
     summaryEnabledCheck_->setObjectName("summaryEnabled");
 
@@ -599,8 +597,8 @@ createPreviewFrame()
     previewMaxRows_->setRange(1, nr);
     previewMaxRows_->setToolTip(QString("Set Preview Row Count (1 -> %1)").arg(nr));
 
-    if (summaryModel_)
-      previewMaxRows_->setValue(summaryModel_->maxRows());
+    if (summaryModel)
+      previewMaxRows_->setValue(summaryModel->maxRows());
 
     connect(previewMaxRows_, SIGNAL(valueChanged(int)), this, SLOT(updatePreviewSlot()));
 
@@ -692,8 +690,11 @@ createPreviewFrame()
 
   previewTab->addTab(previewModelView_, "Data");
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
-    previewModelView_->setModel(summaryModelP_, CQChartsUtil::isHierarchical(summaryModel_));
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
+    ModelP summaryModelP = modelData_->summaryModelP();
+
+    previewModelView_->setModel(summaryModelP, CQChartsUtil::isHierarchical(summaryModel));
+  }
   else
     previewModelView_->setModel(model_, CQChartsUtil::isHierarchical(model_.data()));
 
@@ -713,7 +714,6 @@ createPreviewFrame()
 CQChartsPlotDlg::
 ~CQChartsPlotDlg()
 {
-  delete summaryModelData_;
 }
 
 void
@@ -1575,8 +1575,10 @@ updatePreviewPlot(bool valid)
 
     ModelP previewModel;
 
-    if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
-      previewModel = summaryModelP_;
+    CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+    if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel)
+      previewModel = modelData_->summaryModelP();
     else
       previewModel = model_;
 
@@ -1664,8 +1666,10 @@ updateFormatSlot()
 
   QString typeStr;
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_) {
-    if (! CQChartsUtil::columnTypeStr(charts_, summaryModel_, column, typeStr))
+  CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
+    if (! CQChartsUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
       return;
   }
   else {
@@ -1684,8 +1688,10 @@ validate(QStringList &msgs)
 
   CQChartsModelData *modelData = nullptr;
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_)
-    modelData = summaryModelData_;
+  CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel)
+    modelData = modelData_->summaryModelData();
   else
     modelData = modelData_;
 
@@ -1826,7 +1832,9 @@ void
 CQChartsPlotDlg::
 updatePreviewSlot()
 {
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel_) {
+  CQSummaryModel *summaryModel = modelData_->summaryModel();
+
+  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
     int  n = previewMaxRows_->value();
 
     bool random = previewRandomRadio_->isChecked();
@@ -1835,19 +1843,19 @@ updatePreviewSlot()
 
     if (n <= 0) return;
 
-    if (n != summaryModel_->maxRows()) {
-      summaryModel_->setMode(CQSummaryModel::Mode::NORMAL);
-      summaryModel_->setMaxRows(n);
+    if (n != summaryModel->maxRows()) {
+      summaryModel->setMode(CQSummaryModel::Mode::NORMAL);
+      summaryModel->setMaxRows(n);
     }
 
     if      (random) {
-      summaryModel_->setRandom(true);
+      summaryModel->setRandom(true);
     }
     else if (sorted) {
       int sortCol = previewSortedColEdit_->value();
 
-      summaryModel_->setSortColumn(sortCol);
-      summaryModel_->setSorted(true);
+      summaryModel->setSortColumn(sortCol);
+      summaryModel->setSorted(true);
     }
     else if (paged) {
       int ps = previewPageSizeEdit_   ->value();
@@ -1862,12 +1870,12 @@ updatePreviewSlot()
       previewCurrentPageEdit_->setRange(0, np1 - 1);
       previewCurrentPageEdit_->setToolTip(QString("Set Preview Page Count (0 -> %1)").arg(np1 - 1));
 
-      summaryModel_->setPageSize(ps);
-      summaryModel_->setCurrentPage(np);
-      summaryModel_->setPaged(true);
+      summaryModel->setPageSize(ps);
+      summaryModel->setCurrentPage(np);
+      summaryModel->setPaged(true);
     }
     else {
-      summaryModel_->setMode(CQSummaryModel::Mode::NORMAL);
+      summaryModel->setMode(CQSummaryModel::Mode::NORMAL);
     }
   }
 

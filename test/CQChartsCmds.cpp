@@ -24,9 +24,6 @@
 #include <CQChartsLoadDlg.h>
 #include <CQChartsModelDlg.h>
 #include <CQChartsPlotDlg.h>
-
-#include <CQChartsTree.h>
-#include <CQChartsTable.h>
 #include <CQChartsDataFilterModel.h>
 
 #include <CQDataModel.h>
@@ -326,6 +323,7 @@ loadModelCmd(const Vars &vars)
   argv.addCmdArg("-num_rows"   , CQChartsCmdArg::Type::Integer, "number of rows");
   argv.addCmdArg("-filter"     , CQChartsCmdArg::Type::String , "filter expression");
   argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String , "column type");
+  argv.addCmdArg("-name"       , CQChartsCmdArg::Type::String , "name");
 
   argv.addCmdArg("filename", CQChartsCmdArg::Type::String, "file name");
 
@@ -366,6 +364,8 @@ loadModelCmd(const Vars &vars)
 
   QString columnTypes = argv.getParseStr("column_type");
 
+  QString name = argv.getParseStr("name");
+
   // TODO: columns (filter to columns)
 
   const Vars &filenameArgs = argv.getParseArgs();
@@ -405,6 +405,9 @@ loadModelCmd(const Vars &vars)
 
     CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
   }
+
+  if (name.length())
+    modelData->setName(name);
 
   setCmdRc(modelData->ind());
 
