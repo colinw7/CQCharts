@@ -3,6 +3,7 @@
 #include <CQChartsExprModelCmdValues.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
+#include <CQChartsRand.h>
 #include <CQCharts.h>
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
@@ -10,22 +11,8 @@
 
 #include <CQStrParse.h>
 #include <COSNaN.h>
-#include <COSRand.h>
 #include <QColor>
 #include <iostream>
-
-#ifdef CQCharts_USE_TCL
-class CQChartsExprModelTclNameFn : public CQChartsExprModelTclFn {
- public:
-  CQChartsExprModelTclNameFn(CQChartsExprModel *model, const QString &name) :
-   CQChartsExprModelTclFn(model, name) {
-  }
-
-  QVariant exec(const Vars &vars) override { return model_->processCmd(name_, vars); }
-};
-#endif
-
-//------
 
 CQChartsExprModel::
 CQChartsExprModel(CQCharts *charts, QAbstractItemModel *model) :
@@ -75,6 +62,7 @@ addBuiltinFunctions()
   addFunction("norm"     );
   addFunction("key"      );
   addFunction("rand"     );
+  addFunction("rnorm"    );
   addFunction("concat"   );
   addFunction("color"    );
 
@@ -89,7 +77,7 @@ addFunction(const QString &name)
   assert(name.length());
 
 #ifdef CQCharts_USE_TCL
-  CQChartsExprModelTclNameFn *fn = new CQChartsExprModelTclNameFn(this, name);
+  CQChartsExprModelTclFn *fn = new CQChartsExprModelTclFn(this, name);
 
   tclCmds_.push_back(fn);
 #endif
@@ -826,6 +814,7 @@ processCmd(const QString &name, const Values &values)
   else if (name == "norm"     ) return normCmd     (values);
   else if (name == "key"      ) return keyCmd      (values);
   else if (name == "rand"     ) return randCmd     (values);
+  else if (name == "rnorm"    ) return rnormCmd    (values);
   else if (name == "concat"   ) return concatCmd   (values);
   else if (name == "color"    ) return colorCmd    (values);
 
@@ -867,6 +856,8 @@ columnCmd(const Values &values) const
   return data(ind, Qt::DisplayRole);
 }
 
+//---
+
 // row(), row(row) : get row value
 QVariant
 CQChartsExprModel::
@@ -896,6 +887,8 @@ rowCmd(const Values &values) const
 
   return data(ind, Qt::DisplayRole);
 }
+
+//---
 
 // cell(), cell(row,column) : get cell value
 QVariant
@@ -927,6 +920,8 @@ cellCmd(const Values &values) const
 
   return data(ind, Qt::DisplayRole);
 }
+
+//---
 
 // setColumn(value), setColumn(col,value) : set column value
 QVariant
@@ -961,6 +956,8 @@ setColumnCmd(const Values &values)
   return QVariant(b);
 }
 
+//---
+
 // setRow(value), setRow(row,value), setRow(row,col,value) : set row value
 QVariant
 CQChartsExprModel::
@@ -993,6 +990,8 @@ setRowCmd(const Values &values)
 
   return QVariant(b);
 }
+
+//---
 
 // setCell(value), setCell(row,col,value) : set row value
 QVariant
@@ -1028,6 +1027,8 @@ setCellCmd(const Values &values)
   return QVariant(b);
 }
 
+//---
+
 // header(), header(col)
 QVariant
 CQChartsExprModel::
@@ -1048,6 +1049,8 @@ headerCmd(const Values &values) const
 
   return headerData(col, Qt::Horizontal, Qt::DisplayRole);
 }
+
+//---
 
 // setHeader(s), setHeader(col,s)
 QVariant
@@ -1077,6 +1080,8 @@ setHeaderCmd(const Values &values)
   return setHeaderData(col, Qt::Horizontal, var, Qt::DisplayRole);
 }
 
+//---
+
 // type(), type(col)
 QVariant
 CQChartsExprModel::
@@ -1103,6 +1108,8 @@ typeCmd(const Values &values) const
 
   return QVariant(typeName);
 }
+
+//---
 
 // setType(s), setType(col,s)
 QVariant
@@ -1140,6 +1147,8 @@ setTypeCmd(const Values &values)
   return QVariant(b);
 }
 
+//---
+
 // map(), map(max), map(min,max)
 QVariant
 CQChartsExprModel::
@@ -1156,9 +1165,10 @@ mapCmd(const Values &values) const
 
   if (cmdValues.numValues() == 1)
     (void) cmdValues.getReal(max);
-
-  (void) cmdValues.getReal(min);
-  (void) cmdValues.getReal(max);
+  else {
+    (void) cmdValues.getReal(min);
+    (void) cmdValues.getReal(max);
+  }
 
   //---
 
@@ -1173,6 +1183,8 @@ mapCmd(const Values &values) const
 
   return QVariant(x1);
 }
+
+//---
 
 // bucket(col,delta), bucket(col,start,delta)
 QVariant
@@ -1250,6 +1262,8 @@ bucketCmd(const Values &values) const
 
   return QVariant(bucket);
 }
+
+//---
 
 // norm(col), norm(col,scale)
 QVariant
@@ -1337,6 +1351,9 @@ normCmd(const Values &values) const
   }
 }
 
+//---
+
+// key(str1,str2,...)
 QVariant
 CQChartsExprModel::
 keyCmd(const Values &values) const
@@ -1357,6 +1374,9 @@ keyCmd(const Values &values) const
   return QVariant(key);
 }
 
+//---
+
+// rand(min=0,max=1)
 QVariant
 CQChartsExprModel::
 randCmd(const Values &values) const
@@ -1369,11 +1389,38 @@ randCmd(const Values &values) const
   (void) cmdValues.getReal(min);
   (void) cmdValues.getReal(max);
 
-  double r = COSRand::randIn(min, max);
+  CQChartsRand::RealInRange rand(min, max);
+
+  double r = rand.gen();
 
   return QVariant(r);
 }
 
+//---
+
+// rnorm(mean=0,stddev=1)
+QVariant
+CQChartsExprModel::
+rnormCmd(const Values &values) const
+{
+  CQChartsExprModelCmdValues cmdValues(values);
+
+  double mean   = 0.0;
+  double stddev = 1.0;
+
+  (void) cmdValues.getReal(mean);
+  (void) cmdValues.getReal(stddev);
+
+  CQChartsRand::NormalRealInRange rand(mean, stddev);
+
+  double r = rand.gen();
+
+  return QVariant(r);
+}
+
+//---
+
+// concat(str1,str2,...)
 QVariant
 CQChartsExprModel::
 concatCmd(const Values &values) const
@@ -1386,6 +1433,9 @@ concatCmd(const Values &values) const
   return QVariant(str);
 }
 
+//---
+
+// color(name)
 QVariant
 CQChartsExprModel::
 colorCmd(const Values &values) const
@@ -1569,6 +1619,10 @@ QString
 CQChartsExprModel::
 replaceNumericColumns(const QString &expr, int row, int column) const
 {
+  auto quoteStr = [](const QString &str, bool quote) {
+    return (quote ? "\"" + str + "\"" : str);
+  };
+
   CQStrParse parse(expr);
 
   QString expr1;
@@ -1577,6 +1631,14 @@ replaceNumericColumns(const QString &expr, int row, int column) const
     // @<n> get column value (current row)
     if (parse.isChar('@')) {
       parse.skipChar();
+
+      bool stringify = false;
+
+      if (parse.isChar('#')) {
+        parse.skipChar();
+
+        stringify = true;
+      }
 
       if      (parse.isDigit()) {
         int pos = parse.getPos();
@@ -1588,17 +1650,17 @@ replaceNumericColumns(const QString &expr, int row, int column) const
 
         int column1 = str.toInt();
 
-        expr1 += QString("column(%1)").arg(column1);
+        expr1 += quoteStr(QString("column(%1)").arg(column1), stringify);
       }
       else if (parse.isChar('c')) {
         parse.skipChar();
 
-        expr1 += QString("%1").arg(column);
+        expr1 += quoteStr(QString("%1").arg(column), stringify);
       }
       else if (parse.isChar('r')) {
         parse.skipChar();
 
-        expr1 += QString("%1").arg(row);
+        expr1 += quoteStr(QString("%1").arg(row), stringify);
       }
       else if (parse.isChar('n')) {
         parse.skipChar();
@@ -1606,15 +1668,18 @@ replaceNumericColumns(const QString &expr, int row, int column) const
         if      (parse.isChar('c')) {
           parse.skipChar();
 
-          expr1 += QString("%1").arg(nc_);
+          expr1 += quoteStr(QString("%1").arg(nc_), stringify);
         }
         else if (parse.isChar('r')) {
           parse.skipChar();
 
-          expr1 += QString("%1").arg(nr_);
+          expr1 += quoteStr(QString("%1").arg(nr_), stringify);
         }
         else {
-          expr1 += "@n";
+          if (stringify)
+            expr1 += "@#n";
+          else
+            expr1 += "@n";
         }
       }
       else if (parse.isChar('v')) {
@@ -1624,10 +1689,14 @@ replaceNumericColumns(const QString &expr, int row, int column) const
 
         parse.skipChar();
 
-        expr1 += var.toString();
+        expr1 += quoteStr(var.toString(), stringify);
       }
-      else
-        expr1 += "@";
+      else {
+        if (stringify)
+          expr1 += "@#";
+        else
+          expr1 += "@";
+      }
     }
     else
       expr1 += parse.getChar();

@@ -134,7 +134,7 @@ class CQChartsGroupObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
-  CQChartsGroupObj(CQChartsPlot *plot);
+  CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox=CQChartsGeom::BBox());
 };
 
 #endif

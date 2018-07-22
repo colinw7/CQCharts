@@ -30,11 +30,16 @@ class CQChartsLayer {
 
   static Type nameType(const QString &name);
 
+  static Type firstLayer() { return Type::BACKGROUND; }
+  static Type lastLayer () { return Type::MOUSE_OVER; }
+
  public:
   CQChartsLayer(Type type);
  ~CQChartsLayer();
 
   const Type &type() const { return type_; }
+
+  QString name() const { return typeName(type_); }
 
   bool isActive() const { return active_; }
   void setActive(bool b) { active_ = b; }

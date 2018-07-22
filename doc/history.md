@@ -518,3 +518,12 @@
  + update current plot in view setting when changed in view
 # 7/19/2018
  + Merge CQChartsExprModel and CQExprModel classes
+# 7/22/2018
+ + Add indices for box plot jitter symbols
+ + Add dot lines and rug support for distribution plot. Improve mean line
+ + Add rug support for scatter plot
+ + Support value count in pie chart
+ + add rnorm function to expr model
+ + fix issue in Tcl_Obj real value to variant
+ + Improve layer handling for mouse over and selection
+ + Add layers to view settings

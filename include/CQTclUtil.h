@@ -48,6 +48,18 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *, const QVariant &var) {
 }
 
 inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
+  static const Tcl_ObjType *itype;
+  static const Tcl_ObjType *rtype;
+  static const Tcl_ObjType *stype;
+  static const Tcl_ObjType *ltype;
+
+  if (! itype) {
+    itype = Tcl_GetObjType("int");
+    rtype = Tcl_GetObjType("double");
+    stype = Tcl_GetObjType("string");
+    ltype = Tcl_GetObjType("list");
+  }
+
   double real    = 0.0;
   int    integer = 0;
 
@@ -58,15 +70,15 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
   const Tcl_ObjType *type = obj->typePtr;
 
   if (type) {
-    if      (strcmp(type->name, "int") == 0) {
+    if      (type == itype) {
       if (Tcl_GetIntFromObj(interp, obj, &integer) == TCL_OK)
         var = QVariant(integer);
     }
-    else if (strcmp(type->name, "real") == 0) {
+    else if (type == rtype) {
       if (Tcl_GetDoubleFromObj(interp, obj, &real) == TCL_OK)
         var = QVariant(real);
     }
-    else if (strcmp(type->name, "list") == 0) {
+    else if (type == ltype) {
       QList<QVariant> lvars;
 
       int len = 0;
@@ -84,6 +96,11 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
 
         var = lvars;
       }
+    }
+    else if (type == stype) {
+    }
+    else {
+      assert(false);
     }
   }
 

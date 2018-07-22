@@ -50,6 +50,9 @@ addObjectsASync(CQChartsPlotObjTree *th)
       plotObjTree = new PlotObjTree(bbox);
 
       for (const auto &obj : plotObjs) {
+        if (! obj->visible())
+          continue;
+
         if (obj->rect().isSet())
           plotObjTree->add(obj);
       }

@@ -56,9 +56,9 @@ class CQChartsPieObj : public CQChartsPlotObj {
  public:
   CQChartsPieObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &rect, const QModelIndex &ind);
 
-  QString calcTipId() const override;
-
   QString calcId() const override;
+
+  QString calcTipId() const override;
 
   double angle1() const { return angle1_; }
   void setAngle1(double a) { angle1_ = a; }
@@ -142,15 +142,22 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
   using PieObjs = std::vector<CQChartsPieObj *>;
 
  public:
-  CQChartsPieGroupObj(CQChartsPiePlot *plot, const QString &name);
+  CQChartsPieGroupObj(CQChartsPiePlot *plot, const CQChartsGeom::BBox &bbox,
+                      int groupInd, const QString &name, int ig, int ng);
 
   CQChartsPiePlot *plot() const { return plot_; }
+
+  int groupInd() const { return groupInd_; }
+  void setGroupInd(int i) { groupInd_ = i; }
 
   const QString &name() const { return name_; }
   void setName(const QString &s) { name_ = s; }
 
   double dataTotal() const { return dataTotal_; }
   void setDataTotal(double r) { dataTotal_ = r; }
+
+  int numValues() const { return numValues_; }
+  void setNumValues(int n) { numValues_ = n; }
 
   double radiusMax() const { return radiusMax_; }
   void setRadiusMax(double r) { radiusMax_ = r; }
@@ -172,23 +179,39 @@ class CQChartsPieGroupObj : public CQChartsGroupObj {
 
   const PieObjs &objs() const { return objs_; }
 
-  QString calcId() const override { return name_; }
+  void setAngles(double a1, double a2) { startAngle_ = a1; endAngle_ = a2; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
 
   void getSelectIndices(Indices &) const override { }
 
   void addColumnSelectIndex(Indices &, const CQChartsColumn &) const override { }
 
-  void draw(QPainter *) override { }
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void draw(QPainter *painter) override;
+
+  void drawFg(QPainter *painter) override;
+
+  QColor bgColor() const;
 
  private:
   CQChartsPiePlot* plot_         { nullptr }; // parent plot
+  int              groupInd_     { -1 };      // groupInd
   QString          name_;                     // group name
+  int              ig_           { 0 };       // group index
+  int              ng_           { 1 };       // num groups
   double           dataTotal_    { 0.0 };     // value data total
+  int              numValues_    { 0 };       // num values
   double           radiusMax_    { 0.0 };     // radius data max
   bool             radiusScaled_ { false };   // radius scaled
   double           innerRadius_  { 0.0 };     // inner radius
   double           outerRadius_  { 0.0 };     // outer radius
   PieObjs          objs_;                     // objects
+  double           startAngle_   { 0.0 };
+  double           endAngle_     { 0.0 };
 };
 
 //---
@@ -239,6 +262,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
   // options
   Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
+  Q_PROPERTY(bool   count           READ isCount           WRITE setCount          )
   Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
   Q_PROPERTY(double outerRadius     READ outerRadius       WRITE setOuterRadius    )
   Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
@@ -293,7 +317,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   //---
 
   bool isDonut() const { return donut_; }
-  void setDonut(bool b);
+
+  bool isCount() const { return count_; }
 
   //---
 
@@ -375,6 +400,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
   void addKeyItems(CQChartsPlotKey *key) override;
 
+  bool addMenuItems(QMenu *menu) override;
+
   //---
 
   int numGroupObjs() const { return groupObjs_.size(); }
@@ -382,6 +409,15 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   //---
 
   void handleResize() override;
+
+  //---
+
+  bool selectInvalidateObjs() const override { return true; }
+
+ public slots:
+  void setDonut(bool b);
+
+  void setCount(bool b);
 
  private:
   void addRow(const QModelIndex &parent, int r);
@@ -404,6 +440,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
     QString              name;                     // name
     double               dataTotal    { 0.0 };     // data column value total
+    int                  numValues    { 0 };       // data column num values
     double               radiusMax    { 0.0 };     // radius column value max
     bool                 radiusScaled { false };   // has radius column value max
     CQChartsPieGroupObj *groupObj     { nullptr }; // associated group obj
@@ -418,6 +455,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   CQChartsColumn      radiusColumn_;                // radius value column
   CQChartsColumn      keyLabelColumn_;              // key label column
   bool                donut_           { false };   // is donut
+  bool                count_           { false };   // show value counts
   double              innerRadius_     { 0.6 };     // relative inner donut radius
   double              outerRadius_     { 0.9 };     // relative outer donut radius
   double              labelRadius_     { 1.1 };     // label radus

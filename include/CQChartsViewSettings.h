@@ -39,6 +39,7 @@ class CQChartsViewSettings : public QFrame {
  private slots:
   void updateModels();
   void updatePlots ();
+  void updateLayers();
 
   void updateCurrentPlot();
 
@@ -57,6 +58,9 @@ class CQChartsViewSettings : public QFrame {
   void loadModelSlot();
 
   void plotsSelectionChangeSlot();
+
+  void layersSelectionChangeSlot();
+  void layersClickedSlot(int, int);
 
   void groupPlotsSlot();
 
@@ -124,14 +128,20 @@ class CQChartsViewSettings : public QFrame {
     CQChartsGradientPaletteControl* interfaceControl   { nullptr }; // interface palette control
   };
 
+  struct LayersWidgets {
+    QTableWidget* layerTable { nullptr };
+  };
+
   CQChartsWindow*   window_       { nullptr }; // parent window
   QTabWidget*       tab_          { nullptr }; // settings/palette tab
   PropertiesWidgets propertiesWidgets_;
   ModelsWidgets     modelsWidgets_;
   PlotsWidgets      plotsWidgets_;
   ThemeWidgets      themeWidgets_;
+  LayersWidgets     layersWidgets_;
   CQChartsLoadDlg*  loadDlg_      { nullptr };
   CQChartsPlotDlg*  plotDlg_      { nullptr };
+  QString           plotId_;
 };
 
 #endif

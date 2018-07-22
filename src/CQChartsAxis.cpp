@@ -896,8 +896,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
 
     if (((std::abs(delta1 - delta2) < 1E-6) &&
-         (std::abs(testNumGaps         - axisGoodTicks.opt) <
-          std::abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
+         (std::abs(int(testNumGaps        ) - int(axisGoodTicks.opt)) <
+          std::abs(int(axisGapData.numGaps) - int(axisGoodTicks.opt)))) ||
         delta1 < delta2) {
       axisGapData.start = newStart;
       axisGapData.end   = newEnd;
@@ -931,8 +931,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
     double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
 
     if (((std::abs(delta1 - delta2) < 1E-6) &&
-         (std::abs(testNumGaps         - axisGoodTicks.opt) <
-          std::abs(axisGapData.numGaps - axisGoodTicks.opt))) ||
+         (std::abs(int(testNumGaps        ) - int(axisGoodTicks.opt)) <
+          std::abs(int(axisGapData.numGaps) - int(axisGoodTicks.opt)))) ||
         delta1 < delta2) {
       axisGapData.start = newStart;
       axisGapData.end   = newEnd;

@@ -217,7 +217,7 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsBoxPlotPointObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                         int setId, int groupInd, const QPointF &p,
+                         int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
                          int ig, int ng, int is, int ns, int iv, int nv);
 
   QString calcId   () const override;
@@ -235,7 +235,8 @@ class CQChartsBoxPlotPointObj : public CQChartsPlotObj {
   CQChartsBoxPlot* plot_     { nullptr }; // parent plot
   int              setId_    { -1 };      // set id
   int              groupInd_ { -1 };      // group id
-  QPointF          p_;
+  QPointF          p_;                    // point
+  QModelIndex      ind_;                  // model index
   int              ig_       { -1 };      // group index
   int              ng_       { 0 };       // group count
   int              is_       { -1 };      // set index

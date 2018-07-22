@@ -31,6 +31,12 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
  public:
+  enum Dir {
+    X  = (1<<0),
+    Y  = (1<<1),
+    XY = (X | Y)
+  };
+
   using OptReal = boost::optional<double>;
 
  public:
@@ -63,6 +69,8 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
   void draw(QPainter *painter) override;
+
+  void drawDir(QPainter *painter, const Dir &dir) const;
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
@@ -119,6 +127,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   // options
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
+  Q_PROPERTY(bool xRug    READ isXRug    WRITE setXRug   )
+  Q_PROPERTY(bool yRug    READ isYRug    WRITE setYRug   )
 
   // symbol
   Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
@@ -209,6 +219,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   //----
 
   bool isBestFit() const { return bestFit_; }
+
+  bool isXRug() const { return xRug_; }
+  bool isYRug() const { return yRug_; }
 
   //----
 
@@ -376,10 +389,15 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
  private:
   void drawBestFit     (QPainter *painter);
+  void drawXRug        (QPainter *painter);
+  void drawYRug        (QPainter *painter);
   void drawSymbolMapKey(QPainter *painter);
 
  public slots:
   void setBestFit(bool b);
+
+  void setXRug(bool b);
+  void setYRug(bool b);
 
  private:
   struct FitData {
@@ -397,6 +415,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   CQChartsColumn     xColumn_      { 0 };     // x column
   CQChartsColumn     yColumn_      { 1 };     // y column
   bool               bestFit_      { false }; // best fit
+  bool               xRug_         { false }; // x rug
+  bool               yRug_         { false }; // y rug
   CQChartsSymbolData symbolData_;             // symbol draw data
   double             fontSize_     { 8.0 };   // font size
   GroupNameValues    groupNameValues_;        // name values

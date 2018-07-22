@@ -387,6 +387,20 @@ setBestFit(bool b)
   CQChartsUtil::testAndSet(bestFit_, b, [&]() { invalidateLayers(); } );
 }
 
+void
+CQChartsScatterPlot::
+setXRug(bool b)
+{
+  CQChartsUtil::testAndSet(xRug_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setYRug(bool b)
+{
+  CQChartsUtil::testAndSet(yRug_, b, [&]() { invalidateLayers(); } );
+}
+
 //------
 
 void
@@ -405,6 +419,8 @@ addProperties()
   addProperty("columns", this, "colorColumn"     , "color"     );
 
   addProperty("options", this, "bestFit", "bestFit");
+  addProperty("options", this, "xRug"   , "xRug"   );
+  addProperty("options", this, "yRug"   , "yRug"   );
 
   CQChartsGroupPlot::addProperties();
 
@@ -549,7 +565,7 @@ initObjs()
 
   //---
 
-  if (! plotObjs_.empty())
+  if (! plotObjects().empty())
     return false;
 
   //---
@@ -906,9 +922,25 @@ addMenuItems(QMenu *menu)
 
   connect(bestFitAction, SIGNAL(triggered(bool)), this, SLOT(setBestFit(bool)));
 
+  QAction *xRugAction = new QAction("X Rug", menu);
+
+  xRugAction->setCheckable(true);
+  xRugAction->setChecked(isXRug());
+
+  connect(xRugAction, SIGNAL(triggered(bool)), this, SLOT(setXRug(bool)));
+
+  QAction *yRugAction = new QAction("Y Rug", menu);
+
+  yRugAction->setCheckable(true);
+  yRugAction->setChecked(isYRug());
+
+  connect(yRugAction, SIGNAL(triggered(bool)), this, SLOT(setYRug(bool)));
+
   menu->addSeparator();
 
   menu->addAction(bestFitAction);
+  menu->addAction(xRugAction   );
+  menu->addAction(yRugAction   );
 
   return true;
 }
@@ -921,7 +953,14 @@ drawBackground(QPainter *painter)
 {
   CQChartsPlot::drawBackground(painter);
 
-  drawBestFit(painter);
+  if (isBestFit())
+    drawBestFit(painter);
+
+  if (isXRug())
+    drawXRug(painter);
+
+  if (isYRug())
+    drawYRug(painter);
 }
 
 void
@@ -937,51 +976,71 @@ void
 CQChartsScatterPlot::
 drawBestFit(QPainter *painter)
 {
-  if (isBestFit()) {
-    if (! fitData_.fitted) {
-      int np = points_.size();;
+  if (! fitData_.fitted) {
+    int np = points_.size();;
 
-      std::vector<double> x, y;
+    std::vector<double> x, y;
 
-      for (const auto &p : points_) {
-        x.push_back(p.x());
-        y.push_back(p.y());
-      }
-
-      double deviation;
-      int    return_code;
-
-      CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
-                                        fitData_.coeffs, fitData_.coeffs_free, fitData_.num_coeffs,
-                                        &deviation, &return_code);
-
-      fitData_.fitted = true;
+    for (const auto &p : points_) {
+      x.push_back(p.x());
+      y.push_back(p.y());
     }
 
-    //---
+    double deviation;
+    int    return_code;
 
-    CQChartsGeom::BBox pbbox = calcDataPixelRect();
+    CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
+                                      fitData_.coeffs, fitData_.coeffs_free, fitData_.num_coeffs,
+                                      &deviation, &return_code);
 
-    double py1 = 0.0;
+    fitData_.fitted = true;
+  }
 
-    for (int px = pbbox.getXMin(); px <= pbbox.getXMax(); ++px) {
-      double x, y;
+  //---
 
-      pixelToWindow(px, 0.0, x, y);
+  CQChartsGeom::BBox pbbox = calcDataPixelRect();
 
-      double y2 = fitData_.coeffs[0] + x*(fitData_.coeffs[1] + x*fitData_.coeffs[2]);
+  double py1 = 0.0;
 
-      double px2, py2;
+  for (int px = pbbox.getXMin(); px <= pbbox.getXMax(); ++px) {
+    double x, y;
 
-      windowToPixel(x, y2, px2, py2);
+    pixelToWindow(px, 0.0, x, y);
 
-      if (x > pbbox.getXMin())
-        painter->drawLine(QPointF(px - 1, py1), QPointF(px, py2));
-      else
-        painter->drawPoint(QPointF(px, py2));
+    double y2 = fitData_.coeffs[0] + x*(fitData_.coeffs[1] + x*fitData_.coeffs[2]);
 
-      py1 = py2;
-    }
+    double px2, py2;
+
+    windowToPixel(x, y2, px2, py2);
+
+    if (x > pbbox.getXMin())
+      painter->drawLine(QPointF(px - 1, py1), QPointF(px, py2));
+    else
+      painter->drawPoint(QPointF(px, py2));
+
+    py1 = py2;
+  }
+}
+
+void
+CQChartsScatterPlot::
+drawXRug(QPainter *painter)
+{
+  for (const auto &plotObj : plotObjects()) {
+    const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+
+    pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::X);
+  }
+}
+
+void
+CQChartsScatterPlot::
+drawYRug(QPainter *painter)
+{
+  for (const auto &plotObj : plotObjects()) {
+    const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
+
+    pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::Y);
   }
 }
 
@@ -1173,6 +1232,13 @@ void
 CQChartsScatterPointObj::
 draw(QPainter *painter)
 {
+  drawDir(painter, Dir::XY);
+}
+
+void
+CQChartsScatterPointObj::
+drawDir(QPainter *painter, const Dir &dir) const
+{
   CQChartsSymbol symbol = this->symbolType();
 
   if (symbol == CQChartsSymbol::Type::NONE)
@@ -1238,9 +1304,16 @@ draw(QPainter *painter)
 
   //---
 
-  double px, py;
+  QPointF ps = plot_->windowToPixel(p_);
 
-  plot_->windowToPixel(p_.x(), p_.y(), px, py);
+  if (dir != Dir::XY) {
+    CQChartsGeom::BBox pbbox = plot_->calcDataPixelRect();
+
+    if      (dir == Dir::X)
+      ps.setY(pbbox.getYMax());
+    else if (dir == Dir::Y)
+      ps.setX(pbbox.getXMin());
+   }
 
   //---
 
@@ -1248,9 +1321,9 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
+  QRectF erect(ps.x() - sx, ps.y() - sy, 2*sx, 2*sy);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(painter, ps, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
 
   //---
 

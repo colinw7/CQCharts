@@ -779,7 +779,7 @@ void bestLeastSquaresFit(double x_point[], double y_point[], int num_points,
   fit_coeff.resize(*num_coeffs);
 
   std::vector<int> fit_free;
-  fit_coeff.resize(*num_coeffs);
+  fit_free.resize(*num_coeffs);
 
   int num_free = 0;
 
@@ -877,7 +877,7 @@ void bestLeastSquaresFit(double x_point[], double y_point[], int num_points,
   /****                                                            ****/
   /* try all allowed fits                                             */
   /****                                                            ****/
-  int best_fit;
+  int best_fit = 0;
 
   for (int num_fit = min_fit; num_fit <= max_fit; num_fit++) {
     if (num_fit != min_fit) {

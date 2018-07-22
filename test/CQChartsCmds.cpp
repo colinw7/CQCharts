@@ -3249,7 +3249,8 @@ printChartCmd(const Vars &vars)
     if (layerName.length()) {
       CQChartsLayer::Type type = CQChartsLayer::nameType(layerName);
 
-      plot->printLayer(type, fileName);
+      if (! plot->printLayer(type, fileName))
+        charts_->errorMsg("Failed to print layer");
     }
     else
       view->printFile(fileName, plot);

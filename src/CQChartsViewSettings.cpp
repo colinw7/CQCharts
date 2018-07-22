@@ -454,6 +454,30 @@ CQChartsViewSettings(CQChartsWindow *window) :
 
   //----
 
+  // Layers Tab
+  QFrame *layersFrame = new QFrame;
+  layersFrame->setObjectName("layersFrame");
+
+  tab_->addTab(layersFrame, "Layers");
+
+  QVBoxLayout *layersFrameLayout = new QVBoxLayout(layersFrame);
+
+  layersWidgets_.layerTable = new QTableWidget;
+  layersWidgets_.layerTable->setObjectName("layerTable");
+
+  layersWidgets_.layerTable->horizontalHeader()->setStretchLastSection(true);
+
+  layersWidgets_.layerTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  layersFrameLayout->addWidget(layersWidgets_.layerTable);
+
+  connect(layersWidgets_.layerTable, SIGNAL(itemSelectionChanged()),
+          this, SLOT(layersSelectionChangeSlot()));
+  connect(layersWidgets_.layerTable, SIGNAL(cellClicked(int, int)),
+          this, SLOT(layersClickedSlot(int, int)));
+
+  //----
+
   updateModels();
 }
 
@@ -538,6 +562,16 @@ CQChartsViewSettings::
 updateCurrentPlot()
 {
   CQChartsView *view = window_->view();
+  assert(view);
+
+  if (plotId_.length()) {
+    CQChartsPlot *plot = view->getPlot(plotId_);
+
+    if (plot)
+      disconnect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+  }
+
+  //---
 
   int ind = view->currentPlotInd();
 
@@ -552,6 +586,19 @@ updateCurrentPlot()
 
     item->setSelected(ind1 == ind);
   }
+
+  //---
+
+  CQChartsPlot *plot = view->currentPlot();
+
+  plotId_ = (plot ? plot->id() : "");
+
+  if (plot)
+    connect(plot, SIGNAL(layersChanged()), this, SLOT(updateLayers()));
+
+  //---
+
+  updateLayers();
 }
 
 CQChartsPlot *
@@ -585,6 +632,75 @@ getSelectedPlots(Plots &plots) const
     CQChartsPlot *plot = view->getPlot(id);
 
     plots.push_back(plot);
+  }
+}
+
+void
+CQChartsViewSettings::
+updateLayers()
+{
+  int l1 = (int) CQChartsLayer::firstLayer();
+  int l2 = (int) CQChartsLayer::lastLayer ();
+
+  if (layersWidgets_.layerTable->rowCount() == 0) {
+    layersWidgets_.layerTable->clear();
+
+    layersWidgets_.layerTable->setColumnCount(2);
+    layersWidgets_.layerTable->setRowCount(l2 - l1 + 1);
+
+    layersWidgets_.layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
+    layersWidgets_.layerTable->setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
+
+    for (int l = l1; l <= l2; ++l) {
+      int i = l - l1;
+
+      CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+
+      QString name = CQChartsLayer::typeName(type);
+
+      QTableWidgetItem *idItem = new QTableWidgetItem(name);
+
+      layersWidgets_.layerTable->setItem(i, 0, idItem);
+
+      idItem->setData(Qt::UserRole, l);
+
+      QTableWidgetItem *stateItem = new QTableWidgetItem("");
+
+    //stateItem->setFlags(stateItem->flags() | Qt::ItemIsEnabled);
+      stateItem->setFlags(stateItem->flags() | Qt::ItemIsUserCheckable);
+    //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
+
+      layersWidgets_.layerTable->setItem(i, 1, stateItem);
+    }
+  }
+
+  //---
+
+  CQChartsView *view = window_->view();
+
+  CQChartsPlot *plot = view->currentPlot();
+
+  if (! plot)
+    return;
+
+  for (int l = l1; l <= l2; ++l) {
+    int i = l - l1;
+
+    CQChartsLayer::Type type = (CQChartsLayer::Type) l;
+
+    CQChartsLayer *layer = plot->getLayer(type);
+
+//  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
+    QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
+
+    QStringList states;
+
+    if (layer && layer->isActive()) states += "active";
+    if (layer && layer->isValid ()) states += "valid";
+
+    stateItem->setText(states.join("|"));
+
+    stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
   }
 }
 
@@ -729,6 +845,43 @@ plotsSelectionChangeSlot()
   plotsWidgets_.lowerButton->setEnabled(plots.size() == 1);
 
   plotsWidgets_.removeButton->setEnabled(plots.size() > 0);
+}
+
+void
+CQChartsViewSettings::
+layersSelectionChangeSlot()
+{
+}
+
+void
+CQChartsViewSettings::
+layersClickedSlot(int row, int column)
+{
+  if (column != 1)
+    return;
+
+  CQChartsView *view = window_->view();
+  assert(view);
+
+  CQChartsPlot *plot = view->currentPlot();
+  if (! plot) return;
+
+  QTableWidgetItem *nameItem = layersWidgets_.layerTable->item(row, 0);
+
+  QString name = nameItem->text();
+
+  CQChartsLayer::Type type = CQChartsLayer::nameType(name);
+
+  CQChartsLayer *layer = plot->getLayer(type);
+  if (! layer) return;
+
+  QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(row, 1);
+
+  bool active = (stateItem->checkState() == Qt::Checked);
+
+  plot->setLayerActive(type, active);
+
+  plot->invalidateLayer(type);
 }
 
 void

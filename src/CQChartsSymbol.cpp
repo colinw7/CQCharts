@@ -22,6 +22,8 @@ typeToName(CQChartsSymbol::Type type)
     case CQChartsSymbol::Type::CIRCLE:    return "circle";
     case CQChartsSymbol::Type::PENTAGON:  return "pentagon";
     case CQChartsSymbol::Type::IPENTAGON: return "ipentagon";
+    case CQChartsSymbol::Type::HLINE:     return "hline";
+    case CQChartsSymbol::Type::VLINE:     return "vline";
     default:                              return "none";
   }
 }
@@ -46,6 +48,8 @@ nameToType(const QString &str)
   if (lstr == "circle"   ) return CQChartsSymbol::Type::CIRCLE;
   if (lstr == "pentagon" ) return CQChartsSymbol::Type::PENTAGON;
   if (lstr == "ipentagon") return CQChartsSymbol::Type::IPENTAGON;
+  if (lstr == "hline"    ) return CQChartsSymbol::Type::HLINE;
+  if (lstr == "vline"    ) return CQChartsSymbol::Type::VLINE;
 
   return CQChartsSymbol::Type::NONE;
 }

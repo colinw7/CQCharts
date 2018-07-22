@@ -61,6 +61,9 @@ calc()
 {
   int nx = xvals_.size();
 
+  if (nx < 2)
+    return;
+
   double xmin = 0, xmax = 0;
 
   for (int i = 0; i < nx; ++i) {

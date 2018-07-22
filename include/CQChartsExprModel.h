@@ -182,6 +182,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QVariant normCmd     (const Values &values) const;
   QVariant keyCmd      (const Values &values) const;
   QVariant randCmd     (const Values &values) const;
+  QVariant rnormCmd    (const Values &values) const;
   QVariant concatCmd   (const Values &values) const;
   QVariant colorCmd    (const Values &values) const;
 

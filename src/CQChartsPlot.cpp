@@ -357,7 +357,14 @@ selectionSlot()
 
   view()->updateSelText();
 
-  invalidateLayer(CQChartsLayer::Type::SELECTION);
+  invalidateLayer(CQChartsLayer::Type::SELECTION );
+  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+
+  if (selectInvalidateObjs()) {
+    invalidateLayer(CQChartsLayer::Type::BG_PLOT );
+    invalidateLayer(CQChartsLayer::Type::MID_PLOT);
+    invalidateLayer(CQChartsLayer::Type::FG_PLOT );
+  }
 }
 
 //---
@@ -1979,7 +1986,16 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
     endSelect();
 
-    invalidateLayer(CQChartsLayer::Type::SELECTION);
+    //---
+
+    invalidateLayer(CQChartsLayer::Type::SELECTION );
+    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+
+    if (selectInvalidateObjs()) {
+      invalidateLayer(CQChartsLayer::Type::BG_PLOT );
+      invalidateLayer(CQChartsLayer::Type::MID_PLOT);
+      invalidateLayer(CQChartsLayer::Type::FG_PLOT );
+    }
   }
 
   //---
@@ -2017,8 +2033,10 @@ selectMove(const CQChartsGeom::Point &w, bool first)
 
     objText = insidePlotObjectText();
 
-    if (changed)
+    if (changed) {
       invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+      invalidateLayer(CQChartsLayer::Type::SELECTION );
+    }
   }
 
   //---
@@ -2597,7 +2615,16 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
 
     endSelect();
 
-    invalidateLayer(CQChartsLayer::Type::SELECTION);
+    //---
+
+    invalidateLayer(CQChartsLayer::Type::SELECTION );
+    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+
+    if (selectInvalidateObjs()) {
+      invalidateLayer(CQChartsLayer::Type::BG_PLOT );
+      invalidateLayer(CQChartsLayer::Type::MID_PLOT);
+      invalidateLayer(CQChartsLayer::Type::FG_PLOT );
+    }
   }
 
   //---
@@ -2836,7 +2863,8 @@ cycleNextPrev(bool prev)
 
     view_->setStatusText(objText);
 
-    invalidateLayer(CQChartsLayer::Type::SELECTION);
+    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+    invalidateLayer(CQChartsLayer::Type::SELECTION );
   }
 }
 
@@ -3179,14 +3207,18 @@ updateKeyPosition(bool force)
 
 //------
 
-void
+bool
 CQChartsPlot::
 printLayer(CQChartsLayer::Type type, const QString &filename)
 {
   CQChartsLayer *layer = getLayer(type);
 
-  if (layer->image())
-    layer->image()->save(filename);
+  if (! layer->image())
+    return false;
+
+  layer->image()->save(filename);
+
+  return true;
 }
 
 void
@@ -3677,6 +3709,8 @@ setLayerActive(const CQChartsLayer::Type &layerType, bool b)
   CQChartsLayer *layer = getLayer(layerType);
 
   layer->setActive(b);
+
+  emit layersChanged();
 }
 
 bool
@@ -3708,6 +3742,8 @@ invalidateLayers()
       layer.second->setValid(false);
   }
 
+  emit layersChanged();
+
   fromInvalidate_ = true;
 
   update();
@@ -3721,6 +3757,8 @@ invalidateLayer(const CQChartsLayer::Type &layerType)
   CQChartsLayer *layer = getLayer(layerType);
 
   layer->setValid(false);
+
+  emit layersChanged();
 
   fromInvalidate_ = true;
 
@@ -3750,20 +3788,29 @@ void
 CQChartsPlot::
 drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
+#if 0
   if (! isLayerActive(layerType))
     return;
+#endif
 
   //---
+
+  drawLayer_ = layerType;
 
   CQChartsLayer *layer = getLayer(layerType);
 
   QPainter *painter1 = painter;
 
+#if 0
+  // always draw selection and mouse over direct to painter (no buffer)
   if (layerType == CQChartsLayer::Type::BG_PLOT  ||
       layerType == CQChartsLayer::Type::MID_PLOT ||
       layerType == CQChartsLayer::Type::FG_PLOT) {
     painter1 = beginPaint(layer, painter);
   }
+#else
+  painter1 = beginPaint(layer, painter);
+#endif
 
   //---
 
@@ -3791,8 +3838,16 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
         plotObj->drawBg(painter1);
       else if (layerType == CQChartsLayer::Type::FG_PLOT)
         plotObj->drawFg(painter1);
-      else
+      else if (layerType == CQChartsLayer::Type::MID_PLOT)
         plotObj->draw(painter1);
+      else if (layerType == CQChartsLayer::Type::SELECTION) {
+        plotObj->draw  (painter1);
+        plotObj->drawFg(painter1);
+      }
+      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+        plotObj->draw  (painter1);
+        plotObj->drawFg(painter1);
+      }
     }
 
     painter1->restore();
@@ -3800,11 +3855,15 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 
   //---
 
+#if 0
   if (layerType == CQChartsLayer::Type::BG_PLOT  ||
       layerType == CQChartsLayer::Type::MID_PLOT ||
       layerType == CQChartsLayer::Type::FG_PLOT) {
     endPaint(layer);
   }
+#else
+  endPaint(layer);
+#endif
 }
 
 void
@@ -4051,15 +4110,17 @@ drawBoxes(QPainter *painter)
 
   //---
 
-  CQChartsGeom::BBox bbox = fitBBox();
+  if (painter1) {
+    CQChartsGeom::BBox bbox = fitBBox();
 
-  drawWindowColorBox(painter1, bbox);
+    drawWindowColorBox(painter1, bbox);
 
-  drawWindowColorBox(painter1, dataFitBBox   ());
-  drawWindowColorBox(painter1, axesFitBBox   ());
-  drawWindowColorBox(painter1, keyFitBBox    ());
-  drawWindowColorBox(painter1, titleFitBBox  ());
-  drawWindowColorBox(painter1, annotationBBox());
+    drawWindowColorBox(painter1, dataFitBBox   ());
+    drawWindowColorBox(painter1, axesFitBBox   ());
+    drawWindowColorBox(painter1, keyFitBBox    ());
+    drawWindowColorBox(painter1, titleFitBBox  ());
+    drawWindowColorBox(painter1, annotationBBox());
+  }
 
   //---
 
@@ -4099,12 +4160,21 @@ QPainter *
 CQChartsPlot::
 beginPaint(CQChartsLayer *layer, QPainter *painter)
 {
+  drawLayer_ = layer->type();
+
   if (! view_->isBufferLayers())
     return painter;
 
+  // resize and clear
   QRectF rect = CQChartsUtil::toQRect(calcPixelRect());
 
-  return layer->beginPaint(painter, rect);
+  QPainter *painter1 = layer->beginPaint(painter, rect);
+
+  // don't paint if not active
+  if (! layer->isActive())
+    return nullptr;
+
+  return painter1;
 }
 
 void
@@ -4246,7 +4316,7 @@ drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
                 const QPen &pen, const CQChartsTextOptions &options) const
 {
   if (CQChartsUtil::isZero(options.angle)) {
-    QFontMetricsF fm(painter->font());
+    QFontMetricsF fm = painter->fontMetrics();
 
     double tw = fm.width(text);
     double ta = fm.ascent();
@@ -4436,24 +4506,37 @@ void
 CQChartsPlot::
 updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
 {
-  // inside and selected
-  if      (obj->isInside() && obj->isSelected()) {
-    updateSelectedObjPenBrushState(pen, brush);
-    updateInsideObjPenBrushState  (pen, brush);
+  if (! view_->isBufferLayers()) {
+    if      (obj->isInside() && obj->isSelected()) {
+      updateSelectedObjPenBrushState(pen, brush);
+      updateInsideObjPenBrushState  (pen, brush, false);
+    }
+    // inside
+    else if (obj->isInside()) {
+      updateInsideObjPenBrushState(pen, brush);
+    }
+    // selected
+    else if (obj->isSelected()) {
+      updateSelectedObjPenBrushState(pen, brush);
+    }
   }
-  // inside
-  else if (obj->isInside()) {
-    updateInsideObjPenBrushState(pen, brush);
-  }
-  // selected
-  else if (obj->isSelected()) {
-    updateSelectedObjPenBrushState(pen, brush);
+  else {
+    // inside
+    if      (drawLayer_ == CQChartsLayer::Type::MOUSE_OVER) {
+      if (obj->isInside())
+        updateInsideObjPenBrushState(pen, brush);
+    }
+    // selected
+    else if (drawLayer_ == CQChartsLayer::Type::SELECTION) {
+      if (obj->isSelected())
+        updateSelectedObjPenBrushState(pen, brush);
+    }
   }
 }
 
 void
 CQChartsPlot::
-updateInsideObjPenBrushState(QPen &pen, QBrush &brush) const
+updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
 {
   // fill and stroke
   if (brush.style() != Qt::NoBrush) {
@@ -4483,6 +4566,9 @@ updateInsideObjPenBrushState(QPen &pen, QBrush &brush) const
 
       pen.setColor(opc);
       pen.setWidthF(view()->insideStrokeWidth());
+
+      if (outline)
+        brush.setStyle(Qt::NoBrush);
     }
     else {
       QColor bc = brush.color();
@@ -4553,6 +4639,8 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
 
       pen.setColor(opc);
       pen.setWidthF(view()->selectedStrokeWidth());
+
+      brush.setStyle(Qt::NoBrush);
     }
     else {
       QColor bc = brush.color();
@@ -4564,7 +4652,10 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
       else
         ibc = selectedColor(bc);
 
-      ibc.setAlphaF(bc.alphaF());
+      if (view_->isBufferLayers())
+        ibc.setAlphaF(0.5*bc.alphaF());
+      else
+        ibc.setAlphaF(bc.alphaF());
 
       brush.setColor(ibc);
     }
@@ -4600,6 +4691,7 @@ QColor
 CQChartsPlot::
 selectedColor(const QColor &c) const
 {
+  //return CQChartsUtil::blendColors(c, CQChartsUtil::invColor(CQChartsUtil::bwColor(c)), 0.6);
   return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
 }
 
@@ -6204,6 +6296,13 @@ CQChartsPlot::
 pixelToSignedWindowHeight(double wh) const
 {
   return -CQChartsUtil::sign(wh)*pixelToWindowHeight(wh);
+}
+
+double
+CQChartsPlot::
+pixelToWindowSize(double ps, bool horizontal) const
+{
+  return (horizontal ? pixelToWindowWidth(ps) : pixelToWindowHeight(ps));
 }
 
 double

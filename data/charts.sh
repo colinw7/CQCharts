@@ -19,6 +19,9 @@ while ($#argv > 0)
   else if ("$1" == "-timer") then
     set timer = 1
     shift
+  else if ("$1" == "-h" || "$1" == "-help") then
+    echo "charts.sh -dbx|-valgrind|-loop|-timer <script>"
+    exit 1
   else
     set args = ($args $1)
     shift

@@ -153,12 +153,7 @@ CQBucketer::
 bucketName(int bucket, bool utfArrow) const
 {
   if      (type() == Type::STRING) {
-    auto p = indString_.find(bucket);
-
-    if (p == indString_.end())
-      return "";
-
-    return (*p).second;
+    return bucketString(bucket);
   }
   else if (type() == Type::INTEGER_RANGE) {
     int imin = 0, imax = 0;
@@ -273,6 +268,18 @@ stringBucket(const QString &str) const
 
     indString_[ind] = str;
   }
+
+  return p->second;
+}
+
+QString
+CQBucketer::
+bucketString(int bucket) const
+{
+  auto p = indString_.find(bucket);
+
+  if (p == indString_.end())
+    return "";
 
   return p->second;
 }

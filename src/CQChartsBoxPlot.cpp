@@ -713,7 +713,7 @@ addProperties()
   CQChartsGroupPlot::addProperties();
 
   // connect multiple whiskers
-  addProperty("options", this, "connected" , "connected" );
+  addProperty("options", this, "connected", "connected");
 
   addProperty("options", this, "horizontal"  , "horizontal"  );
   addProperty("options", this, "normalized"  , "normalized"  );
@@ -730,7 +730,7 @@ addProperties()
   addLineProperties("box/stroke", "border");
 
   // whisker box fill
-  addProperty("box/fill", this, "boxFilled" , "visible");
+  addProperty("box/fill", this, "boxFilled", "visible");
 
   addFillProperties("box/fill", "box");
 
@@ -1418,7 +1418,7 @@ initRawObjs()
             }
 
             CQChartsBoxPlotPointObj *pointObj =
-              new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos,
+              new CQChartsBoxPlotPointObj(this, rect, setId, groupInd, pos, value.ind,
                                           ig, ng, is, ns, iv, nv);
 
             addPlotObject(pointObj);
@@ -2677,10 +2677,10 @@ addVBBox(CQChartsGeom::BBox &pbbox, double yb, double yt, double x,
 
 CQChartsBoxPlotPointObj::
 CQChartsBoxPlotPointObj(CQChartsBoxPlot *plot, const CQChartsGeom::BBox &rect,
-                        int setId, int groupInd, const QPointF &p,
+                        int setId, int groupInd, const QPointF &p, const QModelIndex &ind,
                         int ig, int ng, int is, int ns, int iv, int nv) :
  CQChartsPlotObj(plot, rect), plot_(plot), setId_(setId), groupInd_(groupInd), p_(p),
- ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
+ ind_(ind), ig_(ig), ng_(ng), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
   assert(ig >= 0 && ig < ng);
   assert(is >= 0 && is < ns);
@@ -2726,14 +2726,18 @@ inside(const CQChartsGeom::Point &p) const
 
 void
 CQChartsBoxPlotPointObj::
-getSelectIndices(Indices &) const
+getSelectIndices(Indices &inds) const
 {
+  addColumnSelectIndex(inds, ind_.column());
 }
 
 void
 CQChartsBoxPlotPointObj::
-addColumnSelectIndex(Indices &, const CQChartsColumn &) const
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
 {
+  if (column.isValid()) {
+    addSelectIndex(inds, ind_.row(), column, ind_.parent());
+  }
 }
 
 void

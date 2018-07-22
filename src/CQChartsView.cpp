@@ -128,7 +128,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 CQChartsView::
 ~CQChartsView()
 {
-  charts_->removeView(this);
+  if (charts_)
+    charts_->removeView(this);
 
   //---
 
@@ -406,7 +407,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
 {
   CQChartsGeom::BBox bbox1 = bbox;
 
-  if (! bbox.isSet())
+  if (! bbox1.isSet())
     bbox1 = CQChartsGeom::BBox(0, 0, viewportRange(), viewportRange());
 
   if (! plot->id().length()) {

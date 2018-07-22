@@ -43,7 +43,7 @@ class CQChartsExprModelTclFn {
     return TCL_OK;
   }
 
-  virtual QVariant exec(const Vars &vars) = 0;
+  QVariant exec(const Vars &vars) { return model_->processCmd(name_, vars); }
 
   bool checkColumn(int col) const { return model_->checkColumn(col); }
 

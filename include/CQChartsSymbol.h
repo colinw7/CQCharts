@@ -19,7 +19,9 @@ class CQChartsSymbol {
     STAR6,
     CIRCLE,
     PENTAGON,
-    IPENTAGON
+    IPENTAGON,
+    HLINE,
+    VLINE
   };
 
  public:
@@ -28,8 +30,8 @@ class CQChartsSymbol {
   static QString typeToName(Type type);
   static Type nameToType(const QString &str);
 
-  static int minValue() { return (int) Type::DOT      ; }
-  static int maxValue() { return (int) Type::IPENTAGON; }
+  static int minValue() { return (int) Type::DOT  ; }
+  static int maxValue() { return (int) Type::VLINE; }
 
  public:
   CQChartsSymbol() = default;

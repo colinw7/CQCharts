@@ -99,7 +99,7 @@ addSelectIndex(Indices &inds, const QModelIndex &ind) const
 //------
 
 CQChartsGroupObj::
-CQChartsGroupObj(CQChartsPlot *plot) :
- CQChartsPlotObj(plot, CQChartsGeom::BBox(0, 0, 1, 1))
+CQChartsGroupObj(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox) :
+ CQChartsPlotObj(plot, bbox)
 {
 }

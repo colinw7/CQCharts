@@ -238,6 +238,8 @@ class CQChartsPlot : public QObject {
 
   using Plots = std::vector<CQChartsPlot*>;
 
+  using Layers = std::map<CQChartsLayer::Type,CQChartsLayer *>;
+
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
 
@@ -833,6 +835,8 @@ class CQChartsPlot : public QObject {
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
 
+  double pixelToWindowSize(double ps, bool horizontal) const;
+
   double pixelToWindowWidth (double pw) const;
   double pixelToWindowHeight(double ph) const;
 
@@ -925,11 +929,11 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  const PlotObjs &plotObjects() const { return plotObjs_; }
+
   int numPlotObjects() const { return plotObjs_.size(); }
 
   CQChartsPlotObj *plotObject(int i) const { return plotObjs_[i]; }
-
-  const PlotObjs &plotObjects() const { return plotObjs_; }
 
   bool isNoData() const { return noData_; }
   void setNoData(bool b) { noData_ = b; }
@@ -1111,6 +1115,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  const Layers &layers() const { return layers_; }
+
   void setLayerActive(const CQChartsLayer::Type &type, bool b);
 
   bool isLayerActive(const CQChartsLayer::Type &type) const;
@@ -1157,6 +1163,10 @@ class CQChartsPlot : public QObject {
 
   // draw edit handles
   virtual void drawEditHandles(QPainter *painter);
+
+  //---
+
+  virtual bool selectInvalidateObjs() const { return false; }
 
   //---
 
@@ -1212,7 +1222,7 @@ class CQChartsPlot : public QObject {
 
   void updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
 
-  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush) const;
+  void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true) const;
   void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const;
 
   QColor insideColor(const QColor &c) const;
@@ -1288,7 +1298,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void printLayer(CQChartsLayer::Type type, const QString &filename);
+  bool printLayer(CQChartsLayer::Type type, const QString &filename);
 
  protected slots:
   void animateSlot();
@@ -1309,6 +1319,8 @@ class CQChartsPlot : public QObject {
 
  signals:
   void modelChanged();
+
+  void layersChanged();
 
   void connectDataChanged();
 
@@ -1340,7 +1352,6 @@ class CQChartsPlot : public QObject {
   void objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const;
 
  protected:
-  using Layers          = std::map<CQChartsLayer::Type,CQChartsLayer *>;
   using IdHidden        = std::map<int,bool>;
   using Rows            = std::set<int>;
   using ColumnRows      = std::map<int,Rows>;
@@ -1441,6 +1452,7 @@ class CQChartsPlot : public QObject {
   MouseData                 mouseData_;                       // mouse event data
   AnimateData               animateData_;                     // animation data
   Layers                    layers_;                          // draw layers
+  CQChartsLayer::Type       drawLayer_;                       // objects draw layer
   IdHidden                  idHidden_;                        // hidden object ids
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection            itemSelection_;                   // selected model indices

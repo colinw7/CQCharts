@@ -80,6 +80,8 @@ class CQChartsPlotSymbolRenderer {
 
   virtual void drawPoint(double x, double y) = 0;
 
+  virtual void drawLine(double x1, double y1, double x2, double y2) = 0;
+
   virtual void strokeCircle(double x, double y, double r) = 0;
   virtual void fillCircle  (double x, double y, double r) = 0;
 
@@ -113,6 +115,8 @@ class CQChartsSymbol2DRenderer : public CQChartsPlotSymbolRenderer {
   void fill() override;
 
   void drawPoint(double x, double y) override;
+
+  void drawLine(double x1, double y1, double x2, double y2) override;
 
   void strokeCircle(double x, double y, double r) override;
 

@@ -34,7 +34,24 @@ class RealInRange {
  private:
   std::random_device                     rd_;
   std::default_random_engine             eng_;
+//std::mt19937                           mt_; // mersine twister
   std::uniform_real_distribution<double> rdis_;
+};
+
+class NormalRealInRange {
+ public:
+  NormalRealInRange(double mean, double stddev) :
+   eng_(rd_()), rdis_(mean, stddev) {
+  }
+
+  double gen() {
+    return rdis_(eng_);
+  }
+
+ private:
+  std::random_device               rd_;
+  std::default_random_engine       eng_;
+  std::normal_distribution<double> rdis_;
 };
 
 }

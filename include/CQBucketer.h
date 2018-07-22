@@ -96,6 +96,7 @@ class CQBucketer {
   //----
 
   int stringBucket(const QString &str) const;
+  QString bucketString(int bucket) const;
 
   int intBucket(int i) const;
 
@@ -137,7 +138,6 @@ class CQBucketer {
   // cached data
   mutable bool      needsCalc_ { true }; // needs auto calc
   mutable double    calcMin_   { 0.0 };  // calculated min value
-  mutable double    calcMax_   { 1.0 };  // calculated max value
   mutable double    calcDelta_ { 1.0 };  // calculated delta value
   mutable StringInd stringInd_;          // string to ind map
   mutable IndString indString_;          // ind to string map

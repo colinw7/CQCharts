@@ -39,10 +39,18 @@ class CQChartsPlotSymbolList {
       return;
     }
 
-    //---
-
     if (type == CQChartsSymbol::Type::CIRCLE) {
       renderer->strokeCircle(0, 0, 1);
+      return;
+    }
+
+    if (type == CQChartsSymbol::Type::HLINE) {
+      renderer->drawLine(-1, 0, 1, 0);
+      return;
+    }
+
+    if (type == CQChartsSymbol::Type::VLINE) {
+      renderer->drawLine(0, -1, 0, 1);
       return;
     }
 
@@ -108,6 +116,16 @@ class CQChartsPlotSymbolList {
       else
         renderer->strokeCircle(0, 0, 1);
 
+      return;
+    }
+
+    if (type == CQChartsSymbol::Type::HLINE) {
+      renderer->drawLine(-1, 0, 1, 0);
+      return;
+    }
+
+    if (type == CQChartsSymbol::Type::VLINE) {
+      renderer->drawLine(0, -1, 0, 1);
       return;
     }
 
@@ -449,6 +467,22 @@ drawPoint(double x, double y)
   painter_->setPen(strokePen_);
 
   painter_->drawPoint(p);
+
+  painter_->restore();
+}
+
+void
+CQChartsSymbol2DRenderer::
+drawLine(double x1, double y1, double x2, double y2)
+{
+  QPointF p1(p_.x + x1*s_, p_.y + y1*s_);
+  QPointF p2(p_.x + x2*s_, p_.y + y2*s_);
+
+  painter_->save();
+
+  painter_->setPen(strokePen_);
+
+  painter_->drawLine(p1, p2);
 
   painter_->restore();
 }

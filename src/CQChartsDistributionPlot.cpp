@@ -52,6 +52,8 @@ addParameters()
   addBoolParameter("skipEmpty" , "SkipEmpty" , "skipEmpty" ).setTip("skip empty buckets");
   addBoolParameter("rangeBar"  , "RangeBar"  , "rangeBar"  ).setTip("show value range");
   addBoolParameter("density"   , "Density"   , "density"   ).setTip("show density");
+  addBoolParameter("dotLines"  , "DotLines"  , "dotLines"  ).setTip("draw bars as lines with dot");
+  addBoolParameter("rug"       , "Rug"       , "rug"       ).setTip("draw rug points");
 
   endParameterGroup();
 
@@ -124,6 +126,84 @@ setNameColumn(const CQChartsColumn &c)
 
 //---
 
+bool
+CQChartsDistributionPlot::
+isAutoBucket() const
+{
+  return (bucketer_.type() == CQBucketer::Type::REAL_AUTO);
+}
+
+void
+CQChartsDistributionPlot::
+setAutoBucket(bool b)
+{
+  bucketer_.setType(b ? CQBucketer::Type::REAL_AUTO : CQBucketer::Type::REAL_RANGE);
+
+  for (auto &ib : groupBucketer_)
+    ib.second.setType(bucketer_.type());
+
+  updateRangeAndObjs();
+}
+
+double
+CQChartsDistributionPlot::
+startBucketValue() const
+{
+  return bucketer_.rstart();
+}
+
+void
+CQChartsDistributionPlot::
+setStartBucketValue(double r)
+{
+  bucketer_.setRStart(r);
+
+  for (auto &ib : groupBucketer_)
+    ib.second.setRStart(r);
+
+  updateRangeAndObjs();
+}
+
+double
+CQChartsDistributionPlot::
+deltaBucketValue() const
+{
+  return bucketer_.rdelta();
+}
+
+void
+CQChartsDistributionPlot::
+setDeltaBucketValue(double r)
+{
+  bucketer_.setRDelta(r);
+
+  for (auto &ib : groupBucketer_)
+    ib.second.setRDelta(r);
+
+  updateRangeAndObjs();
+}
+
+int
+CQChartsDistributionPlot::
+numAutoBuckets() const
+{
+  return bucketer_.numAuto();
+}
+
+void
+CQChartsDistributionPlot::
+setNumAutoBuckets(int i)
+{
+  bucketer_.setNumAuto(i);
+
+  for (auto &ib : groupBucketer_)
+    ib.second.setNumAuto(i);
+
+  updateRangeAndObjs();
+}
+
+//---
+
 void
 CQChartsDistributionPlot::
 addProperties()
@@ -146,7 +226,18 @@ addProperties()
   addProperty("options", this, "skipEmpty");
   addProperty("options", this, "rangeBar" );
   addProperty("options", this, "density"  );
-  addProperty("options", this, "showMean" );
+
+  addProperty("meanLine"     , this, "showMean", "visible");
+  addProperty("meanLine/line", this, "meanDash", "dash"   );
+
+  addProperty("dotLines",        this, "dotLines"     , "enabled");
+  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
+  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   );
+  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   );
+
+  addProperty("rug"       , this, "rug"          , "enabled");
+  addProperty("rug/symbol", this, "rugSymbolType", "type"   );
+  addProperty("rug/symbol", this, "rugSymbolSize", "size"   );
 
   CQChartsGroupPlot::addProperties();
 
@@ -199,6 +290,75 @@ setDensity(bool b)
 
 void
 CQChartsDistributionPlot::
+setDotLines(bool b)
+{
+  CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDotLineWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDotSymbolType(const CQChartsSymbol &s)
+{
+  CQChartsUtil::testAndSet(dotSymbolType_, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDotSymbolSize(double r)
+{
+  CQChartsUtil::testAndSet(dotSymbolSize_, r, [&]() { invalidateLayers(); } );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+setRug(bool b)
+{
+  CQChartsUtil::testAndSet(rug_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setRugSymbolType(const CQChartsSymbol &s)
+{
+  CQChartsUtil::testAndSet(rugSymbolType_, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setRugSymbolSize(double r)
+{
+  CQChartsUtil::testAndSet(rugSymbolSize_, r, [&]() { invalidateLayers(); } );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+setShowMean(bool b)
+{
+  CQChartsUtil::testAndSet(showMean_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setMeanDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(meanDash_, d, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
 updateRange(bool apply)
 {
   dataRange_.reset();
@@ -239,20 +399,22 @@ updateRange(bool apply)
 
   // bucket values in groups
   for (auto &groupValues : groupValues_) {
-  //int     groupInd = groupValues.first;
+    int     groupInd = groupValues.first;
     Values *values   = groupValues.second;
+
+    CQBucketer &bucketer = groupBucketer(groupInd);
 
     CQChartsValueSet::Type type = values->valueSet->type();
 
     if      (type == CQChartsValueSet::Type::INTEGER) {
-      bucketer_.setIntegral(true);
-      bucketer_.setIMin    (values->valueSet->imin());
-      bucketer_.setIMax    (values->valueSet->imax());
+      bucketer.setIntegral(true);
+      bucketer.setIMin    (values->valueSet->imin());
+      bucketer.setIMax    (values->valueSet->imax());
     }
     else if (type == CQChartsValueSet::Type::REAL) {
-      bucketer_.setIntegral(false);
-      bucketer_.setRMin    (values->valueSet->rmin());
-      bucketer_.setRMax    (values->valueSet->rmax());
+      bucketer.setIntegral(false);
+      bucketer.setRMin    (values->valueSet->rmin());
+      bucketer.setRMax    (values->valueSet->rmax());
     }
 
     for (auto &ind : values->inds) {
@@ -266,21 +428,21 @@ updateRange(bool apply)
           double r = modelReal(ind.row, ind.column, ind.parent, ok);
           if (! ok || CQChartsUtil::isNaN(r)) continue;
 
-          bucket = calcBucket(r);
+          bucket = calcBucket(groupInd, r);
           value  = QVariant(r);
         }
         else if (type == CQChartsValueSet::Type::INTEGER) {
           int i = modelInteger(ind.row, ind.column, ind.parent, ok);
           if (! ok) continue;
 
-          bucket = calcBucket(i);
+          bucket = calcBucket(groupInd, i);
           value  = QVariant(i);
         }
         else {
           QString str = modelString(ind.row, ind.column, ind.parent, ok);
           if (! ok) continue;
 
-          bucket = bucketer_.stringBucket(str);
+          bucket = bucketer.stringBucket(str);
           value  = QVariant(str);
         }
       }
@@ -311,6 +473,10 @@ updateRange(bool apply)
   for (auto &groupValues : groupValues_) {
     int     groupInd = groupValues.first;
     Values *values   = groupValues.second;
+
+    const CQChartsRValues &rvals = values->valueSet->rvals();
+
+    values->mean = rvals.mean();
 
     if (! isDensity()) {
       for (auto &bucketValues : values->bucketValues) {
@@ -348,8 +514,6 @@ updateRange(bool apply)
       }
     }
     else {
-      const CQChartsRValues &rvals = values->valueSet->rvals();
-
       values->densityData.setNumSamples(100);
 
       std::vector<double> xvals;
@@ -363,10 +527,14 @@ updateRange(bool apply)
 
       const CQChartsDensity::Points &opoints = values->densityData.opoints();
 
-      for (const auto &p : opoints)
-        densityBBox.add(p.x(), p.y());
-
-      values->mean = rvals.mean();
+      if (! isHorizontal()) {
+        for (const auto &p : opoints)
+          densityBBox.add(p.x(), p.y());
+      }
+      else {
+        for (const auto &p : opoints)
+          densityBBox.add(p.y(), p.x());
+      }
     }
   }
 
@@ -429,8 +597,14 @@ updateRange(bool apply)
     }
   }
   else {
-    dataRange_.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
-    dataRange_.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
+    if (densityBBox.isSet()) {
+      dataRange_.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
+      dataRange_.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
+    }
+    else {
+      dataRange_.updateRange(0, 0);
+      dataRange_.updateRange(1, 1);
+    }
   }
 
   //---
@@ -499,16 +673,38 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
+  // add data labels
   CQChartsDataLabel::Position position = dataLabel().position();
 
-  if (position != CQChartsDataLabel::TOP_OUTSIDE && position != CQChartsDataLabel::BOTTOM_OUTSIDE)
-    return bbox;
+  if (position == CQChartsDataLabel::TOP_OUTSIDE ||
+      position == CQChartsDataLabel::BOTTOM_OUTSIDE) {
+    for (const auto &plotObj : plotObjs_) {
+      CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
 
-  for (const auto &plotObj : plotObjs_) {
-    CQChartsDistributionBarObj *barObj = dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+      if (barObj)
+        bbox += barObj->dataLabelRect();
+    }
+  }
 
-    if (barObj)
-      bbox += barObj->dataLabelRect();
+  // add rug symbols
+  if (isRug()) {
+    const CQChartsGeom::Range &dataRange = this->dataRange();
+
+    double ss = pixelToWindowSize(rugSymbolSize(), isHorizontal());
+
+    QPointF p1, p2;
+
+    if (! isHorizontal()) {
+      p1 = QPointF(dataRange.xmin(), dataRange.ymin()       );
+      p2 = QPointF(dataRange.xmax(), dataRange.ymin() - 2*ss);
+    }
+    else {
+      p1 = QPointF(dataRange.xmin()       , dataRange.ymin());
+      p2 = QPointF(dataRange.xmin() - 2*ss, dataRange.ymax());
+    }
+
+    bbox += CQChartsUtil::fromQPoint(p1);
+    bbox += CQChartsUtil::fromQPoint(p2);
   }
 
   return bbox;
@@ -542,19 +738,21 @@ checkFilter(int groupInd, const QVariant &value) const
 
 int
 CQChartsDistributionPlot::
-calcBucket(double value) const
+calcBucket(int groupInd, double value) const
 {
+  CQBucketer &bucketer = groupBucketer(groupInd);
+
   if (filterStack_.empty()) {
     if (! isBucketed())
       return -1;
 
     if (isAutoBucket())
-      return bucketer_.autoRealBucket(value);
+      return bucketer.autoRealBucket(value);
     else
-      return bucketer_.realBucket(value);
+      return bucketer.realBucket(value);
   }
   else {
-    return bucketer_.autoRealBucket(value);
+    return bucketer.autoRealBucket(value);
   }
 }
 
@@ -647,6 +845,9 @@ initObjs()
         double n1, n2;
 
         if (isRangeBar()) {
+          if (! isNumeric)
+            continue;
+
           n1 = varsData.min;
           n2 = varsData.max;
         }
@@ -690,7 +891,7 @@ initObjs()
         }
         else if (isNumeric) {
           if (valueAxis()->tickLabelPlacement() == CQChartsAxis::TickLabelPlacement::MIDDLE) {
-            QString bucketStr = bucketValuesStr(bucket, values, BucketValueType::ALL);
+            QString bucketStr = bucketValuesStr(groupInd, bucket, values, BucketValueType::ALL);
 
             if      (isOverlay())
               valueAxis()->setTickLabel(bucket, bucketStr);
@@ -700,8 +901,8 @@ initObjs()
               valueAxis()->setTickLabel(pos, bucketStr);
           }
           else {
-            QString bucketStr1 = bucketValuesStr(bucket, values, BucketValueType::START);
-            QString bucketStr2 = bucketValuesStr(bucket, values, BucketValueType::END  );
+            QString bucketStr1 = bucketValuesStr(groupInd, bucket, values, BucketValueType::START);
+            QString bucketStr2 = bucketValuesStr(groupInd, bucket, values, BucketValueType::END  );
 
             if      (isOverlay()) {
               valueAxis()->setTickLabel(bucket    , bucketStr1);
@@ -718,7 +919,7 @@ initObjs()
           }
         }
         else {
-          QString bucketStr = bucketValuesStr(bucket, values, BucketValueType::START);
+          QString bucketStr = bucketValuesStr(groupInd, bucket, values, BucketValueType::START);
 
           if      (isOverlay())
             valueAxis()->setTickLabel(bucket, bucketStr);
@@ -745,13 +946,21 @@ initObjs()
 
       CQChartsGeom::BBox bbox;
 
-      for (const auto &p : opoints)
-        bbox.add(p.x(), p.y());
+      if (! isHorizontal()) {
+        for (const auto &p : opoints)
+          bbox.add(p.x(), p.y());
+      }
+      else {
+        for (const auto &p : opoints)
+          bbox.add(p.y(), p.x());
+      }
 
-      CQChartsDistributionDensityObj *barObj =
-        new CQChartsDistributionDensityObj(this, bbox, groupInd, opoints, values->mean, is, ns);
+      if (bbox.isSet()) {
+        CQChartsDistributionDensityObj *barObj =
+          new CQChartsDistributionDensityObj(this, bbox, groupInd, opoints, values->mean, is, ns);
 
-      addPlotObject(barObj);
+        addPlotObject(barObj);
+      }
     }
 
     ++is;
@@ -814,6 +1023,28 @@ getInds(int groupInd, int bucket, VariantInds &inds) const
   inds = (*pb).second.inds;
 }
 
+void
+CQChartsDistributionPlot::
+getXVals(int groupInd, int bucket, std::vector<double> &xvals)
+{
+  CQChartsDistributionPlot::VariantInds vinds;
+
+  getInds(groupInd, bucket, vinds);
+
+  xvals.clear();
+
+  for (auto &vind : vinds) {
+    const QVariant &var = vind.var;
+
+    bool ok;
+
+    double r = CQChartsUtil::toReal(var, ok);
+
+    if (ok)
+      xvals.push_back(r);
+  }
+}
+
 CQChartsAxis *
 CQChartsDistributionPlot::
 valueAxis() const
@@ -865,7 +1096,7 @@ addKeyItems(CQChartsPlotKey *key)
   else if (ns == 1) {
     auto pg = groupValues_.begin();
 
-  //int           groupInd = (*pg).first;
+    int           groupInd = (*pg).first;
     const Values *values   = (*pg).second;
 
     int nv = values->bucketValues.size();
@@ -876,7 +1107,7 @@ addKeyItems(CQChartsPlotKey *key)
       int                    bucket   = bucketValues.first;
     //const VariantIndsData &varsData = bucketValues.second;
 
-      QString bucketName = bucketValuesStr(bucket, values, BucketValueType::ALL);
+      QString bucketName = bucketValuesStr(groupInd, bucket, values, BucketValueType::ALL);
 
       addKeyRow(iv, nv, bucketName);
 
@@ -893,7 +1124,7 @@ bucketValuesStr(int groupInd, int bucket, BucketValueType type) const
 {
   for (const auto &groupValues : groupValues_) {
     if (groupInd == groupValues.first)
-      return bucketValuesStr(bucket, groupValues.second, type);
+      return bucketValuesStr(groupInd, bucket, groupValues.second, type);
   }
 
   return "";
@@ -901,36 +1132,42 @@ bucketValuesStr(int groupInd, int bucket, BucketValueType type) const
 
 QString
 CQChartsDistributionPlot::
-bucketValuesStr(int bucket, const Values *values, BucketValueType type) const
+bucketValuesStr(int groupInd, int bucket, const Values *values, BucketValueType type) const
 {
   if (! isBucketed())
     return "";
+
+  CQBucketer &bucketer = groupBucketer(groupInd);
 
   bool isNumeric = values->valueSet->isNumeric();
 
   if (isNumeric) {
     double value1, value2;
 
-    bucketValues(bucket, value1, value2);
+    bucketValues(groupInd, bucket, value1, value2);
 
     if      (type == BucketValueType::ALL)
-      return bucketer_.bucketName(value1, value2, /*arrow*/true);
+      return bucketer.bucketName(value1, value2, /*arrow*/true);
     else if (type == BucketValueType::START)
       return QString("%1").arg(value1);
     else
       return QString("%1").arg(value2);
   }
   else {
+    return bucketer.bucketString(bucket);
+
+#if 0
     if (isAutoBucket())
       return values->valueSet->buckets(bucket);
     else
       return values->valueSet->inds(bucket);
+#endif
   }
 }
 
 void
 CQChartsDistributionPlot::
-bucketValues(int bucket, double &value1, double &value2) const
+bucketValues(int groupInd, int bucket, double &value1, double &value2) const
 {
   value1 = 0.0;
   value2 = 0.0;
@@ -938,15 +1175,41 @@ bucketValues(int bucket, double &value1, double &value2) const
   if (! isBucketed())
     return;
 
+  CQBucketer &bucketer = groupBucketer(groupInd);
+
   bool isAuto = (! filterStack_.empty() || isAutoBucket());
 
   if (isAuto)
-    bucketer_.autoBucketValues(bucket, value1, value2);
+    bucketer.autoBucketValues(bucket, value1, value2);
   else
-    bucketer_.bucketRValues(bucket, value1, value2);
+    bucketer.bucketRValues(bucket, value1, value2);
 
   if (CQChartsUtil::isZero(value1)) value1 = 0.0;
   if (CQChartsUtil::isZero(value2)) value2 = 0.0;
+}
+
+CQBucketer &
+CQChartsDistributionPlot::
+groupBucketer(int groupInd) const
+{
+  CQChartsDistributionPlot *th = const_cast<CQChartsDistributionPlot *>(this);
+
+  auto p = th->groupBucketer_.find(groupInd);
+
+  if (p == th->groupBucketer_.end()) {
+    CQBucketer bucketer;
+
+    bucketer.setType(bucketer_.type());
+
+    bucketer.setRStart(bucketer_.rstart());
+    bucketer.setRDelta(bucketer_.rdelta());
+
+    bucketer.setNumAuto(bucketer_.numAuto());
+
+    p = th->groupBucketer_.insert(p, GroupBucketer::value_type(groupInd, bucketer));
+  }
+
+  return (*p).second;
 }
 
 //------
@@ -960,6 +1223,9 @@ addMenuItems(QMenu *menu)
   QAction *skipEmptyAction  = new QAction("Skip Empty", menu);
   QAction *rangeBarAction   = new QAction("Range Bar" , menu);
   QAction *densityAction    = new QAction("Density"   , menu);
+  QAction *dotLinesAction   = new QAction("Dot Lines" , menu);
+  QAction *rugAction        = new QAction("Rug"       , menu);
+  QAction *showMeanAction   = new QAction("Mean Line" , menu);
 
   horizontalAction->setCheckable(true);
   horizontalAction->setChecked(isHorizontal());
@@ -976,11 +1242,23 @@ addMenuItems(QMenu *menu)
   densityAction->setCheckable(true);
   densityAction->setChecked(isDensity());
 
+  dotLinesAction->setCheckable(true);
+  dotLinesAction->setChecked(isDotLines());
+
+  rugAction->setCheckable(true);
+  rugAction->setChecked(isRug());
+
+  showMeanAction->setCheckable(true);
+  showMeanAction->setChecked(isShowMean());
+
   connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
   connect(overlayAction   , SIGNAL(triggered(bool)), this, SLOT(setOverlay(bool)));
   connect(skipEmptyAction , SIGNAL(triggered(bool)), this, SLOT(setSkipEmpty(bool)));
   connect(rangeBarAction  , SIGNAL(triggered(bool)), this, SLOT(setRangeBar(bool)));
   connect(densityAction   , SIGNAL(triggered(bool)), this, SLOT(setDensity(bool)));
+  connect(dotLinesAction  , SIGNAL(triggered(bool)), this, SLOT(setDotLines(bool)));
+  connect(rugAction       , SIGNAL(triggered(bool)), this, SLOT(setRug(bool)));
+  connect(showMeanAction  , SIGNAL(triggered(bool)), this, SLOT(setShowMean(bool)));
 
   //---
 
@@ -1009,12 +1287,95 @@ addMenuItems(QMenu *menu)
   menu->addAction(skipEmptyAction);
   menu->addAction(rangeBarAction);
   menu->addAction(densityAction);
+  menu->addAction(dotLinesAction);
+  menu->addAction(rugAction);
+  menu->addAction(showMeanAction);
+
+  menu->addSeparator();
 
   menu->addAction(pushAction  );
   menu->addAction(popAction   );
   menu->addAction(popTopAction);
 
   return true;
+}
+
+//---
+
+void
+CQChartsDistributionPlot::
+drawForeground(QPainter *painter)
+{
+  if (isShowMean() && ! isDensity())
+    drawMeanLine(painter);
+}
+
+void
+CQChartsDistributionPlot::
+drawMeanLine(QPainter *painter)
+{
+  QColor bc = interpBorderColor(0, 1);
+
+  QPen pen(bc);
+
+  CQChartsUtil::penSetLineDash(pen, meanDash());
+
+  painter->setPen(pen);
+
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  int is = 0;
+  int ns = groupValues_.size();
+
+  for (const auto &groupValues : groupValues_) {
+    if (ns > 1 && isSetHidden(is)) { ++is; continue; }
+
+    //---
+
+    int           groupInd = groupValues.first;
+    const Values *values   = groupValues.second;
+
+    double mean  = values->mean;
+    double mean1 = mean;
+
+    //---
+
+    for (const auto &plotObj : plotObjects()) {
+      const CQChartsDistributionBarObj *barObj =
+        dynamic_cast<CQChartsDistributionBarObj *>(plotObj);
+
+      if (! barObj)
+        continue;
+
+      int groupInd1 = barObj->groupInd();
+
+      if (groupInd1 != groupInd)
+        continue;
+
+      mean1 = barObj->mapValue(mean);
+
+      break;
+    }
+
+    //---
+
+    QPointF p1, p2;
+
+    if (! isHorizontal()) {
+      p1 = windowToPixel(QPointF(mean1, dataRange.ymin()));
+      p2 = windowToPixel(QPointF(mean1, dataRange.ymax()));
+    }
+    else {
+      p1 = windowToPixel(QPointF(dataRange.xmin(), mean1));
+      p2 = windowToPixel(QPointF(dataRange.xmax(), mean1));
+    }
+
+    painter->drawLine(p1, p2);
+
+    //---
+
+    ++is;
+  }
 }
 
 //---
@@ -1049,7 +1410,7 @@ pushSlot()
 
     double value1, value2;
 
-    bucketValues(distObj->bucket(), value1, value2);
+    bucketValues(distObj->groupInd(), distObj->bucket(), value1, value2);
 
     filters.emplace_back(distObj->groupInd(), value1, value2);
   }
@@ -1092,6 +1453,9 @@ CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::B
 {
   assert(is >= 0 && is < ns);
   assert(iv >= 0 && iv < nv);
+
+  plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
+
 }
 
 QString
@@ -1234,9 +1598,15 @@ draw(QPainter *painter)
 
   QRectF qrect = CQChartsUtil::toQRect(pbbox);
 
-  double s = (! plot_->isHorizontal() ? qrect.width() : qrect.height());
+  //---
 
-  bool useLine = (s <= 2);
+  bool useLine = false;
+
+  if (! plot_->isDotLines()) {
+    double s = (! plot_->isHorizontal() ? qrect.width() : qrect.height());
+
+    useLine = (s <= 2);
+  }
 
   //---
 
@@ -1294,6 +1664,74 @@ drawFg(QPainter *painter)
     ystr = QString("%1").arg(count());
 
   plot_->dataLabel().draw(painter, qrect, ystr);
+
+  //---
+
+  if (plot_->isRug())
+    drawRug(painter);
+}
+
+void
+CQChartsDistributionBarObj::
+drawRug(QPainter *painter)
+{
+  CQChartsSymbol symbol = plot_->rugSymbolType();
+
+  if (symbol == CQChartsSymbol::Type::NONE)
+    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
+                                        CQChartsSymbol::Type::HLINE);
+
+  //bool stroked = true;
+  //bool filled  = true;
+
+  double sx = plot_->rugSymbolSize();
+  double sy = plot_->rugSymbolSize();
+
+  QColor barColor = this->barColor();
+
+  barColor.setAlphaF(0.5);
+
+  QPen   pen(barColor);
+  QBrush brush(barColor);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  std::vector<double> xvals;
+
+  plot_->getXVals(groupInd_, bucket_, xvals);
+
+  for (const auto &x : xvals) {
+    double x1 = mapValue(x);
+
+    QPointF p;
+
+    if (! plot_->isHorizontal())
+      p = QPointF(x1, dataRange.ymin());
+    else
+      p = QPointF(dataRange.xmin(), x1);
+
+    QPointF ps = plot_->windowToPixel(p);
+
+    if (! plot_->isHorizontal())
+      ps.setY(ps.y() + sy);
+    else
+      ps.setX(ps.x() - sx);
+
+    plot_->drawSymbol(painter, ps, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+  }
+}
+
+double
+CQChartsDistributionBarObj::
+mapValue(double v) const
+{
+  double bmin = (! plot_->isHorizontal() ? rect_.getXMin() : rect_.getYMin());
+  double bmax = (! plot_->isHorizontal() ? rect_.getXMax() : rect_.getYMax());
+
+  return CQChartsUtil::map(v, value1_, value2_, bmin, bmax);
 }
 
 bool
@@ -1397,27 +1835,79 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
   //---
 
-  // draw rect
-  painter->setPen(pen);
-  painter->setBrush(barBrush);
+  if (! plot_->isDotLines()) {
+    // draw rect
+    painter->setPen(pen);
+    painter->setBrush(barBrush);
 
-  if (! useLine) {
-    double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-    double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+    if (! useLine) {
+      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
 
-    CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+    }
+    else {
+      if (! plot_->isHorizontal()) {
+        double xc = qrect.center().x();
+
+        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+      }
+      else {
+        double yc = qrect.center().y();
+
+        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+      }
+    }
   }
   else {
+    // draw line
+    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
+
+    painter->setPen(pen);
+    painter->setBrush(barBrush);
+
     if (! plot_->isHorizontal()) {
       double xc = qrect.center().x();
 
-      painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+      if (lw < 3)
+        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+      else {
+        QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
+
+        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+      }
     }
     else {
       double yc = qrect.center().y();
 
-      painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+      if (lw < 3)
+        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+      else {
+        QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
+
+        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+      }
     }
+
+    //---
+
+    // draw dot
+    CQChartsSymbol symbol = plot_->dotSymbolType();
+
+    double sx = plot_->dotSymbolSize();
+    double sy = plot_->dotSymbolSize();
+
+    painter->setPen  (pen);
+    painter->setBrush(barBrush);
+
+    QPointF p;
+
+    if (! plot_->isHorizontal())
+      p = QPointF(qrect.center().x(), qrect.top());
+    else
+      p = QPointF(qrect.right(), qrect.center().y());
+
+    plot_->drawSymbol(painter, p, symbol, CQChartsUtil::avg(sx, sy), pen, barBrush);
   }
 }
 
@@ -1481,14 +1971,24 @@ CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeo
 {
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-  poly_ << QPointF(dataRange.xmin(), dataRange.ymin());
-
   int np = points_.size();
 
-  for (int i = 0; i < np; ++i)
-    poly_ << points_[i];
+  if (! plot->isHorizontal()) {
+    poly_ << QPointF(dataRange.xmin(), dataRange.ymin());
 
-  poly_ << QPointF(dataRange.xmax(), dataRange.ymin());
+    for (int i = 0; i < np; ++i)
+      poly_ << points_[i];
+
+    poly_ << QPointF(dataRange.xmax(), dataRange.ymin());
+  }
+  else {
+    poly_ << QPointF(dataRange.xmin(), dataRange.ymin());
+
+    for (int i = 0; i < np; ++i)
+      poly_ << QPointF(points_[i].y(), points_[i].x());
+
+    poly_ << QPointF(dataRange.xmin(), dataRange.ymax());
+  }
 }
 
 QString
@@ -1607,22 +2107,93 @@ draw(QPainter *painter)
   painter->setBrush(brush);
 
   painter->drawPolygon(poly);
+}
 
-  //---
+void
+CQChartsDistributionDensityObj::
+drawFg(QPainter *painter)
+{
+  if (plot_->isShowMean())
+    drawMeanLine(painter);
 
-  if (plot_->isShowMean()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
+  if (plot_->isRug())
+    drawRug(painter);
+}
 
-    QPen pen(bc);
+void
+CQChartsDistributionDensityObj::
+drawMeanLine(QPainter *painter)
+{
+  QColor bc = plot_->interpBorderColor(0, 1);
 
-    painter->setPen(pen);
+  QPen pen(bc);
 
-    const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  CQChartsUtil::penSetLineDash(pen, plot_->meanDash());
 
-    QPointF p1 = plot()->windowToPixel(QPointF(mean_, dataRange.ymin()));
-    QPointF p2 = plot()->windowToPixel(QPointF(mean_, dataRange.ymax()));
+  painter->setPen(pen);
 
-    painter->drawLine(p1, p2);
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  QPointF p1, p2;
+
+  if (! plot_->isHorizontal()) {
+    p1 = plot()->windowToPixel(QPointF(mean_, dataRange.ymin()));
+    p2 = plot()->windowToPixel(QPointF(mean_, dataRange.ymax()));
+  }
+  else {
+    p1 = plot()->windowToPixel(QPointF(dataRange.xmin(), mean_));
+    p2 = plot()->windowToPixel(QPointF(dataRange.xmax(), mean_));
+  }
+
+  painter->drawLine(p1, p2);
+}
+
+void
+CQChartsDistributionDensityObj::
+drawRug(QPainter *painter)
+{
+  CQChartsSymbol symbol = plot_->rugSymbolType();
+
+  if (symbol == CQChartsSymbol::Type::NONE)
+    symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
+                                        CQChartsSymbol::Type::HLINE);
+
+  //bool stroked = true;
+  //bool filled  = true;
+
+  double sx = plot_->rugSymbolSize();
+  double sy = plot_->rugSymbolSize();
+
+  QColor fillColor = plot_->interpBarColor(is_, ns_);
+
+  QPen   pen(fillColor);
+  QBrush brush(fillColor);
+
+  fillColor.setAlphaF(0.5);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+  for (const auto &p : points_) {
+    QPointF p1;
+
+    double x1 = p.x();
+
+    if (! plot_->isHorizontal())
+      p1 = QPointF(x1, dataRange.ymin());
+    else
+      p1 = QPointF(dataRange.xmin(), x1);
+
+    QPointF ps = plot_->windowToPixel(p1);
+
+    if (! plot_->isHorizontal())
+      ps.setY(ps.y() + sy);
+    else
+      ps.setX(ps.x() - sx);
+
+    plot_->drawSymbol(painter, ps, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
   }
 }
 

@@ -91,7 +91,7 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(int         scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
   Q_PROPERTY(int         scrollPage     READ scrollPage     WRITE setScrollPage    )
 
-  // alias, buffer, previws, pos text type
+  // alias, buffer, preview, pos text type
   Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias     )
   Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers  )
   Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview       )
