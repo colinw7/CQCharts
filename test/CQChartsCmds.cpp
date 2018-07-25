@@ -19,6 +19,7 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
+#include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 
 #include <CQChartsLoadDlg.h>
@@ -432,6 +433,7 @@ processModelCmd(const Vars &vars)
   argv.addCmdArg("-modify", CQChartsCmdArg::Type::Boolean, "modify column values");
   argv.addCmdArg("-calc"  , CQChartsCmdArg::Type::Boolean, "calc column");
   argv.addCmdArg("-query" , CQChartsCmdArg::Type::Boolean, "query column");
+  argv.addCmdArg("-list"  , CQChartsCmdArg::Type::Boolean, "list data");
   argv.endCmdGroup();
 
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
@@ -557,6 +559,31 @@ processModelCmd(const Vars &vars)
       vars.push_back(row);
 
     setCmdRc(vars);
+  }
+  else if (argv.getParseBool("list")) {
+    int nr = std::min(exprModel->rowCount(), 10);
+    int nc = exprModel->columnCount();
+
+    QModelIndex parent;
+    int         role = Qt::DisplayRole;
+
+    for (int r = 0; r < nr; ++r) {
+      QStringList strs;
+
+      for (int c = 0; c < nc; ++c) {
+        bool ok;
+
+        QVariant var = CQChartsUtil::modelValue(charts_, exprModel, r, c, parent, role, ok);
+
+        QString str = var.toString();
+
+        strs += str;
+      }
+
+      QString str = strs.join("\t");
+
+      std::cerr << str.toStdString() << "\n";
+    }
   }
   else {
     //CQChartsExprModel::Function function = CQChartsExprModel::Function::EVAL;
@@ -1585,8 +1612,8 @@ flattenModelCmd(const Vars &vars)
 
   class FlattenVisitor : public CQChartsModelVisitor {
    public:
-    FlattenVisitor(const CQChartsColumn &groupColumn) :
-     groupColumn_(groupColumn) {
+    FlattenVisitor(CQCharts *charts, const CQChartsColumn &groupColumn) :
+     charts_(charts), groupColumn_(groupColumn) {
     }
 
     State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -1594,7 +1621,7 @@ flattenModelCmd(const Vars &vars)
 
       bool ok;
 
-      groupValue_[hierRow_] = CQChartsUtil::modelValue(model, row, 0, parent, ok);
+      groupValue_[hierRow_] = CQChartsUtil::modelValue(charts_, model, row, 0, parent, ok);
 
       return State::OK;
     }
@@ -1606,7 +1633,7 @@ flattenModelCmd(const Vars &vars)
         for (int c = 1; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
 
           if (ok)
             rowColValueSet_[hierRow_][c - 1].addValue(var);
@@ -1615,7 +1642,8 @@ flattenModelCmd(const Vars &vars)
       else if (groupColumn_.isValid()) {
         bool ok;
 
-        QVariant groupVar = CQChartsUtil::modelValue(model, row, groupColumn_, parent, ok);
+        QVariant groupVar =
+          CQChartsUtil::modelValue(charts_, model, row, groupColumn_, parent, ok);
 
         auto p = valueGroup_.find(groupVar);
 
@@ -1632,7 +1660,7 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
 
           if (ok)
             rowColValueSet_[group][c].addValue(var);
@@ -1642,7 +1670,7 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
 
           if (ok)
             rowColValueSet_[0][c].addValue(var);
@@ -1688,6 +1716,7 @@ flattenModelCmd(const Vars &vars)
     using ColValueSet    = std::map<int,CQChartsValueSet>;
     using RowColValueSet = std::map<QVariant,ColValueSet>;
 
+    CQCharts*      charts_ { nullptr };
     CQChartsColumn groupColumn_;
     int            hierRow_ { -1 };
     ValueGroup     valueGroup_;
@@ -1695,7 +1724,7 @@ flattenModelCmd(const Vars &vars)
     RowColValueSet rowColValueSet_;
   };
 
-  FlattenVisitor flattenVisitor(groupColumn);
+  FlattenVisitor flattenVisitor(charts_, groupColumn);
 
   CQChartsUtil::visitModel(model.data(), flattenVisitor);
 
@@ -2064,16 +2093,20 @@ getChartsDataCmd(const Vars &vars)
         }
       }
       else {
+#if 0
         QModelIndex ind = model.data()->index(row, column.column());
 
         if (! ind.isValid()) {
           charts_->errorMsg("Invalid data row/column specified");
           setCmdRc(QString());
         }
+#endif
+
+        QModelIndex parent;
 
         bool ok;
 
-        var = CQChartsUtil::modelValue(model.data(), ind, role, ok);
+        var = CQChartsUtil::modelValue(charts_, model.data(), row, column, parent, role, ok);
 
         if (! var.isValid()) {
           charts_->errorMsg("Invalid model value");
@@ -2151,11 +2184,16 @@ getChartsDataCmd(const Vars &vars)
         setCmdRc(QString());
       }
 
+#if 0
       QModelIndex ind = model.data()->index(row, column.column());
+#endif
+
+      QModelIndex parent;
 
       bool ok;
 
-      QVariant var = CQChartsUtil::modelValue(model.data(), ind, role, ok);
+      QVariant var =
+        CQChartsUtil::modelValue(charts_, model.data(), row, column.column(), parent, role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
@@ -2258,9 +2296,11 @@ getChartsDataCmd(const Vars &vars)
         }
       }
       else {
+        QModelIndex parent;
+
         bool ok;
 
-        QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
+        QVariant var = plot->modelValue(row, column, parent, role, ok);
 
         bool rc;
 
@@ -2286,9 +2326,11 @@ getChartsDataCmd(const Vars &vars)
         setCmdRc(QString());
       }
 
+      QModelIndex parent;
+
       bool ok;
 
-      QVariant var = plot->modelValue(row, column, QModelIndex(), role, ok);
+      QVariant var = plot->modelValue(row, column, parent, role, ok);
 
       CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
@@ -2500,7 +2542,7 @@ setChartsDataCmd(const Vars &vars)
     }
   }
   else if (argv.hasParseArg("view")) {
-    QString viewName = argv.getParseStr ("view");
+    QString viewName = argv.getParseStr("view");
 
     CQChartsView *view = getViewByName(viewName);
     if (! view) return;

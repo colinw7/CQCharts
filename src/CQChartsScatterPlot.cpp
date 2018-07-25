@@ -380,12 +380,16 @@ setFontSizeMapMax(double r)
   updateObjs();
 }
 
+//---
+
 void
 CQChartsScatterPlot::
 setBestFit(bool b)
 {
   CQChartsUtil::testAndSet(bestFit_, b, [&]() { invalidateLayers(); } );
 }
+
+//---
 
 void
 CQChartsScatterPlot::
@@ -399,6 +403,20 @@ CQChartsScatterPlot::
 setYRug(bool b)
 {
   CQChartsUtil::testAndSet(yRug_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setRugSymbolType(const CQChartsSymbol &s)
+{
+  CQChartsUtil::testAndSet(rugSymbolType_, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setRugSymbolSize(double r)
+{
+  CQChartsUtil::testAndSet(rugSymbolSize_, r, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -419,8 +437,11 @@ addProperties()
   addProperty("columns", this, "colorColumn"     , "color"     );
 
   addProperty("options", this, "bestFit", "bestFit");
-  addProperty("options", this, "xRug"   , "xRug"   );
-  addProperty("options", this, "yRug"   , "yRug"   );
+
+  addProperty("rug/x"     , this, "xRug"         , "enabled");
+  addProperty("rug/y"     , this, "yRug"         , "enabled");
+  addProperty("rug/symbol", this, "rugSymbolType", "type"   );
+  addProperty("rug/symbol", this, "rugSymbolSize", "size"   );
 
   CQChartsGroupPlot::addProperties();
 
@@ -947,6 +968,42 @@ addMenuItems(QMenu *menu)
 
 //------
 
+CQChartsGeom::BBox
+CQChartsScatterPlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  // add rug symbols
+  if (isXRug() || isYRug()) {
+    const CQChartsGeom::Range &dataRange = this->dataRange();
+
+    if (isXRug()) {
+      double sy = pixelToWindowHeight(rugSymbolSize());
+
+      QPointF p1(dataRange.xmin(), dataRange.ymin()       );
+      QPointF p2(dataRange.xmax(), dataRange.ymin() - 2*sy);
+
+      bbox += CQChartsUtil::fromQPoint(p1);
+      bbox += CQChartsUtil::fromQPoint(p2);
+    }
+
+    if (isYRug()) {
+      double sx = pixelToWindowWidth(rugSymbolSize());
+
+      QPointF p1(dataRange.xmin()       , dataRange.ymin());
+      QPointF p2(dataRange.xmin() - 2*sx, dataRange.ymax());
+
+      bbox += CQChartsUtil::fromQPoint(p1);
+      bbox += CQChartsUtil::fromQPoint(p2);
+    }
+  }
+
+  return bbox;
+}
+
+//------
+
 void
 CQChartsScatterPlot::
 drawBackground(QPainter *painter)
@@ -1307,13 +1364,22 @@ drawDir(QPainter *painter, const Dir &dir) const
   QPointF ps = plot_->windowToPixel(p_);
 
   if (dir != Dir::XY) {
+    // Dir::X and Dir::Y are X/Y Rug Symbols
     CQChartsGeom::BBox pbbox = plot_->calcDataPixelRect();
 
     if      (dir == Dir::X)
       ps.setY(pbbox.getYMax());
     else if (dir == Dir::Y)
       ps.setX(pbbox.getXMin());
-   }
+
+    symbol = plot_->rugSymbolType();
+
+    if (symbol == CQChartsSymbol::Type::NONE)
+      symbol = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
+
+    sx = plot_->rugSymbolSize();
+    sy = plot_->rugSymbolSize();
+  }
 
   //---
 

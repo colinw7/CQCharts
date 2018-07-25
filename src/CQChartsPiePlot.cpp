@@ -561,6 +561,8 @@ void
 CQChartsPiePlot::
 addRowColumn(const CQChartsModelIndex &ind)
 {
+  assert(! isCount());
+
   // get group ind
   int groupInd = rowGroupInd(ind);
 
@@ -569,15 +571,10 @@ addRowColumn(const CQChartsModelIndex &ind)
   // hide all objects of group or individual objects of single group
   bool hidden = false;
 
-  if (! isCount()) {
-    if (numGroups() > 1)
-      hidden = isSetHidden(groupInd);
-    else
-      hidden = isSetHidden(ind.row);
-  }
-  else {
+  if (numGroups() > 1)
     hidden = isSetHidden(groupInd);
-  }
+  else
+    hidden = isSetHidden(ind.row);
 
   //---
 
@@ -696,9 +693,6 @@ addRowColumn(const CQChartsModelIndex &ind)
 
     if (colorSetColor("color", ind.row, color))
       obj->setColor(color);
-
-    if (! hidden)
-      obj->setVisible(! isCount());
 
     addPlotObject(obj);
 

@@ -25,10 +25,23 @@ CQChartsColumn(const QString &s)
 }
 
 CQChartsColumn::
+CQChartsColumn(Type type, int column, const QString &s, int role) :
+ type_(type), column_(column), role_(role)
+{
+  if (type_ == Type::EXPR || type_ == Type::DATA_INDEX) {
+    int len = s.length();
+
+    expr_ = new char [len + 1];
+
+    memcpy(expr_, s.toLatin1().constData(), len + 1);
+  }
+}
+
+CQChartsColumn::
 CQChartsColumn(const CQChartsColumn &rhs) :
  type_(rhs.type_), column_(rhs.column_), role_(rhs.role_), expr_(nullptr), mapped_(rhs.mapped_)
 {
-  if (rhs.type_ == Type::EXPR && rhs.expr_) {
+  if (rhs.hasExpr() || rhs.hasIndex()) {
     int len = strlen(rhs.expr_);
 
     expr_ = new char [len + 1];
@@ -54,7 +67,7 @@ operator=(const CQChartsColumn &rhs)
   role_   = rhs.role_;
   expr_   = nullptr;
 
-  if (rhs.type_ == Type::EXPR && rhs.expr_) {
+  if (rhs.hasExpr() || rhs.hasIndex()) {
     int len = strlen(rhs.expr_);
 
     expr_ = new char [len + 1];
@@ -84,7 +97,7 @@ setValue(const QString &str)
   role_   = role;
   expr_   = nullptr;
 
-  if (type == Type::EXPR) {
+  if (type == Type::EXPR || type == Type::DATA_INDEX) {
     int len = expr.length();
 
     expr_ = new char [len + 1];
@@ -111,6 +124,12 @@ toString() const
     return "@VH";
   else if (type_ == Type::GROUP)
     return "@GROUP";
+  else if (type_ == Type::DATA_INDEX) {
+    if (role_ >= 0)
+      return QString("%1@%2[%3]").arg(column_).arg(role_).arg(expr_);
+    else
+      return QString("%1[%2]").arg(column_).arg(expr_);
+  }
 
   return "";
 }
@@ -218,7 +237,7 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
     int nb = 1;
 
-    while (c_str[i] != 0) {
+    while (c_str[i] != '\0') {
       if      (c_str[i] == '(')
         ++nb;
       else if (c_str[i] == ')') {
@@ -230,6 +249,8 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
       str += c_str[i++];
     }
+
+    //std::string rhs = str.mid(i);
 
     expr = str.simplified();
     type = Type::EXPR;
@@ -251,15 +272,28 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
   // TODO: support column name (need model)
 
+  //---
+
   // integer column number
   const char *p;
 
   errno = 0;
 
-  long value = strtol(&c_str[i], (char **) &p, 10);
+  long column1 = strtol(&c_str[i], (char **) &p, 10);
 
   if (errno == ERANGE)
     return false;
+
+  if (column1 < 0)
+    return false;
+
+  while (*p != 0 && ::isspace(*p))
+    ++p;
+
+  //---
+
+  // optional role
+  long role1 = -1;
 
   if (*p == '@') {
     ++p;
@@ -268,37 +302,57 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
     errno = 0;
 
-    long value1 = strtol(p, (char **) &p1, 10);
+    role1 = strtol(p, (char **) &p1, 10);
 
     if (errno == ERANGE)
       return false;
 
-    while (*p1 != 0 && ::isspace(*p1))
-      ++p1;
-
-    if (*p1 != '\0')
+    if (role1 < 0)
       return false;
 
-    if (value < 0 || value1 < 0)
-      return false;
+    p = p1;
 
-    type   = Type::DATA;
-    column = value;
-    role   = value1;
-  }
-  else {
     while (*p != 0 && ::isspace(*p))
       ++p;
-
-    if (*p != '\0')
-      return false;
-
-    if (value < 0)
-      return false;
-
-    type   = Type::DATA;
-    column = value;
   }
+
+  //---
+
+  // optional index string
+  QString indexStr;
+
+  if (*p == '[') {
+    ++p;
+
+    while (*p != '\0' && *p != ']') {
+      indexStr += *p;
+
+      ++p;
+    }
+
+    if (*p == ']')
+      ++p;
+
+    while (*p != 0 && ::isspace(*p))
+      ++p;
+  }
+
+  //---
+
+  if (*p != '\0')
+    return false;
+
+  //---
+
+  if (indexStr.length()) {
+    type = Type::DATA_INDEX;
+    expr = indexStr.simplified();
+  }
+  else
+    type = Type::DATA;
+
+  column = column1;
+  role   = role1;
 
   return true;
 }

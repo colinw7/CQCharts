@@ -774,7 +774,11 @@ void
 CQChartsViewSettings::
 paletteIndexSlot(int)
 {
+  CQChartsView *view = window_->view();
+
   updatePalettes();
+
+  view->updatePlots();
 }
 
 void
@@ -795,6 +799,8 @@ loadPaletteNameSlot()
   view->theme()->setPalette(i, palette->dup());
 
   updatePalettes();
+
+  view->updatePlots();
 }
 
 void

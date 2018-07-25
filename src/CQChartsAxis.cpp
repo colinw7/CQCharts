@@ -1136,6 +1136,13 @@ editMoveBy(const QPointF &d)
 
 //---
 
+bool
+CQChartsAxis::
+isDrawGrid() const
+{
+  return (isGridMajorDisplayed() || isGridMinorDisplayed() || isGridFill());
+}
+
 void
 CQChartsAxis::
 drawGrid(CQChartsPlot *plot, QPainter *painter)

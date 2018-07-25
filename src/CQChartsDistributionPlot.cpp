@@ -3,6 +3,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
+#include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
@@ -107,6 +108,9 @@ CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
 {
   setAutoBucket    (true);
   setNumAutoBuckets(20);
+
+  setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setRugSymbolType(CQChartsSymbol::Type::NONE);
 }
 
 CQChartsDistributionPlot::
@@ -225,7 +229,10 @@ addProperties()
   addProperty("options", this, "overlay"  );
   addProperty("options", this, "skipEmpty");
   addProperty("options", this, "rangeBar" );
-  addProperty("options", this, "density"  );
+
+  addProperty("density", this, "density"       , "enabled");
+  addProperty("density", this, "densityOffset" , "offset" );
+  addProperty("density", this, "densitySamples", "samples");
 
   addProperty("meanLine"     , this, "showMean", "visible");
   addProperty("meanLine/line", this, "meanDash", "dash"   );
@@ -279,11 +286,34 @@ setRangeBar(bool b)
   CQChartsUtil::testAndSet(rangeBar_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+//---
+
 void
 CQChartsDistributionPlot::
 setDensity(bool b)
 {
   CQChartsUtil::testAndSet(density_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDensityOffset(double o)
+{
+  CQChartsUtil::testAndSet(densityOffset_, o, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDensitySamples(int n)
+{
+  CQChartsUtil::testAndSet(densitySamples_, n, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setDensityGradient(bool b)
+{
+  CQChartsUtil::testAndSet(densityGradient_, b, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -470,15 +500,22 @@ updateRange(bool apply)
 
   groupBucketRange_.clear();
 
+  double doffset = 0.0;
+
+  int is = 0;
+  int ns = groupValues_.size();
+
   for (auto &groupValues : groupValues_) {
+    if (ns > 1 && isSetHidden(is)) { ++is; continue; }
+
+    //---
+
     int     groupInd = groupValues.first;
     Values *values   = groupValues.second;
 
-    const CQChartsRValues &rvals = values->valueSet->rvals();
-
-    values->mean = rvals.mean();
-
     if (! isDensity()) {
+      (void) getMeanValue(groupInd, values->mean);
+
       for (auto &bucketValues : values->bucketValues) {
         int              bucket   = bucketValues.first;
         VariantIndsData &varsData = bucketValues.second;
@@ -514,12 +551,11 @@ updateRange(bool apply)
       }
     }
     else {
-      values->densityData.setNumSamples(100);
+      values->densityData.setNumSamples(densitySamples());
 
       std::vector<double> xvals;
 
-      for (int i = 0; i < rvals.size(); ++i)
-        xvals.push_back(*rvals.value(i));
+      (void) getRealValues(groupInd, xvals, values->mean);
 
       values->densityData.setXVals(xvals);
 
@@ -529,13 +565,17 @@ updateRange(bool apply)
 
       if (! isHorizontal()) {
         for (const auto &p : opoints)
-          densityBBox.add(p.x(), p.y());
+          densityBBox.add(p.x(), p.y() + doffset);
       }
       else {
         for (const auto &p : opoints)
-          densityBBox.add(p.y(), p.x());
+          densityBBox.add(p.y() + doffset, p.x());
       }
+
+      doffset += densityOffset();
     }
+
+    ++is;
   }
 
   //---
@@ -784,17 +824,32 @@ initObjs()
   valueAxis()->clearTickLabels();
   countAxis()->clearTickLabels();
 
-  valueAxis()->setIntegral           (true);
-  valueAxis()->setGridMid            (true);
-  valueAxis()->setMajorIncrement     (1);
-  valueAxis()->setMinorTicksDisplayed(false);
-  valueAxis()->setRequireTickLabel   (true );
+  if (! isDensity()) {
+    valueAxis()->setIntegral           (true);
+    valueAxis()->setGridMid            (true);
+    valueAxis()->setMajorIncrement     (1);
+    valueAxis()->setMinorTicksDisplayed(false);
+    valueAxis()->setRequireTickLabel   (true );
 
-  countAxis()->setIntegral           (true);
-  countAxis()->setGridMid            (false);
-  countAxis()->setMajorIncrement     (0);
-  countAxis()->setMinorTicksDisplayed(false);
-  countAxis()->setRequireTickLabel   (false);
+    countAxis()->setIntegral           (true);
+    countAxis()->setGridMid            (false);
+    countAxis()->setMajorIncrement     (0);
+    countAxis()->setMinorTicksDisplayed(false);
+    countAxis()->setRequireTickLabel   (false);
+  }
+  else {
+    valueAxis()->setIntegral           (false);
+    valueAxis()->setGridMid            (false);
+    valueAxis()->setMajorIncrement     (0);
+    valueAxis()->setMinorTicksDisplayed(true);
+    valueAxis()->setRequireTickLabel   (false);
+
+    countAxis()->setIntegral           (false);
+    countAxis()->setGridMid            (false);
+    countAxis()->setMajorIncrement     (0);
+    countAxis()->setMinorTicksDisplayed(true);
+    countAxis()->setRequireTickLabel   (false);
+  }
 
   //---
 
@@ -805,6 +860,8 @@ initObjs()
 
   int offset = 0;
   int count  = 0;
+
+  double doffset = 0.0;
 
   for (const auto &groupValues : groupValues_) {
     if (ns > 1 && isSetHidden(is)) { ++is; continue; }
@@ -942,25 +999,34 @@ initObjs()
         count += bucketRange.max(0) - bucketRange.min(0) + 1;
     }
     else {
-      const CQChartsDensity::Points &opoints = values->densityData.opoints();
+      CQChartsDistributionDensityObj::Data data;
+
+      data.points = values->densityData.opoints();
+      data.xmin   = values->densityData.xmin();
+      data.xmax   = values->densityData.xmax();
+      data.ymin   = values->densityData.ymin();
+      data.ymax   = values->densityData.ymax();
+      data.mean   = values->mean;
 
       CQChartsGeom::BBox bbox;
 
       if (! isHorizontal()) {
-        for (const auto &p : opoints)
-          bbox.add(p.x(), p.y());
+        for (const auto &p : data.points)
+          bbox.add(p.x(), p.y() + doffset);
       }
       else {
-        for (const auto &p : opoints)
-          bbox.add(p.y(), p.x());
+        for (const auto &p : data.points)
+          bbox.add(p.y() + doffset, p.x());
       }
 
       if (bbox.isSet()) {
         CQChartsDistributionDensityObj *barObj =
-          new CQChartsDistributionDensityObj(this, bbox, groupInd, opoints, values->mean, is, ns);
+          new CQChartsDistributionDensityObj(this, bbox, groupInd, data, doffset, is, ns);
 
         addPlotObject(barObj);
       }
+
+      doffset += densityOffset();
     }
 
     ++is;
@@ -1043,14 +1109,66 @@ getXVals(int groupInd, int bucket, std::vector<double> &xvals) const
   }
 }
 
-const CQChartsRValues *
+bool
 CQChartsDistributionPlot::
-getRValues(int groupInd) const
+getRealValues(int groupInd, std::vector<double> &vals, double &mean) const
 {
-  const Values *values = getValues(groupInd);
-  if (! values) return nullptr;
+  vals.clear();
 
-  return &values->valueSet->rvals();
+  mean = 0.0;
+
+  const Values *values = getValues(groupInd);
+  if (! values) return false;
+
+  if      (values->valueSet->type() == CQBaseModel::Type::INTEGER) {
+    const CQChartsIValues &ivals = values->valueSet->ivals();
+
+    mean = ivals.mean();
+
+    std::vector<double> xvals;
+
+    for (int i = 0; i < ivals.size(); ++i)
+      vals.push_back(*ivals.value(i));
+  }
+  else if (values->valueSet->type() == CQBaseModel::Type::REAL) {
+    const CQChartsRValues &rvals = values->valueSet->rvals();
+
+    mean = rvals.mean();
+
+    for (int i = 0; i < rvals.size(); ++i)
+      vals.push_back(*rvals.value(i));
+  }
+  else {
+    return false;
+  }
+
+  return true;
+}
+
+bool
+CQChartsDistributionPlot::
+getMeanValue(int groupInd, double &mean) const
+{
+  mean = 0.0;
+
+  const Values *values = getValues(groupInd);
+  if (! values) return false;
+
+  if      (values->valueSet->type() == CQBaseModel::Type::INTEGER) {
+    const CQChartsIValues &ivals = values->valueSet->ivals();
+
+    mean = ivals.mean();
+  }
+  else if (values->valueSet->type() == CQBaseModel::Type::REAL) {
+    const CQChartsRValues &rvals = values->valueSet->rvals();
+
+    mean = rvals.mean();
+  }
+  else {
+    return false;
+  }
+
+  return true;
 }
 
 const CQChartsDistributionPlot::Values *
@@ -1473,7 +1591,6 @@ CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::B
   assert(iv >= 0 && iv < nv);
 
   plot_->bucketValues(groupInd_, bucket_, value1_, value2_);
-
 }
 
 QString
@@ -1983,29 +2100,37 @@ calcRect() const
 
 CQChartsDistributionDensityObj::
 CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                               int groupInd, const Points &points, double mean, int is, int ns) :
- CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), points_(points),
- mean_(mean), is_(is), ns_(ns)
+                               int groupInd, const Data &data, double doffset, int is, int ns) :
+ CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), data_(data),
+ doffset_(doffset), is_(is), ns_(ns)
 {
-  const CQChartsGeom::Range &dataRange = plot_->dataRange();
+  int np = data_.points.size();
 
-  int np = points_.size();
+  if (np < 2) {
+    poly_ = QPolygonF();
+    return;
+  }
+
+  double x1 = data_.points[0     ].x();
+  double x2 = data_.points[np - 1].x();
+
+  double y1 = data_.ymin;
 
   if (! plot->isHorizontal()) {
-    poly_ << QPointF(dataRange.xmin(), dataRange.ymin());
+    poly_ << QPointF(x1, doffset_);
 
     for (int i = 0; i < np; ++i)
-      poly_ << points_[i];
+      poly_ << QPointF(data_.points[i].x(), data_.points[i].y() - y1 + doffset_);
 
-    poly_ << QPointF(dataRange.xmax(), dataRange.ymin());
+    poly_ << QPointF(x2, doffset_);
   }
   else {
-    poly_ << QPointF(dataRange.xmin(), dataRange.ymin());
+    poly_ << QPointF(doffset_, x1);
 
     for (int i = 0; i < np; ++i)
-      poly_ << QPointF(points_[i].y(), points_[i].x());
+      poly_ << QPointF(data_.points[i].y() - y1 + doffset_, data_.points[i].x());
 
-    poly_ << QPointF(dataRange.xmin(), dataRange.ymax());
+    poly_ << QPointF(doffset_, x2);
   }
 }
 
@@ -2027,6 +2152,8 @@ calcTipId() const
 
   tableTip.addTableRow("Name"   , groupName);
   tableTip.addTableRow("Samples", ns);
+  tableTip.addTableRow("Min"    , data_.xmin);
+  tableTip.addTableRow("Max"    , data_.xmax);
 
   return tableTip.str();
 }
@@ -2042,7 +2169,7 @@ int
 CQChartsDistributionDensityObj::
 numSamples() const
 {
-  return points_.size();
+  return data_.points.size();
 }
 
 bool
@@ -2108,13 +2235,40 @@ draw(QPainter *painter)
     pen.setStyle(Qt::NoPen);
   }
 
+  //---
+
+  if (plot_->isDensityGradient()) {
+    CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
+
+    //const CQChartsGeom::Range &dataRange = plot_->dataRange();
+
+    QPointF pg1, pg2;
+
+    if (! plot_->isHorizontal()) {
+      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
+      pg2 = QPointF(pixelRect.getXMax(), pixelRect.getYMin());
+    }
+    else {
+      pg1 = QPointF(pixelRect.getXMin(), pixelRect.getYMax());
+      pg2 = QPointF(pixelRect.getXMin(), pixelRect.getYMin());
+    }
+
+    QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
+
+    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barAlpha());
+
+    brush = QBrush(lg);
+  }
+
+  //---
+
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
   QPolygonF poly;
 
-  int np = poly_.length();
+  int np = poly_.size();
 
   for (int i = 0; i < np; ++i)
     poly << plot()->windowToPixel(poly_[i]);
@@ -2155,12 +2309,12 @@ drawMeanLine(QPainter *painter)
   QPointF p1, p2;
 
   if (! plot_->isHorizontal()) {
-    p1 = plot()->windowToPixel(QPointF(mean_, dataRange.ymin()));
-    p2 = plot()->windowToPixel(QPointF(mean_, dataRange.ymax()));
+    p1 = plot()->windowToPixel(QPointF(data_.mean, dataRange.ymin()));
+    p2 = plot()->windowToPixel(QPointF(data_.mean, dataRange.ymax()));
   }
   else {
-    p1 = plot()->windowToPixel(QPointF(dataRange.xmin(), mean_));
-    p2 = plot()->windowToPixel(QPointF(dataRange.xmax(), mean_));
+    p1 = plot()->windowToPixel(QPointF(dataRange.xmin(), data_.mean));
+    p2 = plot()->windowToPixel(QPointF(dataRange.xmax(), data_.mean));
   }
 
   painter->drawLine(p1, p2);
@@ -2194,11 +2348,12 @@ drawRug(QPainter *painter)
 
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
-  const CQChartsRValues *rvals = plot_->getRValues(groupInd_);
+  std::vector<double> xvals;
+  double              mean;
 
-  for (int i = 0; i < rvals->size(); ++i) {
-    double x1 = *rvals->value(i);
+  (void) plot_->getRealValues(groupInd_, xvals, mean);
 
+  for (const auto &x1 : xvals) {
     QPointF p1;
 
     if (! plot_->isHorizontal())

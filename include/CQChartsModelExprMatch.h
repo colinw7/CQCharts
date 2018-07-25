@@ -6,7 +6,7 @@
 #include <QString>
 #include <vector>
 
-class CQChartsModelExprMatchTclFn;
+class CQChartsModelExprMatchFn;
 
 #ifdef CQCharts_USE_TCL
 class CQTcl;
@@ -54,10 +54,9 @@ class CQChartsModelExprMatch {
   bool checkIndex(int row, int col) const;
 
  private:
-  using TclCmds = std::vector<CQChartsModelExprMatchTclFn *>;
+  using TclCmds = std::vector<CQChartsModelExprMatchFn *>;
 
-  friend class CQChartsModelExprMatchTclFn;
-  friend class CQChartsModelExprMatchNameFn;
+  friend class CQChartsModelExprMatchFn;
 
  private:
   void addBuiltinFunctions();

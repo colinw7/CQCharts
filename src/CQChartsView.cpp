@@ -1573,7 +1573,7 @@ void
 CQChartsView::
 resizeEvent(QResizeEvent *)
 {
-  prect_ = CQChartsGeom::BBox(0, 0, width() - 1, height() - 1);
+  prect_ = CQChartsGeom::BBox(0, 0, width(), height());
 
   if (prect().getHeight() > 0)
     aspect_ = (1.0*prect().getWidth())/prect().getHeight();
@@ -2536,7 +2536,7 @@ printFile(const QString &filename, CQChartsPlot *plot)
       printPNG(filename, plot);
   }
   else {
-    printPNGSlot(filename);
+    printPNG(filename, plot);
   }
 }
 
@@ -2570,6 +2570,12 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   paint(&painter, plot);
 
   painter.end();
+
+  if (plot) {
+    CQChartsGeom::BBox pixelRect = plot->calcPixelRect();
+
+    image = image.copy(CQChartsUtil::toQRectI(pixelRect));
+  }
 
   image.save(filename);
 }

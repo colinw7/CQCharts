@@ -77,7 +77,7 @@ addFunction(const QString &name)
   assert(name.length());
 
 #ifdef CQCharts_USE_TCL
-  CQChartsExprModelTclFn *fn = new CQChartsExprModelTclFn(this, name);
+  CQChartsExprModelFn *fn = new CQChartsExprModelFn(this, name);
 
   tclCmds_.push_back(fn);
 #endif
@@ -1619,8 +1619,8 @@ QString
 CQChartsExprModel::
 replaceNumericColumns(const QString &expr, int row, int column) const
 {
-  auto quoteStr = [](const QString &str, bool quote) {
-    return (quote ? "\"" + str + "\"" : str);
+  auto quoteStr = [](const QString &str, bool doQuote) -> QString {
+    return (doQuote ? "\"" + str + "\"" : str);
   };
 
   CQStrParse parse(expr);

@@ -6,8 +6,9 @@
 #include <QAbstractProxyModel>
 #include <boost/optional.hpp>
 #include <set>
+#include <vector>
 
-class CQChartsExprModelTclFn;
+class CQChartsExprModelFn;
 class CQCharts;
 
 #ifdef CQCharts_USE_TCL
@@ -137,10 +138,9 @@ class CQChartsExprModel : public QAbstractProxyModel {
     OptReal    rmin, rmax; // real range
   };
 
-  using TclCmds = std::vector<CQChartsExprModelTclFn *>;
+  using TclCmds = std::vector<CQChartsExprModelFn *>;
 
-  friend class CQChartsExprModelTclFn;
-  friend class CQChartsExprModelNameFn;
+  friend class CQChartsExprModelFn;
 
  private:
   void addBuiltinFunctions();

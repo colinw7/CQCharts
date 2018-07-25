@@ -1,10 +1,11 @@
 #ifndef CQChartsTheme_H
 #define CQChartsTheme_H
 
-#include <CQChartsGradientPalette.h>
 #include <QObject>
+#include <QColor>
 
 class CQChartsTheme;
+class CQChartsGradientPalette;
 
 #define CQChartsThemeMgrInst CQChartsThemeMgr::instance()
 

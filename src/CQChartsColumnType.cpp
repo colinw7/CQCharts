@@ -17,7 +17,7 @@ CQChartsColumnTypeMgr::
 
 void
 CQChartsColumnTypeMgr::
-addType(CQBaseModel::Type type, CQChartsColumnType *data)
+addType(Type type, CQChartsColumnType *data)
 {
   typeData_[type] = data;
 }
@@ -30,7 +30,7 @@ decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 
   CQChartsColumnUtil::decodeType(typeStr, baseTypeName, nameValues);
 
-  CQBaseModel::Type baseType = CQBaseModel::nameType(baseTypeName);
+  Type baseType = CQBaseModel::nameType(baseTypeName);
 
   CQChartsColumnType *baseTypeData = getType(baseType);
 
@@ -39,7 +39,7 @@ decodeTypeData(const QString &typeStr, CQChartsNameValues &nameValues) const
 
 QString
 CQChartsColumnTypeMgr::
-encodeTypeData(CQBaseModel::Type type, const CQChartsNameValues &nameValues) const
+encodeTypeData(Type type, const CQChartsNameValues &nameValues) const
 {
   QString lstr = CQBaseModel::typeName(type);
   QString rstr = CQChartsColumnUtil::encodeNameValues(nameValues);
@@ -52,7 +52,7 @@ encodeTypeData(CQBaseModel::Type type, const CQChartsNameValues &nameValues) con
 
 CQChartsColumnType *
 CQChartsColumnTypeMgr::
-getType(CQBaseModel::Type type) const
+getType(Type type) const
 {
   auto p = typeData_.find(type);
 
@@ -70,7 +70,7 @@ getUserData(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  CQBaseModel::Type  type;
+  Type               type;
   CQChartsNameValues nameValues;
 
   if (! getModelColumnType(model, column, type, nameValues))
@@ -94,7 +94,7 @@ getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
 {
   converted = false;
 
-  CQBaseModel::Type  type;
+  Type               type;
   CQChartsNameValues nameValues;
 
   if (! getModelColumnType(model, column, type, nameValues))
@@ -118,10 +118,11 @@ getDisplayData(QAbstractItemModel *model, const CQChartsColumn &column,
 bool
 CQChartsColumnTypeMgr::
 getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                   CQBaseModel::Type &type, CQChartsNameValues &nameValues) const
+                   Type &type, CQChartsNameValues &nameValues) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA) {
-    type = CQBaseModel::Type::STRING;
+  if (column.type() != CQChartsColumn::Type::DATA &&
+      column.type() != CQChartsColumn::Type::DATA_INDEX) {
+    type = Type::STRING;
     return true;
   }
 
@@ -135,9 +136,9 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
     return false;
 
   // validate ?
-  type = static_cast<CQBaseModel::Type>(var1.toInt());
+  type = static_cast<Type>(var1.toInt());
 
-  if (type == CQBaseModel::Type::NONE)
+  if (type == Type::NONE)
     return false;
 
   //---
@@ -160,7 +161,7 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 bool
 CQChartsColumnTypeMgr::
 setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                   CQBaseModel::Type type, const CQChartsNameValues &nameValues)
+                   Type type, const CQChartsNameValues &nameValues)
 {
   int role = static_cast<int>(CQBaseModel::Role::Type);
 
@@ -471,7 +472,7 @@ dataName(const QVariant &var, const CQChartsNameValues &nameValues, bool &conver
   // get time value (double)
   bool ok;
 
-  double r = CQChartsUtil::toReal(var, ok);
+  double t = CQChartsUtil::toReal(var, ok);
 
   if (! ok)
     return var;
@@ -485,9 +486,9 @@ dataName(const QVariant &var, const CQChartsNameValues &nameValues, bool &conver
   QString fmt = getOFormat(nameValues);
 
   if (! fmt.length())
-    return CQChartsUtil::toString(r);
+    return CQChartsUtil::toString(t);
 
-  return CQChartsUtil::timeToString(fmt, r);
+  return CQChartsUtil::timeToString(fmt, t);
 }
 
 QString
@@ -522,6 +523,33 @@ getOFormat(const CQChartsNameValues &nameValues) const
     return (*p2).second;
 
   return "";
+}
+
+QVariant
+CQChartsColumnTimeType::
+indexVar(const QVariant &var, const QString &ind) const
+{
+  if (! var.isValid())
+    return var;
+
+  // get time value (double)
+  bool ok;
+
+  double t = CQChartsUtil::toReal(var, ok);
+
+  if (! ok)
+    return var;
+
+  //---
+
+  return CQChartsUtil::timeToString(ind, t);
+}
+
+CQChartsColumnTimeType::Type
+CQChartsColumnTimeType::
+indexType(const QString &) const
+{
+  return Type::STRING;
 }
 
 //------

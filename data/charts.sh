@@ -36,11 +36,35 @@ if ($timer == 1) then
 endif
 
 if      ($debug == 1) then
-  Dbx CQChartsTest -exec $args $opts
+  if ($#args > 0) then
+    echo "Dbx CQChartsTest -exec $args $opts"
+
+    Dbx CQChartsTest -exec $args $opts
+  else
+    echo "Dbx CQChartsTest $opts"
+
+    Dbx CQChartsTest $opts
+  endif
 else if ($valgrind == 1) then
-  Valgrind CQChartsTest -exec $args $opts
+  if ($#args > 0) then
+    echo "Valgrind CQChartsTest -exec $args $opts"
+
+    Valgrind CQChartsTest -exec $args $opts
+  else
+    echo "Valgrind CQChartsTest $opts"
+
+    Valgrind CQChartsTest $opts
+  endif
 else
-  CQChartsTest -exec $args $opts
+  if ($#args > 0) then
+    echo "CQChartsTest -exec $args $opts"
+
+    CQChartsTest -exec $args $opts
+  else
+    echo "CQChartsTest $opts"
+
+    CQChartsTest $opts
+  endif
 endif
 
 exit 0

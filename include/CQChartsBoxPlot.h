@@ -338,6 +338,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
   Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
+  // jitter points
+  Q_PROPERTY(CQChartsSymbol jitterSymbolType READ jitterSymbolType WRITE setJitterSymbolType)
+
   Q_ENUMS(Pattern)
 
  public:
@@ -506,15 +509,15 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   //---
 
   // symbol
-  const CQChartsSymbol &symbolType() const { return symbolData_.type; }
+  const CQChartsSymbol &symbolType() const { return outlierSymbolData_.type; }
   void setSymbolType(const CQChartsSymbol &t);
 
-  const CQChartsLength &symbolSize() const { return symbolData_.size; }
+  const CQChartsLength &symbolSize() const { return outlierSymbolData_.size; }
   void setSymbolSize(const CQChartsLength &s);
 
   //--
 
-  bool isSymbolStroked() const { return symbolData_.stroke.visible; }
+  bool isSymbolStroked() const { return outlierSymbolData_.stroke.visible; }
   void setSymbolStroked(bool b);
 
   const CQChartsColor &symbolStrokeColor() const;
@@ -525,12 +528,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   double symbolStrokeAlpha() const;
   void setSymbolStrokeAlpha(double a);
 
-  const CQChartsLength &symbolStrokeWidth() const { return symbolData_.stroke.width; }
+  const CQChartsLength &symbolStrokeWidth() const { return outlierSymbolData_.stroke.width; }
   void setSymbolStrokeWidth(const CQChartsLength &l);
 
   //--
 
-  bool isSymbolFilled() const { return symbolData_.fill.visible; }
+  bool isSymbolFilled() const { return outlierSymbolData_.fill.visible; }
   void setSymbolFilled(bool b);
 
   const CQChartsColor &symbolFillColor() const;
@@ -543,6 +546,15 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   Pattern symbolFillPattern() const;
   void setSymbolFillPattern(const Pattern &p);
+
+  //---
+
+  const CQChartsSymbol &jitterSymbolType() const { return jitterSymbolData_.type; }
+  void setJitterSymbolType(const CQChartsSymbol &t);
+
+  const CQChartsLength &jitterSymbolSize() const { return outlierSymbolData_.size; }
+  void setJitterSymbolSize(const CQChartsLength &s);
+
 
   //---
 
@@ -634,7 +646,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   CQChartsBoxData       boxData_;                             // shape fill/border style
   CQChartsTextData      textData_;                            // text style
   double                textMargin_     { 2 };                // text margin
-  CQChartsSymbolData    symbolData_;                          // outlier symbol data
+  CQChartsSymbolData    outlierSymbolData_;                   // outlier symbol data
+  CQChartsSymbolData    jitterSymbolData_;                    // jitter symbol data
   ColumnType            setType_        { ColumnType::NONE }; // set column data type
   GroupSetWhiskerMap    groupWhiskers_;                       // grouped whisker data
   WhiskerDataList       whiskerDataList_;                     // whisker data

@@ -127,8 +127,12 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   // options
   Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
-  Q_PROPERTY(bool xRug    READ isXRug    WRITE setXRug   )
-  Q_PROPERTY(bool yRug    READ isYRug    WRITE setYRug   )
+
+  // rug
+  Q_PROPERTY(bool           xRug          READ isXRug        WRITE setXRug         )
+  Q_PROPERTY(bool           yRug          READ isYRug        WRITE setYRug         )
+  Q_PROPERTY(CQChartsSymbol rugSymbolType READ rugSymbolType WRITE setRugSymbolType)
+  Q_PROPERTY(double         rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
 
   // symbol
   Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
@@ -216,14 +220,22 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   const CQChartsColumn &yColumn() const { return yColumn_; }
   void setYColumn(const CQChartsColumn &c);
 
-  //----
+  //---
 
   bool isBestFit() const { return bestFit_; }
+
+  //---
 
   bool isXRug() const { return xRug_; }
   bool isYRug() const { return yRug_; }
 
-  //----
+  const CQChartsSymbol &rugSymbolType() const { return rugSymbolType_; }
+  void setRugSymbolType(const CQChartsSymbol &s);
+
+  double rugSymbolSize() const { return rugSymbolSize_; }
+  void setRugSymbolSize(double r);
+
+  //---
 
   // symbol
   const CQChartsSymbol &symbolType() const { return symbolData_.type; }
@@ -382,6 +394,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
+  CQChartsGeom::BBox annotationBBox() const;
+
   //---
 
   void drawBackground(QPainter *painter) override;
@@ -411,25 +425,27 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   using Points = std::vector<QPointF>;
 
-  CQChartsColumn     nameColumn_;             // name column
-  CQChartsColumn     xColumn_      { 0 };     // x column
-  CQChartsColumn     yColumn_      { 1 };     // y column
-  bool               bestFit_      { false }; // best fit
-  bool               xRug_         { false }; // x rug
-  bool               yRug_         { false }; // y rug
-  CQChartsSymbolData symbolData_;             // symbol draw data
-  double             fontSize_     { 8.0 };   // font size
-  GroupNameValues    groupNameValues_;        // name values
-  CQChartsDataLabel  dataLabel_;              // data label style
-  QString            xname_;                  // x column header
-  QString            yname_;                  // y column header
-  bool               symbolMapKey_ { true };  // draw symbol map key
-  QString            symbolTypeName_;         // symbol type column header
-  QString            symbolSizeName_;         // symbol size column header
-  QString            fontSizeName_;           // font size column header
-  QString            colorName_;              // color column header
-  Points             points_;
-  FitData            fitData_;
+  CQChartsColumn     nameColumn_;                                   // name column
+  CQChartsColumn     xColumn_       { 0 };                          // x column
+  CQChartsColumn     yColumn_       { 1 };                          // y column
+  bool               bestFit_       { false };                      // best fit
+  bool               xRug_          { false };                      // x rug
+  bool               yRug_          { false };                      // y rug
+  CQChartsSymbol     rugSymbolType_ { CQChartsSymbol::Type::NONE }; // rug symbol type
+  double             rugSymbolSize_ { 5.0 };                        // rug symbol size
+  CQChartsSymbolData symbolData_;                                   // symbol draw data
+  double             fontSize_      { 8.0 };                        // font size
+  GroupNameValues    groupNameValues_;                              // name values
+  CQChartsDataLabel  dataLabel_;                                    // data label style
+  QString            xname_;                                        // x column header
+  QString            yname_;                                        // y column header
+  bool               symbolMapKey_  { true };                       // draw symbol map key
+  QString            symbolTypeName_;                               // symbol type column header
+  QString            symbolSizeName_;                               // symbol size column header
+  QString            fontSizeName_;                                 // font size column header
+  QString            colorName_;                                    // color column header
+  Points             points_;                                       // fit points
+  FitData            fitData_;                                      // fit data
 };
 
 #endif

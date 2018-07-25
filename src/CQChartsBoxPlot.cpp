@@ -105,6 +105,9 @@ CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
   setSymbolFilled(true);
   setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
+  setJitterSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setJitterSymbolSize(CQChartsLength("4px"));
+
   addAxes();
 
   addKey();
@@ -571,35 +574,35 @@ void
 CQChartsBoxPlot::
 setSymbolType(const CQChartsSymbol &t)
 {
-  CQChartsUtil::testAndSet(symbolData_.type, t, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.type, t, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSymbolSize(const CQChartsLength &s)
 {
-  CQChartsUtil::testAndSet(symbolData_.size, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.size, s, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSymbolStroked(bool b)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.visible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.visible, b, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
 CQChartsBoxPlot::
 symbolStrokeColor() const
 {
-  return symbolData_.stroke.color;
+  return outlierSymbolData_.stroke.color;
 }
 
 void
 CQChartsBoxPlot::
 setSymbolStrokeColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -613,42 +616,42 @@ double
 CQChartsBoxPlot::
 symbolStrokeAlpha() const
 {
-  return symbolData_.stroke.alpha;
+  return outlierSymbolData_.stroke.alpha;
 }
 
 void
 CQChartsBoxPlot::
 setSymbolStrokeAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 const CQChartsColor &
 CQChartsBoxPlot::
 symbolFillColor() const
 {
-  return symbolData_.fill.color;
+  return outlierSymbolData_.fill.color;
 }
 
 void
 CQChartsBoxPlot::
 setSymbolStrokeWidth(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(symbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSymbolFilled(bool b)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.visible, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 void
 CQChartsBoxPlot::
 setSymbolFillColor(const CQChartsColor &c)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.color, c, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.fill.color, c, [&]() { invalidateLayers(); } );
 }
 
 QColor
@@ -662,32 +665,48 @@ double
 CQChartsBoxPlot::
 symbolFillAlpha() const
 {
-  return symbolData_.fill.alpha;
+  return outlierSymbolData_.fill.alpha;
 }
 
 void
 CQChartsBoxPlot::
 setSymbolFillAlpha(double a)
 {
-  CQChartsUtil::testAndSet(symbolData_.fill.alpha, a, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(outlierSymbolData_.fill.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 CQChartsBoxPlot::Pattern
 CQChartsBoxPlot::
 symbolFillPattern() const
 {
-  return (Pattern) symbolData_.fill.pattern;
+  return (Pattern) outlierSymbolData_.fill.pattern;
 }
 
 void
 CQChartsBoxPlot::
 setSymbolFillPattern(const Pattern &pattern)
 {
-  if (pattern != (Pattern) symbolData_.fill.pattern) {
-    symbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
+  if (pattern != (Pattern) outlierSymbolData_.fill.pattern) {
+    outlierSymbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
 
     invalidateLayers();
   }
+}
+
+//---
+
+void
+CQChartsBoxPlot::
+setJitterSymbolType(const CQChartsSymbol &t)
+{
+  CQChartsUtil::testAndSet(jitterSymbolData_.type, t, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBoxPlot::
+setJitterSymbolSize(const CQChartsLength &s)
+{
+  CQChartsUtil::testAndSet(jitterSymbolData_.size, s, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -2743,13 +2762,16 @@ void
 CQChartsBoxPlotPointObj::
 draw(QPainter *painter)
 {
-  CQChartsSymbol symbol(CQChartsSymbol::Type::CIRCLE);
+  CQChartsSymbol symbol = plot_->jitterSymbolType();
 
-  bool stroked = true;
-  bool filled  = true;
+  bool stroked = plot_->isSymbolStroked();
+  bool filled  = plot_->isSymbolFilled ();
 
-  double sx = 4;
-  double sy = 4;
+  double sx = plot_->lengthPixelWidth (plot_->jitterSymbolSize());
+  double sy = plot_->lengthPixelHeight(plot_->jitterSymbolSize());
+
+  sx = plot_->limitSymbolSize(sx);
+  sy = plot_->limitSymbolSize(sy);
 
   //---
 

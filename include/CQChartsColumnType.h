@@ -9,13 +9,16 @@
 // column type base class
 class CQChartsColumnType {
  public:
-  CQChartsColumnType(CQBaseModel::Type type) :
+  using Type = CQBaseModel::Type;
+
+ public:
+  CQChartsColumnType(Type type) :
    type_(type) {
   }
 
   virtual ~CQChartsColumnType() { }
 
-  CQBaseModel::Type type() const { return type_; }
+  Type type() const { return type_; }
 
   virtual QString name() const { return CQBaseModel::typeName(type_); }
 
@@ -33,8 +36,14 @@ class CQChartsColumnType {
   virtual QVariant minValue(const CQChartsNameValues &) const { return QVariant(); }
   virtual QVariant maxValue(const CQChartsNameValues &) const { return QVariant(); }
 
+  // index value (TODO: assert if index invalid or not supported ?)
+  virtual QVariant indexVar(const QVariant &var, const QString &) const { return var; }
+
+  // index type (TODO: assert if index invalid or not supported ?)
+  virtual Type indexType(const QString &) const { return type(); }
+
  private:
-  CQBaseModel::Type type_; // base type
+  Type type_; // base type
 };
 
 //---
@@ -43,7 +52,7 @@ class CQChartsColumnType {
 class CQChartsColumnStringType : public CQChartsColumnType {
  public:
   CQChartsColumnStringType() :
-   CQChartsColumnType(CQBaseModel::Type::STRING) {
+   CQChartsColumnType(Type::STRING) {
   }
 
   // input variant to data variant for edit
@@ -63,7 +72,7 @@ class CQChartsColumnStringType : public CQChartsColumnType {
 class CQChartsColumnRealType : public CQChartsColumnType {
  public:
   CQChartsColumnRealType() :
-   CQChartsColumnType(CQBaseModel::Type::REAL) {
+   CQChartsColumnType(Type::REAL) {
   }
 
   bool isNumeric() const override { return true; }
@@ -92,7 +101,7 @@ class CQChartsColumnRealType : public CQChartsColumnType {
 class CQChartsColumnIntegerType : public CQChartsColumnType {
  public:
   CQChartsColumnIntegerType() :
-   CQChartsColumnType(CQBaseModel::Type::INTEGER) {
+   CQChartsColumnType(Type::INTEGER) {
   }
 
   bool isNumeric() const override { return true; }
@@ -112,7 +121,7 @@ class CQChartsColumnIntegerType : public CQChartsColumnType {
 class CQChartsColumnTimeType : public CQChartsColumnType {
  public:
   CQChartsColumnTimeType() :
-   CQChartsColumnType(CQBaseModel::Type::TIME) {
+   CQChartsColumnType(Type::TIME) {
   }
 
   bool isNumeric() const override { return true; }
@@ -127,6 +136,10 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 
   QString getIFormat(const CQChartsNameValues &nameValues) const;
   QString getOFormat(const CQChartsNameValues &nameValues) const;
+
+  QVariant indexVar(const QVariant &var, const QString &ind) const override;
+
+  Type indexType(const QString &) const override;
 };
 
 //---
@@ -135,7 +148,7 @@ class CQChartsColumnTimeType : public CQChartsColumnType {
 class CQChartsColumnRectType : public CQChartsColumnType {
  public:
   CQChartsColumnRectType() :
-   CQChartsColumnType(CQBaseModel::Type::RECT) {
+   CQChartsColumnType(Type::RECT) {
   }
 
   // input variant to data variant for edit
@@ -153,7 +166,7 @@ class CQChartsColumnRectType : public CQChartsColumnType {
 class CQChartsColumnPolygonType : public CQChartsColumnType {
  public:
   CQChartsColumnPolygonType() :
-   CQChartsColumnType(CQBaseModel::Type::POLYGON) {
+   CQChartsColumnType(Type::POLYGON) {
   }
 
   // input variant to data variant for edit
@@ -171,7 +184,7 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
 class CQChartsColumnPathType : public CQChartsColumnType {
  public:
   CQChartsColumnPathType() :
-   CQChartsColumnType(CQBaseModel::Type::PATH) {
+   CQChartsColumnType(Type::PATH) {
   }
 
   // input variant to data variant for edit
@@ -189,7 +202,7 @@ class CQChartsColumnPathType : public CQChartsColumnType {
 class CQChartsColumnStyleType : public CQChartsColumnType {
  public:
   CQChartsColumnStyleType() :
-   CQChartsColumnType(CQBaseModel::Type::STYLE) {
+   CQChartsColumnType(Type::STYLE) {
   }
 
   // input variant to data variant for edit
@@ -207,7 +220,7 @@ class CQChartsColumnStyleType : public CQChartsColumnType {
 class CQChartsColumnColorType : public CQChartsColumnType {
  public:
   CQChartsColumnColorType() :
-   CQChartsColumnType(CQBaseModel::Type::COLOR) {
+   CQChartsColumnType(Type::COLOR) {
   }
 
   // input variant to data variant for edit
@@ -226,16 +239,19 @@ class CQChartsColumnTypeMgr : public QObject {
   Q_OBJECT
 
  public:
+  using Type = CQBaseModel::Type;
+
+ public:
   CQChartsColumnTypeMgr(CQCharts *charts);
  ~CQChartsColumnTypeMgr();
 
-  void addType(CQBaseModel::Type type, CQChartsColumnType *data);
+  void addType(Type type, CQChartsColumnType *data);
 
   CQChartsColumnType *decodeTypeData(const QString &type, CQChartsNameValues &nameValues) const;
 
-  QString encodeTypeData(CQBaseModel::Type type, const CQChartsNameValues &nameValues) const;
+  QString encodeTypeData(Type type, const CQChartsNameValues &nameValues) const;
 
-  CQChartsColumnType *getType(CQBaseModel::Type type) const;
+  CQChartsColumnType *getType(Type type) const;
 
   QVariant getUserData(QAbstractItemModel *model, const CQChartsColumn &column,
                        const QVariant &var, bool &converted) const;
@@ -244,14 +260,13 @@ class CQChartsColumnTypeMgr : public QObject {
                           const QVariant &var, bool &converted) const;
 
   bool getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                          CQBaseModel::Type &type, CQChartsNameValues &nameValues) const;
+                          Type &type, CQChartsNameValues &nameValues) const;
 
-  bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
-                          CQBaseModel::Type type,
+  bool setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column, Type type,
                           const CQChartsNameValues &nameValues=CQChartsNameValues());
 
  private:
-  using TypeData = std::map<CQBaseModel::Type,CQChartsColumnType*>;
+  using TypeData = std::map<Type,CQChartsColumnType*>;
 
   CQCharts* charts_ { nullptr };
   TypeData  typeData_;

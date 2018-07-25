@@ -527,3 +527,9 @@
  + fix issue in Tcl_Obj real value to variant
  + Improve layer handling for mouse over and selection
  + Add layers to view settings
+# 7/25/2018
+ + Add dot lines to bar chart
+ + Add support for sub values of column e.g. month from time value
+ + Calc density range and use for better draw. Support denisty group offset
+ + Support gradient fill for density
+ + Add lines/point to xy context menu

@@ -26,26 +26,26 @@ bool varToInt(const QVariant &var, int &i) {
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
 
-class CQChartsModelExprMatchTclFn {
+class CQChartsModelExprMatchFn {
  public:
   using Vars = std::vector<QVariant>;
 
  public:
-  CQChartsModelExprMatchTclFn(CQChartsModelExprMatch *model, const QString &name) :
+  CQChartsModelExprMatchFn(CQChartsModelExprMatch *model, const QString &name) :
    model_(model), name_(name) {
     qtcl_ = model->qtcl();
 
     cmdId_ = qtcl()->createExprCommand(name_,
-               (CQTcl::ObjCmdProc) &CQChartsModelExprMatchTclFn::commandProc,
+               (CQTcl::ObjCmdProc) &CQChartsModelExprMatchFn::commandProc,
                (CQTcl::ObjCmdData) this);
   }
 
-  virtual ~CQChartsModelExprMatchTclFn() { }
+  virtual ~CQChartsModelExprMatchFn() { }
 
   CQTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsModelExprMatchTclFn *command = (CQChartsModelExprMatchTclFn *) clientData;
+    CQChartsModelExprMatchFn *command = (CQChartsModelExprMatchFn *) clientData;
 
     Vars vars;
 
@@ -122,7 +122,7 @@ addFunction(const QString &name)
   assert(name.length());
 
 #ifdef CQCharts_USE_TCL
-  CQChartsModelExprMatchTclFn *fn = new CQChartsModelExprMatchTclFn(this, name);
+  CQChartsModelExprMatchFn *fn = new CQChartsModelExprMatchFn(this, name);
 
   tclCmds_.push_back(fn);
 #endif

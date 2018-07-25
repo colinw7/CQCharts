@@ -195,7 +195,8 @@ initGroup(const CQChartsGroupData &data)
 
     ColumnType columnType = CQBaseModel::Type::STRING;
 
-    if (column.type() == CQChartsColumn::Type::DATA)
+    if (column.type() == CQChartsColumn::Type::DATA ||
+        column.type() == CQChartsColumn::Type::DATA_INDEX)
       columnType = columnValueType(column);
 
     groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);
@@ -206,7 +207,8 @@ initGroup(const CQChartsGroupData &data)
   else if (data.column.isValid()) {
     ColumnType columnType = CQBaseModel::Type::STRING;
 
-    if (data.column.type() == CQChartsColumn::Type::DATA)
+    if (data.column.type() == CQChartsColumn::Type::DATA ||
+        data.column.type() == CQChartsColumn::Type::DATA_INDEX)
       columnType = columnValueType(data.column);
 
     groupBucket_.setDataType  (CQChartsColumnBucket::DataType::COLUMN);

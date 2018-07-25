@@ -518,6 +518,26 @@ unset()
 #endif
 }
 
+void
+CQChartsGradientPalette::
+setLinearGradient(QLinearGradient &lg, double a) const
+{
+  int    n = 64;
+  double d = 1.0/n;
+
+  double x = 0.0;
+
+  for (int i = 0; i < n; ++i) {
+    QColor c = getColor(x);
+
+    c.setAlphaF(a);
+
+    lg.setColorAt(x, c);
+
+    x += d;
+  }
+}
+
 #if 0
 void
 CQChartsGradientPalette::

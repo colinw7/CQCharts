@@ -143,9 +143,18 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   using Points = std::vector<QPointF>;
 
+  struct Data {
+    Points points;
+    double xmin { 0.0 };
+    double xmax { 0.0 };
+    double ymin { 0.0 };
+    double ymax { 0.0 };
+    double mean { 0.0 };
+  };
+
  public:
   CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                                 int groupInd, const Points &points, double mean, int is, int ns);
+                                 int groupInd, const Data &data, double doffset, int is, int ns);
 
   int groupInd() const { return groupInd_; }
 
@@ -188,8 +197,8 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  private:
   CQChartsDistributionPlot *plot_     { nullptr };
   int                       groupInd_ { -1 };
-  Points                    points_;
-  double                    mean_     { 0.0 };
+  Data                      data_;
+  double                    doffset_  { 0.0 };
   int                       is_       { -1 };
   int                       ns_       { -1 };
   QPolygonF                 poly_;
@@ -238,7 +247,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(bool overlay   READ isOverlay   WRITE setOverlay  )
   Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
   Q_PROPERTY(bool rangeBar  READ isRangeBar  WRITE setRangeBar )
-  Q_PROPERTY(bool density   READ isDensity   WRITE setDensity  )
+
+  // density
+  Q_PROPERTY(bool   density         READ isDensity         WRITE setDensity        )
+  Q_PROPERTY(double densityOffset   READ densityOffset     WRITE setDensityOffset  )
+  Q_PROPERTY(int    densitySamples  READ densitySamples    WRITE setDensitySamples )
+  Q_PROPERTY(bool   densityGradient READ isDensityGradient WRITE setDensityGradient)
 
   // mean line
   Q_PROPERTY(bool             showMean  READ isShowMean WRITE setShowMean)
@@ -307,7 +321,18 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   bool isRangeBar() const { return rangeBar_; }
 
+  //---
+
   bool isDensity() const { return density_; }
+
+  double densityOffset() const { return densityOffset_; }
+  void setDensityOffset(double o);
+
+  int densitySamples() const { return densitySamples_; }
+  void setDensitySamples(int n);
+
+  bool isDensityGradient() const { return densityGradient_; }
+  void setDensityGradient(bool b);
 
   //---
 
@@ -412,7 +437,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   void getXVals(int groupInd, int bucket, std::vector<double> &xvals) const;
 
-  const CQChartsRValues *getRValues(int groupInd) const;
+  bool getMeanValue(int groupInd, double &mean) const;
+
+  bool getRealValues(int groupInd, std::vector<double> &xvals, double &mean) const;
 
  private:
   using ValueSet     = CQChartsValueSet;
@@ -489,27 +516,30 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   void popTopSlot();
 
  private:
-  CQChartsColumn    nameColumn_;                                     // name column
-  bool              overlay_       { false };                        // overlay groups
-  bool              skipEmpty_     { false };                        // skip empty buckets
-  bool              rangeBar_      { false };                        // show range bar
-  bool              density_       { false };                        // show density
-  bool              dotLines_      { false };                        // show dot lines
-  CQChartsLength    dotLineWidth_  { "3px" };                        // dot line width
-  CQChartsSymbol    dotSymbolType_ { CQChartsSymbol::Type::CIRCLE }; // dot symbol type
-  double            dotSymbolSize_ { 7.0 };                          // dot symbol size
-  bool              rug_           { false };                        // show rug
-  CQChartsSymbol    rugSymbolType_ { CQChartsSymbol::Type::NONE };   // rug symbol type
-  double            rugSymbolSize_ { 5.0 };                          // rug symbol size
-  bool              showMean_      { false };                        // show mean
-  CQChartsLineDash  meanDash_      { { 2, 2 }, 0 };                  // mean line dash
-  CQChartsDataLabel dataLabel_;                                      // data label data
-  GroupValues       groupValues_;                                    // grouped value sets
-  GroupBucketer     groupBucketer_;                                  // group bucketer
-  CQBucketer        bucketer_;                                       // shared bucketer
-  bool              bucketed_      { true };                         // is bucketed
-  FilterStack       filterStack_;                                    // filter stack
-  GroupBucketRange  groupBucketRange_;                               // bucketer per group
+  CQChartsColumn    nameColumn_;                      // name column
+  bool              overlay_         { false };       // overlay groups
+  bool              skipEmpty_       { false };       // skip empty buckets
+  bool              rangeBar_        { false };       // show range bar
+  bool              density_         { false };       // show density
+  double            densityOffset_   { 0.0 };         // density offset
+  int               densitySamples_  { 100 };         // density samples
+  bool              densityGradient_ { true };        // show dot lines
+  bool              dotLines_        { false };       // show dot lines
+  CQChartsLength    dotLineWidth_    { "3px" };       // dot line width
+  CQChartsSymbol    dotSymbolType_;                   // dot symbol type
+  double            dotSymbolSize_   { 7.0 };         // dot symbol size
+  bool              rug_             { false };       // show rug
+  CQChartsSymbol    rugSymbolType_;                   // rug symbol type
+  double            rugSymbolSize_   { 5.0 };         // rug symbol size
+  bool              showMean_        { false };       // show mean
+  CQChartsLineDash  meanDash_        { { 2, 2 }, 0 }; // mean line dash
+  CQChartsDataLabel dataLabel_;                       // data label data
+  GroupValues       groupValues_;                     // grouped value sets
+  GroupBucketer     groupBucketer_;                   // group bucketer
+  CQBucketer        bucketer_;                        // shared bucketer
+  bool              bucketed_        { true };        // is bucketed
+  FilterStack       filterStack_;                     // filter stack
+  GroupBucketRange  groupBucketRange_;                // bucketer per group
 };
 
 #endif

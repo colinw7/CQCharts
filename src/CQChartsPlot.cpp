@@ -69,22 +69,27 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   bbox_ = CQChartsGeom::BBox(0, 0, vr, vr);
 
-  displayRange_->setPixelRange(0, vr, vr, 0);
+  displayRange_->setPixelAdjust(0);
 
+  displayRange_->setPixelRange (0, vr, vr, 0);
   displayRange_->setWindowRange(0, 0, 1, 1);
 
   //---
 
-  setLayerActive(CQChartsLayer::Type::BACKGROUND, true);
-  setLayerActive(CQChartsLayer::Type::BG_AXES   , true);
-  setLayerActive(CQChartsLayer::Type::BG_KEY    , true);
-  setLayerActive(CQChartsLayer::Type::MID_PLOT  , true);
-  setLayerActive(CQChartsLayer::Type::FG_AXES   , true);
-  setLayerActive(CQChartsLayer::Type::FG_KEY    , true);
-  setLayerActive(CQChartsLayer::Type::TITLE     , true);
-  setLayerActive(CQChartsLayer::Type::FOREGROUND, true);
-  setLayerActive(CQChartsLayer::Type::SELECTION , true);
-  setLayerActive(CQChartsLayer::Type::MOUSE_OVER, true);
+  // all layers active except (BG_PLOT and FG_PLOT)
+  setLayerActive(CQChartsLayer::Type::BACKGROUND , true);
+  setLayerActive(CQChartsLayer::Type::BG_AXES    , true);
+  setLayerActive(CQChartsLayer::Type::BG_KEY     , true);
+  setLayerActive(CQChartsLayer::Type::MID_PLOT   , true);
+  setLayerActive(CQChartsLayer::Type::FG_AXES    , true);
+  setLayerActive(CQChartsLayer::Type::FG_KEY     , true);
+  setLayerActive(CQChartsLayer::Type::TITLE      , true);
+  setLayerActive(CQChartsLayer::Type::ANNOTATION , true);
+  setLayerActive(CQChartsLayer::Type::FOREGROUND , true);
+  setLayerActive(CQChartsLayer::Type::EDIT_HANDLE, true);
+  setLayerActive(CQChartsLayer::Type::BOXES      , true);
+  setLayerActive(CQChartsLayer::Type::SELECTION  , true);
+  setLayerActive(CQChartsLayer::Type::MOUSE_OVER , true);
 
   //---
 
@@ -101,6 +106,9 @@ CQChartsPlot::
 ~CQChartsPlot()
 {
   clearPlotObjects();
+
+  for (auto &layer : layers_)
+    delete layer.second;
 
   for (auto &annotation : annotations())
     delete annotation;
@@ -3248,6 +3256,8 @@ void
 CQChartsPlot::
 drawParts(QPainter *painter)
 {
+  CScopeTimer timer("drawParts");
+
   // draw background (plot/data fill)
   drawBackground(painter);
 
@@ -3312,6 +3322,8 @@ void
 CQChartsPlot::
 drawBackground(QPainter *painter)
 {
+  CScopeTimer timer("drawBackground");
+
   bool hasPlotBackground = (isBackground    () || isBorder    ());
   bool hasDataBackground = (isDataBackground() || isDataBorder());
 
@@ -3319,6 +3331,7 @@ drawBackground(QPainter *painter)
     return;
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BACKGROUND);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -3788,16 +3801,42 @@ void
 CQChartsPlot::
 drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
-#if 0
-  if (! isLayerActive(layerType))
-    return;
-#endif
-
-  //---
+  CScopeTimer timer("drawObjs");
 
   drawLayer_ = layerType;
 
+  CQChartsGeom::BBox bbox = displayRangeBBox();
+
+  //---
+
+  // skip if nothing drawn
+  bool drawObjs = false;
+
+  for (const auto &plotObj : plotObjs_) {
+    if      (layerType == CQChartsLayer::Type::SELECTION) {
+      if (! plotObj->isSelected())
+        continue;
+    }
+    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+      if (! plotObj->isInside())
+        continue;
+    }
+
+    if (! bbox.overlaps(plotObj->rect()))
+      continue;
+
+    drawObjs = true;
+
+    break;
+  }
+
+  if (! drawObjs)
+    return;
+
+  //---
+
   CQChartsLayer *layer = getLayer(layerType);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = painter;
 
@@ -3896,8 +3935,13 @@ void
 CQChartsPlot::
 drawBgAxes(QPainter *painter)
 {
-  bool showXGrid = (xAxis() && xAxis()->isVisible() && ! xAxis()->isGridAbove());
-  bool showYGrid = (yAxis() && yAxis()->isVisible() && ! yAxis()->isGridAbove());
+  CScopeTimer timer("drawBgAxes");
+
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (xAxis() && xAxis()->isVisible());
+
+  bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+  bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   if (! showXGrid && ! showYGrid)
     return;
@@ -3905,6 +3949,7 @@ drawBgAxes(QPainter *painter)
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_AXES);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -3927,18 +3972,21 @@ void
 CQChartsPlot::
 drawFgAxes(QPainter *painter)
 {
+  CScopeTimer timer("drawFgAxes");
+
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (xAxis() && xAxis()->isVisible());
 
   if (! showXAxis && ! showYAxis)
     return;
 
-  bool showXGrid = (showXAxis && xAxis()->isGridAbove());
-  bool showYGrid = (showYAxis && yAxis()->isGridAbove());
+  bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_AXES);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -3969,6 +4017,8 @@ void
 CQChartsPlot::
 drawBgKey(QPainter *painter)
 {
+  CScopeTimer timer("drawBgKey");
+
   CQChartsPlot *plot1 = firstPlot();
 
   CQChartsKey *key1 = plot1->key();
@@ -3990,6 +4040,7 @@ drawBgKey(QPainter *painter)
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_KEY);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4007,6 +4058,8 @@ void
 CQChartsPlot::
 drawFgKey(QPainter *painter)
 {
+  CScopeTimer timer("drawFgKey");
+
   CQChartsPlot *plot1 = firstPlot();
 
   CQChartsKey *key1 = plot1->key();
@@ -4028,6 +4081,7 @@ drawFgKey(QPainter *painter)
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_KEY);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4045,12 +4099,15 @@ void
 CQChartsPlot::
 drawTitle(QPainter *painter)
 {
+  CScopeTimer timer("drawTitle");
+
   if (! title())
     return;
 
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::TITLE);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4068,12 +4125,15 @@ void
 CQChartsPlot::
 drawAnnotations(QPainter *painter)
 {
+  CScopeTimer timer("drawAnnotations");
+
   if (annotations().empty())
     return;
 
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::ANNOTATION);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4099,12 +4159,15 @@ void
 CQChartsPlot::
 drawBoxes(QPainter *painter)
 {
+  CScopeTimer timer("drawBoxes");
+
   if (! showBoxes())
     return;
 
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BOXES);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4131,6 +4194,8 @@ void
 CQChartsPlot::
 drawEditHandles(QPainter *painter)
 {
+  CScopeTimer timer("drawEditHandles");
+
   if (view()->mode() != CQChartsView::Mode::EDIT)
     return;
 
@@ -4140,6 +4205,7 @@ drawEditHandles(QPainter *painter)
   //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::EDIT_HANDLE);
+  if (! layer->isActive()) return;
 
   QPainter *painter1 = beginPaint(layer, painter);
 
@@ -4316,7 +4382,7 @@ drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
                 const QPen &pen, const CQChartsTextOptions &options) const
 {
   if (CQChartsUtil::isZero(options.angle)) {
-    QFontMetricsF fm = painter->fontMetrics();
+    QFontMetricsF fm(painter->font());
 
     double tw = fm.width(text);
     double ta = fm.ascent();
@@ -4507,6 +4573,7 @@ CQChartsPlot::
 updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const
 {
   if (! view_->isBufferLayers()) {
+    // inside and selected
     if      (obj->isInside() && obj->isSelected()) {
       updateSelectedObjPenBrushState(pen, brush);
       updateInsideObjPenBrushState  (pen, brush, false);
@@ -4691,7 +4758,6 @@ QColor
 CQChartsPlot::
 selectedColor(const QColor &c) const
 {
-  //return CQChartsUtil::blendColors(c, CQChartsUtil::invColor(CQChartsUtil::bwColor(c)), 0.6);
   return CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.6);
 }
 
@@ -5606,7 +5672,7 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelValue(model, row, column, parent, role, ok);
+  return CQChartsUtil::modelValue(charts(), model, row, column, parent, role, ok);
 }
 
 QVariant
@@ -5614,7 +5680,7 @@ CQChartsPlot::
 modelValue(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelValue(model, row, column, parent, ok);
+  return CQChartsUtil::modelValue(charts(), model, row, column, parent, ok);
 }
 
 QString
@@ -5622,7 +5688,7 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
             const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelString(model, row, column, parent, role, ok);
+  return CQChartsUtil::modelString(charts(), model, row, column, parent, role, ok);
 }
 
 QString
@@ -5630,7 +5696,7 @@ CQChartsPlot::
 modelString(QAbstractItemModel *model, int row, const CQChartsColumn &column,
             const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelString(model, row, column, parent, ok);
+  return CQChartsUtil::modelString(charts(), model, row, column, parent, ok);
 }
 
 double
@@ -5638,7 +5704,7 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
           const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelReal(model, row, column, parent, role, ok);
+  return CQChartsUtil::modelReal(charts(), model, row, column, parent, role, ok);
 }
 
 double
@@ -5646,7 +5712,7 @@ CQChartsPlot::
 modelReal(QAbstractItemModel *model, int row, const CQChartsColumn &column,
           const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelReal(model, row, column, parent, ok);
+  return CQChartsUtil::modelReal(charts(), model, row, column, parent, ok);
 }
 
 long
@@ -5654,7 +5720,7 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
              const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelInteger(model, row, column, parent, role, ok);
+  return CQChartsUtil::modelInteger(charts(), model, row, column, parent, role, ok);
 }
 
 long
@@ -5662,7 +5728,7 @@ CQChartsPlot::
 modelInteger(QAbstractItemModel *model, int row, const CQChartsColumn &column,
              const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelInteger(model, row, column, parent, ok);
+  return CQChartsUtil::modelInteger(charts(), model, row, column, parent, ok);
 }
 
 CQChartsColor
@@ -5670,7 +5736,7 @@ CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, int role, bool &ok) const
 {
-  return CQChartsUtil::modelColor(model, row, column, parent, role, ok);
+  return CQChartsUtil::modelColor(charts(), model, row, column, parent, role, ok);
 }
 
 CQChartsColor
@@ -5678,7 +5744,7 @@ CQChartsPlot::
 modelColor(QAbstractItemModel *model, int row, const CQChartsColumn &column,
            const QModelIndex &parent, bool &ok) const
 {
-  return CQChartsUtil::modelColor(model, row, column, parent, ok);
+  return CQChartsUtil::modelColor(charts(), model, row, column, parent, ok);
 }
 
 //------
@@ -5825,7 +5891,8 @@ CQChartsPlot::
 isSelectIndex(const QModelIndex &ind, int row, const CQChartsColumn &column,
               const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA)
+  if (column.type() != CQChartsColumn::Type::DATA &&
+      column.type() != CQChartsColumn::Type::DATA_INDEX)
     return false;
 
   return (ind == selectIndex(row, column.column(), parent));
@@ -5835,7 +5902,8 @@ QModelIndex
 CQChartsPlot::
 selectIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA)
+  if (column.type() != CQChartsColumn::Type::DATA &&
+      column.type() != CQChartsColumn::Type::DATA_INDEX)
     return QModelIndex();
 
   std::vector<QSortFilterProxyModel *> proxyModels;

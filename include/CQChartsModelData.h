@@ -101,7 +101,7 @@ class CQChartsModelData : public QObject {
   QString               name_;                         // model name
   CQChartsModelDetails* details_        { nullptr };   // model details
 #ifdef CQCHARTS_FOLDED_MODEL
-  ModelP                foldProxyModel_;               // folded proxy mode
+  ModelP                foldProxyModel_;               // folded proxy model
   FoldedModels          foldedModels_;                 // folded models
 #endif
   CQSummaryModel*       summaryModel_     { nullptr }; // summary model

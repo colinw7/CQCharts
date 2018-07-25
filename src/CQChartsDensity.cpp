@@ -1,29 +1,93 @@
 #include <CQChartsDensity.h>
 #include <cmath>
+#include <cassert>
+
+void
+CQChartsDensity::
+calc()
+{
+  init();
+
+  ymin_ = 0.0;
+  ymax_ = 0.0;
+
+  int nx = xvals_.size();
+
+  if (nx < 2)
+    return;
+
+  double step = (xmax_ - xmin_)/(numSamples_ - 1);
+
+  opoints_.resize(numSamples_);
+
+  for (int i = 0; i < numSamples_; i++) {
+    double x = xmin_ + i*step;
+    double y = eval(x);
+
+    opoints_[i] = QPointF(x, y);
+
+    if (i == 0) {
+      ymin_ = y;
+      ymax_ = y;
+    }
+    else {
+      ymin_ = std::min(ymin_, y);
+      ymax_ = std::max(ymax_, y);
+    }
+  }
+}
+
+//---
+
+void
+CQChartsDensity::
+init()
+{
+  if (initialized_)
+    return;
+
+  xmin_  = 0.0;
+  xmax_  = 0.0;
+  avg_   = 0.0;
+  sigma_ = 0.0;
+  ymin_  = 0.0;
+  ymax_  = 0.0;
+
+  int nx = xvals_.size();
+
+  for (int i = 0; i < nx; i++) {
+    double x = xvals_[i];
+
+    if (i == 0) {
+      xmin_ = x;
+      xmax_ = x;
+    }
+    else {
+      xmin_ = std::min(xmin_, x);
+      xmax_ = std::max(xmax_, x);
+    }
+
+    avg_   += x;
+    sigma_ += x*x;
+  }
+
+  if (nx > 0)
+    avg_ /= (double) nx;
+
+  sigma_ = sqrt(sigma_/double(nx) - avg_*avg_); /* Standard Deviation */
+
+  initialized_ = true;
+}
+
+//---
 
 double
 CQChartsDensity::
 eval(double x)
 {
+  assert(initialized_);
+
   int nx = xvals_.size();
-
-  if (! initialized_) {
-    avg_   = 0.0;
-    sigma_ = 0.0;
-
-    for (int i = 0; i < nx; i++) {
-      avg_   += xvals_[i];
-      sigma_ += xvals_[i]*xvals_[i];
-    }
-
-    avg_ /= (double) nx;
-
-    sigma_ = sqrt(sigma_/double(nx) - avg_*avg_); /* Standard Deviation */
-
-    initialized_ = true;
-  }
-
-  //---
 
   double bandwidth;
 
@@ -53,38 +117,4 @@ eval(double x)
   y /= sqrt(2.0*M_PI);
 
   return y;
-}
-
-void
-CQChartsDensity::
-calc()
-{
-  int nx = xvals_.size();
-
-  if (nx < 2)
-    return;
-
-  double xmin = 0, xmax = 0;
-
-  for (int i = 0; i < nx; ++i) {
-    if (i == 0) {
-      xmin = xvals_[i];
-      xmax = xvals_[i];
-    }
-    else {
-      xmin = std::min(xmin, xvals_[i]);
-      xmax = std::max(xmax, xvals_[i]);
-    }
-  }
-
-  double step = (xmax - xmin)/(numSamples_ - 1);
-
-  opoints_.resize(numSamples_);
-
-  for (int i = 0; i < numSamples_; i++) {
-    double x = xmin + i*step;
-    double y = eval(x);
-
-    opoints_[i] = QPointF(x, y);
-  }
 }

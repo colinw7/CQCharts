@@ -14,7 +14,8 @@ class CQChartsColumn {
     DATA,
     VHEADER,
     GROUP,
-    EXPR
+    EXPR,
+    DATA_INDEX
   };
 
  public:
@@ -22,8 +23,9 @@ class CQChartsColumn {
 
  public:
   CQChartsColumn() = default;
-  CQChartsColumn(int column, int role=-1);
-  CQChartsColumn(const QString &s);
+  CQChartsColumn(int column, int role=-1); // data
+  CQChartsColumn(Type type, int column, const QString &s, int role=-1); // explicit
+  CQChartsColumn(const QString &s); // parsed
 
   CQChartsColumn(const CQChartsColumn &rhs);
 
@@ -39,13 +41,17 @@ class CQChartsColumn {
 
   //--
 
-  bool hasColumn() const { return (type_ == Type::DATA && column_ >= 0); }
+  bool hasColumn() const {
+    return ((type_ == Type::DATA || type_ == Type::DATA_INDEX) && column_ >= 0);
+  }
 
   int column() const { return (hasColumn() ? column_ : -1); }
 
   //--
 
-  bool hasRole() const { return (type_ == Type::DATA && role_ >= 0); }
+  bool hasRole() const {
+    return ((type_ == Type::DATA || type_ == Type::DATA_INDEX) && role_ >= 0);
+  }
 
   int role() const { return (hasRole() ? role_ : -1); }
 
@@ -56,6 +62,12 @@ class CQChartsColumn {
   bool hasExpr() const { return (type_ == Type::EXPR && expr_); }
 
   QString expr() const { return QString(hasExpr() ? expr_ : ""); }
+
+  //--
+
+  bool hasIndex() const { return (type_ == Type::DATA_INDEX && expr_); }
+
+  QString index() const { return QString(hasIndex() ? expr_ : ""); }
 
   //--
 

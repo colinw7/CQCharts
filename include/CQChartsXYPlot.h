@@ -560,7 +560,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // points
   bool isPoints() const { return pointData_.visible; }
-  void setPoints(bool b);
 
   const CQChartsColor &symbolStrokeColor() const;
   void setSymbolStrokeColor(const CQChartsColor &c);
@@ -585,7 +584,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // lines
   bool isLines() const { return lineData_.visible; }
-  void setLines(bool b);
 
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
@@ -739,6 +737,12 @@ class CQChartsXYPlot : public CQChartsPlot {
   void drawArrow(QPainter *painter, const QPointF &p1, const QPointF &p2);
 
  public slots:
+  // set points visible
+  void setPoints(bool b);
+
+  // set lines visible
+  void setLines(bool b);
+
   // set bivariate
   void setBivariate(bool b);
 

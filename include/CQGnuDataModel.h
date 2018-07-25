@@ -2,6 +2,7 @@
 #define CQGnuDataModel_H
 
 #include <CQDataModel.h>
+#include <QStringList>
 #include <boost/optional.hpp>
 
 class CQGnuDataModel : public CQDataModel {

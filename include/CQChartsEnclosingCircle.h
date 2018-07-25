@@ -1,9 +1,9 @@
 #ifndef CQChartsEnclosingCircle_H
 #define CQChartsEnclosingCircle_H
 
-#include <cmath>
-#include <algorithm>
 #include <CQChartsPointsCircle.h>
+#include <algorithm>
+#include <cmath>
 
 class CQChartsEnclosingCircle {
  public:

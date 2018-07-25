@@ -414,7 +414,8 @@ singleValueDecomposition(double **a, int m, int n, double w[], double **v, int *
         if (z != 0.0) {
           c = f/z;
           s = h/z;
-          z = 1.0/z;
+
+          //z = 1.0/z;
         }
 
         f = c*g + s*y;

@@ -397,7 +397,11 @@ class CQChartsAxis : public QObject {
 
   //---
 
+  bool isDrawGrid() const;
+
   void drawGrid(CQChartsPlot *plot, QPainter *painter);
+
+  //---
 
   void draw(CQChartsPlot *plot, QPainter *painter);
 

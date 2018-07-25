@@ -81,7 +81,8 @@ CQChartsPlotObj::
 addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                const QModelIndex &parent) const
 {
-  if (column.type() != CQChartsColumn::Type::DATA)
+  if (column.type() != CQChartsColumn::Type::DATA &&
+      column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
   QModelIndex ind = plot_->selectIndex(row, column.column(), parent);

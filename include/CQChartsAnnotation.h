@@ -4,7 +4,6 @@
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsArrow.h>
 #include <CQChartsData.h>
 #include <CQChartsGeom.h>
 #include <QFont>

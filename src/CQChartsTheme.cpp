@@ -1,4 +1,5 @@
 #include <CQChartsTheme.h>
+#include <CQChartsGradientPalette.h>
 #include <cassert>
 
 class CQChartsDefaultPalette : public CQChartsGradientPalette {

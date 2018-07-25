@@ -29,11 +29,13 @@ addParameters()
   addColumnParameter("label", "Label", "labelColumn").setTip("Bar data label");
   addColumnParameter("color", "Color", "colorColumn").setTip("Custom bar color");
 
-  addBoolParameter("horizontal", "Horizontal"  , "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"   ).setTip("Stack grouped values");
+  addBoolParameter("percent"   , "Percent"   , "percent"   ).setTip("Show value is percentage");
+  addBoolParameter("rangeBar"  , "Range Bar" , "rangeBar"  ).setTip("show value range in bar");
+  addBoolParameter("dotLines"  , "DotLines"  , "dotLines"  ).setTip("draw bars as lines with dot");
+
   addBoolParameter("colorBySet", "Color by Set", "colorBySet").setTip("Color by value set");
-  addBoolParameter("stacked"   , "Stacked"     , "stacked"   ).setTip("Stack grouped values");
-  addBoolParameter("percent"   , "Percent"     , "percent"   ).setTip("Show value is percentage");
-  addBoolParameter("rangeBar"  , "Range Bar"   , "rangeBar"  ).setTip("show value range in bar");
 
   endParameterGroup();
 
@@ -91,6 +93,7 @@ CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
 {
+  setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
 }
 
 CQChartsBarChartPlot::
@@ -132,6 +135,11 @@ addProperties()
   addProperty("options", this, "percent"   );
   addProperty("options", this, "rangeBar"  );
 
+  addProperty("dotLines",        this, "dotLines"     , "enabled");
+  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
+  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   );
+  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   );
+
   CQChartsGroupPlot::addProperties();
 
   dataLabel_.addPathProperties("dataLabel");
@@ -170,6 +178,36 @@ CQChartsBarChartPlot::
 setRangeBar(bool b)
 {
   CQChartsUtil::testAndSet(rangeBar_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsBarChartPlot::
+setDotLines(bool b)
+{
+  CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setDotLineWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setDotSymbolType(const CQChartsSymbol &s)
+{
+  CQChartsUtil::testAndSet(dotSymbolType_, s, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsBarChartPlot::
+setDotSymbolSize(double r)
+{
+  CQChartsUtil::testAndSet(dotSymbolSize_, r, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -1096,6 +1134,7 @@ addMenuItems(QMenu *menu)
   QAction *percentAction    = new QAction("Percent"   , menu);
   QAction *rangeAction      = new QAction("Range"     , menu);
   QAction *horizontalAction = new QAction("Horizontal", menu);
+  QAction *dotLinesAction   = new QAction("Dot Lines" , menu);
 
   stackedAction->setCheckable(true);
   stackedAction->setChecked(isStacked());
@@ -1109,10 +1148,14 @@ addMenuItems(QMenu *menu)
   horizontalAction->setCheckable(true);
   horizontalAction->setChecked(isHorizontal());
 
+  dotLinesAction->setCheckable(true);
+  dotLinesAction->setChecked(isDotLines());
+
   connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
   connect(percentAction   , SIGNAL(triggered(bool)), this, SLOT(setPercent(bool)));
   connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRangeBar(bool)));
   connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
+  connect(dotLinesAction  , SIGNAL(triggered(bool)), this, SLOT(setDotLines(bool)));
 
   menu->addSeparator();
 
@@ -1120,6 +1163,7 @@ addMenuItems(QMenu *menu)
   menu->addAction(percentAction);
   menu->addAction(rangeAction);
   menu->addAction(horizontalAction);
+  menu->addAction(dotLinesAction);
 
   return true;
 }
@@ -1308,10 +1352,6 @@ draw(QPainter *painter)
 
   //---
 
-  painter->save();
-
-  //---
-
   CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect(), prect);
@@ -1424,25 +1464,75 @@ draw(QPainter *painter)
 
   //---
 
-  // draw rect
-  if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
+  if (! plot_->isDotLines()) {
+    // draw rect
+    if (qrect.width() > minBarSize && qrect.height() > minBarSize) {
+      painter->setPen(pen);
+      painter->setBrush(barBrush);
+
+      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
+      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+
+      CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+    }
+    else {
+      if (! plot_->isBorder())
+        painter->setPen(barBrush.color());
+
+      painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
+                        QPointF(qrect.right(), qrect.top   ()));
+    }
+  }
+  else {
+    // draw line
+    double lw = plot_->lengthPixelSize(plot_->dotLineWidth(), ! plot_->isHorizontal());
+
     painter->setPen(pen);
     painter->setBrush(barBrush);
 
-    double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-    double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+    if (! plot_->isHorizontal()) {
+      double xc = qrect.center().x();
 
-    CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
+      if (lw < 3)
+        painter->drawLine(xc, qrect.bottom(), xc, qrect.top());
+      else {
+        QRectF qrect1(xc - lw/2, qrect.top(), lw, qrect.height());
+
+        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+      }
+    }
+    else {
+      double yc = qrect.center().y();
+
+      if (lw < 3)
+        painter->drawLine(qrect.left(), yc, qrect.right(), yc);
+      else {
+        QRectF qrect1(qrect.left(), yc - lw/2, qrect.width(), lw);
+
+        CQChartsRoundedPolygon::draw(painter, qrect1, 0, 0);
+      }
+    }
+
+    //---
+
+    // draw dot
+    CQChartsSymbol symbol = plot_->dotSymbolType();
+
+    double sx = plot_->dotSymbolSize();
+    double sy = plot_->dotSymbolSize();
+
+    painter->setPen  (pen);
+    painter->setBrush(barBrush);
+
+    QPointF p;
+
+    if (! plot_->isHorizontal())
+      p = QPointF(qrect.center().x(), qrect.top());
+    else
+      p = QPointF(qrect.right(), qrect.center().y());
+
+    plot_->drawSymbol(painter, p, symbol, CQChartsUtil::avg(sx, sy), pen, barBrush);
   }
-  else {
-    if (! plot_->isBorder())
-      painter->setPen(barBrush.color());
-
-    painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
-                      QPointF(qrect.right(), qrect.top   ()));
-  }
-
-  painter->restore();
 }
 
 void

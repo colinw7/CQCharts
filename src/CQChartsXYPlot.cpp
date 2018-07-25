@@ -125,7 +125,7 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
   impulseData_      .visible = false;
   bivariateLineData_.visible = false;
 
-  lineData_.color = CQChartsColor(CQChartsColor::Type::PALETTE);
+  setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   arrowObj_ = new CQChartsArrow(this);
 
@@ -1863,8 +1863,6 @@ addMenuItems(QMenu *menu)
 {
   int ns = numSets();
 
-  //---
-
   menu->addSeparator();
 
   //---
@@ -1879,6 +1877,22 @@ addMenuItems(QMenu *menu)
 
     menu->addAction(bivariateAction);
   }
+
+  //---
+
+  QAction *pointsAction = new QAction("Points", menu);
+  QAction *linesAction  = new QAction("Lines" , menu);
+
+  pointsAction->setCheckable(true);
+  pointsAction->setChecked(isPoints());
+
+  linesAction->setCheckable(true);
+  linesAction->setChecked(isLines());
+
+  menu->addAction(pointsAction);
+  menu->addAction(linesAction);
+
+  menu->addSeparator();
 
   //---
 
@@ -1899,6 +1913,8 @@ addMenuItems(QMenu *menu)
   fullUnderAction->setCheckable(true);
   fullUnderAction->setChecked(isFillUnder());
 
+  connect(pointsAction    , SIGNAL(triggered(bool)), this, SLOT(setPoints(bool)));
+  connect(linesAction     , SIGNAL(triggered(bool)), this, SLOT(setLines(bool)));
   connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
   connect(cumulativeAction, SIGNAL(triggered(bool)), this, SLOT(setCumulative(bool)));
   connect(impulseAction   , SIGNAL(triggered(bool)), this, SLOT(setImpulse(bool)));

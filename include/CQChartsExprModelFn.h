@@ -7,26 +7,26 @@
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
 
-class CQChartsExprModelTclFn {
+class CQChartsExprModelFn {
  public:
   using Vars = std::vector<QVariant>;
 
  public:
-  CQChartsExprModelTclFn(CQChartsExprModel *model, const QString &name) :
+  CQChartsExprModelFn(CQChartsExprModel *model, const QString &name) :
    model_(model), name_(name) {
     qtcl_ = model->qtcl();
 
     cmdId_ = qtcl()->createExprCommand(name_,
-               (CQTcl::ObjCmdProc) &CQChartsExprModelTclFn::commandProc,
+               (CQTcl::ObjCmdProc) &CQChartsExprModelFn::commandProc,
                (CQTcl::ObjCmdData) this);
   }
 
-  virtual ~CQChartsExprModelTclFn() { }
+  virtual ~CQChartsExprModelFn() { }
 
   CQTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsExprModelTclFn *command = (CQChartsExprModelTclFn *) clientData;
+    CQChartsExprModelFn *command = (CQChartsExprModelFn *) clientData;
 
     Vars vars;
 

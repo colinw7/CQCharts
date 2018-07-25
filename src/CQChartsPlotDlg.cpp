@@ -1475,7 +1475,8 @@ setXYMin(const QString &id)
   CQChartsModelDetails *details = modelData_->details();
   if (! details) return;
 
-  if (column.type() != CQChartsColumn::Type::DATA)
+  if (column.type() != CQChartsColumn::Type::DATA &&
+      column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
   const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
@@ -1749,7 +1750,8 @@ validate(QStringList &msgs)
 
       bool rc1 = true;
 
-      if (column.type() == CQChartsColumn::Type::DATA) {
+      if (column.type() == CQChartsColumn::Type::DATA ||
+          column.type() == CQChartsColumn::Type::DATA_INDEX) {
         const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
 
         if (parameter.attributes().isMonotonic()) {

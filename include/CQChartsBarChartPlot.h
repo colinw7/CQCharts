@@ -270,6 +270,12 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   Q_PROPERTY(bool percent  READ isPercent  WRITE setPercent )
   Q_PROPERTY(bool rangeBar READ isRangeBar WRITE setRangeBar)
 
+  // dot line
+  Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
+  Q_PROPERTY(CQChartsLength dotLineWidth  READ dotLineWidth  WRITE setDotLineWidth )
+  Q_PROPERTY(CQChartsSymbol dotSymbolType READ dotSymbolType WRITE setDotSymbolType)
+  Q_PROPERTY(double         dotSymbolSize READ dotSymbolSize WRITE setDotSymbolSize)
+
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
  ~CQChartsBarChartPlot();
@@ -294,6 +300,19 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   bool isRangeBar() const { return rangeBar_; }
 
   bool isPercent() const { return percent_; }
+
+  //---
+
+  bool isDotLines() const { return dotLines_; }
+
+  const CQChartsLength &dotLineWidth() const { return dotLineWidth_; }
+  void setDotLineWidth(const CQChartsLength &l);
+
+  const CQChartsSymbol &dotSymbolType() const { return dotSymbolType_; }
+  void setDotSymbolType(const CQChartsSymbol &s);
+
+  double dotSymbolSize() const { return dotSymbolSize_; }
+  void setDotSymbolSize(double r);
 
   //---
 
@@ -349,6 +368,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   // set horizontal
   void setHorizontal(bool b) override;
 
+  // set dot lines
+  void setDotLines(bool b);
+
  private:
   void addRow(const QModelIndex &parent, int r);
 
@@ -379,6 +401,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   bool              stacked_        { false }; // stacked bars
   bool              percent_        { false }; // percent values
   bool              rangeBar_       { false }; // bar of value range
+  bool              dotLines_       { false }; // show dot lines
+  CQChartsLength    dotLineWidth_   { "3px" }; // dot line width
+  CQChartsSymbol    dotSymbolType_;            // dot symbol type
+  double            dotSymbolSize_  { 7.0 };   // dot symbol size
   CQChartsDataLabel dataLabel_;                // data label data
   ValueSets         valueSets_;                // value sets
   ValueGroupInd     valueGroupInd_;            // group ind to value index map

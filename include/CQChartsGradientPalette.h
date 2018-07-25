@@ -12,6 +12,8 @@
 class CQTcl;
 #endif
 
+class QLinearGradient;
+
 //---
 
 class CCubeHelix {
@@ -272,7 +274,15 @@ class CQChartsGradientPalette {
 
   bool readFileLines(const QStringList &lines);
 
+  //---
+
   void unset();
+
+  //---
+
+  void setLinearGradient(QLinearGradient &lg, double a=1.0) const;
+
+  //---
 
   //void show(std::ostream &os) const;
 
