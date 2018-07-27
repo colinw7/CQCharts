@@ -590,8 +590,8 @@ drawVoronoi(QPainter *painter)
 
       bc.setAlphaF(symbolFillAlpha());
 
-      brush.setStyle(Qt::SolidPattern);
       brush.setColor(bc);
+      brush.setStyle(Qt::SolidPattern);
     }
     else
       brush.setStyle(Qt::NoBrush);
@@ -748,8 +748,8 @@ draw(QPainter *painter)
 
     bc.setAlphaF(plot_->symbolFillAlpha());
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(bc);
+    brush.setStyle(Qt::SolidPattern);
   }
   else
     brush.setStyle(Qt::NoBrush);

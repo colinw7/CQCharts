@@ -1828,7 +1828,6 @@ draw(QPainter *painter)
 
     boxColor.setAlphaF(plot_->boxAlpha());
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(boxColor);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
@@ -2188,7 +2187,6 @@ draw(QPainter *painter)
 
     boxColor.setAlphaF(plot_->boxAlpha());
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(boxColor);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
@@ -2514,7 +2512,6 @@ draw(QPainter *painter)
     if (plot_->isBoxFilled()) {
       fillColor.setAlphaF(plot_->boxAlpha());
 
-      pbrush.setStyle(Qt::SolidPattern);
       pbrush.setColor(fillColor);
 
       pbrush.setStyle(CQChartsFillPattern::toStyle(
@@ -2788,11 +2785,10 @@ draw(QPainter *painter)
 
     c.setAlphaF(1.0);
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
-
-    //brush.setStyle(CQChartsFillPattern::toStyle(
-    //  (CQChartsFillPattern::Type) plot_->symbolFillPattern()));
+    brush.setStyle(Qt::SolidPattern);
+  //brush.setStyle(CQChartsFillPattern::toStyle(
+  //  (CQChartsFillPattern::Type) plot_->symbolFillPattern()));
   }
   else {
     brush.setStyle(Qt::NoBrush);

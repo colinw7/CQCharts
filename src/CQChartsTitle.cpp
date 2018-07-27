@@ -368,16 +368,17 @@ draw(QPainter *painter)
 
   //---
 
-  if (isSelected()) {
-    if (plot_->view()->mode() == CQChartsView::Mode::EDIT) {
-      if (location_.location != LocationType::ABS_RECT)
-        editHandles_.setBBox(this->bbox());
-
-      editHandles_.draw(painter);
-    }
-  }
-
-  //---
-
   painter->restore();
+}
+
+void
+CQChartsTitle::
+drawEditHandles(QPainter *painter)
+{
+  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+
+  if (location_.location != LocationType::ABS_RECT)
+    editHandles_.setBBox(this->bbox());
+
+  editHandles_.draw(painter);
 }

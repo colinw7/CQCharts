@@ -320,6 +320,8 @@ class CQChartsPlotKey : public CQChartsKey {
 
   void draw(QPainter *painter) override;
 
+  void drawEditHandles(QPainter *painter);
+
   //---
 
   QColor interpBgColor() const;

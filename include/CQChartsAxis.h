@@ -405,6 +405,8 @@ class CQChartsAxis : public QObject {
 
   void draw(CQChartsPlot *plot, QPainter *painter);
 
+  void drawEditHandles(QPainter *painter);
+
   void calcPos(CQChartsPlot *plot, double &apos1, double &apos2) const;
 
   void drawLine(CQChartsPlot *plot, QPainter *painter,

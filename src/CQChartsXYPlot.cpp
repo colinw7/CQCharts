@@ -1353,7 +1353,7 @@ initObjs()
         //---
 
         // create point object
-        QModelIndex parent; // TODO: parent
+        //QModelIndex parent; // TODO: parent
 
         QModelIndex xind  = modelIndex(ip, xColumn()); // TODO: parent
         QModelIndex xind1 = normalizeIndex(xind);
@@ -2204,8 +2204,8 @@ draw(QPainter *painter)
     CQChartsUtil::penSetLineDash(pen, plot()->impulseDash());
   }
   else {
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(strokeColor);
+    brush.setStyle(Qt::SolidPattern);
 
     pen.setStyle(Qt::NoPen);
   }
@@ -2776,7 +2776,6 @@ draw(QPainter *painter)
 
   fillColor.setAlphaF(plot()->fillUnderAlpha());
 
-  brush.setStyle(Qt::SolidPattern);
   brush.setColor(fillColor);
 
   brush.setStyle(CQChartsFillPattern::toStyle(
@@ -2926,8 +2925,8 @@ fillBrush() const
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
-  brush.setStyle(Qt::SolidPattern);
   brush.setColor(c);
+  brush.setStyle(Qt::SolidPattern);
 
   return brush;
 }

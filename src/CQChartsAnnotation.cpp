@@ -86,24 +86,20 @@ bool
 CQChartsAnnotation::
 getProperty(const QString &name, QVariant &value)
 {
-  if      (plot_)
-    return plot_->view()->propertyModel()->getProperty(this, name, value);
-  else if (view_)
-    return view_->propertyModel()->getProperty(this, name, value);
-  else
-    return false;
+  if (view())
+    return view()->propertyModel()->getProperty(this, name, value);
+
+  return false;
 }
 
 bool
 CQChartsAnnotation::
 setProperty(const QString &name, const QVariant &value)
 {
-  if      (plot_)
-    return plot_->view()->propertyModel()->setProperty(this, name, value);
-  else if (view_)
-    return view_->propertyModel()->setProperty(this, name, value);
-  else
-    return false;
+  if (view())
+    return view()->propertyModel()->setProperty(this, name, value);
+
+  return false;
 }
 
 bool
@@ -199,16 +195,28 @@ void
 CQChartsAnnotation::
 draw(QPainter *painter)
 {
-  if (isSelected()) {
-    bool is_edit = (plot_ ? plot_->view()->mode() == CQChartsView::Mode::EDIT :
-                                   view_ ->mode() == CQChartsView::Mode::EDIT);
+  if (! plot_ && view_->mode() == CQChartsView::Mode::EDIT && isSelected())
+    drawEditHandles(painter);
+}
 
-    if (is_edit) {
-      editHandles_.setBBox(this->bbox());
+void
+CQChartsAnnotation::
+drawEditHandles(QPainter *painter)
+{
+  assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
-      editHandles_.draw(painter);
-    }
-  }
+  editHandles_.setBBox(this->bbox());
+
+  editHandles_.draw(painter);
+}
+
+//---
+
+CQChartsView *
+CQChartsAnnotation::
+view() const
+{
+  return (plot_ ? plot_->view() : view_);
 }
 
 //---
@@ -548,12 +556,10 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 
   double x1 = bbox_.getXMin();
   double y1 = bbox_.getYMin();
-  double x2 = bbox .getXMin();
-  double y2 = bbox .getYMin();
 
   for (int i = 0; i < points_.size(); ++i) {
-    points_[i].setX(sx*(points_[i].x() - x1) + x2 + dx);
-    points_[i].setY(sy*(points_[i].y() - y1) + y2 + dy);
+    points_[i].setX(sx*(points_[i].x() - x1) + x1 + dx);
+    points_[i].setY(sy*(points_[i].y() - y1) + y1 + dy);
   }
 
   bbox_ = bbox;
@@ -1312,8 +1318,8 @@ draw(QPainter *painter)
   pen.setWidthF(bw);
 
   if (pointData_.fill.visible) {
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
   }
   else
     brush.setStyle(Qt::NoBrush);

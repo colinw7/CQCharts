@@ -535,19 +535,8 @@ class CQChartsPlot : public QObject {
   void setNextPlot(CQChartsPlot *plot, bool notify=true);
   void setPrevPlot(CQChartsPlot *plot, bool notify=true);
 
-  CQChartsPlot *firstPlot() {
-    if (connectData_.prev)
-      return connectData_.prev->firstPlot();
-
-    return this;
-  }
-
-  CQChartsPlot *lastPlot() {
-    if (connectData_.next)
-      return connectData_.next->lastPlot();
-
-    return this;
-  }
+  CQChartsPlot *firstPlot();
+  CQChartsPlot *lastPlot ();
 
   bool isFirstPlot() const {
     return (const_cast<CQChartsPlot *>(this)->firstPlot() == this);
@@ -1172,6 +1161,10 @@ class CQChartsPlot : public QObject {
 
   QPainter *beginPaint(CQChartsLayer *layer, QPainter *painter);
   void      endPaint  (CQChartsLayer *layer);
+
+  //---
+
+  CQChartsPlotKey *getFirstPlotKey();
 
   //---
 

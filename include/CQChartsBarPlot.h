@@ -129,7 +129,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
 
   const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
   void setColorColumn(const CQChartsColumn &c) {
-    setValueSetColumn("color", c); updateRangeAndObjs(); }
+    (void) setValueSetColumn("color", c); updateRangeAndObjs(); }
 
   bool isColorMapped() const { return isValueSetMapped("color"); }
   void setColorMapped(bool b) { setValueSetMapped("color", b); updateObjs(); }

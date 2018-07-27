@@ -76,7 +76,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   //---
 
-  // all layers active except (BG_PLOT and FG_PLOT)
+  // all layers active except BG_PLOT and FG_PLOT
   setLayerActive(CQChartsLayer::Type::BACKGROUND , true);
   setLayerActive(CQChartsLayer::Type::BG_AXES    , true);
   setLayerActive(CQChartsLayer::Type::BG_KEY     , true);
@@ -973,6 +973,26 @@ setPrevPlot(CQChartsPlot *plot, bool notify)
 
   if (notify)
     emit connectDataChanged();
+}
+
+CQChartsPlot *
+CQChartsPlot::
+firstPlot()
+{
+  if (connectData_.prev)
+    return connectData_.prev->firstPlot();
+
+  return this;
+}
+
+CQChartsPlot *
+CQChartsPlot::
+lastPlot()
+{
+  if (connectData_.next)
+    return connectData_.next->lastPlot();
+
+  return this;
 }
 
 void
@@ -2115,6 +2135,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       editHandles_.setDragSide(mouseData_.dragSide);
       editHandles_.setDragPos (w);
 
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
       return true;
     }
   }
@@ -2130,6 +2152,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
       key()->editHandles().setDragSide(mouseData_.dragSide);
       key()->editHandles().setDragPos (w);
+
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
       return true;
     }
@@ -2147,6 +2171,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       xAxis()->editHandles().setDragSide(mouseData_.dragSide);
       xAxis()->editHandles().setDragPos (w);
 
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
       return true;
     }
   }
@@ -2162,6 +2188,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
       yAxis()->editHandles().setDragSide(mouseData_.dragSide);
       yAxis()->editHandles().setDragPos (w);
+
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
       return true;
     }
@@ -2179,6 +2207,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       title()->editHandles().setDragSide(mouseData_.dragSide);
       title()->editHandles().setDragPos (w);
 
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
       return true;
     }
   }
@@ -2193,6 +2223,8 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         annotation->editHandles().setDragSide(mouseData_.dragSide);
         annotation->editHandles().setDragPos (w);
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
         return true;
       }
@@ -2209,11 +2241,16 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         key()->setSelected(true);
 
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
       if (key()->editPress(w)) {
         mouseData_.dragObj = DragObj::KEY;
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
@@ -2231,11 +2268,16 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         xAxis()->setSelected(true);
 
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
       if (xAxis()->editPress(w)) {
         mouseData_.dragObj = DragObj::XAXIS;
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
@@ -2253,11 +2295,16 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         yAxis()->setSelected(true);
 
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
       if (yAxis()->editPress(w)) {
         mouseData_.dragObj = DragObj::YAXIS;
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
@@ -2275,11 +2322,16 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         title()->setSelected(true);
 
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
       if (title()->editPress(w)) {
         mouseData_.dragObj = DragObj::TITLE;
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
@@ -2296,11 +2348,16 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         annotation->setSelected(true);
 
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
       if (annotation->editPress(w)) {
         mouseData_.dragObj = DragObj::ANNOTATION;
+
+        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
         return true;
       }
 
@@ -2324,12 +2381,19 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
       view()->setCurrentPlot(this);
 
+      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
       return true;
     }
 
     mouseData_.dragObj = DragObj::PLOT;
+
+    invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
     return true;
   }
+
+  //---
 
   deselectAll();
 
@@ -2382,27 +2446,29 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
   if      (mouseData_.dragObj == DragObj::KEY) {
     (void) key()->editMove(w);
-    return true;
   }
   else if (mouseData_.dragObj == DragObj::XAXIS) {
     (void) xAxis()->editMove(w);
-    return true;
   }
   else if (mouseData_.dragObj == DragObj::YAXIS) {
     (void) yAxis()->editMove(w);
-    return true;
   }
   else if (mouseData_.dragObj == DragObj::TITLE) {
     (void) title()->editMove(w);
-    return true;
   }
   else if (mouseData_.dragObj == DragObj::ANNOTATION) {
+    bool edited = false;
+
     for (const auto &annotation : annotations()) {
       if (annotation->isSelected()) {
         (void) annotation->editMove(w);
-        return true;
+
+        edited = true;
       }
     }
+
+    if (! edited)
+      return false;
   }
   else if (mouseData_.dragObj == DragObj::PLOT) {
     double dx = mouseData_.movePoint.x() - lastMovePoint.x();
@@ -2413,15 +2479,10 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
     bbox_.moveBy(CQChartsGeom::Point(dx1, dy1));
 
-    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE) {
+    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
       updateMargin(false);
-
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
-    }
     else
       updateMargin();
-
-    return true;
   }
   else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
     double dx = mouseData_.movePoint.x() - lastMovePoint.x();
@@ -2434,18 +2495,18 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
     bbox_ = editHandles_.bbox();
 
-    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE) {
+    if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
       updateMargin(false);
-
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
-    }
     else
       updateMargin();
-
-    return true;
+  }
+  else {
+    return false;
   }
 
-  return false;
+  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+
+  return true;
 }
 
 bool
@@ -2465,41 +2526,42 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
   if      (isSelected()) {
     CQChartsGeom::Point v = windowToView(w);
 
-    if (editHandles_.selectInside(v))
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+    if (! editHandles_.selectInside(v))
+      return true;
   }
   else if (key() && key()->isSelected()) {
-    if (key()->editMotion(w)) {
-      invalidateLayer(CQChartsLayer::Type::BG_KEY);
-      invalidateLayer(CQChartsLayer::Type::FG_KEY);
-    }
+    if (! key()->editMotion(w))
+      return true;
   }
   else if (xAxis() && xAxis()->isSelected()) {
-    if (xAxis()->editMotion(w)) {
-      invalidateLayer(CQChartsLayer::Type::BG_AXES);
-      invalidateLayer(CQChartsLayer::Type::FG_AXES);
-    }
+    if (! xAxis()->editMotion(w))
+      return true;
   }
   else if (yAxis() && yAxis()->isSelected()) {
-    if (yAxis()->editMotion(w)) {
-      invalidateLayer(CQChartsLayer::Type::BG_AXES);
-      invalidateLayer(CQChartsLayer::Type::FG_AXES);
-    }
+    if (! yAxis()->editMotion(w))
+      return true;
   }
   else if (title() && title()->isSelected()) {
-    if (title()->editMotion(w)) {
-      invalidateLayer(CQChartsLayer::Type::TITLE);
-    }
+    if (! title()->editMotion(w))
+      return true;
   }
   else {
+    bool edited = false;
+
     for (const auto &annotation : annotations()) {
       if (annotation->isSelected()) {
         if (annotation->editMotion(w)) {
-          invalidateLayer(CQChartsLayer::Type::ANNOTATION);
+          edited = true;
+          break;
         }
       }
     }
+
+    if (! edited)
+      return true;
   }
+
+  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
   return true;
 }
@@ -2552,10 +2614,12 @@ editMoveBy(const QPointF &d)
     for (const auto &annotation : annotations()) {
       if (annotation->isSelected()) {
         (void) annotation->editMoveBy(dp);
-        return;
+        break;
       }
     }
   }
+
+  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 }
 
 //------
@@ -3265,7 +3329,7 @@ drawParts(QPainter *painter)
 
   // draw axes/key below plot
   drawBgAxes(painter);
-  drawBgKey(painter);
+  drawBgKey (painter);
 
   //---
 
@@ -3280,7 +3344,7 @@ drawParts(QPainter *painter)
 
   // draw axes/key above plot
   drawFgAxes(painter);
-  drawFgKey(painter);
+  drawFgKey (painter);
 
   //---
 
@@ -3858,8 +3922,6 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 
     setClipRect(painter1);
 
-    CQChartsGeom::BBox bbox = displayRangeBBox();
-
     for (const auto &plotObj : plotObjs_) {
       if      (layerType == CQChartsLayer::Type::SELECTION) {
         if (! plotObj->isSelected())
@@ -3938,7 +4000,7 @@ drawBgAxes(QPainter *painter)
   CScopeTimer timer("drawBgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
 
   bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
   bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
@@ -3975,7 +4037,7 @@ drawFgAxes(QPainter *painter)
   CScopeTimer timer("drawFgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
 
   if (! showXAxis && ! showYAxis)
     return;
@@ -4019,15 +4081,11 @@ drawBgKey(QPainter *painter)
 {
   CScopeTimer timer("drawBgKey");
 
-  CQChartsPlot *plot1 = firstPlot();
-
-  CQChartsKey *key1 = plot1->key();
-
-  if (! key1)
-    return;
+  CQChartsPlotKey *key1 = getFirstPlotKey();
+  if (! key1) return;
 
   // only draw key under first plot
-  if (plot1 != this)
+  if (firstPlot() != this)
     return;
 
   //---
@@ -4060,12 +4118,8 @@ drawFgKey(QPainter *painter)
 {
   CScopeTimer timer("drawFgKey");
 
-  CQChartsPlot *plot1 = firstPlot();
-
-  CQChartsKey *key1 = plot1->key();
-
-  if (! key1)
-    return;
+  CQChartsPlotKey *key1 = getFirstPlotKey();
+  if (! key1) return;
 
   // only draw key above last plot
   if (lastPlot() != this)
@@ -4199,7 +4253,32 @@ drawEditHandles(QPainter *painter)
   if (view()->mode() != CQChartsView::Mode::EDIT)
     return;
 
-  if (! isSelected())
+  //---
+
+  CQChartsPlotKey *key1 = getFirstPlotKey();
+  if (! key1) return;
+
+  bool selected = (isSelected() ||
+                   (title() && title()->isSelected()) ||
+                   (xAxis() && xAxis()->isSelected()) ||
+                   (yAxis() && yAxis()->isSelected()));
+
+  if (! selected) {
+    CQChartsPlotKey *key1 = getFirstPlotKey();
+
+    selected = (key1 && key1->isSelected());
+  }
+
+  if (! selected) {
+    for (const auto &annotation : annotations()) {
+      if (annotation->isSelected()) {
+        selected = true;
+        break;
+      }
+    }
+  }
+
+  if (! selected)
     return;
 
   //---
@@ -4212,9 +4291,29 @@ drawEditHandles(QPainter *painter)
   //---
 
   if (painter1) {
-    editHandles_.setBBox(this->bbox());
+    if      (isSelected()) {
+      editHandles_.setBBox(this->bbox());
 
-    editHandles_.draw(painter1);
+      editHandles_.draw(painter1);
+    }
+    else if (title() && title()->isSelected()) {
+      title()->drawEditHandles(painter1);
+    }
+    else if (key1 && key1->isSelected()) {
+      key1->drawEditHandles(painter1);
+    }
+    else if (xAxis() && xAxis()->isSelected()) {
+      xAxis()->drawEditHandles(painter1);
+    }
+    else if (yAxis() && yAxis()->isSelected()) {
+      yAxis()->drawEditHandles(painter1);
+    }
+    else {
+      for (const auto &annotation : annotations()) {
+        if (annotation->isSelected())
+          annotation->drawEditHandles(painter1);
+      }
+    }
   }
 
   //---
@@ -4251,6 +4350,15 @@ endPaint(CQChartsLayer *layer)
     return;
 
   layer->endPaint();
+}
+
+CQChartsPlotKey *
+CQChartsPlot::
+getFirstPlotKey()
+{
+  CQChartsPlot *plot1 = firstPlot();
+
+  return (plot1 ? plot1->key() : nullptr);
 }
 
 //------
@@ -4304,8 +4412,8 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
   pen.setWidthF(lw);
 
   if (data.stroke.visible) {
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
   }
   else
     brush.setStyle(Qt::NoBrush);
@@ -4343,8 +4451,8 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
   pen.setWidthF(lineWidth);
 
   if (filled) {
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
   }
   else
     brush.setStyle(Qt::NoBrush);

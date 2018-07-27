@@ -998,17 +998,18 @@ draw(QPainter *painter)
 
   //---
 
-  if (isSelected()) {
-    if (plot_->view()->mode() == CQChartsView::Mode::EDIT) {
-      editHandles_.setBBox(this->bbox());
-
-      editHandles_.draw(painter);
-    }
-  }
-
-  //---
-
   painter->restore();
+}
+
+void
+CQChartsPlotKey::
+drawEditHandles(QPainter *painter)
+{
+  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT || isSelected());
+
+  editHandles_.setBBox(this->bbox());
+
+  editHandles_.draw(painter);
 }
 
 QColor

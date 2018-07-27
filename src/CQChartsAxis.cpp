@@ -1147,7 +1147,7 @@ void
 CQChartsAxis::
 drawGrid(CQChartsPlot *plot, QPainter *painter)
 {
-  if (! isGridMajorDisplayed() && ! isGridMinorDisplayed() && ! isGridFill())
+  if (! isDrawGrid())
     return;
 
   //---
@@ -1461,17 +1461,18 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   //---
 
-  if (isSelected()) {
-    if (plot->view()->mode() == CQChartsView::Mode::EDIT) {
-      editHandles_.setBBox(this->bbox());
-
-      editHandles_.draw(painter);
-    }
-  }
-
-  //---
-
   painter->restore();
+}
+
+void
+CQChartsAxis::
+drawEditHandles(QPainter *painter)
+{
+  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+
+  editHandles_.setBBox(this->bbox());
+
+  editHandles_.draw(painter);
 }
 
 void

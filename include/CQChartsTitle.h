@@ -110,6 +110,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   void draw(QPainter *painter);
 
+  void drawEditHandles(QPainter *painter);
+
  private:
   void updateLocation();
 

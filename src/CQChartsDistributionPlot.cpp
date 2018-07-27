@@ -1582,8 +1582,8 @@ popTopSlot()
 
 CQChartsDistributionBarObj::
 CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                        int groupInd, int bucket, double n1, double n2,
-                        int is, int ns, int iv, int nv) :
+                           int groupInd, int bucket, double n1, double n2,
+                           int is, int ns, int iv, int nv) :
  CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), bucket_(bucket),
  n1_(n1), n2_(n2), is_(is), ns_(ns), iv_(iv), nv_(nv)
 {
@@ -2205,7 +2205,6 @@ draw(QPainter *painter)
 
     fillColor.setAlphaF(plot_->barAlpha());
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
 
     brush.setStyle(CQChartsFillPattern::toStyle(

@@ -767,8 +767,8 @@ draw(QPainter *painter)
   fillColor.setAlphaF(plot_->nodeFillAlpha  ());
 
   if (node_->hasChildren() && ! node_->isOpen()) {
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
   }
   else
     brush.setStyle(Qt::NoBrush);

@@ -555,7 +555,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   const CQChartsLength &jitterSymbolSize() const { return outlierSymbolData_.size; }
   void setJitterSymbolSize(const CQChartsLength &s);
 
-
   //---
 
   bool isGrouped() const { return grouped_; }

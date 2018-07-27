@@ -2164,7 +2164,7 @@ bool stringToColumn(const QAbstractItemModel *model, const QString &str, CQChart
   // check for column sub value
   QString str1 = str.simplified();
 
-  if (str1.right(1) == ']') {
+  if (str1.right(1) == "]") {
     int pos = str1.lastIndexOf('[');
 
     QString lhs = str1.mid(0, pos);

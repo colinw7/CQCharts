@@ -97,6 +97,8 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setSymbolFilled (true);
   setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
+  setRugSymbolType(CQChartsSymbol::Type::NONE);
+
   addAxes();
 
   addKey();
@@ -1034,7 +1036,7 @@ CQChartsScatterPlot::
 drawBestFit(QPainter *painter)
 {
   if (! fitData_.fitted) {
-    int np = points_.size();;
+    int np = points_.size();
 
     std::vector<double> x, y;
 
@@ -1086,7 +1088,8 @@ drawXRug(QPainter *painter)
   for (const auto &plotObj : plotObjects()) {
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
-    pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::X);
+    if (pointObj)
+      pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::X);
   }
 }
 
@@ -1097,7 +1100,8 @@ drawYRug(QPainter *painter)
   for (const auto &plotObj : plotObjects()) {
     const CQChartsScatterPointObj *pointObj = dynamic_cast<CQChartsScatterPointObj *>(plotObj);
 
-    pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::Y);
+    if (pointObj)
+      pointObj->drawDir(painter, CQChartsScatterPointObj::Dir::Y);
   }
 }
 
@@ -1331,7 +1335,6 @@ drawDir(QPainter *painter, const Dir &dir) const
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
-    brush.setStyle(Qt::SolidPattern);
     brush.setColor(c);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
