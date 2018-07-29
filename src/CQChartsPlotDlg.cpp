@@ -9,6 +9,9 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsModelView.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
+
 #include <CQSummaryModel.h>
 #include <CQDividedArea.h>
 #include <CQIntegerSpin.h>
@@ -583,9 +586,9 @@ createPreviewFrame()
     summaryEnabledCheck_ = new QCheckBox("Summary");
     summaryEnabledCheck_->setObjectName("summaryEnabled");
 
-    summaryEnabledCheck_->setChecked(true);
+    summaryEnabledCheck_->setChecked(modelData_->isSummaryEnabled());
 
-    connect(summaryEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewEnabledSlot()));
+    connect(summaryEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(summaryEnabledSlot()));
 
     previewControlLayout->addWidget(summaryEnabledCheck_);
 
@@ -690,7 +693,7 @@ createPreviewFrame()
 
   previewTab->addTab(previewModelView_, "Data");
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
+  if (modelData_->isSummaryEnabled() && summaryModel) {
     ModelP summaryModelP = modelData_->summaryModelP();
 
     previewModelView_->setModel(summaryModelP, CQChartsUtil::isHierarchical(summaryModel));
@@ -1479,7 +1482,7 @@ setXYMin(const QString &id)
       column.type() != CQChartsColumn::Type::DATA_INDEX)
     return;
 
-  const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
+  const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
   if (! columnDetails) return;
 
   if      (id == "xmin") {
@@ -1578,7 +1581,7 @@ updatePreviewPlot(bool valid)
 
     CQSummaryModel *summaryModel = modelData_->summaryModel();
 
-    if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel)
+    if (modelData_->isSummaryEnabled() && summaryModel)
       previewModel = modelData_->summaryModelP();
     else
       previewModel = model_;
@@ -1669,7 +1672,7 @@ updateFormatSlot()
 
   CQSummaryModel *summaryModel = modelData_->summaryModel();
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
+  if (modelData_->isSummaryEnabled() && summaryModel) {
     if (! CQChartsUtil::columnTypeStr(charts_, summaryModel, column, typeStr))
       return;
   }
@@ -1691,7 +1694,7 @@ validate(QStringList &msgs)
 
   CQSummaryModel *summaryModel = modelData_->summaryModel();
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel)
+  if (modelData_->isSummaryEnabled() && summaryModel)
     modelData = modelData_->summaryModelData();
   else
     modelData = modelData_;
@@ -1752,7 +1755,7 @@ validate(QStringList &msgs)
 
       if (column.type() == CQChartsColumn::Type::DATA ||
           column.type() == CQChartsColumn::Type::DATA_INDEX) {
-        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column.column());
+        const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
         if (parameter.attributes().isMonotonic()) {
           if (! columnDetails->isMonotonic()) {
@@ -1832,11 +1835,21 @@ previewEnabledSlot()
 
 void
 CQChartsPlotDlg::
+summaryEnabledSlot()
+{
+  if (modelData_)
+    modelData_->setSummaryEnabled(summaryEnabledCheck_->isChecked());
+
+  validateSlot();
+}
+
+void
+CQChartsPlotDlg::
 updatePreviewSlot()
 {
   CQSummaryModel *summaryModel = modelData_->summaryModel();
 
-  if (summaryEnabledCheck_ && summaryEnabledCheck_->isChecked() && summaryModel) {
+  if (modelData_->isSummaryEnabled() && summaryModel) {
     int  n = previewMaxRows_->value();
 
     bool random = previewRandomRadio_->isChecked();

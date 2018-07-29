@@ -10,6 +10,7 @@
 #include <CQChartsAnnotation.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
+#include <CQChartsEnv.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsDisplayRange.h>
@@ -1867,22 +1868,34 @@ showMenu(const QPoint &p)
   if (plotType && plotType->hasKey()) {
     QMenu *keyMenu = new QMenu("Key", popupMenu_);
 
-    QAction *keyVisibleAction = new QAction("Visible", popupMenu_);
+    //---
 
-    keyVisibleAction->setCheckable(true);
+    auto addKeyCheckAction = [&](const QString &label, bool checked, const char *slot) {
+      QAction *action = new QAction(label, keyMenu);
+
+      action->setCheckable(true);
+      action->setChecked(checked);
+
+      connect(action, SIGNAL(triggered(bool)), this, slot);
+
+      keyMenu->addAction(action);
+
+      return action;
+    };
+
+    //---
+
+    bool visibleChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isVisible());
+
+    QAction *keyVisibleAction =
+      addKeyCheckAction("Visible", visibleChecked, SLOT(keyVisibleSlot(bool)));
 
     if (currentPlot && currentPlot->key()) {
-      keyVisibleAction->setChecked(currentPlot->key()->isVisible());
-
       if (currentPlot->key()->isEmpty())
         keyVisibleAction->setEnabled(false);
     }
     else
       keyVisibleAction->setEnabled(false);
-
-    connect(keyVisibleAction, SIGNAL(triggered(bool)), this, SLOT(keyVisibleSlot(bool)));
-
-    keyMenu->addAction(keyVisibleAction);
 
     //---
 
@@ -1932,6 +1945,14 @@ showMenu(const QPoint &p)
     keyLocationMenu->addActions(keyLocationActionGroup->actions());
 
     keyMenu->addMenu(keyLocationMenu);
+
+    //---
+
+    bool insideXChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isInsideX());
+    bool insideYChecked = (currentPlot && currentPlot->key() && currentPlot->key()->isInsideY());
+
+    (void) addKeyCheckAction("Inside X", insideXChecked, SLOT(keyInsideXSlot(bool)));
+    (void) addKeyCheckAction("Inside Y", insideYChecked, SLOT(keyInsideYSlot(bool)));
 
     //---
 
@@ -2239,7 +2260,7 @@ showMenu(const QPoint &p)
 
   //---
 
-  if (CQChartsUtil::getBoolEnv("CQCHARTS_DEBUG", true)) {
+  if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
     QAction *showBoxesAction = new QAction("Show Boxes", popupMenu_);
 
     showBoxesAction->setCheckable(true);
@@ -2307,11 +2328,47 @@ keyPositionSlot(QAction *action)
     else if (action->text() == "Bottom Left"  )
       currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
     else if (action->text() == "Bottom Center")
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_CENTER);
     else if (action->text() == "Bottom Right" )
       currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
     else if (action->text() == "Absolute"     )
       currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::ABS_POS      );
+    else
+      assert(false);
+  }
+}
+
+void
+CQChartsView::
+keyInsideXSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+
+  if (! currentPlot || ! currentPlot->key())
+    return;
+
+  if (b != currentPlot->key()->isInsideX()) {
+    currentPlot->key()->setInsideX(b);
+
+    if (b)
+      currentPlot->updateKeyPosition(/*force*/true);
+  }
+}
+
+void
+CQChartsView::
+keyInsideYSlot(bool b)
+{
+  CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
+
+  if (! currentPlot || ! currentPlot->key())
+    return;
+
+  if (b != currentPlot->key()->isInsideY()) {
+    currentPlot->key()->setInsideY(b);
+
+    if (b)
+      currentPlot->updateKeyPosition(/*force*/true);
   }
 }
 

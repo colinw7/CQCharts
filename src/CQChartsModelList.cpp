@@ -2,6 +2,8 @@
 #include <CQChartsModelControl.h>
 #include <CQChartsTable.h>
 #include <CQChartsTree.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQCharts.h>
 #include <CQUtil.h>
 
@@ -352,13 +354,13 @@ setDetailsText(const CQChartsModelData *modelData)
   text += "<table padding=\"4\">";
   text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
 
-  for (int i = 0; i < details->numColumns(); ++i) {
-    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(i);
+  for (int c = 0; c < details->numColumns(); ++c) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
 
     text += "<tr>";
 
     text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
-             arg(i + 1).
+             arg(c + 1).
              arg(columnDetails->typeName()).
              arg(columnDetails->dataName(columnDetails->minValue()).toString()).
              arg(columnDetails->dataName(columnDetails->maxValue()).toString());

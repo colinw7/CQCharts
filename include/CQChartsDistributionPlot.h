@@ -206,6 +206,50 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
 
 //---
 
+// scatter box object
+class CQChartsDistributionScatterObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsDistributionScatterObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
+                                 int groupInd, int bucket, int n, int is, int ns, int iv, int nv);
+
+  int groupInd() const { return groupInd_; }
+
+  int bucket() const { return bucket_; }
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  void draw(QPainter *painter) override;
+
+  //---
+
+  void getSelectIndices(Indices &inds) const override;
+
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
+ private:
+  using Points = std::vector<QPointF>;
+
+  CQChartsDistributionPlot *plot_     { nullptr };
+  int                       groupInd_ { -1 };
+  int                       bucket_   { -1 };
+  int                       n_        { 0 };
+  int                       is_       { -1 };
+  int                       ns_       { -1 };
+  int                       iv_       { -1 };
+  int                       nv_       { -1 };
+  Points                    points_;
+};
+
+//---
+
 #include <CQChartsKey.h>
 
 // key color box
@@ -244,15 +288,22 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets    WRITE setNumAutoBuckets  )
 
   // options
-  Q_PROPERTY(bool overlay   READ isOverlay   WRITE setOverlay  )
-  Q_PROPERTY(bool skipEmpty READ isSkipEmpty WRITE setSkipEmpty)
-  Q_PROPERTY(bool rangeBar  READ isRangeBar  WRITE setRangeBar )
+  Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
+  Q_PROPERTY(bool sideBySide READ isSideBySide WRITE setSideBySide)
+  Q_PROPERTY(bool overlay    READ isOverlay    WRITE setOverlay   )
+  Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
+  Q_PROPERTY(bool rangeBar   READ isRangeBar   WRITE setRangeBar  )
+  Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
 
   // density
   Q_PROPERTY(bool   density         READ isDensity         WRITE setDensity        )
   Q_PROPERTY(double densityOffset   READ densityOffset     WRITE setDensityOffset  )
   Q_PROPERTY(int    densitySamples  READ densitySamples    WRITE setDensitySamples )
   Q_PROPERTY(bool   densityGradient READ isDensityGradient WRITE setDensityGradient)
+
+  // scatter
+  Q_PROPERTY(bool   scatter       READ isScatter     WRITE setScatter      )
+  Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
   // mean line
   Q_PROPERTY(bool             showMean  READ isShowMean WRITE setShowMean)
@@ -262,12 +313,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
   Q_PROPERTY(CQChartsLength dotLineWidth  READ dotLineWidth  WRITE setDotLineWidth )
   Q_PROPERTY(CQChartsSymbol dotSymbolType READ dotSymbolType WRITE setDotSymbolType)
-  Q_PROPERTY(double         dotSymbolSize READ dotSymbolSize WRITE setDotSymbolSize)
+  Q_PROPERTY(CQChartsLength dotSymbolSize READ dotSymbolSize WRITE setDotSymbolSize)
 
   // rug
   Q_PROPERTY(bool           rug           READ isRug         WRITE setRug          )
   Q_PROPERTY(CQChartsSymbol rugSymbolType READ rugSymbolType WRITE setRugSymbolType)
-  Q_PROPERTY(double         rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
+  Q_PROPERTY(CQChartsLength rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
 
  public:
   struct Filter {
@@ -315,11 +366,15 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   //---
 
-  bool isOverlay() const { return overlay_; }
+  bool isStacked   () const { return stacked_   ; }
+  bool isSideBySide() const { return sideBySide_; }
+  bool isOverlay   () const { return overlay_   ; }
 
   bool isSkipEmpty() const { return skipEmpty_; }
 
   bool isRangeBar() const { return rangeBar_; }
+
+  bool isSorted() const { return sorted_; }
 
   //---
 
@@ -336,6 +391,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   //---
 
+  bool isScatter() const { return scatter_; }
+
+  double scatterFactor() const { return scatterFactor_; }
+  void setScatterFactor(double r);
+
+  //---
+
   bool isDotLines() const { return dotLines_; }
 
   const CQChartsLength &dotLineWidth() const { return dotLineWidth_; }
@@ -344,8 +406,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   const CQChartsSymbol &dotSymbolType() const { return dotSymbolType_; }
   void setDotSymbolType(const CQChartsSymbol &s);
 
-  double dotSymbolSize() const { return dotSymbolSize_; }
-  void setDotSymbolSize(double r);
+  const CQChartsLength &dotSymbolSize() const { return dotSymbolSize_; }
+  void setDotSymbolSize(const CQChartsLength &r);
 
   //---
 
@@ -354,8 +416,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   const CQChartsSymbol &rugSymbolType() const { return rugSymbolType_; }
   void setRugSymbolType(const CQChartsSymbol &s);
 
-  double rugSymbolSize() const { return rugSymbolSize_; }
-  void setRugSymbolSize(double r);
+  const CQChartsLength &rugSymbolSize() const { return rugSymbolSize_; }
+  void setRugSymbolSize(const CQChartsLength &r);
 
   //---
 
@@ -376,6 +438,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
   CQChartsGeom::BBox annotationBBox() const override;
+
+  //---
+
+  bool allowZoomX() const override;
+  bool allowZoomY() const override;
+
+  bool allowPanX() const override;
+  bool allowPanY() const override;
 
   //---
 
@@ -406,7 +476,12 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
   //---
 
-  QString bucketValuesStr(int groupInd, int bucket, BucketValueType type) const;
+  QString bucketValuesStr(int groupInd, int bucket,
+                          BucketValueType type=BucketValueType::ALL) const;
+
+  QString bucketStr(int groupInd, int bucket, BucketValueType type=BucketValueType::ALL) const;
+
+  //---
 
   void bucketValues(int groupInd, int bucket, double &value1, double &value2) const;
 
@@ -479,7 +554,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   //---
 
   QString bucketValuesStr(int groupInd, int bucket, const Values *values,
-                          BucketValueType type) const;
+                          BucketValueType type=BucketValueType::ALL) const;
 
   const Values *getValues(int groupInd) const;
 
@@ -487,8 +562,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   // set horizontal
   void setHorizontal(bool b) override;
 
-  // set overlay
-  void setOverlay(bool b);
+  // set stacked, side by side, overlay
+  void setStacked   (bool b);
+  void setSideBySide(bool b);
+  void setOverlay   (bool b);
 
   // set skip empty
   void setSkipEmpty(bool b);
@@ -496,8 +573,14 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   // set range bar
   void setRangeBar(bool b);
 
+  // set sorted
+  void setSorted(bool b);
+
   // set density
   void setDensity(bool b);
+
+  // set scatter
+  void setScatter(bool b);
 
   // set dot lines
   void setDotLines(bool b);
@@ -517,20 +600,25 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
 
  private:
   CQChartsColumn    nameColumn_;                      // name column
+  bool              stacked_         { false };       // stacked bars
+  bool              sideBySide_      { false };       // side by side bars
   bool              overlay_         { false };       // overlay groups
-  bool              skipEmpty_       { false };       // skip empty buckets
+  bool              skipEmpty_       { false };       // skip empty buckets (non continuous range)
   bool              rangeBar_        { false };       // show range bar
+  bool              sorted_          { false };       // sort by count
   bool              density_         { false };       // show density
   double            densityOffset_   { 0.0 };         // density offset
   int               densitySamples_  { 100 };         // density samples
-  bool              densityGradient_ { true };        // show dot lines
+  bool              densityGradient_ { false };       // denisty gradient
+  bool              scatter_         { false };       // scatter plot
+  double            scatterFactor_   { 1.0 };         // scatter factor
   bool              dotLines_        { false };       // show dot lines
   CQChartsLength    dotLineWidth_    { "3px" };       // dot line width
   CQChartsSymbol    dotSymbolType_;                   // dot symbol type
-  double            dotSymbolSize_   { 7.0 };         // dot symbol size
+  CQChartsLength    dotSymbolSize_   { "7px" };       // dot symbol size
   bool              rug_             { false };       // show rug
   CQChartsSymbol    rugSymbolType_;                   // rug symbol type
-  double            rugSymbolSize_   { 5.0 };         // rug symbol size
+  CQChartsLength    rugSymbolSize_   { "5px" };       // rug symbol size
   bool              showMean_        { false };       // show mean
   CQChartsLineDash  meanDash_        { { 2, 2 }, 0 }; // mean line dash
   CQChartsDataLabel dataLabel_;                       // data label data

@@ -29,7 +29,7 @@ class CQChartsModelVisitor {
   int maxRows() const { return maxRows_; }
   void setMaxRows(int i) { maxRows_ = i; }
 
-  bool isHierarchical() const { return hierarchical_; }
+  bool isHierarchical() const;
 
   //---
 
@@ -54,11 +54,13 @@ class CQChartsModelVisitor {
   //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
 
  protected:
-  int  numCols_      { 0 };
-  int  row_          { 0 };
-  int  numRows_      { 0 };
-  int  maxRows_      { -1 };
-  bool hierarchical_ { false };
+  QAbstractItemModel *model_        { nullptr };
+  int                 numCols_      { 0 };
+  int                 row_          { 0 };
+  int                 numRows_      { 0 };
+  int                 maxRows_      { -1 };
+  bool                hierarchical_ { false };
+  bool                hierSet_      { false };
 };
 
 #endif

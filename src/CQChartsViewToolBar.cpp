@@ -3,6 +3,7 @@
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsPlotDlg.h>
+#include <CQChartsModelData.h>
 #include <CQPixmapCache.h>
 #include <CQIconCombo.h>
 #include <CQUtil.h>

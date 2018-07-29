@@ -189,12 +189,15 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QVariant remapCmd    (const Values &values);
   QVariant timevalCmd  (const Values &values);
 
-  QString replaceNumericColumns(const QString &expr, int row, int column) const;
+  QString replaceExprColumns(const QString &expr, int row, int column) const;
 
   bool setTclResult(const QVariant &rc);
   bool getTclResult(QVariant &rc) const;
 
   bool getColumnRange(const QModelIndex &ind, double &rmin, double &rmax);
+
+  QVariant getCmdData(int row, int col) const;
+  bool     setCmdData(int row, int col, const QVariant &var);
 
  protected:
   typedef std::vector<ExtraColumn> ExtraColumns;

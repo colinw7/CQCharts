@@ -1,8 +1,8 @@
 High
+ + Column details in model data or model ?
  + Summary plot support in plot (not just dialog)
  + allow get property names of view, plot, obj
  + Qtcl class belongs to CQCharts not Cmds
- + Ceil/Expr/Tcl abstract classes
  + Notifications on mouse enter/leave (others)
  + More signals in view settings to reduce dependencies
  + More share model details

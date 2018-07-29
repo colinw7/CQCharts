@@ -89,7 +89,9 @@ class CQChartsGradientPaletteControl : public QFrame {
   void cubeNegativeChecked(int state);
 
   void colorsChanged();
+
   void addColorSlot();
+  void removeColorSlot();
   void loadColorsSlot();
 
   void functionChanged();
@@ -145,6 +147,7 @@ class CQChartsGradientPaletteControl : public QFrame {
   QLineEdit*                            blueFunctionEdit_    { nullptr };
   CQChartsGradientPaletteDefinedColors* definedColors_       { nullptr };
   QPushButton*                          addColorButton_      { nullptr };
+  QPushButton*                          removeColorButton_   { nullptr };
   QPushButton*                          loadColorsButton_    { nullptr };
   CQRealSpin*                           cubeStart_           { nullptr };
   CQRealSpin*                           cubeCycles_          { nullptr };

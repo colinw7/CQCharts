@@ -6,7 +6,7 @@
 #include <vector>
 
 struct CQChartsInputData {
-  using Vars = std::vector<QVariant>;
+  using Values = std::vector<QVariant>;
 
   bool    commentHeader     { false };
   bool    firstLineHeader   { false };
@@ -17,7 +17,7 @@ struct CQChartsInputData {
   QString filter;
   QString fold;
   QString sort;
-  Vars    vars;
+  Values  vars;
 };
 
 #endif

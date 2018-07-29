@@ -17,6 +17,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsPaletteColorData.h>
 #include <CQChartsModelFilter.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>

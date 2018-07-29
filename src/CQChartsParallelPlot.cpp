@@ -1046,9 +1046,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
 
-  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+
+  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
 
   CQChartsGeom::Point pp;
 
@@ -1089,7 +1091,9 @@ draw(QPainter *painter)
   strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
   fillColor  .setAlphaF(plot_->symbolFillAlpha());
 
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
+
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   QBrush brush(fillColor);
   QPen   pen  (strokeColor);
@@ -1104,9 +1108,11 @@ draw(QPainter *painter)
 
   plot_->windowToPixel(pp.x, pp.y, px, py);
 
-  if (isInside() || isSelected())
-    s *= 2;
+  if (isInside() || isSelected()) {
+    sx *= 2;
+    sy *= 2;
+  }
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, s,
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
                     stroked, pen.color(), lineWidth, filled, brush.color());
 }

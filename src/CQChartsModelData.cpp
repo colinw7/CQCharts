@@ -1,4 +1,5 @@
 #include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQSummaryModel.h>
 
 #ifdef CQCHARTS_FOLDED_MODEL
@@ -36,7 +37,7 @@ CQChartsModelData::
 details()
 {
   if (! details_)
-    details_ = new CQChartsModelDetails(charts_, model_.data());
+    details_ = new CQChartsModelDetails(this);
 
   return details_;
 }

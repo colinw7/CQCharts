@@ -1,9 +1,10 @@
 #include <CQChartsTable.h>
-#include <CQCharts.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsModelData.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRegExp.h>
+#include <CQCharts.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 

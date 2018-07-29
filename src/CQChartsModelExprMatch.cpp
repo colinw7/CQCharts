@@ -1,11 +1,14 @@
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsExprCmdValues.h>
 #include <CQChartsUtil.h>
+#include <CHRTimer.h>
 #include <COSNaN.h>
 #include <CQStrParse.h>
 
 #include <QAbstractItemModel>
 #include <QVariant>
 
+#if 0
 namespace {
 
 bool varToInt(const QVariant &var, int &i) {
@@ -20,15 +23,44 @@ bool varToInt(const QVariant &var, int &i) {
 }
 
 }
+#endif
 
 //---
 
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
+#endif
 
+//------
+
+#ifdef CQCharts_USE_TCL
+class CQChartsModelExprTcl : public CQTcl {
+ public:
+  CQChartsModelExprTcl(CQChartsModelExprMatch *match) :
+   match_(match), row_(-1) {
+  }
+
+  int row() const { return row_; }
+  void setRow(int i) { row_ = i; }
+
+  void handleTrace(const char *name, int flags) override {
+    if (flags & TCL_TRACE_READS) {
+      match_->setVar(name, row());
+    }
+  }
+
+ private:
+  CQChartsModelExprMatch *match_ { nullptr };
+  int                     row_   { -1 };
+};
+#endif
+
+//------
+
+#ifdef CQCharts_USE_TCL
 class CQChartsModelExprMatchFn {
  public:
-  using Vars = std::vector<QVariant>;
+  using Values = std::vector<QVariant>;
 
  public:
   CQChartsModelExprMatchFn(CQChartsModelExprMatch *model, const QString &name) :
@@ -36,33 +68,33 @@ class CQChartsModelExprMatchFn {
     qtcl_ = model->qtcl();
 
     cmdId_ = qtcl()->createExprCommand(name_,
-               (CQTcl::ObjCmdProc) &CQChartsModelExprMatchFn::commandProc,
-               (CQTcl::ObjCmdData) this);
+               (CQChartsModelExprTcl::ObjCmdProc) &CQChartsModelExprMatchFn::commandProc,
+               (CQChartsModelExprTcl::ObjCmdData) this);
   }
 
   virtual ~CQChartsModelExprMatchFn() { }
 
-  CQTcl *qtcl() const { return qtcl_; }
+  CQChartsModelExprTcl *qtcl() const { return qtcl_; }
 
   static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
     CQChartsModelExprMatchFn *command = (CQChartsModelExprMatchFn *) clientData;
 
-    Vars vars;
+    Values values;
 
     for (int i = 1; i < objc; ++i) {
       Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
 
-      vars.push_back(CQTclUtil::variantFromObj(command->qtcl()->interp(), obj));
+      values.push_back(command->qtcl()->variantFromObj(obj));
     }
 
-    QVariant var = command->exec(vars);
+    QVariant var = command->exec(values);
 
     command->qtcl()->setResult(var);
 
     return TCL_OK;
   }
 
-  QVariant exec(const Vars &vars) { return model_->processCmd(name_, vars); }
+  QVariant exec(const Values &values) { return model_->processCmd(name_, values); }
 
   bool checkColumn(int col) const { return model_->checkColumn(col); }
 
@@ -71,7 +103,7 @@ class CQChartsModelExprMatchFn {
  protected:
   CQChartsModelExprMatch* model_ { nullptr };
   QString                 name_;
-  CQTcl*                  qtcl_  { nullptr };
+  CQChartsModelExprTcl*   qtcl_  { nullptr };
   Tcl_Command             cmdId_ { nullptr };
 };
 #endif
@@ -83,7 +115,7 @@ CQChartsModelExprMatch(QAbstractItemModel *model) :
  model_(model)
 {
 #ifdef CQCharts_USE_TCL
-  qtcl_ = new CQTcl;
+  qtcl_ = new CQChartsModelExprTcl(this);
 #endif
 
   addBuiltinFunctions();
@@ -132,7 +164,10 @@ void
 CQChartsModelExprMatch::
 initMatch(const QString &expr)
 {
-  matchExpr_ = replaceNumericColumns(expr, QModelIndex());
+  nr_ = (model_ ? model_->rowCount   () : 0);
+  nc_ = (model_ ? model_->columnCount() : 0);
+
+  matchExpr_ = replaceExprColumns(expr, QModelIndex());
 }
 
 void
@@ -142,10 +177,12 @@ initColumns()
   assert(model_);
 
   columnNames_.clear();
+  nameColumns_.clear();
 
-  int nc = model_->columnCount();
+  nr_ = (model_ ? model_->rowCount   () : 0);
+  nc_ = (model_ ? model_->columnCount() : 0);
 
-  for (int column = 0; column < nc; ++column) {
+  for (int column = 0; column < nc_; ++column) {
     QVariant var = model_->headerData(column, Qt::Horizontal);
 
     bool ok;
@@ -153,6 +190,9 @@ initColumns()
     QString name = CQChartsUtil::toString(var, ok);
 
     columnNames_[column] = name;
+    nameColumns_[name  ] = column;
+
+    qtcl_->traceVar(name);
   }
 }
 
@@ -196,162 +236,143 @@ match(const QModelIndex &ind, bool &ok)
 
 QVariant
 CQChartsModelExprMatch::
-processCmd(const QString &name, const Vars &vars)
+processCmd(const QString &name, const Values &values)
 {
-  if      (name == "column") return columnCmd(vars);
-  else if (name == "row"   ) return rowCmd   (vars);
-  else if (name == "cell"  ) return cellCmd  (vars);
-  else if (name == "header") return headerCmd(vars);
+  if      (name == "column") return columnCmd(values);
+  else if (name == "row"   ) return rowCmd   (values);
+  else if (name == "cell"  ) return cellCmd  (values);
+  else if (name == "header") return headerCmd(values);
   else                       return QVariant(false);
 }
 
-// column(), column(col) : get column value
+//------
+
+// column(), column(col), column(col,defVal) : get column value
 QVariant
 CQChartsModelExprMatch::
-columnCmd(const Vars &vars) const
+columnCmd(const Values &values) const
 {
+  CQChartsExprCmdValues cmdValues(values);
+
   int row = currentRow();
   int col = currentCol();
 
-  if (vars.size() == 0)
+  if (! cmdValues.hasValues())
     return col;
 
-  if (! varToInt(vars[0], col))
+  if (! cmdValues.getInt(col))
     return QVariant();
-
-  int extraInd = -1;
-
-  if (vars.size() > 1)
-    extraInd = 1;
 
   //---
 
   if (! checkIndex(row, col)) {
-    if (extraInd >= 0)
-      return vars[extraInd];
+    QString defStr;
 
-    return QVariant();
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
   }
 
   //---
 
-  QModelIndex parent; // TODO
-
-  QModelIndex ind = model()->index(row, col, parent);
-
-  QVariant var = model()->data(ind, Qt::EditRole);
-
-  return var;
+  return getCmdData(row, col);
 }
+
+//---
 
 // row(), row(row) : get row value
 QVariant
 CQChartsModelExprMatch::
-rowCmd(const Vars &vars) const
+rowCmd(const Values &values) const
 {
+  CQChartsExprCmdValues cmdValues(values);
+
   int row = currentRow();
   int col = currentCol();
 
-  if (vars.size() == 0)
+  if (! cmdValues.hasValues())
     return row;
 
-  if (! varToInt(vars[0], row))
+  if (! cmdValues.getInt(row))
     return QVariant();
-
-  int extraInd = -1;
-
-  if (vars.size() > 1)
-    extraInd = 1;
 
   //---
 
   if (! checkIndex(row, col)) {
-    if (extraInd >= 0)
-      return vars[extraInd];
+    QString defStr;
 
-    return QVariant();
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
   }
 
   //---
 
-  QModelIndex parent; // TODO
-
-  QModelIndex ind = model()->index(row, col, parent);
-
-  QVariant var = model()->data(ind, Qt::EditRole);
-
-  return var;
+  return getCmdData(row, col);
 }
 
-// cell(), cell(row,column) : get cell value
+//---
+
+// cell(), cell(row,column), cell(row,column,defVal) : get cell value
 QVariant
 CQChartsModelExprMatch::
-cellCmd(const Vars &vars) const
+cellCmd(const Values &values) const
 {
+  CQChartsExprCmdValues cmdValues(values);
+
   int row = currentRow();
   int col = currentCol();
 
-  if (vars.size() < 2) {
+  if (cmdValues.numValues() < 2) {
     // TODO: row and column string value ?
     return QVariant();
   }
 
-  if (! varToInt(vars[0], row))
+  if (! cmdValues.getInt(row))
     return QVariant();
 
-  if (! varToInt(vars[1], col))
+  if (! cmdValues.getInt(col))
     return QVariant();
-
-  int extraInd = -1;
-
-  if (vars.size() > 2)
-    extraInd = 2;
 
   //---
 
   if (! checkIndex(row, col)) {
-    if (extraInd >= 0)
-      return vars[extraInd];
+    QString defStr;
 
-    return QVariant();
+    if (! cmdValues.getStr(defStr))
+      return QVariant();
+
+    return QVariant(defStr);
   }
 
   //---
 
-  QModelIndex parent; // TODO
-
-  QModelIndex ind = model()->index(row, col, parent);
-
-  QVariant var = model()->data(ind, Qt::EditRole);
-
-  return var;
+  return getCmdData(row, col);
 }
+
+//---
 
 // header(), header(col)
 QVariant
 CQChartsModelExprMatch::
-headerCmd(const Vars &vars) const
+headerCmd(const Values &values) const
 {
+  CQChartsExprCmdValues cmdValues(values);
+
   int col = currentCol();
 
-  if      (vars.size() == 0) {
-  }
-  else if (vars.size() == 1) {
-    if (! varToInt(vars[0], col))
-      return QVariant();
-  }
-  else {
-    return QVariant();
-  }
+  (void) cmdValues.getInt(col);
 
   //---
 
   if (! checkColumn(col))
     return QVariant();
 
-  QVariant var = model()->headerData(col, Qt::Horizontal, Qt::DisplayRole);
+  //---
 
-  return var;
+  return model()->headerData(col, Qt::Horizontal, Qt::DisplayRole);
 }
 
 //------
@@ -360,6 +381,8 @@ bool
 CQChartsModelExprMatch::
 evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value, bool replace)
 {
+  CIncrementalTimerScope timer("CQChartsModelExprMatch::evaluateExpression");
+
   if (expr.length() == 0)
     return false;
 
@@ -372,22 +395,20 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
 
   //---
 
-  QString expr1 = (replace ? replaceNumericColumns(expr, ind) : expr);
+  QString expr1 = (replace ? replaceExprColumns(expr, ind) : expr);
 
+  qtcl_->setRow(ind.row());
+
+#if 0
   // TODO: optimize, get header variable names once (checked for valid chars)
   // and only add column value for columns which are found (possibly) in expression.
 
-  int nc = (model_ ? model_->columnCount() : 0);
-
-  for (int column = 0; column < nc; ++column) {
-    // get model value
+  for (int column = 0; column < nc_; ++column) {
     QModelIndex ind1 = model_->index(ind.row(), column, ind.parent());
 
-    QVariant var = model_->data(ind1, Qt::EditRole);
-
-    // store value in column variable
-    qtcl_->createVar(columnNames_[column], var);
+    setVar(ind1);
   }
+#endif
 
   int rc = qtcl_->evalExpr(expr1);
 
@@ -400,6 +421,62 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
 #else
   return false;
 #endif
+}
+
+void
+CQChartsModelExprMatch::
+setVar(const QString &name, int row)
+{
+#ifdef CQCharts_USE_TCL
+  auto p = nameColumns_.find(name);
+
+  if (p == nameColumns_.end())
+    return;
+
+  int col = (*p).second;
+
+  // get model value
+  QVariant var = getCmdData(row, col);
+
+  // store value in column variable
+  qtcl_->createVar(name, var);
+#endif
+}
+
+void
+CQChartsModelExprMatch::
+setVar(const QModelIndex &ind)
+{
+#ifdef CQCharts_USE_TCL
+  // get model value
+  QVariant var = getCmdData(ind);
+
+  // store value in column variable
+  qtcl_->createVar(columnNames_[ind.column()], var);
+#endif
+}
+
+QVariant
+CQChartsModelExprMatch::
+getCmdData(int row, int col) const
+{
+  QModelIndex parent; // TODO
+
+  QModelIndex ind = model()->index(row, col, parent);
+
+  return getCmdData(ind);
+}
+
+QVariant
+CQChartsModelExprMatch::
+getCmdData(const QModelIndex &ind) const
+{
+  QVariant var = model()->data(ind, Qt::EditRole);
+
+  if (! var.isValid())
+    var = model()->data(ind, Qt::DisplayRole);
+
+  return var;
 }
 
 bool
@@ -424,77 +501,16 @@ getTclResult(QVariant &var) const
 
 QString
 CQChartsModelExprMatch::
-replaceNumericColumns(const QString &expr, const QModelIndex &ind) const
+replaceExprColumns(const QString &expr, const QModelIndex &ind) const
 {
-  CQStrParse parse(expr);
-
-  QString expr1;
-
-  while (! parse.eof()) {
-    // @<n> get column value (current row)
-    if (parse.isChar('@')) {
-      parse.skipChar();
-
-      if      (parse.isDigit()) {
-        int pos = parse.getPos();
-
-        while (parse.isDigit())
-          parse.skipChar();
-
-        QString str = parse.getBefore(pos);
-
-        int column1 = str.toInt();
-
-        expr1 += QString("column(%1)").arg(column1);
-      }
-      else if (parse.isChar('c') && ind.column() > 0) {
-        parse.skipChar();
-
-        expr1 += QString("%1").arg(ind.column());
-      }
-      else if (parse.isChar('r') && ind.row() > 0) {
-        parse.skipChar();
-
-        expr1 += QString("%1").arg(ind.row());
-      }
-      else if (parse.isChar('{')) {
-        int pos = parse.getPos();
-
-        parse.skipChar();
-
-        while (! parse.eof() && ! parse.isChar('}'))
-          parse.skipChar();
-
-        QString str = parse.getBefore(pos + 1);
-
-        if (parse.isChar('}'))
-          parse.skipChar();
-
-        CQChartsColumn c;
-
-        if (CQChartsUtil::stringToColumn(model_, str, c))
-          expr1 += QString("column(%1)").arg(c.column());
-        else {
-          parse.setPos(pos);
-
-          expr1 += "@";
-        }
-      }
-      else
-        expr1 += "@";
-    }
-    else
-      expr1 += parse.getChar();
-  }
-
-  return expr1;
+  return CQChartsUtil::replaceModelExprVars(expr, model_, ind, nr_, nc_);
 }
 
 bool
 CQChartsModelExprMatch::
 checkColumn(int col) const
 {
-  if (col < 0 || col >= model_->columnCount()) return false;
+  if (col < 0 || col >= nc_) return false;
 
   return true;
 }
@@ -503,8 +519,8 @@ bool
 CQChartsModelExprMatch::
 checkIndex(int row, int col) const
 {
-  if (row < 0 || row >= model_->rowCount   ()) return false;
-  if (col < 0 || col >= model_->columnCount()) return false;
+  if (row < 0 || row >= nr_) return false;
+  if (col < 0 || col >= nc_) return false;
 
   return true;
 }

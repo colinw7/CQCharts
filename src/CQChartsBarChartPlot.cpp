@@ -205,9 +205,9 @@ setDotSymbolType(const CQChartsSymbol &s)
 
 void
 CQChartsBarChartPlot::
-setDotSymbolSize(double r)
+setDotSymbolSize(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(dotSymbolSize_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(dotSymbolSize_, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -1130,11 +1130,14 @@ bool
 CQChartsBarChartPlot::
 addMenuItems(QMenu *menu)
 {
+  QAction *horizontalAction = new QAction("Horizontal", menu);
   QAction *stackedAction    = new QAction("Stacked"   , menu);
   QAction *percentAction    = new QAction("Percent"   , menu);
   QAction *rangeAction      = new QAction("Range"     , menu);
-  QAction *horizontalAction = new QAction("Horizontal", menu);
   QAction *dotLinesAction   = new QAction("Dot Lines" , menu);
+
+  horizontalAction->setCheckable(true);
+  horizontalAction->setChecked(isHorizontal());
 
   stackedAction->setCheckable(true);
   stackedAction->setChecked(isStacked());
@@ -1145,24 +1148,21 @@ addMenuItems(QMenu *menu)
   rangeAction->setCheckable(true);
   rangeAction->setChecked(isRangeBar());
 
-  horizontalAction->setCheckable(true);
-  horizontalAction->setChecked(isHorizontal());
-
   dotLinesAction->setCheckable(true);
   dotLinesAction->setChecked(isDotLines());
 
+  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
   connect(stackedAction   , SIGNAL(triggered(bool)), this, SLOT(setStacked(bool)));
   connect(percentAction   , SIGNAL(triggered(bool)), this, SLOT(setPercent(bool)));
   connect(rangeAction     , SIGNAL(triggered(bool)), this, SLOT(setRangeBar(bool)));
-  connect(horizontalAction, SIGNAL(triggered(bool)), this, SLOT(setHorizontal(bool)));
   connect(dotLinesAction  , SIGNAL(triggered(bool)), this, SLOT(setDotLines(bool)));
 
   menu->addSeparator();
 
+  menu->addAction(horizontalAction);
   menu->addAction(stackedAction);
   menu->addAction(percentAction);
   menu->addAction(rangeAction);
-  menu->addAction(horizontalAction);
   menu->addAction(dotLinesAction);
 
   return true;
@@ -1518,8 +1518,9 @@ draw(QPainter *painter)
     // draw dot
     CQChartsSymbol symbol = plot_->dotSymbolType();
 
-    double sx = plot_->dotSymbolSize();
-    double sy = plot_->dotSymbolSize();
+    double sx, sy;
+
+    plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
 
     painter->setPen  (pen);
     painter->setBrush(barBrush);

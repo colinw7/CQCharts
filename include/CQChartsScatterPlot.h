@@ -132,7 +132,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(bool           xRug          READ isXRug        WRITE setXRug         )
   Q_PROPERTY(bool           yRug          READ isYRug        WRITE setYRug         )
   Q_PROPERTY(CQChartsSymbol rugSymbolType READ rugSymbolType WRITE setRugSymbolType)
-  Q_PROPERTY(double         rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
+  Q_PROPERTY(CQChartsLength rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
 
   // symbol
   Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
@@ -232,8 +232,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   const CQChartsSymbol &rugSymbolType() const { return rugSymbolType_; }
   void setRugSymbolType(const CQChartsSymbol &s);
 
-  double rugSymbolSize() const { return rugSymbolSize_; }
-  void setRugSymbolSize(double r);
+  const CQChartsLength &rugSymbolSize() const { return rugSymbolSize_; }
+  void setRugSymbolSize(const CQChartsLength &r);
 
   //---
 
@@ -394,7 +394,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   bool addMenuItems(QMenu *menu) override;
 
-  CQChartsGeom::BBox annotationBBox() const;
+  CQChartsGeom::BBox annotationBBox() const override;
 
   //---
 
@@ -432,7 +432,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   bool               xRug_          { false }; // x rug
   bool               yRug_          { false }; // y rug
   CQChartsSymbol     rugSymbolType_;           // rug symbol type
-  double             rugSymbolSize_ { 5.0 };   // rug symbol size
+  CQChartsLength     rugSymbolSize_ { "5px" }; // rug symbol size
   CQChartsSymbolData symbolData_;              // symbol draw data
   double             fontSize_      { 8.0 };   // font size
   GroupNameValues    groupNameValues_;         // name values

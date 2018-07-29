@@ -1,60 +1,44 @@
 #ifndef CQChartsExprModelFn_H
 #define CQChartsExprModelFn_H
 
-#include <CQChartsExprModel.h>
 #include <QVariant>
 
+class CQChartsExprModel;
+
 #ifdef CQCharts_USE_TCL
-#include <CQTclUtil.h>
+class CQTcl;
+
+#include <tcl.h>
+#endif
 
 class CQChartsExprModelFn {
  public:
-  using Vars = std::vector<QVariant>;
+  using Values = std::vector<QVariant>;
 
  public:
-  CQChartsExprModelFn(CQChartsExprModel *model, const QString &name) :
-   model_(model), name_(name) {
-    qtcl_ = model->qtcl();
-
-    cmdId_ = qtcl()->createExprCommand(name_,
-               (CQTcl::ObjCmdProc) &CQChartsExprModelFn::commandProc,
-               (CQTcl::ObjCmdData) this);
-  }
+  CQChartsExprModelFn(CQChartsExprModel *model, const QString &name);
 
   virtual ~CQChartsExprModelFn() { }
 
+#ifdef CQCharts_USE_TCL
   CQTcl *qtcl() const { return qtcl_; }
 
-  static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv) {
-    CQChartsExprModelFn *command = (CQChartsExprModelFn *) clientData;
+  static int commandProc(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv);
+#endif
 
-    Vars vars;
+  QVariant exec(const Values &values);
 
-    for (int i = 1; i < objc; ++i) {
-      Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
+  bool checkColumn(int col) const;
 
-      vars.push_back(CQTclUtil::variantFromObj(command->qtcl()->interp(), obj));
-    }
-
-    QVariant var = command->exec(vars);
-
-    command->qtcl()->setResult(var);
-
-    return TCL_OK;
-  }
-
-  QVariant exec(const Vars &vars) { return model_->processCmd(name_, vars); }
-
-  bool checkColumn(int col) const { return model_->checkColumn(col); }
-
-  bool checkIndex(int row, int col) const { return model_->checkIndex(row, col); }
+  bool checkIndex(int row, int col) const;
 
  protected:
   CQChartsExprModel* model_ { nullptr };
   QString            name_;
+#ifdef CQCharts_USE_TCL
   CQTcl*             qtcl_  { nullptr };
   Tcl_Command        cmdId_ { nullptr };
-};
 #endif
+};
 
 #endif

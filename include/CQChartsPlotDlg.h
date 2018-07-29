@@ -195,6 +195,7 @@ class CQChartsPlotDlg : public QDialog {
   void updateFormatSlot();
 
   void previewEnabledSlot();
+  void summaryEnabledSlot();
   void updatePreviewSlot();
 
   void okSlot();

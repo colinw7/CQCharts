@@ -172,7 +172,8 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 
       tc.setAlphaF(textAlpha());
 
-      painter->setPen(tc);
+      painter->setPen  (tc);
+//    painter->setBrush(tc);
 
       if (ystr.length()) {
         if (direction() == Direction::VERTICAL)
@@ -217,7 +218,8 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 
     tc.setAlphaF(textAlpha());
 
-    painter->setPen(tc);
+    painter->setPen  (tc);
+//  painter->setBrush(tc);
 
     if (ystr.length())
       CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,

@@ -21,6 +21,7 @@
 #include <CQChartsSunburstPlot.h>
 #include <CQChartsTreeMapPlot.h>
 #include <CQChartsXYPlot.h>
+#include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLength.h>

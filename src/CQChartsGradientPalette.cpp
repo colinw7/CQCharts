@@ -47,10 +47,6 @@ namespace Util {
 CQChartsGradientPalette::
 CQChartsGradientPalette()
 {
-#ifdef CQCharts_USE_TCL
-  qtcl_ = new CQTcl;
-#endif
-
   init();
 }
 
@@ -58,10 +54,6 @@ void
 CQChartsGradientPalette::
 init()
 {
-#ifdef CQCharts_USE_TCL
-  qtcl_->createVar("pi", M_PI);
-#endif
-
   initFunctions();
 }
 
@@ -69,10 +61,6 @@ CQChartsGradientPalette::
 CQChartsGradientPalette(const CQChartsGradientPalette &palette)
 {
   *this = palette;
-
-#ifdef CQCharts_USE_TCL
-  qtcl_ = new CQTcl;
-#endif
 
   init();
 }
@@ -84,6 +72,25 @@ CQChartsGradientPalette::
   delete qtcl_;
 #endif
 }
+
+//---
+
+#ifdef CQCharts_USE_TCL
+CQTcl *
+CQChartsGradientPalette::
+qtcl() const
+{
+  if (! qtcl_) {
+    CQChartsGradientPalette *th = const_cast<CQChartsGradientPalette *>(this);
+
+    th->qtcl_ = new CQTcl;
+
+    th->qtcl_->createVar("pi", M_PI);
+  }
+
+  return qtcl_;
+}
+#endif
 
 //---
 
@@ -279,17 +286,19 @@ getColor(double x, bool scale) const
     double r = 0.0, g = 0.0, b = 0.0;
 
 #ifdef CQCharts_USE_TCL
-    qtcl_->createVar("gray", x);
+    CQTcl *qtcl = this->qtcl();
+
+    qtcl->createVar("gray", x);
 
     QVariant res;
 
-    if (qtcl_->evalExpr(rf_.fn.c_str(), res))
+    if (qtcl->evalExpr(rf_.fn.c_str(), res))
       r = res.toDouble();
 
-    if (qtcl_->evalExpr(gf_.fn.c_str(), res))
+    if (qtcl->evalExpr(gf_.fn.c_str(), res))
       g = res.toDouble();
 
-    if (qtcl_->evalExpr(bf_.fn.c_str(), res))
+    if (qtcl->evalExpr(bf_.fn.c_str(), res))
       b = res.toDouble();
 #endif
 

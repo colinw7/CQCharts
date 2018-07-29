@@ -2005,8 +2005,9 @@ inside(const CQChartsGeom::Point &p) const
   plot()->windowToPixel(x(), y1(), px, py1);
   plot()->windowToPixel(x(), y2(), px, py2);
 
-  double sx = plot()->lengthPixelWidth (plot()->symbolSize());
-  double sy = plot()->lengthPixelHeight(plot()->symbolSize());
+  double sx, sy;
+
+  plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
   CQChartsGeom::BBox pbbox(px - sx, py1 - sy, px + sx, py2 + sy);
 
@@ -2058,20 +2059,23 @@ draw(QPainter *painter)
 
   if (plot()->isPoints()) {
     CQChartsSymbol symbol      = plot()->symbolType();
-    double         s           = plot()->lengthPixelWidth(plot()->symbolSize());
     bool           stroked     = plot()->isSymbolStroked();
     QColor         strokeColor = plot()->interpSymbolStrokeColor(iset(), nset());
     bool           filled      = plot()->isSymbolFilled();
     QColor         fillColor   = plot()->interpSymbolFillColor(iset(), nset());
+
+    double sx, sy;
+
+    plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
     QPen   pen  (strokeColor);
     QBrush brush(fillColor);
 
     plot()->updateObjPenBrushState(this, pen, brush);
 
-    plot()->drawSymbol(painter, QPointF(px, py1), symbol, s,
+    plot()->drawSymbol(painter, QPointF(px, py1), symbol, CQChartsUtil::avg(sx, sy),
                        stroked, pen.color(), 1, filled, brush.color());
-    plot()->drawSymbol(painter, QPointF(px, py2), symbol, s,
+    plot()->drawSymbol(painter, QPointF(px, py2), symbol, CQChartsUtil::avg(sx, sy),
                        stroked, pen.color(), 1, filled, brush.color());
   }
 }
@@ -2339,8 +2343,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot()->windowToPixel(x(), y(), px, py);
 
-  double sx = (size() <= 0 ? plot()->lengthPixelWidth (plot()->symbolSize()) : size());
-  double sy = (size() <= 0 ? plot()->lengthPixelHeight(plot()->symbolSize()) : size());
+  double sx = size();
+  double sy = sx;
+
+  if (sx <= 0)
+    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
 
@@ -2393,8 +2400,11 @@ draw(QPainter *painter)
   if (edata_ && edata_->color.isValid())
     strokeColor = edata_->color.interpColor(plot_, 0, 1);
 
-  double sx = (size() <= 0 ? plot()->lengthPixelWidth (plot()->symbolSize()) : size());
-  double sy = (size() <= 0 ? plot()->lengthPixelHeight(plot()->symbolSize()) : size());
+  double sx = size();
+  double sy = sx;
+
+  if (sx <= 0)
+    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   QBrush brush(fillColor);
   QPen   pen  (strokeColor);
@@ -3060,20 +3070,23 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     keyPlot->windowToPixel(x2, y, px2, py);
 
     CQChartsSymbol symbol  = plot->symbolType();
-    double         s       = plot->lengthPixelWidth(plot->symbolSize());
     bool           stroked = plot->isSymbolStroked();
     bool           filled  = plot->isSymbolFilled();
 
+    double sx, sy;
+
+    plot->pixelSymbolSize(plot->symbolSize(), sx, sy);
+
     if (plot->isLines() || plot->isImpulse()) {
-      plot_->drawSymbol(painter, QPointF(px1, py), symbol, s,
+      plot_->drawSymbol(painter, QPointF(px1, py), symbol, CQChartsUtil::avg(sx, sy),
                         stroked, pointStrokeColor, 1, filled, pointFillColor);
-      plot_->drawSymbol(painter, QPointF(px2, py), symbol, s,
+      plot_->drawSymbol(painter, QPointF(px2, py), symbol, CQChartsUtil::avg(sx, sy),
                         stroked, pointStrokeColor, 1, filled, pointFillColor);
     }
     else {
       double px = CQChartsUtil::avg(px1, px2);
 
-      plot_->drawSymbol(painter, QPointF(px, py), symbol, s,
+      plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
                         stroked, pointStrokeColor, 1, filled, pointFillColor);
     }
   }

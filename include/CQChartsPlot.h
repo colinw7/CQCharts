@@ -821,6 +821,8 @@ class CQChartsPlot : public QObject {
   void windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const;
   void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
+  CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
+
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
 
@@ -836,6 +838,8 @@ class CQChartsPlot : public QObject {
   double windowToPixelHeight(double wh) const;
 
   //---
+
+  void pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const;
 
   double limitSymbolSize(double s) const;
   double limitFontSize(double s) const;
@@ -1243,7 +1247,7 @@ class CQChartsPlot : public QObject {
   ColumnType columnValueType(const CQChartsColumn &column,
                              const ColumnType &defType=ColumnType::STRING) const;
 
-  bool columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
+  bool columnValueType(const CQChartsColumn &column, ColumnType &columnType,
                        CQChartsNameValues &nameValues,
                        const ColumnType &defType=ColumnType::STRING) const;
 

@@ -55,6 +55,9 @@ class CQChartsModelFilterData {
       return false;
   }
 
+  const QString &filterExpr() const { return filterExpr_; }
+  void setFilterExpr(const QString &filter) { filterExpr_ = filter; }
+
  private:
   Type            type_           { Type::EXPRESSION };
   QString         filter_;
@@ -62,6 +65,7 @@ class CQChartsModelFilterData {
   CQChartsRegExp  regexp_;
   QModelIndexList filterRows_;
   ColumnFilterMap columnFilterMap_;
+  QString         filterExpr_;
 };
 
 //------
@@ -151,6 +155,8 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   bool itemMatch(const QModelIndex &ind) const;
 
   bool filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &ind) const;
+
+  QString replaceNamedColumns(QAbstractItemModel *model, const QString &expr) const;
 
  protected:
   using IndexMatches = std::map<QModelIndex,bool>;

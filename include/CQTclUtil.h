@@ -213,6 +213,8 @@ class CQTcl : public CTcl {
  public:
   CQTcl() { }
 
+  virtual ~CQTcl() { }
+
   void createVar(const QString &name, const QVariant &var) {
     CQTclUtil::createVar(interp(), name, var);
   }
@@ -305,6 +307,23 @@ class CQTcl : public CTcl {
     return CQTclUtil::variantFromObj(interp(), obj);
   }
 
+  void traceVar(const QString &name) {
+    Tcl_TraceVar(interp(), name.toLatin1().constData(),
+      TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY,
+      &CQTcl::traceProc, (ClientData) this);
+  }
+
+  virtual void handleTrace(const char *name, int flags) {
+    // ignore unset called on trace destruction
+    if (flags & TCL_TRACE_UNSETS) return;
+
+    std::cerr << "CQTcl::handleTrace (";
+    if (flags & TCL_TRACE_READS ) std::cerr << " read" ;
+    if (flags & TCL_TRACE_WRITES) std::cerr << " write";
+  //if (flags & TCL_TRACE_UNSETS) std::cerr << " unset";
+    std::cerr << ") " << name << "\n";
+  }
+
   void setResult(const QVariant &rc) {
     CQTclUtil::setResult(interp(), rc);
   }
@@ -319,6 +338,17 @@ class CQTcl : public CTcl {
 
   QString errorInfo(int rc) const {
     return CTclUtil::errorInfo(interp(), rc).c_str();
+  }
+
+ private:
+  static char *traceProc(ClientData data, Tcl_Interp *, const char *name1,
+                         const char *, int flags) {
+    CQTcl *th = static_cast<CQTcl *>(data);
+    assert(th);
+
+    th->handleTrace(name1, flags);
+
+    return 0;
   }
 };
 

@@ -142,12 +142,12 @@ interpColor(const CQChartsPlot *plot, int i, int n) const
   assert(isValid());
 
   if (type() == Type::INTERFACE_VALUE) {
-    double r = CQChartsUtil::norm(i, 0, n);
+    double r = CQChartsUtil::norm(i, 0, n - 1);
 
     return interpColor(plot, r);
   }
   else {
-    double r = CQChartsUtil::norm(i + 1, 0, n + 1);
+    double r = CQChartsUtil::norm(i, 0, n - 1);
 
     return interpColor(plot, r);
   }

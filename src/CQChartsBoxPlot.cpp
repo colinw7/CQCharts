@@ -1923,7 +1923,6 @@ draw(QPainter *painter)
   // draw outlier symbols
   if (plot_->isShowOutliers()) {
     CQChartsSymbol symbol      = plot_->symbolType();
-    double         symbolSize  = plot_->lengthPixelWidth(plot_->symbolSize());
     bool           stroked     = plot_->isSymbolStroked();
     QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
     double         strokeAlpha = plot_->symbolStrokeAlpha();
@@ -1932,7 +1931,9 @@ draw(QPainter *painter)
     QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
     double         fillAlpha   = plot_->symbolFillAlpha();
 
-    symbolSize = plot_->limitSymbolSize(symbolSize);
+    double sx, sy;
+
+    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
     strokeColor.setAlphaF(strokeAlpha);
     fillColor  .setAlphaF(fillAlpha);
@@ -1950,7 +1951,7 @@ draw(QPainter *painter)
       else
         plot_->windowToPixel(remapPos(whisker_.rvalue(o)), pos, px1, py1);
 
-      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
+      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, CQChartsUtil::avg(sx, sy),
                         stroked, pen.color(), strokeWidth, filled, brush.color());
     }
   }
@@ -2271,7 +2272,6 @@ draw(QPainter *painter)
   // draw outlier symbols
   if (plot_->isShowOutliers()) {
     CQChartsSymbol symbol      = plot_->symbolType();
-    double         symbolSize  = plot_->lengthPixelWidth(plot_->symbolSize());
     bool           stroked     = plot_->isSymbolStroked();
     QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
     double         strokeAlpha = plot_->symbolStrokeAlpha();
@@ -2280,7 +2280,9 @@ draw(QPainter *painter)
     QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
     double         fillAlpha   = plot_->symbolFillAlpha();
 
-    symbolSize = plot_->limitSymbolSize(symbolSize);
+    double sx, sy;
+
+    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
     strokeColor.setAlphaF(strokeAlpha);
     fillColor  .setAlphaF(fillAlpha);
@@ -2298,7 +2300,7 @@ draw(QPainter *painter)
       else
         plot_->windowToPixel(remapPos(o), pos, px1, py1);
 
-      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, symbolSize,
+      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, CQChartsUtil::avg(sx, sy),
                         stroked, pen.color(), strokeWidth, filled, brush.color());
     }
   }
@@ -2764,11 +2766,9 @@ draw(QPainter *painter)
   bool stroked = plot_->isSymbolStroked();
   bool filled  = plot_->isSymbolFilled ();
 
-  double sx = plot_->lengthPixelWidth (plot_->jitterSymbolSize());
-  double sy = plot_->lengthPixelHeight(plot_->jitterSymbolSize());
+  double sx, sy;
 
-  sx = plot_->limitSymbolSize(sx);
-  sy = plot_->limitSymbolSize(sy);
+  plot_->pixelSymbolSize(plot_->jitterSymbolSize(), sx, sy);
 
   //---
 

@@ -533,3 +533,12 @@
  + Calc density range and use for better draw. Support denisty group offset
  + Support gradient fill for density
  + Add lines/point to xy context menu
+# 7/29/2018
+ + All symbol sizes use length units
+ + Add stacked, side-by side for group distribution bars
+ + Add scatter for group distribution values
+ + Cleanup up duplicate code in expression filters
+ + Speed up access to tcl column variables
+ + Allow remove of palette defined color
+ + Speed up isHierarchical test (limit rows checked)
+ + Add Inside X/Y to Key menu

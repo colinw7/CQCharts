@@ -692,9 +692,11 @@ inside(const CQChartsGeom::Point &p) const
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
 
-  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+
+  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
 
   CQChartsGeom::Point pp;
 
@@ -759,7 +761,9 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
+
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   CQChartsSymbol symbol = plot_->symbolType();
 
@@ -769,5 +773,5 @@ draw(QPainter *painter)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, s);
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy));
 }

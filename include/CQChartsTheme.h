@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QColor>
+#include <map>
+#include <vector>
 
 class CQChartsTheme;
 class CQChartsGradientPalette;

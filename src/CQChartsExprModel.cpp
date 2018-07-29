@@ -1,6 +1,8 @@
 #include <CQChartsExprModel.h>
 #include <CQChartsExprModelFn.h>
-#include <CQChartsExprModelCmdValues.h>
+#include <CQChartsExprCmdValues.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRand.h>
@@ -242,7 +244,7 @@ calcColumn(int column, const QString &expr, Values &values) const
 
     QVariant var;
 
-    QString expr1 = replaceNumericColumns(expr, currentRow_, currentCol_).simplified();
+    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     (void) evaluateExpression(expr1, var);
 
@@ -265,7 +267,7 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 
     QVariant var;
 
-    QString expr1 = replaceNumericColumns(expr, currentRow_, currentCol_).simplified();
+    QString expr1 = replaceExprColumns(expr, currentRow_, currentCol_).simplified();
 
     if (! evaluateExpression(expr1, var)) {
       rc = false;
@@ -304,7 +306,7 @@ processExpr(const QString &expr)
 
   bool rc = true;
 
-  QString expr1 = replaceNumericColumns(expr, -1, -1);
+  QString expr1 = replaceExprColumns(expr, -1, -1);
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -576,7 +578,7 @@ getExtraColumnValue(int row, int column, int ecolumn) const
 
     QString expr = extraColumn.expr;
 
-    expr = replaceNumericColumns(expr, row, column).simplified();
+    expr = replaceExprColumns(expr, row, column).simplified();
 
     QVariant var;
 
@@ -826,17 +828,21 @@ processCmd(const QString &name, const Values &values)
 
 //------
 
-// column(), column(col) : get column value
+// column(), column(col), column(col,defVal) : get column value
 QVariant
 CQChartsExprModel::
 columnCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int row = currentRow();
   int col = currentCol();
 
-  (void) cmdValues.getInt(col);
+  if (! cmdValues.hasValues())
+    return col;
+
+  if (! cmdValues.getInt(col))
+    return QVariant();
 
   //---
 
@@ -851,9 +857,7 @@ columnCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  return data(ind, Qt::DisplayRole);
+  return getCmdData(row, col);
 }
 
 //---
@@ -863,12 +867,16 @@ QVariant
 CQChartsExprModel::
 rowCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int row = currentRow();
   int col = currentCol();
 
-  (void) cmdValues.getInt(row);
+  if (! cmdValues.hasValues())
+    return row;
+
+  if (! cmdValues.getInt(row))
+    return QVariant();
 
   //---
 
@@ -883,25 +891,31 @@ rowCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  return data(ind, Qt::DisplayRole);
+  return getCmdData(row, col);
 }
 
 //---
 
-// cell(), cell(row,column) : get cell value
+// cell(), cell(row,column), cell(row,column,defVal) : get cell value
 QVariant
 CQChartsExprModel::
 cellCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int row = currentRow();
   int col = currentCol();
 
-  (void) cmdValues.getInt(row);
-  (void) cmdValues.getInt(col);
+  if (cmdValues.numValues() < 2) {
+    // TODO: row and column string value ?
+    return QVariant();
+  }
+
+  if (! cmdValues.getInt(row))
+    return QVariant();
+
+  if (! cmdValues.getInt(col))
+    return QVariant();
 
   //---
 
@@ -916,9 +930,7 @@ cellCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  return data(ind, Qt::DisplayRole);
+  return getCmdData(row, col);
 }
 
 //---
@@ -928,7 +940,7 @@ QVariant
 CQChartsExprModel::
 setColumnCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -949,9 +961,7 @@ setColumnCmd(const Values &values)
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  bool b = setData(ind, var, Qt::DisplayRole);
+  bool b = setCmdData(row, col, var);
 
   return QVariant(b);
 }
@@ -963,7 +973,7 @@ QVariant
 CQChartsExprModel::
 setRowCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -984,9 +994,7 @@ setRowCmd(const Values &values)
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  bool b = setData(ind, var, Qt::DisplayRole);
+  bool b = setCmdData(row, col, var);
 
   return QVariant(b);
 }
@@ -998,7 +1006,7 @@ QVariant
 CQChartsExprModel::
 setCellCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -1020,9 +1028,7 @@ setCellCmd(const Values &values)
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  bool b = setData(ind, var, Qt::DisplayRole);
+  bool b = setCmdData(row, col, var);
 
   return QVariant(b);
 }
@@ -1034,7 +1040,7 @@ QVariant
 CQChartsExprModel::
 headerCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int col = currentCol();
 
@@ -1057,7 +1063,7 @@ QVariant
 CQChartsExprModel::
 setHeaderCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -1087,7 +1093,7 @@ QVariant
 CQChartsExprModel::
 typeCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int col = currentCol();
 
@@ -1116,7 +1122,7 @@ QVariant
 CQChartsExprModel::
 setTypeCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -1154,7 +1160,7 @@ QVariant
 CQChartsExprModel::
 mapCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int row = currentRow();
 
@@ -1191,7 +1197,7 @@ QVariant
 CQChartsExprModel::
 bucketCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() == 0)
     return QVariant(0);
@@ -1211,9 +1217,7 @@ bucketCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  QVariant var = data(ind, Qt::DisplayRole);
+  QVariant var = getCmdData(row, col);
 
   //---
 
@@ -1270,7 +1274,7 @@ QVariant
 CQChartsExprModel::
 normCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() == 0)
     return QVariant(0.0);
@@ -1294,9 +1298,7 @@ normCmd(const Values &values) const
 
   //---
 
-  QModelIndex ind = index(row, col, QModelIndex());
-
-  QVariant var = data(ind, Qt::DisplayRole);
+  QVariant var = getCmdData(row, col);
 
   //---
 
@@ -1358,7 +1360,7 @@ QVariant
 CQChartsExprModel::
 keyCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   QString s;
 
@@ -1381,7 +1383,7 @@ QVariant
 CQChartsExprModel::
 randCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   double min = 0.0;
   double max = 1.0;
@@ -1403,7 +1405,7 @@ QVariant
 CQChartsExprModel::
 rnormCmd(const Values &values) const
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   double mean   = 0.0;
   double stddev = 1.0;
@@ -1456,7 +1458,7 @@ QVariant
 CQChartsExprModel::
 remapCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   int row = currentRow();
   int col = currentCol();
@@ -1510,7 +1512,7 @@ QVariant
 CQChartsExprModel::
 timevalCmd(const Values &values)
 {
-  CQChartsExprModelCmdValues cmdValues(values);
+  CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() < 1)
     return QVariant();
@@ -1551,6 +1553,40 @@ timevalCmd(const Values &values)
   if (! ok) return QVariant();
 
   return CQChartsUtil::timeToString(fmt, t);
+}
+
+//---
+
+QVariant
+CQChartsExprModel::
+getCmdData(int row, int col) const
+{
+  QModelIndex parent; // TODO
+
+  QModelIndex ind = this->index(row, col, parent);
+
+  QVariant var = this->data(ind, Qt::EditRole);
+
+  if (! var.isValid())
+    var = this->data(ind, Qt::DisplayRole);
+
+  return var;
+}
+
+bool
+CQChartsExprModel::
+setCmdData(int row, int col, const QVariant &var)
+{
+  QModelIndex parent; // TODO
+
+  QModelIndex ind = this->index(row, col, parent);
+
+  bool b = this->setData(ind, var, Qt::EditRole);
+
+  if (! b)
+    b = this->setData(ind, var, Qt::DisplayRole);
+
+  return b;
 }
 
 //---
@@ -1617,92 +1653,13 @@ getTclResult(QVariant &var) const
 
 QString
 CQChartsExprModel::
-replaceNumericColumns(const QString &expr, int row, int column) const
+replaceExprColumns(const QString &expr, int row, int column) const
 {
-  auto quoteStr = [](const QString &str, bool doQuote) -> QString {
-    return (doQuote ? "\"" + str + "\"" : str);
-  };
+  QModelIndex ind = this->index(row, column, QModelIndex());
 
-  CQStrParse parse(expr);
+  CQChartsExprModel *th = const_cast<CQChartsExprModel *>(this);
 
-  QString expr1;
-
-  while (! parse.eof()) {
-    // @<n> get column value (current row)
-    if (parse.isChar('@')) {
-      parse.skipChar();
-
-      bool stringify = false;
-
-      if (parse.isChar('#')) {
-        parse.skipChar();
-
-        stringify = true;
-      }
-
-      if      (parse.isDigit()) {
-        int pos = parse.getPos();
-
-        while (parse.isDigit())
-          parse.skipChar();
-
-        QString str = parse.getBefore(pos);
-
-        int column1 = str.toInt();
-
-        expr1 += quoteStr(QString("column(%1)").arg(column1), stringify);
-      }
-      else if (parse.isChar('c')) {
-        parse.skipChar();
-
-        expr1 += quoteStr(QString("%1").arg(column), stringify);
-      }
-      else if (parse.isChar('r')) {
-        parse.skipChar();
-
-        expr1 += quoteStr(QString("%1").arg(row), stringify);
-      }
-      else if (parse.isChar('n')) {
-        parse.skipChar();
-
-        if      (parse.isChar('c')) {
-          parse.skipChar();
-
-          expr1 += quoteStr(QString("%1").arg(nc_), stringify);
-        }
-        else if (parse.isChar('r')) {
-          parse.skipChar();
-
-          expr1 += quoteStr(QString("%1").arg(nr_), stringify);
-        }
-        else {
-          if (stringify)
-            expr1 += "@#n";
-          else
-            expr1 += "@n";
-        }
-      }
-      else if (parse.isChar('v')) {
-        QModelIndex ind = index(row, column, QModelIndex());
-
-        QVariant var = data(ind, Qt::DisplayRole);
-
-        parse.skipChar();
-
-        expr1 += quoteStr(var.toString(), stringify);
-      }
-      else {
-        if (stringify)
-          expr1 += "@#";
-        else
-          expr1 += "@";
-      }
-    }
-    else
-      expr1 += parse.getChar();
-  }
-
-  return expr1;
+  return CQChartsUtil::replaceModelExprVars(expr, th, ind, nr_, nc_);
 }
 
 //---
@@ -1713,11 +1670,35 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 {
   CQChartsColumn column(ind.column());
 
+  CQChartsModelData *modelData = charts_->getModelData(this->model_);
+
+  if (! modelData) {
+    //int modelInd = charts_->addModel(this->model_);
+
+    //modelData = charts_->getModelData(modelInd);
+  }
+
+  //---
+
   CQBaseModel::Type  type;
   CQChartsNameValues nameValues;
 
-  if (! CQChartsUtil::columnValueType(charts_, this, column, type, nameValues))
-    return false;
+  if (modelData) {
+    CQChartsModelDetails *details = modelData->details();
+    assert(details);
+
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+    assert(columnDetails);
+
+    type       = columnDetails->type();
+    nameValues = columnDetails->nameValues();
+  }
+  else {
+    if (! CQChartsUtil::columnValueType(charts_, this, column, type, nameValues))
+      return false;
+  }
+
+  //---
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
@@ -1728,13 +1709,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
   if (! rtypeData)
     return false;
 
-  CQChartsModelData *modelData = charts_->getModelData(this->model_);
-
-  if (! modelData) {
-    //int modelInd = charts_->addModel(this->model_);
-
-    //modelData = charts_->getModelData(modelInd);
-  }
+  //---
 
   if (! rtypeData->rmin(nameValues, rmin)) {
     if (modelData)

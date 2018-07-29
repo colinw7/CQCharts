@@ -1,20 +1,23 @@
-#ifndef CQChartsExprModelCmdValues_H
-#define CQChartsExprModelCmdValues_H
+#ifndef CQChartsExprCmdValues_H
+#define CQChartsExprCmdValues_H
 
+#include <CQChartsUtil.h>
 #include <QVariant>
 #include <vector>
 
-class CQChartsExprModelCmdValues {
+class CQChartsExprCmdValues {
  public:
   using Values = std::vector<QVariant>;
 
  public:
-  CQChartsExprModelCmdValues(const Values &values) :
+  CQChartsExprCmdValues(const Values &values) :
    values_(values) {
     eind_ = numValues() - 1;
   }
 
   int ind() const { return ind_; }
+
+  bool hasValues() const { return ! values_.empty(); }
 
   int numValues() const { return values_.size(); }
 
@@ -25,7 +28,11 @@ class CQChartsExprModelCmdValues {
 
     bool ok;
 
-    int i1 = values_[ind_].toInt(&ok);
+#if 0
+    long i1 = values_[ind_].toInt(&ok);
+#else
+    long i1 = CQChartsUtil::toInt(values_[ind_], ok);
+#endif
 
     if (ok) {
       i = i1;

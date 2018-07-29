@@ -1,9 +1,4 @@
 #include <CQChartsEval.h>
-
-#ifdef CQCharts_USE_TCL
-#include <CQTclUtil.h>
-#endif
-
 #include <QColor>
 
 CQChartsEval *

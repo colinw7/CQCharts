@@ -202,15 +202,20 @@ CQChartsGradientPaletteControl(CQChartsGradientPaletteCanvas *palette) :
   addColorButton_ = new QPushButton("Add");
   addColorButton_->setObjectName("add");
 
+  removeColorButton_ = new QPushButton("Remove");
+  removeColorButton_->setObjectName("remove");
+
   loadColorsButton_ = new QPushButton("Load");
   loadColorsButton_->setObjectName("load");
 
   definedButtonsLayout->addWidget(addColorButton_);
+  definedButtonsLayout->addWidget(removeColorButton_);
   definedButtonsLayout->addWidget(loadColorsButton_);
   definedButtonsLayout->addStretch(1);
 
-  connect(addColorButton_  , SIGNAL(clicked()), this, SLOT(addColorSlot()));
-  connect(loadColorsButton_, SIGNAL(clicked()), this, SLOT(loadColorsSlot()));
+  connect(addColorButton_   , SIGNAL(clicked()), this, SLOT(addColorSlot()));
+  connect(removeColorButton_, SIGNAL(clicked()), this, SLOT(removeColorSlot()));
+  connect(loadColorsButton_ , SIGNAL(clicked()), this, SLOT(loadColorsSlot()));
 
   definedFrameLayout->addWidget(definedButtonsFrame);
 
@@ -602,7 +607,7 @@ addColorSlot()
   if (selectedItems.length())
     row = selectedItems[0]->row();
 
-  const CQChartsGradientPalette::ColorMap colors = pal->colors();
+  const CQChartsGradientPalette::ColorMap &colors = pal->colors();
 
   double x = 0.5;
   QColor c = QColor(127, 127, 127);
@@ -637,6 +642,37 @@ addColorSlot()
   }
 
   pal->addDefinedColor(x, c);
+
+  definedColors_->updateColors(pal);
+
+  emit stateChanged();
+}
+
+void
+CQChartsGradientPaletteControl::
+removeColorSlot()
+{
+  CQChartsGradientPalette *pal = palette_->gradientPalette();
+
+  QList<QTableWidgetItem *> selectedItems = definedColors_->selectedItems();
+
+  if (! selectedItems.length())
+    return;
+
+  int row = selectedItems[0]->row();
+
+  CQChartsGradientPalette::ColorMap &colors = pal->colors();
+
+  CQChartsGradientPalette::ColorMap colors1;
+
+  int nc = colors.size();
+
+  for (int i = 0; i < nc; ++i) {
+    if (i != row)
+    colors1[i] = colors[i];
+  }
+
+  pal->setColors(colors1);
 
   definedColors_->updateColors(pal);
 
@@ -859,8 +895,8 @@ createFunctionEdit(QGridLayout *grid, int row, const QString &label,
   *functionLabel = new QLabel(label);
   (*functionLabel)->setObjectName("label");
 
-  *functionEdit  = new QLineEdit;
-  (*functionEdit )->setObjectName("edit");
+  *functionEdit = new QLineEdit;
+  (*functionEdit)->setObjectName("edit");
 
   grid->addWidget(*functionLabel, row, 0);
   grid->addWidget(*functionEdit , row, 1);

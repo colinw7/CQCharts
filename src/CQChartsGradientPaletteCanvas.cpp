@@ -135,7 +135,6 @@ mouseMoveEvent(QMouseEvent *me)
   if (gradientPalette()->colorType() == CQChartsGradientPalette::ColorType::DEFINED) {
     if (mouseData_.pressed) {
       double dy = mouseData_.movePos.y() - mouseData_.pressPos.y();
-std::cerr << dy << std::endl;
 
       moveNearestDefinedColor(nearestColor_, dy);
 

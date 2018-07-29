@@ -3,6 +3,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsTree.h>
 #include <CQChartsTable.h>
+#include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQUtil.h>
 

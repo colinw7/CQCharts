@@ -1,7 +1,6 @@
 #ifndef CQCharts_H
 #define CQCharts_H
 
-#include <CQChartsModelData.h>
 #include <CQBaseModel.h>
 
 #include <QObject>
@@ -12,6 +11,7 @@ class CQChartsView;
 class CQChartsPlotTypeMgr;
 class CQChartsPlotType;
 class CQChartsPlot;
+class CQChartsModelData;
 class CQChartsColumnTypeMgr;
 
 class CQCharts : public QObject {

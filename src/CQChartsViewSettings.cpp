@@ -8,7 +8,10 @@
 #include <CQChartsGradientPaletteControl.h>
 #include <CQChartsLoadDlg.h>
 #include <CQChartsPlotDlg.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQCharts.h>
+#include <CQChartsUtil.h>
 #include <CQIconCombo.h>
 #include <CQIntegerSpin.h>
 #include <CQUtil.h>
@@ -442,7 +445,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   palettesSplitter->addWidget(themeWidgets_.palettesPlot);
   palettesSplitter->addWidget(themeWidgets_.palettesControl);
 
-  connect(themeWidgets_.palettesControl, SIGNAL(stateChanged()), view, SLOT(update()));
+  connect(themeWidgets_.palettesControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 
   //--
 
@@ -461,7 +464,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   interfaceSplitter->addWidget(themeWidgets_.interfacePlot);
   interfaceSplitter->addWidget(themeWidgets_.interfaceControl);
 
-  connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(update()));
+  connect(themeWidgets_.interfaceControl, SIGNAL(stateChanged()), view, SLOT(updatePlots()));
 
   //----
 
@@ -559,13 +562,13 @@ updateModelDetails()
   text += "<table padding=\"4\">";
   text += "<tr><th>Column</th><th>Type</th><th>Min</th><th>Max</th><th>Monotonic</th></tr>";
 
-  for (int i = 0; i < details->numColumns(); ++i) {
-    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(i);
+  for (int c = 0; c < details->numColumns(); ++c) {
+    const CQChartsModelColumnDetails *columnDetails = details->columnDetails(c);
 
     text += "<tr>";
 
     text += QString("<td>%1</td><td>%2</td><td>%3</td><td>%4</td>").
-             arg(i + 1).
+             arg(c + 1).
              arg(columnDetails->typeName()).
              arg(columnDetails->dataName(columnDetails->minValue()).toString()).
              arg(columnDetails->dataName(columnDetails->maxValue()).toString());
@@ -774,11 +777,7 @@ void
 CQChartsViewSettings::
 paletteIndexSlot(int)
 {
-  CQChartsView *view = window_->view();
-
   updatePalettes();
-
-  view->updatePlots();
 }
 
 void
@@ -799,8 +798,6 @@ loadPaletteNameSlot()
   view->theme()->setPalette(i, palette->dup());
 
   updatePalettes();
-
-  view->updatePlots();
 }
 
 void
@@ -824,6 +821,8 @@ updatePalettes()
   themeWidgets_.palettesCombo->setCurrentIndex(ind);
 
   themeWidgets_.palettesControl->updateState();
+
+  view->updatePlots();
 }
 
 void
@@ -962,6 +961,8 @@ groupPlotsSlot()
 {
   CQChartsView *view = window_->view();
 
+  CQCharts *charts = view->charts();
+
   // get selected plots ?
   Plots plots;
 
@@ -973,7 +974,7 @@ groupPlotsSlot()
 
   if      (x1x2) {
     if (plots.size() != 2) {
-      std::cerr << "Need 2 plots for x1x2\n";
+      charts->errorMsg("Need 2 plots for x1x2");
       return;
     }
 
@@ -981,7 +982,7 @@ groupPlotsSlot()
   }
   else if (y1y2) {
     if (plots.size() != 2) {
-      std::cerr << "Need 2 plots for y1y2\n";
+      charts->errorMsg("Need 2 plots for y1y2");
       return;
     }
 
@@ -989,7 +990,7 @@ groupPlotsSlot()
   }
   else if (overlay) {
     if (plots.size() < 2) {
-      std::cerr << "Need 2 or more plots for overlay\n";
+      charts->errorMsg("Need 2 or more plots for overlay");
       return;
     }
 

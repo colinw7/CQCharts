@@ -4,6 +4,7 @@
 #include <CQCharts.h>
 #include <CQDataModel.h>
 #include <QItemSelectionModel>
+#include <CQStrParse.h>
 #include <cassert>
 
 CQChartsModelFilter::
@@ -128,6 +129,8 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 {
   if (allFiltersEmpty())
     return true;
+
+  //---
 
   QAbstractItemModel *model = sourceModel();
   assert(model);
@@ -255,10 +258,15 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     return true;
   }
-  else {
+  else if (filterData.isExpr()) {
     bool ok;
 
-    return expr_->match(filterData.filter(), ind, ok);
+    return exprMatch()->match(filterData.filterExpr(), ind, ok);
+  }
+  else {
+    assert(false);
+
+    return true;
   }
 }
 
@@ -337,7 +345,13 @@ initFilterData(CQChartsModelFilterData &filterData)
 
     filterData.setColumnFilterMap(columnFilterMap);
   }
-  else {
+  else if (filterData.isExpr()) {
+    QAbstractItemModel *model = this->sourceModel();
+    assert(model);
+
+    QString expr1 = replaceNamedColumns(model, filterData.filter());
+
+    filterData.setFilterExpr(expr1);
   }
 }
 
@@ -356,9 +370,9 @@ initFilter()
   QAbstractItemModel *model = this->sourceModel();
   assert(model);
 
-  expr_->setModel(model);
+  exprMatch()->setModel(model);
 
-  expr_->initColumns();
+  exprMatch()->initColumns();
 
   //---
 
@@ -458,4 +472,13 @@ data(const QModelIndex &ind, int role) const
   }
 
   return var;
+}
+
+QString
+CQChartsModelFilter::
+replaceNamedColumns(QAbstractItemModel *model, const QString &expr) const
+{
+  QModelIndex ind;
+
+  return CQChartsUtil::replaceModelExprVars(expr, model, ind, -1, -1);
 }

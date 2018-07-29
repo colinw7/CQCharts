@@ -8,7 +8,6 @@
 #include <CQChartsStyle.h>
 #include <CQChartsColor.h>
 #include <CQChartsExprModel.h>
-#include <CQChartsEval.h>
 #include <CQBaseModel.h>
 #include <COSNaN.h>
 
@@ -784,14 +783,6 @@ void testAndSet(T &t, const T &v, Callable &&f) {
 
 //------
 
-namespace CQChartsUtil {
-
-bool getBoolEnv(const char *name, bool def=false);
-
-}
-
-//------
-
 #include <CQChartsModelVisitor.h>
 
 namespace CQChartsUtil {
@@ -806,6 +797,15 @@ CQChartsModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QMo
 
 CQChartsModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
                                           int r, CQChartsModelVisitor &visitor);
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString replaceModelExprVars(const QString &expr, QAbstractItemModel *model,
+                             const QModelIndex &ind, int nr, int nc);
 
 }
 

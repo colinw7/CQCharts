@@ -214,6 +214,8 @@ class CQChartsGradientPalette {
 
   ColorMap &colors() { return colors_; }
 
+  void setColors(const ColorMap &colors) { colors_ = colors; }
+
   void addDefinedColor(double v, const QColor &c);
 
   void resetDefinedColors();
@@ -313,6 +315,10 @@ class CQChartsGradientPalette {
   void init();
 
   void initFunctions();
+
+#ifdef CQCharts_USE_TCL
+  CQTcl *qtcl() const;
+#endif
 
  private:
   struct ColorFn {

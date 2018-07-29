@@ -4,6 +4,8 @@
 #include <CQChartsColumn.h>
 #include <CQChartsUtil.h>
 
+class CQChartsModelDetails;
+class CQChartsModelData;
 class CQCharts;
 class CQChartsIValues;
 class CQChartsRValues;
@@ -15,14 +17,11 @@ class CQChartsModelColumnDetails {
   using VariantList = QList<QVariant>;
 
  public:
-  CQChartsModelColumnDetails(CQCharts *charts, QAbstractItemModel *model,
-                             const CQChartsColumn &column);
+  CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column);
 
   virtual ~CQChartsModelColumnDetails();
 
-  CQCharts *charts() const { return charts_; }
-
-  QAbstractItemModel *model() const { return model_; }
+  CQChartsModelDetails *details() const { return details_; }
 
   const CQChartsColumn &column() const { return column_; }
 
@@ -74,30 +73,31 @@ class CQChartsModelColumnDetails {
   CQChartsModelColumnDetails &operator=(const CQChartsModelColumnDetails &) = delete;
 
  private:
-  CQCharts*           charts_      { nullptr };
-  QAbstractItemModel* model_       { nullptr };
-  CQChartsColumn      column_;
-  QString             typeName_;
-  CQBaseModel::Type   type_        { CQBaseModel::Type::NONE };
-  CQChartsNameValues  nameValues_;
-  QVariant            minValue_;
-  QVariant            maxValue_;
-  int                 numRows_     { 0 };
-  bool                monotonic_   { true };
-  bool                increasing_  { true };
-  bool                initialized_ { false };
-  CQChartsIValues*    ivals_       { nullptr };
-  CQChartsRValues*    rvals_       { nullptr };
-  CQChartsSValues*    svals_       { nullptr };
+  CQChartsModelDetails* details_     { nullptr };
+  CQChartsColumn        column_;
+  QString               typeName_;
+  CQBaseModel::Type     type_        { CQBaseModel::Type::NONE };
+  CQChartsNameValues    nameValues_;
+  QVariant              minValue_;
+  QVariant              maxValue_;
+  int                   numRows_     { 0 };
+  bool                  monotonic_   { true };
+  bool                  increasing_  { true };
+  bool                  initialized_ { false };
+  CQChartsIValues*      ivals_       { nullptr };
+  CQChartsRValues*      rvals_       { nullptr };
+  CQChartsSValues*      svals_       { nullptr };
 };
 
 //---
 
 class CQChartsModelDetails {
  public:
-  CQChartsModelDetails(CQCharts *charts=nullptr, QAbstractItemModel *model=nullptr);
+  CQChartsModelDetails(CQChartsModelData *data);
 
  ~CQChartsModelDetails();
+
+  CQChartsModelData *data() const { return data_; }
 
   int numColumns() const { initData(); return numColumns_; }
 
@@ -105,8 +105,8 @@ class CQChartsModelDetails {
 
   bool isHierarchical() const { initData(); return hierarchical_; }
 
-  CQChartsModelColumnDetails *columnDetails(int i);
-  const CQChartsModelColumnDetails *columnDetails(int i) const;
+  CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
+  const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
 
   void reset();
 
@@ -120,15 +120,14 @@ class CQChartsModelDetails {
   CQChartsModelDetails &operator=(const CQChartsModelDetails &) = delete;
 
  private:
-  using ColumnDetails = std::vector<CQChartsModelColumnDetails *>;
+  using ColumnDetails = std::map<CQChartsColumn,CQChartsModelColumnDetails *>;
 
-  CQCharts*           charts_       { nullptr };
-  QAbstractItemModel* model_        { nullptr };
-  bool                initialized_  { false };
-  int                 numColumns_   { 0 };
-  int                 numRows_      { 0 };
-  bool                hierarchical_ { false };
-  ColumnDetails       columnDetails_;
+  CQChartsModelData* data_         { nullptr };
+  bool               initialized_  { false };
+  int                numColumns_   { 0 };
+  int                numRows_      { 0 };
+  bool               hierarchical_ { false };
+  ColumnDetails      columnDetails_;
 };
 
 #endif

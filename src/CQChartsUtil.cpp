@@ -1,6 +1,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsModelFilter.h>
+#include <CQChartsEval.h>
 #include <CQCharts.h>
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
@@ -30,6 +31,8 @@ bool isHierarchical(QAbstractItemModel *model) {
   QModelIndex parent;
 
   int nr = model->rowCount(parent);
+
+  nr = std::min(nr, 100); // limit number of rows checked
 
   for (int row = 0; row < nr; ++row) {
     QModelIndex index1 = model->index(row, 0, parent);
@@ -2403,20 +2406,132 @@ getDataModel(QAbstractItemModel *model) {
 
 namespace CQChartsUtil {
 
-bool getBoolEnv(const char *name, bool def) {
-  char *env = getenv(name);
+QString
+replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QModelIndex &ind,
+                     int nr, int nc)
+{
+  auto quoteStr = [](const QString &str, bool doQuote) -> QString {
+    return (doQuote ? "\"" + str + "\"" : str);
+  };
 
-  if (! env)
-    return def;
+  CQStrParse parse(expr);
 
-  if      (strcmp(env, "0") == 0 || strcmp(env, "false") == 0 || strcmp(env, "no" ) == 0)
-    return false;
-  else if (strcmp(env, "1") == 0 || strcmp(env, "true" ) == 0 || strcmp(env, "yes") == 0)
-    return true;
+  QString expr1;
 
-  assert(false);
+  while (! parse.eof()) {
+    // @<n> get column value (current row)
+    if (parse.isChar('@')) {
+      parse.skipChar();
 
-  return true;
+      bool stringify = false;
+
+      if (parse.isChar('#')) {
+        parse.skipChar();
+
+        stringify = true;
+      }
+
+      if      (parse.isDigit()) {
+        int pos = parse.getPos();
+
+        while (parse.isDigit())
+          parse.skipChar();
+
+        QString str = parse.getBefore(pos);
+
+        int column1 = str.toInt();
+
+        expr1 += quoteStr(QString("column(%1)").arg(column1), stringify);
+      }
+      else if (parse.isChar('c')) {
+        parse.skipChar();
+
+        if (ind.isValid() && ind.column() >= 0)
+          expr1 += quoteStr(QString("%1").arg(ind.column()), stringify);
+        else
+          expr1 += "@c";
+      }
+      else if (parse.isChar('r')) {
+        parse.skipChar();
+
+        if (ind.isValid() && ind.row() >= 0)
+          expr1 += quoteStr(QString("%1").arg(ind.row()), stringify);
+        else
+          expr1 += "@r";
+      }
+      else if (parse.isChar('n')) {
+        parse.skipChar();
+
+        if      (parse.isChar('c')) {
+          parse.skipChar();
+
+          if (nc >= 0)
+            expr1 += quoteStr(QString("%1").arg(nc), stringify);
+          else
+            expr1 += "@nc";
+        }
+        else if (parse.isChar('r')) {
+          parse.skipChar();
+
+          if (nr >= 0)
+            expr1 += quoteStr(QString("%1").arg(nr), stringify);
+          else
+            expr1 += "@nr";
+        }
+        else {
+          if (stringify)
+            expr1 += "@#n";
+          else
+            expr1 += "@n";
+        }
+      }
+      else if (parse.isChar('v')) {
+        parse.skipChar();
+
+        if (ind.isValid()) {
+          QVariant var = model->data(ind, Qt::DisplayRole);
+
+          expr1 += quoteStr(var.toString(), stringify);
+        }
+        else
+          expr1 += "@v";
+      }
+      else if (parse.isChar('{')) {
+        int pos = parse.getPos();
+
+        parse.skipChar();
+
+        while (! parse.eof() && ! parse.isChar('}'))
+          parse.skipChar();
+
+        QString str = parse.getBefore(pos + 1);
+
+        if (parse.isChar('}'))
+          parse.skipChar();
+
+        CQChartsColumn c;
+
+        if (stringToColumn(model, str, c))
+          expr1 += QString("column(%1)").arg(c.column());
+        else {
+          parse.setPos(pos);
+
+          expr1 += "@";
+        }
+      }
+      else {
+        if (stringify)
+          expr1 += "@#";
+        else
+          expr1 += "@";
+      }
+    }
+    else {
+      expr1 += parse.getChar();
+    }
+  }
+
+  return expr1;
 }
 
 }

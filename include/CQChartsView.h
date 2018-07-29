@@ -407,10 +407,6 @@ class CQChartsView : public QFrame {
 
   //---
 
-  void updatePlots();
-
-  //---
-
   bool plots(Plots &plots, bool clear=true) const;
 
   bool basePlots(PlotSet &plots, bool clear=true) const;
@@ -531,12 +527,16 @@ class CQChartsView : public QFrame {
   void plotModelChanged();
   void plotConnectDataChangedSlot();
 
+  void updatePlots();
+
   void updateSlot();
 
   void searchSlot();
 
   void keyVisibleSlot(bool b);
   void keyPositionSlot(QAction *action);
+  void keyInsideXSlot(bool b);
+  void keyInsideYSlot(bool b);
 
   void xAxisVisibleSlot(bool b);
   void xAxisGridSlot(bool b);

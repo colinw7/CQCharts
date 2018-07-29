@@ -21,9 +21,6 @@ class QAbstractItemModel;
 
 class CQChartsLoader {
  public:
-  using Vars = std::vector<QVariant>;
-
- public:
   CQChartsLoader(CQCharts *charts);
 
 #if defined(CQCharts_USE_TCL)

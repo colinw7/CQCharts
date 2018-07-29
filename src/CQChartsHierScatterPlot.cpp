@@ -571,10 +571,9 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPoin
 
   //---
 
-  double symbolSize = lengthPixelWidth(this->symbolSize());
+  double sx, sy;
 
-  double sw = pixelToWindowWidth (symbolSize);
-  double sh = pixelToWindowHeight(symbolSize);
+  pixelSymbolSize(symbolSize(), sx, sy);
 
   //---
 
@@ -584,7 +583,7 @@ addGroupPoints(CQChartsHierScatterPointGroup *baseGroup, CQChartsHierScatterPoin
   for (const auto &point : group->points()) {
     const QPointF &p = point.p;
 
-    CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
+    CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
 
     CQChartsHierScatterPointObj *pointObj =
       new CQChartsHierScatterPointObj(this, bbox, p, i, n);
@@ -681,15 +680,15 @@ bool
 CQChartsHierScatterPointObj::
 inside(const CQChartsGeom::Point &p) const
 {
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
 
-  s = plot_->limitSymbolSize(s);
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   double px, py;
 
   plot_->windowToPixel(p_.x(), p_.y(), px, py);
 
-  CQChartsGeom::BBox pbbox(px - s, py - s, px + s, py + s);
+  CQChartsGeom::BBox pbbox(px - sx, py - sy, px + sx, py + sy);
 
   CQChartsGeom::Point pp;
 
@@ -718,9 +717,9 @@ void
 CQChartsHierScatterPointObj::
 draw(QPainter *painter)
 {
-  double s = plot_->lengthPixelWidth(plot_->symbolSize());
+  double sx, sy;
 
-  s = plot_->limitSymbolSize(s);
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   QColor fillColor   = plot_->interpPaletteColor(i_, n_);
   QColor strokeColor = plot_->interpPaletteColor(i_, n_);
@@ -739,7 +738,7 @@ draw(QPainter *painter)
   painter->setPen  (pen);
   painter->setBrush(brush);
 
-  QRectF erect(px - s, py - s, 2*s, 2*s);
+  QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
 
   painter->drawEllipse(erect);
 

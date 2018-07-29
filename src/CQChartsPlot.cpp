@@ -16,7 +16,10 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsModelData.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
+#include <CQChartsEnv.h>
 #include <CQCharts.h>
 
 #include <CQPropertyViewModel.h>
@@ -1147,7 +1150,7 @@ addProperties()
   addProperty("log", this, "logX", "x");
   addProperty("log", this, "logY", "y");
 
-  if (CQChartsUtil::getBoolEnv("CQCHARTS_DEBUG", true)) {
+  if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
     addProperty("debug", this, "showBoxes"  );
     addProperty("debug", this, "followMouse");
   }
@@ -3386,7 +3389,7 @@ void
 CQChartsPlot::
 drawBackground(QPainter *painter)
 {
-  CScopeTimer timer("drawBackground");
+  //CScopeTimer timer("drawBackground");
 
   bool hasPlotBackground = (isBackground    () || isBorder    ());
   bool hasDataBackground = (isDataBackground() || isDataBorder());
@@ -3874,7 +3877,7 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
   //---
 
   // skip if nothing drawn
-  bool drawObjs = false;
+  bool doDraw = false;
 
   for (const auto &plotObj : plotObjs_) {
     if      (layerType == CQChartsLayer::Type::SELECTION) {
@@ -3889,12 +3892,12 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
     if (! bbox.overlaps(plotObj->rect()))
       continue;
 
-    drawObjs = true;
+    doDraw = true;
 
     break;
   }
 
-  if (! drawObjs)
+  if (! doDraw)
     return;
 
   //---
@@ -3997,7 +4000,7 @@ void
 CQChartsPlot::
 drawBgAxes(QPainter *painter)
 {
-  CScopeTimer timer("drawBgAxes");
+  //CScopeTimer timer("drawBgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
@@ -4034,7 +4037,7 @@ void
 CQChartsPlot::
 drawFgAxes(QPainter *painter)
 {
-  CScopeTimer timer("drawFgAxes");
+  //CScopeTimer timer("drawFgAxes");
 
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
@@ -4079,7 +4082,7 @@ void
 CQChartsPlot::
 drawBgKey(QPainter *painter)
 {
-  CScopeTimer timer("drawBgKey");
+  //CScopeTimer timer("drawBgKey");
 
   CQChartsPlotKey *key1 = getFirstPlotKey();
   if (! key1) return;
@@ -4116,7 +4119,7 @@ void
 CQChartsPlot::
 drawFgKey(QPainter *painter)
 {
-  CScopeTimer timer("drawFgKey");
+  //CScopeTimer timer("drawFgKey");
 
   CQChartsPlotKey *key1 = getFirstPlotKey();
   if (! key1) return;
@@ -4153,7 +4156,7 @@ void
 CQChartsPlot::
 drawTitle(QPainter *painter)
 {
-  CScopeTimer timer("drawTitle");
+  //CScopeTimer timer("drawTitle");
 
   if (! title())
     return;
@@ -4179,7 +4182,7 @@ void
 CQChartsPlot::
 drawAnnotations(QPainter *painter)
 {
-  CScopeTimer timer("drawAnnotations");
+  //CScopeTimer timer("drawAnnotations");
 
   if (annotations().empty())
     return;
@@ -4213,7 +4216,7 @@ void
 CQChartsPlot::
 drawBoxes(QPainter *painter)
 {
-  CScopeTimer timer("drawBoxes");
+  //CScopeTimer timer("drawBoxes");
 
   if (! showBoxes())
     return;
@@ -4248,7 +4251,7 @@ void
 CQChartsPlot::
 drawEditHandles(QPainter *painter)
 {
-  CScopeTimer timer("drawEditHandles");
+  //CScopeTimer timer("drawEditHandles");
 
   if (view()->mode() != CQChartsView::Mode::EDIT)
     return;
@@ -4950,7 +4953,7 @@ CQChartsPlot::ColumnType
 CQChartsPlot::
 columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
 {
-  CQBaseModel::Type  columnType;
+  ColumnType         columnType;
   CQChartsNameValues nameValues;
 
   (void) columnValueType(column, columnType, nameValues, defType);
@@ -4960,7 +4963,7 @@ columnValueType(const CQChartsColumn &column, const ColumnType &defType) const
 
 bool
 CQChartsPlot::
-columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
+columnValueType(const CQChartsColumn &column, ColumnType &columnType,
                 CQChartsNameValues &nameValues, const ColumnType &defType) const
 {
   QAbstractItemModel *model = this->model().data();
@@ -4971,9 +4974,28 @@ columnValueType(const CQChartsColumn &column, CQBaseModel::Type &columnType,
     return false;
   }
 
-  if (! CQChartsUtil::columnValueType(charts(), model, column, columnType, nameValues)) {
-    columnType = defType;
-    return false;
+  CQChartsModelData *modelData = charts()->getModelData(model);
+
+  if (modelData) {
+    CQChartsModelDetails *details = modelData->details();
+    assert(details);
+
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+    assert(columnDetails);
+
+    columnType = columnDetails->type();
+    nameValues = columnDetails->nameValues();
+
+    if (columnType == ColumnType::NONE) {
+      columnType = defType;
+      return false;
+    }
+  }
+  else {
+    if (! CQChartsUtil::columnValueType(charts(), model, column, columnType, nameValues)) {
+      columnType = defType;
+      return false;
+    }
   }
 
   return true;
@@ -5007,13 +5029,28 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
-  CQChartsModelColumnDetails columnDetails(charts(), model, column);
+  if (! column.isValid()) {
+    return false;
+  }
 
-  typeName = columnDetails.typeName();
-  minValue = columnDetails.minValue();
-  maxValue = columnDetails.maxValue();
+  CQChartsModelData *modelData = charts()->getModelData(model);
 
-  return true;
+  if (modelData) {
+    CQChartsModelDetails *details = modelData->details();
+    assert(details);
+
+    CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+    assert(columnDetails);
+
+    typeName = columnDetails->typeName();
+    minValue = columnDetails->minValue();
+    maxValue = columnDetails->maxValue();
+
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 //------
@@ -6440,12 +6477,7 @@ void
 CQChartsPlot::
 windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const
 {
-  double px1, py1, px2, py2;
-
-  windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
-  windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
-
-  prect = CQChartsGeom::BBox(px1, py1, px2, py2);
+  prect = windowToPixel(wrect);
 }
 
 void
@@ -6458,6 +6490,18 @@ pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const
   pixelToWindow(prect.getXMax(), prect.getYMax(), wx2, wy1);
 
   wrect = CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+windowToPixel(const CQChartsGeom::BBox &wrect) const
+{
+  double px1, py1, px2, py2;
+
+  windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
+  windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
+
+  return CQChartsGeom::BBox(px1, py1, px2, py2);
 }
 
 double
@@ -6544,6 +6588,14 @@ windowToPixelHeight(double wh) const
 }
 
 //------
+
+void
+CQChartsPlot::
+pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const
+{
+  sx = limitSymbolSize(lengthPixelWidth (s));
+  sy = limitSymbolSize(lengthPixelHeight(s));
+}
 
 double
 CQChartsPlot::

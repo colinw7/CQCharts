@@ -25,6 +25,7 @@ CQChartsGnuDataFilterModel.cpp \
 CQChartsDataFilterModel.cpp \
 CQChartsExprDataFilterModel.cpp \
 CQChartsExprModel.cpp \
+CQChartsExprModelFn.cpp \
 \
 CQChartsColumn.cpp \
 CQChartsColumnType.cpp \
@@ -130,6 +131,7 @@ CQChartsStyle.cpp \
 CQChartsAnalyzeFile.cpp \
 CQChartsDensity.cpp \
 CQChartsUtil.cpp \
+CQChartsEnv.cpp \
 \
 CQCsvModel.cpp \
 CQTsvModel.cpp \
@@ -161,6 +163,7 @@ HEADERS += \
 ../include/CQChartsDataFilterModel.h \
 ../include/CQChartsExprDataFilterModel.h \
 ../include/CQChartsExprModel.h \
+../include/CQChartsExprModelFn.h \
 \
 ../include/CQChartsColumn.h \
 ../include/CQChartsColumnType.h \
@@ -235,6 +238,7 @@ HEADERS += \
 ../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsDensity.h \
 ../include/CQChartsUtil.h \
+../include/CQChartsEnv.h \
 ../include/CQChartsQuadTree.h \
 \
 ../include/CQChartsLoadDlg.h \

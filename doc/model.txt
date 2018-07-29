@@ -1,0 +1,7 @@
+Charts
+  Models
+    Model Data
+      Details
+       Column Details
+
+  Column Type Mgr

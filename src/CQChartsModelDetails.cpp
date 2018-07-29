@@ -1,13 +1,15 @@
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
+#include <CHRTimer.h>
 #include <QAbstractItemModel>
 
 CQChartsModelDetails::
-CQChartsModelDetails(CQCharts *charts, QAbstractItemModel *model) :
- charts_(charts), model_(model)
+CQChartsModelDetails(CQChartsModelData *data) :
+ data_(data)
 {
 }
 
@@ -19,26 +21,31 @@ CQChartsModelDetails::
 
 const CQChartsModelColumnDetails *
 CQChartsModelDetails::
-columnDetails(int i) const
+columnDetails(const CQChartsColumn &c) const
 {
-  initData();
+  CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
 
-  if (i < 0 || i >= int(columnDetails_.size()))
-    return nullptr;
-
-  return columnDetails_[i];
+  return th->columnDetails(c);
 }
 
 CQChartsModelColumnDetails *
 CQChartsModelDetails::
-columnDetails(int i)
+columnDetails(const CQChartsColumn &c)
 {
   initData();
 
-  if (i < 0 || i >= int(columnDetails_.size()))
-    return nullptr;
+  auto p = columnDetails_.find(c);
 
-  return columnDetails_[i];
+  if (p != columnDetails_.end())
+    return (*p).second;
+
+  CQChartsModelDetails *th = const_cast<CQChartsModelDetails *>(this);
+
+  CQChartsModelColumnDetails *details = new CQChartsModelColumnDetails(this, c);
+
+  th->columnDetails_[c] = details;
+
+  return details;
 }
 
 void
@@ -61,8 +68,8 @@ reset()
   numRows_      = 0;
   hierarchical_ = false;
 
-  for (auto &columnDetails : columnDetails_)
-    delete columnDetails;
+  for (auto &cd : columnDetails_)
+    delete cd.second;
 
   columnDetails_.clear();
 }
@@ -71,20 +78,26 @@ void
 CQChartsModelDetails::
 update()
 {
+  CIncrementalTimerMgrInst->clear();
+
+  QAbstractItemModel *model = data_->model().data();
+
   reset();
 
-  hierarchical_ = CQChartsUtil::isHierarchical(model_);
+  hierarchical_ = CQChartsUtil::isHierarchical(model);
 
-  numColumns_ = model_->columnCount();
-  numRows_    = model_->rowCount   ();
+  numColumns_ = model->columnCount();
+  numRows_    = model->rowCount   ();
 
   for (int c = 0; c < numColumns_; ++c) {
-    CQChartsModelColumnDetails *columnDetails = new CQChartsModelColumnDetails(charts_, model_, c);
+    CQChartsModelColumnDetails *columnDetails = new CQChartsModelColumnDetails(this, c);
 
-    columnDetails_.push_back(columnDetails);
+    columnDetails_[c] = columnDetails;
 
     numRows_ = std::max(numRows_, columnDetails->numRows());
   }
+
+  CIncrementalTimerMgrInst->clear();
 
   initialized_ = true;
 }
@@ -92,9 +105,8 @@ update()
 //------
 
 CQChartsModelColumnDetails::
-CQChartsModelColumnDetails(CQCharts *charts, QAbstractItemModel *model,
-                           const CQChartsColumn &column) :
- charts_(charts), model_(model), column_(column)
+CQChartsModelColumnDetails(CQChartsModelDetails *details, const CQChartsColumn &column) :
+ details_(details), column_(column)
 {
 }
 
@@ -187,7 +199,9 @@ dataName(const QVariant &v) const
   if (! initialized_)
     (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
-  CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
+  CQCharts *charts = details_->data()->charts();
+
+  CQChartsColumnTypeMgr *columnTypeMgr = charts->columnTypeMgr();
 
   CQChartsColumnType *columnType = columnTypeMgr->getType(type_);
 
@@ -521,7 +535,9 @@ initData()
 
   //---
 
-  if (! model_)
+  QAbstractItemModel *model = details_->data()->model().data();
+
+  if (! model)
     return false;
 
   if (! column_.isValid())
@@ -531,7 +547,7 @@ initData()
       column_.type() == CQChartsColumn::Type::DATA_INDEX) {
     int icolumn = column_.column();
 
-    int numColumns = model_->columnCount(QModelIndex());
+    int numColumns = model->columnCount(QModelIndex());
 
     if (icolumn < 0 || icolumn >= numColumns)
       return false;
@@ -539,16 +555,22 @@ initData()
 
   //---
 
+  CQCharts *charts = details_->data()->charts();
+
+  //---
+
   // get column type and name values
   // TODO: calls CQChartsModelVisitor, integrate into this visitor
-  if (! CQChartsUtil::columnValueType(charts_, model_, column_, type_, nameValues_))
+  if (! CQChartsUtil::columnValueType(charts, model, column_, type_, nameValues_))
     type_ = CQBaseModel::Type::NONE;
+
+  //---
 
   class DetailVisitor : public CQChartsModelVisitor {
    public:
     DetailVisitor(CQChartsModelColumnDetails *details) :
      details_(details) {
-      CQChartsColumnTypeMgr *columnTypeMgr = details_->charts()->columnTypeMgr();
+      CQChartsColumnTypeMgr *columnTypeMgr = charts()->columnTypeMgr();
 
       CQChartsColumnType *columnType = columnTypeMgr->getType(details_->type());
 
@@ -572,7 +594,7 @@ initData()
       increasing_   = true;
     }
 
-    CQCharts *charts() const { return details_->charts(); }
+    CQCharts *charts() const { return details_->details()->data()->charts(); }
 
     // visit row
     State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
@@ -829,7 +851,7 @@ initData()
 
   DetailVisitor detailVisitor(this);
 
-  CQChartsUtil::visitModel(model_, detailVisitor);
+  CQChartsUtil::visitModel(model, detailVisitor);
 
   //---
 

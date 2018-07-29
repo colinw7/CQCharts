@@ -459,7 +459,6 @@ CQChartsForceDirectedPlot::
 selectMove(const CQChartsGeom::Point &p, bool first)
 {
   if (pressed_) {
-std::cerr << p.x << " " << p.y << "\n";
     if (forceDirected_.currentPoint())
       forceDirected_.currentPoint()->setP(Springy::Vector(p.x, p.y));
 

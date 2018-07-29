@@ -416,9 +416,9 @@ setRugSymbolType(const CQChartsSymbol &s)
 
 void
 CQChartsScatterPlot::
-setRugSymbolSize(double r)
+setRugSymbolSize(const CQChartsLength &l)
 {
-  CQChartsUtil::testAndSet(rugSymbolSize_, r, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(rugSymbolSize_, l, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -696,10 +696,11 @@ initObjs()
         if (colorColumn().isValid())
           (void) colorSetColor("color", valuePoint.i, color);
 
-        double sw = lengthPlotWidth (symbolSize);
-        double sh = lengthPlotHeight(symbolSize);
+        double sx, sy;
 
-        CQChartsGeom::BBox bbox(p.x() - sw, p.y() - sh, p.x() + sw, p.y() + sh);
+        pixelSymbolSize(symbolSize, sx, sy);
+
+        CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
 
         CQChartsScatterPointObj *pointObj =
           new CQChartsScatterPointObj(this, groupInd, bbox, p, symbolType, symbolSize,
@@ -980,9 +981,11 @@ annotationBBox() const
   if (isXRug() || isYRug()) {
     const CQChartsGeom::Range &dataRange = this->dataRange();
 
-    if (isXRug()) {
-      double sy = pixelToWindowHeight(rugSymbolSize());
+    double sx, sy;
 
+    pixelSymbolSize(rugSymbolSize(), sx, sy);
+
+    if (isXRug()) {
       QPointF p1(dataRange.xmin(), dataRange.ymin()       );
       QPointF p2(dataRange.xmax(), dataRange.ymin() - 2*sy);
 
@@ -991,8 +994,6 @@ annotationBBox() const
     }
 
     if (isYRug()) {
-      double sx = pixelToWindowWidth(rugSymbolSize());
-
       QPointF p1(dataRange.xmin()       , dataRange.ymin());
       QPointF p2(dataRange.xmin() - 2*sx, dataRange.ymax());
 
@@ -1305,12 +1306,12 @@ drawDir(QPainter *painter, const Dir &dir) const
   if (symbol == CQChartsSymbol::Type::NONE)
     symbol = plot_->symbolType();
 
-  const CQChartsLength &size    = this->symbolSize();
-  bool                  stroked = plot_->isSymbolStroked();
-  bool                  filled  = plot_->isSymbolFilled();
+  bool stroked = plot_->isSymbolStroked();
+  bool filled  = plot_->isSymbolFilled();
 
-  double sx = plot_->limitSymbolSize(plot_->lengthPixelWidth (size));
-  double sy = plot_->limitSymbolSize(plot_->lengthPixelHeight(size));
+  double sx, sy;
+
+  plot_->pixelSymbolSize(symbolSize(), sx, sy);
 
   //---
 
@@ -1380,8 +1381,7 @@ drawDir(QPainter *painter, const Dir &dir) const
     if (symbol == CQChartsSymbol::Type::NONE)
       symbol = (dir == Dir::X ? CQChartsSymbol::Type::VLINE : CQChartsSymbol::Type::HLINE);
 
-    sx = plot_->rugSymbolSize();
-    sy = plot_->rugSymbolSize();
+    plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
   }
 
   //---

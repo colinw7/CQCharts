@@ -9,7 +9,7 @@
 class CQChartsModelExprMatchFn;
 
 #ifdef CQCharts_USE_TCL
-class CQTcl;
+class CQChartsModelExprTcl;
 #endif
 
 class QAbstractItemModel;
@@ -18,7 +18,7 @@ class QAbstractItemModel;
 
 class CQChartsModelExprMatch {
  public:
-  using Vars = std::vector<QVariant>;
+  using Values = std::vector<QVariant>;
 
  public:
   CQChartsModelExprMatch(QAbstractItemModel *model=0);
@@ -48,10 +48,12 @@ class CQChartsModelExprMatch {
   bool match(const QString &expr, const QModelIndex &ind, bool &ok);
   bool match(const QModelIndex &ind, bool &ok);
 
-  QVariant processCmd(const QString &name, const Vars &vars);
+  QVariant processCmd(const QString &name, const Values &values);
 
   bool checkColumn(int col) const;
   bool checkIndex(int row, int col) const;
+
+  void setVar(const QString &name, int row);
 
  private:
   using TclCmds = std::vector<CQChartsModelExprMatchFn *>;
@@ -62,13 +64,15 @@ class CQChartsModelExprMatch {
   void addBuiltinFunctions();
 
 #ifdef CQCharts_USE_TCL
-  CQTcl *qtcl() const { return qtcl_; }
+  CQChartsModelExprTcl *qtcl() const { return qtcl_; }
 #endif
 
-  QVariant columnCmd(const Vars &vars) const;
-  QVariant rowCmd   (const Vars &vars) const;
-  QVariant cellCmd  (const Vars &vars) const;
-  QVariant headerCmd(const Vars &vars) const;
+  void setVar(const QModelIndex &ind);
+
+  QVariant columnCmd(const Values &values) const;
+  QVariant rowCmd   (const Values &values) const;
+  QVariant cellCmd  (const Values &values) const;
+  QVariant headerCmd(const Values &values) const;
 
   int currentRow() const { return currentRow_; }
   int currentCol() const { return currentCol_; }
@@ -79,21 +83,29 @@ class CQChartsModelExprMatch {
   bool setTclResult(const QVariant &rc);
   bool getTclResult(QVariant &rc) const;
 
-  QString replaceNumericColumns(const QString &expr, const QModelIndex &ind) const;
+  QString replaceExprColumns(const QString &expr, const QModelIndex &ind) const;
+
+  QVariant getCmdData(int row, int col) const;
+
+  QVariant getCmdData(const QModelIndex &ind) const;
 
  private:
   using ColumnNames = std::map<int,QString>;
+  using NameColumns = std::map<QString,int>;
 
-  QAbstractItemModel *model_      { nullptr };
+  QAbstractItemModel*   model_      { nullptr };
 #ifdef CQCharts_USE_TCL
-  CQTcl*              qtcl_       { nullptr };
+  CQChartsModelExprTcl* qtcl_       { nullptr };
 #endif
-  TclCmds             tclCmds_;
-  bool                debug_      { false };
-  ColumnNames         columnNames_;
-  mutable int         currentRow_ { 0 };
-  mutable int         currentCol_ { 0 };
-  QString             matchExpr_;
+  TclCmds               tclCmds_;
+  bool                  debug_      { false };
+  ColumnNames           columnNames_;
+  NameColumns           nameColumns_;
+  mutable int           currentRow_ { 0 };
+  mutable int           currentCol_ { 0 };
+  QString               matchExpr_;
+  int                   nr_         { 0 };
+  int                   nc_         { 0 };
 };
 
 #endif

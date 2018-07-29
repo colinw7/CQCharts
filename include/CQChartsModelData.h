@@ -1,10 +1,11 @@
 #ifndef CQChartsModelData_H
 #define CQChartsModelData_H
 
-#include <CQChartsModelDetails.h>
 #include <QObject>
 #include <QSharedPointer>
 
+class CQChartsModelDetails;
+class CQCharts;
 class CQSummaryModel;
 class QAbstractItemModel;
 class QItemSelectionModel;
@@ -69,6 +70,9 @@ class CQChartsModelData : public QObject {
   // add/get summary model
   CQSummaryModel *addSummaryModel();
 
+  bool isSummaryEnabled() const { return summaryEnabled_; }
+  void setSummaryEnabled(bool b) { summaryEnabled_ = b; }
+
   CQSummaryModel *summaryModel() const { return summaryModel_; }
 
   CQChartsModelData *summaryModelData() const { return summaryModelData_; }
@@ -94,16 +98,17 @@ class CQChartsModelData : public QObject {
   void modelChanged();
 
  private:
-  CQCharts*             charts_         { nullptr };   // parent charts
+  CQCharts*             charts_           { nullptr }; // parent charts
   ModelP                model_;                        // model
-  int                   ind_            { -1 };        // model ind
-  QItemSelectionModel*  selectionModel_ { nullptr };   // selection model
+  int                   ind_              { -1 };      // model ind
+  QItemSelectionModel*  selectionModel_   { nullptr }; // selection model
   QString               name_;                         // model name
-  CQChartsModelDetails* details_        { nullptr };   // model details
+  CQChartsModelDetails* details_          { nullptr }; // model details
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               // folded proxy model
   FoldedModels          foldedModels_;                 // folded models
 #endif
+  bool                  summaryEnabled_   { false };   // summary model enabled
   CQSummaryModel*       summaryModel_     { nullptr }; // summary model
   ModelP                summaryModelP_;                // summary model (shared pointer)
   CQChartsModelData*    summaryModelData_ { nullptr }; // summary model data
