@@ -609,7 +609,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool              density_         { false };       // show density
   double            densityOffset_   { 0.0 };         // density offset
   int               densitySamples_  { 100 };         // density samples
-  bool              densityGradient_ { false };       // denisty gradient
+  bool              densityGradient_ { false };       // density gradient
   bool              scatter_         { false };       // scatter plot
   double            scatterFactor_   { 1.0 };         // scatter factor
   bool              dotLines_        { false };       // show dot lines

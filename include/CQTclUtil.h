@@ -100,7 +100,7 @@ inline QVariant variantFromObj(Tcl_Interp *interp, Tcl_Obj *obj) {
     else if (type == stype) {
     }
     else {
-      assert(false);
+      //assert(false);
     }
   }
 

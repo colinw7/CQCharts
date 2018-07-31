@@ -1094,8 +1094,13 @@ addCalcRow(const QModelIndex &ind, int row, WhiskerDataList &dataList)
 
   bool ok;
 
-  data.ind    = ind;
-  data.x      = modelReal(row, xColumn          (), ind, ok);
+  data.ind = ind;
+
+  if (xColumn().isValid())
+    data.x = modelReal(row, xColumn(), ind, ok);
+  else
+    data.x = row;
+
   data.min    = modelReal(row, minColumn        (), ind, ok);
   data.lower  = modelReal(row, lowerMedianColumn(), ind, ok);
   data.median = modelReal(row, medianColumn     (), ind, ok);

@@ -1124,6 +1124,23 @@ initObjs()
 
   //---
 
+  auto getSortedBuckets = [&](int groupInd) {
+    if (isStacked() || isSideBySide()) {
+      auto p = groupSortedBuckets.begin();
+      assert(p != groupSortedBuckets.end());
+
+      return (*p).second;
+    }
+    else {
+      auto p = groupSortedBuckets.find(groupInd);
+      assert(p != groupSortedBuckets.end());
+
+     return (*p).second;
+    }
+  };
+
+  //---
+
   for (auto &groupValues : groupValues_) {
     if (ng > 1 && isSetHidden(ig)) { ++ig; continue; }
 
@@ -1176,12 +1193,33 @@ initObjs()
         int                    bucket   = bucketValues.first;
         const VariantIndsData &varsData = bucketValues.second;
 
-        int n = varsData.inds.size();
+        //---
+
+        VariantIndsData *pVarsData = const_cast<VariantIndsData *>(&varsData);
+
+        int sbucket = bucket;
+
+        if (isSorted()) {
+          const Buckets &sortedBuckets = getSortedBuckets(groupInd);
+
+          sbucket = sortedBuckets[iv];
+
+          auto p = values->bucketValues.find(sbucket);
+          assert(p != values->bucketValues.end());
+
+          const VariantIndsData &varsData1 = (*p).second;
+
+          pVarsData = const_cast<VariantIndsData *>(&varsData1);
+        }
+
+        //---
+
+        int n = pVarsData->inds.size();
 
         CQChartsGeom::BBox bbox = CQChartsGeom::BBox(ig - 0.5, iv - 0.5, ig + 0.5, iv + 0.5);
 
         CQChartsDistributionScatterObj *scatterObj =
-          new CQChartsDistributionScatterObj(this, bbox, groupInd, bucket, n, ig, ng, iv, nv);
+          new CQChartsDistributionScatterObj(this, bbox, groupInd, sbucket, n, ig, ng, iv, nv);
 
         addPlotObject(scatterObj);
 
@@ -1220,26 +1258,13 @@ initObjs()
         int                    bucket   = bucketValues.first;
         const VariantIndsData &varsData = bucketValues.second;
 
+        //---
+
         VariantIndsData *pVarsData = const_cast<VariantIndsData *>(&varsData);
 
         int sbucket = bucket;
 
         if (isSorted()) {
-          auto getSortedBuckets = [&](int groupInd) {
-            if (isStacked() || isSideBySide()) {
-              auto p = groupSortedBuckets.begin();
-              assert(p != groupSortedBuckets.end());
-
-              return (*p).second;
-            }
-            else {
-              auto p = groupSortedBuckets.find(groupInd);
-              assert(p != groupSortedBuckets.end());
-
-             return (*p).second;
-            }
-          };
-
           const Buckets &sortedBuckets = getSortedBuckets(groupInd);
 
           sbucket = sortedBuckets[iv];

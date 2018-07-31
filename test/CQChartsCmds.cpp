@@ -89,7 +89,7 @@ class CQChartsTclCmd {
     for (int i = 1; i < objc; ++i) {
       Tcl_Obj *obj = const_cast<Tcl_Obj *>(objv[i]);
 
-      vars.push_back(CQTclUtil::variantFromObj(command->cmds_->qtcl()->interp(), obj));
+      vars.push_back(command->cmds_->qtcl()->variantFromObj(obj));
     }
 
     if (! command->cmds_->processCmd(command->name_, vars))

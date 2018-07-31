@@ -57,7 +57,7 @@ CQChartsLayer::
 ~CQChartsLayer()
 {
   delete image_;
-  delete painter_;
+  delete ipainter_;
 }
 
 void

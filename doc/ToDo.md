@@ -1,4 +1,6 @@
 High
+ + Sort for scatter distribution
+ + Layer only include image for object bbox
  + Column details in model data or model ?
  + Summary plot support in plot (not just dialog)
  + allow get property names of view, plot, obj
