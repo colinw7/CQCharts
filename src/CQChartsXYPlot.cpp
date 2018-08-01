@@ -2068,10 +2068,29 @@ draw(QPainter *painter)
 
     plot()->pixelSymbolSize(plot()->symbolSize(), sx, sy);
 
-    QPen   pen  (strokeColor);
-    QBrush brush(fillColor);
+    //---
 
-    plot()->updateObjPenBrushState(this, pen, brush);
+    QPen   pen;
+    QBrush brush;
+
+    if (stroked)
+      pen.setColor(strokeColor);
+    else
+      pen.setStyle(Qt::NoPen);
+
+    if (filled) {
+      brush.setColor(fillColor);
+      brush.setStyle(Qt::SolidPattern);
+    }
+    else
+      brush.setStyle(Qt::NoBrush);
+
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+    filled  = (brush.style() != Qt::NoBrush);
+    stroked = (pen  .style() != Qt::NoPen  );
+
+    //---
 
     plot()->drawSymbol(painter, QPointF(px, py1), symbol, CQChartsUtil::avg(sx, sy),
                        stroked, pen.color(), 1, filled, brush.color());
@@ -2406,10 +2425,27 @@ draw(QPainter *painter)
   if (sx <= 0)
     plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  QBrush brush(fillColor);
-  QPen   pen  (strokeColor);
+  //---
+
+  QPen   pen;
+  QBrush brush;
+
+  if (stroked)
+    pen.setColor(strokeColor);
+  else
+    pen.setStyle(Qt::NoPen);
+
+  if (filled) {
+    brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
+  }
+  else
+    brush.setStyle(Qt::NoBrush);
 
   plot()->updateObjPenBrushState(this, pen, brush);
+
+  filled  = (brush.style() != Qt::NoBrush);
+  stroked = (pen  .style() != Qt::NoPen  );
 
   //---
 

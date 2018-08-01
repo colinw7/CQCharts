@@ -1095,10 +1095,27 @@ draw(QPainter *painter)
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
-  QBrush brush(fillColor);
-  QPen   pen  (strokeColor);
+  //---
+
+  QPen   pen;
+  QBrush brush;
+
+  if (stroked)
+    pen.setColor(strokeColor);
+  else
+    pen.setStyle(Qt::NoPen);
+
+  if (filled) {
+    brush.setColor(fillColor);
+    brush.setStyle(Qt::SolidPattern);
+  }
+  else
+    brush.setStyle(Qt::NoBrush);
 
   plot_->updateObjPenBrushState(this, pen, brush);
+
+  filled  = (brush.style() != Qt::NoBrush);
+  stroked = (pen  .style() != Qt::NoPen  );
 
   //---
 

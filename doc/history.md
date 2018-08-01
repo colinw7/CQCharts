@@ -542,3 +542,6 @@
  + Allow remove of palette defined color
  + Speed up isHierarchical test (limit rows checked)
  + Add Inside X/Y to Key menu
+# 7/31/2018
+ + improve draw order or overlay plots with buffered layers
+ + fix inside symbol outline

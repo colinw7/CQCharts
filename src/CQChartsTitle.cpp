@@ -275,15 +275,25 @@ editMoveBy(const QPointF &d)
 
 //------
 
+bool
+CQChartsTitle::
+isDrawn() const
+{
+  if (! isVisible())
+    return false;
+
+  if (! textStr().length())
+    return false;
+
+  return true;
+}
+
 void
 CQChartsTitle::
 draw(QPainter *painter)
 {
-  if (! isVisible())
+  if (! isDrawn())
     return;
-
-  if (! textStr().length())
-     return;
 
   //---
 

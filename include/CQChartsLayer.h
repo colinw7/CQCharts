@@ -51,6 +51,8 @@ class CQChartsLayer {
 
   QImage *image() const { return image_; }
 
+  const QRectF &rect() const { return rect_; }
+
   QPainter *ipainter();
 
   QPainter *beginPaint(QPainter *painter, const QRectF &rect);

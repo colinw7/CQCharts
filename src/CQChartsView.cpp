@@ -609,14 +609,14 @@ resetGrouping()
       plot->yAxis()->setVisible(true);
     }
 
-    if (plot->key())
-      plot->key()->setVisible(true);
+    //if (plot->key())
+    //  plot->key()->setVisible(true);
 
-    if (plot->title())
-      plot->title()->setVisible(true);
+    //if (plot->title())
+    //  plot->title()->setVisible(true);
 
-    plot->setBackground    (true);
-    plot->setDataBackground(true);
+    //plot->setBackground    (true);
+    //plot->setDataBackground(true);
 
     plot->resetKeyItems();
   }
@@ -698,6 +698,9 @@ initOverlayPlot(CQChartsPlot *firstPlot)
   firstPlot->overlayPlots(plots);
 
   for (auto &plot : plots) {
+    if (plot == firstPlot)
+      continue;
+
     plot->setOverlay(true, /*notify*/false);
 
     //---
@@ -711,13 +714,13 @@ initOverlayPlot(CQChartsPlot *firstPlot)
     if (yaxis)
       yaxis->setVisible(false);
 
-    CQChartsTitle *title = plot->title();
+    //CQChartsTitle *title = plot->title();
 
-    if (title)
-      title->setVisible(false);
+    //if (title)
+    //  title->setVisible(false);
 
-    plot->setBackground    (false);
-    plot->setDataBackground(false);
+    //plot->setBackground    (false);
+    //plot->setDataBackground(false);
   }
 
   //---
@@ -750,23 +753,24 @@ initX1X2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   plot1->setNextPlot(plot2);
   plot2->setPrevPlot(plot1);
 
+  // first plot x axis BOTTOM/LEFT (set by resetConnectData), second plot x axis TOP/RIGHT
   if (plot2->xAxis()) {
     if (plot2->isOverlay())
       plot2->xAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
   }
 
-  if (plot2->yAxis())
-    plot2->yAxis()->setVisible(false);
-
-  if (plot2->key())
-    plot2->key()->setVisible(false);
-
-  if (plot2->title())
-    plot2->title()->setVisible(false);
-
   if (plot2->isOverlay()) {
-    plot2->setBackground    (false);
-    plot2->setDataBackground(false);
+    if (plot2->yAxis())
+      plot2->yAxis()->setVisible(false);
+
+    //if (plot2->key())
+    //  plot2->key()->setVisible(false);
+
+    //if (plot2->title())
+    //  plot2->title()->setVisible(false);
+
+//  plot2->setBackground    (false);
+//  plot2->setDataBackground(false);
   }
 
   emit connectDataChanged();
@@ -793,23 +797,24 @@ initY1Y2(CQChartsPlot *plot1, CQChartsPlot *plot2, bool overlay, bool reset)
   plot1->setNextPlot(plot2);
   plot2->setPrevPlot(plot1);
 
-  if (plot2->xAxis())
-    plot2->xAxis()->setVisible(false);
-
+  // first plot y axis BOTTOM/LEFT (set by resetConnectData), second plot y axis TOP/RIGHT
   if (plot2->yAxis()) {
     if (plot2->isOverlay())
       plot2->yAxis()->setSide(CQChartsAxis::Side::TOP_RIGHT);
   }
 
-  if (plot2->key())
-    plot2->key()->setVisible(false);
-
-  if (plot2->title())
-    plot2->title()->setVisible(false);
-
   if (plot2->isOverlay()) {
-    plot2->setBackground    (false);
-    plot2->setDataBackground(false);
+    if (plot2->xAxis())
+      plot2->xAxis()->setVisible(false);
+
+    //if (plot2->key())
+    //  plot2->key()->setVisible(false);
+
+    //if (plot2->title())
+    //  plot2->title()->setVisible(false);
+
+//  plot2->setBackground    (false);
+//  plot2->setDataBackground(false);
   }
 
   emit connectDataChanged();

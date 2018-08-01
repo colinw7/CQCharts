@@ -238,6 +238,8 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
 
   path.closeSubpath();
 
+  //---
+
   if (filled) {
     QColor fc;
 
@@ -250,6 +252,8 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
 
     painter_->fillPath(path, brush);
   }
+
+  //---
 
   if (stroked) {
     QColor sc;

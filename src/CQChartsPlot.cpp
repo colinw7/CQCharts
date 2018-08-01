@@ -980,27 +980,27 @@ setPrevPlot(CQChartsPlot *plot, bool notify)
 
 CQChartsPlot *
 CQChartsPlot::
-firstPlot()
+firstPlot() const
 {
   if (connectData_.prev)
     return connectData_.prev->firstPlot();
 
-  return this;
+  return const_cast<CQChartsPlot *>(this);
 }
 
 CQChartsPlot *
 CQChartsPlot::
-lastPlot()
+lastPlot() const
 {
   if (connectData_.next)
     return connectData_.next->lastPlot();
 
-  return this;
+  return const_cast<CQChartsPlot *>(this);
 }
 
 void
 CQChartsPlot::
-overlayPlots(Plots &plots)
+overlayPlots(Plots &plots) const
 {
   CQChartsPlot *plot1 = firstPlot();
 
@@ -3199,6 +3199,11 @@ bool
 CQChartsPlot::
 tipText(const CQChartsGeom::Point &p, QString &tip) const
 {
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
   int objNum  = 0;
   int numObjs = 0;
 
@@ -3239,7 +3244,17 @@ void
 CQChartsPlot::
 objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
 {
-  plotObjTree_->objectsAtPoint(p, objs);
+  if (isOverlay()) {
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (const auto &plot : plots)
+      plot->plotObjTree_->objectsAtPoint(p, objs);
+  }
+  else {
+    plotObjTree_->objectsAtPoint(p, objs);
+  }
 }
 
 void
@@ -3337,11 +3352,11 @@ drawParts(QPainter *painter)
   //---
 
   // draw objects (background, mid, foreground)
-  drawObjs(painter, CQChartsLayer::Type::BG_PLOT );
-  drawObjs(painter, CQChartsLayer::Type::MID_PLOT);
-  drawObjs(painter, CQChartsLayer::Type::FG_PLOT );
+  drawGroupedObjs(painter, CQChartsLayer::Type::BG_PLOT );
+  drawGroupedObjs(painter, CQChartsLayer::Type::MID_PLOT);
+  drawGroupedObjs(painter, CQChartsLayer::Type::FG_PLOT );
 
-  drawObjs(painter, CQChartsLayer::Type::SELECTION);
+  drawGroupedObjs(painter, CQChartsLayer::Type::SELECTION);
 
   //---
 
@@ -3357,7 +3372,7 @@ drawParts(QPainter *painter)
   //---
 
   // draw annotations
-  drawAnnotations(painter);
+  drawGroupedAnnotations(painter);
 
   //---
 
@@ -3367,13 +3382,13 @@ drawParts(QPainter *painter)
   //---
 
   // draw debug boxes
-  drawBoxes(painter);
+  drawGroupedBoxes(painter);
 
   //---
 
-  drawEditHandles(painter);
+  drawGroupedEditHandles(painter);
 
-  drawObjs(painter, CQChartsLayer::Type::MOUSE_OVER);
+  drawGroupedObjs(painter, CQChartsLayer::Type::MOUSE_OVER);
 
   //---
 
@@ -3391,11 +3406,19 @@ drawBackground(QPainter *painter)
 {
   //CScopeTimer timer("drawBackground");
 
+  // only first plot has background for overlay
+  if (isOverlay() && ! isFirstPlot())
+    return;
+
+  //---
+
   bool hasPlotBackground = (isBackground    () || isBorder    ());
   bool hasDataBackground = (isDataBackground() || isDataBorder());
 
   if (! hasPlotBackground && ! hasDataBackground)
     return;
+
+  //---
 
   CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BACKGROUND);
   if (! layer->isActive()) return;
@@ -3453,6 +3476,549 @@ drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides,
   if (sides.indexOf('l') >= 0) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
   if (sides.indexOf('b') >= 0) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
   if (sides.indexOf('r') >= 0) painter->drawLine(rect.topRight  (), rect.bottomRight());
+}
+
+void
+CQChartsPlot::
+drawBgAxes(QPainter *painter)
+{
+  //CScopeTimer timer("drawBgAxes");
+
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
+
+  bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+  bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
+
+  if (! showXGrid && ! showYGrid)
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_AXES);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1) {
+    if (showXGrid)
+      xAxis()->drawGrid(this, painter1);
+
+    if (showYGrid)
+      yAxis()->drawGrid(this, painter1);
+  }
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawBgKey(QPainter *painter)
+{
+  //CScopeTimer timer("drawBgKey");
+
+  //---
+
+  CQChartsPlotKey *key1;
+
+  if (isOverlay()) {
+    // only draw key under first plot
+    if (! isFirstPlot())
+      return;
+
+    // use first plot key (for overlay)
+    key1 = getFirstPlotKey();
+  }
+  else {
+    key1 = this->key();
+  }
+
+  //---
+
+  bool showKey = (key1 && ! key1->isAbove());
+
+  if (! showKey)
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_KEY);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1)
+    key1->draw(painter1);
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->drawObjs(painter, layerType);
+  }
+  else {
+    drawObjs(painter, layerType);
+  }
+}
+
+void
+CQChartsPlot::
+drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
+{
+  CScopeTimer timer("drawObjs");
+
+  drawLayer_ = layerType;
+
+  CQChartsGeom::BBox bbox = displayRangeBBox();
+
+  //---
+
+  // skip if nothing drawn
+  bool doDraw = false;
+
+  for (const auto &plotObj : plotObjs_) {
+    if      (layerType == CQChartsLayer::Type::SELECTION) {
+      if (! plotObj->isSelected())
+        continue;
+    }
+    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+      if (! plotObj->isInside())
+        continue;
+    }
+
+    if (! bbox.overlaps(plotObj->rect()))
+      continue;
+
+    doDraw = true;
+
+    break;
+  }
+
+  if (! doDraw)
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(layerType);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = painter;
+
+#if 0
+  // always draw selection and mouse over direct to painter (no buffer)
+  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
+      layerType == CQChartsLayer::Type::MID_PLOT ||
+      layerType == CQChartsLayer::Type::FG_PLOT) {
+    painter1 = beginPaint(layer, painter);
+  }
+#else
+  painter1 = beginPaint(layer, painter);
+#endif
+
+  //---
+
+  if (painter1) {
+    painter1->save();
+
+    setClipRect(painter1);
+
+    for (const auto &plotObj : plotObjs_) {
+      if      (layerType == CQChartsLayer::Type::SELECTION) {
+        if (! plotObj->isSelected())
+          continue;
+      }
+      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+        if (! plotObj->isInside())
+          continue;
+      }
+
+      if (! bbox.overlaps(plotObj->rect()))
+        continue;
+
+      if      (layerType == CQChartsLayer::Type::BG_PLOT)
+        plotObj->drawBg(painter1);
+      else if (layerType == CQChartsLayer::Type::FG_PLOT)
+        plotObj->drawFg(painter1);
+      else if (layerType == CQChartsLayer::Type::MID_PLOT)
+        plotObj->draw(painter1);
+      else if (layerType == CQChartsLayer::Type::SELECTION) {
+        plotObj->draw  (painter1);
+        plotObj->drawFg(painter1);
+      }
+      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+        plotObj->draw  (painter1);
+        plotObj->drawFg(painter1);
+      }
+    }
+
+    painter1->restore();
+  }
+
+  //---
+
+#if 0
+  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
+      layerType == CQChartsLayer::Type::MID_PLOT ||
+      layerType == CQChartsLayer::Type::FG_PLOT) {
+    endPaint(layer);
+  }
+#else
+  endPaint(layer);
+#endif
+}
+
+void
+CQChartsPlot::
+drawFgAxes(QPainter *painter)
+{
+  //CScopeTimer timer("drawFgAxes");
+
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
+
+  if (! showXAxis && ! showYAxis)
+    return;
+
+  bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_AXES);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1) {
+    if (showXGrid)
+      xAxis()->drawGrid(this, painter1);
+
+    if (showYGrid)
+      yAxis()->drawGrid(this, painter1);
+
+    //---
+
+    if (showXAxis)
+      xAxis()->draw(this, painter1);
+
+    if (showYAxis)
+      yAxis()->draw(this, painter1);
+  }
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawFgKey(QPainter *painter)
+{
+  //CScopeTimer timer("drawFgKey");
+
+  CQChartsPlotKey *key1;
+
+  if (isOverlay()) {
+    // only draw key above last plot
+    if (lastPlot() != this)
+      return;
+
+    // use first plot key (for overlay)
+    key1 = getFirstPlotKey();
+  }
+  else {
+    key1 = this->key();
+  }
+
+  //---
+
+  bool showKey = (key1 && key1->isAbove());
+
+  if (! showKey)
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_KEY);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1)
+    key1->draw(painter1);
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawTitle(QPainter *painter)
+{
+  //CScopeTimer timer("drawTitle");
+
+  // only first plot has title for overlay
+  if (isOverlay() && ! isFirstPlot())
+    return;
+
+  if (! title() || ! title()->isDrawn())
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::TITLE);
+  if (! layer->isActive()) return;
+
+  QRectF rect;
+
+  if (title()->bbox().isSet())
+    rect = CQChartsUtil::toQRect(windowToPixel(title()->bbox()));
+
+  QPainter *painter1 = beginPaint(layer, painter, rect);
+
+  //---
+
+  if (painter1)
+    title()->draw(painter1);
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawGroupedAnnotations(QPainter *painter)
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->drawAnnotations(painter);
+  }
+  else {
+    drawAnnotations(painter);
+  }
+}
+
+void
+CQChartsPlot::
+drawAnnotations(QPainter *painter)
+{
+  //CScopeTimer timer("drawAnnotations");
+
+  if (annotations().empty())
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::ANNOTATION);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1) {
+    for (auto &annotation : annotations())
+      annotation->draw(painter1);
+  }
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawForeground(QPainter *)
+{
+}
+
+void
+CQChartsPlot::
+drawGroupedBoxes(QPainter *painter)
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->drawBoxes(painter);
+  }
+  else {
+    drawBoxes(painter);
+  }
+}
+
+void
+CQChartsPlot::
+drawBoxes(QPainter *painter)
+{
+  //CScopeTimer timer("drawBoxes");
+
+  if (! showBoxes())
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BOXES);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1) {
+    CQChartsGeom::BBox bbox = fitBBox();
+
+    drawWindowColorBox(painter1, bbox);
+
+    drawWindowColorBox(painter1, dataFitBBox   ());
+    drawWindowColorBox(painter1, axesFitBBox   ());
+    drawWindowColorBox(painter1, keyFitBBox    ());
+    drawWindowColorBox(painter1, titleFitBBox  ());
+    drawWindowColorBox(painter1, annotationBBox());
+  }
+
+  //---
+
+  endPaint(layer);
+}
+
+void
+CQChartsPlot::
+drawGroupedEditHandles(QPainter *painter)
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->drawEditHandles(painter);
+  }
+  else {
+    drawEditHandles(painter);
+  }
+}
+
+void
+CQChartsPlot::
+drawEditHandles(QPainter *painter)
+{
+  //CScopeTimer timer("drawEditHandles");
+
+  if (view()->mode() != CQChartsView::Mode::EDIT)
+    return;
+
+  //---
+
+  CQChartsPlotKey *key1 = getFirstPlotKey();
+  if (! key1) return;
+
+  bool selected = (isSelected() ||
+                   (title() && title()->isSelected()) ||
+                   (xAxis() && xAxis()->isSelected()) ||
+                   (yAxis() && yAxis()->isSelected()));
+
+  if (! selected) {
+    CQChartsPlotKey *key1 = getFirstPlotKey();
+
+    selected = (key1 && key1->isSelected());
+  }
+
+  if (! selected) {
+    for (const auto &annotation : annotations()) {
+      if (annotation->isSelected()) {
+        selected = true;
+        break;
+      }
+    }
+  }
+
+  if (! selected)
+    return;
+
+  //---
+
+  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::EDIT_HANDLE);
+  if (! layer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(layer, painter);
+
+  //---
+
+  if (painter1) {
+    if      (isSelected()) {
+      editHandles_.setBBox(this->bbox());
+
+      editHandles_.draw(painter1);
+    }
+    else if (title() && title()->isSelected()) {
+      title()->drawEditHandles(painter1);
+    }
+    else if (key1 && key1->isSelected()) {
+      key1->drawEditHandles(painter1);
+    }
+    else if (xAxis() && xAxis()->isSelected()) {
+      xAxis()->drawEditHandles(painter1);
+    }
+    else if (yAxis() && yAxis()->isSelected()) {
+      yAxis()->drawEditHandles(painter1);
+    }
+    else {
+      for (const auto &annotation : annotations()) {
+        if (annotation->isSelected())
+          annotation->drawEditHandles(painter1);
+      }
+    }
+  }
+
+  //---
+
+  endPaint(layer);
 }
 
 CQChartsGeom::BBox
@@ -3786,6 +4352,22 @@ void
 CQChartsPlot::
 setLayerActive(const CQChartsLayer::Type &layerType, bool b)
 {
+  if (isOverlay()) {
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->setLayerActive1(layerType, b);
+  }
+  else
+    setLayerActive1(layerType, b);
+}
+
+void
+CQChartsPlot::
+setLayerActive1(const CQChartsLayer::Type &layerType, bool b)
+{
   CQChartsLayer *layer = getLayer(layerType);
 
   layer->setActive(b);
@@ -3834,6 +4416,23 @@ CQChartsPlot::
 invalidateLayer(const CQChartsLayer::Type &layerType)
 {
 //std::cerr << "invalidateLayer " << CQChartsLayer::typeName(layerType) << "\n";
+  if (isOverlay()) {
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->invalidateLayer1(layerType);
+  }
+  else {
+    invalidateLayer1(layerType);
+  }
+}
+
+void
+CQChartsPlot::
+invalidateLayer1(const CQChartsLayer::Type &layerType)
+{
   CQChartsLayer *layer = getLayer(layerType);
 
   layer->setValid(false);
@@ -3866,112 +4465,6 @@ getLayer(const CQChartsLayer::Type &layerType) const
 
 void
 CQChartsPlot::
-drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
-{
-  CScopeTimer timer("drawObjs");
-
-  drawLayer_ = layerType;
-
-  CQChartsGeom::BBox bbox = displayRangeBBox();
-
-  //---
-
-  // skip if nothing drawn
-  bool doDraw = false;
-
-  for (const auto &plotObj : plotObjs_) {
-    if      (layerType == CQChartsLayer::Type::SELECTION) {
-      if (! plotObj->isSelected())
-        continue;
-    }
-    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-      if (! plotObj->isInside())
-        continue;
-    }
-
-    if (! bbox.overlaps(plotObj->rect()))
-      continue;
-
-    doDraw = true;
-
-    break;
-  }
-
-  if (! doDraw)
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(layerType);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = painter;
-
-#if 0
-  // always draw selection and mouse over direct to painter (no buffer)
-  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
-      layerType == CQChartsLayer::Type::MID_PLOT ||
-      layerType == CQChartsLayer::Type::FG_PLOT) {
-    painter1 = beginPaint(layer, painter);
-  }
-#else
-  painter1 = beginPaint(layer, painter);
-#endif
-
-  //---
-
-  if (painter1) {
-    painter1->save();
-
-    setClipRect(painter1);
-
-    for (const auto &plotObj : plotObjs_) {
-      if      (layerType == CQChartsLayer::Type::SELECTION) {
-        if (! plotObj->isSelected())
-          continue;
-      }
-      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-        if (! plotObj->isInside())
-          continue;
-      }
-
-      if (! bbox.overlaps(plotObj->rect()))
-        continue;
-
-      if      (layerType == CQChartsLayer::Type::BG_PLOT)
-        plotObj->drawBg(painter1);
-      else if (layerType == CQChartsLayer::Type::FG_PLOT)
-        plotObj->drawFg(painter1);
-      else if (layerType == CQChartsLayer::Type::MID_PLOT)
-        plotObj->draw(painter1);
-      else if (layerType == CQChartsLayer::Type::SELECTION) {
-        plotObj->draw  (painter1);
-        plotObj->drawFg(painter1);
-      }
-      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-        plotObj->draw  (painter1);
-        plotObj->drawFg(painter1);
-      }
-    }
-
-    painter1->restore();
-  }
-
-  //---
-
-#if 0
-  if (layerType == CQChartsLayer::Type::BG_PLOT  ||
-      layerType == CQChartsLayer::Type::MID_PLOT ||
-      layerType == CQChartsLayer::Type::FG_PLOT) {
-    endPaint(layer);
-  }
-#else
-  endPaint(layer);
-#endif
-}
-
-void
-CQChartsPlot::
 setClipRect(QPainter *painter)
 {
   CQChartsPlot *plot1 = firstPlot();
@@ -3996,337 +4489,9 @@ setClipRect(QPainter *painter)
   }
 }
 
-void
-CQChartsPlot::
-drawBgAxes(QPainter *painter)
-{
-  //CScopeTimer timer("drawBgAxes");
-
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
-
-  bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
-  bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
-
-  if (! showXGrid && ! showYGrid)
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_AXES);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    if (showXGrid)
-      xAxis()->drawGrid(this, painter1);
-
-    if (showYGrid)
-      yAxis()->drawGrid(this, painter1);
-  }
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawFgAxes(QPainter *painter)
-{
-  //CScopeTimer timer("drawFgAxes");
-
-  bool showXAxis = (xAxis() && xAxis()->isVisible());
-  bool showYAxis = (yAxis() && yAxis()->isVisible());
-
-  if (! showXAxis && ! showYAxis)
-    return;
-
-  bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
-  bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_AXES);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    if (showXGrid)
-      xAxis()->drawGrid(this, painter1);
-
-    if (showYGrid)
-      yAxis()->drawGrid(this, painter1);
-
-    //---
-
-    if (showXAxis)
-      xAxis()->draw(this, painter1);
-
-    if (showYAxis)
-      yAxis()->draw(this, painter1);
-  }
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawBgKey(QPainter *painter)
-{
-  //CScopeTimer timer("drawBgKey");
-
-  CQChartsPlotKey *key1 = getFirstPlotKey();
-  if (! key1) return;
-
-  // only draw key under first plot
-  if (firstPlot() != this)
-    return;
-
-  //---
-
-  bool showKey = (key1 && ! key1->isAbove());
-
-  if (! showKey)
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_KEY);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1)
-    key1->draw(painter1);
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawFgKey(QPainter *painter)
-{
-  //CScopeTimer timer("drawFgKey");
-
-  CQChartsPlotKey *key1 = getFirstPlotKey();
-  if (! key1) return;
-
-  // only draw key above last plot
-  if (lastPlot() != this)
-    return;
-
-  //---
-
-  bool showKey = (key1 && key1->isAbove());
-
-  if (! showKey)
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_KEY);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1)
-    key1->draw(painter1);
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawTitle(QPainter *painter)
-{
-  //CScopeTimer timer("drawTitle");
-
-  if (! title())
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::TITLE);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1)
-    title()->draw(painter1);
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawAnnotations(QPainter *painter)
-{
-  //CScopeTimer timer("drawAnnotations");
-
-  if (annotations().empty())
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::ANNOTATION);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    for (auto &annotation : annotations())
-      annotation->draw(painter1);
-  }
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawForeground(QPainter *)
-{
-}
-
-void
-CQChartsPlot::
-drawBoxes(QPainter *painter)
-{
-  //CScopeTimer timer("drawBoxes");
-
-  if (! showBoxes())
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BOXES);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    CQChartsGeom::BBox bbox = fitBBox();
-
-    drawWindowColorBox(painter1, bbox);
-
-    drawWindowColorBox(painter1, dataFitBBox   ());
-    drawWindowColorBox(painter1, axesFitBBox   ());
-    drawWindowColorBox(painter1, keyFitBBox    ());
-    drawWindowColorBox(painter1, titleFitBBox  ());
-    drawWindowColorBox(painter1, annotationBBox());
-  }
-
-  //---
-
-  endPaint(layer);
-}
-
-void
-CQChartsPlot::
-drawEditHandles(QPainter *painter)
-{
-  //CScopeTimer timer("drawEditHandles");
-
-  if (view()->mode() != CQChartsView::Mode::EDIT)
-    return;
-
-  //---
-
-  CQChartsPlotKey *key1 = getFirstPlotKey();
-  if (! key1) return;
-
-  bool selected = (isSelected() ||
-                   (title() && title()->isSelected()) ||
-                   (xAxis() && xAxis()->isSelected()) ||
-                   (yAxis() && yAxis()->isSelected()));
-
-  if (! selected) {
-    CQChartsPlotKey *key1 = getFirstPlotKey();
-
-    selected = (key1 && key1->isSelected());
-  }
-
-  if (! selected) {
-    for (const auto &annotation : annotations()) {
-      if (annotation->isSelected()) {
-        selected = true;
-        break;
-      }
-    }
-  }
-
-  if (! selected)
-    return;
-
-  //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::EDIT_HANDLE);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    if      (isSelected()) {
-      editHandles_.setBBox(this->bbox());
-
-      editHandles_.draw(painter1);
-    }
-    else if (title() && title()->isSelected()) {
-      title()->drawEditHandles(painter1);
-    }
-    else if (key1 && key1->isSelected()) {
-      key1->drawEditHandles(painter1);
-    }
-    else if (xAxis() && xAxis()->isSelected()) {
-      xAxis()->drawEditHandles(painter1);
-    }
-    else if (yAxis() && yAxis()->isSelected()) {
-      yAxis()->drawEditHandles(painter1);
-    }
-    else {
-      for (const auto &annotation : annotations()) {
-        if (annotation->isSelected())
-          annotation->drawEditHandles(painter1);
-      }
-    }
-  }
-
-  //---
-
-  endPaint(layer);
-}
-
 QPainter *
 CQChartsPlot::
-beginPaint(CQChartsLayer *layer, QPainter *painter)
+beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect)
 {
   drawLayer_ = layer->type();
 
@@ -4334,9 +4499,9 @@ beginPaint(CQChartsLayer *layer, QPainter *painter)
     return painter;
 
   // resize and clear
-  QRectF rect = CQChartsUtil::toQRect(calcPixelRect());
+  QRectF prect = (! rect.isValid() ? CQChartsUtil::toQRect(calcPixelRect()) : rect);
 
-  QPainter *painter1 = layer->beginPaint(painter, rect);
+  QPainter *painter1 = layer->beginPaint(painter, prect);
 
   // don't paint if not active
   if (! layer->isActive())

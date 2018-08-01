@@ -1943,10 +1943,29 @@ draw(QPainter *painter)
     strokeColor.setAlphaF(strokeAlpha);
     fillColor  .setAlphaF(fillAlpha);
 
-    QPen   pen  (strokeColor);
-    QBrush brush(fillColor);
+    //---
+
+    QPen   pen;
+    QBrush brush;
+
+    if (stroked)
+      pen.setColor(strokeColor);
+    else
+      pen.setStyle(Qt::NoPen);
+
+    if (filled) {
+      brush.setColor(fillColor);
+      brush.setStyle(Qt::SolidPattern);
+    }
+    else
+      brush.setStyle(Qt::NoBrush);
 
     plot_->updateObjPenBrushState(this, pen, brush);
+
+    filled  = (brush.style() != Qt::NoBrush);
+    stroked = (pen  .style() != Qt::NoPen  );
+
+    //---
 
     for (auto &o : whisker_.outliers()) {
       double px1, py1;
@@ -2292,10 +2311,26 @@ draw(QPainter *painter)
     strokeColor.setAlphaF(strokeAlpha);
     fillColor  .setAlphaF(fillAlpha);
 
-    QPen   pen  (strokeColor);
-    QBrush brush(fillColor);
+    //---
+
+    QPen   pen;
+    QBrush brush;
+
+    if (stroked)
+      pen.setColor(strokeColor);
+    else
+      pen.setStyle(Qt::NoPen);
+
+    if (filled) {
+      brush.setColor(fillColor);
+      brush.setStyle(Qt::SolidPattern);
+    }
+    else
+      brush.setStyle(Qt::NoBrush);
 
     plot_->updateObjPenBrushState(this, pen, brush);
+
+    //---
 
     for (auto &o : data_.outliers) {
       double px1, py1;

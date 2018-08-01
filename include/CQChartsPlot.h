@@ -535,8 +535,8 @@ class CQChartsPlot : public QObject {
   void setNextPlot(CQChartsPlot *plot, bool notify=true);
   void setPrevPlot(CQChartsPlot *plot, bool notify=true);
 
-  CQChartsPlot *firstPlot();
-  CQChartsPlot *lastPlot ();
+  CQChartsPlot *firstPlot() const;
+  CQChartsPlot *lastPlot () const;
 
   bool isFirstPlot() const {
     return (const_cast<CQChartsPlot *>(this)->firstPlot() == this);
@@ -550,7 +550,7 @@ class CQChartsPlot : public QObject {
     return (isOverlay() && ! isFirstPlot());
   }
 
-  void overlayPlots(Plots &plots);
+  void overlayPlots(Plots &plots) const;
 
   void x1x2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
   void y1y2Plots(CQChartsPlot* &plot1, CQChartsPlot* &plot2);
@@ -1055,9 +1055,6 @@ class CQChartsPlot : public QObject {
 
   void updateKeyPosition(bool force=false);
 
-  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides,
-                           double width, const QColor &color);
-
   CQChartsGeom::BBox displayRangeBBox() const;
 
   CQChartsGeom::BBox calcDataPixelRect() const;
@@ -1120,42 +1117,65 @@ class CQChartsPlot : public QObject {
 
   CQChartsLayer *getLayer(const CQChartsLayer::Type &type) const;
 
+ private:
+  void setLayerActive1(const CQChartsLayer::Type &type, bool b);
+
+  void invalidateLayer1(const CQChartsLayer::Type &layerType);
+
   //---
 
+ public:
   // draw plot parts
   virtual void drawParts(QPainter *painter);
 
   // draw background
   virtual void drawBackground(QPainter *painter);
 
+  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides,
+                           double width, const QColor &color);
+
+  // draw axes on background
+  virtual void drawBgAxes(QPainter *painter);
+
+  // draw key on background
+  virtual void drawBgKey(QPainter *painter);
+
   // draw objects
+  void drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType);
+
   virtual void drawObjs(QPainter *painter, const CQChartsLayer::Type &type);
 
-  // set clip rect
-  void setClipRect(QPainter *painter);
-
-  // draw axes on background/foreground
-  virtual void drawBgAxes(QPainter *painter);
+  // draw axes on foreground
   virtual void drawFgAxes(QPainter *painter);
 
-  // draw key on background/foreground
-  virtual void drawBgKey(QPainter *painter);
+  // draw key on foreground
   virtual void drawFgKey(QPainter *painter);
 
   // draw title
   virtual void drawTitle(QPainter *painter);
 
   // draw annotations
+  void drawGroupedAnnotations(QPainter *painter);
+
   virtual void drawAnnotations(QPainter *painter);
 
   // draw foreground
   virtual void drawForeground(QPainter *painter);
 
   // draw debug boxes
+  void drawGroupedBoxes(QPainter *painter);
+
   virtual void drawBoxes(QPainter *painter);
 
   // draw edit handles
+  void drawGroupedEditHandles(QPainter *painter);
+
   virtual void drawEditHandles(QPainter *painter);
+
+  //---
+
+  // set clip rect
+  void setClipRect(QPainter *painter);
 
   //---
 
@@ -1163,7 +1183,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  QPainter *beginPaint(CQChartsLayer *layer, QPainter *painter);
+  QPainter *beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect=QRectF());
   void      endPaint  (CQChartsLayer *layer);
 
   //---

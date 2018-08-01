@@ -714,11 +714,12 @@ updateLayers()
   if (layersWidgets_.layerTable->rowCount() == 0) {
     layersWidgets_.layerTable->clear();
 
-    layersWidgets_.layerTable->setColumnCount(2);
+    layersWidgets_.layerTable->setColumnCount(3);
     layersWidgets_.layerTable->setRowCount(l2 - l1 + 1);
 
     layersWidgets_.layerTable->setHorizontalHeaderItem(0, new QTableWidgetItem("Layer"));
     layersWidgets_.layerTable->setHorizontalHeaderItem(1, new QTableWidgetItem("State"));
+    layersWidgets_.layerTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Rect" ));
 
     for (int l = l1; l <= l2; ++l) {
       int i = l - l1;
@@ -740,6 +741,10 @@ updateLayers()
     //stateItem->setFlags(stateItem->flags() & ! Qt::ItemIsEditable);
 
       layersWidgets_.layerTable->setItem(i, 1, stateItem);
+
+      QTableWidgetItem *rectItem = new QTableWidgetItem("");
+
+      layersWidgets_.layerTable->setItem(i, 2, rectItem);
     }
   }
 
@@ -761,6 +766,7 @@ updateLayers()
 
 //  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
     QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
+    QTableWidgetItem *rectItem  = layersWidgets_.layerTable->item(i, 2);
 
     QStringList states;
 
@@ -770,6 +776,13 @@ updateLayers()
     stateItem->setText(states.join("|"));
 
     stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
+
+    const QRectF &rect = layer->rect();
+
+    QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
+                        arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
+
+    rectItem->setText(rectStr);
   }
 }
 

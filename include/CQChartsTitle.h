@@ -108,6 +108,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   //---
 
+  bool isDrawn() const;
+
   void draw(QPainter *painter);
 
   void drawEditHandles(QPainter *painter);
