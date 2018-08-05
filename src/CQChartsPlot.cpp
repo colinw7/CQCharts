@@ -2601,6 +2601,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     return false;
   }
 
+  invalidateLayer(CQChartsLayer::Type::SELECTION);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
   return true;
@@ -2658,6 +2659,7 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
       return true;
   }
 
+  invalidateLayer(CQChartsLayer::Type::SELECTION);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
   return true;
@@ -2716,6 +2718,7 @@ editMoveBy(const QPointF &d)
     }
   }
 
+  invalidateLayer(CQChartsLayer::Type::SELECTION);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 }
 

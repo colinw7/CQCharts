@@ -559,3 +559,5 @@
  + support row, column and header names for get_model_data to return whole row, column or header
  + Improve density curve points (add tails and normalize)
  + support named column values in expression model processing
+ + add scatter best fit deviation bar
+ + add scatter convext hull

@@ -130,6 +130,7 @@ CQChartsPath.cpp \
 CQChartsStyle.cpp \
 CQChartsAnalyzeFile.cpp \
 CQChartsDensity.cpp \
+CQChartsGrahamHull.cpp \
 CQChartsUtil.cpp \
 CQChartsEnv.cpp \
 \
@@ -238,6 +239,7 @@ HEADERS += \
 ../include/CQChartsLength.h \
 ../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsDensity.h \
+../include/CQChartsGrahamHull.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsEnv.h \
 ../include/CQChartsQuadTree.h \

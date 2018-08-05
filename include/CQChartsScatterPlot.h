@@ -4,6 +4,7 @@
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
+#include <CQChartsGrahamHull.h>
 
 //---
 
@@ -125,8 +126,17 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsColumn fontSizeColumn   READ fontSizeColumn   WRITE setFontSizeColumn  )
   Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
 
-  // options
-  Q_PROPERTY(bool bestFit READ isBestFit WRITE setBestFit)
+  // best fit
+  Q_PROPERTY(bool          bestFit          READ isBestFit          WRITE setBestFit         )
+  Q_PROPERTY(bool          bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
+  Q_PROPERTY(int           bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
+  Q_PROPERTY(CQChartsColor bestFitFillColor READ bestFitFillColor   WRITE setBestFitFillColor)
+  Q_PROPERTY(double        bestFitFillAlpha READ bestFitFillAlpha   WRITE setBestFitFillAlpha)
+
+  // convex hull
+  Q_PROPERTY(bool          hull          READ isHull        WRITE setHull         )
+  Q_PROPERTY(CQChartsColor hullFillColor READ hullFillColor WRITE setHullFillColor)
+  Q_PROPERTY(double        hullFillAlpha READ hullFillAlpha WRITE setHullFillAlpha)
 
   // rug
   Q_PROPERTY(bool           xRug          READ isXRug        WRITE setXRug         )
@@ -147,9 +157,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
   // labels
-  Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
+  Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
 
+  // symbol map key
   Q_PROPERTY(bool symbolMapKey READ isSymbolMapKey WRITE setSymbolMapKey)
 
   // symbol type map
@@ -223,6 +234,28 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   //---
 
   bool isBestFit() const { return bestFit_; }
+
+  bool isBestFitDeviation() const { return bestFitDeviation_; }
+  void setBestFitDeviation(bool b);
+
+  int bestFitOrder() const { return bestFitOrder_; }
+  void setBestFitOrder(int o);
+
+  const CQChartsColor &bestFitFillColor() const { return bestFitFillColor_; }
+  void setBestFitFillColor(const CQChartsColor &c);
+
+  double bestFitFillAlpha() const { return bestFitFillAlpha_; }
+  void setBestFitFillAlpha(double r);
+
+  //---
+
+  bool isHull() const { return hull_; }
+
+  const CQChartsColor &hullFillColor() const { return hullFillColor_; }
+  void setHullFillColor(const CQChartsColor &c);
+
+  double hullFillAlpha() const { return hullFillAlpha_; }
+  void setHullFillAlpha(double a);
 
   //---
 
@@ -332,13 +365,13 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   bool isTextLabels() const { return dataLabel_.isVisible(); }
   void setTextLabels(bool b);
 
+  double fontSize() const { return fontSize_; }
+  void setFontSize(double s);
+
   //---
 
   const CQChartsColumn &fontSizeColumn() const { return valueSetColumn("fontSize"); }
   void setFontSizeColumn(const CQChartsColumn &c);
-
-  double fontSize() const { return fontSize_; }
-  void setFontSize(double s);
 
   bool isFontSizeMapped() const { return isValueSetMapped("fontSize"); }
   void setFontSizeMapped(bool b);
@@ -403,12 +436,14 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
  private:
   void drawBestFit     (QPainter *painter);
+  void drawHull        (QPainter *painter);
   void drawXRug        (QPainter *painter);
   void drawYRug        (QPainter *painter);
   void drawSymbolMapKey(QPainter *painter);
 
  public slots:
   void setBestFit(bool b);
+  void setHull   (bool b);
 
   void setXRug(bool b);
   void setYRug(bool b);
@@ -416,36 +451,50 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
  private:
   struct FitData {
     bool   fitted         { false };
-    double coeffs     [8] {0, 0, 0, 0, 0, 0, 0, 0};
-    int    coeffs_free[8] {1, 1, 1, 1, 1, 1, 1, 1};
+    double coeffs     [8] { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int    coeffs_free[8] { 1, 1, 1, 1, 1, 1, 1, 1 };
     int    num_coeffs     { 3 };
+    double deviation      { 0.0 };
+    double xmin           { 0.0 };
+    double xmax           { 0.0 };
 
     void reset() { fitted = false; }
   };
 
-  using Points = std::vector<QPointF>;
+  using Points       = std::vector<QPointF>;
+  using GroupPoints  = std::map<int,Points>;
+  using GroupFitData = std::map<int,FitData>;
+  using GroupHull    = std::map<int,CQChartsGrahamHull>;
 
-  CQChartsColumn     nameColumn_;              // name column
-  CQChartsColumn     xColumn_       { 0 };     // x column
-  CQChartsColumn     yColumn_       { 1 };     // y column
-  bool               bestFit_       { false }; // best fit
-  bool               xRug_          { false }; // x rug
-  bool               yRug_          { false }; // y rug
-  CQChartsSymbol     rugSymbolType_;           // rug symbol type
-  CQChartsLength     rugSymbolSize_ { "5px" }; // rug symbol size
-  CQChartsSymbolData symbolData_;              // symbol draw data
-  double             fontSize_      { 8.0 };   // font size
-  GroupNameValues    groupNameValues_;         // name values
-  CQChartsDataLabel  dataLabel_;               // data label style
-  QString            xname_;                   // x column header
-  QString            yname_;                   // y column header
-  bool               symbolMapKey_  { true };  // draw symbol map key
-  QString            symbolTypeName_;          // symbol type column header
-  QString            symbolSizeName_;          // symbol size column header
-  QString            fontSizeName_;            // font size column header
-  QString            colorName_;               // color column header
-  Points             points_;                  // fit points
-  FitData            fitData_;                 // fit data
+  CQChartsColumn     nameColumn_;                 // name column
+  CQChartsColumn     xColumn_          { 0 };     // x column
+  CQChartsColumn     yColumn_          { 1 };     // y column
+  bool               bestFit_          { false }; // show best fit
+  bool               bestFitDeviation_ { false }; // show best fit deviation
+  int                bestFitOrder_     { 3 };     // best fit order
+  CQChartsColor      bestFitFillColor_;
+  double             bestFitFillAlpha_ { 1.0 };
+  bool               hull_             { false }; // show convex hull
+  CQChartsColor      hullFillColor_;
+  double             hullFillAlpha_    { 1.0 };
+  bool               xRug_             { false }; // x rug
+  bool               yRug_             { false }; // y rug
+  CQChartsSymbol     rugSymbolType_;              // rug symbol type
+  CQChartsLength     rugSymbolSize_    { "5px" }; // rug symbol size
+  CQChartsSymbolData symbolData_;                 // symbol draw data
+  double             fontSize_         { 12.0 };  // font size
+  GroupNameValues    groupNameValues_;            // name values
+  CQChartsDataLabel  dataLabel_;                  // data label style
+  QString            xname_;                      // x column header
+  QString            yname_;                      // y column header
+  bool               symbolMapKey_     { true };  // draw symbol map key
+  QString            symbolTypeName_;             // symbol type column header
+  QString            symbolSizeName_;             // symbol size column header
+  QString            fontSizeName_;               // font size column header
+  QString            colorName_;                  // color column header
+  GroupPoints        groupPoints_;                // group fit points
+  GroupFitData       groupFitData_;               // group fit data
+  GroupHull          groupHull_    ;              // group hull
 };
 
 #endif

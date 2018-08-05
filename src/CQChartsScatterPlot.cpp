@@ -99,6 +99,12 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
 
   setRugSymbolType(CQChartsSymbol::Type::NONE);
 
+  setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  //---
+
   addAxes();
 
   addKey();
@@ -391,6 +397,57 @@ setBestFit(bool b)
   CQChartsUtil::testAndSet(bestFit_, b, [&]() { invalidateLayers(); } );
 }
 
+void
+CQChartsScatterPlot::
+setBestFitDeviation(bool b)
+{
+  CQChartsUtil::testAndSet(bestFitDeviation_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setBestFitOrder(int o)
+{
+  CQChartsUtil::testAndSet(bestFitOrder_, o, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setBestFitFillColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(bestFitFillColor_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setBestFitFillAlpha(double a)
+{
+  CQChartsUtil::testAndSet(bestFitFillAlpha_, a, [&]() { updateRangeAndObjs(); } );
+}
+
+//---
+
+void
+CQChartsScatterPlot::
+setHull(bool b)
+{
+  CQChartsUtil::testAndSet(hull_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setHullFillColor(const CQChartsColor &c)
+{
+  CQChartsUtil::testAndSet(hullFillColor_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsScatterPlot::
+setHullFillAlpha(double a)
+{
+  CQChartsUtil::testAndSet(hullFillAlpha_, a, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -438,7 +495,18 @@ addProperties()
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
   addProperty("columns", this, "colorColumn"     , "color"     );
 
-  addProperty("options", this, "bestFit", "bestFit");
+  addProperty("textLabels", this, "textLabels", "enabled");
+  addProperty("textLabels", this, "fontSize"  , "size"   );
+
+  addProperty("bestFit"     , this, "bestFit"         , "enabled"  );
+  addProperty("bestFit"     , this, "bestFitDeviation", "deviation");
+  addProperty("bestFit"     , this, "bestFitOrder"    , "order"    );
+  addProperty("bestFit/fill", this, "bestFitFillColor", "color"    );
+  addProperty("bestFit/fill", this, "bestFitFillAlpha", "alpha"    );
+
+  addProperty("hull"     , this, "hull"         , "enabled");
+  addProperty("hull/fill", this, "hullFillColor", "color");
+  addProperty("hull/fill", this, "hullFillAlpha", "alpha");
 
   addProperty("rug/x"     , this, "xRug"         , "enabled");
   addProperty("rug/y"     , this, "yRug"         , "enabled");
@@ -450,8 +518,6 @@ addProperties()
   addSymbolProperties("symbol");
 
   dataLabel_.addPathProperties("dataLabel");
-
-  addProperty("font", this, "fontSize", "size");
 
   addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
   addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
@@ -597,9 +663,9 @@ initObjs()
   if (groupNameValues_.empty())
     addNameValues();
 
-  fitData_.reset();
-
-  points_.clear();
+  groupPoints_ .clear();
+  groupFitData_.clear();
+  groupHull_   .clear();
 
   //---
 
@@ -645,6 +711,8 @@ initObjs()
 
     int               groupInd   = groupNameValue.first;
     const NameValues &nameValues = groupNameValue.second;
+
+    Points &points = groupPoints_[groupInd];
 
     int is = 0;
     int ns = nameValues.size();
@@ -711,7 +779,7 @@ initObjs()
 
         //---
 
-        points_.push_back(p);
+        points.push_back(p);
       }
 
       ++is;
@@ -934,32 +1002,25 @@ bool
 CQChartsScatterPlot::
 addMenuItems(QMenu *menu)
 {
-  QAction *bestFitAction = new QAction("Best Fit", menu);
+  auto addCheckedAction = [&](const QString &name, bool isSet, const char *slot) -> QAction *{
+    QAction *action = new QAction(name, menu);
 
-  bestFitAction->setCheckable(true);
-  bestFitAction->setChecked(isBestFit());
+    action->setCheckable(true);
+    action->setChecked(isSet);
 
-  connect(bestFitAction, SIGNAL(triggered(bool)), this, SLOT(setBestFit(bool)));
+    connect(action, SIGNAL(triggered(bool)), this, slot);
 
-  QAction *xRugAction = new QAction("X Rug", menu);
+    menu->addAction(action);
 
-  xRugAction->setCheckable(true);
-  xRugAction->setChecked(isXRug());
-
-  connect(xRugAction, SIGNAL(triggered(bool)), this, SLOT(setXRug(bool)));
-
-  QAction *yRugAction = new QAction("Y Rug", menu);
-
-  yRugAction->setCheckable(true);
-  yRugAction->setChecked(isYRug());
-
-  connect(yRugAction, SIGNAL(triggered(bool)), this, SLOT(setYRug(bool)));
+    return action;
+  };
 
   menu->addSeparator();
 
-  menu->addAction(bestFitAction);
-  menu->addAction(xRugAction   );
-  menu->addAction(yRugAction   );
+  (void) addCheckedAction("Best Fit", isBestFit(), SLOT(setBestFit(bool)));
+  (void) addCheckedAction("Hull"    , isHull   (), SLOT(setHull(bool)));
+  (void) addCheckedAction("X Rug"   , isXRug   (), SLOT(setXRug(bool)));
+  (void) addCheckedAction("Y Rug"   , isYRug   (), SLOT(setYRug(bool)));
 
   return true;
 }
@@ -978,7 +1039,7 @@ annotationBBox() const
 
     double sx, sy;
 
-    pixelSymbolSize(rugSymbolSize(), sx, sy);
+    plotSymbolSize(rugSymbolSize(), sx, sy);
 
     if (isXRug()) {
       QPointF p1(dataRange.xmin(), dataRange.ymin()       );
@@ -1008,6 +1069,9 @@ drawBackground(QPainter *painter)
 {
   CQChartsPlot::drawBackground(painter);
 
+  if (isHull())
+    drawHull(painter);
+
   if (isBestFit())
     drawBestFit(painter);
 
@@ -1031,49 +1095,237 @@ void
 CQChartsScatterPlot::
 drawBestFit(QPainter *painter)
 {
-  if (! fitData_.fitted) {
-    int np = points_.size();
+  for (const auto &groupNameValue : groupNameValues_) {
+    int groupInd = groupNameValue.first;
 
-    std::vector<double> x, y;
+    FitData &fitData = groupFitData_[groupInd];
 
-    for (const auto &p : points_) {
-      x.push_back(p.x());
-      y.push_back(p.y());
+    if (! fitData.fitted) {
+      Points &points = groupPoints_[groupInd];
+
+      //---
+
+      int np = points.size();
+
+      std::vector<double> x, y;
+
+      if (np > 0) {
+        fitData.xmin = points[0].x();
+        fitData.xmax = fitData.xmin;
+
+        for (const auto &p : points) {
+          x.push_back(p.x());
+          y.push_back(p.y());
+
+          fitData.xmin = std::min(fitData.xmin, p.x());
+          fitData.xmax = std::max(fitData.xmax, p.x());
+        }
+      }
+      else {
+        fitData.xmin = 0.0;
+        fitData.xmax = 0.0;
+      }
+
+      //---
+
+      int return_code;
+
+      if (bestFitOrder() <= 0) {
+        fitData.num_coeffs = 8;
+
+        CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], np,
+          fitData.coeffs, fitData.coeffs_free, &fitData.num_coeffs,
+          &fitData.deviation, &return_code);
+      }
+      else {
+        fitData.num_coeffs = std::min(std::max(bestFitOrder(), 1), 8);
+
+        CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
+          fitData.coeffs, fitData.coeffs_free, fitData.num_coeffs,
+          &fitData.deviation, &return_code);
+      }
+
+      fitData.fitted = true;
     }
-
-    double deviation;
-    int    return_code;
-
-    CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
-                                      fitData_.coeffs, fitData_.coeffs_free, fitData_.num_coeffs,
-                                      &deviation, &return_code);
-
-    fitData_.fitted = true;
   }
 
   //---
 
-  CQChartsGeom::BBox pbbox = calcDataPixelRect();
+  int ig = 0;
+  int ng = groupNameValues_.size();
 
-  double py1 = 0.0;
+  for (const auto &groupNameValue : groupNameValues_) {
+    int groupInd = groupNameValue.first;
 
-  for (int px = pbbox.getXMin(); px <= pbbox.getXMax(); ++px) {
-    double x, y;
+    FitData &fitData = groupFitData_[groupInd];
 
-    pixelToWindow(px, 0.0, x, y);
+    //---
 
-    double y2 = fitData_.coeffs[0] + x*(fitData_.coeffs[1] + x*fitData_.coeffs[2]);
+    double pxl, pyl, pxr, pyr;
 
-    double px2, py2;
+    windowToPixel(fitData.xmin, 0, pxl, pyl);
+    windowToPixel(fitData.xmax, 0, pxr, pyr);
 
-    windowToPixel(x, y2, px2, py2);
+    //---
 
-    if (x > pbbox.getXMin())
-      painter->drawLine(QPointF(px - 1, py1), QPointF(px, py2));
-    else
-      painter->drawPoint(QPointF(px, py2));
+    QPen   pen;
+    QBrush brush;
 
-    py1 = py2;
+    QColor borderColor = interpThemeColor(1.0);
+    QColor fillColor   = bestFitFillColor().interpColor(this, ig, ng);
+
+    fillColor.setAlphaF(bestFitFillAlpha());
+
+    pen.setColor(borderColor);
+
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(fillColor);
+
+    //---
+
+    QPolygonF bpoly, poly, tpoly;
+
+    for (int px = pxl; px <= pxr; ++px) {
+      double x, y;
+
+      pixelToWindow(px, 0.0, x, y);
+
+      double y2 = 0.0;
+
+      for (int i = fitData.num_coeffs - 1; i >= 0; --i)
+        y2 = x*y2 + fitData.coeffs[i];
+
+      double px2, py2;
+
+      windowToPixel(x, y2, px2, py2);
+
+      poly << QPointF(px2, py2);
+
+      if (isBestFitDeviation()) {
+        windowToPixel(x, y2 - fitData.deviation, px2, py2);
+
+        bpoly << QPointF(px2, py2);
+
+        windowToPixel(x, y2 + fitData.deviation, px2, py2);
+
+        tpoly << QPointF(px2, py2);
+      }
+    }
+
+    //---
+
+    if (isBestFitDeviation()) {
+      QPolygonF dpoly;
+
+      for (int i = 0; i < bpoly.length(); ++i) {
+        const QPointF &p = bpoly[i];
+
+        dpoly << p;
+      }
+
+      for (int i = tpoly.length() - 1; i >= 0; --i) {
+        const QPointF &p = tpoly[i];
+
+        dpoly << p;
+      }
+
+      painter->setBrush(brush);
+
+      painter->drawPolygon(dpoly);
+    }
+
+    //---
+
+    QPainterPath path;
+
+    const QPointF &p = poly[0];
+
+    path.moveTo(p);
+
+    for (int i = 1; i < poly.length(); ++i) {
+      const QPointF &p = poly[i];
+
+      path.lineTo(p);
+    }
+
+    painter->strokePath(path, pen);
+
+    //---
+
+    ++ig;
+  }
+}
+
+void
+CQChartsScatterPlot::
+drawHull(QPainter *painter)
+{
+  int ig = 0;
+  int ng = groupNameValues_.size();
+
+  for (const auto &groupNameValue : groupNameValues_) {
+    int groupInd = groupNameValue.first;
+
+    CQChartsGrahamHull &hull = groupHull_[groupInd];
+
+    if (hull.numPoints() == 0) {
+      Points &points = groupPoints_[groupInd];
+
+      //---
+
+      std::vector<double> x, y;
+
+      for (const auto &p : points)
+        hull.addPoint(p);
+
+      hull.calc();
+    }
+
+    //---
+
+    QPen   pen;
+    QBrush brush;
+
+    QColor borderColor = interpThemeColor(1.0);
+    QColor fillColor   = hullFillColor().interpColor(this, ig, ng);
+
+    fillColor.setAlphaF(hullFillAlpha());
+
+    pen.setColor(borderColor);
+
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(fillColor);
+
+    //---
+
+    std::vector<QPointF> hpoints;
+
+    hull.getHull(hpoints);
+
+    int n = hpoints.size();
+
+    QPainterPath path;
+
+    if (n > 0) {
+      const QPointF &p = hpoints[0];
+
+      path.moveTo(windowToPixel(p));
+
+      for (int i = 1; i < n; ++i) {
+        const QPointF &p = hpoints[i];
+
+        path.lineTo(windowToPixel(p));
+      }
+
+      path.closeSubpath();
+
+      painter->fillPath  (path, brush);
+      painter->strokePath(path, pen);
+    }
+
+    //---
+
+    ++ig;
   }
 }
 
@@ -1393,7 +1645,10 @@ drawDir(QPainter *painter, const Dir &dir) const
 
   // draw text labels
   if (plot_->isTextLabels()) {
-    double fontSize = (fontSize_ ? *fontSize_ : -1);
+    double fontSize = plot_->fontSize();
+
+    if (fontSize_)
+      fontSize = *fontSize_;
 
     CQChartsDataLabel &dataLabel = plot_->dataLabel();
 

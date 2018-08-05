@@ -152,6 +152,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
+  bool inside(const CQChartsGeom::Point &p) const override;
+
   void draw(QPainter *painter) override;
 
  private:
@@ -181,6 +183,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
   QString propertyId() const override;
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
 
@@ -246,6 +250,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
+  bool inside(const CQChartsGeom::Point &p) const override;
+
   void draw(QPainter *painter) override;
 
  private:
@@ -284,6 +290,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
+  bool inside(const CQChartsGeom::Point &p) const override;
+
   void draw(QPainter *painter) override;
 
  private:
@@ -321,6 +329,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   QString propertyId() const override;
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
 

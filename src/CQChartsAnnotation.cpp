@@ -453,6 +453,26 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   bbox_ = bbox;
 }
 
+bool
+CQChartsEllipseAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  QPointF center;
+
+  if      (plot_)
+    center = plot_->positionToPlot(center_);
+  else if (view_)
+    center = view_->positionToView(center_);
+
+  double dx = p.getX() - center.x();
+  double dy = p.getY() - center.y();
+
+  double xr2 = xRadius_*xRadius_;
+  double yr2 = yRadius_*yRadius_;
+
+  return (((dx*dx)/xr2 + (dy*dy)/yr2) < 1);
+}
+
 void
 CQChartsEllipseAnnotation::
 draw(QPainter *painter)
@@ -484,31 +504,36 @@ draw(QPainter *painter)
 
   //---
 
+  // create path
   QPainterPath path;
 
   path.addEllipse(CQChartsUtil::toQRect(prect));
 
   //---
 
+  QPen   pen;
+  QBrush brush;
+
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
 
     bgColor.setAlphaF(backgroundAlpha());
 
-    QBrush brush(bgColor);
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(bgColor);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) backgroundPattern()));
-
-    painter->fillPath(path, brush);
   }
+  else
+    brush.setStyle(Qt::NoBrush);
 
   if (isBorder()) {
     QColor borderColor = interpBorderColor(0, 1);
 
     borderColor.setAlphaF(borderAlpha());
 
-    QPen pen(borderColor);
+    pen.setColor(borderColor);
 
     double bw = 0.0;
 
@@ -518,9 +543,17 @@ draw(QPainter *painter)
       bw = view_->lengthPixelWidth(borderWidth());
 
     pen.setWidthF(bw);
-
-    painter->strokePath(path, pen);
   }
+  else
+    pen.setStyle(Qt::NoPen);
+
+  if (plot_)
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  painter->fillPath  (path, brush);
+  painter->strokePath(path, pen  );
 
   //---
 
@@ -594,6 +627,13 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   bbox_ = bbox;
 }
 
+bool
+CQChartsPolygonAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return (points_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill));
+}
+
 void
 CQChartsPolygonAnnotation::
 draw(QPainter *painter)
@@ -617,6 +657,7 @@ draw(QPainter *painter)
 
   //---
 
+  // create path
   QPainterPath path;
 
   double px = 0.0, py = 0.0;
@@ -643,22 +684,29 @@ draw(QPainter *painter)
 
   //---
 
+  QPen   pen;
+  QBrush brush;
+
   if (isBackground()) {
     QColor bgColor = interpBackgroundColor(0, 1);
 
     bgColor.setAlphaF(backgroundAlpha());
 
-    QBrush brush(bgColor);
+    brush.setStyle(Qt::SolidPattern);
+    brush.setColor(bgColor);
 
-    painter->fillPath(path, brush);
+    brush.setStyle(CQChartsFillPattern::toStyle(
+     (CQChartsFillPattern::Type) backgroundPattern()));
   }
+  else
+    brush.setStyle(Qt::NoBrush);
 
   if (isBorder()) {
     QColor borderColor = interpBorderColor(0, 1);
 
     borderColor.setAlphaF(borderAlpha());
 
-    QPen pen(borderColor);
+    pen.setColor(borderColor);
 
     double bw = 0.0;
 
@@ -668,9 +716,17 @@ draw(QPainter *painter)
       bw = view_->lengthPixelWidth(borderWidth());
 
     pen.setWidthF(bw);
-
-    painter->strokePath(path, pen);
   }
+  else
+    pen.setStyle(Qt::NoPen);
+
+  if (plot_)
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  painter->fillPath  (path, brush);
+  painter->strokePath(path, pen  );
 
   //---
 
@@ -800,6 +856,7 @@ draw(QPainter *painter)
 
   //---
 
+  // create path
   QPainterPath path;
 
   double px = 0.0, py = 0.0;
@@ -948,6 +1005,13 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   position_ = CQChartsPosition(CQChartsUtil::toQPoint(vp), CQChartsPosition::Units::VIEW);
 
   bbox_ = bbox;
+}
+
+bool
+CQChartsTextAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return CQChartsAnnotation::inside(p);
 }
 
 void
@@ -1185,6 +1249,36 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   bbox_ = bbox;
 }
 
+bool
+CQChartsArrowAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  QPointF start, end;
+
+  if      (plot_) {
+    start = plot_->positionToPlot(start_);
+    end   = plot_->positionToPlot(end_  );
+  }
+  else if (view_) {
+    start = view_->positionToView(start_);
+    end   = view_->positionToView(end_  );
+  }
+
+  CQChartsGeom::Point p1;
+
+  if      (plot_)
+    p1 = plot_->windowToPixel(p);
+  else if (view_)
+    p1 = view_->windowToPixel(p);
+
+  CQChartsGeom::Point ps = CQChartsUtil::fromQPoint(start);
+  CQChartsGeom::Point pe = CQChartsUtil::fromQPoint(end  );
+
+  double d;
+
+  return (CQChartsUtil::PointLineDistance(p1, ps, pe, &d) && d < 3);
+}
+
 void
 CQChartsArrowAnnotation::
 draw(QPainter *painter)
@@ -1314,6 +1408,13 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   position_ = CQChartsPosition(position);
 
   bbox_ = bbox;
+}
+
+bool
+CQChartsPointAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  return CQChartsAnnotation::inside(p);
 }
 
 void
