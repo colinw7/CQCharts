@@ -149,7 +149,7 @@ setTextFont(const QFont &f)
 
 void
 CQChartsImagePlot::
-updateRange(bool apply)
+calcRange()
 {
   class RowVisitor : public ModelVisitor {
    public:
@@ -214,11 +214,6 @@ updateRange(bool apply)
 
   dataRange_.updateRange(  0,   0);
   dataRange_.updateRange(nc_, nr_);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 bool

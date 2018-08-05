@@ -474,7 +474,7 @@ addProperties()
 
 void
 CQChartsScatterPlot::
-updateRange(bool apply)
+calcRange()
 {
   initGroupData(Columns(), CQChartsColumn());
 
@@ -555,11 +555,6 @@ updateRange(bool apply)
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 //------

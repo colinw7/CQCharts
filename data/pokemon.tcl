@@ -1,11 +1,11 @@
 set model [load_model -csv data/Pokemon.csv -comment_header]
 
 # get column numbers
-set type1Column      [get_charts_data -model $model -name column -data {Type 1}]
-set type2Column      [get_charts_data -model $model -name column -data {Type 2}]
-set legendaryColumn  [get_charts_data -model $model -name column -data Legendary]
-set totalColumn      [get_charts_data -model $model -name column -data Total]
-set generationColumn [get_charts_data -model $model -name column -data Generation]
+set type1Column      [get_charts_data -model $model -name column_index -data {Type 1}]
+set type2Column      [get_charts_data -model $model -name column_index -data {Type 2}]
+set legendaryColumn  [get_charts_data -model $model -name column_index -data Legendary]
+set totalColumn      [get_charts_data -model $model -name column_index -data Total]
+set generationColumn [get_charts_data -model $model -name column_index -data Generation]
 
 # create new Type 2 row with empty rows set to Type 1 value
 set type2Column1 [process_model -model $model -add -expr "column($type2Column)" -header "Type 2a"]

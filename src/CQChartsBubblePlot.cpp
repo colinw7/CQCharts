@@ -398,7 +398,7 @@ currentRoot() const
 
 void
 CQChartsBubblePlot::
-updateRange(bool apply)
+calcRange()
 {
   double r = 1.0;
 
@@ -416,11 +416,6 @@ updateRange(bool apply)
   //---
 
   initGroupData(Columns(), nameColumn(), /*hier*/true);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 //------

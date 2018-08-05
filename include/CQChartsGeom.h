@@ -718,19 +718,6 @@ class BBox {
     return 2*getWidth() + 2*getHeight();
   }
 
-#if 0
-  CMathGen::AxisType2D maxAxis() const {
-    if (! set_) return CMathGen::X_AXIS_2D;
-
-    Vector diag(pmax_.x - pmin_.x, pmax_.y - pmin_.y);
-
-    if      (diag.getX() > diag.getY())
-      return CMathGen::X_AXIS_2D;
-    else
-      return CMathGen::Y_AXIS_2D;
-  }
-#endif
-
   Point getMin() const { assert(set_); return pmin_; }
   Point getMax() const { assert(set_); return pmax_; }
 
@@ -932,19 +919,6 @@ class BBox {
     return *this;
   }
 
-#if 0
-  BBox &moveBy(const Vector &delta) {
-    assert(set_);
-
-    pmin_ += delta;
-    pmax_ += delta;
-
-    update();
-
-    return *this;
-  }
-#endif
-
   BBox &moveBy(const Point &delta) {
     assert(set_);
 
@@ -1119,14 +1093,6 @@ class Matrix {
      assert(false && "Invalid size");
   }
 
-#if 0
-  Matrix(const Vector &v0, const Vector &v1) :
-   m00_(v0.getX()), m01_(v1.getX()), m10_(v0.getY()), m11_(v1.getY()) {
-    setOuterIdentity ();
-    setBottomIdentity();
-  }
-#endif
-
   Matrix *dup() const {
     return new Matrix(*this);
   }
@@ -1268,14 +1234,6 @@ class Matrix {
     setOuterTranslate(tx, ty);
     setBottomIdentity();
   }
-
-#if 0
-  void setTranslation(const Vector &vector) {
-    setInnerIdentity ();
-    setOuterTranslate(vector.getX(), vector.getY());
-    setBottomIdentity();
-  }
-#endif
 
   void setScale(double s) {
     setInnerScale    (s, s);
@@ -1427,40 +1385,12 @@ class Matrix {
     }
   }
 
-#if 0
-  void setColumn(int c, const Vector &vector) {
-    switch (c) {
-      case 0: vector.getXY(&m00_, &m10_); break;
-      case 1: vector.getXY(&m01_, &m11_); break;
-    }
-  }
-
-  void setColumns(Vector &u, Vector &v) {
-    setColumn(0, u);
-    setColumn(1, v);
-  }
-#endif
-
   void getColumn(int c, double *x, double *y) const {
     switch (c) {
       case 0: if (x) *x = m00_; if (y) *y = m10_; break;
       case 1: if (x) *x = m01_; if (y) *y = m11_; break;
     }
   }
-
-#if 0
-  void getColumn(int c, Vector &vector) {
-    switch (c) {
-      case 0: vector = Vector(m00_, m10_); break;
-      case 1: vector = Vector(m01_, m11_); break;
-    }
-  }
-
-  void getColumns(Vector &u, Vector &v) {
-    getColumn(0, u);
-    getColumn(1, v);
-  }
-#endif
 
   //------
 
@@ -1477,15 +1407,6 @@ class Matrix {
       case 1: m10_ = point.x; m11_ = point.y; break;
     }
   }
-
-#if 0
-  void setRow(int r, const Vector &vector) {
-    switch (r) {
-      case 0: vector.getXY(&m00_, &m01_); break;
-      case 1: vector.getXY(&m10_, &m11_); break;
-    }
-  }
-#endif
 
   void getRow(int r, double *x, double *y) const {
     switch (r) {
@@ -1506,19 +1427,6 @@ class Matrix {
     point2.y = m10_*point1.x + m11_*point1.y + m12_;
   }
 
-#if 0
-  void multiplyVector(const Vector &ivector, Vector &ovector) const {
-    double ix, iy;
-
-    ivector.getXY(&ix, &iy);
-
-    double ox = m00_*ix + m01_*iy;
-    double oy = m10_*ix + m11_*iy;
-
-    ovector.setXY(ox, oy);
-  }
-#endif
-
   void preMultiplyPoint(double xi, double yi, double *xo, double *yo) const {
     *xo = m00_*xi + m10_*yi;
     *yo = m01_*xi + m11_*yi;
@@ -1528,19 +1436,6 @@ class Matrix {
     opoint.x = m00_*ipoint.x + m10_*ipoint.y;
     opoint.y = m01_*ipoint.x + m11_*ipoint.y;
   }
-
-#if 0
-  void preMultiplyVector(const Vector &ivector, Vector &ovector) const {
-    double ix, iy;
-
-    ivector.getXY(&ix, &iy);
-
-    double ox = m00_*ix + m10_*iy;
-    double oy = m01_*ix + m11_*iy;
-
-    ovector.setXY(ox, oy);
-  }
-#endif
 
   const Matrix &translate(double x, double y) {
     m02_ += x;
@@ -1789,24 +1684,6 @@ class Matrix {
 
     return p1;
   }
-
-#if 0
-  friend Vector operator*(const Matrix &m, const Vector &v) {
-    Vector v1;
-
-    m.multiplyVector(v, v1);
-
-    return v1;
-  }
-
-  friend Vector operator*(const Vector &v, const Matrix &m) {
-    Vector v1;
-
-    m.preMultiplyVector(v, v1);
-
-    return v1;
-  }
-#endif
 
   const Matrix &operator/=(const Matrix &b) {
     Matrix bi;

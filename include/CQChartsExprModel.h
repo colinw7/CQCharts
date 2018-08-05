@@ -12,6 +12,7 @@ class CQChartsExprModelFn;
 class CQCharts;
 
 #ifdef CQCharts_USE_TCL
+class CQChartsExprTcl;
 class CQTcl;
 #endif
 
@@ -111,6 +112,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   virtual QVariant processCmd(const QString &name, const Values &values);
 
+  void setVar(const QString &name, int row);
+
  private:
   using OptInt     = boost::optional<int>;
   using OptReal    = boost::optional<double>;
@@ -146,7 +149,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   void addBuiltinFunctions();
 
 #ifdef CQCharts_USE_TCL
-  CQTcl *qtcl() const { return qtcl_; }
+  CQTcl *qtcl() const;
 #endif
 
   //---
@@ -160,6 +163,10 @@ class CQChartsExprModel : public QAbstractProxyModel {
   void calcColumn(int column, int ecolumn);
 
   QVariant getExtraColumnValue(int row, int column, int ecolumn) const;
+
+  //---
+
+  void initCalc();
 
   //---
 
@@ -200,13 +207,15 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool     setCmdData(int row, int col, const QVariant &var);
 
  protected:
-  typedef std::vector<ExtraColumn> ExtraColumns;
-  typedef std::map<int,ColumnData> ColumnDatas;
+  using ExtraColumns = std::vector<ExtraColumn>;
+  using ColumnDatas  = std::map<int,ColumnData>;
+  using ColumnNames  = std::map<int,QString>;
+  using NameColumns  = std::map<QString,int>;
 
   CQCharts*           charts_     { nullptr };
   QAbstractItemModel* model_      { nullptr };
 #ifdef CQCharts_USE_TCL
-  CQTcl*              qtcl_       { nullptr };
+  CQChartsExprTcl*    qtcl_       { nullptr };
 #endif
   TclCmds             tclCmds_;
   bool                editable_   { true };
@@ -217,6 +226,8 @@ class CQChartsExprModel : public QAbstractProxyModel {
   mutable int         currentRow_ { 0 };
   mutable int         currentCol_ { 0 };
   mutable ColumnDatas columnDatas_;
+  ColumnNames         columnNames_;
+  NameColumns         nameColumns_;
 };
 
 #endif

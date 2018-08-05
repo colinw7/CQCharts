@@ -5,6 +5,8 @@
 
 #include <QObject>
 #include <QAbstractItemModel>
+#include <QSharedPointer>
+#include <vector>
 
 class CQChartsWindow;
 class CQChartsView;

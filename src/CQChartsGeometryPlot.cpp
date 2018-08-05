@@ -302,7 +302,7 @@ addProperties()
 
 void
 CQChartsGeometryPlot::
-updateRange(bool apply)
+calcRange()
 {
   QAbstractItemModel *model = this->model().data();
 
@@ -344,11 +344,6 @@ updateRange(bool apply)
   GeometryPlotVisitor geometryPlotVisitor(this);
 
   visitModel(geometryPlotVisitor);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 void

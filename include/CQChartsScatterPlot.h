@@ -376,7 +376,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   void updateObjs() override;
 

@@ -14,7 +14,7 @@ inline int eval(Tcl_Interp *interp, const QString &str) {
   return Tcl_EvalEx(interp, str.toLatin1().constData(), -1, 0);
 }
 
-inline Tcl_Obj *variantToObj(Tcl_Interp *, const QVariant &var) {
+inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   if      (var.type() == QVariant::Double) {
     return Tcl_NewDoubleObj(var.value<double>());
   }
@@ -38,6 +38,24 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *, const QVariant &var) {
     QString str = QString("%1:%2").arg(row).arg(col);
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::List) {
+    QVariantList vars = var.value<QVariantList>();
+
+    Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+    int nv = vars.length();
+
+    for (int i = 0; i < nv; ++i) {
+      if (! vars[i].isValid())
+        continue;
+
+      Tcl_Obj *sobj = variantToObj(interp, vars[i]);
+
+      Tcl_ListObjAppendElement(interp, obj, sobj);
+    }
+
+    return obj;
   }
   else {
     QString str = var.toString();
@@ -308,9 +326,14 @@ class CQTcl : public CTcl {
   }
 
   void traceVar(const QString &name) {
-    Tcl_TraceVar(interp(), name.toLatin1().constData(),
-      TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY,
-      &CQTcl::traceProc, (ClientData) this);
+    int flags = TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS | TCL_GLOBAL_ONLY;
+
+    ClientData data =
+      Tcl_VarTraceInfo(interp(), name.toLatin1().constData(), flags, &CQTcl::traceProc, 0);
+
+    if (! data)
+      Tcl_TraceVar(interp(), name.toLatin1().constData(), flags,
+        &CQTcl::traceProc, (ClientData) this);
   }
 
   virtual void handleTrace(const char *name, int flags) {

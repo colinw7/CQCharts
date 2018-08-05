@@ -310,7 +310,7 @@ setTextAlpha(double a)
 
 void
 CQChartsDendrogramPlot::
-updateRange(bool apply)
+calcRange()
 {
   delete dendrogram_;
 
@@ -383,11 +383,6 @@ updateRange(bool apply)
 
   dataRange_.updateRange(0, 0);
   dataRange_.updateRange(1, 1);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 void

@@ -43,6 +43,7 @@ class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
 class CQChartsBoxObj;
+class CQChartsObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
 class CQChartsDisplayTransform;
@@ -341,7 +342,7 @@ class CQChartsPlot : public QObject {
   //---
 
   const QString &filterStr() const { return filterStr_; }
-  void setFilterStr(const QString &s) { filterStr_ = s; }
+  void setFilterStr(const QString &s);
 
   //---
 
@@ -787,6 +788,8 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  double lengthPlotSize(const CQChartsLength &len, bool horizontal) const;
+
   double lengthPlotWidth (const CQChartsLength &len) const;
   double lengthPlotHeight(const CQChartsLength &len) const;
 
@@ -839,6 +842,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  void plotSymbolSize (const CQChartsLength &s, double &sx, double &sy) const;
   void pixelSymbolSize(const CQChartsLength &s, double &sx, double &sy) const;
 
   double limitSymbolSize(double s) const;
@@ -866,18 +870,24 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  // update data range
-  // (TODO: remove apply)
-  virtual void updateRange(bool apply=true) = 0;
+  // update data range (calls calcRange)
+  virtual void updateRange(bool apply=true);
 
+  virtual void calcRange() = 0;
+
+  // update plot objects (clear objects, objects updated on next redraw)
   virtual void updateObjs();
 
+  // reset range and objects
   void clearRangeAndObjs();
 
+  // recalc range and clear objects (objects updated on next redraw)
   void updateRangeAndObjs();
 
+ private:
   void updateRangeAndObjsInternal();
 
+ public:
   // (re)initialize plot objects
   void initPlotObjs();
 
@@ -979,6 +989,8 @@ class CQChartsPlot : public QObject {
   virtual bool editRelease(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w);
 
   virtual void editMoveBy(const QPointF &d);
+
+  void deselectAllObjs();
 
   void deselectAll();
 
@@ -1097,6 +1109,10 @@ class CQChartsPlot : public QObject {
 
   CQChartsAnnotation *getAnnotationByName(const QString &id) const;
 
+  void removeAnnotation(CQChartsAnnotation *annotation);
+
+  void removeAllAnnotations();
+
   //---
 
   CQChartsPlotObj *getObject(const QString &objectId) const;
@@ -1155,9 +1171,9 @@ class CQChartsPlot : public QObject {
   virtual void drawTitle(QPainter *painter);
 
   // draw annotations
-  void drawGroupedAnnotations(QPainter *painter);
+  void drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
 
-  virtual void drawAnnotations(QPainter *painter);
+  virtual void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
 
   // draw foreground
   virtual void drawForeground(QPainter *painter);
@@ -1237,7 +1253,7 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void updateObjPenBrushState(const CQChartsPlotObj *obj, QPen &pen, QBrush &brush) const;
+  void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush) const;
 
   void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true) const;
   void updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const;
@@ -1313,6 +1329,9 @@ class CQChartsPlot : public QObject {
   // draw plot layer
   void drawLayer(QPainter *painter, CQChartsLayer::Type type);
 
+  // draw plot layer type
+  CQChartsLayer::Type drawLayerType() const { return drawLayer_; }
+
   //---
 
   bool printLayer(CQChartsLayer::Type type, const QString &filename);
@@ -1320,6 +1339,7 @@ class CQChartsPlot : public QObject {
  protected slots:
   void animateSlot();
 
+  // model change slots
   void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
 
   void modelLayoutChangedSlot();
@@ -1330,29 +1350,44 @@ class CQChartsPlot : public QObject {
   void modelColumnsInsertedSlot();
   void modelColumnsRemovedSlot();
 
+  //---
+
   void updateTimerSlot();
 
   void selectionSlot();
 
  signals:
+  // model data changed
   void modelChanged();
 
-  void layersChanged();
+  // data range changed
+  void rangeChanged();
 
+  // plot objects added
+  void plotObjsAdded();
+
+  // connection (x1x2, y1y2, overlay) changed
   void connectDataChanged();
 
+  // layers changed (active, valid)
+  void layersChanged();
+
+  // key signals (key, key item pressed)
   void keyItemPressed(CQChartsKeyItem *);
   void keyItemIdPressed(const QString &);
 
   void keyPressed(CQChartsPlotKey *);
   void keyIdPressed(const QString &);
 
+  // title signals (title pressed)
   void titlePressed(CQChartsTitle *);
   void titleIdPressed(const QString &);
 
+  // annotation signals (annotation pressed)
   void annotationPressed(CQChartsAnnotation *);
   void annotationIdPressed(const QString &);
 
+  // object signals (object pressed)
   void objPressed(CQChartsPlotObj *);
   void objIdPressed(const QString &);
 
@@ -1474,6 +1509,7 @@ class CQChartsPlot : public QObject {
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection            itemSelection_;                   // selected model indices
   CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
+  int                       updateTimeout_    { 100 };
   CQChartsEditHandles       editHandles_;                     // edit controls
   Annotations               annotations_;                     // extra annotations
   bool                      fromInvalidate_ { false };

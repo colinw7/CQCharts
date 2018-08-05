@@ -76,7 +76,7 @@ updateSize()
     image_    = new QImage(size_, QImage::Format_ARGB32);
     ipainter_ = nullptr;
 
-    valid_ = false;
+    setValid(false);
   }
 }
 
@@ -128,7 +128,7 @@ endPaint()
   if (! valid_) {
     ipainter()->end();
 
-    valid_ = true;
+    setValid(true);
   }
 
   painter_->drawImage(rect_.x(), rect_.y(), *image());

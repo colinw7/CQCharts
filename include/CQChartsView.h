@@ -332,6 +332,10 @@ class CQChartsView : public QFrame {
 
   CQChartsAnnotation *getAnnotationByName(const QString &id) const;
 
+  void removeAnnotation(CQChartsAnnotation *annotation);
+
+  void removeAllAnnotations();
+
   //---
 
   void resetGrouping();

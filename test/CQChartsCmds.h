@@ -41,11 +41,13 @@ class CQChartsCmdsSlot : public QObject {
                    const QString &procName);
 
  private:
-  QString getTclCmd(const QString &id) const;
+  QString getTclCmd() const;
+  QString getTclIdCmd(const QString &id) const;
 
  public slots:
   void objIdPressed       (const QString &);
   void annotationIdPressed(const QString &);
+  void plotObjsAdded      ();
 
  private:
   CQChartsCmds* cmds_ { nullptr };
@@ -167,6 +169,7 @@ class CQChartsCmds : public QObject {
   void createPolygonShapeCmd (const Vars &vars);
   void createPolylineShapeCmd(const Vars &vars);
   void createPointShapeCmd   (const Vars &vars);
+  void removeShapeCmd        (const Vars &vars);
 
   void connectChartCmd(const Vars &vars);
 
@@ -175,6 +178,8 @@ class CQChartsCmds : public QObject {
   void loadModelDlgCmd  (const Vars &vars);
   void manageModelDlgCmd(const Vars &vars);
   void createPlotDlgCmd (const Vars &vars);
+
+  void syncQtCmd(const Vars &vars);
 
   void shellCmd(const Vars &vars);
 
@@ -215,6 +220,8 @@ class CQChartsCmds : public QObject {
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
   void setCmdRc(const QList<QVariant> &rc);
+
+  void setCmdError(const QString &msg);
 
   QStringList stringToColumns(const QString &str) const;
 

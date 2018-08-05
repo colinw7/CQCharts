@@ -2,21 +2,20 @@
 #define CQChartsPlotObj_H
 
 #include <CQChartsPlot.h>
-#include <QObject>
+#include <CQChartsObj.h>
 #include <CQChartsGeom.h>
 #include <QPen>
 #include <QBrush>
 
-class CQChartsPlotObj : public QObject {
+class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString            typeName READ typeName)
   Q_PROPERTY(CQChartsGeom::BBox rect     READ rect       WRITE setRect    )
   Q_PROPERTY(QString            id       READ id         WRITE setId      )
   Q_PROPERTY(QString            tipId    READ tipId      WRITE setTipId   )
   Q_PROPERTY(int                colorInd READ colorInd   WRITE setColorInd)
   Q_PROPERTY(bool               visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(bool               selected READ isSelected WRITE setSelected)
-  Q_PROPERTY(bool               inside   READ isInside   WRITE setInside  )
   Q_PROPERTY(QBrush             fill     READ fill       WRITE setFill    )
   Q_PROPERTY(QPen               stroke   READ stroke     WRITE setStroke  )
 
@@ -28,7 +27,13 @@ class CQChartsPlotObj : public QObject {
 
   virtual ~CQChartsPlotObj() { }
 
+  //---
+
   CQChartsPlot *plot() const { return plot_; }
+
+  virtual QString typeName() const { return ""; }
+
+  //---
 
   const CQChartsGeom::BBox &rect() const { return rect_; }
   void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
@@ -63,12 +68,6 @@ class CQChartsPlotObj : public QObject {
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { visible_ = b; }
-
-  bool isSelected() const { return selected_; }
-  void setSelected(bool b) { selected_ = b; }
-
-  bool isInside() const { return inside_; }
-  void setInside(bool b) { inside_ = b; }
 
   const QBrush &fill() const { return fill_; }
   void setFill(const QBrush &b) { fill_ = b; }
@@ -122,8 +121,6 @@ class CQChartsPlotObj : public QObject {
   OptString          tipId_;                // tip id
   int                colorInd_ { -1 };      // color index
   bool               visible_  { true };    // is visible
-  bool               selected_ { false };   // is selected
-  bool               inside_   { false };   // is mouse inside
   QBrush             fill_;                 // fill brush
   QPen               stroke_;               // stroke pen
 };

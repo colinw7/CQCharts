@@ -34,6 +34,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  virtual QString propertyId() const = 0;
+
   void addStrokeFillProperties(CQPropertyViewModel *model, const QString &path);
 
   void addStrokeProperties(CQPropertyViewModel *model, const QString &path);
@@ -44,6 +46,8 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   bool setProperty(const QString &name, const QVariant &value);
 
   bool contains(const CQChartsGeom::Point &p) const;
+
+  virtual bool inside(const CQChartsGeom::Point &p) const;
 
   //---
 
@@ -105,6 +109,8 @@ class CQChartsRectAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  QString propertyId() const override;
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
@@ -142,6 +148,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  QString propertyId() const override;
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
@@ -170,6 +178,8 @@ class CQChartsPolygonAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  QString propertyId() const override;
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
@@ -196,7 +206,11 @@ class CQChartsPolylineAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  QString propertyId() const override;
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
 
   void draw(QPainter *painter) override;
 
@@ -225,6 +239,8 @@ class CQChartsTextAnnotation : public CQChartsAnnotation {
   //---
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  QString propertyId() const override;
 
   //---
 
@@ -264,6 +280,8 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
+  QString propertyId() const override;
+
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 
   void draw(QPainter *painter) override;
@@ -299,6 +317,8 @@ class CQChartsPointAnnotation : public CQChartsAnnotation {
   void setPointData(const CQChartsSymbolData &p) { pointData_ = p; emit dataChanged(); }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
+
+  QString propertyId() const override;
 
   void setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &dragSide) override;
 

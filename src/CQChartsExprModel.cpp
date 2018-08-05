@@ -16,12 +16,38 @@
 #include <QColor>
 #include <iostream>
 
+//------
+
+#ifdef CQCharts_USE_TCL
+class CQChartsExprTcl : public CQTcl {
+ public:
+  CQChartsExprTcl(CQChartsExprModel *model) :
+   model_(model), row_(-1) {
+  }
+
+  int row() const { return row_; }
+  void setRow(int i) { row_ = i; }
+
+  void handleTrace(const char *name, int flags) override {
+    if (flags & TCL_TRACE_READS) {
+      model_->setVar(name, row());
+    }
+  }
+
+ private:
+  CQChartsExprModel *model_ { nullptr };
+  int                row_   { -1 };
+};
+#endif
+
+//------
+
 CQChartsExprModel::
 CQChartsExprModel(CQCharts *charts, QAbstractItemModel *model) :
  charts_(charts), model_(model)
 {
 #ifdef CQCharts_USE_TCL
-  qtcl_ = new CQTcl;
+  qtcl_ = new CQChartsExprTcl(this);
 #endif
 
   addBuiltinFunctions();
@@ -70,6 +96,13 @@ addBuiltinFunctions()
 
   addFunction("remap"    );
   addFunction("timeval"  );
+}
+
+CQTcl *
+CQChartsExprModel::
+qtcl() const
+{
+  return qtcl_;
 }
 
 void
@@ -235,8 +268,7 @@ void
 CQChartsExprModel::
 calcColumn(int column, const QString &expr, Values &values) const
 {
-  nr_ = rowCount();
-  nc_ = columnCount();
+  const_cast<CQChartsExprModel *>(this)->initCalc();
 
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
@@ -256,8 +288,7 @@ bool
 CQChartsExprModel::
 queryColumn(int column, const QString &expr, Rows &rows) const
 {
-  nr_ = rowCount();
-  nc_ = columnCount();
+  const_cast<CQChartsExprModel *>(this)->initCalc();
 
   bool rc = true;
 
@@ -283,6 +314,30 @@ queryColumn(int column, const QString &expr, Rows &rows) const
 
 void
 CQChartsExprModel::
+initCalc()
+{
+  nr_ = rowCount();
+  nc_ = columnCount();
+
+  columnNames_.clear();
+  nameColumns_.clear();
+
+  for (int column = 0; column < nc_; ++column) {
+    QVariant var = this->headerData(column, Qt::Horizontal);
+
+    bool ok;
+
+    QString name = CQChartsUtil::toString(var, ok);
+
+    columnNames_[column] = name;
+    nameColumns_[name  ] = column;
+
+    qtcl_->traceVar(name);
+  }
+}
+
+void
+CQChartsExprModel::
 calcColumn(int column, int ecolumn)
 {
   nr_ = rowCount();
@@ -301,8 +356,7 @@ bool
 CQChartsExprModel::
 processExpr(const QString &expr)
 {
-  nr_ = rowCount();
-  nc_ = columnCount();
+  initCalc();
 
   bool rc = true;
 
@@ -1599,6 +1653,8 @@ evaluateExpression(const QString &expr, QVariant &var) const
     return false;
 
 #ifdef CQCharts_USE_TCL
+  qtcl_->setRow(currentRow_);
+
   int rc = qtcl_->evalExpr(expr);
 
   if (rc != TCL_OK) {
@@ -1609,6 +1665,26 @@ evaluateExpression(const QString &expr, QVariant &var) const
   return getTclResult(var);
 #else
   return false;
+#endif
+}
+
+void
+CQChartsExprModel::
+setVar(const QString &name, int row)
+{
+#ifdef CQCharts_USE_TCL
+  auto p = nameColumns_.find(name);
+
+  if (p == nameColumns_.end())
+    return;
+
+  int col = (*p).second;
+
+  // get model value
+  QVariant var = getCmdData(row, col);
+
+  // store value in column variable
+  qtcl_->createVar(name, var);
 #endif
 }
 

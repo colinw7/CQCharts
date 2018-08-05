@@ -342,7 +342,7 @@ addProperties()
 
 void
 CQChartsParallelPlot::
-updateRange(bool apply)
+calcRange()
 {
   // create axes
   AxisDir adir = (! isHorizontal() ? AxisDir::VERTICAL : AxisDir::HORIZONTAL);
@@ -470,11 +470,6 @@ updateRange(bool apply)
     displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
   else
     displayRange_->setWindowRange(0, -0.5, 1, numSets() - 0.5);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 bool

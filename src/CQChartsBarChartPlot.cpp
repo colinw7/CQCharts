@@ -130,10 +130,10 @@ addProperties()
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "labelColumn", "label");
 
-  addProperty("options", this, "colorBySet");
   addProperty("options", this, "stacked"   );
   addProperty("options", this, "percent"   );
   addProperty("options", this, "rangeBar"  );
+  addProperty("options", this, "colorBySet");
 
   addProperty("dotLines",        this, "dotLines"     , "enabled");
   addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
@@ -184,6 +184,15 @@ setRangeBar(bool b)
 
 void
 CQChartsBarChartPlot::
+setColorBySet(bool b)
+{
+  CQChartsUtil::testAndSet(colorBySet_, b, [&]() {
+    resetSetHidden(); updateRangeAndObjs();
+  });
+}
+
+void
+CQChartsBarChartPlot::
 setDotLines(bool b)
 {
   CQChartsUtil::testAndSet(dotLines_, b, [&]() { updateRangeAndObjs(); } );
@@ -214,7 +223,7 @@ setDotSymbolSize(const CQChartsLength &l)
 
 void
 CQChartsBarChartPlot::
-updateRange(bool apply)
+calcRange()
 {
   dataRange_.reset();
 
@@ -361,11 +370,6 @@ updateRange(bool apply)
   }
 
   yAxis->setLabel(yname);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 void

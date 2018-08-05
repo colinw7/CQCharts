@@ -89,16 +89,13 @@ addProperties()
 
 void
 CQChartsForceDirectedPlot::
-updateRange(bool apply)
+calcRange()
 {
   // TODO: calculate good range size from data or auto fit ?
   dataRange_.reset();
 
   dataRange_.updateRange(-rangeSize_, -rangeSize_);
   dataRange_.updateRange( rangeSize_,  rangeSize_);
-
-  if (apply)
-    applyDataRange();
 }
 
 bool

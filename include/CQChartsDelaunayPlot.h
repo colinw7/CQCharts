@@ -201,7 +201,7 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   bool initObjs() override;
 

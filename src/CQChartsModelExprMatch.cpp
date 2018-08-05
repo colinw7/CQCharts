@@ -399,17 +399,6 @@ evaluateExpression(const QString &expr, const QModelIndex &ind, QVariant &value,
 
   qtcl_->setRow(ind.row());
 
-#if 0
-  // TODO: optimize, get header variable names once (checked for valid chars)
-  // and only add column value for columns which are found (possibly) in expression.
-
-  for (int column = 0; column < nc_; ++column) {
-    QModelIndex ind1 = model_->index(ind.row(), column, ind.parent());
-
-    setVar(ind1);
-  }
-#endif
-
   int rc = qtcl_->evalExpr(expr1);
 
   if (rc != TCL_OK) {

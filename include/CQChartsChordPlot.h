@@ -247,7 +247,7 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   CQChartsGeom::BBox annotationBBox() const override;
 

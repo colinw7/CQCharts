@@ -1,8 +1,8 @@
 #ifndef CQChartsBoxObj_H
 #define CQChartsBoxObj_H
 
+#include <CQChartsObj.h>
 #include <CQChartsData.h>
-#include <QObject>
 #include <QRectF>
 #include <QPolygonF>
 
@@ -10,11 +10,10 @@ class CQChartsView;
 class CQPropertyViewModel;
 class QPainter;
 
-class CQChartsBoxObj : public QObject {
+class CQChartsBoxObj : public CQChartsObj {
   Q_OBJECT
 
   Q_PROPERTY(bool             visible           READ isVisible         WRITE setVisible          )
-  Q_PROPERTY(bool             selected          READ isSelected        WRITE setSelected         )
   Q_PROPERTY(double           margin            READ margin            WRITE setMargin           )
   Q_PROPERTY(double           padding           READ padding           WRITE setPadding          )
   Q_PROPERTY(bool             background        READ isBackground      WRITE setBackground       )
@@ -58,10 +57,6 @@ class CQChartsBoxObj : public QObject {
   // get/set visible
   bool isVisible() const { return boxData_.visible; }
   void setVisible(bool b) { boxData_.visible = b; redrawBoxObj(); }
-
-  // get/set selected
-  bool isSelected() const { return selected_; }
-  void setSelected(bool b) { selected_ = b; redrawBoxObj(); }
 
   //---
 
@@ -143,7 +138,6 @@ class CQChartsBoxObj : public QObject {
  protected:
   CQChartsView*   view_     { nullptr }; // parent view
   CQChartsPlot*   plot_     { nullptr }; // parent plot
-  bool            selected_ { false };   // is selected
   CQChartsBoxData boxData_;              // box data
 };
 

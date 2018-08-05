@@ -108,17 +108,17 @@ class CQChartsCmdArgs {
    public:
     Arg(const QVariant &var=QVariant()) :
      var_(var) {
-      QString varStr = var_.toString();
+      QString varStr = toString(var_);
 
       isOpt_ = (varStr.length() && varStr[0] == '-');
     }
 
-  //QString  str() const { assert(! isOpt_); return var_.toString(); }
+  //QString  str() const { assert(! isOpt_); return toString(var_); }
     QVariant var() const { assert(! isOpt_); return var_; }
 
     bool isOpt() const { return isOpt_; }
 
-    QString opt() const { assert(isOpt_); return var_.toString().mid(1); }
+    QString opt() const { assert(isOpt_); return toString(var_).mid(1); }
 
    private:
     QVariant var_;
@@ -172,7 +172,7 @@ class CQChartsCmdArgs {
   bool getOptValue(QString &str) {
     if (eof()) return false;
 
-    str = argv_[i_++].toString();
+    str = toString(argv_[i_++]);
 
     return true;
   }
@@ -575,7 +575,7 @@ class CQChartsCmdArgs {
         std::cerr << ps.first.toStdString() << "=" << ps.second << "\n";
       }
       for (auto &a : parseArgs_) {
-        std::cerr << a.toString().toStdString() << "\n";
+        std::cerr << toString(a).toStdString() << "\n";
       }
     }
 
@@ -689,41 +689,109 @@ class CQChartsCmdArgs {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
+    QString value = (*p).second[0];
+
     QPolygonF poly;
 
-    CQStrParse parse((*p).second[0]);
+    if (! parsePoly(value, poly))
+      return def;
+
+    return poly;
+  }
+
+  bool parsePoly(const QString &str, QPolygonF &poly) const {
+    CQStrParse parse(str);
+
+    return parsePoly(parse, poly);
+  }
+
+  bool parsePoly(CQStrParse &parse, QPolygonF &poly) const {
+    parse.skipSpace();
+
+    if (parse.isChar('{')) {
+      int pos1 = parse.getPos();
+
+      parse.skipChar();
+
+      parse.skipSpace();
+
+      if (parse.isChar('{')) {
+        parse.setPos(pos1);
+
+        if (! parse.skipBracedString())
+          return false;
+
+        int pos2 = parse.getPos();
+
+        QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
+
+        return parsePoly(str, poly);
+      }
+
+      parse.setPos(pos1);
+    }
+
+    //--
 
     while (! parse.eof()) {
-      parse.skipSpace();
+      QPointF p;
 
-      QString xstr;
-
-      if (! parse.readNonSpace(xstr))
-        break;
-
-      parse.skipSpace();
-
-      QString ystr;
-
-      if (! parse.readNonSpace(ystr))
-        break;
-
-      parse.skipSpace();
-
-      double x, y;
-
-      if (! CQChartsUtil::toReal(xstr, x))
-        break;
-
-      if (! CQChartsUtil::toReal(ystr, y))
-        break;
-
-      QPointF p(x, y);
+      if (! parsePoint(parse, p))
+        return false;
 
       poly << p;
     }
 
-    return poly;
+    return true;
+  }
+
+  bool parsePoint(const QString &str, QPointF &pos) const {
+    CQStrParse parse(str);
+
+    return parsePoint(parse, pos);
+  }
+
+  bool parsePoint(CQStrParse &parse, QPointF &pos) const {
+    parse.skipSpace();
+
+    if (parse.isChar('{')) {
+      int pos1 = parse.getPos();
+
+      if (! parse.skipBracedString())
+        return false;
+
+      int pos2 = parse.getPos();
+
+      QString str = parse.getAt(pos1 + 1, pos2 - pos1 - 2);
+
+      return parsePoint(str, pos);
+    }
+
+    QString xstr;
+
+    if (! parse.readNonSpace(xstr))
+      return false;
+
+    parse.skipSpace();
+
+    QString ystr;
+
+    if (! parse.readNonSpace(ystr))
+      return false;
+
+    parse.skipSpace();
+
+    double x, y;
+
+    if (! CQChartsUtil::toReal(xstr, x))
+      return false;
+
+    if (! CQChartsUtil::toReal(ystr, y))
+      return false;
+
+    pos = QPointF(x, y);
+
+    return true;
   }
 
   Qt::Alignment getParseAlign(const QString &name, Qt::Alignment def=Qt::AlignCenter) const {
@@ -780,7 +848,7 @@ class CQChartsCmdArgs {
     if (lastArg_.isOpt())
       errorMsg("Invalid option '" + lastArg_.opt() + "'");
     else
-      errorMsg("Invalid arg '" + lastArg_.var().toString() + "'");
+      errorMsg("Invalid arg '" + toString(lastArg_.var()) + "'");
   }
 
   void help() const {
@@ -861,6 +929,24 @@ class CQChartsCmdArgs {
     else {
       std::cerr << "<" << cmdArg.argDesc().toStdString() << ">";
     }
+  }
+
+  static QString toString(const QVariant &var) {
+    if (var.type() == QVariant::List) {
+      QList<QVariant> vars = var.toList();
+
+      QStringList strs;
+
+      for (int i = 0; i < vars.length(); ++i) {
+        QString str = toString(vars[i]);
+
+        strs.push_back(str);
+      }
+
+      return "{" + strs.join(" ") + "}";
+    }
+    else
+      return var.toString();
   }
 
  private:

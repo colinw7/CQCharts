@@ -153,7 +153,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   void addNameValue(const QString &name, double value);
 

@@ -32,10 +32,16 @@ class CQChartsModelColumnDetails {
 
   const CQChartsNameValues &nameValues() const;
 
+  static bool isNamedValue(const QString &name);
+
+  QVariant getNamedValue(const QString &name) const;
+
   QVariant minValue() const;
   QVariant maxValue() const;
 
   QVariant meanValue() const;
+
+  QVariant stdDevValue() const;
 
   QVariant dataName(const QVariant &v) const;
 

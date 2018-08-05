@@ -16,6 +16,7 @@ proc create_stat_model { model } {
   lappend stat_row upper_median
   lappend stat_row max
   lappend stat_row outliers
+  lappend stat_row stddev
 
   lappend ::stat_rows $stat_row
 
@@ -38,6 +39,7 @@ proc create_stat_model { model } {
     lappend stat_row [get_charts_data -model $model -column $c -name upper_median]
     lappend stat_row [get_charts_data -model $model -column $c -name max]
     lappend stat_row [get_charts_data -model $model -column $c -name outliers]
+    lappend stat_row [get_charts_data -model $model -column $c -name stddev]
 
     lappend ::stat_rows $stat_row
   }

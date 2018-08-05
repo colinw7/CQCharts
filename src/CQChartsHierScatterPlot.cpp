@@ -210,7 +210,7 @@ addProperties()
 
 void
 CQChartsHierScatterPlot::
-updateRange(bool apply)
+calcRange()
 {
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
@@ -282,11 +282,6 @@ updateRange(bool apply)
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 int

@@ -438,7 +438,6 @@ setScatterFactor(double f)
   CQChartsUtil::testAndSet(scatterFactor_, f, [&]() { updateRangeAndObjs(); } );
 }
 
-
 //---
 
 void
@@ -512,7 +511,7 @@ setMeanDash(const CQChartsLineDash &d)
 
 void
 CQChartsDistributionPlot::
-updateRange(bool apply)
+calcRange()
 {
   dataRange_.reset();
 
@@ -652,15 +651,13 @@ updateRange(bool apply)
 
       values->densityData.calc();
 
-      const CQChartsDensity::Points &opoints = values->densityData.opoints();
-
       if (! isHorizontal()) {
-        for (const auto &p : opoints)
-          densityBBox.add(p.x(), p.y() + doffset);
+        densityBBox.add(values->densityData.xmin1(), values->densityData.ymin1() + doffset);
+        densityBBox.add(values->densityData.xmax1(), values->densityData.ymax1() + doffset);
       }
       else {
-        for (const auto &p : opoints)
-          densityBBox.add(p.y() + doffset, p.x());
+        densityBBox.add(values->densityData.ymin1() + doffset, values->densityData.xmin1());
+        densityBBox.add(values->densityData.ymax1() + doffset, values->densityData.xmax1());
       }
 
       doffset += densityOffset();
@@ -827,11 +824,6 @@ updateRange(bool apply)
       }
     }
   }
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 void
@@ -1159,21 +1151,21 @@ initObjs()
       CQChartsDistributionDensityObj::Data data;
 
       data.points = values->densityData.opoints();
-      data.xmin   = values->densityData.xmin();
-      data.xmax   = values->densityData.xmax();
-      data.ymin   = values->densityData.ymin();
-      data.ymax   = values->densityData.ymax();
+      data.xmin   = values->densityData.xmin1();
+      data.xmax   = values->densityData.xmax1();
+      data.ymin   = values->densityData.ymin1();
+      data.ymax   = values->densityData.ymax1();
       data.mean   = values->mean;
 
       CQChartsGeom::BBox bbox;
 
       if (! isHorizontal()) {
-        for (const auto &p : data.points)
-          bbox.add(p.x(), p.y() + doffset);
+        bbox.add(data.xmin, data.ymin + doffset);
+        bbox.add(data.xmax, data.ymax + doffset);
       }
       else {
-        for (const auto &p : data.points)
-          bbox.add(p.y() + doffset, p.x());
+        bbox.add(data.ymin + doffset, data.xmin);
+        bbox.add(data.ymax + doffset, data.xmin);
       }
 
       if (bbox.isSet()) {
@@ -2507,26 +2499,26 @@ CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeo
     return;
   }
 
-  double x1 = data_.points[0     ].x();
-  double x2 = data_.points[np - 1].x();
+  //double x1 = data_.points[0     ].x();
+  //double x2 = data_.points[np - 1].x();
 
   double y1 = data_.ymin;
 
   if (! plot->isHorizontal()) {
-    poly_ << QPointF(x1, doffset_);
+    //poly_ << QPointF(x1, doffset_);
 
     for (int i = 0; i < np; ++i)
       poly_ << QPointF(data_.points[i].x(), data_.points[i].y() - y1 + doffset_);
 
-    poly_ << QPointF(x2, doffset_);
+    //poly_ << QPointF(x2, doffset_);
   }
   else {
-    poly_ << QPointF(doffset_, x1);
+    //poly_ << QPointF(doffset_, x1);
 
     for (int i = 0; i < np; ++i)
       poly_ << QPointF(data_.points[i].y() - y1 + doffset_, data_.points[i].x());
 
-    poly_ << QPointF(doffset_, x2);
+    //poly_ << QPointF(doffset_, x2);
   }
 }
 

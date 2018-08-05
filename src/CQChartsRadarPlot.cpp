@@ -443,7 +443,7 @@ addProperties()
 
 void
 CQChartsRadarPlot::
-updateRange(bool apply)
+calcRange()
 {
   // get values for each row
   class RowVisitor : public ModelVisitor {
@@ -507,11 +507,6 @@ updateRange(bool apply)
 
     dataRange_.equalScale(aspect);
   }
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 //------

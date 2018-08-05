@@ -215,6 +215,7 @@ HEADERS += \
 ../include/CQChartsPlotObjTree.h \
 ../include/CQChartsBoxObj.h \
 ../include/CQChartsTextBoxObj.h \
+../include/CQChartsObj.h \
 ../include/CQChartsDataLabel.h \
 \
 ../include/CQChartsAxis.h \

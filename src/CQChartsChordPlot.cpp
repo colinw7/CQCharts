@@ -190,7 +190,7 @@ addProperties()
 
 void
 CQChartsChordPlot::
-updateRange(bool apply)
+calcRange()
 {
   double r = 1.0;
 
@@ -206,11 +206,6 @@ updateRange(bool apply)
 
     dataRange_.equalScale(aspect);
   }
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 CQChartsGeom::BBox

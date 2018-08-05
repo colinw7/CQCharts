@@ -545,3 +545,17 @@
 # 7/31/2018
  + improve draw order or overlay plots with buffered layers
  + fix inside symbol outline
+# 8/05/2018
+ + emit signal on plot object load to allow annotations to be build from existing objects
+ + support plot object load signal in tcl
+ + improve inside test for annotations
+ + allow annotations to be deleted from command line
+ + support selection highlight for annotations and draw to correct layers
+ + Add violin, notch and errorbar to box plot
+ + Improve scatter points for box plot (use distribution and allow stacked)
+ + Improve set handling for box plot
+ + Add standard deviation to model details
+ + get_model_data command returns list of values when no column specified
+ + support row, column and header names for get_model_data to return whole row, column or header
+ + Improve density curve points (add tails and normalize)
+ + support named column values in expression model processing

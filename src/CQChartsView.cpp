@@ -400,6 +400,41 @@ getAnnotationByName(const QString &id) const
   return nullptr;
 }
 
+void
+CQChartsView::
+removeAnnotation(CQChartsAnnotation *annotation)
+{
+  int pos = 0;
+
+  for (auto &annotation1 : annotations_) {
+    if (annotation1 == annotation)
+      break;
+
+    ++pos;
+  }
+
+  int n = annotations_.size();
+
+  assert(pos >= 0 && pos < n);
+
+  delete annotation;
+
+  for (int i = pos + 1; i < n; ++i)
+    annotations_[i - 1] = annotations_[i];
+
+  annotations_.pop_back();
+}
+
+void
+CQChartsView::
+removeAllAnnotations()
+{
+  for (auto &annotation : annotations_)
+    delete annotation;
+
+  annotations_.clear();
+}
+
 //---
 
 void

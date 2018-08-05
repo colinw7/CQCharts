@@ -109,6 +109,13 @@ contains(const CQChartsGeom::Point &p) const
   if (! isVisible())
     return false;
 
+  return inside(p);
+}
+
+bool
+CQChartsAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
   return bbox().inside(p);
 }
 
@@ -195,6 +202,7 @@ void
 CQChartsAnnotation::
 draw(QPainter *painter)
 {
+  // draw edit handles for view (TODO: used ?)
   if (! plot_ && view_->mode() == CQChartsView::Mode::EDIT && isSelected())
     drawEditHandles(painter);
 }
@@ -254,7 +262,7 @@ void
 CQChartsRectAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/rectAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -265,6 +273,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "padding");
 
   addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsRectAnnotation::
+propertyId() const
+{
+  return QString("rectAnnotation.%1").arg(ind());
 }
 
 void
@@ -405,7 +420,7 @@ void
 CQChartsEllipseAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/ellipseAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -414,6 +429,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "yRadius");
 
   addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsEllipseAnnotation::
+propertyId() const
+{
+  return QString("ellipseAnnotation.%1").arg(ind());
 }
 
 void
@@ -538,11 +560,18 @@ void
 CQChartsPolygonAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/polyAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsPolygonAnnotation::
+propertyId() const
+{
+  return QString("polygonAnnotation.%1").arg(ind());
 }
 
 void
@@ -681,11 +710,18 @@ void
 CQChartsPolylineAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/polyAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   addStrokeProperties(model, path1);
+}
+
+QString
+CQChartsPolylineAnnotation::
+propertyId() const
+{
+  return QString("polylineAnnotation.%1").arg(ind());
 }
 
 void
@@ -706,6 +742,39 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
   }
 
   bbox_ = bbox;
+}
+
+bool
+CQChartsPolylineAnnotation::
+inside(const CQChartsGeom::Point &p) const
+{
+  double px, py;
+
+  plot()->windowToPixel(p.x, p.y, px, py);
+
+  CQChartsGeom::Point pp(px, py);
+
+  for (int i = 1; i < points_.length(); ++i) {
+    double x1 = points_[i - 1].x();
+    double y1 = points_[i - 1].y();
+    double x2 = points_[i    ].x();
+    double y2 = points_[i    ].y();
+
+    double px1, py1, px2, py2;
+
+    plot()->windowToPixel(x1, y1, px1, py1);
+    plot()->windowToPixel(x2, y2, px2, py2);
+
+    CQChartsGeom::Point pl1(px1, py1);
+    CQChartsGeom::Point pl2(px2, py2);
+
+    double d;
+
+    if (CQChartsUtil::PointLineDistance(pp, pl1, pl2, &d) && d < 3)
+      return true;
+  }
+
+  return false;
 }
 
 void
@@ -824,7 +893,7 @@ void
 CQChartsTextAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/textAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
@@ -838,6 +907,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, this, "textAlign"   , "align"   );
 
   addStrokeFillProperties(model, path1);
+}
+
+QString
+CQChartsTextAnnotation::
+propertyId() const
+{
+  return QString("textAnnotation.%1").arg(ind());
 }
 
 void
@@ -1039,7 +1115,7 @@ void
 CQChartsArrowAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/arrowAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   model->addProperty(path1, this  , "start"    );
   model->addProperty(path1, this  , "end"      );
@@ -1052,6 +1128,13 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, arrow_, "empty"    );
   model->addProperty(path1, arrow_, "lineWidth");
   model->addProperty(path1, arrow_, "labels"   );
+}
+
+QString
+CQChartsArrowAnnotation::
+propertyId() const
+{
+  return QString("arrowAnnotation.%1").arg(ind());
 }
 
 void
@@ -1198,11 +1281,18 @@ void
 CQChartsPointAnnotation::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString path1 = path + QString("/pointAnnotation.%1").arg(ind());
+  QString path1 = path + "/" + propertyId();
 
   CQChartsAnnotation::addProperties(model, path1);
 
   model->addProperty(path1, this, "position");
+}
+
+QString
+CQChartsPointAnnotation::
+propertyId() const
+{
+  return QString("pointAnnotation.%1").arg(ind());
 }
 
 void

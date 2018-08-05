@@ -37,11 +37,13 @@ class CQChartsGroupPlot : public CQChartsPlot {
   Q_PROPERTY(bool           rowGrouping READ isRowGrouping WRITE setRowGrouping)
   Q_PROPERTY(bool           usePath     READ isUsePath     WRITE setUsePath    )
   Q_PROPERTY(bool           useRow      READ isUseRow      WRITE setUseRow     )
-  Q_PROPERTY(bool           exactValue  READ isExactValue  WRITE setExactValue )
-  Q_PROPERTY(bool           autoRange   READ isAutoRange   WRITE setAutoRange  )
-  Q_PROPERTY(double         startValue  READ startValue    WRITE setStartValue )
-  Q_PROPERTY(double         deltaValue  READ deltaValue    WRITE setDeltaValue )
-  Q_PROPERTY(int            numAuto     READ numAuto       WRITE setNumAuto    )
+
+  // bucketing
+  Q_PROPERTY(bool   exactValue READ isExactValue WRITE setExactValue)
+  Q_PROPERTY(bool   autoRange  READ isAutoRange  WRITE setAutoRange )
+  Q_PROPERTY(double startValue READ startValue   WRITE setStartValue)
+  Q_PROPERTY(double deltaValue READ deltaValue   WRITE setDeltaValue)
+  Q_PROPERTY(int    numAuto    READ numAuto      WRITE setNumAuto   )
 
  public:
   CQChartsGroupPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
@@ -50,11 +52,10 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   //---
 
+  // grouping
   const CQChartsColumn &groupColumn() const { return groupColumn_; }
 
   virtual void setGroupColumn(const CQChartsColumn &c);
-
-  //---
 
   bool isRowGrouping() const { return groupData_.rowGrouping; }
   void setRowGrouping(bool b) { groupData_.rowGrouping = b; updateRangeAndObjs(); }
@@ -65,6 +66,9 @@ class CQChartsGroupPlot : public CQChartsPlot {
   bool isUseRow() const { return groupData_.useRow; }
   void setUseRow(bool b) { groupData_.useRow = b; updateRangeAndObjs(); }
 
+  //---
+
+  // bucketing
   bool isExactValue() const { return groupData_.exactValue; }
   void setExactValue(bool b) { groupData_.exactValue = b; updateRangeAndObjs(); }
 

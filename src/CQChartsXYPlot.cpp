@@ -728,7 +728,7 @@ interpPaletteColor(int i, int n, bool scale) const
 
 void
 CQChartsXYPlot::
-updateRange(bool apply)
+calcRange()
 {
   // calc data range (x, y values)
   class RowVisitor : public ModelVisitor {
@@ -912,11 +912,6 @@ updateRange(bool apply)
       yAxis()->setLabel(yname);
     }
   }
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 void

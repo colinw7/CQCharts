@@ -118,6 +118,65 @@ CQChartsModelColumnDetails::
   delete svals_;
 }
 
+bool
+CQChartsModelColumnDetails::
+isNamedValue(const QString &name)
+{
+  return (name == "type" ||
+          name == "min" || name == "minimum" ||
+          name == "max" || name == "maximum" ||
+          name == "mean" || name == "avg" || name == "average" ||
+          name == "monotonic" || name == "increasing" ||
+          name == "num_unique" || name == "unique_values" || name == "unique_counts" ||
+          name == "num_null" ||
+          name == "median" || name == "lower_median" || name == "upper_median" ||
+          name == "stddev" || name == "std_dev" ||
+          name == "outliers");
+}
+
+QVariant
+CQChartsModelColumnDetails::
+getNamedValue(const QString &name) const
+{
+  if      (name == "type")
+    return this->typeName();
+  else if (name == "min" || name == "minimum")
+    return this->minValue();
+  else if (name == "max" || name == "maximum")
+    return this->maxValue();
+  else if (name == "mean" || name == "avg" || name == "average")
+    return this->meanValue();
+  else if (name == "stddev" || name == "std_dev")
+    return this->stdDevValue();
+
+  else if (name == "monotonic")
+    return this->isMonotonic();
+  else if (name == "increasing")
+    return this->isIncreasing();
+
+  else if (name == "num_unique")
+    return this->numUnique();
+  else if (name == "unique_values")
+    return this->uniqueValues();
+  else if (name == "unique_counts")
+    return this->uniqueCounts();
+
+  else if (name == "num_null")
+    return this->numNull();
+
+  else if (name == "median")
+    return this->medianValue();
+  else if (name == "lower_median")
+    return this->lowerMedianValue();
+  else if (name == "upper_median")
+    return this->upperMedianValue();
+
+  else if (name == "outliers")
+    return this->outlierValues();
+
+  return QVariant();
+}
+
 QString
 CQChartsModelColumnDetails::
 typeName() const
@@ -187,6 +246,29 @@ meanValue() const
   }
   else if (type() == CQBaseModel::Type::COLOR) {
     //if (svals_) svals_->mean();
+  }
+
+  return QVariant();
+}
+
+QVariant
+CQChartsModelColumnDetails::
+stdDevValue() const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->stddev();
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->stddev();
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    //if (svals_) svals_->stddev();
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->stddev();
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    //if (svals_) svals_->stddev();
   }
 
   return QVariant();

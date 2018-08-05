@@ -263,12 +263,12 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   // style
   Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn   WRITE setNameColumn )
   Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn  WRITE setLabelColumn)
-  Q_PROPERTY(bool           colorBySet  READ isColorBySet WRITE setColorBySet )
 
   // options
-  Q_PROPERTY(bool stacked  READ isStacked  WRITE setStacked )
-  Q_PROPERTY(bool percent  READ isPercent  WRITE setPercent )
-  Q_PROPERTY(bool rangeBar READ isRangeBar WRITE setRangeBar)
+  Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
+  Q_PROPERTY(bool percent    READ isPercent    WRITE setPercent   )
+  Q_PROPERTY(bool rangeBar   READ isRangeBar   WRITE setRangeBar  )
+  Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
 
   // dot line
   Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
@@ -290,16 +290,16 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
 
   //---
 
-  bool isColorBySet() const { return colorBySet_; }
-  void setColorBySet(bool b) { colorBySet_ = b; resetSetHidden(); updateRangeAndObjs(); }
-
-  //---
-
   bool isStacked() const { return stacked_; }
 
   bool isRangeBar() const { return rangeBar_; }
 
   bool isPercent() const { return percent_; }
+
+  //---
+
+  bool isColorBySet() const { return colorBySet_; }
+  void setColorBySet(bool b);
 
   //---
 
@@ -327,7 +327,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   void updateObjs() override;
 
@@ -397,10 +397,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
  private:
   CQChartsColumn    nameColumn_;               // name column
   CQChartsColumn    labelColumn_;              // data label column
-  bool              colorBySet_     { false }; // color bars by set or value
   bool              stacked_        { false }; // stacked bars
   bool              percent_        { false }; // percent values
   bool              rangeBar_       { false }; // bar of value range
+  bool              colorBySet_     { false }; // color bars by set or value
   bool              dotLines_       { false }; // show dot lines
   CQChartsLength    dotLineWidth_   { "3px" }; // dot line width
   CQChartsSymbol    dotSymbolType_;            // dot symbol type

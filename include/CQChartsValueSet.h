@@ -134,6 +134,8 @@ class CQChartsRValues {
   double sum () const { const_calc(); return sum_ ; }
   double mean() const { const_calc(); return mean_; }
 
+  double stddev() const { const_calc(); return stddev_; }
+
   double median() const { const_calc(); return median_; }
 
   double lowerMedian() const { const_calc(); return lowerMedian_; }
@@ -159,6 +161,7 @@ class CQChartsRValues {
     // init statistics
     sum_         = 0.0;
     mean_        = 0.0;
+    stddev_      = 0.0;
     median_      = 0.0;
     lowerMedian_ = 0.0;
     upperMedian_ = 0.0;
@@ -189,7 +192,27 @@ class CQChartsRValues {
     if (svalues_.empty())
       return;
 
-    mean_ = sum_ / svalues_.size();
+    int n = svalues_.size();
+
+    mean_ = sum_/n;
+
+    //---
+
+    double sum2 = 0.0;
+
+    for (auto &v : values_) {
+      if (! v) continue;
+
+      double r = *v;
+
+      double dr = (r - mean_);
+
+      sum2 += dr*dr;
+    }
+
+    stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
+
+    //---
 
     // sort values
     std::sort(svalues_.begin(), svalues_.end());
@@ -271,6 +294,7 @@ class CQChartsRValues {
   bool      calculated_   { false }; // are stats calculated
   double    sum_          { 0.0 };
   double    mean_         { 0.0 };
+  double    stddev_       { 0.0 };
   double    median_       { 0.0 };
   double    lowerMedian_  { 0.0 };
   double    upperMedian_  { 0.0 };
@@ -402,6 +426,8 @@ class CQChartsIValues {
   double sum () const { const_calc(); return sum_ ; }
   double mean() const { const_calc(); return mean_; }
 
+  double stddev() const { const_calc(); return stddev_; }
+
   double median() const { const_calc(); return median_; }
 
   double lowerMedian() const { const_calc(); return lowerMedian_; }
@@ -457,7 +483,27 @@ class CQChartsIValues {
     if (svalues_.empty())
       return;
 
-    mean_ = sum_/svalues_.size();
+    int n = svalues_.size();
+
+    mean_ = sum_/n;
+
+    //---
+
+    double sum2 = 0.0;
+
+    for (auto &v : values_) {
+      if (! v) continue;
+
+      double r = *v;
+
+      double dr = (r - mean_);
+
+      sum2 += dr*dr;
+    }
+
+    stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
+
+    //---
 
     // sort values
     std::sort(svalues_.begin(), svalues_.end());
@@ -539,6 +585,7 @@ class CQChartsIValues {
   bool      calculated_   { false }; // are stats calculated
   double    sum_          { 0.0 };
   double    mean_         { 0.0 };
+  double    stddev_       { 0.0 };
   double    median_       { 0.0 };
   double    lowerMedian_  { 0.0 };
   double    upperMedian_  { 0.0 };

@@ -2488,7 +2488,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
       else if (parse.isChar('v')) {
         parse.skipChar();
 
-        if (ind.isValid()) {
+        if (model && ind.isValid()) {
           QVariant var = model->data(ind, Qt::DisplayRole);
 
           expr1 += quoteStr(var.toString(), stringify);
@@ -2511,7 +2511,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
 
         CQChartsColumn c;
 
-        if (stringToColumn(model, str, c))
+        if (model && stringToColumn(model, str, c))
           expr1 += QString("column(%1)").arg(c.column());
         else {
           parse.setPos(pos);

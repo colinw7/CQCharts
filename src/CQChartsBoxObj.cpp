@@ -7,13 +7,13 @@
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
- QObject(view), view_(view)
+ CQChartsObj(view), view_(view)
 {
 }
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
- QObject(plot), plot_(plot)
+ CQChartsObj(plot), plot_(plot)
 {
 }
 
@@ -75,12 +75,16 @@ draw(QPainter *painter, const QRectF &rect) const
     bgColor.setAlphaF(backgroundAlpha());
 
     QBrush brush(bgColor);
+    QPen   pen  (Qt::NoPen);
 
     brush.setStyle(CQChartsFillPattern::toStyle(
      (CQChartsFillPattern::Type) backgroundPattern()));
 
+    if (plot_)
+      plot_->updateObjPenBrushState(this, pen, brush);
+
     painter->setBrush(brush);
-    painter->setPen  (Qt::NoPen);
+    painter->setPen  (pen);
 
     double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);
@@ -93,14 +97,18 @@ draw(QPainter *painter, const QRectF &rect) const
 
     borderColor.setAlphaF(borderAlpha());
 
-    QPen pen(borderColor);
+    QBrush brush(Qt::NoBrush);
+    QPen   pen  (borderColor);
 
     double bw = (plot_ ? plot_->lengthPixelWidth(borderWidth()) : 0.0);
 
     pen.setWidthF(bw);
 
+    if (plot_)
+      plot_->updateObjPenBrushState(this, pen, brush);
+
     painter->setPen  (pen);
-    painter->setBrush(Qt::NoBrush);
+    painter->setBrush(brush);
 
     double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
     double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);

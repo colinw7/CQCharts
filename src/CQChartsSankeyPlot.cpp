@@ -467,7 +467,7 @@ addProperties()
 
 void
 CQChartsSankeyPlot::
-updateRange(bool apply)
+calcRange()
 {
   QAbstractItemModel *model = this->model().data();
 
@@ -483,11 +483,6 @@ updateRange(bool apply)
     dataRange_.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
     dataRange_.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
   }
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 bool

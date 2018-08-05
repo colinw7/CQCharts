@@ -341,7 +341,7 @@ addProperties()
 
 void
 CQChartsPiePlot::
-updateRange(bool apply)
+calcRange()
 {
   dataRange_.reset();
 
@@ -389,11 +389,6 @@ updateRange(bool apply)
 
   // init grouping
   initGroupData(valueColumns(), labelColumn());
-
-  //---
-
-  if (apply)
-    applyDataRange();
 }
 
 //------

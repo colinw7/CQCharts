@@ -399,7 +399,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
 
   void addProperties() override;
 
-  void updateRange(bool apply=true) override;
+  void calcRange() override;
 
   void updateObjs() override;
 
