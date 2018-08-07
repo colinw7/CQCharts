@@ -77,6 +77,7 @@ CQChartsPlotObj.cpp \
 CQChartsPlotObjTree.cpp \
 CQChartsBoxObj.cpp \
 CQChartsTextBoxObj.cpp \
+CQChartsObj.cpp \
 CQChartsDataLabel.cpp \
 \
 CQChartsAxis.cpp \

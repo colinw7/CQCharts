@@ -1,12 +1,12 @@
 #ifndef CQChartsHull3D_H
 #define CQChartsHull3D_H
 
+#include <cassert>
 #include <sys/types.h>
 #include <cstdlib>
 #include <cstdio>
 #include <climits>
 #include <cmath>
-#include <cassert>
 #include <iostream>
 
 #include <iterator>

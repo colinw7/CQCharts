@@ -1806,7 +1806,7 @@ addMenuItems(QMenu *menu)
 
   PlotObjs objs;
 
-  selectedObjs(objs);
+  selectedPlotObjs(objs);
 
   menu->addSeparator();
 
@@ -1909,7 +1909,7 @@ pushSlot()
 {
   PlotObjs objs;
 
-  selectedObjs(objs);
+  selectedPlotObjs(objs);
 
   if (objs.empty()) {
     QPointF gpos = view()->menuPos();
@@ -1920,7 +1920,7 @@ pushSlot()
 
     pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
 
-    objsAtPoint(w, objs);
+    plotObjsAtPoint(w, objs);
   }
 
   if (objs.empty())

@@ -2,34 +2,8 @@
 
 CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect) :
- plot_(plot), rect_(rect)
+ CQChartsObj(nullptr, rect), plot_(plot)
 {
-}
-
-const QString &
-CQChartsPlotObj::
-id() const
-{
-  if (! id_) {
-    const_cast<CQChartsPlotObj*>(this)->id_ = calcId();
-
-    assert((*id_).length());
-  }
-
-  return *id_;
-}
-
-const QString &
-CQChartsPlotObj::
-tipId() const
-{
-  if (! tipId_) {
-    const_cast<CQChartsPlotObj*>(this)->tipId_ = calcTipId();
-
-    assert((*tipId_).length());
-  }
-
-  return *tipId_;
 }
 
 bool

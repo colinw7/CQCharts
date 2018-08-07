@@ -2,9 +2,9 @@
 #define CQChartsModelFilter_H
 
 #include <CQChartsRegExp.h>
+#include <cassert>
 #include <QSortFilterProxyModel>
 #include <set>
-#include <cassert>
 
 class CQCharts;
 class CQChartsModelExprMatch;

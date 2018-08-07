@@ -2,9 +2,10 @@
 #define CQTclUtil_H
 
 #include <CTclUtil.h>
+#include <cassert>
 #include <QModelIndex>
 #include <QVariant>
-#include <cassert>
+#include <QStringList>
 
 namespace CQTclUtil {
 

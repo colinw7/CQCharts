@@ -11,8 +11,7 @@
 class CQChartsAnnotation : public CQChartsTextBoxObj {
   Q_OBJECT
 
-  Q_PROPERTY(int     ind READ ind WRITE setInd)
-  Q_PROPERTY(QString id  READ id  WRITE setId )
+  Q_PROPERTY(int ind READ ind WRITE setInd)
 
  public:
   CQChartsAnnotation(CQChartsView *view);
@@ -23,8 +22,9 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
   int ind() const { return ind_; }
   void setInd(int i) { ind_ = i; }
 
-  const QString &id() const { return id_; }
-  void setId(const QString &s) { id_ = s; }
+  QString calcId() const override;
+
+  QString calcTipId() const override;
 
   QString pathId() const;
 
@@ -79,7 +79,6 @@ class CQChartsAnnotation : public CQChartsTextBoxObj {
 
  protected:
   int                 ind_         { 0 };    // unique ind
-  QString             id_;                   // id string
   CQChartsGeom::BBox  bbox_;                 // bbox (plot coords)
   CQChartsEditHandles editHandles_;          // edit handles
   bool                autoSize_    { true }; // set bbox from contents

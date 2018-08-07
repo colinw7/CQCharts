@@ -1585,12 +1585,12 @@ void
 CQChartsView::
 updateSelText()
 {
-  CQChartsPlot::PlotObjs objs;
+  CQChartsPlot::Objs objs;
 
   int num = 0;
 
   for (auto &plot : plots_) {
-    CQChartsPlot::PlotObjs objs1;
+    CQChartsPlot::Objs objs1;
 
     plot->selectedObjs(objs1);
 

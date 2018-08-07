@@ -30,6 +30,26 @@ CQChartsAnnotation::
 
 QString
 CQChartsAnnotation::
+calcId() const
+{
+  if (id_ && id_->length())
+    return *id_;
+
+  return QString("annotation:%1").arg(ind_);
+}
+
+QString
+CQChartsAnnotation::
+calcTipId() const
+{
+  if (tipId_ && tipId_->length())
+    return *tipId_;
+
+  return calcId();
+}
+
+QString
+CQChartsAnnotation::
 pathId() const
 {
   QString id = QString("%1").arg(ind_);
@@ -810,7 +830,7 @@ inside(const CQChartsGeom::Point &p) const
 
   CQChartsGeom::Point pp(px, py);
 
-  for (int i = 1; i < points_.length(); ++i) {
+  for (int i = 1; i < points_.size(); ++i) {
     double x1 = points_[i - 1].x();
     double y1 = points_[i - 1].y();
     double x2 = points_[i    ].x();
@@ -1091,6 +1111,9 @@ draw(QPainter *painter)
 
   //---
 
+  QPen   pen;
+  QBrush brush;
+
   QColor c;
 
   if (plot_)
@@ -1100,9 +1123,20 @@ draw(QPainter *painter)
 
   c.setAlphaF(textAlpha());
 
-  QPen pen(c);
+  pen.setColor(c);
 
-  painter->setPen (pen);
+  brush.setStyle(Qt::NoBrush);
+
+  //---
+
+  if (plot_)
+    plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
   painter->setFont(textFont());
 
   double tx = prect.getXMin  () +   margin() +   padding();
@@ -1477,6 +1511,8 @@ draw(QPainter *painter)
   double px = prect.getXMid();
   double py = prect.getYMid();
 
+  //---
+
   QColor lineColor, fillColor;
 
   if (plot_) {
@@ -1490,6 +1526,8 @@ draw(QPainter *painter)
 
   lineColor.setAlphaF(pointData_.stroke.alpha);
   fillColor.setAlphaF(pointData_.fill  .alpha);
+
+  //---
 
   QPen   pen;
   QBrush brush;
@@ -1515,8 +1553,13 @@ draw(QPainter *painter)
   else
     brush.setStyle(Qt::NoBrush);
 
+  if (plot_)
+    plot_->updateObjPenBrushState(this, pen, brush);
+
   painter->setPen  (pen);
   painter->setBrush(brush);
+
+  //---
 
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
                                      CQChartsUtil::avg(sw, sh));

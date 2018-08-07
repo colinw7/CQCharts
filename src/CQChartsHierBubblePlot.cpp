@@ -995,7 +995,7 @@ addMenuItems(QMenu *menu)
 {
   PlotObjs objs;
 
-  selectedObjs(objs);
+  selectedPlotObjs(objs);
 
   QAction *pushAction   = new QAction("Push"   , menu);
   QAction *popAction    = new QAction("Pop"    , menu);
@@ -1024,7 +1024,7 @@ pushSlot()
 {
   PlotObjs objs;
 
-  selectedObjs(objs);
+  selectedPlotObjs(objs);
 
   if (objs.empty()) {
     QPointF gpos = view()->menuPos();
@@ -1035,7 +1035,7 @@ pushSlot()
 
     pixelToWindow(CQChartsUtil::fromQPoint(pos), w);
 
-    objsAtPoint(w, objs);
+    plotObjsAtPoint(w, objs);
   }
 
   if (objs.empty())

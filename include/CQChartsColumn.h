@@ -1,11 +1,10 @@
 #ifndef CQChartsColumn_H
 #define CQChartsColumn_H
 
+#include <cassert>
 #include <QString>
-#include <QStringList>
 #include <vector>
 #include <iostream>
-#include <cassert>
 
 class CQChartsColumn {
  public:

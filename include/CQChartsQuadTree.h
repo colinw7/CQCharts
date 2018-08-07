@@ -1,8 +1,8 @@
 #ifndef CQChartsQuadTree_H
 #define CQChartsQuadTree_H
 
-#include <list>
 #include <cassert>
+#include <list>
 #include <sys/types.h>
 
 // quad tree containing pointers to items of type DATA with an associated rect of type RECT

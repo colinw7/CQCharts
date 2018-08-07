@@ -11,7 +11,6 @@
 #define __CHAR_BIT__ 8
 #define __UINT8_MAX__ 0xff
 #define __WINT_MAX__ 0xffffffffU
-#define CQExprModel_USE_CEXPR 1
 #define __cpp_static_assert 200410
 #define __ORDER_LITTLE_ENDIAN__ 1234
 #define __SIZE_MAX__ 0xffffffffffffffffUL
@@ -87,14 +86,12 @@
 #define __SIZEOF_LONG_DOUBLE__ 16
 #define __BIGGEST_ALIGNMENT__ 16
 #define __STDC_UTF_16__ 1
-#define CQExprModel_USE_TCL 1
 #define __DBL_MAX__ double(1.79769313486231570815e+308L)
 #define __cpp_raw_strings 200710
 #define __INT_FAST32_MAX__ 0x7fffffffffffffffL
 #define __DBL_HAS_INFINITY__ 1
 #define __INT64_MAX__ 0x7fffffffffffffffL
 #define __DEC32_MIN_EXP__ (-94)
-#define CQChartsModelExprMatch_USE_CEXPR 1
 #define __INT_FAST16_TYPE__ long int
 #define __LDBL_HAS_DENORM__ 1
 #define __cplusplus 201103L
@@ -115,7 +112,6 @@
 #define __GNUG__ 5
 #define __LONG_LONG_MAX__ 0x7fffffffffffffffLL
 #define __SIZEOF_SIZE_T__ 8
-#define CQChartsModelExprMatch_USE_TCL 1
 #define __cpp_rvalue_reference 200610
 #define __cpp_nsdmi 200809
 #define __SIZEOF_WINT_T__ 4
@@ -190,7 +186,6 @@
 #define __INT_FAST8_MAX__ 0x7f
 #define __INTPTR_MAX__ 0x7fffffffffffffffL
 #define linux 1
-#define CQCharts_USE_CEXPR 1
 #define __cpp_range_based_for 200907
 #define __SSE2__ 1
 #define __EXCEPTIONS 1

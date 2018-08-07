@@ -10,14 +10,11 @@
 class CQChartsPlotObj : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(QString            typeName READ typeName)
-  Q_PROPERTY(CQChartsGeom::BBox rect     READ rect       WRITE setRect    )
-  Q_PROPERTY(QString            id       READ id         WRITE setId      )
-  Q_PROPERTY(QString            tipId    READ tipId      WRITE setTipId   )
-  Q_PROPERTY(int                colorInd READ colorInd   WRITE setColorInd)
-  Q_PROPERTY(bool               visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(QBrush             fill     READ fill       WRITE setFill    )
-  Q_PROPERTY(QPen               stroke   READ stroke     WRITE setStroke  )
+  Q_PROPERTY(QString typeName READ typeName)
+  Q_PROPERTY(int     colorInd READ colorInd   WRITE setColorInd)
+  Q_PROPERTY(bool    visible  READ isVisible  WRITE setVisible )
+  Q_PROPERTY(QBrush  fill     READ fill       WRITE setFill    )
+  Q_PROPERTY(QPen    stroke   READ stroke     WRITE setStroke  )
 
  public:
   using Indices = std::set<QModelIndex>;
@@ -32,27 +29,6 @@ class CQChartsPlotObj : public CQChartsObj {
   CQChartsPlot *plot() const { return plot_; }
 
   virtual QString typeName() const { return ""; }
-
-  //---
-
-  const CQChartsGeom::BBox &rect() const { return rect_; }
-  void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
-
-  //---
-
-  // unique id of object
-  const QString &id() const;
-  void setId(const QString &s) { id_ = s; }
-
-  // calculate unique id of object (on demand)
-  virtual QString calcId() const = 0;
-
-  // tip id for object (string to display in tooltip)
-  const QString &tipId() const;
-  void setTipId(const QString &s) { tipId_ = s; }
-
-  // calculate tip id (on demand)
-  virtual QString calcTipId() const { return calcId(); }
 
   //---
 
@@ -113,16 +89,11 @@ class CQChartsPlotObj : public CQChartsObj {
   virtual void draw(QPainter *) = 0;
 
  protected:
-  using OptString = boost::optional<QString>;
-
-  CQChartsPlot*      plot_     { nullptr }; // parent plot
-  CQChartsGeom::BBox rect_;                 // bbox
-  OptString          id_;                   // id
-  OptString          tipId_;                // tip id
-  int                colorInd_ { -1 };      // color index
-  bool               visible_  { true };    // is visible
-  QBrush             fill_;                 // fill brush
-  QPen               stroke_;               // stroke pen
+  CQChartsPlot* plot_     { nullptr }; // parent plot
+  int           colorInd_ { -1 };      // color index
+  bool          visible_  { true };    // is visible
+  QBrush        fill_;                 // fill brush
+  QPen          stroke_;               // stroke pen
 };
 
 //------

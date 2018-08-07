@@ -224,7 +224,21 @@ void
 CQChartsScatterPlot::
 setSymbolMapKey(bool b)
 {
-  CQChartsUtil::testAndSet(symbolMapKey_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(symbolMapKeyData_.displayed, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolMapKeyAlpha(double a)
+{
+  CQChartsUtil::testAndSet(symbolMapKeyData_.alpha, a, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolMapKeyMargin(double m)
+{
+  CQChartsUtil::testAndSet(symbolMapKeyData_.margin, m, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -336,29 +350,11 @@ setColorMapMax(double r)
 
 void
 CQChartsScatterPlot::
-setTextLabels(bool b)
-{
-  dataLabel_.setVisible(b);
-
-  invalidateLayers();
-}
-
-//---
-
-void
-CQChartsScatterPlot::
 setFontSizeColumn(const CQChartsColumn &c)
 {
   if (setValueSetColumn("fontSize", c))
 
   updateRangeAndObjs();
-}
-
-void
-CQChartsScatterPlot::
-setFontSize(double s)
-{
-  CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
 }
 
 void
@@ -495,9 +491,6 @@ addProperties()
   addProperty("columns", this, "fontSizeColumn"  , "fontSize"  );
   addProperty("columns", this, "colorColumn"     , "color"     );
 
-  addProperty("textLabels", this, "textLabels", "enabled");
-  addProperty("textLabels", this, "fontSize"  , "size"   );
-
   addProperty("bestFit"     , this, "bestFit"         , "enabled"  );
   addProperty("bestFit"     , this, "bestFitDeviation", "deviation");
   addProperty("bestFit"     , this, "bestFitOrder"    , "order"    );
@@ -518,6 +511,10 @@ addProperties()
   addSymbolProperties("symbol");
 
   dataLabel_.addPathProperties("dataLabel");
+
+  addProperty("symbolKey", this, "symbolMapKey"      , "displayed");
+  addProperty("symbolKey", this, "symbolMapKeyAlpha" , "alpha"    );
+  addProperty("symbolKey", this, "symbolMapKeyMargin", "margin"   );
 
   addProperty("symbol/map/type", this, "symbolTypeMapped", "enabled");
   addProperty("symbol/map/type", this, "symbolTypeMapMin", "min"    );
@@ -1391,7 +1388,7 @@ drawSymbolMapKey(QPainter *painter)
 
     view()->windowToPixel(vx, vy, px, py);
 
-    int pm = 16;
+    double pm = symbolMapKeyMargin();
 
     double pr1 = symbolSizeSet->mapMax();
     double pr3 = symbolSizeSet->mapMin();
@@ -1408,9 +1405,11 @@ drawSymbolMapKey(QPainter *painter)
     QRectF r2(xm - pr2, ym - 2*pr2, 2*pr2, 2*pr2);
     QRectF r3(xm - pr3, ym - 2*pr3, 2*pr3, 2*pr3);
 
-    QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(0.2);
-    QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(0.2);
-    QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(0.2);
+    double a = symbolMapKeyAlpha();
+
+    QColor fillColor1 = interpSymbolFillColor(1.0); fillColor1.setAlphaF(a);
+    QColor fillColor2 = interpSymbolFillColor(0.5); fillColor2.setAlphaF(a);
+    QColor fillColor3 = interpSymbolFillColor(0.0); fillColor3.setAlphaF(a);
 
     painter->setBrush(fillColor1); painter->drawEllipse(r1);
     painter->setBrush(fillColor2); painter->drawEllipse(r2);
@@ -1562,24 +1561,30 @@ drawDir(QPainter *painter, const Dir &dir) const
 
   //---
 
+  int ic = 0;
+  int nc = 0;
+
+  if (ng_ > 0) {
+    ic = ig_;
+    nc = ng_;
+  }
+  else {
+    ic = is_;
+    nc = ns_;
+  }
+
+  //---
+
   // calc stroke and brush
   QBrush brush;
 
   if (filled) {
     QColor c;
 
-    if (ng_ > 0) {
-      if (color_.isValid())
-        c = color_.interpColor(plot_, ig_, ng_);
-      else
-        c = plot_->interpSymbolFillColor(ig_, ng_);
-    }
-    else {
-      if (color_.isValid())
-        c = color_.interpColor(plot_, is_, ns_);
-      else
-        c = plot_->interpSymbolFillColor(is_, ns_);
-    }
+    if (color_.isValid())
+      c = color_.interpColor(plot_, ic, nc);
+    else
+      c = plot_->interpSymbolFillColor(ic, nc);
 
     c.setAlphaF(plot_->symbolFillAlpha());
 
@@ -1595,7 +1600,7 @@ drawDir(QPainter *painter, const Dir &dir) const
   QPen pen;
 
   if (stroked) {
-    QColor c = plot_->interpSymbolStrokeColor(0, 1);
+    QColor c = plot_->interpSymbolStrokeColor(ic, nc);
 
     c.setAlphaF(plot_->symbolStrokeAlpha());
 
@@ -1644,13 +1649,23 @@ drawDir(QPainter *painter, const Dir &dir) const
   //---
 
   // draw text labels
-  if (plot_->isTextLabels()) {
-    double fontSize = plot_->fontSize();
+  if (plot_->dataLabel().isVisible()) {
+    CQChartsDataLabel &dataLabel = plot_->dataLabel();
+
+    //---
+
+    QColor tc = plot_->dataLabel().interpTextColor(ic, nc);
+
+    tc.setAlphaF(plot_->dataLabel().textAlpha());
+
+    //---
+
+    double fontSize = plot_->dataLabel().textFont().pointSizeF();
 
     if (fontSize_)
       fontSize = *fontSize_;
 
-    CQChartsDataLabel &dataLabel = plot_->dataLabel();
+    //---
 
     if (fontSize > 0) {
       fontSize = plot_->limitFontSize(fontSize);
@@ -1663,12 +1678,12 @@ drawDir(QPainter *painter, const Dir &dir) const
 
       dataLabel.setTextFont(font1);
 
-      dataLabel.draw(painter, erect, name_);
+      dataLabel.draw(painter, erect, name_, dataLabel.position(), tc);
 
       dataLabel.setTextFont(font);
     }
     else {
-      dataLabel.draw(painter, erect, name_);
+      dataLabel.draw(painter, erect, name_, dataLabel.position(), tc);
     }
   }
 }

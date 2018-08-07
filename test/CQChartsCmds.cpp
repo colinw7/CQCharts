@@ -763,7 +763,6 @@ createPlotCmd(const Vars &vars)
   int         modelInd    = argv.getParseInt    ("model", -1);
   QString     typeName    = argv.getParseStr    ("type");
   QString     filterStr   = argv.getParseStr    ("where");
-  QString     columnTypes = argv.getParseStr    ("column_type");
   QString     title       = argv.getParseStr    ("title");
   QStringList properties  = argv.getParseStrs   ("properties");
   QString     positionStr = argv.getParseStr    ("position");
@@ -917,14 +916,6 @@ createPlotCmd(const Vars &vars)
     }
 
     nameValueData.ints[name] = value;
-  }
-
-  //------
-
-  if (columnTypes != "") {
-    ModelP model = modelData->model();
-
-    CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
   }
 
   //------
@@ -2680,7 +2671,8 @@ createRectShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-x1", CQChartsCmdArg::Type::Real, "x1 value");
   argv.addCmdArg("-y1", CQChartsCmdArg::Type::Real, "y1 value");
@@ -2719,6 +2711,7 @@ createRectShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   double x1 = argv.getParseReal("x1");
   double y1 = argv.getParseReal("y1");
@@ -2758,6 +2751,7 @@ createRectShapeCmd(const Vars &vars)
   CQChartsRectAnnotation *annotation = plot->addRectAnnotation(start, end);
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
 
@@ -2777,7 +2771,8 @@ createEllipseShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-xc", CQChartsCmdArg::Type::Real  , "center x");
   argv.addCmdArg("-yc", CQChartsCmdArg::Type::Real  , "center y");
@@ -2813,6 +2808,7 @@ createEllipseShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   double xc = argv.getParseReal("xc");
   double yc = argv.getParseReal("yc");
@@ -2848,6 +2844,7 @@ createEllipseShapeCmd(const Vars &vars)
   CQChartsEllipseAnnotation *annotation = plot->addEllipseAnnotation(center, rx, ry);
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setBoxData(boxData);
 
@@ -2867,7 +2864,8 @@ createPolygonShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
 
@@ -2900,6 +2898,7 @@ createPolygonShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   QPolygonF points = argv.getParsePoly("points");
 
@@ -2934,6 +2933,7 @@ createPolygonShapeCmd(const Vars &vars)
   CQChartsPolygonAnnotation *annotation = plot->addPolygonAnnotation(points);
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setShapeData(shapeData);
 
@@ -2953,7 +2953,8 @@ createPolylineShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-points", CQChartsCmdArg::Type::Polygon, "points string");
 
@@ -2983,6 +2984,7 @@ createPolylineShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   QPolygonF points = argv.getParsePoly("points");
 
@@ -3017,6 +3019,7 @@ createPolylineShapeCmd(const Vars &vars)
   CQChartsPolylineAnnotation *annotation = plot->addPolylineAnnotation(points);
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setShapeData(shapeData);
 
@@ -3036,7 +3039,8 @@ createTextShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-x", CQChartsCmdArg::Type::Real, "x position");
   argv.addCmdArg("-y", CQChartsCmdArg::Type::Real, "y position");
@@ -3081,6 +3085,7 @@ createTextShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   double x = argv.getParseReal("x");
   double y = argv.getParseReal("y");
@@ -3130,6 +3135,7 @@ createTextShapeCmd(const Vars &vars)
   }
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setTextData(textData);
   annotation->setBoxData(boxData);
@@ -3150,7 +3156,8 @@ createArrowShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-x1", CQChartsCmdArg::Type::Real, "start x");
   argv.addCmdArg("-y1", CQChartsCmdArg::Type::Real, "start y");
@@ -3179,6 +3186,7 @@ createArrowShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   double x1 = argv.getParseReal("x1");
   double y1 = argv.getParseReal("y1");
@@ -3220,6 +3228,7 @@ createArrowShapeCmd(const Vars &vars)
   }
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setData(arrowData);
 
@@ -3239,7 +3248,8 @@ createPointShapeCmd(const Vars &vars)
   argv.addCmdArg("-plot", CQChartsCmdArg::Type::String, "plot name");
   argv.endCmdGroup();
 
-  argv.addCmdArg("-id", CQChartsCmdArg::Type::String, "annotation id");
+  argv.addCmdArg("-id" , CQChartsCmdArg::Type::String, "annotation id" );
+  argv.addCmdArg("-tip", CQChartsCmdArg::Type::String, "annotation tip");
 
   argv.addCmdArg("-x", CQChartsCmdArg::Type::Real, "point x");
   argv.addCmdArg("-y", CQChartsCmdArg::Type::Real, "point y");
@@ -3267,6 +3277,7 @@ createPointShapeCmd(const Vars &vars)
   QString viewName = argv.getParseStr("view");
   QString plotName = argv.getParseStr("plot");
   QString id       = argv.getParseStr("id");
+  QString tipId    = argv.getParseStr("tip");
 
   double x = argv.getParseReal("x");
   double y = argv.getParseReal("y");
@@ -3303,6 +3314,7 @@ createPointShapeCmd(const Vars &vars)
   CQChartsPointAnnotation *annotation = plot->addPointAnnotation(pos, pointData.type);
 
   annotation->setId(id);
+  annotation->setTipId(tipId);
 
   annotation->setPointData(pointData);
 

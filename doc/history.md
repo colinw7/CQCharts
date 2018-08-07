@@ -561,3 +561,5 @@
  + support named column values in expression model processing
  + add scatter best fit deviation bar
  + add scatter convext hull
+# 8/06/2018
+ + mouse over for annotations

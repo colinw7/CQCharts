@@ -1,8 +1,8 @@
 #ifndef CQChartsGeom_H
 #define CQChartsGeom_H
 
-#include <algorithm>
 #include <cassert>
+#include <algorithm>
 #include <cmath>
 //#include <iostream>
 #include <cstring>

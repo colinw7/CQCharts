@@ -352,7 +352,7 @@ selectionSlot()
 
     QModelIndex ind1 = normalizeIndex(ind);
 
-    for (auto &plotObj : plotObjs_) {
+    for (auto &plotObj : plotObjects()) {
       if (plotObj->isSelectIndex(ind1))
         plotObj->setSelected(true);
     }
@@ -1803,23 +1803,23 @@ clearPlotObjects()
 
   plotObjTree_->clearObjects();
 
-  insidePlotObjs_    .clear();
-  sizeInsidePlotObjs_.clear();
+  insideObjs_    .clear();
+  sizeInsideObjs_.clear();
 }
 
 bool
 CQChartsPlot::
 updatePlotObjects(const CQChartsGeom::Point &w)
 {
-  PlotObjs objs;
+  Objs objs;
 
   objsAtPoint(w, objs);
 
   bool changed = false;
 
-  if (objs.size() == insidePlotObjs_.size()) {
+  if (objs.size() == insideObjs_.size()) {
     for (const auto &obj : objs) {
-      if (insidePlotObjs_.find(obj) == insidePlotObjs_.end()) {
+      if (insideObjs_.find(obj) == insideObjs_.end()) {
         changed = true;
         break;
       }
@@ -1830,35 +1830,39 @@ updatePlotObjects(const CQChartsGeom::Point &w)
   }
 
   if (changed) {
-    insidePlotInd_ = 0;
+    insideInd_ = 0;
 
-    insidePlotObjs_    .clear();
-    sizeInsidePlotObjs_.clear();
+    insideObjs_    .clear();
+    sizeInsideObjs_.clear();
 
-    for (const auto &obj : plotObjs_)
+    for (auto &obj : plotObjects())
       obj->setInside(false);
 
-    for (const auto &obj : objs) {
-      insidePlotObjs_.insert(obj);
-
-      sizeInsidePlotObjs_[obj->rect().area()].insert(obj);
+    for (auto &annotation : annotations()) {
+      annotation->setInside(false);
     }
 
-    setInsidePlotObject();
+    for (const auto &obj : objs) {
+      insideObjs_.insert(obj);
+
+      sizeInsideObjs_[obj->rect().area()].insert(obj);
+    }
+
+    setInsideObject();
   }
 
   return changed;
 }
 
-CQChartsPlotObj *
+CQChartsObj *
 CQChartsPlot::
-insidePlotObject() const
+insideObject() const
 {
   int i = 0;
 
-  for (const auto &sizeObjs : sizeInsidePlotObjs_) {
+  for (const auto &sizeObjs : sizeInsideObjs_) {
     for (const auto &obj : sizeObjs.second) {
-      if (i == insidePlotInd_)
+      if (i == insideInd_)
         return obj;
 
       ++i;
@@ -1870,41 +1874,41 @@ insidePlotObject() const
 
 void
 CQChartsPlot::
-nextInsidePlotInd()
+nextInsideInd()
 {
-  ++insidePlotInd_;
+  ++insideInd_;
 
-  if (insidePlotInd_ >= int(insidePlotObjs_.size()))
-    insidePlotInd_ = 0;
+  if (insideInd_ >= int(insideObjs_.size()))
+    insideInd_ = 0;
 }
 
 void
 CQChartsPlot::
-prevInsidePlotInd()
+prevInsideInd()
 {
-  --insidePlotInd_;
+  --insideInd_;
 
-  if (insidePlotInd_ < 0)
-    insidePlotInd_ = insidePlotObjs_.size() - 1;
+  if (insideInd_ < 0)
+    insideInd_ = insideObjs_.size() - 1;
 }
 
 void
 CQChartsPlot::
-setInsidePlotObject()
+setInsideObject()
 {
-  CQChartsPlotObj *insideObj = insidePlotObject();
+  CQChartsObj *insideObj = insideObject();
 
-  for (auto &obj : insidePlotObjs_)
+  for (auto &obj : insideObjs_)
     obj->setInside(obj == insideObj);
 }
 
 QString
 CQChartsPlot::
-insidePlotObjectText() const
+insideObjectText() const
 {
   QString objText;
 
-  for (const auto &sizeObjs : sizeInsidePlotObjs_) {
+  for (const auto &sizeObjs : sizeInsideObjs_) {
     for (const auto &obj : sizeObjs.second) {
       if (obj->isInside()) {
         if (objText != "")
@@ -1996,11 +2000,11 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
-  using ObjsSelected = std::map<CQChartsPlotObj*,bool>;
+  using ObjsSelected = std::map<CQChartsObj*,bool>;
 
   ObjsSelected objsSelected;
 
-  for (auto &plotObj : plotObjs_) {
+  for (auto &plotObj : plotObjects()) {
     if (modSelect == ModSelect::REPLACE)
       objsSelected[plotObj] = false;
     else
@@ -2010,17 +2014,17 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
   //---
 
   // get object under mouse
-  CQChartsPlotObj *selectObj = nullptr;
+  CQChartsObj *selectObj = nullptr;
 
   if (isFollowMouse()) {
-    selectObj = insidePlotObject();
+    selectObj = insideObject();
 
-    nextInsidePlotInd();
+    nextInsideInd();
 
-    setInsidePlotObject();
+    setInsideObject();
   }
   else {
-    PlotObjs objs;
+    Objs objs;
 
     objsAtPoint(w, objs);
 
@@ -2045,8 +2049,12 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
     //selectObj->selectPress();
 
-    emit objPressed  (selectObj);
-    emit objIdPressed(selectObj->id());
+    CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(selectObj);
+
+    if (selectPlotObj) {
+      emit objPressed  (selectPlotObj);
+      emit objIdPressed(selectPlotObj->id());
+    }
 
     // potential crash if signals cause objects to be deleted (defer !!!)
   }
@@ -2072,8 +2080,12 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
     beginSelect();
 
     for (const auto &objSelected : objsSelected) {
-      if (objSelected.first->isSelected())
-        objSelected.first->addSelectIndices();
+      CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+
+      if (! selectPlotObj || ! selectPlotObj->isSelected())
+        continue;
+
+      selectPlotObj->addSelectIndices();
     }
 
     endSelect();
@@ -2123,7 +2135,7 @@ selectMove(const CQChartsGeom::Point &w, bool first)
   if (isFollowMouse()) {
     bool changed = updatePlotObjects(w);
 
-    objText = insidePlotObjectText();
+    objText = insideObjectText();
 
     if (changed) {
       invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
@@ -2433,7 +2445,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
   // select/deselect plot
   // (to select point must be inside a plot object)
-  PlotObjs objs;
+  Objs objs;
 
   objsAtPoint(w, objs);
 
@@ -2468,7 +2480,7 @@ void
 CQChartsPlot::
 deselectAllObjs()
 {
-  for (auto &plotObj : plotObjs_)
+  for (auto &plotObj : plotObjects())
     plotObj->setSelected(false);
 }
 
@@ -2730,11 +2742,11 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
 {
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
-  using ObjsSelected = std::map<CQChartsPlotObj*,bool>;
+  using ObjsSelected = std::map<CQChartsObj*,bool>;
 
   ObjsSelected objsSelected;
 
-  for (auto &plotObj : plotObjs_) {
+  for (auto &plotObj : plotObjects()) {
     if (modSelect == ModSelect::REPLACE)
       objsSelected[plotObj] = false;
     else
@@ -2744,7 +2756,7 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
   //---
 
   // get objects touching rectangle
-  PlotObjs objs;
+  Objs objs;
 
   objsTouchingRect(r, objs);
 
@@ -2781,8 +2793,12 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
     beginSelect();
 
     for (const auto &objSelected : objsSelected) {
-      if (objSelected.first->isSelected())
-        objSelected.first->addSelectIndices();
+      CQChartsPlotObj *selectPlotObj = dynamic_cast<CQChartsPlotObj *>(objSelected.first);
+
+      if (! selectPlotObj || ! selectPlotObj->isSelected())
+        continue;
+
+      selectPlotObj->addSelectIndices();
     }
 
     endSelect();
@@ -2806,11 +2822,28 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
 
 void
 CQChartsPlot::
-selectedObjs(PlotObjs &objs) const
+selectedObjs(Objs &objs) const
 {
-  for (const auto &plotObj : plotObjs_) {
+  PlotObjs plotObjs;
+
+  selectedPlotObjs(plotObjs);
+
+  for (auto &plotObj : plotObjs)
+    objs.push_back(plotObj);
+
+  for (auto &annotation : annotations()) {
+    if (annotation->isSelected())
+      objs.push_back(annotation);
+  }
+}
+
+void
+CQChartsPlot::
+selectedPlotObjs(PlotObjs &plotObjs) const
+{
+  for (auto &plotObj : plotObjects()) {
     if (plotObj->isSelected())
-      objs.push_back(plotObj);
+      plotObjs.push_back(plotObj);
   }
 }
 
@@ -3023,15 +3056,15 @@ void
 CQChartsPlot::
 cycleNextPrev(bool prev)
 {
-  if (! insidePlotObjs_.empty()) {
+  if (! insideObjs_.empty()) {
     if (! prev)
-      nextInsidePlotInd();
+      nextInsideInd();
     else
-      prevInsidePlotInd();
+      prevInsideInd();
 
-    setInsidePlotObject();
+    setInsideObject();
 
-    QString objText = insidePlotObjectText();
+    QString objText = insideObjectText();
 
     view_->setStatusText(objText);
 
@@ -3304,16 +3337,16 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
   int objNum  = 0;
   int numObjs = 0;
 
-  CQChartsPlotObj *tipObj = nullptr;
+  CQChartsObj *tipObj = nullptr;
 
   if (isFollowMouse()) {
-    objNum  = insidePlotInd_;
-    numObjs = insidePlotObjs_.size();
+    objNum  = insideInd_;
+    numObjs = insideObjs_.size();
 
-    tipObj = insidePlotObject();
+    tipObj = insideObject();
   }
   else {
-    PlotObjs objs;
+    Objs objs;
 
     objsAtPoint(p, objs);
 
@@ -3339,7 +3372,26 @@ tipText(const CQChartsGeom::Point &p, QString &tip) const
 
 void
 CQChartsPlot::
-objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
+objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const
+{
+  PlotObjs plotObjs;
+
+  plotObjsAtPoint(p, plotObjs);
+
+  for (const auto &plotObj : plotObjs)
+    objs.push_back(plotObj);
+
+  //---
+
+  for (const auto &annotation : annotations()) {
+    if (annotation->contains(p))
+      objs.push_back(annotation);
+  }
+}
+
+void
+CQChartsPlot::
+plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &plotObjs) const
 {
   if (isOverlay()) {
     Plots plots;
@@ -3347,18 +3399,39 @@ objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const
     overlayPlots(plots);
 
     for (const auto &plot : plots)
-      plot->plotObjTree_->objectsAtPoint(p, objs);
+      plot->plotObjTree_->objectsAtPoint(p, plotObjs);
   }
   else {
-    plotObjTree_->objectsAtPoint(p, objs);
+    plotObjTree_->objectsAtPoint(p, plotObjs);
   }
 }
 
 void
 CQChartsPlot::
-objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const
+objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const
 {
-  plotObjTree_->objectsTouchingRect(r, objs);
+  if (isOverlay()) {
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (const auto &plot : plots) {
+      PlotObjs plotObjs;
+
+      plot->plotObjTree_->objectsTouchingRect(r, plotObjs);
+
+      for (const auto &plotObj : plotObjs)
+        objs.push_back(plotObj);
+    }
+  }
+  else {
+    PlotObjs plotObjs;
+
+    plotObjTree_->objectsTouchingRect(r, plotObjs);
+
+    for (const auto &plotObj : plotObjs)
+      objs.push_back(plotObj);
+  }
 }
 
 void
@@ -3368,7 +3441,7 @@ handleResize()
   if (isEqualScale())
     dataRange_.reset();
 
-  for (auto &obj : plotObjs_)
+  for (auto &obj : plotObjects())
     obj->handleResize();
 
   updateKeyPosition(/*force*/true);
@@ -3473,8 +3546,6 @@ drawParts(QPainter *painter)
 
   // draw title
   drawTitle(painter);
-
-  //---
 
   //---
 
@@ -3708,7 +3779,7 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
   // skip if nothing drawn
   bool doDraw = false;
 
-  for (const auto &plotObj : plotObjs_) {
+  for (const auto &plotObj : plotObjects()) {
     if      (layerType == CQChartsLayer::Type::SELECTION) {
       if (! plotObj->isSelected())
         continue;
@@ -3743,7 +3814,7 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
 
     setClipRect(painter1);
 
-    for (const auto &plotObj : plotObjs_) {
+    for (const auto &plotObj : plotObjects()) {
       if      (layerType == CQChartsLayer::Type::SELECTION) {
         if (! plotObj->isSelected())
           continue;
@@ -4489,7 +4560,7 @@ getObject(const QString &objectId) const
 {
   QList<QModelIndex> inds;
 
-  for (const auto &plotObj : plotObjs_) {
+  for (auto &plotObj : plotObjects()) {
     if (plotObj->id() == objectId)
       return plotObj;
   }

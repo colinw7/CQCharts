@@ -2,9 +2,9 @@
 #define CQChartsBoxWhisker_H
 
 #include <CQChartsDensity.h>
+#include <cassert>
 #include <vector>
 #include <algorithm>
-#include <cassert>
 
 template<typename VALUE>
 class CQChartsBoxWhiskerT {

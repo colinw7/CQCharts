@@ -53,6 +53,18 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
   if (! isVisible())
     return;
 
+  QColor tc = interpTextColor(0, 1);
+
+  tc.setAlphaF(textAlpha());
+
+  draw(painter, qrect, ystr, position, tc);
+}
+
+void
+CQChartsDataLabel::
+draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
+     const Position &position, const QColor &tc)
+{
   painter->save();
 
   painter->setFont(textFont());
@@ -168,12 +180,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      QColor tc = interpTextColor(0, 1);
-
-      tc.setAlphaF(textAlpha());
-
-      painter->setPen  (tc);
-//    painter->setBrush(tc);
+      painter->setPen(tc);
 
       if (ystr.length()) {
         if (direction() == Direction::VERTICAL)
@@ -214,12 +221,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
 
     CQChartsBoxObj::draw(painter, poly);
 
-    QColor tc = interpTextColor(0, 1);
-
-    tc.setAlphaF(textAlpha());
-
-    painter->setPen  (tc);
-//  painter->setBrush(tc);
+    painter->setPen(tc);
 
     if (ystr.length())
       CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,

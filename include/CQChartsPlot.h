@@ -232,6 +232,7 @@ class CQChartsPlot : public QObject {
 
   using PlotObjs    = std::vector<CQChartsPlotObj*>;
   using Annotations = std::vector<CQChartsAnnotation *>;
+  using Objs        = std::vector<CQChartsObj*>;
 
   using ModelIndices = std::vector<QModelIndex>;
 
@@ -921,14 +922,14 @@ class CQChartsPlot : public QObject {
 
   bool updatePlotObjects(const CQChartsGeom::Point &w);
 
-  CQChartsPlotObj *insidePlotObject() const;
+  CQChartsObj *insideObject() const;
 
-  void setInsidePlotObject();
+  void setInsideObject();
 
-  QString insidePlotObjectText() const;
+  QString insideObjectText() const;
 
-  void nextInsidePlotInd();
-  void prevInsidePlotInd();
+  void nextInsideInd();
+  void prevInsideInd();
 
   //---
 
@@ -1005,7 +1006,9 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  void selectedObjs(PlotObjs &objs) const;
+  void selectedObjs(Objs &objs) const;
+
+  void selectedPlotObjs(PlotObjs &objs) const;
 
   //---
 
@@ -1392,16 +1395,18 @@ class CQChartsPlot : public QObject {
   void objIdPressed(const QString &);
 
  protected:
-  using PlotObjSet     = std::set<CQChartsPlotObj*>;
-  using SizePlotObjSet = std::map<double,PlotObjSet>;
+  using ObjSet     = std::set<CQChartsObj*>;
+  using SizeObjSet = std::map<double,ObjSet>;
 
  protected:
   void connectModel();
   void disconnectModel();
 
-  void objsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+  void objsAtPoint(const CQChartsGeom::Point &p, Objs &objs) const;
 
-  void objsTouchingRect(const CQChartsGeom::BBox &r, PlotObjs &objs) const;
+  void plotObjsAtPoint(const CQChartsGeom::Point &p, PlotObjs &objs) const;
+
+  void objsTouchingRect(const CQChartsGeom::BBox &r, Objs &objs) const;
 
  protected:
   using IdHidden        = std::map<int,bool>;
@@ -1497,9 +1502,9 @@ class CQChartsPlot : public QObject {
   ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
   ValueSets                 valueSets_;                       // named value sets
-  int                       insidePlotInd_    { 0 };          // current inside plot object ind
-  PlotObjSet                insidePlotObjs_;                  // inside plot objects
-  SizePlotObjSet            sizeInsidePlotObjs_;              // inside plot objects (szie sorted)
+  int                       insideInd_    { 0 };              // current inside object ind
+  ObjSet                    insideObjs_;                      // inside plot objects
+  SizeObjSet                sizeInsideObjs_;                  // inside plot objects (size sorted)
   CQChartsPlotObjTree*      plotObjTree_      { nullptr };    // plot object quad tree
   MouseData                 mouseData_;                       // mouse event data
   AnimateData               animateData_;                     // animation data
@@ -1509,10 +1514,10 @@ class CQChartsPlot : public QObject {
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
   QItemSelection            itemSelection_;                   // selected model indices
   CQChartsPlotUpdateTimer*  updateTimer_      { nullptr };    // update timer
-  int                       updateTimeout_    { 100 };
+  int                       updateTimeout_    { 100 };        // update timeout
   CQChartsEditHandles       editHandles_;                     // edit controls
   Annotations               annotations_;                     // extra annotations
-  bool                      fromInvalidate_ { false };
+  bool                      fromInvalidate_   { false };      // cal from invalidate
 };
 
 #endif

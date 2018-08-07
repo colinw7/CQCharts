@@ -2,6 +2,7 @@
 #define CQChartsGradientPalette_H
 
 #include <QColor>
+#include <QStringList>
 #include <COSNaN.h>
 #include <string>
 #include <map>

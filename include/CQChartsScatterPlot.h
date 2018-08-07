@@ -156,12 +156,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
   Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
-  // labels
-  Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
-  Q_PROPERTY(double fontSize   READ fontSize     WRITE setFontSize  )
-
   // symbol map key
-  Q_PROPERTY(bool symbolMapKey READ isSymbolMapKey WRITE setSymbolMapKey)
+  Q_PROPERTY(bool   symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
+  Q_PROPERTY(double symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
+  Q_PROPERTY(double symbolMapKeyMargin READ symbolMapKeyMargin WRITE setSymbolMapKeyMargin)
 
   // symbol type map
   Q_PROPERTY(bool   symbolTypeMapped READ isSymbolTypeMapped WRITE setSymbolTypeMapped)
@@ -315,8 +313,14 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   //---
 
-  bool isSymbolMapKey() const { return symbolMapKey_; }
+  bool isSymbolMapKey() const { return symbolMapKeyData_.displayed; }
   void setSymbolMapKey(bool b);
+
+  double symbolMapKeyAlpha() const { return symbolMapKeyData_.alpha; }
+  void setSymbolMapKeyAlpha(double r);
+
+  double symbolMapKeyMargin() const { return symbolMapKeyData_.margin; }
+  void setSymbolMapKeyMargin(double r);
 
   //---
 
@@ -359,14 +363,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   double colorMapMax() const { return valueSetMapMax("color"); }
   void setColorMapMax(double r);
-
-  //---
-
-  bool isTextLabels() const { return dataLabel_.isVisible(); }
-  void setTextLabels(bool b);
-
-  double fontSize() const { return fontSize_; }
-  void setFontSize(double s);
 
   //---
 
@@ -461,6 +457,12 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
     void reset() { fitted = false; }
   };
 
+  struct SymbolMapKeyData {
+    bool   displayed { true };
+    double alpha     { 0.2 };
+    double margin    { 16 };
+  };
+
   using Points       = std::vector<QPointF>;
   using GroupPoints  = std::map<int,Points>;
   using GroupFitData = std::map<int,FitData>;
@@ -482,19 +484,18 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   CQChartsSymbol     rugSymbolType_;              // rug symbol type
   CQChartsLength     rugSymbolSize_    { "5px" }; // rug symbol size
   CQChartsSymbolData symbolData_;                 // symbol draw data
-  double             fontSize_         { 12.0 };  // font size
   GroupNameValues    groupNameValues_;            // name values
   CQChartsDataLabel  dataLabel_;                  // data label style
   QString            xname_;                      // x column header
   QString            yname_;                      // y column header
-  bool               symbolMapKey_     { true };  // draw symbol map key
+  SymbolMapKeyData   symbolMapKeyData_;           // symbol map key data
   QString            symbolTypeName_;             // symbol type column header
   QString            symbolSizeName_;             // symbol size column header
   QString            fontSizeName_;               // font size column header
   QString            colorName_;                  // color column header
   GroupPoints        groupPoints_;                // group fit points
   GroupFitData       groupFitData_;               // group fit data
-  GroupHull          groupHull_    ;              // group hull
+  GroupHull          groupHull_;                  // group hull
 };
 
 #endif

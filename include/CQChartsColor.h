@@ -1,9 +1,9 @@
 #ifndef CQChartsColor_H
 #define CQChartsColor_H
 
+#include <cassert>
 #include <QColor>
 #include <iostream>
-#include <cassert>
 
 class CQChartsPlot;
 class CQChartsView;

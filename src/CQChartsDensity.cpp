@@ -6,7 +6,7 @@
 namespace {
 
 double polygonArea2(const QPolygonF &poly) {
-  int n = poly.length();
+  int n = poly.size();
 
   double area = 0.0;
 

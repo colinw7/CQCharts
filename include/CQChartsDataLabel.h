@@ -82,6 +82,11 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
   void draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
             const Position &position);
 
+  void draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
+            const Position &position, const QColor &tc);
+
+  //---
+
   CQChartsGeom::BBox calcRect(const QRectF &qrect, const QString &ystr) const;
 
   CQChartsGeom::BBox calcRect(const QRectF &qrect, const QString &ystr,

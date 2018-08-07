@@ -4,9 +4,9 @@
 /*
  * Smallest enclosing circle
  */
+#include <cassert>
 #include <vector>
 #include <cmath>
-#include <cassert>
 #include <algorithm>
 #include <sys/types.h>
 

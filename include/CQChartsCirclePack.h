@@ -3,12 +3,12 @@
 
 #include <CQChartsEnclosingCircle.h>
 #include <COSNaN.h>
+#include <cassert>
 
 #include <set>
 #include <map>
 #include <vector>
 #include <cmath>
-#include <cassert>
 #include <sys/types.h>
 
 class CQChartsCircleNode {

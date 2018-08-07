@@ -23,8 +23,8 @@ proc objPressed { view plot id } {
   }
 }
 
-set model [load_model -tsv data/multi_series.tsv -comment_header]
+set model [load_model -tsv data/multi_series.tsv -comment_header -column_type "time:format=%Y%m%d,oformat=%F"]
 
-set plot [create_plot -type xy -columns "x=0,y=1" -title "XY Plot" -column_type "time:format=%Y%m%d,oformat=%F"]
+set plot [create_plot -type xy -columns "x=0,y=1" -title "XY Plot"]
 
 connect_chart -plot $plot -from objIdPressed -to objPressed

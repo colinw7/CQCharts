@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QColor>
+#include <QStringList>
 #include <map>
 #include <vector>
 
