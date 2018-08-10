@@ -740,7 +740,6 @@ addProperties()
   // options
   addProperty("options", this, "horizontal", "horizontal");
   addProperty("options", this, "normalized", "normalized");
-  addProperty("options", this, "notched"   , "notched"   );
   addProperty("options", this, "colorBySet");
 
   // jitter
@@ -759,8 +758,9 @@ addProperties()
   addProperty("errorBar", this, "errorBarType", "type"   );
 
   // whisker box
-  addProperty("box", this, "whiskerRange", "range");
-  addProperty("box", this, "boxWidth"    , "width");
+  addProperty("box", this, "whiskerRange", "range"  );
+  addProperty("box", this, "boxWidth"    , "width"  );
+  addProperty("box", this, "notched"     , "notched");
 
   // whisker box stroke
   addProperty("box/stroke", this, "boxStroked" , "visible"   );

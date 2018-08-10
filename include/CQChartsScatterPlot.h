@@ -5,6 +5,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsDataLabel.h>
 #include <CQChartsGrahamHull.h>
+#include <CQChartsBoxWhisker.h>
 
 //---
 
@@ -31,6 +32,9 @@ class CQChartsScatterPlot;
 class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
+  Q_PROPERTY(QPointF point READ point)
+  Q_PROPERTY(QString name  READ name )
+
  public:
   enum Dir {
     X  = (1<<0),
@@ -46,6 +50,10 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
                           const CQChartsLength &symbolSize, const OptReal &fontSize,
                           const CQChartsColor &color,
                           int ig, int ng, int is, int ns, int iv, int nv);
+
+  int groupInd() const { return groupInd_; }
+
+  const QPointF &point() const { return p_; }
 
   const CQChartsSymbol &symbolType() const { return symbolType_; }
   void setSymbolType(const CQChartsSymbol &s) { symbolType_ = s; }
@@ -71,7 +79,7 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
   void draw(QPainter *painter) override;
 
-  void drawDir(QPainter *painter, const Dir &dir) const;
+  void drawDir(QPainter *painter, const Dir &dir, bool flip=false) const;
 
  private:
   CQChartsScatterPlot* plot_       { nullptr };
@@ -138,11 +146,30 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsColor hullFillColor READ hullFillColor WRITE setHullFillColor)
   Q_PROPERTY(double        hullFillAlpha READ hullFillAlpha WRITE setHullFillAlpha)
 
-  // rug
+  // axis rug
   Q_PROPERTY(bool           xRug          READ isXRug        WRITE setXRug         )
+  Q_PROPERTY(YSide          xRugSide      READ xRugSide      WRITE setXRugSide     )
   Q_PROPERTY(bool           yRug          READ isYRug        WRITE setYRug         )
+  Q_PROPERTY(XSide          yRugSide      READ yRugSide      WRITE setYRugSide     )
   Q_PROPERTY(CQChartsSymbol rugSymbolType READ rugSymbolType WRITE setRugSymbolType)
   Q_PROPERTY(CQChartsLength rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
+
+  // axis density
+  Q_PROPERTY(bool           xDensity     READ isXDensity   WRITE setXDensity    )
+  Q_PROPERTY(YSide          xDensitySide READ xDensitySide WRITE setXDensitySide)
+  Q_PROPERTY(bool           yDensity     READ isYDensity   WRITE setYDensity    )
+  Q_PROPERTY(XSide          yDensitySide READ yDensitySide WRITE setYDensitySide)
+  Q_PROPERTY(CQChartsLength densityWidth READ densityWidth WRITE setDensityWidth)
+  Q_PROPERTY(double         densityAlpha READ densityAlpha WRITE setDensityAlpha)
+
+  // axis whisker
+  Q_PROPERTY(bool           xWhisker      READ isXWhisker    WRITE setXWhisker     )
+  Q_PROPERTY(YSide          xWhiskerSide  READ xWhiskerSide  WRITE setXWhiskerSide )
+  Q_PROPERTY(bool           yWhisker      READ isYWhisker    WRITE setYWhisker     )
+  Q_PROPERTY(XSide          yWhiskerSide  READ yWhiskerSide  WRITE setYWhiskerSide )
+  Q_PROPERTY(CQChartsLength whiskerWidth  READ whiskerWidth  WRITE setWhiskerWidth )
+  Q_PROPERTY(CQChartsLength whiskerMargin READ whiskerMargin WRITE setWhiskerMargin)
+  Q_PROPERTY(double         whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
 
   // symbol
   Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
@@ -181,6 +208,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)
   Q_PROPERTY(double fontSizeMapMax READ fontSizeMapMax   WRITE setFontSizeMapMax)
 
+  Q_ENUMS(XSide)
+  Q_ENUMS(YSide)
   Q_ENUMS(Pattern)
 
  public:
@@ -215,6 +244,16 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
     BDIAG
   };
 
+  enum XSide {
+    LEFT,
+    RIGHT
+  };
+
+  enum YSide {
+    BOTTOM,
+    TOP
+  };
+
  public:
   CQChartsScatterPlot(CQChartsView *view, const ModelP &model);
 
@@ -231,6 +270,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   //---
 
+  // best fit
   bool isBestFit() const { return bestFit_; }
 
   bool isBestFitDeviation() const { return bestFitDeviation_; }
@@ -247,6 +287,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   //---
 
+  // convex hull
   bool isHull() const { return hull_; }
 
   const CQChartsColor &hullFillColor() const { return hullFillColor_; }
@@ -257,14 +298,60 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   //---
 
+  // axis rug
   bool isXRug() const { return xRug_; }
   bool isYRug() const { return yRug_; }
+
+  const YSide &xRugSide() const { return xRugSide_; }
+  void setXRugSide(const YSide &s);
+
+  const XSide &yRugSide() const { return yRugSide_; }
+  void setYRugSide(const XSide &s);
 
   const CQChartsSymbol &rugSymbolType() const { return rugSymbolType_; }
   void setRugSymbolType(const CQChartsSymbol &s);
 
   const CQChartsLength &rugSymbolSize() const { return rugSymbolSize_; }
   void setRugSymbolSize(const CQChartsLength &r);
+
+  //---
+
+  // axis density
+  bool isXDensity() const { return xDensity_; }
+  bool isYDensity() const { return yDensity_; }
+
+  const YSide &xDensitySide() const { return xDensitySide_; }
+  void setXDensitySide(const YSide &s);
+
+  const XSide &yDensitySide() const { return yDensitySide_; }
+  void setYDensitySide(const XSide &s);
+
+  const CQChartsLength &densityWidth() const { return densityWidth_; }
+  void setDensityWidth(const CQChartsLength &w);
+
+  double densityAlpha() const { return densityAlpha_; }
+  void setDensityAlpha(double a);
+
+  //---
+
+  // axis whisker
+  bool isXWhisker() const { return xWhisker_; }
+  bool isYWhisker() const { return yWhisker_; }
+
+  const YSide &xWhiskerSide() const { return xWhiskerSide_; }
+  void setXWhiskerSide(const YSide &s);
+
+  const XSide &yWhiskerSide() const { return yWhiskerSide_; }
+  void setYWhiskerSide(const XSide &s);
+
+  const CQChartsLength &whiskerWidth() const { return whiskerWidth_; }
+  void setWhiskerWidth(const CQChartsLength &w);
+
+  const CQChartsLength &whiskerMargin() const { return whiskerMargin_; }
+  void setWhiskerMargin(const CQChartsLength &w);
+
+  double whiskerAlpha() const { return whiskerAlpha_; }
+  void setWhiskerAlpha(double a);
 
   //---
 
@@ -435,6 +522,10 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   void drawHull        (QPainter *painter);
   void drawXRug        (QPainter *painter);
   void drawYRug        (QPainter *painter);
+  void drawXDensity    (QPainter *painter);
+  void drawYDensity    (QPainter *painter);
+  void drawXWhisker    (QPainter *painter);
+  void drawYWhisker    (QPainter *painter);
   void drawSymbolMapKey(QPainter *painter);
 
  public slots:
@@ -443,6 +534,12 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   void setXRug(bool b);
   void setYRug(bool b);
+
+  void setXDensity(bool b);
+  void setYDensity(bool b);
+
+  void setXWhisker(bool b);
+  void setYWhisker(bool b);
 
  private:
   struct FitData {
@@ -463,39 +560,61 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
     double margin    { 16 };
   };
 
-  using Points       = std::vector<QPointF>;
-  using GroupPoints  = std::map<int,Points>;
-  using GroupFitData = std::map<int,FitData>;
-  using GroupHull    = std::map<int,CQChartsGrahamHull>;
+  struct WhiskerData {
+    CQChartsBoxWhisker xWhisker;
+    CQChartsBoxWhisker yWhisker;
+  };
 
-  CQChartsColumn     nameColumn_;                 // name column
-  CQChartsColumn     xColumn_          { 0 };     // x column
-  CQChartsColumn     yColumn_          { 1 };     // y column
-  bool               bestFit_          { false }; // show best fit
-  bool               bestFitDeviation_ { false }; // show best fit deviation
-  int                bestFitOrder_     { 3 };     // best fit order
-  CQChartsColor      bestFitFillColor_;
-  double             bestFitFillAlpha_ { 1.0 };
-  bool               hull_             { false }; // show convex hull
-  CQChartsColor      hullFillColor_;
-  double             hullFillAlpha_    { 1.0 };
-  bool               xRug_             { false }; // x rug
-  bool               yRug_             { false }; // y rug
-  CQChartsSymbol     rugSymbolType_;              // rug symbol type
-  CQChartsLength     rugSymbolSize_    { "5px" }; // rug symbol size
-  CQChartsSymbolData symbolData_;                 // symbol draw data
-  GroupNameValues    groupNameValues_;            // name values
-  CQChartsDataLabel  dataLabel_;                  // data label style
-  QString            xname_;                      // x column header
-  QString            yname_;                      // y column header
-  SymbolMapKeyData   symbolMapKeyData_;           // symbol map key data
-  QString            symbolTypeName_;             // symbol type column header
-  QString            symbolSizeName_;             // symbol size column header
-  QString            fontSizeName_;               // font size column header
-  QString            colorName_;                  // color column header
-  GroupPoints        groupPoints_;                // group fit points
-  GroupFitData       groupFitData_;               // group fit data
-  GroupHull          groupHull_;                  // group hull
+  using Points        = std::vector<QPointF>;
+  using GroupPoints   = std::map<int,Points>;
+  using GroupFitData  = std::map<int,FitData>;
+  using GroupHull     = std::map<int,CQChartsGrahamHull>;
+  using GroupWhiskers = std::map<int,WhiskerData>;
+
+  CQChartsColumn     nameColumn_;                         // name column
+  CQChartsColumn     xColumn_          { 0 };             // x column
+  CQChartsColumn     yColumn_          { 1 };             // y column
+  bool               bestFit_          { false };         // show best fit
+  bool               bestFitDeviation_ { false };         // show best fit deviation
+  int                bestFitOrder_     { 3 };             // best fit order
+  CQChartsColor      bestFitFillColor_;                   // best fit fill color
+  double             bestFitFillAlpha_ { 1.0 };           // best fit fill alpha
+  bool               hull_             { false };         // show convex hull
+  CQChartsColor      hullFillColor_;                      // hull fill color
+  double             hullFillAlpha_    { 1.0 };           // hull fill alpha
+  bool               xRug_             { false };         // x rug
+  YSide              xRugSide_         { YSide::BOTTOM }; // x rug side
+  bool               yRug_             { false };         // y rug
+  XSide              yRugSide_         { XSide::LEFT };   // y rug side
+  CQChartsSymbol     rugSymbolType_;                      // rug symbol type
+  CQChartsLength     rugSymbolSize_    { "5px" };         // rug symbol size
+  bool               xDensity_         { false };         // x density
+  YSide              xDensitySide_     { YSide::TOP };    // x density side
+  bool               yDensity_         { false };         // y density
+  XSide              yDensitySide_     { XSide::RIGHT };  // y density side
+  CQChartsLength     densityWidth_     { "48px" };        // density width
+  double             densityAlpha_     { 0.5 };           // density alpha
+  bool               xWhisker_         { false };         // x whisker
+  YSide              xWhiskerSide_     { YSide::TOP };    // x whisker side
+  bool               yWhisker_         { false };         // y whisker
+  XSide              yWhiskerSide_     { XSide::RIGHT };  // y whisker side
+  CQChartsLength     whiskerWidth_     { "24px" };        // whisker width
+  CQChartsLength     whiskerMargin_    { "8px" };         // whisker margin
+  double             whiskerAlpha_     { 0.5 };           // whisker alpha
+  CQChartsSymbolData symbolData_;                         // symbol draw data
+  GroupNameValues    groupNameValues_;                    // name values
+  CQChartsDataLabel  dataLabel_;                          // data label style
+  QString            xname_;                              // x column header
+  QString            yname_;                              // y column header
+  SymbolMapKeyData   symbolMapKeyData_;                   // symbol map key data
+  QString            symbolTypeName_;                     // symbol type column header
+  QString            symbolSizeName_;                     // symbol size column header
+  QString            fontSizeName_;                       // font size column header
+  QString            colorName_;                          // color column header
+  GroupPoints        groupPoints_;                        // group fit points
+  GroupFitData       groupFitData_;                       // group fit data
+  GroupHull          groupHull_;                          // group hull
+  GroupWhiskers      groupWhiskers_;                      // group whiskers
 };
 
 #endif

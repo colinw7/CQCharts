@@ -271,4 +271,6 @@ class CQChartsBoxWhiskerT {
   bool     densityValid_ { false };
 };
 
+using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
+
 #endif

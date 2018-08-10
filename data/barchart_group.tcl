@@ -1,9 +1,15 @@
 proc objPressed { view plot id } {
-  echo "$view $plot $id"
+  #echo "$view $plot $id"
+
+  set model [get_charts_data -plot $plot -name model]
 
   set inds [get_charts_data -plot $plot -object $id -name inds]
 
-  echo "$inds"
+  foreach ind $inds {
+    set id [get_charts_data -model $model -ind $ind -name value]
+
+    echo $id
+  }
 }
 
 set model [load_model -tsv data/scatter.tsv -first_line_header]

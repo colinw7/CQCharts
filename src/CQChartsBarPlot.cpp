@@ -97,8 +97,9 @@ addProperties()
   addProperty("columns", this, "colorColumn" , "color" );
 
   addProperty("options", this, "horizontal");
-  addProperty("options", this, "margin"     , "barMargin"  );
-  addProperty("options", this, "groupMargin", "groupMargin");
+
+  addProperty("margins", this, "margin"     , "bar"  );
+  addProperty("margins", this, "groupMargin", "group");
 
   addProperty("stroke", this, "border"    , "visible"   );
   addProperty("stroke", this, "cornerSize", "cornerSize");

@@ -2741,7 +2741,7 @@ calcTipId() const
   CQChartsTableTip tableTip;
 
   tableTip.addTableRow("Name", name());
-  tableTip.addTableRow("Area", CQUtil::area(poly_));
+  tableTip.addTableRow("Area", CQUtil::polygonArea(poly_));
 
   return tableTip.str();
 }

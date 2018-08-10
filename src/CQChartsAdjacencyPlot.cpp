@@ -197,22 +197,6 @@ setBorderDash(const CQChartsLineDash &d)
 
 void
 CQChartsAdjacencyPlot::
-setEmptyCellColor(const CQChartsColor &s)
-{
-  emptyCellBox_.setBackgroundColor(s);
-
-  invalidateLayers();
-}
-
-QColor
-CQChartsAdjacencyPlot::
-interpEmptyCellColor(int i, int n) const
-{
-  return emptyCellBox_.interpBackgroundColor(i, n);
-}
-
-void
-CQChartsAdjacencyPlot::
 setCornerSize(const CQChartsLength &s)
 {
   cellBox_.setCornerSize(s);
@@ -261,6 +245,33 @@ setMargin(double r)
 
 void
 CQChartsAdjacencyPlot::
+setEmptyCellColor(const CQChartsColor &s)
+{
+  emptyCellBox_.setBackgroundColor(s);
+
+  invalidateLayers();
+}
+
+QColor
+CQChartsAdjacencyPlot::
+interpEmptyCellColor(int i, int n) const
+{
+  return emptyCellBox_.interpBackgroundColor(i, n);
+}
+
+void
+CQChartsAdjacencyPlot::
+setEmptyCellCornerSize(const CQChartsLength &s)
+{
+  emptyCellBox_.setCornerSize(s);
+
+  invalidateLayers();
+}
+
+//---
+
+void
+CQChartsAdjacencyPlot::
 addProperties()
 {
   CQChartsPlot::addProperties();
@@ -271,14 +282,17 @@ addProperties()
   addProperty("columns", this, "nameColumn"       , "name"       );
   addProperty("columns", this, "groupColumn"      , "group"      );
 
-  addProperty("options", this, "sortType"      , "");
-  addProperty("options", this, "bgColor"       , "");
-  addProperty("options", this, "emptyCellColor", "");
-  addProperty("options", this, "margin"        , "");
+  addProperty("options", this, "sortType", "");
 
-  addProperty("stroke", this, "borderColor", "color");
-  addProperty("stroke", this, "borderAlpha", "alpha");
-  addProperty("stroke", this, "cornerSize" , "cornerSize");
+  addProperty("background", this, "bgColor", "color");
+
+  addProperty("cell"       , this, "margin"     , "margin"    );
+  addProperty("cell/stroke", this, "borderColor", "color"     );
+  addProperty("cell/stroke", this, "borderAlpha", "alpha"     );
+  addProperty("cell/stroke", this, "cornerSize" , "cornerSize");
+
+  addProperty("emptyCell/fill"  , this, "emptyCellColor"     , "color"     );
+  addProperty("emptyCell/stroke", this, "emptyCellCornerSize", "cornerSize");
 
   addProperty("text", this, "textColor", "color");
   addProperty("text", this, "font"     , "font" );
@@ -877,6 +891,7 @@ drawBackground(QPainter *painter)
 
   //---
 
+  // draw empty cell
   QColor bc = interpEmptyCellColor(0, 1);
 
   py = pyo + margin() + yts;
@@ -897,9 +912,10 @@ drawBackground(QPainter *painter)
 
         QRectF cellRect(px, py, pxs, pys);
 
-        double cs = 0; // cornerSize()
+        double cxs = lengthPixelWidth (emptyCellCornerSize());
+        double cys = lengthPixelHeight(emptyCellCornerSize());
 
-        CQChartsRoundedPolygon::draw(painter, cellRect, cs, cs);
+        CQChartsRoundedPolygon::draw(painter, cellRect, cxs, cys);
       }
 
       px += pxs;

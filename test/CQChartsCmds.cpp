@@ -2071,7 +2071,9 @@ getChartsDataCmd(const Vars &vars)
   argv.addCmdArg("-column", CQChartsCmdArg::Type::Column , "column");
   argv.addCmdArg("-header", CQChartsCmdArg::Type::Boolean, "get header data");
   argv.addCmdArg("-row"   , CQChartsCmdArg::Type::Row    , "row number or id");
-  argv.addCmdArg("-role"  , CQChartsCmdArg::Type::String , "role id");
+  argv.addCmdArg("-ind"   , CQChartsCmdArg::Type::String , "model index");
+
+  argv.addCmdArg("-role", CQChartsCmdArg::Type::String, "role id");
 
   argv.addCmdArg("-name", CQChartsCmdArg::Type::String, "option name").setRequired();
   argv.addCmdArg("-data", CQChartsCmdArg::Type::String, "option data");
@@ -2116,6 +2118,18 @@ getChartsDataCmd(const Vars &vars)
     CQChartsColumn column = argv.getParseColumn("column", model.data());
 
     int row = argv.getParseRow("row");
+
+    if (argv.hasParseArg("ind")) {
+      int irow, icol;
+
+      if (! CQTclUtil::stringToModelIndex(argv.getParseStr("ind"), irow, icol)) {
+        charts_->errorMsg("Invalid model index");
+        return;
+      }
+
+      row    = irow;
+      column = icol;
+    }
 
     //---
 

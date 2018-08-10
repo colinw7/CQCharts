@@ -563,3 +563,5 @@
  + add scatter convext hull
 # 8/06/2018
  + mouse over for annotations
+# 8/09/2018
+ + add density and whisker x/y axis annotations

@@ -1502,7 +1502,7 @@ class CQChartsPlot : public QObject {
   ConnectData               connectData_;                     // associated plot data
   PlotObjs                  plotObjs_;                        // plot objects
   ValueSets                 valueSets_;                       // named value sets
-  int                       insideInd_    { 0 };              // current inside object ind
+  int                       insideInd_        { 0 };          // current inside object ind
   ObjSet                    insideObjs_;                      // inside plot objects
   SizeObjSet                sizeInsideObjs_;                  // inside plot objects (size sorted)
   CQChartsPlotObjTree*      plotObjTree_      { nullptr };    // plot object quad tree
@@ -1517,7 +1517,7 @@ class CQChartsPlot : public QObject {
   int                       updateTimeout_    { 100 };        // update timeout
   CQChartsEditHandles       editHandles_;                     // edit controls
   Annotations               annotations_;                     // extra annotations
-  bool                      fromInvalidate_   { false };      // cal from invalidate
+  bool                      fromInvalidate_   { false };      // call from invalidate
 };
 
 #endif

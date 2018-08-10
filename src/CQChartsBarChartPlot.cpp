@@ -130,10 +130,12 @@ addProperties()
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "labelColumn", "label");
 
-  addProperty("options", this, "stacked"   );
   addProperty("options", this, "percent"   );
-  addProperty("options", this, "rangeBar"  );
   addProperty("options", this, "colorBySet");
+
+  addProperty("placement", this, "stacked");
+
+  addProperty("rangeBar", this, "rangeBar", "enabled");
 
   addProperty("dotLines",        this, "dotLines"     , "enabled");
   addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );

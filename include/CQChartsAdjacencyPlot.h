@@ -125,9 +125,10 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 // connectivity plot:
 //   nodes             : number, name(opt), group(opt)
 //   connections       : node->node
-//   grid cell         : background color, empty cell color
+//   grid              : background color
 //   row/column labels : text color, font
-//   misc              : margin
+//   cell              : margin, corner size
+//   empty cell        : color
 //
 // TODO: use box obj for box config
 class CQChartsAdjacencyPlot : public CQChartsPlot {
@@ -139,15 +140,18 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
 
-  Q_PROPERTY(SortType      sortType       READ sortType       WRITE setSortType      )
-  Q_PROPERTY(CQChartsColor bgColor        READ bgColor        WRITE setBgColor       )
-  Q_PROPERTY(CQChartsColor emptyCellColor READ emptyCellColor WRITE setEmptyCellColor)
-  Q_PROPERTY(double        margin         READ margin         WRITE setMargin        )
+  Q_PROPERTY(SortType       sortType       READ sortType       WRITE setSortType      )
+  Q_PROPERTY(CQChartsColor  bgColor        READ bgColor        WRITE setBgColor       )
+  Q_PROPERTY(double         margin         READ margin         WRITE setMargin        )
 
   Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
   Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
   Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
   Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
+
+  Q_PROPERTY(CQChartsColor  emptyCellColor      READ emptyCellColor      WRITE setEmptyCellColor)
+  Q_PROPERTY(CQChartsLength emptyCellCornerSize READ emptyCellCornerSize
+                                                WRITE setEmptyCellCornerSize )
 
   Q_PROPERTY(CQChartsColor textColor READ textColor WRITE setTextColor)
   Q_PROPERTY(double        textAlpha READ textAlpha WRITE setTextAlpha)
@@ -196,11 +200,6 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   QColor interpBgColor(int i, int n) const;
 
-  const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
-  void setEmptyCellColor(const CQChartsColor &s);
-
-  QColor interpEmptyCellColor(int i, int n) const;
-
   //---
 
   const CQChartsColor &borderColor() const { return cellBox_.borderColor(); }
@@ -216,6 +215,16 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   const CQChartsLength &cornerSize() const { return cellBox_.cornerSize(); }
   void setCornerSize(const CQChartsLength &s);
+
+  //---
+
+  const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
+  void setEmptyCellColor(const CQChartsColor &s);
+
+  QColor interpEmptyCellColor(int i, int n) const;
+
+  const CQChartsLength &emptyCellCornerSize() const { return emptyCellBox_.cornerSize(); }
+  void setEmptyCellCornerSize(const CQChartsLength &s);
 
   //---
 

@@ -15,6 +15,30 @@ inline int eval(Tcl_Interp *interp, const QString &str) {
   return Tcl_EvalEx(interp, str.toLatin1().constData(), -1, 0);
 }
 
+inline QString modelIndexToString(const QModelIndex &ind) {
+  int row = ind.row   ();
+  int col = ind.column();
+
+  return QString("%1:%2").arg(row).arg(col);
+}
+
+inline bool stringToModelIndex(const QString &str, int &row, int &col) {
+  int pos = str.indexOf(':');
+
+  if (pos < 0)
+    return false;
+
+  QString lhs = str.mid(0, pos).simplified();
+  QString rhs = str.mid(pos + 1).simplified();
+
+  bool ok1, ok2;
+
+  row = lhs.toInt(&ok1);
+  col = rhs.toInt(&ok2);
+
+  return (ok1 && ok2);
+}
+
 inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   if      (var.type() == QVariant::Double) {
     return Tcl_NewDoubleObj(var.value<double>());
@@ -33,10 +57,7 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   else if (var.type() == QVariant::ModelIndex) {
     QModelIndex ind = var.value<QModelIndex>();
 
-    int row = ind.row   ();
-    int col = ind.column();
-
-    QString str = QString("%1:%2").arg(row).arg(col);
+    QString str = modelIndexToString(ind);
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
   }

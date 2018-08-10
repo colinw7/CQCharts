@@ -1,4 +1,6 @@
 High
+ + Consistent property names and hieracrchy
+ + More Variants in Model (QIamge/QIcon could supply custom symbol !)
  + Sort for scatter distribution
  + Layer only include image for object bbox
  + Column details in model data or model ?

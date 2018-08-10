@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QSharedPointer>
+#include <QModelIndex>
 
 class CQChartsModelDetails;
 class CQCharts;

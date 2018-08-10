@@ -267,14 +267,14 @@ addProperties()
   addProperty("bucket", this, "deltaBucketValue", "delta"  );
   addProperty("bucket", this, "numAutoBuckets"  , "num"    );
 
-  // TODO: placement: grouped
+  addProperty("options", this, "skipEmpty");
+  addProperty("options", this, "sorted"   );
 
-  addProperty("options", this, "stacked"   );
-  addProperty("options", this, "sideBySide");
-  addProperty("options", this, "overlay"   );
-  addProperty("options", this, "skipEmpty" );
-  addProperty("options", this, "rangeBar"  );
-  addProperty("options", this, "sorted"    );
+  addProperty("placement", this, "stacked"   );
+  addProperty("placement", this, "sideBySide");
+  addProperty("placement", this, "overlay"   );
+
+  addProperty("rangeBar", this, "rangeBar", "enabled");
 
   addProperty("density", this, "density"        , "enabled" );
   addProperty("density", this, "densityOffset"  , "offset"  );

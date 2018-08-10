@@ -6,7 +6,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsValueInd.h>
 #include <CQChartsBoxWhisker.h>
-#include <CQChartsDensity.h>
 #include <CQChartsGeom.h>
 
 #include <map>
