@@ -2,9 +2,22 @@
 #define CQChartsBoxWhisker_H
 
 #include <CQChartsDensity.h>
+#include <CQChartsUtil.h>
+#include <QString>
 #include <cassert>
 #include <vector>
 #include <algorithm>
+
+struct CQChartsWhiskerData {
+  double min    { 0.0 };
+  double lower  { 0.0 };
+  double median { 0.0 };
+  double upper  { 0.0 };
+  double max    { 0.0 };
+  double notch  { 0.0 };
+  double lnotch { 0.0 };
+  double unotch { 0.0 };
+};
 
 template<typename VALUE>
 class CQChartsBoxWhiskerT {
@@ -74,13 +87,17 @@ class CQChartsBoxWhiskerT {
     invalidate();
   }
 
-  double median() const { const_calc(); return median_; }
+  //---
 
-  double min() const { const_calc(); return min_; }
-  double max() const { const_calc(); return max_; }
+  double min   () const { return data().min   ; }
+  double lower () const { return data().lower ; }
+  double median() const { return data().median; }
+  double max   () const { return data().max   ; }
+  double upper () const { return data().upper ; }
 
-  double lower() const { const_calc(); return lower_; }
-  double upper() const { const_calc(); return upper_; }
+  const CQChartsWhiskerData &data() const { const_calc(); return data_; }
+
+  //---
 
   double sum() const { const_calc(); return sum_; }
 
@@ -88,10 +105,10 @@ class CQChartsBoxWhiskerT {
 
   double stddev() const { const_calc(); return stddev_; }
 
-  double notch() const { const_calc(); return notch_; }
+  double notch() const { return data().notch; }
 
-  double lnotch() const { return median() - notch(); }
-  double unotch() const { return median() + notch(); }
+  double lnotch() const { return data().lnotch; }
+  double unotch() const { return data().unotch; }
 
   const Outliers &outliers() const { const_calc(); return outliers_; }
 
@@ -154,7 +171,7 @@ class CQChartsBoxWhiskerT {
 
       medianInd(0, nv - 1, nv1, nv2);
 
-      median_ = (rvalue(nv1) + rvalue(nv2))/2.0;
+      data_.median = (rvalue(nv1) + rvalue(nv2))/2.0;
 
       // lower median
       if (nv1 > 0) {
@@ -162,10 +179,10 @@ class CQChartsBoxWhiskerT {
 
         medianInd(0, nv1 - 1, nl1, nl2);
 
-        lower_ = (rvalue(nl1) + rvalue(nl2))/2.0;
+        data_.lower = (rvalue(nl1) + rvalue(nl2))/2.0;
       }
       else
-        lower_ = rvalue(0);
+        data_.lower = rvalue(0);
 
       // upper median
       if (nv2 < nv - 1) {
@@ -173,22 +190,22 @@ class CQChartsBoxWhiskerT {
 
         medianInd(nv2 + 1, nv - 1, nu1, nu2);
 
-        upper_ = (rvalue(nu1) + rvalue(nu2))/2.0;
+        data_.upper = (rvalue(nu1) + rvalue(nu2))/2.0;
       }
       else
-        upper_ = rvalue(nv - 1);
+        data_.upper = rvalue(nv - 1);
 
       // outliers outside range()*(upper - lower)
-      double routlier = upper_ - lower_;
-      double loutlier = lower_ - range()*routlier;
-      double uoutlier = upper_ + range()*routlier;
+      double routlier = data_.upper - data_.lower;
+      double loutlier = data_.lower - range()*routlier;
+      double uoutlier = data_.upper + range()*routlier;
 
       //---
 
       sum_ = 0.0;
 
-      min_ = lower_;
-      max_ = min_;
+      data_.min = data_.lower;
+      data_.max = data_.min;
 
       outliers_.clear();
 
@@ -200,8 +217,8 @@ class CQChartsBoxWhiskerT {
         if (vr < loutlier || vr > uoutlier)
           outliers_.push_back(n);
         else {
-          min_ = std::min(vr, min_);
-          max_ = std::max(vr, max_);
+          data_.min = std::min(vr, data_.min);
+          data_.max = std::max(vr, data_.max);
         }
 
         sum_ += vr;
@@ -224,18 +241,22 @@ class CQChartsBoxWhiskerT {
       stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
     }
     else {
-      median_ = 0.0;
-      min_    = 0.0;
-      max_    = 0.0;
-      lower_  = 0.0;
-      upper_  = 0.0;
+      data_.median = 0.0;
+      data_.min    = 0.0;
+      data_.max    = 0.0;
+      data_.lower  = 0.0;
+      data_.upper  = 0.0;
+
       sum_    = 0.0;
       stddev_ = 0.0;
     }
 
     //---
 
-    notch_ = 1.58*(upper_ - lower_)/sqrt(nv);
+    data_.notch = 1.58*(data_.upper - data_.lower)/sqrt(nv);
+
+    data_.lnotch = data_.median - data_.notch;
+    data_.unotch = data_.median + data_.notch;
   }
 
   void medianInd(int i1, int i2, int &n1, int &n2) {
@@ -252,25 +273,55 @@ class CQChartsBoxWhiskerT {
   }
 
  private:
-  QString  name_;
-  Values   values_;
-  bool     valid_        { false };
-  double   range_        { 1.5 };
-  double   fraction_     { 0.95 }; // TODO
-  double   median_       { 0.0 };
-  double   min_          { 0.0 };
-  double   max_          { 0.0 };
-  double   lower_        { 0.0 };
-  double   upper_        { 0.0 };
-  double   sum_          { 0.0 };
-  double   mean_         { 0.0 };
-  double   stddev_       { 0.0 };
-  double   notch_        { 0.0 };
-  Outliers outliers_;
-  Density  density_;
-  bool     densityValid_ { false };
+  QString             name_;
+  Values              values_;
+  bool                valid_    { false };
+  double              range_    { 1.5 };
+  double              fraction_ { 0.95 }; // TODO
+  CQChartsWhiskerData data_;
+  double              sum_      { 0.0 };
+  double              mean_     { 0.0 };
+  double              stddev_   { 0.0 };
+  Outliers            outliers_;
+  Density             density_;
+  bool                densityValid_ { false };
 };
 
 using CQChartsBoxWhisker = CQChartsBoxWhiskerT<double>;
+
+//------
+
+#include <CQChartsGeom.h>
+#include <CQChartsLength.h>
+
+class CQChartsPlot;
+class QPainter;
+
+namespace CQChartsBoxWhiskerUtil {
+
+void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
+                 const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
+                 const Qt::Orientation &orientation);
+
+void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &whisker,
+                 const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
+                 const Qt::Orientation &orientation);
+
+void drawWhiskerBar(CQChartsPlot *plot, QPainter *painter, const CQChartsWhiskerData &data,
+                    double pos, const Qt::Orientation &orientation,
+                    double ww, double bw, const CQChartsLength &cornerSize, bool notched);
+
+#if 0
+void drawOutliers(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whisker,
+                  double pos, const CQChartsSymbolData &symbol,
+                  const Qt::Orientation &orientation);
+void drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
+                  double pos, const CQChartsSymbolData &symbol,
+                  const Qt::Orientation &orientation);
+#endif
+void drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &ovalues,
+                  double pos, const CQChartsSymbolData &symbol, const QPen &pen,
+                  const QBrush &brush, const Qt::Orientation &orientation);
+}
 
 #endif

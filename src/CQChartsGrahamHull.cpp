@@ -1,4 +1,6 @@
 #include <CQChartsGrahamHull.h>
+#include <CQChartsPlot.h>
+#include <QPainter>
 #include <cstdlib>
 #include <cmath>
 #include <cassert>
@@ -218,4 +220,34 @@ areaSign(const QPointF &a, const QPointF &b, const QPointF &c)
   if      (area2 > 0.0) return  1;
   else if (area2 < 0.0) return -1;
   else                  return  0;
+}
+
+void
+CQChartsGrahamHull::
+draw(CQChartsPlot *plot, QPainter *painter)
+{
+  std::vector<QPointF> hpoints;
+
+  getHull(hpoints);
+
+  int n = hpoints.size();
+
+  QPainterPath path;
+
+  if (n > 0) {
+    const QPointF &p = hpoints[0];
+
+    path.moveTo(plot->windowToPixel(p));
+
+    for (int i = 1; i < n; ++i) {
+      const QPointF &p = hpoints[i];
+
+      path.lineTo(plot->windowToPixel(p));
+    }
+
+    path.closeSubpath();
+
+    painter->fillPath  (path, painter->brush());
+    painter->strokePath(path, painter->pen());
+  }
 }

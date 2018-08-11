@@ -768,5 +768,5 @@ draw(QPainter *painter)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy));
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
 }

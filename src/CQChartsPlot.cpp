@@ -4844,6 +4844,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
     CQChartsPlotSymbolMgr::drawSymbol(data.type, &srenderer);
 }
 
+#if 0
 void
 CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
@@ -4869,6 +4870,7 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
 
   drawSymbol(painter, p, symbol, size, pen, brush);
 }
+#endif
 
 void
 CQChartsPlot::
@@ -6609,7 +6611,7 @@ positionToPlot(const CQChartsPosition &pos) const
     CQChartsGeom::BBox pbbox = displayRangeBBox();
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(p.getX()*pbbox.getHeight()/100.0);
+    p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
 
   return CQChartsUtil::toQPoint(p1);
@@ -6633,7 +6635,7 @@ positionToPixel(const CQChartsPosition &pos) const
     CQChartsGeom::BBox pbbox = calcPixelRect();
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
-    p1.setY(p.getX()*pbbox.getHeight()/100.0);
+    p1.setY(p.getY()*pbbox.getHeight()/100.0);
   }
 
   return CQChartsUtil::toQPoint(p1);

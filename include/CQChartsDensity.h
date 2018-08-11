@@ -1,8 +1,19 @@
 #ifndef CQChartsDensity_H
 #define CQChartsDensity_H
 
+#include <CQChartsGeom.h>
+#include <CQChartsData.h>
+#include <QPolygonF>
 #include <QPointF>
 #include <vector>
+
+class CQChartsPlot;
+class QPainter;
+
+struct CQChartsWhiskerOpts {
+  bool violin  { false };
+  bool fitTail { false };
+};
 
 class CQChartsDensity {
  public:
@@ -37,6 +48,31 @@ class CQChartsDensity {
   void calc();
 
   double yval(double x) const;
+
+  //---
+
+  void drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+                   const Qt::Orientation &orientation,
+                   const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
+
+  void calcWhiskerPoly(QPolygonF &ppoly, CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
+                       const Qt::Orientation &orientation,
+                       const CQChartsWhiskerOpts &opts=CQChartsWhiskerOpts()) const;
+
+  static void drawCrossBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+                           double mean, const Qt::Orientation &orientation,
+                           const CQChartsLength &cornerSize);
+
+  static void drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+                             double mean, const Qt::Orientation &orientation,
+                             const CQChartsSymbolData &symbol, const QPen &pen,
+                             const QBrush &brush);
+
+  static void drawErrorBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+                           const Qt::Orientation &orientation);
+
+  static void drawLineRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+                            const Qt::Orientation &orientation);
 
  private:
   void init();

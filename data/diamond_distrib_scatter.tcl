@@ -10,6 +10,6 @@ set model [load_model -csv data/diamonds.csv -first_line_header]
 
 set view [create_view]
 
-set plot [create_plot -view $view -model $model -type scatter -columns "x=carat,y=price"]
+set plot [create_plot -view $view -model $model -type distribution -columns "value=cut,group=color" -properties "scatter.enabled=1,scatter.factor=0.25"]
 
 connect_chart -plot $plot -from objIdPressed -to objPressed

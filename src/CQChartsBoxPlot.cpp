@@ -2083,50 +2083,6 @@ void
 CQChartsBoxPlotWhiskerObj::
 draw(QPainter *painter)
 {
-  double pos = this->pos();
-
-  double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal())/2.0;
-  double wd3 = wd2/2.0;
-
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5, px6, py6, px7, py7;
-
-  double min    = remapPos(this->min   ());
-  double lower  = remapPos(this->lower ());
-  double median = remapPos(this->median());
-  double upper  = remapPos(this->upper ());
-  double max    = remapPos(this->max   ());
-
-  double notch1 = remapPos(this->median() - this->notch());
-  double notch2 = remapPos(this->median() + this->notch());
-
-  if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, min   , px1, py1);
-    plot_->windowToPixel(pos - wd2, lower , px2, py2);
-    plot_->windowToPixel(pos      , median, px3, py3);
-    plot_->windowToPixel(pos + wd2, upper , px4, py4);
-    plot_->windowToPixel(pos + wd1, max   , px5, py5);
-
-    plot_->windowToPixel(pos - wd3, notch1, px6, py6);
-    plot_->windowToPixel(pos + wd3, notch2, px7, py7);
-  }
-  else {
-    plot_->windowToPixel(min   , pos - wd1, px1, py1);
-    plot_->windowToPixel(lower , pos - wd2, px2, py2);
-    plot_->windowToPixel(median, pos      , px3, py3);
-    plot_->windowToPixel(upper , pos + wd2, px4, py4);
-    plot_->windowToPixel(max   , pos + wd1, px5, py5);
-
-    plot_->windowToPixel(notch1, pos - wd3, px6, py6);
-    plot_->windowToPixel(notch2, pos + wd3, px7, py7);
-  }
-
-  //---
-
-  bool hasRange = (fabs(this->max() - this->min()) > 1E-6);
-
-  //---
-
   // get color index
   int ic = is_;
   int nc = ns_;
@@ -2180,6 +2136,41 @@ draw(QPainter *painter)
 
   //---
 
+  QColor whiskerColor = plot_->interpWhiskerColor(ic, nc);
+
+  whiskerColor.setAlphaF(plot_->whiskerAlpha());
+
+  double whiskerLineSize =
+  plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
+
+  QPen   whiskerPen  (whiskerColor, whiskerLineSize, Qt::SolidLine);
+  QBrush whiskerBrush(Qt::NoBrush);
+
+  plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
+
+  //---
+
+  Qt::Orientation orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
+
+  //---
+
+  double pos = this->pos();
+
+  double ww = plot_->whiskerExtent();
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+
+  CQChartsWhiskerData data;
+
+  data.min    = remapPos(this->min   ());
+  data.lower  = remapPos(this->lower ());
+  data.median = remapPos(this->median());
+  data.upper  = remapPos(this->upper ());
+  data.max    = remapPos(this->max   ());
+  data.lnotch = remapPos(this->median() - this->notch());
+  data.unotch = remapPos(this->median() + this->notch());
+
+  //---
+
   bool drawBox       = true;
   bool drawBoxFilled = true;
 
@@ -2187,72 +2178,20 @@ draw(QPainter *painter)
   if      (plot_->isViolin()) {
     const CQChartsDensity &density = whisker_.density();
 
-    const CQChartsDensity::Points &opoints = density.opoints();
-
-    double xmin = density.xmin();
-    double xmax = density.xmax();
-
-    double xmin1 = density.xmin1();
-    double xmax1 = density.xmax1();
-
-    double ymin = density.ymin1();
-    double ymax = density.ymax1();
-
-    CQChartsGeom::BBox densityBBox;
-
-    densityBBox.add(xmin, ymin);
-    densityBBox.add(xmax, ymax);
-
     double vw = plot_->lengthPlotSize(plot_->violinWidth(), plot_->isHorizontal())/2.0;
 
-    double vxs = (max - min)/(xmax - xmin);
-    double vys = vw/(ymax - ymin);
+    CQChartsGeom::BBox rect;
 
-    int no = opoints.size();
-    int np = 2*no + 2;
+    if (! plot_->isHorizontal())
+      rect = CQChartsGeom::BBox(pos - vw, data.min, pos + vw, data.max);
+    else
+      rect = CQChartsGeom::BBox(data.min, pos - vw, data.max, pos + vw);
 
-    ppoly_.resize(np);
+    CQChartsWhiskerOpts opts;
 
-    double px1, py1, px2, py2;
+    opts.violin = true;
 
-    if (! plot_->isHorizontal()) {
-      plot_->windowToPixel(pos, xmin1, px1, py1);
-      plot_->windowToPixel(pos, xmax1, px2, py2);
-    }
-    else {
-      plot_->windowToPixel(xmin1, pos, px1, py1);
-      plot_->windowToPixel(xmax1, pos, px2, py2);
-    }
-
-    ppoly_[0     ] = QPointF(px1, py1);
-    ppoly_[no + 1] = QPointF(px2, py2);
-
-    int ip = 0;
-
-    for (auto &p : opoints) {
-      double x1 = (p.x() - xmin)*vxs;
-      double y1 = (p.y() - ymin)*vys;
-
-      double px1, py1;
-
-      if (! plot_->isHorizontal())
-        plot_->windowToPixel(pos - y1, min + x1, px1, py1);
-      else
-        plot_->windowToPixel(min + x1, pos - y1, px1, py1);
-
-      ppoly_[ip + 1] = QPointF(px1, py1);
-
-      double px2, py2;
-
-      if (! plot_->isHorizontal())
-        plot_->windowToPixel(pos + y1, min + x1, px2, py2);
-      else
-        plot_->windowToPixel(min + x1, pos + y1, px2, py2);
-
-      ppoly_[np - ip - 1] = QPointF(px2, py2);
-
-      ++ip;
-    }
+    density.calcWhiskerPoly(ppoly_, plot_, rect, orientation, opts);
 
     painter->drawPolygon(ppoly_);
 
@@ -2264,57 +2203,61 @@ draw(QPainter *painter)
 
   // draw error bar
   if (plot_->isErrorBar()) {
+    painter->setPen(whiskerPen);
+
+    //---
+
+    double mean = remapPos(this->mean());
+    double dev1 = remapPos(this->mean() - this->stddev());
+    double dev2 = remapPos(this->mean() + this->stddev());
+
+    CQChartsGeom::BBox rect;
+
+    if (! plot_->isHorizontal())
+      rect = CQChartsGeom::BBox(pos - bw/2.0, dev1, pos + bw/2.0, dev2);
+    else
+      rect = CQChartsGeom::BBox(dev1, pos - bw/2.0, dev2, pos + bw/2.0);
+
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      double dev1 = remapPos(this->mean() - this->stddev());
-      double dev2 = remapPos(this->mean() + this->stddev());
-
-      double px1, py1, px2, py2;
-
-      if (! plot_->isHorizontal()) {
-        plot_->windowToPixel(pos - wd2, dev1, px1, py1);
-        plot_->windowToPixel(pos + wd2, dev2, px2, py2);
-      }
-      else {
-        plot_->windowToPixel(dev1, pos - wd2, px1, py1);
-        plot_->windowToPixel(dev2, pos + wd2, px2, py2);
-      }
-
-      QRectF rect(px1, py1, px2 - px1, py2 - py1);
-
-      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
-
-      CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+      CQChartsDensity::drawCrossBar(plot_, painter, rect, mean, orientation, plot_->cornerSize());
+    }
+    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
+      CQChartsDensity::drawErrorBar(plot_, painter, rect, orientation);
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
-      double mean = remapPos(this->mean());
+      // set fill and stroke
+      QPen   symbolPen;
+      QBrush symbolBrush;
 
-      double px, py;
+      QColor boxColor = plot_->interpBoxColor(ic, nc);
 
-      if (! plot_->isHorizontal())
-        plot_->windowToPixel(pos, mean, px, py);
-      else
-        plot_->windowToPixel(mean, pos, px, py);
+      boxColor.setAlphaF(plot_->boxAlpha());
 
-      CQChartsSymbol symbol      = CQChartsSymbol::Type::CIRCLE;
-      bool           stroked     = true;
-      double         strokeWidth = 1.0;
-      bool           filled      = true;
+      symbolBrush.setColor(boxColor);
 
-      QColor fillColor = plot_->interpBoxColor(ic, nc);
+      QColor borderColor = plot_->interpBorderColor(ic, nc);
 
-      fillColor.setAlphaF(plot_->borderAlpha());
+      borderColor.setAlphaF(plot_->borderAlpha());
 
-      QColor strokeColor = plot_->interpBorderColor(ic, nc);
+      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
 
-      strokeColor.setAlphaF(plot_->borderAlpha());
+      symbolPen.setColor (borderColor);
+      symbolPen.setWidthF(bw);
 
-      double sx, sy;
+      plot_->updateObjPenBrushState(this, symbolPen, symbolBrush);
 
-      plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+      //---
 
-      plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
-                        stroked, strokeColor, strokeWidth, filled, fillColor);
+      CQChartsSymbolData symbol;
+
+      symbol.type = CQChartsSymbol::Type::CIRCLE;
+      symbol.size = plot_->symbolSize();
+
+      CQChartsDensity::drawPointRange(plot_, painter, rect, mean, orientation, symbol,
+                                      symbolPen, symbolBrush);
+    }
+    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE) {
+      CQChartsDensity::drawLineRange(plot_, painter, rect, orientation);
     }
 
     drawBox = false;
@@ -2324,6 +2267,10 @@ draw(QPainter *painter)
 
   // draw notched box
   if (drawBox) {
+    painter->setPen(whiskerPen);
+
+    //---
+
     if (! drawBoxFilled) {
       QColor boxColor = plot_->interpThemeColor(0.0);
 
@@ -2332,167 +2279,51 @@ draw(QPainter *painter)
       painter->setBrush(brush);
     }
 
-    if (plot_->isNotched()) {
-      QPolygonF poly;
+    //---
 
-      poly << QPointF(px2, py2);
-      poly << QPointF(px4, py2);
-      poly << QPointF(px4, py6);
-      poly << QPointF(px7, py3);
-      poly << QPointF(px4, py7);
-      poly << QPointF(px4, py4);
-      poly << QPointF(px2, py4);
-      poly << QPointF(px2, py7);
-      poly << QPointF(px6, py3);
-      poly << QPointF(px2, py6);
-      poly << QPointF(px2, py2);
-
-      painter->drawPolygon(poly);
-    }
-    else {
-      QRectF rect(px2, py2, px4 - px2, py4 - py2);
-
-      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
-
-      CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
-    }
+    CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
+                                           ww, bw, plot_->cornerSize(), plot_->isNotched());
   }
-
-  //---
-
-  QColor whiskerColor = plot_->interpWhiskerColor(ic, nc);
-
-  whiskerColor.setAlphaF(plot_->whiskerAlpha());
-
-  double whiskerLineSize =
-    plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
 
   //---
 
   if (plot_->isErrorBar()) {
-    if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      double mean = remapPos(this->mean());
-
-      double px1, py1, px2, py2;
-
-      if (! plot_->isHorizontal()) {
-        plot_->windowToPixel(pos - wd2, mean, px1, py1);
-        plot_->windowToPixel(pos + wd2, mean, px2, py2);
-      }
-      else {
-        plot_->windowToPixel(mean, pos - wd2, px1, py1);
-        plot_->windowToPixel(mean, pos + wd2, px2, py2);
-      }
-
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-      if (! plot_->isHorizontal())
-        painter->drawLine(QPointF(px1, py1), QPointF(px2, py1));
-      else
-        painter->drawLine(QPointF(px1, py1), QPointF(px1, py2));
-    }
-    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
-      double dev1 = remapPos(this->mean() - this->stddev());
-      double dev2 = remapPos(this->mean() + this->stddev());
-
-      double px1, py1, px2, py2, px3, py3;
-
-      if (! plot_->isHorizontal()) {
-        plot_->windowToPixel(pos - wd2, dev1, px1, py1);
-        plot_->windowToPixel(pos + wd2, dev2, px2, py2);
-        plot_->windowToPixel(pos      ,  0.0, px3, py3);
-      }
-      else {
-        plot_->windowToPixel(dev1, pos - wd2, px1, py1);
-        plot_->windowToPixel(dev2, pos + wd2, px2, py2);
-        plot_->windowToPixel( 0.0, pos      , px3, py3);
-      }
-
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-      if (! plot_->isHorizontal()) {
-        painter->drawLine(QPointF(px1, py1), QPointF(px2, py1));
-        painter->drawLine(QPointF(px1, py2), QPointF(px2, py2));
-        painter->drawLine(QPointF(px3, py1), QPointF(px3, py2));
-      }
-      else {
-        painter->drawLine(QPointF(px1, py1), QPointF(px1, py2));
-        painter->drawLine(QPointF(px2, py1), QPointF(px2, py2));
-        painter->drawLine(QPointF(px1, py3), QPointF(px2, py3));
-      }
-    }
-    else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::LINE_RANGE ||
-             plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::POINT_RANGE) {
-      double dev1 = remapPos(this->mean() - this->stddev());
-      double dev2 = remapPos(this->mean() + this->stddev());
-
-      double px1, py1, px2, py2;
-
-      if (! plot_->isHorizontal()) {
-        plot_->windowToPixel(pos, dev1, px1, py1);
-        plot_->windowToPixel(pos, dev2, px2, py2);
-      }
-      else {
-        plot_->windowToPixel(dev1, pos, px1, py1);
-        plot_->windowToPixel(dev2, pos, px2, py2);
-      }
-
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-      if (! plot_->isHorizontal())
-        painter->drawLine(QPointF(px1, py1), QPointF(px1, py2));
-      else
-        painter->drawLine(QPointF(px1, py1), QPointF(px2, py1));
-    }
   }
   else {
+    double wd1 = ww/2.0;
+    double wd2 = bw/2.0;
+
+    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+
     if (plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
-      // draw extent line
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-      if (! plot_->isHorizontal())
-        painter->drawLine(QPointF(px3, py1), QPointF(px3, py5));
-      else
-        painter->drawLine(QPointF(px1, py3), QPointF(px5, py3));
-
-      //---
-
-      // draw lower/upper horizontal lines
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
       if (! plot_->isHorizontal()) {
-        painter->drawLine(QPointF(px1, py1), QPointF(px5, py1));
-        painter->drawLine(QPointF(px1, py5), QPointF(px5, py5));
+        plot_->windowToPixel(pos - wd1, data.min   , px1, py1);
+        plot_->windowToPixel(pos - wd2, data.lower , px2, py2);
+        plot_->windowToPixel(pos      , data.median, px3, py3);
+        plot_->windowToPixel(pos + wd2, data.upper , px4, py4);
+        plot_->windowToPixel(pos + wd1, data.max   , px5, py5);
       }
       else {
-        painter->drawLine(QPointF(px1, py1), QPointF(px1, py5));
-        painter->drawLine(QPointF(px5, py1), QPointF(px5, py5));
+        plot_->windowToPixel(data.min   , pos - wd1, px1, py1);
+        plot_->windowToPixel(data.lower , pos - wd2, px2, py2);
+        plot_->windowToPixel(data.median, pos      , px3, py3);
+        plot_->windowToPixel(data.upper , pos + wd2, px4, py4);
+        plot_->windowToPixel(data.max   , pos + wd1, px5, py5);
       }
-    }
-
-    //---
-
-    if (plot_->drawLayerType() == CQChartsLayer::Type::MID_PLOT) {
-      // draw median line
-      painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-      if (! plot_->isHorizontal())
-        painter->drawLine(QPointF(px2, py3), QPointF(px4, py3));
-      else
-        painter->drawLine(QPointF(px3, py2), QPointF(px3, py4));
-
-      //---
 
       // draw labels
       if (plot_->isTextVisible()) {
         painter->setFont(plot_->textFont());
 
-        QColor tc = plot_->interpTextColor(0, 1);
+        QColor tc = plot_->interpTextColor(ic, nc);
 
         tc.setAlphaF(plot_->textAlpha());
 
         painter->setPen(tc);
+
+        //---
+
+        bool hasRange = (fabs(this->max() - this->min()) > 1E-6);
 
         if (hasRange) {
           QString strl = QString("%1").arg(this->min   ());
@@ -2530,33 +2361,32 @@ draw(QPainter *painter)
 
       // draw outlier symbols
       if (plot_->isShowOutliers()) {
-        CQChartsSymbol symbol      = plot_->symbolType();
-        bool           stroked     = plot_->isSymbolStroked();
-        QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
-        double         strokeAlpha = plot_->symbolStrokeAlpha();
-        double         strokeWidth = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
-        bool           filled      = plot_->isSymbolFilled();
-        QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
-        double         fillAlpha   = plot_->symbolFillAlpha();
+        CQChartsSymbolData symbol;
 
-        double sx, sy;
+        symbol.type = plot_->symbolType();
+        symbol.size = plot_->symbolSize();
 
-        plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+        //---
 
-        strokeColor.setAlphaF(strokeAlpha);
-        fillColor  .setAlphaF(fillAlpha);
+        QColor fillColor   = plot_->interpSymbolFillColor(ic, nc);
+        QColor strokeColor = plot_->interpSymbolStrokeColor(ic, nc);
+
+        fillColor  .setAlphaF(plot_->symbolFillAlpha  ());
+        strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
 
         //---
 
         QPen   pen;
         QBrush brush;
 
-        if (stroked)
+        if (plot_->isSymbolStroked()) {
           pen.setColor(strokeColor);
+          pen.setWidthF(plot_->lengthPixelWidth(plot_->symbolStrokeWidth()));
+        }
         else
           pen.setStyle(Qt::NoPen);
 
-        if (filled) {
+        if (plot_->isSymbolFilled()) {
           brush.setColor(fillColor);
           brush.setStyle(Qt::SolidPattern);
         }
@@ -2565,22 +2395,18 @@ draw(QPainter *painter)
 
         plot_->updateObjPenBrushState(this, pen, brush);
 
-        filled  = (brush.style() != Qt::NoBrush);
-        stroked = (pen  .style() != Qt::NoPen  );
-
         //---
 
+        std::vector<double> ovalues;
+
         for (auto &o : whisker_.outliers()) {
-          double px1, py1;
+          double ovalue = remapPos(whisker_.rvalue(o));
 
-          if (! plot_->isHorizontal())
-            plot_->windowToPixel(pos, remapPos(whisker_.rvalue(o)), px1, py1);
-          else
-            plot_->windowToPixel(remapPos(whisker_.rvalue(o)), pos, px1, py1);
-
-          plot_->drawSymbol(painter, QPointF(px1, py1), symbol, CQChartsUtil::avg(sx, sy),
-                            stroked, pen.color(), strokeWidth, filled, brush.color());
+          ovalues.push_back(ovalue);
         }
+
+        CQChartsBoxWhiskerUtil::drawOutliers(plot_, painter, ovalues, pos, symbol,
+                                             pen, brush, orientation);
       }
     }
   }
@@ -2597,8 +2423,11 @@ annotationBBox() const
 
   double pos = this->pos();
 
-  double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal())/2.0;
+  double ww = plot_->whiskerExtent();
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+
+  double wd1 = ww/2.0;
+  double wd2 = bw/2.0;
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
@@ -2619,13 +2448,11 @@ annotationBBox() const
 
   //---
 
-  bool hasRange = (fabs(max() - min()) > 1E-6);
-
-  //---
-
   CQChartsGeom::BBox pbbox;
 
   if (plot_->isTextVisible()) {
+    bool hasRange = (fabs(max() - min()) > 1E-6);
+
     if (hasRange) {
       QString strl = QString("%1").arg(min   ());
       QString lstr = QString("%1").arg(lower ());
@@ -2761,30 +2588,6 @@ void
 CQChartsBoxPlotDataObj::
 draw(QPainter *painter)
 {
-  double pos = this->pos();
-
-  double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal())/2.0;
-
-  double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
-
-  if (! plot_->isHorizontal()) {
-    plot_->windowToPixel(pos - wd1, remapPos(data_.min   ), px1, py1);
-    plot_->windowToPixel(pos - wd2, remapPos(data_.lower ), px2, py2);
-    plot_->windowToPixel(pos      , remapPos(data_.median), px3, py3);
-    plot_->windowToPixel(pos + wd2, remapPos(data_.upper ), px4, py4);
-    plot_->windowToPixel(pos + wd1, remapPos(data_.max   ), px5, py5);
-  }
-  else {
-    plot_->windowToPixel(remapPos(data_.min   ), pos - wd1, px1, py1);
-    plot_->windowToPixel(remapPos(data_.lower ), pos - wd2, px2, py2);
-    plot_->windowToPixel(remapPos(data_.median), pos      , px3, py3);
-    plot_->windowToPixel(remapPos(data_.upper ), pos + wd2, px4, py4);
-    plot_->windowToPixel(remapPos(data_.max   ), pos + wd1, px5, py5);
-  }
-
-  //---
-
   QColor whiskerColor = plot_->interpWhiskerColor(0, 1);
 
   whiskerColor.setAlphaF(plot_->whiskerAlpha());
@@ -2794,32 +2597,12 @@ draw(QPainter *painter)
 
   //---
 
-  // draw extent line
-  painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
+  QPen   whiskerPen  (whiskerColor, whiskerLineSize, Qt::SolidLine);
+  QBrush whiskerBrush(Qt::NoBrush);
 
-  if (! plot_->isHorizontal())
-    painter->drawLine(QPointF(px3, py1), QPointF(px3, py5));
-  else
-    painter->drawLine(QPointF(px1, py3), QPointF(px5, py3));
+  plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
 
   //---
-
-  // draw lower/upper horizontal lines
-  painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
-
-  if (! plot_->isHorizontal()) {
-    painter->drawLine(QPointF(px1, py1), QPointF(px5, py1));
-    painter->drawLine(QPointF(px1, py5), QPointF(px5, py5));
-  }
-  else {
-    painter->drawLine(QPointF(px1, py1), QPointF(px1, py5));
-    painter->drawLine(QPointF(px5, py1), QPointF(px5, py5));
-  }
-
-  //---
-
-  // draw box
-  QRectF rect(px2, py2, px4 - px2, py4 - py2);
 
   // set fill and stroke
   QBrush brush;
@@ -2856,28 +2639,61 @@ draw(QPainter *painter)
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-  painter->setBrush(brush);
-  painter->setPen  (pen);
+  //---
 
-  double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-  double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+  double pos = this->pos();
 
-  CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+  double ww = plot_->whiskerExtent();
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
 
   //---
 
-  // draw median line
-  painter->setPen(QPen(whiskerColor, whiskerLineSize, Qt::SolidLine));
+  Qt::Orientation orientation = (! plot_->isHorizontal() ? Qt::Vertical : Qt::Horizontal);
 
-  if (! plot_->isHorizontal())
-    painter->drawLine(QPointF(px2, py3), QPointF(px4, py3));
-  else
-    painter->drawLine(QPointF(px3, py2), QPointF(px3, py4));
+  //---
+
+  painter->setBrush(brush);
+  painter->setPen  (pen);
+
+  painter->setPen(whiskerPen);
+
+  CQChartsWhiskerData data;
+
+  data.min    = remapPos(data_.min   );
+  data.lower  = remapPos(data_.lower );
+  data.median = remapPos(data_.median);
+  data.upper  = remapPos(data_.upper );
+  data.max    = remapPos(data_.max   );
+
+  CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
+                                         ww, bw, plot_->cornerSize(), /*isNotched*/false);
 
   //---
 
   // draw labels
   if (plot_->isTextVisible()) {
+    double wd1 = ww/2.0;
+    double wd2 = bw/2.0;
+
+    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
+
+    if (! plot_->isHorizontal()) {
+      plot_->windowToPixel(pos - wd1, remapPos(data_.min   ), px1, py1);
+      plot_->windowToPixel(pos - wd2, remapPos(data_.lower ), px2, py2);
+      plot_->windowToPixel(pos      , remapPos(data_.median), px3, py3);
+      plot_->windowToPixel(pos + wd2, remapPos(data_.upper ), px4, py4);
+      plot_->windowToPixel(pos + wd1, remapPos(data_.max   ), px5, py5);
+    }
+    else {
+      plot_->windowToPixel(remapPos(data_.min   ), pos - wd1, px1, py1);
+      plot_->windowToPixel(remapPos(data_.lower ), pos - wd2, px2, py2);
+      plot_->windowToPixel(remapPos(data_.median), pos      , px3, py3);
+      plot_->windowToPixel(remapPos(data_.upper ), pos + wd2, px4, py4);
+      plot_->windowToPixel(remapPos(data_.max   ), pos + wd1, px5, py5);
+    }
+
+    //---
+
     painter->setFont(plot_->textFont());
 
     QColor tc = plot_->interpTextColor(0, 1);
@@ -2912,33 +2728,32 @@ draw(QPainter *painter)
 
   // draw outlier symbols
   if (plot_->isShowOutliers()) {
-    CQChartsSymbol symbol      = plot_->symbolType();
-    bool           stroked     = plot_->isSymbolStroked();
-    QColor         strokeColor = plot_->interpSymbolStrokeColor(0, 1);
-    double         strokeAlpha = plot_->symbolStrokeAlpha();
-    double         strokeWidth = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
-    bool           filled      = plot_->isSymbolFilled();
-    QColor         fillColor   = plot_->interpSymbolFillColor(0, 1);
-    double         fillAlpha   = plot_->symbolFillAlpha();
+    CQChartsSymbolData symbol;
 
-    double sx, sy;
+    symbol.type = plot_->symbolType();
+    symbol.size = plot_->symbolSize();
 
-    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+    //---
 
-    strokeColor.setAlphaF(strokeAlpha);
-    fillColor  .setAlphaF(fillAlpha);
+    QColor fillColor   = plot_->interpSymbolFillColor(0, 1);
+    QColor strokeColor = plot_->interpSymbolStrokeColor(0, 1);
+
+    fillColor  .setAlphaF(plot_->symbolFillAlpha  ());
+    strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
 
     //---
 
     QPen   pen;
     QBrush brush;
 
-    if (stroked)
+    if (plot_->isSymbolStroked()) {
       pen.setColor(strokeColor);
+      pen.setWidthF(plot_->lengthPixelWidth(plot_->symbolStrokeWidth()));
+    }
     else
       pen.setStyle(Qt::NoPen);
 
-    if (filled) {
+    if (plot_->isSymbolFilled()) {
       brush.setColor(fillColor);
       brush.setStyle(Qt::SolidPattern);
     }
@@ -2947,22 +2762,18 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    filled  = (brush.style() != Qt::NoBrush);
-    stroked = (pen  .style() != Qt::NoPen  );
-
     //---
 
+    std::vector<double> ovalues;
+
     for (auto &o : data_.outliers) {
-      double px1, py1;
+      double ovalue = remapPos(o);
 
-      if (! plot_->isHorizontal())
-        plot_->windowToPixel(pos, remapPos(o), px1, py1);
-      else
-        plot_->windowToPixel(remapPos(o), pos, px1, py1);
-
-      plot_->drawSymbol(painter, QPointF(px1, py1), symbol, CQChartsUtil::avg(sx, sy),
-                        stroked, pen.color(), strokeWidth, filled, brush.color());
+      ovalues.push_back(ovalue);
     }
+
+    CQChartsBoxWhiskerUtil::drawOutliers(plot_, painter, ovalues, pos, symbol,
+                                         pen, brush, orientation);
   }
 }
 
@@ -2972,8 +2783,11 @@ annotationBBox() const
 {
   double pos = this->pos();
 
-  double wd1 = plot_->whiskerExtent()/2.0;
-  double wd2 = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal())/2.0;
+  double ww = plot_->whiskerExtent();
+  double bw = plot_->lengthPlotSize(plot_->boxWidth(), plot_->isHorizontal());
+
+  double wd1 = ww/2.0;
+  double wd2 = bw/2.0;
 
   double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
 
@@ -3492,9 +3306,6 @@ draw(QPainter *painter)
   //---
 
   // draw symbol
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
   QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
 
   plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);

@@ -8,7 +8,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CLeastSquaresFit.h>
 
 #include <QPainter>
@@ -895,7 +894,7 @@ initObjs()
 
         double sx, sy;
 
-        pixelSymbolSize(symbolSize, sx, sy);
+        plotSymbolSize(symbolSize, sx, sy);
 
         CQChartsGeom::BBox bbox(p.x() - sx, p.y() - sy, p.x() + sx, p.y() + sy);
 
@@ -1496,32 +1495,12 @@ drawHull(QPainter *painter)
     brush.setStyle(Qt::SolidPattern);
     brush.setColor(fillColor);
 
+    painter->setPen  (pen);
+    painter->setBrush(brush);
+
     //---
 
-    std::vector<QPointF> hpoints;
-
-    hull.getHull(hpoints);
-
-    int n = hpoints.size();
-
-    QPainterPath path;
-
-    if (n > 0) {
-      const QPointF &p = hpoints[0];
-
-      path.moveTo(windowToPixel(p));
-
-      for (int i = 1; i < n; ++i) {
-        const QPointF &p = hpoints[i];
-
-        path.lineTo(windowToPixel(p));
-      }
-
-      path.closeSubpath();
-
-      painter->fillPath  (path, brush);
-      painter->strokePath(path, pen);
-    }
+    hull.draw(this, painter);
 
     //---
 
@@ -1569,6 +1548,7 @@ drawXDensity(QPainter *painter)
 
     WhiskerData &whiskerData = groupWhiskers_[groupInd];
 
+    // init whisker if needed
     if (! whiskerData.xWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         const CQChartsScatterPointObj *pointObj =
@@ -1579,55 +1559,9 @@ drawXDensity(QPainter *painter)
       }
     }
 
-    const CQChartsGeom::Range &dataRange = this->dataRange();
+    //---
 
-    const CQChartsDensity &density = whiskerData.xWhisker.density();
-
-    const CQChartsDensity::Points &opoints = density.opoints();
-
-    double xmin1 = density.xmin1();
-    double xmax1 = density.xmax1();
-
-    double ymin = density.ymin1();
-    double ymax = density.ymax1();
-
-    double dw = lengthPlotHeight(densityWidth());
-
-    double vys = dw/(ymax - ymin);
-
-    int no = opoints.size();
-    int np = no + 2;
-
-    QPolygonF ppoly;
-
-    ppoly.resize(np);
-
-    double px1, py1, px2, py2;
-
-    double pos = (xDensitySide() == YSide::BOTTOM ?
-      dataRange.ymin() - dw : dataRange.ymax());
-
-    windowToPixel(xmin1, pos, px1, py1);
-    windowToPixel(xmax1, pos, px2, py2);
-
-    ppoly[0     ] = QPointF(px1, py1);
-    ppoly[no + 1] = QPointF(px2, py2);
-
-    int ip = 0;
-
-    for (auto &p : opoints) {
-      double x = p.x();
-      double y = (p.y() - ymin)*vys;
-
-      double px, py;
-
-      windowToPixel(x, pos + y, px, py);
-
-      ppoly[ip + 1] = QPointF(px, py);
-
-      ++ip;
-    }
-
+    // calc pen/brush
     QColor penColor   = interpSymbolStrokeColor(ig, ng);
     QColor brushColor = interpSymbolFillColor  (ig, ng);
 
@@ -1645,7 +1579,23 @@ drawXDensity(QPainter *painter)
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    painter->drawPolygon(ppoly);
+    //---
+
+    const CQChartsGeom::Range &dataRange = this->dataRange();
+
+    const CQChartsDensity &density = whiskerData.xWhisker.density();
+
+    double xmin = density.xmin1();
+    double xmax = density.xmax1();
+
+    double dh = lengthPlotHeight(densityWidth());
+
+    double pos = (xDensitySide() == YSide::BOTTOM ?
+      dataRange.ymin() - dh : dataRange.ymax());
+
+    CQChartsGeom::BBox rect(xmin, pos, xmax, pos + dh);
+
+    density.drawWhisker(this, painter, rect, Qt::Horizontal);
 
     ++ig;
   }
@@ -1663,6 +1613,7 @@ drawYDensity(QPainter *painter)
 
     WhiskerData &whiskerData = groupWhiskers_[groupInd];
 
+    // init whisker if needed
     if (! whiskerData.yWhisker.numValues()) {
       for (const auto &plotObj : plotObjects()) {
         const CQChartsScatterPointObj *pointObj =
@@ -1673,55 +1624,9 @@ drawYDensity(QPainter *painter)
       }
     }
 
-    const CQChartsGeom::Range &dataRange = this->dataRange();
+    //---
 
-    const CQChartsDensity &density = whiskerData.yWhisker.density();
-
-    const CQChartsDensity::Points &opoints = density.opoints();
-
-    double xmin1 = density.xmin1();
-    double xmax1 = density.xmax1();
-
-    double ymin = density.ymin1();
-    double ymax = density.ymax1();
-
-    double dw = lengthPlotWidth(densityWidth());
-
-    double vys = dw/(ymax - ymin);
-
-    int no = opoints.size();
-    int np = no + 2;
-
-    QPolygonF ppoly;
-
-    ppoly.resize(np);
-
-    double px1, py1, px2, py2;
-
-    double pos = (yDensitySide() == XSide::LEFT ?
-      dataRange.xmin() - dw : dataRange.xmax());
-
-    windowToPixel(pos, xmin1, px1, py1);
-    windowToPixel(pos, xmax1, px2, py2);
-
-    ppoly[0     ] = QPointF(px1, py1);
-    ppoly[no + 1] = QPointF(px2, py2);
-
-    int ip = 0;
-
-    for (auto &p : opoints) {
-      double x = p.x();
-      double y = (p.y() - ymin)*vys;
-
-      double px, py;
-
-      windowToPixel(pos + y, x, px, py);
-
-      ppoly[ip + 1] = QPointF(px, py);
-
-      ++ip;
-    }
-
+    // calc pen/brush
     QColor penColor   = interpSymbolStrokeColor(ig, ng);
     QColor brushColor = interpSymbolFillColor  (ig, ng);
 
@@ -1739,7 +1644,23 @@ drawYDensity(QPainter *painter)
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    painter->drawPolygon(ppoly);
+    //---
+
+    const CQChartsGeom::Range &dataRange = this->dataRange();
+
+    const CQChartsDensity &density = whiskerData.yWhisker.density();
+
+    double xmin = density.xmin1();
+    double xmax = density.xmax1();
+
+    double dw = lengthPlotWidth(densityWidth());
+
+    double pos = (yDensitySide() == XSide::LEFT ?
+      dataRange.xmin() - dw : dataRange.xmax());
+
+    CQChartsGeom::BBox rect(pos, xmin, pos + dw, xmax);
+
+    density.drawWhisker(this, painter, rect, Qt::Vertical);
 
     ++ig;
   }
@@ -1767,22 +1688,9 @@ drawXWhisker(QPainter *painter)
       }
     }
 
-    double wm = lengthPlotHeight(whiskerMargin());
-    double ww = lengthPlotHeight(whiskerWidth());
+    //---
 
-    const CQChartsGeom::Range &dataRange = this->dataRange();
-
-    double pos = (xWhiskerSide() == YSide::BOTTOM ?
-      dataRange.ymin() - ig*ww - wm : dataRange.ymax() + (ig + 1)*ww + wm);
-
-    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
-
-    windowToPixel(whiskerData.xWhisker.min   (), pos       , px1, py1);
-    windowToPixel(whiskerData.xWhisker.lower (), pos       , px2, py2);
-    windowToPixel(whiskerData.xWhisker.median(), pos - ww/2, px3, py3);
-    windowToPixel(whiskerData.xWhisker.upper (), pos - ww  , px4, py4);
-    windowToPixel(whiskerData.xWhisker.max   (), pos - ww  , px5, py5);
-
+    // calc pen/brush
     QColor penColor   = interpSymbolStrokeColor(ig, ng);
     QColor brushColor = interpSymbolFillColor  (ig, ng);
 
@@ -1800,17 +1708,20 @@ drawXWhisker(QPainter *painter)
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    double cxs = 0.0, cys = 0.0;
+    //---
 
-    QRectF rect(px2, py2, px4 - px2, py4 - py2);
+    double ww = lengthPlotHeight(whiskerWidth());
+    double wm = lengthPlotHeight(whiskerMargin());
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+    const CQChartsGeom::Range &dataRange = this->dataRange();
 
-    painter->drawLine(px1, py1, px1, py5);
-    painter->drawLine(px5, py1, px5, py5);
+    double pos = (xWhiskerSide() == YSide::BOTTOM ?
+      dataRange.ymin() - ig*ww - wm : dataRange.ymax() + (ig + 1)*ww + wm);
 
-    painter->drawLine(px1, py3, px2, py3);
-    painter->drawLine(px4, py3, px5, py3);
+    CQChartsGeom::BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
+
+    CQChartsBoxWhiskerUtil::drawWhisker(this, painter, whiskerData.xWhisker,
+                                        rect, whiskerWidth(), Qt::Horizontal);
 
     ++ig;
   }
@@ -1838,22 +1749,9 @@ drawYWhisker(QPainter *painter)
       }
     }
 
-    double wm = lengthPlotWidth(whiskerMargin());
-    double ww = lengthPlotWidth(whiskerWidth());
+    //---
 
-    const CQChartsGeom::Range &dataRange = this->dataRange();
-
-    double pos = (yWhiskerSide() == XSide::LEFT ?
-      dataRange.xmin() - ig*ww - wm : dataRange.xmax() + (ig + 1)*ww + wm);
-
-    double px1, py1, px2, py2, px3, py3, px4, py4, px5, py5;
-
-    windowToPixel(pos - ww  , whiskerData.yWhisker.min   (), px1, py1);
-    windowToPixel(pos - ww  , whiskerData.yWhisker.lower (), px2, py2);
-    windowToPixel(pos - ww/2, whiskerData.yWhisker.median(), px3, py3);
-    windowToPixel(pos       , whiskerData.yWhisker.upper (), px4, py4);
-    windowToPixel(pos       , whiskerData.yWhisker.max   (), px5, py5);
-
+    // calc pen/brush
     QColor penColor   = interpSymbolStrokeColor(ig, ng);
     QColor brushColor = interpSymbolFillColor  (ig, ng);
 
@@ -1871,17 +1769,20 @@ drawYWhisker(QPainter *painter)
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    double cxs = 0.0, cys = 0.0;
+    //---
 
-    QRectF rect(px2, py2, px4 - px2, py4 - py2);
+    double ww = lengthPlotWidth(whiskerWidth());
+    double wm = lengthPlotWidth(whiskerMargin());
 
-    CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
+    const CQChartsGeom::Range &dataRange = this->dataRange();
 
-    painter->drawLine(px1, py1, px5, py1);
-    painter->drawLine(px1, py5, px5, py5);
+    double pos = (yWhiskerSide() == XSide::LEFT ?
+      dataRange.xmin() - ig*ww - wm : dataRange.xmax() + (ig + 1)*ww + wm);
 
-    painter->drawLine(px3, py1, px3, py2);
-    painter->drawLine(px3, py4, px3, py5);
+    CQChartsGeom::BBox rect(pos, whiskerData.yWhisker.min(), pos + ww, whiskerData.yWhisker.max());
+
+    CQChartsBoxWhiskerUtil::drawWhisker(this, painter, whiskerData.yWhisker,
+                                        rect, whiskerWidth(), Qt::Vertical);
 
     ++ig;
   }

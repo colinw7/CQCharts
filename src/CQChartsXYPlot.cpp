@@ -2082,15 +2082,10 @@ draw(QPainter *painter)
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
-    filled  = (brush.style() != Qt::NoBrush);
-    stroked = (pen  .style() != Qt::NoPen  );
-
     //---
 
-    plot()->drawSymbol(painter, QPointF(px, py1), symbol, CQChartsUtil::avg(sx, sy),
-                       stroked, pen.color(), 1, filled, brush.color());
-    plot()->drawSymbol(painter, QPointF(px, py2), symbol, CQChartsUtil::avg(sx, sy),
-                       stroked, pen.color(), 1, filled, brush.color());
+    plot()->drawSymbol(painter, QPointF(px, py1), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+    plot()->drawSymbol(painter, QPointF(px, py2), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
   }
 }
 
@@ -2425,8 +2420,10 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  if (stroked)
-    pen.setColor(strokeColor);
+  if (stroked) {
+    pen.setColor (strokeColor);
+    pen.setWidthF(lineWidth);
+  }
   else
     pen.setStyle(Qt::NoPen);
 
@@ -2439,9 +2436,6 @@ draw(QPainter *painter)
 
   plot()->updateObjPenBrushState(this, pen, brush);
 
-  filled  = (brush.style() != Qt::NoBrush);
-  stroked = (pen  .style() != Qt::NoPen  );
-
   //---
 
   CQChartsGeom::Point pp = CQChartsUtil::fromQPoint(pos_);
@@ -2450,8 +2444,7 @@ draw(QPainter *painter)
 
   plot()->windowToPixel(pp.x, pp.y, px, py);
 
-  plot()->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
-                     stroked, pen.color(), lineWidth, filled, brush.color());
+  plot()->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
 
   if (edata_ && edata_->label != "") {
     painter->setPen(plot()->interpDataLabelColor(0, 1));
@@ -3104,21 +3097,35 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     bool           stroked = plot->isSymbolStroked();
     bool           filled  = plot->isSymbolFilled();
 
+    QPen   pen;
+    QBrush brush;
+
+    if (stroked) {
+      pen.setColor (pointStrokeColor);
+      pen.setWidthF(1);
+    }
+    else
+      pen.setStyle(Qt::NoPen);
+
+    if (filled) {
+      brush.setColor(pointFillColor);
+      brush.setStyle(Qt::SolidPattern);
+    }
+    else
+      brush.setStyle(Qt::NoBrush);
+
     double sx, sy;
 
     plot->pixelSymbolSize(plot->symbolSize(), sx, sy);
 
     if (plot->isLines() || plot->isImpulse()) {
-      plot_->drawSymbol(painter, QPointF(px1, py), symbol, CQChartsUtil::avg(sx, sy),
-                        stroked, pointStrokeColor, 1, filled, pointFillColor);
-      plot_->drawSymbol(painter, QPointF(px2, py), symbol, CQChartsUtil::avg(sx, sy),
-                        stroked, pointStrokeColor, 1, filled, pointFillColor);
+      plot_->drawSymbol(painter, QPointF(px1, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+      plot_->drawSymbol(painter, QPointF(px2, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
     }
     else {
       double px = CQChartsUtil::avg(px1, px2);
 
-      plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
-                        stroked, pointStrokeColor, 1, filled, pointFillColor);
+      plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
     }
   }
 

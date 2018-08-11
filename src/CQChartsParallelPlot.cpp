@@ -1095,8 +1095,10 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  if (stroked)
-    pen.setColor(strokeColor);
+  if (stroked) {
+    pen.setColor (strokeColor);
+    pen.setWidthF(lineWidth);
+  }
   else
     pen.setStyle(Qt::NoPen);
 
@@ -1108,9 +1110,6 @@ draw(QPainter *painter)
     brush.setStyle(Qt::NoBrush);
 
   plot_->updateObjPenBrushState(this, pen, brush);
-
-  filled  = (brush.style() != Qt::NoBrush);
-  stroked = (pen  .style() != Qt::NoPen  );
 
   //---
 
@@ -1125,6 +1124,5 @@ draw(QPainter *painter)
     sy *= 2;
   }
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy),
-                    stroked, pen.color(), lineWidth, filled, brush.color());
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
 }

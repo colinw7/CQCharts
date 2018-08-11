@@ -6,6 +6,9 @@
 #include <vector>
 #include <set>
 
+class CQChartsPlot;
+class QPainter;
+
 class CQChartsGrahamHull {
  public:
   typedef std::vector<QPointF> Points;
@@ -20,6 +23,8 @@ class CQChartsGrahamHull {
   bool calc();
 
   void getHull(Points &points) const;
+
+  void draw(CQChartsPlot *plot, QPainter *painter);
 
  private:
   void sortLowestClockwise();

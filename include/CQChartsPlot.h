@@ -1218,9 +1218,11 @@ class CQChartsPlot : public QObject {
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data);
 
+#if 0
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
                   double size, bool stroked, const QColor &strokeColor,
                   double lineWidth, bool filled, const QColor &fillColor);
+#endif
 
   void drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, double size);
 

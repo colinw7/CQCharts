@@ -2969,7 +2969,7 @@ positionToView(const CQChartsPosition &pos) const
     p1 = p;
   else if (pos.units() == CQChartsPosition::Units::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
-    p1.setY(p.getX()*height()/100.0);
+    p1.setY(p.getY()*height()/100.0);
   }
 
   return CQChartsUtil::toQPoint(p1);
@@ -2989,7 +2989,7 @@ positionToPixel(const CQChartsPosition &pos) const
     p1 = windowToPixel(p);
   else if (pos.units() == CQChartsPosition::Units::PERCENT) {
     p1.setX(p.getX()*width ()/100.0);
-    p1.setY(p.getX()*height()/100.0);
+    p1.setY(p.getY()*height()/100.0);
   }
 
   return CQChartsUtil::toQPoint(p1);

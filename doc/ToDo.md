@@ -1,4 +1,5 @@
 High
+ + Margin units
  + Consistent property names and hieracrchy
  + More Variants in Model (QIamge/QIcon could supply custom symbol !)
  + Sort for scatter distribution

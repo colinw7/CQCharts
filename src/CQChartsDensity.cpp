@@ -1,4 +1,7 @@
 #include <CQChartsDensity.h>
+#include <CQChartsPlot.h>
+#include <CQChartsRoundedPolygon.h>
+#include <QPainter>
 #include <QPolygonF>
 #include <cmath>
 #include <cassert>
@@ -254,4 +257,356 @@ eval(double x) const
   y /= sqrt(2.0*M_PI);
 
   return y;
+}
+
+//---
+
+void
+CQChartsDensity::
+drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+            const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
+{
+  QPolygonF ppoly;
+
+  calcWhiskerPoly(ppoly, plot, rect, orientation, opts);
+
+  painter->drawPolygon(ppoly);
+}
+
+//---
+
+void
+CQChartsDensity::
+calcWhiskerPoly(QPolygonF &ppoly, CQChartsPlot *plot, const CQChartsGeom::BBox &rect,
+                const Qt::Orientation &orientation, const CQChartsWhiskerOpts &opts) const
+{
+  const CQChartsGeom::Range &dataRange = plot->dataRange();
+
+  const CQChartsDensity::Points &opoints = this->opoints();
+
+  double xmin = this->xmin();
+  double xmax = this->xmax();
+
+  double xmin1 = this->xmin1();
+  double xmax1 = this->xmax1();
+
+  double ymin1 = this->ymin1();
+  double ymax1 = this->ymax1();
+
+  double dw = rect.getWidth ();
+  double dh = rect.getHeight();
+
+  bool bottomLeft = false;
+
+  double vxs, vys;
+
+  if (orientation != Qt::Horizontal) {
+    bottomLeft = (rect.getXMid() < dataRange.xmid());
+
+    if (opts.fitTail)
+      vxs = dh/(xmax1 - xmin1);
+    else
+      vxs = dh/(xmax - xmin);
+
+    vys = dw/(ymax1 - ymin1);
+  }
+  else {
+    bottomLeft = (rect.getYMid() < dataRange.ymid());
+
+    if (opts.fitTail)
+      vxs = dw/(xmax1 - xmin1);
+    else
+      vxs = dw/(xmax - xmin);
+
+    vys = dh/(ymax1 - ymin1);
+  }
+
+  if (opts.violin)
+    vys /= 2.0;
+
+  int no = opoints.size();
+  int np = (opts.violin ? 2*no + 2 : no + 2);
+
+  ppoly.resize(np);
+
+  double px, py;
+
+  if (orientation != Qt::Horizontal) {
+    if (! opts.violin)
+      px = (bottomLeft ? rect.getXMax() : rect.getXMin());
+    else
+      px = rect.getXMid();
+
+    py = rect.getYMin();
+  }
+  else {
+    px = rect.getXMin();
+
+    if (! opts.violin)
+      py = rect.getYMin();
+    else
+      py = rect.getYMid();
+  }
+
+  double px1, py1, px2, py2;
+
+  if (orientation != Qt::Horizontal) {
+    plot->windowToPixel(px, xmin1, px1, py1);
+    plot->windowToPixel(px, xmax1, px2, py2);
+  }
+  else {
+    plot->windowToPixel(xmin1, py, px1, py1);
+    plot->windowToPixel(xmax1, py, px2, py2);
+  }
+
+  ppoly[0     ] = QPointF(px1, py1);
+  ppoly[no + 1] = QPointF(px2, py2);
+
+  int ip = 0;
+
+  for (auto &p : opoints) {
+    double x1;
+
+    if (opts.fitTail)
+      x1 = (p.x() - xmin1)*vxs;
+    else
+      x1 = (p.x() - xmin )*vxs;
+
+    double y1 = (p.y() - ymin1)*vys;
+
+    if (! opts.violin) {
+      double px1, py1;
+
+      if (orientation != Qt::Horizontal) {
+        if (bottomLeft)
+          plot->windowToPixel(px - y1, py + x1, px1, py1);
+        else
+          plot->windowToPixel(px + y1, py + x1, px1, py1);
+      }
+      else {
+        plot->windowToPixel(px + x1, py + y1, px1, py1);
+      }
+
+      ppoly[ip + 1] = QPointF(px1, py1);
+    }
+    else {
+      double px1, py1, px2, py2;
+
+      if (orientation != Qt::Horizontal) {
+        plot->windowToPixel(px - y1, py + x1, px1, py1);
+        plot->windowToPixel(px + y1, py + x1, px2, py2);
+      }
+      else {
+        plot->windowToPixel(px + x1, py - y1, px1, py1);
+        plot->windowToPixel(px + x1, py + y1, px2, py2);
+      }
+
+      ppoly[ip + 1     ] = QPointF(px1, py1);
+      ppoly[np - ip - 1] = QPointF(px2, py2);
+    }
+
+    ++ip;
+  }
+}
+
+//----
+
+void
+CQChartsDensity::
+drawCrossBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+             double mean, const Qt::Orientation &orientation, const CQChartsLength &cornerSize)
+{
+  double lpos, tpos, bl, br;
+
+  if (orientation != Qt::Horizontal) {
+    lpos = rect.getYMin();
+    tpos = rect.getYMax();
+
+    bl = rect.getXMin();
+    br = rect.getXMax();
+  }
+  else {
+    lpos = rect.getXMin();
+    tpos = rect.getXMax();
+
+    bl = rect.getYMin();
+    br = rect.getYMax();
+  }
+
+  double px1, py1, px2, py2, px3, py3;
+
+  if (orientation != Qt::Horizontal) {
+    plot->windowToPixel(bl, lpos, px1, py1);
+    plot->windowToPixel(bl, mean, px2, py2);
+    plot->windowToPixel(br, tpos, px3, py3);
+  }
+  else {
+    plot->windowToPixel(lpos, bl, px1, py1);
+    plot->windowToPixel(mean, bl, px2, py2);
+    plot->windowToPixel(tpos, br, px3, py3);
+  }
+
+  //---
+
+  // draw box
+  QRectF prect(px1, py1, px3 - px1, py3 - py1);
+
+  double cxs = plot->lengthPixelWidth (cornerSize);
+  double cys = plot->lengthPixelHeight(cornerSize);
+
+  CQChartsRoundedPolygon::draw(painter, prect, cxs, cys);
+
+  //---
+
+  // draw mean line
+  if (orientation != Qt::Horizontal)
+    painter->drawLine(QPointF(px1, py2), QPointF(px3, py2));
+  else
+    painter->drawLine(QPointF(px2, py1), QPointF(px2, py3));
+}
+
+void
+CQChartsDensity::
+drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+               double mean, const Qt::Orientation &orientation, const CQChartsSymbolData &symbol,
+               const QPen &pen, const QBrush &brush)
+{
+  // painter already pen set for drawLine
+
+  double lpos, tpos, bm;
+
+  if (orientation != Qt::Horizontal) {
+    lpos = rect.getYMin();
+    tpos = rect.getYMax();
+
+    bm = rect.getXMid();
+  }
+  else {
+    lpos = rect.getXMin();
+    tpos = rect.getXMax();
+
+    bm = rect.getYMid();
+  }
+
+  double px1, py1, px2, py2, px3, py3;
+
+  if (orientation != Qt::Horizontal) {
+    plot->windowToPixel(bm, lpos, px1, py1);
+    plot->windowToPixel(bm, mean, px2, py2);
+    plot->windowToPixel(bm, tpos, px3, py3);
+  }
+  else {
+    plot->windowToPixel(lpos, bm, px1, py1);
+    plot->windowToPixel(mean, bm, px2, py2);
+    plot->windowToPixel(tpos, bm, px3, py3);
+  }
+
+  //---
+
+  // draw mid line
+  if (orientation != Qt::Horizontal)
+    painter->drawLine(QPointF(px1, py1), QPointF(px1, py3));
+  else
+    painter->drawLine(QPointF(px1, py1), QPointF(px3, py1));
+
+  //---
+
+  // draw symbol
+  double sx, sy;
+
+  plot->pixelSymbolSize(symbol.size, sx, sy);
+
+  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type, CQChartsUtil::avg(sx, sy), pen, brush);
+}
+
+void
+CQChartsDensity::
+drawErrorBar(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+             const Qt::Orientation &orientation)
+{
+  double lpos, tpos, bl, bm, br;
+
+  if (orientation != Qt::Horizontal) {
+    lpos = rect.getYMin();
+    tpos = rect.getYMax();
+
+    bl = rect.getXMin();
+    bm = rect.getXMid();
+    br = rect.getXMax();
+  }
+  else {
+    lpos = rect.getXMin();
+    tpos = rect.getXMax();
+
+    bl = rect.getYMin();
+    bm = rect.getYMid();
+    br = rect.getYMax();
+  }
+
+  double px1, py1, px2, py2, px3, py3;
+
+  if (orientation != Qt::Horizontal) {
+    plot->windowToPixel(bl, lpos, px1, py1);
+    plot->windowToPixel(bm, lpos, px2, py2);
+    plot->windowToPixel(br, tpos, px3, py3);
+  }
+  else {
+    plot->windowToPixel(lpos, bl, px1, py1);
+    plot->windowToPixel(lpos, bm, px2, py2);
+    plot->windowToPixel(tpos, br, px3, py3);
+  }
+
+  //---
+
+  // draw error bar
+  if (orientation != Qt::Horizontal) {
+    painter->drawLine(QPointF(px1, py1), QPointF(px3, py1)); // htop
+    painter->drawLine(QPointF(px1, py3), QPointF(px3, py3)); // hbottom
+    painter->drawLine(QPointF(px2, py1), QPointF(px2, py3)); // vline
+  }
+  else {
+    painter->drawLine(QPointF(px1, py1), QPointF(px1, py3)); // vleft
+    painter->drawLine(QPointF(px3, py1), QPointF(px2, py3)); // vright
+    painter->drawLine(QPointF(px1, py2), QPointF(px3, py2)); // hline
+  }
+}
+
+void
+CQChartsDensity::
+drawLineRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &rect,
+              const Qt::Orientation &orientation)
+{
+  double lpos, tpos, bm;
+
+  if (orientation != Qt::Horizontal) {
+    lpos = rect.getYMin();
+    tpos = rect.getYMax();
+
+    bm = rect.getXMid();
+  }
+  else {
+    lpos = rect.getXMin();
+    tpos = rect.getXMax();
+
+    bm = rect.getYMid();
+  }
+
+  double px1, py1, px2, py2;
+
+  if (orientation != Qt::Horizontal) {
+    plot->windowToPixel(bm, lpos, px1, py1);
+    plot->windowToPixel(bm, tpos, px2, py2);
+  }
+  else {
+    plot->windowToPixel(lpos, bm, px1, py1);
+    plot->windowToPixel(tpos, bm, px2, py2);
+  }
+
+  //---
+
+  // draw error line
+  if (orientation != Qt::Horizontal)
+    painter->drawLine(QPointF(px1, py1), QPointF(px1, py2)); // vline
+  else
+    painter->drawLine(QPointF(px1, py1), QPointF(px2, py1)); // hline
 }
