@@ -4779,18 +4779,9 @@ drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQCharts
 {
   QColor c = data.color.interpColor(this, 0, 1);
 
-  c.setAlphaF(data.alpha);
+  QPen pen;
 
-  double lw = lengthPixelWidth(data.width);
-
-  //---
-
-  QPen pen(c);
-
-  if (lw > 0.0)
-    pen.setWidthF(lw);
-
-  CQChartsUtil::penSetLineDash(pen, data.dash);
+  setPen(pen, true, c, data.alpha, data.width, data.dash);
 
   painter->setPen(pen);
 
@@ -4843,34 +4834,6 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
   if (data.stroke.visible)
     CQChartsPlotSymbolMgr::drawSymbol(data.type, &srenderer);
 }
-
-#if 0
-void
-CQChartsPlot::
-drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
-           double size, bool stroked, const QColor &strokeColor, double lineWidth,
-           bool filled, const QColor &fillColor)
-{
-  QPen   pen;
-  QBrush brush;
-
-  if (stroked)
-    pen.setColor(strokeColor);
-  else
-    pen.setStyle(Qt::NoPen);
-
-  pen.setWidthF(lineWidth);
-
-  if (filled) {
-    brush.setColor(fillColor);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else
-    brush.setStyle(Qt::NoBrush);
-
-  drawSymbol(painter, p, symbol, size, pen, brush);
-}
-#endif
 
 void
 CQChartsPlot::
@@ -5084,6 +5047,68 @@ update()
   view_->update();
 
   fromInvalidate_ = false;
+}
+
+//------
+
+void
+CQChartsPlot::
+setPenBrush(QPen &pen, QBrush &brush,
+            bool stroked, const QColor &strokeColor, double strokeAlpha,
+            const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+            bool filled, const QColor &fillColor, double fillAlpha,
+            const CQChartsFillPattern::Type &pattern)
+{
+  setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
+
+  setBrush(brush, filled, fillColor, fillAlpha, pattern);
+}
+
+void
+CQChartsPlot::
+setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash)
+{
+  // calc pen (stroke)
+  if (stroked) {
+    QColor color = strokeColor;
+
+    color.setAlphaF(strokeAlpha);
+
+    pen.setColor(color);
+
+    double width = lengthPixelWidth(strokeWidth);
+
+    if (width > 0)
+      pen.setWidthF(width);
+    else
+      pen.setWidthF(0.0);
+
+    CQChartsUtil::penSetLineDash(pen, strokeDash);
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+}
+
+void
+CQChartsPlot::
+setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+         const CQChartsFillPattern::Type &pattern)
+{
+  // calc brush (fill)
+  if (filled) {
+    QColor color = fillColor;
+
+    color.setAlphaF(fillAlpha);
+
+    brush.setColor(color);
+
+    brush.setStyle(CQChartsFillPattern::toStyle(pattern));
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
+  }
 }
 
 //------

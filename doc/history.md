@@ -565,3 +565,6 @@
  + mouse over for annotations
 # 8/09/2018
  + add density and whisker x/y axis annotations
+# 8/12/2018
+ + add optional bars to distribution density plot
+ + cleanup pen/brush set code

@@ -280,12 +280,14 @@ addProperties()
   addProperty("density", this, "densityOffset"  , "offset"  );
   addProperty("density", this, "densitySamples" , "samples" );
   addProperty("density", this, "densityGradient", "gradient");
+  addProperty("density", this, "densityBars"    , "bars"    );
 
   addProperty("scatter", this, "scatter"      , "enabled");
   addProperty("scatter", this, "scatterFactor", "factor" );
 
-  addProperty("meanLine"     , this, "showMean", "visible");
-  addProperty("meanLine/line", this, "meanDash", "dash"   );
+  addProperty("meanLine"     , this, "showMean" , "visible");
+  addProperty("meanLine/line", this, "meanWidth", "width"  );
+  addProperty("meanLine/line", this, "meanDash" , "dash"   );
 
   addProperty("dotLines",        this, "dotLines"     , "enabled");
   addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
@@ -415,6 +417,13 @@ setDensityGradient(bool b)
   CQChartsUtil::testAndSet(densityGradient_, b, [&]() { updateRangeAndObjs(); } );
 }
 
+void
+CQChartsDistributionPlot::
+setDensityBars(bool b)
+{
+  CQChartsUtil::testAndSet(densityBars_, b, [&]() { updateRangeAndObjs(); } );
+}
+
 //---
 
 void
@@ -498,6 +507,13 @@ CQChartsDistributionPlot::
 setShowMean(bool b)
 {
   CQChartsUtil::testAndSet(showMean_, b, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsDistributionPlot::
+setMeanWidth(const CQChartsLength &l)
+{
+  CQChartsUtil::testAndSet(meanWidth_, l, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -1156,6 +1172,21 @@ initObjs()
       data.ymin   = values->densityData.ymin1();
       data.ymax   = values->densityData.ymax1();
       data.mean   = values->mean;
+
+      //---
+
+      data.buckets.clear();
+
+      for (auto &bucketValues : values->bucketValues) {
+        int                    bucket   = bucketValues.first;
+        const VariantIndsData &varsData = bucketValues.second;
+
+        int n = varsData.inds.size();
+
+        data.buckets.emplace_back(bucket, n);
+      }
+
+      //---
 
       CQChartsGeom::BBox bbox;
 
@@ -1837,13 +1868,16 @@ void
 CQChartsDistributionPlot::
 drawMeanLine(QPainter *painter)
 {
+  // set pen
   QColor bc = interpBorderColor(0, 1);
 
-  QPen pen(bc);
+  QPen pen;
 
-  CQChartsUtil::penSetLineDash(pen, meanDash());
+  setPen(pen, true, bc, /*alpha*/1.0, meanWidth(), meanDash());
 
   painter->setPen(pen);
+
+  //---
 
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
@@ -2310,47 +2344,28 @@ void
 CQChartsDistributionBarObj::
 drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, bool useLine) const
 {
-  // calc pen (stroke)
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-
-    CQChartsUtil::penSetLineDash(pen, plot_->borderDash());
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-
-  // calc brush (fill)
+  // set pen and brush
+  QPen   pen;
   QBrush barBrush;
 
-  if (plot_->isBarFill()) {
-    QColor fc = color.interpColor(plot_, 0, 1);
+  QColor fc = color.interpColor(plot_, 0, 1);
 
-    fc.setAlphaF(plot_->barAlpha());
+  plot_->setPenBrush(pen, barBrush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     plot_->borderDash(),
+                     plot_->isBarFill(),
+                     fc,
+                     plot_->barAlpha(),
+                     (CQChartsFillPattern::Type) plot_->barPattern());
 
-    barBrush.setColor(fc);
-    barBrush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->barPattern()));
+  if (useLine) {
+    pen.setWidthF(0);
 
-    if (useLine) {
-      pen.setColor (fc);
-      pen.setWidthF(0);
-    }
-  }
-  else {
-    barBrush.setStyle(Qt::NoBrush);
-
-    if (useLine)
-      pen.setWidthF(0);
+    if (plot_->isBarFill())
+      pen.setColor(fc);
   }
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
@@ -2492,6 +2507,7 @@ CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeo
  CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), data_(data),
  doffset_(doffset), is_(is), ns_(ns)
 {
+  // create density polygon
   int np = data_.points.size();
 
   if (np < 2) {
@@ -2499,27 +2515,37 @@ CQChartsDistributionDensityObj(CQChartsDistributionPlot *plot, const CQChartsGeo
     return;
   }
 
-  //double x1 = data_.points[0     ].x();
-  //double x2 = data_.points[np - 1].x();
-
   double y1 = data_.ymin;
 
   if (! plot->isHorizontal()) {
-    //poly_ << QPointF(x1, doffset_);
-
     for (int i = 0; i < np; ++i)
       poly_ << QPointF(data_.points[i].x(), data_.points[i].y() - y1 + doffset_);
-
-    //poly_ << QPointF(x2, doffset_);
   }
   else {
-    //poly_ << QPointF(doffset_, x1);
-
     for (int i = 0; i < np; ++i)
       poly_ << QPointF(data_.points[i].y() - y1 + doffset_, data_.points[i].x());
-
-    //poly_ << QPointF(doffset_, x2);
   }
+
+  //----
+
+  // calc scale factor for data bars
+  int nb = data_.buckets.size();
+
+  double area = 0.0;
+
+  for (int i = 0; i < nb; ++i) {
+    double dy = data_.buckets[i].n;
+
+    double value1, value2;
+
+    plot_->bucketValues(groupInd_, data_.buckets[i].bucket, value1, value2);
+
+    double dx = (value2 - value1)/(data_.xmax - data_.xmin);
+
+    area += dx*dy;
+  }
+
+  bucketScale_ = 1.0/area;
 }
 
 QString
@@ -2586,48 +2612,26 @@ void
 CQChartsDistributionDensityObj::
 draw(QPainter *painter)
 {
+  // set pen and brush
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isBarFill()) {
-    QColor fillColor = plot_->interpBarColor(is_, ns_);
-
-    fillColor.setAlphaF(plot_->barAlpha());
-
-    brush.setColor(fillColor);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->barPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(is_, ns_),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     plot_->borderDash(),
+                     plot_->isBarFill(),
+                     plot_->interpBarColor(is_, ns_),
+                     plot_->barAlpha(),
+                     (CQChartsFillPattern::Type) plot_->barPattern());
 
   //---
 
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth()); // TODO: width, height or both
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-
-    CQChartsUtil::penSetLineDash(pen, plot_->borderDash());
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-
-  //---
-
+  // adjust brush for gradient
   if (plot_->isDensityGradient()) {
     CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
-
-    //const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
     QPointF pg1, pg2;
 
@@ -2649,21 +2653,42 @@ draw(QPainter *painter)
 
   //---
 
+  // adjust pen/brush for selected/mouse over
   plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
 
   //---
 
+  // draw buckets as bars
+  if (plot_->isDensityBars()) {
+    int nb = data_.buckets.size();
+
+    for (int i = 0; i < nb; ++i) {
+      double y = data_.buckets[i].n*bucketScale_;
+
+      double value1, value2;
+
+      plot_->bucketValues(groupInd_, data_.buckets[i].bucket, value1, value2);
+
+      CQChartsGeom::BBox bbox(value1, 0, value2, y);
+
+      CQChartsGeom::BBox pbbox = plot_->windowToPixel(bbox);
+
+      painter->drawRect(CQChartsUtil::toQRect(pbbox));
+    }
+  }
+
+  //---
+
+  // draw density polygon
   QPolygonF poly;
 
   int np = poly_.size();
 
   for (int i = 0; i < np; ++i)
     poly << plot()->windowToPixel(poly_[i]);
-
-  //---
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
 
   painter->drawPolygon(poly);
 }
@@ -2683,13 +2708,16 @@ void
 CQChartsDistributionDensityObj::
 drawMeanLine(QPainter *painter)
 {
+  // set pen
   QColor bc = plot_->interpBorderColor(0, 1);
 
-  QPen pen(bc);
+  QPen pen;
 
-  CQChartsUtil::penSetLineDash(pen, plot_->meanDash());
+  plot_->setPen(pen, true, bc, /*alpha*/1.0, plot_->meanWidth(), plot_->meanDash());
 
   painter->setPen(pen);
+
+  //---
 
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 

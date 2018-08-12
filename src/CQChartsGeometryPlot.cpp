@@ -693,52 +693,36 @@ draw(QPainter *painter)
   //---
 
   // set polygon pen/brush
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen = QPen(Qt::NoPen);
-  }
-
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isFilled()) {
-    QColor fc;
+  QColor fc;
 
-    double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
+  double dv = (value() - plot_->minValue())/(plot_->maxValue() - plot_->minValue());
 
-    if (color().isValid()) {
-      if (n_ > 0)
-        fc = color().interpColor(plot_, i_, n_);
-      else
-        fc = color().interpColor(plot_, dv);
-    }
-    else {
-      if (n_ > 0)
-        fc = plot_->interpFillColor(i_, n_);
-      else
-        fc = plot_->interpPaletteColor(dv);
-    }
-
-    fc.setAlphaF(plot_->fillAlpha());
-
-    brush.setColor(fc);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-      (CQChartsFillPattern::Type) plot_->fillPattern()));
+  if (color().isValid()) {
+    if (n_ > 0)
+      fc = color().interpColor(plot_, i_, n_);
+    else
+      fc = color().interpColor(plot_, dv);
   }
   else {
-    brush.setStyle(Qt::NoBrush);
+    if (n_ > 0)
+      fc = plot_->interpFillColor(i_, n_);
+    else
+      fc = plot_->interpPaletteColor(dv);
   }
+
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isFilled(),
+                     fc,
+                     plot_->fillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->fillPattern());
 
   if (style().isValid()) {
     pen   = style().pen  ();

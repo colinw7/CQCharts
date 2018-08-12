@@ -2097,37 +2097,19 @@ draw(QPainter *painter)
   //---
 
   // set fill and stroke
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isBoxFilled()) {
-    QColor boxColor = plot_->interpBoxColor(ic, nc);
-
-    boxColor.setAlphaF(plot_->boxAlpha());
-
-    brush.setColor(boxColor);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->boxPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isBorderStroked()) {
-    QColor borderColor = plot_->interpBorderColor(ic, nc);
-
-    borderColor.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (borderColor);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorderStroked(),
+                     plot_->interpBorderColor(ic, nc),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isBoxFilled(),
+                     plot_->interpBoxColor(ic, nc),
+                     plot_->boxAlpha(),
+                     (CQChartsFillPattern::Type) plot_->boxPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2605,37 +2587,19 @@ draw(QPainter *painter)
   //---
 
   // set fill and stroke
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isBoxFilled()) {
-    QColor boxColor = plot_->interpBoxColor(0, 1);
-
-    boxColor.setAlphaF(plot_->boxAlpha());
-
-    brush.setColor(boxColor);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->boxPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isBorderStroked()) {
-    QColor borderColor = plot_->interpBorderColor(0, 1);
-
-    borderColor.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (borderColor);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorderStroked(),
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isBoxFilled(),
+                     plot_->interpBoxColor(0, 1),
+                     plot_->boxAlpha(),
+                     (CQChartsFillPattern::Type) plot_->boxPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2972,6 +2936,29 @@ draw(QPainter *painter)
   int np = poly_.count();
 
   if (np) {
+    // set pen and brush
+    QPen   ppen;
+    QBrush pbrush;
+
+    plot_->setPenBrush(ppen, pbrush,
+                       plot_->isBorderStroked(),
+                       plot_->interpBorderColor(i_, n_),
+                       plot_->borderAlpha(),
+                       plot_->borderWidth(),
+                       CQChartsLineDash(),
+                       plot_->isBoxFilled(),
+                       plot_->interpBoxColor(i_, n_),
+                       plot_->boxAlpha(),
+                       (CQChartsFillPattern::Type) plot_->boxPattern());
+
+    plot_->updateObjPenBrushState(this, ppen, pbrush);
+
+    painter->setPen  (ppen);
+    painter->setBrush(pbrush);
+
+    //---
+
+    // draw poly
     QPainterPath path;
 
     path.moveTo(plot_->windowToPixel(poly_.at(0)));
@@ -2980,40 +2967,6 @@ draw(QPainter *painter)
       path.lineTo(plot_->windowToPixel(poly_.at(i)));
 
     path.closeSubpath();
-
-    QColor fillColor = plot_->interpBoxColor(i_, n_);
-
-    QBrush pbrush;
-
-    if (plot_->isBoxFilled()) {
-      fillColor.setAlphaF(plot_->boxAlpha());
-
-      pbrush.setColor(fillColor);
-
-      pbrush.setStyle(CQChartsFillPattern::toStyle(
-       (CQChartsFillPattern::Type) plot_->boxPattern()));
-    }
-
-    QPen ppen;
-
-    if (plot_->isBorderStroked()) {
-      QColor borderColor = plot_->interpBorderColor(i_, n_);
-
-      borderColor.setAlphaF(plot_->borderAlpha());
-
-      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-      ppen.setColor (borderColor);
-      ppen.setWidthF(bw);
-    }
-    else {
-      ppen.setStyle(Qt::NoPen);
-    }
-
-    plot_->updateObjPenBrushState(this, ppen, pbrush);
-
-    painter->setPen  (ppen);
-    painter->setBrush(pbrush);
 
     painter->drawPath(path);
   }
@@ -3263,37 +3216,19 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (filled) {
-    QColor c = plot_->interpBoxColor(ic, nc);
-
-    c.setAlphaF(1.0);
-
-    brush.setColor(c);
-    brush.setStyle(Qt::SolidPattern);
-  //brush.setStyle(CQChartsFillPattern::toStyle(
-  //  (CQChartsFillPattern::Type) plot_->symbolFillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (stroked) {
-    QColor c = plot_->interpBorderColor(0, 1);
-
-    c.setAlphaF(1.0);
-
-    double bw = 1;
-
-    pen.setColor (c);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     stroked,
+                     plot_->interpBorderColor(ic, nc),
+                     /*alpha*/1.0,
+                     /*width*/ CQChartsLength("1px"),
+                     CQChartsLineDash(),
+                     filled,
+                     plot_->interpBoxColor(ic, nc),
+                     /*alpha*/1.0,
+                     CQChartsFillPattern::Type::SOLID);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

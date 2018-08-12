@@ -780,15 +780,9 @@ drawBackground(QPainter *painter)
     if (isGrid()) {
       QColor gridColor1 = interpGridColor(0, 1);
 
-      gridColor1.setAlphaF(gridAlpha());
+      QPen gpen1;
 
-      double lw = lengthPixelWidth(gridWidth());
-
-      QPen gpen1(gridColor1);
-
-      gpen1.setWidthF(lw);
-
-      CQChartsUtil::penSetLineDash(gpen1, gridDash());
+      setPen(gpen1, true, gridColor1, gridAlpha(), gridWidth(), gridDash());
 
       painter->setPen(gpen1);
 
@@ -1027,42 +1021,26 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isFilled()) {
-    QColor c = plot_->interpFillColor(i_, n_);
-
-    c.setAlphaF(plot_->fillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->fillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(i_, n_),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isFilled(),
+                     plot_->interpFillColor(i_, n_),
+                     plot_->fillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
+
+  //---
 
   if      (poly_.size() == 1) {
     const QPointF &p1 = ppoly[0]; // circle radius p1.x()

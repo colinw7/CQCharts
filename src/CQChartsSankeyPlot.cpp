@@ -1305,11 +1305,34 @@ void
 CQChartsSankeyNodeObj::
 draw(QPainter *painter)
 {
+  int numNodes = plot_->numNodes();
+
+  // set fill and stroke
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPenBrush(pen, brush,
+                     plot_->isNodeStroked(),
+                     plot_->interpNodeStrokeColor(node_->ind(), numNodes),
+                     plot_->nodeStrokeAlpha(),
+                     plot_->nodeStrokeWidth(),
+                     CQChartsLineDash(),
+                     plot_->isNodeFilled(),
+                     plot_->interpNodeFillColor(node_->ind(), numNodes),
+                     plot_->nodeFillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->nodeFillPattern());
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setBrush(brush);
+  painter->setPen(pen);
+
+  //---
+
+  // draw node
   CQChartsGeom::BBox prect;
 
   plot_->windowToPixel(rect_, prect);
-
-  int numNodes = plot_->numNodes();
 
   double px1 = prect.getXMin();
   double py1 = prect.getYMin();
@@ -1324,44 +1347,6 @@ draw(QPainter *painter)
   path.lineTo(QPointF(px1, py2));
 
   path.closeSubpath();
-
-  // set fill and stroke
-  QBrush brush;
-
-  if (plot_->isNodeFilled()) {
-    QColor c = plot_->interpNodeFillColor(node_->ind(), numNodes);
-
-    c.setAlphaF(plot_->nodeFillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->nodeFillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isNodeStroked()) {
-    QColor c = plot_->interpNodeStrokeColor(node_->ind(), numNodes);
-
-    c.setAlphaF(plot_->nodeStrokeAlpha());
-
-    double lw = plot_->lengthPixelWidth(plot_->nodeStrokeWidth());
-
-    pen.setColor (c);
-    pen.setWidthF(lw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  painter->setBrush(brush);
-  painter->setPen(pen);
 
   painter->drawPath(path);
 }
@@ -1441,6 +1426,41 @@ void
 CQChartsSankeyEdgeObj::
 draw(QPainter *painter)
 {
+  int numNodes = plot_->numNodes();
+
+  // set fill and stroke
+  QPen   pen;
+  QBrush brush;
+
+  QColor fc1 = plot_->interpEdgeFillColor(edge_->srcNode ()->ind(), numNodes);
+  QColor fc2 = plot_->interpEdgeFillColor(edge_->destNode()->ind(), numNodes);
+
+  QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
+
+  QColor sc1 = plot_->interpEdgeStrokeColor(edge_->srcNode ()->ind(), numNodes);
+  QColor sc2 = plot_->interpEdgeStrokeColor(edge_->destNode()->ind(), numNodes);
+
+  QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
+
+  plot_->setPenBrush(pen, brush,
+                     plot_->isEdgeStroked(),
+                     sc,
+                     plot_->edgeStrokeAlpha(),
+                     plot_->edgeStrokeWidth(),
+                     CQChartsLineDash(),
+                     plot_->isEdgeFilled(),
+                     fc,
+                     plot_->edgeFillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->edgeFillPattern());
+
+  plot_->updateObjPenBrushState(this, pen, brush);
+
+  painter->setBrush(brush);
+  painter->setPen(pen);
+
+  //---
+
+  // draw edge
   const CQChartsGeom::BBox &srcRect  = edge_->srcNode ()->obj()->destEdgeRect(edge_);
   const CQChartsGeom::BBox &destRect = edge_->destNode()->obj()->srcEdgeRect (edge_);
 
@@ -1448,8 +1468,6 @@ draw(QPainter *painter)
 
   plot_->windowToPixel(srcRect , psrcRect );
   plot_->windowToPixel(destRect, pdestRect);
-
-  int numNodes = plot_->numNodes();
 
   double px1 = psrcRect .getXMax();
   double px2 = pdestRect.getXMin();
@@ -1472,50 +1490,6 @@ draw(QPainter *painter)
   path_.closeSubpath();
 
   //---
-
-  // set fill and stroke
-  QBrush brush;
-
-  if (plot_->isEdgeFilled()) {
-    QColor c1 = plot_->interpEdgeFillColor(edge_->srcNode ()->ind(), numNodes);
-    QColor c2 = plot_->interpEdgeFillColor(edge_->destNode()->ind(), numNodes);
-
-    QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
-
-    c.setAlphaF(plot_->edgeFillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->edgeFillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isEdgeStroked()) {
-    QColor c1 = plot_->interpEdgeStrokeColor(edge_->srcNode ()->ind(), numNodes);
-    QColor c2 = plot_->interpEdgeStrokeColor(edge_->destNode()->ind(), numNodes);
-
-    QColor c = CQChartsUtil::blendColors(c1, c2, 0.5);
-
-    c.setAlphaF(plot_->edgeStrokeAlpha());
-
-    double lw = plot_->lengthPixelWidth(plot_->edgeStrokeWidth());
-
-    pen.setColor (c);
-    pen.setWidthF(lw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
-
-  plot_->updateObjPenBrushState(this, pen, brush);
-
-  painter->setBrush(brush);
-  painter->setPen(pen);
 
   painter->drawPath(path_);
 }

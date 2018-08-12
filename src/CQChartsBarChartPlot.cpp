@@ -1405,66 +1405,49 @@ draw(QPainter *painter)
 
   //---
 
-  // calc pen (stroke)
-  QPen pen;
+  // calc bar color
+  QColor barColor;
 
-  if (plot_->isBorder() && ! skipBorder) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth()); // TODO: width, height or both
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-
-    CQChartsUtil::penSetLineDash(pen, plot_->borderDash());
+  if (nset_ > 1) {
+    if (plot_->isColorBySet())
+      barColor = plot_->interpBarColor(ival_, nval_);
+    else
+      barColor = plot_->interpBarColor(iset_, nset_);
   }
   else {
-    pen.setStyle(Qt::NoPen);
-  }
-
-  // calc brush (fill)
-  QBrush barBrush;
-
-  if (plot_->isBarFill()) {
-    QColor barColor;
-
-    if (nset_ > 1) {
-      if (plot_->isColorBySet())
+    if (! color_.isValid()) {
+      if      (nval_ > 1)
         barColor = plot_->interpBarColor(ival_, nval_);
-      else
-        barColor = plot_->interpBarColor(iset_, nset_);
+      else if (nsval_ > 1)
+        barColor = plot_->interpBarColor(isval_, nsval_);
+      else {
+        QColor barColor1 = plot_->interpBarColor(ival_    , nval_ + 1);
+        QColor barColor2 = plot_->interpBarColor(ival_ + 1, nval_ + 1);
+
+        double f = (1.0*isval_)/nsval_;
+
+        barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
+      }
     }
     else {
-      if (! color_.isValid()) {
-        if      (nval_ > 1)
-          barColor = plot_->interpBarColor(ival_, nval_);
-        else if (nsval_ > 1)
-          barColor = plot_->interpBarColor(isval_, nsval_);
-        else {
-          QColor barColor1 = plot_->interpBarColor(ival_    , nval_ + 1);
-          QColor barColor2 = plot_->interpBarColor(ival_ + 1, nval_ + 1);
-
-          double f = (1.0*isval_)/nsval_;
-
-          barColor = CQChartsUtil::blendColors(barColor1, barColor2, f);
-        }
-      }
-      else {
-        barColor = color_.interpColor(plot_, 0.0);
-      }
+      barColor = color_.interpColor(plot_, 0.0);
     }
-
-    barColor.setAlphaF(plot_->barAlpha());
-
-    barBrush.setColor(barColor);
-    barBrush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->barPattern()));
   }
-  else {
-    barBrush.setStyle(Qt::NoBrush);
-  }
+
+  // calc pen and brush
+  QPen   pen;
+  QBrush barBrush;
+
+  plot_->setPenBrush(pen, barBrush,
+                     plot_->isBorder() && ! skipBorder,
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     plot_->borderDash(),
+                     plot_->isBarFill(),
+                     barColor,
+                     plot_->barAlpha(),
+                     (CQChartsFillPattern::Type) plot_->barPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 

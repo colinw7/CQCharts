@@ -143,13 +143,25 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
  public:
   using Points = std::vector<QPointF>;
 
+  struct Bucket {
+    int bucket;
+    int n;
+
+    Bucket(int bucket, int n) :
+     bucket(bucket), n(n) {
+    }
+  };
+
+  using Buckets = std::vector<Bucket>;
+
   struct Data {
-    Points points;
-    double xmin { 0.0 };
-    double xmax { 0.0 };
-    double ymin { 0.0 };
-    double ymax { 0.0 };
-    double mean { 0.0 };
+    Points  points;
+    double  xmin { 0.0 };
+    double  xmax { 0.0 };
+    double  ymin { 0.0 };
+    double  ymax { 0.0 };
+    double  mean { 0.0 };
+    Buckets buckets;
   };
 
  public:
@@ -195,13 +207,14 @@ class CQChartsDistributionDensityObj : public CQChartsPlotObj {
   CQChartsGeom::BBox calcRect() const;
 
  private:
-  CQChartsDistributionPlot *plot_     { nullptr };
-  int                       groupInd_ { -1 };
+  CQChartsDistributionPlot *plot_        { nullptr };
+  int                       groupInd_    { -1 };
   Data                      data_;
-  double                    doffset_  { 0.0 };
-  int                       is_       { -1 };
-  int                       ns_       { -1 };
+  double                    doffset_     { 0.0 };
+  int                       is_          { -1 };
+  int                       ns_          { -1 };
   QPolygonF                 poly_;
+  double                    bucketScale_ { 1.0 };
 };
 
 //---
@@ -300,14 +313,16 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   Q_PROPERTY(double densityOffset   READ densityOffset     WRITE setDensityOffset  )
   Q_PROPERTY(int    densitySamples  READ densitySamples    WRITE setDensitySamples )
   Q_PROPERTY(bool   densityGradient READ isDensityGradient WRITE setDensityGradient)
+  Q_PROPERTY(bool   densityBars     READ isDensityBars     WRITE setDensityBars    )
 
   // scatter
   Q_PROPERTY(bool   scatter       READ isScatter     WRITE setScatter      )
   Q_PROPERTY(double scatterFactor READ scatterFactor WRITE setScatterFactor)
 
   // mean line
-  Q_PROPERTY(bool             showMean  READ isShowMean WRITE setShowMean)
-  Q_PROPERTY(CQChartsLineDash meanDash  READ meanDash   WRITE setMeanDash)
+  Q_PROPERTY(bool             showMean  READ isShowMean WRITE setShowMean )
+  Q_PROPERTY(CQChartsLength   meanWidth READ meanWidth  WRITE setMeanWidth)
+  Q_PROPERTY(CQChartsLineDash meanDash  READ meanDash   WRITE setMeanDash )
 
   // dot line
   Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
@@ -389,6 +404,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   bool isDensityGradient() const { return densityGradient_; }
   void setDensityGradient(bool b);
 
+  bool isDensityBars() const { return densityBars_; }
+  void setDensityBars(bool b);
+
   //---
 
   bool isScatter() const { return scatter_; }
@@ -422,6 +440,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   //---
 
   bool isShowMean() const { return showMean_; }
+
+  const CQChartsLength &meanWidth() const { return meanWidth_; }
+  void setMeanWidth(const CQChartsLength &d);
 
   const CQChartsLineDash &meanDash() const { return meanDash_; }
   void setMeanDash(const CQChartsLineDash &d);
@@ -610,6 +631,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   double            densityOffset_   { 0.0 };         // density offset
   int               densitySamples_  { 100 };         // density samples
   bool              densityGradient_ { false };       // density gradient
+  bool              densityBars_     { false };       // density bars
   bool              scatter_         { false };       // scatter plot
   double            scatterFactor_   { 1.0 };         // scatter factor
   bool              dotLines_        { false };       // show dot lines
@@ -620,6 +642,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot {
   CQChartsSymbol    rugSymbolType_;                   // rug symbol type
   CQChartsLength    rugSymbolSize_   { "5px" };       // rug symbol size
   bool              showMean_        { false };       // show mean
+  CQChartsLength    meanWidth_       { "3px" };       // mean line width
   CQChartsLineDash  meanDash_        { { 2, 2 }, 0 }; // mean line dash
   CQChartsDataLabel dataLabel_;                       // data label data
   GroupValues       groupValues_;                     // grouped value sets

@@ -2194,6 +2194,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QPen   pen;
   QBrush brush;
 
@@ -2209,16 +2210,13 @@ draw(QPainter *painter)
   double lw = plot()->lengthPixelWidth(plot()->impulseWidth());
 
   if (lw <= 1) {
+    plot()->setPen(pen, true, strokeColor, plot()->impulseAlpha(),
+                   plot()->impulseWidth(), plot()->impulseDash());
+
     brush.setStyle(Qt::NoBrush);
-
-    pen.setColor(strokeColor);
-    pen.setWidthF(lw);
-
-    CQChartsUtil::penSetLineDash(pen, plot()->impulseDash());
   }
   else {
-    brush.setColor(strokeColor);
-    brush.setStyle(Qt::SolidPattern);
+    plot()->setBrush(brush, true, strokeColor, /*alpha*/1.0);
 
     pen.setStyle(Qt::NoPen);
   }
@@ -2227,6 +2225,8 @@ draw(QPainter *painter)
 
   painter->setPen  (pen);
   painter->setBrush(brush);
+
+  //---
 
   if (lw <= 1) {
     painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
@@ -2606,7 +2606,7 @@ draw(QPainter *painter)
 
   //---
 
-  // set pen
+  // set pen and brush
   QPen pen;
 
   QColor c;
@@ -2618,25 +2618,11 @@ draw(QPainter *painter)
   else
     c = plot()->interpLinesColor(i(), n());
 
-  c.setAlphaF(plot()->linesAlpha());
-
-  double lw;
-
   if (! isInside())
-    lw = plot()->lengthPixelWidth(plot()->linesWidth());
+    plot_->setPen(pen, true, c, plot()->linesAlpha(), plot()->linesWidth(), plot_->linesDash());
   else
-    lw = 3;
+    plot_->setPen(pen, true, c, plot()->linesAlpha(), CQChartsLength("3px"), plot_->linesDash());
 
-  pen.setColor(c);
-
-  if (lw > 0)
-    pen.setWidthF(lw);
-
-  CQChartsUtil::penSetLineDash(pen, plot_->linesDash());
-
-  //---
-
-  // set brush (none)
   QBrush brush(Qt::NoBrush);
 
   //---
@@ -2799,6 +2785,7 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen and brush
   QBrush brush;
 
   QColor fillColor;
@@ -2808,16 +2795,14 @@ draw(QPainter *painter)
   else
     fillColor = plot()->interpFillUnderColor(i(), n());
 
-  fillColor.setAlphaF(plot()->fillUnderAlpha());
-
-  brush.setColor(fillColor);
-
-  brush.setStyle(CQChartsFillPattern::toStyle(
-   (CQChartsFillPattern::Type) plot()->fillUnderPattern()));
+  plot()->setBrush(brush, true, fillColor, plot()->fillUnderAlpha(),
+                   (CQChartsFillPattern::Type) plot()->fillUnderPattern());
 
   QPen pen(Qt::NoPen);
 
   plot()->updateObjPenBrushState(this, pen, brush);
+
+  //---
 
   int np = poly_.count();
 
@@ -2934,21 +2919,22 @@ fillBrush() const
 
   QBrush brush;
 
-  QColor c;
+  QColor                    c;
+  double                    alpha   = 1.0;
+  CQChartsFillPattern::Type pattern = CQChartsFillPattern::Type::SOLID;
 
   if      (plot->isBivariate()) {
     c = plot->interpFillUnderColor(i_, n_);
 
-    c.setAlphaF(plot->fillUnderAlpha());
+    alpha = plot->fillUnderAlpha();
 
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot->fillUnderPattern()));
+    pattern = (CQChartsFillPattern::Type) plot->fillUnderPattern();
   }
   else if (plot_->isOverlay()) {
     if (plot->prevPlot() || plot->nextPlot()) {
       c = plot->interpLinesColor(i_, n_);
 
-      c.setAlphaF(plot->linesAlpha());
+      alpha = plot->linesAlpha();
     }
     else
       c = CQChartsKeyColorBox::fillBrush().color();
@@ -2959,8 +2945,7 @@ fillBrush() const
   if (plot->isSetHidden(i_))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
-  brush.setColor(c);
-  brush.setStyle(Qt::SolidPattern);
+  plot->setBrush(brush, true, c, alpha, pattern);
 
   return brush;
 }

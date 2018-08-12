@@ -1258,6 +1258,21 @@ class CQChartsPlot : public QObject {
 
   //---
 
+  void setPenBrush(QPen &pen, QBrush &brush,
+                   bool stroked, const QColor &strokeColor, double strokeAlpha,
+                   const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
+                   bool filled, const QColor &fillColor, double fillAlpha,
+                   const CQChartsFillPattern::Type &pattern=CQChartsFillPattern::Type::SOLID);
+
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+              const CQChartsLength &strokeWidth,
+              const CQChartsLineDash &strokeDash=CQChartsLineDash());
+
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+                const CQChartsFillPattern::Type &pattern=CQChartsFillPattern::Type::SOLID);
+
+  //---
+
   void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush) const;
 
   void updateInsideObjPenBrushState  (QPen &pen, QBrush &brush, bool outline=true) const;

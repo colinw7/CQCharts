@@ -1,4 +1,11 @@
 High
+ + Common Code for Data->Pen/Brush
+ + Distribution
+   + Line
+   + Background boxes
+   + Log Scale
+ + Box Plot
+   + Sort by median
  + Margin units
  + Consistent property names and hieracrchy
  + More Variants in Model (QIamge/QIcon could supply custom symbol !)

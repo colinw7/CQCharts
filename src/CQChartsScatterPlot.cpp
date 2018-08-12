@@ -1985,20 +1985,6 @@ void
 CQChartsScatterPointObj::
 drawDir(QPainter *painter, const Dir &dir, bool flip) const
 {
-  CQChartsSymbol symbol = this->symbolType();
-
-  if (symbol == CQChartsSymbol::Type::NONE)
-    symbol = plot_->symbolType();
-
-  bool stroked = plot_->isSymbolStroked();
-  bool filled  = plot_->isSymbolFilled();
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(symbolSize(), sx, sy);
-
-  //---
-
   int ic = 0;
   int nc = 0;
 
@@ -2014,44 +2000,39 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (filled) {
-    QColor c;
+  QColor fc;
 
-    if (color_.isValid())
-      c = color_.interpColor(plot_, ic, nc);
-    else
-      c = plot_->interpSymbolFillColor(ic, nc);
+  if (color_.isValid())
+    fc = color_.interpColor(plot_, ic, nc);
+  else
+    fc = plot_->interpSymbolFillColor(ic, nc);
 
-    c.setAlphaF(plot_->symbolFillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-      (CQChartsFillPattern::Type) plot_->symbolFillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (stroked) {
-    QColor c = plot_->interpSymbolStrokeColor(ic, nc);
-
-    c.setAlphaF(plot_->symbolStrokeAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
-
-    pen.setColor (c);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isSymbolStroked(),
+                     plot_->interpSymbolStrokeColor(ic, nc),
+                     plot_->symbolStrokeAlpha(),
+                     plot_->symbolStrokeWidth(),
+                     CQChartsLineDash(),
+                     plot_->isSymbolFilled(),
+                     fc,
+                     plot_->symbolFillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->symbolFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
+
+  CQChartsSymbol symbol = this->symbolType();
+
+  if (symbol == CQChartsSymbol::Type::NONE)
+    symbol = plot_->symbolType();
+
+  double sx, sy;
+
+  plot_->pixelSymbolSize(symbolSize(), sx, sy);
 
   //---
 

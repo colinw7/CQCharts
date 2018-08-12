@@ -1094,37 +1094,19 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (isFilled()) {
-    QColor fillColor = node->interpColor(this, numColorIds());
-
-    fillColor.setAlphaF(fillAlpha());
-
-    brush.setColor(fillColor);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) fillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (isBorder()) {
-    QColor bc = interpBorderColor(0, 1);
-
-    bc.setAlphaF(borderAlpha());
-
-    double bw = lengthPixelWidth(borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  setPenBrush(pen, brush,
+              isBorder(),
+              interpBorderColor(0, 1),
+              borderAlpha(),
+              borderWidth(),
+              CQChartsLineDash(),
+              isFilled(),
+              node->interpColor(this, numColorIds()),
+              fillAlpha(),
+              (CQChartsFillPattern::Type) fillPattern());
 
   QColor tc = interpTextColor(0, 1);
 
@@ -1148,9 +1130,6 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // draw node label
-  if (nodeObj)
-    updateObjPenBrushState(nodeObj, tpen, brush);
-
   painter->setPen(tpen);
 
   QFont font = textFont();

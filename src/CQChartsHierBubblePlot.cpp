@@ -1223,37 +1223,19 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isFilled()) {
-    QColor c = hier_->interpColor(plot_, plot_->numColorIds());
-
-    c.setAlphaF(plot_->fillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->fillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isFilled(),
+                     hier_->interpColor(plot_, plot_->numColorIds()),
+                     plot_->fillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1364,37 +1346,19 @@ draw(QPainter *painter)
   //---
 
   // calc stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isFilled()) {
-    QColor c = node_->interpColor(plot_, plot_->numColorIds());
-
-    c.setAlphaF(plot_->fillAlpha());
-
-    brush.setColor(c);
-
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) plot_->fillPattern()));
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isBorder()) {
-    QColor bc = plot_->interpBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->borderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen.setStyle(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isBorder(),
+                     plot_->interpBorderColor(0, 1),
+                     plot_->borderAlpha(),
+                     plot_->borderWidth(),
+                     CQChartsLineDash(),
+                     plot_->isFilled(),
+                     node_->interpColor(plot_, plot_->numColorIds()),
+                     plot_->fillAlpha(),
+                     (CQChartsFillPattern::Type) plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

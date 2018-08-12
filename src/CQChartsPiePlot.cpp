@@ -1226,18 +1226,12 @@ draw(QPainter *painter)
   //---
 
   if (plot_->isGrid()) {
-    QColor gridColor = plot_->interpGridColor(0, 1);
-
-    gridColor.setAlphaF(plot_->gridAlpha());
-
-    double lw = plot()->lengthPixelWidth(plot_->gridWidth());
-
-    QPen   pen  (gridColor);
+    QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    pen.setWidthF(lw);
+    QColor gridColor = plot_->interpGridColor(0, 1);
 
-    CQChartsUtil::penSetLineDash(pen, plot_->gridDash());
+    plot_->setPen(pen, true, gridColor, plot_->gridAlpha(), plot_->gridWidth(), plot_->gridDash());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
