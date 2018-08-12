@@ -6,6 +6,7 @@
 #include <CQChartsDataLabel.h>
 #include <CQChartsGrahamHull.h>
 #include <CQChartsBoxWhisker.h>
+#include <CQChartsLeastSquaresFit.h>
 
 //---
 
@@ -172,16 +173,17 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double         whiskerAlpha  READ whiskerAlpha  WRITE setWhiskerAlpha )
 
   // symbol
-  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
-  Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
-  Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
+  Q_PROPERTY(CQChartsSymbol   symbolType        READ symbolType        WRITE setSymbolType       )
+  Q_PROPERTY(CQChartsLength   symbolSize        READ symbolSize        WRITE setSymbolSize       )
+  Q_PROPERTY(bool             symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
+  Q_PROPERTY(CQChartsColor    symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
+  Q_PROPERTY(double           symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
+  Q_PROPERTY(CQChartsLength   symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
+  Q_PROPERTY(CQChartsLineDash symbolStrokeDash  READ symbolStrokeDash  WRITE setSymbolStrokeDash )
+  Q_PROPERTY(bool             symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
+  Q_PROPERTY(CQChartsColor    symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
+  Q_PROPERTY(double           symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
+  Q_PROPERTY(Pattern          symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
   // symbol map key
   Q_PROPERTY(bool   symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
@@ -376,6 +378,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   const CQChartsLength &symbolStrokeWidth() const { return symbolData_.stroke.width; }
   void setSymbolStrokeWidth(const CQChartsLength &l);
 
+  const CQChartsLineDash &symbolStrokeDash() const { return symbolData_.stroke.dash; }
+  void setSymbolStrokeDash(const CQChartsLineDash &d);
+
   QColor interpSymbolStrokeColor(int i, int n) const {
     return symbolData_.stroke.color.interpColor(this, i, n); }
 
@@ -542,18 +547,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   void setYWhisker(bool b);
 
  private:
-  struct FitData {
-    bool   fitted         { false };
-    double coeffs     [8] { 0, 0, 0, 0, 0, 0, 0, 0 };
-    int    coeffs_free[8] { 1, 1, 1, 1, 1, 1, 1, 1 };
-    int    num_coeffs     { 3 };
-    double deviation      { 0.0 };
-    double xmin           { 0.0 };
-    double xmax           { 0.0 };
-
-    void reset() { fitted = false; }
-  };
-
   struct SymbolMapKeyData {
     bool   displayed { true };
     double alpha     { 0.2 };
@@ -567,7 +560,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   using Points        = std::vector<QPointF>;
   using GroupPoints   = std::map<int,Points>;
-  using GroupFitData  = std::map<int,FitData>;
+  using GroupFitData  = std::map<int,CQChartsLeastSquaresFit>;
   using GroupHull     = std::map<int,CQChartsGrahamHull>;
   using GroupWhiskers = std::map<int,WhiskerData>;
 

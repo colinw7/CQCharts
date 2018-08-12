@@ -216,6 +216,20 @@ setNodeStrokeWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { invalidateLayers(); } );
 }
 
+const CQChartsLineDash &
+CQChartsSankeyPlot::
+nodeStrokeDash() const
+{
+  return nodeData_.border.dash;
+}
+
+void
+CQChartsSankeyPlot::
+setNodeStrokeDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(nodeData_.border.dash, d, [&]() { invalidateLayers(); } );
+}
+
 //---
 
 bool
@@ -348,6 +362,20 @@ CQChartsSankeyPlot::
 setEdgeStrokeWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(edgeData_.border.width, l, [&]() { invalidateLayers(); } );
+}
+
+const CQChartsLineDash &
+CQChartsSankeyPlot::
+edgeStrokeDash() const
+{
+  return edgeData_.border.dash;
+}
+
+void
+CQChartsSankeyPlot::
+setEdgeStrokeDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(edgeData_.border.dash, d, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -1316,7 +1344,7 @@ draw(QPainter *painter)
                      plot_->interpNodeStrokeColor(node_->ind(), numNodes),
                      plot_->nodeStrokeAlpha(),
                      plot_->nodeStrokeWidth(),
-                     CQChartsLineDash(),
+                     plot_->nodeStrokeDash(),
                      plot_->isNodeFilled(),
                      plot_->interpNodeFillColor(node_->ind(), numNodes),
                      plot_->nodeFillAlpha(),
@@ -1447,7 +1475,7 @@ draw(QPainter *painter)
                      sc,
                      plot_->edgeStrokeAlpha(),
                      plot_->edgeStrokeWidth(),
-                     CQChartsLineDash(),
+                     plot_->edgeStrokeDash(),
                      plot_->isEdgeFilled(),
                      fc,
                      plot_->edgeFillAlpha(),

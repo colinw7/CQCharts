@@ -1102,7 +1102,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
               interpBorderColor(0, 1),
               borderAlpha(),
               borderWidth(),
-              CQChartsLineDash(),
+              borderDash(),
               isFilled(),
               node->interpColor(this, numColorIds()),
               fillAlpha(),

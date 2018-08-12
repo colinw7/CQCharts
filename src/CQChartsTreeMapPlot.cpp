@@ -1644,7 +1644,7 @@ draw(QPainter *painter)
                      plot_->interpBorderColor(0, 1),
                      plot_->borderAlpha(),
                      plot_->borderWidth(),
-                     CQChartsLineDash(),
+                     plot_->borderDash(),
                      plot_->isFilled(),
                      node_->interpColor(plot_, plot_->numColorIds()),
                      plot_->fillAlpha(),

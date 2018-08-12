@@ -8,7 +8,6 @@
 #include <CQChartsUtil.h>
 #include <CQChartsTip.h>
 #include <CQCharts.h>
-#include <CLeastSquaresFit.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -177,6 +176,13 @@ CQChartsScatterPlot::
 setSymbolStrokeWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(symbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsScatterPlot::
+setSymbolStrokeDash(const CQChartsLineDash &d)
+{
+  CQChartsUtil::testAndSet(symbolData_.stroke.dash, d, [&]() { invalidateLayers(); } );
 }
 
 void
@@ -1297,54 +1303,12 @@ drawBestFit(QPainter *painter)
   for (const auto &groupNameValue : groupNameValues_) {
     int groupInd = groupNameValue.first;
 
-    FitData &fitData = groupFitData_[groupInd];
+    CQChartsLeastSquaresFit &fitData = groupFitData_[groupInd];
 
-    if (! fitData.fitted) {
+    if (! fitData.isFitted()) {
       Points &points = groupPoints_[groupInd];
 
-      //---
-
-      int np = points.size();
-
-      std::vector<double> x, y;
-
-      if (np > 0) {
-        fitData.xmin = points[0].x();
-        fitData.xmax = fitData.xmin;
-
-        for (const auto &p : points) {
-          x.push_back(p.x());
-          y.push_back(p.y());
-
-          fitData.xmin = std::min(fitData.xmin, p.x());
-          fitData.xmax = std::max(fitData.xmax, p.x());
-        }
-      }
-      else {
-        fitData.xmin = 0.0;
-        fitData.xmax = 0.0;
-      }
-
-      //---
-
-      int return_code;
-
-      if (bestFitOrder() <= 0) {
-        fitData.num_coeffs = 8;
-
-        CLeastSquaresFit::bestLeastSquaresFit(&x[0], &y[0], np,
-          fitData.coeffs, fitData.coeffs_free, &fitData.num_coeffs,
-          &fitData.deviation, &return_code);
-      }
-      else {
-        fitData.num_coeffs = std::min(std::max(bestFitOrder(), 1), 8);
-
-        CLeastSquaresFit::leastSquaresFit(&x[0], &y[0], np,
-          fitData.coeffs, fitData.coeffs_free, fitData.num_coeffs,
-          &fitData.deviation, &return_code);
-      }
-
-      fitData.fitted = true;
+      fitData.calc(points, bestFitOrder());
     }
   }
 
@@ -1356,17 +1320,18 @@ drawBestFit(QPainter *painter)
   for (const auto &groupNameValue : groupNameValues_) {
     int groupInd = groupNameValue.first;
 
-    FitData &fitData = groupFitData_[groupInd];
+    CQChartsLeastSquaresFit &fitData = groupFitData_[groupInd];
 
     //---
 
     double pxl, pyl, pxr, pyr;
 
-    windowToPixel(fitData.xmin, 0, pxl, pyl);
-    windowToPixel(fitData.xmax, 0, pxr, pyr);
+    windowToPixel(fitData.xmin(), 0, pxl, pyl);
+    windowToPixel(fitData.xmax(), 0, pxr, pyr);
 
     //---
 
+    // set pen and brush
     QPen   pen;
     QBrush brush;
 
@@ -1382,6 +1347,7 @@ drawBestFit(QPainter *painter)
 
     //---
 
+    // calc fit shape
     QPolygonF bpoly, poly, tpoly;
 
     for (int px = pxl; px <= pxr; ++px) {
@@ -1389,10 +1355,7 @@ drawBestFit(QPainter *painter)
 
       pixelToWindow(px, 0.0, x, y);
 
-      double y2 = 0.0;
-
-      for (int i = fitData.num_coeffs - 1; i >= 0; --i)
-        y2 = x*y2 + fitData.coeffs[i];
+      double y2 = fitData.interp(x);
 
       double px2, py2;
 
@@ -1401,11 +1364,11 @@ drawBestFit(QPainter *painter)
       poly << QPointF(px2, py2);
 
       if (isBestFitDeviation()) {
-        windowToPixel(x, y2 - fitData.deviation, px2, py2);
+        windowToPixel(x, y2 - fitData.deviation(), px2, py2);
 
         bpoly << QPointF(px2, py2);
 
-        windowToPixel(x, y2 + fitData.deviation, px2, py2);
+        windowToPixel(x, y2 + fitData.deviation(), px2, py2);
 
         tpoly << QPointF(px2, py2);
       }
@@ -1413,6 +1376,7 @@ drawBestFit(QPainter *painter)
 
     //---
 
+    // draw fit shape
     if (isBestFitDeviation()) {
       QPolygonF dpoly;
 
@@ -1435,6 +1399,7 @@ drawBestFit(QPainter *painter)
 
     //---
 
+    // draw fit line
     QPainterPath path;
 
     const QPointF &p = poly[0];
@@ -2015,7 +1980,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
                      plot_->interpSymbolStrokeColor(ic, nc),
                      plot_->symbolStrokeAlpha(),
                      plot_->symbolStrokeWidth(),
-                     CQChartsLineDash(),
+                     plot_->symbolStrokeDash(),
                      plot_->isSymbolFilled(),
                      fc,
                      plot_->symbolFillAlpha(),
