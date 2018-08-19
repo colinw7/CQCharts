@@ -319,14 +319,19 @@ class CQChartsView : public QFrame {
 
   const Annotations &annotations() const { return annotations_; }
 
-  CQChartsTextAnnotation     *addTextAnnotation    (const QPointF &pos, const QString &text);
-  CQChartsArrowAnnotation    *addArrowAnnotation   (const QPointF &start, const QPointF &end);
-  CQChartsRectAnnotation     *addRectAnnotation    (const QPointF &start, const QPointF &end);
-  CQChartsEllipseAnnotation  *addEllipseAnnotation (const QPointF &center, double xRadius,
-                                                    double yRadius);
+  CQChartsTextAnnotation     *addTextAnnotation    (const CQChartsPosition &pos,
+                                                    const QString &text);
+  CQChartsArrowAnnotation    *addArrowAnnotation   (const CQChartsPosition &start,
+                                                    const CQChartsPosition &end);
+  CQChartsRectAnnotation     *addRectAnnotation    (const CQChartsPosition &start,
+                                                    const CQChartsPosition &end);
+  CQChartsEllipseAnnotation  *addEllipseAnnotation (const CQChartsPosition &center,
+                                                    const CQChartsLength &xRadius,
+                                                    const CQChartsLength &yRadius);
   CQChartsPolygonAnnotation  *addPolygonAnnotation (const QPolygonF &points);
   CQChartsPolylineAnnotation *addPolylineAnnotation(const QPolygonF &points);
-  CQChartsPointAnnotation    *addPointAnnotation   (const QPointF &pos, const CQChartsSymbol &type);
+  CQChartsPointAnnotation    *addPointAnnotation   (const CQChartsPosition &pos,
+                                                    const CQChartsSymbol &type);
 
   void addAnnotation(CQChartsAnnotation *annotation);
 
@@ -573,8 +578,8 @@ class CQChartsView : public QFrame {
 
   void printFile(const QString &filename, CQChartsPlot *plot=nullptr);
 
-  void printPNGSlot(const QString &filename="charts.png");
-  void printSVGSlot(const QString &filename="charts.svg");
+  void printPNGSlot();
+  void printSVGSlot();
 
   //---
 

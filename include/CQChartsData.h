@@ -23,6 +23,7 @@ struct CQChartsTextData {
   Qt::Alignment align     { Qt::AlignLeft | Qt::AlignVCenter };
   bool          formatted { false };
   bool          scaled    { false };
+  bool          html      { false };
 };
 
 // Line Properties

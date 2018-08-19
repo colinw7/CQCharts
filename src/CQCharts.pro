@@ -155,6 +155,7 @@ CQChartsDendrogram.cpp \
 CQChartsHull3D.cpp \
 \
 CLeastSquaresFit.cpp \
+CInterval.cpp \
 
 HEADERS += \
 ../include/CQCharts.h \
@@ -299,6 +300,9 @@ CQFilename.h \
 CListLink.h \
 CStateIterator.h \
 ../include/CUnixFile.h \
+\
+../include/CLeastSquaresFit.h \
+../include/CInterval.h \
 
 DESTDIR     = ../lib
 OBJECTS_DIR = ../obj

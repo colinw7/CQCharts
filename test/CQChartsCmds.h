@@ -133,12 +133,13 @@ class CQChartsCmds : public QObject {
 #endif
 
  private:
-  bool loadModelCmd   (const Vars &vars);
-  void processModelCmd(const Vars &vars);
-  void sortModelCmd   (const Vars &vars);
-  void foldModelCmd   (const Vars &vars);
-  void filterModelCmd (const Vars &vars);
-  void flattenModelCmd(const Vars &vars);
+  bool loadModelCmd          (const Vars &vars);
+  void processModelCmd       (const Vars &vars);
+  void addProcessModelProcCmd(const Vars &vars);
+  void sortModelCmd          (const Vars &vars);
+  void foldModelCmd          (const Vars &vars);
+  void filterModelCmd        (const Vars &vars);
+  void flattenModelCmd       (const Vars &vars);
 
   void correlationModelCmd(const Vars &vars);
   void exportModelCmd     (const Vars &vars);

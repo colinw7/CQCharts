@@ -20,10 +20,21 @@ class CQCharts : public QObject {
   Q_OBJECT
 
  public:
+  struct ProcData {
+    QString name;
+    QString args;
+    QString body;
+
+    ProcData(const QString &name="", const QString &args="", const QString &body="") :
+     name(name), args(args), body(body) {
+    }
+  };
+
   using PlotTypes  = std::vector<CQChartsPlotType *>;
   using ModelP     = QSharedPointer<QAbstractItemModel>;
   using ModelDatas = std::vector<CQChartsModelData *>;
   using Views      = std::vector<CQChartsView *>;
+  using Procs      = std::map<QString,ProcData>;
 
  public:
   CQCharts();
@@ -84,6 +95,12 @@ class CQCharts : public QObject {
 
   //---
 
+  void addProc(const QString &name, const QString &args, const QString &body);
+
+  const Procs &procs() const { return procs_; }
+
+  //---
+
   void emitModelTypeChanged(int modelId);
 
   //---
@@ -116,6 +133,7 @@ class CQCharts : public QObject {
   int                    currentModelInd_ { -1 };
   ModelDatas             modelDatas_;
   NameViews              views_;
+  Procs                  procs_;
 };
 
 #endif

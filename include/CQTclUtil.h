@@ -6,6 +6,9 @@
 #include <QModelIndex>
 #include <QVariant>
 #include <QStringList>
+#include <QPointF>
+#include <QRectF>
+#include <QPolygonF>
 
 namespace CQTclUtil {
 
@@ -51,6 +54,36 @@ inline Tcl_Obj *variantToObj(Tcl_Interp *interp, const QVariant &var) {
   }
   else if (var.type() == QVariant::String) {
     QString str = var.toString();
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::PointF) {
+    const QPointF &p = var.value<QPointF>();
+
+    QString str = QString("{%1 %2}").arg(p.x()).arg(p.y());
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::RectF) {
+    const QRectF &r = var.value<QRectF>();
+
+    QString str = QString("{%1 %2 %3 %4}").
+     arg(r.left()).arg(r.bottom()).arg(r.right()).arg(r.top());
+
+    return Tcl_NewStringObj(str.toLatin1().constData(), -1);
+  }
+  else if (var.type() == QVariant::PolygonF) {
+    const QPolygonF &p = var.value<QPolygonF>();
+
+    QString str = "{";
+
+    for (int i = 0; i < p.length(); ++i) {
+      if (i > 0) str += " ";
+
+      str + QString("{%1 %2}").arg(p[i].x()).arg(p[i].y());
+    }
+
+    str += "}";
 
     return Tcl_NewStringObj(str.toLatin1().constData(), -1);
   }

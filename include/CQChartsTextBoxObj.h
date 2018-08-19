@@ -59,6 +59,9 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
   bool isTextScaled() const { return textData_.scaled; }
   void setTextScaled(bool b) { textData_.scaled = b; redrawBoxObj(); }
 
+  bool isHtml() const { return textData_.html; }
+  void setHtml(bool b) { textData_.html = b; redrawBoxObj(); }
+
   //---
 
   const CQChartsTextData &textData() const { return textData_; }

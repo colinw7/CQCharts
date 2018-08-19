@@ -694,8 +694,7 @@ calc()
 
   //------
 
-  // Ensure Axis Start and End are in the Correct Order
-
+  // Ensure start and end are in the correct order
   double minAxis = std::min(start(), end());
   double maxAxis = std::max(start(), end());
 
@@ -706,8 +705,7 @@ calc()
 
   //------
 
-  /* Calculate Length */
-
+  // Calculate length
   double length = std::abs(maxAxis - minAxis);
 
   if (length == 0.0)
@@ -718,8 +716,7 @@ calc()
 
   //------
 
-  // Calculate nearest Power of Ten to Length
-
+  // Calculate nearest power of ten to length
   int power = CQChartsUtil::RoundDown(log10(length));
 
   if (isIntegral()) {

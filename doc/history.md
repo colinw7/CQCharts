@@ -568,3 +568,10 @@
 # 8/12/2018
  + add optional bars to distribution density plot
  + cleanup pen/brush set code
+# 8/19/2018
+ + Support units for annotation position/size
+ + Add custom expr tcl procs
+ + Add annotations to pie plot box
+ + Fix scale/offset for overlay plots
+ + Add grid to scatter plot
+ + Add best fit to xy plot

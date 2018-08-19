@@ -27,8 +27,8 @@ class CQChartsPosition {
    units_(units), p_(p) {
   }
 
-  CQChartsPosition(const QString &s) {
-    setPoint(s);
+  CQChartsPosition(const QString &s, const Units &defUnits=Units::PIXEL) {
+    setPoint(s, defUnits);
   }
 
   CQChartsPosition(const CQChartsPosition &rhs) :
@@ -50,11 +50,11 @@ class CQChartsPosition {
     p_     = p;
   }
 
-  bool setPoint(const QString &str) {
+  bool setPoint(const QString &str, const Units &defUnits=Units::PIXEL) {
     Units   units;
     QPointF p;
 
-    if (! decodeString(str, units, p))
+    if (! decodeString(str, units, p, defUnits))
       return false;
 
     units_ = units;
@@ -66,13 +66,15 @@ class CQChartsPosition {
   //---
 
   QString toString() const {
-    QString pstr = QString("%1,%2").arg(p_.x()).arg(p_.y());
+    QString ustr;
 
-    if      (units_ == Units::PIXEL  ) return QString("%1px").arg(pstr);
-    else if (units_ == Units::PERCENT) return QString("%1%" ).arg(pstr);
-    else if (units_ == Units::PLOT   ) return QString("%1"  ).arg(pstr);
-    else if (units_ == Units::VIEW   ) return QString("%1V" ).arg(pstr);
-    else                               return QString("%1"  ).arg(pstr);
+    if      (units_ == Units::PIXEL  ) ustr = "px";
+    else if (units_ == Units::PERCENT) ustr = "%" ;
+    else if (units_ == Units::PLOT   ) ustr = "P" ;
+    else if (units_ == Units::VIEW   ) ustr = "V" ;
+    else                               ustr = ""  ;
+
+    return QString("%1 %2 %3").arg(p_.x()).arg(p_.y()).arg(ustr);
   }
 
   void fromString(const QString &s) {
@@ -107,73 +109,7 @@ class CQChartsPosition {
   //---
 
  private:
-  bool decodeString(const QString &str, Units &units, QPointF &point) {
-    std::string sstr = str.toStdString();
-
-    const char *c_str = sstr.c_str();
-
-    int i = 0;
-
-    while (c_str[i] != 0 && ::isspace(c_str[i]))
-      ++i;
-
-    if (c_str[i] == '\0')
-      return false;
-
-    double x = 0.0, y = 0.0;
-
-    const char *p;
-
-    //---
-
-    errno = 0;
-
-    x = strtod(&c_str[i], (char **) &p);
-
-    if (errno == ERANGE)
-      return false;
-
-    while (*p != 0 && ::isspace(*p))
-      ++p;
-
-    //---
-
-    if (*p == ',') {
-      ++p;
-
-      while (*p != 0 && ::isspace(*p))
-        ++p;
-    }
-
-    //---
-
-    errno = 0;
-
-    y = strtod(&c_str[i], (char **) &p);
-
-    if (errno == ERANGE)
-      return false;
-
-    while (*p != 0 && ::isspace(*p))
-      ++p;
-
-    //---
-
-    point = QPointF(x, y);
-
-    if      (*p == '\0')
-      units = Units::PLOT;
-    else if (strcmp(p, "px") == 0)
-      units = Units::PIXEL;
-    else if (strcmp(p, "%") == 0)
-      units = Units::PERCENT;
-    else if (strcmp(p, "V") == 0)
-      units = Units::VIEW;
-    else
-      return false;
-
-    return true;
-  }
+  bool decodeString(const QString &str, Units &units, QPointF &point, const Units &defUnits);
 
  private:
   Units   units_ { Units::PIXEL };

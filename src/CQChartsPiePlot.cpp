@@ -393,6 +393,24 @@ calcRange()
 
 //------
 
+CQChartsGeom::BBox
+CQChartsPiePlot::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  for (const auto &plotObj : plotObjs_) {
+    CQChartsPieObj *pieObj = dynamic_cast<CQChartsPieObj *>(plotObj);
+
+    if (pieObj)
+      bbox += pieObj->annotationBBox();
+  }
+
+  return bbox;
+}
+
+//------
+
 void
 CQChartsPiePlot::
 updateObjs()
@@ -1198,6 +1216,91 @@ calcExploded() const
     isExploded = true;
 
   return isExploded;
+}
+
+CQChartsGeom::BBox
+CQChartsPieObj::
+annotationBBox() const
+{
+  CQChartsGeom::BBox bbox;
+
+  if (! plot_->textBox()->isTextVisible())
+    return bbox;
+
+  if (! label().length())
+    return bbox;
+
+  //---
+
+  CQChartsGeom::Point c = getCenter();
+
+  QPointF center(c.x, c.y);
+
+  double ri = innerRadius();
+  double ro = outerRadius();
+  double rv = valueRadius();
+  double lr = plot_->labelRadius();
+
+  double a1 = angle1();
+  double a2 = angle2();
+
+  double lr1;
+
+  if (! CQChartsUtil::isZero(ri))
+    lr1 = ri + lr*(ro - ri);
+  else
+    lr1 = lr*ro;
+
+  if (lr1 < 0.01)
+    lr1 = 0.01;
+
+  double ta = CQChartsUtil::avg(a1, a2);
+
+  double a21 = a2 - a1;
+
+  // if full circle always draw text at center
+  if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
+    CQChartsGeom::Point pc;
+
+    plot_->windowToPixel(c, pc);
+
+    //---
+
+    bbox = plot_->textBox()->bbox(CQChartsUtil::toQPoint(pc), label(), 0.0);
+  }
+  // draw on arc center line
+  else {
+    if (plot_->numGroups() == 1 && lr > 1.0) {
+      plot_->textBox()->calcConnectedRadialTextBBox(center, rv, lr1, ta, label(),
+                                                    plot_->isRotatedText(), bbox);
+    }
+    else {
+      Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
+
+      double tangle = CQChartsUtil::Deg2Rad(ta);
+
+      double tc = cos(tangle);
+      double ts = sin(tangle);
+
+      double tx = center.x() + lr1*tc;
+      double ty = center.y() + lr1*ts;
+
+      double ptx, pty;
+
+      plot_->windowToPixel(tx, ty, ptx, pty);
+
+      QPointF pt(ptx, pty);
+
+      double angle = 0.0;
+
+      if (plot_->isRotatedText())
+        angle = (tc >= 0 ? ta : 180.0 + ta);
+
+      bbox = plot_->textBox()->bbox(pt, label(), angle, align);
+    }
+  }
+
+  return bbox;
 }
 
 void

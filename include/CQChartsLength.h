@@ -26,8 +26,8 @@ class CQChartsLength {
    units_(units), value_(value) {
   }
 
-  CQChartsLength(const QString &s) {
-    setValue(s);
+  CQChartsLength(const QString &s, const Units &units=Units::PLOT) {
+    setValue(s, units);
   }
 
   CQChartsLength(const CQChartsLength &rhs) :
@@ -49,11 +49,11 @@ class CQChartsLength {
     value_ = value;
   }
 
-  bool setValue(const QString &str) {
+  bool setValue(const QString &str, const Units &defUnits=Units::PLOT) {
     Units  units;
     double value;
 
-    if (! decodeString(str, units, value))
+    if (! decodeString(str, units, value, defUnits))
       return false;
 
     units_ = units;
@@ -65,11 +65,15 @@ class CQChartsLength {
   //---
 
   QString toString() const {
-    if      (units_ == Units::PIXEL  ) return QString("%1px").arg(value_);
-    else if (units_ == Units::PERCENT) return QString("%1%" ).arg(value_);
-    else if (units_ == Units::PLOT   ) return QString("%1"  ).arg(value_);
-    else if (units_ == Units::VIEW   ) return QString("%1V" ).arg(value_);
-    else                               return QString("%1"  ).arg(value_);
+    QString ustr;
+
+    if      (units_ == Units::PIXEL  ) ustr = "px";
+    else if (units_ == Units::PERCENT) ustr = "%" ;
+    else if (units_ == Units::PLOT   ) ustr = "P" ;
+    else if (units_ == Units::VIEW   ) ustr = "V" ;
+    else                               ustr = ""  ;
+
+    return QString("%1%2").arg(value_).arg(ustr);
   }
 
   void fromString(const QString &s) {
@@ -104,44 +108,7 @@ class CQChartsLength {
   //---
 
  private:
-  bool decodeString(const QString &str, Units &units, double &value) {
-    std::string sstr = str.toStdString();
-
-    const char *c_str = sstr.c_str();
-
-    int i = 0;
-
-    while (c_str[i] != 0 && ::isspace(c_str[i]))
-      ++i;
-
-    if (c_str[i] == '\0')
-      return false;
-
-    const char *p;
-
-    errno = 0;
-
-    value = strtod(&c_str[i], (char **) &p);
-
-    if (errno == ERANGE)
-      return false;
-
-    while (*p != 0 && ::isspace(*p))
-      ++p;
-
-    if      (*p == '\0')
-      units = Units::PLOT;
-    else if (strcmp(p, "px") == 0)
-      units = Units::PIXEL;
-    else if (strcmp(p, "%") == 0)
-      units = Units::PERCENT;
-    else if (strcmp(p, "V") == 0)
-      units = Units::VIEW;
-    else
-      return false;
-
-    return true;
-  }
+  bool decodeString(const QString &str, Units &units, double &value, const Units &defUnits);
 
  private:
   Units  units_ { Units::PIXEL };

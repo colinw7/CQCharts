@@ -12,4 +12,6 @@ set view [create_view]
 
 set plot [create_plot -view $view -model $model -type scatter -columns "x=carat,y=price"]
 
+set_property -plot $plot -name grid.enabled -value 1
+
 connect_chart -plot $plot -from objIdPressed -to objPressed

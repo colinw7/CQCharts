@@ -327,6 +327,15 @@ createWindow(CQChartsView *view)
 
 void
 CQCharts::
+addProc(const QString &name, const QString &args, const QString &body)
+{
+  procs_[name] = ProcData(name, args, body);
+}
+
+//---
+
+void
+CQCharts::
 emitModelTypeChanged(int modelId)
 {
   emit modelTypeChanged(modelId);

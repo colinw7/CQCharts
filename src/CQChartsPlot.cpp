@@ -453,6 +453,34 @@ setDataRange(const CQChartsGeom::Range &r, bool update)
 
 //---
 
+double
+CQChartsPlot::
+dataScaleX() const
+{
+  return dataScaleX_;
+}
+
+void
+CQChartsPlot::
+setDataScaleX(double r)
+{
+  dataScaleX_ = r;
+}
+
+double
+CQChartsPlot::
+dataScaleY() const
+{
+  return dataScaleY_;
+}
+
+void
+CQChartsPlot::
+setDataScaleY(double r)
+{
+  dataScaleY_ = r;
+}
+
 void
 CQChartsPlot::
 updateDataScaleX(double r)
@@ -473,6 +501,34 @@ updateDataScaleY(double r)
   applyDataRange();
 
   invalidateLayers();
+}
+
+double
+CQChartsPlot::
+dataOffsetX() const
+{
+  return dataOffset_.x;
+}
+
+void
+CQChartsPlot::
+setDataOffsetX(double x)
+{
+  dataOffset_.x = x;
+}
+
+double
+CQChartsPlot::
+dataOffsetY() const
+{
+  return dataOffset_.y;
+}
+
+void
+CQChartsPlot::
+setDataOffsetY(double y)
+{
+  dataOffset_.y = y;
 }
 
 //---
@@ -1135,9 +1191,11 @@ addProperties()
   addProperty("range", this, "range"  , "data"   );
   addProperty("range", this, "autoFit", "autoFit");
 
-  addProperty("scaling", this, "dataScaleX", "dataX");
-  addProperty("scaling", this, "dataScaleY", "dataY");
-  addProperty("scaling", this, "equalScale", "equal");
+  addProperty("scaling"            , this, "equalScale" , "equal");
+  addProperty("scaling/data/scale" , this, "dataScaleX" , "x"    );
+  addProperty("scaling/data/scale" , this, "dataScaleY" , "y"    );
+  addProperty("scaling/data/offset", this, "dataOffsetX", "x"    );
+  addProperty("scaling/data/offset", this, "dataOffsetY", "y"    );
 
   addProperty("grouping", this, "overlay");
   addProperty("grouping", this, "x1x2"   );
@@ -1501,27 +1559,37 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcDataRange(bool adjust) const
 {
-  CQChartsGeom::BBox bbox;
+  CQChartsGeom::BBox bbox = getDataRange();
 
-  if (dataRange_.isSet())
-    bbox = CQChartsGeom::BBox(dataRange_.xmin(), dataRange_.ymin(),
-                              dataRange_.xmax(), dataRange_.ymax());
-  else
-    bbox = CQChartsGeom::BBox(0, 0, 1, 1);
+  // if zoom data, adjust bbox by pan offset, zoom scale
+  if (view_->isZoomData()) {
+    if (adjust) {
+      CQChartsGeom::Point c = bbox.getCenter();
 
-  // adjust by zoom data pan offset, zoom scale
-  if (view_->isZoomData() && adjust) {
-    CQChartsGeom::Point c = bbox.getCenter();
-    double              w = 0.5*bbox.getWidth ()/dataScaleX();
-    double              h = 0.5*bbox.getHeight()/dataScaleY();
+      double bw = bbox.getWidth ();
+      double bh = bbox.getHeight();
 
-    double x = c.x + dataOffset().x;
-    double y = c.y + dataOffset().y;
+      double w = 0.5*bw/dataScaleX();
+      double h = 0.5*bh/dataScaleY();
+      double x = c.x + bw*dataOffsetX();
+      double y = c.y + bh*dataOffsetY();
 
-    bbox = CQChartsGeom::BBox(x - w, y - h, x + w, y + h);
+      bbox = CQChartsGeom::BBox(x - w, y - h, x + w, y + h);
+    }
   }
 
   return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+getDataRange() const
+{
+  if (dataRange_.isSet())
+    return CQChartsGeom::BBox(dataRange_.xmin(), dataRange_.ymin(),
+                              dataRange_.xmax(), dataRange_.ymax());
+  else
+    return CQChartsGeom::BBox(0, 0, 1, 1);
 }
 
 void
@@ -1534,12 +1602,12 @@ applyDataRange(bool propagate)
     if      (isX1X2()) {
       CQChartsPlot *plot1 = firstPlot();
 
-      dataRange = plot1->calcDataRange();
+      dataRange = plot1->calcDataRange(/*adjust*/false);
     }
     else if (isY1Y2()) {
       CQChartsPlot *plot1 = firstPlot();
 
-      dataRange = plot1->calcDataRange();
+      dataRange = plot1->calcDataRange(/*adjust*/false);
     }
     else if (isOverlay()) {
       Plots plots;
@@ -1582,9 +1650,10 @@ applyDataRange(bool propagate)
       x1x2Plots(plot1, plot2);
 
       if (plot1) {
-        plot1->setDataScaleX(dataScaleX());
-        plot1->setDataScaleY(dataScaleY());
-        plot1->setDataOffset(dataOffset());
+        plot1->setDataScaleX (dataScaleX ());
+        plot1->setDataScaleY (dataScaleY ());
+        plot1->setDataOffsetX(dataOffsetX());
+        plot1->setDataOffsetY(dataOffsetY());
 
         plot1->applyDataRange(/*propagate*/false);
       }
@@ -1602,10 +1671,12 @@ applyDataRange(bool propagate)
           CQChartsGeom::Range(bbox2.getXMin(), dataRange1.bottom(),
                               bbox2.getXMax(), dataRange1.top   ());
 
-        plot2->setDataRange (dataRange2, /*update*/false);
-        plot2->setDataScaleX(dataScaleX());
-        plot2->setDataScaleY(dataScaleY());
-        plot2->setDataOffset(dataOffset());
+        plot2->setDataRange(dataRange2, /*update*/false);
+
+        plot2->setDataScaleX (dataScaleX ());
+        plot2->setDataScaleY (dataScaleY ());
+        plot2->setDataOffsetX(dataOffsetX());
+        plot2->setDataOffsetY(dataOffsetY());
 
         plot2->applyDataRange(/*propagate*/false);
       }
@@ -1617,12 +1688,13 @@ applyDataRange(bool propagate)
 
       CQChartsPlot *plot1, *plot2;
 
-      x1x2Plots(plot1, plot2);
+      y1y2Plots(plot1, plot2);
 
       if (plot1) {
-        plot1->setDataScaleX(dataScaleX());
-        plot1->setDataScaleY(dataScaleY());
-        plot1->setDataOffset(dataOffset());
+        plot1->setDataScaleX (dataScaleX ());
+        plot1->setDataScaleY (dataScaleY ());
+        plot1->setDataOffsetX(dataOffsetX());
+        plot1->setDataOffsetY(dataOffsetY());
 
         plot1->applyDataRange(/*propagate*/false);
       }
@@ -1640,10 +1712,12 @@ applyDataRange(bool propagate)
           CQChartsGeom::Range(dataRange1.left (), bbox2.getYMin(),
                               dataRange1.right(), bbox2.getYMax());
 
-        plot2->setDataRange (dataRange2, /*update*/false);
-        plot2->setDataScaleX(dataScaleX());
-        plot2->setDataScaleY(dataScaleY());
-        plot2->setDataOffset(dataOffset());
+        plot2->setDataRange(dataRange2, /*update*/false);
+
+        plot2->setDataScaleX (dataScaleX ());
+        plot2->setDataScaleY (dataScaleY ());
+        plot2->setDataOffsetX(dataOffsetX());
+        plot2->setDataOffsetY(dataOffsetY());
 
         plot2->applyDataRange(/*propagate*/false);
       }
@@ -1658,10 +1732,12 @@ applyDataRange(bool propagate)
       overlayPlots(plots);
 
       for (auto &plot : plots) {
-        plot->setDataRange (dataRange1, /*update*/false);
-        plot->setDataScaleX(dataScaleX());
-        plot->setDataScaleY(dataScaleY());
-        plot->setDataOffset(dataOffset());
+        plot->setDataRange(dataRange1, /*update*/false);
+
+        plot->setDataScaleX (dataScaleX ());
+        plot->setDataScaleY (dataScaleY ());
+        plot->setDataOffsetX(dataOffsetX());
+        plot->setDataOffsetY(dataOffsetY());
 
         plot->applyDataRange(/*propagate*/false);
       }
@@ -1671,9 +1747,10 @@ applyDataRange(bool propagate)
 
       while (plot1) {
         if (plot1 != this) {
-          plot1->setDataScaleX(dataScaleX());
-          plot1->setDataScaleY(dataScaleY());
-          plot1->setDataOffset(dataOffset());
+          plot1->setDataScaleX (dataScaleX ());
+          plot1->setDataScaleY (dataScaleY ());
+          plot1->setDataOffsetX(dataOffsetX());
+          plot1->setDataOffsetY(dataOffsetY());
 
           plot1->applyDataRange(/*propagate*/false);
         }
@@ -2614,6 +2691,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
   }
 
   invalidateLayer(CQChartsLayer::Type::SELECTION);
+  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
   return true;
@@ -2672,6 +2750,7 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
   }
 
   invalidateLayer(CQChartsLayer::Type::SELECTION);
+  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 
   return true;
@@ -2731,6 +2810,7 @@ editMoveBy(const QPointF &d)
   }
 
   invalidateLayer(CQChartsLayer::Type::SELECTION);
+  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
   invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
 }
 
@@ -3081,9 +3161,9 @@ panLeft(double f)
     return;
 
   if (view_->isZoomData()) {
-    double dx = viewToWindowWidth(f);
+    double dx = viewToWindowWidth(f)/getDataRange().getWidth();
 
-    dataOffset_.setX(dataOffset_.x - dx);
+    setDataOffsetX(dataOffsetX() - dx);
 
     applyDataRange();
 
@@ -3104,9 +3184,9 @@ panRight(double f)
     return;
 
   if (view_->isZoomData()) {
-    double dx = viewToWindowWidth(f);
+    double dx = viewToWindowWidth(f)/getDataRange().getWidth();
 
-    dataOffset_.setX(dataOffset_.x + dx);
+    setDataOffsetX(dataOffsetX() + dx);
 
     applyDataRange();
 
@@ -3127,9 +3207,9 @@ panUp(double f)
     return;
 
   if (view_->isZoomData()) {
-    double dy = viewToWindowHeight(f);
+    double dy = viewToWindowHeight(f)/getDataRange().getHeight();
 
-    dataOffset_.setY(dataOffset_.y + dy);
+    setDataOffsetY(dataOffsetY() + dy);
 
     applyDataRange();
 
@@ -3150,9 +3230,9 @@ panDown(double f)
     return;
 
   if (view_->isZoomData()) {
-    double dy = viewToWindowHeight(f);
+    double dy = viewToWindowHeight(f)/getDataRange().getHeight();
 
-    dataOffset_.setY(dataOffset_.y - dy);
+    setDataOffsetY(dataOffsetY() - dy);
 
     applyDataRange();
 
@@ -3170,13 +3250,11 @@ CQChartsPlot::
 pan(double dx, double dy)
 {
   if (view_->isZoomData()) {
-    //CQChartsGeom::BBox dataRange = calcDataRange();
-
     if (allowPanX())
-      dataOffset_.setX(dataOffset_.x + dx);
+      setDataOffsetX(dataOffsetX() + dx/getDataRange().getWidth());
 
     if (allowPanY())
-      dataOffset_.setY(dataOffset_.y + dy);
+      setDataOffsetY(dataOffsetY() + dy/getDataRange().getHeight());
 
     applyDataRange();
 
@@ -3197,10 +3275,10 @@ zoomIn(double f)
 {
   if (view_->isZoomData()) {
     if (allowZoomX())
-      dataScaleX_ *= f;
+      setDataScaleX(dataScaleX()*f);
 
     if (allowZoomY())
-      dataScaleY_ *= f;
+      setDataScaleY(dataScaleY()*f);
 
     applyDataRange();
 
@@ -3219,10 +3297,10 @@ zoomOut(double f)
 {
   if (view_->isZoomData()) {
     if (allowZoomX())
-      dataScaleX_ /= f;
+      setDataScaleX(dataScaleX()/f);
 
     if (allowZoomY())
-      dataScaleY_ /= f;
+      setDataScaleY(dataScaleY()/f);
 
     applyDataRange();
 
@@ -3245,7 +3323,7 @@ zoomTo(const CQChartsGeom::BBox &bbox)
   double h = bbox1.getHeight();
 
   if (w < 1E-50 || h < 1E-50) {
-    double dataScale = 2*std::min(dataScaleX_, dataScaleY_);
+    double dataScale = 2*std::min(dataScaleX(), dataScaleY());
 
     w = dataRange_.xsize()/dataScale;
     h = dataRange_.ysize()/dataScale;
@@ -3263,21 +3341,22 @@ zoomTo(const CQChartsGeom::BBox &bbox)
     double xscale = w1/w;
     double yscale = h1/h;
 
-    //dataScaleX_ = std::min(xscale, yscale);
-    //dataScaleY_ = std::min(xscale, yscale);
+    //setDataScaleX(std::min(xscale, yscale));
+    //setDataScaleY(std::min(xscale, yscale));
 
     if (allowZoomX())
-      dataScaleX_ = xscale;
+      setDataScaleX(xscale);
 
     if (allowZoomY())
-      dataScaleY_ = yscale;
+      setDataScaleY(yscale);
 
     CQChartsGeom::Point c1 = CQChartsGeom::Point(dataRange_.xmid(), dataRange_.ymid());
 
-    double cx = (allowPanX() ? c.x - c1.x : 0.0);
-    double cy = (allowPanY() ? c.y - c1.y : 0.0);
+    double cx = (allowPanX() ? c.x - c1.x : 0.0)/getDataRange().getWidth ();
+    double cy = (allowPanY() ? c.y - c1.y : 0.0)/getDataRange().getHeight();
 
-    dataOffset_ = CQChartsGeom::Point(cx, cy);
+    setDataOffsetX(cx);
+    setDataOffsetY(cy);
 
     applyDataRange();
 
@@ -3296,12 +3375,13 @@ zoomFull()
 {
   if (view_->isZoomData()) {
     if (allowZoomX())
-      dataScaleX_ = 1.0;
+      setDataScaleX(1.0);
 
     if (allowZoomY())
-      dataScaleY_ = 1.0;
+      setDataScaleY(1.0);
 
-    dataOffset_ = CQChartsGeom::Point(0.0, 0.0);
+    setDataOffsetX(0.0);
+    setDataOffsetY(0.0);
 
     applyDataRange();
 
@@ -3452,6 +3532,9 @@ CQChartsPlot::
 updateKeyPosition(bool force)
 {
   if (! key() || ! key()->isVisible())
+    return;
+
+  if (isOverlay() && ! isFirstPlot())
     return;
 
   if (force)
@@ -4269,15 +4352,13 @@ autoFit()
 
     //---
 
-    CQChartsGeom::BBox bbox = fitBBox();
-
-    //---
-
     Plots plots;
 
     overlayPlots(plots);
 
     // combine bboxes of overlay plots
+    CQChartsGeom::BBox bbox;
+
     for (auto &plot : plots) {
       CQChartsGeom::BBox bbox1 = plot->fitBBox();
 
@@ -4293,6 +4374,10 @@ autoFit()
     //---
 
     // set all overlay plot bboxes
+    using BBoxes = std::vector<CQChartsGeom::BBox>;
+
+    BBoxes bboxes;
+
     for (auto &plot : plots) {
       CQChartsGeom::BBox bbox1;
 
@@ -4302,12 +4387,16 @@ autoFit()
 
       plot->pixelToWindow(bbox1, bbox2);
 
-      plot->setFitBBox(bbox2);
+      bboxes.push_back(bbox2);
     }
 
-    //---
+    int i = 0;
 
-    setFitBBox(bbox);
+    for (auto &plot : plots) {
+      plot->setFitBBox(bboxes[i]);
+
+      ++i;
+    }
   }
   else {
     CQChartsGeom::BBox bbox = fitBBox();
@@ -4414,7 +4503,7 @@ titleFitBBox() const
 
 CQChartsTextAnnotation *
 CQChartsPlot::
-addTextAnnotation(const QPointF &pos, const QString &text)
+addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
   CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
 
@@ -4425,7 +4514,7 @@ addTextAnnotation(const QPointF &pos, const QString &text)
 
 CQChartsArrowAnnotation *
 CQChartsPlot::
-addArrowAnnotation(const QPointF &start, const QPointF &end)
+addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
   CQChartsArrowAnnotation *arrowAnnotation = new CQChartsArrowAnnotation(this, start, end);
 
@@ -4436,7 +4525,7 @@ addArrowAnnotation(const QPointF &start, const QPointF &end)
 
 CQChartsRectAnnotation *
 CQChartsPlot::
-addRectAnnotation(const QPointF &start, const QPointF &end)
+addRectAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
   CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, start, end);
 
@@ -4447,7 +4536,8 @@ addRectAnnotation(const QPointF &start, const QPointF &end)
 
 CQChartsEllipseAnnotation *
 CQChartsPlot::
-addEllipseAnnotation(const QPointF &center, double xRadius, double yRadius)
+addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
+                     const CQChartsLength &yRadius)
 {
   CQChartsEllipseAnnotation *ellipseAnnotation =
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
@@ -4481,7 +4571,7 @@ addPolylineAnnotation(const QPolygonF &points)
 
 CQChartsPointAnnotation *
 CQChartsPlot::
-addPointAnnotation(const QPointF &pos, const CQChartsSymbol &type)
+addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
   CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
 

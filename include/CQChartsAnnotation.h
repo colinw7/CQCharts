@@ -125,25 +125,25 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
   Q_OBJECT
 
   Q_PROPERTY(CQChartsPosition center  READ center  WRITE setCenter )
-  Q_PROPERTY(double           xRadius READ xRadius WRITE setXRadius)
-  Q_PROPERTY(double           yRadius READ yRadius WRITE setYRadius)
+  Q_PROPERTY(CQChartsLength   xRadius READ xRadius WRITE setXRadius)
+  Q_PROPERTY(CQChartsLength   yRadius READ yRadius WRITE setYRadius)
 
  public:
   CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center=CQChartsPosition(),
-                            double xRadius=1.0, double yRadius=1.0);
+                            const CQChartsLength &xRadius=1.0, const CQChartsLength &yRadius=1.0);
   CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center=CQChartsPosition(),
-                            double xRadius=1.0, double yRadius=1.0);
+                            const CQChartsLength &xRadius=1.0, const CQChartsLength &yRadius=1.0);
 
   virtual ~CQChartsEllipseAnnotation();
 
   const CQChartsPosition &center() const { return center_; }
   void setCenter(const CQChartsPosition &c) { center_ = c; emit dataChanged(); }
 
-  int xRadius() const { return xRadius_; }
-  void setXRadius(int i) { xRadius_ = i; }
+  const CQChartsLength &xRadius() const { return xRadius_; }
+  void setXRadius(const CQChartsLength &r) { xRadius_ = r; }
 
-  int yRadius() const { return yRadius_; }
-  void setYRadius(int i) { yRadius_ = i; }
+  const CQChartsLength &yRadius() const { return yRadius_; }
+  void setYRadius(const CQChartsLength &r) { yRadius_ = r; }
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 
@@ -157,8 +157,8 @@ class CQChartsEllipseAnnotation : public CQChartsAnnotation {
 
  private:
   CQChartsPosition center_;
-  double           xRadius_ { 1.0 };
-  double           yRadius_ { 1.0 };
+  CQChartsLength   xRadius_ { 1.0 };
+  CQChartsLength   yRadius_ { 1.0 };
 };
 
 //---

@@ -7,6 +7,7 @@
 #include <CQChartsGrahamHull.h>
 #include <CQChartsBoxWhisker.h>
 #include <CQChartsLeastSquaresFit.h>
+#include <CInterval.h>
 
 //---
 
@@ -102,6 +103,42 @@ class CQChartsScatterPointObj : public CQChartsPlotObj {
 
 //---
 
+class CQChartsScatterCellObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+ public:
+  CQChartsScatterCellObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+                         int ig, int ng, int is, int ns, int ix, int iy, int n, int maxn);
+
+  int groupInd() const { return groupInd_; }
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
+  void draw(QPainter *painter) override;
+
+ private:
+  CQChartsScatterPlot* plot_       { nullptr };
+  int                  groupInd_   { -1 };
+  int                  ig_         { -1 };
+  int                  ng_         { -1 };
+  int                  is_         { -1 };
+  int                  ns_         { -1 };
+  int                  ix_         { -1 };
+  int                  iy_         { -1 };
+  int                  n_          { 0 };
+  int                  maxn_       { 0 };
+};
+
+//---
+
 #include <CQChartsKey.h>
 
 class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
@@ -119,6 +156,20 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
 
  private:
   CQChartsColor color_;
+};
+
+class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
+  Q_OBJECT
+
+ public:
+  CQChartsScatterGridKeyItem(CQChartsScatterPlot *plot);
+
+  QSizeF size() const override;
+
+  void draw(QPainter *painter, const CQChartsGeom::BBox &rect) override;
+
+ private:
+  CQChartsScatterPlot *plot_ { nullptr };
 };
 
 //---
@@ -185,6 +236,11 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   Q_PROPERTY(double           symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
   Q_PROPERTY(Pattern          symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
 
+  // grid
+  Q_PROPERTY(bool gridded  READ isGridded WRITE setGridded )
+  Q_PROPERTY(int  gridNumX READ gridNumX  WRITE setGridNumX)
+  Q_PROPERTY(int  gridNumY READ gridNumY  WRITE setGridNumY)
+
   // symbol map key
   Q_PROPERTY(bool   symbolMapKey       READ isSymbolMapKey     WRITE setSymbolMapKey      )
   Q_PROPERTY(double symbolMapKeyAlpha  READ symbolMapKeyAlpha  WRITE setSymbolMapKeyAlpha )
@@ -235,6 +291,32 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   using Values          = std::vector<ValueData>;
   using NameValues      = std::map<QString,Values>;
   using GroupNameValues = std::map<int,NameValues>;
+
+  struct CountData {
+    int n { 0 };
+  };
+
+  using YCountMap  = std::map<int,CountData>;
+  using XYCountMap = std::map<int,YCountMap>;
+
+  struct XYCountData {
+    int        maxN { 0 };
+    XYCountMap xyCount;
+  };
+
+  using NameGridData      = std::map<QString,XYCountData>;
+  using GroupNameGridData = std::map<int,NameGridData>;
+
+  struct GridData {
+    bool      enabled   { false };
+    CInterval xinterval;
+    CInterval yinterval;
+    int       nx        { 40 };
+    int       ny        { 40 };
+    int       maxN      { 0 };
+  };
+
+  //---
 
   enum class Pattern {
     SOLID,
@@ -365,6 +447,16 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   void setSymbolSize(const CQChartsLength &s);
 
   //--
+
+  bool isGridded() const { return gridData_.enabled; }
+
+  int gridNumX() const { return gridData_.nx; }
+  void setGridNumX(int n);
+
+  int gridNumY() const { return gridData_.ny; }
+  void setGridNumY(int n);
+
+  //---
 
   bool isSymbolStroked() const { return symbolData_.stroke.visible; }
   void setSymbolStroked(bool b);
@@ -522,7 +614,16 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   void drawBackground(QPainter *painter) override;
   void drawForeground(QPainter *painter) override;
 
+  //---
+
+  const GridData &gridData() const { return gridData_; }
+
  private:
+  void addPointKeyItems(CQChartsPlotKey *key);
+  void addGridKeyItems (CQChartsPlotKey *key);
+
+  //---
+
   void drawBestFit     (QPainter *painter);
   void drawHull        (QPainter *painter);
   void drawXRug        (QPainter *painter);
@@ -545,6 +646,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
 
   void setXWhisker(bool b);
   void setYWhisker(bool b);
+
+  void setGridded(bool b);
 
  private:
   struct SymbolMapKeyData {
@@ -596,7 +699,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot {
   double             whiskerAlpha_     { 0.5 };           // whisker alpha
   CQChartsSymbolData symbolData_;                         // symbol draw data
   GroupNameValues    groupNameValues_;                    // name values
+  GroupNameGridData  groupNameGridData_;                  // grid values
   CQChartsDataLabel  dataLabel_;                          // data label style
+  GridData           gridData_;
   QString            xname_;                              // x column header
   QString            yname_;                              // y column header
   SymbolMapKeyData   symbolMapKeyData_;                   // symbol map key data

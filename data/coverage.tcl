@@ -26,8 +26,8 @@ set_property -plot $plotId2 -name impulse.color   -value palette#1
 set_property -plot $plotId2 -name impulse.alpha   -value 0.5
 set_property -plot $plotId2 -name impulse.width   -value 20px
 
-group_plots -y1y2 $plotId1 $plotId2
+group_plots -view $viewId -y1y2 $plotId1 $plotId2
 
-place_plots -vertical $plotId1 $plotId2
+place_plots -view $viewId -vertical $plotId1 $plotId2
 
 connect_chart -view $viewId -plot $plotId1 -from objIdPressed -to plotSlot

@@ -17,6 +17,7 @@
 #include <CQPropertyViewModel.h>
 
 #include <QSvgGenerator>
+#include <QFileDialog>
 #include <QRubberBand>
 #include <QMouseEvent>
 #include <QMenu>
@@ -301,7 +302,7 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
 
 CQChartsTextAnnotation *
 CQChartsView::
-addTextAnnotation(const QPointF &pos, const QString &text)
+addTextAnnotation(const CQChartsPosition &pos, const QString &text)
 {
   CQChartsTextAnnotation *textAnnotation = new CQChartsTextAnnotation(this, pos, text);
 
@@ -312,7 +313,7 @@ addTextAnnotation(const QPointF &pos, const QString &text)
 
 CQChartsArrowAnnotation *
 CQChartsView::
-addArrowAnnotation(const QPointF &start, const QPointF &end)
+addArrowAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
   CQChartsArrowAnnotation *arrowAnnotation = new CQChartsArrowAnnotation(this, start, end);
 
@@ -323,7 +324,7 @@ addArrowAnnotation(const QPointF &start, const QPointF &end)
 
 CQChartsRectAnnotation *
 CQChartsView::
-addRectAnnotation(const QPointF &start, const QPointF &end)
+addRectAnnotation(const CQChartsPosition &start, const CQChartsPosition &end)
 {
   CQChartsRectAnnotation *rectAnnotation = new CQChartsRectAnnotation(this, start, end);
 
@@ -334,7 +335,8 @@ addRectAnnotation(const QPointF &start, const QPointF &end)
 
 CQChartsEllipseAnnotation *
 CQChartsView::
-addEllipseAnnotation(const QPointF &center, double xRadius, double yRadius)
+addEllipseAnnotation(const CQChartsPosition &center, const CQChartsLength &xRadius,
+                     const CQChartsLength &yRadius)
 {
   CQChartsEllipseAnnotation *ellipseAnnotation =
     new CQChartsEllipseAnnotation(this, center, xRadius, yRadius);
@@ -368,7 +370,7 @@ addPolylineAnnotation(const QPolygonF &points)
 
 CQChartsPointAnnotation *
 CQChartsView::
-addPointAnnotation(const QPointF &pos, const CQChartsSymbol &type)
+addPointAnnotation(const CQChartsPosition &pos, const CQChartsSymbol &type)
 {
   CQChartsPointAnnotation *pointAnnotation = new CQChartsPointAnnotation(this, pos, type);
 
@@ -2639,16 +2641,24 @@ printFile(const QString &filename, CQChartsPlot *plot)
 
 void
 CQChartsView::
-printPNGSlot(const QString &filename)
+printPNGSlot()
 {
-  printPNG(filename);
+  QString dir = QDir::current().dirName() + "/charts.png";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
+
+  printPNG(fileName);
 }
 
 void
 CQChartsView::
-printSVGSlot(const QString &filename)
+printSVGSlot()
 {
-  printSVG(filename);
+  QString dir = QDir::current().dirName() + "/charts.svg";
+
+  QString fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
+
+  printSVG(fileName);
 }
 
 void
@@ -2681,6 +2691,10 @@ void
 CQChartsView::
 printSVG(const QString &filename, CQChartsPlot *plot)
 {
+  bool buffer = isBufferLayers();
+
+  setBufferLayers(false);
+
   QSvgGenerator generator;
 
   generator.setFileName(filename);
@@ -2692,6 +2706,8 @@ printSVG(const QString &filename, CQChartsPlot *plot)
   paint(&painter, plot);
 
   painter.end();
+
+  setBufferLayers(buffer);
 }
 
 //------

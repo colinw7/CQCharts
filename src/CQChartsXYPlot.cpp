@@ -282,13 +282,15 @@ addProperties()
   addProperty("lines", this, "lines"          , "visible"   );
   addProperty("lines", this, "linesSelectable", "selectable");
   addProperty("lines", this, "roundedLines"   , "rounded"   );
+  addProperty("lines", this, "fitted"         , "fitted"    );
 
   addLineProperties("lines", "lines");
 
   // fill under
-  addProperty("fillUnder", this, "fillUnder"    , "visible" );
-  addProperty("fillUnder", this, "fillUnderPos" , "position");
-  addProperty("fillUnder", this, "fillUnderSide", "side"    );
+  addProperty("fillUnder", this, "fillUnder"          , "visible"   );
+  addProperty("fillUnder", this, "fillUnderSelectable", "selectable");
+  addProperty("fillUnder", this, "fillUnderPos"       , "position"  );
+  addProperty("fillUnder", this, "fillUnderSide"      , "side"      );
 
   addFillProperties("fillUnder", "fillUnder");
 
@@ -367,6 +369,13 @@ CQChartsXYPlot::
 setFillUnder(bool b)
 {
   CQChartsUtil::testAndSet(fillUnderData_.fillData.visible, b, [&]() { updateObjs(); } );
+}
+
+void
+CQChartsXYPlot::
+setFitted(bool b)
+{
+  CQChartsUtil::testAndSet(fitted_, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -621,6 +630,13 @@ setRoundedLines(bool b)
 
 //---
 
+void
+CQChartsXYPlot::
+setFillUnderSelectable(bool b)
+{
+  CQChartsUtil::testAndSet(fillUnderSelectable_, b, [&]() { invalidateLayers(); } );
+}
+
 const CQChartsColor &
 CQChartsXYPlot::
 fillUnderColor() const
@@ -836,9 +852,7 @@ calcRange()
     xAxis()->setColumn(xColumn());
   }
 
-  bool ok;
-
-  QString xname = modelHeaderString(xColumn(), ok);
+  QString xname = xAxisName();
 
   if (isOverlay()) {
     if (isFirstPlot())
@@ -848,31 +862,33 @@ calcRange()
     xAxis()->setLabel(xname);
   }
 
+  QString yname = yAxisName();
+
   int ns = numSets();
 
   if      (isBivariate() && ns > 1) {
-    QString name = titleStr();
-
-    if (! name.length()) {
-      CQChartsColumn yColumn1 = getSetColumn(0);
-      CQChartsColumn yColumn2 = getSetColumn(1);
-
-      bool ok;
-
-      QString yname1 = modelHeaderString(yColumn1, ok);
-      QString yname2 = modelHeaderString(yColumn2, ok);
-
-      name = QString("%1-%2").arg(yname1).arg(yname2);
-    }
-
     if (isOverlay()) {
-      if      (isFirstPlot())
-        yAxis()->setLabel(name);
-      else if (isOverlayOtherPlot())
-        firstPlot()->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + name);
+      if (isFirstPlot()) {
+        yAxis()->setLabel(yname);
+
+        Plots plots;
+
+        overlayPlots(plots);
+
+        for (auto &plot : plots) {
+          if (plot == this)
+            continue;
+
+          QString yname = yAxisName();
+
+          plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+        }
+      }
+      else
+        yAxis()->setLabel("");
     }
     else {
-      yAxis()->setLabel(name);
+      yAxis()->setLabel(yname);
     }
   }
   else if (isStacked()) {
@@ -887,31 +903,82 @@ calcRange()
     else
       yAxis()->setColumn(yColumn);
 
-    QString yname;
-
-    for (int j = 0; j < numSets(); ++j) {
-      bool ok;
-
-      CQChartsColumn yColumn = getSetColumn(j);
-
-      QString yname1 = modelHeaderString(yColumn, ok);
-
-      if (yname.length())
-        yname += ", ";
-
-      yname += yname1;
-    }
-
     if (isOverlay()) {
-      if      (isFirstPlot())
+      if (isFirstPlot()) {
         yAxis()->setLabel(yname);
-      else if (isOverlayOtherPlot())
-        firstPlot()->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+
+        Plots plots;
+
+        overlayPlots(plots);
+
+        for (auto &plot : plots) {
+          if (plot == this)
+            continue;
+
+          QString yname = yAxisName();
+
+          plot->yAxis()->setLabel(firstPlot()->yAxis()->label() + ", " + yname);
+        }
+      }
+      else
+        yAxis()->setLabel("");
     }
     else {
       yAxis()->setLabel(yname);
     }
   }
+}
+
+QString
+CQChartsXYPlot::
+xAxisName() const
+{
+  bool ok;
+
+  return modelHeaderString(xColumn(), ok);
+}
+
+QString
+CQChartsXYPlot::
+yAxisName() const
+{
+  QString name;
+
+  int ns = numSets();
+
+  if      (isBivariate() && ns > 1) {
+    name = titleStr();
+
+    if (! name.length()) {
+      CQChartsColumn yColumn1 = getSetColumn(0);
+      CQChartsColumn yColumn2 = getSetColumn(1);
+
+      bool ok;
+
+      QString yname1 = modelHeaderString(yColumn1, ok);
+      QString yname2 = modelHeaderString(yColumn2, ok);
+
+      name = QString("%1-%2").arg(yname1).arg(yname2);
+    }
+  }
+  else if (isStacked()) {
+  }
+  else {
+    for (int j = 0; j < numSets(); ++j) {
+      bool ok;
+
+      CQChartsColumn yColumn = getSetColumn(j);
+
+      QString name1 = modelHeaderString(yColumn, ok);
+
+      if (name.length())
+        name += ", ";
+
+      name += name1;
+    }
+  }
+
+  return name;
 }
 
 void
@@ -2606,6 +2673,14 @@ draw(QPainter *painter)
 
   //---
 
+  if (plot_->isFitted()) {
+    if (! fit_.isFitted()) {
+      fit_.calc(poly_);
+    }
+  }
+
+  //---
+
   // set pen and brush
   QPen pen;
 
@@ -2689,6 +2764,47 @@ draw(QPainter *painter)
     for (int i = 1; i < np; ++i)
       painter->drawLine(plot()->windowToPixel(poly_[i - 1]), plot()->windowToPixel(poly_[i]));
   }
+
+  //---
+
+  if (plot_->isFitted()) {
+    QPolygonF poly;
+
+    double pxl, pyl, pxr, pyr;
+
+    plot_->windowToPixel(fit_.xmin(), 0, pxl, pyl);
+    plot_->windowToPixel(fit_.xmax(), 0, pxr, pyr);
+
+    for (int px = pxl; px <= pxr; ++px) {
+      double x, y;
+
+      plot_->pixelToWindow(px, 0.0, x, y);
+
+      double y2 = fit_.interp(x);
+
+      double px2, py2;
+
+      plot_->windowToPixel(x, y2, px2, py2);
+
+      poly << QPointF(px2, py2);
+    }
+
+    //---
+
+    QPainterPath path;
+
+    const QPointF &p = poly[0];
+
+    path.moveTo(p);
+
+    for (int i = 1; i < poly.size(); ++i) {
+      const QPointF &p = poly[i];
+
+      path.lineTo(p);
+    }
+
+    painter->strokePath(path, pen);
+  }
 }
 
 //------
@@ -2740,6 +2856,9 @@ CQChartsXYPolygonObj::
 inside(const CQChartsGeom::Point &p) const
 {
   if (! visible())
+    return false;
+
+  if (! plot()->isFillUnderSelectable())
     return false;
 
   return poly_.containsPoint(CQChartsUtil::toQPoint(p), Qt::OddEvenFill);

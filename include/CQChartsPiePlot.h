@@ -109,6 +109,8 @@ class CQChartsPieObj : public CQChartsPlotObj {
 
   void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
 
+  CQChartsGeom::BBox annotationBBox() const;
+
   void draw(QPainter *painter) override;
 
   void drawFg(QPainter *painter) override;
@@ -394,7 +396,11 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
 
   void updateObjs() override;
 
+  CQChartsGeom::BBox annotationBBox() const override;
+
   bool initObjs() override;
+
+  //---
 
   void adjustObjAngles();
 

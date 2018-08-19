@@ -8,16 +8,16 @@ set plotId [create_plot -type xy -columns "x=0,y=1" -title "Annotations"]
 
 connect_chart -plot $plotId -from annotationIdPressed -to annotationSlot
 
-create_point_shape -plot $plotId -id dot       -x 100 -y -60 -type dot       -size 16
-create_point_shape -plot $plotId -id cross     -x 100 -y -50 -type cross     -size 16
-create_point_shape -plot $plotId -id plus      -x 100 -y -40 -type plus      -size 16
-create_point_shape -plot $plotId -id y         -x 100 -y -30 -type y         -size 16
-create_point_shape -plot $plotId -id triangle  -x 100 -y -20 -type triangle  -size 16
-create_point_shape -plot $plotId -id itriangle -x 100 -y -10 -type itriangle -size 16
-create_point_shape -plot $plotId -id box       -x 100 -y   0 -type box       -size 16 -filled 1 -fill_color red
-create_point_shape -plot $plotId -id diamond   -x 100 -y  10 -type diamond   -size 16
-create_point_shape -plot $plotId -id star      -x 100 -y  20 -type star      -size 16
-create_point_shape -plot $plotId -id star6     -x 100 -y  30 -type star6     -size 16
-create_point_shape -plot $plotId -id circle    -x 100 -y  40 -type circle    -size 16 -filled 1 -fill_color blue
-create_point_shape -plot $plotId -id pentagon  -x 100 -y  50 -type pentagon  -size 16
-create_point_shape -plot $plotId -id ipentagon -x 100 -y  60 -type ipentagon -size 16
+create_point_shape -plot $plotId -id dot       -position {100 -60} -type dot       -size 16px
+create_point_shape -plot $plotId -id cross     -position {100 -50} -type cross     -size 16px
+create_point_shape -plot $plotId -id plus      -position {100 -40} -type plus      -size 16px
+create_point_shape -plot $plotId -id y         -position {100 -30} -type y         -size 16px
+create_point_shape -plot $plotId -id triangle  -position {100 -20} -type triangle  -size 16px
+create_point_shape -plot $plotId -id itriangle -position {100 -10} -type itriangle -size 16px
+create_point_shape -plot $plotId -id box       -position {100   0} -type box       -size 16px -filled 1 -fill_color red
+create_point_shape -plot $plotId -id diamond   -position {100  10} -type diamond   -size 16px
+create_point_shape -plot $plotId -id star      -position {100  20} -type star      -size 16px
+create_point_shape -plot $plotId -id star6     -position {100  30} -type star6     -size 16px
+create_point_shape -plot $plotId -id circle    -position {100  40} -type circle    -size 16px -filled 1 -fill_color blue
+create_point_shape -plot $plotId -id pentagon  -position {100  50} -type pentagon  -size 16px
+create_point_shape -plot $plotId -id ipentagon -position {100  60} -type ipentagon -size 16px

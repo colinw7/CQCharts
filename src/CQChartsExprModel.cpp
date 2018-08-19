@@ -134,6 +134,10 @@ bool
 CQChartsExprModel::
 addExtraColumn(const QString &header, const QString &expr, int &column)
 {
+  const_cast<CQChartsExprModel *>(this)->initCalc();
+
+  //---
+
   nc_ = columnCount(QModelIndex());
 
   beginInsertColumns(QModelIndex(), nc_, nc_);
@@ -321,6 +325,13 @@ initCalc()
 
   columnNames_.clear();
   nameColumns_.clear();
+
+  for (const auto &np : charts_->procs()) {
+    const auto &proc = np.second;
+
+    qtcl_->eval(QString("proc ::tcl::mathfunc::%1 {%2} {%3}").
+                 arg(proc.name).arg(proc.args).arg(proc.body));
+  }
 
   for (int column = 0; column < nc_; ++column) {
     QVariant var = this->headerData(column, Qt::Horizontal);

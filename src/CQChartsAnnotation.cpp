@@ -4,6 +4,8 @@
 #include <CQChartsArrow.h>
 #include <CQPropertyViewModel.h>
 #include <QPainter>
+#include <QTextDocument>
+#include <QAbstractTextDocumentLayout>
 
 CQChartsAnnotation::
 CQChartsAnnotation(CQChartsView *view) :
@@ -409,7 +411,7 @@ draw(QPainter *painter)
 
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center,
-                          double xRadius, double yRadius) :
+                          const CQChartsLength &xRadius, const CQChartsLength &yRadius) :
  CQChartsAnnotation(view), center_(center), xRadius_(xRadius), yRadius_(yRadius)
 {
   setObjectName(QString("ellipse.%1").arg(ind()));
@@ -421,7 +423,7 @@ CQChartsEllipseAnnotation(CQChartsView *view, const CQChartsPosition &center,
 
 CQChartsEllipseAnnotation::
 CQChartsEllipseAnnotation(CQChartsPlot *plot, const CQChartsPosition &center,
-                          double xRadius, double yRadius) :
+                          const CQChartsLength &xRadius, const CQChartsLength &yRadius) :
  CQChartsAnnotation(plot), center_(center), xRadius_(xRadius), yRadius_(yRadius)
 {
   setObjectName(QString("ellipse.%1").arg(ind()));
@@ -487,8 +489,19 @@ inside(const CQChartsGeom::Point &p) const
   double dx = p.getX() - center.x();
   double dy = p.getY() - center.y();
 
-  double xr2 = xRadius_*xRadius_;
-  double yr2 = yRadius_*yRadius_;
+  double xr = 0.0, yr = 0.0;
+
+  if      (plot_) {
+    xr = plot_->lengthPlotWidth (xRadius_);
+    yr = plot_->lengthPlotHeight(yRadius_);
+  }
+  else if (view_) {
+    xr = view_->lengthViewWidth (xRadius_);
+    yr = view_->lengthViewHeight(yRadius_);
+  }
+
+  double xr2 = xr*xr;
+  double yr2 = yr*yr;
 
   return (((dx*dx)/xr2 + (dy*dy)/yr2) < 1);
 }
@@ -504,10 +517,21 @@ draw(QPainter *painter)
   else if (view_)
     center = view_->positionToView(center_);
 
-  double x1 = center.x() - xRadius_;
-  double y1 = center.y() - yRadius_;
-  double x2 = center.x() + xRadius_;
-  double y2 = center.y() + yRadius_;
+  double xr = 0.0, yr = 0.0;
+
+  if      (plot_) {
+    xr = plot_->lengthPlotWidth (xRadius_);
+    yr = plot_->lengthPlotHeight(yRadius_);
+  }
+  else if (view_) {
+    xr = view_->lengthViewWidth (xRadius_);
+    yr = view_->lengthViewHeight(yRadius_);
+  }
+
+  double x1 = center.x() - xr;
+  double y1 = center.y() - yr;
+  double x2 = center.x() + xr;
+  double y2 = center.y() + yr;
 
   bbox_ = CQChartsGeom::BBox(x1, y1, x2, y2);
 
@@ -999,7 +1023,7 @@ setBBox(const CQChartsGeom::BBox &bbox, const CQChartsResizeHandle::Side &)
 {
   double xp = 0.0, yp = 0.0, xm = 0.0, ym = 0.0;
 
-  if (plot_) {
+  if      (plot_) {
     xp = plot_->pixelToWindowWidth (padding());
     yp = plot_->pixelToWindowHeight(padding());
     xm = plot_->pixelToWindowWidth (margin ());
@@ -1039,8 +1063,6 @@ CQChartsTextAnnotation::
 draw(QPainter *painter)
 {
   if (autoSize_) {
-    QFontMetricsF fm(textFont());
-
     double xp = 0.0, yp = 0.0, xm = 0.0, ym = 0.0;
 
     if      (plot_) {
@@ -1056,50 +1078,87 @@ draw(QPainter *painter)
       ym = view_->pixelToWindowHeight(margin ());
     }
 
-    double w = 0.0, h = 0.0;
+    if (! isHtml()) {
+      QFontMetricsF fm(textFont());
 
-    if      (plot_) {
-      w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
-      h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
-    }
-    else if (view_) {
-      w = view_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
-      h = view_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
-    }
+      double w = 0.0, h = 0.0;
 
-    QPointF p;
+      if      (plot_) {
+        w = plot_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
+        h = plot_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+      }
+      else if (view_) {
+        w = view_->pixelToWindowWidth (fm.width(textStr())) + 2*xp + 2*xm;
+        h = view_->pixelToWindowHeight(fm.height())         + 2*yp + 2*ym;
+      }
 
-    if      (plot_)
-      p = plot_->positionToPlot(position_);
-    else if (view_)
-      p = view_->positionToView(position_);
+      QPointF p;
 
-    double x = p.x();
-    double y = p.y();
+      if      (plot_)
+        p = plot_->positionToPlot(position_);
+      else if (view_)
+        p = view_->positionToView(position_);
 
-    if      (textAlign() & Qt::AlignLeft) {
-    }
-    else if (textAlign() & Qt::AlignHCenter) {
-      x -= w/2.0;
-    }
-    else if (textAlign() & Qt::AlignRight) {
-      x -= w - 2*xp - 2*xm;
-    }
+      double x = p.x();
+      double y = p.y();
 
-    if      (textAlign() & Qt::AlignTop) {
-      y -= h - 2*yp - 2*ym;
-    }
-    else if (textAlign() & Qt::AlignVCenter) {
-      y -= h/2;
-    }
-    else if (textAlign() & Qt::AlignBottom) {
-    }
+      if      (textAlign() & Qt::AlignLeft) {
+      }
+      else if (textAlign() & Qt::AlignHCenter) {
+        x -= w/2.0;
+      }
+      else if (textAlign() & Qt::AlignRight) {
+        x -= w - 2*xp - 2*xm;
+      }
 
-    bbox_ = CQChartsGeom::BBox(x, y, x + w, y + h);
+      if      (textAlign() & Qt::AlignTop) {
+        y -= h - 2*yp - 2*ym;
+      }
+      else if (textAlign() & Qt::AlignVCenter) {
+        y -= h/2;
+      }
+      else if (textAlign() & Qt::AlignBottom) {
+      }
+
+      bbox_ = CQChartsGeom::BBox(x - xp - xm, y - yp - ym, x + w, y + h);
+    }
+    else {
+      QTextDocument td;
+
+      td.setHtml(textStr());
+
+      QAbstractTextDocumentLayout *layout = td.documentLayout();
+
+      QSizeF size = layout->documentSize();
+
+      double w = 0.0, h = 0.0;
+
+      if      (plot_) {
+        w = plot_->pixelToWindowWidth (size.width ());
+        h = plot_->pixelToWindowHeight(size.height());
+      }
+      else if (view_) {
+        w = view_->pixelToWindowWidth (size.width ());
+        h = view_->pixelToWindowHeight(size.height());
+      }
+
+      QPointF p;
+
+      if      (plot_)
+        p = plot_->positionToPlot(position_);
+      else if (view_)
+        p = view_->positionToView(position_);
+
+      double x = p.x();
+      double y = p.y();
+
+      bbox_ = CQChartsGeom::BBox(x - xp - xm, y - yp - ym, x + w, y + h);
+    }
   }
 
   //---
 
+  // draw box
   CQChartsGeom::BBox prect;
 
   if      (plot_)
@@ -1116,9 +1175,9 @@ draw(QPainter *painter)
 
   QColor c;
 
-  if (plot_)
+  if      (plot_)
     c = textColor().interpColor(plot_, 0, 1);
-  else
+  else if (view_)
     c = textColor().interpColor(view_, 0, 1);
 
   c.setAlphaF(textAlpha());
@@ -1134,6 +1193,7 @@ draw(QPainter *painter)
 
   //---
 
+  // draw text
   painter->setPen  (pen);
   painter->setBrush(brush);
 
@@ -1144,20 +1204,49 @@ draw(QPainter *painter)
   double tw = prect.getWidth () - 2*margin() - 2*padding();
   double th = prect.getHeight() - 2*margin() - 2*padding();
 
-  QRectF trect(tx, ty, tw, th);
+  if (! isHtml()) {
+    QRectF trect(tx, ty, tw, th);
 
-  CQChartsTextOptions textOptions;
+    CQChartsTextOptions textOptions;
 
-  textOptions.angle     = textAngle();
-  textOptions.contrast  = isTextContrast();
-  textOptions.formatted = true;
-  textOptions.clipped   = false;
-  textOptions.align     = textAlign();
+    textOptions.angle     = textAngle();
+    textOptions.contrast  = isTextContrast();
+    textOptions.formatted = true;
+    textOptions.clipped   = false;
+    textOptions.align     = textAlign();
 
-  if      (plot_)
-    plot_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
-  else if (view_)
-    view_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
+    if      (plot_)
+      plot_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
+    else if (view_)
+      view_->drawTextInBox(painter, trect, textStr(), pen, textOptions);
+  }
+  else {
+    QRect trect(tx, ty, tw, th);
+
+    painter->setRenderHints(QPainter::Antialiasing);
+
+    QTextDocument td;
+
+    td.setHtml(textStr());
+
+    QRect trect1 = trect.translated(-trect.x(), -trect.y());
+
+    painter->translate(trect.x(), trect.y());
+
+    painter->setClipRect(trect1);
+
+    QAbstractTextDocumentLayout::PaintContext ctx;
+
+    ctx.palette.setColor(QPalette::Text, pen.color());
+
+    QAbstractTextDocumentLayout *layout = td.documentLayout();
+
+    layout->setPaintDevice(painter->device());
+
+    layout->draw(painter, ctx);
+
+    painter->translate(-trect.x(), -trect.y());
+  }
 
   //---
 
@@ -1515,11 +1604,11 @@ draw(QPainter *painter)
 
   QColor lineColor, fillColor;
 
-  if (plot_) {
+  if      (plot_) {
     lineColor = pointData_.stroke.color.interpColor(plot_, 0, 1);
     fillColor = pointData_.fill  .color.interpColor(plot_, 0, 1);
   }
-  else {
+  else if (view_) {
     lineColor = pointData_.stroke.color.interpColor(view_, 0, 1);
     fillColor = pointData_.fill  .color.interpColor(view_, 0, 1);
   }

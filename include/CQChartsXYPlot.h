@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsLeastSquaresFit.h>
 #include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
@@ -292,12 +293,13 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void initSmooth();
 
  private:
-  CQChartsXYPlot *plot_   { nullptr };
-  QPolygonF       poly_;
-  QString         name_;
-  int             i_      { -1 };
-  int             n_      { -1 };
-  CQChartsSmooth* smooth_ { nullptr };
+  CQChartsXYPlot*         plot_   { nullptr };
+  QPolygonF               poly_;
+  QString                 name_;
+  int                     i_      { -1 };
+  int                     n_      { -1 };
+  CQChartsSmooth*         smooth_ { nullptr };
+  CQChartsLeastSquaresFit fit_;
 };
 
 //---
@@ -426,6 +428,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(bool           stacked            READ isStacked          WRITE setStacked           )
   Q_PROPERTY(bool           cumulative         READ isCumulative       WRITE setCumulative        )
   Q_PROPERTY(bool           vectors            READ isVectors          WRITE setVectors           )
+  Q_PROPERTY(bool           fitted             READ isFitted           WRITE setFitted            )
 
   Q_PROPERTY(bool             impulse      READ isImpulse    WRITE setImpulse     )
   Q_PROPERTY(CQChartsColor    impulseColor READ impulseColor WRITE setImpulseColor)
@@ -459,12 +462,14 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // fill under:
   //  display, brush
-  Q_PROPERTY(bool          fillUnder        READ isFillUnder      WRITE setFillUnder       )
-  Q_PROPERTY(CQChartsColor fillUnderColor   READ fillUnderColor   WRITE setFillUnderColor  )
-  Q_PROPERTY(double        fillUnderAlpha   READ fillUnderAlpha   WRITE setFillUnderAlpha  )
-  Q_PROPERTY(Pattern       fillUnderPattern READ fillUnderPattern WRITE setFillUnderPattern)
-  Q_PROPERTY(QString       fillUnderPos     READ fillUnderPosStr  WRITE setFillUnderPosStr )
-  Q_PROPERTY(QString       fillUnderSide    READ fillUnderSide    WRITE setFillUnderSide   )
+  Q_PROPERTY(bool          fillUnder           READ isFillUnder      WRITE setFillUnder       )
+  Q_PROPERTY(bool          fillUnderSelectable READ isFillUnderSelectable
+                                               WRITE setFillUnderSelectable)
+  Q_PROPERTY(CQChartsColor fillUnderColor      READ fillUnderColor   WRITE setFillUnderColor  )
+  Q_PROPERTY(double        fillUnderAlpha      READ fillUnderAlpha   WRITE setFillUnderAlpha  )
+  Q_PROPERTY(Pattern       fillUnderPattern    READ fillUnderPattern WRITE setFillUnderPattern)
+  Q_PROPERTY(QString       fillUnderPos        READ fillUnderPosStr  WRITE setFillUnderPosStr )
+  Q_PROPERTY(QString       fillUnderSide       READ fillUnderSide    WRITE setFillUnderSide   )
 
   // data label
   Q_PROPERTY(CQChartsColor dataLabelColor READ dataLabelColor WRITE setDataLabelColor)
@@ -610,6 +615,9 @@ class CQChartsXYPlot : public CQChartsPlot {
   // fill under
   bool isFillUnder() const { return fillUnderData_.fillData.visible; }
 
+  bool isFillUnderSelectable() const { return fillUnderSelectable_; }
+  void setFillUnderSelectable(bool b);
+
   const CQChartsColor &fillUnderColor() const;
   void setFillUnderColor(const CQChartsColor &c);
 
@@ -652,6 +660,9 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   // vectors
   bool isVectors() const;
+
+  // fitted
+  bool isFitted() const { return fitted_; }
 
   //---
 
@@ -758,14 +769,17 @@ class CQChartsXYPlot : public CQChartsPlot {
   // set vectors
   void setVectors(bool b);
 
+  // set fitted
+  void setFitted(bool b);
+
   // set fill under
   void setFillUnder(bool b);
 
  private:
-  struct VectorsData {
-    bool visible { false };
-  };
+  QString xAxisName() const;
+  QString yAxisName() const;
 
+ private:
   CQChartsColumn     xColumn_              { 0 };                // x column
   CQChartsColumns    yColumns_             { 1 };                // y columns
   CQChartsColumn     nameColumn_;                                // name column
@@ -781,12 +795,14 @@ class CQChartsXYPlot : public CQChartsPlot {
   bool               linesSelectable_      { false };            // are lines selectable
   CQChartsLineData   lineData_;                                  // line data
   bool               roundedLines_         { false };            // draw rounded (smooth) lines
+  bool               fillUnderSelectable_  { false };            // is fill under selectable
   FillUnderData      fillUnderData_;                             // fill under data
   CQChartsLineData   impulseData_;                               // impulse line data
   CQChartsArrow*     arrowObj_             { nullptr };          // vectors data
   CQChartsTextData   dataLabelData_;                             // data label text data
   CQChartsLineData   bivariateLineData_;                         // bivariate line object
   ColumnType         pointColorColumnType_ { ColumnType::NONE }; // point color column type
+  bool               fitted_               { false };            // is fitted
   mutable double     symbolWidth_          { 1.0 };              // current symbol width
   mutable double     symbolHeight_         { 1.0 };              // current symbol height
 };

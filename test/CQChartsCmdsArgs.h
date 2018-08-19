@@ -4,6 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsLength.h>
 #include <CQChartsPosition.h>
+#include <CQChartsRect.h>
 #include <CQChartsColor.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsUtil.h>
@@ -27,6 +28,7 @@ class CQChartsCmdArg {
     LineDash,
     Length,
     Position,
+    Rect,
     Polygon,
     Align,
     Column,
@@ -256,6 +258,17 @@ class CQChartsCmdArgs {
     return true;
   }
 
+  bool getOptValue(CQChartsRect &r) {
+    QString str;
+
+    if (! getOptValue(str))
+      return false;
+
+    r = CQChartsRect(str);
+
+    return true;
+  }
+
   bool getOptValue(QFont &f) {
     QString str;
 
@@ -452,6 +465,17 @@ class CQChartsCmdArgs {
             }
           }
           else if (cmdArg->type() == CQChartsCmdArg::Type::Position) {
+            QString str;
+
+            if (getOptValue(str)) {
+              parseStr_[opt].push_back(str);
+            }
+            else {
+              std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+              continue;
+            }
+          }
+          else if (cmdArg->type() == CQChartsCmdArg::Type::Rect) {
             QString str;
 
             if (getOptValue(str)) {
@@ -678,11 +702,33 @@ class CQChartsCmdArgs {
   }
 
   CQChartsLength
-  getParseLength(const QString &name, const CQChartsLength &def=CQChartsLength()) const {
+  getParseLength(CQChartsView *view, CQChartsPlot *, const QString &name,
+                 const CQChartsLength &def=CQChartsLength()) const {
     auto p = parseStr_.find(name);
     if (p == parseStr_.end()) return def;
 
-    return CQChartsLength((*p).second[0]);
+    return CQChartsLength((*p).second[0],
+             (view ? CQChartsLength::Units::VIEW : CQChartsLength::Units::PLOT));
+  }
+
+  CQChartsPosition
+  getParsePosition(CQChartsView *view, CQChartsPlot *, const QString &name,
+                   const CQChartsPosition &def=CQChartsPosition()) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return def;
+
+    return CQChartsPosition((*p).second[0],
+             (view ? CQChartsPosition::Units::VIEW : CQChartsPosition::Units::PLOT));
+  }
+
+  CQChartsRect
+  getParseRect(CQChartsView *view, CQChartsPlot *, const QString &name,
+               const CQChartsRect &def=CQChartsRect()) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return def;
+
+    return CQChartsRect((*p).second[0],
+             (view ? CQChartsRect::Units::VIEW : CQChartsRect::Units::PLOT));
   }
 
   QPolygonF getParsePoly(const QString &name, const QPolygonF &def=QPolygonF()) const {
