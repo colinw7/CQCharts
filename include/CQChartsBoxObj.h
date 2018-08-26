@@ -28,18 +28,8 @@ class CQChartsBoxObj : public CQChartsObj {
   Q_PROPERTY(CQChartsLength   cornerSize        READ cornerSize        WRITE setCornerSize       )
   Q_PROPERTY(QString          borderSides       READ borderSides       WRITE setBorderSides      )
 
-  Q_ENUMS(Pattern)
-
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
+  using Pattern = CQChartsFillPattern;
 
  public:
   CQChartsBoxObj(CQChartsView *view);
@@ -81,9 +71,10 @@ class CQChartsBoxObj : public CQChartsObj {
   double backgroundAlpha() const { return boxData_.shape.background.alpha; }
   void setBackgroundAlpha(double a) { boxData_.shape.background.alpha = a; redrawBoxObj(); }
 
-  Pattern backgroundPattern() const { return (Pattern ) boxData_.shape.background.pattern; }
-  void setBackgroundPattern(const Pattern &p) {
-    boxData_.shape.background.pattern = (CQChartsFillPattern::Type) p; redrawBoxObj(); }
+  const CQChartsFillPattern &backgroundPattern() const {
+    return boxData_.shape.background.pattern; }
+  void setBackgroundPattern(const CQChartsFillPattern &p) {
+    boxData_.shape.background.pattern = p; redrawBoxObj(); }
 
   //---
 

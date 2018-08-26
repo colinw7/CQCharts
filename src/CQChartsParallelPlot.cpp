@@ -52,17 +52,18 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsParallelPlot::
 CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("parallel"), model)
+ CQChartsPlot(view, view->charts()->plotType("parallel"), model),
+ CQChartsPlotLineData <CQChartsParallelPlot>(this),
+ CQChartsPlotPointData<CQChartsParallelPlot>(this)
 {
-  lineData_ .color = CQChartsColor(CQChartsColor::Type::PALETTE);
+  setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
-  pointData_.type         = CQChartsSymbol::Type::CIRCLE;
-  pointData_.stroke.alpha = 0.25;
-  pointData_.fill.visible = true;
-  pointData_.fill.color   = CQChartsColor(CQChartsColor::Type::PALETTE);
-  pointData_.fill.alpha   = 0.5;
+  setPoints(true);
 
-  pointData_.visible = true;
+  setSymbolStrokeAlpha(0.25);
+  setSymbolFilled     (true);
+  setSymbolFillColor  (CQChartsColor(CQChartsColor::Type::PALETTE));
+  setSymbolFillAlpha  (0.5);
 
   //addKey(); TODO
 
@@ -123,194 +124,9 @@ setHorizontal(bool b)
 
 void
 CQChartsParallelPlot::
-setPoints(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.visible, b, [&]() { updateObjs(); } );
-}
-
-//---
-
-const CQChartsColor &
-CQChartsParallelPlot::
-symbolStrokeColor() const
-{
-  return pointData_.stroke.color;
-}
-
-void
-CQChartsParallelPlot::
-setSymbolStrokeColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsParallelPlot::
-interpSymbolStrokeColor(int i, int n) const
-{
-  return symbolStrokeColor().interpColor(this, i, n);
-}
-
-double
-CQChartsParallelPlot::
-symbolStrokeAlpha() const
-{
-  return pointData_.stroke.alpha;
-}
-
-void
-CQChartsParallelPlot::
-setSymbolStrokeAlpha(double a)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsParallelPlot::
-symbolFillColor() const
-{
-  return pointData_.fill.color;
-}
-
-void
-CQChartsParallelPlot::
-setSymbolFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsParallelPlot::
-interpSymbolFillColor(int i, int n) const
-{
-  return symbolFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsParallelPlot::
-symbolFillAlpha() const
-{
-  return pointData_.fill.alpha;
-}
-
-void
-CQChartsParallelPlot::
-setSymbolFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsParallelPlot::Pattern
-CQChartsParallelPlot::
-symbolFillPattern() const
-{
-  return (Pattern) pointData_.fill.pattern;
-}
-
-void
-CQChartsParallelPlot::
-setSymbolFillPattern(const Pattern &pattern)
-{
-  if (pattern != (Pattern) pointData_.fill.pattern) {
-    pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//---
-
-void
-CQChartsParallelPlot::
-setLines(bool b)
-{
-  CQChartsUtil::testAndSet(lineData_.visible, b, [&]() { updateObjs(); } );
-}
-
-void
-CQChartsParallelPlot::
 setLinesSelectable(bool b)
 {
   CQChartsUtil::testAndSet(linesSelectable_, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsParallelPlot::
-linesColor() const
-{
-  return lineData_.color;
-}
-
-void
-CQChartsParallelPlot::
-setLinesColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsParallelPlot::
-interpLinesColor(int i, int n) const
-{
-  return linesColor().interpColor(this, i, n);
-}
-
-void
-CQChartsParallelPlot::
-setLinesAlpha(double a)
-{
-  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setLinesWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setLinesDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//------
-
-void
-CQChartsParallelPlot::
-setSymbolType(const CQChartsSymbol &t)
-{
-  CQChartsUtil::testAndSet(pointData_.type, t, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setSymbolSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(pointData_.size, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setSymbolStroked(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setSymbolStrokeWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsParallelPlot::
-setSymbolFilled(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -654,7 +470,7 @@ rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
   if (! ok)
     value = defVal;
 
-  if (CQChartsUtil::isNaN(value))
+  if (CMathUtil::isNaN(value))
     return false;
 
   return true;
@@ -734,16 +550,69 @@ void
 CQChartsParallelPlot::
 drawParts(QPainter *painter)
 {
-  // set display range to data range
-  if (! isHorizontal())
-    displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
-  else
-    displayRange_->setWindowRange(0, dataRange_.ymin(), 1, dataRange_.ymax());
+  // draw objects (background, mid, foreground)
+  drawGroupedObjs(painter, CQChartsLayer::Type::BG_PLOT );
+  drawGroupedObjs(painter, CQChartsLayer::Type::MID_PLOT);
+  drawGroupedObjs(painter, CQChartsLayer::Type::FG_PLOT );
 
-  drawObjs(painter, CQChartsLayer::Type::MID_PLOT);
+  // draw annotations
+  drawGroupedAnnotations(painter, CQChartsLayer::Type::ANNOTATION);
 
   //---
 
+  // draw selection
+  drawGroupedObjs(painter, CQChartsLayer::Type::SELECTION);
+
+  drawGroupedAnnotations(painter, CQChartsLayer::Type::SELECTION);
+
+  //---
+
+  drawFgAxes(painter);
+
+  //---
+
+  drawTitle(painter);
+
+  //---
+
+  // draw foreground
+  drawForeground(painter);
+
+  //---
+
+  // draw debug boxes
+  drawGroupedBoxes(painter);
+
+  //---
+
+  drawGroupedEditHandles(painter);
+
+  //---
+
+  // draw mouse over
+  drawGroupedObjs(painter, CQChartsLayer::Type::MOUSE_OVER);
+
+  drawGroupedAnnotations(painter, CQChartsLayer::Type::MOUSE_OVER);
+
+  //---
+
+  // auto fit based on last draw
+  if (needsAutoFit_) {
+    needsAutoFit_ = false;
+
+    autoFit();
+  }
+}
+
+void
+CQChartsParallelPlot::
+drawFgAxes(QPainter *painter)
+{
+  setObjRange();
+
+  //---
+
+  // draw axes
   QFontMetricsF fm(view()->font());
 
   for (int j = 0; j < numSets(); ++j) {
@@ -782,15 +651,31 @@ drawParts(QPainter *painter)
     painter->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
   }
 
-  // reset display range to normalized range
+  //---
+
+  setNormalizedRange();
+}
+
+void
+CQChartsParallelPlot::
+setObjRange()
+{
+  // set display range to data range
+  if (! isHorizontal())
+    displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
+  else
+    displayRange_->setWindowRange(0, dataRange_.ymin(), 1, dataRange_.ymax());
+}
+
+void
+CQChartsParallelPlot::
+setNormalizedRange()
+{
+  // set display range to normalized range
   if (! isHorizontal())
     displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
   else
     displayRange_->setWindowRange(0, -0.5, 1, numSets() - 0.5);
-
-  //---
-
-  drawTitle(painter);
 }
 
 //------
@@ -920,17 +805,13 @@ draw(QPainter *painter)
 
   //---
 
-  QColor lc = plot_->interpLinesColor(i_, n_);
-
-  lc.setAlphaF(plot_->linesAlpha());
-
-  QPen   pen(lc);
+  QPen   pen;
   QBrush brush(Qt::NoBrush);
 
-  double lw = plot_->lengthPixelWidth(plot_->linesWidth());
+  QColor lc = plot_->interpLinesColor(i_, n_);
 
-  if (lw > 0)
-    pen.setWidthF(lw);
+  plot_->setPen(pen, /*stroked*/true, lc, plot_->linesAlpha(),
+                plot_->linesWidth(), plot_->linesDash());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1076,53 +957,37 @@ draw(QPainter *painter)
   if (! visible())
     return;
 
-  CQChartsSymbol symbol      = plot_->symbolType();
-  bool           stroked     = plot_->isSymbolStroked();
-  QColor         strokeColor = plot_->interpSymbolStrokeColor(iset_, nset_);
-  double         lineWidth   = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
-  bool           filled      = plot_->isSymbolFilled();
-  QColor         fillColor   = plot_->interpSymbolFillColor(iset_, nset_);
+  //---
 
-  strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
-  fillColor  .setAlphaF(plot_->symbolFillAlpha());
-
-  double sx, sy;
-
-  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+  plot_->setObjRange();
 
   //---
 
   QPen   pen;
   QBrush brush;
 
-  if (stroked) {
-    pen.setColor (strokeColor);
-    pen.setWidthF(lineWidth);
-  }
-  else
-    pen.setStyle(Qt::NoPen);
-
-  if (filled) {
-    brush.setColor(fillColor);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else
-    brush.setStyle(Qt::NoBrush);
+  plot_->setSymbolPenBrush(pen, brush, iset_, nset_);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
-  CQChartsGeom::Point pp(x_, y_);
+  CQChartsSymbol symbol = plot_->symbolType();
 
-  double px, py;
+  double sx, sy;
 
-  plot_->windowToPixel(pp.x, pp.y, px, py);
+  plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
   if (isInside() || isSelected()) {
     sx *= 2;
     sy *= 2;
   }
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+  QPointF p = plot_->windowToPixel(QPointF(x_, y_));
+
+  plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
+
+  //---
+
+  plot_->setNormalizedRange();
 }

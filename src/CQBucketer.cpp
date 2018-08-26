@@ -1,4 +1,6 @@
 #include <CQBucketer.h>
+#include <CInterval.h>
+#include <CMathRound.h>
 
 CQBucketer::
 CQBucketer()
@@ -113,7 +115,7 @@ autoBucketValues(int bucket, double &min, double &max) const
   double rdelta = this->calcDelta();
 
   if (rdelta > 0.0) {
-    min = bucket*rdelta + calcMin_;
+    min = bucket*rdelta + this->calcMin();
     max = min + rdelta;
   }
 
@@ -209,12 +211,19 @@ CQBucketer::
 autoCalc() const
 {
   if (needsCalc_) {
+    CInterval interval(rmin(), rmax(), numAuto());
+
+    calcMin_   = interval.calcStart    ();
+    calcMax_   = interval.calcEnd      ();
+    calcDelta_ = interval.calcIncrement();
+    calcN_     = interval.calcNumMajor ();
+#if 0
     double length = rmax() - rmin();
 
     double length1 = length/numAuto();
 
     // Calculate nearest Power of Ten to Length
-    int power = (length1 > 0 ? roundNearest(log10(length1)) : 1);
+    int power = (length1 > 0 ? CMathRound::RoundNearest(log10(length1)) : 1);
 
     // prefer integral values
     if (isIntegral()) {
@@ -237,17 +246,25 @@ autoCalc() const
 
     // round min value to increment
     if (length1 > 0) {
-      int n = roundNearest(length1/calcDelta_);
+      int n = CMathRound::RoundNearest(length1/calcDelta_);
 
       if (! n)
         n = 1;
 
       calcDelta_ = calcDelta_*n;
-      calcMin_   = calcDelta_*roundDownF(rmin()/calcDelta_);
+      calcMin_   = calcDelta_*CMathRound::RoundDownF(rmin()/calcDelta_);
     }
     else {
       calcMin_ = rmin();
     }
+
+    calcN_ = 0;
+
+    if (calcDelta_ != 0)
+      calcN_ = CMathRound::RoundUp((rmax() - calcMin_)/calcDelta_);
+
+    calcMax_ = calcMin_ + calcN_*calcDelta_;
+#endif
 
     needsCalc_ = false;
   }
@@ -309,7 +326,7 @@ realBucket(double r) const
   double rstart = this->calcRStart();
 
   if (rdelta > 0)
-    n = roundDown((r - rstart)/rdelta);
+    n = CMathRound::RoundDown((r - rstart)/rdelta);
 
   return n;
 }
@@ -322,10 +339,10 @@ autoRealBucket(double r) const
 
   int n = INT_MIN; // optional ?
 
-  double rdelta = calcDelta_;
+  double rdelta = this->calcDelta();
 
   if (rdelta > 0)
-    n = roundDown((r - calcMin_)/rdelta);
+    n = CMathRound::RoundDown((r - this->calcMin())/rdelta);
 
   return n;
 }
@@ -341,7 +358,7 @@ calcRStart() const
   double d = rdelta()/100;
 
   if (d > 0.0) {
-    rstart = d*roundDownF(rstart/d);
+    rstart = d*CMathRound::RoundDownF(rstart/d);
   }
 
   return rstart;
@@ -354,69 +371,7 @@ calcIStart() const
   int istart = std::min(imin(), this->istart());
 
   if (idelta() > 0)
-    istart = idelta()*roundDownF(istart/idelta());
+    istart = idelta()*CMathRound::RoundDownF(istart/idelta());
 
   return istart;
-}
-
-int
-CQBucketer::
-roundNearest(double x) const
-{
-  double x1;
-
-  if (x <= 0.0)
-    x1 = (x - 0.499999);
-  else
-    x1 = (x + 0.500001);
-
-  if (x1 < INT_MIN || x1 > INT_MAX)
-    errno = ERANGE;
-
-  return int(x1);
-}
-
-int
-CQBucketer::
-roundDown(double x) const
-{
-  double x1;
-
-  if (x >= 0.0)
-    x1 = (x       + 1E-6);
-  else
-    x1 = (x - 1.0 + 1E-6);
-
-  if (x1 < INT_MIN || x1 > INT_MAX)
-    errno = ERANGE;
-
-  return int(x1);
-}
-
-double
-CQBucketer::
-roundNearestF(double x) const
-{
-  double x1;
-
-  if (x <= 0.0)
-    x1 = (x - 0.499999);
-  else
-    x1 = (x + 0.500001);
-
-  return std::trunc(x1);
-}
-
-double
-CQBucketer::
-roundDownF(double x) const
-{
-  double x1;
-
-  if (x >= 0.0)
-    x1 = (x       + 1E-6);
-  else
-    x1 = (x - 1.0 + 1E-6);
-
-  return std::trunc(x1);
 }

@@ -242,50 +242,24 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 
 //---
 
-class CQChartsHierBubblePlot : public CQChartsHierPlot {
+class CQChartsHierBubblePlot : public CQChartsHierPlot,
+ public CQChartsPlotShapeData<CQChartsHierBubblePlot>,
+ public CQChartsPlotTextData <CQChartsHierBubblePlot> {
   Q_OBJECT
 
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
 
-  // border
-  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
-
-  // fill
-  Q_PROPERTY(bool           filled       READ isFilled       WRITE setFilled      )
-  Q_PROPERTY(CQChartsColor  fillColor    READ fillColor      WRITE setFillColor   )
-  Q_PROPERTY(double         fillAlpha    READ fillAlpha      WRITE setFillAlpha   )
-  Q_PROPERTY(Pattern        fillPattern  READ fillPattern    WRITE setFillPattern )
+  // shape
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // text
-  Q_PROPERTY(QFont          textFont     READ textFont       WRITE setTextFont    )
-  Q_PROPERTY(CQChartsColor  textColor    READ textColor      WRITE setTextColor   )
-  Q_PROPERTY(double         textAlpha    READ textAlpha      WRITE setTextAlpha   )
-  Q_PROPERTY(bool           textContrast READ isTextContrast WRITE setTextContrast)
-  Q_PROPERTY(bool           textScaled   READ isTextScaled   WRITE setTextScaled  )
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
   // color map
-  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
-
-  Q_ENUMS(Pattern)
+  CQCHARTS_COLOR_MAP_PROPERTIES
 
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
   using Nodes = std::vector<CQChartsHierBubbleNode*>;
 
  public:
@@ -300,59 +274,7 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
 
   //---
 
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &l);
-
-  //---
-
-  bool isFilled() const;
-  void setFilled(bool b);
-
-  const CQChartsColor &fillColor() const;
-  void setFillColor(const CQChartsColor &c);
-
-  QColor interpFillColor(int i, int n) const;
-
-  double fillAlpha() const;
-  void setFillAlpha(double a);
-
-  Pattern fillPattern() const;
-  void setFillPattern(Pattern pattern);
-
-  //---
-
-  const QFont &textFont() const;
-  void setTextFont(const QFont &f);
-
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const;
-  void setTextAlpha(double a);
-
-  bool isTextContrast() const;
-  void setTextContrast(bool b);
-
-  bool isTextScaled() const;
-  void setTextScaled(bool b);
-
   void setTextFontSize(double s);
-
-  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -477,8 +399,6 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot {
   CQChartsHierBubbleHierNode* firstHier_       { nullptr }; // first hier node
   QString                     currentRootName_;             // current root name
   bool                        valueLabel_      { false };   // draw value with name
-  CQChartsShapeData           shapeData_;                   // bubble fill/border data
-  CQChartsTextData            textData_;                    // bubble text data
   CQChartsGeom::Point         offset_          { 0, 0 };    // draw offset
   double                      scale_           { 1.0 };     // draw scale
   int                         colorId_         { -1 };      // current color id

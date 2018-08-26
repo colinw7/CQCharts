@@ -51,13 +51,13 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsDelaunayPlot::
 CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("delaunay"), model)
+ CQChartsPlot(view, view->charts()->plotType("delaunay"), model),
+ CQChartsPlotLineData <CQChartsDelaunayPlot>(this),
+ CQChartsPlotPointData<CQChartsDelaunayPlot>(this)
 {
-  pointData_.visible = true;
+  setPoints(true);
 
-  CQChartsColor pointsColor(CQChartsColor::Type::PALETTE);
-
-  pointData_.stroke.color = pointsColor;
+  setSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   addAxes();
 
@@ -102,189 +102,11 @@ setVoronoi(bool b)
   CQChartsUtil::testAndSet(voronoi_, b, [&]() { updateRangeAndObjs(); } );
 }
 
-//---
-
 void
 CQChartsDelaunayPlot::
 setVoronoiPointSize(double r)
 {
   CQChartsUtil::testAndSet(voronoiPointSize_, r, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setPoints(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsDelaunayPlot::
-symbolStrokeColor() const
-{
-  return pointData_.stroke.color;
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolStrokeColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDelaunayPlot::
-interpPointStrokeColor(int i, int n) const
-{
-  return symbolStrokeColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDelaunayPlot::
-symbolStrokeAlpha() const
-{
-  return pointData_.stroke.alpha;
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolStrokeAlpha(double a)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsDelaunayPlot::
-symbolFillColor() const
-{
-  return pointData_.fill.color;
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDelaunayPlot::
-interpPointFillColor(int i, int n) const
-{
-  return symbolFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDelaunayPlot::
-symbolFillAlpha() const
-{
-  return pointData_.fill.alpha;
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsDelaunayPlot::Pattern
-CQChartsDelaunayPlot::
-symbolFillPattern() const
-{
-  return (Pattern) pointData_.fill.pattern;
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolFillPattern(const Pattern &pattern)
-{
-  if (pattern != (Pattern) pointData_.fill.pattern) {
-    pointData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//---
-
-void
-CQChartsDelaunayPlot::
-setLines(bool b)
-{
-  CQChartsUtil::testAndSet(lineData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsDelaunayPlot::
-linesColor() const
-{
-  return lineData_.color;
-}
-
-void
-CQChartsDelaunayPlot::
-setLinesColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(lineData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDelaunayPlot::
-interpLinesColor(int i, int n) const
-{
-  return linesColor().interpColor(this, i, n);
-}
-
-void
-CQChartsDelaunayPlot::
-setLinesAlpha(double a)
-{
-  CQChartsUtil::testAndSet(lineData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setLinesWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(lineData_.width, l, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsDelaunayPlot::
-setSymbolType(const CQChartsSymbol &t)
-{
-  CQChartsUtil::testAndSet(pointData_.type, t, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(pointData_.size, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolStroked(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolStrokeWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(pointData_.stroke.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDelaunayPlot::
-setSymbolFilled(bool b)
-{
-  CQChartsUtil::testAndSet(pointData_.fill.visible, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -332,7 +154,7 @@ calcRange()
       if (! ok1) x = row;
       if (! ok2) y = row;
 
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
 
       range_.updateRange(x, y);
@@ -425,7 +247,7 @@ initObjs()
       if (! ok1) x = row;
       if (! ok2) y = row;
 
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
 
       QModelIndex xind = plot_->modelIndex(row, plot_->xColumn(), parent);
@@ -566,30 +388,7 @@ drawVoronoi(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    if (isSymbolStroked()) {
-      QColor pc = interpPointStrokeColor(0, 1);
-
-      pc.setAlphaF(symbolStrokeAlpha());
-
-      pen.setColor(pc);
-    }
-    else
-      pen.setStyle(Qt::NoPen);
-
-    double lw = lengthPixelWidth(symbolStrokeWidth());
-
-    pen.setWidthF(lw);
-
-    if (isSymbolFilled()) {
-      QColor bc = interpPointFillColor(0, 1);
-
-      bc.setAlphaF(symbolFillAlpha());
-
-      brush.setColor(bc);
-      brush.setStyle(Qt::SolidPattern);
-    }
-    else
-      brush.setStyle(Qt::NoBrush);
+    setSymbolPenBrush(pen, brush, 0, 1);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -617,9 +416,10 @@ drawVoronoi(QPainter *painter)
   if (isLines()) {
     CQChartsLineData ld;
 
-    ld.width = linesWidth();
     ld.color = linesColor();
     ld.alpha = linesAlpha();
+    ld.width = linesWidth();
+    ld.dash  = linesDash ();
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CQChartsHull3D::Edge *e = *pve;
@@ -726,30 +526,7 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  if (plot_->isSymbolStroked()) {
-    QColor pc = plot_->interpPointStrokeColor(0, 1);
-
-    pc.setAlphaF(plot_->symbolStrokeAlpha());
-
-    pen.setColor(pc);
-  }
-  else
-    pen.setStyle(Qt::NoPen);
-
-  double lw = plot_->lengthPixelWidth(plot_->symbolStrokeWidth());
-
-  pen.setWidthF(lw);
-
-  if (plot_->isSymbolFilled()) {
-    QColor bc = plot_->interpPointFillColor(0, 1);
-
-    bc.setAlphaF(plot_->symbolFillAlpha());
-
-    brush.setColor(bc);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else
-    brush.setStyle(Qt::NoBrush);
+  plot_->setSymbolPenBrush(pen, brush, 0, 1);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -768,5 +545,5 @@ draw(QPainter *painter)
 
   plot_->windowToPixel(x_, y_, px, py);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
 }

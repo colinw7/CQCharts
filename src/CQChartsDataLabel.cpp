@@ -81,7 +81,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
   //double b = b1 + b2;
 
-  if (CQChartsUtil::isZero(textAngle())) {
+  if (CMathUtil::isZero(textAngle())) {
     QFontMetricsF fm(painter->font());
 
     double tw = fm.width(ystr);
@@ -268,7 +268,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   //double b = b1 + b2;
 
-  if (CQChartsUtil::isZero(textAngle())) {
+  if (CMathUtil::isZero(textAngle())) {
     QFontMetricsF fm(textFont());
 
     double tw = fm.width(ystr);

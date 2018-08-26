@@ -566,8 +566,7 @@ draw(QPainter *painter)
     brush.setStyle(Qt::SolidPattern);
     brush.setColor(bgColor);
 
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) backgroundPattern()));
+    brush.setStyle(backgroundPattern().style());
   }
   else
     brush.setStyle(Qt::NoBrush);
@@ -739,8 +738,7 @@ draw(QPainter *painter)
     brush.setStyle(Qt::SolidPattern);
     brush.setColor(bgColor);
 
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) backgroundPattern()));
+    brush.setStyle(backgroundPattern().style());
   }
   else
     brush.setStyle(Qt::NoBrush);
@@ -1651,7 +1649,7 @@ draw(QPainter *painter)
   //---
 
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsGeom::Point(px, py),
-                                     CQChartsUtil::avg(sw, sh));
+                                     CMathUtil::avg(sw, sh));
 
   if (painter->brush().style() != Qt::NoBrush)
     CQChartsPlotSymbolMgr::fillSymbol(pointData_.type, &srenderer);

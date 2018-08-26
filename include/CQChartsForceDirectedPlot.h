@@ -27,19 +27,27 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
 //---
 
-class CQChartsForceDirectedPlot : public CQChartsPlot {
+class CQChartsForceDirectedPlot : public CQChartsPlot,
+ public CQChartsPlotNodeShapeData<CQChartsForceDirectedPlot>,
+ public CQChartsPlotEdgeLineData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
+  // columns
   Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
   Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(bool           running           READ isRunning         WRITE setRunning          )
-  Q_PROPERTY(double         nodeRadius        READ nodeRadius        WRITE setNodeRadius       )
-  Q_PROPERTY(CQChartsColor  nodeBorderColor   READ nodeBorderColor   WRITE setNodeBorderColor  )
-  Q_PROPERTY(CQChartsColor  edgeColor         READ edgeColor         WRITE setEdgeColor        )
-  Q_PROPERTY(double         edgeAlpha         READ edgeAlpha         WRITE setEdgeAlpha        )
+
+  // options
+  Q_PROPERTY(bool   running    READ isRunning  WRITE setRunning   )
+  Q_PROPERTY(double nodeRadius READ nodeRadius WRITE setNodeRadius)
+
+  // node stroke/fill
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
+
+  // edge line
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge,edge)
 
  public:
   CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model);
@@ -48,6 +56,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   //---
 
+  // columns
   const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
   void setNodeColumn(const CQChartsColumn &c) { nodeColumn_ = c; updateRangeAndObjs(); }
 
@@ -73,20 +82,6 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
   double nodeRadius() const { return nodeRadius_; }
   void setNodeRadius(double r) { nodeRadius_ = r; }
-
-  const CQChartsColor &nodeBorderColor() const { return nodeData_.border.color; }
-  void setNodeBorderColor(const CQChartsColor &c) { nodeData_.border.color = c; }
-
-  QColor interpNodeBorderColor(int i, int n) const {
-    return nodeBorderColor().interpColor(this, i, n); }
-
-  const CQChartsColor &edgeColor() const { return edgeStroke_.color; }
-  void setEdgeColor(const CQChartsColor &c) { edgeStroke_.color = c; }
-
-  QColor interpEdgeColor(int i, int n) const { return edgeColor().interpColor(this, i, n); }
-
-  double edgeAlpha() const { return edgeStroke_.alpha; }
-  void setEdgeAlpha(double r) { edgeStroke_.alpha = r; }
 
   //---
 
@@ -116,8 +111,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
 
  private:
   struct ConnectionData {
-    int node;
-    int count;
+    int node  { 0 };
+    int count { 0 };
 
     ConnectionData(int node=-1, int count=-1) :
      node(node), count(count) {
@@ -127,9 +122,9 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   using ConnectionDataArray = std::vector<ConnectionData>;
 
   struct ConnectionsData {
-    int                 node;
+    int                 node  { 0 };
     QString             name;
-    int                 group;
+    int                 group { 0 };
     QModelIndex         ind;
     ConnectionDataArray connections;
   };
@@ -162,8 +157,6 @@ class CQChartsForceDirectedPlot : public CQChartsPlot {
   int                   initSteps_         { 100 };   // initial steps
   double                stepSize_          { 0.01 };  // step size
   double                nodeRadius_        { 6.0 };   // node radius
-  CQChartsStrokeData    edgeStroke_;                  // edge stroke
-  CQChartsShapeData     nodeData_;                    // node stoke and fill
 };
 
 #endif

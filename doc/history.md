@@ -575,3 +575,9 @@
  + Fix scale/offset for overlay plots
  + Add grid to scatter plot
  + Add best fit to xy plot
+# 8/26/2018
+ + Use CRTP classes to factor out graphics customization duplicated code
+ + Use CInterval for axis major ticks and bucketer
+ + Move fill pattern into class
+ + Add density map for scatter plot
+ + Fix parallel plot mouse over

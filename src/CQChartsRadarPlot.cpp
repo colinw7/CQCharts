@@ -53,9 +53,12 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsRadarPlot::
 CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("radar"), model)
+ CQChartsPlot(view, view->charts()->plotType("radar"), model),
+ CQChartsPlotShapeData   <CQChartsRadarPlot>(this),
+ CQChartsPlotTextData    <CQChartsRadarPlot>(this),
+ CQChartsPlotGridLineData<CQChartsRadarPlot>(this)
 {
-  gridData_.color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5);
+  setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
   setFillAlpha(0.5);
@@ -146,75 +149,6 @@ numValueColumns() const
 
 //------
 
-bool
-CQChartsRadarPlot::
-isFilled() const
-{
-  return shapeData_.background.visible;
-}
-
-void
-CQChartsRadarPlot::
-setFilled(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsRadarPlot::
-fillColor() const
-{
-  return shapeData_.background.color;
-}
-
-void
-CQChartsRadarPlot::
-setFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsRadarPlot::
-interpFillColor(int i, int n)
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsRadarPlot::
-fillAlpha() const
-{
-  return shapeData_.background.alpha;
-}
-
-void
-CQChartsRadarPlot::
-setFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsRadarPlot::Pattern
-CQChartsRadarPlot::
-fillPattern() const
-{
-  return (Pattern) shapeData_.background.pattern;
-}
-
-void
-CQChartsRadarPlot::
-setFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) shapeData_.background.pattern) {
-    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//------
-
 void
 CQChartsRadarPlot::
 setAngleStart(double r)
@@ -227,180 +161,6 @@ CQChartsRadarPlot::
 setAngleExtent(double r)
 {
   CQChartsUtil::testAndSet(angleExtent_, r, [&]() { updateRangeAndObjs(); } );
-}
-
-//----
-
-void
-CQChartsRadarPlot::
-setGrid(bool b)
-{
-  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsRadarPlot::
-setGridColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsRadarPlot::
-interpGridColor(int i, int n)
-{
-  return gridColor().interpColor(this, i, n);
-}
-
-void
-CQChartsRadarPlot::
-setGridAlpha(double r)
-{
-  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsRadarPlot::
-setGridWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(gridData_.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsRadarPlot::
-setGridDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(gridData_.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//------
-
-bool
-CQChartsRadarPlot::
-isBorder() const
-{
-  return shapeData_.border.visible;
-}
-
-void
-CQChartsRadarPlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsRadarPlot::
-borderColor() const
-{
-  return shapeData_.border.color;
-}
-
-void
-CQChartsRadarPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsRadarPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsRadarPlot::
-borderAlpha() const
-{
-  return shapeData_.border.alpha;
-}
-
-void
-CQChartsRadarPlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsRadarPlot::
-borderWidth() const
-{
-  return shapeData_.border.width;
-}
-
-void
-CQChartsRadarPlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsRadarPlot::
-borderDash() const
-{
-  return shapeData_.border.dash;
-}
-
-void
-CQChartsRadarPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const QFont &
-CQChartsRadarPlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsRadarPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsRadarPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsRadarPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsRadarPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-double
-CQChartsRadarPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsRadarPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 //----
@@ -421,9 +181,9 @@ addProperties()
   addProperty("options", this, "angleExtent");
 
   // grid
-  addProperty("grid", this, "grid", "visible");
+  addProperty("grid", this, "gridLines", "visible");
 
-  addLineProperties("grid", "grid");
+  addLineProperties("grid", "gridLines");
 
   // stroke
   addProperty("stroke", this, "border", "visible");
@@ -436,9 +196,7 @@ addProperties()
   addFillProperties("fill", "fill");
 
   // text
-  addProperty("text", this, "textFont" , "font" );
-  addProperty("text", this, "textColor", "color");
-  addProperty("text", this, "textAlpha", "alpha");
+  addTextProperties("text", "text");
 }
 
 void
@@ -633,7 +391,7 @@ addRow(const QModelIndex &parent, int row, int nr)
     // set point
     double scale = valueDatas_[iv].sum();
 
-    double ra = CQChartsUtil::Deg2Rad(a);
+    double ra = CMathUtil::Deg2Rad(a);
 
     double x = value*cos(ra)/scale;
     double y = value*sin(ra)/scale;
@@ -676,7 +434,7 @@ columnValue(const CQChartsModelIndex &ind, double &value) const
 
     value = modelReal(ind.row, ind.column, ind.parent, ok);
 
-    if (! ok || CQChartsUtil::isNaN(value))
+    if (! ok || CMathUtil::isNaN(value))
       return false;
 
     if (value <= 0.0)
@@ -777,12 +535,12 @@ drawBackground(QPainter *painter)
     //---
 
     // draw grid spokes
-    if (isGrid()) {
-      QColor gridColor1 = interpGridColor(0, 1);
+    if (isGridLines()) {
+      QColor gridColor1 = interpGridLinesColor(0, 1);
 
       QPen gpen1;
 
-      setPen(gpen1, true, gridColor1, gridAlpha(), gridWidth(), gridDash());
+      setPen(gpen1, true, gridColor1, gridLinesAlpha(), gridLinesWidth(), gridLinesDash());
 
       painter->setPen(gpen1);
 
@@ -795,7 +553,7 @@ drawBackground(QPainter *painter)
       double a = angleStart();
 
       for (int iv = 0; iv < nv; ++iv) {
-        double ra = CQChartsUtil::Deg2Rad(a);
+        double ra = CMathUtil::Deg2Rad(a);
 
         double x = valueRadius_*cos(ra);
         double y = valueRadius_*sin(ra);
@@ -812,9 +570,11 @@ drawBackground(QPainter *painter)
 
     //---
 
-    QColor gridColor2 = interpGridColor(0, 1);
+    QColor gridColor2 = interpGridLinesColor(0, 1);
 
-    QPen gpen2(gridColor2);
+    QPen gpen2;
+
+    setPen(gpen2, true, gridColor2, gridLinesAlpha(), gridLinesWidth(), gridLinesDash());
 
     //---
 
@@ -839,7 +599,7 @@ drawBackground(QPainter *painter)
       QPolygonF poly;
 
       for (int iv = 0; iv < nv; ++iv) {
-        double ra = CQChartsUtil::Deg2Rad(a);
+        double ra = CMathUtil::Deg2Rad(a);
 
         double x = r*cos(ra);
         double y = r*sin(ra);
@@ -865,13 +625,13 @@ drawBackground(QPainter *painter)
 
           Qt::Alignment align = 0;
 
-          if      (CQChartsUtil::isZero(x)) align |= Qt::AlignHCenter;
-          else if (x > 0)                   align |= Qt::AlignLeft;
-          else if (x < 0)                   align |= Qt::AlignRight;
+          if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
+          else if (x > 0)                align |= Qt::AlignLeft;
+          else if (x < 0)                align |= Qt::AlignRight;
 
-          if      (CQChartsUtil::isZero(y)) align |= Qt::AlignVCenter;
-          else if (y > 0)                   align |= Qt::AlignBottom;
-          else if (y < 0)                   align |= Qt::AlignTop;
+          if      (CMathUtil::isZero(y)) align |= Qt::AlignVCenter;
+          else if (y > 0)                align |= Qt::AlignBottom;
+          else if (y < 0)                align |= Qt::AlignTop;
 
           CQChartsDrawUtil::drawAlignedText(painter, px, py, name, align, 2, 2);
         }
@@ -886,8 +646,7 @@ drawBackground(QPainter *painter)
       //---
 
       // draw grid polygon
-
-      if (isGrid()) {
+      if (isGridLines()) {
         painter->setPen(gpen2);
 
         painter->drawPolygon(poly);
@@ -1033,7 +792,7 @@ draw(QPainter *painter)
                      plot_->isFilled(),
                      plot_->interpFillColor(i_, n_),
                      plot_->fillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->fillPattern());
+                     plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

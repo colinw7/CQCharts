@@ -6,6 +6,7 @@
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
+#include <CInterval.h>
 
 #include <QFont>
 #include <sys/types.h>
@@ -314,8 +315,14 @@ class CQChartsAxis : public QObject {
 
   double minorIncrement() const;
 
-  double majorIncrement() const;
+  double majorIncrement() const { return majorIncrement_; }
   void setMajorIncrement(double i);
+
+  //---
+
+  double calcStart    () const { return calcStart_    ; }
+  double calcEnd      () const { return calcEnd_      ; }
+  double calcIncrement() const { return calcIncrement_; }
 
   //---
 
@@ -445,8 +452,10 @@ class CQChartsAxis : public QObject {
 
   void calc();
 
+#if 0
   bool testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
                     AxisGapData &axisGapData);
+#endif
 
  private:
   using TickSpaces = std::vector<double>;
@@ -496,13 +505,15 @@ class CQChartsAxis : public QObject {
   // state
   double                     start_               { 0.0 };
   double                     end_                 { 1.0 };
-  double                     start1_              { 0 };
-  double                     end1_                { 1 };
   bool                       includeZero_         { false };
   uint                       numMajorTicks_       { 1 };
   uint                       numMinorTicks_       { 0 };
   uint                       tickIncrement_       { 0 };
   double                     majorIncrement_      { 0 };
+  double                     calcStart_           { 0 };
+  double                     calcEnd_             { 1 };
+  double                     calcIncrement_       { 0 };
+  CInterval                  interval_;
   TickSpaces                 tickSpaces_;
   TickLabels                 tickLabels_;
   bool                       requireTickLabel_    { false };

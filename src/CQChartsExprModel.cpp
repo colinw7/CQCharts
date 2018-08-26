@@ -221,6 +221,8 @@ bool
 CQChartsExprModel::
 assignExtraColumn(const QString &header, int column, const QString &expr)
 {
+  const_cast<CQChartsExprModel *>(this)->initCalc();
+
   nc_ = columnCount();
 
   // set new expression and ensure all column values calculated
@@ -272,8 +274,6 @@ void
 CQChartsExprModel::
 calcColumn(int column, const QString &expr, Values &values) const
 {
-  const_cast<CQChartsExprModel *>(this)->initCalc();
-
   for (int r = 0; r < nr_; ++r) {
     currentRow_ = r;
     currentCol_ = column;
@@ -338,7 +338,7 @@ initCalc()
 
     bool ok;
 
-    QString name = CQChartsUtil::toString(var, ok);
+    QString name = CQChartsVariant::toString(var, ok);
 
     columnNames_[column] = name;
     nameColumns_[name  ] = column;
@@ -1564,7 +1564,7 @@ remapCmd(const Values &values)
   if (! ok)
     return QVariant(0.0);
 
-  double rm = CQChartsUtil::map(r, rmin, rmax, r1, r2);
+  double rm = CMathUtil::map(r, rmin, rmax, r1, r2);
 
   return QVariant(rm);
 }
@@ -1614,7 +1614,7 @@ timevalCmd(const Values &values)
   if (var1.isValid())
     var = var1;
 
-  double t = CQChartsUtil::toReal(var1, ok);
+  double t = CQChartsVariant::toReal(var1, ok);
   if (! ok) return QVariant();
 
   return CQChartsUtil::timeToString(fmt, t);

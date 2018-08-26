@@ -77,8 +77,7 @@ draw(QPainter *painter, const QRectF &rect) const
     QBrush brush(bgColor);
     QPen   pen  (Qt::NoPen);
 
-    brush.setStyle(CQChartsFillPattern::toStyle(
-     (CQChartsFillPattern::Type) backgroundPattern()));
+    brush.setStyle(backgroundPattern().style());
 
     if (plot_)
       plot_->updateObjPenBrushState(this, pen, brush);

@@ -45,7 +45,10 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsDendrogramPlot::
 CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("dendrogram"), model)
+ CQChartsPlot(view, view->charts()->plotType("dendrogram"), model),
+ CQChartsPlotNodeShapeData<CQChartsDendrogramPlot>(this),
+ CQChartsPlotEdgeLineData <CQChartsDendrogramPlot>(this),
+ CQChartsPlotTextData     <CQChartsDendrogramPlot>(this)
 {
   setNodeFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -77,11 +80,9 @@ addProperties()
 
   addLineProperties("node/stroke", "nodeBorder");
   addFillProperties("node/fill"  , "nodeFill"  );
-  addLineProperties("edge/stroke", "edgeLine"  );
+  addLineProperties("edge/stroke", "edgeLines" );
 
-  addProperty("text", this, "textFont" , "font" );
-  addProperty("text", this, "textColor", "color");
-  addProperty("text", this, "textAlpha", "alpha");
+  addTextProperties("text", "text");
 }
 
 //---
@@ -114,196 +115,6 @@ CQChartsDendrogramPlot::
 setTextMargin(double r)
 {
   CQChartsUtil::testAndSet(textMargin_, r, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const CQChartsColor &
-CQChartsDendrogramPlot::
-nodeBorderColor() const
-{
-  return nodeData_.border.color;
-}
-
-void
-CQChartsDendrogramPlot::
-setNodeBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDendrogramPlot::
-interpNodeBorderColor(int i, int n) const
-{
-  return nodeBorderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDendrogramPlot::
-nodeBorderAlpha() const
-{
-  return nodeData_.border.alpha;
-}
-
-void
-CQChartsDendrogramPlot::
-setNodeBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsDendrogramPlot::
-nodeBorderWidth() const
-{
-  return nodeData_.border.width;
-}
-
-void
-CQChartsDendrogramPlot::
-setNodeBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const CQChartsColor &
-CQChartsDendrogramPlot::
-nodeFillColor() const
-{
-  return nodeData_.background.color;
-}
-
-void
-CQChartsDendrogramPlot::
-setNodeFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDendrogramPlot::
-interpNodeFillColor(int i, int n) const
-{
-  return nodeFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDendrogramPlot::
-nodeFillAlpha() const
-{
-  return nodeData_.background.alpha;
-}
-
-void
-CQChartsDendrogramPlot::
-setNodeFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const CQChartsColor &
-CQChartsDendrogramPlot::
-edgeLineColor() const
-{
-  return edgeData_.color;
-}
-
-void
-CQChartsDendrogramPlot::
-setEdgeLineColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(edgeData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDendrogramPlot::
-interpEdgeLineColor(int i, int n) const
-{
-  return edgeLineColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDendrogramPlot::
-edgeLineAlpha() const
-{
-  return edgeData_.alpha;
-}
-
-void
-CQChartsDendrogramPlot::
-setEdgeLineAlpha(double a)
-{
-  CQChartsUtil::testAndSet(edgeData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsDendrogramPlot::
-edgeLineWidth() const
-{
-  return edgeData_.width;
-}
-
-void
-CQChartsDendrogramPlot::
-setEdgeLineWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(edgeData_.width, l, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const QFont &
-CQChartsDendrogramPlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsDendrogramPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsDendrogramPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsDendrogramPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsDendrogramPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-double
-CQChartsDendrogramPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsDendrogramPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -348,7 +159,7 @@ calcRange()
 
       double value = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
 
-      if (CQChartsUtil::isNaN(value))
+      if (CMathUtil::isNaN(value))
         return State::SKIP;
 
       //---
@@ -608,19 +419,12 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogr
 
     //---
 
-    QColor edgeColor = interpEdgeLineColor(0, 1);
-
-    edgeColor.setAlphaF(edgeLineAlpha());
-
     QPen   lpen;
     QBrush lbrush;
 
-    double lw = lengthPixelWidth(edgeLineWidth());
+    QColor edgeColor = interpEdgeLinesColor(0, 1);
 
-    lpen.setColor (edgeColor);
-    lpen.setWidthF(lw);
-
-    painter->setPen(lpen);
+    setPen(lpen, /*stroked*/true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
 
     lbrush.setStyle(Qt::NoBrush);
 
@@ -749,24 +553,14 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor borderColor = plot_->interpNodeBorderColor(0, 1);
+  QColor fillColor   = plot_->interpNodeFillColor  (0, 1);
 
-  borderColor.setAlphaF(plot_->nodeBorderAlpha());
+  plot_->setPen(pen, /*stroked*/true, borderColor, plot_->nodeBorderAlpha(),
+                plot_->plotBorderWidth(), CQChartsLineDash());
 
-  double bw = plot_->lengthPixelWidth(plot_->borderWidth());
+  bool filled = (node_->hasChildren() && ! node_->isOpen());
 
-  pen.setColor (borderColor);
-  pen.setWidthF(bw);
-
-  QColor fillColor = plot_->interpNodeFillColor(0, 1);
-
-  fillColor.setAlphaF(plot_->nodeFillAlpha  ());
-
-  if (node_->hasChildren() && ! node_->isOpen()) {
-    brush.setColor(fillColor);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else
-    brush.setStyle(Qt::NoBrush);
+  plot_->setBrush(brush, filled, fillColor, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -778,24 +572,24 @@ draw(QPainter *painter)
   //---
 
   // draw node text
-  QFont font = plot_->textFont();
-
-  QFontMetricsF fm(font);
-
   QColor tc = plot_->interpTextColor(0, 1);
-
-  tc.setAlphaF(plot_->textAlpha());
 
   QPen tpen;
 
-  tpen.setColor(tc);
+  plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha(),
+                CQChartsLength("0px"), CQChartsLineDash());
 
-  painter->setPen (tpen);
+  painter->setPen(tpen);
+
+  QFont font = plot_->textFont();
+
   painter->setFont(font);
 
   const QString &name = node_->name();
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
+
+  QFontMetricsF fm(font);
 
   double dy = (fm.ascent() - fm.descent())/2;
 

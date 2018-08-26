@@ -37,12 +37,10 @@ struct CQChartsLineData {
 
 // Fill Properties
 struct CQChartsFillData {
-  using Pattern = CQChartsFillPattern::Type;
-
-  bool          visible { true };                                      // draw bg
-  CQChartsColor color   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; // bg fill color
-  double        alpha   { 1.0 };                                       // bg fill color alpha
-  Pattern       pattern { Pattern::SOLID };                            // bg fill pattern
+  bool                visible { true };                                      // draw bg
+  CQChartsColor       color   { CQChartsColor::Type::INTERFACE_VALUE, 0.0 }; // bg fill color
+  double              alpha   { 1.0 };                                       // bg fill color alpha
+  CQChartsFillPattern pattern { CQChartsFillPattern::Type::SOLID };          // bg fill pattern
 };
 
 // Stroke Properties

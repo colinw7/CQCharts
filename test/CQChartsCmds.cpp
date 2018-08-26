@@ -20,6 +20,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 
 #include <CQChartsLoadDlg.h>
 #include <CQChartsModelDlg.h>
@@ -1170,7 +1171,7 @@ getPropertyCmd(const Vars &vars)
 
     bool rc;
 
-    setCmdRc(CQChartsUtil::toString(value, rc));
+    setCmdRc(CQChartsVariant::toString(value, rc));
   }
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
@@ -1210,7 +1211,7 @@ getPropertyCmd(const Vars &vars)
 
     bool rc;
 
-    setCmdRc(CQChartsUtil::toString(value, rc));
+    setCmdRc(CQChartsVariant::toString(value, rc));
   }
   else if (argv.hasParseArg("annotation")) {
     QString annotationName = argv.getParseStr("annotation");
@@ -1234,7 +1235,7 @@ getPropertyCmd(const Vars &vars)
 
     bool rc;
 
-    setCmdRc(CQChartsUtil::toString(value, rc));
+    setCmdRc(CQChartsVariant::toString(value, rc));
   }
 }
 
@@ -2476,7 +2477,7 @@ getChartsDataCmd(const Vars &vars)
 
         bool rc;
 
-        setCmdRc(CQChartsUtil::toString(var, rc));
+        setCmdRc(CQChartsVariant::toString(var, rc));
       }
     }
     else if (name == "map") {

@@ -42,7 +42,9 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
- CQChartsHierPlot(view, view->charts()->plotType("sunburst"), model)
+ CQChartsHierPlot(view, view->charts()->plotType("sunburst"), model),
+ CQChartsPlotShapeData<CQChartsSunburstPlot>(this),
+ CQChartsPlotTextData <CQChartsSunburstPlot>(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -110,126 +112,6 @@ setMultiRoot(bool b)
 
 void
 CQChartsSunburstPlot::
-setFilled(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) shapeData_.background.pattern) {
-    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-QColor
-CQChartsSunburstPlot::
-interpFillColor(int i, int n) const
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-//---
-
-void
-CQChartsSunburstPlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSunburstPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-void
-CQChartsSunburstPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsSunburstPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsSunburstPlot::
-setTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSunburstPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-void
-CQChartsSunburstPlot::
 setTextFontSize(double s)
 {
   if (s != textData_.font.pointSizeF()) {
@@ -266,10 +148,7 @@ addProperties()
 
   addFillProperties("fill", "fill");
 
-  addProperty("text", this, "textFont"    , "font"    );
-  addProperty("text", this, "textColor"   , "color"   );
-  addProperty("text", this, "textAlpha"   , "alpha"   );
-  addProperty("text", this, "textContrast", "contrast");
+  addTextProperties("text", "text");
 
   addProperty("color", this, "colorMapped", "mapped");
   addProperty("color", this, "colorMapMin", "mapMin");
@@ -1057,7 +936,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   //---
 
   // create arc path
-  bool isCircle = (std::abs(da) > 360.0 || CQChartsUtil::realEq(std::abs(da), 360.0));
+  bool isCircle = (std::abs(da) > 360.0 || CMathUtil::realEq(std::abs(da), 360.0));
 
   QPainterPath path;
 
@@ -1106,7 +985,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
               isFilled(),
               node->interpColor(this, numColorIds()),
               fillAlpha(),
-              (CQChartsFillPattern::Type) fillPattern());
+              fillPattern());
 
   QColor tc = interpTextColor(0, 1);
 
@@ -1151,12 +1030,12 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   double tx, ty;
 
-  if (isCircle && CQChartsUtil::isZero(r1)) {
+  if (isCircle && CMathUtil::isZero(r1)) {
     tx = 0.0;
     ty = 0.0;
   }
   else {
-    double r3 = CQChartsUtil::avg(r1, r2);
+    double r3 = CMathUtil::avg(r1, r2);
 
     tx = r3*c;
     ty = r3*s;
@@ -1237,7 +1116,7 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CQChartsUtil::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
+  double a = CMathUtil::Rad2Deg(atan2(p.y - c.y, p.x - c.x)); while (a < 0) a += 360.0;
 
   double a1 = node_->a();
   double a2 = a1 + node_->da();

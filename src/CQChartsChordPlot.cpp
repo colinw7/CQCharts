@@ -1,6 +1,7 @@
 #include <CQChartsChordPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
 #include <QPainter>
@@ -362,7 +363,7 @@ initTableObjs()
 
       QString name;
 
-      CQChartsUtil::variantToString(var, name);
+      CQChartsVariant::toString(var, name);
 
       data.setName(name);
 
@@ -379,7 +380,7 @@ initTableObjs()
 
       QString group;
 
-      CQChartsUtil::variantToString(var, group);
+      CQChartsVariant::toString(var, group);
 
       data.setGroup(CQChartsChordData::Group(group, groupValues.imap(row)));
 
@@ -398,11 +399,11 @@ initTableObjs()
 
       bool ok;
 
-      double value = CQChartsUtil::toReal(indRowDatas[row].rowData[col], ok);
+      double value = CQChartsVariant::toReal(indRowDatas[row].rowData[col], ok);
 
       //---
 
-      if (CQChartsUtil::isZero(value))
+      if (CMathUtil::isZero(value))
         continue;
 
       data.addValue(col1, value);
@@ -414,7 +415,7 @@ initTableObjs()
 
     double total1 = data.total();
 
-    if (! CQChartsUtil::isZero(total1))
+    if (! CMathUtil::isZero(total1))
       ++nv1;
 
     total += total1;
@@ -449,7 +450,7 @@ initTableObjs()
 
     double total1 = data.total();
 
-    if (CQChartsUtil::isZero(total1))
+    if (CMathUtil::isZero(total1))
       continue;
 
     double dangle = -valueToDegrees(total1);
@@ -706,11 +707,11 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CQChartsUtil::Rad2Deg(atan2(p.y, p.x));
-  a = CQChartsUtil::normalizeAngle(a);
+  double a = CMathUtil::Rad2Deg(atan2(p.y, p.x));
+  a = CMathUtil::normalizeAngle(a);
 
-  double a1 = CQChartsUtil::normalizeAngle(data_.angle());
-  double a2 = CQChartsUtil::normalizeAngle(a1 + data_.dangle());
+  double a1 = CMathUtil::normalizeAngle(data_.angle());
+  double a2 = CMathUtil::normalizeAngle(a1 + data_.dangle());
 
   if (a1 < a2) {
     // crosses zero
@@ -781,7 +782,7 @@ draw(QPainter *painter)
   // draw value set segment arc
   QColor segmentBorderColor = plot_->interpBorderColor(0, 1);
 
-  segmentBorderColor.setAlphaF(CQChartsUtil::clamp(plot_->borderAlpha(), 0, 1));
+  segmentBorderColor.setAlphaF(CMathUtil::clamp(plot_->borderAlpha(), 0.0, 1.0));
 
   QPainterPath path;
 
@@ -801,7 +802,7 @@ draw(QPainter *painter)
   QColor fromColor;
 
   if (gval >= 0.0) {
-    double r = CQChartsUtil::norm(i(), 0, n());
+    double r = CMathUtil::norm(i(), 0, n());
 
     fromColor = plot_->interpGroupPaletteColor(gval, r, 0.1);
   }
@@ -809,7 +810,7 @@ draw(QPainter *painter)
     fromColor = plot_->interpPaletteColor(i(), n());
 
   if (! isInside() && ! isSelected())
-    fromColor.setAlphaF(CQChartsUtil::clamp(plot_->segmentAlpha(), 0, 1));
+    fromColor.setAlphaF(CMathUtil::clamp(plot_->segmentAlpha(), 0.0, 1.0));
 
   QBrush brush(fromColor);
 
@@ -828,7 +829,7 @@ draw(QPainter *painter)
 
   QColor arcBorderColor = plot_->interpBorderColor(0, 1);
 
-  arcBorderColor.setAlphaF(CQChartsUtil::clamp(plot_->borderAlpha(), 0, 1));
+  arcBorderColor.setAlphaF(CMathUtil::clamp(plot_->borderAlpha(), 0.0, 1.0));
 
   int from = data_.from();
 
@@ -837,7 +838,7 @@ draw(QPainter *painter)
 
     valueAngles(value.to, a1, da1);
 
-    if (CQChartsUtil::isZero(da1))
+    if (CMathUtil::isZero(da1))
       continue;
 
     CQChartsChordObj *toObj = dynamic_cast<CQChartsChordObj *>(plotObject(value.to));
@@ -848,7 +849,7 @@ draw(QPainter *painter)
 
     toObj->valueAngles(from, a2, da2);
 
-    //if (CQChartsUtil::isZero(da2))
+    //if (CMathUtil::isZero(da2))
     //  continue;
 
     double a11 = a1 + da1;
@@ -889,7 +890,7 @@ draw(QPainter *painter)
     QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
     if (! isInside() && ! isSelected())
-      c.setAlphaF(CQChartsUtil::clamp(plot_->arcAlpha(), 0, 1));
+      c.setAlphaF(CMathUtil::clamp(plot_->arcAlpha(), 0.0, 1.0));
 
     QBrush brush(c);
 
@@ -924,7 +925,7 @@ drawFg(QPainter *painter)
 
   double total = data_.total();
 
-  if (CQChartsUtil::isZero(total))
+  if (CMathUtil::isZero(total))
     return;
 
   double ro = 1.0;
@@ -940,7 +941,7 @@ drawFg(QPainter *painter)
   // draw on arc center line
   double lr = plot_->labelRadius();
 
-  double ta = CQChartsUtil::avg(angle1, angle2);
+  double ta = CMathUtil::avg(angle1, angle2);
 
   QPointF center(0, 0);
 
@@ -980,7 +981,7 @@ textBBox() const
 
   double total = data_.total();
 
-  if (CQChartsUtil::isZero(total))
+  if (CMathUtil::isZero(total))
     return CQChartsGeom::BBox();
 
   //---
@@ -988,7 +989,7 @@ textBBox() const
   // calc box of text on arc center line
   double lr = plot_->labelRadius();
 
-  double ta = CQChartsUtil::avg(angle1, angle2);
+  double ta = CMathUtil::avg(angle1, angle2);
 
   QPointF center(0, 0);
 

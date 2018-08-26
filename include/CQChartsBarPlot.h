@@ -34,22 +34,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
   Q_PROPERTY(Pattern       barPattern READ barPattern WRITE setBarPattern)
 
   // color map
-  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
-
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
+  CQCHARTS_COLOR_MAP_PROPERTIES
 
  public:
   CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model);
@@ -122,8 +107,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
   double barAlpha() const;
   void setBarAlpha(double a);
 
-  Pattern barPattern() const;
-  void setBarPattern(Pattern pattern);
+  const CQChartsFillPattern &barPattern() const;
+  void setBarPattern(const CQChartsFillPattern &pattern);
 
   //---
 

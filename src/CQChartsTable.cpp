@@ -4,7 +4,9 @@
 #include <CQChartsModelData.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRegExp.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
+
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 
@@ -87,7 +89,7 @@ class CQChartsTableDelegate : public QItemDelegate {
       if (var.type() == QVariant::List) {
         QString str;
 
-        CQChartsUtil::variantToString(var, str);
+        CQChartsVariant::toString(var, str);
 
         drawString(painter, option, str, index);
       }

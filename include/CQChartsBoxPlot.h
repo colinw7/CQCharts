@@ -300,8 +300,14 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
 //---
 
+CQCHARTS_NAMED_LINE_DATA(Whisker,whisker)
+CQCHARTS_NAMED_POINT_DATA(Outlier,outlier)
+
 // box plot
-class CQChartsBoxPlot : public CQChartsGroupPlot {
+class CQChartsBoxPlot : public CQChartsGroupPlot,
+ public CQChartsPlotTextData        <CQChartsBoxPlot>,
+ public CQChartsPlotWhiskerLineData <CQChartsBoxPlot>,
+ public CQChartsPlotOutlierPointData<CQChartsBoxPlot> {
   Q_OBJECT
 
   // calc value columns
@@ -320,13 +326,12 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsColumn outliersColumn    READ outliersColumn    WRITE setOutliersColumn   )
 
   // options
-  Q_PROPERTY(bool   showOutliers READ isShowOutliers WRITE setShowOutliers)
-  Q_PROPERTY(bool   connected    READ isConnected    WRITE setConnected   )
-  Q_PROPERTY(double whiskerRange READ whiskerRange   WRITE setWhiskerRange)
-  Q_PROPERTY(bool   horizontal   READ isHorizontal   WRITE setHorizontal  )
-  Q_PROPERTY(bool   normalized   READ isNormalized   WRITE setNormalized  )
-  Q_PROPERTY(bool   notched      READ isNotched      WRITE setNotched     )
-  Q_PROPERTY(bool   colorBySet   READ isColorBySet   WRITE setColorBySet  )
+  Q_PROPERTY(bool showOutliers READ isShowOutliers WRITE setShowOutliers)
+  Q_PROPERTY(bool connected    READ isConnected    WRITE setConnected   )
+  Q_PROPERTY(bool horizontal   READ isHorizontal   WRITE setHorizontal  )
+  Q_PROPERTY(bool normalized   READ isNormalized   WRITE setNormalized  )
+  Q_PROPERTY(bool notched      READ isNotched      WRITE setNotched     )
+  Q_PROPERTY(bool colorBySet   READ isColorBySet   WRITE setColorBySet  )
 
   // jitter
   Q_PROPERTY(bool           pointsJitter     READ isPointsJitter   WRITE setPointsJitter    )
@@ -356,45 +361,24 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash      WRITE setBorderDash   )
   Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize      WRITE setCornerSize   )
 
-  // whisker
-  Q_PROPERTY(CQChartsColor  whiskerColor     READ whiskerColor     WRITE setWhiskerColor    )
-  Q_PROPERTY(double         whiskerAlpha     READ whiskerAlpha     WRITE setWhiskerAlpha    )
-  Q_PROPERTY(CQChartsLength whiskerLineWidth READ whiskerLineWidth WRITE setWhiskerLineWidth)
-  Q_PROPERTY(double         whiskerExtent    READ whiskerExtent    WRITE setWhiskerExtent   )
+  // text
+  CQCHARTS_TEXT_DATA_PROPERTIES
+
+  // whisker line
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Whisker,whisker)
+
+  Q_PROPERTY(double whiskerRange  READ whiskerRange  WRITE setWhiskerRange )
+  Q_PROPERTY(double whiskerExtent READ whiskerExtent WRITE setWhiskerExtent)
 
   // labels
-  Q_PROPERTY(bool          textVisible READ isTextVisible WRITE setTextVisible)
-  Q_PROPERTY(CQChartsColor textColor   READ textColor     WRITE setTextColor  )
-  Q_PROPERTY(double        textAlpha   READ textAlpha     WRITE setTextAlpha  )
-  Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
-  Q_PROPERTY(double        textMargin  READ textMargin    WRITE setTextMargin )
+  Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin)
 
   // outliers
-  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
-  Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
-  Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Outlier,outlier)
 
-  Q_ENUMS(Pattern)
   Q_ENUMS(ErrorBarType)
 
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
   enum class ErrorBarType {
     CROSS_BAR,
     ERROR_BAR,
@@ -465,9 +449,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   bool isConnected() const { return connected_; }
   void setConnected(bool b);
 
-  double whiskerRange() const { return whiskerRange_; }
-  void setWhiskerRange(double r);
-
   const CQChartsLength &boxWidth() const { return boxWidth_; }
   void setBoxWidth(const CQChartsLength &l);
 
@@ -486,6 +467,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   //---
 
+  // points
   bool isPointsJitter() const { return pointsJitter_; }
 
   bool isPointsStacked() const { return pointsStacked_; }
@@ -527,8 +509,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   double boxAlpha() const;
   void setBoxAlpha(double r);
 
-  Pattern boxPattern() const;
-  void setBoxPattern(Pattern pattern);
+  const CQChartsFillPattern &boxPattern() const;
+  void setBoxPattern(const CQChartsFillPattern &pattern);
 
   QColor interpBoxColor(int i, int n) const;
 
@@ -556,80 +538,17 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   //---
 
-  const CQChartsColor &whiskerColor() const;
-  void setWhiskerColor(const CQChartsColor &c);
-
-  double whiskerAlpha() const;
-  void setWhiskerAlpha(double a);
-
-  const CQChartsLength &whiskerLineWidth() const { return whiskerData_.width; }
-  void setWhiskerLineWidth(const CQChartsLength &l);
+  double whiskerRange() const { return whiskerRange_; }
+  void setWhiskerRange(double r);
 
   double whiskerExtent() const { return whiskerExtent_; }
   void setWhiskerExtent(double r);
 
-  QColor interpWhiskerColor(int i, int n) const;
-
   //---
 
   // label
-  bool isTextVisible() const;
-  void setTextVisible(bool b);
-
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const;
-  void setTextAlpha(double a);
-
-  const QFont &textFont() const;
-  void setTextFont(const QFont &f);
-
   double textMargin() const { return textMargin_; }
   void setTextMargin(double r);
-
-  QColor interpTextColor(int i, int n) const;
-
-  //---
-
-  // symbol
-  const CQChartsSymbol &symbolType() const { return outlierSymbolData_.type; }
-  void setSymbolType(const CQChartsSymbol &t);
-
-  const CQChartsLength &symbolSize() const { return outlierSymbolData_.size; }
-  void setSymbolSize(const CQChartsLength &s);
-
-  //--
-
-  bool isSymbolStroked() const { return outlierSymbolData_.stroke.visible; }
-  void setSymbolStroked(bool b);
-
-  const CQChartsColor &symbolStrokeColor() const;
-  void setSymbolStrokeColor(const CQChartsColor &c);
-
-  QColor interpSymbolStrokeColor(int i, int n) const;
-
-  double symbolStrokeAlpha() const;
-  void setSymbolStrokeAlpha(double a);
-
-  const CQChartsLength &symbolStrokeWidth() const { return outlierSymbolData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l);
-
-  //--
-
-  bool isSymbolFilled() const { return outlierSymbolData_.fill.visible; }
-  void setSymbolFilled(bool b);
-
-  const CQChartsColor &symbolFillColor() const;
-  void setSymbolFillColor(const CQChartsColor &c);
-
-  QColor interpSymbolFillColor(int i, int n) const;
-
-  double symbolFillAlpha() const;
-  void setSymbolFillAlpha(double a);
-
-  Pattern symbolFillPattern() const;
-  void setSymbolFillPattern(const Pattern &p);
 
   //---
 
@@ -726,7 +645,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
 
   bool                  showOutliers_   { true };                    // show outliers
   bool                  connected_      { false };                   // connect boxes
-  double                whiskerRange_   { 1.5 };                     // whisker range
   bool                  horizontal_     { false };                   // horizontal bars
   bool                  normalized_     { false };                   // normalized values
   bool                  pointsJitter_   { false };                   // show jitter points
@@ -739,13 +657,11 @@ class CQChartsBoxPlot : public CQChartsGroupPlot {
   ErrorBarType          errorBarType_   { ErrorBarType::CROSS_BAR }; // error bar type
   bool                  colorBySet_     { false };                   // color by set
   CQChartsLength        boxWidth_       { 0.2 };                     // box width
-  CQChartsLineData      whiskerData_;                                // whisker stroke
+  double                whiskerRange_   { 1.5 };                     // whisker range
   double                whiskerExtent_  { 0.2 };                     // whisker extent
   CQChartsGeom::RMinMax xrange_;                                     // x range
   CQChartsBoxData       boxData_;                                    // shape fill/border style
-  CQChartsTextData      textData_;                                   // text style
   double                textMargin_     { 2 };                       // text margin
-  CQChartsSymbolData    outlierSymbolData_;                          // outlier symbol data
   CQChartsSymbolData    pointsSymbolData_;                           // point symbol data
   ColumnType            setType_        { ColumnType::NONE };        // set column data type
   GroupSetWhiskerMap    groupWhiskers_;                              // grouped whisker data

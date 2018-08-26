@@ -1,5 +1,6 @@
 #include <CQChartsLayer.h>
 #include <CQChartsUtil.h>
+#include <CMathRound.h>
 
 const char *
 CQChartsLayer::
@@ -66,7 +67,7 @@ updateSize()
 {
   QSizeF fsize = rect_.size();
 
-  QSize size(CQChartsUtil::RoundUp(fsize.width()), CQChartsUtil::RoundUp(fsize.height()));
+  QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
 
   if (! image_ || size_ != size) {
     delete image_;

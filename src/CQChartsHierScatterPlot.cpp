@@ -20,10 +20,12 @@ addParameters()
 {
   startParameterGroup("Hier Scatter");
 
-  addColumnParameter ("x"    , "X"    , "xColumn"       , 0).setRequired();
-  addColumnParameter ("y"    , "Y"    , "yColumn"       , 1).setRequired();
-  addColumnParameter ("name" , "Name" , "nameColumn"    );
-  addColumnsParameter("group", "Group", "groupColumnStr");
+  addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
+  addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
+
+  addColumnParameter("name" , "Name" , "nameColumn").setTip("Value Name");
+
+  addColumnsParameter("group", "Group", "groupColumnStr").setTip("Group Name(s)");
 
   addBoolParameter("textLabels", "Text Labels", "textLabels");
 
@@ -54,9 +56,11 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsHierScatterPlot::
 CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("hierscatter"), model), dataLabel_(this)
+ CQChartsPlot(view, view->charts()->plotType("hierscatter"), model),
+ CQChartsPlotPointData<CQChartsHierScatterPlot>(this),
+ dataLabel_(this)
 {
-  symbolData_.size = 4;
+  setSymbolSize(CQChartsLength("4px"));
 
   addAxes();
 
@@ -111,22 +115,6 @@ setGroupColumnStr(const QString &s)
 }
 
 //------
-
-void
-CQChartsHierScatterPlot::
-setSymbolBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(symbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsHierScatterPlot::
-setSymbolSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(symbolData_.size, s, [&]() { updateObjs(); } );
-}
-
-//---
 
 void
 CQChartsHierScatterPlot::
@@ -200,11 +188,11 @@ addProperties()
   addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "groupColumn", "group");
 
-  addProperty("symbol", this, "symbolBorderColor", "borderColor");
-  addProperty("symbol", this, "symbolSize"       , "size"       );
+  addSymbolProperties("symbol");
 
   addProperty("font", this, "fontSize", "font");
 
+  // point data labels
   dataLabel_.addPathProperties("dataLabel");
 }
 
@@ -231,7 +219,7 @@ calcRange()
       if (! ok1) x = row;
       if (! ok2) y = row;
 
-      if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
 
       range_.updateRange(x, y);
@@ -254,7 +242,7 @@ calcRange()
 
   //---
 
-  if (CQChartsUtil::isZero(dataRange_.xsize())) {
+  if (CMathUtil::isZero(dataRange_.xsize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 
@@ -262,7 +250,7 @@ calcRange()
     dataRange_.updateRange(x + 1, y);
   }
 
-  if (CQChartsUtil::isZero(dataRange_.ysize())) {
+  if (CMathUtil::isZero(dataRange_.ysize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 
@@ -434,7 +422,7 @@ initObjs()
         if (! ok1) x = row;
         if (! ok2) y = row;
 
-        if (CQChartsUtil::isNaN(x) || CQChartsUtil::isNaN(y))
+        if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
           return State::SKIP;
 
         //---

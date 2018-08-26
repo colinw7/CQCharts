@@ -50,11 +50,13 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsForceDirectedPlot::
 CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("adjacency"), model)
+ CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
+ CQChartsPlotNodeShapeData<CQChartsForceDirectedPlot>(this),
+ CQChartsPlotEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
   setMargins(0, 0, 0, 0);
 
-  edgeStroke_.alpha = 0.5;
+  setNodeBorderAlpha(0.5);
 
   //---
 
@@ -81,10 +83,10 @@ addProperties()
   addProperty("options", this, "running");
 
   addProperty("node", this, "nodeRadius"     , "radius"     );
-  addProperty("node", this, "nodeBorderColor", "borderColor");
 
-  addProperty("edge", this, "edgeColor", "color");
-  addProperty("edge", this, "edgeAlpha", "alpha");
+  addLineProperties("node/stroke", "nodeBorder");
+  addFillProperties("node/fill"  , "nodeFill"  );
+  addLineProperties("edge/stroke", "edgeLines" );
 }
 
 void
@@ -525,9 +527,9 @@ drawParts(QPainter *painter)
   // draw edges
   QPen edgePen;
 
-  QColor edgeColor = this->interpEdgeColor(0, 1);
+  QColor edgeColor = this->interpEdgeLinesColor(0, 1);
 
-  edgeColor.setAlphaF(edgeAlpha());
+  edgeColor.setAlphaF(edgeLinesAlpha());
 
   edgePen.setColor(edgeColor);
 

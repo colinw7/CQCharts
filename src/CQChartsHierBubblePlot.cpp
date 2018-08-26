@@ -40,7 +40,9 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsHierBubblePlot::
 CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
- CQChartsHierPlot(view, view->charts()->plotType("hierbubble"), model)
+ CQChartsHierPlot(view, view->charts()->plotType("hierbubble"), model),
+ CQChartsPlotShapeData<CQChartsHierBubblePlot>(this),
+ CQChartsPlotTextData <CQChartsHierBubblePlot>(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -65,75 +67,6 @@ CQChartsHierBubblePlot::
 
 //----
 
-bool
-CQChartsHierBubblePlot::
-isFilled() const
-{
-  return shapeData_.background.visible;
-}
-
-void
-CQChartsHierBubblePlot::
-setFilled(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsHierBubblePlot::
-fillColor() const
-{
-  return shapeData_.background.color;
-}
-
-void
-CQChartsHierBubblePlot::
-setFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsHierBubblePlot::
-interpFillColor(int i, int n) const
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsHierBubblePlot::
-fillAlpha() const
-{
-  return shapeData_.background.alpha;
-}
-
-void
-CQChartsHierBubblePlot::
-setFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsHierBubblePlot::Pattern
-CQChartsHierBubblePlot::
-fillPattern() const
-{
-  return (Pattern) shapeData_.background.pattern;
-}
-
-void
-CQChartsHierBubblePlot::
-setFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) shapeData_.background.pattern) {
-    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//---
-
 void
 CQChartsHierBubblePlot::
 setValueLabel(bool b)
@@ -142,99 +75,6 @@ setValueLabel(bool b)
 }
 
 //---
-
-bool
-CQChartsHierBubblePlot::
-isBorder() const
-{
-  return shapeData_.border.visible;
-}
-
-void
-CQChartsHierBubblePlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsHierBubblePlot::
-borderColor() const
-{
-  return shapeData_.border.color;
-}
-
-void
-CQChartsHierBubblePlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsHierBubblePlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsHierBubblePlot::
-borderAlpha() const
-{
-  return shapeData_.border.alpha;
-}
-
-void
-CQChartsHierBubblePlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsHierBubblePlot::
-borderWidth() const
-{
-  return shapeData_.border.width;
-}
-
-void
-CQChartsHierBubblePlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsHierBubblePlot::
-borderDash() const
-{
-  return shapeData_.border.dash;
-}
-
-void
-CQChartsHierBubblePlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const QFont &
-CQChartsHierBubblePlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsHierBubblePlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
 
 void
 CQChartsHierBubblePlot::
@@ -245,69 +85,6 @@ setTextFontSize(double s)
 
     invalidateLayers();
   }
-}
-
-const CQChartsColor &
-CQChartsHierBubblePlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsHierBubblePlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsHierBubblePlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-double
-CQChartsHierBubblePlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsHierBubblePlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsHierBubblePlot::
-isTextContrast() const
-{
-  return textData_.contrast;
-}
-
-void
-CQChartsHierBubblePlot::
-setTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsHierBubblePlot::
-isTextScaled() const
-{
-  return textData_.scaled;
-}
-
-void
-CQChartsHierBubblePlot::
-setTextScaled(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -328,11 +105,9 @@ addProperties()
 
   addFillProperties("fill", "fill");
 
-  addProperty("text", this, "textFont"    , "font"    );
-  addProperty("text", this, "textColor"   , "color"   );
-  addProperty("text", this, "textAlpha"   , "alpha"   );
-  addProperty("text", this, "textContrast", "contrast");
-  addProperty("text", this, "textScaled"  , "scaled"  );
+  addTextProperties("text", "text");
+
+  addProperty("text", this, "textScaled", "scaled");
 }
 
 //------
@@ -1235,7 +1010,7 @@ draw(QPainter *painter)
                      plot_->isFilled(),
                      hier_->interpColor(plot_, plot_->numColorIds()),
                      plot_->fillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->fillPattern());
+                     plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1358,7 +1133,7 @@ draw(QPainter *painter)
                      plot_->isFilled(),
                      node_->interpColor(plot_, plot_->numColorIds()),
                      plot_->fillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->fillPattern());
+                     plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

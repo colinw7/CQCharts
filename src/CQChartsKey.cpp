@@ -199,6 +199,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"   );
   model->addProperty(path, this, "location"  );
+  model->addProperty(path, this, "header"    );
   model->addProperty(path, this, "horizontal");
   model->addProperty(path, this, "autoHide"  );
   model->addProperty(path, this, "clipped"   );
@@ -473,6 +474,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 {
   model->addProperty(path, this, "visible"    );
   model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "header"     );
   model->addProperty(path, this, "autoHide"   );
   model->addProperty(path, this, "clipped"    );
   model->addProperty(path, this, "absPosition");
@@ -615,8 +617,24 @@ doLayout()
 
   //----
 
+  double tw = 0, th = 0;
+
+  if (headerStr().length()) {
+    QFontMetricsF fm(textFont());
+
+    double ptw = fm.width(headerStr());
+    double pth = fm.height();
+
+    tw = plot_->pixelToWindowWidth (ptw) + 2*xm;
+    th = plot_->pixelToWindowHeight(pth) + 2*ym;
+  }
+
+  //---
+
   // update cell positions and sizes
   double y = -ym;
+
+  y -= th;
 
   for (int r = 0; r < numRows_; ++r) {
     double x = xm;
@@ -657,7 +675,9 @@ doLayout()
     h += cell.height;
   }
 
-  h += 2*ym;
+  h += 2*ym + th;
+
+  w = std::max(w, tw);
 
   size_ = QSizeF(w, h);
 }
@@ -921,7 +941,7 @@ draw(QPainter *painter)
 
   //---
 
-  CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
+  CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
 
   pixelWidthExceeded_  = (rect.width() > pixelRect.getWidth());
   pixelHeightExceeded_ = rect.height() > pixelRect.getHeight();
@@ -936,7 +956,7 @@ draw(QPainter *painter)
   painter->save();
 
   QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
-  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
+  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPlotPixelRect());
 
   if (location() != LocationType::ABS_POS) {
     if (isInsideX()) {
@@ -993,6 +1013,29 @@ draw(QPainter *painter)
 
   //---
 
+  if (headerStr().length()) {
+    QPointF p = plot_->windowToPixel(QPointF(x, y)); // top left
+
+    double pw = plot_->windowToPixelWidth(w);
+
+    double xm = margin();
+    double ym = margin();
+
+    QFontMetricsF fm(textFont());
+
+    double fa = fm.ascent ();
+//  double fd = fm.descent();
+
+    double tw = fm.width(headerStr()) + 2*xm;
+//  double th = fa + fd + 2*ym;
+
+    double dx = (pw - tw + xm)/2.0;
+
+    painter->drawText(p.x() + dx, p.y() + fa + ym, headerStr());
+  }
+
+  //---
+
   if (plot_->showBoxes())
     plot_->drawWindowColorBox(painter, bbox_);
 
@@ -1042,7 +1085,7 @@ interpBgColor() const
     }
   }
 
-  if (plot_->isBackground())
+  if (plot_->isPlotBackground())
     return plot_->interpBackgroundColor(0, 1);
 
   return plot_->interpThemeColor(0);

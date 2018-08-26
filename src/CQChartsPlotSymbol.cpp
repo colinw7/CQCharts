@@ -415,10 +415,13 @@ CQChartsSymbol2DRenderer::
 CQChartsSymbol2DRenderer(QPainter *painter, const CQChartsGeom::Point &p, double s) :
  painter_(painter), p_(p), s_(s)
 {
-  strokePen_.setColor (painter_->pen().color());
-  strokePen_.setWidthF(painter_->pen().widthF());
+  //strokePen_.setColor (painter_->pen().color());
+  //strokePen_.setWidthF(painter_->pen().widthF());
 
-  fillBrush_ = QBrush(painter_->brush().color());
+  //fillBrush_ = QBrush(painter_->brush().color());
+
+  strokePen_ = painter_->pen ();
+  fillBrush_ = painter_->brush();
 }
 
 void

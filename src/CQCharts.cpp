@@ -32,14 +32,15 @@
 CQCharts::
 CQCharts()
 {
-  CQChartsColumn  ::registerMetaType();
-  CQChartsLength  ::registerMetaType();
-  CQChartsPosition::registerMetaType();
-  CQChartsLineDash::registerMetaType();
-  CQChartsColor   ::registerMetaType();
-  CQChartsPath    ::registerMetaType();
-  CQChartsStyle   ::registerMetaType();
-  CQChartsSymbol  ::registerMetaType();
+  CQChartsColumn     ::registerMetaType();
+  CQChartsLength     ::registerMetaType();
+  CQChartsPosition   ::registerMetaType();
+  CQChartsLineDash   ::registerMetaType();
+  CQChartsColor      ::registerMetaType();
+  CQChartsPath       ::registerMetaType();
+  CQChartsStyle      ::registerMetaType();
+  CQChartsSymbol     ::registerMetaType();
+  CQChartsFillPattern::registerMetaType();
 }
 
 CQCharts::

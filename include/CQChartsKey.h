@@ -27,6 +27,7 @@ class CQChartsKey : public CQChartsBoxObj {
   Q_PROPERTY(bool          above       READ isAbove       WRITE setAbove      )
   Q_PROPERTY(bool          interactive READ isInteractive WRITE setInteractive)
   Q_PROPERTY(QString       location    READ locationStr   WRITE setLocationStr)
+  Q_PROPERTY(QString       header      READ headerStr     WRITE setHeaderStr  )
   Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
   Q_PROPERTY(CQChartsColor textColor   READ textColor     WRITE setTextColor  )
   Q_PROPERTY(Qt::Alignment textAlign   READ textAlign     WRITE setTextAlign  )
@@ -107,16 +108,23 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
-  bool isAutoHide() const { return autoHide_; }
-  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
+  // header
+  const QString &headerStr() const { return header_; }
+  void setHeaderStr(const QString &s) { header_ = s; updateLayout(); }
 
   //---
 
+  // auto hide
+  bool isAutoHide() const { return autoHide_; }
+  void setAutoHide(bool b) { autoHide_ = b; updatePosition(); }
+
+  // clip
   bool isClipped() const { return clipped_; }
   void setClipped(bool b) { clipped_ = b; redraw(); }
 
   //---
 
+  // pixel width/height exceeded
   bool isPixelWidthExceeded() const { return pixelWidthExceeded_; }
   void setPixelWidthExceeded(bool b) { pixelWidthExceeded_ = b; }
 
@@ -125,13 +133,13 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
+  // interactive
   bool isInteractive() const { return interactive_; }
   void setInteractive(bool b) { interactive_ = b; }
 
   //---
 
-  // text
-
+  // text style
   const QFont &textFont() const { return textData_.font; }
   void setTextFont(const QFont &f) { textData_.font = f; updateLayout(); }
 
@@ -161,6 +169,7 @@ class CQChartsKey : public CQChartsBoxObj {
   bool             horizontal_          { false };                   // is layed out horizontallly
   bool             above_               { true };                    // draw above view/plot
   LocationType     location_            { LocationType::TOP_RIGHT }; // key placement
+  QString          header_;                                          // header
   bool             autoHide_            { true };                    // auto hide if too big
   bool             clipped_             { true };                    // clipped to plot
   bool             pixelWidthExceeded_  { true };                    // pixel height too big

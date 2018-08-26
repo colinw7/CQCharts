@@ -4,6 +4,7 @@
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
+#include <CMathRound.h>
 
 #include <QPainter>
 #include <QMenu>
@@ -62,7 +63,8 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
- CQChartsGroupPlot(view, view->charts()->plotType("pie"), model)
+ CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
+ CQChartsPlotGridLineData<CQChartsPiePlot>(this)
 {
   (void) addColorSet("color");
 
@@ -70,7 +72,7 @@ CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
 
   setValueColumnsStr("1");
 
-  gridData_.color = CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5);
+  setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
   textBox_ = new CQChartsPieTextObj(this);
 
@@ -185,50 +187,6 @@ setCount(bool b)
 
 void
 CQChartsPiePlot::
-setGrid(bool b)
-{
-  CQChartsUtil::testAndSet(gridData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsPiePlot::
-setGridColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(gridData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsPiePlot::
-interpGridColor(int i, int n)
-{
-  return gridColor().interpColor(this, i, n);
-}
-
-void
-CQChartsPiePlot::
-setGridAlpha(double r)
-{
-  CQChartsUtil::testAndSet(gridData_.alpha, r, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsPiePlot::
-setGridWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(gridData_.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsPiePlot::
-setGridDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(gridData_.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsPiePlot::
 setInnerRadius(double r)
 {
   CQChartsUtil::testAndSet(innerRadius_, r, [&]() { updateRangeAndObjs(); } );
@@ -311,9 +269,9 @@ addProperties()
   addProperty("options", this, "angleExtent");
 
   // grid
-  addProperty("grid", this, "grid", "visible");
+  addProperty("grid", this, "gridLines", "visible");
 
-  addLineProperties("grid", "grid");
+  addLineProperties("grid", "gridLines");
 
   // explode
   addProperty("explode", this, "explodeSelected", "selected");
@@ -362,7 +320,7 @@ calcRange()
   dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
 
   // add intermediate points (every 90 degree point between outside points)
-  double a1 = 90.0*CQChartsUtil::RoundDownF(angle1/90.0);
+  double a1 = 90.0*CMathRound::RoundDownF(angle1/90.0);
 
   if (angle1 < angle2) {
     for (double a = a1; a < angle2; a += 90.0) {
@@ -857,7 +815,7 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
     }
 
     // TODO: check allow nan
-    if (CQChartsUtil::isNaN(value))
+    if (CMathUtil::isNaN(value))
       return false;
 
     // size must be positive
@@ -1168,11 +1126,11 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CQChartsUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
-  a = CQChartsUtil::normalizeAngle(a);
+  double a = CMathUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
+  a = CMathUtil::normalizeAngle(a);
 
-  double a1 = angle1(); a1 = CQChartsUtil::normalizeAngle(a1);
-  double a2 = angle2(); a2 = CQChartsUtil::normalizeAngle(a2);
+  double a1 = angle1(); a1 = CMathUtil::normalizeAngle(a1);
+  double a2 = angle2(); a2 = CMathUtil::normalizeAngle(a2);
 
   if (a1 < a2) {
     // crosses zero
@@ -1246,7 +1204,7 @@ annotationBBox() const
 
   double lr1;
 
-  if (! CQChartsUtil::isZero(ri))
+  if (! CMathUtil::isZero(ri))
     lr1 = ri + lr*(ro - ri);
   else
     lr1 = lr*ro;
@@ -1254,12 +1212,12 @@ annotationBBox() const
   if (lr1 < 0.01)
     lr1 = 0.01;
 
-  double ta = CQChartsUtil::avg(a1, a2);
+  double ta = CMathUtil::avg(a1, a2);
 
   double a21 = a2 - a1;
 
   // if full circle always draw text at center
-  if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
+  if (CMathUtil::realEq(std::abs(a21), 360.0)) {
     CQChartsGeom::Point pc;
 
     plot_->windowToPixel(c, pc);
@@ -1277,7 +1235,7 @@ annotationBBox() const
     else {
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      double tangle = CQChartsUtil::Deg2Rad(ta);
+      double tangle = CMathUtil::Deg2Rad(ta);
 
       double tc = cos(tangle);
       double ts = sin(tangle);
@@ -1328,13 +1286,14 @@ draw(QPainter *painter)
 
   //---
 
-  if (plot_->isGrid()) {
+  if (plot_->isGridLines()) {
     QPen   pen;
     QBrush brush(Qt::NoBrush);
 
-    QColor gridColor = plot_->interpGridColor(0, 1);
+    QColor gridColor = plot_->interpGridLinesColor(0, 1);
 
-    plot_->setPen(pen, true, gridColor, plot_->gridAlpha(), plot_->gridWidth(), plot_->gridDash());
+    plot_->setPen(pen, true, gridColor, plot_->gridLinesAlpha(),
+                  plot_->gridLinesWidth(), plot_->gridLinesDash());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -1351,7 +1310,7 @@ draw(QPainter *painter)
   else if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
-  QColor fg = plot_->textColor(bg);
+  QColor fg = plot_->calcTextColor(bg);
 
   QPen   pen  (fg);
   QBrush brush(bg);
@@ -1398,7 +1357,7 @@ getCenter() const
   double a1 = angle1();
   double a2 = angle2();
 
-  double angle = CQChartsUtil::Deg2Rad(CQChartsUtil::avg(a1, a2));
+  double angle = CMathUtil::Deg2Rad(CMathUtil::avg(a1, a2));
 
   double dx = plot_->explodeRadius()*rv*cos(angle);
   double dy = plot_->explodeRadius()*rv*sin(angle);
@@ -1438,7 +1397,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
 
   double lr1;
 
-  if (! CQChartsUtil::isZero(ri))
+  if (! CMathUtil::isZero(ri))
     lr1 = ri + lr*(ro - ri);
   else
     lr1 = lr*ro;
@@ -1446,7 +1405,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   if (lr1 < 0.01)
     lr1 = 0.01;
 
-  double ta = CQChartsUtil::avg(a1, a2);
+  double ta = CMathUtil::avg(a1, a2);
 
   QColor bg;
 
@@ -1458,7 +1417,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
   double a21 = a2 - a1;
 
   // if full circle always draw text at center
-  if (CQChartsUtil::realEq(std::abs(a21), 360.0)) {
+  if (CMathUtil::realEq(std::abs(a21), 360.0)) {
     CQChartsGeom::Point pc;
 
     plot_->windowToPixel(c, pc);
@@ -1479,7 +1438,7 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
 
       Qt::Alignment align = Qt::AlignHCenter | Qt::AlignVCenter;
 
-      double tangle = CQChartsUtil::Deg2Rad(ta);
+      double tangle = CMathUtil::Deg2Rad(ta);
 
       double tc = cos(tangle);
       double ts = sin(tangle);
@@ -1572,11 +1531,11 @@ inside(const CQChartsGeom::Point &p) const
   //---
 
   // check angle
-  double a = CQChartsUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
-  a = CQChartsUtil::normalizeAngle(a);
+  double a = CMathUtil::Rad2Deg(atan2(p.y - center.y, p.x - center.x));
+  a = CMathUtil::normalizeAngle(a);
 
-  double a1 = startAngle_; a1 = CQChartsUtil::normalizeAngle(a1);
-  double a2 = endAngle_  ; a2 = CQChartsUtil::normalizeAngle(a2);
+  double a1 = startAngle_; a1 = CMathUtil::normalizeAngle(a1);
+  double a2 = endAngle_  ; a2 = CMathUtil::normalizeAngle(a2);
 
   if (a1 < a2) {
     // crosses zero
@@ -1610,7 +1569,7 @@ draw(QPainter *painter)
   double a2 = endAngle_;
 
   QColor bg = bgColor();
-  QColor fg = plot_->interpBorderColor(0, 1);
+  QColor fg = plot_->interpPlotBorderColor(0, 1);
 
   QPen   pen  (fg);
   QBrush brush(bg);
@@ -1637,9 +1596,9 @@ drawFg(QPainter *painter)
   double a1 = startAngle_;
   double a2 = endAngle_;
 
-  double ta = CQChartsUtil::avg(a1, a2);
+  double ta = CMathUtil::avg(a1, a2);
 
-  double tangle = CQChartsUtil::Deg2Rad(ta);
+  double tangle = CMathUtil::Deg2Rad(ta);
 
   double tc = cos(tangle);
   double ts = sin(tangle);
@@ -1655,7 +1614,7 @@ drawFg(QPainter *painter)
 
   QString label = QString("%1").arg(numValues());
 
-  QColor fg = plot_->interpBorderColor(0, 1);
+  QColor fg = plot_->interpPlotBorderColor(0, 1);
 
   QPen pen(fg);
 

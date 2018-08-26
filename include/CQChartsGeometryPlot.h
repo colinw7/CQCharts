@@ -85,47 +85,25 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsGeometryPlot : public CQChartsPlot {
+class CQChartsGeometryPlot : public CQChartsPlot,
+ public CQChartsPlotShapeData<CQChartsGeometryPlot> {
   Q_OBJECT
 
-  // properties
-  //  line
-  //   display, stroke
-  //  fill
-  //   display, brush
-
+  // columns
   Q_PROPERTY(CQChartsColumn nameColumn     READ nameColumn     WRITE setNameColumn    )
   Q_PROPERTY(CQChartsColumn geometryColumn READ geometryColumn WRITE setGeometryColumn)
   Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn    WRITE setValueColumn   )
   Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn    WRITE setColorColumn   )
   Q_PROPERTY(CQChartsColumn styleColumn    READ styleColumn    WRITE setStyleColumn   )
-  Q_PROPERTY(double         minValue       READ minValue       WRITE setMinValue      )
-  Q_PROPERTY(double         maxValue       READ maxValue       WRITE setMaxValue      )
 
-  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+  // value range
+  Q_PROPERTY(double minValue READ minValue WRITE setMinValue)
+  Q_PROPERTY(double maxValue READ maxValue WRITE setMaxValue)
 
-  Q_PROPERTY(bool          filled      READ isFilled    WRITE setFilled     )
-  Q_PROPERTY(CQChartsColor fillColor   READ fillColor   WRITE setFillColor  )
-  Q_PROPERTY(double        fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
-  Q_PROPERTY(Pattern       fillPattern READ fillPattern WRITE setFillPattern)
-
-  Q_ENUMS(Pattern)
+  // shape
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
   using Polygons = std::vector<QPolygonF>;
 
   struct Geometry {
@@ -170,41 +148,6 @@ class CQChartsGeometryPlot : public CQChartsPlot {
 
   //---
 
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &l);
-
-  //---
-
-  bool isFilled() const;
-  void setFilled(bool b);
-
-  const CQChartsColor &fillColor() const;
-  void setFillColor(const CQChartsColor &c);
-
-  QColor interpFillColor(int i, int n) const;
-
-  double fillAlpha() const;
-  void setFillAlpha(double a);
-
-  Pattern fillPattern() const;
-  void setFillPattern(Pattern pattern);
-
-  //---
-
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
   CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
@@ -243,7 +186,6 @@ class CQChartsGeometryPlot : public CQChartsPlot {
   Geometries        geometries_;                              // geometry shapes
   double            minValue_           { 0.0 };              // min value
   double            maxValue_           { 0.0 };              // max value
-  CQChartsShapeData shapeData_;                               // polygon fill/border object
   CQChartsDataLabel dataLabel_;                               // data label style
 };
 

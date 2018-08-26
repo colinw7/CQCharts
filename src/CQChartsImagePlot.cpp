@@ -36,7 +36,8 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsImagePlot::
 CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("image"), model)
+ CQChartsPlot(view, view->charts()->plotType("image"), model),
+ CQChartsPlotTextData<CQChartsImagePlot>(this)
 {
   addTitle();
 }
@@ -50,9 +51,8 @@ addProperties()
   addProperty("labels", this, "xLabels"   , "x"    );
   addProperty("labels", this, "yLabels"   , "y"    );
   addProperty("labels", this, "cellLabels", "cell" );
-  addProperty("labels", this, "textFont"  , "font" );
-  addProperty("labels", this, "textColor" , "color");
-  addProperty("labels", this, "textAlpha" , "alpha");
+
+  addTextProperties("label", "text");
 }
 
 //------
@@ -95,57 +95,6 @@ setCellLabels(bool b)
 }
 
 //---
-
-const CQChartsColor &
-CQChartsImagePlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsImagePlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsImagePlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsImagePlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsImagePlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-const QFont &
-CQChartsImagePlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsImagePlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-//------
 
 void
 CQChartsImagePlot::
@@ -531,7 +480,7 @@ draw(QPainter *painter)
 
   QRectF qrect = CQChartsUtil::toQRect(prect);
 
-  double v = CQChartsUtil::norm(value_, plot_->minValue(), plot_->maxValue());
+  double v = CMathUtil::norm(value_, plot_->minValue(), plot_->maxValue());
 
   QColor c = plot_->interpPaletteColor(v);
 

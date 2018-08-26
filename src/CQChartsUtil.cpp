@@ -2,12 +2,15 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelFilter.h>
 #include <CQChartsEval.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
+
 #include <CQCsvModel.h>
 #include <CQTsvModel.h>
 #include <CQDataModel.h>
 
 #include <CQUtil.h>
+#include <CQStrUtil.h>
 #include <CQStrParse.h>
 #include <QSortFilterProxyModel>
 #include <QFontMetricsF>
@@ -139,7 +142,7 @@ QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
   while (pind.isValid()) {
     bool ok;
 
-    QString str = CQChartsUtil::modelString(model, pind, ok);
+    QString str = modelString(model, pind, ok);
 
     if (! ok)
       break;
@@ -212,12 +215,12 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
         if (isInt_) {
           bool ok;
 
-          (void) CQChartsUtil::modelInteger(model, ind, ok);
+          (void) modelInteger(model, ind, ok);
 
           if (ok)
             return State::SKIP;
 
-          QString str = CQChartsUtil::modelString(model, ind, ok);
+          QString str = modelString(model, ind, ok);
 
           if (! str.length())
             return State::SKIP;
@@ -229,12 +232,12 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
         if (isReal_) {
           bool ok;
 
-          (void) CQChartsUtil::modelReal(model, ind, ok);
+          (void) modelReal(model, ind, ok);
 
           if (ok)
             return State::SKIP;
 
-          QString str = CQChartsUtil::modelString(model, ind, ok);
+          QString str = modelString(model, ind, ok);
 
           if (! str.length())
             return State::SKIP;
@@ -325,7 +328,7 @@ formatColumnTypeValue(CQChartsColumnType *typeData, const CQChartsNameValues &na
   if (! var.isValid())
     return false;
 
-  variantToString(var, str);
+  CQChartsVariant::toString(var, str);
 
   return true;
 }
@@ -449,59 +452,7 @@ setColumnTypeStr(CQCharts *charts, QAbstractItemModel *model, const CQChartsColu
 namespace CQChartsUtil {
 
 double toReal(const QString &str, bool &ok) {
-  ok = true;
-
-  double r = 0.0;
-
-  //---
-
-  std::string sstr = str.toStdString();
-
-  const char *c_str = sstr.c_str();
-
-  int i = 0;
-
-  while (c_str[i] != 0 && ::isspace(c_str[i]))
-    ++i;
-
-  if (c_str[i] == '\0') {
-    ok = false;
-    return r;
-  }
-
-  const char *p;
-
-#ifdef ALLOW_NAN
-  if (COS::has_nan() && strncmp(&c_str[i], "NaN", 3) == 0)
-    p = &c_str[i + 3];
-  else {
-    errno = 0;
-
-    r = strtod(&c_str[i], (char **) &p);
-
-    if (errno == ERANGE) {
-      ok = false;
-      return r;
-    }
-  }
-#else
-  errno = 0;
-
-  r = strtod(&c_str[i], (char **) &p);
-
-  if (errno == ERANGE) {
-    ok = false;
-    return r;
-  }
-#endif
-
-  while (*p != 0 && ::isspace(*p))
-    ++p;
-
-  if (*p != '\0')
-    ok = false;
-
-  return r;
+  return CQStrUtil::toReal(str, ok);
 }
 
 bool toReal(const QString &str, double &r) {
@@ -515,51 +466,7 @@ bool toReal(const QString &str, double &r) {
 //------
 
 long toInt(const QString &str, bool &ok) {
-  ok = true;
-
-  long integer = 0;
-
-  std::string sstr = str.toStdString();
-
-  const char *c_str = sstr.c_str();
-
-  int i = 0;
-
-  while (c_str[i] != 0 && ::isspace(c_str[i]))
-    ++i;
-
-  if (c_str[i] == '\0') {
-    ok = false;
-    return integer;
-  }
-
-  const char *p;
-
-  errno = 0;
-
-  integer = strtol(&c_str[i], (char **) &p, 10);
-
-  if (errno == ERANGE) {
-    ok = false;
-    return integer;
-  }
-
-  if (*p == '.') {
-    ++p;
-
-    while (*p == '0')
-      ++p;
-  }
-
-  while (*p != 0 && ::isspace(*p))
-    ++p;
-
-  if (*p != '\0') {
-    ok = false;
-    return integer;
-  }
-
-  return integer;
+  return CQStrUtil::toInt(str, ok);
 }
 
 bool toInt(const QString &str, long &i) {
@@ -576,7 +483,7 @@ QString toString(double r, const QString &fmt) {
     return "NaN";
 #endif
 
-  if (fmt == "%g" && isZero(r))
+  if (fmt == "%g" && CMathUtil::isZero(r))
     return "0.0";
 
   static char buffer[128];
@@ -681,7 +588,11 @@ bool fromString(const QString &str, std::vector<CQChartsColumn> &columns) {
   return ok;
 }
 
+}
+
 //---
+
+namespace CQChartsUtil {
 
 bool intersectLines(const QPointF &l1s, const QPointF &l1e,
                     const QPointF &l2s, const QPointF &l2e, QPointF &pi) {
@@ -725,7 +636,11 @@ bool intersectLines(double x11, double y11, double x21, double y21,
   return rc;
 }
 
+}
+
 //---
+
+namespace CQChartsUtil {
 
 QColor bwColor(const QColor &c) {
   int g = qGray(c.red(), c.green(), c.blue());
@@ -744,7 +659,9 @@ QColor blendColors(const QColor &c1, const QColor &c2, double f) {
   double g = c1.greenF()*f + c2.greenF()*f1;
   double b = c1.blueF ()*f + c2.blueF ()*f1;
 
-  return QColor(iclamp(255*r, 0, 255), iclamp(255*g, 0, 255), iclamp(255*b, 0, 255));
+  return QColor(CMathUtil::clamp(int(255*r), 0, 255),
+                CMathUtil::clamp(int(255*g), 0, 255),
+                CMathUtil::clamp(int(255*b), 0, 255));
 }
 
 QColor blendColors(const std::vector<QColor> &colors) {
@@ -763,10 +680,16 @@ QColor blendColors(const std::vector<QColor> &colors) {
     b += c.blueF ()*f;
   }
 
-  return QColor(iclamp(255*r, 0, 255), iclamp(255*g, 0, 255), iclamp(255*b, 0, 255));
+  return QColor(CMathUtil::clamp(int(255*r), 0, 255),
+                CMathUtil::clamp(int(255*g), 0, 255),
+                CMathUtil::clamp(int(255*b), 0, 255));
+}
+
 }
 
 //------
+
+namespace CQChartsUtil {
 
 void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
   int num = dash.getNumLengths();
@@ -794,104 +717,9 @@ void penSetLineDash(QPen &pen, const CQChartsLineDash &dash) {
     pen.setStyle(Qt::SolidLine);
 }
 
+}
+
 //---
-
-QString polygonToString(const QPolygonF &poly) {
-  int np = poly.size();
-
-  QString str;
-
-  for (int i = 0; i < np; ++i) {
-    const QPointF &p = poly[i];
-
-    str += QString("{%1 %2}").arg(p.x()).arg(p.y());
-  }
-
-  return str;
-}
-
-QString rectToString(const QRectF &rect) {
-  const QPointF &tl = rect.topLeft    ();
-  const QPointF &br = rect.bottomRight();
-
-  return QString("{%1 %2 %3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
-}
-
-QString pointToString(const QPointF &p) {
-  return QString("%1 %2").arg(p.x()).arg(p.y());
-}
-
-bool variantToString(const QVariant &var, QString &str) {
-  if      (var.type() == QVariant::String) {
-    str = var.toString();
-  }
-  else if (var.type() == QVariant::Double) {
-    str = toString(var.toDouble());
-  }
-  else if (var.type() == QVariant::Int) {
-    str = toString((long) var.toInt());
-  }
-  else if (var.canConvert(QVariant::String)) {
-    str = var.toString();
-  }
-  else if (var.type() == QVariant::PolygonF) {
-    QPolygonF poly = var.value<QPolygon>();
-
-    str = polygonToString(poly);
-  }
-  else if (var.type() == QVariant::RectF) {
-    QRectF rect = var.value<QRectF>();
-
-    str = rectToString(rect);
-  }
-  else if (var.type() == QVariant::UserType) {
-#if 0
-    if      (var.userType() == CQChartsPath::metaType()) {
-      CQChartsPath path = var.value<CQChartsPath>();
-
-      str = path.toString();
-    }
-    else if (var.userType() == CQChartsStyle::metaType()) {
-      CQChartsStyle style = var.value<CQChartsStyle>();
-
-      str = style.toString();
-    }
-    else {
-      assert(false);
-    }
-#else
-    if (! CQUtil::userVariantToString(var, str))
-      assert(false);
-#endif
-  }
-  else if (var.type() == QVariant::List) {
-    QList<QVariant> vars = var.toList();
-
-    QStringList strs;
-
-    for (int i = 0; i < vars.length(); ++i) {
-      QString str1;
-
-      if (variantToString(vars[i], str1))
-        strs.push_back(str1);
-    }
-
-    str = "{" + strs.join(" ") + "}";
-
-    return true;
-  }
-  else {
-    assert(false);
-
-    return false;
-  }
-
-  return true;
-}
-
-}
-
-//------
 
 namespace CQChartsUtil {
 
@@ -1085,17 +913,6 @@ int nameToRole(const QString &name) {
 
 namespace CQChartsUtil {
 
-std::vector<double> varToReals(const QVariant &var, bool &ok) {
-  std::vector<double> reals;
-
-  QString str;
-
-  if (! variantToString(var, str))
-    return reals;
-
-  return stringToReals(str, ok);
-}
-
 std::vector<double> stringToReals(const QString &str, bool &ok) {
   std::vector<double> reals;
 
@@ -1182,7 +999,7 @@ QString modelHeaderString(QAbstractItemModel *model, const CQChartsColumn &colum
 
   QString str;
 
-  bool rc = variantToString(var, str);
+  bool rc = CQChartsVariant::toString(var, str);
   assert(rc);
 
   return str;
@@ -1354,7 +1171,7 @@ QString modelString(QAbstractItemModel *model, const QModelIndex &ind, int role,
 
   QString str;
 
-  bool rc = variantToString(var, str);
+  bool rc = CQChartsVariant::toString(var, str);
   assert(rc);
 
   return str;
@@ -1376,7 +1193,7 @@ QString modelString(CQCharts *charts, QAbstractItemModel *model, int row,
 
   QString str;
 
-  bool rc = variantToString(var, str);
+  bool rc = CQChartsVariant::toString(var, str);
   assert(rc);
 
   return str;
@@ -1443,7 +1260,7 @@ double modelReal(QAbstractItemModel *model, const QModelIndex &ind, int role, bo
   QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return 0.0;
 
-  return toReal(var, ok);
+  return CQChartsVariant::toReal(var, ok);
 }
 
 double modelReal(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -1460,7 +1277,7 @@ double modelReal(CQCharts *charts, QAbstractItemModel *model, int row,
   QVariant var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return 0.0;
 
-  return toReal(var, ok);
+  return CQChartsVariant::toReal(var, ok);
 }
 
 double modelReal(CQCharts *charts, QAbstractItemModel *model, int row,
@@ -1523,7 +1340,7 @@ long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, int role, b
   QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return 0;
 
-  return toInt(var, ok);
+  return CQChartsVariant::toInt(var, ok);
 }
 
 long modelInteger(QAbstractItemModel *model, const QModelIndex &ind, bool &ok) {
@@ -1540,7 +1357,7 @@ long modelInteger(CQCharts *charts, QAbstractItemModel *model, int row,
   QVariant var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return 0;
 
-  return toInt(var, ok);
+  return CQChartsVariant::toInt(var, ok);
 }
 
 long modelInteger(CQCharts *charts, QAbstractItemModel *model, int row,
@@ -1604,21 +1421,21 @@ CQChartsColor modelColor(QAbstractItemModel *model, const QModelIndex &ind, int 
   QVariant var = modelValue(model, ind, role, ok);
   if (! ok) return CQChartsColor();
 
-  if (isColor(var))
-    return CQChartsColor(var.value<QColor>());
+  if (CQChartsVariant::isColor(var))
+    return CQChartsVariant::toColor(var, ok);
 
   CQChartsColor color;
 
-  if (isReal(var)) {
+  if (CQChartsVariant::isReal(var)) {
     double r;
 
-    if (toReal(var, r))
+    if (CQChartsVariant::toReal(var, r))
       color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
   }
   else {
     QString str;
 
-    if (CQChartsUtil::toString(var, str))
+    if (CQChartsVariant::toString(var, str))
       color = CQChartsColor(str);
   }
 
@@ -1640,21 +1457,21 @@ CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
   QVariant var = modelValue(charts, model, row, column, parent, role, ok);
   if (! ok) return CQChartsColor();
 
-  if (isColor(var))
-    return CQChartsColor(var.value<QColor>());
+  if (CQChartsVariant::isColor(var))
+    return CQChartsVariant::toColor(var, ok);
 
   CQChartsColor color;
 
-  if (isReal(var)) {
+  if (CQChartsVariant::isReal(var)) {
     double r;
 
-    if (toReal(var, r))
+    if (CQChartsVariant::toReal(var, r))
       color = CQChartsColor(CQChartsColor::Type::PALETTE, r);
   }
   else {
     QString str;
 
-    if (CQChartsUtil::toString(var, str))
+    if (CQChartsVariant::toString(var, str))
       color = CQChartsColor(str);
   }
 
@@ -1826,10 +1643,10 @@ bool stringToRect(const QString &str, QRectF &rect) {
   // get x1 y1 x2 y2 values
   double x1, y1, x2, y2;
 
-  if (! CQChartsUtil::toReal(x1str, x1)) return false;
-  if (! CQChartsUtil::toReal(y1str, y1)) return false;
-  if (! CQChartsUtil::toReal(x2str, x2)) return false;
-  if (! CQChartsUtil::toReal(y2str, y2)) return false;
+  if (! toReal(x1str, x1)) return false;
+  if (! toReal(y1str, y1)) return false;
+  if (! toReal(x2str, x2)) return false;
+  if (! toReal(y2str, y2)) return false;
 
   //---
 
@@ -1865,14 +1682,45 @@ bool stringToPoint(const QString &str, QPointF &point) {
   // get x y values
   double x, y;
 
-  if (! CQChartsUtil::toReal(xstr, x)) return false;
-  if (! CQChartsUtil::toReal(ystr, y)) return false;
+  if (! toReal(xstr, x)) return false;
+  if (! toReal(ystr, y)) return false;
 
   //---
 
   point = QPointF(x, y);
 
   return true;
+}
+
+}
+
+//------
+
+namespace CQChartsUtil {
+
+QString pointToString(const QPointF &p) {
+  return QString("%1 %2").arg(p.x()).arg(p.y());
+}
+
+QString rectToString(const QRectF &rect) {
+  const QPointF &tl = rect.topLeft    ();
+  const QPointF &br = rect.bottomRight();
+
+  return QString("{%1 %2 %3 %4}").arg(tl.x()).arg(tl.y()).arg(br.x()).arg(br.y());
+}
+
+QString polygonToString(const QPolygonF &poly) {
+  int np = poly.size();
+
+  QString str;
+
+  for (int i = 0; i < np; ++i) {
+    const QPointF &p = poly[i];
+
+    str += QString("{%1}").arg(pointToString(p));
+  }
+
+  return str;
 }
 
 }
@@ -1975,7 +1823,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   double dw = (rect.width() - w);
 
-  if (dw > 0 || isZero(dw)) { // fits
+  if (dw > 0 || CMathUtil::isZero(dw)) { // fits
     addStr(sstr);
     return false;
   }
@@ -1984,7 +1832,7 @@ formatStringInRect(const QString &str, const QFont &font, const QRectF &rect, QS
 
   double dh = (rect.height() - h);
 
-  if (dh < 0 || isZero(dh)) { // rect can only fit single line of text (TODO: factor)
+  if (dh < 0 || CMathUtil::isZero(dh)) { // rect can only fit single line of text (TODO: factor)
     addStr(sstr);
     return false;
   }
@@ -2114,11 +1962,11 @@ int modelColumnNameToInd(const QAbstractItemModel *model, const QString &name) {
     if (! var.isValid())
       continue;
 
-    //QString name1 = CQChartsUtil::toString(var, rc);
+    //QString name1 = CQChartsVariant::toString(var, rc);
 
     QString name1;
 
-    bool rc = variantToString(var, name1);
+    bool rc = CQChartsVariant::toString(var, name1);
     assert(rc);
 
     if (name == name1)
@@ -2279,7 +2127,7 @@ namespace CQChartsUtil {
 void
 processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -2294,7 +2142,7 @@ processAddExpression(QAbstractItemModel *model, const QString &exprStr)
 int
 processExpression(QAbstractItemModel *model, const QString &exprStr)
 {
-  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");
@@ -2319,7 +2167,7 @@ int
 processExpression(QAbstractItemModel *model, CQChartsExprModel::Function function,
                   const CQChartsColumn &column, const QString &expr)
 {
-  CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model);
+  CQChartsExprModel *exprModel = getExprModel(model);
 
   if (! exprModel) {
     errorMsg("Expression not supported for model");

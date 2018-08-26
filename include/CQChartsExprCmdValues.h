@@ -2,6 +2,7 @@
 #define CQChartsExprCmdValues_H
 
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <QVariant>
 #include <vector>
 
@@ -28,11 +29,7 @@ class CQChartsExprCmdValues {
 
     bool ok;
 
-#if 0
-    long i1 = values_[ind_].toInt(&ok);
-#else
-    long i1 = CQChartsUtil::toInt(values_[ind_], ok);
-#endif
+    long i1 = CQChartsVariant::toInt(values_[ind_], ok);
 
     if (ok) {
       i = i1;

@@ -302,7 +302,7 @@ draw(QPainter *painter)
   //---
 
   // clip to plot
-  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPixelRect());
+  QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPlotPixelRect());
 
   painter->setClipRect(clipRect);
 

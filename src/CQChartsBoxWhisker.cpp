@@ -10,8 +10,6 @@ drawWhisker(CQChartsPlot *plot, QPainter *painter, const CQChartsBoxWhisker &whi
             const CQChartsGeom::BBox &bbox, const CQChartsLength &width,
             const Qt::Orientation &orientation)
 {
-  CQChartsWhiskerData data;
-
   drawWhisker(plot, painter, whisker.data(), bbox, width, orientation);
 }
 
@@ -173,7 +171,7 @@ drawOutliers(CQChartsPlot *plot, QPainter *painter, const std::vector<double> &o
     else
       plot->windowToPixel(o, pos, px1, py1);
 
-    plot->drawSymbol(painter, QPointF(px1, py1), symbol.type, CQChartsUtil::avg(sx, sy),
+    plot->drawSymbol(painter, QPointF(px1, py1), symbol.type, CMathUtil::avg(sx, sy),
                      pen, brush);
   }
 }

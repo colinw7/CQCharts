@@ -6,6 +6,7 @@
 #include <CQChartsPlotParameter.h>
 #include <CQChartsAxis.h>
 #include <CQCharts.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
 #include <CQChartsColumnEdit.h>
 #include <CQChartsModelView.h>
@@ -1029,7 +1030,7 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   bool ok;
 
-  QString str = CQChartsUtil::toString(parameter.defValue(), ok);
+  QString str = CQChartsVariant::toString(parameter.defValue(), ok);
 
   columnsEdit->setText(str);
 
@@ -1087,7 +1088,7 @@ addParameterStringEdit(PlotData &plotData, QHBoxLayout *layout,
 {
   bool ok;
 
-  QString str = CQChartsUtil::toString(parameter.defValue(), ok);
+  QString str = CQChartsVariant::toString(parameter.defValue(), ok);
 
   QHBoxLayout *editLayout = new QHBoxLayout;
   editLayout->setMargin(0); editLayout->setSpacing(2);
@@ -1448,7 +1449,7 @@ setXYMin(const QString &id)
     else if (parameter.type() == "columns") {
       bool ok;
 
-      QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
+      QString defValue = CQChartsVariant::toString(parameter.defValue(), ok);
 
       std::vector<CQChartsColumn> columns;
 
@@ -1794,7 +1795,7 @@ validate(QStringList &msgs)
     else if (parameter.type() == "columns") {
       bool ok;
 
-      QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
+      QString defValue = CQChartsVariant::toString(parameter.defValue(), ok);
 
       std::vector<CQChartsColumn> columns;
 
@@ -2042,7 +2043,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter.type() == "columns") {
       bool ok;
 
-      QString defValue = CQChartsUtil::toString(parameter.defValue(), ok);
+      QString defValue = CQChartsVariant::toString(parameter.defValue(), ok);
 
       std::vector<CQChartsColumn> columns;
 
@@ -2073,7 +2074,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
     else if (parameter.type() == "string") {
       bool ok;
 
-      QString defStr = CQChartsUtil::toString(parameter.defValue(), ok);
+      QString defStr = CQChartsVariant::toString(parameter.defValue(), ok);
 
       QString str = defStr;
 
@@ -2222,10 +2223,10 @@ parsePosition(double &xmin, double &ymin, double &xmax, double &ymax) const
     bool ok3; xmax = posStrs[2].toDouble(&ok3); if (! ok3) xmax = 1.0;
     bool ok4; ymax = posStrs[3].toDouble(&ok4); if (! ok4) ymax = 1.0;
 
-    xmin = CQChartsUtil::clamp(xmin, 0.0, 1.0);
-    ymin = CQChartsUtil::clamp(ymin, 0.0, 1.0);
-    xmax = CQChartsUtil::clamp(xmax, 0.0, 1.0);
-    ymax = CQChartsUtil::clamp(ymax, 0.0, 1.0);
+    xmin = CMathUtil::clamp(xmin, 0.0, 1.0);
+    ymin = CMathUtil::clamp(ymin, 0.0, 1.0);
+    xmax = CMathUtil::clamp(xmax, 0.0, 1.0);
+    ymax = CMathUtil::clamp(ymax, 0.0, 1.0);
 
     if (xmin > xmax) std::swap(xmin, xmax);
     if (ymin > ymax) std::swap(ymin, ymax);

@@ -106,7 +106,7 @@ class CQChartsRValues {
     if (rmin == rmax)
       return mapMin;
 
-    return CQChartsUtil::map(r, rmin, rmax, mapMin, mapMax);
+    return CMathUtil::map(r, rmin, rmax, mapMin, mapMax);
   }
 
   // min/max value
@@ -398,7 +398,7 @@ class CQChartsIValues {
     if (imin == imax)
       return mapMin;
 
-    return CQChartsUtil::map(i, imin, imax, mapMin, mapMax);
+    return CMathUtil::map(i, imin, imax, mapMin, mapMax);
   }
 
   // min/max value
@@ -716,7 +716,7 @@ class CQChartsSValues {
     if (! n)
       return mapMin;
 
-    return CQChartsUtil::map(i, imin(), imax(), mapMin, mapMax);
+    return CMathUtil::map(i, imin(), imax(), mapMin, mapMax);
   }
 
   int sbucket(const QString &s) const {
@@ -900,7 +900,7 @@ class CQChartsCValues {
     if (! n)
       return mapMin;
 
-    return CQChartsUtil::map(i, imin(), imax(), mapMin, mapMax);
+    return CMathUtil::map(i, imin(), imax(), mapMin, mapMax);
   }
 
  private:

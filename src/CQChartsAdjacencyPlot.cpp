@@ -1,10 +1,12 @@
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
+
 #include <CQStrParse.h>
 #include <QPainter>
 
@@ -70,15 +72,19 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsAdjacencyPlot::
 CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
- bgBox_(this), cellBox_(this), emptyCellBox_(this)
+ CQChartsPlotShapeData<CQChartsAdjacencyPlot>(this),
+ CQChartsPlotTextData <CQChartsAdjacencyPlot>(this),
+ bgBox_(this), emptyCellBox_(this)
 {
   CQChartsColor bg         (CQChartsColor::Type::INTERFACE_VALUE, 0.2);
   CQChartsColor border     (CQChartsColor::Type::INTERFACE_VALUE, 1.0);
   CQChartsColor emptyCellBg(CQChartsColor::Type::INTERFACE_VALUE, 0.1);
 
-  bgBox_       .setBackgroundColor(bg);
-  cellBox_     .setBorderColor    (border);
-  cellBox_     .setBorderAlpha    (0.5);
+  bgBox_.setBackgroundColor(bg);
+
+  setBorderColor(border);
+  setBorderAlpha(0.5);
+
   emptyCellBox_.setBackgroundColor(emptyCellBg);
 
   setMargins(0, 0, 0, 0);
@@ -161,75 +167,9 @@ interpBgColor(int i, int n) const
 
 void
 CQChartsAdjacencyPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  cellBox_.setBorderColor(c);
-
-  invalidateLayers();
-}
-
-QColor
-CQChartsAdjacencyPlot::
-interpBorderColor(int i, int n) const
-{
-  return cellBox_.interpBorderColor(i, n);
-}
-
-void
-CQChartsAdjacencyPlot::
-setBorderAlpha(double r)
-{
-  cellBox_.setBorderAlpha(r);
-
-  invalidateLayers();
-}
-
-void
-CQChartsAdjacencyPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  cellBox_.setBorderDash(d);
-
-  invalidateLayers();
-}
-
-//---
-
-void
-CQChartsAdjacencyPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  cellBox_.setCornerSize(s);
-
-  invalidateLayers();
-}
-
-void
-CQChartsAdjacencyPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsAdjacencyPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsAdjacencyPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-void
-CQChartsAdjacencyPlot::
-setFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(cornerSize_, s, [&]() { invalidateLayers(); } );
 }
 
 void
@@ -294,8 +234,7 @@ addProperties()
   addProperty("emptyCell/fill"  , this, "emptyCellColor"     , "color"     );
   addProperty("emptyCell/stroke", this, "emptyCellCornerSize", "cornerSize");
 
-  addProperty("text", this, "textColor", "color");
-  addProperty("text", this, "font"     , "font" );
+  addTextProperties("text", "text");
 }
 
 void
@@ -495,7 +434,7 @@ initHierObjs()
       double value = node1->nodeValue(node2);
 
       // skip unconnected
-      if (node1 == node2 || ! CQChartsUtil::isZero(value)) {
+      if (node1 == node2 || ! CMathUtil::isZero(value)) {
         CQChartsGeom::BBox bbox(x, y - scale_, x + scale_, y);
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
@@ -649,7 +588,7 @@ initConnectionObjs()
       double value = node1->nodeValue(node2);
 
       // skip unconnected
-      if (node1 == node2 || ! CQChartsUtil::isZero(value)) {
+      if (node1 == node2 || ! CMathUtil::isZero(value)) {
         CQChartsGeom::BBox bbox(x, y - scale_, x + scale_, y);
 
         CQChartsAdjacencyObj *obj = new CQChartsAdjacencyObj(this, node1, node2, value, bbox);
@@ -827,7 +766,7 @@ drawBackground(QPainter *painter)
 
   double ts = std::min(pxs, pys);
 
-  QFont f = this->font();
+  QFont f = this->textFont();
 
   f.setPixelSize(ts);
 
@@ -902,7 +841,7 @@ drawBackground(QPainter *painter)
     for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
 
-      bool empty = (node1 != node2 && CQChartsUtil::isZero(value));
+      bool empty = (node1 != node2 && CMathUtil::isZero(value));
 
       if (empty) {
         QColor pc = bc.lighter(120);

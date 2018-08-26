@@ -1,31 +1,14 @@
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsExprCmdValues.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
+
 #include <CHRTimer.h>
 #include <COSNaN.h>
 #include <CQStrParse.h>
 
 #include <QAbstractItemModel>
 #include <QVariant>
-
-#if 0
-namespace {
-
-bool varToInt(const QVariant &var, int &i) {
-  bool ok;
-
-  long i1 = CQChartsUtil::toInt(var, ok);
-  if (! ok) return false;
-
-  i = i1;
-
-  return true;
-}
-
-}
-#endif
-
-//---
 
 #ifdef CQCharts_USE_TCL
 #include <CQTclUtil.h>
@@ -187,7 +170,7 @@ initColumns()
 
     bool ok;
 
-    QString name = CQChartsUtil::toString(var, ok);
+    QString name = CQChartsVariant::toString(var, ok);
 
     columnNames_[column] = name;
     nameColumns_[name  ] = column;

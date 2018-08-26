@@ -57,17 +57,17 @@ class CQChartsImageObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsImagePlot : public CQChartsPlot {
+class CQChartsImagePlot : public CQChartsPlot,
+ public CQChartsPlotTextData<CQChartsImagePlot> {
   Q_OBJECT
 
-  Q_PROPERTY(double        minValue   READ minValue     WRITE setMinValue  )
-  Q_PROPERTY(double        maxValue   READ maxValue     WRITE setMaxValue  )
-  Q_PROPERTY(bool          xLabels    READ isXLabels    WRITE setXLabels   )
-  Q_PROPERTY(bool          yLabels    READ isYLabels    WRITE setYLabels   )
-  Q_PROPERTY(bool          cellLabels READ isCellLabels WRITE setCellLabels)
-  Q_PROPERTY(CQChartsColor textColor  READ textColor    WRITE setTextColor )
-  Q_PROPERTY(double        textAlpha  READ textAlpha    WRITE setTextAlpha )
-  Q_PROPERTY(QFont         textFont   READ textFont     WRITE setTextFont  )
+  Q_PROPERTY(double minValue   READ minValue     WRITE setMinValue  )
+  Q_PROPERTY(double maxValue   READ maxValue     WRITE setMaxValue  )
+  Q_PROPERTY(bool   xLabels    READ isXLabels    WRITE setXLabels   )
+  Q_PROPERTY(bool   yLabels    READ isYLabels    WRITE setYLabels   )
+  Q_PROPERTY(bool   cellLabels READ isCellLabels WRITE setCellLabels)
+
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
   CQChartsImagePlot(CQChartsView *view, const ModelP &model);
@@ -93,19 +93,6 @@ class CQChartsImagePlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const;
-  void setTextAlpha(double a);
-
-  const QFont &textFont() const;
-  void setTextFont(const QFont &f);
-
-  QColor interpTextColor(int i, int n) const;
-
-  //---
-
   void addProperties() override;
 
   void calcRange() override;
@@ -128,14 +115,13 @@ class CQChartsImagePlot : public CQChartsPlot {
   void drawYLabels(QPainter *);
 
  private:
-  double           minValue_   { 0.0 };   // min value
-  double           maxValue_   { 0.0 };   // max value
-  bool             xLabels_    { false }; // x labels
-  bool             yLabels_    { false }; // y labels
-  bool             cellLabels_ { false }; // cell labels
-  CQChartsTextData textData_;             // text style
-  int              nc_         { 0 };     // number of grid columns
-  int              nr_         { 0 };     // number of grid rows
+  double minValue_   { 0.0 };   // min value
+  double maxValue_   { 0.0 };   // max value
+  bool   xLabels_    { false }; // x labels
+  bool   yLabels_    { false }; // y labels
+  bool   cellLabels_ { false }; // cell labels
+  int    nc_         { 0 };     // number of grid columns
+  int    nr_         { 0 };     // number of grid rows
 };
 
 #endif

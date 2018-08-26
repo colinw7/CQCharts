@@ -47,7 +47,10 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsSankeyPlot::
 CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("sankey"), model)
+ CQChartsPlot(view, view->charts()->plotType("sankey"), model),
+ CQChartsPlotTextData     <CQChartsSankeyPlot>(this),
+ CQChartsPlotNodeShapeData<CQChartsSankeyPlot>(this),
+ CQChartsPlotEdgeShapeData<CQChartsSankeyPlot>(this)
 {
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -57,15 +60,15 @@ CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
   setNodeFillColor(bg);
   setNodeFillAlpha(1.00);
 
-  setNodeStroked(true);
-  setNodeStrokeAlpha(0.2);
+  setNodeBorder(true);
+  setNodeBorderAlpha(0.2);
 
   setEdgeFilled(true);
   setEdgeFillColor(bg);
   setEdgeFillAlpha(0.25);
 
-  setEdgeStroked(true);
-  setEdgeStrokeAlpha(0.2);
+  setEdgeBorder(true);
+  setEdgeBorderAlpha(0.2);
 
   //---
 
@@ -84,381 +87,6 @@ CQChartsSankeyPlot::
 
 //---
 
-bool
-CQChartsSankeyPlot::
-isNodeFilled() const
-{
-  return nodeData_.background.visible;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeFilled(bool b)
-{
-  CQChartsUtil::testAndSet(nodeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsSankeyPlot::
-nodeFillColor() const
-{
-  return nodeData_.background.color;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(nodeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSankeyPlot::
-interpNodeFillColor(int i, int n) const
-{
-  return nodeFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSankeyPlot::
-nodeFillAlpha() const
-{
-  return nodeData_.background.alpha;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(nodeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsSankeyPlot::Pattern
-CQChartsSankeyPlot::
-nodeFillPattern() const
-{
-  return (Pattern) nodeData_.background.pattern;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) nodeData_.background.pattern) {
-    nodeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//---
-
-bool
-CQChartsSankeyPlot::
-isNodeStroked() const
-{
-  return nodeData_.border.visible;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeStroked(bool b)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsSankeyPlot::
-nodeStrokeColor() const
-{
-  return nodeData_.border.color;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeStrokeColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSankeyPlot::
-interpNodeStrokeColor(int i, int n) const
-{
-  return nodeStrokeColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSankeyPlot::
-nodeStrokeAlpha() const
-{
-  return nodeData_.border.alpha;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeStrokeAlpha(double a)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsSankeyPlot::
-nodeStrokeWidth() const
-{
-  return nodeData_.border.width;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeStrokeWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsSankeyPlot::
-nodeStrokeDash() const
-{
-  return nodeData_.border.dash;
-}
-
-void
-CQChartsSankeyPlot::
-setNodeStrokeDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(nodeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-bool
-CQChartsSankeyPlot::
-isEdgeFilled() const
-{
-  return edgeData_.background.visible;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeFilled(bool b)
-{
-  CQChartsUtil::testAndSet(edgeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsSankeyPlot::
-edgeFillColor() const
-{
-  return edgeData_.background.color;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(edgeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSankeyPlot::
-interpEdgeFillColor(int i, int n) const
-{
-  return edgeFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSankeyPlot::
-edgeFillAlpha() const
-{
-  return edgeData_.background.alpha;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(edgeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsSankeyPlot::Pattern
-CQChartsSankeyPlot::
-edgeFillPattern() const
-{
-  return (Pattern) edgeData_.background.pattern;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) edgeData_.background.pattern) {
-    edgeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-//---
-
-bool
-CQChartsSankeyPlot::
-isEdgeStroked() const
-{
-  return edgeData_.border.visible;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeStroked(bool b)
-{
-  CQChartsUtil::testAndSet(edgeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsSankeyPlot::
-edgeStrokeColor() const
-{
-  return edgeData_.border.color;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeStrokeColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(edgeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSankeyPlot::
-interpEdgeStrokeColor(int i, int n) const
-{
-  return edgeStrokeColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSankeyPlot::
-edgeStrokeAlpha() const
-{
-  return edgeData_.border.alpha;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeStrokeAlpha(double a)
-{
-  CQChartsUtil::testAndSet(edgeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsSankeyPlot::
-edgeStrokeWidth() const
-{
-  return edgeData_.border.width;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeStrokeWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(edgeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsSankeyPlot::
-edgeStrokeDash() const
-{
-  return edgeData_.border.dash;
-}
-
-void
-CQChartsSankeyPlot::
-setEdgeStrokeDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(edgeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-bool
-CQChartsSankeyPlot::
-isTextVisible() const
-{
-  return textData_.visible;
-}
-
-void
-CQChartsSankeyPlot::
-setTextVisible(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const QFont &
-CQChartsSankeyPlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsSankeyPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsSankeyPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsSankeyPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsSankeyPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-double
-CQChartsSankeyPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsSankeyPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsSankeyPlot::
-isTextContrast() const
-{
-  return textData_.contrast;
-}
-
-void
-CQChartsSankeyPlot::
-setTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
-}
-
-//---
-
 void
 CQChartsSankeyPlot::
 addProperties()
@@ -470,27 +98,25 @@ addProperties()
 
   addProperty("options", this, "align", "align");
 
-  addProperty("node/stroke", this, "nodeStroked", "visible");
+  addProperty("node/stroke", this, "nodeBorder", "visible");
 
-  addLineProperties("node/stroke", "nodeStroke");
+  addLineProperties("node/stroke", "nodeBorder");
 
   addProperty("node/fill", this, "nodeFilled", "visible");
 
   addFillProperties("node/fill", "nodeFill");
 
-  addProperty("edge/stroke", this, "edgeStroked", "visible");
+  addProperty("edge/stroke", this, "edgeBorder", "visible");
 
-  addLineProperties("edge/stroke", "edgeStroke");
+  addLineProperties("edge/stroke", "edgeBorder");
 
   addProperty("edge/fill", this, "edgeFilled", "visible");
 
   addFillProperties("edge/fill", "edgeFill");
 
   addProperty("text", this, "textVisible" , "visible" );
-  addProperty("text", this, "textFont"    , "font"    );
-  addProperty("text", this, "textColor"   , "color"   );
-  addProperty("text", this, "textAlpha"   , "alpha"   );
-  addProperty("text", this, "textContrast", "contrast");
+
+  addTextProperties("text", "text");
 }
 
 void
@@ -1340,15 +966,10 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isNodeStroked(),
-                     plot_->interpNodeStrokeColor(node_->ind(), numNodes),
-                     plot_->nodeStrokeAlpha(),
-                     plot_->nodeStrokeWidth(),
-                     plot_->nodeStrokeDash(),
-                     plot_->isNodeFilled(),
-                     plot_->interpNodeFillColor(node_->ind(), numNodes),
-                     plot_->nodeFillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->nodeFillPattern());
+                     plot_->isNodeBorder(), plot_->interpNodeBorderColor(node_->ind(), numNodes),
+                     plot_->nodeBorderAlpha(), plot_->nodeBorderWidth(), plot_->nodeBorderDash(),
+                     plot_->isNodeFilled(), plot_->interpNodeFillColor(node_->ind(), numNodes),
+                     plot_->nodeFillAlpha(), plot_->nodeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1465,21 +1086,16 @@ draw(QPainter *painter)
 
   QColor fc = CQChartsUtil::blendColors(fc1, fc2, 0.5);
 
-  QColor sc1 = plot_->interpEdgeStrokeColor(edge_->srcNode ()->ind(), numNodes);
-  QColor sc2 = plot_->interpEdgeStrokeColor(edge_->destNode()->ind(), numNodes);
+  QColor sc1 = plot_->interpEdgeBorderColor(edge_->srcNode ()->ind(), numNodes);
+  QColor sc2 = plot_->interpEdgeBorderColor(edge_->destNode()->ind(), numNodes);
 
   QColor sc = CQChartsUtil::blendColors(sc1, sc2, 0.5);
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isEdgeStroked(),
-                     sc,
-                     plot_->edgeStrokeAlpha(),
-                     plot_->edgeStrokeWidth(),
-                     plot_->edgeStrokeDash(),
-                     plot_->isEdgeFilled(),
-                     fc,
-                     plot_->edgeFillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->edgeFillPattern());
+                     plot_->isEdgeBorder(), sc,
+                     plot_->edgeBorderAlpha(), plot_->edgeBorderWidth(), plot_->edgeBorderDash(),
+                     plot_->isEdgeFilled(), fc,
+                     plot_->edgeFillAlpha(), plot_->edgeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

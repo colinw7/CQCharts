@@ -223,9 +223,9 @@ moveNearestDefinedColor(const NearestColor &nearestColor, double dy)
     else if (nearestColor.c == 1) s += dy;
     else if (nearestColor.c == 2) v += dy;
 
-    h = CQChartsUtil::clamp(h, 0.0, 1.0);
-    s = CQChartsUtil::clamp(s, 0.0, 1.0);
-    v = CQChartsUtil::clamp(v, 0.0, 1.0);
+    h = CMathUtil::clamp(h, 0.0, 1.0);
+    s = CMathUtil::clamp(s, 0.0, 1.0);
+    v = CMathUtil::clamp(v, 0.0, 1.0);
 
     newColor.setHsvF(h, s, v);
   }
@@ -238,9 +238,9 @@ moveNearestDefinedColor(const NearestColor &nearestColor, double dy)
     else if (nearestColor.c == 1) g += dy;
     else if (nearestColor.c == 2) b += dy;
 
-    r = CQChartsUtil::clamp(r, 0.0, 1.0);
-    g = CQChartsUtil::clamp(g, 0.0, 1.0);
-    b = CQChartsUtil::clamp(b, 0.0, 1.0);
+    r = CMathUtil::clamp(r, 0.0, 1.0);
+    g = CMathUtil::clamp(g, 0.0, 1.0);
+    b = CMathUtil::clamp(b, 0.0, 1.0);
 
     newColor.setRgbF(r, g, b);
   }

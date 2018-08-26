@@ -1,4 +1,6 @@
 #include <CQBaseModel.h>
+#include <CQStrUtil.h>
+#include <CMathUtil.h>
 #include <cmath>
 #include <cassert>
 
@@ -585,108 +587,19 @@ double
 CQBaseModel::
 toReal(const QString &str, bool &ok)
 {
-  ok = true;
-
-  double r = 0.0;
-
-  //---
-
-  std::string sstr = str.toStdString();
-
-  const char *c_str = sstr.c_str();
-
-  int i = 0;
-
-  while (c_str[i] != 0 && ::isspace(c_str[i]))
-    ++i;
-
-  if (c_str[i] == '\0') {
-    ok = false;
-    return r;
-  }
-
-  const char *p;
-
-#ifdef ALLOW_NAN
-  if (COS::has_nan() && strncmp(&c_str[i], "NaN", 3) == 0)
-    p = &c_str[i + 3];
-  else {
-    errno = 0;
-
-    r = strtod(&c_str[i], (char **) &p);
-
-    if (errno == ERANGE) {
-      ok = false;
-      return r;
-    }
-  }
-#else
-  errno = 0;
-
-  r = strtod(&c_str[i], (char **) &p);
-
-  if (errno == ERANGE) {
-    ok = false;
-    return r;
-  }
-#endif
-
-  while (*p != 0 && ::isspace(*p))
-    ++p;
-
-  if (*p != '\0')
-    ok = false;
-
-  return r;
+  return CQStrUtil::toReal(str, ok);
 }
 
 long
 CQBaseModel::
 toInt(const QString &str, bool &ok)
 {
-  ok = true;
-
-  long integer = 0;
-
-  std::string sstr = str.toStdString();
-
-  const char *c_str = sstr.c_str();
-
-  int i = 0;
-
-  while (c_str[i] != 0 && ::isspace(c_str[i]))
-    ++i;
-
-  if (c_str[i] == '\0') {
-    ok = false;
-    return integer;
-  }
-
-  const char *p;
-
-  errno = 0;
-
-  integer = strtol(&c_str[i], (char **) &p, 10);
-
-  if (errno == ERANGE) {
-    ok = false;
-    return integer;
-  }
-
-  while (*p != 0 && ::isspace(*p))
-    ++p;
-
-  if (*p != '\0') {
-    ok = false;
-    return integer;
-  }
-
-  return integer;
+  return CQStrUtil::toInt(str, ok);
 }
 
 bool
 CQBaseModel::
 isInteger(double r)
 {
-  return std::abs(r - int(r)) < 1E-3;
+  return CMathUtil::isInteger(r);
 }

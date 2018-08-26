@@ -1,4 +1,5 @@
 #include <CQChartsColumnBucket.h>
+#include <CQChartsVariant.h>
 
 CQChartsColumnBucket::
 CQChartsColumnBucket(ColumnType columnType) :
@@ -95,13 +96,13 @@ addValue(const QVariant &value)
   bool ok;
 
   if      (columnType() == ColumnType::REAL) {
-    double r = CQChartsUtil::toReal(value, ok);
+    double r = CQChartsVariant::toReal(value, ok);
     if (! ok) return -1;
 
     return addReal(r);
   }
   else if (columnType() == ColumnType::INTEGER) {
-    long i = CQChartsUtil::toInt(value, ok);
+    long i = CQChartsVariant::toInt(value, ok);
     if (! ok) return -1;
 
     return addInteger(i);
@@ -109,7 +110,7 @@ addValue(const QVariant &value)
   else if (columnType() == ColumnType::STRING) {
     QString s;
 
-    CQChartsUtil::variantToString(value, s);
+    CQChartsVariant::toString(value, s);
 
     return addString(s);
   }
@@ -145,13 +146,13 @@ ind(const QVariant &value) const
   bool ok;
 
   if      (columnType() == ColumnType::REAL) {
-    double r = CQChartsUtil::toReal(value, ok);
+    double r = CQChartsVariant::toReal(value, ok);
     if (! ok) return 0;
 
     return rvals_.id(r);
   }
   else if (columnType() == ColumnType::INTEGER) {
-    long i = CQChartsUtil::toInt(value, ok);
+    long i = CQChartsVariant::toInt(value, ok);
     if (! ok) return 0;
 
     return ivals_.id(i);
@@ -159,7 +160,7 @@ ind(const QVariant &value) const
   else if (columnType() == ColumnType::STRING) {
     QString s;
 
-    CQChartsUtil::variantToString(value, s);
+    CQChartsVariant::toString(value, s);
 
     return svals_.id(s);
   }
@@ -194,7 +195,7 @@ sbucket(const QVariant &value) const
   else if (columnType() == ColumnType::STRING) {
     QString s;
 
-    CQChartsUtil::variantToString(value, s);
+    CQChartsVariant::toString(value, s);
 
     return svals_.sbucket(s);
   }

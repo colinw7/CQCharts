@@ -4,7 +4,9 @@
 #include <CQChartsKey.h>
 #include <CQChartsBoxObj.h>
 #include <CQChartsGradientPalette.h>
+#include <CQChartsColorSet.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
@@ -109,13 +111,24 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
- CQChartsBarPlot(view, view->charts()->plotType("distribution"), model), dataLabel_(this)
+ CQChartsBarPlot(view, view->charts()->plotType("distribution"), model),
+ CQChartsPlotMeanLineData<CQChartsDistributionPlot>(this),
+ CQChartsPlotDotPointData<CQChartsDistributionPlot>(this),
+ CQChartsPlotRugPointData<CQChartsDistributionPlot>(this),
+ dataLabel_(this)
 {
   setAutoBucket    (true);
   setNumAutoBuckets(20);
 
-  setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setRugSymbolType(CQChartsSymbol::Type::NONE);
+  setDotSymbolType     (CQChartsSymbol::Type::CIRCLE);
+  setDotSymbolSize     (CQChartsLength("7px"));
+  setDotSymbolFilled   (true);
+  setDotSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  setRugSymbolType       (CQChartsSymbol::Type::NONE);
+  setRugSymbolSize       (CQChartsLength("5px"));
+  setRugSymbolStroked    (true);
+  setRugSymbolStrokeColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 }
 
 CQChartsDistributionPlot::
@@ -285,18 +298,18 @@ addProperties()
   addProperty("scatter", this, "scatter"      , "enabled");
   addProperty("scatter", this, "scatterFactor", "factor" );
 
-  addProperty("meanLine"     , this, "showMean" , "visible");
-  addProperty("meanLine/line", this, "meanWidth", "width"  );
-  addProperty("meanLine/line", this, "meanDash" , "dash"   );
+  addProperty("meanLine", this, "showMean", "visible");
 
-  addProperty("dotLines",        this, "dotLines"     , "enabled");
-  addProperty("dotLines/line",   this, "dotLineWidth" , "width"  );
-  addProperty("dotLines/symbol", this, "dotSymbolType", "type"   );
-  addProperty("dotLines/symbol", this, "dotSymbolSize", "size"   );
+  addLineProperties("meanLine/line", "meanLines");
 
-  addProperty("rug"       , this, "rug"          , "enabled");
-  addProperty("rug/symbol", this, "rugSymbolType", "type"   );
-  addProperty("rug/symbol", this, "rugSymbolSize", "size"   );
+  addProperty("dotLines"     , this, "dotLines"    , "enabled");
+  addProperty("dotLines/line", this, "dotLineWidth", "width"  );
+
+  addSymbolProperties("dotLines", "dot");
+
+  addProperty("rug", this, "rug", "enabled");
+
+  addSymbolProperties("rug", "rug");
 
   CQChartsGroupPlot::addProperties();
 
@@ -463,20 +476,6 @@ setDotLineWidth(const CQChartsLength &l)
   CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { invalidateLayers(); } );
 }
 
-void
-CQChartsDistributionPlot::
-setDotSymbolType(const CQChartsSymbol &s)
-{
-  CQChartsUtil::testAndSet(dotSymbolType_, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setDotSymbolSize(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(dotSymbolSize_, l, [&]() { invalidateLayers(); } );
-}
-
 //---
 
 void
@@ -486,20 +485,6 @@ setRug(bool b)
   CQChartsUtil::testAndSet(rug_, b, [&]() { updateRangeAndObjs(); } );
 }
 
-void
-CQChartsDistributionPlot::
-setRugSymbolType(const CQChartsSymbol &s)
-{
-  CQChartsUtil::testAndSet(rugSymbolType_, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setRugSymbolSize(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(rugSymbolSize_, l, [&]() { invalidateLayers(); } );
-}
-
 //---
 
 void
@@ -507,20 +492,6 @@ CQChartsDistributionPlot::
 setShowMean(bool b)
 {
   CQChartsUtil::testAndSet(showMean_, b, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setMeanWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(meanWidth_, l, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsDistributionPlot::
-setMeanDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(meanDash_, d, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -594,7 +565,7 @@ calcRange()
       if (isBucketed()) {
         if      (type == CQChartsValueSet::Type::REAL) {
           double r = modelReal(ind.row, ind.column, ind.parent, ok);
-          if (! ok || CQChartsUtil::isNaN(r)) continue;
+          if (! ok || CMathUtil::isNaN(r)) continue;
 
           bucket = calcBucket(groupInd, r);
           value  = QVariant(r);
@@ -928,7 +899,7 @@ annotationBBox() const
   if (isRug()) {
     double sx, sy;
 
-    pixelSymbolSize(rugSymbolSize(), sx, sy);
+    plotSymbolSize(rugSymbolSize(), sx, sy);
 
     const CQChartsGeom::Range &dataRange = this->dataRange();
 
@@ -1530,7 +1501,7 @@ getXVals(int groupInd, int bucket, std::vector<double> &xvals) const
 
     bool ok;
 
-    double r = CQChartsUtil::toReal(var, ok);
+    double r = CQChartsVariant::toReal(var, ok);
 
     if (ok)
       xvals.push_back(r);
@@ -1658,24 +1629,53 @@ addKeyItems(CQChartsPlotKey *key)
     }
   }
   else if (ng == 1) {
-    auto pg = groupValues_.begin();
+    if (colorColumn().isValid()) {
+      bool ok;
 
-    int           groupInd = (*pg).first;
-    const Values *values   = (*pg).second;
+      QString header = modelHeaderString(colorColumn(), ok);
 
-    int nv = values->bucketValues.size();
+      key->setHeaderStr(header);
 
-    int iv = 0;
+      CQChartsColorSet *colorSet = getColorSet("color");
 
-    for (const auto &bucketValues : values->bucketValues) {
-      int                    bucket   = bucketValues.first;
-    //const VariantIndsData &varsData = bucketValues.second;
+      int n = colorSet->numValues();
 
-      QString bucketName = bucketValuesStr(groupInd, bucket, values);
+      using ValueSet = std::set<QString>;
 
-      addKeyRow(iv, nv, bucketName);
+      ValueSet valueSet;
 
-      ++iv;
+      for (int i = 0; i < n; ++i)
+        valueSet.insert(colorSet->value(i).toString());
+
+      int nv = valueSet.size();
+      int iv = 0;
+
+      for (const auto &value : valueSet) {
+        addKeyRow(iv, nv, value);
+
+        ++iv;
+      }
+    }
+    else {
+      auto pg = groupValues_.begin();
+
+      int           groupInd = (*pg).first;
+      const Values *values   = (*pg).second;
+
+      int nv = values->bucketValues.size();
+
+      int iv = 0;
+
+      for (const auto &bucketValues : values->bucketValues) {
+        int                    bucket   = bucketValues.first;
+      //const VariantIndsData &varsData = bucketValues.second;
+
+        QString bucketName = bucketValuesStr(groupInd, bucket, values);
+
+        addKeyRow(iv, nv, bucketName);
+
+        ++iv;
+      }
     }
   }
 
@@ -1755,8 +1755,8 @@ bucketValues(int groupInd, int bucket, double &value1, double &value2) const
   else
     bucketer.bucketRValues(bucket, value1, value2);
 
-  if (CQChartsUtil::isZero(value1)) value1 = 0.0;
-  if (CQChartsUtil::isZero(value2)) value2 = 0.0;
+  if (CMathUtil::isZero(value1)) value1 = 0.0;
+  if (CMathUtil::isZero(value2)) value2 = 0.0;
 }
 
 CQBucketer &
@@ -1869,11 +1869,11 @@ CQChartsDistributionPlot::
 drawMeanLine(QPainter *painter)
 {
   // set pen
-  QColor bc = interpBorderColor(0, 1);
+  QColor bc = interpMeanLinesColor(0, 1);
 
   QPen pen;
 
-  setPen(pen, true, bc, /*alpha*/1.0, meanWidth(), meanDash());
+  setPen(pen, true, bc, meanLinesAlpha(), meanLinesWidth(), meanLinesDash());
 
   painter->setPen(pen);
 
@@ -2042,6 +2042,32 @@ calcTipId() const
   else
     tableTip.addTableRow("Count", count());
 
+  //---
+
+  QStringList strs;
+
+  QModelIndex parent;
+
+  for (const auto &row : colorData_.colorRows) {
+    bool ok;
+
+    QString str = plot_->modelString(row, plot_->colorColumn(), parent, ok);
+
+    if (ok)
+      strs.push_back(str);
+  }
+
+  if (strs.length()) {
+    bool ok;
+
+    QString name = plot_->modelHeaderString(plot_->colorColumn(), ok);
+
+    if (name == "")
+      name = "Colors";
+
+    tableTip.addTableRow(name, strs.join(" "));
+  }
+
   return tableTip.str();
 }
 
@@ -2166,18 +2192,18 @@ draw(QPainter *painter)
   //---
 
   // get bar colors
-  ColorData colorData;
+  colorData_ = ColorData();
 
-  if (getBarColoredRects(colorData)) {
+  if (getBarColoredRects(colorData_)) {
     double size = (! plot_->isHorizontal() ? qrect.height() : qrect.width());
 
-    double dsize = size/colorData.nv;
+    double dsize = size/colorData_.nv;
 
     double pos1 = 0.0, pos2 = 0.0;
 
-    for (auto &p : colorData.colorSet) {
+    for (auto &p : colorData_.colorSet) {
       const CQChartsColor &color = p.first;
-      int                  n     = colorData.colorCount[p.second];
+      int                  n     = colorData_.colorCount[p.second];
 
       pos1 = pos2;
       pos2 = pos1 + dsize*n;
@@ -2236,19 +2262,26 @@ drawRug(QPainter *painter)
     symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
                                         CQChartsSymbol::Type::HLINE);
 
-  //bool stroked = true;
-  //bool filled  = true;
-
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
 
-  QColor barColor = this->barColor();
+  int ic = (ns_ > 1 ? is_ : iv_);
+  int nc = (ns_ > 1 ? ns_ : is_);
+
+  QColor strokeColor = plot_->interpRugSymbolStrokeColor(ic, nc);
+  QColor barColor    = plot_->interpRugSymbolFillColor  (ic, nc);
 
   barColor.setAlphaF(0.5);
 
-  QPen   pen(barColor);
-  QBrush brush(barColor);
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPenBrush(pen, brush,
+                     plot_->isRugSymbolStroked(), strokeColor, plot_->rugSymbolStrokeAlpha(),
+                     plot_->rugSymbolStrokeWidth(), plot_->rugSymbolStrokeDash(),
+                     plot_->isRugSymbolFilled(), barColor,
+                     plot_->rugSymbolFillAlpha(), plot_->rugSymbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2276,7 +2309,7 @@ drawRug(QPainter *painter)
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(painter, ps, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 
@@ -2287,7 +2320,7 @@ mapValue(double v) const
   double bmin = (! plot_->isHorizontal() ? rect_.getXMin() : rect_.getYMin());
   double bmax = (! plot_->isHorizontal() ? rect_.getXMax() : rect_.getYMax());
 
-  return CQChartsUtil::map(v, value1_, value2_, bmin, bmax);
+  return CMathUtil::map(v, value1_, value2_, bmin, bmax);
 }
 
 bool
@@ -2319,6 +2352,8 @@ getBarColoredRects(ColorData &colorData) const
     auto p = colorData.colorSet.find(color);
 
     if (p == colorData.colorSet.end()) {
+      colorData.colorRows.insert(ind.row);
+
       int ind = colorData.colorSet.size();
 
       p = colorData.colorSet.insert(p, ColorSet::value_type(color, ind));
@@ -2351,15 +2386,9 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QColor fc = color.interpColor(plot_, 0, 1);
 
   plot_->setPenBrush(pen, barBrush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(0, 1),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isBarFill(),
-                     fc,
-                     plot_->barAlpha(),
-                     (CQChartsFillPattern::Type) plot_->barPattern());
+                     plot_->isBorder(), plot_->interpBorderColor(0, 1), plot_->borderAlpha(),
+                     plot_->borderWidth(), plot_->borderDash(),
+                     plot_->isBarFill(), fc, plot_->barAlpha(), plot_->barPattern());
 
   if (useLine) {
     pen.setWidthF(0);
@@ -2435,8 +2464,22 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
     plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
 
-    painter->setPen  (pen);
-    painter->setBrush(barBrush);
+    int ic = (ns_ > 1 ? is_ : iv_);
+    int nc = (ns_ > 1 ? ns_ : is_);
+
+    QPen   dotPen;
+    QBrush dotBrush;
+
+    QColor bc = plot_->interpDotSymbolStrokeColor(ic, nc);
+    QColor fc = plot_->interpDotSymbolFillColor(ic, nc);
+
+    plot_->setPenBrush(dotPen, dotBrush,
+      plot_->isDotSymbolStroked(), bc, plot_->dotSymbolStrokeAlpha(),
+      plot_->dotSymbolStrokeWidth(), plot_->dotSymbolStrokeDash(),
+      plot_->isDotSymbolFilled(), fc, plot_->dotSymbolFillAlpha(), plot_->dotSymbolFillPattern());
+
+    painter->setPen  (dotPen);
+    painter->setBrush(dotBrush);
 
     QPointF p;
 
@@ -2445,7 +2488,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     else
       p = QPointF(qrect.right(), qrect.center().y());
 
-    plot_->drawSymbol(painter, p, symbol, CQChartsUtil::avg(sx, sy), pen, barBrush);
+    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy));
   }
 }
 
@@ -2453,14 +2496,10 @@ QColor
 CQChartsDistributionBarObj::
 barColor() const
 {
-  QColor color;
+  int ic = (ns_ > 1 ? is_ : iv_);
+  int nc = (ns_ > 1 ? ns_ : is_);
 
-  if (ns_ > 1)
-    color = plot_->interpBarColor(is_, ns_);
-  else
-    color = plot_->interpBarColor(iv_, nv_);
-
-  return color;
+  return plot_->interpBarColor(ic, nc);
 }
 
 CQChartsGeom::BBox
@@ -2617,21 +2656,16 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(is_, ns_),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isBarFill(),
-                     plot_->interpBarColor(is_, ns_),
-                     plot_->barAlpha(),
-                     (CQChartsFillPattern::Type) plot_->barPattern());
+                     plot_->isBorder(), plot_->interpBorderColor(is_, ns_), plot_->borderAlpha(),
+                     plot_->borderWidth(), plot_->borderDash(),
+                     plot_->isBarFill(), plot_->interpBarColor(is_, ns_),
+                     plot_->barAlpha(), plot_->barPattern());
 
   //---
 
   // adjust brush for gradient
   if (plot_->isDensityGradient()) {
-    CQChartsGeom::BBox pixelRect = plot_->calcPixelRect();
+    CQChartsGeom::BBox pixelRect = plot_->calcPlotPixelRect();
 
     QPointF pg1, pg2;
 
@@ -2709,11 +2743,12 @@ CQChartsDistributionDensityObj::
 drawMeanLine(QPainter *painter)
 {
   // set pen
-  QColor bc = plot_->interpBorderColor(0, 1);
+  QColor bc = plot_->interpMeanLinesColor(0, 1);
 
   QPen pen;
 
-  plot_->setPen(pen, true, bc, /*alpha*/1.0, plot_->meanWidth(), plot_->meanDash());
+  plot_->setPen(pen, true, bc, plot_->meanLinesAlpha(),
+                plot_->meanLinesWidth(), plot_->meanLinesDash());
 
   painter->setPen(pen);
 
@@ -2784,7 +2819,7 @@ drawRug(QPainter *painter)
     else
       ps.setX(ps.x() - sx);
 
-    plot_->drawSymbol(painter, ps, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(painter, ps, symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 
@@ -2875,7 +2910,7 @@ draw(QPainter *painter)
 
     QPointF p(tl.x() + px, tl.y() + py);
 
-    plot_->drawSymbol(painter, p, symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, brush);
   }
 }
 

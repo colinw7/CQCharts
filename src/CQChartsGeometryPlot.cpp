@@ -52,7 +52,9 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("geometry"), model), dataLabel_(this)
+ CQChartsPlot(view, view->charts()->plotType("geometry"), model),
+ CQChartsPlotShapeData<CQChartsGeometryPlot>(this),
+ dataLabel_(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -122,154 +124,6 @@ CQChartsGeometryPlot::
 setMaxValue(double r)
 {
   CQChartsUtil::testAndSet(maxValue_, r, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-bool
-CQChartsGeometryPlot::
-isBorder() const
-{
-  return shapeData_.border.visible;
-}
-
-void
-CQChartsGeometryPlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsGeometryPlot::
-borderColor() const
-{
-  return shapeData_.border.color;
-}
-
-void
-CQChartsGeometryPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsGeometryPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsGeometryPlot::
-borderAlpha() const
-{
-  return shapeData_.border.alpha;
-}
-
-void
-CQChartsGeometryPlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsGeometryPlot::
-borderWidth() const
-{
-  return shapeData_.border.width;
-}
-
-void
-CQChartsGeometryPlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsGeometryPlot::
-borderDash() const
-{
-  return shapeData_.border.dash;
-}
-
-void
-CQChartsGeometryPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-//------
-
-bool
-CQChartsGeometryPlot::
-isFilled() const
-{
-  return shapeData_.background.visible;
-}
-
-void
-CQChartsGeometryPlot::
-setFilled(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsGeometryPlot::
-fillColor() const
-{
-  return shapeData_.background.color;
-}
-
-void
-CQChartsGeometryPlot::
-setFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsGeometryPlot::
-interpFillColor(int i, int n) const
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsGeometryPlot::
-fillAlpha() const
-{
-  return shapeData_.background.alpha;
-}
-
-void
-CQChartsGeometryPlot::
-setFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsGeometryPlot::Pattern
-CQChartsGeometryPlot::
-fillPattern() const
-{
-  return (Pattern) shapeData_.background.pattern;
-}
-
-void
-CQChartsGeometryPlot::
-setFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) shapeData_.background.pattern) {
-    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
 }
 
 //---
@@ -429,7 +283,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   if (! ok3)
     geometry.value = row;
 
-  if (CQChartsUtil::isNaN(geometry.value))
+  if (CMathUtil::isNaN(geometry.value))
     return;
 
   // update value range
@@ -722,7 +576,7 @@ draw(QPainter *painter)
                      plot_->isFilled(),
                      fc,
                      plot_->fillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->fillPattern());
+                     plot_->fillPattern());
 
   if (style().isValid()) {
     pen   = style().pen  ();

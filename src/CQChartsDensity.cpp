@@ -175,7 +175,7 @@ init()
   if (initialized_)
     return;
 
-  // calc x range, avgr and sigma
+  // calc x range, average and sigma
   xmin_  = 0.0;
   xmax_  = 0.0;
   avg_   = 0.0;
@@ -200,7 +200,7 @@ init()
   }
 
   if (nx_ > 0)
-    avg_ /= (double) nx_;
+    avg_ /= double(nx_);
 
   sigma_ = sqrt(sigma_/double(nx_) - avg_*avg_); /* Standard Deviation */
 
@@ -516,7 +516,7 @@ drawPointRange(CQChartsPlot *plot, QPainter *painter, const CQChartsGeom::BBox &
 
   plot->pixelSymbolSize(symbol.size, sx, sy);
 
-  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type, CQChartsUtil::avg(sx, sy), pen, brush);
+  plot->drawSymbol(painter, QPointF(px2, py2), symbol.type, CMathUtil::avg(sx, sy), pen, brush);
 }
 
 void

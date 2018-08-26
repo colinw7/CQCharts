@@ -19,6 +19,7 @@
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQChartsEnv.h>
 #include <CQCharts.h>
 
@@ -55,7 +56,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   //--
 
-  setBackground    (true);
+  setPlotBackground(true);
   setDataBackground(true);
 
   setDataClip(true);
@@ -616,14 +617,14 @@ setTitleStr(const QString &s)
 
 bool
 CQChartsPlot::
-isBackground() const
+isPlotBackground() const
 {
   return borderObj_->isBackground();
 }
 
 void
 CQChartsPlot::
-setBackground(bool b)
+setPlotBackground(bool b)
 {
   if (b != borderObj_->isBackground()) {
     borderObj_->setBackground(b);
@@ -641,28 +642,28 @@ interpBackgroundColor(int i, int n) const
 
 const CQChartsColor &
 CQChartsPlot::
-backgroundColor() const
+plotBackgroundColor() const
 {
   return borderObj_->backgroundColor();
 }
 
 void
 CQChartsPlot::
-setBackgroundColor(const CQChartsColor &c)
+setPlotBackgroundColor(const CQChartsColor &c)
 {
   borderObj_->setBackgroundColor(c);
 }
 
 bool
 CQChartsPlot::
-isBorder() const
+isPlotBorder() const
 {
   return borderObj_->isBorder();
 }
 
 void
 CQChartsPlot::
-setBorder(bool b)
+setPlotBorder(bool b)
 {
   if (b != borderObj_->isBorder()) {
     borderObj_->setBorder(b);
@@ -673,35 +674,35 @@ setBorder(bool b)
 
 QColor
 CQChartsPlot::
-interpBorderColor(int i, int n) const
+interpPlotBorderColor(int i, int n) const
 {
   return borderObj_->interpBorderColor(i, n);
 }
 
 const CQChartsColor &
 CQChartsPlot::
-borderColor() const
+plotBorderColor() const
 {
   return borderObj_->borderColor();
 }
 
 void
 CQChartsPlot::
-setBorderColor(const CQChartsColor &c)
+setPlotBorderColor(const CQChartsColor &c)
 {
   borderObj_->setBorderColor(c);
 }
 
 const CQChartsLength &
 CQChartsPlot::
-borderWidth() const
+plotBorderWidth() const
 {
   return borderObj_->borderWidth();
 }
 
 void
 CQChartsPlot::
-setBorderWidth(const CQChartsLength &l)
+setPlotBorderWidth(const CQChartsLength &l)
 {
   if (l != borderObj_->borderWidth()) {
     borderObj_->setBorderWidth(l);
@@ -712,14 +713,14 @@ setBorderWidth(const CQChartsLength &l)
 
 const QString &
 CQChartsPlot::
-borderSides() const
+plotBorderSides() const
 {
   return borderObj_->borderSides();
 }
 
 void
 CQChartsPlot::
-setBorderSides(const QString &s)
+setPlotBorderSides(const QString &s)
 {
   if (s !=  borderObj_->borderSides()) {
     borderObj_->setBorderSides(s);
@@ -730,7 +731,7 @@ setBorderSides(const QString &s)
 
 void
 CQChartsPlot::
-setClip(bool b)
+setPlotClip(bool b)
 {
   CQChartsUtil::testAndSet(clip_, b, [&]() { invalidateLayers(); } );
 }
@@ -1216,13 +1217,13 @@ addProperties()
   QString plotStyleFillStr   = plotStyleStr + "/fill";
   QString plotStyleStrokeStr = plotStyleStr + "/stroke";
 
-  addProperty(plotStyleFillStr  , this, "background"     , "visible");
-  addProperty(plotStyleFillStr  , this, "backgroundColor", "color");
-  addProperty(plotStyleStrokeStr, this, "border"         , "visible");
-  addProperty(plotStyleStrokeStr, this, "borderColor"    , "color");
-  addProperty(plotStyleStrokeStr, this, "borderWidth"    , "width");
-  addProperty(plotStyleStrokeStr, this, "borderSides"    , "sides");
-  addProperty(plotStyleStr      , this, "clip"           , "clip");
+  addProperty(plotStyleFillStr  , this, "plotBackground"     , "visible");
+  addProperty(plotStyleFillStr  , this, "plotBackgroundColor", "color");
+  addProperty(plotStyleStrokeStr, this, "plotBorder"         , "visible");
+  addProperty(plotStyleStrokeStr, this, "plotBorderColor"    , "color");
+  addProperty(plotStyleStrokeStr, this, "plotBorderWidth"    , "width");
+  addProperty(plotStyleStrokeStr, this, "plotBorderSides"    , "sides");
+  addProperty(plotStyleStr      , this, "plotClip"           , "clip");
 
   QString dataStyleStr       = "dataStyle";
   QString dataStyleFillStr   = dataStyleStr + "/fill";
@@ -1272,21 +1273,24 @@ addProperties()
 
 void
 CQChartsPlot::
-addSymbolProperties(const QString &path)
+addSymbolProperties(const QString &path, const QString &prefix)
 {
   QString strokePath = path + "/stroke";
   QString fillPath   = path + "/fill";
 
-  addProperty(path      , this, "symbolType"       , "type"   );
-  addProperty(path      , this, "symbolSize"       , "size"   );
-  addProperty(strokePath, this, "symbolStroked"    , "visible");
-  addProperty(strokePath, this, "symbolStrokeColor", "color"  );
-  addProperty(strokePath, this, "symbolStrokeAlpha", "alpha"  );
-  addProperty(strokePath, this, "symbolStrokeWidth", "width"  );
-  addProperty(fillPath  , this, "symbolFilled"     , "visible");
-  addProperty(fillPath  , this, "symbolFillColor"  , "color"  );
-  addProperty(fillPath  , this, "symbolFillAlpha"  , "alpha"  );
-  addProperty(fillPath  , this, "symbolFillPattern", "pattern");
+  QString symbolPrefix = (prefix.length() ? prefix + "Symbol" : "symbol");
+
+  addProperty(path      , this, symbolPrefix + "Type"       , "type"   );
+  addProperty(path      , this, symbolPrefix + "Size"       , "size"   );
+  addProperty(strokePath, this, symbolPrefix + "Stroked"    , "visible");
+  addProperty(strokePath, this, symbolPrefix + "StrokeColor", "color"  );
+  addProperty(strokePath, this, symbolPrefix + "StrokeAlpha", "alpha"  );
+  addProperty(strokePath, this, symbolPrefix + "StrokeWidth", "width"  );
+  addProperty(strokePath, this, symbolPrefix + "StrokeDash" , "dash"   );
+  addProperty(fillPath  , this, symbolPrefix + "Filled"     , "visible");
+  addProperty(fillPath  , this, symbolPrefix + "FillColor"  , "color"  );
+  addProperty(fillPath  , this, symbolPrefix + "FillAlpha"  , "alpha"  );
+  addProperty(fillPath  , this, symbolPrefix + "FillPattern", "pattern");
 }
 
 void
@@ -1306,6 +1310,16 @@ addFillProperties(const QString &path, const QString &prefix)
   addProperty(path, this, prefix + "Color"  , "color"  );
   addProperty(path, this, prefix + "Alpha"  , "alpha"  );
   addProperty(path, this, prefix + "Pattern", "pattern");
+}
+
+void
+CQChartsPlot::
+addTextProperties(const QString &path, const QString &prefix)
+{
+  addProperty(path, this, prefix + "Font"    , "font"    );
+  addProperty(path, this, prefix + "Color"   , "color"   );
+  addProperty(path, this, prefix + "Alpha"   , "alpha"   );
+  addProperty(path, this, prefix + "Contrast", "contrast");
 }
 
 bool
@@ -3575,6 +3589,10 @@ draw(QPainter *painter)
   //---
 
   drawParts(painter);
+
+  //---
+
+  emit layersChanged();
 }
 
 void
@@ -3594,7 +3612,7 @@ drawParts(QPainter *painter)
   CScopeTimer timer("drawParts");
 
   // draw background (plot/data fill)
-  drawBackground(painter);
+  drawBackgroundLayer(painter);
 
   //---
 
@@ -3659,17 +3677,13 @@ drawParts(QPainter *painter)
 
     autoFit();
   }
-
-  //---
-
-  emit layersChanged();
 }
 
 void
 CQChartsPlot::
-drawBackground(QPainter *painter)
+drawBackgroundLayer(QPainter *painter)
 {
-  //CScopeTimer timer("drawBackground");
+  //CScopeTimer timer("drawBackgroundLayer");
 
   // only first plot has background for overlay
   if (isOverlay() && ! isFirstPlot())
@@ -3677,7 +3691,7 @@ drawBackground(QPainter *painter)
 
   //---
 
-  bool hasPlotBackground = (isBackground    () || isBorder    ());
+  bool hasPlotBackground = (isPlotBackground() || isPlotBorder());
   bool hasDataBackground = (isDataBackground() || isDataBorder());
 
   if (! hasPlotBackground && ! hasDataBackground)
@@ -3692,17 +3706,17 @@ drawBackground(QPainter *painter)
 
   if (painter1) {
     if (hasPlotBackground) {
-      QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
+      QRectF plotRect = CQChartsUtil::toQRect(calcPlotPixelRect());
 
-      if (isBackground())
+      if (isPlotBackground())
         painter1->fillRect(plotRect, QBrush(interpBackgroundColor(0, 1)));
 
-      if (isBorder()) {
-        QColor borderColor = interpBorderColor(0, 1);
+      if (isPlotBorder()) {
+        QColor borderColor = interpPlotBorderColor(0, 1);
 
-        double bw = lengthPixelWidth(borderWidth());
+        double bw = lengthPixelWidth(plotBorderWidth());
 
-        drawBackgroundSides(painter1, plotRect, borderSides(), bw, borderColor);
+        drawBackgroundSides(painter1, plotRect, plotBorderSides(), bw, borderColor);
       }
     }
 
@@ -3720,6 +3734,10 @@ drawBackground(QPainter *painter)
         drawBackgroundSides(painter1, dataRect, dataBorderSides(), bw, borderColor);
       }
     }
+
+    //---
+
+    drawBackground(painter1);
   }
 
   endPaint(layer);
@@ -4337,7 +4355,7 @@ calcDataPixelRect() const
 
 CQChartsGeom::BBox
 CQChartsPlot::
-calcPixelRect() const
+calcPlotPixelRect() const
 {
   return view_->windowToPixel(bbox_);
 }
@@ -4814,8 +4832,8 @@ setClipRect(QPainter *painter)
 
     painter->setClipRect(dataRect);
   }
-  else if (plot1->isClip()) {
-    QRectF plotRect = CQChartsUtil::toQRect(calcPixelRect());
+  else if (plot1->isPlotClip()) {
+    QRectF plotRect = CQChartsUtil::toQRect(calcPlotPixelRect());
 
     painter->setClipRect(plotRect);
   }
@@ -4831,7 +4849,7 @@ beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect)
     return painter;
 
   // resize and clear
-  QRectF prect = (! rect.isValid() ? CQChartsUtil::toQRect(calcPixelRect()) : rect);
+  QRectF prect = (! rect.isValid() ? CQChartsUtil::toQRect(calcPlotPixelRect()) : rect);
 
   QPainter *painter1 = layer->beginPaint(painter, prect);
 
@@ -4878,6 +4896,7 @@ drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQCharts
   painter->drawLine(p1, p2);
 }
 
+#if 0
 void
 CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
@@ -4915,15 +4934,9 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
   double sx = lengthPixelWidth (data.size);
   double sy = lengthPixelHeight(data.size);
 
-  CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p),
-                                     CQChartsUtil::avg(sx, sy));
-
-  if (data.fill.visible)
-    CQChartsPlotSymbolMgr::fillSymbol(data.type, &srenderer);
-
-  if (data.stroke.visible)
-    CQChartsPlotSymbolMgr::drawSymbol(data.type, &srenderer);
+  drawSymbol(painter, CQChartsUtil::fromQPoint(p), data.type, CMathUtil::avg(sx, sy));
 }
+#endif
 
 void
 CQChartsPlot::
@@ -4954,7 +4967,7 @@ CQChartsPlot::
 drawTextAtPoint(QPainter *painter, const QPointF &point, const QString &text,
                 const QPen &pen, const CQChartsTextOptions &options) const
 {
-  if (CQChartsUtil::isZero(options.angle)) {
+  if (CMathUtil::isZero(options.angle)) {
     QFontMetricsF fm(painter->font());
 
     double tw = fm.width(text);
@@ -5054,7 +5067,7 @@ drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
 
   QPainterPath path;
 
-  if (! CQChartsUtil::isZero(ri)) {
+  if (! CMathUtil::isZero(ri)) {
     CQChartsGeom::BBox bbox1(c.x - ri, c.y - ri, c.x + ri, c.y + ri);
 
     CQChartsGeom::BBox pbbox1;
@@ -5065,8 +5078,8 @@ drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
 
     double da = (isInvertX() != isInvertY() ? -1 : 1);
 
-    double ra1 = da*CQChartsUtil::Deg2Rad(a1);
-    double ra2 = da*CQChartsUtil::Deg2Rad(a2);
+    double ra1 = da*CMathUtil::Deg2Rad(a1);
+    double ra2 = da*CMathUtil::Deg2Rad(a2);
 
     double x1 = c.x + ri*cos(ra1);
     double y1 = c.y + ri*sin(ra1);
@@ -5147,7 +5160,7 @@ setPenBrush(QPen &pen, QBrush &brush,
             bool stroked, const QColor &strokeColor, double strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
             bool filled, const QColor &fillColor, double fillAlpha,
-            const CQChartsFillPattern::Type &pattern)
+            const CQChartsFillPattern &pattern)
 {
   setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
 
@@ -5184,7 +5197,7 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
 void
 CQChartsPlot::
 setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
-         const CQChartsFillPattern::Type &pattern)
+         const CQChartsFillPattern &pattern)
 {
   // calc brush (fill)
   if (filled) {
@@ -5194,7 +5207,7 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
 
     brush.setColor(color);
 
-    brush.setStyle(CQChartsFillPattern::toStyle(pattern));
+    brush.setStyle(pattern.style());
   }
   else {
     brush.setStyle(Qt::NoBrush);
@@ -5398,7 +5411,7 @@ QColor
 CQChartsPlot::
 interpPaletteColor(int i, int n, bool scale) const
 {
-  double r = CQChartsUtil::norm(i, 0, n - 1);
+  double r = CMathUtil::norm(i, 0, n - 1);
 
   return interpPaletteColor(r, scale);
 }
@@ -5431,7 +5444,7 @@ interpGroupPaletteColor(int ig, int ng, int i, int n, bool scale) const
 {
   CQChartsGradientPalette *palette = view()->themeGroupPalette(ig, ng);
 
-  double r = CQChartsUtil::norm(i + 1, 0, n  + 1);
+  double r = CMathUtil::norm(i + 1, 0, n  + 1);
 
   QColor c = palette->getColor(r, scale);
 
@@ -5464,7 +5477,7 @@ interpThemeColor(double r) const
 
 QColor
 CQChartsPlot::
-textColor(const QColor &bg) const
+calcTextColor(const QColor &bg) const
 {
   return CQChartsUtil::bwColor(bg);
 }
@@ -6046,7 +6059,7 @@ modelMappedReal(int row, const CQChartsColumn &column, const QModelIndex &parent
     if (! ok1)
       r = def;
 
-    if (CQChartsUtil::isNaN(r) || CQChartsUtil::isInf(r))
+    if (CMathUtil::isNaN(r) || CMathUtil::isInf(r))
       return false;
   }
   else
@@ -6120,12 +6133,12 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 
   double r;
 
-  if (CQChartsUtil::toReal(var, r))
+  if (CQChartsVariant::toReal(var, r))
     str = columnStr(idColumn(), r);
   else {
     bool ok;
 
-    str = CQChartsUtil::toString(var, ok);
+    str = CQChartsVariant::toString(var, ok);
   }
 
   return str;
@@ -6268,35 +6281,7 @@ modelReals(int row, const CQChartsColumn &column, const QModelIndex &parent, boo
   if (! ok)
     return reals;
 
-  if (var.type() == QVariant::List) {
-    QList<QVariant> vars = var.toList();
-
-    for (int i = 0; i < vars.length(); ++i) {
-      bool ok1;
-
-      double r = CQChartsUtil::toReal(vars[i], ok1);
-
-      if (! ok1) {
-        ok = false;
-        continue;
-      }
-
-      reals.push_back(r);
-    }
-  }
-  else if (var.type() == QVariant::Double) {
-    double r = CQChartsUtil::toReal(var, ok);
-
-    reals.push_back(r);
-  }
-  else {
-    std::vector<double> reals1 = CQChartsUtil::varToReals(var, ok);
-
-    if (ok)
-      reals = reals1;
-  }
-
-  return reals;
+  return CQChartsVariant::toReals(var, ok);
 }
 
 //------
@@ -6473,7 +6458,7 @@ modelHierString(int row, const CQChartsColumn &column,
 
   QString str;
 
-  bool rc = CQChartsUtil::variantToString(var, str);
+  bool rc = CQChartsVariant::toString(var, str);
   assert(rc);
 
   return str;
@@ -6491,7 +6476,7 @@ modelHierString(int row, const CQChartsColumn &column,
 
   QString str;
 
-  bool rc = CQChartsUtil::variantToString(var, str);
+  bool rc = CQChartsVariant::toString(var, str);
   assert(rc);
 
   return str;
@@ -6508,7 +6493,7 @@ modelHierReal(int row, const CQChartsColumn &column, const QModelIndex &parent, 
   if (! ok)
     return 0.0;
 
-  return CQChartsUtil::toReal(var, ok);
+  return CQChartsVariant::toReal(var, ok);
 }
 
 double
@@ -6521,7 +6506,7 @@ modelHierReal(int row, const CQChartsColumn &column,
   if (! ok)
     return 0.0;
 
-  return CQChartsUtil::toReal(var, ok);
+  return CQChartsVariant::toReal(var, ok);
 }
 
 //--
@@ -6535,7 +6520,7 @@ modelHierInteger(int row, const CQChartsColumn &column, const QModelIndex &paren
   if (! ok)
     return 0;
 
-  return CQChartsUtil::toInt(var, ok);
+  return CQChartsVariant::toInt(var, ok);
 }
 
 long
@@ -6548,7 +6533,7 @@ modelHierInteger(int row, const CQChartsColumn &column,
   if (! ok)
     return 0;
 
-  return CQChartsUtil::toInt(var, ok);
+  return CQChartsVariant::toInt(var, ok);
 }
 
 //------
@@ -6693,7 +6678,7 @@ logValue(double x, int base) const
   if (x >= 1E-6)
     return std::log(x)/log(base);
   else
-    return CQChartsUtil::getNaN();
+    return CMathUtil::getNaN();
 }
 
 double
@@ -6703,7 +6688,7 @@ expValue(double x, int base) const
   if (x <= 709.78271289)
     return std::exp(x*log(base));
   else
-    return CQChartsUtil::getNaN();
+    return CMathUtil::getNaN();
 }
 
 //------
@@ -6747,7 +6732,7 @@ positionToPixel(const CQChartsPosition &pos) const
   else if (pos.units() == CQChartsPosition::Units::VIEW)
     p1 = view_->windowToPixel(p);
   else if (pos.units() == CQChartsPosition::Units::PERCENT) {
-    CQChartsGeom::BBox pbbox = calcPixelRect();
+    CQChartsGeom::BBox pbbox = calcPlotPixelRect();
 
     p1.setX(p.getX()*pbbox.getWidth ()/100.0);
     p1.setY(p.getY()*pbbox.getHeight()/100.0);
@@ -6815,7 +6800,7 @@ lengthPixelWidth(const CQChartsLength &len) const
   else if (len.units() == CQChartsLength::Units::VIEW)
     return view_->windowToPixelWidth(len.value());
   else if (len.units() == CQChartsLength::Units::PERCENT)
-    return len.value()*calcPixelRect().getWidth()/100.0;
+    return len.value()*calcPlotPixelRect().getWidth()/100.0;
   else
     return len.value();
 }
@@ -6831,7 +6816,7 @@ lengthPixelHeight(const CQChartsLength &len) const
   else if (len.units() == CQChartsLength::Units::VIEW)
     return view_->windowToPixelHeight(len.value());
   else if (len.units() == CQChartsLength::Units::PERCENT)
-    return len.value()*calcPixelRect().getHeight()/100.0;
+    return len.value()*calcPlotPixelRect().getHeight()/100.0;
   else
     return len.value();
 }
@@ -7002,6 +6987,13 @@ windowToPixel(const QPointF &w) const
   return CQChartsUtil::toQPoint(windowToPixel(CQChartsUtil::fromQPoint(w)));
 }
 
+QPointF
+CQChartsPlot::
+pixelToWindow(const QPointF &w) const
+{
+  return CQChartsUtil::toQPoint(pixelToWindow(CQChartsUtil::fromQPoint(w)));
+}
+
 void
 CQChartsPlot::
 windowToPixel(const CQChartsGeom::BBox &wrect, CQChartsGeom::BBox &prect) const
@@ -7037,14 +7029,14 @@ double
 CQChartsPlot::
 pixelToSignedWindowWidth (double ww) const
 {
-  return CQChartsUtil::sign(ww)*pixelToWindowWidth(ww);
+  return CMathUtil::sign(ww)*pixelToWindowWidth(ww);
 }
 
 double
 CQChartsPlot::
 pixelToSignedWindowHeight(double wh) const
 {
-  return -CQChartsUtil::sign(wh)*pixelToWindowHeight(wh);
+  return -CMathUtil::sign(wh)*pixelToWindowHeight(wh);
 }
 
 double
@@ -7082,14 +7074,14 @@ double
 CQChartsPlot::
 windowToSignedPixelWidth(double ww) const
 {
-  return CQChartsUtil::sign(ww)*windowToPixelWidth(ww);
+  return CMathUtil::sign(ww)*windowToPixelWidth(ww);
 }
 
 double
 CQChartsPlot::
 windowToSignedPixelHeight(double wh) const
 {
-  return -CQChartsUtil::sign(wh)*windowToPixelHeight(wh);
+  return -CMathUtil::sign(wh)*windowToPixelHeight(wh);
 }
 
 double

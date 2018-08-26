@@ -39,7 +39,11 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsTreeMapPlot::
 CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
- CQChartsHierPlot(view, view->charts()->plotType("treemap"), model)
+ CQChartsHierPlot(view, view->charts()->plotType("treemap"), model),
+ CQChartsPlotHeaderShapeData<CQChartsTreeMapPlot>(this),
+ CQChartsPlotHeaderTextData <CQChartsTreeMapPlot>(this),
+ CQChartsPlotShapeData      <CQChartsTreeMapPlot>(this),
+ CQChartsPlotTextData       <CQChartsTreeMapPlot>(this)
 {
   setHeaderFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.4));
   setHeaderTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
@@ -97,244 +101,6 @@ setHeaderHeight(const CQChartsLength &l)
 
 //----
 
-bool
-CQChartsTreeMapPlot::
-isHeaderFilled() const
-{
-  return headerShapeData_.background.visible;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderFilled(bool b)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-headerFillColor() const
-{
-  return headerShapeData_.background.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-headerFillAlpha() const
-{
-  return headerShapeData_.background.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsTreeMapPlot::Pattern
-CQChartsTreeMapPlot::
-headerFillPattern() const
-{
-  return (Pattern) headerShapeData_.background.pattern;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderFillPattern(const Pattern &pattern)
-{
-  if (pattern != (Pattern) headerShapeData_.background.pattern) {
-    headerShapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
-}
-
-QColor
-CQChartsTreeMapPlot::
-interpHeaderFillColor(int i, int n) const
-{
-  return headerFillColor().interpColor(this, i, n);
-}
-
-//---
-
-bool
-CQChartsTreeMapPlot::
-isHeaderBorder() const
-{
-  return headerShapeData_.border.visible;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderBorder(bool b)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-headerBorderColor() const
-{
-  return headerShapeData_.border.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-headerBorderAlpha() const
-{
-  return headerShapeData_.border.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsTreeMapPlot::
-headerBorderWidth() const
-{
-  return headerShapeData_.border.width;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsTreeMapPlot::
-headerBorderDash() const
-{
-  return headerShapeData_.border.dash;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(headerShapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsTreeMapPlot::
-interpHeaderBorderColor(int i, int n) const
-{
-  return headerBorderColor().interpColor(this, i, n);
-}
-
-//---
-
-const QFont &
-CQChartsTreeMapPlot::
-headerTextFont() const
-{
-  return headerTextData_.font;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(headerTextData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-headerTextColor() const
-{
-  return headerTextData_.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(headerTextData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-headerTextAlpha() const
-{
-  return headerTextData_.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(headerTextData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsTreeMapPlot::
-isHeaderTextContrast() const
-{
-  return headerTextData_.contrast;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(headerTextData_.contrast, b, [&]() { invalidateLayers(); } );
-}
-
-const Qt::Alignment &
-CQChartsTreeMapPlot::
-headerTextAlign() const
-{
-  return headerTextData_.align;
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextAlign(const Qt::Alignment &a)
-{
-  CQChartsUtil::testAndSet(headerTextData_.align, a, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsTreeMapPlot::
-setHeaderTextFontSize(double s)
-{
-  if (s != headerTextData_.font.pointSizeF()) {
-    headerTextData_.font.setPointSizeF(s);
-
-    invalidateLayers();
-  }
-}
-
-QColor
-CQChartsTreeMapPlot::
-interpHeaderTextColor(int i, int n) const
-{
-  return headerTextColor().interpColor(this, i, n);
-}
-
-//----
-
 double
 CQChartsTreeMapPlot::
 calcHeaderHeight() const
@@ -357,251 +123,18 @@ setMarginWidth(const CQChartsLength &l)
 
 //----
 
-bool
-CQChartsTreeMapPlot::
-isFilled() const
-{
-  return shapeData_.background.visible;
-}
-
 void
 CQChartsTreeMapPlot::
-setFilled(bool b)
+setHeaderTextFontSize(double s)
 {
-  CQChartsUtil::testAndSet(shapeData_.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-fillColor() const
-{
-  return shapeData_.background.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-fillAlpha() const
-{
-  return shapeData_.background.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsTreeMapPlot::Pattern
-CQChartsTreeMapPlot::
-fillPattern() const
-{
-  return (Pattern) shapeData_.background.pattern;
-}
-
-void
-CQChartsTreeMapPlot::
-setFillPattern(Pattern pattern)
-{
-  if (pattern != (Pattern) shapeData_.background.pattern) {
-    shapeData_.background.pattern = (CQChartsFillData::Pattern) pattern;
+  if (s != headerTextData_.font.pointSizeF()) {
+    headerTextData_.font.setPointSizeF(s);
 
     invalidateLayers();
   }
 }
 
-QColor
-CQChartsTreeMapPlot::
-interpFillColor(int i, int n) const
-{
-  return fillColor().interpColor(this, i, n);
-}
-
-//---
-
-bool
-CQChartsTreeMapPlot::
-isBorder() const
-{
-  return shapeData_.border.visible;
-}
-
-void
-CQChartsTreeMapPlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-borderColor() const
-{
-  return shapeData_.border.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-borderAlpha() const
-{
-  return shapeData_.border.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsTreeMapPlot::
-borderWidth() const
-{
-  return shapeData_.border.width;
-}
-
-void
-CQChartsTreeMapPlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsTreeMapPlot::
-borderDash() const
-{
-  return shapeData_.border.dash;
-}
-
-void
-CQChartsTreeMapPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsTreeMapPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-//---
-
-const QFont &
-CQChartsTreeMapPlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsTreeMapPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsTreeMapPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsTreeMapPlot::
-isTextContrast() const
-{
-  return textData_.contrast;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextContrast(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.contrast, b, [&]() { invalidateLayers(); } );
-}
-
-const Qt::Alignment &
-CQChartsTreeMapPlot::
-textAlign() const
-{
-  return textData_.align;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextAlign(const Qt::Alignment &a)
-{
-  CQChartsUtil::testAndSet(textData_.align, a, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsTreeMapPlot::
-isTextFormatted() const
-{
-  return textData_.formatted;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextFormatted(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.formatted, b, [&]() { invalidateLayers(); } );
-}
-
-bool
-CQChartsTreeMapPlot::
-isTextScaled() const
-{
-  return textData_.scaled;
-}
-
-void
-CQChartsTreeMapPlot::
-setTextScaled(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { invalidateLayers(); } );
-}
+//----
 
 void
 CQChartsTreeMapPlot::
@@ -612,13 +145,6 @@ setTextFontSize(double s)
 
     invalidateLayers();
   }
-}
-
-QColor
-CQChartsTreeMapPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
 }
 
 //---
@@ -643,11 +169,9 @@ addProperties()
 
   addFillProperties("header/fill", "headerFill");
 
-  addProperty("header/text", this, "headerTextFont"    , "font"    );
-  addProperty("header/text", this, "headerTextColor"   , "color"   );
-  addProperty("header/text", this, "headerTextAlpha"   , "alpha"   );
-  addProperty("header/text", this, "headerTextContrast", "contrast");
-  addProperty("header/text", this, "headerTextAlign"   , "align"   );
+  addTextProperties("header/text", "headerText");
+
+  addProperty("header/text", this, "headerTextAlign", "align");
 
   addProperty("stroke", this, "border", "visible");
 
@@ -657,10 +181,8 @@ addProperties()
 
   addFillProperties("fill", "fill");
 
-  addProperty("text", this, "textFont"     , "font"     );
-  addProperty("text", this, "textColor"    , "color"    );
-  addProperty("text", this, "textAlpha"    , "alpha"    );
-  addProperty("text", this, "textContrast" , "contrast" );
+  addTextProperties("text", "text");
+
   addProperty("text", this, "textAlign"    , "align"    );
   addProperty("text", this, "textFormatted", "formatted");
   addProperty("text", this, "textScaled"   , "scaled"   );
@@ -1440,39 +962,22 @@ draw(QPainter *painter)
   //---
 
   // calc header stroke and brush
+  QPen   pen;
   QBrush brush;
 
-  if (plot_->isHeaderFilled()) {
-    QColor hierColor = hier_->interpColor(plot_, plot_->numColorIds());
+  QColor bc = plot_->interpHeaderBorderColor(0, 1);
 
-    QColor c = plot_->interpHeaderFillColor(0, 1);
+  QColor hierColor = hier_->interpColor(plot_, plot_->numColorIds());
 
-    QColor c1 = CQChartsUtil::blendColors(c, hierColor, 0.8);
+  QColor c = plot_->interpHeaderFillColor(0, 1);
 
-    c1.setAlphaF(plot_->headerFillAlpha());
+  QColor fc = CQChartsUtil::blendColors(c, hierColor, 0.8);
 
-    brush.setColor(c1);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else {
-    brush.setStyle(Qt::NoBrush);
-  }
-
-  QPen pen;
-
-  if (plot_->isHeaderBorder()) {
-    QColor bc = plot_->interpHeaderBorderColor(0, 1);
-
-    bc.setAlphaF(plot_->headerBorderAlpha());
-
-    double bw = plot_->lengthPixelWidth(plot_->headerBorderWidth());
-
-    pen.setColor (bc);
-    pen.setWidthF(bw);
-  }
-  else {
-    pen = QPen(Qt::NoPen);
-  }
+  plot_->setPenBrush(pen, brush,
+                     plot_->isHeaderBorder(), bc, plot_->headerBorderAlpha(),
+                     plot_->headerBorderWidth(), plot_->headerBorderDash(),
+                     plot_->isHeaderFilled(), fc, plot_->headerFillAlpha(),
+                     plot_->headerFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1640,15 +1145,10 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(0, 1),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isFilled(),
-                     node_->interpColor(plot_, plot_->numColorIds()),
-                     plot_->fillAlpha(),
-                     (CQChartsFillPattern::Type) plot_->fillPattern());
+                     plot_->isBorder(), plot_->interpBorderColor(0, 1), plot_->borderAlpha(),
+                     plot_->borderWidth(), plot_->borderDash(),
+                     plot_->isFilled(), node_->interpColor(plot_, plot_->numColorIds()),
+                     plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1748,7 +1248,7 @@ packNodes(double x, double y, double w, double h)
   double whh = plot()->windowHeaderHeight();
   double wmw = plot()->windowMarginWidth();
 
-  double maxExtent = CQChartsUtil::clamp(plot()->titleMaxExtent(), 0.0, 1.0);
+  double maxExtent = CMathUtil::clamp(plot()->titleMaxExtent(), 0.0, 1.0);
 
   bool showTitle = (plot()->isTitles() && h*maxExtent > whh);
 
@@ -1918,8 +1418,8 @@ void
 CQChartsTreeMapNode::
 setPosition(double x, double y, double w, double h)
 {
-  assert(! CQChartsUtil::isNaN(x) && ! CQChartsUtil::isNaN(y) &&
-         ! CQChartsUtil::isNaN(w) && ! CQChartsUtil::isNaN(h));
+  assert(! CMathUtil::isNaN(x) && ! CMathUtil::isNaN(y) &&
+         ! CMathUtil::isNaN(w) && ! CMathUtil::isNaN(h));
 
   x_ = x; y_ = y;
   w_ = w; h_ = h;

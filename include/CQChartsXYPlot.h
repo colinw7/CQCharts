@@ -4,7 +4,7 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsLeastSquaresFit.h>
+#include <CQChartsFitData.h>
 #include <CQChartsUtil.h>
 
 class CQChartsXYPlot;
@@ -293,13 +293,13 @@ class CQChartsXYPolylineObj : public CQChartsPlotObj {
   void initSmooth();
 
  private:
-  CQChartsXYPlot*         plot_   { nullptr };
-  QPolygonF               poly_;
-  QString                 name_;
-  int                     i_      { -1 };
-  int                     n_      { -1 };
-  CQChartsSmooth*         smooth_ { nullptr };
-  CQChartsLeastSquaresFit fit_;
+  CQChartsXYPlot* plot_   { nullptr };
+  QPolygonF       poly_;
+  QString         name_;
+  int             i_      { -1 };
+  int             n_      { -1 };
+  CQChartsSmooth* smooth_ { nullptr };
+  CQChartsFitData fit_;
 };
 
 //---
@@ -406,7 +406,14 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 
 //---
 
-class CQChartsXYPlot : public CQChartsPlot {
+CQCHARTS_NAMED_LINE_DATA(Impulse,impulse)
+CQCHARTS_NAMED_LINE_DATA(Bivariate,bivariate)
+
+class CQChartsXYPlot : public CQChartsPlot,
+ public CQChartsPlotLineData         <CQChartsXYPlot>,
+ public CQChartsPlotPointData        <CQChartsXYPlot>,
+ public CQChartsPlotImpulseLineData  <CQChartsXYPlot>,
+ public CQChartsPlotBivariateLineData<CQChartsXYPlot> {
   Q_OBJECT
 
   // columns
@@ -421,44 +428,26 @@ class CQChartsXYPlot : public CQChartsPlot {
   Q_PROPERTY(CQChartsColumn vectorXColumn     READ vectorXColumn     WRITE setVectorXColumn    )
   Q_PROPERTY(CQChartsColumn vectorYColumn     READ vectorYColumn     WRITE setVectorYColumn    )
 
-  // display:
-  //  bivariate, stacked, cumulative, impulse, vectors
-  Q_PROPERTY(bool           bivariate          READ isBivariate        WRITE setBivariate         )
-  Q_PROPERTY(CQChartsLength bivariateLineWidth READ bivariateLineWidth WRITE setBivariateLineWidth)
-  Q_PROPERTY(bool           stacked            READ isStacked          WRITE setStacked           )
-  Q_PROPERTY(bool           cumulative         READ isCumulative       WRITE setCumulative        )
-  Q_PROPERTY(bool           vectors            READ isVectors          WRITE setVectors           )
-  Q_PROPERTY(bool           fitted             READ isFitted           WRITE setFitted            )
+  // bivariate
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
 
-  Q_PROPERTY(bool             impulse      READ isImpulse    WRITE setImpulse     )
-  Q_PROPERTY(CQChartsColor    impulseColor READ impulseColor WRITE setImpulseColor)
-  Q_PROPERTY(double           impulseAlpha READ impulseAlpha WRITE setImpulseAlpha)
-  Q_PROPERTY(CQChartsLength   impulseWidth READ impulseWidth WRITE setImpulseWidth)
-  Q_PROPERTY(CQChartsLineDash impulseDash  READ impulseDash  WRITE setImpulseDash )
+  // stacked, cumulative, vectors
+  Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
+  Q_PROPERTY(bool cumulative READ isCumulative WRITE setCumulative)
+  Q_PROPERTY(bool vectors    READ isVectors    WRITE setVectors   )
+  Q_PROPERTY(bool fitted     READ isFitted     WRITE setFitted    )
 
-  // point:
-  //  display, color, symbol, size
-  Q_PROPERTY(bool           points            READ isPoints          WRITE setPoints           )
-  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
-  Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
-  Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
+  // impulse
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Impulse,impulse)
 
-  // line:
-  //  display, stroke
-  Q_PROPERTY(bool             lines           READ isLines           WRITE setLines          )
-  Q_PROPERTY(bool             linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
-  Q_PROPERTY(CQChartsColor    linesColor      READ linesColor        WRITE setLinesColor     )
-  Q_PROPERTY(double           linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
-  Q_PROPERTY(CQChartsLength   linesWidth      READ linesWidth        WRITE setLinesWidth     )
-  Q_PROPERTY(CQChartsLineDash linesDash       READ linesDash         WRITE setLinesDash      )
-  Q_PROPERTY(bool             roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
+  // point: (display, symbol)
+  CQCHARTS_POINT_DATA_PROPERTIES
+
+  // lines (selectable, rounded, display, stroke)
+  Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
+  Q_PROPERTY(bool roundedLines    READ isRoundedLines    WRITE setRoundedLines   )
+
+  CQCHARTS_LINE_DATA_PROPERTIES
 
   // fill under:
   //  display, brush
@@ -474,19 +463,6 @@ class CQChartsXYPlot : public CQChartsPlot {
   // data label
   Q_PROPERTY(CQChartsColor dataLabelColor READ dataLabelColor WRITE setDataLabelColor)
   Q_PROPERTY(double        dataLabelAngle READ dataLabelAngle WRITE setDataLabelAngle)
-
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
 
  private:
   struct FillUnderData {
@@ -548,14 +524,6 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  // bivariate
-  bool isBivariate() const { return bivariateLineData_.visible; }
-
-  const CQChartsLength &bivariateLineWidth() const { return bivariateLineData_.width; }
-  void setBivariateLineWidth(const CQChartsLength &l);
-
-  //---
-
   // stacked, cumulative
   bool isStacked() const { return stacked_; }
 
@@ -563,49 +531,9 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  // points
-  bool isPoints() const { return pointData_.visible; }
-
-  const CQChartsColor &symbolStrokeColor() const;
-  void setSymbolStrokeColor(const CQChartsColor &c);
-
-  QColor interpSymbolStrokeColor(int i, int n) const;
-
-  double symbolStrokeAlpha() const;
-  void setSymbolStrokeAlpha(double a);
-
-  const CQChartsColor &symbolFillColor() const;
-  void setSymbolFillColor(const CQChartsColor &c);
-
-  QColor interpSymbolFillColor(int i, int n) const;
-
-  double symbolFillAlpha() const;
-  void setSymbolFillAlpha(double a);
-
-  Pattern symbolFillPattern() const;
-  void setSymbolFillPattern(const Pattern &p);
-
-  //---
-
-  // lines
-  bool isLines() const { return lineData_.visible; }
-
+  // lines selectable, rounded
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
-
-  const CQChartsColor &linesColor() const;
-  void setLinesColor(const CQChartsColor &c);
-
-  QColor interpLinesColor(int i, int n) const;
-
-  double linesAlpha() const { return lineData_.alpha; }
-  void setLinesAlpha(double a);
-
-  const CQChartsLength &linesWidth() const { return lineData_.width; }
-  void setLinesWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &linesDash() const { return lineData_.dash; }
-  void setLinesDash(const CQChartsLineDash &d);
 
   bool isRoundedLines() const { return roundedLines_; }
   void setRoundedLines(bool b);
@@ -626,8 +554,8 @@ class CQChartsXYPlot : public CQChartsPlot {
   double fillUnderAlpha() const { return fillUnderData_.fillData.alpha; }
   void setFillUnderAlpha(double a);
 
-  Pattern fillUnderPattern() const { return (Pattern) fillUnderData_.fillData.pattern; }
-  void setFillUnderPattern(const Pattern &p);
+  const CQChartsFillPattern &fillUnderPattern() const { return fillUnderData_.fillData.pattern; }
+  void setFillUnderPattern(const CQChartsFillPattern &p);
 
   const QString &fillUnderPosStr() const { return fillUnderData_.posStr; }
   void setFillUnderPosStr(const QString &s);
@@ -639,48 +567,11 @@ class CQChartsXYPlot : public CQChartsPlot {
 
   //---
 
-  // impulse
-  bool isImpulse() const { return impulseData_.visible; }
-
-  const CQChartsColor &impulseColor() const { return impulseData_.color; }
-  void setImpulseColor(const CQChartsColor &c);
-
-  double impulseAlpha() const { return impulseData_.alpha; }
-  void setImpulseAlpha(double a);
-
-  const CQChartsLength &impulseWidth() const { return impulseData_.width; }
-  void setImpulseWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &impulseDash() const { return impulseData_.dash; }
-  void setImpulseDash(const CQChartsLineDash &d);
-
-  QColor interpImpulseColor(int i, int n) const;
-
-  //---
-
   // vectors
   bool isVectors() const;
 
   // fitted
   bool isFitted() const { return fitted_; }
-
-  //---
-
-  // symbol
-  const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t);
-
-  const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s);
-
-  bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b);
-
-  const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l);
-
-  bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b);
 
   //---
 
@@ -749,13 +640,13 @@ class CQChartsXYPlot : public CQChartsPlot {
 
  public slots:
   // set points visible
-  void setPoints(bool b);
+  void setPointsSlot(bool b);
 
   // set lines visible
-  void setLines(bool b);
+  void setLinesSlot(bool b);
 
   // set bivariate
-  void setBivariate(bool b);
+  void setBivariateLinesSlot(bool b);
 
   // set stacked
   void setStacked(bool b);
@@ -764,7 +655,7 @@ class CQChartsXYPlot : public CQChartsPlot {
   void setCumulative(bool b);
 
   // set impulse
-  void setImpulse(bool b);
+  void setImpulseLinesSlot(bool b);
 
   // set vectors
   void setVectors(bool b);
@@ -780,31 +671,27 @@ class CQChartsXYPlot : public CQChartsPlot {
   QString yAxisName() const;
 
  private:
-  CQChartsColumn     xColumn_              { 0 };                // x column
-  CQChartsColumns    yColumns_             { 1 };                // y columns
-  CQChartsColumn     nameColumn_;                                // name column
-  CQChartsColumn     sizeColumn_;                                // size column
-  CQChartsColumn     pointLabelColumn_;                          // point label column
-  CQChartsColumn     pointColorColumn_;                          // point color column
-  CQChartsColumn     pointSymbolColumn_;                         // point symbol column
-  CQChartsColumn     vectorXColumn_;                             // vector x direction column
-  CQChartsColumn     vectorYColumn_;                             // vector y direction column
-  bool               stacked_              { false };            // is stacked
-  bool               cumulative_           { false };            // cumulate values
-  CQChartsSymbolData pointData_;                                 // point data
-  bool               linesSelectable_      { false };            // are lines selectable
-  CQChartsLineData   lineData_;                                  // line data
-  bool               roundedLines_         { false };            // draw rounded (smooth) lines
-  bool               fillUnderSelectable_  { false };            // is fill under selectable
-  FillUnderData      fillUnderData_;                             // fill under data
-  CQChartsLineData   impulseData_;                               // impulse line data
-  CQChartsArrow*     arrowObj_             { nullptr };          // vectors data
-  CQChartsTextData   dataLabelData_;                             // data label text data
-  CQChartsLineData   bivariateLineData_;                         // bivariate line object
-  ColumnType         pointColorColumnType_ { ColumnType::NONE }; // point color column type
-  bool               fitted_               { false };            // is fitted
-  mutable double     symbolWidth_          { 1.0 };              // current symbol width
-  mutable double     symbolHeight_         { 1.0 };              // current symbol height
+  CQChartsColumn   xColumn_              { 0 };                // x column
+  CQChartsColumns  yColumns_             { 1 };                // y columns
+  CQChartsColumn   nameColumn_;                                // name column
+  CQChartsColumn   sizeColumn_;                                // size column
+  CQChartsColumn   pointLabelColumn_;                          // point label column
+  CQChartsColumn   pointColorColumn_;                          // point color column
+  CQChartsColumn   pointSymbolColumn_;                         // point symbol column
+  CQChartsColumn   vectorXColumn_;                             // vector x direction column
+  CQChartsColumn   vectorYColumn_;                             // vector y direction column
+  bool             stacked_              { false };            // is stacked
+  bool             cumulative_           { false };            // cumulate values
+  bool             linesSelectable_      { false };            // are lines selectable
+  bool             roundedLines_         { false };            // draw rounded (smooth) lines
+  bool             fillUnderSelectable_  { false };            // is fill under selectable
+  FillUnderData    fillUnderData_;                             // fill under data
+  CQChartsArrow*   arrowObj_             { nullptr };          // vectors data
+  CQChartsTextData dataLabelData_;                             // data label text data
+  ColumnType       pointColorColumnType_ { ColumnType::NONE }; // point color column type
+  bool             fitted_               { false };            // is fitted
+  mutable double   symbolWidth_          { 1.0 };              // current symbol width
+  mutable double   symbolHeight_         { 1.0 };              // current symbol height
 };
 
 #endif

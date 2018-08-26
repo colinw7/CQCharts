@@ -1544,7 +1544,7 @@ updateRegionBand(CQChartsPlot *plot, const QPoint &pressPoint, const QPoint &mov
     int w = regionBand_->width ();
     int h = regionBand_->height();
 
-    CQChartsGeom::BBox pixelRect = plot->calcPixelRect();
+    CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
 
     if (! plot->allowZoomX()) {
       x = pixelRect.getXMin();
@@ -1681,7 +1681,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
 {
   painter->save();
 
-  if (CQChartsUtil::isZero(options.angle)) {
+  if (CMathUtil::isZero(options.angle)) {
     QFontMetricsF fm(painter->font());
 
     if (options.clipped)
@@ -2647,7 +2647,14 @@ printPNGSlot()
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print PNG", dir, "Files (*.png)");
 
-  printPNG(fileName);
+  printPNGSlot(fileName);
+}
+
+void
+CQChartsView::
+printPNGSlot(const QString &filename)
+{
+  printPNG(filename);
 }
 
 void
@@ -2658,7 +2665,14 @@ printSVGSlot()
 
   QString fileName = QFileDialog::getSaveFileName(this, "Print SVG", dir, "Files (*.svg)");
 
-  printSVG(fileName);
+  printSVGSlot(fileName);
+}
+
+void
+CQChartsView::
+printSVGSlot(const QString &filename)
+{
+  printSVG(filename);
 }
 
 void
@@ -2679,7 +2693,7 @@ printPNG(const QString &filename, CQChartsPlot *plot)
   painter.end();
 
   if (plot) {
-    CQChartsGeom::BBox pixelRect = plot->calcPixelRect();
+    CQChartsGeom::BBox pixelRect = plot->calcPlotPixelRect();
 
     image = image.copy(CQChartsUtil::toQRectI(pixelRect));
   }
@@ -3135,14 +3149,14 @@ double
 CQChartsView::
 pixelToSignedWindowWidth(double ww) const
 {
-  return CQChartsUtil::sign(ww)*pixelToWindowWidth(ww);
+  return CMathUtil::sign(ww)*pixelToWindowWidth(ww);
 }
 
 double
 CQChartsView::
 pixelToSignedWindowHeight(double wh) const
 {
-  return -CQChartsUtil::sign(wh)*pixelToWindowHeight(wh);
+  return -CMathUtil::sign(wh)*pixelToWindowHeight(wh);
 }
 
 double
@@ -3173,14 +3187,14 @@ double
 CQChartsView::
 windowToSignedPixelWidth(double ww) const
 {
-  return CQChartsUtil::sign(ww)*windowToPixelWidth(ww);
+  return CMathUtil::sign(ww)*windowToPixelWidth(ww);
 }
 
 double
 CQChartsView::
 windowToSignedPixelHeight(double wh) const
 {
-  return -CQChartsUtil::sign(wh)*windowToPixelHeight(wh);
+  return -CMathUtil::sign(wh)*windowToPixelHeight(wh);
 }
 
 double

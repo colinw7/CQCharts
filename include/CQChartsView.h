@@ -579,7 +579,10 @@ class CQChartsView : public QFrame {
   void printFile(const QString &filename, CQChartsPlot *plot=nullptr);
 
   void printPNGSlot();
+  void printPNGSlot(const QString &filename);
+
   void printSVGSlot();
+  void printSVGSlot(const QString &filename);
 
   //---
 

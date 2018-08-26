@@ -1,4 +1,5 @@
 #include <CQChartsColumn.h>
+#include <CQStrUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColumn, toString, fromString)
 
@@ -275,20 +276,17 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   //---
 
   // integer column number
+  bool ok;
+
   const char *p;
 
-  errno = 0;
+  long column1 = CQStrUtil::toInt(&c_str[i], ok, &p);
 
-  long column1 = strtol(&c_str[i], (char **) &p, 10);
-
-  if (errno == ERANGE)
+  if (! ok)
     return false;
 
   if (column1 < 0)
     return false;
-
-  while (*p != 0 && ::isspace(*p))
-    ++p;
 
   //---
 
@@ -298,22 +296,19 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
   if (*p == '@') {
     ++p;
 
+    bool ok1;
+
     const char *p1;
 
-    errno = 0;
+    role1 = CQStrUtil::toInt(p, ok1, &p1);
 
-    role1 = strtol(p, (char **) &p1, 10);
-
-    if (errno == ERANGE)
+    if (! ok1)
       return false;
 
     if (role1 < 0)
       return false;
 
     p = p1;
-
-    while (*p != 0 && ::isspace(*p))
-      ++p;
   }
 
   //---

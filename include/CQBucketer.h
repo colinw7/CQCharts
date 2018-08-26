@@ -64,7 +64,10 @@ class CQBucketer {
 
   //---
 
-  double calcDelta() const { return calcDelta_; }
+  double calcMin  () const { autoCalc(); return calcMin_  ; }
+  double calcMax  () const { autoCalc(); return calcMax_  ; }
+  double calcDelta() const { autoCalc(); return calcDelta_; }
+  int    calcN    () const { autoCalc(); return calcN_    ; }
 
   //---
 
@@ -82,6 +85,7 @@ class CQBucketer {
 
   static int    varInt (const QVariant &var, bool &ok);
   static double varReal(const QVariant &var, bool &ok);
+
   //----
 
   QString bucketName(int bucket, bool utfArrow=false) const;
@@ -110,14 +114,6 @@ class CQBucketer {
   double calcRStart() const;
   int    calcIStart() const;
 
-  int roundNearest(double x) const;
-
-  int roundDown(double x) const;
-
-  double roundNearestF(double x) const;
-
-  double roundDownF(double x) const;
-
  private:
   using StringInd = std::map<QString,int>;
   using IndString = std::map<int,QString>;
@@ -138,7 +134,9 @@ class CQBucketer {
   // cached data
   mutable bool      needsCalc_ { true }; // needs auto calc
   mutable double    calcMin_   { 0.0 };  // calculated min value
+  mutable double    calcMax_   { 0.0 };  // calculated max value
   mutable double    calcDelta_ { 1.0 };  // calculated delta value
+  mutable int       calcN_     { 0 };    // calculated delta value
   mutable StringInd stringInd_;          // string to ind map
   mutable IndString indString_;          // ind to string map
 };

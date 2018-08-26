@@ -1,4 +1,5 @@
 #include <CQChartsGroupPlot.h>
+#include <CQChartsVariant.h>
 
 CQChartsGroupPlotType::
 CQChartsGroupPlotType()
@@ -346,10 +347,10 @@ rowGroupInds(const CQChartsModelIndex &index, std::vector<int> &inds, bool hier)
 
       inds.push_back(ind);
     }
-    else if (CQChartsUtil::isNumeric(value)) {
+    else if (CQChartsVariant::isNumeric(value)) {
       bool ok;
 
-      double r = CQChartsUtil::toReal(value, ok);
+      double r = CQChartsVariant::toReal(value, ok);
 
       ind = groupBucket_.bucket(r);
 

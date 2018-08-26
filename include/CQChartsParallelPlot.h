@@ -98,16 +98,10 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsParallelPlot : public CQChartsPlot {
+class CQChartsParallelPlot : public CQChartsPlot,
+ public CQChartsPlotLineData <CQChartsParallelPlot>,
+ public CQChartsPlotPointData<CQChartsParallelPlot> {
   Q_OBJECT
-
-  // properties
-  //  lines
-  //   display, stroke
-  //  points
-  //   display, color, shape. ...
-  //  margin
-  //  key
 
   // columns
   Q_PROPERTY(CQChartsColumn xColumn  READ xColumn     WRITE setXColumn    )
@@ -115,41 +109,15 @@ class CQChartsParallelPlot : public CQChartsPlot {
   Q_PROPERTY(QString        yColumns READ yColumnsStr WRITE setYColumnsStr)
 
   // options
-  Q_PROPERTY(bool           horizontal   READ isHorizontal   WRITE setHorizontal)
+  Q_PROPERTY(bool horizontal READ isHorizontal WRITE setHorizontal)
 
-  // lines
-  Q_PROPERTY(bool             lines           READ isLines           WRITE setLines          )
-  Q_PROPERTY(bool             linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
-  Q_PROPERTY(CQChartsColor    linesColor      READ linesColor        WRITE setLinesColor     )
-  Q_PROPERTY(double           linesAlpha      READ linesAlpha        WRITE setLinesAlpha     )
-  Q_PROPERTY(CQChartsLength   linesWidth      READ linesWidth        WRITE setLinesWidth     )
-  Q_PROPERTY(CQChartsLineDash linesDash       READ linesDash         WRITE setLinesDash      )
+  // lines (display, stroke)
+  CQCHARTS_LINE_DATA_PROPERTIES
 
-  // points
-  Q_PROPERTY(bool           points            READ isPoints          WRITE setPoints           )
-  Q_PROPERTY(CQChartsSymbol symbolType        READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(CQChartsLength symbolSize        READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked     READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolStrokeWidth READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
-  Q_PROPERTY(bool           symbolFilled      READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor   READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha   READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
-  Q_PROPERTY(Pattern        symbolFillPattern READ symbolFillPattern WRITE setSymbolFillPattern)
+  Q_PROPERTY(bool linesSelectable READ isLinesSelectable WRITE setLinesSelectable)
 
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
+  // points (display, symbol)
+  CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
   CQChartsParallelPlot(CQChartsView *view, const ModelP &model);
@@ -159,7 +127,6 @@ class CQChartsParallelPlot : public CQChartsPlot {
   //---
 
   // columns
-
   const CQChartsColumn &xColumn() const { return xColumn_; }
   void setXColumn(const CQChartsColumn &c);
 
@@ -174,73 +141,14 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   //---
 
+  // options
   bool isHorizontal() const { return horizontal_; }
 
   //---
 
-  // points
-  bool isPoints() const { return pointData_.visible; }
-  void setPoints(bool b);
-
-  const CQChartsColor &symbolStrokeColor() const;
-  void setSymbolStrokeColor(const CQChartsColor &c);
-
-  QColor interpSymbolStrokeColor(int i, int n) const;
-
-  double symbolStrokeAlpha() const;
-  void setSymbolStrokeAlpha(double a);
-
-  const CQChartsColor &symbolFillColor() const;
-  void setSymbolFillColor(const CQChartsColor &c);
-
-  QColor interpSymbolFillColor(int i, int n) const;
-
-  double symbolFillAlpha() const;
-  void setSymbolFillAlpha(double a);
-
-  Pattern symbolFillPattern() const;
-  void setSymbolFillPattern(const Pattern &p);
-
-  //---
-
   // lines
-  bool isLines() const { return lineData_.visible; }
-  void setLines(bool b);
-
   bool isLinesSelectable() const { return linesSelectable_; }
   void setLinesSelectable(bool b);
-
-  const CQChartsColor &linesColor() const;
-  void setLinesColor(const CQChartsColor &c);
-
-  QColor interpLinesColor(int i, int n) const;
-
-  double linesAlpha() const { return lineData_.alpha; }
-  void setLinesAlpha(double a);
-
-  const CQChartsLength &linesWidth() const { return lineData_.width; }
-  void setLinesWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &linesDash() const { return lineData_.dash; }
-  void setLinesDash(const CQChartsLineDash &d);
-
-  //---
-
-  // symbol
-  const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t);
-
-  const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s);
-
-  bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b);
-
-  const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l);
-
-  bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b);
 
   //---
 
@@ -275,6 +183,12 @@ class CQChartsParallelPlot : public CQChartsPlot {
 
   void drawParts(QPainter *painter) override;
 
+  void drawFgAxes(QPainter *painter) override;
+
+  void setObjRange();
+
+  void setNormalizedRange();
+
  public slots:
   // set horizontal
   void setHorizontal(bool b);
@@ -284,15 +198,13 @@ class CQChartsParallelPlot : public CQChartsPlot {
   using YAxes   = std::vector<CQChartsAxis*>;
   using AxisDir = CQChartsAxis::Direction;
 
-  CQChartsColumn     xColumn_         { 0 };                   // x value column
-  CQChartsColumns    yColumns_        { 1 };                   // y value columns
-  bool               horizontal_      { false };               // horizontal bars
-  Ranges             setRanges_;                               // value set ranges
-  AxisDir            adir_            { AxisDir::HORIZONTAL }; // axis direction
-  YAxes              axes_;                                    // value axes
-  CQChartsSymbolData pointData_;                               // point style data
-  bool               linesSelectable_ { false };               // are lines selectable
-  CQChartsLineData   lineData_;                                // line style data
+  CQChartsColumn  xColumn_         { 0 };                   // x value column
+  CQChartsColumns yColumns_        { 1 };                   // y value columns
+  bool            horizontal_      { false };               // horizontal bars
+  bool            linesSelectable_ { false };               // are lines selectable
+  Ranges          setRanges_;                               // value set ranges
+  AxisDir         adir_            { AxisDir::HORIZONTAL }; // axis direction
+  YAxes           axes_;                                    // value axes
 };
 
 #endif

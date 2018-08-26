@@ -3,9 +3,14 @@
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
+#include <CQChartsEnv.h>
+
 #include <CQPropertyViewModel.h>
+#include <CMathRound.h>
+
 #include <QPainter>
 
 #include <cstring>
@@ -13,6 +18,7 @@
 
 //------
 
+#if 0
 struct AxisGoodTicks {
   uint min {  4 };
   uint max { 12 };
@@ -28,7 +34,7 @@ struct AxisIncrementTest {
 
   AxisIncrementTest(double factor, uint numTicks, bool isLog) :
    factor(factor), numTicks(numTicks), isLog(isLog) {
-    integral = CQChartsUtil::isInteger(factor);
+    integral = CMathUtil::isInteger(factor);
   }
 };
 
@@ -53,13 +59,14 @@ axesIncrementTests[] = {
 static uint numAxesIncrementTests = sizeof(axesIncrementTests)/sizeof(axesIncrementTests[0]);
 
 AxisGoodTicks axisGoodTicks;
+#endif
 
 //---
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
  QObject(plot), plot_(plot), direction_(direction),
- start_(std::min(start, end)), end_(std::max(start, end)), start1_(start), end1_(end),
+ start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end),
  editHandles_(plot, CQChartsEditHandles::Mode::MOVE)
 {
   setObjectName("axis");
@@ -689,6 +696,21 @@ void
 CQChartsAxis::
 calc()
 {
+#if 1
+  interval_.setStart(start());
+  interval_.setEnd  (end  ());
+
+  interval_.setIntegral(isIntegral());
+
+  interval_.setMajorIncrement(majorIncrement());
+  interval_.setTickIncrement (tickIncrement ());
+
+  numMajorTicks_ = interval_.calcNumMajor ();
+  numMinorTicks_ = interval_.calcNumMinor ();
+  calcIncrement_ = interval_.calcIncrement();
+  calcStart_     = interval_.calcStart    ();
+  calcEnd_       = interval_.calcEnd      ();
+#else
   numMajorTicks_ = 1;
   numMinorTicks_ = 0;
 
@@ -717,7 +739,7 @@ calc()
   //------
 
   // Calculate nearest power of ten to length
-  int power = CQChartsUtil::RoundDown(log10(length));
+  int power = CMathRound::RoundDown(log10(length));
 
   if (isIntegral()) {
     if (power < 0)
@@ -728,25 +750,23 @@ calc()
 
   if (majorIncrement_ <= 0.0) {
     // Set Default Increment to 0.1 * Power of Ten
-    double increment;
-
     if (! isIntegral() && ! isLog()) {
-      increment = 0.1;
+      calcIncrement_ = 0.1;
 
       if      (power < 0) {
         for (int i = 0; i < -power; i++)
-          increment /= 10.0;
+          calcIncrement_ /= 10.0;
       }
       else if (power > 0) {
         for (int i = 0; i <  power; i++)
-          increment *= 10.0;
+          calcIncrement_ *= 10.0;
       }
     }
     else {
-      increment = 1;
+      calcIncrement_ = 1;
 
       for (int i = 1; i < power; i++)
-        increment *= 10.0;
+        calcIncrement_ *= 10.0;
     }
 
     //------
@@ -754,12 +774,12 @@ calc()
     // Calculate other test Increments
 
     for (uint i = 0; i < numAxesIncrementTests; i++) {
-      if (isIntegral() && ! CQChartsUtil::isInteger(axesIncrementTests[i].factor)) {
+      if (isIntegral() && ! CMathUtil::isInteger(axesIncrementTests[i].factor)) {
         axesIncrementTests[i].incFactor = 0.0;
         continue;
       }
 
-      axesIncrementTests[i].incFactor = increment*axesIncrementTests[i].factor;
+      axesIncrementTests[i].incFactor = calcIncrement()*axesIncrementTests[i].factor;
     }
 
     //------
@@ -777,7 +797,7 @@ calc()
         continue;
 
       if (tickIncrement_ > 0) {
-        if (! CQChartsUtil::isInteger(axesIncrementTests[i].incFactor))
+        if (! CMathUtil::isInteger(axesIncrementTests[i].incFactor))
           continue;
 
         int incFactor1 = int(axesIncrementTests[i].incFactor);
@@ -792,9 +812,9 @@ calc()
                    axisGapData);
     }
 
-    start1_   = axisGapData.start;
-    end1_     = axisGapData.end;
-    increment = axisGapData.increment;
+    calcStart_     = axisGapData.start;
+    calcEnd_       = axisGapData.end;
+    calcIncrement_ = axisGapData.increment;
 
     int numGapTicks = axisGapData.numGapTicks;
 
@@ -805,22 +825,28 @@ calc()
 
     // Set the Gap Positions
 
-    numMajorTicks_ = CQChartsUtil::RoundDown((end1_ - start1_)/increment + 0.5);
+    numMajorTicks_ = CMathRound::RoundNearest((calcEnd() - calcStart())/calcIncrement());
     numMinorTicks_ = numGapTicks;
   }
   else {
-    start1_ = minAxis;
-    end1_   = maxAxis;
-  //start1_ = start();
-  //end1_   = end  ();
+    calcStart_     = minAxis;
+    calcEnd_       = maxAxis;
+    calcIncrement_ = majorIncrement_;
 
-    numMajorTicks_ = CQChartsUtil::RoundDown((end1_ - start1_)/majorIncrement_ + 0.5);
+    numMajorTicks_ = CMathRound::RoundNearest((calcEnd() - calcStart())/calcIncrement());
     numMinorTicks_ = 5;
   }
+#endif
+//std::cerr << "numMajorTicks: " << numMajorTicks_  << "\n";
+//std::cerr << "numMinorTicks: " << numMinorTicks_  << "\n";
+//std::cerr << "calcIncrement: " << calcIncrement() << "\n";
+//std::cerr << "calcStart    : " << calcStart()     << "\n";
+//std::cerr << "calcEnd      : " << calcEnd()       << "\n";
 
   emit ticksChanged();
 }
 
+#if 0
 bool
 CQChartsAxis::
 testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
@@ -828,8 +854,8 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 {
   // Calculate New Start and End implied by the Test Increment
 
-  double newStart = CQChartsUtil::RoundDownF(start/testIncrement)*testIncrement;
-  double newEnd   = CQChartsUtil::RoundUpF  (end  /testIncrement)*testIncrement;
+  double newStart = CMathRound::RoundDownF(start/testIncrement)*testIncrement;
+  double newEnd   = CMathRound::RoundUpF  (end  /testIncrement)*testIncrement;
 
   while (newStart > start)
     newStart -= testIncrement;
@@ -837,7 +863,7 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
   while (newEnd < end)
     newEnd += testIncrement;
 
-  uint testNumGaps = CQChartsUtil::RoundUp((newEnd - newStart)/testIncrement);
+  uint testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
 
   //------
 
@@ -944,29 +970,16 @@ testAxisGaps(double start, double end, double testIncrement, uint testNumGapTick
 
   return false;
 }
-
-double
-CQChartsAxis::
-majorIncrement() const
-{
-  if (majorIncrement_ > 0.0)
-    return majorIncrement_;
-  else {
-    if (numMajorTicks() > 0)
-      return (end1_ - start1_)/numMajorTicks();
-    else
-      return 0.0;
-  }
-}
+#endif
 
 double
 CQChartsAxis::
 minorIncrement() const
 {
   if (numMajorTicks() > 0 && numMinorTicks() > 0)
-    return (end1_ - start1_)/(numMajorTicks()*numMinorTicks());
-  else
-    return 0.0;
+    return (calcEnd() - calcStart())/(numMajorTicks()*numMinorTicks());
+
+  return 0.0;
 }
 
 QString
@@ -1018,7 +1031,7 @@ valueStr(CQChartsPlot *plot, double pos) const
       if (header.isValid()) {
         QString headerStr;
 
-        CQChartsUtil::variantToString(header, headerStr);
+        CQChartsVariant::toString(header, headerStr);
 
         return headerStr;
       }
@@ -1182,8 +1195,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
   //---
 
-  double inc = majorIncrement();
-
+  double inc  = calcIncrement();
   double inc1 = (isLog() ? plot->expValue(inc) : inc)/numMinorTicks();
 
   //---
@@ -1204,7 +1216,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
     //---
 
-    double pos1 = start1_;
+    double pos1 = calcStart();
 
     if (isGridMid())
       pos1 += inc/2.0;
@@ -1245,7 +1257,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
   // draw grid lines
   if (isGridMajorDisplayed() || isGridMinorDisplayed()) {
-    double pos1 = start1_;
+    double pos1 = calcStart();
 
     if (isGridMid())
       pos1 += inc/2.0;
@@ -1264,7 +1276,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
         for (uint j = 1; j < numMinorTicks(); j++) {
           double pos2 = pos1 + (isLog() ? plot_->logValue(j*inc1) : j*inc1);
 
-          if (isIntegral() && ! CQChartsUtil::isInteger(pos2))
+          if (isIntegral() && ! CMathUtil::isInteger(pos2))
             continue;
 
           // draw minor grid line
@@ -1329,13 +1341,12 @@ draw(CQChartsPlot *plot, QPainter *painter)
 
   //---
 
-  double inc = majorIncrement();
-
+  double inc  = calcIncrement();
   double inc1 = (isLog() ? plot->expValue(inc) : inc)/numMinorTicks();
 
   //---
 
-  double pos1 = start1_;
+  double pos1 = calcStart();
 
   int tlen2 = majorTickLen();
   int tgap  = 2;
@@ -1375,7 +1386,7 @@ draw(CQChartsPlot *plot, QPainter *painter)
       for (uint j = 1; j < numMinorTicks(); j++) {
         double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 
-        if (isIntegral() && ! CQChartsUtil::isInteger(pos2))
+        if (isIntegral() && ! CMathUtil::isInteger(pos2))
           continue;
 
         // draw minor tick line
@@ -1741,7 +1752,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       QPointF pt(ppx, ppy + tyo);
 
-      if (CQChartsUtil::isZero(angle)) {
+      if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double wta = plot->pixelToWindowHeight(ta);
         double wtd = plot->pixelToWindowHeight(td);
@@ -1794,7 +1805,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle)) {
+        if (CMathUtil::isZero(angle)) {
           double ty = pt.y() + ta;
 
           QPointF p;
@@ -1834,7 +1845,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       QPointF pt(ppx, ppy - tyo);
 
-      if (CQChartsUtil::isZero(angle)) {
+      if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double wta = plot->pixelToWindowHeight(ta);
         double wtd = plot->pixelToWindowHeight(td);
@@ -1887,7 +1898,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle)) {
+        if (CMathUtil::isZero(angle)) {
           double ty = pt.y() - td;
 
           QPointF p;
@@ -1956,7 +1967,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       QPointF pt(ppx - txo, ppy);
 
-      if (CQChartsUtil::isZero(angle)) {
+      if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double wta = plot->pixelToWindowHeight(ta);
         double wtd = plot->pixelToWindowHeight(td);
@@ -2009,7 +2020,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle)) {
+        if (CMathUtil::isZero(angle)) {
           //double tx = pt.x() - (isPixelLeft ? tw : 0.0);
           double tx = pt.x() - tw;
 
@@ -2050,7 +2061,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
 
       QPointF pt(ppx + txo, ppy);
 
-      if (CQChartsUtil::isZero(angle)) {
+      if (CMathUtil::isZero(angle)) {
         double atw = plot->pixelToWindowWidth (tw);
         double wta = plot->pixelToWindowHeight(ta);
         double wtd = plot->pixelToWindowHeight(td);
@@ -2103,7 +2114,7 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
       }
 
       if (visible) {
-        if (CQChartsUtil::isZero(angle)) {
+        if (CMathUtil::isZero(angle)) {
           //double tx = pt.x() - (! isPixelLeft ? 0.0 : tw);
           double tx = pt.x();
 

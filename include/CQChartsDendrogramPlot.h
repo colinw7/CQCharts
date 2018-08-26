@@ -56,24 +56,28 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsDendrogramPlot : public CQChartsPlot {
+class CQChartsDendrogramPlot : public CQChartsPlot,
+ public CQChartsPlotNodeShapeData<CQChartsDendrogramPlot>,
+ public CQChartsPlotEdgeLineData <CQChartsDendrogramPlot>,
+ public CQChartsPlotTextData     <CQChartsDendrogramPlot> {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn nameColumn      READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(CQChartsColumn valueColumn     READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(double         circleSize      READ circleSize      WRITE setCircleSize     )
-  Q_PROPERTY(double         textMargin      READ textMargin      WRITE setTextMargin     )
-  Q_PROPERTY(CQChartsColor  nodeBorderColor READ nodeBorderColor WRITE setNodeBorderColor)
-  Q_PROPERTY(double         nodeBorderAlpha READ nodeBorderAlpha WRITE setNodeBorderAlpha)
-  Q_PROPERTY(CQChartsLength nodeBorderWidth READ nodeBorderWidth WRITE setNodeBorderWidth)
-  Q_PROPERTY(CQChartsColor  nodeFillColor   READ nodeFillColor   WRITE setNodeFillColor  )
-  Q_PROPERTY(double         nodeFillAlpha   READ nodeFillAlpha   WRITE setNodeFillAlpha  )
-  Q_PROPERTY(CQChartsColor  edgeLineColor   READ edgeLineColor   WRITE setEdgeLineColor  )
-  Q_PROPERTY(double         edgeLineAlpha   READ edgeLineAlpha   WRITE setEdgeLineAlpha  )
-  Q_PROPERTY(CQChartsLength edgeLineWidth   READ edgeLineWidth   WRITE setEdgeLineWidth  )
-  Q_PROPERTY(QFont          textFont        READ textFont        WRITE setTextFont       )
-  Q_PROPERTY(CQChartsColor  textColor       READ textColor       WRITE setTextColor      )
-  Q_PROPERTY(double         textAlpha       READ textAlpha       WRITE setTextAlpha      )
+  // columns
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
+
+  // options
+  Q_PROPERTY(double circleSize READ circleSize WRITE setCircleSize )
+  Q_PROPERTY(double textMargin READ textMargin WRITE setTextMargin )
+
+  // node stroke/fill
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
+
+  // edge line
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge,edge)
+
+  // labels
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
   CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model);
@@ -95,55 +99,6 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
 
   double textMargin() const { return textMargin_; }
   void setTextMargin(double r);
-
-  //---
-
-  const CQChartsColor &nodeBorderColor() const;
-  void setNodeBorderColor(const CQChartsColor &c);
-
-  QColor interpNodeBorderColor(int i, int n) const;
-
-  double nodeBorderAlpha() const;
-  void setNodeBorderAlpha(double a);
-
-  const CQChartsLength &nodeBorderWidth() const;
-  void setNodeBorderWidth(const CQChartsLength &l);
-
-  //---
-
-  const CQChartsColor &nodeFillColor() const;
-  void setNodeFillColor(const CQChartsColor &c);
-
-  QColor interpNodeFillColor(int i, int n) const;
-
-  double nodeFillAlpha() const;
-  void setNodeFillAlpha(double a);
-
-  //---
-
-  const CQChartsColor &edgeLineColor() const;
-  void setEdgeLineColor(const CQChartsColor &c);
-
-  QColor interpEdgeLineColor(int i, int n) const;
-
-  double edgeLineAlpha() const;
-  void setEdgeLineAlpha(double a);
-
-  const CQChartsLength &edgeLineWidth() const;
-  void setEdgeLineWidth(const CQChartsLength &l);
-
-  //---
-
-  const QFont &textFont() const;
-  void setTextFont(const QFont &f);
-
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  QColor interpTextColor(int i, int n) const;
-
-  double textAlpha() const;
-  void setTextAlpha(double a);
 
   //---
 
@@ -183,9 +138,6 @@ class CQChartsDendrogramPlot : public CQChartsPlot {
   CQChartsDendrogram* dendrogram_  { nullptr }; // dendogram class
   double              circleSize_  { 8 };       // circle size
   double              textMargin_  { 4 };       // text margin
-  CQChartsShapeData   nodeData_;                // node fill/border data
-  CQChartsStrokeData  edgeData_;                // edge stroke data
-  CQChartsTextData    textData_;                // text data
 };
 
 #endif

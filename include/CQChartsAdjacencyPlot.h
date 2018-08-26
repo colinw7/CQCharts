@@ -131,31 +131,34 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 //   empty cell        : color
 //
 // TODO: use box obj for box config
-class CQChartsAdjacencyPlot : public CQChartsPlot {
+class CQChartsAdjacencyPlot : public CQChartsPlot,
+ public CQChartsPlotShapeData<CQChartsAdjacencyPlot>,
+ public CQChartsPlotTextData <CQChartsAdjacencyPlot> {
   Q_OBJECT
 
+  // columns
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
   Q_PROPERTY(CQChartsColumn namePairColumn    READ namePairColumn    WRITE setNamePairColumn   )
   Q_PROPERTY(CQChartsColumn countColumn       READ countColumn       WRITE setCountColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
 
-  Q_PROPERTY(SortType       sortType       READ sortType       WRITE setSortType      )
-  Q_PROPERTY(CQChartsColor  bgColor        READ bgColor        WRITE setBgColor       )
-  Q_PROPERTY(double         margin         READ margin         WRITE setMargin        )
+  // options
+  Q_PROPERTY(SortType      sortType READ sortType WRITE setSortType)
+  Q_PROPERTY(CQChartsColor bgColor  READ bgColor  WRITE setBgColor )
+  Q_PROPERTY(double        margin   READ margin   WRITE setMargin  )
 
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
+  // cell style
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
+  Q_PROPERTY(CQChartsLength cornerSize READ cornerSize WRITE setCornerSize)
+
+  // empty cell style
   Q_PROPERTY(CQChartsColor  emptyCellColor      READ emptyCellColor      WRITE setEmptyCellColor)
   Q_PROPERTY(CQChartsLength emptyCellCornerSize READ emptyCellCornerSize
                                                 WRITE setEmptyCellCornerSize )
 
-  Q_PROPERTY(CQChartsColor textColor READ textColor WRITE setTextColor)
-  Q_PROPERTY(double        textAlpha READ textAlpha WRITE setTextAlpha)
-  Q_PROPERTY(QFont         font      READ font      WRITE setFont     )
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
   Q_ENUMS(SortType)
 
@@ -173,6 +176,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
+  // columns
   const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
   void setConnectionsColumn(const CQChartsColumn &c);
 
@@ -202,18 +206,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsColor &borderColor() const { return cellBox_.borderColor(); }
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const { return cellBox_.borderAlpha(); }
-  void setBorderAlpha(double r);
-
-  const CQChartsLineDash &borderDash() const { return cellBox_.borderDash(); }
-  void setBorderDash(const CQChartsLineDash &v);
-
-  const CQChartsLength &cornerSize() const { return cellBox_.cornerSize(); }
+  const CQChartsLength &cornerSize() const { return cornerSize_; }
   void setCornerSize(const CQChartsLength &s);
 
   //---
@@ -225,19 +218,6 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
 
   const CQChartsLength &emptyCellCornerSize() const { return emptyCellBox_.cornerSize(); }
   void setEmptyCellCornerSize(const CQChartsLength &s);
-
-  //---
-
-  const CQChartsColor &textColor() const { return textData_.color; }
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const { return textData_.alpha; }
-  void setTextAlpha(double a);
-
-  QColor interpTextColor(int i, int n) const;
-
-  const QFont &font() const { return textData_.font; }
-  void setFont(const QFont &f);
 
   //---
 
@@ -320,9 +300,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot {
   CQChartsColumn        nameColumn_;                            // name column
   SortType              sortType_          { SortType::GROUP }; // sort type
   CQChartsBoxObj        bgBox_;                                 // background box data
-  CQChartsBoxObj        cellBox_;                               // cell box data
+  CQChartsLength        cornerSize_        { "0px" };           // cell box corner size
   CQChartsBoxObj        emptyCellBox_;                          // empty cell box data
-  CQChartsTextData      textData_;                              // text style data
   IdConnectionsData     idConnections_;                         // connections by id
   NodeMap               nodes_;                                 // all nodes
   NodeArray             sortedNodes_;                           // sorted nodes

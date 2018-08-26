@@ -1,4 +1,5 @@
 #include <CInterval.h>
+#include <CMathRound.h>
 #include <iostream>
 #include <cstdlib>
 #include <climits>
@@ -8,70 +9,6 @@ namespace {
 
 inline bool RealEq(double r1, double r2) {
   return (std::abs(r1 - r2) < 1E-6);
-}
-
-inline int RoundNearest(double x) {
-  double x1;
-
-  if (x <= 0.0)
-    x1 = (x - 0.499999);
-  else
-    x1 = (x + 0.500001);
-
-  if (x1 < INT_MIN || x1 > INT_MAX)
-    errno = ERANGE;
-
-  return int(x1);
-}
-
-inline int RoundUp(double x) {
-  double x1;
-
-  if (x <= 0.0)
-    x1 = (x       - 1E-6);
-  else
-    x1 = (x + 1.0 - 1E-6);
-
-  if (x1 < INT_MIN || x1 > INT_MAX)
-    errno = ERANGE;
-
-  return int(x1);
-}
-
-inline int RoundDown(double x) {
-  double x1;
-
-  if (x >= 0.0)
-    x1 = (x       + 1E-6);
-  else
-    x1 = (x - 1.0 + 1E-6);
-
-  if (x1 < INT_MIN || x1 > INT_MAX)
-    errno = ERANGE;
-
-  return int(x1);
-}
-
-inline double RoundUpF(double x) {
-  double x1;
-
-  if (x <= 0.0)
-    x1 = (x       - 1E-6);
-  else
-    x1 = (x + 1.0 - 1E-6);
-
-  return std::trunc(x1);
-}
-
-inline double RoundDownF(double x) {
-  double x1;
-
-  if (x >= 0.0)
-    x1 = (x       + 1E-6);
-  else
-    x1 = (x - 1.0 + 1E-6);
-
-  return std::trunc(x1);
 }
 
 inline bool isInteger(double r) {
@@ -140,6 +77,32 @@ void
 CInterval::
 init()
 {
+  // Ensure min/max are in the correct order
+  double min = std::min(data_.start, data_.end);
+  double max = std::max(data_.start, data_.end);
+
+  if (isIntegral()) {
+    min = std::floor(min);
+    max = std::ceil (max);
+  }
+
+  //---
+
+  // use fixed increment
+  if (majorIncrement_ > 0.0) {
+    calcData_.start     = min;
+    calcData_.end       = max;
+    calcData_.increment = majorIncrement_;
+
+    calcData_.numMajor =
+      CMathRound::RoundNearest((calcData_.end - calcData_.start)/calcData_.increment);
+    calcData_.numMinor = 5;
+
+    return;
+  }
+
+  //---
+
   if (data_.numMajor > 0) {
     goodTicks_.opt = data_.numMajor;
     goodTicks_.min = std::max(goodTicks_.opt/10, 1);
@@ -153,17 +116,6 @@ init()
 
   calcData_.numMajor = -1;
   calcData_.numMinor = 5;
-
-  //---
-
-  // Ensure min/max are in the correct order
-  double min = std::min(data_.start, data_.end);
-  double max = std::max(data_.start, data_.end);
-
-  if (isIntegral()) {
-    min = std::floor(min);
-    max = std::ceil (max);
-  }
 
   //---
 
@@ -234,7 +186,8 @@ init()
     calcData_.numMinor = 5;
   }
 
-  calcData_.numMajor = RoundNearest((calcData_.end - calcData_.start)/calcData_.increment);
+  calcData_.numMajor =
+    CMathRound::RoundNearest((calcData_.end - calcData_.start)/calcData_.increment);
 }
 
 double
@@ -248,7 +201,7 @@ initIncrement() const
   double length = max - min;
 
   if (isIntegral())
-    length = RoundNearest(length);
+    length = CMathRound::RoundNearest(length);
 
   if (length == 0.0)
     return 1.0;
@@ -263,7 +216,7 @@ initIncrement() const
   //---
 
   // Calculate nearest Power of Ten to Length
-  int power = RoundDown(log10(length1));
+  int power = CMathRound::RoundDown(log10(length1));
 
   if (isIntegral()) {
     if (power < 0) {
@@ -310,8 +263,8 @@ testAxisGaps(double start, double end, double testIncrement, int testNumGapTicks
 //             " Num: " << testNumGapTicks << "\n";
 
   // Calculate new start and end implied by the test increment
-  double newStart = RoundDownF(start/testIncrement)*testIncrement;
-  double newEnd   = RoundUpF  (end  /testIncrement)*testIncrement;
+  double newStart = CMathRound::RoundDownF(start/testIncrement)*testIncrement;
+  double newEnd   = CMathRound::RoundUpF  (end  /testIncrement)*testIncrement;
 
   while (newStart > start)
     newStart -= testIncrement;
@@ -319,7 +272,7 @@ testAxisGaps(double start, double end, double testIncrement, int testNumGapTicks
   while (newEnd < end)
     newEnd += testIncrement;
 
-  int testNumGaps = RoundUp((newEnd - newStart)/testIncrement);
+  int testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
 
 //std::cerr << "  Adjusted) Start: " << newStart << " End: " << newEnd << " Num: " << testNumGaps << "\n";
 
@@ -410,7 +363,7 @@ int
 CInterval::
 valueInterval(double r) const
 {
-  return RoundDown((r - calcStart())/calcIncrement());
+  return CMathRound::RoundDown((r - calcStart())/calcIncrement());
 }
 
 void

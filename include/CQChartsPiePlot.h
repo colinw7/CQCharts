@@ -248,7 +248,8 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 
 //---
 
-class CQChartsPiePlot : public CQChartsGroupPlot {
+class CQChartsPiePlot : public CQChartsGroupPlot,
+ public CQChartsPlotGridLineData<CQChartsPiePlot> {
   Q_OBJECT
 
   // properties
@@ -263,28 +264,24 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn     WRITE setColorColumn    )
 
   // options
-  Q_PROPERTY(bool   donut           READ isDonut           WRITE setDonut          )
-  Q_PROPERTY(bool   count           READ isCount           WRITE setCount          )
-  Q_PROPERTY(double innerRadius     READ innerRadius       WRITE setInnerRadius    )
-  Q_PROPERTY(double outerRadius     READ outerRadius       WRITE setOuterRadius    )
-  Q_PROPERTY(double labelRadius     READ labelRadius       WRITE setLabelRadius    )
-  Q_PROPERTY(double startAngle      READ startAngle        WRITE setStartAngle     )
-  Q_PROPERTY(double angleExtent     READ angleExtent       WRITE setAngleExtent    )
-  Q_PROPERTY(bool   rotatedText     READ isRotatedText     WRITE setRotatedText    )
+  Q_PROPERTY(bool   donut       READ isDonut       WRITE setDonut      )
+  Q_PROPERTY(bool   count       READ isCount       WRITE setCount      )
+  Q_PROPERTY(double innerRadius READ innerRadius   WRITE setInnerRadius)
+  Q_PROPERTY(double outerRadius READ outerRadius   WRITE setOuterRadius)
+  Q_PROPERTY(double labelRadius READ labelRadius   WRITE setLabelRadius)
+  Q_PROPERTY(double startAngle  READ startAngle    WRITE setStartAngle )
+  Q_PROPERTY(double angleExtent READ angleExtent   WRITE setAngleExtent)
+  Q_PROPERTY(bool   rotatedText READ isRotatedText WRITE setRotatedText)
+
+  // explode
   Q_PROPERTY(bool   explodeSelected READ isExplodeSelected WRITE setExplodeSelected)
   Q_PROPERTY(double explodeRadius   READ explodeRadius     WRITE setExplodeRadius  )
 
   // grid
-  Q_PROPERTY(bool             grid      READ isGrid    WRITE setGrid     )
-  Q_PROPERTY(CQChartsColor    gridColor READ gridColor WRITE setGridColor)
-  Q_PROPERTY(double           gridAlpha READ gridAlpha WRITE setGridAlpha)
-  Q_PROPERTY(CQChartsLength   gridWidth READ gridWidth WRITE setGridWidth)
-  Q_PROPERTY(CQChartsLineDash gridDash  READ gridDash  WRITE setGridDash )
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
 
   // color map
-  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
+  CQCHARTS_COLOR_MAP_PROPERTIES
 
  public:
   CQChartsPiePlot(CQChartsView *view, const ModelP &model);
@@ -321,25 +318,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   bool isDonut() const { return donut_; }
 
   bool isCount() const { return count_; }
-
-  //---
-
-  bool isGrid() const { return gridData_.visible; }
-  void setGrid(bool b);
-
-  const CQChartsColor &gridColor() const { return gridData_.color; }
-  void setGridColor(const CQChartsColor &c);
-
-  QColor interpGridColor(int i, int n);
-
-  double gridAlpha() const { return gridData_.alpha; }
-  void setGridAlpha(double r);
-
-  const CQChartsLength &gridWidth() const { return gridData_.width; }
-  void setGridWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &gridDash() const { return gridData_.dash; }
-  void setGridDash(const CQChartsLineDash &l);
 
   //---
 
@@ -470,7 +448,6 @@ class CQChartsPiePlot : public CQChartsGroupPlot {
   bool                rotatedText_     { false };   // is label rotated
   bool                explodeSelected_ { true };    // explode selected pie
   double              explodeRadius_   { 0.05 };    // expose radus
-  CQChartsLineData    gridData_;                    // grid line data
   GroupDatas          groupDatas_;                  // data per group
   CQChartsPieTextObj* textBox_         { nullptr }; // text box
   CQChartsGeom::Point center_;                      // center point

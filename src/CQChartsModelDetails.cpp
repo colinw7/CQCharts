@@ -2,8 +2,10 @@
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
-#include <CQCharts.h>
+#include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
+#include <CQCharts.h>
+
 #include <CHRTimer.h>
 #include <QAbstractItemModel>
 
@@ -584,12 +586,12 @@ map(const QVariant &var) const
   bool ok;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
-    long l = CQChartsUtil::toInt(var, ok);
+    long l = CQChartsVariant::toInt(var, ok);
 
     return (ivals_ ? ivals_->map(l) : 0.0);
   }
   else if (type() == CQBaseModel::Type::REAL) {
-    double r = CQChartsUtil::toReal(var, ok);
+    double r = CQChartsVariant::toReal(var, ok);
 
     return (rvals_ ? rvals_->map(r) : 0.0);
   }
@@ -597,7 +599,7 @@ map(const QVariant &var) const
     return 0;
   }
   else if (type() == CQBaseModel::Type::TIME) {
-    long l = CQChartsUtil::toInt(var, ok);
+    long l = CQChartsVariant::toInt(var, ok);
 
     return (ivals_ ? ivals_->map(l) : 0.0);
   }
@@ -746,7 +748,7 @@ initData()
       if (visitMin_) {
         bool ok1;
 
-        long imin = CQChartsUtil::toInt(min_, ok1);
+        long imin = CQChartsVariant::toInt(min_, ok1);
 
         imin = (! ok1 ? i : std::min(imin, i));
 
@@ -757,7 +759,7 @@ initData()
       if (visitMax_) {
         bool ok1;
 
-        long imax = CQChartsUtil::toInt(max_, ok1);
+        long imax = CQChartsVariant::toInt(max_, ok1);
 
         imax = (! ok1 ? i : std::max(imax, i));
 
@@ -767,8 +769,8 @@ initData()
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
         bool ok1, ok2;
 
-        long i1 = CQChartsUtil::toInt(lastValue1_, ok1);
-        long i2 = CQChartsUtil::toInt(lastValue2_, ok2);
+        long i1 = CQChartsVariant::toInt(lastValue1_, ok1);
+        long i2 = CQChartsVariant::toInt(lastValue2_, ok2);
 
         if (! monotonicSet_) {
           if (i1 != i2) {
@@ -801,7 +803,7 @@ initData()
       if (visitMin_) {
         bool ok1;
 
-        double rmin = CQChartsUtil::toReal(min_, ok1);
+        double rmin = CQChartsVariant::toReal(min_, ok1);
 
         rmin = (! ok1 ? r : std::min(rmin, r));
 
@@ -812,7 +814,7 @@ initData()
       if (visitMax_) {
         bool ok1;
 
-        double rmax = CQChartsUtil::toReal(max_, ok1);
+        double rmax = CQChartsVariant::toReal(max_, ok1);
 
         rmax = (! ok1 ? r : std::max(rmax, r));
 
@@ -822,8 +824,8 @@ initData()
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
         bool ok1, ok2;
 
-        double r1 = CQChartsUtil::toReal(lastValue1_, ok1);
-        double r2 = CQChartsUtil::toReal(lastValue2_, ok2);
+        double r1 = CQChartsVariant::toReal(lastValue1_, ok1);
+        double r2 = CQChartsVariant::toReal(lastValue2_, ok2);
 
         if (! monotonicSet_) {
           if (r1 != r2) {
@@ -856,7 +858,7 @@ initData()
       if (visitMin_) {
         bool ok1;
 
-        QString smin = CQChartsUtil::toString(min_, ok1);
+        QString smin = CQChartsVariant::toString(min_, ok1);
 
         smin = (! ok1 ? s : std::min(smin, s));
 
@@ -867,7 +869,7 @@ initData()
       if (visitMax_) {
         bool ok1;
 
-        QString smax = CQChartsUtil::toString(max_, ok1);
+        QString smax = CQChartsVariant::toString(max_, ok1);
 
         smax = (! ok1 ? s : std::max(smax, s));
 
@@ -877,8 +879,8 @@ initData()
       if (lastValue1_.isValid() && lastValue2_.isValid()) {
         bool ok1, ok2;
 
-        QString s1 = CQChartsUtil::toString(lastValue1_, ok1);
-        QString s2 = CQChartsUtil::toString(lastValue2_, ok2);
+        QString s1 = CQChartsVariant::toString(lastValue1_, ok1);
+        QString s2 = CQChartsVariant::toString(lastValue2_, ok2);
 
         if (! monotonicSet_) {
           if (s1 != s2) {

@@ -1,6 +1,7 @@
 #include <CQChartsValueSet.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 
 CQChartsValueSet::
 CQChartsValueSet(CQChartsPlot *plot) :
@@ -114,7 +115,7 @@ imap(int i, double mapMin, double mapMax) const
     int imax = ivals_.imax();
 
     if (imin != imax)
-      return CQChartsUtil::map(*ival, imin, imax, mapMin, mapMax);
+      return CMathUtil::map(*ival, imin, imax, mapMin, mapMax);
     else
       return mapMin;
 #endif
@@ -459,9 +460,9 @@ init()
 
         bool ok;
 
-        double r = CQChartsUtil::toReal(value, ok);
+        double r = CQChartsVariant::toReal(value, ok);
 
-        if (CQChartsUtil::isInteger(r))
+        if (CMathUtil::isInteger(r))
           ++ni;
         else
           ++nr;
@@ -469,10 +470,10 @@ init()
       else {
         bool ok;
 
-        double r = CQChartsUtil::toReal(value, ok);
+        double r = CQChartsVariant::toReal(value, ok);
 
         if (ok) {
-          if (CQChartsUtil::isInteger(r))
+          if (CMathUtil::isInteger(r))
             ++ni;
           else
             ++nr;
@@ -504,14 +505,14 @@ init()
 
   for (const auto &value : values_) {
     if      (type() == Type::INTEGER) {
-      int i = CQChartsUtil::toInt(value, ok);
+      int i = CQChartsVariant::toInt(value, ok);
 
       ivals_.addValue(ok ? OptInt(i) : OptInt());
     }
     else if (type() == Type::REAL) {
-      double r = CQChartsUtil::toReal(value, ok);
+      double r = CQChartsVariant::toReal(value, ok);
 
-      if (! isAllowNaN() && CQChartsUtil::isNaN(r))
+      if (! isAllowNaN() && CMathUtil::isNaN(r))
         ok = false;
 
       rvals_.addValue(ok ? OptReal(r) : OptReal());
@@ -522,7 +523,7 @@ init()
       bool ok = false;
 
       if (value.isValid()) {
-        CQChartsUtil::variantToString(value, s);
+        CQChartsVariant::toString(value, s);
 
         ok = true;
       }
@@ -530,14 +531,14 @@ init()
       svals_.addValue(ok ? OptString(s) : OptString());
     }
     else if (type() == Type::COLOR) {
-      CQChartsColor c = CQChartsUtil::varToColor(value, ok);
+      CQChartsColor c = CQChartsVariant::toColor(value, ok);
 
       cvals_.addValue(c);
     }
     else if (type() == Type::TIME) {
-      double t = CQChartsUtil::toReal(value, ok);
+      double t = CQChartsVariant::toReal(value, ok);
 
-      if (! isAllowNaN() && CQChartsUtil::isNaN(t))
+      if (! isAllowNaN() && CMathUtil::isNaN(t))
         ok = false;
 
       tvals_.addValue(ok ? OptReal(t) : OptReal());

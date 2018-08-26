@@ -284,19 +284,19 @@ setBarAlpha(double a)
   CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
-CQChartsBarPlot::Pattern
+const CQChartsFillPattern &
 CQChartsBarPlot::
 barPattern() const
 {
-  return (Pattern) boxData_.shape.background.pattern;
+  return boxData_.shape.background.pattern;
 }
 
 void
 CQChartsBarPlot::
-setBarPattern(Pattern pattern)
+setBarPattern(const CQChartsFillPattern &pattern)
 {
-  if (pattern != (Pattern) boxData_.shape.background.pattern) {
-    boxData_.shape.background.pattern = (CQChartsFillPattern::Type) pattern;
+  if (pattern != boxData_.shape.background.pattern) {
+    boxData_.shape.background.pattern = pattern;
 
     invalidateLayers();
   }

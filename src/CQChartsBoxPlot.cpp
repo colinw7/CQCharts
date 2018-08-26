@@ -1,10 +1,11 @@
 #include <CQChartsBoxPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
-#include <CQChartsUtil.h>
 #include <CQChartsTextBoxObj.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
+#include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQChartsRand.h>
 #include <CQCharts.h>
 
@@ -101,17 +102,20 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsBoxPlot::
 CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
- CQChartsGroupPlot(view, view->charts()->plotType("box"), model)
+ CQChartsGroupPlot(view, view->charts()->plotType("box"), model),
+ CQChartsPlotTextData        <CQChartsBoxPlot>(this),
+ CQChartsPlotWhiskerLineData <CQChartsBoxPlot>(this),
+ CQChartsPlotOutlierPointData<CQChartsBoxPlot>(this)
 {
   setBoxColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setBorderStroked(true);
   setBoxFilled    (true);
 
-  setSymbolType(CQChartsSymbol::Type::CIRCLE);
-  setSymbolSize(CQChartsLength("4px"));
-  setSymbolFilled(true);
-  setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setOutlierSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setOutlierSymbolSize(CQChartsLength("4px"));
+  setOutlierSymbolFilled(true);
+  setOutlierSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   setPointsSymbolType(CQChartsSymbol::Type::CIRCLE);
   setPointsSymbolSize(CQChartsLength("4px"));
@@ -279,13 +283,6 @@ setConnected(bool b)
 
 void
 CQChartsBoxPlot::
-setWhiskerRange(double r)
-{
-  CQChartsUtil::testAndSet(whiskerRange_, r, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsBoxPlot::
 setBoxWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(boxWidth_, l, [&]() { updateRangeAndObjs(); } );
@@ -353,19 +350,19 @@ setBoxAlpha(double a)
   CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { invalidateLayers(); } );
 }
 
-CQChartsBoxPlot::Pattern
+const CQChartsFillPattern &
 CQChartsBoxPlot::
 boxPattern() const
 {
-  return (Pattern) boxData_.shape.background.pattern;
+  return boxData_.shape.background.pattern;
 }
 
 void
 CQChartsBoxPlot::
-setBoxPattern(Pattern pattern)
+setBoxPattern(const CQChartsFillPattern &pattern)
 {
-  if (pattern != (Pattern) boxData_.shape.background.pattern) {
-    boxData_.shape.background.pattern = (CQChartsFillData::Pattern) pattern;
+  if (pattern != boxData_.shape.background.pattern) {
+    boxData_.shape.background.pattern = pattern;
 
     invalidateLayers();
   }
@@ -466,46 +463,11 @@ setCornerSize(const CQChartsLength &s)
 
 //------
 
-const CQChartsColor &
-CQChartsBoxPlot::
-whiskerColor() const
-{
-  return whiskerData_.color;
-}
-
 void
 CQChartsBoxPlot::
-setWhiskerColor(const CQChartsColor &c)
+setWhiskerRange(double r)
 {
-  CQChartsUtil::testAndSet(whiskerData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsBoxPlot::
-whiskerAlpha() const
-{
-  return whiskerData_.alpha;
-}
-
-void
-CQChartsBoxPlot::
-setWhiskerAlpha(double a)
-{
-  CQChartsUtil::testAndSet(whiskerData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBoxPlot::
-interpWhiskerColor(int i, int n) const
-{
-  return whiskerColor().interpColor(this, i, n);
-}
-
-void
-CQChartsBoxPlot::
-setWhiskerLineWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(whiskerData_.width, l, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(whiskerRange_, r, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -517,199 +479,11 @@ setWhiskerExtent(double r)
 
 //------
 
-bool
-CQChartsBoxPlot::
-isTextVisible() const
-{
-  return textData_.visible;
-}
-
-void
-CQChartsBoxPlot::
-setTextVisible(bool b)
-{
-  CQChartsUtil::testAndSet(textData_.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsBoxPlot::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsBoxPlot::
-setTextColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(textData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-double
-CQChartsBoxPlot::
-textAlpha() const
-{
-  return textData_.alpha;
-}
-
-void
-CQChartsBoxPlot::
-setTextAlpha(double a)
-{
-  CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBoxPlot::
-interpTextColor(int i, int n) const
-{
-  return textColor().interpColor(this, i, n);
-}
-
-const QFont &
-CQChartsBoxPlot::
-textFont() const
-{
-  return textData_.font;
-}
-
-void
-CQChartsBoxPlot::
-setTextFont(const QFont &f)
-{
-  CQChartsUtil::testAndSet(textData_.font, f, [&]() { invalidateLayers(); } );
-}
-
 void
 CQChartsBoxPlot::
 setTextMargin(double r)
 {
   CQChartsUtil::testAndSet(textMargin_, r, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsBoxPlot::
-setSymbolType(const CQChartsSymbol &t)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.type, t, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBoxPlot::
-setSymbolSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.size, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBoxPlot::
-setSymbolStroked(bool b)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsBoxPlot::
-symbolStrokeColor() const
-{
-  return outlierSymbolData_.stroke.color;
-}
-
-void
-CQChartsBoxPlot::
-setSymbolStrokeColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBoxPlot::
-interpSymbolStrokeColor(int i, int n) const
-{
-  return symbolStrokeColor().interpColor(this, i, n);
-}
-
-double
-CQChartsBoxPlot::
-symbolStrokeAlpha() const
-{
-  return outlierSymbolData_.stroke.alpha;
-}
-
-void
-CQChartsBoxPlot::
-setSymbolStrokeAlpha(double a)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsBoxPlot::
-symbolFillColor() const
-{
-  return outlierSymbolData_.fill.color;
-}
-
-void
-CQChartsBoxPlot::
-setSymbolStrokeWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.stroke.width, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBoxPlot::
-setSymbolFilled(bool b)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.fill.visible, b, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBoxPlot::
-setSymbolFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.fill.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBoxPlot::
-interpSymbolFillColor(int i, int n) const
-{
-  return symbolFillColor().interpColor(this, i, n);
-}
-
-double
-CQChartsBoxPlot::
-symbolFillAlpha() const
-{
-  return outlierSymbolData_.fill.alpha;
-}
-
-void
-CQChartsBoxPlot::
-setSymbolFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(outlierSymbolData_.fill.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-CQChartsBoxPlot::Pattern
-CQChartsBoxPlot::
-symbolFillPattern() const
-{
-  return (Pattern) outlierSymbolData_.fill.pattern;
-}
-
-void
-CQChartsBoxPlot::
-setSymbolFillPattern(const Pattern &pattern)
-{
-  if (pattern != (Pattern) outlierSymbolData_.fill.pattern) {
-    outlierSymbolData_.fill.pattern = (CQChartsFillData::Pattern) pattern;
-
-    invalidateLayers();
-  }
 }
 
 //---
@@ -763,8 +537,8 @@ addProperties()
   addProperty("box", this, "notched"     , "notched");
 
   // whisker box stroke
-  addProperty("box/stroke", this, "boxStroked" , "visible"   );
-  addProperty("box/stroke", this, "cornerSize" , "cornerSize");
+  addProperty("box/stroke", this, "boxStroked", "visible"   );
+  addProperty("box/stroke", this, "cornerSize", "cornerSize");
 
   addLineProperties("box/stroke", "border");
 
@@ -774,22 +548,21 @@ addProperties()
   addFillProperties("box/fill", "box");
 
   // whisker line
-  addProperty("whisker", this, "whiskerColor"    , "color" );
-  addProperty("whisker", this, "whiskerAlpha"    , "alpha" );
-  addProperty("whisker", this, "whiskerLineWidth", "width" );
-  addProperty("whisker", this, "whiskerExtent"   , "extent");
+  addLineProperties("whisker", "whiskerLines");
+
+  addProperty("whisker", this, "whiskerExtent", "extent");
 
   // value labels
   addProperty("labels", this, "textVisible", "visible");
-  addProperty("labels", this, "textFont"   , "font"   );
-  addProperty("labels", this, "textColor"  , "color"  );
-  addProperty("labels", this, "textAlpha"  , "alpha"  );
-  addProperty("labels", this, "textMargin" , "margin" );
+
+  addTextProperties("text", "text");
+
+  addProperty("labels", this, "textMargin", "margin");
 
   // outlier
   addProperty("outlier", this, "showOutliers", "visible");
 
-  addSymbolProperties("outlier/symbol");
+  addSymbolProperties("outlier/symbol", "outlier");
 }
 
 //---
@@ -1351,21 +1124,21 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
 
     if (ok1) {
       if      (setType_ == ColumnType::INTEGER) {
-        int i = CQChartsUtil::toInt(setVal, ok1);
+        int i = CQChartsVariant::toInt(setVal, ok1);
 
         if (ok1)
           setId = setValueInd_.calcId(i);
       }
       else if (setType_ == ColumnType::REAL) {
-        double r = CQChartsUtil::toReal(setVal, ok1);
+        double r = CQChartsVariant::toReal(setVal, ok1);
 
-        if (ok1 && ! CQChartsUtil::isNaN(r))
+        if (ok1 && ! CMathUtil::isNaN(r))
           setId = setValueInd_.calcId(r);
       }
       else {
         QString s;
 
-        ok1 = CQChartsUtil::variantToString(setVal, s);
+        ok1 = CQChartsVariant::toString(setVal, s);
 
         if (ok1)
           setId = setValueInd_.calcId(s);
@@ -1393,7 +1166,7 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
 
     if (! ok2) value = row;
 
-    if (CQChartsUtil::isNaN(value))
+    if (CMathUtil::isNaN(value))
       return;
 
     QModelIndex yind  = modelIndex(row, valueColumn, parent);
@@ -1425,7 +1198,7 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
         name = modelHeaderString(valueColumn, ok);
       }
       else if (setColumn().isValid()) {
-        ok = CQChartsUtil::variantToString(setVal, name);
+        ok = CQChartsVariant::toString(setVal, name);
       }
 
       if (ok && name.length())
@@ -2109,7 +1882,7 @@ draw(QPainter *painter)
                      plot_->isBoxFilled(),
                      plot_->interpBoxColor(ic, nc),
                      plot_->boxAlpha(),
-                     (CQChartsFillPattern::Type) plot_->boxPattern());
+                     plot_->boxPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2118,14 +1891,13 @@ draw(QPainter *painter)
 
   //---
 
-  QColor whiskerColor = plot_->interpWhiskerColor(ic, nc);
+  QPen whiskerPen;
 
-  whiskerColor.setAlphaF(plot_->whiskerAlpha());
+  QColor whiskerColor = plot_->interpWhiskerLinesColor(ic, nc);
 
-  double whiskerLineSize =
-  plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
+  plot_->setPen(whiskerPen, true, whiskerColor, plot_->whiskerLinesAlpha(),
+                plot_->whiskerLinesWidth(), plot_->whiskerLinesDash());
 
-  QPen   whiskerPen  (whiskerColor, whiskerLineSize, Qt::SolidLine);
   QBrush whiskerBrush(Qt::NoBrush);
 
   plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
@@ -2211,20 +1983,14 @@ draw(QPainter *painter)
       QPen   symbolPen;
       QBrush symbolBrush;
 
-      QColor boxColor = plot_->interpBoxColor(ic, nc);
-
-      boxColor.setAlphaF(plot_->boxAlpha());
-
-      symbolBrush.setColor(boxColor);
-
+      QColor boxColor    = plot_->interpBoxColor(ic, nc);
       QColor borderColor = plot_->interpBorderColor(ic, nc);
 
-      borderColor.setAlphaF(plot_->borderAlpha());
+      plot_->setPen(symbolPen, /*stroked*/true, borderColor, plot_->borderAlpha(),
+                    plot_->borderWidth(), CQChartsLineDash());
 
-      double bw = plot_->lengthPixelWidth(plot_->borderWidth());
-
-      symbolPen.setColor (borderColor);
-      symbolPen.setWidthF(bw);
+      plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxAlpha(),
+                      CQChartsFillPattern());
 
       plot_->updateObjPenBrushState(this, symbolPen, symbolBrush);
 
@@ -2233,7 +1999,7 @@ draw(QPainter *painter)
       CQChartsSymbolData symbol;
 
       symbol.type = CQChartsSymbol::Type::CIRCLE;
-      symbol.size = plot_->symbolSize();
+      symbol.size = plot_->outlierSymbolSize();
 
       CQChartsDensity::drawPointRange(plot_, painter, rect, mean, orientation, symbol,
                                       symbolPen, symbolBrush);
@@ -2345,35 +2111,15 @@ draw(QPainter *painter)
       if (plot_->isShowOutliers()) {
         CQChartsSymbolData symbol;
 
-        symbol.type = plot_->symbolType();
-        symbol.size = plot_->symbolSize();
-
-        //---
-
-        QColor fillColor   = plot_->interpSymbolFillColor(ic, nc);
-        QColor strokeColor = plot_->interpSymbolStrokeColor(ic, nc);
-
-        fillColor  .setAlphaF(plot_->symbolFillAlpha  ());
-        strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
+        symbol.type = plot_->outlierSymbolType();
+        symbol.size = plot_->outlierSymbolSize();
 
         //---
 
         QPen   pen;
         QBrush brush;
 
-        if (plot_->isSymbolStroked()) {
-          pen.setColor(strokeColor);
-          pen.setWidthF(plot_->lengthPixelWidth(plot_->symbolStrokeWidth()));
-        }
-        else
-          pen.setStyle(Qt::NoPen);
-
-        if (plot_->isSymbolFilled()) {
-          brush.setColor(fillColor);
-          brush.setStyle(Qt::SolidPattern);
-        }
-        else
-          brush.setStyle(Qt::NoBrush);
+        plot_->setOutlierSymbolPenBrush(pen, brush, ic, nc);
 
         plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2502,7 +2248,7 @@ remapPos(double y) const
 
   double ymargin = 0.0;
 
-  return CQChartsUtil::map(y, min(), max(), ymargin, 1.0 - ymargin);
+  return CMathUtil::map(y, min(), max(), ymargin, 1.0 - ymargin);
 }
 
 //------
@@ -2570,16 +2316,13 @@ void
 CQChartsBoxPlotDataObj::
 draw(QPainter *painter)
 {
-  QColor whiskerColor = plot_->interpWhiskerColor(0, 1);
+  QPen whiskerPen;
 
-  whiskerColor.setAlphaF(plot_->whiskerAlpha());
+  QColor whiskerColor = plot_->interpWhiskerLinesColor(0, 1);
 
-  double whiskerLineSize =
-    plot_->lengthPixelSize(plot_->whiskerLineWidth(), ! plot_->isHorizontal());
+  plot_->setPen(whiskerPen, true, whiskerColor, plot_->whiskerLinesAlpha(),
+                plot_->whiskerLinesWidth(), plot_->whiskerLinesDash());
 
-  //---
-
-  QPen   whiskerPen  (whiskerColor, whiskerLineSize, Qt::SolidLine);
   QBrush whiskerBrush(Qt::NoBrush);
 
   plot_->updateObjPenBrushState(this, whiskerPen, whiskerBrush);
@@ -2599,7 +2342,7 @@ draw(QPainter *painter)
                      plot_->isBoxFilled(),
                      plot_->interpBoxColor(0, 1),
                      plot_->boxAlpha(),
-                     (CQChartsFillPattern::Type) plot_->boxPattern());
+                     plot_->boxPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2694,35 +2437,15 @@ draw(QPainter *painter)
   if (plot_->isShowOutliers()) {
     CQChartsSymbolData symbol;
 
-    symbol.type = plot_->symbolType();
-    symbol.size = plot_->symbolSize();
-
-    //---
-
-    QColor fillColor   = plot_->interpSymbolFillColor(0, 1);
-    QColor strokeColor = plot_->interpSymbolStrokeColor(0, 1);
-
-    fillColor  .setAlphaF(plot_->symbolFillAlpha  ());
-    strokeColor.setAlphaF(plot_->symbolStrokeAlpha());
+    symbol.type = plot_->outlierSymbolType();
+    symbol.size = plot_->outlierSymbolSize();
 
     //---
 
     QPen   pen;
     QBrush brush;
 
-    if (plot_->isSymbolStroked()) {
-      pen.setColor(strokeColor);
-      pen.setWidthF(plot_->lengthPixelWidth(plot_->symbolStrokeWidth()));
-    }
-    else
-      pen.setStyle(Qt::NoPen);
-
-    if (plot_->isSymbolFilled()) {
-      brush.setColor(fillColor);
-      brush.setStyle(Qt::SolidPattern);
-    }
-    else
-      brush.setStyle(Qt::NoBrush);
+    plot_->setOutlierSymbolPenBrush(pen, brush, 0, 1);
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2830,7 +2553,7 @@ remapPos(double y) const
   if (! plot_->isNormalized())
     return y;
 
-  return CQChartsUtil::map(y, data_.dataMin, data_.dataMax, ymargin_, 1.0 - ymargin_);
+  return CMathUtil::map(y, data_.dataMin, data_.dataMax, ymargin_, 1.0 - ymargin_);
 }
 
 //------
@@ -2949,7 +2672,7 @@ draw(QPainter *painter)
                        plot_->isBoxFilled(),
                        plot_->interpBoxColor(i_, n_),
                        plot_->boxAlpha(),
-                       (CQChartsFillPattern::Type) plot_->boxPattern());
+                       plot_->boxPattern());
 
     plot_->updateObjPenBrushState(this, ppen, pbrush);
 
@@ -3193,9 +2916,6 @@ draw(QPainter *painter)
 {
   CQChartsSymbol symbol = plot_->pointsSymbolType();
 
-  bool stroked = plot_->isSymbolStroked();
-  bool filled  = plot_->isSymbolFilled ();
-
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->pointsSymbolSize(), sx, sy);
@@ -3220,14 +2940,11 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     stroked,
-                     plot_->interpBorderColor(ic, nc),
-                     /*alpha*/1.0,
-                     /*width*/ CQChartsLength("1px"),
-                     CQChartsLineDash(),
-                     filled,
-                     plot_->interpBoxColor(ic, nc),
-                     /*alpha*/1.0,
+                     plot_->isOutlierSymbolStroked(),
+                     plot_->interpBorderColor(ic, nc), /*alpha*/1.0,
+                     /*width*/ CQChartsLength("1px"), CQChartsLineDash(),
+                     plot_->isOutlierSymbolFilled(),
+                     plot_->interpBoxColor(ic, nc), /*alpha*/1.0,
                      CQChartsFillPattern::Type::SOLID);
 
   plot_->updateObjPenBrushState(this, pen, brush);
@@ -3243,7 +2960,7 @@ draw(QPainter *painter)
   // draw symbol
   QRectF erect(px - sx, py - sy, 2*sx, 2*sy);
 
-  plot_->drawSymbol(painter, QPointF(px, py), symbol, CQChartsUtil::avg(sx, sy), pen, brush);
+  plot_->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
 }
 
 //------

@@ -1,5 +1,6 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelData.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
 
 CQChartsColumnTypeMgr::
@@ -150,7 +151,7 @@ getModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
   if (var2.isValid()) {
     QString str2;
 
-    CQChartsUtil::variantToString(var2, str2);
+    CQChartsVariant::toString(var2, str2);
 
     (void) CQChartsColumnUtil::decodeNameValues(str2, nameValues);
   }
@@ -266,7 +267,7 @@ userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 
   QString str;
 
-  CQChartsUtil::variantToString(var, str);
+  CQChartsVariant::toString(var, str);
 
   return QVariant::fromValue<QString>(str);
 }
@@ -282,7 +283,7 @@ userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 
   bool ok;
 
-  double r = CQChartsUtil::toReal(var, ok);
+  double r = CQChartsVariant::toReal(var, ok);
 
   if (! ok)
     return var;
@@ -305,10 +306,10 @@ dataName(const QVariant &var, const CQChartsNameValues &nameValues, bool &conver
 
   bool ok;
 
-  double r = CQChartsUtil::toReal(var, ok);
+  double r = CQChartsVariant::toReal(var, ok);
 
   if (! ok)
-    return CQChartsUtil::varToString(var, ok);
+    return CQChartsVariant::toString(var, ok);
 
   converted = true;
 
@@ -324,7 +325,7 @@ dataName(const QVariant &var, const CQChartsNameValues &nameValues, bool &conver
   if (p2 != nameValues.end()) {
     bool ok1;
 
-    double scale = CQChartsUtil::toReal((*p2).second, ok1);
+    double scale = CQChartsVariant::toReal((*p2).second, ok1);
 
     if (ok1)
       r *= scale;
@@ -367,7 +368,7 @@ rmin(const CQChartsNameValues &nameValues, double &r) const
 
   bool ok;
 
-  r = CQChartsUtil::toReal((*p).second, ok);
+  r = CQChartsVariant::toReal((*p).second, ok);
   if (! ok) return false;
 
   return true;
@@ -382,7 +383,7 @@ rmax(const CQChartsNameValues &nameValues, double &r) const
 
   bool ok;
 
-  r = CQChartsUtil::toReal((*p).second, ok);
+  r = CQChartsVariant::toReal((*p).second, ok);
   if (! ok) return false;
 
   return true;
@@ -399,7 +400,7 @@ userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
 
   bool ok;
 
-  long l = CQChartsUtil::toInt(var, ok);
+  long l = CQChartsVariant::toInt(var, ok);
 
   if (! ok)
     return var;
@@ -419,17 +420,17 @@ dataName(const QVariant &var, const CQChartsNameValues &, bool &converted) const
   if (var.type() == QVariant::Int) {
     bool ok;
 
-    long l = CQChartsUtil::toInt(var, ok);
+    long l = CQChartsVariant::toInt(var, ok);
 
     return CQChartsUtil::toString(l);
   }
 
   bool ok;
 
-  long l = CQChartsUtil::toInt(var, ok);
+  long l = CQChartsVariant::toInt(var, ok);
 
   if (! ok)
-    return CQChartsUtil::varToString(var, ok);
+    return CQChartsVariant::toString(var, ok);
 
   converted = true;
 
@@ -472,7 +473,7 @@ dataName(const QVariant &var, const CQChartsNameValues &nameValues, bool &conver
   // get time value (double)
   bool ok;
 
-  double t = CQChartsUtil::toReal(var, ok);
+  double t = CQChartsVariant::toReal(var, ok);
 
   if (! ok)
     return var;
@@ -535,7 +536,7 @@ indexVar(const QVariant &var, const QString &ind) const
   // get time value (double)
   bool ok;
 
-  double t = CQChartsUtil::toReal(var, ok);
+  double t = CQChartsVariant::toReal(var, ok);
 
   if (! ok)
     return var;

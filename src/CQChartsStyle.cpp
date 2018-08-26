@@ -1,5 +1,7 @@
 #include <CQChartsStyle.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
+
 #include <CQStrParse.h>
 
 namespace {
@@ -102,7 +104,7 @@ fromString(const QString &str)
     }
     else if (name == "stroke-width") {
       bool ok;
-      double w = CQChartsUtil::toReal(value, ok);
+      double w = CQChartsVariant::toReal(value, ok);
       if (! ok) continue;
 
       pen_->setWidthF(w);
@@ -115,7 +117,7 @@ fromString(const QString &str)
     }
     else if (name == "fill-opacity") {
       bool ok;
-      double a = CQChartsUtil::toReal(value, ok);
+      double a = CQChartsVariant::toReal(value, ok);
       if (! ok) continue;
 
       QColor c = brush_->color();

@@ -58,7 +58,7 @@ class CQChartsSymbol {
   }
 
  private:
-  Type type_ { Type::CROSS };
+  Type type_ { Type::CIRCLE };
 };
 
 //---

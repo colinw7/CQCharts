@@ -480,7 +480,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
     if (! ok2)
       r = row;
 
-    if (CQChartsUtil::isNaN(r))
+    if (CMathUtil::isNaN(r))
       continue;
 
     // get associated model index
@@ -1447,7 +1447,7 @@ draw(QPainter *painter)
                      plot_->isBarFill(),
                      barColor,
                      plot_->barAlpha(),
-                     (CQChartsFillPattern::Type) plot_->barPattern());
+                     plot_->barPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 
@@ -1521,7 +1521,7 @@ draw(QPainter *painter)
     else
       p = QPointF(qrect.right(), qrect.center().y());
 
-    plot_->drawSymbol(painter, p, symbol, CQChartsUtil::avg(sx, sy), pen, barBrush);
+    plot_->drawSymbol(painter, p, symbol, CMathUtil::avg(sx, sy), pen, barBrush);
   }
 }
 
@@ -1702,9 +1702,9 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   QString sumStr;
 
   if (hasSum) {
-    if      (CQChartsUtil::isZero(negSum))
+    if      (CMathUtil::isZero(negSum))
       sumStr = QString("%1").arg(posSum);
-    else if (CQChartsUtil::isZero(posSum))
+    else if (CMathUtil::isZero(posSum))
       sumStr = QString("%1").arg(negSum);
     else
       sumStr = QString("%1 -> %2").arg(negSum).arg(posSum);

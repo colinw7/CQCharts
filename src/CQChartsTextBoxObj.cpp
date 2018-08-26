@@ -141,7 +141,7 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
   //---
 
   // draw box
-  if (CQChartsUtil::isZero(angle)) {
+  if (CMathUtil::isZero(angle)) {
     CQChartsBoxObj::draw(painter, rect_);
   }
   else {
@@ -249,7 +249,7 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
 
   //---
 
-  double tangle = CQChartsUtil::Deg2Rad(ta);
+  double tangle = CMathUtil::Deg2Rad(ta);
 
   double tc = cos(tangle);
   double ts = sin(tangle);

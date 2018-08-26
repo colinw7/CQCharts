@@ -3,7 +3,6 @@
 
 #include <CQChartsHierPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsData.h>
 #include <QModelIndex>
 
 class CQChartsSunburstPlot;
@@ -249,7 +248,9 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 
 //---
 
-class CQChartsSunburstPlot : public CQChartsHierPlot {
+class CQChartsSunburstPlot : public CQChartsHierPlot,
+ public CQChartsPlotShapeData<CQChartsSunburstPlot>,
+ public CQChartsPlotTextData <CQChartsSunburstPlot> {
   Q_OBJECT
 
   Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
@@ -257,39 +258,16 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   Q_PROPERTY(double startAngle  READ startAngle  WRITE setStartAngle )
   Q_PROPERTY(bool   multiRoot   READ isMultiRoot WRITE setMultiRoot  )
 
-  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+  // shape
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  Q_PROPERTY(bool          filled      READ isFilled     WRITE setFilled     )
-  Q_PROPERTY(CQChartsColor fillColor   READ fillColor    WRITE setFillColor  )
-  Q_PROPERTY(double        fillAlpha   READ fillAlpha    WRITE setFillAlpha  )
-  Q_PROPERTY(Pattern       fillPattern READ fillPattern  WRITE setFillPattern)
+  // text
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
-  Q_PROPERTY(QFont         textFont     READ textFont       WRITE setTextFont    )
-  Q_PROPERTY(CQChartsColor textColor    READ textColor      WRITE setTextColor   )
-  Q_PROPERTY(double        textAlpha    READ textAlpha      WRITE setTextAlpha   )
-  Q_PROPERTY(bool          textContrast READ isTextContrast WRITE setTextContrast)
-
-  Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped)
-  Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin)
-  Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
-
-  Q_ENUMS(Pattern)
+  // colormap
+  CQCHARTS_COLOR_MAP_PROPERTIES
 
  public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
-
   using RootNodes = std::vector<CQChartsSunburstRootNode*>;
 
  public:
@@ -317,56 +295,7 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
 
   //---
 
-  bool isBorder() const { return shapeData_.border.visible; }
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const { return shapeData_.border.color; }
-  void setBorderColor(const CQChartsColor &c);
-
-  double borderAlpha() const { return shapeData_.border.alpha; }
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const { return shapeData_.border.width; }
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const { return shapeData_.border.dash; }
-  void setBorderDash(const CQChartsLineDash &l);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  //---
-
-  bool isFilled() const { return shapeData_.background.visible; }
-  void setFilled(bool b);
-
-  const CQChartsColor &fillColor() const { return shapeData_.background.color; }
-  void setFillColor(const CQChartsColor &c);
-
-  double fillAlpha() const { return shapeData_.background.alpha; }
-  void setFillAlpha(double a);
-
-  Pattern fillPattern() const { return (Pattern) shapeData_.background.pattern; }
-  void setFillPattern(Pattern pattern);
-
-  QColor interpFillColor(int i, int n) const;
-
-  //---
-
-  const QFont &textFont() const { return textData_.font; }
-  void setTextFont(const QFont &f);
-
-  const CQChartsColor &textColor() const { return textData_.color; }
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const { return textData_.alpha; }
-  void setTextAlpha(double a);
-
-  bool isTextContrast() const { return textData_.contrast; }
-  void setTextContrast(bool b);
-
   void setTextFontSize(double s);
-
-  QColor interpTextColor(int i, int n) const;
 
   //---
 
@@ -471,16 +400,14 @@ class CQChartsSunburstPlot : public CQChartsHierPlot {
   void popTopSlot();
 
  private:
-  double            innerRadius_ { 0.5 };   // inner radius
-  double            outerRadius_ { 1.0 };   // outer radius
-  double            startAngle_  { -90 };   // start angle
-  bool              multiRoot_   { false }; // has multiple roots
-  RootNodes         roots_;                 // root nodes
-  QString           currentRootName_;       // current root name
-  CQChartsShapeData shapeData_;             // arc fill/border data
-  CQChartsTextData  textData_;              // arc text data
-  int               colorId_     { -1 };    // current color id
-  int               numColorIds_ { 0 };     // num used color ids
+  double    innerRadius_ { 0.5 };   // inner radius
+  double    outerRadius_ { 1.0 };   // outer radius
+  double    startAngle_  { -90 };   // start angle
+  bool      multiRoot_   { false }; // has multiple roots
+  RootNodes roots_;                 // root nodes
+  QString   currentRootName_;       // current root name
+  int       colorId_     { -1 };    // current color id
+  int       numColorIds_ { 0 };     // num used color ids
 };
 
 #endif

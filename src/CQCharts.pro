@@ -91,6 +91,7 @@ CQChartsResizeHandle.cpp \
 \
 CQChartsColumnBucket.cpp \
 CQChartsValueSet.cpp \
+CQChartsColorSet.cpp \
 CQChartsPlotSymbol.cpp \
 \
 CQChartsLoadDlg.cpp \
@@ -128,6 +129,7 @@ CQChartsPosition.cpp \
 CQChartsSymbol.cpp \
 CQChartsLength.cpp \
 CQChartsPath.cpp \
+CQChartsFillPattern.cpp \
 CQChartsStyle.cpp \
 CQChartsAnalyzeFile.cpp \
 CQChartsBoxWhisker.cpp \
@@ -234,10 +236,12 @@ HEADERS += \
 \
 ../include/CQChartsColumnBucket.h \
 ../include/CQChartsValueSet.h \
+../include/CQChartsColorSet.h \
 ../include/CQChartsPlotSymbol.h \
 ../include/CQChartsPosition.h \
 ../include/CQChartsSymbol.h \
 ../include/CQChartsPath.h \
+../include/CQChartsFillPattern.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \
 ../include/CQChartsAnalyzeFile.h \

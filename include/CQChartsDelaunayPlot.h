@@ -61,7 +61,9 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsDelaunayPlot : public CQChartsPlot {
+class CQChartsDelaunayPlot : public CQChartsPlot,
+ public CQChartsPlotLineData <CQChartsDelaunayPlot>,
+ public CQChartsPlotPointData<CQChartsDelaunayPlot> {
   Q_OBJECT
 
   // columns
@@ -73,40 +75,11 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   Q_PROPERTY(bool   voronoi          READ isVoronoi        WRITE setVoronoi         )
   Q_PROPERTY(double voronoiPointSize READ voronoiPointSize WRITE setVoronoiPointSize)
 
-  // point:
-  //  display
-  Q_PROPERTY(bool           points             READ isPoints          WRITE setPoints           )
-  //  symbol (type, color, size, ,..)
-  Q_PROPERTY(CQChartsSymbol symbolType         READ symbolType        WRITE setSymbolType       )
-  Q_PROPERTY(CQChartsLength symbolSize         READ symbolSize        WRITE setSymbolSize       )
-  Q_PROPERTY(bool           symbolStroked      READ isSymbolStroked   WRITE setSymbolStroked    )
-  Q_PROPERTY(CQChartsColor  symbolStrokeColor  READ symbolStrokeColor WRITE setSymbolStrokeColor)
-  Q_PROPERTY(double         symbolStrokeAlpha  READ symbolStrokeAlpha WRITE setSymbolStrokeAlpha)
-  Q_PROPERTY(CQChartsLength symbolStrokeWidth  READ symbolStrokeWidth WRITE setSymbolStrokeWidth)
-  Q_PROPERTY(bool           symbolFilled       READ isSymbolFilled    WRITE setSymbolFilled     )
-  Q_PROPERTY(CQChartsColor  symbolFillColor    READ symbolFillColor   WRITE setSymbolFillColor  )
-  Q_PROPERTY(double         symbolFillAlpha    READ symbolFillAlpha   WRITE setSymbolFillAlpha  )
-  Q_PROPERTY(Pattern        symbolFillPattern  READ symbolFillPattern WRITE setSymbolFillPattern)
+  // lines (display, color, width, dash, ...)
+  CQCHARTS_LINE_DATA_PROPERTIES
 
-  // line:
-  //  display, stroke
-  Q_PROPERTY(bool           lines      READ isLines    WRITE setLines     )
-  Q_PROPERTY(CQChartsColor  linesColor READ linesColor WRITE setLinesColor)
-  Q_PROPERTY(double         linesAlpha READ linesAlpha WRITE setLinesAlpha)
-  Q_PROPERTY(CQChartsLength linesWidth READ linesWidth WRITE setLinesWidth)
-
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
+  // points (display, symbol)
+  CQCHARTS_POINT_DATA_PROPERTIES
 
  public:
   CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model);
@@ -132,66 +105,6 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
 
   double voronoiPointSize() const { return voronoiPointSize_; }
   void setVoronoiPointSize(double r);
-
-  //---
-
-  // points
-  bool isPoints() const { return pointData_.visible; }
-  void setPoints(bool b);
-
-  const CQChartsColor &symbolStrokeColor() const;
-  void setSymbolStrokeColor(const CQChartsColor &c);
-
-  QColor interpPointStrokeColor(int i, int n) const;
-
-  double symbolStrokeAlpha() const;
-  void setSymbolStrokeAlpha(double a);
-
-  const CQChartsColor &symbolFillColor() const;
-  void setSymbolFillColor(const CQChartsColor &c);
-
-  QColor interpPointFillColor(int i, int n) const;
-
-  double symbolFillAlpha() const;
-  void setSymbolFillAlpha(double a);
-
-  Pattern symbolFillPattern() const;
-  void setSymbolFillPattern(const Pattern &p);
-
-  //---
-
-  // lines
-  bool isLines() const { return lineData_.visible; }
-  void setLines(bool b);
-
-  const CQChartsColor &linesColor() const;
-  void setLinesColor(const CQChartsColor &c);
-
-  QColor interpLinesColor(int i, int n) const;
-
-  double linesAlpha() const { return lineData_.alpha; }
-  void setLinesAlpha(double a);
-
-  const CQChartsLength &linesWidth() const { return lineData_.width; }
-  void setLinesWidth(const CQChartsLength &l);
-
-  //---
-
-  // symbol
-  const CQChartsSymbol &symbolType() const { return pointData_.type; }
-  void setSymbolType(const CQChartsSymbol &t);
-
-  const CQChartsLength &symbolSize() const { return pointData_.size; }
-  void setSymbolSize(const CQChartsLength &s);
-
-  bool isSymbolStroked() const { return pointData_.stroke.visible; }
-  void setSymbolStroked(bool b);
-
-  const CQChartsLength &symbolStrokeWidth() const { return pointData_.stroke.width; }
-  void setSymbolStrokeWidth(const CQChartsLength &l);
-
-  bool isSymbolFilled() const { return pointData_.fill.visible; }
-  void setSymbolFilled(bool b);
 
   //---
 
@@ -223,16 +136,14 @@ class CQChartsDelaunayPlot : public CQChartsPlot {
   void drawVoronoi (QPainter *p);
 
  private:
-  CQChartsColumn     xColumn_          { 0 };       // x column
-  CQChartsColumn     yColumn_          { 1 };       // y column
-  CQChartsColumn     nameColumn_;                   // name column
-  CQChartsSymbolData pointData_;                    // point style data
-  CQChartsLineData   lineData_;                     // line style data
-  bool               voronoi_          { true };    // is voronoi
-  double             voronoiPointSize_ { 2 };       // voronoi point size
-  int                nr_               { 0 };       // number of rows
-  CQChartsDelaunay*  delaunay_         { nullptr }; // delaunay data
-  QString            yname_;                        // y name
+  CQChartsColumn    xColumn_          { 0 };       // x column
+  CQChartsColumn    yColumn_          { 1 };       // y column
+  CQChartsColumn    nameColumn_;                   // name column
+  bool              voronoi_          { true };    // is voronoi
+  double            voronoiPointSize_ { 2 };       // voronoi point size
+  int               nr_               { 0 };       // number of rows
+  CQChartsDelaunay* delaunay_         { nullptr }; // delaunay data
+  QString           yname_;                        // y name
 };
 
 #endif

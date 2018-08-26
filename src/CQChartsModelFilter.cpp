@@ -1,10 +1,12 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
 #include <CQChartsUtil.h>
+#include <CQChartsVariant.h>
 #include <CQCharts.h>
+
 #include <CQDataModel.h>
-#include <QItemSelectionModel>
 #include <CQStrParse.h>
+#include <QItemSelectionModel>
 #include <cassert>
 
 CQChartsModelFilter::
@@ -235,7 +237,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     bool ok;
 
-    QString str = CQChartsUtil::toString(var, ok);
+    QString str = CQChartsVariant::toString(var, ok);
 
     return filterData.regexp().match(str);
   }
@@ -250,7 +252,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
       bool ok1;
 
-      QString str1 = CQChartsUtil::toString(var1, ok1);
+      QString str1 = CQChartsVariant::toString(var1, ok1);
 
       if (! columnFilter.second.match(str1))
         return false;

@@ -52,7 +52,7 @@ draw(QPainter *painter)
 
   double a = atan2(ty - fy, tx - fx);
 
-  double aa = CQChartsUtil::Deg2Rad(angle() > 0 ? angle() : 45);
+  double aa = CMathUtil::Deg2Rad(angle() > 0 ? angle() : 45);
 
   double xl, yl;
 
@@ -115,7 +115,7 @@ draw(QPainter *painter)
     }
   }
 
-  double ba = CQChartsUtil::Deg2Rad(backAngle() > 0 ? backAngle() : 90);
+  double ba = CMathUtil::Deg2Rad(backAngle() > 0 ? backAngle() : 90);
 
   if (isFHead()) {
     double a1 = a + aa;

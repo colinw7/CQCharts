@@ -361,10 +361,10 @@ class CQChartsCmdArgs {
     parseBool_.clear();
     parseArgs_.clear();
 
-    using Args      = std::vector<QVariant>;
-    using GroupArgs = std::map<int,Args>;
+    using Names      = std::set<QString>;
+    using GroupNames = std::map<int,Names>;
 
-    GroupArgs groupArgs;
+    GroupNames groupNames;
 
     bool help = false;
 
@@ -379,8 +379,9 @@ class CQChartsCmdArgs {
         CQChartsCmdArg *cmdArg = getCmdOpt(opt);
 
         if (cmdArg) {
-          if (cmdArg->groupInd() >= 0)
-            groupArgs[cmdArg->groupInd()].push_back(cmdArg->name());
+          if (cmdArg->groupInd() >= 0) {
+            groupNames[cmdArg->groupInd()].insert(cmdArg->name());
+          }
 
           //---
 
@@ -558,9 +559,9 @@ class CQChartsCmdArgs {
     for (const auto &cmdGroup : cmdGroups_) {
       int groupInd = cmdGroup.ind();
 
-      auto p = groupArgs.find(groupInd);
+      auto p = groupNames.find(groupInd);
 
-      if (p == groupArgs.end()) {
+      if (p == groupNames.end()) {
         if (cmdGroup.isRequired()) {
           std::string names = getGroupCmdNames(groupInd).join(", ").toStdString();
           std::cerr << "One of " << names << " required\n";
@@ -568,9 +569,9 @@ class CQChartsCmdArgs {
         }
       }
       else {
-        const Args &args = (*p).second;
+        const Names &names = (*p).second;
 
-        if (args.size() > 1) {
+        if (names.size() > 1) {
           std::string names = getGroupCmdNames(groupInd).join(", ").toStdString();
           std::cerr << "Only one of " << names << " allowed\n";
           return false;

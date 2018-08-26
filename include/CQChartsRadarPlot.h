@@ -73,7 +73,10 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsRadarPlot : public CQChartsPlot {
+class CQChartsRadarPlot : public CQChartsPlot,
+ public CQChartsPlotShapeData   <CQChartsRadarPlot>,
+ public CQChartsPlotTextData    <CQChartsRadarPlot>,
+ public CQChartsPlotGridLineData<CQChartsRadarPlot> {
   Q_OBJECT
 
   // columns
@@ -86,42 +89,13 @@ class CQChartsRadarPlot : public CQChartsPlot {
   Q_PROPERTY(double angleExtent READ angleExtent WRITE setAngleExtent)
 
   // grid
-  Q_PROPERTY(bool             grid      READ isGrid    WRITE setGrid     )
-  Q_PROPERTY(CQChartsColor    gridColor READ gridColor WRITE setGridColor)
-  Q_PROPERTY(double           gridAlpha READ gridAlpha WRITE setGridAlpha)
-  Q_PROPERTY(CQChartsLength   gridWidth READ gridWidth WRITE setGridWidth)
-  Q_PROPERTY(CQChartsLineDash gridDash  READ gridDash  WRITE setGridDash )
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Grid,grid)
 
-  // border
-  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
-
-  // fill
-  Q_PROPERTY(bool          filled      READ isFilled    WRITE setFilled     )
-  Q_PROPERTY(CQChartsColor fillColor   READ fillColor   WRITE setFillColor  )
-  Q_PROPERTY(double        fillAlpha   READ fillAlpha   WRITE setFillAlpha  )
-  Q_PROPERTY(Pattern       fillPattern READ fillPattern WRITE setFillPattern)
+  // shape
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
   // text
-  Q_PROPERTY(QFont          textFont     READ textFont        WRITE setTextFont       )
-  Q_PROPERTY(CQChartsColor  textColor    READ textColor       WRITE setTextColor      )
-  Q_PROPERTY(double         textAlpha    READ textAlpha       WRITE setTextAlpha      )
-
-  Q_ENUMS(Pattern)
-
- public:
-  enum class Pattern {
-    SOLID,
-    HATCH,
-    DENSE,
-    HORIZ,
-    VERT,
-    FDIAG,
-    BDIAG
-  };
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
   CQChartsRadarPlot(CQChartsView *view, const ModelP &model);
@@ -157,73 +131,6 @@ class CQChartsRadarPlot : public CQChartsPlot {
   void setAngleExtent(double r);
 
   //----
-
-  bool isGrid() const { return gridData_.visible; }
-  void setGrid(bool b);
-
-  const CQChartsColor &gridColor() const { return gridData_.color; }
-  void setGridColor(const CQChartsColor &c);
-
-  QColor interpGridColor(int i, int n);
-
-  double gridAlpha() const { return gridData_.alpha; }
-  void setGridAlpha(double r);
-
-  const CQChartsLength &gridWidth() const { return gridData_.width; }
-  void setGridWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &gridDash() const { return gridData_.dash; }
-  void setGridDash(const CQChartsLineDash &l);
-
-  //---
-
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  double borderAlpha() const;
-  void setBorderAlpha(double a);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &l);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  //---
-
-  bool isFilled() const;
-  void setFilled(bool b);
-
-  const CQChartsColor &fillColor() const;
-  void setFillColor(const CQChartsColor &c);
-
-  double fillAlpha() const;
-  void setFillAlpha(double r);
-
-  Pattern fillPattern() const;
-  void setFillPattern(Pattern pattern);
-
-  QColor interpFillColor(int i, int n);
-
-  //---
-
-  const QFont &textFont() const;
-  void setTextFont(const QFont &f);
-
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  double textAlpha() const;
-  void setTextAlpha(double a);
-
-  QColor interpTextColor(int i, int n) const;
-
-  //---
 
   void addProperties() override;
 
@@ -283,15 +190,12 @@ class CQChartsRadarPlot : public CQChartsPlot {
 
   using ValueDatas = std::map<int,ValueData>;
 
-  CQChartsColumn    nameColumn_;              // name column
-  CQChartsColumns   valueColumns_  { 1 };     // value columns
-  double            angleStart_    { 90.0 };  // angle start
-  double            angleExtent_   { 360.0 }; // angle extent
-  CQChartsLineData  gridData_;                // grid line data
-  CQChartsShapeData shapeData_;               // fill/border data
-  CQChartsTextData  textData_;                // text data
-  ValueDatas        valueDatas_;              // value
-  double            valueRadius_   { 1.0 };   // max value (radius)
+  CQChartsColumn  nameColumn_;             // name column
+  CQChartsColumns valueColumns_ { 1 };     // value columns
+  double          angleStart_   { 90.0 };  // angle start
+  double          angleExtent_  { 360.0 }; // angle extent
+  ValueDatas      valueDatas_;             // value
+  double          valueRadius_  { 1.0 };   // max value (radius)
 };
 
 #endif

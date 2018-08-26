@@ -139,7 +139,7 @@ class CQChartsBoxWhiskerT {
   }
 
   double normalize(double x) const {
-    return CQChartsUtil::map(x, min(), max(), 0.0, 1.0);
+    return CMathUtil::map(x, min(), max(), 0.0, 1.0);
   }
 
  private:
@@ -238,7 +238,7 @@ class CQChartsBoxWhiskerT {
         sum2 += dr*dr;
       }
 
-      stddev_ = (n > 1 ? sqrt(sum2)/(n - 1) : 0.0);
+      stddev_ = (n > 0 ? sqrt(sum2/n) : 0.0);
     }
     else {
       data_.median = 0.0;

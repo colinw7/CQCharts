@@ -22,4 +22,4 @@ for {set i 0} {$i < $nsamp} {incr i} {
 
 set modelId [load_model -var ind -var y]
 
-set plotInd [create_plot -type scatter -columns "x=0,y=1"]
+set plotInd [create_plot -model $modelId -type scatter -columns "x=0,y=1"]
