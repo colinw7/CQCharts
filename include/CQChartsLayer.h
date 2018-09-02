@@ -4,6 +4,8 @@
 #include <QImage>
 #include <QPainter>
 
+class CQChartsBuffer;
+
 class CQChartsLayer {
  public:
   enum class Type {
@@ -34,12 +36,41 @@ class CQChartsLayer {
   static Type lastLayer () { return Type::MOUSE_OVER; }
 
  public:
-  CQChartsLayer(Type type);
+  CQChartsLayer(const Type &type, CQChartsBuffer *buffer);
  ~CQChartsLayer();
 
   const Type &type() const { return type_; }
 
+  const CQChartsBuffer *buffer() const { return buffer_; }
+
   QString name() const { return typeName(type_); }
+
+  bool isActive() const { return active_; }
+  void setActive(bool b) { active_ = b; }
+
+ private:
+  Type            type_   { Type::NONE };
+  CQChartsBuffer* buffer_ { nullptr };
+  bool            active_ { false };
+};
+
+//----
+
+class CQChartsBuffer {
+ public:
+  enum class Type {
+    NONE,
+    BACKGROUND,
+    MIDDLE,
+    FOREGROUND,
+    OVERLAY
+  };
+
+ public:
+  CQChartsBuffer(const Type &type);
+ ~CQChartsBuffer();
+
+  const Type &type() const { return type_; }
 
   bool isActive() const { return active_; }
   void setActive(bool b) { active_ = b; }
@@ -47,22 +78,25 @@ class CQChartsLayer {
   bool isValid() const { return valid_; }
   void setValid(bool b) { valid_ = b; }
 
-  void updateSize();
-
-  QImage *image() const { return image_; }
+  QImage  *image () const { return image_ ; }
+  QPixmap *pixmap() const { return pixmap_; }
 
   const QRectF &rect() const { return rect_; }
-
-  QPainter *ipainter();
 
   QPainter *beginPaint(QPainter *painter, const QRectF &rect);
 
   void endPaint();
 
  private:
+  QPainter *ipainter();
+
+  void updateSize();
+
+ private:
   Type      type_     { Type::NONE };
-  bool      active_   { false };
+  bool      active_   { true };
   bool      valid_    { false };
+  QPixmap*  pixmap_   { nullptr };
   QImage*   image_    { nullptr };
   QRectF    rect_;
   QSize     size_;

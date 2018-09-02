@@ -366,6 +366,8 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   //---
 
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *painter) override;
 
  private:

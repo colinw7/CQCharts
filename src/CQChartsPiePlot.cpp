@@ -289,10 +289,8 @@ addProperties()
 
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 
-  // colormap
-  addProperty("color", this, "colorMapped", "mapped");
-  addProperty("color", this, "colorMapMin", "mapMin");
-  addProperty("color", this, "colorMapMax", "mapMax");
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -312,7 +310,7 @@ calcRange()
   double r = std::max(1.0, labelRadius());
 
   double angle1 = startAngle();
-  double alen   = std::min(std::max(angleExtent(), -360.0), 360.0);
+  double alen   = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
   double angle2 = angle1 - alen;
 
   // add segment outside points
@@ -919,7 +917,7 @@ adjustObjAngles()
       //---
 
       double angle1    = startAngle();
-      double alen      = std::min(std::max(angleExtent(), -360.0), 360.0);
+      double alen      = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
       double dataTotal = groupObj->dataTotal();
 
       for (auto &obj : groupObj->objs()) {
@@ -1312,8 +1310,11 @@ draw(QPainter *painter)
 
   QColor fg = plot_->calcTextColor(bg);
 
-  QPen   pen  (fg);
-  QBrush brush(bg);
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPen  (pen  , true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setBrush(brush, true, bg, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1407,12 +1408,18 @@ drawSegmentLabel(QPainter *painter, const CQChartsGeom::Point &c)
 
   double ta = CMathUtil::avg(a1, a2);
 
+  //---
+
+  QPen lpen;
+
   QColor bg;
 
   if (groupObj)
     bg = plot_->interpGroupPaletteColor(groupObj->colorInd(), ng, colorInd(), no);
 
-  QPen lpen(bg);
+  plot_->setPen(lpen, true, bg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+
+  //---
 
   double a21 = a2 - a1;
 
@@ -1571,8 +1578,11 @@ draw(QPainter *painter)
   QColor bg = bgColor();
   QColor fg = plot_->interpPlotBorderColor(0, 1);
 
-  QPen   pen  (fg);
-  QBrush brush(bg);
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPen  (pen  , true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setBrush(brush, true, bg, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -1614,9 +1624,15 @@ drawFg(QPainter *painter)
 
   QString label = QString("%1").arg(numValues());
 
+  //---
+
+  QPen pen;
+
   QColor fg = plot_->interpPlotBorderColor(0, 1);
 
-  QPen pen(fg);
+  plot_->setPen(pen, true, fg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+
+  //---
 
   CQChartsTextOptions textOptions;
 

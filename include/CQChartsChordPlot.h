@@ -172,19 +172,20 @@ class CQChartsChordObj : public CQChartsPlotObj {
 
 //---
 
-class CQChartsChordPlot : public CQChartsPlot {
+class CQChartsChordPlot : public CQChartsPlot,
+ public CQChartsPlotStrokeData<CQChartsChordPlot> {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn  WRITE setNameColumn )
-  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn WRITE setValueColumn)
-  Q_PROPERTY(CQChartsColumn groupColumn  READ groupColumn WRITE setGroupColumn)
-  Q_PROPERTY(bool           sorted       READ isSorted    WRITE setSorted     )
-  Q_PROPERTY(double         innerRadius  READ innerRadius WRITE setInnerRadius)
-  Q_PROPERTY(double         labelRadius  READ labelRadius WRITE setLabelRadius)
+  // columns
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
 
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+  Q_PROPERTY(bool   sorted      READ isSorted    WRITE setSorted     )
+  Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)
+  Q_PROPERTY(double labelRadius READ labelRadius WRITE setLabelRadius)
+
+  CQCHARTS_STROKE_DATA_PROPERTIES
 
   Q_PROPERTY(double segmentAlpha READ segmentAlpha WRITE setSegmentAlpha)
   Q_PROPERTY(double arcAlpha     READ arcAlpha     WRITE setArcAlpha    )
@@ -213,19 +214,6 @@ class CQChartsChordPlot : public CQChartsPlot {
 
   double labelRadius() const { return labelRadius_; }
   void setLabelRadius(double r);
-
-  //---
-
-  const CQChartsColor &borderColor() const { return borderData_.color; }
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const { return borderData_.alpha; }
-  void setBorderAlpha(double r);
-
-  const CQChartsLineDash &borderDash() const { return borderData_.dash; }
-  void setBorderDash(const CQChartsLineDash &l);
 
   //---
 
@@ -270,7 +258,6 @@ class CQChartsChordPlot : public CQChartsPlot {
   bool                       sorted_         { false }; // is sorted
   double                     innerRadius_    { 0.9 };   // inner radius
   double                     labelRadius_    { 1.1 };   // label radius
-  CQChartsStrokeData         borderData_;               // border style data
   double                     segmentAlpha_   { 0.7 };   // segment alpha
   double                     arcAlpha_       { 0.3 };   // arc alpha
   CQChartsRotatedTextBoxObj* textBox_;                  // text box

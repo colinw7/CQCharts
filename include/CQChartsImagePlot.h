@@ -101,6 +101,8 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *) override;
 
   //---

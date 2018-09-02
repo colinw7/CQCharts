@@ -125,6 +125,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *) override;
 
   void drawNodes(QPainter *painter, CQChartsDendrogram::HierNode *hier, int depth);

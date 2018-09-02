@@ -1,4 +1,5 @@
 #include <CQChartsTextBoxObj.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQPropertyViewModel.h>
@@ -33,7 +34,12 @@ QColor
 CQChartsTextBoxObj::
 interpTextColor(int i, int n) const
 {
-  return textColor().interpColor(plot_, i, n);
+  if      (plot())
+    return textColor().interpColor(plot(), i, n);
+  else if (view())
+    return textColor().interpColor(view(), i, n);
+  else
+    return QColor();
 }
 
 void
@@ -84,16 +90,23 @@ void
 CQChartsTextBoxObj::
 drawText(QPainter *painter, const QRectF &rect, const QString &text) const
 {
-  QFontMetricsF fm(textFont());
+  if      (plot())
+    view()->setPlotPainterFont(plot(), painter, textFont());
+  else if (view())
+    view()->setPainterFont(painter, textFont());
+
+  QFontMetricsF fm(painter->font());
 
   QColor c = interpTextColor(0, 1);
 
-  c.setAlphaF(textAlpha());
+  QPen pen;
 
-  QPen pen(c);
+  if      (plot())
+    plot()->setPen(pen, true, c, textAlpha());
+  else if (view())
+    view()->setPen(pen, true, c, textAlpha());
 
-  painter->setPen (pen);
-  painter->setFont(textFont());
+  painter->setPen(pen);
 
   painter->drawText(QPointF(rect.left() + margin(),
                             rect.bottom() - margin() - fm.descent()), text);
@@ -114,7 +127,12 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
 {
   painter->save();
 
-  QFontMetricsF fm(textFont());
+  if      (plot())
+    view()->setPlotPainterFont(plot(), painter, textFont());
+  else if (view())
+    view()->setPainterFont(painter, textFont());
+
+  QFontMetricsF fm(painter->font());
 
   double tw = fm.width(text);
 
@@ -148,7 +166,7 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
     QRectF                      bbox;
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, textFont(), angle, margin(),
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, painter->font(), angle, margin(),
                                   bbox, points, align, /*alignBBox*/ true);
 
     QPolygonF poly;
@@ -162,13 +180,14 @@ draw(QPainter *painter, const QPointF &center, const QString &text, double angle
   //---
 
   // draw text
-  painter->setFont(textFont());
-
   QColor c = interpTextColor(0, 1);
 
-  c.setAlphaF(textAlpha());
+  QPen pen;
 
-  QPen pen(c);
+  if      (plot())
+    plot()->setPen(pen, true, c, textAlpha());
+  else if (view())
+    view()->setPen(pen, true, c, textAlpha());
 
   painter->setPen(pen);
 
@@ -182,7 +201,14 @@ CQChartsGeom::BBox
 CQChartsRotatedTextBoxObj::
 bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment align) const
 {
-  QFontMetricsF fm(textFont());
+  QFont font;
+
+  if      (plot())
+    font = view()->plotFont(plot(), textFont());
+  else if (view())
+    font = view()->viewFont(textFont());
+
+  QFontMetricsF fm(font);
 
   double tw = fm.width(text);
 
@@ -207,13 +233,16 @@ bbox(const QPointF &center, const QString &text, double angle, Qt::Alignment ali
   else {
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(center.x(), center.y(), text, textFont(), angle, margin(),
+    CQChartsRotatedText::bboxData(center.x(), center.y(), text, font, angle, margin(),
                                   qrect, points, align, /*alignBBox*/ true);
   }
 
   CQChartsGeom::BBox bbox;
 
-  plot_->pixelToWindow(CQChartsUtil::fromQRect(qrect), bbox);
+  if      (plot())
+    bbox = plot()->pixelToWindow(CQChartsUtil::fromQRect(qrect));
+  else if (view())
+    bbox = view()->pixelToWindow(CQChartsUtil::fromQRect(qrect));
 
   return bbox;
 }
@@ -259,7 +288,10 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
 
   double ptx, pty;
 
-  plot_->windowToPixel(tx, ty, ptx, pty);
+  if      (plot())
+    plot()->windowToPixel(tx, ty, ptx, pty);
+  else if (view())
+    view()->windowToPixel(tx, ty, ptx, pty);
 
   //---
 
@@ -275,14 +307,22 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
 
     double lpx1, lpy1, lpx2, lpy2;
 
-    plot_->windowToPixel(lx1, ly1, lpx1, lpy1);
-    plot_->windowToPixel(lx2, ly2, lpx2, lpy2);
+    if       (plot()) {
+      plot()->windowToPixel(lx1, ly1, lpx1, lpy1);
+      plot()->windowToPixel(lx2, ly2, lpx2, lpy2);
+    }
+    else if (view()) {
+      view()->windowToPixel(lx1, ly1, lpx1, lpy1);
+      view()->windowToPixel(lx2, ly2, lpx2, lpy2);
+    }
+    else
+      assert(false);
 
     int tickSize = 16;
 
     bool labelRight = (tc >= 0);
 
-    if (plot_->isInvertX())
+    if (plot() && plot()->isInvertX())
       labelRight = ! labelRight;
 
     if (labelRight) {

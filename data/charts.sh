@@ -3,7 +3,6 @@
 set args     = ()
 set opts     = ()
 set debug    = 0
-set timer    = 0
 set valgrind = 0
 
 while ($#argv > 0)
@@ -17,10 +16,13 @@ while ($#argv > 0)
     set opts = ($opts -loop)
     shift
   else if ("$1" == "-timer") then
-    set timer = 1
+    setenv HRTIMER_ACTIVE 1
+    shift
+  else if ("$1" == "-pixmap") then
+    setenv CQCHARTS_LAYER_PIXMAP 1
     shift
   else if ("$1" == "-h" || "$1" == "-help") then
-    echo "charts.sh -dbx|-valgrind|-loop|-timer <script>"
+    echo "charts.sh [-dbx|-valgrind|-loop|-timer|-pixmap] <script>"
     exit 1
   else
     set args = ($args $1)
@@ -30,10 +32,6 @@ end
 
 setenv QT_AUTO_SCREEN_SCALE_FACTOR 0
 setenv QT_SCALE_FACTOR 0
-
-if ($timer == 1) then
-  setenv HRTIMER_ACTIVE 1
-endif
 
 if      ($debug == 1) then
   if ($#args > 0) then

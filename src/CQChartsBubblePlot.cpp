@@ -153,10 +153,8 @@ addProperties()
   // text
   addTextProperties("text", "text");
 
-  // color
-  addProperty("color", this, "colorMapped", "mapped");
-  addProperty("color", this, "colorMapMin", "mapMin");
-  addProperty("color", this, "colorMapMax", "mapMax");
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -570,15 +568,23 @@ handleResize()
   dataRange_.reset();
 }
 
+//------
+
+bool
+CQChartsBubblePlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsBubblePlot::
 drawForeground(QPainter *painter)
 {
   drawBounds(painter, currentRoot());
-
-  //---
-
-  CQChartsPlot::drawForeground(painter);
 }
 
 void
@@ -819,25 +825,20 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(0, 1),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isFilled(),
-                     node_->interpColor(plot_, plot_->numColorIds()),
-                     plot_->fillAlpha(),
-                     plot_->fillPattern());
+    plot_->isBorder(), plot_->interpBorderColor(0, 1), plot_->borderAlpha(),
+    plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), node_->interpColor(plot_, plot_->numColorIds()),
+    plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
   //---
 
+  QPen tpen;
+
   QColor tc = plot_->interpTextColor(0, 1);
 
-  tc.setAlphaF(plot_->textAlpha());
-
-  QPen tpen(tc);
+  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -872,11 +873,10 @@ draw(QPainter *painter)
   //---
 
   // set font
-  QFont font = plot_->textFont();
-
-  painter->setFont(font);
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
   if (plot_->isTextScaled()) {
+    // calc text size
     QFontMetricsF fm(painter->font());
 
     double tw = 0;
@@ -886,11 +886,17 @@ draw(QPainter *painter)
 
     double th = strs.size()*fm.height();
 
+    //---
+
+    // calc scale factor
     double sx = (tw > 0 ? qrect.width ()/tw : 1.0);
     double sy = (th > 0 ? qrect.height()/th : 1.0);
 
     double s = std::min(sx, sy);
 
+    //---
+
+    // scale font
     double fs = painter->font().pointSizeF()*s;
 
     QFont font1 = painter->font();

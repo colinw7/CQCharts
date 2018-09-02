@@ -257,6 +257,8 @@ calcRange()
     dataRange_.updateRange(1, numSets() - 0.5);
   }
 
+  normalizedDataRange_ = dataRange_;
+
   //---
 
   // set axes range and name
@@ -282,10 +284,10 @@ calcRange()
 
   //---
 
-  if (! isHorizontal())
-    displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
-  else
-    displayRange_->setWindowRange(0, -0.5, 1, numSets() - 0.5);
+  displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                                normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
+
+  dataRange_ = normalizedDataRange_;
 }
 
 bool
@@ -388,12 +390,9 @@ initObjs()
 
     QString xname = modelString(xind.row(), xind.column(), xind.parent(), ok);
 
-    CQChartsGeom::BBox bbox;
-
-    if (! isHorizontal())
-      bbox = CQChartsGeom::BBox(-0.5, 0, numSets() - 0.5, 1);
-    else
-      bbox = CQChartsGeom::BBox(0, -0.5, 1, numSets() - 0.5);
+    CQChartsGeom::BBox bbox =
+      CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                         normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
     CQChartsParallelLineObj *lineObj =
       new CQChartsParallelLineObj(this, bbox, poly, xind1, i, n);
@@ -546,62 +545,51 @@ addMenuItems(QMenu *menu)
   return true;
 }
 
-void
+//---
+
+CQChartsGeom::BBox
 CQChartsParallelPlot::
-drawParts(QPainter *painter)
+axesFitBBox() const
 {
-  // draw objects (background, mid, foreground)
-  drawGroupedObjs(painter, CQChartsLayer::Type::BG_PLOT );
-  drawGroupedObjs(painter, CQChartsLayer::Type::MID_PLOT);
-  drawGroupedObjs(painter, CQChartsLayer::Type::FG_PLOT );
+  return axesBBox_;
+}
 
-  // draw annotations
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::ANNOTATION);
+CQChartsGeom::BBox
+CQChartsParallelPlot::
+annotationBBox() const
+{
+  QFont font = view()->plotFont(this, view()->font());
 
-  //---
+  QFontMetricsF fm(font);
 
-  // draw selection
-  drawGroupedObjs(painter, CQChartsLayer::Type::SELECTION);
+  double tm = 4.0;
 
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::SELECTION);
+  double ts;
 
-  //---
+  if (! isHorizontal())
+    ts = pixelToWindowHeight(fm.height() + tm);
+  else
+    ts = pixelToWindowWidth(max_tw_ + tm);
 
-  drawFgAxes(painter);
+  CQChartsGeom::BBox bbox;
 
-  //---
+  if (! isHorizontal())
+    bbox = CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                              normalizedDataRange_.xmax(), normalizedDataRange_.ymax() + ts);
+  else
+    bbox = CQChartsGeom::BBox(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                              normalizedDataRange_.xmax() + ts, normalizedDataRange_.ymax());
 
-  drawTitle(painter);
+  return bbox;
+}
 
-  //---
+//---
 
-  // draw foreground
-  drawForeground(painter);
-
-  //---
-
-  // draw debug boxes
-  drawGroupedBoxes(painter);
-
-  //---
-
-  drawGroupedEditHandles(painter);
-
-  //---
-
-  // draw mouse over
-  drawGroupedObjs(painter, CQChartsLayer::Type::MOUSE_OVER);
-
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::MOUSE_OVER);
-
-  //---
-
-  // auto fit based on last draw
-  if (needsAutoFit_) {
-    needsAutoFit_ = false;
-
-    autoFit();
-  }
+bool
+CQChartsParallelPlot::
+hasFgAxes() const
+{
+  return true;
 }
 
 void
@@ -612,10 +600,22 @@ drawFgAxes(QPainter *painter)
 
   //---
 
-  // draw axes
-  QFontMetricsF fm(view()->font());
+  axesBBox_ = CQChartsGeom::BBox();
 
+  max_tw_ = 0.0;
+
+  double tm = 4.0;
+
+  // draw axes
   for (int j = 0; j < numSets(); ++j) {
+    CQChartsAxis *axis = axes_[j];
+
+    view()->setPlotPainterFont(this, painter, axis->labelFont());
+
+    QFontMetricsF fm(painter->font());
+
+    //---
+
     const CQChartsGeom::Range &range = setRange(j);
 
     dataRange_ = range;
@@ -630,14 +630,14 @@ drawFgAxes(QPainter *painter)
     //---
 
     // draw set axis
-    axes_[j]->setPos(j);
+    axis->setPos(j);
 
-    axes_[j]->draw(this, painter);
+    axis->draw(this, painter);
 
     //---
 
     // draw set label
-    QString label = axes_[j]->label();
+    QString label = axis->label();
 
     double px, py;
 
@@ -646,15 +646,32 @@ drawFgAxes(QPainter *painter)
     else
       windowToPixel(dataRange_.xmax(), j, px, py);
 
-    painter->setPen(axes_[j]->interpTickLabelColor(0, 1));
+    double tw = fm.width(label);
+    double ta = fm.ascent();
+    double td = fm.descent();
 
-    painter->drawText(QPointF(px - fm.width(label)/2.0, py - fm.height()), label);
+    max_tw_ = std::max(max_tw_, tw);
+
+    painter->setPen(axis->interpTickLabelColor(0, 1));
+
+    if (! isHorizontal())
+      painter->drawText(QPointF(px - tw/2.0, py - td - tm), label);
+    else
+      painter->drawText(QPointF(px + tm, py - (ta - td)/2), label);
+
+    //---
+
+    axesBBox_ += windowToPixel(axis->fitBBox());
   }
 
   //---
 
   setNormalizedRange();
+
+  axesBBox_ = pixelToWindow(axesBBox_);
 }
+
+//---
 
 void
 CQChartsParallelPlot::
@@ -672,10 +689,10 @@ CQChartsParallelPlot::
 setNormalizedRange()
 {
   // set display range to normalized range
-  if (! isHorizontal())
-    displayRange_->setWindowRange(-0.5, 0, numSets() - 0.5, 1);
-  else
-    displayRange_->setWindowRange(0, -0.5, 1, numSets() - 0.5);
+  displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
+                                normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
+
+  dataRange_ = normalizedDataRange_;
 }
 
 //------
@@ -798,34 +815,24 @@ draw(QPainter *painter)
 
   //---
 
-  // create unnormalized polygon
-  QPolygonF poly;
-
-  getPolyLine(poly);
-
-  //---
-
+  // set pen and brush
   QPen   pen;
-  QBrush brush(Qt::NoBrush);
+  QBrush brush;
 
-  QColor lc = plot_->interpLinesColor(i_, n_);
+  plot_->setLineDataPen(pen, i_, n_);
 
-  plot_->setPen(pen, /*stroked*/true, lc, plot_->linesAlpha(),
-                plot_->linesWidth(), plot_->linesDash());
+  plot_->setBrush(brush, false);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
-#if 0
-  if (isInside()) {
-    if (lw <= 0)
-      lw = 1;
-
-    lw *= 3;
-  }
-#endif
-
-  // draw polyline
   painter->setPen(pen);
+
+  //---
+
+  // draw polyline (using unnormalized polygon)
+  QPolygonF poly;
+
+  getPolyLine(poly);
 
   for (int i = 1; i < poly.count(); ++i)
     painter->drawLine(plot_->windowToPixel(poly[i - 1]), plot_->windowToPixel(poly[i]));

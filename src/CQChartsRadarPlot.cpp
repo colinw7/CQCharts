@@ -356,7 +356,7 @@ addRow(const QModelIndex &parent, int row, int nr)
   // calc polygon angle
   int nv = valueColumns().size();
 
-  double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
+  double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
 
   double da = (nv > 2 ? alen/nv : 90.0);
 
@@ -528,7 +528,7 @@ drawBackground(QPainter *painter)
     // TODO
   }
   else if (nv > 2) {
-    double alen = std::min(std::max(angleExtent(), -360.0), 360.0);
+    double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
 
     double da = alen/nv;
 
@@ -536,11 +536,9 @@ drawBackground(QPainter *painter)
 
     // draw grid spokes
     if (isGridLines()) {
-      QColor gridColor1 = interpGridLinesColor(0, 1);
-
       QPen gpen1;
 
-      setPen(gpen1, true, gridColor1, gridLinesAlpha(), gridLinesWidth(), gridLinesDash());
+      setGridLineDataPen(gpen1, 0, 1);
 
       painter->setPen(gpen1);
 
@@ -570,23 +568,21 @@ drawBackground(QPainter *painter)
 
     //---
 
-    QColor gridColor2 = interpGridLinesColor(0, 1);
-
     QPen gpen2;
 
-    setPen(gpen2, true, gridColor2, gridLinesAlpha(), gridLinesWidth(), gridLinesDash());
+    setGridLineDataPen(gpen2, 0, 1);
 
     //---
+
+    QPen tpen;
 
     QColor tc = interpTextColor(0, 1);
 
-    tc.setAlphaF(textAlpha());
-
-    QPen tpen(tc);
+    setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
     //---
 
-    painter->setFont(textFont());
+    view()->setPlotPainterFont(this, painter, textFont());
 
     int    nl = 5;
     double dr = valueRadius_/nl;

@@ -83,7 +83,7 @@ class CQChartsDataLabel : public CQChartsTextBoxObj {
             const Position &position);
 
   void draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
-            const Position &position, const QColor &tc);
+            const Position &position, const QPen &tpen);
 
   //---
 

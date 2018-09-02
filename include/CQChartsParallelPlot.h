@@ -181,7 +181,11 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   //---
 
-  void drawParts(QPainter *painter) override;
+  CQChartsGeom::BBox axesFitBBox() const override;
+
+  CQChartsGeom::BBox annotationBBox() const override;
+
+  bool hasFgAxes() const override;
 
   void drawFgAxes(QPainter *painter) override;
 
@@ -198,13 +202,16 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using YAxes   = std::vector<CQChartsAxis*>;
   using AxisDir = CQChartsAxis::Direction;
 
-  CQChartsColumn  xColumn_         { 0 };                   // x value column
-  CQChartsColumns yColumns_        { 1 };                   // y value columns
-  bool            horizontal_      { false };               // horizontal bars
-  bool            linesSelectable_ { false };               // are lines selectable
-  Ranges          setRanges_;                               // value set ranges
-  AxisDir         adir_            { AxisDir::HORIZONTAL }; // axis direction
-  YAxes           axes_;                                    // value axes
+  CQChartsColumn      xColumn_         { 0 };                   // x value column
+  CQChartsColumns     yColumns_        { 1 };                   // y value columns
+  bool                horizontal_      { false };               // horizontal bars
+  bool                linesSelectable_ { false };               // are lines selectable
+  Ranges              setRanges_;                               // value set ranges
+  AxisDir             adir_            { AxisDir::HORIZONTAL }; // axis direction
+  YAxes               axes_;                                    // value axes
+  CQChartsGeom::Range normalizedDataRange_;
+  double              max_tw_          { 0.0 };
+  CQChartsGeom::BBox  axesBBox_;
 };
 
 #endif

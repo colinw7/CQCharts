@@ -357,11 +357,20 @@ addNodeObj(CQChartsDendrogram::Node *node)
 
 //------
 
+bool
+CQChartsDendrogramPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsDendrogramPlot::
 drawForeground(QPainter *painter)
 {
-
   CQChartsDendrogram::HierNode *root = dendrogram_->root();
 
   if (root) {
@@ -422,11 +431,9 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogr
     QPen   lpen;
     QBrush lbrush;
 
-    QColor edgeColor = interpEdgeLinesColor(0, 1);
+    setEdgeLineDataPen(lpen, 0, 1);
 
-    setPen(lpen, /*stroked*/true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
-
-    lbrush.setStyle(Qt::NoBrush);
+    setBrush(lbrush, false);
 
     painter->setPen  (lpen);
     painter->setBrush(lbrush);
@@ -492,7 +499,7 @@ textRect() const
 
   //---
 
-  QFont font = plot_->textFont();
+  QFont font = plot_->view()->plotFont(plot_, plot_->textFont());
 
   QFontMetricsF fm(font);
 
@@ -572,24 +579,26 @@ draw(QPainter *painter)
   //---
 
   // draw node text
-  QColor tc = plot_->interpTextColor(0, 1);
-
   QPen tpen;
+
+  QColor tc = plot_->interpTextColor(0, 1);
 
   plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha(),
                 CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(tpen);
 
-  QFont font = plot_->textFont();
+  //---
 
-  painter->setFont(font);
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+
+  //---
 
   const QString &name = node_->name();
 
   bool is_hier = dynamic_cast<CQChartsDendrogram::HierNode *>(node_);
 
-  QFontMetricsF fm(font);
+  QFontMetricsF fm(painter->font());
 
   double dy = (fm.ascent() - fm.descent())/2;
 

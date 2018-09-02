@@ -1581,8 +1581,8 @@ placePlotsCmd(const Vars &vars)
   QString viewName   = argv.getParseStr ("view");
   bool    vertical   = argv.getParseBool("vertical");
   bool    horizontal = argv.getParseBool("horizontal");
-  int     rows       = argv.getParseBool("rows"   , -1);
-  int     columns    = argv.getParseBool("columns", -1);
+  int     rows       = argv.getParseInt ("rows"   , -1);
+  int     columns    = argv.getParseInt ("columns", -1);
 
   const Vars &plotNames = argv.getParseArgs();
 

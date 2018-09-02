@@ -17,14 +17,24 @@ CQChartsBoxObj(CQChartsPlot *plot) :
 {
 }
 
+CQChartsView *
+CQChartsBoxObj::
+view() const
+{
+  if (plot())
+    return plot()->view();
+  else
+    return view_;
+}
+
 QColor
 CQChartsBoxObj::
 interpBackgroundColor(int i, int n) const
 {
-  if      (plot_)
-    return backgroundColor().interpColor(plot_, i, n);
-  else if (view_)
-    return backgroundColor().interpColor(view_, i, n);
+  if      (plot())
+    return backgroundColor().interpColor(plot(), i, n);
+  else if (view())
+    return backgroundColor().interpColor(view(), i, n);
   else
     return QColor();
 }
@@ -33,10 +43,10 @@ QColor
 CQChartsBoxObj::
 interpBorderColor(int i, int n) const
 {
-  if      (plot_)
-    return borderColor().interpColor(plot_, i, n);
-  else if (view_)
-    return borderColor().interpColor(view_, i, n);
+  if      (plot())
+    return borderColor().interpColor(plot(), i, n);
+  else if (view())
+    return borderColor().interpColor(view(), i, n);
   else
     return QColor();
 }
@@ -70,47 +80,47 @@ CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
   if (isBackground()) {
+    QBrush brush;
+    QPen   pen(Qt::NoPen);
+
     QColor bgColor = interpBackgroundColor(0, 1);
 
-    bgColor.setAlphaF(backgroundAlpha());
+    if      (plot())
+      plot()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+    else if (view())
+      view()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
 
-    QBrush brush(bgColor);
-    QPen   pen  (Qt::NoPen);
+    if (plot())
+      plot()->updateObjPenBrushState(this, pen, brush);
 
-    brush.setStyle(backgroundPattern().style());
-
-    if (plot_)
-      plot_->updateObjPenBrushState(this, pen, brush);
-
-    painter->setBrush(brush);
     painter->setPen  (pen);
+    painter->setBrush(brush);
 
-    double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
-    double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);
+    double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
+    double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
     CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
   }
 
   if (isBorder()) {
+    QPen   pen;
+    QBrush brush(Qt::NoBrush);
+
     QColor borderColor = interpBorderColor(0, 1);
 
-    borderColor.setAlphaF(borderAlpha());
+    if      (plot())
+      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+    else if (view())
+      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
 
-    QBrush brush(Qt::NoBrush);
-    QPen   pen  (borderColor);
-
-    double bw = (plot_ ? plot_->lengthPixelWidth(borderWidth()) : 0.0);
-
-    pen.setWidthF(bw);
-
-    if (plot_)
-      plot_->updateObjPenBrushState(this, pen, brush);
+    if (plot())
+      plot()->updateObjPenBrushState(this, pen, brush);
 
     painter->setPen  (pen);
     painter->setBrush(brush);
 
-    double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
-    double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);
+    double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
+    double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
     CQChartsRoundedPolygon::draw(painter, rect, cxs, cys);
   }
@@ -120,10 +130,10 @@ void
 CQChartsBoxObj::
 redrawBoxObj()
 {
-  if      (plot_)
-    plot_->invalidateLayers();
-  else if (view_)
-    view_->update();
+  if      (plot())
+    plot()->invalidateLayers();
+  else if (view())
+    view()->update();
 }
 
 void
@@ -131,37 +141,41 @@ CQChartsBoxObj::
 draw(QPainter *painter, const QPolygonF &poly) const
 {
   if (isBackground()) {
+    QBrush brush;
+    QPen   pen(Qt::NoPen);
+
     QColor bgColor = interpBackgroundColor(0, 1);
 
-    bgColor.setAlphaF(backgroundAlpha());
+    if      (plot())
+      plot()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+    else if (view())
+      view()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
 
-    QBrush brush(bgColor);
-
+    painter->setPen  (pen);
     painter->setBrush(brush);
-    painter->setPen  (Qt::NoPen);
 
-    double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
-    double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);
+    double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
+    double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
     CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
   }
 
   if (isBorder()) {
+    QPen   pen;
+    QBrush brush(Qt::NoBrush);
+
     QColor borderColor = interpBorderColor(0, 1);
 
-    borderColor.setAlphaF(borderAlpha());
-
-    QPen pen(borderColor);
-
-    double bw = (plot_ ? plot_->lengthPixelWidth(borderWidth()) : 0.0);
-
-    pen.setWidthF(bw);
+    if      (plot())
+      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+    else if (view())
+      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
 
     painter->setPen  (pen);
-    painter->setBrush(Qt::NoBrush);
+    painter->setBrush(brush);
 
-    double cxs = (plot_ ? plot_->lengthPixelWidth (cornerSize()) : 0.0);
-    double cys = (plot_ ? plot_->lengthPixelHeight(cornerSize()) : 0.0);
+    double cxs = (plot() ? plot()->lengthPixelWidth (cornerSize()) : 0.0);
+    double cys = (plot() ? plot()->lengthPixelHeight(cornerSize()) : 0.0);
 
     CQChartsRoundedPolygon::draw(painter, poly, cxs, cys);
   }

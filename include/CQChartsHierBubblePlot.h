@@ -333,6 +333,8 @@ class CQChartsHierBubblePlot : public CQChartsHierPlot,
 
   //---
 
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *) override;
 
   //---

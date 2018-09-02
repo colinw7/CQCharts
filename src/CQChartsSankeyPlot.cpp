@@ -1013,21 +1013,25 @@ drawFg(QPainter *painter)
 
   int numNodes = plot_->numNodes();
 
+  //---
+
   // set font
-  QFont font = plot_->textFont();
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
-  QFontMetricsF fm(font);
+  QFontMetricsF fm(painter->font());
 
-  painter->setFont(font);
+  //---
 
   // set color
+  QPen pen;
+
   QColor c = plot_->interpTextColor(node_->ind(), numNodes);
 
-  c.setAlphaF(plot_->textAlpha());
-
-  QPen pen(c);
+  plot_->setPen(pen, true, c, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(pen);
+
+  //---
 
   //double value = node_->edgeSum();
 

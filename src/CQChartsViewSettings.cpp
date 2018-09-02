@@ -764,20 +764,22 @@ updateLayers()
 
     CQChartsLayer *layer = plot->getLayer(type);
 
+    const CQChartsBuffer *buffer = (layer ? layer->buffer() : nullptr);
+
 //  QTableWidgetItem *idItem    = layersWidgets_.layerTable->item(i, 0);
     QTableWidgetItem *stateItem = layersWidgets_.layerTable->item(i, 1);
     QTableWidgetItem *rectItem  = layersWidgets_.layerTable->item(i, 2);
 
     QStringList states;
 
-    if (layer && layer->isActive()) states += "active";
-    if (layer && layer->isValid ()) states += "valid";
+    if (layer  && layer ->isActive()) states += "active";
+    if (buffer && buffer->isValid ()) states += "valid";
 
     stateItem->setText(states.join("|"));
 
     stateItem->setCheckState((layer && layer->isActive()) ? Qt::Checked : Qt::Unchecked);
 
-    const QRectF &rect = layer->rect();
+    QRectF rect = (buffer ? buffer->rect() : QRectF());
 
     QString rectStr = QString("X:%1, Y:%2, W:%3, H:%4").
                         arg(rect.x()).arg(rect.y()).arg(rect.width()).arg(rect.height());
@@ -965,7 +967,9 @@ layersClickedSlot(int row, int column)
 
   plot->setLayerActive(type, active);
 
-  plot->invalidateLayer(type);
+  const CQChartsBuffer *buffer = layer->buffer();
+
+  plot->invalidateLayer(buffer->type());
 }
 
 void

@@ -1,6 +1,7 @@
 #ifndef CQChartsView_H
 #define CQChartsView_H
 
+#include <CQChartsViewData.h>
 #include <CQChartsTheme.h>
 #include <CQChartsGeom.h>
 #include <CQChartsPlotSymbol.h>
@@ -35,55 +36,38 @@ class QRubberBand;
 class QLabel;
 class QMenu;
 
-class CQChartsView : public QFrame {
+CQCHARTS_VIEW_NAMED_SHAPE_DATA(Selected,selected)
+CQCHARTS_VIEW_NAMED_SHAPE_DATA(Inside,inside)
+
+class CQChartsView : public QFrame,
+ public CQChartsViewSelectedShapeData,
+ public CQChartsViewInsideShapeData {
   Q_OBJECT
 
-  Q_PROPERTY(QString    id             READ id             WRITE setId            )
-  Q_PROPERTY(QString    title          READ title          WRITE setTitle         )
-  Q_PROPERTY(QColor     background     READ background     WRITE setBackground    )
-  Q_PROPERTY(int        currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+  Q_PROPERTY(QString id             READ id             WRITE setId            )
+  Q_PROPERTY(QString title          READ title          WRITE setTitle         )
+  Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
+  Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
 
   // edit, select mode
-  Q_PROPERTY(Mode       mode           READ mode           WRITE setMode          )
-  Q_PROPERTY(SelectMode selectMode     READ selectMode     WRITE setSelectMode    )
+  Q_PROPERTY(Mode       mode       READ mode       WRITE setMode      )
+  Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
 
   // theme
-  Q_PROPERTY(QString    themeName      READ themeName      WRITE setThemeName     )
+  Q_PROPERTY(QString themeName READ themeName WRITE setThemeName)
 
   // selection appearance
-  Q_PROPERTY(HighlightDataMode selectedMode               READ selectedMode
-                                                          WRITE setSelectedMode)
-  Q_PROPERTY(bool              selectedStrokeColorEnabled READ isSelectedStrokeColorEnabled
-                                                          WRITE setSelectedStrokeColorEnabled)
-  Q_PROPERTY(QColor            selectedStrokeColor        READ selectedStrokeColor
-                                                          WRITE setSelectedStrokeColor)
-  Q_PROPERTY(double            selectedStrokeWidth        READ selectedStrokeWidth
-                                                          WRITE setSelectedStrokeWidth)
-  Q_PROPERTY(CQChartsLineDash  selectedStrokeDash         READ selectedStrokeDash
-                                                          WRITE setSelectedStrokeDash)
-  Q_PROPERTY(bool              selectedFillColorEnabled   READ isSelectedFillColorEnabled
-                                                          WRITE setSelectedFillColorEnabled)
-  Q_PROPERTY(QColor            selectedFillColor          READ selectedFillColor
-                                                          WRITE setSelectedFillColor)
+  Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
+
+  CQCHARTS_VIEW_NAMED_SHAPE_DATA_PROPERTIES(Selected,selected)
 
   // inside appearance
-  Q_PROPERTY(HighlightDataMode insideMode               READ insideMode
-                                                        WRITE setInsideMode)
-  Q_PROPERTY(bool              insideStrokeColorEnabled READ isInsideStrokeColorEnabled
-                                                        WRITE setInsideStrokeColorEnabled)
-  Q_PROPERTY(QColor            insideStrokeColor        READ insideStrokeColor
-                                                        WRITE setInsideStrokeColor)
-  Q_PROPERTY(double            insideStrokeWidth        READ insideStrokeWidth
-                                                        WRITE setInsideStrokeWidth)
-  Q_PROPERTY(CQChartsLineDash  insideStrokeDash         READ insideStrokeDash
-                                                        WRITE setInsideStrokeDash)
-  Q_PROPERTY(bool              insideFillColorEnabled   READ isInsideFillColorEnabled
-                                                        WRITE setInsideFillColorEnabled)
-  Q_PROPERTY(QColor            insideFillColor          READ insideFillColor
-                                                        WRITE setInsideFillColor)
+  Q_PROPERTY(HighlightDataMode insideMode READ insideMode WRITE setInsideMode)
+
+  CQCHARTS_VIEW_NAMED_SHAPE_DATA_PROPERTIES(Inside,inside)
 
   // zoom to data
-  Q_PROPERTY(bool        zoomData       READ isZoomData     WRITE setZoomData      )
+  Q_PROPERTY(bool zoomData READ isZoomData WRITE setZoomData)
 
   // scroll (TODO remove)
   Q_PROPERTY(bool        scrolled       READ isScrolled     WRITE setScrolled      )
@@ -91,11 +75,12 @@ class CQChartsView : public QFrame {
   Q_PROPERTY(int         scrollNumPages READ scrollNumPages WRITE setScrollNumPages)
   Q_PROPERTY(int         scrollPage     READ scrollPage     WRITE setScrollPage    )
 
-  // alias, buffer, preview, pos text type
-  Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias     )
-  Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers  )
-  Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview       )
-  Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType   )
+  // anti-alias, buffer, preview, pos text type
+  Q_PROPERTY(bool        antiAlias      READ isAntiAlias    WRITE setAntiAlias   )
+  Q_PROPERTY(bool        bufferLayers   READ isBufferLayers WRITE setBufferLayers)
+  Q_PROPERTY(bool        preview        READ isPreview      WRITE setPreview     )
+  Q_PROPERTY(bool        scaleFont      READ isScaleFont    WRITE setScaleFont   )
+  Q_PROPERTY(PosTextType posTextType    READ posTextType    WRITE setPosTextType )
 
   Q_ENUMS(Mode)
   Q_ENUMS(SelectMode)
@@ -165,7 +150,7 @@ class CQChartsView : public QFrame {
   //---
 
   const QColor &background() const { return background_; }
-  void setBackground(const QColor &c) { background_ = c; update(); }
+  void setBackground(const QColor &c);
 
   int currentPlotInd() const { return currentPlotInd_; }
   void setCurrentPlotInd(int i);
@@ -178,6 +163,21 @@ class CQChartsView : public QFrame {
 
   //---
 
+  void setPainterFont(QPainter *painter, const QFont &font) const;
+
+  void setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &font) const;
+
+  QFont viewFont(const QFont &font) const;
+  QFont plotFont(const CQChartsPlot *plot, const QFont &font) const;
+
+  double calcFontScale(const QSizeF &size) const;
+
+  QFont scaledFont(const QFont &font, const QSizeF &size) const;
+
+  QFont scaledFont(const QFont &font, double s) const;
+
+  //---
+
   void setCurrentPlot(CQChartsPlot *plot);
 
   //---
@@ -185,44 +185,8 @@ class CQChartsView : public QFrame {
   const HighlightDataMode &selectedMode() const { return selectedHighlight_.mode; }
   void setSelectedMode(const HighlightDataMode &mode) { selectedHighlight_.mode = mode; }
 
-  bool isSelectedStrokeColorEnabled() const { return selectedHighlight_.strokeColorEnabled; }
-  void setSelectedStrokeColorEnabled(bool b) { selectedHighlight_.strokeColorEnabled = b; }
-
-  const QColor &selectedStrokeColor() const { return selectedHighlight_.strokeColor; }
-  void setSelectedStrokeColor(const QColor &c) { selectedHighlight_.strokeColor = c; }
-
-  double selectedStrokeWidth() const { return selectedHighlight_.strokeWidth; }
-  void setSelectedStrokeWidth(double w) { selectedHighlight_.strokeWidth = w; }
-
-  const CQChartsLineDash &selectedStrokeDash() const { return selectedHighlight_.strokeDash; }
-  void setSelectedStrokeDash(const CQChartsLineDash &d) { selectedHighlight_.strokeDash = d; }
-
-  bool isSelectedFillColorEnabled() const { return selectedHighlight_.fillColorEnabled; }
-  void setSelectedFillColorEnabled(bool b) { selectedHighlight_.fillColorEnabled = b; }
-
-  const QColor &selectedFillColor() const { return selectedHighlight_.fillColor; }
-  void setSelectedFillColor(const QColor &c) { selectedHighlight_.fillColor = c; }
-
   const HighlightDataMode &insideMode() const { return insideHighlight_.mode; }
   void setInsideMode(const HighlightDataMode &mode) { insideHighlight_.mode = mode; }
-
-  bool isInsideStrokeColorEnabled() const { return insideHighlight_.strokeColorEnabled; }
-  void setInsideStrokeColorEnabled(bool b) { insideHighlight_.strokeColorEnabled = b; }
-
-  const QColor &insideStrokeColor() const { return insideHighlight_.strokeColor; }
-  void setInsideStrokeColor(const QColor &c) { insideHighlight_.strokeColor = c; }
-
-  double insideStrokeWidth() const { return insideHighlight_.strokeWidth; }
-  void setInsideStrokeWidth(double w) { insideHighlight_.strokeWidth = w; }
-
-  const CQChartsLineDash &insideStrokeDash() const { return insideHighlight_.strokeDash; }
-  void setInsideStrokeDash(const CQChartsLineDash &d) { insideHighlight_.strokeDash = d; }
-
-  bool isInsideFillColorEnabled() const { return insideHighlight_.fillColorEnabled; }
-  void setInsideFillColorEnabled(bool b) { insideHighlight_.fillColorEnabled = b; }
-
-  const QColor &insideFillColor() const { return insideHighlight_.fillColor; }
-  void setInsideFillColor(const QColor &c) { insideHighlight_.fillColor = c; }
 
   //---
 
@@ -246,16 +210,19 @@ class CQChartsView : public QFrame {
   //---
 
   bool isAntiAlias() const { return antiAlias_; }
-  void setAntiAlias(bool b) { antiAlias_ = b; updatePlots(); }
+  void setAntiAlias(bool b);
 
   bool isBufferLayers() const { return bufferLayers_; }
-  void setBufferLayers(bool b) { bufferLayers_ = b; }
+  void setBufferLayers(bool b);
 
   bool isPreview() const { return preview_; }
-  void setPreview(bool b) { preview_ = b; updatePlots(); }
+  void setPreview(bool b);
+
+  bool isScaleFont() const { return scaleFont_; }
+  void setScaleFont(bool b);
 
   const PosTextType &posTextType() const { return posTextType_; }
-  void setPosTextType(const PosTextType &t) { posTextType_ = t; }
+  void setPosTextType(const PosTextType &t);
 
   //---
 
@@ -381,6 +348,15 @@ class CQChartsView : public QFrame {
 
   void printPNG(const QString &filename, CQChartsPlot *plot=nullptr);
   void printSVG(const QString &filename, CQChartsPlot *plot=nullptr);
+
+  //---
+
+  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha=1.0,
+              const CQChartsLength &strokeWidth=CQChartsLength("0px"),
+              const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
+
+  void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha=1.0,
+                const CQChartsFillPattern &pattern=CQChartsFillPattern()) const;
 
   //---
 
@@ -622,13 +598,7 @@ class CQChartsView : public QFrame {
   };
 
   struct HighlightData {
-    HighlightDataMode mode               { HighlightDataMode::OUTLINE };
-    bool              strokeColorEnabled { false };
-    QColor            strokeColor        { Qt::black };
-    double            strokeWidth        { 2 };
-    CQChartsLineDash  strokeDash         { {2, 2}, 0 };
-    bool              fillColorEnabled   { false };
-    QColor            fillColor          { Qt::yellow };
+    HighlightDataMode mode { HighlightDataMode::OUTLINE };
 
     bool isOutline() const { return int(mode) & int(HighlightDataMode::OUTLINE); }
     bool isFill   () const { return int(mode) & int(HighlightDataMode::FILL   ); }
@@ -642,8 +612,6 @@ class CQChartsView : public QFrame {
   };
 
   using ProbeBands = std::vector<CQChartsProbeBand*>;
-
-  // TODO: view title, view key, view annotations
 
   static QSize sizeHint_;
 
@@ -669,6 +637,7 @@ class CQChartsView : public QFrame {
   bool                     antiAlias_        { true };              // anit alias
   bool                     bufferLayers_     { true };              // buffer draw layers
   bool                     preview_          { false };             // preview
+  bool                     scaleFont_        { true };              // auto scale font
   PosTextType              posTextType_      { PosTextType::PLOT }; // position text ty[e
   CQChartsGeom::BBox       prect_            { 0, 0, 100, 100 };    // plot rect
   double                   aspect_           { 1.0 };               // current aspect

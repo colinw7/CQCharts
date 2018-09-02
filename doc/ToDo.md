@@ -1,5 +1,13 @@
 High
+ + better filtering of plot values
+ + auto split data into list of plots (left/right buttons)
+ + no QBrush(color), QPen(color), setAlphaF, setWidthF
+ + No style properties in *Plot*.h
+ + remove tcl expression procs for functions that can be added using add_process_model_proc
+ + density axis plot scaling for multiple plots ?
  + Common Code for Data->Pen/Brush
+ + Tree Map title (max) depth
+ + Allow write to model value (tcl ?) not extra (extra option ?)
  + Distribution
    + Line
    + Background boxes
@@ -16,7 +24,6 @@ High
  + allow get property names of view, plot, obj
  + Qtcl class belongs to CQCharts not Cmds
  + Notifications on mouse enter/leave (others)
- + More signals in view settings to reduce dependencies
  + More share model details
  + More common grouping column handling
  + equal scale should be quick adjust of dataRange (cached original)
@@ -66,6 +73,10 @@ Medium
  + Use Data not Obj to store data in objects (axis -> line obj ...)
  + rounded corner control
  + overview window (timeline)
+
+View Settings
+ + More signals in view settings to reduce dependencies
+ + Support expand as well as overlay
 
 + TOAST UI plots (tui)
   + Split Axes (Left/Right, Same Y Value Range, Split in Middle, Mirrored)

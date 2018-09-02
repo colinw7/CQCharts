@@ -93,7 +93,5 @@ addProperties()
 
   addProperty("options", this, "separator");
 
-  addProperty("color", this, "colorMapped", "mapped");
-  addProperty("color", this, "colorMapMin", "mapMin");
-  addProperty("color", this, "colorMapMax", "mapMax");
+  addColorMapProperties();
 }

@@ -457,12 +457,12 @@ class CQChartsScopeGuard {
 
 namespace CQChartsUtil {
 
-template<class T, class Callable>
-void testAndSet(T &t, const T &v, Callable &&f) {
+template<class T, class NOTIFIER>
+void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
   if (v != t) {
     t = v;
 
-    f();
+    notifier();
   }
 }
 

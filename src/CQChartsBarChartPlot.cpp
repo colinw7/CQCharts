@@ -91,9 +91,12 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
- CQChartsBarPlot(view, view->charts()->plotType("barchart"), model), dataLabel_(this)
+ CQChartsBarPlot(view, view->charts()->plotType("barchart"), model),
+ CQChartsPlotDotPointData<CQChartsBarChartPlot>(this),
+ dataLabel_(this)
 {
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
+  setDotSymbolSize(CQChartsLength("7px"));
 }
 
 CQChartsBarChartPlot::
@@ -205,20 +208,6 @@ CQChartsBarChartPlot::
 setDotLineWidth(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(dotLineWidth_, l, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBarChartPlot::
-setDotSymbolType(const CQChartsSymbol &s)
-{
-  CQChartsUtil::testAndSet(dotSymbolType_, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsBarChartPlot::
-setDotSymbolSize(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(dotSymbolSize_, l, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -1410,19 +1399,19 @@ draw(QPainter *painter)
 
   if (nset_ > 1) {
     if (plot_->isColorBySet())
-      barColor = plot_->interpBarColor(ival_, nval_);
+      barColor = plot_->interpBarFillColor(ival_, nval_);
     else
-      barColor = plot_->interpBarColor(iset_, nset_);
+      barColor = plot_->interpBarFillColor(iset_, nset_);
   }
   else {
     if (! color_.isValid()) {
       if      (nval_ > 1)
-        barColor = plot_->interpBarColor(ival_, nval_);
+        barColor = plot_->interpBarFillColor(ival_, nval_);
       else if (nsval_ > 1)
-        barColor = plot_->interpBarColor(isval_, nsval_);
+        barColor = plot_->interpBarFillColor(isval_, nsval_);
       else {
-        QColor barColor1 = plot_->interpBarColor(ival_    , nval_ + 1);
-        QColor barColor2 = plot_->interpBarColor(ival_ + 1, nval_ + 1);
+        QColor barColor1 = plot_->interpBarFillColor(ival_    , nval_ + 1);
+        QColor barColor2 = plot_->interpBarFillColor(ival_ + 1, nval_ + 1);
 
         double f = (1.0*isval_)/nsval_;
 
@@ -1438,16 +1427,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush barBrush;
 
+  QColor bc = plot_->interpBarBorderColor(0, 1);
+
   plot_->setPenBrush(pen, barBrush,
-                     plot_->isBorder() && ! skipBorder,
-                     plot_->interpBorderColor(0, 1),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isBarFill(),
-                     barColor,
-                     plot_->barAlpha(),
-                     plot_->barPattern());
+    plot_->isBarBorder() && ! skipBorder,
+    bc, plot_->barBorderAlpha(), plot_->barBorderWidth(), plot_->barBorderDash(),
+    plot_->isBarFilled(), barColor, plot_->barFillAlpha(), plot_->barFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 
@@ -1465,7 +1450,7 @@ draw(QPainter *painter)
       CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }
     else {
-      if (! plot_->isBorder())
+      if (! plot_->isBarBorder())
         painter->setPen(barBrush.color());
 
       painter->drawLine(QPointF(qrect.left (), qrect.bottom()),
@@ -1626,7 +1611,7 @@ fillBrush() const
   if (color_.isValid())
     c = color_.interpColor(plot_, 0.0);
   else
-    c = plot_->interpBarColor(i_, n_);
+    c = plot_->interpBarFillColor(i_, n_);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);

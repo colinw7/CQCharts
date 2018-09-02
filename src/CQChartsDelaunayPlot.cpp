@@ -317,6 +317,16 @@ addMenuItems(QMenu *menu)
 
 //------
 
+bool
+CQChartsDelaunayPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsDelaunayPlot::
 drawForeground(QPainter *painter)
@@ -330,10 +340,6 @@ drawForeground(QPainter *painter)
   else
     drawVoronoi(painter);
 
-  //---
-
-  CQChartsPlot::drawForeground(painter);
-
   painter->restore();
 }
 
@@ -342,15 +348,11 @@ CQChartsDelaunayPlot::
 drawDelaunay(QPainter *painter)
 {
   if (isLines()) {
-    QColor lc = interpLinesColor(0, 1);
+    QPen pen;
 
-    lc.setAlphaF(linesAlpha());
+    setLineDataPen(pen, 0, 1);
 
-    QPen pen(lc);
-
-    double lw = lengthPixelWidth(linesWidth());
-
-    pen.setWidthF(lw);
+    //---
 
     for (auto pf = delaunay_->facesBegin(); pf != delaunay_->facesEnd(); ++pf) {
       const CQChartsHull3D::Face *f = *pf;

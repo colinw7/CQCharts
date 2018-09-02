@@ -14,6 +14,7 @@ class CQChartsColor {
     NONE,
     PALETTE,
     PALETTE_VALUE,
+    INTERFACE,
     INTERFACE_VALUE,
     COLOR
   };

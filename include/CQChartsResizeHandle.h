@@ -33,6 +33,9 @@ class CQChartsResizeHandle : QObject {
   CQChartsResizeHandle(CQChartsView *view, Side side);
   CQChartsResizeHandle(CQChartsPlot *plot, Side side);
 
+  CQChartsView* view() const { return view_; }
+  CQChartsPlot* plot() const { return plot_; }
+
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &v) { bbox_ = v; }
 

@@ -199,18 +199,18 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   //---
 
+  // cell background
   const CQChartsColor &bgColor() const { return bgBox_.backgroundColor(); }
   void setBgColor(const CQChartsColor &c);
 
   QColor interpBgColor(int i, int n) const;
-
-  //---
 
   const CQChartsLength &cornerSize() const { return cornerSize_; }
   void setCornerSize(const CQChartsLength &s);
 
   //---
 
+  // empty cell background
   const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
   void setEmptyCellColor(const CQChartsColor &s);
 
@@ -256,6 +256,9 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   //---
 
   void drawBackground(QPainter *) override;
+
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *) override;
 
  private:

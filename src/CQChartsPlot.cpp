@@ -6,7 +6,6 @@
 #include <CQChartsTitle.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsBoxObj.h>
 #include <CQChartsPlotObjTree.h>
 #include <CQChartsNoDataObj.h>
 #include <CQChartsAnnotation.h>
@@ -26,6 +25,7 @@
 #include <CQPropertyViewModel.h>
 #include <CQUtil.h>
 
+#include <CMathUtil.h>
 #include <CHRTimer.h>
 
 #include <QItemSelectionModel>
@@ -36,6 +36,9 @@
 
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
+ CQChartsPlotPlotShapeData<CQChartsPlot>(this),
+ CQChartsPlotDataShapeData<CQChartsPlot>(this),
+ CQChartsPlotFitShapeData<CQChartsPlot >(this),
  view_(view), type_(type), model_(model), editHandles_(view)
 {
   displayRange_     = new CQChartsDisplayRange();
@@ -43,29 +46,20 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   displayRange_->setPixelAdjust(0.0);
 
-  borderObj_     = new CQChartsBoxObj(this);
-  dataBorderObj_ = new CQChartsBoxObj(this);
-
-  borderObj_    ->setObjectName("border");
-  dataBorderObj_->setObjectName("dataBorder");
-
-  borderObj_    ->setBorder(false);
-  dataBorderObj_->setBorder(false);
-
   plotObjTree_ = new CQChartsPlotObjTree(this);
 
   //--
 
-  setPlotBackground(true);
-  setDataBackground(true);
+  // plot, data, fit background
+  setPlotFilled(true); setPlotBorder(false);
+  setDataFilled(true); setDataBorder(false);
+  setFitFilled (true); setFitBorder (false);
 
   setDataClip(true);
 
-  CQChartsColor plotThemeBg(CQChartsColor::Type::INTERFACE_VALUE, 0.0);
-  CQChartsColor dataThemeBg(CQChartsColor::Type::INTERFACE_VALUE, 0.1);
-
-  borderObj_    ->setBackgroundColor(plotThemeBg);
-  dataBorderObj_->setBackgroundColor(dataThemeBg);
+  setPlotFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.00));
+  setDataFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.12));
+  setFitFillColor (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.08));
 
   //--
 
@@ -81,19 +75,24 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   //---
 
   // all layers active except BG_PLOT and FG_PLOT
-  setLayerActive(CQChartsLayer::Type::BACKGROUND , true);
-  setLayerActive(CQChartsLayer::Type::BG_AXES    , true);
-  setLayerActive(CQChartsLayer::Type::BG_KEY     , true);
-  setLayerActive(CQChartsLayer::Type::MID_PLOT   , true);
-  setLayerActive(CQChartsLayer::Type::FG_AXES    , true);
-  setLayerActive(CQChartsLayer::Type::FG_KEY     , true);
-  setLayerActive(CQChartsLayer::Type::TITLE      , true);
-  setLayerActive(CQChartsLayer::Type::ANNOTATION , true);
-  setLayerActive(CQChartsLayer::Type::FOREGROUND , true);
-  setLayerActive(CQChartsLayer::Type::EDIT_HANDLE, true);
-  setLayerActive(CQChartsLayer::Type::BOXES      , true);
-  setLayerActive(CQChartsLayer::Type::SELECTION  , true);
-  setLayerActive(CQChartsLayer::Type::MOUSE_OVER , true);
+  initLayer(CQChartsLayer::Type::BACKGROUND , CQChartsBuffer::Type::BACKGROUND, true );
+  initLayer(CQChartsLayer::Type::BG_AXES    , CQChartsBuffer::Type::BACKGROUND, true );
+  initLayer(CQChartsLayer::Type::BG_KEY     , CQChartsBuffer::Type::BACKGROUND, true );
+
+  initLayer(CQChartsLayer::Type::BG_PLOT    , CQChartsBuffer::Type::MIDDLE    , false);
+  initLayer(CQChartsLayer::Type::MID_PLOT   , CQChartsBuffer::Type::MIDDLE    , true );
+  initLayer(CQChartsLayer::Type::FG_PLOT    , CQChartsBuffer::Type::MIDDLE    , false);
+
+  initLayer(CQChartsLayer::Type::FG_AXES    , CQChartsBuffer::Type::FOREGROUND, true );
+  initLayer(CQChartsLayer::Type::FG_KEY     , CQChartsBuffer::Type::FOREGROUND, true );
+  initLayer(CQChartsLayer::Type::TITLE      , CQChartsBuffer::Type::FOREGROUND, true );
+  initLayer(CQChartsLayer::Type::ANNOTATION , CQChartsBuffer::Type::FOREGROUND, true );
+  initLayer(CQChartsLayer::Type::FOREGROUND , CQChartsBuffer::Type::FOREGROUND, true );
+
+  initLayer(CQChartsLayer::Type::EDIT_HANDLE, CQChartsBuffer::Type::OVERLAY   , true );
+  initLayer(CQChartsLayer::Type::BOXES      , CQChartsBuffer::Type::OVERLAY   , true );
+  initLayer(CQChartsLayer::Type::SELECTION  , CQChartsBuffer::Type::OVERLAY   , true );
+  initLayer(CQChartsLayer::Type::MOUSE_OVER , CQChartsBuffer::Type::OVERLAY   , true );
 
   //---
 
@@ -123,9 +122,6 @@ CQChartsPlot::
 
   delete displayRange_;
   delete displayTransform_;
-
-  delete borderObj_;
-  delete dataBorderObj_;
 
   delete titleObj_;
   delete keyObj_;
@@ -361,14 +357,10 @@ selectionSlot()
 
   view()->updateSelText();
 
-  invalidateLayer(CQChartsLayer::Type::SELECTION );
-  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+  invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
-  if (selectInvalidateObjs()) {
-    invalidateLayer(CQChartsLayer::Type::BG_PLOT );
-    invalidateLayer(CQChartsLayer::Type::MID_PLOT);
-    invalidateLayer(CQChartsLayer::Type::FG_PLOT );
-  }
+  if (selectInvalidateObjs())
+    invalidateLayer(CQChartsBuffer::Type::MIDDLE);
 }
 
 //---
@@ -615,241 +607,29 @@ setTitleStr(const QString &s)
 
 //---
 
-bool
-CQChartsPlot::
-isPlotBackground() const
-{
-  return borderObj_->isBackground();
-}
-
-void
-CQChartsPlot::
-setPlotBackground(bool b)
-{
-  if (b != borderObj_->isBackground()) {
-    borderObj_->setBackground(b);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-QColor
-CQChartsPlot::
-interpBackgroundColor(int i, int n) const
-{
-  return borderObj_->interpBackgroundColor(i, n);
-}
-
-const CQChartsColor &
-CQChartsPlot::
-plotBackgroundColor() const
-{
-  return borderObj_->backgroundColor();
-}
-
-void
-CQChartsPlot::
-setPlotBackgroundColor(const CQChartsColor &c)
-{
-  borderObj_->setBackgroundColor(c);
-}
-
-bool
-CQChartsPlot::
-isPlotBorder() const
-{
-  return borderObj_->isBorder();
-}
-
-void
-CQChartsPlot::
-setPlotBorder(bool b)
-{
-  if (b != borderObj_->isBorder()) {
-    borderObj_->setBorder(b);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-QColor
-CQChartsPlot::
-interpPlotBorderColor(int i, int n) const
-{
-  return borderObj_->interpBorderColor(i, n);
-}
-
-const CQChartsColor &
-CQChartsPlot::
-plotBorderColor() const
-{
-  return borderObj_->borderColor();
-}
-
-void
-CQChartsPlot::
-setPlotBorderColor(const CQChartsColor &c)
-{
-  borderObj_->setBorderColor(c);
-}
-
-const CQChartsLength &
-CQChartsPlot::
-plotBorderWidth() const
-{
-  return borderObj_->borderWidth();
-}
-
-void
-CQChartsPlot::
-setPlotBorderWidth(const CQChartsLength &l)
-{
-  if (l != borderObj_->borderWidth()) {
-    borderObj_->setBorderWidth(l);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-const QString &
-CQChartsPlot::
-plotBorderSides() const
-{
-  return borderObj_->borderSides();
-}
-
 void
 CQChartsPlot::
 setPlotBorderSides(const QString &s)
 {
-  if (s !=  borderObj_->borderSides()) {
-    borderObj_->setBorderSides(s);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
+  CQChartsUtil::testAndSet(plotBorderSides_, s, [&]() {
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
 }
 
 void
 CQChartsPlot::
 setPlotClip(bool b)
 {
-  CQChartsUtil::testAndSet(clip_, b, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(plotClip_, b, [&]() { invalidateLayers(); } );
 }
 
 //---
-
-bool
-CQChartsPlot::
-isDataBackground() const
-{
-  return dataBorderObj_->isBackground();
-}
-
-void
-CQChartsPlot::
-setDataBackground(bool b)
-{
-  if (b != dataBorderObj_->isBackground()) {
-    dataBorderObj_->setBackground(b);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-QColor
-CQChartsPlot::
-interpDataBackgroundColor(int i, int n) const
-{
-  return dataBorderObj_->interpBackgroundColor(i, n);
-}
-
-const CQChartsColor &
-CQChartsPlot::
-dataBackgroundColor() const
-{
-  return dataBorderObj_->backgroundColor();
-}
-
-void
-CQChartsPlot::
-setDataBackgroundColor(const CQChartsColor &c)
-{
-  dataBorderObj_->setBackgroundColor(c);
-}
-
-bool
-CQChartsPlot::
-isDataBorder() const
-{
-  return dataBorderObj_->isBorder();
-}
-
-void
-CQChartsPlot::
-setDataBorder(bool b)
-{
-  if (b != dataBorderObj_->isBorder()) {
-    dataBorderObj_->setBorder(b);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-QColor
-CQChartsPlot::
-interpDataBorderColor(int i, int n) const
-{
-  return dataBorderObj_->interpBorderColor(i, n);
-}
-
-const CQChartsColor &
-CQChartsPlot::
-dataBorderColor() const
-{
-  return dataBorderObj_->borderColor();
-}
-
-void
-CQChartsPlot::
-setDataBorderColor(const CQChartsColor &c)
-{
-  dataBorderObj_->setBorderColor(c);
-}
-
-const CQChartsLength &
-CQChartsPlot::
-dataBorderWidth() const
-{
-  return dataBorderObj_->borderWidth();
-}
-
-void
-CQChartsPlot::
-setDataBorderWidth(const CQChartsLength &l)
-{
-  if (l != dataBorderObj_->borderWidth()) {
-    dataBorderObj_->setBorderWidth(l);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
-}
-
-const QString &
-CQChartsPlot::
-dataBorderSides() const
-{
-  return dataBorderObj_->borderSides();
-}
 
 void
 CQChartsPlot::
 setDataBorderSides(const QString &s)
 {
-  if (s != dataBorderObj_->borderSides()) {
-    dataBorderObj_->setBorderSides(s);
-
-    invalidateLayer(CQChartsLayer::Type::BACKGROUND);
-  }
+  CQChartsUtil::testAndSet(dataBorderSides_, s, [&]() {
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
 }
 
 void
@@ -857,6 +637,16 @@ CQChartsPlot::
 setDataClip(bool b)
 {
   CQChartsUtil::testAndSet(dataClip_, b, [&]() { invalidateLayers(); } );
+}
+
+//---
+
+void
+CQChartsPlot::
+setFitBorderSides(const QString &s)
+{
+  CQChartsUtil::testAndSet(fitBorderSides_, s, [&]() {
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
 }
 
 //---
@@ -893,7 +683,8 @@ void
 CQChartsPlot::
 setShowBoxes(bool b)
 {
-  CQChartsUtil::testAndSet(showBoxes_, b, [&]() { invalidateLayer(CQChartsLayer::Type::BOXES); } );
+  CQChartsUtil::testAndSet(showBoxes_, b, [&]() {
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY); } );
 }
 
 void
@@ -1213,29 +1004,48 @@ addProperties()
     addProperty("debug", this, "followMouse");
   }
 
-  QString plotStyleStr       = "plotStyle";
+  //------
+
+  QString plotStyleStr       = "plotBackground";
   QString plotStyleFillStr   = plotStyleStr + "/fill";
   QString plotStyleStrokeStr = plotStyleStr + "/stroke";
 
-  addProperty(plotStyleFillStr  , this, "plotBackground"     , "visible");
-  addProperty(plotStyleFillStr  , this, "plotBackgroundColor", "color");
-  addProperty(plotStyleStrokeStr, this, "plotBorder"         , "visible");
-  addProperty(plotStyleStrokeStr, this, "plotBorderColor"    , "color");
-  addProperty(plotStyleStrokeStr, this, "plotBorderWidth"    , "width");
-  addProperty(plotStyleStrokeStr, this, "plotBorderSides"    , "sides");
-  addProperty(plotStyleStr      , this, "plotClip"           , "clip");
+  addProperty(plotStyleStr      , this, "plotClip"       , "clip");
+  addProperty(plotStyleFillStr  , this, "plotFilled"     , "visible");
+  addProperty(plotStyleStrokeStr, this, "plotBorder"     , "visible");
+  addProperty(plotStyleStrokeStr, this, "plotBorderSides", "sides");
 
-  QString dataStyleStr       = "dataStyle";
+  addFillProperties(plotStyleFillStr  , "plotFill"  );
+  addLineProperties(plotStyleStrokeStr, "plotBorder");
+
+  //---
+
+  QString dataStyleStr       = "dataBackground";
   QString dataStyleFillStr   = dataStyleStr + "/fill";
   QString dataStyleStrokeStr = dataStyleStr + "/stroke";
 
-  addProperty(dataStyleFillStr  , this, "dataBackground"     , "visible");
-  addProperty(dataStyleFillStr  , this, "dataBackgroundColor", "color");
-  addProperty(dataStyleStrokeStr, this, "dataBorder"         , "visible");
-  addProperty(dataStyleStrokeStr, this, "dataBorderColor"    , "color");
-  addProperty(dataStyleStrokeStr, this, "dataBorderWidth"    , "width");
-  addProperty(dataStyleStrokeStr, this, "dataBorderSides"    , "sides");
-  addProperty(dataStyleStr      , this, "dataClip"           , "clip");
+  addProperty(dataStyleStr      , this, "dataClip"       , "clip");
+  addProperty(dataStyleFillStr  , this, "dataFilled"     , "visible");
+  addProperty(dataStyleStrokeStr, this, "dataBorder"     , "visible");
+  addProperty(dataStyleStrokeStr, this, "dataBorderSides", "sides");
+
+  addFillProperties(dataStyleFillStr  , "dataFill"  );
+  addLineProperties(dataStyleStrokeStr, "dataBorder");
+
+  //---
+
+  QString fitStyleStr       = "fitBackground";
+  QString fitStyleFillStr   = fitStyleStr + "/fill";
+  QString fitStyleStrokeStr = fitStyleStr + "/stroke";
+
+  addProperty(fitStyleFillStr  , this, "fitFilled"     , "visible");
+  addProperty(fitStyleStrokeStr, this, "fitBorder"     , "visible");
+  addProperty(fitStyleStrokeStr, this, "fitBorderSides", "sides");
+
+  addFillProperties(fitStyleFillStr  , "fitFill"  );
+  addLineProperties(fitStyleStrokeStr, "fitBorder");
+
+  //------
 
   addProperty("margin", this, "marginLeft"  , "left"  );
   addProperty("margin", this, "marginTop"   , "top"   );
@@ -1322,6 +1132,15 @@ addTextProperties(const QString &path, const QString &prefix)
   addProperty(path, this, prefix + "Contrast", "contrast");
 }
 
+void
+CQChartsPlot::
+addColorMapProperties()
+{
+  addProperty("color/map", this, "colorMapped", "enable");
+  addProperty("color/map", this, "colorMapMin", "min"   );
+  addProperty("color/map", this, "colorMapMax", "max"   );
+}
+
 bool
 CQChartsPlot::
 setProperties(const QString &properties)
@@ -1393,31 +1212,31 @@ propertyItemSelected(QObject *obj, const QString &)
   else if (obj == titleObj_) {
     titleObj_->setSelected(true);
 
-    invalidateLayer(CQChartsLayer::Type::TITLE);
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
     changed = true;
   }
   else if (obj == keyObj_) {
     keyObj_->setSelected(true);
 
-    invalidateLayer(CQChartsLayer::Type::BG_KEY);
-    invalidateLayer(CQChartsLayer::Type::FG_KEY);
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
     changed = true;
   }
   else if (obj == xAxis_) {
     xAxis_->setSelected(true);
 
-    invalidateLayer(CQChartsLayer::Type::BG_AXES);
-    invalidateLayer(CQChartsLayer::Type::FG_AXES);
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
     changed = true;
   }
   else if (obj == yAxis_) {
     yAxis_->setSelected(true);
 
-    invalidateLayer(CQChartsLayer::Type::BG_AXES);
-    invalidateLayer(CQChartsLayer::Type::FG_AXES);
+    invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
     changed = true;
   }
@@ -1426,7 +1245,7 @@ propertyItemSelected(QObject *obj, const QString &)
       if (obj == annotation) {
         annotation->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::ANNOTATION);
+        invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 
         changed = true;
       }
@@ -1434,7 +1253,7 @@ propertyItemSelected(QObject *obj, const QString &)
   }
 
   if (changed)
-    invalidateLayer(CQChartsLayer::Type::SELECTION);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 }
 
 //------
@@ -2076,8 +1895,8 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
         annotation->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::ANNOTATION);
-        invalidateLayer(CQChartsLayer::Type::SELECTION);
+        invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         emit annotationPressed  (annotation);
         emit annotationIdPressed(annotation->id());
@@ -2183,14 +2002,10 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
     //---
 
-    invalidateLayer(CQChartsLayer::Type::SELECTION );
-    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
-    if (selectInvalidateObjs()) {
-      invalidateLayer(CQChartsLayer::Type::BG_PLOT );
-      invalidateLayer(CQChartsLayer::Type::MID_PLOT);
-      invalidateLayer(CQChartsLayer::Type::FG_PLOT );
-    }
+    if (selectInvalidateObjs())
+      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
   }
 
   //---
@@ -2228,10 +2043,8 @@ selectMove(const CQChartsGeom::Point &w, bool first)
 
     objText = insideObjectText();
 
-    if (changed) {
-      invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
-      invalidateLayer(CQChartsLayer::Type::SELECTION );
-    }
+    if (changed)
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
   }
 
   //---
@@ -2302,7 +2115,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       editHandles_.setDragSide(mouseData_.dragSide);
       editHandles_.setDragPos (w);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
@@ -2320,7 +2133,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       key()->editHandles().setDragSide(mouseData_.dragSide);
       key()->editHandles().setDragPos (w);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
@@ -2338,7 +2151,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       xAxis()->editHandles().setDragSide(mouseData_.dragSide);
       xAxis()->editHandles().setDragPos (w);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
@@ -2356,7 +2169,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       yAxis()->editHandles().setDragSide(mouseData_.dragSide);
       yAxis()->editHandles().setDragPos (w);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
@@ -2374,7 +2187,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       title()->editHandles().setDragSide(mouseData_.dragSide);
       title()->editHandles().setDragPos (w);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
@@ -2391,7 +2204,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
         annotation->editHandles().setDragSide(mouseData_.dragSide);
         annotation->editHandles().setDragPos (w);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2408,7 +2221,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         key()->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2416,7 +2229,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       if (key()->editPress(w)) {
         mouseData_.dragObj = DragObj::KEY;
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2435,7 +2248,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         xAxis()->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2443,7 +2256,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       if (xAxis()->editPress(w)) {
         mouseData_.dragObj = DragObj::XAXIS;
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2462,7 +2275,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         yAxis()->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2470,7 +2283,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       if (yAxis()->editPress(w)) {
         mouseData_.dragObj = DragObj::YAXIS;
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2489,7 +2302,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         title()->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2497,7 +2310,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       if (title()->editPress(w)) {
         mouseData_.dragObj = DragObj::TITLE;
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2515,7 +2328,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
         annotation->setSelected(true);
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2523,7 +2336,7 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
       if (annotation->editPress(w)) {
         mouseData_.dragObj = DragObj::ANNOTATION;
 
-        invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+        invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
         return true;
       }
@@ -2548,14 +2361,14 @@ editPress(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w)
 
       view()->setCurrentPlot(this);
 
-      invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+      invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
       return true;
     }
 
     mouseData_.dragObj = DragObj::PLOT;
 
-    invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
     return true;
   }
@@ -2620,7 +2433,7 @@ deselectAll()
   }
 
   if (changed)
-    invalidateLayer(CQChartsLayer::Type::SELECTION);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 }
 
 bool
@@ -2704,9 +2517,7 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     return false;
   }
 
-  invalidateLayer(CQChartsLayer::Type::SELECTION);
-  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
-  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+  invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
   return true;
 }
@@ -2763,9 +2574,7 @@ editMotion(const CQChartsGeom::Point &, const CQChartsGeom::Point &w)
       return true;
   }
 
-  invalidateLayer(CQChartsLayer::Type::SELECTION);
-  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
-  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+  invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
   return true;
 }
@@ -2823,9 +2632,7 @@ editMoveBy(const QPointF &d)
     }
   }
 
-  invalidateLayer(CQChartsLayer::Type::SELECTION);
-  invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
-  invalidateLayer(CQChartsLayer::Type::EDIT_HANDLE);
+  invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 }
 
 //------
@@ -2899,14 +2706,10 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
 
     //---
 
-    invalidateLayer(CQChartsLayer::Type::SELECTION );
-    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
 
-    if (selectInvalidateObjs()) {
-      invalidateLayer(CQChartsLayer::Type::BG_PLOT );
-      invalidateLayer(CQChartsLayer::Type::MID_PLOT);
-      invalidateLayer(CQChartsLayer::Type::FG_PLOT );
-    }
+    if (selectInvalidateObjs())
+      invalidateLayer(CQChartsBuffer::Type::MIDDLE);
   }
 
   //---
@@ -3162,8 +2965,7 @@ cycleNextPrev(bool prev)
 
     view_->setStatusText(objText);
 
-    invalidateLayer(CQChartsLayer::Type::MOUSE_OVER);
-    invalidateLayer(CQChartsLayer::Type::SELECTION );
+    invalidateLayer(CQChartsBuffer::Type::OVERLAY);
   }
 }
 
@@ -3570,10 +3372,12 @@ printLayer(CQChartsLayer::Type type, const QString &filename)
 {
   CQChartsLayer *layer = getLayer(type);
 
-  if (! layer->image())
+  const CQChartsBuffer *buffer = layer->buffer();
+
+  if (! buffer->image())
     return false;
 
-  layer->image()->save(filename);
+  buffer->image()->save(filename);
 
   return true;
 }
@@ -3601,8 +3405,10 @@ drawLayer(QPainter *painter, CQChartsLayer::Type type)
 {
   CQChartsLayer *layer = getLayer(type);
 
-  if (layer->image())
-    painter->drawImage(0, 0, *layer->image());
+  const CQChartsBuffer *buffer = layer->buffer();
+
+  if (buffer->image())
+    painter->drawImage(0, 0, *buffer->image());
 }
 
 void
@@ -3611,63 +3417,19 @@ drawParts(QPainter *painter)
 {
   CScopeTimer timer("drawParts");
 
-  // draw background (plot/data fill)
-  drawBackgroundLayer(painter);
+  drawBackgroundParts(painter);
 
   //---
 
-  // draw axes/key below plot
-  drawBgAxes(painter);
-  drawBgKey (painter);
+  drawMiddleParts(painter);
 
   //---
 
-  // draw objects (background, mid, foreground)
-  drawGroupedObjs(painter, CQChartsLayer::Type::BG_PLOT );
-  drawGroupedObjs(painter, CQChartsLayer::Type::MID_PLOT);
-  drawGroupedObjs(painter, CQChartsLayer::Type::FG_PLOT );
-
-  // draw annotations
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::ANNOTATION);
+  drawForegroundParts(painter);
 
   //---
 
-  // draw selection
-  drawGroupedObjs(painter, CQChartsLayer::Type::SELECTION);
-
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::SELECTION);
-
-  //---
-
-  // draw axes/key above plot
-  drawFgAxes(painter);
-  drawFgKey (painter);
-
-  //---
-
-  // draw title
-  drawTitle(painter);
-
-  //---
-
-  // draw foreground
-  drawForeground(painter);
-
-  //---
-
-  // draw debug boxes
-  drawGroupedBoxes(painter);
-
-  //---
-
-  drawGroupedEditHandles(painter);
-
-  //---
-
-  // draw mouse over
-  drawGroupedObjs(painter, CQChartsLayer::Type::MOUSE_OVER);
-
-  drawGroupedAnnotations(painter, CQChartsLayer::Type::MOUSE_OVER);
+  drawOverlayParts(painter);
 
   //---
 
@@ -3681,84 +3443,321 @@ drawParts(QPainter *painter)
 
 void
 CQChartsPlot::
-drawBackgroundLayer(QPainter *painter)
+drawBackgroundParts(QPainter *painter)
 {
-  //CScopeTimer timer("drawBackgroundLayer");
+  bool bgLayer = hasBackgroundLayer();
+  bool bgAxes  = hasBgAxes();
+  bool bgKey   = hasBgKey();
 
-  // only first plot has background for overlay
-  if (isOverlay() && ! isFirstPlot())
+  if (! bgLayer && ! bgAxes && ! bgKey)
     return;
 
   //---
 
-  bool hasPlotBackground = (isPlotBackground() || isPlotBorder());
-  bool hasDataBackground = (isDataBackground() || isDataBorder());
+  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::BACKGROUND);
+  if (! buffer->isActive()) return;
 
-  if (! hasPlotBackground && ! hasDataBackground)
-    return;
+  QPainter *painter1 = beginPaint(buffer, painter);
 
   //---
-
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BACKGROUND);
-  if (! layer->isActive()) return;
-
-  QPainter *painter1 = beginPaint(layer, painter);
 
   if (painter1) {
-    if (hasPlotBackground) {
-      QRectF plotRect = CQChartsUtil::toQRect(calcPlotPixelRect());
-
-      if (isPlotBackground())
-        painter1->fillRect(plotRect, QBrush(interpBackgroundColor(0, 1)));
-
-      if (isPlotBorder()) {
-        QColor borderColor = interpPlotBorderColor(0, 1);
-
-        double bw = lengthPixelWidth(plotBorderWidth());
-
-        drawBackgroundSides(painter1, plotRect, plotBorderSides(), bw, borderColor);
-      }
-    }
-
-    if (hasDataBackground) {
-      QRectF dataRect = CQChartsUtil::toQRect(calcDataPixelRect());
-
-      if (isDataBackground())
-        painter1->fillRect(dataRect, QBrush(interpDataBackgroundColor(0, 1)));
-
-      if (isDataBorder()) {
-        QColor borderColor = interpDataBorderColor(0, 1);
-
-        double bw = lengthPixelWidth(dataBorderWidth());
-
-        drawBackgroundSides(painter1, dataRect, dataBorderSides(), bw, borderColor);
-      }
-    }
+    // draw background (plot/data fill)
+    if (bgLayer)
+      drawBackgroundLayer(painter1);
 
     //---
 
-    drawBackground(painter1);
+    // draw axes/key below plot
+    if (bgAxes)
+      drawBgAxes(painter1);
+
+    if (bgKey)
+      drawBgKey(painter1);
   }
 
-  endPaint(layer);
+  //---
+
+  endPaint(buffer);
 }
 
 void
 CQChartsPlot::
-drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides,
-                    double width, const QColor &color)
+drawMiddleParts(QPainter *painter)
 {
-  QPen pen(color);
+  bool bg  = hasGroupedObjs(CQChartsLayer::Type::BG_PLOT );
+  bool mid = hasGroupedObjs(CQChartsLayer::Type::MID_PLOT);
+  bool fg  = hasGroupedObjs(CQChartsLayer::Type::FG_PLOT );
 
-  pen.setWidthF(width);
+  if (! bg && ! mid && ! fg)
+    return;
 
-  painter->setPen(pen);
-  painter->setBrush(Qt::NoBrush);
+  //---
 
+  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::MIDDLE);
+  if (! buffer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(buffer, painter);
+
+  //---
+
+  if (painter1) {
+    // draw objects (background, mid, foreground)
+    drawGroupedObjs(painter1, CQChartsLayer::Type::BG_PLOT );
+    drawGroupedObjs(painter1, CQChartsLayer::Type::MID_PLOT);
+    drawGroupedObjs(painter1, CQChartsLayer::Type::FG_PLOT );
+  }
+
+  //---
+
+  endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawForegroundParts(QPainter *painter)
+{
+  bool fgAxes      = hasFgAxes();
+  bool fgKey       = hasFgKey();
+  bool title       = hasTitle();
+  bool annotations = hasGroupedAnnotations(CQChartsLayer::Type::ANNOTATION);
+  bool foreground  = hasForeground();
+
+  if (! fgAxes && ! fgKey && ! title && ! annotations && ! foreground)
+    return;
+
+  //---
+
+  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::FOREGROUND);
+  if (! buffer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(buffer, painter);
+
+  //---
+
+  if (painter1) {
+    // draw axes/key above plot
+    if (fgAxes)
+      drawFgAxes(painter1);
+
+    if (fgKey)
+      drawFgKey(painter1);
+
+    //---
+
+    // draw title
+    if (title)
+      drawTitle(painter1);
+
+    //---
+
+    // draw annotations
+    if (annotations)
+      drawGroupedAnnotations(painter1, CQChartsLayer::Type::ANNOTATION);
+
+    //---
+
+    // draw foreground
+    if (foreground)
+      drawForeground(painter1);
+  }
+
+  //---
+
+  endPaint(buffer);
+}
+
+void
+CQChartsPlot::
+drawOverlayParts(QPainter *painter)
+{
+  bool sel_objs         = hasGroupedObjs(CQChartsLayer::Type::SELECTION);
+  bool sel_annotations  = hasGroupedAnnotations(CQChartsLayer::Type::SELECTION);
+  bool boxes            = hasGroupedBoxes();
+  bool edit_handles     = hasGroupedEditHandles();
+  bool over_objs        = hasGroupedObjs(CQChartsLayer::Type::MOUSE_OVER);
+  bool over_annotations = hasGroupedAnnotations(CQChartsLayer::Type::MOUSE_OVER);
+
+  if (! sel_objs && ! sel_annotations && ! boxes &&
+      ! edit_handles && ! over_objs && ! over_annotations)
+    return;
+
+  //---
+
+  CQChartsBuffer *buffer = getBuffer(CQChartsBuffer::Type::OVERLAY);
+  if (! buffer->isActive()) return;
+
+  QPainter *painter1 = beginPaint(buffer, painter);
+
+  //---
+
+  if (painter1) {
+    // draw selection
+    if (sel_objs)
+      drawGroupedObjs(painter1, CQChartsLayer::Type::SELECTION);
+
+    if (sel_annotations)
+      drawGroupedAnnotations(painter1, CQChartsLayer::Type::SELECTION);
+
+    //---
+
+    // draw debug boxes
+    if (boxes)
+      drawGroupedBoxes(painter1);
+
+    //---
+
+    if (edit_handles)
+      drawGroupedEditHandles(painter1);
+
+    //---
+
+    // draw mouse over
+    if (over_objs)
+      drawGroupedObjs(painter1, CQChartsLayer::Type::MOUSE_OVER);
+
+    if (over_annotations)
+      drawGroupedAnnotations(painter1, CQChartsLayer::Type::MOUSE_OVER);
+  }
+
+  //---
+
+  endPaint(buffer);
+}
+
+bool
+CQChartsPlot::
+hasBackgroundLayer() const
+{
+  // only first plot has background for overlay
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  //---
+
+  bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
+  bool hasDataBackground = (isDataFilled() || isDataBorder());
+  bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+
+  if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground)
+    return false;
+
+  if (! isLayerActive(CQChartsLayer::Type::BACKGROUND))
+    return false;
+
+  return true;
+}
+
+void
+CQChartsPlot::
+drawBackgroundLayer(QPainter *painter)
+{
+  //CScopeTimer timer("drawBackgroundLayer");
+
+  bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
+  bool hasDataBackground = (isDataFilled() || isDataBorder());
+  bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+
+  //---
+
+  if (hasPlotBackground) {
+    QRectF plotRect = CQChartsUtil::toQRect(calcPlotPixelRect());
+
+    if (isPlotFilled()) {
+      QBrush brush;
+
+      setBrush(brush, true, interpPlotFillColor(0, 1), plotFillAlpha(), plotFillPattern());
+
+      painter->fillRect(plotRect, brush);
+    }
+
+    if (isPlotBorder()) {
+      QPen pen;
+
+      setPen(pen, true, interpPlotBorderColor(0, 1), plotBorderAlpha(),
+             plotBorderWidth(), plotBorderDash());
+
+      painter->setPen(pen);
+
+      drawBackgroundSides(painter, plotRect, plotBorderSides());
+    }
+  }
+
+  if (hasFitBackground) {
+    QRectF fitRect = CQChartsUtil::toQRect(calcFitPixelRect());
+
+    if (isFitFilled()) {
+      QBrush brush;
+
+      setBrush(brush, true, interpFitFillColor(0, 1), fitFillAlpha(), fitFillPattern());
+
+      painter->fillRect(fitRect, brush);
+    }
+
+    if (isFitBorder()) {
+      QPen pen;
+
+      setPen(pen, true, interpFitBorderColor(0, 1), fitBorderAlpha(),
+             fitBorderWidth(), fitBorderDash());
+
+      drawBackgroundSides(painter, fitRect, fitBorderSides());
+    }
+  }
+
+  if (hasDataBackground) {
+    QRectF dataRect = CQChartsUtil::toQRect(calcDataPixelRect());
+
+    if (isDataFilled()) {
+      QBrush brush;
+
+      setBrush(brush, true, interpDataFillColor(0, 1), dataFillAlpha(), dataFillPattern());
+
+      painter->fillRect(dataRect, brush);
+    }
+
+    if (isDataBorder()) {
+      QPen pen;
+
+      setPen(pen, true, interpDataBorderColor(0, 1), dataBorderAlpha(),
+             dataBorderWidth(), dataBorderDash());
+
+      drawBackgroundSides(painter, dataRect, dataBorderSides());
+    }
+  }
+
+  //---
+
+  drawBackground(painter);
+}
+
+void
+CQChartsPlot::
+drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides)
+{
   if (sides.indexOf('t') >= 0) painter->drawLine(rect.topLeft   (), rect.topRight   ());
   if (sides.indexOf('l') >= 0) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
   if (sides.indexOf('b') >= 0) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
   if (sides.indexOf('r') >= 0) painter->drawLine(rect.topRight  (), rect.bottomRight());
+}
+
+bool
+CQChartsPlot::
+hasBgAxes() const
+{
+  // just axis grid on background
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
+
+  bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
+  bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
+
+  if (! showXGrid && ! showYGrid)
+    return false;
+
+  if (! isLayerActive(CQChartsLayer::Type::BG_AXES))
+    return false;
+
+  return true;
 }
 
 void
@@ -3773,45 +3772,25 @@ drawBgAxes(QPainter *painter)
   bool showXGrid = (showXAxis && ! xAxis()->isGridAbove() && xAxis()->isDrawGrid());
   bool showYGrid = (showYAxis && ! yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
-  if (! showXGrid && ! showYGrid)
-    return;
-
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_AXES);
-  if (! layer->isActive()) return;
+  if (showXGrid)
+    xAxis()->drawGrid(this, painter);
 
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    if (showXGrid)
-      xAxis()->drawGrid(this, painter1);
-
-    if (showYGrid)
-      yAxis()->drawGrid(this, painter1);
-  }
-
-  //---
-
-  endPaint(layer);
+  if (showYGrid)
+    yAxis()->drawGrid(this, painter);
 }
 
-void
+bool
 CQChartsPlot::
-drawBgKey(QPainter *painter)
+hasBgKey() const
 {
-  //CScopeTimer timer("drawBgKey");
-
-  //---
-
   CQChartsPlotKey *key1;
 
   if (isOverlay()) {
     // only draw key under first plot
     if (! isFirstPlot())
-      return;
+      return false;
 
     // use first plot key (for overlay)
     key1 = getFirstPlotKey();
@@ -3825,23 +3804,76 @@ drawBgKey(QPainter *painter)
   bool showKey = (key1 && ! key1->isAbove());
 
   if (! showKey)
-    return;
+    return false;
 
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BG_KEY);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(CQChartsLayer::Type::BG_KEY))
+    return false;
 
-  QPainter *painter1 = beginPaint(layer, painter);
+  return true;
+}
+
+void
+CQChartsPlot::
+drawBgKey(QPainter *painter)
+{
+  //CScopeTimer timer("drawBgKey");
+
+  CQChartsPlotKey *key1;
+
+  if (isOverlay()) {
+    // only draw key under first plot
+    assert(! isFirstPlot());
+
+    // use first plot key (for overlay)
+    key1 = getFirstPlotKey();
+  }
+  else {
+    key1 = this->key();
+  }
 
   //---
 
-  if (painter1)
-    key1->draw(painter1);
+  key1->draw(painter);
+}
+
+bool
+CQChartsPlot::
+hasGroupedObjs(const CQChartsLayer::Type &layerType) const
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return false;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    bool anyObjs = false;
+
+    for (auto &plot : plots) {
+      if (plot->hasObjs(layerType)) {
+        anyObjs = true;
+        break;
+      }
+    }
+
+    if (! anyObjs)
+      return false;
+  }
+  else {
+    if (! hasObjs(layerType))
+      return false;
+  }
 
   //---
 
-  endPaint(layer);
+  if (! isLayerActive(layerType))
+    return false;
+
+  return true;
 }
 
 void
@@ -3865,20 +3897,13 @@ drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
   }
 }
 
-void
+bool
 CQChartsPlot::
-drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
+hasObjs(const CQChartsLayer::Type &layerType) const
 {
-  CScopeTimer timer("drawObjs");
-
-  drawLayer_ = layerType;
-
   CQChartsGeom::BBox bbox = displayRangeBBox();
 
-  //---
-
-  // skip if nothing drawn
-  bool doDraw = false;
+  bool hasObjs = false;
 
   for (const auto &plotObj : plotObjects()) {
     if      (layerType == CQChartsLayer::Type::SELECTION) {
@@ -3893,63 +3918,86 @@ drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
     if (! bbox.overlaps(plotObj->rect()))
       continue;
 
-    doDraw = true;
+    hasObjs = true;
 
     break;
   }
 
-  if (! doDraw)
-    return;
+  if (! hasObjs)
+    return false;
 
   //---
 
-  CQChartsLayer *layer = getLayer(layerType);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(layerType))
+    return false;
 
-  QPainter *painter1 = beginPaint(layer, painter);
+  return true;
+}
+
+void
+CQChartsPlot::
+drawObjs(QPainter *painter, const CQChartsLayer::Type &layerType)
+{
+  CScopeTimer timer("drawObjs");
+
+  drawLayer_ = layerType;
+
+  CQChartsGeom::BBox bbox = displayRangeBBox();
 
   //---
 
-  if (painter1) {
-    painter1->save();
+  painter->save();
 
-    setClipRect(painter1);
+  setClipRect(painter);
 
-    for (const auto &plotObj : plotObjects()) {
-      if      (layerType == CQChartsLayer::Type::SELECTION) {
-        if (! plotObj->isSelected())
-          continue;
-      }
-      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-        if (! plotObj->isInside())
-          continue;
-      }
-
-      if (! bbox.overlaps(plotObj->rect()))
+  for (const auto &plotObj : plotObjects()) {
+    if      (layerType == CQChartsLayer::Type::SELECTION) {
+      if (! plotObj->isSelected())
         continue;
-
-      if      (layerType == CQChartsLayer::Type::BG_PLOT)
-        plotObj->drawBg(painter1);
-      else if (layerType == CQChartsLayer::Type::FG_PLOT)
-        plotObj->drawFg(painter1);
-      else if (layerType == CQChartsLayer::Type::MID_PLOT)
-        plotObj->draw(painter1);
-      else if (layerType == CQChartsLayer::Type::SELECTION) {
-        plotObj->draw  (painter1);
-        plotObj->drawFg(painter1);
-      }
-      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-        plotObj->draw  (painter1);
-        plotObj->drawFg(painter1);
-      }
+    }
+    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+      if (! plotObj->isInside())
+        continue;
     }
 
-    painter1->restore();
+    if (! bbox.overlaps(plotObj->rect()))
+      continue;
+
+    if      (layerType == CQChartsLayer::Type::BG_PLOT)
+      plotObj->drawBg(painter);
+    else if (layerType == CQChartsLayer::Type::FG_PLOT)
+      plotObj->drawFg(painter);
+    else if (layerType == CQChartsLayer::Type::MID_PLOT)
+      plotObj->draw(painter);
+    else if (layerType == CQChartsLayer::Type::SELECTION) {
+      plotObj->draw  (painter);
+      plotObj->drawFg(painter);
+    }
+    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+      plotObj->draw  (painter);
+      plotObj->drawFg(painter);
+    }
   }
+
+  painter->restore();
+}
+
+bool
+CQChartsPlot::
+hasFgAxes() const
+{
+  bool showXAxis = (xAxis() && xAxis()->isVisible());
+  bool showYAxis = (yAxis() && yAxis()->isVisible());
+
+  if (! showXAxis && ! showYAxis)
+    return false;
 
   //---
 
-  endPaint(layer);
+  if (! isLayerActive(CQChartsLayer::Type::FG_AXES))
+    return false;
+
+  return true;
 }
 
 void
@@ -3961,54 +4009,36 @@ drawFgAxes(QPainter *painter)
   bool showXAxis = (xAxis() && xAxis()->isVisible());
   bool showYAxis = (yAxis() && yAxis()->isVisible());
 
-  if (! showXAxis && ! showYAxis)
-    return;
-
   bool showXGrid = (showXAxis && xAxis()->isGridAbove() && xAxis()->isDrawGrid());
   bool showYGrid = (showYAxis && yAxis()->isGridAbove() && yAxis()->isDrawGrid());
 
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_AXES);
-  if (! layer->isActive()) return;
+  if (showXGrid)
+    xAxis()->drawGrid(this, painter);
 
-  QPainter *painter1 = beginPaint(layer, painter);
-
-  //---
-
-  if (painter1) {
-    if (showXGrid)
-      xAxis()->drawGrid(this, painter1);
-
-    if (showYGrid)
-      yAxis()->drawGrid(this, painter1);
-
-    //---
-
-    if (showXAxis)
-      xAxis()->draw(this, painter1);
-
-    if (showYAxis)
-      yAxis()->draw(this, painter1);
-  }
+  if (showYGrid)
+    yAxis()->drawGrid(this, painter);
 
   //---
 
-  endPaint(layer);
+  if (showXAxis)
+    xAxis()->draw(this, painter);
+
+  if (showYAxis)
+    yAxis()->draw(this, painter);
 }
 
-void
+bool
 CQChartsPlot::
-drawFgKey(QPainter *painter)
+hasFgKey() const
 {
-  //CScopeTimer timer("drawFgKey");
-
   CQChartsPlotKey *key1;
 
   if (isOverlay()) {
     // only draw key above last plot
     if (lastPlot() != this)
-      return;
+      return false;
 
     // use first plot key (for overlay)
     key1 = getFirstPlotKey();
@@ -4022,23 +4052,57 @@ drawFgKey(QPainter *painter)
   bool showKey = (key1 && key1->isAbove());
 
   if (! showKey)
-    return;
+    return false;
 
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::FG_KEY);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(CQChartsLayer::Type::FG_KEY))
+    return false;
 
-  QPainter *painter1 = beginPaint(layer, painter);
+  return true;
+}
+
+void
+CQChartsPlot::
+drawFgKey(QPainter *painter)
+{
+  //CScopeTimer timer("drawFgKey");
+
+  CQChartsPlotKey *key1;
+
+  if (isOverlay()) {
+    // only draw key above last plot
+    assert(lastPlot() != this);
+
+    // use first plot key (for overlay)
+    key1 = getFirstPlotKey();
+  }
+  else {
+    key1 = this->key();
+  }
 
   //---
 
-  if (painter1)
-    key1->draw(painter1);
+  key1->draw(painter);
+}
+
+bool
+CQChartsPlot::
+hasTitle() const
+{
+  // only first plot has title for overlay
+  if (isOverlay() && ! isFirstPlot())
+    return false;
+
+  if (! title() || ! title()->isDrawn())
+    return false;
 
   //---
 
-  endPaint(layer);
+  if (! isLayerActive(CQChartsLayer::Type::TITLE))
+    return false;
+
+  return true;
 }
 
 void
@@ -4047,39 +4111,56 @@ drawTitle(QPainter *painter)
 {
   //CScopeTimer timer("drawTitle");
 
-  // only first plot has title for overlay
-  if (isOverlay() && ! isFirstPlot())
-    return;
+  title()->draw(painter);
+}
 
-  if (! title() || ! title()->isDrawn())
-    return;
+bool
+CQChartsPlot::
+hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return false;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    bool hasObjs = false;
+
+    for (auto &plot : plots) {
+      if (plot->hasAnnotations(layerType)) {
+        hasObjs = true;
+        break;
+      }
+    }
+
+    if (! hasObjs)
+      return false;
+  }
+  else {
+    if (! hasAnnotations(layerType))
+      return false;
+  }
 
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::TITLE);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(layerType))
+    return false;
 
-  QRectF rect;
-
-  if (title()->bbox().isSet())
-    rect = CQChartsUtil::toQRect(windowToPixel(title()->bbox()));
-
-  QPainter *painter1 = beginPaint(layer, painter, rect);
-
-  //---
-
-  if (painter1)
-    title()->draw(painter1);
-
-  //---
-
-  endPaint(layer);
+  return true;
 }
 
 void
 CQChartsPlot::
 drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
 {
+  if (! hasGroupedAnnotations(layerType))
+    return;
+
+  //---
+
   // for overlay draw all combine objects on common layers
   if (isOverlay()) {
     if (! isFirstPlot())
@@ -4097,20 +4178,11 @@ drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
   }
 }
 
-void
+bool
 CQChartsPlot::
-drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
+hasAnnotations(const CQChartsLayer::Type &layerType) const
 {
-  CScopeTimer timer("drawAnnotations");
-
-  drawLayer_ = layerType;
-
-//CQChartsGeom::BBox bbox = displayRangeBBox();
-
-  //---
-
-  // skip if nothing drawn
-  bool doDraw = false;
+  bool hasObjs = false;
 
   for (const auto &annotation : annotations()) {
     if      (layerType == CQChartsLayer::Type::SELECTION) {
@@ -4125,50 +4197,98 @@ drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
 //  if (! bbox.overlaps(annotation->bbox()))
 //    continue;
 
-    doDraw = true;
+    hasObjs = true;
 
     break;
   }
 
-  if (! doDraw)
-    return;
+  if (! hasObjs)
+    return false;
 
   //---
 
-  CQChartsLayer *layer = getLayer(layerType);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(layerType))
+    return false;
 
-  QPainter *painter1 = beginPaint(layer, painter);
+  return true;
+}
+
+void
+CQChartsPlot::
+drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType)
+{
+  CScopeTimer timer("drawAnnotations");
+
+  drawLayer_ = layerType;
 
   //---
 
-  if (painter1) {
-    for (auto &annotation : annotations()) {
-      if      (layerType == CQChartsLayer::Type::SELECTION) {
-        if (! annotation->isSelected())
-          continue;
-      }
-      else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
-        if (! annotation->isInside())
-          continue;
-      }
-
-//    if (! bbox.overlaps(annotation->bbox()))
-//      continue;
-
-      annotation->draw(painter1);
+  for (auto &annotation : annotations()) {
+    if      (layerType == CQChartsLayer::Type::SELECTION) {
+      if (! annotation->isSelected())
+        continue;
     }
+    else if (layerType == CQChartsLayer::Type::MOUSE_OVER) {
+      if (! annotation->isInside())
+        continue;
+    }
+
+//  if (! bbox.overlaps(annotation->bbox()))
+//    continue;
+
+    annotation->draw(painter);
   }
+}
 
-  //---
-
-  endPaint(layer);
+bool
+CQChartsPlot::
+hasForeground() const
+{
+  return false;
 }
 
 void
 CQChartsPlot::
 drawForeground(QPainter *)
 {
+}
+
+bool
+CQChartsPlot::
+hasGroupedBoxes() const
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return false;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    bool hasObjs = false;
+
+    for (auto &plot : plots) {
+      if (plot->hasBoxes()) {
+        hasObjs = true;
+        break;
+      }
+    }
+
+    if (! hasObjs)
+      return false;
+  }
+  else {
+    if (! hasBoxes())
+      return false;
+  }
+
+  //---
+
+  if (! isLayerActive(CQChartsLayer::Type::BOXES))
+    return false;
+
+  return true;
 }
 
 void
@@ -4192,39 +4312,74 @@ drawGroupedBoxes(QPainter *painter)
   }
 }
 
+bool
+CQChartsPlot::
+hasBoxes() const
+{
+  if (! showBoxes())
+    return false;
+
+  //---
+
+  if (! isLayerActive(CQChartsLayer::Type::BOXES))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsPlot::
 drawBoxes(QPainter *painter)
 {
   //CScopeTimer timer("drawBoxes");
 
-  if (! showBoxes())
-    return;
+  CQChartsGeom::BBox bbox = fitBBox();
 
-  //---
+  drawWindowColorBox(painter, bbox);
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::BOXES);
-  if (! layer->isActive()) return;
+  drawWindowColorBox(painter, dataFitBBox   ());
+  drawWindowColorBox(painter, axesFitBBox   ());
+  drawWindowColorBox(painter, keyFitBBox    ());
+  drawWindowColorBox(painter, titleFitBBox  ());
+  drawWindowColorBox(painter, annotationBBox());
+}
 
-  QPainter *painter1 = beginPaint(layer, painter);
+bool
+CQChartsPlot::
+hasGroupedEditHandles() const
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return false;
 
-  //---
+    Plots plots;
 
-  if (painter1) {
-    CQChartsGeom::BBox bbox = fitBBox();
+    overlayPlots(plots);
 
-    drawWindowColorBox(painter1, bbox);
+    bool hasObjs = false;
 
-    drawWindowColorBox(painter1, dataFitBBox   ());
-    drawWindowColorBox(painter1, axesFitBBox   ());
-    drawWindowColorBox(painter1, keyFitBBox    ());
-    drawWindowColorBox(painter1, titleFitBBox  ());
-    drawWindowColorBox(painter1, annotationBBox());
+    for (auto &plot : plots) {
+      if (plot->hasEditHandles()) {
+        hasObjs = true;
+        break;
+      }
+    }
+
+    if (! hasObjs)
+      return false;
+  }
+  else {
+    if (! hasEditHandles())
+      return false;
   }
 
   //---
 
-  endPaint(layer);
+  if (! isLayerActive(CQChartsLayer::Type::EDIT_HANDLE))
+    return false;
+
+  return true;
 }
 
 void
@@ -4248,19 +4403,14 @@ drawGroupedEditHandles(QPainter *painter)
   }
 }
 
-void
+bool
 CQChartsPlot::
-drawEditHandles(QPainter *painter)
+hasEditHandles() const
 {
-  //CScopeTimer timer("drawEditHandles");
-
   if (view()->mode() != CQChartsView::Mode::EDIT)
-    return;
+    return false;
 
   //---
-
-  CQChartsPlotKey *key1 = getFirstPlotKey();
-  if (! key1) return;
 
   bool selected = (isSelected() ||
                    (title() && title()->isSelected()) ||
@@ -4283,46 +4433,47 @@ drawEditHandles(QPainter *painter)
   }
 
   if (! selected)
-    return;
+    return false;
 
   //---
 
-  CQChartsLayer *layer = getLayer(CQChartsLayer::Type::EDIT_HANDLE);
-  if (! layer->isActive()) return;
+  if (! isLayerActive(CQChartsLayer::Type::EDIT_HANDLE))
+    return false;
 
-  QPainter *painter1 = beginPaint(layer, painter);
+  return true;
+}
 
-  //---
+void
+CQChartsPlot::
+drawEditHandles(QPainter *painter)
+{
+  //CScopeTimer timer("drawEditHandles");
 
-  if (painter1) {
-    if      (isSelected()) {
-      editHandles_.setBBox(this->bbox());
+  CQChartsPlotKey *key1 = getFirstPlotKey();
 
-      editHandles_.draw(painter1);
-    }
-    else if (title() && title()->isSelected()) {
-      title()->drawEditHandles(painter1);
-    }
-    else if (key1 && key1->isSelected()) {
-      key1->drawEditHandles(painter1);
-    }
-    else if (xAxis() && xAxis()->isSelected()) {
-      xAxis()->drawEditHandles(painter1);
-    }
-    else if (yAxis() && yAxis()->isSelected()) {
-      yAxis()->drawEditHandles(painter1);
-    }
-    else {
-      for (const auto &annotation : annotations()) {
-        if (annotation->isSelected())
-          annotation->drawEditHandles(painter1);
-      }
+  if      (isSelected()) {
+    editHandles_.setBBox(this->bbox());
+
+    editHandles_.draw(painter);
+  }
+  else if (title() && title()->isSelected()) {
+    title()->drawEditHandles(painter);
+  }
+  else if (key1 && key1->isSelected()) {
+    key1->drawEditHandles(painter);
+  }
+  else if (xAxis() && xAxis()->isSelected()) {
+    xAxis()->drawEditHandles(painter);
+  }
+  else if (yAxis() && yAxis()->isSelected()) {
+    yAxis()->drawEditHandles(painter);
+  }
+  else {
+    for (const auto &annotation : annotations()) {
+      if (annotation->isSelected())
+        annotation->drawEditHandles(painter);
     }
   }
-
-  //---
-
-  endPaint(layer);
 }
 
 CQChartsGeom::BBox
@@ -4359,6 +4510,17 @@ calcPlotPixelRect() const
 {
   return view_->windowToPixel(bbox_);
 }
+
+QSizeF
+CQChartsPlot::
+calcPixelSize() const
+{
+  CQChartsGeom::BBox bbox = calcPlotPixelRect();
+
+  return QSizeF(bbox.getWidth(), bbox.getHeight());
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -4515,6 +4677,20 @@ titleFitBBox() const
     bbox += title()->bbox();
 
   return bbox;
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+calcFitPixelRect() const
+{
+  // calc current (zoomed/panned) pixel range
+  CQChartsGeom::BBox bbox = fitBBox();
+
+  CQChartsGeom::BBox pbbox;
+
+  windowToPixel(bbox, pbbox);
+
+  return pbbox;
 }
 
 //------
@@ -4698,9 +4874,40 @@ getObjectInds(const QString &objectId) const
 
 //------
 
+CQChartsLayer *
+CQChartsPlot::
+initLayer(const CQChartsLayer::Type &type, const CQChartsBuffer::Type &buffer, bool active)
+{
+  auto pb = buffers_.find(buffer);
+
+  if (pb == buffers_.end()) {
+    CQChartsBuffer *layerBuffer = new CQChartsBuffer(buffer);
+
+    pb = buffers_.insert(pb, Buffers::value_type(buffer, layerBuffer));
+  }
+
+  CQChartsBuffer *layerBuffer = (*pb).second;
+
+  //---
+
+  auto pl = layers_.find(type);
+
+  if (pl == layers_.end()) {
+    CQChartsLayer *layer = new CQChartsLayer(type, layerBuffer);
+
+    pl = layers_.insert(pl, Layers::value_type(type, layer));
+  }
+
+  CQChartsLayer *layer = (*pl).second;
+
+  layer->setActive(active);
+
+  return layer;
+}
+
 void
 CQChartsPlot::
-setLayerActive(const CQChartsLayer::Type &layerType, bool b)
+setLayerActive(const CQChartsLayer::Type &type, bool b)
 {
   if (isOverlay()) {
     Plots plots;
@@ -4708,17 +4915,17 @@ setLayerActive(const CQChartsLayer::Type &layerType, bool b)
     overlayPlots(plots);
 
     for (auto &plot : plots)
-      plot->setLayerActive1(layerType, b);
+      plot->setLayerActive1(type, b);
   }
   else
-    setLayerActive1(layerType, b);
+    setLayerActive1(type, b);
 }
 
 void
 CQChartsPlot::
-setLayerActive1(const CQChartsLayer::Type &layerType, bool b)
+setLayerActive1(const CQChartsLayer::Type &type, bool b)
 {
-  CQChartsLayer *layer = getLayer(layerType);
+  CQChartsLayer *layer = getLayer(type);
 
   layer->setActive(b);
 
@@ -4727,9 +4934,9 @@ setLayerActive1(const CQChartsLayer::Type &layerType, bool b)
 
 bool
 CQChartsPlot::
-isLayerActive(const CQChartsLayer::Type &layerType) const
+isLayerActive(const CQChartsLayer::Type &type) const
 {
-  CQChartsLayer *layer = getLayer(layerType);
+  CQChartsLayer *layer = getLayer(type);
 
   return layer->isActive();
 }
@@ -4745,13 +4952,13 @@ invalidateLayers()
     overlayPlots(plots);
 
     for (auto &plot : plots) {
-      for (auto &layer : plot->layers_)
-        layer.second->setValid(false);
+      for (auto &buffer : plot->buffers_)
+        buffer.second->setValid(false);
     }
   }
   else {
-    for (auto &layer : layers_)
-      layer.second->setValid(false);
+    for (auto &buffer : buffers_)
+      buffer.second->setValid(false);
   }
 
   emit layersChanged();
@@ -4763,27 +4970,27 @@ invalidateLayers()
 
 void
 CQChartsPlot::
-invalidateLayer(const CQChartsLayer::Type &layerType)
+invalidateLayer(const CQChartsBuffer::Type &type)
 {
-//std::cerr << "invalidateLayer " << CQChartsLayer::typeName(layerType) << "\n";
+//std::cerr << "invalidateLayer " << CQChartsBuffer::typeName(type) << "\n";
   if (isOverlay()) {
     Plots plots;
 
     overlayPlots(plots);
 
     for (auto &plot : plots)
-      plot->invalidateLayer1(layerType);
+      plot->invalidateLayer1(type);
   }
   else {
-    invalidateLayer1(layerType);
+    invalidateLayer1(type);
   }
 }
 
 void
 CQChartsPlot::
-invalidateLayer1(const CQChartsLayer::Type &layerType)
+invalidateLayer1(const CQChartsBuffer::Type &type)
 {
-  CQChartsLayer *layer = getLayer(layerType);
+  CQChartsBuffer *layer = getBuffer(type);
 
   layer->setValid(false);
 
@@ -4794,19 +5001,22 @@ invalidateLayer1(const CQChartsLayer::Type &layerType)
   update();
 }
 
+CQChartsBuffer *
+CQChartsPlot::
+getBuffer(const CQChartsBuffer::Type &type) const
+{
+  auto p = buffers_.find(type);
+  assert(p != buffers_.end());
+
+  return (*p).second;
+}
+
 CQChartsLayer *
 CQChartsPlot::
-getLayer(const CQChartsLayer::Type &layerType) const
+getLayer(const CQChartsLayer::Type &type) const
 {
-  CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
-
-  auto p = th->layers_.find(layerType);
-
-  if (p == th->layers_.end()) {
-    CQChartsLayer *layer = new CQChartsLayer(layerType);
-
-    p = th->layers_.insert(p, Layers::value_type(layerType, layer));
-  }
+  auto p = layers_.find(type);
+  assert(p != layers_.end());
 
   return (*p).second;
 }
@@ -4841,9 +5051,9 @@ setClipRect(QPainter *painter)
 
 QPainter *
 CQChartsPlot::
-beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect)
+beginPaint(CQChartsBuffer *buffer, QPainter *painter, const QRectF &rect)
 {
-  drawLayer_ = layer->type();
+  drawBuffer_ = buffer->type();
 
   if (! view_->isBufferLayers())
     return painter;
@@ -4851,10 +5061,10 @@ beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect)
   // resize and clear
   QRectF prect = (! rect.isValid() ? CQChartsUtil::toQRect(calcPlotPixelRect()) : rect);
 
-  QPainter *painter1 = layer->beginPaint(painter, prect);
+  QPainter *painter1 = buffer->beginPaint(painter, prect);
 
   // don't paint if not active
-  if (! layer->isActive())
+  if (! buffer->isActive())
     return nullptr;
 
   return painter1;
@@ -4862,17 +5072,17 @@ beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect)
 
 void
 CQChartsPlot::
-endPaint(CQChartsLayer *layer)
+endPaint(CQChartsBuffer *buffer)
 {
   if (! view_->isBufferLayers())
     return;
 
-  layer->endPaint();
+  buffer->endPaint();
 }
 
 CQChartsPlotKey *
 CQChartsPlot::
-getFirstPlotKey()
+getFirstPlotKey() const
 {
   CQChartsPlot *plot1 = firstPlot();
 
@@ -4895,48 +5105,6 @@ drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQCharts
 
   painter->drawLine(p1, p2);
 }
-
-#if 0
-void
-CQChartsPlot::
-drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbolData &data)
-{
-  QColor strokeColor = data.stroke.color.interpColor(this, 0, 1);
-  QColor fillColor   = data.fill  .color.interpColor(this, 0, 1);
-
-  strokeColor.setAlphaF(data.stroke.alpha);
-  fillColor  .setAlphaF(data.fill  .alpha);
-
-  double lw = lengthPixelWidth(data.stroke.width);
-
-  //---
-
-  QPen   pen;
-  QBrush brush;
-
-  if (data.stroke.visible)
-    pen.setColor(strokeColor);
-  else
-    pen.setStyle(Qt::NoPen);
-
-  pen.setWidthF(lw);
-
-  if (data.stroke.visible) {
-    brush.setColor(fillColor);
-    brush.setStyle(Qt::SolidPattern);
-  }
-  else
-    brush.setStyle(Qt::NoBrush);
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
-
-  double sx = lengthPixelWidth (data.size);
-  double sy = lengthPixelHeight(data.size);
-
-  drawSymbol(painter, CQChartsUtil::fromQPoint(p), data.type, CMathUtil::avg(sx, sy));
-}
-#endif
 
 void
 CQChartsPlot::
@@ -5160,7 +5328,7 @@ setPenBrush(QPen &pen, QBrush &brush,
             bool stroked, const QColor &strokeColor, double strokeAlpha,
             const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
             bool filled, const QColor &fillColor, double fillAlpha,
-            const CQChartsFillPattern &pattern)
+            const CQChartsFillPattern &pattern) const
 {
   setPen(pen, stroked, strokeColor, strokeAlpha, strokeWidth, strokeDash);
 
@@ -5170,13 +5338,13 @@ setPenBrush(QPen &pen, QBrush &brush,
 void
 CQChartsPlot::
 setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
-       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash)
+       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
 {
   // calc pen (stroke)
   if (stroked) {
     QColor color = strokeColor;
 
-    color.setAlphaF(strokeAlpha);
+    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
 
     pen.setColor(color);
 
@@ -5197,13 +5365,13 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
 void
 CQChartsPlot::
 setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
-         const CQChartsFillPattern &pattern)
+         const CQChartsFillPattern &pattern) const
 {
   // calc brush (fill)
   if (filled) {
     QColor color = fillColor;
 
-    color.setAlphaF(fillAlpha);
+    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
 
     brush.setColor(color);
 
@@ -5257,47 +5425,44 @@ updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
   if (brush.style() != Qt::NoBrush) {
     if (view()->insideMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
+      double alpha = 1.0;
 
       if (pen.style() != Qt::NoPen) {
         QColor pc = pen.color();
 
-        if (view()->isInsideStrokeColorEnabled())
-          opc = view()->insideStrokeColor();
+        if (view()->isInsideBorder())
+          opc = view()->interpInsideBorderColor(0, 1);
         else
           opc = CQChartsUtil::invColor(pc);
 
-        opc.setAlphaF(pc.alphaF());
+        alpha = pc.alphaF();
       }
       else {
         QColor bc = brush.color();
 
-        if (view()->isInsideStrokeColorEnabled())
-          opc = view()->insideStrokeColor();
+        if (view()->isInsideBorder())
+          opc = view()->interpInsideBorderColor(0, 1);
         else
           opc = CQChartsUtil::invColor(bc);
       }
 
-      CQChartsUtil::penSetLineDash(pen, view()->insideStrokeDash());
-
-      pen.setColor(opc);
-      pen.setWidthF(view()->insideStrokeWidth());
+      setPen(pen, true, opc, alpha,
+             view()->insideBorderWidth(), view()->insideBorderDash());
 
       if (outline)
-        brush.setStyle(Qt::NoBrush);
+        setBrush(brush, false);
     }
     else {
       QColor bc = brush.color();
 
       QColor ibc;
 
-      if (view()->isInsideFillColorEnabled())
-        ibc = view()->insideFillColor();
+      if (view()->isInsideFilled())
+        ibc = view()->interpInsideFillColor(0, 1);
       else
         ibc = insideColor(bc);
 
-      ibc.setAlphaF(bc.alphaF());
-
-      brush.setColor(ibc);
+      setBrush(brush, true, ibc, bc.alphaF(), view()->insideFillPattern());
     }
   }
   // just stroke
@@ -5306,17 +5471,13 @@ updateInsideObjPenBrushState(QPen &pen, QBrush &brush, bool outline) const
 
     QColor opc;
 
-    if (view()->isInsideStrokeColorEnabled())
-      opc = view()->insideStrokeColor();
+    if (view()->isInsideBorder())
+      opc = view()->interpInsideBorderColor(0, 1);
     else
       opc = CQChartsUtil::invColor(pc);
 
-    opc.setAlphaF(pc.alphaF());
-
-    CQChartsUtil::penSetLineDash(pen, view()->insideStrokeDash());
-
-    pen.setColor(opc);
-    pen.setWidthF(view()->insideStrokeWidth());
+    setPen(pen, true, opc, pc.alphaF(),
+           view()->insideBorderWidth(), view()->insideBorderDash());
   }
 }
 
@@ -5328,49 +5489,50 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
   if      (brush.style() != Qt::NoBrush) {
     if (view()->selectedMode() == CQChartsView::HighlightDataMode::OUTLINE) {
       QColor opc;
+      double alpha = 1.0;
 
       if (pen.style() != Qt::NoPen) {
         QColor pc = pen.color();
 
-        if (view()->isSelectedStrokeColorEnabled())
-          opc = view()->selectedStrokeColor();
+        if (view()->isSelectedBorder())
+          opc = view()->interpSelectedBorderColor(0, 1);
         else
           opc = selectedColor(pc);
 
-        opc.setAlphaF(pc.alphaF());
+        alpha = pc.alphaF();
       }
       else {
         QColor bc = brush.color();
 
-        if (view()->isSelectedStrokeColorEnabled())
-          opc = view()->selectedStrokeColor();
+        if (view()->isSelectedBorder())
+          opc = view()->interpSelectedBorderColor(0, 1);
         else
           opc = CQChartsUtil::invColor(bc);
       }
 
-      CQChartsUtil::penSetLineDash(pen, view()->selectedStrokeDash());
+      setPen(pen, true, opc, alpha,
+             view()->selectedBorderWidth(), view()->selectedBorderDash());
 
-      pen.setColor(opc);
-      pen.setWidthF(view()->selectedStrokeWidth());
-
-      brush.setStyle(Qt::NoBrush);
+      setBrush(brush, false);
     }
     else {
       QColor bc = brush.color();
 
       QColor ibc;
 
-      if (view()->isSelectedFillColorEnabled())
-        ibc = view()->selectedFillColor();
+      if (view()->isSelectedFilled())
+        ibc = view()->interpSelectedFillColor(0, 1);
       else
         ibc = selectedColor(bc);
 
-      if (view_->isBufferLayers())
-        ibc.setAlphaF(0.5*bc.alphaF());
-      else
-        ibc.setAlphaF(bc.alphaF());
+      double alpha = 1.0;
 
-      brush.setColor(ibc);
+      if (view_->isBufferLayers())
+        alpha = 0.5*bc.alphaF();
+      else
+        alpha = bc.alphaF();
+
+      setBrush(brush, true, ibc, alpha, view()->insideFillPattern());
     }
   }
   // just stroke
@@ -5379,17 +5541,13 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
 
     QColor opc;
 
-    if (view()->isSelectedStrokeColorEnabled())
-      opc = view()->selectedStrokeColor();
+    if (view()->isSelectedBorder())
+      opc = view()->interpSelectedBorderColor(0, 1);
     else
       opc = CQChartsUtil::invColor(pc);
 
-    opc.setAlphaF(pc.alphaF());
-
-    CQChartsUtil::penSetLineDash(pen, view()->selectedStrokeDash());
-
-    pen.setColor(opc);
-    pen.setWidthF(view()->selectedStrokeWidth());
+    setPen(pen, true, opc, pc.alphaF(),
+           view()->selectedBorderWidth(), view()->selectedBorderDash());
   }
 }
 
@@ -7005,12 +7163,7 @@ void
 CQChartsPlot::
 pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const
 {
-  double wx1, wy1, wx2, wy2;
-
-  pixelToWindow(prect.getXMin(), prect.getYMin(), wx1, wy2);
-  pixelToWindow(prect.getXMax(), prect.getYMax(), wx2, wy1);
-
-  wrect = CQChartsGeom::BBox(wx1, wy1, wx2, wy2);
+  wrect = pixelToWindow(prect);
 }
 
 CQChartsGeom::BBox
@@ -7021,6 +7174,18 @@ windowToPixel(const CQChartsGeom::BBox &wrect) const
 
   windowToPixel(wrect.getXMin(), wrect.getYMin(), px1, py2);
   windowToPixel(wrect.getXMax(), wrect.getYMax(), px2, py1);
+
+  return CQChartsGeom::BBox(px1, py1, px2, py2);
+}
+
+CQChartsGeom::BBox
+CQChartsPlot::
+pixelToWindow(const CQChartsGeom::BBox &wrect) const
+{
+  double px1, py1, px2, py2;
+
+  pixelToWindow(wrect.getXMin(), wrect.getYMin(), px1, py2);
+  pixelToWindow(wrect.getXMax(), wrect.getYMax(), px2, py1);
 
   return CQChartsGeom::BBox(px1, py1, px2, py2);
 }
@@ -7131,7 +7296,7 @@ CQChartsPlot::
 limitSymbolSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return std::min(std::max(s, 1.0), 1000.0);
+  return CMathUtil::clamp(s, 1.0, 1000.0);
 }
 
 double
@@ -7139,7 +7304,7 @@ CQChartsPlot::
 limitFontSize(double s) const
 {
   // ensure not a crazy number : TODO: property for limits
-  return std::min(std::max(s, 1.0), 1000.0);
+  return CMathUtil::clamp(s, 1.0, 1000.0);
 }
 
 //------

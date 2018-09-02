@@ -62,10 +62,10 @@ class CQChartsFillPattern {
   static QString typeToString(const Type &type) {
     switch (type) {
       case Type::SOLID: return "SOLID";
-      case Type::HATCH: return "CROSS";
+      case Type::HATCH: return "HATCH";
       case Type::DENSE: return "DENSE";
       case Type::HORIZ: return "HORIZONTAL";
-      case Type::VERT : return "VERTICL";
+      case Type::VERT : return "VERTICAL";
       case Type::FDIAG: return "FDIAG";
       case Type::BDIAG: return "BDIAG";
       default         : return "NONE";

@@ -529,9 +529,7 @@ drawParts(QPainter *painter)
 
   QColor edgeColor = this->interpEdgeLinesColor(0, 1);
 
-  edgeColor.setAlphaF(edgeLinesAlpha());
-
-  edgePen.setColor(edgeColor);
+  setPen(edgePen, true, edgeColor, edgeLinesAlpha(), edgeLinesWidth(), edgeLinesDash());
 
   for (auto &edge : forceDirected_.edges()) {
     bool isTemp = false;
@@ -546,9 +544,11 @@ drawParts(QPainter *painter)
     windowToPixel(p1.x(), p1.y(), px1, py1);
     windowToPixel(p2.x(), p2.y(), px2, py2);
 
-    double w = sqrt(edge->value());
+    if (isEdgeLinesValueWidth()) {
+      double w = sqrt(edge->value());
 
-    edgePen.setWidthF(w);
+      setPen(edgePen, true, edgeColor, edgeLinesAlpha(), w, edgeLinesDash());
+    }
 
     painter->setPen(edgePen);
 

@@ -49,7 +49,8 @@ create(CQChartsView *view, const ModelP &model) const
 
 CQChartsChordPlot::
 CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
- CQChartsPlot(view, view->charts()->plotType("chord"), model)
+ CQChartsPlot(view, view->charts()->plotType("chord"), model),
+ CQChartsPlotStrokeData<CQChartsChordPlot>(this)
 {
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 
@@ -116,36 +117,6 @@ setLabelRadius(double r)
 
 void
 CQChartsChordPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(borderData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsChordPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-void
-CQChartsChordPlot::
-setBorderAlpha(double r)
-{
-  CQChartsUtil::testAndSet(borderData_.alpha, r, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsChordPlot::
-setBorderDash(const CQChartsLineDash &l)
-{
-  CQChartsUtil::testAndSet(borderData_.dash, l, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsChordPlot::
 setSegmentAlpha(double r)
 {
   CQChartsUtil::testAndSet(segmentAlpha_, r, [&]() { invalidateLayers(); } );
@@ -180,9 +151,9 @@ addProperties()
 
   addProperty("arc", this, "arcAlpha", "alpha");
 
-  addProperty("label", textBox_, "visible");
-  addProperty("label", textBox_, "font"   );
-  addProperty("label", textBox_, "color"  );
+  addProperty("label", textBox_, "textVisible");
+  addProperty("label", textBox_, "textFont"   );
+  addProperty("label", textBox_, "textColor"  );
 
   QString labelBoxPath = id() + "/label/box";
 
@@ -780,10 +751,6 @@ draw(QPainter *painter)
   double angle2 = angle1 + dangle;
 
   // draw value set segment arc
-  QColor segmentBorderColor = plot_->interpBorderColor(0, 1);
-
-  segmentBorderColor.setAlphaF(CMathUtil::clamp(plot_->borderAlpha(), 0.0, 1.0));
-
   QPainterPath path;
 
   path.arcMoveTo(orect, -angle1);
@@ -795,7 +762,12 @@ draw(QPainter *painter)
 
   //---
 
-  QPen pen(segmentBorderColor);
+  QPen pen;
+
+  QColor segmentBorderColor = plot_->interpBorderColor(0, 1);
+
+  plot_->setPen(pen, true, segmentBorderColor, plot_->borderAlpha(),
+                plot_->borderWidth(), plot_->borderDash());
 
   double gval = data_.group().value;
 
@@ -809,10 +781,14 @@ draw(QPainter *painter)
   else
     fromColor = plot_->interpPaletteColor(i(), n());
 
-  if (! isInside() && ! isSelected())
-    fromColor.setAlphaF(CMathUtil::clamp(plot_->segmentAlpha(), 0.0, 1.0));
+  double fromAlpha = 1.0;
 
-  QBrush brush(fromColor);
+  if (! isInside() && ! isSelected())
+    fromAlpha = plot_->segmentAlpha();
+
+  QBrush brush;
+
+  plot_->setBrush(brush, true, fromColor, fromAlpha, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -828,8 +804,6 @@ draw(QPainter *painter)
   // draw arcs between value sets
 
   QColor arcBorderColor = plot_->interpBorderColor(0, 1);
-
-  arcBorderColor.setAlphaF(CMathUtil::clamp(plot_->borderAlpha(), 0.0, 1.0));
 
   int from = data_.from();
 
@@ -883,33 +857,28 @@ draw(QPainter *painter)
 
     //--
 
-    QPen pen(arcBorderColor);
+    QPen pen;
+
+    plot_->setPen(pen, true, arcBorderColor, plot_->borderAlpha(),
+                  plot_->borderWidth(), plot_->borderDash());
 
     painter->setPen(pen);
 
     QColor c = CQChartsUtil::blendColors(fromColor, toColor, 0.5);
 
-    if (! isInside() && ! isSelected())
-      c.setAlphaF(CMathUtil::clamp(plot_->arcAlpha(), 0.0, 1.0));
+    double alpha = 1.0;
 
-    QBrush brush(c);
+    if (! isInside() && ! isSelected())
+      alpha = plot_->arcAlpha();
+
+    QBrush brush;
+
+    plot_->setBrush(brush, true, c, alpha, CQChartsFillPattern());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
 
     painter->drawPath(path);
-
-    //--
-
-#if 0
-    path.arcMoveTo(orect, -a1 ); p3 = path.currentPosition();
-    path.arcMoveTo(orect, -a11); p4 = path.currentPosition();
-
-    painter->setPen(QColor(0,0,0));
-
-    painter->drawLine(p1, p3);
-    painter->drawLine(p2, p4);
-#endif
   }
 }
 
@@ -950,9 +919,13 @@ drawFg(QPainter *painter)
   if (lr1 < 0.01)
     lr1 = 0.01;
 
+  //---
+
+  QPen lpen;
+
   QColor bg = plot_->interpPaletteColor(i_, n_);
 
-  QPen lpen(bg);
+  plot_->setPen(lpen, true, bg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
 
   plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, data_.name(),
                                             lpen, /*isRotated*/false);

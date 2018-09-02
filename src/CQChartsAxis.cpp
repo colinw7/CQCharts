@@ -6,7 +6,6 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
-#include <CQChartsEnv.h>
 
 #include <CQPropertyViewModel.h>
 #include <CMathRound.h>
@@ -17,51 +16,6 @@
 #include <algorithm>
 
 //------
-
-#if 0
-struct AxisGoodTicks {
-  uint min {  4 };
-  uint max { 12 };
-  uint opt { 10 };
-};
-
-struct AxisIncrementTest {
-  double factor    { 1.0 };
-  uint   numTicks  { 5 };
-  bool   isLog     { false };
-  double incFactor { 0.0 };
-  bool   integral  { false };
-
-  AxisIncrementTest(double factor, uint numTicks, bool isLog) :
-   factor(factor), numTicks(numTicks), isLog(isLog) {
-    integral = CMathUtil::isInteger(factor);
-  }
-};
-
-static AxisIncrementTest
-axesIncrementTests[] = {
-  {  1.0, 5, true  },
-  {  1.2, 3, false },
-  {  2.0, 4, false },
-  {  2.5, 5, false },
-  {  4.0, 4, false },
-  {  5.0, 5, false },
-  {  6.0, 3, false },
-  {  8.0, 4, false },
-  { 10.0, 5, true  },
-  { 12.0, 3, false },
-  { 20.0, 4, false },
-  { 25.0, 5, false },
-  { 40.0, 4, false },
-  { 50.0, 5, false }
-};
-
-static uint numAxesIncrementTests = sizeof(axesIncrementTests)/sizeof(axesIncrementTests[0]);
-
-AxisGoodTicks axisGoodTicks;
-#endif
-
-//---
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
@@ -106,6 +60,13 @@ CQChartsAxis::
 {
   delete label_;
   delete tickLabel_;
+}
+
+CQChartsView *
+CQChartsAxis::
+view() const
+{
+  return plot()->view();
 }
 
 void
@@ -263,7 +224,7 @@ format() const
   if (column().isValid()) {
     QString typeStr;
 
-    if (plot_->columnTypeStr(column(), typeStr))
+    if (plot()->columnTypeStr(column(), typeStr))
       return "";
 
     return typeStr;
@@ -283,7 +244,7 @@ setFormat(const QString &typeStr)
   //---
 
   if (column().isValid()) {
-    if (! plot_->setColumnTypeStr(column(), typeStr))
+    if (! plot()->setColumnTypeStr(column(), typeStr))
       return false;
   }
 
@@ -421,7 +382,7 @@ QColor
 CQChartsAxis::
 interpLineColor(int i, int n) const
 {
-  return lineColor().interpColor(plot_, i, n);
+  return lineColor().interpColor(plot(), i, n);
 }
 
 //---
@@ -458,7 +419,7 @@ QColor
 CQChartsAxis::
 interpGridMajorColor(int i, int n) const
 {
-  return gridMajorColor().interpColor(plot_, i, n);
+  return gridMajorColor().interpColor(plot(), i, n);
 }
 
 const CQChartsLength &
@@ -591,7 +552,7 @@ QColor
 CQChartsAxis::
 interpGridFillColor(int i, int n) const
 {
-  return gridFillColor().interpColor(plot_, i, n);
+  return gridFillColor().interpColor(plot(), i, n);
 }
 
 //---
@@ -696,7 +657,6 @@ void
 CQChartsAxis::
 calc()
 {
-#if 1
   interval_.setStart(start());
   interval_.setEnd  (end  ());
 
@@ -710,133 +670,6 @@ calc()
   calcIncrement_ = interval_.calcIncrement();
   calcStart_     = interval_.calcStart    ();
   calcEnd_       = interval_.calcEnd      ();
-#else
-  numMajorTicks_ = 1;
-  numMinorTicks_ = 0;
-
-  //------
-
-  // Ensure start and end are in the correct order
-  double minAxis = std::min(start(), end());
-  double maxAxis = std::max(start(), end());
-
-  if (isIntegral()) {
-    minAxis = std::floor(minAxis);
-    maxAxis = std::ceil (maxAxis);
-  }
-
-  //------
-
-  // Calculate length
-  double length = std::abs(maxAxis - minAxis);
-
-  if (length == 0.0)
-    return;
-
-  if (isIntegral())
-    length = std::ceil(length);
-
-  //------
-
-  // Calculate nearest power of ten to length
-  int power = CMathRound::RoundDown(log10(length));
-
-  if (isIntegral()) {
-    if (power < 0)
-      power = 1;
-  }
-
-  //------
-
-  if (majorIncrement_ <= 0.0) {
-    // Set Default Increment to 0.1 * Power of Ten
-    if (! isIntegral() && ! isLog()) {
-      calcIncrement_ = 0.1;
-
-      if      (power < 0) {
-        for (int i = 0; i < -power; i++)
-          calcIncrement_ /= 10.0;
-      }
-      else if (power > 0) {
-        for (int i = 0; i <  power; i++)
-          calcIncrement_ *= 10.0;
-      }
-    }
-    else {
-      calcIncrement_ = 1;
-
-      for (int i = 1; i < power; i++)
-        calcIncrement_ *= 10.0;
-    }
-
-    //------
-
-    // Calculate other test Increments
-
-    for (uint i = 0; i < numAxesIncrementTests; i++) {
-      if (isIntegral() && ! CMathUtil::isInteger(axesIncrementTests[i].factor)) {
-        axesIncrementTests[i].incFactor = 0.0;
-        continue;
-      }
-
-      axesIncrementTests[i].incFactor = calcIncrement()*axesIncrementTests[i].factor;
-    }
-
-    //------
-
-    // Test each Increment in turn
-    // (Set Default Start/End to Force Update)
-
-    AxisGapData axisGapData;
-
-    for (uint i = 0; i < numAxesIncrementTests; i++) {
-      if (isLog() && ! axesIncrementTests[i].isLog)
-        continue;
-
-      if (axesIncrementTests[i].incFactor <= 0)
-        continue;
-
-      if (tickIncrement_ > 0) {
-        if (! CMathUtil::isInteger(axesIncrementTests[i].incFactor))
-          continue;
-
-        int incFactor1 = int(axesIncrementTests[i].incFactor);
-
-        if (incFactor1 % tickIncrement_ != 0)
-          continue;
-      }
-
-      testAxisGaps(minAxis, maxAxis,
-                   axesIncrementTests[i].incFactor,
-                   axesIncrementTests[i].numTicks,
-                   axisGapData);
-    }
-
-    calcStart_     = axisGapData.start;
-    calcEnd_       = axisGapData.end;
-    calcIncrement_ = axisGapData.increment;
-
-    int numGapTicks = axisGapData.numGapTicks;
-
-    if (isLog())
-      numGapTicks = 10;
-
-    //------
-
-    // Set the Gap Positions
-
-    numMajorTicks_ = CMathRound::RoundNearest((calcEnd() - calcStart())/calcIncrement());
-    numMinorTicks_ = numGapTicks;
-  }
-  else {
-    calcStart_     = minAxis;
-    calcEnd_       = maxAxis;
-    calcIncrement_ = majorIncrement_;
-
-    numMajorTicks_ = CMathRound::RoundNearest((calcEnd() - calcStart())/calcIncrement());
-    numMinorTicks_ = 5;
-  }
-#endif
 //std::cerr << "numMajorTicks: " << numMajorTicks_  << "\n";
 //std::cerr << "numMinorTicks: " << numMinorTicks_  << "\n";
 //std::cerr << "calcIncrement: " << calcIncrement() << "\n";
@@ -845,132 +678,6 @@ calc()
 
   emit ticksChanged();
 }
-
-#if 0
-bool
-CQChartsAxis::
-testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
-             AxisGapData &axisGapData)
-{
-  // Calculate New Start and End implied by the Test Increment
-
-  double newStart = CMathRound::RoundDownF(start/testIncrement)*testIncrement;
-  double newEnd   = CMathRound::RoundUpF  (end  /testIncrement)*testIncrement;
-
-  while (newStart > start)
-    newStart -= testIncrement;
-
-  while (newEnd < end)
-    newEnd += testIncrement;
-
-  uint testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
-
-  //------
-
-  // If nothing set yet just update values and return
-
-  if (axisGapData.start == 0.0 && axisGapData.end == 0.0) {
-    axisGapData.start = newStart;
-    axisGapData.end   = newEnd;
-
-    axisGapData.increment   = testIncrement;
-    axisGapData.numGaps     = testNumGaps;
-    axisGapData.numGapTicks = testNumGapTicks;
-
-    return true;
-  }
-
-  //------
-
-  // If the current number of gaps is not within the acceptable range
-  // and the new number of gaps is within the acceptable range then
-  // update current
-
-  if ((axisGapData.numGaps <  axisGoodTicks.min || axisGapData.numGaps >  axisGoodTicks.max) &&
-      (testNumGaps         >= axisGoodTicks.min && testNumGaps         <= axisGoodTicks.max)) {
-    axisGapData.start = newStart;
-    axisGapData.end   = newEnd;
-
-    axisGapData.increment   = testIncrement;
-    axisGapData.numGaps     = testNumGaps;
-    axisGapData.numGapTicks = testNumGapTicks;
-
-    return true;
-  }
-
-  //------
-
-  // If the current number of gaps is not within the acceptable range
-  // and the new number of gaps is not within the acceptable range then
-  // consider it for update of current if better fit
-
-  if ((axisGapData.numGaps < axisGoodTicks.min || axisGapData.numGaps > axisGoodTicks.max) &&
-      (testNumGaps         < axisGoodTicks.min || testNumGaps         > axisGoodTicks.max)) {
-    // Calculate how close fit is to required range
-
-    double delta1 = std::abs(newStart - start) + std::abs(newEnd - end);
-
-    //------
-
-    // If better fit than current fit or equally good fit and
-    // number of gaps is nearer to optimum (axisGoodTicks.opt) then
-    // update current
-
-    double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
-
-    if (((std::abs(delta1 - delta2) < 1E-6) &&
-         (std::abs(int(testNumGaps        ) - int(axisGoodTicks.opt)) <
-          std::abs(int(axisGapData.numGaps) - int(axisGoodTicks.opt)))) ||
-        delta1 < delta2) {
-      axisGapData.start = newStart;
-      axisGapData.end   = newEnd;
-
-      axisGapData.increment   = testIncrement;
-      axisGapData.numGaps     = testNumGaps;
-      axisGapData.numGapTicks = testNumGapTicks;
-
-      return true;
-    }
-  }
-
-  //------
-
-  // If the current number of gaps is within the acceptable range
-  // and the new number of gaps is within the acceptable range then
-  // consider it for update of current if better fit
-
-  if ((axisGapData.numGaps >= axisGoodTicks.min && axisGapData.numGaps <= axisGoodTicks.max) &&
-      (testNumGaps         >= axisGoodTicks.min && testNumGaps         <= axisGoodTicks.max)) {
-    // Calculate how close fit is to required range
-
-    double delta1 = std::abs(newStart - start) + std::abs(newEnd - end);
-
-    //------
-
-    // If better fit than current fit or equally good fit and
-    // number of gaps is nearer to optimum (axisGoodTicks.opt) then
-    // update current
-
-    double delta2 = std::abs(axisGapData.start - start) + std::abs(axisGapData.end - end);
-
-    if (((std::abs(delta1 - delta2) < 1E-6) &&
-         (std::abs(int(testNumGaps        ) - int(axisGoodTicks.opt)) <
-          std::abs(int(axisGapData.numGaps) - int(axisGoodTicks.opt)))) ||
-        delta1 < delta2) {
-      axisGapData.start = newStart;
-      axisGapData.end   = newEnd;
-
-      axisGapData.increment   = testIncrement;
-      axisGapData.numGaps     = testNumGaps;
-      axisGapData.numGapTicks = testNumGapTicks;
-
-      return true;
-    }
-  }
-
-  return false;
-}
-#endif
 
 double
 CQChartsAxis::
@@ -986,7 +693,7 @@ QString
 CQChartsAxis::
 valueStr(double pos) const
 {
-  return valueStr(plot_, pos);
+  return valueStr(plot(), pos);
 }
 
 QString
@@ -1048,7 +755,7 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  plot_->updateMargin();
+  plot()->updateMargin();
 }
 
 bool
@@ -1065,15 +772,15 @@ void
 CQChartsAxis::
 redraw()
 {
-  plot_->invalidateLayer(CQChartsLayer::Type::BG_AXES);
-  plot_->invalidateLayer(CQChartsLayer::Type::FG_AXES);
+  plot()->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+  plot()->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
 
 void
 CQChartsAxis::
 updatePlotRange()
 {
-  plot_->updateRange();
+  plot()->updateRange();
 }
 
 //---
@@ -1086,7 +793,7 @@ editPress(const CQChartsGeom::Point &p)
 
   double apos1, apos2;
 
-  calcPos(plot_, apos1, apos2);
+  calcPos(plot(), apos1, apos2);
 
   pos_ = apos1;
 
@@ -1134,7 +841,7 @@ editMoveBy(const QPointF &d)
 {
   double apos1, apos2;
 
-  calcPos(plot_, apos1, apos2);
+  calcPos(plot(), apos1, apos2);
 
   if (direction_ == Direction::HORIZONTAL)
     pos_ = apos1 + d.y();
@@ -1208,11 +915,11 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
     //---
 
+    QBrush brush;
+
     QColor fillColor = interpGridFillColor(0, 1);
 
-    fillColor.setAlphaF(gridFillAlpha());
-
-    QBrush brush(fillColor);
+    plot->setBrush(brush, true, fillColor, gridFillAlpha(), CQChartsFillPattern());
 
     //---
 
@@ -1274,7 +981,7 @@ drawGrid(CQChartsPlot *plot, QPainter *painter)
 
       if (isGridMinorDisplayed()) {
         for (uint j = 1; j < numMinorTicks(); j++) {
-          double pos2 = pos1 + (isLog() ? plot_->logValue(j*inc1) : j*inc1);
+          double pos2 = pos1 + (isLog() ? plot->logValue(j*inc1) : j*inc1);
 
           if (isIntegral() && ! CMathUtil::isInteger(pos2))
             continue;
@@ -1476,7 +1183,7 @@ void
 CQChartsAxis::
 drawEditHandles(QPainter *painter)
 {
-  assert(plot_->view()->mode() == CQChartsView::Mode::EDIT && isSelected());
+  assert(view()->mode() == CQChartsView::Mode::EDIT && isSelected());
 
   editHandles_.setBBox(this->bbox());
 
@@ -1702,9 +1409,11 @@ drawTickLabel(CQChartsPlot *plot, QPainter *painter, double apos, double tpos, b
   if (! text.length())
     return;
 
+  //---
+
   painter->setPen(interpTickLabelColor(0, 1));
 
-  painter->setFont(tickLabelFont());
+  view()->setPlotPainterFont(plot, painter, tickLabelFont());
 
   QFontMetricsF fm(painter->font());
 
@@ -2177,7 +1886,7 @@ drawAxisLabel(CQChartsPlot *plot, QPainter *painter, double apos,
 
   painter->setPen(interpLabelColor(0, 1));
 
-  painter->setFont(labelFont());
+  view()->setPlotPainterFont(plot, painter, labelFont());
 
   QFontMetricsF fm(painter->font());
 

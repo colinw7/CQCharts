@@ -246,6 +246,19 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
 
 //------
 
+bool
+CQChartsImagePlot::
+hasForeground() const
+{
+  if (! isXLabels() && ! isYLabels())
+    return false;
+
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsImagePlot::
 drawForeground(QPainter *painter)
@@ -261,15 +274,19 @@ void
 CQChartsImagePlot::
 drawXLabels(QPainter *painter)
 {
-  painter->setFont(textFont());
+  view()->setPlotPainterFont(this, painter, textFont());
+
+  //---
+
+  QPen tpen;
 
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
-
-  QPen tpen(tc);
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(tpen);
+
+  //---
 
   CQChartsTextOptions textOptions;
 
@@ -279,7 +296,7 @@ drawXLabels(QPainter *painter)
   textOptions.align     = Qt::AlignRight;
   textOptions.angle     = 90;
 
-  QFontMetricsF fm(textFont());
+  QFontMetricsF fm(painter->font());
 
   double tw = 0.0;
 //double th = fm.height();
@@ -316,15 +333,19 @@ void
 CQChartsImagePlot::
 drawYLabels(QPainter *painter)
 {
-  painter->setFont(textFont());
+  view()->setPlotPainterFont(this, painter, textFont());
+
+  //---
+
+  QPen tpen;
 
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
-
-  QPen tpen(tc);
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(tpen);
+
+  //---
 
   CQChartsTextOptions textOptions;
 
@@ -333,7 +354,7 @@ drawYLabels(QPainter *painter)
 //textOptions.scaled    = isTextScaled();
   textOptions.align     = Qt::AlignRight;
 
-  QFontMetricsF fm(textFont());
+  QFontMetricsF fm(painter->font());
 
   double tw = 0.0;
   double th = fm.height();
@@ -370,9 +391,11 @@ CQChartsGeom::BBox
 CQChartsImagePlot::
 annotationBBox() const
 {
-  CQChartsGeom::BBox bbox;
+  QFont font = view()->plotFont(this, textFont());
 
-  QFontMetricsF fm(textFont());
+  QFontMetricsF fm(font);
+
+  CQChartsGeom::BBox bbox;
 
   double tm = 4;
 
@@ -482,28 +505,40 @@ draw(QPainter *painter)
 
   double v = CMathUtil::norm(value_, plot_->minValue(), plot_->maxValue());
 
+  //---
+
   QColor c = plot_->interpPaletteColor(v);
 
   QPen   pen;
-  QBrush brush(c);
+  QBrush brush;
+
+  plot_->setBrush(brush, true, c, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
+
+  //---
 
   painter->fillRect(qrect, brush);
 
   if (plot_->isCellLabels()) {
-    painter->setFont(plot_->textFont());
+    // set font
+    plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+
+    //---
+
+    // set pen
+    QPen   tpen;
+    QBrush tbrush;
 
     QColor tc = plot_->interpTextColor(0, 1);
 
-    tc.setAlphaF(plot_->textAlpha());
-
-    QPen   tpen(tc);
-    QBrush tbrush;
+    plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
     plot_->updateObjPenBrushState(this, tpen, tbrush);
 
     painter->setPen(tpen);
+
+    //---
 
     QString valueStr = CQChartsUtil::toString(value_);
 

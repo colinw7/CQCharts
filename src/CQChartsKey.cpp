@@ -167,7 +167,9 @@ doLayout()
 
   //---
 
-  QFontMetricsF fm(textFont());
+  QFont font = view()->viewFont(textFont());
+
+  QFontMetricsF fm(font);
 
   double pw = 0.0;
   double ph = 0.0;
@@ -253,9 +255,9 @@ draw(QPainter *painter)
 
   //---
 
-  painter->setFont(textFont());
+  view()->setPainterFont(painter, textFont());
 
-  QFontMetricsF fm(textFont());
+  QFontMetricsF fm(painter->font());
 
   double px1 = px + margin();
   double py1 = py + margin();
@@ -376,8 +378,8 @@ void
 CQChartsPlotKey::
 redraw()
 {
-  plot_->invalidateLayer(CQChartsLayer::Type::BG_KEY);
-  plot_->invalidateLayer(CQChartsLayer::Type::FG_KEY);
+  plot_->invalidateLayer(CQChartsBuffer::Type::BACKGROUND);
+  plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
 
 void
@@ -620,7 +622,9 @@ doLayout()
   double tw = 0, th = 0;
 
   if (headerStr().length()) {
-    QFontMetricsF fm(textFont());
+    QFont font = view()->plotFont(plot_, textFont());
+
+    QFontMetricsF fm(font);
 
     double ptw = fm.width(headerStr());
     double pth = fm.height();
@@ -1021,7 +1025,9 @@ draw(QPainter *painter)
     double xm = margin();
     double ym = margin();
 
-    QFontMetricsF fm(textFont());
+    QFont font = view()->plotFont(plot_, textFont());
+
+    QFontMetricsF fm(font);
 
     double fa = fm.ascent ();
 //  double fd = fm.descent();
@@ -1064,29 +1070,29 @@ interpBgColor() const
 
   if (location() != LocationType::ABS_POS) {
     if      (isInsideX() && isInsideY()) {
-      if (plot_->isDataBackground())
-        return plot_->interpDataBackgroundColor(0, 1);
+      if (plot_->isDataFilled())
+        return plot_->interpDataFillColor(0, 1);
     }
     else if (isInsideX()) {
       if (location() == CENTER_LEFT ||
           location() == CENTER_CENTER ||
           location() == CENTER_RIGHT) {
-        if (plot_->isDataBackground())
-          return plot_->interpDataBackgroundColor(0, 1);
+        if (plot_->isDataFilled())
+          return plot_->interpDataFillColor(0, 1);
       }
     }
     else if (isInsideY()) {
       if (location() == TOP_CENTER ||
           location() == CENTER_CENTER ||
           location() == BOTTOM_CENTER) {
-        if (plot_->isDataBackground())
-          return plot_->interpDataBackgroundColor(0, 1);
+        if (plot_->isDataFilled())
+          return plot_->interpDataFillColor(0, 1);
       }
     }
   }
 
-  if (plot_->isPlotBackground())
-    return plot_->interpBackgroundColor(0, 1);
+  if (plot_->isPlotFilled())
+    return plot_->interpPlotFillColor(0, 1);
 
   return plot_->interpThemeColor(0);
 }
@@ -1120,7 +1126,9 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetricsF fm(key_->textFont());
+  QFont font = plot->view()->plotFont(plot, key_->textFont());
+
+  QFontMetricsF fm(font);
 
   double w = fm.width(text_);
   double h = fm.height();
@@ -1144,7 +1152,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 {
   CQChartsPlot *plot = key_->plot();
 
-  painter->setFont(key_->textFont());
+  plot->view()->setPlotPainterFont(plot, painter, key_->textFont());
 
   QFontMetricsF fm(painter->font());
 
@@ -1203,7 +1211,9 @@ size() const
 {
   CQChartsPlot *plot = key_->plot();
 
-  QFontMetricsF fm(key_->textFont());
+  QFont font = plot->view()->plotFont(plot, key_->textFont());
+
+  QFontMetricsF fm(font);
 
   double h = fm.height();
 

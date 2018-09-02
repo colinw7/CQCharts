@@ -47,6 +47,12 @@ class CQChartsPlotLineData {
     CQChartsUtil::testAndSet(lineData_.dash, d, [&]() { lineDataInvalidate(); } );
   }
 
+  void setLineDataPen(QPen &pen, int i, int n) {
+    QColor lc = interpLinesColor(i, n);
+
+    lineDataPlot_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
+  }
+
  private:
   void lineDataInvalidate(bool reload=false) {
     if (reload)
@@ -111,6 +117,13 @@ class CQChartsPlot##UNAME##LineData { \
   void set##UNAME##LinesDash(const CQChartsLineDash &d) { \
     CQChartsUtil::testAndSet(LNAME##LineData_.dash, d, [&]() { \
       LNAME##LineDataInvalidate(); } ); \
+  } \
+\
+  void set##UNAME##LineDataPen(QPen &pen, int i, int n) { \
+    QColor lc = interp##UNAME##LinesColor(i, n); \
+\
+    LNAME##Plot_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
+                         LNAME##LinesWidth(), LNAME##LinesDash()); \
   } \
 \
  private: \
@@ -260,7 +273,7 @@ class CQChartsPlotPointData {
 //------
 
 #define CQCHARTS_NAMED_POINT_DATA_PROPERTIES(UNAME,LNAME) \
-Q_PROPERTY(bool                LNAME##points \
+Q_PROPERTY(bool                LNAME##Points \
            READ is##UNAME##Points        WRITE set##UNAME##Points           ) \
 Q_PROPERTY(CQChartsSymbol      LNAME##SymbolType \
            READ LNAME##SymbolType        WRITE set##UNAME##SymbolType       ) \
@@ -405,6 +418,69 @@ class CQChartsPlot##UNAME##PointData { \
 
 //------
 
+#define CQCHARTS_NAMED_FILL_DATA_PROPERTIES(UNAME,LNAME) \
+Q_PROPERTY(bool                LNAME##Filled \
+           READ is##UNAME##Filled  WRITE set##UNAME##Filled     ) \
+Q_PROPERTY(CQChartsColor       LNAME##FillColor \
+           READ LNAME##FillColor   WRITE set##UNAME##FillColor  ) \
+Q_PROPERTY(double              LNAME##FillAlpha \
+           READ LNAME##FillAlpha   WRITE set##UNAME##FillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
+           READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
+
+#define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
+template<class PLOT> \
+class CQChartsPlot##UNAME##FillData { \
+ public: \
+  CQChartsPlot##UNAME##FillData(PLOT *plot) : \
+   LNAME##Plot_(plot) { \
+  } \
+\
+  bool is##UNAME##Filled() const { return LNAME##FillData_.visible; } \
+  void set##UNAME##Filled(bool b) { \
+    CQChartsUtil::testAndSet(LNAME##FillData_.visible, b, [&]() { \
+      LNAME##FillDataInvalidate(true); } ); \
+  } \
+\
+  const CQChartsColor &LNAME##FillColor() const { return LNAME##FillData_.color; } \
+  void set##UNAME##FillColor(const CQChartsColor &c) { \
+    CQChartsUtil::testAndSet(LNAME##FillData_.color, c, [&]() { \
+      LNAME##FillDataInvalidate(); } ); \
+  } \
+\
+  QColor interp##UNAME##FillColor(int i, int n) const { \
+    return LNAME##FillColor().interpColor(LNAME##Plot_, i, n); \
+  } \
+\
+  double LNAME##FillAlpha() const { return LNAME##FillData_.alpha; } \
+  void set##UNAME##FillAlpha(double a) { \
+    CQChartsUtil::testAndSet(LNAME##FillData_.alpha, a, [&]() { \
+      LNAME##FillDataInvalidate(); } ); \
+  } \
+\
+  const CQChartsFillPattern &LNAME##FillPattern() const { return LNAME##FillData_.pattern; } \
+  void set##UNAME##FillPattern(const CQChartsFillPattern &p) { \
+    CQChartsUtil::testAndSet(LNAME##FillData_.pattern, p, [&]() { \
+      LNAME##FillDataInvalidate(); } ); \
+  } \
+\
+ private: \
+  void LNAME##FillDataInvalidate(bool reload=false) { \
+    if (reload) \
+      LNAME##Plot_->updateRangeAndObjs(); \
+    else \
+      LNAME##Plot_->invalidateLayers(); \
+  } \
+\
+ private: \
+  PLOT* LNAME##Plot_ { nullptr }; \
+\
+ protected: \
+  CQChartsFillData LNAME##FillData_; \
+};
+
+//------
+
 #define CQCHARTS_TEXT_DATA_PROPERTIES \
 Q_PROPERTY(bool          textVisible   READ isTextVisible   WRITE setTextVisible  ) \
 Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     ) \
@@ -413,7 +489,7 @@ Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha  
 Q_PROPERTY(bool          textContrast  READ isTextContrast  WRITE setTextContrast ) \
 Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign    ) \
 Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatted) \
-Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   ) \
+Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
 template<class PLOT>
 class CQChartsPlotTextData {
@@ -578,6 +654,67 @@ class CQChartsPlot##UNAME##TextData { \
 
 //------
 
+#define CQCHARTS_STROKE_DATA_PROPERTIES \
+Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     ) \
+Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor) \
+Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha) \
+Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
+Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+
+template<class PLOT>
+class CQChartsPlotStrokeData {
+ public:
+  CQChartsPlotStrokeData(PLOT *plot) :
+   strokeDataPlot_(plot) {
+  }
+
+  //---
+
+  bool isBorder() const { return strokeData_.visible; }
+  void setBorder(bool b) {
+    CQChartsUtil::testAndSet(strokeData_.visible, b, [&]() { strokeDataInvalidate(); } );
+  }
+
+  const CQChartsColor &borderColor() const { return strokeData_.color; }
+  void setBorderColor(const CQChartsColor &c) {
+    CQChartsUtil::testAndSet(strokeData_.color, c, [&]() { strokeDataInvalidate(); } );
+  }
+
+  double borderAlpha() const { return strokeData_.alpha; }
+  void setBorderAlpha(double a) {
+    CQChartsUtil::testAndSet(strokeData_.alpha, a, [&]() { strokeDataInvalidate(); } );
+  }
+
+  const CQChartsLength &borderWidth() const { return strokeData_.width; }
+  void setBorderWidth(const CQChartsLength &l) {
+    CQChartsUtil::testAndSet(strokeData_.width, l, [&]() { strokeDataInvalidate(); } );
+  }
+
+  const CQChartsLineDash &borderDash() const { return strokeData_.dash; }
+  void setBorderDash(const CQChartsLineDash &d) {
+    CQChartsUtil::testAndSet(strokeData_.dash, d, [&]() { strokeDataInvalidate(); } );
+  }
+
+  QColor interpBorderColor(int i, int n) const {
+    return borderColor().interpColor(strokeDataPlot_, i, n);
+  }
+
+  //---
+
+ private:
+  void strokeDataInvalidate() {
+    strokeDataPlot_->invalidateLayers();
+  }
+
+ private:
+  PLOT* strokeDataPlot_ { nullptr };
+
+ protected:
+  CQChartsStrokeData strokeData_;
+};
+
+//------
+
 #define CQCHARTS_SHAPE_DATA_PROPERTIES \
 Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     ) \
 Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor) \
@@ -585,10 +722,10 @@ Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha) \
 Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
 Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
 \
-Q_PROPERTY(bool          filled      READ isFilled     WRITE setFilled     ) \
-Q_PROPERTY(CQChartsColor fillColor   READ fillColor    WRITE setFillColor  ) \
-Q_PROPERTY(double        fillAlpha   READ fillAlpha    WRITE setFillAlpha  ) \
-Q_PROPERTY(Pattern       fillPattern READ fillPattern  WRITE setFillPattern) \
+Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
+Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  ) \
+Q_PROPERTY(double              fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
 
 template<class PLOT>
 class CQChartsPlotShapeData {
@@ -682,14 +819,14 @@ Q_PROPERTY(CQChartsLength   LNAME##BorderWidth \
 Q_PROPERTY(CQChartsLineDash LNAME##BorderDash \
            READ LNAME##BorderDash  WRITE set##UNAME##BorderDash ) \
 \
-Q_PROPERTY(bool          LNAME##Filled \
-           READ is##UNAME##Filled   WRITE set##UNAME##Filled     ) \
-Q_PROPERTY(CQChartsColor LNAME##FillColor \
-           READ LNAME##FillColor    WRITE set##UNAME##FillColor  ) \
-Q_PROPERTY(double        LNAME##FillAlpha \
-           READ LNAME##FillAlpha    WRITE set##UNAME##FillAlpha  ) \
-Q_PROPERTY(Pattern       LNAME##FillPattern \
-           READ LNAME##FillPattern  WRITE set##UNAME##FillPattern)
+Q_PROPERTY(bool                LNAME##Filled \
+           READ is##UNAME##Filled  WRITE set##UNAME##Filled     ) \
+Q_PROPERTY(CQChartsColor       LNAME##FillColor \
+           READ LNAME##FillColor   WRITE set##UNAME##FillColor  ) \
+Q_PROPERTY(double              LNAME##FillAlpha \
+           READ LNAME##FillAlpha   WRITE set##UNAME##FillAlpha  ) \
+Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
+           READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
 #define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
 template<class PLOT> \
@@ -775,6 +912,7 @@ class CQChartsPlot##UNAME##ShapeData { \
 };
 
 //------
+
 #define CQCHARTS_COLOR_MAP_PROPERTIES \
 Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped) \
 Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin) \

@@ -972,8 +972,8 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
   // init plot
   if (initData.overlay) {
     if (i > 0) {
-      plot->setPlotBackground(false);
-      plot->setDataBackground(false);
+      plot->setPlotFilled(false);
+      plot->setDataFilled(false);
     }
   }
 

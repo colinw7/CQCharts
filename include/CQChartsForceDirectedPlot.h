@@ -47,6 +47,8 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Node,node)
 
   // edge line
+  Q_PROPERTY(bool edgeLinesValueWidth READ isEdgeLinesValueWidth WRITE setEdgeLinesValueWidth)
+
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Edge,edge)
 
  public:
@@ -82,6 +84,11 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   double nodeRadius() const { return nodeRadius_; }
   void setNodeRadius(double r) { nodeRadius_ = r; }
+
+  //---
+
+  bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
+  void setEdgeLinesValueWidth(bool b) { edgeLinesValueWidth_ = b; }
 
   //---
 
@@ -142,21 +149,22 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
  private:
   using NodeMap = std::map<int,Springy::Node*>;
 
-  CQChartsColumn        nodeColumn_;                  // node column
-  CQChartsColumn        connectionsColumn_;           // connections column
-  CQChartsColumn        valueColumn_;                 // value column
-  CQChartsColumn        groupColumn_;                 // group column
-  CQChartsColumn        nameColumn_;                  // name column
-  IdConnectionsData     idConnections_;               // id connections
-  NodeMap               nodes_;                       // force directed nodes
-  CQChartsForceDirected forceDirected_;               // force directed class
-  bool                  running_           { true };  // is running
-  bool                  pressed_           { false }; // is pressed
-  double                rangeSize_         { 20.0 };  // range size
-  double                nodeMass_          { 1.0 };   // node mass
-  int                   initSteps_         { 100 };   // initial steps
-  double                stepSize_          { 0.01 };  // step size
-  double                nodeRadius_        { 6.0 };   // node radius
+  CQChartsColumn        nodeColumn_;                    // node column
+  CQChartsColumn        connectionsColumn_;             // connections column
+  CQChartsColumn        valueColumn_;                   // value column
+  CQChartsColumn        groupColumn_;                   // group column
+  CQChartsColumn        nameColumn_;                    // name column
+  IdConnectionsData     idConnections_;                 // id connections
+  NodeMap               nodes_;                         // force directed nodes
+  CQChartsForceDirected forceDirected_;                 // force directed class
+  bool                  running_             { true };  // is running
+  bool                  pressed_             { false }; // is pressed
+  double                rangeSize_           { 20.0 };  // range size
+  double                nodeMass_            { 1.0 };   // node mass
+  bool                  edgeLinesValueWidth_ { true };  // use value for edge line width
+  int                   initSteps_           { 100 };   // initial steps
+  double                stepSize_            { 0.01 };  // step size
+  double                nodeRadius_          { 6.0 };   // node radius
 };
 
 #endif

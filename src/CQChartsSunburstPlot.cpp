@@ -150,9 +150,8 @@ addProperties()
 
   addTextProperties("text", "text");
 
-  addProperty("color", this, "colorMapped", "mapped");
-  addProperty("color", this, "colorMapMin", "mapMin");
-  addProperty("color", this, "colorMapMax", "mapMax");
+  // color map
+  addColorMapProperties();
 }
 
 //------
@@ -313,7 +312,7 @@ CQChartsSunburstPlot::
 replaceRoots()
 {
   double ri = std::max(innerRadius(), 0.0);
-  double ro = std::min(std::max(outerRadius(), ri), 1.0);
+  double ro = CMathUtil::clamp(outerRadius(), ri, 1.0);
 
   double a = startAngle();
 
@@ -987,11 +986,11 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
               fillAlpha(),
               fillPattern());
 
+  QPen tpen;
+
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
-
-  QPen tpen(tc);
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   if (nodeObj) {
     updateObjPenBrushState(nodeObj, pen , brush);
@@ -1011,9 +1010,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
   // draw node label
   painter->setPen(tpen);
 
-  QFont font = textFont();
-
-  painter->setFont(font);
+  view()->setPlotPainterFont(this, painter, textFont());
 
   double ta, c, s;
 

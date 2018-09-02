@@ -581,3 +581,12 @@
  + Move fill pattern into class
  + Add density map for scatter plot
  + Fix parallel plot mouse over
+# 9/2/2018
+ + Support auto font scaling based on plot pixel size
+ + Cleanup more pen/brush handling
+ + Add interface interp color support
+ + Add fit bbox fill support
+ + Improve parallel plot annotation bbox
+ + Support group column for xy plot
+ + Add Sub Layout support to minimize number of image layers
+ + Support pixmap or image for layer

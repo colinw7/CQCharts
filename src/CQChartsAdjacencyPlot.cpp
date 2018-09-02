@@ -741,6 +741,8 @@ handleResize()
 {
   CQChartsPlot::handleResize();
 
+  setInsideObj(nullptr);
+
   clearRangeAndObjs();
 }
 
@@ -766,21 +768,21 @@ drawBackground(QPainter *painter)
 
   double ts = std::min(pxs, pys);
 
-  QFont f = this->textFont();
+  QFont font = this->textFont();
 
-  f.setPixelSize(ts);
+  font.setPixelSize(ts);
 
-  painter->setFont(f);
+  painter->setFont(font);
 
-  QFontMetricsF fm(f);
+  QFontMetricsF fm(painter->font());
 
   //---
 
+  QPen tpen;
+
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
-
-  QPen tpen(tc);
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(tpen);
 
@@ -863,7 +865,24 @@ drawBackground(QPainter *painter)
     py += pys;
   }
 
-  setInsideObj(nullptr);
+  if (insideObject()) {
+    setInsideObj(nullptr);
+
+    invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+  }
+}
+
+bool
+CQChartsAdjacencyPlot::
+hasForeground() const
+{
+  if (! insideObj())
+    return true;
+
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
 }
 
 void
@@ -872,10 +891,6 @@ drawForeground(QPainter *painter)
 {
   if (insideObj())
     insideObj()->draw(painter);
-
-  //---
-
-  CQChartsPlot::drawForeground(painter);
 }
 
 QColor
@@ -933,8 +948,13 @@ void
 CQChartsAdjacencyObj::
 draw(QPainter *painter)
 {
-  if (isInside())
-    plot_->setInsideObj(this);
+  if (isInside()) {
+    if (plot_->insideObj() != this) {
+      plot_->setInsideObj(this);
+
+      plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
+    }
+  }
 
   //---
 
@@ -962,13 +982,15 @@ draw(QPainter *painter)
 
   //---
 
-  //QColor pc = bc.lighter(120);
+  QPen   pen;
+  QBrush brush;
+
   QColor pc = plot_->interpBorderColor(0, 1);
 
-  pc.setAlphaF(plot_->borderAlpha());
+  plot_->setPen(pen, true, pc, plot_->borderAlpha(),
+                plot_->borderWidth(), plot_->borderDash());
 
-  QBrush brush(bc);
-  QPen   pen  (pc);
+  plot_->setBrush(brush, true, bc, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

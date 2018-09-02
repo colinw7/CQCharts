@@ -27,7 +27,6 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 //---
 
 class CQChartsGeometryPlot;
-class CQChartsBoxObj;
 
 class CQChartsGeometryObj : public CQChartsPlotObj {
   Q_OBJECT

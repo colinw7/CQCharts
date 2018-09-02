@@ -13,23 +13,26 @@ class QPainter;
 class CQChartsBoxObj : public CQChartsObj {
   Q_OBJECT
 
-  Q_PROPERTY(bool             visible           READ isVisible         WRITE setVisible          )
-  Q_PROPERTY(double           margin            READ margin            WRITE setMargin           )
-  Q_PROPERTY(double           padding           READ padding           WRITE setPadding          )
-  Q_PROPERTY(bool             background        READ isBackground      WRITE setBackground       )
-  Q_PROPERTY(CQChartsColor    backgroundColor   READ backgroundColor   WRITE setBackgroundColor  )
-  Q_PROPERTY(double           backgroundAlpha   READ backgroundAlpha   WRITE setBackgroundAlpha  )
-  Q_PROPERTY(Pattern          backgroundPattern READ backgroundPattern WRITE setBackgroundPattern)
-  Q_PROPERTY(bool             border            READ isBorder          WRITE setBorder           )
-  Q_PROPERTY(CQChartsColor    borderColor       READ borderColor       WRITE setBorderColor      )
-  Q_PROPERTY(double           borderAlpha       READ borderAlpha       WRITE setBorderAlpha      )
-  Q_PROPERTY(CQChartsLength   borderWidth       READ borderWidth       WRITE setBorderWidth      )
-  Q_PROPERTY(CQChartsLineDash borderDash        READ borderDash        WRITE setBorderDash       )
-  Q_PROPERTY(CQChartsLength   cornerSize        READ cornerSize        WRITE setCornerSize       )
-  Q_PROPERTY(QString          borderSides       READ borderSides       WRITE setBorderSides      )
+  Q_PROPERTY(bool   visible READ isVisible WRITE setVisible)
+  Q_PROPERTY(double margin  READ margin    WRITE setMargin )
+  Q_PROPERTY(double padding READ padding   WRITE setPadding)
 
- public:
-  using Pattern = CQChartsFillPattern;
+  Q_PROPERTY(bool                background
+             READ isBackground      WRITE setBackground       )
+  Q_PROPERTY(CQChartsColor       backgroundColor
+             READ backgroundColor   WRITE setBackgroundColor  )
+  Q_PROPERTY(double              backgroundAlpha
+             READ backgroundAlpha   WRITE setBackgroundAlpha  )
+  Q_PROPERTY(CQChartsFillPattern backgroundPattern
+             READ backgroundPattern WRITE setBackgroundPattern)
+
+  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
+  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
+  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
+  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
+  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
+  Q_PROPERTY(QString          borderSides READ borderSides WRITE setBorderSides)
 
  public:
   CQChartsBoxObj(CQChartsView *view);
@@ -39,7 +42,7 @@ class CQChartsBoxObj : public CQChartsObj {
 
   //---
 
-  CQChartsView *view() const { return view_; }
+  CQChartsView *view() const;
   CQChartsPlot *plot() const { return plot_; }
 
   //---

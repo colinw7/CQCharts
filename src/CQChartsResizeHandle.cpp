@@ -20,6 +20,30 @@ void
 CQChartsResizeHandle::
 draw(QPainter *painter)
 {
+  // set pen and brush
+  QPen   pen;
+  QBrush brush;
+
+  QColor pc = borderColor();
+  QColor bc = fillColor();
+
+  if (isSelected())
+    bc = CQChartsUtil::invColor(bc);
+
+  if      (plot()) {
+    plot()->setPen  (pen  , true, pc, 1.0);
+    plot()->setBrush(brush, true, bc, fillAlpha());
+  }
+  else if (view()) {
+    view()->setPen  (pen  , true, pc, 1.0);
+    view()->setBrush(brush, true, bc, fillAlpha());
+  }
+
+  painter->setPen  (pen);
+  painter->setBrush(brush);
+
+  //---
+
   double cs = 16;
 
   path_ = QPainterPath();
@@ -83,20 +107,6 @@ draw(QPainter *painter)
   else {
     return;
   }
-
-  QColor pc = borderColor();
-  QColor bc = fillColor();
-
-  if (isSelected())
-    bc = CQChartsUtil::invColor(bc);
-
-  bc.setAlphaF(fillAlpha());
-
-  QPen   pen  (pc);
-  QBrush brush(bc);
-
-  painter->setPen  (pen);
-  painter->setBrush(brush);
 
   painter->drawPath(path_);
 }

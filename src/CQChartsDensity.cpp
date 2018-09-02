@@ -1,34 +1,9 @@
 #include <CQChartsDensity.h>
 #include <CQChartsPlot.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQUtil.h>
 #include <QPainter>
-#include <QPolygonF>
-#include <cmath>
 #include <cassert>
-
-namespace {
-
-double polygonArea2(const QPolygonF &poly) {
-  int n = poly.size();
-
-  double area = 0.0;
-
-  int i1 = n - 1;
-  int i2 = 0;
-
-  for ( ; i2 < n; i1 = i2++)
-    area += poly[i1].x()*poly[i2].y() - poly[i1].y()*poly[i2].x();
-
-  return area;
-}
-
-double polygonArea(const QPolygonF &poly) {
-  return fabs(0.5*polygonArea2(poly));
-}
-
-}
-
-//---
 
 void
 CQChartsDensity::
@@ -154,7 +129,7 @@ calc()
     ++i;
   }
 
-  area_ = polygonArea(poly);
+  area_ = CQUtil::polygonArea(poly);
 
   opoints_.resize(np);
 
@@ -199,10 +174,11 @@ init()
     sigma_ += x*x;
   }
 
-  if (nx_ > 0)
+  if (nx_ > 0) {
     avg_ /= double(nx_);
 
-  sigma_ = sqrt(sigma_/double(nx_) - avg_*avg_); /* Standard Deviation */
+    sigma_ = sqrt(sigma_/double(nx_) - avg_*avg_); /* Standard Deviation */
+  }
 
   //---
 

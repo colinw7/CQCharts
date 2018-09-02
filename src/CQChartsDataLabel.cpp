@@ -1,4 +1,5 @@
 #include <CQChartsDataLabel.h>
+#include <CQChartsView.h>
 #include <CQChartsPlot.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRotatedText.h>
@@ -53,21 +54,23 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr, const Position
   if (! isVisible())
     return;
 
+  QPen tpen;
+
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
+  plot_->setPen(tpen, true, tc, textAlpha());
 
-  draw(painter, qrect, ystr, position, tc);
+  draw(painter, qrect, ystr, position, tpen);
 }
 
 void
 CQChartsDataLabel::
 draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
-     const Position &position, const QColor &tc)
+     const Position &position, const QPen &tpen)
 {
   painter->save();
 
-  painter->setFont(textFont());
+  plot_->view()->setPlotPainterFont(plot_, painter, textFont());
 
   //---
 
@@ -180,7 +183,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
     CQChartsBoxObj::draw(painter, prect);
 
     if (! clipped) {
-      painter->setPen(tc);
+      painter->setPen(tpen);
 
       if (ystr.length()) {
         if (direction() == Direction::VERTICAL)
@@ -221,7 +224,7 @@ draw(QPainter *painter, const QRectF &qrect, const QString &ystr,
 
     CQChartsBoxObj::draw(painter, poly);
 
-    painter->setPen(tc);
+    painter->setPen(tpen);
 
     if (ystr.length())
       CQChartsRotatedText::drawRotatedText(painter, x, y, ystr, textAngle(), align,
@@ -268,8 +271,10 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
   //double b = b1 + b2;
 
+  QFont font = plot_->view()->plotFont(plot_, textFont());
+
   if (CMathUtil::isZero(textAngle())) {
-    QFontMetricsF fm(textFont());
+    QFontMetricsF fm(font);
 
     double tw = fm.width(ystr);
 
@@ -325,7 +330,7 @@ calcRect(const QRectF &qrect, const QString &ystr, const Position &position) con
 
     CQChartsRotatedText::Points points;
 
-    CQChartsRotatedText::bboxData(x, y, ystr, textFont(), textAngle(), b1,
+    CQChartsRotatedText::bboxData(x, y, ystr, font, textAngle(), b1,
                                   prect, points, align, /*alignBBox*/ true);
   }
 

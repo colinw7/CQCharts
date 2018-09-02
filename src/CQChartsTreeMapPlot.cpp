@@ -105,7 +105,9 @@ double
 CQChartsTreeMapPlot::
 calcHeaderHeight() const
 {
-  QFontMetricsF fm(headerTextFont());
+  QFont font = view()->plotFont(this, headerTextFont());
+
+  QFontMetricsF fm(font);
 
   double hh = lengthPixelHeight(headerHeight());
 
@@ -983,11 +985,12 @@ draw(QPainter *painter)
 
   //---
 
+  QPen tpen;
+
   QColor tc = plot_->interpHeaderTextColor(0, 1);
 
-  tc.setAlphaF(plot_->headerTextAlpha());
-
-  QPen tpen(tc);
+  plot_->setPen(tpen, true, tc, plot_->headerTextAlpha(),
+                CQChartsLength("0px"), CQChartsLineDash());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -1005,17 +1008,15 @@ draw(QPainter *painter)
 
   //---
 
-  // set font size
-  QFont font = plot_->headerTextFont();
+  // set font
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->headerTextFont());
 
   //---
 
   // calc text size and position
-  painter->setFont(font);
+  QFontMetricsF fm(painter->font());
 
   QString name = hier_->name();
-
-  QFontMetricsF fm(painter->font());
 
   plot_->windowToPixel(hier_->x(), hier_->y() + hier_->h(), px1, py1);
 
@@ -1154,11 +1155,12 @@ draw(QPainter *painter)
 
   //---
 
+  QPen tpen;
+
   QColor tc = plot_->interpTextColor(0, 1);
 
-  tc.setAlphaF(plot_->textAlpha());
-
-  QPen tpen(tc);
+  plot_->setPen(tpen, true, tc, plot_->textAlpha(),
+                CQChartsLength("0px"), CQChartsLineDash());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -1177,15 +1179,13 @@ draw(QPainter *painter)
   //---
 
   // set font
-  QFont font = plot_->textFont();
-
-  painter->setFont(font);
-
-  QFontMetricsF fm(painter->font());
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
   //---
 
   // calc text size and position
+  QFontMetricsF fm(painter->font());
+
   QString name = (! node_->isFiller() ? node_->name() : node_->parent()->name());
 
   //---

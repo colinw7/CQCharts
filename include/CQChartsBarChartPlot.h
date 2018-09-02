@@ -35,7 +35,6 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
 //---
 
 class CQChartsBarChartPlot;
-class CQChartsBoxObj;
 
 // values for bar (normal: 1 value : range bar: multiple values)
 // ToDo: handle range bar in distribution plot
@@ -257,7 +256,8 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 //  y     : value(s)
 //  group : group(s)
 //  bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
-class CQChartsBarChartPlot : public CQChartsBarPlot {
+class CQChartsBarChartPlot : public CQChartsBarPlot,
+ public CQChartsPlotDotPointData<CQChartsBarChartPlot> {
   Q_OBJECT
 
   // style
@@ -273,8 +273,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   // dot line
   Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
   Q_PROPERTY(CQChartsLength dotLineWidth  READ dotLineWidth  WRITE setDotLineWidth )
-  Q_PROPERTY(CQChartsSymbol dotSymbolType READ dotSymbolType WRITE setDotSymbolType)
-  Q_PROPERTY(CQChartsLength dotSymbolSize READ dotSymbolSize WRITE setDotSymbolSize)
+
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot,dot)
 
  public:
   CQChartsBarChartPlot(CQChartsView *view, const ModelP &model);
@@ -307,12 +307,6 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
 
   const CQChartsLength &dotLineWidth() const { return dotLineWidth_; }
   void setDotLineWidth(const CQChartsLength &l);
-
-  const CQChartsSymbol &dotSymbolType() const { return dotSymbolType_; }
-  void setDotSymbolType(const CQChartsSymbol &s);
-
-  const CQChartsLength &dotSymbolSize() const { return dotSymbolSize_; }
-  void setDotSymbolSize(const CQChartsLength &r);
 
   //---
 
@@ -403,8 +397,6 @@ class CQChartsBarChartPlot : public CQChartsBarPlot {
   bool              colorBySet_     { false }; // color bars by set or value
   bool              dotLines_       { false }; // show dot lines
   CQChartsLength    dotLineWidth_   { "3px" }; // dot line width
-  CQChartsSymbol    dotSymbolType_;            // dot symbol type
-  CQChartsLength    dotSymbolSize_  { "7px" }; // dot symbol size
   CQChartsDataLabel dataLabel_;                // data label data
   ValueSets         valueSets_;                // value sets
   ValueGroupInd     valueGroupInd_;            // group ind to value index map

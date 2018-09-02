@@ -876,15 +876,23 @@ handleResize()
   dataRange_.reset();
 }
 
+//------
+
+bool
+CQChartsHierBubblePlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsHierBubblePlot::
 drawForeground(QPainter *painter)
 {
   drawBounds(painter, currentRoot());
-
-  //---
-
-  CQChartsPlot::drawForeground(painter);
 }
 
 void
@@ -1139,11 +1147,11 @@ draw(QPainter *painter)
 
   //---
 
+  QPen tpen;
+
   QColor tc = plot_->interpTextColor(0, 1);
 
-  tc.setAlphaF(plot_->textAlpha());
-
-  QPen tpen(tc);
+  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -1178,11 +1186,10 @@ draw(QPainter *painter)
   //---
 
   // set font
-  QFont font = plot_->textFont();
-
-  painter->setFont(font);
+  plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
   if (plot_->isTextScaled()) {
+    // calc text size
     QFontMetricsF fm(painter->font());
 
     double tw = 0;
@@ -1192,11 +1199,17 @@ draw(QPainter *painter)
 
     double th = strs.size()*fm.height();
 
+    //---
+
+    // calc scale factor
     double sx = (tw > 0 ? qrect.width ()/tw : 1.0);
     double sy = (th > 0 ? qrect.height()/th : 1.0);
 
     double s = std::min(sx, sy);
 
+    //---
+
+    // scale font
     double fs = painter->font().pointSizeF()*s;
 
     QFont font1 = painter->font();

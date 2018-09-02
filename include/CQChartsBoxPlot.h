@@ -300,14 +300,18 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(Box,box)
 CQCHARTS_NAMED_LINE_DATA(Whisker,whisker)
 CQCHARTS_NAMED_POINT_DATA(Outlier,outlier)
+CQCHARTS_NAMED_POINT_DATA(Jitter,jitter)
 
 // box plot
 class CQChartsBoxPlot : public CQChartsGroupPlot,
+ public CQChartsPlotBoxShapeData    <CQChartsBoxPlot>,
  public CQChartsPlotTextData        <CQChartsBoxPlot>,
  public CQChartsPlotWhiskerLineData <CQChartsBoxPlot>,
- public CQChartsPlotOutlierPointData<CQChartsBoxPlot> {
+ public CQChartsPlotOutlierPointData<CQChartsBoxPlot>,
+ public CQChartsPlotJitterPointData <CQChartsBoxPlot> {
   Q_OBJECT
 
   // calc value columns
@@ -334,10 +338,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(bool colorBySet   READ isColorBySet   WRITE setColorBySet  )
 
   // jitter
-  Q_PROPERTY(bool           pointsJitter     READ isPointsJitter   WRITE setPointsJitter    )
-  Q_PROPERTY(bool           pointsStacked    READ isPointsStacked  WRITE setPointsStacked   )
-  Q_PROPERTY(CQChartsSymbol pointsSymbolType READ pointsSymbolType WRITE setPointsSymbolType)
-  Q_PROPERTY(CQChartsLength pointsSymbolSize READ pointsSymbolSize WRITE setPointsSymbolSize)
+  Q_PROPERTY(bool pointsJitter  READ isPointsJitter  WRITE setPointsJitter )
+  Q_PROPERTY(bool pointsStacked READ isPointsStacked WRITE setPointsStacked)
+
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Jitter,jitter)
 
   // violin (density)
   Q_PROPERTY(bool           violin      READ isViolin    WRITE setViolin     )
@@ -349,17 +353,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   Q_PROPERTY(ErrorBarType errorBarType READ errorBarType WRITE setErrorBarType)
 
   // box
-  Q_PROPERTY(CQChartsLength   boxWidth    READ boxWidth        WRITE setBoxWidth     )
-  Q_PROPERTY(bool             boxFilled   READ isBoxFilled     WRITE setBoxFilled    )
-  Q_PROPERTY(CQChartsColor    boxColor    READ boxColor        WRITE setBoxColor     )
-  Q_PROPERTY(double           boxAlpha    READ boxAlpha        WRITE setBoxAlpha     )
-  Q_PROPERTY(Pattern          boxPattern  READ boxPattern      WRITE setBoxPattern   )
-  Q_PROPERTY(bool             boxStroked  READ isBorderStroked WRITE setBorderStroked)
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor     WRITE setBorderColor  )
-  Q_PROPERTY(double           borderAlpha READ borderAlpha     WRITE setBorderAlpha  )
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth     WRITE setBorderWidth  )
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash      WRITE setBorderDash   )
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize      WRITE setCornerSize   )
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Box,box)
+
+  Q_PROPERTY(CQChartsLength boxWidth    READ boxWidth   WRITE setBoxWidth  )
+  Q_PROPERTY(CQChartsLength cornerSize  READ cornerSize WRITE setCornerSize)
 
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -472,12 +469,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   bool isPointsStacked() const { return pointsStacked_; }
 
-  const CQChartsSymbol &pointsSymbolType() const { return pointsSymbolData_.type; }
-  void setPointsSymbolType(const CQChartsSymbol &t);
-
-  const CQChartsLength &pointsSymbolSize() const { return pointsSymbolData_.size; }
-  void setPointsSymbolSize(const CQChartsLength &s);
-
   //---
 
   // violin (density)
@@ -500,41 +491,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   // whisker box
-  bool isBoxFilled() const;
-  void setBoxFilled(bool b);
-
-  const CQChartsColor &boxColor() const;
-  void setBoxColor(const CQChartsColor &c);
-
-  double boxAlpha() const;
-  void setBoxAlpha(double r);
-
-  const CQChartsFillPattern &boxPattern() const;
-  void setBoxPattern(const CQChartsFillPattern &pattern);
-
-  QColor interpBoxColor(int i, int n) const;
-
-  //---
-
-  bool isBorderStroked() const;
-  void setBorderStroked(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  double borderAlpha() const;
-  void setBorderAlpha(double r);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &l);
-
   const CQChartsLength &cornerSize() const;
   void setCornerSize(const CQChartsLength &r);
-
-  QColor interpBorderColor(int i, int n) const;
 
   //---
 
@@ -662,7 +620,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   CQChartsGeom::RMinMax xrange_;                                     // x range
   CQChartsBoxData       boxData_;                                    // shape fill/border style
   double                textMargin_     { 2 };                       // text margin
-  CQChartsSymbolData    pointsSymbolData_;                           // point symbol data
   ColumnType            setType_        { ColumnType::NONE };        // set column data type
   GroupSetWhiskerMap    groupWhiskers_;                              // grouped whisker data
   WhiskerDataList       whiskerDataList_;                            // whisker data

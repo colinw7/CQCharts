@@ -19,14 +19,13 @@ colorStr() const
   if (! isValid())
     return "none";
 
-  if (type() == Type::PALETTE) {
+  if      (type() == Type::PALETTE) {
     if (ind() == 0)
       return "palette";
 
     return QString("palette#%1").arg(ind());
   }
-
-  if (type() == Type::PALETTE_VALUE) {
+  else if (type() == Type::PALETTE_VALUE) {
     if (ind() == 0) {
       if (isScale())
         return QString("palette:%1:s").arg(value());
@@ -40,9 +39,12 @@ colorStr() const
         return QString("palette#%1:%2").arg(ind()).arg(value());
     }
   }
-
-  if (type() == Type::INTERFACE_VALUE)
+  else if (type() == Type::INTERFACE) {
+    return "interface";
+  }
+  else if (type() == Type::INTERFACE_VALUE) {
     return QString("interface:%1").arg(value());
+  }
 
   return color().name();
 }
@@ -118,6 +120,9 @@ setColorStr(const QString &str)
 
     setScaleValue(Type::PALETTE_VALUE, value, scale);
   }
+  else if (str == "interface") {
+    setValue(Type::INTERFACE, 0.0);
+  }
   else if (str.startsWith("interface:")) {
     QString rhs = str.mid(10);
 
@@ -159,24 +164,23 @@ interpColor(const CQChartsPlot *plot, double value) const
 {
   assert(isValid());
 
-  if (type() == Type::COLOR)
+  if      (type() == Type::COLOR)
     return color();
-
-  if (type() == Type::PALETTE) {
+  else if (type() == Type::PALETTE) {
     if (ind() == 0)
       return plot->interpPaletteColor(value);
     else
       return plot->interpIndPaletteColor(ind(), value);
   }
-
-  if (type() == Type::PALETTE_VALUE) {
+  else if (type() == Type::PALETTE_VALUE) {
     if (ind() == 0)
       return plot->interpPaletteColor(this->value(), isScale());
     else
       return plot->interpIndPaletteColor(ind(), this->value(), isScale());
   }
-
-  if (type() == Type::INTERFACE_VALUE)
+  else if (type() == Type::INTERFACE)
+    return plot->interpThemeColor(value);
+  else if (type() == Type::INTERFACE_VALUE)
     return plot->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
@@ -206,24 +210,23 @@ interpColor(const CQChartsView *view, double value) const
 {
   assert(isValid());
 
-  if (type() == Type::COLOR)
+  if      (type() == Type::COLOR)
     return color();
-
-  if (type() == Type::PALETTE) {
+  else if (type() == Type::PALETTE) {
     if (ind() == 0)
       return view->interpPaletteColor(value);
     else
       return view->interpIndPaletteColor(ind(), value);
-   }
-
-  if (type() == Type::PALETTE_VALUE) {
+  }
+  else if (type() == Type::PALETTE_VALUE) {
     if (ind() == 0)
       return view->interpPaletteColor(this->value(), isScale());
     else
       return view->interpIndPaletteColor(ind(), this->value(), isScale());
   }
-
-  if (type() == Type::INTERFACE_VALUE)
+  else if (type() == Type::INTERFACE)
+    return view->interpThemeColor(value);
+  else if (type() == Type::INTERFACE_VALUE)
     return view->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);

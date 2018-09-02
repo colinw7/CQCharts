@@ -1854,6 +1854,22 @@ addMenuItems(QMenu *menu)
 
 //---
 
+bool
+CQChartsDistributionPlot::
+hasForeground() const
+{
+  if (isDensity() || isScatter())
+    return false;
+
+  if (! isShowMean())
+    return false;
+
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsDistributionPlot::
 drawForeground(QPainter *painter)
@@ -2267,12 +2283,10 @@ drawRug(QPainter *painter)
   plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
 
   int ic = (ns_ > 1 ? is_ : iv_);
-  int nc = (ns_ > 1 ? ns_ : is_);
+  int nc = (ns_ > 1 ? ns_ : nv_);
 
   QColor strokeColor = plot_->interpRugSymbolStrokeColor(ic, nc);
   QColor barColor    = plot_->interpRugSymbolFillColor  (ic, nc);
-
-  barColor.setAlphaF(0.5);
 
   QPen   pen;
   QBrush brush;
@@ -2383,19 +2397,21 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
   QPen   pen;
   QBrush barBrush;
 
+  QColor bc = plot_->interpBarBorderColor(0, 1);
   QColor fc = color.interpColor(plot_, 0, 1);
 
-  plot_->setPenBrush(pen, barBrush,
-                     plot_->isBorder(), plot_->interpBorderColor(0, 1), plot_->borderAlpha(),
-                     plot_->borderWidth(), plot_->borderDash(),
-                     plot_->isBarFill(), fc, plot_->barAlpha(), plot_->barPattern());
+  CQChartsLength bw = plot_->barBorderWidth();
 
   if (useLine) {
-    pen.setWidthF(0);
+    bw = CQChartsLength("0px");
 
-    if (plot_->isBarFill())
-      pen.setColor(fc);
+    if (plot_->isBarFilled())
+      bc = fc;
   }
+
+  plot_->setPenBrush(pen, barBrush,
+    plot_->isBarBorder(), bc, plot_->barBorderAlpha(), bw, plot_->barBorderDash(),
+    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, barBrush);
 
@@ -2465,7 +2481,9 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     plot_->pixelSymbolSize(plot_->dotSymbolSize(), sx, sy);
 
     int ic = (ns_ > 1 ? is_ : iv_);
-    int nc = (ns_ > 1 ? ns_ : is_);
+    int nc = (ns_ > 1 ? ns_ : nv_);
+
+    //---
 
     QPen   dotPen;
     QBrush dotBrush;
@@ -2480,6 +2498,8 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
 
     painter->setPen  (dotPen);
     painter->setBrush(dotBrush);
+
+    //---
 
     QPointF p;
 
@@ -2497,9 +2517,9 @@ CQChartsDistributionBarObj::
 barColor() const
 {
   int ic = (ns_ > 1 ? is_ : iv_);
-  int nc = (ns_ > 1 ? ns_ : is_);
+  int nc = (ns_ > 1 ? ns_ : nv_);
 
-  return plot_->interpBarColor(ic, nc);
+  return plot_->interpBarFillColor(ic, nc);
 }
 
 CQChartsGeom::BBox
@@ -2655,11 +2675,13 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
+  QColor bc = plot_->interpBarBorderColor(is_, ns_);
+  QColor fc = plot_->interpBarFillColor(is_, ns_);
+
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(), plot_->interpBorderColor(is_, ns_), plot_->borderAlpha(),
-                     plot_->borderWidth(), plot_->borderDash(),
-                     plot_->isBarFill(), plot_->interpBarColor(is_, ns_),
-                     plot_->barAlpha(), plot_->barPattern());
+    plot_->isBarBorder(), bc, plot_->barBorderAlpha(),
+    plot_->barBorderWidth(), plot_->barBorderDash(),
+    plot_->isBarFilled(), fc, plot_->barFillAlpha(), plot_->barFillPattern());
 
   //---
 
@@ -2680,7 +2702,7 @@ draw(QPainter *painter)
 
     QLinearGradient lg(pg1.x(), pg1.y(), pg2.x(), pg2.y());
 
-    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barAlpha());
+    plot_->view()->themePalette()->setLinearGradient(lg, plot_->barFillAlpha());
 
     brush = QBrush(lg);
   }
@@ -2780,22 +2802,24 @@ drawRug(QPainter *painter)
     symbol = (! plot_->isHorizontal() ? CQChartsSymbol::Type::VLINE :
                                         CQChartsSymbol::Type::HLINE);
 
-  //bool stroked = true;
-  //bool filled  = true;
-
   double sx, sy;
 
   plot_->pixelSymbolSize(plot_->rugSymbolSize(), sx, sy);
 
-  QColor fillColor = plot_->interpBarColor(is_, ns_);
+  //---
 
-  QPen   pen(fillColor);
-  QBrush brush(fillColor);
+  QColor fillColor = plot_->interpBarFillColor(is_, ns_);
 
-  fillColor.setAlphaF(0.5);
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPen  (pen  , true, fillColor, 0.5, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setBrush(brush, true, fillColor, 0.5, CQChartsFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
+
+  //---
 
   const CQChartsGeom::Range &dataRange = plot_->dataRange();
 
@@ -2834,7 +2858,7 @@ CQChartsDistributionScatterObj(CQChartsDistributionPlot *plot, const CQChartsGeo
   assert(is >= 0 && is < ns);
   assert(iv >= 0 && iv < nv);
 
-  int nf = std::min(std::max(int(n_*plot_->scatterFactor()), 1), n_);
+  int nf = CMathUtil::clamp(int(n_*plot_->scatterFactor()), 1, n_);
 
   points_.resize(nf);
 
@@ -2876,15 +2900,16 @@ void
 CQChartsDistributionScatterObj::
 draw(QPainter *painter)
 {
-  QColor c;
+  int ic = (ns_ > 1 ? is_ : iv_);
+  int nc = (ns_ > 1 ? ns_ : nv_);
 
-  if (ns_ > 1)
-    c = plot_->interpBarColor(is_, ns_);
-  else
-    c = plot_->interpBarColor(iv_, nv_);
+  QColor c = plot_->interpBarFillColor(ic, nc);
 
-  QPen   pen(Qt::black);
-  QBrush brush(c);
+  QPen   pen;
+  QBrush brush;
+
+  plot_->setPen  (pen  , true, Qt::black, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setBrush(brush, true, c, 1.0, CQChartsFillPattern());
 
   painter->setPen(pen);
   painter->setBrush(brush);
@@ -2950,7 +2975,7 @@ QBrush
 CQChartsDistKeyColorBox::
 fillBrush() const
 {
-  QColor c = plot_->interpBarColor(i_, n_);
+  QColor c = plot_->interpBarFillColor(i_, n_);
 
   if (isSetHidden())
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);

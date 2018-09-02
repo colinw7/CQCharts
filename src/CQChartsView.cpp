@@ -42,7 +42,10 @@ QSize CQChartsView::sizeHint_ = QSize(1280, 1024);
 
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
- QFrame(parent), charts_(charts)
+ QFrame(parent),
+ CQChartsViewSelectedShapeData(this),
+ CQChartsViewInsideShapeData  (this),
+ charts_(charts)
 {
   setObjectName("view");
 
@@ -92,21 +95,21 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "bufferLayers"  );
   addProperty("", this, "posTextType"   );
 
-  addProperty("selectedHighlight"       , this, "selectedMode"              , "mode");
-  addProperty("selectedHighlight/stroke", this, "selectedStrokeColorEnabled", "enabled");
-  addProperty("selectedHighlight/stroke", this, "selectedStrokeColor"       , "color");
-  addProperty("selectedHighlight/stroke", this, "selectedStrokeWidth"       , "width");
-  addProperty("selectedHighlight/stroke", this, "selectedStrokeDash"        , "dash");
-  addProperty("selectedHighlight/fill"  , this, "selectedFillColorEnabled"  , "enabled");
-  addProperty("selectedHighlight/fill"  , this, "selectedFillColor"         , "color");
+  addProperty("selectedHighlight"       , this, "selectedMode"       , "mode");
+  addProperty("selectedHighlight/stroke", this, "selectedBorder"     , "enabled");
+  addProperty("selectedHighlight/stroke", this, "selectedBorderColor", "color");
+  addProperty("selectedHighlight/stroke", this, "selectedBorderWidth", "width");
+  addProperty("selectedHighlight/stroke", this, "selectedBorderDash" , "dash");
+  addProperty("selectedHighlight/fill"  , this, "selectedFilled"     , "enabled");
+  addProperty("selectedHighlight/fill"  , this, "selectedFillColor"  , "color");
 
-  addProperty("insideHighlight"       , this, "insideMode"              , "mode");
-  addProperty("insideHighlight/stroke", this, "insideStrokeColorEnabled", "enabled");
-  addProperty("insideHighlight/stroke", this, "insideStrokeColor"       , "color");
-  addProperty("insideHighlight/stroke", this, "insideStrokeWidth"       , "width");
-  addProperty("insideHighlight/stroke", this, "insideStrokeDash"        , "dash");
-  addProperty("insideHighlight/fill"  , this, "insideFillColorEnabled"  , "enabled");
-  addProperty("insideHighlight/fill"  , this, "insideFillColor"         , "color");
+  addProperty("insideHighlight"       , this, "insideMode"       , "mode");
+  addProperty("insideHighlight/stroke", this, "insideBorder"     , "enabled");
+  addProperty("insideHighlight/stroke", this, "insideBorderColor", "color");
+  addProperty("insideHighlight/stroke", this, "insideBorderWidth", "width");
+  addProperty("insideHighlight/stroke", this, "insideBorderDash" , "dash");
+  addProperty("insideHighlight/fill"  , this, "insideFilled"     , "enabled");
+  addProperty("insideHighlight/fill"  , this, "insideFillColor"  , "color");
 
   addProperty("scroll", this, "scrolled"      , "enabled" );
   addProperty("scroll", this, "scrollDelta"   , "delta"   );
@@ -171,10 +174,123 @@ void
 CQChartsView::
 setTitle(const QString &s)
 {
-  title_ = s;
-
-  setWindowTitle(title_);
+  CQChartsUtil::testAndSet(title_, s, [&]() { setWindowTitle(title_); } );
 }
+
+void
+CQChartsView::
+setBackground(const QColor &c)
+{
+  CQChartsUtil::testAndSet(background_, c, [&]() { update(); } );
+}
+
+//---
+
+void
+CQChartsView::
+setAntiAlias(bool b)
+{
+  CQChartsUtil::testAndSet(antiAlias_, b, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setBufferLayers(bool b)
+{
+  CQChartsUtil::testAndSet(bufferLayers_, b, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setPreview(bool b)
+{
+  CQChartsUtil::testAndSet(preview_, b, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setScaleFont(bool b)
+{
+  CQChartsUtil::testAndSet(scaleFont_, b, [&]() { updatePlots(); } );
+}
+
+void
+CQChartsView::
+setPosTextType(const PosTextType &t)
+{
+  CQChartsUtil::testAndSet(posTextType_, t, [&]() { updatePlots(); } );
+}
+
+//---
+
+void
+CQChartsView::
+setPainterFont(QPainter *painter, const QFont &font) const
+{
+  painter->setFont(viewFont(font));
+}
+
+void
+CQChartsView::
+setPlotPainterFont(const CQChartsPlot *plot, QPainter *painter, const QFont &font) const
+{
+  painter->setFont(plotFont(plot, font));
+}
+
+QFont
+CQChartsView::
+viewFont(const QFont &font) const
+{
+  if (isScaleFont())
+    return scaledFont(font, this->size());
+  else
+    return font;
+}
+
+QFont
+CQChartsView::
+plotFont(const CQChartsPlot *plot, const QFont &font) const
+{
+  if (isScaleFont())
+    return scaledFont(font, plot->calcPixelSize());
+  else
+    return font;
+}
+
+double
+CQChartsView::
+calcFontScale(const QSizeF &size) const
+{
+  // calc scale factor
+  double sx = (size.width () > 0 ? size.width ()/sizeHint_.width () : 1.0);
+  double sy = (size.height() > 0 ? size.height()/sizeHint_.height() : 1.0);
+
+  return std::min(sx, sy);
+}
+
+QFont
+CQChartsView::
+scaledFont(const QFont &font, const QSizeF &size) const
+{
+  double s = calcFontScale(size);
+
+  return scaledFont(font, s);
+}
+
+QFont
+CQChartsView::
+scaledFont(const QFont &font, double s) const
+{
+  double fs = font.pointSizeF()*s;
+
+  QFont font1 = font;
+
+  font1.setPointSizeF(fs);
+
+  return font1;
+}
+
+//---
 
 void
 CQChartsView::
@@ -190,18 +306,14 @@ void
 CQChartsView::
 setCurrentPlotInd(int ind)
 {
-  if (ind != currentPlotInd_) {
-    currentPlotInd_ = ind;
-
-    emit currentPlotChanged();
-  }
+  CQChartsUtil::testAndSet(currentPlotInd_, ind, [&]() { emit currentPlotChanged(); } );
 }
 
 void
 CQChartsView::
 setMode(const Mode &mode)
 {
-  if (mode != mode_) {
+  CQChartsUtil::testAndSet(mode_, mode, [&]() {
     endRegionBand();
 
     for (auto &probeBand : probeBands_)
@@ -209,21 +321,15 @@ setMode(const Mode &mode)
 
     deselectAll();
 
-    mode_ = mode;
-
     emit modeChanged();
-  }
+  } );
 }
 
 void
 CQChartsView::
 setSelectMode(const SelectMode &selectMode)
 {
-  if (selectMode != selectMode_) {
-    selectMode_ = selectMode;
-
-    emit selectModeChanged();
-  }
+  CQChartsUtil::testAndSet(selectMode_, selectMode, [&]() { emit selectModeChanged(); } );
 }
 
 void
@@ -1663,12 +1769,65 @@ paint(QPainter *painter, CQChartsPlot *plot)
         plot->draw(painter);
     }
 
+    //---
+
+    // TODO: allow use extra layer for foreground (annotations, key)
+
     for (auto &annotation : annotations())
       annotation->draw(painter);
 
     //---
 
     key()->draw(painter);
+  }
+}
+
+//------
+
+void
+CQChartsView::
+setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
+       const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash) const
+{
+  // calc pen (stroke)
+  if (stroked) {
+    QColor color = strokeColor;
+
+    color.setAlphaF(CMathUtil::clamp(strokeAlpha, 0.0, 1.0));
+
+    pen.setColor(color);
+
+    double width = lengthPixelWidth(strokeWidth);
+
+    if (width > 0)
+      pen.setWidthF(width);
+    else
+      pen.setWidthF(0.0);
+
+    CQChartsUtil::penSetLineDash(pen, strokeDash);
+  }
+  else {
+    pen.setStyle(Qt::NoPen);
+  }
+}
+
+void
+CQChartsView::
+setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
+         const CQChartsFillPattern &pattern) const
+{
+  // calc brush (fill)
+  if (filled) {
+    QColor color = fillColor;
+
+    color.setAlphaF(CMathUtil::clamp(fillAlpha, 0.0, 1.0));
+
+    brush.setColor(color);
+
+    brush.setStyle(pattern.style());
+  }
+  else {
+    brush.setStyle(Qt::NoBrush);
   }
 }
 
@@ -1716,7 +1875,7 @@ drawTextInBox(QPainter *painter, const QRectF &rect, const QString &text,
 
       double fs = painter->font().pointSizeF()*s;
 
-      fs = std::min(std::max(fs, options.minScaleFontSize), options.maxScaleFontSize);
+      fs = CMathUtil::clamp(fs, options.minScaleFontSize, options.maxScaleFontSize);
 
       QFont font1 = painter->font();
 

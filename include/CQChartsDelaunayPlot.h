@@ -126,6 +126,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
 
   //---
 
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *painter) override;
 
  public slots:

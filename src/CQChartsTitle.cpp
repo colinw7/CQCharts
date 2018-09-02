@@ -32,7 +32,7 @@ void
 CQChartsTitle::
 redraw()
 {
-  plot_->invalidateLayer(CQChartsLayer::Type::TITLE);
+  plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);
 }
 
 QString
@@ -352,15 +352,23 @@ draw(QPainter *painter)
 
   //---
 
+  // set pen
+  QPen pen;
+
   QColor tc = interpTextColor(0, 1);
 
-  tc.setAlphaF(textAlpha());
+  plot()->setPen(pen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
 
-  QPen pen(tc);
+  painter->setPen(pen);
 
-  painter->setPen (pen);
-  painter->setFont(textFont());
+  //---
 
+  // set font
+  view()->setPlotPainterFont(plot(), painter, textFont());
+
+  //---
+
+  // draw text
   CQChartsTextOptions textOptions;
 
   textOptions.angle     = textAngle();

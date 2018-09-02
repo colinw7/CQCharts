@@ -2,16 +2,17 @@
 
 CQChartsBarPlot::
 CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
- CQChartsGroupPlot(view, plotType, model)
+ CQChartsGroupPlot(view, plotType, model),
+ CQChartsPlotBarShapeData<CQChartsBarPlot>(this)
 {
   (void) addColorSet("color");
 
-  setBarFill (true);
-  setBarColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+  setBarFilled   (true);
+  setBarFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
+  setBarBorder(true);
 
   //---
-
-  setBorder(true);
 
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 
@@ -101,18 +102,17 @@ addProperties()
   addProperty("margins", this, "margin"     , "bar"  );
   addProperty("margins", this, "groupMargin", "group");
 
-  addProperty("stroke", this, "border"    , "visible"   );
+  addProperty("stroke", this, "barBorder", "visible");
+
+  addLineProperties("stroke", "barBorder");
+
   addProperty("stroke", this, "cornerSize", "cornerSize");
 
-  addLineProperties("stroke", "border");
+  addProperty("fill", this, "barFilled", "visible");
 
-  addProperty("fill", this, "barFill", "visible");
+  addFillProperties("fill", "barFill");
 
-  addFillProperties("fill", "bar");
-
-  addProperty("color", this, "colorMapped", "mapped");
-  addProperty("color", this, "colorMapMin", "mapMin");
-  addProperty("color", this, "colorMapMax", "mapMax");
+  addColorMapProperties();
 }
 
 //---
@@ -142,164 +142,18 @@ setGroupMargin(const CQChartsLength &l)
 
 //---
 
-bool
-CQChartsBarPlot::
-isBorder() const
-{
-  return boxData_.shape.border.visible;
-}
-
-void
-CQChartsBarPlot::
-setBorder(bool b)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsBarPlot::
-borderColor() const
-{
-  return boxData_.shape.border.color;
-}
-
-void
-CQChartsBarPlot::
-setBorderColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBarPlot::
-interpBorderColor(int i, int n) const
-{
-  return borderColor().interpColor(this, i, n);
-}
-
-double
-CQChartsBarPlot::
-borderAlpha() const
-{
-  return boxData_.shape.border.alpha;
-}
-
-void
-CQChartsBarPlot::
-setBorderAlpha(double a)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLength &
-CQChartsBarPlot::
-borderWidth() const
-{
-  return boxData_.shape.border.width;
-}
-
-void
-CQChartsBarPlot::
-setBorderWidth(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.width, l, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsLineDash &
-CQChartsBarPlot::
-borderDash() const
-{
-  return boxData_.shape.border.dash;
-}
-
-void
-CQChartsBarPlot::
-setBorderDash(const CQChartsLineDash &d)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.dash, d, [&]() { invalidateLayers(); } );
-}
-
 const CQChartsLength &
 CQChartsBarPlot::
 cornerSize() const
 {
-  return boxData_.cornerSize;
+  return cornerSize_;
 }
 
 void
 CQChartsBarPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-bool
-CQChartsBarPlot::
-isBarFill() const
-{
-  return boxData_.shape.background.visible;
-}
-
-void
-CQChartsBarPlot::
-setBarFill(bool b)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.background.visible, b, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsColor &
-CQChartsBarPlot::
-barColor() const
-{
-  return boxData_.shape.background.color;
-}
-
-void
-CQChartsBarPlot::
-setBarColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.background.color, c, [&]() { invalidateLayers(); } );
-}
-
-QColor
-CQChartsBarPlot::
-interpBarColor(int i, int n) const
-{
-  return barColor().interpColor(this, i, n);
-}
-
-double
-CQChartsBarPlot::
-barAlpha() const
-{
-  return boxData_.shape.background.alpha;
-}
-
-void
-CQChartsBarPlot::
-setBarAlpha(double a)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.background.alpha, a, [&]() { invalidateLayers(); } );
-}
-
-const CQChartsFillPattern &
-CQChartsBarPlot::
-barPattern() const
-{
-  return boxData_.shape.background.pattern;
-}
-
-void
-CQChartsBarPlot::
-setBarPattern(const CQChartsFillPattern &pattern)
-{
-  if (pattern != boxData_.shape.background.pattern) {
-    boxData_.shape.background.pattern = pattern;
-
-    invalidateLayers();
-  }
+  CQChartsUtil::testAndSet(cornerSize_, s, [&]() { invalidateLayers(); } );
 }
 
 //---

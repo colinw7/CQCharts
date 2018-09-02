@@ -42,7 +42,6 @@ class CQChartsEllipseAnnotation;
 class CQChartsPolygonAnnotation;
 class CQChartsPolylineAnnotation;
 class CQChartsPointAnnotation;
-class CQChartsBoxObj;
 class CQChartsObj;
 class CQPropertyViewModel;
 class CQChartsDisplayRange;
@@ -78,7 +77,14 @@ class CQChartsPlotUpdateTimer : public QTimer {
 
 //----
 
-class CQChartsPlot : public QObject {
+CQCHARTS_NAMED_SHAPE_DATA(Plot,plot)
+CQCHARTS_NAMED_SHAPE_DATA(Data,data)
+CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
+
+class CQChartsPlot : public QObject,
+ public CQChartsPlotPlotShapeData<CQChartsPlot>,
+ public CQChartsPlotDataShapeData<CQChartsPlot>,
+ public CQChartsPlotFitShapeData <CQChartsPlot> {
   Q_OBJECT
 
   // view
@@ -125,24 +131,21 @@ class CQChartsPlot : public QObject {
   Q_PROPERTY(QString yLabel   READ yLabel   WRITE setYLabel  )
 
   // plot area
-  Q_PROPERTY(bool           plotBackground      READ isPlotBackground    WRITE setPlotBackground )
-  Q_PROPERTY(CQChartsColor  plotBackgroundColor READ plotBackgroundColor
-                                                WRITE setPlotBackgroundColor)
-  Q_PROPERTY(bool           plotBorder          READ isPlotBorder        WRITE setPlotBorder     )
-  Q_PROPERTY(CQChartsColor  plotBorderColor     READ plotBorderColor     WRITE setPlotBorderColor)
-  Q_PROPERTY(CQChartsLength plotBorderWidth     READ plotBorderWidth     WRITE setPlotBorderWidth)
-  Q_PROPERTY(QString        plotBorderSides     READ plotBorderSides     WRITE setPlotBorderSides)
-  Q_PROPERTY(bool           plotClip            READ isPlotClip          WRITE setPlotClip       )
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Plot,plot)
+
+  Q_PROPERTY(QString plotBorderSides READ plotBorderSides WRITE setPlotBorderSides)
+  Q_PROPERTY(bool    plotClip        READ isPlotClip      WRITE setPlotClip       )
 
   // data area
-  Q_PROPERTY(bool           dataBackground      READ isDataBackground    WRITE setDataBackground )
-  Q_PROPERTY(CQChartsColor  dataBackgroundColor READ dataBackgroundColor
-                                                WRITE setDataBackgroundColor)
-  Q_PROPERTY(bool           dataBorder          READ isDataBorder        WRITE setDataBorder     )
-  Q_PROPERTY(CQChartsColor  dataBorderColor     READ dataBorderColor     WRITE setDataBorderColor)
-  Q_PROPERTY(CQChartsLength dataBorderWidth     READ dataBorderWidth     WRITE setDataBorderWidth)
-  Q_PROPERTY(QString        dataBorderSides     READ dataBorderSides     WRITE setDataBorderSides)
-  Q_PROPERTY(bool           dataClip            READ isDataClip          WRITE setDataClip       )
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Data,data)
+
+  Q_PROPERTY(QString dataBorderSides READ dataBorderSides WRITE setDataBorderSides)
+  Q_PROPERTY(bool    dataClip        READ isDataClip      WRITE setDataClip       )
+
+  // fit area
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit,fit)
+
+  Q_PROPERTY(QString fitBorderSides READ fitBorderSides WRITE setFitBorderSides)
 
   // key
   Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
@@ -245,9 +248,8 @@ class CQChartsPlot : public QObject {
 
   using Plots = std::vector<CQChartsPlot*>;
 
-  using Layers = std::map<CQChartsLayer::Type,CQChartsLayer *>;
-
-  using Pattern = CQChartsFillPattern;
+  using Buffers = std::map<CQChartsBuffer::Type,CQChartsBuffer *>;
+  using Layers  = std::map<CQChartsLayer::Type,CQChartsLayer *>;
 
  public:
   CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -369,58 +371,26 @@ class CQChartsPlot : public QObject {
   //---
 
   // plot area
-  bool isPlotBackground() const;
-  void setPlotBackground(bool b);
-
-  const CQChartsColor &plotBackgroundColor() const;
-  void setPlotBackgroundColor(const CQChartsColor &c);
-
-  QColor interpBackgroundColor(int i, int n) const;
-
-  bool isPlotBorder() const;
-  void setPlotBorder(bool b);
-
-  const CQChartsColor &plotBorderColor() const;
-  void setPlotBorderColor(const CQChartsColor &c);
-
-  QColor interpPlotBorderColor(int i, int n) const;
-
-  const CQChartsLength &plotBorderWidth() const;
-  void setPlotBorderWidth(const CQChartsLength &l);
-
-  const QString &plotBorderSides() const;
+  const QString &plotBorderSides() const { return plotBorderSides_; }
   void setPlotBorderSides(const QString &s);
 
-  bool isPlotClip() const { return clip_; }
+  bool isPlotClip() const { return plotClip_; }
   void setPlotClip(bool b);
 
   //---
 
   // data area
-  bool isDataBackground() const;
-  void setDataBackground(bool b);
-
-  const CQChartsColor &dataBackgroundColor() const;
-  void setDataBackgroundColor(const CQChartsColor &c);
-
-  QColor interpDataBackgroundColor(int i, int n) const;
-
-  bool isDataBorder() const;
-  void setDataBorder(bool b);
-
-  const CQChartsColor &dataBorderColor() const;
-  void setDataBorderColor(const CQChartsColor &c);
-
-  QColor interpDataBorderColor(int i, int n) const;
-
-  const CQChartsLength &dataBorderWidth() const;
-  void setDataBorderWidth(const CQChartsLength &l);
-
-  const QString &dataBorderSides() const;
+  const QString &dataBorderSides() const { return dataBorderSides_; }
   void setDataBorderSides(const QString &s);
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b);
+
+  //---
+
+  // fit area
+  const QString &fitBorderSides() const { return fitBorderSides_; }
+  void setFitBorderSides(const QString &s);
 
   //---
 
@@ -584,6 +554,8 @@ class CQChartsPlot : public QObject {
   void addLineProperties(const QString &path, const QString &prefix);
   void addFillProperties(const QString &path, const QString &prefix);
   void addTextProperties(const QString &path, const QString &prefix);
+
+  void addColorMapProperties();
 
   bool setProperties(const QString &properties);
 
@@ -835,6 +807,7 @@ class CQChartsPlot : public QObject {
   void pixelToWindow(const CQChartsGeom::BBox &prect, CQChartsGeom::BBox &wrect) const;
 
   CQChartsGeom::BBox windowToPixel(const CQChartsGeom::BBox &wrect) const;
+  CQChartsGeom::BBox pixelToWindow(const CQChartsGeom::BBox &prect) const;
 
   double pixelToSignedWindowWidth (double ww) const;
   double pixelToSignedWindowHeight(double wh) const;
@@ -1086,6 +1059,10 @@ class CQChartsPlot : public QObject {
   CQChartsGeom::BBox calcDataPixelRect() const;
   CQChartsGeom::BBox calcPlotPixelRect() const;
 
+  CQChartsGeom::BBox calcFitPixelRect() const;
+
+  QSizeF calcPixelSize() const;
+
   //---
 
   // auto fit
@@ -1095,10 +1072,10 @@ class CQChartsPlot : public QObject {
 
   CQChartsGeom::BBox fitBBox() const;
 
-  CQChartsGeom::BBox dataFitBBox () const;
-  CQChartsGeom::BBox axesFitBBox () const;
-  CQChartsGeom::BBox keyFitBBox  () const;
-  CQChartsGeom::BBox titleFitBBox() const;
+  virtual CQChartsGeom::BBox dataFitBBox () const;
+  virtual CQChartsGeom::BBox axesFitBBox () const;
+  virtual CQChartsGeom::BBox keyFitBBox  () const;
+  virtual CQChartsGeom::BBox titleFitBBox() const;
 
   // get bounding box of annotations outside plot area
   virtual CQChartsGeom::BBox annotationBBox() const { return CQChartsGeom::BBox(); }
@@ -1141,20 +1118,25 @@ class CQChartsPlot : public QObject {
 
   const Layers &layers() const { return layers_; }
 
+  CQChartsLayer *initLayer(const CQChartsLayer::Type &type,
+                           const CQChartsBuffer::Type &buffer, bool active);
+
   void setLayerActive(const CQChartsLayer::Type &type, bool b);
 
   bool isLayerActive(const CQChartsLayer::Type &type) const;
 
   void invalidateLayers();
 
-  void invalidateLayer(const CQChartsLayer::Type &layerType);
+  void invalidateLayer(const CQChartsBuffer::Type &layerType);
+
+  CQChartsBuffer *getBuffer(const CQChartsBuffer::Type &type) const;
 
   CQChartsLayer *getLayer(const CQChartsLayer::Type &type) const;
 
  private:
   void setLayerActive1(const CQChartsLayer::Type &type, bool b);
 
-  void invalidateLayer1(const CQChartsLayer::Type &layerType);
+  void invalidateLayer1(const CQChartsBuffer::Type &layerType);
 
   //---
 
@@ -1162,49 +1144,96 @@ class CQChartsPlot : public QObject {
   // draw plot parts
   virtual void drawParts(QPainter *painter);
 
+  // draw background layer plot parts
+  virtual void drawBackgroundParts(QPainter *painter);
+
+  // draw middle layer plot parts
+  virtual void drawMiddleParts(QPainter *painter);
+
+  // draw foreground layer plot parts
+  virtual void drawForegroundParts(QPainter *painter);
+
+  // draw overlay layer plot parts
+  virtual void drawOverlayParts(QPainter *painter);
+
+  //---
+
   // draw background (layer and detail)
+  virtual bool hasBackgroundLayer() const;
+
   virtual void drawBackgroundLayer(QPainter *painter);
 
   virtual void drawBackground(QPainter *) { }
 
-  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides,
-                           double width, const QColor &color);
+  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides);
 
   // draw axes on background
+  virtual bool hasBgAxes() const;
+
   virtual void drawBgAxes(QPainter *painter);
 
   // draw key on background
+  virtual bool hasBgKey() const;
+
   virtual void drawBgKey(QPainter *painter);
 
+  //---
+
   // draw objects
+  bool hasGroupedObjs(const CQChartsLayer::Type &layerType) const;
+
   void drawGroupedObjs(QPainter *painter, const CQChartsLayer::Type &layerType);
+
+  virtual bool hasObjs(const CQChartsLayer::Type &layerType) const;
 
   virtual void drawObjs(QPainter *painter, const CQChartsLayer::Type &type);
 
+  //---
+
   // draw axes on foreground
+  virtual bool hasFgAxes() const;
+
   virtual void drawFgAxes(QPainter *painter);
 
   // draw key on foreground
+  virtual bool hasFgKey() const;
+
   virtual void drawFgKey(QPainter *painter);
 
   // draw title
+  virtual bool hasTitle() const;
+
   virtual void drawTitle(QPainter *painter);
 
   // draw annotations
+  virtual bool hasGroupedAnnotations(const CQChartsLayer::Type &layerType) const;
+
   void drawGroupedAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
+
+  virtual bool hasAnnotations(const CQChartsLayer::Type &layerType) const;
 
   virtual void drawAnnotations(QPainter *painter, const CQChartsLayer::Type &layerType);
 
   // draw foreground
+  virtual bool hasForeground() const;
+
   virtual void drawForeground(QPainter *painter);
 
   // draw debug boxes
+  virtual bool hasGroupedBoxes() const;
+
   void drawGroupedBoxes(QPainter *painter);
+
+  virtual bool hasBoxes() const;
 
   virtual void drawBoxes(QPainter *painter);
 
   // draw edit handles
+  bool hasGroupedEditHandles() const;
+
   void drawGroupedEditHandles(QPainter *painter);
+
+  bool hasEditHandles() const;
 
   virtual void drawEditHandles(QPainter *painter);
 
@@ -1219,12 +1248,12 @@ class CQChartsPlot : public QObject {
 
   //---
 
-  QPainter *beginPaint(CQChartsLayer *layer, QPainter *painter, const QRectF &rect=QRectF());
-  void      endPaint  (CQChartsLayer *layer);
+  QPainter *beginPaint(CQChartsBuffer *layer, QPainter *painter, const QRectF &rect=QRectF());
+  void      endPaint  (CQChartsBuffer *layer);
 
   //---
 
-  CQChartsPlotKey *getFirstPlotKey();
+  CQChartsPlotKey *getFirstPlotKey() const;
 
   //---
 
@@ -1281,14 +1310,16 @@ class CQChartsPlot : public QObject {
                    bool stroked, const QColor &strokeColor, double strokeAlpha,
                    const CQChartsLength &strokeWidth, const CQChartsLineDash &strokeDash,
                    bool filled, const QColor &fillColor, double fillAlpha,
-                   const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
+                   const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
-  void setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
-              const CQChartsLength &strokeWidth,
-              const CQChartsLineDash &strokeDash=CQChartsLineDash());
+  void setPen(QPen &pen, bool stroked,
+              const QColor &strokeColor=QColor(), double strokeAlpha=1.0,
+              const CQChartsLength &strokeWidth=CQChartsLength("0px"),
+              const CQChartsLineDash &strokeDash=CQChartsLineDash()) const;
 
-  void setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
-                const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID);
+  void setBrush(QBrush &brush, bool filled,
+                const QColor &fillColor=QColor(), double fillAlpha=1.0,
+                const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
   //---
 
@@ -1506,10 +1537,11 @@ class CQChartsPlot : public QObject {
   OptReal                   ymax_;                            // ymax override
   EveryData                 everyData_;                       // every data
   QString                   filterStr_;                       // filter
-  CQChartsBoxObj*           borderObj_        { nullptr };    // plot border display object
-  bool                      clip_             { true };       // is clipped at plot limits
-  CQChartsBoxObj*           dataBorderObj_    { nullptr };    // data border display object
+  QString                   plotBorderSides_  { "tlbr" };     // plot border sides
+  bool                      plotClip_         { true };       // is clipped at plot limits
+  QString                   dataBorderSides_  { "tlbr" };     // data border sides
   bool                      dataClip_         { false };      // is clipped at data limits
+  QString                   fitBorderSides_   { "tlbr" };     // fit border sides
   QString                   titleStr_;                        // title string
   QString                   fileName_;                        // associated data filename
   QString                   xLabel_;                          // x label override
@@ -1544,7 +1576,9 @@ class CQChartsPlot : public QObject {
   CQChartsPlotObjTree*      plotObjTree_      { nullptr };    // plot object quad tree
   MouseData                 mouseData_;                       // mouse event data
   AnimateData               animateData_;                     // animation data
+  Buffers                   buffers_;                         // draw layer bufferss
   Layers                    layers_;                          // draw layers
+  CQChartsBuffer::Type      drawBuffer_;                      // objects draw buffer
   CQChartsLayer::Type       drawLayer_;                       // objects draw layer
   IdHidden                  idHidden_;                        // hidden object ids
   IndexColumnRows           selIndexColumnRows_;              // sel model indices (by col/row)
@@ -1561,5 +1595,7 @@ class CQChartsPlot : public QObject {
 CQCHARTS_NAMED_LINE_DATA(Grid,grid)
 CQCHARTS_NAMED_SHAPE_DATA(Node,node)
 CQCHARTS_NAMED_LINE_DATA(Edge,edge)
+CQCHARTS_NAMED_POINT_DATA(Dot,dot)
+CQCHARTS_NAMED_POINT_DATA(Rug,rug)
 
 #endif

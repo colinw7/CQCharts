@@ -183,10 +183,11 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"    , "x"    );
-  addProperty("columns", this, "yColumn"    , "y"    );
-  addProperty("columns", this, "nameColumn" , "name" );
-  addProperty("columns", this, "groupColumn", "group");
+  addProperty("columns", this, "xColumn"   , "x"   );
+  addProperty("columns", this, "yColumn"   , "y"   );
+  addProperty("columns", this, "nameColumn", "name");
+
+  addProperty("columns", this, "groupColumnStr", "groupStr");
 
   addSymbolProperties("symbol");
 
@@ -704,11 +705,17 @@ draw(QPainter *painter)
 
   plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
 
+  //---
+
+  QPen   pen;
+  QBrush brush;
+
   QColor fillColor   = plot_->interpPaletteColor(i_, n_);
   QColor strokeColor = plot_->interpPaletteColor(i_, n_);
 
-  QBrush brush(fillColor);
-  QPen   pen  (strokeColor);
+  plot_->setPen(pen, true, strokeColor, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+
+  plot_->setBrush(brush, true, fillColor, 1.0, CQChartsFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

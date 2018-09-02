@@ -126,6 +126,8 @@ class CQChartsAxis : public QObject {
 
   CQChartsPlot *plot() const { return plot_; }
 
+  CQChartsView *view() const;
+
   bool isVisible() const { return visible_; }
   void setVisible(bool b) { CQChartsUtil::testAndSet(visible_, b, [&]() { redraw(); } ); }
 
@@ -451,11 +453,6 @@ class CQChartsAxis : public QObject {
   };
 
   void calc();
-
-#if 0
-  bool testAxisGaps(double start, double end, double testIncrement, uint testNumGapTicks,
-                    AxisGapData &axisGapData);
-#endif
 
  private:
   using TickSpaces = std::vector<double>;

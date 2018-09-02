@@ -9,6 +9,8 @@
 #include <CQChartsFitData.h>
 #include <CInterval.h>
 
+class CQChartsScatterPlot;
+
 //---
 
 class CQChartsScatterPlotType : public CQChartsGroupPlotType {
@@ -24,18 +26,20 @@ class CQChartsScatterPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
+  const char *xColumnName() const override { return "x"; }
+  const char *yColumnName() const override { return "y"; }
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
 //---
 
-class CQChartsScatterPlot;
-
 class CQChartsScatterPointObj : public CQChartsPlotObj {
   Q_OBJECT
 
-  Q_PROPERTY(QPointF point READ point)
-  Q_PROPERTY(QString name  READ name )
+  Q_PROPERTY(int     groupInd READ groupInd)
+  Q_PROPERTY(QPointF point    READ point   )
+  Q_PROPERTY(QString name     READ name    )
 
  public:
   enum Dir {
@@ -188,8 +192,12 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
+
 class CQChartsScatterPlot : public CQChartsGroupPlot,
- public CQChartsPlotPointData<CQChartsScatterPlot> {
+ public CQChartsPlotPointData    <CQChartsScatterPlot>,
+ public CQChartsPlotHullShapeData<CQChartsScatterPlot>,
+ public CQChartsPlotRugPointData <CQChartsScatterPlot> {
   Q_OBJECT
 
   // columns
@@ -209,17 +217,17 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double        bestFitFillAlpha READ bestFitFillAlpha   WRITE setBestFitFillAlpha)
 
   // convex hull
-  Q_PROPERTY(bool          hull          READ isHull        WRITE setHull         )
-  Q_PROPERTY(CQChartsColor hullFillColor READ hullFillColor WRITE setHullFillColor)
-  Q_PROPERTY(double        hullFillAlpha READ hullFillAlpha WRITE setHullFillAlpha)
+  Q_PROPERTY(bool hull READ isHull WRITE setHull)
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Hull,hull)
 
   // axis rug
-  Q_PROPERTY(bool           xRug          READ isXRug        WRITE setXRug         )
-  Q_PROPERTY(YSide          xRugSide      READ xRugSide      WRITE setXRugSide     )
-  Q_PROPERTY(bool           yRug          READ isYRug        WRITE setYRug         )
-  Q_PROPERTY(XSide          yRugSide      READ yRugSide      WRITE setYRugSide     )
-  Q_PROPERTY(CQChartsSymbol rugSymbolType READ rugSymbolType WRITE setRugSymbolType)
-  Q_PROPERTY(CQChartsLength rugSymbolSize READ rugSymbolSize WRITE setRugSymbolSize)
+  Q_PROPERTY(bool  xRug     READ isXRug   WRITE setXRug    )
+  Q_PROPERTY(YSide xRugSide READ xRugSide WRITE setXRugSide)
+  Q_PROPERTY(bool  yRug     READ isYRug   WRITE setYRug    )
+  Q_PROPERTY(XSide yRugSide READ yRugSide WRITE setYRugSide)
+
+  CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug,rug)
 
   // axis density
   Q_PROPERTY(bool           xDensity     READ isXDensity   WRITE setXDensity    )
@@ -229,6 +237,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsLength densityWidth READ densityWidth WRITE setDensityWidth)
   Q_PROPERTY(double         densityAlpha READ densityAlpha WRITE setDensityAlpha)
 
+  // density map
   Q_PROPERTY(bool   densityMap         READ isDensityMap       WRITE setDensityMap        )
   Q_PROPERTY(int    densityMapGridSize READ densityMapGridSize WRITE setDensityMapGridSize)
   Q_PROPERTY(double densityMapDelta    READ densityMapDelta    WRITE setDensityMapDelta   )
@@ -338,6 +347,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // columns
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
@@ -369,12 +379,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   // convex hull
   bool isHull() const { return hullData_.visible; }
 
-  const CQChartsColor &hullFillColor() const { return hullData_.fillColor; }
-  void setHullFillColor(const CQChartsColor &c);
-
-  double hullFillAlpha() const { return hullData_.fillAlpha; }
-  void setHullFillAlpha(double a);
-
   //---
 
   // axis rug
@@ -386,12 +390,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   const XSide &yRugSide() const { return axisRugData_.ySide; }
   void setYRugSide(const XSide &s);
-
-  const CQChartsSymbol &rugSymbolType() const { return axisRugData_.symbolType; }
-  void setRugSymbolType(const CQChartsSymbol &s);
-
-  const CQChartsLength &rugSymbolSize() const { return axisRugData_.symbolSize; }
-  void setRugSymbolSize(const CQChartsLength &r);
 
   //---
 
@@ -445,6 +443,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // gridded
   bool isGridded() const { return gridData_.enabled; }
 
   int gridNumX() const { return gridData_.nx; }
@@ -455,6 +454,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // symbol map key
   bool isSymbolMapKey() const { return symbolMapKeyData_.displayed; }
   void setSymbolMapKey(bool b);
 
@@ -466,6 +466,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // symbol type column and map
   const CQChartsColumn &symbolTypeColumn() const { return valueSetColumn("symbolType"); }
   void setSymbolTypeColumn(const CQChartsColumn &c);
 
@@ -480,6 +481,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // symbol size column and map
   const CQChartsColumn &symbolSizeColumn() const { return valueSetColumn("symbolSize"); }
   void setSymbolSizeColumn(const CQChartsColumn &c);
 
@@ -494,6 +496,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // color column and map
   const CQChartsColumn &colorColumn() const { return valueSetColumn("color"); }
   void setColorColumn(const CQChartsColumn &c);
 
@@ -508,6 +511,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // font size column and map
   const CQChartsColumn &fontSizeColumn() const { return valueSetColumn("fontSize"); }
   void setFontSizeColumn(const CQChartsColumn &c);
 
@@ -529,6 +533,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // cached column names
   const QString &xname         () const { return xname_         ; }
   const QString &yname         () const { return yname_         ; }
   const QString &symbolTypeName() const { return symbolTypeName_; }
@@ -538,6 +543,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   //---
 
+  // data label
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }
   CQChartsDataLabel &dataLabel() { return dataLabel_; }
 
@@ -568,6 +574,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   //---
 
   void drawBackground(QPainter *painter) override;
+
+  bool hasForeground() const override;
+
   void drawForeground(QPainter *painter) override;
 
   //---
@@ -659,18 +668,14 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   };
 
   struct HullData {
-    bool          visible    { false }; // show convex hull
-    CQChartsColor fillColor;            // fill color
-    double        fillAlpha  { 1.0 };   // fill alpha
+    bool visible { false }; // show convex hull
   };
 
   struct AxisRugData {
-    bool           xVisible   { false };         // x rug
-    YSide          xSide      { YSide::BOTTOM }; // x rug side
-    bool           yVisible   { false };         // y rug
-    XSide          ySide      { XSide::LEFT };   // y rug side
-    CQChartsSymbol symbolType;                   // symbol type
-    CQChartsLength symbolSize { "5px" };         // symbol size
+    bool  xVisible { false };         // x rug
+    YSide xSide    { YSide::BOTTOM }; // x rug side
+    bool  yVisible { false };         // y rug
+    XSide ySide    { XSide::LEFT };   // y rug side
   };
 
   struct AxisDensityData {

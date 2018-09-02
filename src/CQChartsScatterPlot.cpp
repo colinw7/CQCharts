@@ -27,6 +27,7 @@ addParameters()
 {
   startParameterGroup("Scatter");
 
+  // columns
   addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
   addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
 
@@ -36,6 +37,7 @@ addParameters()
 
   //---
 
+  // custom columns/map
   startParameterGroup("Points");
 
   addColumnParameter("symbolType", "Symbol Size", "symbolTypeColumn").
@@ -85,7 +87,9 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model),
- CQChartsPlotPointData<CQChartsScatterPlot>(this),
+ CQChartsPlotPointData    <CQChartsScatterPlot>(this),
+ CQChartsPlotHullShapeData<CQChartsScatterPlot>(this),
+ CQChartsPlotRugPointData <CQChartsScatterPlot>(this),
  dataLabel_(this)
 {
   // set mapped range
@@ -102,11 +106,12 @@ CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
   setSymbolFilled (true);
   setSymbolFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
+  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
+
   setRugSymbolType(CQChartsSymbol::Type::NONE);
+  setRugSymbolSize(CQChartsLength("5px"));
 
   setBestFitFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
-
-  setHullFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
   //---
 
@@ -375,20 +380,6 @@ setHull(bool b)
   CQChartsUtil::testAndSet(hullData_.visible, b, [&]() { invalidateLayers(); } );
 }
 
-void
-CQChartsScatterPlot::
-setHullFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(hullData_.fillColor, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsScatterPlot::
-setHullFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(hullData_.fillAlpha, a, [&]() { updateRangeAndObjs(); } );
-}
-
 //---
 
 void
@@ -417,20 +408,6 @@ CQChartsScatterPlot::
 setYRugSide(const XSide &s)
 {
   CQChartsUtil::testAndSet(axisRugData_.ySide, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsScatterPlot::
-setRugSymbolType(const CQChartsSymbol &s)
-{
-  CQChartsUtil::testAndSet(axisRugData_.symbolType, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsScatterPlot::
-setRugSymbolSize(const CQChartsLength &l)
-{
-  CQChartsUtil::testAndSet(axisRugData_.symbolSize, l, [&]() { invalidateLayers(); } );
 }
 
 //------
@@ -577,9 +554,10 @@ addProperties()
   addProperty("bestFit/fill", this, "bestFitFillAlpha", "alpha"    );
 
   // convex hull shape
-  addProperty("hull"     , this, "hull"         , "enabled");
-  addProperty("hull/fill", this, "hullFillColor", "color");
-  addProperty("hull/fill", this, "hullFillAlpha", "alpha");
+  addProperty("hull", this, "hull", "enabled");
+
+  addLineProperties("hull/stroke", "hullBorder");
+  addFillProperties("hull/fill"  , "hullFill"  );
 
   // rug axis
   addProperty("rug/x"     , this, "xRug"         , "enabled");
@@ -641,9 +619,8 @@ addProperties()
   addProperty("font/map/size", this, "fontSizeMapMin", "min"    );
   addProperty("font/map/size", this, "fontSizeMapMax", "max"    );
 
-  addProperty("color/map", this, "colorMapped", "enabled");
-  addProperty("color/map", this, "colorMapMin", "min"    );
-  addProperty("color/map", this, "colorMapMax", "max"    );
+  // color map
+  addColorMapProperties();
 }
 
 //---
@@ -690,7 +667,7 @@ calcRange()
     const CQChartsGeom::Range &range() const { return range_; }
 
    private:
-    CQChartsScatterPlot *plot_ { nullptr };
+    CQChartsScatterPlot* plot_ { nullptr };
     CQChartsGeom::Range  range_;
   };
 
@@ -1359,13 +1336,21 @@ drawBackground(QPainter *painter)
   if (isYWhisker()) drawYWhisker(painter);
 }
 
+bool
+CQChartsScatterPlot::
+hasForeground() const
+{
+  if (! isLayerActive(CQChartsLayer::Type::FOREGROUND))
+    return false;
+
+  return true;
+}
+
 void
 CQChartsScatterPlot::
 drawForeground(QPainter *painter)
 {
   drawSymbolMapKey(painter);
-
-  CQChartsPlot::drawForeground(painter);
 }
 
 void
@@ -1410,12 +1395,9 @@ drawBestFit(QPainter *painter)
     QColor borderColor = interpThemeColor(1.0);
     QColor fillColor   = bestFitFillColor().interpColor(this, ig, ng);
 
-    fillColor.setAlphaF(bestFitFillAlpha());
+    setPen(pen, true, borderColor, 1.0, CQChartsLength("0px"), CQChartsLineDash());
 
-    pen.setColor(borderColor);
-
-    brush.setStyle(Qt::SolidPattern);
-    brush.setColor(fillColor);
+    setBrush(brush, true, fillColor, bestFitFillAlpha(), CQChartsFillPattern());
 
     //---
 
@@ -1522,15 +1504,10 @@ drawHull(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor borderColor = interpThemeColor(1.0);
-    QColor fillColor   = hullFillColor().interpColor(this, ig, ng);
-
-    fillColor.setAlphaF(hullFillAlpha());
-
-    pen.setColor(borderColor);
-
-    brush.setStyle(Qt::SolidPattern);
-    brush.setColor(fillColor);
+    setPenBrush(pen, brush,
+      isHullBorder(), interpHullBorderColor(ig, ng), hullBorderAlpha(),
+      hullBorderWidth(), hullBorderDash(),
+      isHullFilled(), interpHullFillColor(ig, ng), hullFillAlpha(), hullFillPattern());
 
     painter->setPen  (pen);
     painter->setBrush(brush);
@@ -1787,14 +1764,20 @@ drawDensityMap(QPainter *painter)
           if (delta > 0.0) {
             double v1 = CMathRound::RoundDown(v/delta)*delta;
 
-            a = std::min(std::max(sqrt(1.0 - (v - v1)), 0.0), 1.0);
+            a = CMathUtil::clamp(sqrt(1.0 - (v - v1)), 0.0, 1.0);
           }
+
+          //---
+
+          QBrush brush;
 
           QColor c = interpPaletteColor(v);
 
-          c.setAlphaF(a);
+          setBrush(brush, true, c, a, CQChartsFillPattern());
 
-          painter->fillRect(QRect(x, y, dx, dy), QBrush(c));
+          //---
+
+          painter->fillRect(QRect(x, y, dx, dy), brush);
         }
       }
     }
@@ -2325,9 +2308,12 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
+    QPen tpen;
+
     QColor tc = plot_->dataLabel().interpTextColor(ic, nc);
 
-    tc.setAlphaF(plot_->dataLabel().textAlpha());
+    plot_->setPen(tpen, true, tc, plot_->dataLabel().textAlpha(),
+                  CQChartsLength("0px"), CQChartsLineDash());
 
     //---
 
@@ -2338,24 +2324,23 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     //---
 
-    if (fontSize > 0) {
-      fontSize = plot_->limitFontSize(fontSize);
+    QFont font = dataLabel.textFont();
 
-      QFont font = dataLabel.textFont();
+    if (fontSize > 0) {
+      // scale to font size
+      fontSize = plot_->limitFontSize(fontSize);
 
       QFont font1 = font;
 
       font1.setPointSizeF(fontSize);
 
       dataLabel.setTextFont(font1);
+    }
 
-      dataLabel.draw(painter, erect, name_, dataLabel.position(), tc);
+    dataLabel.draw(painter, erect, name_, dataLabel.position(), tpen);
 
+    if (fontSize > 0)
       dataLabel.setTextFont(font);
-    }
-    else {
-      dataLabel.draw(painter, erect, name_, dataLabel.position(), tc);
-    }
   }
 }
 
@@ -2363,8 +2348,8 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
 CQChartsScatterCellObj::
 CQChartsScatterCellObj(CQChartsScatterPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
-                        int ig, int ng, int is, int ns, int ix, int iy,
-                        const Points &points, int maxn) :
+                       int ig, int ng, int is, int ns, int ix, int iy,
+                       const Points &points, int maxn) :
  CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd),
  ig_(ig), ng_(ng), is_(is), ns_(ns), ix_(ix), iy_(iy), points_(points), maxn_(maxn)
 {
@@ -2564,7 +2549,9 @@ QSizeF
 CQChartsScatterGridKeyItem::
 size() const
 {
-  QFontMetricsF fm(key_->textFont());
+  QFont font = plot_->view()->plotFont(plot_, key_->textFont());
+
+  QFontMetricsF fm(font);
 
   double fw = fm.width("X");
   double fh = fm.height();
@@ -2583,7 +2570,7 @@ void
 CQChartsScatterGridKeyItem::
 draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 {
-  painter->setFont(key_->textFont());
+  plot_->view()->setPlotPainterFont(plot_, painter, key_->textFont());
 
   QFontMetricsF fm(painter->font());
 
@@ -2610,6 +2597,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QBrush brush(lg);
 
+  //---
+
   QRectF frect(pg1.x(), pg2.y(), lprect.getWidth() - 4, lprect.getHeight() - 4 - fh);
 
   painter->fillRect(frect, brush);
@@ -2633,11 +2622,17 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   double y4 = y5 + dy;
   double y3 = (y5 + y1)/2.0;
 
+  //---
+
+  QPen pen;
+
   QColor tc = plot_->interpThemeColor(1.0);
 
-  QPen pen(tc);
+  plot_->setPen(pen, true, tc, 1.0, CQChartsLength("0px"), CQChartsLineDash());
 
   painter->setPen(pen);
+
+  //---
 
   double df = (fm.ascent() - fm.descent())/2.0;
 

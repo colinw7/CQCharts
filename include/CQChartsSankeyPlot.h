@@ -33,7 +33,6 @@ class CQChartsSankeyPlotNode;
 class CQChartsSankeyPlotEdge;
 class CQChartsSankeyNodeObj;
 class CQChartsSankeyEdgeObj;
-class CQChartsTextBoxObj;
 
 class CQChartsSankeyPlotNode {
  public:
@@ -303,7 +302,6 @@ class CQChartsSankeyPlot : public CQChartsPlot,
   CQChartsColumn     linkColumn_  { 0 };              // link column
   CQChartsColumn     valueColumn_ { 1 };              // value column
   Align              align_       { Align::JUSTIFY }; // align
-  CQChartsBoxObj*    edgeBoxObj_  { nullptr };        // edge box style
   NameNodeMap        nameNodeMap_;                    // name node map
   IndNodeMap         indNodeMap_;                     // ind node map
   PosNodesMap        posNodesMap_;                    // pos node map

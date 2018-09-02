@@ -35,7 +35,6 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
 //---
 
 class CQChartsDistributionPlot;
-class CQChartsBoxObj;
 
 // bar object
 class CQChartsDistributionBarObj : public CQChartsPlotObj {
@@ -290,8 +289,6 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 //---
 
 CQCHARTS_NAMED_LINE_DATA(Mean,mean)
-CQCHARTS_NAMED_POINT_DATA(Dot,dot)
-CQCHARTS_NAMED_POINT_DATA(Rug,rug)
 
 // distribution plot
 class CQChartsDistributionPlot : public CQChartsBarPlot,
@@ -332,7 +329,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // mean line
   Q_PROPERTY(bool showMean READ isShowMean WRITE setShowMean)
 
-  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Mean,mean);
+  CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Mean,mean)
 
   // dot line (bar with dot)
   Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
@@ -482,6 +479,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   bool addMenuItems(QMenu *) override;
 
   //---
+
+  bool hasForeground() const override;
 
   void drawForeground(QPainter *) override;
 

@@ -34,7 +34,6 @@ class CQChartsRadarPlotType : public CQChartsPlotType {
 //  axes on spokes
 
 class CQChartsRadarPlot;
-class CQChartsBoxObj;
 
 class CQChartsRadarObj : public CQChartsPlotObj {
   Q_OBJECT

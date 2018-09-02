@@ -1,5 +1,6 @@
 #include <CQChartsLayer.h>
 #include <CQChartsUtil.h>
+#include <CQChartsEnv.h>
 #include <CMathRound.h>
 
 const char *
@@ -49,50 +50,34 @@ nameType(const QString &name)
 }
 
 CQChartsLayer::
-CQChartsLayer(Type type) :
- type_(type)
+CQChartsLayer(const Type &type, CQChartsBuffer *buffer) :
+ type_(type), buffer_(buffer)
 {
 }
 
 CQChartsLayer::
 ~CQChartsLayer()
 {
+}
+
+//------
+
+CQChartsBuffer::
+CQChartsBuffer(const Type &type) :
+ type_(type)
+{
+}
+
+CQChartsBuffer::
+~CQChartsBuffer()
+{
   delete image_;
+  delete pixmap_;
   delete ipainter_;
 }
 
-void
-CQChartsLayer::
-updateSize()
-{
-  QSizeF fsize = rect_.size();
-
-  QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
-
-  if (! image_ || size_ != size) {
-    delete image_;
-    delete ipainter_;
-
-    size_     = size;
-    image_    = new QImage(size_, QImage::Format_ARGB32);
-    ipainter_ = nullptr;
-
-    setValid(false);
-  }
-}
-
 QPainter *
-CQChartsLayer::
-ipainter()
-{
-  if (! ipainter_)
-    ipainter_ = new QPainter;
-
-  return ipainter_;
-}
-
-QPainter *
-CQChartsLayer::
+CQChartsBuffer::
 beginPaint(QPainter *painter, const QRectF &rect)
 {
   painter_ = painter;
@@ -102,12 +87,19 @@ beginPaint(QPainter *painter, const QRectF &rect)
 
   //---
 
-  if (valid_)
+  if (isValid())
     return nullptr;
 
-  image_->fill(QColor(0,0,0,0));
+  if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP")) {
+    pixmap_->fill(QColor(0,0,0,0));
 
-  ipainter()->begin(image_);
+    ipainter()->begin(pixmap_);
+  }
+  else {
+    image_->fill(QColor(0,0,0,0));
+
+    ipainter()->begin(image_);
+  }
 
   QTransform t;
 
@@ -123,16 +115,58 @@ beginPaint(QPainter *painter, const QRectF &rect)
 }
 
 void
-CQChartsLayer::
+CQChartsBuffer::
 endPaint()
 {
-  if (! valid_) {
+  if (! isValid()) {
     ipainter()->end();
 
     setValid(true);
   }
 
-  painter_->drawImage(rect_.x(), rect_.y(), *image());
+  if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP"))
+    painter_->drawPixmap(rect_.x(), rect_.y(), *pixmap());
+  else
+    painter_->drawImage(rect_.x(), rect_.y(), *image());
 
   painter_ = nullptr;
+}
+
+QPainter *
+CQChartsBuffer::
+ipainter()
+{
+  if (! ipainter_)
+    ipainter_ = new QPainter;
+
+  return ipainter_;
+}
+
+void
+CQChartsBuffer::
+updateSize()
+{
+  QSizeF fsize = rect_.size();
+
+  QSize size(CMathRound::RoundUp(fsize.width()), CMathRound::RoundUp(fsize.height()));
+
+  bool hasDrawable = (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP") ?
+                      (pixmap_ != 0) : (image_ != 0));
+
+  if (! hasDrawable || size_ != size) {
+    delete image_;
+    delete pixmap_;
+    delete ipainter_;
+
+    size_ = size;
+
+    if (CQChartsEnv::getBool("CQCHARTS_LAYER_PIXMAP"))
+      pixmap_ = new QPixmap(size_);
+    else
+      image_ = new QImage(size_, QImage::Format_ARGB32);
+
+    ipainter_ = nullptr;
+
+    setValid(false);
+  }
 }

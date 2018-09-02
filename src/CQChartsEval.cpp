@@ -1,4 +1,5 @@
 #include <CQChartsEval.h>
+#include <CMathUtil.h>
 #include <QColor>
 
 CQChartsEval *
@@ -57,7 +58,7 @@ int
 CQChartsEval::
 colorCmd(ClientData clientData, Tcl_Interp *, int objc, const Tcl_Obj **objv)
 {
-  auto clamp = [](double x) { return std::min(std::max(x, 0.0), 255.0); };
+  auto clamp = [](double x) { return CMathUtil::clamp(x, 0.0, 255.0); };
 
   CQChartsEval *eval = static_cast<CQChartsEval *>(clientData);
 

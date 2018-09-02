@@ -5,8 +5,11 @@
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
+
 // bar plot
-class CQChartsBarPlot : public CQChartsGroupPlot {
+class CQChartsBarPlot : public CQChartsGroupPlot,
+ public CQChartsPlotBarShapeData<CQChartsBarPlot> {
   Q_OBJECT
 
   // data
@@ -20,18 +23,9 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
   Q_PROPERTY(CQChartsLength groupMargin READ groupMargin  WRITE setGroupMargin)
 
   // bar border
-  Q_PROPERTY(bool             border      READ isBorder      WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor   WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha   WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth   WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash    WRITE setBorderDash )
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize    WRITE setCornerSize )
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
 
-  // bar fill
-  Q_PROPERTY(bool          barFill    READ isBarFill  WRITE setBarFill   )
-  Q_PROPERTY(CQChartsColor barColor   READ barColor   WRITE setBarColor  )
-  Q_PROPERTY(double        barAlpha   READ barAlpha   WRITE setBarAlpha  )
-  Q_PROPERTY(Pattern       barPattern READ barPattern WRITE setBarPattern)
+  Q_PROPERTY(CQChartsLength cornerSize READ cornerSize WRITE setCornerSize)
 
   // color map
   CQCHARTS_COLOR_MAP_PROPERTIES
@@ -72,43 +66,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
 
   //---
 
-  // bar stroke
-  bool isBorder() const;
-  void setBorder(bool b);
-
-  const CQChartsColor &borderColor() const;
-  void setBorderColor(const CQChartsColor &c);
-
-  QColor interpBorderColor(int i, int n) const;
-
-  double borderAlpha() const;
-  void setBorderAlpha(double r);
-
-  const CQChartsLength &borderWidth() const;
-  void setBorderWidth(const CQChartsLength &l);
-
-  const CQChartsLineDash &borderDash() const;
-  void setBorderDash(const CQChartsLineDash &v);
-
   const CQChartsLength &cornerSize() const;
   void setCornerSize(const CQChartsLength &r);
-
-  //---
-
-  // bar fill
-  bool isBarFill() const;
-  void setBarFill(bool b);
-
-  const CQChartsColor &barColor() const;
-  void setBarColor(const CQChartsColor &c);
-
-  QColor interpBarColor(int i, int n) const;
-
-  double barAlpha() const;
-  void setBarAlpha(double a);
-
-  const CQChartsFillPattern &barPattern() const;
-  void setBarPattern(const CQChartsFillPattern &pattern);
 
   //---
 
@@ -150,7 +109,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot {
   bool            horizontal_   { false }; // horizontal bars
   CQChartsLength  margin_       { "2px" }; // bar margin
   CQChartsLength  groupMargin_  { "4px" }; // bar group margin
-  CQChartsBoxData boxData_;                // box style data
+  CQChartsLength  cornerSize_   { "0xp" }; // corner size
 };
 
 #endif
