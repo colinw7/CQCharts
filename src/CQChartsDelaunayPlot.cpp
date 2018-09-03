@@ -145,14 +145,14 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
-      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = row;
-      if (! ok2) y = row;
+      if (! ok1) x = data.row;
+      if (! ok2) y = data.row;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -238,19 +238,19 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
-      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = row;
-      if (! ok2) y = row;
+      if (! ok1) x = data.row;
+      if (! ok2) y = data.row;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
 
-      QModelIndex xind = plot_->modelIndex(row, plot_->xColumn(), parent);
+      QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
 
       plot_->addPointObj(x, y, xind, ModelVisitor::row());
 

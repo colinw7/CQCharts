@@ -419,8 +419,8 @@ loadModel()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      CQChartsModelIndex ind(row, plot_->valueColumn(), parent);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex ind(data.row, plot_->valueColumn(), data.parent);
 
       std::vector<int> groupInds = plot_->rowHierGroupInds(ind);
 
@@ -436,18 +436,18 @@ loadModel()
 
       bool ok1;
 
-      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok1);
+      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok1);
 
       //---
 
       double size = 1.0;
 
-      if (! getSize(parent, row, size))
+      if (! getSize(data.parent, data.row, size))
         return State::SKIP;
 
       //---
 
-      QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
+      QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       CQChartsBubbleNode *node = plot_->addNode(hierNode, name, size, nameInd1);
@@ -455,7 +455,7 @@ loadModel()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", row, color))
+        if (plot_->colorSetColor("color", data.row, color))
           node->setColor(color);
       }
 

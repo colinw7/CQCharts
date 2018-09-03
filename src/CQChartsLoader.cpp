@@ -172,8 +172,9 @@ loadData(const QString &filename, const CQChartsInputData &inputData)
 {
   CQChartsGnuDataFilterModel *data = new CQChartsGnuDataFilterModel(charts_);
 
-  data->setCommentHeader  (inputData.commentHeader);
-  data->setFirstLineHeader(inputData.firstLineHeader);
+  data->setCommentHeader    (inputData.commentHeader);
+  data->setFirstLineHeader  (inputData.firstLineHeader);
+  data->setFirstColumnHeader(inputData.firstColumnHeader);
 
   if (! data->load(filename)) {
     delete data;
@@ -366,10 +367,12 @@ createVarsModel(const CQChartsInputData &inputData)
 
 QAbstractItemModel *
 CQChartsLoader::
-createCorrelationModel(QAbstractItemModel *model)
+createCorrelationModel(QAbstractItemModel *model, bool flip)
 {
   int nr = model->rowCount   ();
   int nc = model->columnCount();
+
+  int nv = (! flip ? nc : nr);
 
   using ColumnValues = std::vector<CMathCorrelation::Values>;
   using ColumnNames  = std::vector<QString>;
@@ -377,49 +380,72 @@ createCorrelationModel(QAbstractItemModel *model)
   ColumnValues columnValues;
   ColumnNames  columnNames;
 
-  columnValues.resize(nc);
-  columnNames .resize(nc);
+  columnValues.resize(nv);
+  columnNames .resize(nv);
 
-  for (int c = 0; c < nc; ++c) {
-    bool ok;
-
-    columnNames[c] = CQChartsUtil::modelHeaderString(model, c, ok);
-
-    CMathCorrelation::Values &values = columnValues[c];
-
-    values.resize(nr);
-
-    for (int r = 0; r < nr; ++r) {
-      QModelIndex ind = model->index(r, c, QModelIndex());
-
+  if (! flip) {
+    for (int c = 0; c < nc; ++c) {
       bool ok;
 
-      double v = CQChartsUtil::modelReal(model, ind, ok);
+      columnNames[c] = CQChartsUtil::modelHeaderString(model, c, Qt::Horizontal, ok);
 
-      values[r] = v;
+      CMathCorrelation::Values &values = columnValues[c];
+
+      values.resize(nr);
+
+      for (int r = 0; r < nr; ++r) {
+        QModelIndex ind = model->index(r, c, QModelIndex());
+
+        bool ok;
+
+        double v = CQChartsUtil::modelReal(model, ind, ok);
+
+        values[r] = v;
+      }
+    }
+  }
+  else {
+    for (int r = 0; r < nr; ++r) {
+      bool ok;
+
+      columnNames[r] = CQChartsUtil::modelHeaderString(model, r, Qt::Vertical, ok);
+
+      CMathCorrelation::Values &values = columnValues[r];
+
+      values.resize(nc);
+
+      for (int c = 0; c < nc; ++c) {
+        QModelIndex ind = model->index(r, c, QModelIndex());
+
+        bool ok;
+
+        double v = CQChartsUtil::modelReal(model, ind, ok);
+
+        values[c] = v;
+      }
     }
   }
 
   //---
 
-  CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nc, nc);
+  CQChartsDataFilterModel *dataModel = new CQChartsDataFilterModel(charts_, nv, nv);
 
   CQChartsColumnTypeMgr *columnTypeMgr = charts_->columnTypeMgr();
 
   CQDataModel *model1 = dataModel->dataModel();
 
-  for (int c = 0; c < nc; ++c)
+  for (int c = 0; c < nv; ++c)
     (void) columnTypeMgr->setModelColumnType(model1, c, CQBaseModel::Type::REAL);
 
-  for (int c = 0; c < nc; ++c) {
-    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Horizontal, columnNames[c]);
-    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Vertical  , columnNames[c]);
+  for (int c = 0; c < nv; ++c) {
+    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Horizontal, columnNames[c], Qt::DisplayRole);
+    CQChartsUtil::setModelHeaderValue(model1, c, Qt::Vertical  , columnNames[c], Qt::DisplayRole);
 
     CQChartsUtil::setModelValue(model1, c, c, 1.0);
   }
 
-  for (int c1 = 0; c1 < nc; ++c1) {
-    for (int c2 = c1; c2 < nc; ++c2) {
+  for (int c1 = 0; c1 < nv; ++c1) {
+    for (int c2 = c1; c2 < nv; ++c2) {
       double corr = CMathCorrelation::calc(columnValues[c1], columnValues[c2]);
 
       CQChartsUtil::setModelValue(model1, c1, c2, corr);

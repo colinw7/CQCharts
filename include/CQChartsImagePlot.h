@@ -61,11 +61,13 @@ class CQChartsImagePlot : public CQChartsPlot,
  public CQChartsPlotTextData<CQChartsImagePlot> {
   Q_OBJECT
 
-  Q_PROPERTY(double minValue   READ minValue     WRITE setMinValue  )
-  Q_PROPERTY(double maxValue   READ maxValue     WRITE setMaxValue  )
-  Q_PROPERTY(bool   xLabels    READ isXLabels    WRITE setXLabels   )
-  Q_PROPERTY(bool   yLabels    READ isYLabels    WRITE setYLabels   )
-  Q_PROPERTY(bool   cellLabels READ isCellLabels WRITE setCellLabels)
+  Q_PROPERTY(double minValue        READ minValue          WRITE setMinValue       )
+  Q_PROPERTY(double maxValue        READ maxValue          WRITE setMaxValue       )
+  Q_PROPERTY(bool   xLabels         READ isXLabels         WRITE setXLabels        )
+  Q_PROPERTY(bool   yLabels         READ isYLabels         WRITE setYLabels        )
+  Q_PROPERTY(bool   cellLabels      READ isCellLabels      WRITE setCellLabels     )
+  Q_PROPERTY(bool   scaleCellLabels READ isScaleCellLabels WRITE setScaleCellLabels)
+  Q_PROPERTY(bool   balloon         READ isBalloon         WRITE setBalloon        )
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
@@ -90,6 +92,20 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   bool isCellLabels() const { return cellLabels_; }
   void setCellLabels(bool b);
+
+  bool isScaleCellLabels() const { return scaleCellLabels_; }
+  void setScaleCellLabels(bool b);
+
+  //---
+
+  bool isBalloon() const { return balloon_; }
+  void setBalloon(bool b);
+
+  double minBalloonSize() const { return minBalloonSize_; }
+  void setMinBalloonSize(double r) { minBalloonSize_ = r; }
+
+  double maxBalloonSize() const { return maxBalloonSize_; }
+  void setMaxBalloonSize(double r) { maxBalloonSize_ = r; }
 
   //---
 
@@ -117,13 +133,17 @@ class CQChartsImagePlot : public CQChartsPlot,
   void drawYLabels(QPainter *);
 
  private:
-  double minValue_   { 0.0 };   // min value
-  double maxValue_   { 0.0 };   // max value
-  bool   xLabels_    { false }; // x labels
-  bool   yLabels_    { false }; // y labels
-  bool   cellLabels_ { false }; // cell labels
-  int    nc_         { 0 };     // number of grid columns
-  int    nr_         { 0 };     // number of grid rows
+  double                minValue_        { 0.0 };   // min value
+  double                maxValue_        { 0.0 };   // max value
+  bool                  xLabels_         { false }; // x labels
+  bool                  yLabels_         { false }; // y labels
+  bool                  cellLabels_      { false }; // cell labels
+  bool                  scaleCellLabels_ { false }; // scale cell labels
+  bool                  balloon_         { false }; // draw balloon
+  int                   nc_              { 0 };     // number of grid columns
+  int                   nr_              { 0 };     // number of grid rows
+  double                minBalloonSize_  { 0.1 };
+  double                maxBalloonSize_  { 1.0 };
 };
 
 #endif

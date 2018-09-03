@@ -520,8 +520,8 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addRow(ind, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRow(data.parent, data.row);
 
       return State::OK;
     }

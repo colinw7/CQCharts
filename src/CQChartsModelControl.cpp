@@ -25,6 +25,8 @@ CQChartsModelControl(CQCharts *charts) :
 
   QTabWidget *controlTab = CQUtil::makeWidget<QTabWidget>("controlTab");
 
+  controlTab->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
   layout->addWidget(controlTab);
 
   //------
@@ -343,7 +345,7 @@ CQChartsModelControl::
 updateModelDetails(const CQChartsModelData *modelData)
 {
   if (modelList_)
-    modelList_->setDetailsText(modelData);
+    modelList_->setDetails(modelData);
 }
 
 void

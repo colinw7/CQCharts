@@ -6,6 +6,8 @@
 #include <CQChartsColorSet.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsModelData.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQChartsTip.h>
@@ -640,8 +642,8 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
       (void) plot_->rowGroupInd(ind);
@@ -650,11 +652,11 @@ calcRange()
 
       bool ok1, ok2;
 
-      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = row;
-      if (! ok2) y = row;
+      if (! ok1) { x = uniqueId(data.row, plot_->xColumn(), data.parent); ++uniqueX_; }
+      if (! ok2) { y = uniqueId(data.row, plot_->yColumn(), data.parent); ++uniqueY_; }
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -664,11 +666,36 @@ calcRange()
       return State::OK;
     }
 
+    int uniqueId(int row, const CQChartsColumn &column, const QModelIndex &parent) {
+      bool ok;
+
+      QVariant var = plot_->modelValue(row, column, parent, ok);
+      if (! var.isValid()) return -1;
+
+      return columnDetails(column)->uniqueId(var);
+    }
+
+    CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
+      if (! details_) {
+        CQChartsModelData *modelData = plot_->charts()->getModelData(plot_->model().data());
+
+        details_ = modelData->details();
+      }
+
+      return details_->columnDetails(column);
+    }
+
     const CQChartsGeom::Range &range() const { return range_; }
 
+    bool isUniqueX() const { return uniqueX_ == numRows(); }
+    bool isUniqueY() const { return uniqueY_ == numRows(); }
+
    private:
-    CQChartsScatterPlot* plot_ { nullptr };
-    CQChartsGeom::Range  range_;
+    CQChartsScatterPlot*  plot_    { nullptr };
+    CQChartsGeom::Range   range_;
+    CQChartsModelDetails* details_ { nullptr };
+    int                   uniqueX_ { 0 };
+    int                   uniqueY_ { 0 };
   };
 
   RowVisitor visitor(this);
@@ -676,6 +703,35 @@ calcRange()
   visitModel(visitor);
 
   dataRange_ = visitor.range();
+
+  bool uniqueX = visitor.isUniqueX();
+  bool uniqueY = visitor.isUniqueY();
+
+  if (uniqueX || uniqueY) {
+    CQChartsModelData *modelData = charts()->getModelData(model().data());
+
+    CQChartsModelDetails *details = modelData->details();
+
+    if (uniqueX) {
+      CQChartsModelColumnDetails *columnDetails = details->columnDetails(xColumn());
+
+      for (int i = 0; i < columnDetails->numUnique(); ++i)
+        xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+
+      dataRange_.updateRange(dataRange_.xmin() - 0.5, dataRange_.ymin());
+      dataRange_.updateRange(dataRange_.xmax() + 0.5, dataRange_.ymin());
+    }
+
+    if (uniqueY) {
+      CQChartsModelColumnDetails *columnDetails = details->columnDetails(yColumn());
+
+      for (int i = 0; i < columnDetails->numUnique(); ++i)
+        yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
+
+      dataRange_.updateRange(dataRange_.xmin(), dataRange_.ymin() - 0.5);
+      dataRange_.updateRange(dataRange_.xmax(), dataRange_.ymax() + 0.5);
+    }
+  }
 
   //---
 
@@ -725,6 +781,9 @@ calcRange()
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
+
+  xAxis_->setIntegral(uniqueX);
+  yAxis_->setIntegral(uniqueY);
 }
 
 //------
@@ -978,8 +1037,8 @@ addNameValues()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // get group
       int groupInd = plot_->rowGroupInd(ind);
@@ -987,16 +1046,16 @@ addNameValues()
       //---
 
       // get x, y value
-      QModelIndex xInd  = plot_->modelIndex(row, plot_->xColumn(), parent);
+      QModelIndex xInd  = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
       QModelIndex xInd1 = plot_->normalizeIndex(xInd);
 
       bool ok1, ok2;
 
-      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = row;
-      if (! ok2) y = row;
+      if (! ok1) x = uniqueId(data.row, plot_->xColumn(), data.parent);
+      if (! ok2) y = uniqueId(data.row, plot_->yColumn(), data.parent);
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -1009,7 +1068,7 @@ addNameValues()
       if (plot_->nameColumn().isValid()) {
         bool ok;
 
-        name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+        name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
       }
 
       if (! name.length())
@@ -1027,18 +1086,38 @@ addNameValues()
       if (plot_->colorColumn().isValid()) {
         bool ok;
 
-        color = plot_->modelColor(row, plot_->colorColumn(), parent, ok);
+        color = plot_->modelColor(data.row, plot_->colorColumn(), data.parent, ok);
       }
 
       //---
 
-      plot_->addNameValue(groupInd, name, x, y, row, xInd1, color);
+      plot_->addNameValue(groupInd, name, x, y, data.row, xInd1, color);
 
       return State::OK;
     }
 
+    int uniqueId(int row, const CQChartsColumn &column, const QModelIndex &parent) {
+      bool ok;
+
+      QVariant var = plot_->modelValue(row, column, parent, ok);
+      if (! var.isValid()) return -1;
+
+      return columnDetails(column)->uniqueId(var);
+    }
+
+    CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
+      if (! details_) {
+        CQChartsModelData *modelData = plot_->charts()->getModelData(plot_->model().data());
+
+        details_ = modelData->details();
+      }
+
+      return details_->columnDetails(column);
+    }
+
    private:
-    CQChartsScatterPlot *plot_ { nullptr };
+    CQChartsScatterPlot*  plot_    { nullptr };
+    CQChartsModelDetails* details_ { nullptr };
   };
 
   RowVisitor visitor(this);
@@ -2032,12 +2111,17 @@ drawSymbolMapKey(QPainter *painter)
     if (maxValue.isValid())
       max = CQChartsVariant::toReal(maxValue, ok);
 
-    double px, py;
+    CQChartsGeom::BBox pbbox = calcPlotPixelRect();
 
-    double vx = view()->viewportRange();
-    double vy = 0.0;
+    //double px, py;
 
-    view()->windowToPixel(vx, vy, px, py);
+    //double vx = view()->viewportRange();
+    //double vy = 0.0;
+
+    //view()->windowToPixel(vx, vy, px, py);
+
+    double px = pbbox.getXMax();
+    double py = pbbox.getYMax();
 
     double pm = symbolMapKeyMargin();
 

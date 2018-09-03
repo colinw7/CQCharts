@@ -21,7 +21,7 @@ CQChartsDataFilterModel(CQCharts *charts, int nc, int nr, bool fill) :
     }
   }
 
-  exprModel_ = new CQChartsExprModel(charts_, dataModel_);
+  exprModel_ = new CQChartsExprModel(charts_, this, dataModel_);
 
   setSourceModel(exprModel_);
 }

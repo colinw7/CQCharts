@@ -9,7 +9,7 @@ CQChartsGnuDataFilterModel(CQCharts *charts) :
 {
   dataModel_ = new CQGnuDataModel;
 
-  exprModel_ = new CQChartsExprModel(charts_, dataModel_);
+  exprModel_ = new CQChartsExprModel(charts_, this, dataModel_);
 
   setSourceModel(exprModel_);
 }
@@ -40,6 +40,13 @@ CQChartsGnuDataFilterModel::
 setFirstLineHeader(bool b)
 {
   dataModel_->setFirstLineHeader(b);
+}
+
+void
+CQChartsGnuDataFilterModel::
+setFirstColumnHeader(bool b)
+{
+  dataModel_->setFirstColumnHeader(b);
 }
 
 bool

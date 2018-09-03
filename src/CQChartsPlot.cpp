@@ -6119,8 +6119,8 @@ initValueSets()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addValueSetRow(ind, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addValueSetRow(data.parent, data.row);
 
       return State::OK;
     }
@@ -6163,10 +6163,10 @@ addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet)
      plot_(plot), column_(column), valueSet_(valueSet) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok;
 
-      QVariant value = plot_->modelValue(row, column_, parent, ok);
+      QVariant value = plot_->modelValue(data.row, column_, data.parent, ok);
 
       // TODO: skip if not ok ?
 
@@ -6245,13 +6245,13 @@ getRowForId(const QString &id) const
      plot_(plot), id_(id) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok;
 
-      QString id = plot_->idColumnString(row, ind, ok);
+      QString id = plot_->idColumnString(data.row, data.parent, ok);
 
       if (ok && id == id_)
-        row_ = row;
+        row_ = data.row;
 
       return State::OK;
     }
@@ -7339,7 +7339,7 @@ init()
 
 CQChartsPlot::ModelVisitor::State
 CQChartsPlot::ModelVisitor::
-preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row)
+preVisit(QAbstractItemModel *model, const VisitData &data)
 {
   int vrow = vrow_++;
 
@@ -7348,7 +7348,7 @@ preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row)
   if (expr_) {
     bool ok;
 
-    QModelIndex ind = model->index(row, 0, parent);
+    QModelIndex ind = model->index(data.row, 0, data.parent);
 
     if (! expr_->match(ind, ok))
       return State::SKIP;

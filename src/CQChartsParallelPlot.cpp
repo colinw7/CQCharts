@@ -191,7 +191,7 @@ calcRange()
         setRanges_.emplace_back();
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       for (int i = 0; i < ns_; ++i) {
         CQChartsGeom::Range &range = setRanges_[i];
 
@@ -203,7 +203,7 @@ calcRange()
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(row, setColumn, parent, y, /*defVal*/y))
+        if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
           continue;
 
         if (! plot_->isHorizontal())
@@ -319,10 +319,10 @@ initObjs()
       ns_ = plot_->numSets();
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       QPolygonF poly;
 
-      QModelIndex xind = plot_->modelIndex(row, plot_->xColumn(), parent);
+      QModelIndex xind = plot_->modelIndex(data.row, plot_->xColumn(), data.parent);
 
       xinds_.push_back(xind);
 
@@ -337,7 +337,7 @@ initObjs()
         double y = i;
 
         // TODO: control default value ?
-        if (! plot_->rowColValue(row, setColumn, parent, y, /*defVal*/y))
+        if (! plot_->rowColValue(data.row, setColumn, data.parent, y, /*defVal*/y))
           continue;
 
         if (! plot_->isHorizontal())

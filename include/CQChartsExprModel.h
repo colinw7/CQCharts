@@ -8,7 +8,9 @@
 #include <set>
 #include <vector>
 
+class CQChartsModelFilter;
 class CQChartsExprModelFn;
+class CQChartsModelData;
 class CQCharts;
 
 #ifdef CQCharts_USE_TCL
@@ -33,11 +35,13 @@ class CQChartsExprModel : public QAbstractProxyModel {
   using Rows   = std::vector<int>;
 
  public:
-  CQChartsExprModel(CQCharts *charts, QAbstractItemModel *model);
+  CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model);
 
   virtual ~CQChartsExprModel();
 
   //---
+
+  CQChartsModelFilter *filter() const { return filter_; }
 
   QAbstractItemModel *model() const { return model_; }
 
@@ -187,10 +191,11 @@ class CQChartsExprModel : public QAbstractProxyModel {
   QVariant mapCmd      (const Values &values) const;
   QVariant bucketCmd   (const Values &values) const;
   QVariant normCmd     (const Values &values) const;
-  QVariant keyCmd      (const Values &values) const;
+  QVariant scaleCmd    (const Values &values) const;
   QVariant randCmd     (const Values &values) const;
   QVariant rnormCmd    (const Values &values) const;
-  QVariant concatCmd   (const Values &values) const;
+//QVariant keyCmd      (const Values &values) const;
+//QVariant concatCmd   (const Values &values) const;
   QVariant colorCmd    (const Values &values) const;
 
   QVariant remapCmd    (const Values &values);
@@ -207,27 +212,31 @@ class CQChartsExprModel : public QAbstractProxyModel {
   bool     setCmdData(int row, int col, const QVariant &var);
 
  protected:
+  CQChartsModelData *getModelData() const;
+
+ protected:
   using ExtraColumns = std::vector<ExtraColumn>;
   using ColumnDatas  = std::map<int,ColumnData>;
   using ColumnNames  = std::map<int,QString>;
   using NameColumns  = std::map<QString,int>;
 
-  CQCharts*           charts_     { nullptr };
-  QAbstractItemModel* model_      { nullptr };
+  CQCharts*            charts_     { nullptr }; // charts
+  CQChartsModelFilter* filter_     { nullptr }; // parent filter model
+  QAbstractItemModel*  model_      { nullptr }; // child data mode
 #ifdef CQCharts_USE_TCL
-  CQChartsExprTcl*    qtcl_       { nullptr };
+  CQChartsExprTcl*     qtcl_       { nullptr }; // tcl expression
 #endif
-  TclCmds             tclCmds_;
-  bool                editable_   { true };
-  bool                debug_      { false };
-  ExtraColumns        extraColumns_;
-  mutable int         nr_         { 0 };
-  mutable int         nc_         { 0 };
-  mutable int         currentRow_ { 0 };
-  mutable int         currentCol_ { 0 };
-  mutable ColumnDatas columnDatas_;
-  ColumnNames         columnNames_;
-  NameColumns         nameColumns_;
+  TclCmds              tclCmds_;                // tcl commands
+  bool                 editable_   { true };    // is editable
+  bool                 debug_      { false };   // is debug
+  ExtraColumns         extraColumns_;           // extra columns
+  mutable int          nr_         { 0 };       // cached number of rows
+  mutable int          nc_         { 0 };       // cached number of columns
+  mutable int          currentRow_ { 0 };       // cached current row
+  mutable int          currentCol_ { 0 };       // cached current columns
+  mutable ColumnDatas  columnDatas_;            // cached column datas
+  ColumnNames          columnNames_;            // cached column names
+  NameColumns          nameColumns_;            // cached named columns
 };
 
 #endif

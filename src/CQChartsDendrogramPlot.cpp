@@ -136,19 +136,19 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-      QString path = CQChartsUtil::parentPath(model, parent);
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
+      QString path = CQChartsUtil::parentPath(model, data.parent);
 
       //---
 
-      //QModelIndex nameInd  = modelIndex(row, plot_->nameColumn(), parent);
+      //QModelIndex nameInd  = modelIndex(data.row, plot_->nameColumn(), data.parent);
       //QModelIndex nameInd1 = normalizeIndex(nameInd);
 
       //---
 
       bool ok1;
 
-      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok1);
+      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok1);
 
       if (path.length())
         name = path + "/" + name;
@@ -157,7 +157,7 @@ calcRange()
 
       bool ok2;
 
-      double value = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
+      double value = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
 
       if (CMathUtil::isNaN(value))
         return State::SKIP;

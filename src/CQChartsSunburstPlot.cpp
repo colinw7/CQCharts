@@ -372,11 +372,11 @@ loadHier(CQChartsSunburstHierNode *root)
       hierStack_.push_back(root);
     }
 
-    State hierVisit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State hierVisit(QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(parent, row, name, nameInd);
+      (void) getName(data.parent, data.row, name, nameInd);
 
       //---
 
@@ -389,7 +389,7 @@ loadHier(CQChartsSunburstHierNode *root)
       return State::OK;
     }
 
-    State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) override {
+    State hierPostVisit(QAbstractItemModel *, const VisitData &) override {
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
@@ -397,18 +397,18 @@ loadHier(CQChartsSunburstHierNode *root)
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(parent, row, name, nameInd);
+      (void) getName(data.parent, data.row, name, nameInd);
 
       //---
 
       double      size = 1.0;
       QModelIndex valueInd;
 
-      if (! getSize(parent, row, size, valueInd))
+      if (! getSize(data.parent, data.row, size, valueInd))
         return State::SKIP;
 
       //---
@@ -514,12 +514,12 @@ loadFlat(CQChartsSunburstHierNode *root)
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       QStringList  nameStrs;
       ModelIndices nameInds;
 
-      if (! plot_->getHierColumnNames(parent, row, plot_->nameColumns(), plot_->separator(),
-                                      nameStrs, nameInds))
+      if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
+                                      plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInds[0]);
@@ -532,9 +532,9 @@ loadFlat(CQChartsSunburstHierNode *root)
         bool ok2 = true;
 
         if      (valueColumnType_ == ColumnType::REAL)
-          size = plot_->modelReal(row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok2);
         else if (valueColumnType_ == ColumnType::INTEGER)
-          size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok2);
+          size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok2);
         else
           ok2 = false;
 
@@ -547,14 +547,14 @@ loadFlat(CQChartsSunburstHierNode *root)
 
       //---
 
-      QModelIndex valueInd = plot_->modelIndex(row, plot_->valueColumn(), parent);
+      QModelIndex valueInd = plot_->modelIndex(data.row, plot_->valueColumn(), data.parent);
 
       CQChartsSunburstNode *node = plot_->addNode(root_, nameStrs, size, nameInd1, valueInd);
 
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", row, color))
+        if (plot_->colorSetColor("color", data.row, color))
           node->setColor(color);
       }
 

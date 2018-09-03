@@ -48,11 +48,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("labels", this, "xLabels"   , "x"    );
-  addProperty("labels", this, "yLabels"   , "y"    );
-  addProperty("labels", this, "cellLabels", "cell" );
+  addProperty("labels/x"   , this, "xLabels"        , "visible");
+  addProperty("labels/y"   , this, "yLabels"        , "visible");
+  addProperty("labels/cell", this, "cellLabels"     , "visible");
+  addProperty("labels/cell", this, "scaleCellLabels", "scaled" );
 
-  addTextProperties("label", "text");
+  addTextProperties("labels", "text");
+
+  addProperty("balloon", this, "balloon", "visible");
 }
 
 //------
@@ -94,6 +97,20 @@ setCellLabels(bool b)
   CQChartsUtil::testAndSet(cellLabels_, b, [&]() { invalidateLayers(); } );
 }
 
+void
+CQChartsImagePlot::
+setScaleCellLabels(bool b)
+{
+  CQChartsUtil::testAndSet(scaleCellLabels_, b, [&]() { invalidateLayers(); } );
+}
+
+void
+CQChartsImagePlot::
+setBalloon(bool b)
+{
+  CQChartsUtil::testAndSet(balloon_, b, [&]() { invalidateLayers(); } );
+}
+
 //---
 
 void
@@ -106,11 +123,11 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       for (int col = 0; col < numCols(); ++col) {
         bool ok;
 
-        double value = plot_->modelReal(row, col, parent, ok);
+        double value = plot_->modelReal(data.row, col, data.parent, ok);
 
         if (! valueSet_) {
           minValue_ = value;
@@ -189,19 +206,19 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       x_ = 0.0;
 
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = plot_->modelIndex(row, col, parent);
+        QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
 
         bool ok;
 
-        double value = plot_->modelReal(row, col, parent, ok);
+        double value = plot_->modelReal(data.row, col, data.parent, ok);
 
         //---
 
-        plot_->addImageObj(row, col, x_, y_, dx_, dy_, value, ind);
+        plot_->addImageObj(data.row, col, x_, y_, dx_, dy_, value, ind);
 
         //---
 
@@ -214,7 +231,7 @@ initObjs()
     }
 
    private:
-    CQChartsImagePlot *plot_ { nullptr };
+    CQChartsImagePlot* plot_ { nullptr };
     double             x_    { 0.0 };
     double             y_    { 0.0 };
     double             dx_   { 1.0 };
@@ -323,7 +340,12 @@ drawXLabels(QPainter *painter)
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect(p1.x() - tw/2, p1.y() - tw1 - tm, tw, tw1);
+    QRectF trect;
+
+    if (! isInvertY())
+      trect = QRectF(p1.x() - tw/2, p1.y() + tm, tw, tw1);
+    else
+      trect = QRectF(p1.x() - tw/2, p1.y() - tw1 - tm, tw, tw1);
 
     drawTextInBox(painter, trect, name, tpen, textOptions);
   }
@@ -352,7 +374,7 @@ drawYLabels(QPainter *painter)
 //textOptions.contrast  = isTextContrast();
 //textOptions.formatted = isTextFormatted();
 //textOptions.scaled    = isTextScaled();
-  textOptions.align     = Qt::AlignRight;
+  textOptions.align     = (! isInvertX() ? Qt::AlignRight : Qt::AlignLeft);
 
   QFontMetricsF fm(painter->font());
 
@@ -379,7 +401,12 @@ drawYLabels(QPainter *painter)
 
     QPointF p1 = windowToPixel(p);
 
-    QRectF trect(p1.x() - tw - tm, p1.y() - th/2.0, tw, th);
+    QRectF trect;
+
+    if (! isInvertX())
+      trect = QRectF(p1.x() - tw - tm, p1.y() - th/2.0, tw, th);
+    else
+      trect = QRectF(p1.x() + tm, p1.y() - th/2.0, tw, th);
 
     drawTextInBox(painter, trect, name, tpen, textOptions);
   }
@@ -518,37 +545,70 @@ draw(QPainter *painter)
 
   //---
 
-  painter->fillRect(qrect, brush);
+  if (! plot_->isBalloon()) {
+    painter->fillRect(qrect, brush);
 
-  if (plot_->isCellLabels()) {
-    // set font
-    plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
+    if (plot_->isCellLabels()) {
+      // set font
+      plot_->view()->setPlotPainterFont(plot_, painter, plot_->textFont());
 
-    //---
+      //---
+
+      // set pen
+      QPen   tpen;
+      QBrush tbrush;
+
+      QColor tc = plot_->interpTextColor(0, 1);
+
+      plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+
+      plot_->updateObjPenBrushState(this, tpen, tbrush);
+
+      painter->setPen(tpen);
+
+      //---
+
+      QString valueStr = CQChartsUtil::toString(value_);
+
+      CQChartsTextOptions textOptions;
+
+      //textOptions.contrast  = plot_->isTextContrast();
+      //textOptions.formatted = plot_->isTextFormatted();
+      textOptions.align       = Qt::AlignHCenter;
+      textOptions.scaled      = plot_->isScaleCellLabels();
+
+      plot_->drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
+    }
+  }
+  else {
+    double cs = CMathUtil::map(value_, plot_->minValue(), plot_->maxValue(), 0.0, 1.0);
 
     // set pen
-    QPen   tpen;
-    QBrush tbrush;
+    QPen   pen;
+    QBrush brush;
 
-    QColor tc = plot_->interpTextColor(0, 1);
+    QColor c = plot_->interpPaletteColor(cs);
 
-    plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+    plot_->setBrush(brush, true, c);
 
-    plot_->updateObjPenBrushState(this, tpen, tbrush);
+    plot_->updateObjPenBrushState(this, pen, brush);
 
-    painter->setPen(tpen);
+    painter->setPen  (pen);
+    painter->setBrush(brush);
 
     //---
 
-    QString valueStr = CQChartsUtil::toString(value_);
+    double s = std::min(qrect.width(), qrect.height());
 
-    CQChartsTextOptions textOptions;
+    double minSize = s*plot_->minBalloonSize();
+    double maxSize = s*plot_->maxBalloonSize();
 
-    //textOptions.contrast  = plot_->isTextContrast();
-    //textOptions.formatted = plot_->isTextFormatted();
-    //textOptions.scaled    = plot_->isTextScaled();
-    //textOptions.align     = plot_->textAlign();
+    double s1 = CMathUtil::map(value_, plot_->minValue(), plot_->maxValue(), minSize, maxSize);
 
-    plot_->drawTextInBox(painter, qrect, valueStr, tpen, textOptions);
+    QPointF center = qrect.center();
+
+    //---
+
+    painter->drawEllipse(QRectF(center.x() - s1/2, center.y() - s1/2, s1, s1));
   }
 }

@@ -14,6 +14,15 @@ class CQChartsModelVisitor {
     TERMINATE
   };
 
+  struct VisitData {
+    QModelIndex parent;
+    int         row { -1 };
+
+    VisitData(const QModelIndex &parent, int row) :
+     parent(parent), row(row) {
+    }
+  };
+
  public:
   CQChartsModelVisitor() { }
 
@@ -41,17 +50,17 @@ class CQChartsModelVisitor {
 
   //---
 
-  virtual State hierVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+  virtual State hierVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  virtual State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+  virtual State hierPostVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
   //---
 
-  virtual State preVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+  virtual State preVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  virtual State visit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+  virtual State visit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
-  //virtual State postVisit(QAbstractItemModel *, const QModelIndex &, int) { return State::OK; }
+  //virtual State postVisit(QAbstractItemModel *, const VisitData &) { return State::OK; }
 
  protected:
   QAbstractItemModel *model_        { nullptr };

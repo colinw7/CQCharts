@@ -211,11 +211,11 @@ calcRange()
       nv_ = plot_->numValueColumns();
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       for (int iv = 0; iv < nv_; ++iv) {
         const CQChartsColumn &column = plot_->valueColumnAt(iv);
 
-        CQChartsModelIndex ind(row, column, parent);
+        CQChartsModelIndex ind(data.row, column, data.parent);
 
         double value;
 
@@ -312,8 +312,8 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addRow(ind, row, numRows());
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRow(data.parent, data.row, numRows());
 
       return State::OK;
     }
@@ -465,20 +465,20 @@ addKeyItems(CQChartsPlotKey *key)
      plot_(plot), key_(key) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok;
 
-      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
 
       //---
 
-      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot_, row, numRows());
+      CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot_, data.row, numRows());
       CQChartsKeyText     *text  = new CQChartsKeyText(plot_, name);
 
       color->setClickHide(true);
 
-      key_->addItem(color, row, 0);
-      key_->addItem(text , row, 1);
+      key_->addItem(color, data.row, 0);
+      key_->addItem(text , data.row, 1);
 
       return State::OK;
     }

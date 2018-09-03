@@ -140,7 +140,9 @@ QVariant
 CQChartsModelColumnDetails::
 getNamedValue(const QString &name) const
 {
-  if      (name == "type")
+  if      (name == "name")
+    return this->headerName();
+  else if (name == "type")
     return this->typeName();
   else if (name == "min" || name == "minimum")
     return this->minValue();
@@ -177,6 +179,17 @@ getNamedValue(const QString &name) const
     return this->outlierValues();
 
   return QVariant();
+}
+
+QString
+CQChartsModelColumnDetails::
+headerName() const
+{
+  QAbstractItemModel *model = details_->data()->model().data();
+
+  bool ok;
+
+  return CQChartsUtil::modelHeaderString(model, column_, ok);
 }
 
 QString
@@ -417,7 +430,7 @@ CQChartsModelColumnDetails::VariantList
 CQChartsModelColumnDetails::
 uniqueCounts() const
 {
-   CQChartsIValues::Counts counts;
+  CQChartsIValues::Counts counts;
 
   if      (type() == CQBaseModel::Type::INTEGER) {
     if (ivals_) ivals_->uniqueCounts(counts);
@@ -441,6 +454,41 @@ uniqueCounts() const
     vars.push_back(c);
 
   return vars;
+}
+
+int
+CQChartsModelColumnDetails::
+uniqueId(const QVariant &v) const
+{
+  if      (type() == CQBaseModel::Type::INTEGER) {
+    if (ivals_) return ivals_->id(v.toInt());
+  }
+  else if (type() == CQBaseModel::Type::REAL) {
+    if (rvals_) return rvals_->id(v.toReal());
+  }
+  else if (type() == CQBaseModel::Type::STRING) {
+    if (svals_) return svals_->id(v.toString());
+  }
+  else if (type() == CQBaseModel::Type::TIME) {
+    if (ivals_) return ivals_->id(v.toInt());
+  }
+  else if (type() == CQBaseModel::Type::COLOR) {
+    if (svals_) return svals_->id(v.toString());
+  }
+
+  return -1;
+}
+
+QVariant
+CQChartsModelColumnDetails::
+uniqueValue(int i) const
+{
+  VariantList uniqueValues = this->uniqueValues();
+
+  if (i >= 0 && i < uniqueValues.size())
+    return uniqueValues[i];
+
+  return QVariant();
 }
 
 int
@@ -681,11 +729,12 @@ initData()
     CQCharts *charts() const { return details_->details()->data()->charts(); }
 
     // visit row
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
       if      (details_->type() == CQBaseModel::Type::INTEGER) {
         bool ok;
 
-        long i = CQChartsUtil::modelInteger(charts(), model, row, details_->column(), parent, ok);
+        long i = CQChartsUtil::modelInteger(charts(), model, data.row, details_->column(),
+                                            data.parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(int(i)))
@@ -696,7 +745,8 @@ initData()
       else if (details_->type() == CQBaseModel::Type::REAL) {
         bool ok;
 
-        double r = CQChartsUtil::modelReal(charts(), model, row, details_->column(), parent, ok);
+        double r = CQChartsUtil::modelReal(charts(), model, data.row, details_->column(),
+                                           data.parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(r))
@@ -707,7 +757,8 @@ initData()
       else if (details_->type() == CQBaseModel::Type::STRING) {
         bool ok;
 
-        QString s = CQChartsUtil::modelString(charts(), model, row, details_->column(), parent, ok);
+        QString s = CQChartsUtil::modelString(charts(), model, data.row, details_->column(),
+                                              data.parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(s))
@@ -718,7 +769,8 @@ initData()
       else if (details_->type() == CQBaseModel::Type::TIME) {
         bool ok;
 
-        long t = CQChartsUtil::modelInteger(charts(), model, row, details_->column(), parent, ok);
+        long t = CQChartsUtil::modelInteger(charts(), model, data.row, details_->column(),
+                                            data.parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(int(t)))
@@ -729,7 +781,8 @@ initData()
       else if (details_->type() == CQBaseModel::Type::COLOR) {
         bool ok;
 
-        QString s = CQChartsUtil::modelString(charts(), model, row, details_->column(), parent, ok);
+        QString s = CQChartsUtil::modelString(charts(), model, data.row, details_->column(),
+                                              data.parent, ok);
         if (! ok) return State::SKIP;
 
         if (! details_->checkRow(s))

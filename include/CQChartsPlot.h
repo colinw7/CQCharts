@@ -621,7 +621,7 @@ class CQChartsPlot : public QObject,
 
     void init();
 
-    State preVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override;
+    State preVisit(QAbstractItemModel *model, const VisitData &data) override;
 
    private:
     CQChartsPlot*           plot_ { nullptr };

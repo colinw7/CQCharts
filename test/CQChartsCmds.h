@@ -142,7 +142,10 @@ class CQChartsCmds : public QObject {
   void flattenModelCmd       (const Vars &vars);
 
   void correlationModelCmd(const Vars &vars);
-  void exportModelCmd     (const Vars &vars);
+  void subsetModelCmd     (const Vars &vars);
+  void transposeModelCmd  (const Vars &vars);
+
+  void exportModelCmd(const Vars &vars);
 
   void groupPlotsCmd(const Vars &vars);
   void placePlotsCmd(const Vars &vars);

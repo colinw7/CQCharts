@@ -9,7 +9,7 @@ CQChartsCsvFilterModel(CQCharts *charts) :
 {
   csvModel_ = new CQCsvModel;
 
-  exprModel_ = new CQChartsExprModel(charts_, csvModel_);
+  exprModel_ = new CQChartsExprModel(charts_, this, csvModel_);
 
   setSourceModel(exprModel_);
 }

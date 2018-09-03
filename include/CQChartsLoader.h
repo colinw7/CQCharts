@@ -39,7 +39,7 @@ class CQChartsLoader {
 
   QAbstractItemModel *createVarsModel(const CQChartsInputData &inputData);
 
-  QAbstractItemModel *createCorrelationModel(QAbstractItemModel *model);
+  QAbstractItemModel *createCorrelationModel(QAbstractItemModel *model, bool flip=false);
 
  private:
   CQCharts* charts_ { nullptr };

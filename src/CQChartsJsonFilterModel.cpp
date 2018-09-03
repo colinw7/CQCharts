@@ -8,7 +8,7 @@ CQChartsJsonFilterModel(CQCharts *charts) :
 {
   jsonModel_ = new CQJsonModel;
 
-  //exprModel_ = new CQChartsExprModel(charts_, jsonModel_);
+  //exprModel_ = new CQChartsExprModel(charts_, this, jsonModel_);
 
   //setSourceModel(exprModel_);
 

@@ -241,7 +241,7 @@ initTableObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       int nc = numCols();
 
       IndRowData indRowData;
@@ -249,14 +249,14 @@ initTableObjs()
       indRowData.rowData.resize(nc);
 
       for (int col = 0; col < numCols(); ++col) {
-        QModelIndex ind = plot_->modelIndex(row, col, parent);
+        QModelIndex ind = plot_->modelIndex(data.row, col, data.parent);
 
         if (col == 0)
           indRowData.ind = ind;
 
         bool ok;
 
-        indRowData.rowData[col] = plot_->modelValue(row, col, parent, ok);
+        indRowData.rowData[col] = plot_->modelValue(data.row, col, data.parent, ok);
       }
 
       indRowDatas_.push_back(indRowData);
@@ -471,11 +471,11 @@ initHierObjs()
      plot_(plot), groupValues_(groupValues) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(row, plot_->nameColumn (), parent , ok1);
-      double  value   = plot_->modelReal  (row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(data.row, plot_->nameColumn (), data.parent , ok1);
+      double  value   = plot_->modelReal  (data.row, plot_->valueColumn(), data.parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;
@@ -488,7 +488,7 @@ initHierObjs()
       if (pos == -1)
         return State::SKIP;
 
-      QModelIndex linkInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
+      QModelIndex linkInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
       QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
       QString srcStr  = linkStr.mid(0, pos ).simplified();
@@ -525,9 +525,9 @@ initHierObjs()
       if (plot_->groupColumn().isValid()) {
         bool ok;
 
-        QString groupStr = plot_->modelString(row, plot_->groupColumn(), parent, ok);
+        QString groupStr = plot_->modelString(data.row, plot_->groupColumn(), data.parent, ok);
 
-        (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(row)));
+        (*ps).second.setGroup(CQChartsChordData::Group(groupStr, groupValues_.imap(data.row)));
       }
 
       return State::OK;

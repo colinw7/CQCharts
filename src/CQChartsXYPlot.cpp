@@ -512,8 +512,8 @@ calcRange()
       sum_.resize(ns);
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
       (void) plot_->rowGroupInd(ind);
@@ -527,7 +527,7 @@ calcRange()
       // get x anf y values
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      if (! plot_->rowData(parent, row, x, y, rowInd, /*skipBad*/true))
+      if (! plot_->rowData(data.parent, data.row, x, y, rowInd, /*skipBad*/true))
         return State::SKIP;
 
       int ny = y.size();
@@ -779,10 +779,18 @@ postInit()
   if      (isBivariateLines()) {
     setLines (true);
     setPoints(false);
+
+    setLinesWidth(CQChartsLength("3px"));
   }
   else if (isStacked()) {
     setFillUnderFilled(true);
     setPoints         (false);
+  }
+  else {
+    setLines (true);
+    setPoints(false);
+
+    setLinesWidth(CQChartsLength("3px"));
   }
 }
 
@@ -833,8 +841,8 @@ initObjs()
       ns_ = plot_->numSets();
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      CQChartsModelIndex ind(row, plot_->xColumn(), parent);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // get group
       int groupInd = plot_->rowGroupInd(ind);
@@ -848,7 +856,7 @@ initObjs()
 
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      (void) plot_->rowData(parent, row, x, y, rowInd, /*skipBad*/false);
+      (void) plot_->rowData(data.parent, data.row, x, y, rowInd, /*skipBad*/false);
       assert(int(y.size()) == ns_);
 
       for (int i = 0; i < ns_; ++i) {

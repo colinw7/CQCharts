@@ -241,12 +241,12 @@ initGroup(const CQChartsGroupData &data)
      plot_(plot), bucket_(bucket), hier_(hier) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
       // add column value
       if      (bucket_->dataType() == CQChartsColumnBucket::DataType::COLUMN) {
         bool ok;
 
-        QVariant value = plot_->modelHierValue(row, bucket_->column(), parent, ok);
+        QVariant value = plot_->modelHierValue(data.row, bucket_->column(), data.parent, ok);
 
         if (value.isValid())
           bucket_->addValue(value);
@@ -260,13 +260,13 @@ initGroup(const CQChartsGroupData &data)
       }
       // add parent path (hierarchical)
       else if (bucket_->dataType() == CQChartsColumnBucket::DataType::PATH) {
-        QString path = CQChartsUtil::parentPath(model, parent);
+        QString path = CQChartsUtil::parentPath(model, data.parent);
 
         bucket_->addString(path);
       }
       // use row number
       else if (bucket_->isUseRow()) {
-        bucket_->addValue(row); // default to row
+        bucket_->addValue(data.row); // default to row
       }
       else {
         bucket_->addString(""); // no bucket

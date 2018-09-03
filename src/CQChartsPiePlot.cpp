@@ -487,8 +487,8 @@ initObjs()
        plot_(plot) {
       }
 
-      State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-        plot_->addRow(parent, row);
+      State visit(QAbstractItemModel *, const VisitData &data) override {
+        plot_->addRow(data.parent, data.row);
 
         return State::OK;
       }
@@ -694,8 +694,8 @@ calcDataTotal()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      plot_->addRowDataTotal(parent, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRowDataTotal(data.parent, data.row);
 
       return State::OK;
     }

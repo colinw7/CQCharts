@@ -590,3 +590,17 @@
  + Support group column for xy plot
  + Add Sub Layout support to minimize number of image layers
  + Support pixmap or image for layer
+# 9/2/2018
+ + fix bad tooltip for first bar of grouped barchart
+ + show color value in barchart tooltip
+ + add scale function to expr model
+ + remove key/concat functions from expr model
+ + support first column header in gnu data file type
+ + add support for scaled cell labels in image plot
+ + support balloon for image plot
+ + fix invert x/y for image plot labels
+ + add flip for correlation model
+ + use table for column details dialog to improve format
+ + use unique id/name as fallback for scatter plot with non-numeric columns
+ + support #{name} to column number in expression
+ + add subset_model and transpose_model commands

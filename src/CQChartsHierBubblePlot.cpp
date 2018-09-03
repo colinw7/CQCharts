@@ -416,11 +416,11 @@ loadHier()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State hierVisit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State hierVisit(QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(parent, row, name, nameInd);
+      (void) getName(data.parent, data.row, name, nameInd);
 
       //---
 
@@ -433,7 +433,7 @@ loadHier()
       return State::OK;
     }
 
-    State hierPostVisit(QAbstractItemModel *, const QModelIndex &, int) override {
+    State hierPostVisit(QAbstractItemModel *, const VisitData &) override {
       hierStack_.pop_back();
 
       assert(! hierStack_.empty());
@@ -441,17 +441,17 @@ loadHier()
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(parent, row, name, nameInd);
+      (void) getName(data.parent, data.row, name, nameInd);
 
       //---
 
       double size = 1.0;
 
-      if (! getSize(parent, row, size))
+      if (! getSize(data.parent, data.row, size))
         return State::SKIP;
 
       //---
@@ -461,7 +461,7 @@ loadHier()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", row, color))
+        if (plot_->colorSetColor("color", data.row, color))
           node->setColor(color);
       }
 
@@ -575,19 +575,19 @@ loadFlat()
       valueColumnType_ = plot_->columnValueType(plot_->valueColumn());
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       QStringList  nameStrs;
       ModelIndices nameInds;
 
-      if (! plot_->getHierColumnNames(parent, row, plot_->nameColumns(), plot_->separator(),
-                                      nameStrs, nameInds))
+      if (! plot_->getHierColumnNames(data.parent, data.row, plot_->nameColumns(),
+                                      plot_->separator(), nameStrs, nameInds))
         return State::SKIP;
 
       //---
 
       double size = 1.0;
 
-      if (! getSize(parent, row, size))
+      if (! getSize(data.parent, data.row, size))
         return State::SKIP;
 
       //---
@@ -597,7 +597,7 @@ loadFlat()
       if (node) {
         CQChartsColor color;
 
-        if (plot_->colorSetColor("color", row, color))
+        if (plot_->colorSetColor("color", data.row, color))
           node->setColor(color);
       }
 

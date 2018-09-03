@@ -1,22 +1,17 @@
 High
  + better filtering of plot values
  + auto split data into list of plots (left/right buttons)
- + no QBrush(color), QPen(color), setAlphaF, setWidthF
  + No style properties in *Plot*.h
  + remove tcl expression procs for functions that can be added using add_process_model_proc
+   + concat/key
+ + document expression handling (process, filter)
  + density axis plot scaling for multiple plots ?
  + Common Code for Data->Pen/Brush
  + Tree Map title (max) depth
  + Allow write to model value (tcl ?) not extra (extra option ?)
- + Distribution
-   + Line
-   + Background boxes
-   + Log Scale
- + Box Plot
-   + Sort by median
  + Margin units
  + Consistent property names and hieracrchy
- + More Variants in Model (QIamge/QIcon could supply custom symbol !)
+ + More Variants in Model (QImage/QIcon could supply custom symbol !)
  + Sort for scatter distribution
  + Layer only include image for object bbox
  + Column details in model data or model ?
@@ -251,6 +246,7 @@ Plots General
  + current plot
  + value set manager (by name) for plot
  + common menu code
+ + bucket coloring with filter (See HairEyeColorScatter.tcl)
 
 Combined Plots
  + Better builtin support for split plots
@@ -260,7 +256,7 @@ Adjacency Plot
  + Better Text Placement/Sizing
  + Hierarchical Adjacency (H/V headers are hierarchical trees)
  + Labels in Box (count)
- + Allow urn off row/column labels
+ + Allow turn off row/column labels
 
 Bar Chart
  + Allow hide sets as well as individual sub set types
@@ -272,11 +268,14 @@ Box Plot
  + Better tooltip for connected
  + interp connected
  + extra column for x label
+ + Sort by median
 
 Distribution Plot
  + Push/Pop save restore ranges
  + Draw data label inside bar if fits
  + Cross select slow with large number of values (allow disable ?)
+ + Line
+ + Log Scale
 
 Hier Bubble Plot
  + Pop to top
@@ -302,7 +301,6 @@ Radar Plot
 
 Scatter
  + Use FillObj for circles
- + support best fit per group
 
 Sunburst
  + Flat coloring
@@ -319,6 +317,9 @@ Tree map
 XY Plot
  + Use color set for color column to allow explict colors and colors from data
  + Diverging
+ + Smooth fit
+ + Label Peaks/Valleys
+ + Mean
 
 Mouse Over
  + Customize

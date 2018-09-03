@@ -25,6 +25,8 @@ class CQChartsModelColumnDetails {
 
   const CQChartsColumn &column() const { return column_; }
 
+  QString headerName() const;
+
   QString typeName() const;
 
   CQBaseModel::Type type() const;
@@ -54,6 +56,10 @@ class CQChartsModelColumnDetails {
 
   VariantList uniqueValues() const;
   VariantList uniqueCounts() const;
+
+  int uniqueId(const QVariant &v) const;
+
+  QVariant uniqueValue(int i) const;
 
   int numNull() const;
 

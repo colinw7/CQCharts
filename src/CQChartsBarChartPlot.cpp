@@ -246,8 +246,8 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addRow(ind, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRow(data.parent, data.row);
 
       return State::OK;
     }
@@ -289,7 +289,9 @@ calcRange()
 
   //---
 
-  if (nv > 0) {
+  int ng = numGroups();
+
+  if (ng > 0) {
     if (! isHorizontal())
       dataRange_.updateRange(numVisible - 0.5, dataRange_.ymin());
     else
@@ -336,7 +338,7 @@ calcRange()
     }
   }
   else {
-    if (nv > 1) {
+    if (ng > 1) {
       bool ok;
 
       xname = modelHeaderString(groupColumn().isValid() ? groupColumn() : nameColumn(), ok);
@@ -440,12 +442,23 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   //---
 
   // get optional data label string
-  QString label;
+  QString labelStr;
 
   if (labelColumn().isValid()) {
     bool ok3;
 
-    label = modelString(row, labelColumn(), parent, ok3);
+    labelStr = modelString(row, labelColumn(), parent, ok3);
+  }
+
+  //---
+
+  //get optional color string
+  QString colorStr;
+
+  if (colorColumn().isValid()) {
+    bool ok4;
+
+    colorStr = modelString(row, colorColumn(), parent, ok4);
   }
 
   //---
@@ -527,9 +540,9 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
     valueData.setValueName(valueName);
   }
   else {
-    int nv = numValueSets();
+    int ng = numGroups();
 
-    if (nv > 1) {
+    if (ng > 1) {
       // if path grouping (hierarchical) then value name is group name
       if (isGroupPathType()) {
         if (groupName.length())
@@ -537,9 +550,10 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
       }
 
       // save other name values for tip
-      if (group.length()) valueData.setNameValue("Group", group);
-      if (name .length()) valueData.setNameValue("Name" , name);
-      if (label.length()) valueData.setNameValue("Label", label);
+      if (group   .length()) valueData.setNameValue("Group", group);
+      if (name    .length()) valueData.setNameValue("Name" , name);
+      if (labelStr.length()) valueData.setNameValue("Label", labelStr);
+      if (colorStr.length()) valueData.setNameValue("Color", colorStr);
     }
     else {
       valueData.setValueName(name);

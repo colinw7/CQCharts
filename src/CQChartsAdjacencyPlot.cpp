@@ -302,10 +302,10 @@ initHierObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1;
 
-      QString linkStr = plot_->modelString(row, plot_->namePairColumn(), parent, ok1);
+      QString linkStr = plot_->modelString(data.row, plot_->namePairColumn(), data.parent, ok1);
 
       if (! ok1)
         return State::SKIP;
@@ -314,27 +314,27 @@ initHierObjs()
 
       bool ok2;
 
-      double value = plot_->modelReal(row, plot_->countColumn(), parent, ok2);
+      double value = plot_->modelReal(data.row, plot_->countColumn(), data.parent, ok2);
 
       if (! ok2)
         return State::SKIP;
 
       //---
 
-      int group = row;
+      int group = data.row;
 
       if (plot_->groupColumn().isValid()) {
         bool ok3;
 
-        group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok3);
+        group = plot_->modelInteger(data.row, plot_->groupColumn(), data.parent, ok3);
 
         if (! ok3)
-          group = row;
+          group = data.row;
       }
 
       //---
 
-      QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
+      QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
       int pos = linkStr.indexOf("/");
@@ -463,26 +463,27 @@ initConnectionObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1;
 
-      int id = plot_->modelInteger(row, plot_->idColumn(), parent , ok1);
+      int id = plot_->modelInteger(data.row, plot_->idColumn(), data.parent, ok1);
 
-      if (! ok1) id = row;
+      if (! ok1) id = data.row;
 
       //---
 
       bool ok2;
 
-      int group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok2);
+      int group = plot_->modelInteger(data.row, plot_->groupColumn(), data.parent, ok2);
 
-      if (! ok2) group = row;
+      if (! ok2) group = data.row;
 
       //---
 
       bool ok3;
 
-      QString connectionsStr = plot_->modelString(row, plot_->connectionsColumn(), parent, ok3);
+      QString connectionsStr =
+        plot_->modelString(data.row, plot_->connectionsColumn(), data.parent, ok3);
 
       if (! ok3)
         return State::SKIP;
@@ -491,14 +492,14 @@ initConnectionObjs()
 
       bool ok4;
 
-      QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok4);
+      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok4);
 
       if (! name.length())
         name = QString("%1").arg(id);
 
       //---
 
-      QModelIndex nodeInd  = plot_->modelIndex(row, plot_->idColumn(), parent);
+      QModelIndex nodeInd  = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
       QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
       ConnectionsData connections;

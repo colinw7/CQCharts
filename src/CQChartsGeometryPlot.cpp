@@ -185,8 +185,8 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &ind, int row) override {
-      plot_->addRow(model, ind, row);
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
+      plot_->addRow(model, data.parent, data.row);
 
       return State::OK;
     }

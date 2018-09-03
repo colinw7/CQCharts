@@ -64,6 +64,16 @@ class CQChartsExprCmdValues {
     return true;
   }
 
+  bool getBool(bool &b) {
+    if (ind_ > eind_) return false;
+
+    b = values_[ind_].toBool();
+
+    ++ind_;
+
+    return true;
+  }
+
   //---
 
  private:

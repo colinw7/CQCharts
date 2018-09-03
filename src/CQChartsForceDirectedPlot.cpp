@@ -129,12 +129,12 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1;
 
-      int group = plot_->modelInteger(row, plot_->groupColumn(), parent, ok1);
+      int group = plot_->modelInteger(data.row, plot_->groupColumn(), data.parent, ok1);
 
-      if (! ok1) group = row;
+      if (! ok1) group = data.row;
 
       //---
 
@@ -143,15 +143,16 @@ initObjs()
 
         bool ok2;
 
-        int id = plot_->modelInteger(row, plot_->nodeColumn(), parent, ok2);
+        int id = plot_->modelInteger(data.row, plot_->nodeColumn(), data.parent, ok2);
 
-        if (! ok2) id = row;
+        if (! ok2) id = data.row;
 
         //---
 
         bool ok3;
 
-        QString connectionsStr = plot_->modelString(row, plot_->connectionsColumn(), parent, ok3);
+        QString connectionsStr =
+          plot_->modelString(data.row, plot_->connectionsColumn(), data.parent, ok3);
 
         ConnectionDataArray connectionDataArray;
 
@@ -161,14 +162,14 @@ initObjs()
 
         bool ok4;
 
-        QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok4);
+        QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok4);
 
         if (! name.length())
           name = QString("%1").arg(id);
 
         //---
 
-        QModelIndex nodeInd  = plot_->modelIndex(row, plot_->nodeColumn(), parent);
+        QModelIndex nodeInd  = plot_->modelIndex(data.row, plot_->nodeColumn(), data.parent);
         QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
 
         ConnectionsData connectionsData;
@@ -184,7 +185,7 @@ initObjs()
       else {
         bool ok2;
 
-        QString linkStr = plot_->modelString(row, plot_->nameColumn(), parent, ok2);
+        QString linkStr = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok2);
 
         if (! ok2)
           return State::SKIP;
@@ -204,14 +205,14 @@ initObjs()
 
         bool ok3;
 
-        int value = plot_->modelInteger(row, plot_->valueColumn(), parent, ok3);
+        int value = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok3);
 
         if (! ok3)
           value = 0;
 
         //---
 
-        QModelIndex nameInd  = plot_->modelIndex(row, plot_->nameColumn(), parent);
+        QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
         QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
         ConnectionsData &srcConnectionsData = plot_->getConnections(srcId);

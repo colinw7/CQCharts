@@ -208,17 +208,17 @@ calcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      if (! plot_->acceptsRow(row, parent))
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      if (! plot_->acceptsRow(data.row, data.parent))
         return State::SKIP;
 
       bool ok1, ok2;
 
-      double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-      double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = row;
-      if (! ok2) y = row;
+      if (! ok1) x = data.row;
+      if (! ok2) y = data.row;
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -328,8 +328,8 @@ initGroupValueSets()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-      plot_->addRowGroupValueSets(parent, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRowGroupValueSets(data.parent, data.row);
 
       return State::OK;
     }
@@ -408,8 +408,8 @@ initObjs()
        plot_(plot) {
       }
 
-      State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
-        if (! plot_->acceptsRow(row, parent))
+      State visit(QAbstractItemModel *, const VisitData &data) override {
+        if (! plot_->acceptsRow(data.row, data.parent))
           return State::SKIP;
 
         //---
@@ -417,11 +417,11 @@ initObjs()
         // get x, y value
         bool ok1, ok2;
 
-        double x = plot_->modelReal(row, plot_->xColumn(), parent, ok1);
-        double y = plot_->modelReal(row, plot_->yColumn(), parent, ok2);
+        double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+        double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-        if (! ok1) x = row;
-        if (! ok2) y = row;
+        if (! ok1) x = data.row;
+        if (! ok2) y = data.row;
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
           return State::SKIP;
@@ -431,11 +431,11 @@ initObjs()
         // get optional name
         bool ok;
 
-        QString name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+        QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
 
         //---
 
-        plot_->addGroupPoint(parent, row, x, y, name);
+        plot_->addGroupPoint(data.parent, data.row, x, y, name);
 
         return State::OK;
       }

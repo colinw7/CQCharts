@@ -30,6 +30,8 @@
 #include <CQDataModel.h>
 #include <CQSortModel.h>
 #include <CQFoldedModel.h>
+#include <CQSubSetModel.h>
+#include <CQTransposeModel.h>
 
 #include <CQUtil.h>
 #include <CUnixFile.h>
@@ -144,8 +146,12 @@ addCommands()
     addCommand("filter_model"          );
     addCommand("flatten_model"         );
 
-    // correlation, export
+    // correlation, subset
     addCommand("correlation_model");
+    addCommand("subset_model"     );
+    addCommand("transpose_model"  );
+
+    // export
     addCommand("export_model"     );
 
     // measure text
@@ -242,9 +248,13 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "filter_model"          ) { filterModelCmd   (vars); }
   else if (cmd == "flatten_model"         ) { flattenModelCmd  (vars); }
 
-  // correlation, export
+  // correlation, subset
   else if (cmd == "correlation_model") { correlationModelCmd(vars); }
-  else if (cmd == "export_model"     ) { exportModelCmd     (vars); }
+  else if (cmd == "subset_model"     ) { subsetModelCmd     (vars); }
+  else if (cmd == "transpose_model"  ) { transposeModelCmd  (vars); }
+
+  // export
+  else if (cmd == "export_model") { exportModelCmd(vars); }
 
   // measure text
   else if (cmd == "measure_text") { measureTextCmd(vars); }
@@ -1702,24 +1712,25 @@ flattenModelCmd(const Vars &vars)
      charts_(charts), groupColumn_(groupColumn) {
     }
 
-    State hierVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State hierVisit(QAbstractItemModel *model, const VisitData &data) override {
       ++hierRow_;
 
       bool ok;
 
-      groupValue_[hierRow_] = CQChartsUtil::modelValue(charts_, model, row, 0, parent, ok);
+      groupValue_[hierRow_] =
+        CQChartsUtil::modelValue(charts_, model, data.row, 0, data.parent, ok);
 
       return State::OK;
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
       int nc = numCols();
 
       if (isHierarchical()) {
         for (int c = 1; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[hierRow_][c - 1].addValue(var);
@@ -1729,7 +1740,7 @@ flattenModelCmd(const Vars &vars)
         bool ok;
 
         QVariant groupVar =
-          CQChartsUtil::modelValue(charts_, model, row, groupColumn_, parent, ok);
+          CQChartsUtil::modelValue(charts_, model, data.row, groupColumn_, data.parent, ok);
 
         auto p = valueGroup_.find(groupVar);
 
@@ -1746,7 +1757,7 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[group][c].addValue(var);
@@ -1756,7 +1767,7 @@ flattenModelCmd(const Vars &vars)
         for (int c = 0; c < nc; ++c) {
           bool ok;
 
-          QVariant var = CQChartsUtil::modelValue(charts_, model, row, c, parent, ok);
+          QVariant var = CQChartsUtil::modelValue(charts_, model, data.row, c, data.parent, ok);
 
           if (ok)
             rowColValueSet_[0][c].addValue(var);
@@ -1992,13 +2003,15 @@ correlationModelCmd(const Vars &vars)
   CQChartsCmdArgs argv("correlation_model", vars);
 
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-flip" , CQChartsCmdArg::Type::Boolean, "correlate rows instead of columns");
 
   if (! argv.parse())
     return;
 
   //---
 
-  int modelInd = argv.getParseInt("model", -1);
+  int  modelInd = argv.getParseInt ("model", -1);
+  bool flip     = argv.getParseBool("flip");
 
   //------
 
@@ -2014,9 +2027,113 @@ correlationModelCmd(const Vars &vars)
 
   CQChartsLoader loader(charts_);
 
-  QAbstractItemModel *model1 = loader.createCorrelationModel(modelData->model().data());
+  QAbstractItemModel *model1 =
+    loader.createCorrelationModel(modelData->model().data(), flip);
 
   ModelP modelp1(model1);
+
+  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
+
+  //---
+
+  setCmdRc(modelData1->ind());
+}
+
+//------
+
+void
+CQChartsCmds::
+subsetModelCmd(const Vars &vars)
+{
+  CQChartsCmdArgs argv("subset_model", vars);
+
+  argv.addCmdArg("-model" , CQChartsCmdArg::Type::Integer, "model id");
+  argv.addCmdArg("-left"  , CQChartsCmdArg::Type::Column , "left (start) column");
+  argv.addCmdArg("-right" , CQChartsCmdArg::Type::Column , "right (end) column");
+  argv.addCmdArg("-top"   , CQChartsCmdArg::Type::Integer, "top (start) row");
+  argv.addCmdArg("-bottom", CQChartsCmdArg::Type::Integer, "bottom (end) row");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return;
+  }
+
+  QAbstractItemModel *model = modelData->model().data();
+
+  //------
+
+  CQChartsColumn left  = argv.getParseColumn("left" , model);
+  CQChartsColumn right = argv.getParseColumn("right", model);
+
+  int top    = argv.getParseInt("top"   , -1);
+  int bottom = argv.getParseInt("bottom", -1);
+
+  if (! left .isValid()) left  = 0;
+  if (! right.isValid()) right = model->columnCount() - 1;
+
+  if (top    < 0) top    = 0;
+  if (bottom < 0) bottom = model->rowCount() - 1;
+
+  //------
+
+  CQSubSetModel *subsetModel = new CQSubSetModel(model);
+
+  QModelIndex tlIndex = model->index(top   , left .column());
+  QModelIndex brIndex = model->index(bottom, right.column());
+
+  subsetModel->setBounds(tlIndex, brIndex);
+
+  ModelP modelp1(subsetModel);
+
+  CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
+
+  //---
+
+  setCmdRc(modelData1->ind());
+}
+
+//------
+
+void
+CQChartsCmds::
+transposeModelCmd(const Vars &vars)
+{
+  CQChartsCmdArgs argv("transpose_model", vars);
+
+  argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model id");
+
+  if (! argv.parse())
+    return;
+
+  //---
+
+  // get model
+  int modelInd = argv.getParseInt("model", -1);
+
+  CQChartsModelData *modelData = getModelDataOrCurrent(modelInd);
+
+  if (! modelData) {
+    charts_->errorMsg("No model data");
+    return;
+  }
+
+  QAbstractItemModel *model = modelData->model().data();
+
+  //------
+
+  CQTransposeModel *transposeModel = new CQTransposeModel(model);
+
+  ModelP modelp1(transposeModel);
 
   CQChartsModelData *modelData1 = charts_->initModelData(modelp1);
 

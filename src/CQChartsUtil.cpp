@@ -109,21 +109,23 @@ visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r,
   if (visitor.maxRows() > 0 && r > visitor.maxRows())
     return CQChartsModelVisitor::State::TERMINATE;
 
+   CQChartsModelVisitor::VisitData data(parent, r);
+
   if (model->hasChildren(ind1)) {
-    CQChartsModelVisitor::State state = visitor.hierVisit(model, parent, r);
+    CQChartsModelVisitor::State state = visitor.hierVisit(model, data);
     if (state != CQChartsModelVisitor::State::OK) return state;
 
     CQChartsModelVisitor::State iterState = visitModelIndex(model, ind1, visitor);
     if (iterState != CQChartsModelVisitor::State::OK) return iterState;
 
-    CQChartsModelVisitor::State postState = visitor.hierPostVisit(model, parent, r);
+    CQChartsModelVisitor::State postState = visitor.hierPostVisit(model, data);
     if (postState != CQChartsModelVisitor::State::OK) return postState;
   }
   else {
-    CQChartsModelVisitor::State preState = visitor.preVisit(model, parent, r);
+    CQChartsModelVisitor::State preState = visitor.preVisit(model, data);
     if (preState != CQChartsModelVisitor::State::OK) return preState;
 
-    CQChartsModelVisitor::State state = visitor.visit(model, parent, r);
+    CQChartsModelVisitor::State state = visitor.visit(model, data);
     if (state != CQChartsModelVisitor::State::OK) return state;
 
     visitor.step();
@@ -208,8 +210,8 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
        column_(column) {
       }
 
-      State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) override {
-        QModelIndex ind = model->index(row, column_, parent);
+      State visit(QAbstractItemModel *model, const VisitData &data) override {
+        QModelIndex ind = model->index(data.row, column_, data.parent);
 
         // if column can be integral, check if value is valid integer
         if (isInt_) {
@@ -2268,7 +2270,7 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
 
   while (! parse.eof()) {
     // @<n> get column value (current row)
-    if (parse.isChar('@')) {
+    if      (parse.isChar('@')) {
       parse.skipChar();
 
       bool stringify = false;
@@ -2372,6 +2374,37 @@ replaceModelExprVars(const QString &expr, QAbstractItemModel *model, const QMode
           expr1 += "@#";
         else
           expr1 += "@";
+      }
+    }
+    // #{name} get column number for name
+    else if (parse.isChar('#')) {
+      parse.skipChar();
+
+      if (parse.isChar('{')) {
+        int pos = parse.getPos();
+
+        parse.skipChar();
+
+        while (! parse.eof() && ! parse.isChar('}'))
+          parse.skipChar();
+
+        QString str = parse.getBefore(pos + 1);
+
+        if (parse.isChar('}'))
+          parse.skipChar();
+
+        CQChartsColumn c;
+
+        if (model && stringToColumn(model, str, c))
+          expr1 += QString("%1").arg(c.column());
+        else {
+          parse.setPos(pos);
+
+          expr1 += "#";
+        }
+      }
+      else {
+        expr1 += "#";
       }
     }
     else {

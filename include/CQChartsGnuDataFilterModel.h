@@ -18,8 +18,9 @@ class CQChartsGnuDataFilterModel : public CQChartsModelFilter {
   CQChartsExprModel  *exprModel() const override { return exprModel_; }
   QAbstractItemModel *baseModel() const override;
 
-  void setCommentHeader(bool b);
-  void setFirstLineHeader(bool b);
+  void setCommentHeader    (bool b);
+  void setFirstLineHeader  (bool b);
+  void setFirstColumnHeader(bool b);
 
   bool load(const QString &filename);
 

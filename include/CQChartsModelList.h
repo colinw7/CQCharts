@@ -8,6 +8,7 @@ class CQChartsModelData;
 class CQChartsModelControl;
 class CQChartsTable;
 class CQChartsTree;
+class CQTableWidget;
 class QStackedWidget;
 class QTabWidget;
 class QLineEdit;
@@ -23,6 +24,7 @@ struct CQChartsViewWidgetData {
   CQChartsTree*   tree         { nullptr };
   QLineEdit*      filterEdit   { nullptr };
   QTextEdit*      detailsText  { nullptr };
+  CQTableWidget*  detailsTable { nullptr };
 };
 
 //---
@@ -52,7 +54,7 @@ class CQChartsModelList : public QFrame {
 
   void reloadModel(CQChartsModelData *modelData);
 
-  void setDetailsText(const CQChartsModelData *modelData);
+  void setDetails(const CQChartsModelData *modelData);
 
  private slots:
   void addModelData(int ind);

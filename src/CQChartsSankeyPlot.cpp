@@ -182,11 +182,11 @@ initObjs()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &parent, int row) override {
+    State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(row, plot_->linkColumn (), parent, ok1);
-      double  value   = plot_->modelReal  (row, plot_->valueColumn(), parent, ok2);
+      QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent, ok1);
+      double  value   = plot_->modelReal  (data.row, plot_->valueColumn(), data.parent, ok2);
 
       if (! ok1 || ! ok2)
         return State::SKIP;

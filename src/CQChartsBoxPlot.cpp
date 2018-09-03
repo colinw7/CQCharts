@@ -783,8 +783,8 @@ updateCalcRange()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addCalcRow(ind, row, dataList_);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addCalcRow(data.parent, data.row, dataList_);
 
       return State::OK;
     }
@@ -923,8 +923,8 @@ updateRawWhiskers()
      plot_(plot) {
     }
 
-    State visit(QAbstractItemModel *, const QModelIndex &ind, int row) override {
-      plot_->addRawWhiskerRow(ind, row);
+    State visit(QAbstractItemModel *, const VisitData &data) override {
+      plot_->addRawWhiskerRow(data.parent, data.row);
 
       return State::OK;
     }

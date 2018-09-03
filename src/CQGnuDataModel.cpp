@@ -58,8 +58,9 @@ load(const QString &filename)
   // TODO: skip comments and blank lines at start of file
 
   // process each line in file
-  bool commentHeader   = isCommentHeader  ();
-  bool firstLineHeader = isFirstLineHeader();
+  bool commentHeader     = isCommentHeader    ();
+  bool firstLineHeader   = isFirstLineHeader  ();
+  bool firstColumnHeader = isFirstColumnHeader();
 
   SubSet    subSet;
   FieldsSet fieldsSet;
@@ -99,9 +100,13 @@ load(const QString &filename)
       //---
 
       if (setHeader) {
-        Fields fields;
+        QString field0;
+        Fields  fields;
 
-        parseFileLine(line1, fields);
+        parseFileLine(line1, field0, fields, firstColumnHeader);
+
+        //if (firstColumnHeader)
+        //  rowHeaderFields_.push_back(field0);
 
         columnHeaderFields_ = fields;
 
@@ -199,9 +204,13 @@ load(const QString &filename)
     //---
 
     // get fields from line
-    Fields fields;
+    QString field0;
+    Fields  fields;
 
-    parseFileLine(line1, fields);
+    parseFileLine(line1, field0, fields, firstColumnHeader);
+
+    if (firstColumnHeader)
+      rowHeaderFields_.push_back(field0);
 
     fieldsSet.push_back(fields);
 
@@ -233,9 +242,20 @@ load(const QString &filename)
 
     for (int i = 0; i < numColumns; ++i) {
       if (i < int(columnHeaderFields_.size()))
-        addColumn(columnHeaderFields_[i]);
+        addColumnHeader(columnHeaderFields_[i]);
       else
-        addColumn(QString("%1").arg(i + 1));
+        addColumnHeader(QString("%1").arg(i + 1));
+    }
+
+    if (firstColumnHeader) {
+      int numRows = fieldsSet.size();
+
+      for (int i = 0; i < numRows; ++i) {
+        if (i < int(rowHeaderFields_.size()))
+          addRowHeader(rowHeaderFields_[i]);
+        else
+          addRowHeader(QString("%1").arg(i + 1));
+      }
     }
 
     for (const auto &fields : fieldsSet) {
@@ -303,9 +323,10 @@ struct Words {
 
 void
 CQGnuDataModel::
-parseFileLine(const QString &str, Fields &fields)
+parseFileLine(const QString &str, QString &field0, Fields &fields, bool firstColumnHeader)
 {
   bool isSeparator = false;
+  bool isPartial   = false;
 
   std::vector<QString> strs;
 
@@ -348,6 +369,7 @@ parseFileLine(const QString &str, Fields &fields)
       words.addWord(word);
 
       isSeparator = false;
+      isPartial   = false;
     }
     else if (separator() == '\0' && line.isSpace()) {
       words.flush(false);
@@ -355,6 +377,7 @@ parseFileLine(const QString &str, Fields &fields)
       line.skipSpace();
 
       isSeparator = true;
+      isPartial   = false;
     }
     else if (line.isChar(separator())) {
       words.flush(isSeparator);
@@ -364,25 +387,42 @@ parseFileLine(const QString &str, Fields &fields)
         line.skipChar();
 
       isSeparator = true;
+      isPartial   = false;
     }
     else {
       words.addChar(line.getChar());
 
       isSeparator = false;
+      isPartial   = true;
     }
   }
 
-  words.flush(true);
+  if (isPartial)
+    words.flush(true);
 
-  for (const auto &s : strs)
-    fields.push_back(s);
+  for (const auto &s : strs) {
+    if (firstColumnHeader) {
+      field0 = s;
+
+      firstColumnHeader = false;
+    }
+    else
+     fields.push_back(s);
+  }
 }
 
 //------
 
 void
 CQGnuDataModel::
-addColumn(const QString &name)
+addColumnHeader(const QString &name)
 {
   hheader_.emplace_back(name);
+}
+
+void
+CQGnuDataModel::
+addRowHeader(const QString &name)
+{
+  vheader_.emplace_back(name);
 }

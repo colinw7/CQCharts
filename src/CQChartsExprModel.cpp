@@ -3,6 +3,7 @@
 #include <CQChartsExprCmdValues.h>
 #include <CQChartsModelData.h>
 #include <CQChartsModelDetails.h>
+#include <CQChartsModelFilter.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsUtil.h>
 #include <CQChartsRand.h>
@@ -43,8 +44,8 @@ class CQChartsExprTcl : public CQTcl {
 //------
 
 CQChartsExprModel::
-CQChartsExprModel(CQCharts *charts, QAbstractItemModel *model) :
- charts_(charts), model_(model)
+CQChartsExprModel(CQCharts *charts, CQChartsModelFilter *filter, QAbstractItemModel *model) :
+ charts_(charts), filter_(filter), model_(model)
 {
 #ifdef CQCharts_USE_TCL
   qtcl_ = new CQChartsExprTcl(this);
@@ -88,10 +89,11 @@ addBuiltinFunctions()
   addFunction("map"      );
   addFunction("bucket"   );
   addFunction("norm"     );
-  addFunction("key"      );
+  addFunction("scale"    );
   addFunction("rand"     );
   addFunction("rnorm"    );
-  addFunction("concat"   );
+//addFunction("key"      );
+//addFunction("concat"   );
   addFunction("color"    );
 
   addFunction("remap"    );
@@ -879,10 +881,11 @@ processCmd(const QString &name, const Values &values)
   else if (name == "map"      ) return mapCmd      (values);
   else if (name == "bucket"   ) return bucketCmd   (values);
   else if (name == "norm"     ) return normCmd     (values);
-  else if (name == "key"      ) return keyCmd      (values);
+  else if (name == "scale"    ) return scaleCmd    (values);
   else if (name == "rand"     ) return randCmd     (values);
   else if (name == "rnorm"    ) return rnormCmd    (values);
-  else if (name == "concat"   ) return concatCmd   (values);
+//else if (name == "key"      ) return keyCmd      (values);
+//else if (name == "concat"   ) return concatCmd   (values);
   else if (name == "color"    ) return colorCmd    (values);
 
   else if (name == "remap"    ) return remapCmd    (values);
@@ -893,7 +896,8 @@ processCmd(const QString &name, const Values &values)
 
 //------
 
-// column(), column(col), column(col,defVal) : get column value
+// get column value for current row:
+//   column(), column(col), column(col,defVal) : get column value
 QVariant
 CQChartsExprModel::
 columnCmd(const Values &values) const
@@ -927,7 +931,8 @@ columnCmd(const Values &values) const
 
 //---
 
-// row(), row(row) : get row value
+// get row value for current column:
+//   row(), row(row) : get row value
 QVariant
 CQChartsExprModel::
 rowCmd(const Values &values) const
@@ -961,7 +966,8 @@ rowCmd(const Values &values) const
 
 //---
 
-// cell(), cell(row,column), cell(row,column,defVal) : get cell value
+// get cell (row/column) value:
+//   cell(), cell(row,column), cell(row,column,defVal) : get cell value
 QVariant
 CQChartsExprModel::
 cellCmd(const Values &values) const
@@ -1000,7 +1006,8 @@ cellCmd(const Values &values) const
 
 //---
 
-// setColumn(value), setColumn(col,value) : set column value
+// set column value (for current row):
+//   setColumn(value), setColumn(col,value) : set column value
 QVariant
 CQChartsExprModel::
 setColumnCmd(const Values &values)
@@ -1033,7 +1040,8 @@ setColumnCmd(const Values &values)
 
 //---
 
-// setRow(value), setRow(row,value), setRow(row,col,value) : set row value
+// set row value (for current column):
+//   setRow(value), setRow(row,value), setRow(row,col,value) : set row value
 QVariant
 CQChartsExprModel::
 setRowCmd(const Values &values)
@@ -1066,7 +1074,8 @@ setRowCmd(const Values &values)
 
 //---
 
-// setCell(value), setCell(row,col,value) : set row value
+// set cell value (for row/column):
+//   setCell(value), setCell(row,col,value) : set row value
 QVariant
 CQChartsExprModel::
 setCellCmd(const Values &values)
@@ -1100,7 +1109,8 @@ setCellCmd(const Values &values)
 
 //---
 
-// header(), header(col)
+// get header value (for column):
+//   header(), header(col)
 QVariant
 CQChartsExprModel::
 headerCmd(const Values &values) const
@@ -1123,7 +1133,8 @@ headerCmd(const Values &values) const
 
 //---
 
-// setHeader(s), setHeader(col,s)
+// set header value (for column):
+//   setHeader(s), setHeader(col,s)
 QVariant
 CQChartsExprModel::
 setHeaderCmd(const Values &values)
@@ -1153,7 +1164,8 @@ setHeaderCmd(const Values &values)
 
 //---
 
-// type(), type(col)
+// get type (for column):
+//   type(), type(col)
 QVariant
 CQChartsExprModel::
 typeCmd(const Values &values) const
@@ -1182,7 +1194,8 @@ typeCmd(const Values &values) const
 
 //---
 
-// setType(s), setType(col,s)
+// set type (for column):
+//   setType(s), setType(col,s)
 QVariant
 CQChartsExprModel::
 setTypeCmd(const Values &values)
@@ -1220,7 +1233,8 @@ setTypeCmd(const Values &values)
 
 //---
 
-// map(), map(max), map(min,max)
+// map value (for row/column):
+//   map(), map(max), map(min,max)
 QVariant
 CQChartsExprModel::
 mapCmd(const Values &values) const
@@ -1257,7 +1271,8 @@ mapCmd(const Values &values) const
 
 //---
 
-// bucket(col,delta), bucket(col,start,delta)
+// bucket value (for row/column):
+//   bucket(col,delta), bucket(col,start,delta)
 QVariant
 CQChartsExprModel::
 bucketCmd(const Values &values) const
@@ -1334,17 +1349,18 @@ bucketCmd(const Values &values) const
 
 //---
 
-// norm(col), norm(col,scale)
+// normalized column value
+//   norm(col), norm(col,scale)
 QVariant
 CQChartsExprModel::
 normCmd(const Values &values) const
 {
+  // get column and optional scale
   CQChartsExprCmdValues cmdValues(values);
 
   if (cmdValues.numValues() == 0)
     return QVariant(0.0);
 
-  int row = currentRow();
   int col = currentCol();
 
   (void) cmdValues.getInt(col);
@@ -1358,12 +1374,16 @@ normCmd(const Values &values) const
 
   //---
 
+  // check index valid and get value
+  int row = currentRow();
+
   if (! checkIndex(row, col))
     return QVariant();
 
-  //---
-
   QVariant var = getCmdData(row, col);
+
+  if (! var.isValid())
+    return QVariant();
 
   //---
 
@@ -1420,30 +1440,78 @@ normCmd(const Values &values) const
 
 //---
 
-// key(str1,str2,...)
+// scaled column value
+//   scale(col,center=true,scale=true)
 QVariant
 CQChartsExprModel::
-keyCmd(const Values &values) const
+scaleCmd(const Values &values) const
 {
+  // get column and optional center, scale
   CQChartsExprCmdValues cmdValues(values);
 
-  QString s;
+  if (cmdValues.numValues() == 0)
+    return QVariant(0.0);
 
-  QString key;
+  int col = currentCol();
 
-  while (cmdValues.getStr(s)) {
-    if (s.size())
-      key += ":" + s;
-    else
-      key = s;
-  }
+  (void) cmdValues.getInt(col);
 
-  return QVariant(key);
+  if (col < 0 || col >= columnCount())
+    return QVariant(0.0);
+
+  bool center = true;
+  bool scale  = true;
+
+  (void) cmdValues.getBool(center);
+  (void) cmdValues.getBool(scale );
+
+  //---
+
+  // check index valid and get value
+  int row = currentRow();
+
+  if (! checkIndex(row, col))
+    return QVariant(0.0);
+
+  QVariant var = getCmdData(row, col);
+
+  if (! var.isValid())
+    return QVariant(0.0);
+
+  double value = var.toDouble();
+
+  //---
+
+  QModelIndex ind = this->index(row, col, QModelIndex());
+
+  CQChartsColumn column(ind.column());
+
+  CQChartsModelData *modelData = getModelData();
+  if (! modelData) return QVariant(0.0);
+
+  CQChartsModelDetails *details = modelData->details();
+  assert(details);
+
+  CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+  assert(columnDetails);
+
+  QVariant mean   = columnDetails->meanValue  ();
+  QVariant stddev = columnDetails->stdDevValue();
+
+  if (! mean.isValid() || ! stddev.isValid())
+    return QVariant(0.0);
+
+  //---
+
+  double value1 = (stddev > 0.0 ? (value - mean.toReal())/stddev.toReal() : 0.0);
+
+  return QVariant(value1);
 }
 
 //---
 
-// rand(min=0,max=1)
+// random value:
+//   rand(min=0,max=1)
 QVariant
 CQChartsExprModel::
 randCmd(const Values &values) const
@@ -1465,7 +1533,8 @@ randCmd(const Values &values) const
 
 //---
 
-// rnorm(mean=0,stddev=1)
+// random normalized value:
+//   rnorm(mean=0,stddev=1)
 QVariant
 CQChartsExprModel::
 rnormCmd(const Values &values) const
@@ -1487,7 +1556,35 @@ rnormCmd(const Values &values) const
 
 //---
 
-// concat(str1,str2,...)
+#if 0
+// key from values:
+//   key(str1,str2,...)
+QVariant
+CQChartsExprModel::
+keyCmd(const Values &values) const
+{
+  CQChartsExprCmdValues cmdValues(values);
+
+  QString s;
+
+  QString key;
+
+  while (cmdValues.getStr(s)) {
+    if (s.size())
+      key += ":" + s;
+    else
+      key = s;
+  }
+
+  return QVariant(key);
+}
+#endif
+
+//---
+
+#if 0
+// concat values:
+//   concat(str1,str2,...)
 QVariant
 CQChartsExprModel::
 concatCmd(const Values &values) const
@@ -1499,10 +1596,12 @@ concatCmd(const Values &values) const
 
   return QVariant(str);
 }
+#endif
 
 //---
 
-// color(name)
+// string to color:
+//   color(name)
 QVariant
 CQChartsExprModel::
 colorCmd(const Values &values) const
@@ -1515,10 +1614,11 @@ colorCmd(const Values &values) const
 
 //---
 
-// remap()            - current column, 0.0, 1.0
-// remap(col)         - specified column, 0.0, 1.0
-// remap(col,max)     - specified column, 0.0, max
-// remap(col,min,max) - specified column, min, max
+// remap column value:
+//   remap()            - current column, 0.0, 1.0
+//   remap(col)         - specified column, 0.0, 1.0
+//   remap(col,max)     - specified column, 0.0, max
+//   remap(col,min,max) - specified column, min, max
 QVariant
 CQChartsExprModel::
 remapCmd(const Values &values)
@@ -1560,9 +1660,7 @@ remapCmd(const Values &values)
   bool ok;
 
   double r = CQChartsUtil::modelReal(this, ind, ok);
-
-  if (! ok)
-    return QVariant(0.0);
+  if (! ok) return QVariant(0.0);
 
   double rm = CMathUtil::map(r, rmin, rmax, r1, r2);
 
@@ -1571,8 +1669,9 @@ remapCmd(const Values &values)
 
 //---
 
-// timeval(fmt)     - timeval fmt for current column
-// timeval(col,fmt) - timeval fmt for specified column
+// time value from column value:
+//   timeval(fmt)     - timeval fmt for current column
+//   timeval(col,fmt) - timeval fmt for specified column
 QVariant
 CQChartsExprModel::
 timevalCmd(const Values &values)
@@ -1757,13 +1856,7 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
 {
   CQChartsColumn column(ind.column());
 
-  CQChartsModelData *modelData = charts_->getModelData(this->model_);
-
-  if (! modelData) {
-    //int modelInd = charts_->addModel(this->model_);
-
-    //modelData = charts_->getModelData(modelInd);
-  }
+  CQChartsModelData *modelData = getModelData();
 
   //---
 
@@ -1809,4 +1902,13 @@ getColumnRange(const QModelIndex &ind, double &rmin, double &rmax)
   }
 
   return true;
+}
+
+//---
+
+CQChartsModelData *
+CQChartsExprModel::
+getModelData() const
+{
+  return charts_->getModelData(this->filter_);
 }

@@ -146,7 +146,10 @@ CQSortModel.cpp \
 CQFoldedModel.cpp \
 CQDataModel.cpp \
 CQBaseModel.cpp \
+\
 CQSummaryModel.cpp \
+CQSubSetModel.cpp \
+CQTransposeModel.cpp \
 CQBucketer.cpp \
 \
 CQHistoryLineEdit.cpp \
@@ -293,6 +296,8 @@ HEADERS += \
 ../include/CQDataModel.h \
 ../include/CQBaseModel.h \
 ../include/CQSummaryModel.h \
+../include/CQSubSetModel.h \
+../include/CQTransposeModel.h \
 ../include/CQBucketer.h \
 \
 ../include/CQHistoryLineEdit.h \
