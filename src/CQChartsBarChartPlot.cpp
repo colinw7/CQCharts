@@ -247,7 +247,7 @@ calcRange()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data.parent, data.row);
+      plot_->addRow(data);
 
       return State::OK;
     }
@@ -367,25 +367,25 @@ calcRange()
 
 void
 CQChartsBarChartPlot::
-addRow(const QModelIndex &parent, int row)
+addRow(const ModelVisitor::VisitData &data)
 {
   // add value for each column (non-range)
   if (! isRangeBar()) {
     for (const auto &column : valueColumns()) {
       Columns columns { column };
 
-      addRowColumn(parent, row, columns);
+      addRowColumn(data, columns);
     }
   }
   // add all values for columns (range)
   else {
-    addRowColumn(parent, row, this->valueColumns());
+    addRowColumn(data, this->valueColumns());
   }
 }
 
 void
 CQChartsBarChartPlot::
-addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
+addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns)
 {
   CQChartsModelIndex ind;
 
@@ -394,10 +394,10 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
 
     const CQChartsColumn &valueColumn = valueColumns[0];
 
-    ind = CQChartsModelIndex(row, valueColumn, parent);
+    ind = CQChartsModelIndex(data.row, valueColumn, data.parent);
   }
   else {
-    ind = CQChartsModelIndex(row, CQChartsColumn(), parent);
+    ind = CQChartsModelIndex(data.row, CQChartsColumn(), data.parent);
   }
 
   //---
@@ -420,7 +420,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   if (groupColumn().isValid()) {
     bool ok1;
 
-    group = modelHierString(row, groupColumn(), parent, ok1);
+    group = modelHierString(data.row, groupColumn(), data.parent, ok1);
 
     categoryName = group;
   }
@@ -433,7 +433,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   if (nameColumn().isValid()) {
     bool ok2;
 
-    name = modelString(row, nameColumn(), parent, ok2);
+    name = modelString(data.row, nameColumn(), data.parent, ok2);
 
     if (! categoryName.length())
       categoryName = name;
@@ -447,7 +447,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   if (labelColumn().isValid()) {
     bool ok3;
 
-    labelStr = modelString(row, labelColumn(), parent, ok3);
+    labelStr = modelString(data.row, labelColumn(), data.parent, ok3);
   }
 
   //---
@@ -458,7 +458,7 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   if (colorColumn().isValid()) {
     bool ok4;
 
-    colorStr = modelString(row, colorColumn(), parent, ok4);
+    colorStr = modelString(data.row, colorColumn(), data.parent, ok4);
   }
 
   //---
@@ -477,23 +477,24 @@ addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns)
   for (const auto &valueColumn : valueColumns) {
     double r;
 
-    bool ok2 = modelMappedReal(row, valueColumn, parent, r, isLogY(), row);
+    bool ok2 = modelMappedReal(data.row, valueColumn, data.parent, r, isLogY(), data.row);
 
     if (! ok2)
-      r = row;
+      r = data.row;
 
     if (CMathUtil::isNaN(r))
       continue;
 
     // get associated model index
-    QModelIndex valInd  = modelIndex(row, valueColumn, parent);
+    QModelIndex valInd  = modelIndex(data.row, valueColumn, data.parent);
     QModelIndex valInd1 = normalizeIndex(valInd);
 
     // add value and index
     ValueInd valueInd;
 
-    valueInd.ind   = valInd1;
     valueInd.value = r;
+    valueInd.ind   = valInd1;
+    valueInd.vrow  = data.vrow;
 
     valueInds.push_back(valueInd);
   }
@@ -835,7 +836,7 @@ initObjs()
       CQChartsColor color;
 
       if (colorColumn().isValid())
-        (void) colorSetColor("color", minInd.ind.row(), color);
+        (void) colorSetColor("color", minInd.vrow, color);
 
       //---
 
@@ -1004,11 +1005,11 @@ addKeyItems(CQChartsPlotKey *key)
           const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
           assert(! valueInds.empty());
 
-          const QModelIndex &ind = valueInds[0].ind;
+          const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
 
           CQChartsColor color;
 
-          if (colorColumn().isValid() && colorSetColor("color", ind.row(), color))
+          if (colorColumn().isValid() && colorSetColor("color", ind0.vrow, color))
             c = color.interpColor(this, 0, 1);
         }
 
@@ -1042,11 +1043,11 @@ addKeyItems(CQChartsPlotKey *key)
           const CQChartsBarChartValue::ValueInds &valueInds = ivalue.valueInds();
           assert(! valueInds.empty());
 
-          const QModelIndex &ind = valueInds[0].ind;
+          const CQChartsBarChartValue::ValueInd &ind0 = valueInds[0];
 
           CQChartsColor color;
 
-          if (colorColumn().isValid() && colorSetColor("color", ind.row(), color))
+          if (colorColumn().isValid() && colorSetColor("color", ind0.vrow, color))
             c = color.interpColor(this, 0, 1);
         }
 

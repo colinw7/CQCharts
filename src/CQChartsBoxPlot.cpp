@@ -784,7 +784,7 @@ updateCalcRange()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addCalcRow(data.parent, data.row, dataList_);
+      plot_->addCalcRow(data, dataList_);
 
       return State::OK;
     }
@@ -832,30 +832,30 @@ updateCalcRange()
 
 void
 CQChartsBoxPlot::
-addCalcRow(const QModelIndex &ind, int row, WhiskerDataList &dataList)
+addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList)
 {
   CQChartsBoxWhiskerData data;
 
   bool ok;
 
-  data.ind = ind;
+  data.ind = vdata.parent;
 
   if (xColumn().isValid())
-    data.x = modelReal(row, xColumn(), ind, ok);
+    data.x = modelReal(vdata.row, xColumn(), vdata.parent, ok);
   else
-    data.x = row;
+    data.x = vdata.row;
 
-  data.min    = modelReal(row, minColumn        (), ind, ok);
-  data.lower  = modelReal(row, lowerMedianColumn(), ind, ok);
-  data.median = modelReal(row, medianColumn     (), ind, ok);
-  data.upper  = modelReal(row, upperMedianColumn(), ind, ok);
-  data.max    = modelReal(row, maxColumn        (), ind, ok);
+  data.min    = modelReal(vdata.row, minColumn        (), vdata.parent, ok);
+  data.lower  = modelReal(vdata.row, lowerMedianColumn(), vdata.parent, ok);
+  data.median = modelReal(vdata.row, medianColumn     (), vdata.parent, ok);
+  data.upper  = modelReal(vdata.row, upperMedianColumn(), vdata.parent, ok);
+  data.max    = modelReal(vdata.row, maxColumn        (), vdata.parent, ok);
 
   data.dataMin = data.min;
   data.dataMax = data.max;
 
   if (isShowOutliers()) {
-    data.outliers = modelReals(row, outliersColumn(), ind, ok);
+    data.outliers = modelReals(vdata.row, outliersColumn(), vdata.parent, ok);
 
     for (auto &o : data.outliers) {
       data.dataMin = std::min(data.dataMin, o);
@@ -882,19 +882,19 @@ addCalcRow(const QModelIndex &ind, int row, WhiskerDataList &dataList)
 
   bool nameValid = true;
 
-  data.name = modelString(row, idColumn(), ind, ok);
+  data.name = modelString(vdata.row, idColumn(), vdata.parent, ok);
 
   if (! ok || ! data.name.length()) {
-    data.name = modelHeaderString(row, Qt::Vertical, ok);
+    data.name = modelHeaderString(vdata.row, Qt::Vertical, ok);
 
     if (! ok || ! data.name.length()) {
-      data.name = QString("%1").arg(row);
+      data.name = QString("%1").arg(vdata.row);
       nameValid = false;
     }
   }
 
   if (nameValid)
-    xAxis_->setTickLabel(row, data.name);
+    xAxis_->setTickLabel(vdata.row, data.name);
 
   //---
 
@@ -924,7 +924,7 @@ updateRawWhiskers()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRawWhiskerRow(data.parent, data.row);
+      plot_->addRawWhiskerRow(data);
 
       return State::OK;
     }
@@ -953,7 +953,7 @@ updateRawWhiskers()
 
 void
 CQChartsBoxPlot::
-addRawWhiskerRow(const QModelIndex &parent, int row)
+addRawWhiskerRow(const ModelVisitor::VisitData &vdata)
 {
   // get value set id
   int      setId = -1;
@@ -962,7 +962,7 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
   if (setColumn().isValid()) {
     bool ok1;
 
-    setVal = modelHierValue(row, setColumn(), parent, ok1);
+    setVal = modelHierValue(vdata.row, setColumn(), vdata.parent, ok1);
 
     if (ok1) {
       if      (setType_ == ColumnType::INTEGER) {
@@ -990,11 +990,11 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
 
   //---
 
-  //QModelIndex xind  = modelIndex(row, setColumn(), parent);
+  //QModelIndex xind  = modelIndex(vdata.row, setColumn(), vdata.parent);
   //QModelIndex xind1 = normalizeIndex(xind);
 
   for (const auto &valueColumn : valueColumns()) {
-    CQChartsModelIndex ind(row, valueColumn, parent);
+    CQChartsModelIndex ind(vdata.row, valueColumn, vdata.parent);
 
     // get group
     int groupInd = rowGroupInd(ind);
@@ -1004,14 +1004,14 @@ addRawWhiskerRow(const QModelIndex &parent, int row)
     // add value to set
     bool ok2;
 
-    double value = modelReal(row, valueColumn, parent, ok2);
+    double value = modelReal(vdata.row, valueColumn, vdata.parent, ok2);
 
-    if (! ok2) value = row;
+    if (! ok2) value = vdata.row;
 
     if (CMathUtil::isNaN(value))
       return;
 
-    QModelIndex yind  = modelIndex(row, valueColumn, parent);
+    QModelIndex yind  = modelIndex(vdata.row, valueColumn, vdata.parent);
     QModelIndex yind1 = normalizeIndex(yind);
 
     CQChartsBoxPlotValue wv(value, yind1);

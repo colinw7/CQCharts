@@ -488,7 +488,7 @@ initObjs()
       }
 
       State visit(QAbstractItemModel *, const VisitData &data) override {
-        plot_->addRow(data.parent, data.row);
+        plot_->addRow(data);
 
         return State::OK;
       }
@@ -517,10 +517,10 @@ initObjs()
 
 void
 CQChartsPiePlot::
-addRow(const QModelIndex &parent, int row)
+addRow(const ModelVisitor::VisitData &data)
 {
   for (const auto &column : valueColumns()) {
-    CQChartsModelIndex ind(row, column, parent);
+    CQChartsModelIndex ind(data.row, column, data.parent);
 
     addRowColumn(ind);
   }
@@ -695,7 +695,7 @@ calcDataTotal()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowDataTotal(data.parent, data.row);
+      plot_->addRowDataTotal(data);
 
       return State::OK;
     }
@@ -711,10 +711,10 @@ calcDataTotal()
 
 void
 CQChartsPiePlot::
-addRowDataTotal(const QModelIndex &parent, int row)
+addRowDataTotal(const ModelVisitor::VisitData &data)
 {
   for (const auto &column : valueColumns()) {
-    CQChartsModelIndex ind(row, column, parent);
+    CQChartsModelIndex ind(data.row, column, data.parent);
 
     addRowColumnDataTotal(ind);
   }

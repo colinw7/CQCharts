@@ -604,7 +604,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  bool rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &yv,
+  bool rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &yv,
                QModelIndex &ind, bool skipBad) const;
 
   //---

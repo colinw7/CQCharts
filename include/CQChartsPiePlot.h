@@ -404,13 +404,13 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   void setCount(bool b);
 
  private:
-  void addRow(const QModelIndex &parent, int r);
+  void addRow(const ModelVisitor::VisitData &data);
 
   void addRowColumn(const CQChartsModelIndex &ind);
 
   void calcDataTotal();
 
-  void addRowDataTotal(const QModelIndex &parent, int row);
+  void addRowDataTotal(const ModelVisitor::VisitData &data);
 
   void addRowColumnDataTotal(const CQChartsModelIndex &ind);
 

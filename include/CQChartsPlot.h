@@ -168,6 +168,8 @@ class CQChartsPlot : public QObject,
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
 
+  Q_PROPERTY(bool updateTimeout READ updateTimeout WRITE setUpdateTimeout)
+
  public:
   // selection modifier type
   enum class ModSelect {
@@ -431,6 +433,11 @@ class CQChartsPlot : public QObject,
 
   //---
 
+  int updateTimeout() const { return updateTimeout_; }
+  void setUpdateTimeout(int i) { updateTimeout_ = i; }
+
+  //---
+
   // bbox in view range
   const CQChartsGeom::BBox &bbox() const { return bbox_; }
   void setBBox(const CQChartsGeom::BBox &bbox);
@@ -604,8 +611,6 @@ class CQChartsPlot : public QObject,
 
   void initValueSets();
 
-  void addValueSetRow(const QModelIndex &parent, int r);
-
   void addColumnValues(const CQChartsColumn &column, CQChartsValueSet &valueSet);
 
   //---
@@ -630,6 +635,8 @@ class CQChartsPlot : public QObject,
   };
 
   void visitModel(ModelVisitor &visitor);
+
+  void addValueSetRow(const ModelVisitor::VisitData &data);
 
   //---
 

@@ -6,6 +6,8 @@
 
 class QAbstractItemModel;
 
+//---
+
 class CQChartsModelVisitor {
  public:
   enum class State {
@@ -16,7 +18,8 @@ class CQChartsModelVisitor {
 
   struct VisitData {
     QModelIndex parent;
-    int         row { -1 };
+    int         row  { -1 };
+    int         vrow { -1 };
 
     VisitData(const QModelIndex &parent, int row) :
      parent(parent), row(row) {
@@ -71,5 +74,22 @@ class CQChartsModelVisitor {
   bool                hierarchical_ { false };
   bool                hierSet_      { false };
 };
+
+//---
+
+namespace CQChartsModelVisit {
+
+bool exec(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
+
+bool exec(QAbstractItemModel *model, const QModelIndex &parent, int r,
+          CQChartsModelVisitor &visitor);
+
+CQChartsModelVisitor::State execIndex(QAbstractItemModel *model, const QModelIndex &parent,
+                                            CQChartsModelVisitor &visitor);
+
+CQChartsModelVisitor::State execRow(QAbstractItemModel *model, const QModelIndex &parent,
+                                    int r, CQChartsModelVisitor &visitor);
+
+}
 
 #endif

@@ -18,7 +18,7 @@ class CQChartsPlotObjTree {
 
  ~CQChartsPlotObjTree();
 
-  void addObjects();
+  void addObjects(bool wait=false);
 
   void clearObjects();
 

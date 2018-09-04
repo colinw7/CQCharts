@@ -1,5 +1,6 @@
 #include <CQChartsModelFilter.h>
 #include <CQChartsModelExprMatch.h>
+#include <CQChartsModelVisitor.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -176,7 +177,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
 
   RowVisitor visitor(this, column);
 
-  (void) CQChartsUtil::visitModel(model, parent, row, visitor);
+  (void) CQChartsModelVisit::exec(model, parent, row, visitor);
 
   // TODO: cache result for hier traversal
   return visitor.isAccepted();

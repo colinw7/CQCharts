@@ -1,6 +1,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsColumnType.h>
 #include <CQChartsModelFilter.h>
+#include <CQChartsModelVisitor.h>
 #include <CQChartsEval.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -50,90 +51,9 @@ bool isHierarchical(QAbstractItemModel *model) {
 int hierRowCount(QAbstractItemModel *model) {
   CQChartsModelVisitor visitor;
 
-  visitModel(model, visitor);
+  CQChartsModelVisit::exec(model, visitor);
 
   return visitor.numRows();
-}
-
-bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
-  if (! model)
-    return false;
-
-  visitor.init(model);
-
-  QModelIndex parent;
-
-  (void) visitModelIndex(model, parent, visitor);
-
-  visitor.term();
-
-  return true;
-}
-
-bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                CQChartsModelVisitor &visitor) {
-  if (! model)
-    return false;
-
-  visitor.init(model);
-
-  (void) visitModelRow(model, parent, r, visitor);
-
-  visitor.term();
-
-  return true;
-}
-
-CQChartsModelVisitor::State
-visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
-                CQChartsModelVisitor &visitor) {
-  int nr = model->rowCount(parent);
-
-  visitor.setNumRows(nr);
-
-  for (int r = 0; r < nr; ++r) {
-    CQChartsModelVisitor::State state = visitModelRow(model, parent, r, visitor);
-
-    if (state == CQChartsModelVisitor::State::TERMINATE) return state;
-    if (state == CQChartsModelVisitor::State::SKIP     ) continue;
-  }
-
-  return CQChartsModelVisitor::State::OK;
-}
-
-CQChartsModelVisitor::State
-visitModelRow(QAbstractItemModel *model, const QModelIndex &parent, int r,
-              CQChartsModelVisitor &visitor) {
-  QModelIndex ind1 = model->index(r, 0, parent);
-
-  if (visitor.maxRows() > 0 && r > visitor.maxRows())
-    return CQChartsModelVisitor::State::TERMINATE;
-
-   CQChartsModelVisitor::VisitData data(parent, r);
-
-  if (model->hasChildren(ind1)) {
-    CQChartsModelVisitor::State state = visitor.hierVisit(model, data);
-    if (state != CQChartsModelVisitor::State::OK) return state;
-
-    CQChartsModelVisitor::State iterState = visitModelIndex(model, ind1, visitor);
-    if (iterState != CQChartsModelVisitor::State::OK) return iterState;
-
-    CQChartsModelVisitor::State postState = visitor.hierPostVisit(model, data);
-    if (postState != CQChartsModelVisitor::State::OK) return postState;
-  }
-  else {
-    CQChartsModelVisitor::State preState = visitor.preVisit(model, data);
-    if (preState != CQChartsModelVisitor::State::OK) return preState;
-
-    CQChartsModelVisitor::State state = visitor.visit(model, data);
-    if (state != CQChartsModelVisitor::State::OK) return state;
-
-    visitor.step();
-
-    // postVisit ?
-  }
-
-  return CQChartsModelVisitor::State::OK;
 }
 
 QString parentPath(QAbstractItemModel *model, const QModelIndex &parent) {
@@ -266,7 +186,7 @@ columnValueType(CQCharts *charts, QAbstractItemModel *model, const CQChartsColum
     // determine column value type by looking at model values
     ColumnTypeVisitor columnTypeVisitor(icolumn);
 
-    visitModel(model, columnTypeVisitor);
+    CQChartsModelVisit::exec(model, columnTypeVisitor);
 
     columnType = columnTypeVisitor.columnType();
 

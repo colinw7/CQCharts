@@ -442,7 +442,7 @@ loadModel()
 
       double size = 1.0;
 
-      if (! getSize(data.parent, data.row, size))
+      if (! getSize(data, size))
         return State::SKIP;
 
       //---
@@ -463,7 +463,7 @@ loadModel()
     }
 
    private:
-    bool getSize(const QModelIndex &parent, int row, double &size) const {
+    bool getSize(const VisitData &data, double &size) const {
       size = 1.0;
 
       if (! plot_->valueColumn().isValid())
@@ -472,9 +472,9 @@ loadModel()
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
       else if (valueColumnType_ == ColumnType::STRING)
         size = 1.0;
       else

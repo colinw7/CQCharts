@@ -109,7 +109,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   bool            horizontal_   { false }; // horizontal bars
   CQChartsLength  margin_       { "2px" }; // bar margin
   CQChartsLength  groupMargin_  { "4px" }; // bar group margin
-  CQChartsLength  cornerSize_   { "0xp" }; // corner size
+  CQChartsLength  cornerSize_   { "0px" }; // corner size
 };
 
 #endif

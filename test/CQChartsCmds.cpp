@@ -1823,7 +1823,7 @@ flattenModelCmd(const Vars &vars)
 
   FlattenVisitor flattenVisitor(charts_, groupColumn);
 
-  CQChartsUtil::visitModel(model.data(), flattenVisitor);
+  CQChartsModelVisit::exec(model.data(), flattenVisitor);
 
   int nh = flattenVisitor.numHierColumns();
   int nc = flattenVisitor.numFlatColumns();

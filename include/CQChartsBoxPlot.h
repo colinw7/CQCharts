@@ -584,9 +584,9 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void setErrorBar(bool b);
 
  private:
-  void addCalcRow(const QModelIndex &ind, int r, WhiskerDataList &dataList);
+  void addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList);
 
-  void addRawWhiskerRow(const QModelIndex &parent, int r);
+  void addRawWhiskerRow(const ModelVisitor::VisitData &vdata);
 
  private:
   CQChartsColumns       valueColumns_   { 1 };                       // value columns

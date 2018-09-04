@@ -376,7 +376,7 @@ loadHier(CQChartsSunburstHierNode *root)
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(data.parent, data.row, name, nameInd);
+      (void) getName(data, name, nameInd);
 
       //---
 
@@ -401,14 +401,14 @@ loadHier(CQChartsSunburstHierNode *root)
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(data.parent, data.row, name, nameInd);
+      (void) getName(data, name, nameInd);
 
       //---
 
       double      size = 1.0;
       QModelIndex valueInd;
 
-      if (! getSize(data.parent, data.row, size, valueInd))
+      if (! getSize(data, size, valueInd))
         return State::SKIP;
 
       //---
@@ -425,18 +425,18 @@ loadHier(CQChartsSunburstHierNode *root)
       return hierStack_.back();
     }
 
-    bool getName(const QModelIndex &parent, int row, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
+    bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
 
       bool ok;
 
-      name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
 
       return ok;
     }
 
-    bool getSize(const QModelIndex &parent, int row, double size, QModelIndex &valueInd) const {
-      valueInd = plot_->modelIndex(row, plot_->valueColumn(), parent);
+    bool getSize(const VisitData &data, double size, QModelIndex &valueInd) const {
+      valueInd = plot_->modelIndex(data.row, plot_->valueColumn(), data.parent);
 
       size = 1.0;
 
@@ -445,7 +445,7 @@ loadHier(CQChartsSunburstHierNode *root)
 
       bool ok = true;
 
-      size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
+      size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
 
       if (ok && size <= 0.0)
         ok = false;

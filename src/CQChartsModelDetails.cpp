@@ -1,6 +1,7 @@
 #include <CQChartsModelDetails.h>
 #include <CQChartsModelData.h>
 #include <CQChartsColumnType.h>
+#include <CQChartsModelVisitor.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsVariant.h>
 #include <CQChartsUtil.h>
@@ -988,7 +989,7 @@ initData()
 
   DetailVisitor detailVisitor(this);
 
-  CQChartsUtil::visitModel(model, detailVisitor);
+  CQChartsModelVisit::exec(model, detailVisitor);
 
   //---
 

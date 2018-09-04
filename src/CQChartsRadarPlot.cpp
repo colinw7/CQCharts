@@ -313,7 +313,7 @@ initObjs()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data.parent, data.row, numRows());
+      plot_->addRow(data, numRows());
 
       return State::OK;
     }
@@ -337,9 +337,9 @@ initObjs()
 
 void
 CQChartsRadarPlot::
-addRow(const QModelIndex &parent, int row, int nr)
+addRow(const ModelVisitor::VisitData &data, int nr)
 {
-  bool hidden = isSetHidden(row);
+  bool hidden = isSetHidden(data.row);
 
   if (hidden)
     return;
@@ -349,7 +349,7 @@ addRow(const QModelIndex &parent, int row, int nr)
   // get row name
   bool ok;
 
-  QString name = modelString(row, nameColumn(), parent, ok);
+  QString name = modelString(data.row, nameColumn(), data.parent, ok);
 
   //---
 
@@ -374,7 +374,7 @@ addRow(const QModelIndex &parent, int row, int nr)
     //---
 
     // get column value
-    CQChartsModelIndex ind(row, valueColumn, parent);
+    CQChartsModelIndex ind(data.row, valueColumn, data.parent);
 
     double value;
 
@@ -410,13 +410,13 @@ addRow(const QModelIndex &parent, int row, int nr)
   //---
 
   // create object
-  QModelIndex nameInd  = modelIndex(row, nameColumn(), parent);
+  QModelIndex nameInd  = modelIndex(data.row, nameColumn(), data.parent);
   QModelIndex nameInd1 = normalizeIndex(nameInd);
 
   CQChartsGeom::BBox bbox(-1, -1, 1, 1);
 
   CQChartsRadarObj *radarObj =
-    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, row, nr);
+    new CQChartsRadarObj(this, bbox, name, poly, nameValues, nameInd1, data.row, nr);
 
   addPlotObject(radarObj);
 }

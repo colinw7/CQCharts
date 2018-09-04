@@ -1000,8 +1000,9 @@ addProperties()
   addProperty("log", this, "logY", "y");
 
   if (CQChartsEnv::getBool("CQCHARTS_DEBUG", true)) {
-    addProperty("debug", this, "showBoxes"  );
-    addProperty("debug", this, "followMouse");
+    addProperty("debug", this, "showBoxes"    );
+    addProperty("debug", this, "followMouse"  );
+    addProperty("debug", this, "updateTimeout");
   }
 
   //------
@@ -1696,8 +1697,14 @@ void
 CQChartsPlot::
 initObjTree()
 {
-  if (! isPreview())
-    plotObjTree_->addObjects();
+  if (! isPreview()) {
+    bool wait = false;
+
+    if (CQChartsEnv::getBool("CQCHARTS_OBJ_TREE_WAIT"))
+      wait = true;
+
+    plotObjTree_->addObjects(wait);
+  }
 }
 
 void
@@ -6120,7 +6127,7 @@ initValueSets()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addValueSetRow(data.parent, data.row);
+      plot_->addValueSetRow(data);
 
       return State::OK;
     }
@@ -6136,7 +6143,7 @@ initValueSets()
 
 void
 CQChartsPlot::
-addValueSetRow(const QModelIndex &parent, int row)
+addValueSetRow(const ModelVisitor::VisitData &data)
 {
   for (auto &pvs : valueSets_) {
     CQChartsValueSet *valueSet = pvs.second;
@@ -6146,7 +6153,7 @@ addValueSetRow(const QModelIndex &parent, int row)
     if (column.isValid()) {
       bool ok;
 
-      QVariant value = modelValue(row, column, parent, ok);
+      QVariant value = modelValue(data.row, column, data.parent, ok);
 
       valueSet->addValue(value); // always add some value
     }
@@ -6199,7 +6206,7 @@ visitModel(ModelVisitor &visitor)
   //if (isPreview())
   //  visitor.setMaxRows(previewMaxRows());
 
-  (void) CQChartsUtil::visitModel(model().data(), visitor);
+  (void) CQChartsModelVisit::exec(model().data(), visitor);
 }
 
 //------

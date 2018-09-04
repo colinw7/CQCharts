@@ -521,7 +521,7 @@ calcRange()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data.parent, data.row);
+      plot_->addRow(data);
 
       return State::OK;
     }
@@ -827,10 +827,10 @@ clearGroupValues()
 
 void
 CQChartsDistributionPlot::
-addRow(const QModelIndex &parent, int row)
+addRow(const ModelVisitor::VisitData &data)
 {
   for (const auto &column : valueColumns())
-    addRowColumn(CQChartsModelIndex(row, column, parent));
+    addRowColumn(CQChartsModelIndex(data.row, column, data.parent));
 }
 
 void

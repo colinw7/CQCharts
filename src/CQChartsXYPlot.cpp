@@ -527,7 +527,7 @@ calcRange()
       // get x anf y values
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      if (! plot_->rowData(data.parent, data.row, x, y, rowInd, /*skipBad*/true))
+      if (! plot_->rowData(data, x, y, rowInd, /*skipBad*/true))
         return State::SKIP;
 
       int ny = y.size();
@@ -856,7 +856,7 @@ initObjs()
 
       double x; std::vector<double> y; QModelIndex rowInd;
 
-      (void) plot_->rowData(data.parent, data.row, x, y, rowInd, /*skipBad*/false);
+      (void) plot_->rowData(data, x, y, rowInd, /*skipBad*/false);
       assert(int(y.size()) == ns_);
 
       for (int i = 0; i < ns_; ++i) {
@@ -1425,12 +1425,12 @@ initObjs()
 
 bool
 CQChartsXYPlot::
-rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
+rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
         QModelIndex &ind, bool skipBad) const
 {
-  ind = modelIndex(row, xColumn(), parent);
+  ind = modelIndex(data.row, xColumn(), data.parent);
 
-  bool ok1 = modelMappedReal(row, xColumn(), parent, x, isLogX(), row);
+  bool ok1 = modelMappedReal(data.row, xColumn(), data.parent, x, isLogX(), data.row);
 
   //---
 
@@ -1443,7 +1443,7 @@ rowData(const QModelIndex &parent, int row, double &x, std::vector<double> &y,
 
     double y1;
 
-    bool ok3 = modelMappedReal(row, yColumn, parent, y1, isLogY(), row);
+    bool ok3 = modelMappedReal(data.row, yColumn, data.parent, y1, isLogY(), data.row);
 
     if (! ok3) {
       if (skipBad)

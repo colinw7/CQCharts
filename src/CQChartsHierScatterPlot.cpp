@@ -329,7 +329,7 @@ initGroupValueSets()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRowGroupValueSets(data.parent, data.row);
+      plot_->addRowGroupValueSets(data);
 
       return State::OK;
     }
@@ -345,7 +345,7 @@ initGroupValueSets()
 
 void
 CQChartsHierScatterPlot::
-addRowGroupValueSets(const QModelIndex &parent, int row)
+addRowGroupValueSets(const ModelVisitor::VisitData &data)
 {
   for (const auto &groupValueSet : groupValueSets_) {
     CQChartsColumn    groupColumn = groupValueSet.first;
@@ -353,7 +353,7 @@ addRowGroupValueSets(const QModelIndex &parent, int row)
 
     bool ok;
 
-    QVariant value = modelValue(row, groupColumn, parent, ok);
+    QVariant value = modelValue(data.row, groupColumn, data.parent, ok);
 
     if (! ok)
       continue;
@@ -435,7 +435,7 @@ initObjs()
 
         //---
 
-        plot_->addGroupPoint(data.parent, data.row, x, y, name);
+        plot_->addGroupPoint(data, x, y, name);
 
         return State::OK;
       }
@@ -489,7 +489,7 @@ initObjs()
 
 void
 CQChartsHierScatterPlot::
-addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QString &name)
+addGroupPoint(const ModelVisitor::VisitData &data, double x, double y, const QString &name)
 {
   // get point groups
   struct GroupData {
@@ -511,7 +511,7 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
 
     bool ok3;
 
-    groupData.str = modelString(row, groupData.column, parent, ok3);
+    groupData.str = modelString(data.row, groupData.column, data.parent, ok3);
 
     groupData.ind = groupData.valueSet->sind(groupData.str);
 
@@ -535,10 +535,10 @@ addGroupPoint(const QModelIndex &parent, int row, double x, double y, const QStr
 
   //---
 
-  QModelIndex xInd  = modelIndex(row, xColumn(), parent);
+  QModelIndex xInd  = modelIndex(data.row, xColumn(), data.parent);
   QModelIndex xInd1 = normalizeIndex(xInd);
 
-  CQChartsHierScatterPoint point(group, x, y, name, row, xInd1);
+  CQChartsHierScatterPoint point(group, x, y, name, data.row, xInd1);
 
   group->addPoint(point);
 }

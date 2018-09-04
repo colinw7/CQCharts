@@ -450,7 +450,7 @@ loadHier()
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(data.parent, data.row, name, nameInd);
+      (void) getName(data, name, nameInd);
 
       //---
 
@@ -475,13 +475,13 @@ loadHier()
       QString     name;
       QModelIndex nameInd;
 
-      (void) getName(data.parent, data.row, name, nameInd);
+      (void) getName(data, name, nameInd);
 
       //---
 
       double size = 1.0;
 
-      if (! getSize(data.parent, data.row, size))
+      if (! getSize(data, size))
         return State::SKIP;
 
       //---
@@ -505,17 +505,17 @@ loadHier()
       return hierStack_.back();
     }
 
-    bool getName(const QModelIndex &parent, int row, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(row, plot_->nameColumn(), parent);
+    bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
+      nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
 
       bool ok;
 
-      name = plot_->modelString(row, plot_->nameColumn(), parent, ok);
+      name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
 
       return ok;
     }
 
-    bool getSize(const QModelIndex &parent, int row, double &size) const {
+    bool getSize(const VisitData &data, double &size) const {
       size = 1.0;
 
       if (! plot_->valueColumn().isValid())
@@ -524,9 +524,9 @@ loadHier()
       bool ok = true;
 
       if      (valueColumnType_ == ColumnType::REAL)
-        size = plot_->modelReal(row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelReal(data.row, plot_->valueColumn(), data.parent, ok);
       else if (valueColumnType_ == ColumnType::INTEGER)
-        size = plot_->modelInteger(row, plot_->valueColumn(), parent, ok);
+        size = plot_->modelInteger(data.row, plot_->valueColumn(), data.parent, ok);
       else
         ok = false;
 

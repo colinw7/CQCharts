@@ -16,7 +16,7 @@ CQChartsPlotObjTree::
 
 void
 CQChartsPlotObjTree::
-addObjects()
+addObjects(bool wait)
 {
   lock_.lock();
 
@@ -29,6 +29,11 @@ addObjects()
   }
 
   lock_.unlock();
+
+  //---
+
+  if (wait)
+    initTree();
 }
 
 CQChartsPlotObjTree::PlotObjTree *

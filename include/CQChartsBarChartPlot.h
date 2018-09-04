@@ -46,6 +46,7 @@ class CQChartsBarChartValue {
   struct ValueInd {
     double      value { 0.0 };
     QModelIndex ind;
+    int         vrow { -1 };
   };
 
   using ValueInds = std::vector<ValueInd>;
@@ -366,9 +367,9 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setDotLines(bool b);
 
  private:
-  void addRow(const QModelIndex &parent, int r);
+  void addRow(const ModelVisitor::VisitData &data);
 
-  void addRowColumn(const QModelIndex &parent, int row, const Columns &valueColumns);
+  void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns);
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;

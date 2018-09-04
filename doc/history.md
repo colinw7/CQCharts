@@ -604,3 +604,5 @@
  + use unique id/name as fallback for scatter plot with non-numeric columns
  + support #{name} to column number in expression
  + add subset_model and transpose_model commands
+# 9/3/2018
+ + add value row number to model visitor

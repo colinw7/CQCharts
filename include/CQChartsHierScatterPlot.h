@@ -282,13 +282,13 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   void initGroupValueSets();
 
-  void addRowGroupValueSets(const QModelIndex &parent, int row);
+  void addRowGroupValueSets(const ModelVisitor::VisitData &data);
 
   void updateObjs() override;
 
   bool initObjs() override;
 
-  void addGroupPoint(const QModelIndex &parent, int row,
+  void addGroupPoint(const ModelVisitor::VisitData &data,
                      double x, double y, const QString &name);
 
   void addGroupPoints(CQChartsHierScatterPointGroup *baseGroup,

@@ -560,7 +560,8 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
  private:
   void clearGroupValues();
 
-  void addRow(const QModelIndex &parent, int row);
+  void addRow(const ModelVisitor::VisitData &data);
+
   void addRowColumn(const CQChartsModelIndex &ind);
 
   //---

@@ -186,7 +186,7 @@ calcRange()
     }
 
     State visit(QAbstractItemModel *model, const VisitData &data) override {
-      plot_->addRow(model, data.parent, data.row);
+      plot_->addRow(model, data);
 
       return State::OK;
     }
@@ -202,7 +202,7 @@ calcRange()
 
 void
 CQChartsGeometryPlot::
-addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
+addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data)
 {
   Geometry geometry;
 
@@ -211,7 +211,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   // get geometry name
   bool ok1;
 
-  geometry.name = modelString(row, nameColumn(), parent, ok1);
+  geometry.name = modelString(data.row, nameColumn(), data.parent, ok1);
 
   //---
 
@@ -221,11 +221,12 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
       geometryColumnType_ == ColumnType::PATH) {
     bool ok2;
 
-    QVariant var = modelValue(row, geometryColumn(), parent, ok2);
+    QVariant var = modelValue(data.row, geometryColumn(), data.parent, ok2);
 
     bool converted;
 
-    QVariant rvar = CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
+    QVariant rvar =
+      CQChartsUtil::columnUserData(charts(), model, geometryColumn(), var, converted);
 
     QPolygonF poly;
 
@@ -251,7 +252,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   else {
     bool ok2;
 
-    QString geomStr = modelString(row, geometryColumn(), parent, ok2);
+    QString geomStr = modelString(data.row, geometryColumn(), data.parent, ok2);
 
     if (! decodeGeometry(geomStr, geometry.polygons)) {
       if (! isPreview())
@@ -278,10 +279,10 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   // get geometry associated value
   bool ok3;
 
-  geometry.value = modelReal(row, valueColumn(), parent, ok3);
+  geometry.value = modelReal(data.row, valueColumn(), data.parent, ok3);
 
   if (! ok3)
-    geometry.value = row;
+    geometry.value = data.row;
 
   if (CMathUtil::isNaN(geometry.value))
     return;
@@ -303,12 +304,12 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     bool ok4;
 
     if (colorColumnType_ == ColumnType::COLOR) {
-      CQChartsColor c = modelColor(row, colorColumn(), parent, ok4);
+      CQChartsColor c = modelColor(data.row, colorColumn(), data.parent, ok4);
 
       geometry.color = c;
     }
     else {
-      QString str = modelString(row, colorColumn(), parent, ok4);
+      QString str = modelString(data.row, colorColumn(), data.parent, ok4);
 
       geometry.color = CQChartsColor(str);
     }
@@ -321,7 +322,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
     bool ok4;
 
     if (styleColumnType_ == ColumnType::STYLE) {
-      QString str = modelString(row, styleColumn(), parent, ok4);
+      QString str = modelString(data.row, styleColumn(), data.parent, ok4);
 
       geometry.style = CQChartsStyle(str);
     }
@@ -330,7 +331,7 @@ addRow(QAbstractItemModel *model, const QModelIndex &parent, int row)
   //---
 
   // save model index for geometry
-  QModelIndex geomInd  = modelIndex(row, geometryColumn(), parent);
+  QModelIndex geomInd  = modelIndex(data.row, geometryColumn(), data.parent);
   QModelIndex geomInd1 = normalizeIndex(geomInd);
 
   geometry.ind = geomInd1;

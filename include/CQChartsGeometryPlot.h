@@ -161,7 +161,7 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   //---
 
  private:
-  void addRow(QAbstractItemModel *model, const QModelIndex &parent, int row);
+  void addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data);
 
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
 

@@ -470,25 +470,6 @@ void testAndSet(T &t, const T &v, NOTIFIER &&notifier) {
 
 //------
 
-#include <CQChartsModelVisitor.h>
-
-namespace CQChartsUtil {
-
-bool visitModel(QAbstractItemModel *model, CQChartsModelVisitor &visitor);
-
-bool visitModel(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                CQChartsModelVisitor &visitor);
-
-CQChartsModelVisitor::State visitModelIndex(QAbstractItemModel *model, const QModelIndex &parent,
-                                            CQChartsModelVisitor &visitor);
-
-CQChartsModelVisitor::State visitModelRow(QAbstractItemModel *model, const QModelIndex &parent,
-                                          int r, CQChartsModelVisitor &visitor);
-
-}
-
-//------
-
 namespace CQChartsUtil {
 
 QString replaceModelExprVars(const QString &expr, QAbstractItemModel *model,

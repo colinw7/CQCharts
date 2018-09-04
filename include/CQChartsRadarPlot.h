@@ -150,7 +150,7 @@ class CQChartsRadarPlot : public CQChartsPlot,
   void drawBackground(QPainter *) override;
 
  private:
-  void addRow(const QModelIndex &parent, int r, int nr);
+  void addRow(const ModelVisitor::VisitData &data, int nr);
 
   bool columnValue(const CQChartsModelIndex &ind, double &value) const;
 
