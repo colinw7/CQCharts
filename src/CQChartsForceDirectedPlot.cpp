@@ -546,12 +546,16 @@ drawParts(QPainter *painter)
     windowToPixel(p2.x(), p2.y(), px2, py2);
 
     if (isEdgeLinesValueWidth()) {
+      QPen edgePen1 = edgePen;
+
       double w = sqrt(edge->value());
 
-      setPen(edgePen, true, edgeColor, edgeLinesAlpha(), w, edgeLinesDash());
-    }
+      edgePen1.setWidthF(w);
 
-    painter->setPen(edgePen);
+      painter->setPen(edgePen1);
+    }
+    else
+      painter->setPen(edgePen);
 
     painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
 

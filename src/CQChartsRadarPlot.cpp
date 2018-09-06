@@ -506,14 +506,17 @@ handleResize()
   dataRange_.reset();
 }
 
+bool
+CQChartsRadarPlot::
+hasBackground() const
+{
+  return true;
+}
+
 void
 CQChartsRadarPlot::
 drawBackground(QPainter *painter)
 {
-  CQChartsPlot::drawBackground(painter);
-
-  //---
-
   int nv = valueColumns().size();
 
   if (! nv)

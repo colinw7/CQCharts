@@ -2423,8 +2423,8 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     painter->setBrush(barBrush);
 
     if (! useLine) {
-      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+      double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
+      double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
       CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }

@@ -524,7 +524,7 @@ calcRange()
 
       //---
 
-      // get x anf y values
+      // get x and y values
       double x; std::vector<double> y; QModelIndex rowInd;
 
       if (! plot_->rowData(data, x, y, rowInd, /*skipBad*/true))
@@ -1849,13 +1849,6 @@ QString
 CQChartsXYBiLineObj::
 calcId() const
 {
-  return QString("biline:%1:%2").arg(iset()).arg(i());
-}
-
-QString
-CQChartsXYBiLineObj::
-calcTipId() const
-{
   QModelIndex ind1 = plot_->unnormalizeIndex(ind());
 
   QString idStr;
@@ -1863,8 +1856,13 @@ calcTipId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  //---
+  return QString("biline:%1:%2").arg(iset()).arg(i());
+}
 
+QString
+CQChartsXYBiLineObj::
+calcTipId() const
+{
   QString name  = plot()->valueName(-1, ind().row());
   QString y1str = plot()->yStr(y1());
   QString y2str = plot()->yStr(y2());
@@ -2002,13 +2000,6 @@ QString
 CQChartsXYImpulseLineObj::
 calcId() const
 {
-  return QString("impulse:%1:%2").arg(iset()).arg(i());
-}
-
-QString
-CQChartsXYImpulseLineObj::
-calcTipId() const
-{
   QModelIndex ind1 = plot()->unnormalizeIndex(ind());
 
   QString idStr;
@@ -2016,8 +2007,13 @@ calcTipId() const
   if (calcColumnId(ind1, idStr))
     return idStr;
 
-  //---
+  return QString("impulse:%1:%2").arg(iset()).arg(i());
+}
 
+QString
+CQChartsXYImpulseLineObj::
+calcTipId() const
+{
   QString name = plot()->valueName(iset(), ind().row());
   QString xstr = plot()->xStr(x());
   QString ystr = plot()->yStr(y1()) + "-" + plot()->yStr(y2());
@@ -2155,6 +2151,13 @@ QString
 CQChartsXYPointObj::
 calcId() const
 {
+  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+
+  QString idStr;
+
+  if (calcColumnId(ind1, idStr))
+    return idStr;
+
   return QString("point:%1:%2").arg(iset()).arg(i());
 }
 
@@ -2170,20 +2173,19 @@ calcTipId() const
 
   if (calcColumnId(ind1, idStr))
     tableTip.addTableRow("Id", idStr);
-  else {
-    QString name = plot()->valueName(iset(), ind().row());
-    QString xstr = plot()->xStr(x());
-    QString ystr = plot()->yStr(y());
 
-    if (name.length())
-      tableTip.addTableRow("Name", name);
+  QString name = plot()->valueName(iset(), ind().row());
+  QString xstr = plot()->xStr(x());
+  QString ystr = plot()->yStr(y());
 
-    tableTip.addTableRow("X", xstr);
-    tableTip.addTableRow("Y", ystr);
+  if (name.length())
+    tableTip.addTableRow("Name", name);
 
-    if (size_ > 0)
-      tableTip.addTableRow("Size", size_);
-  }
+  tableTip.addTableRow("X", xstr);
+  tableTip.addTableRow("Y", ystr);
+
+  if (size_ > 0)
+    tableTip.addTableRow("Size", size_);
 
   return tableTip.str();
 }
@@ -2368,7 +2370,7 @@ QString
 CQChartsXYPolylineObj::
 calcId() const
 {
-  return QString("polyline:%1").arg(ig()).arg(is());
+  return QString("polyline:%1:%2").arg(ig()).arg(is());
 }
 
 QString
@@ -2655,7 +2657,7 @@ QString
 CQChartsXYPolygonObj::
 calcId() const
 {
-  return QString("polygon:%1").arg(ig()).arg(is());
+  return QString("polygon:%1:%2").arg(ig()).arg(is());
 }
 
 QString
@@ -2744,7 +2746,7 @@ draw(QPainter *painter)
 
   QColor fillColor = plot()->interpFillUnderFillColor(ic, nc);
 
-  plot()->setPen(pen  , false);
+  plot()->setPen(pen, false);
 
   plot()->setBrush(brush, true, fillColor, plot()->fillUnderFillAlpha(),
                    plot()->fillUnderFillPattern());

@@ -640,28 +640,31 @@ calcRange()
    public:
     RowVisitor(CQChartsScatterPlot *plot) :
      plot_(plot) {
+      hasGroups_ = (plot_->numGroups() > 1);
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
       CQChartsModelIndex ind(data.row, plot_->xColumn(), data.parent);
 
       // init group
-      (void) plot_->rowGroupInd(ind);
+      int groupInd = plot_->rowGroupInd(ind);
 
-      //---
+      bool hidden = (hasGroups_ && plot_->isSetHidden(groupInd));
 
-      bool ok1, ok2;
+      if (! hidden) {
+        bool ok1, ok2;
 
-      double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
-      double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
+        double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
+        double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) { x = uniqueId(data.row, plot_->xColumn(), data.parent); ++uniqueX_; }
-      if (! ok2) { y = uniqueId(data.row, plot_->yColumn(), data.parent); ++uniqueY_; }
+        if (! ok1) { x = uniqueId(data.row, plot_->xColumn(), data.parent); ++uniqueX_; }
+        if (! ok2) { y = uniqueId(data.row, plot_->yColumn(), data.parent); ++uniqueY_; }
 
-      if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
-        return State::SKIP;
+        if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
+          return State::SKIP;
 
-      range_.updateRange(x, y);
+        range_.updateRange(x, y);
+      }
 
       return State::OK;
     }
@@ -691,11 +694,12 @@ calcRange()
     bool isUniqueY() const { return uniqueY_ == numRows(); }
 
    private:
-    CQChartsScatterPlot*  plot_    { nullptr };
+    CQChartsScatterPlot*  plot_      { nullptr };
+    int                   hasGroups_ { false };
     CQChartsGeom::Range   range_;
-    CQChartsModelDetails* details_ { nullptr };
-    int                   uniqueX_ { 0 };
-    int                   uniqueY_ { 0 };
+    CQChartsModelDetails* details_   { nullptr };
+    int                   uniqueX_   { 0 };
+    int                   uniqueY_   { 0 };
   };
 
   RowVisitor visitor(this);
@@ -735,38 +739,53 @@ calcRange()
 
   //---
 
-  gridData_.xinterval.setStart   (dataRange_.xmin());
-  gridData_.xinterval.setEnd     (dataRange_.xmax());
-  gridData_.xinterval.setNumMajor(gridData_.nx);
-
-  gridData_.yinterval.setStart   (dataRange_.ymin());
-  gridData_.yinterval.setEnd     (dataRange_.ymax());
-  gridData_.yinterval.setNumMajor(gridData_.ny);
-
-  //---
+  adjustDataRange();
 
   // update data range if unset
   if (dataRange_.isSet() && CMathUtil::isZero(dataRange_.xsize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 
-    dataRange_.updateRange(x - 1, y);
-    dataRange_.updateRange(x + 1, y);
+    dataRange_.updateRange(x - 1.0, y);
+    dataRange_.updateRange(x + 1.0, y);
   }
 
   if (dataRange_.isSet() && CMathUtil::isZero(dataRange_.ysize())) {
     double x = dataRange_.xmid();
     double y = dataRange_.ymid();
 
-    dataRange_.updateRange(x, y - 1);
-    dataRange_.updateRange(x, y + 1);
+    dataRange_.updateRange(x, y - 1.0);
+    dataRange_.updateRange(x, y + 1.0);
+  }
+
+  //---
+
+  if (dataRange_.isSet()) {
+    gridData_.xinterval.setStart   (dataRange_.xmin());
+    gridData_.xinterval.setEnd     (dataRange_.xmax());
+    gridData_.xinterval.setNumMajor(gridData_.nx);
+
+    gridData_.yinterval.setStart   (dataRange_.ymin());
+    gridData_.yinterval.setEnd     (dataRange_.ymax());
+    gridData_.yinterval.setNumMajor(gridData_.ny);
+  }
+  else {
+    gridData_.xinterval.setStart   (0);
+    gridData_.xinterval.setEnd     (1);
+    gridData_.xinterval.setNumMajor(1);
+
+    gridData_.yinterval.setStart   (0);
+    gridData_.yinterval.setEnd     (1);
+    gridData_.yinterval.setNumMajor(1);
   }
 
   //---
 
   if (isGridded()) {
-    dataRange_.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
-    dataRange_.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
+    if (dataRange_.isSet()) {
+      dataRange_.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
+      dataRange_.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
+    }
   }
 
   //---
@@ -863,18 +882,22 @@ initObjs()
 
   //---
 
+  int hasGroups = (numGroups() > 1);
+
   int ig = 0;
   int ng = groupNameValues_.size();
 
   for (const auto &groupNameValue : groupNameValues_) {
-    bool hidden = (ng > 1 && isSetHidden(ig));
+    int               groupInd   = groupNameValue.first;
+    const NameValues &nameValues = groupNameValue.second;
+
+    //---
+
+    bool hidden = (hasGroups && isSetHidden(groupInd));
 
     if (hidden) { ++ig; continue; }
 
     //---
-
-    int               groupInd   = groupNameValue.first;
-    const NameValues &nameValues = groupNameValue.second;
 
     Points &points = groupPoints_[groupInd];
 
@@ -882,7 +905,7 @@ initObjs()
     int ns = nameValues.size();
 
     for (const auto &nameValue : nameValues) {
-      bool hidden = (ng == 1 && isSetHidden(is));
+      bool hidden = (! hasGroups && isSetHidden(is));
 
       if (hidden) { ++is; continue; }
 
@@ -958,20 +981,22 @@ initObjs()
   ng = groupNameGridData_.size();
 
   for (const auto &pg : groupNameGridData_) {
-    bool hidden = (ng > 1 && isSetHidden(ig));
+    int                 groupInd     = pg.first;
+    const NameGridData &nameGridData = pg.second;
+
+    //---
+
+    bool hidden = (hasGroups && isSetHidden(groupInd));
 
     if (hidden) { ++ig; continue; }
 
     //---
 
-    int                 groupInd     = pg.first;
-    const NameGridData &nameGridData = pg.second;
-
     int is = 0;
     int ns = nameGridData.size();
 
     for (const auto &pn : nameGridData) {
-      bool hidden = (ng == 1 && isSetHidden(is));
+      bool hidden = (! hasGroups && isSetHidden(is));
 
       if (hidden) { ++is; continue; }
 
@@ -1181,7 +1206,7 @@ addPointKeyItems(CQChartsPlotKey *key)
 
       QString groupName = groupIndName(groupInd);
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, ig, ng);
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd, ig, ng);
       CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName);
 
       key->addItem(colorItem, ig, 0);
@@ -1220,7 +1245,7 @@ addPointKeyItems(CQChartsPlotKey *key)
       const QString &name   = nameValue.first;
       const Values  &values = nameValue.second.values;
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, is, ns);
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1, is, ns);
       CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name);
 
       key->addItem(colorItem, is, 0);
@@ -1391,6 +1416,27 @@ annotationBBox() const
 }
 
 //------
+
+bool
+CQChartsScatterPlot::
+hasBackground() const
+{
+  if (isHull()) return true;
+
+  if (isBestFit()) return true;
+
+  if (isDensityMap()) return true;
+
+  if (isXRug    ()) return true;
+  if (isXDensity()) return true;
+  if (isXWhisker()) return true;
+
+  if (isYRug    ()) return true;
+  if (isYDensity()) return true;
+  if (isYWhisker()) return true;
+
+  return false;
+}
 
 void
 CQChartsScatterPlot::
@@ -2188,6 +2234,13 @@ QString
 CQChartsScatterPointObj::
 calcId() const
 {
+  QModelIndex ind1 = plot_->unnormalizeIndex(ind_);
+
+  QString idStr;
+
+  if (calcColumnId(ind1, idStr))
+    return idStr;
+
   return QString("point:%1:%2:%3").arg(ig_).arg(is_).arg(iv_);
 }
 
@@ -2581,8 +2634,8 @@ drawRugSymbol(QPainter *painter, const Dir &dir, bool flip) const
 //------
 
 CQChartsScatterKeyColor::
-CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n) :
- CQChartsKeyColorBox(plot, i, n)
+CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n) :
+ CQChartsKeyColorBox(plot, i, n), groupInd_(groupInd)
 {
 }
 
@@ -2592,9 +2645,11 @@ selectPress(const CQChartsGeom::Point &)
 {
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
-  plot->setSetHidden(i_, ! plot->isSetHidden(i_));
+  int ih = hideIndex();
 
-  plot->updateObjs();
+  plot->setSetHidden(ih, ! plot->isSetHidden(ih));
+
+  plot->updateRangeAndObjs();
 
   return true;
 }
@@ -2615,10 +2670,19 @@ fillBrush() const
     //c = CQChartsKeyColorBox::fillBrush().color();
   }
 
-  if (plot->isSetHidden(i_))
+  int ih = hideIndex();
+
+  if (plot->isSetHidden(ih))
     c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
 
   return c;
+}
+
+int
+CQChartsScatterKeyColor::
+hideIndex() const
+{
+  return (groupInd_ >= 0 ? groupInd_ : i_);
 }
 
 //---

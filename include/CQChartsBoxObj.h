@@ -31,8 +31,8 @@ class CQChartsBoxObj : public CQChartsObj {
   Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
   Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
   Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
   Q_PROPERTY(QString          borderSides READ borderSides WRITE setBorderSides)
+  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
  public:
   CQChartsBoxObj(CQChartsView *view);
@@ -97,8 +97,9 @@ class CQChartsBoxObj : public CQChartsObj {
   const CQChartsLineDash &borderDash() const { return boxData_.shape.border.dash; }
   void setBorderDash(const CQChartsLineDash &l) { boxData_.shape.border.dash = l; redrawBoxObj(); }
 
-  const CQChartsLength &cornerSize() const { return boxData_.cornerSize; }
-  void setCornerSize(const CQChartsLength &l) { boxData_.cornerSize = l; redrawBoxObj(); }
+  const CQChartsLength &cornerSize() const { return boxData_.shape.border.cornerSize; }
+  void setCornerSize(const CQChartsLength &l) {
+    boxData_.shape.border.cornerSize = l; redrawBoxObj(); }
 
   const QString &borderSides() const { return boxData_.borderSides; }
   void setBorderSides(const QString &s) { boxData_.borderSides = s; redrawBoxObj(); }

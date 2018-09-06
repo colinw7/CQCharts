@@ -152,10 +152,10 @@ addCommands()
     addCommand("transpose_model"  );
 
     // export
-    addCommand("export_model"     );
+    addCommand("export_model");
 
     // measure text
-    addCommand("measure_text");
+    addCommand("measure_charts_text");
 
     // add view
     addCommand("create_view");
@@ -168,9 +168,9 @@ addCommands()
     addCommand("group_plots");
     addCommand("place_plots");
 
-    // get/set property
-    addCommand("get_property");
-    addCommand("set_property");
+    // get/set charts property
+    addCommand("get_charts_property");
+    addCommand("set_charts_property");
 
     // get/set charts model data
     addCommand("get_charts_data");
@@ -257,7 +257,7 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "export_model") { exportModelCmd(vars); }
 
   // measure text
-  else if (cmd == "measure_text") { measureTextCmd(vars); }
+  else if (cmd == "measure_charts_text") { measureChartsTextCmd(vars); }
 
   // create view
   else if (cmd == "create_view") { createViewCmd(vars); }
@@ -271,8 +271,8 @@ processCmd(const QString &cmd, const Vars &vars)
   else if (cmd == "place_plots") { placePlotsCmd(vars); }
 
   // get/set property
-  else if (cmd == "get_property") { getPropertyCmd(vars); }
-  else if (cmd == "set_property") { setPropertyCmd(vars); }
+  else if (cmd == "get_charts_property") { getChartsPropertyCmd(vars); }
+  else if (cmd == "set_charts_property") { setChartsPropertyCmd(vars); }
 
   // get/set data
   else if (cmd == "get_charts_data") { getChartsDataCmd(vars); }
@@ -682,9 +682,9 @@ addProcessModelProcCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-measureTextCmd(const Vars &vars)
+measureChartsTextCmd(const Vars &vars)
 {
-  CQChartsCmdArgs argv("measure_text", vars);
+  CQChartsCmdArgs argv("measure_charts_text", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view", CQChartsCmdArg::Type::String, "view name");
@@ -1139,9 +1139,9 @@ removePlotCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-getPropertyCmd(const Vars &vars)
+getChartsPropertyCmd(const Vars &vars)
 {
-  CQChartsCmdArgs argv("get_property", vars);
+  CQChartsCmdArgs argv("get_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -1253,9 +1253,9 @@ getPropertyCmd(const Vars &vars)
 
 void
 CQChartsCmds::
-setPropertyCmd(const Vars &vars)
+setChartsPropertyCmd(const Vars &vars)
 {
-  CQChartsCmdArgs argv("set_property", vars);
+  CQChartsCmdArgs argv("set_charts_property", vars);
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
   argv.addCmdArg("-view"      , CQChartsCmdArg::Type::String, "view name");
@@ -2965,14 +2965,14 @@ createRectShapeCmd(const Vars &vars)
   background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
 //background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-  border.visible = argv.getParseBool    ("border"      , border.visible);
-  border.color   = argv.getParseColor   ("border_color", border.color  );
-  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
-  border.width   = argv.getParseLength  (view, plot, "border_width", border.width  );
-  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
+  border.visible    = argv.getParseBool    ("border"      , border.visible);
+  border.color      = argv.getParseColor   ("border_color", border.color  );
+  border.alpha      = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width      = argv.getParseLength  (view, plot, "border_width", border.width);
+  border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
+  border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.cornerSize  = argv.getParseLength(view, plot, "corner_size" , boxData.cornerSize);
-  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
 
   //---
 
@@ -3071,14 +3071,14 @@ createEllipseShapeCmd(const Vars &vars)
   background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
 //background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-  border.visible = argv.getParseBool    ("border"      , border.visible);
-  border.color   = argv.getParseColor   ("border_color", border.color  );
-  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
-  border.width   = argv.getParseLength  (view, plot, "border_width", border.width  );
-  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
+  border.visible    = argv.getParseBool    ("border"      , border.visible);
+  border.color      = argv.getParseColor   ("border_color", border.color  );
+  border.alpha      = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width      = argv.getParseLength  (view, plot, "border_width", border.width);
+  border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
+  border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.cornerSize  = argv.getParseLength(view, plot, "corner_size" , boxData.cornerSize);
-  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
 
   //---
 
@@ -3401,14 +3401,14 @@ createTextShapeCmd(const Vars &vars)
   background.alpha   = argv.getParseReal ("background_alpha"  , background.alpha);
 //background.pattern = argv.getParseStr  ("background_pattern", background.pattern);
 
-  border.visible = argv.getParseBool    ("border"      , border.visible);
-  border.color   = argv.getParseColor   ("border_color", border.color  );
-  border.alpha   = argv.getParseReal    ("border_alpha", border.alpha  );
-  border.width   = argv.getParseLength  (view, plot, "border_width", border.width  );
-  border.dash    = argv.getParseLineDash("border_dash" , border.dash   );
+  border.visible    = argv.getParseBool    ("border"      , border.visible);
+  border.color      = argv.getParseColor   ("border_color", border.color  );
+  border.alpha      = argv.getParseReal    ("border_alpha", border.alpha  );
+  border.width      = argv.getParseLength  (view, plot, "border_width", border.width);
+  border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
+  border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.cornerSize  = argv.getParseLength(view, plot, "corner_size" , boxData.cornerSize);
-  boxData.borderSides = argv.getParseStr   ("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
 
   //---
 

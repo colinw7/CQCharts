@@ -4,8 +4,9 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsTextBoxObj.h>
 #include <QModelIndex>
+
+class CQChartsRotatedTextBoxObj;
 
 //---
 

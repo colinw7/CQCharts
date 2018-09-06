@@ -15,19 +15,19 @@ proc addAnnotations { view plot } {
 
   remove_shape -plot $plot -all
 
-  set horizontal [get_property -plot $plot -name options.horizontal]
+  set horizontal [get_charts_property -plot $plot -name options.horizontal]
 
   set objs [get_charts_data -plot $plot -name objects]
 
   set points {}
 
   foreach obj $objs {
-    set typeName [get_property -plot $plot -object $obj -name typeName]
+    set typeName [get_charts_property -plot $plot -object $obj -name typeName]
 
     if {$typeName == "whisker"} {
-      set pos    [get_property -plot $plot -object $obj -name pos   ]
-      set mean   [get_property -plot $plot -object $obj -name mean  ]
-    # set stddev [get_property -plot $plot -object $obj -name stddev]
+      set pos    [get_charts_property -plot $plot -object $obj -name pos   ]
+      set mean   [get_charts_property -plot $plot -object $obj -name mean  ]
+    # set stddev [get_charts_property -plot $plot -object $obj -name stddev]
 
       if {! $horizontal} {
         lappend points [list $pos $mean]

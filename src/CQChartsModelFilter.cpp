@@ -144,8 +144,8 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
      filter_(filter), column_(column) {
     }
 
-    State visit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
-      QModelIndex ind = model->index(row, column_, parent);
+    State visit(QAbstractItemModel *model, const VisitData &data) override {
+      QModelIndex ind = model->index(data.row, column_, data.parent);
 
       if (filter_->acceptsItem(ind)) {
         accepted_ = true;
@@ -155,9 +155,9 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
       return State::OK;
     }
 
-    State hierPostVisit(QAbstractItemModel *model, const QModelIndex &parent, int row) {
+    State hierPostVisit(QAbstractItemModel *model, const VisitData &data) override {
       if (isAccepted()) {
-        QModelIndex ind = model->index(row, column_, parent);
+        QModelIndex ind = model->index(data.row, column_, data.parent);
 
         filter_->addExpand(ind);
       }

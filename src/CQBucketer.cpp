@@ -217,54 +217,6 @@ autoCalc() const
     calcMax_   = interval.calcEnd      ();
     calcDelta_ = interval.calcIncrement();
     calcN_     = interval.calcNumMajor ();
-#if 0
-    double length = rmax() - rmin();
-
-    double length1 = length/numAuto();
-
-    // Calculate nearest Power of Ten to Length
-    int power = (length1 > 0 ? CMathRound::RoundNearest(log10(length1)) : 1);
-
-    // prefer integral values
-    if (isIntegral()) {
-      if (power < 0) {
-        length1 = 1.0;
-        power   = 0;
-      }
-    }
-
-    calcDelta_ = 1;
-
-    if      (power < 0) {
-      for (int i = 0; i < -power; i++)
-        calcDelta_ /= 10.0;
-    }
-    else if (power > 0) {
-      for (int i = 0; i <  power; i++)
-        calcDelta_ *= 10.0;
-    }
-
-    // round min value to increment
-    if (length1 > 0) {
-      int n = CMathRound::RoundNearest(length1/calcDelta_);
-
-      if (! n)
-        n = 1;
-
-      calcDelta_ = calcDelta_*n;
-      calcMin_   = calcDelta_*CMathRound::RoundDownF(rmin()/calcDelta_);
-    }
-    else {
-      calcMin_ = rmin();
-    }
-
-    calcN_ = 0;
-
-    if (calcDelta_ != 0)
-      calcN_ = CMathRound::RoundUp((rmax() - calcMin_)/calcDelta_);
-
-    calcMax_ = calcMin_ + calcN_*calcDelta_;
-#endif
 
     needsCalc_ = false;
   }

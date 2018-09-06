@@ -45,11 +45,12 @@ struct CQChartsFillData {
 
 // Stroke Properties
 struct CQChartsStrokeData {
-  bool             visible { true };                                      // draw border
-  CQChartsColor    color   { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; // border color
-  double           alpha   { 1.0 };                                       // border color alpha
-  CQChartsLength   width   { "0px" };                                     // stroke width
-  CQChartsLineDash dash    { };                                           // stroke dash
+  bool             visible    { true };                                      // draw border
+  CQChartsColor    color      { CQChartsColor::Type::INTERFACE_VALUE, 1.0 }; // border color
+  double           alpha      { 1.0 };                                       // border color alpha
+  CQChartsLength   width      { "0px" };                                     // stroke width
+  CQChartsLineDash dash       { };                                           // stroke dash
+  CQChartsLength   cornerSize { "0px" };                                     // border corner size
 };
 
 // Shape Properties
@@ -65,7 +66,6 @@ struct CQChartsBoxData {
   double            margin      { 4 };      // inside margin (pixels)
   double            padding     { 0 };      // outside margin (pixels)
   CQChartsShapeData shape;                  // shape data
-  CQChartsLength    cornerSize  { "0px" };  // border rounded corner size
   QString           borderSides { "tlbr" }; // border sides to draw
 };
 

@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 
 //---
 

@@ -27,8 +27,8 @@ set legendaryColumn1 [process_model -model $model -add -expr "column($legendaryC
 if {0} {
 set plot1 [create_plot -type boxplot -columns "group=$legendaryColumn1,value=$totalColumn"]
 
-set_property -plot $plot1 -name "xaxis.label.text" -value "is Legendary"
-set_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
+set_charts_property -plot $plot1 -name "xaxis.label.text" -value "is Legendary"
+set_charts_property -plot $plot1 -name "yaxis.label.text" -value "Strength"
 }
 
 # create new column as combination of Type 1 and new Type 2
@@ -42,4 +42,4 @@ filter_model -model $model -expr "column($legendaryColumn1) == 1"
 
 set plot2 [create_plot -type distribution -columns "value=$type12Column,color=$generationColumn" -bool "horizontal=1"]
 
-set_property -plot $plot2 -name "color.mapped" -value 1
+set_charts_property -plot $plot2 -name "color.mapped" -value 1

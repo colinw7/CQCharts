@@ -3,7 +3,7 @@
 
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsTextBoxObj.h>
+#include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsGeom.h>
 
 #include <boost/optional.hpp>

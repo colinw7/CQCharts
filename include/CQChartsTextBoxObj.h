@@ -10,8 +10,9 @@
 class CQChartsTextBoxObj : public CQChartsBoxObj {
   Q_OBJECT
 
+  Q_PROPERTY(QString textStr READ textStr WRITE setTextStr)
+
   Q_PROPERTY(bool          textVisible   READ isTextVisible   WRITE setTextVisible  )
-  Q_PROPERTY(QString       textStr       READ textStr         WRITE setTextStr      )
   Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     )
   Q_PROPERTY(CQChartsColor textColor     READ textColor       WRITE setTextColor    )
   Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha    )
@@ -89,34 +90,6 @@ class CQChartsTextBoxObj : public CQChartsBoxObj {
  protected:
   QString          textStr_;  // text
   CQChartsTextData textData_; // draw data
-};
-
-//------
-
-class CQChartsRotatedTextBoxObj : public CQChartsTextBoxObj {
- public:
-  CQChartsRotatedTextBoxObj(CQChartsPlot *plot);
-
-  const QRectF &rect() const { return rect_; }
-
-  void draw(QPainter *painter, const QPointF &c, const QString &text, double angle=0.0,
-            Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
-
-  CQChartsGeom::BBox bbox(const QPointF &center, const QString &text, double angle=0.0,
-                          Qt::Alignment align=Qt::AlignHCenter | Qt::AlignVCenter) const;
-
-  void drawConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
-                               double ta, const QString &text, const QPen &lpen, bool isRotated);
-
-  void calcConnectedRadialTextBBox(const QPointF &center, double ro, double lr, double ta,
-                                   const QString &text, bool isRotated, CQChartsGeom::BBox &tbbox);
-
- private:
-  void drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro, double lr,
-                                   double ta, const QString &text, const QPen &lpen,
-                                   bool isRotated, CQChartsGeom::BBox &tbbox);
- private:
-  mutable QRectF rect_;
 };
 
 #endif

@@ -12,7 +12,7 @@ set_charts_data -model $model -column 0 -name column_type -value "time:format=%Y
 
 set plot [create_plot -model $model -type distribution -columns "group=CST\[%B\],value=2" -title "Temperature Ridge Lines"]
 
-set_property -plot $plot -name density.enabled -value 1
+set_charts_property -plot $plot -name density.enabled -value 1
 
 #set plot [create_plot -model $model -type distribution -columns "group=CST\[%B\],value=Mean Temperature \[F\]"]
 

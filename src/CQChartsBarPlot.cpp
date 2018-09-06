@@ -106,7 +106,7 @@ addProperties()
 
   addLineProperties("stroke", "barBorder");
 
-  addProperty("stroke", this, "cornerSize", "cornerSize");
+  addProperty("stroke", this, "barCornerSize", "cornerSize");
 
   addProperty("fill", this, "barFilled", "visible");
 
@@ -138,22 +138,6 @@ CQChartsBarPlot::
 setGroupMargin(const CQChartsLength &l)
 {
   CQChartsUtil::testAndSet(groupMargin_, l, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-const CQChartsLength &
-CQChartsBarPlot::
-cornerSize() const
-{
-  return cornerSize_;
-}
-
-void
-CQChartsBarPlot::
-setCornerSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(cornerSize_, s, [&]() { invalidateLayers(); } );
 }
 
 //---

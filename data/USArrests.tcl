@@ -13,8 +13,8 @@ set tranposeModel [transpose_model -model $scaleModel]
 
 set plot [create_plot -model $corrModel -type image]
 
-set_property -plot $plot -name labels.x.visible -value 1
-set_property -plot $plot -name labels.y.visible -value 1
+set_charts_property -plot $plot -name labels.x.visible -value 1
+set_charts_property -plot $plot -name labels.y.visible -value 1
 
 manage_model_dlg
 

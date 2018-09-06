@@ -1459,8 +1459,8 @@ draw(QPainter *painter)
       painter->setPen(pen);
       painter->setBrush(barBrush);
 
-      double cxs = plot_->lengthPixelWidth (plot_->cornerSize());
-      double cys = plot_->lengthPixelHeight(plot_->cornerSize());
+      double cxs = plot_->lengthPixelWidth (plot_->barCornerSize());
+      double cys = plot_->lengthPixelHeight(plot_->barCornerSize());
 
       CQChartsRoundedPolygon::draw(painter, qrect, cxs, cys);
     }

@@ -163,7 +163,7 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   Q_OBJECT
 
  public:
-  CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int i, int n);
+  CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n);
 
   const CQChartsColor &color() const { return color_; }
   void setColor(const CQChartsColor &c) { color_ = c; }
@@ -173,6 +173,10 @@ class CQChartsScatterKeyColor : public CQChartsKeyColorBox {
   QBrush fillBrush() const override;
 
  private:
+  int hideIndex() const;
+
+ private:
+  int           groupInd_ { -1 };
   CQChartsColor color_;
 };
 
@@ -572,6 +576,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   CQChartsGeom::BBox annotationBBox() const override;
 
   //---
+
+  bool hasBackground() const override;
 
   void drawBackground(QPainter *painter) override;
 

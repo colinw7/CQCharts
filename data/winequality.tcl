@@ -34,13 +34,13 @@ for {set c 0} {$c < $nc} {incr c} {
 
   lappend box_plots $plot
 
-  set_property -plot $plot -name box.width                     -value 0.4
-  set_property -plot $plot -name xaxis.visible                 -value 0
-  set_property -plot $plot -name yaxis.grid.line.major.visible -value 1
-  set_property -plot $plot -name key.visible                   -value 0
-  set_property -plot $plot -name labels.visible                -value 0
-  set_property -plot $plot -name box.fill.color                -value green
-  set_property -plot $plot -name outlier.symbol.fill.color     -value green
+  set_charts_property -plot $plot -name box.width                     -value 0.4
+  set_charts_property -plot $plot -name xaxis.visible                 -value 0
+  set_charts_property -plot $plot -name yaxis.grid.line.major.visible -value 1
+  set_charts_property -plot $plot -name key.visible                   -value 0
+  set_charts_property -plot $plot -name labels.visible                -value 0
+  set_charts_property -plot $plot -name box.fill.color                -value green
+  set_charts_property -plot $plot -name outlier.symbol.fill.color     -value green
 }
 
 place_plots -horizontal $box_plots
@@ -56,10 +56,10 @@ for {set c 0} {$c < $nc} {incr c} {
 
   lappend dist_plots $plot
 
-  set_property -plot $plot -name bucket.auto                   -value 1
-  set_property -plot $plot -name key.visible                   -value 0
-  set_property -plot $plot -name yaxis.grid.line.major.visible -value 1
-  set_property -plot $plot -name yaxis.label.visible           -value 0
+  set_charts_property -plot $plot -name bucket.auto                   -value 1
+  set_charts_property -plot $plot -name key.visible                   -value 0
+  set_charts_property -plot $plot -name yaxis.grid.line.major.visible -value 1
+  set_charts_property -plot $plot -name yaxis.label.visible           -value 0
 }
 
 place_plots -horizontal $dist_plots
@@ -72,10 +72,10 @@ set view3 [create_view]
 
 set plot3 [create_plot -view $view3 -model $corrModel -type image]
 
-set_property -plot $plot3 -name labels.x    -value 1
-set_property -plot $plot3 -name labels.y    -value 1
-set_property -plot $plot3 -name labels.cell -value 1
-set_property -plot $plot3 -name invert.y    -value 1
+set_charts_property -plot $plot3 -name labels.x    -value 1
+set_charts_property -plot $plot3 -name labels.y    -value 1
+set_charts_property -plot $plot3 -name labels.cell -value 1
+set_charts_property -plot $plot3 -name invert.y    -value 1
 
 #---
 

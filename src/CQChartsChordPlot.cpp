@@ -1,5 +1,6 @@
 #include <CQChartsChordPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsRotatedTextBoxObj.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>

@@ -1,10 +1,10 @@
 proc annotationSlot { viewId plotId id } {
   puts "annotationSlot: $viewId, $plotId, $id"
 
-  set pos [get_property -annotation $id -name position]
+  set pos [get_charts_property -annotation $id -name position]
   puts $pos
 
-  set text [get_property -annotation $id -name text]
+  set text [get_charts_property -annotation $id -name text]
   puts $text
 }
 
@@ -12,7 +12,7 @@ set modelId [load_model -csv data/arrowstyle.csv]
 
 set plotId [create_plot -type xy -columns "x=0,y=1" -title "This plot has a very long title which we might want to format on multiple lines"]
 
-set viewId [get_property -plot $plotId -name viewId]
+set viewId [get_charts_property -plot $plotId -name viewId]
 
 set textAnnotationId1 [create_text_shape -plot $plotId -id one -position {0 -60} -text "One"]
 

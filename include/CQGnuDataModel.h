@@ -8,16 +8,16 @@
 class CQGnuDataModel : public CQDataModel {
   Q_OBJECT
 
-  Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader     )
-  Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader   )
-  Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader )
-  Q_PROPERTY(QString commentChars      READ commentChars        WRITE setCommentChars      )
-  Q_PROPERTY(QString missingStr        READ missingStr          WRITE setMissingStr        )
-  Q_PROPERTY(char    separator         READ separator           WRITE setSeparator         )
-  Q_PROPERTY(bool    parseStrings      READ isParseStrings      WRITE setParseStrings      )
-  Q_PROPERTY(int     setBlankLines     READ setBlankLines       WRITE setSetBlankLines     )
-  Q_PROPERTY(int     subSetBlankLines  READ subSetBlankLines    WRITE setSubSetBlankLines  )
-  Q_PROPERTY(bool    keepQuotes        READ isKeepQuotes        WRITE setKeepQuotes        )
+  Q_PROPERTY(bool    commentHeader     READ isCommentHeader     WRITE setCommentHeader    )
+  Q_PROPERTY(bool    firstLineHeader   READ isFirstLineHeader   WRITE setFirstLineHeader  )
+  Q_PROPERTY(bool    firstColumnHeader READ isFirstColumnHeader WRITE setFirstColumnHeader)
+  Q_PROPERTY(QString commentChars      READ commentChars        WRITE setCommentChars     )
+  Q_PROPERTY(QString missingStr        READ missingStr          WRITE setMissingStr       )
+  Q_PROPERTY(char    separator         READ separator           WRITE setSeparator        )
+  Q_PROPERTY(bool    parseStrings      READ isParseStrings      WRITE setParseStrings     )
+  Q_PROPERTY(int     setBlankLines     READ setBlankLines       WRITE setSetBlankLines    )
+  Q_PROPERTY(int     subSetBlankLines  READ subSetBlankLines    WRITE setSubSetBlankLines )
+  Q_PROPERTY(bool    keepQuotes        READ isKeepQuotes        WRITE setKeepQuotes       )
 
  public:
   using Fields    = std::vector<QString>;
@@ -91,7 +91,7 @@ class CQGnuDataModel : public CQDataModel {
   QStringList lines_;                       // file lines
   Set         set_;                         // set of sub sets of lines
   Fields      columnHeaderFields_;          // column headers
-  Fields      rowHeaderFields_;             // rows headers
+  Fields      rowHeaderFields_;             // row headers
   int         maxNumFields_      { 0 };     // max number of fields in file lines
 };
 

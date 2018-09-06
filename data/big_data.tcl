@@ -1,7 +1,7 @@
 set modelId [load_model -csv data/xy_100000.csv -first_line_header]
 
 set plotId [create_plot -type xy -columns "x=0,y=1" -title "XY (100000 Points)"]
-#set_property -plot $plotId -name lines.visible -value 0
+#set_charts_property -plot $plotId -name lines.visible -value 0
 
 #print_chart -plot $plotId -file xy_100000.png
 

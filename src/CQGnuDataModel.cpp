@@ -407,7 +407,7 @@ parseFileLine(const QString &str, QString &field0, Fields &fields, bool firstCol
       firstColumnHeader = false;
     }
     else
-     fields.push_back(s);
+      fields.push_back(s);
   }
 }
 

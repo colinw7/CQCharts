@@ -18,14 +18,14 @@ set_charts_data -model $modelId -name column_type -value "4#color"
 
 set plotId [create_plot -type pie -columns "id=0,radius=2,value=3,label=5,color=4" -title "Aster"]
 
-set viewId [get_property -plot $plotId -name viewId]
+set viewId [get_charts_property -plot $plotId -name viewId]
 
-set_property -plot $plotId -name options.donut       -value 1
-set_property -plot $plotId -name grid.visible        -value 1
-set_property -plot $plotId -name options.innerRadius -value 0.2
+set_charts_property -plot $plotId -name options.donut       -value 1
+set_charts_property -plot $plotId -name grid.visible        -value 1
+set_charts_property -plot $plotId -name options.innerRadius -value 0.2
 
 set averageStr [format "%.0f" $average]
 
 set textId [create_text_shape -plot $plotId -position {0 0} -text $averageStr -align aligncenter]
 
-#set_property -annotation $textId -name textAlign -value aligncenter
+#set_charts_property -annotation $textId -name textAlign -value aligncenter

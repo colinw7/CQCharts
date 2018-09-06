@@ -3645,8 +3645,9 @@ hasBackgroundLayer() const
   bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
   bool hasDataBackground = (isDataFilled() || isDataBorder());
   bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+  bool hasBackground     = this->hasBackground();
 
-  if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground)
+  if (! hasPlotBackground && ! hasDataBackground && ! hasFitBackground && ! hasBackground)
     return false;
 
   if (! isLayerActive(CQChartsLayer::Type::BACKGROUND))
@@ -3664,6 +3665,7 @@ drawBackgroundLayer(QPainter *painter)
   bool hasPlotBackground = (isPlotFilled() || isPlotBorder());
   bool hasDataBackground = (isDataFilled() || isDataBorder());
   bool hasFitBackground  = (isFitFilled () || isFitBorder ());
+  bool hasBackground     = this->hasBackground();
 
   //---
 
@@ -3734,7 +3736,21 @@ drawBackgroundLayer(QPainter *painter)
 
   //---
 
-  drawBackground(painter);
+  if (hasBackground)
+    drawBackground(painter);
+}
+
+bool
+CQChartsPlot::
+hasBackground() const
+{
+  return false;
+}
+
+void
+CQChartsPlot::
+drawBackground(QPainter *)
+{
 }
 
 void
@@ -4079,7 +4095,7 @@ drawFgKey(QPainter *painter)
 
   if (isOverlay()) {
     // only draw key above last plot
-    assert(lastPlot() != this);
+    assert(lastPlot() == this);
 
     // use first plot key (for overlay)
     key1 = getFirstPlotKey();

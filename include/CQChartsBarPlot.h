@@ -25,8 +25,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   // bar border
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Bar,bar)
 
-  Q_PROPERTY(CQChartsLength cornerSize READ cornerSize WRITE setCornerSize)
-
   // color map
   CQCHARTS_COLOR_MAP_PROPERTIES
 
@@ -63,11 +61,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   // group margin
   const CQChartsLength &groupMargin() const { return groupMargin_; }
   void setGroupMargin(const CQChartsLength &l);
-
-  //---
-
-  const CQChartsLength &cornerSize() const;
-  void setCornerSize(const CQChartsLength &r);
 
   //---
 
@@ -109,7 +102,6 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   bool            horizontal_   { false }; // horizontal bars
   CQChartsLength  margin_       { "2px" }; // bar margin
   CQChartsLength  groupMargin_  { "4px" }; // bar group margin
-  CQChartsLength  cornerSize_   { "0px" }; // corner size
 };
 
 #endif

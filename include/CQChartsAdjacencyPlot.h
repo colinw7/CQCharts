@@ -3,6 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
+#include <CQChartsPlotData.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsBoxObj.h>
 
@@ -131,9 +132,14 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 //   empty cell        : color
 //
 // TODO: use box obj for box config
+CQCHARTS_NAMED_FILL_DATA(Background,background)
+CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
+
 class CQChartsAdjacencyPlot : public CQChartsPlot,
- public CQChartsPlotShapeData<CQChartsAdjacencyPlot>,
- public CQChartsPlotTextData <CQChartsAdjacencyPlot> {
+ public CQChartsPlotBackgroundFillData<CQChartsAdjacencyPlot>,
+ public CQChartsPlotShapeData         <CQChartsAdjacencyPlot>,
+ public CQChartsPlotTextData          <CQChartsAdjacencyPlot>,
+ public CQChartsPlotEmptyCellShapeData<CQChartsAdjacencyPlot> {
   Q_OBJECT
 
   // columns
@@ -144,19 +150,17 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
 
   // options
-  Q_PROPERTY(SortType      sortType READ sortType WRITE setSortType)
-  Q_PROPERTY(CQChartsColor bgColor  READ bgColor  WRITE setBgColor )
-  Q_PROPERTY(double        margin   READ margin   WRITE setMargin  )
+  Q_PROPERTY(SortType       sortType READ sortType WRITE setSortType)
+  Q_PROPERTY(CQChartsLength bgMargin READ bgMargin WRITE setBgMargin)
+
+  // background
+  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
 
   // cell style
   CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  Q_PROPERTY(CQChartsLength cornerSize READ cornerSize WRITE setCornerSize)
-
   // empty cell style
-  Q_PROPERTY(CQChartsColor  emptyCellColor      READ emptyCellColor      WRITE setEmptyCellColor)
-  Q_PROPERTY(CQChartsLength emptyCellCornerSize READ emptyCellCornerSize
-                                                WRITE setEmptyCellCornerSize )
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(EmptyCell,emptyCell)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
 
@@ -194,35 +198,12 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
   //---
 
+  // options
   const SortType &sortType() const { return sortType_; }
   void setSortType(const SortType &v);
 
-  //---
-
-  // cell background
-  const CQChartsColor &bgColor() const { return bgBox_.backgroundColor(); }
-  void setBgColor(const CQChartsColor &c);
-
-  QColor interpBgColor(int i, int n) const;
-
-  const CQChartsLength &cornerSize() const { return cornerSize_; }
-  void setCornerSize(const CQChartsLength &s);
-
-  //---
-
-  // empty cell background
-  const CQChartsColor &emptyCellColor() const { return emptyCellBox_.backgroundColor(); }
-  void setEmptyCellColor(const CQChartsColor &s);
-
-  QColor interpEmptyCellColor(int i, int n) const;
-
-  const CQChartsLength &emptyCellCornerSize() const { return emptyCellBox_.cornerSize(); }
-  void setEmptyCellCornerSize(const CQChartsLength &s);
-
-  //---
-
-  double margin() const { return bgBox_.margin(); }
-  void setMargin(double r);
+  const CQChartsLength &bgMargin() const { return bgMargin_; }
+  void setBgMargin(const CQChartsLength &r);
 
   //---
 
@@ -254,6 +235,8 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   void handleResize() override;
 
   //---
+
+  bool hasBackground() const override;
 
   void drawBackground(QPainter *) override;
 
@@ -302,9 +285,7 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   CQChartsColumn        groupColumn_;                           // group column
   CQChartsColumn        nameColumn_;                            // name column
   SortType              sortType_          { SortType::GROUP }; // sort type
-  CQChartsBoxObj        bgBox_;                                 // background box data
-  CQChartsLength        cornerSize_        { "0px" };           // cell box corner size
-  CQChartsBoxObj        emptyCellBox_;                          // empty cell box data
+  CQChartsLength        bgMargin_          { "2px" };           // background margin
   IdConnectionsData     idConnections_;                         // connections by id
   NodeMap               nodes_;                                 // all nodes
   NodeArray             sortedNodes_;                           // sorted nodes

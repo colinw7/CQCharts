@@ -486,6 +486,7 @@ Q_PROPERTY(bool          textVisible   READ isTextVisible   WRITE setTextVisible
 Q_PROPERTY(QFont         textFont      READ textFont        WRITE setTextFont     ) \
 Q_PROPERTY(CQChartsColor textColor     READ textColor       WRITE setTextColor    ) \
 Q_PROPERTY(double        textAlpha     READ textAlpha       WRITE setTextAlpha    ) \
+Q_PROPERTY(double        textAngle     READ textAngle       WRITE setTextAngle    ) \
 Q_PROPERTY(bool          textContrast  READ isTextContrast  WRITE setTextContrast ) \
 Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign    ) \
 Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatted) \
@@ -518,6 +519,11 @@ class CQChartsPlotTextData {
     CQChartsUtil::testAndSet(textData_.alpha, a, [&]() { textDataInvalidate(); } );
   }
 
+  double textAngle() const { return textData_.angle; }
+  void setTextAngle(double a) {
+    CQChartsUtil::testAndSet(textData_.angle, a, [&]() { textDataInvalidate(); } );
+  }
+
   QColor interpTextColor(int i, int n) const {
     return textColor().interpColor(textDataPlot_, i, n);
   }
@@ -542,8 +548,8 @@ class CQChartsPlotTextData {
     CQChartsUtil::testAndSet(textData_.scaled, b, [&]() { textDataInvalidate(); } );
   }
 
- private:
-  void textDataInvalidate(bool reload=false) {
+ protected:
+  virtual void textDataInvalidate(bool reload=false) {
     if (reload)
       textDataPlot_->updateRangeAndObjs();
     else
@@ -659,7 +665,8 @@ Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     ) \
 Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor) \
 Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha) \
 Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
-Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
+Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
 template<class PLOT>
 class CQChartsPlotStrokeData {
@@ -695,6 +702,11 @@ class CQChartsPlotStrokeData {
     CQChartsUtil::testAndSet(strokeData_.dash, d, [&]() { strokeDataInvalidate(); } );
   }
 
+  const CQChartsLength &cornerSize() const { return strokeData_.cornerSize; }
+  void setCornerSize(const CQChartsLength &l) {
+    CQChartsUtil::testAndSet(strokeData_.cornerSize, l, [&]() { strokeDataInvalidate(); } );
+  }
+
   QColor interpBorderColor(int i, int n) const {
     return borderColor().interpColor(strokeDataPlot_, i, n);
   }
@@ -721,6 +733,7 @@ Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor) \
 Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha) \
 Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
 Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
+Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize ) \
 \
 Q_PROPERTY(bool                filled      READ isFilled    WRITE setFilled     ) \
 Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  ) \
@@ -759,6 +772,11 @@ class CQChartsPlotShapeData {
   const CQChartsLineDash &borderDash() const { return shapeData_.border.dash; }
   void setBorderDash(const CQChartsLineDash &d) {
     CQChartsUtil::testAndSet(shapeData_.border.dash, d, [&]() { shapeDataInvalidate(); } );
+  }
+
+  const CQChartsLength &cornerSize() const { return shapeData_.border.cornerSize; }
+  void setCornerSize(const CQChartsLength &l) {
+    CQChartsUtil::testAndSet(shapeData_.border.cornerSize, l, [&]() { shapeDataInvalidate(); } );
   }
 
   QColor interpBorderColor(int i, int n) const {
@@ -818,6 +836,8 @@ Q_PROPERTY(CQChartsLength   LNAME##BorderWidth \
            READ LNAME##BorderWidth WRITE set##UNAME##BorderWidth) \
 Q_PROPERTY(CQChartsLineDash LNAME##BorderDash \
            READ LNAME##BorderDash  WRITE set##UNAME##BorderDash ) \
+Q_PROPERTY(CQChartsLength   LNAME##CornerSize \
+           READ LNAME##CornerSize  WRITE set##UNAME##CornerSize ) \
 \
 Q_PROPERTY(bool                LNAME##Filled \
            READ is##UNAME##Filled  WRITE set##UNAME##Filled     ) \
@@ -863,6 +883,13 @@ class CQChartsPlot##UNAME##ShapeData { \
   const CQChartsLineDash &LNAME##BorderDash() const { return LNAME##ShapeData_.border.dash; } \
   void set##UNAME##BorderDash(const CQChartsLineDash &d) { \
     CQChartsUtil::testAndSet(LNAME##ShapeData_.border.dash, d, [&]() { \
+      LNAME##ShapeDataInvalidate(); } ); \
+  } \
+\
+  const CQChartsLength &LNAME##CornerSize() const { \
+    return LNAME##ShapeData_.border.cornerSize; } \
+  void set##UNAME##CornerSize(const CQChartsLength &l) { \
+    CQChartsUtil::testAndSet(LNAME##ShapeData_.border.cornerSize, l, [&]() { \
       LNAME##ShapeDataInvalidate(); } ); \
   } \
 \

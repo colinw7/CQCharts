@@ -467,8 +467,8 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
  public:
   CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n);
 
-  const CQChartsLength &cornerRadius() const { return boxData_.cornerSize; }
-  void setCornerRadius(const CQChartsLength &r) { boxData_.cornerSize = r; }
+  const CQChartsLength &cornerRadius() const { return boxData_.shape.border.cornerSize; }
+  void setCornerRadius(const CQChartsLength &r) { boxData_.shape.border.cornerSize = r; }
 
   QSizeF size() const override;
 

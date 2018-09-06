@@ -4,7 +4,6 @@
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsDataLabel.h>
 
 //---
 
@@ -146,6 +145,8 @@ class CQChartsRadarPlot : public CQChartsPlot,
   void handleResize() override;
 
   //---
+
+  bool hasBackground() const override;
 
   void drawBackground(QPainter *) override;
 

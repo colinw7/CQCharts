@@ -307,14 +307,14 @@ const CQChartsLength &
 CQChartsBoxPlot::
 cornerSize() const
 {
-  return boxData_.cornerSize;
+  return boxData_.shape.border.cornerSize;
 }
 
 void
 CQChartsBoxPlot::
 setCornerSize(const CQChartsLength &s)
 {
-  CQChartsUtil::testAndSet(boxData_.cornerSize, s, [&]() { invalidateLayers(); } );
+  CQChartsUtil::testAndSet(boxData_.shape.border.cornerSize, s, [&]() { invalidateLayers(); } );
 }
 
 //------

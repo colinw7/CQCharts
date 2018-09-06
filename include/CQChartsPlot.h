@@ -168,7 +168,7 @@ class CQChartsPlot : public QObject,
   Q_PROPERTY(int  previewMaxRows READ previewMaxRows WRITE setPreviewMaxRows)
   Q_PROPERTY(bool showBoxes      READ showBoxes      WRITE setShowBoxes     )
 
-  Q_PROPERTY(bool updateTimeout READ updateTimeout WRITE setUpdateTimeout)
+  Q_PROPERTY(int updateTimeout READ updateTimeout WRITE setUpdateTimeout)
 
  public:
   // selection modifier type
@@ -1170,7 +1170,9 @@ class CQChartsPlot : public QObject,
 
   virtual void drawBackgroundLayer(QPainter *painter);
 
-  virtual void drawBackground(QPainter *) { }
+  virtual bool hasBackground() const;
+
+  virtual void drawBackground(QPainter *painter);
 
   void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides);
 

@@ -234,7 +234,7 @@ initGroup(const CQChartsGroupData &data)
 
   //---
 
-   // process model data
+  // process model data
   class GroupVisitor : public ModelVisitor {
    public:
     GroupVisitor(CQChartsGroupPlot *plot, CQChartsColumnBucket *bucket, bool hier) :

@@ -246,7 +246,7 @@ CQChartsView *
 CQChartsAnnotation::
 view() const
 {
-  return (plot() ? plot()->view() : view());
+  return (plot() ? plot()->view() : CQChartsTextBoxObj::view());
 }
 
 //---

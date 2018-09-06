@@ -72,20 +72,18 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsAdjacencyPlot::
 CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
- CQChartsPlotShapeData<CQChartsAdjacencyPlot>(this),
- CQChartsPlotTextData <CQChartsAdjacencyPlot>(this),
- bgBox_(this), emptyCellBox_(this)
+ CQChartsPlotBackgroundFillData<CQChartsAdjacencyPlot>(this),
+ CQChartsPlotShapeData         <CQChartsAdjacencyPlot>(this),
+ CQChartsPlotTextData          <CQChartsAdjacencyPlot>(this),
+ CQChartsPlotEmptyCellShapeData<CQChartsAdjacencyPlot>(this)
 {
-  CQChartsColor bg         (CQChartsColor::Type::INTERFACE_VALUE, 0.2);
-  CQChartsColor border     (CQChartsColor::Type::INTERFACE_VALUE, 1.0);
-  CQChartsColor emptyCellBg(CQChartsColor::Type::INTERFACE_VALUE, 0.1);
+  setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
-  bgBox_.setBackgroundColor(bg);
-
-  setBorderColor(border);
+  setBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1.0));
   setBorderAlpha(0.5);
 
-  emptyCellBox_.setBackgroundColor(emptyCellBg);
+  setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
+  setEmptyCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
   setMargins(0, 0, 0, 0);
 
@@ -149,63 +147,11 @@ setSortType(const SortType &t)
 
 void
 CQChartsAdjacencyPlot::
-setBgColor(const CQChartsColor &c)
+setBgMargin(const CQChartsLength &l)
 {
-  bgBox_.setBackgroundColor(c);
-
-  invalidateLayers();
-}
-
-QColor
-CQChartsAdjacencyPlot::
-interpBgColor(int i, int n) const
-{
-  return bgBox_.interpBackgroundColor(i, n);
-}
-
-//---
-
-void
-CQChartsAdjacencyPlot::
-setCornerSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(cornerSize_, s, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsAdjacencyPlot::
-setMargin(double r)
-{
-  bgBox_.setMargin(r);
+  bgMargin_ = l;
 
   updateObjs();
-}
-
-//---
-
-void
-CQChartsAdjacencyPlot::
-setEmptyCellColor(const CQChartsColor &s)
-{
-  emptyCellBox_.setBackgroundColor(s);
-
-  invalidateLayers();
-}
-
-QColor
-CQChartsAdjacencyPlot::
-interpEmptyCellColor(int i, int n) const
-{
-  return emptyCellBox_.interpBackgroundColor(i, n);
-}
-
-void
-CQChartsAdjacencyPlot::
-setEmptyCellCornerSize(const CQChartsLength &s)
-{
-  emptyCellBox_.setCornerSize(s);
-
-  invalidateLayers();
 }
 
 //---
@@ -222,17 +168,20 @@ addProperties()
   addProperty("columns", this, "nameColumn"       , "name"       );
   addProperty("columns", this, "groupColumn"      , "group"      );
 
-  addProperty("options", this, "sortType", "");
+  addProperty("options", this, "sortType", "sort"  );
+  addProperty("options", this, "bgMargin", "margin");
 
-  addProperty("background", this, "bgColor", "color");
+  addFillProperties("background/fill", "backgroundFill");
 
-  addProperty("cell"       , this, "margin"     , "margin"    );
-  addProperty("cell/stroke", this, "borderColor", "color"     );
-  addProperty("cell/stroke", this, "borderAlpha", "alpha"     );
-  addProperty("cell/stroke", this, "cornerSize" , "cornerSize");
+  addFillProperties("cell/fill"  , "fill"  );
+  addLineProperties("cell/stroke", "border");
 
-  addProperty("emptyCell/fill"  , this, "emptyCellColor"     , "color"     );
-  addProperty("emptyCell/stroke", this, "emptyCellCornerSize", "cornerSize");
+  addProperty("cell/stroke", this, "cornerSize", "cornerSize");
+
+  addFillProperties("emptyCell/fill"  , "emptyCellFill"  );
+  addLineProperties("emptyCell/stroke", "emptyCellBorder");
+
+  addProperty("emptyCell/stroke", this, "cornerSize", "cornerSize");
 
   addTextProperties("text", "text");
 }
@@ -279,6 +228,8 @@ initObjs()
   nodes_.clear();
 
   //---
+
+  setInsideObj(nullptr);
 
   if      (namePairColumn().isValid() && countColumn().isValid())
     return initHierObjs();
@@ -405,8 +356,8 @@ initHierObjs()
 
   //---
 
-  double xb = pixelToWindowWidth (margin());
-  double yb = pixelToWindowHeight(margin());
+  double xb = lengthPlotWidth (bgMargin());
+  double yb = lengthPlotHeight(bgMargin());
 
   maxLen_ = 0;
 
@@ -563,8 +514,8 @@ initConnectionObjs()
 
   //---
 
-  double xb = pixelToWindowWidth (margin());
-  double yb = pixelToWindowHeight(margin());
+  double xb = lengthPlotWidth (bgMargin());
+  double yb = lengthPlotHeight(bgMargin());
 
   maxLen_ = 0;
 
@@ -747,14 +698,17 @@ handleResize()
   clearRangeAndObjs();
 }
 
+bool
+CQChartsAdjacencyPlot::
+hasBackground() const
+{
+  return true;
+}
+
 void
 CQChartsAdjacencyPlot::
 drawBackground(QPainter *painter)
 {
-  CQChartsPlot::drawBackground(painter);
-
-  //---
-
   double pxo, pyo;
 
   windowToPixel(0.0, 1.0, pxo, pyo);
@@ -792,8 +746,8 @@ drawBackground(QPainter *painter)
   double twMax = 0.0;
 
   // draw row labels
-  double px = pxo + margin();
-  double py = pyo + margin() + yts;
+  double px = pxo + lengthPixelWidth (bgMargin());
+  double py = pyo + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
     const QString &str = node->name();
@@ -810,8 +764,8 @@ drawBackground(QPainter *painter)
   drawFactor_ = twMax/std::min(maxLen_*pxs, maxLen_*pys);
 
   // draw column labels
-  px = pxo + margin() + xts;
-  py = pyo + margin() + yts;
+  px = pxo + lengthPixelWidth (bgMargin()) + xts;
+  py = pyo + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node : sortedNodes_) {
     CQChartsRotatedText::drawRotatedText(painter, px + pxs/2, py - 2, node->name(), 90,
@@ -824,22 +778,42 @@ drawBackground(QPainter *painter)
 
   int nn = numNodes();
 
-  px = pxo + margin() + xts;
-  py = pyo + margin() + yts;
-
-  QRectF cellRect(px, py, nn*pxs, nn*pys);
-
-  painter->fillRect(cellRect, interpBgColor(0, 1));
+  px = pxo + lengthPixelWidth (bgMargin()) + xts;
+  py = pyo + lengthPixelHeight(bgMargin()) + yts;
 
   //---
 
-  // draw empty cell
-  QColor bc = interpEmptyCellColor(0, 1);
+  QBrush fillBrush;
 
-  py = pyo + margin() + yts;
+  QColor fc = interpBackgroundFillColor(0, 1);
+
+  setBrush(fillBrush, true, fc, backgroundFillAlpha(), backgroundFillPattern());
+
+  QRectF cellRect(px, py, nn*pxs, nn*pys);
+
+  painter->fillRect(cellRect, fillBrush);
+
+  //---
+
+  // draw empty cells
+  QPen   emptyPen;
+  QBrush emptyBrush;
+
+  QColor pc = interpEmptyCellBorderColor(0, 1);
+  QColor bc = interpEmptyCellFillColor  (0, 1);
+
+  setPen(emptyPen, true, pc, emptyCellBorderAlpha(),
+         emptyCellBorderWidth(), emptyCellBorderDash());
+
+  setBrush(emptyBrush, true, bc, emptyCellFillAlpha(), emptyCellFillPattern());
+
+  double cxs = lengthPixelWidth (emptyCellCornerSize());
+  double cys = lengthPixelHeight(emptyCellCornerSize());
+
+  py = pyo + lengthPixelHeight(bgMargin()) + yts;
 
   for (auto &node1 : sortedNodes_) {
-    double px = pxo + margin() + xts;
+    double px = pxo + lengthPixelWidth(bgMargin()) + xts;
 
     for (auto &node2 : sortedNodes_) {
       double value = node1->nodeValue(node2);
@@ -847,15 +821,10 @@ drawBackground(QPainter *painter)
       bool empty = (node1 != node2 && CMathUtil::isZero(value));
 
       if (empty) {
-        QColor pc = bc.lighter(120);
-
-        painter->setPen  (pc);
-        painter->setBrush(bc);
+        painter->setPen  (emptyPen);
+        painter->setBrush(emptyBrush);
 
         QRectF cellRect(px, py, pxs, pys);
-
-        double cxs = lengthPixelWidth (emptyCellCornerSize());
-        double cys = lengthPixelHeight(emptyCellCornerSize());
 
         CQChartsRoundedPolygon::draw(painter, cellRect, cxs, cys);
       }
@@ -961,7 +930,7 @@ draw(QPainter *painter)
 
   //int nn = plot_->numNodes();
 
-  QColor bc = plot_->interpEmptyCellColor(0, 1);
+  QColor bc = plot_->interpEmptyCellFillColor(0, 1);
 
   // node to self (diagonal)
   if (node1_ == node2_) {
@@ -991,7 +960,7 @@ draw(QPainter *painter)
   plot_->setPen(pen, true, pc, plot_->borderAlpha(),
                 plot_->borderWidth(), plot_->borderDash());
 
-  plot_->setBrush(brush, true, bc, 1.0, CQChartsFillPattern());
+  plot_->setBrush(brush, true, bc, plot_->fillAlpha(), plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

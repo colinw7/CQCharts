@@ -4,6 +4,7 @@
 #include <CQChartsPlotParameter.h>
 #include <QAbstractItemModel>
 #include <QSharedPointer>
+#include <QObject>
 #include <QString>
 #include <map>
 #include <vector>
@@ -38,7 +39,15 @@ class CQChartsPlotTypeMgr {
 
 //----
 
-class CQChartsPlotType {
+class CQChartsPlotType : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(QString   name      READ name     )
+  Q_PROPERTY(QString   desc      READ desc     )
+  Q_PROPERTY(Dimension dimension READ dimension)
+
+  Q_ENUMS(Dimension)
+
  public:
   using Parameters          = std::vector<CQChartsPlotParameter>;
   using ParameterGroups     = std::map<int,CQChartsPlotParameterGroup>;

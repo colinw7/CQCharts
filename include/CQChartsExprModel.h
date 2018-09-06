@@ -222,7 +222,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
 
   CQCharts*            charts_     { nullptr }; // charts
   CQChartsModelFilter* filter_     { nullptr }; // parent filter model
-  QAbstractItemModel*  model_      { nullptr }; // child data mode
+  QAbstractItemModel*  model_      { nullptr }; // child data model
 #ifdef CQCharts_USE_TCL
   CQChartsExprTcl*     qtcl_       { nullptr }; // tcl expression
 #endif
@@ -233,7 +233,7 @@ class CQChartsExprModel : public QAbstractProxyModel {
   mutable int          nr_         { 0 };       // cached number of rows
   mutable int          nc_         { 0 };       // cached number of columns
   mutable int          currentRow_ { 0 };       // cached current row
-  mutable int          currentCol_ { 0 };       // cached current columns
+  mutable int          currentCol_ { 0 };       // cached current column
   mutable ColumnDatas  columnDatas_;            // cached column datas
   ColumnNames          columnNames_;            // cached column names
   NameColumns          nameColumns_;            // cached named columns

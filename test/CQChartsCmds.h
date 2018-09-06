@@ -150,15 +150,15 @@ class CQChartsCmds : public QObject {
   void groupPlotsCmd(const Vars &vars);
   void placePlotsCmd(const Vars &vars);
 
-  void measureTextCmd(const Vars &vars);
+  void measureChartsTextCmd(const Vars &vars);
 
   void createViewCmd(const Vars &vars);
 
   void createPlotCmd(const Vars &vars);
   void removePlotCmd(const Vars &vars);
 
-  void getPropertyCmd(const Vars &vars);
-  void setPropertyCmd(const Vars &vars);
+  void getChartsPropertyCmd(const Vars &vars);
+  void setChartsPropertyCmd(const Vars &vars);
 
   void getChartsDataCmd(const Vars &vars);
   void setChartsDataCmd(const Vars &vars);

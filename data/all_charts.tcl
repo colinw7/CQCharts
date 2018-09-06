@@ -54,7 +54,7 @@ set plot8 [create_plot -model $model8 -type distribution \
 
 set model9 [load_model -tsv data/adjacency.tsv]
 
-set plot9 [create_plot -model $model9 -type forcedirected -columns "node=1,connections=3,name=0,group=2" -title "adjacency"]
+set plot9 [create_plot -model $model9 -type forcedirected -columns "node=1,connections=3,name=0,group=2" -title "Force Directed"]
 
 # Geometry Plot
 
@@ -128,7 +128,7 @@ set plot20 [create_plot -model $model20 -type xy -columns "x=0,y=1" -title "XY P
 
 ###---
 
-set view [get_property -plot $plot1 -name viewId]
+set view [get_charts_property -plot $plot1 -name viewId]
 
 set plots [get_charts_data -view $view -name plots]
 
