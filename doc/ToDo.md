@@ -1,4 +1,5 @@
 High
+ + inner margin for plot data range
  + better filtering of plot values
  + auto split data into list of plots (left/right buttons)
  + No style properties in *Plot*.h
@@ -269,6 +270,7 @@ Box Plot
  + interp connected
  + extra column for x label
  + Sort by median
+ + Connected Box Plot setting X axis wrong (box_connected.tcl) - also slow
 
 Distribution Plot
  + Push/Pop save restore ranges
@@ -282,6 +284,9 @@ Hier Bubble Plot
  + Pop top is off by one level
  + Better coloring algorithm ?
  + How handle non-cumulative values (percentages)
+
+Image Plot
+ + separate x/y and cell text styles
 
 Parallel Plot
  + Parallel needs x axis labels
