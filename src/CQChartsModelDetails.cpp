@@ -105,6 +105,38 @@ update()
   initialized_ = true;
 }
 
+CQChartsModelDetails::Columns
+CQChartsModelDetails::
+numericColumns() const
+{
+  Columns columns;
+
+  for (auto &cd : columnDetails_) {
+    CQChartsModelColumnDetails *columnDetails = cd.second;
+
+    if (columnDetails->isNumeric())
+      columns.push_back(columnDetails->column());
+  }
+
+  return columns;
+}
+
+CQChartsModelDetails::Columns
+CQChartsModelDetails::
+monotonicColumns() const
+{
+  Columns columns;
+
+  for (auto &cd : columnDetails_) {
+    CQChartsModelColumnDetails *columnDetails = cd.second;
+
+    if (columnDetails->isMonotonic())
+      columns.push_back(columnDetails->column());
+  }
+
+  return columns;
+}
+
 //------
 
 CQChartsModelColumnDetails::
@@ -321,6 +353,17 @@ numRows() const
     (void) const_cast<CQChartsModelColumnDetails *>(this)->initData();
 
   return numRows_;
+}
+
+bool
+CQChartsModelColumnDetails::
+isNumeric() const
+{
+  if (type() == CQBaseModel::Type::INTEGER ||
+      type() == CQBaseModel::Type::REAL)
+    return true;
+
+  return false;
 }
 
 bool

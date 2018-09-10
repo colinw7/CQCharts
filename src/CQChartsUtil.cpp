@@ -1422,6 +1422,25 @@ CQChartsColor modelColor(CQCharts *charts, QAbstractItemModel *model, int row,
 
 namespace CQChartsUtil {
 
+int countLeadingBraces(const QString &str) {
+  CQStrParse parse(str);
+
+  int n = 0;
+
+  while (! parse.eof()) {
+    parse.skipSpace();
+
+    if (! parse.isChar('{'))
+      break;
+
+    parse.skipChar();
+
+    ++n;
+  }
+
+  return n;
+}
+
 bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polygons) {
   CQStrParse parse(str);
 
@@ -1531,29 +1550,33 @@ bool stringToPolygon(const QString &str, QPolygonF &poly) {
 bool stringToRect(const QString &str, QRectF &rect) {
   CQStrParse parse(str);
 
-  // read x1 y1 x2 y2 strings
-  // TODO: skip braces, commas ...
+  return parseRect(parse, rect);
+}
+
+bool parseRect(CQStrParse &parse, QRectF &rect) {
+  // parse rect:
+  //  x1 y1 x2 y2
+  //  {x1 y1} {x2 y2}
 
   parse.skipSpace();
 
-  QString x1str, y1str, x2str, y2str;
+  if (parse.isChar('{')) {
+    QString str1;
 
-  if (! parse.readNonSpace(x1str))
+    if (! parse.readBracedString(str1))
+      return false;
+
+    CQStrParse parse1(str1);
+
+    return parseRect(parse1, rect);
+  }
+
+  QPointF p1, p2;
+
+  if (! parsePoint(parse, p1))
     return false;
 
-  parse.skipSpace();
-
-  if (! parse.readNonSpace(y1str))
-    return false;
-
-  parse.skipSpace();
-
-  if (! parse.readNonSpace(x2str))
-    return false;
-
-  parse.skipSpace();
-
-  if (! parse.readNonSpace(y2str))
+  if (! parsePoint(parse, p2))
     return false;
 
   parse.skipSpace();
@@ -1562,17 +1585,7 @@ bool stringToRect(const QString &str, QRectF &rect) {
 
   //---
 
-  // get x1 y1 x2 y2 values
-  double x1, y1, x2, y2;
-
-  if (! toReal(x1str, x1)) return false;
-  if (! toReal(y1str, y1)) return false;
-  if (! toReal(x2str, x2)) return false;
-  if (! toReal(y2str, y2)) return false;
-
-  //---
-
-  rect = QRectF(x1, y1, x2 - x1, y2 - y1);
+  rect = QRectF(p1.x(), p1.y(), p2.x() - p1.x(), p2.y() - p1.y());
 
   return true;
 }
@@ -1580,34 +1593,45 @@ bool stringToRect(const QString &str, QRectF &rect) {
 bool stringToPoint(const QString &str, QPointF &point) {
   CQStrParse parse(str);
 
-  // read x y strings
-  // TODO: skip braces, commas ...
+  return parsePoint(parse, point);
+}
 
+bool parsePoint(CQStrParse &parse, QPointF &point) {
   parse.skipSpace();
 
-  QString xstr, ystr;
+  if (parse.isChar('{')) {
+    QString str1;
 
-  if (! parse.readNonSpace(xstr))
+    if (! parse.readBracedString(str1))
+      return false;
+
+    CQStrParse parse1(str1);
+
+    return parsePoint(parse1, point);
+  }
+
+  //---
+
+  // read x y values
+  double x = 0.0;
+
+  if (! parse.readReal(&x))
     return false;
 
   parse.skipSpace();
 
-  if (! parse.readNonSpace(ystr))
-    return false;
+  if (parse.isChar(',')) {
+    parse.skipChar();
 
-  parse.skipSpace();
+    parse.skipSpace();
+  }
+
+  double y = 0.0;
+
+  if (! parse.readReal(&y))
+    return false;
 
   // TODO: check for extra characters
-
-  //---
-
-  // get x y values
-  double x, y;
-
-  if (! toReal(xstr, x)) return false;
-  if (! toReal(ystr, y)) return false;
-
-  //---
 
   point = QPointF(x, y);
 
@@ -1640,6 +1664,20 @@ QString polygonToString(const QPolygonF &poly) {
     const QPointF &p = poly[i];
 
     str += QString("{%1}").arg(pointToString(p));
+  }
+
+  return str;
+}
+
+QString polygonListToString(const std::vector<QPolygonF> &polyList) {
+  int np = polyList.size();
+
+  QString str;
+
+  for (int i = 0; i < np; ++i) {
+    const QPolygonF &poly = polyList[i];
+
+    str += QString("{%1}").arg(polygonToString(poly));
   }
 
   return str;

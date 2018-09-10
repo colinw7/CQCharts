@@ -610,7 +610,7 @@ drawFgAxes(QPainter *painter)
   for (int j = 0; j < numSets(); ++j) {
     CQChartsAxis *axis = axes_[j];
 
-    view()->setPlotPainterFont(this, painter, axis->labelFont());
+    view()->setPlotPainterFont(this, painter, axis->axesLabelTextFont());
 
     QFontMetricsF fm(painter->font());
 
@@ -652,7 +652,13 @@ drawFgAxes(QPainter *painter)
 
     max_tw_ = std::max(max_tw_, tw);
 
-    painter->setPen(axis->interpTickLabelColor(0, 1));
+    QPen tpen;
+
+    QColor tc = axis->interpAxesTickLabelTextColor(0, 1);
+
+    setPen(tpen, true, tc, axis->axesTickLabelTextAlpha());
+
+    painter->setPen(tpen);
 
     if (! isHorizontal())
       painter->drawText(QPointF(px - tw/2.0, py - td - tm), label);

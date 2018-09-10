@@ -416,12 +416,13 @@ drawVoronoi(QPainter *painter)
   //---
 
   if (isLines()) {
-    CQChartsLineData ld;
+    QPen pen;
 
-    ld.color = linesColor();
-    ld.alpha = linesAlpha();
-    ld.width = linesWidth();
-    ld.dash  = linesDash ();
+    QColor lc = interpLinesColor(0, 1);
+
+    setPen(pen, true, lc, linesAlpha(), linesWidth(), linesDash());
+
+    painter->setPen(pen);
 
     for (auto pve = delaunay_->voronoiEdgesBegin(); pve != delaunay_->voronoiEdgesEnd(); ++pve) {
       const CQChartsHull3D::Edge *e = *pve;
@@ -434,7 +435,7 @@ drawVoronoi(QPainter *painter)
       windowToPixel(v1->x(), v1->y(), px1, py1);
       windowToPixel(v2->x(), v2->y(), px2, py2);
 
-      drawLine(painter, QPointF(px1, py1), QPointF(px2, py2), ld);
+      painter->drawLine(QPointF(px1, py1), QPointF(px2, py2));
     }
   }
 }

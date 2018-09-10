@@ -5,7 +5,6 @@
 
 #include <CHRTimer.h>
 #include <COSNaN.h>
-#include <CQStrParse.h>
 
 #include <QAbstractItemModel>
 #include <QVariant>

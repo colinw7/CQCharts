@@ -67,13 +67,21 @@ CQChartsPlotType()
 {
 }
 
+CQChartsPlotType::
+~CQChartsPlotType()
+{
+  for (auto &parameter : parameters_)
+    delete parameter;
+}
+
 void
 CQChartsPlotType::
 addParameters()
 {
   startParameterGroup("Common");
 
-  addColumnParameter("id", "Id", "idColumn").setTip("Unique row id");
+  addColumnParameter("id" , "Id" , "idColumn" ).setTip("Unique row id");
+  addColumnParameter("tip", "Tip", "tipColumn").setTip("Tip Column");
 
   if (hasKey())
     addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
@@ -88,7 +96,7 @@ groupParameters(int groupId) const
   Parameters parameters;
 
   for (auto &parameter : parameters_) {
-    if (parameter.groupId() == groupId)
+    if (parameter->groupId() == groupId)
       parameters.push_back(parameter);
   }
 
@@ -102,7 +110,7 @@ nonGroupParameters() const
   Parameters parameters;
 
   for (auto &parameter : parameters_) {
-    if (parameter.groupId() == -1)
+    if (parameter->groupId() == -1)
       parameters.push_back(parameter);
   }
 
@@ -138,7 +146,7 @@ CQChartsPlotType::
 addColumnParameter(const QString &name, const QString &desc, const QString &propName,
                    const ParameterAttributes &attributes, int defValue)
 {
-  return addParameter(CQChartsColumnParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsColumnParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
@@ -146,8 +154,8 @@ CQChartsPlotType::
 addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                     const QString &defValue)
 {
-  return addParameter(CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(),
-                                               defValue));
+  return addParameter(
+    new CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(), defValue));
 }
 
 CQChartsPlotParameter &
@@ -155,7 +163,7 @@ CQChartsPlotType::
 addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                     const ParameterAttributes &attributes, const QString &defValue)
 {
-  return addParameter(CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsColumnsParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
@@ -163,8 +171,8 @@ CQChartsPlotType::
 addStringParameter(const QString &name, const QString &desc, const QString &propName,
                    const QString &defValue)
 {
-  return addParameter(CQChartsStringParameter(name, desc, propName, ParameterAttributes(),
-                                              defValue));
+  return addParameter(
+    new CQChartsStringParameter(name, desc, propName, ParameterAttributes(), defValue));
 }
 
 CQChartsPlotParameter &
@@ -172,7 +180,7 @@ CQChartsPlotType::
 addStringParameter(const QString &name, const QString &desc, const QString &propName,
                    const ParameterAttributes &attributes, const QString &defValue)
 {
-  return addParameter(CQChartsStringParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsStringParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
@@ -180,8 +188,8 @@ CQChartsPlotType::
 addRealParameter(const QString &name, const QString &desc, const QString &propName,
                  double defValue)
 {
-  return addParameter(CQChartsRealParameter(name, desc, propName, ParameterAttributes(),
-                                            defValue));
+  return addParameter(
+    new CQChartsRealParameter(name, desc, propName, ParameterAttributes(), defValue));
 }
 
 CQChartsPlotParameter &
@@ -189,7 +197,7 @@ CQChartsPlotType::
 addRealParameter(const QString &name, const QString &desc, const QString &propName,
                  const ParameterAttributes &attributes, double defValue)
 {
-  return addParameter(CQChartsRealParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsRealParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
@@ -197,8 +205,8 @@ CQChartsPlotType::
 addIntParameter(const QString &name, const QString &desc, const QString &propName,
                 int defValue)
 {
-  return addParameter(CQChartsIntParameter(name, desc, propName, ParameterAttributes(),
-                                           defValue));
+  return addParameter(
+    new CQChartsIntParameter(name, desc, propName, ParameterAttributes(), defValue));
 }
 
 CQChartsPlotParameter &
@@ -206,15 +214,15 @@ CQChartsPlotType::
 addIntParameter(const QString &name, const QString &desc, const QString &propName,
                 const ParameterAttributes &attributes, int defValue)
 {
-  return addParameter(CQChartsIntParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsIntParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
 CQChartsPlotType::
 addBoolParameter(const QString &name, const QString &desc, const QString &propName, bool defValue)
 {
-  return addParameter(CQChartsBoolParameter(name, desc, propName, ParameterAttributes(),
-                                            defValue));
+  return addParameter(
+    new CQChartsBoolParameter(name, desc, propName, ParameterAttributes(), defValue));
 }
 
 CQChartsPlotParameter &
@@ -222,19 +230,19 @@ CQChartsPlotType::
 addBoolParameter(const QString &name, const QString &desc, const QString &propName,
                  const ParameterAttributes &attributes, bool defValue)
 {
-  return addParameter(CQChartsBoolParameter(name, desc, propName, attributes, defValue));
+  return addParameter(new CQChartsBoolParameter(name, desc, propName, attributes, defValue));
 }
 
 CQChartsPlotParameter &
 CQChartsPlotType::
-addParameter(const CQChartsPlotParameter &parameter)
+addParameter(CQChartsPlotParameter *parameter)
 {
   parameters_.push_back(parameter);
 
-  CQChartsPlotParameter &parameter1 = parameters_.back();
+  CQChartsPlotParameter *parameter1 = parameters_.back();
 
   if (parameterGroupId_ >= 0)
-    parameter1.setGroupId(parameterGroupId_);
+    parameter1->setGroupId(parameterGroupId_);
 
-  return parameter1;
+  return *parameter1;
 }

@@ -89,9 +89,10 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model),
- CQChartsPlotPointData    <CQChartsScatterPlot>(this),
- CQChartsPlotHullShapeData<CQChartsScatterPlot>(this),
- CQChartsPlotRugPointData <CQChartsScatterPlot>(this),
+ CQChartsPlotPointData       <CQChartsScatterPlot>(this),
+ CQChartsPlotBestFitShapeData<CQChartsScatterPlot>(this),
+ CQChartsPlotHullShapeData   <CQChartsScatterPlot>(this),
+ CQChartsPlotRugPointData    <CQChartsScatterPlot>(this),
  dataLabel_(this)
 {
   // set mapped range
@@ -359,20 +360,6 @@ setBestFitOrder(int o)
   CQChartsUtil::testAndSet(bestFitData_.order, o, [&]() { updateRangeAndObjs(); } );
 }
 
-void
-CQChartsScatterPlot::
-setBestFitFillColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(bestFitData_.fillColor, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsScatterPlot::
-setBestFitFillAlpha(double a)
-{
-  CQChartsUtil::testAndSet(bestFitData_.fillAlpha, a, [&]() { updateRangeAndObjs(); } );
-}
-
 //---
 
 void
@@ -549,11 +536,12 @@ addProperties()
   addProperty("columns", this, "colorColumn"     , "color"     );
 
   // best fit line and deviation fill
-  addProperty("bestFit"     , this, "bestFit"         , "enabled"  );
-  addProperty("bestFit"     , this, "bestFitDeviation", "deviation");
-  addProperty("bestFit"     , this, "bestFitOrder"    , "order"    );
-  addProperty("bestFit/fill", this, "bestFitFillColor", "color"    );
-  addProperty("bestFit/fill", this, "bestFitFillAlpha", "alpha"    );
+  addProperty("bestFit", this, "bestFit"         , "enabled"  );
+  addProperty("bestFit", this, "bestFitDeviation", "deviation");
+  addProperty("bestFit", this, "bestFitOrder"    , "order"    );
+
+  addLineProperties("bestFit/stroke", "bestFitBorder");
+  addFillProperties("bestFit/fill"  , "bestFitFill"  );
 
   // convex hull shape
   addProperty("hull", this, "hull", "enabled");
@@ -657,8 +645,8 @@ calcRange()
         double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
         double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-        if (! ok1) { x = uniqueId(data.row, plot_->xColumn(), data.parent); ++uniqueX_; }
-        if (! ok2) { y = uniqueId(data.row, plot_->yColumn(), data.parent); ++uniqueY_; }
+        if (! ok1) { x = uniqueId(data, plot_->xColumn()); ++uniqueX_; }
+        if (! ok2) { y = uniqueId(data, plot_->yColumn()); ++uniqueY_; }
 
         if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
           return State::SKIP;
@@ -669,10 +657,10 @@ calcRange()
       return State::OK;
     }
 
-    int uniqueId(int row, const CQChartsColumn &column, const QModelIndex &parent) {
+    int uniqueId(const VisitData &data, const CQChartsColumn &column) {
       bool ok;
 
-      QVariant var = plot_->modelValue(row, column, parent, ok);
+      QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
       if (! var.isValid()) return -1;
 
       return columnDetails(column)->uniqueId(var);
@@ -1079,8 +1067,8 @@ addNameValues()
       double x = plot_->modelReal(data.row, plot_->xColumn(), data.parent, ok1);
       double y = plot_->modelReal(data.row, plot_->yColumn(), data.parent, ok2);
 
-      if (! ok1) x = uniqueId(data.row, plot_->xColumn(), data.parent);
-      if (! ok2) y = uniqueId(data.row, plot_->yColumn(), data.parent);
+      if (! ok1) x = uniqueId(data, plot_->xColumn());
+      if (! ok2) y = uniqueId(data, plot_->yColumn());
 
       if (CMathUtil::isNaN(x) || CMathUtil::isNaN(y))
         return State::SKIP;
@@ -1121,10 +1109,10 @@ addNameValues()
       return State::OK;
     }
 
-    int uniqueId(int row, const CQChartsColumn &column, const QModelIndex &parent) {
+    int uniqueId(const VisitData &data, const CQChartsColumn &column) {
       bool ok;
 
-      QVariant var = plot_->modelValue(row, column, parent, ok);
+      QVariant var = plot_->modelValue(data.row, column, data.parent, ok);
       if (! var.isValid()) return -1;
 
       return columnDetails(column)->uniqueId(var);
@@ -1517,12 +1505,13 @@ drawBestFit(QPainter *painter)
     QPen   pen;
     QBrush brush;
 
-    QColor borderColor = interpThemeColor(1.0);
-    QColor fillColor   = bestFitFillColor().interpColor(this, ig, ng);
+    QColor borderColor = interpBestFitBorderColor(ig, ng);
+    QColor fillColor   = interpBestFitFillColor  (ig, ng);
 
-    setPen(pen, true, borderColor, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+    setPen(pen, isBestFitBorder(), borderColor, bestFitBorderAlpha(),
+           bestFitBorderWidth(), bestFitBorderDash());
 
-    setBrush(brush, true, fillColor, bestFitFillAlpha(), CQChartsFillPattern());
+    setBrush(brush, isBestFitFilled(), fillColor, bestFitFillAlpha(), bestFitFillPattern());
 
     //---
 
@@ -1571,6 +1560,7 @@ drawBestFit(QPainter *painter)
         dpoly << p;
       }
 
+      painter->setPen  (pen);
       painter->setBrush(brush);
 
       painter->drawPolygon(dpoly);
@@ -1812,7 +1802,7 @@ drawYDensityWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
               /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
               CQChartsLength("1px"), CQChartsLineDash(),
               /*filled*/ true, fillColor, densityAlpha(),
-              CQChartsFillPattern());
+              symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2002,7 +1992,7 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
               /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
               CQChartsLength("1px"), CQChartsLineDash(),
               /*filled*/ true, fillColor, whiskerAlpha(),
-              CQChartsFillPattern());
+              symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2038,7 +2028,7 @@ drawYWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
               /*stroked*/ true, strokeColor, symbolStrokeAlpha(),
               CQChartsLength("1px"), CQChartsLineDash(),
               /*filled*/ true, fillColor, whiskerAlpha(),
-              CQChartsFillPattern());
+              symbolFillPattern());
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2449,8 +2439,7 @@ drawDir(QPainter *painter, const Dir &dir, bool flip) const
 
     QColor tc = plot_->dataLabel().interpTextColor(ic, nc);
 
-    plot_->setPen(tpen, true, tc, plot_->dataLabel().textAlpha(),
-                  CQChartsLength("0px"), CQChartsLineDash());
+    plot_->setPen(tpen, true, tc, plot_->dataLabel().textAlpha(), CQChartsLength("0px"));
 
     //---
 

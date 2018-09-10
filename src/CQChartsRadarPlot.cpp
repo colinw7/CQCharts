@@ -5,7 +5,6 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsDrawUtil.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsTip.h>
 
 #include <QPainter>
@@ -275,6 +274,70 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
+  int nv = valueColumns().size();
+
+  // add corner labels
+  if (nv > 2) {
+    double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
+
+    double da = alen/nv;
+
+    //---
+
+    QFont font = view()->plotFont(this, textFont());
+
+    int    nl = 5;
+    double dr = valueRadius_/nl;
+
+    for (int i = 0; i <= nl; ++i) {
+      double r = dr*i;
+
+      double a = angleStart();
+
+      for (int iv = 0; iv < nv; ++iv) {
+        double ra = CMathUtil::Deg2Rad(a);
+
+        double x = r*cos(ra);
+        double y = r*sin(ra);
+
+        double px, py;
+
+        windowToPixel(x, y, px, py);
+
+        //---
+
+        if (i == nl) {
+          const CQChartsColumn &valueColumn = valueColumns()[iv];
+
+          bool ok;
+
+          QString name = modelHeaderString(valueColumn, ok);
+
+          Qt::Alignment align = 0;
+
+          if      (CMathUtil::isZero(x)) align |= Qt::AlignHCenter;
+          else if (x > 0)                align |= Qt::AlignLeft;
+          else if (x < 0)                align |= Qt::AlignRight;
+
+          if      (CMathUtil::isZero(y)) align |= Qt::AlignVCenter;
+          else if (y > 0)                align |= Qt::AlignBottom;
+          else if (y < 0)                align |= Qt::AlignTop;
+
+          QRectF trect = CQChartsDrawUtil::alignedTextRect(font, px, py, name, align, 2, 2);
+
+          bbox += pixelToWindow(CQChartsUtil::fromQRect(trect));
+        }
+
+        //---
+
+        a -= da;
+      }
+    }
+  }
+
+  //---
+
+  // add objects
   for (const auto &plotObj : plotObjs_) {
     CQChartsRadarObj *obj = dynamic_cast<CQChartsRadarObj *>(plotObj);
 
@@ -581,7 +644,7 @@ drawBackground(QPainter *painter)
 
     QColor tc = interpTextColor(0, 1);
 
-    setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+    setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
 
     //---
 
@@ -723,6 +786,9 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
+  if (! visible())
+    return bbox;
+
   return bbox;
 }
 
@@ -783,15 +849,10 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setPenBrush(pen, brush,
-                     plot_->isBorder(),
-                     plot_->interpBorderColor(i_, n_),
-                     plot_->borderAlpha(),
-                     plot_->borderWidth(),
-                     plot_->borderDash(),
-                     plot_->isFilled(),
-                     plot_->interpFillColor(i_, n_),
-                     plot_->fillAlpha(),
-                     plot_->fillPattern());
+    plot_->isBorder(), plot_->interpBorderColor(i_, n_), plot_->borderAlpha(),
+    plot_->borderWidth(), plot_->borderDash(),
+    plot_->isFilled(), plot_->interpFillColor(i_, n_), plot_->fillAlpha(),
+    plot_->fillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -816,6 +877,7 @@ draw(QPainter *painter)
 
     painter->drawEllipse(QRectF(pxo - xr, pyo - yr, 2*xr, 2*yr));
   }
-  else if (poly_.size() >= 3)
+  else if (poly_.size() >= 3) {
     painter->drawPolygon(ppoly);
+  }
 }

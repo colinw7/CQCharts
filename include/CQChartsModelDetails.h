@@ -49,6 +49,8 @@ class CQChartsModelColumnDetails {
 
   int numRows() const;
 
+  bool isNumeric() const;
+
   bool isMonotonic () const;
   bool isIncreasing() const;
 
@@ -105,6 +107,9 @@ class CQChartsModelColumnDetails {
 
 class CQChartsModelDetails {
  public:
+  using Columns = std::vector<CQChartsColumn>;
+
+ public:
   CQChartsModelDetails(CQChartsModelData *data);
 
  ~CQChartsModelDetails();
@@ -119,6 +124,10 @@ class CQChartsModelDetails {
 
   CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
   const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
+
+  Columns numericColumns() const;
+
+  Columns monotonicColumns() const;
 
   void reset();
 

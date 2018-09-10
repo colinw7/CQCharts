@@ -1,11 +1,11 @@
 #include <CQChartsGeometryPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
+#include <CQChartsPolygonList.h>
 #include <CQCharts.h>
-#include <CQChartsBoxObj.h>
 #include <CQChartsTip.h>
-#include <CQStrParse.h>
 #include <QPainter>
 
 CQChartsGeometryPlotType::
@@ -19,8 +19,9 @@ addParameters()
 {
   startParameterGroup("Geometry");
 
-  addColumnParameter("geometry", "Geometry", "geometryColumn", 0).setRequired();
-  addColumnParameter("value"   , "Value"   , "valueColumn"   , 1).setRequired();
+  addColumnParameter("geometry", "Geometry", "geometryColumn", 0).
+   setRequired().setTip("Polygon List, Polygon, Rect or Path geometry");
+  addColumnParameter("value", "Value", "valueColumn", 1).setRequired();
 
   addColumnParameter("name" , "Name" , "nameColumn" );
   addColumnParameter("color", "Color", "colorColumn").setTip("Custom shape color");
@@ -38,7 +39,25 @@ CQChartsGeometryPlotType::
 description() const
 {
   return "<h2>Summary</h2>\n"
-         "<p>Draw polygon shapes.</p>\n";
+         "<p>Draw polygon list, polygon, rect or path shapes.</p>\n";
+}
+
+bool
+CQChartsGeometryPlotType::
+isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                     CQChartsPlotParameter *parameter) const
+{
+  if (parameter->name() == "geometry") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::RECT ||
+        columnDetails->type() == CQChartsPlot::ColumnType::POLYGON ||
+        columnDetails->type() == CQChartsPlot::ColumnType::POLYGON_LIST ||
+        columnDetails->type() == CQChartsPlot::ColumnType::PATH)
+      return true;
+
+    return false;
+  }
+
+  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 CQChartsPlot *
@@ -218,6 +237,7 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data)
   // decode geometry column value into polygons
   if (geometryColumnType_ == ColumnType::RECT ||
       geometryColumnType_ == ColumnType::POLYGON ||
+      geometryColumnType_ == ColumnType::POLYGON_LIST ||
       geometryColumnType_ == ColumnType::PATH) {
     bool ok2;
 
@@ -234,20 +254,30 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data)
       QRectF r = rvar.value<QRectF>();
 
       poly = QPolygonF(r);
+
+      geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::POLYGON) {
       poly = rvar.value<QPolygonF>();
+
+      geometry.polygons.push_back(poly);
+    }
+    else if (geometryColumnType_ == ColumnType::POLYGON_LIST) {
+      CQChartsPolygonList polyList = rvar.value<CQChartsPolygonList>();
+
+      for (const auto &poly : polyList.polygons())
+        geometry.polygons.push_back(poly);
     }
     else if (geometryColumnType_ == ColumnType::PATH) {
       CQChartsPath path = rvar.value<CQChartsPath>();
 
       poly = path.path().toFillPolygon();
+
+      geometry.polygons.push_back(poly);
     }
     else {
       assert(false);
     }
-
-    geometry.polygons.push_back(poly);
   }
   else {
     bool ok2;
@@ -346,53 +376,41 @@ bool
 CQChartsGeometryPlot::
 decodeGeometry(const QString &geomStr, Polygons &polygons)
 {
-  CQStrParse parse(geomStr);
-
-  int n = 0;
-
-  while (! parse.eof()) {
-    parse.skipSpace();
-
-    if (! parse.isChar('{'))
-      break;
-
-    parse.skipChar();
-
-    ++n;
-  }
+  // count leading braces
+  int n = CQChartsUtil::countLeadingBraces(geomStr);
 
   //---
 
-  // single polygon x1 y1 x2 y2 ...
+  // no braces - single polygon x1 y1 x2 y2 ...
   if      (n == 0) {
     QPolygonF poly;
 
-    if (! decodePolygon("{{" + geomStr + "}}", poly))
+    if (! CQChartsUtil::stringToPolygon("{{" + geomStr + "}}", poly))
       return false;
 
     polygons.push_back(poly);
   }
-  // single polygon {x1 y1} {x2 y2} ...
+  // single brace - single polygon {x1 y1} {x2 y2} ...
   else if (n == 1) {
     QPolygonF poly;
 
-    if (! decodePolygon("{" + geomStr + "}", poly))
+    if (! CQChartsUtil::stringToPolygon("{" + geomStr + "}", poly))
       return false;
 
     polygons.push_back(poly);
   }
-  // single polygon {{x1 y1} {x2 y2} ...}
+  // two braces - single polygon {{x1 y1} {x2 y2} ...}
   else if (n == 2) {
     QPolygonF poly;
 
-    if (! decodePolygon(geomStr, poly))
+    if (! CQChartsUtil::stringToPolygon(geomStr, poly))
       return false;
 
     polygons.push_back(poly);
   }
-  // list of polygons {{{x1 y1} {x2 y2} ...} ... }
+  // three braces - list of polygons {{{x1 y1} {x2 y2} ...} ... }
   else if (n == 3) {
-    if (! decodePolygons(geomStr, polygons))
+    if (! CQChartsUtil::stringToPolygons(geomStr, polygons))
       return false;
   }
   else {
@@ -400,20 +418,6 @@ decodeGeometry(const QString &geomStr, Polygons &polygons)
   }
 
   return true;
-}
-
-bool
-CQChartsGeometryPlot::
-decodePolygons(const QString &str, Polygons &polys)
-{
-  return CQChartsUtil::stringToPolygons(str, polys);
-}
-
-bool
-CQChartsGeometryPlot::
-decodePolygon(const QString &str, QPolygonF &poly)
-{
-  return CQChartsUtil::stringToPolygon(str, poly);
 }
 
 bool

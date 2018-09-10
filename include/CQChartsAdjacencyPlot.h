@@ -5,7 +5,7 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotData.h>
 #include <CQChartsPlotObj.h>
-#include <CQChartsBoxObj.h>
+#include <CQChartsConnectionList.h>
 
 //------
 
@@ -143,11 +143,14 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   Q_OBJECT
 
   // columns
+  Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(CQChartsColumn namePairColumn    READ namePairColumn    WRITE setNamePairColumn   )
-  Q_PROPERTY(CQChartsColumn countColumn       READ countColumn       WRITE setCountColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
+
+  Q_PROPERTY(CQChartsColumn namePairColumn READ namePairColumn WRITE setNamePairColumn)
+  Q_PROPERTY(CQChartsColumn countColumn    READ countColumn    WRITE setCountColumn   )
+
+  Q_PROPERTY(CQChartsColumn groupIdColumn READ groupIdColumn WRITE setGroupIdColumn)
 
   // options
   Q_PROPERTY(SortType       sortType READ sortType WRITE setSortType)
@@ -178,9 +181,13 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
 
  ~CQChartsAdjacencyPlot();
 
-  //---
+  //----
 
   // columns
+  //  . node connections (node id, connection list, name)
+  const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
+  void setNodeColumn(const CQChartsColumn &c);
+
   const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
   void setConnectionsColumn(const CQChartsColumn &c);
 
@@ -193,10 +200,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c);
+  const CQChartsColumn &groupIdColumn() const { return groupIdColumn_; }
+  void setGroupIdColumn(const CQChartsColumn &c);
 
-  //---
+  //----
 
   // options
   const SortType &sortType() const { return sortType_; }
@@ -213,6 +220,10 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   double maxValue() const { return maxValue_; }
 
   int numNodes() const { return sortedNodes_.size(); }
+
+  //---
+
+  const ColumnType &namePairColumnType() const { return namePairColumnType_; }
 
   //---
 
@@ -245,30 +256,24 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   void drawForeground(QPainter *) override;
 
  private:
-  struct ConnectionData {
-    int node;
-    int count;
-
-    ConnectionData(int node=-1, int count=-1) :
-     node(node), count(count) {
-    }
-  };
-
-  using ConnectionDataArray = std::vector<ConnectionData>;
+  using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
-    QModelIndex         ind;
-    int                 node;
-    QString             name;
-    int                 group;
-    ConnectionDataArray connections;
+    QModelIndex ind;
+    int         node;
+    QString     name;
+    int         group;
+    Connections connections;
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
-  bool decodeConnections(const QString &str, ConnectionDataArray &connections);
-  bool decodeConnection(const QString &pointStr, ConnectionData &connection);
+  bool getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections);
+
+  bool decodeConnections(const QString &str, Connections &connections);
+
+  CQChartsAdjacencyNode *getNodeByName(const QString &str);
 
   bool initHierObjs();
   bool initConnectionObjs();
@@ -276,26 +281,33 @@ class CQChartsAdjacencyPlot : public CQChartsPlot,
   void sortNodes();
 
  private:
-  using NodeMap   = std::map<int,CQChartsAdjacencyNode*>;
-  using NodeArray = std::vector<CQChartsAdjacencyNode*>;
+  using NodeMap     = std::map<int,CQChartsAdjacencyNode*>;
+  using NodeArray   = std::vector<CQChartsAdjacencyNode*>;
+  using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
 
-  CQChartsColumn        connectionsColumn_;                     // connections column
-  CQChartsColumn        namePairColumn_;                        // name pairs column
-  CQChartsColumn        countColumn_;                           // count column
-  CQChartsColumn        groupColumn_;                           // group column
-  CQChartsColumn        nameColumn_;                            // name column
-  SortType              sortType_          { SortType::GROUP }; // sort type
-  CQChartsLength        bgMargin_          { "2px" };           // background margin
-  IdConnectionsData     idConnections_;                         // connections by id
-  NodeMap               nodes_;                                 // all nodes
-  NodeArray             sortedNodes_;                           // sorted nodes
-  CQChartsAdjacencyObj* insideObj_         { nullptr };         // last inside object
-  double                maxValue_          { 0 };               // max node value
-  int                   maxGroup_          { 0 };               // max node group
-  int                   maxLen_            { 0 };               // max text length
-  double                scale_             { 1.0 };             // box size
-  double                factor_            { 1.0 };             // font factor
-  double                drawFactor_        { 1.0 };             // saved font factor
+  using AdjacencyObj = CQChartsAdjacencyObj;
+
+  CQChartsColumn    nodeColumn_;                                 // connection node column
+  CQChartsColumn    connectionsColumn_;                          // connections column
+  CQChartsColumn    nameColumn_;                                 // name column
+  CQChartsColumn    namePairColumn_;                             // name pairs column
+  CQChartsColumn    countColumn_;                                // count column
+  CQChartsColumn    groupIdColumn_;                              // group id column
+  ColumnType        connectionsColumnType_ { ColumnType::NONE }; // connection column type
+  ColumnType        namePairColumnType_    { ColumnType::NONE }; // name pair column type
+  SortType          sortType_              { SortType::GROUP };  // sort type
+  CQChartsLength    bgMargin_              { "2px" };            // background margin
+  IdConnectionsData idConnections_;                              // connections by id
+  NodeMap           nodes_;                                      // all nodes
+  NameNodeMap       nameNodeMap_;                                // name node map
+  NodeArray         sortedNodes_;                                // sorted nodes
+  AdjacencyObj*     insideObj_             { nullptr };          // last inside object
+  double            maxValue_              { 0 };                // max node value
+  int               maxGroup_              { 0 };                // max node group
+  int               maxLen_                { 0 };                // max text length
+  double            scale_                 { 1.0 };              // box size
+  double            factor_                { 1.0 };              // font factor
+  double            drawFactor_            { 1.0 };              // saved font factor
 };
 
 #endif

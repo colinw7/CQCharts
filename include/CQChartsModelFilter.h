@@ -58,14 +58,27 @@ class CQChartsModelFilterData {
   const QString &filterExpr() const { return filterExpr_; }
   void setFilterExpr(const QString &filter) { filterExpr_ = filter; }
 
+  QString details() const {
+    if      (type_ == Type::EXPRESSION)
+      return filter_;
+    else if (type_ == Type::REGEXP)
+      return filter_;
+    else if (type_ == Type::SIMPLE)
+      return filter_;
+    else if (type_ == Type::SELECTED)
+      return "selected";
+    else
+      return "";
+  }
+
  private:
-  Type            type_           { Type::EXPRESSION };
-  QString         filter_;
-  bool            invert_         { false };
-  CQChartsRegExp  regexp_;
-  QModelIndexList filterRows_;
-  ColumnFilterMap columnFilterMap_;
-  QString         filterExpr_;
+  Type            type_           { Type::EXPRESSION }; // type
+  QString         filter_;                              // filter string
+  bool            invert_         { false };            // invert filter
+  CQChartsRegExp  regexp_;                              // cached regexp for REGEXP
+  QModelIndexList filterRows_;                          // cached rows (for SELECTED)
+  ColumnFilterMap columnFilterMap_;                     // column filters for SIMPLE
+  QString         filterExpr_;                          // preprocessed filter for EXPRESSION
 };
 
 //------
@@ -79,6 +92,12 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   Q_PROPERTY(bool    invert READ isInvert WRITE setInvert)
 
   // model indices are from source model
+ public:
+  enum class Combine {
+    AND,
+    OR
+  };
+
  public:
   CQChartsModelFilter(CQCharts *charts);
 
@@ -118,6 +137,17 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   void setSimpleFilter(const QString &filter);
 
   void setSelectionFilter(bool invert);
+
+  //---
+
+  const Combine &filterCombine() const { return filterCombine_; }
+  void setFilterCombine(const Combine &c);
+
+  //---
+
+  QString filterDetails() const;
+
+  //---
 
   bool filterAcceptsRow(int row, const QModelIndex &parent) const override;
 
@@ -168,6 +198,7 @@ class CQChartsModelFilter : public QSortFilterProxyModel {
   CQChartsModelExprMatch* expr_           { nullptr };
   QItemSelectionModel*    selectionModel_ { nullptr };
   FilterDatas             filterDatas_;
+  Combine                 filterCombine_  { Combine::AND };
   mutable IndexMatches    matches_;
   mutable ExpandInds      expand_;
 };

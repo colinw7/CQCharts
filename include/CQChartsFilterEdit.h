@@ -4,8 +4,9 @@
 #include <QFrame>
 
 class CQIconCombo;
-class CQHistoryLineEdit;
-class QRadioButton;
+class CQSwitch;
+class QLineEdit;
+class QCheckBox;
 
 class CQChartsFilterEdit : public QFrame {
   Q_OBJECT
@@ -13,12 +14,19 @@ class CQChartsFilterEdit : public QFrame {
  public:
   CQChartsFilterEdit(QWidget *parent=nullptr);
 
+  void setFilterDetails(const QString &str);
+  void setSearchDetails(const QString &str);
+
  private slots:
   void comboSlot(int);
 
-  void acceptSlot(const QString &text);
+  void andSlot();
+
+  void acceptSlot();
 
  signals:
+  void filterAnd(bool);
+
   void replaceFilter(const QString &text);
   void addFilter(const QString &text);
 
@@ -26,10 +34,14 @@ class CQChartsFilterEdit : public QFrame {
   void addSearch(const QString &text);
 
  private:
-  CQHistoryLineEdit* edit_          { nullptr };
-  CQIconCombo*       combo_         { nullptr };
-  QRadioButton*      replaceButton_ { nullptr };
-  QRadioButton*      addButton_     { nullptr };
+  QLineEdit*   edit_             { nullptr };
+  CQIconCombo* combo_            { nullptr };
+  CQSwitch*    addReplaceSwitch_ { nullptr };
+  CQSwitch*    andOrSwitch_      { nullptr };
+  QString      filterText_;
+  QString      searchText_;
+  QString      filterDetails_;
+  QString      searchDetails_;
 };
 
 #endif

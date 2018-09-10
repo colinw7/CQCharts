@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsTip.h>
 
@@ -990,7 +989,7 @@ drawNode(QPainter *painter, CQChartsSunburstNodeObj *nodeObj, CQChartsSunburstNo
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
 
   if (nodeObj) {
     updateObjPenBrushState(nodeObj, pen , brush);

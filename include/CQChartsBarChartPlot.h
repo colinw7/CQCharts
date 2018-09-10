@@ -262,8 +262,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_OBJECT
 
   // style
-  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn   WRITE setNameColumn )
-  Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn  WRITE setLabelColumn)
+  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn labelColumn READ labelColumn WRITE setLabelColumn)
 
   // options
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
@@ -272,8 +272,8 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   Q_PROPERTY(bool colorBySet READ isColorBySet WRITE setColorBySet)
 
   // dot line
-  Q_PROPERTY(bool           dotLines      READ isDotLines    WRITE setDotLines     )
-  Q_PROPERTY(CQChartsLength dotLineWidth  READ dotLineWidth  WRITE setDotLineWidth )
+  Q_PROPERTY(bool           dotLines     READ isDotLines   WRITE setDotLines    )
+  Q_PROPERTY(CQChartsLength dotLineWidth READ dotLineWidth WRITE setDotLineWidth)
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Dot,dot)
 

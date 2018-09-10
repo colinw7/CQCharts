@@ -78,7 +78,7 @@ CQChartsBuffer::
 
 QPainter *
 CQChartsBuffer::
-beginPaint(QPainter *painter, const QRectF &rect)
+beginPaint(QPainter *painter, const QRectF &rect, bool alias)
 {
   painter_ = painter;
   rect_    = rect;
@@ -109,7 +109,8 @@ beginPaint(QPainter *painter, const QRectF &rect)
 
   //ipainter()->setViewTransformEnabled(true);
 
-  ipainter()->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+  if (alias)
+    ipainter()->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
   return ipainter();
 }

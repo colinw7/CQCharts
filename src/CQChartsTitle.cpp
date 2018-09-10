@@ -164,7 +164,9 @@ CQChartsTitle::
 calcSize()
 {
   if (textStr().length()) {
-    QFontMetricsF fm(textFont());
+    QFont font = view()->plotFont(plot(), textFont());
+
+    QFontMetricsF fm(font);
 
     double pw = fm.width(textStr());
     double ph = fm.height();
@@ -357,7 +359,7 @@ draw(QPainter *painter)
 
   QColor tc = interpTextColor(0, 1);
 
-  plot()->setPen(pen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  plot()->setPen(pen, true, tc, textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(pen);
 

@@ -31,8 +31,12 @@ class CQChartsTable : public CQTableView {
   bool isExprFilter() const { return isExprFilter_; }
   void setIsExprFilter(bool b) { isExprFilter_ = b; }
 
+  void setFilterAnd(bool b);
+
   void setFilter(const QString &filter);
   void addFilter(const QString &filter);
+
+  QString filterDetails() const;
 
   void setSearch(const QString &text);
   void addSearch(const QString &text);

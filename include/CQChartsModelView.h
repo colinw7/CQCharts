@@ -22,8 +22,12 @@ class CQChartsModelView : public QFrame {
   CQChartsModelView(CQCharts *charts, QWidget *parent=nullptr);
  ~CQChartsModelView();
 
+  void setFilterAnd(bool b);
+
   void setFilter(const QString &text);
   void addFilter(const QString &text);
+
+  QString filterDetails() const;
 
   void setSearch(const QString &text);
   void addSearch(const QString &text);

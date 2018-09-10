@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsTip.h>
 
 #include <QMenu>
@@ -1151,7 +1150,7 @@ draw(QPainter *painter)
 
   QColor tc = plot_->interpTextColor(0, 1);
 
-  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 

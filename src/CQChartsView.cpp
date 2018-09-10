@@ -1020,6 +1020,9 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
       double x = 0.0;
 
       for (int c = 0; c < nc; ++c, ++i) {
+        if (i >= int(plots.size()))
+          break;
+
         CQChartsPlot *plot = plots[i];
 
         CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
@@ -2189,7 +2192,7 @@ showMenu(const QPoint &p)
     xAxisGridAction->setCheckable(true);
 
     if (currentPlot && currentPlot->xAxis())
-      xAxisGridAction->setChecked(currentPlot->xAxis()->isGridMajorDisplayed());
+      xAxisGridAction->setChecked(currentPlot->xAxis()->isAxesMajorGridLines());
 
     connect(xAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(xAxisGridSlot(bool)));
 
@@ -2255,7 +2258,7 @@ showMenu(const QPoint &p)
     yAxisGridAction->setCheckable(true);
 
     if (currentPlot && currentPlot->yAxis())
-      yAxisGridAction->setChecked(currentPlot->yAxis()->isGridMajorDisplayed());
+      yAxisGridAction->setChecked(currentPlot->yAxis()->isAxesMajorGridLines());
 
     connect(yAxisGridAction, SIGNAL(triggered(bool)), this, SLOT(yAxisGridSlot(bool)));
 
@@ -2590,7 +2593,7 @@ xAxisGridSlot(bool b)
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
   if (currentPlot && currentPlot->xAxis())
-    currentPlot->xAxis()->setGridMajorDisplayed(b);
+    currentPlot->xAxis()->setAxesMajorGridLines(b);
 }
 
 void
@@ -2624,7 +2627,7 @@ yAxisGridSlot(bool b)
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/true);
 
   if (currentPlot && currentPlot->yAxis())
-    currentPlot->yAxis()->setGridMajorDisplayed(b);
+    currentPlot->yAxis()->setAxesMajorGridLines(b);
 }
 
 void

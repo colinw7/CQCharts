@@ -3,8 +3,8 @@
 #include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsBoxObj.h>
-#include <CQChartsTextBoxObj.h>
+#include <CQChartsModelDetails.h>
+#include <CQChartsNamePair.h>
 #include <QPainter>
 
 CQChartsSankeyPlotType::
@@ -34,6 +34,21 @@ description() const
 {
   return "<h2>Summary</h2>\n"
          "<p>Draw connected objects as a connected flow graph.</p>\n";
+}
+
+bool
+CQChartsSankeyPlotType::
+isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                     CQChartsPlotParameter *parameter) const
+{
+  if (parameter->name() == "link") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
+      return true;
+
+    return false;
+  }
+
+  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 CQChartsPlot *
@@ -191,13 +206,13 @@ initObjs()
       if (! ok1 || ! ok2)
         return State::SKIP;
 
-      int pos = linkStr.indexOf("/");
+      CQChartsNamePair namePair(linkStr);
 
-      if (pos == -1)
+      if (! namePair.isValid())
         return State::SKIP;
 
-      QString srcStr  = linkStr.mid(0, pos ).simplified();
-      QString destStr = linkStr.mid(pos + 1).simplified();
+      QString srcStr  = namePair.name1();
+      QString destStr = namePair.name2();
 
       CQChartsSankeyPlotNode *srcNode  = plot_->findNode(srcStr);
       CQChartsSankeyPlotNode *destNode = plot_->findNode(destStr);
@@ -1027,7 +1042,7 @@ drawFg(QPainter *painter)
 
   QColor c = plot_->interpTextColor(node_->ind(), numNodes);
 
-  plot_->setPen(pen, true, c, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(pen, true, c, plot_->textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(pen);
 

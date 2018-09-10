@@ -80,9 +80,9 @@ addStrokeFillProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsAnnotation::
-addStrokeProperties(CQPropertyViewModel *model, const QString &path)
+addFillProperties(CQPropertyViewModel *model, const QString &path)
 {
-  QString bgPath = path + "/background";
+  QString bgPath = path + "/fill";
 
   model->addProperty(bgPath, this, "background"       , "visible");
   model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
@@ -92,7 +92,7 @@ addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 
 void
 CQChartsAnnotation::
-addFillProperties(CQPropertyViewModel *model, const QString &path)
+addStrokeProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString borderPath = path + "/border";
 
@@ -1145,9 +1145,9 @@ draw(QPainter *painter)
     c = textColor().interpColor(view(), 0, 1);
 
   if      (plot())
-    plot()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+    plot()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
   else if (view())
-    view()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+    view()->setPen(pen, true, c, textAlpha(), CQChartsLength("0px"));
 
   brush.setStyle(Qt::NoBrush);
 

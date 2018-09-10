@@ -1,6 +1,7 @@
 #include <CQChartsColor.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsAxis.h>
 #include <CQChartsUtil.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsColor, toString, fromString)
@@ -230,4 +231,11 @@ interpColor(const CQChartsView *view, double value) const
     return view->interpThemeColor(this->value());
 
   return QColor(0, 0, 0);
+}
+
+QColor
+CQChartsColor::
+interpColor(const CQChartsAxis *axis, int i, int n) const
+{
+  return interpColor(axis->plot(), i, n);
 }

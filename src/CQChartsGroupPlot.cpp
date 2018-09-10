@@ -44,6 +44,10 @@ addParameters()
     setRequired().setTip("Number of auto groups");
 
   endParameterGroup();
+
+  //---
+
+  CQChartsPlotType::addParameters();
 }
 
 //---
@@ -446,6 +450,13 @@ setModelGroupInd(const CQChartsModelIndex &ind, int groupInd)
   int role = (int) CQBaseModel::Role::Group;
 
   model->setHeaderData(ind.row, Qt::Vertical, var, role);
+}
+
+int
+CQChartsGroupPlot::
+numGroups() const
+{
+  return groupBucket_.numUnique();
 }
 
 //---

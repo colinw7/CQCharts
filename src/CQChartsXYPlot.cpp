@@ -77,14 +77,14 @@ CQChartsXYPlotType::
 description() const
 {
   return "<h2>Summary</h2>\n"
-         "<p>Draws points at x and y coordinate pairs an connects then with a continuous "
+         "<p>Draws points at x and y coordinate pairs and connects them with a continuous "
          "line.</p>\n"
          "<p>The x coordinates should be monotonic.</p>\n"
          "<h2>Columns</h2>\n"
          "<p>The x and y values come from the values in the <b>X</b> and <b>Y</b> columns. "
          "Multiple <b>Y</b> columns can be specified to create a stack of lines.</p>\n"
-         "<p>An optional <b>Name</b> column can be specified to supply and name for the "
-         " coordinate.</p>\n"
+         "<p>An optional <b>Name</b> column can be specified to supply a name for the "
+         "coordinate.</p>\n"
          "<p>An optional <b>Size</b> column can be specified to supply the size of the symbol "
          "drawn at the point.</p>\n"
          "<p>An optional <b>PointLabel</b> column can be specified to add a label next to a "
@@ -96,19 +96,24 @@ description() const
          "<p>Optional <b>VectorX</b> and <b>VectorY</b> columns can be specified to draw a "
          "vector at the point.</p>\n"
          "<h2>Options</h2>\n"
-         "<p>The <b>Lines</b> option determines whether the points are connected with a line.</p>"
-         "<p>The <b>Points</b> option determines whether the points are drawn.</p>"
+         "<p>The <b>Lines</b> option determines whether the points are connected with a line. "
+         "The default line style can be separately customized.</p>"
+         "<p>The <b>Points</b> option determines whether the points are drawn. The default point "
+         "symbol can be separately customized.</p>"
          "<p>Enabling the <b>Bivariate</b> option fills the area between adjacent sets of x, y "
-         "coordinates (two or more y column values should be specified).</p>"
+         "coordinates (two or more y column values should be specified). The bivariate line "
+         "style can be separately customized.</p>"
          "<p>Enabling the <b>Stacked</b> option stacks the y values on top of each other "
          "so the next set of y values adds onto the previous set of y values.</p>\n"
          "<p>Enabling the <b>Cumulative</b> option treats the y values as an increment "
          "from the previews y value (in each set).</p>\n"
-         "<p>Enabling the <b>FillUnder</b> option fills the area under the plot.<p>\n"
-         "<p>Enabling the <b>Impulse</b> option draws a line from zero ot the "
-         "points y value.</p> "
+         "<p>Enabling the <b>FillUnder</b> option fills the area under the plot. The "
+         "fill under style (fill/stroke) can be separately customized.<p>\n"
+         "<p>Enabling the <b>Impulse</b> option draws a line from zero to the "
+         "points y value. The impule line style can be separately customized.</p> "
+         "<p>Enabling the <b>Fitted</b> option draws a best fit line between the points.<p>\n"
          "<p>The <b>Vectors</b> option detemines whether the vector specified by the "
-         "<b>VectorX</b> and <b>VectorY</b> columns is drawn.</p>\n";
+         "<b>VectorX</b> and <b>VectorY</b> columns are drawn.</p>\n";
 }
 
 CQChartsPlot *
@@ -127,7 +132,8 @@ CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlotPointData        <CQChartsXYPlot>(this),
  CQChartsPlotImpulseLineData  <CQChartsXYPlot>(this),
  CQChartsPlotBivariateLineData<CQChartsXYPlot>(this),
- CQChartsPlotFillUnderFillData<CQChartsXYPlot>(this)
+ CQChartsPlotFillUnderFillData<CQChartsXYPlot>(this),
+ CQChartsPlotDataLabelTextData<CQChartsXYPlot>(this)
 {
   setImpulseLines  (false);
   setBivariateLines(false);
@@ -324,8 +330,11 @@ addProperties()
   addProperty("vectors", arrowObj_, "labels"   , "labels"   );
 
   // data label
-  addProperty("dataLabel", this, "dataLabelColor", "color");
-  addProperty("dataLabel", this, "dataLabelAngle", "angle");
+  addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
+
+  addTextProperties("dataLabel" , "dataLabelText");
+
+  addProperty("dataLabel", this, "dataLabelTextAlign", "align");
 }
 
 //---
@@ -367,22 +376,6 @@ CQChartsXYPlot::
 setFitted(bool b)
 {
   CQChartsUtil::testAndSet(fitted_, b, [&]() { invalidateLayers(); } );
-}
-
-//---
-
-void
-CQChartsXYPlot::
-setDataLabelColor(const CQChartsColor &c)
-{
-  CQChartsUtil::testAndSet(dataLabelData_.color, c, [&]() { invalidateLayers(); } );
-}
-
-void
-CQChartsXYPlot::
-setDataLabelAngle(double a)
-{
-  CQChartsUtil::testAndSet(dataLabelData_.angle, a, [&]() { invalidateLayers(); } );
 }
 
 //---
@@ -441,26 +434,6 @@ setFillUnderFillSide(const QString &s)
 }
 
 //---
-
-QColor
-CQChartsXYPlot::
-interpDataLabelColor(int i, int n)
-{
-  return dataLabelData_.color.interpColor(this, i, n);
-}
-
-//---
-
-void
-CQChartsXYPlot::
-drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const QColor &c)
-{
-  CQChartsLineData lineData = bivariateLineData_;
-
-  lineData.color = c;
-
-  drawLine(painter, p1, p2, lineData);
-}
 
 QColor
 CQChartsXYPlot::
@@ -1280,18 +1253,27 @@ initObjs()
 
           //---
 
-          // set optional point label, color and symbol
+          // add optional point label
           if (pointLabelColumn().isValid()) {
             QModelIndex parent; // TODO: parent
 
             bool ok;
 
-            QString pointLabelStr = modelString(ip, pointLabelColumn(), parent, ok);
+            QString label = modelString(ip, pointLabelColumn(), parent, ok);
 
-            if (ok && pointLabelStr.length())
-              pointObj->setLabel(pointLabelStr);
+            if (ok && label.length()) {
+              CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
+
+              CQChartsXYLabelObj *labelObj =
+                new CQChartsXYLabelObj(this, groupInd, bbox, x, y, label, xind1, j, ns, ip, np);
+
+              addPlotObject(labelObj);
+            }
           }
 
+          //---
+
+          // set optional point color and symbol
           if (pointColorColumn().isValid()) {
             QModelIndex parent; // TODO: parent
 
@@ -1953,7 +1935,7 @@ draw(QPainter *painter)
 
     //--
 
-    plot()->drawBivariateLine(painter, QPointF(px, py1), QPointF(px, py2), pen.color());
+    painter->drawLine(QPointF(px, py1), QPointF(px, py2));
   }
 
   if (plot()->isPoints()) {
@@ -1973,8 +1955,8 @@ draw(QPainter *painter)
     QBrush brush;
 
     plot_->setPenBrush(pen, brush,
-      stroked, strokeColor, 1.0, CQChartsLength("0px"), CQChartsLineDash(),
-      filled, fillColor, 1.0, CQChartsFillPattern());
+      stroked, strokeColor, 1.0, plot()->symbolStrokeWidth(), plot()->symbolStrokeDash(),
+      filled, fillColor, 1.0, plot()->symbolFillPattern());
 
     plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -2165,6 +2147,21 @@ QString
 CQChartsXYPointObj::
 calcTipId() const
 {
+  if (plot()->tipColumn().isValid()) {
+    QModelIndex tipInd = plot()->modelIndex(ind().row(), plot()->tipColumn(), ind().parent());
+
+    QModelIndex tipInd1 = plot()->unnormalizeIndex(tipInd);
+
+    bool ok;
+
+    QString tipStr = plot()->modelString(tipInd1.row(), plot()->tipColumn(), tipInd1.parent(), ok);
+
+    if (ok)
+      return tipStr;
+  }
+
+  //---
+
   CQChartsTableTip tableTip;
 
   QModelIndex ind1 = plot()->unnormalizeIndex(ind());
@@ -2188,16 +2185,6 @@ calcTipId() const
     tableTip.addTableRow("Size", size_);
 
   return tableTip.str();
-}
-
-void
-CQChartsXYPointObj::
-setLabel(const QString &label)
-{
-  if (! edata_)
-    edata_ = new ExtraData;
-
-  edata_->label = label;
 }
 
 void
@@ -2292,19 +2279,9 @@ draw(QPainter *painter)
   if (! visible())
     return;
 
-  CQChartsSymbol symbol = plot()->symbolType();
-
-  if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
-    symbol = edata_->symbol;
-
-  double sx = size();
-  double sy = sx;
-
-  if (sx <= 0)
-    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
-
   //---
 
+  // set pen/brush
   QPen   pen;
   QBrush brush;
 
@@ -2320,6 +2297,18 @@ draw(QPainter *painter)
 
   //---
 
+  // draw symbol
+  CQChartsSymbol symbol = plot()->symbolType();
+
+  if (edata_ && edata_->symbol.type() != CQChartsSymbol::Type::NONE)
+    symbol = edata_->symbol;
+
+  double sx = size();
+  double sy = sx;
+
+  if (sx <= 0)
+    plot_->pixelSymbolSize(plot_->symbolSize(), sx, sy);
+
   CQChartsGeom::Point pp = CQChartsUtil::fromQPoint(pos_);
 
   double px, py;
@@ -2328,19 +2317,9 @@ draw(QPainter *painter)
 
   plot()->drawSymbol(painter, QPointF(px, py), symbol, CMathUtil::avg(sx, sy), pen, brush);
 
-  if (edata_ && edata_->label != "") {
-    QPen tpen;
+  //---
 
-    QColor tc = plot()->interpDataLabelColor(0, 1);
-
-    plot()->setPen(pen, true, tc, 1.0, CQChartsLength("0px"), CQChartsLineDash());
-
-    painter->setPen(tpen);
-
-    CQChartsRotatedText::drawRotatedText(painter, px, py, edata_->label, plot()->dataLabelAngle(),
-                                         Qt::AlignHCenter | Qt::AlignBottom);
-  }
-
+  // draw optional vector
   if (edata_ && edata_->vector) {
     QPointF p1(pp.x, pp.y);
 
@@ -2348,6 +2327,121 @@ draw(QPainter *painter)
 
     plot()->drawArrow(painter, p1, p2);
   }
+}
+
+//------
+
+CQChartsXYLabelObj::
+CQChartsXYLabelObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+                   double x, double y, const QString &label, const QModelIndex &ind,
+                   int iset, int nset, int i, int n) :
+ CQChartsPlotObj(plot, rect), plot_(plot), groupInd_(groupInd), pos_(x, y), label_(label),
+ ind_(ind), iset_(iset), nset_(nset), i_(i), n_(n)
+{
+}
+
+CQChartsXYLabelObj::
+~CQChartsXYLabelObj()
+{
+}
+
+QString
+CQChartsXYLabelObj::
+calcId() const
+{
+  QModelIndex ind1 = plot()->unnormalizeIndex(ind());
+
+  QString idStr;
+
+  if (calcColumnId(ind1, idStr))
+    return idStr;
+
+  return QString("label:%1:%2").arg(iset()).arg(i());
+}
+
+QString
+CQChartsXYLabelObj::
+calcTipId() const
+{
+  return label_;
+}
+
+bool
+CQChartsXYLabelObj::
+visible() const
+{
+  if (! plot()->isDataLabelTextVisible())
+    return false;
+
+  return isVisible();
+}
+
+bool
+CQChartsXYLabelObj::
+inside(const CQChartsGeom::Point &p) const
+{
+  if (! visible())
+    return false;
+
+  CQChartsGeom::Point ppos = plot()->windowToPixel(CQChartsUtil::fromQPoint(pos_));
+
+  double sx = 16;
+  double sy = 16;
+
+  CQChartsGeom::BBox pbbox(ppos.x - sx, ppos.y - sy, ppos.x + sx, ppos.y + sy);
+
+  CQChartsGeom::Point pp = plot()->windowToPixel(p);
+
+  return pbbox.inside(pp);
+}
+
+void
+CQChartsXYLabelObj::
+getSelectIndices(Indices &inds) const
+{
+  if (! visible())
+    return;
+
+  addColumnSelectIndex(inds, plot()->xColumn());
+  addColumnSelectIndex(inds, plot()->getSetColumn(iset()));
+}
+
+void
+CQChartsXYLabelObj::
+addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const
+{
+  if (column.isValid())
+    addSelectIndex(inds, ind().row(), column, ind().parent());
+}
+
+void
+CQChartsXYLabelObj::
+draw(QPainter *painter)
+{
+  if (! visible())
+    return;
+
+  //---
+
+  // set pen
+  QPen tpen;
+
+  QColor tc = plot()->interpDataLabelTextColor(0, 1);
+
+  plot()->setPen(tpen, true, tc, plot()->dataLabelTextAlpha());
+
+  painter->setPen(tpen);
+
+  //--
+
+  // draw text
+  CQChartsGeom::Point ppos = plot()->windowToPixel(CQChartsUtil::fromQPoint(pos_));
+
+  plot()->view()->setPlotPainterFont(plot(), painter, plot()->dataLabelTextFont());
+
+  CQChartsRotatedText::drawRotatedText(painter, ppos.x, ppos.y, label_,
+                                       plot()->dataLabelTextAngle(),
+                                       plot()->dataLabelTextAlign());
 }
 
 //------
@@ -2994,7 +3088,7 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
     QColor fillColor = plot->interpFillUnderFillColor(i_, n_);
 
     plot->setBrush(fillBrush, true, fillColor, plot->fillUnderFillAlpha(),
-                   CQChartsFillPattern());
+                   plot->fillUnderFillPattern());
 
     double x1 = prect.getXMin() + 4;
     double x2 = prect.getXMax() - 4;

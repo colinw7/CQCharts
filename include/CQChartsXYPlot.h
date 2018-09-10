@@ -207,8 +207,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
 
   //---
 
-  void setLabel(const QString &label);
-
   void setColor(const CQChartsColor &c);
 
   void setSymbol(CQChartsSymbol type);
@@ -229,7 +227,6 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   using OptPoint = boost::optional<QPointF>;
 
   struct ExtraData {
-    QString        label;
     CQChartsColor  color;
     CQChartsSymbol symbol { CQChartsSymbol::Type::NONE };
     OptPoint       vector;
@@ -245,6 +242,75 @@ class CQChartsXYPointObj : public CQChartsPlotObj {
   int             i_        { -1 };      // points index
   int             n_        { -1 };      // points size
   ExtraData*      edata_    { nullptr }; // extra data
+};
+
+//---
+
+class CQChartsXYLabelObj : public CQChartsPlotObj {
+  Q_OBJECT
+
+  Q_PROPERTY(double  x     READ x     WRITE setX    )
+  Q_PROPERTY(double  y     READ y     WRITE setY    )
+  Q_PROPERTY(QString label READ label WRITE setLabel)
+
+ public:
+  CQChartsXYLabelObj(CQChartsXYPlot *plot, int groupInd, const CQChartsGeom::BBox &rect,
+                     double x, double y, const QString &label, const QModelIndex &ind,
+                     int iset, int nset, int i, int n);
+
+ ~CQChartsXYLabelObj();
+
+  //---
+
+  CQChartsXYPlot *plot() const { return plot_; }
+
+  double x() const { return pos_.x(); }
+  void setX(double r) { pos_.setX(r); }
+
+  double y() const { return pos_.y(); }
+  void setY(double r) { pos_.setY(r); }
+
+  const QString &label() const { return label_; }
+  void setLabel(const QString &v) { label_ = v; }
+
+  const QModelIndex &ind() const { return ind_; }
+
+  int iset() const { return iset_; }
+  int nset() const { return nset_; }
+
+  int i() const { return i_; }
+  int n() const { return n_; }
+
+  //---
+
+  QString calcId() const override;
+
+  QString calcTipId() const override;
+
+  //---
+
+  bool visible() const override;
+
+  bool inside(const CQChartsGeom::Point &p) const override;
+
+  void getSelectIndices(Indices &inds) const override;
+
+  void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const override;
+
+  void draw(QPainter *painter) override;
+
+ private:
+  using OptPoint = boost::optional<QPointF>;
+
+  CQChartsXYPlot* plot_     { nullptr }; // parent plot
+  int             groupInd_ { -1 };      // group ind
+  QPointF         pos_;                  // position
+  QString         label_;                // label
+  QModelIndex     ind_;                  // model index
+  int             iset_     { -1 };      // sets index
+  int             nset_     { -1 };      // sets size
+  int             i_        { -1 };      // points index
+  int             n_        { -1 };      // points size
 };
 
 //---
@@ -426,13 +492,15 @@ class CQChartsXYKeyText : public CQChartsKeyText {
 CQCHARTS_NAMED_LINE_DATA(Impulse,impulse)
 CQCHARTS_NAMED_LINE_DATA(Bivariate,bivariate)
 CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
+CQCHARTS_NAMED_TEXT_DATA(DataLabel,dataLabel)
 
 class CQChartsXYPlot : public CQChartsGroupPlot,
  public CQChartsPlotLineData         <CQChartsXYPlot>,
  public CQChartsPlotPointData        <CQChartsXYPlot>,
  public CQChartsPlotImpulseLineData  <CQChartsXYPlot>,
  public CQChartsPlotBivariateLineData<CQChartsXYPlot>,
- public CQChartsPlotFillUnderFillData<CQChartsXYPlot> {
+ public CQChartsPlotFillUnderFillData<CQChartsXYPlot>,
+ public CQChartsPlotDataLabelTextData<CQChartsXYPlot> {
   Q_OBJECT
 
   // columns
@@ -478,8 +546,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(FillUnder,fillUnder)
 
   // data label
-  Q_PROPERTY(CQChartsColor dataLabelColor READ dataLabelColor WRITE setDataLabelColor)
-  Q_PROPERTY(double        dataLabelAngle READ dataLabelAngle WRITE setDataLabelAngle)
+  CQCHARTS_NAMED_TEXT_DATA_PROPERTIES(DataLabel,dataLabel)
 
  private:
   struct FillUnderData {
@@ -573,23 +640,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   //---
 
-  // data label
-  const CQChartsColor &dataLabelColor() const { return dataLabelData_.color; }
-  void setDataLabelColor(const CQChartsColor &c);
-
-  QColor interpDataLabelColor(int i, int n);
-
-  double dataLabelAngle() const { return dataLabelData_.angle; }
-  void setDataLabelAngle(double r);
-
-  //---
-
-  // bivariate line
-  void drawBivariateLine(QPainter *painter, const QPointF &p1, const QPointF &p2,
-                         const QColor &c);
-
-  //---
-
   QColor interpPaletteColor(int i, int n, bool scale=false) const override;
 
   //---
@@ -671,26 +721,25 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   QString yAxisName() const;
 
  private:
-  CQChartsColumn   xColumn_              { 0 };                // x column
-  CQChartsColumns  yColumns_             { 1 };                // y columns
-  CQChartsColumn   nameColumn_;                                // name column
-  CQChartsColumn   sizeColumn_;                                // size column
-  CQChartsColumn   pointLabelColumn_;                          // point label column
-  CQChartsColumn   pointColorColumn_;                          // point color column
-  CQChartsColumn   pointSymbolColumn_;                         // point symbol column
-  CQChartsColumn   vectorXColumn_;                             // vector x direction column
-  CQChartsColumn   vectorYColumn_;                             // vector y direction column
-  bool             stacked_              { false };            // is stacked
-  bool             cumulative_           { false };            // cumulate values
-  bool             linesSelectable_      { false };            // are lines selectable
-  bool             roundedLines_         { false };            // draw rounded (smooth) lines
-  FillUnderData    fillUnderData_;                             // fill under data
-  CQChartsArrow*   arrowObj_             { nullptr };          // vectors data
-  CQChartsTextData dataLabelData_;                             // data label text data
-  ColumnType       pointColorColumnType_ { ColumnType::NONE }; // point color column type
-  bool             fitted_               { false };            // is fitted
-  mutable double   symbolWidth_          { 1.0 };              // current symbol width
-  mutable double   symbolHeight_         { 1.0 };              // current symbol height
+  CQChartsColumn  xColumn_              { 0 };                // x column
+  CQChartsColumns yColumns_             { 1 };                // y columns
+  CQChartsColumn  nameColumn_;                                // name column
+  CQChartsColumn  sizeColumn_;                                // size column
+  CQChartsColumn  pointLabelColumn_;                          // point label column
+  CQChartsColumn  pointColorColumn_;                          // point color column
+  CQChartsColumn  pointSymbolColumn_;                         // point symbol column
+  CQChartsColumn  vectorXColumn_;                             // vector x direction column
+  CQChartsColumn  vectorYColumn_;                             // vector y direction column
+  bool            stacked_              { false };            // is stacked
+  bool            cumulative_           { false };            // cumulate values
+  bool            linesSelectable_      { false };            // are lines selectable
+  bool            roundedLines_         { false };            // draw rounded (smooth) lines
+  FillUnderData   fillUnderData_;                             // fill under data
+  CQChartsArrow*  arrowObj_             { nullptr };          // vectors data
+  ColumnType      pointColorColumnType_ { ColumnType::NONE }; // point color column type
+  bool            fitted_               { false };            // is fitted
+  mutable double  symbolWidth_          { 1.0 };              // current symbol width
+  mutable double  symbolHeight_         { 1.0 };              // current symbol height
 };
 
 #endif

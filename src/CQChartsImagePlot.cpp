@@ -299,7 +299,7 @@ drawXLabels(QPainter *painter)
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(tpen);
 
@@ -363,7 +363,7 @@ drawYLabels(QPainter *painter)
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(tpen);
 
@@ -540,6 +540,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   plot_->setBrush(brush, true, c, 1.0, CQChartsFillPattern());
+  plot_->setPen  (pen  , false);
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -560,7 +561,7 @@ draw(QPainter *painter)
 
       QColor tc = plot_->interpTextColor(0, 1);
 
-      plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+      plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
       plot_->updateObjPenBrushState(this, tpen, tbrush);
 
@@ -574,7 +575,7 @@ draw(QPainter *painter)
 
       //textOptions.contrast  = plot_->isTextContrast();
       //textOptions.formatted = plot_->isTextFormatted();
-      textOptions.align       = Qt::AlignHCenter;
+      textOptions.align       = Qt::AlignCenter;
       textOptions.scaled      = plot_->isScaleCellLabels();
 
       plot_->drawTextInBox(painter, qrect, valueStr, tpen, textOptions);

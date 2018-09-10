@@ -6,7 +6,6 @@
 #include <CQCharts.h>
 
 #include <CQDataModel.h>
-#include <CQStrParse.h>
 #include <QItemSelectionModel>
 #include <cassert>
 
@@ -115,6 +114,30 @@ setSelectionFilter(bool invert)
   initFilter();
 }
 
+void
+CQChartsModelFilter::
+setFilterCombine(const Combine &c)
+{
+  filterCombine_ = c;
+
+  initFilter();
+}
+
+QString
+CQChartsModelFilter::
+filterDetails() const
+{
+  QStringList strs;
+
+  for (const auto &filterData : filterDatas_)
+    strs += filterData.details();
+
+  if (filterCombine_ == Combine::AND)
+    return strs.join(" && ");
+  else
+    return strs.join(" || ");
+}
+
 bool
 CQChartsModelFilter::
 allFiltersEmpty() const
@@ -173,6 +196,7 @@ filterAcceptsRow(int row, const QModelIndex &parent) const
     bool                       accepted_ { false };
   };
 
+  // visit single row
   int column = filterKeyColumn();
 
   RowVisitor visitor(this, column);
@@ -203,18 +227,29 @@ bool
 CQChartsModelFilter::
 itemMatch(const QModelIndex &ind) const
 {
-  for (const auto &filterData : filterDatas_) {
-    if (! filterItemMatch(filterData, ind))
-      return false;
-  }
+  if (filterCombine_ == Combine::AND) {
+    for (const auto &filterData : filterDatas_) {
+      if (! filterItemMatch(filterData, ind))
+        return false;
+    }
 
-  return true;
+    return true;
+  }
+  else {
+    for (const auto &filterData : filterDatas_) {
+      if (filterItemMatch(filterData, ind))
+        return true;
+    }
+
+    return false;
+  }
 }
 
 bool
 CQChartsModelFilter::
 filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &ind) const
 {
+  // filter in/out selected items
   if      (filterData.isSelected()) {
     assert(selectionModel_);
 
@@ -230,6 +265,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     return (filterData.isInvert() ? ! rc  : rc);
   }
+  // filter string matches regexp
   else if (filterData.isRegExp()) {
     QAbstractItemModel *model = sourceModel();
     assert(model);
@@ -242,6 +278,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     return filterData.regexp().match(str);
   }
+  // filter string matches one of list of strings
   else if (filterData.isSimple()) {
     QAbstractItemModel *model = sourceModel();
     assert(model);
@@ -261,6 +298,7 @@ filterItemMatch(const CQChartsModelFilterData &filterData, const QModelIndex &in
 
     return true;
   }
+  // filter by expression
   else if (filterData.isExpr()) {
     bool ok;
 

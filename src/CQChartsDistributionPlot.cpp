@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
-#include <CQChartsBoxObj.h>
 #include <CQChartsGradientPalette.h>
 #include <CQChartsColorSet.h>
 #include <CQChartsUtil.h>
@@ -1608,6 +1607,8 @@ addKeyItems(CQChartsPlotKey *key)
     key->addItem(keyText , row, 1);
 
     ++row;
+
+    return std::pair<CQChartsDistKeyColorBox *,CQChartsKeyText*>(keyColor, keyText);
   };
 
   //---
@@ -1638,22 +1639,17 @@ addKeyItems(CQChartsPlotKey *key)
 
       CQChartsColorSet *colorSet = getColorSet("color");
 
-      int n = colorSet->numValues();
+      int nv = colorSet->snum();
 
-      using ValueSet = std::set<QString>;
+      for (int iv = 0; iv < nv; ++iv) {
+        QString value = colorSet->inds(iv);
 
-      ValueSet valueSet;
+        CQChartsDistKeyColorBox *colorBox = addKeyRow(iv, nv, value).first;
 
-      for (int i = 0; i < n; ++i)
-        valueSet.insert(colorSet->value(i).toString());
+        CQChartsColor c;
 
-      int nv = valueSet.size();
-      int iv = 0;
-
-      for (const auto &value : valueSet) {
-        addKeyRow(iv, nv, value);
-
-        ++iv;
+        if (colorSet->icolor(iv, c))
+          colorBox->setColor(c);
       }
     }
     else {
@@ -2676,7 +2672,7 @@ draw(QPainter *painter)
   QBrush brush;
 
   QColor bc = plot_->interpBarBorderColor(is_, ns_);
-  QColor fc = plot_->interpBarFillColor(is_, ns_);
+  QColor fc = plot_->interpBarFillColor  (is_, ns_);
 
   plot_->setPenBrush(pen, brush,
     plot_->isBarBorder(), bc, plot_->barBorderAlpha(),
@@ -2975,6 +2971,9 @@ QBrush
 CQChartsDistKeyColorBox::
 fillBrush() const
 {
+  if (color_.isValid())
+    return color_.interpColor(plot_, 0, 1);
+
   QColor c = plot_->interpBarFillColor(i_, n_);
 
   if (isSetHidden())

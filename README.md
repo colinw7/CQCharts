@@ -14,7 +14,7 @@ Chart types supported
     + tabular connectivity table (needs special column value syntax for connections)
     ![adjacency](adjacency.png "Adjacency Plot")
   + BarChart
-    + 1d bar chart for column value
+    + 1d bar chart for column values
     ![barchart](barchart.png "Bar Chart")
   + Box
     + Box plot of aggregated values from value and group columns
@@ -30,7 +30,7 @@ Chart types supported
     + Delaunay/Voronoi geometric connectivity chart
     ![delaunay](delaunay.png "Delaunay Plot")
   + Distribution
-    + Distribution count of range based values
+    + Distribution count of range based column values
     ![distribution](distribution.png "Distribution Plot")
   + ForceDirected
     + Force directed connectivity chart
@@ -42,10 +42,10 @@ Chart types supported
     + Hierarchical bubble plot where circle is size of column value
     ![hierbubble](hierbubble.png "Hierarchical Bubble Plot")
   + Image
-    + Image plot (x, y, color)
+    + Image/regular grid plot (x, y, color)
     ![image](imageplot.png "Image Plot")
   + Parallel
-    + Parallel lines plots multiple overlaid value sets
+    + Parallel lines plot using multiple connected value sets
     ![parallel](parallelplot.png "Parallel Plot")
   + Pie
     + Pie chart
@@ -57,7 +57,7 @@ Chart types supported
     + Sankey plot of connected values
     ![sankey](sankey.png "Sankey Plot")
   + Scatter
-    + Scatter plot of disparate values
+    + Scatter plot of disparate x/y column values
     ![scatterplot](scatterplot.png "Scatter Plot")
   + Sunburst
     + Hierarchical pie chart plot
@@ -96,7 +96,7 @@ connections (id, count) [old format] or a '/' separated connection data
 
 Bars can be grouped using a group/category column.
 
-Custom bar colors and data labels can be provided in additional columns
+Custom bar colors and data labels can be provided in additional columns.
 
 Bars can be stacked next to each other or on top of each other and can be
 drawn vertically (default) or horizontally.
@@ -170,4 +170,10 @@ Hierarchical pie chart plot
 Hierarchical tree map
 
 ## XY
-x/y monotonic value plot
+Plot of x,y values. x values should be monotonic.
+
+Multiple y columns can be supplied to produce multi line plot.
+
+Binariate plot using two y columns.
+
+Display of connecing lines and individual points can be customized.

@@ -51,9 +51,9 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   //--
 
   // plot, data, fit background
-  setPlotFilled(true); setPlotBorder(false);
-  setDataFilled(true); setDataBorder(false);
-  setFitFilled (true); setFitBorder (false);
+  setPlotFilled(true ); setPlotBorder(false);
+  setDataFilled(true ); setDataBorder(false);
+  setFitFilled (false); setFitBorder (false);
 
   setDataClip(true);
 
@@ -977,7 +977,8 @@ addProperties()
   addProperty("", this, "typeStr");
   addProperty("", this, "visible");
 
-  addProperty("columns", this, "idColumn", "id");
+  addProperty("columns", this, "idColumn" , "id" );
+  addProperty("columns", this, "tipColumn", "tip");
 
   addProperty("range", this, "rect"   , "view"   );
   addProperty("range", this, "range"  , "data"   );
@@ -2757,20 +2758,20 @@ void
 CQChartsPlot::
 setXValueColumn(const CQChartsColumn &c)
 {
-  xValueColumn_ = c;
-
-  if (xAxis())
-    xAxis()->setColumn(xValueColumn_);
+  CQChartsUtil::testAndSet(xValueColumn_, c, [&]() {
+    if (xAxis())
+      xAxis()->setColumn(xValueColumn_);
+  } );
 }
 
 void
 CQChartsPlot::
 setYValueColumn(const CQChartsColumn &c)
 {
-  yValueColumn_ = c;
-
-  if (yAxis())
-    yAxis()->setColumn(yValueColumn_);
+  CQChartsUtil::testAndSet(yValueColumn_, c, [&]() {
+    if (yAxis())
+      yAxis()->setColumn(yValueColumn_);
+  } );
 }
 
 //------
@@ -2779,11 +2780,14 @@ void
 CQChartsPlot::
 setIdColumn(const CQChartsColumn &c)
 {
-  if (c != idColumn_) {
-    idColumn_ = c;
+  CQChartsUtil::testAndSet(idColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
 
-    updateRangeAndObjs();
-  }
+void
+CQChartsPlot::
+setTipColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(tipColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //------
@@ -5084,7 +5088,7 @@ beginPaint(CQChartsBuffer *buffer, QPainter *painter, const QRectF &rect)
   // resize and clear
   QRectF prect = (! rect.isValid() ? CQChartsUtil::toQRect(calcPlotPixelRect()) : rect);
 
-  QPainter *painter1 = buffer->beginPaint(painter, prect);
+  QPainter *painter1 = buffer->beginPaint(painter, prect, view()->isAntiAlias());
 
   // don't paint if not active
   if (! buffer->isActive())
@@ -5114,6 +5118,7 @@ getFirstPlotKey() const
 
 //------
 
+#if 0
 void
 CQChartsPlot::
 drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQChartsLineData &data)
@@ -5128,6 +5133,7 @@ drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQCharts
 
   painter->drawLine(p1, p2);
 }
+#endif
 
 void
 CQChartsPlot::
@@ -5146,11 +5152,16 @@ drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol, do
 {
   CQChartsSymbol2DRenderer srenderer(painter, CQChartsUtil::fromQPoint(p), size);
 
-  if (painter->brush().style() != Qt::NoBrush)
+  if (painter->brush().style() != Qt::NoBrush) {
     CQChartsPlotSymbolMgr::fillSymbol(symbol, &srenderer);
 
-  if (painter->pen().style() != Qt::NoPen)
-    CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
+    if (painter->pen().style() != Qt::NoPen)
+      CQChartsPlotSymbolMgr::strokeSymbol(symbol, &srenderer);
+  }
+  else {
+    if (painter->pen().style() != Qt::NoPen)
+      CQChartsPlotSymbolMgr::drawSymbol(symbol, &srenderer);
+  }
 }
 
 void

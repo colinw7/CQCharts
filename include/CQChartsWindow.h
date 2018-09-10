@@ -7,6 +7,7 @@ class CQChartsWindow;
 class CQChartsView;
 class CQChartsViewExpander;
 class CQChartsViewSettings;
+class CQChartsFilterEdit;
 class CQChartsModelView;
 class CQChartsViewStatus;
 class CQChartsViewToolBar;
@@ -62,6 +63,8 @@ class CQChartsWindow : public QFrame {
   void themePalettesChanged();
 
  private slots:
+  void filterAndSlot(bool b);
+
   void replaceFilterSlot(const QString &text);
   void addFilterSlot(const QString &text);
 
@@ -85,6 +88,7 @@ class CQChartsWindow : public QFrame {
   CQChartsViewSettings* settings_         { nullptr };
   CQChartsViewExpander* settingsExpander_ { nullptr };
   QStackedWidget*       viewStack_        { nullptr };
+  CQChartsFilterEdit*   filterEdit_       { nullptr };
   CQChartsModelView*    modelView_        { nullptr };
   CQChartsViewExpander* tableExpander_    { nullptr };
   CQChartsViewStatus*   status_           { nullptr };

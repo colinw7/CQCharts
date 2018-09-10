@@ -126,6 +126,8 @@ class CQChartsPlotParameter {
   const QString &tip() const { return tip_; }
   CQChartsPlotParameter &setTip(const QString &s) { tip_ = s; return *this; }
 
+  virtual bool isColumn() const { return false; }
+
   CQChartsPlotParameter &setOptional () { attributes_.setOptional (); return *this; }
   CQChartsPlotParameter &setRequired () { attributes_.setRequired (); return *this; }
   CQChartsPlotParameter &setMonotonic() { attributes_.setMonotonic(); return *this; }
@@ -155,6 +157,10 @@ class CQChartsPlotParameter {
   }
 
  private:
+  CQChartsPlotParameter(CQChartsPlotParameter &p);
+  CQChartsPlotParameter &operator=(const CQChartsPlotParameter &);
+
+ private:
   QString    name_;           //! name
   QString    desc_;           //! description
   QString    type_;           //! type
@@ -174,6 +180,8 @@ class CQChartsColumnParameter : public CQChartsPlotParameter {
    CQChartsPlotParameter(name, desc, "column", propName, attributes,
                          (defValue >= 0 ? QVariant(defValue) : QVariant())) {
   }
+
+  bool isColumn() const override { return true; }
 };
 
 //---
@@ -185,6 +193,8 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
    CQChartsPlotParameter(name, desc, "columns", propName, attributes,
                          (defValue != "" ? QVariant(defValue) : QVariant())) {
   }
+
+  bool isColumn() const override { return true; }
 };
 
 //---

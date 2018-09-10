@@ -114,6 +114,8 @@ CQChartsModelFilter.cpp \
 CQChartsModelVisitor.cpp \
 CQChartsColumnEdit.cpp \
 \
+CQChartsInvalidator.cpp \
+\
 CQChartsGradientPaletteCanvas.cpp \
 CQChartsGradientPalette.cpp \
 CQChartsGradientPaletteControl.cpp \
@@ -125,6 +127,11 @@ CQChartsRotatedText.cpp \
 CQChartsRoundedPolygon.cpp \
 \
 CQChartsColor.cpp \
+CQChartsNamePair.cpp \
+CQChartsPolygonList.cpp \
+CQChartsRect.cpp \
+CQChartsConnectionList.cpp \
+\
 CQChartsDrawUtil.cpp \
 CQChartsPosition.cpp \
 CQChartsSymbol.cpp \
@@ -132,12 +139,14 @@ CQChartsLength.cpp \
 CQChartsPath.cpp \
 CQChartsFillPattern.cpp \
 CQChartsStyle.cpp \
-CQChartsAnalyzeFile.cpp \
 CQChartsBoxWhisker.cpp \
 CQChartsDensity.cpp \
 CQChartsGrahamHull.cpp \
 CQChartsUtil.cpp \
 CQChartsEnv.cpp \
+\
+CQChartsAnalyzeFile.cpp \
+CQChartsAnalyzeModel.cpp \
 \
 CQCsvModel.cpp \
 CQTsvModel.cpp \
@@ -249,13 +258,15 @@ HEADERS += \
 ../include/CQChartsFillPattern.h \
 ../include/CQChartsStyle.h \
 ../include/CQChartsLength.h \
-../include/CQChartsAnalyzeFile.h \
 ../include/CQChartsBoxWhisker.h \
 ../include/CQChartsDensity.h \
 ../include/CQChartsGrahamHull.h \
 ../include/CQChartsUtil.h \
 ../include/CQChartsEnv.h \
 ../include/CQChartsQuadTree.h \
+\
+../include/CQChartsAnalyzeFile.h \
+../include/CQChartsAnalyzeModel.h \
 \
 ../include/CQChartsLoadDlg.h \
 ../include/CQChartsPlotDlg.h \
@@ -276,6 +287,11 @@ HEADERS += \
 ../include/CQChartsModelVisitor.h \
 ../include/CQChartsColumnEdit.h \
 \
+../include/CQChartsPlotData.h \
+../include/CQChartsViewData.h \
+../include/CQChartsData.h \
+../include/CQChartsInvalidator.h \
+\
 ../include/CQChartsGradientPaletteCanvas.h \
 ../include/CQChartsGradientPalette.h \
 ../include/CQChartsGradientPaletteControl.h \
@@ -287,6 +303,11 @@ HEADERS += \
 ../include/CQChartsRoundedPolygon.h \
 \
 ../include/CQChartsColor.h \
+../include/CQChartsNamePair.h \
+../include/CQChartsPolygonList.h \
+../include/CQChartsRect.h \
+../include/CQChartsConnectionList.h \
+\
 ../include/CQChartsDrawUtil.h \
 \
 ../include/CQCsvModel.h \

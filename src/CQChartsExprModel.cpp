@@ -12,7 +12,6 @@
 #include <CQTclUtil.h>
 #endif
 
-#include <CQStrParse.h>
 #include <COSNaN.h>
 #include <QColor>
 #include <iostream>

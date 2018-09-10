@@ -6,6 +6,7 @@
 #include <CQChartsPlotObj.h>
 #include <CQChartsData.h>
 #include <CQChartsForceDirected.h>
+#include <CQChartsConnectionList.h>
 
 class CQChartsForceDirectedPlotType : public CQChartsPlotType {
  public:
@@ -35,9 +36,12 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   // columns
   Q_PROPERTY(CQChartsColumn nodeColumn        READ nodeColumn        WRITE setNodeColumn       )
   Q_PROPERTY(CQChartsColumn connectionsColumn READ connectionsColumn WRITE setConnectionsColumn)
-  Q_PROPERTY(CQChartsColumn valueColumn       READ valueColumn       WRITE setValueColumn      )
-  Q_PROPERTY(CQChartsColumn groupColumn       READ groupColumn       WRITE setGroupColumn      )
   Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
+
+  Q_PROPERTY(CQChartsColumn namePairColumn READ namePairColumn WRITE setNamePairColumn)
+  Q_PROPERTY(CQChartsColumn countColumn    READ countColumn    WRITE setCountColumn   )
+
+  Q_PROPERTY(CQChartsColumn groupIdColumn READ groupIdColumn WRITE setGroupIdColumn)
 
   // options
   Q_PROPERTY(bool   running    READ isRunning  WRITE setRunning   )
@@ -56,39 +60,47 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
  ~CQChartsForceDirectedPlot();
 
-  //---
+  //----
 
   // columns
+  //  . node connections (node id, connection list, name)
   const CQChartsColumn &nodeColumn() const { return nodeColumn_; }
-  void setNodeColumn(const CQChartsColumn &c) { nodeColumn_ = c; updateRangeAndObjs(); }
+  void setNodeColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &connectionsColumn() const { return connectionsColumn_; }
-  void setConnectionsColumn(const CQChartsColumn &c) {
-    connectionsColumn_ = c; updateRangeAndObjs(); }
-
-  const CQChartsColumn &valueColumn() const { return valueColumn_; }
-  void setValueColumn(const CQChartsColumn &c) { valueColumn_ = c; updateRangeAndObjs(); }
-
-  const CQChartsColumn &groupColumn() const { return groupColumn_; }
-  void setGroupColumn(const CQChartsColumn &c) { groupColumn_ = c; updateRangeAndObjs(); }
+  void setConnectionsColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c) { nameColumn_ = c; updateRangeAndObjs(); }
+  void setNameColumn(const CQChartsColumn &c);
 
-  //---
+  //--
 
+  //  . link connections (link name pair, link value)
+  const CQChartsColumn &namePairColumn() const { return namePairColumn_; }
+  void setNamePairColumn(const CQChartsColumn &c);
+
+  const CQChartsColumn &countColumn() const { return countColumn_; }
+  void setCountColumn(const CQChartsColumn &c);
+
+  //--
+
+  //  . group
+  const CQChartsColumn &groupIdColumn() const { return groupIdColumn_; }
+  void setGroupIdColumn(const CQChartsColumn &c);
+
+  //----
+
+  // is placement running
   bool isRunning() const { return running_; }
-  void setRunning(bool b) { running_ = b; }
+  void setRunning(bool b);
 
-  //---
-
+  // node size (radius)
   double nodeRadius() const { return nodeRadius_; }
-  void setNodeRadius(double r) { nodeRadius_ = r; }
+  void setNodeRadius(double r);
 
-  //---
-
+  // use edge value for width
   bool isEdgeLinesValueWidth() const { return edgeLinesValueWidth_; }
-  void setEdgeLinesValueWidth(bool b) { edgeLinesValueWidth_ = b; }
+  void setEdgeLinesValueWidth(bool b);
 
   //---
 
@@ -117,54 +129,58 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
   void drawParts(QPainter *painter) override;
 
  private:
-  struct ConnectionData {
-    int node  { 0 };
-    int count { 0 };
-
-    ConnectionData(int node=-1, int count=-1) :
-     node(node), count(count) {
-    }
-  };
-
-  using ConnectionDataArray = std::vector<ConnectionData>;
+  using Connections = CQChartsConnectionList::Connections;
 
   struct ConnectionsData {
-    int                 node  { 0 };
-    QString             name;
-    int                 group { 0 };
-    QModelIndex         ind;
-    ConnectionDataArray connections;
+    QModelIndex ind;
+    int         node  { 0 };
+    QString     name;
+    int         group { 0 };
+    Connections connections;
   };
 
   using IdConnectionsData = std::map<int,ConnectionsData>;
 
  private:
+  bool getRowConnections(int group, const ModelVisitor::VisitData &data,
+                         ConnectionsData &connections);
+
+  bool getNameConnections(int group, const ModelVisitor::VisitData &data,
+                          ConnectionsData &connections, int &destId, int &value);
+
   ConnectionsData &getConnections(int id);
 
   void addConnections(int id, const ConnectionsData &connections);
 
-  bool decodeConnections(const QString &str, ConnectionDataArray &connections);
-  bool decodeConnection(const QString &pointStr, ConnectionData &connection);
+  bool decodeConnections(const QString &str, Connections &connections);
+
+  int getStringId(const QString &str);
 
  private:
-  using NodeMap = std::map<int,Springy::Node*>;
+  using NodeMap       = std::map<int,Springy::Node*>;
+  using ForceDirected = CQChartsForceDirected;
+  using StringIndMap  = std::map<QString,int>;
 
-  CQChartsColumn        nodeColumn_;                    // node column
-  CQChartsColumn        connectionsColumn_;             // connections column
-  CQChartsColumn        valueColumn_;                   // value column
-  CQChartsColumn        groupColumn_;                   // group column
-  CQChartsColumn        nameColumn_;                    // name column
-  IdConnectionsData     idConnections_;                 // id connections
-  NodeMap               nodes_;                         // force directed nodes
-  CQChartsForceDirected forceDirected_;                 // force directed class
-  bool                  running_             { true };  // is running
-  bool                  pressed_             { false }; // is pressed
-  double                rangeSize_           { 20.0 };  // range size
-  double                nodeMass_            { 1.0 };   // node mass
-  bool                  edgeLinesValueWidth_ { true };  // use value for edge line width
-  int                   initSteps_           { 100 };   // initial steps
-  double                stepSize_            { 0.01 };  // step size
-  double                nodeRadius_          { 6.0 };   // node radius
+  CQChartsColumn    nodeColumn_;                                 // connection node column
+  CQChartsColumn    connectionsColumn_;                          // connections node list column
+  CQChartsColumn    nameColumn_;                                 // connection node name column
+  CQChartsColumn    namePairColumn_;                             // link name pair column
+  CQChartsColumn    countColumn_;                                // link count column
+  CQChartsColumn    groupIdColumn_;                              // group id column
+  ColumnType        connectionsColumnType_ { ColumnType::NONE }; // connection column type
+  ColumnType        namePairColumnType_    { ColumnType::NONE }; // name pair column type
+  IdConnectionsData idConnections_;                              // id connections
+  NodeMap           nodes_;                                      // force directed nodes
+  ForceDirected     forceDirected_;                              // force directed class
+  StringIndMap      nameNodeMap_;                                // node name index map
+  bool              running_               { true };             // is running
+  bool              pressed_               { false };            // is pressed
+  double            rangeSize_             { 20.0 };             // range size
+  double            nodeMass_              { 1.0 };              // node mass
+  bool              edgeLinesValueWidth_   { true };             // use value for edge line width
+  int               initSteps_             { 100 };              // initial steps
+  double            stepSize_              { 0.01 };             // step size
+  double            nodeRadius_            { 6.0 };              // node radius
 };
 
 #endif

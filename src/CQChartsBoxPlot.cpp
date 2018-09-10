@@ -1,7 +1,6 @@
 #include <CQChartsBoxPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
@@ -1827,10 +1826,10 @@ draw(QPainter *painter)
       QColor borderColor = plot_->interpBoxBorderColor(ic, nc);
 
       plot_->setPen(symbolPen, /*stroked*/true, borderColor, plot_->boxBorderAlpha(),
-                    plot_->boxBorderWidth(), CQChartsLineDash());
+                    plot_->boxBorderWidth(), plot_->boxBorderDash());
 
       plot_->setBrush(symbolBrush, /*filled*/true, boxColor, plot_->boxFillAlpha(),
-                      CQChartsFillPattern());
+                      plot_->boxFillPattern());
 
       plot_->updateObjPenBrushState(this, symbolPen, symbolBrush);
 
@@ -1909,8 +1908,7 @@ draw(QPainter *painter)
 
         QColor tc = plot_->interpTextColor(ic, nc);
 
-        plot_->setPen(pen, true, tc, plot_->textAlpha(),
-                      CQChartsLength("0px"), CQChartsLineDash());
+        plot_->setPen(pen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
         painter->setPen(pen);
 
@@ -2252,8 +2250,7 @@ draw(QPainter *painter)
 
     QColor tc = plot_->interpTextColor(0, 1);
 
-    plot_->setPen(pen, true, tc, plot_->textAlpha(),
-                  CQChartsLength("0px"), CQChartsLineDash());
+    plot_->setPen(pen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
     painter->setPen(pen);
 
@@ -2801,7 +2798,7 @@ draw(QPainter *painter)
                      /*width*/ CQChartsLength("1px"), CQChartsLineDash(),
                      plot_->isOutlierSymbolFilled(),
                      plot_->interpBoxFillColor(ic, nc), /*alpha*/1.0,
-                     CQChartsFillPattern::Type::SOLID);
+                     plot_->boxFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 

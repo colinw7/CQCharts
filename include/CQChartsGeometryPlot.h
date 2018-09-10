@@ -21,6 +21,9 @@ class CQChartsGeometryPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                            CQChartsPlotParameter *parameter) const override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -164,12 +167,6 @@ class CQChartsGeometryPlot : public CQChartsPlot,
   void addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data);
 
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
-
-  bool decodePolygons(const QString &polysStr, Polygons &poly);
-
-  bool decodePolygon(const QString &polyStr, QPolygonF &poly);
-
-  //bool decodePoint(const QString &pointStr, QPointF &point, QString &poimtStr1);
 
  private:
   using Geometries = std::vector<Geometry>;

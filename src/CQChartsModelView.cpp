@@ -38,6 +38,13 @@ CQChartsModelView::
 
 void
 CQChartsModelView::
+setFilterAnd(bool b)
+{
+  table_->setFilterAnd(b);
+}
+
+void
+CQChartsModelView::
 setFilter(const QString &text)
 {
   table_->setFilter(text);
@@ -48,6 +55,13 @@ CQChartsModelView::
 addFilter(const QString &text)
 {
   table_->addFilter(text);
+}
+
+QString
+CQChartsModelView::
+filterDetails() const
+{
+  return table_->filterDetails();
 }
 
 void

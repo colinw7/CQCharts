@@ -46,14 +46,14 @@ bool exec(QAbstractItemModel *model, CQChartsModelVisitor &visitor) {
   return true;
 }
 
-bool exec(QAbstractItemModel *model, const QModelIndex &parent, int r,
-                CQChartsModelVisitor &visitor) {
+bool exec(QAbstractItemModel *model, const QModelIndex &parent, int row,
+          CQChartsModelVisitor &visitor) {
   if (! model)
     return false;
 
   visitor.init(model);
 
-  (void) execRow(model, parent, r, visitor);
+  (void) execRow(model, parent, row, visitor);
 
   visitor.term();
 
@@ -66,8 +66,8 @@ execIndex(QAbstractItemModel *model, const QModelIndex &parent, CQChartsModelVis
 
   visitor.setNumRows(nr);
 
-  for (int r = 0; r < nr; ++r) {
-    CQChartsModelVisitor::State state = execRow(model, parent, r, visitor);
+  for (int row = 0; row < nr; ++row) {
+    CQChartsModelVisitor::State state = execRow(model, parent, row, visitor);
 
     if (state == CQChartsModelVisitor::State::TERMINATE) return state;
     if (state == CQChartsModelVisitor::State::SKIP     ) continue;
@@ -77,14 +77,14 @@ execIndex(QAbstractItemModel *model, const QModelIndex &parent, CQChartsModelVis
 }
 
 CQChartsModelVisitor::State
-execRow(QAbstractItemModel *model, const QModelIndex &parent, int r,
+execRow(QAbstractItemModel *model, const QModelIndex &parent, int row,
         CQChartsModelVisitor &visitor) {
-  QModelIndex ind1 = model->index(r, 0, parent);
+  QModelIndex ind1 = model->index(row, 0, parent);
 
-  if (visitor.maxRows() > 0 && r > visitor.maxRows())
+  if (visitor.maxRows() > 0 && row > visitor.maxRows())
     return CQChartsModelVisitor::State::TERMINATE;
 
-  CQChartsModelVisitor::VisitData data(parent, r);
+  CQChartsModelVisitor::VisitData data(parent, row);
 
   data.vrow = visitor.row();
 

@@ -26,6 +26,7 @@
 #include <CQChartsModelDlg.h>
 #include <CQChartsPlotDlg.h>
 #include <CQChartsDataFilterModel.h>
+#include <CQChartsAnalyzeModel.h>
 
 #include <CQDataModel.h>
 #include <CQSortModel.h>
@@ -447,12 +448,13 @@ processModelCmd(const Vars &vars)
                  "column for delete, modify, calc, query");
 
   argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
-  argv.addCmdArg("-add"   , CQChartsCmdArg::Type::Boolean, "add column");
-  argv.addCmdArg("-delete", CQChartsCmdArg::Type::Boolean, "delete column");
-  argv.addCmdArg("-modify", CQChartsCmdArg::Type::Boolean, "modify column values");
-  argv.addCmdArg("-calc"  , CQChartsCmdArg::Type::Boolean, "calc column");
-  argv.addCmdArg("-query" , CQChartsCmdArg::Type::Boolean, "query column");
-  argv.addCmdArg("-list"  , CQChartsCmdArg::Type::Boolean, "list data");
+  argv.addCmdArg("-add"    , CQChartsCmdArg::Type::Boolean, "add column");
+  argv.addCmdArg("-delete" , CQChartsCmdArg::Type::Boolean, "delete column");
+  argv.addCmdArg("-modify" , CQChartsCmdArg::Type::Boolean, "modify column values");
+  argv.addCmdArg("-calc"   , CQChartsCmdArg::Type::Boolean, "calc column");
+  argv.addCmdArg("-query"  , CQChartsCmdArg::Type::Boolean, "query column");
+  argv.addCmdArg("-analyze", CQChartsCmdArg::Type::Boolean, "analyze data");
+  argv.addCmdArg("-list"   , CQChartsCmdArg::Type::Boolean, "list data");
   argv.endCmdGroup();
 
   argv.addCmdArg("-header", CQChartsCmdArg::Type::String, "header label for add/modify");
@@ -482,6 +484,7 @@ processModelCmd(const Vars &vars)
 
   //---
 
+  // get expr model
   ModelP model = modelData->model();
 
   CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
@@ -603,6 +606,47 @@ processModelCmd(const Vars &vars)
       vars.push_back(row);
 
     setCmdRc(vars);
+  }
+  else if (argv.getParseBool("analyze")) {
+    CQChartsAnalyzeModel analyzeModel(charts_, modelData);
+
+    analyzeModel.analyze();
+
+    const CQChartsAnalyzeModel::TypeNameColumns &typeNameColumns = analyzeModel.typeNameColumns();
+
+    QVariantList tvars;
+
+    for (const auto &tnc : typeNameColumns) {
+      QVariantList cvars;
+
+      const QString &typeName = tnc.first;
+
+      cvars.push_back(typeName);
+
+      QVariantList tncvars;
+
+      const CQChartsAnalyzeModel::NameColumns &nameColumns = tnc.second;
+
+      for (const auto &nc : nameColumns) {
+        const QString        &name   = nc.first;
+        const CQChartsColumn &column = nc.second;
+
+        QVariantList ncvars;
+
+        ncvars.push_back(name);
+        ncvars.push_back(column.toString());
+
+        tncvars.push_back(ncvars);
+      }
+
+      cvars.push_back(tncvars);
+
+      tvars.push_back(cvars);
+    }
+
+    analyzeModel.print();
+
+    setCmdRc(tvars);
   }
   // list values
   else if (argv.getParseBool("list")) {
@@ -786,23 +830,22 @@ createPlotCmd(const Vars &vars)
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model_ind").setRequired();
   argv.addCmdArg("-type" , CQChartsCmdArg::Type::String , "type"     ).setRequired();
 
-  argv.addCmdArg("-where"      , CQChartsCmdArg::Type::String, "filter");
-  argv.addCmdArg("-columns"    , CQChartsCmdArg::Type::String, "columns");
-  argv.addCmdArg("-bool"       , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-string"     , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-real"       , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-column_type", CQChartsCmdArg::Type::String, "type");
-  argv.addCmdArg("-xintegral"  , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-yintegral"  , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-xlog"       , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-ylog"       , CQChartsCmdArg::Type::SBool);
-  argv.addCmdArg("-title"      , CQChartsCmdArg::Type::String, "title");
-  argv.addCmdArg("-properties" , CQChartsCmdArg::Type::String, "name_values");
-  argv.addCmdArg("-position"   , CQChartsCmdArg::Type::String, "position box");
-  argv.addCmdArg("-xmin"       , CQChartsCmdArg::Type::Real  , "x");
-  argv.addCmdArg("-ymin"       , CQChartsCmdArg::Type::Real  , "y");
-  argv.addCmdArg("-xmax"       , CQChartsCmdArg::Type::Real  , "x");
-  argv.addCmdArg("-ymax"       , CQChartsCmdArg::Type::Real  , "y");
+  argv.addCmdArg("-where"     , CQChartsCmdArg::Type::String, "filter");
+  argv.addCmdArg("-columns"   , CQChartsCmdArg::Type::String, "columns");
+  argv.addCmdArg("-bool"      , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-string"    , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-real"      , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-xintegral" , CQChartsCmdArg::Type::SBool);
+  argv.addCmdArg("-yintegral" , CQChartsCmdArg::Type::SBool);
+  argv.addCmdArg("-xlog"      , CQChartsCmdArg::Type::SBool);
+  argv.addCmdArg("-ylog"      , CQChartsCmdArg::Type::SBool);
+  argv.addCmdArg("-title"     , CQChartsCmdArg::Type::String, "title");
+  argv.addCmdArg("-properties", CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-position"  , CQChartsCmdArg::Type::String, "position box");
+  argv.addCmdArg("-xmin"      , CQChartsCmdArg::Type::Real  , "x");
+  argv.addCmdArg("-ymin"      , CQChartsCmdArg::Type::Real  , "y");
+  argv.addCmdArg("-xmax"      , CQChartsCmdArg::Type::Real  , "x");
+  argv.addCmdArg("-ymax"      , CQChartsCmdArg::Type::Real  , "y");
 
   if (! argv.parse())
     return;
@@ -4109,7 +4152,7 @@ setCmdRc(const QVariant &rc)
 
 void
 CQChartsCmds::
-setCmdRc(const QList<QVariant> &rc)
+setCmdRc(const QVariantList &rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
@@ -4150,7 +4193,7 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
     bool found = false;
 
     for (const auto &parameter : type->parameters()) {
-      if (parameter.name() == nameValue.first) {
+      if (parameter->name() == nameValue.first) {
         found = true;
         break;
       }
@@ -4166,8 +4209,8 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
   // set plot property for widgets for plot parameters
   for (const auto &parameter : type->parameters()) {
-    if      (parameter.type() == "column") {
-      auto p = nameValueData.values.find(parameter.name());
+    if      (parameter->type() == "column") {
+      auto p = nameValueData.values.find(parameter->name());
 
       if (p == nameValueData.values.end())
         continue;
@@ -4181,11 +4224,11 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       QString scol = column.toString();
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), scol))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), scol))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
-    else if (parameter.type() == "columns") {
-      auto p = nameValueData.values.find(parameter.name());
+    else if (parameter->type() == "columns") {
+      auto p = nameValueData.values.find(parameter->name());
 
       if (p == nameValueData.values.end())
         continue;
@@ -4199,52 +4242,52 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
 
       QString s = CQChartsColumn::columnsToString(columns);
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(s)))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(s)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
-    else if (parameter.type() == "string") {
-      auto p = nameValueData.strings.find(parameter.name());
+    else if (parameter->type() == "string") {
+      auto p = nameValueData.strings.find(parameter->name());
 
       if (p == nameValueData.strings.end())
         continue;
 
       QString str = (*p).second;
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(str)))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(str)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
-    else if (parameter.type() == "real") {
-      auto p = nameValueData.reals.find(parameter.name());
+    else if (parameter->type() == "real") {
+      auto p = nameValueData.reals.find(parameter->name());
 
       if (p == nameValueData.reals.end())
         continue;
 
       double r = (*p).second;
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(r)))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(r)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
-    else if (parameter.type() == "int") {
-      auto p = nameValueData.ints.find(parameter.name());
+    else if (parameter->type() == "int") {
+      auto p = nameValueData.ints.find(parameter->name());
 
       if (p == nameValueData.ints.end())
         continue;
 
       int i = (*p).second;
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(i)))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(i)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
-    else if (parameter.type() == "bool") {
-      auto p = nameValueData.bools.find(parameter.name());
+    else if (parameter->type() == "bool") {
+      auto p = nameValueData.bools.find(parameter->name());
 
       if (p == nameValueData.bools.end())
         continue;
 
       bool b = (*p).second;
 
-      if (! CQUtil::setProperty(plot, parameter.propName(), QVariant(b)))
-        charts_->errorMsg("Failed to set parameter " + parameter.propName());
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(b)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
     else
       assert(false);

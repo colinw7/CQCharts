@@ -83,7 +83,7 @@ class CQChartsBuffer {
 
   const QRectF &rect() const { return rect_; }
 
-  QPainter *beginPaint(QPainter *painter, const QRectF &rect);
+  QPainter *beginPaint(QPainter *painter, const QRectF &rect, bool alias=true);
 
   void endPaint();
 

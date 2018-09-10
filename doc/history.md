@@ -606,3 +606,12 @@
  + add subset_model and transpose_model commands
 # 9/3/2018
  + add value row number to model visitor
+# 9/10/2018
+ + Add column analyzer to select plots and associated columns drom data
+ + Add polygon list, connection list and name pair types with variant and column type support
+ + Support generic QObject in style macros and use in axes code for styling
+ + Fix annotation BBox for radar plot
+ + Use CQSwitch widget for table filter edit options
+ + Add tooltip to filter edit
+ + Support And/Or for multiple filters
+ + Support general tipColumn to supply tip string in model

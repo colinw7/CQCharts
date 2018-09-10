@@ -25,6 +25,9 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLength.h>
+#include <CQChartsRect.h>
+#include <CQChartsPolygonList.h>
+#include <CQChartsNamePair.h>
 #include <CQPropertyView.h>
 #include <CQChartsWindow.h>
 #include <iostream>
@@ -32,15 +35,19 @@
 CQCharts::
 CQCharts()
 {
-  CQChartsColumn     ::registerMetaType();
-  CQChartsLength     ::registerMetaType();
-  CQChartsPosition   ::registerMetaType();
-  CQChartsLineDash   ::registerMetaType();
-  CQChartsColor      ::registerMetaType();
-  CQChartsPath       ::registerMetaType();
-  CQChartsStyle      ::registerMetaType();
-  CQChartsSymbol     ::registerMetaType();
-  CQChartsFillPattern::registerMetaType();
+  CQChartsColor         ::registerMetaType();
+  CQChartsColumn        ::registerMetaType();
+  CQChartsConnectionList::registerMetaType();
+  CQChartsFillPattern   ::registerMetaType();
+  CQChartsLength        ::registerMetaType();
+  CQChartsLineDash      ::registerMetaType();
+  CQChartsNamePair      ::registerMetaType();
+  CQChartsPath          ::registerMetaType();
+  CQChartsPolygonList   ::registerMetaType();
+  CQChartsPosition      ::registerMetaType();
+  CQChartsRect          ::registerMetaType();
+  CQChartsStyle         ::registerMetaType();
+  CQChartsSymbol        ::registerMetaType();
 }
 
 CQCharts::
@@ -60,6 +67,9 @@ init()
   plotTypeMgr_   = new CQChartsPlotTypeMgr;
   columnTypeMgr_ = new CQChartsColumnTypeMgr(this);
 
+  //---
+
+  // add plot types
   plotTypeMgr_->addType("adjacency"    , new CQChartsAdjacencyPlotType    );
   plotTypeMgr_->addType("barchart"     , new CQChartsBarChartPlotType     );
   plotTypeMgr_->addType("box"          , new CQChartsBoxPlotType          );
@@ -82,15 +92,21 @@ init()
   plotTypeMgr_->addType("treemap"      , new CQChartsTreeMapPlotType      );
   plotTypeMgr_->addType("xy"           , new CQChartsXYPlotType           );
 
-  columnTypeMgr_->addType(CQBaseModel::Type::REAL   , new CQChartsColumnRealType   );
-  columnTypeMgr_->addType(CQBaseModel::Type::INTEGER, new CQChartsColumnIntegerType);
-  columnTypeMgr_->addType(CQBaseModel::Type::STRING , new CQChartsColumnStringType );
-  columnTypeMgr_->addType(CQBaseModel::Type::RECT   , new CQChartsColumnRectType   );
-  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON, new CQChartsColumnPolygonType);
-  columnTypeMgr_->addType(CQBaseModel::Type::COLOR  , new CQChartsColumnColorType  );
-  columnTypeMgr_->addType(CQBaseModel::Type::TIME   , new CQChartsColumnTimeType   );
-  columnTypeMgr_->addType(CQBaseModel::Type::PATH   , new CQChartsColumnPathType   );
-  columnTypeMgr_->addType(CQBaseModel::Type::STYLE  , new CQChartsColumnStyleType  );
+  //---
+
+  // add column types
+  columnTypeMgr_->addType(CQBaseModel::Type::INTEGER        , new CQChartsColumnIntegerType       );
+  columnTypeMgr_->addType(CQBaseModel::Type::REAL           , new CQChartsColumnRealType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::STRING         , new CQChartsColumnStringType        );
+  columnTypeMgr_->addType(CQBaseModel::Type::RECT           , new CQChartsColumnRectType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON        , new CQChartsColumnPolygonType       );
+  columnTypeMgr_->addType(CQBaseModel::Type::COLOR          , new CQChartsColumnColorType         );
+  columnTypeMgr_->addType(CQBaseModel::Type::TIME           , new CQChartsColumnTimeType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::PATH           , new CQChartsColumnPathType          );
+  columnTypeMgr_->addType(CQBaseModel::Type::STYLE          , new CQChartsColumnStyleType         );
+  columnTypeMgr_->addType(CQBaseModel::Type::POLYGON_LIST   , new CQChartsColumnPolygonListType   );
+  columnTypeMgr_->addType(CQBaseModel::Type::CONNECTION_LIST, new CQChartsColumnConnectionListType);
+  columnTypeMgr_->addType(CQBaseModel::Type::NAME_PAIR      , new CQChartsColumnNamePairType      );
 
   //---
 

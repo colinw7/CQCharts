@@ -274,6 +274,9 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
  public:
   CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n);
 
+  const CQChartsColor &color() const { return color_; }
+  void setColor(const CQChartsColor &v) { color_ = v; }
+
   bool selectPress(const CQChartsGeom::Point &p) override;
 
   QBrush fillBrush() const override;
@@ -284,6 +287,7 @@ class CQChartsDistKeyColorBox : public CQChartsKeyColorBox {
 
  private:
   CQChartsDistributionPlot *plot_;  // plot
+  CQChartsColor             color_; // custom color
 };
 
 //---

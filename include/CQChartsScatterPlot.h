@@ -196,12 +196,14 @@ class CQChartsScatterGridKeyItem : public CQChartsKeyItem {
 
 //---
 
+CQCHARTS_NAMED_SHAPE_DATA(BestFit,bestFit)
 CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
 
 class CQChartsScatterPlot : public CQChartsGroupPlot,
- public CQChartsPlotPointData    <CQChartsScatterPlot>,
- public CQChartsPlotHullShapeData<CQChartsScatterPlot>,
- public CQChartsPlotRugPointData <CQChartsScatterPlot> {
+ public CQChartsPlotPointData       <CQChartsScatterPlot>,
+ public CQChartsPlotBestFitShapeData<CQChartsScatterPlot>,
+ public CQChartsPlotHullShapeData   <CQChartsScatterPlot>,
+ public CQChartsPlotRugPointData    <CQChartsScatterPlot> {
   Q_OBJECT
 
   // columns
@@ -214,11 +216,11 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(CQChartsColumn colorColumn      READ colorColumn      WRITE setColorColumn     )
 
   // best fit
-  Q_PROPERTY(bool          bestFit          READ isBestFit          WRITE setBestFit         )
-  Q_PROPERTY(bool          bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
-  Q_PROPERTY(int           bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
-  Q_PROPERTY(CQChartsColor bestFitFillColor READ bestFitFillColor   WRITE setBestFitFillColor)
-  Q_PROPERTY(double        bestFitFillAlpha READ bestFitFillAlpha   WRITE setBestFitFillAlpha)
+  Q_PROPERTY(bool bestFit          READ isBestFit          WRITE setBestFit         )
+  Q_PROPERTY(bool bestFitDeviation READ isBestFitDeviation WRITE setBestFitDeviation)
+  Q_PROPERTY(int  bestFitOrder     READ bestFitOrder       WRITE setBestFitOrder    )
+
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(BestFit,bestFit)
 
   // convex hull
   Q_PROPERTY(bool hull READ isHull WRITE setHull)
@@ -371,12 +373,6 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   int bestFitOrder() const { return bestFitData_.order; }
   void setBestFitOrder(int o);
-
-  const CQChartsColor &bestFitFillColor() const { return bestFitData_.fillColor; }
-  void setBestFitFillColor(const CQChartsColor &c);
-
-  double bestFitFillAlpha() const { return bestFitData_.fillAlpha; }
-  void setBestFitFillAlpha(double r);
 
   //---
 
@@ -666,11 +662,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   using GroupWhiskers = std::map<int,WhiskerData>;
 
   struct BestFitData {
-    bool          visible       { false }; // show fit
-    bool          showDeviation { false }; // show deviation
-    int           order         { 3 };     // order
-    CQChartsColor fillColor;               // fill color
-    double        fillAlpha     { 1.0 };   // fill alpha
+    bool visible       { false }; // show fit
+    bool showDeviation { false }; // show deviation
+    int  order         { 3 };     // order
   };
 
   struct HullData {

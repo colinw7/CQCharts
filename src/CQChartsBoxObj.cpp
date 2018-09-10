@@ -58,7 +58,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "margin" );
   model->addProperty(path, this, "padding");
 
-  QString bgPath = path + "/background";
+  QString bgPath = path + "/fill";
 
   model->addProperty(bgPath, this, "background"       , "visible");
   model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
@@ -109,9 +109,9 @@ draw(QPainter *painter, const QRectF &rect) const
     QColor borderColor = interpBorderColor(0, 1);
 
     if      (plot())
-      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
     else if (view())
-      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
 
     if (plot())
       plot()->updateObjPenBrushState(this, pen, brush);
@@ -167,9 +167,9 @@ draw(QPainter *painter, const QPolygonF &poly) const
     QColor borderColor = interpBorderColor(0, 1);
 
     if      (plot())
-      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+      plot()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
     else if (view())
-      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), CQChartsLineDash());
+      view()->setPen(pen, true, borderColor, borderAlpha(), borderWidth(), borderDash());
 
     painter->setPen  (pen);
     painter->setBrush(brush);

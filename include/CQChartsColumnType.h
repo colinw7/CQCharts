@@ -180,6 +180,69 @@ class CQChartsColumnPolygonType : public CQChartsColumnType {
 
 //---
 
+// polygon list column type class
+class CQChartsColumnPolygonListType : public CQChartsColumnType {
+ public:
+  CQChartsColumnPolygonListType() :
+   CQChartsColumnType(Type::POLYGON_LIST) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+ private:
+  bool isPolygonListVariant(const QVariant &var) const;
+};
+
+//---
+
+// connection list column type class
+class CQChartsColumnConnectionListType : public CQChartsColumnType {
+ public:
+  CQChartsColumnConnectionListType() :
+   CQChartsColumnType(Type::CONNECTION_LIST) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+ private:
+  bool isConnectionListVariant(const QVariant &var) const;
+};
+
+//---
+
+// connection list column type class
+class CQChartsColumnNamePairType : public CQChartsColumnType {
+ public:
+  CQChartsColumnNamePairType() :
+   CQChartsColumnType(Type::NAME_PAIR) {
+  }
+
+  // input variant to data variant for edit
+  QVariant userData(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+  // data variant to output variant (string) for display
+  QVariant dataName(const QVariant &var, const CQChartsNameValues &nameValues,
+                    bool &converted) const override;
+
+ private:
+  bool isNamePairVariant(const QVariant &var) const;
+};
+
+//---
+
 // path column type class
 class CQChartsColumnPathType : public CQChartsColumnType {
  public:

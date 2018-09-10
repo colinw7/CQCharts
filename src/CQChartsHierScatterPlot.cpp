@@ -23,7 +23,7 @@ addParameters()
   addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
   addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
 
-  addColumnParameter("name" , "Name" , "nameColumn").setTip("Value Name");
+  addColumnParameter("name", "Name", "nameColumn").setTip("Value Name");
 
   addColumnsParameter("group", "Group", "groupColumnStr").setTip("Group Name(s)");
 
@@ -105,13 +105,11 @@ void
 CQChartsHierScatterPlot::
 setGroupColumnStr(const QString &s)
 {
-  if (s != groupColumnStr_) {
-    groupColumnStr_ = s;
-
+  CQChartsUtil::testAndSet(groupColumnStr_, s, [&]() {
     initGroupValueSets();
 
     updateRangeAndObjs();
-  }
+  } );
 }
 
 //------
@@ -472,10 +470,15 @@ initObjs()
 
   //---
 
-  for (auto &igroup : currentGroup_->groups()) {
-    CQChartsHierScatterPointGroup *group = igroup.second;
+  if (! currentGroup_->groups().empty()) {
+    for (auto &igroup : currentGroup_->groups()) {
+      CQChartsHierScatterPointGroup *group = igroup.second;
 
-    addGroupPoints(group, group);
+      addGroupPoints(group, group);
+    }
+  }
+  else {
+    addGroupPoints(currentGroup_, currentGroup_);
   }
 
   //---

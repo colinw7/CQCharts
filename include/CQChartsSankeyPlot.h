@@ -23,6 +23,9 @@ class CQChartsSankeyPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                            CQChartsPlotParameter *parameter) const;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

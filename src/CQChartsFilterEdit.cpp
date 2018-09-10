@@ -1,9 +1,9 @@
 #include <CQChartsFilterEdit.h>
-#include <CQHistoryLineEdit.h>
 #include <CQIconCombo.h>
+#include <CQSwitch.h>
 
 #include <QLineEdit>
-#include <QRadioButton>
+#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QButtonGroup>
 
@@ -21,14 +21,12 @@ CQChartsFilterEdit(QWidget *parent) :
   QHBoxLayout *layout = new QHBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(2);
 
-  edit_ = new CQHistoryLineEdit;
+  edit_ = new QLineEdit;
 
   edit_->setObjectName("edit");
-
-  edit_->setAutoClear(false);
   edit_->setClearButtonEnabled(true);
 
-  connect(edit_, SIGNAL(exec(const QString &)), this, SLOT(acceptSlot(const QString &)));
+  connect(edit_, SIGNAL(returnPressed()), this, SLOT(acceptSlot()));
 
   layout->addWidget(edit_);
 
@@ -50,46 +48,95 @@ CQChartsFilterEdit(QWidget *parent) :
   QHBoxLayout *opLayout = new QHBoxLayout(opFrame);
   opLayout->setMargin(0); opLayout->setSpacing(2);
 
-  QButtonGroup *opButtonGroup = new QButtonGroup(this);
+  addReplaceSwitch_ = new CQSwitch("Replace", "Add");
 
-  replaceButton_ = new QRadioButton("Replace");
-  addButton_     = new QRadioButton("Add");
+  addReplaceSwitch_->setObjectName("add_replace");
+  addReplaceSwitch_->setChecked(true);
+  addReplaceSwitch_->setHighlightOn(false);
 
-  replaceButton_->setObjectName("replace");
-  addButton_    ->setObjectName("add");
+  opLayout->addWidget(addReplaceSwitch_);
 
-  opLayout->addWidget(replaceButton_);
-  opLayout->addWidget(addButton_);
+  andOrSwitch_ = new CQSwitch("And", "Or");
 
-  replaceButton_->setChecked(true);
+  andOrSwitch_->setObjectName("and");
+  andOrSwitch_->setChecked(true);
+  andOrSwitch_->setHighlightOn(false);
 
-  opButtonGroup->addButton(replaceButton_);
-  opButtonGroup->addButton(addButton_);
+  connect(andOrSwitch_, SIGNAL(toggled(bool)), this, SLOT(andSlot()));
+
+  opLayout->addWidget(andOrSwitch_);
 
   layout->addWidget(opFrame);
 }
 
 void
 CQChartsFilterEdit::
-comboSlot(int /*ind*/)
+setFilterDetails(const QString &str)
 {
-  edit_->setText("");
+  filterDetails_ = str;
+
+  edit_->setToolTip(filterDetails_);
 }
 
 void
 CQChartsFilterEdit::
-acceptSlot(const QString &text)
+setSearchDetails(const QString &str)
+{
+  searchDetails_ = str;
+
+  edit_->setToolTip(searchDetails_);
+}
+
+void
+CQChartsFilterEdit::
+comboSlot(int /*ind*/)
 {
   if (combo_->currentIndex() == 0) {
-    if (replaceButton_->isChecked())
-      emit replaceFilter(text);
-    else
-      emit addFilter(text);
+    edit_->setText(filterText_);
+
+    edit_->setToolTip(filterDetails_);
   }
   else {
-    if (replaceButton_->isChecked())
-      emit replaceSearch(text);
-    else
-      emit addSearch(text);
+    edit_->setText(searchText_);
+
+    edit_->setToolTip(searchDetails_);
+  }
+}
+
+void
+CQChartsFilterEdit::
+andSlot()
+{
+  bool b = andOrSwitch_->isChecked();
+
+  emit filterAnd(b);
+}
+
+void
+CQChartsFilterEdit::
+acceptSlot()
+{
+  QString text = edit_->text();
+
+  if (combo_->currentIndex() == 0) {
+    if (text != filterText_) {
+      filterText_    = text;
+      filterDetails_ = "";
+
+      if (addReplaceSwitch_->isChecked())
+        emit replaceFilter(filterText_);
+      else
+        emit addFilter(filterText_);
+    }
+  }
+  else {
+    if (text != searchText_) {
+      searchText_ = text;
+
+      if (addReplaceSwitch_->isChecked())
+        emit replaceSearch(searchText_);
+      else
+        emit addSearch(searchText_);
+    }
   }
 }

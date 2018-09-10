@@ -23,7 +23,7 @@ puts $color2
 
 set_charts_property -view $view -name insideHighlight.mode -value OUTLINE
 
-set_charts_property -plot $plot1 -name options.barMargin          -value 8px
+set_charts_property -plot $plot1 -name margins.bar               -value 8px
 set_charts_property -plot $plot1 -name fill.color                 -value "palette:0:s"
 set_charts_property -plot $plot1 -name options.colorBySet         -value 1
 set_charts_property -plot $plot1 -name dataLabel.visible          -value 1
@@ -43,7 +43,7 @@ set_charts_property -plot $plot1 -name "yaxis.grid.line.major.visible" -value 1
 set_charts_property -plot $plot1 -name key.insideY                -value 0
 set_charts_property -plot $plot1 -name key.location               -value bc
 set_charts_property -plot $plot1 -name key.horizontal             -value 1
-set_charts_property -plot $plot1 -name key.background.visible     -value 0
+set_charts_property -plot $plot1 -name key.fill.visible           -value 0
 set_charts_property -plot $plot1 -name key.border.visible         -value 0
 #set_charts_property -plot $plot1 -name key.text.color             -value "interface:1"
 set_charts_property -plot $plot1 -name title.text.font            -value "FreeSans,18,-1,5,63,0,0,0,0,0"
@@ -66,8 +66,8 @@ set plot3 [create_plot -type xy -columns "x=0,y=3" -title "Profit"]
 set_charts_property -plot $plot3 -name fillUnder.visible -value 1
 set_charts_property -plot $plot3 -name fillUnder.color   -value "palette:2:s"
 
-set_charts_property -plot $plot3 -name points.symbol.type  -value circle
-set_charts_property -plot $plot3 -name points.symbol.size  -value 6px
+set_charts_property -plot $plot3 -name points.symbol.type         -value circle
+set_charts_property -plot $plot3 -name points.symbol.size         -value 6px
 set_charts_property -plot $plot3 -name points.symbol.stroke.color -value white
 set_charts_property -plot $plot3 -name points.symbol.stroke.width -value 3px
 set_charts_property -plot $plot3 -name points.symbol.fill.visible -value 1

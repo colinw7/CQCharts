@@ -1,6 +1,9 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsModelData.h>
 #include <CQChartsVariant.h>
+#include <CQChartsPolygonList.h>
+#include <CQChartsConnectionList.h>
+#include <CQChartsNamePair.h>
 #include <CQCharts.h>
 
 CQChartsColumnTypeMgr::
@@ -639,6 +642,174 @@ dataName(const QVariant &var, const CQChartsNameValues &, bool &converted) const
   }
 
   return var; // TODO: other var formats
+}
+
+//------
+
+QVariant
+CQChartsColumnPolygonListType::
+userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  if (isPolygonListVariant(var))
+    return var;
+
+  converted = true;
+
+  QString str = var.toString();
+
+  CQChartsPolygonList polyList(str);
+
+  return QVariant::fromValue<CQChartsPolygonList>(polyList);
+}
+
+QVariant
+CQChartsColumnPolygonListType::
+dataName(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  converted = true;
+
+  if (isPolygonListVariant(var)) {
+    CQChartsPolygonList polyList = var.value<CQChartsPolygonList>();
+
+    return polyList.toString();
+  }
+
+  return var; // TODO: other var formats
+}
+
+bool
+CQChartsColumnPolygonListType::
+isPolygonListVariant(const QVariant &var) const
+{
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsPolygonList::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+//------
+
+QVariant
+CQChartsColumnConnectionListType::
+userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  if (isConnectionListVariant(var))
+    return var;
+
+  converted = true;
+
+  QString str = var.toString();
+
+  CQChartsConnectionList connectionList(str);
+
+  return QVariant::fromValue<CQChartsConnectionList>(connectionList);
+}
+
+QVariant
+CQChartsColumnConnectionListType::
+dataName(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  converted = true;
+
+  if (isConnectionListVariant(var)) {
+    CQChartsConnectionList connectionList = var.value<CQChartsConnectionList>();
+
+    return connectionList.toString();
+  }
+
+  return var; // TODO: other var formats
+}
+
+bool
+CQChartsColumnConnectionListType::
+isConnectionListVariant(const QVariant &var) const
+{
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsConnectionList::metaTypeId)
+      return true;
+  }
+
+  return false;
+}
+
+//------
+
+QVariant
+CQChartsColumnNamePairType::
+userData(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  if (isNamePairVariant(var))
+    return var;
+
+  converted = true;
+
+  QString str = var.toString();
+
+  CQChartsNamePair namePair(str);
+
+  if (! namePair.isValid())
+    return QVariant();
+
+  return QVariant::fromValue<CQChartsNamePair>(namePair);
+}
+
+QVariant
+CQChartsColumnNamePairType::
+dataName(const QVariant &var, const CQChartsNameValues &, bool &converted) const
+{
+  if (! var.isValid())
+    return var;
+
+  converted = true;
+
+  if (isNamePairVariant(var)) {
+    CQChartsNamePair namePair = var.value<CQChartsNamePair>();
+
+    if (! namePair.isValid())
+      return "";
+
+    return namePair.toString();
+  }
+
+  return var; // TODO: other var formats
+}
+
+bool
+CQChartsColumnNamePairType::
+isNamePairVariant(const QVariant &var) const
+{
+  if (! var.isValid())
+    return false;
+
+  if (var.type() == QVariant::UserType) {
+    if (var.userType() == CQChartsNamePair::metaTypeId)
+      return true;
+  }
+
+  return false;
 }
 
 //------

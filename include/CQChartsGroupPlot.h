@@ -14,6 +14,8 @@ class CQChartsGroupPlotType : public CQChartsPlotType {
 
   //---
 
+  bool isGroupType() const override { return true; }
+
   virtual bool isGroupRequired() const { return false; }
 
   virtual bool allowRowGrouping() const { return true; }
@@ -111,8 +113,6 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   void setModelGroupInd(const CQChartsModelIndex &ind, int groupInd);
 
-  void printGroup() const;
-
   const CQChartsColumnBucket &groupBucket() const { return groupBucket_; }
 
   bool isGroupHeaders() const {
@@ -123,7 +123,9 @@ class CQChartsGroupPlot : public CQChartsPlot {
     return (groupBucket().dataType() == CQChartsColumnBucket::DataType::PATH);
   }
 
-  int numGroups() const { return groupBucket_.numUnique(); }
+  int numGroups() const;
+
+  void printGroup() const;
 
  private:
   bool rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &ids, bool hier) const;

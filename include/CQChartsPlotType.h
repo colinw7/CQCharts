@@ -12,6 +12,7 @@
 class CQChartsPlotType;
 class CQChartsView;
 class CQChartsPlot;
+class CQChartsModelColumnDetails;
 
 class CQChartsPlotTypeMgr {
  public:
@@ -49,7 +50,7 @@ class CQChartsPlotType : public QObject {
   Q_ENUMS(Dimension)
 
  public:
-  using Parameters          = std::vector<CQChartsPlotParameter>;
+  using Parameters          = std::vector<CQChartsPlotParameter *>;
   using ParameterGroups     = std::map<int,CQChartsPlotParameterGroup>;
   using ParameterAttributes = CQChartsPlotParameterAttributes;
   using ModelP              = QSharedPointer<QAbstractItemModel>;
@@ -63,7 +64,7 @@ class CQChartsPlotType : public QObject {
  public:
   CQChartsPlotType();
 
-  virtual ~CQChartsPlotType() { }
+  virtual ~CQChartsPlotType();
 
   // type name and description
   virtual QString name() const = 0;
@@ -132,7 +133,7 @@ class CQChartsPlotType : public QObject {
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,
                    const ParameterAttributes &attributes, bool defValue);
 
-  CQChartsPlotParameter &addParameter(const CQChartsPlotParameter &parameter);
+  CQChartsPlotParameter &addParameter(CQChartsPlotParameter *parameter);
 
   //---
 
@@ -155,7 +156,14 @@ class CQChartsPlotType : public QObject {
 
   virtual QString description() const { return QString(); }
 
+  virtual bool isGroupType() const { return false; }
+
   virtual bool isHierarchical() const { return false; }
+
+  //---
+
+  virtual bool isColumnForParameter(CQChartsModelColumnDetails *,
+                                    CQChartsPlotParameter *) const { return true; }
 
   //---
 

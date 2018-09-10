@@ -2,6 +2,7 @@
 #define CQChartsPlotData_H
 
 #include <CQChartsData.h>
+#include <CQChartsInvalidator.h>
 #include <CQChartsUtil.h>
 
 #define CQCHARTS_LINE_DATA_PROPERTIES \
@@ -78,11 +79,11 @@ Q_PROPERTY(CQChartsLength   LNAME##LinesWidth READ LNAME##LinesWidth WRITE set##
 Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##UNAME##LinesDash )
 
 #define CQCHARTS_NAMED_LINE_DATA(UNAME,LNAME) \
-template<class PLOT> \
+template<class OBJ> \
 class CQChartsPlot##UNAME##LineData { \
  public: \
-  CQChartsPlot##UNAME##LineData(PLOT *plot) : \
-   LNAME##Plot_(plot) { \
+  CQChartsPlot##UNAME##LineData(OBJ *obj) : \
+   LNAME##LineDataObj_(obj) { \
   } \
 \
   bool is##UNAME##Lines() const { return LNAME##LineData_.visible; } \
@@ -98,7 +99,7 @@ class CQChartsPlot##UNAME##LineData { \
   } \
 \
   QColor interp##UNAME##LinesColor(int i, int n) const { \
-    return LNAME##LinesColor().interpColor(LNAME##Plot_, i, n); \
+    return LNAME##LinesColor().interpColor(LNAME##LineDataObj_, i, n); \
   } \
 \
   double LNAME##LinesAlpha() const { return LNAME##LineData_.alpha; } \
@@ -122,20 +123,17 @@ class CQChartsPlot##UNAME##LineData { \
   void set##UNAME##LineDataPen(QPen &pen, int i, int n) { \
     QColor lc = interp##UNAME##LinesColor(i, n); \
 \
-    LNAME##Plot_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
-                         LNAME##LinesWidth(), LNAME##LinesDash()); \
+    LNAME##LineDataObj_->setPen(pen, is##UNAME##Lines(), lc, LNAME##LinesAlpha(), \
+                                LNAME##LinesWidth(), LNAME##LinesDash()); \
   } \
 \
  private: \
   void LNAME##LineDataInvalidate(bool reload=false) { \
-    if (reload) \
-      LNAME##Plot_->updateRangeAndObjs(); \
-    else \
-      LNAME##Plot_->invalidateLayers(); \
+    CQChartsInvalidator(LNAME##LineDataObj_).invalidate(reload); \
   } \
 \
  private: \
-  PLOT* LNAME##Plot_ { nullptr }; \
+  OBJ* LNAME##LineDataObj_ { nullptr }; \
 \
  protected: \
   CQChartsLineData LNAME##LineData_; \
@@ -183,12 +181,12 @@ class CQChartsPlotPointData {
 
   const CQChartsSymbol &symbolType() const { return pointData_.type; }
   void setSymbolType(const CQChartsSymbol &t) {
-    CQChartsUtil::testAndSet(pointData_.type, t, [&]() { pointDataInvalidate(); } );
+    CQChartsUtil::testAndSet(pointData_.type, t, [&]() { pointDataInvalidate(true); } );
   }
 
   const CQChartsLength &symbolSize() const { return pointData_.size; }
   void setSymbolSize(const CQChartsLength &s) {
-    CQChartsUtil::testAndSet(pointData_.size, s, [&]() { pointDataInvalidate(); } );
+    CQChartsUtil::testAndSet(pointData_.size, s, [&]() { pointDataInvalidate(true); } );
   }
 
   bool isSymbolStroked() const { return pointData_.stroke.visible; }
@@ -429,11 +427,11 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
            READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
 #define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
-template<class PLOT> \
+template<class OBJ> \
 class CQChartsPlot##UNAME##FillData { \
  public: \
-  CQChartsPlot##UNAME##FillData(PLOT *plot) : \
-   LNAME##Plot_(plot) { \
+  CQChartsPlot##UNAME##FillData(OBJ *obj) : \
+   LNAME##FillDataObj_(obj) { \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##FillData_.visible; } \
@@ -449,7 +447,7 @@ class CQChartsPlot##UNAME##FillData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##Plot_, i, n); \
+    return LNAME##FillColor().interpColor(LNAME##FillDataObj_, i, n); \
   } \
 \
   double LNAME##FillAlpha() const { return LNAME##FillData_.alpha; } \
@@ -466,14 +464,11 @@ class CQChartsPlot##UNAME##FillData { \
 \
  private: \
   void LNAME##FillDataInvalidate(bool reload=false) { \
-    if (reload) \
-      LNAME##Plot_->updateRangeAndObjs(); \
-    else \
-      LNAME##Plot_->invalidateLayers(); \
+    CQChartsInvalidator(LNAME##FillDataObj_).invalidate(reload); \
   } \
 \
  private: \
-  PLOT* LNAME##Plot_ { nullptr }; \
+  OBJ* LNAME##FillDataObj_ { nullptr }; \
 \
  protected: \
   CQChartsFillData LNAME##FillData_; \
@@ -574,6 +569,8 @@ Q_PROPERTY(CQChartsColor LNAME##TextColor \
            READ LNAME##TextColor         WRITE set##UNAME##TextColor    ) \
 Q_PROPERTY(double        LNAME##TextAlpha \
            READ LNAME##TextAlpha         WRITE set##UNAME##TextAlpha    ) \
+Q_PROPERTY(double        LNAME##TextAngle \
+           READ LNAME##TextAngle         WRITE set##UNAME##TextAngle    ) \
 Q_PROPERTY(bool          LNAME##TextContrast \
            READ is##UNAME##TextContrast  WRITE set##UNAME##TextContrast ) \
 Q_PROPERTY(Qt::Alignment LNAME##TextAlign \
@@ -584,11 +581,11 @@ Q_PROPERTY(bool          LNAME##TextScaled \
            READ is##UNAME##TextScaled    WRITE set##UNAME##TextScaled   )
 
 #define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
-template<class PLOT> \
+template<class OBJ> \
 class CQChartsPlot##UNAME##TextData { \
  public: \
-  CQChartsPlot##UNAME##TextData(PLOT *plot) : \
-   LNAME##TextDataPlot_(plot) { \
+  CQChartsPlot##UNAME##TextData(OBJ *obj) : \
+   LNAME##TextDataObj_(obj) { \
   } \
 \
   bool is##UNAME##TextVisible() const { return LNAME##TextData_.visible; } \
@@ -615,8 +612,14 @@ class CQChartsPlot##UNAME##TextData { \
      LNAME##TextDataInvalidate(); } ); \
   } \
 \
+  double LNAME##TextAngle() const { return LNAME##TextData_.angle; } \
+  void set##UNAME##TextAngle(double a) { \
+    CQChartsUtil::testAndSet(LNAME##TextData_.angle, a, [&]() { \
+     LNAME##TextDataInvalidate(); } ); \
+  } \
+\
   QColor interp##UNAME##TextColor(int i, int n) const { \
-    return LNAME##TextColor().interpColor(LNAME##TextDataPlot_, i, n); \
+    return LNAME##TextColor().interpColor(LNAME##TextDataObj_, i, n); \
   } \
 \
   bool is##UNAME##TextContrast() const { return LNAME##TextData_.contrast; } \
@@ -645,14 +648,11 @@ class CQChartsPlot##UNAME##TextData { \
 \
  private: \
   void LNAME##TextDataInvalidate(bool reload=false) { \
-    if (reload) \
-      LNAME##TextDataPlot_->updateRangeAndObjs(); \
-    else \
-      LNAME##TextDataPlot_->invalidateLayers(); \
+    CQChartsInvalidator(LNAME##TextDataObj_).invalidate(reload); \
   } \
 \
  private: \
-  PLOT* LNAME##TextDataPlot_ { nullptr }; \
+  OBJ* LNAME##TextDataObj_ { nullptr }; \
 \
  protected: \
   CQChartsTextData LNAME##TextData_; \

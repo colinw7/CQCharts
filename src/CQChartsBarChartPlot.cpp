@@ -1,7 +1,6 @@
 #include <CQChartsBarChartPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
-#include <CQChartsBoxObj.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
@@ -263,14 +262,19 @@ calcRange()
   //---
 
   int ns = (! isRangeBar() ? numValueColumns() : 1);
-
   int nv = numValueSets();
+
+  int ng = numGroups();
 
   int numVisible = 0;
 
-  if      (ns > 1) {
+  if      (ns > 1 && ! isRowGrouping()) {
     for (int is = 0; is < ns; ++is)
       numVisible += ! isSetHidden(is);
+  }
+  else if (ng > 1) {
+    for (int ig = 0; ig < ng; ++ig)
+      numVisible += ! isSetHidden(ig);
   }
   else if (ns == 1) {
     if      (nv > 1) {
@@ -288,8 +292,6 @@ calcRange()
   }
 
   //---
-
-  int ng = numGroups();
 
   if (ng > 0) {
     if (! isHorizontal())

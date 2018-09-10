@@ -72,10 +72,10 @@ set view3 [create_view]
 
 set plot3 [create_plot -view $view3 -model $corrModel -type image]
 
-set_charts_property -plot $plot3 -name labels.x    -value 1
-set_charts_property -plot $plot3 -name labels.y    -value 1
-set_charts_property -plot $plot3 -name labels.cell -value 1
-set_charts_property -plot $plot3 -name invert.y    -value 1
+set_charts_property -plot $plot3 -name labels.x.visible    -value 1
+set_charts_property -plot $plot3 -name labels.y.visible    -value 1
+set_charts_property -plot $plot3 -name labels.cell.visible -value 1
+set_charts_property -plot $plot3 -name invert.y            -value 1
 
 #---
 

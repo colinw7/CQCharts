@@ -106,19 +106,22 @@ CQChartsWindow(CQChartsView *view) :
   QVBoxLayout *tableLayout = new QVBoxLayout(tableFrame);
   tableLayout->setMargin(0); tableLayout->setSpacing(2);
 
-  CQChartsFilterEdit *filterEdit = new CQChartsFilterEdit;
+  filterEdit_ = new CQChartsFilterEdit;
 
-  connect(filterEdit, SIGNAL(replaceFilter(const QString &)), this,
-          SLOT(replaceFilterSlot(const QString &)));
-  connect(filterEdit, SIGNAL(addFilter(const QString &)), this,
-          SLOT(addFilterSlot(const QString &)));
+  connect(filterEdit_, SIGNAL(filterAnd(bool)),
+          this, SLOT(filterAndSlot(bool)));
 
-  connect(filterEdit, SIGNAL(replaceSearch(const QString &)),
+  connect(filterEdit_, SIGNAL(replaceFilter(const QString &)),
+          this, SLOT(replaceFilterSlot(const QString &)));
+  connect(filterEdit_, SIGNAL(addFilter(const QString &)),
+          this, SLOT(addFilterSlot(const QString &)));
+
+  connect(filterEdit_, SIGNAL(replaceSearch(const QString &)),
           this, SLOT(replaceSearchSlot(const QString &)));
-  connect(filterEdit, SIGNAL(addSearch(const QString &)),
+  connect(filterEdit_, SIGNAL(addSearch(const QString &)),
           this, SLOT(addSearchSlot(const QString &)));
 
-  tableLayout->addWidget(filterEdit);
+  tableLayout->addWidget(filterEdit_);
 
   modelView_ = new CQChartsModelView(view_->charts());
 
@@ -256,9 +259,24 @@ setSelText(const QString &text)
 
 void
 CQChartsWindow::
+filterAndSlot(bool b)
+{
+  modelView_->setFilterAnd(b);
+
+  QString details = modelView_->filterDetails();
+
+  filterEdit_->setFilterDetails(details);
+}
+
+void
+CQChartsWindow::
 replaceFilterSlot(const QString &text)
 {
   modelView_->setFilter(text);
+
+  QString details = modelView_->filterDetails();
+
+  filterEdit_->setFilterDetails(details);
 }
 
 void
@@ -266,6 +284,10 @@ CQChartsWindow::
 addFilterSlot(const QString &text)
 {
   modelView_->addFilter(text);
+
+  QString details = modelView_->filterDetails();
+
+  filterEdit_->setFilterDetails(details);
 }
 
 void

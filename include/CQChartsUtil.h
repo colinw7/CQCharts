@@ -22,6 +22,7 @@ using CQChartsNameValues = std::map<QString,QString>;
 class CQCharts;
 class CQChartsColumnType;
 class CQDataModel;
+class CQStrParse;
 
 namespace CQChartsUtil {
 
@@ -388,16 +389,22 @@ std::vector<double> stringToReals(const QString &str, bool &ok);
 
 //---
 
-bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polys);
+int countLeadingBraces(const QString &str);
+
+QString polygonListToString(const std::vector<QPolygonF> &polyList);
+bool stringToPolygons(const QString &str, std::vector<QPolygonF> &polyList);
 
 QString polygonToString(const QPolygonF &poly);
-bool stringToPolygon (const QString &str, QPolygonF &poly );
+bool stringToPolygon(const QString &str, QPolygonF &poly );
 
 QString rectToString(const QRectF &rect);
 bool stringToRect(const QString &str, QRectF &rect);
 
 QString pointToString(const QPointF &p);
 bool stringToPoint(const QString &str, QPointF &point);
+
+bool parseRect (CQStrParse &parse, QRectF &rect);
+bool parsePoint(CQStrParse &parse, QPointF &point);
 
 //------
 

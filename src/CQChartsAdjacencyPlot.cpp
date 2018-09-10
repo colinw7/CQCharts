@@ -5,9 +5,9 @@
 #include <CQCharts.h>
 #include <CQChartsRotatedText.h>
 #include <CQChartsRoundedPolygon.h>
+#include <CQChartsNamePair.h>
 #include <CQChartsTip.h>
 
-#include <CQStrParse.h>
 #include <QPainter>
 
 CQChartsAdjacencyPlotType::
@@ -21,19 +21,29 @@ addParameters()
 {
   // connections are list of node ids/counts
   startParameterGroup("Connection List");
+
+  addColumnParameter("node", "Node", "nodeColumn").
+    setTip("Node Id Column");
+
   addColumnParameter("connections", "Connections", "connectionsColumn").
    setTip("List of Connection Pairs (Ids from id column and connection count)");
+
   endParameterGroup();
+
+  //---
 
   // connections are id pairs and counts
   startParameterGroup("Name Pair/Count");
+
   addColumnParameter("namePair", "NamePair", "namePairColumn").
-    setTip("Name Pairs (<name1>/<name2>)");
+    setTip("Connected Name Pairs (<name1>/<name2>)");
+
   addColumnParameter("count", "Count", "countColumn").setTip("Connection Count");
+
   endParameterGroup();
 
-  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Name For Id");
-  addColumnParameter("group", "Group", "groupColumn").setTip("Group Id for Color");
+  addColumnParameter("name"   , "Name"   , "nameColumn"   ).setTip("Name For Id");
+  addColumnParameter("groupId", "GroupId", "groupIdColumn").setTip("Group Id for Color");
 
   //---
 
@@ -101,9 +111,23 @@ CQChartsAdjacencyPlot::
 
 void
 CQChartsAdjacencyPlot::
+setNodeColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nodeColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
 setConnectionsColumn(const CQChartsColumn &c)
 {
   CQChartsUtil::testAndSet(connectionsColumn_, c, [&]() { updateRangeAndObjs(); } );
+}
+
+void
+CQChartsAdjacencyPlot::
+setNameColumn(const CQChartsColumn &c)
+{
+  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -122,16 +146,9 @@ setCountColumn(const CQChartsColumn &c)
 
 void
 CQChartsAdjacencyPlot::
-setNameColumn(const CQChartsColumn &c)
+setGroupIdColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
-}
-
-void
-CQChartsAdjacencyPlot::
-setGroupColumn(const CQChartsColumn &c)
-{
-  CQChartsUtil::testAndSet(groupColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(groupIdColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -162,11 +179,14 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
+  addProperty("columns", this, "nodeColumn"       , "node"      );
   addProperty("columns", this, "connectionsColumn", "connections");
-  addProperty("columns", this, "namePairColumn"   , "namePair"   );
-  addProperty("columns", this, "countColumn"      , "count"      );
   addProperty("columns", this, "nameColumn"       , "name"       );
-  addProperty("columns", this, "groupColumn"      , "group"      );
+
+  addProperty("columns", this, "namePairColumn", "namePair");
+  addProperty("columns", this, "countColumn"   , "count"   );
+
+  addProperty("columns", this, "groupIdColumn", "groupId");
 
   addProperty("options", this, "sortType", "sort"  );
   addProperty("options", this, "bgMargin", "margin");
@@ -193,6 +213,13 @@ calcRange()
   double r = 1.0;
 
   dataRange_.reset();
+
+  //---
+
+  connectionsColumnType_ = columnValueType(connectionsColumn());
+  namePairColumnType_    = columnValueType(namePairColumn   ());
+
+  //---
 
   dataRange_.updateRange(0, 0);
   dataRange_.updateRange(r, r);
@@ -243,10 +270,6 @@ bool
 CQChartsAdjacencyPlot::
 initHierObjs()
 {
-  using NameNodeMap = std::map<QString,CQChartsAdjacencyNode *>;
-
-  //---
-
   class RowVisitor : public ModelVisitor {
    public:
     RowVisitor(CQChartsAdjacencyPlot *plot) :
@@ -254,97 +277,88 @@ initHierObjs()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      bool ok1;
+      int group = data.row;
 
-      QString linkStr = plot_->modelString(data.row, plot_->namePairColumn(), data.parent, ok1);
+      if (plot_->groupIdColumn().isValid()) {
+        bool ok1;
 
-      if (! ok1)
-        return State::SKIP;
+        group = plot_->modelInteger(data.row, plot_->groupIdColumn(), data.parent, ok1);
+
+        if (! ok1)
+          group = data.row;
+      }
 
       //---
 
       bool ok2;
 
-      double value = plot_->modelReal(data.row, plot_->countColumn(), data.parent, ok2);
+      CQChartsNamePair namePair;
 
-      if (! ok2)
+      if (plot_->namePairColumnType() == ColumnType::NAME_PAIR) {
+        QVariant namePairVar =
+          plot_->modelValue(data.row, plot_->namePairColumn(), data.parent, ok2);
+
+        if (! ok2)
+          return State::SKIP;
+
+        namePair = namePairVar.value<CQChartsNamePair>();
+      }
+      else {
+        QString namePairStr =
+          plot_->modelString(data.row, plot_->namePairColumn(), data.parent, ok2);
+
+        if (! ok2)
+          return State::SKIP;
+
+        namePair = CQChartsNamePair(namePairStr);
+      }
+
+      if (! namePair.isValid())
         return State::SKIP;
 
       //---
 
-      int group = data.row;
+      bool ok3;
 
-      if (plot_->groupColumn().isValid()) {
-        bool ok3;
+      double count = plot_->modelReal(data.row, plot_->countColumn(), data.parent, ok3);
 
-        group = plot_->modelInteger(data.row, plot_->groupColumn(), data.parent, ok3);
+      if (! ok3)
+        return State::SKIP;
 
-        if (! ok3)
-          group = data.row;
-      }
+      //---
+
+      QString srcStr  = namePair.name1();
+      QString destStr = namePair.name2();
+
+      CQChartsAdjacencyNode *srcNode  = plot_->getNodeByName(srcStr );
+      CQChartsAdjacencyNode *destNode = plot_->getNodeByName(destStr);
+
+      srcNode->addNode(destNode, count);
 
       //---
 
       QModelIndex nameInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
       QModelIndex nameInd1 = plot_->normalizeIndex(nameInd);
 
-      int pos = linkStr.indexOf("/");
-
-      if (pos == -1)
-        return State::SKIP;
-
-      QString srcStr  = linkStr.mid(0, pos ).simplified();
-      QString destStr = linkStr.mid(pos + 1).simplified();
-
-      auto ps = nameNodeMap_.find(srcStr);
-
-      if (ps == nameNodeMap_.end()) {
-        int id = nameNodeMap_.size();
-
-        CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, srcStr, group, nameInd1);
-
-        ps = nameNodeMap_.insert(ps, NameNodeMap::value_type(srcStr, node));
-      }
-
-      auto pd = nameNodeMap_.find(destStr);
-
-      if (pd == nameNodeMap_.end()) {
-        int id = nameNodeMap_.size();
-
-        CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, destStr, 0, QModelIndex());
-
-        pd = nameNodeMap_.insert(pd, NameNodeMap::value_type(destStr, node));
-      }
-
-      //---
-
-      CQChartsAdjacencyNode *srcNode  = (*ps).second;
-      CQChartsAdjacencyNode *destNode = (*pd).second;
-
       srcNode->setGroup(group);
       srcNode->setInd  (nameInd1);
-
-      srcNode->addNode(destNode, value);
 
       return State::OK;
     }
 
-    const NameNodeMap &nameNodeMap() const { return nameNodeMap_; }
-
    private:
     CQChartsAdjacencyPlot *plot_ { nullptr };
-    NameNodeMap            nameNodeMap_;
   };
+
+  nameNodeMap_.clear();
 
   RowVisitor visitor(this);
 
   visitModel(visitor);
 
-  NameNodeMap nameNodeMap = visitor.nameNodeMap();
-
   //---
 
-  for (const auto &nameNode : nameNodeMap) {
+  for (const auto &nameNode : nameNodeMap_) {
     CQChartsAdjacencyNode *node = nameNode.second;
 
     nodes_[node->id()] = node;
@@ -415,54 +429,12 @@ initConnectionObjs()
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      bool ok1;
-
-      int id = plot_->modelInteger(data.row, plot_->idColumn(), data.parent, ok1);
-
-      if (! ok1) id = data.row;
-
-      //---
-
-      bool ok2;
-
-      int group = plot_->modelInteger(data.row, plot_->groupColumn(), data.parent, ok2);
-
-      if (! ok2) group = data.row;
-
-      //---
-
-      bool ok3;
-
-      QString connectionsStr =
-        plot_->modelString(data.row, plot_->connectionsColumn(), data.parent, ok3);
-
-      if (! ok3)
-        return State::SKIP;
-
-      //----
-
-      bool ok4;
-
-      QString name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok4);
-
-      if (! name.length())
-        name = QString("%1").arg(id);
-
-      //---
-
-      QModelIndex nodeInd  = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
-      QModelIndex nodeInd1 = plot_->normalizeIndex(nodeInd);
-
       ConnectionsData connections;
 
-      connections.ind   = nodeInd1;
-      connections.node  = id;
-      connections.name  = name;
-      connections.group = group;
+      if (! plot_->getRowConnections(data, connections))
+        return State::SKIP;
 
-      plot_->decodeConnections(connectionsStr, connections.connections);
-
-      idConnections_[id] = connections;
+      idConnections_[connections.node] = connections;
 
       return State::OK;
     }
@@ -559,6 +531,69 @@ initConnectionObjs()
   return true;
 }
 
+bool
+CQChartsAdjacencyPlot::
+getRowConnections(const ModelVisitor::VisitData &data, ConnectionsData &connections)
+{
+  // get optional group id
+  bool ok2;
+
+  int group = modelInteger(data.row, groupIdColumn(), data.parent, ok2);
+
+  if (! ok2) group = data.row;
+
+  //---
+
+  // get optional id
+  bool ok1;
+
+  int id = modelInteger(data.row, nodeColumn(), data.parent, ok1);
+
+  if (! ok1) id = data.row;
+
+  //---
+
+  // get connections
+  bool ok3;
+
+  if (connectionsColumnType_ == ColumnType::CONNECTION_LIST) {
+    QVariant connectionsVar = modelValue(data.row, connectionsColumn(), data.parent, ok3);
+
+    connections.connections = connectionsVar.value<CQChartsConnectionList>().connections();
+  }
+  else {
+    QString connectionsStr = modelString(data.row, connectionsColumn(), data.parent, ok3);
+
+    if (! ok3)
+      return false;
+
+    decodeConnections(connectionsStr, connections.connections);
+  }
+
+  //----
+
+  // get optional name
+  bool ok4;
+
+  QString name = modelString(data.row, nameColumn(), data.parent, ok4);
+
+  if (! name.length())
+    name = QString("%1").arg(id);
+
+  //---
+
+  // return connections data
+  QModelIndex nodeInd  = modelIndex(data.row, nodeColumn(), data.parent);
+  QModelIndex nodeInd1 = normalizeIndex(nodeInd);
+
+  connections.ind   = nodeInd1;
+  connections.node  = id;
+  connections.name  = name;
+  connections.group = group;
+
+  return true;
+}
+
 void
 CQChartsAdjacencyPlot::
 sortNodes()
@@ -602,77 +637,29 @@ sortNodes()
 
 bool
 CQChartsAdjacencyPlot::
-decodeConnections(const QString &str, ConnectionDataArray &connections)
+decodeConnections(const QString &str, Connections &connections)
 {
-  // connections are { <connection> <connection> ... }
-  CQStrParse parse(str);
+  return CQChartsConnectionList::stringToConnections(str, connections);
+}
 
-  parse.skipSpace();
+CQChartsAdjacencyNode *
+CQChartsAdjacencyPlot::
+getNodeByName(const QString &str)
+{
+  auto p = nameNodeMap_.find(str);
 
-  if (! parse.isChar('{'))
-    return false;
+  if (p == nameNodeMap_.end()) {
+    int id = nameNodeMap_.size();
 
-  parse.skipChar();
+    CQChartsAdjacencyNode *node = new CQChartsAdjacencyNode(id, str, 0, QModelIndex());
 
-  while (! parse.isChar('}')) {
-    parse.skipSpace();
-
-    QString str1;
-
-    if (! parse.readBracedString(str1))
-      return false;
-
-    ConnectionData connection;
-
-    if (! decodeConnection(str1, connection))
-      return false;
-
-    connections.push_back(connection);
-
-    parse.skipSpace();
+    p = nameNodeMap_.insert(p, NameNodeMap::value_type(str, node));
   }
 
-  if (parse.isChar('}'))
-    parse.skipChar();
-
-  return true;
+  return (*p).second;
 }
 
-bool
-CQChartsAdjacencyPlot::
-decodeConnection(const QString &str, ConnectionData &connection)
-{
-  // connection is { <node> <count> }
-  CQStrParse parse(str);
-
-  parse.skipSpace();
-
-  QString str1;
-
-  if (! parse.readNonSpace(str1))
-    return false;
-
-  parse.skipSpace();
-
-  QString str2;
-
-  if (! parse.readNonSpace(str2))
-    return false;
-
-  long node;
-
-  if (! CQChartsUtil::toInt(str1, node))
-    return false;
-
-  long count;
-
-  if (! CQChartsUtil::toInt(str2, count))
-    return false;
-
-  connection = ConnectionData(node, count);
-
-  return true;
-}
+//---
 
 void
 CQChartsAdjacencyPlot::
@@ -737,7 +724,7 @@ drawBackground(QPainter *painter)
 
   QColor tc = interpTextColor(0, 1);
 
-  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  setPen(tpen, true, tc, textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(tpen);
 

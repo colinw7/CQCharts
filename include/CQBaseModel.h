@@ -53,8 +53,12 @@ class CQBaseModel : public QAbstractItemModel {
     BRUSH   = QVariant::Brush,
     IMAGE   = QVariant::Image,
     TIME    = QVariant::Time,
-    PATH    = QVariant::UserType + 101,
-    STYLE   = QVariant::UserType + 102
+
+    PATH            = QVariant::UserType + 101,
+    STYLE           = QVariant::UserType + 102,
+    POLYGON_LIST    = QVariant::UserType + 103,
+    CONNECTION_LIST = QVariant::UserType + 104,
+    NAME_PAIR       = QVariant::UserType + 105
   };
 
  protected:

@@ -5,6 +5,7 @@
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
 #include <CQChartsValueSet.h>
+#include <CQChartsNamePair.h>
 #include <QPainter>
 
 //---
@@ -484,16 +485,16 @@ initHierObjs()
       //---
 
       // decode link into src and dest
-      int pos = linkStr.indexOf("/");
+      CQChartsNamePair namePair(linkStr);
 
-      if (pos == -1)
+      if (! namePair.isValid())
         return State::SKIP;
 
       QModelIndex linkInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
       QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
-      QString srcStr  = linkStr.mid(0, pos ).simplified();
-      QString destStr = linkStr.mid(pos + 1).simplified();
+      QString srcStr  = namePair.name1();
+      QString destStr = namePair.name2();
 
       // find src (create if doesn't exist)
       auto ps = nameDataMap_.find(srcStr);
@@ -926,7 +927,7 @@ drawFg(QPainter *painter)
 
   QColor bg = plot_->interpPaletteColor(i_, n_);
 
-  plot_->setPen(lpen, true, bg, 1.0, CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(lpen, true, bg, 1.0, CQChartsLength("0px"));
 
   plot_->textBox()->drawConnectedRadialText(painter, center, ro, lr1, ta, data_.name(),
                                             lpen, /*isRotated*/false);

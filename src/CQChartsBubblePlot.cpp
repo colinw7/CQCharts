@@ -2,7 +2,6 @@
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsTip.h>
 
 #include <QPainter>
@@ -139,6 +138,7 @@ addProperties()
 
   // options
   addProperty("options", this, "valueLabel");
+  addProperty("options", this, "sorted"    );
 
   // stroke
   addProperty("stroke", this, "border", "visible");
@@ -152,6 +152,9 @@ addProperties()
 
   // text
   addTextProperties("text", "text");
+
+  addProperty("text", this, "textScaled"   , "scaled"   );
+  addProperty("text", this, "textFormatted", "formatted");
 
   // color map
   addColorMapProperties();
@@ -838,7 +841,7 @@ draw(QPainter *painter)
 
   QColor tc = plot_->interpTextColor(0, 1);
 
-  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(tpen, true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
   plot_->updateObjPenBrushState(this, tpen, brush);
 
@@ -918,7 +921,8 @@ draw(QPainter *painter)
 
   CQChartsTextOptions textOptions;
 
-  textOptions.contrast = plot_->isTextContrast();
+  textOptions.contrast  = plot_->isTextContrast ();
+  textOptions.formatted = plot_->isTextFormatted();
 
   if      (strs.size() == 1)
     plot_->drawTextAtPoint(painter, QPointF(px1, py1), name, tpen, textOptions);
@@ -1002,7 +1006,8 @@ packNodes()
     packNodes.push_back(node);
 
   // sort nodes
-  std::sort(packNodes.begin(), packNodes.end(), CQChartsBubbleNodeCmp());
+  if (plot_->isSorted())
+    std::sort(packNodes.begin(), packNodes.end(), CQChartsBubbleNodeCmp());
 
   // pack nodes
   for (auto &packNode : packNodes)

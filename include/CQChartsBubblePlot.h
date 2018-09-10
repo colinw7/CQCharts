@@ -258,6 +258,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   // options
   Q_PROPERTY(bool valueLabel READ isValueLabel WRITE setValueLabel)
+  Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
 
   // shape
   CQCHARTS_SHAPE_DATA_PROPERTIES
@@ -289,6 +290,11 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
 
   bool isValueLabel() const { return valueLabel_; }
   void setValueLabel(bool b);
+
+  //---
+
+  bool isSorted() const { return sorted_; }
+  void setSorted(bool b) { sorted_ = b; }
 
   //---
 
@@ -413,6 +419,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   CQChartsColumn          nameColumn_  { 0 };       // name column
   CQChartsColumn          valueColumn_;             // value column
   bool                    valueLabel_  { false };   // draw value with name
+  bool                    sorted_      { false };   // sort nodes by value
   CQChartsGeom::Point     offset_      { 0, 0 };    // draw offset
   double                  scale_       { 1.0 };     // draw scale
   int                     colorId_     { -1 };      // current color id

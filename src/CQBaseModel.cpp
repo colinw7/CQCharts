@@ -19,23 +19,26 @@ void addType(CQBaseModel::Type type, const QString &name) {
 
 void initTypes() {
   if (s_typeName.empty()) {
-    addType(CQBaseModel::Type::BOOLEAN, "boolean");
-    addType(CQBaseModel::Type::INTEGER, "integer");
-    addType(CQBaseModel::Type::REAL   , "real"   );
-    addType(CQBaseModel::Type::STRING , "string" );
-    addType(CQBaseModel::Type::STRINGS, "strings");
-    addType(CQBaseModel::Type::POINT  , "point"  );
-    addType(CQBaseModel::Type::LINE   , "line"   );
-    addType(CQBaseModel::Type::RECT   , "rect"   );
-    addType(CQBaseModel::Type::SIZE   , "size"   );
-    addType(CQBaseModel::Type::POLYGON, "polygon");
-    addType(CQBaseModel::Type::COLOR  , "color"  );
-    addType(CQBaseModel::Type::PEN    , "pen"    );
-    addType(CQBaseModel::Type::BRUSH  , "brush"  );
-    addType(CQBaseModel::Type::IMAGE  , "image"  );
-    addType(CQBaseModel::Type::TIME   , "time"   );
-    addType(CQBaseModel::Type::PATH   , "path"   );
-    addType(CQBaseModel::Type::STYLE  , "style"  );
+    addType(CQBaseModel::Type::BOOLEAN        , "boolean"        );
+    addType(CQBaseModel::Type::INTEGER        , "integer"        );
+    addType(CQBaseModel::Type::REAL           , "real"           );
+    addType(CQBaseModel::Type::STRING         , "string"         );
+    addType(CQBaseModel::Type::STRINGS        , "strings"        );
+    addType(CQBaseModel::Type::POINT          , "point"          );
+    addType(CQBaseModel::Type::LINE           , "line"           );
+    addType(CQBaseModel::Type::RECT           , "rect"           );
+    addType(CQBaseModel::Type::SIZE           , "size"           );
+    addType(CQBaseModel::Type::POLYGON        , "polygon"        );
+    addType(CQBaseModel::Type::POLYGON_LIST   , "polygon_list"   );
+    addType(CQBaseModel::Type::COLOR          , "color"          );
+    addType(CQBaseModel::Type::PEN            , "pen"            );
+    addType(CQBaseModel::Type::BRUSH          , "brush"          );
+    addType(CQBaseModel::Type::IMAGE          , "image"          );
+    addType(CQBaseModel::Type::TIME           , "time"           );
+    addType(CQBaseModel::Type::PATH           , "path"           );
+    addType(CQBaseModel::Type::STYLE          , "style"          );
+    addType(CQBaseModel::Type::CONNECTION_LIST, "connection_list");
+    addType(CQBaseModel::Type::NAME_PAIR      , "name_pair"      );
   }
 }
 

@@ -271,6 +271,17 @@ setModelP(const ModelP &model)
 
 void
 CQChartsTable::
+setFilterAnd(bool b)
+{
+  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+
+  if (modelFilter)
+    modelFilter->setFilterCombine(b ? CQChartsModelFilter::Combine::AND :
+                                      CQChartsModelFilter::Combine::OR);
+}
+
+void
+CQChartsTable::
 setFilter(const QString &filter)
 {
   addReplaceFilter(filter, /*add*/false);
@@ -289,9 +300,6 @@ addReplaceFilter(const QString &filter, bool add)
 {
   if (! model_)
     return;
-
-  QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
-  assert(proxyModel);
 
   CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
 
@@ -317,6 +325,9 @@ addReplaceFilter(const QString &filter, bool add)
     }
   }
   else {
+    QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model_.data());
+    assert(proxyModel);
+
     QAbstractItemModel *model = proxyModel->sourceModel();
     assert(model);
 
@@ -330,6 +341,18 @@ addReplaceFilter(const QString &filter, bool add)
   }
 
   emit filterChanged();
+}
+
+QString
+CQChartsTable::
+filterDetails() const
+{
+  CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model_.data());
+
+  if (modelFilter)
+    return modelFilter->filterDetails();
+
+  return "";
 }
 
 void

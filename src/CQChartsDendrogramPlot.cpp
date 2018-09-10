@@ -1,5 +1,4 @@
 #include <CQChartsDendrogramPlot.h>
-#include <CQChartsTextBoxObj.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
@@ -562,12 +561,12 @@ draw(QPainter *painter)
   QColor borderColor = plot_->interpNodeBorderColor(0, 1);
   QColor fillColor   = plot_->interpNodeFillColor  (0, 1);
 
-  plot_->setPen(pen, /*stroked*/true, borderColor, plot_->nodeBorderAlpha(),
-                plot_->plotBorderWidth(), CQChartsLineDash());
+  plot_->setPen(pen, plot_->isNodeBorder(), borderColor, plot_->nodeBorderAlpha(),
+                plot_->plotBorderWidth(), plot_->nodeBorderDash());
 
   bool filled = (node_->hasChildren() && ! node_->isOpen());
 
-  plot_->setBrush(brush, filled, fillColor, 1.0, CQChartsFillPattern());
+  plot_->setBrush(brush, filled, fillColor, plot_->nodeFillAlpha(), plot_->nodeFillPattern());
 
   plot_->updateObjPenBrushState(this, pen, brush);
 
@@ -583,8 +582,7 @@ draw(QPainter *painter)
 
   QColor tc = plot_->interpTextColor(0, 1);
 
-  plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha(),
-                CQChartsLength("0px"), CQChartsLineDash());
+  plot_->setPen(tpen, /*stroked*/true, tc, plot_->textAlpha(), CQChartsLength("0px"));
 
   painter->setPen(tpen);
 
