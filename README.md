@@ -9,6 +9,10 @@ the chart which allows the programmer to build interactive charts where
 the user can select items from the model using a table/tree view and/or
 the displayed chart data.
 
+The library comes with a test program which supports scripting of charts using the
+'tcl' programming language. A number of example plot scripts are available in the
+data directory.
+
 Chart types supported 
   + Adjacency
     + tabular connectivity table (needs special column value syntax for connections)
