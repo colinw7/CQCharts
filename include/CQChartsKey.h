@@ -3,7 +3,9 @@
 
 #include <CQChartsBoxObj.h>
 #include <CQChartsEditHandles.h>
+#include <CQChartsPlotData.h>
 #include <CQChartsGeom.h>
+#include <CQChartsTypes.h>
 #include <QFont>
 #include <QPointF>
 #include <QSizeF>
@@ -18,19 +20,20 @@ class QPainter;
 
 //------
 
-class CQChartsKey : public CQChartsBoxObj {
+class CQChartsKey : public CQChartsBoxObj,
+ public CQChartsPlotTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(bool          horizontal  READ isHorizontal  WRITE setHorizontal )
-  Q_PROPERTY(bool          autoHide    READ isAutoHide    WRITE setAutoHide   )
-  Q_PROPERTY(bool          clipped     READ isClipped     WRITE setClipped    )
-  Q_PROPERTY(bool          above       READ isAbove       WRITE setAbove      )
-  Q_PROPERTY(bool          interactive READ isInteractive WRITE setInteractive)
-  Q_PROPERTY(QString       location    READ locationStr   WRITE setLocationStr)
-  Q_PROPERTY(QString       header      READ headerStr     WRITE setHeaderStr  )
-  Q_PROPERTY(QFont         textFont    READ textFont      WRITE setTextFont   )
-  Q_PROPERTY(CQChartsColor textColor   READ textColor     WRITE setTextColor  )
-  Q_PROPERTY(Qt::Alignment textAlign   READ textAlign     WRITE setTextAlign  )
+  Q_PROPERTY(bool    horizontal  READ isHorizontal  WRITE setHorizontal )
+  Q_PROPERTY(bool    autoHide    READ isAutoHide    WRITE setAutoHide   )
+  Q_PROPERTY(bool    clipped     READ isClipped     WRITE setClipped    )
+  Q_PROPERTY(bool    above       READ isAbove       WRITE setAbove      )
+  Q_PROPERTY(bool    interactive READ isInteractive WRITE setInteractive)
+  Q_PROPERTY(QString location    READ locationStr   WRITE setLocationStr)
+  Q_PROPERTY(QString header      READ headerStr     WRITE setHeaderStr  )
+  Q_PROPERTY(double  hiddenAlpha READ hiddenAlpha   WRITE setHiddenAlpha)
+
+  CQCHARTS_TEXT_DATA_PROPERTIES
 
  public:
   enum LocationType {
@@ -139,17 +142,8 @@ class CQChartsKey : public CQChartsBoxObj {
 
   //---
 
-  // text style
-  const QFont &textFont() const { return textData_.font; }
-  void setTextFont(const QFont &f) { textData_.font = f; updateLayout(); }
-
-  const CQChartsColor &textColor() const;
-  void setTextColor(const CQChartsColor &c);
-
-  QColor interpTextColor(int i, int n) const;
-
-  Qt::Alignment textAlign() const { return textData_.align; }
-  void setTextAlign(const Qt::Alignment &a) { textData_.align = a; }
+  double hiddenAlpha() const { return hiddenAlpha_; }
+  void setHiddenAlpha(double r) { hiddenAlpha_ = r; }
 
   //---
 
@@ -166,16 +160,16 @@ class CQChartsKey : public CQChartsBoxObj {
   virtual void draw(QPainter *painter);
 
  protected:
-  bool             horizontal_          { false };                   // is layed out horizontallly
-  bool             above_               { true };                    // draw above view/plot
-  LocationType     location_            { LocationType::TOP_RIGHT }; // key placement
-  QString          header_;                                          // header
-  bool             autoHide_            { true };                    // auto hide if too big
-  bool             clipped_             { true };                    // clipped to plot
-  bool             pixelWidthExceeded_  { true };                    // pixel height too big
-  bool             pixelHeightExceeded_ { true };                    // pixel width too big
-  bool             interactive_         { true };                    // is interactive
-  CQChartsTextData textData_;                                        // text data
+  bool         horizontal_          { false };                   // is layed out horizontallly
+  bool         above_               { true };                    // draw above view/plot
+  LocationType location_            { LocationType::TOP_RIGHT }; // key placement
+  QString      header_;                                          // header
+  bool         autoHide_            { true };                    // auto hide if too big
+  bool         clipped_             { true };                    // clipped to plot
+  bool         pixelWidthExceeded_  { true };                    // pixel height too big
+  bool         pixelHeightExceeded_ { true };                    // pixel width too big
+  bool         interactive_         { true };                    // is interactive
+  double       hiddenAlpha_         { 0.3 };                     // alpha for hidden item
 };
 
 //------
@@ -198,7 +192,7 @@ class CQChartsViewKey : public CQChartsKey {
 
   bool isInside(const CQChartsGeom::Point &w) const;
 
-  void selectPress(const CQChartsGeom::Point &w);
+  void selectPress(const CQChartsGeom::Point &w, CQChartsSelMod selMod);
 
   void redraw() override;
 
@@ -310,7 +304,7 @@ class CQChartsPlotKey : public CQChartsKey {
 
   //---
 
-  virtual bool selectPress  (const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress  (const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
   virtual bool selectMove   (const CQChartsGeom::Point &);
   virtual bool selectRelease(const CQChartsGeom::Point &) { return false; }
 
@@ -413,7 +407,7 @@ class CQChartsKeyItem : public QObject {
 
   //---
 
-  virtual bool selectPress(const CQChartsGeom::Point &) { return false; }
+  virtual bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod) { return false; }
   virtual bool selectMove (const CQChartsGeom::Point &) { return false; }
 
   //---
@@ -440,7 +434,7 @@ class CQChartsKeyText : public CQChartsKeyItem {
   Q_OBJECT
 
  public:
-  CQChartsKeyText(CQChartsPlot *plot, const QString &text);
+  CQChartsKeyText(CQChartsPlot *plot, const QString &text, int i, int n);
 
   const QString &text() const { return text_; }
   void setText(const QString &s) { text_ = s; }
@@ -454,6 +448,8 @@ class CQChartsKeyText : public CQChartsKeyItem {
  protected:
   CQChartsPlot *plot_ { nullptr };
   QString       text_;
+  int           i_    { 0 };
+  int           n_    { 0 };
 };
 
 //---
@@ -484,7 +480,7 @@ class CQChartsKeyColorBox : public CQChartsKeyItem {
   bool isClickHide() const { return clickHide_; }
   void setClickHide(bool b) { clickHide_ = b; }
 
-  bool selectPress(const CQChartsGeom::Point &) override;
+  bool selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod) override;
 
  protected:
   CQChartsPlot*   plot_      { nullptr };

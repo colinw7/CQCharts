@@ -448,7 +448,7 @@ class CQChartsXYKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n);
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   bool selectMove(const CQChartsGeom::Point &) override { return true; }
 
@@ -463,7 +463,7 @@ class CQChartsXYKeyLine : public CQChartsKeyItem {
 
   QSizeF size() const override;
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   bool selectMove(const CQChartsGeom::Point &) override { return true; }
 
@@ -479,12 +479,9 @@ class CQChartsXYKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsXYKeyText(CQChartsXYPlot *plot, int i, const QString &text);
+  CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int i, int n);
 
   QColor interpTextColor(int i, int n) const override;
-
- private:
-  int i_ { 0 };
 };
 
 //---

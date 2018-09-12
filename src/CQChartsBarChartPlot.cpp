@@ -955,7 +955,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](int i, int n, const QString &name, const QColor &c=QColor()) {
     CQChartsBarKeyColor *keyColor = new CQChartsBarKeyColor(this, i, n);
-    CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, i, name);
+    CQChartsBarKeyText  *keyText  = new CQChartsBarKeyText (this, name, i, n);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -1610,9 +1610,16 @@ CQChartsBarKeyColor(CQChartsBarChartPlot *plot, int i, int n) :
 
 bool
 CQChartsBarKeyColor::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
-  setSetHidden(! isSetHidden());
+  if (selMod == CQChartsSelMod::ADD) {
+    for (int i = 0; i < n_; ++i) {
+      plot_->CQChartsPlot::setSetHidden(i, i != i_);
+    }
+  }
+  else {
+    setSetHidden(! isSetHidden());
+  }
 
   plot_->updateRangeAndObjs();
 
@@ -1631,7 +1638,7 @@ fillBrush() const
     c = plot_->interpBarFillColor(i_, n_);
 
   if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
@@ -1747,8 +1754,8 @@ setSetHidden(bool b)
 //------
 
 CQChartsBarKeyText::
-CQChartsBarKeyText(CQChartsBarChartPlot *plot, int i, const QString &text) :
- CQChartsKeyText(plot, text), i_(i)
+CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, int i, int n) :
+ CQChartsKeyText(plot, text, i, n)
 {
 }
 

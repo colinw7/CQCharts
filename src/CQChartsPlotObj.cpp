@@ -4,6 +4,8 @@ CQChartsPlotObj::
 CQChartsPlotObj(CQChartsPlot *plot, const CQChartsGeom::BBox &rect) :
  CQChartsObj(nullptr, rect), plot_(plot)
 {
+  assert(! CMathUtil::isNaN(rect.getXMin()) && ! CMathUtil::isNaN(rect.getYMin()) &&
+         ! CMathUtil::isNaN(rect.getXMax()) && ! CMathUtil::isNaN(rect.getYMax()));
 }
 
 bool

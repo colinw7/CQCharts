@@ -18,12 +18,16 @@ addParameters()
 {
   startParameterGroup("Delaunay");
 
-  addColumnParameter("x", "X", "xColumn", 0).setRequired();
-  addColumnParameter("y", "Y", "yColumn", 1).setRequired();
+  addColumnParameter("x", "X", "xColumn", 0).
+    setRequired().setNumeric().setTip("X Value Column");
+  addColumnParameter("y", "Y", "yColumn", 1).
+    setRequired().setNumeric().setTip("Y Value Column");
 
-  addColumnParameter("name", "Name", "nameColumn");
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Optional Name Column");
 
-  addBoolParameter("voronoi", "Voronoi", "voronoi");
+  addBoolParameter("voronoi", "Voronoi", "voronoi").
+    setTip("Draw Voronoi");
 
   endParameterGroup();
 

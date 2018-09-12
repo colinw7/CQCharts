@@ -12,14 +12,14 @@
 
 CQChartsKey::
 CQChartsKey(CQChartsView *view) :
- CQChartsBoxObj(view)
+ CQChartsBoxObj(view), CQChartsPlotTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 }
 
 CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
- CQChartsBoxObj(plot)
+ CQChartsBoxObj(plot), CQChartsPlotTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 
@@ -83,30 +83,6 @@ setLocationStr(const QString &str)
 }
 
 //---
-
-const CQChartsColor &
-CQChartsKey::
-textColor() const
-{
-  return textData_.color;
-}
-
-void
-CQChartsKey::
-setTextColor(const CQChartsColor &c)
-{
-  textData_.color = c;
-}
-
-QColor
-CQChartsKey::
-interpTextColor(int i, int n) const
-{
-  if (plot_)
-    return textColor().interpColor(plot_, i, n);
-  else
-    return QColor();
-}
 
 void
 CQChartsKey::
@@ -199,18 +175,19 @@ void
 CQChartsViewKey::
 addProperties(CQPropertyViewModel *model, const QString &path)
 {
-  model->addProperty(path, this, "visible"   );
-  model->addProperty(path, this, "location"  );
-  model->addProperty(path, this, "header"    );
-  model->addProperty(path, this, "horizontal");
-  model->addProperty(path, this, "autoHide"  );
-  model->addProperty(path, this, "clipped"   );
+  model->addProperty(path, this, "visible"    );
+  model->addProperty(path, this, "location"   );
+  model->addProperty(path, this, "header"     );
+  model->addProperty(path, this, "horizontal" );
+  model->addProperty(path, this, "autoHide"   );
+  model->addProperty(path, this, "hiddenAlpha");
 
   CQChartsBoxObj::addProperties(model, path);
 
   QString textPath = path + "/text";
 
   model->addProperty(textPath, this, "textColor", "color");
+  model->addProperty(textPath, this, "textAlpha", "alpha");
   model->addProperty(textPath, this, "textFont" , "font" );
   model->addProperty(textPath, this, "textAlign", "align");
 }
@@ -331,7 +308,7 @@ isInside(const CQChartsGeom::Point &w) const
 
 void
 CQChartsViewKey::
-selectPress(const CQChartsGeom::Point &w)
+selectPress(const CQChartsGeom::Point &w, CQChartsSelMod /*selMod*/)
 {
   int n = std::min(view_->numPlots(), int(prects_.size()));
 
@@ -477,13 +454,15 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "visible"    );
   model->addProperty(path, this, "location"   );
   model->addProperty(path, this, "header"     );
+  model->addProperty(path, this, "horizontal" );
   model->addProperty(path, this, "autoHide"   );
   model->addProperty(path, this, "clipped"    );
+  model->addProperty(path, this, "hiddenAlpha");
+
   model->addProperty(path, this, "absPosition");
   model->addProperty(path, this, "insideX"    );
   model->addProperty(path, this, "insideY"    );
   model->addProperty(path, this, "spacing"    );
-  model->addProperty(path, this, "horizontal" );
   model->addProperty(path, this, "above"      );
   model->addProperty(path, this, "flipped"    );
 
@@ -492,6 +471,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   QString textPath = path + "/text";
 
   model->addProperty(textPath, this, "textColor", "color");
+  model->addProperty(textPath, this, "textAlpha", "alpha");
   model->addProperty(textPath, this, "textFont" , "font" );
   model->addProperty(textPath, this, "textAlign", "align");
 }
@@ -1115,8 +1095,8 @@ tipText(const CQChartsGeom::Point &, QString &) const
 //------
 
 CQChartsKeyText::
-CQChartsKeyText(CQChartsPlot *plot, const QString &text) :
- CQChartsKeyItem(plot->key()), plot_(plot), text_(text)
+CQChartsKeyText(CQChartsPlot *plot, const QString &text, int i, int n) :
+ CQChartsKeyItem(plot->key()), plot_(plot), text_(text), i_(i), n_(n)
 {
 }
 
@@ -1156,7 +1136,12 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QFontMetricsF fm(painter->font());
 
-  painter->setPen(interpTextColor(0, 1));
+  QColor tc = interpTextColor(0, 1);
+
+  if (plot->isSetHidden(i_))
+    tc.setAlphaF(key_->hiddenAlpha());
+
+  painter->setPen(tc);
 
   double px1, px2, py;
 
@@ -1187,7 +1172,7 @@ CQChartsKeyColorBox(CQChartsPlot *plot, int i, int n) :
 
 bool
 CQChartsKeyColorBox::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   if (isClickHide()) {
     plot_->setSetHidden(i_, ! plot_->isSetHidden(i_));
@@ -1239,6 +1224,9 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
   QColor bc    = interpBorderColor(0, 1);
   QBrush brush = fillBrush();
 
+  if (plot->isSetHidden(i_))
+    bc.setAlphaF(key_->hiddenAlpha());
+
   if (isInside())
     brush.setColor(plot->insideColor(brush.color()));
 
@@ -1260,7 +1248,7 @@ fillBrush() const
   QColor c = plot->interpPaletteColor(i_, n_);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }

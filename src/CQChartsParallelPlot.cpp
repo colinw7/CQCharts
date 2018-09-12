@@ -417,12 +417,20 @@ initObjs()
       const QPointF &p = poly[j];
 
       // scale point to range
-      double pos;
+      double pos = 0.0;
 
-      if (! isHorizontal())
-        pos = (p.y() - range.ymin())/(range.ymax() - range.ymin());
-      else
-        pos = (p.x() - range.xmin())/(range.xmax() - range.xmin());
+      if (! isHorizontal()) {
+        double dry = range.ymax() - range.ymin();
+
+        if (dry)
+          pos = (p.y() - range.ymin())/dry;
+      }
+      else {
+        double drx = range.xmax() - range.xmin();
+
+        if (drx)
+          pos = (p.x() - range.xmin())/drx;
+      }
 
       double x, y;
 

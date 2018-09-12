@@ -121,7 +121,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   //---
 
-  bool selectPress(const CQChartsGeom::Point &p, ModSelect modSelect) override;
+  bool selectPress(const CQChartsGeom::Point &p, SelMod selMod) override;
 
   //---
 

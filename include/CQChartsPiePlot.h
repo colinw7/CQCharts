@@ -226,7 +226,7 @@ class CQChartsPieKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsPieKeyColor(CQChartsPiePlot *plot, CQChartsPlotObj *obj);
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 

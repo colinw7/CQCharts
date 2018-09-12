@@ -8,6 +8,7 @@
 #include <CQChartsLineDash.h>
 #include <CQChartsPosition.h>
 #include <CQChartsLength.h>
+#include <CQChartsTypes.h>
 #include <QFrame>
 #include <QTimer>
 #include <set>
@@ -89,6 +90,8 @@ class CQChartsView : public QFrame,
   Q_ENUMS(PosTextType)
 
  public:
+  using SelMod = CQChartsSelMod;
+
   enum class Mode {
     SELECT,
     ZOOM,

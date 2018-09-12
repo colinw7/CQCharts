@@ -10,6 +10,7 @@
 #include <CQChartsTextOptions.h>
 #include <CQChartsLayer.h>
 #include <CQChartsUtil.h>
+#include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
 #include <CQBaseModel.h>
 
@@ -172,13 +173,7 @@ class CQChartsPlot : public QObject,
   Q_PROPERTY(int updateTimeout READ updateTimeout WRITE setUpdateTimeout)
 
  public:
-  // selection modifier type
-  enum class ModSelect {
-    REPLACE,
-    ADD,
-    REMOVE,
-    TOGGLE
-  };
+  using SelMod = CQChartsSelMod;
 
   // margin (percent)
   struct Margin {
@@ -964,11 +959,11 @@ class CQChartsPlot : public QObject,
   //---
 
   // handle mouse press/move/release
-  bool selectMousePress  (const QPointF &p, ModSelect modSelect);
+  bool selectMousePress  (const QPointF &p, SelMod selMod);
   bool selectMouseMove   (const QPointF &p, bool first=false);
   bool selectMouseRelease(const QPointF &p);
 
-  virtual bool selectPress  (const CQChartsGeom::Point &p, ModSelect modSelect);
+  virtual bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod);
   virtual bool selectMove   (const CQChartsGeom::Point &p, bool first=false);
   virtual bool selectRelease(const CQChartsGeom::Point &p);
 
@@ -997,7 +992,7 @@ class CQChartsPlot : public QObject,
   virtual bool tipText(const CQChartsGeom::Point &p, QString &tip) const;
 
   // handle rect select
-  bool rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect);
+  bool rectSelect(const CQChartsGeom::BBox &r, SelMod selMod);
 
   //---
 
@@ -1336,6 +1331,8 @@ class CQChartsPlot : public QObject,
                 const QColor &fillColor=QColor(), double fillAlpha=1.0,
                 const CQChartsFillPattern &pattern=CQChartsFillPattern::Type::SOLID) const;
 
+  double limitLineWidth(double w) const;
+
   //---
 
   void updateObjPenBrushState(const CQChartsObj *obj, QPen &pen, QBrush &brush) const;
@@ -1387,18 +1384,11 @@ class CQChartsPlot : public QObject,
   //---
 
   // get/set/reset id hidden
-  bool isSetHidden(int id) const {
-    auto p = idHidden_.find(id);
+  bool isSetHidden(int id) const;
 
-    if (p == idHidden_.end())
-      return false;
+  void setSetHidden(int id, bool hidden);
 
-    return (*p).second;
-  }
-
-  void setSetHidden(int id, bool hidden) { idHidden_[id] = hidden; }
-
-  void resetSetHidden() { idHidden_.clear(); }
+  void resetSetHidden();
 
   virtual void hiddenChanged();
 

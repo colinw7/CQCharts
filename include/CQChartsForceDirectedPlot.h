@@ -23,6 +23,9 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                            CQChartsPlotParameter *parameter) const override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -116,7 +119,7 @@ class CQChartsForceDirectedPlot : public CQChartsPlot,
 
   //---
 
-  bool selectPress  (const CQChartsGeom::Point &p, ModSelect modSelect) override;
+  bool selectPress  (const CQChartsGeom::Point &p, SelMod selMod) override;
   bool selectMove   (const CQChartsGeom::Point &p, bool first=false) override;
   bool selectRelease(const CQChartsGeom::Point &p) override;
 

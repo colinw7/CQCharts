@@ -281,7 +281,7 @@ class CQChartsBoxKeyColor : public CQChartsKeyColorBox {
  public:
   CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n);
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 };
@@ -290,12 +290,9 @@ class CQChartsBoxKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsBoxKeyText(CQChartsBoxPlot *plot, int i, const QString &text);
+  CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text, int i, int n);
 
   QColor interpTextColor(int i, int n) const override;
-
- private:
-  int i_ { 0 };
 };
 
 //---

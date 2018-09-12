@@ -222,7 +222,7 @@ class CQChartsBarKeyColor : public CQChartsKeyColorBox {
 
   void setColor(const CQChartsColor &color) { color_ = color; }
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 
@@ -242,12 +242,9 @@ class CQChartsBarKeyText : public CQChartsKeyText {
   Q_OBJECT
 
  public:
-  CQChartsBarKeyText(CQChartsBarChartPlot *plot, int i, const QString &text);
+  CQChartsBarKeyText(CQChartsBarChartPlot *plot, const QString &text, int i, int n);
 
   QColor interpTextColor(int i, int n) const override;
-
- private:
-  int i_ { 0 }; // set id
 };
 
 //---

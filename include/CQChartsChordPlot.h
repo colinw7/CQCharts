@@ -29,6 +29,9 @@ class CQChartsChordPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                            CQChartsPlotParameter *parameter) const override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 
@@ -178,7 +181,7 @@ class CQChartsChordPlot : public CQChartsPlot,
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn  WRITE setNameColumn )
+  Q_PROPERTY(CQChartsColumn linkColumn  READ linkColumn  WRITE setLinkColumn )
   Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn WRITE setValueColumn)
   Q_PROPERTY(CQChartsColumn groupColumn READ groupColumn WRITE setGroupColumn)
 
@@ -196,8 +199,8 @@ class CQChartsChordPlot : public CQChartsPlot,
 
  ~CQChartsChordPlot();
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
+  const CQChartsColumn &linkColumn() const { return linkColumn_; }
+  void setLinkColumn(const CQChartsColumn &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
@@ -253,7 +256,7 @@ class CQChartsChordPlot : public CQChartsPlot,
   bool initHierObjs();
 
  private:
-  CQChartsColumn             nameColumn_;               // name column
+  CQChartsColumn             linkColumn_;               // link column
   CQChartsColumn             valueColumn_;              // value column
   CQChartsColumn             groupColumn_;              // group column
   bool                       sorted_         { false }; // is sorted

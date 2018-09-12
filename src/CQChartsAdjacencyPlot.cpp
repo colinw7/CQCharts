@@ -1,5 +1,6 @@
 #include <CQChartsAdjacencyPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -23,10 +24,10 @@ addParameters()
   startParameterGroup("Connection List");
 
   addColumnParameter("node", "Node", "nodeColumn").
-    setTip("Node Id Column");
+    setNumeric().setTip("Node Id Column");
 
   addColumnParameter("connections", "Connections", "connectionsColumn").
-   setTip("List of Connection Pairs (Ids from id column and connection count)");
+   setTip("List of Connection Pairs (Ids from id column and connection count)").setDiscrimator();
 
   endParameterGroup();
 
@@ -36,9 +37,10 @@ addParameters()
   startParameterGroup("Name Pair/Count");
 
   addColumnParameter("namePair", "NamePair", "namePairColumn").
-    setTip("Connected Name Pairs (<name1>/<name2>)");
+   setTip("Connected Name Pairs (<name1>/<name2>)").setDiscrimator();
 
-  addColumnParameter("count", "Count", "countColumn").setTip("Connection Count");
+  addColumnParameter("count", "Count", "countColumn").
+   setNumeric().setTip("Connection Count");
 
   endParameterGroup();
 
@@ -68,6 +70,27 @@ description() const
          "<p>The column id is taken from the <b>Id</b> column and an optional "
          "name for the id can be supplied in the <b>Name</b> column.</p>\n"
          "<p>The group is specified using the <b>Group</b> column.</p>";
+}
+
+bool
+CQChartsAdjacencyPlotType::
+isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                     CQChartsPlotParameter *parameter) const
+{
+  if      (parameter->name() == "connections") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST)
+      return true;
+
+    return false;
+  }
+  else if (parameter->name() == "namePair") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
+      return true;
+
+    return false;
+  }
+
+  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 CQChartsPlot *

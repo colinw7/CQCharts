@@ -24,15 +24,15 @@
 #include <QPainter>
 
 namespace {
-  CQChartsPlot::ModSelect modifiersToModSelect(Qt::KeyboardModifiers modifiers) {
+  CQChartsSelMod modifiersToSelMod(Qt::KeyboardModifiers modifiers) {
     if      ((modifiers & Qt::ControlModifier) && (modifiers & Qt::ShiftModifier))
-      return CQChartsPlot::ModSelect::TOGGLE;
+      return CQChartsSelMod::TOGGLE;
     else if (modifiers & Qt::ControlModifier)
-      return CQChartsPlot::ModSelect::ADD;
+      return CQChartsSelMod::ADD;
     else if (modifiers & Qt::ShiftModifier)
-      return CQChartsPlot::ModSelect::REMOVE;
+      return CQChartsSelMod::REMOVE;
     else
-      return CQChartsPlot::ModSelect::REPLACE;
+      return CQChartsSelMod::REPLACE;
   }
 }
 
@@ -1112,9 +1112,9 @@ mousePressEvent(QMouseEvent *me)
 
         //---
 
-        CQChartsPlot::ModSelect modSelect = modifiersToModSelect(me->modifiers());
+        CQChartsSelMod selMod = modifiersToSelMod(me->modifiers());
 
-        if (mouseData_.plot && mouseData_.plot->selectMousePress(me->pos(), modSelect)) {
+        if (mouseData_.plot && mouseData_.plot->selectMousePress(me->pos(), selMod)) {
           setCurrentPlot(mouseData_.plot);
           return;
         }
@@ -1122,7 +1122,7 @@ mousePressEvent(QMouseEvent *me)
         for (auto &plot : mouseData_.plots) {
           if (plot == mouseData_.plot) continue;
 
-          if (plot->selectMousePress(me->pos(), modSelect)) {
+          if (plot->selectMousePress(me->pos(), selMod)) {
             setCurrentPlot(plot);
             return;
           }
@@ -1133,7 +1133,7 @@ mousePressEvent(QMouseEvent *me)
         CQChartsGeom::Point w = pixelToWindow(CQChartsUtil::fromQPoint(QPointF(me->pos())));
 
         if (keyObj_->isInside(w))
-          keyObj_->selectPress(w);
+          keyObj_->selectPress(w, SelMod::REPLACE);
       }
       else {
         startRegionBand(mouseData_.pressPoint);
@@ -1458,7 +1458,7 @@ mouseReleaseEvent(QMouseEvent *me)
 
         endRegionBand();
 
-        CQChartsPlot::ModSelect modSelect = modifiersToModSelect(me->modifiers());
+        CQChartsSelMod selMod = modifiersToSelMod(me->modifiers());
 
         if (mouseData_.plot) {
           CQChartsGeom::Point w1, w2;
@@ -1466,7 +1466,7 @@ mouseReleaseEvent(QMouseEvent *me)
           mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
           mouseData_.plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
 
-          if (mouseData_.plot->rectSelect(CQChartsGeom::BBox(w1, w2), modSelect))
+          if (mouseData_.plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod))
             return;
         }
 
@@ -1478,7 +1478,7 @@ mouseReleaseEvent(QMouseEvent *me)
           plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.pressPoint), w1);
           plot->pixelToWindow(CQChartsUtil::fromQPoint(mouseData_.movePoint ), w2);
 
-          if (plot->rectSelect(CQChartsGeom::BBox(w1, w2), modSelect))
+          if (plot->rectSelect(CQChartsGeom::BBox(w1, w2), selMod))
             return;
         }
       }

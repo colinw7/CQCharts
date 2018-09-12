@@ -28,7 +28,7 @@ set plot4 [create_plot -model $model4 -type bubble -columns "group=0,value=1" -t
 
 set model5 [load_model -data data/chord-cities.data]
 
-set plot5 [create_plot -model $model5 -type chord -columns "name=0,group=1"]
+set plot5 [create_plot -model $model5 -type chord -columns "link=0,group=1"]
 
 # Delaunay Plot
 

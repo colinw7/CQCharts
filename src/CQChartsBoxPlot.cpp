@@ -1409,7 +1409,7 @@ addKeyItems(CQChartsPlotKey *key)
         QString setName = setIdName(setId);
 
         CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, is, ns);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, is, setName);
+        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, setName, is, ns);
 
         key->addItem(color, is, 0);
         key->addItem(text , is, 1);
@@ -1427,7 +1427,7 @@ addKeyItems(CQChartsPlotKey *key)
         QString groupName = groupIndName(groupInd);
 
         CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, ig, ng);
-        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, ig, groupName);
+        CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, groupName, ig, ng);
 
         key->addItem(color, ig, 0);
         key->addItem(text , ig, 1);
@@ -1455,7 +1455,7 @@ addKeyItems(CQChartsPlotKey *key)
       QString name = whisker.name();
 
       CQChartsBoxKeyColor *color = new CQChartsBoxKeyColor(this, is, ns);
-      CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, is, name);
+      CQChartsBoxKeyText  *text  = new CQChartsBoxKeyText (this, name, is, ns);
 
       key->addItem(color, is, 0);
       key->addItem(text , is, 1);
@@ -2826,7 +2826,7 @@ CQChartsBoxKeyColor(CQChartsBoxPlot *plot, int i, int n) :
 
 bool
 CQChartsBoxKeyColor::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
@@ -2846,7 +2846,7 @@ fillBrush() const
   CQChartsBoxPlot *plot = qobject_cast<CQChartsBoxPlot *>(plot_);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }
@@ -2854,8 +2854,8 @@ fillBrush() const
 //------
 
 CQChartsBoxKeyText::
-CQChartsBoxKeyText(CQChartsBoxPlot *plot, int i, const QString &text) :
- CQChartsKeyText(plot, text), i_(i)
+CQChartsBoxKeyText(CQChartsBoxPlot *plot, const QString &text, int i, int n) :
+ CQChartsKeyText(plot, text, i, n)
 {
 }
 
@@ -2868,7 +2868,7 @@ interpTextColor(int i, int n) const
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }

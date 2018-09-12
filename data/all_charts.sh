@@ -85,11 +85,11 @@ CQChartsTest -csv data/book_revenue.csv -first_line_header \
 
 CQChartsTest \
  -data data/chord-cities.data \
- -type chord -columns "name=0,group=1" \
+ -type chord -columns "link=0,group=1" \
  -plot_title "Chord Plot"
 CQChartsTest \
  -csv data/chord-cities.csv \
- -type chord -columns "name=0,value=1,group=2" \
+ -type chord -columns "link=0,value=1,group=2" \
  -plot_title "Chord Plot"
 
 # Delaunay Plot

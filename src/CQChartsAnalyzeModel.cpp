@@ -72,6 +72,8 @@ analyze()
 
     //---
 
+    bool requiredValid = true;
+
     IColumnUsed columnUsed1 = columnUsed;
 
     NameColumns nameColumns;
@@ -82,35 +84,67 @@ analyze()
 
       const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
 
-      if (! attributes.isRequired())
-        continue;
+      if (! attributes.isRequired()) {
+        // if attribute is a discrimator then assign if exact match
+        if (attributes.isDiscrimator()) {
+          // find first valid unused column for attribute
+          for (auto &cu : columnUsed1) {
+            if (cu.second.second)
+              continue;
 
-      // find first valid unused column for attribute
-      for (auto &cu : columnUsed1) {
-        if (cu.second.second)
-          continue;
+            CQChartsModelColumnDetails *columnDetails = cu.second.first;
 
-        CQChartsModelColumnDetails *columnDetails = cu.second.first;
+            if (! type->isColumnForParameter(columnDetails, parameter))
+              continue;
 
-        if      (attributes.isMonotonic()) {
-          if (! columnDetails->isMonotonic())
-            continue;
+            nameColumns[parameter->name()] = columnDetails->column();
+
+            cu.second.second = true;
+
+            break;
+          }
         }
-        else if (attributes.isNumeric()) {
-          if (! columnDetails->isNumeric())
+      }
+      else {
+        bool found = false;
+
+        // find first valid unused column for attribute
+        for (auto &cu : columnUsed1) {
+          if (cu.second.second)
             continue;
+
+          CQChartsModelColumnDetails *columnDetails = cu.second.first;
+
+          if      (attributes.isMonotonic()) {
+            if (! columnDetails->isMonotonic())
+              continue;
+          }
+          else if (attributes.isNumeric()) {
+            if (! columnDetails->isNumeric())
+              continue;
+          }
+
+          if (! type->isColumnForParameter(columnDetails, parameter))
+            continue;
+
+          nameColumns[parameter->name()] = columnDetails->column();
+
+          cu.second.second = true;
+
+          found = true;
+
+          break;
         }
 
-        if (! type->isColumnForParameter(columnDetails, parameter))
-          continue;
-
-        nameColumns[parameter->name()] = columnDetails->column();
-
-        cu.second.second = true;
-
-        break;
+        if (! found) {
+          requiredValid = false;
+          break;
+        }
       }
     }
+
+    if (! requiredValid)
+      continue;
 
     //---
 
@@ -124,6 +158,10 @@ analyze()
           continue;
 
         CQChartsModelColumnDetails *columnDetails = cu.second.first;
+
+        if (columnDetails->type() != CQBaseModel::Type::STRING &&
+            columnDetails->type() != CQBaseModel::Type::INTEGER)
+          continue;
 
         int numUnique = columnDetails->numUnique();
 

@@ -29,6 +29,9 @@ class CQChartsAdjacencyPlotType : public CQChartsPlotType {
 
   QString description() const override;
 
+  bool isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                            CQChartsPlotParameter *parameter) const override;
+
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };
 

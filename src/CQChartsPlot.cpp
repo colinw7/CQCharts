@@ -1844,24 +1844,24 @@ insideObjectText() const
 
 bool
 CQChartsPlot::
-selectMousePress(const QPointF &p, ModSelect modSelect)
+selectMousePress(const QPointF &p, SelMod selMod)
 {
   CQChartsGeom::Point w;
 
   pixelToWindow(CQChartsUtil::fromQPoint(QPointF(p)), w);
 
-  return selectPress(w, modSelect);
+  return selectPress(w, selMod);
 }
 
 bool
 CQChartsPlot::
-selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
+selectPress(const CQChartsGeom::Point &w, SelMod selMod)
 {
   if (key() && key()->contains(w)) {
     CQChartsKeyItem *item = key()->getItemAt(w);
 
     if (item) {
-      bool handled = item->selectPress(w);
+      bool handled = item->selectPress(w, selMod);
 
       if (handled) {
         emit keyItemPressed  (item);
@@ -1871,7 +1871,7 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
       }
     }
 
-    bool handled = key()->selectPress(w);
+    bool handled = key()->selectPress(w, selMod);
 
     if (handled) {
       emit keyPressed  (key());
@@ -1923,7 +1923,7 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
   ObjsSelected objsSelected;
 
   for (auto &plotObj : plotObjects()) {
-    if (modSelect == ModSelect::REPLACE)
+    if (selMod == SelMod::REPLACE)
       objsSelected[plotObj] = false;
     else
       objsSelected[plotObj] = plotObj->isSelected();
@@ -1954,13 +1954,13 @@ selectPress(const CQChartsGeom::Point &w, ModSelect modSelect)
 
   // change selection depending on selection modifier
   if (selectObj) {
-    if      (modSelect == ModSelect::TOGGLE)
+    if      (selMod == SelMod::TOGGLE)
       objsSelected[selectObj] = ! selectObj->isSelected();
-    else if (modSelect == ModSelect::REPLACE)
+    else if (selMod == SelMod::REPLACE)
       objsSelected[selectObj] = true;
-    else if (modSelect == ModSelect::ADD)
+    else if (selMod == SelMod::ADD)
       objsSelected[selectObj] = true;
-    else if (modSelect == ModSelect::REMOVE)
+    else if (selMod == SelMod::REMOVE)
       objsSelected[selectObj] = false;
 
     //---
@@ -2647,7 +2647,7 @@ editMoveBy(const QPointF &d)
 
 bool
 CQChartsPlot::
-rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
+rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
 {
   // for replace init all objects to unselected
   // for add/remove/toggle init all objects to current state
@@ -2656,7 +2656,7 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
   ObjsSelected objsSelected;
 
   for (auto &plotObj : plotObjects()) {
-    if (modSelect == ModSelect::REPLACE)
+    if (selMod == SelMod::REPLACE)
       objsSelected[plotObj] = false;
     else
       objsSelected[plotObj] = plotObj->isSelected();
@@ -2671,13 +2671,13 @@ rectSelect(const CQChartsGeom::BBox &r, ModSelect modSelect)
 
   // change selection depending on selection modifier
   for (auto &obj : objs) {
-    if      (modSelect == ModSelect::TOGGLE)
+    if      (selMod == SelMod::TOGGLE)
       objsSelected[obj] = ! obj->isSelected();
-    else if (modSelect == ModSelect::REPLACE)
+    else if (selMod == SelMod::REPLACE)
       objsSelected[obj] = true;
-    else if (modSelect == ModSelect::ADD)
+    else if (selMod == SelMod::ADD)
       objsSelected[obj] = true;
-    else if (modSelect == ModSelect::REMOVE)
+    else if (selMod == SelMod::REMOVE)
       objsSelected[obj] = false;
   }
 
@@ -5118,23 +5118,6 @@ getFirstPlotKey() const
 
 //------
 
-#if 0
-void
-CQChartsPlot::
-drawLine(QPainter *painter, const QPointF &p1, const QPointF &p2, const CQChartsLineData &data)
-{
-  QColor c = data.color.interpColor(this, 0, 1);
-
-  QPen pen;
-
-  setPen(pen, true, c, data.alpha, data.width, data.dash);
-
-  painter->setPen(pen);
-
-  painter->drawLine(p1, p2);
-}
-#endif
-
 void
 CQChartsPlot::
 drawSymbol(QPainter *painter, const QPointF &p, const CQChartsSymbol &symbol,
@@ -5336,6 +5319,32 @@ drawPieSlice(QPainter *painter, const CQChartsGeom::Point &c,
 
 //------
 
+bool
+CQChartsPlot::
+isSetHidden(int id) const
+{
+  auto p = idHidden_.find(id);
+
+  if (p == idHidden_.end())
+    return false;
+
+  return (*p).second;
+}
+
+void
+CQChartsPlot::
+setSetHidden(int id, bool hidden)
+{
+  idHidden_[id] = hidden;
+}
+
+void
+CQChartsPlot::
+resetSetHidden()
+{
+  idHidden_.clear();
+}
+
 void
 CQChartsPlot::
 hiddenChanged()
@@ -5382,7 +5391,7 @@ setPen(QPen &pen, bool stroked, const QColor &strokeColor, double strokeAlpha,
 
     pen.setColor(color);
 
-    double width = lengthPixelWidth(strokeWidth);
+    double width = limitLineWidth(lengthPixelWidth(strokeWidth));
 
     if (width > 0)
       pen.setWidthF(width);
@@ -5414,6 +5423,14 @@ setBrush(QBrush &brush, bool filled, const QColor &fillColor, double fillAlpha,
   else {
     brush.setStyle(Qt::NoBrush);
   }
+}
+
+double
+CQChartsPlot::
+limitLineWidth(double w) const
+{
+  // TODO: configuration setting
+  return CMathUtil::clamp(w, 0.0, 64.0);
 }
 
 //------

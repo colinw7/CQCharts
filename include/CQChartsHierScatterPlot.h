@@ -202,7 +202,7 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
   CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPointGroup *group,
                               int i, int n);
 
-  bool selectPress(const CQChartsGeom::Point &p) override;
+  bool selectPress(const CQChartsGeom::Point &p, CQChartsSelMod selMod) override;
 
   QBrush fillBrush() const override;
 

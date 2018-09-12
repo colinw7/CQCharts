@@ -18,8 +18,11 @@ addParameters()
 {
   startParameterGroup("Sankey");
 
-  addColumnParameter("link" , "Source/Target", "linkColumn" , 0).setRequired();
-  addColumnParameter("value", "Value"        , "valueColumn", 1).setRequired();
+  addColumnParameter("link", "Source/Target", "linkColumn" , 0).
+    setRequired().setTip("Name pair for Source/Target connection");
+
+  addColumnParameter("value", "Value", "valueColumn", 1).
+    setRequired().setTip("Connection value");
 
   endParameterGroup();
 

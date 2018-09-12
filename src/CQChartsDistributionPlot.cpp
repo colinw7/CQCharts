@@ -1601,7 +1601,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   auto addKeyRow = [&](int i, int n, const QString &name) {
     CQChartsDistKeyColorBox *keyColor = new CQChartsDistKeyColorBox(this, i, n);
-    CQChartsKeyText         *keyText  = new CQChartsKeyText        (this, name);
+    CQChartsKeyText         *keyText  = new CQChartsKeyText        (this, name, i, n);
 
     key->addItem(keyColor, row, 0);
     key->addItem(keyText , row, 1);
@@ -2804,12 +2804,12 @@ drawRug(QPainter *painter)
 
   //---
 
-  QColor fillColor = plot_->interpBarFillColor(is_, ns_);
-
   QPen   pen;
   QBrush brush;
 
-  plot_->setPen  (pen  , true, fillColor, 0.5, CQChartsLength("0px"), CQChartsLineDash());
+  QColor fillColor = plot_->interpBarFillColor(is_, ns_);
+
+  plot_->setPen  (pen  , true, fillColor, 1.0, CQChartsLength("0px"), CQChartsLineDash());
   plot_->setBrush(brush, true, fillColor, 0.5, CQChartsFillPattern());
 
   painter->setPen  (pen);
@@ -2958,7 +2958,7 @@ CQChartsDistKeyColorBox(CQChartsDistributionPlot *plot, int i, int n) :
 
 bool
 CQChartsDistKeyColorBox::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   setSetHidden(! isSetHidden());
 
@@ -2977,7 +2977,7 @@ fillBrush() const
   QColor c = plot_->interpBarFillColor(i_, n_);
 
   if (isSetHidden())
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }

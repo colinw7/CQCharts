@@ -30,10 +30,13 @@ addParameters()
   startParameterGroup("Scatter");
 
   // columns
-  addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
-  addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
+  addColumnParameter("x", "X", "xColumn", 0).
+    setTip("X Value").setRequired().setNumeric();
+  addColumnParameter("y", "Y", "yColumn", 1).
+    setTip("Y Value").setRequired().setNumeric();
 
-  addColumnParameter("name", "Name", "nameColumn").setTip("Value Name");
+  addColumnParameter("name", "Name", "nameColumn").
+    setTip("Value Name").setString();
 
   endParameterGroup();
 
@@ -1194,8 +1197,8 @@ addPointKeyItems(CQChartsPlotKey *key)
 
       QString groupName = groupIndName(groupInd);
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd, ig, ng);
-      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName);
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, groupInd , ig, ng);
+      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, groupName, ig, ng);
 
       key->addItem(colorItem, ig, 0);
       key->addItem(textItem , ig, 1);
@@ -1233,8 +1236,8 @@ addPointKeyItems(CQChartsPlotKey *key)
       const QString &name   = nameValue.first;
       const Values  &values = nameValue.second.values;
 
-      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1, is, ns);
-      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name);
+      CQChartsScatterKeyColor *colorItem = new CQChartsScatterKeyColor(this, -1  , is, ns);
+      CQChartsKeyText         *textItem  = new CQChartsKeyText        (this, name, is, ns);
 
       key->addItem(colorItem, is, 0);
       key->addItem(textItem , is, 1);
@@ -2005,7 +2008,7 @@ drawXWhiskerWhisker(QPainter *painter, const WhiskerData &whiskerData, int ig, i
   const CQChartsGeom::Range &dataRange = this->dataRange();
 
   double pos = (xWhiskerSide() == YSide::BOTTOM ?
-    dataRange.ymin() - ig*ww - wm : dataRange.ymax() + (ig + 1)*ww + wm);
+    dataRange.ymin() - (ig + 1)*ww - wm : dataRange.ymax() + ig*ww + wm);
 
   CQChartsGeom::BBox rect(whiskerData.xWhisker.min(), pos, whiskerData.xWhisker.max(), pos + ww);
 
@@ -2630,13 +2633,20 @@ CQChartsScatterKeyColor(CQChartsScatterPlot *plot, int groupInd, int i, int n) :
 
 bool
 CQChartsScatterKeyColor::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod selMod)
 {
   CQChartsScatterPlot *plot = qobject_cast<CQChartsScatterPlot *>(plot_);
 
   int ih = hideIndex();
 
-  plot->setSetHidden(ih, ! plot->isSetHidden(ih));
+  if (selMod == CQChartsSelMod::ADD) {
+    for (int i = 0; i < n_; ++i) {
+      plot_->CQChartsPlot::setSetHidden(i, i != ih);
+    }
+  }
+  else {
+    plot->setSetHidden(ih, ! plot->isSetHidden(ih));
+  }
 
   plot->updateRangeAndObjs();
 
@@ -2662,7 +2672,7 @@ fillBrush() const
   int ih = hideIndex();
 
   if (plot->isSetHidden(ih))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }

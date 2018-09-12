@@ -1,5 +1,6 @@
 #include <CQChartsForceDirectedPlot.h>
 #include <CQChartsView.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <CQChartsNamePair.h>
@@ -58,6 +59,27 @@ description() const
 {
   return "<h2>Summary</h2>\n"
          "<p>Draw connected data using animated nodes connected by springs.</p>\n";
+}
+
+bool
+CQChartsForceDirectedPlotType::
+isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                     CQChartsPlotParameter *parameter) const
+{
+  if      (parameter->name() == "connections") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::CONNECTION_LIST)
+      return true;
+
+    return false;
+  }
+  else if (parameter->name() == "namePair") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
+      return true;
+
+    return false;
+  }
+
+  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 CQChartsPlot *
@@ -526,7 +548,7 @@ animateStep()
 
 bool
 CQChartsForceDirectedPlot::
-selectPress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
+selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 {
   Springy::NodePoint nodePoint = forceDirected_.nearest(Springy::Vector(p.x, p.y));
 

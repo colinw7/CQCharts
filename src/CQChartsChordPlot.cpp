@@ -1,6 +1,7 @@
 #include <CQChartsChordPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsRotatedTextBoxObj.h>
+#include <CQChartsModelDetails.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 #include <CQCharts.h>
@@ -21,7 +22,7 @@ addParameters()
 {
   startParameterGroup("Chord");
 
-  addColumnParameter("name" , "Name" , "nameColumn" );
+  addColumnParameter("link" , "Link" , "linkColumn" );
   addColumnParameter("value", "Value", "valueColumn");
   addColumnParameter("group", "Group", "groupColumn");
 
@@ -38,6 +39,21 @@ description() const
 {
   return "<h2>Summary</h2>\n"
          "<p>Draw connections using radial plot with sized path arcs.</p>\n";
+}
+
+bool
+CQChartsChordPlotType::
+isColumnForParameter(CQChartsModelColumnDetails *columnDetails,
+                     CQChartsPlotParameter *parameter) const
+{
+  if (parameter->name() == "link") {
+    if (columnDetails->type() == CQChartsPlot::ColumnType::NAME_PAIR)
+      return true;
+
+    return false;
+  }
+
+  return CQChartsPlotType::isColumnForParameter(columnDetails, parameter);
 }
 
 CQChartsPlot *
@@ -73,9 +89,9 @@ CQChartsChordPlot::
 
 void
 CQChartsChordPlot::
-setNameColumn(const CQChartsColumn &c)
+setLinkColumn(const CQChartsColumn &c)
 {
-  CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
+  CQChartsUtil::testAndSet(linkColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -139,7 +155,7 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" );
+  addProperty("columns", this, "linkColumn" , "link" );
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "groupColumn", "group");
 
@@ -286,7 +302,7 @@ initTableObjs()
 
   int numExtraColumns = 0;
 
-  if (nameColumn ().isValid()) ++numExtraColumns;
+  if (linkColumn ().isValid()) ++numExtraColumns;
   if (groupColumn().isValid()) ++numExtraColumns;
 
   int nv = std::min(nr, nc - numExtraColumns);
@@ -328,19 +344,19 @@ initTableObjs()
 
     const QModelIndex &ind = indRowDatas[row].ind;
 
-    if (nameColumn().isValid() && nameColumn().column() < nv) {
-      QModelIndex nameInd  = modelIndex(ind.row(), nameColumn(), ind.parent());
-      QModelIndex nameInd1 = normalizeIndex(nameInd);
+    if (linkColumn().isValid() && linkColumn().column() < nv) {
+      QModelIndex linkInd  = modelIndex(ind.row(), linkColumn(), ind.parent());
+      QModelIndex linkInd1 = normalizeIndex(linkInd);
 
-      QVariant var = indRowDatas[row].rowData[nameColumn().column()];
+      QVariant var = indRowDatas[row].rowData[linkColumn().column()];
 
-      QString name;
+      QString link;
 
-      CQChartsVariant::toString(var, name);
+      CQChartsVariant::toString(var, link);
 
-      data.setName(name);
+      data.setName(link);
 
-      data.setInd(nameInd1);
+      data.setInd(linkInd1);
     }
 
     //---
@@ -365,7 +381,7 @@ initTableObjs()
     int col1 = 0;
 
     for (int col = 0; col < nv; ++col) {
-      if (col == nameColumn() || col == groupColumn())
+      if (col == linkColumn() || col == groupColumn())
         continue;
 
       //---
@@ -476,7 +492,7 @@ initHierObjs()
     State visit(QAbstractItemModel *, const VisitData &data) override {
       bool ok1, ok2;
 
-      QString linkStr = plot_->modelString(data.row, plot_->nameColumn (), data.parent , ok1);
+      QString linkStr = plot_->modelString(data.row, plot_->linkColumn (), data.parent , ok1);
       double  value   = plot_->modelReal  (data.row, plot_->valueColumn(), data.parent, ok2);
 
       if (! ok1 || ! ok2)
@@ -485,16 +501,16 @@ initHierObjs()
       //---
 
       // decode link into src and dest
-      CQChartsNamePair namePair(linkStr);
+      CQChartsNamePair linkPair(linkStr);
 
-      if (! namePair.isValid())
+      if (! linkPair.isValid())
         return State::SKIP;
 
-      QModelIndex linkInd  = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
+      QModelIndex linkInd  = plot_->modelIndex(data.row, plot_->linkColumn(), data.parent);
       QModelIndex linkInd1 = plot_->normalizeIndex(linkInd);
 
-      QString srcStr  = namePair.name1();
-      QString destStr = namePair.name2();
+      QString srcStr  = linkPair.name1();
+      QString destStr = linkPair.name2();
 
       // find src (create if doesn't exist)
       auto ps = nameDataMap_.find(srcStr);
@@ -706,7 +722,7 @@ void
 CQChartsChordObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
+  addColumnSelectIndex(inds, plot_->linkColumn ());
   addColumnSelectIndex(inds, plot_->groupColumn());
 }
 

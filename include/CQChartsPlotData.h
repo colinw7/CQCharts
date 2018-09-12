@@ -12,11 +12,11 @@ Q_PROPERTY(double           linesAlpha READ linesAlpha WRITE setLinesAlpha) \
 Q_PROPERTY(CQChartsLength   linesWidth READ linesWidth WRITE setLinesWidth) \
 Q_PROPERTY(CQChartsLineDash linesDash  READ linesDash  WRITE setLinesDash )
 
-template<class PLOT>
+template<class OBJ>
 class CQChartsPlotLineData {
  public:
-  CQChartsPlotLineData(PLOT *plot) :
-   lineDataPlot_(plot) {
+  CQChartsPlotLineData(OBJ *obj) :
+   lineDataObj_(obj) {
   }
 
   bool isLines() const { return lineData_.visible; }
@@ -30,7 +30,7 @@ class CQChartsPlotLineData {
   }
 
   QColor interpLinesColor(int i, int n) const {
-    return linesColor().interpColor(lineDataPlot_, i, n);
+    return linesColor().interpColor(lineDataObj_, i, n);
   }
 
   double linesAlpha() const { return lineData_.alpha; }
@@ -51,19 +51,16 @@ class CQChartsPlotLineData {
   void setLineDataPen(QPen &pen, int i, int n) {
     QColor lc = interpLinesColor(i, n);
 
-    lineDataPlot_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
+    lineDataObj_->setPen(pen, isLines(), lc, linesAlpha(), linesWidth(), linesDash());
   }
 
  private:
   void lineDataInvalidate(bool reload=false) {
-    if (reload)
-      lineDataPlot_->updateRangeAndObjs();
-    else
-      lineDataPlot_->invalidateLayers();
+    CQChartsInvalidator(lineDataObj_).invalidate(reload);
   }
 
  private:
-  PLOT* lineDataPlot_ { nullptr };
+  OBJ* lineDataObj_ { nullptr };
 
  protected:
   CQChartsLineData lineData_;
@@ -167,11 +164,11 @@ Q_PROPERTY(double              symbolFillAlpha \
 Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
            READ symbolFillPattern WRITE setSymbolFillPattern)
 
-template<class PLOT>
+template<class OBJ>
 class CQChartsPlotPointData {
  public:
-  CQChartsPlotPointData(PLOT *plot) :
-   pointDataPlot_(plot) {
+  CQChartsPlotPointData(OBJ *obj) :
+   pointDataObj_(obj) {
   }
 
   bool isPoints() const { return pointData_.visible; }
@@ -200,7 +197,7 @@ class CQChartsPlotPointData {
   }
 
   QColor interpSymbolStrokeColor(int i, int n) const {
-    return symbolStrokeColor().interpColor(pointDataPlot_, i, n);
+    return symbolStrokeColor().interpColor(pointDataObj_, i, n);
   }
 
   double symbolStrokeAlpha() const { return pointData_.stroke.alpha; }
@@ -229,11 +226,11 @@ class CQChartsPlotPointData {
   }
 
   QColor interpSymbolFillColor(double r) const {
-    return symbolFillColor().interpColor(pointDataPlot_, r);
+    return symbolFillColor().interpColor(pointDataObj_, r);
   }
 
   QColor interpSymbolFillColor(int i, int n) const {
-    return symbolFillColor().interpColor(pointDataPlot_, i, n);
+    return symbolFillColor().interpColor(pointDataObj_, i, n);
   }
 
   double symbolFillAlpha() const { return pointData_.fill.alpha; }
@@ -247,7 +244,7 @@ class CQChartsPlotPointData {
   }
 
   void setSymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) {
-    pointDataPlot_->setPenBrush(pen, brush,
+    pointDataObj_->setPenBrush(pen, brush,
       isSymbolStroked(), interpSymbolStrokeColor(i, n), symbolStrokeAlpha(),
       symbolStrokeWidth(), symbolStrokeDash(),
       isSymbolFilled(), interpSymbolFillColor(i, n), symbolFillAlpha(), symbolFillPattern());
@@ -255,14 +252,11 @@ class CQChartsPlotPointData {
 
  private:
   void pointDataInvalidate(bool reload=false) {
-    if (reload)
-      pointDataPlot_->updateRangeAndObjs();
-    else
-      pointDataPlot_->invalidateLayers();
+    CQChartsInvalidator(pointDataObj_).invalidate(reload);
   }
 
  private:
-  PLOT* pointDataPlot_ { nullptr };
+  OBJ* pointDataObj_ { nullptr };
 
  protected:
   CQChartsSymbolData pointData_;
@@ -297,11 +291,11 @@ Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
            READ LNAME##SymbolFillPattern WRITE set##UNAME##SymbolFillPattern)
 
 #define CQCHARTS_NAMED_POINT_DATA(UNAME,LNAME) \
-template<class PLOT> \
+template<class OBJ> \
 class CQChartsPlot##UNAME##PointData { \
  public: \
-  CQChartsPlot##UNAME##PointData(PLOT *plot) : \
-   LNAME##PointDataPlot_(plot) { \
+  CQChartsPlot##UNAME##PointData(OBJ *obj) : \
+   LNAME##PointDataObj_(obj) { \
   } \
 \
   bool is##UNAME##Points() const { return LNAME##PointData_.visible; } \
@@ -335,7 +329,7 @@ class CQChartsPlot##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolStrokeColor(int i, int n) const { \
-    return LNAME##SymbolStrokeColor().interpColor(LNAME##PointDataPlot_, i, n); \
+    return LNAME##SymbolStrokeColor().interpColor(LNAME##PointDataObj_, i, n); \
   } \
 \
   double LNAME##SymbolStrokeAlpha() const { return LNAME##PointData_.stroke.alpha; } \
@@ -371,11 +365,11 @@ class CQChartsPlot##UNAME##PointData { \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(double r) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataPlot_, r); \
+    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_, r); \
   } \
 \
   QColor interp##UNAME##SymbolFillColor(int i, int n) const { \
-    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataPlot_, i, n); \
+    return LNAME##SymbolFillColor().interpColor(LNAME##PointDataObj_, i, n); \
   } \
 \
   double LNAME##SymbolFillAlpha() const { return LNAME##PointData_.fill.alpha; } \
@@ -392,7 +386,7 @@ class CQChartsPlot##UNAME##PointData { \
   } \
 \
   void set##UNAME##SymbolPenBrush(QPen &pen, QBrush &brush, int i, int n) { \
-    LNAME##PointDataPlot_->setPenBrush(pen, brush, \
+    LNAME##PointDataObj_->setPenBrush(pen, brush, \
       is##UNAME##SymbolStroked(), interp##UNAME##SymbolStrokeColor(i, n), \
       LNAME##SymbolStrokeAlpha(), LNAME##SymbolStrokeWidth(), LNAME##SymbolStrokeDash(), \
       is##UNAME##SymbolFilled(), interp##UNAME##SymbolFillColor(i, n), \
@@ -401,14 +395,11 @@ class CQChartsPlot##UNAME##PointData { \
 \
  private: \
   void LNAME##PointDataInvalidate(bool reload=false) { \
-    if (reload) \
-      LNAME##PointDataPlot_->updateRangeAndObjs(); \
-    else \
-      LNAME##PointDataPlot_->invalidateLayers(); \
+    CQChartsInvalidator(LNAME##PointDataObj_).invalidate(reload); \
   } \
 \
  private: \
-  PLOT* LNAME##PointDataPlot_ { nullptr }; \
+  OBJ* LNAME##PointDataObj_ { nullptr }; \
 \
  protected: \
   CQChartsSymbolData LNAME##PointData_; \
@@ -487,11 +478,11 @@ Q_PROPERTY(Qt::Alignment textAlign     READ textAlign       WRITE setTextAlign  
 Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatted) \
 Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
-template<class PLOT>
+template<class OBJ>
 class CQChartsPlotTextData {
  public:
-  CQChartsPlotTextData(PLOT *plot) :
-   textDataPlot_(plot) {
+  CQChartsPlotTextData(OBJ *obj) :
+   textDataObj_(obj) {
   }
 
   bool isTextVisible() const { return textData_.visible; }
@@ -520,7 +511,7 @@ class CQChartsPlotTextData {
   }
 
   QColor interpTextColor(int i, int n) const {
-    return textColor().interpColor(textDataPlot_, i, n);
+    return textColor().interpColor(textDataObj_, i, n);
   }
 
   bool isTextContrast() const { return textData_.contrast; }
@@ -545,14 +536,11 @@ class CQChartsPlotTextData {
 
  protected:
   virtual void textDataInvalidate(bool reload=false) {
-    if (reload)
-      textDataPlot_->updateRangeAndObjs();
-    else
-      textDataPlot_->invalidateLayers();
+    CQChartsInvalidator(textDataObj_).invalidate(reload);
   }
 
  private:
-  PLOT* textDataPlot_ { nullptr };
+  OBJ* textDataObj_ { nullptr };
 
  protected:
   CQChartsTextData textData_;
@@ -668,11 +656,11 @@ Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth) \
 Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
-template<class PLOT>
+template<class OBJ>
 class CQChartsPlotStrokeData {
  public:
-  CQChartsPlotStrokeData(PLOT *plot) :
-   strokeDataPlot_(plot) {
+  CQChartsPlotStrokeData(OBJ *obj) :
+   strokeDataObj_(obj) {
   }
 
   //---
@@ -708,18 +696,18 @@ class CQChartsPlotStrokeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(strokeDataPlot_, i, n);
+    return borderColor().interpColor(strokeDataObj_, i, n);
   }
 
   //---
 
  private:
   void strokeDataInvalidate() {
-    strokeDataPlot_->invalidateLayers();
+    strokeDataObj_->invalidateLayers();
   }
 
  private:
-  PLOT* strokeDataPlot_ { nullptr };
+  OBJ* strokeDataObj_ { nullptr };
 
  protected:
   CQChartsStrokeData strokeData_;
@@ -740,11 +728,11 @@ Q_PROPERTY(CQChartsColor       fillColor   READ fillColor   WRITE setFillColor  
 Q_PROPERTY(double              fillAlpha   READ fillAlpha   WRITE setFillAlpha  ) \
 Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
 
-template<class PLOT>
+template<class OBJ>
 class CQChartsPlotShapeData {
  public:
-  CQChartsPlotShapeData(PLOT *plot) :
-   shapeDataPlot_(plot) {
+  CQChartsPlotShapeData(OBJ *obj) :
+   shapeDataObj_(obj) {
   }
 
   //---
@@ -780,7 +768,7 @@ class CQChartsPlotShapeData {
   }
 
   QColor interpBorderColor(int i, int n) const {
-    return borderColor().interpColor(shapeDataPlot_, i, n);
+    return borderColor().interpColor(shapeDataObj_, i, n);
   }
 
   //---
@@ -806,18 +794,18 @@ class CQChartsPlotShapeData {
   }
 
   QColor interpFillColor(int i, int n) const {
-    return fillColor().interpColor(shapeDataPlot_, i, n);
+    return fillColor().interpColor(shapeDataObj_, i, n);
   }
 
   //---
 
  private:
   void shapeDataInvalidate() {
-    shapeDataPlot_->invalidateLayers();
+    shapeDataObj_->invalidateLayers();
   }
 
  private:
-  PLOT* shapeDataPlot_ { nullptr };
+  OBJ* shapeDataObj_ { nullptr };
 
  protected:
   CQChartsShapeData shapeData_;
@@ -849,11 +837,11 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
            READ LNAME##FillPattern WRITE set##UNAME##FillPattern)
 
 #define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
-template<class PLOT> \
+template<class OBJ> \
 class CQChartsPlot##UNAME##ShapeData { \
  public: \
-  CQChartsPlot##UNAME##ShapeData(PLOT *plot) : \
-   LNAME##ShapeDataPlot_(plot) { \
+  CQChartsPlot##UNAME##ShapeData(OBJ *obj) : \
+   LNAME##ShapeDataObj_(obj) { \
   } \
 \
   bool is##UNAME##Border() const { return LNAME##ShapeData_.border.visible; } \
@@ -894,7 +882,7 @@ class CQChartsPlot##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##BorderColor(int i, int n) const { \
-    return LNAME##BorderColor().interpColor(LNAME##ShapeDataPlot_, i, n); \
+    return LNAME##BorderColor().interpColor(LNAME##ShapeDataObj_, i, n); \
   } \
 \
   bool is##UNAME##Filled() const { return LNAME##ShapeData_.background.visible; } \
@@ -923,16 +911,16 @@ class CQChartsPlot##UNAME##ShapeData { \
   } \
 \
   QColor interp##UNAME##FillColor(int i, int n) const { \
-    return LNAME##FillColor().interpColor(LNAME##ShapeDataPlot_, i, n); \
+    return LNAME##FillColor().interpColor(LNAME##ShapeDataObj_, i, n); \
   } \
 \
  private: \
   void LNAME##ShapeDataInvalidate() { \
-    LNAME##ShapeDataPlot_->invalidateLayers(); \
+    LNAME##ShapeDataObj_->invalidateLayers(); \
   } \
 \
  private: \
-  PLOT* LNAME##ShapeDataPlot_ { nullptr }; \
+  OBJ* LNAME##ShapeDataObj_ { nullptr }; \
 \
  protected: \
   CQChartsShapeData LNAME##ShapeData_; \

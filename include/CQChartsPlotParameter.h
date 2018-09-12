@@ -7,13 +7,14 @@
 class CQChartsPlotParameterAttributes {
  public:
   enum Flags {
-    REQUIRED  = (1<<0),
-    MONOTONIC = (1<<1),
-    NUMERIC   = (1<<2),
-    STRING    = (1<<3),
-    COLOR     = (1<<4),
-    GROUPABLE = (1<<5),
-    MAPPED    = (1<<6)
+    REQUIRED     = (1<<0),
+    MONOTONIC    = (1<<1),
+    NUMERIC      = (1<<2),
+    STRING       = (1<<3),
+    COLOR        = (1<<4),
+    GROUPABLE    = (1<<5),
+    MAPPED       = (1<<6),
+    DISCRIMIATOR = (1<<7)
   };
 
  public:
@@ -21,10 +22,15 @@ class CQChartsPlotParameterAttributes {
 
   // optional/required
   bool isOptional() const { return ! isRequired(); }
-  CQChartsPlotParameterAttributes &setOptional () { flags_ &= ~REQUIRED ; return *this; }
+  CQChartsPlotParameterAttributes &setOptional() { flags_ &= ~REQUIRED ; return *this; }
 
   bool isRequired() const { return (flags_ & REQUIRED); }
   CQChartsPlotParameterAttributes &setRequired() { flags_ |= REQUIRED; return *this; }
+
+  //---
+
+  bool isDiscrimator() const { return (flags_ & DISCRIMIATOR); }
+  CQChartsPlotParameterAttributes &setDiscrimator() { flags_ |= DISCRIMIATOR ; return *this; }
 
   //---
 
@@ -128,14 +134,15 @@ class CQChartsPlotParameter {
 
   virtual bool isColumn() const { return false; }
 
-  CQChartsPlotParameter &setOptional () { attributes_.setOptional (); return *this; }
-  CQChartsPlotParameter &setRequired () { attributes_.setRequired (); return *this; }
-  CQChartsPlotParameter &setMonotonic() { attributes_.setMonotonic(); return *this; }
-  CQChartsPlotParameter &setNumeric  () { attributes_.setNumeric  (); return *this; }
-  CQChartsPlotParameter &setString   () { attributes_.setString   (); return *this; }
-  CQChartsPlotParameter &setColor    () { attributes_.setColor    (); return *this; }
-  CQChartsPlotParameter &setGroupable() { attributes_.setGroupable(); return *this; }
-  CQChartsPlotParameter &setMapped   () { attributes_.setMapped   (); return *this; }
+  CQChartsPlotParameter &setOptional   () { attributes_.setOptional   (); return *this; }
+  CQChartsPlotParameter &setRequired   () { attributes_.setRequired   (); return *this; }
+  CQChartsPlotParameter &setDiscrimator() { attributes_.setDiscrimator(); return *this; }
+  CQChartsPlotParameter &setMonotonic  () { attributes_.setMonotonic  (); return *this; }
+  CQChartsPlotParameter &setNumeric    () { attributes_.setNumeric    (); return *this; }
+  CQChartsPlotParameter &setString     () { attributes_.setString     (); return *this; }
+  CQChartsPlotParameter &setColor      () { attributes_.setColor      (); return *this; }
+  CQChartsPlotParameter &setGroupable  () { attributes_.setGroupable  (); return *this; }
+  CQChartsPlotParameter &setMapped     () { attributes_.setMapped     (); return *this; }
 
   CQChartsPlotParameter &setMapMin(double r) { attributes_.setMapMin(r); return *this; }
   CQChartsPlotParameter &setMapMax(double r) { attributes_.setMapMax(r); return *this; }

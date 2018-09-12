@@ -615,3 +615,10 @@
  + Add tooltip to filter edit
  + Support And/Or for multiple filters
  + Support general tipColumn to supply tip string in model
+# 9/11/2018
+ + Improve parameter details
+ + Ensure required parameters are set in analyze model
+ + Support discriminator parameters (one or another column required)
+ + Improve fade of hidden key items
+ + Support click key to show single value set
+ + Add style macros to key

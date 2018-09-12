@@ -20,10 +20,13 @@ addParameters()
 {
   startParameterGroup("Hier Scatter");
 
-  addColumnParameter("x", "X", "xColumn", 0).setTip("X Value").setRequired();
-  addColumnParameter("y", "Y", "yColumn", 1).setTip("Y Value").setRequired();
+  addColumnParameter("x", "X", "xColumn", 0).
+    setTip("X Value").setRequired().setNumeric();
+  addColumnParameter("y", "Y", "yColumn", 1).
+    setTip("Y Value").setRequired().setNumeric();
 
-  addColumnParameter("name", "Name", "nameColumn").setTip("Value Name");
+  addColumnParameter("name", "Name", "nameColumn").
+    setTip("Value Name").setString();
 
   addColumnsParameter("group", "Group", "groupColumnStr").setTip("Group Name(s)");
 
@@ -601,7 +604,7 @@ addKeyItems(CQChartsPlotKey *key)
     const QString &name = group->name();
 
     CQChartsHierScatterKeyColor *color = new CQChartsHierScatterKeyColor(this, group, i, n);
-    CQChartsKeyText             *text  = new CQChartsKeyText            (this, name);
+    CQChartsKeyText             *text  = new CQChartsKeyText            (this, name , i, n);
 
     key->addItem(color, i, 0);
     key->addItem(text , i, 1);
@@ -753,7 +756,7 @@ CQChartsHierScatterKeyColor(CQChartsHierScatterPlot *plot, CQChartsHierScatterPo
 
 bool
 CQChartsHierScatterKeyColor::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsHierScatterPlot *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
@@ -776,7 +779,7 @@ fillBrush() const
   //CQChartsHierScatterPlot *plot = qobject_cast<CQChartsHierScatterPlot *>(plot_);
 
   //if (plot->isSetHidden(i_))
-  //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+  //  c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   return c;
 }

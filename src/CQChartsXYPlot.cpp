@@ -25,22 +25,26 @@ addParameters()
   startParameterGroup("XY");
 
   // columns
-  addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired().setMonotonic().setNumeric();
-  addColumnsParameter("y", "Y", "yColumns", "1").setRequired().setNumeric();
+  addColumnParameter ("x", "X", "xColumn" , 0  ).
+    setRequired().setMonotonic().setNumeric().setTip("X Value Column");
+  addColumnsParameter("y", "Y", "yColumns", "1").
+    setRequired().setNumeric().setTip("Y Value Columns");
 
-  addColumnParameter("name", "Name", "nameColumn").setString();
-  addColumnParameter("size", "Size", "sizeColumn").setNumeric();
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Optional Name Column");
+  addColumnParameter("size", "Size", "sizeColumn").
+    setNumeric().setTip("Symbol Size Column");
 
   //--
 
   // bool parameters
-  addBoolParameter("lines"     , "Lines"     , "lines", true   );
-  addBoolParameter("points"    , "Points"    , "points"        );
-  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines");
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"       );
-  addBoolParameter("cumulative", "Cumulative", "cumulative"    );
-  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder"     );
-  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"  );
+  addBoolParameter("lines"     , "Lines"     , "lines", true   ).setTip("Draw Lines");
+  addBoolParameter("points"    , "Points"    , "points"        ).setTip("Draw Points");
+  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines").setTip("Draw Bivariate Lines");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"       ).setTip("Stack Points");
+  addBoolParameter("cumulative", "Cumulative", "cumulative"    ).setTip("Cumulate Values");
+  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder"     ).setTip("Fill Under Curve");
+  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"  ).setTip("Draw Point Impulse");
 
   endParameterGroup();
 
@@ -1617,7 +1621,7 @@ addKeyItems(CQChartsPlotKey *key)
     }
 
     CQChartsXYKeyColor *color = new CQChartsXYKeyColor(this, 0, 1);
-    CQChartsXYKeyText  *text  = new CQChartsXYKeyText (this, 0, name);
+    CQChartsXYKeyText  *text  = new CQChartsXYKeyText (this, name, 0, 1);
 
     key->addItem(color, row, col    );
     key->addItem(text , row, col + 1);
@@ -1631,7 +1635,7 @@ addKeyItems(CQChartsPlotKey *key)
       QString name = modelHeaderString(yColumn, ok);
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
-      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
+      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, i, ns);
 
       key->addItem(line, row + i, col    );
       key->addItem(text, row + i, col + 1);
@@ -1661,7 +1665,7 @@ addKeyItems(CQChartsPlotKey *key)
       }
 
       CQChartsXYKeyLine *line = new CQChartsXYKeyLine(this, i, ns);
-      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, i, name);
+      CQChartsXYKeyText *text = new CQChartsXYKeyText(this, name, i, ns);
 
       if (! key->isHorizontal()) {
         key->addItem(line, row + i, col    );
@@ -2945,7 +2949,7 @@ CQChartsXYKeyColor(CQChartsXYPlot *plot, int i, int n) :
 
 bool
 CQChartsXYKeyColor::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
@@ -2988,7 +2992,7 @@ fillBrush() const
     c = CQChartsKeyColorBox::fillBrush().color();
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), 0.5);
+    c = CQChartsUtil::blendColors(c, key_->interpBgColor(), key_->hiddenAlpha());
 
   plot->setBrush(brush, true, c, alpha, pattern);
 
@@ -3029,7 +3033,7 @@ size() const
 
 bool
 CQChartsXYKeyLine::
-selectPress(const CQChartsGeom::Point &)
+selectPress(const CQChartsGeom::Point &, CQChartsSelMod)
 {
   CQChartsXYPlot *plot = qobject_cast<CQChartsXYPlot *>(plot_);
 
@@ -3069,11 +3073,12 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   if (plot->isSetHidden(i_)) {
     QColor bg = key_->interpBgColor();
+    double a  = key_->hiddenAlpha();
 
-    pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, bg, 0.5);
-    pointFillColor   = CQChartsUtil::blendColors(pointFillColor  , bg, 0.5);
-    lineColor        = CQChartsUtil::blendColors(lineColor       , bg, 0.5);
-    impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, 0.5);
+    pointStrokeColor = CQChartsUtil::blendColors(pointStrokeColor, bg, a);
+    pointFillColor   = CQChartsUtil::blendColors(pointFillColor  , bg, a);
+    lineColor        = CQChartsUtil::blendColors(lineColor       , bg, a);
+    impulseColor     = CQChartsUtil::blendColors(impulseColor    , bg, a);
   }
 
   QPen linePen;
@@ -3163,8 +3168,8 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 //------
 
 CQChartsXYKeyText::
-CQChartsXYKeyText(CQChartsXYPlot *plot, int i, const QString &text) :
- CQChartsKeyText(plot, text), i_(i)
+CQChartsXYKeyText(CQChartsXYPlot *plot, const QString &text, int i, int n) :
+ CQChartsKeyText(plot, text, i, n)
 {
 }
 

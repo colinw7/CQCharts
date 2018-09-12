@@ -536,7 +536,7 @@ addKeyItems(CQChartsPlotKey *key)
       //---
 
       CQChartsKeyColorBox *color = new CQChartsKeyColorBox(plot_, data.row, numRows());
-      CQChartsKeyText     *text  = new CQChartsKeyText(plot_, name);
+      CQChartsKeyText     *text  = new CQChartsKeyText(plot_, name, data.row, numRows());
 
       color->setClickHide(true);
 

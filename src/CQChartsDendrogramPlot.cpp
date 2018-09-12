@@ -450,7 +450,7 @@ drawNode(QPainter *painter, CQChartsDendrogram::HierNode *hier, CQChartsDendrogr
 
 bool
 CQChartsDendrogramPlot::
-selectPress(const CQChartsGeom::Point &p, ModSelect /*modSelect*/)
+selectPress(const CQChartsGeom::Point &p, SelMod /*selMod*/)
 {
   double cs = circleSize();
 
