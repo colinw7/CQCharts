@@ -14,6 +14,19 @@ void
 CQChartsAnalyzeModel::
 analyze()
 {
+  CQCharts::PlotTypes types;
+
+  charts_->getPlotTypes(types);
+
+  for (const auto &type : types) {
+    analyzeType(type);
+  }
+}
+
+bool
+CQChartsAnalyzeModel::
+analyzeType(CQChartsPlotType *type)
+{
   CQChartsModelDetails *details = modelData_->details();
 
   int nc = details->numColumns();
@@ -21,6 +34,8 @@ analyze()
 
   CQChartsModelDetails::Columns numericColumns   = details->numericColumns();
   CQChartsModelDetails::Columns monotonicColumns = details->monotonicColumns();
+
+  //---
 
   using ColumnUsed  = std::pair<CQChartsModelColumnDetails*,bool>;
   using IColumnUsed = std::map<int,ColumnUsed>;
@@ -33,96 +48,69 @@ analyze()
     columnUsed[i] = ColumnUsed(columnDetails, false);
   }
 
-  CQCharts::PlotTypes types;
+  //---
 
-  charts_->getPlotTypes(types);
+  int numRequired  = 0;
+  int numNumeric   = 0;
+  int numMonotonic = 0;
 
-  for (const auto &type : types) {
-    int numRequired  = 0;
-    int numNumeric   = 0;
-    int numMonotonic = 0;
+  for (const auto &parameter : type->parameters()) {
+    if (! parameter->isColumn())
+      continue;
 
-    for (const auto &parameter : type->parameters()) {
-      if (! parameter->isColumn())
-        continue;
+    if (parameter->isMultiple())
+      continue;
 
-      const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
+    const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
 
-      if (! attributes.isRequired())
-        continue;
+    if (! attributes.isRequired())
+      continue;
 
-      ++numRequired;
+    ++numRequired;
 
-      if (attributes.isNumeric()) {
-        ++numNumeric;
+    if (attributes.isNumeric()) {
+      ++numNumeric;
 
-        if (attributes.isMonotonic())
-          ++numMonotonic;
-      }
+      if (attributes.isMonotonic())
+        ++numMonotonic;
     }
+  }
 
-    if (numRequired > nc)
+  if (numRequired > nc)
+    return false;
+
+  if (numNumeric > 0 && int(numericColumns.size()) < numNumeric)
+    return false;
+
+  if (numMonotonic > 0 && int(monotonicColumns.size()) < numMonotonic)
+    return false;
+
+  //---
+
+  bool requiredValid = true;
+
+  IColumnUsed columnUsed1 = columnUsed;
+
+  NameColumns nameColumns;
+
+  for (const auto &parameter : type->parameters()) {
+    if (! parameter->isColumn())
       continue;
 
-    if (numNumeric > 0 && int(numericColumns.size()) < numNumeric)
+    if (parameter->isMultiple())
       continue;
 
-    if (numMonotonic > 0 && int(monotonicColumns.size()) < numMonotonic)
-      continue;
+    const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
 
-    //---
-
-    bool requiredValid = true;
-
-    IColumnUsed columnUsed1 = columnUsed;
-
-    NameColumns nameColumns;
-
-    for (const auto &parameter : type->parameters()) {
-      if (! parameter->isColumn())
-        continue;
-
-      const CQChartsPlotParameter::Attributes &attributes = parameter->attributes();
-
-      if (! attributes.isRequired()) {
-        // if attribute is a discrimator then assign if exact match
-        if (attributes.isDiscrimator()) {
-          // find first valid unused column for attribute
-          for (auto &cu : columnUsed1) {
-            if (cu.second.second)
-              continue;
-
-            CQChartsModelColumnDetails *columnDetails = cu.second.first;
-
-            if (! type->isColumnForParameter(columnDetails, parameter))
-              continue;
-
-            nameColumns[parameter->name()] = columnDetails->column();
-
-            cu.second.second = true;
-
-            break;
-          }
-        }
-      }
-      else {
-        bool found = false;
-
+    if (! attributes.isRequired()) {
+      // if attribute is a discrimator then assign if exact match
+      if (attributes.isDiscrimator()) {
         // find first valid unused column for attribute
         for (auto &cu : columnUsed1) {
           if (cu.second.second)
             continue;
 
           CQChartsModelColumnDetails *columnDetails = cu.second.first;
-
-          if      (attributes.isMonotonic()) {
-            if (! columnDetails->isMonotonic())
-              continue;
-          }
-          else if (attributes.isNumeric()) {
-            if (! columnDetails->isNumeric())
-              continue;
-          }
 
           if (! type->isColumnForParameter(columnDetails, parameter))
             continue;
@@ -131,62 +119,93 @@ analyze()
 
           cu.second.second = true;
 
-          found = true;
-
-          break;
-        }
-
-        if (! found) {
-          requiredValid = false;
           break;
         }
       }
     }
+    else {
+      bool found = false;
 
-    if (! requiredValid)
-      continue;
-
-    //---
-
-    if (type->isGroupType()) {
-      int            bestNumUnique = -1;
-      CQChartsColumn bestColumn;
-      int            bestI = -1;
-
+      // find first valid unused column for attribute
       for (auto &cu : columnUsed1) {
         if (cu.second.second)
           continue;
 
         CQChartsModelColumnDetails *columnDetails = cu.second.first;
 
-        if (columnDetails->type() != CQBaseModel::Type::STRING &&
-            columnDetails->type() != CQBaseModel::Type::INTEGER)
-          continue;
-
-        int numUnique = columnDetails->numUnique();
-
-        if (numUnique == 1 || numUnique >= nr)
-          continue;
-
-        if (bestNumUnique < 0 || numUnique < bestNumUnique) {
-          bestColumn = columnDetails->column();
-
-          bestNumUnique = numUnique;
-          bestI         = cu.first;
+        if      (attributes.isMonotonic()) {
+          if (! columnDetails->isMonotonic())
+            continue;
         }
+        else if (attributes.isNumeric()) {
+          if (! columnDetails->isNumeric())
+            continue;
+        }
+
+        if (! type->isColumnForParameter(columnDetails, parameter))
+          continue;
+
+        nameColumns[parameter->name()] = columnDetails->column();
+
+        cu.second.second = true;
+
+        found = true;
+
+        break;
       }
 
-      if (bestNumUnique >= 0) {
-        nameColumns["group"] = bestColumn;
+      if (! found) {
+        requiredValid = false;
+        break;
+      }
+    }
+  }
 
-        columnUsed1[bestI].second = true;
+  if (! requiredValid)
+    return false;
+
+  //---
+
+  if (type->isGroupType()) {
+    int            bestNumUnique = -1;
+    CQChartsColumn bestColumn;
+    int            bestI = -1;
+
+    for (auto &cu : columnUsed1) {
+      if (cu.second.second)
+        continue;
+
+      CQChartsModelColumnDetails *columnDetails = cu.second.first;
+
+      if (columnDetails->type() != CQBaseModel::Type::STRING &&
+          columnDetails->type() != CQBaseModel::Type::INTEGER)
+        continue;
+
+      int numUnique = columnDetails->numUnique();
+
+      if (numUnique == 1 || numUnique >= nr)
+        continue;
+
+      if (bestNumUnique < 0 || numUnique < bestNumUnique) {
+        bestColumn = columnDetails->column();
+
+        bestNumUnique = numUnique;
+        bestI         = cu.first;
       }
     }
 
-    //---
+    if (bestNumUnique >= 0) {
+      nameColumns["group"] = bestColumn;
 
-    typeNameColumns_[type->name()] = nameColumns;
+      columnUsed1[bestI].second = true;
+    }
   }
+
+  //---
+
+  typeNameColumns_[type->name()] = nameColumns;
+
+  return true;
 }
 
 void

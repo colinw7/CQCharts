@@ -5,6 +5,7 @@
 #include <map>
 
 class CQCharts;
+class CQChartsPlotType;
 class CQChartsModelData;
 
 class CQChartsAnalyzeModel {
@@ -20,6 +21,9 @@ class CQChartsAnalyzeModel {
   const TypeNameColumns &typeNameColumns() { return typeNameColumns_; }
 
   void print() const;
+
+ private:
+  bool analyzeType(CQChartsPlotType *type);
 
  private:
   CQCharts*          charts_    { nullptr };

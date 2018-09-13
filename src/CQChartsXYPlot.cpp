@@ -114,7 +114,7 @@ description() const
          "<p>Enabling the <b>FillUnder</b> option fills the area under the plot. The "
          "fill under style (fill/stroke) can be separately customized.<p>\n"
          "<p>Enabling the <b>Impulse</b> option draws a line from zero to the "
-         "points y value. The impule line style can be separately customized.</p> "
+         "points y value. The impulse line style can be separately customized.</p> "
          "<p>Enabling the <b>Fitted</b> option draws a best fit line between the points.<p>\n"
          "<p>The <b>Vectors</b> option detemines whether the vector specified by the "
          "<b>VectorX</b> and <b>VectorY</b> columns are drawn.</p>\n";
@@ -1850,15 +1850,20 @@ CQChartsXYBiLineObj::
 calcTipId() const
 {
   QString name  = plot()->valueName(-1, ind().row());
+  QString xstr  = plot()->xStr(x());
   QString y1str = plot()->yStr(y1());
   QString y2str = plot()->yStr(y2());
 
+  CQChartsTableTip tableTip;
+
   if (name.length())
-    return QString("%1:%2:%3").arg(name).arg(y1str).arg(y2str);
+    tableTip.addTableRow("Name", name);
 
-  QString xstr = plot()->xStr(x());
+  tableTip.addTableRow("X" , xstr );
+  tableTip.addTableRow("Y1", y1str);
+  tableTip.addTableRow("Y2", y2str);
 
-  return QString("%1:%2:%3").arg(xstr).arg(y1str).arg(y2str);
+  return tableTip.str();
 }
 
 bool
@@ -2000,14 +2005,21 @@ QString
 CQChartsXYImpulseLineObj::
 calcTipId() const
 {
-  QString name = plot()->valueName(iset(), ind().row());
-  QString xstr = plot()->xStr(x());
-  QString ystr = plot()->yStr(y1()) + "-" + plot()->yStr(y2());
+  QString name  = plot()->valueName(iset(), ind().row());
+  QString xstr  = plot()->xStr(x());
+  QString y1str = plot()->yStr(y1());
+  QString y2str = plot()->yStr(y2());
+
+  CQChartsTableTip tableTip;
 
   if (name.length())
-    return QString("%1:%2:%3").arg(name).arg(xstr).arg(ystr);
+    tableTip.addTableRow("Name", name);
 
-  return QString("%1:%2:%3:%4").arg(ind().row()).arg(iset()).arg(xstr).arg(ystr);
+  tableTip.addTableRow("X" , xstr );
+  tableTip.addTableRow("Y1", y1str);
+  tableTip.addTableRow("Y2", y2str);
+
+  return tableTip.str();
 }
 
 bool
@@ -2367,7 +2379,11 @@ QString
 CQChartsXYLabelObj::
 calcTipId() const
 {
-  return label_;
+  CQChartsTableTip tableTip;
+
+  tableTip.addTableRow("Label", label_);
+
+  return tableTip.str();
 }
 
 bool

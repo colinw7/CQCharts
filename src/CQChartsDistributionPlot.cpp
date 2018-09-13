@@ -29,9 +29,10 @@ addParameters()
 
   // values
   addColumnsParameter("value", "Value", "valueColumns", "0").
-    setRequired().setTip("Value column(s)");
+    setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("name", "Name", "nameColumn").setTip("Custom group name");
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Custom group name");
 
   // bucket
   addBoolParameter("bucketed", "Bucketed", "bucketed", true).

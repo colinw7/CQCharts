@@ -22,7 +22,7 @@ addParameters()
 
   // values
   addColumnsParameter("value", "Value", "valueColumns", "1").
-    setRequired().setTip("Value column(s)");
+    setRequired().setNumeric().setTip("Value column(s)");
 
   addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Custom group name");
   addColumnParameter("label", "Label", "labelColumn").setTip("Bar data label");

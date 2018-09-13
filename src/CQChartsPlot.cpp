@@ -2812,25 +2812,31 @@ QString
 CQChartsPlot::
 posStr(const CQChartsGeom::Point &w) const
 {
-  return xStr(w.x) + " " + yStr(w.y);
+  return xStr(w.x, false) + " " + yStr(w.y, false);
 }
 
 QString
 CQChartsPlot::
-xStr(double x) const
+xStr(double x, bool check) const
 {
   if (isLogX())
     x = expValue(x);
+
+  if (check)
+    assert(xValueColumn().isValid());
 
   return columnStr(xValueColumn(), x);
 }
 
 QString
 CQChartsPlot::
-yStr(double y) const
+yStr(double y, bool check) const
 {
   if (isLogY())
     y = expValue(y);
+
+  if (check)
+    assert(yValueColumn().isValid());
 
   return columnStr(yValueColumn(), y);
 }

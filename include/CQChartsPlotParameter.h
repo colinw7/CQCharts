@@ -134,6 +134,8 @@ class CQChartsPlotParameter {
 
   virtual bool isColumn() const { return false; }
 
+  virtual bool isMultiple() const { return false; }
+
   CQChartsPlotParameter &setOptional   () { attributes_.setOptional   (); return *this; }
   CQChartsPlotParameter &setRequired   () { attributes_.setRequired   (); return *this; }
   CQChartsPlotParameter &setDiscrimator() { attributes_.setDiscrimator(); return *this; }
@@ -202,6 +204,8 @@ class CQChartsColumnsParameter : public CQChartsPlotParameter {
   }
 
   bool isColumn() const override { return true; }
+
+  bool isMultiple() const override { return true; }
 };
 
 //---

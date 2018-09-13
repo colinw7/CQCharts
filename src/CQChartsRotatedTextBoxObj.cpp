@@ -176,7 +176,7 @@ drawCalcConnectedRadialText(QPainter *painter, const QPointF &center, double ro,
   double tx = center.x() + lr*tc;
   double ty = center.y() + lr*ts;
 
-  double ptx, pty;
+  double ptx = 0.0, pty = 0.0;
 
   if      (plot())
     plot()->windowToPixel(tx, ty, ptx, pty);

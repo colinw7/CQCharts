@@ -22,12 +22,19 @@ addParameters()
 
   // name, desc, propName, attributes, default
   addColumnsParameter("value", "Value", "valueColumns", "1").
-    setRequired().setTip("Value column(s)");
+    setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("label"   , "Label"    , "labelColumn"   , 0).setTip("Custom label");
-  addColumnParameter("radius"  , "Radius"   , "radiusColumn"     ).setTip("Custom radius");
-  addColumnParameter("keyLabel", "Key Label", "keyLabelColumn"   ).setTip("Custom key label");
-  addColumnParameter("color"   , "Color"    , "colorColumn"      ).setTip("Custom slice color");
+  addColumnParameter("label", "Label", "labelColumn", 0).
+    setString().setTip("Custom label");
+
+  addColumnParameter("radius", "Radius", "radiusColumn").
+    setNumeric().setTip("Custom radius");
+
+  addColumnParameter("keyLabel", "Key Label", "keyLabelColumn").
+    setString().setTip("Custom key label");
+
+  addColumnParameter("color", "Color", "colorColumn").
+    setColor().setTip("Custom slice color");
 
   addBoolParameter("donut", "Donut", "donut").setTip("Draw donut");
   addBoolParameter("count", "Count", "count").setTip("Display value counts");

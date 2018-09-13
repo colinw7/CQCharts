@@ -622,3 +622,5 @@
  + Improve fade of hidden key items
  + Support click key to show single value set
  + Add style macros to key
+# 9/12/2018
+ + Fix tooltip for data values in scatter

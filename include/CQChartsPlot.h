@@ -951,8 +951,8 @@ class CQChartsPlot : public QObject,
 
   virtual QString posStr(const CQChartsGeom::Point &w) const;
 
-  virtual QString xStr(double x) const;
-  virtual QString yStr(double y) const;
+  virtual QString xStr(double x, bool check=true) const;
+  virtual QString yStr(double y, bool check=true) const;
 
   virtual QString columnStr(const CQChartsColumn &column, double x) const;
 

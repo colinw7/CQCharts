@@ -781,6 +781,11 @@ calcRange()
 
   //---
 
+  setXValueColumn(xColumn());
+  setYValueColumn(yColumn());
+
+  //---
+
   xAxis_->setColumn(xColumn());
   yAxis_->setColumn(yColumn());
 
@@ -2251,8 +2256,11 @@ calcTipId() const
     tableTip.addTableRow("Group", groupName);
   }
 
-  tableTip.addTableRow(plot_->xname(), p_.x());
-  tableTip.addTableRow(plot_->yname(), p_.y());
+  QString xstr = plot()->xStr(p_.x());
+  QString ystr = plot()->yStr(p_.y());
+
+  tableTip.addTableRow(plot_->xname(), xstr);
+  tableTip.addTableRow(plot_->yname(), ystr);
 
   auto pg = plot_->groupNameValues().find(groupInd_);
   assert(pg != plot_->groupNameValues().end());

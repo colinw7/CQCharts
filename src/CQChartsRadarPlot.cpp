@@ -20,8 +20,11 @@ addParameters()
 {
   startParameterGroup("Radar");
 
-  addColumnParameter ("name" , "Name" , "nameColumn"  );
-  addColumnsParameter("value", "Value", "valueColumns", "1").setRequired();
+  addColumnParameter("name", "Name", "nameColumn").
+    setString().setTip("Name column");
+
+  addColumnsParameter("value", "Value", "valueColumns", "1").
+   setNumeric().setRequired().setTip("Value column");
 
   endParameterGroup();
 

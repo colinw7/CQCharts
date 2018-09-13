@@ -139,15 +139,17 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(gridPath, this, "gridMid"  , "middle");
   model->addProperty(gridPath, this, "gridAbove", "above" );
 
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridLines", "visible");
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridColor", "color"  );
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridWidth", "width"  );
-  model->addProperty(gridMajorLinePath, this, "axesMajorGridDash" , "dash"   );
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLines"     , "visible");
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesColor", "color"  );
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesAlpha", "alpha"  );
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesWidth", "width"  );
+  model->addProperty(gridMajorLinePath, this, "axesMajorGridLinesDash" , "dash"   );
 
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridLines", "visible");
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridColor", "color"  );
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridWidth", "width"  );
-  model->addProperty(gridMinorLinePath, this, "axesMinorGridDash" , "dash"   );
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLines"     , "visible");
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesColor", "color"  );
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesAlpha", "alpha"  );
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesWidth", "width"  );
+  model->addProperty(gridMinorLinePath, this, "axesMinorGridLinesDash" , "dash"   );
 
   model->addProperty(gridFillPath, this, "axesGridFilled"     , "visible");
   model->addProperty(gridFillPath, this, "axesGridFillColor"  , "color"  );

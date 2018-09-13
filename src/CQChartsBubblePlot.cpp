@@ -17,9 +17,14 @@ addParameters()
 {
   startParameterGroup("Bubble");
 
-  addColumnParameter("name" , "Name" , "nameColumn");
-  addColumnParameter("value", "Value", "valueColumn", 0).setRequired();
-  addColumnParameter("color", "Color", "colorColumn").setTip("Custom bubble color");
+  addColumnParameter("name", "Name", "nameColumn").
+   setString().setTip("Name Column");
+
+  addColumnParameter("value", "Value", "valueColumn", 0).
+   setNumeric().setRequired().setTip("Value Column");
+
+  addColumnParameter("color", "Color", "colorColumn").
+    setColor().setTip("Custom bubble color");
 
   endParameterGroup();
 

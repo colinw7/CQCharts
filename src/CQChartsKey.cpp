@@ -180,6 +180,7 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path, this, "header"     );
   model->addProperty(path, this, "horizontal" );
   model->addProperty(path, this, "autoHide"   );
+  model->addProperty(path, this, "clipped"    );
   model->addProperty(path, this, "hiddenAlpha");
 
   CQChartsBoxObj::addProperties(model, path);
@@ -1138,9 +1139,6 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QColor tc = interpTextColor(0, 1);
 
-  if (plot->isSetHidden(i_))
-    tc.setAlphaF(key_->hiddenAlpha());
-
   painter->setPen(tc);
 
   double px1, px2, py;
@@ -1223,9 +1221,6 @@ draw(QPainter *painter, const CQChartsGeom::BBox &rect)
 
   QColor bc    = interpBorderColor(0, 1);
   QBrush brush = fillBrush();
-
-  if (plot->isSetHidden(i_))
-    bc.setAlphaF(key_->hiddenAlpha());
 
   if (isInside())
     brush.setColor(plot->insideColor(brush.color()));

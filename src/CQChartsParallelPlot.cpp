@@ -21,10 +21,14 @@ addParameters()
   startParameterGroup("Parallel");
 
   // columns
-  addColumnParameter ("x", "X", "xColumn" , 0  ).setRequired();
-  addColumnsParameter("y", "Y", "yColumns", "1").setRequired();
+  addColumnParameter("x", "X", "xColumn", 0).
+    setNumeric().setRequired().setTip("X value column");
 
-  addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw horizontal");
+  addColumnsParameter("y", "Y", "yColumns", "1").
+    setNumeric().setRequired().setTip("Y value columns");
+
+  addBoolParameter("horizontal", "Horizontal", "horizontal").
+    setTip("draw horizontal");
 
   endParameterGroup();
 
