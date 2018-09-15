@@ -281,7 +281,9 @@ class CQChartsArrowAnnotation : public CQChartsAnnotation {
   const CQChartsPosition &end() const { return end_; }
   void setEnd(const CQChartsPosition &p) { end_ = p; emit dataChanged(); }
 
-  void setData(const CQChartsArrowData &data);
+  CQChartsArrow *arrow() const { return arrow_; }
+
+  void setArrowData(const CQChartsArrowData &data);
 
   void addProperties(CQPropertyViewModel *model, const QString &path) override;
 

@@ -94,8 +94,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsForceDirectedPlot::
 CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
- CQChartsPlotNodeShapeData<CQChartsForceDirectedPlot>(this),
- CQChartsPlotEdgeLineData <CQChartsForceDirectedPlot>(this)
+ CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>(this),
+ CQChartsObjEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
   setMargins(0, 0, 0, 0);
 

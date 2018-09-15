@@ -48,9 +48,9 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsDendrogramPlot::
 CQChartsDendrogramPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("dendrogram"), model),
- CQChartsPlotNodeShapeData<CQChartsDendrogramPlot>(this),
- CQChartsPlotEdgeLineData <CQChartsDendrogramPlot>(this),
- CQChartsPlotTextData     <CQChartsDendrogramPlot>(this)
+ CQChartsObjNodeShapeData<CQChartsDendrogramPlot>(this),
+ CQChartsObjEdgeLineData <CQChartsDendrogramPlot>(this),
+ CQChartsObjTextData     <CQChartsDendrogramPlot>(this)
 {
   setNodeFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 

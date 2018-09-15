@@ -3,7 +3,7 @@
 
 #include <CQChartsPlot.h>
 #include <CQChartsPlotType.h>
-#include <CQChartsPlotData.h>
+#include <CQChartsObjData.h>
 #include <CQChartsPlotObj.h>
 #include <CQChartsConnectionList.h>
 
@@ -139,10 +139,10 @@ CQCHARTS_NAMED_FILL_DATA(Background,background)
 CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
 
 class CQChartsAdjacencyPlot : public CQChartsPlot,
- public CQChartsPlotBackgroundFillData<CQChartsAdjacencyPlot>,
- public CQChartsPlotShapeData         <CQChartsAdjacencyPlot>,
- public CQChartsPlotTextData          <CQChartsAdjacencyPlot>,
- public CQChartsPlotEmptyCellShapeData<CQChartsAdjacencyPlot> {
+ public CQChartsObjBackgroundFillData<CQChartsAdjacencyPlot>,
+ public CQChartsObjShapeData         <CQChartsAdjacencyPlot>,
+ public CQChartsObjTextData          <CQChartsAdjacencyPlot>,
+ public CQChartsObjEmptyCellShapeData<CQChartsAdjacencyPlot> {
   Q_OBJECT
 
   // columns

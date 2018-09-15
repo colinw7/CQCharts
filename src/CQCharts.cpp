@@ -25,9 +25,11 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsLineDashEdit.h>
 #include <CQChartsLength.h>
-#include <CQChartsRect.h>
 #include <CQChartsPolygonList.h>
+#include <CQChartsRect.h>
 #include <CQChartsNamePair.h>
+#include <CQChartsSides.h>
+#include <CQChartsFillUnder.h>
 #include <CQPropertyView.h>
 #include <CQChartsWindow.h>
 #include <iostream>
@@ -37,8 +39,12 @@ CQCharts()
 {
   CQChartsColor         ::registerMetaType();
   CQChartsColumn        ::registerMetaType();
+  CQChartsColumns       ::registerMetaType();
   CQChartsConnectionList::registerMetaType();
   CQChartsFillPattern   ::registerMetaType();
+  CQChartsFillUnderSide ::registerMetaType();
+  CQChartsFillUnderPos  ::registerMetaType();
+  CQChartsKeyLocation   ::registerMetaType();
   CQChartsLength        ::registerMetaType();
   CQChartsLineDash      ::registerMetaType();
   CQChartsNamePair      ::registerMetaType();
@@ -46,6 +52,7 @@ CQCharts()
   CQChartsPolygonList   ::registerMetaType();
   CQChartsPosition      ::registerMetaType();
   CQChartsRect          ::registerMetaType();
+  CQChartsSides         ::registerMetaType();
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
 }

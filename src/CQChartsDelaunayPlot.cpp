@@ -56,8 +56,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsDelaunayPlot::
 CQChartsDelaunayPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("delaunay"), model),
- CQChartsPlotLineData <CQChartsDelaunayPlot>(this),
- CQChartsPlotPointData<CQChartsDelaunayPlot>(this)
+ CQChartsObjLineData <CQChartsDelaunayPlot>(this),
+ CQChartsObjPointData<CQChartsDelaunayPlot>(this)
 {
   setPoints(true);
 

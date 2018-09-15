@@ -19,6 +19,7 @@
 #include <CQChartsColumnType.h>
 #include <CQChartsValueSet.h>
 #include <CQChartsGradientPalette.h>
+#include <CQChartsArrow.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
 
@@ -2962,7 +2963,7 @@ createRectShapeCmd(const Vars &vars)
   argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
 
   argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
 
   if (! argv.parse())
     return;
@@ -3015,7 +3016,7 @@ createRectShapeCmd(const Vars &vars)
   border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
   border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
 
   //---
 
@@ -3069,7 +3070,7 @@ createEllipseShapeCmd(const Vars &vars)
   argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
 
   argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
 
   if (! argv.parse())
     return;
@@ -3121,7 +3122,7 @@ createEllipseShapeCmd(const Vars &vars)
   border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
   border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
 
   //---
 
@@ -3170,9 +3171,6 @@ createPolygonShapeCmd(const Vars &vars)
   argv.addCmdArg("-border_alpha", CQChartsCmdArg::Type::Real    , "border alpha");
   argv.addCmdArg("-border_width", CQChartsCmdArg::Type::Length  , "border width");
   argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
-
-  argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
 
   if (! argv.parse())
     return;
@@ -3389,7 +3387,7 @@ createTextShapeCmd(const Vars &vars)
   argv.addCmdArg("-border_dash" , CQChartsCmdArg::Type::LineDash, "border dash");
 
   argv.addCmdArg("-corner_size" , CQChartsCmdArg::Type::Length, "corner size");
-  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::String, "border sides");
+  argv.addCmdArg("-border_sides", CQChartsCmdArg::Type::Sides , "border sides");
 
   if (! argv.parse())
     return;
@@ -3451,7 +3449,7 @@ createTextShapeCmd(const Vars &vars)
   border.dash       = argv.getParseLineDash("border_dash" , border.dash   );
   border.cornerSize = argv.getParseLength  (view, plot, "corner_size", border.cornerSize);
 
-  boxData.borderSides = argv.getParseStr("border_sides", boxData.borderSides);
+  boxData.borderSides = argv.getParseSides("border_sides", boxData.borderSides);
 
   //---
 
@@ -3535,17 +3533,26 @@ createArrowShapeCmd(const Vars &vars)
   CQChartsPosition start = argv.getParsePosition(view, plot, "start");
   CQChartsPosition end   = argv.getParsePosition(view, plot, "end"  );
 
-  arrowData.length       = argv.getParseLength(view, plot, "length"      , arrowData.length);
-  arrowData.angle        = argv.getParseReal  ("angle"       , arrowData.angle);
-  arrowData.backAngle    = argv.getParseReal  ("back_angle"  , arrowData.backAngle);
-  arrowData.fhead        = argv.getParseBool  ("fhead"       , arrowData.fhead);
-  arrowData.thead        = argv.getParseBool  ("thead"       , arrowData.thead);
-  arrowData.empty        = argv.getParseBool  ("empty"       , arrowData.empty);
-  arrowData.stroke.width = argv.getParseLength(view, plot, "line_width"  , arrowData.stroke.width);
-  arrowData.stroke.color = argv.getParseColor ("stroke_color", arrowData.stroke.color);
-  arrowData.fill.visible = argv.getParseBool  ("filled"      , arrowData.fill.visible);
-  arrowData.fill.color   = argv.getParseColor ("fill_color"  , arrowData.fill.color);
-  arrowData.labels       = argv.getParseBool  ("labels"      , arrowData.labels);
+  arrowData.length    = argv.getParseLength(view, plot, "length", arrowData.length);
+  arrowData.angle     = argv.getParseReal("angle"     , arrowData.angle);
+  arrowData.backAngle = argv.getParseReal("back_angle", arrowData.backAngle);
+  arrowData.fhead     = argv.getParseBool("fhead"     , arrowData.fhead);
+  arrowData.thead     = argv.getParseBool("thead"     , arrowData.thead);
+  arrowData.empty     = argv.getParseBool("empty"     , arrowData.empty);
+
+  CQChartsShapeData shapeData;
+  CQChartsTextData  textData;
+
+  CQChartsStrokeData &stroke = shapeData.border;
+  CQChartsFillData   &fill   = shapeData.background;
+
+  stroke.width = argv.getParseLength(view, plot, "line_width", stroke.width);
+  stroke.color = argv.getParseColor("stroke_color", stroke.color);
+
+  fill.visible = argv.getParseBool ("filled"    , fill.visible);
+  fill.color   = argv.getParseColor("fill_color", fill.color);
+
+  textData.visible = argv.getParseBool("labels", textData.visible);
 
   //---
 
@@ -3561,7 +3568,10 @@ createArrowShapeCmd(const Vars &vars)
   annotation->setId(id);
   annotation->setTipId(tipId);
 
-  annotation->setData(arrowData);
+  annotation->setArrowData(arrowData);
+
+  annotation->arrow()->setShapeData    (shapeData);
+  annotation->arrow()->setDebugTextData(textData);
 
   setCmdRc(annotation->ind());
 }

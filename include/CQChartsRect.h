@@ -5,8 +5,6 @@
 #include <QRectF>
 #include <iostream>
 
-class CQStrParse;
-
 class CQChartsRect {
  public:
   enum class Units {
@@ -114,8 +112,6 @@ class CQChartsRect {
 
  private:
   bool decodeString(const QString &str, Units &units, QRectF &rect, const Units &defUnits);
-
-  bool parsePoint(CQStrParse &parse, QPointF &p);
 
  private:
   Units  units_ { Units::PIXEL };

@@ -68,7 +68,7 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsChordPlot::
 CQChartsChordPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("chord"), model),
- CQChartsPlotStrokeData<CQChartsChordPlot>(this)
+ CQChartsObjStrokeData<CQChartsChordPlot>(this)
 {
   textBox_ = new CQChartsRotatedTextBoxObj(this);
 

@@ -72,7 +72,7 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsGeometryPlot::
 CQChartsGeometryPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("geometry"), model),
- CQChartsPlotShapeData<CQChartsGeometryPlot>(this),
+ CQChartsObjShapeData<CQChartsGeometryPlot>(this),
  dataLabel_(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));

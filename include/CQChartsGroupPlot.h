@@ -98,7 +98,7 @@ class CQChartsGroupPlot : public CQChartsPlot {
 
   //---
 
-  void initGroupData(const Columns &dataColumns, const CQChartsColumn &nameColumn,
+  void initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn,
                      bool hier=false);
 
   void initGroup(const CQChartsGroupData &data);

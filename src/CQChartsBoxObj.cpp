@@ -7,13 +7,17 @@
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsView *view) :
- CQChartsObj(view), view_(view)
+ CQChartsObj(view),
+ CQChartsObjShapeData<CQChartsBoxObj>(this),
+ view_(view)
 {
 }
 
 CQChartsBoxObj::
 CQChartsBoxObj(CQChartsPlot *plot) :
- CQChartsObj(plot), plot_(plot)
+ CQChartsObj(plot),
+ CQChartsObjShapeData<CQChartsBoxObj>(this),
+ plot_(plot)
 {
 }
 
@@ -27,30 +31,6 @@ view() const
     return view_;
 }
 
-QColor
-CQChartsBoxObj::
-interpBackgroundColor(int i, int n) const
-{
-  if      (plot())
-    return backgroundColor().interpColor(plot(), i, n);
-  else if (view())
-    return backgroundColor().interpColor(view(), i, n);
-  else
-    return QColor();
-}
-
-QColor
-CQChartsBoxObj::
-interpBorderColor(int i, int n) const
-{
-  if      (plot())
-    return borderColor().interpColor(plot(), i, n);
-  else if (view())
-    return borderColor().interpColor(view(), i, n);
-  else
-    return QColor();
-}
-
 void
 CQChartsBoxObj::
 addProperties(CQPropertyViewModel *model, const QString &path)
@@ -60,10 +40,10 @@ addProperties(CQPropertyViewModel *model, const QString &path)
 
   QString bgPath = path + "/fill";
 
-  model->addProperty(bgPath, this, "background"       , "visible");
-  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
+  model->addProperty(bgPath, this, "filled"     , "visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  );
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  );
+  model->addProperty(bgPath, this, "fillPattern", "pattern");
 
   QString borderPath = path + "/border";
 
@@ -79,16 +59,16 @@ void
 CQChartsBoxObj::
 draw(QPainter *painter, const QRectF &rect) const
 {
-  if (isBackground()) {
+  if (isFilled()) {
     QBrush brush;
     QPen   pen(Qt::NoPen);
 
-    QColor bgColor = interpBackgroundColor(0, 1);
+    QColor bgColor = interpFillColor(0, 1);
 
     if      (plot())
-      plot()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+      plot()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
     else if (view())
-      view()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+      view()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
 
     if (plot())
       plot()->updateObjPenBrushState(this, pen, brush);
@@ -140,16 +120,16 @@ void
 CQChartsBoxObj::
 draw(QPainter *painter, const QPolygonF &poly) const
 {
-  if (isBackground()) {
+  if (isFilled()) {
     QBrush brush;
     QPen   pen(Qt::NoPen);
 
-    QColor bgColor = interpBackgroundColor(0, 1);
+    QColor bgColor = interpFillColor(0, 1);
 
     if      (plot())
-      plot()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+      plot()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
     else if (view())
-      view()->setBrush(brush, true, bgColor, backgroundAlpha(), backgroundPattern());
+      view()->setBrush(brush, true, bgColor, fillAlpha(), fillPattern());
 
     painter->setPen  (pen);
     painter->setBrush(brush);

@@ -213,14 +213,14 @@ class CQChartsHierScatterKeyColor : public CQChartsKeyColorBox {
 //---
 
 class CQChartsHierScatterPlot : public CQChartsPlot,
- public CQChartsPlotPointData<CQChartsHierScatterPlot> {
+ public CQChartsObjPointData<CQChartsHierScatterPlot> {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn xColumn        READ xColumn        WRITE setXColumn       )
-  Q_PROPERTY(CQChartsColumn yColumn        READ yColumn        WRITE setYColumn       )
-  Q_PROPERTY(CQChartsColumn nameColumn     READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(QString        groupColumnStr READ groupColumnStr WRITE setGroupColumnStr)
+  Q_PROPERTY(CQChartsColumn  xColumn      READ xColumn      WRITE setXColumn     )
+  Q_PROPERTY(CQChartsColumn  yColumn      READ yColumn      WRITE setYColumn     )
+  Q_PROPERTY(CQChartsColumn  nameColumn   READ nameColumn   WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumns groupColumns READ groupColumns WRITE setGroupColumns)
 
   // symbol
   CQCHARTS_POINT_DATA_PROPERTIES
@@ -230,7 +230,6 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   Q_PROPERTY(bool   textLabels READ isTextLabels WRITE setTextLabels)
 
  public:
-  using GroupValues    = std::vector<CQChartsColumn>;
   using GroupValueSets = std::map<CQChartsColumn,CQChartsValueSet *>;
 
  public:
@@ -248,8 +247,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
-  const QString &groupColumnStr() const { return groupColumnStr_; }
-  void setGroupColumnStr(const QString &s);
+  const CQChartsColumns &groupColumns() const { return groupColumns_; }
+  void setGroupColumns(const CQChartsColumns &c);
 
   //---
 
@@ -315,7 +314,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   CQChartsColumn    xColumn_         { 0 };       // x column
   CQChartsColumn    yColumn_         { 1 };       // y column
   CQChartsColumn    nameColumn_;                  // name column
-  QString           groupColumnStr_;              // group columns string
+  CQChartsColumns   groupColumns_;                // group columns
   double            fontSize_        { 8 };       // font size
   PointGroup*       rootGroup_       { nullptr }; // root group
   PointGroup*       currentGroup_    { nullptr }; // current group
@@ -323,7 +322,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
   CQChartsDataLabel dataLabel_;                   // data label style
   QString           xname_;                       // x name
   QString           yname_;                       // y name
-  GroupValues       groupValues_;                 // group values
+  CQChartsColumns   groupValues_;                 // group values
   GroupValueSets    groupValueSets_;              // group value sets
 };
 

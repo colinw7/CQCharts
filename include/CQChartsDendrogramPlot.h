@@ -57,9 +57,9 @@ class CQChartsDendrogramNodeObj : public CQChartsPlotObj {
 //---
 
 class CQChartsDendrogramPlot : public CQChartsPlot,
- public CQChartsPlotNodeShapeData<CQChartsDendrogramPlot>,
- public CQChartsPlotEdgeLineData <CQChartsDendrogramPlot>,
- public CQChartsPlotTextData     <CQChartsDendrogramPlot> {
+ public CQChartsObjNodeShapeData<CQChartsDendrogramPlot>,
+ public CQChartsObjEdgeLineData <CQChartsDendrogramPlot>,
+ public CQChartsObjTextData     <CQChartsDendrogramPlot> {
   Q_OBJECT
 
   // columns

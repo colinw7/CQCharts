@@ -296,9 +296,9 @@ CQCHARTS_NAMED_LINE_DATA(Mean,mean)
 
 // distribution plot
 class CQChartsDistributionPlot : public CQChartsBarPlot,
- public CQChartsPlotMeanLineData<CQChartsDistributionPlot>,
- public CQChartsPlotDotPointData<CQChartsDistributionPlot>,
- public CQChartsPlotRugPointData<CQChartsDistributionPlot> {
+ public CQChartsObjMeanLineData<CQChartsDistributionPlot>,
+ public CQChartsObjDotPointData<CQChartsDistributionPlot>,
+ public CQChartsObjRugPointData<CQChartsDistributionPlot> {
   Q_OBJECT
 
   // style

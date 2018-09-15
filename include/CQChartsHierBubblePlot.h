@@ -243,8 +243,8 @@ class CQChartsHierBubbleHierObj : public CQChartsHierBubbleObj {
 //---
 
 class CQChartsHierBubblePlot : public CQChartsHierPlot,
- public CQChartsPlotShapeData<CQChartsHierBubblePlot>,
- public CQChartsPlotTextData <CQChartsHierBubblePlot> {
+ public CQChartsObjShapeData<CQChartsHierBubblePlot>,
+ public CQChartsObjTextData <CQChartsHierBubblePlot> {
   Q_OBJECT
 
   // options

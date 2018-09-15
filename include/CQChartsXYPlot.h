@@ -3,6 +3,7 @@
 
 #include <CQChartsGroupPlot.h>
 #include <CQChartsPlotObj.h>
+#include <CQChartsFillUnder.h>
 #include <CQChartsFitData.h>
 #include <CQChartsUtil.h>
 
@@ -492,25 +493,24 @@ CQCHARTS_NAMED_FILL_DATA(FillUnder,fillUnder)
 CQCHARTS_NAMED_TEXT_DATA(DataLabel,dataLabel)
 
 class CQChartsXYPlot : public CQChartsGroupPlot,
- public CQChartsPlotLineData         <CQChartsXYPlot>,
- public CQChartsPlotPointData        <CQChartsXYPlot>,
- public CQChartsPlotImpulseLineData  <CQChartsXYPlot>,
- public CQChartsPlotBivariateLineData<CQChartsXYPlot>,
- public CQChartsPlotFillUnderFillData<CQChartsXYPlot>,
- public CQChartsPlotDataLabelTextData<CQChartsXYPlot> {
+ public CQChartsObjLineData         <CQChartsXYPlot>,
+ public CQChartsObjPointData        <CQChartsXYPlot>,
+ public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
+ public CQChartsObjBivariateLineData<CQChartsXYPlot> ,
+ public CQChartsObjFillUnderFillData<CQChartsXYPlot>,
+ public CQChartsObjDataLabelTextData<CQChartsXYPlot> {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
-  Q_PROPERTY(CQChartsColumn yColumn           READ yColumn           WRITE setYColumn          )
-  Q_PROPERTY(QString        yColumns          READ yColumnsStr       WRITE setYColumnsStr      )
-  Q_PROPERTY(CQChartsColumn nameColumn        READ nameColumn        WRITE setNameColumn       )
-  Q_PROPERTY(CQChartsColumn sizeColumn        READ sizeColumn        WRITE setSizeColumn       )
-  Q_PROPERTY(CQChartsColumn pointLabelColumn  READ pointLabelColumn  WRITE setPointLabelColumn )
-  Q_PROPERTY(CQChartsColumn pointColorColumn  READ pointColorColumn  WRITE setPointColorColumn )
-  Q_PROPERTY(CQChartsColumn pointSymbolColumn READ pointSymbolColumn WRITE setPointSymbolColumn)
-  Q_PROPERTY(CQChartsColumn vectorXColumn     READ vectorXColumn     WRITE setVectorXColumn    )
-  Q_PROPERTY(CQChartsColumn vectorYColumn     READ vectorYColumn     WRITE setVectorYColumn    )
+  Q_PROPERTY(CQChartsColumn  xColumn           READ xColumn           WRITE setXColumn          )
+  Q_PROPERTY(CQChartsColumns yColumns          READ yColumns          WRITE setYColumns         )
+  Q_PROPERTY(CQChartsColumn  nameColumn        READ nameColumn        WRITE setNameColumn       )
+  Q_PROPERTY(CQChartsColumn  sizeColumn        READ sizeColumn        WRITE setSizeColumn       )
+  Q_PROPERTY(CQChartsColumn  pointLabelColumn  READ pointLabelColumn  WRITE setPointLabelColumn )
+  Q_PROPERTY(CQChartsColumn  pointColorColumn  READ pointColorColumn  WRITE setPointColorColumn )
+  Q_PROPERTY(CQChartsColumn  pointSymbolColumn READ pointSymbolColumn WRITE setPointSymbolColumn)
+  Q_PROPERTY(CQChartsColumn  vectorXColumn     READ vectorXColumn     WRITE setVectorXColumn    )
+  Q_PROPERTY(CQChartsColumn  vectorYColumn     READ vectorYColumn     WRITE setVectorYColumn    )
 
   // bivariate
   CQCHARTS_NAMED_LINE_DATA_PROPERTIES(Bivariate, bivariate)
@@ -536,9 +536,12 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   CQCHARTS_LINE_DATA_PROPERTIES
 
   // fill under:
-  Q_PROPERTY(bool    fillUnderSelectable READ isFillUnderSelectable WRITE setFillUnderSelectable)
-  Q_PROPERTY(QString fillUnderPos        READ fillUnderPosStr       WRITE setFillUnderPosStr    )
-  Q_PROPERTY(QString fillUnderFillSide   READ fillUnderFillSide     WRITE setFillUnderFillSide  )
+  Q_PROPERTY(bool                  fillUnderSelectable
+             READ isFillUnderSelectable WRITE setFillUnderSelectable)
+  Q_PROPERTY(CQChartsFillUnderPos  fillUnderPos
+             READ fillUnderPos          WRITE setFillUnderPos       )
+  Q_PROPERTY(CQChartsFillUnderSide fillUnderSide
+             READ fillUnderSide         WRITE setFillUnderSide      )
 
   CQCHARTS_NAMED_FILL_DATA_PROPERTIES(FillUnder,fillUnder)
 
@@ -547,13 +550,9 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
  private:
   struct FillUnderData {
-    bool    selectable { false };  // is fill under selectable
-    QString posStr     { "ymin" }; // fill under position
-    QString side       { "both" }; // fill under side
-
-    void setPosStr(const QString &s) {
-      posStr = s;
-    }
+    bool                  selectable { false }; // is fill under selectable
+    CQChartsFillUnderPos  pos;                  // fill under position
+    CQChartsFillUnderSide side;                 // fill under side
   };
 
  public:
@@ -567,14 +566,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   const CQChartsColumn &xColumn() const { return xColumn_; }
   void setXColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &yColumn() const { return yColumns_.column(); }
-  void setYColumn(const CQChartsColumn &c);
-
-  const Columns &yColumns() const { return yColumns_.columns(); }
-  void setYColumns(const Columns &yColumns);
-
-  QString yColumnsStr() const;
-  bool setYColumnsStr(const QString &s);
+  const CQChartsColumns &yColumns() const { return yColumns_; }
+  void setYColumns(const CQChartsColumns &c);
 
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
@@ -619,11 +612,11 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   bool isFillUnderSelectable() const { return fillUnderData_.selectable; }
   void setFillUnderSelectable(bool b);
 
-  const QString &fillUnderPosStr() const { return fillUnderData_.posStr; }
-  void setFillUnderPosStr(const QString &s);
+  const CQChartsFillUnderPos &fillUnderPos() const { return fillUnderData_.pos; }
+  void setFillUnderPos(const CQChartsFillUnderPos &p);
 
-  const QString &fillUnderFillSide() const { return fillUnderData_.side; }
-  void setFillUnderFillSide(const QString &s);
+  const CQChartsFillUnderSide &fillUnderSide() const { return fillUnderData_.side; }
+  void setFillUnderSide(const CQChartsFillUnderSide &s);
 
   QPointF calcFillUnderPos(double x, double y) const;
 
@@ -665,10 +658,6 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   QString valueName(int iset, int irow) const;
 
   void addKeyItems(CQChartsPlotKey *key) override;
-
-  int numSets() const;
-
-  CQChartsColumn getSetColumn(int i) const;
 
   //---
 

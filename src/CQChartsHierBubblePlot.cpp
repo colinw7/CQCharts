@@ -40,8 +40,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsHierBubblePlot::
 CQChartsHierBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("hierbubble"), model),
- CQChartsPlotShapeData<CQChartsHierBubblePlot>(this),
- CQChartsPlotTextData <CQChartsHierBubblePlot>(this)
+ CQChartsObjShapeData<CQChartsHierBubblePlot>(this),
+ CQChartsObjTextData <CQChartsHierBubblePlot>(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -475,15 +475,15 @@ loadHier()
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      if (plot_->nameColumn().isValid())
-        nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
+      if (plot_->nameColumns().column().isValid())
+        nameInd = plot_->modelIndex(data.row, plot_->nameColumns().column(), data.parent);
       else
         nameInd = plot_->modelIndex(data.row, plot_->idColumn(), data.parent);
 
       bool ok;
 
-      if (plot_->nameColumn().isValid())
-        name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+      if (plot_->nameColumns().column().isValid())
+        name = plot_->modelString(data.row, plot_->nameColumns().column(), data.parent, ok);
       else
         name = plot_->modelString(data.row, plot_->idColumn(), data.parent, ok);
 
@@ -967,7 +967,9 @@ void
 CQChartsHierBubbleHierObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
+  for (const auto &c : plot_->nameColumns())
+    addColumnSelectIndex(inds, c);
+
   addColumnSelectIndex(inds, plot_->valueColumn());
 }
 
@@ -1096,7 +1098,9 @@ void
 CQChartsHierBubbleObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
+  for (const auto &c : plot_->nameColumns())
+    addColumnSelectIndex(inds, c);
+
   addColumnSelectIndex(inds, plot_->valueColumn());
   addColumnSelectIndex(inds, plot_->colorColumn());
 }

@@ -9,11 +9,10 @@
 class CQChartsHierPlot : public CQChartsPlot {
   Q_OBJECT
 
-  Q_PROPERTY(CQChartsColumn nameColumn  READ nameColumn     WRITE setNameColumn    )
-  Q_PROPERTY(QString        nameColumns READ nameColumnsStr WRITE setNameColumnsStr)
-  Q_PROPERTY(CQChartsColumn valueColumn READ valueColumn    WRITE setValueColumn   )
-  Q_PROPERTY(CQChartsColumn colorColumn READ colorColumn    WRITE setColorColumn   )
-  Q_PROPERTY(QString        separator   READ separator      WRITE setSeparator     )
+  Q_PROPERTY(CQChartsColumns nameColumns READ nameColumns WRITE setNameColumns)
+  Q_PROPERTY(CQChartsColumn  valueColumn READ valueColumn WRITE setValueColumn)
+  Q_PROPERTY(CQChartsColumn  colorColumn READ colorColumn WRITE setColorColumn)
+  Q_PROPERTY(QString         separator   READ separator   WRITE setSeparator  )
 
  public:
   CQChartsHierPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model);
@@ -22,16 +21,8 @@ class CQChartsHierPlot : public CQChartsPlot {
 
   //---
 
-  const CQChartsColumn &nameColumn() const { return nameColumn_; }
-  void setNameColumn(const CQChartsColumn &c);
-
-  const Columns &nameColumns() const { return nameColumns_; }
-  void setNameColumns(const Columns &nameColumns);
-
-  QString nameColumnsStr() const;
-  bool setNameColumnsStr(const QString &s);
-
-  int numNameColumns() const { return nameColumns_.size(); }
+  const CQChartsColumns &nameColumns() const { return nameColumns_; }
+  void setNameColumns(const CQChartsColumns &c);
 
   const CQChartsColumn &valueColumn() const { return valueColumn_; }
   void setValueColumn(const CQChartsColumn &c);
@@ -61,10 +52,9 @@ class CQChartsHierPlot : public CQChartsPlot {
   void addProperties() override;
 
  protected:
-  CQChartsColumn nameColumn_  { 0 };   // name column
-  Columns        nameColumns_;         // multiple name columns
-  CQChartsColumn valueColumn_;         // value column
-  QString        separator_   { "/" }; // hierarchical name separator
+  CQChartsColumns nameColumns_;         // multiple name columns
+  CQChartsColumn  valueColumn_;         // value column
+  QString         separator_   { "/" }; // hierarchical name separator
 };
 
 #endif

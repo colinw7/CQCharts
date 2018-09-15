@@ -105,10 +105,10 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsAdjacencyPlot::
 CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("adjacency"), model),
- CQChartsPlotBackgroundFillData<CQChartsAdjacencyPlot>(this),
- CQChartsPlotShapeData         <CQChartsAdjacencyPlot>(this),
- CQChartsPlotTextData          <CQChartsAdjacencyPlot>(this),
- CQChartsPlotEmptyCellShapeData<CQChartsAdjacencyPlot>(this)
+ CQChartsObjBackgroundFillData<CQChartsAdjacencyPlot>(this),
+ CQChartsObjShapeData         <CQChartsAdjacencyPlot>(this),
+ CQChartsObjTextData          <CQChartsAdjacencyPlot>(this),
+ CQChartsObjEmptyCellShapeData<CQChartsAdjacencyPlot>(this)
 {
   setBackgroundFillColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 

@@ -5,6 +5,8 @@
 #include <CQChartsPlotType.h>
 #include <CQChartsPlotObj.h>
 
+class QMenu;
+
 //---
 
 class CQChartsImagePlotType : public CQChartsPlotType {
@@ -57,7 +59,7 @@ class CQChartsImageObj : public CQChartsPlotObj {
 //---
 
 class CQChartsImagePlot : public CQChartsPlot,
- public CQChartsPlotTextData<CQChartsImagePlot> {
+ public CQChartsObjTextData<CQChartsImagePlot> {
   Q_OBJECT
 
   Q_PROPERTY(double minValue        READ minValue          WRITE setMinValue       )
@@ -84,16 +86,11 @@ class CQChartsImagePlot : public CQChartsPlot,
   //---
 
   bool isXLabels() const { return xLabels_; }
-  void setXLabels(bool b);
-
   bool isYLabels() const { return yLabels_; }
-  void setYLabels(bool b);
 
   bool isCellLabels() const { return cellLabels_; }
-  void setCellLabels(bool b);
 
   bool isScaleCellLabels() const { return scaleCellLabels_; }
-  void setScaleCellLabels(bool b);
 
   //---
 
@@ -116,6 +113,10 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
+  bool addMenuItems(QMenu *menu);
+
+  //---
+
   bool hasForeground() const override;
 
   void drawForeground(QPainter *) override;
@@ -123,6 +124,14 @@ class CQChartsImagePlot : public CQChartsPlot,
   //---
 
   CQChartsGeom::BBox annotationBBox() const override;
+
+ public slots:
+  void setXLabels(bool b);
+  void setYLabels(bool b);
+
+  void setCellLabels(bool b);
+
+  void setScaleCellLabels(bool b);
 
  private:
   void addImageObj(int row, int col, double x, double y, double dx, double dy,
@@ -141,8 +150,8 @@ class CQChartsImagePlot : public CQChartsPlot,
   bool   balloon_         { false }; // draw balloon
   int    nc_              { 0 };     // number of grid columns
   int    nr_              { 0 };     // number of grid rows
-  double minBalloonSize_  { 0.1 };
-  double maxBalloonSize_  { 1.0 };
+  double minBalloonSize_  { 0.1 };   // min balloon size (cell fraction)
+  double maxBalloonSize_  { 1.0 };   // max balloon size (cell fraction)
 };
 
 #endif

@@ -72,15 +72,14 @@ class CQChartsRadarObj : public CQChartsPlotObj {
 //---
 
 class CQChartsRadarPlot : public CQChartsPlot,
- public CQChartsPlotShapeData   <CQChartsRadarPlot>,
- public CQChartsPlotTextData    <CQChartsRadarPlot>,
- public CQChartsPlotGridLineData<CQChartsRadarPlot> {
+ public CQChartsObjShapeData   <CQChartsRadarPlot>,
+ public CQChartsObjTextData    <CQChartsRadarPlot>,
+ public CQChartsObjGridLineData<CQChartsRadarPlot> {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
+  Q_PROPERTY(CQChartsColumn  nameColumn   READ nameColumn   WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
 
   // options
   Q_PROPERTY(double angleStart  READ angleStart  WRITE setAngleStart )
@@ -107,18 +106,8 @@ class CQChartsRadarPlot : public CQChartsPlot,
 
   //---
 
-  const CQChartsColumn &valueColumn() const { return valueColumns_.column(); }
-  void setValueColumn(const CQChartsColumn &c);
-
-  const Columns &valueColumns() const { return valueColumns_.columns(); }
-  void setValueColumns(const Columns &valueColumns);
-
-  QString valueColumnsStr() const;
-  bool setValueColumnsStr(const QString &s);
-
-  const CQChartsColumn &valueColumnAt(int i) const;
-
-  int numValueColumns() const;
+  const CQChartsColumns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const CQChartsColumns &c);
 
   //---
 

@@ -99,14 +99,13 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 //---
 
 class CQChartsParallelPlot : public CQChartsPlot,
- public CQChartsPlotLineData <CQChartsParallelPlot>,
- public CQChartsPlotPointData<CQChartsParallelPlot> {
+ public CQChartsObjLineData <CQChartsParallelPlot>,
+ public CQChartsObjPointData<CQChartsParallelPlot> {
   Q_OBJECT
 
   // columns
-  Q_PROPERTY(CQChartsColumn xColumn  READ xColumn     WRITE setXColumn    )
-  Q_PROPERTY(CQChartsColumn yColumn  READ yColumn     WRITE setYColumn    )
-  Q_PROPERTY(QString        yColumns READ yColumnsStr WRITE setYColumnsStr)
+  Q_PROPERTY(CQChartsColumn  xColumn  READ xColumn  WRITE setXColumn )
+  Q_PROPERTY(CQChartsColumns yColumns READ yColumns WRITE setYColumns)
 
   // options
   Q_PROPERTY(bool horizontal READ isHorizontal WRITE setHorizontal)
@@ -130,14 +129,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
   const CQChartsColumn &xColumn() const { return xColumn_; }
   void setXColumn(const CQChartsColumn &c);
 
-  const CQChartsColumn &yColumn() const { return yColumns_.column(); }
-  void setYColumn(const CQChartsColumn &c);
-
-  const Columns &yColumns() const { return yColumns_.columns(); }
-  void setYColumns(const Columns &cols);
-
-  QString yColumnsStr() const { return yColumns_.columnsStr(); }
-  bool setYColumnsStr(const QString &s);
+  const CQChartsColumns &yColumns() const { return yColumns_; }
+  void setYColumns(const CQChartsColumns &c);
 
   //---
 
@@ -168,10 +161,6 @@ class CQChartsParallelPlot : public CQChartsPlot,
 
   bool rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
                    double &value, double defVal);
-
-  int numSets() const;
-
-  const CQChartsColumn &getSetColumn(int i) const;
 
   //---
 

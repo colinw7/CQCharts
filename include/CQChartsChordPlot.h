@@ -177,7 +177,7 @@ class CQChartsChordObj : public CQChartsPlotObj {
 //---
 
 class CQChartsChordPlot : public CQChartsPlot,
- public CQChartsPlotStrokeData<CQChartsChordPlot> {
+ public CQChartsObjStrokeData<CQChartsChordPlot> {
   Q_OBJECT
 
   // columns

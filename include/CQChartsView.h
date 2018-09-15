@@ -1,7 +1,7 @@
 #ifndef CQChartsView_H
 #define CQChartsView_H
 
-#include <CQChartsViewData.h>
+#include <CQChartsObjData.h>
 #include <CQChartsTheme.h>
 #include <CQChartsGeom.h>
 #include <CQChartsPlotSymbol.h>
@@ -37,12 +37,12 @@ class QRubberBand;
 class QLabel;
 class QMenu;
 
-CQCHARTS_VIEW_NAMED_SHAPE_DATA(Selected,selected)
-CQCHARTS_VIEW_NAMED_SHAPE_DATA(Inside,inside)
+CQCHARTS_NAMED_SHAPE_DATA(Selected,selected)
+CQCHARTS_NAMED_SHAPE_DATA(Inside,inside)
 
 class CQChartsView : public QFrame,
- public CQChartsViewSelectedShapeData,
- public CQChartsViewInsideShapeData {
+ public CQChartsObjSelectedShapeData<CQChartsView>,
+ public CQChartsObjInsideShapeData<CQChartsView> {
   Q_OBJECT
 
   Q_PROPERTY(QString id             READ id             WRITE setId            )
@@ -60,12 +60,12 @@ class CQChartsView : public QFrame,
   // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
 
-  CQCHARTS_VIEW_NAMED_SHAPE_DATA_PROPERTIES(Selected,selected)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Selected,selected)
 
   // inside appearance
   Q_PROPERTY(HighlightDataMode insideMode READ insideMode WRITE setInsideMode)
 
-  CQCHARTS_VIEW_NAMED_SHAPE_DATA_PROPERTIES(Inside,inside)
+  CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Inside,inside)
 
   // zoom to data
   Q_PROPERTY(bool zoomData READ isZoomData WRITE setZoomData)

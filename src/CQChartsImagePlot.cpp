@@ -4,6 +4,7 @@
 #include <CQChartsUtil.h>
 #include <CQCharts.h>
 #include <QPainter>
+#include <QMenu>
 
 CQChartsImagePlotType::
 CQChartsImagePlotType()
@@ -37,7 +38,7 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsImagePlot::
 CQChartsImagePlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("image"), model),
- CQChartsPlotTextData<CQChartsImagePlot>(this)
+ CQChartsObjTextData<CQChartsImagePlot>(this)
 {
   addTitle();
 }
@@ -259,6 +260,30 @@ addImageObj(int row, int col, double x, double y, double dx, double dy, double v
   CQChartsImageObj *imageObj = new CQChartsImageObj(this, bbox, row, col, value, ind1);
 
   addPlotObject(imageObj);
+}
+
+bool
+CQChartsImagePlot::
+addMenuItems(QMenu *menu)
+{
+  QAction *xLabelsAction = new QAction("X Labels", menu);
+  QAction *yLabelsAction = new QAction("Y Labels", menu);
+
+  xLabelsAction->setCheckable(true);
+  xLabelsAction->setChecked(isXLabels());
+
+  yLabelsAction->setCheckable(true);
+  yLabelsAction->setChecked(isYLabels());
+
+  connect(xLabelsAction, SIGNAL(triggered(bool)), this, SLOT(setXLabels(bool)));
+  connect(yLabelsAction, SIGNAL(triggered(bool)), this, SLOT(setYLabels(bool)));
+
+  menu->addSeparator();
+
+  menu->addAction(xLabelsAction);
+  menu->addAction(yLabelsAction);
+
+  return true;
 }
 
 //------

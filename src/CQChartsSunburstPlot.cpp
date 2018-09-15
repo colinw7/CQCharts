@@ -42,8 +42,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsSunburstPlot::
 CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
  CQChartsHierPlot(view, view->charts()->plotType("sunburst"), model),
- CQChartsPlotShapeData<CQChartsSunburstPlot>(this),
- CQChartsPlotTextData <CQChartsSunburstPlot>(this)
+ CQChartsObjShapeData<CQChartsSunburstPlot>(this),
+ CQChartsObjTextData <CQChartsSunburstPlot>(this)
 {
   setFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -128,7 +128,6 @@ addProperties()
 {
   CQChartsHierPlot::addProperties();
 
-  addProperty("columns", this, "nameColumn" , "name" );
   addProperty("columns", this, "nameColumns", "names");
   addProperty("columns", this, "valueColumn", "value");
   addProperty("columns", this, "colorColumn", "color");
@@ -425,11 +424,11 @@ loadHier(CQChartsSunburstHierNode *root)
     }
 
     bool getName(const VisitData &data, QString &name, QModelIndex &nameInd) const {
-      nameInd = plot_->modelIndex(data.row, plot_->nameColumn(), data.parent);
+      nameInd = plot_->modelIndex(data.row, plot_->nameColumns().column(), data.parent);
 
       bool ok;
 
-      name = plot_->modelString(data.row, plot_->nameColumn(), data.parent, ok);
+      name = plot_->modelString(data.row, plot_->nameColumns().column(), data.parent, ok);
 
       return ok;
     }
@@ -1140,7 +1139,9 @@ void
 CQChartsSunburstNodeObj::
 getSelectIndices(Indices &inds) const
 {
-  addColumnSelectIndex(inds, plot_->nameColumn ());
+  for (const auto &c : plot_->nameColumns())
+    addColumnSelectIndex(inds, c);
+
   addColumnSelectIndex(inds, plot_->valueColumn());
   addColumnSelectIndex(inds, plot_->colorColumn());
 }

@@ -200,10 +200,10 @@ CQCHARTS_NAMED_SHAPE_DATA(BestFit,bestFit)
 CQCHARTS_NAMED_SHAPE_DATA(Hull,hull)
 
 class CQChartsScatterPlot : public CQChartsGroupPlot,
- public CQChartsPlotPointData       <CQChartsScatterPlot>,
- public CQChartsPlotBestFitShapeData<CQChartsScatterPlot>,
- public CQChartsPlotHullShapeData   <CQChartsScatterPlot>,
- public CQChartsPlotRugPointData    <CQChartsScatterPlot> {
+ public CQChartsObjPointData       <CQChartsScatterPlot>,
+ public CQChartsObjBestFitShapeData<CQChartsScatterPlot>,
+ public CQChartsObjHullShapeData   <CQChartsScatterPlot>,
+ public CQChartsObjRugPointData    <CQChartsScatterPlot> {
   Q_OBJECT
 
   // columns

@@ -7,14 +7,20 @@
 
 CQChartsArrow::
 CQChartsArrow(CQChartsView *view, const QPointF &from, const QPointF &to) :
+ CQChartsObjShapeData    <CQChartsArrow>(this),
+ CQChartsObjDebugTextData<CQChartsArrow>(this),
  view_(view), from_(from), to_(to)
 {
+  setDebugTextVisible(false);
 }
 
 CQChartsArrow::
 CQChartsArrow(CQChartsPlot *plot, const QPointF &from, const QPointF &to) :
+ CQChartsObjShapeData    <CQChartsArrow>(this),
+ CQChartsObjDebugTextData<CQChartsArrow>(this),
  plot_(plot), from_(from), to_(to)
 {
+  setDebugTextVisible(false);
 }
 
 void
@@ -42,12 +48,12 @@ draw(QPainter *painter)
   double xw, yw;
 
   if (plot_) {
-    xw = (lineWidth().value() > 0 ? plot_->lengthPixelWidth (lineWidth()) : 4);
-    yw = (lineWidth().value() > 0 ? plot_->lengthPixelHeight(lineWidth()) : 4);
+    xw = (borderWidth().value() > 0 ? plot_->lengthPixelWidth (borderWidth()) : 4);
+    yw = (borderWidth().value() > 0 ? plot_->lengthPixelHeight(borderWidth()) : 4);
   }
   else {
-    xw = (lineWidth().value() > 0 ? view_->lengthPixelWidth (lineWidth()) : 4);
-    yw = (lineWidth().value() > 0 ? view_->lengthPixelHeight(lineWidth()) : 4);
+    xw = (borderWidth().value() > 0 ? view_->lengthPixelWidth (borderWidth()) : 4);
+    yw = (borderWidth().value() > 0 ? view_->lengthPixelHeight(borderWidth()) : 4);
   }
 
   double a = atan2(ty - fy, tx - fx);
@@ -75,7 +81,7 @@ draw(QPainter *painter)
   double x1 = fx, y1 = fy;
   double x4 = tx, y4 = ty;
 
-  if (hasLabels()) {
+  if (isDebugTextVisible()) {
     drawPointLabel(QPointF(x1, y1), "p1", true, false);
     drawPointLabel(QPointF(x4, y4), "p4", true, false);
   }
@@ -85,7 +91,7 @@ draw(QPainter *painter)
   double x3 = x4 - xl1*c;
   double y3 = y4 - yl1*s;
 
-  if (hasLabels()) {
+  if (isDebugTextVisible()) {
     drawPointLabel(QPointF(x2, y2), "p2", true, false);
     drawPointLabel(QPointF(x3, y3), "p3", true, false);
   }
@@ -129,7 +135,7 @@ draw(QPainter *painter)
     double xf2 = x1 + xl*c2;
     double yf2 = y1 + yl*s2;
 
-    if (hasLabels()) {
+    if (isDebugTextVisible()) {
       drawPointLabel(QPointF(xf1, yf1), "pf1", true, false);
       drawPointLabel(QPointF(xf2, yf2), "pf2", true, false);
     }
@@ -148,7 +154,7 @@ draw(QPainter *painter)
 
         CQChartsUtil::intersectLines(x1, y1, x2, y2, xf1, yf1, xf1 - 10*c3, yf1 - 10*s3, xf3, yf3);
 
-        if (hasLabels())
+        if (isDebugTextVisible())
           drawPointLabel(QPointF(xf3, yf3), "pf3", true, false);
 
         x11 = xf3;
@@ -162,7 +168,7 @@ draw(QPainter *painter)
       points.push_back(QPointF(xf3, yf3));
       points.push_back(QPointF(xf2, yf2));
 
-      drawPolygon(points, xw, isFilled(), isStroked());
+      drawPolygon(points, xw, isFilled(), isBorder());
     }
   }
 
@@ -178,7 +184,7 @@ draw(QPainter *painter)
     double xt2 = x4 + xl*c2;
     double yt2 = y4 + yl*s2;
 
-    if (hasLabels()) {
+    if (isDebugTextVisible()) {
       drawPointLabel(QPointF(xt1, yt1), "pt1", true, false);
       drawPointLabel(QPointF(xt2, yt2), "pt2", true, false);
     }
@@ -197,7 +203,7 @@ draw(QPainter *painter)
 
         CQChartsUtil::intersectLines(x3, y3, x4, y4, xt1, yt1, xt1 - 10*c3, yt1 - 10*s3, xt3, yt3);
 
-        if (hasLabels())
+        if (isDebugTextVisible())
           drawPointLabel(QPointF(xt3, yt3), "pt3", true, false);
 
         x41 = xt3;
@@ -211,7 +217,7 @@ draw(QPainter *painter)
       points.push_back(QPointF(xt3, yt3));
       points.push_back(QPointF(xt2, yt2));
 
-      drawPolygon(points, xw, isFilled(), isStroked());
+      drawPolygon(points, xw, isFilled(), isBorder());
     }
   }
 
@@ -241,14 +247,14 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
   //---
 
   if (filled) {
-    QColor fc;
+    QBrush brush;
+
+    QColor fc = interpFillColor(0, 1);
 
     if (plot_)
-      fc = fillColor().interpColor(plot_, 0, 1);
+      plot_->setBrush(brush, true, fc, fillAlpha(), fillPattern());
     else
-      fc = fillColor().interpColor(view_, 0, 1);
-
-    QBrush brush(fc);
+      view_->setBrush(brush, true, fc, fillAlpha(), fillPattern());
 
     painter_->fillPath(path, brush);
   }
@@ -256,16 +262,14 @@ drawPolygon(const std::vector<QPointF> &points, double width, bool filled, bool 
   //---
 
   if (stroked) {
-    QColor sc;
+    QPen pen;
+
+    QColor sc = interpBorderColor(0, 1);
 
     if (plot_)
-      sc = strokeColor().interpColor(plot_, 0, 1);
+      plot_->setPen(pen, true, sc, borderAlpha(), width);
     else
-      sc = strokeColor().interpColor(view_, 0, 1);
-
-    QPen pen(sc);
-
-    pen.setWidthF(width);
+      view_->setPen(pen, true, sc, borderAlpha(), width);
 
     painter_->strokePath(path, pen);
   }
@@ -277,14 +281,9 @@ drawLine(const QPointF &point1, const QPointF &point2, double width, bool mappin
 {
   QPen p = painter_->pen();
 
-  QColor sc;
+  QColor sc = interpBorderColor(0, 1);
 
-  if (plot_)
-    sc = strokeColor().interpColor(plot_, 0, 1);
-  else
-    sc = strokeColor().interpColor(view_, 0, 1);
-
-  p.setColor(sc);
+  p.setColor (sc);
   p.setWidthF(width);
 
   painter_->setPen(p);
@@ -328,11 +327,16 @@ drawPointLabel(const QPointF &point, const QString &text, bool above, bool mappi
     py = point.y();
   }
 
-  QPen pen(labelColor());
+  QPen tpen;
 
-  pen.setWidthF(1.0);
+  QColor tc = interpDebugTextColor(0, 1);
 
-  painter_->setPen(pen);
+  if (plot_)
+    plot_->setPen(tpen, true, tc, debugTextAlpha(), CQChartsLength("1.0"));
+  else
+    view_->setPen(tpen, true, tc, debugTextAlpha(), CQChartsLength("1.0"));
+
+  painter_->setPen(tpen);
 
   painter_->drawLine(px - 4, py    , px + 4, py    );
   painter_->drawLine(px    , py - 4, px    , py + 4);

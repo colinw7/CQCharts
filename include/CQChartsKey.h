@@ -3,7 +3,8 @@
 
 #include <CQChartsBoxObj.h>
 #include <CQChartsEditHandles.h>
-#include <CQChartsPlotData.h>
+#include <CQChartsObjData.h>
+#include <CQChartsKeyLocation.h>
 #include <CQChartsGeom.h>
 #include <CQChartsTypes.h>
 #include <QFont>
@@ -21,33 +22,19 @@ class QPainter;
 //------
 
 class CQChartsKey : public CQChartsBoxObj,
- public CQChartsPlotTextData<CQChartsKey> {
+ public CQChartsObjTextData<CQChartsKey> {
   Q_OBJECT
 
-  Q_PROPERTY(bool    horizontal  READ isHorizontal  WRITE setHorizontal )
-  Q_PROPERTY(bool    autoHide    READ isAutoHide    WRITE setAutoHide   )
-  Q_PROPERTY(bool    clipped     READ isClipped     WRITE setClipped    )
-  Q_PROPERTY(bool    above       READ isAbove       WRITE setAbove      )
-  Q_PROPERTY(bool    interactive READ isInteractive WRITE setInteractive)
-  Q_PROPERTY(QString location    READ locationStr   WRITE setLocationStr)
-  Q_PROPERTY(QString header      READ headerStr     WRITE setHeaderStr  )
-  Q_PROPERTY(double  hiddenAlpha READ hiddenAlpha   WRITE setHiddenAlpha)
+  Q_PROPERTY(bool                horizontal  READ isHorizontal  WRITE setHorizontal )
+  Q_PROPERTY(bool                autoHide    READ isAutoHide    WRITE setAutoHide   )
+  Q_PROPERTY(bool                clipped     READ isClipped     WRITE setClipped    )
+  Q_PROPERTY(bool                above       READ isAbove       WRITE setAbove      )
+  Q_PROPERTY(bool                interactive READ isInteractive WRITE setInteractive)
+  Q_PROPERTY(CQChartsKeyLocation location    READ location      WRITE setLocation   )
+  Q_PROPERTY(QString             header      READ headerStr     WRITE setHeaderStr  )
+  Q_PROPERTY(double              hiddenAlpha READ hiddenAlpha   WRITE setHiddenAlpha)
 
   CQCHARTS_TEXT_DATA_PROPERTIES
-
- public:
-  enum LocationType {
-    TOP_LEFT,
-    TOP_CENTER,
-    TOP_RIGHT,
-    CENTER_LEFT,
-    CENTER_CENTER,
-    CENTER_RIGHT,
-    BOTTOM_LEFT,
-    BOTTOM_CENTER,
-    BOTTOM_RIGHT,
-    ABS_POS
-  };
 
  public:
   CQChartsKey(CQChartsView *view);
@@ -71,43 +58,8 @@ class CQChartsKey : public CQChartsBoxObj,
 
   // position
 
-  const LocationType &location() const { return location_; }
-  void setLocation(const LocationType &l) { location_ = l; updatePosition(); }
-
-  QString locationStr() const;
-  void setLocationStr(const QString &s);
-
-  bool onLeft() const {
-    return (location_ == LocationType::TOP_LEFT ||
-            location_ == LocationType::CENTER_LEFT ||
-            location_ == LocationType::BOTTOM_LEFT);
-  }
-  bool onHCenter() const {
-    return (location_ == LocationType::TOP_CENTER ||
-            location_ == LocationType::CENTER_CENTER ||
-            location_ == LocationType::BOTTOM_CENTER);
-  }
-  bool onRight() const {
-    return (location_ == LocationType::TOP_RIGHT ||
-            location_ == LocationType::CENTER_RIGHT ||
-            location_ == LocationType::BOTTOM_RIGHT);
-  }
-
-  bool onTop() const {
-    return (location_ == LocationType::TOP_LEFT ||
-            location_ == LocationType::TOP_CENTER ||
-            location_ == LocationType::TOP_RIGHT);
-  }
-  bool onVCenter() const {
-    return (location_ == LocationType::CENTER_LEFT ||
-            location_ == LocationType::CENTER_CENTER ||
-            location_ == LocationType::CENTER_RIGHT);
-  }
-  bool onBottom() const {
-    return (location_ == LocationType::BOTTOM_LEFT ||
-            location_ == LocationType::BOTTOM_CENTER ||
-            location_ == LocationType::BOTTOM_RIGHT);
-  }
+  const CQChartsKeyLocation &location() const { return location_; }
+  void setLocation(const CQChartsKeyLocation &l);
 
   //---
 
@@ -160,16 +112,16 @@ class CQChartsKey : public CQChartsBoxObj,
   virtual void draw(QPainter *painter);
 
  protected:
-  bool         horizontal_          { false };                   // is layed out horizontallly
-  bool         above_               { true };                    // draw above view/plot
-  LocationType location_            { LocationType::TOP_RIGHT }; // key placement
-  QString      header_;                                          // header
-  bool         autoHide_            { true };                    // auto hide if too big
-  bool         clipped_             { true };                    // clipped to plot
-  bool         pixelWidthExceeded_  { true };                    // pixel height too big
-  bool         pixelHeightExceeded_ { true };                    // pixel width too big
-  bool         interactive_         { true };                    // is interactive
-  double       hiddenAlpha_         { 0.3 };                     // alpha for hidden item
+  bool                horizontal_          { false }; // is layed out horizontallly
+  bool                above_               { true };  // draw above view/plot
+  CQChartsKeyLocation location_;                      // key location
+  QString             header_;                        // header
+  bool                autoHide_            { true };  // auto hide if too big
+  bool                clipped_             { true };  // clipped to plot
+  bool                pixelWidthExceeded_  { true };  // pixel height too big
+  bool                pixelHeightExceeded_ { true };  // pixel width too big
+  bool                interactive_         { true };  // is interactive
+  double              hiddenAlpha_         { 0.3 };   // alpha for hidden item
 };
 
 //------

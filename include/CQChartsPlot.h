@@ -3,7 +3,7 @@
 
 #include <CQChartsColor.h>
 #include <CQChartsPlotSymbol.h>
-#include <CQChartsPlotData.h>
+#include <CQChartsObjData.h>
 #include <CQChartsGroupData.h>
 #include <CQChartsPosition.h>
 #include <CQChartsModelVisitor.h>
@@ -83,9 +83,9 @@ CQCHARTS_NAMED_SHAPE_DATA(Data,data)
 CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
 
 class CQChartsPlot : public QObject,
- public CQChartsPlotPlotShapeData<CQChartsPlot>,
- public CQChartsPlotDataShapeData<CQChartsPlot>,
- public CQChartsPlotFitShapeData <CQChartsPlot> {
+ public CQChartsObjPlotShapeData<CQChartsPlot>,
+ public CQChartsObjDataShapeData<CQChartsPlot>,
+ public CQChartsObjFitShapeData <CQChartsPlot> {
   Q_OBJECT
 
   // view
@@ -135,19 +135,19 @@ class CQChartsPlot : public QObject,
   // plot area
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Plot,plot)
 
-  Q_PROPERTY(QString plotBorderSides READ plotBorderSides WRITE setPlotBorderSides)
-  Q_PROPERTY(bool    plotClip        READ isPlotClip      WRITE setPlotClip       )
+  Q_PROPERTY(CQChartsSides plotBorderSides READ plotBorderSides WRITE setPlotBorderSides)
+  Q_PROPERTY(bool          plotClip        READ isPlotClip      WRITE setPlotClip       )
 
   // data area
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Data,data)
 
-  Q_PROPERTY(QString dataBorderSides READ dataBorderSides WRITE setDataBorderSides)
-  Q_PROPERTY(bool    dataClip        READ isDataClip      WRITE setDataClip       )
+  Q_PROPERTY(CQChartsSides dataBorderSides READ dataBorderSides WRITE setDataBorderSides)
+  Q_PROPERTY(bool          dataClip        READ isDataClip      WRITE setDataClip       )
 
   // fit area
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Fit,fit)
 
-  Q_PROPERTY(QString fitBorderSides READ fitBorderSides WRITE setFitBorderSides)
+  Q_PROPERTY(CQChartsSides fitBorderSides READ fitBorderSides WRITE setFitBorderSides)
 
   // key
   Q_PROPERTY(bool keyVisible READ isKeyVisible WRITE setKeyVisible)
@@ -182,9 +182,6 @@ class CQChartsPlot : public QObject,
     double right  { 10 };
     double bottom { 10 };
   };
-
-  // column array
-  using Columns = std::vector<CQChartsColumn>;
 
   // associated plot for overlay/y1y2
   struct ConnectData {
@@ -369,8 +366,8 @@ class CQChartsPlot : public QObject,
   //---
 
   // plot area
-  const QString &plotBorderSides() const { return plotBorderSides_; }
-  void setPlotBorderSides(const QString &s);
+  const CQChartsSides &plotBorderSides() const { return plotBorderSides_; }
+  void setPlotBorderSides(const CQChartsSides &s);
 
   bool isPlotClip() const { return plotClip_; }
   void setPlotClip(bool b);
@@ -378,8 +375,8 @@ class CQChartsPlot : public QObject,
   //---
 
   // data area
-  const QString &dataBorderSides() const { return dataBorderSides_; }
-  void setDataBorderSides(const QString &s);
+  const CQChartsSides &dataBorderSides() const { return dataBorderSides_; }
+  void setDataBorderSides(const CQChartsSides &s);
 
   bool isDataClip() const { return dataClip_; }
   void setDataClip(bool b);
@@ -387,8 +384,8 @@ class CQChartsPlot : public QObject,
   //---
 
   // fit area
-  const QString &fitBorderSides() const { return fitBorderSides_; }
-  void setFitBorderSides(const QString &s);
+  const CQChartsSides &fitBorderSides() const { return fitBorderSides_; }
+  void setFitBorderSides(const CQChartsSides &s);
 
   //---
 
@@ -1173,7 +1170,7 @@ class CQChartsPlot : public QObject,
 
   virtual void drawBackground(QPainter *painter);
 
-  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides);
+  void drawBackgroundSides(QPainter *painter, const QRectF &rect, const CQChartsSides &sides);
 
   // draw axes on background
   virtual bool hasBgAxes() const;
@@ -1378,7 +1375,7 @@ class CQChartsPlot : public QObject,
 
   //---
 
-  bool getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
+  bool getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
                           const QString &separator, QStringList &nameStrs, ModelIndices &nameInds);
 
   //---
@@ -1542,11 +1539,11 @@ class CQChartsPlot : public QObject,
   OptReal                   ymax_;                            // ymax override
   EveryData                 everyData_;                       // every data
   QString                   filterStr_;                       // filter
-  QString                   plotBorderSides_  { "tlbr" };     // plot border sides
+  CQChartsSides             plotBorderSides_  { "tlbr" };     // plot border sides
   bool                      plotClip_         { true };       // is clipped at plot limits
-  QString                   dataBorderSides_  { "tlbr" };     // data border sides
+  CQChartsSides             dataBorderSides_  { "tlbr" };     // data border sides
   bool                      dataClip_         { false };      // is clipped at data limits
-  QString                   fitBorderSides_   { "tlbr" };     // fit border sides
+  CQChartsSides             fitBorderSides_   { "tlbr" };     // fit border sides
   QString                   titleStr_;                        // title string
   QString                   fileName_;                        // associated data filename
   QString                   xLabel_;                          // x label override

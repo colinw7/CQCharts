@@ -2,7 +2,7 @@
 #define CQChartsAxis_H
 
 #include <CQChartsEditHandles.h>
-#include <CQChartsPlotData.h>
+#include <CQChartsObjData.h>
 #include <CQChartsColumn.h>
 #include <CQChartsGeom.h>
 #include <CQChartsUtil.h>
@@ -29,12 +29,12 @@ CQCHARTS_NAMED_FILL_DATA(AxesGrid,axesGrid)
 
 // Axis Data
 class CQChartsAxis : public QObject,
- public CQChartsPlotAxesLineData         <CQChartsAxis>,
- public CQChartsPlotAxesTickLabelTextData<CQChartsAxis>,
- public CQChartsPlotAxesLabelTextData    <CQChartsAxis>,
- public CQChartsPlotAxesMajorGridLineData<CQChartsAxis>,
- public CQChartsPlotAxesMinorGridLineData<CQChartsAxis>,
- public CQChartsPlotAxesGridFillData     <CQChartsAxis> {
+ public CQChartsObjAxesLineData         <CQChartsAxis>,
+ public CQChartsObjAxesTickLabelTextData<CQChartsAxis>,
+ public CQChartsObjAxesLabelTextData    <CQChartsAxis>,
+ public CQChartsObjAxesMajorGridLineData<CQChartsAxis>,
+ public CQChartsObjAxesMinorGridLineData<CQChartsAxis>,
+ public CQChartsObjAxesGridFillData     <CQChartsAxis> {
   Q_OBJECT
 
   // general

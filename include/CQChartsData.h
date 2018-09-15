@@ -7,6 +7,7 @@
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsLineDash.h>
 #include <CQChartsFillPattern.h>
+#include <CQChartsSides.h>
 #include <QFont>
 
 // Text Properties
@@ -66,7 +67,7 @@ struct CQChartsBoxData {
   double            margin      { 4 };      // inside margin (pixels)
   double            padding     { 0 };      // outside margin (pixels)
   CQChartsShapeData shape;                  // shape data
-  QString           borderSides { "tlbr" }; // border sides to draw
+  CQChartsSides     borderSides { "tlbr" }; // border sides to draw
 };
 
 // Text in Box Properties
@@ -88,17 +89,13 @@ struct CQChartsSymbolData {
 };
 
 struct CQChartsArrowData {
-  bool               relative    { false };     // to point relative to from
-  CQChartsLength     length      { "1V" };      // length
-  double             angle       { -1 };        // arrow angle
-  double             backAngle   { -1 };        // arrow back angle
-  bool               fhead       { false };     // draw arrow head at front
-  bool               thead       { true };      // draw arrow head at tail
-  bool               empty       { false };     // draw empty head (unfilled stroked)
-  CQChartsStrokeData stroke;                    // line stroke
-  CQChartsFillData   fill;                      // head fill
-  bool               labels      { false };     // show debug labels
-  QColor             labelColor  { 255, 0, 0 }; // debug label color
+  bool           relative  { false }; // to point relative to from
+  CQChartsLength length    { "1V" };  // length
+  double         angle     { -1 };    // arrow angle
+  double         backAngle { -1 };    // arrow back angle
+  bool           fhead     { false }; // draw arrow head at front
+  bool           thead     { true };  // draw arrow head at tail
+  bool           empty     { false }; // draw empty head (unfilled stroked)
 };
 
 #endif

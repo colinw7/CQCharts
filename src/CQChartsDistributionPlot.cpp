@@ -112,9 +112,9 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsDistributionPlot::
 CQChartsDistributionPlot(CQChartsView *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("distribution"), model),
- CQChartsPlotMeanLineData<CQChartsDistributionPlot>(this),
- CQChartsPlotDotPointData<CQChartsDistributionPlot>(this),
- CQChartsPlotRugPointData<CQChartsDistributionPlot>(this),
+ CQChartsObjMeanLineData<CQChartsDistributionPlot>(this),
+ CQChartsObjDotPointData<CQChartsDistributionPlot>(this),
+ CQChartsObjRugPointData<CQChartsDistributionPlot>(this),
  dataLabel_(this)
 {
   setAutoBucket    (true);
@@ -2282,17 +2282,10 @@ drawRug(QPainter *painter)
   int ic = (ns_ > 1 ? is_ : iv_);
   int nc = (ns_ > 1 ? ns_ : nv_);
 
-  QColor strokeColor = plot_->interpRugSymbolStrokeColor(ic, nc);
-  QColor barColor    = plot_->interpRugSymbolFillColor  (ic, nc);
-
   QPen   pen;
   QBrush brush;
 
-  plot_->setPenBrush(pen, brush,
-                     plot_->isRugSymbolStroked(), strokeColor, plot_->rugSymbolStrokeAlpha(),
-                     plot_->rugSymbolStrokeWidth(), plot_->rugSymbolStrokeDash(),
-                     plot_->isRugSymbolFilled(), barColor,
-                     plot_->rugSymbolFillAlpha(), plot_->rugSymbolFillPattern());
+  plot_->setRugSymbolPenBrush(pen, brush, ic, nc);
 
   painter->setPen  (pen);
   painter->setBrush(brush);
@@ -2485,13 +2478,7 @@ drawRect(QPainter *painter, const QRectF &qrect, const CQChartsColor &color, boo
     QPen   dotPen;
     QBrush dotBrush;
 
-    QColor bc = plot_->interpDotSymbolStrokeColor(ic, nc);
-    QColor fc = plot_->interpDotSymbolFillColor(ic, nc);
-
-    plot_->setPenBrush(dotPen, dotBrush,
-      plot_->isDotSymbolStroked(), bc, plot_->dotSymbolStrokeAlpha(),
-      plot_->dotSymbolStrokeWidth(), plot_->dotSymbolStrokeDash(),
-      plot_->isDotSymbolFilled(), fc, plot_->dotSymbolFillAlpha(), plot_->dotSymbolFillPattern());
+    plot_->setDotSymbolPenBrush(dotPen, dotBrush, ic, nc);
 
     painter->setPen  (dotPen);
     painter->setBrush(dotBrush);

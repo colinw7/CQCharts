@@ -304,18 +304,17 @@ CQCHARTS_NAMED_POINT_DATA(Jitter,jitter)
 
 // box plot
 class CQChartsBoxPlot : public CQChartsGroupPlot,
- public CQChartsPlotBoxShapeData    <CQChartsBoxPlot>,
- public CQChartsPlotTextData        <CQChartsBoxPlot>,
- public CQChartsPlotWhiskerLineData <CQChartsBoxPlot>,
- public CQChartsPlotOutlierPointData<CQChartsBoxPlot>,
- public CQChartsPlotJitterPointData <CQChartsBoxPlot> {
+ public CQChartsObjBoxShapeData    <CQChartsBoxPlot>,
+ public CQChartsObjTextData        <CQChartsBoxPlot>,
+ public CQChartsObjWhiskerLineData <CQChartsBoxPlot>,
+ public CQChartsObjOutlierPointData<CQChartsBoxPlot>,
+ public CQChartsObjJitterPointData <CQChartsBoxPlot> {
   Q_OBJECT
 
   // calc value columns
-  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(CQChartsColumn nameColumn   READ nameColumn      WRITE setNameColumn     )
-  Q_PROPERTY(CQChartsColumn setColumn    READ setColumn       WRITE setSetColumn      )
+  Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
+  Q_PROPERTY(CQChartsColumn nameColumn    READ nameColumn   WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumn setColumn     READ setColumn    WRITE setSetColumn   )
 
   // pre-calc columns
   Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
@@ -352,8 +351,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   // box
   CQCHARTS_NAMED_SHAPE_DATA_PROPERTIES(Box,box)
 
-  Q_PROPERTY(CQChartsLength boxWidth    READ boxWidth   WRITE setBoxWidth  )
-  Q_PROPERTY(CQChartsLength cornerSize  READ cornerSize WRITE setCornerSize)
+  Q_PROPERTY(CQChartsLength boxWidth READ boxWidth WRITE setBoxWidth)
 
   // text
   CQCHARTS_TEXT_DATA_PROPERTIES
@@ -391,18 +389,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  const CQChartsColumn &valueColumn() const { return valueColumns_.column(); }
-  void setValueColumn(const CQChartsColumn &c);
-
-  const Columns &valueColumns() const { return valueColumns_.columns(); }
-  void setValueColumns(const Columns &valueColumns);
-
-  QString valueColumnsStr() const;
-  bool setValueColumnsStr(const QString &s);
-
-  const CQChartsColumn &valueColumnAt(int i) const;
-
-  int numValueColumns() const;
+  const CQChartsColumns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const CQChartsColumns &c);
 
   //---
 
@@ -488,11 +476,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   //---
 
   // whisker box
-  const CQChartsLength &cornerSize() const;
-  void setCornerSize(const CQChartsLength &r);
-
-  //---
-
   double whiskerRange() const { return whiskerRange_; }
   void setWhiskerRange(double r);
 
@@ -615,7 +598,6 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   double                whiskerRange_   { 1.5 };                     // whisker range
   double                whiskerExtent_  { 0.2 };                     // whisker extent
   CQChartsGeom::RMinMax xrange_;                                     // x range
-  CQChartsBoxData       boxData_;                                    // shape fill/border style
   double                textMargin_     { 2 };                       // text margin
   ColumnType            setType_        { ColumnType::NONE };        // set column data type
   GroupSetWhiskerMap    groupWhiskers_;                              // grouped whisker data

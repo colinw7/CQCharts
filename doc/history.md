@@ -624,3 +624,9 @@
  + Add style macros to key
 # 9/12/2018
  + Fix tooltip for data values in scatter
+# 9/15/2018
+ + Use single CRTP header for all object styling (view, plot, ...)
+ + Use CQChartsColumns for all column arrays and properties
+ + Add CQChartsKeyLocation meta type
+ + Add CQChartsSides meta type
+ + CQChartsFillUnderSide and CQChartsFillUnderPos meta types

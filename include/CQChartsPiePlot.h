@@ -249,19 +249,18 @@ class CQChartsPieKeyText : public CQChartsKeyText {
 //---
 
 class CQChartsPiePlot : public CQChartsGroupPlot,
- public CQChartsPlotGridLineData<CQChartsPiePlot> {
+ public CQChartsObjGridLineData<CQChartsPiePlot> {
   Q_OBJECT
 
   // properties
   //   donut, inner radius, outer radius, label radius, start angle, end angle,
   //   explode/explode radius
 
-  Q_PROPERTY(CQChartsColumn labelColumn    READ labelColumn     WRITE setLabelColumn    )
-  Q_PROPERTY(CQChartsColumn valueColumn    READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString        valueColumns   READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(CQChartsColumn radiusColumn   READ radiusColumn    WRITE setRadiusColumn   )
-  Q_PROPERTY(CQChartsColumn keyLabelColumn READ keyLabelColumn  WRITE setKeyLabelColumn )
-  Q_PROPERTY(CQChartsColumn colorColumn    READ colorColumn     WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumn  labelColumn    READ labelColumn    WRITE setLabelColumn   )
+  Q_PROPERTY(CQChartsColumns valueColumns   READ valueColumns   WRITE setValueColumns  )
+  Q_PROPERTY(CQChartsColumn  radiusColumn   READ radiusColumn   WRITE setRadiusColumn  )
+  Q_PROPERTY(CQChartsColumn  keyLabelColumn READ keyLabelColumn WRITE setKeyLabelColumn)
+  Q_PROPERTY(CQChartsColumn  colorColumn    READ colorColumn    WRITE setColorColumn   )
 
   // options
   Q_PROPERTY(bool   donut       READ isDonut       WRITE setDonut      )
@@ -292,18 +291,8 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   const CQChartsColumn &labelColumn() const { return labelColumn_; }
   void setLabelColumn(const CQChartsColumn &c);
 
-  //---
-
-  const CQChartsColumn &valueColumn() const;
-  void setValueColumn(const CQChartsColumn &c);
-
-  const Columns &valueColumns() const { return valueColumns_.columns(); }
-  void setValueColumns(const Columns &valueColumns);
-
-  QString valueColumnsStr() const;
-  bool setValueColumnsStr(const QString &s);
-
-  const CQChartsColumn &valueColumnAt(int i) const;
+  const CQChartsColumns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const CQChartsColumns &c);
 
   //---
 

@@ -17,8 +17,8 @@ CQChartsTitle(CQChartsPlot *plot) :
 
   textData_.font.setPointSizeF(1.2*textFont().pointSizeF());
 
-  boxData_.shape.background.visible = false;
-  boxData_.shape.border    .visible = false;
+  setBorder(false);
+  setFilled(false);
 }
 
 QString

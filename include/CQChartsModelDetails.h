@@ -107,9 +107,6 @@ class CQChartsModelColumnDetails {
 
 class CQChartsModelDetails {
  public:
-  using Columns = std::vector<CQChartsColumn>;
-
- public:
   CQChartsModelDetails(CQChartsModelData *data);
 
  ~CQChartsModelDetails();
@@ -125,9 +122,9 @@ class CQChartsModelDetails {
   CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column);
   const CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) const;
 
-  Columns numericColumns() const;
+  CQChartsColumns numericColumns() const;
 
-  Columns monotonicColumns() const;
+  CQChartsColumns monotonicColumns() const;
 
   void reset();
 

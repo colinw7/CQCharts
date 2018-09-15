@@ -32,8 +32,8 @@ analyzeType(CQChartsPlotType *type)
   int nc = details->numColumns();
   int nr = details->numRows   ();
 
-  CQChartsModelDetails::Columns numericColumns   = details->numericColumns();
-  CQChartsModelDetails::Columns monotonicColumns = details->monotonicColumns();
+  CQChartsColumns numericColumns   = details->numericColumns();
+  CQChartsColumns monotonicColumns = details->monotonicColumns();
 
   //---
 
@@ -79,10 +79,10 @@ analyzeType(CQChartsPlotType *type)
   if (numRequired > nc)
     return false;
 
-  if (numNumeric > 0 && int(numericColumns.size()) < numNumeric)
+  if (numNumeric > 0 && int(numericColumns.count()) < numNumeric)
     return false;
 
-  if (numMonotonic > 0 && int(monotonicColumns.size()) < numMonotonic)
+  if (numMonotonic > 0 && int(monotonicColumns.count()) < numMonotonic)
     return false;
 
   //---

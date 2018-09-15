@@ -2,7 +2,9 @@
 #define CQChartsBoxObj_H
 
 #include <CQChartsObj.h>
+#include <CQChartsObjData.h>
 #include <CQChartsData.h>
+#include <CQChartsSides.h>
 #include <QRectF>
 #include <QPolygonF>
 
@@ -10,29 +12,17 @@ class CQChartsView;
 class CQPropertyViewModel;
 class QPainter;
 
-class CQChartsBoxObj : public CQChartsObj {
+class CQChartsBoxObj : public CQChartsObj,
+ public CQChartsObjShapeData<CQChartsBoxObj> {
   Q_OBJECT
 
   Q_PROPERTY(bool   visible READ isVisible WRITE setVisible)
   Q_PROPERTY(double margin  READ margin    WRITE setMargin )
   Q_PROPERTY(double padding READ padding   WRITE setPadding)
 
-  Q_PROPERTY(bool                background
-             READ isBackground      WRITE setBackground       )
-  Q_PROPERTY(CQChartsColor       backgroundColor
-             READ backgroundColor   WRITE setBackgroundColor  )
-  Q_PROPERTY(double              backgroundAlpha
-             READ backgroundAlpha   WRITE setBackgroundAlpha  )
-  Q_PROPERTY(CQChartsFillPattern backgroundPattern
-             READ backgroundPattern WRITE setBackgroundPattern)
+  CQCHARTS_SHAPE_DATA_PROPERTIES
 
-  Q_PROPERTY(bool             border      READ isBorder    WRITE setBorder     )
-  Q_PROPERTY(CQChartsColor    borderColor READ borderColor WRITE setBorderColor)
-  Q_PROPERTY(double           borderAlpha READ borderAlpha WRITE setBorderAlpha)
-  Q_PROPERTY(CQChartsLength   borderWidth READ borderWidth WRITE setBorderWidth)
-  Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash )
-  Q_PROPERTY(QString          borderSides READ borderSides WRITE setBorderSides)
-  Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
+  Q_PROPERTY(CQChartsSides borderSides READ borderSides WRITE setBorderSides)
 
  public:
   CQChartsBoxObj(CQChartsView *view);
@@ -63,59 +53,14 @@ class CQChartsBoxObj : public CQChartsObj {
 
   //---
 
-  // background
-  bool isBackground() const { return boxData_.shape.background.visible; }
-  void setBackground(bool b) { boxData_.shape.background.visible = b; redrawBoxObj(); }
-
-  const CQChartsColor &backgroundColor() const { return boxData_.shape.background.color; }
-  void setBackgroundColor(const CQChartsColor &c) {
-    boxData_.shape.background.color = c; redrawBoxObj(); }
-
-  double backgroundAlpha() const { return boxData_.shape.background.alpha; }
-  void setBackgroundAlpha(double a) { boxData_.shape.background.alpha = a; redrawBoxObj(); }
-
-  const CQChartsFillPattern &backgroundPattern() const {
-    return boxData_.shape.background.pattern; }
-  void setBackgroundPattern(const CQChartsFillPattern &p) {
-    boxData_.shape.background.pattern = p; redrawBoxObj(); }
-
-  //---
-
   // border
-  bool isBorder() const { return boxData_.shape.border.visible; }
-  void setBorder(bool b) { boxData_.shape.border.visible = b; redrawBoxObj(); }
-
-  const CQChartsColor &borderColor() const { return boxData_.shape.border.color; }
-  void setBorderColor(const CQChartsColor &c) { boxData_.shape.border.color = c; redrawBoxObj(); }
-
-  double borderAlpha() const { return boxData_.shape.border.alpha; }
-  void setBorderAlpha(double a) { boxData_.shape.border.alpha = a; redrawBoxObj(); }
-
-  const CQChartsLength &borderWidth() const { return boxData_.shape.border.width; }
-  void setBorderWidth(const CQChartsLength &l) { boxData_.shape.border.width = l; redrawBoxObj(); }
-
-  const CQChartsLineDash &borderDash() const { return boxData_.shape.border.dash; }
-  void setBorderDash(const CQChartsLineDash &l) { boxData_.shape.border.dash = l; redrawBoxObj(); }
-
-  const CQChartsLength &cornerSize() const { return boxData_.shape.border.cornerSize; }
-  void setCornerSize(const CQChartsLength &l) {
-    boxData_.shape.border.cornerSize = l; redrawBoxObj(); }
-
-  const QString &borderSides() const { return boxData_.borderSides; }
-  void setBorderSides(const QString &s) { boxData_.borderSides = s; redrawBoxObj(); }
+  const CQChartsSides &borderSides() const { return boxData_.borderSides; }
+  void setBorderSides(const CQChartsSides &s) { boxData_.borderSides = s; redrawBoxObj(); }
 
   //---
 
   const CQChartsBoxData &boxData() const { return boxData_; }
   void setBoxData(const CQChartsBoxData &data) { boxData_ = data; }
-
-  const CQChartsShapeData &shapeData() const { return boxData_.shape; }
-  void setShapeData(const CQChartsShapeData &data) { boxData_.shape = data; }
-
-  //---
-
-  QColor interpBackgroundColor(int i, int n) const;
-  QColor interpBorderColor    (int i, int n) const;
 
   //---
 

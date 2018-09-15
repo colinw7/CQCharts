@@ -71,13 +71,13 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsPiePlot::
 CQChartsPiePlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("pie"), model),
- CQChartsPlotGridLineData<CQChartsPiePlot>(this)
+ CQChartsObjGridLineData<CQChartsPiePlot>(this)
 {
   (void) addColorSet("color");
 
   //---
 
-  setValueColumnsStr("1");
+  setValueColumns(CQChartsColumns("1"));
 
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
@@ -105,57 +105,11 @@ setLabelColumn(const CQChartsColumn &c)
   CQChartsUtil::testAndSet(labelColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
-//---
-
-const CQChartsColumn &
-CQChartsPiePlot::
-valueColumn() const
-{
-  return valueColumns_.column();
-}
-
 void
 CQChartsPiePlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumns(const CQChartsColumns &c)
 {
-  if (c != valueColumns_.column()) {
-    valueColumns_.setColumn(c);
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsPiePlot::
-setValueColumns(const Columns &cols)
-{
-  if (cols != valueColumns_.columns()) {
-    valueColumns_.setColumns(cols);
-
-    updateRangeAndObjs();
-  }
-}
-
-QString
-CQChartsPiePlot::
-valueColumnsStr() const
-{
-  return valueColumns_.columnsStr();
-}
-
-bool
-CQChartsPiePlot::
-setValueColumnsStr(const QString &s)
-{
-  bool rc = true;
-
-  if (s != valueColumnsStr()) {
-    rc = valueColumns_.setColumnsStr(s);
-
-    updateRangeAndObjs();
-  }
-
-  return rc;
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -259,8 +213,7 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "valueColumn"   , "value"   );
-  addProperty("columns", this, "valueColumns"  , "valueSet");
+  addProperty("columns", this, "valueColumns"  , "values"  );
   addProperty("columns", this, "labelColumn"   , "label"   );
   addProperty("columns", this, "radiusColumn"  , "radius"  );
   addProperty("columns", this, "keyLabelColumn", "keyLabel");
@@ -583,7 +536,7 @@ addRowColumn(const CQChartsModelIndex &ind)
   QString label;
 
   if (numGroups() > 1) {
-    if (valueColumns().size() > 1 && ! isGroupHeaders())
+    if (valueColumns().count() > 1 && ! isGroupHeaders())
       label = modelHeaderString(ind.column, ok);
     else
       label = modelString(ind.row, labelColumn(), ind.parent, ok);
@@ -1158,7 +1111,9 @@ CQChartsPieObj::
 getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->labelColumn());
-  addColumnSelectIndex(inds, plot_->valueColumn());
+
+  for (const auto &c : plot_->valueColumns())
+    addColumnSelectIndex(inds, c);
 }
 
 void

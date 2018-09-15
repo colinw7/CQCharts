@@ -32,8 +32,8 @@ class CQChartsForceDirectedPlotType : public CQChartsPlotType {
 //---
 
 class CQChartsForceDirectedPlot : public CQChartsPlot,
- public CQChartsPlotNodeShapeData<CQChartsForceDirectedPlot>,
- public CQChartsPlotEdgeLineData <CQChartsForceDirectedPlot> {
+ public CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>,
+ public CQChartsObjEdgeLineData <CQChartsForceDirectedPlot> {
   Q_OBJECT
 
   // columns

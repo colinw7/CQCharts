@@ -20,12 +20,12 @@
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
  QObject(plot),
- CQChartsPlotAxesLineData         <CQChartsAxis>(this),
- CQChartsPlotAxesTickLabelTextData<CQChartsAxis>(this),
- CQChartsPlotAxesLabelTextData    <CQChartsAxis>(this),
- CQChartsPlotAxesMajorGridLineData<CQChartsAxis>(this),
- CQChartsPlotAxesMinorGridLineData<CQChartsAxis>(this),
- CQChartsPlotAxesGridFillData     <CQChartsAxis>(this),
+ CQChartsObjAxesLineData         <CQChartsAxis>(this),
+ CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
+ CQChartsObjAxesLabelTextData    <CQChartsAxis>(this),
+ CQChartsObjAxesMajorGridLineData<CQChartsAxis>(this),
+ CQChartsObjAxesMinorGridLineData<CQChartsAxis>(this),
+ CQChartsObjAxesGridFillData     <CQChartsAxis>(this),
  plot_(plot), direction_(direction),
  start_(std::min(start, end)), end_(std::max(start, end)), calcStart_(start), calcEnd_(end),
  editHandles_(plot, CQChartsEditHandles::Mode::MOVE)

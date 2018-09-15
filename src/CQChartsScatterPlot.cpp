@@ -92,10 +92,10 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsScatterPlot::
 CQChartsScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("scatter"), model),
- CQChartsPlotPointData       <CQChartsScatterPlot>(this),
- CQChartsPlotBestFitShapeData<CQChartsScatterPlot>(this),
- CQChartsPlotHullShapeData   <CQChartsScatterPlot>(this),
- CQChartsPlotRugPointData    <CQChartsScatterPlot>(this),
+ CQChartsObjPointData       <CQChartsScatterPlot>(this),
+ CQChartsObjBestFitShapeData<CQChartsScatterPlot>(this),
+ CQChartsObjHullShapeData   <CQChartsScatterPlot>(this),
+ CQChartsObjRugPointData    <CQChartsScatterPlot>(this),
  dataLabel_(this)
 {
   // set mapped range
@@ -622,7 +622,7 @@ void
 CQChartsScatterPlot::
 calcRange()
 {
-  initGroupData(Columns(), CQChartsColumn());
+  initGroupData(CQChartsColumns(), CQChartsColumn());
 
   //---
 

@@ -66,9 +66,9 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsSankeyPlot::
 CQChartsSankeyPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("sankey"), model),
- CQChartsPlotTextData     <CQChartsSankeyPlot>(this),
- CQChartsPlotNodeShapeData<CQChartsSankeyPlot>(this),
- CQChartsPlotEdgeShapeData<CQChartsSankeyPlot>(this)
+ CQChartsObjTextData     <CQChartsSankeyPlot>(this),
+ CQChartsObjNodeShapeData<CQChartsSankeyPlot>(this),
+ CQChartsObjEdgeShapeData<CQChartsSankeyPlot>(this)
 {
   setLayerActive(CQChartsLayer::Type::FG_PLOT, true);
 

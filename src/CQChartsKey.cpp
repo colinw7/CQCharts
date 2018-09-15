@@ -12,18 +12,18 @@
 
 CQChartsKey::
 CQChartsKey(CQChartsView *view) :
- CQChartsBoxObj(view), CQChartsPlotTextData<CQChartsKey>(this)
+ CQChartsBoxObj(view), CQChartsObjTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 }
 
 CQChartsKey::
 CQChartsKey(CQChartsPlot *plot) :
- CQChartsBoxObj(plot), CQChartsPlotTextData<CQChartsKey>(this)
+ CQChartsBoxObj(plot), CQChartsObjTextData<CQChartsKey>(this)
 {
   setObjectName("key");
 
-  boxData_.shape.background.visible = false;
+  setFilled(false);
 }
 
 QString
@@ -43,43 +43,11 @@ CQChartsKey::
 {
 }
 
-QString
-CQChartsKey::
-locationStr() const
-{
-  switch (location_) {
-    case LocationType::TOP_LEFT:      return "tl";
-    case LocationType::TOP_CENTER:    return "tc";
-    case LocationType::TOP_RIGHT:     return "tr";
-    case LocationType::CENTER_LEFT:   return "cl";
-    case LocationType::CENTER_CENTER: return "cc";
-    case LocationType::CENTER_RIGHT:  return "cr";
-    case LocationType::BOTTOM_LEFT:   return "bl";
-    case LocationType::BOTTOM_CENTER: return "bc";
-    case LocationType::BOTTOM_RIGHT:  return "br";
-    case LocationType::ABS_POS:       return "abs";
-    default:                          return "none";
-  }
-}
-
 void
 CQChartsKey::
-setLocationStr(const QString &str)
+setLocation(const CQChartsKeyLocation &l)
 {
-  QString lstr = str.toLower();
-
-  if      (lstr == "tl" ) location_ = LocationType::TOP_LEFT;
-  else if (lstr == "tc" ) location_ = LocationType::TOP_CENTER;
-  else if (lstr == "tr" ) location_ = LocationType::TOP_RIGHT;
-  else if (lstr == "cl" ) location_ = LocationType::CENTER_LEFT;
-  else if (lstr == "cc" ) location_ = LocationType::CENTER_CENTER;
-  else if (lstr == "cr" ) location_ = LocationType::CENTER_RIGHT;
-  else if (lstr == "bl" ) location_ = LocationType::BOTTOM_LEFT;
-  else if (lstr == "bc" ) location_ = LocationType::BOTTOM_CENTER;
-  else if (lstr == "br" ) location_ = LocationType::BOTTOM_RIGHT;
-  else if (lstr == "abs") location_ = LocationType::ABS_POS;
-
-  updatePosition();
+  CQChartsUtil::testAndSet(location_, l, [&]() { updatePosition(); } );
 }
 
 //---
@@ -124,13 +92,13 @@ doLayout()
   double x  = 0.0, y  = 0.0;
   double dx = 0.0, dy = 0.0;
 
-  if      (onLeft   ()) { x =   0.0; dx =  1.0; }
-  else if (onHCenter()) { x =  50.0; dx =  0.0; }
-  else if (onRight  ()) { x = 100.0; dx = -1.0; }
+  if      (location().onLeft   ()) { x =   0.0; dx =  1.0; }
+  else if (location().onHCenter()) { x =  50.0; dx =  0.0; }
+  else if (location().onRight  ()) { x = 100.0; dx = -1.0; }
 
-  if      (onTop    ()) { y = 100.0; dy =  1.0; }
-  else if (onVCenter()) { y =  50.0; dy =  0.0; }
-  else if (onBottom ()) { y =   0.0; dy = -1.0; }
+  if      (location().onTop    ()) { y = 100.0; dy =  1.0; }
+  else if (location().onVCenter()) { y =  50.0; dy =  0.0; }
+  else if (location().onBottom ()) { y =   0.0; dy = -1.0; }
 
   //----
 
@@ -164,9 +132,9 @@ doLayout()
     ph += fm.height();
   }
 
-  if      (onLeft   ()) position_ = QPointF(px        +   margin(), py);
-  else if (onHCenter()) position_ = QPointF(px - pw/2 -   margin(), py);
-  else if (onRight  ()) position_ = QPointF(px - pw   - 2*margin(), py);
+  if      (location().onLeft   ()) position_ = QPointF(px        +   margin(), py);
+  else if (location().onHCenter()) position_ = QPointF(px - pw/2 -   margin(), py);
+  else if (location().onRight  ()) position_ = QPointF(px - pw   - 2*margin(), py);
 
   size_ = QSizeF(pw + 2*margin(), ph + 2*margin());
 }
@@ -394,39 +362,37 @@ updateLocation(const CQChartsGeom::BBox &bbox)
   // calc key size
   QSizeF ks = calcSize();
 
-  LocationType location = this->location();
-
   double xm = plot_->pixelToWindowWidth (8);
   double ym = plot_->pixelToWindowHeight(8);
 
   double kx { 0.0 }, ky { 0.0 };
 
-  if      (onLeft()) {
+  if      (location().onLeft()) {
     if (isInsideX())
       kx = bbox.getXMin() + xm;
     else
       kx = bbox.getXMin() - ks.width() - xm;
   }
-  else if (onHCenter()) {
+  else if (location().onHCenter()) {
     kx = bbox.getXMid() - ks.width()/2;
   }
-  else if (onRight()) {
+  else if (location().onRight()) {
     if (isInsideX())
       kx = bbox.getXMax() - ks.width() - xm;
     else
       kx = bbox.getXMax() + xm;
   }
 
-  if      (onTop()) {
+  if      (location().onTop()) {
     if (isInsideY())
       ky = bbox.getYMax() - ym;
     else
       ky = bbox.getYMax() + ks.height() + ym;
   }
-  else if (onVCenter()) {
+  else if (location().onVCenter()) {
     ky = bbox.getYMid() - ks.height()/2;
   }
-  else if (onBottom()) {
+  else if (location().onBottom()) {
     if (isInsideY())
       ky = bbox.getYMin() + ks.height() + ym;
     else {
@@ -441,7 +407,9 @@ updateLocation(const CQChartsGeom::BBox &bbox)
 
   QPointF kp(kx, ky);
 
-  if (location == LocationType::ABS_POS) {
+  CQChartsKeyLocation::Type locationType = this->location().type();
+
+  if (locationType == CQChartsKeyLocation::Type::ABS_POS) {
     kp = absPlotPosition();
   }
 
@@ -772,7 +740,7 @@ editPress(const CQChartsGeom::Point &p)
 {
   editHandles_.setDragPos(p);
 
-  location_ = LocationType::ABS_POS;
+  location_ = CQChartsKeyLocation(CQChartsKeyLocation::Type::ABS_POS);
 
   setAbsPlotPosition(position_);
 
@@ -788,7 +756,7 @@ editMove(const CQChartsGeom::Point &p)
   double dx = p.x - dragPos.x;
   double dy = p.y - dragPos.y;
 
-  location_ = LocationType::ABS_POS;
+  location_ = CQChartsKeyLocation::Type::ABS_POS;
 
   setAbsPlotPosition(absPlotPosition() + QPointF(dx, dy));
 
@@ -817,7 +785,7 @@ void
 CQChartsPlotKey::
 editMoveBy(const QPointF &f)
 {
-  location_ = LocationType::ABS_POS;
+  location_ = CQChartsKeyLocation::Type::ABS_POS;
 
   setAbsPlotPosition(position_ + f);
 
@@ -943,7 +911,9 @@ draw(QPainter *painter)
   QRectF dataRect = CQChartsUtil::toQRect(plot_->calcDataPixelRect());
   QRectF clipRect = CQChartsUtil::toQRect(plot_->calcPlotPixelRect());
 
-  if (location() != LocationType::ABS_POS) {
+  CQChartsKeyLocation::Type locationType = this->location().type();
+
+  if (locationType != CQChartsKeyLocation::Type::ABS_POS) {
     if (isInsideX()) {
       clipRect.setLeft (dataRect.left ());
       clipRect.setRight(dataRect.right());
@@ -1046,26 +1016,28 @@ QColor
 CQChartsPlotKey::
 interpBgColor() const
 {
-  if (isBackground())
-    return interpBackgroundColor(0, 1);
+  if (isFilled())
+    return interpFillColor(0, 1);
 
-  if (location() != LocationType::ABS_POS) {
+  CQChartsKeyLocation::Type locationType = this->location().type();
+
+  if (locationType != CQChartsKeyLocation::Type::ABS_POS) {
     if      (isInsideX() && isInsideY()) {
       if (plot_->isDataFilled())
         return plot_->interpDataFillColor(0, 1);
     }
     else if (isInsideX()) {
-      if (location() == CENTER_LEFT ||
-          location() == CENTER_CENTER ||
-          location() == CENTER_RIGHT) {
+      if (locationType == CQChartsKeyLocation::Type::CENTER_LEFT ||
+          locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
+          locationType == CQChartsKeyLocation::Type::CENTER_RIGHT) {
         if (plot_->isDataFilled())
           return plot_->interpDataFillColor(0, 1);
       }
     }
     else if (isInsideY()) {
-      if (location() == TOP_CENTER ||
-          location() == CENTER_CENTER ||
-          location() == BOTTOM_CENTER) {
+      if (locationType == CQChartsKeyLocation::Type::TOP_CENTER ||
+          locationType == CQChartsKeyLocation::Type::CENTER_CENTER ||
+          locationType == CQChartsKeyLocation::Type::BOTTOM_CENTER) {
         if (plot_->isDataFilled())
           return plot_->interpDataFillColor(0, 1);
       }

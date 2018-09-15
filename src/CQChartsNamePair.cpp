@@ -1,5 +1,4 @@
 #include <CQChartsNamePair.h>
-#include <CQStrParse.h>
 
 CQUTIL_DEF_META_TYPE(CQChartsNamePair, toString, fromString)
 

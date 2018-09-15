@@ -88,7 +88,7 @@ class CQChartsGeometryObj : public CQChartsPlotObj {
 //---
 
 class CQChartsGeometryPlot : public CQChartsPlot,
- public CQChartsPlotShapeData<CQChartsGeometryPlot> {
+ public CQChartsObjShapeData<CQChartsGeometryPlot> {
   Q_OBJECT
 
   // columns

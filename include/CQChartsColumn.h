@@ -147,10 +147,17 @@ class CQChartsColumns {
   using Columns = std::vector<CQChartsColumn>;
 
  public:
+  static void registerMetaType();
+
+ public:
   CQChartsColumns() { }
 
   CQChartsColumns(const CQChartsColumn &c) {
     setColumn(c);
+  }
+
+  CQChartsColumns(const QString &s) {
+    setColumnsStr(s);
   }
 
   // get single column
@@ -164,6 +171,14 @@ class CQChartsColumns {
 
     if (column_.isValid())
       columns_.push_back(column_);
+  }
+
+  // add column
+  void addColumn(const CQChartsColumn &c) {
+    if (columns_.empty())
+      setColumn(c);
+    else
+      columns_.push_back(c);
   }
 
   // get multiple columns
@@ -236,6 +251,20 @@ class CQChartsColumns {
     return ! operator==(lhs, rhs);
   }
 
+  //---
+
+  Columns::iterator begin() { return columns_.begin(); }
+  Columns::iterator end  () { return columns_.end  (); }
+
+  Columns::const_iterator begin() const { return columns_.begin(); }
+  Columns::const_iterator end  () const { return columns_.end  (); }
+
+  //---
+
+  QString toString() const { return columnsStr(); }
+
+  void fromString(const QString &s) { setColumnsStr(s); }
+
  private:
   CQChartsColumn column_;  // single column
   Columns        columns_; // multiple columns
@@ -263,5 +292,6 @@ struct CQChartsModelIndex {
 #include <CQUtilMeta.h>
 
 CQUTIL_DCL_META_TYPE(CQChartsColumn)
+CQUTIL_DCL_META_TYPE(CQChartsColumns)
 
 #endif

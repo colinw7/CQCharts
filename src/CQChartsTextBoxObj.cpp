@@ -13,8 +13,8 @@ CQChartsTextBoxObj(CQChartsView *view) :
 
   setTextColor(themeFg);
 
-  boxData_.shape.background.visible = false;
-  boxData_.shape.border    .visible = false;
+  setBorder(false);
+  setFilled(false);
 }
 
 CQChartsTextBoxObj::
@@ -25,8 +25,8 @@ CQChartsTextBoxObj(CQChartsPlot *plot) :
 
   setTextColor(themeFg);
 
-  boxData_.shape.background.visible = false;
-  boxData_.shape.border    .visible = false;
+  setBorder(false);
+  setFilled(false);
 }
 
 QColor

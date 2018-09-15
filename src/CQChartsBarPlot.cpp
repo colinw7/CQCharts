@@ -3,7 +3,7 @@
 CQChartsBarPlot::
 CQChartsBarPlot(CQChartsView *view, CQChartsPlotType *plotType, const ModelP &model) :
  CQChartsGroupPlot(view, plotType, model),
- CQChartsPlotBarShapeData<CQChartsBarPlot>(this)
+ CQChartsObjBarShapeData<CQChartsBarPlot>(this)
 {
   (void) addColorSet("color");
 
@@ -32,60 +32,9 @@ CQChartsBarPlot::
 
 void
 CQChartsBarPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumns(const CQChartsColumns &c)
 {
-  if (c != valueColumns_.column()) {
-    valueColumns_.setColumn(c);
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsBarPlot::
-setValueColumns(const Columns &cols)
-{
-  if (cols != valueColumns_.columns()) {
-    valueColumns_.setColumns(cols);
-
-    updateRangeAndObjs();
-  }
-}
-
-QString
-CQChartsBarPlot::
-valueColumnsStr() const
-{
-  return valueColumns_.columnsStr();
-}
-
-bool
-CQChartsBarPlot::
-setValueColumnsStr(const QString &s)
-{
-  bool rc = true;
-
-  if (s != valueColumnsStr()) {
-    rc = valueColumns_.setColumnsStr(s);
-
-    updateRangeAndObjs();
-  }
-
-  return rc;
-}
-
-const CQChartsColumn &
-CQChartsBarPlot::
-valueColumnAt(int i)
-{
-  return valueColumns_.getColumn(i);
-}
-
-int
-CQChartsBarPlot::
-numValueColumns() const
-{
-  return valueColumns_.count();
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---

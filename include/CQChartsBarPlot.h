@@ -9,13 +9,12 @@ CQCHARTS_NAMED_SHAPE_DATA(Bar,bar)
 
 // bar plot
 class CQChartsBarPlot : public CQChartsGroupPlot,
- public CQChartsPlotBarShapeData<CQChartsBarPlot> {
+ public CQChartsObjBarShapeData<CQChartsBarPlot> {
   Q_OBJECT
 
   // data
-  Q_PROPERTY(CQChartsColumn valueColumn  READ valueColumn     WRITE setValueColumn    )
-  Q_PROPERTY(QString        valueColumns READ valueColumnsStr WRITE setValueColumnsStr)
-  Q_PROPERTY(CQChartsColumn colorColumn  READ colorColumn     WRITE setColorColumn    )
+  Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
+  Q_PROPERTY(CQChartsColumn  colorColumn  READ colorColumn  WRITE setColorColumn )
 
   // options
   Q_PROPERTY(bool           horizontal  READ isHorizontal WRITE setHorizontal )
@@ -35,18 +34,8 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
 
   //---
 
-  const CQChartsColumn &valueColumn() const { return valueColumns_.column(); }
-  void setValueColumn(const CQChartsColumn &c);
-
-  const Columns &valueColumns() const { return valueColumns_.columns(); }
-  void setValueColumns(const Columns &valueColumns);
-
-  QString valueColumnsStr() const;
-  bool setValueColumnsStr(const QString &s);
-
-  const CQChartsColumn &valueColumnAt(int i);
-
-  int numValueColumns() const;
+  const CQChartsColumns &valueColumns() const { return valueColumns_; }
+  void setValueColumns(const CQChartsColumns &c);
 
   //---
 
@@ -98,7 +87,7 @@ class CQChartsBarPlot : public CQChartsGroupPlot,
   virtual void setHorizontal(bool b);
 
  protected:
-  CQChartsColumns valueColumns_ { 0 };     // value columns
+  CQChartsColumns valueColumns_ { "0" };   // value columns
   bool            horizontal_   { false }; // horizontal bars
   CQChartsLength  margin_       { "2px" }; // bar margin
   CQChartsLength  groupMargin_  { "4px" }; // bar group margin

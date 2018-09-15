@@ -91,7 +91,7 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsBarChartPlot::
 CQChartsBarChartPlot(CQChartsView *view, const ModelP &model) :
  CQChartsBarPlot(view, view->charts()->plotType("barchart"), model),
- CQChartsPlotDotPointData<CQChartsBarChartPlot>(this),
+ CQChartsObjDotPointData<CQChartsBarChartPlot>(this),
  dataLabel_(this)
 {
   setDotSymbolType(CQChartsSymbol::Type::CIRCLE);
@@ -234,7 +234,7 @@ calcRange()
   if (! isRangeBar())
     initGroupData(valueColumns(), nameColumn());
   else
-    initGroupData(Columns(), nameColumn());
+    initGroupData(CQChartsColumns(), nameColumn());
 
   //---
 
@@ -261,7 +261,7 @@ calcRange()
 
   //---
 
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns().count() : 1);
   int nv = numValueSets();
 
   int ng = numGroups();
@@ -315,11 +315,11 @@ calcRange()
   // needed ?
   if (! isHorizontal()) {
     setXValueColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
-    setYValueColumn(valueColumn());
+    setYValueColumn(valueColumns().column());
   }
   else {
     setYValueColumn(groupColumn().isValid() ? groupColumn() : nameColumn());
-    setXValueColumn(valueColumn());
+    setXValueColumn(valueColumns().column());
   }
 
   //---
@@ -354,14 +354,14 @@ calcRange()
 
   //---
 
-  yAxis->setColumn(valueColumn());
+  yAxis->setColumn(valueColumns().column());
 
   QString yname;
 
-  if (valueColumns().size() <= 1) {
+  if (valueColumns().count() <= 1) {
     bool ok;
 
-    yname = modelHeaderString(valueColumn(), ok);
+    yname = modelHeaderString(valueColumns().column(), ok);
   }
 
   yAxis->setLabel(yname);
@@ -374,7 +374,7 @@ addRow(const ModelVisitor::VisitData &data)
   // add value for each column (non-range)
   if (! isRangeBar()) {
     for (const auto &column : valueColumns()) {
-      Columns columns { column };
+      CQChartsColumns columns { column };
 
       addRowColumn(data, columns);
     }
@@ -387,14 +387,14 @@ addRow(const ModelVisitor::VisitData &data)
 
 void
 CQChartsBarChartPlot::
-addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns)
+addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns)
 {
   CQChartsModelIndex ind;
 
   if (! isRangeBar()) {
-    assert(! valueColumns.empty());
+    assert(valueColumns.count() > 0);
 
-    const CQChartsColumn &valueColumn = valueColumns[0];
+    const CQChartsColumn &valueColumn = valueColumns.column();
 
     ind = CQChartsModelIndex(data.row, valueColumn, data.parent);
   }
@@ -514,7 +514,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns)
 
   //---
 
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns.count() : 1);
 
   if (ns > 1) {
     // set value data group name and value name
@@ -526,9 +526,9 @@ addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns)
 
     // not row grouping so value name is column header
     if (! isGroupHeaders()) {
-      assert(! valueColumns.empty());
+      assert(valueColumns.count() > 0);
 
-      const CQChartsColumn &valueColumn = valueColumns[0];
+      const CQChartsColumn &valueColumn = valueColumns.column();
 
       bool ok;
 
@@ -713,7 +713,7 @@ initObjs()
 
   //---
 
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -968,7 +968,7 @@ addKeyItems(CQChartsPlotKey *key)
 
   //---
 
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns().count() : 1);
 
   if (ns > 1) {
     if (isColorBySet()) {
@@ -1062,7 +1062,7 @@ addKeyItems(CQChartsPlotKey *key)
       if (! title.length()) {
         bool ok;
 
-        QString yname = modelHeaderString(valueColumn(), ok);
+        QString yname = modelHeaderString(valueColumns().column(), ok);
 
         title = yname;
       }
@@ -1081,7 +1081,7 @@ bool
 CQChartsBarChartPlot::
 isSetHidden(int i) const
 {
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -1117,7 +1117,7 @@ bool
 CQChartsBarChartPlot::
 isValueHidden(int i) const
 {
-  int ns = (! isRangeBar() ? numValueColumns() : 1);
+  int ns = (! isRangeBar() ? valueColumns().count() : 1);
 
   int nv = numValueSets();
 
@@ -1325,7 +1325,7 @@ CQChartsBarChartObj::
 getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->groupColumn());
-  addColumnSelectIndex(inds, plot_->valueColumnAt(iset_));
+  addColumnSelectIndex(inds, plot_->valueColumns().getColumn(iset_));
   addColumnSelectIndex(inds, plot_->nameColumn());
   addColumnSelectIndex(inds, plot_->labelColumn());
   addColumnSelectIndex(inds, plot_->colorColumn());
@@ -1652,7 +1652,7 @@ tipText(const CQChartsGeom::Point &, QString &tip) const
   double posSum = 0.0, negSum = 0.0;
   double value  = 0.0;
 
-  int ns = (! plot_->isRangeBar() ? plot_->numValueColumns() : 1);
+  int ns = (! plot_->isRangeBar() ? plot_->valueColumns().count() : 1);
 
   if (ns > 1) {
     if (plot_->isColorBySet()) {

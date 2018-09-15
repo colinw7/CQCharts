@@ -28,7 +28,7 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn").
     setTip("Value Name").setString();
 
-  addColumnsParameter("group", "Group", "groupColumnStr").setTip("Group Name(s)");
+  addColumnsParameter("group", "Group", "groupColumns").setTip("Group Name(s)");
 
   addBoolParameter("textLabels", "Text Labels", "textLabels");
 
@@ -60,7 +60,7 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsHierScatterPlot::
 CQChartsHierScatterPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("hierscatter"), model),
- CQChartsPlotPointData<CQChartsHierScatterPlot>(this),
+ CQChartsObjPointData<CQChartsHierScatterPlot>(this),
  dataLabel_(this)
 {
   setSymbolSize(CQChartsLength("4px"));
@@ -106,9 +106,9 @@ setNameColumn(const CQChartsColumn &c)
 
 void
 CQChartsHierScatterPlot::
-setGroupColumnStr(const QString &s)
+setGroupColumns(const CQChartsColumns &c)
 {
-  CQChartsUtil::testAndSet(groupColumnStr_, s, [&]() {
+  CQChartsUtil::testAndSet(groupColumns_, c, [&]() {
     initGroupValueSets();
 
     updateRangeAndObjs();
@@ -184,11 +184,10 @@ addProperties()
 {
   CQChartsPlot::addProperties();
 
-  addProperty("columns", this, "xColumn"   , "x"   );
-  addProperty("columns", this, "yColumn"   , "y"   );
-  addProperty("columns", this, "nameColumn", "name");
-
-  addProperty("columns", this, "groupColumnStr", "groupStr");
+  addProperty("columns", this, "xColumn"     , "x"     );
+  addProperty("columns", this, "yColumn"     , "y"     );
+  addProperty("columns", this, "nameColumn"  , "name"  );
+  addProperty("columns", this, "groupColumns", "groups");
 
   addSymbolProperties("symbol");
 
@@ -281,7 +280,7 @@ acceptsRow(int row, const QModelIndex &parent) const
   int depth = filterNames_.size();
 
   for (int i = 0; i < depth; ++i) {
-    const CQChartsColumn &column = groupValues_[i];
+    const CQChartsColumn &column = groupValues_.getColumn(i);
 
     bool ok;
 
@@ -304,16 +303,14 @@ CQChartsHierScatterPlot::
 initGroupValueSets()
 {
   // init and populate group value sets
-  groupValues_.clear();
-
-  (void) CQChartsUtil::fromString(groupColumnStr(), groupValues_);
+  groupValues_ = groupColumns();
 
   for (const auto &groupValueSet : groupValueSets_)
     delete groupValueSet.second;
 
   groupValueSets_.clear();
 
-  if (groupValues_.empty())
+  if (groupValues_.count() == 0)
     return;
 
   //---

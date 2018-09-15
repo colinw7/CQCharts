@@ -57,8 +57,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsParallelPlot::
 CQChartsParallelPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("parallel"), model),
- CQChartsPlotLineData <CQChartsParallelPlot>(this),
- CQChartsPlotPointData<CQChartsParallelPlot>(this)
+ CQChartsObjLineData <CQChartsParallelPlot>(this),
+ CQChartsObjPointData<CQChartsParallelPlot>(this)
 {
   setLinesColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -92,27 +92,9 @@ setXColumn(const CQChartsColumn &c)
 
 void
 CQChartsParallelPlot::
-setYColumn(const CQChartsColumn &c)
+setYColumns(const CQChartsColumns &c)
 {
-  yColumns_.setColumn(c);
-
-  updateRangeAndObjs();
-}
-
-void
-CQChartsParallelPlot::
-setYColumns(const Columns &cols)
-{
-  yColumns_.setColumns(cols);
-
-  updateRangeAndObjs();
-}
-
-bool
-CQChartsParallelPlot::
-setYColumnsStr(const QString &s)
-{
-  return yColumns_.setColumnsStr(s);
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //---
@@ -142,9 +124,8 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "xColumn" , "x"   );
-  addProperty("columns", this, "yColumn" , "y"   );
-  addProperty("columns", this, "yColumns", "yset");
+  addProperty("columns", this, "xColumn" , "x");
+  addProperty("columns", this, "yColumns", "y");
 
   addProperty("options", this, "horizontal");
 
@@ -175,7 +156,9 @@ calcRange()
 
     axes_.clear();
 
-    for (int j = 0; j < numSets(); ++j) {
+    int ns = yColumns().count();
+
+    for (int j = 0; j < ns; ++j) {
       CQChartsAxis *axis = new CQChartsAxis(this, adir_, 0, 1);
 
       axes_.push_back(axis);
@@ -189,7 +172,7 @@ calcRange()
    public:
     RowVisitor(CQChartsParallelPlot *plot) :
      plot_(plot) {
-      ns_ = plot_->numSets();
+      ns_ = plot_->yColumns().count();
 
       for (int i = 0; i < ns_; ++i)
         setRanges_.emplace_back();
@@ -199,7 +182,7 @@ calcRange()
       for (int i = 0; i < ns_; ++i) {
         CQChartsGeom::Range &range = setRanges_[i];
 
-        const CQChartsColumn &setColumn = plot_->getSetColumn(i);
+        const CQChartsColumn &setColumn = plot_->yColumns().getColumn(i);
 
         //---
 
@@ -236,16 +219,18 @@ calcRange()
   //---
 
   // set range from data
-  for (int j = 0; j < numSets(); ++j) {
+  int ns = yColumns().count();
+
+  for (int j = 0; j < ns; ++j) {
     CQChartsGeom::Range &range = setRanges_[j];
 
     if (! isHorizontal()) {
-      range.updateRange(          - 0.5, range.ymin());
-      range.updateRange(numSets() - 0.5, range.ymax());
+      range.updateRange(   - 0.5, range.ymin());
+      range.updateRange(ns - 0.5, range.ymax());
     }
     else {
-      range.updateRange(range.xmin(),           - 0.5);
-      range.updateRange(range.xmax(), numSets() - 0.5);
+      range.updateRange(range.xmin(),    - 0.5);
+      range.updateRange(range.xmax(), ns - 0.5);
     }
   }
 
@@ -253,12 +238,12 @@ calcRange()
 
   // set plot range
   if (! isHorizontal()) {
-    dataRange_.updateRange(          - 0.5, 0);
-    dataRange_.updateRange(numSets() - 0.5, 1);
+    dataRange_.updateRange(   - 0.5, 0);
+    dataRange_.updateRange(ns - 0.5, 1);
   }
   else {
-    dataRange_.updateRange(0,           - 0.5);
-    dataRange_.updateRange(1, numSets() - 0.5);
+    dataRange_.updateRange(0,    - 0.5);
+    dataRange_.updateRange(1, ns - 0.5);
   }
 
   normalizedDataRange_ = dataRange_;
@@ -266,9 +251,9 @@ calcRange()
   //---
 
   // set axes range and name
-  for (int j = 0; j < numSets(); ++j) {
+  for (int j = 0; j < ns; ++j) {
     const CQChartsGeom::Range &range     = setRange(j);
-    const CQChartsColumn      &setColumn = getSetColumn(j);
+    const CQChartsColumn      &setColumn = yColumns().getColumn(j);
 
     bool ok;
 
@@ -320,7 +305,7 @@ initObjs()
    public:
     RowVisitor(CQChartsParallelPlot *plot) :
      plot_(plot) {
-      ns_ = plot_->numSets();
+      ns_ = plot_->yColumns().count();
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
@@ -333,7 +318,7 @@ initObjs()
       //---
 
       for (int i = 0; i < ns_; ++i) {
-        const CQChartsColumn &setColumn = plot_->getSetColumn(i);
+        const CQChartsColumn &setColumn = plot_->yColumns().getColumn(i);
 
         //---
 
@@ -409,7 +394,7 @@ initObjs()
     int nl = poly.count();
 
     for (int j = 0; j < nl; ++j) {
-      const CQChartsColumn &setColumn = getSetColumn(j);
+      const CQChartsColumn &setColumn = yColumns().getColumn(j);
 
       QModelIndex yind  = modelIndex(i, setColumn, xind.parent());
       QModelIndex yind1 = normalizeIndex(yind);
@@ -487,25 +472,11 @@ rowColValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
   return true;
 }
 
-int
-CQChartsParallelPlot::
-numSets() const
-{
-  return yColumns_.count();
-}
-
-const CQChartsColumn &
-CQChartsParallelPlot::
-getSetColumn(int i) const
-{
-  return yColumns_.getColumn(i);
-}
-
 bool
 CQChartsParallelPlot::
 probe(ProbeData &probeData) const
 {
-  int n = numSets();
+  int n = yColumns().count();
 
   if (! isHorizontal()) {
     int x = std::round(probeData.x);
@@ -619,7 +590,9 @@ drawFgAxes(QPainter *painter)
   double tm = 4.0;
 
   // draw axes
-  for (int j = 0; j < numSets(); ++j) {
+  int ns = yColumns().count();
+
+  for (int j = 0; j < ns; ++j) {
     CQChartsAxis *axis = axes_[j];
 
     view()->setPlotPainterFont(this, painter, axis->axesLabelTextFont());
@@ -635,9 +608,9 @@ drawFgAxes(QPainter *painter)
 
     // set display range to set range
     if (! isHorizontal())
-      displayRange_->setWindowRange(-0.5, dataRange_.ymin(), numSets() - 0.5, dataRange_.ymax());
+      displayRange_->setWindowRange(-0.5, dataRange_.ymin(), ns - 0.5, dataRange_.ymax());
     else
-      displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), numSets() - 0.5);
+      displayRange_->setWindowRange(dataRange_.xmin(), -0.5, dataRange_.xmax(), ns - 0.5);
 
     //---
 
@@ -748,7 +721,7 @@ calcTipId() const
   int nl = poly_.count();
 
   for (int j = 0; j < nl; ++j) {
-    const CQChartsColumn &yColumn = plot_->getSetColumn(j);
+    const CQChartsColumn &yColumn = plot_->yColumns().getColumn(j);
 
     bool ok;
 
@@ -813,7 +786,9 @@ CQChartsParallelLineObj::
 getSelectIndices(Indices &inds) const
 {
   addColumnSelectIndex(inds, plot_->xColumn());
-  addColumnSelectIndex(inds, plot_->yColumn());
+
+  for (const auto &c : plot_->yColumns())
+    addColumnSelectIndex(inds, c);
 }
 
 void
@@ -898,7 +873,7 @@ calcId() const
 
   QString xname = plot_->modelString(ind_.row(), plot_->xColumn(), ind_.parent(), ok);
 
-  const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
+  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(i_);
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
@@ -917,7 +892,7 @@ calcTipId() const
 
   tableTip.addBoldLine(xname);
 
-  const CQChartsColumn &yColumn = plot_->getSetColumn(i_);
+  const CQChartsColumn &yColumn = plot_->yColumns().getColumn(i_);
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 

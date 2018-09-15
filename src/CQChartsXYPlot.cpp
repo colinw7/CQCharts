@@ -132,12 +132,12 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsXYPlot::
 CQChartsXYPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("xy"), model),
- CQChartsPlotLineData         <CQChartsXYPlot>(this),
- CQChartsPlotPointData        <CQChartsXYPlot>(this),
- CQChartsPlotImpulseLineData  <CQChartsXYPlot>(this),
- CQChartsPlotBivariateLineData<CQChartsXYPlot>(this),
- CQChartsPlotFillUnderFillData<CQChartsXYPlot>(this),
- CQChartsPlotDataLabelTextData<CQChartsXYPlot>(this)
+ CQChartsObjLineData         <CQChartsXYPlot>(this),
+ CQChartsObjPointData        <CQChartsXYPlot>(this),
+ CQChartsObjImpulseLineData  <CQChartsXYPlot>(this),
+ CQChartsObjBivariateLineData<CQChartsXYPlot>(this),
+ CQChartsObjFillUnderFillData<CQChartsXYPlot>(this),
+ CQChartsObjDataLabelTextData<CQChartsXYPlot>(this)
 {
   setImpulseLines  (false);
   setBivariateLines(false);
@@ -185,34 +185,9 @@ setXColumn(const CQChartsColumn &c)
 
 void
 CQChartsXYPlot::
-setYColumn(const CQChartsColumn &c)
+setYColumns(const CQChartsColumns &c)
 {
-  yColumns_.setColumn(c);
-
-  updateRangeAndObjs();
-}
-
-void
-CQChartsXYPlot::
-setYColumns(const Columns &cols)
-{
-  yColumns_.setColumns(cols);
-
-  updateRangeAndObjs();
-}
-
-QString
-CQChartsXYPlot::
-yColumnsStr() const
-{
-  return yColumns_.columnsStr();
-}
-
-bool
-CQChartsXYPlot::
-setYColumnsStr(const QString &s)
-{
-  return yColumns_.setColumnsStr(s);
+  CQChartsUtil::testAndSet(yColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 void
@@ -274,8 +249,7 @@ addProperties()
 
   // columns
   addProperty("columns", this, "xColumn"           , "x"          );
-  addProperty("columns", this, "yColumn"           , "y"          );
-  addProperty("columns", this, "yColumns"          , "yset"       );
+  addProperty("columns", this, "yColumns"          , "y"          );
   addProperty("columns", this, "nameColumn"        , "name"       );
   addProperty("columns", this, "sizeColumn"        , "size"       );
   addProperty("columns", this, "pointLabelColumn"  , "pointLabel" );
@@ -312,7 +286,7 @@ addProperties()
   addProperty("fillUnder", this, "fillUnderFilled"    , "visible"   );
   addProperty("fillUnder", this, "fillUnderSelectable", "selectable");
   addProperty("fillUnder", this, "fillUnderPos"       , "position"  );
-  addProperty("fillUnder", this, "fillUnderFillSide"  , "side"      );
+  addProperty("fillUnder", this, "fillUnderSide"      , "side"      );
 
   addFillProperties("fillUnder", "fillUnderFill");
 
@@ -328,10 +302,14 @@ addProperties()
   addProperty("vectors", arrowObj_, "backAngle", "backAngle");
   addProperty("vectors", arrowObj_, "fhead"    , "fhead"    );
   addProperty("vectors", arrowObj_, "thead"    , "thead"    );
-  addProperty("vectors", arrowObj_, "filled"   , "filled"   );
   addProperty("vectors", arrowObj_, "empty"    , "empty"    );
-  addProperty("vectors", arrowObj_, "lineWidth", "lineWidth");
-  addProperty("vectors", arrowObj_, "labels"   , "labels"   );
+
+  addProperty("vectors/stroke", arrowObj_, "border"     , "visible");
+  addProperty("vectors/stroke", arrowObj_, "borderWidth", "width"  );
+  addProperty("vectors/fill"  , arrowObj_, "filled"     , "visible");
+  addProperty("vectors/fill"  , arrowObj_, "fillColor"  , "color"  );
+
+  addProperty("vectors", arrowObj_, "debugTextVisible", "debugLabels");
 
   // data label
   addProperty("dataLabel", this, "dataLabelTextVisible", "visible");
@@ -425,14 +403,14 @@ setFillUnderSelectable(bool b)
 
 void
 CQChartsXYPlot::
-setFillUnderPosStr(const QString &s)
+setFillUnderPos(const CQChartsFillUnderPos &pos)
 {
-  fillUnderData_.setPosStr(s); updateObjs();
+  CQChartsUtil::testAndSet(fillUnderData_.pos, pos, [&]() { updateObjs(); } );
 }
 
 void
 CQChartsXYPlot::
-setFillUnderFillSide(const QString &s)
+setFillUnderSide(const CQChartsFillUnderSide &s)
 {
   CQChartsUtil::testAndSet(fillUnderData_.side, s, [&]() { updateObjs(); } );
 }
@@ -475,7 +453,7 @@ void
 CQChartsXYPlot::
 calcRange()
 {
-  initGroupData(Columns(), CQChartsColumn());
+  initGroupData(CQChartsColumns(), CQChartsColumn());
 
   //---
 
@@ -484,7 +462,7 @@ calcRange()
    public:
     RowVisitor(CQChartsXYPlot *plot) :
      plot_(plot) {
-      int ns = plot_->numSets();
+      int ns = plot_->yColumns().count();
 
       sum_.resize(ns);
     }
@@ -581,7 +559,7 @@ calcRange()
   //---
 
   setXValueColumn(xColumn());
-  setYValueColumn(yColumn());
+  setYValueColumn(yColumns().column());
 
   //---
 
@@ -607,7 +585,7 @@ calcRange()
   // set y axis name(s)
   QString yname = yAxisName();
 
-  int ns = numSets();
+  int ns = yColumns().count();
 
   if      (isBivariateLines() && ns > 1) {
     if (isOverlay()) {
@@ -637,7 +615,7 @@ calcRange()
   else if (isStacked()) {
   }
   else {
-    CQChartsColumn yColumn = getSetColumn(0);
+    CQChartsColumn yColumn = yColumns().getColumn(0);
 
     if (isOverlay()) {
       if (isFirstPlot())
@@ -687,14 +665,14 @@ yAxisName() const
 {
   QString name;
 
-  int ns = numSets();
+  int ns = yColumns().count();
 
   if      (isBivariateLines() && ns > 1) {
     name = titleStr();
 
     if (! name.length()) {
-      CQChartsColumn yColumn1 = getSetColumn(0);
-      CQChartsColumn yColumn2 = getSetColumn(1);
+      CQChartsColumn yColumn1 = yColumns().getColumn(0);
+      CQChartsColumn yColumn2 = yColumns().getColumn(1);
 
       bool ok;
 
@@ -707,10 +685,10 @@ yAxisName() const
   else if (isStacked()) {
   }
   else {
-    for (int j = 0; j < numSets(); ++j) {
+    for (int j = 0; j < ns; ++j) {
       bool ok;
 
-      CQChartsColumn yColumn = getSetColumn(j);
+      CQChartsColumn yColumn = yColumns().getColumn(j);
 
       QString name1 = modelHeaderString(yColumn, ok);
 
@@ -815,7 +793,7 @@ initObjs()
    public:
     RowVisitor(CQChartsXYPlot *plot) :
      plot_(plot) {
-      ns_ = plot_->numSets();
+      ns_ = plot_->yColumns().count();
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
@@ -1036,8 +1014,8 @@ initObjs()
         QString name = titleStr();
 
         if (! name.length()) {
-          CQChartsColumn yColumn1 = getSetColumn(0);
-          CQChartsColumn yColumn2 = getSetColumn(1);
+          CQChartsColumn yColumn1 = yColumns().getColumn(0);
+          CQChartsColumn yColumn2 = yColumns().getColumn(1);
 
           bool ok;
 
@@ -1047,7 +1025,7 @@ initObjs()
           name = QString("%1-%2").arg(yname1).arg(yname2);
         }
 
-        int ns = numSets();
+        int ns = yColumns().count();
 
         for (int j = 1; j < ns; ++j) {
           bool hidden = isSetHidden(j);
@@ -1074,12 +1052,14 @@ initObjs()
 
           int len = poly1.size();
 
-          if      (fillUnderFillSide() == "both") {
+          CQChartsFillUnderSide::Type fillUnderSideType = fillUnderSide().type();
+
+          if      (fillUnderSideType == CQChartsFillUnderSide::Type::BOTH) {
             // add upper poly line to lower one (points reversed) to build fill polygon
             for (int k = len - 1; k >= 0; --k)
               poly1 << poly2[k];
           }
-          else if (fillUnderFillSide() == "above") {
+          else if (fillUnderSideType == CQChartsFillUnderSide::Type::ABOVE) {
             QPolygonF poly3, poly4;
 
             QPointF pa1, pb1; bool above1 = true;
@@ -1114,7 +1094,7 @@ initObjs()
 
             poly1 = poly3;
           }
-          else if (fillUnderFillSide() == "below") {
+          else if (fillUnderSideType == CQChartsFillUnderSide::Type::BELOW) {
             QPolygonF poly3, poly4;
 
             QPointF pa1, pb1; bool below1 = true;
@@ -1156,7 +1136,7 @@ initObjs()
     }
     else {
       // convert lines into set polygon and set poly lines (more than one if NaNs)
-      int ns = numSets();
+      int ns = yColumns().count();
 
       for (int j = 0; j < ns; ++j) {
         bool hidden = isSetHidden(j);
@@ -1167,7 +1147,7 @@ initObjs()
         //---
 
         // get column name
-        CQChartsColumn yColumn = getSetColumn(j);
+        CQChartsColumn yColumn = yColumns().getColumn(j);
 
         bool ok;
 
@@ -1422,10 +1402,10 @@ rowData(const ModelVisitor::VisitData &data, double &x, std::vector<double> &y,
 
   bool ok2 = true;
 
-  int ns = numSets();
+  int ns = yColumns().count();
 
   for (int i = 0; i < ns; ++i) {
-    CQChartsColumn yColumn = getSetColumn(i);
+    CQChartsColumn yColumn = yColumns().getColumn(i);
 
     double y1;
 
@@ -1454,82 +1434,32 @@ QPointF
 CQChartsXYPlot::
 calcFillUnderPos(double x, double y) const
 {
-  const QString &str = fillUnderPosStr();
-
-  QStringList strs = str.split(" ", QString::KeepEmptyParts);
-
-  if (! strs.length())
-    return QPointF(x, y);
+  const CQChartsFillUnderPos &pos = fillUnderPos();
 
   double x1 = x;
   double y1 = y;
 
-  if (strs.length() > 1) {
-    const QString &xstr = strs[0];
-    const QString &ystr = strs[1];
-
-    if      (xstr == "min" || xstr == "xmin") {
-      if (dataRange_.isSet())
-        x1 = dataRange_.xmin();
-    }
-    else if (xstr == "max" || xstr == "xmax") {
-      if (dataRange_.isSet())
-        x1 = dataRange_.xmax();
-    }
-    else {
-      bool ok;
-
-      x1 = CQChartsUtil::toReal(xstr, ok);
-
-      if (! ok)
-        x1 = x;
-    }
-
-    if      (ystr == "min" || ystr == "ymin") {
-      if (dataRange_.isSet())
-        y1 = dataRange_.ymin();
-    }
-    else if (ystr == "max" || ystr == "ymax") {
-      if (dataRange_.isSet())
-        y1 = dataRange_.ymax();
-    }
-    else {
-      bool ok;
-
-      y1 = CQChartsUtil::toReal(ystr, ok);
-
-      if (! ok)
-        y1 = y;
-    }
+  if      (pos.xtype() == CQChartsFillUnderPos::Type::MIN) {
+    if (dataRange_.isSet())
+      x1 = dataRange_.xmin();
   }
-  else {
-    const QString &str = strs[0];
-
-    if      (str == "xmin") {
-      if (dataRange_.isSet())
-        x1 = dataRange_.xmin();
-    }
-    else if (str == "xmax") {
-      if (dataRange_.isSet())
-        x1 = dataRange_.xmax();
-    }
-    else if (str == "min" || str == "ymin") {
-      if (dataRange_.isSet())
-        y1 = dataRange_.ymin();
-    }
-    else if (str == "max" || str == "ymax") {
-      if (dataRange_.isSet())
-        y1 = dataRange_.ymax();
-    }
-    else {
-      bool ok;
-
-      y1 = CQChartsUtil::toReal(str, ok);
-
-      if (! ok)
-        y1 = y;
-    }
+  else if (pos.xtype() == CQChartsFillUnderPos::Type::MAX) {
+    if (dataRange_.isSet())
+      x1 = dataRange_.xmax();
   }
+  else if (pos.xtype() == CQChartsFillUnderPos::Type::POS)
+    x1 = pos.xpos();
+
+  if      (pos.ytype() == CQChartsFillUnderPos::Type::MIN) {
+    if (dataRange_.isSet())
+      y1 = dataRange_.ymin();
+  }
+  else if (pos.ytype() == CQChartsFillUnderPos::Type::MAX) {
+    if (dataRange_.isSet())
+      y1 = dataRange_.ymax();
+  }
+  else if (pos.ytype() == CQChartsFillUnderPos::Type::POS)
+    y1 = pos.ypos();
 
   return QPointF(x1, y1);
 }
@@ -1567,7 +1497,7 @@ valueName(int iset, int irow) const
   QString name;
 
   if (iset >= 0) {
-    CQChartsColumn yColumn = getSetColumn(iset);
+    CQChartsColumn yColumn = yColumns().getColumn(iset);
 
     bool ok;
 
@@ -1603,14 +1533,14 @@ addKeyItems(CQChartsPlotKey *key)
     col = key->maxCol();
   }
 
-  int ns = numSets();
+  int ns = yColumns().count();
 
   if      (isBivariateLines()) {
     QString name = titleStr();
 
     if (! name.length()) {
-      CQChartsColumn yColumn1 = getSetColumn(0);
-      CQChartsColumn yColumn2 = getSetColumn(1);
+      CQChartsColumn yColumn1 = yColumns().getColumn(0);
+      CQChartsColumn yColumn2 = yColumns().getColumn(1);
 
       bool ok;
 
@@ -1628,7 +1558,7 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else if (isStacked()) {
     for (int i = 0; i < ns; ++i) {
-      CQChartsColumn yColumn = getSetColumn(i);
+      CQChartsColumn yColumn = yColumns().getColumn(i);
 
       bool ok;
 
@@ -1643,7 +1573,7 @@ addKeyItems(CQChartsPlotKey *key)
   }
   else {
     for (int i = 0; i < ns; ++i) {
-      CQChartsColumn yColumn = getSetColumn(i);
+      CQChartsColumn yColumn = yColumns().getColumn(i);
 
       bool ok;
 
@@ -1679,20 +1609,6 @@ addKeyItems(CQChartsPlotKey *key)
   }
 
   key->plot()->updateKeyPosition(/*force*/true);
-}
-
-int
-CQChartsXYPlot::
-numSets() const
-{
-  return yColumns_.count();
-}
-
-CQChartsColumn
-CQChartsXYPlot::
-getSetColumn(int i) const
-{
-  return yColumns_.getColumn(i);
 }
 
 bool
@@ -1741,7 +1657,7 @@ bool
 CQChartsXYPlot::
 addMenuItems(QMenu *menu)
 {
-  int ns = numSets();
+  int ns = yColumns().count();
 
   menu->addSeparator();
 
@@ -2277,7 +2193,7 @@ getSelectIndices(Indices &inds) const
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
-  addColumnSelectIndex(inds, plot()->getSetColumn(iset()));
+  addColumnSelectIndex(inds, plot()->yColumns().getColumn(iset()));
 }
 
 void
@@ -2423,7 +2339,7 @@ getSelectIndices(Indices &inds) const
     return;
 
   addColumnSelectIndex(inds, plot()->xColumn());
-  addColumnSelectIndex(inds, plot()->getSetColumn(iset()));
+  addColumnSelectIndex(inds, plot()->yColumns().getColumn(iset()));
 }
 
 void

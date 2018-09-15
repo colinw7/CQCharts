@@ -131,6 +131,9 @@ CQChartsNamePair.cpp \
 CQChartsPolygonList.cpp \
 CQChartsRect.cpp \
 CQChartsConnectionList.cpp \
+CQChartsSides.cpp \
+CQChartsFillUnder.cpp \
+CQChartsKeyLocation.cpp \
 \
 CQChartsDrawUtil.cpp \
 CQChartsPosition.cpp \
@@ -287,8 +290,7 @@ HEADERS += \
 ../include/CQChartsModelVisitor.h \
 ../include/CQChartsColumnEdit.h \
 \
-../include/CQChartsPlotData.h \
-../include/CQChartsViewData.h \
+../include/CQChartsObjData.h \
 ../include/CQChartsData.h \
 ../include/CQChartsInvalidator.h \
 \
@@ -307,6 +309,9 @@ HEADERS += \
 ../include/CQChartsPolygonList.h \
 ../include/CQChartsRect.h \
 ../include/CQChartsConnectionList.h \
+../include/CQChartsSides.h \
+../include/CQChartsFillUnder.h \
+../include/CQChartsKeyLocation.h \
 \
 ../include/CQChartsDrawUtil.h \
 \

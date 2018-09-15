@@ -105,33 +105,33 @@ update()
   initialized_ = true;
 }
 
-CQChartsModelDetails::Columns
+CQChartsColumns
 CQChartsModelDetails::
 numericColumns() const
 {
-  Columns columns;
+  CQChartsColumns columns;
 
   for (auto &cd : columnDetails_) {
     CQChartsModelColumnDetails *columnDetails = cd.second;
 
     if (columnDetails->isNumeric())
-      columns.push_back(columnDetails->column());
+      columns.addColumn(columnDetails->column());
   }
 
   return columns;
 }
 
-CQChartsModelDetails::Columns
+CQChartsColumns
 CQChartsModelDetails::
 monotonicColumns() const
 {
-  Columns columns;
+  CQChartsColumns columns;
 
   for (auto &cd : columnDetails_) {
     CQChartsModelColumnDetails *columnDetails = cd.second;
 
     if (columnDetails->isMonotonic())
-      columns.push_back(columnDetails->column());
+      columns.addColumn(columnDetails->column());
   }
 
   return columns;

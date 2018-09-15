@@ -351,3 +351,14 @@ decodeString(const QString &str, Type &type, int &column, int &role, QString &ex
 
   return true;
 }
+
+//---
+
+CQUTIL_DEF_META_TYPE(CQChartsColumns, toString, fromString)
+
+void
+CQChartsColumns::
+registerMetaType()
+{
+  CQUTIL_REGISTER_META(CQChartsColumns);
+}

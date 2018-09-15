@@ -36,9 +36,9 @@
 
 CQChartsPlot::
 CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
- CQChartsPlotPlotShapeData<CQChartsPlot>(this),
- CQChartsPlotDataShapeData<CQChartsPlot>(this),
- CQChartsPlotFitShapeData<CQChartsPlot >(this),
+ CQChartsObjPlotShapeData<CQChartsPlot>(this),
+ CQChartsObjDataShapeData<CQChartsPlot>(this),
+ CQChartsObjFitShapeData <CQChartsPlot>(this),
  view_(view), type_(type), model_(model), editHandles_(view)
 {
   displayRange_     = new CQChartsDisplayRange();
@@ -609,7 +609,7 @@ setTitleStr(const QString &s)
 
 void
 CQChartsPlot::
-setPlotBorderSides(const QString &s)
+setPlotBorderSides(const CQChartsSides &s)
 {
   CQChartsUtil::testAndSet(plotBorderSides_, s, [&]() {
     invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
@@ -626,7 +626,7 @@ setPlotClip(bool b)
 
 void
 CQChartsPlot::
-setDataBorderSides(const QString &s)
+setDataBorderSides(const CQChartsSides &s)
 {
   CQChartsUtil::testAndSet(dataBorderSides_, s, [&]() {
     invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
@@ -643,7 +643,7 @@ setDataClip(bool b)
 
 void
 CQChartsPlot::
-setFitBorderSides(const QString &s)
+setFitBorderSides(const CQChartsSides &s)
 {
   CQChartsUtil::testAndSet(fitBorderSides_, s, [&]() {
     invalidateLayer(CQChartsBuffer::Type::BACKGROUND); } );
@@ -3765,12 +3765,12 @@ drawBackground(QPainter *)
 
 void
 CQChartsPlot::
-drawBackgroundSides(QPainter *painter, const QRectF &rect, const QString &sides)
+drawBackgroundSides(QPainter *painter, const QRectF &rect, const CQChartsSides &sides)
 {
-  if (sides.indexOf('t') >= 0) painter->drawLine(rect.topLeft   (), rect.topRight   ());
-  if (sides.indexOf('l') >= 0) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
-  if (sides.indexOf('b') >= 0) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
-  if (sides.indexOf('r') >= 0) painter->drawLine(rect.topRight  (), rect.bottomRight());
+  if (sides.isTop   ()) painter->drawLine(rect.topLeft   (), rect.topRight   ());
+  if (sides.isLeft  ()) painter->drawLine(rect.topLeft   (), rect.bottomLeft ());
+  if (sides.isBottom()) painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+  if (sides.isRight ()) painter->drawLine(rect.topRight  (), rect.bottomRight());
 }
 
 bool
@@ -5807,15 +5807,15 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
 
 bool
 CQChartsPlot::
-getHierColumnNames(const QModelIndex &parent, int row, const Columns &nameColumns,
+getHierColumnNames(const QModelIndex &parent, int row, const CQChartsColumns &nameColumns,
                    const QString &separator, QStringList &nameStrs, ModelIndices &nameInds)
 {
   QAbstractItemModel *model = this->model().data();
   assert(model);
 
   // single column (seprated names)
-  if (nameColumns.size() == 1) {
-    const CQChartsColumn &nameColumn = nameColumns[0];
+  if (nameColumns.count() == 1) {
+    const CQChartsColumn &nameColumn = nameColumns.column();
 
     //---
 

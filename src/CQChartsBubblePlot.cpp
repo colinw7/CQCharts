@@ -58,8 +58,8 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsBubblePlot::
 CQChartsBubblePlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("bubble"), model),
- CQChartsPlotShapeData<CQChartsBubblePlot>(this),
- CQChartsPlotTextData <CQChartsBubblePlot>(this)
+ CQChartsObjShapeData<CQChartsBubblePlot>(this),
+ CQChartsObjTextData <CQChartsBubblePlot>(this)
 {
   (void) addColorSet("color");
 
@@ -195,7 +195,7 @@ calcRange()
 
   //---
 
-  initGroupData(Columns(), nameColumn(), /*hier*/true);
+  initGroupData(CQChartsColumns(), nameColumn(), /*hier*/true);
 }
 
 //------

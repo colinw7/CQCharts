@@ -274,7 +274,8 @@ testAxisGaps(double start, double end, double testIncrement, int testNumGapTicks
 
   int testNumGaps = CMathRound::RoundUp((newEnd - newStart)/testIncrement);
 
-//std::cerr << "  Adjusted) Start: " << newStart << " End: " << newEnd << " Num: " << testNumGaps << "\n";
+//std::cerr << "  Adjusted) Start: " << newStart << " End: " << newEnd << " Num: " <<
+//             testNumGaps << "\n";
 
   //---
 

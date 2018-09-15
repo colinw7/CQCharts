@@ -31,6 +31,7 @@ class CQChartsCmdArg {
     Rect,
     Polygon,
     Align,
+    Sides,
     Column,
     Row
   };
@@ -509,6 +510,17 @@ class CQChartsCmdArgs {
               continue;
             }
           }
+          else if (cmdArg->type() == CQChartsCmdArg::Type::Sides) {
+            QString str;
+
+            if (getOptValue(str)) {
+              parseStr_[opt].push_back(str);
+            }
+            else {
+              std::cerr << "Missing value for '-" << opt.toStdString() << "'\n";
+              continue;
+            }
+          }
           else if (cmdArg->type() == CQChartsCmdArg::Type::Column) {
             QString str;
 
@@ -846,6 +858,13 @@ class CQChartsCmdArgs {
     if (p == parseStr_.end()) return def;
 
     return CQAlignEdit::fromString((*p).second[0]);
+  }
+
+  CQChartsSides getParseSides(const QString &name, const CQChartsSides &def=CQChartsSides()) const {
+    auto p = parseStr_.find(name);
+    if (p == parseStr_.end()) return def;
+
+    return CQChartsSides((*p).second[0]);
   }
 
   CQChartsColumn getParseColumn(const QString &name, QAbstractItemModel *model) const {

@@ -1,5 +1,5 @@
-#ifndef CQChartsPlotData_H
-#define CQChartsPlotData_H
+#ifndef CQChartsObjData_H
+#define CQChartsObjData_H
 
 #include <CQChartsData.h>
 #include <CQChartsInvalidator.h>
@@ -13,9 +13,9 @@ Q_PROPERTY(CQChartsLength   linesWidth READ linesWidth WRITE setLinesWidth) \
 Q_PROPERTY(CQChartsLineDash linesDash  READ linesDash  WRITE setLinesDash )
 
 template<class OBJ>
-class CQChartsPlotLineData {
+class CQChartsObjLineData {
  public:
-  CQChartsPlotLineData(OBJ *obj) :
+  CQChartsObjLineData(OBJ *obj) :
    lineDataObj_(obj) {
   }
 
@@ -77,9 +77,9 @@ Q_PROPERTY(CQChartsLineDash LNAME##LinesDash  READ LNAME##LinesDash  WRITE set##
 
 #define CQCHARTS_NAMED_LINE_DATA(UNAME,LNAME) \
 template<class OBJ> \
-class CQChartsPlot##UNAME##LineData { \
+class CQChartsObj##UNAME##LineData { \
  public: \
-  CQChartsPlot##UNAME##LineData(OBJ *obj) : \
+  CQChartsObj##UNAME##LineData(OBJ *obj) : \
    LNAME##LineDataObj_(obj) { \
   } \
 \
@@ -165,9 +165,9 @@ Q_PROPERTY(CQChartsFillPattern symbolFillPattern \
            READ symbolFillPattern WRITE setSymbolFillPattern)
 
 template<class OBJ>
-class CQChartsPlotPointData {
+class CQChartsObjPointData {
  public:
-  CQChartsPlotPointData(OBJ *obj) :
+  CQChartsObjPointData(OBJ *obj) :
    pointDataObj_(obj) {
   }
 
@@ -292,9 +292,9 @@ Q_PROPERTY(CQChartsFillPattern LNAME##SymbolFillPattern \
 
 #define CQCHARTS_NAMED_POINT_DATA(UNAME,LNAME) \
 template<class OBJ> \
-class CQChartsPlot##UNAME##PointData { \
+class CQChartsObj##UNAME##PointData { \
  public: \
-  CQChartsPlot##UNAME##PointData(OBJ *obj) : \
+  CQChartsObj##UNAME##PointData(OBJ *obj) : \
    LNAME##PointDataObj_(obj) { \
   } \
 \
@@ -419,9 +419,9 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
 
 #define CQCHARTS_NAMED_FILL_DATA(UNAME,LNAME) \
 template<class OBJ> \
-class CQChartsPlot##UNAME##FillData { \
+class CQChartsObj##UNAME##FillData { \
  public: \
-  CQChartsPlot##UNAME##FillData(OBJ *obj) : \
+  CQChartsObj##UNAME##FillData(OBJ *obj) : \
    LNAME##FillDataObj_(obj) { \
   } \
 \
@@ -479,9 +479,9 @@ Q_PROPERTY(bool          textFormatted READ isTextFormatted WRITE setTextFormatt
 Q_PROPERTY(bool          textScaled    READ isTextScaled    WRITE setTextScaled   )
 
 template<class OBJ>
-class CQChartsPlotTextData {
+class CQChartsObjTextData {
  public:
-  CQChartsPlotTextData(OBJ *obj) :
+  CQChartsObjTextData(OBJ *obj) :
    textDataObj_(obj) {
   }
 
@@ -570,9 +570,9 @@ Q_PROPERTY(bool          LNAME##TextScaled \
 
 #define CQCHARTS_NAMED_TEXT_DATA(UNAME,LNAME) \
 template<class OBJ> \
-class CQChartsPlot##UNAME##TextData { \
+class CQChartsObj##UNAME##TextData { \
  public: \
-  CQChartsPlot##UNAME##TextData(OBJ *obj) : \
+  CQChartsObj##UNAME##TextData(OBJ *obj) : \
    LNAME##TextDataObj_(obj) { \
   } \
 \
@@ -634,6 +634,10 @@ class CQChartsPlot##UNAME##TextData { \
      LNAME##TextDataInvalidate(); } ); \
   } \
 \
+  void set##UNAME##TextData(const CQChartsTextData &data) { \
+    LNAME##TextData_ = data; LNAME##TextDataInvalidate(); \
+  } \
+\
  private: \
   void LNAME##TextDataInvalidate(bool reload=false) { \
     CQChartsInvalidator(LNAME##TextDataObj_).invalidate(reload); \
@@ -657,9 +661,9 @@ Q_PROPERTY(CQChartsLineDash borderDash  READ borderDash  WRITE setBorderDash ) \
 Q_PROPERTY(CQChartsLength   cornerSize  READ cornerSize  WRITE setCornerSize )
 
 template<class OBJ>
-class CQChartsPlotStrokeData {
+class CQChartsObjStrokeData {
  public:
-  CQChartsPlotStrokeData(OBJ *obj) :
+  CQChartsObjStrokeData(OBJ *obj) :
    strokeDataObj_(obj) {
   }
 
@@ -702,8 +706,8 @@ class CQChartsPlotStrokeData {
   //---
 
  private:
-  void strokeDataInvalidate() {
-    strokeDataObj_->invalidateLayers();
+  void strokeDataInvalidate(bool reload=false) {
+    CQChartsInvalidator(strokeDataObj_).invalidate(reload);
   }
 
  private:
@@ -729,9 +733,9 @@ Q_PROPERTY(double              fillAlpha   READ fillAlpha   WRITE setFillAlpha  
 Q_PROPERTY(CQChartsFillPattern fillPattern READ fillPattern WRITE setFillPattern)
 
 template<class OBJ>
-class CQChartsPlotShapeData {
+class CQChartsObjShapeData {
  public:
-  CQChartsPlotShapeData(OBJ *obj) :
+  CQChartsObjShapeData(OBJ *obj) :
    shapeDataObj_(obj) {
   }
 
@@ -799,9 +803,13 @@ class CQChartsPlotShapeData {
 
   //---
 
+  void setShapeData(const CQChartsShapeData &data) {
+    shapeData_ = data; shapeDataInvalidate();
+  };
+
  private:
-  void shapeDataInvalidate() {
-    shapeDataObj_->invalidateLayers();
+  void shapeDataInvalidate(bool reload=false) {
+    CQChartsInvalidator(shapeDataObj_).invalidate(reload);
   }
 
  private:
@@ -838,9 +846,9 @@ Q_PROPERTY(CQChartsFillPattern LNAME##FillPattern \
 
 #define CQCHARTS_NAMED_SHAPE_DATA(UNAME,LNAME) \
 template<class OBJ> \
-class CQChartsPlot##UNAME##ShapeData { \
+class CQChartsObj##UNAME##ShapeData { \
  public: \
-  CQChartsPlot##UNAME##ShapeData(OBJ *obj) : \
+  CQChartsObj##UNAME##ShapeData(OBJ *obj) : \
    LNAME##ShapeDataObj_(obj) { \
   } \
 \
@@ -914,9 +922,13 @@ class CQChartsPlot##UNAME##ShapeData { \
     return LNAME##FillColor().interpColor(LNAME##ShapeDataObj_, i, n); \
   } \
 \
+  void setShapeData(const CQChartsShapeData &data) { \
+    LNAME##ShapeData_ = data; LNAME##ShapeDataInvalidate(); \
+  }; \
+\
  private: \
-  void LNAME##ShapeDataInvalidate() { \
-    LNAME##ShapeDataObj_->invalidateLayers(); \
+  void LNAME##ShapeDataInvalidate(bool reload=false) { \
+    CQChartsInvalidator(LNAME##ShapeDataObj_).invalidate(reload); \
   } \
 \
  private: \

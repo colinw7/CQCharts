@@ -102,11 +102,11 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsBoxPlot::
 CQChartsBoxPlot(CQChartsView *view, const ModelP &model) :
  CQChartsGroupPlot(view, view->charts()->plotType("box"), model),
- CQChartsPlotBoxShapeData    <CQChartsBoxPlot>(this),
- CQChartsPlotTextData        <CQChartsBoxPlot>(this),
- CQChartsPlotWhiskerLineData <CQChartsBoxPlot>(this),
- CQChartsPlotOutlierPointData<CQChartsBoxPlot>(this),
- CQChartsPlotJitterPointData <CQChartsBoxPlot>(this)
+ CQChartsObjBoxShapeData    <CQChartsBoxPlot>(this),
+ CQChartsObjTextData        <CQChartsBoxPlot>(this),
+ CQChartsObjWhiskerLineData <CQChartsBoxPlot>(this),
+ CQChartsObjOutlierPointData<CQChartsBoxPlot>(this),
+ CQChartsObjJitterPointData <CQChartsBoxPlot>(this)
 {
   setBoxFillColor(CQChartsColor(CQChartsColor::Type::PALETTE));
 
@@ -137,69 +137,10 @@ CQChartsBoxPlot::
 
 void
 CQChartsBoxPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumns(const CQChartsColumns &c)
 {
-  if (c != valueColumns_.column()) {
-    valueColumns_.setColumn(c);
-
-    updateRangeAndObjs();
-  }
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
-
-void
-CQChartsBoxPlot::
-setValueColumns(const Columns &cols)
-{
-  if (cols != valueColumns_.columns()) {
-    valueColumns_.setColumns(cols);
-
-    updateRangeAndObjs();
-  }
-}
-
-QString
-CQChartsBoxPlot::
-valueColumnsStr() const
-{
-  return valueColumns_.columnsStr();
-}
-
-bool
-CQChartsBoxPlot::
-setValueColumnsStr(const QString &s)
-{
-  bool rc = true;
-
-  if (s != valueColumnsStr()) {
-    CQChartsColumns::Columns columns;
-
-    rc = CQChartsUtil::stringToColumns(model_.data(), s, columns);
-
-    if (rc) {
-      valueColumns_.setColumns(columns);
-
-      updateRangeAndObjs();
-    }
-  }
-
-  return rc;
-}
-
-const CQChartsColumn &
-CQChartsBoxPlot::
-valueColumnAt(int i) const
-{
-  return valueColumns_.getColumn(i);
-}
-
-int
-CQChartsBoxPlot::
-numValueColumns() const
-{
-  return valueColumns_.count();
-}
-
-//---
 
 void
 CQChartsBoxPlot::
@@ -302,22 +243,6 @@ setColorBySet(bool b)
 
 //---
 
-const CQChartsLength &
-CQChartsBoxPlot::
-cornerSize() const
-{
-  return boxData_.shape.border.cornerSize;
-}
-
-void
-CQChartsBoxPlot::
-setCornerSize(const CQChartsLength &s)
-{
-  CQChartsUtil::testAndSet(boxData_.shape.border.cornerSize, s, [&]() { invalidateLayers(); } );
-}
-
-//------
-
 void
 CQChartsBoxPlot::
 setWhiskerRange(double r)
@@ -392,8 +317,8 @@ addProperties()
   addProperty("box", this, "notched"     , "notched");
 
   // whisker box stroke
-  addProperty("box/stroke", this, "boxBorder" , "visible"   );
-  addProperty("box/stroke", this, "cornerSize", "cornerSize");
+  addProperty("box/stroke", this, "boxBorder"    , "visible"   );
+  addProperty("box/stroke", this, "boxCornerSize", "cornerSize");
 
   addLineProperties("box/stroke", "boxBorder");
 
@@ -700,7 +625,7 @@ updateRawRange()
   //---
 
 //xAxis->setColumn(setColumn());
-  yAxis->setColumn(valueColumn());
+  yAxis->setColumn(valueColumns().column());
 
   //---
 
@@ -720,8 +645,8 @@ updateRawRange()
 
   QString yname = yLabel();
 
-  if (valueColumns().size() == 1 && ! yname.length())
-    yname = modelHeaderString(valueColumn(), ok);
+  if (valueColumns().count() == 1 && ! yname.length())
+    yname = modelHeaderString(valueColumns().column(), ok);
 
   yAxis->setLabel(yname);
 }
@@ -1812,7 +1737,8 @@ draw(QPainter *painter)
       rect = CQChartsGeom::BBox(dev1, pos - bw/2.0, dev2, pos + bw/2.0);
 
     if      (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::CROSS_BAR) {
-      CQChartsDensity::drawCrossBar(plot_, painter, rect, mean, orientation, plot_->cornerSize());
+      CQChartsDensity::drawCrossBar(plot_, painter, rect, mean, orientation,
+                                    plot_->boxCornerSize());
     }
     else if (plot_->errorBarType() == CQChartsBoxPlot::ErrorBarType::ERROR_BAR) {
       CQChartsDensity::drawErrorBar(plot_, painter, rect, orientation);
@@ -1869,7 +1795,7 @@ draw(QPainter *painter)
     //---
 
     CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
-                                           ww, bw, plot_->cornerSize(), plot_->isNotched());
+                                           ww, bw, plot_->boxCornerSize(), plot_->isNotched());
   }
 
   //---
@@ -2214,7 +2140,7 @@ draw(QPainter *painter)
   data.max    = remapPos(data_.max   );
 
   CQChartsBoxWhiskerUtil::drawWhiskerBar(plot_, painter, data, pos, orientation,
-                                         ww, bw, plot_->cornerSize(), /*isNotched*/false);
+                                         ww, bw, plot_->boxCornerSize(), /*isNotched*/false);
 
   //---
 

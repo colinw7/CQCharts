@@ -249,8 +249,8 @@ class CQChartsSunburstRootNode : public CQChartsSunburstHierNode {
 //---
 
 class CQChartsSunburstPlot : public CQChartsHierPlot,
- public CQChartsPlotShapeData<CQChartsSunburstPlot>,
- public CQChartsPlotTextData <CQChartsSunburstPlot> {
+ public CQChartsObjShapeData<CQChartsSunburstPlot>,
+ public CQChartsObjTextData <CQChartsSunburstPlot> {
   Q_OBJECT
 
   Q_PROPERTY(double innerRadius READ innerRadius WRITE setInnerRadius)

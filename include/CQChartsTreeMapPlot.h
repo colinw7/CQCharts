@@ -255,10 +255,10 @@ CQCHARTS_NAMED_SHAPE_DATA(Header,header)
 CQCHARTS_NAMED_TEXT_DATA(Header,header)
 
 class CQChartsTreeMapPlot : public CQChartsHierPlot,
- public CQChartsPlotHeaderShapeData<CQChartsTreeMapPlot>,
- public CQChartsPlotHeaderTextData <CQChartsTreeMapPlot>,
- public CQChartsPlotShapeData      <CQChartsTreeMapPlot>,
- public CQChartsPlotTextData       <CQChartsTreeMapPlot> {
+ public CQChartsObjHeaderShapeData<CQChartsTreeMapPlot>,
+ public CQChartsObjHeaderTextData <CQChartsTreeMapPlot>,
+ public CQChartsObjShapeData      <CQChartsTreeMapPlot>,
+ public CQChartsObjTextData       <CQChartsTreeMapPlot> {
   Q_OBJECT
 
   // title/header shown and height

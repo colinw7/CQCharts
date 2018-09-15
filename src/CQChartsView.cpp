@@ -43,8 +43,8 @@ QSize CQChartsView::sizeHint_ = QSize(1280, 1024);
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
  QFrame(parent),
- CQChartsViewSelectedShapeData(this),
- CQChartsViewInsideShapeData  (this),
+ CQChartsObjSelectedShapeData(this),
+ CQChartsObjInsideShapeData  (this),
  charts_(charts)
 {
   setObjectName("view");
@@ -93,6 +93,7 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
   addProperty("", this, "bufferLayers"  );
+  addProperty("", this, "scaleFont"     );
   addProperty("", this, "posTextType"   );
 
   addProperty("selectedHighlight"       , this, "selectedMode"       , "mode");
@@ -2103,7 +2104,7 @@ showMenu(const QPoint &p)
 
     //---
 
-    using KeyLocationActionMap = std::map<CQChartsPlotKey::LocationType, QAction *>;
+    using KeyLocationActionMap = std::map<CQChartsKeyLocation::Type, QAction *>;
 
     KeyLocationActionMap keyLocationActionMap;
 
@@ -2112,7 +2113,7 @@ showMenu(const QPoint &p)
     QActionGroup *keyLocationActionGroup = new QActionGroup(keyLocationMenu);
 
     auto addKeyLocationGroupAction =
-     [&](const QString &label, const CQChartsPlotKey::LocationType &location) {
+     [&](const QString &label, const CQChartsKeyLocation::Type &location) {
       QAction *action = new QAction(label, keyLocationMenu);
 
       action->setCheckable(true);
@@ -2124,21 +2125,21 @@ showMenu(const QPoint &p)
       return action;
     };
 
-    addKeyLocationGroupAction("Top Left"     , CQChartsPlotKey::LocationType::TOP_LEFT     );
-    addKeyLocationGroupAction("Top Center"   , CQChartsPlotKey::LocationType::TOP_CENTER   );
-    addKeyLocationGroupAction("Top Right"    , CQChartsPlotKey::LocationType::TOP_RIGHT    );
-    addKeyLocationGroupAction("Center Left"  , CQChartsPlotKey::LocationType::CENTER_LEFT  );
-    addKeyLocationGroupAction("Center Center", CQChartsPlotKey::LocationType::CENTER_CENTER);
-    addKeyLocationGroupAction("Center Right" , CQChartsPlotKey::LocationType::CENTER_RIGHT );
-    addKeyLocationGroupAction("Bottom Left"  , CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
-    addKeyLocationGroupAction("Bottom Center", CQChartsPlotKey::LocationType::BOTTOM_CENTER);
-    addKeyLocationGroupAction("Bottom Right" , CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
-    addKeyLocationGroupAction("Absolute"     , CQChartsPlotKey::LocationType::ABS_POS      );
+    addKeyLocationGroupAction("Top Left"     , CQChartsKeyLocation::Type::TOP_LEFT     );
+    addKeyLocationGroupAction("Top Center"   , CQChartsKeyLocation::Type::TOP_CENTER   );
+    addKeyLocationGroupAction("Top Right"    , CQChartsKeyLocation::Type::TOP_RIGHT    );
+    addKeyLocationGroupAction("Center Left"  , CQChartsKeyLocation::Type::CENTER_LEFT  );
+    addKeyLocationGroupAction("Center Center", CQChartsKeyLocation::Type::CENTER_CENTER);
+    addKeyLocationGroupAction("Center Right" , CQChartsKeyLocation::Type::CENTER_RIGHT );
+    addKeyLocationGroupAction("Bottom Left"  , CQChartsKeyLocation::Type::BOTTOM_LEFT  );
+    addKeyLocationGroupAction("Bottom Center", CQChartsKeyLocation::Type::BOTTOM_CENTER);
+    addKeyLocationGroupAction("Bottom Right" , CQChartsKeyLocation::Type::BOTTOM_RIGHT );
+    addKeyLocationGroupAction("Absolute"     , CQChartsKeyLocation::Type::ABS_POS      );
 
     keyLocationActionGroup->setExclusive(true);
 
     if (currentPlot && currentPlot->key()) {
-      CQChartsPlotKey::LocationType location = currentPlot->key()->location();
+      CQChartsKeyLocation::Type location = currentPlot->key()->location().type();
 
       keyLocationActionMap[location]->setChecked(true);
     }
@@ -2518,25 +2519,25 @@ keyPositionSlot(QAction *action)
 
   if (currentPlot && currentPlot->key()) {
     if      (action->text() == "Top Left"     )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_LEFT     );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_LEFT     );
     else if (action->text() == "Top Center"   )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_CENTER   );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_CENTER   );
     else if (action->text() == "Top Right"    )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::TOP_RIGHT    );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::TOP_RIGHT    );
     else if (action->text() == "Center Left"  )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_LEFT  );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_LEFT  );
     else if (action->text() == "Center Center")
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_CENTER);
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_CENTER);
     else if (action->text() == "Center Right" )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::CENTER_RIGHT );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::CENTER_RIGHT );
     else if (action->text() == "Bottom Left"  )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_LEFT  );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_LEFT  );
     else if (action->text() == "Bottom Center")
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_CENTER);
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_CENTER);
     else if (action->text() == "Bottom Right" )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::BOTTOM_RIGHT );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::BOTTOM_RIGHT );
     else if (action->text() == "Absolute"     )
-      currentPlot->key()->setLocation(CQChartsPlotKey::LocationType::ABS_POS      );
+      currentPlot->key()->setLocation(CQChartsKeyLocation::Type::ABS_POS      );
     else
       assert(false);
   }

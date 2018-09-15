@@ -97,7 +97,7 @@ addProperties()
 
 void
 CQChartsGroupPlot::
-initGroupData(const Columns &dataColumns, const CQChartsColumn &nameColumn, bool hier)
+initGroupData(const CQChartsColumns &dataColumns, const CQChartsColumn &nameColumn, bool hier)
 {
   // if multiple data columns then use name column and data labels
   //   if row grouping we are creating a value set per row (1 value per data column)
@@ -112,7 +112,7 @@ initGroupData(const Columns &dataColumns, const CQChartsColumn &nameColumn, bool
   groupData.hier       = hier;
 
   // use multiple group columns
-  if      (dataColumns.size() > 1) {
+  if      (dataColumns.count() > 1) {
     groupData.columns     = dataColumns;
     groupData.rowGrouping = isRowGrouping(); // only used for multiple columns
 
@@ -162,7 +162,7 @@ initGroup(const CQChartsGroupData &data)
 
   // when not row grouping we use the column header as the grouping id so all row
   // values in the column are added to the group
-  if (data.columns.size() > 1 && ! data.rowGrouping) {
+  if (data.columns.count() > 1 && ! data.rowGrouping) {
     groupBucket_.setDataType   (CQChartsColumnBucket::DataType::HEADER);
     groupBucket_.setColumnType (ColumnType::INTEGER);
     groupBucket_.setRowGrouping(false);
@@ -186,7 +186,7 @@ initGroup(const CQChartsGroupData &data)
   //---
 
   // for specified grouping columns, set column and column type
-  if      (data.columns.size() > 1) {
+  if      (data.columns.count() > 1) {
     CQChartsColumn column;
 
     if (data.column.isValid())
@@ -194,7 +194,7 @@ initGroup(const CQChartsGroupData &data)
 
     if (! data.column.isValid()) {
       // TODO: combine multiple column values
-      column = data.columns[0];
+      column = data.columns.column();
       assert(column.isValid());
     }
 

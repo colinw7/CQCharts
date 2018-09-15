@@ -3,6 +3,8 @@
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
 #include <CQChartsKey.h>
+#include <CQChartsBoxObj.h>
+#include <CQChartsArrow.h>
 
 void
 CQChartsInvalidator::
@@ -40,12 +42,44 @@ invalidate(bool reload)
   if (key) {
     if      (key->plot()) {
       if (reload)
-        plot->updateRangeAndObjs();
+        key->plot()->updateRangeAndObjs();
       else
-        plot->invalidateLayers();
+        key->plot()->invalidateLayers();
     }
     else if (key->view()) {
-      view->update();
+      key->view()->update();
+    }
+
+    return;
+  }
+
+  CQChartsBoxObj *boxObj = qobject_cast<CQChartsBoxObj *>(obj_);
+
+  if (boxObj) {
+    if      (boxObj->plot()) {
+      if (reload)
+        boxObj->plot()->updateRangeAndObjs();
+      else
+        boxObj->plot()->invalidateLayers();
+    }
+    else if (boxObj->view()) {
+      boxObj->view()->update();
+    }
+
+    return;
+  }
+
+  CQChartsArrow *arrow = qobject_cast<CQChartsArrow *>(obj_);
+
+  if (arrow) {
+    if      (arrow->plot()) {
+      if (reload)
+        arrow->plot()->updateRangeAndObjs();
+      else
+        arrow->plot()->invalidateLayers();
+    }
+    else if (arrow->view()) {
+      arrow->view()->update();
     }
 
     return;

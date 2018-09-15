@@ -201,9 +201,9 @@ class CQChartsSankeyEdgeObj : public CQChartsPlotObj {
 CQCHARTS_NAMED_SHAPE_DATA(Edge,edge)
 
 class CQChartsSankeyPlot : public CQChartsPlot,
- public CQChartsPlotTextData<CQChartsSankeyPlot>,
- public CQChartsPlotNodeShapeData<CQChartsSankeyPlot>,
- public CQChartsPlotEdgeShapeData<CQChartsSankeyPlot> {
+ public CQChartsObjTextData<CQChartsSankeyPlot>,
+ public CQChartsObjNodeShapeData<CQChartsSankeyPlot>,
+ public CQChartsObjEdgeShapeData<CQChartsSankeyPlot> {
   Q_OBJECT
 
   // columns

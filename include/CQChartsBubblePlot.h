@@ -247,8 +247,8 @@ class CQChartsBubbleHierObj : public CQChartsBubbleObj {
 //---
 
 class CQChartsBubblePlot : public CQChartsGroupPlot,
- public CQChartsPlotShapeData<CQChartsBubblePlot>,
- public CQChartsPlotTextData <CQChartsBubblePlot> {
+ public CQChartsObjShapeData<CQChartsBubblePlot>,
+ public CQChartsObjTextData <CQChartsBubblePlot> {
   Q_OBJECT
 
   // columns

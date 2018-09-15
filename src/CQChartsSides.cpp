@@ -1,0 +1,24 @@
+#include <CQChartsSides.h>
+
+CQUTIL_DEF_META_TYPE(CQChartsSides, toString, fromString)
+
+void
+CQChartsSides::
+registerMetaType()
+{
+  CQUTIL_REGISTER_META(CQChartsSides);
+}
+
+bool
+CQChartsSides::
+decodeString(const QString &str, Sides &sides)
+{
+  sides = 0;
+
+  if (str.indexOf('t') >= 0) sides |= int(Side::TOP   );
+  if (str.indexOf('l') >= 0) sides |= int(Side::LEFT  );
+  if (str.indexOf('b') >= 0) sides |= int(Side::BOTTOM);
+  if (str.indexOf('r') >= 0) sides |= int(Side::RIGHT );
+
+  return true;
+}

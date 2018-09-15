@@ -84,10 +84,10 @@ addFillProperties(CQPropertyViewModel *model, const QString &path)
 {
   QString bgPath = path + "/fill";
 
-  model->addProperty(bgPath, this, "background"       , "visible");
-  model->addProperty(bgPath, this, "backgroundColor"  , "color"  );
-  model->addProperty(bgPath, this, "backgroundAlpha"  , "alpha"  );
-  model->addProperty(bgPath, this, "backgroundPattern", "pattern");
+  model->addProperty(bgPath, this, "filled"     , "visible");
+  model->addProperty(bgPath, this, "fillColor"  , "color"  );
+  model->addProperty(bgPath, this, "fillAlpha"  , "alpha"  );
+  model->addProperty(bgPath, this, "fillPattern", "pattern");
 }
 
 void
@@ -558,12 +558,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor = interpBackgroundColor(0, 1);
+  QColor bgColor = interpFillColor(0, 1);
 
   if      (plot())
-    plot()->setBrush(brush, isBackground(), bgColor, backgroundAlpha(), backgroundPattern());
+    plot()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
   else if (view())
-    view()->setBrush(brush, isBackground(), bgColor, backgroundAlpha(), backgroundPattern());
+    view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
   QColor borderColor = interpBorderColor(0, 1);
 
@@ -712,12 +712,12 @@ draw(QPainter *painter)
   QPen   pen;
   QBrush brush;
 
-  QColor bgColor = interpBackgroundColor(0, 1);
+  QColor bgColor = interpFillColor(0, 1);
 
   if      (plot())
-    plot()->setBrush(brush, isBackground(), bgColor, backgroundAlpha(), backgroundPattern());
+    plot()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
   else if (view())
-    view()->setBrush(brush, isBackground(), bgColor, backgroundAlpha(), backgroundPattern());
+    view()->setBrush(brush, isFilled(), bgColor, fillAlpha(), fillPattern());
 
   QColor borderColor = interpBorderColor(0, 1);
 
@@ -917,8 +917,8 @@ CQChartsTextAnnotation(CQChartsView *view, const CQChartsPosition &position,
   setTextStr  (textStr);
   setTextColor(themeFg);
 
-  boxData_.shape.background.visible = false;
-  boxData_.shape.border    .visible = false;
+  setBorder(false);
+  setFilled(false);
 
   editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -935,8 +935,8 @@ CQChartsTextAnnotation(CQChartsPlot *plot, const CQChartsPosition &position,
   setTextStr  (textStr);
   setTextColor(themeFg);
 
-  boxData_.shape.background.visible = false;
-  boxData_.shape.border    .visible = false;
+  setBorder(false);
+  setFilled(false);
 
   editHandles_.setMode(CQChartsEditHandles::Mode::RESIZE);
 }
@@ -1259,7 +1259,7 @@ CQChartsArrowAnnotation::
 
 void
 CQChartsArrowAnnotation::
-setData(const CQChartsArrowData &data)
+setArrowData(const CQChartsArrowData &data)
 {
   arrow_->setData(data);
 
@@ -1279,10 +1279,20 @@ addProperties(CQPropertyViewModel *model, const QString &path)
   model->addProperty(path1, arrow_, "backAngle");
   model->addProperty(path1, arrow_, "fhead"    );
   model->addProperty(path1, arrow_, "thead"    );
-  model->addProperty(path1, arrow_, "filled"   );
   model->addProperty(path1, arrow_, "empty"    );
-  model->addProperty(path1, arrow_, "lineWidth");
-  model->addProperty(path1, arrow_, "labels"   );
+
+  QString strokePath = path1 + "/stroke";
+  QString fillPath   = path1 + "/fill";
+
+  model->addProperty(strokePath, arrow_, "border"     , "visible");
+  model->addProperty(strokePath, arrow_, "borderColor", "color"  );
+  model->addProperty(strokePath, arrow_, "borderAlpha", "alpha"  );
+  model->addProperty(strokePath, arrow_, "borderWidth", "width"  );
+  model->addProperty(fillPath  , arrow_, "filled"     , "visible");
+  model->addProperty(fillPath  , arrow_, "fillColor"  , "color"  );
+  model->addProperty(fillPath  , arrow_, "fillAlpha"  , "alpha"  );
+
+  model->addProperty(path1, arrow_, "debugTextVisible", "debugLabels");
 }
 
 QString

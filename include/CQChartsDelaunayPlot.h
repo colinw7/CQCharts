@@ -62,8 +62,8 @@ class CQChartsDelaunayPointObj : public CQChartsPlotObj {
 //---
 
 class CQChartsDelaunayPlot : public CQChartsPlot,
- public CQChartsPlotLineData <CQChartsDelaunayPlot>,
- public CQChartsPlotPointData<CQChartsDelaunayPlot> {
+ public CQChartsObjLineData <CQChartsDelaunayPlot>,
+ public CQChartsObjPointData<CQChartsDelaunayPlot> {
   Q_OBJECT
 
   // columns

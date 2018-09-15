@@ -56,9 +56,9 @@ create(CQChartsView *view, const ModelP &model) const
 CQChartsRadarPlot::
 CQChartsRadarPlot(CQChartsView *view, const ModelP &model) :
  CQChartsPlot(view, view->charts()->plotType("radar"), model),
- CQChartsPlotShapeData   <CQChartsRadarPlot>(this),
- CQChartsPlotTextData    <CQChartsRadarPlot>(this),
- CQChartsPlotGridLineData<CQChartsRadarPlot>(this)
+ CQChartsObjShapeData   <CQChartsRadarPlot>(this),
+ CQChartsObjTextData    <CQChartsRadarPlot>(this),
+ CQChartsObjGridLineData<CQChartsRadarPlot>(this)
 {
   setGridLinesColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.5));
 
@@ -89,64 +89,11 @@ setNameColumn(const CQChartsColumn &c)
   CQChartsUtil::testAndSet(nameColumn_, c, [&]() { updateRangeAndObjs(); } );
 }
 
-//------
-
 void
 CQChartsRadarPlot::
-setValueColumn(const CQChartsColumn &c)
+setValueColumns(const CQChartsColumns &c)
 {
-  if (c != valueColumns_.column()) {
-    valueColumns_.setColumn(c);
-
-    updateRangeAndObjs();
-  }
-}
-
-void
-CQChartsRadarPlot::
-setValueColumns(const Columns &cols)
-{
-  if (cols != valueColumns_.columns()) {
-    valueColumns_.setColumns(cols);
-
-    updateRangeAndObjs();
-  }
-}
-
-QString
-CQChartsRadarPlot::
-valueColumnsStr() const
-{
-  return valueColumns_.columnsStr();
-}
-
-bool
-CQChartsRadarPlot::
-setValueColumnsStr(const QString &s)
-{
-  bool rc = true;
-
-  if (s != valueColumnsStr()) {
-    rc = valueColumns_.setColumnsStr(s);
-
-    updateRangeAndObjs();
-  }
-
-  return rc;
-}
-
-const CQChartsColumn &
-CQChartsRadarPlot::
-valueColumnAt(int i) const
-{
-  return valueColumns_.getColumn(i);
-}
-
-int
-CQChartsRadarPlot::
-numValueColumns() const
-{
-  return valueColumns_.count();
+  CQChartsUtil::testAndSet(valueColumns_, c, [&]() { updateRangeAndObjs(); } );
 }
 
 //------
@@ -174,9 +121,8 @@ addProperties()
   CQChartsPlot::addProperties();
 
   // columns
-  addProperty("columns", this, "nameColumn"  , "name"     );
-  addProperty("columns", this, "valueColumn" , "value"    );
-  addProperty("columns", this, "valueColumns", "valuesSet");
+  addProperty("columns", this, "nameColumn"  , "name"  );
+  addProperty("columns", this, "valueColumns", "values");
 
   // options
   addProperty("options", this, "angleStart" );
@@ -210,12 +156,12 @@ calcRange()
    public:
     RowVisitor(CQChartsRadarPlot *plot) :
      plot_(plot) {
-      nv_ = plot_->numValueColumns();
+      nv_ = plot_->valueColumns().count();
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
       for (int iv = 0; iv < nv_; ++iv) {
-        const CQChartsColumn &column = plot_->valueColumnAt(iv);
+        const CQChartsColumn &column = plot_->valueColumns().getColumn(iv);
 
         CQChartsModelIndex ind(data.row, column, data.parent);
 
@@ -249,7 +195,7 @@ calcRange()
   // calc max radius (normalized values)
   valueRadius_ = 0.0;
 
-  int nv = numValueColumns();
+  int nv = valueColumns().count();
 
   for (int iv = 0; iv < nv; ++iv)
     valueRadius_ = std::max(valueRadius_, valueDatas_[iv].max()/valueDatas_[iv].sum());
@@ -277,7 +223,7 @@ annotationBBox() const
 {
   CQChartsGeom::BBox bbox;
 
-  int nv = valueColumns().size();
+  int nv = valueColumns().count();
 
   // add corner labels
   if (nv > 2) {
@@ -310,7 +256,7 @@ annotationBBox() const
         //---
 
         if (i == nl) {
-          const CQChartsColumn &valueColumn = valueColumns()[iv];
+          const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
 
           bool ok;
 
@@ -420,7 +366,7 @@ addRow(const ModelVisitor::VisitData &data, int nr)
   //---
 
   // calc polygon angle
-  int nv = valueColumns().size();
+  int nv = valueColumns().count();
 
   double alen = CMathUtil::clamp(angleExtent(), -360.0, 360.0);
 
@@ -435,7 +381,7 @@ addRow(const ModelVisitor::VisitData &data, int nr)
   double a = (nv > 2 ? angleStart() : 0.0);
 
   for (int iv = 0; iv < nv; ++iv) {
-    const CQChartsColumn &valueColumn = valueColumns()[iv];
+    const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
 
     //---
 
@@ -583,7 +529,7 @@ void
 CQChartsRadarPlot::
 drawBackground(QPainter *painter)
 {
-  int nv = valueColumns().size();
+  int nv = valueColumns().count();
 
   if (! nv)
     return;
@@ -682,7 +628,7 @@ drawBackground(QPainter *painter)
 
           //---
 
-          const CQChartsColumn &valueColumn = valueColumns()[iv];
+          const CQChartsColumn &valueColumn = valueColumns().getColumn(iv);
 
           bool ok;
 

@@ -255,7 +255,7 @@ class CQChartsBarKeyText : public CQChartsKeyText {
 //  group : group(s)
 //  bar   : custom color, stacked, percent, range, horizontal, margin, border, fill
 class CQChartsBarChartPlot : public CQChartsBarPlot,
- public CQChartsPlotDotPointData<CQChartsBarChartPlot> {
+ public CQChartsObjDotPointData<CQChartsBarChartPlot> {
   Q_OBJECT
 
   // style
@@ -366,7 +366,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
  private:
   void addRow(const ModelVisitor::VisitData &data);
 
-  void addRowColumn(const ModelVisitor::VisitData &data, const Columns &valueColumns);
+  void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns);
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;
