@@ -254,6 +254,8 @@ calcRange()
 
   // set axes range and name
   for (int j = 0; j < ns; ++j) {
+    CQChartsAxis *axis = axes_[j];
+
     const CQChartsGeom::Range &range     = setRange(j);
     const CQChartsColumn      &setColumn = yColumns().getColumn(j);
 
@@ -264,12 +266,12 @@ calcRange()
     setDataRange(range);
 
     if (! isHorizontal()) {
-      axes_[j]->setRange(dataRange.ymin(), dataRange.ymax());
-      axes_[j]->setLabel(name);
+      axis->setRange(range.ymin(), range.ymax());
+      axis->setLabel(name);
     }
     else {
-      axes_[j]->setRange(dataRange.xmin(), dataRange.xmax());
-      axes_[j]->setLabel(name);
+      axis->setRange(range.xmin(), range.xmax());
+      axis->setLabel(name);
     }
   }
 
@@ -443,15 +445,15 @@ initObjs()
       CQChartsGeom::BBox bbox(x - sw/2, y - sh/2, x + sw/2, y + sh/2);
 
       CQChartsParallelPointObj *pointObj =
-        new CQChartsParallelPointObj(this, bbox, x, y, yind1, i, n, j, nl);
+        new CQChartsParallelPointObj(this, bbox, p.y(), x, y, yind1, i, n, j, nl);
 
-      bool ok;
+      //bool ok;
 
-      QString yname = modelHeaderString(setColumn, ok);
+      //QString yname = modelHeaderString(setColumn, ok);
 
-      QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
+      //QString id = QString("%1:%2=%3").arg(xname).arg(yname).arg(p.y());
 
-      pointObj->setId(id);
+      //pointObj->setId(id);
 
       addPlotObject(pointObj);
     }
@@ -868,10 +870,10 @@ getPolyLine(QPolygonF &poly) const
 
 CQChartsParallelPointObj::
 CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                         double x, double y, const QModelIndex &ind, int iset, int nset,
-                         int i, int n) :
- CQChartsPlotObj(plot, rect), plot_(plot), x_(x), y_(y), ind_(ind), iset_(iset), nset_(nset),
- i_(i), n_(n)
+                         double yval, double x, double y, const QModelIndex &ind,
+                         int iset, int nset, int i, int n) :
+ CQChartsPlotObj(plot, rect), plot_(plot), yval_(yval), x_(x), y_(y), ind_(ind),
+ iset_(iset), nset_(nset), i_(i), n_(n)
 {
 }
 
@@ -887,7 +889,7 @@ calcId() const
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
-  return QString("point:%1:%2=%3").arg(xname).arg(yname).arg(y_);
+  return QString("point:%1:%2=%3").arg(xname).arg(yname).arg(yval_);
 }
 
 QString
@@ -906,7 +908,7 @@ calcTipId() const
 
   QString yname = plot_->modelHeaderString(yColumn, ok);
 
-  tableTip.addTableRow(yname, y_);
+  tableTip.addTableRow(yname, yval_);
 
   return tableTip.str();
 }

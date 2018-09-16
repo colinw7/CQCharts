@@ -68,7 +68,7 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
   viewBBox_      = CQChartsGeom::BBox(0, 0, vr, vr);
   innerViewBBox_ = viewBBox_;
 
-  displayRange_->setPixelAdjust(0);
+  displayRange_->setPixelAdjust(0.0);
 
   displayRange_->setPixelRange (0, vr, vr, 0);
   displayRange_->setWindowRange(0, 0, 1, 1);
@@ -4830,7 +4830,7 @@ setFitBBox(const CQChartsGeom::BBox &bbox)
   if (isInvertX()) std::swap(left, right );
   if (isInvertY()) std::swap(top , bottom);
 
-  outerMargin_ = CQChartsPlotMargin(left, bottom, right, top);
+  outerMargin_ = CQChartsPlotMargin(left, top, right, bottom);
 
   updateMargins();
 }

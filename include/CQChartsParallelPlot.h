@@ -68,8 +68,8 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
  public:
   CQChartsParallelPointObj(CQChartsParallelPlot *plot, const CQChartsGeom::BBox &rect,
-                           double x, double y, const QModelIndex &ind, int iset, int nset,
-                           int i, int n);
+                           double yval, double x, double y, const QModelIndex &ind,
+                           int iset, int nset, int i, int n);
 
   QString calcId() const override;
 
@@ -87,6 +87,7 @@ class CQChartsParallelPointObj : public CQChartsPlotObj {
 
  private:
   CQChartsParallelPlot* plot_  { nullptr };
+  double                yval_  { 0.0 };
   double                x_     { 0.0 };
   double                y_     { 0.0 };
   QModelIndex           ind_;
