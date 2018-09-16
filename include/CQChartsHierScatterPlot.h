@@ -277,7 +277,7 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void initGroupValueSets();
 

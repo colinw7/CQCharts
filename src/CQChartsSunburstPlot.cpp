@@ -54,7 +54,7 @@ CQChartsSunburstPlot(CQChartsView *view, const ModelP &model) :
 
   setTextColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 1));
 
-  setMargins(1, 1, 1, 1);
+  setOuterMargin(1, 1, 1, 1);
 
   // addKey() // TODO
 
@@ -193,22 +193,24 @@ setCurrentRoot(CQChartsSunburstHierNode *hier, bool update)
   }
 }
 
-void
+CQChartsGeom::Range
 CQChartsSunburstPlot::
 calcRange()
 {
+  CQChartsGeom::Range dataRange;
+
   double r = 1.0;
 
-  dataRange_.reset();
-
-  dataRange_.updateRange(-r, -r);
-  dataRange_.updateRange( r,  r);
+  dataRange.updateRange(-r, -r);
+  dataRange.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  return dataRange;
 }
 
 //------
@@ -870,7 +872,7 @@ handleResize()
 {
   CQChartsPlot::handleResize();
 
-  dataRange_.reset();
+  resetRange();
 }
 
 void

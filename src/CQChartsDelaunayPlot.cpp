@@ -138,7 +138,7 @@ addProperties()
   addLineProperties("lines", "lines");
 }
 
-void
+CQChartsGeom::Range
 CQChartsDelaunayPlot::
 calcRange()
 {
@@ -177,7 +177,7 @@ calcRange()
 
   visitModel(visitor);
 
-  dataRange_ = visitor.range();
+  CQChartsGeom::Range dataRange = visitor.range();
 
   nr_ = visitor.numRows();
 
@@ -202,8 +202,12 @@ calcRange()
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  //---
+
+  return dataRange;
 }
 
 bool
@@ -286,8 +290,10 @@ addPointObj(double x, double y, const QModelIndex &xind, int r)
 
   //---
 
-  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
+  double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
 
   QModelIndex xind1 = normalizeIndex(xind);
 

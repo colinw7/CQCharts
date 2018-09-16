@@ -107,7 +107,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   bool initObjs() override;
 

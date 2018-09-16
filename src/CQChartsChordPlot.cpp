@@ -178,7 +178,7 @@ addProperties()
   textBox_->CQChartsBoxObj::addProperties(propertyModel(), labelBoxPath);
 }
 
-void
+CQChartsGeom::Range
 CQChartsChordPlot::
 calcRange()
 {
@@ -186,16 +186,18 @@ calcRange()
 
   r = std::max(r, labelRadius());
 
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
-  dataRange_.updateRange(-r, -r);
-  dataRange_.updateRange( r,  r);
+  dataRange.updateRange(-r, -r);
+  dataRange.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  return dataRange;
 }
 
 CQChartsGeom::BBox
@@ -659,7 +661,7 @@ handleResize()
 {
   CQChartsPlot::handleResize();
 
-  dataRange_.reset();
+  resetRange();
 }
 
 //------

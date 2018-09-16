@@ -114,7 +114,7 @@ setBalloon(bool b)
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsImagePlot::
 calcRange()
 {
@@ -174,13 +174,17 @@ calcRange()
 
   //---
 
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   nr_ = visitor.numRows();
   nc_ = visitor.numCols();
 
-  dataRange_.updateRange(  0,   0);
-  dataRange_.updateRange(nc_, nr_);
+  dataRange.updateRange(  0,   0);
+  dataRange.updateRange(nc_, nr_);
+
+  //---
+
+  return dataRange;
 }
 
 bool

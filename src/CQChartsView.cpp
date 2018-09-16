@@ -563,7 +563,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
     plot->setObjectName(plot->id());
   }
 
-  plot->setBBox(bbox1);
+  plot->setViewBBox(bbox1);
 
   plots_.push_back(plot);
 
@@ -814,10 +814,6 @@ initOverlay(const Plots &plots, bool reset)
 
       plot    ->setPrevPlot(prevPlot);
       prevPlot->setNextPlot(plot);
-
-      //plot->setDataRange(rootPlot->dataRange());
-
-      //rootPlot->applyDataRange();
     }
   }
 
@@ -1007,7 +1003,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
       CQChartsGeom::BBox bbox(0, 0, vr, vr);
 
-      plot->setBBox(bbox);
+      plot->setViewBBox(bbox);
     }
   }
   else {
@@ -1028,7 +1024,7 @@ placePlots(const Plots &plots, bool vertical, bool horizontal, int rows, int col
 
         CQChartsGeom::BBox bbox(x, y - dy, x + dx, y);
 
-        plot->setBBox(bbox);
+        plot->setViewBBox(bbox);
 
         x += dx;
       }
@@ -2971,7 +2967,7 @@ plotsAt(const CQChartsGeom::Point &p, Plots &plots, CQChartsPlot* &plot, bool cl
   CQChartsPlot *currentPlot = this->currentPlot(/*remap*/false);
 
   for (const auto &plot1 : plots_) {
-    const CQChartsGeom::BBox &bbox = plot1->bbox();
+    const CQChartsGeom::BBox &bbox = plot1->viewBBox();
 
     if (! bbox.inside(p))
       continue;
@@ -3017,7 +3013,7 @@ basePlotsAt(const CQChartsGeom::Point &p, PlotSet &plots, bool clear) const
     plots.clear();
 
   for (const auto &plot : plots_) {
-    const CQChartsGeom::BBox &bbox = plot->bbox();
+    const CQChartsGeom::BBox &bbox = plot->viewBBox();
 
     if (! bbox.inside(p))
       continue;
@@ -3038,7 +3034,7 @@ plotBBox(CQChartsPlot *plot) const
     if (plot1 != plot)
       continue;
 
-    const CQChartsGeom::BBox &bbox = plot1->bbox();
+    const CQChartsGeom::BBox &bbox = plot1->viewBBox();
 
     return bbox;
   }

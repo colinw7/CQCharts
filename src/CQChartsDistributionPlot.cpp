@@ -496,11 +496,11 @@ setShowMean(bool b)
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsDistributionPlot::
 calcRange()
 {
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   //---
 
@@ -707,12 +707,12 @@ calcRange()
   // set range
   if      (isDensity()) {
     if (densityBBox.isSet()) {
-      dataRange_.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
-      dataRange_.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
+      dataRange.updateRange(densityBBox.getXMin(), densityBBox.getYMin());
+      dataRange.updateRange(densityBBox.getXMax(), densityBBox.getYMax());
     }
     else {
-      dataRange_.updateRange(0, 0);
-      dataRange_.updateRange(1, 1);
+      dataRange.updateRange(0, 0);
+      dataRange.updateRange(1, 1);
     }
   }
   else if (isScatter()) {
@@ -726,8 +726,8 @@ calcRange()
       nv = std::max(nv, nv1);
     }
 
-    dataRange_.updateRange(   - 0.5,    - 0.5);
-    dataRange_.updateRange(ng - 0.5, nv - 0.5);
+    dataRange.updateRange(   - 0.5,    - 0.5);
+    dataRange.updateRange(ng - 0.5, nv - 0.5);
   }
   else {
     double n1, n2;
@@ -746,12 +746,12 @@ calcRange()
       int bucket2 = bucketRange.max(0);
 
       if (! isHorizontal()) {
-        dataRange_.updateRange(bucket1 - 1.0, n1);
-        dataRange_.updateRange(bucket2 + 1.0, n2);
+        dataRange.updateRange(bucket1 - 1.0, n1);
+        dataRange.updateRange(bucket2 + 1.0, n2);
       }
       else {
-        dataRange_.updateRange(n1, bucket1 - 1.0);
-        dataRange_.updateRange(n2, bucket2 + 1.0);
+        dataRange.updateRange(n1, bucket1 - 1.0);
+        dataRange.updateRange(n2, bucket2 + 1.0);
       }
     }
     else if (! isSkipEmpty()) {
@@ -762,22 +762,22 @@ calcRange()
           n = std::max(n, gt.second);
 
         if (! isHorizontal()) {
-          dataRange_.updateRange(          - 0.5, 0);
-          dataRange_.updateRange(maxValues - 0.5, n);
+          dataRange.updateRange(          - 0.5, 0);
+          dataRange.updateRange(maxValues - 0.5, n);
         }
         else {
-          dataRange_.updateRange(0,           - 0.5);
-          dataRange_.updateRange(n, maxValues - 0.5);
+          dataRange.updateRange(0,           - 0.5);
+          dataRange.updateRange(n, maxValues - 0.5);
         }
       }
       else if (isSideBySide()) {
         if (! isHorizontal()) {
-          dataRange_.updateRange(          - 0.5, n1);
-          dataRange_.updateRange(maxValues - 0.5, n2);
+          dataRange.updateRange(          - 0.5, n1);
+          dataRange.updateRange(maxValues - 0.5, n2);
         }
         else {
-          dataRange_.updateRange(n1,           - 0.5);
-          dataRange_.updateRange(n2, maxValues - 0.5);
+          dataRange.updateRange(n1,           - 0.5);
+          dataRange.updateRange(n2, maxValues - 0.5);
         }
       }
       else {
@@ -789,12 +789,12 @@ calcRange()
         int i1 = 0;
 
         if (! isHorizontal()) {
-          dataRange_.updateRange(i1 - 1.0, n1);
-          dataRange_.updateRange(nb      , n2);
+          dataRange.updateRange(i1 - 1.0, n1);
+          dataRange.updateRange(nb      , n2);
         }
         else {
-          dataRange_.updateRange(n1, i1 - 1.0);
-          dataRange_.updateRange(n2, nb      );
+          dataRange.updateRange(n1, i1 - 1.0);
+          dataRange.updateRange(n2, nb      );
         }
       }
     }
@@ -802,15 +802,19 @@ calcRange()
       int i1 = 0;
 
       if (! isHorizontal()) {
-        dataRange_.updateRange(i1 - 1.0, 0 );
-        dataRange_.updateRange(i2      , n1);
+        dataRange.updateRange(i1 - 1.0, 0 );
+        dataRange.updateRange(i2      , n1);
       }
       else {
-        dataRange_.updateRange(0 , i1 - 1.0);
-        dataRange_.updateRange(n1, i2      );
+        dataRange.updateRange(0 , i1 - 1.0);
+        dataRange.updateRange(n1, i2      );
       }
     }
   }
+
+  //---
+
+  return dataRange;
 }
 
 void

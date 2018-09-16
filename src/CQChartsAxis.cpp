@@ -404,7 +404,7 @@ void
 CQChartsAxis::
 updatePlotPosition()
 {
-  plot()->updateMargin();
+  plot()->updateMargins();
 }
 
 bool

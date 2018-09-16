@@ -157,14 +157,15 @@ class CQChartsGeometryPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   bool initObjs() override;
 
   //---
 
  private:
-  void addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data);
+  void addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
+              CQChartsGeom::Range &dataRange);
 
   bool decodeGeometry(const QString &geomStr, Polygons &polygons);
 

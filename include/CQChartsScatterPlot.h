@@ -551,7 +551,7 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void updateObjs() override;
 

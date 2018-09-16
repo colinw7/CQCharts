@@ -108,7 +108,7 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void addNameValue(const QString &name, double value);
 

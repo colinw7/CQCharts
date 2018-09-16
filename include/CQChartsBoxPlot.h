@@ -506,10 +506,10 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   //---
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
-  void updateRawRange ();
-  void updateCalcRange();
+  CQChartsGeom::Range updateRawRange ();
+  CQChartsGeom::Range updateCalcRange();
 
   void updateRawWhiskers();
 
@@ -564,7 +564,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void setErrorBar(bool b);
 
  private:
-  void addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList);
+  void addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
+                  CQChartsGeom::Range &dataRange);
 
   void addRawWhiskerRow(const ModelVisitor::VisitData &vdata);
 

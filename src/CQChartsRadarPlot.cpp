@@ -147,7 +147,7 @@ addProperties()
   addTextProperties("text", "text");
 }
 
-void
+CQChartsGeom::Range
 CQChartsRadarPlot::
 calcRange()
 {
@@ -205,14 +205,18 @@ calcRange()
   // set range
   double r = valueRadius_;
 
-  dataRange_.updateRange(-r, -r);
-  dataRange_.updateRange( r,  r);
+  CQChartsGeom::Range dataRange;
+
+  dataRange.updateRange(-r, -r);
+  dataRange.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  return dataRange;
 }
 
 //------
@@ -515,7 +519,7 @@ handleResize()
 {
   CQChartsPlot::handleResize();
 
-  dataRange_.reset();
+  resetRange();
 }
 
 bool

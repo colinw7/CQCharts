@@ -121,7 +121,7 @@ setTextMargin(double r)
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsDendrogramPlot::
 calcRange()
 {
@@ -182,7 +182,7 @@ calcRange()
 
   visitModel(visitor);
 
-  dataRange_ = visitor.range();
+  CQChartsGeom::Range dataRange = visitor.range();
 
   //---
 
@@ -194,8 +194,12 @@ calcRange()
 
   //---
 
-  dataRange_.updateRange(0, 0);
-  dataRange_.updateRange(1, 1);
+  dataRange.updateRange(0, 0);
+  dataRange.updateRange(1, 1);
+
+  //---
+
+  return dataRange;
 }
 
 void

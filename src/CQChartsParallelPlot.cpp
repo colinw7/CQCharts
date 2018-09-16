@@ -141,7 +141,7 @@ addProperties()
   addLineProperties("lines", "lines");
 }
 
-void
+CQChartsGeom::Range
 CQChartsParallelPlot::
 calcRange()
 {
@@ -236,17 +236,19 @@ calcRange()
 
   //---
 
+  CQChartsGeom::Range dataRange;
+
   // set plot range
   if (! isHorizontal()) {
-    dataRange_.updateRange(   - 0.5, 0);
-    dataRange_.updateRange(ns - 0.5, 1);
+    dataRange.updateRange(   - 0.5, 0);
+    dataRange.updateRange(ns - 0.5, 1);
   }
   else {
-    dataRange_.updateRange(0,    - 0.5);
-    dataRange_.updateRange(1, ns - 0.5);
+    dataRange.updateRange(0,    - 0.5);
+    dataRange.updateRange(1, ns - 0.5);
   }
 
-  normalizedDataRange_ = dataRange_;
+  normalizedDataRange_ = dataRange;
 
   //---
 
@@ -262,11 +264,11 @@ calcRange()
     setDataRange(range);
 
     if (! isHorizontal()) {
-      axes_[j]->setRange(dataRange_.ymin(), dataRange_.ymax());
+      axes_[j]->setRange(dataRange.ymin(), dataRange.ymax());
       axes_[j]->setLabel(name);
     }
     else {
-      axes_[j]->setRange(dataRange_.xmin(), dataRange_.xmax());
+      axes_[j]->setRange(dataRange.xmin(), dataRange.xmax());
       axes_[j]->setLabel(name);
     }
   }
@@ -276,7 +278,11 @@ calcRange()
   displayRange_->setWindowRange(normalizedDataRange_.xmin(), normalizedDataRange_.ymin(),
                                 normalizedDataRange_.xmax(), normalizedDataRange_.ymax());
 
-  dataRange_ = normalizedDataRange_;
+  dataRange = normalizedDataRange_;
+
+  //---
+
+  return dataRange;
 }
 
 bool
@@ -361,8 +367,10 @@ initObjs()
   //---
 
   // TODO: use actual symbol size
-  double sw = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  double sh = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  double sw = (dataRange.xmax() - dataRange.xmin())/100.0;
+  double sh = (dataRange.ymax() - dataRange.ymin())/100.0;
 
   int n = polys.size();
 
@@ -669,10 +677,12 @@ CQChartsParallelPlot::
 setObjRange()
 {
   // set display range to data range
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
   if (! isHorizontal())
-    displayRange_->setWindowRange(dataRange_.xmin(), 0, dataRange_.xmax(), 1);
+    displayRange_->setWindowRange(dataRange.xmin(), 0, dataRange.xmax(), 1);
   else
-    displayRange_->setWindowRange(0, dataRange_.ymin(), 1, dataRange_.ymax());
+    displayRange_->setWindowRange(0, dataRange.ymin(), 1, dataRange.ymax());
 }
 
 void

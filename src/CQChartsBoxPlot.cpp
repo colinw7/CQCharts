@@ -446,7 +446,7 @@ isPreCalc() const
           maxColumn        ().isValid());
 }
 
-void
+CQChartsGeom::Range
 CQChartsBoxPlot::
 calcRange()
 {
@@ -462,13 +462,13 @@ calcRange()
   //---
 
   if (! isPreCalc())
-    updateRawRange();
+    return updateRawRange();
   else
-    updateCalcRange();
+    return updateCalcRange();
 }
 
 // calculate box plot from individual values
-void
+CQChartsGeom::Range
 CQChartsBoxPlot::
 updateRawRange()
 {
@@ -487,7 +487,7 @@ updateRawRange()
 
   //---
 
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   xrange_ = CQChartsGeom::RMinMax();
 
@@ -567,12 +567,12 @@ updateRawRange()
 
           if (! isNormalized()) {
             if (! isHorizontal()) {
-              dataRange_.updateRange(x - 0.5, min);
-              dataRange_.updateRange(x + 0.5, max);
+              dataRange.updateRange(x - 0.5, min);
+              dataRange.updateRange(x + 0.5, max);
             }
             else {
-              dataRange_.updateRange(min, x - 0.5);
-              dataRange_.updateRange(max, x + 0.5);
+              dataRange.updateRange(min, x - 0.5);
+              dataRange.updateRange(max, x + 0.5);
             }
           }
           else {
@@ -586,12 +586,12 @@ updateRawRange()
             const CQChartsDensity &density = whisker.density();
 
             if (! isHorizontal()) {
-              dataRange_.updateRange(x, density.xmin1());
-              dataRange_.updateRange(x, density.xmax1());
+              dataRange.updateRange(x, density.xmin1());
+              dataRange.updateRange(x, density.xmax1());
             }
             else {
-              dataRange_.updateRange(density.xmin1(), x);
-              dataRange_.updateRange(density.xmax1(), x);
+              dataRange.updateRange(density.xmin1(), x);
+              dataRange.updateRange(density.xmax1(), x);
             }
           }
         }
@@ -608,17 +608,17 @@ updateRawRange()
   if (isNormalized()) {
     if (xrange_.isSet()) {
       if (! isHorizontal()) {
-        dataRange_.updateRange(xrange_.min(), 0.0);
-        dataRange_.updateRange(xrange_.max(), 1.0);
+        dataRange.updateRange(xrange_.min(), 0.0);
+        dataRange.updateRange(xrange_.max(), 1.0);
       }
       else {
-        dataRange_.updateRange(0.0, xrange_.min());
-        dataRange_.updateRange(1.0, xrange_.max());
+        dataRange.updateRange(0.0, xrange_.min());
+        dataRange.updateRange(1.0, xrange_.max());
       }
     }
     else {
-      dataRange_.updateRange(0.0, 0.0);
-      dataRange_.updateRange(1.0, 1.0);
+      dataRange.updateRange(0.0, 0.0);
+      dataRange.updateRange(1.0, 1.0);
     }
   }
 
@@ -649,6 +649,10 @@ updateRawRange()
     yname = modelHeaderString(valueColumns().column(), ok);
 
   yAxis->setLabel(yname);
+
+  //---
+
+  return dataRange;
 }
 
 bool
@@ -680,7 +684,7 @@ setIdName(int setId) const
 }
 
 // calculate box plot from pre-calculated values
-void
+CQChartsGeom::Range
 CQChartsBoxPlot::
 updateCalcRange()
 {
@@ -691,7 +695,7 @@ updateCalcRange()
 
   //---
 
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   xrange_ = CQChartsGeom::RMinMax();
 
@@ -703,12 +707,12 @@ updateCalcRange()
     using DataList = CQChartsBoxPlot::WhiskerDataList;
 
    public:
-    BoxPlotVisitor(CQChartsBoxPlot *plot) :
-     plot_(plot) {
+    BoxPlotVisitor(CQChartsBoxPlot *plot, CQChartsGeom::Range &dataRange) :
+     plot_(plot), dataRange_(dataRange) {
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addCalcRow(data, dataList_);
+      plot_->addCalcRow(data, dataList_, dataRange_);
 
       return State::OK;
     }
@@ -716,11 +720,12 @@ updateCalcRange()
     const DataList &dataList() const { return dataList_; }
 
    private:
-    CQChartsBoxPlot *plot_ { nullptr };
-    DataList         dataList_;
+    CQChartsBoxPlot*     plot_ { nullptr };
+    CQChartsGeom::Range& dataRange_;
+    DataList             dataList_;
   };
 
-  BoxPlotVisitor boxPlotVisitor(this);
+  BoxPlotVisitor boxPlotVisitor(this, dataRange);
 
   visitModel(boxPlotVisitor);
 
@@ -731,17 +736,17 @@ updateCalcRange()
   if (isNormalized()) {
     if (xrange_.isSet()) {
       if (! isHorizontal()) {
-        dataRange_.updateRange(xrange_.min(), 0.0);
-        dataRange_.updateRange(xrange_.max(), 1.0);
+        dataRange.updateRange(xrange_.min(), 0.0);
+        dataRange.updateRange(xrange_.max(), 1.0);
       }
       else {
-        dataRange_.updateRange(0.0, xrange_.min());
-        dataRange_.updateRange(1.0, xrange_.max());
+        dataRange.updateRange(0.0, xrange_.min());
+        dataRange.updateRange(1.0, xrange_.max());
       }
     }
     else {
-      dataRange_.updateRange(0.0, 0.0);
-      dataRange_.updateRange(1.0, 1.0);
+      dataRange.updateRange(0.0, 0.0);
+      dataRange.updateRange(1.0, 1.0);
     }
   }
 
@@ -752,11 +757,16 @@ updateCalcRange()
   QString xname = (xLabel().length() ? xLabel() : modelHeaderString(xColumn(), ok));
 
   xAxis->setLabel(xname);
+
+  //---
+
+  return dataRange;
 }
 
 void
 CQChartsBoxPlot::
-addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList)
+addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList,
+           CQChartsGeom::Range &dataRange)
 {
   CQChartsBoxWhiskerData data;
 
@@ -789,12 +799,12 @@ addCalcRow(const ModelVisitor::VisitData &vdata, WhiskerDataList &dataList)
 
   if (! isNormalized()) {
     if (! isHorizontal()) {
-      dataRange_.updateRange(data.x - 0.5, data.min);
-      dataRange_.updateRange(data.x + 0.5, data.max);
+      dataRange.updateRange(data.x - 0.5, data.min);
+      dataRange.updateRange(data.x + 0.5, data.max);
     }
     else {
-      dataRange_.updateRange(data.min, data.x - 0.5);
-      dataRange_.updateRange(data.max, data.x + 0.5);
+      dataRange.updateRange(data.min, data.x - 0.5);
+      dataRange.updateRange(data.max, data.x + 0.5);
     }
   }
   else {
@@ -1246,8 +1256,7 @@ initRawObjs()
       bool hidden = (isGrouped() ? isSetHidden(ig) : false);
       if (hidden) { continue; }
 
-      CQChartsGeom::BBox rect(dataRange_.xmin(), dataRange_.ymin(),
-                              dataRange_.xmax(), dataRange_.ymax());
+      CQChartsGeom::BBox rect = getDataRange();
 
       CQChartsBoxPlotConnectedObj *connectedObj =
         new CQChartsBoxPlotConnectedObj(this, rect, groupInd, ig, ng);
@@ -1396,24 +1405,26 @@ bool
 CQChartsBoxPlot::
 probe(ProbeData &probeData) const
 {
-  if (! dataRange_.isSet())
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  if (! dataRange.isSet())
     return false;
 
   if (! isHorizontal()) {
-    if (probeData.x < dataRange_.xmin() + 0.5)
-      probeData.x = dataRange_.xmin() + 0.5;
+    if (probeData.x < dataRange.xmin() + 0.5)
+      probeData.x = dataRange.xmin() + 0.5;
 
-    if (probeData.x > dataRange_.xmax() - 0.5)
-      probeData.x = dataRange_.xmax() - 0.5;
+    if (probeData.x > dataRange.xmax() - 0.5)
+      probeData.x = dataRange.xmax() - 0.5;
 
     probeData.x = std::round(probeData.x);
   }
   else {
-    if (probeData.y < dataRange_.ymin() + 0.5)
-      probeData.y = dataRange_.ymin() + 0.5;
+    if (probeData.y < dataRange.ymin() + 0.5)
+      probeData.y = dataRange.ymin() + 0.5;
 
-    if (probeData.y > dataRange_.ymax() - 0.5)
-      probeData.y = dataRange_.ymax() - 0.5;
+    if (probeData.y > dataRange.ymax() - 0.5)
+      probeData.y = dataRange.ymax() - 0.5;
 
     probeData.y = std::round(probeData.y);
   }

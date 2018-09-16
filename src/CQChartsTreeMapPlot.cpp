@@ -64,7 +64,7 @@ CQChartsTreeMapPlot(CQChartsView *view, const ModelP &model) :
 
   setTextContrast(true);
 
-  setMargins(1, 1, 1, 1);
+  setOuterMargin(1, 1, 1, 1);
 
   addTitle();
 }
@@ -239,22 +239,24 @@ updateCurrentRoot()
   updateObjs();
 }
 
-void
+CQChartsGeom::Range
 CQChartsTreeMapPlot::
 calcRange()
 {
+  CQChartsGeom::Range dataRange;
+
   double r = 1.0;
 
-  dataRange_.reset();
-
-  dataRange_.updateRange(-r, -r);
-  dataRange_.updateRange( r,  r);
+  dataRange.updateRange(-r, -r);
+  dataRange.updateRange( r,  r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  return dataRange;
 }
 
 //------

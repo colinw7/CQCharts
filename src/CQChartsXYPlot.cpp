@@ -449,7 +449,7 @@ interpPaletteColor(int i, int n, bool scale) const
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsXYPlot::
 calcRange()
 {
@@ -534,25 +534,25 @@ calcRange()
 
   visitModel(visitor);
 
-  dataRange_ = visitor.range();
+  CQChartsGeom::Range dataRange = visitor.range();
 
   //---
 
   adjustDataRange();
 
-  if (dataRange_.isSet()) {
-    if (CMathUtil::isZero(dataRange_.dx())) {
-      double xm = dataRange_.xmid();
+  if (dataRange.isSet()) {
+    if (CMathUtil::isZero(dataRange.dx())) {
+      double xm = dataRange.xmid();
 
-      dataRange_.setLeft (xm - 1.0);
-      dataRange_.setRight(xm + 1.0);
+      dataRange.setLeft (xm - 1.0);
+      dataRange.setRight(xm + 1.0);
     }
 
-    if (CMathUtil::isZero(dataRange_.dy())) {
-      double ym = dataRange_.ymid();
+    if (CMathUtil::isZero(dataRange.dy())) {
+      double ym = dataRange.ymid();
 
-      dataRange_.setBottom(ym - 1.0);
-      dataRange_.setTop   (ym + 1.0);
+      dataRange.setBottom(ym - 1.0);
+      dataRange.setTop   (ym + 1.0);
     }
   }
 
@@ -648,6 +648,10 @@ calcRange()
       yAxis()->setLabel(yname);
     }
   }
+
+  //---
+
+  return dataRange;
 }
 
 QString
@@ -767,9 +771,11 @@ initObjs()
 
   //---
 
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
   // TODO: use actual symbol size
-  symbolWidth_  = (dataRange_.xmax() - dataRange_.xmin())/100.0;
-  symbolHeight_ = (dataRange_.ymax() - dataRange_.ymin())/100.0;
+  symbolWidth_  = (dataRange.xmax() - dataRange.xmin())/100.0;
+  symbolHeight_ = (dataRange.ymax() - dataRange.ymin())/100.0;
 
   //---
 
@@ -1318,15 +1324,15 @@ initObjs()
           // if first point then add first point of previous polygon
           if (ip == 0) {
             if (isStacked()) {
-              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange_.ymin());
+              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
 
               if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-                y1 = dataRange_.ymin();
+                y1 = dataRange.ymin();
 
               polyShape << QPointF(x, y1);
             }
             else
-              polyShape << calcFillUnderPos(x, dataRange_.ymin());
+              polyShape << calcFillUnderPos(x, dataRange.ymin());
           }
 
           polyShape << p;
@@ -1334,15 +1340,15 @@ initObjs()
           // if last point then add last point of previous polygon
           if (ip == np - 1) {
             if (isStacked()) {
-              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange_.ymin());
+              double y1 = (j > 0 ? prevPoly[ip].y() : dataRange.ymin());
 
               if (CMathUtil::isNaN(y1) || CMathUtil::isInf(y1))
-                y1 = dataRange_.ymin();
+                y1 = dataRange.ymin();
 
               polyShape << QPointF(x, y1);
             }
             else
-              polyShape << calcFillUnderPos(x, dataRange_.ymin());
+              polyShape << calcFillUnderPos(x, dataRange.ymin());
           }
         }
 
@@ -1439,24 +1445,26 @@ calcFillUnderPos(double x, double y) const
   double x1 = x;
   double y1 = y;
 
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
   if      (pos.xtype() == CQChartsFillUnderPos::Type::MIN) {
-    if (dataRange_.isSet())
-      x1 = dataRange_.xmin();
+    if (dataRange.isSet())
+      x1 = dataRange.xmin();
   }
   else if (pos.xtype() == CQChartsFillUnderPos::Type::MAX) {
-    if (dataRange_.isSet())
-      x1 = dataRange_.xmax();
+    if (dataRange.isSet())
+      x1 = dataRange.xmax();
   }
   else if (pos.xtype() == CQChartsFillUnderPos::Type::POS)
     x1 = pos.xpos();
 
   if      (pos.ytype() == CQChartsFillUnderPos::Type::MIN) {
-    if (dataRange_.isSet())
-      y1 = dataRange_.ymin();
+    if (dataRange.isSet())
+      y1 = dataRange.ymin();
   }
   else if (pos.ytype() == CQChartsFillUnderPos::Type::MAX) {
-    if (dataRange_.isSet())
-      y1 = dataRange_.ymax();
+    if (dataRange.isSet())
+      y1 = dataRange.ymax();
   }
   else if (pos.ytype() == CQChartsFillUnderPos::Type::POS)
     y1 = pos.ypos();

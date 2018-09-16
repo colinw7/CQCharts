@@ -362,7 +362,7 @@ class CQChartsTreeMapPlot : public CQChartsHierPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void updateObjs() override;
 

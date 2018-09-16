@@ -197,7 +197,7 @@ addProperties()
   dataLabel_.addPathProperties("dataLabel");
 }
 
-void
+CQChartsGeom::Range
 CQChartsHierScatterPlot::
 calcRange()
 {
@@ -239,24 +239,24 @@ calcRange()
 
   visitModel(visitor);
 
-  dataRange_ = visitor.range();
+  CQChartsGeom::Range dataRange = visitor.range();
 
   //---
 
-  if (CMathUtil::isZero(dataRange_.xsize())) {
-    double x = dataRange_.xmid();
-    double y = dataRange_.ymid();
+  if (CMathUtil::isZero(dataRange.xsize())) {
+    double x = dataRange.xmid();
+    double y = dataRange.ymid();
 
-    dataRange_.updateRange(x - 1, y);
-    dataRange_.updateRange(x + 1, y);
+    dataRange.updateRange(x - 1, y);
+    dataRange.updateRange(x + 1, y);
   }
 
-  if (CMathUtil::isZero(dataRange_.ysize())) {
-    double x = dataRange_.xmid();
-    double y = dataRange_.ymid();
+  if (CMathUtil::isZero(dataRange.ysize())) {
+    double x = dataRange.xmid();
+    double y = dataRange.ymid();
 
-    dataRange_.updateRange(x, y - 1);
-    dataRange_.updateRange(x, y + 1);
+    dataRange.updateRange(x, y - 1);
+    dataRange.updateRange(x, y + 1);
   }
 
   //---
@@ -271,6 +271,10 @@ calcRange()
 
   xAxis_->setLabel(xname);
   yAxis_->setLabel(yname);
+
+  //---
+
+  return dataRange;
 }
 
 int

@@ -137,24 +137,26 @@ addProperties()
   addTextProperties("text", "text");
 }
 
-void
+CQChartsGeom::Range
 CQChartsSankeyPlot::
 calcRange()
 {
+  CQChartsGeom::Range dataRange;
+
   QAbstractItemModel *model = this->model().data();
 
   if (! model)
-    return;
-
-  dataRange_.reset();
+    return dataRange;
 
   if (bbox_.isSet()) {
     double xm = bbox_.getHeight()*0.01;
     double ym = bbox_.getWidth ()*0.01;
 
-    dataRange_.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
-    dataRange_.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
+    dataRange.updateRange(bbox_.getXMin() - xm, bbox_.getYMin() - ym);
+    dataRange.updateRange(bbox_.getXMax() + xm, bbox_.getYMax() + ym);
   }
+
+  return dataRange;
 }
 
 bool

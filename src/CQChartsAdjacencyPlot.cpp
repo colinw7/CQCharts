@@ -118,7 +118,7 @@ CQChartsAdjacencyPlot(CQChartsView *view, const ModelP &model) :
   setEmptyCellFillColor  (CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.1));
   setEmptyCellBorderColor(CQChartsColor(CQChartsColor::Type::INTERFACE_VALUE, 0.2));
 
-  setMargins(0, 0, 0, 0);
+  setOuterMargin(0, 0, 0, 0);
 
   addTitle();
 }
@@ -229,13 +229,13 @@ addProperties()
   addTextProperties("text", "text");
 }
 
-void
+CQChartsGeom::Range
 CQChartsAdjacencyPlot::
 calcRange()
 {
-  double r = 1.0;
+  CQChartsGeom::Range dataRange;
 
-  dataRange_.reset();
+  double r = 1.0;
 
   //---
 
@@ -244,14 +244,16 @@ calcRange()
 
   //---
 
-  dataRange_.updateRange(0, 0);
-  dataRange_.updateRange(r, r);
+  dataRange.updateRange(0, 0);
+  dataRange.updateRange(r, r);
 
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
+
+  return dataRange;
 }
 
 bool

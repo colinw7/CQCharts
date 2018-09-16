@@ -12,6 +12,7 @@
 #include <CQChartsUtil.h>
 #include <CQChartsTypes.h>
 #include <CQChartsGeom.h>
+#include <CQChartsPlotMargin.h>
 #include <CQBaseModel.h>
 
 #include <QAbstractItemModel>
@@ -98,11 +99,18 @@ class CQChartsPlot : public QObject,
   Q_PROPERTY(CQChartsColumn idColumn  READ idColumn  WRITE setIdColumn )
   Q_PROPERTY(CQChartsColumn tipColumn READ tipColumn WRITE setTipColumn)
 
-  // visible, rectangle and data range
-  Q_PROPERTY(bool   visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(bool   selected READ isSelected WRITE setSelected)
-  Q_PROPERTY(QRectF rect     READ rect       WRITE setRect    )
-  Q_PROPERTY(QRectF range    READ range      WRITE setRange   )
+  // visible, selected
+  Q_PROPERTY(bool visible  READ isVisible  WRITE setVisible )
+  Q_PROPERTY(bool selected READ isSelected WRITE setSelected)
+
+  // rectangle and data range
+  Q_PROPERTY(QRectF viewRect READ viewRect WRITE setViewRect)
+  Q_PROPERTY(QRectF range    READ range    WRITE setRange   )
+
+  Q_PROPERTY(QRectF innerViewRect READ innerViewRect)
+  Q_PROPERTY(QRectF calcDataRect  READ calcDataRect )
+  Q_PROPERTY(QRectF outerDataRect READ outerDataRect)
+  Q_PROPERTY(QRectF dataRect      READ dataRect     )
 
   // scaling
   Q_PROPERTY(bool   equalScale  READ isEqualScale WRITE setEqualScale   )
@@ -120,11 +128,17 @@ class CQChartsPlot : public QObject,
   // filter
   Q_PROPERTY(QString filterStr READ filterStr WRITE setFilterStr)
 
-  // margin
-  Q_PROPERTY(double marginLeft   READ marginLeft   WRITE setMarginLeft  )
-  Q_PROPERTY(double marginTop    READ marginTop    WRITE setMarginTop   )
-  Q_PROPERTY(double marginRight  READ marginRight  WRITE setMarginRight )
-  Q_PROPERTY(double marginBottom READ marginBottom WRITE setMarginBottom)
+  // inner margin
+  Q_PROPERTY(CQChartsLength innerMarginLeft   READ innerMarginLeft   WRITE setInnerMarginLeft  )
+  Q_PROPERTY(CQChartsLength innerMarginTop    READ innerMarginTop    WRITE setInnerMarginTop   )
+  Q_PROPERTY(CQChartsLength innerMarginRight  READ innerMarginRight  WRITE setInnerMarginRight )
+  Q_PROPERTY(CQChartsLength innerMarginBottom READ innerMarginBottom WRITE setInnerMarginBottom)
+
+  // outer margin
+  Q_PROPERTY(CQChartsLength outerMarginLeft   READ outerMarginLeft   WRITE setOuterMarginLeft  )
+  Q_PROPERTY(CQChartsLength outerMarginTop    READ outerMarginTop    WRITE setOuterMarginTop   )
+  Q_PROPERTY(CQChartsLength outerMarginRight  READ outerMarginRight  WRITE setOuterMarginRight )
+  Q_PROPERTY(CQChartsLength outerMarginBottom READ outerMarginBottom WRITE setOuterMarginBottom)
 
   // title and associated filename (if any)
   Q_PROPERTY(QString title    READ titleStr WRITE setTitleStr)
@@ -174,14 +188,6 @@ class CQChartsPlot : public QObject,
 
  public:
   using SelMod = CQChartsSelMod;
-
-  // margin (percent)
-  struct Margin {
-    double left   { 10 };
-    double top    { 10 };
-    double right  { 10 };
-    double bottom { 10 };
-  };
 
   // associated plot for overlay/y1y2
   struct ConnectData {
@@ -432,12 +438,16 @@ class CQChartsPlot : public QObject,
   //---
 
   // bbox in view range
-  const CQChartsGeom::BBox &bbox() const { return bbox_; }
-  void setBBox(const CQChartsGeom::BBox &bbox);
+  const CQChartsGeom::BBox &viewBBox() const { return viewBBox_; }
+  void setViewBBox(const CQChartsGeom::BBox &bbox);
 
-  // bbox in view range (as QRectF)
-  QRectF rect() const;
-  void setRect(const QRectF &r);
+  const CQChartsGeom::BBox &innerViewBBox() const { return innerViewBBox_; }
+
+  // get set in view rect (as QRectF)
+  QRectF viewRect() const;
+  void setViewRect(const QRectF &r);
+
+  QRectF innerViewRect() const;
 
   // data range
   QRectF range() const;
@@ -445,27 +455,45 @@ class CQChartsPlot : public QObject,
 
   //---
 
-  // margins
-  double marginLeft() const { return margin_.left; }
-  void setMarginLeft(double r) { margin_.left = r; updateMargin(); }
+  QRectF calcDataRect () const;
+  QRectF outerDataRect() const;
+  QRectF dataRect     () const;
 
-  double marginTop() const { return margin_.top; }
-  void setMarginTop(double r) { margin_.top = r; updateMargin(); }
+  //---
 
-  double marginRight() const { return margin_.right; }
-  void setMarginRight(double r) { margin_.right = r; updateMargin(); }
+  // inner margin
+  const CQChartsLength &innerMarginLeft() const { return innerMargin_.left(); }
+  void setInnerMarginLeft(const CQChartsLength &l);
 
-  double marginBottom() const { return margin_.bottom; }
-  void setMarginBottom(double r) { margin_.bottom = r; updateMargin(); }
+  const CQChartsLength &innerMarginTop() const { return innerMargin_.top(); }
+  void setInnerMarginTop(const CQChartsLength &t);
 
-  void setMargins(double l, double t, double r, double b) {
-    margin_.left   = l;
-    margin_.top    = t;
-    margin_.right  = r;
-    margin_.bottom = b;
+  const CQChartsLength &innerMarginRight() const { return innerMargin_.right(); }
+  void setInnerMarginRight(const CQChartsLength &r);
 
-    updateMargin();
-  }
+  const CQChartsLength &innerMarginBottom() const { return innerMargin_.bottom(); }
+  void setInnerMarginBottom(const CQChartsLength &b);
+
+  void setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
+                      const CQChartsLength &r, const CQChartsLength &b);
+
+  // outer margin
+  const CQChartsLength &outerMarginLeft() const { return outerMargin_.left(); }
+  void setOuterMarginLeft(const CQChartsLength &l);
+
+  const CQChartsLength &outerMarginTop() const { return outerMargin_.top(); }
+  void setOuterMarginTop(const CQChartsLength &t);
+
+  const CQChartsLength &outerMarginRight() const { return outerMargin_.right(); }
+  void setOuterMarginRight(const CQChartsLength &r);
+
+  const CQChartsLength &outerMarginBottom() const { return outerMargin_.bottom(); }
+  void setOuterMarginBottom(const CQChartsLength &b);
+
+  void setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
+                      const CQChartsLength &r, const CQChartsLength &b);
+
+  //---
 
   // aspect ratio
   double aspect() const;
@@ -566,7 +594,7 @@ class CQChartsPlot : public QObject,
 
   //---
 
-  void updateMargin(bool update=true);
+  void updateMargins(bool update=true);
 
   //---
 
@@ -853,10 +881,12 @@ class CQChartsPlot : public QObject,
 
   //---
 
+  void resetRange();
+
   // update data range (calls calcRange)
   virtual void updateRange(bool apply=true);
 
-  virtual void calcRange() = 0;
+  virtual CQChartsGeom::Range calcRange() = 0;
 
   // update plot objects (clear objects, objects updated on next redraw)
   virtual void updateObjs();
@@ -1525,11 +1555,15 @@ class CQChartsPlot : public QObject,
   QString                   id_;                              // plot id
   bool                      visible_          { true };       // is visible
   bool                      selected_         { false };      // is selected
-  CQChartsGeom::BBox        bbox_             { 0, 0, 1, 1 }; // view box
-  Margin                    margin_;                          // border margin
+  CQChartsGeom::BBox        viewBBox_         { 0, 0, 1, 1 }; // view box
+  CQChartsGeom::BBox        innerViewBBox_    { 0, 0, 1, 1 }; // inner view box
+  CQChartsPlotMargin        innerMargin_      { 0, 0, 0, 0 }; // inner margin
+  CQChartsPlotMargin        outerMargin_      { 10, 10, 10, 10 }; // outer margin
   CQChartsDisplayRange*     displayRange_     { nullptr };    // value range mapping
   CQChartsDisplayTransform* displayTransform_ { nullptr };    // value range transform (zoom/pan)
+  CQChartsGeom::Range       calcDataRange_;                   // calc data range
   CQChartsGeom::Range       dataRange_;                       // data range
+  CQChartsGeom::Range       outerDataRange_;                  // outer data range
   double                    dataScaleX_       { 1.0 };        // data scale (zoom in x direction)
   double                    dataScaleY_       { 1.0 };        // data scale (zoom in y direction)
   CQChartsGeom::Point       dataOffset_       { 0.0, 0.0 };   // data offset (pan)

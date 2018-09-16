@@ -255,15 +255,15 @@ addProperties()
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsPiePlot::
 calcRange()
 {
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   CQChartsGeom::Point c(0.0, 0.0);
 
-  dataRange_.updateRange(c);
+  dataRange.updateRange(c);
 
   //---
 
@@ -274,8 +274,8 @@ calcRange()
   double angle2 = angle1 - alen;
 
   // add segment outside points
-  dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
-  dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
+  dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, angle1));
+  dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, angle2));
 
   // add intermediate points (every 90 degree point between outside points)
   double a1 = 90.0*CMathRound::RoundDownF(angle1/90.0);
@@ -283,13 +283,13 @@ calcRange()
   if (angle1 < angle2) {
     for (double a = a1; a < angle2; a += 90.0) {
       if (a > angle1 && a < angle2)
-        dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+        dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
     }
   }
   else {
     for (double a = a1; a > angle2; a -= 90.0) {
       if (a > angle2 && a < angle1)
-        dataRange_.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
+        dataRange.updateRange(CQChartsUtil::AngleToPoint(c, r, a));
     }
   }
 
@@ -298,13 +298,17 @@ calcRange()
   if (isEqualScale()) {
     double aspect = this->aspect();
 
-    dataRange_.equalScale(aspect);
+    dataRange.equalScale(aspect);
   }
 
   //---
 
   // init grouping
   initGroupData(valueColumns(), labelColumn());
+
+  //---
+
+  return dataRange;
 }
 
 //------
@@ -967,7 +971,7 @@ handleResize()
 {
   CQChartsPlot::handleResize();
 
-  dataRange_.reset();
+  resetRange();
 }
 
 //------

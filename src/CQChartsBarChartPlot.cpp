@@ -211,16 +211,16 @@ setDotLineWidth(const CQChartsLength &l)
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsBarChartPlot::
 calcRange()
 {
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   if (! isHorizontal())
-    dataRange_.updateRange(-0.5, 0);
+    dataRange.updateRange(-0.5, 0);
   else
-    dataRange_.updateRange(0, -0.5);
+    dataRange.updateRange(0, -0.5);
 
   //---
 
@@ -241,21 +241,22 @@ calcRange()
   // process model data
   class BarChartVisitor : public ModelVisitor {
    public:
-    BarChartVisitor(CQChartsBarChartPlot *plot) :
-     plot_(plot) {
+    BarChartVisitor(CQChartsBarChartPlot *plot, CQChartsGeom::Range &dataRange) :
+     plot_(plot), dataRange_(dataRange) {
     }
 
     State visit(QAbstractItemModel *, const VisitData &data) override {
-      plot_->addRow(data);
+      plot_->addRow(data, dataRange_);
 
       return State::OK;
     }
 
    private:
     CQChartsBarChartPlot *plot_ { nullptr };
+    CQChartsGeom::Range&  dataRange_;
   };
 
-  BarChartVisitor barChartVisitor(this);
+  BarChartVisitor barChartVisitor(this, dataRange);
 
   visitModel(barChartVisitor);
 
@@ -295,15 +296,15 @@ calcRange()
 
   if (ng > 0) {
     if (! isHorizontal())
-      dataRange_.updateRange(numVisible - 0.5, dataRange_.ymin());
+      dataRange.updateRange(numVisible - 0.5, dataRange.ymin());
     else
-      dataRange_.updateRange(dataRange_.xmin(), numVisible - 0.5);
+      dataRange.updateRange(dataRange.xmin(), numVisible - 0.5);
   }
   else {
     if (! isHorizontal())
-      dataRange_.updateRange(0.5, 1.0);
+      dataRange.updateRange(0.5, 1.0);
     else
-      dataRange_.updateRange(1.0, 0.5);
+      dataRange.updateRange(1.0, 0.5);
   }
 
   //---
@@ -365,29 +366,34 @@ calcRange()
   }
 
   yAxis->setLabel(yname);
+
+  //---
+
+  return dataRange;
 }
 
 void
 CQChartsBarChartPlot::
-addRow(const ModelVisitor::VisitData &data)
+addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange)
 {
   // add value for each column (non-range)
   if (! isRangeBar()) {
     for (const auto &column : valueColumns()) {
       CQChartsColumns columns { column };
 
-      addRowColumn(data, columns);
+      addRowColumn(data, columns, dataRange);
     }
   }
   // add all values for columns (range)
   else {
-    addRowColumn(data, this->valueColumns());
+    addRowColumn(data, this->valueColumns(), dataRange);
   }
 }
 
 void
 CQChartsBarChartPlot::
-addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns)
+addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
+             CQChartsGeom::Range &dataRange)
 {
   CQChartsModelIndex ind;
 
@@ -587,22 +593,22 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
   // update range for scale and sums
   if (! isHorizontal()) {
     if (isStacked()) {
-      dataRange_.updateRange(0, scale*posSum);
-      dataRange_.updateRange(0, scale*negSum);
+      dataRange.updateRange(0, scale*posSum);
+      dataRange.updateRange(0, scale*negSum);
     }
     else {
       for (const auto &valueInd : valueInds)
-        dataRange_.updateRange(0, scale*valueInd.value);
+        dataRange.updateRange(0, scale*valueInd.value);
     }
   }
   else {
     if (isStacked()) {
-      dataRange_.updateRange(scale*posSum, 0);
-      dataRange_.updateRange(scale*negSum, 0);
+      dataRange.updateRange(scale*posSum, 0);
+      dataRange.updateRange(scale*negSum, 0);
     }
     else {
       for (const auto &valueInd : valueInds)
-        dataRange_.updateRange(scale*valueInd.value, 0);
+        dataRange.updateRange(scale*valueInd.value, 0);
     }
   }
 }

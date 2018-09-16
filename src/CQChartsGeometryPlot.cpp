@@ -173,16 +173,16 @@ addProperties()
   addProperty("value", this, "maxValue", "max");
 }
 
-void
+CQChartsGeom::Range
 CQChartsGeometryPlot::
 calcRange()
 {
+  CQChartsGeom::Range dataRange;
+
   QAbstractItemModel *model = this->model().data();
 
   if (! model)
-    return;
-
-  dataRange_.reset();
+    return dataRange;
 
   geometries_.clear();
 
@@ -205,23 +205,29 @@ calcRange()
     }
 
     State visit(QAbstractItemModel *model, const VisitData &data) override {
-      plot_->addRow(model, data);
+      plot_->addRow(model, data, dataRange_);
 
       return State::OK;
     }
 
+    const CQChartsGeom::Range &dataRange() const { return dataRange_; }
+
    private:
     CQChartsGeometryPlot *plot_ { nullptr };
+    CQChartsGeom::Range   dataRange_;
   };
 
   GeometryPlotVisitor geometryPlotVisitor(this);
 
   visitModel(geometryPlotVisitor);
+
+  return geometryPlotVisitor.dataRange();
 }
 
 void
 CQChartsGeometryPlot::
-addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data)
+addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data,
+       CQChartsGeom::Range &dataRange)
 {
   Geometry geometry;
 
@@ -298,7 +304,7 @@ addRow(QAbstractItemModel *model, const ModelVisitor::VisitData &data)
     for (int j = 0; j < poly.count(); ++j) {
       const QPointF &p = poly[j];
 
-      dataRange_.updateRange(p.x(), p.y());
+      dataRange.updateRange(p.x(), p.y());
 
       geometry.bbox.add(p.x(), p.y());
     }

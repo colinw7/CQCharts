@@ -97,7 +97,7 @@ CQChartsForceDirectedPlot(CQChartsView *view, const ModelP &model) :
  CQChartsObjNodeShapeData<CQChartsForceDirectedPlot>(this),
  CQChartsObjEdgeLineData <CQChartsForceDirectedPlot>(this)
 {
-  setMargins(0, 0, 0, 0);
+  setOuterMargin(0, 0, 0, 0);
 
   setNodeBorderAlpha(0.5);
 
@@ -204,11 +204,11 @@ addProperties()
   addLineProperties("edge/stroke", "edgeLines" );
 }
 
-void
+CQChartsGeom::Range
 CQChartsForceDirectedPlot::
 calcRange()
 {
-  dataRange_.reset();
+  CQChartsGeom::Range dataRange;
 
   //---
 
@@ -218,8 +218,10 @@ calcRange()
   //---
 
   // TODO: calculate good range size from data or auto scale/fit ?
-  dataRange_.updateRange(-rangeSize_, -rangeSize_);
-  dataRange_.updateRange( rangeSize_,  rangeSize_);
+  dataRange.updateRange(-rangeSize_, -rangeSize_);
+  dataRange.updateRange( rangeSize_,  rangeSize_);
+
+  return dataRange;
 }
 
 bool

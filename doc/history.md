@@ -630,3 +630,5 @@
  + Add CQChartsKeyLocation meta type
  + Add CQChartsSides meta type
  + CQChartsFillUnderSide and CQChartsFillUnderPos meta types
+# 9/16/2018
+ + Add inner margin support

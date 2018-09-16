@@ -65,7 +65,8 @@ CQChartsPlot(CQChartsView *view, CQChartsPlotType *type, const ModelP &model) :
 
   double vr = CQChartsView::viewportRange();
 
-  bbox_ = CQChartsGeom::BBox(0, 0, vr, vr);
+  viewBBox_      = CQChartsGeom::BBox(0, 0, vr, vr);
+  innerViewBBox_ = viewBBox_;
 
   displayRange_->setPixelAdjust(0);
 
@@ -675,7 +676,7 @@ setEqualScale(bool b)
   CQChartsUtil::testAndSet(equalScale_, b, [&]() {
     setDataRange(CQChartsGeom::Range());
 
-    //updateMargin();
+    //updateMargins();
   });
 }
 
@@ -689,24 +690,22 @@ setShowBoxes(bool b)
 
 void
 CQChartsPlot::
-setBBox(const CQChartsGeom::BBox &bbox)
+setViewBBox(const CQChartsGeom::BBox &bbox)
 {
-  bbox_ = bbox;
+  viewBBox_      = bbox;
+  innerViewBBox_ = viewBBox_;
 
-  updateMargin();
+  updateMargins();
 }
 
 void
 CQChartsPlot::
-updateMargin(bool update)
+updateMargins(bool update)
 {
-  double xml = bbox_.getWidth ()*marginLeft  ()/100.0;
-  double ymt = bbox_.getHeight()*marginTop   ()/100.0;
-  double xmr = bbox_.getWidth ()*marginRight ()/100.0;
-  double ymb = bbox_.getHeight()*marginBottom()/100.0;
+  innerViewBBox_ = outerMargin_.adjustRange(this, viewBBox_, /*inside*/false);
 
-  displayRange_->setPixelRange(bbox_.getXMin() + xml, bbox_.getYMax() - ymt,
-                               bbox_.getXMax() - xmr, bbox_.getYMin() + ymb);
+  displayRange_->setPixelRange(innerViewBBox_.getXMin(), innerViewBBox_.getYMax(),
+                               innerViewBBox_.getXMax(), innerViewBBox_.getYMin());
 
   updateKeyPosition(/*force*/true);
 
@@ -716,25 +715,64 @@ updateMargin(bool update)
 
 QRectF
 CQChartsPlot::
-rect() const
+viewRect() const
 {
-  return CQChartsUtil::toQRect(bbox());
+  return CQChartsUtil::toQRect(viewBBox());
 }
 
 void
 CQChartsPlot::
-setRect(const QRectF &r)
+setViewRect(const QRectF &r)
 {
-  setBBox(CQChartsUtil::fromQRect(r));
+  setViewBBox(CQChartsUtil::fromQRect(r));
 }
+
+QRectF
+CQChartsPlot::
+innerViewRect() const
+{
+  return CQChartsUtil::toQRect(innerViewBBox());
+}
+
+//---
+
+QRectF
+CQChartsPlot::
+calcDataRect() const
+{
+  if (calcDataRange_.isSet())
+    return CQChartsUtil::toQRect(calcDataRange_);
+  else
+    return QRectF();
+}
+
+QRectF
+CQChartsPlot::
+outerDataRect() const
+{
+  if (outerDataRange_.isSet())
+    return CQChartsUtil::toQRect(outerDataRange_);
+  else
+    return QRectF();
+}
+
+QRectF
+CQChartsPlot::
+dataRect() const
+{
+  if (dataRange_.isSet())
+    return CQChartsUtil::toQRect(dataRange_);
+  else
+    return QRectF();
+}
+
+//---
 
 QRectF
 CQChartsPlot::
 range() const
 {
-  CQChartsGeom::BBox dataRange = calcDataRange();
-
-  return CQChartsUtil::toQRect(dataRange);
+  return dataRect();
 }
 
 void
@@ -747,7 +785,7 @@ setRange(const QRectF &r)
 
   CQChartsGeom::BBox bbox = CQChartsUtil::fromQRect(r);
 
-  CQChartsGeom::Range range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
+  CQChartsGeom::Range range = CQChartsUtil::bboxRange(bbox);
 
   setDataRange(range);
 
@@ -760,8 +798,8 @@ aspect() const
 {
   double px1, py1, px2, py2;
 
-  view_->windowToPixel(bbox_.getXMin(), bbox_.getYMin(), px1, py1);
-  view_->windowToPixel(bbox_.getXMax(), bbox_.getYMax(), px2, py2);
+  view_->windowToPixel(viewBBox_.getXMin(), viewBBox_.getYMin(), px1, py1);
+  view_->windowToPixel(viewBBox_.getXMax(), viewBBox_.getYMax(), px2, py2);
 
   if (py1 == py2)
     return 1.0;
@@ -769,7 +807,130 @@ aspect() const
   return fabs(px2 - px1)/fabs(py2 - py1);
 }
 
-//------
+//---
+
+// inner margin
+void
+CQChartsPlot::
+setInnerMarginLeft(const CQChartsLength &l)
+{
+  if (l != innerMargin_.left()) {
+    innerMargin_.setLeft(l);
+
+    applyDataRange();
+
+    invalidateLayers();
+  }
+}
+
+void
+CQChartsPlot::
+setInnerMarginTop(const CQChartsLength &t)
+{
+  if (t != innerMargin_.top()) {
+    innerMargin_.setTop(t);
+
+    applyDataRange();
+
+    invalidateLayers();
+  }
+}
+
+void
+CQChartsPlot::
+setInnerMarginRight(const CQChartsLength &r)
+{
+  if (r != innerMargin_.right()) {
+    innerMargin_.setRight(r);
+
+    applyDataRange();
+
+    invalidateLayers();
+  }
+}
+
+void
+CQChartsPlot::
+setInnerMarginBottom(const CQChartsLength &b)
+{
+  if (b != innerMargin_.bottom()) {
+    innerMargin_.setBottom(b);
+
+    applyDataRange();
+
+    invalidateLayers();
+  }
+}
+
+void
+CQChartsPlot::
+setInnerMargin(const CQChartsLength &l, const CQChartsLength &t,
+                    const CQChartsLength &r, const CQChartsLength &b)
+{
+  innerMargin_.set(l, t, r, b);
+
+  adjustDataRange();
+
+  invalidateLayers();
+}
+
+//---
+
+void
+CQChartsPlot::
+setOuterMarginLeft(const CQChartsLength &l)
+{
+  if (l != outerMargin_.left()) {
+    outerMargin_.setLeft(l);
+
+    updateMargins();
+  }
+}
+
+void
+CQChartsPlot::
+setOuterMarginTop(const CQChartsLength &t)
+{
+  if (t != outerMargin_.top()) {
+    outerMargin_.setTop(t);
+
+    updateMargins();
+  }
+}
+
+void
+CQChartsPlot::
+setOuterMarginRight(const CQChartsLength &r)
+{
+  if (r != outerMargin_.right()) {
+    outerMargin_.setRight(r);
+
+    updateMargins();
+  }
+}
+
+void
+CQChartsPlot::
+setOuterMarginBottom(const CQChartsLength &b)
+{
+  if (b != outerMargin_.bottom()) {
+    outerMargin_.setBottom(b);
+
+    updateMargins();
+  }
+}
+
+void
+CQChartsPlot::
+setOuterMargin(const CQChartsLength &l, const CQChartsLength &t,
+               const CQChartsLength &r, const CQChartsLength &b)
+{
+  outerMargin_.set(l, t, r, b);
+
+  updateMargins();
+}
+
+//---
 
 void
 CQChartsPlot::
@@ -980,9 +1141,14 @@ addProperties()
   addProperty("columns", this, "idColumn" , "id" );
   addProperty("columns", this, "tipColumn", "tip");
 
-  addProperty("range", this, "rect"   , "view"   );
-  addProperty("range", this, "range"  , "data"   );
-  addProperty("range", this, "autoFit", "autoFit");
+  addProperty("range", this, "viewRect"     , "view"     );
+  addProperty("range", this, "innerViewRect", "innerView");
+
+  addProperty("range", this, "dataRect"     , "data"     );
+  addProperty("range", this, "calcDataRect" , "calcData" );
+  addProperty("range", this, "outerDataRect", "outerData");
+
+  addProperty("range", this, "autoFit" , "autoFit");
 
   addProperty("scaling"            , this, "equalScale" , "equal");
   addProperty("scaling/data/scale" , this, "dataScaleX" , "x"    );
@@ -1047,12 +1213,19 @@ addProperties()
   addFillProperties(fitStyleFillStr  , "fitFill"  );
   addLineProperties(fitStyleStrokeStr, "fitBorder");
 
-  //------
+  //---
 
-  addProperty("margin", this, "marginLeft"  , "left"  );
-  addProperty("margin", this, "marginTop"   , "top"   );
-  addProperty("margin", this, "marginRight" , "right" );
-  addProperty("margin", this, "marginBottom", "bottom");
+  addProperty("margin/inner", this, "innerMarginLeft"  , "left"  );
+  addProperty("margin/inner", this, "innerMarginTop"   , "top"   );
+  addProperty("margin/inner", this, "innerMarginRight" , "right" );
+  addProperty("margin/inner", this, "innerMarginBottom", "bottom");
+
+  addProperty("margin/outer", this, "outerMarginLeft"  , "left"  );
+  addProperty("margin/outer", this, "outerMarginTop"   , "top"   );
+  addProperty("margin/outer", this, "outerMarginRight" , "right" );
+  addProperty("margin/outer", this, "outerMarginBottom", "bottom");
+
+  //---
 
   addProperty("every", this, "everyEnabled", "enabled");
   addProperty("every", this, "everyStart"  , "start"  );
@@ -1060,6 +1233,8 @@ addProperties()
   addProperty("every", this, "everyStep"   , "step"   );
 
   addProperty("filter", this, "filterStr", "expression");
+
+  //---
 
   if (xAxis()) {
     xAxis()->addProperties(propertyModel(), id() + "/" + "xaxis");
@@ -1333,7 +1508,7 @@ void
 CQChartsPlot::
 clearRangeAndObjs()
 {
-  dataRange_.reset();
+  resetRange();
 
   clearPlotObjects();
 }
@@ -1365,9 +1540,18 @@ updateRangeAndObjsInternal()
 
 void
 CQChartsPlot::
+resetRange()
+{
+  dataRange_.reset();
+}
+
+void
+CQChartsPlot::
 updateRange(bool apply)
 {
-  calcRange();
+  calcDataRange_  = calcRange();
+  dataRange_      = calcDataRange_;
+  outerDataRange_ = dataRange_;
 
   if (apply)
     applyDataRange();
@@ -1410,6 +1594,16 @@ calcDataRange(bool adjust) const
       double y = c.y + bh*dataOffsetY();
 
       bbox = CQChartsGeom::BBox(x - w, y - h, x + w, y + h);
+
+      //---
+
+      CQChartsPlot *th = const_cast<CQChartsPlot *>(this);
+
+      CQChartsGeom::BBox bbox1 = innerMargin_.adjustRange(this, bbox, /*inside*/true);
+
+      th->outerDataRange_ = CQChartsUtil::bboxRange(bbox1);
+
+      return bbox1;
     }
   }
 
@@ -1421,8 +1615,7 @@ CQChartsPlot::
 getDataRange() const
 {
   if (dataRange_.isSet())
-    return CQChartsGeom::BBox(dataRange_.xmin(), dataRange_.ymin(),
-                              dataRange_.xmax(), dataRange_.ymax());
+    return CQChartsUtil::rangeBBox(dataRange_);
   else
     return CQChartsGeom::BBox(0, 0, 1, 1);
 }
@@ -1477,8 +1670,7 @@ applyDataRange(bool propagate)
   if (propagate) {
     if      (isX1X2()) {
       CQChartsGeom::Range dataRange1 =
-        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
-                            dataRange.getXMax(), dataRange.getYMax());
+        CQChartsUtil::bboxRange(dataRange);
 
       CQChartsPlot *plot1, *plot2;
 
@@ -1517,9 +1709,7 @@ applyDataRange(bool propagate)
       }
     }
     else if (isY1Y2()) {
-      CQChartsGeom::Range dataRange1 =
-        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
-                            dataRange.getXMax(), dataRange.getYMax());
+      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
 
       CQChartsPlot *plot1, *plot2;
 
@@ -1558,9 +1748,7 @@ applyDataRange(bool propagate)
       }
     }
     else if (isOverlay()) {
-      CQChartsGeom::Range dataRange1 =
-        CQChartsGeom::Range(dataRange.getXMin(), dataRange.getYMin(),
-                            dataRange.getXMax(), dataRange.getYMax());
+      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
 
       Plots plots;
 
@@ -1623,6 +1811,9 @@ void
 CQChartsPlot::
 adjustDataRange()
 {
+  dataRange_ = calcDataRange_;
+
+  // adjust data range to custom values
   if (xmin()) dataRange_.setLeft  (*xmin());
   if (ymin()) dataRange_.setBottom(*ymin());
   if (xmax()) dataRange_.setRight (*xmax());
@@ -2498,12 +2689,12 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
     double dx1 =  view_->pixelToSignedWindowWidth (dx);
     double dy1 = -view_->pixelToSignedWindowHeight(dy);
 
-    bbox_.moveBy(CQChartsGeom::Point(dx1, dy1));
+    viewBBox_.moveBy(CQChartsGeom::Point(dx1, dy1));
 
     if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
-      updateMargin(false);
+      updateMargins(false);
     else
-      updateMargin();
+      updateMargins();
   }
   else if (mouseData_.dragObj == DragObj::PLOT_HANDLE) {
     double dx = mouseData_.movePoint.x() - lastMovePoint.x();
@@ -2514,12 +2705,12 @@ editMove(const CQChartsGeom::Point &p, const CQChartsGeom::Point &w, bool /*firs
 
     editHandles_.updateBBox(dx1, dy1);
 
-    bbox_ = editHandles_.bbox();
+    viewBBox_ = editHandles_.bbox();
 
     if (mouseData_.dragSide == CQChartsResizeHandle::Side::MOVE)
-      updateMargin(false);
+      updateMargins(false);
     else
-      updateMargin();
+      updateMargins();
   }
   else {
     return false;
@@ -2610,7 +2801,7 @@ void
 CQChartsPlot::
 editMoveBy(const QPointF &d)
 {
-  QRectF r = this->range();
+  QRectF r = calcDataRect();
 
   double dw = d.x()*r.width ();
   double dh = d.y()*r.height();
@@ -4375,6 +4566,12 @@ drawBoxes(QPainter *painter)
   drawWindowColorBox(painter, keyFitBBox    ());
   drawWindowColorBox(painter, titleFitBBox  ());
   drawWindowColorBox(painter, annotationBBox());
+
+  //---
+
+  drawWindowColorBox(painter, CQChartsUtil::rangeBBox(calcDataRange_ ), Qt::green);
+  drawWindowColorBox(painter, CQChartsUtil::rangeBBox(dataRange_     ), Qt::green);
+  drawWindowColorBox(painter, CQChartsUtil::rangeBBox(outerDataRange_), Qt::green);
 }
 
 bool
@@ -4485,7 +4682,7 @@ drawEditHandles(QPainter *painter)
   CQChartsPlotKey *key1 = getFirstPlotKey();
 
   if      (isSelected()) {
-    editHandles_.setBBox(this->bbox());
+    editHandles_.setBBox(this->viewBBox());
 
     editHandles_.draw(painter);
   }
@@ -4541,7 +4738,7 @@ CQChartsGeom::BBox
 CQChartsPlot::
 calcPlotPixelRect() const
 {
-  return view_->windowToPixel(bbox_);
+  return view_->windowToPixel(viewBBox_);
 }
 
 QSizeF
@@ -4625,15 +4822,17 @@ setFitBBox(const CQChartsGeom::BBox &bbox)
   // calc margin so plot box fits in specified box
   CQChartsGeom::BBox pbbox = displayRangeBBox();
 
-  margin_.left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
-  margin_.bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
-  margin_.right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
-  margin_.top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
+  double left   = 100.0*(pbbox.getXMin() -  bbox.getXMin())/bbox.getWidth ();
+  double bottom = 100.0*(pbbox.getYMin() -  bbox.getYMin())/bbox.getHeight();
+  double right  = 100.0*( bbox.getXMax() - pbbox.getXMax())/bbox.getWidth ();
+  double top    = 100.0*( bbox.getYMax() - pbbox.getYMax())/bbox.getHeight();
 
-  if (isInvertX()) std::swap(margin_.left, margin_.right );
-  if (isInvertY()) std::swap(margin_.top , margin_.bottom);
+  if (isInvertX()) std::swap(left, right );
+  if (isInvertY()) std::swap(top , bottom);
 
-  updateMargin();
+  outerMargin_ = CQChartsPlotMargin(left, bottom, right, top);
+
+  updateMargins();
 }
 
 CQChartsGeom::BBox
@@ -7249,7 +7448,7 @@ pixelToWindow(const CQChartsGeom::BBox &wrect) const
 
 double
 CQChartsPlot::
-pixelToSignedWindowWidth (double ww) const
+pixelToSignedWindowWidth(double ww) const
 {
   return CMathUtil::sign(ww)*pixelToWindowWidth(ww);
 }

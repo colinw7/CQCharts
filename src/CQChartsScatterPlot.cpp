@@ -618,7 +618,7 @@ addProperties()
 
 //---
 
-void
+CQChartsGeom::Range
 CQChartsScatterPlot::
 calcRange()
 {
@@ -697,7 +697,7 @@ calcRange()
 
   visitModel(visitor);
 
-  dataRange_ = visitor.range();
+  CQChartsGeom::Range dataRange = visitor.range();
 
   bool uniqueX = visitor.isUniqueX();
   bool uniqueY = visitor.isUniqueY();
@@ -713,8 +713,8 @@ calcRange()
       for (int i = 0; i < columnDetails->numUnique(); ++i)
         xAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
-      dataRange_.updateRange(dataRange_.xmin() - 0.5, dataRange_.ymin());
-      dataRange_.updateRange(dataRange_.xmax() + 0.5, dataRange_.ymin());
+      dataRange.updateRange(dataRange.xmin() - 0.5, dataRange.ymin());
+      dataRange.updateRange(dataRange.xmax() + 0.5, dataRange.ymin());
     }
 
     if (uniqueY) {
@@ -723,8 +723,8 @@ calcRange()
       for (int i = 0; i < columnDetails->numUnique(); ++i)
         yAxis()->setTickLabel(i, columnDetails->uniqueValue(i).toString());
 
-      dataRange_.updateRange(dataRange_.xmin(), dataRange_.ymin() - 0.5);
-      dataRange_.updateRange(dataRange_.xmax(), dataRange_.ymax() + 0.5);
+      dataRange.updateRange(dataRange.xmin(), dataRange.ymin() - 0.5);
+      dataRange.updateRange(dataRange.xmax(), dataRange.ymax() + 0.5);
     }
   }
 
@@ -733,31 +733,31 @@ calcRange()
   adjustDataRange();
 
   // update data range if unset
-  if (dataRange_.isSet() && CMathUtil::isZero(dataRange_.xsize())) {
-    double x = dataRange_.xmid();
-    double y = dataRange_.ymid();
+  if (dataRange.isSet() && CMathUtil::isZero(dataRange.xsize())) {
+    double x = dataRange.xmid();
+    double y = dataRange.ymid();
 
-    dataRange_.updateRange(x - 1.0, y);
-    dataRange_.updateRange(x + 1.0, y);
+    dataRange.updateRange(x - 1.0, y);
+    dataRange.updateRange(x + 1.0, y);
   }
 
-  if (dataRange_.isSet() && CMathUtil::isZero(dataRange_.ysize())) {
-    double x = dataRange_.xmid();
-    double y = dataRange_.ymid();
+  if (dataRange.isSet() && CMathUtil::isZero(dataRange.ysize())) {
+    double x = dataRange.xmid();
+    double y = dataRange.ymid();
 
-    dataRange_.updateRange(x, y - 1.0);
-    dataRange_.updateRange(x, y + 1.0);
+    dataRange.updateRange(x, y - 1.0);
+    dataRange.updateRange(x, y + 1.0);
   }
 
   //---
 
-  if (dataRange_.isSet()) {
-    gridData_.xinterval.setStart   (dataRange_.xmin());
-    gridData_.xinterval.setEnd     (dataRange_.xmax());
+  if (dataRange.isSet()) {
+    gridData_.xinterval.setStart   (dataRange.xmin());
+    gridData_.xinterval.setEnd     (dataRange.xmax());
     gridData_.xinterval.setNumMajor(gridData_.nx);
 
-    gridData_.yinterval.setStart   (dataRange_.ymin());
-    gridData_.yinterval.setEnd     (dataRange_.ymax());
+    gridData_.yinterval.setStart   (dataRange.ymin());
+    gridData_.yinterval.setEnd     (dataRange.ymax());
     gridData_.yinterval.setNumMajor(gridData_.ny);
   }
   else {
@@ -773,9 +773,9 @@ calcRange()
   //---
 
   if (isGridded()) {
-    if (dataRange_.isSet()) {
-      dataRange_.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
-      dataRange_.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
+    if (dataRange.isSet()) {
+      dataRange.updateRange(gridData_.xinterval.calcStart(), gridData_.yinterval.calcStart());
+      dataRange.updateRange(gridData_.xinterval.calcEnd  (), gridData_.yinterval.calcEnd  ());
     }
   }
 
@@ -799,6 +799,10 @@ calcRange()
 
   xAxis_->setIntegral(uniqueX);
   yAxis_->setIntegral(uniqueY);
+
+  //---
+
+  return dataRange;
 }
 
 //------

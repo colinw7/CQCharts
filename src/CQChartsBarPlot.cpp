@@ -95,28 +95,30 @@ bool
 CQChartsBarPlot::
 probe(ProbeData &probeData) const
 {
-  if (! dataRange_.isSet())
+  const CQChartsGeom::Range &dataRange = this->dataRange();
+
+  if (! dataRange.isSet())
     return false;
 
   if (! isHorizontal()) {
     probeData.direction = ProbeData::Direction::VERTICAL;
 
-    if (probeData.x < dataRange_.xmin() + 0.5)
-      probeData.x = dataRange_.xmin() + 0.5;
+    if (probeData.x < dataRange.xmin() + 0.5)
+      probeData.x = dataRange.xmin() + 0.5;
 
-    if (probeData.x > dataRange_.xmax() - 0.5)
-      probeData.x = dataRange_.xmax() - 0.5;
+    if (probeData.x > dataRange.xmax() - 0.5)
+      probeData.x = dataRange.xmax() - 0.5;
 
     probeData.x = std::round(probeData.x);
   }
   else {
     probeData.direction = ProbeData::Direction::HORIZONTAL;
 
-    if (probeData.y < dataRange_.ymin() + 0.5)
-      probeData.y = dataRange_.ymin() + 0.5;
+    if (probeData.y < dataRange.ymin() + 0.5)
+      probeData.y = dataRange.ymin() + 0.5;
 
-    if (probeData.y > dataRange_.ymax() - 0.5)
-      probeData.y = dataRange_.ymax() - 0.5;
+    if (probeData.y > dataRange.ymax() - 0.5)
+      probeData.y = dataRange.ymax() - 0.5;
 
     probeData.y = std::round(probeData.y);
   }

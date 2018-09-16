@@ -636,7 +636,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void postInit() override;
 

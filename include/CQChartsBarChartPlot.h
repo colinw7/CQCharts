@@ -319,7 +319,7 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
 
   void addProperties() override;
 
-  void calcRange() override;
+  CQChartsGeom::Range calcRange() override;
 
   void updateObjs() override;
 
@@ -364,9 +364,10 @@ class CQChartsBarChartPlot : public CQChartsBarPlot,
   void setDotLines(bool b);
 
  private:
-  void addRow(const ModelVisitor::VisitData &data);
+  void addRow(const ModelVisitor::VisitData &data, CQChartsGeom::Range &dataRange);
 
-  void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns);
+  void addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueColumns,
+                    CQChartsGeom::Range &dataRange);
 
  private:
   using ValueSets     = std::vector<CQChartsBarChartValueSet>;

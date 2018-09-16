@@ -107,12 +107,24 @@ inline QRectF toQRect(const CQChartsGeom::BBox &rect) {
   return QRectF(toQPoint(rect.getLL()), toQPoint(rect.getUR())).normalized();
 }
 
+inline QRectF toQRect(const CQChartsGeom::Range &range) {
+  return QRectF(range.xmin(), range.ymin(), range.xsize(), range.ysize());
+}
+
 inline QRect toQRectI(const CQChartsGeom::BBox &rect) {
   return QRect(toQPointI(rect.getLL()), toQPointI(rect.getUR())).normalized();
 }
 
 inline CQChartsGeom::BBox fromQRect(const QRectF &rect) {
   return CQChartsGeom::BBox(fromQPoint(rect.bottomLeft()), fromQPoint(rect.topRight()));
+}
+
+inline CQChartsGeom::BBox rangeBBox(const CQChartsGeom::Range &range) {
+  return CQChartsGeom::BBox(range.xmin(), range.ymin(), range.xmax(), range.ymax());
+}
+
+inline CQChartsGeom::Range bboxRange(const CQChartsGeom::BBox &bbox) {
+  return CQChartsGeom::Range(bbox.getXMin(), bbox.getYMin(), bbox.getXMax(), bbox.getYMax());
 }
 
 //------
