@@ -172,8 +172,8 @@ class CQChartsGeometryPlot : public CQChartsPlot,
  private:
   using Geometries = std::vector<Geometry>;
 
-  CQChartsColumn    nameColumn_         { 0 };                // name column
-  CQChartsColumn    geometryColumn_     { 1 };                // geometry column
+  CQChartsColumn    nameColumn_;                              // name column
+  CQChartsColumn    geometryColumn_;                          // geometry column
   CQChartsColumn    valueColumn_;                             // value column
   CQChartsColumn    colorColumn_;                             // color column
   CQChartsColumn    styleColumn_;                             // style column

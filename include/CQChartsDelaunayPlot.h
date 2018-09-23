@@ -138,8 +138,8 @@ class CQChartsDelaunayPlot : public CQChartsPlot,
   void drawVoronoi (QPainter *p);
 
  private:
-  CQChartsColumn    xColumn_          { 0 };       // x column
-  CQChartsColumn    yColumn_          { 1 };       // y column
+  CQChartsColumn    xColumn_;                      // x column
+  CQChartsColumn    yColumn_;                      // y column
   CQChartsColumn    nameColumn_;                   // name column
   bool              voronoi_          { true };    // is voronoi
   double            voronoiPointSize_ { 2 };       // voronoi point size

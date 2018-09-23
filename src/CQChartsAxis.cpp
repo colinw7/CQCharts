@@ -1,5 +1,4 @@
 #include <CQChartsAxis.h>
-#include <CQChartsAxisObj.h>
 #include <CQChartsPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsUtil.h>

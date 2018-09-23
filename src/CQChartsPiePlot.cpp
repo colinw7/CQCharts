@@ -535,6 +535,8 @@ addRowColumn(const CQChartsModelIndex &ind)
   //---
 
   // get value label (used for unique values in group)
+  CQChartsModelIndex lind(ind.row, labelColumn(), ind.parent);
+
   bool ok;
 
   QString label;
@@ -543,10 +545,10 @@ addRowColumn(const CQChartsModelIndex &ind)
     if (valueColumns().count() > 1 && ! isGroupHeaders())
       label = modelHeaderString(ind.column, ok);
     else
-      label = modelString(ind.row, labelColumn(), ind.parent, ok);
+      label = modelString(lind, ok);
   }
   else {
-    label = modelString(ind.row, labelColumn(), ind.parent, ok);
+    label = modelString(lind, ok);
   }
 
   if (! label.length())
@@ -558,9 +560,11 @@ addRowColumn(const CQChartsModelIndex &ind)
   QString keyLabel = label;
 
   if (keyLabelColumn().isValid()) {
+    CQChartsModelIndex kind(ind.row, keyLabelColumn(), ind.parent);
+
     bool ok;
 
-    keyLabel = modelString(ind.row, keyLabelColumn(), ind.parent, ok);
+    keyLabel = modelString(kind, ok);
   }
 
   //---
@@ -589,7 +593,7 @@ addRowColumn(const CQChartsModelIndex &ind)
 
   //---
 
-  QModelIndex dataInd  = modelIndex(ind.row, ind.column, ind.parent);
+  QModelIndex dataInd  = modelIndex(ind);
   QModelIndex dataInd1 = normalizeIndex(dataInd);
 
   //---
@@ -766,7 +770,7 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;
 
-    value = modelReal(ind.row, ind.column, ind.parent, ok);
+    value = modelReal(ind, ok);
 
     // allow missing value in numeric column
     if (! ok) {
@@ -788,7 +792,7 @@ getColumnSizeValue(const CQChartsModelIndex &ind, double &value, bool &missing) 
     // try convert model string to real
     bool ok;
 
-    value = modelReal(ind.row, ind.column, ind.parent, ok);
+    value = modelReal(ind, ok);
 
     // string non-real -> 1.0
     if (! ok) {
@@ -1033,6 +1037,8 @@ calcTipId() const
 
   bool ok;
 
+  CQChartsModelIndex lind(ind.row(), plot_->labelColumn(), ind.parent());
+
   if (hasGroup) {
     CQChartsPieGroupObj *groupObj = this->groupObj();
 
@@ -1041,10 +1047,10 @@ calcTipId() const
     if (plot_->isGroupHeaders())
       label = plot_->modelHeaderString(ind.column(), ok);
     else
-      label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
+      label = plot_->modelString(lind, ok);
   }
   else {
-    label = plot_->modelString(ind.row(), plot_->labelColumn(), ind.parent(), ok);
+    label = plot_->modelString(lind, ok);
   }
 
   int valueColumn = ind_.column();

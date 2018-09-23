@@ -223,7 +223,8 @@ class CQChartsCmds : public QObject {
   void setCmdRc(double rc);
   void setCmdRc(const QString &rc);
   void setCmdRc(const QVariant &rc);
-  void setCmdRc(const QList<QVariant> &rc);
+  void setCmdRc(const QStringList &rc);
+  void setCmdRc(const QVariantList &rc);
 
   void setCmdError(const QString &msg);
 

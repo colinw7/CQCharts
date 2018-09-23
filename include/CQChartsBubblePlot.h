@@ -416,7 +416,7 @@ class CQChartsBubblePlot : public CQChartsGroupPlot,
   using GroupHierNodes = std::map<int,CQChartsBubbleHierNode *>;
 
   CQChartsBubbleHierNode* root_        { nullptr }; // root node
-  CQChartsColumn          nameColumn_  { 0 };       // name column
+  CQChartsColumn          nameColumn_;              // name column
   CQChartsColumn          valueColumn_;             // value column
   bool                    valueLabel_  { false };   // draw value with name
   bool                    sorted_      { false };   // sort nodes by value

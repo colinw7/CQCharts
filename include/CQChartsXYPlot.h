@@ -496,7 +496,7 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
  public CQChartsObjLineData         <CQChartsXYPlot>,
  public CQChartsObjPointData        <CQChartsXYPlot>,
  public CQChartsObjImpulseLineData  <CQChartsXYPlot>,
- public CQChartsObjBivariateLineData<CQChartsXYPlot> ,
+ public CQChartsObjBivariateLineData<CQChartsXYPlot>,
  public CQChartsObjFillUnderFillData<CQChartsXYPlot>,
  public CQChartsObjDataLabelTextData<CQChartsXYPlot> {
   Q_OBJECT
@@ -707,8 +707,8 @@ class CQChartsXYPlot : public CQChartsGroupPlot,
   QString yAxisName() const;
 
  private:
-  CQChartsColumn  xColumn_              { 0 };                // x column
-  CQChartsColumns yColumns_             { 1 };                // y columns
+  CQChartsColumn  xColumn_;                                   // x column
+  CQChartsColumns yColumns_;                                  // y columns
   CQChartsColumn  nameColumn_;                                // name column
   CQChartsColumn  sizeColumn_;                                // size column
   CQChartsColumn  pointLabelColumn_;                          // point label column

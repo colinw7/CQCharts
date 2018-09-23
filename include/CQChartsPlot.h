@@ -51,6 +51,7 @@ class CQChartsDisplayTransform;
 class CQChartsValueSet;
 class CQChartsColorSet;
 class CQChartsModelExprMatch;
+class CQPropertyViewItem;
 class QPainter;
 
 class QSortFilterProxyModel;
@@ -672,6 +673,8 @@ class CQChartsPlot : public QObject,
 
   //---
 
+  QModelIndex modelIndex(const CQChartsModelIndex &ind) const;
+
   QModelIndex modelIndex(int row, const CQChartsColumn &column,
                          const QModelIndex &parent=QModelIndex()) const;
   QModelIndex modelIndex(int row, int column, const QModelIndex &parent=QModelIndex()) const;
@@ -684,20 +687,28 @@ class CQChartsPlot : public QObject,
   QString modelHeaderString(int section, Qt::Orientation orient, bool &ok) const;
   QString modelHeaderString(int section, Qt::Orientation orient, int role, bool &ok) const;
 
+  QVariant modelValue(const CQChartsModelIndex &ind, bool &ok) const;
+
   QVariant modelValue(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, bool &ok) const;
   QVariant modelValue(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, int role, bool &ok) const;
 
+  QString modelString(const CQChartsModelIndex &ind, bool &ok) const;
+
   QString modelString(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, bool &ok) const;
   QString modelString(int row, const CQChartsColumn &column,
                       const QModelIndex &parent, int role, bool &ok) const;
+
+  double modelReal(const CQChartsModelIndex &ind, bool &ok) const;
 
   double modelReal(int row, const CQChartsColumn &column,
                    const QModelIndex &parent, bool &ok) const;
   double modelReal(int row, const CQChartsColumn &column,
                    const QModelIndex &parent, int role, bool &ok) const;
+
+  long modelInteger(const CQChartsModelIndex &ind, bool &ok) const;
 
   long modelInteger(int row, const CQChartsColumn &column,
                     const QModelIndex &parent, bool &ok) const;
@@ -781,8 +792,11 @@ class CQChartsPlot : public QObject,
                           const QModelIndex &parent=QModelIndex()) const;
 
   void beginSelect();
+
+  void addSelectIndex(const CQChartsModelIndex &ind);
   void addSelectIndex(int row, int col, const QModelIndex &parent=QModelIndex());
   void addSelectIndex(const QModelIndex &ind);
+
   void endSelect();
 
   //---
@@ -927,8 +941,8 @@ class CQChartsPlot : public QObject,
 
   //---
 
-  void addProperty(const QString &path, QObject *object,
-                   const QString &name, const QString &alias="");
+  CQPropertyViewItem *addProperty(const QString &path, QObject *object,
+                                  const QString &name, const QString &alias="");
 
   void addPlotObject(CQChartsPlotObj *obj);
 

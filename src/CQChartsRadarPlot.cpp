@@ -448,7 +448,7 @@ columnValue(const CQChartsModelIndex &ind, double &value) const
   if (columnType == ColumnType::INTEGER || columnType == ColumnType::REAL) {
     bool ok;
 
-    value = modelReal(ind.row, ind.column, ind.parent, ok);
+    value = modelReal(ind, ok);
 
     if (! ok || CMathUtil::isNaN(value))
       return false;
@@ -459,7 +459,7 @@ columnValue(const CQChartsModelIndex &ind, double &value) const
   else {
     bool ok;
 
-    value = modelReal(ind.row, ind.column, ind.parent, ok);
+    value = modelReal(ind, ok);
 
     if (! ok)
       value = 1.0; // string non-real -> 1.0

@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 
-class CQChartsTheme;
+class CQChartsThemeObj;
 class CQChartsGradientPalette;
 
 #define CQChartsThemeMgrInst CQChartsThemeMgr::instance()
@@ -25,9 +25,9 @@ class CQChartsThemeMgr {
 
   void getPaletteNames(QStringList &names) const;
 
-  void addTheme(const QString &name, CQChartsTheme *theme);
+  void addTheme(const QString &name, CQChartsThemeObj *theme);
 
-  CQChartsTheme *getTheme(const QString &name) const;
+  CQChartsThemeObj *getTheme(const QString &name) const;
 
  private:
   CQChartsThemeMgr();
@@ -35,7 +35,7 @@ class CQChartsThemeMgr {
   void init();
 
  private:
-  using ThemeMap      = std::map<QString,CQChartsTheme*>;
+  using ThemeMap      = std::map<QString,CQChartsThemeObj*>;
   using NamedPalettes = std::map<QString,CQChartsGradientPalette*>;
 
   NamedPalettes namedPalettes_; //! named palettes
@@ -45,12 +45,12 @@ class CQChartsThemeMgr {
 //------
 
 // theme (ordered set of named palettes)
-class CQChartsTheme : public QObject {
+class CQChartsThemeObj : public QObject {
   Q_OBJECT
 
  public:
-  CQChartsTheme();
- ~CQChartsTheme();
+  CQChartsThemeObj();
+ ~CQChartsThemeObj();
 
   // get/set theme name
   const QString &name() const { return name_; }
@@ -60,7 +60,7 @@ class CQChartsTheme : public QObject {
   int numPalettes() const { return palettes_.size(); }
 
   // get/set nth palette
-  CQChartsGradientPalette *palette(int i=0);
+  CQChartsGradientPalette *palette(int i=0) const;
   void setPalette(int i, CQChartsGradientPalette *palette);
 
   // set nth palette to palette of specified name
@@ -88,22 +88,108 @@ class CQChartsTheme : public QObject {
   QColor   selectColor_ { Qt::yellow }; // selection color
 };
 
+//---
+
 // default theme
-class CQChartsDefaultTheme : public CQChartsTheme {
+class CQChartsDefaultTheme : public CQChartsThemeObj {
  public:
   CQChartsDefaultTheme();
 };
 
+//---
+
 // theme 1
-class CQChartsTheme1 : public CQChartsTheme {
+class CQChartsTheme1 : public CQChartsThemeObj {
  public:
   CQChartsTheme1();
 };
 
+//---
+
 // theme 2
-class CQChartsTheme2 : public CQChartsTheme {
+class CQChartsTheme2 : public CQChartsThemeObj {
  public:
   CQChartsTheme2();
 };
+
+//---
+
+class CQChartsTheme {
+ public:
+  static void registerMetaType();
+
+ public:
+  CQChartsTheme(const QString &name="") {
+    setName(name);
+  }
+
+  CQChartsTheme(const CQChartsTheme &rhs) :
+    name_(rhs.name_), obj_(rhs.obj_) {
+  }
+
+  CQChartsTheme &operator=(const CQChartsTheme &rhs) {
+    name_ = rhs.name_;
+    obj_  = rhs.obj_;
+
+    return *this;
+  }
+
+  //--
+
+  const QString &name() const { return name_; }
+
+  bool setName(const QString &name) {
+    CQChartsThemeObj *obj = CQChartsThemeMgrInst->getTheme(name);
+    if (! obj) return false;
+
+    name_ = name;
+    obj_  = obj;
+
+    return true;
+  }
+
+  //--
+
+  CQChartsThemeObj *obj() const { return obj_; }
+
+  //---
+
+  QString toString() const { return name(); }
+  void fromString(const QString &s) { setName(s); }
+
+  //---
+
+  friend bool operator==(const CQChartsTheme &lhs, const CQChartsTheme &rhs) {
+    if (lhs.name_ != rhs.name_) return false;
+
+    return true;
+  }
+
+  friend bool operator!=(const CQChartsTheme &lhs, const CQChartsTheme &rhs) {
+    return ! operator==(lhs, rhs);
+  }
+
+  //---
+
+  void print(std::ostream &os) const {
+    os << name().toStdString();
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const CQChartsTheme &l) {
+    l.print(os);
+
+    return os;
+  }
+
+ private:
+  QString           name_;
+  CQChartsThemeObj *obj_ { nullptr };
+};
+
+//---
+
+#include <CQUtilMeta.h>
+
+CQUTIL_DCL_META_TYPE(CQChartsTheme)
 
 #endif

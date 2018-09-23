@@ -135,8 +135,8 @@ class CQChartsDendrogramPlot : public CQChartsPlot,
                 CQChartsDendrogram::Node *node);
 
  private:
-  CQChartsColumn      nameColumn_  { 0 };       // name column
-  CQChartsColumn      valueColumn_ { 1 };       // value column
+  CQChartsColumn      nameColumn_;              // name column
+  CQChartsColumn      valueColumn_;             // value column
   CQChartsDendrogram* dendrogram_  { nullptr }; // dendogram class
   double              circleSize_  { 8 };       // circle size
   double              textMargin_  { 4 };       // text margin

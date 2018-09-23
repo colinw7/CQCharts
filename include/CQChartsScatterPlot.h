@@ -703,30 +703,30 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
     double delta    { 0.0 };   // value delta
   };
 
-  CQChartsColumn    nameColumn_;               // name column
-  CQChartsColumn    xColumn_            { 0 }; // x column
-  CQChartsColumn    yColumn_            { 1 }; // y column
-  BestFitData       bestFitData_;              // best fit data
-  HullData          hullData_;                 // hull data
-  AxisRugData       axisRugData_;              // axis rug data
-  AxisDensityData   axisDensityData_;          // axis density data
-  DensityMapData    densityMapData_;           // density map data
-  AxisWhiskerData   axisWhiskerData_;          // axis whisker data
-  GroupNameValues   groupNameValues_;          // name values
-  GroupNameGridData groupNameGridData_;        // grid values
-  CQChartsDataLabel dataLabel_;                // data label style
-  GridData          gridData_;                 // grid data
-  QString           xname_;                    // x column header
-  QString           yname_;                    // y column header
-  SymbolMapKeyData  symbolMapKeyData_;         // symbol map key data
-  QString           symbolTypeName_;           // symbol type column header
-  QString           symbolSizeName_;           // symbol size column header
-  QString           fontSizeName_;             // font size column header
-  QString           colorName_;                // color column header
-  GroupPoints       groupPoints_;              // group fit points
-  GroupFitData      groupFitData_;             // group fit data
-  GroupHull         groupHull_;                // group hull
-  GroupWhiskers     groupWhiskers_;            // group whiskers
+  CQChartsColumn    nameColumn_;        // name column
+  CQChartsColumn    xColumn_;           // x column
+  CQChartsColumn    yColumn_;           // y column
+  BestFitData       bestFitData_;       // best fit data
+  HullData          hullData_;          // hull data
+  AxisRugData       axisRugData_;       // axis rug data
+  AxisDensityData   axisDensityData_;   // axis density data
+  DensityMapData    densityMapData_;    // density map data
+  AxisWhiskerData   axisWhiskerData_;   // axis whisker data
+  GroupNameValues   groupNameValues_;   // name values
+  GroupNameGridData groupNameGridData_; // grid values
+  CQChartsDataLabel dataLabel_;         // data label style
+  GridData          gridData_;          // grid data
+  QString           xname_;             // x column header
+  QString           yname_;             // y column header
+  SymbolMapKeyData  symbolMapKeyData_;  // symbol map key data
+  QString           symbolTypeName_;    // symbol type column header
+  QString           symbolSizeName_;    // symbol size column header
+  QString           fontSizeName_;      // font size column header
+  QString           colorName_;         // color column header
+  GroupPoints       groupPoints_;       // group fit points
+  GroupFitData      groupFitData_;      // group fit data
+  GroupHull         groupHull_;         // group hull
+  GroupWhiskers     groupWhiskers_;     // group whiskers
 };
 
 #endif

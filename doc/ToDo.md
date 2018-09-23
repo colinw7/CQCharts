@@ -1,16 +1,14 @@
 High
- + inner margin for plot data range
+ + aggregate function for distribution plot
+
+ + auto deduction of plot data from data
  + better filtering of plot values
  + auto split data into list of plots (left/right buttons)
- + No style properties in *Plot*.h
- + remove tcl expression procs for functions that can be added using add_process_model_proc
-   + concat/key
  + document expression handling (process, filter)
  + density axis plot scaling for multiple plots ?
  + Common Code for Data->Pen/Brush
  + Tree Map title (max) depth
  + Allow write to model value (tcl ?) not extra (extra option ?)
- + Margin units
  + Consistent property names and hieracrchy
  + More Variants in Model (QImage/QIcon could supply custom symbol !)
  + Sort for scatter distribution

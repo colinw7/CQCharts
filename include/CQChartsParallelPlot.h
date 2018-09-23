@@ -192,8 +192,8 @@ class CQChartsParallelPlot : public CQChartsPlot,
   using YAxes   = std::vector<CQChartsAxis*>;
   using AxisDir = CQChartsAxis::Direction;
 
-  CQChartsColumn      xColumn_         { 0 };                   // x value column
-  CQChartsColumns     yColumns_        { 1 };                   // y value columns
+  CQChartsColumn      xColumn_;                                 // x value column
+  CQChartsColumns     yColumns_;                                // y value columns
   bool                horizontal_      { false };               // horizontal bars
   bool                linesSelectable_ { false };               // are lines selectable
   Ranges              setRanges_;                               // value set ranges

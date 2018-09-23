@@ -243,7 +243,6 @@ HEADERS += \
 ../include/CQChartsDataLabel.h \
 \
 ../include/CQChartsAxis.h \
-../include/CQChartsAxisObj.h \
 ../include/CQChartsKey.h \
 ../include/CQChartsTitle.h \
 ../include/CQChartsTheme.h \

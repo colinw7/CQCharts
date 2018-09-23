@@ -44,8 +44,11 @@ addParameters()
 
   endParameterGroup();
 
-  addColumnParameter("name"   , "Name"   , "nameColumn"   ).setTip("Name For Id");
-  addColumnParameter("groupId", "GroupId", "groupIdColumn").setTip("Group Id for Color");
+  addColumnParameter("name", "Name", "nameColumn").
+   setString().setTip("Name For Id");
+
+  addColumnParameter("groupId", "GroupId", "groupIdColumn").
+   setNumeric().setTip("Group Id for Color");
 
   //---
 

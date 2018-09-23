@@ -244,6 +244,20 @@ inline void setResult(Tcl_Interp *interp, const QVariant &var) {
     Tcl_SetObjResult(interp, variantToObj(interp, var));
 }
 
+inline void setResult(Tcl_Interp *interp, const QStringList &strs) {
+  Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
+
+  int ns = strs.length();
+
+  for (int i = 0; i < ns; ++i) {
+    Tcl_Obj *sobj = variantToObj(interp, strs[i]);
+
+    Tcl_ListObjAppendElement(interp, obj, sobj);
+  }
+
+  Tcl_SetObjResult(interp, obj);
+}
+
 inline void setResult(Tcl_Interp *interp, const QVariantList &vars) {
   Tcl_Obj *obj = Tcl_NewListObj(0, nullptr);
 
@@ -403,6 +417,10 @@ class CQTcl : public CTcl {
   }
 
   void setResult(const QVariant &rc) {
+    CQTclUtil::setResult(interp(), rc);
+  }
+
+  void setResult(const QStringList &rc) {
     CQTclUtil::setResult(interp(), rc);
   }
 

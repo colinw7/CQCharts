@@ -311,8 +311,8 @@ class CQChartsHierScatterPlot : public CQChartsPlot,
  private:
   using PointGroup = CQChartsHierScatterPointGroup;
 
-  CQChartsColumn    xColumn_         { 0 };       // x column
-  CQChartsColumn    yColumn_         { 1 };       // y column
+  CQChartsColumn    xColumn_;                     // x column
+  CQChartsColumn    yColumn_;                     // y column
   CQChartsColumn    nameColumn_;                  // name column
   CQChartsColumns   groupColumns_;                // group columns
   double            fontSize_        { 8 };       // font size

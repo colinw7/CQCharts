@@ -54,6 +54,13 @@ addSelectIndices()
 
 void
 CQChartsPlotObj::
+addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const
+{
+  addSelectIndex(inds, ind.row, ind.column, ind.parent);
+}
+
+void
+CQChartsPlotObj::
 addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                const QModelIndex &parent) const
 {

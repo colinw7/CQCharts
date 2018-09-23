@@ -73,6 +73,7 @@ class CQChartsPlotDlg : public QDialog {
     using LineEdits   = std::map<QString,QLineEdit*>;
     using WidgetEdits = std::map<QString,QWidget*>;
     using FormatEdits = std::map<QString,FormatEditData>;
+    using Combos      = std::map<QString,QComboBox*>;
     using CheckBoxes  = std::map<QString,QCheckBox*>;
     using MapEdits    = std::map<QString,MapEditData>;
 
@@ -80,6 +81,7 @@ class CQChartsPlotDlg : public QDialog {
     LineEdits    columnsEdits;
     MapEdits     mappedEdits;
     FormatEdits  formatEdits;
+    Combos       enumEdits;
     CheckBoxes   boolEdits;
     LineEdits    stringEdits;
     WidgetEdits  realEdits;
@@ -121,6 +123,9 @@ class CQChartsPlotDlg : public QDialog {
   void addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
                                CQChartsPlotParameter *parameter);
 
+  void addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
+                            CQChartsPlotParameter *parameter);
+
   void addParameterBoolEdit(PlotData &plotData, QHBoxLayout *layout,
                             CQChartsPlotParameter *parameter);
 
@@ -154,6 +159,8 @@ class CQChartsPlotDlg : public QDialog {
                               const PlotData &plotData, double &r);
   bool parseParameterIntEdit(CQChartsPlotParameter *parameter,
                              const PlotData &plotData, int &i);
+  bool parseParameterEnumEdit(CQChartsPlotParameter *parameter,
+                              const PlotData &plotData, int &i);
   bool parseParameterBoolEdit(CQChartsPlotParameter *parameter,
                               const PlotData &plotData, bool &b);
 

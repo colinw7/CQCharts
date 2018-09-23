@@ -423,7 +423,7 @@ class CQChartsPiePlot : public CQChartsGroupPlot,
   using GroupDatas = std::map<int,GroupData>;
   using GroupObjs  = std::vector<CQChartsPieGroupObj *>;
 
-  CQChartsColumn      labelColumn_     { 0 };       // label column
+  CQChartsColumn      labelColumn_;                 // label column
   CQChartsColumns     valueColumns_;                // value columns
   CQChartsColumn      radiusColumn_;                // radius value column
   CQChartsColumn      keyLabelColumn_;              // key label column

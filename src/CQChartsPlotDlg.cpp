@@ -814,6 +814,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
   int nstr  = 0;
   int nreal = 0;
   int nint  = 0;
+  int nenum = 0;
   int nbool = 0;
 
   for (const auto &parameter : parameters) {
@@ -825,6 +826,8 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
       ++nreal;
     else if (parameter->type() == "int")
       ++nint;
+    else if (parameter->type() == "enum")
+      ++nenum;
     else if (parameter->type() == "bool")
       ++nbool;
     else
@@ -845,6 +848,23 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
     strLayout->addStretch(1);
 
     layout->addLayout(strLayout, row, 0, 1, 5);
+
+    ++row;
+  }
+
+  // add enum edits
+  if (nbool > 0) {
+    QHBoxLayout *enumLayout = new QHBoxLayout;
+    enumLayout->setMargin(0); enumLayout->setSpacing(2);
+
+    for (const auto &parameter : parameters) {
+      if (parameter->type() == "enum")
+        addParameterEdit(plotData, enumLayout, parameter);
+    }
+
+    enumLayout->addStretch(1);
+
+    layout->addLayout(enumLayout, row, 0, 1, 5);
 
     ++row;
   }
@@ -891,6 +911,8 @@ addParameterEdit(PlotData &plotData, QHBoxLayout *layout,
     addParameterRealEdit(plotData, layout, parameter);
   else if (parameter->type() == "int")
     addParameterIntEdit(plotData, layout, parameter);
+  else if (parameter->type() == "enum")
+    addParameterEnumEdit(plotData, layout, parameter);
   else if (parameter->type() == "bool")
     addParameterBoolEdit(plotData, layout, parameter);
   else
@@ -967,7 +989,7 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   //----
 
-  if (parameter->attributes().isMapped()) {
+  if (parameter->isMapped()) {
     MapEditData mapEditData;
 
     column = 1;
@@ -1137,7 +1159,7 @@ addParameterRealEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QWidget *edit = nullptr;
 
-  if (parameter->attributes().isRequired()) {
+  if (parameter->isRequired()) {
     spinEdit = new CQRealSpin;
     edit     = spinEdit;
 
@@ -1188,7 +1210,7 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   QWidget *edit = nullptr;
 
-  if (parameter->attributes().isRequired()) {
+  if (parameter->isRequired()) {
     spinEdit = new CQIntegerSpin;
     edit     = spinEdit;
 
@@ -1217,6 +1239,47 @@ addParameterIntEdit(PlotData &plotData, QHBoxLayout *layout,
 
   if (tip.length())
     edit->setToolTip(tip);
+}
+
+void
+CQChartsPlotDlg::
+addParameterEnumEdit(PlotData &plotData, QHBoxLayout *layout,
+                     CQChartsPlotParameter *parameter)
+{
+  CQChartsEnumParameter *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
+  assert(eparameter);
+
+  int i = eparameter->defValue().toInt();
+
+  QHBoxLayout *editLayout = new QHBoxLayout;
+  editLayout->setMargin(0); editLayout->setSpacing(2);
+
+  QLabel *label = new QLabel(eparameter->desc());
+  label->setObjectName(eparameter->name() + "_label");
+
+  editLayout->addWidget(label);
+
+  QComboBox *combo = new QComboBox;
+  combo->setObjectName(eparameter->name() + "_combo");
+
+  QStringList names = eparameter->names();
+
+  combo->addItems(names);
+
+  combo->setCurrentIndex(combo->findText(eparameter->valueName(i)));
+
+  connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(validateSlot()));
+
+  editLayout->addWidget(combo);
+
+  layout->addLayout(editLayout);
+
+  plotData.enumEdits[eparameter->name()] = combo;
+
+  QString tip = eparameter->tip();
+
+  if (tip.length())
+    combo->setToolTip(tip);
 }
 
 void
@@ -1739,7 +1802,7 @@ validate(QStringList &msgs)
 
       if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
                                      columnTypeStr, mapValueData)) {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           msgs << "missing required column value";
           rc = false;
         }
@@ -1759,14 +1822,14 @@ validate(QStringList &msgs)
           column.type() == CQChartsColumn::Type::DATA_INDEX) {
         const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
 
-        if (parameter->attributes().isMonotonic()) {
+        if (parameter->isMonotonic()) {
           if (! columnDetails->isMonotonic()) {
             msgs << "non-monotonic column";
             rc1 = false;
           }
         }
 
-        if      (parameter->attributes().isNumeric()) {
+        if      (parameter->isNumeric()) {
           if (columnDetails->type() != CQBaseModel::Type::INTEGER &&
               columnDetails->type() != CQBaseModel::Type::REAL &&
               columnDetails->type() != CQBaseModel::Type::TIME) {
@@ -1774,13 +1837,13 @@ validate(QStringList &msgs)
             rc1 = false;
           }
         }
-        else if (parameter->attributes().isString()) {
+        else if (parameter->isString()) {
           if (columnDetails->type() != CQBaseModel::Type::STRING) {
             msgs << "non-string column";
             rc1 = false;
           }
         }
-        else if (parameter->attributes().isColor()) {
+        else if (parameter->isColor()) {
           if (columnDetails->type() != CQBaseModel::Type::COLOR) {
             msgs << "non-color column";
             rc1 = false;
@@ -1806,7 +1869,7 @@ validate(QStringList &msgs)
       QString     columnTypeStr;
 
       if (! parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           msgs << "missing required column value";
           rc = false;
         }
@@ -2013,7 +2076,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
         if (columnTypeStr.length())
           CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, columnTypeStr);
 
-        if (parameter->attributes().isMapped()) {
+        if (parameter->isMapped()) {
           QString mappedPropName, mapMinPropName, mapMaxPropName;
 
           if (parameter->mapPropNames(mappedPropName, mapMinPropName, mapMaxPropName)) {
@@ -2032,7 +2095,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
         }
       }
       else {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           if (ok)
             CQUtil::setProperty(plot, parameter->propName(), QVariant(icolumn));
         }
@@ -2063,7 +2126,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           CQChartsUtil::setColumnTypeStr(charts_, model.data(), columns[0], columnTypeStr);
       }
       else {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           if (ok)
             CQUtil::setProperty(plot, parameter->propName(), defValue);
         }
@@ -2084,7 +2147,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           if (ok)
             CQUtil::setProperty(plot, parameter->propName(), QVariant(defStr));
         }
@@ -2105,7 +2168,7 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           if (ok)
             CQUtil::setProperty(plot, parameter->propName(), QVariant(defValue));
         }
@@ -2123,10 +2186,24 @@ applyPlot(CQChartsPlot *plot, bool preview)
           charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
       }
       else {
-        if (parameter->attributes().isRequired()) {
+        if (parameter->isRequired()) {
           if (ok)
             CQUtil::setProperty(plot, parameter->propName(), QVariant(defValue));
         }
+      }
+    }
+    else if (parameter->type() == "enum") {
+      int defValue = parameter->defValue().toInt();
+
+      int i = defValue;
+
+      if (parseParameterEnumEdit(parameter, plotData, i)) {
+        if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(i)))
+          charts()->errorMsg("Failed to set parameter '" + parameter->propName() + "'");
+      }
+      else {
+        if (preview)
+          CQUtil::setProperty(plot, parameter->propName(), QVariant(defValue));
       }
     }
     else if (parameter->type() == "bool") {
@@ -2390,6 +2467,21 @@ parseParameterIntEdit(CQChartsPlotParameter *parameter, const PlotData &plotData
 
     i = lineEdit->text().toInt(&ok);
   }
+
+  return true;
+}
+
+bool
+CQChartsPlotDlg::
+parseParameterEnumEdit(CQChartsPlotParameter *parameter, const PlotData &plotData, int &i)
+{
+  CQChartsEnumParameter *eparameter = dynamic_cast<CQChartsEnumParameter *>(parameter);
+  assert(eparameter);
+
+  auto p = plotData.enumEdits.find(eparameter->name());
+  assert(p != plotData.enumEdits.end());
+
+  i = eparameter->nameValue((*p).second->currentText());
 
   return true;
 }

@@ -28,6 +28,7 @@ class CQChartsProbeBand;
 class CQChartsGradientPalette;
 class CQChartsDisplayRange;
 class CQPropertyViewModel;
+class CQPropertyViewItem;
 
 struct CQChartsTextOptions;
 
@@ -41,21 +42,24 @@ CQCHARTS_NAMED_SHAPE_DATA(Selected,selected)
 CQCHARTS_NAMED_SHAPE_DATA(Inside,inside)
 
 class CQChartsView : public QFrame,
- public CQChartsObjSelectedShapeData<CQChartsView>,
- public CQChartsObjInsideShapeData<CQChartsView> {
+ public CQChartsObjBackgroundFillData<CQChartsView>,
+ public CQChartsObjSelectedShapeData <CQChartsView>,
+ public CQChartsObjInsideShapeData   <CQChartsView> {
   Q_OBJECT
 
   Q_PROPERTY(QString id             READ id             WRITE setId            )
   Q_PROPERTY(QString title          READ title          WRITE setTitle         )
-  Q_PROPERTY(QColor  background     READ background     WRITE setBackground    )
   Q_PROPERTY(int     currentPlotInd READ currentPlotInd WRITE setCurrentPlotInd)
+
+  CQCHARTS_NAMED_FILL_DATA_PROPERTIES(Background,background)
 
   // edit, select mode
   Q_PROPERTY(Mode       mode       READ mode       WRITE setMode      )
   Q_PROPERTY(SelectMode selectMode READ selectMode WRITE setSelectMode)
 
   // theme
-  Q_PROPERTY(QString themeName READ themeName WRITE setThemeName)
+  Q_PROPERTY(CQChartsTheme theme READ theme  WRITE setTheme)
+  Q_PROPERTY(bool          dark  READ isDark WRITE setDark )
 
   // selection appearance
   Q_PROPERTY(HighlightDataMode selectedMode READ selectedMode WRITE setSelectedMode)
@@ -110,14 +114,6 @@ class CQChartsView : public QFrame,
     FILL
   };
 
-  enum class ThemeType {
-    NONE,
-    LIGHT1,
-    LIGHT2,
-    DARK1,
-    DARK2
-  };
-
   enum class PosTextType {
     PLOT,
     VIEW,
@@ -151,9 +147,6 @@ class CQChartsView : public QFrame,
   void setTitle(const QString &s);
 
   //---
-
-  const QColor &background() const { return background_; }
-  void setBackground(const QColor &c);
 
   int currentPlotInd() const { return currentPlotInd_; }
   void setCurrentPlotInd(int i);
@@ -229,20 +222,23 @@ class CQChartsView : public QFrame,
 
   //---
 
+  CQChartsThemeObj *themeObj() { return theme_.obj(); }
+  const CQChartsThemeObj *themeObj() const { return theme_.obj(); }
+
+  const CQChartsTheme &theme() const { return theme_; }
+  void setTheme(const CQChartsTheme &name);
+
+  //---
+
   CQChartsGradientPalette *interfacePalette() { return interfacePalette_; }
   const CQChartsGradientPalette *interfacePalette() const { return interfacePalette_; }
 
-  CQChartsTheme *theme() { return theme_; }
-  const CQChartsTheme *theme() const { return theme_; }
-
-  QString themeName() const { return (theme() ? theme()->name() : ""); }
-  void setThemeName(const QString &name);
-
   CQChartsGradientPalette *themeGroupPalette(int i, int n) const;
 
-  CQChartsGradientPalette *themePalette(int ind=0) const { return theme_->palette(ind); }
+  CQChartsGradientPalette *themePalette(int ind=0) const { return themeObj()->palette(ind); }
 
   bool isDark() const { return isDark_; }
+  void setDark(bool b);
 
   //---
 
@@ -255,8 +251,8 @@ class CQChartsView : public QFrame,
   bool setProperty(const QString &name, const QVariant &value);
   bool getProperty(const QString &name, QVariant &value);
 
-  void addProperty(const QString &path, QObject *object,
-                   const QString &name, const QString &alias="");
+  CQPropertyViewItem *addProperty(const QString &path, QObject *object,
+                                  const QString &name, const QString &alias="");
 
   //---
 
@@ -437,6 +433,8 @@ class CQChartsView : public QFrame,
 
   void setLightThemeColors();
   void setDarkThemeColors();
+
+  void updateTheme();
 
   //---
 
@@ -621,12 +619,11 @@ class CQChartsView : public QFrame,
   CQCharts*                charts_           { nullptr };           // parent charts
   CQChartsDisplayRange*    displayRange_     { nullptr };           // display range
   CQChartsGradientPalette* interfacePalette_ { nullptr };           // interface palette
-  CQChartsTheme*           theme_            { nullptr };           // theme
+  CQChartsTheme            theme_;                                  // theme
   bool                     isDark_           { false };             // is dark
   CQPropertyViewModel*     propertyModel_    { nullptr };           // property model
   QString                  id_;                                     // view id
   QString                  title_;                                  // view title
-  QColor                   background_       { 255, 255, 255 };     // background color
   CQChartsViewKey*         keyObj_           { nullptr };           // key object
   Plots                    plots_;                                  // child plots
   int                      currentPlotInd_   { -1 };                // current plot index
@@ -650,7 +647,6 @@ class CQChartsView : public QFrame,
   QRubberBand*             regionBand_       { nullptr };           // zoom region rubberband
   ProbeBands               probeBands_;                             // probe lines
   QMenu*                   popupMenu_        { nullptr };           // context menu
-  ThemeType                themeType_        { ThemeType::NONE };   // theme type
 };
 
 #endif

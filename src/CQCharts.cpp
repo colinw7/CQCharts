@@ -55,6 +55,7 @@ CQCharts()
   CQChartsSides         ::registerMetaType();
   CQChartsStyle         ::registerMetaType();
   CQChartsSymbol        ::registerMetaType();
+  CQChartsTheme         ::registerMetaType();
 }
 
 CQCharts::

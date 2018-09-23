@@ -313,8 +313,8 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
 
   // calc value columns
   Q_PROPERTY(CQChartsColumns valueColumns READ valueColumns WRITE setValueColumns)
-  Q_PROPERTY(CQChartsColumn nameColumn    READ nameColumn   WRITE setNameColumn  )
-  Q_PROPERTY(CQChartsColumn setColumn     READ setColumn    WRITE setSetColumn   )
+  Q_PROPERTY(CQChartsColumn  nameColumn   READ nameColumn   WRITE setNameColumn  )
+  Q_PROPERTY(CQChartsColumn  setColumn    READ setColumn    WRITE setSetColumn   )
 
   // pre-calc columns
   Q_PROPERTY(CQChartsColumn xColumn           READ xColumn           WRITE setXColumn          )
@@ -570,7 +570,7 @@ class CQChartsBoxPlot : public CQChartsGroupPlot,
   void addRawWhiskerRow(const ModelVisitor::VisitData &vdata);
 
  private:
-  CQChartsColumns       valueColumns_   { 1 };                       // value columns
+  CQChartsColumns       valueColumns_;                               // value columns
   CQChartsColumn        nameColumn_;                                 // name column
   CQChartsColumn        setColumn_;                                  // set column
 

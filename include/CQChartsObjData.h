@@ -945,4 +945,8 @@ Q_PROPERTY(bool   colorMapped READ isColorMapped WRITE setColorMapped) \
 Q_PROPERTY(double colorMapMin READ colorMapMin   WRITE setColorMapMin) \
 Q_PROPERTY(double colorMapMax READ colorMapMax   WRITE setColorMapMax)
 
+//------
+
+CQCHARTS_NAMED_FILL_DATA(Background,background)
+
 #endif

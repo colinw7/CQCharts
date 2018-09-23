@@ -15,6 +15,7 @@
 #include <CQChartsRotatedText.h>
 #include <CQChartsDisplayRange.h>
 #include <CQPropertyViewModel.h>
+#include <CQPropertyViewItem.h>
 
 #include <QSvgGenerator>
 #include <QFileDialog>
@@ -43,8 +44,9 @@ QSize CQChartsView::sizeHint_ = QSize(1280, 1024);
 CQChartsView::
 CQChartsView(CQCharts *charts, QWidget *parent) :
  QFrame(parent),
- CQChartsObjSelectedShapeData(this),
- CQChartsObjInsideShapeData  (this),
+ CQChartsObjBackgroundFillData(this),
+ CQChartsObjSelectedShapeData (this),
+ CQChartsObjInsideShapeData   (this),
  charts_(charts)
 {
   setObjectName("view");
@@ -52,6 +54,8 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
   setMouseTracking(true);
 
   setFocusPolicy(Qt::StrongFocus);
+
+  setBackgroundFillColor(CQChartsColor(Qt::white));
 
   //---
 
@@ -85,16 +89,20 @@ CQChartsView(CQCharts *charts, QWidget *parent) :
 
   addProperty("", this, "id"            );
   addProperty("", this, "title"         );
-  addProperty("", this, "background"    );
   addProperty("", this, "currentPlotInd");
   addProperty("", this, "mode"          );
   addProperty("", this, "selectMode"    );
-  addProperty("", this, "themeName"     );
+  addProperty("", this, "theme"         )->
+    setValues(QStringList() << "default" << "palette1" << "palette2");
+  addProperty("", this, "dark"          );
   addProperty("", this, "zoomData"      );
   addProperty("", this, "antiAlias"     );
   addProperty("", this, "bufferLayers"  );
   addProperty("", this, "scaleFont"     );
   addProperty("", this, "posTextType"   );
+
+  addProperty("background", this, "backgroundFillColor"  , "color" );
+  addProperty("background", this, "backgroundFillPattern", "pattern");
 
   addProperty("selectedHighlight"       , this, "selectedMode"       , "mode");
   addProperty("selectedHighlight/stroke", this, "selectedBorder"     , "enabled");
@@ -176,13 +184,6 @@ CQChartsView::
 setTitle(const QString &s)
 {
   CQChartsUtil::testAndSet(title_, s, [&]() { setWindowTitle(title_); } );
-}
-
-void
-CQChartsView::
-setBackground(const QColor &c)
-{
-  CQChartsUtil::testAndSet(background_, c, [&]() { update(); } );
 }
 
 //---
@@ -346,17 +347,16 @@ deselectAll()
 
 void
 CQChartsView::
-setThemeName(const QString &str)
+setTheme(const CQChartsTheme &theme)
 {
-  if (themeName() != str)
-    themeSlot(str);
+  CQChartsUtil::testAndSet(theme_, theme, [&]() { updateTheme(); } );
 }
 
 CQChartsGradientPalette *
 CQChartsView::
 themeGroupPalette(int i, int /*n*/) const
 {
-  return theme_->palette(i);
+  return themeObj()->palette(i);
 }
 
 //---
@@ -398,11 +398,11 @@ getProperty(const QString &name, QVariant &value)
   return propertyModel()->getProperty(this, name, value);
 }
 
-void
+CQPropertyViewItem *
 CQChartsView::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
-  propertyModel()->addProperty(path, object, name, alias);
+  return propertyModel()->addProperty(path, object, name, alias);
 }
 
 //---
@@ -1377,7 +1377,7 @@ showProbeLines(const QPointF &p)
 
         plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
 
-        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
+        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value, false));
 
         addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
       }
@@ -1396,7 +1396,7 @@ showProbeLines(const QPointF &p)
 
         plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y), p2);
 
-        QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
+        QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value, false));
 
         addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
       }
@@ -1756,7 +1756,12 @@ paint(QPainter *painter, CQChartsPlot *plot)
 
   //---
 
-  painter->fillRect(CQChartsUtil::toQRect(prect_), QBrush(background()));
+  QBrush brush;
+
+  setBrush(brush, true, interpBackgroundFillColor(0, 1),
+           backgroundFillAlpha(), backgroundFillPattern());
+
+  painter->fillRect(CQChartsUtil::toQRect(prect_), brush);
 
   //---
 
@@ -2427,9 +2432,9 @@ showMenu(const QPoint &p)
   QAction *palette1Action     = addThemeAction("Palette 1", SLOT(palette1Slot()));
   QAction *palette2Action     = addThemeAction("Palette 2", SLOT(palette2Slot()));
 
-  defaultThemeAction->setChecked(themeName() == "default" );
-  palette1Action    ->setChecked(themeName() == "palette1");
-  palette2Action    ->setChecked(themeName() == "palette2");
+  defaultThemeAction->setChecked(theme().name() == "default" );
+  palette1Action    ->setChecked(theme().name() == "palette1");
+  palette2Action    ->setChecked(theme().name() == "palette2");
 
   themeMenu->addActions(themeGroup->actions());
 
@@ -2704,36 +2709,14 @@ void
 CQChartsView::
 lightPaletteSlot()
 {
-  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  interfacePalette_->resetDefinedColors();
-
-  interfacePalette_->addDefinedColor(0.0, QColor("#ffffff"));
-  interfacePalette_->addDefinedColor(1.0, QColor("#000000"));
-
-  isDark_ = false;
-
-  updatePlots();
-
-  emit interfacePaletteChanged();
+  setDark(false);
 }
 
 void
 CQChartsView::
 darkPaletteSlot()
 {
-  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
-
-  interfacePalette_->resetDefinedColors();
-
-  interfacePalette_->addDefinedColor(0.0, QColor("#222222"));
-  interfacePalette_->addDefinedColor(1.0, QColor("#dddddd"));
-
-  isDark_ = true;
-
-  updatePlots();
-
-  emit interfacePaletteChanged();
+  setDark(true);
 }
 
 void
@@ -2761,18 +2744,46 @@ void
 CQChartsView::
 themeSlot(const QString &name)
 {
-  CQChartsTheme *theme = CQChartsThemeMgrInst->getTheme(name);
-  if (! theme) return;
+  theme_ = CQChartsTheme(name);
 
-  theme_ = theme;
+  updateTheme();
+}
 
-  setSelectedFillColor(theme_->selectColor());
+void
+CQChartsView::
+updateTheme()
+{
+  setSelectedFillColor(themeObj()->selectColor());
 
   updatePlots();
 
   update();
 
   emit themePalettesChanged();
+}
+
+void
+CQChartsView::
+setDark(bool b)
+{
+  isDark_ = b;
+
+  interfacePalette_->setColorType(CQChartsGradientPalette::ColorType::DEFINED);
+
+  interfacePalette_->resetDefinedColors();
+
+  if (! isDark_) {
+    interfacePalette_->addDefinedColor(0.0, QColor("#ffffff"));
+    interfacePalette_->addDefinedColor(1.0, QColor("#000000"));
+  }
+  else {
+    interfacePalette_->addDefinedColor(0.0, QColor("#222222"));
+    interfacePalette_->addDefinedColor(1.0, QColor("#dddddd"));
+  }
+
+  updatePlots();
+
+  emit interfacePaletteChanged();
 }
 
 //------

@@ -3122,7 +3122,7 @@ interpTextColor(int i, int n) const
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.5);
+    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
 
   return c;
 }

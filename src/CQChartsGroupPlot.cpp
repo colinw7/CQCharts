@@ -324,56 +324,56 @@ rowGroupInd(const CQChartsModelIndex &ind) const
 
 bool
 CQChartsGroupPlot::
-rowGroupInds(const CQChartsModelIndex &index, std::vector<int> &inds, bool hier) const
+rowGroupInds(const CQChartsModelIndex &ind, std::vector<int> &inds, bool hier) const
 {
   QAbstractItemModel *model = this->model().data();
   if (! model) return false;
 
   // header has multiple groups (one per column)
   if      (groupBucket_.dataType() == CQChartsColumnBucket::DataType::HEADER) {
-    int ind = groupBucket_.ind(index.column.column());
+    int ind1 = groupBucket_.ind(ind.column.column());
 
-    inds.push_back(ind);
+    inds.push_back(ind1);
   }
   // get group id from value in group column
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::COLUMN) {
     bool ok;
 
-    QVariant value = modelHierValue(index.row, groupBucket_.column(), index.parent, ok);
+    QVariant value = modelHierValue(ind.row, groupBucket_.column(), ind.parent, ok);
 
     if (! value.isValid())
       return false;
 
-    int ind = -1;
+    int ind1 = -1;
 
     if      (groupBucket_.isExactValue()) {
-      ind = groupBucket_.ind(value);
+      ind1 = groupBucket_.ind(value);
 
-      inds.push_back(ind);
+      inds.push_back(ind1);
     }
     else if (CQChartsVariant::isNumeric(value)) {
       bool ok;
 
       double r = CQChartsVariant::toReal(value, ok);
 
-      ind = groupBucket_.bucket(r);
+      ind1 = groupBucket_.bucket(r);
 
-      inds.push_back(ind);
+      inds.push_back(ind1);
     }
     else {
       if (hier) {
         inds = pathInds(value.toString());
       }
       else {
-        ind = groupBucket_.sbucket(value);
+        ind1 = groupBucket_.sbucket(value);
 
-        inds.push_back(ind);
+        inds.push_back(ind1);
       }
     }
   }
   // get group id from parent path name
   else if (groupBucket_.dataType() == CQChartsColumnBucket::DataType::PATH) {
-    QString path = CQChartsUtil::parentPath(model, index.parent);
+    QString path = CQChartsUtil::parentPath(model, ind.parent);
 
     if (hier) {
       inds = pathInds(path);
@@ -385,9 +385,9 @@ rowGroupInds(const CQChartsModelIndex &index, std::vector<int> &inds, bool hier)
     }
   }
   else if (groupBucket_.isUseRow()) {
-    int ind = index.row; // default to row
+    int ind1 = ind.row; // default to row
 
-    inds.push_back(ind);
+    inds.push_back(ind1);
   }
   else {
     return false; // no bucket

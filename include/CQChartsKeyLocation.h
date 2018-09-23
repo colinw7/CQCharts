@@ -44,7 +44,7 @@ class CQChartsKeyLocation {
   const Type &type() const { return type_; }
 
   bool setValue(const QString &str) {
-    Type type;
+    Type type { Type::TOP_RIGHT };
 
     if (! decodeString(str, type))
       return false;

@@ -2,7 +2,6 @@
 #define CQChartsTextBoxObj_H
 
 #include <CQChartsBoxObj.h>
-#include <CQChartsData.h>
 #include <CQChartsGeom.h>
 #include <QFont>
 #include <QRectF>

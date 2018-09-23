@@ -9,6 +9,13 @@
 
 //---
 
+struct CQChartsDistributionBarValue {
+  double n1 { 0 };
+  double n2 { 0 };
+};
+
+//---
+
 // distribution plot type
 class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
  public:
@@ -59,8 +66,10 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   };
 
  public:
+  using BarValue = CQChartsDistributionBarValue;
+
   CQChartsDistributionBarObj(CQChartsDistributionPlot *plot, const CQChartsGeom::BBox &rect,
-                             int groupInd, int bucket, double n1, double n2,
+                             int groupInd, int bucket, const BarValue &barValue,
                              int is, int ns, int iv, int nv);
 
   int groupInd() const { return groupInd_; }
@@ -122,8 +131,7 @@ class CQChartsDistributionBarObj : public CQChartsPlotObj {
   CQChartsDistributionPlot *plot_     { nullptr };
   int                       groupInd_ { -1 };
   int                       bucket_   { -1 };
-  double                    n1_       { 0.0 };
-  double                    n2_       { 0.0 };
+  BarValue                  barValue_;
   int                       is_       { -1 };
   int                       ns_       { -1 };
   int                       iv_       { -1 };
@@ -303,6 +311,7 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   // style
   Q_PROPERTY(CQChartsColumn nameColumn READ nameColumn WRITE setNameColumn)
+  Q_PROPERTY(CQChartsColumn dataColumn READ dataColumn WRITE setDataColumn)
 
   // bucketer
   Q_PROPERTY(bool   bucketed         READ isBucketed        WRITE setBucketed        )
@@ -312,11 +321,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   Q_PROPERTY(int    numAutoBuckets   READ numAutoBuckets    WRITE setNumAutoBuckets  )
 
   // options
+  Q_PROPERTY(PlotType  plotType  READ plotType  WRITE setPlotType )
+  Q_PROPERTY(ValueType valueType READ valueType WRITE setValueType)
+
   Q_PROPERTY(bool stacked    READ isStacked    WRITE setStacked   )
   Q_PROPERTY(bool sideBySide READ isSideBySide WRITE setSideBySide)
   Q_PROPERTY(bool overlay    READ isOverlay    WRITE setOverlay   )
   Q_PROPERTY(bool skipEmpty  READ isSkipEmpty  WRITE setSkipEmpty )
-  Q_PROPERTY(bool rangeBar   READ isRangeBar   WRITE setRangeBar  )
   Q_PROPERTY(bool sorted     READ isSorted     WRITE setSorted    )
 
   // density
@@ -346,7 +357,27 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   CQCHARTS_NAMED_POINT_DATA_PROPERTIES(Rug,rug)
 
+  Q_ENUMS(PlotType);
+  Q_ENUMS(ValueType);
+
  public:
+  enum class PlotType {
+    NORMAL,
+    STACKED,
+    SIDE_BY_SIDE,
+    OVERLAY,
+    SCATTER,
+    DENSITY
+  };
+
+  enum class ValueType {
+    COUNT,
+    RANGE,
+    MIN,
+    MAX,
+    MEAN
+  };
+
   struct Filter {
     Filter(int groupInd, double min, double max) :
      groupInd(groupInd), minValue(min), maxValue(max) {
@@ -373,6 +404,9 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   const CQChartsColumn &nameColumn() const { return nameColumn_; }
   void setNameColumn(const CQChartsColumn &c);
 
+  const CQChartsColumn &dataColumn() const { return dataColumn_; }
+  void setDataColumn(const CQChartsColumn &c);
+
   //---
 
   bool isBucketed() const { return bucketed_; }
@@ -392,44 +426,53 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
 
   //---
 
-  bool isStacked   () const { return stacked_   ; }
-  bool isSideBySide() const { return sideBySide_; }
-  bool isOverlay   () const { return overlay_   ; }
+  PlotType plotType() const { return plotType_; }
+
+  bool isStacked   () const { return (plotType_ == PlotType::STACKED     ); }
+  bool isSideBySide() const { return (plotType_ == PlotType::SIDE_BY_SIDE); }
+  bool isOverlay   () const { return (plotType_ == PlotType::OVERLAY     ); }
 
   bool isSkipEmpty() const { return skipEmpty_; }
 
-  bool isRangeBar() const { return rangeBar_; }
+  ValueType valueType() const { return valueType_; }
+
+  bool isValueCount() const { return (valueType_ == ValueType::COUNT); }
+  bool isValueRange() const { return (valueType_ == ValueType::RANGE); }
+  bool isValueMin  () const { return (valueType_ == ValueType::MIN  ); }
+  bool isValueMax  () const { return (valueType_ == ValueType::MAX  ); }
 
   bool isSorted() const { return sorted_; }
 
   //---
 
-  bool isDensity() const { return density_; }
+  bool isNormal() const { return (plotType_ == PlotType::NORMAL); }
 
-  double densityOffset() const { return densityOffset_; }
+  bool isDensity() const { return (plotType_ == PlotType::DENSITY); }
+
+  double densityOffset() const { return densityData_.offset; }
   void setDensityOffset(double o);
 
-  int densitySamples() const { return densitySamples_; }
+  int densitySamples() const { return densityData_.numSamples; }
   void setDensitySamples(int n);
 
-  bool isDensityGradient() const { return densityGradient_; }
+  bool isDensityGradient() const { return densityData_.gradient; }
   void setDensityGradient(bool b);
 
-  bool isDensityBars() const { return densityBars_; }
+  bool isDensityBars() const { return densityData_.bars; }
   void setDensityBars(bool b);
 
   //---
 
-  bool isScatter() const { return scatter_; }
+  bool isScatter() const { return (plotType_ == PlotType::SCATTER); }
 
-  double scatterFactor() const { return scatterFactor_; }
+  double scatterFactor() const { return scatterData_.factor; }
   void setScatterFactor(double r);
 
   //---
 
-  bool isDotLines() const { return dotLines_; }
+  bool isDotLines() const { return dotLineData_.enabled; }
 
-  const CQChartsLength &dotLineWidth() const { return dotLineWidth_; }
+  const CQChartsLength &dotLineWidth() const { return dotLineData_.width; }
   void setDotLineWidth(const CQChartsLength &l);
 
   //---
@@ -509,9 +552,10 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   struct VariantInd {
     QVariant           var;
     CQChartsModelIndex ind;
+    QVariant           dvar;
 
-    VariantInd(const QVariant &var, const CQChartsModelIndex &ind) :
-     var(var), ind(ind) {
+    VariantInd(const QVariant &var, const CQChartsModelIndex &ind, const QVariant &dvar) :
+     var(var), ind(ind), dvar(dvar) {
     }
   };
 
@@ -523,7 +567,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
     double      max { 0.0 };
   };
 
+  using BarValue = CQChartsDistributionBarValue;
+
  public:
+  void calcVarIndsMinMax(VariantIndsData &varInds);
+
+  BarValue varIndsValue(const VariantIndsData &varInds) const;
+
   void getInds(int groupInd, int bucket, VariantInds &inds) const;
 
   void getXVals(int groupInd, int bucket, std::vector<double> &xvals) const;
@@ -573,11 +623,19 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   QString bucketValuesStr(int groupInd, int bucket, const Values *values,
                           BucketValueType type=BucketValueType::ALL) const;
 
-  const Values *getValues(int groupInd) const;
+  Values *getGroupIndValues(int groupInd, const CQChartsModelIndex &ind);
+
+  const Values *getGroupValues(int groupInd) const;
 
  private slots:
   // set horizontal
   void setHorizontal(bool b) override;
+
+  // set plot type
+  void setPlotType(PlotType plotType);
+
+  // set normal
+  void setNormal(bool b);
 
   // set stacked, side by side, overlay
   void setStacked   (bool b);
@@ -587,8 +645,13 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   // set skip empty
   void setSkipEmpty(bool b);
 
-  // set range bar
-  void setRangeBar(bool b);
+  // set value type
+  void setValueType(ValueType valueType);
+
+  void setValueCount(bool b);
+  void setValueRange(bool b);
+  void setValueMin(bool b);
+  void setValueMax(bool b);
 
   // set sorted
   void setSorted(bool b);
@@ -616,31 +679,40 @@ class CQChartsDistributionPlot : public CQChartsBarPlot,
   void popTopSlot();
 
  private:
-  CQChartsColumn    nameColumn_;                // name column
-  bool              stacked_         { false }; // stacked bars
-  bool              sideBySide_      { false }; // side by side bars
-  bool              overlay_         { false }; // overlay groups
-  bool              skipEmpty_       { false }; // skip empty buckets (non continuous range)
-  bool              rangeBar_        { false }; // show range bar
-  bool              sorted_          { false }; // sort by count
-  bool              density_         { false }; // show density
-  double            densityOffset_   { 0.0 };   // density offset
-  int               densitySamples_  { 100 };   // density samples
-  bool              densityGradient_ { false }; // density gradient
-  bool              densityBars_     { false }; // density bars
-  bool              scatter_         { false }; // scatter plot
-  double            scatterFactor_   { 1.0 };   // scatter factor
-  bool              dotLines_        { false }; // show dot lines
-  CQChartsLength    dotLineWidth_    { "3px" }; // dot line width
-  bool              rug_             { false }; // show rug
-  bool              showMean_        { false }; // show mean
-  CQChartsDataLabel dataLabel_;                 // data label data
-  GroupValues       groupValues_;               // grouped value sets
-  GroupBucketer     groupBucketer_;             // group bucketer
-  CQBucketer        bucketer_;                  // shared bucketer
-  bool              bucketed_        { true };  // is bucketed
-  FilterStack       filterStack_;               // filter stack
-  GroupBucketRange  groupBucketRange_;          // bucketer per group
+  struct DensityData {
+    double offset     { 0.0 };   // offset
+    int    numSamples { 100 };   // num samples
+    bool   gradient   { false }; // gradient
+    bool   bars       { false }; // show bars
+  };
+
+  struct ScatterData {
+    double factor { 1.0 };   // factor
+  };
+
+  struct DotLineData {
+    bool           enabled { false }; // shown
+    CQChartsLength width   { "3px" }; // width
+  };
+
+  CQChartsColumn    nameColumn_;                          // name column
+  CQChartsColumn    dataColumn_;                          // data column
+  bool              skipEmpty_      { false };            // skip empty buckets (non cont range)
+  PlotType          plotType_       { PlotType::NORMAL }; // plot type
+  ValueType         valueType_      { ValueType::COUNT }; // show value count
+  bool              sorted_         { false };            // sort by count
+  DensityData       densityData_;                         // density data
+  ScatterData       scatterData_;                         // scatter data
+  DotLineData       dotLineData_;                         // show dot lines
+  bool              rug_            { false };            // show rug
+  bool              showMean_       { false };            // show mean
+  CQChartsDataLabel dataLabel_;                           // data label data
+  GroupValues       groupValues_;                         // grouped value sets
+  GroupBucketer     groupBucketer_;                       // group bucketer
+  CQBucketer        bucketer_;                            // shared bucketer
+  bool              bucketed_       { true };             // is bucketed
+  FilterStack       filterStack_;                         // filter stack
+  GroupBucketRange  groupBucketRange_;                    // bucketer per group
 };
 
 #endif

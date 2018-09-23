@@ -213,6 +213,8 @@ autoCalc() const
   if (needsCalc_) {
     CInterval interval(rmin(), rmax(), numAuto());
 
+    interval.setIntegral(isIntegral());
+
     calcMin_   = interval.calcStart    ();
     calcMax_   = interval.calcEnd      ();
     calcDelta_ = interval.calcIncrement();

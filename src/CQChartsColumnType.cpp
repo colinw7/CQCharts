@@ -193,17 +193,6 @@ setModelColumnType(QAbstractItemModel *model, const CQChartsColumn &column,
 
 //------
 
-#if 0
-bool
-CQChartsColumn::
-decodeType(QString &baseType, CQChartsNameValues &nameValues) const
-{
-  return CQChartsColumnUtil::decodeType(type_, baseType, nameValues);
-}
-#endif
-
-//------
-
 namespace CQChartsColumnUtil {
 
 bool decodeType(const QString &type, QString &baseType, CQChartsNameValues &nameValues) {

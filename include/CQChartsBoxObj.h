@@ -3,7 +3,6 @@
 
 #include <CQChartsObj.h>
 #include <CQChartsObjData.h>
-#include <CQChartsData.h>
 #include <CQChartsSides.h>
 #include <QRectF>
 #include <QPolygonF>

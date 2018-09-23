@@ -296,6 +296,12 @@ columnTypeStr(CQCharts *charts, QAbstractItemModel *model,
   return true;
 }
 
+// column_types: <column_type>;<column_type>;...
+// column_type : <column>#<type> | <type>
+// type        : <base_type>:<name_values> | <base_type>
+// base_type   : integer|real|string|...
+// name_values : <name_value>,<name_value>,...
+// name_value  : <name>=<value> | <name>
 bool
 setColumnTypeStrs(CQCharts *charts, QAbstractItemModel *model, const QString &columnTypes)
 {

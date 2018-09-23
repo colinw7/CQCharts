@@ -72,11 +72,19 @@ class CQChartsPlotType : public QObject {
 
   virtual Dimension dimension() const = 0;
 
+  //---
+
   // plot parameters
   // (required/key options to initialize plot)
   virtual void addParameters() = 0;
 
   const Parameters &parameters() const { return parameters_; }
+
+  bool hasParameter(const QString &name) const;
+
+  const CQChartsPlotParameter &getParameter(const QString &name) const;
+
+  //---
 
   const ParameterGroups &parameterGroups() const { return parameterGroups_; }
 
@@ -126,6 +134,13 @@ class CQChartsPlotType : public QObject {
   addIntParameter(const QString &name, const QString &desc, const QString &propName,
                   const ParameterAttributes &attributes, int defValue);
 
+  CQChartsEnumParameter &
+  addEnumParameter(const QString &name, const QString &desc, const QString &propName,
+                   bool defValue=false);
+  CQChartsEnumParameter &
+  addEnumParameter(const QString &name, const QString &desc, const QString &propName,
+                   const ParameterAttributes &attributes, bool defValue);
+
   CQChartsPlotParameter &
   addBoolParameter(const QString &name, const QString &desc, const QString &propName,
                    bool defValue=false);
@@ -162,6 +177,7 @@ class CQChartsPlotType : public QObject {
 
   //---
 
+  // is column suitable for parameter
   virtual bool isColumnForParameter(CQChartsModelColumnDetails *,
                                     CQChartsPlotParameter *) const { return true; }
 

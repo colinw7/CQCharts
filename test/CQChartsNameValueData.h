@@ -6,15 +6,16 @@
 
 struct CQChartsNameValueData {
   using NameValues = std::map<QString,QString>;
-  using NameReals  = std::map<QString,double>;
-  using NameInts   = std::map<QString,int>;
   using NameBools  = std::map<QString,bool>;
+  using NameInts   = std::map<QString,int>;
+  using NameReals  = std::map<QString,double>;
 
   NameValues values;
-  NameValues strings;
-  NameReals  reals;
-  NameInts   ints;
   NameBools  bools;
+  NameValues strings;
+  NameInts   ints;
+  NameReals  reals;
+  NameValues enums;
 };
 
 #endif

@@ -632,3 +632,11 @@
  + CQChartsFillUnderSide and CQChartsFillUnderPos meta types
 # 9/16/2018
  + Add inner margin support
+# 9/23/2018
+ + add enum parameter
+ + distribution plot use plot type and value type
+ + add min/max for distribution value type
+ + support extra data for distribution plot values
+ + add query of plot types and parameters
+ + Add theme type and dark options on view
+ + Use style template for view background 

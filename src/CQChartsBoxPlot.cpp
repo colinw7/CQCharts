@@ -40,9 +40,11 @@ addParameters()
 
   startParameterGroup("Raw Values");
 
-  addColumnsParameter("value", "Value", "valueColumns", "1").setTip("value column(s)");
-  addColumnParameter ("name" , "Name" , "nameColumn"       ).setTip("Name column");
-  addColumnParameter ("set"  , "Set"  , "setColumn"        ).setTip("Set Values");
+  addColumnsParameter("value", "Value", "valueColumns", "1").
+    setNumeric().setTip("value column(s)");
+  addColumnParameter ("name", "Name", "nameColumn").
+    setString().setTip("Name column");
+  addColumnParameter ("set", "Set", "setColumn").setTip("Set Values");
 
   endParameterGroup();
 
@@ -50,17 +52,17 @@ addParameters()
 
   startParameterGroup("Calculated Values");
   addColumnParameter("x"          , "X"          , "xColumn"          ).
-    setTip("X Value");
+    setNumeric().setTip("X Value");
   addColumnParameter("min"        , "Min"        , "minColumn"        ).
-    setTip("Min Value");
+    setNumeric().setTip("Min Value");
   addColumnParameter("lowerMedian", "LowerMedian", "lowerMedianColumn").
-    setTip("Lower Median Value");
+    setNumeric().setTip("Lower Median Value");
   addColumnParameter("median"     , "Median"     , "medianColumn"     ).
-    setTip("Media Value");
+    setNumeric().setTip("Media Value");
   addColumnParameter("upperMedian", "UpperMedian", "upperMedianColumn").
-    setTip("Upper Median Value");
+    setNumeric().setTip("Upper Median Value");
   addColumnParameter("max"        , "Max"        , "maxColumn"        ).
-    setTip("Max Value");
+    setNumeric().setTip("Max Value");
   addColumnParameter("outliers"   , "Outliers"   , "outliersColumn"   ).
     setTip("Outlier Values");
   endParameterGroup();

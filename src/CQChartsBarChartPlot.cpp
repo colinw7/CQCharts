@@ -24,9 +24,12 @@ addParameters()
   addColumnsParameter("value", "Value", "valueColumns", "1").
     setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("name" , "Name" , "nameColumn" ).setTip("Custom group name");
-  addColumnParameter("label", "Label", "labelColumn").setTip("Bar data label");
-  addColumnParameter("color", "Color", "colorColumn").setTip("Custom bar color");
+  addColumnParameter("name" , "Name" , "nameColumn" ).
+    setString().setTip("Custom group name");
+  addColumnParameter("label", "Label", "labelColumn").
+    setString().setTip("Bar data label");
+  addColumnParameter("color", "Color", "colorColumn").
+    setColor().setTip("Custom bar color");
 
   addBoolParameter("horizontal", "Horizontal", "horizontal").setTip("draw bars horizontal");
   addBoolParameter("stacked"   , "Stacked"   , "stacked"   ).setTip("Stack grouped values");
@@ -520,7 +523,7 @@ addRowColumn(const ModelVisitor::VisitData &data, const CQChartsColumns &valueCo
 
   //---
 
-  int ns = (! isRangeBar() ? valueColumns.count() : 1);
+  int ns = (! isRangeBar() ? this->valueColumns().count() : 1);
 
   if (ns > 1) {
     // set value data group name and value name
@@ -1774,7 +1777,7 @@ interpTextColor(int i, int n) const
   QColor c = CQChartsKeyText::interpTextColor(i, n);
 
   if (plot->isSetHidden(i_))
-    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), 0.5);
+    c = CQChartsUtil::blendColors(c, CQChartsUtil::bwColor(c), key_->hiddenAlpha());
 
   return c;
 }

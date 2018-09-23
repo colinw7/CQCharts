@@ -114,6 +114,9 @@ CQChartsPlot::
   for (auto &layer : layers_)
     delete layer.second;
 
+  for (auto &buffer : buffers_)
+    delete buffer.second;
+
   for (auto &annotation : annotations())
     delete annotation;
 
@@ -1148,7 +1151,7 @@ addProperties()
   addProperty("range", this, "calcDataRect" , "calcData" );
   addProperty("range", this, "outerDataRect", "outerData");
 
-  addProperty("range", this, "autoFit" , "autoFit");
+  addProperty("range", this, "autoFit", "autoFit");
 
   addProperty("scaling"            , this, "equalScale" , "equal");
   addProperty("scaling/data/scale" , this, "dataScaleX" , "x"    );
@@ -1355,7 +1358,7 @@ getProperty(const QString &name, QVariant &value)
   return propertyModel()->getProperty(this, name, value);
 }
 
-void
+CQPropertyViewItem *
 CQChartsPlot::
 addProperty(const QString &path, QObject *object, const QString &name, const QString &alias)
 {
@@ -1366,7 +1369,7 @@ addProperty(const QString &path, QObject *object, const QString &name, const QSt
   if (path.length())
     path1 += "/" + path;
 
-  view_->addProperty(path1, object, name, alias);
+  return view_->addProperty(path1, object, name, alias);
 }
 
 void
@@ -1669,8 +1672,7 @@ applyDataRange(bool propagate)
 
   if (propagate) {
     if      (isX1X2()) {
-      CQChartsGeom::Range dataRange1 =
-        CQChartsUtil::bboxRange(dataRange);
+      CQChartsGeom::Range dataRange1 = CQChartsUtil::bboxRange(dataRange);
 
       CQChartsPlot *plot1, *plot2;
 
@@ -5788,7 +5790,7 @@ updateSelectedObjPenBrushState(QPen &pen, QBrush &brush) const
       else
         alpha = bc.alphaF();
 
-      setBrush(brush, true, ibc, alpha, view()->insideFillPattern());
+      setBrush(brush, true, ibc, alpha, view()->selectedFillPattern());
     }
   }
   // just stroke
@@ -5869,7 +5871,7 @@ QColor
 CQChartsPlot::
 interpGroupPaletteColor(double r1, double r2, double dr) const
 {
-  CQChartsTheme *theme = view()->theme();
+  CQChartsThemeObj *theme = view()->themeObj();
 
   // r1 is parent color and r2 is child color
   QColor c1 = theme->palette()->getColor(r1 - dr/2.0);
@@ -6562,6 +6564,13 @@ idColumnString(int row, const QModelIndex &parent, bool &ok) const
 
 QModelIndex
 CQChartsPlot::
+modelIndex(const CQChartsModelIndex &ind) const
+{
+  return modelIndex(ind.row, ind.column, ind.parent);
+}
+
+QModelIndex
+CQChartsPlot::
 modelIndex(int row, const CQChartsColumn &column, const QModelIndex &parent) const
 {
   return modelIndex(row, column.column(), parent);
@@ -6609,6 +6618,13 @@ modelHeaderString(int section, Qt::Orientation orient, bool &ok) const
 
 QVariant
 CQChartsPlot::
+modelValue(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelValue(ind.row, ind.column, ind.parent, ok);
+}
+
+QVariant
+CQChartsPlot::
 modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent,
            int role, bool &ok) const
 {
@@ -6620,6 +6636,13 @@ CQChartsPlot::
 modelValue(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
   return modelValue(model().data(), row, column, parent, ok);
+}
+
+QString
+CQChartsPlot::
+modelString(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelString(ind.row, ind.column, ind.parent, ok);
 }
 
 QString
@@ -6639,6 +6662,13 @@ modelString(int row, const CQChartsColumn &column, const QModelIndex &parent, bo
 
 double
 CQChartsPlot::
+modelReal(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelReal(ind.row, ind.column, ind.parent, ok);
+}
+
+double
+CQChartsPlot::
 modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent,
           int role, bool &ok) const
 {
@@ -6650,6 +6680,13 @@ CQChartsPlot::
 modelReal(int row, const CQChartsColumn &column, const QModelIndex &parent, bool &ok) const
 {
   return modelReal(model().data(), row, column, parent, ok);
+}
+
+long
+CQChartsPlot::
+modelInteger(const CQChartsModelIndex &ind, bool &ok) const
+{
+  return modelInteger(ind.row, ind.column, ind.parent, ok);
 }
 
 long
@@ -6987,6 +7024,13 @@ beginSelect()
   selIndexColumnRows_.clear();
 
 //itemSelection_ = QItemSelection();
+}
+
+void
+CQChartsPlot::
+addSelectIndex(const CQChartsModelIndex &ind)
+{
+  addSelectIndex(ind.row, ind.column.column(), ind.parent);
 }
 
 void

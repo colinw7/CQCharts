@@ -836,6 +836,8 @@ createPlotCmd(const Vars &vars)
   argv.addCmdArg("-bool"      , CQChartsCmdArg::Type::String, "name_values");
   argv.addCmdArg("-string"    , CQChartsCmdArg::Type::String, "name_values");
   argv.addCmdArg("-real"      , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-int"       , CQChartsCmdArg::Type::String, "name_values");
+  argv.addCmdArg("-enum"      , CQChartsCmdArg::Type::String, "name_values");
   argv.addCmdArg("-xintegral" , CQChartsCmdArg::Type::SBool);
   argv.addCmdArg("-yintegral" , CQChartsCmdArg::Type::SBool);
   argv.addCmdArg("-xlog"      , CQChartsCmdArg::Type::SBool);
@@ -913,9 +915,11 @@ createPlotCmd(const Vars &vars)
   //--
 
   // plot bool parameters
-  QString boolStr = argv.getParseStr("bool");
+  QStringList boolStrs = argv.getParseStrs("bool");
 
-  if (boolStr.length()) {
+  for (int i = 0; i < boolStrs.length(); ++i) {
+    const QString &boolStr = boolStrs[i];
+
     auto pos = boolStr.indexOf('=');
 
     QString name, value;
@@ -943,9 +947,11 @@ createPlotCmd(const Vars &vars)
   //--
 
   // plot string parameters
-  QString stringStr = argv.getParseStr("string");
+  QStringList stringStrs = argv.getParseStrs("string");
 
-  if (stringStr.length()) {
+  for (int i = 0; i < stringStrs.length(); ++i) {
+    const QString &stringStr = stringStrs[i];
+
     auto pos = stringStr.indexOf('=');
 
     QString name, value;
@@ -965,9 +971,11 @@ createPlotCmd(const Vars &vars)
   //--
 
   // plot real parameters
-  QString realStr = argv.getParseStr("real");
+  QStringList realStrs = argv.getParseStrs("real");
 
-  if (realStr.length()) {
+  for (int i = 0; i < realStrs.length(); ++i) {
+    const QString &realStr = realStrs[i];
+
     auto pos = realStr.indexOf('=');
 
     QString name;
@@ -990,9 +998,11 @@ createPlotCmd(const Vars &vars)
   //--
 
   // plot integer parameters
-  QString intStr = argv.getParseStr("int");
+  QStringList intStrs = argv.getParseStrs("int");
 
-  if (intStr.length()) {
+  for (int i = 0; i < intStrs.length(); ++i) {
+    const QString &intStr = intStrs[i];
+
     auto pos = intStr.indexOf('=');
 
     QString name;
@@ -1010,6 +1020,31 @@ createPlotCmd(const Vars &vars)
     }
 
     nameValueData.ints[name] = value;
+  }
+
+  //--
+
+  // plot integer parameters
+  QStringList enumStrs = argv.getParseStrs("enum");
+
+  for (int i = 0; i < enumStrs.length(); ++i) {
+    const QString &enumStr = enumStrs[i];
+
+    auto pos = enumStr.indexOf('=');
+
+    QString name;
+    QString value;
+
+    if (pos >= 0) {
+      name  = enumStr.mid(0, pos).simplified();
+      value = enumStr.mid(pos + 1).simplified();
+    }
+    else {
+      name  = enumStr;
+      value = "";
+    }
+
+    nameValueData.enums[name] = value;
   }
 
   //------
@@ -1409,7 +1444,7 @@ getPaletteCmd(const Vars &vars)
   if (interface)
     interface = view->interfacePalette();
   else
-    palette = view->theme()->palette(paletteIndex);
+    palette = view->themeObj()->palette(paletteIndex);
 
   if (getColorFlag) {
     QColor c = palette->getColor(getColorValue, getColorScale);
@@ -1525,7 +1560,7 @@ setPaletteCmd(const Vars &vars)
   if (interface)
     interface = view->interfacePalette();
   else
-    palette = view->theme()->palette(paletteIndex);
+    palette = view->themeObj()->palette(paletteIndex);
 
   setPaletteData(palette, paletteData);
 
@@ -2261,9 +2296,10 @@ getChartsDataCmd(const Vars &vars)
 
   CQChartsCmdArgs argv("get_charts_data", vars);
 
-  argv.startCmdGroup(CQChartsCmdGroup::Type::OneReq);
+  argv.startCmdGroup(CQChartsCmdGroup::Type::OneOpt);
   argv.addCmdArg("-model", CQChartsCmdArg::Type::Integer, "model index");
   argv.addCmdArg("-view" , CQChartsCmdArg::Type::String , "view name");
+  argv.addCmdArg("-type" , CQChartsCmdArg::Type::String , "type name");
   argv.addCmdArg("-plot" , CQChartsCmdArg::Type::String , "plot name");
   argv.endCmdGroup();
 
@@ -2583,6 +2619,169 @@ getChartsDataCmd(const Vars &vars)
       return;
     }
   }
+  else if (argv.hasParseArg("type")) {
+    QString typeName = argv.getParseStr("type");
+
+    if (! charts_->isPlotType(typeName)) {
+      charts_->errorMsg("No type '" + typeName + "'");
+      return;
+    }
+
+    CQChartsPlotType *type = charts_->plotType(typeName);
+
+    if (! type) {
+      charts_->errorMsg("No type '" + typeName + "'");
+      return;
+    }
+
+    //---
+
+    if      (name == "name") {
+      setCmdRc(type->name());
+    }
+    else if (name == "desc") {
+      setCmdRc(type->desc());
+    }
+    else if (name == "html_desc") {
+      setCmdRc(type->description());
+    }
+    else if (name == "dimension") {
+      setCmdRc((int) type->dimension());
+    }
+    else if (name == "x_column") {
+      setCmdRc(QString(type->xColumnName()));
+    }
+    else if (name == "y_column") {
+      setCmdRc(QString(type->yColumnName()));
+    }
+    else if (name == "custom_x_range") {
+      setCmdRc(type->customXRange());
+    }
+    else if (name == "custom_y_range") {
+      setCmdRc(type->customYRange());
+    }
+    else if (name == "axes") {
+      setCmdRc(type->hasAxes());
+    }
+    else if (name == "key") {
+      setCmdRc(type->hasKey());
+    }
+    else if (name == "title") {
+      setCmdRc(type->hasTitle());
+    }
+    else if (name == "allow_x_axis_integral") {
+      setCmdRc(type->allowXAxisIntegral());
+    }
+    else if (name == "allow_y_axis_integral") {
+      setCmdRc(type->allowYAxisIntegral());
+    }
+    else if (name == "allow_x_log") {
+      setCmdRc(type->allowXLog());
+    }
+    else if (name == "allow_y_log") {
+      setCmdRc(type->allowYLog());
+    }
+    else if (name == "is_group") {
+      setCmdRc(type->isGroupType());
+    }
+    else if (name == "hierarchical") {
+      setCmdRc(type->isHierarchical());
+    }
+    else if (name == "parameters") {
+      const CQChartsPlotType::Parameters &parameters = type->parameters();
+
+      QStringList names;
+
+      for (auto &parameter : parameters)
+        names.push_back(parameter->name());
+
+      setCmdRc(names);
+    }
+    else if (name.left(10) == "parameter.") {
+      if (! type->hasParameter(data)) {
+        charts_->errorMsg("No parameter '" + data + "'");
+        return;
+      }
+
+      const CQChartsPlotParameter &parameter = type->getParameter(data);
+
+      QString name1 = name.mid(10);
+
+      if      (name1 == "name") {
+        setCmdRc(parameter.name());
+      }
+      else if (name1 == "desc") {
+        setCmdRc(parameter.desc());
+      }
+      else if (name1 == "type") {
+        setCmdRc(parameter.type());
+      }
+      else if (name1 == "prop_name") {
+        setCmdRc(parameter.propName());
+      }
+      else if (name1 == "group_id") {
+        setCmdRc(parameter.groupId());
+      }
+      else if (name1 == "def_value") {
+        setCmdRc(parameter.defValue());
+      }
+      else if (name1 == "tip") {
+        setCmdRc(parameter.tip());
+      }
+      else if (name1 == "column") {
+        setCmdRc(parameter.isColumn());
+      }
+      else if (name1 == "multiple") {
+        setCmdRc(parameter.isMultiple());
+      }
+      else if (name1 == "optional") {
+        setCmdRc(parameter.isOptional());
+      }
+      else if (name1 == "required") {
+        setCmdRc(parameter.isRequired());
+      }
+      else if (name1 == "discrimator") {
+        setCmdRc(parameter.isDiscrimator());
+      }
+      else if (name1 == "monotonic") {
+        setCmdRc(parameter.isMonotonic());
+      }
+      else if (name1 == "numeric") {
+        setCmdRc(parameter.isNumeric());
+      }
+      else if (name1 == "string") {
+        setCmdRc(parameter.isString());
+      }
+      else if (name1 == "color") {
+        setCmdRc(parameter.isColor());
+      }
+      else if (name1 == "type_detail") {
+        setCmdRc(parameter.typeDetail());
+      }
+      else if (name1 == "groupable") {
+        setCmdRc(parameter.isGroupable());
+      }
+      else if (name1 == "mapped") {
+        setCmdRc(parameter.isMapped());
+      }
+      else if (name1 == "mapMin") {
+        setCmdRc(parameter.mapMin());
+      }
+      else if (name1 == "mapMax") {
+        setCmdRc(parameter.mapMax());
+      }
+      else {
+        setCmdError("Invalid name 'parameter." + name1 + "' specified");
+        return;
+      }
+    }
+    else {
+      setCmdError("Invalid name '" + name + "' specified");
+      return;
+    }
+
+    return;
+  }
   else if (argv.hasParseArg("plot")) {
     QString plotName = argv.getParseStr("plot");
 
@@ -2764,6 +2963,13 @@ getChartsDataCmd(const Vars &vars)
         vars.push_back(view->id());
 
       setCmdRc(vars);
+    }
+    else if (name == "types") {
+      QStringList names, descs;
+
+      charts_->getPlotTypeNames(names, descs);
+
+      setCmdRc(names);
     }
     else if (name == "plots") {
       QVariantList vars;
@@ -4162,6 +4368,15 @@ setCmdRc(const QVariant &rc)
 
 void
 CQChartsCmds::
+setCmdRc(const QStringList &rc)
+{
+#ifdef CQCharts_USE_TCL
+  qtcl()->setResult(rc);
+#endif
+}
+
+void
+CQChartsCmds::
 setCmdRc(const QVariantList &rc)
 {
 #ifdef CQCharts_USE_TCL
@@ -4286,6 +4501,17 @@ createPlot(CQChartsView *view, const ModelP &model, QItemSelectionModel *sm,
       int i = (*p).second;
 
       if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(i)))
+        charts_->errorMsg("Failed to set parameter " + parameter->propName());
+    }
+    else if (parameter->type() == "enum") {
+      auto p = nameValueData.enums.find(parameter->name());
+
+      if (p == nameValueData.enums.end())
+        continue;
+
+      QString str = (*p).second;
+
+      if (! CQUtil::setProperty(plot, parameter->propName(), QVariant(str)))
         charts_->errorMsg("Failed to set parameter " + parameter->propName());
     }
     else if (parameter->type() == "bool") {

@@ -113,7 +113,7 @@ class CQChartsImagePlot : public CQChartsPlot,
 
   //---
 
-  bool addMenuItems(QMenu *menu);
+  bool addMenuItems(QMenu *menu) override;
 
   //---
 

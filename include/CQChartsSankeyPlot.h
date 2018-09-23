@@ -302,8 +302,8 @@ class CQChartsSankeyPlot : public CQChartsPlot,
  private:
   using PosNodesMap = std::map<int,IndNodeMap>;
 
-  CQChartsColumn     linkColumn_  { 0 };              // link column
-  CQChartsColumn     valueColumn_ { 1 };              // value column
+  CQChartsColumn     linkColumn_;                     // link column
+  CQChartsColumn     valueColumn_;                    // value column
   Align              align_       { Align::JUSTIFY }; // align
   NameNodeMap        nameNodeMap_;                    // name node map
   IndNodeMap         indNodeMap_;                     // ind node map

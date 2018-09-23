@@ -77,6 +77,7 @@ class CQChartsPlotObj : public CQChartsObj {
 
   virtual void addColumnSelectIndex(Indices &inds, const CQChartsColumn &column) const = 0;
 
+  void addSelectIndex(Indices &inds, const CQChartsModelIndex &ind) const;
   void addSelectIndex(Indices &inds, int row, const CQChartsColumn &column,
                       const QModelIndex &parent=QModelIndex()) const;
   void addSelectIndex(Indices &inds, const QModelIndex &ind) const;

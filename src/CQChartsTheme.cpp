@@ -2092,7 +2092,7 @@ getPaletteNames(QStringList &names) const
 
 void
 CQChartsThemeMgr::
-addTheme(const QString &name, CQChartsTheme *theme)
+addTheme(const QString &name, CQChartsThemeObj *theme)
 {
   auto p = themes_.find(name);
   assert(p == themes_.end());
@@ -2102,7 +2102,7 @@ addTheme(const QString &name, CQChartsTheme *theme)
   themes_[name] = theme;
 }
 
-CQChartsTheme *
+CQChartsThemeObj *
 CQChartsThemeMgr::
 getTheme(const QString &name) const
 {
@@ -2116,14 +2116,14 @@ getTheme(const QString &name) const
 
 //------
 
-CQChartsTheme::
-CQChartsTheme()
+CQChartsThemeObj::
+CQChartsThemeObj()
 {
   addNamedPalettes();
 }
 
 void
-CQChartsTheme::
+CQChartsThemeObj::
 addNamedPalettes()
 {
   addNamedPalette("default" );
@@ -2184,16 +2184,16 @@ addNamedPalettes()
   addNamedPalette("ylrd"    );
 }
 
-CQChartsTheme::
-~CQChartsTheme()
+CQChartsThemeObj::
+~CQChartsThemeObj()
 {
   for (auto &palette : palettes_)
     delete palette;
 }
 
 CQChartsGradientPalette *
-CQChartsTheme::
-palette(int i)
+CQChartsThemeObj::
+palette(int i) const
 {
   int i1 = i % palettes_.size();
 
@@ -2201,7 +2201,7 @@ palette(int i)
 }
 
 void
-CQChartsTheme::
+CQChartsThemeObj::
 setPalette(int i, CQChartsGradientPalette *palette)
 {
   assert(i >= 0 && i < int(palettes_.size()));
@@ -2212,21 +2212,21 @@ setPalette(int i, CQChartsGradientPalette *palette)
 }
 
 void
-CQChartsTheme::
+CQChartsThemeObj::
 addNamedPalette(const QString &name)
 {
   palettes_.push_back(CQChartsThemeMgrInst->getNamedPalette(name)->dup());
 }
 
 void
-CQChartsTheme::
+CQChartsThemeObj::
 setNamedPalette(int i, const QString &name)
 {
   setPalette(i, CQChartsThemeMgrInst->getNamedPalette(name)->dup());
 }
 
 void
-CQChartsTheme::
+CQChartsThemeObj::
 shiftPalettes(int n)
 {
   Palettes palettes;
@@ -2275,4 +2275,15 @@ CQChartsTheme2()
   //---
 
   selectColor_ = QColor("#cccc00");
+}
+
+//---
+
+CQUTIL_DEF_META_TYPE(CQChartsTheme, toString, fromString)
+
+void
+CQChartsTheme::
+registerMetaType()
+{
+  CQUTIL_REGISTER_META(CQChartsTheme);
 }

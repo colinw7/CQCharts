@@ -135,7 +135,6 @@ class CQChartsAdjacencyObj : public CQChartsPlotObj {
 //   empty cell        : color
 //
 // TODO: use box obj for box config
-CQCHARTS_NAMED_FILL_DATA(Background,background)
 CQCHARTS_NAMED_SHAPE_DATA(EmptyCell,emptyCell)
 
 class CQChartsAdjacencyPlot : public CQChartsPlot,

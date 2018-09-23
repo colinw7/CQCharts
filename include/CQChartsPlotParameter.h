@@ -50,6 +50,16 @@ class CQChartsPlotParameterAttributes {
   bool isColor() const { return (flags_ & COLOR); }
   CQChartsPlotParameterAttributes &setColor() { flags_ |= COLOR; return *this; }
 
+  bool hasTypeDetail() const { return isNumeric() || isString() || isColor(); }
+
+  QString typeDetail() const {
+    if (isNumeric()) return "numeric";
+    if (isString ()) return "string";
+    if (isColor  ()) return "color";
+
+    return "generic";
+  }
+
   //---
 
   // groupable
@@ -75,13 +85,9 @@ class CQChartsPlotParameterAttributes {
   QString summary() const {
     QString str = (isOptional() ? "optional" : "required");
 
-    str += (isMonotonic() ? "|monotonic" : "");
-
-    str += (isNumeric() ? "|numeric" : "");
-    str += (isString () ? "|string"  : "");
-    str += (isColor  () ? "|color"   : "");
-
-    str += (isGroupable() ? "|groupable" : "");
+    str += (isMonotonic  () ? "|monotonic"       : "");
+    str += (hasTypeDetail() ? "|" + typeDetail() : "");
+    str += (isGroupable  () ? "|groupable"       : "");
 
     return str;
   }
@@ -136,6 +142,22 @@ class CQChartsPlotParameter {
 
   virtual bool isMultiple() const { return false; }
 
+  bool isOptional   () const { return attributes_.isOptional   (); }
+  bool isRequired   () const { return attributes_.isRequired   (); }
+  bool isDiscrimator() const { return attributes_.isDiscrimator(); }
+  bool isMonotonic  () const { return attributes_.isMonotonic  (); }
+
+  bool isNumeric() const { return attributes_.isNumeric    (); }
+  bool isString () const { return attributes_.isString     (); }
+  bool isColor  () const { return attributes_.isColor      (); }
+
+  bool hasTypeDetail() const { return attributes_.hasTypeDetail(); }
+
+  QString typeDetail() const { return attributes_.typeDetail(); }
+
+  bool isGroupable() const { return attributes_.isGroupable  (); }
+  bool isMapped   () const { return attributes_.isMapped     (); }
+
   CQChartsPlotParameter &setOptional   () { attributes_.setOptional   (); return *this; }
   CQChartsPlotParameter &setRequired   () { attributes_.setRequired   (); return *this; }
   CQChartsPlotParameter &setDiscrimator() { attributes_.setDiscrimator(); return *this; }
@@ -145,6 +167,9 @@ class CQChartsPlotParameter {
   CQChartsPlotParameter &setColor      () { attributes_.setColor      (); return *this; }
   CQChartsPlotParameter &setGroupable  () { attributes_.setGroupable  (); return *this; }
   CQChartsPlotParameter &setMapped     () { attributes_.setMapped     (); return *this; }
+
+  double mapMin() const { return attributes_.mapMin(); }
+  double mapMax() const { return attributes_.mapMax(); }
 
   CQChartsPlotParameter &setMapMin(double r) { attributes_.setMapMin(r); return *this; }
   CQChartsPlotParameter &setMapMax(double r) { attributes_.setMapMax(r); return *this; }
@@ -236,6 +261,53 @@ class CQChartsIntParameter : public CQChartsPlotParameter {
                        const Attributes &attributes=Attributes(), int defValue=0) :
    CQChartsPlotParameter(name, desc, "int", propName, attributes, QVariant(defValue)) {
   }
+};
+
+//---
+
+class CQChartsEnumParameter : public CQChartsPlotParameter {
+ public:
+  CQChartsEnumParameter(const QString &name, const QString &desc, const QString &propName,
+                        const Attributes &attributes=Attributes(), int defValue=0) :
+   CQChartsPlotParameter(name, desc, "enum", propName, attributes, QVariant(defValue)) {
+  }
+
+  CQChartsEnumParameter &addNameValue(const QString &name, int value) {
+    nameValues_[name ] = value;
+    valueNames_[value] = name;
+
+    return *this;
+  }
+
+  QStringList names() const {
+    QStringList names;
+
+    for (const auto &nv : nameValues_)
+      names.push_back(nv.first);
+
+    return names;
+  }
+
+  int nameValue(const QString &name) const {
+    auto p = nameValues_.find(name);
+    if (p == nameValues_.end()) return -1;
+
+    return (*p).second;
+  }
+
+  QString valueName(int value) const {
+    auto p = valueNames_.find(value);
+    if (p == valueNames_.end()) return "";
+
+    return (*p).second;
+  }
+
+ private:
+  using NameValues = std::map<QString,int>;
+  using ValueNames = std::map<int,QString>;
+
+  NameValues nameValues_;
+  ValueNames valueNames_;
 };
 
 //---

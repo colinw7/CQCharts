@@ -393,7 +393,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   themeWidgets_.palettesSpin = new QSpinBox;
   themeWidgets_.palettesSpin->setObjectName("indexSpin");
 
-  int np = view->theme()->numPalettes();
+  int np = view->themeObj()->numPalettes();
 
   themeWidgets_.palettesSpin->setRange(0, np);
 
@@ -438,7 +438,7 @@ CQChartsViewSettings(CQChartsWindow *window) :
   palettesFrameLayout->addWidget(palettesSplitter);
 
   themeWidgets_.palettesPlot    =
-    new CQChartsGradientPaletteCanvas(this, view->theme()->palette());
+    new CQChartsGradientPaletteCanvas(this, view->themeObj()->palette());
   themeWidgets_.palettesControl =
     new CQChartsGradientPaletteControl(themeWidgets_.palettesPlot);
 
@@ -810,7 +810,7 @@ loadPaletteNameSlot()
 
   int i = themeWidgets_.palettesSpin->value();
 
-  view->theme()->setPalette(i, palette->dup());
+  view->themeObj()->setPalette(i, palette->dup());
 
   updatePalettes();
 }
@@ -827,7 +827,7 @@ updatePalettes()
 
   int i = themeWidgets_.palettesSpin->value();
 
-  CQChartsGradientPalette *palette = view->theme()->palette(i);
+  CQChartsGradientPalette *palette = view->themeObj()->palette(i);
 
   themeWidgets_.palettesPlot->setGradientPalette(palette);
 

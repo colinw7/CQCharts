@@ -55,7 +55,7 @@ CQChartsPlotTypeMgr::
 getTypeNames(QStringList &names, QStringList &descs) const
 {
   for (const auto &type : nameTypes_) {
-    names.push_back(type.second->name());
+    names.push_back(type.first);
     descs.push_back(type.second->desc());
   }
 }
@@ -80,13 +80,40 @@ addParameters()
 {
   startParameterGroup("Common");
 
-  addColumnParameter("id" , "Id" , "idColumn" ).setTip("Unique row id");
-  addColumnParameter("tip", "Tip", "tipColumn").setTip("Tip Column");
+  addColumnParameter("id", "Id", "idColumn").
+    setString().setTip("Unique row id");
+
+  addColumnParameter("tip", "Tip", "tipColumn").
+    setString().setTip("Tip Column");
 
   if (hasKey())
     addBoolParameter("key", "Key", "keyVisible").setTip("Show Key");
 
   endParameterGroup();
+}
+
+bool
+CQChartsPlotType::
+hasParameter(const QString &name) const
+{
+  for (auto &parameter : parameters_)
+    if (parameter->name() == name)
+      return true;
+
+  return false;
+}
+
+const CQChartsPlotParameter &
+CQChartsPlotType::
+getParameter(const QString &name) const
+{
+  for (auto &parameter : parameters_)
+    if (parameter->name() == name)
+      return *parameter;
+
+  assert(false);
+
+  return *parameters_[0];
 }
 
 CQChartsPlotType::Parameters
@@ -215,6 +242,22 @@ addIntParameter(const QString &name, const QString &desc, const QString &propNam
                 const ParameterAttributes &attributes, int defValue)
 {
   return addParameter(new CQChartsIntParameter(name, desc, propName, attributes, defValue));
+}
+
+CQChartsEnumParameter &
+CQChartsPlotType::
+addEnumParameter(const QString &name, const QString &desc, const QString &propName, bool defValue)
+{
+  return addEnumParameter(name, desc, propName, ParameterAttributes(), defValue);
+}
+
+CQChartsEnumParameter &
+CQChartsPlotType::
+addEnumParameter(const QString &name, const QString &desc, const QString &propName,
+                 const ParameterAttributes &attributes, bool defValue)
+{
+  return static_cast<CQChartsEnumParameter &>
+    (addParameter(new CQChartsEnumParameter(name, desc, propName, attributes, defValue)));
 }
 
 CQChartsPlotParameter &
