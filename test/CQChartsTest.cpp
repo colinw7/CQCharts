@@ -7,6 +7,7 @@
 #include <CQChartsAxis.h>
 #include <CQChartsCmds.h>
 #include <CQCharts.h>
+#include <CQChartsModelDlg.h>
 
 #include <CQSortModel.h>
 
@@ -121,22 +122,24 @@ struct MainData {
   using OptString = boost::optional<QString>;
   using OptReal   = boost::optional<double>;
 
-  bool             dark       { false };
+  bool             dark         { false };
   QString          execFile;
   QString          viewTitle;
-  bool             overlay    { false };
-  bool             x1x2       { false };
-  bool             y1y2       { false };
-  bool             horizontal { false };
-  bool             vertical   { false };
-  bool             loop       { false };
+  bool             overlay      { false };
+  bool             x1x2         { false };
+  bool             y1y2         { false };
+  bool             horizontal   { false };
+  bool             vertical     { false };
+  bool             loop         { false };
   OptString        printFile;
-  bool             gui        { true };
-  bool             showApp    { false };
-  bool             showAppSet { false };
-  bool             exit       { false };
-  int              viewWidth  { 100 };
-  int              viewHeight { 100 };
+  bool             gui          { true };
+  bool             showApp      { false };
+  bool             showAppSet   { false };
+  bool             showModel    { false };
+  bool             showModelSet { false };
+  bool             exit         { false };
+  int              viewWidth    { 100 };
+  int              viewHeight   { 100 };
   OptReal          xmin1;
   OptReal          xmax1;
   OptReal          xmin2;
@@ -226,7 +229,7 @@ main(int argc, char **argv)
   double dx = vr/nc;
   double dy = vr/nr;
 
-  int i = 0;
+  int numPlots = 0;
 
   for (auto &initData : mainData.initDatas) {
     // set placement
@@ -246,21 +249,21 @@ main(int argc, char **argv)
     if (mainData.xmax1) initData.xmax = mainData.xmax1;
 
     if      (initData.x1x2) {
-      if      (i == 0) {
+      if      (numPlots == 0) {
         if (mainData.xmin1) initData.xmin = mainData.xmin1;
         if (mainData.xmax1) initData.xmax = mainData.xmax1;
       }
-      else if (i >= 1) {
+      else if (numPlots >= 1) {
         if (mainData.xmin2) initData.xmin = mainData.xmin2;
         if (mainData.xmax2) initData.xmax = mainData.xmax2;
       }
     }
     else if (initData.y1y2) {
-      if      (i == 0) {
+      if      (numPlots == 0) {
         if (mainData.ymin1) initData.ymin = mainData.ymin1;
         if (mainData.ymax1) initData.ymax = mainData.ymax1;
       }
-      else if (i >= 1) {
+      else if (numPlots >= 1) {
         if (mainData.ymin2) initData.ymin = mainData.ymin2;
         if (mainData.ymax2) initData.ymax = mainData.ymax2;
       }
@@ -276,7 +279,7 @@ main(int argc, char **argv)
     if (! test.initPlot(initData))
       continue;
 
-    ++i;
+    ++numPlots;
   }
 
   //---
@@ -294,18 +297,28 @@ main(int argc, char **argv)
       mainData.showApp = true;
   }
 
+  if (! mainData.showModelSet) {
+    if (! mainData.execFile.length() && ! mainData.initDatas.empty() && numPlots == 0)
+      mainData.showModel = true;
+  }
+
   //---
 
   // show test widget
   CQChartsAppWindow *appWindow = nullptr;
 
-  if (mainData.showApp) {
+  if      (mainData.showApp) {
     appWindow = new CQChartsAppWindow(test.charts());
 
     appWindow->show();
 
     if (appWindow->window())
       appWindow->window()->raise();
+  }
+  else if (mainData.showModel) {
+    CQChartsModelDlg *dlg = new CQChartsModelDlg(test.charts());
+
+    dlg->show();
   }
 
   // print plot
@@ -714,6 +727,12 @@ parseArgs(int argc, char **argv, MainData &mainData)
         mainData.showAppSet = true;
       }
 
+      // show model dlg
+      else if (arg == "show_app") {
+        mainData.showModel    = true;
+        mainData.showModelSet = true;
+      }
+
       // exit
       else if (arg == "exit") {
         mainData.exit = true;
@@ -820,7 +839,7 @@ initPlot(const CQChartsInitData &initData)
   //---
 
   if (initData.process.length()) {
-    ModelP model = modelData->model();
+    ModelP model = modelData->currentModel();
 
     QStringList strs = initData.process.split(";", QString::SkipEmptyParts);
 
@@ -829,7 +848,7 @@ initPlot(const CQChartsInitData &initData)
   }
 
   if (initData.processAdd.length()) {
-    ModelP model = modelData->model();
+    ModelP model = modelData->currentModel();
 
     QStringList strs = initData.processAdd.split(";", QString::SkipEmptyParts);
 
@@ -905,7 +924,9 @@ CQChartsTest::
 initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initData, int i,
              const CQChartsGeom::BBox &bbox)
 {
-  CQChartsUtil::setColumnTypeStrs(charts_, modelData->model().data(), initData.columnType);
+  ModelP model = modelData->currentModel();
+
+  CQChartsUtil::setColumnTypeStrs(charts_, model.data(), initData.columnType);
 
   //---
 
@@ -939,8 +960,6 @@ initPlotView(const CQChartsModelData *modelData, const CQChartsInitData &initDat
   //---
 
   CQChartsPlot *plot = nullptr;
-
-  ModelP model = modelData->currentModel();
 
   // create plot from init (argument) data
   if (initData.filterStr.length()) {

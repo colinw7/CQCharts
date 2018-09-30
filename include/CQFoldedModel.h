@@ -36,12 +36,22 @@ class CQFoldData {
   double delta() const { return delta_; }
   void setDelta(double r) { delta_ = r; }
 
+  // get/set num auto
+  int numAuto() const { return numAuto_; }
+  void setNumAuto(int i) { numAuto_ = i; }
+
+  // get/set integral
+  bool isIntegral() const { return integral_; }
+  void setIntegral(bool b) { integral_ = b; }
+
  private:
   Type   type_           { Type::STRING };
   int    column_         { -1 };
   bool   showColumnData_ { false };
   bool   keepColumn_     { false };
   double delta_          { 1.0 };
+  int    numAuto_        { 10 };
+  bool   integral_       { false };
 };
 
 //---
@@ -84,7 +94,7 @@ class CQFoldedModel : public QAbstractProxyModel {
 
   //---
 
-  // # Abstarct Model APIS
+  // # Abstract Model APIS
 
   // get column count
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -119,7 +129,7 @@ class CQFoldedModel : public QAbstractProxyModel {
 
   //---
 
-  // # Abstarct Proxy Model APIS
+  // # Abstract Proxy Model APIS
 
   // map source index to proxy index
   QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;
@@ -138,6 +148,7 @@ class CQFoldedModel : public QAbstractProxyModel {
   // Node structure for tree construct
   struct Node {
     Node*          parent        { nullptr }; // parent node
+    int            bucket        { -1 };      // bucket number
     QString        str;                       // node string
     int            depth         { 0 };       // node depth
     int            foldRow       { -1 };      // node fold row
@@ -221,6 +232,8 @@ class CQFoldedModel : public QAbstractProxyModel {
   void fold();
 
  private:
+  void doResetModel();
+
   // clear model
   void clear();
 

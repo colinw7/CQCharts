@@ -38,9 +38,13 @@
 #include <svg/refresh_svg.h>
 
 CQChartsPlotDlg::
-CQChartsPlotDlg(CQCharts *charts, const ModelP &model) :
- charts_(charts), model_(model)
+CQChartsPlotDlg(CQCharts *charts, CQChartsModelData *modelData) :
+ charts_(charts), modelData_(modelData)
 {
+  assert(modelData_);
+
+  model_ = modelData->currentModel();
+
   init();
 }
 
@@ -65,10 +69,7 @@ init()
   setWindowTitle("Create Plot");
   //setWindowIcon(QIcon()); TODO
 
-  modelData_ = charts_->getModelData(model_.data());
-
-  if (modelData_)
-    setWindowTitle(QString("Create Plot (Model %1)").arg(modelData_->ind()));
+  setWindowTitle(QString("Create Plot (Model %1)").arg(modelData_->ind()));
 
   //----
 
@@ -853,7 +854,7 @@ addParameterEdits(const CQChartsPlotType::Parameters &parameters, PlotData &plot
   }
 
   // add enum edits
-  if (nbool > 0) {
+  if (nenum > 0) {
     QHBoxLayout *enumLayout = new QHBoxLayout;
     enumLayout->setMargin(0); enumLayout->setSpacing(2);
 

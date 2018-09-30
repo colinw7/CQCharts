@@ -19,7 +19,7 @@ class CQTransposeModel : public QAbstractProxyModel {
 
   //---
 
-  // # Abstarct Model APIS
+  // # Abstract Model APIS
 
   // get column count
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -54,7 +54,7 @@ class CQTransposeModel : public QAbstractProxyModel {
 
   //---
 
-  // # Abstarct Proxy Model APIS
+  // # Abstract Proxy Model APIS
 
   // map source index to proxy index
   QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;

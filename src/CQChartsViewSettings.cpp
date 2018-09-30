@@ -1087,7 +1087,7 @@ createPlotSlot()
   if (plotDlg_)
     delete plotDlg_;
 
-  plotDlg_ = new CQChartsPlotDlg(charts, modelData->model());
+  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
 
   plotDlg_->setViewName(window_->view()->id());
 

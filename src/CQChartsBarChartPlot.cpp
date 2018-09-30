@@ -45,10 +45,6 @@ addParameters()
 
   // group data
   CQChartsGroupPlotType::addParameters();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 QString
@@ -1389,17 +1385,19 @@ draw(QPainter *painter)
   double m1 = plot_->lengthPixelSize(plot_->margin(), ! plot_->isHorizontal());
   double m2 = m1;
 
-  if      (nset_ > 1) {
-    if      (ival_ == 0)
-      m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-    else if (ival_ == nval_ - 1)
-      m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-  }
-  else if (nval_ > 1) {
-    if      (isval_ == 0)
-      m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
-    else if (isval_ == nsval_ - 1)
-      m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+  if (! plot_->isStacked()) {
+    if      (nset_ > 1) {
+      if      (ival_ == 0)
+        m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+      else if (ival_ == nval_ - 1)
+        m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+    }
+    else if (nval_ > 1) {
+      if      (isval_ == 0)
+        m1 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+      else if (isval_ == nsval_ - 1)
+        m2 = plot_->lengthPixelSize(plot_->groupMargin(), ! plot_->isHorizontal());
+    }
   }
 
   double rs = prect.getSize(! plot_->isHorizontal());

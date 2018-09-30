@@ -22,7 +22,7 @@ setBucketer(const CQBucketer &bucketer)
 {
   bucketer_ = bucketer;
 
-  bucket();
+  doResetModel();
 }
 
 QAbstractItemModel *
@@ -50,14 +50,26 @@ CQBucketModel::
 setBucketColumn(int i)
 {
   if (i != bucketColumn_) {
-    beginResetModel();
-
     bucketColumn_ = i;
 
-    bucket();
-
-    endResetModel();
+    doResetModel();
   }
+}
+
+void
+CQBucketModel::
+doResetModel()
+{
+  QAbstractItemModel *model = this->sourceModel();
+
+  if (! model)
+    return;
+
+  beginResetModel();
+
+  bucket();
+
+  endResetModel();
 }
 
 void
@@ -129,33 +141,35 @@ bucket()
   if (bucketColumn() < 0 || bucketColumn() >= numColumns)
     return;
 
-  bool   rset = false;
-  double rmin = 0.0, rmax = 0.0;
+  if (bucketer_.type() != CQBucketer::Type::STRING) {
+    bool   rset = false;
+    double rmin = 0.0, rmax = 0.0;
 
-  for (int r = 0; r < model->rowCount(); ++r) {
-    QModelIndex ind = model->index(r, bucketColumn());
+    for (int r = 0; r < model->rowCount(); ++r) {
+      QModelIndex ind = model->index(r, bucketColumn());
 
-    QVariant var = model->data(ind, bucketRole());
+      QVariant var = model->data(ind, bucketRole());
 
-    bool ok;
+      bool ok;
 
-    double rval = CQBucketer::varReal(var, ok);
-    if (! ok) continue;
+      double rval = CQBucketer::varReal(var, ok);
+      if (! ok) continue;
 
-    if (! rset) {
-      rmin = rval;
-      rmax = rval;
+      if (! rset) {
+        rmin = rval;
+        rmax = rval;
 
-      rset = true;
+        rset = true;
+      }
+      else {
+        rmin = std::min(rmin, rval);
+        rmax = std::max(rmax, rval);
+      }
     }
-    else {
-      rmin = std::min(rmin, rval);
-      rmax = std::max(rmax, rval);
-    }
+
+    bucketer_.setRMin(rmin);
+    bucketer_.setRMax(rmax);
   }
-
-  bucketer_.setRMin(rmin);
-  bucketer_.setRMax(rmax);
 
   //---
 
@@ -217,8 +231,11 @@ parent(const QModelIndex &) const
 
 bool
 CQBucketModel::
-hasChildren(const QModelIndex &) const
+hasChildren(const QModelIndex &parent) const
 {
+  if (! parent.isValid())
+    return true;
+
   return false;
 }
 
@@ -243,26 +260,22 @@ data(const QModelIndex &index, int role) const
     return model->data(ind, role);
   }
 
-  if      (role == Qt::DisplayRole) {
-    QModelIndex ind = model->index(r, bucketColumn());
-
-    QVariant var = model->data(ind, bucketRole());
-
-    return bucketer_.bucket(var);
-  }
-  else if (role == Qt::ToolTipRole) {
+  if (role == Qt::DisplayRole || role == Qt::EditRole || role == Qt::ToolTipRole) {
     QModelIndex ind = model->index(r, bucketColumn());
 
     QVariant var = model->data(ind, bucketRole());
 
     int bucket = bucketer_.bucket(var);
 
-    double min, max;
-
-    if (bucketer_.bucketValues(bucket, min, max))
-      return QString("%1->%2").arg(min).arg(max);
-    else
-      return QString("%1").arg(bucket);
+    if      (role == Qt::DisplayRole) {
+      return bucketer_.bucketName(bucket);
+    }
+    if      (role == Qt::DisplayRole) {
+      return bucket;
+    }
+    else if (role == Qt::ToolTipRole) {
+      return QString("%1 (%2)").arg(bucketer_.bucketName(bucket)).arg(bucket);
+    }
   }
 
   return QVariant();

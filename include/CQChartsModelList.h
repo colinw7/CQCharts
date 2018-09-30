@@ -48,6 +48,8 @@ class CQChartsModelList : public QFrame {
 
   void updateModel(CQChartsModelData *modelData);
 
+  CQChartsModelData *currentModelData() const;
+
   void setTabTitle(int ind, const QString &title);
 
   void redrawView(const CQChartsModelData *modelData);

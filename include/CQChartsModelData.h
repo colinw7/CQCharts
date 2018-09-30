@@ -7,7 +7,9 @@
 
 class CQChartsModelDetails;
 class CQCharts;
+class CQFoldedModel;
 class CQSummaryModel;
+
 class QAbstractItemModel;
 class QItemSelectionModel;
 
@@ -18,8 +20,16 @@ class CQChartsModelData : public QObject {
   using ModelP = QSharedPointer<QAbstractItemModel>;
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  using FoldedModels = std::vector<ModelP>;
+  using FoldedModels = std::vector<CQFoldedModel *>;
 #endif
+
+ public:
+  struct FoldData {
+    QString columnsStr;
+    bool    isAuto { true };
+    double  delta  { 1.0 };
+    int     count  { 20 };
+  };
 
  public:
   CQChartsModelData(CQCharts *charts, ModelP &model);
@@ -48,18 +58,12 @@ class CQChartsModelData : public QObject {
 
 #ifdef CQCHARTS_FOLDED_MODEL
   // get associated fold models
-  ModelP foldProxyModel() const { return foldProxyModel_; }
-  void setFoldProxyModel(ModelP &model) { foldProxyModel_ = model; }
-  void resetFoldProxyModel() { foldProxyModel_ = ModelP(); }
-
-  const FoldedModels &foldedModels() const { return foldedModels_; }
-
-  void addFoldedModel(ModelP &model) { foldedModels_.push_back(model); }
-  void clearFoldedModels() { foldedModels_.clear(); }
+  FoldedModels foldedModels() const;
 
   // fold model
-  void foldModel(const QString &str);
-  void foldClear();
+  void foldModel(const FoldData &data);
+
+  void foldClear(bool notify=true);
 #endif
 
   // get details
@@ -97,8 +101,13 @@ class CQChartsModelData : public QObject {
 
  signals:
   void modelChanged();
+  void currentModelChanged();
 
  private:
+#ifdef CQCHARTS_FOLDED_MODEL
+  using FoldedModelPs = std::vector<ModelP>;
+
+#endif
   CQCharts*             charts_           { nullptr }; // parent charts
   ModelP                model_;                        // model
   int                   ind_              { -1 };      // model ind
@@ -107,7 +116,7 @@ class CQChartsModelData : public QObject {
   CQChartsModelDetails* details_          { nullptr }; // model details
 #ifdef CQCHARTS_FOLDED_MODEL
   ModelP                foldProxyModel_;               // folded proxy model
-  FoldedModels          foldedModels_;                 // folded models
+  FoldedModelPs         foldedModels_;                 // folded models
 #endif
   bool                  summaryEnabled_   { false };   // summary model enabled
   CQSummaryModel*       summaryModel_     { nullptr }; // summary model

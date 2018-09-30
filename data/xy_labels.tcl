@@ -11,5 +11,6 @@ set model [load_model -csv data/lines.csv -comment_header \
 
 set plot [create_plot -model $model -type xy \
   -columns "x=0,y=1,pointLabel=2,pointColor=3,pointSymbol=4" \
-  -properties "points.symbol=circle,points.fill.visible=1,yaxis.grid.line.major.visible=1" \
+  -properties "points.symbol.type=circle,points.symbol.fill.visible=1" \
+  -properties "yaxis.grid.line.major.visible=1" \
   -title "Line Chart"]

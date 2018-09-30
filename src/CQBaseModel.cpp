@@ -309,6 +309,16 @@ getColumnData(int column) const
 
 void
 CQBaseModel::
+resetColumnType(int column)
+{
+  auto p = columnDatas_.find(column);
+
+  if (p != columnDatas_.end())
+    columnDatas_.erase(p);
+}
+
+void
+CQBaseModel::
 resetColumnTypes()
 {
   for (auto &p : columnDatas_) {

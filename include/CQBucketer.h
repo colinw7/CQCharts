@@ -24,6 +24,10 @@ class CQBucketer {
 
   //---
 
+  void reset();
+
+  //---
+
   // fixed bucket delta
 
   double rstart() const { return rstart_; }

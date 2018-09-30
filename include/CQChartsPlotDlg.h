@@ -40,7 +40,7 @@ class CQChartsPlotDlg : public QDialog {
   using SelectionModelP = QPointer<QItemSelectionModel>;
 
  public:
-  CQChartsPlotDlg(CQCharts *charts, const ModelP &model);
+  CQChartsPlotDlg(CQCharts *charts, CQChartsModelData *modelData);
  ~CQChartsPlotDlg();
 
   void setSelectionModel(QItemSelectionModel *sm);
@@ -214,8 +214,8 @@ class CQChartsPlotDlg : public QDialog {
   using TabType      = std::map<int,CQChartsPlotType *>;
 
   CQCharts*          charts_                 { nullptr }; // parent charts
-  ModelP             model_;                              // model
   CQChartsModelData* modelData_              { nullptr }; // model data
+  ModelP             model_;                              // model
   SelectionModelP    selectionModel_;                     // selection model
   QComboBox*         combo_                  { nullptr }; // type combo
   QStackedWidget*    stack_                  { nullptr }; // widget stack

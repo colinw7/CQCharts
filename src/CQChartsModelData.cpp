@@ -186,61 +186,143 @@ currentModel() const
 #ifdef CQCHARTS_FOLDED_MODEL
 void
 CQChartsModelData::
-foldModel(const QString &str)
+foldModel(const FoldData &foldData)
 {
-  foldClear();
+  foldClear(/*notify*/false);
 
   //---
+
+  CQChartsModelDetails *details = this->details();
 
   using FoldDatas = std::vector<CQFoldData>;
 
   FoldDatas foldDatas;
 
-  QStringList strs = str.split(",", QString::SkipEmptyParts);
+  QStringList columnStrs = foldData.columnsStr.split(",", QString::SkipEmptyParts);
 
-  for (int i = 0; i < strs.length(); ++i) {
-    QStringList strs1 = strs[i].split(":", QString::SkipEmptyParts);
+  for (int i = 0; i < columnStrs.length(); ++i) {
+    QStringList columnSubStrs = columnStrs[i].split(":", QString::SkipEmptyParts);
 
-    if (strs1.length() == 0)
+    if (columnSubStrs.length() == 0)
       continue;
 
-    bool ok;
+    //---
 
-    int column = strs1[0].toInt(&ok);
+    // get column
+    QString columnStr = columnSubStrs[0];
 
-    if (! ok)
-      continue;
+    CQChartsColumn column;
 
-    CQFoldData foldData(column);
+    if (! CQChartsUtil::stringToColumn(model_.data(), columnStr, column)) {
+      bool ok;
 
-    if (strs1.length() > 1) {
-      CQFoldData::Type type = CQFoldData::Type::REAL_RANGE;
-
-      int i = 1;
-
-      if (strs1.length() > 2) {
-        if (strs1[1] == "i")
-          type = CQFoldData::Type::INTEGER_RANGE;
-
-        ++i;
-      }
-
-      double delta = strs1[i].toDouble(&ok);
+      int icolumn = columnStr.toInt(&ok);
 
       if (! ok)
         continue;
 
-      foldData.setType (type);
-      foldData.setDelta(delta);
+      column = CQChartsColumn(icolumn);
     }
 
-    foldDatas.push_back(foldData);
+    //---
+
+    // get type, count and delta
+    CQFoldData::Type type = CQFoldData::Type::STRING;
+
+    int    count    = foldData.count;
+    double delta    = foldData.delta;
+    bool   integral = false;
+
+    CQFoldData columnFoldData(column.column());
+
+    if (columnSubStrs.length() > 1) {
+      int i = 1;
+
+      // <column>:<type>:<delta>
+      if (columnSubStrs.length() > 2) {
+        // get type
+        QString typeStr = columnSubStrs[1];
+
+        if      (typeStr == "i")
+          type = CQFoldData::Type::INTEGER_RANGE;
+        else if (typeStr == "r")
+          type = CQFoldData::Type::REAL_RANGE;
+        else if (typeStr == "a")
+          type = CQFoldData::Type::REAL_AUTO;
+        else if (typeStr == "s")
+          type = CQFoldData::Type::STRING;
+        else
+          continue;
+
+        //---
+
+        // get delta
+        bool ok;
+
+        QString deltaStr = columnSubStrs[2];
+
+        delta = columnSubStrs[i].toDouble(&ok);
+
+        if (! ok)
+          continue;
+      }
+      // <column>:<delta>
+      else {
+        // set type
+        type = CQFoldData::Type::REAL_RANGE;
+
+        //---
+
+        // get delta
+        bool ok;
+
+        QString deltaStr = columnSubStrs[1];
+
+        delta = columnSubStrs[i].toDouble(&ok);
+
+        if (! ok)
+          continue;
+      }
+    }
+    else {
+      // get type from column
+      const CQChartsModelColumnDetails *columnDetails = details->columnDetails(column);
+
+      if      (columnDetails->type() == CQBaseModel::Type::REAL) {
+        if (foldData.isAuto)
+          type = CQFoldData::Type::REAL_AUTO;
+        else
+          type = CQFoldData::Type::REAL_RANGE;
+      }
+      else if (columnDetails->type() == CQBaseModel::Type::INTEGER) {
+        integral = true;
+
+        if (foldData.isAuto)
+          type = CQFoldData::Type::REAL_AUTO;
+        else
+          type = CQFoldData::Type::REAL_RANGE;
+      }
+      else {
+        type = CQFoldData::Type::STRING;
+      }
+    }
+
+    //---
+
+    // add fold data
+    columnFoldData.setType    (type);
+    columnFoldData.setNumAuto (count);
+    columnFoldData.setDelta   (delta);
+    columnFoldData.setIntegral(integral);
+
+    foldDatas.push_back(columnFoldData);
   }
 
   //---
 
   ModelP modelp = this->model();
 
+  // create folded models
   for (const auto &foldData : foldDatas) {
     QAbstractItemModel *model = modelp.data();
 
@@ -248,10 +330,13 @@ foldModel(const QString &str)
 
     modelp = ModelP(foldedModel);
 
-    this->addFoldedModel(modelp);
+    foldedModels_.push_back(modelp);
   }
 
-  if (! this->foldedModels().empty()) {
+  //---
+
+  if (! foldedModels_.empty()) {
+    // add sort/filter proxy if needed
     QAbstractItemModel *model = modelp.data();
 
     QSortFilterProxyModel *proxyModel = qobject_cast<QSortFilterProxyModel *>(model);
@@ -259,22 +344,75 @@ foldModel(const QString &str)
     if (! proxyModel) {
       QSortFilterProxyModel *foldProxyModel = new QSortFilterProxyModel;
 
+      foldProxyModel->setSortRole(static_cast<int>(CQBaseModel::Role::CustomSort));
+
       foldProxyModel->setSourceModel(model);
 
       modelp = ModelP(foldProxyModel);
     }
 
-    this->setFoldProxyModel(modelp);
+    foldProxyModel_ = modelp;
   }
+
+  //---
+
+  delete details_;
+
+  details_ = nullptr;
+
+  //---
+
+  emit currentModelChanged();
 }
 
 void
 CQChartsModelData::
-foldClear()
+foldClear(bool notify)
 {
-  clearFoldedModels();
+  foldedModels_.clear();
 
-  resetFoldProxyModel();
+  foldProxyModel_ = ModelP();
+
+  if (notify) {
+    delete details_;
+
+    details_ = nullptr;
+
+    //---
+
+    emit currentModelChanged();
+  }
+}
+
+CQChartsModelData::FoldedModels
+CQChartsModelData::
+foldedModels() const
+{
+  if (! foldProxyModel_)
+    return FoldedModels();
+
+  QSortFilterProxyModel *proxyModel =
+    qobject_cast<QSortFilterProxyModel *>(foldProxyModel_.data());
+  if (! proxyModel) return FoldedModels();
+
+  CQFoldedModel *foldedModel = qobject_cast<CQFoldedModel *>(proxyModel);
+
+  if (! foldedModel) {
+    QAbstractItemModel *sourceModel = proxyModel->sourceModel();
+
+    foldedModel = qobject_cast<CQFoldedModel *>(sourceModel);
+  }
+
+  FoldedModels foldedModels;
+
+  while (foldedModel) {
+    foldedModels.push_back(foldedModel);
+
+    foldedModel = qobject_cast<CQFoldedModel *>(foldedModel->sourceModel());
+  }
+
+  //return foldedModels_;
+  return foldedModels;
 }
 #endif
 

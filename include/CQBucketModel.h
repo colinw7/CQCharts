@@ -32,13 +32,13 @@ class CQBucketModel : public QAbstractProxyModel {
   int bucketColumn() const { return bucketColumn_; }
   void setBucketColumn(int i);
 
-  // get/set bucket column
+  // get/set bucket role
   int bucketRole() const { return bucketRole_; }
   void setBucketRole(int i) { bucketRole_ = i; }
 
   //---
 
-  // # Abstarct Model APIS
+  // # Abstract Model APIS
 
   // get column count
   int columnCount(const QModelIndex &parent=QModelIndex()) const override;
@@ -73,7 +73,7 @@ class CQBucketModel : public QAbstractProxyModel {
 
   //---
 
-  // # Abstarct Proxy Model APIS
+  // # Abstract Proxy Model APIS
 
   // map source index to proxy index
   QModelIndex mapFromSource(const QModelIndex &sourceIndex) const override;
@@ -84,6 +84,8 @@ class CQBucketModel : public QAbstractProxyModel {
   void bucket();
 
  private:
+  void doResetModel();
+
   int bucketPos() const { return bucketPos_; }
 
   // clear model

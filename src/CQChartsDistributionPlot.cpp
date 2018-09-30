@@ -79,10 +79,10 @@ addParameters()
    addNameValue("Mean" , int(CQChartsDistributionPlot::ValueType::MEAN )).
    setTip("Bar value type");
 
-  addBoolParameter("skipEmpty", "SkipEmpty" , "skipEmpty").setTip("skip empty buckets");
-  addBoolParameter("sorted"   , "Sorted"    , "sorted"   ).setTip("sort by count");
-  addBoolParameter("dotLines" , "DotLines"  , "dotLines" ).setTip("draw bars as lines with dot");
-  addBoolParameter("rug"      , "Rug"       , "rug"      ).setTip("draw rug points");
+  addBoolParameter("skipEmpty", "SkipEmpty", "skipEmpty").setTip("skip empty buckets");
+  addBoolParameter("sorted"   , "Sorted"   , "sorted"   ).setTip("sort by count");
+  addBoolParameter("dotLines" , "DotLines" , "dotLines" ).setTip("draw bars as lines with dot");
+  addBoolParameter("rug"      , "Rug"      , "rug"      ).setTip("draw rug points");
 
   endParameterGroup();
 
@@ -90,10 +90,6 @@ addParameters()
 
   // group data
   CQChartsGroupPlotType::addParameters();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 QString
@@ -1352,7 +1348,9 @@ initObjs()
     }
     else {
       auto pb = groupBucketRange_.find(groupInd);
-      assert(pb != groupBucketRange_.end());
+
+      if (groupBucketRange_.empty())
+        continue;
 
       const CQChartsGeom::IMinMax &bucketRange = (*pb).second;
 
@@ -1447,8 +1445,7 @@ initObjs()
         }
 
         CQChartsDistributionBarObj *barObj =
-          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue,
-                                         ig, ng, iv, nv);
+          new CQChartsDistributionBarObj(this, bbox, groupInd, sbucket, barValue, ig, ng, iv, nv);
 
         addPlotObject(barObj);
 
@@ -1969,7 +1966,7 @@ CQChartsDistributionPlot::
 addMenuItems(QMenu *menu)
 {
   auto addMenuCheckedAction = [&](QMenu *menu, const QString &name,
-                              bool isSet, const char *slot) -> QAction *{
+                                  bool isSet, const char *slot) -> QAction *{
     QAction *action = new QAction(name, menu);
 
     action->setCheckable(true);
@@ -2000,7 +1997,7 @@ addMenuItems(QMenu *menu)
 
   menu->addSeparator();
 
-  (void) addCheckedAction("Horizontal" , isHorizontal(), SLOT(setHorizontal(bool)));
+  (void) addCheckedAction("Horizontal", isHorizontal(), SLOT(setHorizontal(bool)));
 
   QMenu *typeMenu = new QMenu("Plot Type");
 

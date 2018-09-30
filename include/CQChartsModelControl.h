@@ -11,6 +11,7 @@ class CQChartsModelData;
 
 class QGridLayout;
 class QRadioButton;
+class QCheckBox;
 class QLineEdit;
 class QLabel;
 
@@ -42,7 +43,8 @@ class CQChartsModelControl : public QFrame {
 
   void exprSlot();
 
-  void foldSlot();
+  void foldApplySlot();
+  void foldClearSlot();
 
   void typeSetSlot();
 
@@ -66,7 +68,10 @@ class CQChartsModelControl : public QFrame {
   QLabel*            exprTypeLabel_   { nullptr };
   QLineEdit*         exprTypeEdit_    { nullptr };
 #ifdef CQCHARTS_FOLDED_MODEL
-  QLineEdit*         foldEdit_        { nullptr };
+  QLineEdit*         foldColumnEdit_  { nullptr };
+  QCheckBox*         foldAutoCheck_   { nullptr };
+  QLineEdit*         foldDeltaEdit_   { nullptr };
+  QLineEdit*         foldCountEdit_   { nullptr };
 #endif
   QLineEdit*         columnNumEdit_   { nullptr };
   QLineEdit*         columnNameEdit_  { nullptr };

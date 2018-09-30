@@ -181,8 +181,7 @@ CQChartsPlotType::
 addColumnsParameter(const QString &name, const QString &desc, const QString &propName,
                     const QString &defValue)
 {
-  return addParameter(
-    new CQChartsColumnsParameter(name, desc, propName, ParameterAttributes(), defValue));
+  return addColumnsParameter(name, desc, propName, ParameterAttributes(), defValue);
 }
 
 CQChartsPlotParameter &
@@ -198,8 +197,7 @@ CQChartsPlotType::
 addStringParameter(const QString &name, const QString &desc, const QString &propName,
                    const QString &defValue)
 {
-  return addParameter(
-    new CQChartsStringParameter(name, desc, propName, ParameterAttributes(), defValue));
+  return addStringParameter(name, desc, propName, ParameterAttributes(), defValue);
 }
 
 CQChartsPlotParameter &
@@ -215,8 +213,7 @@ CQChartsPlotType::
 addRealParameter(const QString &name, const QString &desc, const QString &propName,
                  double defValue)
 {
-  return addParameter(
-    new CQChartsRealParameter(name, desc, propName, ParameterAttributes(), defValue));
+  return addRealParameter(name, desc, propName, ParameterAttributes(), defValue);
 }
 
 CQChartsPlotParameter &
@@ -232,8 +229,7 @@ CQChartsPlotType::
 addIntParameter(const QString &name, const QString &desc, const QString &propName,
                 int defValue)
 {
-  return addParameter(
-    new CQChartsIntParameter(name, desc, propName, ParameterAttributes(), defValue));
+  return addIntParameter(name, desc, propName, ParameterAttributes(), defValue);
 }
 
 CQChartsPlotParameter &
@@ -264,8 +260,7 @@ CQChartsPlotParameter &
 CQChartsPlotType::
 addBoolParameter(const QString &name, const QString &desc, const QString &propName, bool defValue)
 {
-  return addParameter(
-    new CQChartsBoolParameter(name, desc, propName, ParameterAttributes(), defValue));
+  return addBoolParameter(name, desc, propName, ParameterAttributes(), defValue);
 }
 
 CQChartsPlotParameter &

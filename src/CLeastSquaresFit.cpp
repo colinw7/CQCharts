@@ -130,7 +130,7 @@ backSubstitution(double **u, double *w, double **v, int m, int n, double *b,
 void
 singleValueDecomposition(double **a, int m, int n, double w[], double **v, int *return_code)
 {
-  int l, nm;
+  int l = 0, nm = 0;
   LDbl c, f, g, h, s, scale, x, y, z;
 
   /****                                                            ****/

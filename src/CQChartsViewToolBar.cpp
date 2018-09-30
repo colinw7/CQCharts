@@ -2,6 +2,7 @@
 #include <CQChartsWindow.h>
 #include <CQChartsView.h>
 #include <CQChartsPlot.h>
+#include <CQChartsModelDlg.h>
 #include <CQChartsPlotDlg.h>
 #include <CQChartsModelData.h>
 #include <CQPixmapCache.h>
@@ -26,6 +27,8 @@
 #include <svg/right_dark_svg.h>
 #include <svg/charts_light_svg.h>
 #include <svg/charts_dark_svg.h>
+#include <svg/models_light_svg.h>
+#include <svg/models_dark_svg.h>
 
 #include <QStackedWidget>
 #include <QToolButton>
@@ -158,11 +161,16 @@ CQChartsViewToolBar(CQChartsWindow *window) :
 
   //---
 
-  plotDlgButton_ = createButton("plotDlg", "CHARTS"  , "Add Plot"    , SLOT(addPlotSlot()), false);
-  autoFitButton_ = createButton("fit"    , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
-  leftButton_    = createButton("left"   , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
-  rightButton_   = createButton("right"  , "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+  modelDlgButton_ = createButton("moldeDel", "MODELS", "Manage Models",
+                                 SLOT(manageModelsSlot()), false);
+  plotDlgButton_  = createButton("plotDlg" , "CHARTS", "Add Plot",
+                                 SLOT(addPlotSlot()), false);
 
+  autoFitButton_ = createButton("fit"  , "ZOOM_FIT", "Zoom Fit"    , SLOT(autoFitSlot()), false);
+  leftButton_    = createButton("left" , "LEFT"    , "Scroll Left" , SLOT(leftSlot()));
+  rightButton_   = createButton("right", "RIGHT"   , "Scroll Right", SLOT(rightSlot()));
+
+  layout->addWidget(modelDlgButton_);
   layout->addWidget(plotDlgButton_);
   layout->addWidget(autoFitButton_);
   layout->addWidget(leftButton_);
@@ -246,6 +254,20 @@ updateMode()
 
 void
 CQChartsViewToolBar::
+manageModelsSlot()
+{
+  CQCharts *charts = window_->view()->charts();
+
+  if (modelDlg_)
+    delete modelDlg_;
+
+  modelDlg_ = new CQChartsModelDlg(charts);
+
+  modelDlg_->show();
+}
+
+void
+CQChartsViewToolBar::
 addPlotSlot()
 {
   CQCharts *charts = window_->view()->charts();
@@ -258,7 +280,7 @@ addPlotSlot()
   if (plotDlg_)
     delete plotDlg_;
 
-  plotDlg_ = new CQChartsPlotDlg(charts, modelData->model());
+  plotDlg_ = new CQChartsPlotDlg(charts, modelData);
 
   plotDlg_->setViewName(window_->view()->id());
 

@@ -423,7 +423,7 @@ loadModelCmd(const Vars &vars)
     return false;
 
   if (columnTypes != "") {
-    ModelP model = modelData->model();
+    ModelP model = modelData->currentModel();
 
     CQChartsUtil::setColumnTypeStrs(charts_, model.data(), columnTypes);
   }
@@ -486,7 +486,7 @@ processModelCmd(const Vars &vars)
   //---
 
   // get expr model
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   CQChartsExprModel *exprModel = CQChartsUtil::getExprModel(model.data());
 
@@ -883,7 +883,7 @@ createPlotCmd(const Vars &vars)
     return;
   }
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   //------
 
@@ -1779,7 +1779,7 @@ flattenModelCmd(const Vars &vars)
 
   //---
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   CQChartsColumn groupColumn = argv.getParseColumn("group", model.data());
 
@@ -2021,7 +2021,7 @@ sortModelCmd(const Vars &vars)
     return;
   }
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   CQChartsColumn column = argv.getParseColumn("column", model.data());
 
@@ -2061,7 +2061,7 @@ filterModelCmd(const Vars &vars)
     return;
   }
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   CQChartsModelFilter *modelFilter = qobject_cast<CQChartsModelFilter *>(model.data());
 
@@ -2107,7 +2107,7 @@ correlationModelCmd(const Vars &vars)
   CQChartsLoader loader(charts_);
 
   QAbstractItemModel *model1 =
-    loader.createCorrelationModel(modelData->model().data(), flip);
+    loader.createCorrelationModel(modelData->currentModel().data(), flip);
 
   ModelP modelp1(model1);
 
@@ -2147,7 +2147,7 @@ subsetModelCmd(const Vars &vars)
     return;
   }
 
-  QAbstractItemModel *model = modelData->model().data();
+  QAbstractItemModel *model = modelData->currentModel().data();
 
   //------
 
@@ -2206,7 +2206,7 @@ transposeModelCmd(const Vars &vars)
     return;
   }
 
-  QAbstractItemModel *model = modelData->model().data();
+  QAbstractItemModel *model = modelData->currentModel().data();
 
   //------
 
@@ -2269,14 +2269,14 @@ exportModelCmd(const Vars &vars)
     isFile = true;
   }
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   if      (toName.toLower() == "csv") {
-    CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::CSV,
+    CQChartsUtil::exportModel(model.data(), CQBaseModel::DataType::CSV,
                               hheader, vheader, (isFile ? fos : std::cout));
   }
   else if (toName.toLower() == "tsv") {
-    CQChartsUtil::exportModel(modelData->model().data(), CQBaseModel::DataType::TSV,
+    CQChartsUtil::exportModel(model.data(), CQBaseModel::DataType::TSV,
                               hheader, vheader, (isFile ? fos : std::cout));
   }
   else {
@@ -2348,7 +2348,7 @@ getChartsDataCmd(const Vars &vars)
       return;
     }
 
-    ModelP model = modelData->model();
+    ModelP model = modelData->currentModel();
 
     //---
 
@@ -2357,6 +2357,7 @@ getChartsDataCmd(const Vars &vars)
     int row = argv.getParseRow("row");
 
     if (argv.hasParseArg("ind")) {
+#ifdef CQCharts_USE_TCL
       int irow, icol;
 
       if (! CQTclUtil::stringToModelIndex(argv.getParseStr("ind"), irow, icol)) {
@@ -2366,6 +2367,10 @@ getChartsDataCmd(const Vars &vars)
 
       row    = irow;
       column = icol;
+#else
+      row    = 0;
+      column = 0;
+#endif
     }
 
     //---
@@ -3059,7 +3064,7 @@ setChartsDataCmd(const Vars &vars)
       return;
     }
 
-    ModelP model = modelData->model();
+    ModelP model = modelData->currentModel();
 
     //---
 
@@ -3079,20 +3084,18 @@ setChartsDataCmd(const Vars &vars)
           charts_->errorMsg("Failed to set header value");
       }
       else {
-        QModelIndex ind = modelData->model().data()->index(row, column.column());
+        QModelIndex ind = model.data()->index(row, column.column());
 
         if (! ind.isValid()) {
           setCmdError("Invalid data row/column specified");
           return;
         }
 
-        if (! CQChartsUtil::setModelValue(modelData->model().data(), row, column, value, role))
+        if (! CQChartsUtil::setModelValue(model.data(), row, column, value, role))
           charts_->errorMsg("Failed to set row value");
       }
     }
     else if (name == "column_type") {
-      ModelP model = modelData->model();
-
       if (column.isValid())
         CQChartsUtil::setColumnTypeStr(charts_, model.data(), column, value);
       else
@@ -4166,11 +4169,9 @@ createPlotDlgCmd(const Vars &vars)
     return;
   }
 
-  ModelP model = modelData->model();
-
   //---
 
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
+  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, modelData);
 
   dlg->setViewName(viewName);
 
@@ -4336,6 +4337,8 @@ setCmdRc(int rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  std::cerr << rc << "\n";
 #endif
 }
 
@@ -4345,6 +4348,8 @@ setCmdRc(double rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  std::cerr << rc << "\n";
 #endif
 }
 
@@ -4354,6 +4359,8 @@ setCmdRc(const QString &rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  std::cerr << rc.toStdString() << "\n";
 #endif
 }
 
@@ -4363,6 +4370,8 @@ setCmdRc(const QVariant &rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  std::cerr << rc.toString().toStdString() << "\n";
 #endif
 }
 
@@ -4372,6 +4381,9 @@ setCmdRc(const QStringList &rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  for (int i = 0; i < rc.length(); ++i)
+    std::cerr << rc[i].toStdString() << "\n";
 #endif
 }
 
@@ -4381,6 +4393,9 @@ setCmdRc(const QVariantList &rc)
 {
 #ifdef CQCharts_USE_TCL
   qtcl()->setResult(rc);
+#else
+  for (int i = 0; i < rc.length(); ++i)
+    std::cerr << rc[i].toString().toStdString() << "\n";
 #endif
 }
 
@@ -4820,8 +4835,13 @@ loadFileModel(const QString &filename, CQChartsFileType type, const CQChartsInpu
   //---
 
 #ifdef CQCHARTS_FOLDED_MODEL
-  if (inputData.fold.length())
-    modelData->foldModel(inputData.fold);
+  if (inputData.fold.length()) {
+    CQChartsModelData::FoldData foldData;
+
+    foldData.columnsStr = inputData.fold;
+
+    modelData->foldModel(foldData);
+  }
 #endif
 
   //---
@@ -4842,7 +4862,9 @@ loadFile(const QString &filename, CQChartsFileType type, const CQChartsInputData
 {
   CQChartsLoader loader(charts_);
 
+#ifdef CQCharts_USE_TCL
   loader.setQtcl(qtcl());
+#endif
 
   return loader.loadFile(filename, type, inputData, hierarchical);
 }
@@ -4986,6 +5008,9 @@ parseLine(const QString &line, bool log)
   if (rc != TCL_OK)
     charts_->errorMsg("Invalid line: '" + line + "'");
 #else
+  if (log)
+    charts_->errorMsg("No eval");
+
   charts_->errorMsg("Invalid line: '" + line + "'");
 #endif
 }
@@ -5109,7 +5134,7 @@ plotObjsAdded()
 
   cmds_->qtcl()->eval(cmd, /*showError*/true, /*showResult*/false);
 #else
-  std::cerr << "annotationIdPressed: " << id.toStdString() << "\n";
+  std::cerr << "plotObjsAdded\n";
 #endif
 
   connect(plot_, SIGNAL(plotObjsAdded()),

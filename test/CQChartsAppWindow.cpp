@@ -116,11 +116,9 @@ createPlotSlot()
   if (! modelData)
     return;
 
-  ModelP model = modelData->model();
-
   //---
 
-  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, model);
+  CQChartsPlotDlg *dlg = new CQChartsPlotDlg(charts_, modelData);
 
   if (modelData->selectionModel())
     dlg->setSelectionModel(modelData->selectionModel());

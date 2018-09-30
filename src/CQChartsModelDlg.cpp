@@ -1,5 +1,8 @@
 #include <CQChartsModelDlg.h>
 #include <CQChartsModelWidgets.h>
+#include <CQChartsModelList.h>
+#include <CQChartsModelData.h>
+#include <CQChartsPlotDlg.h>
 #include <CQCharts.h>
 #include <CQChartsUtil.h>
 
@@ -30,13 +33,18 @@ CQChartsModelDlg(CQCharts *charts) :
   // Bottom Buttons
   QHBoxLayout *buttonLayout = new QHBoxLayout;
 
+  QPushButton *plotButton = new QPushButton("Plot");
+  plotButton->setObjectName("plot");
+
+  connect(plotButton, SIGNAL(clicked()), this, SLOT(plotSlot()));
+
   QPushButton *doneButton = new QPushButton("Done");
   doneButton->setObjectName("done");
 
   connect(doneButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
 
+  buttonLayout->addWidget(plotButton);
   buttonLayout->addStretch(1);
-
   buttonLayout->addWidget(doneButton);
 
   layout->addLayout(buttonLayout);
@@ -54,6 +62,19 @@ CQChartsModelDlg(CQCharts *charts) :
 CQChartsModelDlg::
 ~CQChartsModelDlg()
 {
+}
+
+void
+CQChartsModelDlg::
+plotSlot()
+{
+  CQChartsModelData *modelData = modelWidgets_->modelList()->currentModelData();
+
+  delete plotDlg_;
+
+  plotDlg_ = new CQChartsPlotDlg(charts_, modelData);
+
+  plotDlg_->show();
 }
 
 void

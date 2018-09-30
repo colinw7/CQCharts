@@ -167,8 +167,11 @@ parent(const QModelIndex &) const
 
 bool
 CQTransposeModel::
-hasChildren(const QModelIndex &) const
+hasChildren(const QModelIndex &parent) const
 {
+  if (! parent.isValid())
+    return true;
+
   return false;
 }
 

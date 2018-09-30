@@ -1377,7 +1377,7 @@ showProbeLines(const QPointF &p)
 
         plot->windowToPixel(CQChartsGeom::Point(probeData.x, yval.value), p2);
 
-        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value, false));
+        QString tip = (yval.label.length() ? yval.label : plot->yStr(yval.value));
 
         addVerticalProbeBand(probeInd, plot, tip, p1.x, p1.y, p2.y);
       }
@@ -1396,7 +1396,7 @@ showProbeLines(const QPointF &p)
 
         plot->windowToPixel(CQChartsGeom::Point(xval.value, probeData.y), p2);
 
-        QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value, false));
+        QString tip = (xval.label.length() ? xval.label : plot->xStr(xval.value));
 
         addHorizontalProbeBand(probeInd, plot, tip, p1.x, p2.x, p2.y);
       }

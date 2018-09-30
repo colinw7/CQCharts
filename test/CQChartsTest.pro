@@ -61,7 +61,7 @@ unix:LIBS += \
 -L../../CStrUtil/lib \
 -L../../COS/lib \
 -lCQCharts -lCQPropertyView -lCQDividedArea -lCQCustomCombo -lCQUtil \
--lCJson -lCConfig -lCImageLib -lCFont -lCMath \
--lCReadLine -lCFileUtil -lCFile -lCRegExp -lCStrUtil \
--lCUtil -lCOS \
+-lCJson -lCMath \
+-lCReadLine -lCFileUtil -lCFile -lCRegExp \
+-lCUtil -lCStrUtil -lCOS \
 -lreadline -lpng -ljpeg -ltre -ltcl

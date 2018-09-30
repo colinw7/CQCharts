@@ -18,8 +18,18 @@ setType(const Type &t)
 
     type_ = t;
 
+    reset();
+
     needsCalc_ = true;
   }
+}
+
+void
+CQBucketer::
+reset()
+{
+  stringInd_.clear();
+  indString_.clear();
 }
 
 // get bucket for generic value
@@ -169,12 +179,32 @@ bucketName(int bucket, bool utfArrow) const
 
     bucketRValues(bucket, rmin, rmax);
 
+    if (isIntegral()) {
+      int imin = rmin;
+      int imax = rmax;
+
+      if (imax > imin + 1)
+        return bucketName(imin, imax, utfArrow);
+      else
+        return QString("%1").arg(imin);
+    }
+
     return bucketName(rmin, rmax, utfArrow);
   }
   else if (type() == Type::REAL_AUTO) {
     double rmin = 0.0, rmax = 0.0;
 
     autoBucketValues(bucket, rmin, rmax);
+
+    if (isIntegral()) {
+      int imin = rmin;
+      int imax = rmax;
+
+      if (imax > imin + 1)
+        return bucketName(imin, imax, utfArrow);
+      else
+        return QString("%1").arg(imin);
+    }
 
     return bucketName(rmin, rmax, utfArrow);
   }

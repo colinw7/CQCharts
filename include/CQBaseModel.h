@@ -28,7 +28,8 @@ class CQBaseModel : public QAbstractItemModel {
     IntermediateValue = Type + 5,         // intermediate value role
     CachedValue       = Type + 6,         // cached value role
     OutputValue       = Type + 7,         // output value role
-    Group             = Type + 8          // group role
+    Group             = Type + 8,         // group role
+    CustomSort        = Type + 9          // custom sort role
   };
 
   // use variant numbers where possible
@@ -87,6 +88,7 @@ class CQBaseModel : public QAbstractItemModel {
   QVariant columnMax(int column) const;
   bool setColumnMax(int column, const QVariant &v);
 
+  void resetColumnType(int column);
   void resetColumnTypes();
 
   //---

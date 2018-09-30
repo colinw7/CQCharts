@@ -11,6 +11,7 @@
 #include <QTabWidget>
 #include <QStackedWidget>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
@@ -167,7 +168,22 @@ CQChartsModelControl(CQCharts *charts) :
 
   int foldRow = 0;
 
-  foldEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Fold", "fold");
+  foldColumnEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Column", "column");
+
+  foldAutoCheck_ = CQUtil::makeWidget<QCheckBox>("foldAuto");
+
+  foldAutoCheck_->setText("Auto");
+  foldAutoCheck_->setChecked(true);
+
+  foldWidgetsLayout->addWidget(foldAutoCheck_, foldRow, 0, 1, 1); ++foldRow;
+
+  foldDeltaEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Delta", "delta");
+
+  foldDeltaEdit_->setText("1.0");
+
+  foldCountEdit_ = addLineEdit(foldWidgetsLayout, foldRow, "Count", "count");
+
+  foldCountEdit_->setText("20");
 
   foldWidgetsLayout->setRowStretch(foldRow, 1); ++foldRow;
 
@@ -181,9 +197,16 @@ CQChartsModelControl(CQCharts *charts) :
 
   foldApplyButton->setText("Apply");
 
-  connect(foldApplyButton, SIGNAL(clicked()), this, SLOT(foldSlot()));
+  connect(foldApplyButton, SIGNAL(clicked()), this, SLOT(foldApplySlot()));
+
+  QPushButton *foldClearButton = CQUtil::makeWidget<QPushButton>("foldClear");
+
+  foldClearButton->setText("Clear");
+
+  connect(foldClearButton, SIGNAL(clicked()), this, SLOT(foldClearSlot()));
 
   foldButtonLayout->addWidget(foldApplyButton);
+  foldButtonLayout->addWidget(foldClearButton);
   foldButtonLayout->addStretch(1);
 #endif
 
@@ -275,7 +298,7 @@ exprSlot()
     default:                                                           break;
   }
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   QString columnStr = exprColumnEdit_->text();
 
@@ -316,7 +339,7 @@ exprSlot()
 
 void
 CQChartsModelControl::
-foldSlot()
+foldApplySlot()
 {
 #ifdef CQCHARTS_FOLDED_MODEL
   CQChartsModelData *modelData = charts_->currentModelData();
@@ -324,11 +347,36 @@ foldSlot()
   if (! modelData)
     return;
 
-  QString text = foldEdit_->text();
+  CQChartsModelData::FoldData foldData;
 
-  modelData->foldModel(text);
+  foldData.columnsStr = foldColumnEdit_->text();
+  foldData.isAuto     = foldAutoCheck_->isChecked();
+  foldData.delta      = foldDeltaEdit_->text().toDouble();
+  foldData.count      = foldCountEdit_->text().toInt();
+
+  modelData->foldModel(foldData);
 
   updateModel(modelData);
+
+  updateModelDetails(modelData);
+#endif
+}
+
+void
+CQChartsModelControl::
+foldClearSlot()
+{
+#ifdef CQCHARTS_FOLDED_MODEL
+  CQChartsModelData *modelData = charts_->currentModelData();
+
+  if (! modelData)
+    return;
+
+  modelData->foldClear();
+
+  updateModel(modelData);
+
+  updateModelDetails(modelData);
 #endif
 }
 
@@ -357,7 +405,7 @@ typeSetSlot()
   if (! modelData)
     return;
 
-  ModelP model = modelData->model();
+  ModelP model = modelData->currentModel();
 
   //---
 

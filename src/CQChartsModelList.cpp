@@ -190,6 +190,23 @@ currentTabChanged(int ind)
   }
 }
 
+CQChartsModelData *
+CQChartsModelList::
+currentModelData() const
+{
+  int ind = viewTab_->currentIndex();
+
+  for (auto &p : viewWidgetDatas_) {
+    CQChartsViewWidgetData *viewWidgetDatas = p.second;
+
+    if (viewWidgetDatas->tabInd == ind) {
+      return charts_->getModelData(viewWidgetDatas->ind);
+    }
+  }
+
+  return nullptr;
+}
+
 void
 CQChartsModelList::
 filterSlot()
@@ -278,43 +295,27 @@ reloadModel(CQChartsModelData *modelData)
   CQChartsViewWidgetData *viewWidgetData = this->viewWidgetData(modelData->ind());
   assert(viewWidgetData);
 
-#ifdef CQCHARTS_FOLDED_MODEL
-  using ModelP = QSharedPointer<QAbstractItemModel>;
+  if (modelData->details()->isHierarchical()) {
+    if (viewWidgetData->tree) {
+      viewWidgetData->tree->setModelP(modelData->currentModel());
 
-  if (! modelData->foldedModels().empty()) {
-    if (viewWidgetData->table)
-      viewWidgetData->table->setModelP(ModelP());
-
-    if (viewWidgetData->tree)
-      viewWidgetData->tree->setModelP(modelData->foldProxyModel());
+      modelData->setSelectionModel(viewWidgetData->tree->selectionModel());
+    }
+    else
+      modelData->setSelectionModel(nullptr);
 
     viewWidgetData->stack->setCurrentIndex(0);
   }
-  else
-#endif
-  {
-    if (modelData->details()->isHierarchical()) {
-      if (viewWidgetData->tree) {
-        viewWidgetData->tree->setModelP(modelData->model());
+  else {
+    if (viewWidgetData->table) {
+      viewWidgetData->table->setModelP(modelData->currentModel());
 
-        modelData->setSelectionModel(viewWidgetData->tree->selectionModel());
-      }
-      else
-        modelData->setSelectionModel(nullptr);
-
-      viewWidgetData->stack->setCurrentIndex(0);
+      modelData->setSelectionModel(viewWidgetData->table->selectionModel());
     }
-    else {
-      if (viewWidgetData->table) {
-        viewWidgetData->table->setModelP(modelData->model());
+    else
+      modelData->setSelectionModel(nullptr);
 
-        modelData->setSelectionModel(viewWidgetData->table->selectionModel());
-      }
-      else
-        modelData->setSelectionModel(nullptr);
-
-      viewWidgetData->stack->setCurrentIndex(1);
-    }
+    viewWidgetData->stack->setCurrentIndex(1);
   }
 }
 
@@ -330,21 +331,19 @@ setDetails(const CQChartsModelData *modelData)
   CQChartsModelDetails *details = nullptr;
 
   if (viewWidgetData->stack->currentIndex() == 0) {
-    if (viewWidgetData->tree) {
+    if (viewWidgetData->tree)
       modelData1 = charts_->getModelData(viewWidgetData->tree->modelP().data());
-
-      if (modelData1)
-        details = modelData1->details();
-    }
   }
   else {
-    if (viewWidgetData->table) {
+    if (viewWidgetData->table)
       modelData1 = charts_->getModelData(viewWidgetData->table->modelP().data());
-
-      if (modelData1)
-        details = modelData1->details();
-    }
   }
+
+  if (! modelData1)
+    modelData1 = const_cast<CQChartsModelData *>(modelData);
+
+  if (modelData1)
+    details = modelData1->details();
 
   if (! details)
     return;

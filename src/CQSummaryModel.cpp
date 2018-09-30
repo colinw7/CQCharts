@@ -363,8 +363,11 @@ parent(const QModelIndex &) const
 
 bool
 CQSummaryModel::
-hasChildren(const QModelIndex &) const
+hasChildren(const QModelIndex &parent) const
 {
+  if (! parent.isValid())
+    return true;
+
   // flat - no children
   return false;
 }

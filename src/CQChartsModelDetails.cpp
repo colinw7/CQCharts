@@ -83,7 +83,7 @@ update()
 {
   CIncrementalTimerMgrInst->clear();
 
-  QAbstractItemModel *model = data_->model().data();
+  QAbstractItemModel *model = data_->currentModel().data();
 
   reset();
 
@@ -218,7 +218,7 @@ QString
 CQChartsModelColumnDetails::
 headerName() const
 {
-  QAbstractItemModel *model = details_->data()->model().data();
+  QAbstractItemModel *model = details_->data()->currentModel().data();
 
   bool ok;
 
@@ -711,7 +711,7 @@ initData()
 
   //---
 
-  QAbstractItemModel *model = details_->data()->model().data();
+  QAbstractItemModel *model = details_->data()->currentModel().data();
 
   if (! model)
     return false;

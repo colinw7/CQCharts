@@ -992,8 +992,8 @@ class CQChartsPlot : public QObject,
 
   virtual QString posStr(const CQChartsGeom::Point &w) const;
 
-  virtual QString xStr(double x, bool check=true) const;
-  virtual QString yStr(double y, bool check=true) const;
+  virtual QString xStr(double x) const;
+  virtual QString yStr(double y) const;
 
   virtual QString columnStr(const CQChartsColumn &column, double x) const;
 
@@ -1456,15 +1456,9 @@ class CQChartsPlot : public QObject,
   void animateSlot();
 
   // model change slots
-  void modelDataChangedSlot(const QModelIndex &, const QModelIndex &);
+  void modelChangedSlot();
 
-  void modelLayoutChangedSlot();
-  void modelResetSlot();
-
-  void modelRowsInsertedSlot();
-  void modelRowsRemovedSlot();
-  void modelColumnsInsertedSlot();
-  void modelColumnsRemovedSlot();
+  void currentModelChangedSlot();
 
   //---
 

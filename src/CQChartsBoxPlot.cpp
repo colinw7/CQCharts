@@ -70,10 +70,6 @@ addParameters()
   //---
 
   CQChartsGroupPlotType::addParameters();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 QString

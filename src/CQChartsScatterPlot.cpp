@@ -65,10 +65,6 @@ addParameters()
   //---
 
   CQChartsGroupPlotType::addParameters();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 QString
@@ -1875,8 +1871,11 @@ drawDensityMap(QPainter *painter)
       std::vector<double> yv;
 
       for (const auto &v : values.values) {
-        xv.push_back(v.p.x());
-        yv.push_back(v.p.y());
+        double x1 = (v.p.x() - xmin)/(xmax - xmin);
+        double y1 = (v.p.y() - ymin)/(ymax - ymin);
+
+        xv.push_back(x1);
+        yv.push_back(y1);
       }
 
       CMathBivariate bivariate(xv, yv);
@@ -1885,8 +1884,11 @@ drawDensityMap(QPainter *painter)
         for (int x = x1; x <= x2; x += dx) {
           QPointF p = pixelToWindow(QPointF(x, y));
 
+          double x1 = (p.x() - xmin)/(xmax - xmin);
+          double y1 = (p.y() - ymin)/(ymax - ymin);
+
           double a = 1.0;
-          double v = bivariate.calc(p.x(), p.y());
+          double v = bivariate.calc(x1, y1);
 
           if (delta > 0.0) {
             double v1 = CMathRound::RoundDown(v/delta)*delta;

@@ -503,6 +503,9 @@ bool
 CQChartsExprModel::
 hasChildren(const QModelIndex &parent) const
 {
+  if (! parent.isValid())
+    return true;
+
   return sourceModel()->hasChildren(mapToSource(parent));
 }
 

@@ -45,10 +45,6 @@ addParameters()
 
   // group data
   CQChartsGroupPlotType::addParameters();
-
-  //---
-
-  CQChartsPlotType::addParameters();
 }
 
 QString

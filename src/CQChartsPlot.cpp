@@ -179,27 +179,38 @@ connectModel()
 
   modelNameSet_ = false;
 
-  if (modelData && ! modelData->name().length() && this->id().length()) {
-    charts()->setModelName(modelData, this->id());
+  if (modelData) {
+    if (! modelData->name().length() && this->id().length()) {
+      charts()->setModelName(modelData, this->id());
 
-    modelNameSet_ = true;
+      modelNameSet_ = true;
+    }
+
+    connect(modelData, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
+
+    connect(modelData, SIGNAL(currentModelChanged()), this, SLOT(currentModelChangedSlot()));
   }
+  else {
+    // TODO: check if model uses changed columns
+    //int column1 = tl.column();
+    //int column2 = br.column();
+    connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+            this, SLOT(modelChangedSlot()));
 
-  connect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  connect(model_.data(), SIGNAL(layoutChanged()),
-          this, SLOT(modelLayoutChangedSlot()));
-  connect(model_.data(), SIGNAL(modelReset()),
-          this, SLOT(modelResetSlot()));
+    connect(model_.data(), SIGNAL(layoutChanged()),
+            this, SLOT(modelChangedSlot()));
+    connect(model_.data(), SIGNAL(modelReset()),
+            this, SLOT(modelChangedSlot()));
 
-  connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-          this, SLOT(modelRowsInsertedSlot()));
-  connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelRowsRemovedSlot()));
-  connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-          this, SLOT(modelColumnsInsertedSlot()));
-  connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-          this, SLOT(modelColumnsRemovedSlot()));
+    connect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+            this, SLOT(modelChangedSlot()));
+    connect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+            this, SLOT(modelChangedSlot()));
+    connect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+            this, SLOT(modelChangedSlot()));
+    connect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+            this, SLOT(modelChangedSlot()));
+  }
 }
 
 void
@@ -211,27 +222,34 @@ disconnectModel()
 
   CQChartsModelData *modelData = charts()->getModelData(model_.data());
 
-  if (modelData && modelNameSet_) {
-    charts()->setModelName(modelData, this->id());
+  if (modelData) {
+    if (modelNameSet_) {
+      charts()->setModelName(modelData, this->id());
 
-    modelNameSet_ = false;
+      modelNameSet_ = false;
+    }
+
+    disconnect(modelData, SIGNAL(modelChanged()), this, SLOT(modelChangedSlot()));
+
+    disconnect(modelData, SIGNAL(currentModelChanged()), this, SLOT(modelChangedSlot()));
   }
+  else {
+    disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+               this, SLOT(modelChangedSlot()));
+    disconnect(model_.data(), SIGNAL(layoutChanged()),
+               this, SLOT(modelChangedSlot()));
+    disconnect(model_.data(), SIGNAL(modelReset()),
+               this, SLOT(modelChangedSlot()));
 
-  disconnect(model_.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-             this, SLOT(modelDataChangedSlot(const QModelIndex &, const QModelIndex &)));
-  disconnect(model_.data(), SIGNAL(layoutChanged()),
-             this, SLOT(modelLayoutChangedSlot()));
-  disconnect(model_.data(), SIGNAL(modelReset()),
-             this, SLOT(modelResetSlot()));
-
-  disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
-             this, SLOT(modelRowsInsertedSlot()));
-  disconnect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
-             this, SLOT(modelRowsRemovedSlot()));
-  disconnect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
-             this, SLOT(modelColumnsInsertedSlot()));
-  disconnect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
-             this, SLOT(modelColumnsRemovedSlot()));
+    disconnect(model_.data(), SIGNAL(rowsInserted(QModelIndex,int,int)),
+               this, SLOT(modelChangedSlot()));
+    disconnect(model_.data(), SIGNAL(rowsRemoved(QModelIndex,int,int)),
+               this, SLOT(modelChangedSlot()));
+    disconnect(model_.data(), SIGNAL(columnsInserted(QModelIndex,int,int)),
+               this, SLOT(modelChangedSlot()));
+    disconnect(model_.data(), SIGNAL(columnsRemoved(QModelIndex,int,int)),
+               this, SLOT(modelChangedSlot()));
+  }
 }
 
 //---
@@ -258,55 +276,21 @@ animateSlot()
 
 void
 CQChartsPlot::
-modelDataChangedSlot(const QModelIndex & /*tl*/, const QModelIndex & /*br*/)
-{
-  // TODO: check if model uses changed columns
-  //int column1 = tl.column();
-  //int column2 = br.column();
-
-  updateRangeAndObjs();
-}
-
-void
-CQChartsPlot::
-modelLayoutChangedSlot()
+modelChangedSlot()
 {
   updateRangeAndObjs();
 }
 
 void
 CQChartsPlot::
-modelResetSlot()
+currentModelChangedSlot()
 {
-  updateRangeAndObjs();
-}
+  CQChartsModelData *modelData = qobject_cast<CQChartsModelData *>(sender());
 
-void
-CQChartsPlot::
-modelRowsInsertedSlot()
-{
-  updateRangeAndObjs();
-}
+  if (! modelData)
+    return;
 
-void
-CQChartsPlot::
-modelRowsRemovedSlot()
-{
-  updateRangeAndObjs();
-}
-
-void
-CQChartsPlot::
-modelColumnsInsertedSlot()
-{
-  updateRangeAndObjs();
-}
-
-void
-CQChartsPlot::
-modelColumnsRemovedSlot()
-{
-  updateRangeAndObjs();
+  setModel(modelData->currentModel());
 }
 
 //---
@@ -3005,33 +2989,33 @@ QString
 CQChartsPlot::
 posStr(const CQChartsGeom::Point &w) const
 {
-  return xStr(w.x, false) + " " + yStr(w.y, false);
+  return xStr(w.x) + " " + yStr(w.y);
 }
 
 QString
 CQChartsPlot::
-xStr(double x, bool check) const
+xStr(double x) const
 {
   if (isLogX())
     x = expValue(x);
 
-  if (check)
-    assert(xValueColumn().isValid());
-
-  return columnStr(xValueColumn(), x);
+  if (xValueColumn().isValid())
+    return columnStr(xValueColumn(), x);
+  else
+    return CQChartsUtil::toString(x);
 }
 
 QString
 CQChartsPlot::
-yStr(double y, bool check) const
+yStr(double y) const
 {
   if (isLogY())
     y = expValue(y);
 
-  if (check)
-    assert(yValueColumn().isValid());
-
-  return columnStr(yValueColumn(), y);
+  if (yValueColumn().isValid())
+    return columnStr(yValueColumn(), y);
+  else
+    return CQChartsUtil::toString(y);
 }
 
 QString

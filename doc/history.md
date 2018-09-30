@@ -640,3 +640,12 @@
  + add query of plot types and parameters
  + Add theme type and dark options on view
  + Use style template for view background 
+# 9/30/2018
+ + fix bar chart margins when stacked
+ + add fold delta and count in model control
+ + add fold clear in model control
+ + use column type for default fold bucketer
+ + support column name for fold columns
+ + use currentModel to get model from model data
+ + send currentModelChange signal when model data current model changes
+ + add models button to view toolbar
