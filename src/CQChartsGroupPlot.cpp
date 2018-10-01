@@ -13,7 +13,7 @@ addParameters()
   startParameterGroup("Grouping");
 
   if (isGroupRequired())
-    addColumnParameter("group", "Group", "groupColumn", 0).setRequired().setTip("Group column");
+    addColumnParameter("group", "Group", "groupColumn").setRequired().setTip("Group column");
   else
     addColumnParameter("group", "Group", "groupColumn").setTip("Group column");
 

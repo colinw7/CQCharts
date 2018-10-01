@@ -21,10 +21,10 @@ addParameters()
   startParameterGroup("Pie");
 
   // name, desc, propName, attributes, default
-  addColumnsParameter("value", "Value", "valueColumns", "1").
+  addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 
-  addColumnParameter("label", "Label", "labelColumn", 0).
+  addColumnParameter("label", "Label", "labelColumn").
     setString().setTip("Custom label");
 
   addColumnParameter("radius", "Radius", "radiusColumn").

@@ -18,9 +18,9 @@ addParameters()
 {
   startParameterGroup("Delaunay");
 
-  addColumnParameter("x", "X", "xColumn", 0).
+  addColumnParameter("x", "X", "xColumn").
     setRequired().setNumeric().setTip("X Value Column");
-  addColumnParameter("y", "Y", "yColumn", 1).
+  addColumnParameter("y", "Y", "yColumn").
     setRequired().setNumeric().setTip("Y Value Column");
 
   addColumnParameter("name", "Name", "nameColumn").

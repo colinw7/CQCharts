@@ -19,9 +19,9 @@ addParameters()
 {
   startParameterGroup("Geometry");
 
-  addColumnParameter("geometry", "Geometry", "geometryColumn", 0).
+  addColumnParameter("geometry", "Geometry", "geometryColumn").
    setRequired().setTip("Polygon List, Polygon, Rect or Path geometry");
-  addColumnParameter("value", "Value", "valueColumn", 1).setRequired();
+  addColumnParameter("value", "Value", "valueColumn").setRequired();
 
   addColumnParameter("name" , "Name" , "nameColumn" );
   addColumnParameter("color", "Color", "colorColumn").setTip("Custom shape color");

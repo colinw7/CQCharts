@@ -11,7 +11,7 @@ addParameters()
 {
   startParameterGroup("Hierarchy");
 
-  addColumnsParameter("names", "Names", "nameColumns", "0").
+  addColumnsParameter("names", "Names", "nameColumns").
    setRequired().setString().setTip("Hierarchical path for data");
 
   addColumnParameter ("value", "Value", "valueColumn").

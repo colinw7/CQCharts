@@ -30,9 +30,9 @@ addParameters()
   startParameterGroup("Scatter");
 
   // columns
-  addColumnParameter("x", "X", "xColumn", 0).
+  addColumnParameter("x", "X", "xColumn").
     setTip("X Value").setRequired().setNumeric();
-  addColumnParameter("y", "Y", "yColumn", 1).
+  addColumnParameter("y", "Y", "yColumn").
     setTip("Y Value").setRequired().setNumeric();
 
   addColumnParameter("name", "Name", "nameColumn").

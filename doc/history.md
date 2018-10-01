@@ -649,3 +649,5 @@
  + use currentModel to get model from model data
  + send currentModelChange signal when model data current model changes
  + add models button to view toolbar
+# 10/01/2018
+ + remove defaults for column parameters

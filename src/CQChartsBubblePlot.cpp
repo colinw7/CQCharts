@@ -20,7 +20,7 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn").
    setString().setTip("Name Column");
 
-  addColumnParameter("value", "Value", "valueColumn", 0).
+  addColumnParameter("value", "Value", "valueColumn").
    setNumeric().setRequired().setTip("Value Column");
 
   addColumnParameter("color", "Color", "colorColumn").

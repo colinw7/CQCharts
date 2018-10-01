@@ -106,8 +106,8 @@ class CQChartsModelData : public QObject {
  private:
 #ifdef CQCHARTS_FOLDED_MODEL
   using FoldedModelPs = std::vector<ModelP>;
-
 #endif
+
   CQCharts*             charts_           { nullptr }; // parent charts
   ModelP                model_;                        // model
   int                   ind_              { -1 };      // model ind

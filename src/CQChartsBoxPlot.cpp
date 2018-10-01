@@ -1,7 +1,6 @@
 #include <CQChartsBoxPlot.h>
 #include <CQChartsView.h>
 #include <CQChartsAxis.h>
-#include <CQChartsRoundedPolygon.h>
 #include <CQChartsTip.h>
 #include <CQChartsUtil.h>
 #include <CQChartsVariant.h>
@@ -40,7 +39,7 @@ addParameters()
 
   startParameterGroup("Raw Values");
 
-  addColumnsParameter("value", "Value", "valueColumns", "1").
+  addColumnsParameter("value", "Value", "valueColumns").
     setNumeric().setTip("value column(s)");
   addColumnParameter ("name", "Name", "nameColumn").
     setString().setTip("Name column");

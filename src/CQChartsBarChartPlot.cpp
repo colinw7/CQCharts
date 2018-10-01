@@ -21,7 +21,7 @@ addParameters()
   startParameterGroup("Bar Chart");
 
   // values
-  addColumnsParameter("value", "Value", "valueColumns", "1").
+  addColumnsParameter("value", "Value", "valueColumns").
     setRequired().setNumeric().setTip("Value column(s)");
 
   addColumnParameter("name" , "Name" , "nameColumn" ).

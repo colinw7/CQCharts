@@ -17,6 +17,7 @@ class CQFoldData {
    column_(column) {
   }
 
+  // get/set type
   const Type &type() const { return type_; }
   void setType(const Type &t) { type_ = t; }
 
@@ -45,13 +46,13 @@ class CQFoldData {
   void setIntegral(bool b) { integral_ = b; }
 
  private:
-  Type   type_           { Type::STRING };
-  int    column_         { -1 };
-  bool   showColumnData_ { false };
-  bool   keepColumn_     { false };
-  double delta_          { 1.0 };
-  int    numAuto_        { 10 };
-  bool   integral_       { false };
+  Type   type_           { Type::STRING }; // data type
+  int    column_         { -1 };           // column number
+  bool   showColumnData_ { false };        // show data in folded column
+  bool   keepColumn_     { false };        // keep folded column
+  double delta_          { 1.0 };          // bucket delta
+  int    numAuto_        { 10 };           // bucket auto count
+  bool   integral_       { false };        // is integral
 };
 
 //---

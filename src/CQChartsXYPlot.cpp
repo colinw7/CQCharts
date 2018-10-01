@@ -25,9 +25,9 @@ addParameters()
   startParameterGroup("XY");
 
   // columns
-  addColumnParameter ("x", "X", "xColumn" , 0  ).
+  addColumnParameter ("x", "X", "xColumn").
     setRequired().setMonotonic().setNumeric().setTip("X Value Column");
-  addColumnsParameter("y", "Y", "yColumns", "1").
+  addColumnsParameter("y", "Y", "yColumns").
     setRequired().setNumeric().setTip("Y Value Columns");
 
   addColumnParameter("name", "Name", "nameColumn").

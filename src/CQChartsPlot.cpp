@@ -3528,6 +3528,8 @@ void
 CQChartsPlot::
 handleResize()
 {
+  applyDataRange();
+
   if (isEqualScale())
     dataRange_.reset();
 

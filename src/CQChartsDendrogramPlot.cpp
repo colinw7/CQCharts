@@ -15,10 +15,10 @@ addParameters()
 {
   startParameterGroup("Dendogram");
 
-  addColumnParameter("name", "name", "nameColumn", 0).
+  addColumnParameter("name", "name", "nameColumn").
    setString().setRequired().setTip("Name column");
 
-  addColumnParameter("value", "Value", "valueColumn", 1).
+  addColumnParameter("value", "Value", "valueColumn").
    setNumeric().setRequired().setTip("Value column");
 
   endParameterGroup();

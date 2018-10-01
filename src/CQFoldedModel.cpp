@@ -77,6 +77,8 @@ doResetModel()
 
   beginResetModel();
 
+  bucketer_.reset();
+
   fold();
 
   endResetModel();
@@ -384,6 +386,11 @@ QModelIndex
 CQFoldedModel::
 parent(const QModelIndex &child) const
 {
+  if (! child.isValid())
+    return QModelIndex();
+
+  //---
+
   if (! folded_) {
     QAbstractItemModel *model = this->sourceModel();
 

@@ -23,7 +23,7 @@ addParameters()
   addColumnParameter("name", "Name", "nameColumn").
     setString().setTip("Name column");
 
-  addColumnsParameter("value", "Value", "valueColumns", "1").
+  addColumnsParameter("value", "Value", "valueColumns").
    setNumeric().setRequired().setTip("Value column");
 
   endParameterGroup();
