@@ -50,6 +50,7 @@ CQChartsTree(CQCharts *charts, QWidget *parent) :
 
   header()->setSectionsClickable(true);
 //header()->setHighlightSections(true);
+  header()->setSortIndicator(0, Qt::AscendingOrder);
 
   setSelectionBehavior(SelectRows);
 }

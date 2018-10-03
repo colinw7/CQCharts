@@ -38,13 +38,13 @@ addParameters()
   //--
 
   // bool parameters
-  addBoolParameter("lines"     , "Lines"     , "lines", true   ).setTip("Draw Lines");
-  addBoolParameter("points"    , "Points"    , "points"        ).setTip("Draw Points");
-  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines").setTip("Draw Bivariate Lines");
-  addBoolParameter("stacked"   , "Stacked"   , "stacked"       ).setTip("Stack Points");
-  addBoolParameter("cumulative", "Cumulative", "cumulative"    ).setTip("Cumulate Values");
-  addBoolParameter("fillUnder" , "FillUnder" , "fillUnder"     ).setTip("Fill Under Curve");
-  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"  ).setTip("Draw Point Impulse");
+  addBoolParameter("lines"     , "Lines"     , "lines", true    ).setTip("Draw Lines");
+  addBoolParameter("points"    , "Points"    , "points"         ).setTip("Draw Points");
+  addBoolParameter("bivariate" , "Bivariate" , "bivariateLines" ).setTip("Draw Bivariate Lines");
+  addBoolParameter("stacked"   , "Stacked"   , "stacked"        ).setTip("Stack Points");
+  addBoolParameter("cumulative", "Cumulative", "cumulative"     ).setTip("Cumulate Values");
+  addBoolParameter("fillUnder" , "FillUnder" , "fillUnderFilled").setTip("Fill Under Curve");
+  addBoolParameter("impulse"   , "Impulse"   , "impulseLines"   ).setTip("Draw Point Impulse");
 
   endParameterGroup();
 
@@ -565,7 +565,7 @@ calcRange()
 
   // set x axis name
   if (isOverlay()) {
-    if (isFirstPlot())
+    if (isFirstPlot() || isX1X2())
       xAxis()->setColumn(xColumn());
   }
   else {
@@ -575,7 +575,7 @@ calcRange()
   QString xname = xAxisName();
 
   if (isOverlay()) {
-    if (isFirstPlot())
+    if (isFirstPlot() || isX1X2())
       xAxis()->setLabel(xname);
   }
   else {
@@ -589,7 +589,10 @@ calcRange()
 
   if      (isBivariateLines() && ns > 1) {
     if (isOverlay()) {
-      if (isFirstPlot()) {
+      if      (isY1Y2()) {
+        yAxis()->setLabel(yname);
+      }
+      else if (isFirstPlot()) {
         yAxis()->setLabel(yname);
 
         Plots plots;
@@ -618,14 +621,17 @@ calcRange()
     CQChartsColumn yColumn = yColumns().getColumn(0);
 
     if (isOverlay()) {
-      if (isFirstPlot())
+      if (isFirstPlot() || isY1Y2())
         yAxis()->setColumn(yColumn);
     }
     else
       yAxis()->setColumn(yColumn);
 
     if (isOverlay()) {
-      if (isFirstPlot()) {
+      if      (isY1Y2()) {
+        yAxis()->setLabel(yname);
+      }
+      else if (isFirstPlot()) {
         yAxis()->setLabel(yname);
 
         Plots plots;
@@ -676,7 +682,11 @@ yAxisName() const
 
     if (! name.length()) {
       CQChartsColumn yColumn1 = yColumns().getColumn(0);
-      CQChartsColumn yColumn2 = yColumns().getColumn(1);
+
+      CQChartsColumn yColumn2;
+
+      if (ns > 1)
+        yColumn2 = yColumns().getColumn(1);
 
       bool ok;
 
@@ -1021,7 +1031,11 @@ initObjs()
 
         if (! name.length()) {
           CQChartsColumn yColumn1 = yColumns().getColumn(0);
-          CQChartsColumn yColumn2 = yColumns().getColumn(1);
+
+          CQChartsColumn yColumn2;
+
+          if (yColumns().count())
+            yColumn2 = yColumns().getColumn(1);
 
           bool ok;
 
@@ -1548,7 +1562,11 @@ addKeyItems(CQChartsPlotKey *key)
 
     if (! name.length()) {
       CQChartsColumn yColumn1 = yColumns().getColumn(0);
-      CQChartsColumn yColumn2 = yColumns().getColumn(1);
+
+      CQChartsColumn yColumn2;
+
+      if (ns > 1)
+        yColumn2 = yColumns().getColumn(1);
 
       bool ok;
 
@@ -1595,7 +1613,7 @@ addKeyItems(CQChartsPlotKey *key)
           name = fileName();
       }
 #endif
-      if (ns == 1 && (titleStr().length() || fileName().length())) {
+      if (ns == 1 && ! isOverlay() && (titleStr().length() || fileName().length())) {
         if      (titleStr().length())
           name = titleStr();
         else if (fileName().length())

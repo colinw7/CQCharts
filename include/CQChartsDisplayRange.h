@@ -254,8 +254,10 @@ class CQChartsDisplayRange {
       matrix3.setTranslation(-window1_.xmin, -window1_.ymax);
     }
 
-    matrix_  = matrix1*matrix2*matrix3;
-    imatrix_ = matrix_.inverse();
+    matrix_ = matrix1*matrix2*matrix3;
+
+    if (! matrix_.invert(imatrix_))
+      imatrix_.setIdentity();
   }
 
   void windowToPixel(const CQChartsGeom::Point &window, CQChartsGeom::Point &pixel) const {

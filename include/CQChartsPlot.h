@@ -914,10 +914,13 @@ class CQChartsPlot : public QObject,
  private:
   void updateRangeAndObjsInternal();
 
- public:
+  // (re)initialize grouped plot objects
+  void initGroupedPlotObjs();
+
   // (re)initialize plot objects
   void initPlotObjs();
 
+ public:
   // (re)initialize plot objects (called by initPlotObjs)
   virtual bool initObjs() = 0;
 
@@ -1416,6 +1419,10 @@ class CQChartsPlot : public QObject,
 
   bool columnDetails(const CQChartsColumn &column, QString &typeName,
                      QVariant &minValue, QVariant &maxValue) const;
+
+  //---
+
+  CQChartsModelData *getModelData() const;
 
   //---
 

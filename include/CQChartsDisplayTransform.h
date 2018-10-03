@@ -162,8 +162,10 @@ class CQChartsDisplayTransform {
 //  m3.setRotation   (angle_);
     m4.setTranslation(-c.x, -c.y);
 
-    matrix_  = m1*m2*m3*m4;
-    imatrix_ = matrix_.inverse();
+    matrix_ = m1*m2*m3*m4;
+
+    if (! matrix_.invert(imatrix_))
+      imatrix_.setIdentity();
   }
 
  private:

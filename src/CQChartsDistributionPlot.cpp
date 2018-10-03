@@ -902,11 +902,11 @@ calcRange()
 
       if (! isHorizontal()) {
         dataRange.updateRange(i1 - 1.0, 0 );
-        dataRange.updateRange(i2      , n1);
+        dataRange.updateRange(i2      , n2);
       }
       else {
         dataRange.updateRange(0 , i1 - 1.0);
-        dataRange.updateRange(n1, i2      );
+        dataRange.updateRange(n2, i2      );
       }
     }
   }

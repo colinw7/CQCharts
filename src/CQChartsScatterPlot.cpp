@@ -340,6 +340,17 @@ setFontSizeMapMax(double r)
 
 void
 CQChartsScatterPlot::
+setTextLabels(bool b)
+{
+  dataLabel().setVisible(b);
+
+  invalidateLayers();
+}
+
+//---
+
+void
+CQChartsScatterPlot::
 setBestFit(bool b)
 {
   CQChartsUtil::testAndSet(bestFitData_.visible, b, [&]() { invalidateLayers(); } );
@@ -667,7 +678,7 @@ calcRange()
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
       if (! details_) {
-        CQChartsModelData *modelData = plot_->charts()->getModelData(plot_->model().data());
+        CQChartsModelData *modelData = plot_->getModelData();
 
         details_ = modelData->details();
       }
@@ -699,7 +710,7 @@ calcRange()
   bool uniqueY = visitor.isUniqueY();
 
   if (uniqueX || uniqueY) {
-    CQChartsModelData *modelData = charts()->getModelData(model().data());
+    CQChartsModelData *modelData = getModelData();
 
     CQChartsModelDetails *details = modelData->details();
 
@@ -1128,7 +1139,7 @@ addNameValues()
 
     CQChartsModelColumnDetails *columnDetails(const CQChartsColumn &column) {
       if (! details_) {
-        CQChartsModelData *modelData = plot_->charts()->getModelData(plot_->model().data());
+        CQChartsModelData *modelData = plot_->getModelData();
 
         details_ = modelData->details();
       }

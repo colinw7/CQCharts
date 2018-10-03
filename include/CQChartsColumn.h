@@ -209,6 +209,14 @@ class CQChartsColumns {
     return true;
   }
 
+  bool isValid() const {
+    for (const auto &column : columns_)
+      if (column.isValid())
+        return true;
+
+    return false;
+  }
+
   // return number of columns (minumum is one as single invalid counts)
   int count() const {
     if (columns_.empty())

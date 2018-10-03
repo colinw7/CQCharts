@@ -144,6 +144,8 @@ init()
   okButton_ = new QPushButton("OK");
   okButton_->setObjectName("ok");
 
+  okButton_->setToolTip("Create Plot and close dialog");
+
   connect(okButton_, SIGNAL(clicked()), this, SLOT(okSlot()));
 
   buttonLayout->addWidget(okButton_);
@@ -153,6 +155,8 @@ init()
   applyButton_ = new QPushButton("Apply");
   applyButton_->setObjectName("apply");
 
+  applyButton_->setToolTip("Create Plot");
+
   connect(applyButton_, SIGNAL(clicked()), this, SLOT(applySlot()));
 
   buttonLayout->addWidget(applyButton_);
@@ -161,6 +165,8 @@ init()
 
   QPushButton *cancelButton = new QPushButton("Cancel");
   cancelButton->setObjectName("cancel");
+
+  cancelButton->setToolTip("Close dialog");
 
   connect(cancelButton, SIGNAL(clicked()), this, SLOT(cancelSlot()));
 
@@ -578,6 +584,8 @@ createPreviewFrame()
   previewEnabledCheck_ = new QCheckBox("Enabled");
   previewEnabledCheck_->setObjectName("previewEnabled");
 
+  previewEnabledCheck_->setToolTip("Enable plot preview");
+
   connect(previewEnabledCheck_, SIGNAL(stateChanged(int)), this, SLOT(previewEnabledSlot()));
 
   previewControlLayout->addWidget(previewEnabledCheck_);
@@ -956,6 +964,8 @@ addParameterColumnEdit(PlotData &plotData, QGridLayout *layout, int &row,
   formatEditData.formatEdit =
     addStringEdit(layout, row, column, "", parameter->name() + "Format", "Column Format");
 
+  formatEditData.formatEdit->setToolTip("Column format");
+
   connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
           this, SLOT(validateSlot()));
 
@@ -1074,6 +1084,8 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
   formatEditData.formatEdit =
     addStringEdit(layout, row, column, "", parameter->name() + "Format", "Columns Format");
 
+  formatEditData.formatEdit->setToolTip("Columns format");
+
   connect(formatEditData.formatEdit, SIGNAL(textChanged(const QString &)),
           this, SLOT(validateSlot()));
 
@@ -1086,6 +1098,8 @@ addParameterColumnsEdit(PlotData &plotData, QGridLayout *layout, int &row,
 
   connect(formatEditData.formatUpdate, SIGNAL(clicked()),
           this, SLOT(updateFormatSlot()));
+
+  formatEditData.formatUpdate->setToolTip("Get current column format");
 
   layout->addWidget(formatEditData.formatUpdate, row, column); ++column;
 
@@ -1804,7 +1818,7 @@ validate(QStringList &msgs)
       if (! parseParameterColumnEdit(parameter, plotData, column, columnStr,
                                      columnTypeStr, mapValueData)) {
         if (parameter->isRequired()) {
-          msgs << "missing required column value";
+          msgs << "missing required column value (" << parameter->name() << ")";
           rc = false;
         }
 
@@ -1812,7 +1826,7 @@ validate(QStringList &msgs)
       }
 
       if (! column.isValid()) {
-        msgs << "invalid column value";
+        msgs << QString("invalid column value (%1)").arg(parameter->name());
         rc = false;
         continue;
       }
@@ -1825,7 +1839,7 @@ validate(QStringList &msgs)
 
         if (parameter->isMonotonic()) {
           if (! columnDetails->isMonotonic()) {
-            msgs << "non-monotonic column";
+            msgs << QString("non-monotonic column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
@@ -1834,19 +1848,19 @@ validate(QStringList &msgs)
           if (columnDetails->type() != CQBaseModel::Type::INTEGER &&
               columnDetails->type() != CQBaseModel::Type::REAL &&
               columnDetails->type() != CQBaseModel::Type::TIME) {
-            msgs << "non-numeric column";
+            msgs << QString("non-numeric column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
         else if (parameter->isString()) {
           if (columnDetails->type() != CQBaseModel::Type::STRING) {
-            msgs << "non-string column";
+            msgs << QString("non-string column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
         else if (parameter->isColor()) {
           if (columnDetails->type() != CQBaseModel::Type::COLOR) {
-            msgs << "non-color column";
+            msgs << QString("non-color column (%1)").arg(parameter->name());
             rc1 = false;
           }
         }
@@ -1871,7 +1885,7 @@ validate(QStringList &msgs)
 
       if (! parseParameterColumnsEdit(parameter, plotData, columns, columnStrs, columnTypeStr)) {
         if (parameter->isRequired()) {
-          msgs << "missing required column value";
+          msgs << QString("missing required columns value (%1)").arg(parameter->name());
           rc = false;
         }
 

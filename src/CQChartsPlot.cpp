@@ -175,7 +175,7 @@ connectModel()
   if (! model_.data())
     return;
 
-  CQChartsModelData *modelData = charts()->getModelData(model_.data());
+  CQChartsModelData *modelData = getModelData();
 
   modelNameSet_ = false;
 
@@ -220,7 +220,7 @@ disconnectModel()
   if (! model_.data())
     return;
 
-  CQChartsModelData *modelData = charts()->getModelData(model_.data());
+  CQChartsModelData *modelData = getModelData();
 
   if (modelData) {
     if (modelNameSet_) {
@@ -1821,6 +1821,27 @@ CQChartsPlot::
 addPlotObject(CQChartsPlotObj *obj)
 {
   plotObjs_.push_back(obj);
+}
+
+void
+CQChartsPlot::
+initGroupedPlotObjs()
+{
+  // for overlay draw all combine objects on common layers
+  if (isOverlay()) {
+    if (! isFirstPlot())
+      return;
+
+    Plots plots;
+
+    overlayPlots(plots);
+
+    for (auto &plot : plots)
+      plot->initPlotObjs();
+  }
+  else {
+    initPlotObjs();
+  }
 }
 
 void
@@ -5903,15 +5924,12 @@ CQChartsPlot::
 columnValueType(const CQChartsColumn &column, ColumnType &columnType,
                 CQChartsNameValues &nameValues, const ColumnType &defType) const
 {
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
   if (! column.isValid()) {
     columnType = defType;
     return false;
   }
 
-  CQChartsModelData *modelData = charts()->getModelData(model);
+  CQChartsModelData *modelData = getModelData();
 
   if (modelData) {
     CQChartsModelDetails *details = modelData->details();
@@ -5929,6 +5947,9 @@ columnValueType(const CQChartsColumn &column, ColumnType &columnType,
     }
   }
   else {
+    QAbstractItemModel *model = this->model().data();
+    assert(model);
+
     if (! CQChartsUtil::columnValueType(charts(), model, column, columnType, nameValues)) {
       columnType = defType;
       return false;
@@ -5963,14 +5984,11 @@ CQChartsPlot::
 columnDetails(const CQChartsColumn &column, QString &typeName,
               QVariant &minValue, QVariant &maxValue) const
 {
-  QAbstractItemModel *model = this->model().data();
-  assert(model);
-
   if (! column.isValid()) {
     return false;
   }
 
-  CQChartsModelData *modelData = charts()->getModelData(model);
+  CQChartsModelData *modelData = getModelData();
 
   if (modelData) {
     CQChartsModelDetails *details = modelData->details();
@@ -5988,6 +6006,13 @@ columnDetails(const CQChartsColumn &column, QString &typeName,
   else {
     return false;
   }
+}
+
+CQChartsModelData *
+CQChartsPlot::
+getModelData() const
+{
+  return charts()->getModelData(model_.data());
 }
 
 //------

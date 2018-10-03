@@ -363,6 +363,9 @@ initObjs()
 
   //---
 
+  if (! valueColumns().isValid())
+    return false;
+
   double ro = outerRadius();
   double ri = (isDonut() ? innerRadius()*outerRadius() : 0.0);
 
@@ -708,15 +711,6 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind)
 
   //---
 
-  // get value
-  double value        = 1.0;
-  bool   valueMissing = false;
-
-  if (! getColumnSizeValue(ind, value, valueMissing))
-    return;
-
-  //---
-
   // get group data for group ind (add if new)
   auto pg = groupDatas_.find(groupInd);
 
@@ -727,6 +721,15 @@ addRowColumnDataTotal(const CQChartsModelIndex &ind)
   }
 
   GroupData &groupData = (*pg).second;
+
+  //---
+
+  // get value
+  double value        = 1.0;
+  bool   valueMissing = false;
+
+  if (! getColumnSizeValue(ind, value, valueMissing))
+    return;
 
   //---
 

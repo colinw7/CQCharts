@@ -159,7 +159,7 @@ void parseArgs(int argc, char **argv, MainData &mainData);
 int
 main(int argc, char **argv)
 {
-  mtrace();
+  //mtrace();
 
   //---
 

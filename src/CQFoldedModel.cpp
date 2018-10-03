@@ -629,7 +629,6 @@ headerData(int section, Qt::Orientation orientation, int role) const
       role == static_cast<int>(CQBaseModel::Role::TypeValues) ||
       role == static_cast<int>(CQBaseModel::Role::Min) ||
       role == static_cast<int>(CQBaseModel::Role::Max)) {
-
     // get node data
     QModelIndex ind = index(0, section, QModelIndex());
 

@@ -30,7 +30,7 @@ addParameters()
 
   addColumnsParameter("group", "Group", "groupColumns").setTip("Group Name(s)");
 
-  addBoolParameter("textLabels", "Text Labels", "textLabels");
+  addBoolParameter("textLabels", "Text Labels", "showTextLabels");
 
   endParameterGroup();
 
@@ -115,7 +115,7 @@ setGroupColumns(const CQChartsColumns &c)
   } );
 }
 
-//------
+//---
 
 void
 CQChartsHierScatterPlot::
@@ -126,6 +126,8 @@ setTextLabels(bool b)
   invalidateLayers();
 }
 
+//---
+
 void
 CQChartsHierScatterPlot::
 setFontSize(double s)
@@ -133,7 +135,7 @@ setFontSize(double s)
   CQChartsUtil::testAndSet(fontSize_, s, [&]() { updateObjs(); } );
 }
 
-//------
+//---
 
 void
 CQChartsHierScatterPlot::

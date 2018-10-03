@@ -288,6 +288,8 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   Q_PROPERTY(double fontSizeMapMin READ fontSizeMapMin   WRITE setFontSizeMapMin)
   Q_PROPERTY(double fontSizeMapMax READ fontSizeMapMax   WRITE setFontSizeMapMax)
 
+  Q_PROPERTY(bool textLabels READ isTextLabels WRITE setTextLabels)
+
   Q_ENUMS(XSide)
   Q_ENUMS(YSide)
 
@@ -542,6 +544,9 @@ class CQChartsScatterPlot : public CQChartsGroupPlot,
   const QString &colorName     () const { return colorName_     ; }
 
   //---
+
+  bool isTextLabels() const { return dataLabel_.isVisible(); }
+  void setTextLabels(bool b);
 
   // data label
   const CQChartsDataLabel &dataLabel() const { return dataLabel_; }

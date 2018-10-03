@@ -298,6 +298,13 @@ calcRange()
       dataRange.updateRange(numVisible - 0.5, dataRange.ymin());
     else
       dataRange.updateRange(dataRange.xmin(), numVisible - 0.5);
+
+    if (nv == 0) {
+      if (! isHorizontal())
+        dataRange.updateRange(dataRange.xmin(), 1.0);
+      else
+        dataRange.updateRange(1.0, dataRange.ymin());
+    }
   }
   else {
     if (! isHorizontal())

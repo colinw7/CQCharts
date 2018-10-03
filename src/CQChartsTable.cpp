@@ -156,6 +156,7 @@ CQChartsTable(CQCharts *charts, QWidget *parent) :
 
   horizontalHeader()->setSectionsClickable(true);
 //horizontalHeader()->setHighlightSections(true);
+  horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 
   verticalHeader()->setVisible(false);
 
