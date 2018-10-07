@@ -16,6 +16,11 @@ class QItemSelectionModel;
 class CQChartsModelData : public QObject {
   Q_OBJECT
 
+  Q_PROPERTY(int     ind            READ ind              WRITE setInd           )
+  Q_PROPERTY(QString id             READ id                                      )
+  Q_PROPERTY(QString name           READ name             WRITE setName          )
+  Q_PROPERTY(bool    summaryEnabled READ isSummaryEnabled WRITE setSummaryEnabled)
+
  public:
   using ModelP = QSharedPointer<QAbstractItemModel>;
 

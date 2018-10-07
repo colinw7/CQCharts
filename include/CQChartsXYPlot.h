@@ -25,8 +25,8 @@ class CQChartsXYPlotType : public CQChartsGroupPlotType {
 
   QString description() const override;
 
-  const char *xColumnName() const override { return "x"; }
-  const char *yColumnName() const override { return "y"; }
+  QString xColumnName() const override { return "x"; }
+  QString yColumnName() const override { return "y"; }
 
   CQChartsPlot *create(CQChartsView *view, const ModelP &model) const override;
 };

@@ -1,5 +1,5 @@
 #include <CQChartsPlotType.h>
-#include <QStringList>
+#include <CQUtil.h>
 #include <cassert>
 
 CQChartsPlotTypeMgr::
@@ -65,6 +65,23 @@ getTypeNames(QStringList &names, QStringList &descs) const
 CQChartsPlotType::
 CQChartsPlotType()
 {
+  addProperty("name"                 , "name"              , "");
+  addProperty("desc"                 , "desc"              , "");
+  addProperty("html_desc"            , "htmlDesc"          , "");
+  addProperty("dimension"            , "dimension"         , "");
+  addProperty("x_column"             , "xColumnName"       , "");
+  addProperty("y_column"             , "yColumnName"       , "");
+  addProperty("custom_x_range"       , "customXRange"      , "");
+  addProperty("custom_y_range"       , "customXRange"      , "");
+  addProperty("axes"                 , "hasAxes"           , "");
+  addProperty("key"                  , "hasKey"            , "");
+  addProperty("title"                , "hasTitle"          , "");
+  addProperty("allow_x_axis_integral", "allowXAxisIntegral", "");
+  addProperty("allow_y_axis_integral", "allowYAxisIntegral", "");
+  addProperty("allow_x_log"          , "allowXLog"         , "");
+  addProperty("allow_y_log"          , "allowYLog"         , "");
+  addProperty("is_group"             , "isGroupType"       , "");
+  addProperty("hierarchical"         , "isHierarchical"    , "");
 }
 
 CQChartsPlotType::
@@ -283,4 +300,45 @@ addParameter(CQChartsPlotParameter *parameter)
     parameter1->setGroupId(parameterGroupId_);
 
   return *parameter1;
+}
+
+void
+CQChartsPlotType::
+addProperty(const QString &name, const QString &propName, const QString &desc)
+{
+  properties_[name] = PropertyData(name, propName, desc);
+}
+
+void
+CQChartsPlotType::
+propertyNames(QStringList &names) const
+{
+  for (const auto &p : properties_)
+    names.push_back(p.first);
+}
+
+bool
+CQChartsPlotType::
+hasProperty(const QString &name) const
+{
+  auto p = properties_.find(name);
+
+  return (p != properties_.end());
+}
+
+QVariant
+CQChartsPlotType::
+getPropertyValue(const QString &name) const
+{
+  auto p = properties_.find(name);
+
+  if (p == properties_.end())
+    return QVariant();
+
+  QVariant var;
+
+  if (! CQUtil::getProperty(this, (*p).second.propName, var))
+    return QVariant();
+
+  return var;
 }

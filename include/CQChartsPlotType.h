@@ -5,6 +5,7 @@
 #include <QAbstractItemModel>
 #include <QSharedPointer>
 #include <QObject>
+#include <QStringList>
 #include <QString>
 #include <map>
 #include <vector>
@@ -43,9 +44,23 @@ class CQChartsPlotTypeMgr {
 class CQChartsPlotType : public QObject {
   Q_OBJECT
 
-  Q_PROPERTY(QString   name      READ name     )
-  Q_PROPERTY(QString   desc      READ desc     )
-  Q_PROPERTY(Dimension dimension READ dimension)
+  Q_PROPERTY(QString   name               READ name              )
+  Q_PROPERTY(QString   desc               READ desc              )
+  Q_PROPERTY(QString   htmlDesc           READ description       )
+  Q_PROPERTY(Dimension dimension          READ dimension         )
+  Q_PROPERTY(QString   xColumnName        READ xColumnName       )
+  Q_PROPERTY(QString   yColumnName        READ yColumnName       )
+  Q_PROPERTY(bool      customXRange       READ customXRange      )
+  Q_PROPERTY(bool      customYRange       READ customYRange      )
+  Q_PROPERTY(bool      hasAxes            READ hasAxes           )
+  Q_PROPERTY(bool      hasKey             READ hasKey            )
+  Q_PROPERTY(bool      hasTitle           READ hasTitle          )
+  Q_PROPERTY(bool      allowXAxisIntegral READ allowXAxisIntegral)
+  Q_PROPERTY(bool      allowYAxisIntegral READ allowYAxisIntegral)
+  Q_PROPERTY(bool      allowXLog          READ allowXLog         )
+  Q_PROPERTY(bool      allowYLog          READ allowYLog         )
+  Q_PROPERTY(bool      isGroupType        READ isGroupType       )
+  Q_PROPERTY(bool      isHierarchical     READ isHierarchical    )
 
   Q_ENUMS(Dimension)
 
@@ -74,6 +89,32 @@ class CQChartsPlotType : public QObject {
 
   //---
 
+  // properties
+  virtual QString xColumnName() const { return ""; }
+  virtual QString yColumnName() const { return ""; }
+
+  virtual bool customXRange() const { return true; }
+  virtual bool customYRange() const { return true; }
+
+  virtual bool hasAxes () const { return true; }
+  virtual bool hasKey  () const { return true; }
+  virtual bool hasTitle() const { return true; }
+
+  // TODO: use plot first then default to type
+  virtual bool allowXAxisIntegral() const { return true; }
+  virtual bool allowYAxisIntegral() const { return true; }
+
+  virtual bool allowXLog() const { return true; }
+  virtual bool allowYLog() const { return true; }
+
+  virtual QString description() const { return QString(); }
+
+  virtual bool isGroupType() const { return false; }
+
+  virtual bool isHierarchical() const { return false; }
+
+  //---
+
   // plot parameters
   // (required/key options to initialize plot)
   virtual void addParameters() = 0;
@@ -86,19 +127,21 @@ class CQChartsPlotType : public QObject {
 
   //---
 
+  // parameter groups
   const ParameterGroups &parameterGroups() const { return parameterGroups_; }
 
   Parameters groupParameters(int groupId) const;
 
   Parameters nonGroupParameters() const;
 
-  //---
+  //--
 
   void startParameterGroup(const QString &name);
   void endParameterGroup();
 
   //---
 
+  // type parameters
   CQChartsPlotParameter &
   addColumnParameter(const QString &name, const QString &desc, const QString &propName,
                      int defValue=-1);
@@ -152,28 +195,13 @@ class CQChartsPlotType : public QObject {
 
   //---
 
-  virtual const char *xColumnName() const { return nullptr; }
-  virtual const char *yColumnName() const { return nullptr; }
+  void addProperty(const QString &name, const QString &propName, const QString &desc);
 
-  virtual bool customXRange() const { return true; }
-  virtual bool customYRange() const { return true; }
+  void propertyNames(QStringList &names) const;
 
-  virtual bool hasAxes () const { return true; }
-  virtual bool hasKey  () const { return true; }
-  virtual bool hasTitle() const { return true; }
+  bool hasProperty(const QString &name) const;
 
-  // TODO: use plot first then default to type
-  virtual bool allowXAxisIntegral() const { return true; }
-  virtual bool allowYAxisIntegral() const { return true; }
-
-  virtual bool allowXLog() const { return true; }
-  virtual bool allowYLog() const { return true; }
-
-  virtual QString description() const { return QString(); }
-
-  virtual bool isGroupType() const { return false; }
-
-  virtual bool isHierarchical() const { return false; }
+  QVariant getPropertyValue(const QString &name) const;
 
   //---
 
@@ -187,9 +215,22 @@ class CQChartsPlotType : public QObject {
   virtual CQChartsPlot *create(CQChartsView *view, const ModelP &model) const = 0;
 
  protected:
-  Parameters      parameters_;
-  ParameterGroups parameterGroups_;
-  int             parameterGroupId_ { -1 };
+  struct PropertyData {
+    QString name;
+    QString propName;
+    QString desc;
+
+    PropertyData(const QString &name="", const QString &propName="", const QString &desc="") :
+     name(name), propName(propName), desc(desc) {
+    }
+  };
+
+  using Properties = std::map<QString,PropertyData>;
+
+  Parameters      parameters_;              // parameters
+  ParameterGroups parameterGroups_;         // parameter groups
+  int             parameterGroupId_ { -1 }; // parameter group id
+  Properties      properties_;              // properties
 };
 
 #endif

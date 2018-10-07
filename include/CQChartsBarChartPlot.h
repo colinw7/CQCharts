@@ -16,7 +16,7 @@ class CQChartsBarChartPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "barchart"; }
   QString desc() const override { return "BarChart"; }
 
-  const char *yColumnName() const override { return "value"; }
+  QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
   bool allowYAxisIntegral() const override { return false; }

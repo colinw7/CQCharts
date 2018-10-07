@@ -2641,56 +2641,12 @@ getChartsDataCmd(const Vars &vars)
 
     //---
 
-    if      (name == "name") {
-      setCmdRc(type->name());
-    }
-    else if (name == "desc") {
-      setCmdRc(type->desc());
-    }
-    else if (name == "html_desc") {
-      setCmdRc(type->description());
-    }
-    else if (name == "dimension") {
-      setCmdRc((int) type->dimension());
-    }
-    else if (name == "x_column") {
-      setCmdRc(QString(type->xColumnName()));
-    }
-    else if (name == "y_column") {
-      setCmdRc(QString(type->yColumnName()));
-    }
-    else if (name == "custom_x_range") {
-      setCmdRc(type->customXRange());
-    }
-    else if (name == "custom_y_range") {
-      setCmdRc(type->customYRange());
-    }
-    else if (name == "axes") {
-      setCmdRc(type->hasAxes());
-    }
-    else if (name == "key") {
-      setCmdRc(type->hasKey());
-    }
-    else if (name == "title") {
-      setCmdRc(type->hasTitle());
-    }
-    else if (name == "allow_x_axis_integral") {
-      setCmdRc(type->allowXAxisIntegral());
-    }
-    else if (name == "allow_y_axis_integral") {
-      setCmdRc(type->allowYAxisIntegral());
-    }
-    else if (name == "allow_x_log") {
-      setCmdRc(type->allowXLog());
-    }
-    else if (name == "allow_y_log") {
-      setCmdRc(type->allowYLog());
-    }
-    else if (name == "is_group") {
-      setCmdRc(type->isGroupType());
-    }
-    else if (name == "hierarchical") {
-      setCmdRc(type->isHierarchical());
+    if      (name == "properties") {
+      QStringList names;
+
+      type->propertyNames(names);
+
+      setCmdRc(names);
     }
     else if (name == "parameters") {
       const CQChartsPlotType::Parameters &parameters = type->parameters();
@@ -2712,73 +2668,23 @@ getChartsDataCmd(const Vars &vars)
 
       QString name1 = name.mid(10);
 
-      if      (name1 == "name") {
-        setCmdRc(parameter.name());
+      if (name1 == "properties") {
+        QStringList names;
+
+        parameter.propertyNames(names);
+
+        setCmdRc(names);
       }
-      else if (name1 == "desc") {
-        setCmdRc(parameter.desc());
-      }
-      else if (name1 == "type") {
-        setCmdRc(parameter.type());
-      }
-      else if (name1 == "prop_name") {
-        setCmdRc(parameter.propName());
-      }
-      else if (name1 == "group_id") {
-        setCmdRc(parameter.groupId());
-      }
-      else if (name1 == "def_value") {
-        setCmdRc(parameter.defValue());
-      }
-      else if (name1 == "tip") {
-        setCmdRc(parameter.tip());
-      }
-      else if (name1 == "column") {
-        setCmdRc(parameter.isColumn());
-      }
-      else if (name1 == "multiple") {
-        setCmdRc(parameter.isMultiple());
-      }
-      else if (name1 == "optional") {
-        setCmdRc(parameter.isOptional());
-      }
-      else if (name1 == "required") {
-        setCmdRc(parameter.isRequired());
-      }
-      else if (name1 == "discrimator") {
-        setCmdRc(parameter.isDiscrimator());
-      }
-      else if (name1 == "monotonic") {
-        setCmdRc(parameter.isMonotonic());
-      }
-      else if (name1 == "numeric") {
-        setCmdRc(parameter.isNumeric());
-      }
-      else if (name1 == "string") {
-        setCmdRc(parameter.isString());
-      }
-      else if (name1 == "color") {
-        setCmdRc(parameter.isColor());
-      }
-      else if (name1 == "type_detail") {
-        setCmdRc(parameter.typeDetail());
-      }
-      else if (name1 == "groupable") {
-        setCmdRc(parameter.isGroupable());
-      }
-      else if (name1 == "mapped") {
-        setCmdRc(parameter.isMapped());
-      }
-      else if (name1 == "mapMin") {
-        setCmdRc(parameter.mapMin());
-      }
-      else if (name1 == "mapMax") {
-        setCmdRc(parameter.mapMax());
+      else if (parameter.hasProperty(name1)) {
+        setCmdRc(parameter.getPropertyValue(name1));
       }
       else {
         setCmdError("Invalid name 'parameter." + name1 + "' specified");
         return;
       }
+    }
+    else if (type->hasProperty(name)) {
+      setCmdRc(type->getPropertyValue(name));
     }
     else {
       setCmdError("Invalid name '" + name + "' specified");

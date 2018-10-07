@@ -1,6 +1,7 @@
 #ifndef CQChartsPlotParameter_H
 #define CQChartsPlotParameter_H
 
+#include <QObject>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
@@ -99,17 +100,39 @@ class CQChartsPlotParameterAttributes {
   double       mapMax_ { 1.0 }; // map max
 };
 
-class CQChartsPlotParameter {
+class CQChartsPlotParameter : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(QString  name          READ name          WRITE setName    )
+  Q_PROPERTY(QString  desc          READ desc          WRITE setDesc    )
+  Q_PROPERTY(QString  type          READ type          WRITE setType    )
+  Q_PROPERTY(QString  propName      READ propName      WRITE setPropName)
+  Q_PROPERTY(int      groupId       READ groupId       WRITE setGroupId )
+  Q_PROPERTY(QVariant defValue      READ defValue      WRITE setDefValue)
+  Q_PROPERTY(QString  tip           READ tip           WRITE setTip     )
+  Q_PROPERTY(bool     isColumn      READ isColumn                       )
+  Q_PROPERTY(bool     isMultiple    READ isMultiple                     )
+  Q_PROPERTY(bool     isOptional    READ isOptional                     )
+  Q_PROPERTY(bool     isRequired    READ isRequired                     )
+  Q_PROPERTY(bool     isDiscrimator READ isDiscrimator                  )
+  Q_PROPERTY(bool     isMonotonic   READ isMonotonic                    )
+  Q_PROPERTY(bool     isNumeric     READ isNumeric                      )
+  Q_PROPERTY(bool     isString      READ isString                       )
+  Q_PROPERTY(bool     isColor       READ isColor                        )
+  Q_PROPERTY(bool     hasTypeDetail READ hasTypeDetail                  )
+  Q_PROPERTY(QString  typeDetail    READ typeDetail                     )
+  Q_PROPERTY(bool     isGroupable   READ isGroupable                    )
+  Q_PROPERTY(bool     isMapped      READ isMapped                       )
+  Q_PROPERTY(double   mapMin        READ mapMin                         )
+  Q_PROPERTY(double   mapMax        READ mapMax                         )
+
  public:
   using Attributes = CQChartsPlotParameterAttributes;
 
  public:
   CQChartsPlotParameter(const QString &name, const QString &desc, const QString &type,
                         const QString &propName, const Attributes &attributes=Attributes(),
-                        const QVariant &defValue=QVariant()) :
-   name_(name), desc_(desc), type_(type), propName_(propName), attributes_(attributes),
-   defValue_(defValue) {
-  }
+                        const QVariant &defValue=QVariant());
 
   virtual ~CQChartsPlotParameter() { }
 
@@ -191,11 +214,33 @@ class CQChartsPlotParameter {
     return true;
   }
 
+  //---
+
+  void addProperty(const QString &name, const QString &propName, const QString &desc);
+
+  void propertyNames(QStringList &names) const;
+
+  bool hasProperty(const QString &name) const;
+
+  QVariant getPropertyValue(const QString &name) const;
+
  private:
   CQChartsPlotParameter(CQChartsPlotParameter &p);
   CQChartsPlotParameter &operator=(const CQChartsPlotParameter &);
 
  private:
+  struct PropertyData {
+    QString name;
+    QString propName;
+    QString desc;
+
+    PropertyData(const QString &name="", const QString &propName="", const QString &desc="") :
+     name(name), propName(propName), desc(desc) {
+    }
+  };
+
+  using Properties = std::map<QString,PropertyData>;
+
   QString    name_;           //! name
   QString    desc_;           //! description
   QString    type_;           //! type
@@ -204,6 +249,7 @@ class CQChartsPlotParameter {
   int        groupId_ { -1 }; //! group id
   QVariant   defValue_;       //! default value
   QString    tip_;            //! tip
+  Properties properties_;     //! properties
 };
 
 //---

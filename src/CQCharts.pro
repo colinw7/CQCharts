@@ -44,6 +44,7 @@ CQChartsViewToolTip.cpp \
 CQChartsProbeBand.cpp \
 \
 CQChartsPlotType.cpp \
+CQChartsPlotParameter.cpp \
 CQChartsPlot.cpp \
 CQChartsHierPlot.cpp \
 CQChartsHierPlotType.cpp \
@@ -205,6 +206,7 @@ HEADERS += \
 ../include/CQChartsProbeBand.h \
 \
 ../include/CQChartsPlotType.h \
+../include/CQChartsPlotParameter.h \
 ../include/CQChartsPlot.h \
 ../include/CQChartsHierPlot.h \
 ../include/CQChartsHierPlotType.h \

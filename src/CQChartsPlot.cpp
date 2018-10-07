@@ -2286,6 +2286,24 @@ selectRelease(const CQChartsGeom::Point &)
   return true;
 }
 
+#if 0
+void
+CQChartsPlot::
+selectObjsAtPoint(const CQChartsGeom::Point &w, Objs &objs)
+{
+  if (key() && key()->contains(w))
+    objs.push_back(key());
+
+  if (title() && title()->contains(w))
+    objs.push_back(title());
+
+  for (const auto &annotation : annotations()) {
+    if (annotation->contains(w))
+      objs.push_back(annotation);
+  }
+}
+#endif
+
 //------
 
 bool

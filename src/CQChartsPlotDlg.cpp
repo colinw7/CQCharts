@@ -1502,8 +1502,8 @@ setXYMin(const QString &id)
 
   CQChartsColumn column;
 
-  const char *colName = (id == "xmin" || id == "xmax" ? type->xColumnName() : type->yColumnName());
-  if (! colName) return;
+  QString colName = (id == "xmin" || id == "xmax" ? type->xColumnName() : type->yColumnName());
+  if (colName == "") return;
 
   for (const auto &parameter : type->parameters()) {
     if (parameter->name() != colName)
@@ -1609,13 +1609,13 @@ validateSlot()
   ymaxEdit_->setEnabled(type->customYRange());
 
   // can only set range if plot type supplies which column referes to these axes
-  const char *xcolName = type->xColumnName();
-  const char *ycolName = type->yColumnName();
+  QString xcolName = type->xColumnName();
+  QString ycolName = type->yColumnName();
 
-  xminButton_->setEnabled(xcolName);
-  yminButton_->setEnabled(ycolName);
-  xmaxButton_->setEnabled(xcolName);
-  ymaxButton_->setEnabled(ycolName);
+  xminButton_->setEnabled(xcolName != "");
+  yminButton_->setEnabled(ycolName != "");
+  xmaxButton_->setEnabled(xcolName != "");
+  ymaxButton_->setEnabled(ycolName != "");
 
   titleEdit_ ->setEnabled(type->hasTitle());
   xLabelEdit_->setEnabled(type->hasAxes());

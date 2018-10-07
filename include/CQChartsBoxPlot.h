@@ -20,7 +20,7 @@ class CQChartsBoxPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "boxplot"; }
   QString desc() const override { return "BoxPlot"; }
 
-  const char *yColumnName() const override { return "value"; }
+  QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
 

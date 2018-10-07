@@ -24,7 +24,7 @@ class CQChartsDistributionPlotType : public CQChartsGroupPlotType {
   QString name() const override { return "distribution"; }
   QString desc() const override { return "Distribution"; }
 
-  const char *yColumnName() const override { return "value"; }
+  QString yColumnName() const override { return "value"; }
 
   bool allowXAxisIntegral() const override { return false; }
 

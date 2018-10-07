@@ -1,4 +1,7 @@
 High
+ + Remove expr proces that can easily be replace by tcl proc (map, rand, norm)
+ + Arrow - empty needed ? Use rotated rect for line
+ + offscreen display for print
  + aggregate function for distribution plot
  + auto deduction of plot data from data
  + better filtering of plot values

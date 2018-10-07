@@ -105,7 +105,13 @@ class CQChartsModelColumnDetails {
 
 //---
 
-class CQChartsModelDetails {
+class CQChartsModelDetails : public QObject {
+  Q_OBJECT
+
+  Q_PROPERTY(int numColumns   READ numColumns    )
+  Q_PROPERTY(int numRows      READ numRows       )
+  Q_PROPERTY(int hierarchical READ isHierarchical)
+
  public:
   CQChartsModelDetails(CQChartsModelData *data);
 
