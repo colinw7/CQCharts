@@ -1,6 +1,7 @@
 #ifndef CQChartsPlot_H
 #define CQChartsPlot_H
 
+#include <CQChartsObj.h>
 #include <CQChartsColor.h>
 #include <CQChartsPlotSymbol.h>
 #include <CQChartsObjData.h>
@@ -84,7 +85,7 @@ CQCHARTS_NAMED_SHAPE_DATA(Plot,plot)
 CQCHARTS_NAMED_SHAPE_DATA(Data,data)
 CQCHARTS_NAMED_SHAPE_DATA(Fit,fit)
 
-class CQChartsPlot : public QObject,
+class CQChartsPlot : public CQChartsObj,
  public CQChartsObjPlotShapeData<CQChartsPlot>,
  public CQChartsObjDataShapeData<CQChartsPlot>,
  public CQChartsObjFitShapeData <CQChartsPlot> {
@@ -101,8 +102,7 @@ class CQChartsPlot : public QObject,
   Q_PROPERTY(CQChartsColumn tipColumn READ tipColumn WRITE setTipColumn)
 
   // visible, selected
-  Q_PROPERTY(bool visible  READ isVisible  WRITE setVisible )
-  Q_PROPERTY(bool selected READ isSelected WRITE setSelected)
+  Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
 
   // rectangle and data range
   Q_PROPERTY(QRectF viewRect READ viewRect WRITE setViewRect)
@@ -286,16 +286,14 @@ class CQChartsPlot : public QObject,
 
   QString typeName() const;
 
-  const QString &id() const { return id_; }
-  void setId(const QString &s) { id_ = s; }
-
   QString pathId() const;
+
+  //---
+
+  void setSelected(bool b) override;
 
   bool isVisible() const { return visible_; }
   void setVisible(bool b);
-
-  bool isSelected() const { return selected_; }
-  void setSelected(bool b);
 
   //---
 
@@ -1044,6 +1042,8 @@ class CQChartsPlot : public QObject,
 
   void selectedPlotObjs(PlotObjs &objs) const;
 
+  void editObjs(Objs &objs);
+
   //---
 
   virtual double getPanX(bool is_shift) const;
@@ -1567,9 +1567,7 @@ class CQChartsPlot : public QObject,
   ModelP                    model_;                           // abstract model
   bool                      modelNameSet_     { false };      // model name set from plot
   SelectionModelP           selectionModel_;                  // selection model
-  QString                   id_;                              // plot id
   bool                      visible_          { true };       // is visible
-  bool                      selected_         { false };      // is selected
   CQChartsGeom::BBox        viewBBox_         { 0, 0, 1, 1 }; // view box
   CQChartsGeom::BBox        innerViewBBox_    { 0, 0, 1, 1 }; // inner view box
   CQChartsPlotMargin        innerMargin_      { 0, 0, 0, 0 }; // inner margin

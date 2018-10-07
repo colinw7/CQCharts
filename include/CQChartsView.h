@@ -15,6 +15,7 @@
 
 class CQCharts;
 class CQChartsPlot;
+class CQChartsObj;
 class CQChartsViewKey;
 class CQChartsAnnotation;
 class CQChartsTextAnnotation;
@@ -122,6 +123,7 @@ class CQChartsView : public QFrame,
 
  public:
   using Plots       = std::vector<CQChartsPlot*>;
+  using Objs        = std::vector<CQChartsObj*>;
   using PlotSet     = std::set<CQChartsPlot*>;
   using Annotations = std::vector<CQChartsAnnotation *>;
 
@@ -333,11 +335,16 @@ class CQChartsView : public QFrame,
   void mouseMoveEvent   (QMouseEvent *me) override;
   void mouseReleaseEvent(QMouseEvent *me) override;
 
-  bool editMousePress(const QPointF &p);
+  bool editMousePress (const QPointF &p);
+  void editMouseMotion(const QPointF &p);
 
   void keyPressEvent(QKeyEvent *ke) override;
 
+  //---
+
   void resizeEvent(QResizeEvent *) override;
+
+  //---
 
   void paintEvent(QPaintEvent *) override;
 
@@ -366,9 +373,13 @@ class CQChartsView : public QFrame,
 
   //---
 
-  void showProbeLines(const QPointF &p);
+  void cycleEdit();
 
-  void editMouseMotion(const QPointF &p);
+  void editObjs(Objs &objs);
+
+  //---
+
+  void showProbeLines(const QPointF &p);
 
   void updatePosText(const QPointF &pos);
 

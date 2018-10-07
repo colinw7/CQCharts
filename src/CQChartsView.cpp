@@ -555,7 +555,7 @@ addPlot(CQChartsPlot *plot, const CQChartsGeom::BBox &bbox)
   if (! bbox1.isSet())
     bbox1 = CQChartsGeom::BBox(0, 0, viewportRange(), viewportRange());
 
-  if (! plot->id().length()) {
+  if (! plot->hasId()) {
     QString id(QString("%1").arg(numPlots() + 1));
 
     plot->setId(QString("%1%2").arg(plot->typeName()).arg(id));
@@ -1069,6 +1069,8 @@ interpThemeColor(double r) const
   return c;
 }
 
+//------
+
 void
 CQChartsView::
 mousePressEvent(QMouseEvent *me)
@@ -1571,6 +1573,10 @@ keyPressEvent(QKeyEvent *ke)
   else if (ke->key() == Qt::Key_Insert) {
     setMode(Mode::EDIT);
   }
+  else if (ke->key() == Qt::Key_Tab) {
+    if (mode() == Mode::EDIT)
+      cycleEdit();
+  }
 
   //---
 
@@ -1588,6 +1594,59 @@ keyPressEvent(QKeyEvent *ke)
   if (plot)
     plot->keyPress(ke->key(), ke->modifiers());
 }
+
+//------
+
+void
+CQChartsView::
+cycleEdit()
+{
+  Objs objs;
+
+  editObjs(objs);
+
+  if (objs.size() < 2)
+    return;
+
+  CQChartsObj *selObj = nullptr;
+  bool         next   = false;
+
+  for (auto &obj : objs) {
+    if (next) {
+      selObj = obj;
+      break;
+    }
+
+    if (obj->isSelected())
+      next = true;
+  }
+
+  if (! selObj)
+    selObj = objs[0];
+
+  deselectAll();
+
+  selObj->setSelected(true);
+}
+
+void
+CQChartsView::
+editObjs(Objs &objs)
+{
+  for (auto &plot : plots_)
+    objs.push_back(plot);
+
+  for (auto &plot : plots_) {
+    Objs objs1;
+
+    plot->editObjs(objs1);
+
+    for (auto &obj1 : objs1)
+      objs.push_back(obj1);
+  }
+}
+
+//------
 
 void
 CQChartsView::

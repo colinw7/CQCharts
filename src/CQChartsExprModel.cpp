@@ -1235,7 +1235,7 @@ setTypeCmd(const Values &values)
 
 //---
 
-// map value (for row/column):
+// map row value to min/max
 //   map(), map(max), map(min,max)
 QVariant
 CQChartsExprModel::
@@ -1616,7 +1616,7 @@ colorCmd(const Values &values) const
 
 //---
 
-// remap column value:
+// remap column value range to min/max:
 //   remap()            - current column, 0.0, 1.0
 //   remap(col)         - specified column, 0.0, 1.0
 //   remap(col,max)     - specified column, 0.0, max

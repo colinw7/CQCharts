@@ -3,6 +3,7 @@
 
 #include <CQChartsLength.h>
 #include <CQChartsGeom.h>
+#include <QStringList>
 
 class CQChartsPlot;
 

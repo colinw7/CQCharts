@@ -1,6 +1,7 @@
 #ifndef CQChartsAxis_H
 #define CQChartsAxis_H
 
+#include <CQChartsObj.h>
 #include <CQChartsEditHandles.h>
 #include <CQChartsObjData.h>
 #include <CQChartsColumn.h>
@@ -28,7 +29,7 @@ CQCHARTS_NAMED_LINE_DATA(AxesMinorGrid,axesMinorGrid)
 CQCHARTS_NAMED_FILL_DATA(AxesGrid,axesGrid)
 
 // Axis Data
-class CQChartsAxis : public QObject,
+class CQChartsAxis : public CQChartsObj,
  public CQChartsObjAxesLineData         <CQChartsAxis>,
  public CQChartsObjAxesTickLabelTextData<CQChartsAxis>,
  public CQChartsObjAxesLabelTextData    <CQChartsAxis>,
@@ -39,7 +40,6 @@ class CQChartsAxis : public QObject,
 
   // general
   Q_PROPERTY(bool      visible          READ isVisible          WRITE setVisible         )
-  Q_PROPERTY(bool      selected         READ isSelected         WRITE setSelected        )
   Q_PROPERTY(Direction direction        READ direction          WRITE setDirection       )
   Q_PROPERTY(Side      side             READ side               WRITE setSide            )
   Q_PROPERTY(bool      hasPosition      READ hasPosition        WRITE setHasPosition     )
@@ -121,10 +121,9 @@ class CQChartsAxis : public QObject,
   CQChartsView *view() const;
 
   bool isVisible() const { return visible_; }
-  void setVisible(bool b) { CQChartsUtil::testAndSet(visible_, b, [&]() { redraw(); } ); }
+  void setVisible(bool b);
 
-  bool isSelected() const { return selected_; }
-  void setSelected(bool b) { CQChartsUtil::testAndSet(selected_, b, [&]() { redraw(); } ); }
+  void setSelected(bool b) override;
 
   Direction direction() const { return direction_; }
   void setDirection(Direction dir) { direction_ = dir; updatePlotPosition(); }
@@ -368,7 +367,6 @@ class CQChartsAxis : public QObject,
 
   // general
   bool                       visible_             { true };
-  bool                       selected_            { false };
   Direction                  direction_           { Direction::HORIZONTAL };
   Side                       side_                { Side::BOTTOM_LEFT };
   bool                       integral_            { false };

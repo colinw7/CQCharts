@@ -107,7 +107,7 @@ class CQChartsColor {
 
   QColor interpColor(const CQChartsArrow *arrow, int i, int n) const;
 
-  QColor interpColor(const QObject *, int, int) const { assert(false); }
+  QColor interpColor(const QObject *, int, int) const { assert(false); return QColor(); }
 
   //---
 

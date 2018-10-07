@@ -2,6 +2,7 @@
 #define CQChartsPlotParameter_H
 
 #include <QString>
+#include <QStringList>
 #include <QVariant>
 
 class CQChartsPlotParameterAttributes {

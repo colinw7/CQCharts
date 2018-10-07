@@ -37,6 +37,8 @@ class CQChartsTitle : public CQChartsTextBoxObj {
 
   QString id() const;
 
+  void setSelected(bool b) override;
+
   //---
 
   const LocationType &location() const { return location_.location; }

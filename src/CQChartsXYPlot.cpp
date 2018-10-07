@@ -1034,7 +1034,7 @@ initObjs()
 
           CQChartsColumn yColumn2;
 
-          if (yColumns().count())
+          if (yColumns().count() > 1)
             yColumn2 = yColumns().getColumn(1);
 
           bool ok;

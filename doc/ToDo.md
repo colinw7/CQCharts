@@ -1,7 +1,5 @@
 High
  + aggregate function for distribution plot
-
- + tab through objects in edit mode
  + auto deduction of plot data from data
  + better filtering of plot values
  + auto split data into list of plots (left/right buttons)

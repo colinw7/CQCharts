@@ -18,7 +18,7 @@
 
 CQChartsAxis::
 CQChartsAxis(CQChartsPlot *plot, Direction direction, double start, double end) :
- QObject(plot),
+ CQChartsObj(plot),
  CQChartsObjAxesLineData         <CQChartsAxis>(this),
  CQChartsObjAxesTickLabelTextData<CQChartsAxis>(this),
  CQChartsObjAxesLabelTextData    <CQChartsAxis>(this),
@@ -67,6 +67,20 @@ CQChartsAxis::
 view() const
 {
   return plot()->view();
+}
+
+void
+CQChartsAxis::
+setVisible(bool b)
+{
+  CQChartsUtil::testAndSet(visible_, b, [&]() { redraw(); } );
+}
+
+void
+CQChartsAxis::
+setSelected(bool b)
+{
+  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->invalidateLayers(); } );
 }
 
 void

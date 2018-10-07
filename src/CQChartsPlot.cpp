@@ -1827,7 +1827,7 @@ void
 CQChartsPlot::
 initGroupedPlotObjs()
 {
-  // for overlay draw all combine objects on common layers
+  // init overlay plots before draw
   if (isOverlay()) {
     if (! isFirstPlot())
       return;
@@ -2843,6 +2843,23 @@ editMoveBy(const QPointF &d)
 
 //------
 
+void
+CQChartsPlot::
+editObjs(Objs &objs)
+{
+  if (key() && key()->isVisible())
+    objs.push_back(key());
+
+  if (title() && title()->isDrawn())
+    objs.push_back(title());
+
+  if (xAxis() && xAxis()->isVisible())
+    objs.push_back(xAxis());
+
+  if (yAxis() && yAxis()->isVisible())
+    objs.push_back(yAxis());
+}
+
 bool
 CQChartsPlot::
 rectSelect(const CQChartsGeom::BBox &r, SelMod selMod)
@@ -3605,7 +3622,7 @@ draw(QPainter *painter)
 {
   CScopeTimer timer("draw");
 
-  initPlotObjs();
+  initGroupedPlotObjs();
 
   //---
 

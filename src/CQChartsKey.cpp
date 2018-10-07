@@ -38,6 +38,18 @@ id() const
     return "";
 }
 
+void
+CQChartsKey::
+setSelected(bool b)
+{
+  CQChartsUtil::testAndSet(selected_, b, [&]() {
+    if      (view_)
+      view_->update();
+    else if (plot_)
+      plot_->invalidateLayers();
+  } );
+}
+
 CQChartsKey::
 ~CQChartsKey()
 {

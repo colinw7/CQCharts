@@ -284,6 +284,12 @@ main(int argc, char **argv)
 
   //---
 
+  if (mainData.exit) {
+    test.setShow(false);
+  }
+
+  //---
+
   // exec init file
   if (mainData.execFile.length()) {
     test.exec(mainData.execFile);

@@ -44,6 +44,8 @@ class CQChartsKey : public CQChartsBoxObj,
 
   QString id() const;
 
+  void setSelected(bool b) override;
+
   //---
 
   bool isHorizontal() const { return horizontal_; }

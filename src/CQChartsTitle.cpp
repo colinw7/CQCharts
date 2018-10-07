@@ -30,6 +30,13 @@ id() const
 
 void
 CQChartsTitle::
+setSelected(bool b)
+{
+  CQChartsUtil::testAndSet(selected_, b, [&]() { plot_->invalidateLayers(); } );
+}
+
+void
+CQChartsTitle::
 redraw()
 {
   plot_->invalidateLayer(CQChartsBuffer::Type::FOREGROUND);

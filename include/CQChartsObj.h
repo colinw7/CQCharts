@@ -20,6 +20,8 @@ class CQChartsObj : public QObject {
   //---
 
   // unique id of object
+  bool hasId() const { return !!id_; }
+
   const QString &id() const;
   void setId(const QString &s) { id_ = s; }
 
@@ -29,11 +31,13 @@ class CQChartsObj : public QObject {
   //---
 
   const CQChartsGeom::BBox &rect() const { return rect_; }
-  void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
+  virtual void setRect(const CQChartsGeom::BBox &r) { rect_ = r; }
 
   //---
 
   // tip id for object (string to display in tooltip)
+  bool hasTipId() const { return !!tipId_; }
+
   const QString &tipId() const;
   void setTipId(const QString &s) { tipId_ = s; }
 
@@ -44,13 +48,13 @@ class CQChartsObj : public QObject {
 
   // set/get selected
   bool isSelected() const { return selected_; }
-  void setSelected(bool b) { selected_ = b; }
+  virtual void setSelected(bool b) { selected_ = b; }
 
   //---
 
   // set/get inside
   bool isInside() const { return inside_; }
-  void setInside(bool b) { inside_ = b; }
+  virtual void setInside(bool b) { inside_ = b; }
 
  protected:
   using OptString = boost::optional<QString>;
